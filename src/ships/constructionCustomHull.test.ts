@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import type { ConstructionCatalog } from './blueprint';
 import { createStarterSource } from './constructionStarter';
 import { HULL_PRESETS } from './constructionHullPresets';
-import { customHullPrimitive, editableCustomHull, setSectionCount } from './customHullModel';
+import { addHullPointPair, removeHullPointPair, customHullPrimitive, editableCustomHull, setSectionCount } from './customHullModel';
 import { copyConstructionSelection, decodeConstructionSource, moveConstructionSelection, rotateConstructionSelection } from './constructionEditor';
 const catalog = { revision: 'test-catalog' } as ConstructionCatalog;
 
@@ -41,5 +41,15 @@ test('malformed or newer hull data cannot silently replace saved source', () => 
   const newer = structuredClone(source); (newer.construction.primitives[0].customHull as { version: number }).version = 2;
   expect(() => decodeConstructionSource(newer)).toThrow('Unsupported custom hull version');
   source.construction.primitives[0].customHull!.stations[0].points.pop();
-  expect(() => decodeConstructionSource(source)).toThrow('nine outline points');
+  expect(() => decodeConstructionSource(source)).toThrow('odd number of outline points');
+});
+
+test('paired point edits round-trip through the versioned source and reopen exactly', () => {
+  const source = createStarterSource(catalog, 'destroyer-hull'), primitive = source.construction.primitives[0];
+  const h = editableCustomHull(primitive);
+  addHullPointPair(h, 7); addHullPointPair(h, 4); removeHullPointPair(h, 1);
+  source.construction.primitives[0] = customHullPrimitive(h, primitive);
+  const reopened = decodeConstructionSource(JSON.parse(JSON.stringify(source)));
+  expect(reopened).toEqual(source);
+  expect(editableCustomHull(reopened.construction.primitives[0])).toEqual(h);
 });

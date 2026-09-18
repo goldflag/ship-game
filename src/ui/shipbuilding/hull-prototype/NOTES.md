@@ -74,7 +74,7 @@ This is display-only, in-memory study state, not a second ship blueprint format.
 The model never enters account storage, native construction compilation, simulation,
 equipment placement or the fleet roster. Armor is an annotation and paint preview;
 there is one sample surface region, painted independently of mesh subdivision.
-The closed surface uses authored stations only and a fixed nine-point outline per station (add/remove outline points is not yet shown).
+The closed surface uses authored stations with matching 5–33-point outlines. Add pair and Remove pair insert or remove mirrored points across all stations; the deck edges and center keel remain protected.
 The prototype allows up to 24 stations and three hull instances. Station spans
 are triangulated into planar faces; degenerate triangles at pointed ends are omitted.
 When a panel's four corners are not coplanar, its two triangles form a geometric

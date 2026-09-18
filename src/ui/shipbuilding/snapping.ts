@@ -30,7 +30,7 @@ export function wallFrameSnapFeatures(id: string, position: Vec3, bearing: numbe
 /** Authoring edges only: no gun mesh triangles, barrel bounds or render dependencies. */
 export function primitiveSnapFeatures(p: ConstructionPrimitive): SnapFeature[] {
   const actual = p.kind === 'custom-hull' && !p.customHull ? { ...customHullPrimitive(makeHull(0)), ...p } : p;
-  const faces: Vec3[][] = p.kind === 'balcony' ? balconyFaces(p.size, p.balcony).map(f => f.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180)))) : actual.kind === 'custom-hull' ? customHullFaces(actual).map(f => f.vertices.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180))))
+  const faces: Vec3[][] = p.mesh ? p.mesh.faces.map(f=>f.corners.map(i=>worldVertex(p,p.mesh!.vertices[i]))) : p.kind === 'balcony' ? balconyFaces(p.size, p.balcony).map(f => f.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180)))) : actual.kind === 'custom-hull' ? customHullFaces(actual).map(f => f.vertices.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180))))
     : p.shaping ? shapedFaces(p).map(f => f.points.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180))))
     : p.kind === 'vertex' ? VERTEX_FACES.map(f => f.corners.map(i => worldVertex(p, cornerVertices(p)[i])))
     : CONSTRUCTION_SHAPES[p.kind].map(f => f.map(v => worldVertex(p, v)));

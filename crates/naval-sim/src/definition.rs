@@ -1158,6 +1158,34 @@ pub struct ShipDefinitionAccuracy {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFreeformFace {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "name")]
+    pub name: String,
+    #[serde(rename = "corners")]
+    pub corners: Vec<f64>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFreeformMesh {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "label")]
+    pub label: String,
+    #[serde(rename = "family")]
+    pub family: String,
+    #[serde(rename = "vertices")]
+    pub vertices: Vec<[f64; 3]>,
+    #[serde(rename = "reference")]
+    pub reference: Vec<[f64; 3]>,
+    #[serde(rename = "faces")]
+    pub faces: Vec<ConstructionFreeformFace>,
+    #[serde(rename = "rings")]
+    pub rings: Vec<Vec<f64>>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionFreeformShape {
     #[serde(rename = "version")]
     pub version: f64,
@@ -1175,6 +1203,8 @@ pub struct ConstructionHullPoint {
     pub x: f64,
     #[serde(rename = "y")]
     pub y: f64,
+    #[serde(rename = "contour")]
+    pub contour: Option<f64>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -1239,6 +1269,8 @@ pub struct ConstructionPrimitive {
     pub rotation_deg: f64,
     #[serde(rename = "vertices")]
     pub vertices: Option<Vec<[f64; 3]>>,
+    #[serde(rename = "mesh")]
+    pub mesh: Option<ConstructionFreeformMesh>,
     #[serde(rename = "shaping")]
     pub shaping: Option<ConstructionFreeformShape>,
     #[serde(rename = "smoothGroup")]
@@ -1265,6 +1297,18 @@ pub struct ConstructionSurfaceAssignment {
     pub paint: String,
     #[serde(rename = "open")]
     pub open: Option<bool>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentWall {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "widthM")]
+    pub width_m: f64,
+    #[serde(rename = "heightM")]
+    pub height_m: f64,
+    #[serde(rename = "mirrorId")]
+    pub mirror_id: Option<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -1304,19 +1348,8 @@ pub struct ConstructionEquipmentPath {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct ConstructionEquipmentWall {
-    pub version: u32,
-    #[serde(rename = "widthM")]
-    pub width_m: f64,
-    #[serde(rename = "heightM")]
-    pub height_m: f64,
-    #[serde(rename = "mirrorId", default, skip_serializing_if = "Option::is_none")]
-    pub mirror_id: Option<String>,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipment {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "wall")]
     pub wall: Option<ConstructionEquipmentWall>,
     #[serde(rename = "paint")]
     pub paint: Option<String>,
@@ -1588,16 +1621,16 @@ pub struct ConstructionEquipmentPartSocketsItem {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentPartPath {
-    #[serde(rename = "widthM", default, skip_serializing_if = "Option::is_none")]
-    pub width_m: Option<f64>,
-    #[serde(rename = "standOffM", default, skip_serializing_if = "Option::is_none")]
-    pub stand_off_m: Option<f64>,
     #[serde(rename = "kind")]
     pub kind: String,
     #[serde(rename = "diameterM")]
     pub diameter_m: f64,
     #[serde(rename = "heightM")]
     pub height_m: Option<f64>,
+    #[serde(rename = "widthM")]
+    pub width_m: Option<f64>,
+    #[serde(rename = "standOffM")]
+    pub stand_off_m: Option<f64>,
     #[serde(rename = "postSpacingM")]
     pub post_spacing_m: Option<f64>,
     #[serde(rename = "massKgPerM")]
@@ -1608,8 +1641,6 @@ pub struct ConstructionEquipmentPartPath {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentPart {
-    #[serde(rename = "wallMount", default, skip_serializing_if = "Option::is_none")]
-    pub wall_mount: Option<String>,
     #[serde(rename = "id")]
     pub id: String,
     #[serde(rename = "name")]
@@ -1626,6 +1657,8 @@ pub struct ConstructionEquipmentPart {
     pub mass_kg: Option<f64>,
     #[serde(rename = "placement")]
     pub placement: String,
+    #[serde(rename = "wallMount")]
+    pub wall_mount: Option<String>,
     #[serde(rename = "occupancy")]
     pub occupancy: Option<Vec<ConstructionEquipmentPartOccupancyItem>>,
     #[serde(rename = "fitting")]

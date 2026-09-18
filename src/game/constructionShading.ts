@@ -1,7 +1,7 @@
 import type { Vec3 } from '../ships/blueprint';
 
 export const SMOOTH_HULL_SHAPES = new Set(['cylinder', 'half-cylinder', 'quarter-cylinder', 'quarter-cylinder-wall',
-  'sphere', 'hemisphere', 'sphere-octant', 'hemisphere-shell', 'half-hemisphere-shell', 'quarter-hemisphere-shell',
+  'half-hemisphere', 'quarter-hemisphere', 'sphere', 'hemisphere', 'sphere-octant', 'hemisphere-shell', 'half-hemisphere-shell', 'quarter-hemisphere-shell',
   'parabolic-shell', 'cone', 'hollow-cube', 'concave-corner', 'rounded-bridge', 'rounded-bridge-panel']);
 
 interface Face { vertices: readonly Vec3[]; normal: Vec3; group: string }

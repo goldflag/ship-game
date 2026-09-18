@@ -637,6 +637,18 @@ test('invalid hull placements and mirrored overlaps add no history; partial over
   owner.redo(); expect(data().primitives).toHaveLength(2);
 });
 
+test('D converts one selected curved shape, ignores repeat/modifiers, and toggles freeform without losing edits',async()=>{
+  const source=createStarterSource(catalog,'blank');source.construction.primitives[0].kind='cylinder';
+  const {tool,data,owner}=await setup({source}),ui=chrome();
+  tool.key(key('d'),ui);expect(tool.freeformMode).toBe(false);
+  tool.choose('hull');tool.key(key('d',{altKey:true}),ui);expect(tool.freeformMode).toBe(false);
+  tool.key(key('d'),ui);expect(tool.freeformMode).toBe(true);expect(data().primitives[0].mesh?.rings).toHaveLength(2);
+  tool.key(key('d',{repeat:true}),ui);expect(tool.freeformMode).toBe(true);
+  tool.key(key('d'),ui);expect(tool.freeformMode).toBe(false);expect(data().primitives[0].mesh).toBeDefined();
+  owner.undo();expect(data().primitives[0].kind).toBe('cylinder');
+  tool.switchLayer('internals');tool.key(key('d'),ui);expect(tool.getSnapshot().tool).toBe('deck');
+  tool.dispose();
+});
 
 test('new ropes sag in preview and source, bounded for short spans; zero stays available', async () => {
   const { tool, data } = await setup();
@@ -652,4 +664,20 @@ test('new ropes sag in preview and source, bounded for short spans; zero stays a
   tool.setRopeSlack(0);
   tool.finishPath();
   expect(data().equipment.at(-1)?.path?.slackM).toBe(0);
+});
+
+test('editing a detached balcony reseats it in the same undoable source transaction', async () => {
+  const initial = createStarterSource(catalog, 'blank');
+  initial.construction.primitives[0].size = [8, 8, 8];
+  const { defaultBalcony } = await import('../../ships/constructionBalcony');
+  const balcony = { id: 'balcony', kind: 'balcony' as const, size: [2, .08, 1] as Vec3, position: [5.1, 0, 0] as Vec3, rotationDeg: 0, balcony: defaultBalcony() };
+  initial.construction.primitives.push(balcony);
+  const { tool, owner, data, labels } = await setup({ source: initial });
+  const changed = structuredClone(balcony); changed.size[0] = 1;
+  tool.editPrimitive('Resize hull piece', changed);
+  expect(data().primitives[1].position[0]).toBeCloseTo(4.49, 8);
+  expect(data().primitives[1].size[0]).toBe(1);
+  expect(labels()).toEqual(['Resize hull piece']);
+  owner.undo();
+  expect(data().primitives[1]).toEqual(balcony);
 });

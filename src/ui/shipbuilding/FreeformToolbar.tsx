@@ -1,3 +1,4 @@
+import { FreeformMeshTools } from './FreeformMeshTools';
 import { FreeformShapeTools } from './FreeformShapeTools';
 import type { ConstructionPrimitive } from '../../ships/blueprint';
 import { useEffect, useRef, useState } from 'react';
@@ -22,16 +23,16 @@ export function FreeformToolbar({ primitive, onCommit, settings: s, onChange, cy
     window.addEventListener('keydown', escape, true);
     return () => { window.removeEventListener('pointerdown', outside); window.removeEventListener('keydown', escape, true); };
   }, [splitOpen]);
-  const mode = (mode: HullSelectionMode) => onChange({ selection: { mode, index: mode === 'face' ? 5 : 0 } });
+  const mode = (mode: HullSelectionMode) => onChange({ selection: { mode, index: mode === 'face' && !primitive.mesh ? 5 : 0 } });
   return <section className="sb-freeform-tools" aria-label="Freeform hull editor">
     <div className="sb-freeform-title">
-      <strong>Freeform hull</strong><span>Local block axes</span>
-      <button className="sb-freeform-reset" onClick={onReset} title="Restore this block to the shape it had when this edit session began">Reset edit</button><button onClick={onExit}>Done <kbd>Esc</kbd></button>
+      <strong>Freeform {primitive.mesh?.label.toLowerCase() ?? 'hull'}</strong><span>Local block axes</span>
+      <button className="sb-freeform-reset" onClick={onReset} title="Restore this block to the shape it had when this edit session began">Reset edit</button><button onClick={onExit}>Done <kbd>D / Esc</kbd></button>
     </div>
     <div className="sb-freeform-controls">
       <div className="sb-freeform-group">
         <span>Select</span><div className="sb-freeform-row" role="group" aria-label="Selection mode">
-          {(['vertex','edge','face'] as const).map(m => <button key={m} aria-pressed={s.selection.mode === m} onClick={() => mode(m)}>{m[0].toUpperCase() + m.slice(1)}</button>)}
+          {([...(['vertex','edge','face'] as const),...(primitive.mesh?.rings.length?['ring' as const]:[])]).map(m => <button key={m} aria-pressed={s.selection.mode === m} onClick={() => mode(m)}>{m[0].toUpperCase() + m.slice(1)}</button>)}
         </div>
       </div>
       <div className="sb-freeform-group">
@@ -45,15 +46,15 @@ export function FreeformToolbar({ primitive, onCommit, settings: s, onChange, cy
       <div className="sb-freeform-group">
         <span>Neighbors</span><button aria-label="Move nearby corners" aria-pressed={s.snap} onClick={() => onChange({ snap: !s.snap })} title="Also move corners of neighboring blocks within 0.025 m; no permanent link is created">Move nearby corners <b>{s.snap ? 'On' : 'Off'}</b></button>
       </div>
-      <div className="sb-freeform-group sb-freeform-split-menu" ref={split}>
+      {!primitive.mesh && <div className="sb-freeform-group sb-freeform-split-menu" ref={split}>
         <span>Shape</span><button aria-expanded={splitOpen} onClick={() => setSplitOpen(open => !open)}>Split…</button>
         {splitOpen && <div className="sb-freeform-popover" role="group" aria-label="Split block">
           <span>Split along local axis</span><div className="sb-freeform-row">{['X','Y','Z'].map((a,k) => <button key={a} aria-label={`Split ${a}`} aria-pressed={s.splitAxis === k} onClick={() => onChange({ splitAxis: k })}>{a}</button>)}</div>
           <NumberField label="Count" value={s.count} min={2} max={16} onChange={count => onChange({ count: Math.round(count) })}/>
           <span>Creates independent blocks.</span><button disabled={!!primitive.shaping} title={primitive.shaping ? "Remove edge treatment before splitting" : undefined} onClick={onSplit}>Split block</button>
         </div>}
-      </div>
+      </div>}
     </div>
-    <FreeformShapeTools primitive={primitive} selection={s.selection} axes={s.axes} onCommit={onCommit} onSelect={selection=>onChange({selection})}/>
+    {primitive.mesh ? <FreeformMeshTools primitive={primitive} selection={s.selection} onCommit={onCommit} onSelect={selection=>onChange({selection})}/> : <FreeformShapeTools primitive={primitive} selection={s.selection} axes={s.axes} onCommit={onCommit} onSelect={selection=>onChange({selection})}/>}
   </section>;
 }

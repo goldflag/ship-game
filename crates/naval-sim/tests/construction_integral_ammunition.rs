@@ -15,7 +15,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
             version: 2.,
             catalog_revision: catalog.revision.clone(),
             default_thickness_mm: 16.,
-            primitives: vec![ConstructionPrimitive { balcony: None, shaping: None,
+            primitives: vec![ConstructionPrimitive { mesh: None, balcony: None, shaping: None,
                 id: "hull".into(),
                 kind: "box".into(),
                 position: [0.; 3],
@@ -320,7 +320,7 @@ fn gun_magazines_fit_above_curved_bottom_plating_across_their_whole_footprint() 
                         [1., 0.45],
                     ]
                     .into_iter()
-                    .map(|[x, y]| ConstructionHullPoint { x, y })
+                    .map(|[x, y]| ConstructionHullPoint { x, y, contour: None })
                     .collect(),
                 }
             })

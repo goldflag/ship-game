@@ -284,10 +284,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiledResult, primitive.id);
-    const size = (axis: number, value: number) => { const next = structuredClone(primitive); next.size[axis] = value; run('Resize hull piece', [{ op: 'primitive', value: next }]); };
+    const size = (axis: number, value: number) => { const next = structuredClone(primitive); next.size[axis] = value; tool.editPrimitive('Resize hull piece', next); };
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
       <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField label={primitive.kind === 'balcony' ? 'Deck thickness' : undefined} value={primitive.size[1]} min={primitive.kind === 'balcony' ? .01 : .25} max={500} step={primitive.kind === 'balcony' ? .01 : 1} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
-      {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform}>Freeform hull</button>}
+      {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform} aria-label="Freeform hull" title="Edit freeform shape (D)">Freeform <kbd>D</kbd></button>}
       {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
       {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => setBalconySession(primitive.id)}>Edit balcony outline</button>}
       {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}{primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
@@ -412,6 +412,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   else if (movable && !freeformMode && !selectedEquipment.some(e => e.wall)) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
   if (movable && !freeformMode) acting.push({ keys: ['←→', '↑↓'], label: selectedEquipment.every(e => e.wall) && selectedEquipment.length ? 'Resize · Shift fine' : 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
+  if(!freeformMode&&selected.size===1&&selectedPrimitives[0]&&canEditVertices(selectedPrimitives[0]))acting.push({keys:['D'],label:'Freeform'});
   if (surfaces.size && faceLayer) acting.push({ keys: ['⇧'], label: 'Click adds a face' });
   const escape = pathPart ? 'Cancel path' : drawer || designsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : activeTool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
   if (escape) acting.push({ keys: ['Esc'], label: escape });
@@ -422,7 +423,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-viewbar') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); }}/>;
   const balconyEditing = layer === 'hull' && selectedPrimitives.length === 1 && selectedPrimitives[0].kind === 'balcony' && selectedPrimitives[0].id === balconySession;
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-balcony-editing={balconyEditing || undefined} data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
-    {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => run('Edit balcony', [{ op: 'primitive', value }])} onClose={() => setBalconySession(undefined)} />}
+    {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => tool.editPrimitive('Edit balcony', value)} onClose={() => setBalconySession(undefined)} />}
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
     {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
@@ -482,7 +483,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       </div>
       <div className="sb-rail" role="toolbar" aria-label="Tools"><span className="sb-rail-cap">Tools</span>
         {rail.filter(entry => entry.id !== 'rotate' || !(piece?.kind === 'equipment' && piece.wall) && !selectedEquipment.some(e => e.wall)).map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : undefined} title={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
-        {layer==='hull' && <button aria-pressed={freeformMode} disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?tool.exitFreeform:enterFreeform} title="Select one cube or freeform hull to edit vertices, edges and faces"><ToolGlyph name="Select"/><span>Freeform</span></button>}
+        {layer==='hull' && <button aria-pressed={freeformMode} disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?tool.exitFreeform:enterFreeform} title="Select one editable shape to edit vertices, edges, faces or rings (D)"><ToolGlyph name="Select"/><span>Freeform</span><kbd>D</kbd></button>}
         {/* Modifiers change where a click lands rather than what it does; freeform mode carries its own local mirror axes and unit. */}
         {!freeformMode && <><span className="sb-rail-cap foot">Modifiers</span>
           <button className="toggle" disabled={locked} aria-pressed={mirror} title="Mirror (M) · place, move and paint the twin across the centerline" onClick={tool.toggleMirror}><ToolGlyph name="Mirror"/><span>Mirror</span><kbd>M</kbd></button>

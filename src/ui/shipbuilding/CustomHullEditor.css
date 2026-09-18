@@ -50,7 +50,7 @@
 .hp-panel-title>span { font-size:11px; color:var(--hp-muted); }
 .hp-section-editor { background:var(--hp-panel); min-width:0; }
 .hp-cross { width:100%; max-height:340px; display:block; touch-action:none; }
-.hp-root svg text { fill:var(--hp-muted); font:11px 'Barlow',sans-serif; user-select:none; }
+.hp-root svg text { fill:var(--hp-muted); font:11px 'Barlow',sans-serif; user-select:none; pointer-events:none; }
 .hp-grid { stroke:var(--hp-line); stroke-width:.55; }
 .hp-datum { stroke:#a3b0b569; stroke-width:1; stroke-dasharray:5 5; }
 .hp-outline { fill:#86e4c513; stroke:var(--hp-mint); stroke-width:1.5; stroke-linejoin:round; }
@@ -62,6 +62,10 @@
 .hp-chosen>.hp-point-label, .hp-chosen>.hp-station-label { fill:var(--hp-mint); font-weight:600; }
 .hp-point-controls { display:flex; justify-content:space-between; align-items:center; padding:0 18px 12px; gap:12px; }
 .hp-point-controls>label { display:flex; align-items:center; gap:8px; color:var(--hp-muted); }
+.hp-point-controls>span { color:var(--hp-muted); font-size:12px; }
+.hp-point-actions { display:flex; flex-wrap:wrap; gap:8px; padding:0 18px; }
+.hp-point-actions button { flex:1; }
+.hp-section-editor .hp-point-help { color:var(--hp-muted); font-size:12px; line-height:1.5; padding:8px 18px 16px; }
 .hp-section-editor>.hp-pair { padding:0 18px 16px; }
 .hp-inspector { background:var(--hp-panel); min-width:0; }
 .hp-tabs { display:flex; gap:5px; padding:12px 18px; }

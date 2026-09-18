@@ -2,6 +2,7 @@ import { mirroredIndices } from './freeformShape';
 import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
+import { outlineTopologyError } from './customHullTopology';
 import type { ConstructionEquipment, ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
 import { CONSTRUCTION_SHAPES, shapeMirror } from './constructionShapes';
@@ -81,10 +82,24 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       for (const station of stations) {
         string(station.id, 'Section ID'); number(station.t, 'Section position');
         const points = rows(station.points, 'Section points');
-        if (points.length !== 9) throw new Error('Each hull section requires nine outline points');
-        for (const point of points) { number(point.x, 'Point X'); number(point.y, 'Point Y'); }
+        for (const point of points) { number(point.x, 'Point X'); number(point.y, 'Point Y'); if (point.contour !== undefined) number(point.contour, 'Outline position'); }
       }
+      const topology = outlineTopologyError(stations as unknown as import('./blueprint').ConstructionHullStation[]);
+      if (topology) throw new Error(topology);
     } else if (p.customHull !== undefined) throw new Error('Section data belongs to a custom hull');
+    if(p.mesh !== undefined) {
+      const mesh=object(p.mesh,'Freeform topology');
+      if(p.kind!=='vertex'||p.vertices!==undefined||p.shaping!==undefined||mesh.version!==1||!['prism','rings','polyhedron'].includes(String(mesh.family)))throw new Error('Unsupported freeform topology');
+      string(mesh.label,'Shape label');
+      if((mesh.label as string).length>80)throw new Error('Shape label is too long');
+      if(!Array.isArray(mesh.vertices)||mesh.vertices.length<4||mesh.vertices.length>256||!Array.isArray(mesh.reference)||mesh.reference.length!==mesh.vertices.length)throw new Error('Freeform requires 4–256 vertices and matching mirror references');
+      mesh.vertices.forEach(v=>vector(v,'Freeform vertex'));mesh.reference.forEach(v=>vector(v,'Mirror reference'));
+      const index=(n:unknown)=>typeof n==='number'&&Number.isInteger(n)&&n>=0&&n<(mesh.vertices as unknown[]).length;
+      const faces=rows(mesh.faces,'Freeform faces'),ids=new Set<string>();
+      if(faces.length<4||faces.length>256)throw new Error('Freeform requires 4–256 faces');
+      for(const f of faces){string(f.id,'Face ID');if((f.id as string).length>80||ids.has(f.id as string)||!CONSTRUCTION_FACES.includes(f.name as ConstructionFace)||!Array.isArray(f.corners)||f.corners.length<3||f.corners.length>64||!f.corners.every(index)||new Set(f.corners).size!==f.corners.length)throw new Error('Invalid freeform face');ids.add(f.id as string);}
+      if(!Array.isArray(mesh.rings)||mesh.rings.length>24||mesh.rings.some(r=>!Array.isArray(r)||!r.length||r.length>64||!r.every(index)))throw new Error('Invalid freeform rings');
+    }
     if (p.shaping !== undefined) {
       const shape=object(p.shaping,'Freeform shaping');
       if(p.kind!=='vertex'||shape.version!==1||!['round','chamfer'].includes(String(shape.style)))throw new Error('Unsupported freeform shaping');
@@ -199,6 +214,15 @@ export function rotateConstructionSelection(source: ConstructionSource, selected
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
 export function mirroredPrimitive(primitive: ConstructionPrimitive): ConstructionPrimitive {
   if (primitive.kind === 'balcony') return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), balcony: mirroredBalcony(primitive) };
+  if(primitive.mesh){
+    const out=structuredClone(primitive),m=out.mesh!;
+    out.position[0]*=-1;out.rotationDeg=normalizedBearing(-out.rotationDeg);
+    m.vertices.forEach(v=>v[0]*=-1);m.reference.forEach(v=>v[0]*=-1);
+    m.faces.forEach(f=>{f.corners.reverse();if(f.name==='port')f.name='starboard';else if(f.name==='starboard')f.name='port';});
+    // Keep corresponding prism outlines in the same winding after reflection.
+    if(m.family==='prism')m.rings.forEach(r=>r.reverse());
+    return out;
+  }
   if (primitive.kind === 'vertex') {
     const out: ConstructionPrimitive = { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), vertices: [1,0,3,2,5,4,7,6].map(i => {const v=cornerVertices(primitive)[i];return [-v[0],v[1],v[2]];}) };
     if(out.shaping) {const s=out.shaping; s.edges=s.edges.map(i=>mirroredIndices('edge',[i],[true,false,false]).find(j=>j!==i)??i); }

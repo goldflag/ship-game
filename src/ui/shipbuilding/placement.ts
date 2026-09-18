@@ -1,3 +1,4 @@
+import { seatBalconyCenter } from './balconyPlacement';
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
 import { balconyFaces } from '../../ships/constructionBalcony';
@@ -80,6 +81,7 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
     const center = hit.point.map((value, index) => index === axis
       ? value + sign * extents[index] / 2
       : step === null ? value : gridCoordinate(value - extents[index] / 2 - (hit.snapOrigin?.[index] ?? 0), step) + extents[index] / 2 + (hit.snapOrigin?.[index] ?? 0)) as Vec3;
+    if (piece.shape === 'balcony' && Math.abs(normal[1]) < .9) return seatBalconyCenter(piece, center, hit.point, normal);
     const faces = hullFaces(piece);
     const dot = (v: Vec3) => v[0] * normal[0] + v[1] * normal[1] + v[2] * normal[2];
     let support = Infinity;
@@ -150,7 +152,7 @@ const sameVector = (a: Vec3, b: Vec3) => a.every((value, index) => near(value, b
 /** The existing piece that mirrors this one across the centerline: another piece, or itself when it straddles the centerline. */
 export function mirrorTwin(source: ConstructionSource, primitive: ConstructionPrimitive): ConstructionPrimitive | undefined {
   const expected = mirroredPrimitive(primitive);
-  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && JSON.stringify(candidate.vertices) === JSON.stringify(expected.vertices) && JSON.stringify(candidate.customHull) === JSON.stringify(expected.customHull) && sameVector(candidate.size, expected.size)
+  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && JSON.stringify(candidate.vertices) === JSON.stringify(expected.vertices) && JSON.stringify(candidate.mesh) === JSON.stringify(expected.mesh) && JSON.stringify(candidate.customHull) === JSON.stringify(expected.customHull) && sameVector(candidate.size, expected.size)
     && sameVector(candidate.position, expected.position) && near(normalizedBearing(candidate.rotationDeg), expected.rotationDeg);
   return source.construction.primitives.find(candidate => candidate.id !== primitive.id && matches(candidate)) ?? (matches(primitive) ? primitive : undefined);
 }

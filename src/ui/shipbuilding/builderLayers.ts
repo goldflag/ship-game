@@ -1,3 +1,4 @@
+import { EDITABLE_SHAPES } from '../../ships/constructionMesh';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
@@ -36,7 +37,7 @@ export interface HullShape { id: string; name: string; note: string; kind: Const
  * The first nine fill the keyed bar; freeform hull and balcony lead the palette. */
 export const HULL_SHAPES: HullShape[] = [
   { id: 'vertex', name: 'Freeform hull', note: 'vertices, edges and faces · 4 m', kind: 'vertex', size: [4, 4, 4] },
-  { id: 'balcony', name: 'Balcony', note: '2 × 1 m platform · editable outline and walls', kind: 'balcony', size: [2, .08, 1] },
+  { id: 'balcony', name: 'Balcony', note: '1 m deep × 2 m wide · open mounting edge', kind: 'balcony', size: [1, .08, 2] },
   { id: 'cube', name: 'Cube', note: '1 m', kind: 'box', size: [1, 1, 1] },
   { id: 'slab', name: 'Slab', note: '4 × 1 × 4', kind: 'box', size: [4, 1, 4] },
   { id: 'bar', name: 'Bar', note: '1 × 1 × 4', kind: 'box', size: [1, 1, 4] },
@@ -55,6 +56,7 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'tall-wedge', name: 'Tall wedge', note: '4 × 8 × 4', kind: 'wedge', size: [4, 8, 4] },
   ...([
     ['ballast', [3, 1.5, 3]],
+    ['prism', [4, 4, 4]], ['half-hemisphere', [2, 2, 4]], ['quarter-hemisphere', [2, 2, 2]],
     ['pyramid', [4, 4, 4]], ['cylinder', [4, 4, 4]], ['half-cylinder', [2, 4, 4]],
     ['quarter-cylinder', [4, 4, 4]], ['quarter-cylinder-wall', [4, 4, 4]],
     ['sphere', [4, 4, 4]], ['hemisphere', [4, 2, 4]], ['sphere-octant', [4, 4, 4]],
@@ -66,7 +68,7 @@ export const HULL_SHAPES: HullShape[] = [
     ['rounded-bridge-panel', [4, 3, 4]], ['breakwater', [8, 1.5, 2]],
   ] satisfies [ConstructionPrimitive['kind'], Vec3][]).map(([kind, size]): HullShape => ({
     id: kind, kind, name: CONSTRUCTION_SHAPE_NAMES[kind], size,
-    note: `${size.join(' × ')} m${kind === 'ballast' ? ' · 100 t fixed load + casing' : kind.includes('shell') ? ' · open underneath' : kind.includes('bridge') ? ' · open windows' : ''}`,
+    note: `${size.join(' × ')} m${EDITABLE_SHAPES.has(kind) ? ' · freeform (D)' : ''}${kind === 'hemisphere' ? ' · dome' : ''}${kind === 'ballast' ? ' · 100 t fixed load + casing' : kind.includes('shell') ? ' · open underneath' : kind.includes('bridge') ? ' · open windows' : ''}`,
   })),
 ];
 

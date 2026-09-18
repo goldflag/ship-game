@@ -190,6 +190,8 @@ impl ShipIndex {
 #[derive(Clone, Debug)]
 pub struct CompiledShip {
     pub maneuvering: crate::maneuvering::Maneuvering,
+    /// Shared by port, battle spawns and resets, solved once per loaded design.
+    initial_pose: crate::geometry::Pose,
     pub deck_surface: Option<crate::aviation::DeckSurface>,
     pub collision_profile: Vec<[f64; 2]>,
     pub torpedo_hull: Vec<crate::structure::StructuralSurface>,
@@ -253,13 +255,31 @@ impl CompiledShip {
         let shell_radius = length(std::array::from_fn(|i| {
             shell_center[i].abs() + shell_size[i] / 2.0
         }));
+        let hydro = HullHydrostatics::new(&d.hull, hydrostatics);
+        let mut initial_pose = crate::geometry::Pose::default();
+        // Legacy hulls use a calibrated authored waterline; constructed hulls
+        // carry physical loading in editor coordinates, not a sea-level origin.
+        if d.hull.volume.is_some()
+            && d.submarine.is_none()
+            && let Some(profile) = &d.stability
+        {
+            let volume = d.hull.mass_kg / (1025. * profile.buoyancy_scale);
+            let upright = hydro.flotation(volume, 0., 0.);
+            if upright.afloat {
+                initial_pose.y = upright.y;
+                if let Some(pose) = hydro.equilibrium(volume, profile.dry_center_of_gravity) {
+                    initial_pose = pose;
+                }
+            }
+        }
         Ok(Self {
             maneuvering: crate::maneuvering::Maneuvering::new(d),
+            initial_pose,
             deck_surface,
             torpedo_hull: crate::torpedoes::torpedo_hull(d)?,
             collision_profile: crate::collisions::profile(&d.hull),
             contacts: ContactGeometry::new(d)?,
-            hydro: HullHydrostatics::new(&d.hull, hydrostatics),
+            hydro,
             obstructions: Obstructions::new(d),
             weapon_group_ids: d.mounts.iter().map(crate::gunnery::group_id).collect(),
             definition,
@@ -297,6 +317,11 @@ pub struct Vessel {
 }
 impl Vessel {
     pub fn new(id: impl Into<String>, team: TeamId, compiled: Arc<CompiledShip>) -> Self {
+        let mut state = Combatant::new(id, &compiled.definition);
+        state.motion.y = compiled.initial_pose.y;
+        state.motion.roll = compiled.initial_pose.roll;
+        state.motion.pitch = compiled.initial_pose.pitch;
+        state.damage.stability.target_y = compiled.initial_pose.y;
         Self {
             navigation: None,
             helm: Default::default(),
@@ -307,7 +332,7 @@ impl Vessel {
             target_id: None,
             firing_visibility_seconds: 0.0,
             secondary_bot: None,
-            state: Combatant::new(id, &compiled.definition),
+            state,
             preset_id: compiled.definition.id.clone(),
             team,
             compiled,

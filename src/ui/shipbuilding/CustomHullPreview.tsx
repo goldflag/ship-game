@@ -37,7 +37,7 @@ export function hullGeometry(h: Hull) {
   };
   for (let j = 0; j < stations.length - 1; j++) for (let i = 0; i < n; i++) {
     const a = j * n + i, b = j * n + (i + 1) % n, c = a + n, d = b + n;
-    if (i >= 4 && i < 8) { triangle(a, b, d, i); triangle(a, d, c, i); }
+    if (i >= (n - 1) / 2 && i < n - 1) { triangle(a, b, d, i); triangle(a, d, c, i); }
     else { triangle(a, b, c, i); triangle(b, d, c, i); }
   }
   for (const ring of [0, stations.length - 1]) {

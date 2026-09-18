@@ -1,3 +1,5 @@
+import { reseatBalcony } from './balconyPlacement';
+import { editableMesh } from '../../ships/constructionMesh';
 import { fittedLadder } from '../../ships/constructionLadders';
 import { wallMount, installedWallPart, wallNormal, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
 import { DEFAULT_SNAPPING, constructionSnapFeatures, type SnapSettings } from './snapping';
@@ -8,7 +10,7 @@ import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, 
 import { assignConstructionSurfaces, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, projectConstructionSurfaces, surfaceKey, surfaceSelectionKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { applyConstructionBatch, constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
 import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../ships/constructionRevisionOwner';
-import { canEditVertices, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
+import { canEditVertices, selectionCorners, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
 import { pathSlackLimit, pathProblem } from '../../ships/constructionPaths';
 import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
 import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
@@ -134,6 +136,8 @@ export class BuilderTool {
   /** Freeform editing lasts while its block stays the single selection of the Hull layer's Select tool. */
   private reconcile() {
     if (this.state.freeform && !this.freeformPrimitive) this.state = { ...this.state, freeform: undefined };
+    const p=this.freeformPrimitive;
+    if(p&&!selectionCorners(this.state.freeformSettings.selection,p).length)this.state={...this.state,freeformSettings:{...this.state.freeformSettings,selection:{mode:'vertex',index:0}}};
   }
   /** The revision owner changed: a new design clears selections and proposals; a new revision retires a pending layout request. */
   private observe = () => {
@@ -182,7 +186,7 @@ export class BuilderTool {
   get freeformPrimitive(): ConstructionPrimitive | undefined {
     const { freeform, layer, tool, selected } = this.state;
     if (!freeform || freeform.designId !== this.source.id || layer !== 'hull' || tool !== 'select' || selected.size !== 1 || !selected.has(freeform.baseline.id)) return undefined;
-    return this.data.primitives.find(part => part.id === freeform.baseline.id && canEditVertices(part));
+    return this.data.primitives.find(part => part.id === freeform.baseline.id && (part.kind==='box'||part.kind==='vertex'));
   }
   get freeformMode() { return !!this.freeformPrimitive; }
   partOf = (instance: ConstructionEquipment) => { const part = this.catalog.equipment.find(part => part.id === instance.partId); return part && installedWallPart(part, instance); };
@@ -476,7 +480,12 @@ export class BuilderTool {
     return this.nudge([-x, 0, 0]);
   };
   nudge = (delta: Vec3): ConstructionSubmission | undefined => this.state.selected.size ? this.movePieces([...this.state.selected], delta) : undefined;
-  /** A finished move drag or nudge: hull blocks retain at least 10% exposed volume; resolved fitting and wall coordinates stay exact. */
+  /** Keep balcony edits and their physical seating in one undo transaction. */
+  editPrimitive = (label: string, value: ConstructionPrimitive) => {
+    const before = this.data.primitives.find(p => p.id === value.id);
+    return this.run(label, [{ op: 'primitive', value: before ? reseatBalcony(this.source, before, value) : value }]);
+  };
+  /** A finished move drag or nudge retains the native overlap constraint. */
   movePieces = (ids: string[], requested: Vec3): ConstructionSubmission | undefined => {
     ids = ids.filter(this.selectable);
     if (!ids.length) return undefined;
@@ -520,8 +529,8 @@ export class BuilderTool {
     return this.command('Rotate fittings', [{ op: 'rotate', ids, degrees }]);
   };
   /** A click or a finished stroke: one piece per point plus mirrored twins, as one undoable edit. */
-  placeAt = (points: Vec3[], bearingDeg?: number): ConstructionSubmission | undefined => {
-    const piece = this.piece, active = this.active, { mirror } = this.state;
+  placeAt = (points: Vec3[], bearingDeg?: number, hullPlacement?: Extract<BuilderPlacement, { kind: 'hull' }>): ConstructionSubmission | undefined => {
+    const piece = hullPlacement ?? this.piece, active = this.active, { mirror } = this.state;
     if (!piece) return undefined;
     const refused = this.refused(); if (refused) return refused;
     if (piece.kind === 'hull' && active?.kind === 'shape') {
@@ -705,7 +714,7 @@ export class BuilderTool {
   pointer = (event: BuilderPointerEvent): ConstructionSubmission | undefined => {
     switch (event.kind) {
       case 'pick': return this.pick(event.hit);
-      case 'lay': return this.placeAt(event.points, event.bearingDeg);
+      case 'lay': return this.placeAt(event.points, event.bearingDeg, event.hullPlacement);
       case 'faces': return this.applyFaces(event.surfaces);
       case 'box': this.boxSelect(event.ids, event.additive); return undefined;
       case 'erase': return this.erase(event.id);
@@ -759,13 +768,15 @@ export class BuilderTool {
   enterFreeform = (): boolean => {
     const part = this.selectedPrimitives[0];
     if (!part || this.state.selected.size !== 1 || !canEditVertices(part)) return false;
-    this.update({ tool: 'select', layer: 'hull', surfaces: new Set(), freeform: { designId: this.source.id, baseline: structuredClone(part) } });
+    const converted=editableMesh(part);
+    if(converted.mesh&&!part.mesh&&!this.commitFreeform([converted])?.accepted)return false;
+    this.update({ tool: 'select', layer: 'hull', surfaces: new Set(), freeformSettings:{...this.state.freeformSettings,selection:{mode:'vertex',index:0}}, freeform: { designId: this.source.id, baseline: structuredClone(part) } });
     return true;
   };
   exitFreeform = () => this.update({ freeform: undefined });
   commitFreeform = (replacements: ConstructionPrimitive[]): ConstructionSubmission | undefined =>
     replacements.length ? this.run('Shape freeform hull', replacements.filter(part => this.data.primitives.some(existing => existing.id === part.id)).map(value => ({ op: 'primitive', value }))) : undefined;
-  resetFreeform = () => { const freeform = this.state.freeform; return freeform ? this.run('Reset hull edit', [{ op: 'primitive', value: freeform.baseline }]) : undefined; };
+  resetFreeform = () => { const freeform = this.state.freeform; return freeform ? this.run('Reset hull edit', [{ op: 'primitive', value: editableMesh(freeform.baseline) }]) : undefined; };
   splitFreeform = () => {
     const primitive = this.freeformPrimitive, settings = this.state.freeformSettings;
     if (!primitive) return;
@@ -790,6 +801,9 @@ export class BuilderTool {
     if (!modifier && !event.altKey && lower === 'n') { event.preventDefault(); if (!event.repeat) this.toggleSnapping(); return; }
     if (!modifier && !event.altKey && lower === 's') { event.preventDefault(); if (!event.repeat) this.cycleGrid(); return; }
     if (!modifier && !event.altKey && lower === 'p') { event.preventDefault(); if (!event.repeat) this.toggleProjection(); return; }
+    if(!modifier&&!event.altKey&&lower==='d'&&s.layer==='hull'&&!pathPart){
+      event.preventDefault();if(!event.repeat){if(this.freeformMode)this.exitFreeform();else if(this.enterFreeform())chrome.slotChosen();}return;
+    }
     if (this.freeformMode && !modifier) {
       if (event.key === 'Escape') { this.exitFreeform(); event.preventDefault(); return; }
       if (lower === 'g') { this.cycleUnit(); event.preventDefault(); return; }

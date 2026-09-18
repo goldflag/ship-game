@@ -1,10 +1,11 @@
+import { editableMesh } from './constructionMesh';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import { editableCustomHull, customHullPrimitive, setSectionCount } from './customHullModel';
 import { patchPrimitive, patchEquipment, type PrimitivePatch, type EquipmentPatch } from './constructionPatches';
 import { copyConstructionSelection, mirroredFace } from './constructionEditor';
 import type { ConstructionBoundary, ConstructionEquipment, ConstructionHullStation, ConstructionLoad, ConstructionPrimitive, ConstructionSource, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { CONSTRUCTION_FACES, assignConstructionSurfaces, decodeConstructionSource, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, mirroredEquipment } from './constructionEditor';
-import { freeformEdit, replaceVertexPrimitives, type HullSelection, type MirrorAxes } from './constructionVertex';
+import { canEditVertices, selectionCorners, freeformEdit, replaceVertexPrimitives, type HullSelection, type MirrorAxes } from './constructionVertex';
 
 /** Commands edit the existing source contract; they never accept derived physics. */
 export type ConstructionCommand =
@@ -133,11 +134,13 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
         }
         assignConstructionSurfaces(draft, keys, command.changes); break;
       }
-      case 'vertices':
-        if (!['vertex', 'edge', 'face'].includes(command.selection.mode) || !Number.isInteger(command.selection.index) || command.selection.index < 0 || command.selection.index >= ({ vertex: 8, edge: 12, face: 6 }[command.selection.mode])) throw new Error('Unknown vertex, edge or face.');
+      case 'vertices': {
         requireIds([command.id]);
-        if (!data.primitives.some(p => p.id === command.id && ['box', 'vertex'].includes(p.kind))) throw new Error('Vertex editing requires a box or vertex hull.');
+        const primitive=data.primitives.find(p=>p.id===command.id);
+        if(!primitive||!canEditVertices(primitive))throw new Error('Select an editable freeform shape.');
+        if(!['vertex','edge','face','ring'].includes(command.selection.mode)||!Number.isInteger(command.selection.index)||!selectionCorners(command.selection,editableMesh(primitive)).length)throw new Error('Unknown vertex, edge, face or ring.');
         replaceVertexPrimitives(draft, freeformEdit(draft, command.id, command.selection, command.delta, command.mirror ?? [false, false, false], command.nearby ?? false)); break;
+      }
       default: throw new Error('Unknown construction command.');
     }
   }

@@ -1,3 +1,4 @@
+import { meshFaces } from '../../ships/constructionMesh';
 import type { ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { projectConstructionSurfaces } from '../../ships/constructionEditor';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
@@ -11,9 +12,10 @@ type Face = { vertices: Vec3[]; face?: string; panelId?: string };
 function sourceFaces(primitive: ConstructionPrimitive): Face[] {
   if (primitive.kind === 'custom-hull' && primitive.customHull) {
     const panels = customHullPanels(primitive);
-    const sides = (primitive.customHull.stations.length - 1) * 18;
+    const sides = (primitive.customHull.stations.length - 1) * primitive.customHull.stations[0].points.length * 2;
     return customHullFaces(primitive).map((f, i) => ({ vertices: f.vertices, ...panels[i < sides ? Math.floor(i / 2) : panels.length - (f.group === 'bow' ? 2 : 1)] }));
   }
+  if(primitive.mesh)return meshFaces(primitive.mesh,primitive.size).map(f=>({vertices:f.points,face:f.name}));
   if (primitive.kind === 'vertex') return shapedFaces(primitive).map(f => ({ vertices: f.points, face: f.name }));
   if (primitive.kind === 'balcony') return balconyFaces(primitive.size, primitive.balcony).map(vertices => ({ vertices }));
   return (CONSTRUCTION_SHAPES[primitive.kind] ?? []).map(vertices => ({ vertices: vertices.map(v => v.map((n, axis) => n * primitive.size[axis]) as Vec3) }));

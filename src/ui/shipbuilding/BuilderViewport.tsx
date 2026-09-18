@@ -1,4 +1,5 @@
-import { placementBalcony } from '../../ships/constructionBalcony';
+import { balconyPlacement, seatBalconyOnHull } from './balconyPlacement';
+import { placementBalcony, mirroredBalcony } from '../../ships/constructionBalcony';
 import { createConstructionWallModel } from '../../game/constructionWallModel';
 import { wallFrameSnapFeatures } from './snapping';
 import { installedWallPart, wallNormal, wallBearing, wallRow, wallScale, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
@@ -218,7 +219,7 @@ class Viewport {
     this.freeformHandles = new FreeformHandles(host, () => this.camera, replacements => this.previewVertices(replacements), {
       clear: () => this.clearSnap(),
       resolve: (raw, free, primitive, options) => {
-        const corners = cornerVertices(primitive), selected = selectionCorners(options.selection);
+        const corners = cornerVertices(primitive), selected = selectionCorners(options.selection,primitive);
         const moving: SnapFeature[] = selected.map(i => ({ id: `edit:${i}`, owner: primitive.id, point: worldVertex(primitive, corners[i]), kind: 'corner' }));
         moving.unshift({ id: 'edit:center', owner: primitive.id, point: add(primitive.position, rotateVertex(selectionCenter(primitive, options.selection), primitive.rotationDeg)), kind: 'center' });
         const directions = SHIP_AXES.filter((_, k) => free[k]).map(v => rotateVertex(v, primitive.rotationDeg));
@@ -378,7 +379,7 @@ class Viewport {
           if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false })));
         }
       } else for (const primitive of props.scene.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
         mesh.material.polygonOffset = true; mesh.material.polygonOffsetFactor = 1; mesh.material.polygonOffsetUnits = 1;
@@ -518,7 +519,7 @@ class Viewport {
     const map=new Map(replacements.map(p=>[p.id,p]));
     for(const original of this.props.scene.source.construction.primitives) {
       const p=map.get(original.id)??original;
-      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony);
+      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony,p.mesh);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
       mesh.material.polygonOffset=true;mesh.material.polygonOffsetFactor=1;mesh.material.polygonOffsetUnits=1;
@@ -534,7 +535,12 @@ class Viewport {
     let mirror = rotation?.position && originalMirror?.kind === 'equipment' ? { ...originalMirror, bearingDeg: normalizedBearing(originalMirror.bearingDeg - rotation.degrees) } : originalMirror;
     // Bearing changes transform the cached preview; they do not rebuild its meshes.
     const shape = (item?: BuilderPlacement) => item?.kind === 'equipment' ? { ...item, bearingDeg: 0 } : item;
-    let pick = rotation?.position ? { placement: rotation.position, bearingDeg: undefined as number | undefined } : this.hover ? this.pick(this.hover, 'hull') : undefined;
+    let pick: Pick<BuilderPick, 'placement' | 'bearingDeg' | 'hullPlacement'> | undefined = rotation?.position ? { placement: rotation.position, bearingDeg: undefined as number | undefined } : this.hover ? this.pick(this.hover, 'hull') : undefined;
+    if (pick?.hullPlacement) {
+      piece = pick.hullPlacement;
+      if (mirror?.kind === 'hull') mirror = { ...piece, rotationDeg: -piece.rotationDeg,
+        balcony: mirroredBalcony({ id: 'preview', kind: 'balcony', position: [0, 0, 0], size: piece.size, rotationDeg: piece.rotationDeg, balcony: piece.balcony }) };
+    }
     if (piece?.kind === 'equipment' && piece.wall && this.pointerStart?.start?.bearingDeg !== undefined && pick?.bearingDeg !== undefined && Math.cos((pick.bearingDeg-this.pointerStart.start.bearingDeg)*Math.PI/180)<.7) pick = undefined;
     if (piece?.kind === 'equipment' && piece.wall && pick?.bearingDeg !== undefined) {
       piece = { ...piece, bearingDeg: pick.bearingDeg };
@@ -558,7 +564,7 @@ class Viewport {
             }
             group.add(equipment); group.rotation.y = placementRotation(item); return; }
           const balcony = item.kind === 'hull' && item.shape === 'balcony'
-            ? placementBalcony([(pick?.placement[0] ?? 1) * (mirrored ? -1 : 1), 0, 0], item.rotationDeg) : undefined;
+            ? item.balcony ?? placementBalcony([(pick?.placement[0] ?? 1) * (mirrored ? -1 : 1), 0, 0], item.rotationDeg) : undefined;
           const geometry = item.kind === 'boundary'
             ? boundaryGeometry(this.props.scene.source.construction.primitives, item.axis, offset ?? NaN)
             : balcony ? primitiveGeometry('balcony', item.size, undefined, undefined, undefined, balcony) : placementGeometry(item);
@@ -682,6 +688,7 @@ class Viewport {
       if (!surface || surface.open || Math.abs(normal[1]) >= .9 || !primitive) return undefined;
       piece = { ...piece, bearingDeg: wallBearing(normal) };
     }
+    if (piece?.kind === 'hull' && piece.shape === 'balcony') piece = this.pointerStart?.start?.hullPlacement ?? balconyPlacement(piece, normal);
     const extents = primitive && pieceExtents({ kind: 'hull', shape: primitive.kind, size: primitive.size, rotationDeg: primitive.rotationDeg });
     const snapOrigin = primitive && extents ? primitive.position.map((value, index) => value - extents[index] / 2) as Vec3 : undefined;
     const settings = this.props.scene.snapping ?? DEFAULT_SNAPPING;
@@ -689,7 +696,7 @@ class Viewport {
     let placement = piece ? placementCenter(piece, { point: raw, normal, snapOrigin }, step) : raw.map(value => gridCoordinate(value, step)) as Vec3;
     if (piece && !this.pointerStart?.move && !this.moveHandles.dragging) {
       const unsnapped = placementCenter(piece, { point: raw, normal, snapOrigin }, null);
-      const moving = piece.kind === 'hull' ? primitiveSnapFeatures({ id: 'cursor', kind: piece.shape, position: [0, 0, 0], rotationDeg: piece.rotationDeg, size: piece.size })
+      const moving = piece.kind === 'hull' ? primitiveSnapFeatures({ id: 'cursor', kind: piece.shape, position: [0, 0, 0], rotationDeg: piece.rotationDeg, size: piece.size, balcony: piece.balcony })
         : piece.kind === 'equipment' && piece.wall ? wallFrameSnapFeatures('cursor', [0,0,0], piece.bearingDeg, piece).filter(f => f.kind !== 'edge')
         : [{ id: 'cursor:center', owner: 'cursor', point: piece.kind === 'equipment' ? attachmentOffset(piece, piece.bearingDeg) : [0, 0, 0] as Vec3, kind: 'center' as const }];
       const free = SHIP_AXES.filter((_, k) => piece.kind === 'boundary' ? k === 'xyz'.indexOf(piece.axis) : k !== axis);
@@ -699,7 +706,8 @@ class Viewport {
       if (piece.kind !== 'boundary') placement[axis] -= placement.reduce((sum, v, k) => sum + (v - unsnapped[k]) * normal[k], 0) / normal[axis];
       this.workingPoint = piece.kind === 'equipment' ? add(placement, attachmentOffset(piece, piece.bearingDeg)) : [...raw];
     }
-    return { id, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, bearingDeg: piece?.kind === 'equipment' ? piece.bearingDeg : undefined, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
+    if (piece?.kind === 'hull' && piece.shape === 'balcony' && surface && Math.abs(normal[1]) < .9) placement = seatBalconyOnHull(piece, placement, surface, this.props.scene.result?.surfaces ?? []);
+    return { id, hullPlacement: piece?.kind === 'hull' && piece.shape === 'balcony' ? piece : undefined, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, bearingDeg: piece?.kind === 'equipment' ? piece.bearingDeg : undefined, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
   }
 
   private showArmorTooltip(event?: { clientX: number; clientY: number }, pick?: BuilderPick) {
@@ -769,7 +777,7 @@ class Viewport {
 
   /** Draw the pending gesture each frame; source/history commits once on release. */
   private updateStrokePreview() {
-    const drag = this.pointerStart, piece = this.props.scene.placementPiece;
+    const drag = this.pointerStart, piece = drag?.start?.hullPlacement ?? this.props.scene.placementPiece;
     const hit = this.hover ? this.pick(this.hover, 'hull') : undefined;
     const points = drag?.start && piece && hit
       ? this.props.scene.gesture === 'fill' ? fillLattice(drag.start.placement, hit.placement, pieceExtents(piece), drag.start.axis) : drag.points
@@ -996,7 +1004,7 @@ class Viewport {
     for (const id of [...ids, ...partners]) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
-        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony);
+        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh);
         const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
         const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
         for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.y = primitive.rotationDeg * Math.PI / 180; object.renderOrder = 20; this.movePreview.add(object); }
@@ -1159,7 +1167,7 @@ class Viewport {
       this.updateStrokePreview(); return;
     }
     const current = hit.placement, previous = points.at(-1) ?? current;
-    for (const point of strokeSegment(previous, current, pieceExtents(piece), start.axis)) {
+    for (const point of strokeSegment(previous, current, pieceExtents(start.hullPlacement ?? piece), start.axis)) {
       if (points.length >= 128) break;
       if (!points.some(existing => same(existing, point))) points.push(point);
     }
@@ -1197,8 +1205,8 @@ class Viewport {
     } else if (start.start && piece) {
       const hit = this.pick(event, 'hull');
       if (!hit || piece.kind === 'equipment' && piece.wall && Math.cos(((start.start.bearingDeg??0)-(hit.bearingDeg??0))*Math.PI/180)<.7) return;
-      if (this.props.scene.gesture === 'fill') this.props.onPointer({ kind: 'lay', points: fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(piece), start.start.axis) });
-      else this.props.onPointer({ kind: 'lay', points: clicked ? [start.start.placement] : start.points, bearingDeg: start.start.bearingDeg });
+      if (this.props.scene.gesture === 'fill') this.props.onPointer({ kind: 'lay', hullPlacement: start.start.hullPlacement, points: fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(start.start.hullPlacement ?? piece), start.start.axis) });
+      else this.props.onPointer({ kind: 'lay', hullPlacement: start.start.hullPlacement, points: clicked ? [start.start.placement] : start.points, bearingDeg: start.start.bearingDeg });
     } else if (start.faces && !clicked) this.props.onPointer({ kind: 'faces', surfaces: [...start.faces] });
     else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, this.props.scene.placementPiece ? 'hull' : this.props.scene.pickTargets) });
   };

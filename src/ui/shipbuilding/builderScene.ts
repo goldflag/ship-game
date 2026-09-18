@@ -14,11 +14,11 @@ export type BuilderDisplay = 'paint' | 'armor' | 'internals';
 export type BuilderGesture = 'none' | 'stroke' | 'fill' | 'faces';
 /** What a primary drag may move: nothing, fittings only (while placing fittings), or pieces, fittings and walls. */
 export type BuilderMoveTargets = 'none' | 'equipment' | 'all';
-export interface BuilderPick { id?: string; surface?: string; point: Vec3; normal?: Vec3; axis: 0 | 1 | 2; placement: Vec3; bearingDeg?: number; additive: boolean }
+export interface BuilderPick { id?: string; surface?: string; point: Vec3; normal?: Vec3; axis: 0 | 1 | 2; placement: Vec3; bearingDeg?: number; hullPlacement?: Extract<BuilderPlacement, { kind: 'hull' }>; additive: boolean }
 export interface BuilderArc { position: Vec3; bearingDeg: number; traverseDeg: number; radius: number; color: string }
 export interface BuilderProposal { position: Vec3; bearingDeg: number; size: Vec3; boundsCenter: Vec3 }
 export type BuilderPlacement =
-  | { kind: 'hull'; shape: ConstructionPrimitive['kind']; size: Vec3; rotationDeg: number }
+  | { kind: 'hull'; shape: ConstructionPrimitive['kind']; size: Vec3; rotationDeg: number; balcony?: ConstructionPrimitive['balcony'] }
   | { kind: 'equipment'; partId?: string; wall?: { version: 1; widthM: number; heightM: number }; rowSpacing?: number; propellerDiameterM?: number; size: Vec3; boundsCenter: Vec3; bearingDeg: number; sockets?: ConstructionEquipmentPart['sockets']; arc?: { traverseDeg: number; radius: number }; /** Clearance from the hit face, e.g. the inward skin thickness for internal packages. */ inset?: number }
   | { kind: 'boundary'; axis: 'x' | 'y' | 'z'; thicknessMm: number };
 export interface BuilderFreeformOptions {
@@ -56,7 +56,7 @@ export interface BuilderScene {
 /** A finished pointer gesture with its targets already raycast and snapped by the viewport. */
 export type BuilderPointerEvent =
   | { kind: 'pick'; hit?: BuilderPick }
-  | { kind: 'lay'; points: Vec3[]; bearingDeg?: number }
+  | { kind: 'lay'; points: Vec3[]; bearingDeg?: number; hullPlacement?: Extract<BuilderPlacement, { kind: 'hull' }> }
   | { kind: 'faces'; surfaces: string[] }
   | { kind: 'box'; ids: string[]; additive: boolean }
   | { kind: 'erase'; id: string }
