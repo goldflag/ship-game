@@ -1222,8 +1222,7 @@ class Viewport {
     } else if (start.button === 2 && clicked && this.pendingRow()) {
       this.rowStart = undefined; this.updateStrokePreview();
     } else if (start.button === 2) {
-      const hit = clicked ? this.pick(event, 'all') : undefined;
-      if (hit?.id && !this.props.scene.freeform && !this.props.scene.pathDraft) this.props.onPointer({ kind: 'erase', id: hit.id });
+      // Right button only pans, rotates or cancels a pending row; removal is the Erase tool or Delete.
     } else if (this.props.scene.pathDraft && !rect) {
       const point = this.pathPick(event);
       if (clicked && point) this.props.onPointer({ kind: 'path-point', point, bearingDeg: wallBearing(this.pick(event, 'hull')?.normal ?? [0, 0, -1]) });
