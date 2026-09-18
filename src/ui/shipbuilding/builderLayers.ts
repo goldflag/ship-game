@@ -1,3 +1,4 @@
+import { EDITABLE_SHAPES } from '../../ships/constructionMesh';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
@@ -55,6 +56,7 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'tall-wedge', name: 'Tall wedge', note: '4 × 8 × 4', kind: 'wedge', size: [4, 8, 4] },
   ...([
     ['ballast', [3, 1.5, 3]],
+    ['prism', [4, 4, 4]], ['half-hemisphere', [2, 2, 4]], ['quarter-hemisphere', [2, 2, 2]],
     ['pyramid', [4, 4, 4]], ['cylinder', [4, 4, 4]], ['half-cylinder', [2, 4, 4]],
     ['quarter-cylinder', [4, 4, 4]], ['quarter-cylinder-wall', [4, 4, 4]],
     ['sphere', [4, 4, 4]], ['hemisphere', [4, 2, 4]], ['sphere-octant', [4, 4, 4]],
@@ -66,7 +68,7 @@ export const HULL_SHAPES: HullShape[] = [
     ['rounded-bridge-panel', [4, 3, 4]], ['breakwater', [8, 1.5, 2]],
   ] satisfies [ConstructionPrimitive['kind'], Vec3][]).map(([kind, size]): HullShape => ({
     id: kind, kind, name: CONSTRUCTION_SHAPE_NAMES[kind], size,
-    note: `${size.join(' × ')} m${kind === 'ballast' ? ' · 100 t fixed load + casing' : kind.includes('shell') ? ' · open underneath' : kind.includes('bridge') ? ' · open windows' : ''}`,
+    note: `${size.join(' × ')} m${EDITABLE_SHAPES.has(kind) ? ' · freeform (D)' : ''}${kind === 'hemisphere' ? ' · dome' : ''}${kind === 'ballast' ? ' · 100 t fixed load + casing' : kind.includes('shell') ? ' · open underneath' : kind.includes('bridge') ? ' · open windows' : ''}`,
   })),
 ];
 

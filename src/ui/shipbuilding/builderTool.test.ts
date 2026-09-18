@@ -635,3 +635,16 @@ test('invalid hull placements and mirrored overlaps add no history; partial over
   owner.undo(); expect(data().primitives).toHaveLength(1);
   owner.redo(); expect(data().primitives).toHaveLength(2);
 });
+
+test('D converts one selected curved shape, ignores repeat/modifiers, and toggles freeform without losing edits',async()=>{
+  const source=createStarterSource(catalog,'blank');source.construction.primitives[0].kind='cylinder';
+  const {tool,data,owner}=await setup({source}),ui=chrome();
+  tool.key(key('d'),ui);expect(tool.freeformMode).toBe(false);
+  tool.choose('hull');tool.key(key('d',{altKey:true}),ui);expect(tool.freeformMode).toBe(false);
+  tool.key(key('d'),ui);expect(tool.freeformMode).toBe(true);expect(data().primitives[0].mesh?.rings).toHaveLength(2);
+  tool.key(key('d',{repeat:true}),ui);expect(tool.freeformMode).toBe(true);
+  tool.key(key('d'),ui);expect(tool.freeformMode).toBe(false);expect(data().primitives[0].mesh).toBeDefined();
+  owner.undo();expect(data().primitives[0].kind).toBe('cylinder');
+  tool.switchLayer('internals');tool.key(key('d'),ui);expect(tool.getSnapshot().tool).toBe('deck');
+  tool.dispose();
+});

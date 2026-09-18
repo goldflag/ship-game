@@ -555,7 +555,7 @@ edge steel without creating an enclosed room between the rails.
 
 ### Freeform hulls
 
-Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 1 supplies a 4 m Freeform hull. This mode edits individual eight-corner pieces. For a whole main hull, prefer the separate [custom hull section editor](#custom-hull-sections).
+Select one cube or freeform hull in the Hull layer and press **D** or choose **Freeform**. Palette slot 1 supplies a 4 m Freeform hull. This mode edits individual eight-corner pieces. For a whole main hull, prefer the separate [custom hull section editor](#custom-hull-sections).
 
 Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corners or a face's four corners. The eight corners, twelve edges and six named faces keep fixed topology. Click a handle, edge or face to select it; the selection menu also reaches obscured components. Edge and face movement preserves the selected component's shape. Use the canvas handles to position the selection.
 
@@ -629,3 +629,40 @@ The editor opens in Select with no hull or placement card selected. Click a bloc
 fitting or wall to select it, then start a separate drag to move it. A drag starting
 on an unselected item controls the camera. Palette tooltips stay within the
 visible editor bounds.
+
+### Freeform prisms, curved shapes and wedges
+
+Select one box, freeform hull, prism, wedge, corner, inverse corner, pyramid,
+cylinder, half/quarter cylinder, cone, dome, half/quarter dome or eighth sphere
+and press **D** to enter Freeform. **D** or **Escape** finishes. The shortcut ignores
+text fields and held-key repeats. Conversion preserves the original solid and is
+one undoable edit; older eight-corner blocks keep their original controls.
+
+The Hull drawer includes **Freeform prism**, **Half dome** and **Quarter dome**.
+The existing cylinder, cone, dome and wedge cards also support freeform editing.
+Each shape exposes its actual vertices, edges and faces. The Selected menu reaches
+hidden elements. Local symmetry, snapping, nearby corners, copy/mirror and saved
+revisions use the same editor behavior as the original freeform hull.
+
+Prisms start with an eight-point outline. **Add outline point** inserts a point
+on both caps; **Remove outline point** keeps at least three. Select the base or
+top ring to move it with the gizmo, or change its width/depth to taper or flatten
+it. Disable the relevant mirror axis to offset an outline across that plane.
+
+Curved shapes expose **Ring** selection, width/depth, **Add ring above** and
+**Remove ring**. New rings interpolate the existing surface; removing an interior
+ring joins its neighboring strips. End rings and singleton crowns remain editable
+but cannot be removed. Cones and domes retain real single-point crowns. Half and
+quarter shapes retain their flat cut surfaces. Open a cap through the existing
+Armor opening tool; plate thickness uses the existing surface armor controls.
+
+The optional `mesh.version: 1` record on a `vertex` primitive retains source
+vertices, mirror references, stable face IDs, canonical surface names and control
+rings. It replaces neither the blueprint nor the construction version. Rust
+validates closed oriented topology, finite coordinates, folds and self-overlap,
+and derives the same faceted surface for rendering, collision, armor and buoyancy.
+Curved lighting stays smooth while caps and cut edges remain sharp. Limits are
+256 vertices, 256 faces, 24 rings, and 3–32 prism outline points. Edited solids
+must remain visible from their internal center; folds beyond it remain saveable
+invalid drafts. Arbitrary topology, tunnels and subdivision surfaces are not
+provided. Round/chamfer and independent-piece Split remain eight-corner tools.

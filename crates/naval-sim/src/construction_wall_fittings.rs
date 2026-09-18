@@ -7,7 +7,7 @@ pub(crate) fn installed(e: &ConstructionEquipment, part: &ConstructionEquipmentP
     let error = |message: &str| ConstructionDiagnostic { severity: "error".into(), code: "wall-fitting".into(), message: message.into(), source_id: Some(e.id.clone()) };
     let socket = p.sockets.as_ref().and_then(|s| s.iter().find(|s| s.id == "attachment"));
     if !(matches!(p.wall_mount.as_deref(), Some("door" | "porthole" | "window")) || p.id == "generic-watertight-door") || p.kind != "deck-fitting" || p.path.is_some() || socket.is_none_or(|s| s.direction[1].abs() > 1e-6 || s.direction[2] < 0.99999)
-        || w.version != 1 || !w.width_m.is_finite() || !w.height_m.is_finite()
+        || w.version != 1. || !w.width_m.is_finite() || !w.height_m.is_finite()
         || !(0.15..=5.).contains(&w.width_m) || !(0.15..=5.).contains(&w.height_m) {
         return Err(error("Wall fittings require a wall-facing attachment and dimensions between 0.15 and 5 m"));
     }

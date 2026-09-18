@@ -294,7 +294,7 @@ export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' 
 export interface ConstructionPrimitive {
   id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'vertex' | 'custom-hull' | 'balcony' | 'ballast' | 'pyramid'
     | 'cylinder' | 'half-cylinder' | 'quarter-cylinder' | 'quarter-cylinder-wall'
-    | 'sphere' | 'hemisphere' | 'sphere-octant' | 'hemisphere-shell'
+    | 'prism' | 'half-hemisphere' | 'quarter-hemisphere' | 'sphere' | 'hemisphere' | 'sphere-octant' | 'hemisphere-shell'
     | 'half-hemisphere-shell' | 'quarter-hemisphere-shell' | 'parabolic-shell'
     | 'cone' | 'hollow-cube' | 'concave-corner' | 'bridge' | 'diagonal-bridge'
     | 'rounded-bridge' | 'bridge-panel' | 'diagonal-bridge-panel' | 'rounded-bridge-panel' | 'breakwater';
@@ -304,6 +304,8 @@ export interface ConstructionPrimitive {
    * Missing corners on a vertex hull mean the unit cube. Size scales this edit frame.
    * Rust samples the trilinear solid; generated cells remain the physical authority. */
   vertices?: Vec3[];
+  /** Versioned editable topology for prisms, curved solids and wedges. */
+  mesh?: ConstructionFreeformMesh;
   /** Reversible round/chamfer on the same eight-corner block; Rust derives the solid. */
   shaping?: ConstructionFreeformShape;
   /** Optional shared lighting seam group; physical surfaces remain unchanged. */
@@ -313,6 +315,22 @@ export interface ConstructionPrimitive {
   customHull?: ConstructionCustomHull;
   /** Open platform: size Y is deck thickness; outline X/Z scale with size X/Z. */
   balcony?: ConstructionBalcony;
+}
+export interface ConstructionFreeformMesh {
+  version: 1;
+  label: string;
+  family: 'prism' | 'rings' | 'polyhedron';
+  vertices: Vec3[];
+  /** Undeformed positions retain mirror partners through asymmetric edits. */
+  reference: Vec3[];
+  faces: ConstructionFreeformFace[];
+  /** Ordered horizontal control rings, including singleton crowns. */
+  rings: number[][];
+}
+export interface ConstructionFreeformFace {
+  id: string;
+  name: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
+  corners: number[];
 }
 export interface ConstructionBalconyPoint {
   id: string; x: number; z: number;

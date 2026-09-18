@@ -13,7 +13,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
                 version: 1.,
                 catalog_revision: "test".into(),
                 default_thickness_mm: 10.,
-                primitives: vec![ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None,
+                primitives: vec![ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None,
                     id: "hull".into(),
                     kind: "box".into(),
                     size: [10., 4., 20.],
@@ -230,7 +230,7 @@ fn a_rail_cannot_bridge_an_unsupported_run_of_posts() {
     s.construction.primitives[0].size[1] = 2.;
     s.construction.primitives[0].position[1] = -1.;
     for (id, x) in [("port-deck", -4.), ("starboard-deck", 4.)] {
-        s.construction.primitives.push(ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None,
+        s.construction.primitives.push(ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None,
             id: id.into(),
             kind: "box".into(),
             position: [x, 1., 0.],
@@ -416,7 +416,7 @@ fn review_bitts_rope_can_leave_its_socket_downward_without_hitting_empty_catalog
     // Exact deck/anchor/rope poses from deckFittingsFixture. The bitts' bedplate
     // widens their AABB, but the rope at this height clears the original posts.
     s.construction.primitives[0].size = [24., 2., 36.];
-    s.construction.primitives.push(ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None,
+    s.construction.primitives.push(ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None,
         id: "review-wall".into(),
         kind: "box".into(),
         size: [22., 3., 0.5],

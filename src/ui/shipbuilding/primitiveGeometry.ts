@@ -1,3 +1,4 @@
+import { meshFaces } from '../../ships/constructionMesh';
 import { shapedFaces } from '../../ships/freeformShape';
 import { balconyFaces } from '../../ships/constructionBalcony';
 import * as THREE from 'three';
@@ -9,7 +10,13 @@ import { customHullFaces, customHullPoints, customHullPrimitive, makeHull } from
 
 /** Display-only source envelopes for placement and invalid drafts. Rust remains
  * authoritative for unions, material, fit, loading and all battle geometry. */
-export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[], customHull?: ConstructionPrimitive['customHull'], shaping?: ConstructionPrimitive['shaping'], balcony?: ConstructionPrimitive['balcony']): THREE.BufferGeometry {
+export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[], customHull?: ConstructionPrimitive['customHull'], shaping?: ConstructionPrimitive['shaping'], balcony?: ConstructionPrimitive['balcony'], mesh?: ConstructionPrimitive['mesh']): THREE.BufferGeometry {
+  if(mesh){
+    const faces=meshFaces(mesh,size).map(f=>({vertices:f.points,normal:new THREE.Vector3(...f.points[1]).sub(new THREE.Vector3(...f.points[0])).cross(new THREE.Vector3(...f.points[2]).sub(new THREE.Vector3(...f.points[0]))).normalize().toArray() as Vec3,group:'mesh'}));
+    const normalAt=mesh.family==='rings'?constructionVertexNormals(faces):(_v:Vec3,n:Vec3)=>n;
+    const g=new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(faces.flatMap(f=>f.vertices.flat()),3));
+    g.setAttribute('normal',new THREE.Float32BufferAttribute(faces.flatMap(f=>f.vertices.flatMap(v=>normalAt(v,f.normal,'mesh'))),3));return g;
+  }
   if (kind === 'balcony') {
     const positions = balconyFaces(size, balcony).flatMap(face => face.slice(1, -1).flatMap((v, i) => [face[0], v, face[i + 2]].flat()));
     const geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -70,7 +77,7 @@ export function placementRotation(piece: BuilderPlacement): number {
 /** Selection follows authored sections and chines, without tessellation diagonals. */
 export function primitiveOutlineGeometry(p: ConstructionPrimitive): THREE.BufferGeometry {
   if (p.kind !== 'custom-hull' || !p.customHull) {
-    const solid = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping, p.balcony);
+    const solid = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping, p.balcony, p.mesh);
     const edges = new THREE.EdgesGeometry(solid, p.shaping ? 25 : 1); solid.dispose(); return edges;
   }
   const points = customHullPoints(p), lines: number[] = [];

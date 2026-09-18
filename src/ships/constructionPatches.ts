@@ -7,6 +7,7 @@ export type EquipmentPatch = Patch<Omit<ConstructionEquipment, 'id'>>;
 type Fields = { [key: string]: true | Fields };
 const primitiveFields: Fields = {
   kind: true, size: true, position: true, rotationDeg: true, vertices: true, smoothGroup: true,
+  mesh: {version:true,label:true,family:true,vertices:true,reference:true,faces:true,rings:true},
   customHull: { version: true, stations: true, rake: true, bulb: true, redPaintY: true },
   balcony: { version: true, points: true, heightM: true, wallThicknessM: true },
   shaping: { version: true, edges: true, radius: true, style: true },

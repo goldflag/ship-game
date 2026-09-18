@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
-import { affectedCorners, cornerVertices, freeformEdit, rotateVertex, selectionCenter, selectionCorners, selectionLabel, selectionLocks, VERTEX_EDGES, VERTEX_FACES, worldVertex, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
+import { affectedCorners, cornerVertices, freeformEdit, rotateVertex, selectionCenter, selectionCorners, selectionLabel, selectionLocks, topology, VERTEX_EDGES, VERTEX_FACES, worldVertex, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
 
 export type { BuilderFreeformOptions } from './builderScene';
 import type { BuilderFreeformOptions } from './builderScene';
@@ -70,6 +70,19 @@ export class FreeformHandles {
     window.addEventListener('keydown', this.key, true); window.addEventListener('blur', this.cancel);
     window.addEventListener('pointerdown', this.secondary, true);
   }
+  private ensureTopology(p:ConstructionPrimitive) {
+    const t=topology(p),count=Math.max(t.vertices.length,t.edges.length,t.faces.length,t.rings.length);
+    if(this.faces.length===t.faces.length&&this.edges.length===t.edges.length&&this.corners.length===t.vertices.length&&this.buttons.length===count)return;
+    [...this.faces,...this.edges,...this.edgeTargets,...this.corners,...this.buttons].forEach(e=>e.remove());this.faceOrder='';
+    this.faces=t.faces.map((_,index)=>{const e=svg('path',this.faceGroup);this.bind(e,()=>({mode:'face',index}));return e;});
+    this.edges=t.edges.map(()=>svg('path',this.drawing));
+    this.edgeTargets=t.edges.map((_,index)=>{const e=svg('path',this.drawing);this.bind(e,()=>({mode:'edge',index}));return e;});
+    this.corners=t.vertices.map(()=>svg('circle',this.drawing));
+    this.buttons=Array.from({length:count},(_,index)=>{
+      const b=this.button('sb-freeform-handle');this.bind(b,()=>({mode:this.options?.selection.mode??'vertex',index}));
+      b.addEventListener('click',()=>this.options?.onSelect({mode:this.options.selection.mode,index}));return b;
+    });
+  }
   private button(className: string) {
     const b = document.createElement('button'); b.className = className; b.type = 'button'; this.element.append(b); return b;
   }
@@ -112,7 +125,8 @@ export class FreeformHandles {
     if (this.drag && this.drag.camera !== this.cameraKey()) { this.cancel(); return; }
     const o = this.options, p = this.drag?.replacements.find(p => p.id === o?.id) ?? this.source?.construction.primitives.find(p => p.id === o?.id);
     this.element.hidden = !o || !p; if (!o || !p) return;
-    const mode = o.selection.mode, selected = selectionCorners(o.selection), affected = affectedCorners(o.selection,o.axes);
+    this.ensureTopology(p);const t=topology(p);
+    const mode = o.selection.mode, selected = selectionCorners(o.selection,p), affected = affectedCorners(o.selection,o.axes,p);
     const world = cornerVertices(p).map(v => new THREE.Vector3(...worldVertex(p,v)));
     const screen = world.map(v => this.project(v)), depths = world.map(v => v.clone().project(this.camera()).z);
     const inView = (indices: readonly number[]) => indices.every(i => depths[i] >= -1 && depths[i] <= 1);
@@ -120,40 +134,40 @@ export class FreeformHandles {
     const state = (indices: readonly number[], selection: HullSelection) => selected.length === indices.length && indices.every(i => selected.includes(i)) ? 'selected'
       : indices.every(i => affected.includes(i)) ? 'mirrored' : this.hovered?.mode === selection.mode && this.hovered.index === selection.index ? 'hover' : '';
     this.faces.forEach((path,index) => {
-      path.setAttribute('d', pathFor(VERTEX_FACES[index].corners,true));
+      path.setAttribute('d', pathFor(t.faces[index].corners,true));
       path.setAttribute('class', `sb-freeform-face ${mode==='face'?'is-pickable':''}`);
-      path.dataset.state = mode === 'face' ? state(VERTEX_FACES[index].corners,{ mode, index }) : '';
-      path.style.display = mode === 'face' && inView(VERTEX_FACES[index].corners) ? '' : 'none';
+      path.dataset.state = mode === 'face' ? state(t.faces[index].corners,{ mode, index }) : '';
+      path.style.display = mode === 'face' && inView(t.faces[index].corners) ? '' : 'none';
     });
-    const ordered = this.faces.map((path,index) => ({ path, depth: VERTEX_FACES[index].corners.reduce<number>((n,i) => n+depths[i],0) / 4, index })).sort((a,b) => b.depth-a.depth);
+    const ordered = this.faces.map((path,index) => ({ path, depth: t.faces[index].corners.reduce<number>((n,i) => n+depths[i],0) / t.faces[index].corners.length, index })).sort((a,b) => b.depth-a.depth);
     const order = ordered.map(f => f.index).join(',');
     if (!this.drag && order !== this.faceOrder) { ordered.forEach(f => this.faceGroup.append(f.path)); this.faceOrder = order; }
     this.edges.forEach((path,index) => {
-      path.setAttribute('d',pathFor(VERTEX_EDGES[index]));
+      path.setAttribute('d',pathFor(t.edges[index]));
       path.setAttribute('class','sb-freeform-edge');
-      path.dataset.state = state(VERTEX_EDGES[index],{ mode:'edge',index });
-      path.style.display = inView(VERTEX_EDGES[index]) ? '' : 'none';
+      path.dataset.state = state(t.edges[index],{ mode:'edge',index });
+      path.style.display = inView(t.edges[index]) ? '' : 'none';
       const target = this.edgeTargets[index];
-      target.setAttribute('d',pathFor(VERTEX_EDGES[index])); target.setAttribute('class','sb-freeform-edge-target');
-      target.style.display = mode === 'edge' && inView(VERTEX_EDGES[index]) ? '' : 'none';
+      target.setAttribute('d',pathFor(t.edges[index])); target.setAttribute('class','sb-freeform-edge-target');
+      target.style.display = mode === 'edge' && inView(t.edges[index]) ? '' : 'none';
     });
     this.corners.forEach((circle,i) => {
       circle.setAttribute('cx',String(screen[i].x)); circle.setAttribute('cy',String(screen[i].y)); circle.setAttribute('r','4');
       circle.setAttribute('class','sb-freeform-point'); circle.dataset.state = selected.includes(i) ? 'selected' : affected.includes(i) ? 'mirrored' : '';
       circle.style.display = inView([i]) ? '' : 'none';
     });
-    const count = mode === 'vertex' ? 8 : mode === 'edge' ? 12 : 6;
+    const count = mode === 'vertex' ? t.vertices.length : mode === 'edge' ? t.edges.length : mode === 'ring' ? t.rings.length : t.faces.length;
     this.buttons.forEach((b,index) => {
-      const selection = { mode, index }, indices = selectionCorners(selection);
+      const selection = { mode, index }, indices = selectionCorners(selection,p);
       b.hidden = index >= count || !inView(indices); if (b.hidden) return;
       const anchor = this.anchor(p,selection), pos = this.project(anchor);
       b.style.transform = `translate(${pos.x}px,${pos.y}px)`;
       b.style.zIndex = String(1 + Math.round((1 - anchor.clone().project(this.camera()).z) * 100));
       b.dataset.mode = mode; b.dataset.index = String(index); b.dataset.state = state(indices,selection);
-      b.setAttribute('aria-label', selectionLabel(selection)); b.setAttribute('aria-pressed',String(index === o.selection.index));
-      b.title = `${selectionLabel(selection)} · select or drag in the view plane`;
+      b.setAttribute('aria-label', selectionLabel(selection,p)); b.setAttribute('aria-pressed',String(index === o.selection.index));
+      b.title = `${selectionLabel(selection,p)} · select or drag in the view plane`;
     });
-    const anchor = this.anchor(p,o.selection), origin = this.project(anchor), axes = this.axes(p), locks = selectionLocks(o.selection,o.axes);
+    const anchor = this.anchor(p,o.selection), origin = this.project(anchor), axes = this.axes(p), locks = selectionLocks(o.selection,o.axes,p);
     const vectors = axes.map(a => this.project(anchor.clone().add(a)).sub(origin));
     const length = Math.max(...vectors.map(v => v.length()),1e-6), scale = 76 / length;
     const visible = anchor.clone().project(this.camera()).z >= -1 && anchor.clone().project(this.camera()).z <= 1;
@@ -176,7 +190,7 @@ export class FreeformHandles {
     const primitive = this.source.construction.primitives.find(p => p.id === this.options!.id); if (!primitive) return;
     e.preventDefault(); e.stopPropagation();
     const options = { ...this.options, selection }, target = e.currentTarget as Element, anchor = this.anchor(primitive,selection);
-    const direction = this.camera().getWorldDirection(new THREE.Vector3()), axes = this.axes(primitive), locks = selectionLocks(selection,options.axes);
+    const direction = this.camera().getWorldDirection(new THREE.Vector3()), axes = this.axes(primitive), locks = selectionLocks(selection,options.axes,primitive);
     const blocked = axes.map(v => Math.abs(v.dot(direction))).indexOf(Math.max(...axes.map(v => Math.abs(v.dot(direction)))));
     const free = locks.map((locked,k) => !locked && (axis === undefined ? k !== blocked : k === axis));
     const normal = axis === undefined ? axes[blocked] : direction.clone().addScaledVector(axes[axis],-direction.dot(axes[axis]));
