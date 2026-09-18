@@ -53,10 +53,22 @@ Engine order represents a normalized shaft-speed request; effective power varies
 with the cube of its magnitude. Thrust is power divided by an advance-speed and
 induced-flow estimate, which remains finite at rest. Rudder normal force includes
 both turning force and longitudinal resistance. There are no target speed/yaw
-interpolations, artificial turn-speed penalties or gameplay yaw caps. The 20%
-rudder-shift boost remains; former acceleration/turn multipliers only inform
-legacy calibration. Submarines retain their authored submerged power calibration
-and separate depth controls.
+interpolations, artificial turn-speed penalties or gameplay yaw caps. Shared
+gameplay tuning in `mobility.rs` applies a ×4 response to all planar forces and
+torques, up to ×16 rudder force authority at hard over, and ×2.4 authored rudder
+shift. This gives players time to accelerate, brake and change course within a
+fight. Rudder authority is a gameplay coefficient, not a claim of physical blade performance;
+area, signed leverage, flow, exposure and equipment damage still govern its force.
+The authority boost ramps with actual rudder deflection; an amidships blade keeps
+its ordinary passive drag so it cannot overpower angled propeller thrust.
+The implicit force solver bounds the response on small/light hulls.
+
+Response scaling uses effective mass/inertia only inside planar integration.
+Actual displacement, CG, flooded loading, resistance and fitted power remain
+unchanged, preserving straight-line equilibrium speed and the penalty for added
+mass. Navigation's braking estimate uses the same response scale. The former
+acceleration/turn multipliers only inform legacy calibration. Submarines retain
+their authored submerged power calibration and separate depth controls.
 
 Hull coefficients are provisional: skin coefficient `0.004`, a fullness form
 factor, projected frontal coefficient `0.18`, and a bounded Froude-dependent wave
@@ -80,7 +92,8 @@ thrust when braking, and use sternway to rejoin nearby stopped formation station
 A lost leader causes local braking rather than a pursuit of its last location.
 Torpedo evasion allows twelve seconds for an inertial dodge; aircraft corrections
 retain eight. Port acceleration/turning readings are references, not measured sea
-trials, and constructed estimates do not receive the old acceleration/yaw boosts.
+trials; constructed estimates describe the underlying physical calibration before
+the shared runtime response and rudder-authority boosts.
 
 ## Validation
 
@@ -88,6 +101,9 @@ trials, and constructed estimates do not receive the old acceleration/yaw boosts
 angled thrust, wash, immersion, shape resistance, disconnected power, dry/flooded
 inertia, exact water moments, stopping/reverse, small-hull stability and replay
 repeatability. Navigation, mission and carrier tests run the same force solver.
+`maneuvering_response.rs` exercises published legacy and constructed ships through
+the battle movement entry point: time to cruise, crash stopping, turns in both
+directions, countersteering, preserved top speed and navigation braking estimates.
 
 For reproducible movement-only timing and 180-second ahead/half/turn/coast/astern
 trials, run:
@@ -96,6 +112,8 @@ trials, run:
 cargo run --release --locked -p naval-sim --example maneuvering_trial -- public/models/fletcher.json public/models/bismarck.json public/models/valiant.json
 ```
 
-The diagnostic reports preparation time and microseconds per ship tick separately.
+The diagnostic reports time to half/90% ahead speed, a 90° course change and a
+crash stop, plus speed/heading at 10, 30 and 60 seconds. It also reports preparation
+time and microseconds per ship tick separately.
 It excludes flooding, weapons, collision detection, rendering and match scheduling;
 it must not be presented as a whole-game frame-rate measurement.
