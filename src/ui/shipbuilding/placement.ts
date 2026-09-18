@@ -110,9 +110,14 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
   }
   // Vertical hits seat the attachment point on the face; wall hits push the whole envelope off the face.
   const center = rotateY(piece.boundsCenter, bearingRadians(piece.bearingDeg));
-  return hit.point.map((value, index) => index === axis
+  const position = hit.point.map((value, index) => index === axis
     ? (axis === 1 ? value + sign * inset - attach[index] : value + sign * (extents[index] / 2 + inset) - center[index])
     : gridCoordinate(value - attach[index], step)) as Vec3;
+  // Snapping X/Z changes the deck height on a slope. Seat the socket at the
+  // snapped location while retaining the fitting's authored vertical inset.
+  if (axis === 1) position[1] -= ((position[0] + attach[0] - hit.point[0]) * normal[0]
+    + (position[2] + attach[2] - hit.point[2]) * normal[2]) / normal[1];
+  return position;
 }
 
 /** A rectangle of pieces between two placements, stepping by the piece's own extents in the face plane. */
