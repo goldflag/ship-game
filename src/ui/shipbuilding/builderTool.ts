@@ -1,3 +1,4 @@
+import { hullPaintBands } from '../../ships/hullPaintBands';
 import { blockAngles, rotateBlock, withBlockAngles } from '../../ships/constructionOrientation';
 import { reseatBalcony } from './balconyPlacement';
 import { editableMesh } from '../../ships/constructionMesh';
@@ -709,7 +710,7 @@ export class BuilderTool {
   };
   applyScheme = (id: 'two-tone' | 'disruptive'): ConstructionSubmission => {
     const keys = [...this.editableKeys];
-    const coated = new Set(this.data.primitives.filter(p => p.kind === 'custom-hull' && p.customHull?.redPaintY !== undefined).map(p => p.id));
+    const coated = new Set(this.data.primitives.filter(p => p.kind === 'custom-hull' && hullPaintBands(p.customHull).length > 0).map(p => p.id));
     const redBottom = new Set(this.editableSurfaces.filter(s => s.face === 'bottom' && !coated.has(s.primitiveId)).map(surfaceSelectionKey));
     if (id === 'two-tone') return this.run('Apply two-tone paint', [
       ...this.surfaceCommands(new Set(keys.filter(key => key.endsWith(':top'))), { paint: 'deck-gray' }),

@@ -14,12 +14,26 @@ pub(super) fn transform(p: &ConstructionPrimitive, t: f64, point: &ConstructionH
 }
 fn mean(points: &[Vec3]) -> Vec3 { scale(points.iter().fold([0.;3], |a, b| add(a, *b)), 1. / points.len() as f64) }
 
+fn validate_paint_bands(paint: &ConstructionHullPaintBands) -> Result<(), String> {
+    if paint.version != 1. || paint.bands.len() > 8 { return Err("Use version 1 with at most 8 hull paint bands".into()); }
+    let mut ids = std::collections::BTreeSet::new();
+    let mut previous = f64::NEG_INFINITY;
+    for band in &paint.bands {
+        if band.id.is_empty() || band.id.len() > 64 || !ids.insert(&band.id) { return Err("Each hull paint band needs a unique ID".into()); }
+        if !band.upper_y.is_finite() || band.upper_y.abs() > 500. || band.upper_y <= previous { return Err("Keep paint heights in ascending order, between -500 and 500 m".into()); }
+        if band.paint.trim().is_empty() || band.paint.len() > 64 { return Err("Choose a paint for each hull band".into()); }
+        previous = band.upper_y;
+    }
+    Ok(())
+}
+
 pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
     let h = p.custom_hull.as_ref().ok_or("Custom hull sections are missing")?;
     if h.version != 1. || !(4..=24).contains(&h.stations.len()) || !h.rake.is_finite() || !(0.0..=1.5).contains(&h.rake) || !h.bulb.is_finite() || !(0.0..=1.0).contains(&h.bulb) {
         return Err("Custom hulls need version 1, 4–24 sections and valid bow settings".into());
     }
     if h.red_paint_y.is_some_and(|y| !y.is_finite() || y.abs() > 500.) { return Err("Red paint Y must be between -500 and 500 m".into()); }
+    if let Some(paint) = &h.paint_bands { validate_paint_bands(paint)?; }
     if let Some(k) = &h.bilge_keels { crate::construction_bilge_keels::validate(k)?; }
     let n = h.stations[0].points.len();
     if !(5..=33).contains(&n) || n % 2 != 1 || h.stations.iter().any(|s| s.points.len() != n) { return Err("Use the same odd number of outline points (5–33) in every section".into()); }

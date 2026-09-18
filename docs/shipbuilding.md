@@ -325,7 +325,7 @@ freely in the section's plane. The keel point stays on the centerline. Arrow key
 nudge a focused point by the snap step (0.1 m with snapping off). In Plan, drag
 a deck edge to widen or narrow its section. In Profile, drag deck and keel
 points for the sheer and keel line; the brass diamonds rake the stem and grow a
-bow bulb, and the square grip moves the red paint line. Escape, a right-click or
+bow bulb, and the square grips move the paint-band boundaries. Escape, a right-click or
 leaving the window cancels a drag.
 
 **+ Pair** increases cross-section detail and **− Pair** reduces it. Each action
@@ -732,26 +732,39 @@ resizing sections preserves armor. Adding or removing sections creates new
 adjacencies whose panels use the side default; unchanged panels retain their
 settings. Source undo restores the preceding hull and assignments.
 
-### Custom hull red paint height
+### Custom hull paint bands
 
-In **Edit hull sections**, enable **Red lower hull** and set its height in meters
-above the hull's base, drag its grip in Profile, or choose **Paint to the
-waterline** once the draft is measured. Red oxide covers the hull below this
-height; the existing face paint remains above it. New hull presets start 2% of
-their depth below the hull center. The height moves with the hull and stays in
-meters when its depth changes.
-Disable the coating to use face paint everywhere. Apply saves the setting with
-the hull; Cancel discards it, and both the section editor and Shipbuilder support
-Undo. With the coating enabled, older whole-bottom red-oxide defaults display the
-ship paint above the line, including on rising bow and stern panels. Source
-assignments, per-panel paint overrides and armor remain intact; disabling the
-coating restores the original face paint. The two-tone scheme uses the height
-boundary on coated custom hulls instead of painting their entire bottom panels red.
+In **Edit hull sections**, **Paint bands** adds up to eight horizontal color
+bands. Each row chooses a named paint and an **Up to** height in meters above
+the hull's base. Band 1 covers the lower hull; later bands cover the interval
+from the preceding boundary to their own. Existing ship and per-panel paint
+stays above the highest band. Use a narrow black band above red oxide for boot
+topping, or choose any of the shared paint colors.
 
-The optional versioned `customHull.redPaintY` is appearance only. Rendered faces
-are clipped at the paint boundary with interpolated lighting normals; native
-surfaces, panel selection, armor, mass and buoyancy remain unchanged. The same
-painted geometry is used in the builder, launched ships and portable GLB exports.
+**Add band** adds an upper boundary (or splits an existing interval when there
+is no space above). Remove a row to extend the next band downward; removing
+all rows restores the original face paint. Heights remain ordered. Profile
+and Section views show one draggable handle per boundary, with the existing
+snap controls and a **Use waterline** action when the measured waterline fits
+between its neighbours. Apply, Cancel and Undo work as for hull geometry.
+Heights move with the hull and remain in meters when its depth changes.
+
+The versioned optional `customHull.paintBands` contains `version: 1` and an
+ordered `bands` array of `{ id, upperY, paint }`. `upperY` is hull-local Y in
+meters; IDs survive height/color edits. An explicit empty list disables bands.
+Old `customHull.redPaintY` sources still render as one red-oxide band and are
+upgraded only when paint is edited. New settings take precedence when both
+fields are present. Import and native compilation reject unsupported versions,
+repeated IDs, unordered/nonfinite heights, heights outside ±500 m and more than
+eight bands.
+
+With bands enabled, older whole-bottom red-oxide defaults use the ship paint
+above the highest boundary, including on rising bow and stern panels. Explicit
+panel colors remain intact above the bands. The two-tone scheme also respects
+the height coatings. Source assignments, armor, mass and buoyancy stay unchanged.
+The hull editor previews the same coatings and existing base paints as the
+main editor; game models and GLB exports clip faces at each boundary with
+interpolated lighting normals.
 
 ### Inspection and placement controls
 

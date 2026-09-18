@@ -1246,7 +1246,23 @@ pub struct ConstructionHullStation {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionHullPaintBand {
+    pub id: String,
+    #[serde(rename = "upperY")]
+    pub upper_y: f64,
+    pub paint: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionHullPaintBands {
+    pub version: f64,
+    pub bands: Vec<ConstructionHullPaintBand>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionCustomHull {
+    #[serde(rename = "paintBands", default, skip_serializing_if = "Option::is_none")]
+    pub paint_bands: Option<ConstructionHullPaintBands>,
     #[serde(rename = "bilgeKeels")]
     pub bilge_keels: Option<ConstructionBilgeKeels>,
     #[serde(rename = "redPaintY")]

@@ -364,11 +364,25 @@ export interface ConstructionHullPoint {
   contour?: number;
 }
 export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }
+export interface ConstructionHullPaintBand {
+  id: string;
+  /** Upper edge in hull-local metres. Bands are ordered from bottom to top. */
+  upperY: number;
+  paint: string;
+}
+export interface ConstructionHullPaintBands {
+  version: 1;
+  /** Each band starts at the previous upper edge; the first extends to the base.
+   * Existing face paint remains above the final edge. Empty disables the coating. */
+  bands: ConstructionHullPaintBand[];
+}
 export interface ConstructionCustomHull {
   /** Optional symmetric visual fins. Omission preserves older hulls without keels. */
   bilgeKeels?: ConstructionBilgeKeels;
   /** Red lower-hull coating below this hull-local Y in meters; omission uses face paint. */
   redPaintY?: number;
+  /** Height coatings; when present, supersedes the legacy redPaintY setting. */
+  paintBands?: ConstructionHullPaintBands;
   version: 1; stations: ConstructionHullStation[]; rake: number; bulb: number;
 }
 export interface ConstructionBilgeKeels {

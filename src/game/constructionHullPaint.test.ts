@@ -48,3 +48,35 @@ test('saved whole-bottom red paint respects the coating height in the compiled g
   delete hull.customHull!.redPaintY;
   expect((await inspect(compile())).length).toBeGreaterThan(0);
 });
+
+test('native source retains multiple coatings and the game model clips every band including the bow', async () => {
+  const source = createStarterSource(catalog as ConstructionCatalog, 'fletcher-hull', 'light-gray');
+  const hull = source.construction.primitives[0];
+  const compile = (): ConstructionResult => JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog)));
+  const original = compile();
+  hull.customHull!.paintBands = { version: 1, bands: [
+    { id: 'lower', upperY: -.5, paint: 'red-oxide' },
+    { id: 'waterline', upperY: .25, paint: 'boot-top-black' },
+    { id: 'stripe', upperY: 1.2, paint: 'sea-blue' },
+  ] };
+  const result = compile();
+  expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]);
+  expect(result.surfaces).toEqual(original.surfaces);
+  expect(result.loading).toEqual(original.loading);
+  const model = await createConstructionModel(source, result);
+  const ranges: Record<string, [number, number]> = { 'red-oxide': [-Infinity, -.5], 'boot-top-black': [-.5, .25], 'sea-blue': [.25, 1.2], 'light-gray': [1.2, Infinity], 'deck-gray': [1.2, Infinity] };
+  const seen = new Set<string>();
+  try {
+    model.traverse(node => {
+      if (!(node instanceof THREE.Mesh) || !node.name.startsWith('hull.')) return;
+      const paint = node.name.slice(5).split(':')[0], [min, max] = ranges[paint];
+      seen.add(paint);
+      const p = node.geometry.getAttribute('position');
+      for (let i = 0; i < p.count; i++) {
+        expect(p.getY(i)).toBeGreaterThanOrEqual(min - 1e-5);
+        expect(p.getY(i)).toBeLessThanOrEqual(max + 1e-5);
+      }
+    });
+    expect(seen).toEqual(new Set(Object.keys(ranges)));
+  } finally { disposeConstructionModel(model); }
+});
