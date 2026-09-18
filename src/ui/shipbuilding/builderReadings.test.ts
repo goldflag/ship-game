@@ -41,12 +41,12 @@ test('list and trim name the low side from the offset between gravity and buoyan
   expect(attitudeRows(undefined, 50).map(row => row.value)).toEqual(['—', '—']);
 });
 
-test('mass groups split armor skin from structural skin and warnings keep blocks apart from notes', () => {
+test('mass groups split armor skin from structural skin and warnings omit the services note', () => {
   const groups = massGroups(result);
   expect(groups.map(group => group.massKg)).toEqual([5000, 40000, 1000, 35000, 500, 0]);
   expect(pieceMassKg(result, 'hull')).toBe(40000);
   expect(pieceMassKg(result, 'missing')).toBeUndefined();
-  expect(warningEntries(result.diagnostics).map(entry => entry.tone)).toEqual(['block', 'warn', 'note']);
+  expect(warningEntries(result.diagnostics).map(entry => entry.tone)).toEqual(['block', 'warn']);
 });
 
 test('approximate internal weight is visible separately from fitted machinery and stores', () => {

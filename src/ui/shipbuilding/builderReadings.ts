@@ -23,8 +23,8 @@ export function hullBounds(source: ConstructionSource): { min: [number, number, 
 
 export function warningEntries(diagnostics: readonly ConstructionDiagnostic[] | undefined): WarningEntry[] {
   const order = { block: 0, warn: 1, note: 2 };
-  return (diagnostics ?? []).map((diagnostic): WarningEntry => ({
-    tone: diagnostic.severity === 'error' ? 'block' : diagnostic.code === 'auxiliary-services' ? 'note' : 'warn',
+  return (diagnostics ?? []).filter(diagnostic => diagnostic.code !== 'auxiliary-services').map((diagnostic): WarningEntry => ({
+    tone: diagnostic.severity === 'error' ? 'block' : 'warn',
     message: diagnostic.message, sourceId: diagnostic.sourceId, code: diagnostic.code,
   })).sort((a, b) => order[a.tone] - order[b.tone]);
 }
