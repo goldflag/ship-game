@@ -239,6 +239,12 @@ export interface AirWingDefinition {
   deckLayout?: FlightDeckLayout;
   squadrons: { id: string; name: string; modelId: string; role: AircraftRole; count: number }[];
 }
+/** Physical appendages. Missing profiles on older presets use module-envelope estimates. */
+export interface ManeuveringProfile {
+  version: 1;
+  propellers: { moduleId: string; bearingDeg: number; diameterM: number }[];
+  rudders: { moduleId: string; bearingDeg: number; areaM2: number }[];
+}
 export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
@@ -250,6 +256,7 @@ export interface ShipBlueprint {
   underwaterProtection?: { version: 1; basis: string; zones: (Volume & { name: string; damageReduction: number; breachReduction: number })[] };
   localDamage: { version: 1; regions: DamageRegion[]; basis: string };
   stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
+  maneuvering?: ManeuveringProfile;
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   torpedoTubes?: TorpedoTube[];
   torpedoLaunchers?: TorpedoLauncher[];
@@ -841,6 +848,24 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     }
   });
   const modules = volumes(b.modules, 'modules');
+  if (b.maneuvering !== undefined) {
+    const profile = record(b.maneuvering, 'maneuvering');
+    literal(profile.version, [1], 'maneuvering.version');
+    const seen = new Set<string>();
+    for (const family of ['propellers', 'rudders'] as const) {
+      for (const raw of list(profile[family], `maneuvering.${family}`, 128)) {
+        const fitting = record(raw, `maneuvering.${family}`);
+        const id = text(fitting.moduleId, 'maneuvering.moduleId');
+        const module = modules.find(m => m.id === id);
+        if (seen.has(id) || !module || (family === 'propellers' ? module.role !== 'shaft' : module.kind !== 'steering')) fail('maneuvering.moduleId', 'expected a unique matching machinery module');
+        seen.add(id);
+        numeric(fitting.bearingDeg, 'maneuvering.bearingDeg', -360, 360);
+        const size = family === 'propellers' ? 'diameterM' : 'areaM2';
+        numeric(fitting[size], `maneuvering.${size}`, .00001, 10000);
+      }
+    }
+  }
+
   modules.forEach(m => {
     text(m.name, `${m.id}.name`); literal(m.kind, ['engine', 'steering', 'magazine', 'generator', 'fire-control', 'launcher'], `${m.id}.kind`);
     numeric(m.hp, `${m.id}.hp`, .001);

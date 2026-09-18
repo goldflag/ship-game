@@ -81,6 +81,8 @@ pub struct DamageState {
 #[serde(rename_all = "camelCase")]
 #[ts(optional_fields)]
 pub struct Combatant {
+    #[serde(skip)]
+    pub motion_mass: crate::maneuvering::MassProperties,
     /// Content lookup tables for this ship's definition; never published.
     #[serde(skip)]
     pub index: std::sync::Arc<crate::vessel::ShipIndex>,
@@ -98,6 +100,7 @@ impl Combatant {
     pub fn new(id: impl Into<String>, def: &ShipDefinition) -> Self {
         Self {
             index: std::sync::Arc::new(crate::vessel::ShipIndex::new(def)),
+            motion_mass: crate::maneuvering::MassProperties::dry(def),
             sea: None,
             torpedo_tubes: def
                 .torpedo_tubes

@@ -28,7 +28,7 @@ export function equipmentCondition(actor: Combatant, def: ShipDefinition, module
   const hp = (state?.id === module.id ? state : actor.damage.modules.find(s => s.id === module.id)!).hp;
   if (hp <= 0) return { availability: 0, reason: 'destroyed' };
   let immersion = 1;
-  if (def.hull.volume && (module.role === 'shaft' || module.kind === 'steering')) {
+  if ((def.hull.volume || def.maneuvering) && (module.role === 'shaft' || module.kind === 'steering')) {
     const bottom = localToWorld([module.center[0], module.center[1] - module.size[1] / 2, module.center[2]], actor.motion);
     const top = localToWorld([module.center[0], module.center[1] + module.size[1] / 2, module.center[2]], actor.motion);
     const surface = actor.sea ? seaHeight(actor.sea.state, top[0], top[2], actor.sea.time) : 0;
@@ -116,14 +116,14 @@ export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engin
     const baseline = Math.max(0, exhaustFraction(pool.funnels.reduce((n, f) => n + f.kw, 0), pool.engines.reduce((n, e) => n + e.kw, 0)) - AUXILIARY_POWER_SHARE);
     if (!baseline) return 0;
     const supply = Math.max(0, sharedExhaustFraction(actor, def) - AUXILIARY_POWER_SHARE);
-    const power = def.propulsion.groups.reduce((sum, g) => sum + g.share * Math.min(1, ...g.driveIds.map(available), ...g.shaftIds.map(available)) * supply / baseline, 0);
+    const power = def.propulsion.groups.reduce((sum, g) => sum + g.share * Math.min(1, ...g.driveIds.map(available)) * (g.shaftIds.length ? g.shaftIds.reduce((n, id) => n + available(id), 0) / g.shaftIds.length : 1) * supply / baseline, 0);
     return Math.max(0, Math.min(1, power));
   }
   if (kind === 'engine' && def.propulsion) return def.propulsion.groups.reduce((power, group) => {
     const steam = group.boilerIds.length ? group.boilerIds.reduce((n, id) => n + available(id), 0) / group.boilerIds.length : 1;
     const drive = Math.min(...group.driveIds.map(available));
-    const shaft = group.shaftIds.length ? Math.min(...group.shaftIds.map(available)) : 1;
-    return power + group.share * Math.min(steam, drive, shaft);
+    const shaft = group.shaftIds.length ? group.shaftIds.reduce((n, id) => n + available(id), 0) / group.shaftIds.length : 1;
+    return power + group.share * Math.min(steam, drive) * shaft;
   }, 0);
   const modules = def.modules.filter(m => m.kind === kind);
   return modules.length ? modules.reduce((n, m) => n + available(m.id), 0) / modules.length : 1;

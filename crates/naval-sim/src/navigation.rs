@@ -390,7 +390,7 @@ fn point(a: &Vessel) -> [f64; 2] {
     [a.motion.x, a.motion.z]
 }
 pub fn maximum_speed(a: &Vessel) -> f64 {
-    a.definition().handling.forward_speed * system_health(a, a.definition(), "engine", None).sqrt()
+    a.compiled.maneuvering.available_speed(system_health(a, a.definition(), "engine", None), a.motion_mass.mass / a.definition().hull.mass_kg)
 }
 
 /// Only owned capabilities enter this report. A healthy displaced ship needs
@@ -590,8 +590,12 @@ fn plan_path(
     Some(path)
 }
 
+fn braking_acceleration(a:&Vessel)->f64 {
+    a.compiled.maneuvering.braking_acceleration(a.motion.speed.abs(), system_health(a,a.definition(),"engine",None), a.motion_mass.mass).max(0.001)
+}
 fn steer(a: &Vessel, heading: f64) -> f64 {
-    (wrap_angle(heading - a.motion.heading) * 2.0 - a.motion.yaw_rate * 5.0).clamp(-1.0, 1.0)
+    let leeway = a.motion.sway_speed.atan2(a.motion.speed.max(0.5)).clamp(-0.5, 0.5);
+    (wrap_angle(heading - a.motion.heading - leeway) * 2.0 - a.motion.yaw_rate * 8.0).clamp(-1.0, 1.0)
 }
 
 /// Predict close approaches using physical motion only. Both ships turn to
@@ -838,6 +842,21 @@ pub fn command_observed(
                 let error = [destination[0] - at[0], destination[1] - at[1]];
                 let range = error[0].hypot(error[1]);
                 if clear_segment(at, destination, islands, margin) {
+                    // Once the guide has stopped, use sternway for a nearby station
+                    // behind us instead of circling through neighboring columns.
+                    let along = error[0] * a.motion.heading.sin() - error[1] * a.motion.heading.cos();
+                    if station_velocity[0].hypot(station_velocity[1]) < 0.25 && range < a.definition().hull.length * 4.
+                        && along < -radius && a.motion.speed < 1. {
+                        state.destination = Some(destination);
+                        let bow_heading = (-error[0]).atan2(error[1]);
+                        let target = -(a.definition().handling.reverse_speed * 0.5).min(((range-radius).max(0.) * 0.04).sqrt());
+                        return HelmCommand {
+                            throttle: if a.motion.speed < target - 0.2 { ((target-a.motion.speed)/0.5).clamp(0.,1.).cbrt() }
+                                else { -(target.abs()/a.definition().handling.reverse_speed.max(0.1)).clamp(0.,1.).sqrt() },
+                            rudder: -(wrap_angle(bow_heading-a.motion.heading)*2. - a.motion.yaw_rate*8.).clamp(-1.,1.),
+                            ..Default::default()
+                        };
+                    }
                     if range < radius && station_velocity[0].hypot(station_velocity[1]) < 0.25 {
                         state.status = NavigationStatus::OnStation;
                         state.destination = Some(destination);
@@ -859,7 +878,7 @@ pub fn command_observed(
                     // A slot on the guide's track stops when the guide stops.
                     // Leave room to shed catch-up speed instead of running past it.
                     let braking = station_velocity[0].hypot(station_velocity[1])
-                        + (2.0 * a.definition().handling.braking * range).sqrt();
+                        + (2.0 * braking_acceleration(a) * range).sqrt();
                     let speed = velocity[0].hypot(velocity[1]).min(maximum).min(braking);
                     if range < radius && state.status != NavigationStatus::FormingColumn {
                         state.status = NavigationStatus::OnStation;
@@ -883,14 +902,16 @@ pub fn command_observed(
                 destination
             } else {
                 state.status = NavigationStatus::LeaderLost;
-                *state.lost_hold.get_or_insert(at)
+                let anchor = *state.lost_hold.get_or_insert(at);
+                state.destination = Some(anchor);
+                return sail(a, actors, contacts, islands, state, a.motion.heading, 0., maximum);
             }
         }
         Movement::Autonomous | Movement::Hold => return HelmCommand::default(),
     };
     state.destination = Some(destination);
     let range = distance(at, destination);
-    if range < radius && final_speed == 0.0 {
+    if (range < radius || (range < radius + 5. && a.motion.speed.abs() < 0.25)) && final_speed == 0.0 {
         if state.status == NavigationStatus::FollowingRoute {
             state.status = NavigationStatus::Holding;
         }
@@ -925,7 +946,7 @@ pub fn command_observed(
         return HelmCommand::default();
     };
     // Brake before the final station rather than orbiting a point at full speed.
-    let braking_speed = (2.0 * a.definition().handling.braking * (range - radius).max(0.0)).sqrt();
+    let braking_speed = (2.0 * braking_acceleration(a) * (range - radius).max(0.0)).sqrt();
     let speed = if state.path.len() > 1 {
         requested
     } else {
@@ -959,10 +980,12 @@ fn sail(
         speed
     };
     let rudder = steer(a, heading);
-    let turn_loss =
-        1.0 - 0.22 * a.motion.rudder.powi(2) * (a.motion.speed.abs() / maximum).clamp(0.0, 1.0);
+    let available = system_health(a, a.definition(), "engine", None);
+    let throttle = a.compiled.maneuvering.throttle_for_speed(speed, available, a.motion_mass.mass / a.definition().hull.mass_kg);
     let command = HelmCommand {
-        throttle: (speed / (maximum * turn_loss)).clamp(0.0, 1.0),
+        throttle: if a.motion.speed < -0.02 { ((speed-a.motion.speed)/0.5).clamp(0.,1.).cbrt() } else if a.motion.speed > speed + 0.3 || (speed < 0.1 && a.motion.speed > 0.02) {
+            -((a.motion.speed-speed)/0.5).clamp(0.,1.).cbrt()
+        } else { (throttle + (speed - a.motion.speed) / maximum.max(0.1) * 0.5).clamp(0., 1.) },
         rudder,
         ..Default::default()
     };

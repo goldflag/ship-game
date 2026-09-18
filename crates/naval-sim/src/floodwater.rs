@@ -16,6 +16,8 @@ pub struct WaterBody {
     /// non-zero volume; never serialized, so snapshots do not see the cache.
     #[serde(skip)]
     shape: OnceLock<WaterGeometry>,
+    #[serde(skip)]
+    exact_moments: Option<crate::construction_geometry::Moments>,
 }
 #[derive(Clone, Debug)]
 struct Column {
@@ -233,6 +235,7 @@ impl WaterBody {
             roll: f64::NAN,
             pitch: f64::NAN,
             shape: OnceLock::new(),
+            exact_moments: None,
         }
     }
     fn shape(&self, room: &Compartment) -> &WaterGeometry {
@@ -279,7 +282,8 @@ pub fn refresh(
     body.roll = roll;
     body.pitch = pitch;
     if room.volumes.is_some() {
-        let (level, area, center) = exact_water(room, volume, roll, pitch);
+        let (level, area, center, moments) = exact_water(room, volume, roll, pitch);
+        body.exact_moments = Some(moments);
         body.level = level;
         body.area = area;
         body.center = center;
@@ -337,9 +341,20 @@ pub fn water_body(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> Wat
     water_body_with(room, volume, roll, pitch, &mut Scratch::default())
 }
 impl WaterBody {
-    /// Approximate water inertia consistent with the weighted-column water
-    /// centers. Used only by an explicitly weighted combat buoyancy profile.
+    /// Water inertia about a ship-local origin: exact clipped moments for
+    /// constructed rooms, weighted column moments for legacy/experimental rooms.
     pub fn inertia_m3(&self, origin: Vec3) -> Vec3 {
+        if let Some(m) = self.exact_moments {
+            let second: Vec3 = std::array::from_fn(|i| {
+                (m.second[i] - 2. * origin[i] * m.first[i] + origin[i] * origin[i] * m.volume)
+                    .max(0.)
+            });
+            return [
+                second[1] + second[2],
+                second[0] + second[2],
+                second[0] + second[1],
+            ];
+        }
         let Some(shape) = self.shape.get() else {
             // Mixed experimental profiles may retain an exact water volume.
             // Its center still contributes point-mass inertia; only intrinsic
@@ -372,7 +387,12 @@ impl WaterBody {
         ]
     }
 }
-fn exact_water(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, f64, Vec3) {
+fn exact_water(
+    room: &Compartment,
+    volume: f64,
+    roll: f64,
+    pitch: f64,
+) -> (f64, f64, Vec3, crate::construction_geometry::Moments) {
     let cells = room.volumes.as_ref().unwrap();
     let n = orientation(roll, pitch).0;
     let (mut lo, mut hi) = cells
@@ -384,10 +404,11 @@ fn exact_water(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, 
         });
     let volume = volume.clamp(0., room.capacity_m3);
     if volume <= 0. {
-        return (lo, 0., room.center);
+        return (lo, 0., room.center, Default::default());
     }
     if volume >= room.capacity_m3 {
-        return (hi, 0., crate::construction_geometry::total(cells).center());
+        let m = crate::construction_geometry::total(cells);
+        return (hi, 0., m.center(), m);
     }
     // Every bisection level reuses the same oriented cells. A wholly submerged
     // cell has the same moments on all 33 queries; compute those once. Partial
@@ -418,9 +439,10 @@ fn exact_water(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, 
             if top - level <= EPS {
                 total.add(full);
             } else if bottom - level < -EPS
-                && let Some(clipped) = clip(cell, n, level) {
-                    total.add(moments(&clipped));
-                }
+                && let Some(clipped) = clip(cell, n, level)
+            {
+                total.add(moments(&clipped));
+            }
         }
         total
     };
@@ -436,5 +458,5 @@ fn exact_water(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, 
     let m = submerged(level);
     let e = 0.0001;
     let area = (submerged(level + e).volume - submerged(level - e).volume) / (2. * e);
-    (level, area.max(0.), m.center())
+    (level, area.max(0.), m.center(), m)
 }

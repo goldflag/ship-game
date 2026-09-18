@@ -73,7 +73,7 @@ pub fn equipment_condition(
     // Propellers and rudders lose capability with exposed vertical span. This
     // bounded envelope estimate permits partial immersion; it never moves the
     // authored fitting or adjusts the hull's displacement/CG.
-    let immersion = if def.hull.volume.is_some()
+    let immersion = if (def.hull.volume.is_some() || def.maneuvering.is_some())
         && (module.role.as_deref() == Some("shaft") || module.kind == "steering")
     {
         let bottom = local_to_world(
@@ -287,64 +287,20 @@ pub fn system_health(
             return ids.iter().map(available).sum::<f64>() / ids.len() as f64;
         }
         if let Some(p) = &def.propulsion {
-            if let Some(pool) = &p.shared_exhaust {
-                use crate::construction_services::{AUXILIARY_POWER_SHARE, exhaust_fraction, live_exhaust_fraction};
-                let baseline = (exhaust_fraction(
-                    pool.funnels.iter().map(|f| f.kw).sum(),
-                    pool.engines.iter().map(|e| e.kw).sum(),
-                ) - AUXILIARY_POWER_SHARE).max(0.);
-                if baseline == 0. { return 0.; }
-                let supply = (live_exhaust_fraction(actor, def, pool, sea) - AUXILIARY_POWER_SHARE).max(0.);
-                return p.groups.iter().map(|g| {
-                    let drive = g.drive_ids.iter().map(available).fold(1., f64::min);
-                    let shaft = g.shaft_ids.iter().map(available).fold(1., f64::min);
-                    g.share * drive.min(shaft) * supply / baseline
-                }).sum::<f64>().clamp(0., 1.);
-            }
-            if let Some(groups) = indexed.map(|ix| &ix.propulsion) {
-                return groups
-                    .iter()
-                    .map(|g| {
-                        let steam = if g.boilers.is_empty() {
-                            1.0
-                        } else {
-                            g.boilers.iter().map(at).sum::<f64>() / g.boilers.len() as f64
-                        };
-                        let drive = g.drives.iter().map(at).fold(f64::INFINITY, f64::min);
-                        let shaft = if g.shafts.is_empty() {
-                            1.0
-                        } else {
-                            g.shafts.iter().map(at).fold(f64::INFINITY, f64::min)
-                        };
-                        g.share * steam.min(drive).min(shaft)
-                    })
-                    .sum();
-            }
             return p
                 .groups
                 .iter()
-                .map(|g| {
-                    let steam = if g.boiler_ids.is_empty() {
-                        1.0
+                .enumerate()
+                .map(|(i, g)| {
+                    let shafts = if g.shaft_ids.is_empty() {
+                        1.
                     } else {
-                        g.boiler_ids.iter().map(available).sum::<f64>() / g.boiler_ids.len() as f64
+                        g.shaft_ids.iter().map(available).sum::<f64>() / g.shaft_ids.len() as f64
                     };
-                    let drive = g
-                        .drive_ids
-                        .iter()
-                        .map(available)
-                        .fold(f64::INFINITY, f64::min);
-                    let shaft = if g.shaft_ids.is_empty() {
-                        1.0
-                    } else {
-                        g.shaft_ids
-                            .iter()
-                            .map(available)
-                            .fold(f64::INFINITY, f64::min)
-                    };
-                    g.share * steam.min(drive).min(shaft)
+                    g.share * drive_health(actor, def, i, sea) * shafts
                 })
-                .sum();
+                .sum::<f64>()
+                .clamp(0., 1.);
         }
     }
     kind_average(actor, def, kind, sea)
@@ -372,5 +328,53 @@ pub fn launcher_available(
         state.reason != EquipmentReason::Destroyed
     } else {
         state.availability > 0.0
+    }
+}
+
+/// Power reaching a drive before its individual propellers. A lost shaft must
+/// not disable healthy siblings or erase their separate turning moments.
+pub fn drive_health(
+    actor: &Combatant,
+    def: &ShipDefinition,
+    group: usize,
+    sea: Option<(&SeaState, f64)>,
+) -> f64 {
+    if actor.damage.sunk {
+        return 0.;
+    }
+    let Some(p) = &def.propulsion else {
+        return 0.;
+    };
+    let g = &p.groups[group];
+    let index = actor.index.of(def);
+    let available = |id: &String| {
+        let module = match index {
+            Some(ix) => ix.module(id).map(|i| &def.modules[i]),
+            None => def.modules.iter().find(|m| m.id == *id),
+        };
+        module.map_or(0., |m| equipment_condition(actor, def, m, sea).availability)
+    };
+    let drive = g.drive_ids.iter().map(available).fold(1., f64::min);
+    if let Some(pool) = &p.shared_exhaust {
+        use crate::construction_services::{
+            AUXILIARY_POWER_SHARE, exhaust_fraction, live_exhaust_fraction,
+        };
+        let baseline = (exhaust_fraction(
+            pool.funnels.iter().map(|f| f.kw).sum(),
+            pool.engines.iter().map(|e| e.kw).sum(),
+        ) - AUXILIARY_POWER_SHARE)
+            .max(0.);
+        if baseline == 0. {
+            return 0.;
+        }
+        let supply = (live_exhaust_fraction(actor, def, pool, sea) - AUXILIARY_POWER_SHARE).max(0.);
+        drive * supply / baseline
+    } else {
+        let steam = if g.boiler_ids.is_empty() {
+            1.
+        } else {
+            g.boiler_ids.iter().map(available).sum::<f64>() / g.boiler_ids.len() as f64
+        };
+        steam.min(drive)
     }
 }

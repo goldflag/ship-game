@@ -88,24 +88,22 @@ fn recover(
         p.flight_time = 65.0;
     }
     let mut recovered = BTreeSet::new();
-    for tick in 0..36000 {
+    // The force-driven carrier develops sideslip; permit an additional approach
+    // circuit while still requiring every aircraft to recover under continuous helm.
+    for tick in 0..54000 {
         let a = &mut actors[0];
-        let def = a.compiled.definition.clone();
         let order = if change_at.is_some_and(|t| tick as f64 / 60.0 >= t) {
             0.0
         } else {
             rudder
         };
         step_ship(
-            &mut a.motion,
+            a,
             HelmCommand {
                 throttle: 1.0,
                 rudder: order,
                 ..Default::default()
             },
-            &def.handling,
-            1.0,
-            1.0,
             None,
         );
         assert!(service_available(a, None));

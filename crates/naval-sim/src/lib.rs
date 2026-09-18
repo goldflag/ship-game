@@ -21,6 +21,7 @@ pub mod formations;
 pub mod geometry;
 pub mod mobility;
 pub mod motion;
+pub mod maneuvering;
 pub mod installation_clearance;
 pub mod mount_clearance;
 pub mod mount_frames;

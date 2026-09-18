@@ -11,7 +11,7 @@ use naval_sim::{
     hydrostatics::HullHydrostatics,
     impact::resolve_ship_contact,
     machinery::system_health,
-    motion::{HelmCommand, step_ship},
+    motion::HelmCommand,
     rules::TeamId,
     shell::Shell,
     vessel::{CompiledShip, Vessel},
@@ -116,19 +116,15 @@ fn main() {
         }
         let start = Instant::now();
         let mut milestones = vec![];
+        let movement=naval_sim::maneuvering::Maneuvering::new(d);
         for tick in 0..if mode == "capsize-fixture" { 1200 } else { 600 } {
-            let power = system_health(&a, d, "engine", None);
-            let steering = system_health(&a, d, "steering", None);
-            step_ship(
-                &mut a.motion,
+            naval_sim::maneuvering::step(
+                &mut a, d, &movement,
                 HelmCommand {
                     throttle: 1.,
                     rudder: 0.5,
                     ..Default::default()
                 },
-                &d.handling,
-                power,
-                steering,
                 None,
             );
             update_flooding(&mut a, d, &h, 1. / 60., 0.5, None, None);

@@ -47,3 +47,14 @@ test('machinery readings remove submerged exhaust and exposed propellers from se
   expect(systemHealth(actor, def, 'engine')).toBe(0);
   expect(supportPerformance(actor, def).power).toBe(1);
 });
+
+test('one damaged screw leaves its shared engine driving the healthy screw', () => {
+  const { actor, def, damage } = fixture();
+  def.modules.push({ ...def.modules.find(m => m.id === 'screw')!, id: 'second-screw', center: [2,-2,0] });
+  actor.damage.modules.push({ id: 'second-screw', hp: 100 } as typeof actor.damage.modules[number]);
+  for (const group of def.propulsion!.groups) group.shaftIds.push('second-screw');
+  damage('screw', 0);
+  expect(systemHealth(actor, def, 'engine')).toBeCloseTo(.5);
+  delete def.propulsion!.sharedExhaust;
+  expect(systemHealth(actor, def, 'engine')).toBeCloseTo(.5);
+});

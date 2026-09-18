@@ -79,3 +79,16 @@ test('installed elevation ceilings preserve catalog capability and reject wideni
     expect(() => compileShip(b, catalog)).toThrow(/elevationMaxDeg/);
   }
 });
+
+test('physical appendages round-trip in the shared blueprint and reject invalid module references', () => {
+  const source = structuredClone(blueprint) as unknown as ShipBlueprint;
+  const shaft = source.modules.find(m => m.role === 'shaft')!;
+  const steering = source.modules.find(m => m.kind === 'steering')!;
+  source.maneuvering = { version: 1, propellers: [{ moduleId: shaft.id, bearingDeg: 15, diameterM: 4 }], rudders: [{ moduleId: steering.id, bearingDeg: 0, areaM2: 20 }] };
+  expect(compileShip(source, catalog).maneuvering).toEqual(source.maneuvering);
+  source.maneuvering.propellers[0].moduleId = steering.id;
+  expect(() => compileShip(source, catalog)).toThrow(/maneuvering.moduleId/);
+  source.maneuvering.propellers[0].moduleId = shaft.id;
+  source.maneuvering.rudders[0].areaM2 = -1;
+  expect(() => compileShip(source, catalog)).toThrow(/maneuvering.areaM2/);
+});

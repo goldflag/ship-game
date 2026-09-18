@@ -1,9 +1,4 @@
-use crate::mobility;
-use crate::{
-    definition::{Handling, Vec3},
-    geometry::{Pose, clamp},
-    rules::DT,
-};
+use crate::{definition::Vec3, geometry::Pose};
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -78,61 +73,18 @@ impl ShipState {
         ]
     }
 }
-fn finite(n: f64) -> f64 {
-    if n.is_finite() { n } else { 0.0 }
-}
-fn approach(n: f64, target: f64, amount: f64) -> f64 {
-    n + clamp(target - n, -amount, amount)
-}
-fn sign(n: f64) -> f64 {
-    if n == 0.0 { 0.0 } else { n.signum() }
-}
+/// Shared authoritative movement entry point for battles and native trials.
 pub fn step_ship(
-    s: &mut ShipState,
-    c: HelmCommand,
-    h: &Handling,
-    power: f64,
-    steering: f64,
+    ship: &mut crate::vessel::Vessel,
+    command: HelmCommand,
     environment: Option<SeaHandling>,
 ) {
-    let throttle = clamp(finite(c.throttle), -1.0, 1.0);
-    let rudder = clamp(finite(c.rudder), -1.0, 1.0) * clamp(finite(steering), 0.0, 1.0);
-    let power = clamp(finite(power), 0.0, 1.0);
-    let turn_loss = 0.22 * s.rudder.powi(2) * clamp(s.speed.abs() / h.forward_speed, 0.0, 1.0);
-    let target = throttle
-        * if throttle < 0.0 {
-            h.reverse_speed
-        } else {
-            h.forward_speed
-        }
-        * power.sqrt()
-        * (1.0 - turn_loss)
-        * (1.0 - environment.map_or(0.0, |e| e.resistance));
-    s.rudder = approach(s.rudder, rudder, h.rudder_rate * mobility::RUDDER_RATE * DT);
-    let braking = target.abs() < s.speed.abs() || sign(target) != sign(s.speed);
-    s.speed = approach(
-        s.speed,
-        target,
-        if braking {
-            h.braking * mobility::BRAKING
-        } else {
-            h.acceleration * mobility::ACCELERATION * power
-        } * DT,
+    let compiled = ship.compiled.clone();
+    crate::maneuvering::step(
+        ship,
+        &compiled.definition,
+        &compiled.maneuvering,
+        command,
+        environment,
     );
-    let authority = clamp(s.speed / h.forward_speed, -0.4, 1.0);
-    let yaw = s.rudder * h.max_yaw_rate * mobility::MAX_YAW_RATE * authority;
-    s.yaw_rate += (yaw - s.yaw_rate)
-        * (1.0 - (-DT * mobility::YAW_RESPONSE / clamp(2.4 * 0.019 / h.max_yaw_rate.max(0.001), 0.8, 6.0)).exp());
-    s.heading = (s.heading + s.yaw_rate * DT + std::f64::consts::TAU) % std::f64::consts::TAU;
-    s.sway_speed += (-s.yaw_rate * s.speed * 1.5 - s.sway_speed) * (1.0 - (-DT / 4.0).exp());
-    if let Some(e) = environment {
-        let blend = 1.0 - (-DT / 20.0).exp();
-        s.drift_x += (e.drift[0] - s.drift_x) * blend;
-        s.drift_z += (e.drift[1] - s.drift_z) * blend;
-    }
-    let v = s.velocity();
-    s.x += v[0] * DT;
-    s.z += v[2] * DT;
-    s.distance += s.speed.hypot(s.sway_speed) * DT;
-    s.tick += 1;
 }

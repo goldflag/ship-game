@@ -126,6 +126,7 @@ pub fn update_stability(
             }
         }
         s.scratch = work;
+        actor.motion_mass = crate::maneuvering::MassProperties::flooded(def, &s.water);
         let water: f64 = s.water.iter().map(|w| w.volume).sum();
         let mass = def.hull.mass_kg + water * 1025.0;
         let center = std::array::from_fn(|axis| {

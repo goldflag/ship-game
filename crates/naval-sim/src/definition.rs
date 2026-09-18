@@ -568,6 +568,36 @@ pub struct ShipDefinitionStability {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ManeuveringProfilePropellersItem {
+    #[serde(rename = "moduleId")]
+    pub module_id: String,
+    #[serde(rename = "bearingDeg")]
+    pub bearing_deg: f64,
+    #[serde(rename = "diameterM")]
+    pub diameter_m: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ManeuveringProfileRuddersItem {
+    #[serde(rename = "moduleId")]
+    pub module_id: String,
+    #[serde(rename = "bearingDeg")]
+    pub bearing_deg: f64,
+    #[serde(rename = "areaM2")]
+    pub area_m2: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ManeuveringProfile {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "propellers")]
+    pub propellers: Vec<ManeuveringProfilePropellersItem>,
+    #[serde(rename = "rudders")]
+    pub rudders: Vec<ManeuveringProfileRuddersItem>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct HullSectionsItem {
     #[serde(rename = "station")]
     pub station: f64,
@@ -1431,6 +1461,8 @@ pub struct ShipDefinition {
     pub stability: Option<ShipDefinitionStability>,
     #[serde(rename = "hull")]
     pub hull: Hull,
+    #[serde(rename = "maneuvering", default, skip_serializing_if = "Option::is_none")]
+    pub maneuvering: Option<ManeuveringProfile>,
     #[serde(rename = "handling")]
     pub handling: Handling,
     #[serde(rename = "armor")]

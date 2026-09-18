@@ -189,6 +189,7 @@ impl ShipIndex {
 /// Built once when trusted content loads, then shared by every vessel and match.
 #[derive(Clone, Debug)]
 pub struct CompiledShip {
+    pub maneuvering: crate::maneuvering::Maneuvering,
     /// Shared by port, battle spawns and resets, solved once per loaded design.
     initial_pose: crate::geometry::Pose,
     pub deck_surface: Option<crate::aviation::DeckSurface>,
@@ -212,6 +213,7 @@ impl CompiledShip {
         hydrostatics: Option<&HydrostaticTable>,
     ) -> Result<Self, String> {
         let d = &definition;
+        crate::maneuvering::validate(d)?;
         let deck_surface = crate::aviation::DeckSurface::new(d);
         if d.air_wing
             .as_ref()
@@ -271,6 +273,7 @@ impl CompiledShip {
             }
         }
         Ok(Self {
+            maneuvering: crate::maneuvering::Maneuvering::new(d),
             initial_pose,
             deck_surface,
             torpedo_hull: crate::torpedoes::torpedo_hull(d)?,

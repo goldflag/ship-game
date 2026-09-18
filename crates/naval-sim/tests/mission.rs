@@ -185,7 +185,6 @@ fn circular_boundary_turns_under_physics_without_teleporting_or_eliminating_drif
     a.motion.x = 24100.0;
     a.motion.heading = std::f64::consts::FRAC_PI_2;
     a.motion.speed = 12.0;
-    let handling = a.definition().handling.clone();
     let order = HelmCommand {
         throttle: 0.7,
         ..Default::default()
@@ -193,7 +192,7 @@ fn circular_boundary_turns_under_physics_without_teleporting_or_eliminating_drif
     for _ in 0..120 * TICK_RATE {
         let command = area.constrain(&a, order);
         let before = [a.motion.x, a.motion.z];
-        step_ship(&mut a.motion, command, &handling, 1.0, 1.0, None);
+        step_ship(&mut a, command, None);
         assert!((before[0] - a.motion.x).hypot(before[1] - a.motion.z) < 1.0);
         assert!(area.contains([a.motion.x, a.motion.z], 0.0));
     }
@@ -202,7 +201,8 @@ fn circular_boundary_turns_under_physics_without_teleporting_or_eliminating_drif
     a.motion.z = 0.0;
     a.motion.speed = 0.0;
     let command = area.constrain(&a, order);
-    step_ship(&mut a.motion, command, &handling, 0.0, 0.0, None);
+    for m in &mut a.damage.modules { m.hp=0.; }
+    step_ship(&mut a, command, None);
     assert!((a.motion.x - 25100.0).abs() < 0.1);
     assert!(a.physical_loss().is_none());
 }

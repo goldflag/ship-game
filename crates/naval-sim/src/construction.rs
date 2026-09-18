@@ -1297,31 +1297,7 @@ fn build(
     let arm1 = crate::hydrostatics::righting_arms(f2.center, cg, eps, 0.).0;
     let gm = -(arm1 - arm0) / eps;
     let power = out.loading.as_ref().map_or(0., |l| l.power_kw);
-    let speed = out.loading.as_ref().map_or(0., |l| l.estimated_speed_mps);
-    let rudder_moment: f64 = c
-        .equipment
-        .iter()
-        .filter_map(|e| {
-            catalog
-                .equipment
-                .iter()
-                .find(|p| p.id == e.part_id && p.kind == "rudder")
-                .map(|p| p.rudder_area_m2.unwrap_or(0.) * (e.position[2] - cg[2]).abs())
-        })
-        .sum();
-    def.handling.acceleration = if speed > 0. {
-        (power * 1000. / (total_mass * speed.max(1.))).min(2.)
-    } else {
-        0.
-    };
-    def.handling.max_yaw_rate = if power > 0. {
-        (0.5 * SEA_DENSITY * speed * speed * rudder_moment / inertia[1].max(1.))
-            .sqrt()
-            .min(0.25)
-    } else {
-        0.
-    };
-    let loading=ConstructionLoading{mass_kg:total_mass,center_of_gravity:cg,inertia_kg_m2:inertia,contributions,envelope_volume_m3:envelope.volume,material_volume_m3:material_volume,usable_volume_m3:def.compartments.iter().map(|r|r.capacity_m3).sum(),waterline_y:if float.afloat {-float.y}else{high},buoyancy_center:float.center,roll_metacentric_height_m:gm,power_kw:power,estimated_speed_mps:speed,basis:"Steel 7850 kg/m³; seawater 1025 kg/m³; internal allowance 150 kg/m³ of union envelope distributed through its lower half by height; exact convex clipping; fixed catalog service load and initial projectile stock".into()};
+    let loading=ConstructionLoading{mass_kg:total_mass,center_of_gravity:cg,inertia_kg_m2:inertia,contributions,envelope_volume_m3:envelope.volume,material_volume_m3:material_volume,usable_volume_m3:def.compartments.iter().map(|r|r.capacity_m3).sum(),waterline_y:if float.afloat {-float.y}else{high},buoyancy_center:float.center,roll_metacentric_height_m:gm,power_kw:power,estimated_speed_mps:0.,basis:"Steel 7850 kg/m³; seawater 1025 kg/m³; internal allowance 150 kg/m³ of union envelope distributed through its lower half by height; exact convex clipping; fixed catalog service load and initial projectile stock".into()};
     if !float.afloat {
         warn(
             out,
@@ -1344,7 +1320,22 @@ fn build(
         );
     }
     def.loading = Some(loading.clone());
-    out.loading = Some(loading);
+    let mut maneuvering = ManeuveringProfile { version: 1., ..Default::default() };
+    for e in &c.equipment {
+        let Some(p) = catalog.equipment.iter().find(|p| p.id == e.part_id) else { continue; };
+        if p.kind == "propeller" {
+            maneuvering.propellers.push(ManeuveringProfilePropellersItem { module_id: e.id.clone(),
+                bearing_deg: e.bearing_deg.rem_euclid(360.), diameter_m: p.size[0].max(p.size[1]) });
+        } else if p.kind == "rudder" && p.rudder_area_m2.unwrap_or(0.) > 0. {
+            maneuvering.rudders.push(ManeuveringProfileRuddersItem { module_id: e.id.clone(),
+                bearing_deg: e.bearing_deg.rem_euclid(360.), area_m2: p.rudder_area_m2.unwrap() });
+        }
+    }
+    def.maneuvering = Some(maneuvering);
+    let movement = crate::maneuvering::Maneuvering::new(&def);
+    def.handling = movement.estimated_handling(&def);
+    def.loading.as_mut().unwrap().estimated_speed_mps = movement.estimated_speed;
+    out.loading = def.loading.clone();
     def.accuracy = ShipDefinitionAccuracy {
         exterior: "Player-authored polyhedral hull".into(),
         internals: "Bounded exact volume clipping; gameplay machinery".into(),
@@ -2313,35 +2304,10 @@ fn equipment(
         g.share /= power.max(1.);
     }
     def.propulsion = Some(ShipDefinitionPropulsion { groups, shared_exhaust: Some(shared_exhaust), basis: "Catalog power limited by shared funnel capacity, allocated in proportion to engine power, less 2% rated power reserved for included auxiliaries, then propeller efficiency; damaged or submerged funnels reduce shared capacity at runtime".into() });
-    let (_, dims) = crate::structure::bounds(
-        hull.iter()
-            .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),
-    );
-    let wetted: f64 = out
-        .surfaces
-        .iter()
-        .filter(|s| s.normal[1] < 0.5)
-        .map(|s| s.area_m2)
-        .sum();
-    // Bounded gameplay resistance P = (rho/2) Cf S v³, limited by a Froude wave factor.
-    let speed = if power > 0. {
-        (power * 1000. / (0.5 * SEA_DENSITY * 0.008 * wetted.max(1.)))
-            .cbrt()
-            .min(0.5 * (9.81 * dims[2]).sqrt())
-    } else {
-        0.
-    };
-    def.handling = Handling {
-        forward_speed: speed,
-        reverse_speed: speed * 0.35,
-        acceleration: 0., // Set from final loaded mass after fixed supports.
-        braking: 0.12 + speed * 0.015,
-        rudder_rate: 0.35,
-        max_yaw_rate: 0., // Set from final distributed inertia and CG.
-    };
+    // Final hull/loading and fitted datums are needed before deriving force-based estimates.
+    def.handling = Handling { rudder_rate: 0.35, ..Default::default() };
     out.loading = Some(ConstructionLoading {
         power_kw: power,
-        estimated_speed_mps: speed,
         ..Default::default()
     });
     Ok(())
