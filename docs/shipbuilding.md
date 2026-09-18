@@ -411,7 +411,12 @@ there is no forced stability target or per-design buoyancy multiplier. Exact cli
 supply buoyancy and usable room water capacity. Floodwater, machinery immersion
 and loss use native simulation state. Resistance, wave effects, package masses
 and handling remain documented engineering/game approximations rather than
-certified naval performance.
+certified naval performance. [Maneuvering](maneuvering.md) now uses forces at each
+propeller and rudder, including signed leverage, fitting bearing, immersion and
+local propeller wash. Hull resistance uses wetted skin, bluntness, fullness and
+length; loaded mass and yaw inertia govern acceleration and turning response.
+Floodwater updates those loading properties. Port handling readings are estimates;
+sea trials measure the complete coupled motion.
 
 ## Identity, storage and local authority
 

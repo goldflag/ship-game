@@ -119,7 +119,8 @@ pub fn command(
             let bearing =
                 (threat.position[0] - actor.motion.x).atan2(actor.motion.z - threat.position[2]);
             // Turn away from the observed approach side; dead-ahead ties choose
-            // starboard deterministically. Eight seconds makes a visible dodge
+            // starboard deterministically. Allow twelve seconds for the ship's
+            // inertia to develop torpedo clearance; aircraft corrections stay at eight. This makes a visible dodge
             // without replacing or repeatedly restarting a persistent route.
             let side = if wrap_angle(bearing - actor.motion.heading) > 0.05 {
                 -1.0
@@ -127,7 +128,7 @@ pub fn command(
                 1.0
             };
             state.evasion = Some(Evasion {
-                until_tick: tick + 8 * TICK_RATE,
+                until_tick: tick + if threat.torpedo { 12 } else { 8 } * TICK_RATE,
                 heading: actor.motion.heading + side * 0.85,
                 torpedo: threat.torpedo,
             });

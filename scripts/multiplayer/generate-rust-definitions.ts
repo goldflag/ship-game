@@ -51,7 +51,8 @@ function rustType(original: ts.Type, hint: string): string {
     // Closed cells are immutable once compiled; hydrostatics/collision clones share their face storage.
     const fieldType = name === 'ConvexVolume' && field === 'faces' ? 'std::sync::Arc<[ConvexVolumeFacesItem]>' : generatedType;
     const identifier = ['type','ref','match','mod','loop','move','where','in','self','use','fn'].includes(field) ? 'r#' + field : field;
-    return `    #[serde(rename = "${property.name}")]\n    pub ${identifier}: ${optional ? `Option<${fieldType}>` : fieldType},`;
+    const defaults = name === 'ShipDefinition' && field === 'maneuvering' ? ', default, skip_serializing_if = "Option::is_none"' : '';
+    return `    #[serde(rename = "${property.name}"${defaults})]\n    pub ${identifier}: ${optional ? `Option<${fieldType}>` : fieldType},`;
   });
   definitions.push(`#[derive(Clone, Debug, Default, Serialize, Deserialize)]\npub struct ${name} {\n${fields.join('\n')}\n}\n`);
   return name;

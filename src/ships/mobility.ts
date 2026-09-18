@@ -4,8 +4,8 @@ import type { Handling } from './blueprint';
 // Keep authored speed limits and the relative handling of different hulls.
 export const MOBILITY = { acceleration: 1.25, braking: 1.25, rudderRate: 1.2, maxYawRate: 1.1, yawResponse: 1.2 } as const;
 export const torpedoSpeed = (authoredSpeed: number): number => authoredSpeed * 1.1;
-export const effectiveHandling = (h: Handling): Handling => ({
-  ...h, acceleration: h.acceleration * MOBILITY.acceleration,
-  braking: h.braking * MOBILITY.braking, rudderRate: h.rudderRate * MOBILITY.rudderRate,
-  maxYawRate: h.maxYawRate * MOBILITY.maxYawRate,
+export const effectiveHandling = (h: Handling, physical = false): Handling => ({
+  ...h, acceleration: h.acceleration * (physical ? 1 : MOBILITY.acceleration),
+  braking: h.braking * (physical ? 1 : MOBILITY.braking), rudderRate: h.rudderRate * MOBILITY.rudderRate,
+  maxYawRate: h.maxYawRate * (physical ? 1 : MOBILITY.maxYawRate),
 });

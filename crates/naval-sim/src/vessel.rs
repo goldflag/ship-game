@@ -189,6 +189,7 @@ impl ShipIndex {
 /// Built once when trusted content loads, then shared by every vessel and match.
 #[derive(Clone, Debug)]
 pub struct CompiledShip {
+    pub maneuvering: crate::maneuvering::Maneuvering,
     pub deck_surface: Option<crate::aviation::DeckSurface>,
     pub collision_profile: Vec<[f64; 2]>,
     pub torpedo_hull: Vec<crate::structure::StructuralSurface>,
@@ -210,6 +211,7 @@ impl CompiledShip {
         hydrostatics: Option<&HydrostaticTable>,
     ) -> Result<Self, String> {
         let d = &definition;
+        crate::maneuvering::validate(d)?;
         let deck_surface = crate::aviation::DeckSurface::new(d);
         if d.air_wing
             .as_ref()
@@ -252,6 +254,7 @@ impl CompiledShip {
             shell_center[i].abs() + shell_size[i] / 2.0
         }));
         Ok(Self {
+            maneuvering: crate::maneuvering::Maneuvering::new(d),
             deck_surface,
             torpedo_hull: crate::torpedoes::torpedo_hull(d)?,
             collision_profile: crate::collisions::profile(&d.hull),

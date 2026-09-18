@@ -68,7 +68,18 @@ All per-ship materials that need special handling must have an export path. The 
 
 ### Mobility tuning
 
-`src/ships/mobility.ts` and `crates/naval-sim/src/mobility.rs` apply common runtime multipliers to authored definitions: acceleration/braking ×1.25, rudder shift ×1.2, maximum yaw rate ×1.1 and yaw response ×1.2. Ahead/astern speed limits, damage penalties and hull differences remain authored. Torpedo run speeds use ×1.1 for ship and aircraft launches, interception, friendly-lane prediction, travel and port statistics; range and arming remain distance-based. These gameplay rules apply equally to presets and future custom blueprints without changing model content hashes.
+`crates/naval-sim/src/maneuvering.rs` owns planar propeller/rudder forces,
+shape-dependent resistance and loaded mass/inertia. The old target-speed and
+target-yaw integrator is removed. Optional `maneuvering.version: 1` profiles retain
+catalog propeller diameter, rudder area and fitting bearing against stable module
+IDs; both authored presets and construction use the same blueprint extension.
+Construction emits these values; older presets infer missing fitting properties
+from module envelopes and authored handling. See [maneuvering physics](maneuvering.md)
+for force conventions, legacy calibration, caching, approximations and validation.
+
+Rudder shift retains ×1.2. The previous acceleration/turn-rate multipliers are only
+legacy calibration inputs, not additional forces or runtime turn caps. Torpedo run
+speed remains ×1.1; range and arming remain distance-based.
 
 ### Gun firing and ammunition
 

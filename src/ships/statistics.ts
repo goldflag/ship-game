@@ -67,7 +67,7 @@ export function shipScores(def: ShipDefinition): StatScore[] {
     { id: 'survivability', label: 'Survivability', score: score(70 * maxHullIntegrity(def) / r.hullIntegrity + 30 * armorMm / r.armorMm), help: `Approximation from displacement and thickest plate against ${r.armorMm} mm. Flooding and stability determine whether the ship sinks.` },
     { id: 'artillery', label: 'Artillery', score: score(70 * damagePerMinute(main) / r.mainDamagePerMinute + 30 * penetration / r.penetrationMm), help: `Main battery damage per minute against ${format(r.mainDamagePerMinute)} and penetration against ${r.penetrationMm} mm.` },
     { id: 'airDefense', label: 'Air defense', score: score(100 * damagePerMinute(dualPurposeMounts(def)) / r.dualPurposeDamagePerMinute), help: `Damage per minute from registered guns of ${Math.round(r.dualPurposeCaliberM * 1000)} mm or less with at least 70° elevation, against ${format(r.dualPurposeDamagePerMinute)}. Ships without AA-capable guns score zero.` },
-    { id: 'maneuverability', label: 'Maneuverability', score: score(40 * knots(def.handling.forwardSpeed) / r.speedKn + 60 * effectiveHandling(def.handling).maxYawRate / r.yawRateRadPerSecond), help: `Top speed against ${r.speedKn} kn and turning rate against ${(r.yawRateRadPerSecond * 180 / Math.PI).toFixed(1)}°/s.` },
+    { id: 'maneuverability', label: 'Maneuverability', score: score(40 * knots(def.handling.forwardSpeed) / r.speedKn + 60 * effectiveHandling(def.handling, !!def.maneuvering).maxYawRate / r.yawRateRadPerSecond), help: `Top speed against ${r.speedKn} kn and turning rate against ${(r.yawRateRadPerSecond * 180 / Math.PI).toFixed(1)}°/s.` },
     { id: 'concealment', label: 'Concealment', score: score(100 * (r.largestPlanRootM - planRoot) / (r.largestPlanRootM - r.smallestPlanRootM)), help: 'Smaller waterline plan (length × beam) scores higher. Detection is not yet simulated.' },
   ];
 }
@@ -103,7 +103,7 @@ function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean, defini
 /** Everything the sheet prints is read from the compiled definition combat uses. */
 export function shipStatistics(def: ShipDefinition): StatSection[] {
   const main = mainMounts(def), secondary = def.mounts.filter(m => m.battery === 'secondary');
-  const hp = maxHullIntegrity(def), h = def.hull, handling = effectiveHandling(def.handling);
+  const hp = maxHullIntegrity(def), h = def.hull, handling = effectiveHandling(def.handling, !!def.maneuvering);
   const engines = def.modules.filter(m => m.kind === 'engine').length, magazines = def.modules.filter(m => m.kind === 'magazine').length, steering = def.modules.filter(m => m.kind === 'steering').length;
   const floodingM3 = def.compartments.reduce((n, c) => n + c.capacityM3, 0), pumpM3PerMinute = def.compartments.reduce((n, c) => n + c.pumpM3PerSecond, 0) * 60;
   const survivability: StatSection = {
@@ -192,11 +192,11 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
     id: 'mobility', title: 'Mobility', headline: format(knots(handling.forwardSpeed), 1), headlineUnit: 'kn', headlineHelp: 'Top speed at full ahead with undamaged machinery.',
     rows: [
       { label: 'Astern', value: format(knots(handling.reverseSpeed), 1), unit: 'kn', help: 'Top speed going astern.' },
-      { label: 'Time to full speed', value: format(handling.forwardSpeed / handling.acceleration), unit: 's', help: 'From stopped to full ahead with all machinery.' },
-      { label: 'Stopping time', value: format(handling.forwardSpeed / handling.braking), unit: 's', help: 'From full ahead to stopped with engines reversed.' },
+      { label: 'Acceleration reference', value: format(handling.forwardSpeed / handling.acceleration), unit: 's', help: 'Top speed divided by initial acceleration. Actual acceleration falls as water resistance increases; use a sea trial to measure time to speed.' },
+      { label: 'Braking reference', value: format(handling.forwardSpeed / handling.braking), unit: 's', help: 'Top speed divided by initial full-astern deceleration. Actual stopping time depends on changing drag, thrust and loading.' },
       { label: 'Rudder shift', value: format(2 / handling.rudderRate, 1), unit: 's', help: 'Hard over to hard over.' },
-      { label: 'Turning rate', value: format(handling.maxYawRate * 180 / Math.PI, 2), unit: '°/s', help: 'Steady rate of turn at full speed with full rudder.' },
-      { label: 'Turning circle', value: format(turningDiameterM), unit: 'm', help: 'Diameter at full speed and full rudder. Machinery damage reduces speed and steering damage reduces rudder authority.' },
+      { label: 'Turning rate', value: format(handling.maxYawRate * 180 / Math.PI, 2), unit: '°/s', help: 'Design estimate with full rudder. Actual turning follows rudder forces, sideslip, loading and machinery condition.' },
+      { label: 'Turning circle', value: format(turningDiameterM), unit: 'm', help: 'Reference diameter from design speed and turning estimate. Actual turning circles depend on speed loss, loading, rudder immersion and machinery condition.' },
       { label: 'Machinery spaces', value: format(engines), help: 'Boiler, turbine and shaft modules that each supply a share of power.' },
     ],
   };

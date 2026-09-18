@@ -101,8 +101,7 @@ fn step_fleet(
         ships.insert(i, a);
     }
     for (a, c) in ships.iter_mut().zip(commands) {
-        let handling = a.definition().handling.clone();
-        step_ship(&mut a.motion, c, &handling, 1.0, 1.0, None);
+        step_ship(a, c, None);
     }
 }
 fn route(waypoints: Vec<[f64; 2]>) -> Movement {
@@ -171,6 +170,7 @@ fn escort_catches_a_moving_leader_and_holds_locally_after_its_loss() {
     );
     let mut ships = vec![ships.remove(1)];
     let at = [ships[0].motion.x, ships[0].motion.z];
+    let stopping_distance = ships[0].compiled.maneuvering.stopping_distance(ships[0].motion.speed, 1., ships[0].motion_mass.mass);
     for tick in 60 * 600..60 * 900 {
         step_tracked(&mut ships, &orders[1..], &[], tick, &mut trails);
     }
@@ -179,7 +179,7 @@ fn escort_catches_a_moving_leader_and_holds_locally_after_its_loss() {
         NavigationStatus::LeaderLost
     );
     assert!(
-        gap(&ships[0], at) < 160.0,
+        gap(&ships[0], at) < stopping_distance * 1.3 + 50.0,
         "lost leader must not authorize pursuit: {}",
         gap(&ships[0], at)
     );
@@ -268,7 +268,7 @@ fn carrier_screen_traverses_a_passage_and_reforms_after_a_turn() {
     );
     assert!(
         gap(&ships[0], [2400.0, -2800.0]) < 150.0,
-        "leader failed route"
+        "leader failed route: {:?}, {:?}", ships[0].motion, ships[0].navigation
     );
     let leader = &ships[0];
     for (a, order) in ships[1..].iter().zip(&orders[1..]) {
@@ -305,7 +305,7 @@ fn damage_engines(a: &mut Vessel, fraction: f64) {
 }
 #[test]
 fn damaged_straggler_requires_an_explicit_decision_and_slowing_restores_formation() {
-    use naval_sim::{battle::Orders, machinery::system_health, navigation::FormationPolicy};
+    use naval_sim::{battle::Orders, navigation::FormationPolicy};
     let run = |policy| {
         let mut ships = vec![
             ship("cv", "enterprise-cv6", 0.0, 0.0),
@@ -345,7 +345,8 @@ fn damaged_straggler_requires_an_explicit_decision_and_slowing_restores_formatio
                 .is_empty()
         );
         ships[1].motion.z = 350.0;
-        damage_engines(&mut ships[1], 0.09);
+        // Power/resistance now determines speed; make this a severely disabled escort.
+        damage_engines(&mut ships[1], 0.005);
         let report =
             navigation::formation_report(&ships[0], &ships[1..], &orders, policy, &Trails::new());
         assert_eq!(report.stragglers.len(), 1);
@@ -376,9 +377,7 @@ fn damaged_straggler_requires_an_explicit_decision_and_slowing_restores_formatio
                 ships.insert(i, a);
             }
             for (a, command) in ships.iter_mut().zip(commands) {
-                let handling = a.definition().handling.clone();
-                let power = system_health(a, a.definition(), "engine", None);
-                step_ship(&mut a.motion, command, &handling, power, 1.0, None);
+                step_ship(a, command, None);
             }
         }
         let lead = &ships[0];
@@ -471,7 +470,7 @@ fn observed_threat_dodge_expires_without_erasing_the_route_or_waypoint() {
     assert!(evade.rudder.abs() > 0.5);
     assert_eq!(state.order, order);
     assert_eq!(state.waypoint, 1);
-    let resumed = fleet_evasion::command(&a, &[], &[], 100 + 8 * 60, &mut state, normal);
+    let resumed = fleet_evasion::command(&a, &[], &[], 100 + 12 * 60, &mut state, normal);
     assert_eq!(
         serde_json::to_value(resumed).unwrap(),
         serde_json::to_value(normal).unwrap()
@@ -598,8 +597,7 @@ fn a_visible_torpedo_dodge_opens_real_clearance_then_resumes_the_order() {
             } else {
                 normal
             };
-            let handling = a.definition().handling.clone();
-            step_ship(&mut a.motion, command, &handling, 1.0, 1.0, None);
+            step_ship(&mut a, command, None);
             minimum = minimum.min((position[0] - a.motion.x).hypot(position[2] - a.motion.z));
             assert_eq!(state.order, order);
         }
@@ -794,7 +792,7 @@ fn a_double_column_rides_the_guides_wake_in_both_columns() {
     let mut trails = Trails::new();
     let mut track = vec![];
     let mut minimum_gap = f64::INFINITY;
-    for tick in 0..60 * 1200 {
+    for tick in 0..60 * 1500 {
         step_tracked(&mut ships, &orders, &[], tick, &mut trails);
         if track.last().is_none_or(|p| gap(&ships[0], *p) > 10.0) {
             track.push([ships[0].motion.x, ships[0].motion.z]);
@@ -809,7 +807,7 @@ fn a_double_column_rides_the_guides_wake_in_both_columns() {
         gap(&ships[0], [6000.0, -5000.0]) < 150.0,
         "guide failed its route"
     );
-    assert!(minimum_gap > 200.0, "unsafe column spacing: {minimum_gap}");
+    assert!(minimum_gap > 200.0, "unsafe column spacing: {minimum_gap}; {:?}", ships.iter().map(|a| (&a.motion,a.navigation.as_ref().map(|n| &n.status))).collect::<Vec<_>>());
     // Each ship astern holds its own column's distance from the guide's track:
     // the port column on it, the starboard column one interval off it.
     for (a, station) in ships[1..].iter().zip(&stations) {

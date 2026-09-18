@@ -15,6 +15,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Review model quality | [Ship model review](ship-model-review.md) | Four required visual checks on the exact published model |
 | Paint ships consistently | [Ship appearance](ship-appearance.md) | Shared finishes, named paints and approved ship-specific schemes |
 | Reuse equipment or browse standalone models | [Shared components](shared-components.md), [model viewer](../tools/ship-overlay/README.md) | Component catalog, original builders and published ship assemblies |
+| Ship handling, propulsion or resistance | [Maneuvering physics](maneuvering.md) | Native per-fitting forces, cached hull coefficients and loaded mass/inertia |
 | Change ship components or combat | [Runtime/component reference](ship-runtime-contract.md) | Validated definitions and renderer-free simulation |
 | Profile or optimize ship builds | [Pipeline performance](ship-pipeline-performance.md) | Measured stage timings and rebuild rules |
 | Build, export or compare ships | [Build/reference details](ship-build-reference.md) | Build scripts, input hashes and published model/thumbnail validation |

@@ -88,7 +88,7 @@ fn water_inertia_matches_the_filled_box_and_parallel_axis_theorem() {
     assert!((half.inertia_m3(half.center)[0] - 5. / 3.).abs() < 1e-10);
 }
 #[test]
-fn exact_water_in_a_mixed_profile_retains_point_mass_inertia() {
+fn exact_water_in_a_mixed_profile_retains_intrinsic_and_point_mass_inertia() {
     let room = Compartment {
         capacity_m3: 8.,
         center: [1., 0., 0.],
@@ -100,5 +100,5 @@ fn exact_water_in_a_mixed_profile_retains_point_mass_inertia() {
         ..Default::default()
     };
     let water = water_body(&room, 4., 0., 0.);
-    assert!((water.inertia_m3([0.; 3])[2] - 5.).abs() < 1e-7);
+    assert!((water.inertia_m3([0.; 3])[2] - 20. / 3.).abs() < 1e-7);
 }

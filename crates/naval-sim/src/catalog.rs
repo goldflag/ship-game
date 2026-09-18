@@ -330,6 +330,7 @@ fn ids_unique<'a>(ids: impl Iterator<Item = &'a str>) -> bool {
     ids.into_iter().all(|id| !id.is_empty() && seen.insert(id))
 }
 pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
+    crate::maneuvering::validate(d).map_err(ContentError::Invalid)?;
     let fail = || ContentError::Invalid(format!("invalid compiled definition {}", d.id));
     if let Some(layout) = d.air_wing.as_ref().and_then(|w| w.deck_layout.as_ref()) {
         crate::aviation::validate(d, layout).map_err(ContentError::Invalid)?;

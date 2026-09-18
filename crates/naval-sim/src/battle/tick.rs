@@ -29,8 +29,7 @@ use crate::{
     environment::avoid_land,
     gunnery::{self, GunneryContext},
     impact::DamageEvent,
-    machinery::system_health,
-    motion::{HelmCommand, step_ship},
+    motion::HelmCommand,
     navigation::WeaponsPolicy,
     rules::{self, DT, TeamId},
     vessel::Controller,
@@ -321,20 +320,14 @@ impl Battle {
         tick.enter(Phase::Manoeuvre);
         for a in self.actors.iter_mut() {
             let def = a.compiled.definition.clone();
-            let h = def
-                .submarine
-                .as_ref()
-                .filter(|_| a.motion.depth() > 0.5)
-                .map_or(&def.handling, |s| &s.submerged_handling);
-            let power = system_health(a, &def, "engine", None);
-            let steering = system_health(a, &def, "steering", None);
             let sea = (self.sea.wind_mps != 0.0).then(|| {
                 self.sea
                     .handling(&def.hull, &a.motion, a.submarine.is_some())
             });
             let command = tick.helm(&a.motion.id);
             a.helm = command;
-            step_ship(&mut a.motion, command, h, power, steering, sea)
+            let compiled = a.compiled.clone();
+            crate::maneuvering::step(a, &def, &compiled.maneuvering, command, sea)
         }
         let hits = crate::collisions::resolve_ship_collisions(&mut self.actors);
         self.contacts(hits);
