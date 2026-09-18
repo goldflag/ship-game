@@ -1221,7 +1221,7 @@ export default function CustomHullEditor({
                     <b>{p.name}</b>
                     <span>{p.note}</span>
                     <small>
-                      {p.length} × {p.beam} × {p.depth} m
+                      {Number(p.length.toFixed(2))} × {Number(p.beam.toFixed(2))} × {Number(p.depth.toFixed(2))} m
                     </small>
                   </button>
                 );

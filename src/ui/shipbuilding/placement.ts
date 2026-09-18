@@ -45,7 +45,7 @@ function hullFaces(piece: Extract<BuilderPlacement, { kind: 'hull' }>): Vec3[][]
   let faces = hullFacesCache.get(key);
   if (!faces) {
     faces = piece.shape === 'balcony' ? balconyFaces(piece.size).filter(face => face.every(v => v[1] <= piece.size[1] / 2)).map(face => face.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180))) : piece.shape === 'custom-hull'
-      ? customHullFaces({ ...customHullPrimitive(makeHull(0)), size: piece.size }).map(face => face.vertices.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180)))
+      ? customHullFaces({ ...customHullPrimitive(makeHull()), size: piece.size }).map(face => face.vertices.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180)))
       : (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => rotateY(vertex.map((v, i) => v * piece.size[i]) as Vec3, piece.rotationDeg * Math.PI / 180)));
     if (hullFacesCache.size >= 32) hullFacesCache.delete(hullFacesCache.keys().next().value!);
     hullFacesCache.set(key, faces);

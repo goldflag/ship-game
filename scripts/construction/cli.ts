@@ -4,7 +4,7 @@ import { resolve, join } from 'node:path';
 import { createStarterSource, type ConstructionStarter } from '../../src/ships/constructionStarter';
 import { decodeConstructionSource } from '../../src/ships/constructionEditor';
 import { applyConstructionBatch, constructionDiffCommands, type ConstructionBatch } from '../../src/ships/constructionCommands';
-import { HULL_PRESETS } from '../../src/ships/constructionHullPresets';
+import { DEFAULT_HULL_PRESET, HULL_PRESETS } from '../../src/ships/constructionHullPresets';
 import { customHullPanels } from '../../src/ships/constructionPanels';
 import { parseConstructionCatalog } from '../../src/ships/constructionEquipment';
 import { readSource, readCatalog, repositoryStore, constructionId, sourcePath } from './files';
@@ -20,7 +20,7 @@ const help = {
   usage: 'bun scripts/construction/cli.ts <command> <ship-id> [options]',
   commands: {
     templates: '— list adjustable hull presets and sandbox starters; no ship ID required',
-    new: '[--template patrol-hull|destroyer-hull|battleship-hull|barge-hull|blank|patrol|catamaran] [--name name]; default destroyer-hull',
+    new: `[--template ${[...HULL_PRESETS.map(p => p.id), 'blank', 'patrol', 'catamaran'].join('|')}] [--name name]; default ${DEFAULT_HULL_PRESET}`,
     edit: '[--port 5173] — serve the repository source in the game editor',
     inspect: '[--source] [--source-only] [--panels] — revisions, native diagnostics/loading, optional source and stable panel IDs; source-only skips compilation',
     catalog: '[--query text] — exact retained equipment variants, dimensions and attachment sockets',
@@ -40,12 +40,12 @@ const help = {
 };
 if (!action || args.includes('--help')) { print(help); process.exit(0); }
 try {
-  if (action === 'templates') { print({ default: 'destroyer-hull', adjustableHulls: HULL_PRESETS, sandbox: ['blank', 'patrol', 'catamaran'] }); process.exit(0); }
+  if (action === 'templates') { print({ default: DEFAULT_HULL_PRESET, adjustableHulls: HULL_PRESETS.map(({ customHull, ...preset }) => ({ ...preset, sections: customHull.stations.length })), sandbox: ['blank', 'patrol', 'catamaran'] }); process.exit(0); }
   constructionId(id);
   const store = repositoryStore(root);
   if (action === 'new') {
     if (existsSync(join(root, 'assets/ships', id))) throw new Error('Ship directory already exists. Choose a new ID.');
-    const template = option('--template') ?? 'destroyer-hull';
+    const template = option('--template') ?? DEFAULT_HULL_PRESET;
     if (![...HULL_PRESETS.map(p => p.id), 'blank', 'patrol', 'catamaran'].includes(template)) throw new Error('Unknown construction template. Run ship:templates.');
     const catalog = parseConstructionCatalog(JSON.parse(await readFile(join(root, 'public/models/components/catalog.json'), 'utf8')));
     const source = createStarterSource(catalog, template as ConstructionStarter);

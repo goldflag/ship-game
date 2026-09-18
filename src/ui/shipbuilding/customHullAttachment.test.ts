@@ -33,7 +33,8 @@ test.each([...HULL_PRESETS])('$name supports blocks placed by raycasting its ren
       const result = compile(placed);
       expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
       // The fix must not relax native attachment checks for actually floating blocks.
-      placed.construction.primitives[1].position[1] += .001;
+      // Deck sheer can intersect the far corner of a level block; lift it fully clear.
+      placed.construction.primitives[1].position[1] += 1;
       expect(compile(placed).diagnostics.some(d => d.code === 'attachment')).toBe(true);
     }
   } finally { geometry.dispose(); material.dispose(); }

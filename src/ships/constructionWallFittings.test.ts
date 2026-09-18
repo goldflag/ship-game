@@ -145,8 +145,8 @@ test('editor lays a linked row as one transaction; refuses unmatched mirror; sup
   tool.dispose();
 });
 
-test('a porthole seats on the actual sloped Patrol hull and compiles with its linked mirror', () => {
-  const s = createStarterSource(catalog, 'patrol-hull'), before = compile(s);
+test('a porthole seats on the actual sloped Fletcher hull and compiles with its linked mirror', () => {
+  const s = createStarterSource(catalog, 'fletcher-hull'), before = compile(s);
   const face = before.surfaces.filter(f => f.normal[0] > .9 && Math.abs(f.normal[1]) < .7).sort((a,b) => Math.abs(a.vertices[0][2])-Math.abs(b.vertices[0][2]))[0];
   const point = face.vertices.reduce((a,v) => a.map((n,k)=>n+v[k]/face.vertices.length) as Vec3, [0,0,0]);
   const a = fitting('a', 'generic-porthole', point, wallBearing(face.normal)); a.wall!.widthM = a.wall!.heightM = .3;

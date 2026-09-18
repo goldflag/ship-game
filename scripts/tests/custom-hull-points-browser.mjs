@@ -111,7 +111,7 @@ try {
     const { loadConstructionCatalog } = await import('/src/ships/constructionEquipment.ts');
     const { createStarterSource } = await import('/src/ships/constructionStarter.ts');
     window.shipbuilderReview.close();
-    await mountShipbuilderReview(createStarterSource(await loadConstructionCatalog(), 'destroyer-hull'));
+    await mountShipbuilderReview(createStarterSource(await loadConstructionCatalog(), 'fletcher-hull'));
   });
   await page.waitForFunction(() => window.constructionEditor?.source()?.construction.primitives[0]?.kind === 'custom-hull' && !!window.constructionEditor.result()?.definition, undefined, { timeout: 60000 });
   const chooseHull = () => page.evaluate(async () => {

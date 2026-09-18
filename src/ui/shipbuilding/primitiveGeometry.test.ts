@@ -1,3 +1,4 @@
+import { HULL_PRESETS } from '../../ships/constructionHullPresets';
 import { beforeAll, expect, test } from 'bun:test';
 import * as THREE from 'three';
 import init, { compile_construction } from '../../generated/naval-wasm/naval_wasm';
@@ -86,7 +87,7 @@ test.each(HULL_SHAPES)('$name has physical deck contact when placed at its defau
   const position = placementCenter({ kind: 'hull', shape: shape.kind, size: shape.size, rotationDeg: 0 }, { point: [3, 1, 3], normal: [0, 1, 0] }, 1);
   source.construction.primitives.push({ id: 'added', kind: shape.kind, size: shape.size, position, rotationDeg: 0,
     ...(shape.kind === 'balcony' ? { balcony: defaultBalcony() } : {}),
-    ...(shape.kind === 'custom-hull' ? { customHull: createStarterSource(catalog, 'patrol-hull').construction.primitives[0].customHull } : {}) });
+    ...(shape.kind === 'custom-hull' ? { customHull: createStarterSource(catalog, 'fletcher-hull').construction.primitives[0].customHull } : {}) });
   const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
   expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
 });
@@ -127,7 +128,7 @@ test('warped vertex drafts match native triangular boundaries, split solids comp
 });
 
 
-test.each(['patrol-hull', 'destroyer-hull', 'battleship-hull', 'barge-hull'] as const)('%s display and section outlines match the native hull after placement', preset => {
+test.each(HULL_PRESETS.map(p => p.id))('%s display and section outlines match the native hull after placement', preset => {
   const catalog = catalogJson as ConstructionCatalog, source = createStarterSource(catalog, preset);
   const piece = source.construction.primitives[0]; piece.position = [7, -3, 11]; piece.rotationDeg = 90;
   const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;

@@ -12,7 +12,7 @@ test('new hull presets are one versioned editable primitive; blank retains the u
     expect(source.construction.primitives).toHaveLength(1);
     expect(hull.kind).toBe('custom-hull'); expect(hull.customHull?.version).toBe(1);
     expect(hull.size).toEqual([preset.beam, preset.depth, preset.length]);
-    expect(hull.customHull?.stations.every(s => s.points[0].y === .45 && s.points[8].y === .45)).toBe(true);
+    expect(hull.customHull).toEqual({ ...preset.customHull, version: 1 });
     expect(source.construction.equipment).toEqual([]);
     expect(decodeConstructionSource(JSON.parse(JSON.stringify(source)))).toEqual(source);
   }
@@ -20,7 +20,7 @@ test('new hull presets are one versioned editable primitive; blank retains the u
 });
 
 test('section editing retains placement, face assignments and unrelated equipment', () => {
-  const source = createStarterSource(catalog, 'destroyer-hull');
+  const source = createStarterSource(catalog, 'fletcher-hull');
   moveConstructionSelection(source, new Set(['hull']), [6, 2, -3]); rotateConstructionSelection(source, new Set(['hull']), 90);
   const old = source.construction.primitives[0], draft = editableCustomHull(old), original = structuredClone(source);
   setSectionCount(draft, 24); draft.beam = 15;
@@ -37,7 +37,7 @@ test('section editing retains placement, face assignments and unrelated equipmen
 });
 
 test('malformed or newer hull data cannot silently replace saved source', () => {
-  const source = createStarterSource(catalog, 'patrol-hull');
+  const source = createStarterSource(catalog, 'fletcher-hull');
   const newer = structuredClone(source); (newer.construction.primitives[0].customHull as { version: number }).version = 2;
   expect(() => decodeConstructionSource(newer)).toThrow('Unsupported custom hull version');
   source.construction.primitives[0].customHull!.stations[0].points.pop();
@@ -45,7 +45,7 @@ test('malformed or newer hull data cannot silently replace saved source', () => 
 });
 
 test('paired point edits round-trip through the versioned source and reopen exactly', () => {
-  const source = createStarterSource(catalog, 'destroyer-hull'), primitive = source.construction.primitives[0];
+  const source = createStarterSource(catalog, 'fletcher-hull'), primitive = source.construction.primitives[0];
   const h = editableCustomHull(primitive);
   addHullPointPair(h, 7); addHullPointPair(h, 4); removeHullPointPair(h, 1);
   source.construction.primitives[0] = customHullPrimitive(h, primitive);

@@ -423,7 +423,7 @@ test('Internals edits only internal packages and walls: entering drops external 
 });
 
 test('a design that opens as a custom hull starts in Select with nothing chosen; the cursor piece carries a starter hull', async () => {
-  const { tool, state, data } = await setup({ source: createStarterSource(catalog, 'destroyer-hull') });
+  const { tool, state, data } = await setup({ source: createStarterSource(catalog, 'fletcher-hull') });
   expect(data().primitives[0].kind).toBe('custom-hull');
   expect(state()).toMatchObject({ tool: 'select' });
   expect([...state().selected]).toEqual([]);
@@ -471,7 +471,7 @@ test('turret rise uses one undoable command batch and keeps the deck datum fixed
 
 
 test('entering Armor or Paint replaces whole-hull selection with face selection', async () => {
-  const { tool, state, labels } = await setup({ source: createStarterSource(catalog, 'destroyer-hull') });
+  const { tool, state, labels } = await setup({ source: createStarterSource(catalog, 'fletcher-hull') });
   tool.selectOnly(['hull']);
   tool.switchLayer('armor'); expect(state().selected.size).toBe(0);
   tool.selectOnly(['hull']); tool.switchLayer('paint'); expect(state().selected.size).toBe(0);

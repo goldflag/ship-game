@@ -45,7 +45,9 @@ test('a diff between a source and its edited copy replays as one batch, upsertin
 });
 
 test('adjustable hull edits preserve section IDs, equipment and panel armor; malformed patches roll back', () => {
-  const s = createStarterSource({ revision: 'test' } as ConstructionCatalog, 'destroyer-hull');
+  const s = createStarterSource({ revision: 'test' } as ConstructionCatalog, 'fletcher-hull');
+  // Start below the section limit so the expansion exercises ID preservation.
+  s.construction.primitives[0] = applyConstructionBatch(s, { version: 1, expectedRevision: s.revision, label: 'Eight sections', commands: [{ op: 'hull-sections', id: 'hull', count: 8 }] }).construction.primitives[0];
   const hull = s.construction.primitives[0], ids = hull.customHull!.stations.map(s => s.id);
   s.construction.equipment.push({ id: 'gun', partId: 'variant', position: [0, 5, 0], bearingDeg: 0 });
   const panel = customHullPanels(hull).find(p => p.face === 'port')!;
@@ -99,7 +101,7 @@ test('targeted fittings edits preserve nested settings, linked wall partners, ro
 });
 
 test('copy uses requested stable IDs, mirrors hull panels and remaps copied system links', () => {
-  const s = createStarterSource({ revision: 'test' } as ConstructionCatalog, 'patrol-hull');
+  const s = createStarterSource({ revision: 'test' } as ConstructionCatalog, 'fletcher-hull');
   s.construction.primitives[0].position[0] = -5;
   const panel = customHullPanels(s.construction.primitives[0])[0];
   s.construction.surfaces.push({ primitiveId: 'hull', ...panel, thicknessMm: 30, material: 'steel', paint: 'naval-gray' });

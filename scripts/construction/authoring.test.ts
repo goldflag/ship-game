@@ -11,7 +11,7 @@ import { compileConstruction, suggestConstruction } from './compiler';
 test('agent hull patches and native layout proposals produce an editable, compilable source', async () => {
   const root = resolve(import.meta.dir, '../..');
   const catalog = parseConstructionCatalog(JSON.parse(await readFile(resolve(root, 'public/models/components/catalog.json'), 'utf8')));
-  const source = createStarterSource(catalog, 'destroyer-hull');
+  const source = createStarterSource(catalog, 'fletcher-hull');
   const changed = applyConstructionBatch(source, { version: 1, expectedRevision: source.revision, label: 'Shape', commands: [
     { op: 'primitive-patch', id: 'hull', changes: { size: [14, 10, 130], customHull: { redPaintY: -1 } } },
     { op: 'hull-sections', id: 'hull', count: 10 },

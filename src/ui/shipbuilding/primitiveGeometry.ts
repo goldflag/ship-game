@@ -28,7 +28,7 @@ export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(faces.flatMap(f=>f.points.flat()),3));g.computeVertexNormals();return g;
   }
   if (kind === 'custom-hull') {
-    const p = { ...customHullPrimitive(makeHull(0)), size, ...(customHull ? { customHull } : {}) };
+    const p = { ...customHullPrimitive(makeHull()), size, ...(customHull ? { customHull } : {}) };
     const faces = customHullFaces(p).map(f => ({ ...f, normal: new THREE.Vector3(...f.vertices[1]).sub(new THREE.Vector3(...f.vertices[0])).cross(new THREE.Vector3(...f.vertices[2]).sub(new THREE.Vector3(...f.vertices[0]))).normalize().toArray() as Vec3 }));
     const normalAt = constructionVertexNormals(faces, -1), positions: number[] = [], normals: number[] = [];
     for (const face of faces) for (const point of face.vertices) { positions.push(...point); normals.push(...normalAt(point, face.normal, face.group)); }

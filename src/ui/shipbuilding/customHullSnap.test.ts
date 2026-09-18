@@ -82,7 +82,7 @@ test("widths, deck and keel heights and positions offer their own targets", () =
     "section 05",
     "the full beam",
   ]);
-  expect(widthTargets(h, id, settings).at(-1)!.value).toBe(6);
+  expect(widthTargets(h, id, settings).at(-1)!.value).toBe(h.beam / 2);
   expect(heightTargets(h, id, true, settings).at(-1)).toMatchObject({
     label: "the base",
     level: true,
