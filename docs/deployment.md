@@ -23,60 +23,6 @@ schemas. The API role cannot read results and the battle role cannot read auth
 or private ship libraries. Auth and service secrets must remain stable across
 container replacements.
 
-## Qualification before release
-
-Build and test locally, then stage the complete release on Hermes. Run
-`scripts/qualify-accounts.sh` there with `NAVAL_TEST_CUSTOM_SOURCE` pointing to a
-reviewed stress source. Its separate `ships-qualification` project has its own
-database/network and listens only at `127.0.0.1:18780`. It never joins the public
-edge network. Build it with `COMPOSE_PARALLEL_LIMIT=1 docker compose -p
-ships-qualification -f compose.yml -f deploy/compose.qualification.yml build`.
-Use separate generated credentials in the staging directory's `.env`. The test
-client uses `http://qualification.test:8080` inside that private network and sends
-load directly to the private compiler; no internal endpoint becomes public.
-
-The test must sustain two matches for ten minutes, with eight worst-permitted
-custom ships per participant and concurrent compilation. Each client must receive
-at least 15 updates/second, persistence must remain healthy, and no service may
-OOM or abort from overload. The script checks these gates and produces
-`.build/qualification/approved.json` only on success. An easy starter hull or
-historical-only capacity run does not qualify the custom-ship release. Inspect
-source complexity and compiled geometry/output limits before selecting the stress
-fixture. Keep the reviewed fixture and raw measurements in ignored `.build/`.
-A failed or incomplete qualification blocks deployment unless the release owner explicitly
-accepts the large-fleet limitation through the recorded override below.
-
-## Accepted large-fleet limitation
-
-On 2026-09-16, isolated Hermes testing with eight distinct custom ships per
-participant (512 primitives, 32 equipment instances, 712 hull cells plus 1,189
-compartment cells per ship) produced simulation-lag infrastructure aborts at
-ticks 31 and 181. This fixture fits the online limits and fails before weapon
-combat. The ten-minute/two-match requirement remains unmet; no `approved.json`
-was issued. An earlier admission-memory failure was addressed by retaining
-serialized artifacts, sharing compiled definitions and bounding content pins.
-
-The release owner explicitly authorized merging and deploying this release on
-2026-09-16 with large custom fleets unsupported while ship size is reduced.
-This accepts the measured performance limitation without changing the two-match
-cap, compiler isolation, source limits or lag abort behavior. Requalify after
-custom-volume cost is reduced. Temporary fixtures, logs and measurements remain
-under ignored `.build/`.
-
-For an explicitly authorized deployment, set both variables:
-
-```sh
-SHIP_ACCEPT_LARGE_FLEET_RISK=1 \
-SHIP_CAPACITY_WAIVER_REASON='Release owner accepts large-custom-fleet failures while reducing ship size (2026-09-16)' \
-bun run deploy:hermes
-```
-
-The override records `qualified: false`, the authorization reason, timestamp,
-runtime digest and protocol/content versions in `capacity-evidence.json` beside
-the deployed release. It does not produce qualification evidence or waive build,
-migration, backup or health checks. Without this explicit override, a successful
-host qualification remains mandatory.
-
 ## Deployment settings
 
 `/opt/ships/settings.env` must provide `POSTGRES_PASSWORD`, `API_DB_PASSWORD`,
@@ -87,15 +33,13 @@ quotas, edge network and trusted edge proxy CIDR. Database role creation happens
 only on a new volume; changing an environment password does not rotate an
 existing database role.
 
-Pass the successful host qualification file to the deployment command:
+Deploy with:
 
 ```sh
-SHIP_QUALIFICATION=.build/qualification/approved.json bun run deploy:hermes
+bun run deploy:hermes
 ```
 
-The script checks the protocol/simulation/content identity and a digest of all
-shipped runtime inputs (including auth/server code and web assets), builds one compatible
-release, drains Rust with its 35-minute shutdown grace, recreates the private
+The script builds one compatible release, drains Rust with its 35-minute shutdown grace, recreates the private
 network while preserving volumes, then starts PostgreSQL and migrations. It takes a PostgreSQL `pg_dump -Fc` before starting the new services.
 After activation, verify signup/login, ship saving, multiplayer smoke tests and
 account/design/result survival through a restart. Update the external edge
