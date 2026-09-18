@@ -225,6 +225,62 @@ impl HullHydrostatics {
         }
         self.mesh_flotation(volume, roll, pitch)
     }
+    /// Find a stable loaded attitude near upright without advancing simulation.
+    /// Re-solve immersion at each attitude so the Jacobian includes waterplane
+    /// changes. Reject unstable/singular or extreme solutions; callers can keep
+    /// the upright draft and let the ordinary simulation handle those designs.
+    pub fn equilibrium(&self, volume: f64, gravity: Vec3) -> Option<Pose> {
+        let sample = |roll, pitch| {
+            let f = self.flotation(volume, roll, pitch);
+            (f, righting_arms(f.center, gravity, roll, pitch))
+        };
+        let (mut roll, mut pitch) = (0., 0.);
+        for _ in 0..24 {
+            let (f, arm) = sample(roll, pitch);
+            if !f.afloat {
+                return None;
+            }
+            let eps = 0.0001;
+            let (_, r) = sample(roll + eps, pitch);
+            let (_, p) = sample(roll, pitch + eps);
+            let (a, b) = ((r.0 - arm.0) / eps, (p.0 - arm.0) / eps);
+            let (c, d) = ((r.1 - arm.1) / eps, (p.1 - arm.1) / eps);
+            let det = a * d - b * c;
+            if !det.is_finite() || det <= 1e-9 || a >= 0. || d >= 0. {
+                return None;
+            }
+            if arm.0.hypot(arm.1) < 1e-6 {
+                return Some(Pose {
+                    y: f.y,
+                    roll,
+                    pitch,
+                    ..Pose::default()
+                });
+            }
+            let dr = (b * arm.1 - d * arm.0) / det;
+            let dp = (c * arm.0 - a * arm.1) / det;
+            let mut scale = (0.05 / dr.abs().max(dp.abs())).min(1.);
+            let mut accepted = false;
+            for _ in 0..10 {
+                let next_roll = roll + dr * scale;
+                let next_pitch = pitch + dp * scale;
+                if next_roll.abs() <= 0.35 && next_pitch.abs() <= 0.35 {
+                    let (_, next) = sample(next_roll, next_pitch);
+                    if next.0.hypot(next.1) < arm.0.hypot(arm.1) {
+                        roll = next_roll;
+                        pitch = next_pitch;
+                        accepted = true;
+                        break;
+                    }
+                }
+                scale *= 0.5;
+            }
+            if !accepted {
+                return None;
+            }
+        }
+        None
+    }
     /// Bisects the mesh solver for the immersion that displaces `volume`.
     pub fn mesh_flotation(&self, volume: f64, roll: f64, pitch: f64) -> Flotation {
         // At y = -bound the clip limit is at least bound - length / 2, which is

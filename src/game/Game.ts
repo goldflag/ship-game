@@ -555,7 +555,10 @@ export class Game {
     this.switchingShip = true;
     try {
       const simulation = await this.portSession(definition);
-      Object.assign(simulation.ship, this.simulation.ship);
+      // Keep the berth while retaining this hull's authoritative loaded draft
+      // and trim. Copying the old motion would also replace its flotation pose.
+      const { x, z, heading } = this.simulation.ship;
+      Object.assign(simulation.ship, { x, z, heading });
       await this.replaceFleet(simulation, definition);
       this.portDefinition = definition;
     } finally { this.switchingShip = false; }
