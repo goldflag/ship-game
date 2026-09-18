@@ -38,7 +38,9 @@ export class CompiledRevision {
   private abort?: AbortController;
   private readonly unsubscribe: () => void;
 
-  constructor(private readonly owner: CompiledRevisionSource, private readonly compiler: BuilderCompiler, private readonly delayMs = 40) {
+  constructor(private readonly owner: CompiledRevisionSource, private readonly compiler: BuilderCompiler, private readonly delayMs = 40,
+    /** Only return results produced by this app for exactly the supplied source, including its catalog. */
+    private readonly prepared?: (source: ConstructionSource) => ConstructionResult | undefined) {
     this.unsubscribe = owner.subscribe(this.observe);
     this.observe();
   }
@@ -58,7 +60,15 @@ export class CompiledRevision {
     const { adoption, ready } = this.owner.getSnapshot(), source = this.owner.source;
     if (this.accepted && this.accepted.adoption !== adoption) { this.accepted = undefined; this.error = ''; }
     const key = ready ? `${adoption}:${source.id}:${source.revision}` : '';
-    if (key !== this.key) { this.key = key; this.cancel(); if (ready) this.schedule(); }
+    if (key !== this.key) {
+      this.key = key; this.cancel();
+      if (ready) {
+        const result = this.prepared?.(source);
+        if (result && this.isCurrent(result, adoption)) {
+          this.accepted = { result, adoption }; this.compiling = false; this.error = '';
+        } else this.schedule();
+      }
+    }
     this.refresh();
   };
   private cancel() {

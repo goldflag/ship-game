@@ -53,6 +53,12 @@ export function registerLocalShip(source: ConstructionSource, result: Constructi
 }
 export function removeLocalShip(sourceId: string): void { if (bySource.delete(sourceId)) changed(); }
 export function localShip(id: string): LocalShipRevision | undefined { return snapshot.find(entry => entry.definition.id === id); }
+/** Reuse this session's finished ship only when every authoring input still matches.
+ * Source IDs/revisions alone are insufficient for imports or repository edits. */
+export function compiledLocalShip(source: ConstructionSource): ConstructionResult | undefined {
+  const entry = bySource.get(source.id);
+  return entry && entry.source.revision === source.revision && canonical(entry.source) === canonical(source) ? entry.result : undefined;
+}
 /** Unknown IDs are errors. A missing saved design must never become Bismarck. */
 export function resolveShip(id: string): IdentifiedShip {
   if (isHistoricalShip(id)) return shipPreset(id);
