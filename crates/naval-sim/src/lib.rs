@@ -11,6 +11,7 @@ mod construction_vertex;
 mod construction_orientation;
 mod construction_mesh;
 mod construction_custom_hull;
+mod construction_bilge_keels;
 mod construction_balcony;
 mod construction_installation;
 mod construction_services;

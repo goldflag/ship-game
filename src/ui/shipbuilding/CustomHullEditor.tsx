@@ -18,6 +18,7 @@ import {
   type Hull,
 } from "../../ships/customHullModel";
 import { MAX_HULL_POINTS } from "../../ships/customHullTopology";
+import { defaultBilgeKeels } from "../../ships/constructionBilgeKeels";
 import type { Vec3 } from "../../ships/blueprint";
 import {
   applyReading,
@@ -908,6 +909,29 @@ export default function CustomHullEditor({
             }
           />
         </div>
+        <h4>Bilge keels</h4>
+        <div className="row">
+          <label className="hs-check hs-keel-check">
+            <input type="checkbox" checked={hull.bilgeKeels?.enabled ?? false} onChange={() => edit(d => {
+              d.bilgeKeels ??= { ...defaultBilgeKeels(d.beam), enabled: false };
+              d.bilgeKeels.enabled = !d.bilgeKeels.enabled;
+            })} />
+            Symmetric pair
+          </label>
+        </div>
+        {hull.bilgeKeels?.enabled && <>
+          <p className="hs-keel-help">Follows both sides of the hull. Visual only.</p>
+          <div className="row"><span>Length</span><NumberField label="Bilge keel length" unit="%" digits={1} value={(hull.bilgeKeels.end-hull.bilgeKeels.start)*100} min={2} max={96} step={1} onChange={v => edit(d => {
+            const k=d.bilgeKeels!, length=v/100, center=(k.start+k.end)/2;
+            k.start=Math.max(.02,Math.min(.98-length,center-length/2)); k.end=k.start+length;
+          })} /></div>
+          <div className="row"><span>Center from bow</span><NumberField label="Bilge keel center from bow" unit="%" digits={1} value={(hull.bilgeKeels.start+hull.bilgeKeels.end)*50} min={2+(hull.bilgeKeels.end-hull.bilgeKeels.start)*50} max={98-(hull.bilgeKeels.end-hull.bilgeKeels.start)*50} step={1} onChange={v => edit(d => {
+            const k=d.bilgeKeels!, half=(k.end-k.start)/2; k.start=v/100-half; k.end=v/100+half;
+          })} /></div>
+          <div className="row"><span>Width</span><NumberField label="Bilge keel width" unit="m" value={hull.bilgeKeels.widthM} min={Math.max(.05,hull.bilgeKeels.thicknessM)} max={3} step={.05} onChange={v => edit(d => { d.bilgeKeels!.widthM=v; })} /></div>
+          <div className="row"><span>Thickness</span><NumberField label="Bilge keel thickness" unit="mm" digits={0} value={hull.bilgeKeels.thicknessM*1000} min={5} max={Math.min(100,hull.bilgeKeels.widthM*1000)} step={1} onChange={v => edit(d => { d.bilgeKeels!.thicknessM=v/1000; })} /></div>
+          <div className="row"><span>Keel → deck</span><NumberField label="Bilge keel placement from keel to deck" unit="%" digits={0} value={hull.bilgeKeels.placement*100} min={5} max={80} step={1} onChange={v => edit(d => { d.bilgeKeels!.placement=v/100; })} /></div>
+        </>}
         <h4>Paint</h4>
         <div className="row">
           <label className="hs-check">

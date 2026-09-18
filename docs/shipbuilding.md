@@ -209,6 +209,25 @@ older designs remain loadable. The Rust compiler validates support, linked-pair
 symmetry, clearance and scaled mass; the editor, trial models and portable GLBs
 scale the same original component geometry.
 
+## Bilge keels
+
+In **Hull → Edit hull**, the **Bilge keels** section controls a symmetric pair of
+tapered fins following the section surface. New hull presets start enabled;
+existing saved hulls without these settings keep their original shape. Toggle
+**Symmetric pair** to remove or restore the pair without losing its settings.
+
+Set **Length** and **Center from bow** as percentages of hull length, **Width**
+in metres, **Thickness** in millimetres, and **Keel → deck** as placement along
+the section outline (0% at the center keel, 100% at the deck edge). Ends stay
+between 2% and 98% of hull length. Each end tapers over 12% of keel length.
+Section edits keep the roots seated against the hull. Settings support undo,
+copy, save/reopen, sea-trial models and GLB export, with the hull's lower red coating.
+
+These are visual fittings: they add no mass, buoyancy, armor, drag or roll damping.
+The existing `customHull` record carries optional version-1 `bilgeKeels` settings;
+the native compiler validates and emits their geometry separately from physical
+hull surfaces. No separate ship format or equipment catalog entry is required.
+
 ## Deck fittings and connected paths
 
 In **Fittings**, open the **…** drawer (or press **0**) and search the parts by

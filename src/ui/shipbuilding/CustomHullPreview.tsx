@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { constructionPaintColor } from '../../ships/constructionPaints';
-import { outline, worldPoint, type Hull } from '../../ships/customHullModel';
+import { customHullBilgeKeelFaces, outline, worldPoint, type Hull } from '../../ships/customHullModel';
 
 /** Display-only faces for the section editor. `cut` keeps the sections from the bow to that
  * index and closes the hull there with a tinted cap, as the Section view's slice. */
@@ -48,6 +48,10 @@ export function hullGeometry(h: Hull, cut?: number) {
       const a = ring * n + i, b = ring * n + (i + 1) % n;
       if (ring === 0) triangle(b, a, c, color); else triangle(a, b, c, color);
     }
+  }
+  for (const face of customHullBilgeKeelFaces(h, stations.at(-1)!.t)) {
+    const indices = face.map(p => { coordinates.push([0, p[1] / h.depth]); return points.push(new THREE.Vector3(...p))-1; });
+    triangle(indices[0], indices[1], indices[2], side);
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));

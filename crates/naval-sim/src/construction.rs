@@ -358,6 +358,18 @@ fn compile_cached(source: &ConstructionSource, catalog: &ConstructionCatalog, ca
     // Invalid drafts still show their fixed supports and deck collars. A fit
     // diagnostic blocks admission, not the geometry needed to repair the draft.
     out.surfaces.append(&mut installation_surfaces);
+    if out.definition.is_some() {
+        let mut faces = vec![];
+        for primitive in &source.construction.primitives {
+            faces.extend(crate::construction_bilge_keels::surfaces(primitive));
+            if out.surfaces.len() + faces.len() > MAX_SURFACES {
+                out.definition = None;
+                out.diagnostics.push(error("complexity", "Bilge keels exceed the exposed surface limit", Some(&primitive.id)));
+                return out;
+            }
+        }
+        if !faces.is_empty() { out.bilge_keel_surfaces = Some(faces); }
+    }
     out
 }
 fn validate(
