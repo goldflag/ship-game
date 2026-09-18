@@ -9,7 +9,7 @@ import { assignConstructionSurfaces, CONSTRUCTION_LIMITS, copyConstructionSelect
 import { applyConstructionBatch, constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
 import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../ships/constructionRevisionOwner';
 import { canEditVertices, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
-import { pathProblem } from '../../ships/constructionPaths';
+import { pathSlackLimit, pathProblem } from '../../ships/constructionPaths';
 import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
 import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
@@ -100,7 +100,7 @@ export class BuilderTool {
   constructor(private readonly door: BuilderRevisionDoor, private readonly context: BuilderToolContext, initial: Partial<BuilderToolState> = {}) {
     this.state = {
       layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
-      windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
+      windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], ropeSlack: .15, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
       snapping: { ...DEFAULT_SNAPPING }, snapOverride: false,
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
       view: 'orbit', perspective: true, fitRequest: 0,
@@ -277,7 +277,7 @@ export class BuilderTool {
       snapping: this.effectiveSnapping, gridStep: this.gridStep, gesture: locked ? 'none' : this.gesture, pickTargets: this.pickTargets, moveTargets: locked || freeformMode ? 'none' : this.moveTargets,
       placementPiece: locked || freeformMode ? undefined : this.piece, placementMirror: this.mirrorPiece,
       highlightFaces: this.faceLayer, rooms: s.layer === 'internals', showCenters: s.showCenters, arcs: this.arcs, proposed: this.proposed, measure: s.measure,
-      pathDraft: !locked && pathPart ? { part: pathPart, points: s.pathPoints, slackM: pathPart.path?.kind === 'rope' ? s.ropeSlack : 0, mirror: s.mirror } : undefined,
+      pathDraft: !locked && pathPart ? { part: pathPart, points: s.pathPoints, slackM: pathPart.path?.kind === 'rope' ? Math.min(s.ropeSlack, pathSlackLimit(s.pathPoints)) : 0, mirror: s.mirror } : undefined,
       freeform: freeformPrimitive && !locked ? { ...s.freeformSettings, id: freeformPrimitive.id, onSelect: selection => this.changeFreeformSettings({ selection }), onCommit: this.commitFreeform } : undefined,
     };
   }
@@ -573,7 +573,7 @@ export class BuilderTool {
     const pathPart = this.pathPart, { pathPoints, ropeSlack, mirror } = this.state;
     if (!pathPart) return undefined;
     const refused = this.refused(); if (refused) return refused;
-    const slackM = pathPart.path?.kind === 'rope' ? ropeSlack : 0, problem = pathProblem(pathPoints, slackM);
+    const slackM = pathPart.path?.kind === 'rope' ? Math.min(ropeSlack, pathSlackLimit(pathPoints)) : 0, problem = pathProblem(pathPoints, slackM);
     if (problem) { this.update({ notice: problem }); return undefined; }
     const item = pathEquipment(this.newId('path'), pathPart.id, pathPoints, slackM);
     if (this.state.fittingPaint) item.paint = this.state.fittingPaint;

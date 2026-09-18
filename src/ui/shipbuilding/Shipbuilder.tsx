@@ -266,7 +266,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // The Armor layer keeps its millimetre field here, above the bar: a new value also assigns the selected faces.
   const status: ReactNode = locked ? null : pathPart ? <>
     <b>{pathPart.name}</b>{pathPart.path?.kind === 'ladder' ? <span>Drag from the first rung to the last on a hull side · release to place · Esc cancels</span> : <><span>{pathPoints.length ? `${pathPoints.length} points · click to extend` : 'Click the first point on the ship'}</span>
-    {pathPart.path?.kind === 'rope' && <NumberField label="Rope slack" value={s.ropeSlack} min={0} max={pathSlackLimit(pathPoints)} step={.05} unit="m" onChange={tool.setRopeSlack}/>}
+    {pathPart.path?.kind === 'rope' && <NumberField label="Rope slack" value={Math.min(s.ropeSlack, pathSlackLimit(pathPoints))} min={0} max={pathSlackLimit(pathPoints)} step={.05} unit="m" onChange={tool.setRopeSlack}/>}
     <button disabled={pathPoints.length < 2} onClick={tool.finishPath}>Finish <kbd>Enter</kbd></button><button onClick={() => tool.cancelPath(false)}>Cancel <kbd>Esc</kbd></button>
     <span className="sb-path-hint">{pathPart.path?.kind === 'railing' ? 'Deck supports every post' : 'Hull or fitting support sockets'} · double-click finishes</span></>}
   </> : layer === 'armor' ? <>

@@ -176,6 +176,7 @@ under ignored `.build/construction-browser/`.
 Browser helpers run against the real application toolchain and IndexedDB without test-only storage dependencies. `scripts/diagnostics/shipbuilder.html` mounts the editor alone on the Vite dev server for layout review; import the check modules from that page:
 
 - `bun scripts/tests/shipbuilder-armament-browser.mjs <vite-url>` checks legacy magazine conversion, the Turret rise field and Page Up / Page Down, fixed magazine position, invalid-fit launch blocking, saving and undo against the native compiler.
+- `bun scripts/tests/shipbuilder-fitting-gizmos-browser.mjs` (with `SHIPBUILDER_URL`): external fitting handles, keyboard nudge, pointer drag, undo and visibility in Select/Place.
 - `checkInternalsSelection()` and `checkEquipmentPaletteImages()` from `scripts/tests/shipbuilder-internals-browser.ts`: layer-scoped selection/movement/deletion and decoded, non-empty pre-baked images for every fitting/internal catalog card.
 - `checkConstructionStore()` from `scripts/tests/construction-store-browser.ts`: exact large-source close/reopen, competing writers, aborted transaction rollback and source recovery.
 - `checkDesignDeletion()` from `scripts/tests/design-deletion-browser.tsx`: editor and port Delete controls, cancellation, conflict recovery, complete revision removal and a fresh starting block after deleting the open design.
@@ -248,3 +249,11 @@ axes, support seating, guide independence and a deterministic projection-work bu
 for dragging detailed balconies. `checkSnapping()` from
 `scripts/tests/shipbuilder-snapping-browser.ts`, run on the diagnostic page, checks the
 production controls, precision, undo, live Alt overrides and freeform cancellation.
+
+
+New balconies leave their hull-facing edge open. The steel deck extends to the
+full edge footprint even when an edge is open; changing a wall to open retains
+that attachment. Adjacent solid walls meet at mitred corners.
+New rope routes start with 0.15 m of midpoint sag, limited for short segments;
+Rope slack still accepts zero for a taut line. Selected external fittings use the
+same XYZ movement handles as hull pieces, including while placing fittings.

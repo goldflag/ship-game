@@ -12,7 +12,7 @@ test('balcony placement previews and mirrored commits carry valid outline data',
   let id = 0;
   const pieces = placementBlocks({ kind: 'hull', shape: 'balcony', size: [2, .08, 1], rotationDeg: 0 }, [[2, 1.04, 0]], true, () => `balcony-${id++}`);
   expect(pieces).toHaveLength(2);
-  expect(pieces.every(p => p.balcony?.points.length === 4 && p.balcony.points.every(point => point.edge === 'wall'))).toBe(true);
+  expect(pieces.every(p => p.balcony?.points.length === 4 && p.balcony.points.filter(point => point.edge === 'wall').length === 3 && p.balcony.points.filter(point => point.edge === 'open').length === 1)).toBe(true);
   expect(pieces[1].position).toEqual([-2, 1.04, 0]);
   expect(blockPlacementAllowed(source([block('hull', [0, 0, 0], [10, 2, 10])]), pieces)).toBe(true);
 });
