@@ -493,9 +493,10 @@ export class CombatEffects {
     const size = Math.sqrt(scale), ricochet = event.kind === 'ricochet';
     if (ricochet) this.direction.reflect(this.normal);
     else this.direction.copy(this.normal);
-    this.illuminate(2500 * scale);
+    this.illuminate((ricochet ? 2500 : 16000) * scale, ricochet ? .2 : .45);
     const flash = this.fire.emit(this.position);
-    flash.size = 4 * size; flash.growth = 15 * size; flash.life = .12;
+    flash.size = (ricochet ? 4 : 8) * size;
+    flash.growth = (ricochet ? 15 : 32) * size; flash.life = ricochet ? .12 : .18;
     flash.color.copy(WARM).multiplyScalar(2);
     for (let i = 0; i < 22; i++) {
       const p = this.fire.emit(this.position);
@@ -507,8 +508,31 @@ export class CombatEffects {
       p.align = 'velocity'; p.life = .25 + random() * .7; p.gravity = 9.81; p.drag = .6;
       p.color.copy(WARM).multiplyScalar(1.7); p.waterline = true;
     }
-    for (let i = 0; i < 9; i++) {
+    // Solid strikes bloom into hot, rolling gas, then cool in place into soot.
+    // Reuse the bounded smoke batch: five billows replace the nine cold puffs.
+    // Glancing strikes retain their smaller, cold plume and reflected sparks.
+    this.across.crossVectors(this.normal, UP).normalize();
+    if (this.across.lengthSq() < .01) this.across.set(1, 0, 0);
+    this.vertical.crossVectors(this.across, this.normal).normalize();
+    for (let i = 0; i < (ricochet ? 9 : 5); i++) {
       const p = this.smoke.emit(this.position, event.shipId);
+      if (!ricochet) {
+        const angle = random() * Math.PI * 2, spread = (1 + random() * 2) * size;
+        p.position.addScaledVector(this.normal, (.5 + random()) * size)
+          .addScaledVector(this.across, Math.cos(angle) * spread)
+          .addScaledVector(this.vertical, Math.sin(angle) * spread);
+        p.velocity.copy(this.normal).multiplyScalar((8 + random() * 14) * size)
+          .addScaledVector(this.across, Math.cos(angle) * (5 + random() * 7) * size)
+          .addScaledVector(this.vertical, Math.sin(angle) * (5 + random() * 7) * size);
+        p.velocity.y += 2 * size;
+        p.size = (4 + random() * 4) * size;
+        p.growth = (24 + random() * 12) * size; p.growthDecay = 3.2; p.diffusion = .7 * size;
+        p.heat = 1 + random() * .2; p.cooling = (.7 + random() * .2) * Math.sqrt(size);
+        p.life = 2.8 + random() * .6; p.dissipationTime = .85 + random() * .2;
+        p.drag = 2.4; p.gravity = -.8; p.wind = .55;
+        p.color.set('#56524e'); p.opacity = .94; p.density = 2.8 + random();
+        continue;
+      }
       p.velocity.copy(this.normal).multiplyScalar((2 + random() * 10) * size);
       p.velocity.y += 1 + random() * 3;
       p.size = (1.5 + random() * 3) * size; p.growth = 1.3 * size;
