@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { attribute, dot, float, Fn, positionLocal, smoothstep, uv, vec4 } from 'three/tsl';
+import { attribute, dot, float, Fn, positionLocal, smoothstep, uv, vec2, vec4 } from 'three/tsl';
 import { WAKE_EXTENT, type WakeStampTarget } from './WakeFoam';
 
 /** Retain the last rasterization for each tile, including its own refresh time. */
@@ -49,9 +49,12 @@ export class WakeFoamGpu {
       blending: THREE.CustomBlending, blendEquation: THREE.MaxEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor });
     material.toneMapped = false; material.fog = false;
     const box = attribute<'vec4'>('wakeBox', 'vec4'), axes = attribute<'vec4'>('wakeAxes', 'vec4'), shape = attribute<'vec4'>('wakeShape', 'vec4');
-    material.vertexNode = vec4(box.xy.add(positionLocal.xy.mul(box.zw)), 0, 1);
+    // WebGPU texture rows run down from the top. Put atlas row zero at NDC +Y
+    // so the water samples the same tile/coordinates as the CPU data texture.
+    material.vertexNode = vec4(box.xy.mul(vec2(1, -1)).add(positionLocal.xy.mul(box.zw)), 0, 1);
     material.fragmentNode = Fn(() => {
-      const local = uv().mul(2).sub(1);
+      // Flip stamp coordinates too, retaining the quad's front-facing winding.
+      const local = uv().mul(2).sub(1).mul(vec2(1, -1));
       const across = dot(local, axes.xy).add(shape.x), along = dot(local, axes.zw).add(shape.y);
       const radius = across.mul(across).add(along.mul(along));
       const ring = radius.sqrt().sub(.75).div(.13).pow(2).negate().exp();

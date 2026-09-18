@@ -4,6 +4,7 @@ import { PreparedPoseGroup } from './FrameScene';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import { DataTexture, PerspectiveCamera } from 'three/webgpu';
+import type { Vec3 } from '../ships/blueprint';
 
 function cpuImage(foam: FleetWakeFoam) {
   if (!(foam.texture instanceof DataTexture)) throw new Error('CPU wake fixture requires a data texture');
@@ -65,6 +66,28 @@ test('stopped and submerged ships emit no new trail; existing foam fades away', 
   ships[0].motion.speed = 0;
   for (let i = 0; i < 560; i++) foam.update(ships, .1, []);
   expect(tileHasFoam(foam, 0)).toBe(false);
+  foam.dispose();
+});
+
+test('an off-centre editor hull emits foam at its own stern, not the authoring origin', () => {
+  const source = shipPreset('resolute'), volume = source.hull.volume!;
+  const custom: WakeShip = {
+    root: new PreparedPoseGroup(), motion: { x: 0, y: 0, z: 0, heading: 0, speed: 15 },
+    definition: { ...source, hull: { ...source.hull, length: 616, beam: 232, volume: {
+      ...volume, cells: volume.cells.map(cell => ({ faces: cell.faces.map(face => ({
+        vertices: face.vertices.map(([x, y, z]): Vec3 => [x + 100, y, z + 200]),
+      })) })),
+    } } },
+  };
+  const foam = new FleetWakeFoam(256);
+  foam.update([custom], .1, []);
+  for (let i = 0; i < 20; i++) { custom.motion.z -= 1.5; foam.update([custom], .1, []); }
+  const image = cpuImage(foam), pixels = image.data as Uint8Array;
+  const at = (x: number, z: number) => pixels[Math.floor((z + 30) / 6 + 128) * image.width + Math.floor(x / 6 + 128)];
+  // Resolute's actual hull runs from -112 to +108 m; translating the source
+  // places its stern near (100, 308), then sailing moves it 30 m forward.
+  expect(at(100, 200 - 2 + 220 * .468 - 30)).toBeGreaterThan(0);
+  expect(at(0, custom.definition.hull.length * .468 - 30)).toBe(0);
   foam.dispose();
 });
 

@@ -5,6 +5,7 @@ import type { WakeShip } from './FleetWakeFoam';
 import { PreparedPoseGroup } from './FrameScene';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
+import type { Vec3 } from '../ships/blueprint';
 
 test('fleet displacement respects the vendor capacity, hull size, depth, and replacement lifecycle', () => {
   type Native = ConstructorParameters<typeof ShipWake>[0];
@@ -37,6 +38,19 @@ test('fleet displacement respects the vendor capacity, hull size, depth, and rep
   wake.update([ships[11]], .1);
   expect(generators.size).toBe(2);
   expect([...generators.values()].every(g => g.object === ships[11].root)).toBe(true);
+  const source = shipPreset('resolute'), volume = source.hull.volume!;
+  const custom: WakeShip = { ...ships[11], root: new PreparedPoseGroup(), definition: {
+    ...source, hull: { ...source.hull, length: 616, beam: 232, volume: {
+      ...volume, cells: volume.cells.map(cell => ({ faces: cell.faces.map(face => ({
+        vertices: face.vertices.map(([x, y, z]): Vec3 => [x + 100, y, z + 200]),
+      })) })),
+    } },
+  } };
+  wake.update([custom], .1);
+  const [customBow, customStern] = [...generators.values()];
+  expect(customBow.options.offset).toEqual({ x: 100, y: 0, z: 198 - 220 * .448 });
+  expect(customStern.options.offset).toEqual({ x: 100, y: 0, z: 198 + 220 * .448 });
+  expect(customStern.options.radius).toBeCloseTo(32 * .39);
   generators.forEach(g => { g.isFirstFrame = false; });
   wake.reset();
   expect([...generators.values()].every(g => g.isFirstFrame)).toBe(true);
