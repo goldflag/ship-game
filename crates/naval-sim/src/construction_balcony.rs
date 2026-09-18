@@ -245,23 +245,13 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
             } else {
                 "slope"
             };
-            let polygon = cg::transform(
-                &cg::Cell {
-                    faces: vec![ConvexVolumeFacesItem { vertices }].into(),
-                },
-                p.position,
-                [1.; 3],
-                p.rotation_deg.to_radians(),
-            )
-            .faces[0]
-                .vertices
-                .clone();
+            let polygon = vertices.into_iter().map(|v| crate::construction_orientation::point(p, v)).collect();
             (name.into(), polygon)
         })
         .collect();
     let cells: Vec<_> = cells
         .iter()
-        .map(|c| cg::transform(c, p.position, [1.; 3], p.rotation_deg.to_radians()))
+        .map(|c| crate::construction_orientation::cell(p, c, [1.; 3]))
         .collect();
     if cells
         .iter()

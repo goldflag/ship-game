@@ -1,3 +1,4 @@
+import { blockAngles } from '../../ships/constructionOrientation';
 import { meshFaces } from '../../ships/constructionMesh';
 import { shapedFaces } from '../../ships/freeformShape';
 import { balconyFaces } from '../../ships/constructionBalcony';
@@ -89,3 +90,6 @@ export function primitiveOutlineGeometry(p: ConstructionPrimitive): THREE.Buffer
   }
   return new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(lines, 3));
 }
+
+/** Three adapter for the source YXZ orientation. */
+export function primitiveRotation(p: ConstructionPrimitive): THREE.Euler { const [x, y, z] = blockAngles(p).map(n => n * Math.PI / 180); return new THREE.Euler(x, y, z, 'YXZ'); }

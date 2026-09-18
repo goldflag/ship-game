@@ -445,14 +445,12 @@ fn validate(
             || (p.kind != "balcony" && p.balcony.is_some())
             || !size(p.size)
             || !finite(p.position)
-            || !p.rotation_deg.is_finite()
-            || (p.rotation_deg / 90. - (p.rotation_deg / 90.).round()).abs() > 1e-8
-            || p.rotation_deg.abs() > 3600.
+            || !crate::construction_orientation::valid(p)
             || (p.kind != "vertex" && p.kind != "custom-hull" && p.kind != "balcony" && !crate::construction_shapes::KINDS.contains(&p.kind.as_str()))
         {
             return Err(error(
                 "primitive",
-                "Invalid primitive dimensions, shape or quarter-turn rotation",
+                "Invalid primitive dimensions, shape or rotation",
                 Some(&p.id),
             ));
         }
@@ -526,11 +524,11 @@ pub fn primitive_cells(p: &ConstructionPrimitive) -> Result<Vec<cg::Cell>, Strin
 }
 fn primitive(p: &ConstructionPrimitive) -> Vec<cg::Cell> {
     crate::construction_shapes::cells(&p.kind).unwrap().iter()
-        .map(|c| cg::transform(c, p.position, p.size, p.rotation_deg.to_radians())).collect()
+        .map(|c| crate::construction_orientation::cell(p, c, p.size)).collect()
 }
 fn face_name(p: &[Vec3], primitive: &ConstructionPrimitive) -> String {
-    // Undo yaw to resolve the source face, independent of triangulation/position.
-    let n = normal_local(cg::normal(p), -primitive.rotation_deg.to_radians());
+    // Undo orientation to keep source face paint and armor attached.
+    let n = if primitive.tilt.is_none() { normal_local(cg::normal(p), -primitive.rotation_deg.to_radians()) } else { crate::construction_orientation::inverse(primitive, cg::normal(p)) };
     for (name, axis, sign) in [
         ("port", 0, -1.),
         ("starboard", 0, 1.),
@@ -2505,7 +2503,7 @@ mod tests {
                     version: 1.,
                     catalog_revision: "test".into(),
                     default_thickness_mm: 10.,
-                    primitives: vec![ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None,
+                    primitives: vec![ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
                         vertices: None,
                         smooth_group: None,
                         id: "box".into(),
@@ -2535,7 +2533,7 @@ mod tests {
         source.construction.primitives[0].size = [30., 1., 2.];
         source.construction.primitives[0].position = [0.; 3];
         for i in 0..257 {
-            source.construction.primitives.push(ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None,
+            source.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
                 id: format!("tiny-{i}"), kind: "box".into(), size: [0.01; 3],
                 position: [-14. + i as f64 * 0.1, 0.505, 0.],
                 ..Default::default()
@@ -2552,7 +2550,7 @@ mod tests {
     #[test]
     fn ballast_adds_exact_fixed_payload_and_displaces_real_interior() {
         let (mut source,catalog) = fixture();
-        source.construction.primitives.push(ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None, id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None, smooth_group:None });
+        source.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None, id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None, smooth_group:None });
         let empty = compile(&source,&catalog).loading.unwrap();
         source.construction.primitives[1].kind = "ballast".into();
         let result = compile(&source,&catalog);
@@ -2708,7 +2706,7 @@ mod tests {
         let (mut s, c) = fixture();
         s.id = "catamaran".into();
         s.construction.primitives = vec![
-            ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None,
+            ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "port".into(),
@@ -2717,7 +2715,7 @@ mod tests {
                 size: [3., 4., 20.],
                 rotation_deg: 0.,
             },
-            ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None,
+            ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "starboard".into(),
@@ -2726,7 +2724,7 @@ mod tests {
                 size: [3., 4., 20.],
                 rotation_deg: 0.,
             },
-            ConstructionPrimitive { mesh: None, balcony: None, shaping: None, custom_hull: None,
+            ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "bridge".into(),

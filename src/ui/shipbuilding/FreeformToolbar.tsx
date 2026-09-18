@@ -4,11 +4,13 @@ import type { ConstructionPrimitive } from '../../ships/blueprint';
 import { useEffect, useRef, useState } from 'react';
 import type { HullSelectionMode, MirrorAxes } from '../../ships/constructionVertex';
 import { NumberField } from './NumberField';
+import { blockDimensions, dimensionText } from './blockDimensions';
 
 export type { FreeformSettings } from './builderTool';
 import type { FreeformSettings } from './builderTool';
-export function FreeformToolbar({ primitive, onCommit, settings: s, onChange, cycleUnit, onReset, onSplit, onExit }: {
+export function FreeformToolbar({ primitive, preview, onCommit, settings: s, onChange, cycleUnit, onReset, onSplit, onExit }: {
   primitive: ConstructionPrimitive; onCommit(replacements: ConstructionPrimitive[]): unknown;
+  preview?: ConstructionPrimitive;
   settings: FreeformSettings; onChange(patch: Partial<FreeformSettings>): void; cycleUnit(): void; onReset(): void; onSplit(): void; onExit(): void;
 }) {
   const [splitOpen, setSplitOpen] = useState(false);
@@ -26,9 +28,10 @@ export function FreeformToolbar({ primitive, onCommit, settings: s, onChange, cy
   const mode = (mode: HullSelectionMode) => onChange({ selection: { mode, index: mode === 'face' && !primitive.mesh ? 5 : 0 } });
   return <section className="sb-freeform-tools" aria-label="Freeform hull editor">
     <div className="sb-freeform-title">
-      <strong>Freeform {primitive.mesh?.label.toLowerCase() ?? 'hull'}</strong><span>Local block axes</span>
+      <strong>Freeform {primitive.mesh?.label.toLowerCase() ?? 'block'}</strong>
       <button className="sb-freeform-reset" onClick={onReset} title="Restore this block to the shape it had when this edit session began">Reset edit</button><button onClick={onExit}>Done <kbd>D / Esc</kbd></button>
     </div>
+    <div className="sb-freeform-dimensions"><span>Width × height × length</span><output aria-label="Current block dimensions">{dimensionText(blockDimensions(preview?.id === primitive.id ? preview : primitive))}</output><span>Local block axes</span></div>
     <div className="sb-freeform-controls">
       <div className="sb-freeform-group">
         <span>Select</span><div className="sb-freeform-row" role="group" aria-label="Selection mode">

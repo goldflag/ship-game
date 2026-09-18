@@ -23,9 +23,8 @@ pub(crate) const FACES: [(&str, [usize; 4]); 6] = [
     ("top", [3, 7, 6, 2]),
 ];
 fn transform(p: &ConstructionPrimitive, v: Vec3) -> Vec3 {
-    let (s, c) = p.rotation_deg.to_radians().sin_cos();
     let [x, y, z] = std::array::from_fn(|k| v[k] * p.size[k]);
-    add(p.position, [c * x + s * z, y, -s * x + c * z])
+    crate::construction_orientation::point(p, [x, y, z])
 }
 pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
     if p.mesh.is_some() { return crate::construction_mesh::build(p); }

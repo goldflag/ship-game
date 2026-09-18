@@ -5,7 +5,7 @@ type Kind = ConstructionPrimitive['kind'];
 /** Emitted by the native recipes during multiplayer:prepare. Display data only. */
 export const CONSTRUCTION_SHAPES = displayLibrary.shapes as Record<Kind, Vec3[][]>;
 export const CONSTRUCTION_SHAPE_NAMES: Record<Kind, string> = {
-  box: 'Box', wedge: 'Wedge', corner: 'Corner out', 'inverse-corner': 'Corner in', vertex: 'Freeform hull',
+  box: 'Box', wedge: 'Wedge', corner: 'Corner out', 'inverse-corner': 'Corner in', vertex: 'Block',
   'custom-hull': 'Custom hull',
   balcony: 'Balcony',
   ballast: '100 t ballast',

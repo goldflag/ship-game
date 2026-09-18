@@ -1,3 +1,4 @@
+import { orientVector, unorientVector } from './constructionOrientation';
 import { EDITABLE_SHAPES, editableMesh, meshEdges } from './constructionMesh';
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from './blueprint';
 import { newConstructionId } from './constructionEditor';
@@ -60,7 +61,7 @@ export function rotateVertex(v: Vec3, degrees: number): Vec3 {
   return [c*v[0]+s*v[2], v[1], -s*v[0]+c*v[2]];
 }
 export function worldVertex(p: ConstructionPrimitive, v: Vec3): Vec3 {
-  return rotateVertex(v.map((n,k) => n*p.size[k]) as Vec3, p.rotationDeg).map((n,k) => n+p.position[k]) as Vec3;
+  return orientVector(p, v.map((n,k) => n*p.size[k]) as Vec3).map((n,k) => n+p.position[k]) as Vec3;
 }
 export function sampleVertex(vertices: Vec3[], uvw: Vec3): Vec3 {
   const out: Vec3 = [0,0,0];
@@ -91,10 +92,10 @@ export function freeformEdit(source: ConstructionSource, id: string, selection: 
   }
   for (const [i,local] of edits.get(id)!) {
     if (!snap) continue;
-    const anchor = worldVertex(seed,points[i]), worldDelta = rotateVertex(local,seed.rotationDeg);
+    const anchor = worldVertex(seed,points[i]), worldDelta = orientVector(seed,local);
     for (const other of source.construction.primitives) if (other.id !== id && (other.kind==='box'||other.kind==='vertex')) {
       cornerVertices(other).forEach((v,j) => {
-        if (Math.hypot(...worldVertex(other,v).map((n,k) => n-anchor[k])) <= VERTEX_SNAP_DISTANCE) put(other.id,j,rotateVertex(worldDelta,-other.rotationDeg));
+        if (Math.hypot(...worldVertex(other,v).map((n,k) => n-anchor[k])) <= VERTEX_SNAP_DISTANCE) put(other.id,j,unorientVector(other,worldDelta));
       });
     }
   }

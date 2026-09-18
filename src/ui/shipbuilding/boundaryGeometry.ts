@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { ConstructionPrimitive } from '../../ships/blueprint';
-import { primitiveGeometry } from './primitiveGeometry';
+import { primitiveGeometry, primitiveRotation } from './primitiveGeometry';
 
 const EPS = 1e-6;
 // Source primitives are immutable across editor revisions. Retain CPU attributes
@@ -17,7 +17,7 @@ export function boundaryGeometry(primitives: ConstructionPrimitive[], axis: 'x' 
     let envelope = envelopes.get(primitive);
     if (!envelope) {
       const solid = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh);
-      solid.rotateY(primitive.rotationDeg * Math.PI / 180).translate(...primitive.position);
+      solid.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(primitiveRotation(primitive))).translate(...primitive.position);
       solid.computeBoundingBox();
       envelope = { vertices: solid.getAttribute('position'), bounds: solid.boundingBox! };
       envelopes.set(primitive, envelope); solid.dispose();

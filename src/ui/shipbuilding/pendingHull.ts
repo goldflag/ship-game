@@ -6,7 +6,7 @@ import { customHullFaces } from '../../ships/customHullModel';
 import { customHullPanels } from '../../ships/constructionPanels';
 import { balconyFaces } from '../../ships/constructionBalcony';
 import { shapedFaces, cross, sub } from '../../ships/freeformShape';
-import { rotateVertex } from '../../ships/constructionVertex';
+import { orientVector, primitivePoint } from '../../ships/constructionOrientation';
 
 type Face = { vertices: Vec3[]; face?: string; panelId?: string };
 function sourceFaces(primitive: ConstructionPrimitive): Face[] {
@@ -24,7 +24,7 @@ function sourceFaces(primitive: ConstructionPrimitive): Face[] {
 function sourceBounds(primitive: ConstructionPrimitive): [Vec3, Vec3] {
   const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const face of sourceFaces(primitive)) for (const v of face.vertices) {
-    const point = rotateVertex(v, primitive.rotationDeg);
+    const point = orientVector(primitive, v);
     for (let axis = 0; axis < 3; axis++) {
       const n = point[axis] + primitive.position[axis];
       min[axis] = Math.min(min[axis], n); max[axis] = Math.max(max[axis], n);
@@ -69,7 +69,7 @@ export function pendingHullSurfaces(source: ConstructionSource, previous: Constr
       let areaM2 = 0;
       for (let i = 1; i < vertices.length - 1; i++) areaM2 += Math.hypot(...cross(sub(vertices[i], vertices[0]), sub(vertices[i + 1], vertices[0]))) / 2;
       next.push({ id: `preview:${primitive.id}:${index}`, primitiveId: primitive.id, face, panelId: polygon.panelId,
-        vertices: vertices.map(v => rotateVertex(v, primitive.rotationDeg).map((n, axis) => n + primitive.position[axis]) as Vec3), normal: rotateVertex(localNormal, primitive.rotationDeg),
+        vertices: vertices.map(v => primitivePoint(primitive,v)), normal: orientVector(primitive,localNormal),
         areaM2, thicknessMm: source.construction.defaultThicknessMm, material: 'steel', paint: 'naval-gray', open: false });
     }
   }

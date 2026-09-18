@@ -57,7 +57,7 @@ impl OverlapScene {
         for p in primitives {
             if p.size.iter().any(|v| !v.is_finite() || *v <= 0.)
                 || p.position.iter().any(|v| !v.is_finite())
-                || !p.rotation_deg.is_finite()
+                || !crate::construction_orientation::valid(p)
             {
                 return Err("Invalid hull dimensions".into());
             }

@@ -53,6 +53,7 @@ export interface BuilderScene {
   measuring: boolean;
   pathDraft?: BuilderPathDraft;
   freeform?: BuilderFreeformOptions;
+  rotation?: { id: string; axis: number; snap: boolean; onAxis(axis: number): void; onCommit(axis: number, degrees: number): void };
 }
 
 /** A finished pointer gesture with its targets already raycast and snapped by the viewport. */

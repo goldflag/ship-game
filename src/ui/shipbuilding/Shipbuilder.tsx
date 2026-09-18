@@ -1,3 +1,4 @@
+import { RotationToolbar } from './RotationToolbar';
 import { wallMount } from '../../ships/constructionWallFittings';
 import { automaticPropellerLabel, propellerEngineName, propellerEngines } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
@@ -24,6 +25,8 @@ import { BuilderViewport, type BuilderTag, type ConstructionModelFactory } from 
 import { BUILDER_LAYERS, FAMILY_NAMES, formatTonnes, type BuilderLayer, type SlotItem } from './builderLayers';
 import { BOUNDARY_NAMES } from './builderTool';
 import { FITTING_CATEGORIES, NATION_SHORT, fittingCategory } from './fittingCategories';
+import { HULL_CATEGORIES } from './hullCategories';
+import { blockDimensions, dimensionText, resizeBlock } from './blockDimensions';
 import { equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassKg, surfaceCentroid, warningEntries } from './builderReadings';
 import { SlotGlyph, ToolGlyph } from './builderGlyphs';
 import { DesignsMenu, downloadConstructionSource } from './DesignsMenu';
@@ -89,7 +92,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const suggestLayout = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
   const editor = useBuilderSource({ ...props, starterSource, compiler, suggest: suggestLayout });
   const { owner, revision, compiled, compile, tool, toolState: s, source, catalog, activeCatalog, latestCatalog, setActiveCatalog } = editor, data = source.construction;
-  const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, notice, suggestion, fittingFilter } = s;
+  const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, notice, suggestion, fittingFilter, hullCategory } = s;
   const compiledResult = compile.current;
   const convertedDesigns = useRef(new Set<string>());
   useEffect(() => {
@@ -102,6 +105,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
 
   const [drawer, setDrawer] = useState(false);
   const [query, setQuery] = useState('');
+  const [rotationPreview, setRotationPreview] = useState<ConstructionPrimitive>();
+  const [freeformPreview, setFreeformPreview] = useState<ConstructionPrimitive>();
   // The open drawer keeps the size of its full, unfiltered card set while a search narrows it, so the panel does not jump about under the pointer; the search clears when the drawer closes.
   const drawerRef = useRef<HTMLDivElement>(null);
   // The card row fades at whichever edge hides more cards.
@@ -112,7 +117,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const update = () => { const end = row.scrollWidth - row.clientWidth - row.scrollLeft > 1, start = row.scrollLeft > 1; row.dataset.overflow = end && start ? 'both' : end ? 'end' : start ? 'start' : ''; };
     update(); const observer = new ResizeObserver(update); observer.observe(row); row.addEventListener('scroll', update, { passive: true });
     return () => { observer.disconnect(); row.removeEventListener('scroll', update); };
-  }, [layer, fittingFilter]);
+  }, [layer, fittingFilter, hullCategory]);
   const [drawerSize, setDrawerSize] = useState<{ width: number; height: number }>();
   useLayoutEffect(() => {
     if (!drawer) { setDrawerSize(undefined); setQuery(''); return; }
@@ -120,7 +125,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [drawer, layer]);
+  }, [drawer, layer, hullCategory]);
   const [hoveredPart, setHoveredPart] = useState<string>();
   const [warningsOpen, setWarningsOpen] = useState(true);
   const [designsOpen, setDesignsOpen] = useState(false);
@@ -137,7 +142,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   }, [customHullSession?.primitive.id, props.compileClient]);
   const [balconySession, setBalconySession] = useState<string>();
   const [newDesignOpen, setNewDesignOpen] = useState(false);
-  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number; beside?: boolean }>();
+  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; slotId?: string; below?: boolean; right?: number; beside?: boolean }>();
   const tooltipRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const element = tooltipRef.current;
@@ -155,7 +160,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     contain();
     window.addEventListener('resize', contain);
     return () => window.removeEventListener('resize', contain);
-  }, [tip]);
+  }, [tip, s.sizeOverride]);
   const [slotImages] = useState(() => new SlotImages());
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
@@ -266,7 +271,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const launchTitle = busy ? busy : compile.waiting ? 'Checks run when you pause editing. Sea trials need the latest checks.' : compile.compiling ? 'Checking this revision…' : blocks.length ? `${blocks.length} block${blocks.length === 1 ? '' : 's'} to fix before a trial` : compiledResult?.definition ? 'Launch a sea trial with this design' : 'Waiting for a compiled design';
   const saveTone = revision.saveState.status === 'saved' ? 'ok' : revision.saveState.status === 'error' ? 'bad' : 'saving';
   const saveText = revision.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved to account') : revision.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
-  const drawerItems = query ? everyCard.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : everyCard;
+  const filteredCards = layer === 'hull' ? palette.drawer : everyCard;
+  const drawerItems = query ? filteredCards.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : filteredCards;
 
   const tags: BuilderTag[] = [];
   const equipmentAnchor = (item: ConstructionEquipment): Vec3 => { const part = partOf(item), center = part ? rotateY(equipmentPathBounds(part, item).center, bearingRadians(item.bearingDeg)) : [0, 0, 0]; return item.position.map((value, index) => value + center[index]) as Vec3; };
@@ -290,11 +296,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Drag along the hull' : 'Click a hull side or wall'} · ←→ width · ↑↓ height · Shift fine{mirror ? ' · linked mirror' : ''}</span>
     </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
-  if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
+  if (!freeformMode && s.tool !== 'rotate' && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiledResult, primitive.id);
-    const size = (axis: number, value: number) => { const next = structuredClone(primitive); next.size[axis] = value; tool.editPrimitive('Resize hull piece', next); };
+    const measured = blockDimensions(primitive);
+    const size = (axis: number, value: number) => tool.editPrimitive('Resize hull piece', resizeBlock(primitive, axis, value));
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
-      <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField label={primitive.kind === 'balcony' ? 'Deck thickness' : undefined} value={primitive.size[1]} min={primitive.kind === 'balcony' ? .01 : .25} max={500} step={primitive.kind === 'balcony' ? .01 : 1} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
+      <b>{primitive.mesh?.label ?? SHAPE_NAMES[primitive.kind]} <NumberField description="Width along the block's local X axis" value={measured[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField label={primitive.kind === 'balcony' ? 'Deck thickness' : undefined} description={primitive.kind === 'balcony' ? 'Deck thickness' : "Height along the block's local Y axis"} value={measured[1]} min={primitive.kind === 'balcony' ? .01 : .25} max={500} step={primitive.kind === 'balcony' ? .01 : 1} onChange={value => size(1, value)}/> × <NumberField description="Length along the block's local Z axis" value={measured[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform} aria-label="Freeform hull" title="Edit freeform shape (D)">Freeform <kbd>D</kbd></button>}
       {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
       {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => setBalconySession(primitive.id)}>Edit balcony outline</button>}
@@ -369,7 +376,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // Cards carry the piece, and hull cards its metre dimensions in the corner; the name and reading appear as a tooltip.
   const describe = (item: SlotItem): { title: string; detail: string } => {
     switch (item.kind) {
-      case 'shape': return { title: item.name, detail: item.shape.note };
+      case 'shape': {
+        const size = active?.id === item.id && s.sizeOverride ? s.sizeOverride : item.shape.size;
+        return { title: item.name, detail: [dimensionText(size), 'width × height × length', item.note].filter(Boolean).join(' · ') };
+      }
       case 'armor': return { title: 'Armor', detail: `${customMm > 0 ? `${customMm} mm armor steel` : 'structural skin without armor'} · set the thickness above the bar · drag to sweep faces` };
       case 'thickness': return { title: item.name, detail: `${item.note} · assigns ${item.mm > 0 ? `${item.mm} mm armor steel` : 'structural skin without armor'}` };
       case 'opening': return { title: 'Opening', detail: 'removes the skin so the face admits water' };
@@ -384,13 +394,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const showTip = (item: SlotItem, target: HTMLElement) => {
     if (item.kind === 'empty') return;
     const rect = target.getBoundingClientRect(), inDrawer = !!target.closest('.sb-drawer'), index = palette.bar.findIndex(entry => entry.id === item.id);
-    setTip({ ...describe(item), x: rect.left + rect.width / 2, y: inDrawer ? rect.top : tipTop(rect), key: index >= 0 ? String(index + 1) : undefined });
+    setTip({ ...describe(item), slotId: item.id, x: rect.left + rect.width / 2, y: inDrawer ? rect.top : tipTop(rect), key: index >= 0 ? String(index + 1) : undefined });
   };
   const hideTip = () => setTip(undefined);
   const face = (item: SlotItem) => {
     const image = imageFor(item);
     const picture = image ? <img src={image} alt="" draggable={false}/> : null;
-    if (item.kind === 'shape') return <>{picture ?? <SlotGlyph item={item} customMm={customMm}/>}<i className="sb-dims">{dimensions(item.shape.size)}</i>{item.shape.kind === 'ballast' && <small className="sb-slot-weight">100 t</small>}</>;
+    if (item.kind === 'shape') return <>{picture ?? <SlotGlyph item={item} customMm={customMm}/>}<i className="sb-dims">{dimensions(active?.id === item.id && s.sizeOverride ? s.sizeOverride : item.shape.size)}</i>{item.shape.kind === 'ballast' && <small className="sb-slot-weight">100 t</small>}</>;
     if (picture) return picture;
     switch (item.kind) {
       case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm, armorScale) }}><span>{customMm} mm</span></i>;
@@ -417,6 +427,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   ];
   const acting: KeyHint[] = [];
   if (!locked && piece && piece.kind !== 'boundary' && !(piece.kind === 'equipment' && piece.wall)) acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
+  else if (s.tool === 'rotate') acting.push({ keys: ['X', 'Y', 'Z'], label: 'Axis' }, { keys: ['R', '⇧R'], label: '±90°' });
   else if (movable && !freeformMode && !selectedEquipment.some(e => e.wall)) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
   if (movable && !freeformMode) acting.push({ keys: ['←→', '↑↓'], label: selectedEquipment.every(e => e.wall) && selectedEquipment.length ? 'Resize · Shift fine' : 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
@@ -430,6 +441,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
       onView={tool.cycleView} onProjection={tool.toggleProjection} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
       onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-viewbar') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); }}/>;
   const balconyEditing = layer === 'hull' && selectedPrimitives.length === 1 && selectedPrimitives[0].kind === 'balcony' && selectedPrimitives[0].id === balconySession;
+  const tipItem = tip?.slotId ? everyCard.find(item => item.id === tip.slotId) : undefined;
+  const visibleTip = tipItem && tip ? { ...tip, ...describe(tipItem) } : tip;
+  const hullFilters = <div className="sb-chips sb-hull-filters" role="radiogroup" aria-label="Block type" onKeyDown={event => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault(); event.stopPropagation();
+    const index = HULL_CATEGORIES.findIndex(category => category.id === hullCategory);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? HULL_CATEGORIES.length - 1 : (index + (event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1) + HULL_CATEGORIES.length) % HULL_CATEGORIES.length;
+    tool.setHullCategory(HULL_CATEGORIES[next].id); setTip(undefined);
+    event.currentTarget.querySelectorAll<HTMLButtonElement>('button')[next]?.focus();
+  }}>{HULL_CATEGORIES.map(category => <button key={category.id} role="radio" aria-checked={hullCategory === category.id} tabIndex={hullCategory === category.id ? 0 : -1} onClick={() => { tool.setHullCategory(category.id); setTip(undefined); }}>{category.name}</button>)}</div>;
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-balcony-editing={balconyEditing || undefined} data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => tool.editPrimitive('Edit balcony', value)} onClose={() => setBalconySession(undefined)} />}
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
@@ -458,8 +479,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
     } }}/>, document.body)}
     {!revision.ready || (!compile.retained && compile.compiling)
       ? <div className="sb-empty" role="status">Loading ship…</div>
-      : <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel} onMemory={memoryOpen ? setVisualMemory : undefined}/>}
-    {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} onCommit={tool.commitFreeform} settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit}
+      : <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} status={status} onPointer={tool.pointer} onHover={setHoveredPart} onFreeformPreview={setFreeformPreview} onRotationPreview={setRotationPreview} createModel={props.createModel} onMemory={memoryOpen ? setVisualMemory : undefined}/>}
+    {layer === 'hull' && s.tool === 'rotate' && <RotationToolbar tool={tool} preview={rotationPreview}/>}
+    {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} preview={freeformPreview} onCommit={tool.commitFreeform} settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit}
       onReset={tool.resetFreeform} onSplit={tool.splitFreeform} onExit={tool.exitFreeform}/>}
     <header className="sb-top">
       <button className="sb-port" disabled={!!busy || !!pathPoints.length} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
@@ -529,6 +551,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
         {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape' || (event.key === '0' && !event.currentTarget.value)) { event.preventDefault(); event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
+      {layer === 'hull' && hullFilters}
       <div className="sb-drawer-grid" role="listbox">{layer === 'fittings' ? FITTING_CATEGORIES.map(shelf => {
         // The drawer holds every shelf and nation at once; choosing a card there opens its shelf on the bar.
         const cards = drawerItems.filter(item => item.kind === 'part' && fittingCategory(item.part, catalog) === shelf.id);
@@ -543,6 +566,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
           <div className="sb-keys-row">{standing.map(chip)}</div>
         </div>
       </div>
+      {layer === 'hull' && !freeformMode && <div className="sb-shelves">{hullFilters}</div>}
       {layer === 'fittings' && <div className="sb-shelves">
         <div className="sb-chips" role="tablist" aria-label="Fitting shelves">{FITTING_CATEGORIES.map(shelf => <button key={shelf.id} role="tab" aria-selected={fittingFilter.category === shelf.id} title={shelf.note} onClick={() => { tool.setFittingFilter({ category: shelf.id }); setTip(undefined); }}>{shelf.name}</button>)}</div>
         {shelfNations.length > 0 && <div className="sb-chips nations" role="radiogroup" aria-label="Nation">
@@ -556,7 +580,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         </div>
       </div>
     </div>
-    {tip && <div ref={tooltipRef} className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''} ${tip.beside ? 'beside' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
+    {visibleTip && <div ref={tooltipRef} className={`sb-tip ${visibleTip.below ? 'below' : ''} ${visibleTip.right !== undefined ? 'right' : ''} ${visibleTip.beside ? 'beside' : ''}`} role="tooltip" style={visibleTip.right !== undefined ? { right: visibleTip.right, top: visibleTip.y } : { left: visibleTip.x, top: visibleTip.y }}><b>{visibleTip.title}</b>{visibleTip.detail}{visibleTip.key && <kbd>{visibleTip.key}</kbd>}</div>}
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', [{ op: 'primitive', value: startingHullBlock() }])}>Add a hull block</button> to keep building.</div>}
     {memoryOpen && <ModelMemoryPanel source={source} catalog={catalog} result={compiledResult} visual={visualMemory} onClose={() => setMemoryOpen(false)}/>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}

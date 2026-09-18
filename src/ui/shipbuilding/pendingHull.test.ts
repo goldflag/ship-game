@@ -71,3 +71,16 @@ test('edited custom hulls retain panel paint, openings and the red waterline set
   expect(surfaces.every(s => s.vertices.every(v => v.every(Number.isFinite)) && Math.abs(Math.hypot(...s.normal) - 1) < 1e-8)).toBe(true);
   expect(surfaces.flatMap(s => paintedHullFace(s, hull)).some(f => f.paint === 'red-oxide')).toBe(true);
 });
+
+test('removing a pitched block restores the clipped face of a neighbor at its rotated end', () => {
+  const before = source();
+  before.construction.primitives = [
+    { id: 'hull', kind: 'box', size: [1, 1, 1], position: [0, 0, 4.5], rotationDeg: 0 },
+    { id: 'cover', kind: 'box', size: [1, 8, 1], position: [0, 0, 0], rotationDeg: 0, tilt: { version: 1, pitchDeg: 90, rollDeg: 0 } },
+  ];
+  const after = structuredClone(before); after.construction.primitives.pop();
+  const surfaces = pendingHullSurfaces(after, before, []);
+  expect(surfaces).toHaveLength(6);
+  expect(surfaces.every(s => s.primitiveId === 'hull')).toBe(true);
+  expect(surfaces.find(s => s.face === 'bow')!.vertices.every(v => v[2] === 4)).toBe(true);
+});

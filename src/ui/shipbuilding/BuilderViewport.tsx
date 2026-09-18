@@ -1,3 +1,5 @@
+import { RotateHandles } from './RotateHandles';
+import { orientVector, unorientVector, rotateBlock } from '../../ships/constructionOrientation';
 import { balconyPlacement, seatBalconyOnHull } from './balconyPlacement';
 import { placementBalcony, mirroredBalcony } from '../../ships/constructionBalcony';
 import { createConstructionWallModel } from '../../game/constructionWallModel';
@@ -17,7 +19,7 @@ import { createBuilderGrid } from './builderGrid';
 import { FreeformHandles } from './FreeformHandles';
 import { MoveHandles } from './MoveHandles';
 import { blockMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_PREVIEW_NOTICE } from './blockMovement';
-import { cornerVertices, worldVertex, selectionCenter, selectionCorners, rotateVertex } from '../../ships/constructionVertex';
+import { cornerVertices, worldVertex, selectionCenter, selectionCorners } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -28,7 +30,7 @@ import { pendingHullSurfaces } from './pendingHull';
 import { constructionPaintColor } from '../../ships/constructionPaints';
 import { normalizedBearing, snapCoordinate, gridCoordinate } from './editorNumbers';
 import { attachmentOffset, dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
-import { primitiveOutlineGeometry, primitiveGeometry, placementGeometry, placementRotation } from './primitiveGeometry';
+import { primitiveOutlineGeometry, primitiveGeometry, primitiveRotation, placementGeometry, placementRotation } from './primitiveGeometry';
 import type { BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderScene, BuilderView } from './builderScene';
 import { createConstructionHull } from '../../game/constructionModel';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
@@ -50,6 +52,9 @@ export interface ViewportProps {
   /** Every pointer gesture, with its targets already raycast, snapped and filtered by the scene's targets. */
   onPointer(event: BuilderPointerEvent): void;
   onHover?(id: string | undefined): void;
+  /** Transient block previews never enter source history or compilation. */
+  onRotationPreview?(primitive: ConstructionPrimitive | undefined): void;
+  onFreeformPreview?(primitive: ConstructionPrimitive | undefined): void;
   createModel?: ConstructionModelFactory;
   onMemory?(memory: VisualMemory): void;
 }
@@ -123,6 +128,7 @@ class Viewport {
   private camera: THREE.OrthographicCamera | THREE.PerspectiveCamera = this.ortho;
   private freeformHandles: FreeformHandles;
   private moveHandles: MoveHandles;
+  private rotateHandles: RotateHandles;
   private snapOverlay: SnapOverlay;
   private snapFeatures: SnapFeature[] = [];
   private snapFeaturesKey = '';
@@ -221,14 +227,15 @@ class Viewport {
       resolve: (raw, free, primitive, options) => {
         const corners = cornerVertices(primitive), selected = selectionCorners(options.selection,primitive);
         const moving: SnapFeature[] = selected.map(i => ({ id: `edit:${i}`, owner: primitive.id, point: worldVertex(primitive, corners[i]), kind: 'corner' }));
-        moving.unshift({ id: 'edit:center', owner: primitive.id, point: add(primitive.position, rotateVertex(selectionCenter(primitive, options.selection), primitive.rotationDeg)), kind: 'center' });
-        const directions = SHIP_AXES.filter((_, k) => free[k]).map(v => rotateVertex(v, primitive.rotationDeg));
+        moving.unshift({ id: 'edit:center', owner: primitive.id, point: add(primitive.position, orientVector(primitive, selectionCenter(primitive, options.selection))), kind: 'center' });
+        const directions = SHIP_AXES.filter((_, k) => free[k]).map(v => orientVector(primitive, v));
         const grid = raw.map(v => snapCoordinate(v, options.unit)) as Vec3;
-        const delta = this.resolveSnapping(`freeform:${primitive.id}`, rotateVertex(raw, primitive.rotationDeg), rotateVertex(grid, primitive.rotationDeg), directions, moving, new Set([primitive.id]));
-        return rotateVertex(delta, -primitive.rotationDeg);
+        const delta = this.resolveSnapping(`freeform:${primitive.id}`, orientVector(primitive, raw), orientVector(primitive, grid), directions, moving, new Set([primitive.id]));
+        return unorientVector(primitive, delta);
       },
     });
     this.moveHandles = new MoveHandles(host, () => this.camera);
+    this.rotateHandles = new RotateHandles(host, () => this.camera);
     this.scene.add(this.vertexPreview, this.pathPreview);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true; this.controls.dampingFactor = .15;
@@ -296,6 +303,7 @@ class Viewport {
     }
     this.freeformHandles.update(props.scene.source, props.scene.freeform);
     this.updateMoveHandles();
+    this.updateRotateHandles();
     if (JSON.stringify(old.scene.snapping) !== JSON.stringify(props.scene.snapping)) {
       this.snapLatched = []; this.moveHandles.refresh(); this.freeformHandles.refresh();
       if (this.pointerStart?.move && this.hover) this.updateMove(this.hover);
@@ -380,7 +388,7 @@ class Viewport {
         }
       } else for (const primitive of props.scene.source.construction.primitives) {
         const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
-        mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
+        mesh.position.set(...primitive.position); mesh.rotation.copy(primitiveRotation(primitive));
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
         mesh.material.polygonOffset = true; mesh.material.polygonOffsetFactor = 1; mesh.material.polygonOffsetUnits = 1;
         const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false }));
@@ -460,7 +468,7 @@ class Viewport {
       if (primitive.kind !== 'custom-hull' || !props.scene.selected.has(primitive.id)) continue;
       outlinedHulls.add(primitive.id);
       const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
-      edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
+      edges.position.set(...primitive.position); edges.rotation.copy(primitiveRotation(primitive));
       this.selection.add(edges);
     }
     for (const group of this.surfacesByKey.values()) {
@@ -511,7 +519,21 @@ class Viewport {
     this.updatePathPreview(); this.updateGhost(); this.updateStrokePreview(); this.updateFacesPreview(); if (this.hover) this.highlight(this.hover);
   }
 
+  private updateRotateHandles() {
+    const { source, rotation } = this.props.scene;
+    const p = rotation && source.construction.primitives.find(p => p.id === rotation.id);
+    this.rotateHandles.update(p && rotation ? {
+      key: `${source.id}:${source.revision}:${p.id}:${rotation.snap}`, anchor: p.position, axis: rotation.axis, snap: rotation.snap,
+      select: rotation.onAxis, commit: rotation.onCommit,
+      preview: (axis, degrees) => {
+        const preview = axis === undefined || degrees === undefined ? undefined : rotateBlock(p, axis, degrees);
+        this.props.onRotationPreview?.(preview); this.previewVertices(preview ? [preview] : undefined);
+      },
+    } : undefined);
+  }
+
   private previewVertices(replacements?: ConstructionPrimitive[]) {
+    this.props.onFreeformPreview?.(replacements?.find(p => p.id === this.props.scene.freeform?.id));
     release(this.vertexPreview);
     this.vertexPreview.visible=!!replacements;
     if (!replacements) { this.update(this.props); return; }
@@ -521,7 +543,7 @@ class Viewport {
       const p=map.get(original.id)??original;
       const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony,p.mesh);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
-      mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
+      mesh.position.set(...p.position);mesh.rotation.copy(primitiveRotation(p));this.vertexPreview.add(mesh);
       mesh.material.polygonOffset=true;mesh.material.polygonOffsetFactor=1;mesh.material.polygonOffsetUnits=1;
       const edges=new THREE.LineSegments(primitiveOutlineGeometry(p),new THREE.LineBasicMaterial({color:map.has(p.id)?BRASS_LIGHT:'#142a31',depthWrite:false}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);
     }
@@ -689,8 +711,8 @@ class Viewport {
       piece = { ...piece, bearingDeg: wallBearing(normal) };
     }
     if (piece?.kind === 'hull' && piece.shape === 'balcony') piece = this.pointerStart?.start?.hullPlacement ?? balconyPlacement(piece, normal);
-    const extents = primitive && pieceExtents({ kind: 'hull', shape: primitive.kind, size: primitive.size, rotationDeg: primitive.rotationDeg });
-    const snapOrigin = primitive && extents ? primitive.position.map((value, index) => value - extents[index] / 2) as Vec3 : undefined;
+    const worldCorners = primitive && envelopeVertices(primitive).map(v => worldVertex(primitive, v));
+    const snapOrigin = worldCorners && [0, 1, 2].map(k => Math.min(...worldCorners.map(v => v[k]))) as Vec3 | undefined;
     const settings = this.props.scene.snapping ?? DEFAULT_SNAPPING;
     const step = settings.enabled && settings.grid ? this.props.scene.gridStep : null;
     let placement = piece ? placementCenter(piece, { point: raw, normal, snapOrigin }, step) : raw.map(value => gridCoordinate(value, step)) as Vec3;
@@ -751,7 +773,7 @@ class Viewport {
     }
     if (!face) {
       const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), material());
-      edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
+      edges.position.set(...primitive.position); edges.rotation.copy(primitiveRotation(primitive));
       edges.renderOrder = 25; this.hoverGroup.add(edges);
       return;
     }
@@ -890,7 +912,7 @@ class Viewport {
       }
       // Compact layouts may push the position tag back over the selection.
       // Keep its inputs clear of the actual projected movement handles.
-      const handles = this.moveHandles.screenBounds;
+      const handles = this.rotateHandles.screenBounds ?? this.moveHandles.screenBounds;
       if (handles && (tag.key.startsWith('piece-') || tag.key === 'group')
         && x < handles.right && x + tagWidth > handles.left && y < handles.bottom && y + tagHeight > handles.top) {
         if (handles.bottom + 12 + tagHeight <= bottom) y = handles.bottom + 12;
@@ -1007,7 +1029,7 @@ class Viewport {
         const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh);
         const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
         const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
-        for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.y = primitive.rotationDeg * Math.PI / 180; object.renderOrder = 20; this.movePreview.add(object); }
+        for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.copy(primitiveRotation(primitive)); object.renderOrder = 20; this.movePreview.add(object); }
         continue;
       }
       const item = equipment.find(part => part.id === id);
@@ -1256,11 +1278,11 @@ class Viewport {
   private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
   private animate = () => {
     if (this.dead) return;
-    if(!this.freeformHandles.dragging && !this.moveHandles.dragging && !this.pointerStart?.rotate) this.controls.update();
+    if(!this.freeformHandles.dragging && !this.moveHandles.dragging && !this.rotateHandles.dragging && !this.pointerStart?.rotate) this.controls.update();
     if (this.hover) { if (this.props.scene.placementPiece) this.updateGhost(); this.highlight(this.hover); }
     this.floorGrid.visible = this.camera.position.y > (this.floorGrid.children[0]?.position.y ?? 0);
     this.drawSnapGuides();
-    this.freeformHandles.frame(); this.moveHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
+    this.freeformHandles.frame(); this.moveHandles.frame(); this.rotateHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
     if (!this.orientationRotation.equals(this.camera.quaternion)) {
       updateBuilderOrientation(this.orientation, this.camera);
       this.orientationRotation.copy(this.camera.quaternion);
@@ -1278,6 +1300,7 @@ class Viewport {
     this.snapOverlay.dispose();
     this.freeformHandles.dispose();
     this.moveHandles.dispose();
+    this.rotateHandles.dispose();
     this.dead = true; cancelAnimationFrame(this.frame); this.modelAbort?.abort(); this.resize.disconnect(); this.controls.dispose();
     release(this.strokePreview); this.equipment.dispose();
     const canvas = this.renderer.domElement;

@@ -1,3 +1,4 @@
+import { blockAngles, rotateBlock, withBlockAngles } from '../../ships/constructionOrientation';
 import { reseatBalcony } from './balconyPlacement';
 import { editableMesh } from '../../ships/constructionMesh';
 import { fittedLadder } from '../../ships/constructionLadders';
@@ -14,6 +15,7 @@ import { canEditVertices, selectionCorners, splitVertexPrimitive, VERTEX_UNITS, 
 import { pathSlackLimit, pathProblem } from '../../ships/constructionPaths';
 import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
 import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
+import type { HullCategory } from './hullCategories';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
 import { blockMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_NOTICE } from './blockMovement';
@@ -31,6 +33,7 @@ export interface BuilderToolState {
   slots: Record<BuilderLayer, string>;
   /** The Fittings shelf on the bar and the nation it is narrowed to. */
   fittingFilter: FittingFilter;
+  hullCategory: HullCategory;
   windowRow: boolean; windowSpacing: number;
   customMm: number; sizeOverride?: Vec3; bearing: number;
   pathPoints: Vec3[]; ropeSlack: number;
@@ -42,6 +45,7 @@ export interface BuilderToolState {
   snapping: SnapSettings; snapOverride: boolean;
   freeform?: { designId: string; baseline: ConstructionPrimitive };
   freeformSettings: FreeformSettings;
+  rotationAxis: number; rotationSnap: boolean;
   view: BuilderView; perspective: boolean; fitRequest: number;
   selected: ReadonlySet<string>; surfaces: ReadonlySet<string>;
   measure?: { from: Vec3; to?: Vec3 };
@@ -93,7 +97,7 @@ export class BuilderTool {
   private lastRevision: string;
   private suggestionRequest?: AbortController;
   private readonly unsubscribe: () => void;
-  private paletteCache?: { layer: BuilderLayer; catalog: ConstructionCatalog; thicknesses: string; filter: FittingFilter; palette: ReturnType<typeof paletteFor> };
+  private paletteCache?: { layer: BuilderLayer; catalog: ConstructionCatalog; thicknesses: string; filter: FittingFilter; hullCategory: HullCategory; palette: ReturnType<typeof paletteFor> };
   private surfaceCache?: { source: ConstructionSource; compiled?: ConstructionResult; retained?: ConstructionResult; surfaces: ConstructionSurface[]; keys: Set<string>; thicknesses: number[]; armorScale: ArmorScale };
   private pieceCache?: { key: string; piece?: BuilderPlacement };
   private internalCache?: { source: ConstructionSource; catalog: ConstructionCatalog; ids: Set<string> };
@@ -102,8 +106,8 @@ export class BuilderTool {
   constructor(private readonly door: BuilderRevisionDoor, private readonly context: BuilderToolContext, initial: Partial<BuilderToolState> = {}) {
     this.state = {
       layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
-      windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], ropeSlack: .15, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
-      snapping: { ...DEFAULT_SNAPPING }, snapOverride: false,
+      hullCategory: 'all', windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], ropeSlack: .15, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
+      snapping: { ...DEFAULT_SNAPPING }, snapOverride: false, rotationAxis: 1, rotationSnap: true,
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
       view: 'orbit', perspective: true, fitRequest: 0,
       selected: new Set<string>(), surfaces: new Set(), notice: '', ...initial,
@@ -155,8 +159,8 @@ export class BuilderTool {
   // ---- derived
   get palette() {
     const layer = this.state.layer, catalog = this.catalog, thicknesses = layer === 'armor' ? this.surfaceState.thicknesses.join(',') : '';
-    const filter = this.state.fittingFilter;
-    if (!this.paletteCache || this.paletteCache.layer !== layer || this.paletteCache.catalog !== catalog || this.paletteCache.thicknesses !== thicknesses || this.paletteCache.filter !== filter) this.paletteCache = { layer, catalog, thicknesses, filter, palette: paletteFor(layer, catalog, this.surfaceState.thicknesses, filter) };
+    const filter = this.state.fittingFilter, hullCategory = this.state.hullCategory;
+    if (!this.paletteCache || this.paletteCache.layer !== layer || this.paletteCache.catalog !== catalog || this.paletteCache.thicknesses !== thicknesses || this.paletteCache.filter !== filter || this.paletteCache.hullCategory !== hullCategory) this.paletteCache = { layer, catalog, thicknesses, filter, hullCategory, palette: paletteFor(layer, catalog, this.surfaceState.thicknesses, filter, hullCategory) };
     return this.paletteCache.palette;
   }
   /** The nations with parts on the open Fittings shelf; the nation filter offers these and "All". */
@@ -168,9 +172,10 @@ export class BuilderTool {
   get shelfNation(): FittingNation | 'all' { const nation = this.state.fittingFilter.nation; return nation !== 'all' && this.shelfNations.includes(nation) ? nation : 'all'; }
   /** Open a shelf or narrow it; the bar's first card is taken up when the held one is no longer on it. */
   setFittingFilter = (patch: Partial<FittingFilter>) => { this.update({ fittingFilter: { ...this.state.fittingFilter, ...patch }, pathPoints: [], sizeOverride: undefined }); };
+  setHullCategory = (hullCategory: HullCategory) => { if (hullCategory !== this.state.hullCategory) this.update({ hullCategory, sizeOverride: undefined }); };
   get active(): SlotItem | undefined { return this.palette.drawer.find(item => item.id === this.state.slots[this.state.layer]) ?? this.palette.drawer[0]; }
   get drawerName() { return this.state.layer === 'fittings' ? 'fittings' : this.state.layer === 'hull' ? 'shapes' : 'items'; }
-  get hasDrawer() { return this.palette.drawer.length > this.palette.bar.filter(item => item.kind !== 'empty').length || this.state.layer === 'fittings'; }
+  get hasDrawer() { return this.palette.drawer.length > this.palette.bar.filter(item => item.kind !== 'empty').length || this.state.layer === 'fittings' || this.state.layer === 'hull'; }
   private pathPartOf(state: BuilderToolState): ConstructionEquipmentPart | undefined {
     if (state.layer !== 'fittings' || state.tool !== 'place') return undefined;
     const palette = state.layer === this.state.layer && state.fittingFilter === this.state.fittingFilter ? this.palette : paletteFor(state.layer, this.catalog, [], state.fittingFilter);
@@ -183,6 +188,24 @@ export class BuilderTool {
   get selectedPrimitives() { return this.data.primitives.filter(part => this.state.selected.has(part.id)); }
   get selectedEquipment() { return this.data.equipment.filter(part => this.state.selected.has(part.id)); }
   get selectedBoundary() { return this.data.boundaries.find(wall => this.state.selected.has(wall.id)); }
+  get rotationPrimitive() { return this.state.layer === 'hull' && this.state.tool === 'rotate' && this.state.selected.size === 1 ? this.selectedPrimitives[0] : undefined; }
+  setRotationAxis = (rotationAxis: number) => { if ([0, 1, 2].includes(rotationAxis)) this.update({ rotationAxis }); };
+  toggleRotationSnap = () => this.update({ rotationSnap: !this.state.rotationSnap });
+  rotateBlock = (axis: number, degrees: number) => {
+    const p = this.rotationPrimitive;
+    if (!p || this.locked || ![0, 1, 2].includes(axis) || !Number.isFinite(degrees) || Math.abs(degrees % 360) < 1e-8) return;
+    return this.run('Rotate block', [{ op: 'primitive', value: rotateBlock(p, axis, degrees) }]);
+  };
+  setBlockAngle = (axis: number, degrees: number) => {
+    const p = this.rotationPrimitive;
+    if (!p || this.locked || ![0, 1, 2].includes(axis) || !Number.isFinite(degrees) || Math.abs(degrees) > 3600) return;
+    const angles = blockAngles(p); angles[axis] = degrees;
+    return this.run('Set block angle', [{ op: 'primitive', value: withBlockAngles(p, angles) }]);
+  };
+  resetBlockRotation = () => {
+    const p = this.rotationPrimitive;
+    if (p && !this.locked && blockAngles(p).some(n => n !== 0)) this.run('Reset block orientation', [{ op: 'primitive', value: withBlockAngles(p, [0, 0, 0]) }]);
+  };
   get freeformPrimitive(): ConstructionPrimitive | undefined {
     const { freeform, layer, tool, selected } = this.state;
     if (!freeform || freeform.designId !== this.source.id || layer !== 'hull' || tool !== 'select' || selected.size !== 1 || !selected.has(freeform.baseline.id)) return undefined;
@@ -282,6 +305,7 @@ export class BuilderTool {
       placementPiece: locked || freeformMode ? undefined : this.piece, placementMirror: this.mirrorPiece,
       highlightFaces: this.faceLayer, rooms: s.layer === 'internals', showCenters: s.showCenters, arcs: this.arcs, proposed: this.proposed, measure: s.measure, measuring: s.tool === 'measure',
       pathDraft: !locked && pathPart ? { part: pathPart, points: s.pathPoints, slackM: pathPart.path?.kind === 'rope' ? Math.min(s.ropeSlack, pathSlackLimit(s.pathPoints)) : 0, mirror: s.mirror } : undefined,
+      rotation: this.rotationPrimitive && !locked ? { id: this.rotationPrimitive.id, axis: s.rotationAxis, snap: s.rotationSnap, onAxis: this.setRotationAxis, onCommit: this.rotateBlock } : undefined,
       freeform: freeformPrimitive && !locked ? { ...s.freeformSettings, id: freeformPrimitive.id, onSelect: selection => this.changeFreeformSettings({ selection }), onCommit: this.commitFreeform } : undefined,
     };
   }
@@ -798,6 +822,11 @@ export class BuilderTool {
     }
     if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) this.door.redo(); else this.door.undo(); return; }
     if (modifier && lower === 'y') { event.preventDefault(); this.door.redo(); return; }
+    if (s.tool === 'rotate' && !modifier && !event.altKey) {
+      if (['x', 'y', 'z'].includes(lower)) { event.preventDefault(); this.setRotationAxis('xyz'.indexOf(lower)); return; }
+      if (lower === 'r') { event.preventDefault(); if (!event.repeat) this.rotateBlock(s.rotationAxis, event.shiftKey ? -90 : 90); return; }
+      if (event.key === 'Escape') { event.preventDefault(); this.setTool('select'); return; }
+    }
     if (!modifier && !event.altKey && lower === 'n') { event.preventDefault(); if (!event.repeat) this.toggleSnapping(); return; }
     if (!modifier && !event.altKey && lower === 's') { event.preventDefault(); if (!event.repeat) this.cycleGrid(); return; }
     if (!modifier && !event.altKey && lower === 'p') { event.preventDefault(); if (!event.repeat) this.toggleProjection(); return; }

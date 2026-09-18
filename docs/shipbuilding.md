@@ -359,7 +359,7 @@ convex cells and attributed exterior panels for the existing compiler. Both
 port and starboard use mirrored triangulation. Preview envelopes are display-only;
 saved, trial and battle physics use the native compiled volume.
 The grid is a placement aid, not the physical discretization. Box, wedge, corner
-and inverse-corner pieces use continuous dimensions and quarter-turn hull yaw.
+and inverse-corner pieces use continuous dimensions and arbitrary hull orientation.
 Sizes produce slabs and long/shallow slopes without rounding away partial volume.
 The Hull drawer also includes a square pyramid (⅓ hull), cylinders and partial
 cylinders, spheres and domes, open dome shells, a cone, round hollow cube,
@@ -647,7 +647,11 @@ edge steel without creating an enclosed room between the rails.
 
 ### Freeform hulls
 
-Select one cube or freeform hull in the Hull layer and press **D** or choose **Freeform**. Palette slot 1 supplies a 4 m Freeform hull. This mode edits individual eight-corner pieces. For a whole main hull, prefer the separate [custom hull section editor](#custom-hull-sections).
+Hull type chips filter the palette and expanded picker by Boxes, Slopes & corners, Curves, Shells, Bridges, Hulls & decks, or Ballast. **All** restores every type. Search combines with the filter, and **1–9** select the first nine visible cards.
+
+The freeform panel shows **width × height × length** in local block axes, including live changes during dragging. Cancel restores the committed reading; undo and redo follow the source. The selected block’s size fields measure its edited shape, and typing a dimension scales that shape to the requested measurement. Placement-card tooltips and corner labels follow the chosen placement size.
+
+Select an editable block in the Hull layer and press **D** or choose **Freeform**. The unfiltered palette starts with a standard **Block**, 4 × 4 × 4 m, with the same thumbnail style as other boxes. This mode edits individual eight-corner pieces. For a whole main hull, prefer the separate [custom hull section editor](#custom-hull-sections).
 
 Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corners or a face's four corners. The eight corners, twelve edges and six named faces keep fixed topology. Click a handle, edge or face to select it; the selection menu also reaches obscured components. Edge and face movement preserves the selected component's shape. Use the canvas handles to position the selection.
 
@@ -665,7 +669,7 @@ Round/chamfer uses the same undo/redo and saved-source path. **Remove edge treat
 
 **Split…** opens local axis and count controls. It cuts the block into 2–16 independent eight-corner children, preserves the trilinear corner-defined shape and outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. Escape closes the popover first. The split is one undo step and obeys the existing 512-piece split limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
 
-The same versioned construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies its quarter-turn yaw. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
+The same versioned construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies yaw; optional `tilt: {version: 1, pitchDeg, rollDeg}` adds pitch and roll in YXZ order. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
 
 Rust owns the physical solid and exterior. Planar convex shapes use one convex cell. Warped faces use an unbiased fan through each bilinear face's center; this is a faceted approximation of the curved surface whose signed volume is exact. Convex neighboring cells and coplanar patches are combined without filling concavities. Render, collision, armor and buoyancy use the same compiled geometry. Split children may refine surface faceting, but preserve the underlying corner-defined surface and enclosed volume. Self-overlapping, folded, collapsed, out-of-bounds or overly complex drafts remain editable and saveable; they cannot launch until corrected. This eight-corner version supports dents whose faces remain oriented outward from the block center. It does not add arbitrary mesh topology, tunnels or smooth subdivision surfaces; round/chamfer generates bounded surface detail.
 
@@ -790,3 +794,12 @@ are supported, while endpoints near missing support or open panels are rejected.
 The old fixed bulkhead ladder is removed from the current shelf. Existing saved
 designs retain their original catalogs; update the parts library to use the new
 fittings. These fittings leave the closed hull and room volumes unchanged.
+
+
+### Block rotation
+
+Select one hull block and choose **Rotate (O)**. Three colored rings turn the block around ship axes: **X** pitch, **Y** yaw and **Z** roll. These keys select the axis; **R** turns +90° and **Shift-R** turns −90°. Yaw is the initial axis. Outside Rotate mode, existing placement and fitting rotation keys retain their behavior.
+
+Drag a ring to preview the turn with a live angle. **Snap 15°** toggles angular snapping; hold Shift for 0.1° control. Release commits one undoable edit. Escape, right-click, a cancelled pointer, losing focus or changing the view discards the preview. Escape again leaves Rotate mode and retains the selection. Ring buttons also accept arrow keys (15°, or 1° with Shift). Pitch, yaw and roll fields set exact orientation; **Reset** restores a level, forward orientation without changing shape, dimensions or position.
+
+Orientation is stored on the shared construction primitive, so presets, editable topology, chamfers, custom hull sections and balconies retain their original shape data. Local dimensions stay width × height × length; world bounds change as the block turns. Native compilation, overlap queries, previews, snapping, mirrors and local freeform handles use the same orientation convention. Armor and paint retain source face identities. Optional version-1 tilt extends the existing source format; legacy blocks omit it and remain level.

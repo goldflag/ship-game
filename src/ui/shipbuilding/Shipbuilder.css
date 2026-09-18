@@ -168,7 +168,7 @@
 .sb-dock-tabs { display: flex; align-items: flex-end; gap: 14px; padding: 0 14px; height: var(--sb-dock-tabs); flex-shrink: 0; }
 .sb-dock-body { flex: 1; min-height: 0; display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--sb-card); border-top: 1px solid var(--sb-line2); box-shadow: 0 -10px 30px #0a0c0e66; }
 /* Fittings shelves: a chip row inside the card, between the layer tabs and the cards; the nation filter sits at its right end */
-.shipbuilder[data-layer=fittings] { --sb-shelves: 32px; }
+.shipbuilder[data-layer=fittings],.shipbuilder[data-layer=hull]:not(.sb-freeform-mode) { --sb-shelves: 32px; }
 .sb-shelves { flex-shrink: 0; height: var(--sb-shelves); display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; padding: 0 14px; background: var(--sb-card); border-top: 1px solid var(--sb-line2); box-shadow: 0 -10px 30px #0a0c0e66; pointer-events: auto; overflow-x: auto; scrollbar-width: none; }
 .sb-shelves + .sb-dock-body { border-top: 0; box-shadow: none; padding-top: 8px; }
 .sb-chips { display: flex; gap: 4px; flex-shrink: 0; }
@@ -374,23 +374,23 @@
 .sb-freeform-point {fill:var(--sb-text);stroke:var(--sb-ground);stroke-width:2;}
 .sb-freeform-point[data-state=selected] {fill:var(--sb-brass);}
 .sb-freeform-point[data-state=mirrored] {fill:var(--sb-mint);}
-.shipbuilder .sb-freeform-handle,.shipbuilder .sb-freeform-axis,.shipbuilder .sb-freeform-plane {position:absolute;left:-10px;top:-10px;width:20px;height:20px;border:2px solid var(--sb-ground);border-radius:3px;background:var(--sb-text);pointer-events:auto;touch-action:none;cursor:move;padding:0;}
-.shipbuilder .sb-freeform-handle[data-mode=edge] {border-radius:50%;width:14px;height:14px;left:-7px;top:-7px;}
+.shipbuilder .sb-freeform-handle,.shipbuilder .sb-freeform-axis,.shipbuilder .sb-freeform-plane {position:absolute;left:-6px;top:-6px;width:12px;height:12px;border:2px solid var(--sb-ground);border-radius:3px;background:var(--sb-text);pointer-events:auto;touch-action:none;cursor:move;padding:0;}
+.shipbuilder .sb-freeform-handle[data-mode=edge] {border-radius:50%;width:10px;height:10px;left:-5px;top:-5px;}
 .shipbuilder .sb-freeform-handle[data-mode=face] {background:var(--sb-card);border:2px solid var(--sb-text);}
 .shipbuilder .sb-freeform-handle[data-state=selected] {background:var(--sb-brass);}
 .shipbuilder .sb-freeform-handle[data-state=mirrored] {background:var(--sb-mint);}
 .shipbuilder .sb-freeform-handle:hover {border-color:var(--sb-text);}
-.shipbuilder .sb-freeform-axis {z-index:300;left:-13px;top:-13px;width:26px;height:26px;border:1px solid currentColor;border-radius:50%;background:var(--sb-ground);font-size:12px;font-weight:500;text-align:center;}
+.shipbuilder .sb-freeform-axis {z-index:300;left:-10px;top:-10px;width:20px;height:20px;border:1px solid currentColor;border-radius:50%;background:var(--sb-ground);font-size:12px;font-weight:500;text-align:center;}
 .sb-freeform-axis-line {stroke-width:2;stroke:currentColor;}
 .sb-freeform-axis[data-axis=X],.sb-freeform-axis-line[data-axis=X] {color:#efad9e;}
 .sb-freeform-axis[data-axis=Y],.sb-freeform-axis-line[data-axis=Y] {color:#94d9bf;}
 .sb-freeform-axis[data-axis=Z],.sb-freeform-axis-line[data-axis=Z] {color:#a9c9f0;}
 .shipbuilder .sb-freeform-axis:disabled {opacity:.5;cursor:not-allowed;}
 .sb-freeform-axis-line[data-locked=true] {opacity:.4;stroke-dasharray:3 4;}
-.shipbuilder .sb-freeform-plane {z-index:299;background:var(--sb-brass);border:3px solid var(--sb-ground);width:16px;height:16px;left:-8px;top:-8px;}
+.shipbuilder .sb-freeform-plane {z-index:299;background:var(--sb-brass);border:2px solid var(--sb-ground);width:12px;height:12px;left:-6px;top:-6px;}
 .shipbuilder .sb-freeform-handles button[hidden] {display:none;}
 .sb-freeform-tools {position:absolute;left:50%;bottom:calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 12px);z-index:4;transform:translateX(-50%);width:max-content;max-width:calc(100% - 260px);background:var(--sb-card);border:1px solid var(--sb-line2);border-radius:3px;text-shadow:none;}
-.sb-freeform-title {display:flex;align-items:center;gap:16px;padding:9px 12px;border-bottom:1px solid var(--sb-line);}
+.sb-freeform-title {display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:9px 12px;border-bottom:1px solid var(--sb-line);}
 .sb-freeform-title strong {font:500 20px 'Barlow Condensed',sans-serif;color:var(--sb-brass);}
 .sb-freeform-title span,.sb-freeform-group>span {color:var(--sb-muted);font-size:12px;}
 .sb-freeform-title button {padding:4px 8px;background:var(--sb-brass);color:var(--sb-ink);border-radius:3px;}
@@ -496,3 +496,34 @@
 
 .sb-mesh-tools {padding:0 12px 10px;}
 .sb-mesh-tools .sb-shape-fields {flex-wrap:wrap;}
+
+.sb-hull-filters { overflow-x:auto; scrollbar-width:thin; min-width:0; }
+.sb-freeform-dimensions {display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;padding:8px 12px 0;font-size:12px;color:var(--sb-muted);}
+.sb-freeform-dimensions output {font:500 16px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--sb-text);}
+/* Small visible handles retain forgiving pointer targets. */
+.shipbuilder .sb-freeform-handle::after,.shipbuilder .sb-freeform-axis::after,.shipbuilder .sb-freeform-plane::after {content:'';position:absolute;inset:-4px;}
+
+/* Rotation is a separate tool so its rings never compete with resize handles. */
+.sb-rotate-handles {position:absolute;inset:0;pointer-events:none;}
+.sb-rotate-handles[hidden] {display:none;}
+.sb-rotate-handles svg {width:100%;height:100%;overflow:visible;}
+.sb-rotation-ring,.sb-rotation-hit {fill:none;}
+.sb-rotation-ring {stroke:currentColor;stroke-width:1.5;opacity:.65;}
+.sb-rotation-ring.is-active {stroke-width:2.5;opacity:1;}
+.sb-rotation-hit {stroke:transparent;stroke-width:12;pointer-events:stroke;cursor:grab;outline:none;}
+.sb-rotation-hit:focus-visible {stroke:#e8d9af;stroke-width:5;stroke-dasharray:3 5;}
+.sb-rotation-hit:active {cursor:grabbing;}
+.sb-rotation-ring[data-axis=X],.sb-rotation-axes [data-axis=X] {color:#efad9e;}
+.sb-rotation-ring[data-axis=Y],.sb-rotation-axes [data-axis=Y] {color:#94d9bf;}
+.sb-rotation-ring[data-axis=Z],.sb-rotation-axes [data-axis=Z] {color:#a9c9f0;}
+.sb-rotate-handles output {position:absolute;left:0;top:0;translate:-50% 0;background:#102329;border:1px solid #58736d;padding:3px 8px;color:#ebdfbd;white-space:nowrap;font:600 13px var(--font-mono,monospace);}
+.sb-rotation-tools {position:absolute;bottom:calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 12px);left:50%;transform:translateX(-50%);z-index:5;width:max-content;max-width:calc(100% - 160px);padding:10px;background:var(--sb-card);border:1px solid var(--sb-line2);border-radius:3px;display:grid;grid-template-columns:auto auto;gap:8px 16px;font-size:13px;text-shadow:none;}
+.sb-rotation-title,.sb-rotation-axes,.sb-rotation-actions,.sb-rotation-values {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sb-rotation-title,.sb-rotation-values {grid-column:1/-1;}
+.sb-rotation-title>span,.sb-rotation-tools small {color:var(--sb-muted);}
+.sb-rotation-title>button {margin-left:auto;}
+.sb-rotation-tools button {padding:4px 6px;border:1px solid transparent;border-radius:2px;}
+.sb-rotation-tools button:hover {background:var(--sb-card-hover);}
+.sb-rotation-tools button[aria-pressed=true] {background:var(--sb-card-selected);border-color:currentColor;}
+.sb-rotation-values input {max-width:6ch;}
+@media(max-width:1000px) {.sb-rotation-tools {font-size:12px;gap:6px 10px;}.sb-rotation-tools small {font-size:10px;}}

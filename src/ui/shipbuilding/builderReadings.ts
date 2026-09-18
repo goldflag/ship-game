@@ -1,5 +1,5 @@
 import { envelopeVertices } from '../../ships/freeformShape';
-import { cornerVertices, worldVertex } from '../../ships/constructionVertex';
+import { worldVertex } from '../../ships/constructionVertex';
 import type { ConstructionDiagnostic, ConstructionResult, ConstructionSource, ConstructionSurface } from '../../ships/blueprint';
 import { CONSTRUCTION_LIMITS, editableConstructionSurfaces } from '../../ships/constructionEditor';
 import type { BuilderLayer } from './builderLayers';
@@ -16,13 +16,7 @@ export const MPS_TO_KNOTS = 1.943844;
 export function hullBounds(source: ConstructionSource): { min: [number, number, number]; max: [number, number, number] } | undefined {
   const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (const primitive of source.construction.primitives) {
-    if (primitive.kind === 'vertex' || primitive.kind === 'custom-hull' || primitive.kind === 'balcony') {
-      for (const v of envelopeVertices(primitive)) worldVertex(primitive,v).forEach((n,k)=>{ min[k]=Math.min(min[k],n);max[k]=Math.max(max[k],n); });
-      continue;
-    }
-    const radians = primitive.rotationDeg * Math.PI / 180, cos = Math.abs(Math.cos(radians)), sin = Math.abs(Math.sin(radians));
-    const half = [(primitive.size[0] * cos + primitive.size[2] * sin) / 2, primitive.size[1] / 2, (primitive.size[0] * sin + primitive.size[2] * cos) / 2];
-    for (let axis = 0; axis < 3; axis++) { min[axis] = Math.min(min[axis], primitive.position[axis] - half[axis]); max[axis] = Math.max(max[axis], primitive.position[axis] + half[axis]); }
+    for (const v of envelopeVertices(primitive)) worldVertex(primitive,v).forEach((n,k)=>{ min[k]=Math.min(min[k],n);max[k]=Math.max(max[k],n); });
   }
   return Number.isFinite(min[0]) ? { min, max } : undefined;
 }

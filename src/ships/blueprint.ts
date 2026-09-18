@@ -305,8 +305,10 @@ export interface ConstructionPrimitive {
     | 'half-hemisphere-shell' | 'quarter-hemisphere-shell' | 'parabolic-shell'
     | 'cone' | 'hollow-cube' | 'concave-corner' | 'bridge' | 'diagonal-bridge'
     | 'rounded-bridge' | 'bridge-panel' | 'diagonal-bridge-panel' | 'rounded-bridge-panel' | 'breakwater';
-  /** Envelope centered at position. Shapes occupy normalized [-.5,.5]^3, then scale and yaw. */
+  /** Envelope centered at position. Shapes occupy normalized [-.5,.5]^3, then scale and rotate (YXZ). */
   size: Vec3; position: Vec3; rotationDeg: number;
+  /** Optional v1 pitch and roll in degrees. rotationDeg remains yaw; absent tilt is level. */
+  tilt?: { version: 1; pitchDeg: number; rollDeg: number };
   /** Vertex hull v1: eight normalized local corners, ordered around bow then stern.
    * Missing corners on a vertex hull mean the unit cube. Size scales this edit frame.
    * Rust samples the trilinear solid; generated cells remain the physical authority. */

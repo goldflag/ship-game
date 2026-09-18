@@ -57,6 +57,24 @@ const hit = (over: Partial<BuilderPick> = {}): BuilderPick => ({ point: [0, .5, 
 const key = (key: string, over: Partial<BuilderKey> = {}): BuilderKey => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, repeat: false, preventDefault() {}, ...over });
 const chrome = (): BuilderChrome & { log: string[] } => { const log: string[] = []; return { log, dismiss: () => { log.push('dismiss'); return false; }, toggleDrawer: () => log.push('drawer'), toggleWarnings: () => log.push('warnings'), slotChosen: () => log.push('slot') }; };
 
+test('block type filters keep palette keys and placement in sync across layers', async () => {
+  const { tool } = await setup();
+  tool.setHullCategory('bridges');
+  expect(tool.palette.drawer).toHaveLength(6);
+  expect(tool.palette.drawer.every(item => item.kind === 'shape' && item.shape.kind.includes('bridge'))).toBe(true);
+  tool.key(key('2'), chrome());
+  expect(tool.piece).toMatchObject({ kind: 'hull', shape: 'diagonal-bridge' });
+  tool.switchLayer('armor');
+  tool.switchLayer('hull');
+  expect(tool.getSnapshot().hullCategory).toBe('bridges');
+  tool.setHullCategory('ballast');
+  tool.key(key('1'), chrome());
+  expect(tool.piece).toMatchObject({ kind: 'hull', shape: 'ballast' });
+  expect(tool.hasDrawer).toBe(true);
+  tool.setHullCategory('all');
+  expect(tool.palette.drawer.filter(item => item.kind === 'shape' && item.shape.kind === 'box' && item.shape.size.every(n => n === 4))).toHaveLength(1);
+});
+
 test('a click and a stroke on the hull lay cube pieces with their mirrored twins as one labelled batch each', async () => {
   const { tool, data, labels } = await setup();
   tool.setTool('place');
@@ -680,4 +698,24 @@ test('editing a detached balcony reseats it in the same undoable source transact
   expect(labels()).toEqual(['Resize hull piece']);
   owner.undo();
   expect(data().primitives[1]).toEqual(balcony);
+});
+
+test('rotation mode selects ship axes, commits precise angles and restores each edit with undo', async () => {
+  const { tool, data, labels } = await setup();
+  tool.choose('hull', false); tool.key(key('o'), chrome());
+  expect(tool.scene(undefined)).toMatchObject({ moveTargets: 'none', rotation: { id: 'hull', axis: 1, snap: true } });
+  tool.key(key('x'), chrome()); tool.key(key('r'), chrome());
+  expect(data().primitives[0].tilt?.pitchDeg).toBe(90);
+  expect(labels()).toEqual(['Rotate block']);
+  tool.key(key('r', { shiftKey: true }), chrome());
+  expect(data().primitives[0].tilt).toBeUndefined();
+  tool.undo(); expect(data().primitives[0].tilt?.pitchDeg).toBe(90);
+  tool.setBlockAngle(0, 24.5); tool.setBlockAngle(1, 37); tool.setBlockAngle(2, -15);
+  expect(data().primitives[0]).toMatchObject({ rotationDeg: 37, tilt: { version: 1, pitchDeg: 24.5, rollDeg: -15 } });
+  const saved = structuredClone(data().primitives[0]); tool.resetBlockRotation();
+  expect(data().primitives[0].tilt).toBeUndefined(); expect(data().primitives[0].rotationDeg).toBe(0);
+  tool.undo(); expect(data().primitives[0]).toEqual(saved);
+  tool.key(key('Escape'), chrome());
+  expect(tool.getSnapshot().selected.has('hull')).toBe(true); expect(tool.scene(undefined).rotation).toBeUndefined();
+  tool.key(key('r'), chrome()); expect(data().primitives[0].rotationDeg).toBe(127);
 });

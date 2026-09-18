@@ -215,7 +215,7 @@ export function breadthAt(points: Point[], level: number): number | undefined {
 /** Convert the editor draft to the shared versioned construction source. */
 export function customHullPrimitive(h: Hull, previous?: ConstructionPrimitive): ConstructionPrimitive {
   return { id: previous?.id ?? h.id, kind: 'custom-hull', size: [h.beam, h.depth, h.length],
-    position: previous ? [...previous.position] : [h.offset, 0, 0], rotationDeg: previous?.rotationDeg ?? 0,
+    position: previous ? [...previous.position] : [h.offset, 0, 0], rotationDeg: previous?.rotationDeg ?? 0, ...(previous?.tilt ? { tilt: { ...previous.tilt } } : {}),
     customHull: { version: 1, rake: h.rake, bulb: h.bulb, ...(h.redPaintY !== undefined ? { redPaintY: h.redPaintY } : {}), stations: clone(h.stations) } };
 }
 export function editableCustomHull(p: ConstructionPrimitive): Hull {
