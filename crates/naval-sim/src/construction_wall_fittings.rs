@@ -22,10 +22,16 @@ pub(crate) fn installed(e: &ConstructionEquipment, part: &ConstructionEquipmentP
             return Err(error("Linked wall fittings must be a matching mirrored pair"));
         }
     }
-    let scale = [w.width_m / p.size[0], w.height_m / p.size[1], 1.];
-    let scaled = |v: Vec3| [v[0]*scale[0], v[1]*scale[1], v[2]];
+    let uniform = p.wall_sizing.as_deref() == Some("uniform");
+    let sx = w.width_m / p.size[0];
+    let sy = w.height_m / p.size[1];
+    if uniform && (sx - sy).abs() > 1e-6 {
+        return Err(error("This wall fitting requires uniform scale"));
+    }
+    let scale = [sx, sy, if uniform { sx } else { 1. }];
+    let scaled = |v: Vec3| [v[0]*scale[0], v[1]*scale[1], v[2]*scale[2]];
     p.size = scaled(p.size); p.bounds_center = scaled(p.bounds_center); p.center_of_gravity = scaled(p.center_of_gravity);
-    p.mass_kg = p.mass_kg.map(|m| m*scale[0]*scale[1]);
+    p.mass_kg = p.mass_kg.map(|m| m*scale[0]*scale[1]*scale[2]);
     if let Some(sockets) = &mut p.sockets { for s in sockets { s.position = scaled(s.position); } }
     if let Some(boxes) = &mut p.fitting { for b in boxes { b.center = scaled(b.center); b.size = scaled(b.size); } }
     let socket = p.sockets.as_ref().unwrap().iter().find(|s| s.id == "attachment").unwrap();

@@ -1,3 +1,4 @@
+import { WallSizeFields } from './WallSizeFields';
 import { RailingFields } from './RailingFields';
 import { RotationToolbar } from './RotationToolbar';
 import { wallMount } from '../../ships/constructionWallFittings';
@@ -292,11 +293,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
     <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.rotationDeg}°</span>
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
     <b>{active.part.name}</b>{piece.wall ? <>
-      <NumberField label={wallMount(active.part) === 'porthole' ? 'Diameter' : 'Width'} value={piece.wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => tool.setWallSize(0, value)}/>
-      {wallMount(active.part) !== 'porthole' && <NumberField label="Height" value={piece.wall.heightM} min={.15} max={5} step={.05} unit="m" onChange={value => tool.setWallSize(1, value)}/>}
+      <WallSizeFields part={active.part} wall={piece.wall} onChange={tool.setWallSize}/>
       {['window','porthole'].includes(wallMount(active.part) ?? '') && <><button aria-pressed={!s.windowRow} onClick={() => tool.setWindowRow(false)}>Single</button><button aria-pressed={s.windowRow} onClick={() => tool.setWindowRow(true)}>Row</button>
       {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Drag horizontally along a wall to lay a row." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
-      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Drag along the hull' : 'Click a hull side or wall'} · ←→ width · ↑↓ height · Shift fine{mirror ? ' · linked mirror' : ''}</span>
+      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Drag along the hull' : 'Click a hull side or wall'} · {wallMount(active.part) === 'porthole' ? '←→ / ↑↓ scale' : '←→ width · ↑↓ height'} · Shift fine{mirror ? ' · linked mirror' : ''}</span>
     </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && s.tool !== 'rotate' && selectedPrimitives.length === 1 && !selectedEquipment.length) {
@@ -312,6 +312,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiledResult, item.id);
+    const catalogPart = catalog.equipment.find(p => p.id === item.partId);
     const edit = (label: string, change: (target: ConstructionEquipment) => void) => { const target = structuredClone(item); change(target); run(label, [{ op: 'equipment', value: target }]); };
     const engines = data.equipment.filter(entry => partOf(entry)?.kind === 'engine');
     const assignedEngines = propellerEngines(source, compiledResult, item);
@@ -327,9 +328,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.path?.kind === 'railing' ? `${item.path?.railCount ?? part.path?.railCount ?? 3}-rail railing` : part?.name ?? item.partId}</b>
       {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? 'Hull aligned · ' : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/></>}
-      {item.wall && part && <>
-        <NumberField label={wallMount(part) === 'porthole' ? 'Diameter' : 'Width'} value={item.wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => edit('Resize wall fitting', target => { target.wall!.widthM = value; if (wallMount(part) === 'porthole') target.wall!.heightM = value; })}/>
-        {wallMount(part) !== 'porthole' && <NumberField label="Height" value={item.wall.heightM} min={.15} max={5} step={.05} unit="m" onChange={value => edit('Resize wall fitting', target => { target.wall!.heightM = value; })}/>}
+      {item.wall && catalogPart && <>
+        <WallSizeFields part={catalogPart} wall={item.wall} onChange={(axis, value) => edit('Resize wall fitting', target => {
+          if (axis === 0 || wallMount(catalogPart) === 'porthole') target.wall!.widthM = value;
+          if (axis === 1 || wallMount(catalogPart) === 'porthole') target.wall!.heightM = value;
+        })}/>
         {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
       </>}
       {part?.placement !== 'internal' && <label> · Paint <select className="sb-link" aria-label="Fitting paint" value={item.paint ?? ''} disabled={locked} onChange={event => tool.paintFittings([item.id], event.target.value || undefined)}>

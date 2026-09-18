@@ -145,6 +145,13 @@ Only canonical faces belonging to source hull primitives can receive armor, pain
 
 Module map: `builderLayers.ts` (layers, rails, palettes), `placement.ts` (face-adjacent snapping, runs, fills, mirror twins), `pathDrawing.ts` (pending route points and support-socket anchoring), `PathPointEditor.tsx` (point insertion/removal and rope slack), `builderReadings.ts` (ledger rows, mass groups, warnings), `builderTool.ts` (the builder tool: layer, tool, selection, cursor piece, snap, gestures and keys as one plain module that reads pointer events with their targets already raycast and submits command batches), `builderScene.ts` (the plain render description and pointer events crossing the viewport seam), `BuilderViewport.tsx` (the three.js adapter: raycasting, ghost, move drags, floor grid, tags, arcs), `MoveHandles.ts` (selection translation gizmo), `blockMovement.ts` (continuous movement clearance against oriented block bounds), `slotImages.ts` (offscreen card renders of hull shapes and catalog parts), `HelpDialog.tsx` (controls and hotkeys), `DesignsMenu.tsx`, `NumberField.tsx` (inline tag fields), `useBuilderSource.ts` (the React adapter: storage opening, catalog resolution and `useSyncExternalStore` over the modules), `src/ships/compiledRevision.ts` (compile debounce, cancellation and the one acceptance predicate), `src/ships/constructionRevisionOwner.ts` (history, the single edit door with its readiness rule, revision adoption, autosave ordering and conflict recovery). In development the viewport exposes itself as `window.shipbuilderViewport` for browser checks.
 
+`WallSizeFields.tsx` shares wall-fitting controls between placement and selection.
+The rimmed porthole exposes only uniform **Scale**, measured against its original
+catalog dimensions, including relief depth. Run
+`node scripts/tests/shipbuilder-portholes-browser.mjs <vite-url>` to check repeated
+scale edits, keyboard resizing, undo, palette access and desktop/compact layouts.
+Captures stay under `.build/porthole-review/`.
+
 ## Source storage and recovery
 
 `openConstructionStore()` in `src/ships/constructionStore.ts` opens IndexedDB database `fleet-command-construction`. It returns `list`, `load`, `revisions`, `save`, `remove` and `close`. `save` accepts a source, its schema/catalog versions and `expectedRevisionId`; one transaction writes the immutable revision and advances the design head. A stale head rejects the whole transaction. No compiled geometry, runtime damage or renderer objects are stored.

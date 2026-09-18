@@ -1705,6 +1705,8 @@ pub struct ConstructionEquipmentPart {
     pub placement: String,
     #[serde(rename = "wallMount")]
     pub wall_mount: Option<String>,
+    #[serde(rename = "wallSizing", skip_serializing_if = "Option::is_none")]
+    pub wall_sizing: Option<String>,
     #[serde(rename = "occupancy")]
     pub occupancy: Option<Vec<ConstructionEquipmentPartOccupancyItem>>,
     #[serde(rename = "fitting")]

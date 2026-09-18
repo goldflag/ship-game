@@ -343,3 +343,19 @@ each end projects to a closed hull panel. Rust mirrors that member layout for
 support, interference, mass and inertia checks. The standalone Blender sample
 is three metres tall. Ladder mass per metre describes rod length, not route
 length; the current values are provisional engineering estimates.
+
+## Rimmed porthole
+
+`generic-rimmed-porthole` is an original interpretation of the owner-supplied
+porthole image: twelve-sided opaque glazing, a shallow bevelled painted rim,
+and a faceted rain eyebrow attached to the wall. The original recipe is
+`rimmed_porthole.py`; its standalone export has 150 triangles and no textures.
+It appears in **Doors & windows** with one **Scale** control. The versioned
+wall width and height remain equal; `wallSizing: "uniform"` scales the rim
+and eyebrow depth too, with cubic mass scaling. Arrow keys, rows, mirrors and
+saved designs use the existing wall-fitting workflow. Existing flat portholes
+retain their diameter control and surface-only sizing.
+
+The nominal 0.6 m square envelope, 36 mm maximum relief and 14 kg mass are
+game estimates. This closed fitting adds no hull opening, interior or
+articulation; installation must pass the native wall-support checks.

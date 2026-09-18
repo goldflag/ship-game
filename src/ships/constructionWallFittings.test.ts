@@ -29,10 +29,10 @@ function paired(s = fixture()) {
 }
 const apply = (s: ConstructionSource, commands: ConstructionCommand[]) => applyConstructionBatch(s, { version: 1, expectedRevision: s.revision, label: 'Edit wall fittings', commands });
 
-test('all four wall fittings compile on either vertical side without changing hull geometry or floodable volume', () => {
+test('window and door variants compile on either side without changing hull geometry or floodable volume', () => {
   const plain = fixture(), before = compile(plain);
   expect(before.definition, JSON.stringify(before.diagnostics)).toBeDefined();
-  for (const id of ['generic-watertight-door', 'generic-porthole', 'generic-rectangular-window', 'generic-rounded-window']) {
+  for (const id of ['generic-watertight-door', 'generic-porthole', 'generic-rimmed-porthole', 'generic-rectangular-window', 'generic-rounded-window']) {
     const s = fixture(), a = fitting('a', id), p = catalog.equipment.find(p => p.id === id)!;
     s.construction.equipment.push(a, { ...mirroredEquipment(a), id: 'b' });
     const result = compile(s);
@@ -43,6 +43,24 @@ test('all four wall fittings compile on either vertical side without changing hu
     expect(result.loading!.envelopeVolumeM3).toEqual(before.loading!.envelopeVolumeM3);
     expect(result.loading!.usableVolumeM3).toEqual(before.loading!.usableVolumeM3);
   }
+});
+
+test('rimmed portholes preserve proportions, relief depth and native loading through save and resize', () => {
+  const s = fixture(), before = compile(s);
+  const part = catalog.equipment.find(p => p.id === 'generic-rimmed-porthole')!;
+  const item = fitting('rimmed', part.id);
+  item.wall!.widthM = item.wall!.heightM = 1.2;
+  s.construction.equipment.push(item);
+  const restored = decodeConstructionSource(JSON.parse(JSON.stringify(s)));
+  const result = compile(restored);
+  expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
+  expect(result.loading!.massKg - before.loading!.massKg).toBeCloseTo(part.massKg! * 8, 5);
+  const installed = installedWallPart(part, item);
+  expect(installed.size).toEqual(part.size.map(v => v * 2) as Vec3);
+  expect(installed.boundsCenter).toEqual(part.boundsCenter.map(v => v * 2) as Vec3);
+  expect(installed.massKg).toBe(part.massKg! * 8);
+  restored.construction.equipment[0].wall!.heightM = .6;
+  expect(compile(restored).diagnostics.some(d => d.code === 'wall-fitting')).toBe(true);
 });
 
 test('native compilation rejects overhanging, floating and mismatched mirrored supports', () => {
@@ -121,7 +139,11 @@ test('editor lays a linked row as one transaction; refuses unmatched mirror; sup
   };
   const tool = new BuilderTool(door, { catalog:()=>catalog, compiled:()=>compile(source) });
   tool.switchLayer('fittings');
-  tool.selectSlot(tool.palette.all!.find(p=>p.id==='generic-porthole')!);
+  tool.selectSlot(tool.palette.all!.find(p=>p.id==='generic-rimmed-porthole')!);
+  tool.setWallSize(0, .75);
+  expect(tool.piece).toMatchObject({ wall: { widthM: .75, heightM: .75 }, size: [.75, .75, .045] });
+  tool.setWallSize(1, .6);
+  expect(tool.piece).toMatchObject({ wall: { widthM: .6, heightM: .6 } });
   tool.setWindowRow(true); tool.setWindowSpacing(1.5);
   expect(tool.piece).toMatchObject({ rowSpacing:1.5 });
   expect(tool.placeAt([[4,0,0],[4,0,1.5],[4,0,3]],90)).toMatchObject({accepted:true});

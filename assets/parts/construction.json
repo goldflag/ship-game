@@ -7501,6 +7501,46 @@
       "massKg": 12
     },
     {
+      "id": "generic-rimmed-porthole",
+      "name": "Rimmed porthole",
+      "kind": "deck-fitting",
+      "size": [
+        0.6,
+        0.6,
+        0.036
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.018
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.012
+      ],
+      "placement": "deck",
+      "wallMount": "porthole",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 14,
+      "wallSizing": "uniform"
+    },
+    {
       "id": "generic-rectangular-window",
       "name": "Rectangular window",
       "kind": "deck-fitting",

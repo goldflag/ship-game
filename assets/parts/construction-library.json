@@ -751,6 +751,13 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-rimmed-porthole": {
+      "path": "assets/parts/construction/rimmed_porthole.py",
+      "function": "create_rimmed_porthole",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -1269,6 +1276,12 @@
       "builder": "generic-porthole",
       "review": "unreviewed",
       "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation."
+    },
+    {
+      "partId": "generic-rimmed-porthole",
+      "builder": "generic-rimmed-porthole",
+      "review": "unreviewed",
+      "limitations": "Original low-poly interpretation of the user-supplied porthole image: faceted glazing, raised rim and rain eyebrow. Uniform scale only. Closed fitting with no hull opening; dimensions and mass are game estimates. Installed support requires native validation."
     },
     {
       "partId": "generic-rectangular-window",

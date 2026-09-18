@@ -23,7 +23,7 @@ const EDITING: [string[], string][] = [
   [['⌘C', '⇧⌘C'], 'Copy 1 m to starboard, mirror-copy across the centerline'],
   [['⌘A'], 'Select every hull piece and fitting'],
   [['Del', '⌫', '⌘X'], 'Remove the selection; a wall merges its rooms'],
-  [['←', '→', '↑', '↓'], 'Resize a door/window (Shift for fine steps); otherwise nudge by the Snap step'],
+  [['←', '→', '↑', '↓'], 'Resize a door/window; portholes scale uniformly (Shift for fine steps); otherwise nudge by the Snap step'],
   [['PgUp', 'PgDn'], 'Raise or lower the selection'],
   [['X', 'Y', 'Z'], 'In Hull Rotate mode: choose pitch, yaw or roll. R turns +90°, Shift-R turns −90°'],
   [['R', '⇧R'], 'Rotate the cursor piece or selection: 90° hull, 15° fittings; Shift-R turns fittings 1°'],
