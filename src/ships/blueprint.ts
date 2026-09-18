@@ -477,6 +477,8 @@ export interface ConstructionEquipmentPart {
   placement: 'internal' | 'deck' | 'underwater';
   /** Closed surface detail; attachment socket faces into a vertical wall. */
   wallMount?: 'door' | 'porthole' | 'window' | 'vent' | 'hardware';
+  /** Porthole proportions, including relief depth, use one overall scale. */
+  wallSizing?: 'uniform';
   /** Intrinsic working spaces. For v2 guns, [] declares a deck mount; omitted light guns (<100 mm) also default to deck mounts. */
   occupancy?: { center: Vec3; size: Vec3 }[];
   /** Conservative physical fitting boxes for sparse original equipment; absent uses the full visual bounds. */

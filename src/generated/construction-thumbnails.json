@@ -1425,6 +1425,11 @@
       "url": "/models/components/thumbnails/25506bfd985d8079a4813a096bd4248c1051a6def8fd1fe5abe8edf6a7efa8d8.png",
       "modelHash": "4e32ec6af16afc5672b340fa9467c84e16fed4afb6e5701143a4cc3123107b8c",
       "imageHash": "cc0b49b26ffae9dcb282250141ee5055b244c47e68d2d8b661502aab20e7bf6d"
+    },
+    "/models/components/generic-rimmed-porthole/d32f0ac344d9ab17f1165e143e8ec5b7c69e333888f0fd34a8b8f0727b75fe42/model.glb": {
+      "url": "/models/components/thumbnails/ab4eadefb4b684ddd262b4950bc1a557fca0580976882ccc83448bec2d023d73.png",
+      "modelHash": "e86250f8569dd64772a8ed644dbd7546fc98ea8238b00972e127db8121e97ecd",
+      "imageHash": "eed72d753cdef8542ce3f2449de066b9229b5bf1c3a22a1683a2581054994a20"
     }
   }
 }
