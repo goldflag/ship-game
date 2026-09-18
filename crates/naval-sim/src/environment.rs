@@ -347,25 +347,45 @@ impl crate::catalog::Catalog {
         let number = |value: &serde_json::Value| {
             value.as_f64().filter(|n| n.is_finite()).ok_or_else(invalid)
         };
-        let (amplitude, wind_mps, wavelength) = if let Some(w) = wind {
-            (
-                0.24 * (w / 9.0).powf(1.2) * number(&map["water"]["amplitudeScale"])?,
-                w,
-                (20.0 * w / 9.0).max(4.0) * number(&map["water"]["wavelengthScale"])?,
-            )
+        let wind_mps = wind.unwrap_or(
+            number(&forecast["waves"]["windSpeed"])? * number(&map["water"]["windScale"])?,
+        );
+        let calibration = &self.conditions["seaCalibration"];
+        if calibration["version"].as_u64() != Some(1) {
+            return Err(invalid());
+        }
+        let samples = calibration["samples"].as_array().ok_or_else(invalid)?;
+        let last = samples.last().ok_or_else(invalid)?;
+        let speed = wind_mps.clamp(0.0, number(&last["windSpeed"])?);
+        let upper = samples
+            .iter()
+            .position(|s| s["windSpeed"].as_f64().is_some_and(|w| w >= speed))
+            .ok_or_else(invalid)?;
+        let a = &samples[upper.saturating_sub(1)];
+        let b = &samples[upper];
+        let width = number(&b["windSpeed"])? - number(&a["windSpeed"])?;
+        let t = if upper == 0 {
+            0.0
+        } else if width > 0.0 {
+            (speed - number(&a["windSpeed"])?) / width
         } else {
-            (
-                number(&forecast["waves"]["amplitude"])? * number(&map["water"]["amplitudeScale"])?,
-                number(&forecast["waves"]["windSpeed"])? * number(&map["water"]["windScale"])?,
-                number(&forecast["waves"]["peakWavelength"])?
-                    * number(&map["water"]["wavelengthScale"])?,
-            )
+            return Err(invalid());
         };
-        if amplitude < 0.0 || wavelength <= 0.0 || wind_mps < 0.0 {
+        let interpolate = |key: &str| -> Result<f64, ContentError> {
+            let x = number(&a[key])?;
+            Ok(x + (number(&b[key])? - x) * t)
+        };
+        let height = interpolate("significantHeightM")? * number(&map["water"]["amplitudeScale"])?;
+        let wavelength =
+            interpolate("peakWavelengthM")? * number(&map["water"]["wavelengthScale"])?;
+        if height < 0.0 || wavelength <= 0.0 || wind_mps < 0.0 {
             return Err(invalid());
         }
         let sea = SeaState {
-            amplitude_m: amplitude * 4.0,
+            // Hm0 = 4 sqrt(variance); our independent 0.7/0.3 sine components
+            // have variance amplitude_m^2 * (0.7^2 + 0.3^2) / 2.
+            // Never interpret the visual FFT multiplier as metres.
+            amplitude_m: height / (4.0 * (0.58_f64 / 2.0).sqrt()),
             wavelength_m: wavelength * 4.0,
             direction: number(&map["water"]["windDirection"])? * std::f64::consts::PI / 180.0,
             wind_mps,
@@ -399,5 +419,93 @@ impl crate::catalog::Catalog {
             });
         }
         Ok(ResolvedEnvironment { sea, islands })
+    }
+}
+
+#[cfg(test)]
+mod sea_calibration_tests {
+    use super::*;
+
+    #[test]
+    fn wind_height_targets_and_interpolation_apply_to_every_map() {
+        let catalog = crate::catalog::Catalog::load(
+            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
+        )
+        .unwrap();
+        for map in catalog.maps["maps"].as_array().unwrap() {
+            let id = map["id"].as_str().unwrap();
+            let scale = map["water"]["amplitudeScale"].as_f64().unwrap();
+            for (wind, height) in [
+                (0.0, 0.0),
+                (6.0, 0.9),
+                (9.0, 1.8),
+                (10.5, 2.25),
+                (12.0, 2.7),
+                (18.0, 5.5),
+                (25.0, 8.8),
+                (30.0, 11.3),
+            ] {
+                let sea = catalog
+                    .resolve_environment(id, "map", 42, 1, 5000.0, Some(wind))
+                    .unwrap()
+                    .sea;
+                assert!(
+                    (sea.amplitude_m * 4.0 * (0.58_f64 / 2.0).sqrt() - height * scale).abs()
+                        < 1e-10
+                );
+                assert_eq!(sea.wind_mps, wind);
+                assert!(sea.wavelength_m > 0.0);
+            }
+            let mut previous = 0.0;
+            for i in 0..=60 {
+                let sea = catalog
+                    .resolve_environment(id, "map", 42, 1, 5000.0, Some(i as f64 / 2.0))
+                    .unwrap()
+                    .sea;
+                assert!(sea.amplitude_m >= previous);
+                previous = sea.amplitude_m;
+            }
+            for forecast in catalog.conditions["weather"].as_array().unwrap() {
+                let weather = forecast["id"].as_str().unwrap();
+                let wind = forecast["waves"]["windSpeed"].as_f64().unwrap()
+                    * map["water"]["windScale"].as_f64().unwrap();
+                let legacy = catalog
+                    .resolve_environment(id, weather, 42, 1, 5000.0, None)
+                    .unwrap()
+                    .sea;
+                let explicit = catalog
+                    .resolve_environment(id, weather, 42, 1, 5000.0, Some(wind))
+                    .unwrap()
+                    .sea;
+                assert_eq!(legacy.amplitude_m, explicit.amplitude_m);
+                assert_eq!(legacy.wavelength_m, explicit.wavelength_m);
+            }
+        }
+    }
+
+    #[test]
+    fn calibrated_height_matches_the_cpu_surface_variance() {
+        let sea = SeaState {
+            amplitude_m: 5.5 / (4.0 * (0.58_f64 / 2.0).sqrt()),
+            wavelength_m: 180.0,
+            direction: 0.7,
+            wind_mps: 18.0,
+            phase: 1.3,
+        };
+        let waves = sea.waves();
+        let (mut sum, mut squares) = (0.0, 0.0);
+        let count = 16384;
+        for i in 0..count {
+            let h = sea.height_at(
+                &waves,
+                (i % 128) as f64 * 31.0,
+                (i / 128) as f64 * 37.0,
+                60.0,
+            );
+            sum += h;
+            squares += h * h;
+        }
+        let variance = squares / count as f64 - (sum / count as f64).powi(2);
+        assert!((4.0 * variance.sqrt() - 5.5).abs() < 0.01);
     }
 }

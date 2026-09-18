@@ -2,25 +2,86 @@
 
 The water starts from Water Pro 3.5.1's `blackFlag` preset. Sky Pro 2.2.0 supplies the live sky and reflections using its `partlyCloudy` preset. Configuration is in `src/game/Game.ts`; the defaults below refer to the shipped Black Flag preset, not any particular state of the interactive demo.
 
-The current direction is a relatively restrained sea viewed from a camera hundreds of meters away, with a 250.5-meter ship as the scale reference. These are first-pass artistic and gameplay settings, not measurements or a calibrated North Atlantic sea state.
+## Calibrated wind sea
 
-| Water parameter | Black Flag preset | Default game (Atlantic) | Intent |
-| --- | --- | --- | --- |
-| FFT amplitude multiplier | 1 | 0.24 | Keep wave displacement small beside the hull. This is not a wave height in meters. |
-| Wind speed | 15 | 9 | Lower wind-driven wave energy. |
-| Peak wavelength | 47 m | 20 m | Shorter surface waves give the hull a stronger sense of scale. |
-| Choppiness | 1.5 | 0.65 | Reduce sharp, horizontally displaced crests. |
-| Surface foam opacity | 0.30 | 0.13 | Less persistent white texture across the surface. |
-| Wave foam opacity | 0.60 | 0.45 | Retain whitecaps with less visual noise. |
-| Water fog fade | 300–1,210 m | 2,500–16,000 m | Longer sightlines for the distant chase camera and eventual naval encounters. |
-| Fog sky-blend distance | 700 m | 10,000 m | Move the sky-color transition farther out. |
-| Water grid | Base 200 m, 5 levels | Base 256 m, 6 levels | Larger extent around the moving camera. |
-| Ocean floor | Visible, depth 8 m | Hidden; configured depth 200 m | An open sea without a visible shallow seabed. |
-| Spray / underwater particles | Enabled | Disabled | Omit extra particle effects from this first sailing build. |
+Battle wind resolves through the versioned `seaCalibration` table in
+`assets/maps/battle-conditions.v1.json`. Numeric wind and legacy weather presets
+share that table. Its representative open-sea significant heights follow the
+[NWS Beaufort guide](https://www.weather.gov/pqr/beaufort), with continuous
+interpolation between these targets:
 
-The current Atlantic palette uses `waterColor #19364a`, `transmissionColor #355166`, and the original `absorptionColor #945b57`. The four maps now share a restrained deep-blue family; the Pacific retains a small green shift without its previous bright turquoise crests. The 1,024 m largest FFT tile, foam textures, and Fresnel parameters are inherited. High water quality is the default, including the third ripple cascade and screen-space reflections. See the [palette comparison and capture notes](../assets/reviews/water-palette/README.md).
+| Wind (m/s) | 6 | 9 | 12 | 15 | 18 | 21 | 25 | 30 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Significant height (m) | 0.9 | 1.8 | 2.7 | 4.0 | 5.5 | 7.0 | 8.8 | 11.3 |
 
-Air operations expands the existing flat horizon ring to match the map camera's longer viewing range. Water Pro otherwise retains the smaller ring built for the ship camera, exposing a rectangular edge at maximum zoom. The expanded mesh is reused on subsequent visits; the detailed wave grid and simulation stay unchanged.
+Zero wind is flat. Lower-speed anchors retain small waves and ease into whitecaps.
+These are representative conditions, not a wave forecast: the model has no fetch,
+wind-duration history, water-depth-dependent spectrum or independent incoming
+swell. The peak wavelengths and wave periods remain visual/gameplay choices.
+
+`src/maps/seaCalibration.ts` separates significant height in metres from the
+Water Pro FFT amplitude multiplier. The latter was fitted against native GPU
+height samples at two wave times, then checked at a third time and intermediate
+wind speeds. Gains are specific to Water Pro 3.5.1, seed 1, spectral sharpness 0.8,
+JONSWAP gamma 2.6 and the current cascade layout. The fit uses
+`Hm0 = 4 × standard deviation`, the [NOAA spectral-height definition](https://www.ndbc.noaa.gov/faq/wavecalc.shtml).
+Recalibrate after changing the spectrum, seed or cascade layout. Calibration adds
+no GPU readback or normalization work to the normal game loop.
+
+The production check sampled 6,144 heights per case across 39 High-quality
+wind/map combinations, including intermediate winds: every measured height was
+within 2% of its target. Medium and Ultra also stayed within 1% at 6, 9, 25 and
+30 m/s in the Atlantic. Low retains its single cascade and omits short waves;
+its measured height was 13% below target at 6 m/s and 5% below at 9 m/s, then
+within 2% at 25 and 30 m/s. Keep that quality tradeoff explicit when comparing.
+
+The selected natural-ocean treatment uses broader waves at moderate winds,
+with a smaller wavelength multiplier at high winds. Wind
+speed changes the native foam injection gains as well as the waves. Whitecaps
+start earlier, while the high-wind gains decrease to retain dark water between
+breakers. The 2.8 s foam decay, 0.8 Atlantic wave-foam opacity, 0.08 maximum surface
+foam opacity and native bubble textures remain fixed. Foam is an artistic choice;
+the flatter high-wind coverage is not a calibrated whitecap-fraction model.
+
+Map height multipliers remain 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 Indian;
+each has its own measured FFT gain to account for its wavelength scale. Numeric
+wind bypasses the map wind multiplier; legacy presets first resolve that wind
+multiplier, then enter the same calibration curve. Cloud cover remains independent
+of wave energy. Port restores amplitude 0.12, wind 4 m/s, peak wavelength 14 m,
+choppiness 0.65, gamma 2.2 and the original sheltered foam settings.
+
+CPU combat receives the same significant height through `src/game/session/sea.ts`
+and `crates/naval-sim/src/environment.rs`, using the shared content manifest.
+Its two sine components have weights 0.7/0.3, so their envelope amplitude is
+`Hs / (4 × sqrt((0.7² + 0.3²) / 2))`. This replaces interpreting the FFT gain as
+metres. The CPU retains its coarse four-times-peak-wavelength envelope and seeded
+phase; GPU detail never supplies combat poses, collision or flooding samples.
+The two surfaces share height statistics, not exact phases or a hydrodynamic model.
+
+Run `bun run water:calibration` to open the development-only
+`/scripts/diagnostics/ocean-calibration.html` page. Wind spans the full 0–30 m/s
+battle range; the map selector exercises sheltered maps. **Measure height** samples
+6,144 points over three wave times with the actual Game/Water Pro pipeline. Use
+`?wind=9&map=north-atlantic&quality=high` to restore a case; `low`, `medium` and
+`ultra` are also available. The Bismarck hull stays fixed as a size reference.
+Playback renders once per frame; screenshots are explicit. Temporary evidence
+belongs in ignored `.build/`. To refit an anchor, measure it, multiply its FFT gain
+by `target / measured`, then repeat the measurement and check neighboring speeds.
+
+## Water appearance and rendering
+
+The Atlantic palette remains `waterColor #19364a`, `transmissionColor #355166`,
+and `absorptionColor #945b57`. The four maps retain their deep-blue family and
+the Pacific's small green shift. The 1,024 m largest FFT tile, foam textures,
+Fresnel parameters and quality-tier cascade counts are unchanged. High remains
+the default, including its third ripple cascade and screen-space reflections.
+Calibration adds no geometry, render passes or particles; altered slopes can
+still change fragment-shader work. See the [palette comparison](../assets/reviews/water-palette/README.md).
+
+Water fog fades from 2,500 to 16,000 m with a 10,000 m sky blend. The grid retains
+its 256 m base and six levels; the ocean floor is hidden at configured depth 200 m.
+Spray and underwater particles remain disabled. Air operations expands the existing
+flat horizon ring for the map camera; it reuses that mesh on subsequent visits.
 
 ## Current port light and horizon
 
@@ -28,7 +89,7 @@ Port sun peak intensity is **5.8** and hemisphere fill **1.75**, lifting shaded 
 
 The additional horizon softening introduced with the naval-blue palette has been reverted. Sky and water use their existing Sky Pro / Water Pro shading, with the sky preset's original cloud fade distances. Battle fog uses power **1.4** and the complete authored sky-color blend distance for the selected map/weather. Port fog retains power **0.85** and a **2,600 m** sky-color blend distance. The custom horizon veil, cool-color sampler overrides and water-surface haze blend are removed; no depth-based post-fog is added.
 
-The naval-blue palette and wave tuning remain: spectral sharpness 0.8, JONSWAP gamma 2.2 and choppiness 0.65. Clear/Fog, Map default/Partly cloudy, Overcast and Storm amplitudes remain 0.12, 0.24, 0.34 and 0.48 respectively; port stays at 0.12. That palette change preserved wavelengths and wind speeds. The naval-mechanics implementation subsequently added the deterministic CPU sea response documented below. The following correction sections record earlier iterations and their evidence.
+The naval-blue palette retains spectral sharpness 0.8. Battle waves now follow the calibrated wind curve above; port keeps the original restrained tuning. The following correction sections also record earlier iterations and their evidence.
 
 The vendored Fresnel shader's grazing-angle guard is reduced from 0.05 to 0.0001. The old guard gave shallow wave slopes identical reflectance, turning distant water into a flat color that was conspicuous at 24×. The smaller positive guard preserves wave shading at naval sight angles; texture filtering already follows the camera projection. It adds no wave samples, mesh detail or render passes. Pixel filtering and weather haze still soften the far horizon. See the [water detail review](../assets/reviews/water-detail/README.md) and [vendor patch record](../vendor/threejs-water-pro/PATCHES.md).
 
@@ -42,7 +103,14 @@ The original linear RGB coefficients are saved once after loading the preset. Ea
 
 The dev-only `/scripts/diagnostics/underwater-visibility.html?test` runs the actual `Game.frame` and GPU water pipeline at 7, 50 and 150 m. It compares visible-hull pixels with the same view without the hull, and checks surface/periscope restoration. `window.visibilityResult.passed` must be true. Add `&legacy` to restore the old coefficients as a negative control; its dive checks must fail. See the [before/after evidence](../assets/reviews/underwater-visibility/README.md).
 
-Custom battle now uses independent time-of-day, cloud-cover and wind-speed sliders. Explicit wind is in m/s and bypasses the map wind multiplier; amplitude is `0.24 × (wind / 9)^1.2 × map amplitude scale`, and wavelength is `max(4, 20 × wind / 9) × map wavelength scale`. Zero wind yields zero wave amplitude. The CPU sea and visual sea use the same resolved values. Cloud cover changes sky coverage without changing wind or sea energy. Legacy scenarios without numeric overrides retain weather presets and their wave settings. Clear and Fog use amplitude 0.12, wind 5 and wavelength 12 m. Map default and Partly cloudy use amplitude 0.24, wind 9 and wavelength 20 m. Overcast uses amplitude 0.34, wind 12 and wavelength 28 m; Storm clouds uses amplitude 0.48, wind 16 and wavelength 36 m. Map-specific multipliers apply to those values. These retain the current small-wave calibration. The sheltered port uses amplitude 0.12, wind 4 and wavelength 14 m. Choppiness is 0.65. Transitions refresh the wave spectrum so weather changes take effect at launch. See the [weather/sea consolidation review](../assets/maps/review/weather-seas/README.md).
+Custom battle uses independent time-of-day, cloud-cover and wind-speed sliders.
+Wind is in m/s and drives the calibrated sea above; cloud cover changes sky coverage
+without changing wave energy. Legacy presets retain their wind speeds (Clear/Fog
+5 m/s, Map default/Partly cloudy 9 m/s, Overcast 12 m/s, Storm clouds 16 m/s), then
+apply the map wind multiplier. Their old amplitude and wavelength entries have been
+replaced by the shared calibration. Scene transitions restore the complete battle
+or sheltered-port spectrum and foam settings. The [weather/sea consolidation review](../assets/maps/review/weather-seas/README.md)
+records the previous small-wave iteration.
 
 Nearby ships receive bow and stern wake generators scaled to their hull; their configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
 

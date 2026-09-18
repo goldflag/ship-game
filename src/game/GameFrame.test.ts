@@ -45,8 +45,8 @@ function fakeWater() {
       update(colors: { waterColor: string; transmissionColor: string; absorptionColor: string }) {
         this.waterColor.set(colors.waterColor); this.transmissionColor.set(colors.transmissionColor); this.absorptionColor.set(colors.absorptionColor);
       } },
-    waves: { amplitude: { value: 0 }, windSpeed: { value: 8 }, peakWavelength: { value: 0 }, choppiness: { value: 0 }, windDirection: { value: .5 }, dirty: false },
-    foam: { waves: { opacity: 0, color: new Color() }, surface: { color: new Color() }, shoreline: { color: new Color() } },
+    waves: { amplitude: { value: 0 }, windSpeed: { value: 8 }, peakWavelength: { value: 0 }, choppiness: { value: 0 }, jonswapGamma: { value: 0 }, windDirection: { value: .5 }, dirty: false },
+    foam: { waves: { opacity: 0, color: new Color(), persistence: { crestStrength: 0, windwardStrength: 0, decayTime: 0, update(values: { crestStrength: number; windwardStrength: number; decayTime: number }) { Object.assign(this, values); } } }, surface: { color: new Color() }, shoreline: { color: new Color() } },
     fog: {}, getGeometryConfig: () => ({ infinityRingExtent: 950000 }),
     async update() {},
   };

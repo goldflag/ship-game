@@ -9,12 +9,12 @@ import { validateBattleSetup } from './session/battleSetup';
 /** The Water Pro surface the environment writes to, reduced to its live uniforms. */
 function fakeWater(lighting?: { sun: { direction: { value: Vector3 }; intensity: { value: number }; color: Color }; sunLight: DirectionalLight }) {
   return {
-    waves: { amplitude: { value: 0 }, windSpeed: { value: 0 }, peakWavelength: { value: 0 }, choppiness: { value: 0 }, windDirection: { value: 0 }, dirty: false },
+    waves: { amplitude: { value: 0 }, windSpeed: { value: 0 }, peakWavelength: { value: 0 }, choppiness: { value: 0 }, jonswapGamma: { value: 0 }, windDirection: { value: 0 }, dirty: false },
     color: { absorptionColor: new Color(), waterColor: new Color(), transmissionColor: new Color(),
       update(colors: { waterColor: string; transmissionColor: string; absorptionColor: string }) {
         this.waterColor.set(colors.waterColor); this.transmissionColor.set(colors.transmissionColor); this.absorptionColor.set(colors.absorptionColor);
       } },
-    foam: { waves: { opacity: 0, color: new Color() }, surface: { color: new Color() }, shoreline: { color: new Color() } },
+    foam: { waves: { opacity: 0, color: new Color(), persistence: { crestStrength: 0, windwardStrength: 0, decayTime: 0, update(values: { crestStrength: number; windwardStrength: number; decayTime: number }) { Object.assign(this, values); } } }, surface: { color: new Color() }, shoreline: { color: new Color() } },
     fog: {} as { color?: string; fadeStart?: number; fadeEnd?: number; fadePower?: number; skyBlendDistance?: number },
     underwaterDistortion: { intensity: .02 },
     lighting,
@@ -40,9 +40,9 @@ test('all battle conditions combine across maps without mutating their defaults'
       expect(environment.fog.end).toBeGreaterThan(environment.fog.start);
       expect(environment.sky.coverage).toBeGreaterThanOrEqual(0);
       expect(environment.sky.coverage).toBeLessThanOrEqual(1);
-      expect(environment.waves.amplitude).toBe(weather.waves.amplitude * map.water.amplitudeScale);
+      expect(environment.waves.significantHeightM).toBeGreaterThan(0);
       expect(environment.waves.windSpeed).toBe(weather.waves.windSpeed * map.water.windScale);
-      expect(environment.waves.peakWavelength).toBe(weather.waves.peakWavelength * map.water.wavelengthScale);
+      expect(environment.waves).toEqual(battleEnvironment(map, time.id, weather.id, { windSpeed: environment.waves.windSpeed }).waves);
     }
   }
   expect(JSON.stringify(OCEAN_MAPS)).toBe(original);
@@ -68,12 +68,12 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
       expect(water.waves.amplitude.value).toBe(expected.amplitude);
       expect(water.waves.windSpeed.value).toBe(expected.windSpeed);
       expect(water.waves.peakWavelength.value).toBe(expected.peakWavelength);
-      expect(water.waves.amplitude.value).toBeGreaterThan(previous);
+      expect(expected.significantHeightM).toBeGreaterThan(previous);
       expect(water.waves.windDirection.value).toBe(map.water.windDirection * Math.PI / 180);
       expect(effects.wind).toEqual([expected.windSpeed, water.waves.windDirection.value]);
       expect(funnelSmoke.wind).toEqual(effects.wind);
       expect(water.waves.dirty).toBe(true);
-      previous = water.waves.amplitude.value;
+      previous = expected.significantHeightM;
     }
     environment.setBattle({ timeOfDay: 'map', weather: 'fog', conditions: {} }); environment.setScene(map.id, false);
     expect(water.waves.amplitude.value).toBe(battleEnvironment(map, 'map', 'clear').waves.amplitude);
@@ -94,6 +94,11 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   expect(water.waves.amplitude.value).toBe(.12);
   expect(water.waves.windSpeed.value).toBe(4);
   expect(water.waves.peakWavelength.value).toBe(14);
+  expect(water.waves.choppiness.value).toBe(.65);
+  expect(water.waves.jonswapGamma.value).toBe(2.2);
+  expect(water.foam.waves.persistence.crestStrength).toBe(.99);
+  expect(water.foam.waves.persistence.windwardStrength).toBe(1.1);
+  expect(water.foam.waves.persistence.decayTime).toBe(1.48);
   expect(effects.wind).toEqual([4, 35 * Math.PI / 180]);
   expect(funnelSmoke.wind).toEqual(effects.wind);
 });

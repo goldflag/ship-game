@@ -93,11 +93,12 @@ export class VisualEnvironment {
     const water = this.water;
     if (!water) return;
     const { map, environment: { waves, waterLightScale } } = this.resolved();
-    // Retain the smaller wave scale across all oceans; port stays sheltered.
+    // Metric wave heights are calibrated separately from the FFT gain. Port stays sheltered.
     water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
     water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
     water.waves.peakWavelength.value = this.inPort ? 14 : waves.peakWavelength;
-    water.waves.choppiness.value = .65;
+    water.waves.choppiness.value = this.inPort ? .65 : waves.choppiness;
+    water.waves.jonswapGamma.value = this.inPort ? 2.2 : 2.6;
     water.waves.windDirection.value = (this.inPort ? 35 : map.water.windDirection) * Math.PI / 180;
     water.waves.dirty = true;
     const colors = this.inPort ? oceanMap(DEFAULT_MAP).water : map.water;
@@ -111,7 +112,15 @@ export class VisualEnvironment {
     water.foam.waves.color.setScalar(waterFill);
     water.foam.shoreline.color.set('#edf9fd').multiplyScalar(waterFill);
     this.surfaceAbsorption.copy(water.color.absorptionColor);
-    water.foam.waves.opacity = this.inPort ? .45 : map.water.foam;
+    water.foam.waves.opacity = this.inPort ? .45 : .8 * map.water.foam / .45;
+    water.foam.waves.windStretch = this.inPort ? .47 : .5;
+    water.foam.waves.persistence.update({
+      crestStrength: this.inPort ? .99 : waves.crestFoam,
+      windwardStrength: this.inPort ? 1.1 : waves.windwardFoam,
+      decayTime: this.inPort ? 1.48 : 2.8,
+    });
+    water.foam.surface.opacity = this.inPort ? .13 : .08 * Math.max(0, Math.min(1, (waves.windSpeed - 3) / 12));
+    water.foam.surface.coverage = this.inPort ? .21 : .18;
     this.sinks.effects.setWind(water.waves.windSpeed.value, water.waves.windDirection.value);
     this.sinks.funnelSmoke.setWind(water.waves.windSpeed.value, water.waves.windDirection.value);
   }
