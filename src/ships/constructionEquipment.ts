@@ -41,6 +41,9 @@ export function parseConstructionCatalog(value:unknown):ConstructionCatalog {
       if(p.massKg!==undefined || !c.weapons.parts.some(g=>g.id===p.gunPartId)) throw new Error(`Missing canonical weapon: ${p.id}`);
     } else if(!['torpedo-launcher','engine','magazine','funnel','propeller','rudder','mast','director','deck-fitting'].includes(p.kind) || !Number.isFinite(p.massKg) || p.massKg!<=0) throw new Error(`Invalid equipment family/mass: ${p.id}`);
     if(p.wallMount && (p.kind !== 'deck-fitting' || !['door','porthole','window','vent','hardware'].includes(p.wallMount))) throw new Error(`Invalid wall fitting: ${p.id}`);
+    if(p.riggingSurface && (p.riggingSurface.encoding !== 'deflate-f32-u32-v1' || typeof p.riggingSurface.data !== 'string'
+      || !p.riggingSurface.data.length || p.riggingSurface.data.length > 4_000_000 || p.placement !== 'deck' || p.path || p.wallMount
+      || !['mast','director','funnel','deck-fitting'].includes(p.kind))) throw new Error(`Invalid rope attachment surface: ${p.id}`);
     if(p.path && (p.kind!=='deck-fitting' || !['railing','rope','chain','ladder'].includes(p.path.kind)
       || !Number.isFinite(p.path.diameterM) || p.path.diameterM<=0
       || p.path.railCount !== undefined && (p.path.kind !== 'railing' || ![2, 3].includes(p.path.railCount))

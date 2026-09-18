@@ -1611,6 +1611,9 @@ fn equipment(
     let mut fitting_index = cg::Broadphase::new(8.);
     let hull_index = cg::Broadphase::sized_for(hull);
     let mut support_sockets = vec![];
+    let mut fitting_surfaces = vec![];
+    let has_lines = c.equipment.iter().any(|e| catalog.equipment.iter().any(|p| p.id == e.part_id
+        && p.path.as_ref().is_some_and(|path| matches!(path.kind.as_str(), "rope" | "chain"))));
     let mut path_members = 0;
     // A route can attach to an explicit eye only after its owning fixed fitting
     // has independently passed hull support/fit. Source order cannot form cycles.
@@ -1751,6 +1754,7 @@ fn equipment(
                 hull,
                 &hull_index,
                 &support_sockets,
+                &fitting_surfaces,
                 &all_envelopes,
                 &fitting_index,
             )?;
@@ -2003,6 +2007,11 @@ fn equipment(
             ));
         }
         if p.placement == "deck" {
+            if has_lines {
+                if let Some(surface) = crate::construction_paths::FittingSurface::new(e, p)? {
+                    fitting_surfaces.push(surface);
+                }
+            }
             support_sockets.extend(
                 p.sockets
                     .iter()

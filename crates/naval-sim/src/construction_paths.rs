@@ -1,6 +1,8 @@
 //! Connected deck fittings. Native code owns support, fit and distributed loading;
 //! the editor renders the same documented 16-interval parabolic sag approximation.
 use crate::{construction_geometry as cg, definition::*, geometry::*};
+use base64::Engine;
+use std::io::Read;
 
 const SAG_INTERVALS: usize = 16;
 const MAX_LENGTH_M: f64 = 500.;
@@ -39,6 +41,87 @@ pub(crate) struct SupportSocket {
     pub owner: String,
     pub position: Vec3,
     pub direction: Vec3,
+}
+
+pub(crate) struct FittingSurface {
+    pub owner: String,
+    pub tree: crate::mount_clearance::SurfaceTree,
+}
+impl FittingSurface {
+    pub fn new(
+        e: &ConstructionEquipment,
+        p: &ConstructionEquipmentPart,
+    ) -> Result<Option<Self>, ConstructionDiagnostic> {
+        let Some(surface) = &p.rigging_surface else {
+            return Ok(None);
+        };
+        let invalid = || error("Invalid published rope attachment surface", &e.id);
+        if surface.encoding != "deflate-f32-u32-v1"
+            || surface.data.len() > 4_000_000
+            || p.placement != "deck"
+            || p.path.is_some()
+            || p.wall_mount.is_some()
+            || !matches!(
+                p.kind.as_str(),
+                "mast" | "director" | "funnel" | "deck-fitting"
+            )
+        {
+            return Err(invalid());
+        }
+        let compressed = base64::engine::general_purpose::STANDARD
+            .decode(&surface.data)
+            .map_err(|_| invalid())?;
+        let mut bytes = vec![];
+        // Bounded even for malformed or adversarial compressed catalogs.
+        flate2::read::ZlibDecoder::new(compressed.as_slice())
+            .take(12_000_009)
+            .read_to_end(&mut bytes)
+            .map_err(|_| invalid())?;
+        if bytes.len() < 8 {
+            return Err(invalid());
+        }
+        let word =
+            |offset: usize| u32::from_le_bytes(bytes[offset..offset + 4].try_into().unwrap());
+        let (vertices, triangles) = (word(0) as usize, word(4) as usize);
+        if vertices == 0
+            || vertices > 500_000
+            || triangles == 0
+            || triangles > 500_000
+            || bytes.len() != 8 + 12 * (vertices + triangles)
+        {
+            return Err(invalid());
+        }
+        let pose = Pose {
+            x: e.position[0],
+            y: e.position[1],
+            z: e.position[2],
+            heading: e.bearing_deg.to_radians(),
+            ..Default::default()
+        };
+        let mut points = Vec::with_capacity(vertices);
+        for i in 0..vertices {
+            let point = std::array::from_fn(|k| f32::from_bits(word(8 + i * 12 + k * 4)) as f64);
+            if !finite(point)
+                || (0..3).any(|k| (point[k] - p.bounds_center[k]).abs() > p.size[k] / 2. + 0.025)
+            {
+                return Err(invalid());
+            }
+            points.push(local_to_world(point, pose));
+        }
+        let mut faces = Vec::with_capacity(triangles);
+        for i in 0..triangles {
+            let indexes: [usize; 3] =
+                std::array::from_fn(|k| word(8 + vertices * 12 + i * 12 + k * 4) as usize);
+            if indexes.iter().any(|&i| i >= vertices) {
+                return Err(invalid());
+            }
+            faces.push(indexes.map(|i| points[i]));
+        }
+        Ok(Some(Self {
+            owner: e.id.clone(),
+            tree: crate::mount_clearance::SurfaceTree::new(faces),
+        }))
+    }
 }
 
 #[derive(Clone)]
@@ -108,6 +191,7 @@ pub(crate) fn compile(
     hull: &[cg::Cell],
     hull_index: &cg::Broadphase,
     sockets: &[SupportSocket],
+    fitting_surfaces: &[FittingSurface],
     fitted: &[(String, cg::Cell)],
     fitting_index: &cg::Broadphase,
 ) -> Result<FittedPath, ConstructionDiagnostic> {
@@ -335,12 +419,14 @@ pub(crate) fn compile(
             .flatten();
         if let Some(support) = support {
             supported_by.push(support);
+        } else if !railing && !ladder && fitting_surfaces.iter().any(|s| s.tree.distance(anchor, anchor, radius + 0.006) <= radius + 0.005) {
+            continue;
         } else {
             return Err(error(
                 if railing {
                     "Every railing post needs a supported deck surface within 5 cm"
                 } else {
-                    "Each rope or chain endpoint needs a hull surface or an explicit socket on hull-supported equipment within 5 cm"
+                    "Each rope or chain point needs a hull surface, a supported fitting surface or an explicit tie socket"
                 },
                 &e.id,
             ));
@@ -367,6 +453,15 @@ pub(crate) fn compile(
         }
         for i in fitting_index.candidates(cell) {
             let (owner, other) = &fitted[i];
+            if !railing && !ladder {
+                if let Some(surface) = fitting_surfaces.iter().find(|s| &s.owner == owner) {
+                    if surface.tree.distance(member.a, member.b, radius) >= radius - 0.005_f64.min(radius * 0.2) {
+                        continue;
+                    }
+                    // Existing tie sockets retain their narrow exit corridor,
+                    // including catalog eyes intentionally seated in their post.
+                }
+            }
             if let Some(overlap) =
                 cg::intersection(cell, other).filter(|x| if railing { significant(x) } else { cg::moments(x).volume > 1e-8 })
             {
