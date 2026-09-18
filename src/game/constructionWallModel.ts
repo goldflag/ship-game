@@ -25,7 +25,7 @@ export function createConstructionWallModel(template: THREE.Group, part: Constru
   const vent = constructionVentModel(template, part, part.size[0] * scale[0], part.size[1] * scale[1]);
   if (vent) { template = vent; scale[0] = scale[1] = 1; }
   const pose=new THREE.Matrix4().makeRotationY(-item.bearingDeg*Math.PI/180).setPosition(...item.position), inverse=pose.clone().invert();
-  const offsetFactor=part.wallMount === 'door' || part.wallMount === 'vent' ? 0 : -2;
+  const offsetFactor=part.wallMount === 'door' || part.wallMount === 'vent' || part.wallMount === 'hardware' ? 0 : -2;
   const depth=wallProjectionDepth(item.wall?.widthM ?? part.size[0], item.wall?.heightM ?? part.size[1]);
   // Match the hull renderer's triangle fan before clipping. Clipping an entire
   // warped quad would introduce a different diagonal and bury part of the mark.

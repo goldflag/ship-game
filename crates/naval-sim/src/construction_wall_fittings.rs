@@ -6,7 +6,7 @@ pub(crate) fn installed(e: &ConstructionEquipment, part: &ConstructionEquipmentP
     let Some(w) = &e.wall else { return Ok(p); };
     let error = |message: &str| ConstructionDiagnostic { severity: "error".into(), code: "wall-fitting".into(), message: message.into(), source_id: Some(e.id.clone()) };
     let socket = p.sockets.as_ref().and_then(|s| s.iter().find(|s| s.id == "attachment"));
-    if !(matches!(p.wall_mount.as_deref(), Some("door" | "porthole" | "window" | "vent")) || p.id == "generic-watertight-door") || p.kind != "deck-fitting" || p.path.is_some() || socket.is_none_or(|s| s.direction[1].abs() > 1e-6 || s.direction[2] < 0.99999)
+    if !(matches!(p.wall_mount.as_deref(), Some("door" | "porthole" | "window" | "vent" | "hardware")) || p.id == "generic-watertight-door") || p.kind != "deck-fitting" || p.path.is_some() || socket.is_none_or(|s| s.direction[1].abs() > 1e-6 || s.direction[2] < 0.99999)
         || w.version != 1. || !w.width_m.is_finite() || !w.height_m.is_finite()
         || !(0.15..=5.).contains(&w.width_m) || !(0.15..=5.).contains(&w.height_m) {
         return Err(error("Wall fittings require a wall-facing attachment and dimensions between 0.15 and 5 m"));
@@ -33,14 +33,14 @@ pub(crate) fn installed(e: &ConstructionEquipment, part: &ConstructionEquipmentP
     let normal = [e.bearing_deg.to_radians().sin(), 0., -e.bearing_deg.to_radians().cos()];
 
     let attachment = add(e.position, [socket.position[0]*r.cos()+socket.position[2]*r.sin(),socket.position[1],-socket.position[0]*r.sin()+socket.position[2]*r.cos()]);
-    if project(surfaces, attachment, normal, 0.005).is_none() { return Err(error("Door or window must touch a closed hull side or wall")); }
+    if project(surfaces, attachment, normal, 0.005).is_none() { return Err(error("Wall fitting must touch a closed hull side or wall")); }
     for u in [-0.5, 0., 0.5] { for v in [-0.5, 0., 0.5] {
         let x = p.bounds_center[0]+p.size[0]*u;
         let y = p.bounds_center[1]+p.size[1]*v;
         let z = socket.position[2];
         let point = add(e.position, [x*r.cos()+z*r.sin(), y, -x*r.sin()+z*r.cos()]);
         let Some(projected) = project(surfaces, point, normal, (p.size[0].max(p.size[1])*0.75).max(0.15)) else {
-            return Err(error("Door or window extends beyond its supporting hull side; move it away from the edge or reduce its size"));
+            return Err(error("Wall fitting extends beyond its supporting hull side; move it away from the edge or reduce its size"));
         };
         if w.mirror_id.is_some() && project(surfaces, [-projected[0],projected[1],projected[2]],[-normal[0],normal[1],normal[2]],0.005).is_none() { return Err(error("Mirrored fittings need matching hull geometry on both sides")); }
     } }

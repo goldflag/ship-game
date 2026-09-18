@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-wall-cabinet",
+  "revision": "0e348a1a0d4a718b4c0ef724047075e63f5603cabeb4c8ebdff3fccb556b3994",
+  "contentHash": "06197de3564d126c46253adb0debe585943e1de2382be298904861f09032468f",
+  "modelSha256": "4d8f09f7aba7d75ca33c93547ed98fd31de572c59e3b28723b20890cf743444b",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-wall-cabinet/0e348a1a0d4a718b4c0ef724047075e63f5603cabeb4c8ebdff3fccb556b3994/model.glb",
+  "boundsCenter": [
+    1.4901161193847656e-8,
+    0.019999995827674866,
+    -0.14250000159959164
+  ],
+  "size": [
+    0.6100000441074371,
+    0.7999999821186066,
+    0.2850000492529041
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 72,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}

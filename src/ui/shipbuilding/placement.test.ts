@@ -42,6 +42,25 @@ test('fill covers the rectangle between two placements without exceeding the ges
   expect(strokeSegment([0.5, 3, 0.5], [3.5, 3, 0.5], [1, 1, 1], 1)).toEqual([[1.5, 3, 0.5], [2.5, 3, 0.5], [3.5, 3, 0.5]]);
 });
 
+test('deck fittings keep their attachment on the slope after grid snapping', () => {
+  const part = { kind: 'equipment' as const, size: [3, 4, 8] as Vec3,
+    boundsCenter: [0, 2, 0] as Vec3, bearingDeg: 37,
+    sockets: [{ id: 'attachment', kind: 'deck', position: [0, -.5, 1] as Vec3, direction: [0, -1, 0] as Vec3 }] };
+  const point: Vec3 = [1.43, 8, -3.47];
+  for (const normal of [[0, Math.cos(.08), Math.sin(.08)], [Math.sin(.08), Math.cos(.08), 0]] as Vec3[]) {
+    for (const step of [null, .25, 1]) {
+      const position = placementCenter(part, { point, normal }, step);
+      const socket = attachmentOffset(part, part.bearingDeg);
+      const distance = position.reduce((sum, v, i) => sum + (v + socket[i] - point[i]) * normal[i], 0);
+      expect(distance).toBeCloseTo(0, 10);
+      if (step !== null) {
+        expect(position[0] / step).toBeCloseTo(Math.round(position[0] / step));
+        expect(position[2] / step).toBeCloseTo(Math.round(position[2] / step));
+      }
+    }
+  }
+});
+
 test('slow pointer samples do not pack overlapping fittings into a run', () => {
   const points: [number, number, number][] = [[0, 2.57, 0]];
   for (let x = .25; x <= 8; x += .25) points.push(...strokeSegment(points.at(-1)!, [x, 2.57, 0], [4, 3, 4], 1));

@@ -1375,6 +1375,56 @@
       "url": "/models/components/thumbnails/9f6429d4094cf5670b7491c26c4b881e941ec6439961534db10726fa432b9d5f.png",
       "modelHash": "c93529a3da4318c1589f56deba379ce1be061b4f8f3fa7ce52f4be2b52f9e77f",
       "imageHash": "6e0383de0c1f7ed9d320fc74bb257290da81bf764015be59985a354dd39e622d"
+    },
+    "/models/components/generic-wall-cabinet/0e348a1a0d4a718b4c0ef724047075e63f5603cabeb4c8ebdff3fccb556b3994/model.glb": {
+      "url": "/models/components/thumbnails/5cce03a349fc5b05a58d53e838461028b73cdcfe1b1ae3caae4a0e01c2a312a5.png",
+      "modelHash": "4d8f09f7aba7d75ca33c93547ed98fd31de572c59e3b28723b20890cf743444b",
+      "imageHash": "170078963de2b4bc36708729ff226cdec1edbca97c4fd01a838e60cee3db0ed2"
+    },
+    "/models/components/generic-wall-cabinet-pair/2a29886dff0c30f77f3e513b4653c3eab85b5fcbcb3cbb2f6e256828321bec4c/model.glb": {
+      "url": "/models/components/thumbnails/8df1642a24ff067c8c6f3d1066d299a1473d4174ec528ae0f57eaf05b579b4e3.png",
+      "modelHash": "63bb40483895b8669aadfa3ac20d94c4526b9023f09ebab17eef86a560bc7d9c",
+      "imageHash": "556865ee3a666dc773694d975567d19c63d66a5de47b72acf68cff6a37607e7d"
+    },
+    "/models/components/generic-cylinder-rack/e04f35967ae97896f436fb6338905986f0a7fbb7db59300a5f713539719d6179/model.glb": {
+      "url": "/models/components/thumbnails/73a28526911f902374b57f13051d41bbe6559a78f1cb753f22c5c87976ed4e3b.png",
+      "modelHash": "3a11aabff5d15eeaa1ab95965ed7f323ef59a5e3a1b2c98095fc4ed2603df4c3",
+      "imageHash": "13b36669222ec83aef7245c148e76b37103aac36f1984154ca8ae2e9606625cb"
+    },
+    "/models/components/generic-wall-hose-rack/8812063c53a3c9eb99e077df033c796c1e1865bf7897da02af82f21d31b6dfad/model.glb": {
+      "url": "/models/components/thumbnails/ddc0d62e74647a64907789caa62603e46aec9a5d30efe4765d6deb6cf799c4d6.png",
+      "modelHash": "53464299ee9447b6028f0be72d45a0c1b8fdc466c25d9d601b74691593307469",
+      "imageHash": "34be536be9fa2bb7c01f9309fba261f67b38169d356a5e85af4d14bbc2ed6e5f"
+    },
+    "/models/components/generic-deck-locker-wide/b8d02e568db54b006bef0a39cb17124afa358c903d17ff2997a6ca9a0079602c/model.glb": {
+      "url": "/models/components/thumbnails/ae43ec811c3b7018a867ef9a7c0aeedc000841a68fb1d8698c655ffbc36b66c2.png",
+      "modelHash": "2a58612def0955dfeb2987bd9fbd6e32bf1a528f7755ee8b74dbb4af52281d12",
+      "imageHash": "2e46e381ea24c9de0831a97e520aabf3f7286d4201dc33ed56e01721ffbd078d"
+    },
+    "/models/components/generic-deck-locker-tall/f90ff9e7306699498d34f43a97782b4ca977c8070b41240d0764815f9c04ecd3/model.glb": {
+      "url": "/models/components/thumbnails/034864a4bf88ce450b63b35f18cfae2b8ae4c623804f40ae5271a497b632ee4a.png",
+      "modelHash": "9d1d3f522bd47f82b4f815a221e0b97a9e3a4f7455465deafbd7e789ed609336",
+      "imageHash": "b84f9b14755cce6c04705543ba4b8f7dd2bf25d689186f3baa1472ce986caed5"
+    },
+    "/models/components/generic-deck-storage-box/c126e4d0dc3e9246107ff26054a02f507b32e052f7bacacd972e5a9ad2210eb4/model.glb": {
+      "url": "/models/components/thumbnails/aa22245c817c9b1fdc6ab0d26f4fdeb6542eb1e250ea74dff8db3d23ee6add99.png",
+      "modelHash": "c7c98d2d2e3749c47fd55653a8b2eebb27826c638d1e4f13472be01fbe8f8571",
+      "imageHash": "f9bdb2f771e4176ca464cee201aedadd9bf161705cc46bc5059b0eb028d38f8b"
+    },
+    "/models/components/generic-deck-storage-chest/26522ec32f98c9079901eb182e4d388007ff50f1f75adb92674d1f0af92c46ec/model.glb": {
+      "url": "/models/components/thumbnails/161af6755a7ae44871fbd1c4c79b553eccd937d9a87ce81da04723f8541312ff.png",
+      "modelHash": "c47fc0e2b71bd86bffd2425268f1a7d5777d08206eab380e496c2d66c941e2ff",
+      "imageHash": "24fe1cc84cfb424256245256dac0af0a4d5919c3f9a528b6796bac7d835ea7ed"
+    },
+    "/models/components/generic-deck-locker-sloped/2691d54a7883cbf6212b9f0ea1aa2bcee8f63478960738604cc49f518ef5e325/model.glb": {
+      "url": "/models/components/thumbnails/4a44339b215a5c09d875bc8078421f702e5e0c67d712b38112d6ff92f862ec05.png",
+      "modelHash": "41da706c6adb64a3fcff11f3507ac52565295118b69edf81aba7f86439c95775",
+      "imageHash": "c07a4324af97df3645438d915f150a2c4842e3331cbdde04f22b7eca4986e7e7"
+    },
+    "/models/components/generic-deck-open-bin/52c362528a7b9d8df9744158def4fae94e113ec782fb9d9ca9042728b91e054b/model.glb": {
+      "url": "/models/components/thumbnails/25506bfd985d8079a4813a096bd4248c1051a6def8fd1fe5abe8edf6a7efa8d8.png",
+      "modelHash": "4e32ec6af16afc5672b340fa9467c84e16fed4afb6e5701143a4cc3123107b8c",
+      "imageHash": "cc0b49b26ffae9dcb282250141ee5055b244c47e68d2d8b661502aab20e7bf6d"
     }
   }
 }

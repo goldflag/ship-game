@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-wall-hose-rack",
+  "revision": "8812063c53a3c9eb99e077df033c796c1e1865bf7897da02af82f21d31b6dfad",
+  "contentHash": "ceefa31a5acfc6a9e84644316b9198e2d67dd5568992c7b91decbb73d53c3dc1",
+  "modelSha256": "53464299ee9447b6028f0be72d45a0c1b8fdc466c25d9d601b74691593307469",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-wall-hose-rack/8812063c53a3c9eb99e077df033c796c1e1865bf7897da02af82f21d31b6dfad/model.glb",
+  "boundsCenter": [
+    -0.13088293373584747,
+    -0.2212044596672058,
+    -0.13000000050680782
+  ],
+  "size": [
+    0.9217658936977386,
+    1.0824089050292969,
+    0.2600000395175428
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 260,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -7779,6 +7779,390 @@
           ]
         }
       ]
+    },
+    {
+      "id": "generic-wall-cabinet",
+      "name": "Wall service cabinet",
+      "kind": "deck-fitting",
+      "size": [
+        0.63,
+        0.82,
+        0.33
+      ],
+      "boundsCenter": [
+        0,
+        0.02,
+        -0.165
+      ],
+      "centerOfGravity": [
+        0,
+        0.02,
+        -0.165
+      ],
+      "massKg": 24,
+      "placement": "deck",
+      "wallMount": "hardware",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-wall-cabinet-pair",
+      "name": "Paired wall service cabinets",
+      "kind": "deck-fitting",
+      "size": [
+        1.07,
+        0.62,
+        0.28
+      ],
+      "boundsCenter": [
+        0,
+        0.02,
+        -0.14
+      ],
+      "centerOfGravity": [
+        0,
+        0.02,
+        -0.14
+      ],
+      "massKg": 32,
+      "placement": "deck",
+      "wallMount": "hardware",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-cylinder-rack",
+      "name": "Four-cylinder wall rack",
+      "kind": "deck-fitting",
+      "size": [
+        1.05,
+        1.32,
+        0.38
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.19
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.19
+      ],
+      "massKg": 108,
+      "placement": "deck",
+      "wallMount": "hardware",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-wall-hose-rack",
+      "name": "Wall hose rack with nozzle",
+      "kind": "deck-fitting",
+      "size": [
+        1.1,
+        1.13,
+        0.28
+      ],
+      "boundsCenter": [
+        -0.135,
+        -0.21,
+        -0.14
+      ],
+      "centerOfGravity": [
+        -0.135,
+        -0.21,
+        -0.14
+      ],
+      "massKg": 22,
+      "placement": "deck",
+      "wallMount": "hardware",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-deck-locker-wide",
+      "name": "Wide double-door deck locker",
+      "kind": "deck-fitting",
+      "size": [
+        1.25,
+        1.05,
+        0.58
+      ],
+      "boundsCenter": [
+        0,
+        0.525,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.525,
+        0
+      ],
+      "massKg": 64,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-deck-locker-tall",
+      "name": "Tall narrow deck locker",
+      "kind": "deck-fitting",
+      "size": [
+        0.56,
+        1.45,
+        0.42
+      ],
+      "boundsCenter": [
+        0,
+        0.725,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.725,
+        0
+      ],
+      "massKg": 42,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-deck-storage-box",
+      "name": "Small deck storage box",
+      "kind": "deck-fitting",
+      "size": [
+        0.72,
+        0.56,
+        0.58
+      ],
+      "boundsCenter": [
+        0,
+        0.28,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.28,
+        0
+      ],
+      "massKg": 28,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-deck-storage-chest",
+      "name": "Long low deck chest",
+      "kind": "deck-fitting",
+      "size": [
+        1.65,
+        0.46,
+        0.5
+      ],
+      "boundsCenter": [
+        0,
+        0.23,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.23,
+        0
+      ],
+      "massKg": 48,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-deck-locker-sloped",
+      "name": "Sloped-lid deck box",
+      "kind": "deck-fitting",
+      "size": [
+        0.78,
+        0.78,
+        0.88
+      ],
+      "boundsCenter": [
+        0,
+        0.39,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.39,
+        0
+      ],
+      "massKg": 46,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-deck-open-bin",
+      "name": "Open-front deck bin",
+      "kind": "deck-fitting",
+      "size": [
+        0.55,
+        0.92,
+        0.52
+      ],
+      "boundsCenter": [
+        0,
+        0.46,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.46,
+        0
+      ],
+      "massKg": 22,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
     }
   ]
 }
