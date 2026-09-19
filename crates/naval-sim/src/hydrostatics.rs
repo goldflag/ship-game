@@ -23,6 +23,10 @@ pub struct HullHydrostatics {
     cells: Option<Vec<PolyCell>>,
     slices: Vec<Slice>,
     bound: f64,
+    /// A player-built hull: exact polyhedral cells and no published table.
+    constructed: bool,
+    /// Authored waterplane area, the first slope guess of a warm-started solve.
+    waterplane: f64,
     full: Hydrostatics,
     /// Published content. Absent only for a hull the catalog has no table for,
     /// which then falls back to the mesh solver the table was solved from.
@@ -102,6 +106,8 @@ impl HullHydrostatics {
                 })
                 .collect(),
             bound: h.length + h.beam + h.draft + h.depth,
+            constructed: h.volume.is_some(),
+            waterplane: h.waterplane_area_m2,
             full: Hydrostatics {
                 volume: 0.0,
                 center: [0.0; 3],
@@ -132,28 +138,69 @@ impl HullHydrostatics {
     /// solved from and measured against this; it stays the reference, not the
     /// path a battle takes.
     pub fn mesh_sample(&self, y: f64, roll: f64, pitch: f64) -> Hydrostatics {
+        self.mesh_sample_within(None, y, roll, pitch)
+    }
+    /// Each cell's lowest and highest vertex along the water normal. A flotation
+    /// bisects immersion at one attitude, so it measures the cells once.
+    fn cell_extents(&self, roll: f64, pitch: f64) -> Option<Vec<(f64, f64)>> {
+        let n = [
+            roll.sin() * pitch.cos(),
+            roll.cos() * pitch.cos(),
+            -pitch.sin(),
+        ];
+        Some(
+            self.cells
+                .as_ref()?
+                .iter()
+                .map(|cell| {
+                    cell.vertices
+                        .iter()
+                        .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), &p| {
+                            let d = crate::geometry::dot(n, p);
+                            (lo.min(d), hi.max(d))
+                        })
+                })
+                .collect(),
+        )
+    }
+    fn mesh_sample_within(
+        &self,
+        extents: Option<&[(f64, f64)]>,
+        y: f64,
+        roll: f64,
+        pitch: f64,
+    ) -> Hydrostatics {
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
         let nz = -pitch.sin();
         if let Some(cells) = &self.cells {
             let n = [nx, ny, nz];
             let mut m = crate::construction_geometry::Moments::default();
-            for cell in cells {
-                let (mut inside, mut outside) = (false, false);
-                for &p in &cell.vertices {
-                    if crate::geometry::dot(n, p) <= -y {
-                        inside = true;
-                    } else {
-                        outside = true;
+            for (k, cell) in cells.iter().enumerate() {
+                // A vertex is under water when its height along the normal is at
+                // most -y, so the extremes decide what the vertex scan decided.
+                let (inside, outside) = match extents {
+                    Some(extents) => (extents[k].0 <= -y, extents[k].1 > -y),
+                    None => {
+                        let (mut inside, mut outside) = (false, false);
+                        for &p in &cell.vertices {
+                            if crate::geometry::dot(n, p) <= -y {
+                                inside = true;
+                            } else {
+                                outside = true;
+                            }
+                        }
+                        (inside, outside)
                     }
-                }
+                };
                 if !inside {
                     continue;
                 }
                 if !outside {
                     m.add(cell.full);
-                } else if let Some(c) = crate::construction_geometry::clip(&cell.shape, n, -y) {
-                    let mut part = crate::construction_geometry::moments(&c);
+                } else if let Some(mut part) =
+                    crate::construction_geometry::clipped_moments(&cell.shape, n, -y)
+                {
                     if cell.density != 1. {
                         part.volume *= cell.density;
                         part.first = part.first.map(|v| v * cell.density);
@@ -187,9 +234,9 @@ impl HullHydrostatics {
     /// Volume alone, for the flotation bisection. The area accumulation is the
     /// same expression on the same floats in the same order as `sample`, so the
     /// volume is bit-identical; only the unused x and y moments are dropped.
-    fn sampled_volume(&self, y: f64, roll: f64, pitch: f64) -> f64 {
+    fn sampled_volume(&self, extents: Option<&[(f64, f64)]>, y: f64, roll: f64, pitch: f64) -> f64 {
         if self.cells.is_some() {
-            return self.mesh_sample(y, roll, pitch).volume;
+            return self.mesh_sample_within(extents, y, roll, pitch).volume;
         }
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
@@ -224,6 +271,84 @@ impl HullHydrostatics {
             };
         }
         self.mesh_flotation(volume, roll, pitch)
+    }
+    /// `flotation` for a hull already floating near immersion `near`, as the
+    /// stability solve knows from half a second earlier. Published tables and
+    /// authored hulls answer exactly as `flotation` does. A constructed hull has
+    /// only its mesh, where every trial immersion clips each waterline cell, so
+    /// it replaces the 27 bisections from the hull's bounding distance with a
+    /// bracketed secant from `near`: three or four trials, to within 0.01 mm.
+    pub fn flotation_near(&self, volume: f64, roll: f64, pitch: f64, near: f64) -> Flotation {
+        if self.table.is_some() || !self.constructed || volume >= self.full.volume {
+            return self.flotation(volume, roll, pitch);
+        }
+        let Some(extents) = self.cell_extents(roll, pitch) else {
+            return self.flotation(volume, roll, pitch);
+        };
+        let (lowest, highest) = extents
+            .iter()
+            .fold((f64::INFINITY, f64::NEG_INFINITY), |a, e| {
+                (a.0.min(e.0), a.1.max(e.1))
+            });
+        // The water plane sits at height -y along the normal. At the hull's top
+        // everything is immersed, at its bottom nothing: the excess displacement
+        // falls from `full - volume` to `-volume` as y rises between them.
+        let (mut deep, mut shallow) = (-highest, -lowest);
+        if !(deep < shallow) || volume <= 0.0 {
+            return self.flotation(volume, roll, pitch);
+        }
+        let area = if self.waterplane.is_finite() && self.waterplane > 1.0 {
+            self.waterplane
+        } else {
+            self.full.volume / (shallow - deep)
+        };
+        const TOLERANCE_M: f64 = 1e-8;
+        let inside = |y: f64, deep: f64, shallow: f64| y.is_finite() && y > deep && y < shallow;
+        let mut y = if inside(near, deep, shallow) {
+            near
+        } else {
+            (deep + shallow) / 2.0
+        };
+        let mut previous: Option<(f64, f64)> = None;
+        let mut trial = 0;
+        // The answer is the last immersion actually sampled, so its displaced
+        // volume and centre come from the trial itself.
+        let sample = loop {
+            let s = self.mesh_sample_within(Some(&extents), y, roll, pitch);
+            let g = s.volume - volume;
+            if g > 0.0 {
+                deep = y;
+            } else {
+                shallow = y;
+            }
+            if g == 0.0 || shallow - deep < TOLERANCE_M || trial >= 96 {
+                break s;
+            }
+            // Displacement falls by the waterplane area per metre of rise.
+            let secant = match previous {
+                Some((py, pg)) if pg != g => y - g * (y - py) / (g - pg),
+                _ => y + g / area,
+            };
+            previous = Some((y, g));
+            // A few secant trials settle any smooth hull; past that, or when a
+            // trial leaves the bracket, halve it so the solve always ends.
+            let next = if trial < 8 && inside(secant, deep, shallow) {
+                secant
+            } else {
+                (deep + shallow) / 2.0
+            };
+            if (next - y).abs() < TOLERANCE_M {
+                break s;
+            }
+            y = next;
+            trial += 1;
+        };
+        Flotation {
+            volume: sample.volume,
+            center: sample.center,
+            y,
+            afloat: true,
+        }
     }
     /// Find a stable loaded attitude near upright without advancing simulation.
     /// Re-solve immersion at each attitude so the Jacobian includes waterplane
@@ -297,17 +422,19 @@ impl HullHydrostatics {
                 afloat: false,
             };
         }
+        let extents = self.cell_extents(roll, pitch);
+        let extents = extents.as_deref();
         let (mut low, mut high) = (-self.bound, self.bound);
         for _ in 0..27 {
             let y = (low + high) / 2.0;
-            if self.sampled_volume(y, roll, pitch) > volume {
+            if self.sampled_volume(extents, y, roll, pitch) > volume {
                 low = y;
             } else {
                 high = y;
             }
         }
         let y = (low + high) / 2.0;
-        let s = self.mesh_sample(y, roll, pitch);
+        let s = self.mesh_sample_within(extents, y, roll, pitch);
         Flotation {
             volume: s.volume,
             center: s.center,

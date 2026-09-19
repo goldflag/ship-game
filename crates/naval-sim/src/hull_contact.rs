@@ -172,6 +172,75 @@ impl HullContacts {
         result.sort_by(|a, b| a.t.total_cmp(&b.t));
         result
     }
+    /// Whether `query` would return anything. A firing lane only asks that, so
+    /// it stops at the first crossing and builds no contacts.
+    pub fn blocks(&self, from: Vec3, to: Vec3) -> bool {
+        let direction = sub(to, from);
+        self.blocked(from, direction, direction.map(|d| 1.0 / d))
+    }
+    fn blocked(&self, from: Vec3, direction: Vec3, inverse: Vec3) -> bool {
+        if !self.reached(from, direction, inverse) {
+            return false;
+        }
+        if self
+            .children
+            .iter()
+            .any(|child| child.blocked(from, direction, inverse))
+        {
+            return true;
+        }
+        self.triangles
+            .iter()
+            .any(|tri| Self::crossing(tri, from, direction).is_some())
+    }
+    /// A slab test that only ever errs towards visiting. Nodes merely bound the
+    /// triangles that decide the answer, and an accepted crossing lies within
+    /// micrometres of its triangle, so ten times `query`'s padding keeps every
+    /// node that could hold one while one reciprocal per lane replaces six
+    /// divisions per node.
+    fn reached(&self, from: Vec3, direction: Vec3, inverse: Vec3) -> bool {
+        let (mut enter, mut exit) = (0.0_f64, 1.0_f64);
+        for axis in 0..3 {
+            let half = self.size[axis] / 2.0 + 1e-4;
+            let (low, high) = (self.center[axis] - half, self.center[axis] + half);
+            if direction[axis].abs() < 1e-10 {
+                if from[axis] < low || from[axis] > high {
+                    return false;
+                }
+                continue;
+            }
+            let a = (low - from[axis]) * inverse[axis];
+            let b = (high - from[axis]) * inverse[axis];
+            enter = enter.max(a.min(b));
+            exit = exit.min(a.max(b));
+        }
+        enter <= exit + 1e-6
+    }
+    /// Where along the segment it crosses the triangle, with its edge vectors.
+    fn crossing(tri: &Triangle, from: Vec3, direction: Vec3) -> Option<(f64, Vec3, Vec3)> {
+        let e1 = sub(tri.b, tri.a);
+        let e2 = sub(tri.c, tri.a);
+        let p = cross(direction, e2);
+        let det = dot(e1, p);
+        if det.abs() < 1e-9 {
+            return None;
+        }
+        let offset = sub(from, tri.a);
+        let u = dot(offset, p) / det;
+        if !(-1e-7..=1.0 + 1e-7).contains(&u) {
+            return None;
+        }
+        let q = cross(offset, e1);
+        let v = dot(direction, q) / det;
+        if v < -1e-7 || u + v > 1.0 + 1e-7 {
+            return None;
+        }
+        let t = dot(e2, q) / det;
+        if !(-1e-8..=1.0 + 1e-8).contains(&t) {
+            return None;
+        }
+        Some((t, e1, e2))
+    }
     fn visit(&self, from: Vec3, to: Vec3, result: &mut Vec<HullContact>) {
         if !segment_overlaps_box(from, to, self.center, self.size) {
             return;
@@ -181,27 +250,9 @@ impl HullContacts {
         }
         let direction = sub(to, from);
         for tri in &self.triangles {
-            let e1 = sub(tri.b, tri.a);
-            let e2 = sub(tri.c, tri.a);
-            let p = cross(direction, e2);
-            let det = dot(e1, p);
-            if det.abs() < 1e-9 {
+            let Some((t, e1, e2)) = Self::crossing(tri, from, direction) else {
                 continue;
-            }
-            let offset = sub(from, tri.a);
-            let u = dot(offset, p) / det;
-            if !(-1e-7..=1.0 + 1e-7).contains(&u) {
-                continue;
-            }
-            let q = cross(offset, e1);
-            let v = dot(direction, q) / det;
-            if v < -1e-7 || u + v > 1.0 + 1e-7 {
-                continue;
-            }
-            let t = dot(e2, q) / det;
-            if !(-1e-8..=1.0 + 1e-8).contains(&t) {
-                continue;
-            }
+            };
             result.push(HullContact {
                 t: t.max(0.0),
                 point: add(from, scale(direction, t.max(0.0))),
