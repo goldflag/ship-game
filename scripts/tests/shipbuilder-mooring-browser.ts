@@ -28,7 +28,7 @@ export async function checkMastRopeAttachment() {
   const rope = [...document.querySelectorAll<HTMLButtonElement>('.sb-drawer .sb-slot')].find(b => b.getAttribute('aria-label')?.includes('Mooring rope'));
   if (!rope) throw new Error('Mooring rope missing from palette');
   rope.click(); await controls.settled(() => !document.querySelector('.sb-drawer'), 'rope selected');
-  const mirror = document.querySelector<HTMLButtonElement>('button[title^="Mirror"]')!;
+  const mirror = document.querySelector<HTMLButtonElement>('.sb-rail button[aria-label^="Mirror"]')!;
   if (mirror.getAttribute('aria-pressed') === 'true') mirror.click();
   await controls.settled(() => mirror.getAttribute('aria-pressed') === 'false', 'mirror disabled');
   for (const [i, x] of [-3, 3].entries()) {

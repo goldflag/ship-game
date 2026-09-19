@@ -4,7 +4,7 @@ import type { ConstructionDiagnostic, ConstructionResult, ConstructionSource, Co
 import { CONSTRUCTION_LIMITS, editableConstructionSurfaces } from '../../ships/constructionEditor';
 import type { BuilderLayer } from './builderLayers';
 
-/** Ledger and warnings-line content derived from the native compile result. */
+/** Ledger and checks content derived from the native compile result. */
 export type Tone = 'ok' | 'warn' | 'bad';
 export interface LedgerRow { label: string; value: string; tone?: Tone }
 export interface MassGroup { name: string; massKg: number; color: string }
@@ -27,6 +27,18 @@ export function warningEntries(diagnostics: readonly ConstructionDiagnostic[] | 
     tone: diagnostic.severity === 'error' ? 'block' : 'warn',
     message: diagnostic.message, sourceId: diagnostic.sourceId, code: diagnostic.code,
   })).sort((a, b) => order[a.tone] - order[b.tone]);
+}
+
+/** The checks chip in the top bar: the counts that matter, or the all-clear. */
+export function checksSummary(entries: readonly WarningEntry[]): { label: string; tone: 'block' | 'warn' | 'ok' } {
+  const blocks = entries.filter(entry => entry.tone === 'block').length, warns = entries.filter(entry => entry.tone === 'warn').length;
+  const count = (n: number, noun: string) => n ? [`${n} ${noun}${n === 1 ? '' : 's'}`] : [];
+  return { label: [...count(blocks, 'block'), ...count(warns, 'warning')].join(' · ') || 'No warnings', tone: blocks ? 'block' : warns ? 'warn' : 'ok' };
+}
+/** A diagnostic reads as its finding, then the advice: the first sentence leads and the rest follows in a quieter tone. */
+export function splitDiagnostic(message: string): [lead: string, advice: string] {
+  const end = message.indexOf('. ');
+  return end < 0 ? [message, ''] : [message.slice(0, end + 1), message.slice(end + 2)];
 }
 
 const TONE_BY_CODE: Record<string, { label: string; tone: Tone }[]> = {

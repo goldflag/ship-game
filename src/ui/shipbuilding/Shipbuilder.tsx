@@ -32,13 +32,13 @@ import { BOUNDARY_NAMES } from './builderTool';
 import { FITTING_CATEGORIES, NATION_SHORT, fittingCategory } from './fittingCategories';
 import { HULL_CATEGORIES } from './hullCategories';
 import { blockDimensions, dimensionText, resizeBlock } from './blockDimensions';
-import { equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassKg, surfaceCentroid, warningEntries } from './builderReadings';
+import { checksSummary, equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassKg, splitDiagnostic, surfaceCentroid, warningEntries } from './builderReadings';
 import { SlotGlyph, ToolGlyph } from './builderGlyphs';
 import { DesignsMenu, downloadConstructionSource } from './DesignsMenu';
 import { HelpDialog } from './HelpDialog';
 import { ModelMemoryPanel } from './ModelMemoryPanel';
 import type { VisualMemory } from './modelMemory';
-import { ViewBar } from './ViewBar';
+import { ViewBar, type ViewBarTip } from './ViewBar';
 import { pathSlackLimit, equipmentPathBounds } from '../../ships/constructionPaths';
 import { PathPointEditor } from './PathPointEditor';
 import { NumberField } from './NumberField';
@@ -132,7 +132,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     return () => window.removeEventListener('resize', measure);
   }, [drawer, layer, hullCategory]);
   const [hoveredPart, setHoveredPart] = useState<string>();
-  const [warningsOpen, setWarningsOpen] = useState(true);
+  const [warningsOpen, setWarningsOpen] = useState(false);
   const [designsOpen, setDesignsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
@@ -251,7 +251,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       if (locked) return;
       if (event.key === 'Alt') { event.preventDefault(); tool.setSnapOverride(true); return; }
       tool.key(event, {
-        dismiss: () => { if (drawer) setDrawer(false); else if (designsOpen) setDesignsOpen(false); else return false; return true; },
+        dismiss: () => { if (drawer) setDrawer(false); else if (designsOpen) setDesignsOpen(false); else if (warningsOpen) setWarningsOpen(false); else return false; return true; },
         toggleDrawer: () => { setDrawer(value => !value); setTip(undefined); },
         toggleWarnings: () => setWarningsOpen(value => !value),
         slotChosen: () => { setDrawer(false); setTip(undefined); },
@@ -268,6 +268,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // ---- derived display
   const warnings = warningEntries(compiledResult?.diagnostics);
   const blocks = warnings.filter(entry => entry.tone === 'block'), warns = warnings.filter(entry => entry.tone === 'warn');
+  const checks = checksSummary(warnings), checksTone = compile.error || revision.error ? 'block' : checks.tone;
   const readingsSource = compile.retainedSource ?? source;
   const rows = useMemo(() => ledgerRows(readingsSource, compile.retained, layer), [readingsSource, compile.retained, layer]);
   const masses = useMemo(() => massGroups(compile.retained), [compile.retained]);
@@ -434,13 +435,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
   if(!freeformMode&&selected.size===1&&selectedPrimitives[0]&&canEditVertices(selectedPrimitives[0]))acting.push({keys:['D'],label:'Freeform'});
   if (surfaces.size && faceLayer) acting.push({ keys: ['⇧'], label: 'Click adds a face' });
-  const escape = pathPart ? 'Cancel path' : drawer || designsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : activeTool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
+  const escape = pathPart ? 'Cancel path' : drawer || designsOpen || warningsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : activeTool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
   if (escape) acting.push({ keys: ['Esc'], label: escape });
   const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
 
+  // Rail cells carry no caption: the name, state, description and key stand beside the hovered or focused cell, clear of the rail.
+  const showRailTip = (entry: ViewBarTip | undefined) => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-rail') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); };
+  const railTip = (title: string, detail: string, key?: string) => { const show = (event: { currentTarget: HTMLElement }) => showRailTip({ title, detail, key, target: event.currentTarget }); return { onPointerEnter: show, onPointerLeave: hideTip, onFocus: show, onBlur: hideTip }; };
   const viewBar = <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
-      onView={tool.cycleView} onProjection={tool.toggleProjection} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
-      onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-viewbar') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); }}/>;
+      onView={tool.cycleView} onProjection={tool.toggleProjection} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit} onTip={showRailTip}/>;
   const balconyEditing = layer === 'hull' && selectedPrimitives.length === 1 && selectedPrimitives[0].kind === 'balcony' && selectedPrimitives[0].id === balconySession;
   const tipItem = tip?.slotId ? everyCard.find(item => item.id === tip.slotId) : undefined;
   const visibleTip = tipItem && tip ? { ...tip, ...describe(tipItem) } : tip;
@@ -495,6 +498,26 @@ export function Shipbuilder(props: ShipbuilderProps) {
           <div className="sb-menu-row"><button role="menuitem" disabled={locked} onClick={() => void editor.reloadRepository().then(() => setDesignsOpen(false)).catch(fail)}>Reload repository</button><button role="menuitem" disabled={locked} onClick={() => void saveLocalCopy()}>Save local copy</button><button role="menuitem" onClick={() => setDesignsOpen(false)}>Close</button></div>
         </div>}
       </div>
+      {/* Checks hang from the top bar so a message never moves the rail: the chip counts blocks and warnings, W opens the list, and rows that need an answer (errors, layout proposals, notices) open the panel themselves. */}
+      <div className="sb-warn">
+        <button className={`lead ${checksTone}`} aria-expanded={warningsOpen} title="Design checks (W)" onClick={() => setWarningsOpen(value => !value)}>
+          <i className={`sb-dot ${checksTone}`}/>{compile.compiling ? compile.waiting ? 'Checks pending' : 'Checking design…' : <>{!compiledResult ? 'Draft · ' : ''}{checks.label}</>} <kbd>W</kbd>
+        </button>
+        {(warningsOpen || compile.error || revision.error || suggestion || notice) && <div className="sb-checks" role="group" aria-label="Checks">
+          {warningsOpen && <div className="sb-checks-head"><span className="sb-lead">Checks</span><span>{blocks.length} block{blocks.length === 1 ? '' : 's'} · {warns.length} warning{warns.length === 1 ? '' : 's'}</span></div>}
+          {compile.error && <div className="row bad"><i className="sb-dot block"/><span>{compile.error}</span><button onClick={compiled.retry}>Retry</button></div>}
+          {revision.error && <div className="row bad" role="alert"><i className="sb-dot block"/><span>{revision.error}</span>
+            <button onClick={() => downloadConstructionSource(JSON.stringify(source, null, 2), source.name)}>Download</button><button onClick={() => void owner.retrySave()?.catch(fail)}>Retry save</button>
+            {props.repositoryId && <button onClick={() => void editor.reloadRepository().catch(fail)}>Reload repository</button>}
+            <button onClick={() => void (props.repositoryId ? saveLocalCopy() : saveCopy())}>{props.repositoryId ? 'Save local copy' : 'Save a copy'}</button><button onClick={() => owner.setError('')}>Dismiss</button></div>}
+          {warningsOpen && (warnings.length ? <div className="rows">{warnings.map((entry, index) => { const [finding, advice] = splitDiagnostic(entry.message); return <button key={`${entry.code}-${index}`} className={`row ${entry.tone === 'note' ? 'note' : ''}`} title={entry.sourceId ? 'Select the affected part' : entry.code} onClick={() => { if (entry.sourceId) { tool.choose(entry.sourceId); if (data.equipment.some(part => part.id === entry.sourceId) && layer !== 'fittings' && layer !== 'internals') switchLayer(partOf(data.equipment.find(part => part.id === entry.sourceId)!)?.placement === 'internal' ? 'internals' : 'fittings'); } }}><i className={`sb-dot ${entry.tone}`}/><span>{finding}{advice && <small>{advice}</small>}</span></button>; })}</div>
+            : <div className="row note"><i className="sb-dot ok"/><span>{compiledResult ? 'Nothing blocks a sea trial.' : 'Checks appear after the design is checked.'}</span></div>)}
+          {suggestion && <div className="row" role="status"><i className={`sb-dot ${suggestion.proposal.diagnostics.some(item => item.severity === 'error') ? 'block' : 'ok'}`}/>
+            <span>{suggestion.proposal.diagnostics.map(item => item.message).join(' · ') || (suggestionChanged ? 'A layout is ready; the dashed outlines show where it adds equipment.' : 'The requested equipment is already fitted.')}</span>
+            {suggestionChanged && !suggestion.proposal.diagnostics.some(item => item.severity === 'error') && <button disabled={source.revision !== suggestion.revision} onClick={tool.applySuggestion}>Apply <kbd>⏎</kbd></button>}<button onClick={tool.dismissSuggestion}>Dismiss</button></div>}
+          {notice && <div className="row note" role="status"><i className="sb-dot note"/><span>{notice}</span></div>}
+        </div>}
+      </div>
       <div className="sb-actions">
         <button className="sb-undo" disabled={locked || !!pathPoints.length || !revision.history.past.length} onClick={owner.undo} title={revision.history.past.length ? `Undo ${revision.history.lastAction}` : 'Nothing to undo'}><kbd>⌘Z</kbd>{revision.history.past.length}</button>
         <button className="sb-undo" disabled={locked || !!pathPoints.length || !revision.history.future.length} onClick={owner.redo} title="Redo (⇧⌘Z)"><kbd>⇧⌘Z</kbd>{revision.history.future.length}</button>
@@ -502,34 +525,18 @@ export function Shipbuilder(props: ShipbuilderProps) {
       </div>
     </header>
     <div className="sb-left">
-      <div className="sb-warn">
-        <button className={`lead ${blocks.length ? 'bad' : ''}`} aria-expanded={warningsOpen} onClick={() => setWarningsOpen(value => !value)}>
-          {compile.compiling ? compile.waiting ? 'Checks pending' : 'Checking design…' : <>{!compiledResult ? 'Draft · ' : ''}{blocks.length} block{blocks.length === 1 ? '' : 's'} · {warns.length} warning{warns.length === 1 ? '' : 's'}</>} <kbd>W</kbd>
-        </button>
-        {compile.error && <div className="row bad"><i className="sb-dot block"/><span>{compile.error}</span><button onClick={compiled.retry}>Retry</button></div>}
-        {revision.error && <div className={`row bad ${props.repositoryId ? 'sb-repository-error' : ''}`} role="alert"><i className="sb-dot block"/><span>{revision.error}</span>
-          <button onClick={() => downloadConstructionSource(JSON.stringify(source, null, 2), source.name)}>Download</button><button onClick={() => void owner.retrySave()?.catch(fail)}>Retry save</button>
-          {props.repositoryId && <button onClick={() => void editor.reloadRepository().catch(fail)}>Reload repository</button>}
-          <button onClick={() => void (props.repositoryId ? saveLocalCopy() : saveCopy())}>{props.repositoryId ? 'Save local copy' : 'Save a copy'}</button><button onClick={() => owner.setError('')}>Dismiss</button></div>}
-        {warningsOpen && <div className="rows">{warnings.map((entry, index) => <button key={`${entry.code}-${index}`} className={`row ${entry.tone === 'note' ? 'note' : ''}`} title={entry.sourceId ? 'Select the affected part' : entry.code} onClick={() => { if (entry.sourceId) { tool.choose(entry.sourceId); if (data.equipment.some(part => part.id === entry.sourceId) && layer !== 'fittings' && layer !== 'internals') switchLayer(partOf(data.equipment.find(part => part.id === entry.sourceId)!)?.placement === 'internal' ? 'internals' : 'fittings'); } }}><i className={`sb-dot ${entry.tone}`}/><span>{entry.message}</span></button>)}</div>}
-        {suggestion && <div className="row" role="status"><i className={`sb-dot ${suggestion.proposal.diagnostics.some(item => item.severity === 'error') ? 'block' : 'ok'}`}/>
-          <span>{suggestion.proposal.diagnostics.map(item => item.message).join(' · ') || (suggestionChanged ? 'A layout is ready; the dashed outlines show where it adds equipment.' : 'The requested equipment is already fitted.')}</span>
-          {suggestionChanged && !suggestion.proposal.diagnostics.some(item => item.severity === 'error') && <button disabled={source.revision !== suggestion.revision} onClick={tool.applySuggestion}>Apply <kbd>⏎</kbd></button>}<button onClick={tool.dismissSuggestion}>Dismiss</button></div>}
-        {notice && <div className="row note" role="status"><i className="sb-dot note"/><span>{notice}</span></div>}
-      </div>
-      <div className="sb-rail" role="toolbar" aria-label="Tools"><span className="sb-rail-cap">Tools</span>
-        {rail.filter(entry => entry.id !== 'rotate' || !(piece?.kind === 'equipment' && piece.wall) && !selectedEquipment.some(e => e.wall)).map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : undefined} title={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
-        {layer==='hull' && <button aria-pressed={freeformMode} disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?tool.exitFreeform:enterFreeform} title="Select one editable shape to edit vertices, edges, faces or rings (D)"><ToolGlyph name="Select"/><span>Freeform</span><kbd>D</kbd></button>}
+      {/* One joined strip of glyph cells: tools, then the modifiers that change where a click lands, then how the ship is shown. Names and keys appear beside the hovered cell. */}
+      <div className="sb-rail" role="toolbar" aria-label="Tools">
+        {rail.filter(entry => entry.id !== 'rotate' || !(piece?.kind === 'equipment' && piece.wall) && !selectedEquipment.some(e => e.wall)).map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : undefined} aria-label={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)} {...railTip(entry.name, '', entry.key)}><ToolGlyph name={entry.glyph}/><kbd>{entry.key}</kbd></button>)}
+        {layer==='hull' && <button aria-pressed={freeformMode} aria-label="Freeform (D)" disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?tool.exitFreeform:enterFreeform} {...railTip('Freeform', 'Select one editable shape to edit vertices, edges, faces or rings', 'D')}><ToolGlyph name="Freeform"/><kbd>D</kbd></button>}
+        <i className="sb-rail-rule" aria-hidden="true"/>
         {/* Modifiers change where a click lands rather than what it does; freeform mode carries its own local mirror axes and unit. */}
-        {!freeformMode && <><span className="sb-rail-cap foot">Modifiers</span>
-          <button className="toggle" disabled={locked} aria-pressed={mirror} title="Mirror (M) · place, move and paint the twin across the centerline" onClick={tool.toggleMirror}><ToolGlyph name="Mirror"/><span>Mirror</span><kbd>M</kbd></button>
-
-          {/* The view strip sits at the rail's foot: how the ship is shown, in small bare glyphs so it never reads as more tools. */}
-          <SnapControls tool={tool} locked={locked}/>
-          {viewBar}</>}
-        {freeformMode && <SnapControls tool={tool} locked={locked}/>}
-        {!freeformMode && (tool.selectedPrimitives.length > 0 || tool.selectedEquipment.length > 0) && <button disabled={locked} onClick={tool.centerSelection} title="Center selection on ship using its mounting centers"><ToolGlyph name="Centerline"/><span>Center</span></button>}
-        <button className="help" aria-haspopup="dialog" aria-expanded={helpOpen} title="Controls and hotkeys (?)" onClick={() => setHelpOpen(value => !value)}><ToolGlyph name="Keys"/><span>Keys</span><kbd>?</kbd></button></div>
+        {!freeformMode && <button className="toggle" disabled={locked} aria-pressed={mirror} aria-label="Mirror (M)" onClick={tool.toggleMirror} {...railTip(`Mirror · ${mirror ? 'On' : 'Off'}`, 'Place, move and paint the twin across the centerline', 'M')}><ToolGlyph name="Mirror"/><kbd>M</kbd></button>}
+        <SnapControls tool={tool} locked={locked} onTip={showRailTip}/>
+        {!freeformMode && <><i className="sb-rail-rule" aria-hidden="true"/>{viewBar}</>}
+        <i className="sb-rail-rule" aria-hidden="true"/>
+        {!freeformMode && (tool.selectedPrimitives.length > 0 || tool.selectedEquipment.length > 0) && <button disabled={locked} aria-label="Center selection" onClick={tool.centerSelection} {...railTip('Center', 'Center the selection on the ship using its mounting centers')}><ToolGlyph name="Centerline"/></button>}
+        <button className="help" aria-haspopup="dialog" aria-expanded={helpOpen} aria-label="Controls and hotkeys (?)" onClick={() => setHelpOpen(value => !value)} {...railTip('Keys', 'Every control and hotkey', '?')}><ToolGlyph name="Keys"/><kbd>?</kbd></button></div>
     </div>
     <aside className="sb-ledger" aria-label="Ledger">
       <h4>Ledger{!compiledResult && <span title={compile.retained ? 'Readings from the last checked revision. They update after you pause editing.' : 'Readings appear after the design is checked.'}>{compile.retained ? 'last check' : 'pending'}</span>}</h4>
@@ -585,7 +592,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         </div>
       </div>
     </div>
-    {visibleTip && <div ref={tooltipRef} className={`sb-tip ${visibleTip.below ? 'below' : ''} ${visibleTip.right !== undefined ? 'right' : ''} ${visibleTip.beside ? 'beside' : ''}`} role="tooltip" style={visibleTip.right !== undefined ? { right: visibleTip.right, top: visibleTip.y } : { left: visibleTip.x, top: visibleTip.y }}><b>{visibleTip.title}</b>{visibleTip.detail}{visibleTip.key && <kbd>{visibleTip.key}</kbd>}</div>}
+    {visibleTip && <div ref={tooltipRef} className={`sb-tip ${visibleTip.below ? 'below' : ''} ${visibleTip.right !== undefined ? 'right' : ''} ${visibleTip.beside ? 'beside' : ''} ${visibleTip.detail ? '' : 'bare'}`} role="tooltip" style={visibleTip.right !== undefined ? { right: visibleTip.right, top: visibleTip.y } : { left: visibleTip.x, top: visibleTip.y }}><b>{visibleTip.title}</b>{visibleTip.detail}{visibleTip.key && <kbd>{visibleTip.key}</kbd>}</div>}
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', [{ op: 'primitive', value: startingHullBlock() }])}>Add a hull block</button> to keep building.</div>}
     {memoryOpen && <ModelMemoryPanel source={source} catalog={catalog} result={compiledResult} visual={visualMemory} onClose={() => setMemoryOpen(false)}/>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}

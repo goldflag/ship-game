@@ -80,7 +80,7 @@ export async function checkShipbuilderHullBlocks() {
   checks.push('one undo removes both mirrored shells; redo restores their stable IDs');
   await wait(compiled, 'restored pair compiles');
 
-  controls.key('m'); await controls.settled(() => document.querySelector('[title="Mirror placements across the centerline"]')?.textContent === 'Mirror Off', 'disable mirror');
+  controls.key('m'); await controls.settled(() => document.querySelector('.sb-rail button[aria-label^="Mirror"]')?.getAttribute('aria-pressed') === 'false', 'disable mirror');
   await choose('100 t ballast', 'ballast');
   await textInput(document.querySelector<HTMLInputElement>('.sb-cursor input')!, '5');
   controls.click(...await controls.screen([-6, 2, 12]));

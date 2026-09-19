@@ -1,4 +1,4 @@
-/* Shipbuilder · "Slipway rails": tools on the left edge, the palette dock across the whole bottom edge,
+/* Shipbuilder · "Slipway rails": checks in the top bar, tools on the left edge, the palette dock across the whole bottom edge,
    ledger on the right edge. Compact cards group tools, palette slots and object values. */
 .shipbuilder {
   --sb-text: #edf1ec; --sb-muted: #bcc3c7; --sb-muted2: #929a9f; --sb-line: #cfd4d835; --sb-line2: #cfd4d86e;
@@ -76,7 +76,7 @@
 
 /* chrome containers let the pointer through to the scene; only controls catch it */
 .sb-top, .sb-left, .sb-ledger, .sb-dock-tabs, .sb-keys, .sb-empty { pointer-events: none; }
-.sb-top > *, .sb-warn > *, .sb-rail button, .sb-tabs, .sb-dock-body, .sb-drawer, .sb-empty button, .sb-menu { pointer-events: auto; }
+.sb-top > *, .sb-rail, .sb-tabs, .sb-dock-body, .sb-drawer, .sb-empty button, .sb-menu { pointer-events: auto; }
 
 /* top bar */
 .sb-top { position: absolute; left: 0; right: 0; top: 0; height: 52px; display: flex; align-items: center; gap: 22px; padding: 0 18px; }
@@ -126,41 +126,41 @@
 .sb-menu p { color: var(--sb-muted); font-size: 12px; }
 .sb-menu p.bad { color: var(--sb-salmon); }
 
-/* warnings line + tool rail share the left edge */
-.sb-left { position: absolute; left: 14px; top: 62px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; max-width: min(620px, 46vw); }
-.sb-warn { display: flex; flex-direction: column; gap: 3px; font-size: 12px; padding-left: 4px; }
-.sb-warn > * { display: flex; align-items: center; gap: 8px; text-align: left; width: fit-content; max-width: 100%; }
-.sb-warn .lead { color: var(--sb-muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
-.sb-warn .lead.bad { color: var(--sb-salmon); }
-.sb-warn .row { color: var(--sb-text); max-width: 100%; }
-.sb-warn .row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb-warn .row.note { color: var(--sb-muted); }
-.sb-warn .row.bad { color: var(--sb-salmon); }
-.sb-warn .row button { color: var(--sb-brass); white-space: nowrap; }
-.sb-warn .row button:hover { color: var(--sb-brass2); }
-.sb-warn .sb-repository-error { flex-wrap: wrap; align-items: baseline; max-width: min(620px, calc(100vw - 28px)); }
-.sb-warn .sb-repository-error > span { white-space: normal; overflow-wrap: anywhere; flex: 1 1 calc(100% - 24px); }
-.sb-warn .rows { display: grid; gap: 3px; max-height: 26vh; overflow: auto; scrollbar-width: thin; justify-items: start; }
-.sb-warn .rows > * { max-width: 100%; }
-.sb-warn .rows .row { display: flex; align-items: baseline; gap: 8px; text-align: left; }
-.sb-warn .rows .row span { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+/* checks: a chip in the top bar counts blocks and warnings; its panel hangs under the bar like the designs menu, so no message ever moves the rail */
+.sb-warn { position: relative; display: flex; align-items: center; font-size: 12px; text-shadow: none; }
+.shipbuilder .sb-warn .lead { display: flex; align-items: center; gap: 7px; height: 24px; padding: 0 9px; border: 1px solid var(--sb-line2); border-radius: 12px; background: var(--sb-card); color: var(--sb-text); font: 500 12px/1 'Barlow', sans-serif; white-space: nowrap; }
+.shipbuilder .sb-warn .lead:hover, .shipbuilder .sb-warn .lead[aria-expanded=true] { background: var(--sb-card-selected); }
+.shipbuilder .sb-warn .lead.warn { border-color: #e8c56c8c; }
+.shipbuilder .sb-warn .lead.block { border-color: var(--sb-salmon); color: var(--sb-salmon); }
+.sb-checks { position: absolute; left: 0; top: calc(100% + 10px); z-index: 5; width: 420px; max-width: calc(100vw - 28px); max-height: min(60vh, 480px); overflow: auto; scrollbar-width: thin; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; background: #1b1f22f2; border: 1px solid var(--sb-line2); border-radius: 2px; box-shadow: 0 12px 28px #0a0c0e99; }
+.sb-checks-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; color: var(--sb-muted2); font-size: 11px; }
+.sb-checks .row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; text-align: left; color: var(--sb-text); font-size: 12.5px; line-height: 1.45; }
+.sb-checks .row .sb-dot { position: relative; top: -1px; }
+.sb-checks .row > span { flex: 1 1 0; min-width: min(240px, 100%); overflow-wrap: anywhere; }
+.sb-checks .row small { display: block; margin-top: 2px; font-size: 12px; color: var(--sb-muted); text-wrap: pretty; }
+.sb-checks .row.note { color: var(--sb-muted); }
+.sb-checks .row.bad { color: var(--sb-salmon); }
+.shipbuilder .sb-checks .row button { color: var(--sb-brass); white-space: nowrap; }
+.shipbuilder .sb-checks .row button:hover:not(:disabled) { color: var(--sb-brass2); }
+.sb-checks .rows { display: grid; gap: 10px; }
+.shipbuilder .sb-checks .rows .row { width: 100%; flex-wrap: nowrap; }
+.shipbuilder .sb-checks .rows .row:hover > span { color: var(--sb-brass2); }
 .sb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .sb-dot.block { background: var(--sb-salmon); }
 .sb-dot.warn { background: var(--sb-gold); }
 .sb-dot.note, .sb-dot.ok { background: var(--sb-mint); }
-/* tool rail: what a click does. A caption names the rail; a second caption under the tools opens the modifiers (Mirror, Snap) that change where a click lands. */
-.sb-rail { display: flex; flex-direction: column; gap: 5px; width: 54px; }
-.sb-rail-cap, .sb-vb-cap { font: 500 10px/1 'Barlow', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--sb-muted2); white-space: nowrap; }
-.sb-rail-cap { padding: 0 0 1px 2px; }
-.sb-rail-cap.foot { margin-top: 8px; }
-.sb-rail button.value b { font: 500 12px/1 'Barlow', sans-serif; letter-spacing: 0; text-transform: none; color: var(--sb-text); font-variant-numeric: tabular-nums; }
-.sb-rail button { width: 54px; height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--sb-muted); border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); text-shadow: none; font: 500 9.5px 'Barlow Condensed', sans-serif; letter-spacing: .07em; text-transform: uppercase; position: relative; }
-.sb-rail button:hover:not(:disabled, [aria-pressed=true]) { color: var(--sb-text); border-color: var(--sb-muted2); background: var(--sb-card-hover); }
+/* tool rail: one joined strip of glyph cells. Tools lead; a rule opens the modifiers (Mirror, Snap with its grid step) that change where a click lands,
+   another the view strip, and Keys closes it. Cells print their key in the corner; the name stands in a tooltip beside the cell. */
+.sb-left { position: absolute; left: 14px; top: 62px; display: flex; flex-direction: column; align-items: flex-start; }
+.sb-rail { display: flex; flex-direction: column; gap: 2px; width: 46px; padding: 3px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; text-shadow: none; }
+.sb-rail button { width: 38px; height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--sb-muted); border-radius: 2px; position: relative; }
+.sb-rail button:hover:not(:disabled, [aria-pressed=true]) { color: var(--sb-text); background: var(--sb-card-hover); }
 .sb-rail button svg { width: 20px; height: 20px; }
-.sb-rail button[aria-pressed=true] { color: var(--sb-brass); border-color: var(--sb-brass); background: var(--sb-card-selected); }
-.sb-rail button.toggle[aria-pressed=true] { color: var(--sb-mint); border-color: var(--sb-mint); background: var(--sb-card-toggle); }
-.sb-rail button kbd { position: absolute; right: 3px; top: 3px; border: 0; opacity: .8; font-size: 9px; }
-.sb-rail button.help { margin-top: 8px; }
+.sb-rail button[aria-pressed=true] { color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
+.sb-rail button.toggle[aria-pressed=true] { color: var(--sb-mint); background: var(--sb-card-toggle); box-shadow: inset 0 0 0 1px var(--sb-mint); }
+.sb-rail button kbd { position: absolute; right: 3px; top: 3px; min-width: 0; padding: 0; border: 0; opacity: .8; font-size: 9px; line-height: 1; }
+.sb-rail-rule { display: block; height: 1px; margin: 3px 5px; background: var(--sb-line); flex-shrink: 0; }
+.sb-rail-rule + .sb-rail-rule { display: none; }
 
 /* palette dock: the whole bottom edge. A transparent tab row (layer tabs left, hotkey legend right) sits on a solid card row
    listing the layer's entire selection; the row scrolls sideways, fades at the edge hiding cards, and keeps `…` pinned for the grid. */
@@ -269,15 +269,13 @@
 .sb-keys-row.acting .sb-key { color: var(--sb-text); }
 .sb-keys kbd { opacity: .8; }
 
-/* view strip: how the ship is shown, at the rail's foot under Modifiers. A captioned two-column grid of bare glyph squares, so it never reads as a second run of tool cards. */
-.sb-rail .sb-viewbar { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 54px; margin-top: 8px; }
-.sb-vb-cap { grid-column: 1 / -1; padding: 0 0 3px 2px; text-shadow: none; }
-.sb-rail .sb-viewbar .sb-vb { width: 26px; height: 26px; margin: 0; display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 0; border: 0; border-radius: 3px; background: transparent; color: var(--sb-muted); text-shadow: none; position: relative; }
+/* view strip: how the ship is shown, in the rail under the modifiers. Shorter cells than the tools, so it never reads as more of them. */
+.sb-rail .sb-viewbar { display: flex; flex-direction: column; gap: 2px; }
+.sb-rail .sb-viewbar .sb-vb { height: 28px; }
 .sb-rail .sb-viewbar .sb-vb svg { width: 18px; height: 18px; }
-.sb-rail .sb-viewbar .sb-vb:hover { background: var(--sb-card-hover); color: var(--sb-text); border: 0; }
-.sb-rail .sb-viewbar .sb-vb[aria-pressed=true] { color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); border: 0; }
-.sb-rail .sb-viewbar .sb-vb.gap::before { content: none; }
+.sb-rail .sb-viewbar .sb-vb.gap { margin-top: 4px; }
 .sb-tip.beside { transform: translate(0, -50%); text-align: left; }
+.sb-tip.bare { display: flex; align-items: center; }
 
 @media (max-width: 1100px) {
   .shipbuilder { --sb-slot: 56px; }
@@ -285,6 +283,7 @@
   .sb-ship { flex: 1; flex-wrap: wrap; gap: 3px 10px; }
   .sb-name { width: 140px; }
   .sb-left { top: 94px; }
+  .sb-checks { left: auto; right: 0; }
   .sb-tag { max-width: min(420px, calc(100% - 96px)); overflow-y: auto; scrollbar-width: thin; }
   .sb-ledger { width: 176px; }
 }
@@ -303,11 +302,9 @@
 }
 @media (max-height: 800px) {
   .sb-left { bottom: calc(var(--sb-bar-height) + 8px); }
-  .sb-left .sb-warn { flex-shrink: 0; }
-  .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; pointer-events: auto; }
-  .sb-left .sb-rail button { flex-shrink: 0; height: 44px; }
-  .sb-rail .sb-viewbar { margin-top: 4px; }
-  .sb-vb-cap { display: none; }
+  .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+  .sb-left .sb-rail button { height: 34px; }
+  .sb-left .sb-rail .sb-viewbar .sb-vb { height: 26px; }
 }
 @media (max-width: 860px) {
   .sb-ledger { display: none; }
@@ -322,17 +319,13 @@
   .sb-save { white-space: normal; text-align: right; }
   .sb-actions { grid-column: 1 / -1; justify-self: end; }
   .sb-left { top: 118px; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 48px); }
-  .sb-left .sb-warn { flex-shrink: 0; }
-  .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; pointer-events: auto; }
-  .sb-left .sb-rail button { flex-shrink: 0; }
+  .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
   .sb-menu { position: fixed; left: 12px; top: 64px; width: calc(100vw - 24px); max-width: none; z-index: 6; }
   .shipbuilder:not(.sb-freeform-mode) .sb-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; }
   .shipbuilder:not(.sb-freeform-mode) .sb-ship { grid-column: 2; }
   .shipbuilder:not(.sb-freeform-mode) .sb-name { flex-basis: 100%; width: 100%; }
   .shipbuilder:not(.sb-freeform-mode) .sb-actions { grid-column: 1 / -1; width: 100%; margin: 0; }
   .shipbuilder:not(.sb-freeform-mode) .sb-cmd { margin-left: auto; }
-  .shipbuilder:not(.sb-freeform-mode) .sb-left { top: 144px; }
-  .shipbuilder:not(.sb-freeform-mode) .sb-rail button { height: 44px; }
   .sb-menu { position: fixed; left: 12px; right: 12px; top: 64px; width: auto; max-height: calc(100dvh - 88px); }
   .sb-tabs { flex: 1; justify-content: space-between; gap: 0; }
   .sb-top { height: 80px; display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: 44px 30px; gap: 0 12px; padding-top: 6px; }
@@ -343,10 +336,10 @@
   .sb-save { font-size: 10px; }
   .sb-actions { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; margin: 0; }
   .sb-menu { position: fixed; top: 52px; left: 12px; width: calc(100vw - 24px); }
-  .sb-left { top: 96px; right: 14px; max-width: none; gap: 10px; }
-  .sb-warn, .sb-warn .rows { width: 100%; min-width: 0; }
-  .sb-warn .row, .sb-warn .row span { min-width: 0; }
-  .sb-warn .rows { max-height: 54px; }
+  .sb-left { top: 96px; }
+  .sb-warn { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+  .sb-warn .lead kbd { display: none; }
+  .sb-checks { position: fixed; top: 84px; left: 68px; right: 12px; width: auto; max-width: none; max-height: calc(100dvh - 280px); }
   .sb-orientation { width: 120px; }
   .sb-cursor { width: calc(100% - 28px); justify-content: center; gap: 5px; font-size: 11px; }
   .sb-cursor b { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
@@ -467,18 +460,18 @@
 .sb-shape-tools button:disabled {opacity:.45;cursor:default;}
 .sb-armor-tooltip { visibility: visible; pointer-events: none; }
 
-.sb-snap-control { display: grid; grid-template-columns: 40px 14px; position: relative; pointer-events: auto; width: 54px; }
-.sb-rail .sb-snap-main { width: 40px; border-radius: 3px 0 0 3px; font-size: 9px; letter-spacing: 0; }
-.sb-rail .sb-snap-options { width: 14px; border-left: 0; border-radius: 0 3px 3px 0; }
-.sb-rail .sb-snap-options svg { width: 12px; height: 12px; }
-.sb-snap-control[data-override] .sb-snap-main { border-style: dashed; }
+/* Snap in the rail: the toggle cell, then a foot row with the grid step (click or S cycles) and the arrow that opens the settings */
+.sb-snap-control { display: grid; grid-template-columns: 1fr 12px; gap: 2px 0; position: relative; width: 38px; }
+.sb-rail .sb-snap-main { grid-column: 1 / -1; }
+.sb-rail button.sb-snap-options { width: 12px; height: 20px; }
+.sb-rail .sb-snap-options svg { width: 11px; height: 11px; }
+.sb-snap-control[data-override] .sb-snap-main { box-shadow: none; outline: 1px dashed var(--sb-mint); outline-offset: -1px; }
 .shipbuilder.sb-snap-popover { position: fixed; inset: auto; width: 280px; max-width: calc(100vw - 16px); height: auto; z-index: 100; display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; color: var(--sb-text); font: 12px/1.4 'Barlow', sans-serif; pointer-events: auto; overflow: auto; max-height: calc(100dvh - 16px); }
 .sb-snap-popover strong { font-weight: 600; }
 .sb-snap-popover strong:not(:first-child) { margin-top: 5px; padding-top: 12px; border-top: 1px solid var(--sb-line2); }
 .sb-snap-popover label { display: flex; align-items: center; gap: 8px; min-height: 24px; cursor: pointer; }
 .sb-snap-popover input { accent-color: var(--sb-mint); margin: 0; width: 15px; height: 15px; }
-.sb-rail button.sb-snap-step-cycle { grid-column: 1 / -1; width: 54px; height: 28px; min-height: 28px; margin-top: 3px; flex-direction: row; gap: 5px; font-size: 10px; letter-spacing: 0; }
-.sb-rail .sb-snap-step-cycle kbd { position: static; font-size: 8px; }
+.sb-rail button.sb-snap-step-cycle { width: 26px; height: 20px; font: 500 11.5px/1 'Barlow Condensed', sans-serif; color: var(--sb-text); white-space: nowrap; }
 .sb-snap-popover .sb-snap-step { display: flex; flex-direction: column; gap: 5px; color: var(--sb-muted); }
 .sb-snap-steps { display: flex; gap: 3px; }
 .sb-snap-steps button { flex: 1; min-width: 0; min-height: 30px; padding: 3px; background: var(--sb-card); color: var(--sb-text); border: 1px solid var(--sb-line2); border-radius: 3px; font: inherit; cursor: pointer; }

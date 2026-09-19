@@ -48,7 +48,7 @@ export async function mountSnappingReview() {
   const view = () => document.querySelector<HTMLButtonElement>('[aria-label^="View ·"]')!;
   while (view().getAttribute('aria-label') !== 'View · Plan') { view().click(); await wait(); }
   document.querySelector<HTMLButtonElement>('[aria-label="Camera · Perspective"]')?.click(); await wait();
-  document.querySelector<HTMLButtonElement>('[title^="Mirror (M)"]')?.click(); await wait();
+  document.querySelector<HTMLButtonElement>('.sb-rail button[aria-label^="Mirror"]')?.click(); await wait();
 }
 export async function checkSnapping() {
   const checks: string[] = [], assert = (ok: unknown, label: string) => { if (!ok) throw new Error(label); checks.push(label); };
@@ -56,12 +56,12 @@ export async function checkSnapping() {
   assert(!centerlineVisible(), 'centerline is hidden while idle');
   assert(!viewport().floorGrid.getObjectByName('Ship centerline'), 'floor has no permanent brass centerline');
   await key('s');
-  assert(document.querySelector('.sb-snap-step-cycle')?.textContent === '2 mS', 'S cycles the grid and updates the top-level size');
+  assert(document.querySelector('.sb-snap-step-cycle')?.textContent === '2 m', 'S cycles the grid and updates the top-level size');
   document.querySelector<HTMLButtonElement>('.sb-snap-options')!.click(); await wait();
   const steps = document.querySelector('[role="group"][aria-label="Grid spacing"]')!;
   assert(steps.querySelectorAll('button').length === 5 && !steps.querySelector('select'), 'grid choices are a button row');
   steps.querySelector<HTMLButtonElement>('[aria-label="1 m"]')!.click(); await wait();
-  assert(document.querySelector('.sb-snap-step-cycle')?.textContent === '1 mS' && steps.querySelector('[aria-label="1 m"]')?.getAttribute('aria-pressed') === 'true', 'grid button selection updates both selected state and rail');
+  assert(document.querySelector('.sb-snap-step-cycle')?.textContent === '1 m' && steps.querySelector('[aria-label="1 m"]')?.getAttribute('aria-pressed') === 'true', 'grid button selection updates both selected state and rail');
   await key('Escape');
   await controls.tool('Place'); await hover([.03, 1, 6.137]);
   assert(Math.abs(viewport().ghostPosition[0]) < 1e-6, 'automatic placement snaps to centerline');
@@ -101,7 +101,7 @@ export async function checkSnapping() {
   assert(!document.querySelector('.sb-tag input[aria-label="x"],.sb-tag input[aria-label="y"],.sb-tag input[aria-label="z"]'), 'selection has no coordinate inputs');
   const exact = structuredClone(source().construction.primitives.find(p=>p.id==='moving')!); exact.position[0]=2.1234;
   window.constructionEditor!.apply({version:1,expectedRevision:source().revision,label:'Exact source position',commands:[{op:'primitive',value:exact}]}); await ready();
-  document.querySelector<HTMLButtonElement>('[title^="Center selection on ship"]')!.click(); await ready();
+  document.querySelector<HTMLButtonElement>('.sb-rail button[aria-label="Center selection"]')!.click(); await ready();
   assert(source().construction.primitives.find(p => p.id === 'moving')!.position[0] === 0, 'Center action centers selected part');
   controls.key('z', { ctrlKey: true }); await ready();
   assert(source().construction.primitives.find(p => p.id === 'moving')!.position[0] === 2.1234, 'Center action undoes as one edit');

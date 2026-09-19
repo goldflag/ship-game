@@ -6,7 +6,7 @@ import { BUILDER_LAYERS, BUILDER_RAIL } from './builderLayers';
 const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
   ['Center action', 'Center the selected part or group on the ship using mounting centers'],
-  ['Snap card', 'Toggle snapping; the adjacent arrow opens target, spacing and guide settings'],
+  ['Snap cell', 'Toggle snapping; the row under it cycles the grid spacing and its arrow opens target, spacing and guide settings'],
   ['Drag a selected piece', 'Click to select first, then drag to move it along the face under the pointer, using the enabled snap targets'],
   ['Drag over faces', 'With Paint or Opening on the Armor and Paint layers: sweep the card over every face the drag crosses, as one edit'],
   ['Drag unselected piece or empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
@@ -35,7 +35,7 @@ const VIEW: [string[], string][] = [
   [['F8'], 'Toggle model memory: simulation sizes and visual breakdown by part'],
   [['Q'], 'Cycle Orbit, Plan, Profile and Bow'],
   [['P'], 'Toggle perspective / orthographic camera (perspective by default)'],
-  [['W'], 'Collapse or expand the warnings'],
+  [['W'], 'Open or close the checks list under the top bar'],
   [['M'], 'Mirror placements across the centerline'],
   [['C'], 'Show or hide the centers of gravity and buoyancy'],
   [['A'], 'In Fittings: show or hide gun arcs'],
