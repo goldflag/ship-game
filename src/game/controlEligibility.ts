@@ -13,6 +13,7 @@ export interface ControlState {
   inspecting: boolean;
   shellFollow: boolean;
   aircraftFollow: boolean;
+  freeCamera: boolean;
   sunk: boolean;
 }
 
@@ -27,7 +28,7 @@ export function controlEligibility(state: ControlState, inputSuspended = false) 
       && (!state.fleetCommand || (state.hasHelm && !state.chartOpen)),
     // Tactical pause and chart descent deliberately leave the camera live.
     rigEnabled: !state.paused && !state.chartOpen,
-    viewAway: !helm || !offChart || state.inspecting || state.shellFollow || state.aircraftFollow,
+    viewAway: !helm || !offChart || state.inspecting || state.shellFollow || state.aircraftFollow || state.freeCamera,
     // Inspection and follows freeze the sight, but do not revoke gun authority.
     // Pause belongs to command dispatch/frame timing (online pause keeps ticking).
     gunsCommandable: helm && !state.sunk && offChart,

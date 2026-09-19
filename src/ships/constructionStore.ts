@@ -108,6 +108,25 @@ export function readConstructionSource<T>(revision: ConstructionRevision, reader
   catch (cause) { throw new ConstructionStoreError('corrupt', 'The saved source could not be opened. Recover an earlier revision or download the original; no saved data has changed.', { cause }); }
 }
 
+/** A free name for a clone: "Name copy", then "Name copy 2", … within the 160-character name limit. */
+export function cloneDesignName(name: string, taken: readonly string[]): string {
+  const base = `${name.replace(/ copy( \d+)?$/, '').slice(0, 145)} copy`;
+  for (let n = 1; ; n++) { const candidate = n === 1 ? base : `${base} ${n}`; if (!taken.includes(candidate)) return candidate; }
+}
+
+/** Save the latest revision of a design as a new design with its own identity and history.
+ * The source is copied as saved, so a design from an older catalog clones without being opened. */
+export async function cloneConstructionDesign(store: ConstructionStore, designId: string, newId: (prefix: string) => string = prefix => `${prefix}-${crypto.randomUUID()}`): Promise<{ sourceId: string; name: string; revision: ConstructionRevision }> {
+  const [{ revision }, heads] = await Promise.all([store.load(designId), store.list()]);
+  let source: Record<string, unknown>;
+  try { source = JSON.parse(revision.sourceJson); if (!source || typeof source !== 'object' || Array.isArray(source)) throw new Error('not a source'); }
+  catch (cause) { throw new ConstructionStoreError('corrupt', 'This source is damaged and cannot be cloned. Recover an earlier revision or download the original for repair.', { cause }); }
+  const original = heads.find(head => head.id === designId)?.name ?? (typeof source.name === 'string' ? source.name : 'Untitled design');
+  const copy = { ...source, id: newId('design'), revision: newId('revision'), name: cloneDesignName(original, heads.map(head => head.name)) };
+  const saved = await store.save({ designId: copy.id, name: copy.name, source: copy, schemaVersion: revision.schemaVersion, catalogRevision: revision.catalogRevision, expectedRevisionId: null });
+  return { sourceId: copy.id, name: copy.name, revision: saved };
+}
+
 /** Factory injection permits real IndexedDB browser tests without a runtime dependency. */
 export async function openConstructionStore(options: { name?: string; indexedDB?: IDBFactory } = {}): Promise<ConstructionStore> {
   if (!options.name && !options.indexedDB && currentAccount()) return (await import('./constructionCloud')).openCloudConstructionStore();
