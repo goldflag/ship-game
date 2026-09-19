@@ -140,7 +140,8 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
   const environment = new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() });
   environment.attachWater(water as never);
   const battlefieldCamera = new BattlefieldCamera(camera);
-  const input = { sample: () => helm, firing: false, clear() {}, setEnabled() {},
+  const input = { sample: () => helm, firing: false, clear() {}, setEnabled() {}, flying: false, setFlying(value: boolean) { this.flying = value; },
+    flight: { x: 0, y: 0, z: 0, fast: false },
     setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
     setRudder: (rudder: number) => { helm.rudder = rudder; } };
   const game = Object.assign(Object.create(Game.prototype), {
@@ -160,7 +161,7 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
-  }) as { frame(time: number, warmingUp?: boolean): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; shellFollow: ShellFollow;
+  }) as { frame(time: number, warmingUp?: boolean): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; toggleFreeCamera(): void; recenter(): void; shellFollow: ShellFollow;
     setAirOperationsOpen(open: boolean): void; followAircraft(id: string): void; returnToShip(): void; fire(): void; setPaused(paused: boolean): void;
     airOperationsOpen: boolean; manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };
   return { game, simulation, playerView, targetView, camera, rig, helm, input, battlefieldCamera, water, environment, wakePositions, focusPositions, gunAimFrames };
@@ -682,4 +683,50 @@ test('port ship switching retains the new hull flotation and only carries its be
   await game.switchShip(definition as Parameters<Game['switchShip']>[0]);
   expect(replaced).toBe(true);
   expect(session.ship).toEqual({ ...loaded, x: previous.x, z: previous.z, heading: previous.heading });
+});
+
+test('aim lock holds the guns while the sight looks away; the free camera flies without feeding the sight and returns the optics', async () => {
+  const { game, camera, rig, playerView, gunAimFrames, input } = await frameHarness();
+  game.manualAim = true;
+  rig.aimAt([2500, 0, -2500], playerView.motion);
+  let time = 0;
+  const frames = async (count: number) => { for (let i = 0; i < count; i++) await game.frame(time += 1000 / 60); };
+  await frames(2);
+  const locked = [...game.currentAim];
+  Reflect.get(game, 'setAimLock').call(game, true);
+  rig.aimAt([-2500, 0, 2500], playerView.motion);
+  await frames(5);
+  expect(game.currentAim).toEqual(locked);
+  expect(gunAimFrames.at(-1)!.visible).toBe(true);
+  // Letting go swings the sight back onto the held point, and the sight leads the guns again.
+  Reflect.get(game, 'setAimLock').call(game, false);
+  await frames(1);
+  expect(Math.hypot(game.currentAim[0] - locked[0], game.currentAim[2] - locked[2])).toBeLessThan(60);
+  rig.aimAt([-2500, 0, 2500], playerView.motion); await frames(1);
+  expect(Math.hypot(game.currentAim[0] - locked[0], game.currentAim[2] - locked[2])).toBeGreaterThan(3000);
+
+  game.toggleBinoculars(); await frames(60);
+  const held = [...game.currentAim], bearing = rig.bearing;
+  game.toggleFreeCamera();
+  expect(rig.freeCamera).toBe(true); expect(rig.binoculars).toBe(false);
+  input.flight = { x: 0, y: 1, z: 1, fast: true };
+  const start = camera.position.clone();
+  await frames(30);
+  expect(input.flying).toBe(true);
+  expect(camera.position.distanceTo(start)).toBeGreaterThan(200);
+  expect(game.currentAim).toEqual(held);
+  expect(gunAimFrames.at(-1)!.visible).toBe(false);
+  // The aim lock cannot start from a view that has left the ship.
+  Reflect.get(game, 'setAimLock').call(game, true); expect(Reflect.get(game, 'aimLocked')).toBe(false);
+  game.recenter(); input.flight = { x: 0, y: 0, z: 0, fast: false };
+  expect(rig.freeCamera).toBe(false);
+  await frames(1);
+  expect(input.flying).toBe(false);
+  expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(400);
+  // R recentres as it returns; the free-camera key and the optics key keep the bearing and the glasses.
+  expect(rig.binoculars).toBe(true); expect(rig.bearing).not.toBeCloseTo(bearing, 2);
+  const recentred = rig.bearing;
+  game.toggleFreeCamera(); await frames(10); game.toggleFreeCamera();
+  expect(rig.freeCamera).toBe(false); expect(rig.binoculars).toBe(true); expect(rig.bearing).toBe(recentred);
+  game.inspecting = true; game.toggleFreeCamera(); expect(rig.freeCamera).toBe(false);
 });

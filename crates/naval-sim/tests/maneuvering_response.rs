@@ -46,8 +46,10 @@ fn fleet_acceleration_and_crash_stops_retain_inertia() {
     for (id, cruise_range, stop_range) in [
         ("fletcher", (9., 14.), (11., 17.)),
         ("bismarck", (55., 75.), (50., 70.)),
-        ("valiant", (35., 50.), (32., 45.)),
-        ("resolute", (40., 55.), (38., 53.)),
+        // Construction ships answer to compiled power on a calibrated resistance curve;
+        // their budgets follow the speeds that model gives, not the legacy presets' authored ones.
+        ("valiant", (42., 62.), (38., 56.)),
+        ("resolute", (50., 72.), (55., 80.)),
         ("type-viic", (9., 14.), (9., 14.)),
     ] {
         let mut a = ship(id);

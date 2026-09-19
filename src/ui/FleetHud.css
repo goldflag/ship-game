@@ -25,6 +25,8 @@
 .fleet-sight { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#edf5f0d9; filter:drop-shadow(0 1px 2px #10232e); }
 .fleet-sight>svg { width:100%; display:block; }
 .fleet-sight-chase { width:38px; }
+/* The locked point is off screen: say so under the sight, which no longer leads the guns. */
+.fleet-aim-locked { position:absolute; top:calc(50% + 30px); left:50%; transform:translateX(-50%); color:#f3d59a; font-size:9px; letter-spacing:.06em; white-space:nowrap; text-shadow:0 1px 4px #102733; }
 /* The lens stays in viewport pixels; compensate for the instrument layer's scale. */
 .fleet-sight-optics { width:calc((var(--binocular-width) - 4px) / var(--hud-scale,1)); height:180px; }
 .fleet-sight-optics>.fleet-scope-reticle { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:40px; height:min(180px,32cqw,40cqh); }

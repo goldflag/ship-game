@@ -4,7 +4,7 @@ import { controlEligibility, type ControlState } from './controlEligibility';
 const sailing: ControlState = {
   paused: false, tacticalPause: false, inPort: false, waterReady: true,
   fleetCommand: false, hasHelm: true, chartOpen: false, chartTransitioning: false,
-  inspecting: false, shellFollow: false, aircraftFollow: false, sunk: false,
+  inspecting: false, shellFollow: false, aircraftFollow: false, freeCamera: false, sunk: false,
 };
 const controls = (patch: Partial<ControlState> = {}, suspended = false) => controlEligibility({ ...sailing, ...patch }, suspended);
 
@@ -53,4 +53,8 @@ test('sunk custom spectators retain keyboard cycling and cursor; fleet spectator
   expect(controls({ sunk: true })).toMatchObject({ inputEnabled: true, gunsCommandable: false, captureAfterSpectate: false });
   expect(controls({ sunk: true, fleetCommand: true, hasHelm: false })).toMatchObject({ inputEnabled: false, captureAfterSpectate: true });
   expect(controls({ sunk: true, fleetCommand: true, paused: true }).captureAfterSpectate).toBe(false);
+});
+
+test('the free camera holds the sight where it was without revoking the guns or the helm', () => {
+  expect(controls({ freeCamera: true })).toMatchObject({ inputEnabled: true, rigEnabled: true, viewAway: true, gunsCommandable: true });
 });

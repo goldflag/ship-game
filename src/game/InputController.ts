@@ -28,6 +28,7 @@ export interface InputActions {
   cycleSpectator?(direction: number): void;
   /** The helm wheel is held open like binoculars: true on press, false on release. */
   helmWheel?(held: boolean): void;
+  freeCamera?(): void;
 }
 
 export class InputController {
@@ -37,6 +38,8 @@ export class InputController {
   private enabled = true;
   private helmHeld = false;
   private shiftTap = false;
+  /** The free camera flies on the helm keys, so they stop reaching the ship while it is out. */
+  private flying = false;
   private abort = new AbortController();
   private bindings: Keybindings;
 
@@ -79,7 +82,7 @@ export class InputController {
     const control = key === 'ControlLeft' || key === 'ControlRight';
     // Ctrl releases the aiming cursor; Shift-plus remains a chart shortcut.
     if (event.ctrlKey && !control) return;
-    if (event.shiftKey && !shift && action !== 'chartLarger' && action !== 'chartSmaller') return;
+    if (event.shiftKey && !shift && !this.flying && action !== 'chartLarger' && action !== 'chartSmaller') return;
     if (action || key === 'Escape' || shift) event.preventDefault();
     if (!event.repeat) {
       if (key === 'Escape') this.actions.pause();
@@ -94,13 +97,23 @@ export class InputController {
       if (action === 'simulationSpeed') this.actions.simulationSpeed?.();
       // Optics are a view control too: a spectator following a teammate raises the
       // same glasses without holding that ship's helm.
-      if (shift) this.shiftTap = true;
+      if (shift && !this.flying) this.shiftTap = true;
       // So is the cursor: a follower's mouse steers the camera the way a helm's does,
       // and Ctrl hands the cursor back to the panels the same way.
       if (control) this.actions.cursor(true);
       // The helm wheel picks the next ship to command, so it answers while the
       // current helm is a captain's or already on the bottom.
       if (action === 'helmWheel') this.actions.helmWheel?.(true);
+      // The free camera is a view as well: it leaves the ship's orders as they stand.
+      if (action === 'freeCamera') this.actions.freeCamera?.();
+    }
+    if (this.flying) {
+      this.keys.add(key);
+      if (key === 'KeyE' || key === 'KeyQ') event.preventDefault();
+      // Cycling or recentring the camera returns to the ship, as it does from a followed aircraft.
+      if (!event.repeat && action === 'camera') this.actions.camera();
+      if (!event.repeat && action === 'recenter') this.actions.recenter();
+      return;
     }
     if (!this.enabled) { if (action === 'recenter' && !event.repeat) this.actions.portHome?.(); return; }
     this.keys.add(key);
@@ -137,7 +150,16 @@ export class InputController {
   clear(): void { this.keys.clear(); this.shiftTap = false; }
   setBindings(bindings: Keybindings): void { this.bindings = bindings; this.clear(); }
   private held(action: InputAction): boolean { return this.bindings[action].some(key => key !== null && this.keys.has(key)); }
-  get firing(): boolean { return this.enabled && this.held('fire'); }
+  setFlying(flying: boolean): void { if (flying !== this.flying) { this.flying = flying; this.clear(); } }
+  get firing(): boolean { return this.enabled && !this.flying && this.held('fire'); }
+  /** Free-camera travel in its own frame: x right, y up, z ahead, each −1..1. E and Q climb and sink. */
+  get flight(): { x: number; y: number; z: number; fast: boolean } {
+    const axis = (positive: boolean, negative: boolean) => this.flying ? +positive - +negative : 0;
+    return {
+      x: axis(this.held('starboard'), this.held('port')), y: axis(this.keys.has('KeyE'), this.keys.has('KeyQ')),
+      z: axis(this.held('throttleUp'), this.held('throttleDown')), fast: this.flying && (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight')),
+    };
+  }
   sample(): HelmCommand {
     return { throttle: ENGINE_ORDERS[this.order], rudder: this.enabled || this.helmHeld ? this.rudderOrder : 0 };
   }

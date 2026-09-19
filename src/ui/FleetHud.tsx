@@ -112,7 +112,7 @@ function ActiveArmament({ data, desk, bindings, locked = false }: FleetHudProps 
       </div>;
     })}</div>
     <div className="fleet-battery-heading"><span>{selected?.name ?? 'No weapons fitted'}</span><strong>{combat.ready}/{combat.total} can fire</strong></div>
-    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedTube?.weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedTube?.weapon.armingDistanceM} m · Put the sight on the lead post</p>}
+    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedTube?.weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedTube?.weapon.armingDistanceM} m · Lay the teal wedge on the pale one</p>}
     {depthCharges && <p className="fleet-torpedo-help">Stern racks / side throwers · Burst at {selectedCharge?.weapon.detonationDepthM} m<br/>Drop on a close pass; keep moving clear of the blast.</p>}
     <div className="fleet-weapon-controls">
       {!torpedoes && !depthCharges && combat.total > 0 && !locked && <ShellCycle combat={combat} desk={desk} bindings={bindings}/>}
@@ -153,7 +153,7 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
   // Following keeps the whole helm layout; the captain steers, so the helm and
   // weapons read as instruments and only the chart or Take helm changes that.
   const followingShip = fleetCommand && !commandingShip && !data.airOperationsOpen;
-  const following = followingShell || !!data.followedAircraftId || !!data.combat?.playerSunk || followingShip;
+  const following = followingShell || !!data.followedAircraftId || !!data.freeCamera || !!data.combat?.playerSunk || followingShip;
   const wheel = !!data.helmWheel && !data.airOperationsOpen;
 
   if (fleetCommand && data.airOperationsOpen) return <div className="fleet-hud">
@@ -174,6 +174,7 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
 
     {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
     {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { desk?.issue({ kind: 'return-to-ship' }); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
+    {data.freeCamera && <div className="fleet-shell-status" role="status" title="Mouse looks; scroll changes speed. The ship holds her engine, rudder and gun orders."><strong>Free camera · {Math.round(data.freeCameraSpeed ?? 0)} m/s</strong><span>{bindingLabel(bindings, 'throttleUp').split(' / ')[0]} {bindingLabel(bindings, 'port').split(' / ')[0]} {bindingLabel(bindings, 'throttleDown').split(' / ')[0]} {bindingLabel(bindings, 'starboard').split(' / ')[0]} fly · E / Q climb and sink · Shift faster · {bindingLabel(bindings, 'freeCamera')} to return to ship</span></div>}
     {wheel && <HelmWheel data={data} desk={desk} bindings={bindings}/>}
     {!data.inspecting && !following && !data.airOperationsOpen && !wheel && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden={data.binoculars ? undefined : true}>
       {data.binoculars ? <><svg className="fleet-scope-scale" height="180" fill="none" aria-hidden="true">
@@ -220,7 +221,8 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
     {(fleetCommand || !data.combat?.airWing) && <SquadronLabels data={data} desk={desk}/>}
     {!fleetCommand && data.combat?.airWing && <AirOperations data={data} desk={desk} bindings={bindings} instrumentsVisible={visible}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} desk={desk} bindings={bindings}/>}
-    {!following && data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
+    {!following && (data.aimLocked || data.binoculars && data.aimModule !== 'point') && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>{data.aimLocked ? 'AIM LOCKED' : 'TRACKED AIM'}</small></div>}
+    {!following && data.aimLocked && !data.aimMarker?.visible && <div className="fleet-aim-locked" role="status">AIM LOCKED</div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart reports={fleetCommand ? desk?.frame.observationTracks : undefined} bindings={bindings} data={data} onResize={direction => desk?.issue({ kind: 'resize-chart', direction })}/></aside>
   </div>;
 }

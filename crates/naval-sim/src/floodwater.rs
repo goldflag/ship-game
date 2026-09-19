@@ -2,7 +2,7 @@ use crate::{
     definition::{Compartment, Vec3},
     geometry::dot,
 };
-use std::sync::OnceLock;
+use std::{cell::RefCell, sync::OnceLock};
 #[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct WaterBody {
@@ -18,6 +18,27 @@ pub struct WaterBody {
     shape: OnceLock<WaterGeometry>,
     #[serde(skip)]
     exact_moments: Option<crate::construction_geometry::Moments>,
+    /// Constructed rooms: each cell's span along this attitude and its full
+    /// moments. Built by the first level query that has to clip, then shared by
+    /// every query until the attitude changes.
+    #[serde(skip)]
+    oriented: OnceLock<Vec<OrientedCell>>,
+    /// Constructed rooms: volume against level at this attitude, filled in where
+    /// queries land. Flooding asks for a room's level at a slightly different
+    /// fill for every module, opening and portal, every tick; never serialized.
+    #[serde(skip)]
+    levels: RefCell<Option<LevelTable>>,
+    /// Constructed rooms: a sphere around each cell, which no attitude changes.
+    /// Every refresh needs the room's floor and ceiling along the new water
+    /// normal, and only cells that can reach past the running extremes are read.
+    #[serde(skip)]
+    spheres: OnceLock<Vec<(Vec3, f64)>>,
+}
+#[derive(Clone, Copy, Debug)]
+struct OrientedCell {
+    bottom: f64,
+    top: f64,
+    full: crate::construction_geometry::Moments,
 }
 #[derive(Clone, Debug)]
 struct Column {
@@ -236,6 +257,9 @@ impl WaterBody {
             pitch: f64::NAN,
             shape: OnceLock::new(),
             exact_moments: None,
+            oriented: OnceLock::new(),
+            levels: RefCell::new(None),
+            spheres: OnceLock::new(),
         }
     }
     fn shape(&self, room: &Compartment) -> &WaterGeometry {
@@ -253,7 +277,15 @@ impl WaterBody {
     }
     pub fn level_at_volume(&self, room: &Compartment, volume: f64) -> f64 {
         if room.volumes.is_some() && volume != self.volume {
-            return exact_water(room, volume, self.roll, self.pitch).0;
+            return ExactRoom::new(
+                room,
+                self.roll,
+                self.pitch,
+                &self.oriented,
+                &self.levels,
+                &self.spheres,
+            )
+            .level(volume);
         }
         if volume == self.volume {
             self.level
@@ -278,11 +310,23 @@ pub fn refresh(
     if body.volume == volume && body.roll == roll && body.pitch == pitch {
         return;
     }
+    if body.roll != roll || body.pitch != pitch {
+        body.oriented = OnceLock::new();
+        *body.levels.get_mut() = None;
+    }
     body.volume = volume;
     body.roll = roll;
     body.pitch = pitch;
     if room.volumes.is_some() {
-        let (level, area, center, moments) = exact_water(room, volume, roll, pitch);
+        let (level, area, center, moments) = ExactRoom::new(
+            room,
+            roll,
+            pitch,
+            &body.oriented,
+            &body.levels,
+            &body.spheres,
+        )
+        .water(volume);
         body.exact_moments = Some(moments);
         body.level = level;
         body.area = area;
@@ -387,76 +431,244 @@ impl WaterBody {
         ]
     }
 }
-fn exact_water(
-    room: &Compartment,
-    volume: f64,
-    roll: f64,
-    pitch: f64,
-) -> (f64, f64, Vec3, crate::construction_geometry::Moments) {
-    let cells = room.volumes.as_ref().unwrap();
-    let n = orientation(roll, pitch).0;
-    let (mut lo, mut hi) = cells
-        .iter()
-        .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter()))
-        .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), p| {
-            let y = dot(*p, n);
-            (lo.min(y), hi.max(y))
+/// Volume under a plane rising through a room's convex cells is one cubic
+/// between consecutive vertex heights: every cross-section edge moves linearly
+/// until the plane passes a vertex. So a level query is a search over those
+/// heights for the interval holding the volume, then the root of that
+/// interval's cubic, fitted through four exact clipped volumes. Both are kept,
+/// and a room's fill moves little from tick to tick, so after the first query
+/// at an attitude most answers cost no clipping at all.
+#[derive(Clone, Debug)]
+struct LevelTable {
+    /// Distinct vertex heights along the water normal, ascending.
+    heights: Vec<f64>,
+    /// Exact volume under each height; NaN until a search needs it.
+    volumes: Vec<f64>,
+    /// Fitted intervals by lower height index: volumes at 0, 1/3, 2/3 and 1.
+    cubics: Vec<(usize, [f64; 4])>,
+}
+/// Below this an interval is narrower than the clip tolerance can resolve.
+const THIN_INTERVAL_M: f64 = 1e-6;
+impl LevelTable {
+    fn new(cells: &[crate::definition::ConvexVolume], normal: [f64; 3]) -> Self {
+        let mut heights: Vec<f64> = cells
+            .iter()
+            .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter()))
+            .map(|p| dot(*p, normal))
+            .collect();
+        heights.sort_by(f64::total_cmp);
+        heights.dedup();
+        Self {
+            volumes: vec![f64::NAN; heights.len()],
+            heights,
+            cubics: Vec::new(),
+        }
+    }
+    /// Level holding `volume`, strictly between empty and full. `under` is the
+    /// exact clipped volume below a level.
+    fn solve(&mut self, volume: f64, capacity: f64, under: impl Fn(f64) -> f64) -> f64 {
+        let last = self.heights.len() - 1;
+        self.volumes[0] = 0.;
+        self.volumes[last] = capacity;
+        // `volumes[low] < volume <= volumes[high]` holds throughout.
+        let (mut low, mut high) = (0, last);
+        while high - low > 1 {
+            let mid = (low + high) / 2;
+            if self.volumes[mid].is_nan() {
+                self.volumes[mid] = under(self.heights[mid]);
+            }
+            if self.volumes[mid] < volume {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+        let (base, width) = (self.heights[low], self.heights[high] - self.heights[low]);
+        let (v0, v3) = (self.volumes[low], self.volumes[high]);
+        if width < THIN_INTERVAL_M {
+            return base + width * (volume - v0) / (v3 - v0);
+        }
+        let v = match self.cubics.iter().find(|c| c.0 == low) {
+            Some(c) => c.1,
+            None => {
+                let v = [
+                    v0,
+                    under(base + width / 3.),
+                    under(base + width * 2. / 3.),
+                    v3,
+                ];
+                self.cubics.push((low, v));
+                v
+            }
+        };
+        // Newton's forward differences over s = 3t.
+        let (d1, d2, d3) = (
+            v[1] - v[0],
+            v[2] - 2. * v[1] + v[0],
+            v[3] - 3. * v[2] + 3. * v[1] - v[0],
+        );
+        let at = |t: f64| {
+            let s = 3. * t;
+            v[0] + s * (d1 + (s - 1.) / 2. * (d2 + (s - 2.) / 3. * d3))
+        };
+        let (mut a, mut b) = (0.0_f64, 1.0_f64);
+        for _ in 0..52 {
+            let mid = (a + b) * 0.5;
+            if at(mid) < volume {
+                a = mid;
+            } else {
+                b = mid;
+            }
+        }
+        base + width * (a + b) * 0.5
+    }
+}
+/// One constructed room at one attitude: the exact clipped-cell integrals behind
+/// every level and water-body query.
+struct ExactRoom<'a> {
+    room: &'a Compartment,
+    cells: &'a [crate::definition::ConvexVolume],
+    normal: [f64; 3],
+    oriented: &'a OnceLock<Vec<OrientedCell>>,
+    levels: &'a RefCell<Option<LevelTable>>,
+    spheres: &'a OnceLock<Vec<(Vec3, f64)>>,
+}
+impl<'a> ExactRoom<'a> {
+    fn new(
+        room: &'a Compartment,
+        roll: f64,
+        pitch: f64,
+        oriented: &'a OnceLock<Vec<OrientedCell>>,
+        levels: &'a RefCell<Option<LevelTable>>,
+        spheres: &'a OnceLock<Vec<(Vec3, f64)>>,
+    ) -> Self {
+        Self {
+            room,
+            cells: room.volumes.as_ref().unwrap(),
+            normal: orientation(roll, pitch).0,
+            oriented,
+            levels,
+            spheres,
+        }
+    }
+    /// Lowest and highest vertex along the water normal: the room's floor and
+    /// ceiling at this attitude.
+    fn span(&self) -> (f64, f64) {
+        if let Some(table) = self.levels.borrow().as_ref() {
+            return (table.heights[0], *table.heights.last().unwrap());
+        }
+        let spheres = self.spheres.get_or_init(|| {
+            self.cells
+                .iter()
+                .map(|c| {
+                    let vertices = || c.faces.iter().flat_map(|f| f.vertices.iter().copied());
+                    let center = crate::structure::bounds(vertices()).0;
+                    let radius = vertices()
+                        .map(|v| crate::geometry::length(crate::geometry::sub(v, center)))
+                        .fold(0., f64::max);
+                    (center, radius)
+                })
+                .collect()
         });
-    let volume = volume.clamp(0., room.capacity_m3);
-    if volume <= 0. {
-        return (lo, 0., room.center, Default::default());
+        // The extremes are the same minimum and maximum over the same heights:
+        // a cell is skipped only when its sphere, with room for rounding, lies
+        // between extremes already found, so none of its heights could move them.
+        let (mut lo, mut hi) = (f64::INFINITY, f64::NEG_INFINITY);
+        for (cell, (center, radius)) in self.cells.iter().zip(spheres) {
+            let (middle, reach) = (dot(*center, self.normal), radius * 1.000001 + 1e-9);
+            if middle - reach >= lo && middle + reach <= hi {
+                continue;
+            }
+            for p in cell.faces.iter().flat_map(|f| f.vertices.iter()) {
+                let y = dot(*p, self.normal);
+                lo = lo.min(y);
+                hi = hi.max(y);
+            }
+        }
+        (lo, hi)
     }
-    if volume >= room.capacity_m3 {
-        let m = crate::construction_geometry::total(cells);
-        return (hi, 0., m.center(), m);
-    }
-    // Every bisection level reuses the same oriented cells. A wholly submerged
-    // cell has the same moments on all 33 queries; compute those once. Partial
-    // cells still use the original clip/integrate path and original sum order.
-    let prepared: Vec<_> = cells
-        .iter()
-        .map(|cell| {
-            let (bottom, top) = cell.faces.iter().flat_map(|f| &f.vertices).fold(
-                (f64::INFINITY, f64::NEG_INFINITY),
-                |(lo, hi), p| {
-                    let y = dot(*p, n);
-                    (lo.min(y), hi.max(y))
-                },
-            );
-            (
-                cell,
-                bottom,
-                top,
-                crate::construction_geometry::moments(cell),
-            )
-        })
-        .collect();
-    let submerged = |level: f64| {
-        use crate::construction_geometry::{EPS, Moments, clip, moments};
+    /// A wholly submerged cell has the same moments at every level; compute
+    /// those once per attitude. Partial cells are clipped and integrated.
+    fn submerged(&self, level: f64) -> crate::construction_geometry::Moments {
+        use crate::construction_geometry::{EPS, Moments, clipped_moments, moments};
+        let n = self.normal;
+        let oriented = self.oriented.get_or_init(|| {
+            self.cells
+                .iter()
+                .map(|cell| {
+                    let (bottom, top) = cell.faces.iter().flat_map(|f| &f.vertices).fold(
+                        (f64::INFINITY, f64::NEG_INFINITY),
+                        |(lo, hi), p| {
+                            let y = dot(*p, n);
+                            (lo.min(y), hi.max(y))
+                        },
+                    );
+                    OrientedCell {
+                        bottom,
+                        top,
+                        full: moments(cell),
+                    }
+                })
+                .collect()
+        });
         let mut total = Moments::default();
-        for &(cell, bottom, top, full) in &prepared {
+        for (cell, o) in self.cells.iter().zip(oriented) {
             // Match clip's comparisons exactly, including epsilon-thin cells.
-            if top - level <= EPS {
-                total.add(full);
-            } else if bottom - level < -EPS
-                && let Some(clipped) = clip(cell, n, level)
+            if o.top - level <= EPS {
+                total.add(o.full);
+            } else if o.bottom - level < -EPS
+                && let Some(part) = clipped_moments(cell, n, level)
             {
-                total.add(moments(&clipped));
+                total.add(part);
             }
         }
         total
-    };
-    for _ in 0..30 {
-        let mid = (lo + hi) * 0.5;
-        if submerged(mid).volume < volume {
-            lo = mid;
+    }
+    /// Level at a fill strictly between empty and full.
+    fn solve(&self, volume: f64) -> f64 {
+        let mut levels = self.levels.borrow_mut();
+        levels
+            .get_or_insert_with(|| LevelTable::new(self.cells, self.normal))
+            .solve(volume, self.room.capacity_m3, |level| {
+                self.submerged(level).volume
+            })
+    }
+    fn level(&self, volume: f64) -> f64 {
+        let volume = volume.clamp(0., self.room.capacity_m3);
+        if volume <= 0. {
+            self.span().0
+        } else if volume >= self.room.capacity_m3 {
+            self.span().1
         } else {
-            hi = mid;
+            self.solve(volume)
         }
     }
-    let level = (lo + hi) * 0.5;
-    let m = submerged(level);
-    let e = 0.0001;
-    let area = (submerged(level + e).volume - submerged(level - e).volume) / (2. * e);
-    (level, area.max(0.), m.center(), m)
+    /// The body a refresh publishes: level, waterplane area, centre and moments.
+    /// This is the reference solve, bit for bit: thirty bisections of the clipped
+    /// volume and a finite-difference area. It runs once per wet room per
+    /// stability solve; the per-tick queries in between go through `level`.
+    fn water(&self, volume: f64) -> (f64, f64, Vec3, crate::construction_geometry::Moments) {
+        let volume = volume.clamp(0., self.room.capacity_m3);
+        let (mut lo, mut hi) = self.span();
+        if volume <= 0. {
+            return (lo, 0., self.room.center, Default::default());
+        }
+        if volume >= self.room.capacity_m3 {
+            let m = crate::construction_geometry::total(self.cells);
+            return (hi, 0., m.center(), m);
+        }
+        for _ in 0..30 {
+            let mid = (lo + hi) * 0.5;
+            if self.submerged(mid).volume < volume {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        let level = (lo + hi) * 0.5;
+        let m = self.submerged(level);
+        let e = 0.0001;
+        let area = (self.submerged(level + e).volume - self.submerged(level - e).volume) / (2. * e);
+        (level, area.max(0.), m.center(), m)
+    }
 }

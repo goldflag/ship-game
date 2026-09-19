@@ -95,6 +95,8 @@ pub struct MountState {
     blocked_cache: Option<BlockedCache>,
     #[serde(skip)]
     clearance_cache: Option<ClearanceCache>,
+    #[serde(skip)]
+    clear_bound: Option<crate::mount_clearance::ClearBound>,
 }
 /// Per-mount working buffers. They were reallocated for every mount of every
 /// ship on every tick; nothing survives between calls, only the capacity.
@@ -148,6 +150,7 @@ impl MountState {
             aa_select: None,
             blocked_cache: None,
             clearance_cache: None,
+            clear_bound: None,
         }
     }
     /// A stand-in left in the mount vector while this mount is detached for its
@@ -175,6 +178,7 @@ impl MountState {
             aa_select: None,
             blocked_cache: None,
             clearance_cache: None,
+            clear_bound: None,
         }
     }
     pub fn available(&self, kind: Ammunition) -> f64 {
@@ -400,11 +404,7 @@ impl Obstructions {
         }
     }
     fn intersects(&self, from: Vec3, to: Vec3, mount_id: &str, poses: &[Pose]) -> bool {
-        if self
-            .hull
-            .as_ref()
-            .is_some_and(|h| !h.query(from, to).is_empty())
-        {
+        if self.hull.as_ref().is_some_and(|h| h.blocks(from, to)) {
             return true;
         }
         self.entries.iter().any(|e| {
@@ -599,7 +599,8 @@ pub fn update_mount_at(
                 }) {
                     return cache.result.clone();
                 }
-                let result = clearance.resolve(
+                let result = clearance.resolve_for(
+                    mounted_states.as_ptr() as usize,
                     d,
                     index,
                     poses,
@@ -608,6 +609,7 @@ pub fn update_mount_at(
                         elevation: requested_elevation,
                         recoil: s.recoil,
                     },
+                    &mut s.clear_bound,
                 );
                 s.clearance_cache = Some(ClearanceCache {
                     geometry,
