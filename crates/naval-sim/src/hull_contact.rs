@@ -159,7 +159,13 @@ impl Lane {
 /// hundredths of a millimetre of its triangle, so a tenth of a millimetre of
 /// padding keeps every node that could hold one while one reciprocal per lane
 /// replaces six divisions per node.
-fn reached(center: Vec3, size: Vec3, from: Vec3, direction: Vec3, inverse: Vec3) -> bool {
+pub(crate) fn reached(
+    center: Vec3,
+    size: Vec3,
+    from: Vec3,
+    direction: Vec3,
+    inverse: Vec3,
+) -> bool {
     let (mut enter, mut exit) = (0.0_f64, 1.0_f64);
     for axis in 0..3 {
         let half = size[axis] / 2.0 + 1e-4;

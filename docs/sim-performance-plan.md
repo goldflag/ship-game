@@ -457,7 +457,9 @@ What it was, largest first:
   definitions are too. Clipping no longer builds the clipped cell
   (`clipped_moments`), and a flotation measures each cell's extent once.
 - **Shell contacts.** `ship_contacts` named every plate, module and portal
-  before testing it; geometry goes first now. `nearest_room` measures a cell
+  before testing it; geometry goes first now, and fixed armor sits in a box
+  tree (`ArmorIndex`) that nominates the few plates a segment can touch for the
+  same test in authored order. `nearest_room` measures a cell
   only when its bounding box could beat the nearest surface so far.
 - **Firing lane.** `HullContacts::blocks` stops at the first crossing, and
   answers from its own index. A constructed hull's surfaces are fans over whole

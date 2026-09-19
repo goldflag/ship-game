@@ -55,8 +55,96 @@ impl ShipContact {
         }
     }
 }
+/// The armor a segment can touch, without asking every plate. A player-built
+/// hull carries thousands of plates and a shell crosses a handful; each plate's
+/// own box test rejected the rest one at a time, for every shell near the ship,
+/// every tick. Fixed plates sit in a tree over those same boxes. It only
+/// nominates: `ship_contacts` still runs each nominee through the same test in
+/// authored order, so the contacts are the ones the full scan finds.
+#[derive(Clone, Debug, Default)]
+pub struct ArmorIndex {
+    /// Center, size, then a leaf's `items[first..first + count]`; an inner
+    /// node has no count, its first child follows it and `first` is its second.
+    nodes: Vec<(Vec3, Vec3, u32, u32)>,
+    items: Vec<u32>,
+    /// Armor the tree cannot hold: plates that turn with a mount.
+    moving: Vec<u32>,
+}
+impl ArmorIndex {
+    fn new(def: &ShipDefinition) -> Self {
+        let (mut fixed, mut moving) = (vec![], vec![]);
+        for (i, a) in def.armor.iter().enumerate() {
+            if a.plate.as_ref().is_some_and(|p| p.mount_id.is_some()) {
+                moving.push(i as u32);
+            } else {
+                fixed.push((a.center, a.size, i as u32));
+            }
+        }
+        let mut index = Self {
+            moving,
+            ..Self::default()
+        };
+        if !fixed.is_empty() {
+            index.build(&mut fixed);
+        }
+        index
+    }
+    fn build(&mut self, boxes: &mut [(Vec3, Vec3, u32)]) -> u32 {
+        let (center, size) = crate::structure::bounds(boxes.iter().flat_map(|b| {
+            [
+                std::array::from_fn(|a| b.0[a] - b.1[a] / 2.0),
+                std::array::from_fn(|a| b.0[a] + b.1[a] / 2.0),
+            ]
+        }));
+        let at = self.nodes.len();
+        self.nodes.push((center, size, 0, 0));
+        if boxes.len() <= 8 {
+            self.nodes[at].2 = self.items.len() as u32;
+            self.nodes[at].3 = boxes.len() as u32;
+            self.items.extend(boxes.iter().map(|b| b.2));
+            return at as u32;
+        }
+        let axis = (0..3).max_by(|&a, &b| size[a].total_cmp(&size[b])).unwrap();
+        boxes.sort_by(|a, b| a.0[axis].total_cmp(&b.0[axis]).then(a.2.cmp(&b.2)));
+        let (left, right) = boxes.split_at_mut(boxes.len() / 2);
+        self.build(left);
+        self.nodes[at].2 = self.build(right);
+        at as u32
+    }
+    /// Every armor index the segment could touch, ascending.
+    fn near(&self, from: Vec3, to: Vec3, out: &mut Vec<u32>) {
+        out.clear();
+        out.extend_from_slice(&self.moving);
+        let direction = sub(to, from);
+        let inverse = direction.map(|d| 1.0 / d);
+        let mut stack = [0u32; 96];
+        let mut depth = usize::from(!self.nodes.is_empty());
+        while depth > 0 {
+            depth -= 1;
+            let at = stack[depth] as usize;
+            let (center, size, first, count) = self.nodes[at];
+            if !crate::hull_contact::reached(center, size, from, direction, inverse) {
+                continue;
+            }
+            if count > 0 {
+                out.extend_from_slice(&self.items[first as usize..(first + count) as usize]);
+            } else if depth + 2 <= stack.len() {
+                stack[depth] = first;
+                stack[depth + 1] = at as u32 + 1;
+                depth += 2;
+            } else {
+                // Deeper than any ship should be: nominate everything.
+                out.clear();
+                out.extend(0..(self.items.len() + self.moving.len()) as u32);
+                break;
+            }
+        }
+        out.sort_unstable();
+    }
+}
 #[derive(Clone, Debug)]
 pub struct ContactGeometry {
+    pub armor: ArmorIndex,
     pub structural: Vec<StructuralSurface>,
     pub hull: Option<HullContacts>,
     /// Mounts whose gunhouse is authored as armor plates, parallel to `mounts`;
@@ -66,6 +154,7 @@ pub struct ContactGeometry {
 impl ContactGeometry {
     pub fn new(def: &ShipDefinition) -> Result<Self, String> {
         Ok(Self {
+            armor: ArmorIndex::new(def),
             plated_mounts: def
                 .mounts
                 .iter()
@@ -190,7 +279,10 @@ pub fn ship_contacts(
     let trains: Vec<_> = actor.mounts.iter().map(|m| m.train).collect();
     let mut hits = vec![];
     let ship = &actor.motion.id;
-    for (i, a) in def.armor.iter().enumerate() {
+    let mut near = vec![];
+    geometry.armor.near(from, to, &mut near);
+    for i in near.into_iter().map(|i| i as usize) {
+        let a = &def.armor[i];
         if a.plate.is_some() {
             // Geometry first: a shell crosses a handful of a hull's plates, and
             // naming every plate it misses cost more than the misses themselves.
