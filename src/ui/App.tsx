@@ -33,6 +33,7 @@ import { HUD_STORAGE_KEY, loadHudSettings, type HudSettings } from '../game/hudS
 import { useHudScale } from './useHudScale';
 import './ShipLabels.css';
 import './GunAimIndicators.css';
+import './TorpedoIndicators.css';
 import './HitDirectionIndicators.css';
 import { Shipbuilder, type ConstructionEditorHandle } from './shipbuilding/Shipbuilder';
 import { openConstructionRepository } from '../ships/constructionRepository';

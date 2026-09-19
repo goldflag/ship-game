@@ -1,0 +1,38 @@
+/* Torpedo course: a readout beside the sight, a post standing on the lead, chevrons over running torpedoes. */
+.torpedo-aim-layer, .torpedo-marker-layer { overflow:hidden; font-variant-numeric:tabular-nums; }
+.torpedo-aim-layer[hidden], .torpedo-marker-layer[hidden], .torpedo-lead[hidden], .torpedo-marker[hidden], .torpedo-aim-swing[hidden] { display:none; }
+.ocean-viewport[data-ship-labels=false] .torpedo-aim-layer, .ocean-viewport[data-ship-labels=false] .torpedo-marker-layer { visibility:hidden; }
+
+/* Beside the sight, clear of the rangefinder report beneath it. */
+.torpedo-aim-readout { position:absolute; top:50%; left:50%; width:0; height:0; color:#f0f5f3; white-space:nowrap; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; font:500 13px/15px 'Barlow Condensed',sans-serif; }
+.torpedo-aim-range { position:absolute; left:32px; top:-16px; }
+.torpedo-aim-run { position:absolute; left:32px; top:0; color:#c1d0d4; font-size:11px; letter-spacing:.03em; }
+.torpedo-aim-swing { position:absolute; right:32px; top:-8px; display:flex; align-items:center; gap:6px; color:#e8c56c; font-size:14px; }
+.torpedo-aim-swing[data-turn=left]:before, .torpedo-aim-swing[data-turn=right]:after { content:''; border:5px solid transparent; filter:drop-shadow(0 1px 2px #07131b); }
+.torpedo-aim-swing[data-turn=left]:before { border-left:0; border-right:9px solid currentColor; }
+.torpedo-aim-swing[data-turn=right]:after { border-right:0; border-left:9px solid currentColor; }
+.torpedo-aim-swing[data-turn=on] { color:#86e4c5; letter-spacing:.06em; }
+.torpedo-aim-readout[data-tone=solved] .torpedo-aim-range { color:#86e4c5; }
+.torpedo-aim-readout[data-tone=waiting] .torpedo-aim-range { color:#c1d0d4; }
+.torpedo-aim-readout[data-tone=blocked] .torpedo-aim-range { color:#c1d0d4; }
+.torpedo-aim-readout[data-tone=blocked] .torpedo-aim-run { color:#ee9b86; }
+
+/* The post rises clear of the horizon, where the water itself is a few pixels deep. */
+.torpedo-lead { --lead-rise:48px; position:absolute; top:0; left:0; width:0; height:0; color:#f0f5f3; }
+.torpedo-lead-stem { position:absolute; left:-.5px; bottom:0; height:var(--lead-rise); border-left:1px dashed currentColor; opacity:.9; filter:drop-shadow(0 1px 2px #07131b); }
+.torpedo-lead-head { position:absolute; left:-5px; bottom:calc(var(--lead-rise) + 2px); box-sizing:border-box; width:10px; height:10px; border:1.5px solid currentColor; transform:rotate(45deg); filter:drop-shadow(0 1px 2px #07131b); }
+.torpedo-lead-label { position:absolute; left:-45px; bottom:calc(var(--lead-rise) + 18px); width:90px; text-align:center; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; }
+.torpedo-lead-caption { display:block; color:#c1d0d4; font:500 10px/12px 'Barlow Condensed',sans-serif; letter-spacing:.08em; }
+.torpedo-lead-clock { display:block; font:500 14px/15px 'Barlow Condensed',sans-serif; }
+.torpedo-lead-crowded .torpedo-lead-label { display:none; }
+.torpedo-lead-solved { color:#86e4c5; }
+.torpedo-lead-solved .torpedo-lead-stem { border-left-style:solid; }
+.torpedo-lead-solved .torpedo-lead-head { background:currentColor; }
+.torpedo-lead-solved .torpedo-lead-caption { color:inherit; }
+
+.torpedo-marker { position:absolute; top:0; left:0; width:0; height:0; color:#86e4c5; }
+.torpedo-marker-enemy { color:#ee9b86; }
+.torpedo-marker:before { content:''; position:absolute; left:-4.5px; top:-21px; box-sizing:border-box; width:9px; height:9px; border-right:2.2px solid currentColor; border-bottom:2.2px solid currentColor; transform:rotate(45deg); filter:drop-shadow(0 1px 1px #07131b) drop-shadow(0 0 1px #07131b); }
+@container hud (max-width:600px) {
+  .torpedo-aim-readout { font-size:12px; }
+}

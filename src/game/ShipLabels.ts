@@ -32,6 +32,7 @@ export class ShipLabels {
   private root = document.createElement('div');
   private labels: Label[] = [];
   private observed = new Map<string, ObservedLabel>();
+  private shown = new Map<string, ScreenPoint>();
   private width = 1;
   private height = 1;
   private sequence = 0;
@@ -46,6 +47,7 @@ export class ShipLabels {
 
   setFleet(views: readonly ShipView[], actors: readonly FleetActor[], playerId = actors.find(a => a.controller === 'player' && a.team === 'friendly')?.motion.id): void {
     this.root.replaceChildren();
+    this.shown.clear();
     this.sequence = 0;
     this.time = 0;
     this.labels = views.flatMap((view, index) => {
@@ -84,7 +86,7 @@ export class ShipLabels {
    * meter shows the observed fraction and hides when the observation is stale. */
   setObserved(reports: readonly ObservedLabelReport[]): void {
     const active = new Set(reports.map(report => report.id));
-    for (const [id, label] of this.observed) if (!active.has(id)) { label.root.remove(); this.observed.delete(id); }
+    for (const [id, label] of this.observed) if (!active.has(id)) { label.root.remove(); this.observed.delete(id); this.shown.delete(id); }
     for (const report of reports) {
       let label = this.observed.get(report.id);
       if (!label) {
@@ -123,6 +125,13 @@ export class ShipLabels {
   }
 
   resize(width: number, height: number): void { this.width = width; this.height = height; }
+
+  /** Where a hull's name tag sat in the last frame, so other marks can stand clear of it.
+   * The tag hangs 8 px above its anchor: name, meter and condition (`ShipLabels.css`). */
+  tagBox(id: string): { x: number; top: number; bottom: number; halfWidth: number } | undefined {
+    const point = this.shown.get(id);
+    return point && { x: point.x, top: point.y - 54, bottom: point.y - 8, halfWidth: 72 };
+  }
 
   update(camera: Camera, time: number, events: readonly CombatEvent[] = [], playerId?: string): void {
     if (time < this.time) this.sequence = 0;
@@ -180,13 +189,13 @@ export class ShipLabels {
       const anchor = label.anchor.clone().applyMatrix4(view.root.matrixWorld);
       const point = view.root.visible && view.motion.y > -40 ? projectShipLabel(anchor, camera, this.width, this.height) : null;
       root.hidden = !point;
-      if (point) root.style.transform = `translate(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px)`;
+      if (point) { this.shown.set(actor.motion.id, point); root.style.transform = `translate(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px)`; } else this.shown.delete(actor.motion.id);
     }
     for (const [id, label] of this.observed) {
       const anchor = this.observedAnchor(id);
       const point = anchor && anchor.y > -40 ? projectShipLabel(anchor, camera, this.width, this.height) : null;
       label.root.hidden = !point;
-      if (point) label.root.style.transform = `translate(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px)`;
+      if (point) { this.shown.set(id, point); label.root.style.transform = `translate(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px)`; } else this.shown.delete(id);
     }
   }
 
