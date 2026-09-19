@@ -83,7 +83,7 @@ port deck down to keel (index 4), then up to starboard deck. Point X scales by
 half the beam and point Y by depth. Retain left/right symmetry, point ordering
 and existing IDs. Rust validates the physical solid; source edits do not certify fit.
 
-Use `primitive-patch` for dimensions, rake, bulb and `customHull.redPaintY`
+Use `primitive-patch` for dimensions, rake, bulb and `customHull.paintBands` (or legacy `redPaintY`)
 (hull-local metres; `null` disables the red coating). Use `hull-station` to change
 one existing section's `t` or nine-point outline, and `hull-sections` for the UI's
 4–24-section interpolation/simplification. Increasing count retains existing
@@ -166,7 +166,7 @@ Rust remains authoritative for geometry, fit, loading and launch validity.
 
 Recent editor features are source-authorable through these patches:
 
-- Adjustable hulls: `size`, `customHull.rake`, `bulb`, `redPaintY` and `stations`.
+- Adjustable hulls: `size`, `customHull.rake`, `bulb`, `paintBands`, legacy `redPaintY` and `stations`.
 - Balconies: `balcony.points` with stable IDs and per-edge `open`/`railing`/`triple-railing`/`wall`,
   plus `heightM` and `wallThicknessM`.
 - Freeform edge treatments: `shaping` with `version: 1`, `edges`, `radius` and
@@ -185,7 +185,12 @@ For example, these commands can be placed in the revision-guarded batch above:
 ```json
 [
   { "op": "primitive-patch", "id": "hull", "changes": {
-    "size": [14, 10, 130], "customHull": { "rake": 0.4, "redPaintY": -1.2 }
+    "size": [14, 10, 130], "customHull": { "rake": 0.4,
+      "paintBands": { "version": 1, "bands": [
+        { "id": "lower-hull", "upperY": -1.2, "paint": "red-oxide" },
+        { "id": "waterline", "upperY": -0.7, "paint": "boot-top-black" }
+      ] }
+    }
   } },
   { "op": "equipment-patch", "id": "gun-forward", "changes": {
     "gun": { "barbetteHeightM": 0.6 }

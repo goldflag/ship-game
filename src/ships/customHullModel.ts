@@ -1,27 +1,28 @@
 // Section editing and display helpers. Rust owns solid validity and physical derivation.
+import { hullPaintBandsError } from './hullPaintBands';
 import { bilgeKeelError, bilgeKeelFaces, defaultBilgeKeels } from './constructionBilgeKeels';
 import { DEFAULT_HULL_PRESET, HULL_PRESETS } from './constructionHullPresets';
-import type { ConstructionBilgeKeels, ConstructionPrimitive, ConstructionHullPoint, ConstructionHullStation, Vec3 } from './blueprint';
+import type { ConstructionBilgeKeels, ConstructionHullPaintBands, ConstructionPrimitive, ConstructionHullPoint, ConstructionHullStation, Vec3 } from './blueprint';
 import { contourAt, contourWeight, hullEdgeId, MAX_HULL_POINTS, MIN_HULL_POINTS, outlineTopologyError } from './customHullTopology';
 export type Point = ConstructionHullPoint;
 export type Station = ConstructionHullStation;
 export type Hull = {
   id: string; name: string; length: number; beam: number; depth: number; offset: number;
-  bulb: number; rake: number; redPaintY?: number; bilgeKeels?: ConstructionBilgeKeels;
+  bulb: number; rake: number; redPaintY?: number; paintBands?: ConstructionHullPaintBands; bilgeKeels?: ConstructionBilgeKeels;
   stations: Station[];
   region: { enabled: boolean; start: number; end: number; low: number; high: number; armor: number; color: string };
 };
 export const uid = () => crypto.randomUUID().slice(0, 8);
 export const clone = <T,>(v: T): T => structuredClone(v);
 export function lockSymmetry(h: Hull): Hull {
-  const { id, name, length, beam, depth, offset, bulb, rake, redPaintY, bilgeKeels, region } = h;
+  const { id, name, length, beam, depth, offset, bulb, rake, redPaintY, paintBands, bilgeKeels, region } = h;
   const stations = h.stations.map(s => {
     const points = s.points.map(p => ({ ...p })), last = points.length - 1, keel = last / 2;
     points[keel].x = 0;
     for (let i = 0; i < keel; i++) points[i] = { ...points[i], x: points[last - i].x ? -points[last - i].x : 0, y: points[last - i].y };
     return { id: s.id, t: s.t, points };
   });
-  return { id, name, length, beam, depth, offset, bulb, rake, redPaintY, bilgeKeels, region, stations };
+  return { id, name, length, beam, depth, offset, bulb, rake, redPaintY, paintBands, bilgeKeels, region, stations };
 }
 export const presets = HULL_PRESETS;
 export function makeHull(index = presets.findIndex(p => p.id === DEFAULT_HULL_PRESET)): Hull {
@@ -155,6 +156,7 @@ function crosses(a: Point, b: Point, c: Point, d: Point) {
 }
 export function invalidReason(h: Hull): string | undefined {
   if (h.bilgeKeels) { const reason = bilgeKeelError(h.bilgeKeels); if (reason) return reason; }
+  if (h.paintBands !== undefined) { const reason = hullPaintBandsError(h.paintBands); if (reason) return reason; }
   const topology = outlineTopologyError(h.stations); if (topology) return topology;
   if (![h.length, h.beam, h.depth, h.offset, h.bulb, h.rake].every(Number.isFinite)) return 'Enter a finite dimension.';
   if (h.redPaintY !== undefined && (!Number.isFinite(h.redPaintY) || Math.abs(h.redPaintY) > 500)) return 'Use a red paint Y from −500 to 500 m.';
@@ -208,12 +210,13 @@ export function breadthAt(points: Point[], level: number): number | undefined {
 export function customHullPrimitive(h: Hull, previous?: ConstructionPrimitive): ConstructionPrimitive {
   return { id: previous?.id ?? h.id, kind: 'custom-hull', size: [h.beam, h.depth, h.length],
     position: previous ? [...previous.position] : [h.offset, 0, 0], rotationDeg: previous?.rotationDeg ?? 0, ...(previous?.tilt ? { tilt: { ...previous.tilt } } : {}),
-    customHull: { version: 1, ...(h.bilgeKeels ? { bilgeKeels: clone(h.bilgeKeels) } : {}), rake: h.rake, bulb: h.bulb, ...(h.redPaintY !== undefined ? { redPaintY: h.redPaintY } : {}), stations: clone(h.stations) } };
+    customHull: { version: 1, ...(h.paintBands ? { paintBands: clone(h.paintBands) } : {}), ...(h.bilgeKeels ? { bilgeKeels: clone(h.bilgeKeels) } : {}), rake: h.rake, bulb: h.bulb, ...(h.redPaintY !== undefined ? { redPaintY: h.redPaintY } : {}), stations: clone(h.stations) } };
 }
 export function editableCustomHull(p: ConstructionPrimitive): Hull {
   if (!p.customHull) throw new Error('Custom hull sections are missing.');
   return { id: p.id, name: 'Custom hull', beam: p.size[0], depth: p.size[1], length: p.size[2],
     region: { enabled: false, start: .25, end: .75, low: .32, high: .7, armor: 200, color: '#9aac9b' },
+    ...(p.customHull.paintBands ? { paintBands: clone(p.customHull.paintBands) } : {}),
     ...(p.customHull.bilgeKeels ? { bilgeKeels: clone(p.customHull.bilgeKeels) } : {}),
     offset: 0, redPaintY: p.customHull.redPaintY, rake: p.customHull.rake, bulb: p.customHull.bulb, stations: clone(p.customHull.stations) };
 }

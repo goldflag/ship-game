@@ -1,13 +1,25 @@
+import { hullPaintBands, MAX_HULL_PAINT_BANDS } from '../../ships/hullPaintBands';
 import * as THREE from 'three';
 import { constructionPaintColor } from '../../ships/constructionPaints';
-import { customHullBilgeKeelFaces, outline, worldPoint, type Hull } from '../../ships/customHullModel';
+import { customHullBilgeKeelFaces, customHullPrimitive, outline, worldPoint, type Hull } from '../../ships/customHullModel';
+import { customHullPanels } from '../../ships/constructionPanels';
+import { constructionHullBasePaint } from '../../ships/constructionHullPaint';
+import type { ConstructionSource } from '../../ships/blueprint';
 
 /** Display-only faces for the section editor. `cut` keeps the sections from the bow to that
  * index and closes the hull there with a tinted cap, as the Section view's slice. */
-export function hullGeometry(h: Hull, cut?: number) {
+export function hullGeometry(h: Hull, cut?: number, appearance?: ConstructionSource['construction']) {
   const stations = cut === undefined ? h.stations : h.stations.slice(0, cut + 1), rings = stations.map(s => outline(h, s));
   const positions: number[] = [], normals: number[] = [], colors: number[] = [], surfaceCoordinates: number[] = [];
-  const side = new THREE.Color(constructionPaintColor('naval-gray')), deck = new THREE.Color(constructionPaintColor('deck-gray')), slice = new THREE.Color('#3f5a54');
+  const side = new THREE.Color(constructionPaintColor(appearance?.paint ?? 'naval-gray')), deck = new THREE.Color(constructionPaintColor('deck-gray')), slice = new THREE.Color('#3f5a54');
+  const primitive = customHullPrimitive(h), panels = customHullPanels(primitive);
+  const assignments = new Map(appearance?.surfaces.filter(s => s.primitiveId === h.id).map(s => [JSON.stringify([s.face, s.panelId]), s]));
+  const basePaint = constructionHullBasePaint(appearance && { ...appearance, primitives: [primitive] });
+  const panelColor = (index: number, fallback: THREE.Color): THREE.Color => {
+    if (!appearance) return fallback;
+    const panel = panels[index], assigned = assignments.get(JSON.stringify([panel.face, panel.panelId])) ?? assignments.get(JSON.stringify([panel.face, undefined]));
+    return new THREE.Color(constructionPaintColor(basePaint({ ...panel, primitiveId: h.id, paint: assigned?.paint ?? appearance.paint ?? 'naval-gray' })));
+  };
   const points = stations.flatMap((s, i) => rings[i].map(p => new THREE.Vector3(...worldPoint(h, s.t, p))));
   const coordinates = stations.flatMap((s, i) => rings[i].map(p => [s.t, p.y]));
   const n = rings[0].length;
@@ -35,14 +47,14 @@ export function hullGeometry(h: Hull, cut?: number) {
     }
   };
   for (let j = 0; j < stations.length - 1; j++) for (let i = 0; i < n; i++) {
-    const a = j * n + i, b = j * n + (i + 1) % n, c = a + n, d = b + n, color = i === n - 1 ? deck : side;
+    const a = j * n + i, b = j * n + (i + 1) % n, c = a + n, d = b + n, color = panelColor(j * n + i, i === n - 1 ? deck : side);
     if (i >= (n - 1) / 2 && i < n - 1) { triangle(a, b, d, color, i); triangle(a, d, c, color, i); }
     else { triangle(a, b, c, color, i); triangle(b, d, c, color, i); }
   }
   for (const ring of [0, stations.length - 1]) {
     const center = new THREE.Vector3();
     for (let i = 0; i < n; i++) center.addScaledVector(points[ring * n + i], 1 / n);
-    const c = points.push(center) - 1, color = ring && cut !== undefined && cut < h.stations.length - 1 ? slice : side;
+    const c = points.push(center) - 1, color = ring && cut !== undefined && cut < h.stations.length - 1 ? slice : panelColor(panels.length - (ring === 0 ? 2 : 1), side);
     coordinates.push([stations[ring].t, rings[ring].reduce((sum, p) => sum + p.y / n, 0)]);
     for (let i = 0; i < n; i++) {
       const a = ring * n + i, b = ring * n + (i + 1) % n;
@@ -63,17 +75,24 @@ export function hullGeometry(h: Hull, cut?: number) {
   return g;
 }
 
-/** Builder paints: naval gray sides, deck gray deck and red oxide below the coating height. Invalid drafts show salmon. */
+/** Builder paints: face colors above the height coatings, using the same ordered bands as the exported model. Invalid drafts show salmon. */
 export function hullMaterial(h: Hull, invalid: boolean) {
   const material = new THREE.MeshStandardMaterial({ vertexColors: !invalid, color: invalid ? '#ed8677' : '#ffffff', roughness: .72, metalness: .08, side: THREE.DoubleSide,
     // Section rings and the waterline sit exactly on the surface; keep them in front of it.
     polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
-  if (!invalid && h.redPaintY !== undefined) material.onBeforeCompile = shader => {
-    shader.uniforms.hullUnderwaterColor = { value: new THREE.Color(constructionPaintColor('red-oxide')) };
-    shader.uniforms.hullRedPaintY = { value: h.redPaintY! / h.depth };
+  const bands = hullPaintBands(h);
+  if (!invalid && bands.length) material.onBeforeCompile = shader => {
+    shader.uniforms.hullPaintCount = { value: bands.length };
+    shader.uniforms.hullPaintHeights = { value: Array.from({ length: MAX_HULL_PAINT_BANDS }, (_, i) => (bands[i]?.upperY ?? 0) / h.depth) };
+    shader.uniforms.hullPaintColors = { value: Array.from({ length: MAX_HULL_PAINT_BANDS }, (_, i) => new THREE.Color(constructionPaintColor(bands[i]?.paint ?? 'naval-gray'))) };
     shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 hullSurface; varying vec2 vHullSurface;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvHullSurface = hullSurface;');
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vHullSurface; uniform vec3 hullUnderwaterColor; uniform float hullRedPaintY;').replace('#include <color_fragment>', `#include <color_fragment>
-      if (vHullSurface.y < hullRedPaintY) diffuseColor.rgb = hullUnderwaterColor;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
+      varying vec2 vHullSurface; uniform int hullPaintCount;
+      uniform float hullPaintHeights[${MAX_HULL_PAINT_BANDS}]; uniform vec3 hullPaintColors[${MAX_HULL_PAINT_BANDS}];
+    `).replace('#include <color_fragment>', `#include <color_fragment>
+      for (int i = 0; i < ${MAX_HULL_PAINT_BANDS}; i++) {
+        if (i < hullPaintCount && vHullSurface.y < hullPaintHeights[i]) { diffuseColor.rgb = hullPaintColors[i]; break; }
+      }
     `);
   };
   return material;

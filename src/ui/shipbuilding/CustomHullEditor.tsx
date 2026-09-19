@@ -17,9 +17,11 @@ import {
   worldPoint,
   type Hull,
 } from "../../ships/customHullModel";
+import { editHullPaintBands, hullPaintBands, hullPaintHeightRange } from "../../ships/hullPaintBands";
+import { HullPaintControls } from "./HullPaintControls";
 import { MAX_HULL_POINTS } from "../../ships/customHullTopology";
 import { defaultBilgeKeels } from "../../ships/constructionBilgeKeels";
-import type { Vec3 } from "../../ships/blueprint";
+import type { ConstructionSource, Vec3 } from "../../ships/blueprint";
 import {
   applyReading,
   moveDeckKeel,
@@ -155,6 +157,7 @@ export default function CustomHullEditor({
 }: {
   integration?: {
     hull: Hull;
+    appearance?: ConstructionSource['construction'];
     designName?: string;
     measure?: MeasureHull;
     onApply(hull: Hull): void;
@@ -458,23 +461,24 @@ export default function CustomHullEditor({
       next[spec.kind] = value;
       text = `${rake ? "Stem rake" : "Bow bulb"} ${Math.round(value * 100)} %`;
     }
-    if (spec.kind === "paint" && base.redPaintY !== undefined) {
+    if (spec.kind === "paint" && spec.bandId) {
+      const bands = hullPaintBands(base), index = bands.findIndex(b => b.id === spec.bandId);
+      if (index < 0) return { next, text, guides };
+      const [min, max] = hullPaintHeightRange(bands, index, extent.base, extent.deck);
       const targets =
         waterline === undefined
           ? []
           : [{ value: waterline, label: "the waterline", level: true }];
       const result = snapAxis(
-        base.redPaintY + move.delta[1],
+        bands[index].upperY + move.delta[1],
         snap.levels ? targets : [],
         options(1, extent.base),
       );
       next = clone(base);
-      next.redPaintY = Math.min(
-        extent.deck,
-        Math.max(extent.base, result.value),
-      );
+      const band = editHullPaintBands(next)[index];
+      band.upperY = Math.min(max, Math.max(min, result.value));
       if (result.target) held.push(result.target.label);
-      text = `Red lower hull · ${metres(next.redPaintY - extent.base)} m above the base`;
+      text = `Band ${index + 1} · ${metres(band.upperY - extent.base)} m above the base`;
     }
     if (held.length) text += ` · snapped to ${held.join(" and ")}`;
     return { next, text, guides };
@@ -591,16 +595,6 @@ export default function CustomHullEditor({
       draft[key] = value;
     });
   const extent = hullExtent(shown);
-  const paintAbove =
-    hull.redPaintY === undefined
-      ? undefined
-      : hull.redPaintY - hullExtent(hull).base;
-  const paintToWaterline = () => {
-    if (waterline === undefined) return;
-    edit((draft) => {
-      draft.redPaintY = waterline;
-    });
-  };
   const loadStarter = (index: number) => {
     const fresh = makeHull(index);
     fresh.id = hull.id;
@@ -717,6 +711,7 @@ export default function CustomHullEditor({
     >
       <CustomHullViewport
         hull={shown}
+        appearance={integration?.appearance}
         view={view}
         fit={fit}
         focus={focus}
@@ -909,6 +904,7 @@ export default function CustomHullEditor({
             }
           />
         </div>
+        <HullPaintControls hull={hull} waterline={waterline} measurable={!!integration?.measure} edit={edit} />
         <h4>Bilge keels</h4>
         <div className="row">
           <label className="hs-check hs-keel-check">
@@ -932,46 +928,6 @@ export default function CustomHullEditor({
           <div className="row"><span>Thickness</span><NumberField label="Bilge keel thickness" unit="mm" digits={0} value={hull.bilgeKeels.thicknessM*1000} min={5} max={Math.min(100,hull.bilgeKeels.widthM*1000)} step={1} onChange={v => edit(d => { d.bilgeKeels!.thicknessM=v/1000; })} /></div>
           <div className="row"><span>Keel → deck</span><NumberField label="Bilge keel placement from keel to deck" unit="%" digits={0} value={hull.bilgeKeels.placement*100} min={5} max={80} step={1} onChange={v => edit(d => { d.bilgeKeels!.placement=v/100; })} /></div>
         </>}
-        <h4>Paint</h4>
-        <div className="row">
-          <label className="hs-check">
-            <input
-              type="checkbox"
-              checked={hull.redPaintY !== undefined}
-              onChange={() =>
-                edit((d) => {
-                  d.redPaintY =
-                    d.redPaintY === undefined ? -0.02 * d.depth : undefined;
-                })
-              }
-            />
-            Red lower hull
-          </label>
-          {paintAbove !== undefined && (
-            <NumberField
-              label="Red lower hull height above the base"
-              value={paintAbove}
-              min={0}
-              max={extent.deck - extent.base}
-              step={0.1}
-              unit="m"
-              onChange={(v) =>
-                edit((d) => {
-                  d.redPaintY = hullExtent(d).base + v;
-                })
-              }
-            />
-          )}
-        </div>
-        {paintAbove !== undefined && integration?.measure && (
-          <button
-            className="hs-link"
-            disabled={waterline === undefined}
-            onClick={paintToWaterline}
-          >
-            Paint to the waterline
-          </button>
-        )}
       </aside>
 
       <div className="hs-tag" ref={tag} role="group" aria-label={sectionTitle}>
