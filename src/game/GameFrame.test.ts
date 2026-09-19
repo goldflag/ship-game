@@ -12,6 +12,7 @@ import { CameraRig } from './CameraRig';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
+import { makeTestEnvironment, makeTestInput } from './testing/fakes';
 import { VisualEnvironment } from './VisualEnvironment';
 import { FrameScene } from './FrameScene';
 import { FleetVisibility } from './FleetVisibility';
@@ -137,13 +138,12 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
   rig.update = (ship, ...args) => { focusPositions.push(ship.z); updateCamera(ship, ...args); };
   const helm = { throttle: 1, rudder: 0 };
   const water = fakeWater();
-  const environment = new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() });
+  const environment = makeTestEnvironment();
   environment.attachWater(water as never);
   const battlefieldCamera = new BattlefieldCamera(camera);
-  const input = { sample: () => helm, firing: false, clear() {}, setEnabled() {}, flying: false, setFlying(value: boolean) { this.flying = value; },
-    flight: { x: 0, y: 0, z: 0, fast: false },
+  const input = makeTestInput({ sample: () => helm, flying: false, setFlying(value: boolean) { this.flying = value; },
     setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
-    setRudder: (rudder: number) => { helm.rudder = rudder; } };
+    setRudder: (rudder: number) => { helm.rudder = rudder; } });
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
@@ -201,7 +201,7 @@ test('battle loading holds input and starts one loop only after graphics finish 
       const graphics = new Promise<void>(resolve => { finish = resolve; });
       const game = Object.assign(Object.create(Game.prototype), {
         simulation: { player: { damage: { sunk: false } } }, water: {}, inPort: false,
-        input: { setEnabled(value: boolean) { enabled = value; } },
+        input: makeTestInput({ setEnabled(value: boolean) { enabled = value; } }),
         setInPort() {}, scheduleFrame() { scheduled++; },
         async warmupRendering() { await graphics; if (failure) throw new Error('Graphics failed'); },
       }) as Game;

@@ -10,6 +10,7 @@ import { CombatSimulation } from '../simulation/combat';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { defaultKeybindings, keybindingsOf } from './keybindings';
 import { Game } from './Game';
+import { makeTestEnvironment, makeTestInput, makeTestRig } from './testing/fakes';
 import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { VisualEnvironment } from './VisualEnvironment';
@@ -161,8 +162,8 @@ test('the operations roster exposes the full inventory and retains a flight targ
 test('the map releases aim, blocks firing and restores aiming on close without losing flight selection', () => {
   const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
   const requestFire = mock(); simulation.requestFire = requestFire;
-  const rig = { setEnabled: mock(), capturePointer: mock(), setShellView: mock(), update: mock() };
-  const game = Object.assign(Object.create(Game.prototype), { simulation, shellFollow: new ShellFollow(), input: { clear: mock() }, rig, battlefieldCamera: new BattlefieldCamera(new PerspectiveCamera()), host: { clientWidth: 1280, clientHeight: 800 },
+  const rig = makeTestRig({ setEnabled: mock(), capturePointer: mock(), setShellView: mock(), update: mock() });
+  const game = Object.assign(Object.create(Game.prototype), { simulation, shellFollow: new ShellFollow(), input: makeTestInput({ clear: mock() }), rig, battlefieldCamera: new BattlefieldCamera(new PerspectiveCamera()), host: { clientWidth: 1280, clientHeight: 800 },
     environment: { setChartFog() {} }, inPort: false, paused: false, inspecting: false, fleetViews: [], playerView: {}, selectedFlightId: 'player/flight-1' }) as Game;
   game.setAirOperationsOpen(true);
   expect(game.airOperationsOpen).toBe(true); expect(rig.setEnabled).toHaveBeenLastCalledWith(false);
@@ -188,8 +189,8 @@ for (const [width, height] of [[2048, 1176], [390, 844]]) test(`carrier water co
   const water = Object.assign(Object.create(WaterSystem.prototype), { _camera: camera, clipmap, waterMaterial: material, _fresnel: {}, atmosphericFogPass: {} }) as WaterSystem;
   const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
   const battlefieldCamera = new BattlefieldCamera(camera);
-  const rig = { setEnabled() {}, capturePointer() {}, setShellView() {}, update() {} };
-  const game = Object.assign(Object.create(Game.prototype), { camera, simulation, water, rig, battlefieldCamera, shellFollow: new ShellFollow(), input: { clear() {} },
+  const rig = makeTestRig();
+  const game = Object.assign(Object.create(Game.prototype), { camera, simulation, water, rig, battlefieldCamera, shellFollow: new ShellFollow(), input: makeTestInput(),
     environment: { setChartFog() {} }, host: { clientWidth: width, clientHeight: height }, inPort: false, paused: false, inspecting: false, fleetViews: [], playerView: {} }) as Game;
   try {
     game.setAirOperationsOpen(true);
@@ -219,18 +220,18 @@ for (const [width, height] of [[2048, 1176], [390, 844]]) test(`carrier water co
 
 test('closing the carrier map restores the chosen weather visibility', () => {
   const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
-  const rig = { setEnabled() {}, capturePointer() {}, setShellView() {}, update() {} };
+  const rig = makeTestRig();
   for (const weather of ['clear', 'storm-clouds', 'fog'] as const) {
     const map = oceanMap(simulation.mapId), expected = battleEnvironment(map, 'night', weather);
     const camera = new PerspectiveCamera();
     const water = { fog: {} as Record<string, unknown>, color: { absorptionColor: new Color() }, underwaterDistortion: { intensity: 0 }, getGeometryConfig: () => ({ infinityRingExtent: 950000 }) };
-    const environment = new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() });
+    const environment = makeTestEnvironment();
     environment.attachWater(water as never);
     environment.setBattle({ timeOfDay: 'night', weather, conditions: {} });
     environment.setChartFog(false);
     const authored = { ...water.fog };
     expect(authored).toMatchObject({ fadeStart: expected.fog.start, fadeEnd: expected.fog.end, color: expected.fog.color, skyBlendDistance: expected.fog.skyBlend });
-    const game = Object.assign(Object.create(Game.prototype), { camera, simulation, water, rig, environment, shellFollow: new ShellFollow(), input: { clear() {} },
+    const game = Object.assign(Object.create(Game.prototype), { camera, simulation, water, rig, environment, shellFollow: new ShellFollow(), input: makeTestInput(),
       battlefieldCamera: new BattlefieldCamera(camera), host: { clientWidth: 1280, clientHeight: 800 },
       inPort: false, paused: false, inspecting: false, fleetViews: [], playerView: {} }) as Game;
     game.setAirOperationsOpen(true); expect(water.fog.fadeEnd).toBe(900000); expect(water.fog.fadeStart).toBe(400000);
