@@ -159,6 +159,11 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       const path = object(part.path, 'Equipment path');
       if (!Array.isArray(path.points) || path.points.length < 2 || path.points.length > 64) throw new Error('Equipment paths require 2–64 points');
       path.points.forEach(point => vector(point, 'Path point'));
+      if (path.access !== undefined) {
+        const access = object(path.access, 'Ladder settings');
+        for (const [key,min,max] of [['widthM',.35,1.5],['standOffM',.12,.4],['grabHeightM',0,1.2]] as const) { number(access[key], key); if ((access[key] as number)<min || (access[key] as number)>max) throw new Error(`Invalid ladder ${key}`); }
+        if (!['both','left','right','none'].includes(access.handrails as string)) throw new Error('Choose both, left, right or no handrails');
+      }
       if (path.slackM !== undefined) number(path.slackM, 'Rope slack');
       if (path.heightM !== undefined) {
         number(path.heightM, 'Railing height');
@@ -260,7 +265,7 @@ export function mirroredFace(face: ConstructionFace, kind: ConstructionPrimitive
 
 export function mirroredEquipment(part: ConstructionEquipment): ConstructionEquipment {
   return { ...structuredClone(part), position: [-part.position[0], part.position[1], part.position[2]], bearingDeg: normalizedBearing(-part.bearingDeg),
-    ...(part.path ? { path: { ...part.path, points: part.path.points.map(point => [-point[0], point[1], point[2]] as Vec3) } } : {}) };
+    ...(part.path ? { path: { ...part.path, ...(part.path.access ? { access: { ...part.path.access, handrails: part.path.access.handrails === 'left' ? 'right' : part.path.access.handrails === 'right' ? 'left' : part.path.access.handrails } } : {}), points: part.path.points.map(point => [-point[0], point[1], point[2]] as Vec3) } } : {}) };
 }
 
 export function copyConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>, options: { mirror?: boolean; offset?: Vec3; ids?: ReadonlyMap<string, string> } = {}): string[] {

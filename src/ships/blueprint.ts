@@ -385,6 +385,7 @@ export interface ConstructionSurfaceAssignment {
   primitiveId: string; face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
   thicknessMm: number; material: 'steel' | 'armor-steel'; paint: string; open?: boolean;
 }
+export interface ConstructionAccessSettings { widthM: number; standOffM: number; handrails: 'both' | 'left' | 'right' | 'none'; grabHeightM: number }
 export interface ConstructionEquipment {
   /** Wall fitting installation, in metres; linked partners reflect across ship X=0. */
   wall?: { version: 1; widthM: number; heightM: number; mirrorId?: string };
@@ -407,7 +408,7 @@ export interface ConstructionEquipment {
   launcher?: { traverseLimitsDeg: [number, number]; launchArcsDeg: [number, number][] };
   /** Connected local-space points, transformed by position and bearing like fixed equipment.
    * Rope/chain slack is the vertical midspan sag on each segment, sampled at 16 equal intervals. */
-  path?: { points: Vec3[]; slackM?: number; /** Railing overrides; omitted values retain the catalog height and three rails. */ heightM?: number; railCount?: 2 | 3 };
+  path?: { points: Vec3[]; slackM?: number; access?: ConstructionAccessSettings; /** Railing overrides; omitted values retain the catalog height and three rails. */ heightM?: number; railCount?: 2 | 3 };
 }
 export interface ConstructionBoundary {
   id: string; axis: 'x' | 'y' | 'z'; offset: number; thicknessMm: number;
@@ -501,7 +502,7 @@ export interface ConstructionEquipmentPart {
    * massKgPerM follows the sampled line length, plus postMassKg for each railing post.
    * Railings use square bars, the catalog rail count and deck-level source points. */
   path?: {
-    kind: 'railing' | 'rope' | 'chain' | 'ladder'; diameterM: number; heightM?: number; railCount?: 2 | 3;
+    kind: 'railing' | 'rope' | 'chain' | 'ladder' | 'inclined-ladder' | 'framed-ladder'; diameterM: number; heightM?: number; railCount?: 2 | 3;
     widthM?: number; standOffM?: number;
     postSpacingM?: number; massKgPerM: number; postMassKg?: number;
   };

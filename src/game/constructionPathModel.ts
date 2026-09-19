@@ -1,3 +1,5 @@
+import { accessDefaults, accessLayout, isAccessKind } from '../../assets/parts/construction/access_geometry';
+import { createAccessModel } from './constructionAccessModel';
 import { fittedLadder, ladderWallProjection } from '../ships/constructionLadders';
 import { componentMaterial } from '../ships/componentMaterials';
 import * as THREE from 'three';
@@ -10,6 +12,11 @@ import { pathDistance, railingPosts, samplePath } from '../../assets/parts/const
 export function createConstructionPathModel(part: ConstructionEquipmentPart, path: ConstructionEquipment['path'] = DEFAULT_PATH, ghost = false, mount?: { item: ConstructionEquipment; surfaces: readonly ConstructionSurface[] }): THREE.Group {
   const group = new THREE.Group(), profile = part.path;
   if(profile?.kind === 'ladder' && path === DEFAULT_PATH) path={points:[[0,0,0],[0,3,0]]};
+  if (isAccessKind(profile?.kind)) {
+    const points = path === DEFAULT_PATH ? [[0,0,0],[0,3,profile.kind === 'inclined-ladder' ? -2.5 : 0]] as Vec3[] : path?.points ?? [];
+    const layout = accessLayout(profile.kind, points, path?.access ?? accessDefaults(profile.kind));
+    return layout ? createAccessModel(layout, ghost) : group;
+  }
   if (!profile || !path || path.points.length < 2 || path.points.length > 64 || path.points.some(p => p.some(v => !Number.isFinite(v) || Math.abs(v) > 1000))) return group;
   group.name = part.name;
   const surface = componentMaterial(profile.kind === 'rope' ? 'rope' : profile.kind === 'chain' ? 'edge' : 'naval');

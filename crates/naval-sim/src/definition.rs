@@ -1370,11 +1370,25 @@ pub struct ConstructionEquipmentLauncher {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionAccessSettings {
+    #[serde(rename = "widthM")]
+    pub width_m: f64,
+    #[serde(rename = "standOffM")]
+    pub stand_off_m: f64,
+    #[serde(rename = "handrails")]
+    pub handrails: String,
+    #[serde(rename = "grabHeightM")]
+    pub grab_height_m: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentPath {
     #[serde(rename = "points")]
     pub points: Vec<[f64; 3]>,
     #[serde(rename = "slackM")]
     pub slack_m: Option<f64>,
+    #[serde(rename = "access", default, skip_serializing_if = "Option::is_none")]
+    pub access: Option<ConstructionAccessSettings>,
     #[serde(rename = "heightM")]
     pub height_m: Option<f64>,
     #[serde(rename = "railCount")]

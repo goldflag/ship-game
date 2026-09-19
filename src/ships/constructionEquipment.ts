@@ -44,7 +44,7 @@ export function parseConstructionCatalog(value:unknown):ConstructionCatalog {
     if(p.riggingSurface && (p.riggingSurface.encoding !== 'deflate-f32-u32-v1' || typeof p.riggingSurface.data !== 'string'
       || !p.riggingSurface.data.length || p.riggingSurface.data.length > 4_000_000 || p.placement !== 'deck' || p.path || p.wallMount
       || !['mast','director','funnel','deck-fitting'].includes(p.kind))) throw new Error(`Invalid rope attachment surface: ${p.id}`);
-    if(p.path && (p.kind!=='deck-fitting' || !['railing','rope','chain','ladder'].includes(p.path.kind)
+    if(p.path && (p.kind!=='deck-fitting' || !['railing','rope','chain','ladder','inclined-ladder','framed-ladder'].includes(p.path.kind)
       || !Number.isFinite(p.path.diameterM) || p.path.diameterM<=0
       || p.path.railCount !== undefined && (p.path.kind !== 'railing' || ![2, 3].includes(p.path.railCount))
       || !Number.isFinite(p.path.massKgPerM) || p.path.massKgPerM<=0)) throw new Error(`Invalid path profile: ${p.id}`);

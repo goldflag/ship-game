@@ -302,3 +302,11 @@ same XYZ movement handles as hull pieces, including while placing fittings.
 Hull **Rotate (O)** operates on one selected block. `RotationToolbar` owns no source state; `BuilderTool` supplies the selected axis, snap setting and primitive commands. `RotateHandles` projects ship-axis rings, previews until release and cancels on Escape, lost capture/focus, camera changes or source changes. Each completed drag is one source transaction. X/Y/Z select pitch/yaw/roll; R/Shift-R turn ±90°. The source's optional versioned tilt and legacy yaw use YXZ order through `constructionOrientation.ts` and native `construction_orientation.rs`. Renderer adapters consume that orientation without moving physical authority out of Rust.
 
 `constructionOrientation.test.ts`, the builder tool tests and the native `construction_orientation` integration tests cover transform conventions, mirrors, editable geometry, serialization, physical volume and source face assignments. Run `bun scripts/tests/shipbuilder-rotation-browser.mjs <vite-url>` for real pointer drags on all axes, hotkeys, precise fields, cancellation, one-step undo, native compilation and desktop/compact screenshots in `.build/block-editing/`.
+
+**Adjustable inclined stairs** and **Adjustable framed ladder** are two-click
+fittings in Deck gear. Stairs connect a lower deck to an upper deck edge;
+framed ladders climb a closed hull side. Their selected object tags expose width,
+stair handrail sides, ladder wall standoff and grab extension. Native compilation
+checks every attachment and member clearance. Endpoints set the rise/run; step
+and rung counts adjust automatically. The development-only `ladder:playground`
+command opens an interactive deck-access study using the same recipes.

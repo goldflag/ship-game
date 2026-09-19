@@ -6,6 +6,7 @@
   "packageManager": "bun@1.3.3",
   "scripts": {
     "water:calibration": "bun run dev -- --open /scripts/diagnostics/ocean-calibration.html",
+    "ladder:playground": "bun run multiplayer:prepare:dev && vite --config vite.ladder-playground.config.ts --open '/?ladderPlayground=1'",
     "hull:prototype": "vite --config vite.hull-prototype.config.ts",
     "propeller:playground": "bun run multiplayer:prepare:dev && vite --config vite.propeller-playground.config.ts --open '/?propellerPlayground=1'",
     "dev": "bun run multiplayer:prepare:dev && vite --host 0.0.0.0",

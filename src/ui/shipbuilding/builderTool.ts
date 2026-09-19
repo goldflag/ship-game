@@ -1,3 +1,4 @@
+import { accessDefaults, accessLayout, isAccessKind } from '../../../assets/parts/construction/access_geometry';
 import { blockAngles, rotateBlock, withBlockAngles } from '../../ships/constructionOrientation';
 import { reseatBalcony } from './balconyPlacement';
 import { editableMesh } from '../../ships/constructionMesh';
@@ -601,21 +602,23 @@ export class BuilderTool {
   };
   drawLadder = (points: Vec3[], bearingDeg: number): ConstructionSubmission | undefined => {
     const part=this.pathPart;
-    if(part?.path?.kind !== 'ladder' || this.refused())return;
+    if(!part?.path || !(part.path.kind === 'ladder' || isAccessKind(part.path.kind)) || this.refused())return;
     const problem=pathProblem(points);
     if(problem){this.door.setError(problem);return;}
     const item=pathEquipment(this.newId('ladder'),part.id,points,0,bearingDeg);
+    if (isAccessKind(part.path.kind)) item.path!.access = accessDefaults(part.path.kind);
     if(this.state.fittingPaint)item.paint=this.state.fittingPaint;
     const parts=[item];
     if(this.state.mirror && points.some(p=>Math.abs(p[0])>1e-6))parts.push({...mirroredEquipment(item),id:this.newId('ladder')});
-    if(!this.compiled || parts.some(e=>!fittedLadder(part,e,this.compiled!.surfaces))){this.door.setError('Every rung needs a closed hull side behind both ends. Move away from edges or turn Mirror off.');return;}
-    const outcome=this.run('Draw surface ladder',parts.map(value=>({op:'equipment',value})));
+    if (isAccessKind(part.path.kind) && !accessLayout(part.path.kind, item.path!.points, item.path!.access!)) { this.door.setError(part.path.kind === 'inclined-ladder' ? 'Use a 0.5–12 m rise and a 30–75° incline.' : 'Click two points straight up the supporting wall, 0.5–12 m apart.'); return; }
+    if(part.path.kind === 'ladder' && (!this.compiled || parts.some(e=>!fittedLadder(part,e,this.compiled!.surfaces)))){this.door.setError('Every rung needs a closed hull side behind both ends. Move away from edges or turn Mirror off.');return;}
+    const outcome=this.run(`Draw ${part.name}`,parts.map(value=>({op:'equipment',value})));
     if(outcome.accepted)this.update({pathPoints:[],selected:new Set(parts.map(p=>p.id)),tool:'select'});
     return outcome;
   };
   addPathPoint = (point: Vec3, bearingDeg = 0) => {
     if (this.locked) return;
-    if (this.pathPart?.path?.kind === 'ladder' && this.state.pathPoints.length) {
+    if ((this.pathPart?.path?.kind === 'ladder' || isAccessKind(this.pathPart?.path?.kind)) && this.state.pathPoints.length) {
       const points = appendPathPoint(this.state.pathPoints, point);
       if (points.length === 2) this.drawLadder(points, this.state.pathBearing);
       return;
@@ -631,7 +634,7 @@ export class BuilderTool {
     const pathPart = this.pathPart, { pathPoints, ropeSlack, mirror } = this.state;
     if (!pathPart) return undefined;
     const refused = this.refused(); if (refused) return refused;
-    if (pathPart.path?.kind === 'ladder') return this.drawLadder(pathPoints, this.state.pathBearing);
+    if (pathPart.path?.kind === 'ladder' || isAccessKind(pathPart.path?.kind)) return this.drawLadder(pathPoints, this.state.pathBearing);
     const slackM = pathPart.path?.kind === 'rope' ? Math.min(ropeSlack, pathSlackLimit(pathPoints)) : 0, problem = pathProblem(pathPoints, slackM);
     if (problem) { this.update({ notice: problem }); return undefined; }
     const item = pathEquipment(this.newId('path'), pathPart.id, pathPoints, slackM);
