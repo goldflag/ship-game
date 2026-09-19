@@ -1,7 +1,7 @@
 /* Battle setup: one full-screen board for every mode. Catalog, drop lanes and waters,
    then the deployment chart. Extends the naval instrument styling in DESIGN.md. */
 .battle-dialog { --battle-line:#cfdfdf35; --battle-line-strong:#c0d4d26e; --battle-muted:#bacbd0; --battle-muted2:#93a7ad; --battle-field:#0e2530; --battle-mint:#86e4c5; --battle-salmon:#ffb5a6; --battle-brass:#e0c58d;
-  position:fixed; inset:0; width:100vw; height:100dvh; max-width:none; max-height:none; margin:0; padding:0; border:0; border-radius:0; background:#0b1c25; color:#edf1ec; font:400 13px/1.35 'Barlow',sans-serif; font-variant-numeric:tabular-nums; box-shadow:none; }
+  position:fixed; inset:0; width:100vw; height:100dvh; max-width:none; max-height:none; margin:0; padding:0; border:0; border-radius:0; background:#0b1c25; color:#edf1ec; font:400 13px/1.35 'Barlow',sans-serif; font-variant-numeric:tabular-nums; box-shadow:none; scrollbar-color:#93a7ad59 transparent; }
 .battle-dialog[open] { display:flex; flex-direction:column; }
 .battle-dialog::backdrop { background:#0b1c25; }
 .battle-dialog h1,.battle-dialog h2,.battle-dialog h3,.battle-dialog p { margin:0; }
@@ -54,12 +54,13 @@
 .ship-grip { width:6px; height:22px; background:radial-gradient(circle,#93a7ad 1px,transparent 1.2px) 0 0/4px 5px; opacity:.7; }
 .ship-thumbnail { width:64px; height:20px; object-fit:contain; pointer-events:none; }
 .ship-card-text { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:0 8px; align-items:baseline; min-width:0; }
-.ship-card-text strong { font:500 15px/1.15 'Barlow Condensed',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* overflow:clip, not hidden: hidden makes each ellipsis a scroll container, and Chrome drops wheel scrolls over them. */
+.ship-card-text strong { font:500 15px/1.15 'Barlow Condensed',sans-serif; white-space:nowrap; overflow:clip; text-overflow:ellipsis; }
 .ship-card-text small { color:var(--battle-muted); font-size:11px; white-space:nowrap; }
 .ship-card-text .ship-meta { grid-column:1 / -1; }
 .ship-card-reason { grid-column:2 / -1; color:var(--battle-salmon); font-size:11px; }
-.ship-meta { display:flex; align-items:center; gap:5px; min-width:0; margin-top:2px; color:var(--battle-muted); font-size:11px; white-space:nowrap; overflow:hidden; }
-.ship-meta>span { overflow:hidden; text-overflow:ellipsis; }
+.ship-meta { display:flex; align-items:center; gap:5px; min-width:0; margin-top:2px; color:var(--battle-muted); font-size:11px; white-space:nowrap; overflow:clip; }
+.ship-meta>span { overflow:clip; text-overflow:ellipsis; }
 .ship-meta>i { font-style:normal; opacity:.5; }
 .ship-meta>svg { flex-shrink:0; width:22px; height:11px; color:#d4e2df; }
 .ship-meta .nation-flag { width:15px; height:10px; border-radius:1px; box-shadow:0 0 0 1px #ffffff2a; }

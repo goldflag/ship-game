@@ -220,7 +220,7 @@ function Harbor({ account, startup }: AppProps) {
     setBattleSetup(value => ({ ...value, playerShipId: selectedShip.id }));
     if (pveRequest) setPveRequest({ ...pveRequest, seed: crypto.getRandomValues(new Uint32Array(1))[0] });
     setPveBriefing(undefined); setBattleError(''); setBattleMode(mode); setSortieOpen(false); setBattleOpen(true);
-    void restoreLocalShips().then(issues => { if (issues.length) setBattleError(`Some drafts need attention in Shipbuilder: ${issues.join(' · ')}`); }).catch(error => setBattleError(`Saved ships could not be loaded: ${error instanceof Error ? error.message : String(error)}`));
+    void restoreLocalShips().catch(error => setBattleError(`Saved ships could not be loaded: ${error instanceof Error ? error.message : String(error)}`));
   };
   /** The sortie board explains the modes before setup. Players who have made up their mind can skip it. */
   const openSortieBoard = () => { if (ready && !switchPending.current) setSortieOpen(true); };
