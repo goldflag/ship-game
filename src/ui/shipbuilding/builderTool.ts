@@ -1,5 +1,4 @@
 import { resizedWallDimensions } from './wallDimensions';
-import { rotateBlock } from '../../ships/constructionOrientation';
 import { editableMesh } from '../../ships/constructionMesh';
 import { wallMount, wallFittingSupported } from '../../ships/constructionWallFittings';
 import type { SnapSettings } from './snapping';
@@ -13,8 +12,9 @@ import { DEFAULT_TOOL, type BuilderLayer, type BuilderTab, type BuilderToolId } 
 import { FITTING_GROUPS, fittingGroup, type FittingFilter, type FittingGroup } from './fittingCategories';
 import type { HullCategory } from './hullCategories';
 import type { BuilderPointerEvent, BuilderScene } from './builderScene';
-import { type FreeformSettings, type BuilderToolState, type BuilderRevisionDoor, type BuilderToolContext, type BuilderChrome, type BuilderKey, BUILDER_VIEWS, SNAP_STEPS, NO_TWINS, FREEFORM_MODES, freeformSelection } from './builderToolState';
+import { type FreeformSettings, type BuilderToolState, type BuilderRevisionDoor, type BuilderToolContext, type BuilderChrome, type BuilderKey, BUILDER_VIEWS, SNAP_STEPS, NO_TWINS, freeformSelection } from './builderToolState';
 import { BuilderSelectors } from './builderSelectors';
+import { dispatchBuilderKey } from './builderKeymap';
 import * as rotation from './builderActions/rotation';
 import * as mirror from './builderActions/mirror';
 import * as editing from './builderActions/editing';
@@ -254,88 +254,6 @@ export class BuilderTool extends BuilderSelectors {
   splitFreeform = freeform.splitFreeform.bind(this);
 
   // ---- keys: the caller has already excluded text fields, the help dialog and a locked door.
-  key(event: BuilderKey, chrome: BuilderChrome) {
-    const modifier = event.ctrlKey || event.metaKey, lower = event.key.toLowerCase(), s = this.state, pathPart = this.pathPart;
-    if (pathPart) {
-      if (event.key === 'Escape') { event.preventDefault(); this.cancelPath(); return; }
-      if (event.key === 'Enter') { event.preventDefault(); this.finishPath(); return; }
-      if (s.pathPoints.length && (event.key === 'Backspace' || modifier && lower === 'z')) { event.preventDefault(); this.popPathPoint(); return; }
-      if (s.pathPoints.length && (lower === 'r' || event.key === 'Delete')) return;
-    }
-    if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) this.door.redo(); else this.door.undo(); return; }
-    if (modifier && lower === 'y') { event.preventDefault(); this.door.redo(); return; }
-    if (s.tool === 'rotate' && !modifier && !event.altKey) {
-      // The axis keys mean the same quarter turn in every hull tool; here they also aim the gizmo.
-      if (['x', 'y', 'z'].includes(lower)) { event.preventDefault(); if (!event.repeat) { this.setRotationAxis('xyz'.indexOf(lower)); this.rotateBlock('xyz'.indexOf(lower), event.shiftKey ? -90 : 90); } return; }
-      if (lower === 'r') { event.preventDefault(); if (!event.repeat) this.rotateBlock(s.rotationAxis, event.shiftKey ? -90 : 90); return; }
-      if (event.key === 'Escape') { event.preventDefault(); this.setTool('select'); return; }
-    }
-    if (!modifier && !event.altKey && lower === 'n') { event.preventDefault(); if (!event.repeat) this.toggleSnapping(); return; }
-    if (!modifier && !event.altKey && lower === 's') { event.preventDefault(); if (!event.repeat) this.cycleGrid(); return; }
-    if (!modifier && !event.altKey && lower === 'p') { event.preventDefault(); if (!event.repeat) this.toggleProjection(); return; }
-    if(!modifier&&!event.altKey&&lower==='d'&&s.layer==='hull'&&!pathPart){
-      event.preventDefault();if(!event.repeat){if(this.freeformMode)this.exitFreeform();else if(this.enterFreeform())chrome.slotChosen();}return;
-    }
-    if (this.freeformMode && !modifier) {
-      if (event.key === 'Escape') { this.exitFreeform(); event.preventDefault(); return; }
-      if (lower === 'g') { this.cycleUnit(); event.preventDefault(); return; }
-      if (lower === 'o') { this.toggleProjection(); event.preventDefault(); return; }
-      if (/^[1-4]$/.test(event.key) && !event.altKey) { event.preventDefault(); if (!event.repeat) this.setFreeformMode(FREEFORM_MODES[Number(event.key) - 1]); return; }
-      // The view strip stays visible while shaping, so its keys keep working; M decides whether the twin follows.
-      if (!['w', 'q', 's', 'c', 'm'].includes(lower) && event.key !== 'Home') return;
-    }
-    // Without a selection, ⌘C and ⌘X stay with the browser so selected text still copies.
-    if (modifier && lower === 'c') { if (!s.selected.size) return; event.preventDefault(); this.copy(event.shiftKey); return; }
-    if (modifier && lower === 'x') { if (!s.selected.size) return; event.preventDefault(); this.remove(); return; }
-    if (modifier && lower === 'a') { event.preventDefault(); this.selectAll(); return; }
-    if (modifier) return;
-    if (event.key === 'Escape') {
-      if (chrome.dismiss()) return;
-      if (s.suggestion) this.dismissSuggestion();
-      else if (s.measure) this.update({ measure: undefined });
-      else if (s.tool !== this.restTool) { this.setTool(this.restTool); this.clearSelection(); }
-      else this.clearSelection();
-      return;
-    }
-    if (event.key === 'Delete' || event.key === 'Backspace') { event.preventDefault(); this.remove(); return; }
-    if (event.key === 'Home') { event.preventDefault(); this.fit(); return; }
-    if (event.key === 'PageUp' || event.key === 'PageDown') {
-      event.preventDefault(); const direction = event.key === 'PageUp' ? 1 : -1;
-      if (s.selected.size && this.selectedEquipment.length === s.selected.size && this.selectedEquipment.every(item => this.partOf(item)?.kind === 'gun')) this.raiseTurrets([...s.selected], current => Math.max(0, Math.min(30, current + direction * this.gridStep)));
-      else if (s.selected.size) this.nudge([0, direction * this.gridStep, 0]);
-      return;
-    }
-    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key) && (this.piece?.kind === 'equipment' && this.piece.wall || this.selectedEquipment.length && this.selectedEquipment.length === s.selected.size && this.selectedEquipment.every(e=>e.wall))) {
-      event.preventDefault();
-      const axis = event.key === 'ArrowLeft' || event.key === 'ArrowRight' ? 0 : 1;
-      const amount = (event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? -1 : 1) * (event.shiftKey ? .01 : .1);
-      const resize = (value: number) => Math.max(.15, Math.min(5, Math.round((value+amount)*100)/100));
-      const piece = this.piece;
-      if (piece?.kind === 'equipment' && piece.wall) this.setWallSize(axis, resize(axis ? piece.wall.heightM : piece.wall.widthM));
-      else {
-        const handled = new Set<string>(), commands: ConstructionCommand[] = [];
-        for (const item of this.selectedEquipment) {
-          if (handled.has(item.id)) continue;
-          handled.add(item.id); if (item.wall!.mirrorId) handled.add(item.wall!.mirrorId);
-          const value = structuredClone(item), w=value.wall!, size=resize(axis ? w.heightM : w.widthM);
-          Object.assign(w, resizedWallDimensions(this.partOf(item)!, w, axis, size));
-          commands.push({op:'equipment', value});
-        }
-        this.run('Resize wall fittings',commands);
-      }
-      return;
-    }
-    if (event.key.startsWith('Arrow') && s.selected.size) {
-      event.preventDefault(); const step = this.gridStep;
-      this.nudge(event.key === 'ArrowLeft' ? [-step, 0, 0] : event.key === 'ArrowRight' ? [step, 0, 0] : event.key === 'ArrowUp' ? [0, 0, -step] : [0, 0, step]);
-      return;
-    }
-    if (/^[1-9]$/.test(event.key)) { const item = this.palette.bar[Number(event.key) - 1]; if (item && this.selectSlot(item)) chrome.slotChosen(); return; }
-    if (event.key === '0') { if (this.hasDrawer) { event.preventDefault(); chrome.toggleDrawer(); } return; }
-    if (s.layer === 'hull' && ['x', 'y', 'z'].includes(lower)) { event.preventDefault(); if (!event.repeat) this.turn('xyz'.indexOf(lower), event.shiftKey ? -90 : 90); return; }
-    if (lower === 'q') this.cycleView(); else if (lower === 'w') chrome.toggleWarnings();
-    else if (lower === 'r') this.rotate(event.shiftKey); else if (lower === 'm') this.toggleMirror(); else if (lower === 'c') this.toggleCenters();
-    else if (lower === 'a' && s.layer === 'fittings') this.toggleArcs();
-    else { const entry = this.rail.find(entry => entry.key.toLowerCase() === lower); if (entry) this.activateRail(entry); }
-  }
+  /** Hotkeys are data: `BUILDER_KEYMAP` in `builderKeymap.ts` lists every binding in precedence order. */
+  key(event: BuilderKey, chrome: BuilderChrome) { dispatchBuilderKey(this, event, chrome); }
 }
