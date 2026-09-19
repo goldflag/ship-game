@@ -159,7 +159,7 @@ mirrored pieces and loaded equipment models. Release commits one undoable edit;
 Escape cancels. While placing, a drag from empty space orbits, right-drag pans and scrolling zooms. R
 rotates the next piece. Shift-drag selects enclosed blocks and visible fittings in any
 tool; Ctrl/⌘ adds to the selection. Right-click removes the targeted block or
-fitting, and its deletion can be undone. The last hull block is protected; deleting a whole selection leaves one block and its surface assignments. Hover outlines the block under the pointer when selecting, erasing or measuring. Placement shows the pending piece or path without outlining its support block.
+fitting, and its deletion can be undone. The last hull block is protected; deleting a whole selection leaves one block and its surface assignments. The hull overlay draws creases over 20° and open boundaries, omitting coplanar seams between blocks. Hover outlines the block under the pointer when selecting, erasing or measuring. Placement shows the pending piece or path without outlining its support block.
 
 Flat mating faces snap exactly. Curved or pointed contacts seat into the support
 by at most 5 cm, creating a physical attachment instead of a single-point touch.

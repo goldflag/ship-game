@@ -13,7 +13,7 @@ import { add } from '../../ships/freeformShape';
 import { boundaryGeometry } from './boundaryGeometry';
 import { envelopeVertices } from '../../ships/freeformShape';
 import { constructionHullBasePaint, paintedHullFace } from '../../ships/constructionHullPaint';
-import { surfaceOutline } from './surfaceOutline';
+import { surfaceCreases, surfaceOutline } from './surfaceOutline';
 import { itemOutlineGeometry } from './itemOutline';
 import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
@@ -381,10 +381,10 @@ class Viewport {
           material.polygonOffset = true; material.polygonOffsetFactor = 1; material.polygonOffsetUnits = 1;
         }
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
-        // Outline logical faces in one batch, retaining block seams without triangulation diagonals.
+        // Draw physical creases across the combined exterior, not source-block seams.
         {
           const points: THREE.Vector3[] = [];
-          for (const group of this.surfacesByKey.values()) for (const edge of surfaceOutline(group)) {
+          for (const edge of surfaceCreases(nativeSurfaces.filter(surface => !surface.open))) {
             if (edge.surface.open || (props.scene.display === 'armor' && edge.surface.material !== 'armor-steel')) continue;
             points.push(new THREE.Vector3(...edge.a), new THREE.Vector3(...edge.b));
           }
@@ -395,7 +395,7 @@ class Viewport {
         mesh.position.set(...primitive.position); mesh.rotation.copy(primitiveRotation(primitive));
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
         mesh.material.polygonOffset = true; mesh.material.polygonOffsetFactor = 1; mesh.material.polygonOffsetUnits = 1;
-        const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false }));
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 20), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false }));
         edges.position.copy(mesh.position); edges.rotation.copy(mesh.rotation); this.hull.add(edges);
       }
       this.hoverSurface = ''; release(this.hoverGroup);
@@ -423,7 +423,7 @@ class Viewport {
     }
     this.composed.visible = props.scene.display === 'paint' && !!nativeSurfaces && !invalid.size;
     this.equipment.group.visible = !(props.createModel && this.composed.visible && this.composed.children.length);
-    // Keep block outlines visible when shared composition renders the exterior.
+    // Keep hull creases visible when shared composition renders the exterior.
     // Native surface meshes remain the pick targets, but their duplicate fills are hidden.
     this.hull.visible = true;
     for (const mesh of this.hullMeshes) mesh.visible = !this.composed.visible || !this.composed.children.length;
