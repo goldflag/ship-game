@@ -13,6 +13,8 @@
     "preview": "vite preview --host 0.0.0.0",
     "deploy:naval": "bash scripts/deploy-naval.sh",
     "deploy:hermes": "bash scripts/deploy-hermes.sh",
+    "harness:designs": "bun scripts/browser/designs.ts",
+    "ui:shot": "bun run multiplayer:prepare:dev && bun scripts/browser/shot.ts",
     "typecheck": "bun run multiplayer:prepare:dev && tsc --noEmit",
     "audio:build": "python3 scripts/audio/build.py",
     "test": "bun run multiplayer:prepare:dev && bun scripts/tests/run.ts",

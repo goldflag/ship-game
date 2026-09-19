@@ -30,7 +30,7 @@ test('follow selects only surviving own aircraft, cancels shell follow, and came
   let cycles = 0;
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: sim, shellFollow, inPort: false, inspecting: false, fleetViews: [],
-    rig: { setShellView() {}, cycle() { cycles++; }, update() {} },
+    rig: { setShellView() {}, setFreeCamera() {}, cycle() { cycles++; }, update() {} },
   }) as Game;
   const selected = () => Reflect.get(game, 'followedAircraftId');
   game.followAircraft(sim.target.airWing!.planes[0].id); expect(selected()).toBeUndefined();
@@ -85,7 +85,7 @@ test('fleet Follow lead selects another friendly carrier aircraft and survives s
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: sim, shellFollow: new ShellFollow(), inPort: false, inspecting: false,
     fleetCommandMode: true, airOperationsOpen: true, fleetViews: views, playerView: views[0],
-    rig: { setShellView() {}, update() {}, setInspecting() {}, setBridge() {}, setHullLength() {}, setSubmarine() {}, releasePointer() {} },
+    rig: { setShellView() {}, setFreeCamera() {}, update() {}, setInspecting() {}, setBridge() {}, setHullLength() {}, setSubmarine() {}, releasePointer() {} },
     battlefieldCamera: { cancelTransition() {} }, input: { clear() {} },
     // Map close is covered by GameFrame; this seam runs the real follow and spectator methods.
     setAirOperationsOpen(open: boolean) { this.airOperationsOpen = open; },

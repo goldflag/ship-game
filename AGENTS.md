@@ -13,6 +13,7 @@ Read the relevant [README](README.md) sections for product behavior and architec
 | Aircraft assets | [Aircraft pipeline](docs/aircraft-pipeline.md) |
 | Carrier operations or bots | [Air operations](docs/air-operations.md) or [bot behavior](docs/bot-behavior.md), plus the ship pipeline for combat changes |
 | Ocean or UI | [Ocean guide](docs/ocean-configuration.md), [README architecture](README.md#architecture), and the relevant guide in the documentation index |
+| See a UI or battle change in the real game | [Browser verification](docs/browser-verification.md): account-free harness, `bun run ui:shot`, saved custom designs |
 | Merge, rebase or independent worktree | [Integration workflow](docs/integration-workflow.md) before starting |
 
 ## Invariants
@@ -42,6 +43,7 @@ Review the exact published model. Fix failures in durable inputs and repeat affe
 
 ## Validation and integration
 
+- `bun run test` and `bun run ship:browser:check` report only failures that are not in their [known-red ledgers](docs/browser-verification.md#known-red-tests-and-checks); do not re-prove a listed failure against master.
 - Run relevant simulation tests and `bun run build`. Model changes also require `ship:build`, fixed review views and articulation in-game. Rebuild affected assets after shared recipe changes; follow the pipeline's validation matrix.
 - Start independent tasks from current remote master in separate worktrees. Only one integrator may mutate the main checkout; check for already-integrated patches before replaying commits.
 - Run `bun run git:setup` from the durable main checkout once per clone for ID-aware catalog merging and remembered resolutions with manual staging.
