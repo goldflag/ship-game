@@ -24,9 +24,7 @@ import { createSeaState, type SeaState } from './session/sea';
 import { updateWaterShadows } from './WaterShadows';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
-import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
-import { smaa } from 'three/addons/tsl/display/SMAANode.js';
-import { aircraftDetailScale, cloudTier, effectsDensity, frameIntervalMs, sanitizeGraphicsSettings, shadowMapSize, shipDetailBudgetPx, type GraphicsSettings } from './graphicsSettings';
+import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
 import { VisualWaveSampler } from './VisualWaveSampler';
 import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
 import { FrameScene } from './FrameScene';
@@ -77,6 +75,7 @@ import type { Rangefinder } from './Rangefinder';
 import type { RangeTarget } from './rangefinderSight';
 import { RangefindingController } from './controllers/RangefindingController';
 import { SpectatorController } from './controllers/SpectatorController';
+import { GraphicsController } from './controllers/GraphicsController';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
 import type { WakeShip } from './FleetWakeFoam';
@@ -290,13 +289,12 @@ export class Game {
   readonly launchedGraphics: { ocean: GraphicsSettings['ocean']; terrain: GraphicsSettings['terrain'] };
   private frameIntervalMs = 0;
   private detailBudgetPx = 1.25;
-  private cloudTask: Promise<void> = Promise.resolve();
 
   constructor(private host: HTMLElement, settings: GraphicsSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.settings = sanitizeGraphicsSettings(settings);
     this.launchedGraphics = { ocean: this.settings.ocean, terrain: this.settings.terrain };
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
-    this.applyDetailSettings();
+    this.graphicsControl.applyDetail();
     this.definition = definition;
     this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main';
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
@@ -368,7 +366,7 @@ export class Game {
     this.settings = sanitizeGraphicsSettings(this.settings);
     Object.assign(this.launchedGraphics, { ocean: this.settings.ocean, terrain: this.settings.terrain });
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
-    this.applyDetailSettings();
+    this.graphicsControl.applyDetail();
     this.callbacks.progress('Starting graphics', 0.08);
     this.resize();
     await this.renderer.init();
@@ -484,8 +482,8 @@ export class Game {
     const sunlight = this.water.lighting.sunLight;
     Object.assign(sunlight.shadow.camera, { left: -380, right: 380, top: 380, bottom: -380, near: 1, far: 1800 });
     sunlight.shadow.camera.updateProjectionMatrix();
-    this.applyShadows();
-    this.applyReflections();
+    this.graphicsControl.applyShadows();
+    this.graphicsControl.applyReflections();
     this.scene.add(sunlight.target);
     this.water.lighting.addSunSyncListener(() => this.environment.syncLighting());
 
@@ -514,7 +512,7 @@ export class Game {
     this.armorOverlay = new ArmorOverlay();
     const armorDisplay = renderOutput(this.armorOverlay.color, THREE.NoToneMapping, THREE.SRGBColorSpace);
     this.finalFrame = rtt(vec4(mix(sceneDisplay.rgb, armorDisplay.rgb, armorDisplay.a.mul(this.armorOverlay.enabled)), sceneDisplay.a));
-    this.buildPipeline();
+    this.graphicsControl.buildPipeline();
     await this.warmupRendering();
     this.callbacks.progress('Ready to get underway', 1);
     this.callbacks.ready();
@@ -1103,69 +1101,21 @@ export class Game {
 
   get graphics(): GraphicsSettings { return this.settings; }
 
-  /** Apply changed rows to the running scene. Ocean tier and terrain density are
-   * read when the port loads and when a battle's islands are built. */
-  applyGraphics(next: GraphicsSettings): void {
-    const previous = this.settings;
-    this.settings = sanitizeGraphicsSettings(next);
-    this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
-    this.applyDetailSettings();
-    if (previous.renderScale !== this.settings.renderScale) this.resizePending = true;
-    if (previous.antialiasing !== this.settings.antialiasing && this.finalFrame) this.buildPipeline();
-    if (previous.reflections !== this.settings.reflections) this.applyReflections();
-    if (previous.shadows !== this.settings.shadows) this.applyShadows();
-    if (previous.clouds !== this.settings.clouds) this.applyClouds();
-  }
-
-  private applyDetailSettings(): void {
-    this.detailBudgetPx = shipDetailBudgetPx(this.settings.modelDetail);
-    this.aircraftView.detailScale = aircraftDetailScale(this.settings.modelDetail);
-    const density = effectsDensity(this.settings.effects);
-    this.effects.setDensity(density);
-    this.funnelSmoke.density = density;
-  }
-
-  /** The display pass: the composited frame with the selected edge smoothing. */
-  private buildPipeline(): void {
-    this.pipeline?.dispose();
-    const frame = this.finalFrame!;
-    const output = this.settings.antialiasing === 'smaa' ? smaa(frame) : this.settings.antialiasing === 'fxaa' ? fxaa(frame) : frame;
-    this.pipeline = new THREE.RenderPipeline(this.renderer, output);
-    this.pipeline.outputColorTransform = false;
-  }
-
-  /** Screen-space reflections are a live uniform; the sky-only mirror stays on. */
-  private applyReflections(): void {
-    if (this.water) this.water.ssr.enabled = this.settings.reflections === 'scene';
-  }
-
-  private applyShadows(): void {
-    const sunlight = this.water?.lighting.sunLight;
-    if (!sunlight) return;
-    const size = shadowMapSize(this.settings.shadows);
-    // Retain an allocated map when switching Off: Three's cached capture
-    // programs still reference it. Zero intensity removes shadows and stopping
-    // updates removes caster passes, without disposing live shader resources.
-    sunlight.castShadow = size > 0 || !!sunlight.shadow.map;
-    sunlight.shadow.intensity = size > 0 ? 1 : 0;
-    sunlight.shadow.autoUpdate = size > 0;
-    if (!size) { sunlight.shadow.needsUpdate = false; return; }
-    sunlight.shadow.mapSize.set(size, size);
-    // Keep the receiver offset proportional to a shadow texel in world meters.
-    // A fixed 10 cm offset leaves diagonal self-shadow bands on broad hulls at
-    // Low's 1024px resolution; finer maps need proportionally less offset.
-    sunlight.shadow.normalBias = 0.75 * (sunlight.shadow.camera.right - sunlight.shadow.camera.left) / size;
-    sunlight.shadow.needsUpdate = true;
-  }
-
-  /** Cloud tiers change march budgets live; a coarser noise volume refills on the CPU once. */
-  private applyClouds(): void {
-    const sky = this.sky;
-    if (!sky) return;
-    const tier = cloudTier(this.settings.clouds);
-    this.cloudTask = this.cloudTask.then(() => sky.setQualityLevel(tier.level,
-      { godRaysEnabled: false, envMapWidth: tier.envMapWidth, envMapHeight: tier.envMapWidth / 2, envMapMarchSteps: tier.envMapMarchSteps }))
-      .catch(error => { if (!this.disposed) this.callbacks.error(error instanceof Error ? error.message : String(error)); });
+  applyGraphics(next: GraphicsSettings): void { this.graphicsControl.apply(next); }
+  private graphicsController?: GraphicsController;
+  /** Applies settings rows to the scene. Built on first use: the constructor already needs it. */
+  private get graphicsControl(): GraphicsController {
+    const game = this;
+    return this.graphicsController ??= new GraphicsController({
+      get settings() { return game.settings; }, set settings(value) { game.settings = value; },
+      get frameIntervalMs() { return game.frameIntervalMs; }, set frameIntervalMs(value) { game.frameIntervalMs = value; },
+      get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
+      get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
+      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get water() { return game.water; }, get sky() { return game.sky; },
+      get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
+      get disposed() { return game.disposed; },
+      requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),
+    });
   }
 
   private performanceReadout(): PerformanceReadout {
