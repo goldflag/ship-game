@@ -12,8 +12,8 @@ def create_mount(mount, col, helpers, materials):
     gray,steel,dark=(materials[k] for k in ['naval','edge','dark'])
     mesh0,cyl0,rod0,box0=(helpers[k] for k in ['mesh','cyl','rod','box'])
     def mesh(n,v,f,m):return mesh0(name+'.'+n,v,f,m,col)
-    def cyl(n,p,r,d,m,vertices=24,r2=None):return cyl0(name+'.'+n,p,r,d,m,col,vertices,r2)
-    def rod(n,a,b,r,m,vertices=10,r2=None):return rod0(name+'.'+n,a,b,r,m,col,r2,vertices)
+    def cyl(n,p,r,d,m,vertices=12,r2=None):return cyl0(name+'.'+n,p,r,d,m,col,vertices,r2)
+    def rod(n,a,b,r,m,vertices=8,r2=None):return rod0(name+'.'+n,a,b,r,m,col,r2,vertices)
     def box(n,p,d,m):return box0(name+'.'+n,p,d,m,col,.006)
     def put(o,parent):
         o.parent=parent;o.matrix_parent_inverse=Matrix.Identity(4);o['assemblyId']=name;return o
@@ -43,12 +43,12 @@ def create_mount(mount, col, helpers, materials):
     put(cyl('foot',(0,0,.025),spec['barbetteRadius'],.05,steel,vertices=8),root)
     for i in range(8):
         a=i*math.tau/8;put(cyl('holding-bolt',(.32*math.cos(a),.32*math.sin(a),.065),.023,.04,steel,vertices=6),root)
-    put(cyl('tapered-pedestal',(0,0,.4995),.264 if twin else .2535,.879,gray,32,r2=.13),root)
-    put(cyl('swivel-collar',(0,0,.90),.20,.17,steel,32),yaw)
-    put(cyl('training-neck',(0,0,1.005),.102,.078,gray,32),yaw)
-    put(box('saddle',(0,0,1.02),(.22,2*fork+.02,.04),gray),yaw)
+    put(cyl('tapered-pedestal',(0,0,.4995),.264 if twin else .2535,.879,gray,12,r2=.13),root)
+    put(cyl('swivel-collar',(0,0,.90),.20,.17,steel,12),yaw)
+    put(cyl('training-neck',(0,0,.96 if twin else 1.005),.102,.078,gray,12),yaw)
+    put(box('saddle',(0,0,.985 if twin else 1.02),(.22,2*fork+.02,.04),gray),yaw)
     for side in [-1,1]:
-        xz=[(-.27,1.13),(-.10,1.04),(.07,1.04),(.38,1.15),(.35,1.23),(.07,1.15),(-.10,1.15),(-.27,1.20)]
+        xz=[(-.27,1.13),(-.10,.985 if twin else 1.04),(.07,.985 if twin else 1.04),(.38,1.15),(.35,1.23),(.07,1.15),(-.10,1.15),(-.27,1.20)]
         vv=[(x,side*fork+dy,z+tier) for dy in [-.027,.027] for x,z in xz];n=len(xz)
         put(mesh('fork-cheek',vv,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)],gray),yaw)
         bearing_y=.24 if twin else .1005
@@ -69,8 +69,12 @@ def create_mount(mount, col, helpers, materials):
                 x=shield_x(z)
                 put(rod('shield-brace',(.07,side*fork,1.12+tier),(x-.015,side*y,z),.020,steel),yaw)
                 put(rod('shield-fastener',(x+.012,side*y,z),(x+.029,side*y,z),.018,steel,vertices=8),yaw)
-    put(box('shield-cross-tie',(.465,0,.9575+tier),(.028,1.56 if twin else 1.39,.022),gray),yaw)
-    wheel_center=Vector((-.02,-.27,.812) if twin else (-.112,-.2085,.812))
+    put(box('shield-cross-tie',(.465,0,.89 if twin else .9575+tier),(.028,1.56 if twin else 1.39,.022),gray),yaw)
+    if twin:
+        # Lower cross tie leaves the jacket sweep clear at full depression;
+        # short outboard ears retain its physical connection to both shields.
+        for side in [-1,1]:put(rod('cross-tie-ear',(.465,side*.72,.89),(.4725,side*.72,.97),.014,gray,vertices=6),yaw)
+    wheel_center=Vector((.12,-.27,.812) if twin else (-.112,-.2085,.812))
     wheel_u=Vector((1,0,0)) if twin else Vector((.866,-.5,0))
     wheel_axis=Vector((-wheel_u.y,wheel_u.x,0));wr=.195
     put(rod('height-adjust-shaft',wheel_center+wheel_axis*.14,wheel_center,.025,steel),yaw)
@@ -106,8 +110,8 @@ def create_mount(mount, col, helpers, materials):
                     (.72,tx+.029,tx-.245,H-.61,H-.59),
                     (1,tx-.022,tx-.227,H-.655,H-.625)]
             theta=math.radians(degrees)
-            for row in range(25):
-                t=row/24
+            for row in range(9):
+                t=row/8
                 upper=next((i for i in range(1,len(levels)) if levels[i][0]>=t),len(levels)-1)
                 lo,hi=levels[upper-1],levels[upper];f=(t-lo[0])/(hi[0]-lo[0])
                 xf,xb,zf,zb=[lo[i]+f*(hi[i]-lo[i]) for i in range(1,5)]
@@ -129,8 +133,8 @@ def create_mount(mount, col, helpers, materials):
                             x=min(x,-math.sqrt(max(0,(radius+.020)**2-y**2)))
                     result.append(Vector((x,y,z)))
             return result
-        faces=[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(24) for i in range(n)]
-        faces.append(tuple(reversed(range(24*n,25*n))))
+        faces=[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(8) for i in range(n)]
+        faces.append(tuple(reversed(range(8*n,9*n))))
         base=float(spec['elevationMinDeg']);angles=[float(a) for a in range(int(base)+5,int(spec['elevationMaxDeg'])+1,5)]
         if angles[-1]!=spec['elevationMaxDeg']:angles.append(float(spec['elevationMaxDeg']))
         bag=put(mesh('case-bag',points(base),faces,dark),yaw)
@@ -168,10 +172,21 @@ def create_mount(mount, col, helpers, materials):
         put(box('receiver',(.01,0,0),(.76,.11 if twin else .132,.12),steel),recoil)
         put(box('breech-cap',(-.42,0,.002),(.09,.13,.14),gray),recoil)
         jacket_end=1.0
-        put(rod('recoil-jacket',(.10,0,0),(jacket_end,0,0),.055,steel,vertices=20),recoil)
-        put(rod('barrel',(jacket_end,0,0),(length,0,0),.035,steel,vertices=20,r2=.022),recoil)
-        put(rod('muzzle-bore',(length,0,0),(length+.002,0,0),.010,dark,vertices=16),recoil)
-        for i in range(20):ring('spring-coil',(.10+i*.034,0,0),.053,.004,recoil,segments=12)
+        put(rod('recoil-jacket',(.10,0,0),(jacket_end,0,0),.055,steel,vertices=10),recoil)
+        put(rod('barrel',(jacket_end,0,0),(length,0,0),.035,steel,vertices=10,r2=.022),recoil)
+        put(rod('muzzle-bore',(length,0,0),(length+.002,0,0),.010,dark,vertices=10),recoil)
+        # One continuous spring, retaining all twenty turns without hundreds of
+        # capped cylinders and their invisible end faces.
+        turns=20;steps=turns*8;cross=4;vv=[];ff=[]
+        for i in range(steps+1):
+            a=i*math.tau/8
+            for j in range(cross):
+                b=j*math.tau/cross
+                r=.053+.004*math.cos(b)
+                vv.append((.10+i*.034/8+.004*math.sin(b),r*math.cos(a),r*math.sin(a)))
+        for i in range(steps):
+            for j in range(cross):ff.append((i*cross+j,i*cross+(j+1)%cross,(i+1)*cross+(j+1)%cross,(i+1)*cross+j))
+        put(mesh('recoil-spring',vv,ff,steel),recoil)
         # Narrow twin drums lean outboard; both barrel/recoil chains remain independent.
         center=Vector((.11,sign*.112,.194 if twin else .1855))
         drum_tilt=0 if twin else math.radians(4.5)

@@ -9,13 +9,13 @@ def create_mount(m,col,helpers,mats):
  def own(o,p):o.parent=p;o['assemblyId']=name;return o
  def cube(label,loc,size,p,mat=gray):return own(box(name+'.'+label,loc,size,mat,col),p)
  def bar(label,a,b,r,p,mat=steel,n=16,r2=None):return own(rod(name+'.'+label,a,b,r,mat,col,r2,n),p)
- def drum(label,loc,r,h,p,mat=gray,n=48):return own(cyl(name+'.'+label,loc,r,h,mat,col,n),p)
+ def drum(label,loc,r,h,p,mat=gray,n=32):return own(cyl(name+'.'+label,loc,r,h,mat,col,n),p)
  a,z,c=m['position'];base=empty('base',loc=(-c,-a,z));yaw=empty('yaw',base);yaw.rotation_euler.z=-math.radians(m['bearingDeg'])
  drum('fixed-seat',(0,0,.34),1.23,.68,base)
  drum('roller-band',(0,0,.70),1.25,.08,yaw,steel)
  # Curved armor has thickness and an open vertical gun slot.
- for i in range(44):
-  a0=math.radians(18+i*324/44);a1=math.radians(18+(i+1)*324/44)
+ for i in range(32):
+  a0=math.radians(18+i*324/32);a1=math.radians(18+(i+1)*324/32)
   vs=[(r*math.cos(a),r*math.sin(a),zz) for zz in [.74,2.62] for r in [1.18,1.24] for a in [a0,a1]]
   own(mesh(name+'.curved-shield',vs,[(0,1,3,2),(4,6,7,5),(0,4,5,1),(2,3,7,6),(0,2,6,4),(1,5,7,3)],gray,col),yaw)
  drum('roof',(0,0,2.64),1.27,.055,yaw)
@@ -33,11 +33,11 @@ def create_mount(m,col,helpers,mats):
  bar('lever',(-1.15,.26,.08),(-1.02,.44,-.23),.035,rec)
  for y in [-.26,.26]:bar('recoil-cylinder',(-.6,y,.29),(1.0,y,.29),.105,elev)
  for x0,x1,r0,r1 in [(0,1.65,.25,.22),(1.65,3.25,.22,.17),(3.25,L,.17,.125)]:
-  bar('barrel',(x0,0,0),(x1,0,0),r0,rec,n=24,r2=r1)
- bar('bore',(L-.004,0,0),(L+.004,0,0),.0762,rec,dark,n=24)
+  bar('barrel',(x0,0,0),(x1,0,0),r0,rec,n=16,r2=r1)
+ bar('bore',(L-.004,0,0),(L+.004,0,0),.0762,rec,dark,n=16)
  # The approved view shows a full-height curtain over the shield slot.
  # Its perimeter stays on the rotating shield; only the barrel collar pitches.
- rings,sectors=12,40
+ rings,sectors=9,24
  collar_x,collar_radius=1.65,.255
  def cover_points(degrees):
   theta=math.radians(degrees);c,s=math.cos(theta),math.sin(theta);points=[]

@@ -6,6 +6,7 @@ are editable catalog inputs. Installation supports belong to the ship recipe.
 import bpy, math
 from mathutils import Matrix
 from blender_barrels import barrel_layout
+from gun_bloomers import create_bloomer
 
 class MountBuilder:
     def __init__(self,mount,col,h,m):
@@ -17,22 +18,23 @@ class MountBuilder:
     def put(self,o,parent=None):
         o.parent=parent or self.yaw;o.matrix_parent_inverse=Matrix.Identity(4);o['assemblyId']=self.name;return o
     def box(self,n,p,s,m='naval',parent=None):return self.put(self.h['box'](self.name+'.'+n,p,s,self.m.get(m,self.m['naval']),self.col),parent)
-    def cyl(self,n,p,r,d,m='naval',parent=None,r2=None):return self.put(self.h['cyl'](self.name+'.'+n,p,r,d,self.m.get(m,self.m['naval']),self.col,32,r2),parent)
-    def rod(self,n,a,b,r,m='naval',parent=None,r2=None):return self.put(self.h['rod'](self.name+'.'+n,a,b,r,self.m.get(m,self.m['naval']),self.col,r2=r2,vertices=12),parent)
+    def cyl(self,n,p,r,d,m='naval',parent=None,r2=None):return self.put(self.h['cyl'](self.name+'.'+n,p,r,d,self.m.get(m,self.m['naval']),self.col,20,r2),parent)
+    def rod(self,n,a,b,r,m='naval',parent=None,r2=None):return self.put(self.h['rod'](self.name+'.'+n,a,b,r,self.m.get(m,self.m['naval']),self.col,r2=r2,vertices=8),parent)
     def mesh(self,n,v,f,m='naval',parent=None):return self.put(self.h['mesh'](self.name+'.'+n,v,f,self.m.get(m,self.m['naval']),self.col),parent)
     def plate(self,n,profile,y0,y1,m='naval',parent=None):
         k=len(profile);return self.mesh(n,[(x,y,z) for y in [y0,y1] for x,z in profile],[tuple(reversed(range(k))),tuple(range(k,2*k))]+[(i,(i+1)%k,(i+1)%k+k,i+k) for i in range(k)],m,parent)
     def ring(self,n,p,r,axis='y',parent=None,wire=.012):
-        x,y,z=p;pts=[(x+r*math.cos(i*math.tau/24),y,z+r*math.sin(i*math.tau/24)) if axis=='y' else (x,y+r*math.cos(i*math.tau/24),z+r*math.sin(i*math.tau/24)) for i in range(24)]
+        x,y,z=p;pts=[(x+r*math.cos(i*math.tau/12),y,z+r*math.sin(i*math.tau/12)) if axis=='y' else (x,y+r*math.cos(i*math.tau/12),z+r*math.sin(i*math.tau/12)) for i in range(12)]
         for a,b in zip(pts,pts[1:]+pts[:1]):self.rod(n,a,b,wire,'edge',parent)
         return pts
     def wheel(self,n,p,r,parent=None):
         pts=self.ring(n,p,r,parent=parent)
-        for i in [0,8,16]:self.rod(n+' spoke',p,pts[i],.012,'edge',parent)
+        for i in [0,4,8]:self.rod(n+' spoke',p,pts[i],.012,'edge',parent)
         self.rod(n+' crank',pts[0],(pts[0][0],pts[0][1]+.09,pts[0][2]),.017,'edge',parent)
     def barrel(self,n,length,root,tip,bore,parent,start=.3):
-        rings=[(start,root),(start+.18,root),(start+.22,root*.8),(length*.52,tip*1.25),(length-.05,tip),(length,tip),(length,bore),(length-.15,bore)]
-        k=24;v=[(x,r*math.cos(i*math.tau/k),r*math.sin(i*math.tau/k)) for x,r in rings for i in range(k)]
+        sleeve_end=2.10 if bore>.08 else start+.18
+        rings=[(start,root),(sleeve_end,root),(sleeve_end+.04,root*.8),(length*.52,tip*1.25),(length-.05,tip),(length,tip),(length,bore),(length-.15,bore)]
+        k=16 if bore>.08 else 12;v=[(x,r*math.cos(i*math.tau/k),r*math.sin(i*math.tau/k)) for x,r in rings for i in range(k)]
         self.mesh(n,v,[(j*k+i,j*k+(i+1)%k,(j+1)*k+(i+1)%k,(j+1)*k+i) for j in range(len(rings)-1) for i in range(k)],'edge',parent)
         self.rod(n+' bore shadow',(length-.155,0,0),(length-.15,0,0),bore*.98,'dark',parent)
     def gun_joints(self,side,y):
@@ -50,10 +52,6 @@ def create_main(mount,col,helpers,materials):
     for p,f in zip(o.data.polygons,shape['faces']):p.material_index=int(f['finish']=='roof')
     for side,y,_ in barrel_layout(s):
         e,r=b.gun_joints(side,y);length=s['muzzleForward']-s['trunnionForward']
-        # Flexible canvas bellows joins the sloped face to the sliding barrel.
-        k=24;rings=[(-.10,.73),(.28,.68),(.65,.55),(1.02,.37),(1.4,.265)]
-        v=[(x,rad*math.cos(i*math.tau/k),rad*math.sin(i*math.tau/k)) for x,rad in rings for i in range(k)]
-        b.mesh(side+' canvas boot',v,[(j*k+i,j*k+(i+1)%k,(j+1)*k+(i+1)%k,(j+1)*k+i) for j in range(4) for i in range(k)],'canvas',e)
         b.barrel(side+' stepped barrel',length,.265,.139,.1015,r,start=.46)
         b.rod(side+' breech',(-1.2,0,0),(.46,0,0),.28,parent=r)
     for y in [-2.62,2.62]:
@@ -62,14 +60,21 @@ def create_main(mount,col,helpers,materials):
         b.cyl('roof ventilator',(-1.3,y*.78,2.72),.15,.25,'edge')
         # Front sight flap follows the sloped face.
         o=b.box('front sight flap',(2.16,y,1.15),(.07,.63,.39),'edge');o.rotation_euler.y=-.34
-        for z in [.42,.7,.98,1.26,1.54,1.82,2.1]:b.rod('side ladder rung',(-3.55,y/abs(y)*(3.36-max(0,z-1.68)*.49),z),(-3.18,y/abs(y)*(3.36-max(0,z-1.68)*.49),z),.025,'edge')
+        for z in [.42,.7,.98,1.26,1.54,1.82,2.1]:b.rod('side ladder rung',(-3.55,y/abs(y)*(3.34-max(0,z-1.68)*.49),z),(-3.18,y/abs(y)*(3.34-max(0,z-1.68)*.49),z),.025,'edge')
         for z in [.64,1.39]:
             b.rod('rear handrail',(-5.45,y-.30,z),(-5.45,y+.30,z),.023,'edge')
     if s['id']=='skc34-203-twin-rf':
         for sign in [-1,1]:
-            b.box('rangefinder armored wing',(-3.45,sign*3.56,2.72),(1.45,.92,1.18))
+            b.plate('rangefinder armored wing',[(-4.17,2.24),(-4.17,3.20),(-4.04,3.31),(-2.72,3.31),(-2.72,2.24),(-2.90,2.13)],*sorted([sign*2.85,sign*4.02]))
             b.rod('optical lens',(-2.71,sign*3.65,2.72),(-2.66,sign*3.65,2.72),.22,'dark')
             b.box('lens brow',(-2.62,sign*3.65,2.97),(.22,.57,.10),'edge')
+    for side,y,_ in barrel_layout(s):
+        seam=[]
+        for i in range(20):
+            a=i*math.tau/20;z=1.38+.99*math.sin(a)
+            x=2.6-.58*(z-.06)/1.62 if z<=1.68 else 2.02-.57*(z-1.68)/.96
+            seam.append((x+.022,y+.48*math.cos(a),z))
+        create_bloomer(mount,col,helpers,materials,side,seam,s['trunnionForward']+1.50,.267,rings=5,fold_depth=.025,slack=.045)
     return b.finish()
 
 
@@ -90,14 +95,21 @@ def create_secondary(mount,col,helpers,materials):
         b.plate('forward shield cheek',[(2.32,.58),(1.98,1.48),(1.96,1.48),(2.29,.58)],sign*.97,sign*1.42)
         for x in [-1.65,-.6,1.0]:b.rod('shield bracket',(x,sign*.72,.61),(x,sign*1.40,1.47-.12*x),.037)
         b.box('shield service cover',(.10,sign*1.455,1.16),(.60,.035,.35),'edge')
-        for x in [-.12,.32]:
-            for z in [1.05,1.27]:b.rod('cover bolt',(x,sign*1.47,z),(x,sign*1.49,z),.018,'edge')
         b.box('rear crew foot grate',(-2.25,sign*1.27,.60),(.62,.43,.055),'edge')
         b.rod('rear foot grate bearer',(-1.85,sign*1.27,.58),(-2.56,sign*1.27,.58),.042)
         b.cyl('crew seat',(-1.55,sign*1.15,1.09),.22,.10,'roof');b.rod('seat stem',(-1.55,sign*1.15,.63),(-1.55,sign*1.15,1.04),.049)
         b.wheel('elevation handwheel',(-.30,sign*1.70,1.10),.18)
         b.rod('control shaft',(-.3,sign*.65,1.10),(-.3,sign*1.70,1.10),.041)
         b.box('trunnion bearing',(s['trunnionForward'],sign*.94,s['pivotHeight']-.16),(.63,.34,.66))
+    # Sloped front armor connects the cheeks; slots leave both cradles free.
+    half=s['barrelSpacing']/2;slot=.19
+    for lo,hi in [(-1.42,-half-slot),(-half+slot,half-slot),(half+slot,1.42)]:
+        b.plate('front shield web',[(2.32,.58),(1.98,1.48),(1.945,1.48),(2.285,.58)],lo,hi)
+    b.plate('continuous front sill',[(2.32,.58),(2.11,1.18),(2.075,1.18),(2.285,.58)],-1.42,1.42)
+    b.plate('front central housing',[(2.38,.58),(2.38,1.23),(2.17,1.45),(2.09,1.20),(2.09,.58)],-.23,.23)
+    for sign in [-1,1]:
+        b.cyl('front sight housing',(1.92,sign*1.10,1.56),.145,.30)
+        b.cyl('front sight cap',(1.92,sign*1.10,1.73),.18,.065,'edge')
     for side,y,_ in barrel_layout(s):
         e,r=b.gun_joints(side,y);length=s['muzzleForward']-s['trunnionForward']
         b.plate(side+' cradle',[(-1.25,-.12),(-.65,-.32),(.66,-.32),(.74,.05),(.45,.28),(-1.25,.28)],-.28,.28,parent=e)
@@ -116,6 +128,7 @@ def create_secondary(mount,col,helpers,materials):
                 a=i*math.pi/12;verts.append((xx,.30*math.cos(a),.12+crown*math.sin(a)))
         hood=b.mesh(side+' rounded receiver hood',verts,[(j*13+i,j*13+i+1,(j+1)*13+i+1,(j+1)*13+i) for j in range(3) for i in range(12)],parent=e)
         mod=hood.modifiers.new('Hood thickness','SOLIDIFY');mod.thickness=.018
+        b.mesh(side+' receiver hood front',[(.555,yy,zz) for yy,zz in [(-.30,.12),(-.30,.28),(-.21,.42),(0,.52),(.21,.42),(.30,.28),(.30,.12)]],[tuple(range(7))],parent=e)
         for xx in [-.65,-.35,-.05]:b.box(side+' loading rail',(xx,0,.44),(.08,.43,.04),'edge',e)
     return b.finish()
 
@@ -180,8 +193,8 @@ def create_light(mount,col,helpers,materials):
         for zz,cx,w,yy in [rows[0],rows[2]]:
             b.rod('case frame support',(tr,.18,z),(cx+w,yy,zz),.022)
         for j,((zz,cx,w,yy),(vz,ux,q,vy)) in enumerate(zip(rows,rows[1:])):
-            for t in [i/12 for i in range(13)]:b.rod('case net warp',(cx-w+2*w*t,yy,zz),(ux-q+2*q*t,vy,vz),.006,'edge')
-            for t in [i/6 for i in range(6)]:
+            for t in [i/4 for i in range(5)]:b.rod('case net warp',(cx-w+2*w*t,yy,zz),(ux-q+2*q*t,vy,vz),.006,'edge')
+            for t in [i/2 for i in range(2)]:
                 xx,hh,ww,lat=cx+(ux-cx)*t,zz+(vz-zz)*t,w+(q-w)*t,yy+(vy-yy)*t
                 b.rod('case net weft',(xx-ww,lat,hh),(xx+ww,lat,hh),.006,'edge')
             for sign in [-1,1]:b.rod('case net seam',(cx+sign*w,yy,zz),(ux+sign*q,vy,vz),.012,'dark')

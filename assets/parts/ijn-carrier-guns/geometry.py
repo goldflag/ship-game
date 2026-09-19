@@ -21,18 +21,18 @@ def create_mount(mount,col,helpers,mats):
         o.parent=parent;o['assemblyId']=name;return o
     def cube(label,loc,size,parent,mat=gray):return attach(box(name+'.'+label,loc,size,mat,col),parent)
     def bar(label,a,b,r,parent,mat=steel,vertices=10):return attach(rod(name+'.'+label,a,b,r,mat,col,vertices=vertices),parent)
-    def drum(label,loc,r,h,parent,mat=gray,vertices=24):return attach(cyl(name+'.'+label,loc,r,h,mat,col,vertices),parent)
+    def drum(label,loc,r,h,parent,mat=gray,vertices=12):return attach(cyl(name+'.'+label,loc,r,h,mat,col,vertices),parent)
     def ring(label,center,r,parent,axis='y',tube=.018):
         x,y,z=center
         def point(a):
             if axis=='x':return (x,y+r*math.cos(a),z+r*math.sin(a))
             return (x+r*math.cos(a),y,z+r*math.sin(a)) if axis=='y' else (x+r*math.cos(a),y+r*math.sin(a),z)
-        for i in range(20):bar(label,point(i*math.tau/20),point((i+1)*math.tau/20),tube,parent,vertices=6)
+        for i in range(12):bar(label,point(i*math.tau/12),point((i+1)*math.tau/12),tube,parent,vertices=6)
         for i in range(4):bar(label+'-spoke',center,point(i*math.pi/2),tube*.65,parent,vertices=6)
     a,b,c=mount['position'];root=empty('base',loc=(-c,-a,b));yaw=empty('yaw',root)
     yaw.rotation_euler.z=-math.radians(mount['bearingDeg'])
-    drum('foundation',(0,0,.075),spec['barbetteRadius'],.15,root,steel,48)
-    drum('roller-path',(0,0,.205),spec['barbetteRadius']*.84,.18,yaw,steel,48)
+    drum('foundation',(0,0,.075),spec['barbetteRadius'],.15,root,steel,24)
+    drum('roller-path',(0,0,.205),spec['barbetteRadius']*.84,.18,yaw,steel,24)
     # Roller bolts belong to the fixed seat; rotating floor is physically seated.
     for i in range(24 if heavy else 16):
         t=i*math.tau/(24 if heavy else 16);r=spec['barbetteRadius']*.92
@@ -44,9 +44,9 @@ def create_mount(mount,col,helpers,mats):
     cube('cross-saddle',(T*.35,0,.42 if heavy else .35),(.95 if heavy else .55,W*.68,.26 if heavy else .16),yaw)
     for sign in [-1,1]:
         y=sign*(1.27 if heavy else .8)
-        bar('fork-leg',(T*.35,y,.42 if heavy else .35),(T,y,H*.65),.115 if heavy else .075,yaw,gray,20)
+        bar('fork-leg',(T*.35,y,.42 if heavy else .35),(T,y,H*.65),.115 if heavy else .075,yaw,gray,12)
         cube('bearing-cheek',(T,y,H*.78),(.8 if heavy else .48,.19,H*.53),yaw)
-        bar('trunnion-cap',(T,y-.13,H),(T,y+.13,H),.24 if heavy else .14,yaw,vertices=24)
+        bar('trunnion-cap',(T,y-.13,H),(T,y+.13,H),.24 if heavy else .14,yaw,vertices=12)
         # Training/elevation operator's seats, shafts and handwheels.
         sy=sign*(1.48 if heavy else 1.04)
         bar('seat-floor-arm',(0,0,.26),(-.85,sy,.26),.045,yaw,gray)
@@ -66,11 +66,11 @@ def create_mount(mount,col,helpers,mats):
     intervals=[(-W*.36,W*.36)]
     for _,lateral,_ in barrel_layout(spec):
         intervals=[v for a,b in intervals for v in [(a,min(b,lateral-gap)),(max(a,lateral+gap),b)] if v[1]>v[0]]
-    for a,b in intervals:bar('fixed-trunnion-shaft',(T,a,H),(T,b,H),.15 if heavy else .085,yaw,vertices=24)
+    for a,b in intervals:bar('fixed-trunnion-shaft',(T,a,H),(T,b,H),.15 if heavy else .085,yaw,vertices=12)
     if heavy:
         # Hydraulic power unit and training gearbox sit on the rotating floor.
         cube('power-gearbox',(1.05,1.45,.49),(.65,.58,.42),yaw)
-        bar('training-motor',(.5,1.45,.62),(1.05,1.45,.62),.21,yaw,vertices=20)
+        bar('training-motor',(.5,1.45,.62),(1.05,1.45,.62),.21,yaw,vertices=12)
         bar('power-unit-seat',(.2,.6,.4),(1.05,1.45,.4),.10,yaw,gray)
         cube('fuze-setting-cabinet',(T+.2,1.53,H*.57),(.55,.38,.45),yaw)
         for y in [1.36,1.42]:
@@ -84,24 +84,24 @@ def create_mount(mount,col,helpers,mats):
         length=spec['muzzleForward']-T;radius=spec['barrelBaseRadius']
         empty(side+'.muzzle',recoil,(length,0,0))
         seat=.24 if heavy else .16
-        bar('elevating-bearing',(0,-seat,0),(0,seat,0),radius*1.65,elevation,vertices=24)
+        bar('elevating-bearing',(0,-seat,0),(0,seat,0),radius*1.65,elevation,vertices=12)
         cube('cradle-slide',(-.16,0,-.12 if heavy else -.06),(1.25 if heavy else .75,.37 if heavy else .14,.19 if heavy else .1),elevation)
         # Type 89's 5.284 m complete gun and 5.080 m bore include the chamber;
         # the original overlong breech block incorrectly enlarged the gun.
         cube('breech-ring',(-.44 if heavy else -.33,0,0),(.528 if heavy else .64,.40 if heavy else .15,.38 if heavy else .18),recoil,steel)
         cube('sliding-breech-block',(-.665 if heavy else -.55,0,.035),(.078 if heavy else .12,.45 if heavy else .17,.31 if heavy else .16),recoil)
         if heavy:
-            bar('breech-neck',(-.30,0,0),(.08,0,0),radius*1.12,recoil,steel,24)
+            bar('breech-neck',(-.30,0,0),(.08,0,0),radius*1.12,recoil,steel,12)
             bar('breech-operating-lever',(-.55,.22,.03),(-.68,.33,-.17),.024,recoil)
         else:bar('charging-handle',(-.43,.075,.02),(-.51,.16,.04),.013,recoil)
         for i,(start,end,scale0,scale1) in enumerate([(0,.32,1.0,.95),(.32,.66,.94,.8),(.66,1,.70,.60)]):
-            attach(rod(name+'.barrel-'+str(i),(length*start,0,0),(length*end,0,0),radius*scale0,steel,col,vertices=20,r2=radius*scale1),recoil)
-        bar('muzzle-bore',(length-.025,0,0),(length+.002,0,0),spec['caliberM']/2,recoil,dark,24)
+            attach(rod(name+'.barrel-'+str(i),(length*start,0,0),(length*end,0,0),radius*scale0,steel,col,vertices=12,r2=radius*scale1),recoil)
+        bar('muzzle-bore',(length-.025,0,0),(length+.002,0,0),spec['caliberM']/2,recoil,dark,12)
         if heavy:
             # USNTMJ O-47(N)-1, enclosure G: paired upper cylinders, side
             # loader footholds, and a tray for the 0.971 m fixed round.
             for sy in [-.20,.20]:
-                bar('upper-recoil-cylinder',(-.58,sy,.36),(1.55,sy,.36),.095,elevation,gray,20)
+                bar('upper-recoil-cylinder',(-.58,sy,.36),(1.55,sy,.36),.095,elevation,gray,12)
                 bar('recoil-piston',(1.2,sy,.36),(1.82,sy,.36),.045,recoil,steel,16)
                 for xx in [-.3,.7]:bar('cylinder-saddle',(xx,sy,.10),(xx,sy,.36),.055,elevation,gray)
             cube('loading-tray',(-1.24,0,-.20),(.971,.43,.07),elevation)
@@ -124,14 +124,35 @@ def create_mount(mount,col,helpers,mats):
             bar('gas-cylinder',(-.27,0,-.095),(.61,0,-.095),.032,elevation,gray,12)
             for n in range(12):
                 x=.15+n*.039
-                o=cyl(name+'.barrel-cooling-ring',(x,0,0),radius*1.12,.017,steel,col,16);o.rotation_euler.y=math.pi/2;attach(o,recoil)
-            attach(rod(name+'.conical-flash-hider',(length-.10,0,0),(length,0,0),.036,steel,col,vertices=20,r2=.057),recoil)
+                o=cyl(name+'.barrel-cooling-ring',(x,0,0),radius*1.12,.017,steel,col,8);o.rotation_euler.y=math.pi/2;attach(o,recoil)
+            attach(rod(name+'.conical-flash-hider',(length-.10,0,0),(length,0,0),.036,steel,col,vertices=12,r2=.057),recoil)
         # The sight bracket is seated on the elevating slide, so it follows the bore.
         if heavy or side=='center':
             sy=.32 if heavy else .18
             bar('sight-bracket',(-.1,0,-.04),(-.1,sy,.43 if heavy else .3),.025 if heavy else .016,elevation)
             bar('sight-telescope',(-.24,sy,.43 if heavy else .3),(.18,sy,.43 if heavy else .3),.055 if heavy else .032,elevation,steel)
             if not heavy:ring('ring-sight',(.18,sy,.30),.12,elevation,axis='x',tube=.009)
+    if heavy and not shielded:
+        # The open A1 still carries an operator's curved splinter screen and
+        # the flanking machinery cabinets seen in the approved source. These
+        # are distinct from the enclosing Mod 2 gas hood.
+        vs=[];faces=[]
+        for yy in [1.15,1.68]:
+            for j in range(9):
+                angle=math.radians(15+j*150/8)
+                vs.append((-.60-1.05*math.cos(angle),yy,2.13+1.08*math.sin(angle)))
+        for j in range(8):faces.append((j,j+1,j+10,j+9))
+        panel=attach(mesh(name+'.operator-curved-screen',vs,faces,gray,col),yaw)
+        solid=panel.modifiers.new('Operator shield plate','SOLIDIFY');solid.thickness=.035
+        for yy in [1.15,1.68]:
+            bar('screen-support',(-1.58,yy,.54),(-1.58,yy,2.42),.045,yaw,gray,8)
+        for sy in [-1,1]:
+            yy=sy*1.37
+            cube('side-machinery-cabinet',(-.03,yy,.91),(1.23,.58,1.04),yaw)
+            cube('cabinet-seat',(-.03,yy,.36),(1.36,.69,.12),yaw,steel)
+            for zz in [.69,.98,1.27]:
+                cube('cabinet-access-panel',(.60,yy,zz),(.035,.46,.24),yaw)
+                bar('cabinet-pull',(.625,yy-.09,zz),(.625,yy+.09,zz),.017,yaw,steel,6)
     if shielded:
         # Gas protection uses the carrier hood, not the much heavier Yamato shield.
         # Curved roof and vertical lower skirt are open at the two gun slots.
@@ -157,6 +178,14 @@ def create_mount(mount,col,helpers,mats):
                 if lo==split and any(s0<(a+b)/2<s1 for s0,s1 in slots):continue
                 quad([(lo,a,height_at(a)),(hi,a,height_at(a)),(hi,b,height_at(b)),(lo,b,height_at(b))])
         for y in [-width/2,width/2]:quad([(x0,y,.35),(x1,y,.35),(x1,y,height*.53),(x0,y,height*.53)])
+        # Close the forward enclosure except its two/three narrow tracks.
+        # The previous broad opening exposed most of the mount through what
+        # the reference shows as a continuous protective face.
+        for a,b in zip(ys,ys[1:]):
+            inside=any(s0<(a+b)/2<s1 for s0,s1 in slots)
+            top=min(H-.24 if heavy else H-.13,height_at(a),height_at(b)) if inside else min(height_at(a),height_at(b))
+            quad([(x1,a,.35),(x1,b,.35),(x1,b,top),(x1,a,top)])
+
         n=len(verts);verts.extend((x0,y,z) for y,z in sections);faces.append(tuple(range(n,n+len(sections))))
         o=attach(mesh(name+'.curved-gas-hood',verts,faces,gray,col),yaw)
         solid=o.modifiers.new('Physical shield thickness','SOLIDIFY');solid.thickness=.035 if heavy else .02

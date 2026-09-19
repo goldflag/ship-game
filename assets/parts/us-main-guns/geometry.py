@@ -8,6 +8,7 @@ import math
 import bpy
 from mathutils import Vector
 from aa_articulation import articulate_aa
+from gun_bloomers import create_bloomer
 
 NEUTRAL = math.radians(1)
 
@@ -15,7 +16,7 @@ NEUTRAL = math.radians(1)
 def _tools(collection, helpers, materials, n):
     mesh, rod = helpers['mesh'], helpers['rod']
 
-    def lathe(name, pivot, profile, material, bore_from=None, sides=32):
+    def lathe(name, pivot, profile, material, bore_from=None, sides=16):
         """Turned profile along the bore axis, posed at the neutral elevation."""
         vv = [(x - pivot[0], r * math.cos(i * math.tau / sides), r * math.sin(i * math.tau / sides))
               for x, r in profile for i in range(sides)]
@@ -31,30 +32,6 @@ def _tools(collection, helpers, materials, n):
         ob.location = pivot
         ob.rotation_euler.y = -NEUTRAL
         return ob
-
-    def bag(name, pivot, lateral, face_x, centre_z, half_y, half_z, collar_x, collar_r, sag, pleats=7, sides=40, rings=9):
-        """Canvas blast bag: seated on the sloped face, closing on the barrel collar."""
-        c, s = math.cos(NEUTRAL), math.sin(NEUTRAL)
-        vv = []
-        for j in range(rings):
-            t = j / (rings - 1)
-            for i in range(sides):
-                a = i * math.tau / sides
-                ca, sa = math.cos(a), math.sin(a)
-                z0 = centre_z + half_z * math.copysign(abs(sa) ** .72, sa)
-                y0 = half_y * math.copysign(abs(ca) ** .70, ca)
-                start = Vector((face_x(z0) - .035, lateral + y0, z0))
-                along = collar_x - pivot[0]
-                up = collar_r * sa
-                end = Vector((pivot[0] + along * c - up * s, lateral + collar_r * ca, pivot[2] + along * s + up * c))
-                p = start.lerp(end, t)
-                fold = math.sin(math.pi * t) * (.045 * math.sin(a * pleats + t * 3)) * (half_y / 1.035)
-                p.y += fold * ca
-                p.z += fold * sa - sag * math.sin(math.pi * t)
-                vv.append(tuple(p))
-        ff = [(j * sides + i, j * sides + (i + 1) % sides, (j + 1) * sides + (i + 1) % sides, (j + 1) * sides + i)
-              for j in range(rings - 1) for i in range(sides)]
-        return mesh(n + name, vv, ff, materials['canvas'], collection, True)
 
     def ladder(name, a, b, width, axis, material, step=.30):
         a, b = Vector(a), Vector(b)
@@ -84,20 +61,7 @@ def _tools(collection, helpers, materials, n):
             b0 = edge_y(sill) if b is None else b
             b1 = edge_y(head) if b is None else b
             quad(a0, b0, sill, a1, b1, head)
-        # Slack canvas pocket behind each port: an elevated gun never reveals the interior.
-        for y in centers:
-            d = .45
-            mesh(n + name + '.port.liner', [(face_x(sill) - d, y - half - .2, sill - .15), (face_x(sill) - d, y + half + .2, sill - .15),
-                                           (face_x(head) - d, y + half + .2, head + .05), (face_x(head) - d, y - half - .2, head + .05)],
-                 [(0, 1, 2, 3)], materials['canvas'], collection)
-            for sign in [-1, 1]:
-                yy = y + sign * half
-                vs = [(face_x(sill), yy, sill), (face_x(sill) - d, yy, sill), (face_x(head) - d, yy, head), (face_x(head), yy, head)]
-                mesh(n + name + '.port.cheek', vs, [(0, 1, 2, 3) if sign < 0 else (3, 2, 1, 0)], materials['canvas'], collection)
-            for z, order in [(sill, (0, 1, 2, 3)), (head, (3, 2, 1, 0))]:
-                vs = [(face_x(z), y - half, z), (face_x(z), y + half, z), (face_x(z) - d, y + half, z), (face_x(z) - d, y - half, z)]
-                mesh(n + name + '.port.lip', vs, [order], materials['canvas'], collection)
-    return lathe, bag, ladder, face_panels
+    return lathe, ladder, face_panels
 
 
 def create_iowa_main(mount, collection, helpers, materials):
@@ -107,13 +71,13 @@ def create_iowa_main(mount, collection, helpers, materials):
     n = mount['id']
     naval, dark, edge = (materials[k] for k in ['naval', 'dark', 'edge'])
     roof = materials.get('roof', naval)
-    lathe, bag, ladder, face_panels = _tools(collection, helpers, materials, n)
+    lathe, ladder, face_panels = _tools(collection, helpers, materials, n)
     before = set(bpy.context.scene.objects)
     spacing = spec['barrelSpacing']
     centers = [spacing, 0, -spacing]
 
     # Rotating bearing ring mates with the ship's fixed barbette at the datum.
-    cyl(n + '.roller', (0, 0, .09), spec['barbetteRadius'], .18, edge, collection, 64)
+    cyl(n + '.roller', (0, 0, .09), spec['barbetteRadius'], .18, edge, collection, 32)
 
     # Armoured envelope: long tapered house, undercut rear overhang, sloped face.
     V = [(-9.46, 0, .699), (-9.38, -1.425, .679), (-8.915, -5.195, .582), (-6.97, -5.57, .161), (.62, -6.7, .161),
@@ -137,18 +101,15 @@ def create_iowa_main(mount, collection, helpers, materials):
                 rod(n + '.face.ladder.shoe', (face_x(z) - .01, y + dy, z), (face_x(z) + .075, y + dy, z), .022, naval, collection, vertices=6)
 
     # Aft rangefinder ears emerge from the tapered sides with flanges and optics.
-    rod(n + '.rangefinder.tube', (-6.82, -7.38, 2.48), (-6.82, 7.38, 2.48), .22, naval, collection, vertices=16)
+    rod(n + '.rangefinder.tube', (-6.82, -6.92, 2.48), (-6.82, 6.92, 2.48), .22, naval, collection, vertices=16)
     for sign in [-1, 1]:
-        box(n + '.rangefinder.hood', (-6.82, sign * 6.59, 2.46), (1.75, 2.35, 1.20), naval, collection)
+        box(n + '.rangefinder.hood', (-6.82, sign * 6.03, 2.46), (1.40, 1.98, .90), naval, collection)
         box(n + '.rangefinder.flange', (-6.82, sign * 5.48, 2.44), (2.05, .14, 1.46), naval, collection)
-        box(n + '.rangefinder.window.frame', (-5.929, sign * 7.26, 2.47), (.075, .49, 1.03), edge, collection)
-        box(n + '.rangefinder.glass', (-5.884, sign * 7.26, 2.47), (.025, .34, .88), dark, collection)
-        path = [(-6.82 + .72 * math.cos(i * math.tau / 24), sign * 7.78, 2.46 + .43 * math.sin(i * math.tau / 24)) for i in range(24)]
+        box(n + '.rangefinder.window.frame', (-6.109, sign * 6.89, 2.47), (.075, .49, 1.03), edge, collection)
+        box(n + '.rangefinder.glass', (-6.064, sign * 6.89, 2.47), (.025, .34, .88), dark, collection)
+        path = [(-6.82 + .72 * math.cos(i * math.tau / 24), sign * 7.045, 2.46 + .43 * math.sin(i * math.tau / 24)) for i in range(24)]
         for a, b in zip(path, path[1:] + path[:1]):
             rod(n + '.rangefinder.cover.rim', a, b, .023, naval, collection, vertices=6)
-        for x in [-7.73, -5.91]:
-            for z in [1.86, 2.2, 2.54, 2.99]:
-                rod(n + '.rangefinder.bolt', (x, sign * 5.55, z), (x, sign * 5.61, z), .025, edge, collection, vertices=8)
         # Two staggered armoured sight housings on each forward side plate.
         for x, y, z in [(1.18, 6.31, 2.43), (-.23, 6.83, 1.65)]:
             box(n + '.side.sight.flange', (x, sign * (y - .25), z), (.81, .16, .85), naval, collection)
@@ -185,8 +146,6 @@ def create_iowa_main(mount, collection, helpers, materials):
     for y in [-4.1, 4.1]:
         box(n + '.roof.sight.hood', (2.35, y, 3.30), (.62, .46, .22), naval, collection)
         box(n + '.roof.sight.lens', (2.665, y, 3.31), (.02, .30, .10), dark, collection)
-    for x, halfwidth in [(-7.6, 4.86), (-3.8, 5.43), (.2, 6.03)]:
-        rod(n + '.roof.seam', (x, -halfwidth, 3.205), (x, halfwidth, 3.205), .012, edge, collection, vertices=4)
     box(n + '.rear.access', (-9.448, 0, 1.81), (.09, 1.09, 1.91), naval, collection)
     for y in [-.56, .56]:
         rod(n + '.rear.coaming', (-9.50, y, .83), (-9.50, y, 2.82), .024, naval, collection, vertices=6)
@@ -199,14 +158,19 @@ def create_iowa_main(mount, collection, helpers, materials):
         muzzle = spec['muzzleForward']
         bore = spec['caliberM'] / 2
         base = spec.get('barrelBaseRadius', .612)
-        profile = [(pivot[0] + .25, base), (6.91, base), (8.316, base * .97), (8.35, .500), (9.249, .500), (12.136, .406),
+        profile = [(pivot[0] + .25, base), (6.91, base), (8.316, base), (8.35, .500), (9.249, .500), (12.136, .406),
                    (muzzle, .317), (muzzle, bore), (muzzle - .7, bore)]
-        lathe('.barrel', pivot, profile, edge, bore_from=7, sides=40)
-        bag('.blast.bag', pivot, lateral, face_x, 1.92, 1.035, 1.20, 6.91, .647, .10)
-        collar = lathe('.blast.bag.collar', pivot, [(6.84, base), (6.84, .672), (6.96, .672), (6.96, base)], materials['canvas'], sides=32)
-        collar.data.polygons[-1].use_smooth = True
+        lathe('.barrel', pivot, profile, edge, bore_from=7, sides=16)
         groups.append(list(set(bpy.context.scene.objects) - start))
-    return articulate_aa(mount, collection, frame, groups)
+    yaw = articulate_aa(mount, collection, frame, groups)
+    for side, lateral in zip(['left', 'center', 'right'], centers):
+        rim=[]
+        for i in range(24):
+            a=i*math.tau/24;c=math.cos(a);s=math.sin(a);r=max(abs(c),abs(s))
+            z=1.925+1.17*math.copysign(abs(s)**.5,s)
+            rim.append((face_x(z)+.008,lateral+1.02*math.copysign(abs(c)**.5,c),z))
+        create_bloomer(mount, collection, helpers, materials, side, rim, 6.91, base, rings=5, fold_depth=.065, slack=.10, fullness=.10, forward_fullness=.22)
+    return yaw
 
 
 def create_baltimore_main(mount, collection, helpers, materials):
@@ -216,13 +180,13 @@ def create_baltimore_main(mount, collection, helpers, materials):
     n = mount['id']
     naval, dark, edge = (materials[k] for k in ['naval', 'dark', 'edge'])
     roof = materials.get('roof', naval)
-    lathe, bag, ladder, face_panels = _tools(collection, helpers, materials, n)
+    lathe, ladder, face_panels = _tools(collection, helpers, materials, n)
     before = set(bpy.context.scene.objects)
     spacing = spec['barrelSpacing']
     centers = [spacing, 0, -spacing]
     H = 3.00355
 
-    cyl(n + '.roller', (0, 0, .04), spec['barbetteRadius'], .08, edge, collection, 64)
+    cyl(n + '.roller', (0, 0, .04), spec['barbetteRadius'], .08, edge, collection, 32)
     # Long gunhouse: chamfered rear, slightly tapered sides, deep sloped face.
     V = [(-6.096, -3.55, .05), (-5.72, -3.9, .05), (3.2, -3.55, .05), (3.5306, -3.05, .05), (3.5306, 3.05, .05), (3.2, 3.55, .05),
          (-5.72, 3.9, .05), (-6.096, 3.55, .05), (-6.096, -3.5, H), (-5.72, -3.85, H), (1.82, -3.2, H), (1.82, -2.85, H),
@@ -235,10 +199,10 @@ def create_baltimore_main(mount, collection, helpers, materials):
     face_panels('.face', face_x, centers, .43, 3.05, .05, pz - .50, pz + .50, H, naval, y_edge_top=2.85)
 
     # Transverse rangefinder near the back of the house, with armoured end hoods.
-    rod(n + '.rangefinder.tube', (-5.207, -3.98, 2.16), (-5.207, 3.98, 2.16), .20, naval, collection, vertices=16)
+    rod(n + '.rangefinder.tube', (-5.207, -3.90, 2.16), (-5.207, 3.90, 2.16), .20, naval, collection, vertices=16)
     for side in [-1, 1]:
-        box(n + '.rangefinder.hood', (-5.207, side * 3.98, 2.16), (.68, .5, .58), naval, collection)
-        box(n + '.rangefinder.glass', (-4.86, side * 3.98, 2.18), (.018, .30, .20), dark, collection)
+        box(n + '.rangefinder.hood', (-5.207, side * 3.68, 2.16), (.68, .5, .58), naval, collection)
+        box(n + '.rangefinder.glass', (-4.86, side * 3.68, 2.18), (.018, .30, .20), dark, collection)
         # Side service ladder follows the inclined plate; louvred vent aft of it.
         ladder('.side.ladder', (-2.888, side * 3.83, .30), (-2.888, side * 3.65, H - .05), .48, 'x', edge)
         wall = lambda z: 3.812 - (z - .05) * .156 / (H - .05)
@@ -273,8 +237,7 @@ def create_baltimore_main(mount, collection, helpers, materials):
     for lateral in [-2.5, -.86, .86, 2.5]:
         cyl(n + '.roof.periscope.hood', (1.02, lateral, 3.16), .17, .35, naval, collection, 12)
         box(n + '.roof.periscope.sight', (1.18, lateral, 3.2), (.025, .14, .10), dark, collection)
-    for x in [-2.888, -.578]:
-        rod(n + '.roof.seam', (x, -3.55, H + .004), (x, 3.55, H + .004), .014, edge, collection, vertices=4)
+    cyl(n + '.aft.sight.mast', (-4.85, 0, H + .32), .055, .64, naval, collection, 8)
     box(n + '.rear.door', (-6.12, 0, 1.35), (.08, .85, 1.85), naval, collection)
     for z in [.75, 1.35, 1.95]:
         rod(n + '.rear.door.dog', (-6.17, -.32, z), (-6.17, -.14, z), .026, edge, collection, vertices=6)
@@ -288,10 +251,16 @@ def create_baltimore_main(mount, collection, helpers, materials):
         bore = spec['caliberM'] / 2
         rad = spec.get('barrelBaseRadius', .30)
         x0 = pivot[0]
-        profile = [(x0 + .2, rad * .83), (x0 + 2.4, rad * .76), (x0 + 2.6, rad * .64), (muzzle - 2.0, rad * .43), (muzzle, rad * .40),
+        profile = [(x0 + .2, rad * .83), (x0 + 3.0, rad * .83), (x0 + 3.1, rad * .64), (muzzle - 2.0, rad * .43), (muzzle, rad * .40),
                    (muzzle, bore), (muzzle - .45, bore)]
-        lathe('.barrel', pivot, profile, edge, bore_from=5, sides=32)
-        # Pleated buckler seated on the sloped face, closing on the chase.
-        bag('.blast.bag', pivot, lateral, face_x, pz + .02, .60, .66, x0 + 2.05, rad * .90, .04, pleats=9, sides=36, rings=8)
+        lathe('.barrel', pivot, profile, edge, bore_from=5, sides=16)
         groups.append(list(set(bpy.context.scene.objects) - start))
-    return articulate_aa(mount, collection, frame, groups)
+    yaw = articulate_aa(mount, collection, frame, groups)
+    for side, lateral in zip(['left', 'center', 'right'], centers):
+        rim=[]
+        for i in range(24):
+            a=i*math.tau/24;c=math.cos(a);s=math.sin(a);r=max(abs(c),abs(s))
+            z=pz+.05+1.05*math.copysign(abs(s)**.5,s)
+            rim.append((face_x(z)+.008,lateral+.60*math.copysign(abs(c)**.5,c),z))
+        create_bloomer(mount, collection, helpers, materials, side, rim, x0+2.05, rad*.83, rings=5, fold_depth=.045, slack=.055, fullness=.10, forward_fullness=.22)
+    return yaw

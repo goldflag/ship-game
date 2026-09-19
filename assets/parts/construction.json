@@ -3696,14 +3696,14 @@
       "name": "5-inch/38 Mk 21 open mount",
       "kind": "gun",
       "size": [
-        2.722,
-        2.027,
-        5.914
+        2.977,
+        2.159,
+        5.844
       ],
       "boundsCenter": [
         0,
-        1.013,
-        -1.529
+        1.0781,
+        -1.5607
       ],
       "centerOfGravity": [
         0,
@@ -3734,14 +3734,14 @@
       "name": "1.1-inch/75 quadruple mount",
       "kind": "gun",
       "size": [
-        2.602,
+        2.719,
         1.677,
-        3.276
+        3.273
       ],
       "boundsCenter": [
         0,
-        0.838,
-        -0.337
+        0.8375,
+        -0.3355
       ],
       "centerOfGravity": [
         0,
@@ -3772,14 +3772,14 @@
       "name": "3-inch/50 defensive gun",
       "kind": "gun",
       "size": [
-        1.872,
+        2.116,
         1.707,
-        4.833
+        4.324
       ],
       "boundsCenter": [
         0,
-        0.852,
-        -0.939
+        0.8525,
+        -1.1906
       ],
       "centerOfGravity": [
         0,
@@ -3810,14 +3810,14 @@
       "name": "Octuple QF 2-pounder Mk VI pom-pom",
       "kind": "gun",
       "size": [
-        3.382,
-        1.903,
-        3.19
+        3.938,
+        2.453,
+        3.838
       ],
       "boundsCenter": [
         0,
-        0.95,
-        -0.524
+        1.225,
+        -0.1975
       ],
       "centerOfGravity": [
         0,
@@ -3849,13 +3849,13 @@
       "kind": "gun",
       "size": [
         4.602,
-        2.98,
-        7.434
+        3.213,
+        7.435
       ],
       "boundsCenter": [
         0,
-        1.489,
-        -1.416
+        1.605,
+        -1.4162
       ],
       "centerOfGravity": [
         0,
@@ -5381,13 +5381,13 @@
       "name": "15.5 cm Type 3 triple",
       "kind": "gun",
       "size": [
-        8.431,
-        3.436,
-        12.883
+        8.433,
+        3.738,
+        12.885
       ],
       "boundsCenter": [
         0,
-        1.7175,
+        1.8675,
         -3.1622
       ],
       "centerOfGravity": [
@@ -5533,13 +5533,13 @@
       "name": "8-inch/55 Mk 12 triple",
       "kind": "gun",
       "size": [
-        8.461,
-        3.445,
-        16.646
+        7.936,
+        3.646,
+        16.648
       ],
       "boundsCenter": [
         0,
-        1.7218,
+        1.8218,
         -2.1302
       ],
       "centerOfGravity": [
@@ -5609,13 +5609,13 @@
       "name": "14-inch Mk VII twin",
       "kind": "gun",
       "size": [
-        10.301,
-        3.508,
-        22.906
+        10.303,
+        4.074,
+        22.908
       ],
       "boundsCenter": [
         0,
-        1.7537,
+        2.036,
         -4.3584
       ],
       "centerOfGravity": [
@@ -5647,13 +5647,13 @@
       "name": "5.25-inch QF Mk I twin",
       "kind": "gun",
       "size": [
-        5.001,
-        3.246,
-        9.505
+        5.002,
+        3.988,
+        9.507
       ],
       "boundsCenter": [
         0,
-        1.6225,
+        1.9925,
         -1.8559
       ],
       "centerOfGravity": [
@@ -5723,14 +5723,14 @@
       "name": "10.5 cm SK C/33 twin AA \u00b7 battleship mount",
       "kind": "gun",
       "size": [
-        3.072,
-        2.441,
-        6.378
+        3.504,
+        2.327,
+        7.383
       ],
       "boundsCenter": [
-        0,
-        1.22,
-        -1.6386
+        -0.039,
+        1.1622,
+        -1.1303
       ],
       "centerOfGravity": [
         0,

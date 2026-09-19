@@ -7,6 +7,7 @@ import math
 import bpy
 from mathutils import Vector
 from aa_articulation import articulate_aa
+from gun_bloomers import create_bloomer
 
 
 def create_mount(mount, collection, helpers, materials):
@@ -18,7 +19,7 @@ def create_mount(mount, collection, helpers, materials):
     canvas = materials.get('canvas', dark)
     before = set(bpy.context.scene.objects)
     # The circular bearing mates to the ship's fixed cylindrical barbette.
-    cyl(n+'.roller', (0,0,.12), spec['barbetteRadius'], .24, edge, collection, 64)
+    cyl(n+'.roller', (0,0,.12), spec['barbetteRadius'], .24, edge, collection, 32)
     outline = [(-5.65,-2.15),(-5.18,-2.85),(-1.4,-3.12),(1.6,-2.92),(2.22,-2.5),
                (2.22,2.5),(1.6,2.92),(-1.4,3.12),(-5.18,2.85),(-5.65,2.15)]
     top = [(x-.1 if x>0 else x, y*.98, 2.78 if x<0 else 2.65) for x,y in outline]
@@ -58,16 +59,16 @@ def create_mount(mount, collection, helpers, materials):
     panel('.front.web',lo,2.5,.70,2.65)
     # Rear access and roof fittings all attach directly to the yawing shell.
     box(n+'.rear.door',(-5.69,0,1.30),(.09,.9,1.95),naval,collection)
-    for z in [.5,1.3,2.1]:rod(n+'.door.dog',(-5.76,-.32,z),(-5.76,-.14,z),.028,edge,collection,vertices=8)
+    for z in [.5,1.3,2.1]:rod(n+'.door.dog',(-5.76,-.32,z),(-5.76,-.14,z),.028,edge,collection,vertices=6)
     for y in [-2.1,2.1]:
-        cyl(n+'.roof.hatch',(-3.6,y,2.84),.32,.13,roof,collection,24)
-        cyl(n+'.roof.vent',(-4.8,y,2.91),.17,.26,naval,collection,20)
+        cyl(n+'.roof.hatch',(-3.6,y,2.84),.32,.13,roof,collection,16)
+        cyl(n+'.roof.vent',(-4.8,y,2.91),.17,.26,naval,collection,12)
         for z in [.84,1.7]:
-            o=cyl(n+'.side.optic',(.8,y/abs(y)*3.01,z),.14,.11,edge,collection,20)
+            o=cyl(n+'.side.optic',(.8,y/abs(y)*3.01,z),.14,.11,edge,collection,12)
             o.rotation_euler.x=math.pi/2
     for z in [.45,.78,1.11,1.44,1.77,2.10,2.43]:
-        rod(n+'.face.ladder.rung',(2.31,.53,z),(2.31,.79,z),.024,edge,collection,vertices=8)
-    for y in [.52,.80]:rod(n+'.face.ladder.rail',(2.27,y,.3),(2.17,y,2.68),.026,naval,collection,vertices=8)
+        rod(n+'.face.ladder.rung',(2.31,.53,z),(2.31,.79,z),.024,edge,collection,vertices=6)
+    for y in [.52,.80]:rod(n+'.face.ladder.rail',(2.27,y,.3),(2.17,y,2.68),.026,naval,collection,vertices=6)
     rod(n+'.roof.sight',(-.4,0,2.72),(-.4,0,3.42),.045,naval,collection,vertices=12)
     frame = list(set(bpy.context.scene.objects)-before)
     groups=[]
@@ -77,18 +78,25 @@ def create_mount(mount, collection, helpers, materials):
         slope=math.tan(math.radians(1))
         def pt(x):return (x,lateral,height+(x-pivot)*slope)
         # Stepped jacket, chase and bored muzzle, owned by this barrel's recoil joint.
-        sections=[(pivot,.22),(2.6,.20),(3.5,.17),(3.65,.135),(5.7,.105),(muzzle,.092)]
-        for (a,ra),(b,rb) in zip(sections,sections[1:]):rod(n+'.barrel',pt(a),pt(b),ra,edge,collection,r2=rb,vertices=24)
-        rod(n+'.bore',pt(muzzle+.005),pt(muzzle+.008),spec['caliberM']/2,dark,collection,vertices=24)
-        # Pleated canvas mantlet around the rotating sleeve, at neutral elevation.
-        rings=[(.95,.29),(1.30,.39),(1.7,.46),(2.1,.44),(2.45,.32),(2.70,.23)]
-        vv=[];ff=[];sides=24
-        for x,r in rings:
-            for i in range(sides):
-                a=i*math.tau/sides;rr=r*(1+.065*math.cos(6*a))
-                vv.append((x,lateral+rr*math.cos(a),height+(x-pivot)*slope+rr*math.sin(a)))
-        for j in range(len(rings)-1):
-            for i in range(sides):a=j*sides+i;b=j*sides+(i+1)%sides;ff.append((a,b,b+sides,a+sides))
-        mesh(n+'.canvas',vv,ff,canvas,collection,True)
+        sections=[(pivot,.22),(2.6,.20),(3.5,.20),(3.65,.135),(5.7,.105),(muzzle,.092)]
+        for (a,ra),(b,rb) in zip(sections,sections[1:]):
+            barrel=rod(n+'.barrel',pt(a),pt(b),ra,edge,collection,r2=rb,vertices=12)
+            for p in barrel.data.polygons:p.use_smooth=len(p.vertices)==4
+        rod(n+'.bore',pt(muzzle+.005),pt(muzzle+.008),spec['caliberM']/2,dark,collection,vertices=12)
         groups.append(list(set(bpy.context.scene.objects)-start))
-    return articulate_aa(mount,collection,frame,groups)
+    yaw=articulate_aa(mount,collection,frame,groups)
+    # Seam follows the full three-dimensional aperture: up the face, back over
+    # the roof slot, and down again. The cloth stays attached at every pitch.
+    contour=[(2.18,.455,1.675),(2.15,.455,2.18),(2.12,.455,2.68),
+             (1.37,.455,2.70),(.62,.455,2.72),(.62,.23,2.72),(.62,0,2.72),
+             (.62,-.23,2.72),(.62,-.455,2.72),(1.37,-.455,2.70),
+             (2.12,-.455,2.68),(2.15,-.455,2.18),(2.18,-.455,1.675),
+             (2.20,-.455,1.34),(2.215,-.455,1.0),(2.225,-.455,.675),
+             (2.225,-.30,.675),(2.225,-.15,.675),(2.225,0,.675),
+             (2.225,.15,.675),(2.225,.30,.675),(2.225,.455,.675),
+             (2.215,.455,1.0),(2.20,.455,1.34)]
+    for side,lateral in zip(['left','center','right'],centers):
+        create_bloomer(mount,collection,helpers,materials,side,
+                       [(x,y+lateral,z) for x,y,z in contour],2.70,.20,
+                       rings=5,fold_depth=.045,slack=.06,fullness=.06,forward_fullness=.48)
+    return yaw

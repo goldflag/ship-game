@@ -223,6 +223,21 @@ export class Viewer {
     const reference = new THREE.Box3().setFromObject(this.reference, true).getCenter(new THREE.Vector3());
     return { ...p, x: p.x + ours.x - reference.x, z: p.z + ours.z - reference.z };
   }
+  /** Compare isolated shapes at their true size, with horizontal bounds centered and bases aligned. */
+  alignComponent(p: Pose): Pose {
+    const centered = this.center(p);
+    const ours = new THREE.Box3().setFromObject(this.ours, true);
+    const reference = new THREE.Box3().setFromObject(this.reference, true);
+    return { ...centered, y: p.y + ours.min.y - reference.min.y };
+  }
+  triangles() {
+    const count = (object: THREE.Object3D) => {
+      let total = 0;
+      object.traverse(o => { if (o instanceof THREE.Mesh) total += ((o.geometry.index?.count ?? o.geometry.getAttribute('position')?.count ?? 0) / 3) * (o instanceof THREE.InstancedMesh ? o.count : 1); });
+      return Math.round(total);
+    };
+    return { ours: count(this.ours), reference: this.reference.children.length ? count(this.reference) : undefined };
+  }
   fit() {
     const box = new THREE.Box3().setFromObject(this.ours, true);
     if (this.mode !== 'inspect' && this.reference.children.length) box.union(new THREE.Box3().setFromObject(this.reference, true));

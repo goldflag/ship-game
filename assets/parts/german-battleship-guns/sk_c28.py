@@ -7,6 +7,8 @@ ship script's secondary battery. Hull installation owns the fixed barbette.
 import math
 import bpy
 from aa_articulation import articulate_aa
+from gun_bloomers import create_bloomer
+from blender_barrels import barrel_layout
 
 
 def create_mount(mount, collection, helpers, materials):
@@ -75,27 +77,24 @@ def create_mount(mount, collection, helpers, materials):
         for x in [-2.7, -.6, 1.2]:
             box(n+'.side.drain', (x, s*(side(x)-.015), .39), (.22, .05, .065), dark, collection)
         # Roof hatches on the rear roof and grab rails along the ridge flanks.
-        cyl(n+'.roof.hatch', (-2.7, s*1.35, 2.40), .24, .10, edge, collection, 20)
         rod(n+'.roof.grab', (-3.4, s*1.92, 2.34), (-1.6, s*2.05, 2.62), .02, edge, collection, vertices=6)
         for x, z in [(-3.4, 2.34), (-1.6, 2.62)]:
             rod(n+'.roof.grab.foot', (x, s*(1.92 if x < -2 else 2.05), z-.12), (x, s*(1.92 if x < -2 else 2.05), z), .018, edge, collection, vertices=6)
-        # Transverse rangefinder: arm through the wall with a modest armored hood.
-        rx, half, rz = spec.get('rangefinderForward', -1.95), spec.get('rangefinderWidth', 6.5)/2, 1.75
-        rod(n+'.rangefinder.arm', (rx, s*2.0, rz), (rx, s*(half-.2), rz), .22, naval, collection, vertices=20)
-        hood = [(-.42,-.30),(.30,-.30),(.42,-.12),(.42,.20),(.26,.32),(-.42,.32)]
-        y0, y1 = sorted([s*(half-.45), s*half])
-        hv = [(rx+a, y, rz+b) for y in [y0, y1] for a, b in hood]
-        k = len(hood)
-        mesh(n+'.rangefinder.hood', hv, [tuple(range(k)), tuple(reversed(range(k, 2*k)))]
-             + [(i, i+k, (i+1) % k+k, (i+1) % k) for i in range(k)], naval, collection)
-        rod(n+'.rangefinder.bezel', (rx+.40, s*(half-.225), rz+.04), (rx+.45, s*(half-.225), rz+.04), .13, edge, collection, vertices=16)
-        rod(n+'.rangefinder.glass', (rx+.45, s*(half-.225), rz+.04), (rx+.457, s*(half-.225), rz+.04), .09, dark, collection, vertices=16)
-    for a, b in zip([(-3.82,0,2.20),(-1.2,0,2.62),(1.95,0,2.10)], [(-1.2,0,2.62),(1.95,0,2.10),(2.55,0,1.87)]):
-        rod(n+'.roof.seam', a, b, .018, edge, collection, vertices=5)
-    rod(n+'.roof.ridge', (-1.2, -2.21, 2.61), (-1.2, 2.21, 2.61), .02, edge, collection, vertices=5)
-    cyl(n+'.roof.periscope', (-1.18, .55, 2.74), .095, .34, naval, collection, 16)
-    box(n+'.roof.periscope.head', (-1.12, .55, 2.94), (.26, .23, .15), edge, collection)
-    cyl(n+'.roof.vent', (-3.1, 0, 2.38), .16, .22, naval, collection, 16)
+        if mount.get('rangefinder', False):
+            # Transverse rangefinder: arm through the wall with a modest armored hood.
+            rx, half, rz = spec.get('rangefinderForward', -1.95), spec.get('rangefinderWidth', 6.5)/2, 1.75
+            rod(n+'.rangefinder.arm', (rx, s*2.0, rz), (rx, s*(half-.2), rz), .22, naval, collection, vertices=12)
+            hood = [(-.42,-.30),(.30,-.30),(.42,-.12),(.42,.20),(.26,.32),(-.42,.32)]
+            y0, y1 = sorted([s*(half-.45), s*half])
+            hv = [(rx+a, y, rz+b) for y in [y0, y1] for a, b in hood]
+            k = len(hood)
+            mesh(n+'.rangefinder.hood', hv, [tuple(range(k)), tuple(reversed(range(k, 2*k)))]
+                 + [(i, i+k, (i+1) % k+k, (i+1) % k) for i in range(k)], naval, collection)
+            rod(n+'.rangefinder.bezel', (rx+.40, s*(half-.225), rz+.04), (rx+.45, s*(half-.225), rz+.04), .13, edge, collection, vertices=12)
+            rod(n+'.rangefinder.glass', (rx+.45, s*(half-.225), rz+.04), (rx+.457, s*(half-.225), rz+.04), .09, dark, collection, vertices=12)
+    # The no-rangefinder source has a low rear access cover, without the
+    # former raised periscope/vent cluster and decorative roof seam rods.
+    box(n+'.roof.access',(-2.85,.70,2.355),(.65,.58,.06),naval,collection)
     frame = list(set(bpy.context.scene.objects)-before)
     groups = []
     pivot, height, muzzle = spec['trunnionForward'], spec['pivotHeight'], spec['muzzleForward']
@@ -104,20 +103,17 @@ def create_mount(mount, collection, helpers, materials):
         start = set(bpy.context.scene.objects)
         def pt(x): return (x, y, height+(x-pivot)*slope)
         rad = spec.get('barrelBaseRadius', .25)
-        sections = [(pivot-.45, rad*.83), (pivot+2.4, rad*.76), (pivot+2.6, rad*.64), (muzzle-2.0, rad*.43), (muzzle-.12, rad*.40), (muzzle-.10, rad*.46), (muzzle, rad*.46)]
+        sections = [(pivot-.45, rad*.76), (pivot+1.72, rad*.76), (pivot+1.80, rad*.64), (muzzle-1.4, rad*.43), (muzzle-.12, rad*.40), (muzzle-.10, rad*.46), (muzzle, rad*.46)]
         for (a, ra), (b, rb) in zip(sections, sections[1:]):
-            rod(n+'.barrel', pt(a), pt(b), ra, edge, collection, r2=rb, vertices=32)
-        rod(n+'.bore', pt(muzzle+.004), pt(muzzle+.008), spec['caliberM']/2, dark, collection, vertices=24)
-        # Pleated blast bag seated on the port frame, at neutral elevation.
-        rings = [(-.30,.40),(-.05,.46),(.14,.40),(.48,.31),(.85,.24),(1.10,.208)]
-        vv = []; ff = []; sides = 24
-        for x, r in rings:
-            for i in range(sides):
-                a = i*math.tau/sides; rr = r*(1+.055*math.cos(a*7+x*10))
-                vv.append((pivot+x, y+rr*math.cos(a), height+x*slope+rr*.94*math.sin(a)))
-        for j in range(len(rings)-1):
-            for i in range(sides):
-                a = j*sides+i; b = j*sides+(i+1) % sides; ff.append((a, b, b+sides, a+sides))
-        mesh(n+'.blastbag', vv, ff, canvas, collection, True)
+            rod(n+'.barrel', pt(a), pt(b), ra, edge, collection, r2=rb, vertices=16)
+        rod(n+'.bore', pt(muzzle+.004), pt(muzzle+.008), spec['caliberM']/2, dark, collection, vertices=12)
         groups.append(list(set(bpy.context.scene.objects)-start))
-    return articulate_aa(mount, collection, frame, groups)
+    yaw = articulate_aa(mount, collection, frame, groups)
+    for side,y,_ in barrel_layout(spec):
+        seam=[]
+        for i in range(16):
+            a=i*math.tau/16;ca,sa=math.cos(a),math.sin(a)
+            scale=1/max(abs(ca),abs(sa));z=1.16+.38*sa*scale
+            seam.append((fx(z)+.016,y+.285*ca*scale,z))
+        create_bloomer(mount,collection,helpers,materials,side,seam,pivot+1.10,.194,rings=4,fold_depth=.02,slack=.02)
+    return yaw

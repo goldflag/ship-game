@@ -7,6 +7,11 @@
     "assets/ships/mogami/guns.py",
     "assets/ships/mogami/superstructure.py",
     "assets/ships/mogami/main_guns.py",
-    "assets/parts/ijn-destroyer-guns/aa.py"
+    "assets/parts/ijn-destroyer-guns/aa.py",
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-main-guns/geometry.py",
+    "assets/parts/aa_articulation.py",
+    "assets/parts/gun_bloomers.py"
   ]
 }

@@ -5,6 +5,8 @@
     "assets/ships/convoy/plans-v2.json",
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json",
-    "assets/ships/liberty-collier/appearance.json"
+    "assets/ships/liberty-collier/appearance.json",
+    "assets/parts/library.py",
+    "assets/parts/library.json"
   ]
 }

@@ -793,7 +793,7 @@
       ],
       "pivotHeight": 1.15,
       "trunnionForward": 2.75,
-      "muzzleForward": 8.25,
+      "muzzleForward": 6.92,
       "barrelSpacing": 1.75,
       "caliberM": 0.15,
       "traverseDeg": 140,
@@ -6654,12 +6654,12 @@
       "gunhouseSize": [
         5.4,
         4.65,
-        3.05
+        3.3
       ],
-      "pivotHeight": 1.35,
+      "pivotHeight": 2.3,
       "trunnionForward": 1.7,
       "muzzleForward": 6.6,
-      "barrelSpacing": 0.96,
+      "barrelSpacing": 2.45,
       "barrelCount": 2,
       "caliberM": 0.13335,
       "traverseDeg": 80,
@@ -6767,132 +6767,132 @@
           [
             -2.8,
             0,
-            2.45
+            2.7
           ],
           [
             -2.67,
             -0.92,
-            2.45
+            2.7
           ],
           [
             -2.13,
             -1.77,
-            2.45
+            2.7
           ],
           [
             -1.24,
             -2.25,
-            2.45
+            2.7
           ],
           [
             0.62,
             -2.25,
-            2.45
+            2.7
           ],
           [
             1.58,
             -1.94,
-            1.67
+            2.42
           ],
           [
             2.72,
             -1.38,
-            1.67
+            2.42
           ],
           [
             2.72,
             1.38,
-            1.67
+            2.42
           ],
           [
             1.58,
             1.94,
-            1.67
+            2.42
           ],
           [
             0.62,
             2.25,
-            2.45
+            2.7
           ],
           [
             -1.24,
             2.25,
-            2.45
+            2.7
           ],
           [
             -2.13,
             1.77,
-            2.45
+            2.7
           ],
           [
             -2.67,
             0.92,
-            2.45
+            2.7
           ],
           [
             -2.59,
             0,
-            3.02
+            3.3
           ],
           [
             -2.46,
             -0.782,
-            3.02
+            3.3
           ],
           [
             -1.92,
             -1.5045,
-            3.02
+            3.3
           ],
           [
             -1.03,
-            -1.9124999999999999,
-            3.02
+            -1.9125,
+            3.3
           ],
           [
             0.4,
-            -1.9124999999999999,
-            3.02
+            -1.9125,
+            3.3
           ],
           [
             1.36,
             -1.649,
-            2.4897152
+            2.94
           ],
           [
             2.5,
-            -1.1729999999999998,
-            1.860002
+            -1.173,
+            2.61
           ],
           [
             2.5,
-            1.1729999999999998,
-            1.860002
+            1.173,
+            2.61
           ],
           [
             1.36,
             1.649,
-            2.4897152
+            2.94
           ],
           [
             0.4,
-            1.9124999999999999,
-            3.02
+            1.9125,
+            3.3
           ],
           [
             -1.03,
-            1.9124999999999999,
-            3.02
+            1.9125,
+            3.3
           ],
           [
             -1.92,
             1.5045,
-            3.02
+            3.3
           ],
           [
             -2.46,
             0.782,
-            3.02
+            3.3
           ]
         ],
         "faces": [
@@ -7712,9 +7712,9 @@
           }
         ],
         "provenance": {
-          "sourceId": "rmg-npb5309",
-          "basis": "inferred",
-          "note": "Original Mk I curved-back and shoulder facets from 1941 drawings and photographs; GameModels3D raster cross-check only. Local facets are estimated."
+          "sourceId": "gm3d-pbsb107-bgs055",
+          "basis": "estimated",
+          "note": "Original facets matched to approved GameModels3D QF Mk I visual source; revised shoulder and roof agree with the original reusable model. Cloth-covered gun ports remain continuous armor-envelope approximation, as in the previous closed shell. No historical armor certification."
         }
       }
     },

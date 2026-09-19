@@ -12,13 +12,13 @@ def create_mount(mount,col,helpers,materials):
     def empty(suffix,parent=None,pos=(0,0,0)):
         o=bpy.data.objects.new(name+'.'+suffix,None);col.objects.link(o);o.parent=parent;o.location=pos;o['nodeId']=name+'.'+suffix;o['assemblyId']=name;return o
     def put(o,parent):o.parent=parent;o['assemblyId']=name;return o
-    def drum(s,pos,r,h,p,m=gray,n=24,r2=None):return put(cyl(name+'.'+s,pos,r,h,m,col,vertices=n,r2=r2),p)
+    def drum(s,pos,r,h,p,m=gray,n=12,r2=None):return put(cyl(name+'.'+s,pos,r,h,m,col,vertices=n,r2=r2),p)
     def block(s,pos,size,p,m=gray):return put(box(name+'.'+s,pos,size,m,col,bev=.012),p)
     def bar(s,a,b,r,p,m=edge,n=12,r2=None):return put(rod(name+'.'+s,a,b,r,m,col,vertices=n,r2=r2),p)
     def ring(s,center,r,p,axis='y',m=bronze):
         x,y,z=center
         def pt(t):return (x,y+r*math.cos(t),z+r*math.sin(t)) if axis=='x' else (x+r*math.cos(t),y,z+r*math.sin(t))
-        for j in range(24):bar(s,pt(j*math.tau/24),pt((j+1)*math.tau/24),.008,p,m,6)
+        for j in range(12):bar(s,pt(j*math.tau/12),pt((j+1)*math.tau/12),.008,p,m,6)
         for j in range(4):bar(s+'-spoke',center,pt(j*math.pi/2),.005,p,m,6)
     x,z,y=mount['position'];base=empty('base',pos=(-y,-x,z));yaw=empty('yaw',base)
     yaw.rotation_euler.z=-math.radians(mount['bearingDeg'])
@@ -26,7 +26,7 @@ def create_mount(mount,col,helpers,materials):
     drum('octagonal-foot',(0,0,.035),radius,.07,base,n=8)
     for i in range(8):
         a=i*math.tau/8;drum('hold-down-bolt',(radius*.83*math.cos(a),radius*.83*math.sin(a),.082),.020,.027,base,m=edge,n=6)
-    drum('conical-pedestal',(0,0,.21 if twin else .5),radius*.72,.30 if twin else .88,yaw,n=24,r2=.085)
+    drum('conical-pedestal',(0,0,.21 if twin else .5),radius*.72,.30 if twin else .88,yaw,n=12,r2=.085)
     if twin:
         for sign in [-1,1]:
             # Open raked cheek plates meet the pedestal saddle and gun bearings.
@@ -56,17 +56,16 @@ def create_mount(mount,col,helpers,materials):
         block('breech-cap',(-.53,0,.01),(.06,.12,.15),recoil)
         block('cradle',(-.20,0,-.08),(.55,.14,.075),elev)
         bar('gas-cylinder',(-.30,0,-.085),(.37,0,-.085),.020,elev,gray)
-        bar('barrel',(-.02,0,0),(length-.075,0,0),.023,recoil,edge,20,r2=.014)
-        for i in range(30):
-            a=.08+i*.020
-            if a<length-.15:bar('cooling-fin',(a,0,0),(a+.009,0,0),.029,recoil,gray,16)
-        bar('muzzle-sleeve',(length-.08,0,0),(length,0,0),.018,recoil,edge,20,r2=.021)
-        bar('bore',(length-.001,0,0),(length+.003,0,0),.0066,recoil,dark,16)
+        bar('barrel',(-.02,0,0),(length-.075,0,0),.023,recoil,edge,12,r2=.014)
+        for i in range(16):
+            a=.08+i*.035
+            if a<length-.15:bar('cooling-fin',(a,0,0),(a+.012,0,0),.029,recoil,gray,8)
+        bar('muzzle-sleeve',(length-.08,0,0),(length,0,0),.018,recoil,edge,12,r2=.021)
+        bar('bore',(length-.001,0,0),(length+.003,0,0),.0066,recoil,dark,8)
         block('magazine-socket',(-.20,0,.095),(.18,.13,.07),recoil)
         block('box-magazine',(-.22,0,.27),(.21,.09,.30),recoil,gray)
         for sign in [-1,1]:
             for x in [-.3,-.14]:bar('magazine-rib',(x,sign*.051,.15),(x,sign*.051,.41),.006,recoil,edge,6)
-            for z in [.22,.34]:bar('inspection-aperture',(-.22,sign*.049,z),(-.22,sign*.057,z),.026,recoil,bronze,16)
         bar('charging-handle',(-.36,.054,.02),(-.42,.12,.025),.010,recoil)
         if not twin:
             for sign in [-1,1]:

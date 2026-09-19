@@ -44,11 +44,11 @@ def create_mount(mount, col, helpers, materials, detail_adjust=None):
     for o in set(col.objects)-before:
         if o.type=='MESH' and 'roof hatch' in o.name:bpy.data.objects.remove(o,do_unlink=True)
     house=next(o for o in set(col.objects)-before if o.type=='MESH' and 'sloped gunhouse' in o.name)
-    bevel=house.modifiers.new('Mk30 rolled plate edges','BEVEL');bevel.width=.035;bevel.segments=3
+    bevel=house.modifiers.new('Mk30 rolled plate edges','BEVEL');bevel.width=.035;bevel.segments=1
     base_parts=set(col.objects)
     # Curved elevating shield slides inside the catalog's actual central recess.
-    # It follows elevation, while the gun and weather sleeve also follow recoil.
-    vs=[];n=49
+    # Shield and weather sleeve follow elevation; the barrel slides through the cuff during recoil.
+    vs=[];n=21
     for y in [-.355,.355]:
         vs.append((0,y,0))
         for i in range(n):
@@ -62,13 +62,14 @@ def create_mount(mount, col, helpers, materials, detail_adjust=None):
     bm=bmesh.new();bm.from_mesh(shield.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(shield.data);bm.free()
     # Original elliptical fabric sleeve, with a rolled retaining ring.
     sections=[(.66,.32,.36),(.90,.36,.38),(1.18,.31,.28),(1.40,.22,.19),(1.53,.155,.155)]
-    vs=[(x,ry*math.cos(j*math.tau/32),rz*math.sin(j*math.tau/32)) for x,ry,rz in sections for j in range(32)]
-    fs=[(k*32+j,k*32+(j+1)%32,(k+1)*32+(j+1)%32,(k+1)*32+j) for k in range(len(sections)-1) for j in range(32)]
-    local(mesh(name+'.weather-sleeve',vs,fs,materials['canvas'],smooth=True),recoil,name)
+    vs=[(x,ry*math.cos(j*math.tau/16),rz*math.sin(j*math.tau/16)) for x,ry,rz in sections for j in range(16)]
+    fs=[(k*16+j,k*16+(j+1)%16,(k+1)*16+(j+1)%16,(k+1)*16+j) for k in range(len(sections)-1) for j in range(16)]
+    local(mesh(name+'.weather-sleeve',vs,fs,materials['canvas'],smooth=True),elevation,name)
     length=spec['muzzleForward']-spec['trunnionForward']
-    for a,b,r0,r1 in [(1.49,1.60,.156,.148),(1.60,2.05,.148,.125),(2.05,length,.125,.079)]:
-        local(rod(name+'.barrel',(a,0,0),(b,0,0),r0,materials['edge'],r2=r1,vertices=32),recoil,name)
-    local(rod(name+'.bore',(length+.002,0,0),(length+.012,0,0),spec['caliberM']/2,materials['dark'],vertices=32),recoil,name)
+    for a,b,r0,r1 in [(1.40,2.10,.155,.155),(2.10,2.20,.155,.125),(2.20,length,.125,.079)]:
+        barrel=local(rod(name+'.barrel',(a,0,0),(b,0,0),r0,materials['edge'],r2=r1,vertices=12),recoil,name)
+        for p in barrel.data.polygons:p.use_smooth=len(p.vertices)==4
+    local(rod(name+'.bore',(length+.002,0,0),(length+.012,0,0),spec['caliberM']/2,materials['dark'],vertices=12),recoil,name)
     for side in [-1,1]:
         y=side*1.503
         # Long side grab rails, short rear grab, and the pair of sight shutters.
@@ -92,12 +93,9 @@ def create_mount(mount, col, helpers, materials, detail_adjust=None):
         for side in [-1,1]:local(rod(name+'.ladder-foot',(-2.93,side*.23,z),(-2.80,side*.23,z),.020,materials['edge']),yaw,name)
     # Low aft equipment blister and visible train-ring fasteners.
     local(box(name+'.rear-equipment',(-2.95,0,.92),(.32,.95,.86),materials['naval'],bev=.05),yaw,name)
-    for i in range(24):
-        a=i*math.tau/24
-        local(cyl(name+'.train-ring-bolt',(1.32*math.cos(a),1.32*math.sin(a),.295),.026,.06,materials['edge'],vertices=6),yaw,name)
     # Open mount-captain sight is a ring on a bracket, not a roof hatch.
     local(box(name+'.sight-bracket',(-1.84,-.56,3.36),(.13,.15,.31),materials['naval'],bev=.012),yaw,name)
-    local(tube_path(name+'.sight-ring',[(-1.84,-.56+.145*math.cos(i*math.tau/32),3.66+.145*math.sin(i*math.tau/32)) for i in range(32)],.012,materials['edge'],closed=True),yaw,name)
+    local(tube_path(name+'.sight-ring',[(-1.84,-.56+.145*math.cos(i*math.tau/16),3.66+.145*math.sin(i*math.tau/16)) for i in range(16)],.012,materials['edge'],closed=True),yaw,name)
     local(rod(name+'.sight-crosshair',(-1.84,-.705,3.66),(-1.84,-.415,3.66),.008,materials['edge']),yaw,name)
     local(rod(name+'.sight-crosshair',(-1.84,-.56,3.515),(-1.84,-.56,3.805),.008,materials['edge']),yaw,name)
 

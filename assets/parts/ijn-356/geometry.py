@@ -195,7 +195,7 @@ def create_mount(mount,col,helpers,mats):
                 own(box(name+'.rangefinder-reveal',(front-.10,(yl+yh)/2,zz),(.20,yh-yl,.035),mats['edge'],col))
             cy=sign*4.755
             bar('rangefinder-objective',(front-.17,cy,5.59),(front-.065,cy,5.59),.145)
-            own(rod(name+'.rangefinder-glass',(front-.075,cy,5.59),(front-.057,cy,5.59),.11,mats.get('glass',mats['dark']),col,vertices=20))
+            own(rod(name+'.rangefinder-glass',(front-.075,cy,5.59),(front-.057,cy,5.59),.11,mats.get('glass',mats['dark']),col,vertices=16))
             # End housings straddle the side roof; these short webs meet the
             # exposed underside and the sloping side armor beneath it.
             for x in [rx-.25,rx+.45]:
@@ -215,7 +215,7 @@ def create_mount(mount,col,helpers,mats):
         profile=[(T-.75,.50),(5.45,.50),(7.65,.50),(7.70,.43),(11,.34),
                  (spec['muzzleForward'],.245),(spec['muzzleForward'],.178),
                  (spec['muzzleForward']-.65,.178)]
-        n=40
+        n=24
         vs=[(x-T,r*math.cos(i*math.tau/n),r*math.sin(i*math.tau/n)) for x,r in profile for i in range(n)]
         fs=[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i)
             for j in range(len(profile)-1) for i in range(n)]
@@ -228,7 +228,7 @@ def create_mount(mount,col,helpers,mats):
         # Three locking straps and their longitudinal bridge are visible ahead
         # of the canvas; they recoil with the barrel rather than the gunhouse.
         for x in [6.15,6.80,7.45]:
-            local(rod(name+'.barrel-locking-band',(x-T-.055,0,0),(x-T+.055,0,0),.545,mats['naval'],col,vertices=32),recoil)
+            local(rod(name+'.barrel-locking-band',(x-T-.055,0,0),(x-T+.055,0,0),.545,mats['naval'],col,vertices=16),recoil)
             for sign in [-1,1]:
                 local(box(name+'.barrel-band-lug',(x-T,sign*.505,.14),(.16,.105,.22),mats['edge'],col),recoil)
         local(box(name+'.barrel-strap-bridge',(6.8-T,0,.535),(1.42,.24,.095),mats['naval'],col),recoil)
@@ -237,11 +237,11 @@ def create_mount(mount,col,helpers,mats):
         for sign in [-1,1]:
             y=gy+sign*.66
             own(box(name+'.bearing-post',(T,y,(3.4+H)/2),(.38,.19,H-3.4),mats['naval'],col))
-            own(rod(name+'.bearing-cap',(T,y-.09,H),(T,y+.09,H),.19,mats['naval'],col,vertices=24))
-            local(rod(name+'.trunnion-pin',(0,sign*.48,0),(0,sign*.66,0),.13,mats['edge'],col,vertices=20),elevation)
+            own(rod(name+'.bearing-cap',(T,y-.09,H),(T,y+.09,H),.19,mats['naval'],col,vertices=16))
+            local(rod(name+'.trunnion-pin',(0,sign*.48,0),(0,sign*.66,0),.13,mats['edge'],col,vertices=16),elevation)
         # A square seam follows both the front aperture and its roof return.
         # Every shape keeps that seam fixed and pitches only the outer collar.
-        rings=10;sectors=40;collar_x=5.45;collar_radius=.515
+        rings=9;sectors=32;collar_x=5.45;collar_radius=.515
         def cover_points(degrees):
             theta=math.radians(degrees);c,s=math.cos(theta),math.sin(theta);result=[]
             for j in range(rings):
@@ -299,7 +299,7 @@ def create_mount(mount,col,helpers,mats):
                for r in range(4) for i in range(n)]
         own(mesh(name+'.sight-cowl-'+str(index+1),vs,fs,mats['naval'],col,True))
         own(box(name+'.sight-recess',(front-.135,y,z),(.04,width-.08,.31),mats['dark'],col))
-        own(rod(name+'.sight-objective',(front-.125,y,z),(front-.105,y,z),.073,mats.get('glass',mats['dark']),col,vertices=20))
+        own(rod(name+'.sight-objective',(front-.125,y,z),(front-.105,y,z),.073,mats.get('glass',mats['dark']),col,vertices=16))
     # Centerline access ladder follows the projecting front plate between the
     # gun bags, then returns onto the roof toward the center sight hood.
     for yy in (-.29,.29):
