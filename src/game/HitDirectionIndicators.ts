@@ -1,3 +1,4 @@
+import { HUD_LAYERS } from '../ui/hudLayers';
 import type { BattleSession } from './session/BattleSession';
 import type { PerspectiveCamera } from 'three/webgpu';
 
@@ -13,7 +14,7 @@ export class HitDirectionIndicators {
   private marks: SVGSVGElement[] = [];
 
   constructor(host: HTMLElement) {
-    this.root.className = 'hit-direction-layer';
+    this.root.className = HUD_LAYERS.hitDirections.className;
     this.root.setAttribute('role', 'group');
     this.root.setAttribute('aria-label', 'Incoming hit directions');
     this.root.hidden = true;

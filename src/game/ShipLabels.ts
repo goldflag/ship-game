@@ -1,3 +1,4 @@
+import { HUD_LAYERS } from '../ui/hudLayers';
 import { Box3, MathUtils, Vector3, WebGPUCoordinateSystem, type Camera } from 'three/webgpu';
 import type { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
@@ -39,7 +40,7 @@ export class ShipLabels {
   private time = 0;
 
   constructor(host: HTMLElement, private observedAnchor: (id: string) => Vector3 | undefined = () => undefined) {
-    this.root.className = 'ship-label-layer';
+    this.root.className = HUD_LAYERS.shipLabels.className;
     this.root.setAttribute('role', 'group');
     this.root.setAttribute('aria-label', 'Ship names and hull condition');
     host.appendChild(this.root);

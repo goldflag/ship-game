@@ -88,6 +88,7 @@ import { validateBattleSetup, type BattleSetup } from './session/battleSetup';
 import { squadronFlights, airborne, onFlightDeck } from './airWing';
 import { availableAmmunition } from './mountGeometry';
 import { DEPTH_STEP_M } from './session/motion';
+import { PROJECTED_HUD_LAYER_FIELDS } from '../ui/hudLayers';
 
 export const BUOYS = [
   { x: -160, z: -800, color: '#b84734' }, { x: 160, z: -800, color: '#42a789' },
@@ -1193,11 +1194,7 @@ export class Game {
     // Overlay projection and collision placement use the same logical space as CSS.
     const width = Math.max(this.host.clientWidth, 1) / this.hudScale;
     const height = Math.max(this.host.clientHeight, 1) / this.hudScale;
-    this.shipLabels.resize(width, height);
-    this.hitLabels.resize(width, height);
-    this.gunAim.resize(width, height);
-    this.torpedoAim.resize(width, height);
-    this.torpedoMarkers.resize(width, height);
+    for (const field of PROJECTED_HUD_LAYER_FIELDS) this[field].resize(width, height);
   }
 
   private resize(): void {

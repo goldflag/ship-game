@@ -1,3 +1,4 @@
+import { HUD_LAYERS } from '../ui/hudLayers';
 import { Vector3, type PerspectiveCamera } from 'three/webgpu';
 import type { GunAimPoint } from './gunAim';
 
@@ -64,7 +65,7 @@ export class GunAimIndicators {
   private height = 1;
 
   constructor(host: HTMLElement) {
-    this.root.className = 'gun-aim-layer';
+    this.root.className = HUD_LAYERS.gunAim.className;
     this.root.setAttribute('role', 'group');
     this.root.setAttribute('aria-label', 'Current gun aim, numbered by turret');
     this.root.hidden = true;

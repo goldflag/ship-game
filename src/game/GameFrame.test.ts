@@ -12,6 +12,7 @@ import { CameraRig } from './CameraRig';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
+import { HUD_LAYER_FIELDS } from '../ui/hudLayers';
 import { makeTestEnvironment, makeTestInput } from './testing/fakes';
 import { VisualEnvironment } from './VisualEnvironment';
 import { FrameScene } from './FrameScene';
@@ -148,10 +149,10 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
     host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
-    shipLabels: { update() {}, setObserved() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} }, torpedoAim: { update() {} }, torpedoMarkers: { update() {} },
+    // Every registered HUD layer is inert here; gunAim below records what the frame hands it.
+    ...Object.fromEntries(HUD_LAYER_FIELDS.map(field => [field, { update() {}, setObserved() {}, resize() {} }])), torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
-    hitDirections: { update() {} },
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main', settings: DEFAULT_GRAPHICS,
     ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false, input,

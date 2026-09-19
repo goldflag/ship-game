@@ -1,3 +1,4 @@
+import { HUD_LAYERS } from '../ui/hudLayers';
 import { Vector3, type PerspectiveCamera } from 'three/webgpu';
 import { projectShipLabel } from './ShipLabels';
 import { runClock, type TorpedoAimState } from './torpedoLead';
@@ -36,7 +37,7 @@ export class TorpedoAimIndicators {
   private height = 1;
 
   constructor(host: HTMLElement) {
-    this.root.className = 'torpedo-aim-layer';
+    this.root.className = HUD_LAYERS.torpedoAim.className;
     this.root.setAttribute('role', 'group');
     this.root.setAttribute('aria-label', 'Torpedo course and lead');
     this.root.hidden = true;
