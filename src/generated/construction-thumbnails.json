@@ -1840,6 +1840,11 @@
       "url": "/models/components/thumbnails/3b41e589543066c7b829fd5972d3853a1dda5f0603aaac7b8d07c58df55c525e.png",
       "modelHash": "10587ef5f46217c06e5d3575e11dd73826476863c7ffaa4b9cf1b0c751f16d53",
       "imageHash": "ec0f6da7917d87e35f85f9a719f7e11cdc264252a97db756ebef01db27cc47b5"
+    },
+    "/models/components/type41-356-kongo-twin/82a9569c7d5673bf8e5fc4444724cc5c89ae0acc15dbd451aef099cca91f651e/model.glb": {
+      "url": "/models/components/thumbnails/eb95476070967fcddac9bf0e21c1a99a25fca3e31393e8df0177c72f0b06329b.png",
+      "modelHash": "23890f7281aa20517026037b374eb92ceb1f3dd7807231030ce2ea3a06214fd6",
+      "imageHash": "6b2664575c751faf8706cc60d54bafd813414bb372fe211529f3543f918d9321"
     }
   }
 }

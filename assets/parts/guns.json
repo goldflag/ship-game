@@ -18673,46 +18673,6 @@
             3.4
           ],
           [
-            0.8,
-            -1.705,
-            2.35
-          ],
-          [
-            3.3,
-            -1.705,
-            2.35
-          ],
-          [
-            3.3,
-            -0.605,
-            2.35
-          ],
-          [
-            0.8,
-            -0.605,
-            2.35
-          ],
-          [
-            0.8,
-            0.605,
-            2.35
-          ],
-          [
-            3.3,
-            0.605,
-            2.35
-          ],
-          [
-            3.3,
-            1.705,
-            2.35
-          ],
-          [
-            0.8,
-            1.705,
-            2.35
-          ],
-          [
             2.05,
             -1.935,
             4.952195
@@ -19560,226 +19520,6 @@
             "finish": "naval"
           },
           {
-            "id": "recoil-pan-0-wall-0-a",
-            "indices": [
-              44,
-              52,
-              53
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-wall-0-b",
-            "indices": [
-              44,
-              53,
-              45
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-wall-1-a",
-            "indices": [
-              45,
-              53,
-              54
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-wall-1-b",
-            "indices": [
-              45,
-              54,
-              46
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-wall-2-a",
-            "indices": [
-              46,
-              54,
-              55
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-wall-2-b",
-            "indices": [
-              46,
-              55,
-              47
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-wall-3-a",
-            "indices": [
-              47,
-              55,
-              52
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-wall-3-b",
-            "indices": [
-              47,
-              52,
-              44
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-bottom-a",
-            "indices": [
-              55,
-              54,
-              53
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-0-bottom-b",
-            "indices": [
-              55,
-              53,
-              52
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-wall-0-a",
-            "indices": [
-              48,
-              56,
-              57
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-wall-0-b",
-            "indices": [
-              48,
-              57,
-              49
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-wall-1-a",
-            "indices": [
-              49,
-              57,
-              58
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-wall-1-b",
-            "indices": [
-              49,
-              58,
-              50
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-wall-2-a",
-            "indices": [
-              50,
-              58,
-              59
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-wall-2-b",
-            "indices": [
-              50,
-              59,
-              51
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-wall-3-a",
-            "indices": [
-              51,
-              59,
-              56
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-wall-3-b",
-            "indices": [
-              51,
-              56,
-              48
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-bottom-a",
-            "indices": [
-              59,
-              58,
-              57
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
-            "id": "recoil-pan-1-bottom-b",
-            "indices": [
-              59,
-              57,
-              56
-            ],
-            "thicknessMm": 25,
-            "material": "steel",
-            "finish": "naval"
-          },
-          {
             "id": "roof-0",
             "indices": [
               43,
@@ -19850,7 +19590,7 @@
             "indices": [
               12,
               13,
-              60
+              52
             ],
             "thicknessMm": 127,
             "material": "steel",
@@ -19861,7 +19601,7 @@
             "indices": [
               43,
               12,
-              60
+              52
             ],
             "thicknessMm": 127,
             "material": "steel",
@@ -19871,8 +19611,8 @@
             "id": "roof-8",
             "indices": [
               43,
-              60,
-              61
+              52,
+              53
             ],
             "thicknessMm": 127,
             "material": "steel",
@@ -19882,7 +19622,7 @@
             "id": "roof-9",
             "indices": [
               43,
-              61,
+              53,
               14
             ],
             "thicknessMm": 127,
@@ -19905,7 +19645,7 @@
             "indices": [
               43,
               15,
-              62
+              54
             ],
             "thicknessMm": 127,
             "material": "steel",
@@ -19915,8 +19655,8 @@
             "id": "roof-12",
             "indices": [
               43,
-              62,
-              63
+              54,
+              55
             ],
             "thicknessMm": 127,
             "material": "steel",
@@ -19925,7 +19665,7 @@
           {
             "id": "roof-13",
             "indices": [
-              63,
+              55,
               16,
               17
             ],
@@ -19937,7 +19677,7 @@
             "id": "roof-14",
             "indices": [
               43,
-              63,
+              55,
               17
             ],
             "thicknessMm": 127,
@@ -20017,8 +19757,8 @@
             "indices": [
               8,
               14,
-              61,
-              60,
+              53,
+              52,
               13,
               7
             ]
@@ -20028,10 +19768,28 @@
             "indices": [
               10,
               16,
-              63,
-              62,
+              55,
+              54,
               15,
               9
+            ]
+          },
+          {
+            "id": "recoil-well-1",
+            "indices": [
+              47,
+              46,
+              45,
+              44
+            ]
+          },
+          {
+            "id": "recoil-well-2",
+            "indices": [
+              49,
+              48,
+              51,
+              50
             ]
           }
         ],

@@ -5762,17 +5762,17 @@
       "kind": "gun",
       "size": [
         9.001,
-        6.146,
+        3.005,
         22.853
       ],
       "boundsCenter": [
         0,
-        3.0723,
+        4.6423,
         -4.3761
       ],
       "centerOfGravity": [
         0,
-        2.711,
+        4.465,
         0
       ],
       "placement": "deck",
@@ -5783,7 +5783,7 @@
           "kind": "support",
           "position": [
             0,
-            0,
+            3.14,
             0
           ],
           "direction": [

@@ -78,9 +78,9 @@ def gunhouse_shape():
     for i in range(5):
         quad('gunport-sill-'+str(i),[low_front[i],low_front[i+1],sill[i+1],sill[i]])
         if i in (0,2,4):quad('gunport-post-'+str(i),[sill[i],sill[i+1],high_front[i+1],high_front[i]])
-    # Provisional internal recoil pans preserve the exterior sill and the
-    # researched gun axes. The tails need space below the working floor;
-    # this is original functional construction, not a sourced interior plan.
+    # Open recoil wells continue into the ship-owned adjustable barbette.
+    # The gun tails need space below the working floor at full elevation;
+    # fixed pans would project below the turret's bearing attachment plane.
     pockets=[]
     for y in [-1.155,1.155]:
         points=[(.8,y-.55),(3.3,y-.55),(3.3,y+.55),(.8,y+.55)]
@@ -97,12 +97,6 @@ def gunhouse_shape():
         if f.normal.z>0:ids.reverse()
         triangle('floor-'+str(i),*ids,'floor')
     bm.free()
-    for n,loop in enumerate(pockets):
-        bottom=[vertex((*vs[i][:2],2.35)) for i in loop]
-        for i in range(4):
-            j=(i+1)%4
-            quad(f'recoil-pan-{n}-wall-{i}',[loop[i],bottom[i],bottom[j],loop[j]],'floor')
-        quad(f'recoil-pan-{n}-bottom',list(reversed(bottom)),'floor')
     # Ear-triangulate the roof in plan, retaining both open-ended cutouts.
     outline=left_high+[high_front[0]]
     for i in (1,3):
@@ -120,14 +114,14 @@ def gunhouse_shape():
             triangle('roof-'+str(n),*ids,'roof');n+=1;polygon.pop(i);break
         else:raise ValueError('Cannot triangulate original gunhouse roof')
     triangle('roof-'+str(n),*polygon,'roof')
-    # The two remaining directed boundaries are intentional gun apertures.
+    # Preserve the gun-port IDs; the two floor openings are separate wells.
     edges={}
     for f in faces:
         ids=f['indices']
         for a,b in zip(ids,ids[1:]+ids[:1]):
             if (b,a) in edges:del edges[b,a]
             else:edges[a,b]=True
-    apertures=[]
+    apertures=[];counts={'gun-port':0,'recoil-well':0}
     while edges:
         a,b=next(iter(edges));loop=[a];start=a
         while True:
@@ -136,8 +130,10 @@ def gunhouse_shape():
             following=[q for p,q in edges if p==b]
             if len(following)!=1:raise ValueError('Unexpected original shell boundary')
             a,b=b,following[0]
-        apertures.append(dict(id='gun-port-'+str(len(apertures)+1),indices=list(reversed(loop[:-1]))))
-    if len(apertures)!=2:raise ValueError('Expected exactly two original gun ports')
+        kind='recoil-well' if all(abs(vs[i][2]-3.4)<1e-6 for i in loop[:-1]) else 'gun-port'
+        counts[kind]+=1
+        apertures.append(dict(id=kind+'-'+str(counts[kind]),indices=list(reversed(loop[:-1]))))
+    if counts!={'gun-port':2,'recoil-well':2}:raise ValueError('Expected two gun ports and two open recoil wells')
     return dict(version=1,vertices=vs,faces=faces,apertures=apertures,
                 provenance=dict(sourceId='gamemodels3d-kongo-1944',basis='estimated',
                                 note='Original reconstruction from approved model views and cheek sections. Armor thicknesses remain provisional game calibration.'))
@@ -149,10 +145,13 @@ def create_mount(mount,col,helpers,mats):
     mesh,cyl,rod,box=(helpers[k] for k in ['mesh','cyl','rod','box'])
     def own(o):o.parent=yaw;o['assemblyId']=name;return o
     def bar(label,a,b,r=.026):return own(rod(name+'.'+label,a,b,r,mats['edge'],col,vertices=8))
-    # Annular bearing/support walls leave the internal recoil pans clear.
-    # Preserve the shared builder's exterior sizes, placement and ownership.
+    # The ship owns barbette height. Keep only the shallow annular bearing
+    # whose underside is the construction attachment plane (local Z=3.14).
     for o in list(col.objects):
         if o.get('assemblyId')!=name or not any(k in o.name for k in [' • armored barbette',' • roller race']):continue
+        if ' • armored barbette' in o.name:
+            bpy.data.objects.remove(o,do_unlink=True)
+            continue
         old=o.data;r=max(math.hypot(v.co.x,v.co.y) for v in old.vertices)
         lo=min(v.co.z for v in old.vertices);hi=max(v.co.z for v in old.vertices)
         n=64;profile=[(r,lo),(r,hi),(3.95,hi),(3.95,lo)]
