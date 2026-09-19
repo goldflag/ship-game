@@ -8,7 +8,7 @@
 .helm-wheel-cardinal { font-size:11px !important; fill:var(--fleet-active) !important; }
 .helm-wheel-ray { fill:none; stroke:var(--fleet-gold); stroke-opacity:.45; stroke-width:1.5; }
 .helm-wheel-centre { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:28%; text-align:center; pointer-events:none; }
-.helm-wheel-centre b { display:block; font:600 22px/1 'Barlow Condensed',sans-serif; color:var(--fleet-active); text-transform:uppercase; }
+.helm-wheel-centre b { display:block; font:600 22px/1 'Barlow Condensed',sans-serif; color:var(--fleet-active); }
 .helm-wheel-centre.lost b { color:#ffb5a6; }
 .helm-wheel-centre small { display:block; margin-top:4px; color:var(--fleet-muted); }
 .helm-wheel-node { position:absolute; transform:translate(-50%,-50%); width:15%; display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 2px; border:0; border-radius:2px; background:none; color:inherit; font:inherit; text-shadow:inherit; cursor:pointer; }

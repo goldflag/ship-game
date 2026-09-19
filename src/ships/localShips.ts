@@ -20,6 +20,8 @@ export const localShips = () => snapshot;
 export const subscribeLocalShips = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 export const isHistoricalShip = (id: string) => Object.hasOwn(shipPresets, id);
 export const isLocalShipId = (id: string) => id.startsWith('local-');
+/** Historical names are set in capitals; player-named designs keep the case they were typed in. */
+export const shipTitle = (ship: { id: string; name: string }) => isHistoricalShip(ship.id) ? ship.name.toUpperCase() : ship.name;
 
 function freeze<T>(value: T): T {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {

@@ -40,7 +40,7 @@ declare global { interface Window { constructionEditor?: ConstructionEditorHandl
 import { TrialControls } from './shipbuilding/TrialControls';
 import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../ships/blueprint';
 import { loadConstructionCatalog } from '../ships/constructionEquipment';
-import { localShips, registerLocalShip, removeLocalShip, resolveShip } from '../ships/localShips';
+import { localShips, registerLocalShip, removeLocalShip, resolveShip, shipTitle } from '../ships/localShips';
 import { restoreLocalShips } from '../ships/constructionLibrary';
 import { ConstructionClient } from '../ships/constructionClient';
 import { openConstructionStore } from '../ships/constructionStore';
@@ -480,9 +480,9 @@ function Harbor({ account, startup }: AppProps) {
 
     {error && <section className="loading-screen" aria-live="polite">
       <div className="loading-brand"><Icon name="anchor" size={36}/><span>FLEET COMMAND</span></div>
-      <div className="loading-content"><h1>{selectedShip.name.toUpperCase()}</h1><p className="loading-subtitle">Take the helm.</p><div className="ship-measure"><div/><span>{selectedShip.hull.length} M</span><div/></div>
+      <div className="loading-content"><h1>{shipTitle(selectedShip)}</h1><p className="loading-subtitle">Take the helm.</p><div className="ship-measure"><div/><span>{selectedShip.hull.length} M</span><div/></div>
         <div className="error-message"><h2>Unable to launch the battle</h2><p>{error}</p><p>Try reloading in a current Chrome or Edge browser with hardware acceleration enabled.</p><Button variant="primary" onClick={() => setGeneration(value => value + 1)}>Try again <Icon name="arrow" size={18}/></Button></div>
-      </div><div className="loading-bottom"><span>SINGLEPLAYER · OPEN OCEAN</span><span>{selectedShip.name.toUpperCase()} / {selectedShip.configuration.match(/19\d{2}/)?.[0]}</span></div>
+      </div><div className="loading-bottom"><span>SINGLEPLAYER · OPEN OCEAN</span><span>{shipTitle(selectedShip)} / {selectedShip.configuration.match(/19\d{2}/)?.[0]}</span></div>
     </section>}
 
     <dialog ref={dialog} className={`pause-menu ${settingsOpen ? 'pause-menu-covered' : ''}`} aria-labelledby="pause-title" onCancel={e => { e.preventDefault(); resume(); }}>

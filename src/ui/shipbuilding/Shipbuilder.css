@@ -83,7 +83,7 @@
 .sb-port { display: flex; align-items: center; gap: 6px; color: var(--sb-muted); font-size: 12px; white-space: nowrap; }
 .sb-port:hover { color: var(--sb-text); }
 .sb-ship { position: relative; display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-.sb-name { font: 500 21px/1 'Barlow Condensed', sans-serif; letter-spacing: .035em; text-transform: uppercase; width: min(24vw, 260px); border-bottom-color: transparent; padding: 2px 0; text-shadow: inherit; }
+.sb-name { font: 500 21px/1 'Barlow Condensed', sans-serif; letter-spacing: .035em; width: min(24vw, 260px); border-bottom-color: transparent; padding: 2px 0; text-shadow: inherit; }
 .sb-name:hover, .sb-name:focus { border-bottom-color: var(--sb-line2); }
 .sb-meta { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--sb-muted); white-space: nowrap; }
 .sb-meta:hover { color: var(--sb-text); }
