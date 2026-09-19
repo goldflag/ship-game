@@ -671,7 +671,10 @@ export class Game {
     this.setPaused(true);
     // replaceFleet requires a port scene, but must not reset the live authority.
     this.inPort = true;
-    const definition = this.definition.id.startsWith('local-') ? this.portDefinition : this.definition;
+    // Design ids carry their content hash, so an edit since sailing retires the
+    // old id. Berth only a revision the port can still compile.
+    const berthable = (ship: typeof selectedShip) => isHistoricalShip(ship.id) || !!localShip(ship.id);
+    const definition = [this.definition, this.portDefinition].find(berthable) ?? selectedShip;
     try { await this.replaceFleet(await this.portSession(definition), definition); this.setInPort(true); }
     catch (error) { this.inPort = false; throw error; }
   }

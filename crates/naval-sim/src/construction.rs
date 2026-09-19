@@ -1778,24 +1778,7 @@ fn equipment(
                 ));
             }
             masses.push(path.mass);
-            // Group separate closed members without filling any space between them.
-            // Each group remains below the existing per-body vertex budget.
-            for (i, cells) in path.cells.chunks(64).enumerate() {
-                let mut surface = AuthoredSurface::default();
-                for cell in cells {
-                    let mesh = surface_mesh(cell);
-                    let offset = surface.vertices.len() as f64;
-                    surface.vertices.extend(mesh.vertices);
-                    surface
-                        .triangles
-                        .extend(mesh.triangles.into_iter().map(|t| t.map(|x| x + offset)));
-                }
-                path_clearance.push(MountClearanceProfileBodiesItem {
-                    id: format!("{}-members-{i}", e.id),
-                    mount_id: None,
-                    surface,
-                });
-            }
+            // Paths are cosmetic trim: their members never limit gun traverse or fire.
             // Railings never obstruct anything: they share posts, flank stairs and
             // cross lines, so their members stay out of the fit index.
             let railing = p.path.as_ref().is_some_and(|path| path.kind == "railing");
@@ -2299,12 +2282,8 @@ fn equipment(
                     center: add(e.position, [0., p.bounds_center[1], 0.]),
                     size: [radius * 2., p.size[1], radius * 2.],
                 });
-            } else if p.fitting.is_some() {
-                for (i, cell) in fitting_cells.iter().enumerate() {
-                    let (center, size) = crate::structure::bounds(cell.faces.iter().flat_map(|f| f.vertices.iter().copied()));
-                    def.obstructions.push(Volume { id: format!("{}-fitting-{i}", e.id), center, size });
-                }
-            } else {
+            } else if p.kind != "deck-fitting" {
+                // Deck fittings are cosmetic: guns train and fire through them.
                 def.obstructions.push(Volume {
                     id: e.id.clone(),
                     center: box_center,
