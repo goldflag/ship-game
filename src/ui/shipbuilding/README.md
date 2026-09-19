@@ -88,6 +88,8 @@ Custom hulls expose individual panels between neighboring sections, plus separat
 
 **Fittings.** The ghost of a gun shows its firing arc before placement; Arc toggles arcs for the mounts already fitted. Deck parts attach to the deck under the pointer through their attachment socket, underwater parts to the hull surface. Suggest asks the native solver to place the active slot's part.
 
+Life rings, oval life rafts and rectangular life rafts are available in **Fittings → Deck gear**. Click a hull side or wall to attach them; linked mirroring and resizing use the normal wall tools. Life rings keep their circular proportions. These low-poly stowed props add only loading mass.
+
 The searchable drawer includes bitts, a fairlead, capstan, anchor windlass, stowed anchor, lifeboat with davits, cowl and mushroom vents, watertight door, deck hatch, vertical ladder, inclined stairs, compact optical rangefinder and **Searchlight (unlit)**. These are generic naval parts with estimated dimensions and loading. The rangefinder uses the director family; other fixed deck fittings add mass without buoyancy or a combat bonus. Doors and hatches remain closed models and do not create hull openings. The boat and davits remain stowed. The searchlight is static and has no beam, light source, power demand or detection behavior.
 
 Railing, rope and chain cards draw connected paths: click each point on the ship, then press **Enter**, double-click or choose **Finish**. **Backspace** or **Ctrl/⌘Z** removes the last pending point; **Escape** cancels without changing the design. Pending points remain outside source, autosave and history; finish or cancel before using Port, Designs or Sea trials. The whole route (including its mirrored copy) commits as one undoable edit. The brass preview shows the pending route and points before committing. Railing points are deck-level feet; rope and chain also attach at the clicked surface of fixed deck fittings, including masts, without grid rounding. Older catalogs retain explicit support/rigging socket picking until **Update parts library**. Published `riggingSurface` data packs every original GLB triangle as base64 zlib (little-endian u32 vertex/triangle counts, xyz f32 vertices, then u32 triangle indices); native code bounds decoding and uses the shared clearance triangle tree, independently of rendering. Moving weapons and scalable wall details remain excluded. Rope **slack** is the vertical sag at the midpoint of each segment, adjustable in metres. It is limited to half the shortest segment and 20 m; routes support 2–64 points and at most 500 m. Native compilation checks physical attachment and clearance.
@@ -242,6 +244,17 @@ In Hull, **D**, selection tags and the Freeform rail button enter shape editing 
 The edit-session baseline is separate from undo history and changes only when a new session begins. Reset restores that block's session-entry shape, including its original kind. Changing layer, tool or design ends the session. Selecting another editable block starts a fresh baseline; selecting other objects ends freeform mode. Native compile gating, autosave, fixed equipment placement and fit warnings remain shared with ordinary primitive edits.
 
 Validation includes `src/ships/constructionVertex.test.ts`, vertex cases in `primitiveGeometry.test.ts`, native construction tests, and `checkFreeformEditor()` / `checkFreeformDrags()` from `scripts/tests/freeform-editor-browser.ts`. Browser helpers exercise the production controls, native compilation, XYZ combinations, rigid edges/faces, the visible view strip, step cycling, nearby-corner undo/redo, projections, split, cancellation and exact IndexedDB reopen. Use real mouse drags separately to verify browser capture and one-command commits. `mountFreeformReview()` mounts a two-block fixture for that review.
+
+## Wall fitting previews
+
+Wall-fitting projection caches hull-panel bounds per immutable compiled surface
+array, then clips/projects only panels intersecting the fitting's projection
+volume. Moving a door no longer tests every hardware vertex against the entire
+hull. `constructionWallModel.test.ts` covers bounded projection work, large
+crossing panels, sloped support, scaling and relief. Run
+`node scripts/tests/shipbuilder-doors-browser.mjs <vite-url>` for actual door
+previews, all three variants, linked mirrors, resizing and undo; it also reports
+preview CPU timings and saves captures under `.build/door-review/`.
 
 ## Fine fitting rotation
 

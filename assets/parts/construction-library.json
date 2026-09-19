@@ -128,11 +128,10 @@
       ]
     },
     "generic-watertight-door": {
-      "path": "assets/parts/construction/surface_fittings.py",
-      "function": "create_surface_fitting",
+      "path": "assets/parts/construction/doors.py",
+      "function": "create_door",
       "inputs": [
-        "assets/parts/construction/geometry.py",
-        "assets/parts/construction/windows.py"
+        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-deck-hatch": {
@@ -643,19 +642,17 @@
       ]
     },
     "generic-utility-door": {
-      "path": "assets/parts/construction/surface_fittings.py",
-      "function": "create_surface_fitting",
+      "path": "assets/parts/construction/doors.py",
+      "function": "create_door",
       "inputs": [
-        "assets/parts/construction/geometry.py",
-        "assets/parts/construction/windows.py"
+        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-windowed-door": {
-      "path": "assets/parts/construction/surface_fittings.py",
-      "function": "create_surface_fitting",
+      "path": "assets/parts/construction/doors.py",
+      "function": "create_door",
       "inputs": [
-        "assets/parts/construction/geometry.py",
-        "assets/parts/construction/windows.py"
+        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-louvered-vent": {
@@ -844,6 +841,30 @@
       "inputs": [
         "assets/parts/construction/geometry.py",
         "assets/parts/construction/utility_fittings.py"
+      ]
+    },
+    "generic-life-ring": {
+      "path": "assets/parts/construction/life_saving.py",
+      "function": "create_life_ring",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/superstructure_fittings.py"
+      ]
+    },
+    "generic-life-raft-oval": {
+      "path": "assets/parts/construction/life_saving.py",
+      "function": "create_life_raft",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/superstructure_fittings.py"
+      ]
+    },
+    "generic-life-raft-rectangular": {
+      "path": "assets/parts/construction/life_saving.py",
+      "function": "create_life_raft",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/superstructure_fittings.py"
       ]
     }
   },
@@ -1585,6 +1606,24 @@
       "builder": "generic-inclined-bollards",
       "review": "unreviewed",
       "limitations": "Original generic mooring bollard; dimensions and dry mass are game estimates, not a historical reconstruction or load rating. Static painted fitting with a deck sole and rope sockets. Installed deck support and neighboring clearance require design-specific review."
+    },
+    {
+      "partId": "generic-life-ring",
+      "builder": "generic-life-ring",
+      "review": "unreviewed",
+      "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review."
+    },
+    {
+      "partId": "generic-life-raft-oval",
+      "builder": "generic-life-raft-oval",
+      "review": "unreviewed",
+      "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review."
+    },
+    {
+      "partId": "generic-life-raft-rectangular",
+      "builder": "generic-life-raft-rectangular",
+      "review": "unreviewed",
+      "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review."
     }
   ]
 }

@@ -30,6 +30,29 @@ independent `.yaw` joint. The native compiler continues to own shaft supports,
 engine assignments, immersion and steering behavior. Per-design hull and
 neighbor clearance still require installation review.
 
+## Wall-mounted lifesaving gear
+
+`life_saving.py` supplies a life ring, oval life raft and rectangular life raft
+in **Fittings → Deck gear**. Click a hull side or superstructure wall to install;
+the existing wall tools support linked mirroring and resizing. The ring scales
+uniformly to keep its circular shape. All three retain shallow 3D relief on
+sloped surfaces, with rear mounting rails, lower saddles and retaining clips or
+straps. The wall attachment socket is at the rear datum (runtime Z=0); the
+assembly projects outward toward runtime -Z.
+
+These are original generic stowed props, with nominal package dimensions of
+0.84 × 0.84 × 0.24 m, 1.25 × 1.90 × 0.36 m and 1.57 × 2.25 × 0.36 m, and
+estimated dry masses of 5, 45 and 65 kg. They add loading mass only. No rescue,
+deployment, buoyancy or historical variant is implied. Canvas, rope and wood
+retain their shared material roles; bands and brackets follow component paint.
+
+The existing deck-mounted Carley float remains its own registered variant.
+These lightweight wall originals reuse the simple fitting mesh/batching helper,
+with 16–24 perimeter stations, eight-sided float sections, four-sided grab lines,
+material-only bands and plain slats. Each complete exported assembly must stay
+below 1,000 triangles, without textures or subdivisions. Per-installation
+support and clearance still require review.
+
 ## Deck fittings and connected paths
 
 The current Deck gear selection is general ship hardware. Drawable rope, chain,
@@ -380,10 +403,18 @@ need review. Registrations retain `unreviewed` fidelity status.
 
 ## Surface hardware and rung ladders
 
-`surface_fittings.py` authors three generic door variants: utility, watertight
-with a wheel and dog latches, and windowed utility. Their panel stays flush;
-meshes marked `wallRelief` retain shallow modeled hinges, handles, seals and other
-hardware when projected onto the hull. Louvered and round grille vents use a
+`doors.py` authors three generic closed ship doors based on the owner's supplied
+rounded watertight-door illustration and porthole-door photograph. All have a
+rounded welded coaming, inset pressed leaf, narrow gasket reveal and supported
+strap hinges. Utility uses a lever; watertight uses a four-spoke wheel; windowed
+uses an opaque round scuttle and six separate dog levers. Corner arcs have six
+segments; wheel and scuttle rims are continuous low-poly bands. The exported
+variants stay below 1,200 triangles each, without textures or working hinges.
+These are original generic interpretations, not researched service variants.
+
+The root's `wallRelief` mark keeps the shallow frame and hardware seated when
+projected onto the hull. `surface_fittings.py` retains the earlier door recipe
+and authors vents and the ladder sample. Louvered and round grille vents use a
 closed dark backing and raised louvers/grille bars. These are visible fittings;
 they do not cut openings or add ventilation simulation.
 

@@ -1,3 +1,4 @@
+import { resizedWallDimensions } from '../ui/shipbuilding/wallDimensions';
 import { beforeAll, expect, test } from 'bun:test';
 import init, { compile_construction } from '../generated/naval-wasm/naval_wasm';
 import catalogJson from '../../public/models/components/catalog.json';
@@ -8,6 +9,7 @@ import { pathEquipment } from '../ui/shipbuilding/pathDrawing';
 import { mirroredEquipment, decodeConstructionSource } from './constructionEditor';
 import { applyConstructionBatch } from './constructionCommands';
 import { paletteFor } from '../ui/shipbuilding/builderLayers';
+import { installedWallPart } from './constructionWallFittings';
 
 const catalog=catalogJson as ConstructionCatalog;
 beforeAll(async()=>{await init({module_or_path:await Bun.file(new URL('../generated/naval-wasm/naval_wasm_bg.wasm',import.meta.url)).arrayBuffer()});});
@@ -49,6 +51,22 @@ test('a resized hardware pair retains its mirrored wall relationship and scaled 
   expect(decodeConstructionSource(JSON.parse(JSON.stringify(s)))).toEqual(JSON.parse(JSON.stringify(s)));
   left.wall.widthM+=.1;
   expect(compile(s).diagnostics.some(d=>d.code==='wall-fitting')).toBe(true);
+});
+
+test('life rings stay round when resized on either axis, mirrored and saved',()=>{
+  const s=fixture(), before=compile(s), p=catalog.equipment.find(p=>p.id==='generic-life-ring')!;
+  const wall={version:1 as const,widthM:p.size[0],heightM:p.size[1]};
+  for(const axis of [0,1] as const) {
+    const dimensions=resizedWallDimensions(p,wall,axis,p.size[axis]*1.5);
+    expect(dimensions.widthM).toBeCloseTo(dimensions.heightM,8);
+    const right:ConstructionEquipment={id:'ring-right',partId:p.id,position:[4,0,0],bearingDeg:90,wall:{...wall,...dimensions,mirrorId:'ring-left'}};
+    const left={...mirroredEquipment(right),id:'ring-left',wall:{...right.wall!,mirrorId:'ring-right'}};
+    s.construction.equipment=[right,left];
+    const restored=decodeConstructionSource(JSON.parse(JSON.stringify(s))), r=compile(restored);
+    expect(r.definition,JSON.stringify(r.diagnostics)).toBeDefined();
+    expect(r.loading!.massKg-before.loading!.massKg).toBeCloseTo(2*p.massKg!*1.5**3,5);
+    expect(installedWallPart(p,right).size[2]).toBeCloseTo(p.size[2]*1.5,8);
+  }
 });
 
 test('all door variants and both wall vents compile with unchanged hull rooms',()=>{

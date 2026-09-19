@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "768952276eeae73907b90b22b365a89b254a6438567f2535bb8fc10fbeed9de4",
+  "revision": "19fc0505a49a2c46cd9d7629f0b65091dc9d72748ac7cee955387f8867bc5f80",
   "weapons": {
     "schemaVersion": 1,
     "parts": [
@@ -26612,96 +26612,6 @@
       ],
       "modelUrl": "/models/components/generic-life-raft-rectangular/854759d32cb7aec38aa4fb9267e78dddce2118c16c9ebd722d37c297ac220127/model.glb",
       "contentHash": "d0d70e509ab9012cb4cc3c4375017d5ea587f3fc5117d3cf6b109d06bdeaa349"
-    },
-    {
-      "id": "generic-inclined-ladder",
-      "name": "Adjustable inclined stairs",
-      "kind": "deck-fitting",
-      "size": [
-        1,
-        4,
-        3
-      ],
-      "boundsCenter": [
-        0,
-        2,
-        -1.25
-      ],
-      "centerOfGravity": [
-        0,
-        2,
-        -1.25
-      ],
-      "massKg": 1,
-      "placement": "deck",
-      "path": {
-        "kind": "inclined-ladder",
-        "diameterM": 0.032,
-        "massKgPerM": 1
-      },
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "modelUrl": "/models/components/generic-inclined-ladder/1c9bc08de14c55e49364df1d560a3f6ba93f51ec9efd3763075dc6ad655af6c3/model.glb",
-      "contentHash": "e01a9f03df4d1baa7de89e24a57310fbfd7b9479b699ff038d84c91a80bd87b2"
-    },
-    {
-      "id": "generic-framed-ladder",
-      "name": "Adjustable framed ladder",
-      "kind": "deck-fitting",
-      "size": [
-        0.8,
-        4.2,
-        0.4
-      ],
-      "boundsCenter": [
-        0,
-        1.95,
-        -0.2
-      ],
-      "centerOfGravity": [
-        0,
-        1.95,
-        -0.2
-      ],
-      "massKg": 1,
-      "placement": "deck",
-      "path": {
-        "kind": "framed-ladder",
-        "diameterM": 0.032,
-        "massKgPerM": 1
-      },
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            0,
-            1
-          ]
-        }
-      ],
-      "modelUrl": "/models/components/generic-framed-ladder/0558b1df68e335b8e18b209200582e14aa1036b56b613e7eb450fda0774e50f2/model.glb",
-      "contentHash": "eb02478e0262e66135d078064fef1359298030a3ad2a20230e7c1a900292311e"
     }
   ]
 }
