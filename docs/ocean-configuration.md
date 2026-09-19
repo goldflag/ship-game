@@ -252,6 +252,10 @@ Both scenes use cloud thickness 2,400 m (previously 3,200 m), altitude 1,700 m, 
 
 The [before/after review](../assets/reviews/sky-daylight/index.html) contains unedited 1,600 × 900 WebGPU canvas captures from the actual Game renderer. Each pair shares its camera and frozen animation time; the review notes describe the capture setup.
 
+## Sun glare and celestial disc size
+
+Facing the sun at sea, the forward aureole bleached about a third of the sky and the water beneath it, around a 3.2° sun disc (the moon was 3.6°). `VisualEnvironment` now applies `SUN_HAZE` **0.45** to every map and weather preset's authored `mie` strength, preserving their relative haze, and draws both discs at 1.4° (`CELESTIAL_DISC` 7.5e-5; the real discs are 0.53°). Sun intensity, exposure, `mieG`, turbidity, clouds, fog and the port's own 0.25 Mie strength are unchanged, and the down-sun view rendered identically in a fixed-camera comparison. Raising `mieG` concentrated the same light into a hotter core, and a disc-only brightness multiplier made no visible difference after ACES, so neither is used. The low sun remains the brightest case. This is artistic tuning, not a calibrated atmosphere.
+
 ## Port sun glare correction
 
 The broader aerosol scattering above made the sun-facing port view pale and washed out, including its water reflections. A fixed-camera comparison isolated the forward sun haze: reducing only port `mieScatteringStrength` from **1.2 to 0.25** restored visible clouds and water color. The sea remains at **0.5**. Sun intensity, exposure, diffuse sky fill, cloud settings, fog and water materials retain their previous values, keeping the shaded hull readable and the normal harbor view close to the accepted daylight direction.
