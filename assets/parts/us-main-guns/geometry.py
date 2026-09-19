@@ -100,55 +100,31 @@ def create_iowa_main(mount, collection, helpers, materials):
             for dy in [-.18, .18]:
                 rod(n + '.face.ladder.shoe', (face_x(z) - .01, y + dy, z), (face_x(z) + .075, y + dy, z), .022, naval, collection, vertices=6)
 
-    # Aft rangefinder ears emerge from the tapered sides with flanges and optics.
-    rod(n + '.rangefinder.tube', (-6.82, -6.92, 2.48), (-6.82, 6.92, 2.48), .22, naval, collection, vertices=16)
+    # Registered agm034 Mk 7 source has a clear roof and no projecting aft
+    # rangefinder ears. Keep this exact source configuration rather than adding
+    # fittings from other Iowa turrets/refits. The two forward sight boxes and
+    # side ladders are its only prominent side fittings.
     for sign in [-1, 1]:
-        box(n + '.rangefinder.hood', (-6.82, sign * 6.03, 2.46), (1.40, 1.98, .90), naval, collection)
-        box(n + '.rangefinder.flange', (-6.82, sign * 5.48, 2.44), (2.05, .14, 1.46), naval, collection)
-        box(n + '.rangefinder.window.frame', (-6.109, sign * 6.89, 2.47), (.075, .49, 1.03), edge, collection)
-        box(n + '.rangefinder.glass', (-6.064, sign * 6.89, 2.47), (.025, .34, .88), dark, collection)
-        path = [(-6.82 + .72 * math.cos(i * math.tau / 24), sign * 7.045, 2.46 + .43 * math.sin(i * math.tau / 24)) for i in range(24)]
-        for a, b in zip(path, path[1:] + path[:1]):
-            rod(n + '.rangefinder.cover.rim', a, b, .023, naval, collection, vertices=6)
-        # Two staggered armoured sight housings on each forward side plate.
         for x, y, z in [(1.18, 6.31, 2.43), (-.23, 6.83, 1.65)]:
             box(n + '.side.sight.flange', (x, sign * (y - .25), z), (.81, .16, .85), naval, collection)
-            box(n + '.side.sight', (x, sign * y, z), (.57, .65, .68), naval, collection)
-            box(n + '.side.sight.bezel', (x + .292, sign * y, z), (.055, .49, .54), edge, collection)
-            box(n + '.side.sight.lens', (x + .325, sign * y, z), (.018, .33, .39), dark, collection)
-        # Side ladder follows the inclined armour.
+            # Bevel the forward/rear silhouette in side view; these are angular
+            # cast housings, not stacked rectangular blocks.
+            outline = [(-.31, -.34), (.20, -.34), (.31, -.23),
+                       (.31, .23), (.20, .34), (-.31, .34)]
+            vv = [(x + dx, sign * yy, z + dz)
+                  for yy in [y - .34, y + .31] for dx, dz in outline]
+            faces = [tuple(range(6)), tuple(range(11, 5, -1))]
+            faces += [(i, i + 6, (i + 1) % 6 + 6, (i + 1) % 6) for i in range(6)]
+            if sign < 0:
+                faces = [tuple(reversed(face)) for face in faces]
+            mesh(n + '.side.sight', vv, faces, naval, collection)
+            box(n + '.side.sight.bezel', (x + .315, sign * y, z), (.025, .49, .42), edge, collection)
+            box(n + '.side.sight.lens', (x + .332, sign * y, z), (.012, .33, .30), dark, collection)
         ladder('.side.ladder', (-1.17, sign * 6.52, .30), (-1.17, sign * 5.92, 3.17), .44, 'x', edge)
         for z in [.5, 2.9]:
             y = 6.58 - (z - .161) * .20
             for x in [-1.39, -.95]:
                 rod(n + '.side.ladder.shoe', (x, sign * (y - .15), z), (x, sign * y, z), .026, naval, collection, vertices=6)
-        # Rear safety basket hung from the roof edge of the overhang.
-        y0, y1 = (.35, 3.25) if sign == 1 else (-3.25, -.35)
-        for yy in [y0 + i * (y1 - y0) / 12 for i in range(13)]:
-            x = -9.46 + .12 * abs(yy)
-            rod(n + '.basket.rib', (x, yy, 3.17), (x - .35, yy, 2.73), .018, edge, collection, vertices=6)
-            rod(n + '.basket.floor', (x - .35, yy, 2.73), (x - .52, yy, 3.17), .018, edge, collection, vertices=6)
-        for zz, dx in [(3.17, .03), (2.74, .35), (3.17, .53)]:
-            rod(n + '.basket.edge', (-9.46 + .12 * abs(y0) - dx, y0, zz), (-9.46 + .12 * abs(y1) - dx, y1, zz), .026, naval, collection, vertices=6)
-        # Roof handrails along the long side edges.
-        rail = [(-6.4, 4.75), (-3.0, 5.27), (.3, 5.77)]
-        for (xa, ya), (xb, yb) in zip(rail, rail[1:]):
-            rod(n + '.roof.rail', (xa, sign * ya, 3.42), (xb, sign * yb, 3.42), .022, edge, collection, vertices=6)
-        for x, y in rail:
-            rod(n + '.roof.rail.post', (x, sign * y, 3.19), (x, sign * y, 3.42), .022, edge, collection, vertices=6)
-
-    # Roof periscopes, sight hoods and plating seams.
-    for y in [-1.60, 1.60]:
-        cyl(n + '.roof.periscope.base', (-5.31, y, 3.27), .16, .14, naval, collection, 16)
-        cyl(n + '.roof.periscope', (-5.31, y, 3.42), .09, .26, naval, collection, 12)
-        box(n + '.roof.periscope.head', (-5.25, y, 3.55), (.25, .20, .15), naval, collection)
-        box(n + '.roof.periscope.lens', (-5.116, y, 3.55), (.02, .14, .085), dark, collection)
-    for y in [-4.1, 4.1]:
-        box(n + '.roof.sight.hood', (2.35, y, 3.30), (.62, .46, .22), naval, collection)
-        box(n + '.roof.sight.lens', (2.665, y, 3.31), (.02, .30, .10), dark, collection)
-    box(n + '.rear.access', (-9.448, 0, 1.81), (.09, 1.09, 1.91), naval, collection)
-    for y in [-.56, .56]:
-        rod(n + '.rear.coaming', (-9.50, y, .83), (-9.50, y, 2.82), .024, naval, collection, vertices=6)
     frame = list(set(bpy.context.scene.objects) - before)
 
     groups = []
@@ -158,18 +134,26 @@ def create_iowa_main(mount, collection, helpers, materials):
         muzzle = spec['muzzleForward']
         bore = spec['caliberM'] / 2
         base = spec.get('barrelBaseRadius', .612)
-        profile = [(pivot[0] + .25, base), (6.91, base), (8.316, base), (8.35, .500), (9.249, .500), (12.136, .406),
+        profile = [(pivot[0] + .25, base), (8.15, base), (9.249, .500), (12.136, .406),
                    (muzzle, .317), (muzzle, bore), (muzzle - .7, bore)]
-        lathe('.barrel', pivot, profile, edge, bore_from=7, sides=16)
+        lathe('.barrel', pivot, profile, edge, bore_from=5, sides=16)
         groups.append(list(set(bpy.context.scene.objects) - start))
     yaw = articulate_aa(mount, collection, frame, groups)
     for side, lateral in zip(['left', 'center', 'right'], centers):
         rim=[]
         for i in range(24):
             a=i*math.tau/24;c=math.cos(a);s=math.sin(a);r=max(abs(c),abs(s))
-            z=1.925+1.17*math.copysign(abs(s)**.5,s)
-            rim.append((face_x(z)+.008,lateral+1.02*math.copysign(abs(c)**.5,c),z))
-        create_bloomer(mount, collection, helpers, materials, side, rim, 6.91, base, rings=5, fold_depth=.065, slack=.10, fullness=.10, forward_fullness=.22)
+            z=1.97+1.23*math.copysign(abs(s)**.62,s)
+            rim.append((face_x(z)+.008,lateral+.92*math.copysign(abs(c)**.45,c),z))
+        cover = create_bloomer(mount, collection, helpers, materials, side, rim, 6.91, base, rings=6, fold_depth=.025, slack=.04, fullness=.12, forward_fullness=.18)
+        # A short raised shoulder in the top of the canvas is visible above the
+        # face/roof break in the registered source. Shape every elevation key;
+        # the first (fixed seam) and last (sliding cuff) loops remain untouched.
+        for key in cover.data.shape_keys.key_blocks:
+            for j, lift in [(1, .47), (2, .16)]:
+                for i in range(24):
+                    crown = max(0, math.sin(i * math.tau / 24)) ** 3
+                    key.data[j * 24 + i].co.z += lift * crown
     return yaw
 
 
