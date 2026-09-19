@@ -44,7 +44,9 @@
       "path": "assets/parts/us-6in47-mk16/geometry.py",
       "function": "create_mount",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "us-iowa-mounts": {
@@ -62,7 +64,8 @@
       "function": "create_mount",
       "inputs": [
         "scripts/ships/blender_components.py",
-        "scripts/ships/blender_barrels.py"
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
       ]
     },
     "ijn-mogami-aa": {
@@ -84,7 +87,8 @@
       "function": "create_mount",
       "inputs": [
         "scripts/ships/blender_components.py",
-        "scripts/ships/blender_barrels.py"
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
       ]
     },
     "german-sk-c30": {
@@ -98,84 +102,106 @@
       "path": "assets/parts/german-cruiser-guns/geometry.py",
       "function": "create_main",
       "inputs": [
-        "scripts/ships/blender_barrels.py"
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
       ]
     },
     "german-cruiser-105": {
       "path": "assets/parts/german-cruiser-guns/geometry.py",
       "function": "create_secondary",
       "inputs": [
-        "scripts/ships/blender_barrels.py"
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
       ]
     },
     "german-cruiser-light": {
       "path": "assets/parts/german-cruiser-guns/geometry.py",
       "function": "create_light",
       "inputs": [
-        "scripts/ships/blender_barrels.py"
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
       ]
     },
     "ijn-yamato-main": {
       "path": "assets/parts/ijn-main-guns/geometry.py",
       "function": "create_yamato_main",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "ijn-yamato-secondary": {
       "path": "assets/parts/ijn-main-guns/geometry.py",
       "function": "create_yamato_secondary",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "ijn-mogami-main": {
       "path": "assets/parts/ijn-main-guns/geometry.py",
       "function": "create_mogami_main",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "us-iowa-main": {
       "path": "assets/parts/us-main-guns/geometry.py",
       "function": "create_iowa_main",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "us-baltimore-main": {
       "path": "assets/parts/us-main-guns/geometry.py",
       "function": "create_baltimore_main",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "rn-kgv-main": {
       "path": "assets/parts/rn-main-guns/geometry.py",
       "function": "create_kgv_main",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "rn-kgv-secondary": {
       "path": "assets/parts/rn-main-guns/geometry.py",
       "function": "create_kgv_secondary",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "german-sk-c28": {
       "path": "assets/parts/german-battleship-guns/sk_c28.py",
       "function": "create_mount",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py"
       ]
     },
     "german-flak-105": {
       "path": "assets/parts/german-battleship-guns/flak_105.py",
       "function": "create_mount",
       "inputs": [
-        "assets/parts/aa_articulation.py"
+        "assets/parts/aa_articulation.py",
+        "assets/parts/gun_bloomers.py",
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/german-cruiser-guns/geometry.py"
       ]
     },
     "ijn-356": {

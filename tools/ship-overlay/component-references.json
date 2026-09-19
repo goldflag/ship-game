@@ -1,0 +1,897 @@
+[
+  {
+    "partId": "us-5in38-mk30-mod0-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pzsd108",
+    "sourceVehicle": "pzsd108",
+    "resource": "common/visual/panasia/gun/main/zgm004_5in38_mk30_mod0/zgm004_5in38_mk30_mod0",
+    "sourceName": "zgm004_5in38_mk30_mod0",
+    "match": "exact",
+    "notes": "Approved Hsienyang Hull A source uses this Mk30 Mod0 resource; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pzsd108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/panasia/gun/main/zgm004_5in38_mk30_mod0/zgm004_5in38_mk30_mod0.model"
+    ]
+  },
+  {
+    "partId": "us-6in47-mk16-cleveland",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc208",
+    "sourceVehicle": "pasc208",
+    "resource": "common/visual/usa/gun/main/agm009_6in47_cl55/agm009_6in47_cl55",
+    "sourceName": "agm009_6in47_cl55",
+    "match": "exact",
+    "notes": "Cleveland CL55 triple source matches the component approved source; historical fit is not certified.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc208",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm009_6in47_cl55/agm009_6in47_cl55.model"
+    ]
+  },
+  {
+    "partId": "us-20mm-oerlikon-mk4-hsienyang",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pzsd108",
+    "sourceVehicle": "pzsd108",
+    "resource": "common/visual/panasia/gun/aaircraft/zga008_20mm_oerlikon_mk4/zga008_20mm_oerlikon_mk4",
+    "sourceName": "zga008_20mm_oerlikon_mk4",
+    "match": "exact",
+    "notes": "Same Hsienyang Mk4 single source; keep distinct from US AGA003 variants.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pzsd108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/panasia/gun/aaircraft/zga008_20mm_oerlikon_mk4/zga008_20mm_oerlikon_mk4.model"
+    ]
+  },
+  {
+    "partId": "us-5in38-mk21-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa518",
+    "sourceVehicle": "pasa518",
+    "resource": "common/visual/usa/gun/secondary/ags022_5in38_mk24/ags022_5in38_mk24",
+    "sourceName": "ags022_5in38_mk24",
+    "match": "close",
+    "notes": "Closest verified open US 5-inch/38 mount found: source Mk24 differs from local Mk21. Do not treat enclosure or pedestal as exact.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa518",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/secondary/ags022_5in38_mk24/ags022_5in38_mk24.model"
+    ]
+  },
+  {
+    "partId": "us-11in75-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa106",
+    "sourceVehicle": "pasa106",
+    "resource": "common/visual/usa/gun/aaircraft/aga013_1in_mk2_mod2/aga013_1in_mk2_mod2",
+    "sourceName": "aga013_1in_mk2_mod2",
+    "match": "close",
+    "notes": "Ranger source AGA013 filename says 1in Mk2 Mod2. Closest four-barrel US light AA source identified; local 1.1-inch/75 exact gun/mount modification remains unverified.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa106",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga013_1in_mk2_mod2/aga013_1in_mk2_mod2.model"
+    ]
+  },
+  {
+    "partId": "us-3in50-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasx003",
+    "sourceVehicle": "pasx003",
+    "resource": "common/visual/usa/gun/aaircraft/aga016_3in50_mk22_mod2/aga016_3in50_mk22_mod2",
+    "sourceName": "aga016_3in50_mk22_mod2",
+    "match": "close",
+    "notes": "Liberty source specifies 3in/50 Mk22 Mod2; local defensive gun does not specify this modification.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasx003",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga016_3in50_mk22_mod2/aga016_3in50_mk22_mod2.model"
+    ]
+  },
+  {
+    "partId": "qf-2pdr-mkvi-octuple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+    "sourceVehicle": "pbsb107",
+    "resource": "common/visual/uk/gun/aaircraft/bga073_2_pdr_mkviii_8barrel/bga073_2_pdr_mkviii_8barrel",
+    "sourceName": "bga073_2_pdr_mkviii_8barrel",
+    "match": "close",
+    "notes": "KGV source is octuple 2-pdr with MkVIII resource label; local MkVI denotes mount family. Source text/model naming alone does not verify exact mount modification.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga073_2_pdr_mkviii_8barrel/bga073_2_pdr_mkviii_8barrel.model"
+    ]
+  },
+  {
+    "partId": "us-40mm-bofors-mk1-iowa",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/russia/vehicles/pasb018",
+    "sourceVehicle": "pasb018",
+    "resource": "common/visual/usa/gun/aaircraft/aga002_40mm_bofors_mk1/aga002_40mm_bofors_mk1",
+    "sourceName": "aga002_40mm_bofors_mk1",
+    "match": "exact",
+    "notes": "Iowa source 40mm Bofors Mk1 twin, same identified approved-source family; historical fit unverified.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/russia/vehicles/pasb018",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga002_40mm_bofors_mk1/aga002_40mm_bofors_mk1.model"
+    ]
+  },
+  {
+    "partId": "us-20mm-oerlikon-mk24-hsienyang",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pzsd108",
+    "sourceVehicle": "pzsd108",
+    "resource": "common/visual/panasia/gun/aaircraft/zga010_20mm_oerlikon_mk20_twin/zga010_20mm_oerlikon_mk20_twin",
+    "sourceName": "zga010_20mm_oerlikon_mk20_twin",
+    "match": "exact",
+    "notes": "Exact approved Hsienyang source resource: geometry filename says Mk20 twin while equipment/local text says Mk24. Label discrepancy retained.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pzsd108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/panasia/gun/aaircraft/zga010_20mm_oerlikon_mk20_twin/zga010_20mm_oerlikon_mk20_twin.model"
+    ]
+  },
+  {
+    "partId": "us-5in38-mk32-mod12",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc208",
+    "sourceVehicle": "pasc208",
+    "resource": "common/visual/usa/gun/secondary/ags010_5in38_mk32_mod12/ags010_5in38_mk32_mod12",
+    "sourceName": "ags010_5in38_mk32_mod12",
+    "match": "exact",
+    "notes": "Exact explicitly registered Cleveland AGS010 Mk32 Mod12 source; do not substitute unresolved legacy Iowa part.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc208",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/secondary/ags010_5in38_mk32_mod12/ags010_5in38_mk32_mod12.model"
+    ]
+  },
+  {
+    "partId": "us-16in50-mk7-iowa",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/russia/vehicles/pasb018",
+    "sourceVehicle": "pasb018",
+    "resource": "common/visual/usa/gun/main/agm034_16in50_mk7/agm034_16in50_mk7",
+    "sourceName": "agm034_16in50_mk7",
+    "match": "exact",
+    "notes": "Iowa Mk7 triple source at RU page; game-source visual equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/russia/vehicles/pasb018",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm034_16in50_mk7/agm034_16in50_mk7.model"
+    ]
+  },
+  {
+    "partId": "us-8in55-mk12-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108",
+    "sourceVehicle": "pasc108",
+    "resource": "common/visual/usa/gun/main/agm019_8in55_ca68/agm019_8in55_ca68",
+    "sourceName": "agm019_8in55_ca68",
+    "match": "exact",
+    "notes": "Baltimore CA68 source triple matches named ship/gun family; source geometry filename does not independently certify historical Mk12 fit.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm019_8in55_ca68/agm019_8in55_ca68.model"
+    ]
+  },
+  {
+    "partId": "bl-14-mkvii-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+    "sourceVehicle": "pbsb107",
+    "resource": "common/visual/uk/gun/main/bgm056_14in45_bl_mkvii_quadro/bgm056_14in45_bl_mkvii_quadro",
+    "sourceName": "bgm056_14in45_bl_mkvii_quadro",
+    "match": "exact",
+    "notes": "KGV 14in/45 BL MkVII quadruple source; historical refit not independently certified.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm056_14in45_bl_mkvii_quadro/bgm056_14in45_bl_mkvii_quadro.model"
+    ]
+  },
+  {
+    "partId": "bl-14-mkvii-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+    "sourceVehicle": "pbsb107",
+    "resource": "common/visual/uk/gun/main/bgm057_14in45_bl_mkvii_twin/bgm057_14in45_bl_mkvii_twin",
+    "sourceName": "bgm057_14in45_bl_mkvii_twin",
+    "match": "exact",
+    "notes": "KGV 14in/45 BL MkVII twin source; distinct resource from quadruple.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm057_14in45_bl_mkvii_twin/bgm057_14in45_bl_mkvii_twin.model"
+    ]
+  },
+  {
+    "partId": "qf-525-mki-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+    "sourceVehicle": "pbsb107",
+    "resource": "common/visual/uk/gun/secondary/bgs055_5_25in_50_qf_mk_i/bgs055_5_25in_50_qf_mk_i",
+    "sourceName": "bgs055_5_25in_50_qf_mk_i",
+    "match": "exact",
+    "notes": "KGV 5.25in/50 QF MkI twin source; historical refit not independently certified.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/secondary/bgs055_5_25in_50_qf_mk_i/bgs055_5_25in_50_qf_mk_i.model"
+    ]
+  },
+  {
+    "partId": "sk-c34-380-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708",
+    "sourceVehicle": "pgsb708",
+    "resource": "common/visual/germany/gun/main/ggm2016_380mm_skc_34/ggm2016_380mm_skc_34",
+    "sourceName": "ggm2016_380mm_skc_34",
+    "match": "exact",
+    "notes": "No-rangefinder turret. Source also supplies ggm2015 rangefinder variant; local single part may cover both ship installations.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "sk-c28-150-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708",
+    "sourceVehicle": "pgsb708",
+    "resource": "common/visual/germany/gun/secondary/ggs001_150mm_skc_28/ggs001_150mm_skc_28",
+    "sourceName": "ggs001_150mm_skc_28",
+    "match": "exact",
+    "notes": "No-rangefinder variant; ggs002 is the separate rangefinder counterpart.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type94-460-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb018",
+    "sourceVehicle": "pjsb018",
+    "resource": "common/visual/japan/gun/main/jgm178_460mm_45_type94/jgm178_460mm_45_type94",
+    "sourceName": "jgm178_460mm_45_type94",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb018"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type3-155-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb018",
+    "sourceVehicle": "pjsb018",
+    "resource": "common/visual/japan/gun/secondary/jgs156_155mm_60_type3/jgs156_155mm_60_type3",
+    "sourceName": "jgs156_155mm_60_type3",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb018"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "flak-105-bismarck-1941",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708",
+    "sourceVehicle": "pgsb708",
+    "resource": "common/visual/germany/gun/secondary/ggs003_105_mm_skc_33/ggs003_105_mm_skc_33",
+    "sourceName": "ggs003_105_mm_skc_33",
+    "match": "exact",
+    "notes": "Original local builder explicitly identifies SK C/33 twin, matching ggs003. Bismarck source also supplies separate C/37 variant ggs004.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "flak-37-bismarck-1941",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708",
+    "sourceVehicle": "pgsb708",
+    "resource": "common/visual/germany/gun/aaircraft/gga009_37mm_skc_30_twin/gga009_37mm_skc_30_twin",
+    "sourceName": "gga009_37mm_skc_30_twin",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type89-127-a1-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108",
+    "sourceVehicle": "pjsa108",
+    "resource": "common/visual/japan/gun/secondary/jgs009_127mm40_type_89/jgs009_127mm40_type_89",
+    "sourceName": "jgs009_127mm40_type_89",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type89-127-a1-mod2-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108",
+    "sourceVehicle": "pjsa108",
+    "resource": "common/visual/japan/gun/secondary/jgs003_127mm40_type89_mod_a/jgs003_127mm40_type89_mod_a",
+    "sourceName": "jgs003_127mm40_type89_mod_a",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type96-25-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108",
+    "sourceVehicle": "pjsa108",
+    "resource": "common/visual/japan/gun/aaircraft/jga173_25mm_type96/jga173_25mm_type96",
+    "sourceName": "jga173_25mm_type96",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type96-25-triple-shielded",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108",
+    "sourceVehicle": "pjsa108",
+    "resource": "common/visual/japan/gun/aaircraft/jga004_25mm_type96_triple_1/jga004_25mm_type96_triple_1",
+    "sourceName": "jga004_25mm_type96_triple_1",
+    "match": "exact",
+    "notes": "Carrier smoke-shield triple; distinct from Yamato enclosed armored triples.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type3-127-typec-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718",
+    "sourceVehicle": "pjsd718",
+    "resource": "common/visual/japan/gun/main/jgm151_127mm50_type_c/jgm151_127mm50_type_c",
+    "sourceName": "jgm151_127mm50_type_c",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type3-203-mogami-e3-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009",
+    "sourceVehicle": "pjsc009",
+    "resource": "common/visual/japan/gun/main/jgm143_203_50_type_e3/jgm143_203_50_type_e3",
+    "sourceName": "jgm143_203_50_type_e3",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type3-203-mogami-e-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009",
+    "sourceVehicle": "pjsc009",
+    "resource": "common/visual/japan/gun/main/jgm062_203mm50_type_e_rf8/jgm062_203mm50_type_e_rf8",
+    "sourceName": "jgm062_203mm50_type_e_rf8",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type96-25-mogami-2",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009",
+    "sourceVehicle": "pjsc009",
+    "resource": "common/visual/japan/gun/aaircraft/jga019_25mm_type96_double/jga019_25mm_type96_double",
+    "sourceName": "jga019_25mm_type96_double",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type93-13-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106",
+    "sourceVehicle": "pjsd106",
+    "resource": "common/visual/japan/gun/aaircraft/jga020_13mm76_type93_double/jga020_13mm76_type93_double",
+    "sourceName": "jga020_13mm76_type93_double",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type93-13-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106",
+    "sourceVehicle": "pjsd106",
+    "resource": "common/visual/japan/gun/aaircraft/jga066_13mm76_type93_single/jga066_13mm76_type93_single",
+    "sourceName": "jga066_13mm76_type93_single",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "skc34-203-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108",
+    "sourceVehicle": "pgsc108",
+    "resource": "common/visual/germany/gun/main/ggm030_203mm_c34/ggm030_203mm_c34",
+    "sourceName": "ggm030_203mm_c34",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "skc34-203-twin-rf",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108",
+    "sourceVehicle": "pgsc108",
+    "resource": "common/visual/germany/gun/main/ggm031_203mm_c34_rf/ggm031_203mm_c34_rf",
+    "sourceName": "ggm031_203mm_c34_rf",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "skc33-105-c31-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108",
+    "sourceVehicle": "pgsc108",
+    "resource": "common/visual/germany/gun/secondary/ggs003_105_mm_skc_33/ggs003_105_mm_skc_33",
+    "sourceName": "ggs003_105_mm_skc_33",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "flak38-20-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108",
+    "sourceVehicle": "pgsc108",
+    "resource": "common/visual/germany/gun/aaircraft/gga007_20mm_flak_38/gga007_20mm_flak_38",
+    "sourceName": "gga007_20mm_flak_38",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "flak38-m43u-20-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108",
+    "sourceVehicle": "pgsc108",
+    "resource": "common/visual/germany/gun/aaircraft/gga017_20mm_flak_38_m43u/gga017_20mm_flak_38_m43u",
+    "sourceName": "gga017_20mm_flak_38_m43u",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "flak28-40-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108",
+    "sourceVehicle": "pgsc108",
+    "resource": "common/visual/germany/gun/aaircraft/gga036_40mm_flak_28/gga036_40mm_flak_28",
+    "sourceName": "gga036_40mm_flak_28",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type41-356-kongo-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb007",
+    "sourceVehicle": "pjsb007",
+    "resource": "common/visual/japan/gun/main/jgm049_356mm45_type41/jgm049_356mm45_type41",
+    "sourceName": "jgm049_356mm45_type41",
+    "match": "close",
+    "notes": "Current Kong\u014d source offers jgm049 and jgm050 twin forms. Local approved 1944 source is not identified in durable docs; source fit/variant remains provisional.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb007"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type41-152-kongo-casemate",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb007",
+    "sourceVehicle": "pjsb007",
+    "resource": "common/visual/japan/gun/secondary/jgs008_150mm50_type_41/jgs008_150mm50_type_41",
+    "sourceName": "jgs008_150mm50_type_41",
+    "match": "close",
+    "notes": "Source resource is named 150mm50 Type 41 while local catalog calls it 152 mm. Common Kong\u014d casemate family; designation mismatch retained.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb007"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type96-25-kongo-3",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108",
+    "sourceVehicle": "pjsa108",
+    "resource": "common/visual/japan/gun/aaircraft/jga173_25mm_type96/jga173_25mm_type96",
+    "sourceName": "jga173_25mm_type96",
+    "match": "family",
+    "notes": "Current Kong\u014d scheme has no triple Type 96. Carrier open triple is a family comparison only; low-carriage variant unverified.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsa108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type96-25-kongo-2",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb007",
+    "sourceVehicle": "pjsb007",
+    "resource": "common/visual/japan/gun/aaircraft/jga019_25mm_type96_double/jga019_25mm_type96_double",
+    "sourceName": "jga019_25mm_type96_double",
+    "match": "close",
+    "notes": "Current Kong\u014d twin Type 96 counterpart; low-carriage dimensions require comparison.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb007"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "type96-25-kongo-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718",
+    "sourceVehicle": "pjsd718",
+    "resource": "common/visual/japan/gun/aaircraft/jga018_25mm_type96_single/jga018_25mm_type96_single",
+    "sourceName": "jga018_25mm_type96_single",
+    "match": "family",
+    "notes": "Current Kong\u014d scheme has no single Type 96. Yukikaze single is a family comparison only; local 0.53 m pedestal variant unverified.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "fletcher-quintuple-533",
+    "category": "torpedo-launcher",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
+    "sourceVehicle": "pasd021",
+    "resource": "common/visual/usa/gun/torpedo/agt005_21in_mk15_torpedo_tubes/agt005_21in_mk15_torpedo_tubes",
+    "sourceName": "agt005_21in_mk15_torpedo_tubes",
+    "match": "close",
+    "notes": "Fletcher page supplies Mk14 and Mk15 quintuple models. Mk15 selected; local generic Fletcher bank does not identify exact mark.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "german-triple-533",
+    "category": "torpedo-launcher",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108",
+    "sourceVehicle": "pgsc108",
+    "resource": "common/visual/germany/gun/torpedo/ggt015_533mm_torpedo_tubes_triple/ggt015_533mm_torpedo_tubes_triple",
+    "sourceName": "ggt015_533mm_torpedo_tubes_triple",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "ijn-triple-610",
+    "category": "torpedo-launcher",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106",
+    "sourceVehicle": "pjsd106",
+    "resource": "common/visual/japan/gun/torpedo/jgt022_610mm3_type_93/jgt022_610mm3_type_93",
+    "sourceName": "jgt022_610mm3_type_93",
+    "match": "exact",
+    "notes": "",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "ijn-quadruple-610",
+    "category": "torpedo-launcher",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718",
+    "sourceVehicle": "pjsd718",
+    "resource": "common/visual/japan/gun/torpedo/jgt171_610mm4_type_93/jgt171_610mm4_type_93",
+    "sourceName": "jgt171_610mm4_type_93",
+    "match": "exact",
+    "notes": "Centerline shielded bank; distinct from Mogami port/starboard quadruple resources jgt017/jgt023.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
+  },
+  {
+    "partId": "us-battleship-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/russia/vehicles/pasb018",
+    "sourceVehicle": "pasb018",
+    "resource": "common/visual/usa/ship/battleship/asb028_iowa_1945/asb028_iowa_1945_midfront",
+    "sourceName": "Iowa 1945 (B hull, Russia branch)",
+    "match": "close",
+    "notes": "Iowa 1945 forward funnel jacket and cap from the public Russia branch. Original editor recipe derives from Iowa; branch and fit are explicit, not a historical configuration certification. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/games/worldofwarships/russia/vehicles/pasb018"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/russia/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/us-battleship-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "fletcher-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
+    "sourceVehicle": "pasd021",
+    "resource": "common/visual/usa/ship/destroyer/asd048_fletcher_1945/asd048_fletcher_1945_midfront",
+    "sourceName": "Fletcher 1945 (B hull)",
+    "match": "close",
+    "notes": "Forward funnel jacket and cap from Fletcher 1945; original editor recipe is a simplified Fletcher adaptation. Attached source platforms and most installation fixtures excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/fletcher-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "fletcher-aft-mast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
+    "sourceVehicle": "pasd021",
+    "resource": "common/visual/usa/ship/destroyer/asd048_fletcher_1945/asd048_fletcher_1945_midback",
+    "sourceName": "Fletcher 1945 (B hull)",
+    "match": "close",
+    "notes": "Fletcher 1945 aftermast, with original source yardarms and fitted base tub. Source dated fit may differ from the editor recipe. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/fletcher-aft-mast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "us-cruiser-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108",
+    "sourceVehicle": "pasc108",
+    "resource": "common/visual/usa/ship/cruiser/asc017_baltimore_1944/asc017_baltimore_1944_midfront",
+    "sourceName": "Baltimore 1944 (A hull)",
+    "match": "close",
+    "notes": "Baltimore 1944 forward funnel jacket and cap. Installation-only support structures and most small mounted fixtures excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/us-cruiser-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "us-cruiser-pole-mast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108",
+    "sourceVehicle": "pasc108",
+    "resource": "common/visual/usa/ship/cruiser/asc017_baltimore_1944/asc017_baltimore_1944_midback",
+    "sourceName": "Baltimore 1944 (A hull)",
+    "match": "close",
+    "notes": "Baltimore 1944 after pole mast including the full shaft, platform and upper pole. Long ship-to-ship rigging and separately mounted radar are excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/us-cruiser-pole-mast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "ijn-battleship-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pjsb018",
+    "sourceVehicle": "pjsb018",
+    "resource": "common/visual/japan/ship/battleship/jsb039_yamato_1945/jsb039_yamato_1945_midback",
+    "sourceName": "Yamato 1945 (A hull)",
+    "match": "close",
+    "notes": "Yamato 1945 raked funnel upper assembly and fitted pipes. Lower support house and separately mounted fixtures excluded; extraction starts at the upper support datum. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pjsb018"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/ijn-battleship-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "ijn-cruiser-trunked-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009",
+    "sourceVehicle": "pjsc009",
+    "resource": "common/visual/japan/ship/cruiser/jsc010_mogami_1944/jsc010_mogami_1944_midfront",
+    "sourceName": "Mogami 1944 (B hull)",
+    "match": "close",
+    "notes": "Mogami 1944 forward trunked funnel above its supporting house. Lower integrated uptake/support structure and installation fixtures excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/ijn-cruiser-trunked-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "ijn-destroyer-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106",
+    "sourceVehicle": "pjsd106",
+    "resource": "common/visual/japan/ship/destroyer/jsd019_fubuki_1943/jsd019_fubuki_1943_midfront",
+    "sourceName": "Fubuki 1943 (A hull)",
+    "match": "close",
+    "notes": "Fubuki 1943 forward raked funnel, including jacket and cap. The editor recipe explicitly derives its stations from Fubuki. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/ijn-destroyer-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "ijn-destroyer-tripod-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718",
+    "sourceVehicle": "pjsd718",
+    "resource": "common/visual/japan/ship/destroyer/jsd034_yukikaze_1944/jsd034_yukikaze_1944_midfront",
+    "sourceName": "Yukikaze 1944 (A hull)",
+    "match": "close",
+    "notes": "Yukikaze 1944 foremast upper assembly. The source upper pole, yardarms and ladders are retained; lower supports merged into bridge geometry and separate radar equipment are excluded. Partial assembly comparison. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/ijn-destroyer-tripod-foremast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "rn-battleship-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pbsb107",
+    "sourceVehicle": "pbsb107",
+    "resource": "common/visual/uk/ship/battleship/bsb016_king_george_v_1943/bsb016_king_george_v_1943_midfront",
+    "sourceName": "King George V 1943 (A hull)",
+    "match": "close",
+    "notes": "King George V 1943 forward funnel from A hull. Retains jacket and cap, omits supporting house and most installation fixtures. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pbsb107"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/rn-battleship-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "rn-tripod-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pbsb107",
+    "sourceVehicle": "pbsb107",
+    "resource": "common/visual/uk/ship/battleship/bsb016_king_george_v_1943/bsb016_king_george_v_1943_midfront",
+    "sourceName": "King George V 1943 (A hull)",
+    "match": "close",
+    "notes": "King George V 1943 upper foremast and full pole, extracted above the bridge. Integrated bridge support legs and some ship-to-ship rigging are excluded. Partial assembly comparison. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pbsb107"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/rn-tripod-foremast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "german-cruiser-funnel-cap",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsc108",
+    "sourceVehicle": "pgsc108",
+    "resource": "common/visual/germany/ship/cruiser/gsc004_hipper_1943/gsc004_hipper_1943_midfront",
+    "sourceName": "Admiral Hipper 1943 (B hull)",
+    "match": "close",
+    "notes": "Admiral Hipper 1943 swept open funnel cap, grille and flange; matching vessel family used by original German cruiser recipe. Jacket excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsc108"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/german-cruiser-funnel-cap.glb",
+    "scale": 1
+  },
+  {
+    "partId": "german-battleship-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
+    "sourceVehicle": "pgsb708",
+    "resource": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midfront",
+    "sourceName": "Bismarck (A hull, test branch)",
+    "match": "close",
+    "notes": "Bismarck funnel assembly from original unsimplified GM3D test source, including attached searchlight platforms. Original editor recipe derives from Bismarck; installation scope differs. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/german-battleship-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "german-battleship-mainmast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
+    "sourceVehicle": "pgsb708",
+    "resource": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midback",
+    "sourceName": "Bismarck (A hull, test branch)",
+    "match": "close",
+    "notes": "Bismarck mainmast from original unsimplified GM3D test source. Retains pole and yardarm fittings; rigging and separate radar excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/german-battleship-mainmast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "generic-capital-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
+    "sourceVehicle": "pgsb708",
+    "resource": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midfront",
+    "sourceName": "Bismarck (A hull, test branch)",
+    "match": "family",
+    "notes": "Family-level comparison only: the editor funnel is an invented adjustable capital-ship package, with no exact historical counterpart. Bismarck is a representative oval capital-ship funnel, including source installation platforms. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
+    "evidence": [
+      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/generic-capital-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "rn-corvette-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles",
+    "sourceName": "Flower-class counterpart not identified",
+    "match": "missing",
+    "notes": "Original recipe derives from Flower-class convoy geometry. No confirmed Flower-class GM3D counterpart was identified. The available DCS Castle-class listing is a different class and is not silently substituted.",
+    "evidence": [
+      "https://gamemodels3d.com/games/dcsworld/vehicles/corvettes"
+    ]
+  }
+]

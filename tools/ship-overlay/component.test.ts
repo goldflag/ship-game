@@ -37,3 +37,24 @@ test('elevation and recoil follow the articulated bore and reset without accumul
   expect(recoil.position.z).toBe(0);
   pose.pose(weapon, 0, 0, 0); expect(elevation.rotation.x).toBeCloseTo(0);
 });
+
+test('canvas interpolates through depression, zero and intermediate elevation without moving its fixed seam', () => {
+  const root = new THREE.Group();
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, -5, 0], 3));
+  geometry.morphAttributes.position = [0, 5, 13].map(angle => new THREE.Float32BufferAttribute([0, 0, 0, 1, angle, 0], 3));
+  const cover = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial());
+  cover.userData = { gunCoverElevationId: 'aa.center.elevation', gunCoverBaseAngle: -5, gunCoverAngles: [0, 5, 13] };
+  root.add(cover);
+  const weapon = { ...catalog.parts.find(p => p.id === 'oerlikon-20mm-single')!, elevationMinDeg: -5, elevationMaxDeg: 13 } as GunPart;
+  const articulation = new ComponentArticulation(root, 'aa');
+  for (const angle of [-5, -2.5, 0, 2.5, 5, 9, 13]) {
+    articulation.pose(weapon, 25, angle, 1);
+    const seam = new THREE.Vector3(), cuff = new THREE.Vector3();
+    cover.getVertexPosition(0, seam); cover.getVertexPosition(1, cuff);
+    expect(seam.length()).toBe(0);
+    expect(cuff.y).toBeCloseTo(angle);
+  }
+  articulation.pose(weapon, 0, -5, 0);
+  expect(cover.morphTargetInfluences).toEqual([0, 0, 0]);
+});

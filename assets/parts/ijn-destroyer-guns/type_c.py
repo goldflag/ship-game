@@ -3,18 +3,21 @@ import bpy, math
 from mathutils import Vector, Matrix
 from blender_barrels import barrel_layout
 from blender_components import create_gun_mount
+from gun_bloomers import create_bloomer
 
 def create_mount(mount,col,helpers,materials):
     materials=dict(materials)
     materials.setdefault('glass',materials['dark'])
     mesh0,cyl0,rod0,box0=(helpers[k] for k in ['mesh','cyl','rod','box'])
     def mesh(n,v,f,m,collection=col,smooth=False):return mesh0(n,v,f,m,collection,smooth)
-    def cyl(n,p,r,d,m,collection=col,vertices=24,r2=None):return cyl0(n,p,r,d,m,collection,vertices,r2)
+    def cyl(n,p,r,d,m,collection=col,vertices=12,r2=None):return cyl0(n,p,r,d,m,collection,vertices,r2)
     def rod(n,a,b,r,m,collection=col,r2=None,vertices=10):return rod0(n,a,b,r,m,collection,r2,vertices)
     def box(n,p,d,m,collection=col,bev=.035):return box0(n,p,d,m,collection,bev)
     def local(obj,parent,assembly=None):
         obj.parent=parent;obj.matrix_parent_inverse=Matrix.Identity(4)
         if assembly:obj['assemblyId']=assembly
+        if obj.type=='MESH' and '.chase' in obj.name:
+            for polygon in obj.data.polygons:polygon.use_smooth=len(polygon.vertices)==4
         return obj
     
     def tube_path(name,points,r,mat,sides=8,closed=False):
@@ -45,19 +48,22 @@ def create_mount(mount,col,helpers,materials):
         for side,gy,_ in barrel_layout(sp):
             elev=next(o for o in col.objects if o.get('nodeId')==name+'.'+side+'.elevation')
             rec=next(o for o in col.objects if o.get('nodeId')==name+'.'+side+'.recoil')
-            # Broad fabric boot seated at the trunnion, tapering around the recoiling chase.
-            rings=[(-.30,.32,.64,.12),(.08,.34,.65,.06),(.55,.30,.43,-.02),(1.0,.23,.27,-.025),(1.48,.184,.184,0),(1.82,.184,.184,0)]
-            vs=[];N=32
-            for k,(x,ry,rz,cz) in enumerate(rings):
-                for j in range(N):
-                    t=j*math.tau/N;fold=1+.028*math.cos(t*7+k*.8)
-                    vs.append((x,ry*math.cos(t)*fold,cz+rz*math.sin(t)*fold))
-            fs=[(k*N+j,k*N+(j+1)%N,(k+1)*N+(j+1)%N,(k+1)*N+j) for k in range(len(rings)-1) for j in range(N)]
-            put(mesh(name+'.blast-bag',vs,fs,materials['canvas'],smooth=True),elev)
-            put(rod(name+'.boot-cuff',(1.76,0,0),(1.85,0,0),.19,materials['canvas'],vertices=32),elev)
+            # The seam follows the original gunhouse face, while the cuff
+            # pitches with the gun and lets the chase slide through on recoil.
+            rim=[]
+            for j in range(24):
+                angle=j*math.tau/24;c,ss=math.cos(angle),math.sin(angle)
+                square=max(abs(c),abs(ss))
+                y=gy+.402*c/square;z=1.695+.695*ss/square
+                # Follow the slot's front cheek, then its return 1.6 m aft
+                # across the roof. A face-only rim leaves the roof cutout open.
+                x=1.36-(z-1.02)*.18/1.23 if z<=2.25 else 1.18-(z-2.25)*1.63/.14
+                rim.append((x+.018,y,z))
+            create_bloomer(mount,col,helpers,materials,side,rim,sp['trunnionForward']+1.82,.184,
+                           rings=6,fold_depth=.018,slack=.035,fullness=.08,forward_fullness=.03)
             for a,b,ra,rb in [(-.2,1.9,.17,.17),(1.9,2.1,.17,.15),(2.1,4.56,.15,.116),(4.56,4.64,.116,.123)]:
-                put(rod(name+'.chase',(a,0,0),(b,0,0),ra,materials['edge'],r2=rb,vertices=32),rec)
-            put(rod(name+'.bore',(4.634,0,0),(4.644,0,0),.0635,materials['dark'],vertices=24),rec)
+                put(rod(name+'.chase',(a,0,0),(b,0,0),ra,materials['edge'],r2=rb,vertices=16),rec)
+            put(rod(name+'.bore',(4.634,0,0),(4.644,0,0),.0635,materials['dark'],vertices=12),rec)
         # Low roof-edge safety rails; each foot follows the authored roof facets.
         path=[(1.05,-1.16),(.95,-1.85),(.57,-2.22),(-.90,-2.22),(-2.70,-1.80),(-3.32,-1.42),(-3.38,0),(-3.32,1.42),(-2.70,1.80),(-.90,2.22),(.57,2.22),(.95,1.85),(1.05,1.16)]
         pts=[(x,y,roof(x,y)) for x,y in path]
@@ -65,7 +71,7 @@ def create_mount(mount,col,helpers,materials):
         for x,y,z in pts:put(rod(name+'.rail-foot',(x,y,z-.012),(x,y,z+.19),.019,materials['naval']))
         # Circular deck plates, short grabs and the offset sighting hood seen in the source.
         for x,y in [(-2.6,-.6),(-2.6,.6),(-1.5,-1.65),(-1.5,1.65),(.60,-1.85),(.60,1.85),(-.80,-.53),(-.80,.53)]:
-            put(cyl(name+'.roof-vent',(x,y,roof(x,y)+.027),.17,.054,materials['naval'],vertices=24))
+            put(cyl(name+'.roof-vent',(x,y,roof(x,y)+.027),.17,.054,materials['naval'],vertices=12))
         for y in [-.56,.56]:
             pts=[(-2.05,y,roof(-2.05,y)),(-2.05,y,roof(-2.05,y)+.16),(-.9,y,roof(-.9,y)+.16),(-.9,y,roof(-.9,y))]
             put(tube_path(name+'.roof-grab',pts,.018,materials['edge']))
@@ -95,7 +101,7 @@ def create_mount(mount,col,helpers,materials):
     house=next(o for o in col.objects if o.get('assemblyId')==name and 'sloped gunhouse' in o.name)
     for face in house.data.polygons:face.use_smooth=True
     house.data.set_sharp_from_angle(angle=math.radians(32))
-    bevel=house.modifiers.new('Rolled Type C edges','BEVEL');bevel.width=.14;bevel.segments=5
+    bevel=house.modifiers.new('Rolled Type C edges','BEVEL');bevel.width=.14;bevel.segments=3
     normals=house.modifiers.new('Type C plate normals','WEIGHTED_NORMAL');normals.keep_sharp=True;normals.weight=35
     refined_main(mount,yaw)
     return yaw

@@ -70,9 +70,9 @@ def create_mount(mount, collection, helpers, materials):
     def mat(value):return materials[value] if isinstance(value,str) else value
     def mesh(name,vv,ff,material='naval',col=None,smooth=False):
         return helpers['mesh'](mount['id']+'.'+name,vv,ff,mat(material),col or collection,smooth)
-    def cyl(name,loc,radius,depth,material='naval',col=None,vertices=24,r2=None):
+    def cyl(name,loc,radius,depth,material='naval',col=None,vertices=12,r2=None):
         return helpers['cyl'](mount['id']+'.'+name,loc,radius,depth,mat(material),col or collection,vertices,r2)
-    def rod(name,a,b,r,material='naval',col=None,r2=None,vertices=12):
+    def rod(name,a,b,r,material='naval',col=None,r2=None,vertices=8):
         return helpers['rod'](mount['id']+'.'+name,a,b,r,mat(material),col or collection,r2,vertices)
     def box(name,loc,dim,material='naval',col=None,bev=0):
         return helpers['box'](mount['id']+'.'+name,loc,dim,mat(material),col or collection,bev)
@@ -83,10 +83,25 @@ def create_mount(mount, collection, helpers, materials):
     shell=create_gun_mount(mount,collection,helpers,materials,lambda x:mount['position'][1])
     yaw=next(o for o in scene.objects if o.get('nodeId')==mount['id']+'.yaw')
     F=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,collection)
+    def efficient_ring(name, center, radius, tube, axis='z', segments=16):
+        # Connected low-sided torus; unlike a chain of rods it has no hidden caps.
+        count=min(segments,16);cross=4;vv=[];ff=[]
+        for i in range(count):
+            a=i*math.tau/count
+            for j in range(cross):
+                b=j*math.tau/cross;r=radius+tube*math.cos(b)
+                p=(r*math.cos(a),r*math.sin(a),tube*math.sin(b))
+                if axis=='x':p=(p[2],p[0],p[1])
+                elif axis=='y':p=(p[0],p[2],p[1])
+                vv.append(tuple(center[k]+p[k] for k in range(3)))
+        for i in range(count):
+            for j in range(cross):ff.append((i*cross+j,((i+1)%count)*cross+j,((i+1)%count)*cross+(j+1)%cross,i*cross+(j+1)%cross))
+        return mesh(name,vv,ff,'edge',smooth=True)
+    F.ring=efficient_ring
     if mount['weapon']['caliberM']>.1:
         secondary_ports(shell,mount)
         before=set(scene.objects)
-        cyl('gunhouse floor bearing',(0,0,.38),mount['weapon']['barbetteRadius'],.25,'edge',vertices=48)
+        cyl('gunhouse floor bearing',(0,0,.38),mount['weapon']['barbetteRadius'],.25,'edge',vertices=20)
         for y in [-1,1]:
             cyl('roof optic',(-1.60,y,3.56),.13,.23,vertices=12)
             for z in [2.12,2.79]:
@@ -110,19 +125,29 @@ def create_mount(mount, collection, helpers, materials):
             for obj in list(yaw.children):
                 if obj.type=='MESH' and any(obj.name.startswith(m['id']+'.'+suffix) for suffix in ['pedestal','carriage-saddle','cradle','seat','sight']):
                     bpy.data.objects.remove(obj,do_unlink=True)
-            cyl('Bofors lower training drum',(0,0,.33),.52,.24,vertices=32,r2=.43)
+            cyl('Bofors lower training drum',(0,0,.33),.52,.24,vertices=20,r2=.43)
             box('Bofors fork crossmember',(.075,0,.445),(.40,1.97,.11))
             for side in [-1,1]:
-                box('Bofors bearing cheek',(.15,side*.9216,1.18),(.29,.16,1.47))
+                # Sloped open fork profile carries the bearing without the old
+                # full-height rectangular slab hiding the train mechanism.
+                outline=[(-.23,.45),(.26,.45),(.31,1.69),(.24,1.94),(.05,1.94),(-.02,1.62)]
+                vv=[(x,side*.9216+dy,z) for dy in [-.08,.08] for x,z in outline];k=len(outline)
+                mesh('Bofors bearing cheek',vv,[tuple(reversed(range(k))),tuple(range(k,2*k))]+[(i,(i+1)%k,(i+1)%k+k,i+k) for i in range(k)])
                 rod('Bofors fork brace',(-.38,side*.9216,.45),(.15,side*.9216,1.53),.055,'naval',vertices=8)
             box('Bofors perforated crew platform',(-.50,0,.39),(2.10,2.42,.12),'roof')
-            cyl('Training gear housing',(0,0,.29),.67,.21,'edge',vertices=40)
+            cyl('Training gear housing',(0,0,.29),.67,.21,'edge',vertices=20)
             for side in [-1,1]:
                 for x in [-1.43,.25]:rod('Platform support',(0,0,.25),(x,side*1.15,.37),.07,'naval',vertices=8)
                 rod('Crew guardrail',(-1.48,side*1.16,.47),(-1.48,side*1.16,1.12),.027,'naval',vertices=6)
                 rod('Crew guardrail',(-1.48,side*1.16,1.12),(.22,side*1.16,1.12),.027,'naval',vertices=6)
                 rod('Crew guardrail',(.22,side*1.16,1.12),(.22,side*1.16,.47),.027,'naval',vertices=6)
-                box('Bofors drive housing',(.08,side*.66,.96),(.73,.43,.67))
+                # Tapered gearbox, external gear case and shaft are prominent
+                # in the approved Mk.1; retain their distinct mechanical forms.
+                profile=[(-.34,.65),(.34,.65),(.39,.98),(.19,1.29),(-.19,1.29),(-.39,.99)]
+                vv=[(x,side*.66+dy,z) for dy in [-.215,.215] for x,z in profile];k=len(profile)
+                mesh('Bofors drive housing',vv,[tuple(reversed(range(k))),tuple(range(k,2*k))]+[(i,(i+1)%k,(i+1)%k+k,i+k) for i in range(k)])
+                rod('Bofors gearbox cover',(.04,side*.875,.94),(.04,side*.95,.94),.20,'naval',vertices=12)
+                rod('Bofors drive shaft',(.15,side*.66,1.17),(.15,side*.66,1.77),.065,'edge',vertices=8)
                 rod('Handwheel shaft',(-.25,side*.65,1.32),(-.25,side*.99,1.32),.042,'edge',vertices=10)
                 F.ring('Bofors handwheel',(-.25,side*.99,1.32),.24,.023,'y',segments=18)
                 for a in [0,math.tau/3,2*math.tau/3]:rod('Handwheel spoke',(-.25,side*.99,1.32),(-.25+.24*math.cos(a),side*.99,1.32+.24*math.sin(a)),.018,'edge',vertices=6)
@@ -131,8 +156,6 @@ def create_mount(mount, collection, helpers, materials):
                 rod('Seat pedestal',(-.75,side*.84,.45),(-.75,side*.84,.84),.045,'naval',vertices=8)
                 rod('Seat back bracket',(-.92,side*.84,.83),(-1.01,side*.84,1.12),.030,'naval',vertices=6)
                 box('Operator seat back',(-1.015,side*.84,1.11),(.055,.41,.30),'edge')
-                for x in [-.16,.18]:
-                    for z in [.75,1.17]:rod('Drive housing bolt',(x,side*.875,z),(x,side*.903,z),.027,'edge',vertices=6)
                 box('Foot pedal',(-.11,side*.89,.58),(.22,.28,.045),'edge')
                 rod('Pedal linkage',(-.11,side*.89,.60),(.14,side*.67,.84),.02,'edge',vertices=6)
         else:
@@ -166,7 +189,7 @@ def create_mount(mount, collection, helpers, materials):
                 # Four rounds form the visible vertical clip, with separate cases.
                 for x in [-1.03,-.84,-.65,-.46]:
                     rod('Bofors feed round',(x,0,.14),(x,0,.50),.035,'bronze',r2=.025,vertices=8)
-                rod('Recoil cylinder',(-.33,0,-.17),(.64,0,-.17),.086,'naval',r2=.064,vertices=16)
+                rod('Recoil cylinder',(-.33,0,-.17),(.64,0,-.17),.086,'naval',r2=.064,vertices=12)
                 for x in [.23+i*.034 for i in range(16)]:F.ring('Bofors cooling ring',(x,0,0),.084,.010,'x',segments=12)
             else:
                 # The drum face is transverse to the gun, with a separate rim,

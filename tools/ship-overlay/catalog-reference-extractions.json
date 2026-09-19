@@ -1,0 +1,423 @@
+{
+  "schemaVersion": 1,
+  "referenceOnly": true,
+  "metresPerSourceUnit": 15,
+  "runtimeAxes": "x=source.x*15; y=source.y*15; z=-source.z*15",
+  "normalization": "Center extracted X/Z bounds; minimum Y at zero. Preserve metric dimensions, no independent scaling.",
+  "algorithm": "Weld source positions to 0.0001m for connected islands, sorted by descending triangle count. Select whole triangles inside bounds. Add forceIslands. Partition selected triangles by welded connectivity, seed as specified, then include touching groups within 0.16m for at most eight passes. Preserve original triangles; no decimation. Most separately mounted fixtures omitted. Source winding reversed with axis reflection.",
+  "extractions": [
+    {
+      "partId": "us-battleship-funnel",
+      "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/russia/vehicles/pasb018",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/russia/",
+      "resource": "common/visual/usa/ship/battleship/asb028_iowa_1945/asb028_iowa_1945_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -3,
+          12.92,
+          -6.3
+        ],
+        [
+          3,
+          30,
+          8.1
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "46b2b9a384154b6402c1e3e071b768640041c1fa1fd510737e0cc39b230ac50a"
+    },
+    {
+      "partId": "fletcher-funnel",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/usa/ship/destroyer/asd048_fletcher_1945/asd048_fletcher_1945_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -2,
+          5.9,
+          7.0
+        ],
+        [
+          2,
+          15,
+          12.3
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "b9bbe3c8603d0f6062d530f5dfa9918c2c7f3dcdd51ca00a57e849f71426742f"
+    },
+    {
+      "partId": "fletcher-aft-mast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/usa/ship/destroyer/asd048_fletcher_1945/asd048_fletcher_1945_midback",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -3,
+          8.0,
+          -25
+        ],
+        [
+          3,
+          24,
+          -20
+        ]
+      ],
+      "forceIslands": [
+        19,
+        65,
+        66,
+        249,
+        250,
+        267,
+        268
+      ],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "97ba78bdde12294319cafbf4d81316df45bbbb1df3a274242a3184276d270ce0"
+    },
+    {
+      "partId": "us-cruiser-funnel",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/usa/ship/cruiser/asc017_baltimore_1944/asc017_baltimore_1944_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -3.1,
+          15.05,
+          -1.0
+        ],
+        [
+          3.1,
+          26,
+          5.5
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "038306b7ee6801fa52dfb92790a62131e4d4c9837f378038786147eaca4132b3"
+    },
+    {
+      "partId": "us-cruiser-pole-mast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/usa/ship/cruiser/asc017_baltimore_1944/asc017_baltimore_1944_midback",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -5,
+          24,
+          -29
+        ],
+        [
+          5,
+          38,
+          -19
+        ]
+      ],
+      "forceIslands": [
+        266
+      ],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "6d6a6fb46dd72e262d018628548af9081009b6571b41575b8708ea14d193cbe5"
+    },
+    {
+      "partId": "ijn-battleship-funnel",
+      "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pjsb018",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+      "resource": "common/visual/japan/ship/battleship/jsb039_yamato_1945/jsb039_yamato_1945_midback",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -6,
+          19.91,
+          -26
+        ],
+        [
+          6,
+          31,
+          -10
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "040627a6af29fb2dffe7e72eff0221838217db0b69a13fa2935b1a5204fe9f2c"
+    },
+    {
+      "partId": "ijn-cruiser-trunked-funnel",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/japan/ship/cruiser/jsc010_mogami_1944/jsc010_mogami_1944_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -3,
+          10.7,
+          -2
+        ],
+        [
+          3,
+          22,
+          9
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "5a1afec94e10145cf7e3eb9935798a340748f4caf3f5b95aa4b1524f4105b40e"
+    },
+    {
+      "partId": "ijn-destroyer-funnel",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/japan/ship/destroyer/jsd019_fubuki_1943/jsd019_fubuki_1943_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -1.7,
+          3.85,
+          12.5
+        ],
+        [
+          1.7,
+          14,
+          18.7
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "ad0dd4d5614fcd4e84846a41d1f362b533084a9ba314b1a71c4126d8d49fc1c6"
+    },
+    {
+      "partId": "ijn-destroyer-tripod-foremast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/japan/ship/destroyer/jsd034_yukikaze_1944/jsd034_yukikaze_1944_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -4.5,
+          10.0,
+          19.5
+        ],
+        [
+          4.5,
+          30,
+          25
+        ]
+      ],
+      "forceIslands": [
+        856,
+        42
+      ],
+      "wholeIslandsOnly": true,
+      "excludeIslands": [
+        169,
+        240
+      ],
+      "seed": "forced islands only",
+      "expectedModelSha256": "f3a865915868767215cf8c1a8c227e2915207bf9be110b6443b3cb0bee386a64"
+    },
+    {
+      "partId": "rn-battleship-funnel",
+      "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pbsb107",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+      "resource": "common/visual/uk/ship/battleship/bsb016_king_george_v_1943/bsb016_king_george_v_1943_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -3,
+          12.3,
+          -2.6
+        ],
+        [
+          3,
+          26,
+          5
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "609db610a627803e15109a7c4de58c8f7692c53a55e2bbc1105655aadd6ba45f"
+    },
+    {
+      "partId": "rn-tripod-foremast",
+      "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pbsb107",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+      "resource": "common/visual/uk/ship/battleship/bsb016_king_george_v_1943/bsb016_king_george_v_1943_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -6.5,
+          24.65,
+          7.3
+        ],
+        [
+          6.5,
+          44,
+          15
+        ]
+      ],
+      "forceIslands": [
+        238,
+        239,
+        655
+      ],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "609db610a627803e15109a7c4de58c8f7692c53a55e2bbc1105655aadd6ba45f"
+    },
+    {
+      "partId": "german-cruiser-funnel-cap",
+      "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsc108",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+      "resource": "common/visual/germany/ship/cruiser/gsc004_hipper_1943/gsc004_hipper_1943_midfront",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -2.6,
+          19.65,
+          4.0
+        ],
+        [
+          2.6,
+          24,
+          14.7
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "86f10999334218123ca7c6ec0ecec4f07e07f8403731f21c3083b65441be9f70"
+    },
+    {
+      "partId": "german-battleship-funnel",
+      "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
+      "reuseExtraction": "bismarck-funnel-assembly",
+      "resource": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midfront",
+      "sourceSelection": {
+        "id": "bismarck-funnel-assembly",
+        "section": "midfront",
+        "min": [
+          -7.4,
+          9.45,
+          -9
+        ],
+        "max": [
+          7.4,
+          25,
+          7.3
+        ],
+        "islandsOnly": true,
+        "partialIslands": [
+          0
+        ],
+        "fixtures": true,
+        "contactSeed": 0,
+        "retainAboveY": 15.7
+      },
+      "fittedResources": [
+        "common/visual/germany/misc/gm009_siren/gm009_siren",
+        "common/visual/germany/misc/gm013_siren/gm013_siren",
+        "common/visual/germany/misc/gm017_siren/gm017_siren",
+        "common/visual/germany/misc/gm850_searchlight/gm850_searchlight"
+      ],
+      "notes": "Rebuild directly from the original unsimplified source hull face subset and attached listed fixtures. Original source axes convert directly to runtime; no viewer yaw correction required.",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+      "expectedModelSha256": "301160475bc9c70e23150ca25e2f97eec48f1ea0a5de21a890d91f5b9985c676"
+    },
+    {
+      "partId": "german-battleship-mainmast",
+      "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
+      "reuseExtraction": "bismarck-mainmast",
+      "resource": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midback",
+      "sourceSelection": {
+        "id": "bismarck-mainmast",
+        "section": "midback",
+        "min": [
+          -6.5,
+          28.2,
+          -29
+        ],
+        "max": [
+          6.5,
+          52,
+          -16.8
+        ],
+        "islandsOnly": true,
+        "forceIslands": [
+          119
+        ],
+        "fixtures": true,
+        "contactSeed": 119
+      },
+      "fittedResources": [
+        "common/visual/germany/misc/gm856_mastheadlight/gm856_mastheadlight",
+        "common/visual/germany/misc/gm859_truck_light/gm859_truck_light"
+      ],
+      "notes": "Rebuild directly from the original unsimplified source hull face subset and attached listed fixtures. Original source axes convert directly to runtime; no viewer yaw correction required.",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+      "expectedModelSha256": "36790a339bfaca6cc6494667e0107353844596d3e616346dd653709c7f8f9cc4"
+    },
+    {
+      "partId": "generic-capital-funnel",
+      "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
+      "reuseExtraction": "bismarck-funnel-assembly",
+      "resource": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midfront",
+      "sourceSelection": {
+        "id": "bismarck-funnel-assembly",
+        "section": "midfront",
+        "min": [
+          -7.4,
+          9.45,
+          -9
+        ],
+        "max": [
+          7.4,
+          25,
+          7.3
+        ],
+        "islandsOnly": true,
+        "partialIslands": [
+          0
+        ],
+        "fixtures": true,
+        "contactSeed": 0,
+        "retainAboveY": 15.7
+      },
+      "fittedResources": [
+        "common/visual/germany/misc/gm009_siren/gm009_siren",
+        "common/visual/germany/misc/gm013_siren/gm013_siren",
+        "common/visual/germany/misc/gm017_siren/gm017_siren",
+        "common/visual/germany/misc/gm850_searchlight/gm850_searchlight"
+      ],
+      "notes": "Rebuild directly from the original unsimplified source hull face subset and attached listed fixtures. Original source axes convert directly to runtime; no viewer yaw correction required.",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
+      "expectedModelSha256": "301160475bc9c70e23150ca25e2f97eec48f1ea0a5de21a890d91f5b9985c676"
+    }
+  ]
+}

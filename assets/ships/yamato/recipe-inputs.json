@@ -4,6 +4,10 @@
     "assets/parts/aa_articulation.py",
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json",
-    "assets/ships/yamato/appearance.json"
+    "assets/ships/yamato/appearance.json",
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-main-guns/geometry.py",
+    "assets/parts/gun_bloomers.py"
   ]
 }

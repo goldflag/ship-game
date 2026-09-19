@@ -8,6 +8,7 @@ import { shipClass, shipIdentity } from '../../src/game/shipModel';
 import { aircraftReferences, aircraftScheme, isHullConfiguration, embeddedJson, sanitizeMaterials, texturePath, vehicleId, type ReferencePack, type Scheme } from './reference';
 import { componentItems } from '../../scripts/parts/library';
 import type { ShipDefinition } from '../../src/ships/blueprint';
+import { catalogComparison, loadComponentReference } from './catalog-reference';
 
 const DATA_ROOT = 'https://gamemodels3d.com/games/worldofwarships/data/current/';
 /** Bump when the cached pack shape changes so stale `.build` caches are refetched. */
@@ -100,6 +101,24 @@ export function overlayApi(root: string): Plugin {
       const url = new URL(req.url ?? '/', 'http://localhost');
       res.setHeader('Content-Type', 'application/json');
       try {
+        if (url.pathname === '/component-comparison') {
+          res.end(JSON.stringify(await catalogComparison(root))); return;
+        }
+        const comparison = url.pathname.match(/^\/component-comparison\/([a-z0-9-]+)\/(reference|model\.glb)$/);
+        if (comparison) {
+          if (comparison[2] === 'reference') {
+            res.end(JSON.stringify(await shared(`component-reference:${comparison[1]}`, () => loadComponentReference(root, comparison[1])))); return;
+          }
+          const item = (await catalogComparison(root)).items.find(item => item.id === comparison[1]);
+          const path = item?.reference?.referenceGlb;
+          if (!path || !path.startsWith('.build/component-comparison/') || !validPath(path) || !path.endsWith('.glb')) {
+            res.statusCode = 404; res.end(JSON.stringify({ error: 'No extracted reference is registered for this component.' })); return;
+          }
+          let data: Buffer;
+          try { data = await readFile(join(root, path)); }
+          catch { throw new Error('Reference extraction is missing. Run the component reference preparation described in the model viewer README.'); }
+          res.setHeader('Content-Type', 'model/gltf-binary'); res.setHeader('Cache-Control', 'no-store'); res.end(data); return;
+        }
         if (url.pathname === '/components') {
           res.end(JSON.stringify(await componentItems(root, Object.values(shipPresets) as unknown as ShipDefinition[]))); return;
         }

@@ -9,6 +9,7 @@
     "assets/parts/ijn-destroyer-guns/type_c.py",
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json",
-    "assets/ships/yukikaze/appearance.json"
+    "assets/ships/yukikaze/appearance.json",
+    "assets/parts/gun_bloomers.py"
   ]
 }

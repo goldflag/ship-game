@@ -9,8 +9,8 @@ wings; Anton retains covered side blisters.
 
 Geometry follows the approved [GameModels3D Bismarck '41 A artillery](https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708)
 visual reference. Geometry is independently authored; this is not historical
-certification. Fine service details and rigidly articulated cloth remain
-approximations. The installed elevation range follows the approved A artillery
+certification. Fine service details and the fixed-rim, pitching-cuff cloth remain
+approximations. Barrels slide through the cuffs during recoil. The installed elevation range follows the approved A artillery
 configuration (−1° to +30°), not an independently established mechanical stop. Library review stays unreviewed until installation review passes.
 
 ```sh
@@ -44,3 +44,15 @@ bun run part:build flak-37-bismarck-1941
 bun run part:check flak-37-bismarck-1941
 bun run part:inputs flak-37-bismarck-1941
 ```
+
+The 15 cm original builder now respects each installation's `rangefinder` flag:
+standalone and the four no-rangefinder installations omit the optical wings;
+the two flagged ship mounts retain them. Its muzzle reach follows the approved
+no-rangefinder source's common-scale silhouette. The barrel profile is adapted
+to the shorter reach rather than reversing overlapping tube segments.
+
+The named SK C/33 heavy AA component uses the approved `ggs003_105_mm_skc_33`
+open C/31 shield. It explicitly reuses the original cruiser C/31 constructor,
+replacing an enclosed shield that conflated the separate C/37 source fit.
+Catalog-specific pivot, barrel spacing and joint IDs are retained. This visual
+correction does not independently certify the historical mounting designation.

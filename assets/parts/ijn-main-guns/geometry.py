@@ -8,6 +8,7 @@ import math
 import bpy
 from mathutils import Vector
 from aa_articulation import articulate_aa
+from gun_bloomers import create_bloomer
 
 
 def _lerp(a, b, t):
@@ -76,30 +77,36 @@ def _vent(n, box, x, y, z, width, height, naval, roof, dark, col):
     box(n + '.vent.hood', (x, y + sign * .06, z + height / 2), (width + .12, .32, .08), roof, col)
 
 
-def _gun(n, mesh, rod, spec, lateral, sections, bag, pleats, lashing, edge, dark, canvas, col, sides=28):
-    """One barrel group at the neutral 1 degree elevation. `bag` rings are
-    (x, radius-y, radius-z, droop) in mount coordinates along the bore axis."""
+def _gun(n, rod, spec, lateral, sections, edge, dark, col):
+    """Low-segment turned barrel group at the neutral one-degree elevation."""
     pivot = spec['trunnionForward']; height = spec['pivotHeight']; muzzle = spec['muzzleForward']
     slope = math.tan(math.radians(1))
     def pt(x, dy=0, dz=0): return (x, lateral + dy, height + (x - pivot) * slope + dz)
     for (a, ra), (b, rb) in zip(sections, sections[1:]):
-        rod(n + '.barrel', pt(a), pt(b), ra, edge, col, r2=rb, vertices=32)
+        barrel = rod(n + '.barrel', pt(a), pt(b), ra, edge, col, r2=rb, vertices=16)
+        for polygon in barrel.data.polygons: polygon.use_smooth = len(polygon.vertices) == 4
     rm = sections[-1][1]
-    rod(n + '.muzzle.face', pt(muzzle - .004), pt(muzzle), rm, edge, col, r2=spec['caliberM'] / 2 * 1.02, vertices=32)
-    rod(n + '.bore', pt(muzzle - .002), pt(muzzle + .002), spec['caliberM'] / 2, dark, col, vertices=24)
-    vv = []; ff = []
-    for j, (x, ry, rz, dz) in enumerate(bag):
-        for i in range(sides):
-            t = i * math.tau / sides
-            fold = 1 + pleats * math.cos(t * 8 + j * .9) * (1 - j / (len(bag) - 1))
-            vv.append(pt(x, ry * math.cos(t) * fold, dz + rz * math.sin(t) * fold))
-    for j in range(len(bag) - 1):
-        for i in range(sides):
-            a = j * sides + i; b = j * sides + (i + 1) % sides
-            ff.append((a, b, b + sides, a + sides))
-    mesh(n + '.blast.bag', vv, ff, canvas, col, True)
-    x, r = lashing
-    rod(n + '.blast.bag.lashing', pt(x - .06), pt(x + .06), r, edge, col, vertices=24)
+    rod(n + '.muzzle.face', pt(muzzle - .004), pt(muzzle), rm, edge, col, r2=spec['caliberM'] / 2 * 1.02, vertices=16)
+    rod(n + '.bore', pt(muzzle - .002), pt(muzzle + .002), spec['caliberM'] / 2, dark, col, vertices=12)
+    # Fabric is built after articulation: its fixed perimeter must remain on
+    # the gunhouse while the sleeve follows pitch and the chase recoils inside.
+
+
+def _covers(mount, col, helpers, materials, face, centers, half, bottom, top, collar_x, radius, frame, groups):
+    yaw = articulate_aa(mount, col, frame, groups)
+    sides = ['left', 'center', 'right'] if len(centers) == 3 else ['left', 'right']
+    for side, lateral in zip(sides, centers):
+        rim = []
+        for i in range(24):
+            angle = i * math.tau / 24
+            c, sn = math.cos(angle), math.sin(angle)
+            square = max(abs(c), abs(sn))
+            z = (top + bottom) / 2 + (top - bottom) / 2 * sn / square
+            rim.append((face(z)[0] + .018, lateral + half * c / square, z))
+        create_bloomer(mount, col, helpers, materials, side, rim, collar_x, radius,
+                       rings=7, fold_depth=.014 if radius < .4 else .045, slack=.025 if radius < .4 else .06,
+                       fullness=.085 if radius < .4 else .18, forward_fullness=.035)
+    return yaw
 
 
 def _roof_service(n, rod, cyl, L, W, H, scale, hatch_x, hatch_r, edge, col):
@@ -108,7 +115,7 @@ def _roof_service(n, rod, cyl, L, W, H, scale, hatch_x, hatch_r, edge, col):
             y = sign * W * .28; end = x + .65 * scale
             rod(n + '.roof.handhold', (x, y, H + .09), (end, y, H + .09), .025, edge, col, vertices=6)
             for xx in (x, end): rod(n + '.roof.handhold.foot', (xx, y, H - .01), (xx, y, H + .09), .025, edge, col, vertices=6)
-        cyl(n + '.roof.hatch', (hatch_x, sign * W * .29, H + .065), hatch_r, .13, edge, col, 20)
+        cyl(n + '.roof.hatch', (hatch_x, sign * W * .29, H + .065), hatch_r, .13, edge, col, 12)
         rod(n + '.roof.hatch.hinge', (hatch_x - hatch_r, sign * W * .29 - hatch_r * .5, H + .1), (hatch_x - hatch_r, sign * W * .29 + hatch_r * .5, H + .1), .035, edge, col, vertices=6)
     for x in (-L * .3, -L * .06):
         rod(n + '.roof.seam', (x, -W * .295, H + .008), (x, W * .295, H + .008), .014, edge, col, vertices=6)
@@ -122,9 +129,9 @@ def create_yamato_main(mount, collection, helpers, materials):
     L, W, H = 14.6, 13.4, 6.7; floor = 2.4
     # The ship's yaw datum is 2.4 m below the gunhouse floor: a rotating stalk
     # fills what the ship's fixed barbette occupied, then the roller race.
-    cyl(n + '.stalk', (0, 0, (floor - .25) / 2), spec['barbetteRadius'], floor - .25, naval, col, 64)
-    cyl(n + '.roller', (0, 0, floor - .115), 6.525, .27, edge, col, 64)
-    for z in (.7, 1.45): cyl(n + '.stalk.band', (0, 0, z), spec['barbetteRadius'] + .025, .09, edge, col, 64)
+    cyl(n + '.stalk', (0, 0, (floor - .25) / 2), spec['barbetteRadius'], floor - .25, naval, col, 32)
+    cyl(n + '.roller', (0, 0, floor - .115), 6.525, .27, edge, col, 32)
+    for z in (.7, 1.45): cyl(n + '.stalk.band', (0, 0, z), spec['barbetteRadius'] + .025, .09, edge, col, 32)
     rings = [
         [(-7.7, -4.7, 2.4), (-5.8, -6.7, 2.4), (4.7, -6.7, 2.4), (6.9, -4.8, 2.4), (6.9, 4.8, 2.4), (4.7, 6.7, 2.4), (-5.8, 6.7, 2.4), (-7.7, 4.7, 2.4)],
         [(-7.7, -4.7, 4.35), (-5.8, -6.7, 4.35), (3.8, -6.7, 4.35), (6, -4.8, 4.35), (6, 4.8, 4.35), (3.8, 6.7, 4.35), (-5.8, 6.7, 4.35), (-7.7, 4.7, 4.35)],
@@ -147,9 +154,9 @@ def create_yamato_main(mount, collection, helpers, materials):
         rod(n + '.knuckle', a, b, .04, edge, col, vertices=6)
     # 15 m rangefinder across the rear of the gunhouse, with tapered arms and hoods.
     rx = spec.get('rangefinderForward', -5.3); rz = H - .85; half = spec.get('rangefinderWidth', 15) / 2
-    rod(n + '.rangefinder.tube', (rx, -half + .3, rz), (rx, half - .3, rz), .31, naval, col, vertices=20)
+    rod(n + '.rangefinder.tube', (rx, -half + .3, rz), (rx, half - .3, rz), .31, naval, col, vertices=12)
     for s in (-1, 1):
-        rod(n + '.rangefinder.arm', (rx, s * 5.3, rz), (rx, s * (half - .55), rz), .62, naval, col, r2=.40, vertices=20)
+        rod(n + '.rangefinder.arm', (rx, s * 5.3, rz), (rx, s * (half - .55), rz), .62, naval, col, r2=.40, vertices=12)
         box(n + '.rangefinder.hood', (rx, s * (half - .1), rz), (1.35, .95, 1.05), naval, col)
         box(n + '.rangefinder.hood.roof', (rx - .02, s * (half - .1), rz + .56), (1.45, 1.05, .08), roof, col)
         box(n + '.rangefinder.aperture', (rx + .68, s * (half - .1), rz + .02), (.03, .5, .42), dark, col)
@@ -174,6 +181,11 @@ def create_yamato_main(mount, collection, helpers, materials):
     rod(n + '.rear.rail', (-7.75, -4.2, 4.3), (-7.75, 4.2, 4.3), .03, edge, col, vertices=6)
     for x in (-3.2, .2):
         for s in (-1, 1): rod(n + '.side.seam', (x, s * 6.71, 2.45), (x, s * 6.71, 4.33), .018, edge, col, vertices=6)
+    # Plate joins are paint/normal-scale detail at gameplay distance, not
+    # proud round rods. Keep actual ladders, sights, hatches and port frames.
+    for detail in list(set(bpy.context.scene.objects) - before):
+        if '.seam' in detail.name or '.side.rivet' in detail.name:
+            bpy.data.objects.remove(detail, do_unlink=True)
     frame = list(set(bpy.context.scene.objects) - before)
     groups = []
     pivot = spec['trunnionForward']; muzzle = spec['muzzleForward']; rad = spec['barrelBaseRadius']
@@ -181,11 +193,9 @@ def create_yamato_main(mount, collection, helpers, materials):
         start = set(bpy.context.scene.objects)
         sections = [(pivot, rad * .90), (pivot + 2.2, rad * .90), (pivot + 2.25, rad * .83), (pivot + 4.6, rad * .76), (pivot + 4.8, rad * .64),
                     (muzzle - 2.0, rad * .43), (muzzle - .35, rad * .405), (muzzle - .3, rad * .45), (muzzle, rad * .45)]
-        bag = [(4.75, 1.0, 1.06, 0), (5.35, 1.0, 1.10, -.05), (5.95, .99, 1.12, -.10), (6.45, .96, 1.05, -.13),
-               (6.95, .88, .92, -.12), (7.45, .78, .78, -.07), (7.85, .70, .70, -.02), (8.05, .64, .64, 0)]
-        _gun(n, mesh, rod, spec, lateral, sections, bag, .05, (8.03, .68), edge, dark, canvas, col, 32)
+        _gun(n, rod, spec, lateral, sections, edge, dark, col)
         groups.append(list(set(bpy.context.scene.objects) - start))
-    return articulate_aa(mount, collection, frame, groups)
+    return _covers(mount, col, helpers, materials, face, centers, port_half + .02, pz0 - .02, pz1 + .02, 8.05, .66, frame, groups)
 
 
 def create_yamato_secondary(mount, collection, helpers, materials):
@@ -193,13 +203,14 @@ def create_yamato_secondary(mount, collection, helpers, materials):
     spec = mount['weapon']; n = mount['id']; col = collection
     naval, roof, edge, hullgray, canvas, dark = (materials[k] for k in ['naval', 'roof', 'edge', 'hullgray', 'canvas', 'dark'])
     before = set(bpy.context.scene.objects)
-    L, W, H = 6.4, 6.9, 3.15; floor = .25
-    cyl(n + '.roller', (0, 0, floor / 2), spec['barbetteRadius'], floor, edge, col, 64)
+    L, W, H = 6.4, 6.9, 3.45; floor = .25
+    def roof_height(x): return 3.45 - max(0, min(5.0, x + 2.368)) * 1.15 / 5.0
+    cyl(n + '.roller', (0, 0, floor / 2), spec['barbetteRadius'], floor, edge, col, 32)
     a, b, c, d = 2.368, 3.45, 3.2, 2.618
     rings = [[(-a, -b, floor), (a, -b, floor), (c, -d, floor), (c, d, floor), (a, b, floor), (-a, b, floor), (-c, d, floor), (-c, -d, floor)],
-             [(-a, -3.2085, H), (1.718, -3.2085, H), (2.55, -2.43474, H), (2.55, 2.43474, H), (1.718, 3.2085, H), (-a, 3.2085, H), (-c, 2.43474, H), (-c, -2.43474, H)]]
+             [(-a, -3.2085, H), (1.718, -3.2085, roof_height(1.718)), (2.55, -2.43474, roof_height(2.55)), (2.55, 2.43474, roof_height(2.55)), (1.718, 3.2085, roof_height(1.718)), (-a, 3.2085, H), (-c, 2.43474, H), (-c, -2.43474, H)]]
     centers = [spec['barrelSpacing'], 0, -spec['barrelSpacing']]
-    port_half = .43; pz0, pz1 = 1.3, 2.45
+    port_half = .43; pz0, pz1 = 1.3, roof_height(2.55)
     face = _shell(n, mesh, box, rings, 2, centers, port_half, pz0, pz1, naval, roof, dark, col)
     for cy in centers:
         for y in (cy - port_half - .02, cy + port_half + .02):
@@ -208,9 +219,9 @@ def create_yamato_secondary(mount, collection, helpers, materials):
             rod(n + '.port.frame', (face(z)[0] + .015, cy - port_half, z), (face(z)[0] + .015, cy + port_half, z), .04, naval, col, vertices=8)
     # 8 m rangefinder through the rear of the gunhouse.
     rx = -2.35; rz = H - .85; half = spec.get('rangefinderWidth', 8) / 2
-    rod(n + '.rangefinder.tube', (rx, -half + .2, rz), (rx, half - .2, rz), .22, naval, col, vertices=20)
+    rod(n + '.rangefinder.tube', (rx, -half + .2, rz), (rx, half - .2, rz), .22, naval, col, vertices=12)
     for s in (-1, 1):
-        rod(n + '.rangefinder.arm', (rx, s * 3.1, rz), (rx, s * (half - .35), rz), .40, naval, col, r2=.27, vertices=20)
+        rod(n + '.rangefinder.arm', (rx, s * 3.1, rz), (rx, s * (half - .35), rz), .40, naval, col, r2=.27, vertices=12)
         box(n + '.rangefinder.hood', (rx, s * (half - .1), rz), (.8, .55, .6), naval, col)
         box(n + '.rangefinder.hood.roof', (rx - .01, s * (half - .1), rz + .33), (.88, .63, .06), roof, col)
         box(n + '.rangefinder.aperture', (rx + .405, s * (half - .1), rz + .01), (.02, .3, .24), dark, col)
@@ -218,7 +229,7 @@ def create_yamato_secondary(mount, collection, helpers, materials):
     _roof_service(n, rod, cyl, L, W, H, scale, -1.2, .22, edge, col)
     for s in (-1, 1):
         side_y = lambda z: s * (b - (b - 3.2085) * (z - floor) / (H - floor) + .04)
-        _ladder(n, rod, (-L * .30 + 1.4, side_y(.35), .35), (-L * .30 + 1.4, side_y(H - .05), H - .05), .5 * scale, edge, col)
+        _ladder(n, rod, (-L * .30 + 1.4, side_y(.35), .35), (-L * .30 + 1.4, side_y(roof_height(-L * .30 + 1.4) - .05), roof_height(-L * .30 + 1.4) - .05), .5 * scale, edge, col)
         _vent(n, box, .55, s * (b - (b - 3.2085) * (1.2 - floor) / (H - floor) + .0), 1.2, .6 * scale, .46 * scale, naval, roof, dark, col)
         box(n + '.roof.sight.hood', (.4, s * 2.55, H + .13), (.6, .5, .28), naval, col)
         box(n + '.roof.sight.slit', (.71, s * 2.55, H + .14), (.02, .32, .11), dark, col)
@@ -228,6 +239,14 @@ def create_yamato_secondary(mount, collection, helpers, materials):
         for x in (-1.0, 1.0): rod(n + '.side.seam', (x, side_y(floor + .03) - s * .03, floor + .03), (x, side_y(H - .02) - s * .03, H - .02), .013, edge, col, vertices=6)
     cyl(n + '.roof.vent', (-2.55, 0, H + .12), .2, .24, naval, col, 16)
     cyl(n + '.roof.vent.cap', (-2.55, 0, H + .26), .27, .05, roof, col, 16)
+    for ob in set(bpy.context.scene.objects) - before:
+        if '.roof.' in ob.name and ob.type == 'MESH' and '.gunhouse.' not in ob.name:
+            ob.location.z += roof_height(ob.location.x) - H
+    # Plate joins are paint/normal-scale detail at gameplay distance, not
+    # proud round rods. Keep actual ladders, sights, hatches and port frames.
+    for detail in list(set(bpy.context.scene.objects) - before):
+        if '.seam' in detail.name or '.side.rivet' in detail.name:
+            bpy.data.objects.remove(detail, do_unlink=True)
     frame = list(set(bpy.context.scene.objects) - before)
     groups = []
     pivot = spec['trunnionForward']; muzzle = spec['muzzleForward']; rad = spec['barrelBaseRadius']
@@ -235,10 +254,9 @@ def create_yamato_secondary(mount, collection, helpers, materials):
         start = set(bpy.context.scene.objects)
         sections = [(pivot, rad * .88), (pivot + 1.45, rad * .88), (pivot + 1.5, rad * .80), (pivot + 2.4, rad * .74), (pivot + 2.6, rad * .62),
                     (muzzle - 2.0, rad * .44), (muzzle - .2, rad * .41), (muzzle - .17, rad * .46), (muzzle, rad * .46)]
-        bag = [(2.3, .41, .56, 0), (2.75, .41, .57, -.02), (3.0, .40, .52, -.05), (3.3, .35, .40, -.06), (3.6, .30, .31, -.03), (3.85, .26, .26, 0)]
-        _gun(n, mesh, rod, spec, lateral, sections, bag, .045, (3.83, .275), edge, dark, canvas, col, 24)
+        _gun(n, rod, spec, lateral, sections, edge, dark, col)
         groups.append(list(set(bpy.context.scene.objects) - start))
-    return articulate_aa(mount, collection, frame, groups)
+    return _covers(mount, col, helpers, materials, face, centers, port_half + .02, pz0 - .02, pz1, 3.85, .27, frame, groups)
 
 
 def create_mogami_main(mount, collection, helpers, materials):
@@ -247,7 +265,7 @@ def create_mogami_main(mount, collection, helpers, materials):
     naval, roof, edge, hullgray, canvas, dark = (materials[k] for k in ['naval', 'roof', 'edge', 'hullgray', 'canvas', 'dark'])
     rangefinder = '-e-twin' in (mount.get('partId') or spec.get('id', ''))
     before = set(bpy.context.scene.objects)
-    cyl(n + '.roller', (0, 0, .03), spec['barbetteRadius'], .06, edge, col, 64)
+    cyl(n + '.roller', (0, 0, .03), spec['barbetteRadius'], .06, edge, col, 32)
     for i in range(24):
         t = i * math.tau / 24; r = spec['barbetteRadius']
         rod(n + '.roller.fastener', (r * math.cos(t), r * math.sin(t), .03), ((r + .025) * math.cos(t), (r + .025) * math.sin(t), .03), .03, edge, col, vertices=6)
@@ -268,7 +286,7 @@ def create_mogami_main(mount, collection, helpers, materials):
         rod(n + '.port.sill', (face(.45)[0] + .025, gy - .585, .45), (face(.45)[0] + .025, gy + .585, .45), .04, edge, col, vertices=8)
         box(n + '.port.top.rim', (1.43, gy, 2.10), (.45, 1.26, .10), naval, col)
         for y in (gy - .46, gy + .46):
-            rod(n + '.mantlet.cheek.pivot', (1.62, y, 1.28), (1.92, y, 1.28), .16, edge, col, vertices=20)
+            rod(n + '.mantlet.cheek.pivot', (1.62, y, 1.28), (1.92, y, 1.28), .16, edge, col, vertices=12)
     # Flat roof, central sight, narrow plate joints and restrained fasteners.
     cyl(n + '.roof.sight.drum', (-1.05, 0, 2.22), .39, .28, naval, col, 24)
     box(n + '.roof.sight.hood', (-.95, 0, 2.38), (.88, .74, .17), naval, col)
@@ -290,16 +308,21 @@ def create_mogami_main(mount, collection, helpers, materials):
         box(n + '.rear.access', (-5.335, s * .93, 1.04), (.045, .65, 1.3), naval, col)
         for z in (.56, 1.10, 1.63): box(n + '.rear.hinge', (-5.365, s * 1.24, z), (.065, .12, .14), edge, col)
         rod(n + '.rear.handle', (-5.38, s * .8, .92), (-5.38, s * .8, 1.14), .027, edge, col, vertices=6)
-        cyl(n + '.roof.hatch', (-3.6, s * 1.9, 2.10), .27, .07, roof, col, 20)
+        cyl(n + '.roof.hatch', (-3.6, s * 1.9, 2.10), .27, .07, roof, col, 12)
     if rangefinder:
-        rod(n + '.rangefinder.tube', (-3.9, -4.15, 1.85), (-3.9, 4.15, 1.85), .18, naval, col, vertices=24)
+        rod(n + '.rangefinder.tube', (-3.9, -4.15, 1.85), (-3.9, 4.15, 1.85), .18, naval, col, vertices=12)
         for s in (-1, 1):
             y = s * 4.09
             box(n + '.rangefinder.hood', (-4.10, y, 1.94), (1.74, .49, .96), naval, col)
             box(n + '.rangefinder.hood.roof', (-4.12, y, 2.44), (1.82, .57, .05), roof, col)
             box(n + '.rangefinder.glass', (-3.222, y, 1.95), (.018, .26, .31), dark, col)
-            rod(n + '.rangefinder.bearing', (-3.9, s * 2.52, 1.85), (-3.9, s * 3.55, 1.85), .28, naval, col, vertices=20)
+            rod(n + '.rangefinder.bearing', (-3.9, s * 2.52, 1.85), (-3.9, s * 3.55, 1.85), .28, naval, col, vertices=12)
             rod(n + '.rangefinder.brace', (-3.9, s * 3.4, 1.62), (-3.9, s * 2.72, .95), .06, naval, col, vertices=8)
+    # Plate joins are paint/normal-scale detail at gameplay distance, not
+    # proud round rods. Keep actual ladders, sights, hatches and port frames.
+    for detail in list(set(bpy.context.scene.objects) - before):
+        if '.seam' in detail.name or '.side.rivet' in detail.name:
+            bpy.data.objects.remove(detail, do_unlink=True)
     frame = list(set(bpy.context.scene.objects) - before)
     groups = []
     pivot = spec['trunnionForward']; muzzle = spec['muzzleForward']; rad = spec['barrelBaseRadius']
@@ -308,7 +331,6 @@ def create_mogami_main(mount, collection, helpers, materials):
         start = set(bpy.context.scene.objects)
         sections = [(pivot, rad * .86), (pivot + 2.4, rad * .80), (pivot + 2.6, rad * .70), (muzzle - 2.0, tip * 1.08), (muzzle, tip)]
         # Broad fabric bag with a drooping middle and narrow barrel collar.
-        bag = [(pivot - .60, .54, .75, -.05), (pivot, .54, .73, -.12), (pivot + .60, .44, .52, -.23), (pivot + 1.30, .30, .32, -.14), (pivot + 2.03, .24, .24, 0)]
-        _gun(n, mesh, rod, spec, lateral, sections, bag, .03, (pivot + 2.03, .255), edge, dark, canvas, col, 24)
+        _gun(n, rod, spec, lateral, sections, edge, dark, col)
         groups.append(list(set(bpy.context.scene.objects) - start))
-    return articulate_aa(mount, collection, frame, groups)
+    return _covers(mount, col, helpers, materials, face, centers, port_half + .02, .43, 2.07, pivot + 2.03, .245, frame, groups)

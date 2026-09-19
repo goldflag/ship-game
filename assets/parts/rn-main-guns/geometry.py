@@ -7,6 +7,8 @@ the King George V ship recipe (revision 4 gunhouse proportions).
 import math
 import bpy
 from aa_articulation import articulate_aa
+from gun_bloomers import create_bloomer
+from blender_barrels import barrel_layout
 
 # Plan outlines run rear centre -> starboard -> face -> port (counter-clockwise from above).
 QUAD_BASE = [(-8.3,0),(-8.14,-1.5),(-7.67,-3),(-6.92,-4.4),(-6.05,-5.42),(-2.8,-5.7822),(.5,-6.15),(4.9,-5.48),
@@ -51,13 +53,15 @@ def ladder(rod, name, a, b, w, material, collection):
     ax, ay, az = a; bx, by, bz = b
     for s in [-w/2, w/2]:
         rod(name+'.rail', (ax, ay+s, az), (bx, by+s, bz), .028, material, collection, vertices=6)
+        for x,y,z in [(ax,ay+s,az),(bx,by+s,bz)]:
+            rod(name+'.foot',(x,y,z),(x+.10,y,z),.022,material,collection,vertices=6)
     steps = max(2, int((bz-az)/.32))
     for i in range(1, steps):
         t = i/steps; x = ax+(bx-ax)*t; z = az+(bz-az)*t
         rod(name+'.rung', (x, ay-w/2, z), (x, ay+w/2, z), .02, material, collection, vertices=6)
 
 
-def pleated_bag(mesh, name, rings, lateral, axis_z, material, collection, pleats=7, depth=.05, sides=28):
+def pleated_bag(mesh, name, rings, lateral, axis_z, material, collection, pleats=7, depth=.05, sides=16):
     vv = []; ff = []
     for x, r in rings:
         for i in range(sides):
@@ -138,17 +142,8 @@ def create_kgv_main(mount, collection, helpers, materials):
     patch([axes[-1]+radius, front_bottom, front_top, axes[-1]+radius], [floor, floor, front_z, front_z])
     multi_mesh(n+'.gunhouse', vv, ff, mi, [naval, roof, dark], collection)
 
-    # Roof plate joints with bolt rows.
+    # Broad plate boundaries carry the roof silhouette; omit raised bolt rows.
     half_at = lambda x: interp({(a, abs(b)) for a, b, c in top if b <= 0}, x)
-    for x in ([-6.2, ridge, 3.8] if quad else [-5.6, ridge, 3.8]):
-        half = half_at(x)-.04
-        rod(n+'.roof.joint', (x, -half, roof_z(x)+.018), (x, half, roof_z(x)+.018), .02, naval, collection, vertices=6)
-        for yy in [-half+.18, half-.18]:
-            for dx in [-.12, .12]: cyl(n+'.roof.bolt', (x+dx, yy, roof_z(x+dx)+.03), .043, .06, edge, collection, 8)
-    # Fore-and-aft plate joints.
-    for yy in ([-2.44, 0, 2.44] if quad else [0]):
-        rod(n+'.roof.joint.long', (-5.6 if quad else -5.2, yy, roof_z(-5.6 if quad else -5.2)+.018), (ridge, yy, roof_z(ridge)+.018), .018, naval, collection, vertices=6)
-
     # Flared rangefinder end covers growing out of the rear roof (41 ft / 30 ft baselines).
     root_y = width*.35; tip_y = rf_w/2+(.65 if quad else .50)
     for side in [-1, 1]:
@@ -157,7 +152,7 @@ def create_kgv_main(mount, collection, helpers, materials):
         if side < 0: outline.reverse()
         prism(mesh, n+'.rangefinder.cover', outline, lambda x: roof_z(x)-.92, lambda x: roof_z(x)+.035, naval, collection)
         z = roof_z(rf_x)-.44
-        rod(n+'.rangefinder.cap', (rf_x, side*(tip_y-.01), z), (rf_x, side*(tip_y+.05), z), .28, naval, collection, vertices=24)
+        rod(n+'.rangefinder.cap', (rf_x, side*(tip_y-.01), z), (rf_x, side*(tip_y+.05), z), .28, naval, collection, vertices=12)
         for dx in [-.66, .66]: box(n+'.rangefinder.hinge', (rf_x+dx, side*(tip_y+.04), z), (.12, .08, .30), edge, collection)
         box(n+'.rangefinder.window', (rf_x+1.035, side*(tip_y-.30), z), (.04, .30, .25), dark, collection)
         # Rear access ladder leaning with the curved back wall.
@@ -172,17 +167,16 @@ def create_kgv_main(mount, collection, helpers, materials):
         for vx, vy in ([(-5.3, 1.5), (-1.2, 4.1)] if quad else [(-3.2, 1.2), (.6, 3.0)]):
             cyl(n+'.roof.vent.stem', (vx, side*vy, roof_z(vx)+.12), .13, .24, naval, collection, 14)
             cyl(n+'.roof.vent.cap', (vx, side*vy, roof_z(vx)+.28), .24, .09, naval, collection, 16, r2=.14)
-        # Sloped-front sighting hood at each forward roof corner.
-        sx = 2.2; sy = side*(half_at(sx)-.62); zr = roof_z(sx)-.01
-        hood = [(sx-.55, -.34, 0), (sx+.40, -.34, 0), (sx+.40, .34, 0), (sx-.55, .34, 0),
-                (sx-.50, -.30, .40), (sx+.22, -.30, .40), (sx+.22, .30, .40), (sx-.50, .30, .40)]
-        mesh(n+'.sight.hood', [(a, sy+b, zr+c) for a, b, c in hood],
-             [(3, 2, 1, 0), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)], naval, collection)
-        mesh(n+'.sight.slit', [(sx+.335, sy-.2, zr+.17), (sx+.335, sy+.2, zr+.17), (sx+.275, sy+.2, zr+.30), (sx+.275, sy-.2, zr+.30)], [(0, 1, 2, 3)], dark, collection)
-    # Centre officer-of-turret hood.
-    cx = 1.6 if quad else 1.2; zr = roof_z(cx)
-    box(n+'.sight.centre', (cx, 0, zr+.17), (.8, .56, .36), naval, collection)
-    box(n+'.sight.centre.slit', (cx+.40, 0, zr+.22), (.02, .36, .10), dark, collection)
+    if not quad:
+        # The approved twin carries a rear roof guardrail; short stanchions
+        # grow directly from the roof, with the front corners kept clear.
+        rail = [(-5.7,-1.6),(-4.6,-3.0),(-1.0,-3.7),(1.7,-3.6),
+                (1.7,3.6),(-1.0,3.7),(-4.6,3.0),(-5.7,1.6)]
+        for x,y in rail:
+            rod(n+'.roof.guard.post',(x,y,roof_z(x)),(x,y,roof_z(x)+.82),.026,edge,collection,vertices=6)
+        for lift in [.40,.82]:
+            for (xa,ya),(xb,yb) in zip(rail,rail[1:]+rail[:1]):
+                rod(n+'.roof.guard.rail',(xa,ya,roof_z(xa)+lift),(xb,yb,roof_z(xb)+lift),.022,edge,collection,vertices=6)
     # Gunlayers' face sights between the guns.
     for gy in [(a+b)/2 for a, b in zip(axes, axes[1:])]:
         box(n+'.face.sight', (front+.012, gy, front_z-.63), (.03, .20, .37), dark, collection)
@@ -201,26 +195,30 @@ def create_kgv_main(mount, collection, helpers, materials):
         az = lambda x: height+(x-pivot)*slope
         pt = lambda x: (x, lateral, az(x))
         # Mk VII: long parallel rear sleeve, step, light tapering chase.
-        profile = [(-.62, .60), (.43, .54), (3.80, .46), (3.85, .40), (length-1.0, .263), (length, .256)]
+        profile = [(-.62, .60), (.43, .50), (3.80, .50), (3.85, .40), (length-1.0, .263), (length, .256)]
         for (a, ra), (b, rb) in zip(profile, profile[1:]):
-            rod(n+'.barrel', pt(pivot+a), pt(pivot+b), ra, edge, collection, r2=rb, vertices=32)
-        rod(n+'.muzzle.face', pt(muzzle-.002), pt(muzzle), .256, edge, collection, r2=spec['caliberM']/2, vertices=32)
-        rod(n+'.bore', pt(muzzle+.003), pt(muzzle+.008), spec['caliberM']/2, dark, collection, vertices=28)
-        # Canvas blast bag seated inside the round-bottomed port and laced to the chase.
-        rings = [(front-.80, .66), (front-.05, .71), (front+.22, .80), (front+.75, .80), (front+1.25, .68), (front+1.6, .535), (front+1.72, .50)]
-        pleated_bag(mesh, n+'.blastbag', rings, lateral, az, canvas, collection)
-        rod(n+'.blastbag.clamp', pt(front+1.62), pt(front+1.78), .53, edge, collection, vertices=28)
+            rod(n+'.barrel', pt(pivot+a), pt(pivot+b), ra, edge, collection, r2=rb, vertices=16)
+        rod(n+'.muzzle.face', pt(muzzle-.002), pt(muzzle), .256, edge, collection, r2=spec['caliberM']/2, vertices=12)
+        rod(n+'.bore', pt(muzzle+.003), pt(muzzle+.008), spec['caliberM']/2, dark, collection, vertices=12)
         groups.append(list(set(bpy.context.scene.objects)-start))
-    return articulate_aa(mount, collection, frame, groups)
+    yaw = articulate_aa(mount, collection, frame, groups)
+    for side, gy, _ in barrel_layout(spec):
+        # Follow the complete round-bottom aperture, including its roof return.
+        seam = []
+        for i in range(24):
+            if i == 0: x,y,z = front+.012,gy+radius+.018,zc
+            elif i == 1: x,y,z = front+.012,gy+radius+.018,(zc+front_z)/2
+            elif 2 <= i <= 10:
+                a=(i-2)*math.pi/8;x=front-recess*math.sin(a)
+                y=gy+(radius+.018)*math.cos(a);z=roof_z(x)+.018
+            elif i == 11: x,y,z=front+.012,gy-radius-.018,(zc+front_z)/2
+            else:
+                a=math.pi+(i-12)*math.pi/12
+                x,y,z=front+.012,gy+(radius+.018)*math.cos(a),zc+(radius+.018)*math.sin(a)
+            seam.append((x,y,z))
+        create_bloomer(mount,collection,helpers,materials,side,seam,front+1.70,.505,rings=5,slack=.055)
+    return yaw
 
-
-# 5.25-inch Mk I: three plan rings (floor, shoulder, roof); rear centre -> starboard -> face -> port.
-SEC_PLAN = [(-2.8,0),(-2.67,-.92),(-2.13,-1.77),(-1.24,-2.25),(.62,-2.25),(1.58,-1.94),(2.72,-1.38),
-            (2.72,1.38),(1.58,1.94),(.62,2.25),(-1.24,2.25),(-2.13,1.77),(-2.67,.92)]
-SEC_SHOULDER_Z = [2.45,2.45,2.45,2.45,2.45,1.67,1.67,1.67,1.67,2.45,2.45,2.45,2.45]
-SEC_ROOF = [(-2.59,0,3.02),(-2.46,-.782,3.02),(-1.92,-1.5045,3.02),(-1.03,-1.9125,3.02),(.4,-1.9125,3.02),
-            (1.36,-1.649,2.4897),(2.5,-1.173,1.86),(2.5,1.173,1.86),(1.36,1.649,2.4897),(.4,1.9125,3.02),
-            (-1.03,1.9125,3.02),(-1.92,1.5045,3.02),(-2.46,.782,3.02)]
 
 
 def create_kgv_secondary(mount, collection, helpers, materials):
@@ -230,20 +228,14 @@ def create_kgv_secondary(mount, collection, helpers, materials):
     roof = materials.get('roof', naval); canvas = materials.get('canvas', dark)
     before = set(bpy.context.scene.objects)
     cyl(n+'.roller', (0, 0, .125), spec['barbetteRadius'], .25, edge, collection, 48)
-    k = len(SEC_PLAN); floor = .25
-    vv = [(x, y, floor) for x, y in SEC_PLAN]+[(x, y, z) for (x, y), z in zip(SEC_PLAN, SEC_SHOULDER_Z)]+list(SEC_ROOF)
-    ff = [list(reversed(range(k)))]; mi = [0]
-    for level in [0, 1]:
-        for i in range(k):
-            ff.append([level*k+i, level*k+(i+1) % k, (level+1)*k+(i+1) % k, (level+1)*k+i]); mi.append(0)
-    flat = [2*k+i for i in [0, 1, 2, 3, 4, 9, 10, 11, 12]]
-    ff.append(flat); mi.append(1)
-    ff.append([2*k+i for i in [4, 5, 6, 7, 8, 9]]); mi.append(1)
-    multi_mesh(n+'.gunhouse', vv, ff, mi, [naval, roof], collection)
+    # Catalog armor facets are also the visual shell: one durable contour.
+    shape=spec['gunhouseMesh']
+    multi_mesh(n+'.gunhouse',shape['vertices'],[f['indices'] for f in shape['faces']],
+               [int(f.get('finish')=='roof') for f in shape['faces']], [naval,roof],collection)
 
     # Elevation slots follow the face, the steep brow and the long glacis (guns reach 70 degrees).
     spacing = spec['barrelSpacing']; hw = .30
-    path = [(2.72, 1.0), (2.72, 1.67), (2.5, 1.86), (1.05, 2.661)]
+    path = [(2.72, 1.90), (2.72, 2.42), (2.5, 2.61), (1.05, 3.06)]
     for lateral in [spacing/2, -spacing/2]:
         sv = []; sf = []
         for (xa, za), (xb, zb) in zip(path, path[1:]):
@@ -260,8 +252,8 @@ def create_kgv_secondary(mount, collection, helpers, materials):
         # Armoured cheeks beside the cradles, with the layer's/trainer's sight ports.
         outline = [(1.0, side*1.48), (2.35, side*1.48), (2.35, side*1.72), (1.0, side*2.0)]
         if side < 0: outline.reverse()
-        prism(mesh, n+'.cheek', outline, 1.55, 2.30, naval, collection)
-        box(n+'.cheek.sight', (2.355, side*1.60, 2.08), (.02, .18, .16), dark, collection)
+        prism(mesh, n+'.cheek', outline, 2.02, 2.88, naval, collection)
+        box(n+'.cheek.sight', (2.355, side*1.60, 2.66), (.02, .18, .16), dark, collection)
         box(n+'.vent.cheek', (-1.0, side*2.24, 1.95), (.9, .10, .55), naval, collection)
         for z in [1.80, 1.95, 2.10]:
             box(n+'.vent.louvre', (-1.0, side*2.295, z), (.78, .02, .05), dark, collection)
@@ -270,16 +262,19 @@ def create_kgv_secondary(mount, collection, helpers, materials):
         d = box(n+'.rear.door', (mx-.03*math.sin(a), side*(my+.03*math.cos(a)), 1.22), (.72, .05, 1.35), roof, collection)
         d.rotation_euler.z = side*a
     # Single rear ladder: vertical leg up the back wall, then a leg lying on the shoulder bevel.
-    ladder(rod, n+'.rear.ladder', (-2.87, 0, .28), (-2.87, 0, 2.45), .42, edge, collection)
-    ladder(rod, n+'.rear.ladder.upper', (-2.87, 0, 2.45), (-2.655, 0, 3.04), .42, edge, collection)
-    cyl(n+'.roof.hatch', (-1.20, 0, 3.06), .37, .08, naval, collection, 24)
-    rod(n+'.roof.hatch.handle', (-1.34, 0, 3.12), (-1.06, 0, 3.12), .025, edge, collection, vertices=6)
-    for yy in [-1.1, 1.1]:
-        cyl(n+'.roof.vent.stem', (-1.9, yy, 3.10), .09, .16, naval, collection, 12)
-        cyl(n+'.roof.vent.cap', (-1.9, yy, 3.21), .17, .07, naval, collection, 14, r2=.10)
-    # Roof sighting hood for the officer of the turret.
-    box(n+'.roof.sight', (-.1, 0, 3.13), (.5, .44, .22), naval, collection)
-    box(n+'.roof.sight.slit', (.155, 0, 3.15), (.02, .30, .08), dark, collection)
+    ladder(rod, n+'.rear.ladder', (-2.87, 0, .28), (-2.87, 0, 2.70), .42, edge, collection)
+    ladder(rod, n+'.rear.ladder.upper', (-2.87, 0, 2.70), (-2.655, 0, 3.32), .42, edge, collection)
+    for yy in [-1.10,1.10]:
+        cyl(n+'.roof.hatch',(-1.15,yy,3.40),.46,.20,naval,collection,16)
+        rod(n+'.roof.hatch.handle',(-1.30,yy,3.54),(-1.00,yy,3.54),.026,edge,collection,vertices=6)
+        # Hinged rear hatch coamings and a supported optical periscope.
+        box(n+'.roof.hatch.hinge',(-1.55,yy,3.47),(.10,.32,.12),naval,collection)
+        for zz in [.60,.90,1.20,1.50]:
+            rod(n+'.side.ladder.rung',(1.0,yy/abs(yy)*2.15,zz),(1.45,yy/abs(yy)*2.01,zz),.025,edge,collection,vertices=6)
+    cyl(n+'.roof.periscope',(-1.60,0,3.58),.075,.56,naval,collection,10)
+    box(n+'.roof.periscope.head',(-1.55,0,3.90),(.22,.16,.17),naval,collection)
+    box(n+'.roof.sight',(.65,0,3.09),(.45,.44,.25),naval,collection)
+    box(n+'.roof.sight.slit',(.88,0,3.13),(.02,.30,.08),dark,collection)
     frame = list(set(bpy.context.scene.objects)-before)
 
     groups = []
@@ -289,13 +284,24 @@ def create_kgv_secondary(mount, collection, helpers, materials):
         start = set(bpy.context.scene.objects)
         az = lambda x: height+(x-pivot)*slope
         pt = lambda x: (x, lateral, az(x))
-        profile = [(-.55, .235), (1.35, .225), (1.40, .185), (2.30, .155), (2.34, .135), (length-.35, .098), (length-.30, .112), (length, .108)]
+        profile = [(-.55, .235), (2.10, .225), (2.15, .185), (2.30, .155), (2.34, .135), (length-.35, .098), (length-.30, .112), (length, .108)]
         for (a, ra), (b, rb) in zip(profile, profile[1:]):
-            rod(n+'.barrel', pt(pivot+a), pt(pivot+b), ra, edge, collection, r2=rb, vertices=24)
-        rod(n+'.muzzle.face', pt(muzzle-.002), pt(muzzle), .108, edge, collection, r2=spec['caliberM']/2, vertices=24)
-        rod(n+'.bore', pt(muzzle+.003), pt(muzzle+.007), spec['caliberM']/2, dark, collection, vertices=20)
+            rod(n+'.barrel', pt(pivot+a), pt(pivot+b), ra, edge, collection, r2=rb, vertices=16)
+        rod(n+'.muzzle.face', pt(muzzle-.002), pt(muzzle), .108, edge, collection, r2=spec['caliberM']/2, vertices=12)
+        rod(n+'.bore', pt(muzzle+.003), pt(muzzle+.007), spec['caliberM']/2, dark, collection, vertices=12)
         # Exposed metal gun slide with a short canvas boot at the port.
-        rod(n+'.slide', pt(pivot-.6), pt(2.78), .275, edge, collection, r2=.262, vertices=24)
-        pleated_bag(mesh, n+'.boot', [(2.70, .285), (2.86, .30), (3.02, .27), (3.12, .232)], lateral, az, canvas, collection, pleats=6, depth=.04, sides=24)
+        rod(n+'.slide', pt(pivot-.6), pt(2.78), .275, edge, collection, r2=.262, vertices=12)
         groups.append(list(set(bpy.context.scene.objects)-start))
-    return articulate_aa(mount, collection, frame, groups)
+    yaw=articulate_aa(mount,collection,frame,groups)
+    for side,y,_ in barrel_layout(spec):
+        seam=[]
+        rim_path=[(2.74,2.30),(2.74,2.43),(2.52,2.63),(1.78,2.85),(1.05,3.08)]
+        for i in range(20):
+            if i<5: x,z=rim_path[i];dy=.32
+            elif i==5: x,z,dy=1.03,3.09,0
+            elif i<=10: x,z=rim_path[10-i];dy=-.32
+            else:
+                x=2.74;dy=[-.32,-.32,-.24,-.12,0,.12,.24,.32,.32][i-11];z=2.10 if i in [11,19] else 1.885
+            seam.append((x,y+dy,z))
+        create_bloomer(mount,collection,helpers,materials,side,seam,3.15,.228,rings=4,fold_depth=.018,slack=.01,fullness=.10,forward_fullness=.28)
+    return yaw

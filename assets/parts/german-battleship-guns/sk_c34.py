@@ -10,6 +10,7 @@ import math
 from mathutils import Matrix
 from blender_components import create_gun_mount
 from blender_barrels import barrel_layout
+from gun_bloomers import create_bloomer
 
 
 def create_mount(mount, col, helpers, materials):
@@ -76,7 +77,7 @@ def create_mount(mount, col, helpers, materials):
         faces += [(i, (i+1)%n, (i+1)%n+n, i+n) for i in range(n)]
         wing = put(mesh(name + '.optical-wing', verts, faces, naval, col))
         bevel = wing.modifiers.new('Armored optical hood edge', 'BEVEL')
-        bevel.width = .055; bevel.segments = 2
+        bevel.width = .055; bevel.segments = 1
         if mount.get('rangefinder'):
             # The aperture faces forward, at the end of the side wing. Both
             # the bezel and shutter overlap the armored casing mechanically.
@@ -114,23 +115,12 @@ def create_mount(mount, col, helpers, materials):
     # behind the face so the attachment remains seated at combined elevation
     # and recoil poses. Barrels and muzzle sockets retain the original rig.
     for side, _, _ in barrel_layout(spec):
-        parent = bpy.data.objects[name + '.' + side + '.recoil']
-        rings = [(0,.80,1.14),(.9,.94,1.12),(1.65,.94,.94),
-                 (2.3,.82,.72),(3.15,.67,.56),(4.0,.56,.54),(4.7,.52,.515)]
-        verts=[];n=32
-        for j,(x,ry,rz) in enumerate(rings):
-            for i in range(n):
-                a=math.tau*i/n;fold=1+.035*math.cos(a*7+j*.7)
-                verts.append((x,ry*math.cos(a)*fold,rz*math.sin(a)*fold))
-        faces=[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i)
-               for j in range(len(rings)-1) for i in range(n)]
-        put(mesh(name + '.pleated-blast-bag', verts, faces, canvas, col, True), parent)
         recoil = bpy.data.objects[name + '.' + side + '.recoil']
         length = spec['muzzleForward'] - spec['trunnionForward']
-        profile = [(-.2,.57),(4.55,.49),(4.80,.46),(8.45,.36),
+        profile = [(-.2,.57),(.40,.49),(6.00,.49),(6.15,.46),(8.45,.36),
                    (8.67,.31),(length,.245)]
         for (xa,ra),(xb,rb) in zip(profile,profile[1:]):
-            barrel = put(rod(name + '.barrel-chase',(xa,0,0),(xb,0,0),ra,edge,col,r2=rb,vertices=32),recoil)
+            barrel = put(rod(name + '.barrel-chase',(xa,0,0),(xb,0,0),ra,edge,col,r2=rb,vertices=16),recoil)
             if xb == length:
                 bm = bmesh.new();bm.from_mesh(barrel.data)
                 cap = max(bm.faces,key=lambda f:f.calc_center_median().z)
@@ -139,11 +129,19 @@ def create_mount(mount, col, helpers, materials):
         # A physical annular muzzle rim and short dark bore cavity retain the
         # 380 mm opening; the ring is attached to the moving outer barrel.
         bore = spec['caliberM']/2
-        vertices = [(x,r*math.cos(math.tau*i/32),r*math.sin(math.tau*i/32))
+        vertices = [(x,r*math.cos(math.tau*i/16),r*math.sin(math.tau*i/16))
                     for x,r in [(length,.245),(length,bore),(length-.42,bore)]
-                    for i in range(32)]
-        faces = [(i,(i+1)%32,(i+1)%32+32,i+32) for i in range(32)]
-        faces += [(i+32,(i+1)%32+32,(i+1)%32+64,i+64) for i in range(32)]
+                    for i in range(16)]
+        faces = [(i,(i+1)%16,(i+1)%16+16,i+16) for i in range(16)]
+        faces += [(i+16,(i+1)%16+16,(i+1)%16+32,i+32) for i in range(16)]
         put(mesh(name + '.muzzle-rim',vertices,faces,edge,col),recoil)
-        put(rod(name + '.bore-interior',(length-.44,0,0),(length-.42,0,0),bore,dark,col,vertices=32),recoil)
+        put(rod(name + '.bore-interior',(length-.44,0,0),(length-.42,0,0),bore,dark,col,vertices=16),recoil)
+    for side,y,_ in barrel_layout(spec):
+        seam=[]
+        for i in range(20):
+            a=i*math.tau/20;z=1.52+1.10*math.sin(a)
+            # Lower face and upper glacis share the same authored shell seam.
+            x=5.65-.27*(z-.25)/1.70 if z<=1.95 else 5.38-2.26*(z-1.95)/1.50
+            seam.append((x+.035,y+.83*math.cos(a),z))
+        create_bloomer(mount,col,helpers,palette,side,seam,spec['trunnionForward']+4.70,.495,rings=5,slack=.06)
     return yaw

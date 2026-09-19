@@ -36,7 +36,7 @@ def create_mount(mount, col, helpers, materials):
         ob['assemblyId'] = name
         return ob
 
-    def tube(label, xa, xb, outer, inner, parent, material=edge, n=24):
+    def tube(label, xa, xb, outer, inner, parent, material=edge, n=12):
         vertices = [(x, r * math.cos(i * math.tau / n), r * math.sin(i * math.tau / n))
                     for x, r in [(xa, outer), (xb, outer), (xb, inner), (xa, inner)] for i in range(n)]
         faces = [(ring*n+i, ring*n+(i+1)%n, ((ring+1)%4)*n+(i+1)%n, ((ring+1)%4)*n+i)
@@ -45,12 +45,12 @@ def create_mount(mount, col, helpers, materials):
 
     def wheel(label, center, radius, parent=yaw):
         x, y, z = center
-        pts = [(x + radius*math.cos(i*math.tau/20), y, z + radius*math.sin(i*math.tau/20))
-               for i in range(20)]
+        pts = [(x + radius*math.cos(i*math.tau/12), y, z + radius*math.sin(i*math.tau/12))
+               for i in range(12)]
         for a, b in zip(pts, pts[1:] + pts[:1]):
             put(rod(name + '.' + label + '.rim', a, b, .014, edge, col, vertices=6), parent)
         for i in range(3):
-            put(rod(name + '.' + label + '.spoke', center, pts[round(i*20/3)%20], .014, edge, col, vertices=6), parent)
+            put(rod(name + '.' + label + '.spoke', center, pts[round(i*12/3)%12], .014, edge, col, vertices=6), parent)
 
     # Low sole and bearing ring: the installation root is slightly above the
     # source deck, so the sole extends down to the actual support surface.
@@ -58,7 +58,13 @@ def create_mount(mount, col, helpers, materials):
     put(cyl(name + '.training-bearing', (0, 0, .16), .47, .26, edge, col, 32))
     put(cyl(name + '.pedestal', (0, 0, .61), .25, .82, gray, col, 24))
     put(cyl(name + '.pedestal-shoulder', (0, 0, 1.02), .30, .14, edge, col, 24))
-    put(rod(name + '.carriage-crosshead', (.03, -.40, 1.16), (.03, .40, 1.16), .085, gray, col, vertices=16))
+    # Broad load-bearing pedestal webs follow the source's braced base.
+    for sign in [-1,1]:
+        for lateral in [-.22,.22]:
+            verts=[(sign*.43,lateral,.27),(sign*.13,lateral,.98),(sign*.07,lateral,.27),
+                   (sign*.43,lateral+.045,.27),(sign*.13,lateral+.045,.98),(sign*.07,lateral+.045,.27)]
+            put(mesh(name+'.pedestal-gusset',verts,[(0,1,2),(5,4,3),(0,3,4,1),(1,4,5,2),(2,5,3,0)],gray,col))
+    put(rod(name + '.carriage-crosshead', (.03, -.40, 1.16), (.03, .40, 1.16), .085, gray, col, vertices=12))
 
     # A rearward fork bears on the central pedestal, outside both breech paths.
     # The open well below the axis clears the descending receiver at +80 deg.
@@ -72,8 +78,10 @@ def create_mount(mount, col, helpers, materials):
         faces += [(i, (i+1)%n, (i+1)%n+n, i+n) for i in range(n)]
         put(mesh(name + '.cast-fork', verts, faces, gray, col))
         # Stub axles engage the elevating cradle at the exact transverse axis.
-        put(rod(name + '.trunnion-stub', (tr, sign*.305, height), (tr, sign*.425, height), .085, edge, col, vertices=16))
-        put(box(name + '.footboard', (.62, sign*.62, .155), (1.20, .58, .075), deck, col))
+        put(rod(name + '.trunnion-stub', (tr, sign*.305, height), (tr, sign*.425, height), .085, edge, col, vertices=12))
+        outline=[(.02,sign*.34),(.94,sign*.34),(1.22,sign*.52),(1.22,sign*.76),(.96,sign*.91),(.02,sign*.91)]
+        k=len(outline);verts=[(x,y,z) for z in [.1175,.1925] for x,y in outline]
+        put(mesh(name+'.footboard',verts,[tuple(range(k)),tuple(range(k,2*k))]+[(i,(i+1)%k,(i+1)%k+k,i+k) for i in range(k)],deck,col))
         put(rod(name + '.footboard-outrigger', (0, 0, .20), (.67, sign*.73, .20), .060, gray, col, vertices=8))
         put(rod(name + '.seat-post', (.65, sign*.76, .20), (.65, sign*.76, .70), .045, gray, col, vertices=8))
         put(cyl(name + '.crew-seat', (.65, sign*.76, .74), .20, .09, deck, col, 20))
@@ -89,7 +97,7 @@ def create_mount(mount, col, helpers, materials):
         # The nonrecoiling annular cradle carries the sliding receiver. A real
         # bore between both surfaces avoids hiding the breech in a solid block.
         tube(side + '.receiver-cradle', -.18, .18, .139, .108, elevation, gray)
-        put(rod(name + '.' + side + '.receiver', (-.80, 0, 0), (.50, 0, 0), .10, gray, col, vertices=20), recoil)
+        put(rod(name + '.' + side + '.receiver', (-.80, 0, 0), (.50, 0, 0), .10, gray, col, vertices=12), recoil)
         put(box(name + '.' + side + '.breech-cap', (-.81, 0, 0), (.14, .18, .18), edge, col), recoil)
         put(box(name + '.' + side + '.top-feed', (-.43, 0, .135), (.38, .20, .15), dark, col), recoil)
         put(rod(name + '.' + side + '.recoil-cylinder', (-.32, 0, -.22), (.93, 0, -.22), .062, gray, col, vertices=14), recoil)
@@ -97,13 +105,13 @@ def create_mount(mount, col, helpers, materials):
         for xx in [-.28, .64]:
             put(rod(name + '.' + side + '.slide-yoke', (xx, 0, -.22), (xx, 0, -.075), .037, edge, col, vertices=10), recoil)
         # Tapered open barrel. The outer muzzle always exceeds the 37 mm bore.
-        n = 24
+        n = 12
         rings = [(.30, .047), (.52, .043), (length, .023), (length, .0185), (length-.30, .0185)]
         verts = [(x, r*math.cos(i*math.tau/n), r*math.sin(i*math.tau/n)) for x, r in rings for i in range(n)]
         faces = [(j*n+i, j*n+(i+1)%n, (j+1)*n+(i+1)%n, (j+1)*n+i)
                  for j in range(len(rings)-1) for i in range(n)]
         put(mesh(name + '.' + side + '.barrel', verts, faces, edge, col, True), recoil)
-        put(rod(name + '.' + side + '.bore-shadow', (length-.305, 0, 0), (length-.301, 0, 0), .0184, dark, col, vertices=24), recoil)
+        put(rod(name + '.' + side + '.bore-shadow', (length-.305, 0, 0), (length-.301, 0, 0), .0184, dark, col, vertices=12), recoil)
         # Small loading handle remains on the receiver during recoil.
         put(rod(name + '.' + side + '.charging-handle', (-.63, -.085, -.04), (-.63, -.17, -.04), .022, edge, col, vertices=8), recoil)
 
@@ -111,7 +119,7 @@ def create_mount(mount, col, helpers, materials):
     put(rod(name + '.sight-bracket', (.13, 0, 1.05), (.40, 0, 1.76), .030, gray, col, vertices=8))
     put(rod(name + '.sight-mount', (.40, 0, 1.76), (.59, 0, 1.76), .025, edge, col, vertices=8))
     put(rod(name + '.sight-ring-stem', (.59, 0, 1.70), (.59, 0, 1.77), .018, edge, col, vertices=8))
-    n = 20
+    n = 12
     pts = [(.59, .11*math.cos(i*math.tau/n), 1.82+.11*math.sin(i*math.tau/n)) for i in range(n)]
     for a, b in zip(pts, pts[1:] + pts[:1]):
         put(rod(name + '.ring-sight', a, b, .012, edge, col, vertices=6))

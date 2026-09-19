@@ -138,6 +138,7 @@ function App() {
       </section>
       <aside aria-label="Model controls">
         <section className="identity"><h2>{title ?? 'Loading library…'}</h2>{subtitle && <p className="subtle">{subtitle}</p>}
+          <p className="subtle"><a href="/component-comparison.html">Compare Shipbuilder components</a></p>
           {notice && <p className="subtle" role="status">{notice}</p>}
           {error && <div className="error" role="alert"><p>{error}</p><button onClick={() => location.reload()}>Reload viewer</button></div>}
         </section>

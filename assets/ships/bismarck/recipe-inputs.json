@@ -9,6 +9,11 @@
     "assets/parts/library.py",
     "assets/parts/library.json",
     "assets/parts/german-battleship-guns/sk_c34.py",
-    "assets/parts/german-battleship-guns/sk_c30.py"
+    "assets/parts/german-battleship-guns/sk_c30.py",
+    "assets/parts/gun_bloomers.py",
+    "assets/parts/german-battleship-guns/sk_c28.py",
+    "assets/parts/aa_articulation.py",
+    "assets/parts/german-battleship-guns/flak_105.py",
+    "assets/parts/german-cruiser-guns/geometry.py"
   ]
 }
