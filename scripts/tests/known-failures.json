@@ -20,26 +20,6 @@
     "since": "2026-09-19"
   },
   {
-    "file": "src/game/AirOperations.test.tsx",
-    "test": "carrier water covers maximum zoom and pan at 2048\u00d71176",
-    "since": "2026-09-19"
-  },
-  {
-    "file": "src/game/AirOperations.test.tsx",
-    "test": "carrier water covers maximum zoom and pan at 390\u00d7844",
-    "since": "2026-09-19"
-  },
-  {
-    "file": "src/game/AirOperations.test.tsx",
-    "test": "closing the carrier map restores the chosen weather visibility",
-    "since": "2026-09-19"
-  },
-  {
-    "file": "src/game/AirOperations.test.tsx",
-    "test": "the map releases aim, blocks firing and restores aiming on close without losing flight selection",
-    "since": "2026-09-19"
-  },
-  {
     "file": "src/game/FleetShipDraws.test.ts",
     "test": "fleet instances preserve separate poses, inspection, hidden hulls and damage-mark children",
     "since": "2026-09-19"

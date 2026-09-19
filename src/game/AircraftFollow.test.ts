@@ -6,6 +6,7 @@ import { localToWorld, rotate } from './geometry';
 import { Euler, Quaternion } from 'three/webgpu';
 import { aircraftGroundPose } from './aircraftGroundPose';
 import { Game } from './Game';
+import { makeTestBattlefieldCamera, makeTestInput, makeTestRig } from './testing/fakes';
 import { ShellFollow } from './ShellFollow';
 import { aircraftDeckSpot } from './airWing';
 
@@ -30,7 +31,7 @@ test('follow selects only surviving own aircraft, cancels shell follow, and came
   let cycles = 0;
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: sim, shellFollow, inPort: false, inspecting: false, fleetViews: [],
-    rig: { setShellView() {}, setFreeCamera() {}, cycle() { cycles++; }, update() {} },
+    rig: makeTestRig({ cycle() { cycles++; } }),
   }) as Game;
   const selected = () => Reflect.get(game, 'followedAircraftId');
   game.followAircraft(sim.target.airWing!.planes[0].id); expect(selected()).toBeUndefined();
@@ -85,8 +86,8 @@ test('fleet Follow lead selects another friendly carrier aircraft and survives s
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: sim, shellFollow: new ShellFollow(), inPort: false, inspecting: false,
     fleetCommandMode: true, airOperationsOpen: true, fleetViews: views, playerView: views[0],
-    rig: { setShellView() {}, setFreeCamera() {}, update() {}, setInspecting() {}, setBridge() {}, setHullLength() {}, setSubmarine() {}, releasePointer() {} },
-    battlefieldCamera: { cancelTransition() {} }, input: { clear() {} },
+    rig: makeTestRig(),
+    battlefieldCamera: makeTestBattlefieldCamera(), input: makeTestInput(),
     // Map close is covered by GameFrame; this seam runs the real follow and spectator methods.
     setAirOperationsOpen(open: boolean) { this.airOperationsOpen = open; },
   }) as Game;
