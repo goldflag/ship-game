@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { CameraRig } from './CameraRig';
-import { sightAim, torpedoCourseAim } from './aiming';
+import { sightAim, torpedoBearingAim, torpedoCourseAim } from './aiming';
 import { createShipState } from './session/motion';
 import { localToWorld, normalize, sub } from './geometry';
 import type { Vec3 } from '../ships/blueprint';
@@ -120,4 +120,12 @@ test('an empty underwater sight yields a usable torpedo course from either bow o
     expect(Math.sign(aim[2])).toBe(sign);
   }
   expect(torpedoCourseAim([0, .5, -1000], { x: 0, z: 0 }, 5000)).toEqual([0, .5, -1000]);
+});
+
+test('a surface torpedo sight keeps its bearing and runs the course to the end of the run', () => {
+  const near = torpedoBearingAim([300, .5, -400], { x: 0, z: 0 }, 5000), sky = torpedoBearingAim([18000, 900, -24000], { x: 0, z: 0 }, 5000);
+  for (const aim of [near, sky]) {
+    expect(aim[0]).toBeCloseTo(4900 * .6); expect(aim[2]).toBeCloseTo(-4900 * .8);
+    expect(aim[1]).toBe(.5);
+  }
 });

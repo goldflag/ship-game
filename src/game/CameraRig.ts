@@ -10,6 +10,8 @@ const NORMAL_FOV = 52;
 const MIN_MAGNIFICATION = 1, MAX_MAGNIFICATION = 32;
 const MAX_DOWNWARD_TILT = Math.PI / 2 - .015;
 const MIN_ORBIT_ELEVATION = .08;
+/** Torpedoes are laid on wedges drawn on the sea: the chase view climbs until the water fills the lower half of the frame. */
+const TORPEDO_ORBIT_ELEVATION = .38;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
@@ -28,6 +30,8 @@ export class CameraRig {
   binoculars = false;
   private scopeMagnification = 4;
   private lockedRangeM?: number;
+  private torpedoView = false;
+  private chaseFloor = MIN_ORBIT_ELEVATION;
   private displayedDistance = 345;
   private opticsTransition?: { offset: Vector3; aim?: Vec3; elapsed: number };
   private readonly motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -147,6 +151,9 @@ export class CameraRig {
   get firing(): boolean { return this.enabled && !this.shellView && this.pointerLocked && this.mouseFire; }
   get magnification(): number { return Math.tan(NORMAL_FOV * Math.PI / 360) / Math.tan(this.camera.fov * Math.PI / 360); }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
+
+  /** Raise the lowest chase orbit while the torpedo sight is up. */
+  setTorpedoView(on: boolean): void { this.torpedoView = on; }
 
   setRangeLock(rangeM?: number): void {
     if (rangeM !== undefined && (!Number.isFinite(rangeM) || rangeM <= 0)) return;
@@ -386,7 +393,9 @@ export class CameraRig {
         if (this.binoculars && !periscope) this.desired.y += 8;
       } else {
         let distance = (this.mode === 'Tactical' ? Math.max(160 * this.hullScale, this.displayedDistance) : this.displayedDistance) * Math.max(1, 1.2 / this.camera.aspect);
-        const orbitElevation = Math.max(.08, this.elevation);
+        const floor = this.torpedoView && this.mode === 'Chase' ? TORPEDO_ORBIT_ELEVATION : MIN_ORBIT_ELEVATION;
+        this.chaseFloor = snap || this.reducedMotion ? floor : MathUtils.lerp(this.chaseFloor, floor, 1 - Math.exp(-7 * dt));
+        const orbitElevation = Math.max(this.chaseFloor, this.elevation);
         let lift = Math.sin(orbitElevation) * distance + 12 * this.hullScale;
         distance *= Math.cos(orbitElevation);
         if (this.submarine && this.mode === 'Chase') {

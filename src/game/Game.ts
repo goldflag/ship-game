@@ -73,7 +73,7 @@ import type { TrialAction } from './session/localConstruction';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow, type ShellView } from './ShellFollow';
-import { sightAim, torpedoCourseAim } from './aiming';
+import { sightAim, torpedoBearingAim, torpedoCourseAim } from './aiming';
 import { Rangefinder } from './Rangefinder';
 import { observeRangeTarget, pickRangeTarget, rangeTargetVisible, type RangeTarget } from './rangefinderSight';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
@@ -975,6 +975,7 @@ export class Game {
       else {
         this.updateSpectator();
         const pose = this.cameraShipView.motion;
+        this.rig.setTorpedoView(this.battery === 'torpedo' && !this.definition.submarine && this.cameraShipView === this.playerView);
         // The port camera frames the berth, so it holds still while the hull heaves.
         this.rig.update(pose, pose.y - (this.cameraShipView.seaOffset?.heave ?? 0), realDt);
       }
@@ -990,7 +991,7 @@ export class Game {
       const showTorpedoAim = showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false';
       const torpedoAim = showTorpedoAim ? torpedoAimState(this.simulation.player, this.playerView!.motion, aim, this.torpedoContacts(), this.weaponGroupId) : undefined;
       this.torpedoPreview.update(torpedoAim, showTorpedoAim);
-      this.torpedoAim.update(torpedoAim, this.camera, showTorpedoAim, id => this.shipLabels.tagBox(id));
+      this.torpedoAim.update(torpedoAim, this.camera, showTorpedoAim);
       const torpedoes = this.simulation.torpedoes;
       this.torpedoMarkers.update(torpedoes, torpedoes.length ? this.friendlyShipIds() : NO_SHIPS, this.camera, !this.inPort && !this.inspecting);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
@@ -1675,7 +1676,8 @@ export class Game {
     const aim = sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),
       this.simulation.actors.filter(actor => actor !== this.simulation.player && actor.motion.y > -40).map(actor => ({ pose: actor.motion, armor: actor.definition.armor, definition: actor.definition, trains: actor.mounts.map(m => m.train) })));
     const tube = this.definition.torpedoTubes?.find(t => selectedWeapon('torpedo', t.weapon, this.battery, this.weaponGroupId));
-    return this.battery === 'torpedo' && tube && this.camera.position.y < 0 ? torpedoCourseAim(aim, this.simulation.ship, tube.weapon.rangeM) : aim;
+    if (this.battery !== 'torpedo' || !tube) return aim;
+    return (this.camera.position.y < 0 ? torpedoCourseAim : torpedoBearingAim)(aim, this.simulation.ship, tube.weapon.rangeM);
   }
   private get canRange(): boolean {
     return !this.inPort && this.rig.binoculars && !this.viewAway && !this.simulation.player.damage.sunk
