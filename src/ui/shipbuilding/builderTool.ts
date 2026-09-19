@@ -5,7 +5,7 @@ import { blockAngles, rotateBlock, withBlockAngles } from '../../ships/construct
 import { reseatBalcony } from './balconyPlacement';
 import { editableMesh } from '../../ships/constructionMesh';
 import { fittedLadder } from '../../ships/constructionLadders';
-import { wallMount, installedWallPart, wallNormal, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
+import { wallMount, installedWallPart, wallNormal, wallFittingSupported, seatWallFitting, turnedWallFitting, withWallTurn, mirroredWall } from '../../ships/constructionWallFittings';
 import { DEFAULT_SNAPPING, constructionSnapFeatures, type SnapSettings } from './snapping';
 import { CONSTRUCTION_PAINTS, constructionShipPaint, isConstructionSurfaceFinish } from '../../ships/constructionPaints';
 import { mirroredPanelId } from '../../ships/constructionPanels';
@@ -41,6 +41,8 @@ export interface BuilderToolState {
   hullCategory: HullCategory;
   windowRow: boolean; windowSpacing: number;
   customMm: number; sizeOverride?: Vec3; bearing: number;
+  /** Quarter turn of the wall fitting about to be placed, about its wall's normal. */
+  wallTurn: number;
   /** Pitch and roll of the hull block about to be placed; yaw is `bearing`. */
   tilt?: ConstructionPrimitive['tilt'];
   pathPoints: Vec3[]; pathBearing: number; ropeSlack: number; railingHeight: number;
@@ -121,7 +123,7 @@ export class BuilderTool {
   constructor(private readonly door: BuilderRevisionDoor, private readonly context: BuilderToolContext, initial: Partial<BuilderToolState> = {}) {
     this.state = {
       layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
-      hullCategory: 'all', windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], pathBearing: 0, ropeSlack: .15, railingHeight: 1.1, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
+      hullCategory: 'all', windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, wallTurn: 0, pathPoints: [], pathBearing: 0, ropeSlack: .15, railingHeight: 1.1, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
       snapping: { ...DEFAULT_SNAPPING }, snapOverride: false, rotationAxis: 1, rotationSnap: true,
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'face', index: 5 } },
       view: 'orbit', perspective: true, fitRequest: 0,
@@ -287,7 +289,7 @@ export class BuilderTool {
     if (layer === 'hull' && (tool === 'place' || tool === 'fill') && active?.kind === 'shape') piece = { kind: 'hull', shape: active.shape.kind, size: sizeOverride ?? active.shape.size, rotationDeg: normalizedBearing(Math.round(bearing / 90) * 90), ...(tilt && active.shape.kind !== 'balcony' ? { tilt } : {}) };
     else if (((layer === 'fittings' && tool === 'place') || (layer === 'internals' && tool === 'module')) && active?.kind === 'part' && !active.part.path) {
       const gun = active.part.gunPartId ? catalog.weapons.parts.find(gun => gun.id === active.part.gunPartId) : undefined;
-      const mount = wallMount(active.part), wall = mount ? { version: 1 as const, widthM: sizeOverride?.[0] ?? active.part.size[0], heightM: sizeOverride?.[1] ?? active.part.size[1] } : undefined;
+      const mount = wallMount(active.part), wall = mount ? withWallTurn({ version: 1 as const, widthM: sizeOverride?.[0] ?? active.part.size[0], heightM: sizeOverride?.[1] ?? active.part.size[1] }, this.state.wallTurn) : undefined;
       const fitted = installedWallPart(active.part, { wall });
       piece = { kind: 'equipment', wall, rowSpacing: wall && (mount === 'window' || mount === 'porthole') && this.state.windowRow ? Math.max(wall.widthM + .05, this.state.windowSpacing) : undefined, partId: active.part.id, propellerDiameterM: active.part.kind === 'propeller' ? Math.max(active.part.size[0], active.part.size[1]) : undefined, size: fitted.size, boundsCenter: fitted.boundsCenter, bearingDeg: normalizedBearing(bearing), sockets: fitted.sockets, arc: gun ? { traverseDeg: gun.traverseDeg, radius: ARC_RADIUS } : undefined, inset: active.part.placement === 'internal' ? this.data.defaultThicknessMm / 1000 : undefined };
     } else if (layer === 'internals' && (tool === 'deck' || tool === 'bulkhead' || tool === 'longitudinal')) piece = { kind: 'boundary', axis: tool === 'deck' ? 'y' : tool === 'bulkhead' ? 'z' : 'x', thicknessMm: 10 };
@@ -300,7 +302,7 @@ export class BuilderTool {
     let twin: BuilderPlacement | undefined;
     if (this.state.mirror && piece) {
       if (piece.kind === 'hull') { const mirrored = mirroredPrimitive({ id: '', kind: piece.shape, size: piece.size, position: [1, 0, 0], rotationDeg: piece.rotationDeg, ...(piece.tilt ? { tilt: piece.tilt } : {}) }); twin = { kind: 'hull', shape: mirrored.kind, size: mirrored.size, rotationDeg: mirrored.rotationDeg, ...(mirrored.tilt ? { tilt: mirrored.tilt } : {}) }; }
-      else if (piece.kind === 'equipment') twin = { ...piece, bearingDeg: normalizedBearing(-piece.bearingDeg), arc: undefined };
+      else if (piece.kind === 'equipment') twin = { ...piece, bearingDeg: normalizedBearing(-piece.bearingDeg), arc: undefined, ...(piece.wall ? { wall: mirroredWall(piece.wall) } : {}) };
     }
     const key = JSON.stringify(twin ?? null);
     if (!this.mirrorCache || this.mirrorCache.key !== key) this.mirrorCache = { key, piece: twin };
@@ -520,7 +522,8 @@ export class BuilderTool {
           if (original.wall!.mirrorId) {
             copied.push(b.id);
             a.wall!.mirrorId = b.id;
-            Object.assign(b, mirroredEquipment(a), { id: b.id, wall: { ...a.wall!, mirrorId: a.id } });
+            const twin = mirroredEquipment(a);
+            Object.assign(b, twin, { id: b.id, wall: { ...twin.wall!, mirrorId: a.id } });
             commands.push({ op: 'equipment', value: a }, { op: 'equipment', value: b });
           } else { delete a.wall!.mirrorId; commands.push({ op: 'equipment', value: a }); }
         }
@@ -580,11 +583,27 @@ export class BuilderTool {
   };
   rotate = (fine = false): ConstructionSubmission | undefined => {
     const piece = this.piece;
-    if (piece?.kind === 'equipment' && piece.wall) { this.notify('Wall fittings turn automatically to match their wall.'); return undefined; }
+    // Wall fittings keep facing out of their wall; R spins them a quarter turn within it.
+    if (piece?.kind === 'equipment' && piece.wall) { this.update({ wallTurn: normalizedBearing(this.state.wallTurn + (fine ? -90 : 90)) }); return undefined; }
+    const walls = this.selectedEquipment.filter(e => e.wall);
+    if (!piece && walls.length && walls.length === this.state.selected.size) return this.turnWallFittings(walls, fine ? -90 : 90);
     if (piece?.kind === 'hull') return this.turn(1, fine ? -90 : 90);
     if (piece && piece.kind !== 'boundary') { this.update({ bearing: normalizedBearing(this.state.bearing + (fine ? 1 : 15)) }); return undefined; }
     if (this.state.selected.size) return this.command('Rotate selection', this.mirrored([{ op: 'rotate', ids: [...this.state.selected], degrees: this.selectedPrimitives.length ? fine ? -90 : 90 : fine ? 1 : 15 }]));
     return undefined;
+  };
+  /** Quarter-turn wall fittings about their wall normals in place; linked partners follow through the command layer. */
+  turnWallFittings = (items: readonly ConstructionEquipment[], degrees: number): ConstructionSubmission | undefined => {
+    if (this.locked) return undefined;
+    if (!this.compiled) { this.notify('Wait for the hull to finish compiling before turning wall fittings.'); return undefined; }
+    const commands: ConstructionCommand[] = [], handled = new Set<string>();
+    for (const item of items) {
+      const part = this.catalog.equipment.find(p => p.id === item.partId);
+      if (!part || handled.has(item.id)) continue;
+      handled.add(item.id); if (item.wall?.mirrorId) handled.add(item.wall.mirrorId);
+      commands.push({ op: 'equipment', value: seatWallFitting(turnedWallFitting(item, part, degrees), part, this.compiled.surfaces) });
+    }
+    return commands.length ? this.run(commands.length > 1 ? 'Turn wall fittings' : 'Turn wall fitting', commands) : undefined;
   };
   /** A quarter turn of hull blocks about a ship axis: the block about to be placed, else each selected block in place. */
   turn = (axis: number, degrees: number): ConstructionSubmission | undefined => {
@@ -631,7 +650,7 @@ export class BuilderTool {
         if (piece.wall && points.length > 1 && this.compiled) parts[parts.length-1]=seatWallFitting(parts.at(-1)!,active.part,this.compiled.surfaces);
         if (mirror && offCenterline(point)) {
           const original = parts.at(-1)!, twin = { ...mirroredEquipment(original), id: this.newId('equipment') };
-          if (original.wall) { original.wall.mirrorId = twin.id; twin.wall = { ...original.wall, mirrorId: original.id }; }
+          if (original.wall) { original.wall.mirrorId = twin.id; twin.wall = { ...twin.wall!, mirrorId: original.id }; }
           parts.push(twin);
         }
       }

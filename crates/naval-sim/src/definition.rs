@@ -1367,6 +1367,8 @@ pub struct ConstructionEquipmentWall {
     pub height_m: f64,
     #[serde(rename = "mirrorId")]
     pub mirror_id: Option<String>,
+    #[serde(rename = "turnDeg", default, skip_serializing_if = "Option::is_none")]
+    pub turn_deg: Option<f64>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

@@ -11,6 +11,10 @@ pub(crate) fn installed(e: &ConstructionEquipment, part: &ConstructionEquipmentP
         || !(0.15..=5.).contains(&w.width_m) || !(0.15..=5.).contains(&w.height_m) {
         return Err(error("Wall fittings require a wall-facing attachment and dimensions between 0.15 and 5 m"));
     }
+    let turn = w.turn_deg.unwrap_or(0.);
+    if !matches!(turn, 0. | 90. | 180. | 270.) {
+        return Err(error("Wall fittings turn in quarter turns of 90, 180 or 270°"));
+    }
     if p.wall_mount.as_deref() == Some("porthole") && (w.width_m - w.height_m).abs() > 1e-6 {
         return Err(error("Round portholes require equal width and height"));
     }
@@ -18,7 +22,8 @@ pub(crate) fn installed(e: &ConstructionEquipment, part: &ConstructionEquipmentP
         let twin = source.equipment.iter().find(|t| &t.id == id && t.id != e.id);
         if twin.is_none_or(|t| t.part_id != e.part_id || t.paint != e.paint || length(sub(t.position, [-e.position[0], e.position[1], e.position[2]])) > 1e-6
             || (t.bearing_deg + e.bearing_deg).to_radians().sin().abs() > 1e-6 || (t.bearing_deg + e.bearing_deg).to_radians().cos() < 0.999999
-            || t.wall.as_ref().is_none_or(|tw| tw.mirror_id.as_deref() != Some(e.id.as_str()) || (tw.width_m-w.width_m).abs()>1e-6 || (tw.height_m-w.height_m).abs()>1e-6)) {
+            || t.wall.as_ref().is_none_or(|tw| tw.mirror_id.as_deref() != Some(e.id.as_str()) || (tw.width_m-w.width_m).abs()>1e-6 || (tw.height_m-w.height_m).abs()>1e-6
+                || (tw.turn_deg.unwrap_or(0.) + turn) % 360. != 0.)) {
             return Err(error("Linked wall fittings must be a matching mirrored pair"));
         }
     }
@@ -34,6 +39,13 @@ pub(crate) fn installed(e: &ConstructionEquipment, part: &ConstructionEquipmentP
     p.mass_kg = p.mass_kg.map(|m| m*scale[0]*scale[1]*scale[2]);
     if let Some(sockets) = &mut p.sockets { for s in sockets { s.position = scaled(s.position); } }
     if let Some(boxes) = &mut p.fitting { for b in boxes { b.center = scaled(b.center); b.size = scaled(b.size); } }
+    // Quarter turns about the wall normal (local +Z) keep every fitting box axis-aligned.
+    let quarter = (turn / 90.) as usize;
+    let spun = |v: Vec3| (0..quarter).fold(v, |v, _| [-v[1], v[0], v[2]]);
+    let swapped = |v: Vec3| if quarter % 2 == 1 { [v[1], v[0], v[2]] } else { v };
+    p.size = swapped(p.size); p.bounds_center = spun(p.bounds_center); p.center_of_gravity = spun(p.center_of_gravity);
+    if let Some(sockets) = &mut p.sockets { for s in sockets { s.position = spun(s.position); s.direction = spun(s.direction); } }
+    if let Some(boxes) = &mut p.fitting { for b in boxes { b.center = spun(b.center); b.size = swapped(b.size); } }
     let socket = p.sockets.as_ref().unwrap().iter().find(|s| s.id == "attachment").unwrap();
     let r = -e.bearing_deg.to_radians();
     let normal = [e.bearing_deg.to_radians().sin(), 0., -e.bearing_deg.to_radians().cos()];

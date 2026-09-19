@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { constructionVentModel } from './constructionVentModel';
 import { paintedHullFace } from '../ships/constructionHullPaint';
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSurface, Vec3 } from '../ships/blueprint';
-import { wallNormal, wallProjectionDepth, wallScale, wallSurface, projectWallPoint } from '../ships/constructionWallFittings';
+import { wallNormal, wallProjectionDepth, wallScale, wallSurface, wallTurn, projectWallPoint } from '../ships/constructionWallFittings';
 
 // Compiled surface arrays are immutable. Retain bounds across pointer samples;
 // never scan every hull polygon separately for every hinge/wheel vertex.
@@ -29,15 +29,16 @@ function clip(polygon: THREE.Vector3[], distance: (p: THREE.Vector3) => number):
 
 /** Project the original component onto nearby native hull panels, retaining
  * authored relief depth. A 0.5 mm render bias prevents coplanar flicker, including in GLB.
- * Returned geometry is local to the installation; dimensions are already applied.
+ * Returned geometry is local to the installation's bearing frame; dimensions and the wall turn are already applied.
  */
 export function createConstructionWallModel(template: THREE.Group, part: ConstructionEquipmentPart, item: ConstructionEquipment, surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = []): THREE.Group {
   const group = new THREE.Group(), n=wallNormal(item.bearingDeg), scale=wallScale(part,item);
+  group.rotation.z=wallTurn(item.wall)*Math.PI/180;
   const center = part.boundsCenter ?? [0, 0, 0], width = part.size[0] * scale[0], height = part.size[1] * scale[1];
   const centerX = center[0] * scale[0], centerY = center[1] * scale[1];
   const vent = constructionVentModel(template, part, part.size[0] * scale[0], part.size[1] * scale[1]);
   if (vent) { template = vent; scale[0] = scale[1] = 1; }
-  const pose=new THREE.Matrix4().makeRotationY(-item.bearingDeg*Math.PI/180).setPosition(...item.position), inverse=pose.clone().invert();
+  const pose=new THREE.Matrix4().makeRotationY(-item.bearingDeg*Math.PI/180).multiply(new THREE.Matrix4().makeRotationZ(wallTurn(item.wall)*Math.PI/180)).setPosition(...item.position), inverse=pose.clone().invert();
   const offsetFactor=part.wallMount === 'door' || part.wallMount === 'vent' || part.wallMount === 'hardware' ? 0 : -2;
   const depth=wallProjectionDepth(item.wall?.widthM ?? part.size[0], item.wall?.heightM ?? part.size[1]);
   const footprint = new THREE.Box3(

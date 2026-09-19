@@ -5,6 +5,7 @@ import { mirroredOrientation } from './constructionOrientation';
 import { mirroredIndices } from './freeformShape';
 import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
+import { mirroredWall } from './constructionWallFittings';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import { outlineTopologyError } from './customHullTopology';
 import type { ConstructionEquipment, ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
@@ -137,6 +138,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       if (wall.version !== 1) throw new Error('Unsupported wall fitting version');
       for (const key of ['widthM', 'heightM']) { number(wall[key], key); if ((wall[key] as number) < .15 || (wall[key] as number) > 5) throw new Error('Wall fitting dimensions must be 0.15–5 m'); }
       if (wall.mirrorId !== undefined && (typeof wall.mirrorId !== 'string' || wall.mirrorId === part.id)) throw new Error('Invalid wall mirror partner');
+      if (wall.turnDeg !== undefined && ![90, 180, 270].includes(wall.turnDeg as number)) throw new Error('Wall fittings turn in quarter turns of 90, 180 or 270°');
     }
     if (part.gun !== undefined) {
       const gun = object(part.gun, 'Gun installation');
@@ -277,6 +279,7 @@ export function mirroredFace(face: ConstructionFace, kind: ConstructionPrimitive
 
 export function mirroredEquipment(part: ConstructionEquipment): ConstructionEquipment {
   return { ...structuredClone(part), position: [-part.position[0], part.position[1], part.position[2]], bearingDeg: normalizedBearing(-part.bearingDeg),
+    ...(part.wall ? { wall: mirroredWall(part.wall) } : {}),
     ...(part.path ? { path: { ...part.path, ...(part.path.access ? { access: { ...part.path.access, handrails: part.path.access.handrails === 'left' ? 'right' : part.path.access.handrails === 'right' ? 'left' : part.path.access.handrails } } : {}), points: part.path.points.map(point => [-point[0], point[1], point[2]] as Vec3) } } : {}) };
 }
 

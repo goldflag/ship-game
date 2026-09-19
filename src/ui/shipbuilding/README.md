@@ -266,6 +266,13 @@ crossing panels, sloped support, scaling and relief. Run
 previews, all three variants, linked mirrors, resizing and undo; it also reports
 preview CPU timings and saves captures under `.build/door-review/`.
 
+Wall fittings always face out of their wall. **R** / **Shift-R** turn one a
+quarter turn about the wall's normal (the cursor piece, or selected wall
+fittings in place about their centre). The source stores it as optional
+`wall.turnDeg` (90, 180 or 270); a linked partner carries the opposite turn.
+`installedWallPart` and native `construction_wall_fittings.rs` swap the
+footprint so support checks, fitting boxes and mass stay exact.
+
 ## Fine fitting rotation
 
 Fine fitting rotation uses right-drag (0.5° per pixel, or 0.1° with Shift), with one undo step on release for installed fittings. Shift-R turns fittings 1°; R retains its 15° turn. See [fine fitting rotation](../../../docs/shipbuilding.md#fine-fitting-rotation). The viewport retains ghost meshes across bearing changes and retains the pointer position when the cursor changes. `checkShipbuilderRotation()` in `scripts/tests/shipbuilder-rotation-browser.ts` covers stationary hotkeys, fractional cursor and installed rotation, undo/redo, cancellation and camera panning.

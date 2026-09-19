@@ -629,7 +629,7 @@ fn registered_service_hardware_requires_wall_support_and_only_adds_its_loading_m
         let before = compiled(&s, &c);
         let mut e = fixed(id, [5., 0., 0.]);
         e.bearing_deg = 90.;
-        e.wall = Some(ConstructionEquipmentWall { version: 1., width_m: p.size[0], height_m: p.size[1], mirror_id: None });
+        e.wall = Some(ConstructionEquipmentWall { version: 1., width_m: p.size[0], height_m: p.size[1], mirror_id: None, turn_deg: None });
         let mass = p.mass_kg.unwrap();
         c.equipment.push(p);
         s.construction.equipment.push(e);

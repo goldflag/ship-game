@@ -11,13 +11,41 @@ export function wallScale(part: ConstructionEquipmentPart, item: Pick<Constructi
   return part.wallSizing === 'uniform' ? [x, x, x] : [x, item.wall.heightM / part.size[1], 1];
 }
 
+type Wall = NonNullable<ConstructionEquipment['wall']>;
+/** Quarter turns about the wall normal, counter-clockwise seen from outside. */
+export const wallTurn = (wall?: Wall) => wall?.turnDeg ?? 0;
+/** A wall with its turn advanced by `degrees` (a multiple of 90); upright omits the field. */
+export function withWallTurn(wall: Wall, degrees: number): Wall {
+  const turn = (((wall.turnDeg ?? 0) + Math.round(degrees / 90) * 90) % 360 + 360) % 360;
+  const { turnDeg: _, ...rest } = wall;
+  return turn ? { ...rest, turnDeg: turn as Wall['turnDeg'] } : rest;
+}
+/** A linked partner turns the other way: reflection across X=0 reverses the spin. */
+export const mirroredWall = (wall: Wall): Wall => withWallTurn(wall, -2 * wallTurn(wall));
+/** Spin a fitting-local vector about local +Z by the wall turn. */
+export function spunWallVector(v: Vec3, turnDeg: number): Vec3 {
+  let out = v;
+  for (let i = 0; i < Math.round(turnDeg / 90) % 4; i++) out = [-out[1], out[0], out[2]];
+  return out;
+}
+
 /** Installation dimensions for picking, snapping and display. Rust owns physical validation. */
 export function installedWallPart(part: ConstructionEquipmentPart, item: Pick<ConstructionEquipment, 'wall'>): ConstructionEquipmentPart {
   if (!item.wall) return part;
-  const scale = wallScale(part, item), scaled = (v: Vec3) => v.map((n, k) => n * scale[k]) as Vec3;
-  return { ...part, size: scaled(part.size), boundsCenter: scaled(part.boundsCenter), centerOfGravity: scaled(part.centerOfGravity),
-    sockets: part.sockets?.map(s => ({ ...s, position: scaled(s.position) })),
-    fitting: part.fitting?.map(b => ({ center: scaled(b.center), size: scaled(b.size) })), massKg: (part.massKg ?? 0) * scale[0] * scale[1] * scale[2] };
+  const scale = wallScale(part, item), turn = wallTurn(item.wall), swap = turn === 90 || turn === 270;
+  const scaled = (v: Vec3) => spunWallVector(v.map((n, k) => n * scale[k]) as Vec3, turn);
+  const sized = (v: Vec3): Vec3 => { const n = v.map((x, k) => x * scale[k]) as Vec3; return swap ? [n[1], n[0], n[2]] : n; };
+  return { ...part, size: sized(part.size), boundsCenter: scaled(part.boundsCenter), centerOfGravity: scaled(part.centerOfGravity),
+    sockets: part.sockets?.map(s => ({ ...s, position: scaled(s.position), direction: spunWallVector(s.direction, turn) })),
+    fitting: part.fitting?.map(b => ({ center: scaled(b.center), size: sized(b.size) })), massKg: (part.massKg ?? 0) * scale[0] * scale[1] * scale[2] };
+}
+
+/** Turn a fitting a quarter step in place: its visible centre stays put on the wall. */
+export function turnedWallFitting(item: ConstructionEquipment, part: ConstructionEquipmentPart, degrees: number): ConstructionEquipment {
+  if (!item.wall) return item;
+  const wall = withWallTurn(item.wall, degrees), before = installedWallPart(part, item).boundsCenter, after = installedWallPart(part, { wall }).boundsCenter;
+  const r = -item.bearingDeg * Math.PI / 180, dx = before[0] - after[0], dy = before[1] - after[1], dz = before[2] - after[2];
+  return { ...item, wall, position: [item.position[0] + dx * Math.cos(r) + dz * Math.sin(r), item.position[1] + dy, item.position[2] - dx * Math.sin(r) + dz * Math.cos(r)] };
 }
 
 export const wallBearing = (normal: Vec3) => ((Math.atan2(normal[0], -normal[2]) * 180 / Math.PI) + 360) % 360;

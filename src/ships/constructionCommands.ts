@@ -55,7 +55,7 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
   const equipment = (value: ConstructionEquipment) => {
     upsert(data.equipment, value);
     const twin = data.equipment.find(p => p.id === value.wall?.mirrorId);
-    if (twin && twin.wall?.mirrorId === value.id) upsert(data.equipment, { ...mirroredEquipment(value), id: twin.id, wall: { ...value.wall!, mirrorId: value.id } });
+    if (twin && twin.wall?.mirrorId === value.id) { const mirrored = mirroredEquipment(value); upsert(data.equipment, { ...mirrored, id: twin.id, wall: { ...mirrored.wall!, mirrorId: value.id } }); }
   };
   for (const command of batch.commands) {
     switch (command.op) {

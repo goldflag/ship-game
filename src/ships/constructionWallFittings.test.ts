@@ -5,7 +5,7 @@ import type { ConstructionCatalog, ConstructionEquipment, ConstructionResult, Co
 import { createStarterSource } from './constructionStarter';
 import { applyConstructionBatch, type ConstructionCommand } from './constructionCommands';
 import { decodeConstructionSource, mirroredEquipment } from './constructionEditor';
-import { installedWallPart, wallBearing, wallFittingSupported, wallRow } from './constructionWallFittings';
+import { installedWallPart, turnedWallFitting, wallBearing, wallFittingSupported, wallRow } from './constructionWallFittings';
 import { placementCenter } from '../ui/shipbuilding/placement';
 import { BuilderTool, type BuilderRevisionDoor } from '../ui/shipbuilding/builderTool';
 import { DEFAULT_SNAPPING, resolveSnap, wallFrameSnapFeatures } from '../ui/shipbuilding/snapping';
@@ -200,5 +200,53 @@ test('arrow keys resize the cursor and linked selections once, with fine steps a
   press('ArrowLeft');press('ArrowDown');
   const part=catalog.equipment.find(p=>p.id==='generic-watertight-door')!;
   expect(tool.piece).toMatchObject({wall:{widthM:part.size[0]-.1,heightM:part.size[1]-.1}});
+  tool.dispose();
+});
+
+test('quarter-turned wall fittings swap their footprint, mirror with the opposite turn and compile natively', () => {
+  const p = catalog.equipment.find(p => p.id === 'generic-rectangular-window')!;
+  const upright = installedWallPart(p, fitting('a', p.id)), a = fitting('a', p.id); a.wall!.turnDeg = 90;
+  expect(installedWallPart(p, a).size).toEqual([upright.size[1], upright.size[0], upright.size[2]]);
+  expect(mirroredEquipment(a).wall!.turnDeg).toBe(270);
+  expect(mirroredEquipment({ ...a, wall: { ...a.wall!, turnDeg: 180 } }).wall!.turnDeg).toBe(180);
+  const s = paired(); s.construction.equipment = [];
+  const b = { ...mirroredEquipment(a), id: 'b' }; a.wall!.mirrorId = 'b'; b.wall!.mirrorId = 'a';
+  s.construction.equipment.push(a, b);
+  const result = compile(decodeConstructionSource(JSON.parse(JSON.stringify(s))));
+  expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
+  b.wall!.turnDeg = 90;
+  expect(compile(s).diagnostics.some(d => d.code === 'wall-fitting')).toBe(true);
+  delete a.wall!.mirrorId; s.construction.equipment = [a]; (a.wall as { turnDeg?: number }).turnDeg = 45;
+  expect(compile(s).diagnostics.some(d => d.code === 'wall-fitting')).toBe(true);
+  expect(() => decodeConstructionSource(JSON.parse(JSON.stringify(s)))).toThrow();
+});
+
+test('R turns a selected door about its centre and its linked twin the other way; Shift-R turns back', () => {
+  const part = catalog.equipment.find(p => p.id === 'generic-watertight-door')!;
+  const a = fitting('a', part.id, [4, -1, 0]), b = { ...mirroredEquipment(a), id: 'b' };
+  a.wall!.mirrorId = 'b'; b.wall!.mirrorId = 'a';
+  let source = fixture(); source.construction.equipment.push(a, b);
+  const past: ConstructionSource[] = [];
+  const door:BuilderRevisionDoor={get source(){return source;},locked:false,refusal:undefined,
+    submit(_label,commands){past.push(source);source=apply(source,commands);return {accepted:true,changed:true,source};},
+    undo(){source=past.pop()!;},redo(){},setError(){},setBusy(){},subscribe(){return ()=>{};}};
+  const tool=new BuilderTool(door,{catalog:()=>catalog,compiled:()=>compile(source)});
+  const press=(key:string,shiftKey=false)=>tool.key({key,shiftKey,ctrlKey:false,metaKey:false,altKey:false,repeat:false,preventDefault(){}},{dismiss:()=>false,toggleDrawer(){},toggleWarnings(){},slotChosen(){}});
+  const centre = (e: ConstructionEquipment) => { const c = installedWallPart(part, e).boundsCenter, r = -e.bearingDeg * Math.PI / 180; return [e.position[0] + c[0]*Math.cos(r) + c[2]*Math.sin(r), e.position[1] + c[1], e.position[2] - c[0]*Math.sin(r) + c[2]*Math.cos(r)]; };
+  tool.switchLayer('fittings'); tool.setTool('select'); tool.selectOnly(['a']);
+  const before = centre(source.construction.equipment[0]);
+  press('r');
+  const [ta, tb] = source.construction.equipment;
+  expect(ta.wall!.turnDeg).toBe(90); expect(tb.wall!.turnDeg).toBe(270);
+  centre(ta).forEach((v, k) => expect(v).toBeCloseTo(before[k], 6));
+  expect(tb.position).toEqual([-ta.position[0], ta.position[1], ta.position[2]]);
+  expect(compile(source).definition, JSON.stringify(compile(source).diagnostics)).toBeDefined();
+  press('r', true);
+  expect(source.construction.equipment[0].wall!.turnDeg).toBeUndefined();
+  source.construction.equipment[0].position.forEach((v, k) => expect(v).toBeCloseTo(a.position[k], 6));
+  expect(turnedWallFitting(a, part, 360)).toMatchObject({ wall: { widthM: a.wall!.widthM } });
+  tool.selectOnly([]); tool.setTool('place'); tool.selectSlot(tool.palette.all!.find(p=>p.id===part.id)!);
+  press('r'); press('r');
+  expect(tool.piece).toMatchObject({ wall: { turnDeg: 180 } });
   tool.dispose();
 });

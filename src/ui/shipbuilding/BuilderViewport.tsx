@@ -5,7 +5,7 @@ import { balconyPlacement, seatBalconyOnHull } from './balconyPlacement';
 import { placementBalcony, mirroredBalcony } from '../../ships/constructionBalcony';
 import { createConstructionWallModel } from '../../game/constructionWallModel';
 import { wallFrameSnapFeatures } from './snapping';
-import { installedWallPart, wallNormal, wallBearing, wallRow, wallScale, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
+import { installedWallPart, wallNormal, wallBearing, wallRow, wallScale, wallTurn, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
 import { visualMemory, type VisualMemory } from './modelMemory';
 import { SnapOverlay } from './SnapOverlay';
 import { constructionSnapFeatures, primitiveSnapFeatures, resolveSnap, DEFAULT_SNAPPING, SHIP_AXES, type SnapFeature, type SnapGuide } from './snapping';
@@ -1127,10 +1127,12 @@ class Viewport {
       if (item) {
         const datum = new THREE.Group(); if(item.wall) datum.userData.wallItem=item; datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180;
         const ghost = this.equipment.clone(item.partId, true, item.path), part = this.props.scene.catalog.equipment.find(entry => entry.id === item.partId);
-        if (ghost) datum.add(ghost);
-        if (part) datum.scale.fromArray(wallScale(part, item));
+        // Scale, then the wall turn, inside the bearing frame.
+        const body = new THREE.Group(); body.rotation.z = wallTurn(item.wall) * Math.PI / 180; datum.add(body);
+        if (ghost) body.add(ghost);
+        if (part) body.scale.fromArray(wallScale(part, item));
         if (partners.has(id)) datum.userData.mirrorOrigin = [...item.position];
-        else if (part) { const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...part.size)), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })); box.position.set(...part.boundsCenter); datum.add(box); }
+        else if (part) { const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...part.size)), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })); box.position.set(...part.boundsCenter); body.add(box); }
         this.movePreview.add(datum); continue;
       }
       const wall = boundaries.find(entry => entry.id === id);

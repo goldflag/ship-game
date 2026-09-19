@@ -16,7 +16,7 @@ const primitiveFields: Fields = {
 const equipmentFields: Fields = {
   partId: true, position: true, bearingDeg: true, magazineId: true, powerSourceId: true, paint: true,
   gun: { barbetteHeightM: true, battery: true, initialElevationDeg: true, traverseDeg: true, traverseLimitsDeg: true, elevationMinDeg: true, elevationMaxDeg: true },
-  wall: { version: true, widthM: true, heightM: true, mirrorId: true },
+  wall: { version: true, widthM: true, heightM: true, mirrorId: true, turnDeg: true },
   path: { points: true, slackM: true }, launcher: { traverseLimitsDeg: true, launchArcsDeg: true },
 };
 function merge(target: Record<string, unknown>, changes: unknown, fields: Fields) {
