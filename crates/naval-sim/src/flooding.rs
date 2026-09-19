@@ -28,6 +28,10 @@ pub fn update_flooding(
         actor.damage.defeat_cause = Some("hull-failure".into());
     }
     update_stability(actor, def, hydro, dt, stability_interval, response);
+    // Resolved once for every breach and opening below, not once per sample.
+    let waves = sea.map(|(s, _)| s.waves());
+    let sea_height =
+        |x: f64, z: f64| sea.map_or(0.0, |(s, t)| s.height_at(waves.as_ref().unwrap(), x, z, t));
     let power = if def.compartments.iter().any(|c| c.pump_m3_per_second > 0.0) {
         electrical_power(actor, def, sea)
     } else {
@@ -40,7 +44,7 @@ pub fn update_flooding(
             .iter()
             .map(|b| {
                 let world = local_to_world(b.position, actor.motion.pose());
-                let surface = sea.map_or(0.0, |(s, t)| s.height(world[0], world[2], t));
+                let surface = sea_height(world[0], world[2]);
                 let bottom = world[1] - surface - b.radius_m;
                 let top = world[1] - surface + b.radius_m;
                 let internal = internal - surface;
@@ -89,7 +93,7 @@ pub fn update_flooding(
                 continue;
             }
             let world = local_to_world(opening.position, actor.motion.pose());
-            let external = sea.map_or(0., |(s, t)| s.height(world[0], world[2], t));
+            let external = sea_height(world[0], world[2]);
             let head = (external - world[1]).max(0.) - (internal - world[1]).max(0.);
             inflow += 0.6 * opening.area_m2 * sign(head) * (2. * 9.81 * head.abs()).sqrt();
         }

@@ -615,9 +615,14 @@ impl Moments {
     }
 }
 pub fn moments(c: &Cell) -> Moments {
-    face_moments(c.faces.iter().map(|f| f.vertices.as_slice()))
+    face_moments::<true>(c.faces.iter().map(|f| f.vertices.as_slice()))
 }
-fn face_moments<'a>(faces: impl Iterator<Item = &'a [Vec3]> + Clone) -> Moments {
+/// `SECOND` false leaves the second moments zero. Volume and first moments are
+/// accumulated independently of them, so those come out the same either way;
+/// buoyancy reads nothing else and skips a third of the arithmetic.
+fn face_moments<'a, const SECOND: bool>(
+    faces: impl Iterator<Item = &'a [Vec3]> + Clone,
+) -> Moments {
     // Reference near the body avoids catastrophic cancellation after translations.
     let origin = crate::structure::bounds(faces.clone().flat_map(|f| f.iter().copied())).0;
     let mut m = Moments::default();
@@ -629,12 +634,16 @@ fn face_moments<'a>(faces: impl Iterator<Item = &'a [Vec3]> + Clone) -> Moments 
             for k in 0..3 {
                 let s = p[0][k] + p[1][k] + p[2][k];
                 m.first[k] += v * s / 4.;
-                m.second[k] += v * (s * s + p.iter().map(|p| p[k] * p[k]).sum::<f64>()) / 20.;
+                if SECOND {
+                    m.second[k] += v * (s * s + p.iter().map(|p| p[k] * p[k]).sum::<f64>()) / 20.;
+                }
             }
         }
     }
     for (k, _) in origin.iter().enumerate() {
-        m.second[k] += 2. * origin[k] * m.first[k] + origin[k] * origin[k] * m.volume;
+        if SECOND {
+            m.second[k] += 2. * origin[k] * m.first[k] + origin[k] * origin[k] * m.volume;
+        }
         m.first[k] += origin[k] * m.volume;
     }
     m
@@ -659,6 +668,14 @@ thread_local! {
 /// exactly as comparing angles pairwise does
 /// (`clipped_moments_are_clip_then_moments_bit_for_bit`).
 pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
+    clipped::<true>(c, n, d)
+}
+/// `clipped_moments` for a caller that reads only the volume and its centre:
+/// the same volume and first moments, with the second moments left zero.
+pub fn clipped_centre(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
+    clipped::<false>(c, n, d)
+}
+fn clipped<const SECOND: bool>(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
     let (mut outside, mut inside) = (false, false);
     for f in c.faces.iter() {
         for &p in &f.vertices {
@@ -667,7 +684,9 @@ pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
         }
     }
     if !outside {
-        return Some(moments(c));
+        return Some(face_moments::<SECOND>(
+            c.faces.iter().map(|f| f.vertices.as_slice()),
+        ));
     }
     if !inside {
         return None;
@@ -734,7 +753,8 @@ pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
                 points.extend_from_slice(cap);
             }
         }
-        (faces.len() >= 4).then(|| face_moments(faces.iter().map(|&(a, b)| &points[a..b])))
+        (faces.len() >= 4)
+            .then(|| face_moments::<SECOND>(faces.iter().map(|&(a, b)| &points[a..b])))
     })
 }
 pub fn total(cells: &[Cell]) -> Moments {

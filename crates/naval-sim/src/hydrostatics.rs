@@ -199,7 +199,7 @@ impl HullHydrostatics {
                 if !outside {
                     m.add(cell.full);
                 } else if let Some(mut part) =
-                    crate::construction_geometry::clipped_moments(&cell.shape, n, -y)
+                    crate::construction_geometry::clipped_centre(&cell.shape, n, -y)
                 {
                     if cell.density != 1. {
                         part.volume *= cell.density;

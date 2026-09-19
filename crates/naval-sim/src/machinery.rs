@@ -65,6 +65,13 @@ pub fn equipment_condition(
     // most modules check none.
     let mut attitude = None;
     let mut hull = || *attitude.get_or_insert_with(|| actor.motion.basis());
+    // Likewise the sea's two wave components, which `height` resolves per call.
+    let mut waves = None;
+    let mut sea_height = |x: f64, z: f64, otherwise: f64| {
+        sea.map_or(otherwise, |(s, t)| {
+            s.height_at(waves.get_or_insert_with(|| s.waves()), x, z, t)
+        })
+    };
     let hp = match known {
         Some((ix, i)) => actor.damage.modules[ix.module_state(i)].hp,
         None => actor
@@ -90,7 +97,7 @@ pub fn equipment_condition(
             module.center[1] + module.size[1] * 0.5,
             module.center[2],
         ]);
-        let surface = sea.map_or(0., |(s, t)| s.height(top[0], top[2], t));
+        let surface = sea_height(top[0], top[2], 0.);
         ((surface - bottom[1].min(top[1])) / (top[1] - bottom[1]).abs().max(1e-6)).clamp(0., 1.)
     } else {
         1.
@@ -105,7 +112,7 @@ pub fn equipment_condition(
             module.center[1] + module.size[1] * 0.5,
             module.center[2],
         ]);
-        top[1] <= sea.map_or(0., |(s, t)| s.height(top[0], top[2], t))
+        top[1] <= sea_height(top[0], top[2], 0.)
     } {
         EquipmentReason::Flooded
     } else if let Some(tolerance) = module.immersion_tolerance_m {
@@ -127,7 +134,7 @@ pub fn equipment_condition(
             actor.damage.compartments[i].water_m3 > 0.0
                 && water_level(actor, def, i, None) >= datum[1]
         } else {
-            datum[1] <= sea.map_or(0.0, |(s, t)| s.height(datum[0], datum[2], t))
+            datum[1] <= sea_height(datum[0], datum[2], 0.0)
         };
         if flooded {
             EquipmentReason::Flooded
