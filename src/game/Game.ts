@@ -73,8 +73,9 @@ import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow, type ShellView } from './ShellFollow';
 import { sightAim, torpedoBearingAim, torpedoCourseAim } from './aiming';
-import { Rangefinder } from './Rangefinder';
-import { observeRangeTarget, pickRangeTarget, rangeTargetVisible, type RangeTarget } from './rangefinderSight';
+import type { Rangefinder } from './Rangefinder';
+import type { RangeTarget } from './rangefinderSight';
+import { RangefindingController } from './controllers/RangefindingController';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
 import type { WakeShip } from './FleetWakeFoam';
@@ -213,8 +214,6 @@ export class Game {
   /** Held right mouse: the guns keep `currentAim` while the sight looks elsewhere. */
   private aimLocked = false;
   private currentAim: Vec3 = [650, .5, -550];
-  private ranging?: Rangefinder;
-  private get rangefinder(): Rangefinder { return this.ranging ??= new Rangefinder(); }
   chartSize = 2;
   airOperationsOpen = false;
   fleetCommandMode = false;
@@ -1647,58 +1646,25 @@ export class Game {
     if (this.battery !== 'torpedo' || !tube) return aim;
     return (this.camera.position.y < 0 ? torpedoCourseAim : torpedoBearingAim)(aim, this.simulation.ship, tube.weapon.rangeM);
   }
-  private get canRange(): boolean {
-    return !this.inPort && this.rig.binoculars && !this.viewAway && !this.simulation.player.damage.sunk
-      && (this.battery === 'main' || this.battery === 'secondary');
+  private rangefindingController?: RangefindingController;
+  /** The binocular rangefinder. Built on first use, so a test-assembled Game has one too. */
+  private get rangefinding(): RangefindingController {
+    const game = this;
+    return this.rangefindingController ??= new RangefindingController({
+      get simulation() { return game.simulation; }, get camera() { return game.camera; }, get rig() { return game.rig; }, get host() { return game.host; },
+      get observedShipViews() { return game.observedShipViews; }, get playerMotion() { return game.playerView?.motion; },
+      get inPort() { return game.inPort; }, get viewAway() { return game.viewAway; }, get battery() { return game.battery; },
+      get ordersBlocked() { return !!(game.paused || game.tacticalPause || game.helmWheel); },
+      takeManualAim() { game.manualAim = true; },
+    });
   }
-  private resetRangefinding(): void { this.rangefinder.reset(); this.rig.setRangeLock(); }
-
-  /** Only hulls admitted to this player's view may provide optical measurements.
-   * PvE enemy exteriors use current observations, never hidden actor positions. */
-  private rangeTargets(): RangeTarget[] {
-    const dimensions = (definition: ShipDefinition) => ({ length: definition.hull.length, beam: definition.hull.beam,
-      height: Math.max(2, definition.hull.depth - definition.hull.draft, definition.viewpoints?.bridge?.[1] ?? 0) });
-    const targets: RangeTarget[] = this.simulation.actors.filter(actor => actor !== this.simulation.player && !actor.damage.sunk).map(actor => ({
-      id: actor.motion.id, name: actor.definition.name, position: [actor.motion.x, actor.motion.y, actor.motion.z], heading: actor.motion.heading, ...dimensions(actor.definition),
-    }));
-    for (const report of this.simulation.observedShips ?? []) {
-      if (!report.observers.includes(this.simulation.ship.id) || this.simulation.tick - report.observedTick > 60 || report.health <= 0 || targets.some(target => target.id === report.id)) continue;
-      const position = this.observedShipViews?.position(report.id);
-      if (!position) continue;
-      const track = this.simulation.observationTracks?.find(track => track.id === report.id);
-      targets.push({ id: report.id, name: track ? reportName(track) : 'Surface contact', position: position.toArray(), heading: report.heading, ...dimensions(shipPreset(report.presetId)) });
-    }
-    return targets;
-  }
-  measureRange(): void {
-    if (!this.canRange || this.paused || this.tacticalPause || this.helmWheel) return;
-    const targets = this.rangeTargets();
-    this.rangefinder.start(pickRangeTarget(targets, this.camera, this.simulation.ship, this.host.clientWidth, this.host.clientHeight, this.simulation.islands));
-    this.rig.setRangeLock();
-    this.manualAim = true;
-  }
-  toggleRangeLock(): void {
-    if (!this.canRange || this.paused || this.tacticalPause || this.helmWheel) return;
-    this.rangefinder.toggleLock();
-    this.rig.setRangeLock(this.rangefinder.state.locked ? this.rangefinder.state.rangeM : undefined);
-    this.manualAim = true;
-    this.rig.update(this.simulation.ship, this.simulation.ship.y, 0);
-  }
-  private updateRangefinding(seconds: number): void {
-    if (!this.canRange) { this.resetRangefinding(); return; }
-    if (seconds <= 0) return;
-    const state = this.rangefinder.state;
-    if (state.phase === 'measuring' || state.phase === 'tracking') {
-      const targets = this.rangeTargets(), target = targets.find(target => target.id === state.targetId);
-      const observation = target && observeRangeTarget(target, this.camera, this.simulation.ship, this.host.clientWidth, this.host.clientHeight);
-      this.rangefinder.update(seconds, observation && target && rangeTargetVisible(target, this.camera.position.toArray(), targets, this.simulation.islands) ? observation : undefined);
-    }
-    this.rig.setRangeLock(state.locked ? state.rangeM : undefined);
-    if (state.locked) {
-      const pose = this.playerView?.motion ?? this.simulation.ship;
-      this.rig.update(pose, pose.y, 0);
-    }
-  }
+  private get rangefinder(): Rangefinder { return this.rangefinding.rangefinder; }
+  private get canRange(): boolean { return this.rangefinding.canRange; }
+  private resetRangefinding(): void { this.rangefinding.reset(); }
+  private rangeTargets(): RangeTarget[] { return this.rangefinding.targets(); }
+  measureRange(): void { this.rangefinding.measure(); }
+  toggleRangeLock(): void { this.rangefinding.toggleLock(); }
+  private updateRangefinding(seconds: number): void { this.rangefinding.update(seconds); }
   /** Hide the berthed ship while the port has no player design to show. Battles are unaffected. */
   setPortBerthEmpty(empty: boolean): void { this.berthEmpty = empty; }
   /** A port request made before the port session arrived; applied by `initialize`. */
