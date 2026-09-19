@@ -369,10 +369,18 @@ need review. Registrations retain `unreviewed` fidelity status.
 
 ## Surface hardware and rung ladders
 
-`surface_fittings.py` authors three generic door variants: utility, watertight
-with a wheel and dog latches, and windowed utility. Their panel stays flush;
-meshes marked `wallRelief` retain shallow modeled hinges, handles, seals and other
-hardware when projected onto the hull. Louvered and round grille vents use a
+`doors.py` authors three generic closed ship doors based on the owner's supplied
+rounded watertight-door illustration and porthole-door photograph. All have a
+rounded welded coaming, inset pressed leaf, narrow gasket reveal and supported
+strap hinges. Utility uses a lever; watertight uses a four-spoke wheel; windowed
+uses an opaque round scuttle and six separate dog levers. Corner arcs have six
+segments; wheel and scuttle rims are continuous low-poly bands. The exported
+variants stay below 1,200 triangles each, without textures or working hinges.
+These are original generic interpretations, not researched service variants.
+
+The root's `wallRelief` mark keeps the shallow frame and hardware seated when
+projected onto the hull. `surface_fittings.py` retains the earlier door recipe
+and authors vents and the ladder sample. Louvered and round grille vents use a
 closed dark backing and raised louvers/grille bars. These are visible fittings;
 they do not cut openings or add ventilation simulation.
 

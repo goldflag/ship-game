@@ -175,9 +175,9 @@ modes continue to accept their historical content only.
 
 ## Doors, portholes and windows
 
-In **Fittings → Doors & windows**, choose a plain door, round porthole,
-rectangular window or rounded-rectangle window. These are flush silhouettes
-with no raised frames, rims, hinges or extrusion. Glazing stays opaque; fittings
+In **Fittings → Doors & windows**, choose a ship door, round porthole,
+rectangular window or rounded-rectangle window. Doors have rounded frames and
+raised closure hardware; plain windows are flush silhouettes. Glazing stays opaque; fittings
 do not cut holes or change flooding. Click a hull side or superstructure wall,
 including sloped and faceted hull panels. The original component silhouette
 follows the supporting panels. Decks and open faces are not placement targets.
@@ -826,8 +826,9 @@ same XYZ movement handles as hull pieces, including while placing fittings.
 ### Doors, vents and surface ladders
 
 **Doors & windows** includes utility, watertight and windowed doors. The door
-panel follows the wall, with shallow raised hinges and handles; the watertight
-variant adds dog latches and a wheel. **Deck gear** includes louvered and round
+panel follows the wall, with rounded frames, inset leaves and strap hinges. The
+utility variant has a lever, watertight has a wheel, and windowed has a circular
+porthole and dog levers. **Deck gear** includes louvered and round
 wall vents plus **Surface rung ladder**. Doors and vents use the existing wall
 snapping, size controls, arrow-key resizing and linked mirror workflow. Vent
 height changes add or remove fins at a fixed metric pitch, retaining each fin’s
