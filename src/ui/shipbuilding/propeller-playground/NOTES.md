@@ -28,8 +28,9 @@ for fin sections and bearing/fairing profiles, seats their ends on closed hull
 planes, and uses those same rings for clearance and mass. The renderer joins the
 rings and keeps every support independent of the retained `.spin` joint.
 Directly attached catalog screws retain their original geometry. A hull-exit
-fairing is generated only when the shaft reaches a closed hull face; suspended
-installations outside forward reach remain supported by their fitted fins.
+fairing is generated only when the shaft reaches a closed hull face, with no
+forward distance cap; installations whose shaft axis misses the hull remain
+supported by their fitted fins.
 
 Accepted for the game on 2026-09-18. The normal ship editor, sea trials, saved
 custom designs and construction-backed exports use these shared supports.
