@@ -812,3 +812,17 @@ test('X and Z tip every selected block in place as one undoable edit, and Shift-
   tool.undo(); tool.undo(); tool.undo(); tool.undo();
   expect(data().primitives[0]).toMatchObject({ rotationDeg: 0 }); expect(data().primitives[0].tilt).toBeUndefined();
 });
+test('Erase sits on every layer rail and removes fittings from the Fittings and Paint layers', async () => {
+  const { tool, state, data } = await setup({ source: createStarterSource(catalog, 'patrol') });
+  for (const layer of ['hull', 'armor', 'internals', 'fittings', 'paint'] as const) {
+    tool.switchLayer(layer); tool.key(key('e'), chrome());
+    expect(state().tool).toBe('erase');
+  }
+  const [first, second] = data().equipment.map(item => item.id);
+  tool.switchLayer('fittings'); tool.setTool('erase');
+  expect(tool.pointer({ kind: 'pick', hit: hit({ id: first }) })).toMatchObject({ accepted: true });
+  tool.switchLayer('paint'); tool.setTool('erase');
+  expect(tool.pointer({ kind: 'pick', hit: hit({ id: second }) })).toMatchObject({ accepted: true });
+  expect(data().equipment.map(item => item.id)).not.toContain(first);
+  expect(data().equipment.map(item => item.id)).not.toContain(second);
+});
