@@ -46,4 +46,5 @@ Review the exact published model. Fix failures in durable inputs and repeat affe
 - Start independent tasks from current remote master in separate worktrees. Only one integrator may mutate the main checkout; check for already-integrated patches before replaying commits.
 - Run `bun run git:setup` from the durable main checkout once per clone for ID-aware catalog merging and remembered resolutions with manual staging.
 - Resolve authoring inputs first, run `bun run ship:check all`, and rebuild only stale outputs it identifies. Never automatically choose a binary side or rewrite hashes to bypass checks.
+- To sign in to the game's test account (for example, to open the owner's saved custom designs), read `NAVAL_TEST_EMAIL` and `NAVAL_TEST_PASSWORD` from the gitignored `.env.local` in the main checkout (`git worktree list | head -1`); copy it into a new worktree if needed. Never commit, print into docs, or paste these values into PRs or artifacts.
 - Keep the runtime roster in `src/ships/presets.ts`, one entry per line. Do not duplicate the roster in `package.json` or hard-code preset counts in shared prose.
