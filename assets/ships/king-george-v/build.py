@@ -13,6 +13,8 @@ from mathutils import Vector, Matrix
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
+sys.path.insert(0,str(ROOT/'assets/parts'))
+from library import create_mount as create_shared_mount
 from blender_rig import radar_pivot
 OUT=Path(os.environ['SHIP_OUTPUT'])
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -191,6 +193,15 @@ COL=collections['Batteries']
 for mount in D['mounts']:
  if mount['weapon'].get('mountingStyle')=='pom-pom':continue
  ASSEMBLY=mount['id'];spec=mount['weapon'];main=mount['battery']=='main'
+ if main:
+  # The ship owns only the fixed support; the registered original owns the
+  # gunhouse, bearing, barrels and closed articulated gun-port covers.
+  x,y,z=-mount['position'][2],-mount['position'][0],mount['position'][1]
+  support_top=z+spec.get('gunhouseBaseHeight',.25)-.25
+  cyl(mount['name']+' • armored barbette',(x,y,(deckz(x)+support_top)/2),
+      spec['barbetteRadius'],max(.02,support_top-deckz(x)),'hullgray',COL,64)
+  create_shared_mount(mount,COL,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials)
+  continue
  gunhouse=create_gun_mount(mount,COL,dict(mesh=mesh,cyl=cyl,rod=gun_rod,box=box),materials,deckz)
  if main:
   # Independently authored Mk VII jacket: a longer parallel rear sleeve and

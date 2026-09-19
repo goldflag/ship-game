@@ -13,6 +13,8 @@ from mathutils import Vector, Matrix
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
+sys.path.insert(0,str(ROOT/'assets/parts'))
+from library import create_mount as create_library_mount
 from blender_fidelity import authored_hull, authored_structure, Fittings as BaseFittings, loft_breadth
 from blender_rig import radar_pivot
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -166,7 +168,6 @@ def interp(points,s):
         if a<=s<=b:return v+(w-v)*(s-a)/(b-a)
     return points[0][1] if s<points[0][0] else points[-1][1]
 
-exec((Path(__file__).parent/'main_battery.py').read_text(),globals())
 exec((Path(__file__).parent/'superstructure.py').read_text(),globals())
 
 H=D['hull'];deckz=lambda x:interp(H['deckHeights'],x+H['length']/2)
@@ -197,12 +198,18 @@ for s in D['structures']:
 for m in D['mounts']:
     if m['weapon']['caliberM']<.1:continue
     COL=collections['Main battery' if m['battery']=='main' else 'Secondary battery'];ASSEMBLY=m['id']
+    if m['battery']=='main':
+        # Ship-owned fixed support meets the shared component's bearing datum.
+        # The library owns all moving shapes and stable articulation/socket IDs.
+        a,z,c=m['position'];x,y=-c,-a
+        cyl(m['name']+' fixed barbette',(x,y,(deckz(x)+z)/2),m['weapon']['barbetteRadius'],
+            max(.02,z-deckz(x)),'hullgray',COL,64)
+        create_library_mount(m,COL,helpers,{**materials,'roof':materials['armor_roof']})
+        continue
     gunhouse=create_gun_mount(m,COL,helpers,materials,deckz)
     yaw=next(o for o in scene.objects if o.get('nodeId')==m['id']+'.yaw')
     before=set(scene.objects)
-    if m['battery']=='main':
-        main_battery(gunhouse,m)
-    else:
+    if m['battery']!='main':
         secondary_ports(gunhouse,m)
         for y in [-m['weapon']['barrelSpacing']/2,m['weapon']['barrelSpacing']/2]:
             for sign in [-1,1]:
@@ -258,7 +265,7 @@ object_collections={}
 for collection in bpy.data.collections:
     for obj in collection.objects:object_collections.setdefault(obj,collection)
 for obj in list(scene.objects):
-    if obj.type=='MESH' and not obj.get('nodeId') and not obj.get('battery'):
+    if obj.type=='MESH' and not obj.get('nodeId') and not obj.get('battery') and not obj.data.shape_keys:
         key=(obj.parent,obj.get('assemblyId','hull'),object_collections[obj])
         groups.setdefault(key,[]).append(obj)
 removed_objects=[]
