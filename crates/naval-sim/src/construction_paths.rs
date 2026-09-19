@@ -414,6 +414,16 @@ pub(crate) fn compile(
         if supported_surface(surfaces, anchor, None, railing, tolerance) {
             continue;
         }
+        // A run may continue into a deckhouse or step: a foot covered by a later
+        // block still stands in solid structure, although its deck surface is gone.
+        if railing
+            && hull_index
+                .candidates_box(sub(anchor, [tolerance; 3]), add(anchor, [tolerance; 3]))
+                .iter()
+                .any(|&i| cg::contains(&hull[i], anchor))
+        {
+            continue;
+        }
         let support = (!railing && !ladder)
             .then(|| {
                 sockets
@@ -437,18 +447,13 @@ pub(crate) fn compile(
         }
     }
     let cells: Vec<_> = members.iter().map(Member::cell).collect();
-    for (member, cell) in members.iter().zip(&cells) {
-        // Railings are thin trim: incidental contacts and joined endpoints are
-        // expected. Block only a substantial length buried in a solid. Keep
-        // the stricter physical attachment checks above and all other paths.
-        let significant = |overlap: &cg::Cell| {
-            let buried_length = cg::moments(overlap).volume / (4. * member.radius * member.radius);
-            buried_length > 0.25_f64.max(length(sub(member.b, member.a)) * 0.25)
-        };
+    // Railings are thin cosmetic trim. Their posts still need the supported deck
+    // checked above, but they never fail on contact with the hull, a fitting or
+    // another route: shared posts, joined runs and rails meeting a wall are normal.
+    for (member, cell) in members.iter().zip(&cells).filter(|_| !railing) {
         let fitted_tolerance = 4. * member.radius * member.radius * 0.005;
         if hull_index.candidates(cell).iter().any(|&i| {
-            cg::intersection(cell, &hull[i])
-                .is_some_and(|x| if railing { significant(&x) } else { cg::moments(&x).volume > fitted_tolerance })
+            cg::intersection(cell, &hull[i]).is_some_and(|x| cg::moments(&x).volume > fitted_tolerance)
         }) {
             return Err(error(
                 "A path member runs through the hull; raise its anchors or reduce slack",
@@ -457,7 +462,7 @@ pub(crate) fn compile(
         }
         for i in fitting_index.candidates(cell) {
             let (owner, other) = &fitted[i];
-            if !railing && !ladder {
+            if !ladder {
                 if let Some(surface) = fitting_surfaces.iter().find(|s| &s.owner == owner) {
                     if surface.tree.distance(member.a, member.b, radius) >= radius - 0.005_f64.min(radius * 0.2) {
                         continue;
@@ -466,9 +471,7 @@ pub(crate) fn compile(
                     // including catalog eyes intentionally seated in their post.
                 }
             }
-            if let Some(overlap) =
-                cg::intersection(cell, other).filter(|x| if railing { significant(x) } else { cg::moments(x).volume > 1e-8 })
-            {
+            if let Some(overlap) = cg::intersection(cell, other).filter(|x| cg::moments(x).volume > 1e-8) {
                 // Explicit eyes/throats can sit inside a conservative catalog box.
                 // Their narrow outward corridor flares at 1:4 to accommodate a
                 // rope leaving an eye downward. A constant-width tunnel would
