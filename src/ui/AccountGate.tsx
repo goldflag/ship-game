@@ -12,11 +12,13 @@ export function AccountGate() {
   // progress bar never remounts. Reports are tagged by user so a stale "done" from a previous account
   // cannot hide the loader for the next one.
   const [startup,setStartup]=useState<StartupProgress&{user:string;done:boolean}>();
-  useEffect(()=>{ const id=error?undefined:session?.user.id;setAccount(id);setActive(id);return()=>setAccount(undefined); },[session?.user.id,error]);
-  const signedIn = !!session && active===session.user.id && !error, user = signedIn ? session.user.id : undefined;
+  // A failed re-check (rate limit, network blip, API restart) keeps the last confirmed session, so it must not
+  // tear down a running game. Only a 401 or a signed-out answer clears `session`.
+  useEffect(()=>{ const id=session?.user.id;setAccount(id);setActive(id);return()=>setAccount(undefined); },[session?.user.id]);
+  const signedIn = !!session && active===session.user.id, user = signedIn ? session.user.id : undefined;
   // A confirmed session whose id the effect above has not yet adopted is still loading, not signed out.
-  const syncing = !!session && !error && !signedIn;
-  if (!isPending && !syncing && !signedIn) return <SignIn unavailable={!!error} retry={()=>void refetch()}/>;
+  const syncing = !!session && !signedIn;
+  if (!isPending && !syncing && !signedIn) return <SignIn unavailable={!!error && error.status!==401} retry={()=>void refetch()}/>;
   const report = startup?.user===user ? startup : undefined;
   // Same tree shape while checking the session and while the game starts, so the loader element is reused.
   return <>

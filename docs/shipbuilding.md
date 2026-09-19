@@ -16,10 +16,12 @@ sections from the existing in-game ships, including their deck profiles, with at
 broader end caps; generic presets have eight sections. Each starts with no equipment and remains
 one editable custom hull. Fletcher is selected by default. The same chooser is available
 under **Designs → New design…**. Choose **Edit design** to reopen a saved source.
-Saved designs appear in the bottom fleet carousel; **My designs** shows your
-ready ships and drafts together. Click a draft to edit it, or a ready ship to
-inspect it in the harbor. **New design**, **Edit design** and deletion for the
-selected saved ship are above the carousel. Drafts can also be deleted in the editor. Returning from the editor
+The port berths only your saved designs. Ready ships line up in the fleet line beneath
+the berthed ship (side arrows and ← / → step through them); **All designs** opens the
+plan chest with ready ships and drafts together. Click a draft to edit it, or a ready
+ship to bring it alongside. **Edit design** and deletion for the berthed ship sit under
+its name, **New design** is in the top bar and the plan chest, and an empty port offers
+the generic and historical starting hulls directly. Drafts can also be deleted in the editor. Returning from the editor
 saves and shows a valid design without requiring a sea trial. The separate
 **Armed patrol** starter includes a gun, ammunition
 integral gun ammunition, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
@@ -83,12 +85,13 @@ to see its nominal plate thickness in millimetres and material. This includes
 the minimum structural skin; openings show no protective plate. Pending armor
 edits use the same thickness rules and color scale as the compiled preview.
 
-Propellers automatically grow an external shaft and support arms to nearby
-closed hull surfaces. Place a screw on the underside near the stern to leave
+Propellers automatically grow an external shaft to the hull and support arms to
+nearby closed hull surfaces. Place a screw on the underside near the stern to leave
 room for its blades, or move an existing screw outward; the connection follows
-each edit, copy and rotation. No small hull blocks are needed. A shaft can reach
-forward up to four propeller diameters (2–20 m); braces can reach upward within
-that range, capped at 10 m. Directly attached screws keep their original support.
+each edit, copy and rotation. No small hull blocks are needed. A shaft reaches
+the first hull surface along its forward axis with no distance cap; braces can
+reach upward up to four propeller diameters (2–10 m). Directly attached screws
+keep their original support.
 The compiler rejects unreachable connections, openings, blade/hull overlaps in
 these suspended installations and supports crossing other fittings. Generated
 steel members add weight and clearance geometry, without adding buoyancy or
@@ -100,7 +103,7 @@ streamlined fins with flared feet, and a tapered hull-exit fairing where the sha
 reaches the hull. An exposed shaft needs a closed hull face along the screw's
 forward axis. If that line misses the hull, fins can still support the screw but
 the shaft ends inside the bearing housing. Move the screw upward or inward to
-meet the hull ahead, then aft to leave a visible shaft run within its reach.
+meet the hull ahead, then aft to leave a visible shaft run with blade clearance.
 Rust emits the same loft sections for preview/export, clearance
 and provisional solid-steel loading. Fins and fairings seat against the closed
 hull surface; they stay fixed while the original propeller joint spins. Shapes

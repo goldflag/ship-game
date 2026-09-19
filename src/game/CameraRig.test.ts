@@ -495,6 +495,43 @@ test('upward port dragging stops at the lowest ship-focused orbit across hull si
   } finally { rig.dispose(); }
 });
 
+test('a right-drag in port trucks the view across the ship, within reach, and recentring returns to her', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
+  const ship = { ...createShipState(), x: 240 };
+  const pan = (dx: number, dy: number, extra: object = { button: 2 }) => {
+    canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button: 0, pointerType: 'mouse', pointerId: 1, clientX: 0, clientY: 0, ...extra }));
+    canvas.dispatchEvent(Object.assign(new Event('pointermove'), { pointerId: 1, clientX: dx, clientY: dy }));
+    window.dispatchEvent(new Event('pointerup'));
+  };
+  const centre = () => new Vector3(ship.x, 0, ship.z).project(camera);
+  rig.setInPort(true); rig.setHullLength(250.5);
+  try {
+    rig.update(ship, 0, 0, true);
+    const home = centre(), homeCamera = camera.position.clone(), bearing = rig.bearing, direction = camera.getWorldDirection(new Vector3());
+    // The hull follows the pointer: dragging right and down moves her right and down on screen, without turning the view.
+    pan(200, 120); rig.update(ship, 0, 0, true);
+    expect(centre().x).toBeGreaterThan(home.x + .2);
+    expect(centre().y).toBeLessThan(home.y - .15);
+    expect(rig.bearing).toBe(bearing);
+    expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
+    // However far the drag, the view stays within three quarters of a hull length of the ship.
+    pan(1e6, 0); rig.update(ship, 0, 0, true);
+    expect(Math.hypot(camera.position.x - homeCamera.x, camera.position.z - homeCamera.z)).toBeCloseTo(250.5 * .75, 6);
+    // A plain left-drag still orbits from the panned position; a Shift-drag pans like the right button.
+    drag(60, 0); rig.update(ship, 0, 0, true);
+    expect(rig.bearing).not.toBe(bearing);
+    const panned = centre();
+    pan(-80, 0, { shiftKey: true }); rig.update(ship, 0, 0, true);
+    expect(centre().x).toBeLessThan(panned.x);
+    rig.recenter(); rig.update(ship, 0, 0, true);
+    expect(centre().x).toBeCloseTo(home.x, 6);
+    expect(centre().y).toBeCloseTo(home.y, 6);
+    // Another hull, or leaving port, never inherits a panned view; battle drags never pan.
+    pan(200, 0); rig.setHullLength(120); rig.update(ship, 0, 0, true);
+    expect(centre().x).toBeCloseTo(home.x, 6);
+  } finally { rig.dispose(); }
+});
+
 for (const mode of ['Chase', 'Bridge', 'Tactical'] as const) {
   test(`${mode} mouse aiming reveals the sailing sun within a restrained upward tilt`, () => {
     const { camera, canvas, rig } = interactiveCamera();

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { loadShipPreset, shipPreset, shipPresets } from './presets';
-import { maximumRangeM, shipScores, shipStatistics } from './statistics';
+import { maximumRangeM, shipScores, shipSpec, shipStatistics } from './statistics';
 import { maxHullIntegrity } from './durability';
 
 test('every preset prints a complete sheet whose figures come from the compiled definition', () => {
@@ -66,4 +66,17 @@ test('maximum range follows the low-arc solver: elevation limited, then capped a
   expect(maximumRangeM({ ...bismarck, ballistics: { ...bismarck.ballistics, dragPerSecond: 0 }, muzzleSpeed: 400, elevationMaxDeg: 30 })).toBeCloseTo(400 ** 2 * Math.sin(Math.PI / 3) / 9.81, 3);
   const slow = { ...bismarck, muzzleSpeed: 400 };
   expect(maximumRangeM(slow)).toBeLessThan(maximumRangeM({ ...slow, ballistics: { ...bismarck.ballistics, dragPerSecond: 0 } }));
+});
+
+test('the builder\'s plate prints principal dimensions and the heaviest main guns', async () => {
+  await loadShipPreset('bismarck');
+  const spec = Object.fromEntries(shipSpec(shipPreset('bismarck')).map(f => [f.label, f]));
+  expect(Object.keys(spec)).toEqual(['Length', 'Beam', 'Draft', 'Displacement', 'Speed', 'Main battery']);
+  expect(spec['Main battery']).toEqual({ label: 'Main battery', value: '8 × 380', unit: 'mm' });
+  expect(spec.Length.value).toBe(shipPreset('bismarck').hull.length.toFixed(1));
+  // A bare hull has no guns or machinery; the plate must still print.
+  const hull = { ...shipPreset('bismarck'), mounts: [], handling: { ...shipPreset('bismarck').handling, forwardSpeed: 0 } };
+  const bare = shipSpec(hull);
+  expect(bare.find(f => f.label === 'Main battery')).toEqual({ label: 'Main battery', value: 'None' });
+  expect(bare.every(f => !f.value.includes('NaN'))).toBe(true);
 });

@@ -1605,7 +1605,8 @@ fn equipment(
         .map(|(e, p)| crate::construction_wall_fittings::installed(e, p, c, &out.surfaces).map(|p| (e.id.clone(), p)))
         .collect::<Result<_, _>>()?;
     // Fixed exterior fittings may be seated into hulls and neighboring fittings.
-    // Weapons, interior packages, moving underwater parts and routes retain exact fit.
+    // Weapons keep exact fit with everything; interior packages and moving underwater
+    // parts with one another; ropes, chains and ladders still clear solid bodies, and railings clear nothing.
     let relaxed_fit = |p: &ConstructionEquipmentPart| p.placement == "deck" && p.path.is_none()
         && matches!(p.kind.as_str(), "deck-fitting" | "mast" | "director" | "funnel");
     let relaxed_ids: std::collections::BTreeSet<_> = installed_parts.iter()
@@ -1613,6 +1614,8 @@ fn equipment(
     // Diagnostics name the catalog part; source ids are opaque to the designer.
     let part_name = |id: &str| installed_parts.iter().find(|(other, _)| other == id)
         .map_or_else(|| id.to_owned(), |(_, p)| p.name.clone());
+    let weapon_ids: std::collections::BTreeSet<_> = installed_parts.iter()
+        .filter(|(_, p)| matches!(p.kind.as_str(), "gun" | "torpedo-launcher")).map(|(id, _)| id.as_str()).collect();
     let mut fitted = vec![];
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
     let mut fitting_index = cg::Broadphase::new(8.);
@@ -1793,7 +1796,10 @@ fn equipment(
                     surface,
                 });
             }
-            for cell in path.cells {
+            // Railings never obstruct anything: they share posts, flank stairs and
+            // cross lines, so their members stay out of the fit index.
+            let railing = p.path.as_ref().is_some_and(|path| path.kind == "railing");
+            for cell in path.cells.into_iter().filter(|_| !railing) {
                 fitting_index.insert(&cell);
                 all_envelopes.push((e.id.clone(), cell));
             }
@@ -1839,7 +1845,10 @@ fn equipment(
             }
         }
         for (other, cell) in &all_envelopes {
-            if relaxed_fit(p) && relaxed_ids.contains(other.as_str()) { continue; }
+            // A cosmetic fitting may be seated into any fixed neighbor; only burial (below)
+            // fails. Weapons traverse, so they keep exact clearance from every fitting.
+            let weapon = |kind: &str| matches!(kind, "gun" | "torpedo-launcher");
+            if (relaxed_fit(p) && !weapon_ids.contains(other.as_str())) || (relaxed_ids.contains(other.as_str()) && !weapon(&p.kind)) { continue; }
             if fitting_cells.iter().any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                 return Err(error(
                     "equipment-overlap",
