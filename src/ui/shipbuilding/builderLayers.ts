@@ -2,6 +2,7 @@ import { EDITABLE_SHAPES } from '../../ships/constructionMesh';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
+import { isRetiredDeckFitting } from '../../ships/constructionEquipment';
 import { filterFittings, type FittingFilter } from './fittingCategories';
 import { HULL_CATEGORY, type HullCategory } from './hullCategories';
 
@@ -99,7 +100,7 @@ export function partSlot(part: ConstructionEquipmentPart, catalog: ConstructionC
 export function sortedParts(catalog: ConstructionCatalog, placement: (part: ConstructionEquipmentPart) => boolean): ConstructionEquipmentPart[] {
   // Drawable paths lead the deck-gear shelf; guns run from the heaviest calibre down.
   const caliber = (part: ConstructionEquipmentPart) => part.kind === 'gun' ? catalog.weapons.parts.find(gun => gun.id === part.gunPartId)?.caliberM ?? 0 : 0;
-  return catalog.equipment.filter(part => part.kind !== 'magazine' && part.id !== 'generic-vertical-ladder' && placement(part)).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || Number(!!b.path) - Number(!!a.path) || caliber(b) - caliber(a) || a.name.localeCompare(b.name));
+  return catalog.equipment.filter(part => part.kind !== 'magazine' && part.id !== 'generic-vertical-ladder' && !isRetiredDeckFitting(part.id) && placement(part)).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || Number(!!b.path) - Number(!!a.path) || caliber(b) - caliber(a) || a.name.localeCompare(b.name));
 }
 
 export const thicknessSlotId = (mm: number) => `mm-${mm}`;

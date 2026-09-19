@@ -1,7 +1,7 @@
 import { currentAccount } from '../accounts/session';
 import { ConstructionClient } from './constructionClient';
-import { decodeConstructionSource } from './constructionEditor';
-import { openConstructionStore, readConstructionSource } from './constructionStore';
+import { loadSavedConstructionWithCatalog } from './constructionEditor';
+import { openConstructionStore } from './constructionStore';
 import { localShips, registerLocalShip, removeLocalShip } from './localShips';
 
 /** Restore launchable revisions from source; missing/corrupt drafts remain in
@@ -17,8 +17,7 @@ export async function restoreLocalShips(signal?: AbortSignal): Promise<string[]>
     for (const head of heads) {
       if (cancelled()) break;
       try {
-        const { revision } = await store.load(head.id);
-        const { source } = readConstructionSource(revision, { schemaVersion: 1, catalogRevision: revision.catalogRevision, decode: decodeConstructionSource });
+        const { source, revision } = await loadSavedConstructionWithCatalog(store, head.id);
         if (localShips().some(r => r.source.id === source.id && r.source.revision === source.revision)) continue;
         const result = await compiler.compile(source, signal);
         if (cancelled()) break;
