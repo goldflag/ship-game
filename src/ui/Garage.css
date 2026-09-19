@@ -67,17 +67,19 @@
 .port-quay { position:absolute; inset:0; }
 .port-chest-open .port-quay { visibility:hidden; }
 .port-identity { position:absolute; left:56px; bottom:86px; max-width:calc(100% - 500px); }
-.port-identity-status { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--port-muted); }
+.port-identity-status { display:flex; align-items:center; gap:10px; font-size:11px; color:var(--port-muted); }
 .port-identity-type { color:var(--port-accent); }
-.port-identity h1 { margin-top:8px; font:600 clamp(40px,min(5vw,8.2vh),84px)/1 'Barlow Condensed',sans-serif; letter-spacing:.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.port-spec { display:flex; flex-wrap:wrap; row-gap:12px; margin:18px 0 0; }
-.port-spec>div { display:flex; flex-direction:column; gap:6px; padding:0 22px; border-left:1px solid var(--port-line); }
+.port-identity h1 { margin-top:6px; font:600 clamp(34px,min(3.8vw,6.4vh),64px)/1 'Barlow Condensed',sans-serif; letter-spacing:.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.port-spec { display:flex; flex-wrap:wrap; row-gap:10px; margin:14px 0 0; }
+.port-spec>div { display:flex; flex-direction:column; gap:5px; padding:0 18px; border-left:1px solid var(--port-line); }
 .port-spec>div:first-child { padding-left:0; border-left:0; }
-.port-spec dt { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--port-muted); }
-.port-spec dd { margin:0; font:500 25px/1 'Barlow Condensed',sans-serif; white-space:nowrap; }
-.port-spec dd>small { margin-left:4px; font:400 11px/1 'Barlow',sans-serif; color:var(--port-muted); }
-.port-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:24px; text-shadow:none; pointer-events:auto; }
-.port-actions .design-delete button { min-height:44px; padding:0 13px; }
+.port-spec dt { font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--port-muted); }
+.port-spec dd { margin:0; font:500 21px/1 'Barlow Condensed',sans-serif; white-space:nowrap; }
+.port-spec dd>small { margin-left:3px; font:400 10px/1 'Barlow',sans-serif; color:var(--port-muted); }
+.port-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:18px; text-shadow:none; pointer-events:auto; }
+.port-actions .port-command { min-height:40px; padding:0 14px; }
+.port-actions .port-command>strong { font-size:15px; }
+.port-actions .design-delete button { min-height:40px; padding:0 12px; }
 .port-actions .design-delete[data-confirming=true] { max-width:460px; padding:10px 12px; background:#102330e6; border:1px solid var(--port-line); border-radius:2px; }
 .port-loading { position:absolute; left:56px; bottom:96px; font-size:13px; color:var(--port-muted); pointer-events:auto; }
 
@@ -193,7 +195,7 @@
   .port-search { width:200px; }
   .port-identity { max-width:calc(100% - 300px); }
   .port-spec>div { padding:0 14px; }
-  .port-spec dd { font-size:21px; }
+  .port-spec dd { font-size:19px; }
   .garage-classic-details.port-details-compact { width:230px; }
   .port-details-compact .garage-ship-stats { display:none; }
   .port-empty-hulls { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -201,9 +203,9 @@
 }
 @media(max-height:760px) and (min-width:601px) {
   .port-identity,.garage-classic-details.port-details-compact { bottom:72px; }
-  .port-spec { margin-top:12px; }
-  .port-spec dd { font-size:21px; }
-  .port-actions { margin-top:14px; }
+  .port-spec { margin-top:10px; }
+  .port-spec dd { font-size:19px; }
+  .port-actions { margin-top:12px; }
   .port-details-compact .garage-ship-stats>div { margin-bottom:8px; }
   .port-neighbour>span { height:72px; }
   .garage-classic-details { top:90px; max-height:calc(100% - 170px); }
@@ -222,7 +224,7 @@
   .port-header-actions { gap:4px; }
   .garage .port-new { display:none; }
   .port-identity { left:18px; right:18px; bottom:142px; max-width:none; }
-  .port-identity h1 { font-size:40px; }
+  .port-identity h1 { font-size:34px; }
   .port-spec { row-gap:10px; margin-top:12px; }
   .port-spec>div { padding:0 12px; }
   .port-spec dd { font-size:19px; }
