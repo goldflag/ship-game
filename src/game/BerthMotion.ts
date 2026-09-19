@@ -18,8 +18,9 @@ export class BerthMotion {
       this.time += STEP;
       const wave = seaResponse(sea, hull, pose, this.time);
       this.heave += (wave.heave - this.heave) * (1 - Math.exp(-STEP / 1.5));
-      const rollArm = wave.roll * hull.beam * .07 - hull.beam * .1 * this.roll;
-      const pitchArm = wave.pitch * hull.length * .4 - hull.length ** 2 / (12 * hull.draft) * this.pitch;
+      // The authority's WAVE_ROLL_LEVER and WAVE_PITCH_LEVER (`stability.rs`).
+      const rollArm = wave.roll * hull.beam * .14 - hull.beam * .1 * this.roll;
+      const pitchArm = wave.pitch * hull.length * .8 - hull.length ** 2 / (12 * hull.draft) * this.pitch;
       this.rollRate = (this.rollRate + 9.81 * rollArm / (hull.beam * .4) ** 2 * STEP) * Math.exp(-STEP / 4);
       this.pitchRate = (this.pitchRate + 9.81 * pitchArm / (hull.length * .28) ** 2 * STEP) * Math.exp(-STEP / 3);
       this.roll += this.rollRate * STEP; this.pitch += this.pitchRate * STEP;
