@@ -17,6 +17,7 @@ def create_open_mount(mount, col, helpers, materials):
         kwargs.setdefault('vertices', 8)
         return raw_rod(*args, **kwargs)
     spec = mount['weapon']
+    mk21 = spec['id']=='us-5in38-mk21-single'
     style = spec['mountingStyle']
     gray, dark, steel = (materials[k] for k in ['naval', 'dark', 'edge'])
     count = spec.get('barrelCount', 2)
@@ -77,7 +78,7 @@ def create_open_mount(mount, col, helpers, materials):
         # Continuous side webs carry the bearing cheeks from the foot/platform;
         # the front cross-member stays ahead of the full recoil/elevation sweep.
         inner = .62 if spec['id']=='us-5in38-mk21-single' else .43
-        sides=20 if spec['id']=='us-5in38-mk21-single' else 12
+        sides=10 if mk21 else 12
         vertices=[(radius*math.cos(i*math.tau/sides),radius*math.sin(i*math.tau/sides),z)
                   for z in [0,.20] for radius in [inner,r] for i in range(sides)]
         faces=[]
@@ -119,7 +120,7 @@ def create_open_mount(mount, col, helpers, materials):
         # not decorative tiny fasteners. Keep the existing installation datum.
         platform_width = width*.43
         for sign in ([-1,1] if spec['id']!='us-3in50-single' else [1]):
-            attach(box(name+'.operator-step',(-.48,sign*platform_width,.36),(.98,.48,.07),gray,col),yaw)
+            attach(box(name+'.operator-step',(-.48,sign*platform_width,.36),(1.18 if mk21 else .98,.52 if mk21 else .48,.07),gray,col),yaw)
             attach(rod(name+'.step-brace',(trunnion-.2,sign*fork,.3),(-.48,sign*platform_width,.36),.05,gray,col),yaw)
             attach(box(name+'.seat-back',(-.65,sign*width*.40,height*.62),(.08,.34,.34),gray,col),yaw)
             for offset in [-.12,.12]:
@@ -137,6 +138,12 @@ def create_open_mount(mount, col, helpers, materials):
         # the breech retains the open aft well throughout elevation and recoil.
         cheek('cast-pedestal',[(.12,.20),(.58,.20),(.48,height*.65),(.22,height*.79),(.08,height*.62)],0,.48,yaw)
         attach(box(name+'.pedestal-gear-cover',(.54,0,height*.38),(.10,.36,.32),gray,col),yaw)
+    if mk21:
+        # Trainer/pointer transmission housings sit on the existing side rails.
+        # Reclaimed bearing-ring facets pay for these exposed functional masses.
+        for sign in [-1,1]:
+            attach(box(name+'.train-drive',(.24,sign*fork,height*.69),(.49,.30,.54),gray,col),yaw)
+            attach(rod(name+'.train-shaft',(.25,sign*fork,height*.43),(.25,sign*fork,height*.69),.065,steel,col,vertices=6),yaw)
     if style == 'oerlikon':
         # OP 909: shield brackets attach to the carriage; the standing gunlayer
         # uses a shoulder rest, not the two seats formerly shared with heavy guns.
@@ -239,4 +246,6 @@ def create_open_mount(mount, col, helpers, materials):
                        (.27, side * width * .43, height + .35), .055, dark, col), yaw)
     for obj in set(bpy.context.scene.objects) - before:
         obj['assemblyId'] = name
+        if mk21 and obj.type=='MESH' and any(tag in obj.name for tag in ['barrel-root','barrel-tube']):
+            for polygon in obj.data.polygons:polygon.use_smooth=len(polygon.vertices)==4
     return yaw

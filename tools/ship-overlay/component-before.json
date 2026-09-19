@@ -1,11 +1,11 @@
 {
   "us-5in38-mk30-mod0-single": {
-    "modelUrl": "/models/components/us-5in38-mk30-mod0-single/37bd7f27623ad765617cf4103393dcbaf59cadef6ad57f59914c86dac8e8c82c/model.glb",
-    "triangles": 5374
+    "modelUrl": "/models/components/us-5in38-mk30-mod0-single/421f5f5878e238009eee01f2e998253a234106730ac8878e2f802361bec8622a/model.glb",
+    "triangles": 3372
   },
   "us-6in47-mk16-cleveland": {
-    "modelUrl": "/models/components/us-6in47-mk16-cleveland/6bd3a162b5e88736411cc775ea99200c0134afd8d795440c53d67b4cbe717a48/model.glb",
-    "triangles": 3712
+    "modelUrl": "/models/components/us-6in47-mk16-cleveland/6d6c1ad38e7f71d123506eeeaa59669208c1d45850a617e657ce7381dbec1349/model.glb",
+    "triangles": 2224
   },
   "sk-c34-380-twin": {
     "modelUrl": "/models/components/sk-c34-380-twin/de797d82bdb025510e788d6b4568a88a116e74918c7a5970f5e460b56278ac12/model.glb",
@@ -16,12 +16,12 @@
     "triangles": 4456
   },
   "skc34-203-twin": {
-    "modelUrl": "/models/components/skc34-203-twin/444f6482d97e97118cb42da896b9426f809d3caffb2c3f2419c3c50f43440285/model.glb",
-    "triangles": 2588
+    "modelUrl": "/models/components/skc34-203-twin/058f012f826cacbe26837d38c105ef8ec34d41c54d8385ae3c59791e5151eba6/model.glb",
+    "triangles": 1756
   },
   "skc34-203-twin-rf": {
-    "modelUrl": "/models/components/skc34-203-twin-rf/300904a0c738f69e2f0ffa19419dfdd41443f8e1fa4a75b32e1597b614c87b8b/model.glb",
-    "triangles": 2724
+    "modelUrl": "/models/components/skc34-203-twin-rf/78972c5849b86023bdf197a27f9f171b27c888b8fe597ee48336d1d38e0c6f45/model.glb",
+    "triangles": 1876
   },
   "skc33-105-c31-twin": {
     "modelUrl": "/models/components/skc33-105-c31-twin/3ea3849909369abcdf865b7bbf1f1280c10e36ff4e1d3312b72a51a9a06e883c/model.glb",
@@ -44,8 +44,8 @@
     "triangles": 2624
   },
   "us-5in38-mk21-single": {
-    "modelUrl": "/models/components/us-5in38-mk21-single/0f491aa0213ea813a1a7fdbd9ba48987fa76ebe6601ed24c21587ee3a0540564/model.glb",
-    "triangles": 1100
+    "modelUrl": "/models/components/us-5in38-mk21-single/a0df9440f4df821523ecf820cba309ef9a7f3c3856c2ba194403c4e57164ee6c/model.glb",
+    "triangles": 1308
   },
   "us-11in75-quad": {
     "modelUrl": "/models/components/us-11in75-quad/3a75bca986c1def38f05f5979f5475080ad3904c565fdb0d4c316bd1c8a3120f/model.glb",
@@ -76,8 +76,8 @@
     "triangles": 5852
   },
   "type3-127-typec-twin": {
-    "modelUrl": "/models/components/type3-127-typec-twin/17c1b128a9e01328b5dd7402c49b6ba8e1aeeadfc5f8a0beed55d58bf4b07b63/model.glb",
-    "triangles": 9076
+    "modelUrl": "/models/components/type3-127-typec-twin/fca6707ab2d853d3ad6fa40fd4ee565e30dd862fb43143d6581f7cf28d1a629b/model.glb",
+    "triangles": 6460
   },
   "type96-25-mogami-2": {
     "modelUrl": "/models/components/type96-25-mogami-2/566203f9498f88a30e3b0b24cc6ef06ff499441b93433fc7f1d212fa2234ae7f/model.glb",
@@ -112,20 +112,20 @@
     "triangles": 4584
   },
   "type3-203-mogami-e3-twin": {
-    "modelUrl": "/models/components/type3-203-mogami-e3-twin/3bdc6923c16d6fad7c36b8b376be05045b83d41eec70380fdd75b251ddb7c6d5/model.glb",
-    "triangles": 6594
+    "modelUrl": "/models/components/type3-203-mogami-e3-twin/ce311e85e87efda311e984f26be08aca1b3ef5b28ded4ad39acf9ac51837c7d2/model.glb",
+    "triangles": 3406
   },
   "type3-203-mogami-e-twin": {
-    "modelUrl": "/models/components/type3-203-mogami-e-twin/034a89807fa73a297047d70f2792563df457a51fa8560cf74613bbd42560f94d/model.glb",
-    "triangles": 6966
+    "modelUrl": "/models/components/type3-203-mogami-e-twin/3419228ac7494d328c0f2351a765c6297031a40a325bdc4f47fefbdebb4604ab/model.glb",
+    "triangles": 3666
   },
   "us-16in50-mk7-iowa": {
     "modelUrl": "/models/components/us-16in50-mk7-iowa/c4aa9e0d3d513e2ba86b6ee780dcabb01548742c360bcffe7e2c5af413f95713/model.glb",
     "triangles": 10464
   },
   "us-8in55-mk12-triple": {
-    "modelUrl": "/models/components/us-8in55-mk12-triple/998b9cbc082b990cfee1086fd02f353c487c9864df07ef11d7c5df7d6e01a1ea/model.glb",
-    "triangles": 5470
+    "modelUrl": "/models/components/us-8in55-mk12-triple/ece09d7cb0e1dce3ec2ca178df1a7bb13b07395fd56bb9a53af883e131c265f0/model.glb",
+    "triangles": 3756
   },
   "bl-14-mkvii-quad": {
     "modelUrl": "/models/components/bl-14-mkvii-quad/e59650ee85a449b8066cdcb85e3656b6e875ca26469950656868a023a4e90629/model.glb",

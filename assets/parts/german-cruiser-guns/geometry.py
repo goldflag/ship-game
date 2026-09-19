@@ -47,34 +47,53 @@ class MountBuilder:
 def create_main(mount,col,helpers,materials):
     b=MountBuilder(mount,col,helpers,materials);s=b.s
     b.cyl('bearing lower',(0,0,-.10),3.02,.20,'edge');b.cyl('rotating floor',(0,0,.015),3.08,.09)
-    shape=s['gunhouseMesh'];o=b.mesh('faceted gunhouse',shape['vertices'],[f['indices'] for f in shape['faces']])
+    shape=s['gunhouseMesh']
+    # Taper the aft footprint and rake the rear roof with the existing facets.
+    vertices=[]
+    for x,y,z in shape['vertices']:
+        taper=1-.07*max(0,min(1,(-x-2)/3.45))
+        # Move the aft roof break forward, retaining a level crown and
+        # a continuous sloping rear shoulder beneath the rangefinder.
+        xx=max(x,-3.65) if z>2.5 and x<-3.65 else x
+        vertices.append((xx,y*taper,z))
+    o=b.mesh('faceted gunhouse',vertices,[f['indices'] for f in shape['faces']])
     o.data.materials.append(materials.get('roof',materials['edge']))
     for p,f in zip(o.data.polygons,shape['faces']):p.material_index=int(f['finish']=='roof')
     for side,y,_ in barrel_layout(s):
         e,r=b.gun_joints(side,y);length=s['muzzleForward']-s['trunnionForward']
         b.barrel(side+' stepped barrel',length,.265,.139,.1015,r,start=.46)
-        b.rod(side+' breech',(-1.2,0,0),(.46,0,0),.28,parent=r)
+        # Hidden breech cap omitted: spend its triangles on visible sight recesses.
     for y in [-2.62,2.62]:
         # The approved gunhouse has a flush rear roof, without the raised
         # rectangular hatches used on some other German turret variants.
         b.cyl('roof ventilator',(-1.3,y*.78,2.72),.15,.25,'edge')
         # Front sight flap follows the sloped face.
-        o=b.box('front sight flap',(2.16,y,1.15),(.07,.63,.39),'edge');o.rotation_euler.y=-.34
-        for z in [.42,.7,.98,1.26,1.54,1.82,2.1]:b.rod('side ladder rung',(-3.55,y/abs(y)*(3.34-max(0,z-1.68)*.49),z),(-3.18,y/abs(y)*(3.34-max(0,z-1.68)*.49),z),.025,'edge')
-        for z in [.64,1.39]:
-            b.rod('rear handrail',(-5.45,y-.30,z),(-5.45,y+.30,z),.023,'edge')
+        o=b.box('front sight recess',(2.16,y,1.42),(.07,.63,.39),'dark');o.rotation_euler.y=-.34
+        b.box('front sight hood',(2.17,y,1.64),(.22,.76,.08))
+        b.box('front sight sill',(2.31,y,1.21),(.17,.76,.07))
+        sign=y/abs(y)
+        def ladder_y(z):return sign*(3.34-max(0,z-1.68)*.49)
+        for z in [.42,.7,.98,1.26,1.54,1.82,2.1,2.38]:
+            b.rod('side ladder rung',(-1.65,ladder_y(z),z),(-1.28,ladder_y(z),z),.025,'edge')
+        # Square stringers seat against the flank and follow its roof chine.
+        for x in [-1.65,-1.28]:
+            for lo,hi in [(.42,1.68),(1.68,2.38)]:
+                b.put(helpers['rod'](b.name+'.side ladder stringer',
+                    (x,ladder_y(lo),lo),(x,ladder_y(hi),hi),.022,
+                    materials['edge'],col,vertices=4))
+        b.box('rear access hood',(-5.48,y*.72,1.49),(.14,.55,.65))
     if s['id']=='skc34-203-twin-rf':
         for sign in [-1,1]:
-            b.plate('rangefinder armored wing',[(-4.17,2.24),(-4.17,3.20),(-4.04,3.31),(-2.72,3.31),(-2.72,2.24),(-2.90,2.13)],*sorted([sign*2.85,sign*4.02]))
-            b.rod('optical lens',(-2.71,sign*3.65,2.72),(-2.66,sign*3.65,2.72),.22,'dark')
-            b.box('lens brow',(-2.62,sign*3.65,2.97),(.22,.57,.10),'edge')
+            b.plate('rangefinder armored wing',[(-4.55,2.03),(-4.55,2.98),(-4.35,3.11),(-2.60,3.11),(-2.60,2.10),(-2.85,1.98)],*sorted([sign*2.58,sign*4.02]))
+            b.rod('optical lens',(-2.59,sign*3.65,2.47),(-2.54,sign*3.65,2.47),.22,'dark')
+            b.box('lens brow',(-2.55,sign*3.65,2.75),(.22,.57,.10),'edge')
     for side,y,_ in barrel_layout(s):
         seam=[]
-        for i in range(20):
-            a=i*math.tau/20;z=1.38+.99*math.sin(a)
+        for i in range(16):
+            a=i*math.tau/16;z=1.32+.91*math.sin(a)
             x=2.6-.58*(z-.06)/1.62 if z<=1.68 else 2.02-.57*(z-1.68)/.96
             seam.append((x+.022,y+.48*math.cos(a),z))
-        create_bloomer(mount,col,helpers,materials,side,seam,s['trunnionForward']+1.50,.267,rings=5,fold_depth=.025,slack=.045)
+        create_bloomer(mount,col,helpers,materials,side,seam,s['trunnionForward']+1.50,.267,rings=5,fold_depth=.050,slack=.085,fullness=.055)
     return b.finish()
 
 

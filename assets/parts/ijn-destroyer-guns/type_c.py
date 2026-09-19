@@ -60,7 +60,7 @@ def create_mount(mount,col,helpers,materials):
                 x=1.36-(z-1.02)*.18/1.23 if z<=2.25 else 1.18-(z-2.25)*1.63/.14
                 rim.append((x+.018,y,z))
             create_bloomer(mount,col,helpers,materials,side,rim,sp['trunnionForward']+1.82,.184,
-                           rings=6,fold_depth=.018,slack=.035,fullness=.08,forward_fullness=.03)
+                           rings=6,fold_depth=.045,slack=.075,fullness=.045,forward_fullness=.04)
             for a,b,ra,rb in [(-.2,1.9,.17,.17),(1.9,2.1,.17,.15),(2.1,4.56,.15,.116),(4.56,4.64,.116,.123)]:
                 put(rod(name+'.chase',(a,0,0),(b,0,0),ra,materials['edge'],r2=rb,vertices=16),rec)
             put(rod(name+'.bore',(4.634,0,0),(4.644,0,0),.0635,materials['dark'],vertices=12),rec)
@@ -75,9 +75,9 @@ def create_mount(mount,col,helpers,materials):
         for y in [-.56,.56]:
             pts=[(-2.05,y,roof(-2.05,y)),(-2.05,y,roof(-2.05,y)+.16),(-.9,y,roof(-.9,y)+.16),(-.9,y,roof(-.9,y))]
             put(tube_path(name+'.roof-grab',pts,.018,materials['edge']))
-        x,y=.05,-1.5;z=roof(x,y)
-        put(box(name+'.sight-hood',(x,y,z+.19),(.60,.65,.36),materials['naval'],bev=.075))
-        put(box(name+'.sight-glass',(x+.307,y,z+.2),(.012,.39,.14),materials['glass'],bev=.015))
+        x,y=.05,1.5;z=roof(x,y)
+        put(box(name+'.sight-hood',(x,y,z+.10),(.60,.65,.20),materials['naval'],bev=.075))
+        put(box(name+'.sight-glass',(x+.307,y,z+.12),(.012,.39,.12),materials['glass'],bev=.015))
         for sign in [-1,1]:
             # The handrails follow the tapered side rather than floating outside it.
             side=[(1.27,sign*1.05),(.98,sign*1.97),(.58,sign*2.35),(-.95,sign*2.35),(-2.8,sign*1.99),(-3.49,sign*1.18)]
@@ -85,9 +85,9 @@ def create_mount(mount,col,helpers,materials):
                 contacts=[skin.find_nearest(Vector((x,y,z)))[:2] for x,y in side]
                 put(tube_path(name+'.side-rail',[p+n*.05 for p,n in contacts],.016,materials['edge']))
                 for p,n in contacts:put(rod(name+'.side-rail-foot',p-n*.012,p+n*.05,.020,materials['naval']))
-            put(box(name+'.rear-door',(-3.53,sign*.69,1.08),(.065,.73,1.36),materials['naval'],bev=.09))
+            put(box(name+'.rear-door',(-3.53,sign*.78,1.15),(.065,1.03,1.61),materials['naval'],bev=.09))
             put(rod(name+'.door-handle',(-3.58,sign*.46,.94),(-3.58,sign*.46,1.10),.018,materials['edge']))
-            for z in [.48,.83,1.18,1.53,1.88]:
+            for z in [.37,2.04]:
                 put(tube_path(name+'.rear-step',[(-3.48,sign*.16,z),(-3.62,sign*.16,z),(-3.62,sign*.36,z),(-3.48,sign*.36,z)],.018,materials['edge']))
         # Visible radial floor knees connect the overhanging apron to the bearing ring.
         for i in range(12):
@@ -101,7 +101,7 @@ def create_mount(mount,col,helpers,materials):
     house=next(o for o in col.objects if o.get('assemblyId')==name and 'sloped gunhouse' in o.name)
     for face in house.data.polygons:face.use_smooth=True
     house.data.set_sharp_from_angle(angle=math.radians(32))
-    bevel=house.modifiers.new('Rolled Type C edges','BEVEL');bevel.width=.14;bevel.segments=3
+    bevel=house.modifiers.new('Rolled Type C edges','BEVEL');bevel.width=.11;bevel.segments=2
     normals=house.modifiers.new('Type C plate normals','WEIGHTED_NORMAL');normals.keep_sharp=True;normals.weight=35
     refined_main(mount,yaw)
     return yaw

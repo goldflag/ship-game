@@ -17,3 +17,11 @@ gunhouse floor. GameModels3D's standalone turret omits that installation
 support; whole-model height comparisons therefore need this datum distinction.
 Keep the support when using the existing ship mount positions. Detailed source
 fit and installed-neighbor clearance remain subject to model review.
+
+Mogami E3/E retain their 13e3e07 whole-assembly ceilings of 3,406/3,666 triangles.
+The main-battery refinement removes bearing fasteners, narrows aft shoulders,
+adds a seated rear access ladder and replaces the E variant's exposed rangefinder
+tube/braces with a continuous tapered armored casing. Canvas folds remain an
+approximation; small face mechanisms and optical housings are simplified. The
+Yamato 15.5 cm variant is secondary-only in current consumers and belongs to the
+separate secondary/AA pass, despite that caliber's use as main armament elsewhere.

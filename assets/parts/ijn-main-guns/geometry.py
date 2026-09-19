@@ -268,9 +268,6 @@ def create_mogami_main(mount, collection, helpers, materials):
     rangefinder = '-e-twin' in (mount.get('partId') or spec.get('id', ''))
     before = set(bpy.context.scene.objects)
     cyl(n + '.roller', (0, 0, .03), spec['barbetteRadius'], .06, edge, col, 32)
-    for i in range(24):
-        t = i * math.tau / 24; r = spec['barbetteRadius']
-        rod(n + '.roller.fastener', (r * math.cos(t), r * math.sin(t), .03), ((r + .025) * math.cos(t), (r + .025) * math.sin(t), .03), .03, edge, col, vertices=6)
     # Rounded-corner footprint swept through five levels; the face curves back to the roof.
     k = .339411254969543; q = .1405887450304571
     def ring(front, rear, half, z):
@@ -278,6 +275,8 @@ def create_mogami_main(mount, collection, helpers, materials):
                 (rear, -half + .48, z), (rear + q, -half + q, z), (rear + .48, -half, z), (front - .48, -half, z), (front - q, -half + q, z), (front, -half + .48, z)]
     rings = [ring(2.6697, -5.456, 2.8342, .04), ring(2.4791, -5.36, 2.695, 1), ring(2.0131, -5.29, 2.5935, 1.7),
              ring(1.5457, -5.26, 2.55, 2), ring(1.2718, -5.253, 2.53985, 2.07)]
+    # The source's rear shoulders taper into the flat access face.
+    rings=[[(x,y*(1-.12*max(0,min(1,(-x-2.8)/2.5))),z) for x,y,z in ring] for ring in rings]
     gap = spec['barrelSpacing'] / 2; centers = [gap, -gap]; port_half = .56
     face = _shell(n, mesh, box, rings, 11, centers, port_half, .45, 2.07, naval, roof, dark, col)
     for gy in centers:
@@ -307,19 +306,25 @@ def create_mogami_main(mount, collection, helpers, materials):
                 y = s * (side_y(z) + .002)
                 rod(n + '.side.rivet', (x + .06, y, z), (x + .06, y + s * .022, z), .022, edge, col, vertices=6)
         rod(n + '.side.seam.horizontal', (-4.7, s * 2.697, 1.0), (.6, s * 2.697, 1.0), .013, edge, col, vertices=6)
-        box(n + '.rear.access', (-5.335, s * .93, 1.04), (.045, .65, 1.3), naval, col)
-        for z in (.56, 1.10, 1.63): box(n + '.rear.hinge', (-5.365, s * 1.24, z), (.065, .12, .14), edge, col)
-        rod(n + '.rear.handle', (-5.38, s * .8, .92), (-5.38, s * .8, 1.14), .027, edge, col, vertices=6)
-        cyl(n + '.roof.hatch', (-3.6, s * 1.9, 2.10), .27, .07, roof, col, 12)
+    # Full-height center access and its offset ladder replace two floating small doors.
+    box(n+'.rear.access',(-5.36,0,1.07),(.045,1.20,1.87),naval,col)
+    _ladder(n+'.rear',rod,(-5.43,.82,.14),(-5.32,.82,2.07),.43,edge,col,along=(0,1,0))
     if rangefinder:
-        rod(n + '.rangefinder.tube', (-3.9, -4.15, 1.85), (-3.9, 4.15, 1.85), .18, naval, col, vertices=12)
-        for s in (-1, 1):
-            y = s * 4.09
-            box(n + '.rangefinder.hood', (-4.10, y, 1.94), (1.74, .49, .96), naval, col)
-            box(n + '.rangefinder.hood.roof', (-4.12, y, 2.44), (1.82, .57, .05), roof, col)
-            box(n + '.rangefinder.glass', (-3.222, y, 1.95), (.018, .26, .31), dark, col)
-            rod(n + '.rangefinder.bearing', (-3.9, s * 2.52, 1.85), (-3.9, s * 3.55, 1.85), .28, naval, col, vertices=12)
-            rod(n + '.rangefinder.brace', (-3.9, s * 3.4, 1.62), (-3.9, s * 2.72, .95), .06, naval, col, vertices=8)
+        # Continuous armored casing, broad at the center and tapered under each
+        # wing. The optics attach to the end faces rather than hanging on rods.
+        sections=[(-4.34,1.70,2.40),(-3.45,1.48,2.42),(-2.50,1.40,2.39),(0,1.70,2.42),
+                  (2.50,1.40,2.39),(3.45,1.48,2.42),(4.34,1.70,2.40)]
+        vs=[(x,y,z) for y,bottom,top in sections for x,z in [(-5.35,bottom),(-3.70,bottom),(-3.70,top),(-5.35,top)]]
+        fs=[(3,2,1,0),(24,25,26,27)]
+        fs += [(j*4+i,j*4+(i+1)%4,(j+1)*4+(i+1)%4,(j+1)*4+i) for j in range(6) for i in range(4)]
+        mesh(n+'.rangefinder.casing',vs,fs,naval,col)
+        for sign in [-1,1]:
+            box(n+'.rangefinder.glass',(-3.69,sign*4.02,2.06),(.018,.49,.40),dark,col)
+            box(n+'.rangefinder.brow',(-3.65,sign*4.02,2.35),(.13,.61,.06),roof,col)
+    else:
+        for sign in [-1,1]:
+            box(n+'.rear.roof.vent',(-4.82,sign*1.85,2.12),(.52,.50,.20),naval,col)
+            box(n+'.rear.roof.vent.opening',(-5.09,sign*1.85,2.12),(.018,.38,.11),dark,col)
     # Plate joins are paint/normal-scale detail at gameplay distance, not
     # proud round rods. Keep actual ladders, sights, hatches and port frames.
     for detail in list(set(bpy.context.scene.objects) - before):
@@ -335,4 +340,13 @@ def create_mogami_main(mount, collection, helpers, materials):
         # Broad fabric bag with a drooping middle and narrow barrel collar.
         _gun(n, rod, spec, lateral, sections, edge, dark, col)
         groups.append(list(set(bpy.context.scene.objects) - start))
-    return _covers(mount, col, helpers, materials, face, centers, port_half + .02, .43, 2.07, pivot + 2.03, .245, frame, groups)
+    yaw=articulate_aa(mount,col,frame,groups)
+    for side,lateral in zip(['left','right'],centers):
+        rim=[]
+        for i in range(24):
+            a=i*math.tau/24;c=math.cos(a);sn=math.sin(a);square=max(abs(c),abs(sn))
+            z=1.25+.82*sn/square
+            rim.append((face(z)[0]+.018,lateral+.58*c/square,z))
+        create_bloomer(mount,col,helpers,materials,side,rim,pivot+1.74,.245,
+                       rings=6,fold_depth=.055,slack=.10,fullness=.065,forward_fullness=.08)
+    return yaw
