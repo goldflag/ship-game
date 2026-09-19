@@ -11,9 +11,8 @@ import { assetUrl } from '../assetUrl';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { airWingTelemetry } from './session/airTelemetry';
 import { projectShipLabel } from './ShipLabels';
-import { projectAirMapPath } from './AirMapProjection';
-import { projectAirMapPolygon } from './AirMapPolygon';
-import { reportName, reportPosition } from '../ui/reconReports';
+import { AirMapController } from './controllers/AirMapController';
+import { reportName } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
@@ -140,8 +139,6 @@ export class Game {
   private playerView?: ShipView;
   private targetView?: ShipView;
   private fleetViews: ShipView[] = [];
-  /** Label anchor height per rendered hull, measured once from the authored model. */
-  private fleetShipTops = new WeakMap<ShipView, number>();
   private fleetDraws?: FleetShipDraws;
   private observedShipViews = new ObservedShipViews();
   private readonly fleetVisibility = new FleetVisibility();
@@ -1371,44 +1368,20 @@ export class Game {
   prioritizeDeckTask(carrierId: string, requestId: number): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && (this.simulation.prioritizeDeckTask?.(carrierId, requestId) ?? false); }
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.commandSquadron(id, order); }
-  panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }
-  private readonly mapProjectionState = new Float64Array(35);
-  private mapProjectionVersion = 0;
-  /** Counts the moves of everything an air-map projection reads: pose, lens and viewport.
-   * An unchanged count means an overlay may reuse the points it projected last frame. */
-  get mapProjectionStamp(): number {
-    const view = this.camera.matrixWorldInverse.elements, lens = this.camera.projectionMatrix.elements, state = this.mapProjectionState;
-    // The framebuffer follows every resize, and reading it cannot force a layout mid-overlay.
-    const width = this.renderer.domElement.width, height = this.renderer.domElement.height;
-    let moved = state[32] !== width || state[33] !== height || state[34] !== this.hudScale;
-    for (let i = 0; i < 16 && !moved; i++) moved = state[i] !== view[i] || state[16 + i] !== lens[i];
-    if (!moved) return this.mapProjectionVersion;
-    state.set(view); state.set(lens, 16);
-    state[32] = width; state[33] = height; state[34] = this.hudScale;
-    return ++this.mapProjectionVersion;
+  private airMapController?: AirMapController;
+  /** Chart gestures and projections. Built on first use, so a test-assembled Game has one too. */
+  private get airMap(): AirMapController {
+    const game = this;
+    return this.airMapController ??= new AirMapController({
+      get simulation() { return game.simulation; }, get camera() { return game.camera; }, get battlefieldCamera() { return game.battlefieldCamera; },
+      get fleetViews() { return game.fleetViews; }, get aircraftView() { return game.aircraftView; }, get observedShipViews() { return game.observedShipViews; },
+      get host() { return game.host; }, get canvas() { return game.renderer.domElement; }, get hudScale() { return game.hudScale; },
+    });
   }
-  projectAirMap(x: number, z: number, altitude = 0): [number, number] | null {
-    // Use the same depth and viewport clipping as ship-view nametags.
-    const point = projectShipLabel(new THREE.Vector3(x, altitude, z), this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
-    return point ? [point.x, point.y] : null;
-  }
-  /** Screen point above a friendly hull's rendered top, where the ship-view nametag sits, so a
-   * fleet-chart marker rides over the ship however low the camera is. Null off screen or when
-   * the hull has no rendered model, in which case the marker stays at the telemetry position. */
-  projectFleetShip(id: string): [number, number] | null {
-    const view = this.fleetViews.find(v => v.actor.motion.id === id);
-    if (!view || !view.root.visible || view.motion.y <= -40) return null;
-    let top = this.fleetShipTops.get(view);
-    if (top === undefined) {
-      const bounds = new THREE.Box3().setFromObject(view.root.children[0]);
-      top = (bounds.isEmpty() ? view.definition.hull.depth : bounds.max.y - view.root.position.y) + 5;
-      this.fleetShipTops.set(view, top);
-    }
-    view.root.updateWorldMatrix(true, false);
-    const anchor = new THREE.Vector3(0, top, 0).applyMatrix4(view.root.matrixWorld);
-    const point = projectShipLabel(anchor, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
-    return point ? [point.x, point.y] : null;
-  }
+  panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.airMap.pan(dx, dy, x, y); }
+  get mapProjectionStamp(): number { return this.airMap.projectionStamp; }
+  projectAirMap(x: number, z: number, altitude = 0): [number, number] | null { return this.airMap.project(x, z, altitude); }
+  projectFleetShip(id: string): [number, number] | null { return this.airMap.projectFleetShip(id); }
   /** Hostile hulls the sight can lead: simulated enemies afloat and fresh reports of the rest. */
   private torpedoContacts(): LeadContact[] {
     const { player, actors, observedShips, observationTracks, tick } = this.simulation;
@@ -1435,62 +1408,19 @@ export class Game {
       return { id: report.id, name: track ? reportName(track) : 'Surface contact', health: fresh ? report.health : undefined, sunk: !!track?.visibleCondition?.sinking };
     });
   }
-  private contactPosition(id: string): Vec3 | undefined {
-    const report = this.simulation.observationTracks?.find(contact => contact.id === id);
-    if (!report) return;
-    const exterior = report.status === 'tracked' ? (report.kind === 'aircraft' ? this.aircraftView.observedPosition(id) : this.observedShipViews?.position(id)) : undefined;
-    return exterior ? [exterior.x, exterior.y, exterior.z] : reportPosition(report, this.simulation.tick);
-  }
-  projectContact(id: string): [number, number] | null {
-    const position = this.contactPosition(id);
-    return position ? this.projectAirMap(position[0], position[2], position[1]) : null;
-  }
-  projectContactGroup(ids: string[]): [number, number] | null {
-    const positions = ids.flatMap(id => { const position = this.contactPosition(id); return position ? [position] : []; });
-    if (!positions.length) return null;
-    const center = positions.reduce<Vec3>((sum, p) => [sum[0] + p[0] / positions.length, sum[1] + p[1] / positions.length, sum[2] + p[2] / positions.length], [0, 0, 0]);
-    return this.projectAirMap(center[0], center[2], center[1]);
-  }
-  projectAircraft(id: string): [number, number] | null {
-    const plane = this.simulation.aircraft.find(p => p.id === id && airborne(p));
-    if (!plane) return null;
-    const position = new THREE.Vector3(...plane.previousPosition).lerp(new THREE.Vector3(...plane.position), this.simulation.interpolationAlpha);
-    return this.projectAirMap(position.x, position.z, position.y);
-  }
-  projectAirMapPath(points: Vec3[], closed = false, filled = false): string {
-    return filled ? projectAirMapPolygon(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale)
-      : projectAirMapPath(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale, closed);
-  }
-  projectSquadron(ownerId: string, flightId: string): { x: number; y: number } | null {
-    const actor = this.simulation.actors.find(a => a.motion.id === ownerId);
-    const planes = actor?.airWing?.planes.filter(p => p.flightId === flightId && airborne(p)) ?? [];
-    if (!planes.length) return null;
-    const anchor = new THREE.Vector3();
-    for (const plane of planes) {
-      anchor.add(new THREE.Vector3(...plane.previousPosition).lerp(new THREE.Vector3(...plane.position), this.simulation.interpolationAlpha));
-    }
-    anchor.divideScalar(planes.length).y += 24;
-    return projectShipLabel(anchor, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
-  }
-  airMapWater(x: number, y: number): [number, number] | undefined {
-    const ray = new THREE.Raycaster();
-    ray.setFromCamera(new THREE.Vector2(x / this.host.clientWidth * 2 - 1, 1 - y / this.host.clientHeight * 2), this.camera);
-    const p = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
-    return p ? [p.x, p.z] : undefined;
-  }
-  zoomAirMap(delta: number, x = this.host.clientWidth / 2, y = this.host.clientHeight / 2): void {
-    this.battlefieldCamera.zoom(delta, x, y, this.host.clientWidth, this.host.clientHeight);
-  }
-  private reportedMapPoints(): { x: number; z: number }[] {
-    return [...this.simulation.actors.map(a => a.motion), ...(this.simulation.observationTracks ?? []).map(c => ({ x: c.estimatedPosition[0], z: c.estimatedPosition[2] }))];
-  }
-  fitAirMap(): void { this.battlefieldCamera.fit(this.reportedMapPoints(), this.host.clientWidth, this.host.clientHeight); }
-  centerAirMap(): void { this.battlefieldCamera.view.x = this.simulation.ship.x; this.battlefieldCamera.view.z = this.simulation.ship.z; }
-  /** Bring a unit chosen off the chart into view without changing zoom or angle. */
-  centerAirMapOn(x: number, z: number): void { this.battlefieldCamera.view.x = x; this.battlefieldCamera.view.z = z; }
-  orbitAirMap(dx: number, dy: number): void { this.battlefieldCamera.orbit(dx, dy); }
-  setAirMapTilt(degrees: number): void { this.battlefieldCamera.setTilt(degrees * Math.PI / 180); }
-  resetAirMapAngle(): void { this.battlefieldCamera.resetAngle(); }
+  projectContact(id: string): [number, number] | null { return this.airMap.projectContact(id); }
+  projectContactGroup(ids: string[]): [number, number] | null { return this.airMap.projectContactGroup(ids); }
+  projectAircraft(id: string): [number, number] | null { return this.airMap.projectAircraft(id); }
+  projectAirMapPath(points: Vec3[], closed = false, filled = false): string { return this.airMap.projectPath(points, closed, filled); }
+  projectSquadron(ownerId: string, flightId: string): { x: number; y: number } | null { return this.airMap.projectSquadron(ownerId, flightId); }
+  airMapWater(x: number, y: number): [number, number] | undefined { return this.airMap.waterAt(x, y); }
+  zoomAirMap(delta: number, x?: number, y?: number): void { this.airMap.zoom(delta, x, y); }
+  fitAirMap(): void { this.airMap.fit(); }
+  centerAirMap(): void { this.airMap.center(); }
+  centerAirMapOn(x: number, z: number): void { this.airMap.centerOn(x, z); }
+  orbitAirMap(dx: number, dy: number): void { this.airMap.orbit(dx, dy); }
+  setAirMapTilt(degrees: number): void { this.airMap.setTilt(degrees); }
+  resetAirMapAngle(): void { this.airMap.resetAngle(); }
   setAirOperationsOpen(open: boolean): void {
     if (this.inPort || (!this.fleetCommandMode && ((open && (this.simulation.player.damage.sunk || this.paused)) || !this.simulation.player.airWing))) return;
     if (open === this.airOperationsOpen) return;
@@ -1500,7 +1430,7 @@ export class Game {
     if (open) {
       if (this.inspecting) this.inspectTarget();
       this.endFollow(); this.rig.setEnabled(this.controls().rigEnabled);
-      this.battlefieldCamera.enter(this.reportedMapPoints(), this.host.clientWidth, this.host.clientHeight);
+      this.battlefieldCamera.enter(this.airMap.reportedPoints(), this.host.clientWidth, this.host.clientHeight);
       if (!this.fleetCommandMode) this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
       // Water Pro sizes its horizon ring when geometry is built, before the map
       // increases camera.far. Grow it once and retain it for subsequent map visits.
