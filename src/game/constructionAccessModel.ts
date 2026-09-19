@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { accessMemberAxes, type AccessLayout } from '../../assets/parts/construction/access_geometry';
 import { componentMaterial } from '../ships/componentMaterials';
 
-/** Shared renderer for the editor, export and the ladder playground. */
+/** Shared renderer for the editor and portable ship export. */
 export function createAccessModel(layout: AccessLayout, ghost = false): THREE.Group {
   const group = new THREE.Group(), surface = componentMaterial('naval');
   const material = new THREE.MeshStandardMaterial({ color: new THREE.Color().setRGB(...surface.color as [number,number,number]), roughness: surface.roughness, metalness: surface.metallic, transparent: ghost, opacity: ghost ? .6 : 1, depthWrite: !ghost });

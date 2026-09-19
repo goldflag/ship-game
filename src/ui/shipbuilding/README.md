@@ -308,5 +308,4 @@ fittings in Deck gear. Stairs connect a lower deck to an upper deck edge;
 framed ladders climb a closed hull side. Their selected object tags expose width,
 stair handrail sides, ladder wall standoff and grab extension. Native compilation
 checks every attachment and member clearance. Endpoints set the rise/run; step
-and rung counts adjust automatically. The development-only `ladder:playground`
-command opens an interactive deck-access study using the same recipes.
+and rung counts adjust automatically.

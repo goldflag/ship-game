@@ -7,9 +7,7 @@ import '@fontsource/barlow-condensed/latin-600.css';
 import './ui/styles.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
-if (import.meta.env.DEV && new URLSearchParams(location.search).has('ladderPlayground')) {
-  void import('./ui/shipbuilding/ladder-playground/LadderPlayground').then(({ default: Playground }) => root.render(<Playground />));
-} else if (import.meta.env.DEV && new URLSearchParams(location.search).has('propellerPlayground')) {
+if (import.meta.env.DEV && new URLSearchParams(location.search).has('propellerPlayground')) {
   void import('./ui/shipbuilding/propeller-playground/PropellerPlayground').then(({ default: Playground }) => root.render(<Playground />));
 } else if (import.meta.env.DEV && new URLSearchParams(location.search).has('hullPrototype')) {
   void import('./ui/shipbuilding/hull-prototype/HullPrototype').then(({ default: HullPrototype }) => root.render(<HullPrototype />));

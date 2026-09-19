@@ -434,7 +434,7 @@ engineering interpretations, not researched historical variants or access-code
 certification. They remain unreviewed for vessel-specific historical use.
 
 `access_geometry.ts` is the original metric geometry recipe used by the editor,
-portable ship export and playground. `access_fittings.py` builds standalone
+portable ship export. `access_fittings.py` builds standalone
 Blender samples through that same recipe, via `access_sample.ts`. Both TypeScript
 inputs are declared in the registry. Rust's `construction_access.rs` mirrors
 member geometry for support, clearance, mass and inertia. Steel loading uses
@@ -442,5 +442,3 @@ provisional material fractions for folded treads, channel stringers and tubes;
 these fittings add no buoyancy or crew pathfinding. Mounting ends may seat within
 18 cm of their supported attachment; other hull and equipment intersections fail.
 Framed ladders currently require a straight wall run, without a horizontal bend.
-
-Run `bun run ladder:playground` for the development-only installation study.
