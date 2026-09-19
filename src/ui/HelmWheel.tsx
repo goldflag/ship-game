@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FleetDesk } from './fleet/fleetDesk';
 import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
-import { resolveShip } from '../ships/localShips';
+import { resolveShip, shipTitle } from '../ships/localShips';
 import { KNOTS_PER_MPS } from '../game/session/motion';
 import { SHIP_GLYPHS, shipClassOf } from './shipGlyphs';
 import './HelmWheel.css';
@@ -125,7 +125,7 @@ export function HelmWheel({ data, desk, bindings }: { data: Telemetry; desk: Fle
   }, [pointer, nodes, wheel?.reason]);
   if (!wheel || !desk) return null;
   const sunk = wheel.reason === 'sunk';
-  const centreName = data.shipDefinition?.name ?? data.ship.id;
+  const centreName = data.shipDefinition ? shipTitle(data.shipDefinition) : data.ship.id.toUpperCase();
   const holdKey = bindingLabel(bindings, 'helmWheel');
   const rings = WHEEL_RINGS_KM.filter(km => km <= maxKm);
   const ray = pointer && nearestNode(nodes, pointer.x, pointer.y) ? pointer : null;

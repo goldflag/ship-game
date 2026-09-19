@@ -1,8 +1,9 @@
+import { accessDefaults, accessLayout, accessMemberAxes, isAccessKind } from '../../assets/parts/construction/access_geometry';
 import type { ConstructionEquipment, ConstructionEquipmentPart, Vec3 } from './blueprint';
 import { ladderRungs } from '../../assets/parts/construction/ladder_geometry';
 import { pathDistance, samplePath } from '../../assets/parts/construction/path_geometry';
 
-export const DEFAULT_PATH: { points: Vec3[]; slackM?: number } = { points: [[0, 0, 0], [0, 0, -4]] };
+export const DEFAULT_PATH: NonNullable<ConstructionEquipment['path']> = { points: [[0, 0, 0], [0, 0, -4]] };
 export const pathOf = (item: Pick<ConstructionEquipment, 'path'>) => item.path ?? DEFAULT_PATH;
 export const railingSettings = (part: ConstructionEquipmentPart, path?: ConstructionEquipment['path']) => ({ heightM: path?.heightM ?? part.path?.heightM ?? 1.1, railCount: path?.railCount ?? part.path?.railCount ?? 3 });
 export function pathWorldPoint(item: Pick<ConstructionEquipment, 'position' | 'bearingDeg'>, p: Vec3): Vec3 {
@@ -26,6 +27,13 @@ export function pathProblem(points: readonly Vec3[], slackM = 0): string | undef
 export function equipmentPathBounds(part: ConstructionEquipmentPart, item: Pick<ConstructionEquipment, 'path'>): { center: Vec3; size: Vec3 } {
   if (!part.path) return { center: part.boundsCenter, size: part.size };
   const path = pathOf(item), profile = part.path;
+  if (isAccessKind(profile.kind)) {
+    const layout = accessLayout(profile.kind, path.points, path.access ?? accessDefaults(profile.kind));
+    if (!layout) return { center: [0,0,0], size: [.1,.1,.1] };
+    const points = layout.members.flatMap(m => { const [x,y] = accessMemberAxes(m); return [m.a,m.b].flatMap(p => [-1,1].flatMap(sx => [-1,1].map(sy => p.map((v,k) => v + x[k]*sx*m.width/2 + y[k]*sy*m.depth/2)))); });
+    const min=[0,1,2].map(k => Math.min(...points.map(p => p[k]))), max=[0,1,2].map(k => Math.max(...points.map(p => p[k])));
+    return { center: min.map((v,k) => (v+max[k])/2) as Vec3, size: min.map((v,k) => max[k]-v) as Vec3 };
+  }
   const ladder = profile.kind === 'ladder' ? ladderRungs(path.points, {widthM:profile.widthM!,standOffM:profile.standOffM!,postSpacingM:profile.postSpacingM!}) : undefined;
   const points = ladder ? ladder.members.flat() : profile.kind === 'railing' ? path.points.flatMap(p => [p, [p[0], p[1] + Math.max(railingSettings(part, item.path).heightM, profile.diameterM * .75), p[2]] as Vec3]) : samplePath(path.points, path.slackM ?? 0);
   // Enclose the corners of square bars, including sloped or rotated spans.

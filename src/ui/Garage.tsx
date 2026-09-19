@@ -15,7 +15,7 @@ import { ModelViewControls, PortInspection } from "./PortInspection";
 import { ShipStatistics } from "./ShipStatistics";
 import { ShipClassIcon } from "./ShipClassIcons";
 import { battleModeName, type BattleMode } from "./battle/battleModes";
-import { localShip, localShips, subscribeLocalShips } from '../ships/localShips';
+import { localShip, localShips, shipTitle, subscribeLocalShips } from '../ships/localShips';
 import { usePortDesigns } from './usePortDesigns';
 import { Button } from './components';
 import { DeleteDesignButton } from './DeleteDesignButton';
@@ -300,7 +300,7 @@ function PortLayout({ state }: { state: GarageState }) {
         </div>
       </header>
       <section className="garage-classic-identity">
-        <h1>{selectedShip.name.toUpperCase()}</h1>
+        <h1>{shipTitle(selectedShip)}</h1>
         <div>
             <span>{SHIP_MODEL.type}</span>
           {(SHIP_MODEL.nation || SHIP_MODEL.year) && <span>{[SHIP_MODEL.nation, SHIP_MODEL.year].filter(Boolean).join(" · ")}</span>}

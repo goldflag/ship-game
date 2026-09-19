@@ -1,3 +1,4 @@
+import { isAccessKind } from '../../../assets/parts/construction/access_geometry';
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionSource, Vec3 } from '../../ships/blueprint';
 import { pathWorldPoint } from '../../ships/constructionPaths';
 import { pathDistance } from '../../../assets/parts/construction/path_geometry';
@@ -20,7 +21,7 @@ export function pathAnchor(part: ConstructionEquipmentPart, source: Construction
   if (!profile) return undefined;
   const fitting = source.construction.equipment.find(item => item.id === hit.id);
   if (fitting) {
-    if (profile.kind === 'railing' || profile.kind === 'ladder') return undefined;
+    if (profile.kind === 'railing' || profile.kind === 'ladder' || isAccessKind(profile.kind)) return undefined;
     const support = catalog.equipment.find(p => p.id === fitting.partId);
     if (!support || support.path) return undefined;
     if (support.riggingSurface && hit.normal) {
@@ -31,9 +32,10 @@ export function pathAnchor(part: ConstructionEquipmentPart, source: Construction
   }
   if (!source.construction.primitives.some(p => p.id === hit.id)) return undefined;
   const normal = hit.normal ?? [0, 1, 0], point = hit.point.map((v, k) => k === hit.axis ? v : gridCoordinate(v, step)) as Vec3;
-  if(profile.kind === 'ladder' && Math.abs(normal[1]) >= .9) return undefined;
+  if((profile.kind === 'ladder' || profile.kind === 'framed-ladder') && Math.abs(normal[1]) >= .9) return undefined;
+  if (profile.kind === 'inclined-ladder' && normal[1] < .9) return undefined;
   const error = normal.reduce((sum, v, k) => sum + v * (point[k] - hit.point[k]), 0);
   point[hit.axis] -= error / (normal[hit.axis] || 1);
-  const radius = profile.kind === 'railing' || profile.kind === 'ladder' ? 0 : profile.diameterM * (profile.kind === 'chain' ? 2 : .5);
+  const radius = profile.kind === 'railing' || profile.kind === 'ladder' || isAccessKind(profile.kind) ? 0 : profile.diameterM * (profile.kind === 'chain' ? 2 : .5);
   return point.map((v, k) => v + normal[k] * radius) as Vec3;
 }

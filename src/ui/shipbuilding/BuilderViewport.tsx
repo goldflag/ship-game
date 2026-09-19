@@ -1,3 +1,4 @@
+import { isAccessKind } from '../../../assets/parts/construction/access_geometry';
 import { RotateHandles } from './RotateHandles';
 import { orientVector, unorientVector, rotateBlock } from '../../ships/constructionOrientation';
 import { balconyPlacement, seatBalconyOnHull } from './balconyPlacement';
@@ -1255,7 +1256,7 @@ class Viewport {
   private pathPick(event: { clientX: number; clientY: number }): Vec3 | undefined {
     const draft = this.props.scene.pathDraft;
     if (!draft) return undefined;
-    const hit = this.pick(event, draft.part.path?.kind === 'railing' || draft.part.path?.kind === 'ladder' ? 'hull' : 'all');
+    const hit = this.pick(event, draft.part.path?.kind === 'railing' || draft.part.path?.kind === 'ladder' || isAccessKind(draft.part.path?.kind) ? 'hull' : 'all');
     if (!hit) return undefined;
     if(draft.part.path?.kind === 'ladder' && (!hit.surface || !(this.props.scene.result?.surfaces.some(s=>surfaceSelectionKey(s)===hit.surface&&!s.open))))return;
     const settings = this.props.scene.snapping ?? DEFAULT_SNAPPING;
@@ -1274,7 +1275,7 @@ class Viewport {
     if (key === this.pathPreviewKey) return;
     this.pathPreviewKey = key; release(this.pathPreview);
     if (!draft || !points.length) return;
-    if(points.length>1 && draft.part.path?.kind === 'ladder') {
+    if(points.length>1 && (draft.part.path?.kind === 'ladder' || isAccessKind(draft.part.path?.kind))) {
       const item=pathEquipment('preview',draft.part.id,points,0,draft.bearingDeg);
       const add=(item:ConstructionEquipment)=>{const model=createConstructionPathModel(draft.part,item.path,true,{item,surfaces:this.props.scene.result?.surfaces??[]});model.position.fromArray(item.position);model.rotation.y=-item.bearingDeg*Math.PI/180;this.pathPreview.add(model);};
       add(item);

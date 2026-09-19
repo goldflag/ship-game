@@ -803,6 +803,22 @@
         "assets/parts/construction/geometry.py"
       ]
     },
+    "generic-inclined-ladder": {
+      "path": "assets/parts/construction/access_fittings.py",
+      "function": "create_access",
+      "inputs": [
+        "assets/parts/construction/access_geometry.ts",
+        "assets/parts/construction/access_sample.ts"
+      ]
+    },
+    "generic-framed-ladder": {
+      "path": "assets/parts/construction/access_fittings.py",
+      "function": "create_access",
+      "inputs": [
+        "assets/parts/construction/access_geometry.ts",
+        "assets/parts/construction/access_sample.ts"
+      ]
+    },
     "generic-single-bollard": {
       "path": "assets/parts/construction/bollards.py",
       "function": "create_single_bollard",
@@ -1560,6 +1576,18 @@
       "builder": "generic-rudder-6000",
       "review": "unreviewed",
       "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-inclined-ladder",
+      "builder": "generic-inclined-ladder",
+      "review": "unreviewed",
+      "limitations": "Original adjustable generic access fitting; no specific historical vessel fit. Native validation owns support, clearance and provisional steel loading. The standalone model shows the default three-metre rise; installed geometry follows saved endpoints and access settings."
+    },
+    {
+      "partId": "generic-framed-ladder",
+      "builder": "generic-framed-ladder",
+      "review": "unreviewed",
+      "limitations": "Original adjustable generic access fitting; no specific historical vessel fit. Native validation owns support, clearance and provisional steel loading. The standalone model shows the default three-metre rise; installed geometry follows saved endpoints and access settings."
     },
     {
       "partId": "generic-single-bollard",

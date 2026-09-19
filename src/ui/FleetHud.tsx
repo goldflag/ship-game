@@ -20,6 +20,7 @@ import type { FleetDesk } from './fleet/fleetDesk';
 import './FleetHud.css';
 import { bindingLabel, WEAPON_GROUP_ACTIONS, type Keybindings } from '../game/keybindings';
 import { maxHullIntegrity } from '../ships/durability';
+import { shipTitle } from '../ships/localShips';
 import { RangefinderReadout } from './RangefinderReadout';
 
 interface FleetHudProps { data: Telemetry; desk: FleetDesk | null; visible: boolean; bindings: Keybindings; }
@@ -200,7 +201,7 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
 
     <section className="fleet-ship" aria-label="Ship condition and helm">
       {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong><span>Hull damaged</span></p>}
-      <div className="fleet-ship-name"><h1>{selectedShip.name.toUpperCase()}</h1><span className="fleet-hp" aria-label={`${hp} of ${maxIntegrity} HP`}><strong>{hp.toLocaleString()}</strong><span> / {maxIntegrity.toLocaleString()} HP</span></span></div>
+      <div className="fleet-ship-name"><h1>{shipTitle(selectedShip)}</h1><span className="fleet-hp" aria-label={`${hp} of ${maxIntegrity} HP`}><strong>{hp.toLocaleString()}</strong><span> / {maxIntegrity.toLocaleString()} HP</span></span></div>
       <div className="fleet-health-track" role="meter" aria-label="HP" aria-valuenow={hp} aria-valuemin={0} aria-valuemax={maxIntegrity}><i style={{ width: `${integrity * 100}%` }}/>{damage && damage.amount > 0 && <b className="fleet-health-loss" style={{ left: `${integrity * 100}%`, width: `${damage.amount / maxIntegrity * 100}%`, opacity: damage.opacity }}/>}</div>
       <div className="fleet-navigation"><ShipBearing data={data}/><div className="fleet-engine">
         <div className="fleet-speed"><strong>{speed}</strong><span>kts</span></div>

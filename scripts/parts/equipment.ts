@@ -34,7 +34,7 @@ export async function readEquipment(root: string) {
     if (!['internal','deck','underwater'].includes(p.placement)) throw new Error(`Invalid equipment placement: ${p.id}`);
     if (p.path) {
       const profile = p.path;
-      if (p.kind !== 'deck-fitting' || p.placement !== 'deck' || !['railing','rope','chain','ladder'].includes(profile.kind)
+      if (p.kind !== 'deck-fitting' || p.placement !== 'deck' || !['railing','rope','chain','ladder','inclined-ladder','framed-ladder'].includes(profile.kind)
         || !Number.isFinite(profile.diameterM) || profile.diameterM <= 0 || profile.diameterM > .5
         || !Number.isFinite(profile.massKgPerM) || profile.massKgPerM <= 0 || profile.massKgPerM > 1000
         || profile.railCount !== undefined && (profile.kind !== 'railing' || ![2, 3].includes(profile.railCount))
@@ -59,7 +59,7 @@ export async function readEquipment(root: string) {
     for (const key of ['powerKw','exhaustKw','thrustEfficiency','rudderAreaM2','serviceMassKg','ammunitionCapacity'] as const) if (p[key] !== undefined && (!Number.isFinite(p[key]) || p[key]! < 0)) throw new Error(`Invalid ${key}: ${p.id}`);
     if (p.kind === 'torpedo-launcher' && (!catalog.torpedoes?.some(t => t.id === p.torpedoPartId) || !p.tubeOffsets?.length || p.tubeOffsets.some(v => !finiteVec(v)))) throw new Error(`Invalid torpedo launcher: ${p.id}`);
   }
-  for (const b of Object.values(registry.builders) as Builder[]) if (!originalPath(b.path) || !/^[a-z_]+$/.test(b.function) || !Array.isArray(b.inputs) || b.inputs.some(p => !originalPath(p))) throw new Error('Non-original equipment builder path');
+  for (const b of Object.values(registry.builders) as Builder[]) if (!originalPath(b.path) || !/^[a-z_]+$/.test(b.function) || !Array.isArray(b.inputs) || b.inputs.some(p => !originalPath(p) && !/^assets\/parts\/construction\/[a-z_]+\.ts$/.test(p))) throw new Error('Non-original equipment builder path');
   return { equipment, registry: registry as EquipmentRegistry, library, catalog };
 }
 export async function equipmentInputs(root: string, id: string) {
