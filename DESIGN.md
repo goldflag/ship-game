@@ -184,6 +184,10 @@ With no ready design the quay stands empty rather than showing a preset. A first
 
 The setup dialog's Conditions group contains separate Time of day, Cloud cover and Wind speed sliders. Each uses a muted label, a brass value readout, a full-width native range control with brass accent, endpoint labels and one short explanation. Time reads as HH:MM, cloud cover as a percentage and wind in m/s. Reuse the deployment slider's naval styling and the settings column's existing responsive flow. The briefing and loading screen repeat the selected values; keep cloud cover and wind independently adjustable.
 
+### Developer console
+
+Shift-D opens a 600 px command line centred under the top instruments in port and at sea (study "Weather Desk", option B). An amber DEV badge marks it as tooling rather than a player instrument. Results use a condensed uppercase group column, a Barlow label and a brass `current → new` value. Weather chips below are drag-to-scrub, and a mint border marks a value that overrides the scene. When the console is closed, live overrides leave only a small DEV tag with their count in the same place. It never adds cards or covers the side instruments.
+
 ### Battle landscapes
 
 Ocean regions frame original fictional landscapes: asymmetric eroded mountain ranges, recessed volcanic cones, irregular coves and headlands. Snow gathers on gentler upper slopes while steep faces expose rock; tropical beaches occupy low sheltered coves. Dense forest groves use grounded trees with varied crown proportions and muted foliage, preserving the scale of the ships and surrounding mountains. Land, water and atmospheric haze share each map's lighting, with the sea and naval instruments remaining clearly visible.

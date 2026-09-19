@@ -18,7 +18,7 @@ import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
-import { VisualEnvironment } from './VisualEnvironment';
+import { VisualEnvironment, type DeveloperWeather, type EnvironmentOverrides } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
 import { updateWaterShadows } from './WaterShadows';
 import * as THREE from 'three/webgpu';
@@ -614,7 +614,7 @@ export class Game {
     cancelAnimationFrame(this.raf);
     try {
       await this.frameTask; cancelAnimationFrame(this.raf);
-      await session.restartPve(); this.assertActive(); this.battleRevision++;
+      await session.restartPve(); this.assertActive(); this.battleRevision++; this.environment.setOverrides({});
       this.endFollow(); this.spectatedShipId = undefined; this.selectedShipIds = [];
       this.selectedFlightId = undefined; this.selectFlights([]); this.lastFleetHelmId = undefined;
       this.inspectionHover?.clear(); this.inspecting = false;
@@ -657,12 +657,33 @@ export class Game {
     this.input.clear(); this.input.setOrder(1); this.input.setRudder(0);
     try {
       await this.frameTask; cancelAnimationFrame(this.raf);
-      await session.resetTrial(); this.assertActive(); this.battleRevision++;
+      await session.resetTrial(); this.assertActive(); this.battleRevision++; this.environment.setOverrides({});
       this.fleetViews.forEach(view => { view.impactMarks.clear(); view.snap(); });
       this.syncControlledShip(); this.effects.reset(); this.funnelSmoke.reset(); this.shipWake?.reset(); this.audio?.reset(session);
       this.playerDamageFeedback = new HullDamageFeedback(session.player.damage.integrity); this.trail = []; this.lastTrailTick = 0;
       await this.frame(performance.now(), true);
     } finally { this.switchingShip = false; this.lastTime = performance.now(); if (!this.disposed) { this.setPaused(false); this.scheduleFrame(); } }
+  }
+
+  /** Developer console: the weather on screen, its live overrides, and the
+   * wind the sea physics ride. Online battles keep the server's conditions. */
+  developerWeather(): DeveloperWeather | undefined {
+    const reading = this.environment.reading();
+    if (!reading) return undefined;
+    const session = this.simulation;
+    return { scene: this.inPort ? 'port' : 'battle', reading, overrides: this.environment.getOverrides(),
+      locked: !this.inPort && !!session.networked, seaWind: !this.inPort && session instanceof LocalBattleSession ? session.sea.windMps : undefined };
+  }
+  /** Replace the developer weather overrides. In a local battle the sea
+   * physics follow the wind; a new scene, restart or trial reset clears them. */
+  setDeveloperWeather(overrides: EnvironmentOverrides): void {
+    if (!this.inPort && this.simulation.networked) throw new Error('Online battles keep the server\'s weather.');
+    const previous = this.environment.getOverrides();
+    this.environment.setOverrides(overrides);
+    const next = this.environment.getOverrides();
+    if (!this.inPort && this.simulation instanceof LocalBattleSession
+      && (previous.windSpeed !== next.windSpeed || previous.windDirection !== next.windDirection))
+      this.simulation.setWind(next.windSpeed, next.windDirection);
   }
 
   async returnToPort(): Promise<void> {
@@ -1165,6 +1186,8 @@ export class Game {
     this.callbacks.pause(paused);
   }
   capturePointer(): void { if (this.controls().capturePointer) this.rig.capturePointer(); }
+  /** Hand the cursor to an overlay panel; `capturePointer` takes it back when the controls allow. */
+  releasePointer(): void { this.rig.releasePointer(); }
   toggleTacticalPause(): void {
     if (this.inPort || this.simulation.networked || !this.fleetCommandMode || this.simulation.result !== 'active') return;
     this.tacticalPause = !this.tacticalPause;

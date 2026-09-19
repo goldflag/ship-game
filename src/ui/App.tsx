@@ -38,6 +38,7 @@ import { Shipbuilder, type ConstructionEditorHandle } from './shipbuilding/Shipb
 import { openConstructionRepository } from '../ships/constructionRepository';
 declare global { interface Window { constructionEditor?: ConstructionEditorHandle } }
 import { TrialControls } from './shipbuilding/TrialControls';
+import { DevConsole } from './DevConsole';
 import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../ships/blueprint';
 import { loadConstructionCatalog } from '../ships/constructionEquipment';
 import { isLocalShipId, localShips, registerLocalShip, removeLocalShip, resolveShip, shipTitle } from '../ships/localShips';
@@ -484,6 +485,7 @@ function Harbor({ account, startup }: AppProps) {
     {phase === 'sailing' && ready && !error && !battleLoading && !pveRestarting && !trial && data.combat && data.combat.result !== 'active' && <BattleEndNotice key={game.current?.battleRevision} result={data.combat.result} outcome={data.combat.outcome} onExit={() => void returnToPort()}/>}
     {battleLoading && ready && !error && <BattleLoadingScreen briefing={pveBriefing} setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
 
+    {ready && !error && !builder && !battleLoading && !pveRestarting && game.current && <DevConsole host={game.current}/>}
     {!ready && !error && !startup && <StartupScreen {...loading}/>}
 
     {error && <section className="loading-screen" aria-live="polite">

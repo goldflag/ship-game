@@ -19,7 +19,7 @@ import { mapIslands, type OceanMapId } from '../../maps/catalog';
 import type { WeatherId } from '../../maps/conditions';
 import { physicalLoss, type BattleOutcome } from './battleRules';
 import { presentationAim, presentationTelemetry } from './telemetry';
-import { createSeaState } from './sea';
+import { createSeaState, type SeaState } from './sea';
 import { updateMountCarriers } from '../mountFrames';
 import type { Aircraft, Vessel, CarrierWing, Records, FleetActor, CombatEvent, ShellHistory, DamageLogEntry, Shell, Torpedo, DepthCharge, AirRelease, HelmCommand } from './elements';
 import type { AirOrder } from '../../multiplayer/generated/AirOrder';
@@ -61,7 +61,11 @@ export abstract class SnapshotSession implements BattleSession {
   aircraftLosses = { own: 0, enemy: 0 };
   private lastLossSequence = -1; private lastFrameTick = -1;
   ammunitionSelection: Record<string, Ammunition> = {};
-  readonly mapId: OceanMapId; readonly islands; readonly sea; readonly seed; readonly spawnDistance;
+  readonly mapId: OceanMapId; readonly islands; readonly seed; readonly spawnDistance;
+  /** The sea the authority rides. A local developer wind change replaces it mid-battle. */
+  sea: SeaState;
+  /** The sea resolved at launch, which a restart returns to. */
+  protected readonly launchSea: SeaState;
   protected pending?: Snapshot;
   protected fireQueued = false;
   protected depthM: number | null = null; protected emergencyBlow: boolean | null = null;
@@ -96,7 +100,7 @@ export abstract class SnapshotSession implements BattleSession {
     this.mapId = setup.mapId as OceanMapId; this.seed = setup.seed; this.spawnDistance = setup.spawnDistance;
     this.islands = setup.missionRules ? mapIslands(this.mapId, 16000, setup.missionRules.budget.maxShips).map(island => ({ ...island, z: island.z + 8000 }))
       : mapIslands(this.mapId, setup.spawnDistance, Math.max(...(['a', 'b'] as const).map(t => setup.ships.filter(s => s.team === t).length)));
-    this.sea = createSeaState(this.mapId, setup.weather as WeatherId, setup.seed, setup.windSpeed ?? undefined);
+    this.sea = this.launchSea = createSeaState(this.mapId, setup.weather as WeatherId, setup.seed, setup.windSpeed ?? undefined);
   }
   get definition() { return this.player.definition; }
   get ship() { return this.player.motion; }

@@ -15,7 +15,7 @@ const helm = { throttle: 0, rudder: 0 }, intent = { aim: [0, 0, 0] as [number, n
 class TestWorker {
   onmessage?: (event: { data: unknown }) => void;
   onerror?: (event: { message: string }) => void;
-  maxBatch = 0; batches = 0; posts = 0; detail: string[] = [];
+  maxBatch = 0; batches = 0; posts = 0; detail: string[] = []; winds: { speed: number; direction: number }[] = [];
   /** Hold replies to model a round trip longer than one render frame. */
   manual = false; private held: (() => void)[] = [];
   get inFlight() { return this.held.length; }
@@ -23,7 +23,7 @@ class TestWorker {
   private planner?: PvePlanner;
   runtime!: LocalRuntime;
   constructor(runtime?: LocalRuntime) { if (runtime) this.runtime = runtime; }
-  postMessage(message: { type: string; commands?: CommandEnvelope[]; ticks?: number; detailShipIds?: string[]; request?: unknown; placements?: unknown; formations?: unknown }) {
+  postMessage(message: { type: string; commands?: CommandEnvelope[]; ticks?: number; detailShipIds?: string[]; request?: unknown; placements?: unknown; formations?: unknown; wind?: { speed: number; direction: number } }) {
     if (message.type === 'advance') this.posts++;
     const reply = () => {
       if (this.terminated) return;
@@ -46,6 +46,7 @@ class TestWorker {
         this.batches++;
         this.maxBatch = Math.max(this.maxBatch, message.ticks!);
         this.detail = message.detailShipIds ?? [];
+        if (message.wind) { this.winds.push(message.wind); this.runtime.set_wind(message.wind.speed, message.wind.direction); }
         for (const command of message.commands!) {
           this.runtime.command(JSON.stringify(command));
           this.onmessage?.({ data: { type: 'ack', sequence: command.sequence, accepted: true, command: command.command.type, shipId: command.shipId } });
@@ -112,6 +113,28 @@ test('4× pause preserves queued orders; resume admits once and restart restores
   } finally { session.dispose(); }
 });
 
+
+test('a developer wind change reshapes the local sea physics mid-battle until restart', async () => {
+  const calm = await fixture(), windy = await fixture();
+  try {
+    for (const { session } of [calm, windy]) for (let i = 0; i < 60; i++) await frame(session, 1 / 60);
+    const launch = windy.session.sea;
+    expect(windy.session.setWind(24, 200)).toBe(true);
+    expect(windy.session.sea.windMps).toBe(24);
+    expect(windy.session.sea.amplitudeM).toBeGreaterThan(launch.amplitudeM);
+    expect(windy.session.sea.direction).toBeCloseTo(200 * Math.PI / 180);
+    expect(windy.session.sea.phase).toBe(launch.phase);
+    for (const { session } of [calm, windy]) { for (let i = 0; i < 240; i++) await frame(session, 1 / 60); await frame(session, 0); }
+    // Exactly one batch carried the change, and the ships now ride a different sea.
+    expect(windy.worker.winds).toEqual([{ speed: 24, direction: 200 }]);
+    expect(windy.session.tick).toBe(calm.session.tick);
+    expect(windy.worker.runtime.snapshot()).not.toBe(calm.worker.runtime.snapshot());
+    // Omitted values return to the launch sea; a restart does too.
+    windy.session.setWind(); expect(windy.session.sea.windMps).toBe(launch.windMps);
+    windy.session.setWind(30); await windy.session.restartPve();
+    expect(windy.session.sea).toBe(launch);
+  } finally { calm.session.dispose(); windy.session.dispose(); }
+});
 
 test('4× batches high-refresh render frames without dropping authoritative time', async () => {
   const { session, worker } = await fixture();
