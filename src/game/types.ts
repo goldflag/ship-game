@@ -44,6 +44,8 @@ export interface Telemetry {
   spectatedShipId?: string;
   airOperationsOpen?: boolean;
   fleetCommandMode?: boolean;
+  /** The fleet chart of a custom battle, read from a helm the player still holds. */
+  helmChart?: boolean;
   selectedShipIds?: string[];
   controlledShipId?: string;
   /** The ship picker is up: held on its key, or offered after the helm ship sank. */

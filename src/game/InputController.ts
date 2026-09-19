@@ -36,6 +36,7 @@ export class InputController {
   private keys = new Set<string>();
   rudderOrder = 0;
   private enabled = true;
+  private helmHeld = false;
   private shiftTap = false;
   /** The free camera flies on the helm keys, so they stop reaching the ship while it is out. */
   private flying = false;
@@ -142,7 +143,9 @@ export class InputController {
 
   setOrder(order: number): void { this.order = Math.max(0, Math.min(ENGINE_ORDERS.length - 1, Math.round(order))); }
   setRudder(rudder: number): void { if (Number.isFinite(rudder)) this.rudderOrder = Math.max(-1, Math.min(1, Math.round(rudder * 2) / 2)); }
-  setEnabled(enabled: boolean): void { this.enabled = enabled; this.clear(); }
+  /** `helmHeld` keeps the last rudder order standing while the keys belong to something
+   * else, as the fleet chart of a custom battle does; otherwise a disabled helm centres. */
+  setEnabled(enabled: boolean, helmHeld = false): void { this.enabled = enabled; this.helmHeld = helmHeld; this.clear(); }
   get isEnabled(): boolean { return this.enabled; }
   clear(): void { this.keys.clear(); this.shiftTap = false; }
   setBindings(bindings: Keybindings): void { this.bindings = bindings; this.clear(); }
@@ -158,7 +161,7 @@ export class InputController {
     };
   }
   sample(): HelmCommand {
-    return { throttle: ENGINE_ORDERS[this.order], rudder: this.enabled ? this.rudderOrder : 0 };
+    return { throttle: ENGINE_ORDERS[this.order], rudder: this.enabled || this.helmHeld ? this.rudderOrder : 0 };
   }
   dispose(): void { this.abort.abort(); this.clear(); }
 }
