@@ -30,6 +30,29 @@ independent `.yaw` joint. The native compiler continues to own shaft supports,
 engine assignments, immersion and steering behavior. Per-design hull and
 neighbor clearance still require installation review.
 
+## Wall-mounted lifesaving gear
+
+`life_saving.py` supplies a life ring, oval life raft and rectangular life raft
+in **Fittings → Deck gear**. Click a hull side or superstructure wall to install;
+the existing wall tools support linked mirroring and resizing. The ring scales
+uniformly to keep its circular shape. All three retain shallow 3D relief on
+sloped surfaces, with rear mounting rails, lower saddles and retaining clips or
+straps. The wall attachment socket is at the rear datum (runtime Z=0); the
+assembly projects outward toward runtime -Z.
+
+These are original generic stowed props, with nominal package dimensions of
+0.84 × 0.84 × 0.24 m, 1.25 × 1.90 × 0.36 m and 1.57 × 2.25 × 0.36 m, and
+estimated dry masses of 5, 45 and 65 kg. They add loading mass only. No rescue,
+deployment, buoyancy or historical variant is implied. Canvas, rope and wood
+retain their shared material roles; bands and brackets follow component paint.
+
+The existing deck-mounted Carley float remains its own registered variant.
+These lightweight wall originals reuse the simple fitting mesh/batching helper,
+with 16–24 perimeter stations, eight-sided float sections, four-sided grab lines,
+material-only bands and plain slats. Each complete exported assembly must stay
+below 1,000 triangles, without textures or subdivisions. Per-installation
+support and clearance still require review.
+
 ## Deck fittings and connected paths
 
 The current Deck gear selection is general ship hardware. Drawable rope, chain,

@@ -1,3 +1,4 @@
+import { resizedWallDimensions } from './wallDimensions';
 import { blockAngles, rotateBlock, withBlockAngles } from '../../ships/constructionOrientation';
 import { reseatBalcony } from './balconyPlacement';
 import { editableMesh } from '../../ships/constructionMesh';
@@ -401,8 +402,9 @@ export class BuilderTool {
   setWindowSpacing = (windowSpacing: number) => this.update({ windowSpacing });
   setWallSize = (axis: 0 | 1, value: number) => {
     if (this.active?.kind !== 'part' || !wallMount(this.active.part)) return;
-    const size: Vec3 = [...(this.state.sizeOverride ?? this.active.part.size)]; size[axis] = value;
-    if (wallMount(this.active.part) === 'porthole') size[1-axis] = value;
+    const size: Vec3 = [...(this.state.sizeOverride ?? this.active.part.size)];
+    const dimensions = resizedWallDimensions(this.active.part, { version: 1, widthM: size[0], heightM: size[1] }, axis, value);
+    size[0] = dimensions.widthM; size[1] = dimensions.heightM;
     this.update({ sizeOverride: size });
   };
   setRailingHeight = (railingHeight: number) => this.update({ railingHeight });
@@ -917,8 +919,7 @@ export class BuilderTool {
           if (handled.has(item.id)) continue;
           handled.add(item.id); if (item.wall!.mirrorId) handled.add(item.wall!.mirrorId);
           const value = structuredClone(item), w=value.wall!, size=resize(axis ? w.heightM : w.widthM);
-          if (axis === 0 || wallMount(this.partOf(item)!) === 'porthole') w.widthM=size;
-          if (axis === 1 || wallMount(this.partOf(item)!) === 'porthole') w.heightM=size;
+          Object.assign(w, resizedWallDimensions(this.partOf(item)!, w, axis, size));
           commands.push({op:'equipment', value});
         }
         this.run('Resize wall fittings',commands);

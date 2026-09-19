@@ -805,6 +805,30 @@
         "assets/parts/construction/small_appendages.py",
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-life-ring": {
+      "path": "assets/parts/construction/life_saving.py",
+      "function": "create_life_ring",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/superstructure_fittings.py"
+      ]
+    },
+    "generic-life-raft-oval": {
+      "path": "assets/parts/construction/life_saving.py",
+      "function": "create_life_raft",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/superstructure_fittings.py"
+      ]
+    },
+    "generic-life-raft-rectangular": {
+      "path": "assets/parts/construction/life_saving.py",
+      "function": "create_life_raft",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/superstructure_fittings.py"
+      ]
     }
   },
   "components": [
@@ -1515,6 +1539,24 @@
       "builder": "generic-rudder-6000",
       "review": "unreviewed",
       "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-life-ring",
+      "builder": "generic-life-ring",
+      "review": "unreviewed",
+      "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review."
+    },
+    {
+      "partId": "generic-life-raft-oval",
+      "builder": "generic-life-raft-oval",
+      "review": "unreviewed",
+      "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review."
+    },
+    {
+      "partId": "generic-life-raft-rectangular",
+      "builder": "generic-life-raft-rectangular",
+      "review": "unreviewed",
+      "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review."
     }
   ]
 }

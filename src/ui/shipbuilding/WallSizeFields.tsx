@@ -8,7 +8,7 @@ export function WallSizeFields({ part, wall, onChange }: {
   wall: NonNullable<ConstructionEquipment['wall']>;
   onChange: (axis: 0 | 1, value: number) => void;
 }) {
-  if (part.wallSizing === 'uniform') return <NumberField label="Scale" description="Resize the whole porthole while keeping its proportions" value={wall.widthM / part.size[0]} min={.15 / part.size[0]} max={5 / part.size[0]} step={.05} unit="×" onChange={value => onChange(0, value * part.size[0])}/>;
+  if (part.wallSizing === 'uniform') return <NumberField label="Scale" description="Resize the whole fitting while keeping its proportions" value={wall.widthM / part.size[0]} min={.15 / part.size[0]} max={5 / part.size[0]} step={.05} unit="×" onChange={value => onChange(0, value * part.size[0])}/>;
   const round = wallMount(part) === 'porthole';
   return <>
     <NumberField label={round ? 'Diameter' : 'Width'} value={wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => onChange(0, value)}/>

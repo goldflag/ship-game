@@ -1,3 +1,4 @@
+import { resizedWallDimensions } from './wallDimensions';
 import { WallSizeFields } from './WallSizeFields';
 import { RailingFields } from './RailingFields';
 import { RotationToolbar } from './RotationToolbar';
@@ -296,7 +297,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <WallSizeFields part={active.part} wall={piece.wall} onChange={tool.setWallSize}/>
       {['window','porthole'].includes(wallMount(active.part) ?? '') && <><button aria-pressed={!s.windowRow} onClick={() => tool.setWindowRow(false)}>Single</button><button aria-pressed={s.windowRow} onClick={() => tool.setWindowRow(true)}>Row</button>
       {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Click the first window, then click where the row ends." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
-      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Click the first window, then the last · Esc cancels' : 'Click a hull side or wall'} · {wallMount(active.part) === 'porthole' ? '←→ / ↑↓ scale' : '←→ width · ↑↓ height'} · Shift fine{mirror ? ' · linked mirror' : ''}</span>
+      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Click the first window, then the last · Esc cancels' : 'Click a hull side or wall'} · {wallMount(active.part) === 'porthole' || active.part.wallSizing === 'uniform' ? '←→ / ↑↓ scale' : '←→ width · ↑↓ height'} · Shift fine{mirror ? ' · linked mirror' : ''}</span>
     </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && s.tool !== 'rotate' && selectedPrimitives.length === 1 && !selectedEquipment.length) {
@@ -330,8 +331,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? 'Hull aligned · ' : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/></>}
       {item.wall && catalogPart && <>
         <WallSizeFields part={catalogPart} wall={item.wall} onChange={(axis, value) => edit('Resize wall fitting', target => {
-          if (axis === 0 || wallMount(catalogPart) === 'porthole') target.wall!.widthM = value;
-          if (axis === 1 || wallMount(catalogPart) === 'porthole') target.wall!.heightM = value;
+          Object.assign(target.wall!, resizedWallDimensions(catalogPart, target.wall!, axis, value));
         })}/>
         {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
       </>}
