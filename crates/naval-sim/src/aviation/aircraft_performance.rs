@@ -203,8 +203,9 @@ mod tests {
                 );
             }
         }
-        assert!((length(z.velocity) - 55.0).abs() < 0.01);
-        assert!((length(w.velocity) - 55.0).abs() < 0.01);
+        // A prescribed recovery speed is an airspeed; world motion carries the pace.
+        assert!((z.airspeed() - 55.0).abs() < 0.01);
+        assert!((w.airspeed() - 55.0).abs() < 0.01);
         let fallback = performance_for(&plane("future-airframe", "fighter"));
         assert_eq!(fallback.acceleration, 7.0);
     }

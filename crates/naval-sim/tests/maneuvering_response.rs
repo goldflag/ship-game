@@ -44,11 +44,11 @@ fn step(a: &mut Vessel, throttle: f64, rudder: f64) {
 #[test]
 fn fleet_acceleration_and_crash_stops_retain_inertia() {
     for (id, cruise_range, stop_range) in [
-        ("fletcher", (9., 14.), (11., 17.)),
-        ("bismarck", (55., 75.), (50., 70.)),
-        ("valiant", (35., 50.), (32., 45.)),
-        ("resolute", (40., 55.), (38., 53.)),
-        ("type-viic", (9., 14.), (9., 14.)),
+        ("fletcher", (11., 17.), (13., 21.)),
+        ("bismarck", (62., 88.), (58., 82.)),
+        ("valiant", (42., 59.), (38., 53.)),
+        ("resolute", (46., 65.), (44., 62.)),
+        ("type-viic", (11., 17.), (11., 17.)),
     ] {
         let mut a = ship(id);
         let speed = a.compiled.maneuvering.estimated_speed;
@@ -76,12 +76,14 @@ fn fleet_acceleration_and_crash_stops_retain_inertia() {
 
 #[test]
 fn fleet_can_change_course_and_countersteer_during_a_fight() {
+    // Course changes are world heading, which advances at world pace; the budgets
+    // below are the paced times at the current force response.
     for (id, min_seconds, turn_seconds) in [
-        ("fletcher", 15., 22.),
-        ("bismarck", 50., 65.),
-        ("valiant", 120., 160.),
-        ("resolute", 65., 90.),
-        ("type-viic", 22., 30.),
+        ("fletcher", 11., 18.),
+        ("bismarck", 38., 58.),
+        ("valiant", 130., 190.),
+        ("resolute", 70., 100.),
+        ("type-viic", 17., 27.),
     ] {
         for direction in [-1., 1.] {
             let mut a = ship(id);
@@ -141,4 +143,35 @@ fn response_tuning_preserves_top_speed_and_navigation_braking_estimate() {
             a.motion.speed
         );
     }
+}
+
+/// World pace moves and turns the hull faster without touching the physical
+/// state every readout shows.
+#[test]
+fn world_pace_moves_the_hull_faster_than_it_reports() {
+    let mut a = ship("fletcher");
+    a.motion.speed = 12.;
+    a.motion.yaw_rate = 0.01;
+    let (before, heading) = ([a.motion.x, a.motion.z], a.motion.heading);
+    let reported = a.motion.speed;
+    step(&mut a, 0., 0.);
+    let travelled = (a.motion.x - before[0]).hypot(a.motion.z - before[1]);
+    assert!(
+        (travelled / (reported * DT) - naval_sim::mobility::SHIP_PACE).abs() < 0.02,
+        "covered {travelled} m while reporting {reported} m/s over {DT}s"
+    );
+    let turned = wrap_angle(a.motion.heading - heading);
+    assert!(
+        (turned / (0.01 * DT) - naval_sim::mobility::SHIP_PACE).abs() < 0.02,
+        "turned {turned} rad at a reported 0.01 rad/s over {DT}s"
+    );
+    assert!(
+        (a.motion.velocity()[2].abs() / (reported * naval_sim::mobility::SHIP_PACE) - 1.).abs()
+            < 0.02,
+        "world velocity must carry the pace"
+    );
+    assert!(
+        (a.motion.physical_velocity()[2].abs() / reported - 1.).abs() < 0.02,
+        "physical velocity must not"
+    );
 }

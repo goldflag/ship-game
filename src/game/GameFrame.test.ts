@@ -4,6 +4,7 @@ import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBu
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT, motionVelocity } from './session/motion';
+import { SHIP_PACE } from '../ships/mobility';
 import { seaHeight } from './session/sea';
 import { expendSalvo, updateMount, type MountState } from '../simulation/weapons';
 import { localToWorld, wrapAngle } from './geometry';
@@ -337,7 +338,8 @@ test('target inspection follows the interpolated underway target and resets with
   for (let frame = 0; frame < 90; frame++) {
     const before = targetView.root.position.z;
     await game.frame(time += 1000 / 144);
-    if (frame > 3) expect((before - targetView.root.position.z) * 144).toBeCloseTo(simulation.target.motion.speed, 7);
+    // Drawn motion runs at world pace; the reported speed stays physical.
+    if (frame > 3) expect((before - targetView.root.position.z) * 144).toBeCloseTo(simulation.target.motion.speed * SHIP_PACE, 7);
     expect(focusPositions.at(-1)).toBe(targetView.root.position.z);
   }
   simulation.resetTarget();
@@ -359,8 +361,8 @@ test('pause holds the interpolated pose and resume continues without a tick-size
   }
   game.paused = false;
   await game.frame(time += 1000 / 144);
-  expect((position.z - playerView.root.position.z) * 144).toBeCloseTo(simulation.ship.speed, 7);
-  expect(Math.abs(simulation.ship.z - playerView.motion.z)).toBeLessThanOrEqual(simulation.ship.speed * FIXED_DT);
+  expect((position.z - playerView.root.position.z) * 144).toBeCloseTo(simulation.ship.speed * SHIP_PACE, 7);
+  expect(Math.abs(simulation.ship.z - playerView.motion.z)).toBeLessThanOrEqual(simulation.ship.speed * SHIP_PACE * FIXED_DT);
 });
 
 test('manual aiming and binoculars keep the camera attached to the displayed ship at full speed', async () => {
@@ -463,7 +465,7 @@ for (const frameTimes of [[1 / 30], [1 / 59], [1 / 60], [1 / 120], [1 / 144], [1
       const dt = frameTimes[frame % frameTimes.length];
       const before = playerView.root.position.z;
       await game.frame(time += dt * 1000);
-      if (frame > 3) expect((before - playerView.root.position.z) / dt).toBeCloseTo(simulation.ship.speed, 7);
+      if (frame > 3) expect((before - playerView.root.position.z) / dt).toBeCloseTo(simulation.ship.speed * SHIP_PACE, 7);
       expect(wakePositions.at(-1)).toBe(playerView.root.position.z);
       expect(focusPositions.at(-1)).toBe(playerView.root.position.z);
     }

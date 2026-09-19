@@ -121,7 +121,9 @@ pub fn operate_observed(
         || target.is_some_and(|t| bots::clear_firing_lane(actor, t, ctx.actors)),
         |c| bots::clear_lane_to(actor, c.estimated_position, ctx.actors),
     );
-    let velocity = actor.motion.velocity();
+    // Shells fly in paced physical time, so the ship's world motion they inherit
+    // (and the aim solver subtracts) is expressed per shell second.
+    let velocity = scale(actor.motion.velocity(), 1.0 / crate::mobility::SHELL_PACE);
     // Held by value: the mount loop mutates the actor while it reads the index.
     let ship_index = actor.index.clone();
     let index = ship_index

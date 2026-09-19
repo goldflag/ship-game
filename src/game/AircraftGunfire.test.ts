@@ -4,6 +4,10 @@ import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { AircraftGunfire } from './AircraftGunfire';
 import { ballisticStep } from './ballistics';
+import { SHELL_PACE } from '../ships/mobility';
+
+// Ship AA tracers replay their physical arc at shell pace: a battle second of
+// tracer covers SHELL_PACE seconds of flight, so CPU endpoints are sampled there.
 
 test('offscreen tracers remain live and return at their current ballistic position', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire(true);
@@ -14,7 +18,7 @@ test('offscreen tracers remain live and return at their current ballistic positi
   try {
     sim.tick = 31; gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(0);
     sim.events.length = 0; sim.tick = 121;
-    const endpoint = ballisticStep([0, 300, 0], [0, 0, -800], 2, 0).position;
+    const endpoint = ballisticStep([0, 300, 0], [0, 0, -800], 2 * SHELL_PACE, 0).position;
     camera.position.set(0, 300, 0); camera.lookAt(...endpoint); camera.updateMatrixWorld(true);
     gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(1);
     const tips = gunfire.root.getObjectByName('Aircraft tracer tips') as InstancedMesh;
@@ -26,7 +30,7 @@ test('offscreen tracers remain live and return at their current ballistic positi
 test('AA tracer reaches its CPU airburst endpoint with drag and inherited ship velocity', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire();
   const camera = new PerspectiveCamera(52, 1, .5, 60000);
-  const endpoint = ballisticStep([0, 300, 0], [15, 0, -800], 3, .08).position;
+  const endpoint = ballisticStep([0, 300, 0], [15, 0, -800], 3 * SHELL_PACE, .08).position;
   sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', position: [0, 300, 0], shipId: 'player', message: 'AA',
     aircraft: { id: 'target', target: endpoint, tracerSpeed: 800, direction: [0, 0, -1], velocity: [15, 0, 0], dragPerSecond: .08,
       airburst: { flightTime: 3, caliberM: .105 } } });
@@ -167,21 +171,27 @@ test('aircraft tracers travel in separated bursts, remain short and cannot becom
 test('ship AA uses the actual muzzle, speed and endpoint without fighter wing offsets', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire();
   const camera = new PerspectiveCamera(52, 1, .5, 60000);
+  const burst = ballisticStep([0, 300, 0], [0, 0, -800], 3 * SHELL_PACE, 0).position;
   sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', position: [0, 300, 0], shipId: 'player', message: 'AA fire',
-    aircraft: { id: 'hostile', target: [0, 255.855, -2400], tracerSpeed: 800, direction: [0, 0, -1],
+    aircraft: { id: 'hostile', target: burst, tracerSpeed: 800, direction: [0, 0, -1],
       airburst: { flightTime: 3, caliberM: .105 } } });
   try {
     const streaks = gunfire.root.getObjectByName('Aircraft tracer cores') as InstancedMesh;
     sim.tick = 31; gunfire.update(sim, camera);
     expect(gunfire.diagnostics()).toBe(1);
-    expect(at(streaks).position.x).toBe(0); expect(at(streaks).position.y).toBeCloseTo(300 - 4.905 * .5 ** 2 + 4.905 * .5 * .011, 1);
-    expect(at(streaks).position.z).toBeCloseTo(-391.2, 3);
+    // Half a battle second is .625 s of flight, and the drawn ribbon center
+    // trails its tip by half a paced exposure along the round's own path.
+    const shot = ballisticStep([0, 300, 0], [0, 0, -800], .5 * SHELL_PACE, 0);
+    const speed = Math.hypot(...shot.velocity), half = speed * SHELL_PACE * .022 / 2;
+    expect(at(streaks).position.x).toBe(0);
+    expect(at(streaks).position.y).toBeCloseTo(shot.position[1] - shot.velocity[1] / speed * half, 1);
+    expect(at(streaks).position.z).toBeCloseTo(shot.position[2] - shot.velocity[2] / speed * half, 1);
     expect(at(streaks).scale.y).toBeLessThan(25);
     sim.tick = 121; gunfire.update(sim, camera);
     expect(gunfire.diagnostics()).toBe(1); expect(at(streaks).position.z).toBeLessThan(-1500);
     sim.tick = 181; gunfire.update(sim, camera);
     const tips = gunfire.root.getObjectByName('Aircraft tracer tips') as InstancedMesh;
-    expect(at(tips).position.distanceTo(new Vector3(0, 255.855, -2400))).toBeLessThan(.001);
+    expect(at(tips).position.distanceTo(new Vector3(...burst))).toBeLessThan(.001);
     sim.tick = 182; gunfire.update(sim, camera);
     expect(gunfire.diagnostics()).toBe(0);
   } finally { gunfire.dispose(); }

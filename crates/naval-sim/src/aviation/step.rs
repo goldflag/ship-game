@@ -608,8 +608,11 @@ impl Aviation {
     ) {
         let wing = actor.definition().air_wing.as_ref().unwrap();
         let ground = &ground_map[&p.model_id];
-        p.cooldown = (p.cooldown - dt).max(0.0);
-        crate::aviation::aircraft_defense::tick(p, dt);
+        // Air gunnery and evasion keep their volume per pass at world pace, as
+        // ship anti-aircraft fire does.
+        let pace = crate::mobility::SHIP_PACE;
+        p.cooldown = (p.cooldown - dt * pace).max(0.0);
+        crate::aviation::aircraft_defense::tick(p, dt * pace);
         if terminal(p) {
             return;
         }
@@ -1404,9 +1407,11 @@ impl Aviation {
             let fall_rate =
                 p.velocity[1] / (p.velocity[1].powi(2) + 19.62 * height).sqrt().max(1.0);
             let relative_velocity = sub(scale(target.velocity, 1.0 + fall_rate), p.velocity);
+            // A world turn rate; the airframe banks for its physical rate.
             let aim_turn_rate = (-offset[2] * relative_velocity[0]
                 + offset[0] * relative_velocity[2])
-                / (offset[0].powi(2) + offset[2].powi(2)).max(10000.0);
+                / (offset[0].powi(2) + offset[2].powi(2)).max(10000.0)
+                / crate::mobility::SHIP_PACE;
             fly(
                 p,
                 [aim[0], target_point[1], aim[2]],
