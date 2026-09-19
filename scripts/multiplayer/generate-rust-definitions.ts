@@ -24,13 +24,18 @@ const TYPE_OVERRIDES: Record<string, string> = {
   // Closed cells are immutable once compiled; hydrostatics/collision clones share their face storage.
   'ConvexVolume.faces': 'std::sync::Arc<[ConvexVolumeFacesItem]>',
 };
-const RUST_KEYWORDS = ['type','ref','match','mod','loop','move','where','in','self','use','fn'];
+const RUST_KEYWORDS = ['type', 'ref', 'match', 'mod', 'loop', 'move', 'where', 'in', 'self', 'use', 'fn'];
 const source = 'src/ships/blueprint.ts';
-const program = ts.createProgram([source], { strict: true, target: ts.ScriptTarget.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, module: ts.ModuleKind.ESNext });
+const program = ts.createProgram([source], {
+  strict: true,
+  target: ts.ScriptTarget.ESNext,
+  moduleResolution: ts.ModuleResolutionKind.Bundler,
+  module: ts.ModuleKind.ESNext,
+});
 const checker = program.getTypeChecker();
 const file = program.getSourceFile(source)!;
 // blueprint.ts re-exports the contract from src/ships/blueprint/; roots resolve through its exports.
-const exported = new Map(checker.getExportsOfModule(checker.getSymbolAtLocation(file)!).map(symbol => [symbol.name, symbol]));
+const exported = new Map(checker.getExportsOfModule(checker.getSymbolAtLocation(file)!).map((symbol) => [symbol.name, symbol]));
 const schemaRoot = (name: string): ts.Type => {
   const symbol = exported.get(name);
   if (!symbol) throw new Error(`Missing schema root ${name}`);
@@ -46,18 +51,18 @@ const pascal = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 function rustType(original: ts.Type, hint: string): string {
   let type = original;
   if (type.isUnion()) {
-    const members = type.types.filter(t => !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+    const members = type.types.filter((t) => !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
     if (members.length === 1) return rustType(members[0], hint);
-    if (members.every(t => !!(t.flags & ts.TypeFlags.StringLike))) return 'String';
-    if (members.every(t => !!(t.flags & ts.TypeFlags.NumberLike))) return 'f64';
-    if (members.every(t => !!(t.flags & ts.TypeFlags.BooleanLike))) return 'bool';
+    if (members.every((t) => !!(t.flags & ts.TypeFlags.StringLike))) return 'String';
+    if (members.every((t) => !!(t.flags & ts.TypeFlags.NumberLike))) return 'f64';
+    if (members.every((t) => !!(t.flags & ts.TypeFlags.BooleanLike))) return 'bool';
     throw new Error(`Unsupported union ${hint}: ${checker.typeToString(type)}`);
   }
   if (type.flags & ts.TypeFlags.StringLike) return 'String';
   if (type.flags & ts.TypeFlags.NumberLike) return 'f64';
   if (type.flags & ts.TypeFlags.BooleanLike) return 'bool';
   if (checker.isTupleType(type)) {
-    const types = checker.getTypeArguments(type as ts.TypeReference).map((t,i) => rustType(t, hint + i));
+    const types = checker.getTypeArguments(type as ts.TypeReference).map((t, i) => rustType(t, hint + i));
     if (new Set(types).size === 1) return `[${types[0]}; ${types.length}]`;
     return `(${types.join(', ')})`;
   }
@@ -65,14 +70,15 @@ function rustType(original: ts.Type, hint: string): string {
   const prior = assigned.get(type);
   if (prior) return prior;
   const symbolName = type.aliasSymbol?.name ?? type.symbol?.name;
-  let name = symbolName && !symbolName.startsWith('__') && !['Omit','Partial','Pick'].includes(symbolName) ? symbolName : hint;
+  let name = symbolName && !symbolName.startsWith('__') && !['Omit', 'Partial', 'Pick'].includes(symbolName) ? symbolName : hint;
   if (name === 'ShipDefinitionMountsItem') name = 'MountDefinition';
   if (name === 'ShipDefinitionTorpedoTubesItem') name = 'TubeDefinition';
   if (name === 'ShipDefinitionDepthChargeLaunchersItem') name = 'ChargeDefinition';
   if (names.has(name)) name = hint;
   if (names.has(name)) throw new Error(`Duplicate name ${name}`);
-  names.add(name); assigned.set(type, name);
-  const fields = checker.getPropertiesOfType(type).map(property => {
+  names.add(name);
+  assigned.set(type, name);
+  const fields = checker.getPropertiesOfType(type).map((property) => {
     const location = property.valueDeclaration ?? property.declarations?.[0];
     if (!location) throw new Error(`No declaration ${name}.${property.name}`);
     const field = snake(property.name);
@@ -95,14 +101,22 @@ rustType(root, 'ShipDefinition');
 for (const name of ['ConstructionSource', 'ConstructionResult', 'ConstructionCatalog', 'ConstructionSuggestion']) {
   rustType(schemaRoot(name), name);
 }
-for (const key of [...Object.entries(SERDE_DEFAULT_FIELDS).flatMap(([name, fields]) => fields.map(field => `${name}.${field}`)), ...Object.keys(TYPE_OVERRIDES)]) {
+for (const key of [
+  ...Object.entries(SERDE_DEFAULT_FIELDS).flatMap(([name, fields]) => fields.map((field) => `${name}.${field}`)),
+  ...Object.keys(TYPE_OVERRIDES),
+]) {
   if (!usedTableEntries.has(key)) throw new Error(`${key} is configured in the generator but no longer exists in ${source}`);
 }
-const HEADER = '// Generated by scripts/multiplayer/generate-rust-definitions.ts from src/ships/blueprint.ts.\n// Regenerate with `bun run multiplayer:definitions`; never edit by hand. Serde attributes and type\n// overrides live in the tables at the top of the generator. A bun test fails when this file drifts.\nuse serde::{Deserialize, Serialize};\npub type Vec3 = [f64; 3];\n\n';
+const HEADER =
+  '// Generated by scripts/multiplayer/generate-rust-definitions.ts from src/ships/blueprint.ts.\n// Regenerate with `bun run multiplayer:definitions`; never edit by hand. Serde attributes and type\n// overrides live in the tables at the top of the generator. A bun test fails when this file drifts.\nuse serde::{Deserialize, Serialize};\npub type Vec3 = [f64; 3];\n\n';
 
 /** The exact text definition.rs must contain: generated, then formatted by rustfmt. */
 export async function renderDefinitions(): Promise<string> {
-  const format = Bun.spawn([rustTool('rustfmt'), '--edition', '2024', '--emit', 'stdout'], { stdin: 'pipe', stdout: 'pipe', stderr: 'inherit' });
+  const format = Bun.spawn([rustTool('rustfmt'), '--edition', '2024', '--emit', 'stdout'], {
+    stdin: 'pipe',
+    stdout: 'pipe',
+    stderr: 'inherit',
+  });
   format.stdin.write(HEADER + definitions.join('\n'));
   format.stdin.end();
   const [text, code] = await Promise.all([new Response(format.stdout).text(), format.exited]);
