@@ -221,3 +221,55 @@ test('distant shadow focus survives provider sync and restores the port and play
   environment.setShadowFocus(); environment.setScene('north-atlantic', false); environment.syncLighting();
   expect(water.lighting!.sunLight.target.position).toEqual(anchor.position);
 });
+
+test('developer overrides replace only what they name, in port and at sea, until the next scene', () => {
+  const sky = { sun: new Sun(), timeOfDay: new TimeOfDay(), atmosphere: new Atmosphere(), clouds: new Clouds() };
+  const water = fakeWater(), effects = { ...windSink(), setSun() {}, setIllumination() {} };
+  const environment = new VisualEnvironment({ effects, funnelSmoke: windSink(), sunAnchor: new Group() });
+  environment.attachWater(water as never); environment.attachSky(sky as never);
+  const map = oceanMap('north-atlantic');
+
+  // Port: wind alone raises the sea; the sheltered light, clouds and fog stay.
+  environment.setScene(map.id, true);
+  environment.setOverrides({ windSpeed: 20 });
+  const windy = battleEnvironment(map, 'map', 'map', { windSpeed: 20 }).waves;
+  expect(water.waves.amplitude.value).toBe(windy.amplitude);
+  expect(water.waves.windSpeed.value).toBe(20);
+  expect(water.waves.windDirection.value).toBe(35 * Math.PI / 180);
+  expect(sky.sun.elevationDeg).toBeCloseTo(36);
+  expect(sky.clouds.shape.coverage.value).toBe(.38);
+  expect(sky.clouds.wind.speed).toBe(battleEnvironment(map, 'map', 'map', { windSpeed: 20 }).cloudWind);
+  expect(water.fog.fadeEnd).toBe(5600);
+  expect(environment.reading()).toMatchObject({ timeHours: undefined, windSpeed: 20, windDirection: 35, visibilityKm: 5.6 });
+
+  // Port: time, clouds, direction and visibility each reach their uniforms.
+  environment.setOverrides({ timeHours: 18, cloudCover: 80, windDirection: 270, visibilityKm: 2.8 });
+  expect(water.waves.amplitude.value).toBe(.12);
+  expect(sky.sun.elevationDeg).toBeCloseTo(battleEnvironment(map, 'map', 'map', { timeHours: 18 }).sky.elevation, 6);
+  expect(sky.clouds.shape.coverage.value).toBe(.8);
+  expect(water.waves.windDirection.value).toBeCloseTo(270 * Math.PI / 180);
+  expect(water.fog.fadeEnd).toBeCloseTo(2800);
+  expect(water.fog.fadeStart).toBeCloseTo(325);
+  expect(environment.reading()).toMatchObject({ timeHours: 18, cloudCover: 80, windDirection: 270 });
+
+  // Battle: overrides sit on the chosen conditions, the air map's far fog
+  // still wins, and a new scene drops them.
+  environment.setBattle({ timeOfDay: 'map', weather: 'map', conditions: { timeHours: 12, cloudCover: 38, windSpeed: 9 } });
+  environment.setScene(map.id, false);
+  expect(environment.getOverrides()).toEqual({});
+  environment.setOverrides({ cloudCover: 95, windSpeed: 22, visibilityKm: 12 });
+  const storm = battleEnvironment(map, 'map', 'map', { timeHours: 12, cloudCover: 95, windSpeed: 22 });
+  expect(water.waves.amplitude.value).toBe(storm.waves.amplitude);
+  expect(sky.clouds.shape.coverage.value).toBe(.95);
+  expect(sky.sun.elevationDeg).toBeCloseTo(70);
+  expect(water.fog.fadeEnd).toBeCloseTo(12000);
+  environment.setChartFog(true); expect(water.fog.fadeEnd).toBe(900000);
+  environment.setChartFog(false); expect(water.fog.fadeEnd).toBeCloseTo(12000);
+  environment.setOverrides({ cloudCover: 95, windSpeed: undefined });
+  expect(environment.getOverrides()).toEqual({ cloudCover: 95 });
+  expect(water.waves.windSpeed.value).toBe(9);
+  environment.setScene(map.id, true);
+  expect(environment.getOverrides()).toEqual({});
+  expect(water.waves.amplitude.value).toBe(.12);
+  expect(sky.clouds.shape.coverage.value).toBe(.38);
+});

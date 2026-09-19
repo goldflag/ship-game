@@ -8,6 +8,8 @@ import type { ShipDefinition } from '../../ships/blueprint';
 import type { LocalShipRevision } from '../../ships/localShips';
 import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
 import { CommandQueue } from './commandQueue';
+import { createSeaState } from './sea';
+import type { WeatherId } from '../../maps/conditions';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
@@ -52,6 +54,8 @@ export class LocalBattleSession extends SnapshotSession {
   private lastInput?: { helm: HelmCommand; intent: CombatIntent };
   private window = { wall: 0, ticks: 0 };
   private achieved = 1;
+  /** A developer wind change that rides the next batch to the worker. */
+  private pendingWind?: { speed: number; direction: number };
   /** Simulated seconds per wall second actually reached, averaged over the last
    * completed window. Below the requested speed the worker is the limit, not the
    * display: the speed control offers a lower setting instead of dropping time. */
@@ -169,12 +173,26 @@ export class LocalBattleSession extends SnapshotSession {
     const ticks = Math.min(6 * speed, MAX_BATCH_TICKS, availableTicks);
     this.accumulator = Math.max(0, this.accumulator - ticks / 60); this.window.ticks += ticks;
     this.input(this.lastInput.helm, this.lastInput.intent, true); this.busy = true;
-    this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks, detailShipIds: this.detailShipIds });
+    this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks, detailShipIds: this.detailShipIds, wind: this.pendingWind });
+    this.pendingWind = undefined;
+  }
+  /** Developer console: the sea physics answer a new wind from the next batch.
+   * Omitted values return to the launch sea. Only a running local battle has
+   * physics to change; the port never steps. */
+  setWind(speed?: number, directionDeg?: number): boolean {
+    if (!this.isBattle || this.disposed) return false;
+    const launch = this.launchSea;
+    const wind = Math.max(0, Math.min(30, speed ?? launch.windMps));
+    const direction = ((directionDeg ?? launch.direction * 180 / Math.PI) % 360 + 360) % 360;
+    this.pendingWind = { speed: wind, direction };
+    // The presentation mirror resolves the same calibrated sea as the Rust authority.
+    this.sea = { ...createSeaState(this.mapId, this.setup.weather as WeatherId, this.seed, wind), direction: direction * Math.PI / 180 };
+    return true;
   }
   restartPve(): Promise<void> {
     if (!this.missionRules || this.disposed || this.restartRequest) return Promise.reject(new Error('This mission cannot restart right now.'));
     this.commands.clear(); this.accumulator = 0; this.speed = 1; this.pending = undefined; this.busy = true;
-    this.window = { wall: 0, ticks: 0 }; this.achieved = 1;
+    this.window = { wall: 0, ticks: 0 }; this.achieved = 1; this.resetSea();
     return new Promise((resolve, reject) => {
       this.restartRequest = { resolve, reject, timer: setTimeout(() => this.fail('Mission restart took too long.'), 30000) };
       this.worker.postMessage({ type: 'restart' });
@@ -182,12 +200,15 @@ export class LocalBattleSession extends SnapshotSession {
   }
   private trialRequest(message: { type: 'trial-reset' } | { type: 'trial-action'; action: TrialAction }): Promise<void> {
     if (!this.trial || this.disposed || this.restartRequest) return Promise.reject(new Error('Trial controls are unavailable right now.'));
+    if (message.type === 'trial-reset') this.resetSea();
     this.commands.clear(); this.accumulator = 0; this.pending = undefined; this.busy = true;
     return new Promise((resolve, reject) => {
       this.restartRequest = { resolve, reject, timer: setTimeout(() => this.fail('Trial control took too long.'), 30_000) };
       this.worker.postMessage(message);
     });
   }
+  /** A rebuilt runtime rides its launch sea again. */
+  private resetSea(): void { this.pendingWind = undefined; this.sea = this.launchSea; }
   resetTrial(): Promise<void> { return this.trialRequest({ type: 'trial-reset' }); }
   trialAction(action: TrialAction): Promise<void> { return this.trialRequest({ type: 'trial-action', action }); }
   dispose() {

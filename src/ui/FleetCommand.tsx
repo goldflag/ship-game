@@ -37,6 +37,7 @@ import { advancePendingRoutes, boxSelect, circlePoints, fleetDragMode, fleetView
 export { applyGroupFormation, FORMATION_HINT, standingOrder, stationEscorts } from './fleet/fleetView';
 import type { CombatTelemetry } from '../game/session/telemetry';
 import { airborne } from '../game/airWing';
+import { isDeveloperConsoleKey } from './devConsoleCommands';
 
 const SPEEDS = [8, 12, 16, 20, 24, 28, 30];
 /** Orders aimed at water preview a line from the unit to the cursor while armed. */
@@ -198,7 +199,7 @@ export function FleetCommand({ data, desk, bindings, instrumentsVisible = true }
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
       if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') setShiftHeld(true);
-      if (document.querySelector('dialog[open]') || event.altKey) return;
+      if (document.querySelector('dialog[open]') || event.altKey || isDeveloperConsoleKey(event)) return;
       const element = event.target as HTMLElement;
       if (element?.matches('input, textarea, select') || element?.closest('[role=combobox], [role=listbox]') || element?.isContentEditable || (element?.closest('button, [role=button]') && event.code === 'Space')) return;
       const held = current.current;
