@@ -22,5 +22,5 @@ these changes when replacing the upstream bundle; its original license still app
 
 No new passes, cloud samples, textures or render-target sizes are introduced.
 The generated upstream source map is unchanged and does not describe local patches.
-See [the GPU review](../../assets/reviews/night-lighting/README.md) and its diagnostic
+See the night-lighting diagnostic
 fixture for the actual renderer checks, including night, dawn and port restoration.

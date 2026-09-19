@@ -8,8 +8,8 @@ The clock pairs an explicit remaining-time label with a tabular numerical readin
 
 | Evidence | Viewport | Observed state |
 | --- | --- | --- |
-| [Active](../../assets/reviews/battle-status-rules/active.png) | 1440 × 1000 | Time remaining `30:00`; Friendly 43,978 t and Enemy 769 t; collapsed fleet rows |
-| [Timeout](../../assets/reviews/battle-status-rules/timeout.png) | 1024 × 768 | Victory; 30-minute limit reached; `00:00`; retained tonnage and collapsed fleet rows; Esc hint |
+| Active | 1440 × 1000 | Time remaining `30:00`; Friendly 43,978 t and Enemy 769 t; collapsed fleet rows |
+| Timeout | 1024 × 768 | Victory; 30-minute limit reached; `00:00`; retained tonnage and collapsed fleet rows; Esc hint |
 
 These are actual component renders on a plain maritime background. The retained screenshots are UI evidence, not ship model acceptance evidence. Reported DOM checks found no overflow at either size, with a 260 px battle-status width and inherited text color `rgb(240, 245, 243)`.
 

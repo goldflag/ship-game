@@ -26,7 +26,7 @@ Fable’s follow-up judged the PR suitable with documented launch limitations, c
 
 Native workspace tests and Clippy with warnings denied passed. Native/WASM migration fixtures compare 28,800 full-battle ticks, 36 motion checks and 48 projectile cases, including current Shōkaku weapons and torpedo protection. All 135 TypeScript test files and `bun run build` passed before final master integration. Master `8495e905` retired the comparison archives and two test files; the resulting 133-file suite, five overlay tests/typecheck and production build passed again. Ship/aircraft checks passed; the six stale comparison packs were rebuilt with local Blender through the pipeline, with no geometry edits. The build retains its documented large JavaScript chunk warning.
 
-Live protocol-3 HTTP/WebSocket smoke passed cancellation after pairing, loading barrier, ownership, movement, epoch replacement, forfeit and frozen result reconnect. See [retained logs](../../assets/reviews/rust-multiplayer-fable/README.md) and PR CI checks. Earlier long benchmarks remain labeled under their original build in the implementation report and are not new performance qualifications.
+Live protocol-3 HTTP/WebSocket smoke passed cancellation after pairing, loading barrier, ownership, movement, epoch replacement, forfeit and frozen result reconnect. See PR CI checks; the retained logs were removed from the tree. Earlier long benchmarks remain labeled under their original build in the implementation report and are not new performance qualifications.
 
 ## Scope decisions and launch limits
 

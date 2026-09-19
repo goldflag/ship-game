@@ -42,9 +42,9 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 - Ship configuration, inspected primary-model links and lasting limitations: `assets/ships/<id>/README.md`.
 - Ship authoring: canonical blueprint, original recipes and registered shared components.
 - Current fixed model views: `assets/ships/<id>/generated/review/`.
-- Temporary ship research, downloads, logs and additional review output: ignored `.build/`.
+- Temporary research, downloads, logs, captures, measurements and review output for any task: ignored `.build/` (diagnostic scripts write to `.build/reviews/<task>/`). A quick test rejects tracked `reports/`, `references/`, `review/` and `assets/reviews/` paths.
 - Ship `reports/` and `references/` archives are removed; do not recreate them or rename them into another tracked archive.
-- Original asset collections: [asset index](../assets/README.md), [aircraft index](../assets/aircraft/README.md), [map review](../assets/maps/review/README.md).
+- Original asset collections: [asset index](../assets/README.md), [aircraft index](../assets/aircraft/README.md).
 - Playable ship roster: [src/ships/presets.ts](../src/ships/presets.ts).
 
 ## Historical context
@@ -54,7 +54,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | [Original ship systems plan](ship-systems-plan.md) | Design rationale and proposed roadmap from the pre-pipeline baseline; implementation-status statements are historical |
 | [Ship validation log](ship-validation.md) | Dated tests, model hashes and limitations; a past pass does not validate today's build |
 | [Fleet fidelity integration](fleet-fidelity-integration.md) | Integration evidence for its recorded commits and assets |
-| `assets/reviews/` | Historical task evidence; ship report/reference archives are available only in Git history |
+| Git history | The former `assets/reviews/` task evidence and the ship, aircraft, effects, map and HUD report/review archives were deleted; older records that cite them refer to history |
 
 ## Maintaining these docs
 

@@ -5,7 +5,7 @@ Hermes at **https://ships.tomato.gg**. See [deployment and operations](deploymen
 The implementation and measurement record below describes the original local
 validation; its statements about unprovisioned infrastructure are historical.
 
-Implemented on `goldflag/rust-fleet-multiplayer`, integrated with remote master `8495e905`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work. See the [retained validation evidence](../assets/reviews/rust-multiplayer/README.md).
+Implemented on `goldflag/rust-fleet-multiplayer`, integrated with remote master `8495e905`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work.
 
 ## Implemented
 

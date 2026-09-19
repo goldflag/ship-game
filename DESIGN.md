@@ -192,7 +192,7 @@ Shift-D opens a 600 px command line centred under the top instruments in port an
 
 Ocean regions frame original fictional landscapes: asymmetric eroded mountain ranges, recessed volcanic cones, irregular coves and headlands. Snow gathers on gentler upper slopes while steep faces expose rock; tropical beaches occupy low sheltered coves. Dense forest groves use grounded trees with varied crown proportions and muted foliage, preserving the scale of the ships and surrounding mountains. Land, water and atmospheric haze share each map's lighting, with the sea and naval instruments remaining clearly visible.
 
-Treat these as authored game environments, with no claim of geographic accuracy or photorealism. Keep generation details in the terrain notes rather than player controls. The durable map recipes and review evidence live under `assets/maps/`; `assets/maps/review/landforms.html` compares the fixed views, and `assets/maps/terrain-notes.md` records construction and capture limitations.
+Treat these as authored game environments, with no claim of geographic accuracy or photorealism. Keep generation details in the terrain notes rather than player controls. The durable map recipes live under `assets/maps/`; its scripts rebuild the fixed-view comparison into ignored `.build/reviews/maps/`, and `assets/maps/terrain-notes.md` records construction and capture limitations.
 
 ### Commands and navigation
 
@@ -276,7 +276,7 @@ The [approved D study](docs/pve-ui-studies/README.md) keeps the sea visible bene
 
 A formation rail (Column, Double column, Triple column, Screen, Line abreast; C cycles) applies to exactly one whole selected group and persists on that group; escort stations come from the role-ordered, hull-scaled tables the deployment chart also uses, so the shape placed before the battle is the shape that sails. Selection never changes helm ownership or camera follow. The Air drawer spans all friendly carriers even when a surface ship is selected. Ship-follow and manual-helm views hide aircraft information, the Air toggle, the air row and deck counts; Fleet command returns in one action. Queue feedback must distinguish queued, accepted, rejected and superseded orders. Local tactical pause leaves orders available. Visible keyboard focus is retained inside the command interface because roster selection and map orders are primary interactions. Briefing/deployment task-group columns and contact/logistics workflows remain governed by the [implementation tracker](docs/pve-implementation-status.md).
 
-Water impacts retain the first PR #80 iteration's long, directional water streaks: curved sheets, fine filaments and a low crown that collapse into spray. This is the owner's preferred splash appearance. Preserve its silhouette and breakup when optimizing; the later dense parcel column was rejected. See the [current streaked-water review](assets/reviews/water-impact/streaks/README.md).
+Water impacts retain the first PR #80 iteration's long, directional water streaks: curved sheets, fine filaments and a low crown that collapse into spray. This is the owner's preferred splash appearance. Preserve its silhouette and breakup when optimizing; the later dense parcel column was rejected.
 
 ### Do:
 
