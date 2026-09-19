@@ -51,9 +51,10 @@ fn envelope(cells: &[ConvexVolume], pitch: Vec3) -> Vec<ConvexVolume> {
                         }
                     }
                     if let Some(part) = part
-                        && cg::moments(&part).volume > 1e-9 {
-                            bins.entry(key).or_default().extend(points(&part));
-                        }
+                        && cg::moments(&part).volume > 1e-9
+                    {
+                        bins.entry(key).or_default().extend(points(&part));
+                    }
                 }
             }
         }
@@ -105,20 +106,21 @@ fn weighted(cells: &[ConvexVolume], pitch: Vec3) -> Vec<BuoyancyCell> {
                         }
                     }
                     if let Some(part) = part
-                        && cg::moments(&part).volume > 1e-9 {
-                            let m = cg::moments(&part);
-                            let entry = bins.entry(key).or_insert((
-                                cg::Moments::default(),
-                                [f64::INFINITY; 3],
-                                [f64::NEG_INFINITY; 3],
-                            ));
-                            entry.0.add(m);
-                            let (lo, hi) = bounds(points(&part));
-                            for a in 0..3 {
-                                entry.1[a] = entry.1[a].min(lo[a]);
-                                entry.2[a] = entry.2[a].max(hi[a]);
-                            }
+                        && cg::moments(&part).volume > 1e-9
+                    {
+                        let m = cg::moments(&part);
+                        let entry = bins.entry(key).or_insert((
+                            cg::Moments::default(),
+                            [f64::INFINITY; 3],
+                            [f64::NEG_INFINITY; 3],
+                        ));
+                        entry.0.add(m);
+                        let (lo, hi) = bounds(points(&part));
+                        for a in 0..3 {
+                            entry.1[a] = entry.1[a].min(lo[a]);
+                            entry.2[a] = entry.2[a].max(hi[a]);
                         }
+                    }
                 }
             }
         }
@@ -414,31 +416,40 @@ fn main() {
             })
             .collect();
     }
-    if !weighted_mode
-        && let Some(clearance) = &mut d.mount_clearance {
-            let mut bodies: Vec<_> = clearance
-                .bodies
-                .take()
-                .unwrap()
-                .into_iter()
-                .filter(|b| !b.id.starts_with("hull-cell-"))
-                .collect();
-            bodies.extend(coarse.iter().enumerate().map(|(i, c)| {
-                MountClearanceProfileBodiesItem {
+    if !weighted_mode && let Some(clearance) = &mut d.mount_clearance {
+        let mut bodies: Vec<_> = clearance
+            .bodies
+            .take()
+            .unwrap()
+            .into_iter()
+            .filter(|b| !b.id.starts_with("hull-cell-"))
+            .collect();
+        bodies.extend(
+            coarse
+                .iter()
+                .enumerate()
+                .map(|(i, c)| MountClearanceProfileBodiesItem {
                     id: format!("combat-hull-{i}"),
                     mount_id: None,
                     surface: mesh(c),
-                }
-            }));
-            clearance.bodies = Some(bodies);
-            clearance.basis =
-                "Experimental conservative support envelopes; detailed moving weapons retained"
-                    .into();
-        }
+                }),
+        );
+        clearance.bodies = Some(bodies);
+        clearance.basis =
+            "Experimental conservative support envelopes; detailed moving weapons retained".into();
+    }
     if guarded && !hybrid {
-        let clearance = naval_sim::mount_clearance::MountClearance::new(&d).unwrap().unwrap();
+        let clearance = naval_sim::mount_clearance::MountClearance::new(&d)
+            .unwrap()
+            .unwrap();
         let keep = clearance.reachable_body_ids(&d);
-        d.mount_clearance.as_mut().unwrap().bodies.as_mut().unwrap().retain(|b|keep.contains(&b.id));
+        d.mount_clearance
+            .as_mut()
+            .unwrap()
+            .bodies
+            .as_mut()
+            .unwrap()
+            .retain(|b| keep.contains(&b.id));
     }
     d.hull.volume = Some(ConstructionGeometry {
         version: 1.,

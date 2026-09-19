@@ -1,0 +1,3 @@
+# One-time `cargo fmt --all` over the Rust workspace. Configure once per clone:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+7192429bcd75921cddfbd8cd74f45b3841590c81

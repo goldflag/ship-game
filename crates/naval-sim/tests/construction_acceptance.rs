@@ -13,9 +13,14 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
                 version: 1.,
                 catalog_revision: "test".into(),
                 default_thickness_mm: 10.,
-                primitives: vec![ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+                primitives: vec![ConstructionPrimitive {
+                    tilt: None,
+                    mesh: None,
+                    balcony: None,
+                    shaping: None,
+                    custom_hull: None,
                     vertices: None,
-            smooth_group: None,
+                    smooth_group: None,
                     id: "hull".into(),
                     kind: "box".into(),
                     position: [0.; 3],
@@ -156,7 +161,11 @@ fn included_auxiliaries_follow_the_actual_engine_room_and_preserve_loading() {
     actor.damage.modules[other_funnel].hp = 0.;
     // The surviving funnel serves the other room's engine through shared capacity.
     assert_eq!(electrical_power(&actor, &def, None), 0.5);
-    let last_funnel = def.modules.iter().position(|m| m.id == "port-funnel").unwrap();
+    let last_funnel = def
+        .modules
+        .iter()
+        .position(|m| m.id == "port-funnel")
+        .unwrap();
     actor.damage.modules[last_funnel].hp = 0.;
     assert_eq!(electrical_power(&actor, &def, None), 0.);
     update_damage_control(&mut actor, &def, 10., None);
@@ -358,9 +367,14 @@ fn separated_hull_rays_miss_water_and_hit_only_the_selected_skin() {
         ("bridge", [0., 2.5, 0.], [11., 1., 4.]),
     ]
     .into_iter()
-    .map(|(id, position, size)| ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+    .map(|(id, position, size)| ConstructionPrimitive {
+        tilt: None,
+        mesh: None,
+        balcony: None,
+        shaping: None,
+        custom_hull: None,
         vertices: None,
-            smooth_group: None,
+        smooth_group: None,
         id: id.into(),
         kind: "box".into(),
         position,
@@ -371,7 +385,8 @@ fn separated_hull_rays_miss_water_and_hit_only_the_selected_skin() {
     source
         .construction
         .surfaces
-        .push(ConstructionSurfaceAssignment { panel_id: None,
+        .push(ConstructionSurfaceAssignment {
+            panel_id: None,
             primitive_id: "port".into(),
             face: "port".into(),
             thickness_mm: 50.,
@@ -496,17 +511,35 @@ fn trainable_torpedoes_use_one_absolute_rotation_for_sockets_damage_and_launch()
             assert!(length(sub(solution.origin, origin)) < 1e-9);
         }
         let mut restricted = source.clone();
-        let limits = if bearing < 0. { [-150., 0.] } else { [0., 150.] };
-        let arc = if bearing < 0. { [-130., -50.] } else { [50., 130.] };
+        let limits = if bearing < 0. {
+            [-150., 0.]
+        } else {
+            [0., 150.]
+        };
+        let arc = if bearing < 0. {
+            [-130., -50.]
+        } else {
+            [50., 130.]
+        };
         restricted.construction.equipment[1].launcher = Some(ConstructionEquipmentLauncher {
-            traverse_limits_deg: limits, launch_arcs_deg: vec![arc],
+            traverse_limits_deg: limits,
+            launch_arcs_deg: vec![arc],
         });
         let fitted = compile(&restricted, &catalog);
         let launcher = &fitted.torpedo_launchers.as_ref().unwrap()[0];
         assert_eq!(launcher.traverse_limits_deg, Some(limits));
         assert_eq!(launcher.launch_arcs_deg, vec![arc]);
-        restricted.construction.equipment[1].launcher.as_mut().unwrap().launch_arcs_deg = vec![[-180., 180.]];
-        assert!(naval_sim::construction::compile(&restricted, &catalog).diagnostics.iter().any(|d| d.code == "weapon-installation"));
+        restricted.construction.equipment[1]
+            .launcher
+            .as_mut()
+            .unwrap()
+            .launch_arcs_deg = vec![[-180., 180.]];
+        assert!(
+            naval_sim::construction::compile(&restricted, &catalog)
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "weapon-installation")
+        );
         // The actual battle launch consumes the same absolute heading.
         use naval_sim::{
             battle::{Battle, BattleSetup, Orders, ShipSetup},
@@ -783,7 +816,12 @@ fn original_oerlikon_reaches_full_elevation_but_stops_at_a_real_overhead_beam() 
         ("pillar", [3., 11.5, 0.], [0.4, 3., 1.]),
         ("beam", [0., 13., 0.], [8., 0.5, 1.]),
     ] {
-        source.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+        source.construction.primitives.push(ConstructionPrimitive {
+            tilt: None,
+            mesh: None,
+            balcony: None,
+            shaping: None,
+            custom_hull: None,
             vertices: None,
             smooth_group: None,
             id: id.into(),
@@ -814,25 +852,34 @@ fn published_construction_uses_trusted_manifest_admission_without_admitting_loca
     use sha2::{Digest, Sha256};
     let (source, parts) = fixture();
     let mut definition = compile(&source, &parts);
-    let mut manifest: serde_json::Value = serde_json::from_slice(
-        &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
-    )
-    .unwrap();
+    let mut manifest: serde_json::Value =
+        serde_json::from_slice(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
+            .unwrap();
     let entry = |definition: &ShipDefinition| {
         let json = serde_json::to_string(definition).unwrap();
         serde_json::json!({"id": definition.id, "contentHash": definition.content_hash,
             "sha256": format!("{:x}", Sha256::digest(json.as_bytes())), "json": json})
     };
     // Local IDs are forbidden even when the surrounding digest is correct.
-    manifest["ships"].as_array_mut().unwrap().push(entry(&definition));
+    manifest["ships"]
+        .as_array_mut()
+        .unwrap()
+        .push(entry(&definition));
     assert!(Catalog::load(&serde_json::to_vec(&manifest).unwrap()).is_err());
     manifest["ships"].as_array_mut().unwrap().pop();
     definition.id = "published-construction-acceptance".into();
-    manifest["ships"].as_array_mut().unwrap().push(entry(&definition));
+    manifest["ships"]
+        .as_array_mut()
+        .unwrap()
+        .push(entry(&definition));
     let accepted = Catalog::load(&serde_json::to_vec(&manifest).unwrap()).unwrap();
     assert!(accepted.definitions.contains_key(&definition.id));
     assert!(!accepted.hydrostatics.contains_key(&definition.id));
-    let last = manifest["ships"].as_array_mut().unwrap().last_mut().unwrap();
+    let last = manifest["ships"]
+        .as_array_mut()
+        .unwrap()
+        .last_mut()
+        .unwrap();
     last["sha256"] = serde_json::json!("corrupt");
     assert!(Catalog::load(&serde_json::to_vec(&manifest).unwrap()).is_err());
 }
@@ -841,14 +888,23 @@ fn published_construction_uses_trusted_manifest_admission_without_admitting_loca
 fn internal_powerplants_need_interior_space_but_not_surface_contact() {
     let (mut source, mut catalog) = fixture();
     catalog.equipment.push(ConstructionEquipmentPart {
-        id: "engine-part".into(), name: "Powerplant".into(), kind: "engine".into(),
-        placement: "internal".into(), size: [2., 1., 4.], bounds_center: [0., 0.5, 0.],
-        center_of_gravity: [0., 0.5, 0.], mass_kg: Some(1000.), power_kw: Some(3000.),
-        model_url: "/models/components/test/model.glb".into(), content_hash: "test".into(),
+        id: "engine-part".into(),
+        name: "Powerplant".into(),
+        kind: "engine".into(),
+        placement: "internal".into(),
+        size: [2., 1., 4.],
+        bounds_center: [0., 0.5, 0.],
+        center_of_gravity: [0., 0.5, 0.],
+        mass_kg: Some(1000.),
+        power_kw: Some(3000.),
+        model_url: "/models/components/test/model.glb".into(),
+        content_hash: "test".into(),
         ..Default::default()
     });
     source.construction.equipment.push(ConstructionEquipment {
-        id: "engine".into(), part_id: "engine-part".into(), position: [0., -0.5, 0.],
+        id: "engine".into(),
+        part_id: "engine-part".into(),
+        position: [0., -0.5, 0.],
         ..Default::default()
     });
     compile(&source, &catalog);

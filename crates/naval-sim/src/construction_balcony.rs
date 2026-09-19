@@ -250,7 +250,10 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
             } else {
                 "slope"
             };
-            let polygon = vertices.into_iter().map(|v| crate::construction_orientation::point(p, v)).collect();
+            let polygon = vertices
+                .into_iter()
+                .map(|v| crate::construction_orientation::point(p, v))
+                .collect();
             (name.into(), polygon)
         })
         .collect();

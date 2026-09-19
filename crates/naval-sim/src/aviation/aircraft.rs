@@ -226,7 +226,10 @@ pub struct AirRelease {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Another team's weapon is cut to its visible dimensions and speed in a team
     /// frame (`team_view`); the owner's travels whole.
-    #[ts(type = "Pick<import('../../ships/blueprint').TorpedoPart, 'diameterM' | 'lengthM' | 'speed'> & Partial<import('../../ships/blueprint').TorpedoPart>", optional)]
+    #[ts(
+        type = "Pick<import('../../ships/blueprint').TorpedoPart, 'diameterM' | 'lengthM' | 'speed'> & Partial<import('../../ships/blueprint').TorpedoPart>",
+        optional
+    )]
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
 pub(super) const FIGHTER_AMMO_BURSTS: f64 = 16.0;

@@ -28,7 +28,10 @@ fn main() {
         }
         i += 1;
     }
-    let seconds: u64 = positional.get(2).and_then(|s| s.parse().ok()).unwrap_or(600);
+    let seconds: u64 = positional
+        .get(2)
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(600);
     let manifest = std::fs::read(".build/naval-content/manifest.json").expect("manifest");
     let sources_json = sources.map(|p| std::fs::read_to_string(p).expect("sources"));
     let catalog_json = catalog.map(|p| std::fs::read_to_string(p).expect("catalog"));
@@ -36,16 +39,29 @@ fn main() {
         (Some(s), Some(c)) => {
             let sources: Vec<naval_sim::definition::ConstructionSource> =
                 serde_json::from_str(s).unwrap();
-            let parts: naval_sim::definition::ConstructionCatalog = serde_json::from_str(c).unwrap();
+            let parts: naval_sim::definition::ConstructionCatalog =
+                serde_json::from_str(c).unwrap();
             sources
                 .iter()
                 .map(|source| {
                     let started = Instant::now();
                     let result = naval_sim::construction::compile(source, &parts);
                     let d = result.definition.unwrap_or_else(|| {
-                        panic!("{}: {:?}", source.name, result.diagnostics.iter().map(|d| &d.message).collect::<Vec<_>>())
+                        panic!(
+                            "{}: {:?}",
+                            source.name,
+                            result
+                                .diagnostics
+                                .iter()
+                                .map(|d| &d.message)
+                                .collect::<Vec<_>>()
+                        )
                     });
-                    eprintln!("compiled {} in {:.1}s", d.id, started.elapsed().as_secs_f64());
+                    eprintln!(
+                        "compiled {} in {:.1}s",
+                        d.id,
+                        started.elapsed().as_secs_f64()
+                    );
                     d.id
                 })
                 .collect()
@@ -68,7 +84,9 @@ fn main() {
     .to_string();
     let started = Instant::now();
     let mut runtime = match (&sources_json, &catalog_json) {
-        (Some(s), Some(c)) => naval_wasm::LocalRuntime::with_construction(&manifest, &setup, s, c, false),
+        (Some(s), Some(c)) => {
+            naval_wasm::LocalRuntime::with_construction(&manifest, &setup, s, c, false)
+        }
         _ => naval_wasm::LocalRuntime::new(&manifest, &setup),
     }
     .unwrap_or_else(|_| panic!("runtime setup failed"));
@@ -80,7 +98,10 @@ fn main() {
             continue;
         }
         let rooms = &d.compartments;
-        let volumes: Vec<usize> = rooms.iter().map(|c| c.volumes.as_ref().map_or(0, |v| v.len())).collect();
+        let volumes: Vec<usize> = rooms
+            .iter()
+            .map(|c| c.volumes.as_ref().map_or(0, |v| v.len()))
+            .collect();
         eprintln!(
             "{}: hull cells {} buoyancy cells {} plates {} compartments {} room volumes {} (largest room {}) connections {} modules {} mounts {}",
             d.id,
@@ -111,7 +132,12 @@ fn main() {
             .actors
             .iter()
             .map(|a| {
-                let wet = a.damage.compartments.iter().filter(|c| c.water_m3 > 0.).count();
+                let wet = a
+                    .damage
+                    .compartments
+                    .iter()
+                    .filter(|c| c.water_m3 > 0.)
+                    .count();
                 let water: f64 = a.damage.compartments.iter().map(|c| c.water_m3).sum();
                 let breaches: usize = a.damage.compartments.iter().map(|c| c.breaches.len()).sum();
                 format!(
@@ -122,7 +148,13 @@ fn main() {
                 )
             })
             .collect();
-        println!("{},{:.2},{:.1},{}", (window + 1) * 10, total / 600.0, worst, state.join(" | "));
+        println!(
+            "{},{:.2},{:.1},{}",
+            (window + 1) * 10,
+            total / 600.0,
+            worst,
+            state.join(" | ")
+        );
         if battle.outcome.is_some() {
             after += 10;
             if after > aftermath {
@@ -131,7 +163,9 @@ fn main() {
         }
     }
     if let Some(path) = dump {
-        let state = runtime.migration_snapshot_json().unwrap_or_else(|_| panic!("dump"));
+        let state = runtime
+            .migration_snapshot_json()
+            .unwrap_or_else(|_| panic!("dump"));
         std::fs::write(path, state).expect("dump");
     }
 }

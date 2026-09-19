@@ -11,7 +11,11 @@ fn fixture(position: Vec3) -> (ConstructionSource, ConstructionCatalog) {
             version: 1.,
             catalog_revision: "test".into(),
             default_thickness_mm: 10.,
-            primitives: vec![ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None,
+            primitives: vec![ConstructionPrimitive {
+                tilt: None,
+                mesh: None,
+                balcony: None,
+                shaping: None,
                 id: "hull".into(),
                 kind: "box".into(),
                 size: [10., 4., 20.],
@@ -155,7 +159,8 @@ fn unreachable_and_open_hull_connections_are_rejected() {
     source
         .construction
         .surfaces
-        .push(ConstructionSurfaceAssignment { panel_id: None,
+        .push(ConstructionSurfaceAssignment {
+            panel_id: None,
             primitive_id: "hull".into(),
             face: "bottom".into(),
             thickness_mm: 10.,

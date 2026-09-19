@@ -94,8 +94,7 @@ fn main() {
                         -m.traverse_deg.unwrap_or(m.weapon.traverse_deg),
                         m.traverse_deg.unwrap_or(m.weapon.traverse_deg),
                     ]);
-                    ps[i].train =
-                        radians(lim[0] + (lim[1] - lim[0]) * k as f64 / 12.);
+                    ps[i].train = radians(lim[0] + (lim[1] - lim[0]) * k as f64 / 12.);
                     ps[i].elevation = radians(
                         m.elevation_min_deg.unwrap_or(m.weapon.elevation_min_deg) * (1. - ef)
                             + m.elevation_max_deg.unwrap_or(m.weapon.elevation_max_deg) * ef,
@@ -195,7 +194,10 @@ fn main() {
         let x = ah.query(from, to);
         let y = bh.query(from, to);
         hull_hits += x.len();
-        assert_eq!(serde_json::to_value(x).unwrap(), serde_json::to_value(y).unwrap());
+        assert_eq!(
+            serde_json::to_value(x).unwrap(),
+            serde_json::to_value(y).unwrap()
+        );
         let hits = |surfaces: &[_]| {
             naval_sim::structure::structural_hits(from, to, surfaces).iter().map(|h| {
                 serde_json::json!({"surface":h.surface.id,"triangle":h.triangle,"t":h.hit.t,"point":h.hit.point})
@@ -206,7 +208,10 @@ fn main() {
         torpedo_hits += x.len();
         assert_eq!(x, y);
     }
-    assert!(hull_hits > 0 && torpedo_hits > 0, "contact comparison needs actual hits");
+    assert!(
+        hull_hits > 0 && torpedo_hits > 0,
+        "contact comparison needs actual hits"
+    );
     println!(
         "{}",
         serde_json::json!({"hydro":hydro,"water":water,"waterQueryMs":water_ms,"clearance":{"samples":total,"referenceBlocked":blocked,"unsafeClear":unsafe_clear,"extraBlocked":extra,"changes":clear},"enclosure":{"samples":tested,"outside":missed},"damageRays":hits,"hullContacts":{"rays":contact_rays.len(),"shellHits":hull_hits,"torpedoHits":torpedo_hits,"exact":true}})

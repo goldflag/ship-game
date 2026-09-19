@@ -26,3 +26,13 @@ opt-level = 1
 lto = "off"
 codegen-units = 16
 incremental = true
+
+# The agent/developer edit-test loop (`bun run rust:test`). Release semantics, so
+# numerical scenarios stay within their budgets, without the thin-LTO single-unit
+# link that makes every cycle minutes long. CI keeps testing `--release`.
+[profile.test-fast]
+inherits = "release"
+opt-level = 1
+lto = "off"
+codegen-units = 16
+incremental = true

@@ -390,7 +390,10 @@ fn point(a: &Vessel) -> [f64; 2] {
     [a.motion.x, a.motion.z]
 }
 pub fn maximum_speed(a: &Vessel) -> f64 {
-    a.compiled.maneuvering.available_speed(system_health(a, a.definition(), "engine", None), a.motion_mass.mass / a.definition().hull.mass_kg)
+    a.compiled.maneuvering.available_speed(
+        system_health(a, a.definition(), "engine", None),
+        a.motion_mass.mass / a.definition().hull.mass_kg,
+    )
 }
 
 /// Only owned capabilities enter this report. A healthy displaced ship needs
@@ -590,12 +593,24 @@ fn plan_path(
     Some(path)
 }
 
-fn braking_acceleration(a:&Vessel)->f64 {
-    a.compiled.maneuvering.braking_acceleration(a.motion.speed.abs(), system_health(a,a.definition(),"engine",None), a.motion_mass.mass).max(0.001)
+fn braking_acceleration(a: &Vessel) -> f64 {
+    a.compiled
+        .maneuvering
+        .braking_acceleration(
+            a.motion.speed.abs(),
+            system_health(a, a.definition(), "engine", None),
+            a.motion_mass.mass,
+        )
+        .max(0.001)
 }
 fn steer(a: &Vessel, heading: f64) -> f64 {
-    let leeway = a.motion.sway_speed.atan2(a.motion.speed.max(0.5)).clamp(-0.5, 0.5);
-    (wrap_angle(heading - a.motion.heading - leeway) * 2.0 - a.motion.yaw_rate * 8.0).clamp(-1.0, 1.0)
+    let leeway = a
+        .motion
+        .sway_speed
+        .atan2(a.motion.speed.max(0.5))
+        .clamp(-0.5, 0.5);
+    (wrap_angle(heading - a.motion.heading - leeway) * 2.0 - a.motion.yaw_rate * 8.0)
+        .clamp(-1.0, 1.0)
 }
 
 /// Predict close approaches using physical motion only. Both ships turn to
@@ -844,16 +859,28 @@ pub fn command_observed(
                 if clear_segment(at, destination, islands, margin) {
                     // Once the guide has stopped, use sternway for a nearby station
                     // behind us instead of circling through neighboring columns.
-                    let along = error[0] * a.motion.heading.sin() - error[1] * a.motion.heading.cos();
-                    if station_velocity[0].hypot(station_velocity[1]) < 0.25 && range < a.definition().hull.length * 4.
-                        && along < -radius && a.motion.speed < 1. {
+                    let along =
+                        error[0] * a.motion.heading.sin() - error[1] * a.motion.heading.cos();
+                    if station_velocity[0].hypot(station_velocity[1]) < 0.25
+                        && range < a.definition().hull.length * 4.
+                        && along < -radius
+                        && a.motion.speed < 1.
+                    {
                         state.destination = Some(destination);
                         let bow_heading = (-error[0]).atan2(error[1]);
-                        let target = -(a.definition().handling.reverse_speed * 0.5).min(((range-radius).max(0.) * 0.04).sqrt());
+                        let target = -(a.definition().handling.reverse_speed * 0.5)
+                            .min(((range - radius).max(0.) * 0.04).sqrt());
                         return HelmCommand {
-                            throttle: if a.motion.speed < target - 0.2 { ((target-a.motion.speed)/0.5).clamp(0.,1.).cbrt() }
-                                else { -(target.abs()/a.definition().handling.reverse_speed.max(0.1)).clamp(0.,1.).sqrt() },
-                            rudder: -(wrap_angle(bow_heading-a.motion.heading)*2. - a.motion.yaw_rate*8.).clamp(-1.,1.),
+                            throttle: if a.motion.speed < target - 0.2 {
+                                ((target - a.motion.speed) / 0.5).clamp(0., 1.).cbrt()
+                            } else {
+                                -(target.abs() / a.definition().handling.reverse_speed.max(0.1))
+                                    .clamp(0., 1.)
+                                    .sqrt()
+                            },
+                            rudder: -(wrap_angle(bow_heading - a.motion.heading) * 2.
+                                - a.motion.yaw_rate * 8.)
+                                .clamp(-1., 1.),
                             ..Default::default()
                         };
                     }
@@ -904,14 +931,25 @@ pub fn command_observed(
                 state.status = NavigationStatus::LeaderLost;
                 let anchor = *state.lost_hold.get_or_insert(at);
                 state.destination = Some(anchor);
-                return sail(a, actors, contacts, islands, state, a.motion.heading, 0., maximum);
+                return sail(
+                    a,
+                    actors,
+                    contacts,
+                    islands,
+                    state,
+                    a.motion.heading,
+                    0.,
+                    maximum,
+                );
             }
         }
         Movement::Autonomous | Movement::Hold => return HelmCommand::default(),
     };
     state.destination = Some(destination);
     let range = distance(at, destination);
-    if (range < radius || (range < radius + 5. && a.motion.speed.abs() < 0.25)) && final_speed == 0.0 {
+    if (range < radius || (range < radius + 5. && a.motion.speed.abs() < 0.25))
+        && final_speed == 0.0
+    {
         if state.status == NavigationStatus::FollowingRoute {
             state.status = NavigationStatus::Holding;
         }
@@ -981,11 +1019,19 @@ fn sail(
     };
     let rudder = steer(a, heading);
     let available = system_health(a, a.definition(), "engine", None);
-    let throttle = a.compiled.maneuvering.throttle_for_speed(speed, available, a.motion_mass.mass / a.definition().hull.mass_kg);
+    let throttle = a.compiled.maneuvering.throttle_for_speed(
+        speed,
+        available,
+        a.motion_mass.mass / a.definition().hull.mass_kg,
+    );
     let command = HelmCommand {
-        throttle: if a.motion.speed < -0.02 { ((speed-a.motion.speed)/0.5).clamp(0.,1.).cbrt() } else if a.motion.speed > speed + 0.3 || (speed < 0.1 && a.motion.speed > 0.02) {
-            -((a.motion.speed-speed)/0.5).clamp(0.,1.).cbrt()
-        } else { (throttle + (speed - a.motion.speed) / maximum.max(0.1) * 0.5).clamp(0., 1.) },
+        throttle: if a.motion.speed < -0.02 {
+            ((speed - a.motion.speed) / 0.5).clamp(0., 1.).cbrt()
+        } else if a.motion.speed > speed + 0.3 || (speed < 0.1 && a.motion.speed > 0.02) {
+            -((a.motion.speed - speed) / 0.5).clamp(0., 1.).cbrt()
+        } else {
+            (throttle + (speed - a.motion.speed) / maximum.max(0.1) * 0.5).clamp(0., 1.)
+        },
         rudder,
         ..Default::default()
     };

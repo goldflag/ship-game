@@ -55,7 +55,7 @@ fn fixture() -> ShipDefinition {
     });
     d.maneuvering = Some(ManeuveringProfile {
         version: 1.,
-        propellers: vec!["port", "starboard"]
+        propellers: ["port", "starboard"]
             .iter()
             .map(|id| ManeuveringProfilePropellersItem {
                 module_id: (*id).into(),

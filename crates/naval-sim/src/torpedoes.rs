@@ -42,7 +42,9 @@ pub struct Torpedo {
     pub age: f64,
     /// Another team's weapon is cut to its visible dimensions and speed in a team
     /// frame (`team_view`); the owner's travels whole.
-    #[ts(type = "Pick<import('../../ships/blueprint').TorpedoPart, 'diameterM' | 'lengthM' | 'speed'> & Partial<import('../../ships/blueprint').TorpedoPart>")]
+    #[ts(
+        type = "Pick<import('../../ships/blueprint').TorpedoPart, 'diameterM' | 'lengthM' | 'speed'> & Partial<import('../../ships/blueprint').TorpedoPart>"
+    )]
     pub weapon: TorpedoPart,
 }
 pub fn tube_local_position(actor: &Combatant, def: &ShipDefinition, tube: &TubeDefinition) -> Vec3 {

@@ -80,7 +80,11 @@ impl Battle {
         }
         let mut e = event.clone();
         // Only owned sources are disclosed; enemy source identity stays private.
-        e.source_id = e.source_id.filter(|id| self.actors.iter().any(|a| a.team == team && &a.motion.id == id));
+        e.source_id = e.source_id.filter(|id| {
+            self.actors
+                .iter()
+                .any(|a| a.team == team && &a.motion.id == id)
+        });
         e.ship_id = self.public_entity_id(&e.ship_id, team).unwrap_or_default();
         e.message = match e.kind.as_str() {
             "shot" => "Gunfire",
@@ -284,7 +288,12 @@ impl Battle {
                     .collect();
                 (
                     id.clone(),
-                    VesselScore::addressed(score.damage_dealt, score.armor_blocked, score.frags, log),
+                    VesselScore::addressed(
+                        score.damage_dealt,
+                        score.armor_blocked,
+                        score.frags,
+                        log,
+                    ),
                 )
             })
             .collect();
