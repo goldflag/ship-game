@@ -7566,6 +7566,92 @@
           ]
         }
       ]
+    },
+    {
+      "id": "generic-inclined-ladder",
+      "name": "Adjustable inclined stairs",
+      "kind": "deck-fitting",
+      "size": [
+        1,
+        4,
+        3
+      ],
+      "boundsCenter": [
+        0,
+        2,
+        -1.25
+      ],
+      "centerOfGravity": [
+        0,
+        2,
+        -1.25
+      ],
+      "massKg": 1,
+      "placement": "deck",
+      "path": {
+        "kind": "inclined-ladder",
+        "diameterM": 0.032,
+        "massKgPerM": 1
+      },
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-framed-ladder",
+      "name": "Adjustable framed ladder",
+      "kind": "deck-fitting",
+      "size": [
+        0.8,
+        4.2,
+        0.4
+      ],
+      "boundsCenter": [
+        0,
+        1.95,
+        -0.2
+      ],
+      "centerOfGravity": [
+        0,
+        1.95,
+        -0.2
+      ],
+      "massKg": 1,
+      "placement": "deck",
+      "path": {
+        "kind": "framed-ladder",
+        "diameterM": 0.032,
+        "massKgPerM": 1
+      },
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
     }
   ]
 }

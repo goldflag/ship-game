@@ -1,3 +1,4 @@
+import { isAccessKind } from '../../../assets/parts/construction/access_geometry';
 import { resizedWallDimensions } from './wallDimensions';
 import { WallSizeFields } from './WallSizeFields';
 import { RailingFields } from './RailingFields';
@@ -283,7 +284,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // The cursor piece reads out above the palette instead of following the ghost; its size fields stay editable there.
   // The Armor layer keeps its millimetre field here, above the bar: a new value also assigns the selected faces.
   const status: ReactNode = locked ? null : pathPart ? <>
-    <b>{pathPart.name}</b>{pathPart.path?.kind === 'ladder' ? <><span>{pathPoints.length ? 'Click the last rung to place · Esc cancels' : 'Click the first rung on a hull side'}</span><button onClick={() => tool.cancelPath(false)}>Cancel <kbd>Esc</kbd></button></> : <><span>{pathPoints.length ? `${pathPoints.length} points · click to extend` : 'Click the first point on the ship'}</span>
+    <b>{pathPart.name}</b>{pathPart.path?.kind === 'ladder' || isAccessKind(pathPart.path?.kind) ? <><span>{pathPoints.length ? 'Click the upper endpoint to place · Esc cancels' : pathPart.path?.kind === 'inclined-ladder' ? 'Click the lower deck, then the upper deck edge' : 'Click the lower endpoint on a hull side'}</span><button onClick={() => tool.cancelPath(false)}>Cancel <kbd>Esc</kbd></button></> : <><span>{pathPoints.length ? `${pathPoints.length} points · click to extend` : 'Click the first point on the ship'}</span>
     {pathPart.path?.kind === 'railing' && <RailingFields heightM={s.railingHeight} onHeight={tool.setRailingHeight}/>}
     {pathPart.path?.kind === 'rope' && <NumberField label="Rope slack" value={Math.min(s.ropeSlack, pathSlackLimit(pathPoints))} min={0} max={pathSlackLimit(pathPoints)} step={.05} unit="m" onChange={tool.setRopeSlack}/>}
     <button disabled={pathPoints.length < 2} onClick={tool.finishPath}>Finish <kbd>Enter</kbd></button><button onClick={() => tool.cancelPath(false)}>Cancel <kbd>Esc</kbd></button>

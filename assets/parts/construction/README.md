@@ -444,3 +444,32 @@ retain their diameter control and surface-only sizing.
 The nominal 0.6 m square envelope, 36 mm maximum relief and 14 kg mass are
 game estimates. This closed fitting adds no hull opening, interior or
 articulation; installation must pass the native wall-support checks.
+
+## Adjustable stairs and framed ladders
+
+`generic-inclined-ladder` and `generic-framed-ladder` add two-point access
+fittings. The old fixed stairs, bulkhead ladder and saved publications remain
+available. Both new types use the versioned equipment path plus `access` settings:
+`widthM`, `standOffM`, `handrails` (`both`, `left`, `right`, `none`) and
+`grabHeightM`. Defaults are a 0.75 m stair width or 0.5 m ladder width, 0.2 m
+standoff, both handrails and 0.9 m grab extensions. Width is 0.35–1.5 m; rise
+is 0.5–12 m. Stair endpoints are lower/upper deck contacts; framed-ladder
+endpoints are wall contacts. Reversing the clicks preserves the upward layout.
+
+Stairs accept 30–75 degrees, keep treads horizontal and calculate their count
+at a maximum 0.24 m rise. Deck shoes and upper knees physically join the
+stringers to the supporting decks. Framed ladders use continuous side rails,
+rungs at no more than 0.3 m spacing and brackets at no more than 1.5 m spacing.
+Standoff is 0.12–0.4 m and grab extension is 0–1.2 m. These are generic
+engineering interpretations, not researched historical variants or access-code
+certification. They remain unreviewed for vessel-specific historical use.
+
+`access_geometry.ts` is the original metric geometry recipe used by the editor,
+portable ship export. `access_fittings.py` builds standalone
+Blender samples through that same recipe, via `access_sample.ts`. Both TypeScript
+inputs are declared in the registry. Rust's `construction_access.rs` mirrors
+member geometry for support, clearance, mass and inertia. Steel loading uses
+provisional material fractions for folded treads, channel stringers and tubes;
+these fittings add no buoyancy or crew pathfinding. Mounting ends may seat within
+18 cm of their supported attachment; other hull and equipment intersections fail.
+Framed ladders currently require a straight wall run, without a horizontal bend.

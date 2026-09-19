@@ -206,7 +206,7 @@ pub(crate) fn compile(
     let base_mass = p.mass_kg.unwrap_or(0.);
     if p.kind != "deck-fitting"
         || p.placement != "deck"
-        || !["railing", "rope", "chain", "ladder"].contains(&profile.kind.as_str())
+        || !["railing", "rope", "chain", "ladder", "inclined-ladder", "framed-ladder"].contains(&profile.kind.as_str())
         || !profile.diameter_m.is_finite()
         || !(0.005..=0.2).contains(&profile.diameter_m)
         || !profile.mass_kg_per_m.is_finite()
@@ -259,6 +259,10 @@ pub(crate) fn compile(
             &e.id,
         ));
     }
+    if matches!(profile.kind.as_str(), "inclined-ladder" | "framed-ladder") {
+        return crate::construction_access::compile(e, p, surfaces, hull, hull_index, fitted, fitting_index);
+    }
+    if source.access.is_some() { return Err(error("Access settings apply only to stairs and framed ladders", &e.id)); }
     let railing = profile.kind == "railing";
     let ladder = profile.kind == "ladder";
     if !railing && (source.height_m.is_some() || source.rail_count.is_some()) {

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-framed-ladder",
+  "revision": "8eba9538d39d121464831dcc47e2bd2256a1ede79a2a6778ca1e4e37953bcdfc",
+  "contentHash": "c0f368b385dcf8ad001f797e1560e28aa082cdcceaf79e2d7a2c8967746c1f29",
+  "modelSha256": "0c3912f49fb9f236e25f74aeea66d29df58e1ce60f0047e6cb91e9da8ea2d4b5",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-framed-ladder/8eba9538d39d121464831dcc47e2bd2256a1ede79a2a6778ca1e4e37953bcdfc/model.glb",
+  "boundsCenter": [
+    5.956973070375682e-8,
+    1.9175000190734863,
+    -0.11500006313150103
+  ],
+  "size": [
+    0.6260000285480267,
+    3.9650001525878906,
+    0.2300001010227
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 572,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original adjustable generic access fitting; no specific historical vessel fit. Native validation owns support, clearance and provisional steel loading. The standalone model shows the default three-metre rise; installed geometry follows saved endpoints and access settings.",
+  "basis": "assets/parts/construction/README.md"
+}
