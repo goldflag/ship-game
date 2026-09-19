@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-life-raft-rectangular",
+  "revision": "854759d32cb7aec38aa4fb9267e78dddce2118c16c9ebd722d37c297ac220127",
+  "contentHash": "d0d70e509ab9012cb4cc3c4375017d5ea587f3fc5117d3cf6b109d06bdeaa349",
+  "modelSha256": "0127413c0cc5b6d4dda3f3eea9e7d4296d54117c4d551d4303683d5013c7facc",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-life-raft-rectangular/854759d32cb7aec38aa4fb9267e78dddce2118c16c9ebd722d37c297ac220127/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    -0.17499998511917525
+  ],
+  "size": [
+    1.5440000295639038,
+    2.2239999771118164,
+    0.3500000774453653
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 636,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review.",
+  "basis": "assets/parts/construction/README.md"
+}

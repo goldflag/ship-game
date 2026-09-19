@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "19fc0505a49a2c46cd9d7629f0b65091dc9d72748ac7cee955387f8867bc5f80",
+  "revision": "e03bbd325e88f61637a3cbf726e9a27481ade36baff6f9841adc210e18b0f5b0",
   "weapons": {
     "schemaVersion": 1,
     "parts": [
@@ -21147,8 +21147,8 @@
       ],
       "massKg": 85,
       "wallMount": "door",
-      "modelUrl": "/models/components/generic-watertight-door/7a5632cd7d46db42809971f33405e66f28008ca6b5455109842f272429873d87/model.glb",
-      "contentHash": "6bd6290338a93f430e3e910e982336f246099c074e31f75908ae754bec95869d"
+      "modelUrl": "/models/components/generic-watertight-door/bf8d8aa0d6af3db69d93a81265b5853bb1aba99655913e24741e40a01096b428/model.glb",
+      "contentHash": "9285513f34ecbaa7b070406749f6e9d82e504281d5b231a5d7e481c74e0be628"
     },
     {
       "id": "generic-deck-hatch",
@@ -25887,8 +25887,8 @@
       ],
       "massKg": 45,
       "wallMount": "door",
-      "modelUrl": "/models/components/generic-utility-door/5ab593408a0efaff5812f9262fd319147a983af152059f77302d762a9f23661f/model.glb",
-      "contentHash": "025aec83f7355988ae3c90ca06393a4f1893ddaee764ed6ed4e0206f478c6d93"
+      "modelUrl": "/models/components/generic-utility-door/a864dcf0b6992f137fe8409b7881974430d961ff6239d8ebb0e502c5401ab8ff/model.glb",
+      "contentHash": "ed3b26308971bc4ec803ec0d311dcb71dbe36d9607411573d5499d91f062ad5f"
     },
     {
       "id": "generic-windowed-door",
@@ -25928,8 +25928,8 @@
       ],
       "massKg": 48,
       "wallMount": "door",
-      "modelUrl": "/models/components/generic-windowed-door/89bcf2339e9b6ea259c85e15fb1cca31453518518d0561cd2ae750e04b775f4f/model.glb",
-      "contentHash": "2b4a163206742a9cccaf02f017f270e0a6473ecc43c0f9b49a60e65d6bb6117e"
+      "modelUrl": "/models/components/generic-windowed-door/c7e842744e46ab7ae6af8ca6d3e957875d12c9544dd0af3d91736001eb320815/model.glb",
+      "contentHash": "e875857735a657ed36203a59fa8212e36b163a771968ed24cb5e788b2e01ed2a"
     },
     {
       "id": "generic-louvered-vent",

@@ -7448,6 +7448,124 @@
           ]
         }
       ]
+    },
+    {
+      "id": "generic-life-ring",
+      "name": "Life ring \u00b7 wall mount",
+      "kind": "deck-fitting",
+      "size": [
+        0.84,
+        0.84,
+        0.24
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.12
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.12
+      ],
+      "massKg": 5,
+      "placement": "deck",
+      "wallMount": "hardware",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "wallSizing": "uniform"
+    },
+    {
+      "id": "generic-life-raft-oval",
+      "name": "Oval life raft \u00b7 wall mount",
+      "kind": "deck-fitting",
+      "size": [
+        1.25,
+        1.9,
+        0.36
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.18
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.18
+      ],
+      "massKg": 45,
+      "placement": "deck",
+      "wallMount": "hardware",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-life-raft-rectangular",
+      "name": "Rectangular life raft \u00b7 wall mount",
+      "kind": "deck-fitting",
+      "size": [
+        1.57,
+        2.25,
+        0.36
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.18
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.18
+      ],
+      "massKg": 65,
+      "placement": "deck",
+      "wallMount": "hardware",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
     }
   ]
 }
