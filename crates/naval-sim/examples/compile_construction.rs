@@ -9,7 +9,10 @@ fn main() {
     let catalog = std::fs::read_to_string(&args[2]).expect("catalog");
     if args.len() == 5 {
         let parts = std::fs::read_to_string(&args[4]).expect("part IDs");
-        println!("{}", naval_sim::construction::suggest_json(&source, &catalog, &parts).expect("valid JSON"));
+        println!(
+            "{}",
+            naval_sim::construction::suggest_json(&source, &catalog, &parts).expect("valid JSON")
+        );
         return;
     }
     if args.len() == 3 {

@@ -1,4 +1,7 @@
-use naval_sim::{aviation::{DeckPose, Envelope}, catalog::Catalog};
+use naval_sim::{
+    aviation::{DeckPose, Envelope},
+    catalog::Catalog,
+};
 use std::sync::OnceLock;
 
 fn catalog() -> &'static Catalog {
@@ -14,9 +17,7 @@ fn pose(position: [f64; 3]) -> DeckPose {
     }
 }
 fn envelope(model: &str) -> Envelope {
-    catalog().aircraft[model]
-        .deck_geometry
-        .parked
+    catalog().aircraft[model].deck_geometry.parked
 }
 
 #[test]
@@ -92,9 +93,7 @@ fn full_deck_needs_physical_clearance_before_recovery_but_forward_launch_lane_is
         let wing = catalog().definitions[id].air_wing.as_ref().unwrap();
         let layout = wing.deck_layout.as_ref().unwrap();
         for pool in &wing.squadrons {
-            let arrival = catalog().aircraft[&pool.model_id]
-                .deck_geometry
-                .spread;
+            let arrival = catalog().aircraft[&pool.model_id].deck_geometry.spread;
             let blocked = |from, to| {
                 layout.spots.iter().any(|s| {
                     let model = &wing
@@ -120,15 +119,11 @@ fn full_deck_needs_physical_clearance_before_recovery_but_forward_launch_lane_is
 
 #[test]
 fn installed_aircraft_geometry_rejects_nonphysical_or_incomplete_sweep_bounds() {
-    let mut geometry = catalog().aircraft["tbd-1-devastator"]
-        .deck_geometry
-        .clone();
+    let mut geometry = catalog().aircraft["tbd-1-devastator"].deck_geometry.clone();
     assert!(geometry.valid());
     geometry.sweep.max[0] = geometry.parked.max[0];
     assert!(!geometry.valid());
-    geometry = catalog().aircraft["tbd-1-devastator"]
-        .deck_geometry
-        .clone();
+    geometry = catalog().aircraft["tbd-1-devastator"].deck_geometry.clone();
     geometry.parked.min[1] = -3.0;
     assert!(!geometry.valid());
 }

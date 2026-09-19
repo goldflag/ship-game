@@ -128,8 +128,7 @@ fn streamed_large_battle_preserves_every_presentation_field_and_authority_state(
         )
         .unwrap();
         let actual: Value =
-            serde_json::from_str(&serde_json::to_string(&battle.full_frame(&[])).unwrap())
-                .unwrap();
+            serde_json::from_str(&serde_json::to_string(&battle.full_frame(&[])).unwrap()).unwrap();
         same(&actual, &expected, &format!("tick {tick}"));
         // The narrowed projections must also agree, field for field, and must
         // keep the detail hulls' damage-control state and drop everyone else's.
@@ -146,10 +145,9 @@ fn streamed_large_battle_preserves_every_presentation_field_and_authority_state(
             .unwrap(),
         )
         .unwrap();
-        let actual: Value = serde_json::from_str(
-            &serde_json::to_string(&battle.full_frame(&detail)).unwrap(),
-        )
-        .unwrap();
+        let actual: Value =
+            serde_json::from_str(&serde_json::to_string(&battle.full_frame(&detail)).unwrap())
+                .unwrap();
         same(&actual, &expected, &format!("narrowed tick {tick}"));
         check_detail(
             actual["actors"].as_array().unwrap(),

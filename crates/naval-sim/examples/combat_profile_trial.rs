@@ -116,10 +116,12 @@ fn main() {
         }
         let start = Instant::now();
         let mut milestones = vec![];
-        let movement=naval_sim::maneuvering::Maneuvering::new(d);
+        let movement = naval_sim::maneuvering::Maneuvering::new(d);
         for tick in 0..if mode == "capsize-fixture" { 1200 } else { 600 } {
             naval_sim::maneuvering::step(
-                &mut a, d, &movement,
+                &mut a,
+                d,
+                &movement,
                 HelmCommand {
                     throttle: 1.,
                     rudder: 0.5,

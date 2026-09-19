@@ -16,7 +16,10 @@ fn main() {
     // The frame and its codec: the session half flattens the battle half, whose
     // element projections are the client's own types (see BattleFrame).
     naval_protocol::frame::SessionFrame::<()>::export_all(&ts_rs::Config::from_env()).unwrap();
-    naval_sim::snapshot::BattleFrame::<(), (), (), (), (), (), (), (), ()>::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_sim::snapshot::BattleFrame::<(), (), (), (), (), (), (), (), ()>::export_all(
+        &ts_rs::Config::from_env(),
+    )
+    .unwrap();
     naval_sim::frame_delta::FrameUpdate::export_all(&ts_rs::Config::from_env()).unwrap();
     // The frame's element shapes: the simulation objects as the presentation
     // filter publishes them (dropped fields are `#[ts(skip)]`, projected ones

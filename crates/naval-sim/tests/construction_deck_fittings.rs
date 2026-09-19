@@ -1,17 +1,32 @@
 //! Native acceptance for loading-only deck fittings and connected physical routes.
-use naval_sim::{construction, definition::*};
 use base64::Engine;
+use naval_sim::{construction, definition::*};
 use std::io::Write;
 
-fn packed_surface(vertices: Vec<Vec3>, triangles: Vec<Vec3>) -> ConstructionEquipmentPartRiggingSurface {
+fn packed_surface(
+    vertices: Vec<Vec3>,
+    triangles: Vec<Vec3>,
+) -> ConstructionEquipmentPartRiggingSurface {
     let mut bytes = vec![];
     bytes.extend((vertices.len() as u32).to_le_bytes());
     bytes.extend((triangles.len() as u32).to_le_bytes());
-    for p in vertices { for v in p { bytes.extend((v as f32).to_le_bytes()); } }
-    for t in triangles { for i in t { bytes.extend((i as u32).to_le_bytes()); } }
-    let mut compressed = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
+    for p in vertices {
+        for v in p {
+            bytes.extend((v as f32).to_le_bytes());
+        }
+    }
+    for t in triangles {
+        for i in t {
+            bytes.extend((i as u32).to_le_bytes());
+        }
+    }
+    let mut compressed =
+        flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
     compressed.write_all(&bytes).unwrap();
-    ConstructionEquipmentPartRiggingSurface {encoding:"deflate-f32-u32-v1".into(),data:base64::engine::general_purpose::STANDARD.encode(compressed.finish().unwrap())}
+    ConstructionEquipmentPartRiggingSurface {
+        encoding: "deflate-f32-u32-v1".into(),
+        data: base64::engine::general_purpose::STANDARD.encode(compressed.finish().unwrap()),
+    }
 }
 
 fn fixture() -> (ConstructionSource, ConstructionCatalog) {
@@ -26,7 +41,12 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
                 version: 1.,
                 catalog_revision: "test".into(),
                 default_thickness_mm: 10.,
-                primitives: vec![ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+                primitives: vec![ConstructionPrimitive {
+                    tilt: None,
+                    mesh: None,
+                    balcony: None,
+                    shaping: None,
+                    custom_hull: None,
                     id: "hull".into(),
                     kind: "box".into(),
                     size: [10., 4., 20.],
@@ -245,7 +265,12 @@ fn a_rail_cannot_bridge_an_unsupported_run_of_posts() {
     s.construction.primitives[0].size[1] = 2.;
     s.construction.primitives[0].position[1] = -1.;
     for (id, x) in [("port-deck", -4.), ("starboard-deck", 4.)] {
-        s.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+        s.construction.primitives.push(ConstructionPrimitive {
+            tilt: None,
+            mesh: None,
+            balcony: None,
+            shaping: None,
+            custom_hull: None,
             id: id.into(),
             kind: "box".into(),
             position: [x, 1., 0.],
@@ -318,67 +343,98 @@ fn surface_mast_fixture() -> (ConstructionSource, ConstructionCatalog) {
         p.kind = "mast".into();
         p.sockets.as_mut().unwrap().retain(|s| s.id == "attachment");
         // A thin post inside a much wider visual envelope (e.g. yardarms).
-        let vertices = vec![[-0.06,0.,-0.06],[0.06,0.,-0.06],[0.06,2.,-0.06],[-0.06,2.,-0.06],
-            [-0.06,0.,0.06],[0.06,0.,0.06],[0.06,2.,0.06],[-0.06,2.,0.06]];
-        let triangles = vec![[0.,2.,1.],[0.,3.,2.],[4.,5.,6.],[4.,6.,7.],
-            [0.,1.,5.],[0.,5.,4.],[3.,7.,6.],[3.,6.,2.],
-            [0.,4.,7.],[0.,7.,3.],[1.,2.,6.],[1.,6.,5.]];
-        p.rigging_surface = Some(packed_surface(vertices,triangles));
+        let vertices = vec![
+            [-0.06, 0., -0.06],
+            [0.06, 0., -0.06],
+            [0.06, 2., -0.06],
+            [-0.06, 2., -0.06],
+            [-0.06, 0., 0.06],
+            [0.06, 0., 0.06],
+            [0.06, 2., 0.06],
+            [-0.06, 2., 0.06],
+        ];
+        let triangles = vec![
+            [0., 2., 1.],
+            [0., 3., 2.],
+            [4., 5., 6.],
+            [4., 6., 7.],
+            [0., 1., 5.],
+            [0., 5., 4.],
+            [3., 7., 6.],
+            [3., 6., 2.],
+            [0., 4., 7.],
+            [0., 7., 3.],
+            [1., 2., 6.],
+            [1., 6., 5.],
+        ];
+        p.rigging_surface = Some(packed_surface(vertices, triangles));
         p.size[0] = 2.;
     }
-    s.construction.equipment[0].path.as_mut().unwrap().points = vec![[-2.98,3.5,0.],[2.98,3.5,0.]];
-    (s,c)
+    s.construction.equipment[0].path.as_mut().unwrap().points =
+        vec![[-2.98, 3.5, 0.], [2.98, 3.5, 0.]];
+    (s, c)
 }
 
 #[test]
 fn ropes_attach_to_real_mast_surfaces_and_clear_empty_envelope_space() {
-    let (s,c) = surface_mast_fixture();
-    compiled(&s,&c);
+    let (s, c) = surface_mast_fixture();
+    compiled(&s, &c);
     // Support and clearance rotate with the fittings, not their world AABBs.
     let mut turned = s.clone();
     for e in &mut turned.construction.equipment {
-        e.position = [-e.position[2],e.position[1],e.position[0]];
+        e.position = [-e.position[2], e.position[1], e.position[0]];
         e.bearing_deg += 90.;
     }
-    compiled(&turned,&c);
+    compiled(&turned, &c);
     let mut floating = s.clone();
     floating.construction.equipment[1].position[1] += 0.5;
-    rejected(&floating,&c,"equipment-attachment");
+    rejected(&floating, &c, "equipment-attachment");
     // Empty space inside the wide box cannot support a rope.
     let mut unsupported = s.clone();
-    unsupported.construction.equipment[0].path.as_mut().unwrap().points[0][0] += 0.3;
-    rejected(&unsupported,&c,"equipment-path");
+    unsupported.construction.equipment[0]
+        .path
+        .as_mut()
+        .unwrap()
+        .points[0][0] += 0.3;
+    rejected(&unsupported, &c, "equipment-path");
     // Leaving from the far side would cut through the real post.
     let mut through = s.clone();
     // A coordinate in metres, not an approximation of pi.
     #[allow(clippy::approx_constant)]
     let far_side_x = -3.14;
-    through.construction.equipment[0].path.as_mut().unwrap().points[0][0] = far_side_x;
-    compiled(&through,&c);
+    through.construction.equipment[0]
+        .path
+        .as_mut()
+        .unwrap()
+        .points[0][0] = far_side_x;
+    compiled(&through, &c);
 }
 
 #[test]
 fn chains_use_their_full_link_radius_on_fitting_surfaces() {
-    let (mut s,mut c) = surface_mast_fixture();
+    let (mut s, mut c) = surface_mast_fixture();
     c.equipment[0] = route_part("chain");
     s.construction.equipment[0].part_id = "chain".into();
-    s.construction.equipment[0].path.as_mut().unwrap().points = vec![[-2.93,3.5,0.],[2.93,3.5,0.]];
-    compiled(&s,&c);
+    s.construction.equipment[0].path.as_mut().unwrap().points =
+        vec![[-2.93, 3.5, 0.], [2.93, 3.5, 0.]];
+    compiled(&s, &c);
     s.construction.equipment[0].path.as_mut().unwrap().points[0][0] -= 0.05;
-    compiled(&s,&c); // Seated into the fitting is permitted.
+    compiled(&s, &c); // Seated into the fitting is permitted.
     s.construction.equipment[0].path.as_mut().unwrap().points[0][0] += 0.3;
-    rejected(&s,&c,"equipment-path"); // Unsupported space still cannot anchor a chain.
+    rejected(&s, &c, "equipment-path"); // Unsupported space still cannot anchor a chain.
 }
 
 #[test]
 fn malformed_or_out_of_bounds_published_attachment_geometry_is_rejected() {
-    let (s,mut c) = surface_mast_fixture();
+    let (s, mut c) = surface_mast_fixture();
     c.equipment[1].rigging_surface.as_mut().unwrap().data = "invalid".into();
-    rejected(&s,&c,"equipment-path");
-    c.equipment[1].rigging_surface = Some(packed_surface(vec![[200.,0.,0.];3],vec![[0.,1.,2.]]));
-    rejected(&s,&c,"equipment-path");
-    c.equipment[1].rigging_surface = Some(packed_surface(vec![[0.,0.,0.];3],vec![[0.,1.,4.]]));
-    rejected(&s,&c,"equipment-path");
+    rejected(&s, &c, "equipment-path");
+    c.equipment[1].rigging_surface =
+        Some(packed_surface(vec![[200., 0., 0.]; 3], vec![[0., 1., 2.]]));
+    rejected(&s, &c, "equipment-path");
+    c.equipment[1].rigging_surface =
+        Some(packed_surface(vec![[0., 0., 0.]; 3], vec![[0., 1., 4.]]));
+    rejected(&s, &c, "equipment-path");
 }
 
 #[test]
@@ -501,7 +557,12 @@ fn review_bitts_rope_can_leave_its_socket_downward_without_hitting_empty_catalog
     // Exact deck/anchor/rope poses from deckFittingsFixture. The bitts' bedplate
     // widens their AABB, but the rope at this height clears the original posts.
     s.construction.primitives[0].size = [24., 2., 36.];
-    s.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+    s.construction.primitives.push(ConstructionPrimitive {
+        tilt: None,
+        mesh: None,
+        balcony: None,
+        shaping: None,
+        custom_hull: None,
         id: "review-wall".into(),
         kind: "box".into(),
         size: [22., 3., 0.5],
@@ -538,9 +599,21 @@ fn review_bitts_rope_can_leave_its_socket_downward_without_hitting_empty_catalog
             ..Default::default()
         },
     ];
-    let published: ConstructionCatalog = serde_json::from_str(&std::fs::read_to_string(
-        concat!(env!("CARGO_MANIFEST_DIR"), "/../../public/models/components/catalog.json")).unwrap()).unwrap();
-    let surface = published.equipment.iter().find(|p| p.id == "generic-twin-bitts").unwrap().rigging_surface.clone();
+    let published: ConstructionCatalog = serde_json::from_str(
+        &std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../public/models/components/catalog.json"
+        ))
+        .unwrap(),
+    )
+    .unwrap();
+    let surface = published
+        .equipment
+        .iter()
+        .find(|p| p.id == "generic-twin-bitts")
+        .unwrap()
+        .rigging_surface
+        .clone();
     assert!(surface.is_some());
     for surface in [None, surface] {
         c.equipment[0].rigging_surface = surface;
@@ -623,9 +696,14 @@ fn every_registered_fixed_deck_fitting_uses_its_original_attachment_and_rangefin
 
 #[test]
 fn registered_service_hardware_requires_wall_support_and_only_adds_its_loading_mass() {
-    let source: serde_json::Value = serde_json::from_str(include_str!("../../../assets/parts/construction.json")).unwrap();
-    let hardware: Vec<_> = source["equipment"].as_array().unwrap().iter()
-        .filter(|p| p["wallMount"] == "hardware").collect();
+    let source: serde_json::Value =
+        serde_json::from_str(include_str!("../../../assets/parts/construction.json")).unwrap();
+    let hardware: Vec<_> = source["equipment"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|p| p["wallMount"] == "hardware")
+        .collect();
     assert!(!hardware.is_empty());
     for value in hardware {
         let id = value["id"].as_str().unwrap();
@@ -634,14 +712,26 @@ fn registered_service_hardware_requires_wall_support_and_only_adds_its_loading_m
         let before = compiled(&s, &c);
         let mut e = fixed(id, [5., 0., 0.]);
         e.bearing_deg = 90.;
-        e.wall = Some(ConstructionEquipmentWall { version: 1., width_m: p.size[0], height_m: p.size[1], mirror_id: None, turn_deg: None });
+        e.wall = Some(ConstructionEquipmentWall {
+            version: 1.,
+            width_m: p.size[0],
+            height_m: p.size[1],
+            mirror_id: None,
+            turn_deg: None,
+        });
         let mass = p.mass_kg.unwrap();
         c.equipment.push(p);
         s.construction.equipment.push(e);
         let after = compiled(&s, &c);
-        assert!((after.hull.mass_kg - before.hull.mass_kg - mass).abs() < 1e-6, "{id}");
+        assert!(
+            (after.hull.mass_kg - before.hull.mass_kg - mass).abs() < 1e-6,
+            "{id}"
+        );
         assert_eq!(contribution(&after, id).mass_kg, mass);
-        assert!(after.modules.is_empty(), "{id} must not invent service capability");
+        assert!(
+            after.modules.is_empty(),
+            "{id} must not invent service capability"
+        );
         s.construction.equipment[0].position[0] += 0.2;
         rejected(&s, &c, "wall-fitting");
     }
@@ -651,7 +741,10 @@ fn registered_service_hardware_requires_wall_support_and_only_adds_its_loading_m
 fn fitting_paint_roundtrips_and_changes_visual_identity_without_changing_loading() {
     let (mut source, mut catalog) = fixture();
     catalog.equipment.push(part("painted"));
-    source.construction.equipment.push(fixed("painted", [0., 2., 0.]));
+    source
+        .construction
+        .equipment
+        .push(fixed("painted", [0., 2., 0.]));
     let original = construction::compile(&source, &catalog);
     source.construction.equipment[0].paint = Some("sea-blue".into());
     let saved = serde_json::to_string(&source).unwrap();
@@ -661,7 +754,10 @@ fn fitting_paint_roundtrips_and_changes_visual_identity_without_changing_loading
     let before = original.definition.unwrap();
     let after = painted.definition.unwrap();
     assert_eq!(before.hull.mass_kg, after.hull.mass_kg);
-    assert_eq!(after.construction.unwrap().equipment[0].paint.as_deref(), Some("sea-blue"));
+    assert_eq!(
+        after.construction.unwrap().equipment[0].paint.as_deref(),
+        Some("sea-blue")
+    );
     source.construction.equipment[0].paint = Some(String::new());
     rejected(&source, &catalog, "equipment-paint");
 }
@@ -682,9 +778,15 @@ fn internal_planes_do_not_collide_with_exterior_fittings() {
             [0., 2., 5.]
         };
         catalog.equipment.push(fitting);
-        source.construction.equipment.push(fixed("outside", position));
+        source
+            .construction
+            .equipment
+            .push(fixed("outside", position));
         source.construction.boundaries.push(ConstructionBoundary {
-            id: "inside".into(), axis: axis.into(), offset, thickness_mm: 10.,
+            id: "inside".into(),
+            axis: axis.into(),
+            offset,
+            thickness_mm: 10.,
         });
         compiled(&source, &catalog);
     }
@@ -698,10 +800,16 @@ fn internal_planes_still_reject_real_machinery_intersections() {
     engine.placement = "internal".into();
     engine.power_kw = Some(1000.);
     catalog.equipment.push(engine);
-    source.construction.equipment.push(fixed("engine", [0., -1., 0.]));
+    source
+        .construction
+        .equipment
+        .push(fixed("engine", [0., -1., 0.]));
     compiled(&source, &catalog);
     source.construction.boundaries.push(ConstructionBoundary {
-        id: "through-engine".into(), axis: "x".into(), offset: 0., thickness_mm: 10.,
+        id: "through-engine".into(),
+        axis: "x".into(),
+        offset: 0.,
+        thickness_mm: 10.,
     });
     rejected(&source, &catalog, "equipment-fit");
 }
@@ -710,14 +818,24 @@ fn internal_planes_still_reject_real_machinery_intersections() {
 fn railing_options_change_loading_and_allow_small_contacts() {
     let (mut s, mut c) = fixture();
     c.equipment.push(route_part("railing"));
-    s.construction.equipment.push(route("railing", vec![[-4., 2., 0.], [4., 2., 0.]], 0.));
+    s.construction
+        .equipment
+        .push(route("railing", vec![[-4., 2., 0.], [4., 2., 0.]], 0.));
     let original = compiled(&s, &c);
     let path = s.construction.equipment[0].path.as_mut().unwrap();
     path.height_m = Some(1.65);
     path.rail_count = Some(2.);
     let changed = compiled(&s, &c);
-    assert!((contribution(&changed, "railing-route").mass_kg - (2. + 8. * 8.4 * 2. / 3. + 7. * 6. * 1.5)).abs() < 1e-7);
-    assert!(contribution(&changed, "railing-route").center[1] > contribution(&original, "railing-route").center[1]);
+    assert!(
+        (contribution(&changed, "railing-route").mass_kg
+            - (2. + 8. * 8.4 * 2. / 3. + 7. * 6. * 1.5))
+            .abs()
+            < 1e-7
+    );
+    assert!(
+        contribution(&changed, "railing-route").center[1]
+            > contribution(&original, "railing-route").center[1]
+    );
     let mut small = part("small");
     small.size = [0.1, 1., 0.1];
     c.equipment.push(small);
@@ -746,9 +864,17 @@ fn railings_never_fail_on_intersections() {
         s.construction.equipment.push(e);
     }
     let d = compiled(&s, &c);
-    assert_eq!(contribution(&d, "port").mass_kg, contribution(&d, "twin").mass_kg);
+    assert_eq!(
+        contribution(&d, "port").mass_kg,
+        contribution(&d, "twin").mass_kg
+    );
     // A deckhouse block raised through the runs does not reject them either.
-    s.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+    s.construction.primitives.push(ConstructionPrimitive {
+        tilt: None,
+        mesh: None,
+        balcony: None,
+        shaping: None,
+        custom_hull: None,
         id: "deckhouse".into(),
         kind: "box".into(),
         position: [0., 3., -2.],
@@ -764,11 +890,14 @@ fn railings_never_fail_on_intersections() {
 #[test]
 fn lines_cross_railings_without_conflict() {
     let (mut s, mut c) = fixture();
-    c.equipment.extend([route_part("rope"), route_part("railing")]);
+    c.equipment
+        .extend([route_part("rope"), route_part("railing")]);
     let mut rope = route("rope", vec![[-4., 2.02, 0.], [4., 2.02, 0.]], 0.);
     rope.id = "line".into();
     s.construction.equipment.push(rope);
-    s.construction.equipment.push(route("railing", vec![[0., 2., -4.], [0., 2., 4.]], 0.));
+    s.construction
+        .equipment
+        .push(route("railing", vec![[0., 2., -4.], [0., 2., 4.]], 0.));
     compiled(&s, &c);
 }
 
@@ -780,14 +909,28 @@ fn catalog_rail_count_sets_loading_without_an_instance_override() {
     profile.rail_count = Some(2.);
     profile.mass_kg_per_m = 5.6;
     c.equipment.push(part);
-    s.construction.equipment.push(route("railing", vec![[-4., 2., 0.], [4., 2., 0.]], 0.));
+    s.construction
+        .equipment
+        .push(route("railing", vec![[-4., 2., 0.], [4., 2., 0.]], 0.));
     let two = compiled(&s, &c);
     assert!((contribution(&two, "railing-route").mass_kg - (2. + 8. * 5.6 + 7. * 6.)).abs() < 1e-7);
     // Older saved paths keep their explicit count when loaded with a catalog.
-    s.construction.equipment[0].path.as_mut().unwrap().rail_count = Some(3.);
+    s.construction.equipment[0]
+        .path
+        .as_mut()
+        .unwrap()
+        .rail_count = Some(3.);
     let three = compiled(&s, &c);
-    assert!((contribution(&three, "railing-route").mass_kg - (2. + 8. * 8.4 + 7. * 6.)).abs() < 1e-7);
-    c.equipment.last_mut().unwrap().path.as_mut().unwrap().rail_count = Some(4.);
+    assert!(
+        (contribution(&three, "railing-route").mass_kg - (2. + 8. * 8.4 + 7. * 6.)).abs() < 1e-7
+    );
+    c.equipment
+        .last_mut()
+        .unwrap()
+        .path
+        .as_mut()
+        .unwrap()
+        .rail_count = Some(4.);
     rejected(&s, &c, "equipment-path");
 }
 
@@ -810,7 +953,9 @@ fn fixed_fittings_allow_partial_overlap_but_not_burial_or_floating() {
     c.equipment.extend([part("a"), part("b")]);
     s.construction.equipment = vec![fixed("a", [0., 2., 0.]), fixed("b", [0.6, 2., 0.])];
     compiled(&s, &c);
-    for e in &mut s.construction.equipment { e.position[1] = 1.5; }
+    for e in &mut s.construction.equipment {
+        e.position[1] = 1.5;
+    }
     compiled(&s, &c); // Both are half embedded and overlap one another.
     s.construction.equipment.reverse();
     compiled(&s, &c);
@@ -829,7 +974,11 @@ fn fixed_fittings_allow_partial_overlap_but_not_burial_or_floating() {
 fn fixed_fittings_can_be_completely_covered_by_neighbors() {
     let (mut s, mut c) = fixture();
     c.equipment.extend([part("a"), part("b"), part("c")]);
-    s.construction.equipment = vec![fixed("a", [0., 2., 0.]), fixed("b", [-0.6, 2., 0.]), fixed("c", [0.6, 2., 0.])];
+    s.construction.equipment = vec![
+        fixed("a", [0., 2., 0.]),
+        fixed("b", [-0.6, 2., 0.]),
+        fixed("c", [0.6, 2., 0.]),
+    ];
     compiled(&s, &c); // The center fitting has 20% exposed between its neighbors.
     s.construction.equipment[1].position[0] = -0.5;
     s.construction.equipment[2].position[0] = 0.5;
@@ -865,7 +1014,10 @@ fn decorative_fittings_do_not_bury_machinery_or_each_other() {
             let mut neighbor = part("neighbor");
             neighbor.kind = neighbor_kind.into();
             c.equipment.extend([decorative, neighbor]);
-            s.construction.equipment = vec![fixed("decorative", [0., 2., 0.]), fixed("neighbor", [0., 2., 0.])];
+            s.construction.equipment = vec![
+                fixed("decorative", [0., 2., 0.]),
+                fixed("neighbor", [0., 2., 0.]),
+            ];
             compiled(&s, &c);
             s.construction.equipment.reverse();
             compiled(&s, &c);

@@ -252,26 +252,64 @@ impl Capsule {
 /// Broad phase over immutable obstacles. Query results are restored to authored
 /// order so equal-distance obstruction IDs and conservative sweep arithmetic agree.
 #[derive(Clone, Debug)]
-struct BodyIndex { bounds: Box3, indices: Vec<usize>, children: Option<Box<[BodyIndex; 2]>> }
+struct BodyIndex {
+    bounds: Box3,
+    indices: Vec<usize>,
+    children: Option<Box<[BodyIndex; 2]>>,
+}
 impl BodyIndex {
     fn new(bodies: &[Body], mut indices: Vec<usize>) -> Option<Self> {
-        if indices.is_empty() { return None; }
+        if indices.is_empty() {
+            return None;
+        }
         let bounds = Box3::points(indices.iter().flat_map(|&i| {
             let b = bodies[i].bounds;
-            [std::array::from_fn(|a| b.center[a] - b.size[a] * 0.5), std::array::from_fn(|a| b.center[a] + b.size[a] * 0.5)]
+            [
+                std::array::from_fn(|a| b.center[a] - b.size[a] * 0.5),
+                std::array::from_fn(|a| b.center[a] + b.size[a] * 0.5),
+            ]
         }));
-        if indices.len() <= 12 { return Some(Self { bounds, indices, children: None }); }
-        let axis = (0..3).max_by(|&a, &b| bounds.size[a].total_cmp(&bounds.size[b])).unwrap();
-        indices.sort_by(|&a, &b| bodies[a].bounds.center[axis].total_cmp(&bodies[b].bounds.center[axis]).then(a.cmp(&b)));
-        let right = indices.split_off(indices.len()/2);
-        Some(Self { bounds, indices: vec![], children: Some(Box::new([Self::new(bodies, indices).unwrap(), Self::new(bodies, right).unwrap()])) })
+        if indices.len() <= 12 {
+            return Some(Self {
+                bounds,
+                indices,
+                children: None,
+            });
+        }
+        let axis = (0..3)
+            .max_by(|&a, &b| bounds.size[a].total_cmp(&bounds.size[b]))
+            .unwrap();
+        indices.sort_by(|&a, &b| {
+            bodies[a].bounds.center[axis]
+                .total_cmp(&bodies[b].bounds.center[axis])
+                .then(a.cmp(&b))
+        });
+        let right = indices.split_off(indices.len() / 2);
+        Some(Self {
+            bounds,
+            indices: vec![],
+            children: Some(Box::new([
+                Self::new(bodies, indices).unwrap(),
+                Self::new(bodies, right).unwrap(),
+            ])),
+        })
     }
     fn query(&self, bounds: Box3, limit: f64, out: &mut Vec<usize>) {
         // Outward numerical slack only admits extra candidates; it never relaxes
         // the original per-body narrow phase or clearance margin.
-        if bounds.beyond(self.bounds, limit + 1e-8).unwrap_or_else(|| bounds.separation(self.bounds) > limit + 1e-8) { return; }
-        if let Some(children) = &self.children { for child in children.iter() { child.query(bounds, limit, out); } }
-        else { out.extend_from_slice(&self.indices); }
+        if bounds
+            .beyond(self.bounds, limit + 1e-8)
+            .unwrap_or_else(|| bounds.separation(self.bounds) > limit + 1e-8)
+        {
+            return;
+        }
+        if let Some(children) = &self.children {
+            for child in children.iter() {
+                child.query(bounds, limit, out);
+            }
+        } else {
+            out.extend_from_slice(&self.indices);
+        }
     }
 }
 /// One mount's barrels in ship coordinates at one pose. `key` is the frame and
@@ -497,9 +535,11 @@ impl MountClearance {
             .map(|i| {
                 let mut chain = vec![(i, radii[i])];
                 let mut at = i;
-                while let Some(parent) = def.mounts[at].parent_mount_id.as_ref().and_then(|id| {
-                    def.mounts[..at].iter().position(|m| &m.id == id)
-                }) {
+                while let Some(parent) = def.mounts[at]
+                    .parent_mount_id
+                    .as_ref()
+                    .and_then(|id| def.mounts[..at].iter().position(|m| &m.id == id))
+                {
                     chain.push((
                         parent,
                         radii[i] + length(sub(def.mounts[i].position, def.mounts[parent].position)),
@@ -515,8 +555,15 @@ impl MountClearance {
             levers,
             enabled,
             margin: profile.margin_m,
-            static_index: BodyIndex::new(&bodies, (0..bodies.len()).filter(|&i| bodies[i].mount.is_none()).collect()),
-            moving: (0..bodies.len()).filter(|&i| bodies[i].mount.is_some()).collect(),
+            static_index: BodyIndex::new(
+                &bodies,
+                (0..bodies.len())
+                    .filter(|&i| bodies[i].mount.is_none())
+                    .collect(),
+            ),
+            moving: (0..bodies.len())
+                .filter(|&i| bodies[i].mount.is_some())
+                .collect(),
             bodies,
             radii,
         }))
@@ -527,10 +574,22 @@ impl MountClearance {
     /// This removes unreachable geometry; it never substitutes enclosing shells.
     pub fn reachable_body_ids(&self, def: &ShipDefinition) -> std::collections::BTreeSet<String> {
         let nested = def.mounts.iter().any(|m| m.parent_mount_id.is_some());
-        self.bodies.iter().filter(|body| nested || body.mount.is_some() || def.mounts.iter().enumerate().any(|(i,m)| {
-            let distance = length(std::array::from_fn(|a| ((m.position[a]-body.bounds.center[a]).abs()-body.bounds.size[a]*0.5).max(0.)));
-            distance <= self.radii[i] + self.margin + 1.
-        })).map(|b|b.id.clone()).collect()
+        self.bodies
+            .iter()
+            .filter(|body| {
+                nested
+                    || body.mount.is_some()
+                    || def.mounts.iter().enumerate().any(|(i, m)| {
+                        let distance = length(std::array::from_fn(|a| {
+                            ((m.position[a] - body.bounds.center[a]).abs()
+                                - body.bounds.size[a] * 0.5)
+                                .max(0.)
+                        }));
+                        distance <= self.radii[i] + self.margin + 1.
+                    })
+            })
+            .map(|b| b.id.clone())
+            .collect()
     }
 
     pub fn enabled(&self, index: usize) -> bool {
@@ -643,11 +702,17 @@ impl MountClearance {
         };
         let start = poses[index];
         let turned = |a: usize| {
-            (poses[a].train - kept.poses[a][0]).abs() + (poses[a].elevation - kept.poses[a][1]).abs()
+            (poses[a].train - kept.poses[a][0]).abs()
+                + (poses[a].elevation - kept.poses[a][1]).abs()
         };
         let motion = self.relevant[index]
             .iter()
-            .map(|&m| self.levers[m].iter().map(|&(a, lever)| lever * turned(a)).sum::<f64>())
+            .map(|&m| {
+                self.levers[m]
+                    .iter()
+                    .map(|&(a, lever)| lever * turned(a))
+                    .sum::<f64>()
+            })
             .fold(0.0, f64::max);
         let changed = self.affected(def, index);
         let radius = changed
@@ -660,7 +725,8 @@ impl MountClearance {
             .fold(0.0, f64::max);
         let speed = 2.0
             * radius
-            * ((requested.train - start.train).abs() + (requested.elevation - start.elevation).abs());
+            * ((requested.train - start.train).abs()
+                + (requested.elevation - start.elevation).abs());
         let left = kept.gap - 2.0 * motion - speed;
         // NaN poses or requests fail this comparison and take the full sweep.
         if !(speed >= 1e-12 && left >= self.margin.max(speed / 100.0) + 1e-6) {
@@ -756,7 +822,8 @@ impl MountClearance {
         };
         let mut t = 0.0;
         self.pose(def, &candidate, None, posed);
-        let (mut gap, mut obstacle) = self.distance(def, posed, &changed, speed + self.margin + 1.0);
+        let (mut gap, mut obstacle) =
+            self.distance(def, posed, &changed, speed + self.margin + 1.0);
         if gap <= 1e-7 {
             return result(start, true, obstacle);
         }
@@ -846,8 +913,8 @@ impl MountClearance {
                 continue;
             }
             let frame = mount_frame(def, i, &|j| poses[j].train);
-            let key = [frame.x, frame.y, frame.z, frame.heading, poses[i].elevation]
-                .map(f64::to_bits);
+            let key =
+                [frame.x, frame.y, frame.z, frame.heading, poses[i].elevation].map(f64::to_bits);
             if posed.mounts[i].as_ref().is_some_and(|p| p.key == key) {
                 continue;
             }
@@ -871,11 +938,15 @@ impl MountClearance {
             runs.clear();
             runs.extend((0..capsules.len()).step_by(RUN).map(|start| {
                 let run = start..(start + RUN).min(capsules.len());
-                let mut bounds = Box3::points(capsules[run.clone()].iter().flat_map(|c| [c.a, c.b]));
+                let mut bounds =
+                    Box3::points(capsules[run.clone()].iter().flat_map(|c| [c.a, c.b]));
                 // A section's own box is never thinner than 0.01 mm, which
                 // can reach past the run's points on a flat axis.
                 bounds.size = bounds.size.map(|v| v + 0.00002);
-                let radius = capsules[run.clone()].iter().map(|c| c.radius).fold(0.0, f64::max);
+                let radius = capsules[run.clone()]
+                    .iter()
+                    .map(|c| c.radius)
+                    .fold(0.0, f64::max);
                 (bounds, radius, run)
             }));
             posed.mounts[i] = Some(PosedMount {
@@ -1011,11 +1082,15 @@ pub(crate) fn installation_bounds(w: &GunPart, elevation: f64) -> Vec<(Vec3, Vec
 }
 
 fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsule> {
-    if constructed && matches!(w.id.as_str(), "flak38-m43u-20-twin" | "flak38-20-single" | "flak28-40-single") {
+    if constructed
+        && matches!(
+            w.id.as_str(),
+            "flak38-m43u-20-twin" | "flak38-20-single" | "flak28-40-single"
+        )
+    {
         return german_light_capsules(w, elevation);
     }
-    if constructed && w.mounting_style.as_deref() == Some("oerlikon") && w.barrel_count == 1.0
-    {
+    if constructed && w.mounting_style.as_deref() == Some("oerlikon") && w.barrel_count == 1.0 {
         return oerlikon_mk4_capsules(w, elevation);
     }
     let mut result = vec![];
@@ -1091,28 +1166,62 @@ fn german_light_capsules(w: &GunPart, elevation: f64) -> Vec<Capsule> {
     for barrel in 0..w.barrel_count as usize {
         let x = barrel_offset(w, barrel);
         let mut pieces = vec![
-            ([0.,0.,-0.72],[0.,0.,0.45],0.205),
-            ([0.,-0.24,-0.65],[0.,-0.24,0.62],0.06),
-            ([0.,0.,0.26],[0.,0.,w.muzzle_forward-w.trunnion_forward+0.005],if bofors {0.068} else {0.037}),
-            ([0.,0.,-0.68],[0.,-0.11,-0.79],0.025),
+            ([0., 0., -0.72], [0., 0., 0.45], 0.205),
+            ([0., -0.24, -0.65], [0., -0.24, 0.62], 0.06),
+            (
+                [0., 0., 0.26],
+                [0., 0., w.muzzle_forward - w.trunnion_forward + 0.005],
+                if bofors { 0.068 } else { 0.037 },
+            ),
+            ([0., 0., -0.68], [0., -0.11, -0.79], 0.025),
         ];
-        if bofors { pieces.push(([0.,0.25,-0.33],[0.,0.49,-0.11],0.15)); }
-        else {
+        if bofors {
+            pieces.push(([0., 0.25, -0.33], [0., 0.49, -0.11], 0.15));
+        } else {
             let side = if twin && x < 0. { -1. } else { 1. };
-            pieces.push(([side*0.25,0.22,-0.30],[side*0.25,0.22,-0.06],0.205));
-            for sign in [-1.,1.] {
-                pieces.push(([sign*0.085,0.1,-0.4],[sign*0.30,0.11,-0.78],0.032));
-                pieces.push(([sign*0.30,0.11,-0.78],[sign*0.30,-0.08,-0.85],0.031));
+            pieces.push((
+                [side * 0.25, 0.22, -0.30],
+                [side * 0.25, 0.22, -0.06],
+                0.205,
+            ));
+            for sign in [-1., 1.] {
+                pieces.push(([sign * 0.085, 0.1, -0.4], [sign * 0.30, 0.11, -0.78], 0.032));
+                pieces.push((
+                    [sign * 0.30, 0.11, -0.78],
+                    [sign * 0.30, -0.08, -0.85],
+                    0.031,
+                ));
             }
         }
-        pieces.push(([0.20,0.47,if bofors {-0.32} else {-0.11}],[0.20,0.55,if bofors {-0.32} else {-0.11}],0.115));
+        pieces.push((
+            [0.20, 0.47, if bofors { -0.32 } else { -0.11 }],
+            [0.20, 0.55, if bofors { -0.32 } else { -0.11 }],
+            0.115,
+        ));
         if twin && barrel == 0 {
-            for (a,b) in [([0.,0.2,0.],[0.,0.2,0.6]),([0.,0.2,0.6],[0.,-0.27,0.85]),([0.,-0.27,0.85],[0.,-0.27,2.45])] {
-                pieces.push(([a[0]-x,a[1],a[2]],[b[0]-x,b[1],b[2]],0.019));
+            for (a, b) in [
+                ([0., 0.2, 0.], [0., 0.2, 0.6]),
+                ([0., 0.2, 0.6], [0., -0.27, 0.85]),
+                ([0., -0.27, 0.85], [0., -0.27, 2.45]),
+            ] {
+                pieces.push(([a[0] - x, a[1], a[2]], [b[0] - x, b[1], b[2]], 0.019));
             }
         }
-        let point = |p: Vec3| [x+p[0], w.pivot_height+p[2]*elevation.sin()+p[1]*elevation.cos(), -(w.trunnion_forward+p[2]*elevation.cos()-p[1]*elevation.sin())];
-        for (mut a,b,radius) in pieces { a[2]-=w.recoil_m; result.push(Capsule{a:point(a),b:point(b),radius}); }
+        let point = |p: Vec3| {
+            [
+                x + p[0],
+                w.pivot_height + p[2] * elevation.sin() + p[1] * elevation.cos(),
+                -(w.trunnion_forward + p[2] * elevation.cos() - p[1] * elevation.sin()),
+            ]
+        };
+        for (mut a, b, radius) in pieces {
+            a[2] -= w.recoil_m;
+            result.push(Capsule {
+                a: point(a),
+                b: point(b),
+                radius,
+            });
+        }
     }
     result
 }
@@ -1334,8 +1443,13 @@ mod tests {
     use super::*;
     #[test]
     fn original_german_light_mechanisms_stay_inside_clearance_across_elevation() {
-        let catalog: crate::definition::PartCatalog = serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
-        for id in ["flak38-m43u-20-twin", "flak38-20-single", "flak28-40-single"] {
+        let catalog: crate::definition::PartCatalog =
+            serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
+        for id in [
+            "flak38-m43u-20-twin",
+            "flak38-20-single",
+            "flak28-40-single",
+        ] {
             let w = catalog.parts.iter().find(|p| p.id == id).unwrap();
             for degrees in [-5_f64, 0., 30., 80.] {
                 let angle = degrees.to_radians();
@@ -1343,10 +1457,34 @@ mod tests {
                 for barrel in 0..w.barrel_count as usize {
                     let x = barrel_offset(w, barrel);
                     for recoil in [0., w.recoil_m] {
-                        for p in [[0.,0.,w.muzzle_forward-w.trunnion_forward], [0.,0.,-0.715], [0.,-0.24,0.62], [0.,-0.11,-0.79], [0.2,0.61,if id == "flak28-40-single" {-0.32} else {-0.11}]] {
+                        for p in [
+                            [0., 0., w.muzzle_forward - w.trunnion_forward],
+                            [0., 0., -0.715],
+                            [0., -0.24, 0.62],
+                            [0., -0.11, -0.79],
+                            [
+                                0.2,
+                                0.61,
+                                if id == "flak28-40-single" {
+                                    -0.32
+                                } else {
+                                    -0.11
+                                },
+                            ],
+                        ] {
                             let forward = p[2] - recoil;
-                            let point = [x+p[0], w.pivot_height+forward*angle.sin()+p[1]*angle.cos(), -(w.trunnion_forward+forward*angle.cos()-p[1]*angle.sin())];
-                            assert!(capsules.iter().any(|c| point_segment_distance(point,c.a,c.b) <= c.radius+1e-6), "{id} at {degrees}: {point:?}");
+                            let point = [
+                                x + p[0],
+                                w.pivot_height + forward * angle.sin() + p[1] * angle.cos(),
+                                -(w.trunnion_forward + forward * angle.cos() - p[1] * angle.sin()),
+                            ];
+                            assert!(
+                                capsules
+                                    .iter()
+                                    .any(|c| point_segment_distance(point, c.a, c.b)
+                                        <= c.radius + 1e-6),
+                                "{id} at {degrees}: {point:?}"
+                            );
                         }
                     }
                 }
@@ -1407,13 +1545,16 @@ mod index_regression {
     use super::*;
     #[test]
     fn constructed_ship_index_matches_linear_clearance_including_obstacle_identity() {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/models/resolute.json");
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../public/models/resolute.json");
         let def: ShipDefinition = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
         let indexed = MountClearance::new(&def).unwrap().unwrap();
         let mut linear = indexed.clone();
         let tree = linear.static_index.as_mut().unwrap();
         tree.children = None;
-        tree.indices = (0..linear.bodies.len()).filter(|&i| linear.bodies[i].mount.is_none()).collect();
+        tree.indices = (0..linear.bodies.len())
+            .filter(|&i| linear.bodies[i].mount.is_none())
+            .collect();
         let mut poses = vec![ClearancePose::default(); def.mounts.len()];
         for sample in 0..40 {
             for (i, pose) in poses.iter_mut().enumerate() {
@@ -1423,13 +1564,23 @@ mod index_regression {
             }
             for mount in [0, 3, 9, 17] {
                 for limit in [0.01, 1., 30.] {
-                    assert_eq!(indexed.minimum_clearance(&def, mount, &poses, limit), linear.minimum_clearance(&def, mount, &poses, limit));
+                    assert_eq!(
+                        indexed.minimum_clearance(&def, mount, &poses, limit),
+                        linear.minimum_clearance(&def, mount, &poses, limit)
+                    );
                 }
-                let request = ClearancePose { train: poses[mount].train + 0.2, elevation: poses[mount].elevation + 0.1, recoil: 1. };
+                let request = ClearancePose {
+                    train: poses[mount].train + 0.2,
+                    elevation: poses[mount].elevation + 0.1,
+                    recoil: 1.,
+                };
                 // Test final swept pose as well as the narrow phase; every stop ID is retained.
                 let a = indexed.resolve(&def, mount, &poses, request);
                 let b = linear.resolve(&def, mount, &poses, request);
-                assert_eq!(serde_json::to_string(&a).unwrap(), serde_json::to_string(&b).unwrap());
+                assert_eq!(
+                    serde_json::to_string(&a).unwrap(),
+                    serde_json::to_string(&b).unwrap()
+                );
             }
         }
     }

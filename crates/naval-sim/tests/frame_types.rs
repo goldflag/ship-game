@@ -6,9 +6,10 @@
 use naval_sim::{
     aviation,
     battle::{Battle, BattleSetup, Event},
-    bots, catalog::Catalog, damage, damage_control, depth_charges,
-    frame_vocabulary, impact, motion, navigation, records, rules, shell, stability, submarine,
-    torpedoes, vessel, weapons,
+    bots,
+    catalog::Catalog,
+    damage, damage_control, depth_charges, frame_vocabulary, impact, motion, navigation, records,
+    rules, shell, stability, submarine, torpedoes, vessel, weapons,
 };
 use serde_json::{Value, json};
 use std::{
@@ -68,12 +69,21 @@ fn parse(decl: &str) -> Decl {
                 .map(|field| {
                     let (name, ty) = field.split_once(':').expect("field");
                     let optional = name.ends_with('?');
-                    (name.trim_end_matches('?').trim().to_string(), optional, ty.trim().to_string())
+                    (
+                        name.trim_end_matches('?').trim().to_string(),
+                        optional,
+                        ty.trim().to_string(),
+                    )
                 })
                 .collect(),
         )
     } else if rhs.starts_with('"') {
-        Decl::Words(split(rhs, '|').into_iter().map(|w| w.trim_matches('"').to_string()).collect())
+        Decl::Words(
+            split(rhs, '|')
+                .into_iter()
+                .map(|w| w.trim_matches('"').to_string())
+                .collect(),
+        )
     } else {
         Decl::Opaque
     }
@@ -93,15 +103,25 @@ impl Declarations {
             }
             return self.check(inner, value, path);
         }
-        if let Some(inner) = expr.strip_prefix("Array<").and_then(|e| e.strip_suffix('>')) {
-            let items = value.as_array().unwrap_or_else(|| panic!("{path}: expected an array"));
+        if let Some(inner) = expr
+            .strip_prefix("Array<")
+            .and_then(|e| e.strip_suffix('>'))
+        {
+            let items = value
+                .as_array()
+                .unwrap_or_else(|| panic!("{path}: expected an array"));
             for (i, item) in items.iter().enumerate() {
                 self.check(inner, item, &format!("{path}[{i}]"));
             }
             return;
         }
-        if let Some(inner) = expr.strip_prefix("{ [key in string]: ").and_then(|e| e.strip_suffix(" }")) {
-            let map = value.as_object().unwrap_or_else(|| panic!("{path}: expected a map"));
+        if let Some(inner) = expr
+            .strip_prefix("{ [key in string]: ")
+            .and_then(|e| e.strip_suffix(" }"))
+        {
+            let map = value
+                .as_object()
+                .unwrap_or_else(|| panic!("{path}: expected a map"));
             for (key, item) in map {
                 self.check(inner, item, &format!("{path}.{key}"));
             }
@@ -110,7 +130,10 @@ impl Declarations {
         match expr {
             "number" => assert!(value.is_number(), "{path}: expected a number, got {value}"),
             "string" => assert!(value.is_string(), "{path}: expected a string, got {value}"),
-            "boolean" => assert!(value.is_boolean(), "{path}: expected a boolean, got {value}"),
+            "boolean" => assert!(
+                value.is_boolean(),
+                "{path}: expected a boolean, got {value}"
+            ),
             "[]" => assert_eq!(value, &json!([]), "{path}: declared always empty"),
             e if e.starts_with('[') => assert!(value.is_array(), "{path}: expected a tuple"),
             e if e.contains("import(") => {}
@@ -128,7 +151,9 @@ impl Declarations {
                     for (field, optional, ty) in fields {
                         match object.get(field) {
                             Some(v) => self.check(ty, v, &format!("{path}.{field}")),
-                            None => assert!(*optional, "{path}: {name}.{field} is required but absent"),
+                            None => {
+                                assert!(*optional, "{path}: {name}.{field} is required but absent")
+                            }
                         }
                     }
                 }
@@ -136,7 +161,10 @@ impl Declarations {
                     let word = value
                         .as_str()
                         .unwrap_or_else(|| panic!("{path}: expected one of {name}, got {value}"));
-                    assert!(words.iter().any(|w| w == word), "{path}: `{word}` is not a declared {name}");
+                    assert!(
+                        words.iter().any(|w| w == word),
+                        "{path}: `{word}` is not a declared {name}"
+                    );
                 }
                 Some(Decl::Opaque) => {}
                 None => panic!("{path}: {name} is not registered with this test"),
@@ -245,15 +273,20 @@ fn check_frame(d: &Declarations, frame: &Value, label: &str) {
 /// What a receiver holds: the frame as the codec normalizes it, null
 /// optionals dropped (with its one declared exception).
 fn received<T: serde::Serialize>(frame: &T) -> Value {
-    serde_json::from_str(&naval_sim::frame_delta::FrameDelta::complete(frame).expect("complete frame"))
-        .expect("frame json")
+    serde_json::from_str(
+        &naval_sim::frame_delta::FrameDelta::complete(frame).expect("complete frame"),
+    )
+    .expect("frame json")
 }
 fn catalog() -> Arc<Catalog> {
     Arc::new(
         Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
     )
 }
-fn compile(catalog: &Catalog, ids: impl Iterator<Item = String>) -> BTreeMap<String, Arc<vessel::CompiledShip>> {
+fn compile(
+    catalog: &Catalog,
+    ids: impl Iterator<Item = String>,
+) -> BTreeMap<String, Arc<vessel::CompiledShip>> {
     let mut compiled = BTreeMap::new();
     for id in ids {
         compiled.entry(id.clone()).or_insert_with(|| {
@@ -278,11 +311,12 @@ impl Coverage {
         for key in ["shells", "torpedoes", "depthCharges", "releases", "events"] {
             *self.seen.entry(key).or_default() += frame[key].as_array().map_or(0, Vec::len);
         }
-        *self.seen.entry("impacts").or_default() += frame["events"]
+        *self.seen.entry("impacts").or_default() += frame["events"].as_array().map_or(0, |e| {
+            e.iter().filter(|e| e.get("impact").is_some()).count()
+        });
+        *self.seen.entry("shellHistory").or_default() += frame["records"]["shellHistory"]
             .as_array()
-            .map_or(0, |e| e.iter().filter(|e| e.get("impact").is_some()).count());
-        *self.seen.entry("shellHistory").or_default() +=
-            frame["records"]["shellHistory"].as_array().map_or(0, Vec::len);
+            .map_or(0, Vec::len);
     }
 }
 
@@ -290,7 +324,14 @@ impl Coverage {
 fn full_frames_carry_exactly_the_declared_element_shapes() {
     let d = declarations();
     let catalog = catalog();
-    let roster = ["bismarck", "yamato", "fletcher", "flower-corvette", "enterprise-cv6", "type-viic"];
+    let roster = [
+        "bismarck",
+        "yamato",
+        "fletcher",
+        "flower-corvette",
+        "enterprise-cv6",
+        "type-viic",
+    ];
     let compiled = compile(&catalog, roster.iter().map(|s| s.to_string()));
     let ships: Vec<_> = ["a", "b"]
         .into_iter()
@@ -306,10 +347,16 @@ fn full_frames_carry_exactly_the_declared_element_shapes() {
         "mapId": "north-atlantic", "weather": "map", "spawnDistance": 3000, "windSpeed": 9}))
     .unwrap();
     let mut battle = Battle::new(catalog, &compiled, setup).unwrap();
-    let mut coverage = Coverage { seen: BTreeMap::new() };
+    let mut coverage = Coverage {
+        seen: BTreeMap::new(),
+    };
     for tick in 0..2400u64 {
         if tick % 60 == 0 {
-            let detail: Vec<String> = if tick % 120 == 0 { vec!["a-0".into(), "b-1".into()] } else { vec![] };
+            let detail: Vec<String> = if tick % 120 == 0 {
+                vec!["a-0".into(), "b-1".into()]
+            } else {
+                vec![]
+            };
             let frame = received(&battle.full_frame(&detail));
             check_frame(&d, &frame, &format!("full tick {tick}"));
             coverage.note(&frame);
@@ -319,7 +366,10 @@ fn full_frames_carry_exactly_the_declared_element_shapes() {
     // Depth charges and air releases need a scripted encounter; the shapes the
     // fleet reaches on its own must all have been walked.
     for key in ["shells", "torpedoes", "events", "impacts", "shellHistory"] {
-        assert!(coverage.seen[key] > 0, "the battle never carried any {key}: the check did not see that shape");
+        assert!(
+            coverage.seen[key] > 0,
+            "the battle never carried any {key}: the check did not see that shape"
+        );
     }
 }
 
@@ -345,7 +395,11 @@ fn team_frames_and_debriefs_carry_exactly_the_declared_element_shapes() {
     let mut debriefed = false;
     for tick in 0..1200u64 {
         if tick % 100 == 0 {
-            let frame = received(&battle.team_frame(rules::TeamId::A, &detail).expect("team frame"));
+            let frame = received(
+                &battle
+                    .team_frame(rules::TeamId::A, &detail)
+                    .expect("team frame"),
+            );
             check_frame(&d, &frame, &format!("team tick {tick}"));
             if let Some(debrief) = frame.get("debrief") {
                 check_frame(&d, debrief, &format!("debrief tick {tick}"));

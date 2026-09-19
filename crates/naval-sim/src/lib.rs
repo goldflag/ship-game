@@ -1,32 +1,32 @@
 //! Renderer-free naval simulation shared by the native server and browser WASM.
 pub mod catalog;
-pub mod construction_geometry;
-pub mod construction_overlap;
 pub mod compartment_geometry;
-#[path = "../../../assets/parts/construction/hull_shapes.rs"]
-pub mod construction_shapes;
 pub mod construction;
-mod construction_cache;
-mod construction_vertex;
-mod construction_orientation;
-mod construction_mesh;
-mod construction_custom_hull;
-mod construction_bilge_keels;
-mod construction_balcony;
-mod construction_installation;
-mod construction_services;
-mod construction_paths;
 mod construction_access;
+mod construction_balcony;
+mod construction_bilge_keels;
+mod construction_cache;
+mod construction_custom_hull;
+pub mod construction_geometry;
+mod construction_installation;
+mod construction_mesh;
+mod construction_orientation;
+pub mod construction_overlap;
+mod construction_paths;
 mod construction_propellers;
 mod construction_propulsion;
+mod construction_services;
+#[path = "../../../assets/parts/construction/hull_shapes.rs"]
+pub mod construction_shapes;
+mod construction_vertex;
 pub mod definition;
 pub mod fleet_evasion;
 pub mod formations;
 pub mod geometry;
+pub mod installation_clearance;
+pub mod maneuvering;
 pub mod mobility;
 pub mod motion;
-pub mod maneuvering;
-pub mod installation_clearance;
 pub mod mount_clearance;
 pub mod mount_frames;
 pub mod navigation;

@@ -97,10 +97,7 @@ fn double_column_cell(i: usize, d: f64) -> [f64; 2] {
         return [d, 0.0];
     }
     let j = i - 1;
-    [
-        if j % 2 == 1 { d } else { 0.0 },
-        d * (j / 2 + 1) as f64,
-    ]
+    [if j % 2 == 1 { d } else { 0.0 }, d * (j / 2 + 1) as f64]
 }
 /// Three columns at x = −d, 0, +d with the guide at the head of the centre
 /// column. The first rank fills the wings abeam of the guide, then each rank
@@ -205,7 +202,11 @@ mod tests {
             .map(|(i, class)| (format!("f{i}"), *class))
             .collect()
     }
-    fn offsets(formation: Formation, guide: StationClass, classes: &[StationClass]) -> Vec<[f64; 2]> {
+    fn offsets(
+        formation: Formation,
+        guide: StationClass,
+        classes: &[StationClass],
+    ) -> Vec<[f64; 2]> {
         formation_stations(formation, ("guide", guide), &ships(classes))
             .into_iter()
             .map(|s| s.offset)
@@ -360,10 +361,10 @@ mod tests {
         for formation in FORMATIONS {
             for guide in CLASSES {
                 for count in 1..=9 {
-                    let followers: Vec<_> = (0..count)
-                        .map(|i| CLASSES[i % CLASSES.len()])
-                        .collect();
-                    let stations = formation_stations(formation, ("guide", guide), &ships(&followers));
+                    let followers: Vec<_> =
+                        (0..count).map(|i| CLASSES[i % CLASSES.len()]).collect();
+                    let stations =
+                        formation_stations(formation, ("guide", guide), &ships(&followers));
                     assert_eq!(stations.len(), count);
                     for station in &stations {
                         let range = station.offset[0].hypot(station.offset[1]);

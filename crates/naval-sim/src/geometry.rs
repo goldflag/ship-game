@@ -38,7 +38,11 @@ pub fn within_distance(a: Vec3, b: Vec3, radius: f64) -> bool {
 pub fn shorter(a: Vec3, limit: f64) -> bool {
     let squared = dot(a, a);
     let square = limit * limit;
-    if limit > 0.0 && squared.is_finite() && square.is_normal() && (squared - square).abs() > 1e-9 * squared.max(square) {
+    if limit > 0.0
+        && squared.is_finite()
+        && square.is_normal()
+        && (squared - square).abs() > 1e-9 * squared.max(square)
+    {
         return squared < square;
     }
     length(a) < limit

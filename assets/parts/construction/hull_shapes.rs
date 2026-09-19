@@ -305,13 +305,21 @@ fn recipe(kind: &str) -> Vec<cg::Cell> {
                 cg::clip(&c, [0., -1., 0.], 0.).unwrap(),
             ]
         }
-        "prism" => vec![extrusion(&circle(0., 2. * PI, 0.5).into_iter().step_by(2).take(8).collect::<Vec<_>>(), -0.5, 0.5)],
+        "prism" => vec![extrusion(
+            &circle(0., 2. * PI, 0.5)
+                .into_iter()
+                .step_by(2)
+                .take(8)
+                .collect::<Vec<_>>(),
+            -0.5,
+            0.5,
+        )],
         "hemisphere" => vec![sphere(true, false)],
         "half-hemisphere" => vec![cg::clip(&sphere(true, false), [-1., 0., 0.], 0.).unwrap()],
         "quarter-hemisphere" => {
             let c = cg::clip(&sphere(true, false), [-1., 0., 0.], 0.).unwrap();
             vec![cg::clip(&c, [0., 0., 1.], 0.).unwrap()]
-        },
+        }
         "sphere-octant" => {
             let c = cg::clip(&sphere(true, false), [-1., 0., 0.], 0.).unwrap();
             vec![cg::clip(&c, [0., 0., 1.], 0.).unwrap()]
@@ -453,7 +461,10 @@ mod tests {
                 assert!((size[axis] - 1.).abs() < 1e-8, "{kind} size");
             }
             for c in cells {
-                assert!(cg::total(std::slice::from_ref(c)).volume > 1e-10, "{kind} volume");
+                assert!(
+                    cg::total(std::slice::from_ref(c)).volume > 1e-10,
+                    "{kind} volume"
+                );
                 for f in c.faces.iter() {
                     let n = cg::normal(&f.vertices);
                     for p in &f.vertices {

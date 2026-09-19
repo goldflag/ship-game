@@ -116,12 +116,17 @@ fn solid_walls_cover_outer_corners_for_both_windings() {
         balcony.position = [0.; 3];
         for point in &mut balcony.balcony.as_mut().unwrap().points {
             point.edge = "wall".into();
-            if reflected { point.x = -point.x; }
+            if reflected {
+                point.x = -point.x;
+            }
         }
         let cells = construction::primitive_cells(balcony).unwrap();
         for x in [-2.02, 2.02] {
             for z in [-2.02, 2.02] {
-                assert!(cells.iter().any(|cell| cg::contains(cell, [x, 0.6, z])), "missing wall corner at {x}, {z}");
+                assert!(
+                    cells.iter().any(|cell| cg::contains(cell, [x, 0.6, z])),
+                    "missing wall corner at {x}, {z}"
+                );
             }
         }
         // A complete square wall ring has its exact mitred area, with no

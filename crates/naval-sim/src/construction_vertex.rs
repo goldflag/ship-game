@@ -27,8 +27,12 @@ fn transform(p: &ConstructionPrimitive, v: Vec3) -> Vec3 {
     crate::construction_orientation::point(p, [x, y, z])
 }
 pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
-    if p.mesh.is_some() { return crate::construction_mesh::build(p); }
-    if p.shaping.is_some() { return crate::construction_freeform::build(p); }
+    if p.mesh.is_some() {
+        return crate::construction_mesh::build(p);
+    }
+    if p.shaping.is_some() {
+        return crate::construction_freeform::build(p);
+    }
     let default: Vec<_> = SIGNS.iter().map(|v| scale(*v, 0.5)).collect();
     let v = p.vertices.as_ref().unwrap_or(&default);
     if v.len() != 8

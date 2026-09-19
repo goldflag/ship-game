@@ -184,12 +184,7 @@ fn assert_contact(
     offset: f64,
     label: &str,
 ) {
-    for (i, patches) in ground
-        .deck_geometry
-        .tyres
-        .iter()
-        .enumerate()
-    {
+    for (i, patches) in ground.deck_geometry.tyres.iter().enumerate() {
         let gap = reference
             .tyre_gap(patches, fit)
             .unwrap_or_else(|| panic!("{label}: tyre {i} is unsupported"))

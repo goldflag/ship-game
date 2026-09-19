@@ -160,7 +160,13 @@ fn main() {
         "custom" => vec!["player".into(), "enemy-0".into()],
         _ => Vec::new(),
     };
-    let baseline = server.then(|| runtime.session().server_baseline(SERVER_CONNECTION).unwrap().0);
+    let baseline = server.then(|| {
+        runtime
+            .session()
+            .server_baseline(SERVER_CONNECTION)
+            .unwrap()
+            .0
+    });
     let mut tick = 0u64;
     let (mut step_ms, mut snap_ms, mut bytes) = (0.0, 0.0, 0usize);
     let mut finished = false;

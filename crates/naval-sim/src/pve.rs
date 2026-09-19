@@ -117,8 +117,7 @@ fn strength(def: &ShipDefinition) -> f64 {
         .iter()
         .filter(|m| crate::anti_aircraft::surface_allowed(def, m))
         .map(|m| {
-            m.weapon.caliber_m.powi(2) * m.weapon.barrel_count
-                / m.weapon.reload_seconds.max(1.0)
+            m.weapon.caliber_m.powi(2) * m.weapon.barrel_count / m.weapon.reload_seconds.max(1.0)
         })
         .sum();
     let armor = def
@@ -466,7 +465,11 @@ fn front_formation(size: usize, random: &mut Random) -> Formation {
         (false, _) => Formation::TripleColumn,
     }
 }
-fn enemy_groups(catalog: &Catalog, ids: Vec<String>, seed: u32) -> (Vec<FleetShip>, Vec<TaskGroup>) {
+fn enemy_groups(
+    catalog: &Catalog,
+    ids: Vec<String>,
+    seed: u32,
+) -> (Vec<FleetShip>, Vec<TaskGroup>) {
     let mut random = Random(seed);
     let mut groups = vec![TaskGroup {
         id: "enemy-front".into(),
@@ -519,10 +522,7 @@ fn enemy_groups(catalog: &Catalog, ids: Vec<String>, seed: u32) -> (Vec<FleetShi
             units[escort].group_id = id.clone();
         }
     }
-    let front = units
-        .iter()
-        .filter(|u| u.group_id == "enemy-front")
-        .count();
+    let front = units.iter().filter(|u| u.group_id == "enemy-front").count();
     groups[0].formation = Some(front_formation(front, &mut random));
     (units, groups)
 }
@@ -610,11 +610,13 @@ fn place_groups(
         } else {
             16500.0
         } + random.signed(500.0))
-        .max(if group.station == GroupStation::Front {
-            7200.0
-        } else {
-            14200.0
-        } - ahead);
+        .max(
+            if group.station == GroupStation::Front {
+                7200.0
+            } else {
+                14200.0
+            } - ahead,
+        );
         for unit in members {
             let def = &catalog.definitions[&unit.preset_id];
             let offset = stations

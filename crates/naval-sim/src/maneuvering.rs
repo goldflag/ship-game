@@ -760,7 +760,9 @@ pub fn step(
         impulse(s, m, p.position, force * sin * DT, force * cos * DT);
         jets[i] = force;
     }
-    let load_scale = (actor.motion_mass.mass / d.hull.mass_kg.max(1.)).max(0.1).powf(2. / 3.);
+    let load_scale = (actor.motion_mass.mass / d.hull.mass_kg.max(1.))
+        .max(0.1)
+        .powf(2. / 3.);
     let wave_scale = 1. / (1. - sea.map_or(0., |e| e.resistance).clamp(0., 0.8)).powi(3);
     let k = model.resistance.coefficient(s.speed) * model.drag_scale * load_scale * wave_scale;
     // Centered surge drag; no target speed, acceleration clamp, or artificial turn penalty.
@@ -849,14 +851,34 @@ mod tests {
         };
         let v = 33. / 1.943844;
         let total = cruiser.coefficient(v) / (0.5 * RHO * cruiser.wetted_area);
-        assert!((0.0038..0.0050).contains(&total), "cruiser total coefficient {total}");
+        assert!(
+            (0.0038..0.0050).contains(&total),
+            "cruiser total coefficient {total}"
+        );
         // Effective power at the trial speed. Below the real ship's ~58 MW towrope figure by
         // about the margin between this model's propulsive efficiency and a real ship's.
         let power = cruiser.coefficient(v) * v.powi(3) / 1e6;
-        assert!((40. ..56.).contains(&power), "cruiser effective power {power} MW");
-        let destroyer = Resistance { length: 108., beam: 11.9, draft: 3.8, wetted_area: 1394., fullness: 0.54, frontal_area: 1.4, strips: vec![] };
+        assert!(
+            (40. ..56.).contains(&power),
+            "cruiser effective power {power} MW"
+        );
+        let destroyer = Resistance {
+            length: 108.,
+            beam: 11.9,
+            draft: 3.8,
+            wetted_area: 1394.,
+            fullness: 0.54,
+            frontal_area: 1.4,
+            strips: vec![],
+        };
         // Past the hump the wave term saturates: 40 kn costs well under twice 30 kn's coefficient.
-        let (slow, fast) = (destroyer.coefficient(30. / 1.943844), destroyer.coefficient(40. / 1.943844));
-        assert!(fast < slow * 1.3, "destroyer wave term keeps climbing: {slow} -> {fast}");
+        let (slow, fast) = (
+            destroyer.coefficient(30. / 1.943844),
+            destroyer.coefficient(40. / 1.943844),
+        );
+        assert!(
+            fast < slow * 1.3,
+            "destroyer wave term keeps climbing: {slow} -> {fast}"
+        );
     }
 }
