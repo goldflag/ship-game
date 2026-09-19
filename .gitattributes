@@ -31,3 +31,15 @@ assets/**/*.svg !filter !diff !merge text
 # Install the repository-local driver with bun run git:setup after cloning.
 # Real same-field conflicts remain unmerged; binary outputs keep normal Git behavior.
 assets/parts/guns.json merge=ship-catalog
+
+# Build outputs and vendored bundles: keep them out of `git diff`, `git log -p` and review, where one
+# regenerated model prints tens of thousands of lines. Blueprints are authoring inputs and keep their diffs.
+# Use `git diff --text <path>` to see one anyway.
+public/models/**/*.json linguist-generated -diff
+src/ships/presetCatalog.json linguist-generated -diff
+src/ships/*.generated.json linguist-generated -diff
+src/generated/** linguist-generated -diff
+assets/ships/*/generated/** linguist-generated
+assets/gameplay/hydrostatics.v1.json linguist-generated -diff
+vendor/*/build/** linguist-vendored -diff
+docs/**/*.html linguist-generated -diff
