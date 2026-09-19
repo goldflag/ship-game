@@ -124,7 +124,6 @@ export class Game {
   private portDefinition = selectedShip;
   /** The port's session until the first sortie; set by `initialize`. */
   simulation!: BattleSession;
-  fleetWaypointShipId?: string;
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
   private scene = new FrameScene();
@@ -221,6 +220,9 @@ export class Game {
   chartSize = 2;
   airOperationsOpen = false;
   fleetCommandMode = false;
+  /** A custom battle reads the fleet chart from its own helm: the ship keeps its last engine
+   * and rudder orders, and leaving the chart returns to it. Fleet command releases the helm. */
+  helmChart = false;
   battleRevision = 0;
   selectedShipIds: string[] = [];
   /** Task groups from the deployment screen: who sails together, under what
@@ -338,7 +340,9 @@ export class Game {
       isSpectating: () => !this.inPort && this.simulation.isBattle && this.simulation.player.damage.sunk,
       cycleSpectator: direction => this.cycleSpectator(direction),
       helmWheel: held => { if (held) this.openHelmWheel('held'); else this.releaseHelmWheel(); },
-      airOperations: () => this.fleetCommandMode ? this.airOperationsOpen ? this.followFleetShip(this.selectedShipIds[0] ?? this.simulation.ship.id) : this.enterFleetCommand() : this.setAirOperationsOpen(!this.airOperationsOpen),
+      airOperations: () => this.fleetCommandMode ? this.airOperationsOpen ? this.followFleetShip(this.selectedShipIds[0] ?? this.simulation.ship.id) : this.enterFleetCommand()
+        // A carrier keeps its own air chart on this key; its fleet chart opens from the battle tally.
+        : this.fleetChartAvailable && !this.simulation.player.airWing ? this.openFleetChart() : this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
       depthPreset: depthM => this.setDepth(depthM),
       emergencyBlow: () => this.setDepth(0, true),
@@ -822,7 +826,7 @@ export class Game {
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
-      this.fleetCommandMode = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.lastFleetHelmId = undefined; this.helmWheel = undefined; this.helmOfferedFor = undefined;
+      this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.lastFleetHelmId = undefined; this.helmWheel = undefined; this.helmOfferedFor = undefined;
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
       this.aimModule = simulation.target?.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
@@ -1080,7 +1084,7 @@ export class Game {
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           rangefinder: this.canRange ? { ...this.rangefinder.state } : undefined,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId, selectedFlightIds: [...this.selectedFlightIds],
-          fleetCommandMode: this.fleetCommandMode, selectedShipIds: [...this.selectedShipIds], controlledShipId: this.simulation.controlledShipId, helmWheel: this.helmWheel && { ...this.helmWheel }, tacticalPaused: this.tacticalPause, simulationSpeed: this.simulation.simulationSpeed, achievedSpeed: this.simulation.achievedSpeed,
+          fleetCommandMode: this.fleetCommandMode, helmChart: this.helmChart, selectedShipIds: [...this.selectedShipIds], controlledShipId: this.simulation.controlledShipId, helmWheel: this.helmWheel && { ...this.helmWheel }, tacticalPaused: this.tacticalPause, simulationSpeed: this.simulation.simulationSpeed, achievedSpeed: this.simulation.achievedSpeed,
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
           squadronMarkers: this.simulation.actors.flatMap(actor => (airWingTelemetry(actor, this.simulation.actors)?.groups ?? [])
             .filter(f => f.airborne > 0).map(f => {
@@ -1246,6 +1250,8 @@ export class Game {
    * has a recipient; a battle that opens on the chart starts with nothing selected. */
   enterFleetCommand(preselect = true): void {
     if (this.inPort || !this.simulation.releaseHelm) return;
+    // A chart read from the helm is already open, and its helm is not given up behind the player's back.
+    if (this.helmChart) return;
     this.fleetCommandMode = true;
     this.simulation.releaseHelm();
     if (preselect && !this.selectedShipIds.length) this.selectFleetShips([this.simulation.ship.id]);
@@ -1253,7 +1259,33 @@ export class Game {
     this.updateInputEligibility(true);
     this.rig.releasePointer();
   }
+  /** Whether this battle can order its fleet from the chart without giving up the helm. */
+  get fleetChartAvailable(): boolean {
+    return !this.inPort && this.simulation.isBattle && !this.simulation.missionRules && !!this.simulation.selectShip && !!this.simulation.releaseHelm;
+  }
+  /** Open the fleet chart from the helm. Nothing is preselected: an order to the hull under
+   * the player's hand would engage its autopilot, so that has to be a deliberate pick. */
+  openFleetChart(): void {
+    if (!this.fleetChartAvailable || this.fleetCommandMode || this.paused) return;
+    if (this.airOperationsOpen) this.setAirOperationsOpen(false);
+    this.closeHelmWheel();
+    this.helmChart = true; this.fleetCommandMode = true;
+    this.selectFleetShips([]); this.flightSelection = [];
+    this.setAirOperationsOpen(true);
+    this.updateInputEligibility();
+    this.rig.releasePointer();
+  }
+  /** Back to the helm the chart was opened from, or to the view a sunk helm leaves behind. */
+  leaveFleetChart(): void {
+    if (!this.helmChart) return;
+    // The chart closes while fleet command still owns it, so a ship without aircraft can close it.
+    this.setAirOperationsOpen(false);
+    this.helmChart = false; this.fleetCommandMode = false; this.tacticalPause = false;
+    this.selectedShipIds = []; this.flightSelection = [];
+    this.updateInputEligibility();
+  }
   followFleetShip(id: string): void {
+    if (this.helmChart) { this.leaveFleetChart(); return; }
     if (!this.fleetCommandMode) return;
     const view = this.fleetViews.find(v => v.actor.motion.id === id && this.simulation.actors.some(a => a === v.actor && a.team === 'friendly') && !physicalLoss(v.actor));
     if (!view) return;
@@ -1266,6 +1298,7 @@ export class Game {
   }
   takeFleetHelm(id: string): void {
     if (!this.fleetCommandMode || !this.simulation.actors.some(a => a.motion.id === id && a.team === 'friendly' && !physicalLoss(a))) return;
+    if (this.helmChart) { this.leaveFleetChart(); this.takeHelm(id); return; }
     this.followFleetShip(id);
     this.simulation.selectShip?.(id);
     this.input.clear(); this.input.setOrder(1); this.input.setRudder(0);
@@ -1507,7 +1540,7 @@ export class Game {
   }
   /** Loading and a pending helm release can suspend input before session state catches up. */
   private updateInputEligibility(suspended = false): void {
-    this.input.setEnabled(this.controls(suspended).inputEnabled);
+    this.input.setEnabled(this.controls(suspended).inputEnabled, this.helmChart);
   }
   private get viewAway(): boolean { return this.controls().viewAway; }
   private get gunsCommandable(): boolean { return this.controls().gunsCommandable; }
@@ -1798,11 +1831,6 @@ export class Game {
       else this.rig.capturePointer();
     }
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);
-  }
-  fleetWaypoint(x: number, z: number): void {
-    const id = this.fleetWaypointShipId;
-    if (!id || this.paused || this.inPort || Math.abs(x) > 40000 || Math.abs(z) > 40000) return;
-    this.simulation.moveShip?.(id, [x, 0, z]); this.fleetWaypointShipId = undefined;
   }
   fire(): void { if (this.gunsCommandable && !this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
   toggleShellFollow(): void {

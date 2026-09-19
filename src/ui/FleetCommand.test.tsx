@@ -248,3 +248,42 @@ test('a reported strike shows its slung weapons, the ship on its course and the 
   expect(spent).not.toContain('fleet-command-inbound');
   expect(spent).toContain('2 released');
 });
+
+test('a custom battle reads the same chart from its helm: a way back, no captain to follow, and the whole enemy fleet', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition, { friendlyBots: [shipPreset('fletcher')], enemies: [shipPreset('yamato')] });
+  const id = simulation.ship.id;
+  const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: undefined, manual: false, navigation: undefined });
+  Object.assign(simulation, { fleetOrders: {
+    [id]: standing({ type: 'autonomous' }),
+    'friendly-1': { ...standing({ type: 'autonomous' }), targetId: 'enemy-1' },
+  } });
+  const desk = fleetDesk({ simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as FleetAuthority);
+  const combat = simulation.telemetry('main', [0, 0, -5000]);
+  const data: Telemetry = { ship: simulation.ship, order: 5, rudderOrder: -.5, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat, fleetCommandMode: true, helmChart: true, airOperationsOpen: true, controlledShipId: id, selectedShipIds: [] };
+  const render = (state: Telemetry) => renderToStaticMarkup(<FleetCommand data={state} desk={desk} bindings={defaultKeybindings()}/>);
+  const html = render(data);
+  expect(html).toContain('Return to helm <kbd>M</kbd>');
+  expect(html).toContain('aria-label="Time remaining"');
+  // The player's hull sails on under the chart, so what it is doing stays in view.
+  expect(html).toContain('aria-label="Your ship"');
+  expect(html).toContain('half port rudder');
+  expect(html).toContain('holds your last orders while the chart is open');
+  expect(html).toContain('<em>You</em>');
+  expect(html).toContain('Your helm');
+  // Ship by ship: no formation header for a group of one.
+  expect(html).not.toContain('<kbd>1</kbd>Bismarck');
+  // A custom battle sees the enemy fleet, so the card never pleads ignorance.
+  expect(html).not.toContain('total unknown');
+  expect(html).not.toContain('spotted only');
+  expect(html).toContain('1 afloat · right-click to focus fire');
+  expect(html).toContain('1 of yours ordered onto it');
+  const escort = render({ ...data, selectedShipIds: ['friendly-1'] });
+  expect(escort).toContain('aria-label="Auto · A"');
+  expect(escort).toContain('Take helm<kbd>T</kbd>');
+  expect(escort).not.toContain('Follow<kbd>V</kbd>');
+  // There is no helm to take on the ship already under the player's hand.
+  expect(render({ ...data, selectedShipIds: [id] })).not.toContain('Take helm<kbd>T</kbd>');
+  // Fleet command keeps its own wheel.
+  const { render: mission, data: missionData, id: missionId } = fixture();
+  expect(mission({ ...missionData, selectedShipIds: [missionId] })).not.toContain('aria-label="Auto · A"');
+});

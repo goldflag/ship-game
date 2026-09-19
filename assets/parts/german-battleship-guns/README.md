@@ -56,3 +56,13 @@ open C/31 shield. It explicitly reuses the original cruiser C/31 constructor,
 replacing an enclosed shield that conflated the separate C/37 source fit.
 Catalog-specific pivot, barrel spacing and joint IDs are retained. This visual
 correction does not independently certify the historical mounting designation.
+
+The capital-gun shape pass uses the registered no-rangefinder `ggm2016`
+comparison. Its original visual shell has a rounded aft plate and higher curved
+roof break; the side covers follow both sloping shoulders, and connected barrel
+surfaces replace hidden segment caps. The shallow cuff profile remains continuous
+through full recoil. Armor/collision facets, weapon balance and joint/socket
+transforms remain unchanged; they are a coarser approximation of the visible
+aft curve. Fine cloth folds and the support race remain simplified. The projecting
+rangefinder installation remains a distinct flag, not a claim that `ggm2016`
+shows that equipment.

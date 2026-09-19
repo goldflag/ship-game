@@ -262,6 +262,9 @@ export abstract class SnapshotSession implements BattleSession {
   moveShip(id: string, point: Vec3) { this.send(id, { type: 'move', position: [point[0], point[2]] }); if (id === this.ship.id) this.autopilot = { ...this.lastHelm }; }
   focusShip(id: string, targetId: string) { this.send(id, { type: 'focus', targetId }); }
   holdShip(id: string) { this.send(id, { type: 'hold' }); if (id === this.ship.id) this.autopilot = { ...this.lastHelm }; }
+  /** Let the standing order steer the hull under the player's hand until the engine or rudder order changes.
+   * A held helm otherwise outranks every chart order, which is what fleet command relies on. */
+  engageAutopilot() { this.autopilot = { ...this.lastHelm }; }
   automateShip(id: string) { this.send(id, { type: 'autonomous' }); if (id === this.ship.id) this.autopilot = { ...this.lastHelm }; }
   setDepth(depthM: number, emergency = false) { this.depthM = depthM; this.emergencyBlow = emergency; }
   requestFire() { this.fireQueued = true; }

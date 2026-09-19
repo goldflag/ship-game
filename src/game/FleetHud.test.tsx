@@ -153,7 +153,7 @@ test('main battery loss leaves an armed ship in its fleet without an extra statu
   </ShipContext.Provider>);
   expect(html).not.toContain('knocked out');
   expect(html).not.toContain('crippled');
-  expect(html).toContain('Friendly <strong>2</strong>');
+  expect(html).toContain('Friendly fleet: 2 of 2 afloat, 0 damaged, 0 lost');
 });
 
 test('battle HUD omits the removed gunnery panel and keeps weapon controls', () => {
@@ -258,4 +258,51 @@ test('local worker failures remain visible in battle status', async () => {
   const game = { simulation: { networked: false, phase: 'cancelled', connectionStatus: 'Battle worker failed' } } as unknown as FleetAuthority;
   const html = renderToStaticMarkup(<BattleStatus combat={combat} desk={fleetDesk(game)}/>);
   expect(html).toContain('role="status">Battle worker failed');
+});
+
+test('the battle tally is one glance tall: whole tonnes, a gauge per hull, and a roster that only a free cursor unfolds', async () => {
+  const { BattleStatus } = await import('../ui/BattleStatus');
+  const flagship = shipPreset('bismarck'), escort = shipPreset('fletcher');
+  const sim = new CombatSimulation(flagship, { friendlyBots: Array.from({ length: 11 }, () => escort), enemies: [flagship] });
+  sim.actors[1].damage.integrity *= .4;
+  const combat = sim.telemetry('main', [0, 0, -5000]);
+  combat.afloatKg = [331_653_381, 69_935_000];
+  const session = { networked: false, tick: 0, selectShip: () => true, releaseHelm: () => true, fleetOrders: { 'friendly-2': { manual: false, movement: { type: 'hold-area', position: [0, 0], radiusM: 300 }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: 'enemy-1' } } };
+  const desk = fleetDesk({ simulation: session } as unknown as FleetAuthority);
+  const atHelm = renderToStaticMarkup(<BattleStatus combat={combat} desk={desk} bindings={defaultKeybindings()} pointerLocked/>);
+  expect(atHelm).toContain('331,653 t afloat');
+  expect(atHelm).not.toContain('331,653.381');
+  expect(atHelm).toContain('Friendly fleet: 12 of 12 afloat, 1 damaged, 0 lost');
+  expect(atHelm.match(/<i class="[^"]*"><b style="height:/g)).toHaveLength(13);
+  expect(atHelm).toContain('class=" low"><b style="height:40%"');
+  // Orders live on the chart; the corner only says how to get there and how to read the roster.
+  expect(atHelm).toContain('<kbd>M</kbd>Fleet chart');
+  expect(atHelm).toContain('<kbd>Ctrl</kbd>Roster');
+  expect(atHelm).not.toContain('fleet-roster');
+  expect(atHelm).not.toContain('Order vessel');
+  const cursorFree = renderToStaticMarkup(<BattleStatus combat={combat} desk={desk} bindings={defaultKeybindings()}/>);
+  expect(cursorFree).not.toContain('<kbd>Ctrl</kbd>Roster');
+  // A class of more than four hulls in a big fleet is one line until it is opened.
+  expect(cursorFree).toContain('Destroyers 11/11');
+  expect(cursorFree).toContain('1 damaged · show');
+  expect(cursorFree).toContain('Bismarck (You)');
+  expect(cursorFree).not.toContain('Fletcher #2');
+  expect(cursorFree).toContain('<em>Target</em>');
+  // A mission's fleet is ordered through fleet command, so its tally offers no second chart.
+  const mission = fleetDesk({ simulation: { ...session, missionRules: {} } } as unknown as FleetAuthority);
+  expect(renderToStaticMarkup(<BattleStatus combat={combat} desk={mission} bindings={defaultKeybindings()} pointerLocked/>)).not.toContain('Fleet chart');
+});
+
+test('damage control rides on the ship card and sets crew priority with one press', async () => {
+  const { FireControl } = await import('../ui/FireControl');
+  const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
+  const combat = sim.telemetry('main', [0, 0, -5000]);
+  const quiet = renderToStaticMarkup(<FireControl combat={combat} desk={null}/>);
+  expect(quiet).toContain('<strong>Damage control</strong><span>Automatic · balanced</span>');
+  expect(quiet).not.toContain('fleet-fire-detail');
+  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
+  const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+  // It belongs to the ship, not to the battle corner.
+  expect(html.indexOf('aria-label="Damage control"')).toBeGreaterThan(html.indexOf('aria-label="Ship condition and helm"'));
+  expect(html.slice(html.indexOf('class="fleet-reports"'), html.indexOf('class="fleet-fps"'))).not.toContain('Damage control');
 });
