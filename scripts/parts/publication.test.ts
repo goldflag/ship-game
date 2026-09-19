@@ -60,8 +60,9 @@ describe('source-backed equipment publication',()=>{
       const second=await publishEquipment(temp);
       expect(second.revision).not.toBe(first.revision);
       for(const p of second.equipment) expect(p.modelUrl).toBe(first.equipment.find(e=>e.id===p.id)!.modelUrl);
-      const retained=JSON.parse(await readFile(join(temp,'public/models/components/catalogs',first.revision,'catalog.json'),'utf8'));
-      expect(retained).toEqual(first);
+      const retained=await readFile(join(temp,'public/models/components/catalogs',first.revision,'catalog.json'),'utf8');
+      // Retention promises exact JSON bytes; JSON canonicalizes negative zero.
+      expect(retained).toBe(JSON.stringify(first,null,2)+'\n');
     } finally {await rm(temp,{recursive:true,force:true});}
   });
   test('rejects a stale hash, lost socket and external runtime texture dependency',async()=>{
@@ -80,9 +81,10 @@ describe('source-backed equipment publication',()=>{
     doc.images=[{uri:'/api/texture/preview-only.png'}];
     expect(()=>inspectEquipmentModel(rewrite(doc),p.contentHash,p)).toThrow('embed all');
   });
-  test('support sockets coincide with actual sole, stock and shaft bounds without hidden overlap',async()=>{
+  test('fixed-equipment support sockets coincide with actual sole, stock and shaft bounds without hidden overlap',async()=>{
     const c=JSON.parse(await readFile(join(root,'public/models/components/catalog.json'),'utf8'));
-    for(const p of c.equipment) {
+    // Procedural paths anchor their centerline; their preview radius is not a sole.
+    for(const p of c.equipment.filter((part:any)=>!part.path)) {
       const s=p.sockets.find((s:any)=>s.id==='attachment');
       const axis=s.direction.findIndex((n:number)=>Math.abs(n)===1);
       expect(axis).toBeGreaterThanOrEqual(0);

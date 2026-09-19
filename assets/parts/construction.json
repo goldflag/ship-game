@@ -7842,6 +7842,978 @@
           ]
         }
       ]
+    },
+    {
+      "id": "dreadnought-aft-funnel",
+      "name": "Dreadnought 1906 \u00b7 aft funnel",
+      "kind": "funnel",
+      "size": [
+        2.98,
+        10.056,
+        6.474
+      ],
+      "boundsCenter": [
+        0,
+        5.0269,
+        0.0684
+      ],
+      "centerOfGravity": [
+        0,
+        4.3241,
+        0.0684
+      ],
+      "massKg": 25000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            9.6,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 40000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            2.2239999999999998,
+            1,
+            5.024000000000001
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hood-forward-funnel",
+      "name": "Hood 1941 \u00b7 forward funnel",
+      "kind": "funnel",
+      "size": [
+        6.708,
+        13.286,
+        8.153
+      ],
+      "boundsCenter": [
+        -0.1925,
+        6.6419,
+        -0.0127
+      ],
+      "centerOfGravity": [
+        0,
+        5.713,
+        -0.0127
+      ],
+      "massKg": 55000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            12.48,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 80000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            4.768,
+            1,
+            6.24
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nelson-funnel",
+      "name": "Nelson 1944 \u00b7 funnel",
+      "kind": "funnel",
+      "size": [
+        5.933,
+        12.306,
+        6.691
+      ],
+      "boundsCenter": [
+        0,
+        6.1519,
+        0.0698
+      ],
+      "centerOfGravity": [
+        0,
+        5.2916,
+        0.0698
+      ],
+      "massKg": 28000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            11.83,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 60000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            3.024,
+            1,
+            5.2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "emden-aft-funnel",
+      "name": "Emden 1908 \u00b7 aft funnel",
+      "kind": "funnel",
+      "size": [
+        3.235,
+        12.585,
+        4.145
+      ],
+      "boundsCenter": [
+        0,
+        6.291,
+        0.235
+      ],
+      "centerOfGravity": [
+        0,
+        5.4116,
+        0.235
+      ],
+      "massKg": 8500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            12.59,
+            0.54
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 12000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            2.5280000000000005,
+            1,
+            2.8800000000000003
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mikasa-forward-funnel",
+      "name": "Mikasa 1905 \u00b7 forward funnel",
+      "kind": "funnel",
+      "size": [
+        4.332,
+        15.136,
+        4.242
+      ],
+      "boundsCenter": [
+        -0.0296,
+        7.567,
+        0.0247
+      ],
+      "centerOfGravity": [
+        0,
+        6.5085,
+        0.0247
+      ],
+      "massKg": 20000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            14.97,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 20000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            3.2960000000000003,
+            1,
+            3.2960000000000003
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clemson-forward-funnel",
+      "name": "Clemson 1930 \u00b7 No. 1 funnel",
+      "kind": "funnel",
+      "size": [
+        1.984,
+        8.016,
+        2.547
+      ],
+      "boundsCenter": [
+        0.0209,
+        4.0065,
+        0.3074
+      ],
+      "centerOfGravity": [
+        0,
+        3.4469,
+        0.3074
+      ],
+      "massKg": 3000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            7.69,
+            0.53
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 12000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            1.4880000000000002,
+            1,
+            1.4880000000000002
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dunkerque-funnel",
+      "name": "Dunkerque 1940 \u00b7 funnel",
+      "kind": "funnel",
+      "size": [
+        5.452,
+        15.175,
+        7.421
+      ],
+      "boundsCenter": [
+        0,
+        7.5861,
+        -0.004
+      ],
+      "centerOfGravity": [
+        0,
+        6.5252,
+        -0.004
+      ],
+      "massKg": 38000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            13.84,
+            0.7
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 80000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            4.032,
+            1,
+            5.68
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kirov-forward-funnel",
+      "name": "Kirov 1938 \u00b7 forward funnel",
+      "kind": "funnel",
+      "size": [
+        3.911,
+        11.847,
+        11.137
+      ],
+      "boundsCenter": [
+        0,
+        5.9223,
+        0.7021
+      ],
+      "centerOfGravity": [
+        0,
+        5.0942,
+        0.7021
+      ],
+      "massKg": 26000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            10.46,
+            2.05
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 45000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            2.7520000000000002,
+            1,
+            7.744
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aosta-forward-funnel",
+      "name": "Duca d\u2019Aosta 1943 \u00b7 forward funnel",
+      "kind": "funnel",
+      "size": [
+        8.903,
+        8.282,
+        11.582
+      ],
+      "boundsCenter": [
+        0,
+        4.1398,
+        0.0674
+      ],
+      "centerOfGravity": [
+        0,
+        3.5613,
+        0.0674
+      ],
+      "massKg": 21000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            7.14,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 45000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            3.5840000000000005,
+            1,
+            9.120000000000001
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cesare-forward-funnel",
+      "name": "Giulio Cesare 1943 \u00b7 forward funnel",
+      "kind": "funnel",
+      "size": [
+        4.064,
+        10.047,
+        5.763
+      ],
+      "boundsCenter": [
+        0.0407,
+        5.022,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        4.3202,
+        0
+      ],
+      "massKg": 19000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            8.84,
+            0.12
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 40000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            2.9920000000000004,
+            1,
+            4.24
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blyskawica-funnel",
+      "name": "B\u0142yskawica 1938 \u00b7 trunked funnel",
+      "kind": "funnel",
+      "size": [
+        3.6,
+        9.138,
+        9.849
+      ],
+      "boundsCenter": [
+        0,
+        4.568,
+        0.0451
+      ],
+      "centerOfGravity": [
+        0,
+        3.9293,
+        0.0451
+      ],
+      "massKg": 11500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            7.72,
+            1.5
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 20000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            2.4480000000000004,
+            1,
+            7.376000000000001
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aurora-middle-funnel",
+      "name": "Aurora 1917 \u00b7 middle funnel",
+      "kind": "funnel",
+      "size": [
+        3.512,
+        16.296,
+        3.401
+      ],
+      "boundsCenter": [
+        -0.12,
+        8.1469,
+        0.0645
+      ],
+      "centerOfGravity": [
+        0,
+        7.0073,
+        0.0645
+      ],
+      "massKg": 11000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            15.91,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 12000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            2.5600000000000005,
+            1,
+            2.5600000000000005
+          ]
+        }
+      ]
     }
   ]
 }

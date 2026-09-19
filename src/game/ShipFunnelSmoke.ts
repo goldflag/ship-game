@@ -1,4 +1,4 @@
-import { Camera, Group, Vector3 } from 'three/webgpu';
+import { Camera, Group, Matrix4, Object3D, Vector3 } from 'three/webgpu';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { systemHealth } from './machinery';
 import { localToWorld } from './geometry';
@@ -6,12 +6,12 @@ import { motionVelocity } from './session/motion';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import type { ShipView } from './ShipView';
 
-export interface FunnelOutlet { id: string; position: Vec3; width: number; length: number; }
+export interface FunnelOutlet { id: string; position: Vec3; width: number; length: number; bearingRad?: number; }
 
 /** Read the authored funnel rim, including raked jackets, in runtime coordinates.
  * These are visual emission datums, not a second ship definition or uptake simulation. */
-export function funnelOutlets(definition: ShipDefinition): FunnelOutlet[] {
-  return (definition.structures ?? []).filter(s => s.exhaust || /(?:^|-)funnel(?:-jacket)?$/.test(s.id)).map(s => {
+export function funnelOutlets(definition: ShipDefinition, model?: Object3D): FunnelOutlet[] {
+  const outlets: FunnelOutlet[] = (definition.structures ?? []).filter(s => s.exhaust || /(?:^|-)funnel(?:-jacket)?$/.test(s.id)).map(s => {
     if (s.exhaust) return { id: s.id, ...s.exhaust };
     let rim: Vec3[] = s.footprint.map(([x, z]) => [x, s.baseY + s.height, z]);
     if (s.surface) {
@@ -41,9 +41,31 @@ export function funnelOutlets(definition: ShipDefinition): FunnelOutlet[] {
     return { id: s.id, position: [(minX + maxX) / 2, rim.reduce((sum, p) => sum + p[1], 0) / rim.length + .15, (minZ + maxZ) / 2],
       width: maxX - minX, length: maxZ - minZ };
   });
+  // Construction uses retained component sockets, including rotated/raked
+  // casings. Read only render datums; propulsion remains native simulation data.
+  if (definition.construction && model) {
+    model.updateWorldMatrix(true, true);
+    const inverse = new Matrix4().copy(model.matrixWorld).invert();
+    const nodes = new Map<string, Object3D>();
+    model.traverse(node => { if (node.userData.nodeId) nodes.set(node.userData.nodeId, node); });
+    for (const instance of definition.construction.equipment) {
+      const module = definition.modules.find(m => m.id === instance.id && m.role === 'boiler');
+      const socket = nodes.get(`${instance.id}.socket.exhaust-out`);
+      if (!module || !socket || outlets.some(o => o.id === instance.id)) continue;
+      let owner: Object3D | null = socket;
+      while (owner && owner !== model && !Number.isFinite(owner.userData.funnelOutletWidthM)) owner = owner.parent;
+      const transform = new Matrix4().multiplyMatrices(inverse, socket.matrixWorld);
+      const width = owner?.userData.funnelOutletWidthM ?? Math.min(module.size[0], module.size[2]) * .65;
+      const length = owner?.userData.funnelOutletLengthM ?? Math.max(module.size[0], module.size[2]) * .65;
+      if (!(width > 0 && length > 0 && Number.isFinite(width) && Number.isFinite(length))) continue;
+      outlets.push({ id: instance.id, position: new Vector3().setFromMatrixPosition(transform).toArray() as Vec3,
+        width, length, bearingRad: Math.atan2(-transform.elements[8], transform.elements[0]) });
+    }
+  }
+  return outlets;
 }
 
-type SmokeShip = Pick<ShipView, 'actor' | 'definition' | 'motion'>;
+type SmokeShip = Pick<ShipView, 'actor' | 'definition' | 'motion'> & Partial<Pick<ShipView, 'model'>>;
 interface Emitter { outlet: FunnelOutlet; previous: Vector3; credit: number; initialized: boolean; }
 
 /** One bounded fleet batch. Puffs stay in world space after leaving the moving rim. */
@@ -79,7 +101,7 @@ export class ShipFunnelSmoke {
     for (const ship of ships) {
       let state = this.emitters.get(ship);
       if (!state) {
-        state = { damage: ship.actor.damage, funnels: funnelOutlets(ship.definition).map(outlet => ({ outlet, previous: new Vector3(), credit: 0, initialized: false })) };
+        state = { damage: ship.actor.damage, funnels: funnelOutlets(ship.definition, ship.model).map(outlet => ({ outlet, previous: new Vector3(), credit: 0, initialized: false })) };
         this.emitters.set(ship, state);
       }
       if (!state.funnels.length) continue;
@@ -100,7 +122,8 @@ export class ShipFunnelSmoke {
             this.position.lerpVectors(emitter.previous, this.origin, 1 - emitter.credit / step);
             // Spread within the uptake, including a carrier's long funnel mouth.
             const across = (this.random() - .5) * outlet.width * .45, along = (this.random() - .5) * outlet.length * .55;
-            const sin = Math.sin(ship.motion.heading), cos = Math.cos(ship.motion.heading);
+            const heading = ship.motion.heading + (outlet.bearingRad ?? 0);
+            const sin = Math.sin(heading), cos = Math.cos(heading);
             this.position.x += across * cos - along * sin;
             this.position.z += across * sin + along * cos;
             const p = this.pool.emit(this.position, ship.motion.id);

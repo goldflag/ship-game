@@ -893,5 +893,197 @@
     "evidence": [
       "https://gamemodels3d.com/games/dcsworld/vehicles/corvettes"
     ]
+  },
+  {
+    "partId": "dreadnought-aft-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb503",
+    "sourceVehicle": "pbsb503",
+    "resource": "common/visual/uk/ship/battleship/bsb020_dreadnought_1906/bsb020_dreadnought_1906_midfront",
+    "sourceName": "Dreadnought 1906 · aft funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb503"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/dreadnought-aft-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "hood-forward-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb507",
+    "sourceVehicle": "pbsb507",
+    "resource": "common/visual/uk/ship/battleship/bsb010_hood_1941/bsb010_hood_1941_midfront",
+    "sourceName": "Hood 1941 · forward funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb507"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/hood-forward-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "nelson-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb517",
+    "sourceVehicle": "pbsb517",
+    "resource": "common/visual/uk/ship/battleship/bsb018_nelson_1944/bsb018_nelson_1944_midback",
+    "sourceName": "Nelson 1944 · funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb517"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/nelson-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "emden-aft-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc502",
+    "sourceVehicle": "pgsc502",
+    "resource": "common/visual/germany/ship/cruiser/gsc020_emden_1908/gsc020_emden_1908_midback",
+    "sourceName": "Emden 1908 · aft funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc502"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/emden-aft-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "mikasa-forward-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb011",
+    "sourceVehicle": "pjsb011",
+    "resource": "common/visual/japan/ship/battleship/jsb011_mikasa_1905/jsb011_mikasa_1905_midfront",
+    "sourceName": "Mikasa 1905 · forward funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb011"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/mikasa-forward-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "clemson-forward-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd019",
+    "sourceVehicle": "pasd019",
+    "resource": "common/visual/usa/ship/destroyer/asd046_clemson_1930/asd046_clemson_1930_midfront",
+    "sourceName": "Clemson 1930 · No. 1 funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd019"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/clemson-forward-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "dunkerque-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsb506",
+    "sourceVehicle": "pfsb506",
+    "resource": "common/visual/france/ship/battleship/fsb001_dunkerque_1940/fsb001_dunkerque_1940_midback",
+    "sourceName": "Dunkerque 1940 · funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsb506"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/dunkerque-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "kirov-forward-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsc525",
+    "sourceVehicle": "prsc525",
+    "resource": "common/visual/russia/ship/cruiser/rsc007_kirov_1938/rsc007_kirov_1938_midfront",
+    "sourceName": "Kirov 1938 · forward funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsc525"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/kirov-forward-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "aosta-forward-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisc506",
+    "sourceVehicle": "pisc506",
+    "resource": "common/visual/italy/ship/cruiser/isc001_ducadaosta_1943/isc001_ducadaosta_1943_midfront",
+    "sourceName": "Duca d’Aosta 1943 · forward funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisc506"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/aosta-forward-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "cesare-forward-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb505",
+    "sourceVehicle": "pisb505",
+    "resource": "common/visual/italy/ship/battleship/isb001_giulio_cesare_1943/isb001_giulio_cesare_1943_midfront",
+    "sourceName": "Giulio Cesare 1943 · forward funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb505"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/cesare-forward-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "blyskawica-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd501",
+    "sourceVehicle": "pwsd501",
+    "resource": "common/visual/europe/ship/destroyer/wsd001_blyskawica_1938/wsd001_blyskawica_1938_midfront",
+    "sourceName": "Błyskawica 1938 · trunked funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd501"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/blyskawica-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "aurora-middle-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsc001",
+    "sourceVehicle": "prsc001",
+    "resource": "common/visual/russia/ship/cruiser/rsc001_avrora_1917/rsc001_avrora_1917_midfront",
+    "sourceName": "Aurora 1917 · middle funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsc001"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/aurora-middle-funnel.glb",
+    "scale": 1
   }
 ]
