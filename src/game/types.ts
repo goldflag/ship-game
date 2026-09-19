@@ -16,6 +16,8 @@ export interface PerformanceReadout {
   height: number;
   backend: string;
   detail?: { shipInstances: number; reducedInstances: number; particles: number; aircraft: number };
+  /** Local battle worker cost; absent in port and networked battles. */
+  simulation?: import('./session/BattleSession').SimulationLoad & { speed: number; achievedSpeed?: number };
 }
 export interface HelmWheelState { reason: 'held' | 'sunk'; highlightId?: string }
 export interface Telemetry {

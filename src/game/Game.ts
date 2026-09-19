@@ -1129,6 +1129,8 @@ export class Game {
   private performanceReadout(): PerformanceReadout {
     const { width = 0, height = 0 } = this.renderer.domElement;
     const readout: PerformanceReadout = { mode: this.settings.readout, fps: Math.round(this.fps), frameMs: this.fps > 0 ? 1000 / this.fps : 0, width, height, backend: this.water?.backend ?? 'webgpu' };
+    const load = this.inPort ? undefined : this.simulation.simulationLoad;
+    if (load) readout.simulation = { ...load, speed: this.simulation.simulationSpeed ?? 1, achievedSpeed: this.simulation.achievedSpeed };
     if (this.settings.readout === 'detailed') {
       const draws = this.fleetDraws?.diagnostics(), effects = this.effects.diagnostics();
       readout.detail = { shipInstances: draws?.instances ?? 0, reducedInstances: draws?.reduced ?? 0,

@@ -61,7 +61,7 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
     try {
       const message = event.data;
       if (message.type === 'init' || message.type === 'plan') profile = message.profile === true;
-      const started = profile ? performance.now() : 0;
+      const started = performance.now();
       if (message.type === 'options') {
         self.postMessage({ type: 'options', options: JSON.parse(PvePlanner.options(await loadContent())) });
         return;
@@ -114,16 +114,18 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
       }
       // Rust walks the frame once and writes only what moved, so the worker
       // parses a FrameUpdate instead of parsing, normalizing and diffing a frame.
-      const stepped = profile ? performance.now() : 0;
+      const stepped = performance.now();
       const json = runtime!.snapshot_delta(detail);
       const serialized = profile ? performance.now() : 0;
       const update = JSON.parse(json) as FrameUpdate;
-      const decoded = profile ? performance.now() : 0;
+      const decoded = performance.now();
       if (!Number.isSafeInteger(update.tick) || update.tick < 0) throw new Error('Invalid battle snapshot.');
       const timing = profile ? { tick: update.tick, ticks: message.type === 'advance' ? message.ticks : 0,
         step: stepped - started, serialize: serialized - stepped, decode: decoded - serialized,
         delta: 0, bytes: json.length, wasmMemoryBytes: wasmMemory?.buffer.byteLength } : undefined;
-      self.postMessage({ type: 'snapshot', reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && update.baseTick == null), trialAction: message.type === 'trial-action', update, timing });
+      // Always-on worker cost for the in-game simulation readout.
+      const cost = message.type === 'advance' ? { ticks: message.ticks, stepMs: stepped - started, snapshotMs: decoded - stepped } : undefined;
+      self.postMessage({ type: 'snapshot', cost, reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && update.baseTick == null), trialAction: message.type === 'trial-action', update, timing });
     } catch (error) { self.postMessage({ type: event.data.type === 'trial-action' ? 'trial-error' : 'error', message: String(error) }); }
   });
 };
