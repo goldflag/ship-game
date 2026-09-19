@@ -1,97 +1,63 @@
-import { assetUrl } from '../assetUrl';
-import { useConstructionThumbnail } from './useConstructionThumbnail';
-// Fleet harbor: historical ships and saved local designs.
+// Home port: the player's own designs. One ship lies alongside under its builder's plate;
+// the plan chest holds the whole library. Historical ships are offered in Battle setup.
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useConstructionThumbnail } from './useConstructionThumbnail';
 import { InspectionTooltip, type InspectionHoverSource } from "./InspectionTooltip";
 import { Icon } from "./Icons";
 import { PerformanceCounter } from "./PerformanceCounter";
 import type { PerformanceReadout } from "../game/types";
 import "./Garage.css";
-import { shipModel, shipIdentity, shipClass, SHIP_CLASSES, type ShipClass } from "../game/shipModel";
+import { shipModel } from "../game/shipModel";
 import { useShip } from "./ShipContext";
-import { shipPresets } from "../ships/presets";
 import type { InspectionMode } from "../ships/inspection";
 import { ModelViewControls, PortInspection } from "./PortInspection";
-import { ShipStatistics } from "./ShipStatistics";
+import { ShipScores, ShipStatistics } from "./ShipStatistics";
 import { ShipClassIcon } from "./ShipClassIcons";
 import { battleModeName, type BattleMode } from "./battle/battleModes";
-import { localShip, localShips, shipTitle, subscribeLocalShips } from '../ships/localShips';
+import { localShips, shipTitle, subscribeLocalShips } from '../ships/localShips';
 import { usePortDesigns } from './usePortDesigns';
-import { Button } from './components';
 import { DeleteDesignButton } from './DeleteDesignButton';
 import { openConstructionStore } from '../ships/constructionStore';
+import { shipScores, shipSpec, type StatScoreId } from '../ships/statistics';
+import { HULL_PRESETS, type HullPresetChoice } from '../ships/constructionHullPresets';
+import { HullPresetPlan } from './shipbuilding/NewDesignDialog';
+import { PORT_STATUS_LABEL, editedLabel, filterDesigns, fleetLineWindow, portDesigns, rememberDesign, rememberedDesign, sortDesigns, type PortDesign, type PortFilter, type PortSort } from './portDesigns';
 
-const SHIPS = Object.values(shipPresets);
-const NATIONS = Array.from(new Set(SHIPS.map((ship) => shipIdentity(ship.id).nation).filter(Boolean))).sort();
-const NATION_LABELS: Record<string, string> = { "United States": "USA", "United Kingdom": "UK" };
-function SelectedMark() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>;
+const SCORE_SHORT: Record<StatScoreId, string> = { survivability: 'Surv', artillery: 'Art', airDefense: 'AA', maneuverability: 'Man', concealment: 'Con' };
+
+function PortIcon({ name, size = 16 }: { name: 'pencil' | 'grid' | 'search' | 'back' | 'left' | 'right'; size?: number }) {
+  const paths = {
+    pencil: <path d="M4 20h4L19 9l-4-4L4 16ZM13 7l4 4"/>,
+    grid: <path d="M4 4h7v7H4ZM13 4h7v7h-7ZM4 13h7v7H4ZM13 13h7v7h-7Z"/>,
+    search: <><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></>,
+    back: <path d="M20 12H4m6-6-6 6 6 6"/>,
+    left: <path d="m15 6-6 6 6 6"/>,
+    right: <path d="m9 6 6 6-6 6"/>,
+  };
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
-function ShipProfile({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      className={`garage-ship-profile ${className}`}
-      viewBox="0 0 250 65"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="m7 47 11 12h208l18-14-40 2-12-5H55l-12 4Z"
-        fill="currentColor"
-        fillOpacity=".3"
-        stroke="currentColor"
-      />
-      <path
-        d="M53 44V35h24v9m-19-9-20-2m25 2-24-1M170 43v-9h22v10m-8-10 28-2m-25 2 23-1M84 43V29h18v14M109 43V19h21v24M141 43V24h15v19M116 19V7m-11 6h25m-16 4h21M85 29l7-10 4 10M121 19l13 5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <path
-        d="M101 31h39v12h-39M44 53h172"
-        stroke="currentColor"
-        strokeOpacity=".45"
-      />
-    </svg>
-  );
+
+function DesignThumbnail({ design }: { design: PortDesign }) {
+  const thumbnail = useConstructionThumbnail(design.ship);
+  return thumbnail
+    ? <img className="port-thumbnail" src={thumbnail} width={600} height={180} alt="" />
+    : <ShipClassIcon shipClass="Other" className="port-thumbnail-pending" width={96} />;
 }
-function ShipThumbnail({ shipId }: { shipId: string }) {
-  const [failed, setFailed] = useState(false);
-  const local = localShip(shipId), thumbnail = useConstructionThumbnail(local);
-  const src = thumbnail ?? assetUrl(`models/${shipId}-thumbnail.png`);
-  useEffect(() => setFailed(false), [src]);
-  return local && !thumbnail ? <ShipClassIcon shipClass="Other" className="garage-local-thumbnail" width={96} /> : failed ? (
-    <ShipProfile />
-  ) : (
-    <img
-      className="garage-ship-thumbnail"
-      src={src}
-      width={600}
-      height={180}
-      alt=""
-      onError={() => setFailed(true)}
-    />
-  );
+function StatusMark({ status }: { status: PortDesign['status'] }) {
+  return <span className="port-status" data-status={status}><i aria-hidden="true" />{PORT_STATUS_LABEL[status]}</span>;
 }
+
 type GarageState = {
   inspection: InspectionMode;
   selectedVolume?: string;
   inspect: (mode: InspectionMode) => void;
   selectVolume: (id?: string) => void;
-  selectShip: (id: string) => void;
   /** The Battle button: the sortie board, or the last mode when the player chose to skip it. */
   battle: () => void;
-  build: () => void;
-  editDesign: (id: string) => void;
-  deleteDesign: (id: string) => void;
-  libraryLoading: boolean;
   /** The caret: always the sortie board. */
   chooseBattle: () => void;
   lastMode: BattleMode;
   ready: boolean;
-  settings: () => void;
-  accountName?: string;
-  fps: number;
-  performance?: PerformanceReadout;
 };
 function SetSail({ state }: { state: GarageState }) {
   return (
@@ -123,210 +89,98 @@ function SetSail({ state }: { state: GarageState }) {
     </div>
   );
 }
-function StatisticsPanel() {
-  const selectedShip = useShip();
-  return (
-    <>
-      <div className="garage-panel-title">
-        <h2>Statistics</h2>
-      </div>
-      <ShipStatistics key={selectedShip.id} definition={selectedShip} />
-    </>
-  );
-}
-function FleetCarousel({ state }: { state: GarageState }) {
-  const selectedShip = useShip();
-  const local = useSyncExternalStore(subscribeLocalShips, localShips);
-  const library = usePortDesigns();
-  const selectedLocal = local.find(ship => ship.definition.id === selectedShip.id);
-  const selectedDesign = library.designs.find(design => (design.sourceId ?? design.id) === selectedLocal?.source.id);
-  const drafts = library.designs.filter(design => !local.some(ship => ship.source.id === (design.sourceId ?? design.id)));
-  const [classFilter, setClassFilter] = useState<"All" | ShipClass>("All");
-  const [nationFilter, setNationFilter] = useState("All");
-  const ships = useMemo(
-    () =>
-      [...local.map(ship => ship.definition), ...SHIPS].filter(
-        (ship) =>
-          (classFilter === "All" || shipClass(ship.id) === classFilter) &&
-          (nationFilter === "All" || (nationFilter === "My designs" ? !!localShip(ship.id) : shipIdentity(ship.id).nation === nationFilter)),
-      ),
-    [classFilter, nationFilter, local],
-  );
-  const visibleDrafts = (classFilter === "All" || classFilter === "Other") && (nationFilter === "All" || nationFilter === "My designs") ? drafts : [];
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [scrollState, setScrollState] = useState({ atStart: true, atEnd: true });
-  const updateScrollState = () => {
-    const el = trackRef.current;
-    if (!el) return;
-    setScrollState({
-      atStart: el.scrollLeft <= 1,
-      atEnd: el.scrollLeft >= el.scrollWidth - el.clientWidth - 1,
-    });
-  };
-  useEffect(updateScrollState, [ships, library.designs]);
-  const scrollByPage = (direction: 1 | -1) => {
-    trackRef.current?.scrollBy({
-      left: direction * trackRef.current.clientWidth * 0.8,
-      behavior: "smooth",
-    });
-  };
-  // Ensure the currently sailing ship is still selectable after switching filters.
-  useEffect(() => {
-    if (!ships.some((ship) => ship.id === selectedShip.id)) {
-      setClassFilter("All");
-      setNationFilter("All");
-    }
-  }, [selectedShip.id]);
-  return (
-    <section className="garage-fleet-carousel" aria-label="Your fleet">
-      <div className="garage-design-actions">
-        <Button variant="primary" disabled={!state.ready} onClick={state.build}>New design</Button>
-        {selectedLocal && <Button disabled={!state.ready} onClick={() => state.editDesign(selectedDesign?.id ?? selectedLocal.source.id)}>Edit design</Button>}
-        {selectedDesign && <DeleteDesignButton key={selectedDesign.id} name={selectedDesign.name} disabled={!state.ready} onDelete={async () => {
-          const store = await openConstructionStore();
-          try { await store.remove(selectedDesign.id, selectedDesign.revisionId); state.deleteDesign(selectedDesign.id); library.refresh(); }
-          catch (error) { library.refresh(); throw error; }
-          finally { store.close(); }
-        }}/>}
-        {(library.loading || state.libraryLoading) && <span role="status">Loading your designs…</span>}
-        {library.error && <span role="alert">{library.error} <button onClick={library.refresh}>Retry</button></span>}
-      </div>
-      <div className="garage-fleet-filters">
-        <div role="group" aria-label="Filter fleet by class">
-          {(["All", ...SHIP_CLASSES] as const).map((type) => (
-            <button
-              key={type}
-              aria-pressed={classFilter === type}
-              onClick={() => setClassFilter(type)}
-            >
-              {type !== "All" && <ShipClassIcon shipClass={type} width={22} />}
-              {type}
-            </button>
-          ))}
-        </div>
-        <i aria-hidden="true" />
-        <div role="group" aria-label="Filter fleet by collection or nation">
-          {["All", "My designs", ...NATIONS].map((nation) => (
-            <button
-              key={nation}
-              aria-pressed={nationFilter === nation}
-              aria-label={nation === "All" ? "All ships" : nation}
-              onClick={() => setNationFilter(nation)}
-            >
-              {nation === "All" ? "All ships" : NATION_LABELS[nation] ?? nation}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="garage-fleet-track">
-        <button
-          className="garage-fleet-nav garage-fleet-nav-prev"
-          aria-label="Scroll fleet left"
-          disabled={scrollState.atStart}
-          onClick={() => scrollByPage(-1)}
-        >
-          <Icon name="arrow" size={16} />
-        </button>
-        <div
-          className="garage-ship-cards"
-          ref={trackRef}
-          onScroll={updateScrollState}
-        >
-          {ships.map((ship) => {
-            const selected = ship.id === selectedShip.id;
-            return (
-              <button
-                className={selected ? "garage-ship-selected" : ""}
-                key={ship.id}
-                aria-label={`Inspect ${ship.name}`}
-                aria-pressed={selected}
-                disabled={!state.ready}
-                onClick={() => state.selectShip(ship.id)}
-              >
-                <div>
-                  <span>
-                    <ShipClassIcon shipClass={shipClass(ship.id)} width={24} />
-                    {shipIdentity(ship.id).type}
-                  </span>
-                  {selected && <SelectedMark />}
-                </div>
-                <ShipThumbnail shipId={ship.id} />
-                <strong>{ship.name}</strong>
-              </button>
-            );
-          })}
-          {visibleDrafts.map(design => <button key={`draft-${design.id}`} disabled={!state.ready}
-            aria-label={`Edit ${design.name}`} onClick={() => state.editDesign(design.id)}>
-            <div><span>{design.readError ? 'Needs recovery · open to edit' : state.libraryLoading ? 'Preparing preview…' : 'Draft · open to edit'}</span></div>
-            <ShipClassIcon shipClass="Other" className="garage-local-thumbnail" width={96}/>
-            <strong>{design.name}</strong>
-          </button>)}
-          {!ships.length && !visibleDrafts.length && <p className="garage-fleet-empty">No ships match these filters.</p>}
-        </div>
-        <button
-          className="garage-fleet-nav garage-fleet-nav-next"
-          aria-label="Scroll fleet right"
-          disabled={scrollState.atEnd}
-          onClick={() => scrollByPage(1)}
-        >
-          <Icon name="arrow" size={16} />
-        </button>
-      </div>
-    </section>
-  );
+
+/** Statistics sit compactly under the ship; the full sheet and the inspection lists take the tall right-hand surface. */
+function PortDetails({ state, sheetOpen, onSheet }: { state: GarageState; sheetOpen: boolean; onSheet(open: boolean): void }) {
+  const ship = useShip();
+  const compact = state.inspection === 'exterior' && !sheetOpen;
+  return <aside className={`garage-classic-details ${compact ? 'port-details-compact' : ''}`}>
+    <ModelViewControls mode={state.inspection} onChange={state.inspect} ready={state.ready} />
+    {state.inspection !== 'exterior'
+      ? <PortInspection key={`${ship.id}:${state.inspection}`} definition={ship} mode={state.inspection} selectedId={state.selectedVolume} onSelect={state.selectVolume} />
+      : compact
+        ? <><ShipScores definition={ship} /><button className="port-sheet-toggle" onClick={() => onSheet(true)}>Full statistics sheet<PortIcon name="right" size={14} /></button></>
+        : <><div className="garage-panel-title"><h2>Statistics</h2><button className="port-sheet-toggle" onClick={() => onSheet(false)}>Hide sheet</button></div><ShipStatistics key={ship.id} definition={ship} /></>}
+  </aside>;
 }
 
-function PortLayout({ state }: { state: GarageState }) {
-  const selectedShip = useShip();
-  const SHIP_MODEL = shipModel(selectedShip);
-  return (
-    <div
-      className={`garage-layout garage-fleet-harbor ${state.inspection !== "exterior" ? "port-inspection-active" : "port-statistics-active"}`}
-    >
-      <header className="garage-classic-header">
-        <button
-          className="garage-account"
-          title="Open the menu"
-          aria-haspopup="dialog"
-          disabled={!state.ready}
-          onClick={state.settings}
-        >
-          <Icon name="compass" size={18} />
-          <strong>{state.accountName ?? "Menu"}</strong>
-        </button>
-        <PerformanceCounter className="garage-preview-meta" fps={state.fps} performance={state.performance} />
-        <div className="garage-classic-deploy">
-          <SetSail state={state} />
-        </div>
-      </header>
-      <section className="garage-classic-identity">
-        <h1>{shipTitle(selectedShip)}</h1>
-        <div>
-            <span>{SHIP_MODEL.type}</span>
-          {(SHIP_MODEL.nation || SHIP_MODEL.year) && <span>{[SHIP_MODEL.nation, SHIP_MODEL.year].filter(Boolean).join(" · ")}</span>}
-        </div>
-      </section>
-      <aside className="garage-classic-details">
-        <ModelViewControls
-          mode={state.inspection}
-          onChange={state.inspect}
-          ready={state.ready}
-        />
-        {state.inspection === "exterior" ? (
-          <StatisticsPanel />
-        ) : (
-          <PortInspection
-            key={`${selectedShip.id}:${state.inspection}`}
-            definition={selectedShip}
-            mode={state.inspection}
-            selectedId={state.selectedVolume}
-            onSelect={state.selectVolume}
-          />
-        )}
-      </aside>
-      <FleetCarousel state={state} />
+function specLine(design: PortDesign): string {
+  if (!design.ship) return design.status === 'recovery' ? 'Open it in the shipbuilder to recover a revision.' : 'Open it in the shipbuilder to finish it.';
+  const spec = Object.fromEntries(shipSpec(design.ship.definition).map(figure => [figure.label, figure]));
+  const guns = spec['Main battery'];
+  return [`${Math.round(design.ship.definition.hull.length)} m`, `${spec.Displacement.value} t`, guns.unit ? `${guns.value} ${guns.unit}` : 'unarmed', `${spec.Speed.value} kn`].join(' · ');
+}
+
+function ChestCard({ design, berthed, ready, onOpen, onEdit, onDelete }: { design: PortDesign; berthed: boolean; ready: boolean; onOpen(): void; onEdit(): void; onDelete?: () => Promise<void> }) {
+  const viewable = !!design.ship;
+  return <article className="chest-card" data-berthed={berthed} data-status={design.status}>
+    {berthed && <span className="chest-berthed"><Icon name="anchor" size={13} />Alongside now</span>}
+    <button className="chest-card-open" disabled={!ready} aria-label={viewable ? `View ${design.name} in port` : `Edit ${design.name}`} onClick={viewable ? onOpen : onEdit}>
+      <span className="chest-thumb"><DesignThumbnail design={design} /></span>
+      <strong>{design.name}</strong>
+      <span className="chest-spec">{specLine(design)}</span>
+      {design.ship && <span className="chest-scores">{shipScores(design.ship.definition).map(score => <span key={score.id} title={`${score.label} ${score.score}`}>
+        <span>{SCORE_SHORT[score.id]}<b>{score.score}</b></span><i><b style={{ width: `${score.score}%` }} /></i>
+      </span>)}</span>}
+    </button>
+    <footer>
+      <div className="chest-meta"><StatusMark status={design.status} />{design.head && <span>{editedLabel(design.updatedAt)}</span>}</div>
+      <div className="chest-actions">
+        {viewable && <button className="port-command" disabled={!ready} onClick={onOpen}><strong>{berthed ? 'BACK TO THE QUAY' : 'VIEW IN PORT'}</strong><Icon name="arrow" size={16} /></button>}
+        <button className={viewable ? 'port-quiet' : 'port-command'} disabled={!ready} onClick={onEdit}><PortIcon name="pencil" size={15} />{viewable ? 'Edit' : <strong>EDIT DESIGN</strong>}</button>
+        {onDelete && <DeleteDesignButton key={design.id} name={design.name} disabled={!ready} onDelete={onDelete} />}
+      </div>
+    </footer>
+  </article>;
+}
+
+const FILTERS: { id: PortFilter; label: string }[] = [{ id: 'all', label: 'All' }, { id: 'ready', label: 'Ready for sea' }, { id: 'drafts', label: 'Drafts' }];
+const SORTS: { id: PortSort; label: string }[] = [{ id: 'recent', label: 'Recent' }, { id: 'name', label: 'Name' }, { id: 'size', label: 'Size' }];
+
+/** Every saved design at once, over the dimmed quay. */
+function PlanChest({ designs, berthedId, berthedName, ready, query, onClose, onView, onEdit, onBuild, onDelete }: {
+  designs: PortDesign[]; berthedId?: string; berthedName?: string; ready: boolean; query: string;
+  onClose(): void; onView(design: PortDesign): void; onEdit(design: PortDesign): void; onBuild(): void; onDelete(design: PortDesign): Promise<void>;
+}) {
+  const [filter, setFilter] = useState<PortFilter>('all'), [sort, setSort] = useState<PortSort>('recent');
+  const shown = useMemo(() => sortDesigns(filterDesigns(designs, filter, query), sort), [designs, filter, query, sort]);
+  const count = (id: PortFilter) => filterDesigns(designs, id, '').length;
+  return <section className="plan-chest" aria-label="Your designs">
+    <div className="plan-chest-bar">
+      <button className="port-quiet plan-chest-back" onClick={onClose}><PortIcon name="back" size={18} />{berthedName ?? 'Port'}</button>
+      <h1>Your designs</h1><span className="plan-chest-count">{designs.length}</span>
+      <div className="plan-chest-filters">
+        <div role="group" aria-label="Show designs">{FILTERS.map(entry => <button key={entry.id} className="port-chip" aria-pressed={filter === entry.id} onClick={() => setFilter(entry.id)}>{entry.label} · {count(entry.id)}</button>)}</div>
+        <i aria-hidden="true" />
+        <div role="group" aria-label="Sort designs"><span>Sort</span>{SORTS.map(entry => <button key={entry.id} className="port-chip" aria-pressed={sort === entry.id} onClick={() => setSort(entry.id)}>{entry.label}</button>)}</div>
+      </div>
     </div>
-  );
+    <div className="plan-chest-grid">
+      <button className="chest-card chest-new" disabled={!ready} onClick={onBuild}>
+        <Icon name="plus" size={30} /><strong>New design</strong><span>Start from a hull shape or a single block.</span>
+      </button>
+      {shown.map(design => <ChestCard key={design.id} design={design} berthed={!!design.ship && design.ship.definition.id === berthedId} ready={ready}
+        onOpen={() => onView(design)} onEdit={() => onEdit(design)} onDelete={design.head ? () => onDelete(design) : undefined} />)}
+      {!shown.length && <p className="plan-chest-empty" role="status">{designs.length ? 'No designs match.' : 'No designs yet.'}</p>}
+    </div>
+    <p className="plan-chest-hint"><kbd>Esc</kbd>Back to the quay</p>
+  </section>;
+}
+
+/** The quay stands empty until the player has a ship that can berth. */
+function EmptyPort({ drafts, ready, onBuild, onChest }: { drafts: number; ready: boolean; onBuild(choice?: HullPresetChoice): void; onChest(): void }) {
+  const generic = HULL_PRESETS.filter(preset => preset.category === 'Generic'), historical = HULL_PRESETS.filter(preset => preset.category !== 'Generic');
+  return <section className="port-empty" aria-label="Start a design">
+    <p className="port-empty-kicker">{drafts ? 'No ships ready for sea' : 'No ships in port'}</p>
+    <h1>{drafts ? 'Finish a draft, or lay down a new ship' : 'Lay down your first ship'}</h1>
+    <p>{drafts
+      ? <>Your {drafts === 1 ? 'draft needs' : `${drafts} drafts need`} finishing in the shipbuilder before {drafts === 1 ? 'it' : 'they'} can berth here. <button className="port-link" onClick={onChest}>Open all designs</button></>
+      : 'Pick a hull to start from. Every section, fitting and plate stays editable in the shipbuilder.'}</p>
+    <div className="port-empty-hulls">{generic.map(preset => <button key={preset.id} disabled={!ready} onClick={() => onBuild(preset.id)}>
+      <HullPresetPlan preset={preset} /><strong>{preset.name}</strong><span>{Number(preset.length.toFixed(1))} × {Number(preset.beam.toFixed(1))} m · {preset.note.replace(/^Generic · /, '')}</span>
+    </button>)}</div>
+    <div className="port-empty-more"><span>Or a historical hull shape</span>{historical.map(preset => <button key={preset.id} className="port-chip" disabled={!ready} onClick={() => onBuild(preset.id)}>{preset.name}</button>)}<i aria-hidden="true" /><button className="port-chip" disabled={!ready} onClick={() => onBuild('blank')}>Blank 1 m block</button></div>
+  </section>;
 }
 
 interface Props {
@@ -339,7 +193,7 @@ interface Props {
   fps: number;
   performance?: PerformanceReadout;
   onBattle: () => void;
-  onBuild: () => void;
+  onBuild: (choice?: HullPresetChoice) => void;
   onEditDesign: (id: string) => void;
   onDeleteDesign: (id: string) => void;
   libraryLoading: boolean;
@@ -347,79 +201,142 @@ interface Props {
   lastMode: BattleMode;
   onSettings: () => void;
   accountName?: string;
+  /** A `?ship=` link keeps a historical preset alongside for review; the port otherwise berths only the player's designs. */
+  pinned: boolean;
 }
 
 export function Garage({
-  game,
-  ready,
-  fps,
-  performance,
-  onBattle,
-  onBuild,
-  onEditDesign,
-  onDeleteDesign,
-  libraryLoading,
-  onChooseBattle,
-  lastMode,
-  onSettings,
-  accountName,
-  switching,
-  switchError,
-  onSelectShip,
+  game, ready, fps, performance, onBattle, onBuild, onEditDesign, onDeleteDesign, libraryLoading,
+  onChooseBattle, lastMode, onSettings, accountName, switching, switchError, onSelectShip, pinned,
 }: Props) {
   const selectedShip = useShip();
+  const local = useSyncExternalStore(subscribeLocalShips, localShips);
+  const library = usePortDesigns();
+  const loading = library.loading || libraryLoading;
+  const designs = useMemo(() => portDesigns(library.designs, local, loading), [library.designs, local, loading]);
+  const fleet = useMemo(() => designs.filter(design => design.ship), [designs]);
+  const berthedIndex = fleet.findIndex(design => design.ship!.definition.id === selectedShip.id);
+  const berthed = berthedIndex >= 0 ? fleet[berthedIndex] : undefined;
+  const alongside = !!berthed || pinned;
+
   const [inspection, setInspection] = useState<InspectionMode>("exterior");
   const [selectedVolume, setSelectedVolume] = useState<string>();
-  const inspect = (mode: InspectionMode) => {
-    setInspection(mode);
-    setSelectedVolume(undefined);
-  };
-  useEffect(() => {
-    if (ready) game?.setPortInspection(inspection, selectedVolume);
-  }, [game, ready, inspection, selectedVolume]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [chestOpen, setChestOpen] = useState(false), [query, setQuery] = useState('');
+  const search = useRef<HTMLInputElement>(null);
+  const inspect = (mode: InspectionMode) => { setInspection(mode); setSelectedVolume(undefined); };
+  const usable = ready && !switching;
+  useEffect(() => { if (ready && alongside) game?.setPortInspection(inspection, selectedVolume); }, [game, ready, alongside, inspection, selectedVolume]);
   useEffect(() => () => game?.setPortInspection("exterior"), [game]);
+  // Another ship alongside starts from her exterior, as a fresh visit to the quay would.
+  useEffect(() => { setInspection("exterior"); setSelectedVolume(undefined); setSheetOpen(false); }, [selectedShip.id]);
 
+  const berth = (design: PortDesign) => {
+    setChestOpen(false);
+    if (!design.ship) return;
+    rememberDesign(design.ship.source.id);
+    if (design.ship.definition.id === selectedShip.id) inspect("exterior"); else onSelectShip(design.ship.definition.id);
+  };
+  // With nothing of the player's alongside, berth the design they last looked at, else their newest.
   useEffect(() => {
-    const closeDetails = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || document.querySelector("dialog[open]"))
-        return;
-      setInspection("exterior");
-      setSelectedVolume(undefined);
-    };
-    window.addEventListener("keydown", closeDetails);
-    return () => window.removeEventListener("keydown", closeDetails);
-  }, []);
+    if (pinned || berthed || !usable) return;
+    const remembered = rememberedDesign();
+    const target = fleet.find(design => design.ship!.source.id === remembered) ?? (loading ? undefined : fleet[0]);
+    if (target) onSelectShip(target.ship!.definition.id);
+  }, [pinned, berthed, usable, fleet, loading]);
+  useEffect(() => { if (berthed) rememberDesign(berthed.ship!.source.id); }, [berthed?.ship?.source.id]);
 
-  const state: GarageState = {
-    inspection,
-    selectedVolume,
-    inspect,
-    selectVolume: setSelectedVolume,
-    selectShip: (id) => {
-      if (id === selectedShip.id) {
-        inspect("exterior");
+  const previous = berthed && fleet.length > 1 ? fleet[(berthedIndex - 1 + fleet.length) % fleet.length] : undefined;
+  const next = berthed && fleet.length > 1 ? fleet[(berthedIndex + 1) % fleet.length] : undefined;
+  const keys = useRef({ previous, next, chestOpen, berth });
+  keys.current = { previous, next, chestOpen, berth };
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (document.querySelector("dialog[open]")) return;
+      const { previous, next, chestOpen, berth } = keys.current;
+      if (event.key === "Escape") {
+        if (chestOpen) setChestOpen(false);
+        else { setInspection("exterior"); setSelectedVolume(undefined); setSheetOpen(false); }
         return;
       }
-      onSelectShip(id);
-    },
-    battle: onBattle,
-    build: onBuild,
-    editDesign: onEditDesign,
-    deleteDesign: onDeleteDesign,
-    libraryLoading,
-    chooseBattle: onChooseBattle,
-    lastMode,
-    ready: ready && !switching,
-    settings: onSettings,
-    accountName,
-    fps,
-    performance,
+      const typing = event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable]');
+      if (typing || chestOpen || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "ArrowLeft" && previous) berth(previous);
+      if (event.key === "ArrowRight" && next) berth(next);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  useEffect(() => { if (chestOpen) search.current?.focus(); else setQuery(''); }, [chestOpen]);
+
+  const remove = async (design: PortDesign) => {
+    const store = await openConstructionStore();
+    try { await store.remove(design.head!.id, design.head!.revisionId); onDeleteDesign(design.head!.id); library.refresh(); }
+    catch (error) { library.refresh(); throw error; }
+    finally { store.close(); }
   };
+  const edit = (design: PortDesign) => onEditDesign(design.id);
+
+  const state: GarageState = { inspection, selectedVolume, inspect, selectVolume: setSelectedVolume, battle: onBattle, chooseBattle: onChooseBattle, lastMode, ready: usable };
+  const model = shipModel(selectedShip);
+  const inspecting = inspection !== "exterior";
+  const underway = !alongside && fleet.length > 0;
 
   return (
-    <div className="garage">
+    <div className={`garage ${chestOpen ? 'port-chest-open' : ''} ${alongside ? '' : 'port-berth-empty'}`}>
       <div className="garage-scene-shade" />
-      <PortLayout state={state} />
+      <div className={`garage-layout ${inspecting ? "port-inspection-active" : sheetOpen ? "port-sheet-active" : "port-statistics-active"}`}>
+        <header className="garage-classic-header">
+          <button className="garage-account" title="Open the menu" aria-haspopup="dialog" disabled={!usable} onClick={onSettings}>
+            <Icon name="compass" size={18} />
+            <strong>{accountName ?? "Menu"}</strong>
+          </button>
+          <PerformanceCounter className="garage-preview-meta" fps={fps} performance={performance} />
+          <div className="garage-classic-deploy"><SetSail state={state} /></div>
+          <div className="port-header-actions">
+            {chestOpen
+              ? <label className="port-search"><PortIcon name="search" size={15} /><input ref={search} type="search" aria-label="Find a design" placeholder="Find a design" value={query} onChange={event => setQuery(event.target.value)} /></label>
+              : <>
+                <button className="port-quiet port-new" disabled={!usable} onClick={() => onBuild()}><Icon name="plus" size={16} /><span>New design</span></button>
+                <button className="port-quiet" aria-haspopup="dialog" onClick={() => setChestOpen(true)}><PortIcon name="grid" /><span>All designs</span><b>{designs.length}</b></button>
+              </>}
+          </div>
+        </header>
+
+        <div className="port-quay" inert={chestOpen}>
+          {alongside && <>
+            <section className="port-identity" aria-label={shipTitle(selectedShip)}>
+              <div className="port-identity-status">
+                {berthed ? <><StatusMark status="ready" />{berthed.head && <span>{editedLabel(berthed.updatedAt)}</span>}</>
+                  : <><span className="port-identity-type">{model.type}</span>{(model.nation || model.year) && <span>{[model.nation, model.year].filter(Boolean).join(" · ")}</span>}</>}
+              </div>
+              <h1>{shipTitle(selectedShip)}</h1>
+              <dl className="port-spec">{shipSpec(selectedShip).map(figure => <div key={figure.label}><dt>{figure.label}</dt><dd>{figure.value}{figure.unit && <small>{figure.unit}</small>}</dd></div>)}</dl>
+              {berthed && <div className="port-actions">
+                <button className="port-command" disabled={!usable} onClick={() => edit(berthed)}><PortIcon name="pencil" size={17} /><strong>EDIT DESIGN</strong></button>
+                {berthed.head && <DeleteDesignButton key={berthed.id} name={berthed.name} disabled={!usable} onDelete={() => remove(berthed)} />}
+              </div>}
+            </section>
+            <PortDetails state={state} sheetOpen={sheetOpen} onSheet={setSheetOpen} />
+            {previous && <button className="port-neighbour port-neighbour-previous" disabled={!usable} aria-label={`Previous design: ${previous.name}`} onClick={() => berth(previous)}><span><PortIcon name="left" size={22} /></span><small>{previous.name}</small></button>}
+            {next && <button className="port-neighbour port-neighbour-next" disabled={!usable} aria-label={`Next design: ${next.name}`} onClick={() => berth(next)}><span><PortIcon name="right" size={22} /></span><small>{next.name}</small></button>}
+          </>}
+          {!alongside && !underway && !loading && !switching && <EmptyPort drafts={designs.length} ready={usable} onBuild={onBuild} onChest={() => setChestOpen(true)} />}
+          {!alongside && (loading || underway) && !switching && <p className="port-loading" role="status">Loading your designs…</p>}
+          {library.error && <p className="port-loading" role="alert">{library.error} <button className="port-link" onClick={library.refresh}>Retry</button></p>}
+
+          {fleet.length > 0 && <nav className="port-fleet-line" aria-label="Fleet line">
+            {fleet.length > 1 && <kbd aria-hidden="true">←</kbd>}
+            {fleetLineWindow(fleet, Math.max(0, berthedIndex)).map(design => <button key={design.id} disabled={!usable} title={design.name} aria-label={design.name} aria-pressed={design === berthed} onClick={() => berth(design)}><DesignThumbnail design={design} /></button>)}
+            {fleet.length > 1 && <kbd aria-hidden="true">→</kbd>}
+            <i aria-hidden="true" />
+            <button className="port-quiet port-fleet-all" aria-haspopup="dialog" aria-label="Open all designs" onClick={() => setChestOpen(true)}><PortIcon name="grid" size={15} />All {designs.length}</button>
+          </nav>}
+        </div>
+
+        {chestOpen && <PlanChest designs={designs} berthedId={berthed?.ship!.definition.id} berthedName={alongside ? shipTitle(selectedShip) : undefined} ready={usable} query={query}
+          onClose={() => setChestOpen(false)} onView={berth} onEdit={edit} onBuild={() => onBuild()} onDelete={remove} />}
+      </div>
       <InspectionTooltip game={game} />
       {switchError ? (
         <div className="garage-loading" role="alert"><span>{switchError}</span></div>

@@ -16,10 +16,12 @@ sections from the existing in-game ships, including their deck profiles, with at
 broader end caps; generic presets have eight sections. Each starts with no equipment and remains
 one editable custom hull. Fletcher is selected by default. The same chooser is available
 under **Designs → New design…**. Choose **Edit design** to reopen a saved source.
-Saved designs appear in the bottom fleet carousel; **My designs** shows your
-ready ships and drafts together. Click a draft to edit it, or a ready ship to
-inspect it in the harbor. **New design**, **Edit design** and deletion for the
-selected saved ship are above the carousel. Drafts can also be deleted in the editor. Returning from the editor
+The port berths only your saved designs. Ready ships line up in the fleet line beneath
+the berthed ship (side arrows and ← / → step through them); **All designs** opens the
+plan chest with ready ships and drafts together. Click a draft to edit it, or a ready
+ship to bring it alongside. **Edit design** and deletion for the berthed ship sit under
+its name, **New design** is in the top bar and the plan chest, and an empty port offers
+the generic and historical starting hulls directly. Drafts can also be deleted in the editor. Returning from the editor
 saves and shows a valid design without requiring a sea trial. The separate
 **Armed patrol** starter includes a gun, ammunition
 integral gun ammunition, diesel machinery, funnel, propeller, rudder and mast. The twin-hull

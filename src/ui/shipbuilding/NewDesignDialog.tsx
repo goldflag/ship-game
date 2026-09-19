@@ -4,12 +4,22 @@ import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { DEFAULT_HULL_PRESET, HULL_PRESETS, type HullPresetChoice } from '../../ships/constructionHullPresets';
 import './NewDesignDialog.css';
 
+/** Deck outline of a starting hull, drawn from its stations. */
+export function HullPresetPlan({ preset }: { preset: typeof HULL_PRESETS[number] }) {
+  const scale = Math.min(248 / preset.length, 70 / preset.beam);
+  const edge = preset.customHull.stations.map(s => [16 + s.t * preset.length * scale, s.points.at(-1)!.x * preset.beam / 2 * scale]);
+  const points = [...edge.map(([x, y]) => `${x},${52 - y}`), ...edge.reverse().map(([x, y]) => `${x},${52 + y}`)].join(' ');
+  return <svg viewBox="0 0 280 104" aria-hidden="true"><polygon points={points}/><line x1="16" x2={16 + preset.length * scale} y1="52" y2="52"/></svg>;
+}
+
 /** Shared by port and Designs. A source is created only after an explicit choice. */
-export function NewDesignDialog({ onCreate, onClose }: {
+export function NewDesignDialog({ onCreate, onClose, initialChoice = DEFAULT_HULL_PRESET }: {
   onCreate(choice: HullPresetChoice, paint: string): Promise<void>; onClose(): void;
+  /** The hull the port's first-run cards preselect. */
+  initialChoice?: HullPresetChoice;
 }) {
   const dialog = useRef<HTMLDialogElement>(null), title = useId();
-  const [choice, setChoice] = useState<HullPresetChoice>(DEFAULT_HULL_PRESET);
+  const [choice, setChoice] = useState<HullPresetChoice>(initialChoice);
   const [paint, setPaint] = useState<string>('naval-gray');
   const [pending, setPending] = useState(false), [error, setError] = useState('');
   useEffect(() => { const node = dialog.current!; node.showModal(); return () => node.close(); }, []);
@@ -23,12 +33,9 @@ export function NewDesignDialog({ onCreate, onClose }: {
     <header><h2 id={title}>Choose a starting hull</h2><p>Choose a ship hull or a generic shape, or build from a single block. Add fittings and equipment in the shipbuilder.</p></header>
     <fieldset disabled={pending}><legend>Hull presets</legend><div className="new-design-presets">
       {HULL_PRESETS.map(preset => {
-        const scale = Math.min(248 / preset.length, 70 / preset.beam);
-        const edge = preset.customHull.stations.map(s => [16 + s.t * preset.length * scale, s.points.at(-1)!.x * preset.beam / 2 * scale]);
-        const points = [...edge.map(([x, y]) => `${x},${52 - y}`), ...edge.reverse().map(([x, y]) => `${x},${52 + y}`)].join(' ');
         return <label key={preset.id} className="new-design-choice" data-selected={choice === preset.id}>
           <span className="new-design-name"><input type="radio" aria-label={preset.name} name="hull-preset" value={preset.id} checked={choice === preset.id} onChange={() => setChoice(preset.id)} /><strong>{preset.name}</strong></span>
-          <svg viewBox="0 0 280 104" aria-hidden="true"><polygon points={points}/><line x1="16" x2={16 + preset.length * scale} y1="52" y2="52"/></svg>
+          <HullPresetPlan preset={preset}/>
           <span>{preset.note}</span><small>{Number(preset.length.toFixed(2))} m long · {Number(preset.beam.toFixed(2))} m wide · {Number(preset.depth.toFixed(2))} m deep</small>
         </label>;
       })}

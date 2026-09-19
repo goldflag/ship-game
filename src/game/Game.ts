@@ -257,6 +257,8 @@ export class Game {
   private switchingShip = false;
   private paused = false;
   private inPort = false;
+  /** The port shows only the player's own designs; with none to show the quay stands empty. */
+  private berthEmpty = false;
   private harbor?: HarborBackdrop;
   private raf = 0;
   private lastTime = 0;
@@ -939,24 +941,25 @@ export class Game {
           view.root, view.motion, view.actor.damage.sunk, this.camera, !this.inPort);
         view.updateRenderMatrices();
       });
-      this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])), this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
+      const emptyBerth = this.inPort && this.berthEmpty;
+      this.aircraftView.update(this.simulation, this.camera, !emptyBerth && !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])), this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
       // Labels use the aircraft poses just drawn this frame, including observed smoothing.
       this.cameraFrameListeners.forEach(listener => listener());
       // Own smoke is suppressed for the hull the lens sits on, which is the followed
       // teammate while spectating rather than the player's own ship.
       const opticsShipId = this.rig.binoculars && !this.shellFollow.view ? this.cameraShipView.actor.motion.id : undefined;
       this.effects.update(this.simulation, presentationDt, this.camera, opticsShipId, this.fleetViews);
-      this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
+      this.funnelSmoke.root.visible = !emptyBerth && !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera, opticsShipId);
       if (!warmingUp) this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray(), this.weaponGroupId);
       // Optics sit at the subject's bridge, where its own hull would fill the lens. In
       // port only the player's model is on show, so leave that visibility alone.
       const opticsHull = this.airOperationsOpen || this.battlefieldCamera.transitioning || !this.rig.binoculars ? undefined : this.cameraShipView;
-      if (this.inPort) this.playerView!.root.visible = true;
+      if (this.inPort) this.playerView!.root.visible = !emptyBerth;
       else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
-      this.shipWake!.update(this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera);
+      this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused || this.tacticalPause;
@@ -1649,6 +1652,8 @@ export class Game {
       this.rig.update(pose, pose.y, 0);
     }
   }
+  /** Hide the berthed ship while the port has no player design to show. Battles are unaffected. */
+  setPortBerthEmpty(empty: boolean): void { this.berthEmpty = empty; }
   /** A port request made before the port session arrived; applied by `initialize`. */
   private deferredPort?: boolean;
   setInPort(inPort: boolean): void {

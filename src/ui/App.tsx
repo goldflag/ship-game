@@ -40,7 +40,7 @@ declare global { interface Window { constructionEditor?: ConstructionEditorHandl
 import { TrialControls } from './shipbuilding/TrialControls';
 import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../ships/blueprint';
 import { loadConstructionCatalog } from '../ships/constructionEquipment';
-import { localShips, registerLocalShip, removeLocalShip, resolveShip, shipTitle } from '../ships/localShips';
+import { isLocalShipId, localShips, registerLocalShip, removeLocalShip, resolveShip, shipTitle } from '../ships/localShips';
 import { restoreLocalShips } from '../ships/constructionLibrary';
 import { ConstructionClient } from '../ships/constructionClient';
 import { openConstructionStore } from '../ships/constructionStore';
@@ -49,6 +49,9 @@ import { createStarterSource } from '../ships/constructionStarter';
 import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../game/session/battleSetup';
 import { NewDesignDialog } from './shipbuilding/NewDesignDialog';
 import type { HullPresetChoice } from '../ships/constructionHullPresets';
+
+/** The port berths only the player's designs. A `?ship=` link keeps a historical preset alongside for review and diagnostics. */
+const PINNED_SHIP = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('ship');
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
@@ -131,6 +134,7 @@ function Harbor({ account, startup }: AppProps) {
   const builderRequest = useRef<string | undefined>(undefined);
   const builderStarter = useRef<HullPresetChoice>('blank');
   const [newDesignOpen, setNewDesignOpen] = useState(false);
+  const [newDesignChoice, setNewDesignChoice] = useState<HullPresetChoice>();
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [trial, setTrial] = useState(false);
 
@@ -174,6 +178,10 @@ function Harbor({ account, startup }: AppProps) {
   }, [generation]);
 
   useEffect(() => { game.current?.setHudScale(hudScale); }, [hudScale]);
+
+  // Until one of the player's own designs is alongside, the quay stands empty rather than showing a preset.
+  const berthEmpty = !PINNED_SHIP && !isLocalShipId(selectedShip.id);
+  useEffect(() => { game.current?.setPortBerthEmpty(berthEmpty); }, [berthEmpty, generation]);
 
   useEffect(() => {
     if (paused && ready && !error && !builder) dialog.current?.showModal();
@@ -227,7 +235,7 @@ function Harbor({ account, startup }: AppProps) {
       if (game.current !== session) return;
       const definition = resolveShip(battleSetup.playerShipId);
       selectedRef.current = definition; setSelectedShip(definition);
-      const url = new URL(window.location.href); if (!definition.id.startsWith('local-')) url.searchParams.set('ship', definition.id);
+      const url = new URL(window.location.href); if (PINNED_SHIP && !definition.id.startsWith('local-')) url.searchParams.set('ship', definition.id);
       window.history.replaceState(null, '', url);
       setBattleLoading({ label: 'Getting underway', progress: 0.95, leaving: false });
       setTrial(false); setBattleOpen(false); setHud(true); setPhase('sailing');
@@ -360,7 +368,7 @@ function Harbor({ account, startup }: AppProps) {
     if (phase === 'sailing') game.current?.capturePointer();
   };
 
-  useEffect(() => { document.title = phase === 'sailing' && pveBriefing ? 'Fleet Command — PvE' : `${selectedShip.name} — Custom Battle`; }, [selectedShip, phase, pveBriefing]);
+  useEffect(() => { document.title = phase === 'sailing' && pveBriefing ? 'Fleet Command — PvE' : phase === 'garage' && berthEmpty ? 'Home port' : `${selectedShip.name} — Custom Battle`; }, [selectedShip, phase, pveBriefing, berthEmpty]);
 
   const switchShip = async (id: string) => {
     const session = game.current;
@@ -374,8 +382,8 @@ function Harbor({ account, startup }: AppProps) {
       selectedRef.current = definition;
       setSelectedShip(definition);
       const url = new URL(window.location.href);
-      if (definition.id.startsWith('local-')) url.searchParams.delete('ship');
-      else url.searchParams.set('ship', definition.id);
+      if (PINNED_SHIP && !definition.id.startsWith('local-')) url.searchParams.set('ship', definition.id);
+      else url.searchParams.delete('ship');
       window.history.replaceState(null, '', url);
     } catch (error) {
       if (game.current === session) setSwitchError(error instanceof Error ? error.message : String(error));
@@ -460,12 +468,12 @@ function Harbor({ account, startup }: AppProps) {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => setNewDesignOpen(true)} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} accountName={account?.name} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage pinned={PINNED_SHIP} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={choice => { setNewDesignChoice(choice); setNewDesignOpen(true); }} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} accountName={account?.name} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
       pveRequest={pveRequest} onLaunchPve={launchPve} onOnlineBattle={onlineBattle}/>}
-    {newDesignOpen && phase === 'garage' && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={async (choice, paint) => { const failure = await openBuilder(undefined, choice, paint); if (failure) throw new Error(failure); setNewDesignOpen(false); }}/>}
+    {newDesignOpen && phase === 'garage' && <NewDesignDialog initialChoice={newDesignChoice} onClose={() => setNewDesignOpen(false)} onCreate={async (choice, paint) => { const failure = await openBuilder(undefined, choice, paint); if (failure) throw new Error(failure); setNewDesignOpen(false); }}/>}
     {builder && phase === 'garage' && <Shipbuilder key={builder.repositoryId ?? builder.source?.id} repositoryId={builder.repositoryId} initialDesignId={builder.source ? undefined : builder.repositoryId} openStore={builder.repositoryId ? openConstructionRepository : undefined} onEditorReady={import.meta.env.DEV ? handle => { window.constructionEditor = handle; } : undefined} suggestLayout={suggestLayout} catalog={builder.catalog} initialSource={builder.source} onDelete={deletedDesign} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={closeBuilder}/>}
     {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder(builderRequest.current, builderStarter.current)}>Retry</Button>}</div>}
     {trial && phase === 'sailing' && ready && !error && !battleLoading && game.current && <TrialControls game={game.current} onReturn={returnToPort}/>}
