@@ -1966,7 +1966,7 @@ fn equipment(
                     return Err(error("equipment-overlap", format!("Propeller shaft or support intersects {}", neighbor_name(&p.name, &part_name(id))), Some(&e.id)));
                 }
                 if crate::construction_propellers::crosses_hull(member, cell, hull) {
-                    return Err(error("equipment-fit", &format!("Propeller {} crosses the hull; move the propeller to clear the plating", member.kind), Some(&e.id)));
+                    return Err(error("equipment-fit", format!("Propeller {} crosses the hull; move the propeller to clear the plating", member.kind), Some(&e.id)));
                 }
                 fitting_index.insert(cell);
                 all_envelopes.push((e.id.clone(), cell.clone()));
@@ -1999,10 +1999,8 @@ fn equipment(
             ));
         }
         if p.placement == "deck" {
-            if has_lines {
-                if let Some(surface) = crate::construction_paths::FittingSurface::new(e, p)? {
-                    fitting_surfaces.push(surface);
-                }
+            if has_lines && let Some(surface) = crate::construction_paths::FittingSurface::new(e, p)? {
+                fitting_surfaces.push(surface);
             }
             support_sockets.extend(
                 p.sockets

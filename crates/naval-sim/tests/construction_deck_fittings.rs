@@ -350,7 +350,10 @@ fn ropes_attach_to_real_mast_surfaces_and_clear_empty_envelope_space() {
     rejected(&unsupported,&c,"equipment-path");
     // Leaving from the far side would cut through the real post.
     let mut through = s.clone();
-    through.construction.equipment[0].path.as_mut().unwrap().points[0][0] = -3.14;
+    // A coordinate in metres, not an approximation of pi.
+    #[allow(clippy::approx_constant)]
+    let far_side_x = -3.14;
+    through.construction.equipment[0].path.as_mut().unwrap().points[0][0] = far_side_x;
     compiled(&through,&c);
 }
 

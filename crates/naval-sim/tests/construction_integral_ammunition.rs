@@ -53,16 +53,15 @@ fn turret_wells_fit_gently_sloped_decks() {
                 ..Default::default()
             });
             let result = construction::compile(&draft, &catalog);
-            if result.definition.is_none() {
-                failures.push(format!("pitch {pitch}, roll {roll}, thickness {thickness}, rise {rise}: {:?}", result.diagnostics));
-            } else {
-                let def = result.definition.unwrap();
+            if let Some(def) = result.definition {
                 assert!(def.openings.iter().flatten().any(|o|
                     o.sealed_by_mount_id.as_deref() == Some("gun") && o.area_m2 > 0.));
                 if pitch != 0. || roll != 0. {
                     assert!(def.mount_clearance.as_ref().unwrap().bodies.iter().flatten()
                         .any(|b| b.id == "gun-barbette-0"));
                 }
+            } else {
+                failures.push(format!("pitch {pitch}, roll {roll}, thickness {thickness}, rise {rise}: {:?}", result.diagnostics));
             }
         }
     }

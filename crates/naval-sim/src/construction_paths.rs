@@ -422,9 +422,7 @@ pub(crate) fn compile(
                     .find(|s| length(sub(s.position, anchor)) <= 0.05)
             })
             .flatten();
-        if support.is_some() {
-            continue;
-        } else if !railing && !ladder && fitting_surfaces.iter().any(|s| s.tree.distance(anchor, anchor, radius + 0.006) <= radius + 0.005) {
+        if support.is_some() || (!railing && !ladder && fitting_surfaces.iter().any(|s| s.tree.distance(anchor, anchor, radius + 0.006) <= radius + 0.005)) {
             continue;
         } else {
             return Err(error(
