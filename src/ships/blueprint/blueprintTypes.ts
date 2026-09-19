@@ -3,53 +3,107 @@ import type { ConstructionData, ConstructionGeometry, ConstructionLoading, Const
 export type Vec3 = [number, number, number];
 export type Battery = 'main' | 'secondary' | 'torpedo' | 'depth-charge';
 export interface TorpedoLauncher {
-  id: string; name: string; position: Vec3; traverseRateDeg: number;
+  id: string;
+  name: string;
+  position: Vec3;
+  traverseRateDeg: number;
   /** Allowed ship-relative launch bearings; training can cross the excluded sectors. */
   launchArcsDeg: [number, number][];
   /** Optional mechanical travel interval containing neutral; never crossed during training. */
   traverseLimitsDeg?: [number, number];
 }
 export interface DepthChargePart {
-  id: string; name: string; kind: 'depth-charge'; diameterM: number; lengthM: number;
-  sinkSpeed: number; detonationDepthM: number; blastRadiusM: number;
-  reloadSeconds: number; launchIntervalSeconds: number; damage: number; breachAreaM2: number;
+  id: string;
+  name: string;
+  kind: 'depth-charge';
+  diameterM: number;
+  lengthM: number;
+  sinkSpeed: number;
+  detonationDepthM: number;
+  blastRadiusM: number;
+  reloadSeconds: number;
+  launchIntervalSeconds: number;
+  damage: number;
+  breachAreaM2: number;
 }
 export interface DepthChargeLauncher {
-  id: string; name: string; partId: string; position: Vec3; velocity: Vec3;
-  ammo: number; magazineId: string; launcherModuleId?: string;
+  id: string;
+  name: string;
+  partId: string;
+  position: Vec3;
+  velocity: Vec3;
+  ammo: number;
+  magazineId: string;
+  launcherModuleId?: string;
 }
 export type Ammunition = 'ap' | 'he';
 export interface HEProjectile {
-  explosiveKg: number; fragmentPenetrationMm: number; damage: number; stockFraction: number; basis: string;
+  explosiveKg: number;
+  fragmentPenetrationMm: number;
+  damage: number;
+  stockFraction: number;
+  basis: string;
 }
 export interface APProjectile {
-  armingResistanceMm: number; fuzeDelaySeconds: number; explosiveKg: number;
-  fragmentPenetrationMm: number; basis: string;
+  armingResistanceMm: number;
+  fuzeDelaySeconds: number;
+  explosiveKg: number;
+  fragmentPenetrationMm: number;
+  basis: string;
 }
 /** Fixed tubes with a preset gyro course; no homing or render dependencies. */
 export interface TorpedoPart {
-  id: string; name: string; kind: 'torpedo'; diameterM: number; lengthM: number;
-  speed: number; rangeM: number; armingDistanceM: number; runningDepthM: number;
-  reloadSeconds: number; launchIntervalSeconds: number; damage: number; breachAreaM2: number;
+  id: string;
+  name: string;
+  kind: 'torpedo';
+  diameterM: number;
+  lengthM: number;
+  speed: number;
+  rangeM: number;
+  armingDistanceM: number;
+  runningDepthM: number;
+  reloadSeconds: number;
+  launchIntervalSeconds: number;
+  damage: number;
+  breachAreaM2: number;
 }
 export interface TorpedoTube {
-  id: string; name: string; partId: string; position: Vec3; bearingDeg: number;
+  id: string;
+  name: string;
+  partId: string;
+  position: Vec3;
+  bearingDeg: number;
   /** Allowed gyro offset either side of the tube, in degrees. */
-  arcDeg: number; ammo: number; magazineId: string; launcherModuleId?: string;
+  arcDeg: number;
+  ammo: number;
+  magazineId: string;
+  launcherModuleId?: string;
   /** Position is the muzzle in the launcher's zero-bearing ship frame. */
   launcherId?: string;
 }
-export interface Volume { id: string; center: Vec3; size: Vec3; }
-export interface AuthoredSurface { vertices: Vec3[]; triangles: [number, number, number][]; }
+export interface Volume {
+  id: string;
+  center: Vec3;
+  size: Vec3;
+}
+export interface AuthoredSurface {
+  vertices: Vec3[];
+  triangles: [number, number, number][];
+}
 /** Physical movement stops derived from original geometry, independent of firing arcs. */
 export interface MountClearanceProfile {
-  version: 1; marginM: number; basis: string;
+  version: 1;
+  marginM: number;
+  basis: string;
   /** Select exactly one geometry encoding: closed bodies or installation envelopes. */
   mountIds?: string[];
   /** Fixed bodies use hull coordinates; mounted fittings use yaw-local coordinates. */
   bodies?: { id: string; mountId?: string; surface: AuthoredSurface }[];
   /** Conservative envelopes for reviewed hull-mounted installations. */
-  mounts?: { mountId: string; barrelRadiusM: number; body?: { center: Vec3; size: Vec3 };
+  mounts?: {
+    mountId: string;
+    barrelRadiusM: number;
+    body?: { center: Vec3; size: Vec3 };
     /** Original fitting envelopes. Elevating points are trunnion-relative;
      * yaw points are mount-relative. Include full recoil travel in endpoints. */
     fittings?: { joint: 'yaw' | 'elevation'; a: Vec3; b: Vec3; radiusM: number }[];
@@ -58,17 +112,41 @@ export interface MountClearanceProfile {
   neighbors?: [string, string][];
 }
 export interface GunPart {
-  id: string; name: string; kind: 'gun'; massKg: number; barbetteRadius: number;
-  gunhouseSize: Vec3; pivotHeight: number; trunnionForward: number; muzzleForward: number;
-  barrelSpacing: number; caliberM: number; traverseDeg: number; traverseRateDeg: number;
-  elevationMinDeg: number; elevationMaxDeg: number; elevationRateDeg: number;
+  id: string;
+  name: string;
+  kind: 'gun';
+  massKg: number;
+  barbetteRadius: number;
+  gunhouseSize: Vec3;
+  pivotHeight: number;
+  trunnionForward: number;
+  muzzleForward: number;
+  barrelSpacing: number;
+  caliberM: number;
+  traverseDeg: number;
+  traverseRateDeg: number;
+  elevationMinDeg: number;
+  elevationMaxDeg: number;
+  elevationRateDeg: number;
   /** Compiler-retained catalog capability for grouping an installation-limited gun. */
   catalogElevationMinDeg?: number;
   catalogElevationMaxDeg?: number;
-  reloadSeconds: number; muzzleSpeed: number; projectileMassKg: number;
-  penetrationMm: number; damage: number; recoilM: number; ammoPerBarrel: number; armorMm: number;
+  reloadSeconds: number;
+  muzzleSpeed: number;
+  projectileMassKg: number;
+  penetrationMm: number;
+  damage: number;
+  recoilM: number;
+  ammoPerBarrel: number;
+  armorMm: number;
   /** Calibrated flight model; every catalog part declares one. */
-  ballistics: { dragPerSecond: number; dispersionRad: number; muzzleSpeedSigmaFraction?: number; penetrationReferenceSpeedMps?: number; basis: string };
+  ballistics: {
+    dragPerSecond: number;
+    dispersionRad: number;
+    muzzleSpeedSigmaFraction?: number;
+    penetrationReferenceSpeedMps?: number;
+    basis: string;
+  };
   /** Omitted original v1 parts remain inert/contact-only projectiles. */
   ap?: APProjectile;
   he?: HEProjectile;
@@ -85,23 +163,61 @@ export interface GunPart {
   /** Original authored gunhouse vertices in the mount's forward/port/up frame. */
   gunhouseShape?: { footprint: [number, number][]; roof: Vec3[] };
   /** Versioned original facets shared by the visual enclosure and physical armor. */
-  gunhouseMesh?: { version: 1; vertices: Vec3[]; faces: { id: string; indices: [number, number, number]; thicknessMm: number; material: 'KC' | 'Wh' | 'steel'; finish: 'naval' | 'roof' }[]; apertures?: { id: string; indices: number[] }[]; provenance?: Armor['provenance'] };
+  gunhouseMesh?: {
+    version: 1;
+    vertices: Vec3[];
+    faces: {
+      id: string;
+      indices: [number, number, number];
+      thicknessMm: number;
+      material: 'KC' | 'Wh' | 'steel';
+      finish: 'naval' | 'roof';
+    }[];
+    apertures?: { id: string; indices: number[] }[];
+    provenance?: Armor['provenance'];
+  };
 }
 export const barrelIds = (weapon: GunPart): readonly string[] => {
   switch (weapon.barrelCount) {
-    case 1: return ['center'];
-    case 3: return ['left', 'center', 'right'];
-    case 4: return ['left-outer', 'left', 'right', 'right-outer'];
-    case 8: return ['lower-left-outer', 'lower-left', 'lower-right', 'lower-right-outer', 'upper-left-outer', 'upper-left', 'upper-right', 'upper-right-outer'];
-    default: return ['left', 'right'];
+    case 1:
+      return ['center'];
+    case 3:
+      return ['left', 'center', 'right'];
+    case 4:
+      return ['left-outer', 'left', 'right', 'right-outer'];
+    case 8:
+      return [
+        'lower-left-outer',
+        'lower-left',
+        'lower-right',
+        'lower-right-outer',
+        'upper-left-outer',
+        'upper-left',
+        'upper-right',
+        'upper-right-outer',
+      ];
+    default:
+      return ['left', 'right'];
   }
 };
-export const barrelOffset = (weapon: GunPart, index: number): number => ((weapon.barrelCount === 8 ? index % 4 - 1.5 : index - (weapon.barrelCount - 1) / 2)) * weapon.barrelSpacing;
-export const barrelHeightOffset = (weapon: GunPart, index: number): number => weapon.barrelCount === 8 ? (index < 4 ? -.5 : .5) * weapon.barrelVerticalSpacing! : 0;
-export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: TorpedoPart[]; depthCharges?: DepthChargePart[]; }
+export const barrelOffset = (weapon: GunPart, index: number): number =>
+  (weapon.barrelCount === 8 ? (index % 4) - 1.5 : index - (weapon.barrelCount - 1) / 2) * weapon.barrelSpacing;
+export const barrelHeightOffset = (weapon: GunPart, index: number): number =>
+  weapon.barrelCount === 8 ? (index < 4 ? -0.5 : 0.5) * weapon.barrelVerticalSpacing! : 0;
+export interface PartCatalog {
+  schemaVersion: 1;
+  parts: GunPart[];
+  torpedoes?: TorpedoPart[];
+  depthCharges?: DepthChargePart[];
+}
 export interface Mount {
-  id: string; name: string; partId: string; battery: 'main' | 'secondary'; position: Vec3;
-  bearingDeg: number; rangefinder: boolean;
+  id: string;
+  name: string;
+  partId: string;
+  battery: 'main' | 'secondary';
+  position: Vec3;
+  bearingDeg: number;
+  rangefinder: boolean;
   /** Seated starting/stow angle; does not narrow the mechanical travel. */
   initialElevationDeg?: number;
   /** Riding on another mount's yaw assembly. Position/bearing remain the
@@ -120,25 +236,48 @@ export interface Mount {
   fire?: FireProfile;
 }
 export interface Handling {
-  forwardSpeed: number; reverseSpeed: number; acceleration: number;
-  braking: number; rudderRate: number; maxYawRate: number;
+  forwardSpeed: number;
+  reverseSpeed: number;
+  acceleration: number;
+  braking: number;
+  rudderRate: number;
+  maxYawRate: number;
 }
 /** Optional diving equipment; all depths are below the surfaced waterline datum. */
 export interface SubmarineDefinition {
   submergedHandling: Handling;
-  ballastCapacityM3: number; neutralBallastFraction: number;
-  floodRateM3PerSecond: number; blowRateM3PerSecond: number; emergencyBlowRateM3PerSecond: number;
-  maxDiveSpeed: number; maxRiseSpeed: number;
-  periscopeDepthM: number; maxDepthM: number; maxTorpedoDepthM: number;
+  ballastCapacityM3: number;
+  neutralBallastFraction: number;
+  floodRateM3PerSecond: number;
+  blowRateM3PerSecond: number;
+  emergencyBlowRateM3PerSecond: number;
+  maxDiveSpeed: number;
+  maxRiseSpeed: number;
+  periscopeDepthM: number;
+  maxDepthM: number;
+  maxTorpedoDepthM: number;
   periscopeEye: Vec3;
-  surfaceEngineIds: string[]; submergedEngineIds: string[];
+  surfaceEngineIds: string[];
+  submergedEngineIds: string[];
   appendages: { bowPlanes: string[]; sternPlanes: string[]; rudders: string[]; propellers: string[] };
 }
-export interface BuoyancyCell { center: Vec3; size: Vec3; volumeM3: number; }
+export interface BuoyancyCell {
+  center: Vec3;
+  size: Vec3;
+  volumeM3: number;
+}
 export interface Hull {
-  kind: 'authored-stations-v1' | 'constructed-volume-v1'; length: number; beam: number; draft: number; depth: number;
-  massKg: number; waterplaneAreaM2: number; reserveBuoyancyM3: number;
-  halfBreadths: [number, number][]; deckHeights: [number, number][]; keelHeights: [number, number][];
+  kind: 'authored-stations-v1' | 'constructed-volume-v1';
+  length: number;
+  beam: number;
+  draft: number;
+  depth: number;
+  massKg: number;
+  waterplaneAreaM2: number;
+  reserveBuoyancyM3: number;
+  halfBreadths: [number, number][];
+  deckHeights: [number, number][];
+  keelHeights: [number, number][];
   /** Station is measured from the stern; points are [half breadth, height above waterline], keel to deck. */
   sections?: { station: number; points: [number, number][] }[];
   /** Authoritative disjoint partial volumes. Station tables are broad bounds only for this variant. */
@@ -148,15 +287,22 @@ export interface Hull {
   buoyancy?: { version: 1; cells: BuoyancyCell[] };
 }
 export interface AuthoredStructure {
-  id: string; name: string; footprint: [number, number][];
-  baseY: number; height: number; material: string;
+  id: string;
+  name: string;
+  footprint: [number, number][];
+  baseY: number;
+  height: number;
+  material: string;
   /** Explicit mouth for side-discharging uptakes; otherwise the upper rim is used. */
   exhaust?: { position: Vec3; width: number; length: number };
   /** Optional original surface for tapered towers and funnel jackets, in runtime coordinates. */
   surface?: AuthoredSurface;
 }
 export interface Module extends Volume {
-  name: string; kind: 'engine' | 'steering' | 'magazine' | 'generator' | 'fire-control' | 'launcher'; hp: number; compartmentId?: string;
+  name: string;
+  kind: 'engine' | 'steering' | 'magazine' | 'generator' | 'fire-control' | 'launcher';
+  hp: number;
+  compartmentId?: string;
   /** Explicit exposed fixed equipment; absent retains room containment. */
   placement?: 'fixed';
   /** A launcher box is authored in the zero-bearing ship frame. */
@@ -169,7 +315,9 @@ export interface Module extends Volume {
   role?: 'boiler' | 'turbine' | 'shaft' | 'combined-drive';
 }
 export interface Compartment extends Volume {
-  name: string; capacityM3: number; pumpM3PerSecond: number;
+  name: string;
+  capacityM3: number;
+  pumpM3PerSecond: number;
   fire?: FireProfile;
   /** Optional disjoint conservative cells, in ship coordinates, for compound voids. */
   cells?: { center: Vec3; size: Vec3; volumeM3?: number }[];
@@ -178,29 +326,51 @@ export interface Compartment extends Volume {
 }
 /** Finite combustible load and heat response; values are game calibration. */
 export interface FireProfile {
-  fuelSeconds: number; ignitionHeat: number; heatPerDamage: number;
+  fuelSeconds: number;
+  ignitionHeat: number;
+  heatPerDamage: number;
   /** Visible smoke outlet in ship coordinates; does not affect combat geometry. */
   ventPosition?: Vec3;
 }
 export interface DamageRegion extends Volume {
-  name: string; kind: 'hull' | 'superstructure' | 'mount' | 'launcher';
-  durabilityFraction: number; mountId?: string; moduleId?: string;
+  name: string;
+  kind: 'hull' | 'superstructure' | 'mount' | 'launcher';
+  durabilityFraction: number;
+  mountId?: string;
+  moduleId?: string;
 }
 export interface FloodConnection {
-  id?: string; fromId: string; toId: string; areaM2: number;
+  id?: string;
+  fromId: string;
+  toId: string;
+  areaM2: number;
   /** Omitted v1 connections preserve the original open-connection behavior. */
-  state?: 'open' | 'closed' | 'damaged'; position?: Vec3;
+  state?: 'open' | 'closed' | 'damaged';
+  position?: Vec3;
   /** A hit on this protection surface can breach this boundary, within bounds. */
-  armorId?: string; bounds?: { center: Vec3; size: Vec3 }; thicknessMm?: number;
+  armorId?: string;
+  bounds?: { center: Vec3; size: Vec3 };
+  thicknessMm?: number;
 }
 /** Installed catalog ratings for ship-wide exhaust allocation and damage. */
-export interface MachineryRating { id: string; kw: number }
-export interface SharedExhaust { engines: MachineryRating[]; funnels: MachineryRating[] }
+export interface MachineryRating {
+  id: string;
+  kw: number;
+}
+export interface SharedExhaust {
+  engines: MachineryRating[];
+  funnels: MachineryRating[];
+}
 export interface PropulsionGroup {
-  id: string; share: number; boilerIds: string[]; driveIds: string[]; shaftIds: string[];
+  id: string;
+  share: number;
+  boilerIds: string[];
+  driveIds: string[];
+  shaftIds: string[];
 }
 export interface Armor extends Volume {
-  name: string; thicknessMm: number;
+  name: string;
+  thicknessMm: number;
   /** Exterior closed-box protection: both entry and exit can open the shell. */
   exterior?: boolean;
   /** A convex, planar physical plate. Legacy volumes remain closed box shells. */
@@ -209,10 +379,20 @@ export interface Armor extends Volume {
 }
 /** Versioned game calibration, not historical crew or thermal engineering data. */
 export interface DamageControlProfile {
-  version: 1; teams: number; setupSeconds: number; repairPoints: number;
-  roomFuelSeconds: number; mountFuelSeconds: number; suppressionPerSecond: number;
-  portablePumpM3PerSecond: number; repairHpPerSecond: number; repairCeiling: number;
-  patchM2PerSecond: number; maxPatchM2: number; flashProtection: number; basis: string;
+  version: 1;
+  teams: number;
+  setupSeconds: number;
+  repairPoints: number;
+  roomFuelSeconds: number;
+  mountFuelSeconds: number;
+  suppressionPerSecond: number;
+  portablePumpM3PerSecond: number;
+  repairHpPerSecond: number;
+  repairCeiling: number;
+  patchM2PerSecond: number;
+  maxPatchM2: number;
+  flashProtection: number;
+  basis: string;
 }
 export type AircraftRole = 'fighter' | 'dive-bomber' | 'torpedo-bomber';
 /** Aircraft with published LODs, authored ground poses and CPU role support. */
@@ -227,16 +407,25 @@ export const GAMEPLAY_AIRCRAFT: Readonly<Record<string, AircraftRole>> = {
 /** Physical flight-deck geometry, shared by every operating profile. Positions
  * are tyre datums in ship-local coordinates; aircraft clearance is added by the sim. */
 export interface FlightDeckLayout {
-  version: 1; surfaceId: string;
+  version: 1;
+  surfaceId: string;
   spots: { id: string; position: Vec3; preferredRole: AircraftRole }[];
-  launchStart: Vec3; launchEnd: Vec3;
-  recoveryTouchdown: Vec3; recoveryStop: Vec3;
+  launchStart: Vec3;
+  launchEnd: Vec3;
+  recoveryTouchdown: Vec3;
+  recoveryStop: Vec3;
   elevators: { id: string; position: Vec3; hangarY: number; widthM: number; lengthM: number }[];
 }
 export interface AirWingDefinition {
-  version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
-  launchIntervalSeconds: number; rearmSeconds: number;
-  flightSize: number; deckCapacity: number; maxActiveFlights: number;
+  version: 1;
+  launchPosition: Vec3;
+  recoveryPosition: Vec3;
+  serviceModuleId: string;
+  launchIntervalSeconds: number;
+  rearmSeconds: number;
+  flightSize: number;
+  deckCapacity: number;
+  maxActiveFlights: number;
   deckLayout?: FlightDeckLayout;
   squadrons: { id: string; name: string; modelId: string; role: AircraftRole; count: number }[];
 }
@@ -247,25 +436,37 @@ export interface ManeuveringProfile {
   rudders: { moduleId: string; bearingDeg: number; areaM2: number }[];
 }
 export interface ShipBlueprint {
-  schemaVersion: 1; id: string; name: string; configuration: string;
-  coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
+  schemaVersion: 1;
+  id: string;
+  name: string;
+  configuration: string;
+  coordinates: 'meters-y-up-bow-negative-z';
+  modelUrl: string;
   damageControl: DamageControlProfile;
   /** Optional CPU motion interlocks, fitted to reviewed installation geometry.
    * These are explicit game clearance envelopes, not historical firing sectors. */
   mountClearance?: MountClearanceProfile;
   /** Ship-local underwater defense coverage; reductions are gameplay calibration. */
-  underwaterProtection?: { version: 1; basis: string; zones: (Volume & { name: string; damageReduction: number; breachReduction: number })[] };
+  underwaterProtection?: {
+    version: 1;
+    basis: string;
+    zones: (Volume & { name: string; damageReduction: number; breachReduction: number })[];
+  };
   localDamage: { version: 1; regions: DamageRegion[]; basis: string };
   stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
   maneuvering?: ManeuveringProfile;
-  hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
+  hull: Hull;
+  handling: Handling;
+  mounts: Mount[];
+  armor: Armor[];
   torpedoTubes?: TorpedoTube[];
   torpedoLaunchers?: TorpedoLauncher[];
   depthChargeLaunchers?: DepthChargeLauncher[];
   submarine?: SubmarineDefinition;
   airWing?: AirWingDefinition;
   rig?: import('../rig').ShipRig;
-  modules: Module[]; compartments: Compartment[];
+  modules: Module[];
+  compartments: Compartment[];
   connections: FloodConnection[];
   /** Additive v1 mechanics. Older definitions retain their provisional averages. */
   propulsion?: { groups: PropulsionGroup[]; basis: string; sharedExhaust?: SharedExhaust };

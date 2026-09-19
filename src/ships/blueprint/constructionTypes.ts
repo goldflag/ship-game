@@ -6,14 +6,45 @@ export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' 
   construction: ConstructionData;
 }
 export interface ConstructionPrimitive {
-  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'vertex' | 'custom-hull' | 'balcony' | 'ballast' | 'pyramid'
-    | 'cylinder' | 'half-cylinder' | 'quarter-cylinder' | 'quarter-cylinder-wall'
-    | 'prism' | 'half-hemisphere' | 'quarter-hemisphere' | 'sphere' | 'hemisphere' | 'sphere-octant' | 'hemisphere-shell'
-    | 'half-hemisphere-shell' | 'quarter-hemisphere-shell' | 'parabolic-shell'
-    | 'cone' | 'hollow-cube' | 'concave-corner' | 'bridge' | 'diagonal-bridge'
-    | 'rounded-bridge' | 'bridge-panel' | 'diagonal-bridge-panel' | 'rounded-bridge-panel' | 'breakwater';
+  id: string;
+  kind:
+    | 'box'
+    | 'wedge'
+    | 'corner'
+    | 'inverse-corner'
+    | 'vertex'
+    | 'custom-hull'
+    | 'balcony'
+    | 'ballast'
+    | 'pyramid'
+    | 'cylinder'
+    | 'half-cylinder'
+    | 'quarter-cylinder'
+    | 'quarter-cylinder-wall'
+    | 'prism'
+    | 'half-hemisphere'
+    | 'quarter-hemisphere'
+    | 'sphere'
+    | 'hemisphere'
+    | 'sphere-octant'
+    | 'hemisphere-shell'
+    | 'half-hemisphere-shell'
+    | 'quarter-hemisphere-shell'
+    | 'parabolic-shell'
+    | 'cone'
+    | 'hollow-cube'
+    | 'concave-corner'
+    | 'bridge'
+    | 'diagonal-bridge'
+    | 'rounded-bridge'
+    | 'bridge-panel'
+    | 'diagonal-bridge-panel'
+    | 'rounded-bridge-panel'
+    | 'breakwater';
   /** Envelope centered at position. Shapes occupy normalized [-.5,.5]^3, then scale and rotate (YXZ). */
-  size: Vec3; position: Vec3; rotationDeg: number;
+  size: Vec3;
+  position: Vec3;
+  rotationDeg: number;
   /** Optional v1 pitch and roll in degrees. rotationDeg remains yaw; absent tilt is level. */
   tilt?: { version: 1; pitchDeg: number; rollDeg: number };
   /** Vertex hull v1: eight normalized local corners, ordered around bow then stern.
@@ -49,7 +80,9 @@ export interface ConstructionFreeformFace {
   corners: number[];
 }
 export interface ConstructionBalconyPoint {
-  id: string; x: number; z: number;
+  id: string;
+  x: number;
+  z: number;
   /** Treatment of the edge from this point to the next, wrapping at the end. */
   edge: 'open' | 'railing' | 'triple-railing' | 'wall';
 }
@@ -66,11 +99,16 @@ export interface ConstructionFreeformShape {
   style: 'round' | 'chamfer';
 }
 export interface ConstructionHullPoint {
-  x: number; y: number;
+  x: number;
+  y: number;
   /** Stable position along the original 0–8 outline (keel 4). Omitted on legacy nine-point sections. */
   contour?: number;
 }
-export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }
+export interface ConstructionHullStation {
+  id: string;
+  t: number;
+  points: ConstructionHullPoint[];
+}
 export interface ConstructionHullPaintBand {
   id: string;
   /** Upper edge in hull-local metres. Bands are ordered from bottom to top. */
@@ -90,31 +128,50 @@ export interface ConstructionCustomHull {
   redPaintY?: number;
   /** Height coatings; when present, supersedes the legacy redPaintY setting. */
   paintBands?: ConstructionHullPaintBands;
-  version: 1; stations: ConstructionHullStation[]; rake: number; bulb: number;
+  version: 1;
+  stations: ConstructionHullStation[];
+  rake: number;
+  bulb: number;
 }
 export interface ConstructionBilgeKeels {
-  version: 1; enabled: boolean;
+  version: 1;
+  enabled: boolean;
   /** Fractions of hull length, measured from bow to stern. */
-  start: number; end: number;
-  widthM: number; thicknessM: number;
+  start: number;
+  end: number;
+  widthM: number;
+  thicknessM: number;
   /** Fraction of the section outline from center keel (0) toward deck edge (1). */
   placement: number;
 }
 export interface ConstructionSurfaceAssignment {
   /** Optional custom-hull panel override; omission assigns the whole named side. */
   panelId?: string;
-  primitiveId: string; face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
-  thicknessMm: number; material: 'steel' | 'armor-steel'; paint: string; open?: boolean;
+  primitiveId: string;
+  face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
+  thicknessMm: number;
+  material: 'steel' | 'armor-steel';
+  paint: string;
+  open?: boolean;
 }
-export interface ConstructionAccessSettings { widthM: number; standOffM: number; handrails: 'both' | 'left' | 'right' | 'none'; grabHeightM: number }
+export interface ConstructionAccessSettings {
+  widthM: number;
+  standOffM: number;
+  handrails: 'both' | 'left' | 'right' | 'none';
+  grabHeightM: number;
+}
 export interface ConstructionEquipment {
   /** Wall fitting installation, in metres; linked partners reflect across ship X=0.
    * `turnDeg` is a quarter turn about the wall's outward normal, counter-clockwise seen from outside; omission is upright. */
   wall?: { version: 1; widthM: number; heightM: number; mirrorId?: string; turnDeg?: 90 | 180 | 270 };
   /** Named coating for this installation and its barbette; omission follows the ship paint. */
   paint?: string;
-  id: string; partId: string; position: Vec3; bearingDeg: number;
-  magazineId?: string; powerSourceId?: string;
+  id: string;
+  partId: string;
+  position: Vec3;
+  bearingDeg: number;
+  magazineId?: string;
+  powerSourceId?: string;
   /** Installation settings retain canonical part dimensions/capability. */
   gun?: {
     /** Added height above the deck attachment; position remains the turret datum. */
@@ -130,12 +187,24 @@ export interface ConstructionEquipment {
   launcher?: { traverseLimitsDeg: [number, number]; launchArcsDeg: [number, number][] };
   /** Connected local-space points, transformed by position and bearing like fixed equipment.
    * Rope/chain slack is the vertical midspan sag on each segment, sampled at 16 equal intervals. */
-  path?: { points: Vec3[]; slackM?: number; access?: ConstructionAccessSettings; /** Railing overrides; omitted values retain the catalog height and three rails. */ heightM?: number; railCount?: 2 | 3 };
+  path?: {
+    points: Vec3[];
+    slackM?: number;
+    access?: ConstructionAccessSettings;
+    /** Railing overrides; omitted values retain the catalog height and three rails. */ heightM?: number;
+    railCount?: 2 | 3;
+  };
 }
 export interface ConstructionBoundary {
-  id: string; axis: 'x' | 'y' | 'z'; offset: number; thicknessMm: number;
+  id: string;
+  axis: 'x' | 'y' | 'z';
+  offset: number;
+  thicknessMm: number;
 }
-export interface ConstructionLoad extends Volume { name: string; massKg: number; }
+export interface ConstructionLoad extends Volume {
+  name: string;
+  massKg: number;
+}
 export type ConstructionSurfaceFinish = 'matte' | 'satin' | 'semi-gloss' | 'gloss';
 export interface ConstructionData {
   /** Ship-wide painted-surface sheen; omission preserves original material finishes. */
@@ -143,55 +212,102 @@ export interface ConstructionData {
   /** Ship paint for unassigned faces, unpainted fittings and their barbettes; omission keeps
    * naval gray faces and original component finishes. */
   paint?: string;
-  version: 1 | 2; catalogRevision: string; defaultThicknessMm: number;
-  primitives: ConstructionPrimitive[]; surfaces: ConstructionSurfaceAssignment[];
-  equipment: ConstructionEquipment[]; boundaries: ConstructionBoundary[]; loads: ConstructionLoad[];
+  version: 1 | 2;
+  catalogRevision: string;
+  defaultThicknessMm: number;
+  primitives: ConstructionPrimitive[];
+  surfaces: ConstructionSurfaceAssignment[];
+  equipment: ConstructionEquipment[];
+  boundaries: ConstructionBoundary[];
+  loads: ConstructionLoad[];
 }
 /** Convex closed outward-facing polygons; generated, never accepted as local source input. */
-export interface ConvexVolume { faces: { vertices: Vec3[] }[]; }
+export interface ConvexVolume {
+  faces: { vertices: Vec3[] }[];
+}
 export interface ConstructionSurface {
   panelId?: string;
-  id: string; primitiveId: string; face: string; vertices: Vec3[];
-  normal: Vec3; areaM2: number; thicknessMm: number; material: string; paint: string; open: boolean;
+  id: string;
+  primitiveId: string;
+  face: string;
+  vertices: Vec3[];
+  normal: Vec3;
+  areaM2: number;
+  thicknessMm: number;
+  material: string;
+  paint: string;
+  open: boolean;
 }
-export interface ConstructionGeometry { version: 1; cells: ConvexVolume[]; surfaces: ConstructionSurface[]; }
+export interface ConstructionGeometry {
+  version: 1;
+  cells: ConvexVolume[];
+  surfaces: ConstructionSurface[];
+}
 export interface ConstructionMass {
-  id: string; kind: string; massKg: number; center: Vec3; inertiaKgM2: Vec3;
+  id: string;
+  kind: string;
+  massKg: number;
+  center: Vec3;
+  inertiaKgM2: Vec3;
 }
 export interface ConstructionLoading {
-  massKg: number; centerOfGravity: Vec3;
+  massKg: number;
+  centerOfGravity: Vec3;
   /** Principal-axis diagonal in ship coordinates about dry CG, [pitch, yaw, roll]. */
-  inertiaKgM2: Vec3; contributions: ConstructionMass[];
-  envelopeVolumeM3: number; materialVolumeM3: number; usableVolumeM3: number;
-  waterlineY: number; buoyancyCenter: Vec3; rollMetacentricHeightM: number;
-  powerKw: number; estimatedSpeedMps: number; basis: string;
+  inertiaKgM2: Vec3;
+  contributions: ConstructionMass[];
+  envelopeVolumeM3: number;
+  materialVolumeM3: number;
+  usableVolumeM3: number;
+  waterlineY: number;
+  buoyancyCenter: Vec3;
+  rollMetacentricHeightM: number;
+  powerKw: number;
+  estimatedSpeedMps: number;
+  basis: string;
 }
 export interface ConstructionOpening {
-  id: string; compartmentId: string; position: Vec3; normal: Vec3; areaM2: number;
+  id: string;
+  compartmentId: string;
+  position: Vec3;
+  normal: Vec3;
+  areaM2: number;
   /** Catalog installation well remains sealed while its fitted enclosure survives. */
-  sealedByMountId?: string; sealedByModuleId?: string;
+  sealedByMountId?: string;
+  sealedByModuleId?: string;
 }
 export interface ConstructionDiagnostic {
-  severity: 'error' | 'warning'; code: string; message: string; sourceId?: string;
+  severity: 'error' | 'warning';
+  code: string;
+  message: string;
+  sourceId?: string;
 }
 export interface ConstructionResult {
   /** Native visual bilge-keel faces; excluded from buoyancy, armor and loading. */
   bilgeKeelSurfaces?: ConstructionSurface[];
-  sourceId: string; revision: string; contentHash: string;
-  definition?: ShipDefinition; surfaces: ConstructionSurface[];
-  diagnostics: ConstructionDiagnostic[]; loading?: ConstructionLoading;
+  sourceId: string;
+  revision: string;
+  contentHash: string;
+  definition?: ShipDefinition;
+  surfaces: ConstructionSurface[];
+  diagnostics: ConstructionDiagnostic[];
+  loading?: ConstructionLoading;
   /** Native fitted shaft/support members in ship coordinates; no added buoyancy. */
   propellerSupports?: ConstructionPropellerSupport[];
   /** Native resolved engine/propeller pairs; automatic propellers may have multiple engines. */
   propellerAssignments?: ConstructionPropellerAssignment[];
 }
 export interface ConstructionPropellerAssignment {
-  propellerId: string; engineId: string;
+  propellerId: string;
+  engineId: string;
 }
 export interface ConstructionPropellerSupport {
   equipmentId: string;
   members: {
-    start: Vec3; end: Vec3; radiusM: number; kind: 'shaft' | 'strut' | 'bearing' | 'fairing';
+    start: Vec3;
+    end: Vec3;
+    radiusM: number;
+    kind: 'shaft' | 'strut' | 'bearing' | 'fairing';
     /** Native loft sections in ship coordinates; identical visual and clearance geometry. */
     rings?: Vec3[][];
     /** Closed hull seat; only the final 4 cm may enter this supporting skin. */
@@ -199,9 +315,12 @@ export interface ConstructionPropellerSupport {
   }[];
 }
 export interface ConstructionEquipmentPart {
-  id: string; name: string;
+  id: string;
+  name: string;
   kind: 'gun' | 'torpedo-launcher' | 'engine' | 'magazine' | 'funnel' | 'propeller' | 'rudder' | 'mast' | 'director' | 'deck-fitting';
-  size: Vec3; boundsCenter: Vec3; centerOfGravity: Vec3;
+  size: Vec3;
+  boundsCenter: Vec3;
+  centerOfGravity: Vec3;
   /** Required for non-guns; guns use the mass of the referenced canonical GunPart. */
   massKg?: number;
   placement: 'internal' | 'deck' | 'underwater';
@@ -217,20 +336,39 @@ export interface ConstructionEquipmentPart {
    * Base64 zlib: u32 vertex/triangle counts, xyz f32 vertices, u32 triangle indices (little endian). */
   riggingSurface?: { encoding: 'deflate-f32-u32-v1'; data: string };
   sockets?: { id: string; kind: string; position: Vec3; direction: Vec3 }[];
-  gunPartId?: string; torpedoPartId?: string; tubeOffsets?: Vec3[];
-  powerKw?: number; exhaustKw?: number; thrustEfficiency?: number; rudderAreaM2?: number;
-  serviceMassKg?: number; ammunitionCapacity?: number;
+  gunPartId?: string;
+  torpedoPartId?: string;
+  tubeOffsets?: Vec3[];
+  powerKw?: number;
+  exhaustKw?: number;
+  thrustEfficiency?: number;
+  rudderAreaM2?: number;
+  serviceMassKg?: number;
+  ammunitionCapacity?: number;
   /** Procedural path profile. massKg is the fixed end/base hardware allowance;
    * massKgPerM follows the sampled line length, plus postMassKg for each railing post.
    * Railings use square bars, the catalog rail count and deck-level source points. */
   path?: {
-    kind: 'railing' | 'rope' | 'chain' | 'ladder' | 'inclined-ladder' | 'framed-ladder'; diameterM: number; heightM?: number; railCount?: 2 | 3;
-    widthM?: number; standOffM?: number;
-    postSpacingM?: number; massKgPerM: number; postMassKg?: number;
+    kind: 'railing' | 'rope' | 'chain' | 'ladder' | 'inclined-ladder' | 'framed-ladder';
+    diameterM: number;
+    heightM?: number;
+    railCount?: 2 | 3;
+    widthM?: number;
+    standOffM?: number;
+    postSpacingM?: number;
+    massKgPerM: number;
+    postMassKg?: number;
   };
-  modelUrl: string; contentHash: string;
+  modelUrl: string;
+  contentHash: string;
 }
 export interface ConstructionCatalog {
-  schemaVersion: 1; revision: string; weapons: PartCatalog; equipment: ConstructionEquipmentPart[];
+  schemaVersion: 1;
+  revision: string;
+  weapons: PartCatalog;
+  equipment: ConstructionEquipmentPart[];
 }
-export interface ConstructionSuggestion { source: ConstructionSource; diagnostics: ConstructionDiagnostic[]; }
+export interface ConstructionSuggestion {
+  source: ConstructionSource;
+  diagnostics: ConstructionDiagnostic[];
+}

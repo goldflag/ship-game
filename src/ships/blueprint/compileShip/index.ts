@@ -14,7 +14,8 @@ import { validateUnderwaterWeapons } from './underwaterWeapons';
 
 /** Validate unknown input before compiling. Limits are authoring safeguards, not a PvP ruleset. */
 export function compileShip(input: unknown, catalogInput: unknown): ShipDefinition {
-  const b = record(input, 'blueprint'), catalog = record(catalogInput, 'catalog');
+  const b = record(input, 'blueprint'),
+    catalog = record(catalogInput, 'catalog');
   validateIdentity(b, catalog);
   const h = validateHullDimensions(b);
   validateRig(b, h);
@@ -41,26 +42,41 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   validateLauncherOwners(b, modules);
   validateAirWing(b, h, modules);
   validateSubmarine(b, h, modules);
-  ['exterior', 'internals', 'weapons'].forEach(k => text(accuracy[k], `accuracy.${k}`));
+  ['exterior', 'internals', 'weapons'].forEach((k) => text(accuracy[k], `accuracy.${k}`));
   const blueprint = structuredClone(input) as ShipBlueprint;
-  const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, depthChargeLaunchers: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => {
-    const weapon = structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart;
-    if (m.traverseDeg !== undefined) weapon.traverseDeg = m.traverseDeg;
-    delete weapon.catalogElevationMinDeg;
-    delete weapon.catalogElevationMaxDeg;
-    if (m.elevationMinDeg !== undefined) {
-      weapon.catalogElevationMinDeg = weapon.elevationMinDeg;
-      weapon.elevationMinDeg = m.elevationMinDeg;
-    }
-    if (m.elevationMaxDeg !== undefined) {
-      weapon.catalogElevationMaxDeg = weapon.elevationMaxDeg;
-      weapon.elevationMaxDeg = m.elevationMaxDeg;
-    }
-    return { ...m, weapon };
-  }) };
-  if (blueprint.torpedoTubes) result.torpedoTubes = blueprint.torpedoTubes.map(t => ({ ...t, weapon: structuredClone(torpedoes.find(p => p.id === t.partId)) as unknown as TorpedoPart }));
+  const result: ShipDefinition = {
+    ...blueprint,
+    torpedoTubes: undefined,
+    depthChargeLaunchers: undefined,
+    armor: structuredClone(compiledArmor) as Armor[],
+    compilerVersion: 1,
+    mounts: blueprint.mounts.map((m) => {
+      const weapon = structuredClone(parts.find((p) => p.id === m.partId)) as unknown as GunPart;
+      if (m.traverseDeg !== undefined) weapon.traverseDeg = m.traverseDeg;
+      delete weapon.catalogElevationMinDeg;
+      delete weapon.catalogElevationMaxDeg;
+      if (m.elevationMinDeg !== undefined) {
+        weapon.catalogElevationMinDeg = weapon.elevationMinDeg;
+        weapon.elevationMinDeg = m.elevationMinDeg;
+      }
+      if (m.elevationMaxDeg !== undefined) {
+        weapon.catalogElevationMaxDeg = weapon.elevationMaxDeg;
+        weapon.elevationMaxDeg = m.elevationMaxDeg;
+      }
+      return { ...m, weapon };
+    }),
+  };
+  if (blueprint.torpedoTubes)
+    result.torpedoTubes = blueprint.torpedoTubes.map((t) => ({
+      ...t,
+      weapon: structuredClone(torpedoes.find((p) => p.id === t.partId)) as unknown as TorpedoPart,
+    }));
   else delete result.torpedoTubes;
-  if (blueprint.depthChargeLaunchers) result.depthChargeLaunchers = blueprint.depthChargeLaunchers.map(l => ({ ...l, weapon: structuredClone(depthCharges.find(p => p.id === l.partId)) as unknown as DepthChargePart }));
+  if (blueprint.depthChargeLaunchers)
+    result.depthChargeLaunchers = blueprint.depthChargeLaunchers.map((l) => ({
+      ...l,
+      weapon: structuredClone(depthCharges.find((p) => p.id === l.partId)) as unknown as DepthChargePart,
+    }));
   else delete result.depthChargeLaunchers;
   return result;
 }
