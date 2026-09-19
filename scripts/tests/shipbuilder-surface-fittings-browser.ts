@@ -35,7 +35,7 @@ try {
     await choose(name);const p=await screen([4,1,3+i*2]);await page.mouse.move(...p);await page.mouse.click(...p);await page.waitForFunction(n=>window.constructionEditor!.source().construction.equipment.length===n,10+i*2);await ready();
   }
   // Separate catalog fittings determine the rail count; height remains editable.
-  const mirror=page.locator('.sb-rail button[title^="Mirror"]');
+  const mirror=page.locator('.sb-rail button[aria-label^="Mirror"]');
   if(await mirror.getAttribute('aria-pressed')==='true')await mirror.click();
   await choose('Two-rail railing');
   const height=page.locator('input[aria-label="Railing height"]');

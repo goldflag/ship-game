@@ -45,7 +45,7 @@ export async function checkDeckFittingsEditor() {
   if(!card)throw new Error('Railing is not discoverable in the fittings drawer');
   card.click();
   await controls.settled(()=>!document.querySelector('.sb-drawer'),'path part selected');
-  const mirror=document.querySelector<HTMLButtonElement>('.sb-rail button[title^="Mirror"]');
+  const mirror=document.querySelector<HTMLButtonElement>('.sb-rail button[aria-label^="Mirror"]');
   if(mirror?.getAttribute('aria-pressed')==='true')mirror.click();
   await controls.settled(()=>mirror?.getAttribute('aria-pressed')!=='true','single path placement');
   const before=JSON.stringify(source()!.construction.equipment);

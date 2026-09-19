@@ -46,7 +46,7 @@ export const controls = {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(undefined))));
   },
   tab: async (name: string) => { const button = [...document.querySelectorAll<HTMLButtonElement>('.sb-tabs button')].find(item => item.textContent?.trim() === name); if (!button) throw new Error(`Tab unavailable: ${name}`); button.click(); await controls.settled(() => button.getAttribute('aria-selected') === 'true', name); },
-  tool: async (name: string) => { const button = [...document.querySelectorAll<HTMLButtonElement>('.sb-rail button')].find(item => item.title.startsWith(`${name} (`)); if (!button || button.disabled) throw new Error(`Tool unavailable: ${name}`); button.click(); await controls.settled(() => button.getAttribute('aria-pressed') !== 'false', name); },
+  tool: async (name: string) => { const button = [...document.querySelectorAll<HTMLButtonElement>('.sb-rail button')].find(item => item.getAttribute('aria-label')?.startsWith(`${name} (`)); if (!button || button.disabled) throw new Error(`Tool unavailable: ${name}`); button.click(); await controls.settled(() => button.getAttribute('aria-pressed') !== 'false', name); },
   slot: async (index: number) => { const button = document.querySelectorAll<HTMLButtonElement>('.sb-hotbar .sb-slot')[index - 1]; if (!button || button.disabled) throw new Error(`Slot unavailable: ${index}`); button.click(); await controls.settled(() => true, `slot ${index}`); },
   key: (key: string, options: KeyboardEventInit = {}) => document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...options })),
   /** The Armor layer's millimetre field above the bar; the number field commits on blur. */
@@ -55,7 +55,8 @@ export const controls = {
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, String(mm)); input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new FocusEvent('focusout', { bubbles: true })); await controls.settled(() => true, `thickness ${mm}`);
   },
-  warnings: () => document.querySelector('.sb-warn')?.textContent ?? '',
+  /** The checks chip, its open rows and every native diagnostic; the list itself stays collapsed until W, so the messages come from the editor. */
+  warnings: () => [document.querySelector('.sb-warn')?.textContent ?? '', ...(window.constructionEditor?.result()?.diagnostics ?? []).map(item => item.message)].join(' · '),
   rowButton: (text: string) => [...document.querySelectorAll<HTMLButtonElement>('.sb-warn .row button')].find(button => button.textContent?.trim().startsWith(text)),
   menu: async (text: string) => {
     document.querySelector<HTMLButtonElement>('.sb-meta')!.click(); await sleep(30);

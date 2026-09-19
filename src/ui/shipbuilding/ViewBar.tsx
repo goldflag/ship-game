@@ -11,9 +11,9 @@ export interface ViewBarProps {
 
 interface Entry { id: string; glyph: string; label: string; value?: string; pressed?: boolean; key?: string; detail: string; group: number; onClick(): void }
 
-/** View strip at the foot of the tool rail: how the ship is shown, never what a click does. One captioned two-column grid of bare
- *  glyph squares (view · camera · fit, then centers · arcs) below the Modifiers, so the whole left edge carries every key.
- *  Toggles show their state as the pressed square; the name, value, description and key appear in the tooltip beside the glyph. */
+/** View strip inside the tool rail, under the modifiers: how the ship is shown, never what a click does. Bare glyph cells
+ *  (view · camera · fit, then centers · arcs) in the rail's single column. Toggles show their state as the pressed cell;
+ *  the name, value, description and key appear in the tooltip beside the glyph. */
 export function ViewBar(props: ViewBarProps) {
   const { onTip } = props;
   const entries: Entry[] = [
@@ -26,7 +26,6 @@ export function ViewBar(props: ViewBarProps) {
   const title = (entry: Entry) => `${entry.label}${entry.value ? ` · ${entry.value}` : ''}`;
   const show = (entry: Entry, target: HTMLElement) => onTip({ title: title(entry), detail: entry.detail, key: entry.key, target });
   return <div className="sb-viewbar" role="toolbar" aria-label="View">
-    <span className="sb-vb-cap" aria-hidden="true">View</span>
     {entries.map((entry, index) => <button key={entry.id} className={`sb-vb ${index > 0 && entries[index - 1].group !== entry.group ? 'gap' : ''}`} aria-pressed={entry.pressed} aria-label={title(entry)} onClick={entry.onClick}
       onPointerEnter={event => show(entry, event.currentTarget)} onPointerLeave={() => onTip(undefined)} onFocus={event => show(entry, event.currentTarget)} onBlur={() => onTip(undefined)}><ToolGlyph name={entry.glyph}/></button>)}
   </div>;

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import type { ConstructionResult, ConstructionSource, ConstructionSurface } from '../../ships/blueprint';
-import { attitudeRows, hullBounds, ledgerRows, massGroups, pieceMassKg, warningEntries } from './builderReadings';
+import { attitudeRows, checksSummary, hullBounds, ledgerRows, massGroups, pieceMassKg, splitDiagnostic, warningEntries } from './builderReadings';
 
 const surface = (id: string, primitiveId: string, material: string, areaM2: number, thicknessMm: number): ConstructionSurface =>
   ({ id, primitiveId, face: 'port', vertices: [], normal: [-1, 0, 0], areaM2, thicknessMm, material, paint: 'naval-gray', open: false });
@@ -56,4 +56,13 @@ test('approximate internal weight is visible separately from fitted machinery an
   expect(groups.find(group => group.name === 'Internal allowance')?.massKg).toBe(120_000);
   expect(groups.find(group => group.name === 'Machinery & fittings')?.massKg).toBe(35_000);
   expect(groups.reduce((sum, group) => sum + group.massKg, 0)).toBe(201_500);
+});
+
+test('the checks chip counts blocks and warnings, and a diagnostic splits into finding and advice', () => {
+  expect(checksSummary(warningEntries(result.diagnostics))).toEqual({ label: '1 block · 1 warning', tone: 'block' });
+  expect(checksSummary(warningEntries([{ severity: 'warning', code: 'unstable', message: 'GM low' }, { severity: 'warning', code: 'unpowered', message: 'No propulsion' }]))).toEqual({ label: '2 warnings', tone: 'warn' });
+  expect(checksSummary([])).toEqual({ label: 'No warnings', tone: 'ok' });
+  expect(splitDiagnostic('No propulsion: missing engine. Add the missing equipment; funnels supply 3.5 MW. Sea trial is still available.'))
+    .toEqual(['No propulsion: missing engine.', 'Add the missing equipment; funnels supply 3.5 MW. Sea trial is still available.']);
+  expect(splitDiagnostic('Total loading exceeds enclosed displacement; trial will sink')).toEqual(['Total loading exceeds enclosed displacement; trial will sink', '']);
 });

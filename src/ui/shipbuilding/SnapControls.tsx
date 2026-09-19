@@ -4,8 +4,10 @@ import { SNAP_STEPS, type BuilderTool } from './builderTool';
 import type { SnapSettings } from './snapping';
 import { ToolGlyph } from './builderGlyphs';
 import { VERTEX_UNITS } from '../../ships/constructionVertex';
+import type { ViewBarTip } from './ViewBar';
 
-export function SnapControls({ tool, locked }: { tool: BuilderTool; locked: boolean }) {
+/** Snap cell of the tool rail: the toggle, then a foot row with the grid step (click or S cycles) and the arrow that opens the settings. */
+export function SnapControls({ tool, locked, onTip }: { tool: BuilderTool; locked: boolean; onTip?(tip: ViewBarTip | undefined): void }) {
   const [position, setPosition] = useState<{ left: number; top: number }>();
   const trigger = useRef<HTMLButtonElement>(null), panel = useRef<HTMLDivElement>(null), id = useId();
   const state = tool.getSnapshot(), settings = state.snapping, effective = tool.effectiveSnapping.enabled;
@@ -27,16 +29,16 @@ export function SnapControls({ tool, locked }: { tool: BuilderTool; locked: bool
     window.addEventListener('pointerdown', outside); window.addEventListener('keydown', key, true); window.addEventListener('resize', close);
     return () => { window.removeEventListener('pointerdown', outside); window.removeEventListener('keydown', key, true); window.removeEventListener('resize', close); };
   }, [!!position]);
+  const tip = (title: string, detail: string, key?: string) => { const show = (event: { currentTarget: HTMLElement }) => onTip?.({ title, detail, key, target: event.currentTarget }), hide = () => onTip?.(undefined); return { onPointerEnter: show, onPointerLeave: hide, onFocus: show, onBlur: hide }; };
   const toggle = (key: keyof SnapSettings, label: string, disabled = false) => <label><input type="checkbox" checked={settings[key]} disabled={locked || disabled} onChange={e => tool.changeSnapping({ [key]: e.target.checked })}/><span>{label}</span></label>;
   return <div className="sb-snap-control" data-override={state.snapOverride || undefined}>
-    <button className="toggle sb-snap-main" disabled={locked} aria-pressed={effective} aria-label={`Snapping ${effective ? 'on' : 'off'}`} title={`Snapping ${effective ? 'on' : 'off'}${state.snapOverride ? ' temporarily (Alt/Option held)' : ''} · N to toggle · ${overrideHint}`} onClick={tool.toggleSnapping}>
-      <ToolGlyph name="Snap"/><span>Snap {effective ? 'on' : 'off'}</span><kbd>N</kbd>
-    </button>
-    <button ref={trigger} className="sb-snap-options" aria-label="Snap settings" aria-expanded={!!position} aria-controls={position ? id : undefined} disabled={locked} onClick={() => {
+    <button className="toggle sb-snap-main" disabled={locked} aria-pressed={effective} aria-label={`Snapping ${effective ? 'on' : 'off'}`} onClick={tool.toggleSnapping}
+      {...tip(`Snap · ${effective ? 'On' : 'Off'}${state.snapOverride ? ' while Alt/Option is held' : ''}`, overrideHint, 'N')}><ToolGlyph name="Snap"/><kbd>N</kbd></button>
+    <button className="sb-snap-step-cycle" disabled={locked} aria-label={`Grid spacing ${step} m; cycle with S`} onClick={tool.cycleGrid} {...tip(`${tool.freeformMode ? 'Local move step' : 'Grid spacing'} · ${step} m`, 'Cycle the step', 'S')}>{step} m</button>
+    <button ref={trigger} className="sb-snap-options" aria-label="Snap settings" aria-expanded={!!position} aria-controls={position ? id : undefined} disabled={locked} {...tip('Snap settings', 'Targets, spacing and guides')} onClick={() => {
       const rect = trigger.current!.getBoundingClientRect();
-      setPosition(position ? undefined : { left: rect.right + 8, top: rect.top - 120 });
+      onTip?.(undefined); setPosition(position ? undefined : { left: rect.right + 12, top: rect.top - 120 });
     }}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg></button>
-    <button className="sb-snap-step-cycle" disabled={locked} aria-label={`Grid spacing ${step} m; cycle with S`} title={`${tool.freeformMode ? 'Local move step' : 'Grid spacing'}: ${step} m · S to cycle`} onClick={tool.cycleGrid}><span>{step} m</span><kbd>S</kbd></button>
     {position && createPortal(<div className="shipbuilder sb-snap-popover" id={id} ref={panel} role="group" aria-label="Snap settings" style={position}>
       <div className="sb-snap-status" role="status"><strong>Snapping {effective ? 'on' : 'off'}</strong>
         <p>{effective ? 'Pieces snap to the targets below.' : 'Free placement. Snap guides are hidden.'}{state.snapOverride && ' Release Alt / Option to restore.'}</p>

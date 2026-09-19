@@ -15,6 +15,7 @@ const TOOL_PATHS: Record<string, string> = {
   Centerline: 'M10 2v3M10 8v4M10 15v3M2 10h5l-2-2M7 10l-2 2M18 10h-5l2-2M13 10l2 2',
   Snap: 'M3 7.5h14M3 12.5h14M7.5 3v14M12.5 3v14', Fit: 'M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4M7 8h6v4H7z',
   Hull: 'M2 8h16l-3 6H5zM10 8V4M7 8V6', Armor: 'M10 2l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V5z',
+  Freeform: 'M5 6.5 14 4.5l1.5 10L6 16zM3.5 5h3v3h-3zM12.5 3h3v3h-3zM14 13h3v3h-3zM4.5 14.5h3v3h-3z',
   Keys: 'M10 2.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15zM7.7 8a2.3 2.3 0 1 1 3.3 2.1c-.7.4-1 .9-1 1.6v.4M10 14.6v.4',
 };
 const SHAPE_PATHS: Record<string, string> = {
