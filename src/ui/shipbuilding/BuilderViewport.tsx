@@ -405,7 +405,7 @@ class Viewport {
       this.hoverSurface = ''; release(this.hoverGroup);
     }
     this.equipment.update(props.scene.source, props.scene.catalog, compiled?.propellerSupports, invalid, compiled?.surfaces);
-    this.equipment.setDisplay(props.scene.display, props.scene.source, props.scene.catalog);
+    this.equipment.setDisplay(props.scene.display, props.scene.source, props.scene.catalog, props.scene.armorScale);
     const modelKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
@@ -784,16 +784,33 @@ class Viewport {
 
   private showArmorTooltip(event?: { clientX: number; clientY: number }, pick?: BuilderPick) {
     const tooltip = this.overlay.querySelector<HTMLElement>('[data-armor-tooltip]')!;
-    const surface = this.props.scene.display === 'armor' && pick?.surface ? this.surfacesByKey.get(pick.surface)?.[0] : undefined;
-    tooltip.hidden = !surface || !event;
-    if (!surface || !event) return;
-    tooltip.querySelector('b')!.textContent = surface.open ? 'Open to sea' : `Nominal armor: ${surface.thicknessMm.toLocaleString()} mm`;
-    tooltip.querySelector('span')!.textContent = surface.open ? 'No protective plate' : surface.material === 'armor-steel' ? 'Armor steel' : 'Structural steel';
+    const armor = this.props.scene.display === 'armor' && event ? this.armorReading(event, pick) : undefined;
+    tooltip.hidden = !armor || !event;
+    if (!armor || !event) return;
+    tooltip.querySelector('b')!.textContent = armor.title;
+    tooltip.querySelector('span')!.textContent = armor.detail;
     const bounds = this.overlay.getBoundingClientRect();
     let x = event.clientX - bounds.left + 16, y = event.clientY - bounds.top + 18;
     if (x + tooltip.offsetWidth > bounds.width - 8) x = event.clientX - bounds.left - tooltip.offsetWidth - 16;
     if (y + tooltip.offsetHeight > bounds.height - 8) y = event.clientY - bounds.top - tooltip.offsetHeight - 18;
     tooltip.style.left = `${Math.max(8, x)}px`; tooltip.style.top = `${Math.max(8, y)}px`;
+  }
+
+  /** The hull face under the pointer, or a turret plate in front of it: turrets carry fixed catalog armor. */
+  private armorReading(event: { clientX: number; clientY: number }, pick?: BuilderPick): { title: string; detail: string } | undefined {
+    const bounds = this.renderer.domElement.getBoundingClientRect();
+    const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1), this.camera);
+    const turret = this.navigating() || this.props.scene.measuring ? undefined : this.equipment.armorHit(ray, this.props.scene.source, this.props.scene.catalog);
+    const hull = ray.intersectObjects(this.hullMeshes, false)[0];
+    if (turret && (!hull || turret.distance <= hull.distance)) return {
+      title: `${turret.plated ? 'Gunhouse plate' : 'Mount armor'}: ${turret.thicknessMm.toLocaleString()} mm`,
+      detail: `${turret.name} · fixed by the gun`,
+    };
+    const surface = pick?.surface ? this.surfacesByKey.get(pick.surface)?.[0] : undefined;
+    return surface && {
+      title: surface.open ? 'Open to sea' : `Nominal armor: ${surface.thicknessMm.toLocaleString()} mm`,
+      detail: surface.open ? 'No protective plate' : surface.material === 'armor-steel' ? 'Armor steel' : 'Structural steel',
+    };
   }
 
   private reportHover(id?: string) {

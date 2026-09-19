@@ -9,6 +9,29 @@ import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { loadShipModel } from '../../game/loadShipModel';
 import { disposeConstructionModel } from '../../game/constructionModel';
 import { createConstructionPropellerSupports } from '../../game/constructionPropellerModel';
+import { armorThicknessColor, FIXED_ARMOR_SCALE, type ArmorScale } from '../../ships/inspection';
+import { gunPartOf, turretArmor, type TurretArmor } from './turretArmor';
+
+const TURRET_ARMOR = 'turret-armor';
+/** One triangle per catalog plate, in order, so a ray's face index names the plate it struck. */
+function turretArmorMesh(armor: TurretArmor, scale: ArmorScale) {
+  const positions: number[] = [], colors: number[] = [], color = new THREE.Color();
+  for (const plate of armor.plates) {
+    color.set(armorThicknessColor(plate.thicknessMm, scale));
+    for (const vertex of plate.vertices) { positions.push(...vertex); colors.push(color.r, color.g, color.b); }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
+  mesh.name = TURRET_ARMOR;
+  // Plate edges where the enclosure folds, drawn like the hull's creases.
+  mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geometry, 20), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: .9, depthWrite: false })));
+  return mesh;
+}
+function disposeOverlay(mesh: THREE.Mesh) {
+  mesh.traverse(node => { if (node instanceof THREE.Mesh || node instanceof THREE.LineSegments) { node.geometry.dispose(); (node.material as THREE.Material).dispose(); } });
+}
 
 type Template = { model: THREE.Group; ghost: THREE.Group; ghostMaterials: THREE.Material[]; invalid: THREE.Group; invalidMaterials: THREE.Material[] };
 
@@ -26,11 +49,35 @@ export class EquipmentPreview {
   private supportKey = '';
   private faded = new Map<THREE.Material, THREE.Material>();
   private originals = new WeakMap<THREE.Material, THREE.Material>();
+  private tinted = new Map<string, THREE.Material>();
 
-  setDisplay(display: 'paint' | 'armor' | 'internals', source: ConstructionSource, catalog: ConstructionCatalog) {
+  /** Armor view: plated gunhouses show their fixed catalog plates on the ship's thickness scale over a faded model;
+   * open mounts and casemates, whose catalog armor covers the whole mount, take that thickness's colour. */
+  setDisplay(display: 'paint' | 'armor' | 'internals', source: ConstructionSource, catalog: ConstructionCatalog, armorScale: ArmorScale = FIXED_ARMOR_SCALE) {
     const internal = new Set(source.construction.equipment.filter(item => catalog.equipment.find(part => part.id === item.partId)?.placement === 'internal').map(item => item.id));
+    const armored = new Map<string, TurretArmor>();
+    for (const item of display === 'armor' ? source.construction.equipment : []) {
+      const gun = gunPartOf(catalog, item.partId);
+      if (gun) armored.set(item.id, turretArmor(gun));
+    }
+    for (const [id, instance] of this.instances) {
+      const armor = armored.get(id), key = armor?.plates.length ? `${armorScale.fromMm}-${armorScale.toMm}` : '';
+      let overlay = instance.getObjectByName(TURRET_ARMOR) as THREE.Mesh | undefined;
+      if (overlay && overlay.userData.key !== key) { overlay.removeFromParent(); disposeOverlay(overlay); overlay = undefined; }
+      if (!overlay && armor && key) { overlay = turretArmorMesh(armor, armorScale); overlay.userData.key = key; overlay.userData.sourceId = id; instance.add(overlay); }
+    }
     this.group.traverse(node => {
-      if (!(node instanceof THREE.Mesh)) return;
+      if (!(node instanceof THREE.Mesh) || node.name === TURRET_ARMOR) return;
+      const armor = armored.get(node.userData.sourceId), whole = armor && !armor.plates.length;
+      if (whole) {
+        // update() has just restored the originals; keep them on the node while the shared tint stands in.
+        const color = armorThicknessColor(armor.armorMm, armorScale);
+        let tinted = this.tinted.get(color);
+        if (!tinted) { tinted = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide }); this.tinted.set(color, tinted); }
+        node.userData.armorOriginal ??= node.material; node.material = tinted;
+        return;
+      }
+      if (node.userData.armorOriginal) { node.material = node.userData.armorOriginal; delete node.userData.armorOriginal; }
       const fade = display === 'armor' || display === 'internals' && !internal.has(node.userData.sourceId);
       const material = (current: THREE.Material) => {
         const original = this.originals.get(current) ?? current;
@@ -45,6 +92,23 @@ export class EquipmentPreview {
       };
       node.material = Array.isArray(node.material) ? node.material.map(material) : material(node.material);
     });
+  }
+
+  /** The turret plate (or whole-mount armor) nearest along the ray, for the Armor view's hover reading. */
+  armorHit(ray: THREE.Raycaster, source: ConstructionSource, catalog: ConstructionCatalog): { distance: number; equipmentId: string; name: string; thicknessMm: number; plated: boolean } | undefined {
+    const targets: THREE.Object3D[] = [];
+    for (const [id, instance] of this.instances) {
+      const item = source.construction.equipment.find(entry => entry.id === id), gun = item && gunPartOf(catalog, item.partId);
+      if (!gun) continue;
+      const overlay = instance.getObjectByName(TURRET_ARMOR);
+      if (overlay) targets.push(overlay); else instance.traverse(node => { if (node instanceof THREE.Mesh) targets.push(node); });
+    }
+    const hit = ray.intersectObjects(targets, false)[0];
+    const id = hit?.object.userData.sourceId as string | undefined, item = id ? source.construction.equipment.find(entry => entry.id === id) : undefined;
+    const gun = item && gunPartOf(catalog, item.partId), part = item && catalog.equipment.find(entry => entry.id === item.partId);
+    if (!hit || !id || !gun || !part) return undefined;
+    const armor = turretArmor(gun), plate = hit.object.name === TURRET_ARMOR ? armor.plates[hit.faceIndex ?? -1] : undefined;
+    return { distance: hit.distance, equipmentId: id, name: part.name, thicknessMm: plate?.thicknessMm ?? armor.armorMm, plated: !!plate };
   }
 
   constructor(private changed: () => void, private failed: (message: string) => void) {}
@@ -136,7 +200,8 @@ export class EquipmentPreview {
 
   private restoreMaterials() {
     this.group.traverse(node => {
-      if (!(node instanceof THREE.Mesh)) return;
+      if (!(node instanceof THREE.Mesh) || node.name === TURRET_ARMOR) return;
+      if (node.userData.armorOriginal) { node.material = node.userData.armorOriginal; delete node.userData.armorOriginal; return; }
       const restore = (material: THREE.Material) => this.originals.get(material) ?? material;
       node.material = Array.isArray(node.material) ? node.material.map(restore) : restore(node.material);
     });
@@ -184,6 +249,8 @@ export class EquipmentPreview {
   private clear() {
     this.restoreMaterials();
     this.faded.forEach(material => material.dispose()); this.faded.clear();
+    this.tinted.forEach(material => material.dispose()); this.tinted.clear();
+    this.group.traverse(node => { if (node.name === TURRET_ARMOR) disposeOverlay(node as THREE.Mesh); });
     disposeConstructionModel(this.supports); this.supportKey = '';
     this.requests.forEach(abort => abort.abort()); this.requests.clear();
     for (const instance of this.instances.values()) if (instance.userData.path) disposeConstructionModel(instance);
