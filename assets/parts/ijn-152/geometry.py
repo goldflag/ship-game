@@ -16,9 +16,9 @@ def create_mount(m,col,helpers,mats):
  # Curved armor has thickness and an open vertical gun slot.
  for i in range(32):
   a0=math.radians(18+i*324/32);a1=math.radians(18+(i+1)*324/32)
-  vs=[(r*math.cos(a),r*math.sin(a),zz) for zz in [.74,2.62] for r in [1.18,1.24] for a in [a0,a1]]
+  vs=[(r*math.cos(a),r*math.sin(a),zz) for zz in [.74,2.14] for r in [1.18,1.24] for a in [a0,a1]]
   own(mesh(name+'.curved-shield',vs,[(0,1,3,2),(4,6,7,5),(0,4,5,1),(2,3,7,6),(0,2,6,4),(1,5,7,3)],gray,col),yaw)
- drum('roof',(0,0,2.64),1.27,.055,yaw)
+ drum('roof',(0,0,2.16),1.27,.055,yaw)
  # Bearings and internal carriage connect the gun to the revolving shell.
  cube('bed',(0,0,.82),(1.3,1.1,.18),yaw)
  for sy in [-.47,.47]:
@@ -37,7 +37,7 @@ def create_mount(m,col,helpers,mats):
  bar('bore',(L-.004,0,0),(L+.004,0,0),.0762,rec,dark,n=16)
  # The approved view shows a full-height curtain over the shield slot.
  # Its perimeter stays on the rotating shield; only the barrel collar pitches.
- rings,sectors=9,24
+ rings,sectors=7,20
  collar_x,collar_radius=1.65,.255
  def cover_points(degrees):
   theta=math.radians(degrees);c,s=math.cos(theta),math.sin(theta);points=[]
@@ -45,7 +45,7 @@ def create_mount(m,col,helpers,mats):
    t=j/(rings-1)
    for i in range(sectors):
     a=i*math.tau/sectors;ca,sa=math.cos(a),math.sin(a);square=max(abs(ca),abs(sa))
-    y0=.40*ca/square;z0=1.69+.97*sa/square
+    y0=.40*ca/square;z0=1.45+.71*sa/square
     x0=math.sqrt(1.255**2-y0*y0)
     along=collar_x-T;up=collar_radius*sa
     end=(T+along*c-up*s,collar_radius*ca,H+along*s+up*c)

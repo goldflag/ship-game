@@ -210,32 +210,34 @@ def create_yamato_secondary(mount, collection, helpers, materials):
     rings = [[(-a, -b, floor), (a, -b, floor), (c, -d, floor), (c, d, floor), (a, b, floor), (-a, b, floor), (-c, d, floor), (-c, -d, floor)],
              [(-a, -3.2085, H), (1.718, -3.2085, roof_height(1.718)), (2.55, -2.43474, roof_height(2.55)), (2.55, 2.43474, roof_height(2.55)), (1.718, 3.2085, roof_height(1.718)), (-a, 3.2085, H), (-c, 2.43474, H), (-c, -2.43474, H)]]
     centers = [spec['barrelSpacing'], 0, -spec['barrelSpacing']]
-    port_half = .43; pz0, pz1 = 1.3, roof_height(2.55)
+    port_half = .43; pz0, pz1 = .95, roof_height(2.55)
     face = _shell(n, mesh, box, rings, 2, centers, port_half, pz0, pz1, naval, roof, dark, col)
     for cy in centers:
         for y in (cy - port_half - .02, cy + port_half + .02):
             rod(n + '.port.frame', (face(pz0)[0] + .015, y, pz0), (face(pz1)[0] + .015, y, pz1), .04, naval, col, vertices=8)
         for z in (pz0, pz1):
             rod(n + '.port.frame', (face(z)[0] + .015, cy - port_half, z), (face(z)[0] + .015, cy + port_half, z), .04, naval, col, vertices=8)
-    # 8 m rangefinder through the rear of the gunhouse.
-    rx = -2.35; rz = H - .85; half = spec.get('rangefinderWidth', 8) / 2
-    rod(n + '.rangefinder.tube', (rx, -half + .2, rz), (rx, half - .2, rz), .22, naval, col, vertices=12)
-    for s in (-1, 1):
-        rod(n + '.rangefinder.arm', (rx, s * 3.1, rz), (rx, s * (half - .35), rz), .40, naval, col, r2=.27, vertices=12)
-        box(n + '.rangefinder.hood', (rx, s * (half - .1), rz), (.8, .55, .6), naval, col)
-        box(n + '.rangefinder.hood.roof', (rx - .01, s * (half - .1), rz + .33), (.88, .63, .06), roof, col)
-        box(n + '.rangefinder.aperture', (rx + .405, s * (half - .1), rz + .01), (.02, .3, .24), dark, col)
+    # The secondary's eight-metre rangefinder is a continuous armoured
+    # roof housing, with deep tapered wings, not a thin exposed optical tube.
+    rx=-2.10;rz=H-.08;half=spec.get('rangefinderWidth',8)/2
+    outline=[(-.68,-.45),(.58,-.45),(.72,-.22),(.72,.42),(.51,.60),(-.68,.60)]
+    k=len(outline);stations=[(-half,.80),(-3.35,1),(-2.2,1),(2.2,1),(3.35,1),(half,.80)]
+    vs=[(rx+x*scale,y,rz+z+(0 if abs(y)>3.3 else .14)) for y,scale in stations for x,z in outline]
+    fs=[tuple(reversed(range(k))),tuple(range((len(stations)-1)*k,len(stations)*k))]
+    fs.extend((j*k+i,j*k+(i+1)%k,(j+1)*k+(i+1)%k,(j+1)*k+i) for j in range(len(stations)-1) for i in range(k))
+    mesh(n+'.rangefinder.armoured-housing',vs,fs,naval,col)
+    for side in [-1,1]:
+        box(n+'.rangefinder.aperture',(rx+.64,side*(half-.22),rz+.05),(.025,.32,.54),dark,col)
+        box(n+'.rangefinder.shutter',(rx+.66,side*(half-.22),rz+.06),(.025,.22,.43),edge,col)
+        # Short roof rail rooted in the rangefinder crown.
+        for yy in [side*.85,side*2.55]:rod(n+'.rangefinder.rail-post',(rx,yy,rz+.58),(rx,yy,rz+1.04),.024,edge,col,vertices=6)
+        rod(n+'.rangefinder.rail',(rx,side*.85,rz+1.04),(rx,side*2.55,rz+1.04),.024,edge,col,vertices=6)
     scale = W / 8
     _roof_service(n, rod, cyl, L, W, H, scale, -1.2, .22, edge, col)
     for s in (-1, 1):
         side_y = lambda z: s * (b - (b - 3.2085) * (z - floor) / (H - floor) + .04)
         _ladder(n, rod, (-L * .30 + 1.4, side_y(.35), .35), (-L * .30 + 1.4, side_y(roof_height(-L * .30 + 1.4) - .05), roof_height(-L * .30 + 1.4) - .05), .5 * scale, edge, col)
-        _vent(n, box, .55, s * (b - (b - 3.2085) * (1.2 - floor) / (H - floor) + .0), 1.2, .6 * scale, .46 * scale, naval, roof, dark, col)
-        box(n + '.roof.sight.hood', (.4, s * 2.55, H + .13), (.6, .5, .28), naval, col)
-        box(n + '.roof.sight.slit', (.71, s * 2.55, H + .14), (.02, .32, .11), dark, col)
-        box(n + '.rear.door', (-3.215, s * 1.15, 1.35), (.05, .7, 1.5), naval, col)
-        for z in (.9, 1.8): box(n + '.rear.door.hinge', (-3.25, s * 1.47, z), (.05, .1, .13), edge, col)
-        rod(n + '.rear.door.handle', (-3.26, s * .9, 1.25), (-3.26, s * .9, 1.45), .022, edge, col, vertices=6)
+        if s==1:box(n+'.roof.sight.hood',(.1,0,roof_height(.1)+.14),(.65,.62,.28),naval,col)
         for x in (-1.0, 1.0): rod(n + '.side.seam', (x, side_y(floor + .03) - s * .03, floor + .03), (x, side_y(H - .02) - s * .03, H - .02), .013, edge, col, vertices=6)
     cyl(n + '.roof.vent', (-2.55, 0, H + .12), .2, .24, naval, col, 16)
     cyl(n + '.roof.vent.cap', (-2.55, 0, H + .26), .27, .05, roof, col, 16)

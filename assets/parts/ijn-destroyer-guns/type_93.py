@@ -26,7 +26,7 @@ def create_mount(mount,col,helpers,materials):
     drum('octagonal-foot',(0,0,.035),radius,.07,base,n=8)
     for i in range(8):
         a=i*math.tau/8;drum('hold-down-bolt',(radius*.83*math.cos(a),radius*.83*math.sin(a),.082),.020,.027,base,m=edge,n=6)
-    drum('conical-pedestal',(0,0,.21 if twin else .5),radius*.72,.30 if twin else .88,yaw,n=12,r2=.085)
+    drum('conical-pedestal',(0,0,.21 if twin else .39),radius*.72,.30 if twin else .64,yaw,n=12,r2=.085)
     if twin:
         for sign in [-1,1]:
             # Open raked cheek plates meet the pedestal saddle and gun bearings.
@@ -34,19 +34,23 @@ def create_mount(mount,col,helpers,materials):
             vs=[(xx,sign*.22+dy,zz) for dy in [-.028,.028] for xx,zz in points];n=len(points)
             put(mesh(name+'.fork-cheek',vs,[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],gray,col),yaw)
             bar('trunnion-cap',(T,sign*.17,H),(T,sign*.28,H),.065,yaw)
-            bar('seat-arm',(0,sign*.15,.30),(-.47,sign*.31,.31),.025,yaw,gray)
-            bar('seat-support',(-.47,sign*.31,.31),(-.47,sign*.31,.45),.032,yaw)
-            block('seat',(-.47,sign*.31,.46),(.23,.22,.035),yaw,wood)
-            block('seat-back',(-.58,sign*.31,.58),(.02,.23,.22),yaw)
-            bar('seat-back-support',(-.55,sign*.31,.44),(-.58,sign*.31,.64),.015,yaw)
-            bar('control-spindle',(-.18,sign*.19,.53),(-.18,sign*.35,.53),.023,yaw)
-            ring('training-handwheel',(-.18,sign*.36,.53),.12,yaw)
+            if sign==1:
+                bar('control-spindle',(-.18,.19,.53),(-.18,.35,.53),.023,yaw)
+                ring('training-handwheel',(-.18,.36,.53),.12,yaw)
             block('foot-pedal',(.22,sign*.26,.24),(.14,.10,.025),yaw)
             bar('pedal-arm',(0,0,.27),(.22,sign*.26,.23),.017,yaw)
+        bar('seat-arm',(0,0,.30),(-.55,0,.29),.032,yaw,gray)
+        bar('seat-post',(-.55,0,.29),(-.55,0,.45),.035,yaw)
+        drum('seat',(-.55,0,.46),.18,.035,yaw,wood,8)
+        bar('back-brace',(-.66,0,.46),(-.72,0,.67),.020,yaw)
+        block('seat-back',(-.72,0,.64),(.025,.28,.12),yaw)
     else:
+        drum('training-neck',(0,0,.84),.055,.26,yaw,m=edge,n=8)
         block('saddle',(0,0,.98),(.18,.22,.09),yaw)
         for sign in [-1,1]:
-            bar('raked-fork',(.05,sign*.09,.98),(T,sign*.10,H),.035,yaw,gray)
+            profile=[(-.09,.98),(.08,.98),(T+.05,H+.025),(T-.065,H+.025)]
+            vs=[(x,sign*.10+dy,z) for dy in [-.022,.022] for x,z in profile]
+            put(mesh(name+'.fork-cheek',vs,[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],gray,col),yaw)
             bar('bearing',(T,sign*.055,H),(T,sign*.13,H),.057,yaw)
     for side,lateral,vertical in barrel_layout(sp):
         elev=empty(side+'.elevation',yaw,(T,lateral,H));elev.rotation_euler.y=-math.radians(1)

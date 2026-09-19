@@ -12,8 +12,8 @@
     "triangles": 5128
   },
   "us-20mm-oerlikon-mk4-hsienyang": {
-    "modelUrl": "/models/components/us-20mm-oerlikon-mk4-hsienyang/85c6910b417c2f6c4a2dc4cc5977e14a628f5b3d9c16dce367acc81b50ed49fd/model.glb",
-    "triangles": 9056
+    "modelUrl": "/models/components/us-20mm-oerlikon-mk4-hsienyang/559241d3b508b3465d38c6d8ee87b2eae46ed93e6a500969231b7147034aff7a/model.glb",
+    "triangles": 4456
   },
   "skc34-203-twin": {
     "modelUrl": "/models/components/skc34-203-twin/444f6482d97e97118cb42da896b9426f809d3caffb2c3f2419c3c50f43440285/model.glb",
@@ -24,92 +24,92 @@
     "triangles": 2724
   },
   "skc33-105-c31-twin": {
-    "modelUrl": "/models/components/skc33-105-c31-twin/b02fe1487dc929d3e746aa847bdee31774a7084199e7a7558c5af8a66e9e051e/model.glb",
-    "triangles": 6196
+    "modelUrl": "/models/components/skc33-105-c31-twin/3ea3849909369abcdf865b7bbf1f1280c10e36ff4e1d3312b72a51a9a06e883c/model.glb",
+    "triangles": 3614
   },
   "flak-37-bismarck-1941": {
-    "modelUrl": "/models/components/flak-37-bismarck-1941/4343c14cee5b7e90e2bb7be67c031529e295e21c747408d0fc57a984510ac888/model.glb",
-    "triangles": 3984
+    "modelUrl": "/models/components/flak-37-bismarck-1941/fb8536627ed1132bfa6be7c71f81acfda5c3b2f798fb6cb27913732e57afed66/model.glb",
+    "triangles": 2960
   },
   "flak38-m43u-20-twin": {
-    "modelUrl": "/models/components/flak38-m43u-20-twin/01026281fd1ba9b65742bb26e12c12fd468eacd4cdaee7395366ecc6dfea855e/model.glb",
-    "triangles": 4864
+    "modelUrl": "/models/components/flak38-m43u-20-twin/b7f14e9964ef4f0dcd92d251fc106b85eaa47f987fc31e57c4bd49694f5d113a/model.glb",
+    "triangles": 2400
   },
   "flak38-20-single": {
-    "modelUrl": "/models/components/flak38-20-single/ebb886a928e44c453ad1d0b4fd88c2e9d39acfb56480ed4b722448cc2f3d0095/model.glb",
-    "triangles": 7764
+    "modelUrl": "/models/components/flak38-20-single/fb79b6c3627a51d28fbae65288917f5b409051f2a5858ead6961ae613688b8fe/model.glb",
+    "triangles": 2924
   },
   "flak28-40-single": {
-    "modelUrl": "/models/components/flak28-40-single/5834524ecc979e64728683c20f9d09a16af6464e057491072bdecd43503c5413/model.glb",
-    "triangles": 5672
+    "modelUrl": "/models/components/flak28-40-single/06ad57447dbd352fddfb6ee621d1b9ecc6c4d4184cd3b5fd6b6d9dc5652e3bb0/model.glb",
+    "triangles": 2624
   },
   "us-5in38-mk21-single": {
     "modelUrl": "/models/components/us-5in38-mk21-single/0f491aa0213ea813a1a7fdbd9ba48987fa76ebe6601ed24c21587ee3a0540564/model.glb",
     "triangles": 1100
   },
   "us-11in75-quad": {
-    "modelUrl": "/models/components/us-11in75-quad/6d26465d4f527ffca990f0ddb12540d5894cb4f2eabc90abf6fda36ea3c4e6a2/model.glb",
-    "triangles": 1872
+    "modelUrl": "/models/components/us-11in75-quad/3a75bca986c1def38f05f5979f5475080ad3904c565fdb0d4c316bd1c8a3120f/model.glb",
+    "triangles": 1764
   },
   "us-3in50-single": {
-    "modelUrl": "/models/components/us-3in50-single/d3a483bc87ff7b364f19c8fb07fe1fea54262e0eb201dcac1d2d0c3d3d0c2831/model.glb",
-    "triangles": 1100
+    "modelUrl": "/models/components/us-3in50-single/9df541a1e56b42194ae1836d7e80467cc1da9b36d72cded7e3be2f2f9d7ffb47/model.glb",
+    "triangles": 1308
   },
   "qf-2pdr-mkvi-octuple": {
-    "modelUrl": "/models/components/qf-2pdr-mkvi-octuple/a20a247cebee77c8f021613fedfb00e5ee5714af0ad140dec373f37545e173d2/model.glb",
-    "triangles": 4576
+    "modelUrl": "/models/components/qf-2pdr-mkvi-octuple/6a51c31f6ce8c1c1d8d8a2416d894bf88f6fa894422576b93e34222f854527c1/model.glb",
+    "triangles": 3024
   },
   "type89-127-a1-twin": {
-    "modelUrl": "/models/components/type89-127-a1-twin/b7c67281b71ab13d0f70a82ae278dae8bde35adbf65829b94f0c34c300f0c777/model.glb",
-    "triangles": 6212
+    "modelUrl": "/models/components/type89-127-a1-twin/2ae60896cc49e2c83408a6981cbabb0669cc4708b5989e11c97be31c08fe316c/model.glb",
+    "triangles": 5072
   },
   "type89-127-a1-mod2-twin": {
-    "modelUrl": "/models/components/type89-127-a1-mod2-twin/795cefc9ead72bae9f2fcdbeaca92d3cbeb230b3cedda43bf01c22a0dfa28e41/model.glb",
-    "triangles": 6904
+    "modelUrl": "/models/components/type89-127-a1-mod2-twin/c55ede2b971ba8be2227b7bf15c57ae6d3e4e932bf764e0748fc7248564def6a/model.glb",
+    "triangles": 5520
   },
   "type96-25-triple": {
-    "modelUrl": "/models/components/type96-25-triple/cb505b4604567095061178ace9e7d3d8279efe621dadf0c3196e473a6efeadd9/model.glb",
-    "triangles": 7888
+    "modelUrl": "/models/components/type96-25-triple/0eb3086375cdd8992469a14004227ed076f3a01a96f41bed1374435f731ab116/model.glb",
+    "triangles": 4992
   },
   "type96-25-triple-shielded": {
-    "modelUrl": "/models/components/type96-25-triple-shielded/181d6abde48cd844ebfed462073903fc73c0418e2c39397064be6463858e7bd8/model.glb",
-    "triangles": 8604
+    "modelUrl": "/models/components/type96-25-triple-shielded/24c7216bf30fc12b85d17861620db3eee0f89b91ae046212b66a4e0c12d7b3cf/model.glb",
+    "triangles": 5852
   },
   "type3-127-typec-twin": {
     "modelUrl": "/models/components/type3-127-typec-twin/17c1b128a9e01328b5dd7402c49b6ba8e1aeeadfc5f8a0beed55d58bf4b07b63/model.glb",
     "triangles": 9076
   },
   "type96-25-mogami-2": {
-    "modelUrl": "/models/components/type96-25-mogami-2/cd6f18dd88214890af6e16b4dfb5edf98f385c77225d9932cd8d4770dbd0392d/model.glb",
-    "triangles": 6356
+    "modelUrl": "/models/components/type96-25-mogami-2/566203f9498f88a30e3b0b24cc6ef06ff499441b93433fc7f1d212fa2234ae7f/model.glb",
+    "triangles": 4116
   },
   "us-40mm-bofors-mk1-iowa": {
-    "modelUrl": "/models/components/us-40mm-bofors-mk1-iowa/c9ccf5f85709a3a72c5f1b5350a936f9ed30d1caa4daa1f59642086eafc3e0f4/model.glb",
-    "triangles": 11800
+    "modelUrl": "/models/components/us-40mm-bofors-mk1-iowa/f65204e7dc55e5bb1651d806bccb5130bc9b9600054ae4edbd850d2f714c034c/model.glb",
+    "triangles": 6200
   },
   "us-20mm-oerlikon-mk24-hsienyang": {
-    "modelUrl": "/models/components/us-20mm-oerlikon-mk24-hsienyang/c6029792b5cddefb290916d3afa34830329a4562d60fc148545baa8ed19e2582/model.glb",
-    "triangles": 15844
+    "modelUrl": "/models/components/us-20mm-oerlikon-mk24-hsienyang/d0d14d03ce1ce0bf8055156b2e8221e60f37d523bf4c930eeab01ea346e3dd6d/model.glb",
+    "triangles": 7092
   },
   "us-5in38-mk32-mod12": {
-    "modelUrl": "/models/components/us-5in38-mk32-mod12/c42951715cb3868fef9cf95eecca7cf5d788200a826be902f2a7b2492ac8fc72/model.glb",
-    "triangles": 2896
+    "modelUrl": "/models/components/us-5in38-mk32-mod12/67fb0558fb697055c5df9ec2182259f2b1671a1c3fb4097b17ac1715d527b7db/model.glb",
+    "triangles": 2588
   },
   "type93-13-twin": {
-    "modelUrl": "/models/components/type93-13-twin/c2485636d606f93f06b8c00da951f842d2946cfd06a234b96877963666c2ebac/model.glb",
-    "triangles": 7640
+    "modelUrl": "/models/components/type93-13-twin/af5cf2ee8e381424dbdb93277eed8bfcb124e4b0719cf7ec738fa486d70af8d7/model.glb",
+    "triangles": 3496
   },
   "type93-13-single": {
-    "modelUrl": "/models/components/type93-13-single/ef15cb4b063f6283194b2575bb8b5b5edae96d5a302e2443c80a087b7f32e7b5/model.glb",
-    "triangles": 3772
+    "modelUrl": "/models/components/type93-13-single/6d5b4407ec282b8d58c300b0ca9799f0c6285b8c44701b0299ed5f1c55f4e33e/model.glb",
+    "triangles": 1796
   },
   "type94-460-triple": {
     "modelUrl": "/models/components/type94-460-triple/108eb421087568e25cd57a849038181f49d59b3cd75e7421279db9734fb25764/model.glb",
     "triangles": 9304
   },
   "type3-155-triple": {
-    "modelUrl": "/models/components/type3-155-triple/d22985402ef2e0e6f4ce4752978d30efabb97892f19ec42c7c425190beaf81a2/model.glb",
-    "triangles": 7038
+    "modelUrl": "/models/components/type3-155-triple/5ef0da4d94c412ae937b2b8fb6538360ff8c5b7045bf823426165eeb78ff638d/model.glb",
+    "triangles": 4584
   },
   "type3-203-mogami-e3-twin": {
     "modelUrl": "/models/components/type3-203-mogami-e3-twin/3bdc6923c16d6fad7c36b8b376be05045b83d41eec70380fdd75b251ddb7c6d5/model.glb",
@@ -136,35 +136,35 @@
     "triangles": 5100
   },
   "qf-525-mki-twin": {
-    "modelUrl": "/models/components/qf-525-mki-twin/e9381ed2f486389d8e13c4cdcd5266505f7d4c19fe3d68be96715febe4f3e4f0/model.glb",
-    "triangles": 3226
+    "modelUrl": "/models/components/qf-525-mki-twin/715ecaafc4cdb13299dcc7a6fd71a871a5cc1f454fbd7f7d5e0fe59a8d46458a/model.glb",
+    "triangles": 2742
   },
   "sk-c28-150-twin": {
-    "modelUrl": "/models/components/sk-c28-150-twin/b98b75be44c58c5d0a8a7a3c14da3c518447682ea345324d5d2412f5735635e9/model.glb",
-    "triangles": 4220
+    "modelUrl": "/models/components/sk-c28-150-twin/8f887525299e38ea4f6c6ee2aa565975375fe2c64b9cece09bffb5e9e0b5aa9e/model.glb",
+    "triangles": 2300
   },
   "flak-105-bismarck-1941": {
-    "modelUrl": "/models/components/flak-105-bismarck-1941/6b4fe45871f35bfd870aac4084ac14bf76719ec72bda4058ba90c171e76ea466/model.glb",
-    "triangles": 5596
+    "modelUrl": "/models/components/flak-105-bismarck-1941/a549d4b3e5709d7f51c082717d690322d6edf1b333862f7bf2daf654ad52a475/model.glb",
+    "triangles": 3614
   },
   "type41-356-kongo-twin": {
     "modelUrl": "/models/components/type41-356-kongo-twin/9bf036abcfaf5338123bbbc868b4e05fcefa0e7f2015d0efd3ec018952ffc4e5/model.glb",
     "triangles": 9808
   },
   "type41-152-kongo-casemate": {
-    "modelUrl": "/models/components/type41-152-kongo-casemate/a33b4edf75d505747b98443fb051e7ba899baf45c1a6eb7c2ca696beca8ed1f0/model.glb",
-    "triangles": 3644
+    "modelUrl": "/models/components/type41-152-kongo-casemate/fd8e37345c01640cb6d94d10878e14d373c6173572691f5ab52b546bffb864bc/model.glb",
+    "triangles": 2364
   },
   "type96-25-kongo-3": {
-    "modelUrl": "/models/components/type96-25-kongo-3/e3e3fe308dd235e50dccd49e5bff069f4aa3a3cb734dab9626b375a1c4912b9d/model.glb",
-    "triangles": 5104
+    "modelUrl": "/models/components/type96-25-kongo-3/f49d06feeaddd4a0c2b3ddbe3df0b35ed7f9378004c135c9930cea701c7d287e/model.glb",
+    "triangles": 4272
   },
   "type96-25-kongo-2": {
-    "modelUrl": "/models/components/type96-25-kongo-2/332b0323d0b818eb796a8b533c3af69d72104f4927074bdf826ff581b44de5dd/model.glb",
-    "triangles": 3936
+    "modelUrl": "/models/components/type96-25-kongo-2/3db6b532f8c0b383fc6ef82b520fb5a1954e86f590db3d43c8719c4070bb65cd/model.glb",
+    "triangles": 3344
   },
   "type96-25-kongo-single": {
-    "modelUrl": "/models/components/type96-25-kongo-single/fa9c7317edf01001a63767b1ab78b8860a6d4138d1f112d3b5e8f20d23e33da2/model.glb",
-    "triangles": 2132
+    "modelUrl": "/models/components/type96-25-kongo-single/79ec83a6575ef9e42e75e979492c1990f27fa92856390e18acf68fc8b2e422db/model.glb",
+    "triangles": 1364
   }
 }

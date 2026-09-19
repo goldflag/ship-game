@@ -473,3 +473,55 @@ provisional material fractions for folded treads, channel stringers and tubes;
 these fittings add no buoyancy or crew pathfinding. Mounting ends may seat within
 18 cm of their supported attachment; other hull and equipment intersections fail.
 Framed ladders currently require a straight wall run, without a horizontal bend.
+
+
+## Secondary and AA recipe scope
+
+The September 2026 fidelity pass uses the registered GameModels3D resources in
+[`component-references.json`](../../../tools/ship-overlay/component-references.json).
+Its baseline is the complete published assembly at `13e3e07`, retained in
+[`component-before.json`](../../../tools/ship-overlay/component-before.json).
+Each assembly has its own triangle ceiling; hidden mechanisms, sights, seats,
+shields, barrels and bases count together. Reference geometry/textures are
+viewing-only. Original recipes retain the existing independent joint/socket
+transforms, recoil, weapon statistics and intrinsic installation occupancy.
+
+The non-overlapping secondary/AA set is:
+
+| Family | Registered component IDs |
+| --- | --- |
+| US light AA | `us-20mm-oerlikon-mk4-hsienyang`, `us-20mm-oerlikon-mk24-hsienyang`, `us-40mm-bofors-mk1-iowa`, `us-11in75-quad`, `us-3in50-single` |
+| US secondary | `us-5in38-mk32-mod12` |
+| German light AA | `flak-37-bismarck-1941`, `flak38-m43u-20-twin`, `flak38-20-single`, `flak28-40-single` |
+| German secondary/dual-purpose | `skc33-105-c31-twin`, `flak-105-bismarck-1941`, `sk-c28-150-twin` |
+| Japanese machine guns | `type93-13-twin`, `type93-13-single` |
+| Japanese 25 mm | `type96-25-triple`, `type96-25-triple-shielded`, `type96-25-mogami-2`, `type96-25-kongo-3`, `type96-25-kongo-2`, `type96-25-kongo-single` |
+| Japanese secondary/AA | `type3-155-triple`, `type41-152-kongo-casemate`, `type89-127-a1-twin`, `type89-127-a1-mod2-twin` |
+| British secondary/AA | `qf-525-mki-twin`, `qf-2pdr-mkvi-octuple` |
+
+Roles follow the catalog and actual consumers. Yamato's 155 mm remains secondary.
+Shokaku's Type 89 A1/A1-mod2 are AA despite the ship's main-control battery label.
+The published Mk21 is excluded because Enterprise/merchant consumers use it as
+main armament. Mk30 Mod0, Cleveland Mk16, Baltimore Mk12, Type C, Mogami E/E3 and
+both Hipper 203 mm mounts likewise belong to the separate main-battery pass.
+Legacy Fletcher Mk30, corvette 4-inch and U-boat 88 mm are not published
+Shipbuilder equipment and are outside this set.
+
+The reference register's `close` and `family` qualifications still apply. In
+particular, Ranger's quad resource does not certify the 1.1-inch designation;
+the Liberty 3-inch reference specifies Mk22 Mod2 while this catalog entry does
+not; the pom-pom resource/mount marks differ; Kongo's single/triple 25 mm matches
+are family-only, and its low twin pedestal is retained. The Hsienyang twin's
+Mk20 visual-resource/Mk24 equipment designation discrepancy is unresolved.
+Type 41's resource says 150 mm while the catalog says 152 mm. These are not
+silently promoted to exact matches or historical-fit certifications.
+
+The shielded Type 89 A1-mod2 reference has a much lower bore relative to its
+hood than the fixed catalog elevation datum permits. Its enclosure silhouette
+is closer, but that proportion mismatch remains. Some loading/aiming fittings
+remain simplified, especially the quad 1.1-inch and octuple pom-pom. Geometry
+review does not override the existing `unreviewed` acceptance state.
+
+Historical recipes that inline an older mount are not automatically migrated by
+a catalog publication. Rebuilt reusable-recipe consumers and a Shipbuilder
+installation review must be distinguished from those legacy inline models.

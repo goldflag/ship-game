@@ -70,19 +70,21 @@ def create_open_mount(mount, col, helpers, materials):
     width = spec['gunhouseSize'][1]
     hand_trained = spec['caliberM'] <= .020
     fork = min(width * .36, .19) if hand_trained else width * .36
+    if spec['id']=='us-3in50-single':fork*=.63
     open_well = spec['id'] in ['us-5in38-mk21-single','us-3in50-single','us-11in75-quad','qf-2pdr-mkvi-octuple']
     if open_well:
         # A hollow rotating bed gives the descending breech a real rear well.
         # Continuous side webs carry the bearing cheeks from the foot/platform;
         # the front cross-member stays ahead of the full recoil/elevation sweep.
         inner = .62 if spec['id']=='us-5in38-mk21-single' else .43
-        vertices=[(radius*math.cos(i*math.tau/20),radius*math.sin(i*math.tau/20),z)
-                  for z in [0,.20] for radius in [inner,r] for i in range(20)]
+        sides=20 if spec['id']=='us-5in38-mk21-single' else 12
+        vertices=[(radius*math.cos(i*math.tau/sides),radius*math.sin(i*math.tau/sides),z)
+                  for z in [0,.20] for radius in [inner,r] for i in range(sides)]
         faces=[]
-        for i in range(20):
-            j=(i+1)%20
-            faces += [(i,j,20+j,20+i),(40+i,60+i,60+j,40+j),
-                      (i,40+i,40+j,j),(20+i,20+j,60+j,60+i)]
+        for i in range(sides):
+            j=(i+1)%sides
+            faces += [(i,j,sides+j,sides+i),(2*sides+i,3*sides+i,3*sides+j,2*sides+j),
+                      (i,2*sides+i,2*sides+j,j),(sides+i,sides+j,3*sides+j,3*sides+i)]
         attach(mesh(name+'.foundation',vertices,faces,steel,col),root)
         foot=.31 if style=='pom-pom' else .20
         for sign in [-1,1]:
@@ -106,7 +108,7 @@ def create_open_mount(mount, col, helpers, materials):
         attach(rod(name + '.trunnion-cover', (trunnion, side * (fork-.08), height),
                    (trunnion, side * (fork+.10), height),
                    .16 if style == 'open-pedestal' else .07, steel, col, vertices=12), yaw)
-        if not hand_trained:
+        if not hand_trained and not (spec['id']=='us-3in50-single' and side==-1):
             seat_y = side * width * .40
             attach(rod(name + '.seat-arm', (.75, side*fork, height * .43) if open_well else (0, 0, height * .43),
                        (-.45, seat_y, height * .43), .055, gray, col), yaw)
@@ -116,7 +118,7 @@ def create_open_mount(mount, col, helpers, materials):
         # Open mount identity comes from the carriage, controls and receiver,
         # not decorative tiny fasteners. Keep the existing installation datum.
         platform_width = width*.43
-        for sign in [-1,1]:
+        for sign in ([-1,1] if spec['id']!='us-3in50-single' else [1]):
             attach(box(name+'.operator-step',(-.48,sign*platform_width,.36),(.98,.48,.07),gray,col),yaw)
             attach(rod(name+'.step-brace',(trunnion-.2,sign*fork,.3),(-.48,sign*platform_width,.36),.05,gray,col),yaw)
             attach(box(name+'.seat-back',(-.65,sign*width*.40,height*.62),(.08,.34,.34),gray,col),yaw)
@@ -126,10 +128,15 @@ def create_open_mount(mount, col, helpers, materials):
             attach(box(name+'.training-gearbox',(-.25,sign*fork,height*.72),(.50,.16,.20),gray,col),yaw)
             wheel('training-wheel',(-.35,sign*(fork+.13),height*.72),.19,yaw)
         if count == 4:
-            attach(box(name+'.rear-drive',(-.94,0,.74),(.40,width*.73,.45),gray,col),yaw)
+            cheek('rear-drive',[(-1.14,.34),(-.74,.34),(-.70,.66),(-.90,.81),(-1.14,.65)],0,width*.38,yaw)
             for sign in [-1,1]:
                 attach(rod(name+'.control-yoke',(-.61,sign*fork,height*.78),(-.83,sign*fork,height+.36),.026,steel,col),yaw)
                 attach(rod(name+'.control-yoke-top',(-.83,sign*fork,height+.36),(-.2,sign*fork,height+.36),.026,steel,col),yaw)
+    if spec['id']=='us-3in50-single':
+        # Front cast column connects the training bed to the raked trunnions;
+        # the breech retains the open aft well throughout elevation and recoil.
+        cheek('cast-pedestal',[(.12,.20),(.58,.20),(.48,height*.65),(.22,height*.79),(.08,height*.62)],0,.48,yaw)
+        attach(box(name+'.pedestal-gear-cover',(.54,0,height*.38),(.10,.36,.32),gray,col),yaw)
     if style == 'oerlikon':
         # OP 909: shield brackets attach to the carriage; the standing gunlayer
         # uses a shoulder rest, not the two seats formerly shared with heavy guns.
@@ -159,14 +166,17 @@ def create_open_mount(mount, col, helpers, materials):
             # Three bent armor panels, seated on the serving platform. The
             # reference's large shield and aft operator station define its mass.
 
-            cheek('outer-shield',[(-1.59,.25),(.94,.25),(.94,1.56),(.34,1.82),(-.5,1.28),(-1.59,.8)],sign*1.94,.055,yaw)
+            cheek('outer-shield',[(.15,.31),(.94,.31),(.94,1.62),(.55,1.75),(.15,1.62)],sign*1.72,.055,yaw)
             attach(box(name+'.shield-front',(.94,sign*1.55,.9),(.055,.8,1.3),gray,col),yaw)
             attach(box(name+'.aft-seat',(-1.27,sign*.79,1.43),(.46,.42,.10),gray,col),yaw)
-            cheek('aft-seat-back',[(-1.52,1.43),(-1.4,1.43),(-1.4,2.25),(-1.62,2.45),(-1.72,2.45)],sign*.79,.42,yaw)
+            if sign==1:cheek('aft-seat-back',[(-1.52,1.43),(-1.4,1.43),(-1.4,2.37),(-1.62,2.45),(-1.72,2.45)],sign*.79,.82,yaw)
+            else:attach(box(name+'.aft-seat-back',(-1.49,sign*.79,1.62),(.06,.40,.28),gray,col),yaw)
             attach(rod(name+'.seat-stanchion',(-1.27,sign*.79,.3),(-1.27,sign*.79,1.43),.06,gray,col),yaw)
             attach(rod(name+'.director-upright',(-1.12,sign*.72,.33),(-1.12,sign*.72,2.13),.03,gray,col),yaw)
             attach(rod(name+'.director-side',(-1.12,sign*.72,2.13),(-.55,sign*.72,2.13),.03,gray,col),yaw)
-        attach(box(name+'.serving-platform',(-.16,0,.25),(2.92,3.9,.12),gray,col),yaw)
+        outline=[(-1.62,-1.15),(-1.25,-1.72),(-.25,-1.95),(.96,-1.75),(1.30,-1.10),(1.30,1.10),(.96,1.75),(-.25,1.95),(-1.25,1.72),(-1.62,1.15)]
+        k=len(outline);vs=[(x,y,z) for z in [.19,.31] for x,y in outline]
+        attach(mesh(name+'.serving-platform',vs,[tuple(reversed(range(k))),tuple(range(k,2*k))]+[(i,(i+1)%k,k+(i+1)%k,k+i) for i in range(k)],gray,col),yaw)
         attach(rod(name+'.director-crossbar',(-.55,-.72,2.13),(-.55,.72,2.13),.03,gray,col),yaw)
     for side, lateral, vertical in barrel_layout(spec):
         elevation = empty(side + '.elevation', yaw, (trunnion, lateral, height))
