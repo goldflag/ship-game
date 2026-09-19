@@ -304,7 +304,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <WallSizeFields part={active.part} wall={piece.wall} onChange={tool.setWallSize}/>
       {['window','porthole'].includes(wallMount(active.part) ?? '') && <><button aria-pressed={!s.windowRow} onClick={() => tool.setWindowRow(false)}>Single</button><button aria-pressed={s.windowRow} onClick={() => tool.setWindowRow(true)}>Row</button>
       {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Click the first window, then click where the row ends." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
-      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Click the first window, then the last · Esc cancels' : 'Click a hull side or wall'} · {wallMount(active.part) === 'porthole' || active.part.wallSizing === 'uniform' ? '←→ / ↑↓ scale' : '←→ width · ↑↓ height'} · Shift fine{mirror ? ' · linked mirror' : ''}</span>
+      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Click the first window, then the last · Esc cancels' : 'Click a hull side or wall'} · {wallMount(active.part) === 'porthole' || active.part.wallSizing === 'uniform' ? '←→ / ↑↓ scale' : '←→ width · ↑↓ height'} · Shift fine · R turn{mirror ? ' · linked mirror' : ''}</span>
     </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && s.tool !== 'rotate' && selectedPrimitives.length === 1 && !selectedEquipment.length) {
@@ -335,7 +335,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </select>{!item.powerSourceId && assignedEngines.length > 1 && <span className="sb-engine-sources">{assignedEngines.map(propellerEngineName).join('; ')}</span>}</label>;
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.path?.kind === 'railing' ? `${item.path?.railCount ?? part.path?.railCount ?? 3}-rail railing` : part?.name ?? item.partId}</b>
-      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? 'Hull aligned · ' : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); }, true)}/></>}
+      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? `Hull aligned${item.wall.turnDeg ? ` · turned ${item.wall.turnDeg}°` : ''} · ` : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); }, true)}/></>}
       {item.wall && catalogPart && <>
         <WallSizeFields part={catalogPart} wall={item.wall} onChange={(axis, value) => edit('Resize wall fitting', target => {
           Object.assign(target.wall!, resizedWallDimensions(catalogPart, target.wall!, axis, value));
@@ -343,7 +343,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
       </>}
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; }, true)}/>}
-      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{!item.wall && <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove{twinNote}
+      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{item.wall ? <> · <kbd>R</kbd> turn · <kbd>⇧R</kbd> back</> : <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove{twinNote}
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];
@@ -533,7 +533,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     <div className="sb-left">
       {/* One joined strip of glyph cells: tools, then the modifiers that change where a click lands, then how the ship is shown. Names and keys appear beside the hovered cell. */}
       <div className="sb-rail" role="toolbar" aria-label="Tools">
-        {rail.filter(entry => entry.id !== 'rotate' || !(piece?.kind === 'equipment' && piece.wall) && !selectedEquipment.some(e => e.wall)).map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : undefined} aria-label={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)} {...railTip(entry.name, '', entry.key)}><ToolGlyph name={entry.glyph}/><kbd>{entry.key}</kbd></button>)}
+        {rail.map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : undefined} aria-label={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)} {...railTip(entry.name, '', entry.key)}><ToolGlyph name={entry.glyph}/><kbd>{entry.key}</kbd></button>)}
         {layer==='hull' && <button aria-pressed={freeformMode} aria-label="Freeform (D)" disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?tool.exitFreeform:enterFreeform} {...railTip('Freeform', 'Select one editable shape to edit vertices, edges, faces or rings', 'D')}><ToolGlyph name="Freeform"/><kbd>D</kbd></button>}
         <i className="sb-rail-rule" aria-hidden="true"/>
         {/* Modifiers change where a click lands rather than what it does; freeform mode carries its own local mirror axes and unit. */}

@@ -401,8 +401,9 @@ export interface ConstructionSurfaceAssignment {
 }
 export interface ConstructionAccessSettings { widthM: number; standOffM: number; handrails: 'both' | 'left' | 'right' | 'none'; grabHeightM: number }
 export interface ConstructionEquipment {
-  /** Wall fitting installation, in metres; linked partners reflect across ship X=0. */
-  wall?: { version: 1; widthM: number; heightM: number; mirrorId?: string };
+  /** Wall fitting installation, in metres; linked partners reflect across ship X=0.
+   * `turnDeg` is a quarter turn about the wall's outward normal, counter-clockwise seen from outside; omission is upright. */
+  wall?: { version: 1; widthM: number; heightM: number; mirrorId?: string; turnDeg?: 90 | 180 | 270 };
   /** Named coating for this installation and its barbette; omission follows the ship paint. */
   paint?: string;
   id: string; partId: string; position: Vec3; bearingDeg: number;
