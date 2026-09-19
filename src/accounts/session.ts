@@ -1,6 +1,7 @@
 import { createAuthClient } from 'better-auth/react';
 import { assetUrl } from '../assetUrl';
-export const authClient = createAuthClient({ basePath: assetUrl('api/auth'), sessionOptions: { refetchInterval: 30, refetchOnWindowFocus: true } });
+// Re-checks are rare and never focus-driven: every dev checkout and test browser shares one IP's rate limit.
+export const authClient = createAuthClient({ basePath: assetUrl('api/auth'), sessionOptions: { refetchInterval: 300, refetchOnWindowFocus: false } });
 let accountId: string | undefined;
 const cleanup = new Set<() => void>();
 export const currentAccount = () => accountId;
