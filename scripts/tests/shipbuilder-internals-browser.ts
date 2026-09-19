@@ -68,6 +68,45 @@ export async function checkInternalsSelection() {
   return { passed: checks.length, checks };
 }
 
+/** The Module cursor passes the deck and lands internal packages on the floor inside the hull. */
+export async function checkInternalModulePlacement() {
+  window.shipbuilderReview?.close();
+  await mountShipbuilderReview();
+  await controls.settled(() => !!document.querySelector('.sb-tabs'), 'editor mounted');
+  await controls.settled(() => !!window.shipbuilderReview?.source, 'source ready');
+  await controls.tab('Internals');
+  await controls.settled(() => !!viewport()?.props.scene.current?.surfaces.length, 'compiled hull');
+  const slot = document.querySelector<HTMLButtonElement>('.sb-hotbar .sb-slot[aria-label^="Small diesel"]');
+  assert(slot, 'Small diesel slot unavailable'); slot!.click();
+  await controls.settled(() => viewport().props.scene.placementPiece?.kind === 'equipment', 'module cursor');
+  const scene = () => viewport().props.scene, equipment = () => scene().source.construction.equipment;
+  const hull = scene().source.construction.primitives.find(p => p.id === 'hull')!;
+  const bottom = hull.position[1] - hull.size[1] / 2, deck = hull.position[1] + hull.size[1] / 2;
+  const checks: string[] = [];
+  // Aim at the weather deck over the forward room: top view, the default perspective, then the hull side.
+  const aims: { label: string; view?: 'top'; point: [number, number, number] }[] = [
+    { label: 'a top-view click on the deck', view: 'top', point: [1, deck, -18] },
+    { label: 'a perspective click on the deck', point: [-1, deck, -10] },
+    { label: 'a click on the hull side', point: [hull.size[0] / 2, 0, 18] },
+  ];
+  for (const aim of aims) {
+    while (aim.view ? scene().view !== aim.view : scene().view === 'top') { controls.key('q'); await controls.settled(() => true, 'cycle view'); }
+    const before = new Set(equipment().map(item => item.id));
+    controls.click(...await controls.screen(aim.point));
+    await controls.settled(() => equipment().some(item => !before.has(item.id)), aim.label);
+    const placed = equipment().find(item => !before.has(item.id))!, part = scene().catalog.equipment.find(entry => entry.id === placed.partId)!;
+    const base = placed.position[1] + part.boundsCenter[1] - part.size[1] / 2;
+    assert(base > bottom && base < bottom + .1, `${aim.label} left the package base at ${base}, not on the inner bottom ${bottom}`);
+    assert(base + part.size[1] < deck, `${aim.label} left the package through the deck`);
+    assert(Math.abs(placed.position[0]) + part.size[0] / 2 < hull.size[0] / 2, `${aim.label} left the package through the side`);
+    await controls.settled(() => scene().current?.revision === scene().source.revision, 'compiled placement');
+    const errors = (scene().current?.diagnostics ?? []).filter(d => d.severity === 'error' && d.sourceId === placed.id);
+    assert(!errors.length, `${aim.label}: ${errors.map(d => d.message).join('; ')}`);
+    checks.push(`${aim.label} lands the diesel on the inner bottom, inside the hull`);
+  }
+  return { passed: checks.length, checks };
+}
+
 /** Model cards must contain decoded, non-empty renders after each layer opens. */
 export async function checkEquipmentPaletteImages() {
   window.shipbuilderReview?.close();
