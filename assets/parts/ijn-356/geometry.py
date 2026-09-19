@@ -211,8 +211,8 @@ def create_mount(mount,col,helpers,mats):
             if o.type=='MESH':bpy.data.objects.remove(o,do_unlink=True)
         T,H=spec['trunnionForward'],spec['pivotHeight']
         def local(o,parent):o.parent=parent;o['assemblyId']=name;return o
-        profile=[(T-.75,.50),(5.45,.50),(7.65,.50),(7.70,.43),(11,.34),
-                 (spec['muzzleForward'],.245),(spec['muzzleForward'],.178),
+        profile=[(T-.75,.50),(5.45,.50),(7.65,.50),(7.70,.46),(11,.39),
+                 (spec['muzzleForward'],.305),(spec['muzzleForward'],.178),
                  (spec['muzzleForward']-.65,.178)]
         n=24
         vs=[(x-T,r*math.cos(i*math.tau/n),r*math.sin(i*math.tau/n)) for x,r in profile for i in range(n)]
@@ -252,7 +252,7 @@ def create_mount(mount,col,helpers,mats):
                     along=collar_x-T;up=collar_radius*sa
                     end=(T+along*c-up*s,gy+collar_radius*ca,H+along*s+up*c)
                     p=[x0+(end[0]-x0)*t,gy+y0+(end[1]-gy-y0)*t,z0+(end[2]-z0)*t]
-                    fold=math.sin(math.pi*t)*(.042*math.sin(a*7+t*4))
+                    fold=math.sin(math.pi*t)*(.065+.035*math.sin(a*7+t*4))
                     p[1]+=fold*ca;p[2]+=fold*sa-.10*math.sin(math.pi*t)
                     result.append(p)
             return result
@@ -269,11 +269,20 @@ def create_mount(mount,col,helpers,mats):
             var=driver.variables.new();var.name='pitch';var.type='TRANSFORMS'
             target=var.targets[0];target.id=elevation;target.transform_type='ROT_Y';target.transform_space='LOCAL_SPACE'
             driver.expression=f'max(0,1-abs(-pitch*57.29577951308232-{angle})/5)'
-        # A narrow collar seam follows elevation and allows recoil inside it.
+        # One continuous four-sided turned seam replaces 32 independently
+        # capped rods. It preserves the collar silhouette while freeing the
+        # hidden end-cap triangles for the source's supported roof guardrails.
+        vs=[];fs=[]
         for i in range(sectors):
-            a=i*math.tau/sectors;b=(i+1)*math.tau/sectors
-            local(rod(name+'.canvas-collar',(collar_x-T,collar_radius*math.cos(a),collar_radius*math.sin(a)),
-                      (collar_x-T,collar_radius*math.cos(b),collar_radius*math.sin(b)),.018,mats['canvas'],col,vertices=6),elevation)
+            angle=i*math.tau/sectors
+            for j in range(4):
+                around=j*math.tau/4
+                r=collar_radius+.018*math.cos(around)
+                vs.append((collar_x-T+.018*math.sin(around),r*math.cos(angle),r*math.sin(angle)))
+        for i in range(sectors):
+            for j in range(4):
+                fs.append((i*4+j,((i+1)%sectors)*4+j,((i+1)%sectors)*4+(j+1)%4,i*4+(j+1)%4))
+        local(mesh(name+'.canvas-collar',vs,fs,mats['canvas'],col,True),elevation)
     # Seat the shared hatches on this gunhouse's longitudinally sloping roof.
     for o in col.objects:
         if o.parent==yaw and 'roof hatch' in o.name:o.location.z=roof_z(o.location.x)+.065
@@ -335,7 +344,14 @@ def create_mount(mount,col,helpers,mats):
                 contact=shell.ray_cast(Vector((-10,yy,z)),Vector((1,0,0)))[0]
                 if contact is None:raise ValueError('Rear ladder foot misses the original gunhouse')
                 bar('ladder-stand-off',(-6.40,yy,z),(contact.x+.035,yy,z))
-        for x in [-5.3,-3.9,-2.5]:
-            bar('roof-stanchion',(x,side*3.35,roof_z(x)-.02),(x,side*3.35,roof_z(x)+.12))
-        bar('roof-handrail',(-5.3,side*3.35,roof_z(-5.3)+.12),(-2.5,side*3.35,roof_z(-2.5)+.12))
+        # JGM049's roof rail traces the shoulder, with every post passing
+        # through the roof skin. The related-source fit remains provisional.
+        stations=[(-5.55,3.18),(-4.15,3.65),(-1.65,3.65),(.7,3.57),(1.55,3.23)]
+        tops=[]
+        for x,yy in stations:
+            bottom=roof_z(x)-.03;top=roof_z(x)+.72
+            own(rod(name+'.roof-guard-post',(x,side*yy,bottom),(x,side*yy,top),.023,mats['edge'],col,vertices=6))
+            tops.append((x,side*yy,top))
+        for a,b in zip(tops,tops[1:]):
+            own(rod(name+'.roof-guard-rail',a,b,.022,mats['edge'],col,vertices=6))
     return house
