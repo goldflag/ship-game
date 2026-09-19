@@ -177,6 +177,31 @@
       "inputs": [
         "assets/parts/aa_articulation.py"
       ]
+    },
+    "ijn-356": {
+      "path": "assets/parts/ijn-356/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_components.py",
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-152": {
+      "path": "assets/parts/ijn-152/geometry.py",
+      "function": "create_mount",
+      "inputs": []
+    },
+    "ijn-low-aa": {
+      "path": "assets/parts/ijn-light-aa/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "type96-single": {
+      "path": "assets/parts/type96-single/geometry.py",
+      "function": "create_mount",
+      "inputs": []
     }
   },
   "components": [
@@ -606,6 +631,46 @@
       "review": "unreviewed",
       "limitations": "Original pgsc108 A reconstruction; review in progress. Gameplay limits and small fittings provisional; installed clearance requires ship review.",
       "builder": "german-cruiser-light"
+    },
+    {
+      "partId": "type41-356-kongo-twin",
+      "nation": "Japan",
+      "family": "356 mm Type 41 twin",
+      "review": "unreviewed",
+      "builder": "ijn-356",
+      "limitations": "Original Kong\u014d 1944 reconstruction against approved GameModels3D model. Proportions and articulation remain under review."
+    },
+    {
+      "partId": "type41-152-kongo-casemate",
+      "nation": "Japan",
+      "family": "Type 41 152 mm",
+      "builder": "ijn-152",
+      "review": "unreviewed",
+      "limitations": "Original cylindrical casemate against approved Kong\u014d model; visual, installation and articulation review pending. Performance provisional."
+    },
+    {
+      "partId": "type96-25-kongo-3",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "review": "unreviewed",
+      "builder": "ijn-low-aa",
+      "limitations": "Low carriage original reconstruction against approved Kong\u014d 1944 reference; visual and articulation review pending."
+    },
+    {
+      "partId": "type96-25-kongo-2",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "review": "unreviewed",
+      "builder": "ijn-low-aa",
+      "limitations": "Low carriage original reconstruction against approved Kong\u014d 1944 reference; visual and articulation review pending."
+    },
+    {
+      "partId": "type96-25-kongo-single",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "builder": "type96-single",
+      "review": "unreviewed",
+      "limitations": "Kong\u014d approved-model variant with a 0.53 m fixed pedestal footprint. Original shared upper mechanism retained; detailed fidelity, installation and articulation acceptance remain pending."
     }
   ]
 }

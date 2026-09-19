@@ -84,7 +84,7 @@ export interface GunPart {
   /** Original authored gunhouse vertices in the mount's forward/port/up frame. */
   gunhouseShape?: { footprint: [number, number][]; roof: Vec3[] };
   /** Versioned original facets shared by the visual enclosure and physical armor. */
-  gunhouseMesh?: { version: 1; vertices: Vec3[]; faces: { id: string; indices: [number, number, number]; thicknessMm: number; material: 'KC' | 'Wh' | 'steel'; finish: 'naval' | 'roof' }[]; provenance?: Armor['provenance'] };
+  gunhouseMesh?: { version: 1; vertices: Vec3[]; faces: { id: string; indices: [number, number, number]; thicknessMm: number; material: 'KC' | 'Wh' | 'steel'; finish: 'naval' | 'roof' }[]; apertures?: { id: string; indices: number[] }[]; provenance?: Armor['provenance'] };
 }
 export const barrelIds = (weapon: GunPart): readonly string[] => {
   switch (weapon.barrelCount) {
@@ -738,7 +738,20 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       faces.forEach(f=>{validateTriangle(f.indices,vertices,'gunhouse face');numeric(f.thicknessMm,'gunhouse thickness',.1,2000);literal(f.material,['KC','Wh','steel'],'gunhouse material');literal(f.finish,['naval','roof'],'gunhouse finish');});
       const edges=new Map<string,{count:number;winding:number}>();
       faces.forEach(f=>{const ids=f.indices as number[];ids.forEach((a,i)=>{const c=ids[(i+1)%3],key=[a,c].sort((a,b)=>a-b).join(':');const edge=edges.get(key)??{count:0,winding:0};edge.count++;edge.winding+=a<c?1:-1;edges.set(key,edge);});});
-      if (!faces.length || [...edges.values()].some(e=>e.count!==2||e.winding!==0)) fail(String(p.id),'gunhouse facets must form a closed consistently wound enclosure');
+      // Explicit open boundary loops are topology metadata, never armor plates.
+      const apertures=list(mesh.apertures??[],'gunhouseMesh.apertures',16).map(a=>record(a,'gunhouse aperture'));
+      unique(apertures,'gunhouse apertures');
+      apertures.forEach(aperture=>{
+        id(aperture.id,'gunhouse aperture id');
+        const loop=list(aperture.indices,'gunhouse aperture indices',128).map(n=>numeric(n,'gunhouse aperture index',0,vertices.length-1));
+        if(loop.length<3 || new Set(loop).size!==loop.length || loop.some(n=>!Number.isInteger(n))) fail(String(p.id),'aperture requires at least three distinct vertex indices');
+        loop.forEach((a,i)=>{
+          const c=loop[(i+1)%loop.length],key=[a,c].sort((a,b)=>a-b).join(':'),edge=edges.get(key);
+          if(!edge || edge.count!==1 || edge.winding!==(a<c?-1:1)) return fail(String(p.id),'aperture must close an existing consistently wound open boundary');
+          edge.count++;edge.winding+=a<c?1:-1;
+        });
+      });
+      if (!faces.length || [...edges.values()].some(e=>e.count!==2||e.winding!==0)) fail(String(p.id),'gunhouse facets must form a closed consistently wound enclosure except for declared apertures');
     }
   });
   {

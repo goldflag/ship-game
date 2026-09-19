@@ -5757,6 +5757,196 @@
       ]
     },
     {
+      "id": "type41-356-kongo-twin",
+      "name": "356 mm/45 Type 41 Kong\u014d twin",
+      "kind": "gun",
+      "size": [
+        9.001,
+        6.146,
+        22.853
+      ],
+      "boundsCenter": [
+        0,
+        3.0723,
+        -4.3761
+      ],
+      "centerOfGravity": [
+        0,
+        2.711,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type41-356-kongo-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type41-152-kongo-casemate",
+      "name": "Type 41 152 mm Kong\u014d casemate",
+      "kind": "gun",
+      "size": [
+        2.541,
+        2.669,
+        7.015
+      ],
+      "boundsCenter": [
+        0,
+        1.3338,
+        -2.2372
+      ],
+      "centerOfGravity": [
+        0,
+        0.91,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type41-152-kongo-casemate",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-kongo-3",
+      "name": "25 mm Type 96 low triple",
+      "kind": "gun",
+      "size": [
+        2.141,
+        1.339,
+        2.299
+      ],
+      "boundsCenter": [
+        0,
+        0.6691,
+        -0.354
+      ],
+      "centerOfGravity": [
+        0,
+        0.514,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-kongo-3",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-kongo-2",
+      "name": "25 mm Type 96 low twin",
+      "kind": "gun",
+      "size": [
+        1.821,
+        1.339,
+        2.299
+      ],
+      "boundsCenter": [
+        0,
+        0.6691,
+        -0.354
+      ],
+      "centerOfGravity": [
+        0,
+        0.514,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-kongo-2",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-kongo-single",
+      "name": "25 mm Type 96 Kong\u014d single",
+      "kind": "gun",
+      "size": [
+        0.577,
+        1.74,
+        2.268
+      ],
+      "boundsCenter": [
+        0,
+        0.8696,
+        -0.1222
+      ],
+      "centerOfGravity": [
+        0,
+        0.843,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-kongo-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
       "id": "generic-hawse-pipe",
       "name": "Hawse pipe and bolster",
       "kind": "deck-fitting",
