@@ -67,7 +67,7 @@ The first complete demonstration is a small armed ship that can be built, saved,
 
 ## 3. Repository instructions and implementation boundaries
 
-Read [AGENTS.md](AGENTS.md), [README architecture](README.md#architecture), [documentation index](docs/README.md), [ship pipeline](docs/ship-pipeline.md), [runtime contract](docs/ship-runtime-contract.md), [shared components](docs/shared-components.md), and [integration workflow](docs/integration-workflow.md). Read the applicable appearance, ocean, model-review and session guides when touching those systems.
+Read [AGENTS.md](../../AGENTS.md), [README architecture](../../README.md#architecture), [documentation index](../README.md), [ship pipeline](../ship-pipeline.md), [runtime contract](../ship-runtime-contract.md), [shared components](../shared-components.md), and [integration workflow](../integration-workflow.md). Read the applicable appearance, ocean, model-review and session guides when touching those systems.
 
 - Continue using one versioned blueprint/definition family. Different geometry sources inside that family are allowed; a separate incompatible player-ship format and combat simulator are not.
 - The Rust simulation owns combat, flooding and physical poses. Active custom battles already run in WASM. The legacy TypeScript simulation is a migration reference and presentation dependency, not the place to add a second active physics implementation.
@@ -86,16 +86,16 @@ Paths are starting points, not exclusive ownership boundaries. Recheck them agai
 
 | Concern | Existing entry points | Consequence for this work |
 | --- | --- | --- |
-| Authoring/compiled schema | [blueprint.ts](src/ships/blueprint.ts), [blueprint tests](src/ships/blueprint.test.ts) | Hull geometry is currently authored station data; mass, handling and internals are largely supplied. Constructed ships need derived data and source geometry. |
-| Rust definitions | [generator](scripts/multiplayer/generate-rust-definitions.ts), [generated types](crates/naval-sim/src/definition.rs) | Rust types derive from the TypeScript contract. The generator currently rejects heterogeneous object unions: account for this before adding shape unions. Do not hand-maintain a divergent Rust schema. |
-| Hull geometry | [hull.rs](crates/naval-sim/src/hull.rs), [hydrostatics.rs](crates/naval-sim/src/hydrostatics.rs), [hydro_table.rs](crates/naval-sim/src/hydro_table.rs) | Cross-sections are mirrored. New geometry must support asymmetry, disjoint sections and gaps without inventing displaced volume. |
-| Physical state | [stability.rs](crates/naval-sim/src/stability.rs), [floodwater.rs](crates/naval-sim/src/floodwater.rs), [flooding.rs](crates/naval-sim/src/flooding.rs), [motion.rs](crates/naval-sim/src/motion.rs), [machinery.rs](crates/naval-sim/src/machinery.rs) | Reuse floodwater, machinery and loss concepts. Current loading/handling assumptions and inertia approximations must be evaluated for constructed designs. |
-| Compiled collision/contact caches | [vessel.rs](crates/naval-sim/src/vessel.rs), [contacts.rs](crates/naval-sim/src/contacts.rs), [hull_contact.rs](crates/naval-sim/src/hull_contact.rs), [collisions.rs](crates/naval-sim/src/collisions.rs), [torpedoes.rs](crates/naval-sim/src/torpedoes.rs) | Changing buoyancy alone is insufficient. Hull containment, shell/torpedo hits, armor, obstacles and ship contact geometry need the constructed geometry too. |
-| Local runtime content | [catalog.rs](crates/naval-sim/src/catalog.rs), [WASM exports](crates/naval-wasm/src/lib.rs), [worker](src/game/session/local.worker.ts), [LocalBattleSession](src/game/session/LocalBattleSession.ts), [session guide](src/game/session/README.md) | The worker loads a build-time manifest and resolves preset IDs. Add a validated, local runtime path for constructed definitions and derived caches. |
-| Preset assumptions in UI | [presets.ts](src/ships/presets.ts), [shipModel.ts](src/game/shipModel.ts), [battle UI](src/ui/battle/BattleDialog.tsx), [fleet transfers](src/ui/battle/fleetTransfer.ts), [mode rules](src/ui/battle/battleModes.ts) | Avoid the existing unknown-ID fallback to Bismarck for custom designs. Inspect catalog, deployment, card metadata and formation paths for preset-only assumptions. |
-| Rendering | [Game.ts](src/game/Game.ts), [loadShipModel.ts](src/game/loadShipModel.ts), [ShipView.ts](src/game/ShipView.ts), [ShipInspection.ts](src/game/ShipInspection.ts), [inspection data](src/ships/inspection.ts) | Loading currently expects a ship GLB with a matching definition hash. Add construction-model composition while keeping definition/geometry identity checks. |
-| Equipment assets | [guns catalog](assets/parts/guns.json), [library metadata](assets/parts/library.json), [library code](assets/parts/library.py), [part tools](scripts/parts/pipeline.ts) | Standalone builds currently live in `.build/parts` and the development viewer serves them. Production needs a durable publication path for the curated component assets. |
-| Integration checks | [package.json](package.json), [test guide](docs/test-performance.md), [Rust/WASM guide](docs/rust-multiplayer-implementation.md) | Shared schema/compiler changes can invalidate published historical outputs. Run freshness checks and rebuild only the outputs they identify. |
+| Authoring/compiled schema | [blueprint.ts](../../src/ships/blueprint.ts), [blueprint tests](../../src/ships/blueprint.test.ts) | Hull geometry is currently authored station data; mass, handling and internals are largely supplied. Constructed ships need derived data and source geometry. |
+| Rust definitions | [generator](../../scripts/multiplayer/generate-rust-definitions.ts), [generated types](../../crates/naval-sim/src/definition.rs) | Rust types derive from the TypeScript contract. The generator currently rejects heterogeneous object unions: account for this before adding shape unions. Do not hand-maintain a divergent Rust schema. |
+| Hull geometry | [hull.rs](../../crates/naval-sim/src/hull.rs), [hydrostatics.rs](../../crates/naval-sim/src/hydrostatics.rs), [hydro_table.rs](../../crates/naval-sim/src/hydro_table.rs) | Cross-sections are mirrored. New geometry must support asymmetry, disjoint sections and gaps without inventing displaced volume. |
+| Physical state | [stability.rs](../../crates/naval-sim/src/stability.rs), [floodwater.rs](../../crates/naval-sim/src/floodwater.rs), [flooding.rs](../../crates/naval-sim/src/flooding.rs), [motion.rs](../../crates/naval-sim/src/motion.rs), [machinery.rs](../../crates/naval-sim/src/machinery.rs) | Reuse floodwater, machinery and loss concepts. Current loading/handling assumptions and inertia approximations must be evaluated for constructed designs. |
+| Compiled collision/contact caches | [vessel.rs](../../crates/naval-sim/src/vessel.rs), [contacts.rs](../../crates/naval-sim/src/contacts.rs), [hull_contact.rs](../../crates/naval-sim/src/hull_contact.rs), [collisions.rs](../../crates/naval-sim/src/collisions.rs), [torpedoes.rs](../../crates/naval-sim/src/torpedoes.rs) | Changing buoyancy alone is insufficient. Hull containment, shell/torpedo hits, armor, obstacles and ship contact geometry need the constructed geometry too. |
+| Local runtime content | [catalog.rs](../../crates/naval-sim/src/catalog.rs), [WASM exports](../../crates/naval-wasm/src/lib.rs), [worker](../../src/game/session/local.worker.ts), [LocalBattleSession](../../src/game/session/LocalBattleSession.ts), [session guide](../../src/game/session/README.md) | The worker loads a build-time manifest and resolves preset IDs. Add a validated, local runtime path for constructed definitions and derived caches. |
+| Preset assumptions in UI | [presets.ts](../../src/ships/presets.ts), [shipModel.ts](../../src/game/shipModel.ts), [battle UI](../../src/ui/battle/BattleDialog.tsx), [fleet transfers](../../src/ui/battle/fleetTransfer.ts), [mode rules](../../src/ui/battle/battleModes.ts) | Avoid the existing unknown-ID fallback to Bismarck for custom designs. Inspect catalog, deployment, card metadata and formation paths for preset-only assumptions. |
+| Rendering | [Game.ts](../../src/game/Game.ts), [loadShipModel.ts](../../src/game/loadShipModel.ts), [ShipView.ts](../../src/game/ShipView.ts), [ShipInspection.ts](../../src/game/ShipInspection.ts), [inspection data](../../src/ships/inspection.ts) | Loading currently expects a ship GLB with a matching definition hash. Add construction-model composition while keeping definition/geometry identity checks. |
+| Equipment assets | [guns catalog](../../assets/parts/guns.json), [library metadata](../../assets/parts/library.json), [library code](../../assets/parts/library.py), [part tools](../../scripts/parts/pipeline.ts) | Standalone builds currently live in `.build/parts` and the development viewer serves them. Production needs a durable publication path for the curated component assets. |
+| Integration checks | [package.json](../../package.json), [test guide](../test-performance.md), [Rust/WASM guide](../rust-multiplayer-implementation.md) | Shared schema/compiler changes can invalidate published historical outputs. Run freshness checks and rebuild only the outputs they identify. |
 
 ## 5. Architecture and geometry contract
 
@@ -175,7 +175,7 @@ Extend resolution and metadata paths to handle historical and local design refer
 
 The worker remains authoritative at the existing fixed step. Reuse addressed commands, snapshots, stable presentation identities, telemetry and reset/lifecycle code. Trial-only flood/damage commands must be confined to the local trial API and not exposed as new unvalidated online commands.
 
-Reuse the current mass-based `max_hull_integrity` calculation in [damage.rs](crates/naval-sim/src/damage.rs) and the existing module/damage-control conventions. Supply the constructed ship's derived mass and meaningful damage regions. Do not invent an HP bonus per voxel, per mesh or per funnel: subdividing unchanged geometry must not change durability. Broad combat rebalance is outside this plan.
+Reuse the current mass-based `max_hull_integrity` calculation in [damage.rs](../../crates/naval-sim/src/damage.rs) and the existing module/damage-control conventions. Supply the constructed ship's derived mass and meaningful damage regions. Do not invent an HP bonus per voxel, per mesh or per funnel: subdividing unchanged geometry must not change durability. Broad combat rebalance is outside this plan.
 
 ### 5.6 Model composition and asset publication
 
@@ -432,10 +432,10 @@ Revisit the ranges after S1 proves the geometry and after S3 proves the runtime/
 
 ### Implementation notes
 
-The current contracts and controls are in [Local shipbuilding](docs/shipbuilding.md),
-[the editor guide](src/ui/shipbuilding/README.md),
-[machinery services](docs/construction-services.md) and
-[the original equipment catalog notes](assets/parts/construction/README.md).
+The current contracts and controls are in [Local shipbuilding](../shipbuilding.md),
+[the editor guide](../../src/ui/shipbuilding/README.md),
+[machinery services](../construction-services.md) and
+[the original equipment catalog notes](../../assets/parts/construction/README.md).
 Sections 4 and 10's effort ranges describe the planning baseline, not current
 missing features or measured delivery time.
 

@@ -1,6 +1,6 @@
 # PvE fleet command: implementation draft
 
-Status: approved direction with user-selected [UI variation D](pve-ui-studies/README.md), incorporating the [Claude Fable review](reviews/pve-fleet-command-fable.md). Implementation is underway; see the [requirement and validation tracker](pve-implementation-status.md) for delivered versus pending behavior. This specification does not itself certify completion.
+Status: approved direction with user-selected [UI variation D](../pve-ui-studies/README.md), incorporating the [Claude Fable review](reviews/pve-fleet-command-fable.md). Implementation is underway; see the [requirement and validation tracker](../pve-implementation-status.md) for delivered versus pending behavior. This specification does not itself certify completion.
 
 Source baseline: master commit `5d1453396f9be3a810c8c7abc46f0c10958655ae`, which includes Shōkaku and the shared Rust simulation. This discussion checkout has not been rebased onto that commit. Source links below pin the reviewed baseline; implementation must start from then-current remote master and recheck changed contracts. The retained review describes the original draft, whose hash is recorded there, rather than this revision.
 
@@ -97,7 +97,7 @@ Extend the trusted Rust fleet validator with a versioned `FleetBudgetPolicy`, an
 - The 100-aircraft cap is a fleet construction limit. It is not an active-aircraft or active-group limit.
 - Resolved complements are fixed at setup. The proposed equal-role rebalance must be authored explicitly before the carrier milestone; do not silently trim or change a wing to fit the budget. Future editable wings use the same blueprint/definition format and validator.
 - Losses do not unlock purchases, new aircraft or reinforcements during the battle.
-- Read eligible definitions from [the preset registry](../src/ships/presets.ts). Do not create another preset roster in mission data or package scripts.
+- Read eligible definitions from [the preset registry](../../src/ships/presets.ts). Do not create another preset roster in mission data or package scripts.
 - Invalid, missing or unsupported definitions fail with a specific setup error; they do not count as zero cost.
 
 Budget examples after the agreed 48-aircraft rebalance is authored for both carriers:
@@ -425,11 +425,11 @@ Difficulty changes reaction, search decisions, coordination and existing crew sk
 
 ## Interface brief
 
-The user selected **variation D** from Claude Fable's completed [interactive study](pve-ui-studies/index.html#d/briefing). The retained [decision and provenance](pve-ui-studies/README.md) identify the exact approved artifact. D uses B's task-group layout for briefing/fleet selection and deployment, and C's selection-based layout for fleet command, contact response, air operations, follow/helm and results. The earlier [design handoff](pve-ui-fable-handoff.md) is historical where it differs from this choice. The design-selection prerequisite is complete; the study remains a standalone prototype, not implemented gameplay.
+The user selected **variation D** from Claude Fable's completed [interactive study](../pve-ui-studies/index.html#d/briefing). The retained [decision and provenance](../pve-ui-studies/README.md) identify the exact approved artifact. D uses B's task-group layout for briefing/fleet selection and deployment, and C's selection-based layout for fleet command, contact response, air operations, follow/helm and results. The earlier [design handoff](pve-ui-fable-handoff.md) is historical where it differs from this choice. The design-selection prerequisite is complete; the study remains a standalone prototype, not implemented gameplay.
 
 Implement the selected layout and interaction structure using real simulation state. The study frame, variation/screen/demo selectors, preview-result controls and accelerated mock clock are not production controls. Preserve the actual map, sea and ships rather than reproducing the study's illustrative chart/ship scene as the renderer. Keybindings, dense-map label handling and compact layouts require the planned checks without reopening the selected direction.
 
-Audience: a desktop player familiar with direct ship control but new to RTS fleet management. Extend the existing naval instrument styling in [DESIGN.md](../DESIGN.md); the sea, ships and contact geometry remain the main view. This is an extension of the existing map and setup surfaces, not a new visual identity.
+Audience: a desktop player familiar with direct ship control but new to RTS fleet management. Extend the existing naval instrument styling in [DESIGN.md](../../DESIGN.md); the sea, ships and contact geometry remain the main view. This is an extension of the existing map and setup surfaces, not a new visual identity.
 
 The primary loop is Briefing → Fleet selection → Friendly deployment/opening orders → Fleet command → optional Follow/Take command → Results.
 
@@ -560,7 +560,7 @@ Review map/ship camera transitions, fog-of-war silhouettes, readable contact age
 
 Follow the ship pipeline validation matrix at the implementation baseline. Run relevant Rust unit/integration tests, `bun run multiplayer:check` for shared native/WASM/protocol behavior, relevant TypeScript/session tests and `bun run build`. Shared default behavior remains covered by compatibility regressions. Definition/hash changes require affected compile/build/check and model acceptance; retain evidence as prescribed by the current pipeline. This documentation revision does not change simulation, definitions or model outputs.
 
-For separate implementation worktrees or integration, first follow [the integration workflow](integration-workflow.md). Resolve durable authoring inputs before stale outputs; never select a binary side or rewrite hashes to suppress validation failures.
+For separate implementation worktrees or integration, first follow [the integration workflow](../integration-workflow.md). Resolve durable authoring inputs before stale outputs; never select a binary side or rewrite hashes to suppress validation failures.
 
 ## Implementation details and design handoff
 

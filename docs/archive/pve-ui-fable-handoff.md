@@ -1,6 +1,6 @@
 # Claude Fable handoff: PvE fleet-command UI studies
 
-Status: historical handoff, completed by Claude Fable. The user selected [variation D](pve-ui-studies/README.md): B for briefing/deployment, C for battle workflows, and no carrier aircraft information while following a ship. The decision supersedes conflicting requirements below, including aircraft controls in the follow view. The original brief follows for context; gameplay implementation has not started.
+Status: historical handoff, completed by Claude Fable. The user selected [variation D](../pve-ui-studies/README.md): B for briefing/deployment, C for battle workflows, and no carrier aircraft information while following a ship. The decision supersedes conflicting requirements below, including aircraft controls in the follow view. The original brief follows for context; gameplay implementation has not started.
 
 ## Deliverable
 

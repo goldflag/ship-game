@@ -2,7 +2,7 @@
 
 Draft proposal · 2026-09-04
 
-Historical design context: the baseline paths, implementation status and open decisions below describe the original proposal. For current work, follow the [ship pipeline](ship-pipeline.md), [runtime contracts](ship-runtime-contract.md) and [integration workflow](integration-workflow.md).
+Historical design context: the baseline paths, implementation status and open decisions below describe the original proposal. For current work, follow the [ship pipeline](../ship-pipeline.md), [runtime contracts](../ship-runtime-contract.md) and [integration workflow](../integration-workflow.md).
 
 Use Bismarck to establish one ship format that supports historical presets, combat, and player construction. Build each ship as an assembly with explicit physical and gameplay properties. Generate the visual asset and simulation data from that assembly.
 
@@ -16,7 +16,7 @@ Working assumption pending the owner's preference: accessible simulation with ar
 | `/Users/bill/models/bismarck/build_bismarck.py` | Rebuildable Python generator; named turret pieces, with barrel positions constructed in world coordinates. No articulated turret hierarchy in the generator. | Add explicit local coordinate frames and assembly ownership in the source. Preserving existing pieces alone will not create correct pivots. |
 | `public/models/bismarck.glb`, inspected directly | 11 mesh nodes, including one combined main battery node; no child hierarchy or animation clips. | Four turrets cannot currently be controlled as four node assemblies. Procedural aiming will not require animation clips, but does require separate joints. |
 | [`src/simulation/ship.ts`](../src/simulation/ship.ts) | Renderer-independent, serializable movement at 60 Hz. Handling uses a single `BISMARCK` constant. | Retain this separation; pass a ship definition into the simulation as additional ships arrive. |
-| [`src/game/Game.ts`](../src/game/Game.ts) | Loads one GLB. GPU water buoyancy controls visible height and tilt; simulation only owns X/Z movement and heading. | Combat needs an authoritative three-dimensional pose shared by guns, collision, and rendering. |
+| [`src/game/Game.ts`](../../src/game/Game.ts) | Loads one GLB. GPU water buoyancy controls visible height and tilt; simulation only owns X/Z movement and heading. | Combat needs an authoritative three-dimensional pose shared by guns, collision, and rendering. |
 
 The original Blender source is outside this repository. The production workflow should version the generator, definitions, and export contract in the project, with an explicit location/version or content hash for large source assets. Preserve the original model as the baseline.
 

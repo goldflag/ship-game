@@ -1,341 +1,252 @@
-# Shipbuilder
+# Shipbuilder (editor UI)
 
-The port's **New design** and **Edit design** actions open a source editor around the shared Rust/WASM construction compiler. The preview and the sea-trial callback use the same source revision and compiled result. Layers, tools, placement and rendering live here; solid geometry, armor occupancy, equipment fit, loading, stability and combat definitions come from Rust.
+The port's **New design** and **Edit design** open this editor around the Rust/WASM construction
+compiler. Layers, tools, placement and rendering live here. Solid geometry, armor, fit, loading,
+stability and the combat definition come from Rust.
 
-## Layout · "Slipway rails"
+- Source format, compiler, catalog, storage and limits: [docs/shipbuilding.md](../../../docs/shipbuilding.md).
+- Repository-backed ships and the agent editor handle:
+  [construction authoring](../../../docs/construction-authoring.md).
+- Seeing a change in the real game: [browser verification](../../../docs/browser-verification.md).
+- Visual language: [DESIGN.md](../../../DESIGN.md).
 
-The ship fills a dry construction viewport with a fine ground grid below the hull and no water plane, over a neutral studio sweep (a radial grey gradient lit at the centre) rather than the port's maritime blue; the chrome is neutral grey and the scene's hemisphere ground light is neutral so paint colours read true. Chrome follows the Fleet action instrument language of [DESIGN.md](../../../DESIGN.md). Compact maritime cards group palette slots, tool buttons and object values; the top bar and ledger stay open to the scene.
+## File map
 
-- **Top bar.** `‹ Port` saves and returns. The design name is an inline field; the reading beside it (`12 pieces · 7 fittings`) opens the **Designs** menu: New design with a hull preset or one-block start, Armed patrol / Twin hull templates, Save as copy, Download backup, and account designs with their revisions (open latest, recover a copy, download the original, delete the design). The save state reads *Saved*, *Saving…* or *Not saved · keep a backup* in mint or salmon. Undo and redo show their depth; **SEA TRIALS** is the one brass command and is disabled while a block exists or the revision is compiling.
-- **Checks** (top bar, after the save state). A chip counts what the native compile found (`1 block · 2 warnings`, or *No warnings*), bordered salmon for blocks and gold for warnings; **W** or a click opens the list in a panel hanging under the bar, like the Designs menu, so a message never moves the rail, and **Escape** closes it. Each row leads with the finding and follows with the advice in a quieter tone. Blocks (salmon) stop a trial and name the fix; warnings (gold) let an unsafe design sail; design notes (mint) are informational. A row with a source reference selects the affected part. Storage or compile errors, layout proposals and short notices open the same panel on their own, without the list. Up to 1100 px the panel hangs from the chip's right edge; at 740 px and below the chip sits between the history and trial actions and the panel spans the width beside the rail.
-- **Tool rail** (left edge) holds what a click does: one joined strip of glyph cells, each printing its key in the corner; the name, state and key stand in a tooltip beside the hovered or focused cell. The layer's modes and one-shot actions lead, and the active tool has a brass outline and tinted fill. A rule opens the two modifiers that change where a click lands: **Mirror** (`M`, mint when on) and **Snap** (`N`). Under Snap a foot row shows the current grid spacing (click it or press **S** to cycle) and an arrow that opens target, spacing and guide settings. Spacing choices in the popover are a button row. Alt/Option temporarily inverts snapping. Freeform keeps Snap available alongside its local mirror axes and move step. A second rule opens the view strip, and a third the foot: selected pieces offer **Center**, using mounting centers for fittings and retaining group spacing, and **Keys** (`?`) opens a dialog listing every mouse control and hotkey, with each layer's tools taken from the rail definitions. In a window 800 px tall or less the cells shorten and the rail scrolls above the dock.
-- **Palette dock** (the whole bottom edge). A transparent tab row carries the tabs (Hull, Machinery, Armament, Outfit, Internals, Paint, Armor) as folder tabs whose open tab joins the solid card row beneath, with the hotkey legend at the row's right end. The card row lists the layer's entire selection as square cards, the first nine keyed **1–9**; it scrolls sideways, fades at whichever edge hides cards, and keeps the trailing `…` pinned. Cards show the piece itself: catalog parts use pre-baked PNGs from their exact published geometry (`bun run part:thumbnails`); hull shapes render through one offscreen context the first time the layer opens (`slotImages.ts`, cached for the session), armor and paint cards are full swatches, and internals tools keep their glyphs. Hull cards print the piece's metres in their bottom-left corner; the 4 m Block uses the same thumbnail style as every other box, with freeform available through D; the ballast card also carries a small **100 t** label. Hovering or focusing a card shows its name and reading in a tooltip. The active card is outlined in brass; `…` (**0**) opens a boxed panel above the dock with every card in a grid. On Hull, type chips filter both the dock and expanded picker (All, Boxes, Slopes & corners, Curves, Shells, Bridges, Hulls & decks, Ballast); search narrows the chosen type, and keys **1–9** follow the filtered cards. Machinery, Armament and Outfit are three tabs over one Fittings layer: they share its rail and tools, and each reopens the shelf it last showed. On each a chip row sits between the tabs and the cards: its shelves (Machinery: Running gear, Funnels, Masts; Armament: Main battery at 100 mm and up, Light & AA, Torpedoes, Fire control; Outfit: Mooring, Access, Fixtures, Boats & aviation, Doors & windows) choose which cards the row and keys **1–9** carry, and a nation filter at the row's right end (All plus the navies with parts on that shelf) keeps that navy's parts with the generic ones; the choice stays put across shelves and does nothing on a shelf without that navy. Tab, shelf and nation are read off the part in `fittingCategories.ts` (kind, gun calibre, route or wall mount, id), not from the catalog. A fitting tab's panel lists that tab's shelves and every nation under shelf headings; a search there reaches all three fitting tabs, and choosing a card opens its tab and shelf on the bar. Clicking a warning about a fitting does the same. The Hull and fitting panels have a search field, which takes focus; **0** on the empty field closes the panel again, and Escape always does. A card's tooltip stands above the dock and ends with its key. Above the cards a readout names the cursor piece with its editable size fields (or a fitting's placement and bearing) and the ghost's cell coordinates; while a selection is being dragged it shows the offset instead, and the open drawer takes its place. Below 1240 px the tabs collapse to glyphs.
-- **Ledger** (right edge). Length, beam and height of the hull in metres, displacement, draft from the keel, GM, list (degrees to port or starboard, from the offset between the centers of gravity and buoyancy over the roll GM), trim (degrees by the bow or stern, marked ≈ because its longitudinal GM is estimated from the waterplane area and hull length), power, speed, usable space and CG, plus a layer-specific row (hull pieces, armor coverage, rooms, fittings, finishes). A reading a warning refers to turns gold or salmon. The mass bar splits hull steel, armor, walls, machinery and fittings, and stores. The Armor layer adds the coverage groups (thickness, material, area, faces) and a read-only **Turret armor** list: one line per installed gun fitting with its count and the plate covering most of each gunhouse region (face, sides, rear, roof, floor), or its whole-mount armor for open mounts and casemates. The ledger stops above the dock and scrolls when it is longer.
-- **Object tag.** A leader line connects the picked slab, face, wall or fitting to a compact card containing its values and the keys that act on it. Cards wrap long content and use mint or salmon borders for selections or launch blocks. Invalid components are tinted salmon red; their launch-block card appears only while the component is hovered. This is the whole properties UI: sizes, positions, bearings and boundary offsets are edited inline in the tag; a propeller's **Engine** select shows the automatic assignment (listing all engines when shared) and accepts a manual override. Guns have a **Turret rise** field that extends their support above deck. Turret-well magazines stay fixed below deck; deck mounts carry their ready ammunition with them. Magazines are built into weapons; Internals shows their volumes and selects the owning weapon. The cursor ghost has no tag.
-- **View strip** (inside the tool rail, under the modifiers) holds how the ship is shown, never what a click does: shorter bare glyph cells in two groups, View (cycles Orbit, Plan, Profile, Bow), Camera and Fit, then the overlays Centers and, on the fitting tabs, Arcs (`A`, gun traverse arcs). Cells carry no key badges so the strip never reads as more tools; the tooltip carries name, value and key. Hull and fittings remember separate snap choices for the editor session, starting at 1 m and 0.25 m; placement and drags use the enabled snap targets; arrow-key nudges use the chosen step and typed position fields stay exact. The floor grid grows with the hull and fades out about one hull length past it, with brass chevrons pointing toward the labeled bow (−Z). Large grids show multiples of the snap step to limit visual density. Camera toggles Perspective (the default) and Orthographic while retaining the framing; P works in every layer and freeform mode. The choice lasts while the editor stays open. Centers toggles the small gold center-of-gravity dot (tagged CG above it) and mint center-of-buoyancy dot (tagged CB below it) together, initially off; the choice lasts while the editor stays open. The bar prints its shortcuts; they also appear in the Keys dialog and the table below.
-- **Hotkey legend** (the dock's tab row, right end). The bottom row lists the standing keys: cards **1–9**, **0** for every card, **Q** view and **Home** fit. A row above it, in ivory, lists the keys that act on the cursor piece, the selection or the picked faces: rotate, nudge, raise or lower, copy, mirror copy, remove, Shift-click, and what Escape does next. Rows wrap upward; keys the rail, checks chip and undo buttons already print stay off it, and the legend hides below 860 px wide or 800 px tall.
-- **Orientation compass** (lower left, above the dock). The mint bow arrow and labeled stern, port and starboard follow the camera in every layer and view, independently of zoom, pan or hull symmetry. A straight-on view explicitly reads **Bow toward you** or **Bow away from you**; at deck height the facing side replaces overlapping side labels. This uses the shared ship coordinates: bow −Z, starboard +X, up +Y.
+State and editing logic (no React, no three.js):
 
-At widths up to 1100 px selection tags scroll within their available height. At 740 px and below, the ordinary editor stacks the design and the history/trial actions; the layer tabs spread across the dock's tab row as glyphs. A connected-path prompt gets a bounded, scrolling card beside the tool rail and above the palette, with Finish and Cancel side by side. The compass moves above that prompt, and the cursor-coordinate reading is hidden while drawing.
-
-Opening a design reuses the port's finished compilation when its complete source
-matches, including the retained parts catalog. Otherwise **Loading ship…** stays
-up until the first compilation settles, so the editor opens on the finished hull.
-Edits keep the existing preview visible while compiling. Compilation completion
-does not refit the camera; Fit, view changes and opening another design do.
-
-## Model memory debug panel
-
-Press **F8** to toggle a nonmodal memory panel for the currently open ship; F8 or
-Escape closes it. The Keys dialog lists the shortcut. Switch designs normally to
-inspect another ship. Search by part name or source ID, sort by visual/simulation
-size, and expand the simulation section breakdown.
-
-All sizes use decimal MB. Simulation reports the current compiled definition's
-runtime projection as UTF-8 JSON and indexed NSD encoding, not live Rust/WASM heap
-allocations. Per-part simulation rows attribute explicitly identified records;
-anonymous collision cells and ship-wide data remain in the shared row. Visual
-measurements sum retained geometry backing buffers once plus an RGBA8/mipmap
-texture allocation estimate. Shared buffers/textures are apportioned among users;
-batched hull resources follow source triangle counts. These are not GLB transfer
-sizes or total CPU/GPU process memory. Materials, driver allocations, editor
-helpers and unused equipment cache entries are excluded. Source JSON is separate.
-
-Simulation data updates on compilation; loaded visual resources are sampled every
-1.5 seconds only while open. Invalid/currently compiling revisions and unloaded
-fittings are labeled incomplete, and old revision totals are not presented as
-current. `modelMemory.test.ts` covers byte attribution and shared-resource accounting.
-
-## Layers
-
-At widths up to 740 px the header uses two compact rows and the card row
-scrolls. The shape drawer searches names and notes; its scrolling area stays
-above the dock. Smooth curve thumbnails retain cap and
-rim edges without drawing every curve facet.
-
-| Layer | Rail | Hotbar |
-| --- | --- | --- |
-| Hull | Select V · Place B · Fill F · Erase E · Measure T | Freeform hull, Balcony, Cube, Slab, Bar, Wedge, Slope, Long slope, Corner out; searchable drawer with Corner in, Plate, curves, open shells, bridge blocks/panels, breakwater and 100 t ballast |
-| Machinery · Armament · Outfit | Select V · Place B · Rotate R · Suggest G | Deck and underwater parts of the catalog, three to five shelves per tab with a nation filter, drawer with search |
-| Internals | Select V · Deck D · Bulkhead B · Split L · Merge J · Module U · Suggest G | Deck, Bulkhead, Split, Merge, then the internal packages of the catalog |
-| Paint | Select V · Paint B · Area A · Eyedrop I | The seven named paints, Two tone, Disruptive |
-| Armor | Paint B · Fill A · Eyedrop I · Erase E | Armor (the millimetre field above the bar), thicknesses in use, Opening |
-
-**Placing.** Pick a slot and hover the ship: the ghost rests on the face under the pointer using the enabled grid, centerline and nearby geometry targets; the piece's name and size fields appear above the palette. Empty space has no placement target or ghost. New designs choose a single editable custom hull preset or one centered cube; subsequent pieces attach to existing hull faces. Select a custom hull and choose **Edit hull sections** to edit its shape; **Apply hull** is one undoable source edit and retains equipment positions. A click places; a left drag lays a run along that face; **Fill** drags a rectangle and lays a lattice (at most 128 pieces per gesture). **R** rotates the next piece (90° hull, 15° fittings). With **Mirror** on, an off-centerline placement also places its twin across the centerline; armor and paint applied to a face also reach the mirrored face, including the other side of a piece that straddles the centerline. Mirror also edits existing twins; see **Mirror editing** below. The complete run or fill appears while dragging, including mirrored pieces and loaded fitting models; releasing commits one undoable edit. Escape or a cancelled pointer discards the pending gesture. In every tool a left drag from empty space orbits (Perspective or Orbit view) or pans (orthographic construction views), right-drag pans, scrolling zooms and the middle button dollies. A stationary right-click never removes anything; use **Erase** or Delete.
-
-**Ship paint.** The New design dialog asks for one ship paint, and the Paint dock's **Ship paint** selector changes it later. It is saved as the optional `construction.paint` source field and coats every hull face without an assignment, every fitting without a paint of its own, bilge keels and barbettes; internal machinery keeps its authored finish. Changing it also carries along faces and fittings that wore the previous ship paint, so decks, boot topping and other accents stay. A barbette always wears its turret's paint. Designs saved before the field existed keep naval gray faces and original fitting finishes until a ship paint is chosen.
-
-**Fitting paint.** Choose a swatch on the Paint layer and click the fitting. Select several fittings on the Paint layer to recolor them together. Mirror also paints an existing matching twin. The last paint applied to a fitting becomes the default for newly placed fittings, mirrored copies and connected paths for the rest of the editor session; painting hull faces does not change that default. Paint is saved per fitting, supports undo/redo, and carries through sea trials and model exports.
-
-**Whole-ship surface finish.** The Paint dock's Surface finish selector changes all
-painted surfaces together, independently of color and selection: Original, Matte,
-Satin, Semi-gloss and Gloss. The optional `construction.finish` source field uses
-the same command/history/save door as other edits. Preview and model composition
-share its roughness values, retaining timber and protected component materials.
-Run `node scripts/tests/shipbuilder-finishes-browser.mjs <vite-url>` for controls,
-native compilation, undo, save/reopen, material/export checks and desktop/compact
-captures in `.build/surface-finishes/`.
-
-**Editing.** Click selects, Shift-click adds. Selected hull blocks in **Select** show the freeform-style X/Y/Z movement gizmo in ship coordinates, plus a center handle for dragging in the view-facing coordinate plane. A multi-selection moves together. Gizmo drags, face drags, keyboard nudges allow hull blocks to overlap while retaining at least 10% of each block's actual volume outside all other blocks combined. The native solid check includes curves, openings, custom hulls and deformed freeform corners, and also prevents swallowing stationary neighbors. Swept interval checks stop fast drags at the limit. Existing excessive overlaps may recover without becoming deeper. Placement, Fill, runs, mirrored batches and copies use the same volume rule; rejected batches add no undo entry. Invalid placement ghosts turn salmon and placement feedback explains the limit. Ballast blocks still cannot overlap each other. Decorative fittings (including directors, ropes, chains, railings and ladders) never collide with other fittings, even when fully overlapping weapons or machinery. Fixed deck fittings must keep at least 10% of their volume outside the hull and retain physical hull support. Guns, torpedo launchers and machinery retain their mutual fit checks, including the existing partial-overlap allowance for fixed masts and funnels. Connected paths retain their hull and anchor checks. In **Select**, a left drag on a hull piece, fitting or wall moves it: pieces slide in the plane of the pressed face (press a side face to move vertically), a wall slides along its own axis, the offset follows the enabled snap targets, a brass preview shows the destination on the hull, and release commits one undoable edit. A pressed piece that belongs to the selection carries the whole selection; otherwise it moves alone and becomes the selection. While placing fittings or modules, a drag on an already fitted part moves it the same way, and a plain click on it selects it. Escape cancels a pending move. **Shift-drag** draws a selection box in any tool and selects the hull pieces and visible fittings it encloses; Ctrl/⌘ with Shift-drag adds to the current selection. Box selection reaches through the hull and keeps the camera still. Arrow keys nudge a selection (PageUp/PageDown vertically), **R** rotates it, Delete or ⌘X removes it, ⌘C copies it 1 m to starboard and ⇧⌘C mirrors it across the centerline. The tag's fields accept any size from 0.25 to 500 m. **Erase** removes the clicked piece (and, with Mirror on, its twin). Select, Erase and Measure outline the hovered block in ivory; placement keeps supporting blocks and fittings clear and shows only the pending piece or path. Armor and Paint outline the hovered hull face. Outside placement, fittings and internal items outline their model geometry on hover, including while painting fittings. The last hull block cannot be deleted: bulk deletion keeps one block and its surface assignments. **Measure** takes two clicks and shows the distance.
-
-**Mirror editing.** With **Mirror** on, an edit to a hull piece or fitting also reaches the piece that already mirrors it across the centerline. Twins are found by geometry (`mirrorTwin` in `placement.ts`: reflected position, size, turned axes and shape), exactly as mirrored armor and paint find the twin face, so the source stores no link and older designs work unchanged. A selected piece's twin wears a mint outline; move previews show the mover in brass and the twin in mint.
-
-- **Move** (drag, gizmo, arrows, PageUp/PageDown): the twin travels the reflected path. Along the ship both sides move as one rigid set; across the beam each side is held by the stationary pieces and the pair stops while each keeps its 10% outside the other (`mirroredMoveConstraint`). **Center** moves the selection alone.
-- **Rotate, tip, precise angles, resize, balcony and custom hull section edits**: the twin takes the reflected result (`withMirroredEdits` replays the batch on a scratch source and reflects each changed piece onto its twin, keeping the twin's ID and smooth group).
-- **Freeform**: every committed reshape, ring or outline change, round/chamfer, **Reset edit** and the first conversion of a preset shape also reshape the twin, live in the drag preview. **Split** splits the twin into the reflected pieces. The shaped block's twin follows it even when **Move nearby corners** also touched that twin.
-- **Remove** takes the twin along; fittings follow moves, turns, bearing and path edits, turret rise and removal, and keep their own paint, links and gun settings.
-- Select both sides, or turn Mirror off, to edit one side or move the pair rigidly. A pair edited apart stops being twins until it matches again. Linked wall fittings keep their persistent `mirrorId` partner regardless of Mirror.
-
-**Armor and paint.** Hover lights the face under the pointer. Armor is a paint bucket with no face selection: the active card is the only thing chosen, and nothing changes the ship until a face is clicked or swept. Paint (B) lays the card on the clicked or swept faces, Fill (A) pours it over every face with that name across the hull, and Eyedrop (I) loads the clicked face's thickness into the card; Escape and pressing the active card again return to Paint. There are no thickness presets: the Armor card carries the millimetre value typed into the field above the bar (0 mm keeps the structural skin), and every thickness already on the ship follows it as a card. The Opening card removes the skin of the faces it is laid on and admits water when submerged; laying any thickness closes them again. The Paint layer keeps a selection: Paint (B) assigns the active slot to the clicked face, Area (A) selects every face with that name, Select and Shift-click build a selection by hand, and with faces selected pressing a slot key assigns it at once; Eyedrop copies the clicked face's paint. Two tone and Disruptive apply generic sandbox schemes to the whole hull. Turret armor comes from the gun's catalog part and cannot be edited: in the Armor view each plated gunhouse draws its actual plates (`turretArmor.ts`, the compiler's gunhouse mesh) on the same colour scale as the hull, whose ends include turret plates, over the faded model; mounts without a plated gunhouse take the colour of their whole-mount armor. Hovering a turret shows the plate's thickness.
-
-The custom hull section editor (`CustomHullEditor.tsx`) is a full-screen viewport of its own: `CustomHullViewport.tsx` draws the hull, rings, gizmo and guides in Orbit, Section, Plan and Profile views, `HullSectionRuler.tsx` is the bow-to-stern station strip, `customHullEditing.ts` holds the pure edit operations and `customHullSnap.ts` the snap targets. `HullPaintControls.tsx` edits up to eight colored bands with boundaries in meters above the hull's base (saved in meters from the hull center), draggable grips and native waterline alignment. Existing face paint remains above the highest boundary. See [custom hull sections](../../../docs/shipbuilding.md#custom-hull-sections) and [paint bands](../../../docs/shipbuilding.md#custom-hull-paint-bands) for controls, defaults and behavior. Run `node scripts/tests/hull-paint-bands-browser.mjs <vite-url>` to check editing, history, save/reopen and exported GLB color boundaries; captures go to `.build/hull-bands/`.
-
-Custom hulls expose individual panels between neighboring sections, plus separate bow and stern caps. Armor view draws their boundaries without internal triangle diagonals. Paint and Fill armor them like any other face, including their opposite partners when Mirror is enabled. See [custom hull panel armor](../../../docs/shipbuilding.md#armor-on-custom-hull-panels) for assignment persistence when hull sections change.
-
-**Internals.** Internal packages, weapons owning built-in ammunition, and room boundaries can be selected, moved or removed, including through the hull. Selected modules show the XYZ movement gizmo in Select and Module, with the current snap step, drag preview, cancellation and undo. Selected decks and bulkheads show only the axis that changes their offset; groups share a gizmo at their center. Entering the layer clears external selections; box selection and select-all exclude hull blocks and external fittings without built-in ammunition. Entering the layer keeps the complete ship visible through its translucent hull; room bounding boxes are omitted so the hull silhouette stays clear. Internal powerplants need to fit entirely within free hull interior, without a surface-contact requirement. Deck, Bulkhead and Split add a boundary at the hovered height, station or offset on the chosen snap grid. Placed boundaries and placement/move previews follow the hull section, preserving holes and gaps rather than spanning the ship’s bounding box. Native boundary material is clipped to the hull interior, so only real interior equipment intersections block validation; Merge removes the clicked boundary and joins its rooms. Module places the slot's package inside the hull: the pointer passes through the skin to the first floor within, a deck crossed from above or the inner hull bottom, and the package rests there inset by the skin thickness. A view through the hull sides uses the floor beneath the middle of the pointer's path through the hull. The package rises until every corner of its base clears a bottom that climbs toward the bilges; Rust still decides whether it fits. Suggest asks the native solver for the missing internal families; the proposal shows as dashed outlines and applies as one undoable edit while its revision is current.
-
-**Fittings** (Machinery, Armament, Outfit). The ghost of a gun shows its firing arc before placement; Arc toggles arcs for the mounts already fitted. Deck parts attach to the deck under the pointer through their attachment socket, underwater parts to the hull surface. Suggest asks the native solver to place the active slot's part.
-
-Life rings, oval life rafts and rectangular life rafts are available in **Outfit → Fixtures**. Click a hull side or wall to attach them; linked mirroring and resizing use the normal wall tools. Life rings keep their circular proportions. These low-poly stowed props add only loading mass.
-
-The searchable drawer includes bitts, a fairlead, capstan, anchor windlass, stowed anchor, lifeboat with davits, cowl and mushroom vents, watertight door, deck hatch, vertical ladder, inclined stairs, compact optical rangefinder and **Searchlight (unlit)**. These are generic naval parts with estimated dimensions and loading. The rangefinder uses the director family; other fixed deck fittings add mass without buoyancy or a combat bonus. Doors and hatches remain closed models and do not create hull openings. The boat and davits remain stowed. The searchlight is static and has no beam, light source, power demand or detection behavior.
-
-Railing, rope and chain cards draw connected paths: click each point on the ship, then press **Enter**, double-click or choose **Finish**. **Backspace** or **Ctrl/⌘Z** removes the last pending point; **Escape** cancels without changing the design. Pending points remain outside source, autosave and history; finish or cancel before using Port, Designs or Sea trials. The whole route (including its mirrored copy) commits as one undoable edit. The brass preview shows the pending route and points before committing. Railing points are deck-level feet; rope and chain also attach at the clicked surface of fixed deck fittings, including masts, without grid rounding. Older catalogs retain explicit support/rigging socket picking until **Update parts library**. Published `riggingSurface` data packs every original GLB triangle as base64 zlib (little-endian u32 vertex/triangle counts, xyz f32 vertices, then u32 triangle indices); native code bounds decoding and uses the shared clearance triangle tree, independently of rendering. Moving weapons and scalable wall details remain excluded. Rope **slack** is the vertical sag at the midpoint of each segment, adjustable in metres. It is limited to half the shortest segment and 20 m; routes support 2–64 points and at most 500 m. Native compilation checks physical attachment and clearance.
-
-Select a path to edit its bearing and rope slack in its object tag. The point selector reaches every route point; **Insert point** adds a midpoint between the selected point and its neighbor, and **Remove point** keeps at least two points. Point coordinates are relative to the route origin; translation, rotation, copy and mirror preserve the route. Two-rail and three-rail railings are separate fittings, each with a 0.3–3 m height while drawing and in the selected path’s tag. The native compiler uses those settings for member geometry and mass. Railings match the balcony’s plain square bars with no footplates or hardware; minor contacts are accepted while substantial burial remains blocked. Ladder tubing uses six-sided sections and shared miter corners. Surface ladders use two clicks (first and last rung), with a live mirrored preview, Backspace to remove the start and Escape to cancel. Their end rings sit flush against sloped supports. Vent resizing changes the fin count at a fixed metric pitch and fin section. Rope and chain use the same 16 intervals per segment as native loading; chain links and line members use shared instanced geometry. Light fittings read in kilograms.
-
-The editor opens every design on the newest equipment catalog. Once that catalog loads, a design saved against an older revision moves onto it: every state in its undo history is rebased, so Undo never restores the old library, and the new revision saves. Fitted parts whose variant changed recompile with the new variant. A design keeps its saved revision only when the newest catalog no longer has a part it has fitted; **Designs** then names the missing parts. Old source revisions and catalogs remain available for undo and recovery.
-
-| Shortcut | Action |
+| File | Role |
 | --- | --- |
-| Ctrl/⌘ Z, ⇧⌘Z or ⌘Y | Undo, redo |
-| ⌘C, ⇧⌘C | Copy, mirror-copy the selection |
-| ⌘A | Select every hull piece and fitting |
-| 1–9, 0 | Hotbar slot; every card of the layer |
-| Q, P, W, M, R, Home | View, camera projection, warnings, mirror, rotate, fit |
-| N, Alt/Option, S | Toggle snapping, temporarily invert snapping, cycle grid spacing |
-| ? | Open or close the controls and hotkeys dialog |
-| PageUp / PageDown | The selection's height |
-| Drag, right-drag | Orbit (pan in orthographic construction views), pan; a drag from the hull lays pieces while placing |
-| Drag on a piece | Move the piece, fitting or wall (Select; fitted parts also while placing fittings or modules) |
-| Shift-drag | Box select; Ctrl/⌘ adds to the selection |
-| Delete / Backspace / ⌘X | Remove the selection (a boundary merges its rooms) |
+| `builderTool.ts` | The builder tool: layer, tool, selection, cursor piece, snap, gestures and **all keys** (`key()`); submits command batches |
+| `builderLayers.ts` | Pure data: `BUILDER_TABS`, `BUILDER_RAIL` (tools and their keys), `DEFAULT_TOOL`, `HULL_SHAPES`, `paletteFor` |
+| `builderScene.ts` | The seam to the viewport: `BuilderScene` render description and `BuilderPointerEvent` |
+| `useBuilderSource.ts` | React adapter: store opening, catalog resolution and adoption, `useSyncExternalStore` |
+| `src/ships/constructionRevisionOwner.ts` | History, the single edit door, autosave ordering, conflict recovery |
+| `src/ships/compiledRevision.ts` | Compile debounce, cancellation and the one acceptance predicate |
+| `placement.ts`, `blockMovement.ts`, `mirrorEditing.ts` | Face-adjacent placement, runs, fills, `mirrorTwin`; movement clearance; reflected edits |
+| `snapping.ts`, `customHullSnap.ts` | Grid, centerline and geometry snap resolution in screen space |
+| `pathDrawing.ts`, `internalPlacement.ts`, `balconyPlacement.ts`, `boxSelection.ts`, `internalSelection.ts` | Per-gesture helpers |
+| `builderReadings.ts`, `turretArmor.ts`, `propellerAssignment.ts`, `blockDimensions.ts`, `modelMemory.ts` | Ledger rows, mass groups, warnings and read-only readouts |
+| `customHullEditing.ts` | Pure custom hull section operations |
+
+Viewport (three.js):
+
+| File | Role |
+| --- | --- |
+| `BuilderViewport.tsx` | Raycasting, ghost, move drags, right-drag rotation, tags, arcs. Exposes `window.shipbuilderViewport` in dev |
+| `MoveHandles.ts`, `RotateHandles.ts`, `FreeformHandles.ts` | Translation, three-axis rotation and freeform gizmos |
+| `SnapOverlay.ts`, `itemOutline.ts`, `surfaceOutline.ts`, `builderGrid.ts` | Guides, hover outlines, floor grid |
+| `pendingHull.ts`, `primitiveGeometry.ts`, `boundaryGeometry.ts`, `equipmentPreview.ts` | Display-only geometry while a compile is pending; cached catalog assets |
+| `CustomHullViewport.tsx`, `CustomHullPreview.tsx` | The custom hull editor's own viewport |
+
+Chrome (React):
+
+| File | Role |
+| --- | --- |
+| `Shipbuilder.tsx`, `Shipbuilder.css` | The whole screen: top bar, rail, dock, ledger, drawer, object tags |
+| `ViewBar.tsx`, `SnapControls.tsx`, `BuilderOrientation.tsx` | View strip, Snap cell and popover, compass |
+| `HelpDialog.tsx` | Keys dialog; tool keys are read from `BUILDER_RAIL` |
+| `DesignsMenu.tsx`, `NewDesignDialog.tsx`, `TrialControls.tsx`, `ModelMemoryPanel.tsx` | Menus, dialogs, sea-trial panel, F8 memory panel |
+| `FreeformToolbar.tsx`, `FreeformShapeTools.tsx`, `FreeformMeshTools.tsx`, `RotationToolbar.tsx` | Freeform and Rotate mode panels |
+| `CustomHullEditor.tsx`, `HullSectionRuler.tsx`, `HullPaintControls.tsx`, `BalconyEditor.tsx` | Full-screen section editor; balcony outline editor |
+| `NumberField.tsx`, `WallSizeFields.tsx`, `RailingFields.tsx`, `AccessFields.tsx`, `PathPointEditor.tsx`, `SurfaceFinishSelect.tsx` | Inline tag fields |
+
+Catalog and palette:
+
+| File | Role |
+| --- | --- |
+| `fittingCategories.ts` | Fitting tab, shelf and nation, derived from the part (kind, calibre, mount, id prefix), not stored in the catalog |
+| `hullCategories.ts` | Hull type chips |
+| `slotImages.ts`, `builderGlyphs.tsx` | Card renders and line glyphs |
+
+`hull-prototype/` and `propeller-playground/` are standalone review pages (`bun run hull:prototype`,
+`bun run propeller:playground`), each with its own `NOTES.md`.
+
+## Screen layout
+
+All placements below are in `Shipbuilder.tsx` and `Shipbuilder.css`.
+
+- **Top bar** (`.sb-top`): `‹ Port` saves and returns; inline design name; the pieces/fittings
+  reading opens the **Designs** menu; save state; the **Checks** chip; undo/redo; **SEA TRIALS**.
+  Sea trials need a current compiled definition with no blocks. If saving has failed the button
+  reads **TRIAL DRAFT**.
+- **Checks chip** (`.sb-warn`, in the top bar): reads *Checks pending*, *Checking design…* or the
+  block/warning count. **W** or a click opens the list in a panel under the bar. Rows with a
+  source reference select the affected part. Storage errors, compile errors, layout proposals
+  and notices open the same panel. Messages never appear in the rail.
+- **Tool rail** (`.sb-rail`, left edge): one joined column of glyph cells, in this order:
+  1. The layer's tools and actions from `BUILDER_RAIL`, each printing its key; on Hull also
+     **Freeform (D)**.
+  2. Modifiers: **Mirror (M)** and **Snap (N)** with its spacing row and settings arrow.
+  3. **View strip** (`ViewBar.tsx`, `.sb-viewbar`): View (Q), Camera (P), Fit (Home), then Centers (C)
+     and, on the fitting tabs only, Arcs (A). Cells carry no key badges; keys show in the tooltip.
+     The view strip is inside the rail, not on the dock. It is hidden in freeform mode.
+  4. Foot: **Center** (only with a selection) and **Keys (?)**.
+- **Palette dock** (`.sb-dock`, the full-width bottom bar):
+  1. Tab row (`.sb-dock-tabs`): the seven tabs, with the hotkey legend (`.sb-keys`) at its right end.
+  2. Shelf row (`.sb-shelves`): Hull type chips, fitting shelves plus nation filter, or the Paint
+     selectors (Ship paint, Surface finish).
+  3. Card row (`.sb-hotbar`): every card of the layer, first nine keyed **1–9**, trailing `…`
+     (**0**) opening the drawer (`.sb-drawer`) above the dock. Hull and fitting drawers have search;
+     a fitting search reaches all three fitting tabs.
+- **Ledger** (`.sb-ledger`, right edge): hull dimensions, displacement, draft, GM, list, trim,
+  power, speed, space, CG, a mass bar, and on Armor the thickness groups and read-only
+  **Turret armor** list.
+- **Object tag**: a leader line from the picked item to a card with its values. This is the
+  whole properties UI; there are no XYZ position fields.
+- **Orientation compass** (`.sb-orientation`): lower left, above the dock.
+
+Responsive rules: tabs collapse to glyphs at 1240 px wide and below; the hotkey legend hides at
+860 px wide or 800 px tall and below, where the rail also scrolls; 740 px and below stacks the
+header.
+
+## Tabs and layers
+
+There are five layers (`BuilderLayer`) but seven dock tabs (`BUILDER_TABS`), in this order: Hull,
+Machinery, Armament, Outfit, Internals, Paint, Armor. Machinery, Armament and Outfit are three tabs
+over the one `fittings` layer: they share its rail, tools and selection, and each reopens the
+shelf it last showed.
+
+| Tab | Layer | Rail (`BUILDER_RAIL`) | Opens in |
+| --- | --- | --- | --- |
+| Hull | `hull` | Select V · Rotate O · Place B · Fill F · Erase E · Measure T, plus Freeform D | Select |
+| Machinery · Armament · Outfit | `fittings` | Select V · Place B · Erase E · Rotate R · Suggest G | Place |
+| Internals | `internals` | Select V · Deck D · Bulkhead B · Split L · Merge J · Module U · Erase E · Suggest G | Module |
+| Paint | `paint` | Select V · Paint B · Area A · Eyedrop I · Erase E | Paint |
+| Armor | `armor` | Paint B · Fill A · Eyedrop I · Erase E | Paint |
+
+Fitting shelves (`FITTING_CATEGORIES`): Machinery has Running gear, Funnels, Masts; Armament has
+Main battery, Light & AA, Torpedoes, Fire control; Outfit has Mooring, Access, Fixtures,
+Boats & aviation, Doors & windows. Browser checks must use these tab names, not "Fittings".
+
+Layer notes:
+
+- **Hull.** Pieces attach to existing hull faces only; empty space has no ghost. A click places,
+  a drag lays a run, Fill lays a lattice, at most 128 pieces per gesture. Blocks may overlap
+  while each keeps 10% of its volume outside the others (checked natively). The last hull block
+  cannot be deleted.
+- **Fittings.** Deck parts attach through their socket, underwater parts to the hull surface.
+  Railing, rope and chain cards draw connected paths (Enter or double-click finishes, Backspace
+  removes a point, Escape cancels). Pending points stay out of source, autosave and history.
+- **Internals.** Entering it clears external selections. Deck, Bulkhead and Split add
+  boundaries; Merge removes one; Module places a package on the first floor inside the hull.
+- **Paint.** Keeps a face selection. **Ship paint** is `construction.paint`; **Surface finish**
+  is `construction.finish`. The last paint applied to a fitting becomes the session default.
+- **Armor.** A paint bucket with no selection: the active card is laid on clicked or swept faces.
+  The Armor card carries the typed millimetre value; thicknesses in use follow as cards; Opening
+  removes skin. Turret armor is read-only, drawn from the compiler's gunhouse mesh
+  (`turretArmor.ts`).
+- **Mirror.** Places twins across the centerline and applies edits to an existing twin. Twins are
+  found geometrically (`mirrorTwin` in `placement.ts`); the source stores no link, except wall
+  fittings, which keep a persistent `wall.mirrorId`.
+
+Mouse: left-drag from empty space orbits (pans in orthographic views), right-drag pans, wheel
+zooms. Right-drag on a fitting rotates it, 0.5° per pixel or 0.1° with Shift. A stationary
+right-click never removes anything; use Erase or Delete. Shift-drag box-selects in any tool.
+
+## Hotkeys
+
+- Global handling: `BuilderTool.key()` in `builderTool.ts`. `Shipbuilder.tsx` attaches the window
+  `keydown` listener, excludes text fields and the help dialog, and handles **F8** itself.
+- Tool keys: the `key` of each `BUILDER_RAIL` entry in `builderLayers.ts`.
+- The user-facing list: `HelpDialog.tsx` (**?**). Update it when adding a key.
+- The dock legend: the `acting` and `standing` hints in `Shipbuilder.tsx`.
+- The custom hull section editor has its own listener in `CustomHullEditor.tsx`.
+
+| Key | Action |
+| --- | --- |
+| ⌘Z, ⇧⌘Z or ⌘Y | Undo, redo |
+| ⌘C, ⇧⌘C, ⌘X, ⌘A | Copy, mirror-copy, remove, select all |
+| 1–9, 0 | Palette card; open or close the drawer |
+| Q, P, Home, C, A | View, camera projection, fit, centers, gun arcs (fitting tabs) |
+| W, M, N, S, Alt/Option | Checks, mirror, snap, cycle grid spacing, invert snap while held |
+| R, Shift-R | Rotate about the vertical: ±90° hull, 15° / 1° fittings; quarter-turn wall fittings |
+| X, Y, Z (Hull) | Quarter-turn the cursor block or selection in pitch, yaw, roll |
+| O (Hull) | Rotate mode with three-axis rings |
 | D (Hull) | Enter or finish Freeform for one selected editable shape |
-| 1, 2, 3, 4 (Freeform) | Select vertices, edges, faces or rings; a session opens on faces and remembers the last mode |
-| Escape | Close the drawer or menu, dismiss a proposal, end a measurement, then return to Select and clear |
+| 1–4, G, O (Freeform) | Vertex, edge, face, ring mode; move step; projection |
+| Arrows, PageUp/PageDown | Nudge by the snap step, raise or lower; arrows resize wall fittings |
+| Delete, Backspace | Remove the selection (a boundary merges its rooms) |
+| F8, ? | Model memory panel, Keys dialog |
+| Escape | Close a panel, cancel a gesture, then return to the layer's default tool |
 
-Shortcuts do not intercept text, number or select fields, and ⌘C / ⌘X stay with the browser while nothing is selected. The UI admits up to 10,000 hull primitives, 128 fittings and 24 boundaries (`CONSTRUCTION_LIMITS` in `constructionEditor.ts`, mirroring the native compiler); native complexity and fit diagnostics can impose tighter limits on a particular arrangement.
+## Freeform and shape editors
 
-## Repository authoring
+Source formats for these are in [docs/shipbuilding.md](../../../docs/shipbuilding.md#freeform-hulls).
 
-[Agent construction authoring](../../../docs/construction-authoring.md) connects
-this same editor to repository source files. `repositoryId` and `openStore` select
-the file adapter; `onEditorReady` supplies the shared batch/save interface. The
-local Designs menu imports JSON as an independent local copy.
+- **Freeform** (D): `FreeformToolbar.tsx` owns Vertex/Edge/Face/Ring modes (Face is the default,
+  last mode is remembered), local mirror axes, the **Twin** control, Move step and Split.
+  `FreeformShapeTools.tsx` adds round/chamfer; `FreeformMeshTools.tsx` adds rings and prism outline
+  points. `FreeformHandles.ts` draws handles and the local-axis gizmo. One drag is one command;
+  cancellation never writes history. The session baseline for **Reset edit** is separate from undo.
+- **Rotate** (O): `RotationToolbar.tsx` holds no source state; `RotateHandles.ts` previews until
+  release. Orientation math is `src/ships/constructionOrientation.ts`.
+- **Custom hull sections**: select a custom hull and choose **Edit hull sections**.
+  `CustomHullEditor.tsx` covers the builder with Orbit, Section, Plan and Profile views (keys 1–4),
+  a station ruler and its own snapping. **Apply hull** is one undoable source edit.
+- **Balcony outline**: **Edit balcony outline** opens `BalconyEditor.tsx`, a plan drawing with
+  draggable points and per-edge Open / Railing / Triple railing / Solid wall.
+
+## Compilation and preview
+
+`CompiledRevision` waits one second after the last committed edit, then compiles only the newest
+revision in a worker (`ConstructionClient`). Opening a design and explicit retries skip the wait.
+The ledger keeps the last accepted readings, marked **last check**. While a compile is pending,
+`pendingHull.ts` shows source envelopes for changed pieces and keeps unaffected native faces;
+these never enter the compiled result. `EquipmentPreview` caches catalog assets per viewport, so
+fitted models survive edits and invalid drafts. Compile completion does not refit the camera.
+
+The editor adopts the newest equipment catalog on open; see
+[equipment catalog](../../../docs/shipbuilding.md#equipment-catalog).
 
 ## React integration
 
-Import `Shipbuilder` from `./Shipbuilder` and load a `ConstructionCatalog` with `loadConstructionCatalog`. Required props are `catalog`, `onClose(source, result?)` and `onLaunch(source, result)`. `onClose` runs after a successful save flush, receiving the saved source and its current compiled result when available. It may return a promise; the port uses this to register and display the saved revision before closing. `onLaunch` may return a promise; rejection leaves the editor open with an actionable error. If storage has failed, **TRIAL DRAFT** still supplies the immutable in-memory source to the application.
+Import `Shipbuilder` from `./Shipbuilder`. Required props: `catalog` (from
+`loadConstructionCatalog`), `onClose(source, result?)` and `onLaunch(source, result)`; both may
+return a promise. Optional props:
 
-Optional props:
+- `initialSource`, `initialDesignId`, `starterSource`: what to open.
+- `onSave(source)`: called after a save commits.
+- `openStore`, `repositoryId`, `onEditorReady`: repository authoring (see construction authoring).
+- `compileClient`, `createModel`, `suggestLayout`: test and integration overrides. Layout
+  suggestions always come from the native solver; there is no JavaScript fit solver.
 
-- `initialSource`: reopen a detached source, including a clean return from a trial. A different saved revision causes a compare-and-swap conflict instead of silently overwriting another tab's work.
-- `initialDesignId`: load the latest local source and its exact retained catalog.
-- `onSave(source)`: receives the source after an IndexedDB transaction commits. Use it to refresh the owning application's custom roster.
-- `starterSource`: override the initial generic template.
-- `compileClient`: inject a `BuilderCompiler` for controlled integration tests. The editor owns and disposes this client.
-- `createModel`: override the shared source-backed preview composer. Each returned group belongs to the editor and must be independently disposable.
-- `suggestLayout(source, partIds, signal?)`: override the native layout request, returning `Promise<ConstructionSuggestion>` with a proposed source and diagnostics. By default the editor calls `ConstructionClient.suggest`. It applies the proposed equipment, boundaries and loads as one undoable edit only while the originating source revision is current. It never runs a separate layout or fit solver in JavaScript.
+Storage is `openConstructionStore()`: the account cloud store when signed in, IndexedDB
+otherwise. See [storage](../../../docs/shipbuilding.md#identity-storage-and-local-authority).
 
-The default compiler is `ConstructionClient`, using a dedicated module worker. `CompiledRevision` waits for a one-second pause after the last committed edit before submitting the latest revision; opening/adopting a design and explicit retries bypass the pause. Source changes and autosave stay immediate. The ledger retains readings from the last accepted result **and its matching source**, marked **last check**, so draft and trim never mix old physics with new dimensions. The warnings lead reads **Checks pending** during the pause and **Checking design…** after submission. Completed results must match both source identity and revision before enabling Sea Trials.
+## Verifying a change
 
-The Rust `ConstructionCompiler` reuses exact local CSG operations in a bounded cache. New source revisions cancel obsolete callers and reset the idle delay; running native work finishes without discarding the warm worker. At most one queued request survives, and only the latest queued source runs next. Closing the editor or switching an active design/catalog terminates the worker; errors and deadlines also release it. While compilation is pending, `pendingHull.ts` retains unaffected native hull faces and immediately displays added or edited source envelopes with the shared hull paints, textures and smoothing. Deleting, moving or resizing a block also restores touching neighbors from their source envelopes, closing formerly clipped joins immediately. Face assignments update immediately, including intentional openings and panel paint. These display surfaces never enter the compiled result: exact union intersections and physical validation settle when the native response arrives. Opening a design without a previous result, or validation returning no surfaces, uses selectable source primitives.
+Unit tests sit beside their modules (`*.test.ts`). Run the ones you touched with `bun test <files>`,
+then `bunx tsc --noEmit` and `bun run build`. `bun run test` runs everything and fails only on
+failures that are not in `scripts/tests/known-failures.json`.
 
-`EquipmentPreview` owns a viewport-scoped cache of exact catalog assets, separately from compiled hull geometry. Existing installations keep their meshes through edits and invalid drafts; new instances and the cursor/run ghosts reuse the loaded asset. Source positions, bearings and deletions update immediately. Only initial asset loading or a missing asset uses a bounds fallback. Clones borrow geometry and textures from the cache, which releases them once on catalog change or unmount. The viewport also releases pending loads, geometry, materials, the canvas and its WebGL context on unmount.
-
-Only canonical faces belonging to source hull primitives can receive armor, paint or opening assignments. Native fixed equipment-support surfaces remain rendered and physically inspectable; hull coverage counts only editable exterior hull skin. Fixed supports never become editable hull keys. Face IDs containing colons are retained without splitting the primitive identity.
-
-Module map: `builderLayers.ts` (layers, rails, palettes), `placement.ts` (face-adjacent snapping, runs, fills, mirror twins), `pathDrawing.ts` (pending route points and support-socket anchoring), `PathPointEditor.tsx` (point insertion/removal and rope slack), `builderReadings.ts` (ledger rows, mass groups, warnings), `builderTool.ts` (the builder tool: layer, tool, selection, cursor piece, snap, gestures and keys as one plain module that reads pointer events with their targets already raycast and submits command batches), `builderScene.ts` (the plain render description and pointer events crossing the viewport seam), `BuilderViewport.tsx` (the three.js adapter: raycasting, ghost, move drags, floor grid, tags, arcs), `MoveHandles.ts` (selection translation gizmo), `blockMovement.ts` (continuous movement clearance against oriented block bounds, including mirrored pairs), `mirrorEditing.ts` (twins of edited pieces and the reflected commands and freeform replacements they receive), `slotImages.ts` (offscreen card renders of hull shapes and catalog parts), `HelpDialog.tsx` (controls and hotkeys), `DesignsMenu.tsx`, `NumberField.tsx` (inline tag fields), `useBuilderSource.ts` (the React adapter: storage opening, catalog resolution and `useSyncExternalStore` over the modules), `src/ships/compiledRevision.ts` (compile debounce, cancellation and the one acceptance predicate), `src/ships/constructionRevisionOwner.ts` (history, the single edit door with its readiness rule, revision adoption, autosave ordering and conflict recovery). In development the viewport exposes itself as `window.shipbuilderViewport` for browser checks.
-
-`WallSizeFields.tsx` shares wall-fitting controls between placement and selection.
-The rimmed porthole exposes only uniform **Scale**, measured against its original
-catalog dimensions, including relief depth. Run
-`node scripts/tests/shipbuilder-portholes-browser.mjs <vite-url>` to check repeated
-scale edits, keyboard resizing, undo, palette access and desktop/compact layouts.
-Captures stay under `.build/porthole-review/`.
-
-## Source storage and recovery
-
-`openConstructionStore()` in `src/ships/constructionStore.ts` opens IndexedDB database `fleet-command-construction`. It returns `list`, `load`, `revisions`, `save`, `remove` and `close`. `save` accepts a source, its schema/catalog versions and `expectedRevisionId`; one transaction writes the immutable revision and advances the design head. A stale head rejects the whole transaction. No compiled geometry, runtime damage or renderer objects are stored.
-
-`ConstructionRevisionOwner` owns editable history, the acknowledged save head and
-source adoption for replacement, repository reload and polling. `submit(label,
-commands)` is its one edit door: it refuses while the store is still opening or
-an operation holds the design (`setBusy`), and returns the refusal instead of
-dropping the edit; `applyBatch` is the same door for agents and throws the
-rejection. Edits enqueue synchronously, so the agent editor handle can apply,
-read and flush a revision in one turn. `CompiledRevision` compiles the latest revision
-after editing pauses and exposes `current` only for the exact source revision and
-adoption, keeping the last accepted result for display. The React hook
-subscribes to those snapshots and handles browser lifecycle.
-
-`ConstructionAutosave` serializes writes and coalesces pending edits. It advances the expected head only after commit and retains the newest unsaved draft after an error. Source undo/redo is separate from autosave and compile results, retaining up to 50 undo steps. Saved revisions remain available after reopening the app; the store does not prune them automatically. Delete in the editor menu or port list uses an inline confirmation and atomically removes the design and every retained revision. Concurrent edits reject a stale deletion, and stale autosaves cannot recreate a deleted head. Deleting the open design drains its writer and opens a new one-block design.
-
-For consumers, prefer `loadSavedConstructionWithCatalog(store, designId)`. It returns the decoded source and its exact immutable catalog. `readConstructionSource` decodes a detached value through an explicit reader and never rewrites the original revision. A source whose schema version differs from the reader's is refused.
-
-The **Designs** menu opens the latest source, downloads an exact original revision or recovers an earlier revision as a new design. Version, catalog, JSON, damaged-index, transaction, concurrent-tab and quota errors remain visible in the warnings line with Download, Retry save and Save a copy actions. Catalog failure never substitutes the current equipment variants. Incomplete physical designs remain saveable; source syntax errors do not replace a prior revision. Keep a downloaded backup if local saving is unavailable or full, then retry or save a new copy after resolving the storage problem.
-
-## Validation
-
-Run the pure command/history/autosave/source-reader tests:
+Browser checks (headed Chromium; registry and flags in `scripts/construction/check-browser.ts`):
 
 ```sh
-bun test src/ships/constructionEditor.test.ts src/ships/constructionHistory.test.ts src/ships/constructionAutosave.test.ts src/ships/constructionStore.test.ts src/ui/shipbuilding/editorNumbers.test.ts
-bun test src/ui/shipbuilding/placement.test.ts src/ui/shipbuilding/builderReadings.test.ts src/ui/shipbuilding/ArmorInspection.test.tsx
-bun test src/ui/shipbuilding/primitiveGeometry.test.ts
-bunx tsc --noEmit
-bun run build
+bun run ship:browser:check -- --list                         # registered and unregistered checks
+bun run ship:browser:check -- --only shipbuilder-editing     # one registered check by name
+bun run ship:browser:check -- --only shipbuilder-placement-browser.ts#checkShipbuilderPlacement
 ```
 
-`bun run ship:browser:check` automates the repository-authoring, storage,
-design-deletion and shipbuilder-editing helpers below in headed Chromium;
-append `--headless` for CI. It uses disposable files and fresh browser storage.
-Install Chromium with `bunx playwright install chromium`, or set
-`CONSTRUCTION_CHROME` to an existing executable. Failure screenshots are saved
-under ignored `.build/construction-browser/`.
+`--only` takes a registered name or `<file>#<export>` for any module under `scripts/tests/`, and
+accepts a comma list. Checks listed in `scripts/construction/known-browser-failures.json` are
+reported as known red. Failure screenshots go to ignored `.build/construction-browser/`.
 
-Browser helpers run against the real application toolchain and IndexedDB without test-only storage dependencies. `scripts/diagnostics/shipbuilder.html` mounts the editor alone on the Vite dev server for layout review; import the check modules from that page:
+One image of the real editor with a saved design:
 
-- `bun scripts/tests/shipbuilder-armament-browser.mjs <vite-url>` checks legacy magazine conversion, the Turret rise field and Page Up / Page Down, fixed magazine position, invalid-fit launch blocking, saving and undo against the native compiler.
-- `bun scripts/tests/shipbuilder-fitting-gizmos-browser.mjs` (with `SHIPBUILDER_URL`): external fitting handles, keyboard nudge, pointer drag, undo and visibility in Select/Place.
-- `checkInternalsSelection()` and `checkEquipmentPaletteImages()` from `scripts/tests/shipbuilder-internals-browser.ts`: layer-scoped selection/movement/deletion and decoded, non-empty pre-baked images for every fitting/internal catalog card.
-- `checkConstructionStore()` from `scripts/tests/construction-store-browser.ts`: exact large-source close/reopen, competing writers, aborted transaction rollback and source recovery.
-- `checkDesignDeletion()` from `scripts/tests/design-deletion-browser.tsx`: editor and port Delete controls, cancellation, conflict recovery, complete revision removal and a fresh starting block after deleting the open design.
-- `mountShipbuilderReview()` then `checkShipbuilderEditing()` from `scripts/tests/shipbuilder-browser.tsx`: actual React controls, starter protection, attached placement and stacking, copy/undo/redo references, area selection and armor slots, openings, boundaries, fitting placement, save/reopen and canvas disposal.
-- `checkShipbuilderSuggestions()` from the same module: native missing-internal proposals, saved-source isolation, obsolete-proposal fencing, one-command apply and exact undo.
-- `checkShipbuilderArmor()` from the same module: area selection, the millimetre thickness field, native coverage readings, bulk and clicked-face painting without protection changes, explicit openings and paint undo.
-- `bun scripts/tests/shipbuilder-boundaries-browser.mjs <vite-url>` checks Deck, Bulkhead and Split previews and placed planes against the native hull volume, verifies that room bounding boxes are absent, and captures each tool in `.build/boundary-review/`. Section geometry regressions cover taper, translation, rotation, hollow openings and separate hulls in `boundaryGeometry.test.ts`.
-- `bun scripts/tests/shipbuilder-internal-placement-browser.mjs <vite-url>`: runs `checkInternalModulePlacement()`; Module clicks on the deck in top and perspective views and on the hull side land the package on the inner bottom without a launch block.
-- `bun scripts/tests/shipbuilder-movement-browser.mjs <vite-url>`: real pointer capture for selection gizmos, collision stops, omitted coordinate fields, keyboard nudges, cancellation, undo/redo, and desktop/compact captures in `.build/move-review/`. Collision geometry regressions live in `blockMovement.test.ts`. `bun scripts/tests/shipbuilder-internals-gizmo-browser.mjs <dev-server-url>` checks actual pointer drags on internal module and bulkhead gizmos, undo, cancellation, Module-tool snapping and internal-only group selection; captures stay in `.build/internal-gizmo/`.
-- `checkShipbuilderPlacement()` from `scripts/tests/shipbuilder-placement-browser.ts`: face-only cursor preview, block hover outlines, empty-space rejection, right-drag pan and left-drag orbit while placing, runs, fills, gesture cancellation with the real renderer and native compiler. Synthetic pointer capture is stubbed; repeat camera gestures with browser mouse input to review capture behavior. The primitive geometry test compares preview shapes against native exterior polygons at every supported rotation.
-- `bun scripts/tests/shipbuilder-block-editing-browser.mjs <vite-url>` checks actual dimension fields after freeform edits, live drag/commit/cancel/undo readings, type filters with search and number keys, and resized palette tooltips. Captures stay in `.build/block-editing/`.
-- `checkShipbuilderHullBlocks()` from `scripts/tests/shipbuilder-hull-blocks-browser.ts`: mounts its own review hull and checks the full shape drawer, six bridge search results and empty results, resized/rotated bridge attachment, mirrored curved shells with exact undo/redo IDs, resized ballast with a fixed native 100,000 kg payload, and exact IndexedDB save/reopen. Review thumbnails and responsive layouts separately in the browser.
-- `mountDeckFittingsReview()`, `checkDeckFittingsEditor()` and `checkDeckCatalogUpgrade(retainedRevision)` from `scripts/tests/shipbuilder-deck-fittings-browser.ts`: the complete fitting deck, static searchlight asset, pending connected routes, stable identity through undo/redo, rope picking/slack/save/reload, and an explicit library update that preserves authored source and restores the retained catalog on undo.
-- `checkMastRopeAttachment()` from `scripts/tests/shipbuilder-mooring-browser.ts`: real mast-surface clicks, unsnapped endpoints, native acceptance, undo/redo and saved-route recovery.
-- `measureConstructionEditing()` from `scripts/tests/construction-editor-performance.ts`: source/history editing, actual worker/WASM compilation and IndexedDB save/reload for the patrol starter and a synthetic large hull. Mass is reported by Rust; this helper does not measure rendering, launch or battle performance.
-- `node scripts/tests/shipbuilder-compile-preview-browser.mjs <vite-url>` holds real compiler responses after placement and deletion, checking retained hull faces, immediate deck closure, timber finish and disabled Sea Trials. Desktop and narrow screenshots go to `.build/compile-preview/`.
-- `cargo run --locked --profile wasm-dev -p naval-sim --example compile_construction_edits -- <revisions.json> <catalog.json>` compares an array of edited sources through one warm compiler against fresh compilation. It asserts complete result equality and prints per-revision timings and cache reuse counts.
-- `node scripts/tests/shipbuilder-opening-browser.mjs <vite-url>` checks cold opening, reuse of an exact finished port revision, and camera preservation through an edit and compilation.
+```sh
+bun run harness:designs        # once per machine: cache the test account's designs
+bun run ui:shot -- --state editor --design "Fletcher design" --out .build/shots/editor.png
+```
 
-The helpers are Vite modules for browser evaluation. The review surface is independent of App; exercise port entry, actual trials and custom battles through App as separate integration checks. Temporary browser captures and measurements belong in ignored `.build/`.
+`--state editor` requires `--design`; `bun run ui:shot -- --list` names the saved designs. Do not
+write a new diagnostics page or Playwright launcher; extend `scripts/browser/harness.ts`. Details
+are in [browser verification](../../../docs/browser-verification.md).
 
-## Freeform hull editing
+Standalone feature checks under `scripts/tests/` (`shipbuilder-*-browser.*`, `freeform-*-browser.*`,
+`hull-paint-bands-browser.mjs`) take a running Vite URL, for example
+`node scripts/tests/shipbuilder-snapping-browser.mjs <vite-url>`. Captures belong in ignored `.build/`.
+`scripts/diagnostics/shipbuilder.html` mounts the editor alone for layout review.
+After publishing equipment or changing `slotImages.ts` lighting, run `bun run part:thumbnails`.
 
-`BalconyEditor.tsx` provides the separate plan-outline editor for `kind: "balcony"`.
-Its optional version-1 `balcony` record contains stable point IDs, normalized X/Z
-coordinates, outgoing edge treatments, edge height and wall thickness. Size Y is
-deck thickness. `constructionBalcony.ts` supplies preview geometry and outline
-validation; `construction_balcony.rs` derives the authoritative solid cells,
-surfaces and steel mass. The existing source commands own save, history and copy.
-The panel commits one command per completed point or edge drag and discards interrupted
-drags; right-clicking an edge inserts a point there. The session ends when its balcony
-stops being the single Hull-layer selection. New balconies start at 2 × 1 m with solid walls. The outline grid defaults
-to 0.25 m, with no grid, 0.125, 0.25, 0.5 and 1 m buttons using the shared grid-spacing group; point editing uses the
-drawing rather than coordinate fields. See [balcony controls](../../../docs/shipbuilding.md#balconies).
-
-In Hull, **D**, selection tags and the Freeform rail button enter shape editing for a single editable block; D or Escape finishes. Boxes retain their eight-corner controls. Prisms, wedges, corners, cylinders, cones and domes (including half/quarter cylinders and domes) convert their native surface into versioned editable topology. `FreeformMeshTools.tsx` exposes ring resizing/insertion/removal and prism outline points; `constructionMesh.ts` owns shared source edits and `construction_mesh.rs` validates and compiles the closed solid. `FreeformToolbar.tsx` owns Vertex/Edge/Face/Ring selection (keys **1–4**; Face is the default and the editor remembers the last mode for the next block), local mirror axes, the **Twin** control (ship Mirror, **M**) shown when another block mirrors this one, Move step (also G), nearby-corner matching and the Split popover. `FreeformShapeTools.tsx` adds reversible round/chamfer edge sets on one block. `freeformShape.ts` supplies preview geometry and mirrored edge selection; `construction_freeform.rs` owns native solid generation and validation. The ordinary palette, placement mirror and hotkey readout yield space during the session.
-
-`blockDimensions.ts` measures local width, height and length from the edited envelope; selection fields resize those measured bounds. The freeform toolbar receives transient drag previews through the viewport, so its dimensions update before source commit and restore on cancellation. Palette dimensions follow the active placement size.
-
-`FreeformHandles.ts` owns source face/edge picking, screen-sized focusable handles, affected-component highlights and a local-axis movement gizmo. The center/component handle drags in the camera-facing local plane. Axis handles constrain explicitly; arrow keys nudge the focused axis. It uses the active orthographic or perspective camera and previews detached primitive replacements. Pointer release commits one source command. Cancellation never writes history, storage or neighboring hulls.
-
-`constructionVertex.ts` maps the selected vertex, edge or canonical face to corners. One renderer-free transform locks translations that conflict with local symmetry, expands mirrored edits without duplicate motion, then matches neighboring corners against the original source snapshot. Neighbor matching uses 0.025 m independently of Move step; no seam relationship persists. `construction_vertex.rs` retains authority over the physical solid and canonical face identities; source preview fans match its boundary geometry. The saved `kind: "vertex"` format accepts optional version-1 `shaping` controls while preserving old corner-only drafts.
-
-The edit-session baseline is separate from undo history and changes only when a new session begins. Reset restores that block's session-entry shape, including its original kind. Changing layer, tool or design ends the session. Selecting another editable block starts a fresh baseline; selecting other objects ends freeform mode. Native compile gating, autosave, fixed equipment placement and fit warnings remain shared with ordinary primitive edits.
-
-Validation includes `src/ships/constructionVertex.test.ts`, vertex cases in `primitiveGeometry.test.ts`, native construction tests, and `checkFreeformEditor()` / `checkFreeformDrags()` from `scripts/tests/freeform-editor-browser.ts`. Browser helpers exercise the production controls, native compilation, XYZ combinations, rigid edges/faces, the visible view strip, step cycling, nearby-corner undo/redo, projections, split, cancellation and exact IndexedDB reopen. Use real mouse drags separately to verify browser capture and one-command commits. `mountFreeformReview()` mounts a two-block fixture for that review.
-
-## Wall fitting previews
-
-Wall-fitting projection caches hull-panel bounds per immutable compiled surface
-array, then clips/projects only panels intersecting the fitting's projection
-volume. Moving a door no longer tests every hardware vertex against the entire
-hull. `constructionWallModel.test.ts` covers bounded projection work, large
-crossing panels, sloped support, scaling and relief. Run
-`node scripts/tests/shipbuilder-doors-browser.mjs <vite-url>` for actual door
-previews, all three variants, linked mirrors, resizing and undo; it also reports
-preview CPU timings and saves captures under `.build/door-review/`.
-
-Wall fittings always face out of their wall. **R** / **Shift-R** turn one a
-quarter turn about the wall's normal (the cursor piece, or selected wall
-fittings in place about their centre). The source stores it as optional
-`wall.turnDeg` (90, 180 or 270); a linked partner carries the opposite turn.
-`installedWallPart` and native `construction_wall_fittings.rs` swap the
-footprint so support checks, fitting boxes and mass stay exact.
-
-## Fine fitting rotation
-
-Fine fitting rotation uses right-drag (0.5° per pixel, or 0.1° with Shift), with one undo step on release for installed fittings. Shift-R turns fittings 1°; R retains its 15° turn. See [fine fitting rotation](../../../docs/shipbuilding.md#fine-fitting-rotation). The viewport retains ghost meshes across bearing changes and retains the pointer position when the cursor changes. `checkShipbuilderRotation()` in `scripts/tests/shipbuilder-rotation-browser.ts` covers stationary hotkeys, fractional cursor and installed rotation, undo/redo, cancellation and camera panning.
-
-## Component palette images
-
-Run `bun run part:thumbnails` after publishing equipment or changing `slotImages.ts` lighting/framing. It renders the current and retained catalogs into content-addressed PNGs under `public/models/components/thumbnails/`, without altering immutable model publications, and writes `src/generated/construction-thumbnails.json`. The index includes model, renderer-recipe and image hashes; `bun run build` checks freshness with `bun run part:thumbnails --check`. Commit the images and index together. Published cards use ordinary image requests; parts from an unknown catalog retain on-demand rendering as a compatibility fallback.
-
-Freeform shaping regression coverage: `src/ships/freeformShape.test.ts` checks native/preview surface and volume agreement, mirror transforms, corner edits and source/history round trips; `scripts/tests/freeform-shaping-browser.ts` exercises the production controls and worker compilation.
-
-## Snapping
-
-Snap guides confirm engaged alignment only. Turning Snap off (including temporary
-Alt/Option release) clears every guide immediately. Mint dotted connectors mark both
-aligned features and solid strokes highlight target edges; brass confirms the acquired
-ship centerline during placement or movement. The Snap settings panel explains these
-cues. Show snap guides controls all feedback, with Include ship centerline beneath it.
-
-`snapping.ts` resolves grid, ship centerline and source geometry alignment in screen space;
-`SnapControls.tsx` exposes the shared session settings and `SnapOverlay.ts` draws non-interactive
-lines and markers without labels. `BuilderViewport` caches authoring features per source revision
-and supplies the active camera projection. Fittings use attachment sockets rather than barrel
-bounds; coplanar triangle seams are excluded. Placement, paths, face drags and move/freeform
-handles share the resolver. Geometry beats grid per axis, respects constrained movement, and
-retains acquired targets until the larger release radius. Collision rejection clears snap feedback.
-Exact coordinates pass through the tool without a second rounding operation.
-Projection caches live for one resolver call, including repeated alignment coordinates
-on rail and post faces; the viewport reads its dimensions once per pointer sample.
-Candidates retain their original order and IDs, and nearest-edge projection is deferred
-until a candidate can win. Detailed geometry remains available for precise snapping.
-
-See [snapping controls](../../../docs/shipbuilding.md) for keyboard, visibility and centering behavior.
-
-`snapping.test.ts` covers target precedence, screen-space thresholds, hysteresis, constrained
-axes, support seating, guide visibility and a deterministic projection-work budget
-for dragging detailed balconies. Run `bun scripts/tests/shipbuilder-snapping-browser.mjs <vite-url>`
-to check the production controls, precision, undo, live Alt overrides, guide clearing and
-freeform cancellation, with desktop/compact captures under `.build/snap-review/`.
-
-Freeform topology coverage: `src/ships/constructionMesh.test.ts` verifies native volume, preview, saved topology, mirroring, ring/outline changes and snapping. Run `node scripts/tests/freeform-mesh-browser.mjs <vite-url>` for all new editor variants, D/Escape, ring gizmo movement and undo, topology controls, native validity and desktop/narrow captures under `.build/freeform/`.
-
-
-New balconies are 1 m deep × 2 m wide and turn their wide open edge toward the
-clicked supporting surface. The steel deck extends to the
-full edge footprint even when an edge is open; changing a wall to open retains
-that attachment. Placement seats the whole inner deck edge, including across
-sloped or tapered hull panels. Resizing or editing an existing balcony reseats it
-against its nearby supporting wall in the same undo step. Adjacent solid walls
-meet at mitred corners.
-New rope routes start with 0.15 m of midpoint sag, limited for short segments;
-Rope slack still accepts zero for a taut line. Selected external fittings use the
-same XYZ movement handles as hull pieces, including while placing fittings.
-
-
-## Three-axis block rotation
-
-Hull **Rotate (O)** operates on one selected block. `RotationToolbar` owns no source state; `BuilderTool` supplies the selected axis, snap setting and primitive commands. `RotateHandles` projects ship-axis rings, previews until release and cancels on Escape, lost capture/focus, camera changes or source changes. Each completed drag is one source transaction. X/Y/Z select pitch/yaw/roll; R/Shift-R turn ±90°. The source's optional versioned tilt and legacy yaw use YXZ order through `constructionOrientation.ts` and native `construction_orientation.rs`. Renderer adapters consume that orientation without moving physical authority out of Rust.
-
-`constructionOrientation.test.ts`, the builder tool tests and the native `construction_orientation` integration tests cover transform conventions, mirrors, editable geometry, serialization, physical volume and source face assignments. Run `bun scripts/tests/shipbuilder-rotation-browser.mjs <vite-url>` for real pointer drags on all axes, hotkeys, precise fields, cancellation, one-step undo, native compilation and desktop/compact screenshots in `.build/block-editing/`.
-
-**Adjustable inclined stairs** and **Adjustable framed ladder** are two-click
-fittings in Deck gear. Stairs connect a lower deck to an upper deck edge;
-framed ladders climb a closed hull side. Their selected object tags expose width,
-stair handrail sides, ladder wall standoff and grab extension. Native compilation
-checks every attachment and member clearance. Endpoints set the rise/run; step
-and rung counts adjust automatically.
+The previous, longer README is preserved verbatim at the end of the
+[shipbuilding log](../../../docs/archive/shipbuilding-log.md); it is history, not guidance.

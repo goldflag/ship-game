@@ -1,50 +1,67 @@
 # Working on this game
 
-Use one versioned blueprint/definition format for historical presets and future player-built ships.
+A Three.js/React client, one Rust simulation (native server and WASM worker) and a Blender/blueprint asset
+pipeline. Read the row for your task, then the nested `AGENTS.md` in the directory you are changing.
+
+## Code map
+
+| Path | Owns |
+| --- | --- |
+| `crates/naval-sim` | The only simulation: battle tick, ships, weapons, damage, flooding, aviation, bots, PvE, the construction compiler. See [crates/AGENTS.md](crates/AGENTS.md) |
+| `crates/naval-protocol`, `naval-wasm`, `naval-server` | Wire types (exported to `src/multiplayer/generated`), the browser worker build, the multiplayer server |
+| `src/game` | Rendering and the `Game` facade: camera, ocean, ship views, effects, audio; `src/game/session` talks to the simulation |
+| `src/ui` | React HUD, port (`Garage.tsx`), battle dialogs (`battle/`), fleet command (`fleet/`), shared controls (`components/`). See [src/ui/AGENTS.md](src/ui/AGENTS.md) |
+| `src/ui/shipbuilding` | The ship editor. See [its guide](src/ui/shipbuilding/AGENTS.md) |
+| `src/ships` | Blueprint and construction types, presets roster, design storage (IndexedDB and account cloud), local compile client |
+| `src/simulation` | Retired TypeScript simulation kept only as test fixtures. Do not extend it; gameplay lives in `crates/naval-sim` |
+| `services` | Accounts API, design storage, compile service (Bun, PostgreSQL) |
+| `scripts` | Pipelines (`ships`, `parts`, `aircraft`, `construction`), test runner and browser checks (`tests`), browser harness (`browser`), diagnostics pages. See [scripts/AGENTS.md](scripts/AGENTS.md) |
+| `assets` | Authoring inputs: blueprints, Blender recipes, parts. See [assets/AGENTS.md](assets/AGENTS.md) |
+| `public/models`, `src/generated`, `src/multiplayer/generated` | Build outputs. Never edit by hand |
 
 ## Read by task
 
-Read the relevant [README](README.md) sections for product behavior and architecture, then follow the task guide. The [documentation index](docs/README.md) separates current guidance from historical records.
-
 | Task | Start here |
 | --- | --- |
-| New ship, ship model or combat change | [Ship pipeline](docs/ship-pipeline.md), then its required task-specific references |
-| Shared components or model viewer | [Shared component library](docs/shared-components.md), then [model viewer](tools/ship-overlay/README.md) |
-| Aircraft assets | [Aircraft pipeline](docs/aircraft-pipeline.md) |
-| Carrier operations or bots | [Air operations](docs/air-operations.md) or [bot behavior](docs/bot-behavior.md), plus the ship pipeline for combat changes |
-| Ocean or UI | [Ocean guide](docs/ocean-configuration.md), [README architecture](README.md#architecture), and the relevant guide in the documentation index |
+| Ship editor UI | [src/ui/shipbuilding/AGENTS.md](src/ui/shipbuilding/AGENTS.md), then [its README](src/ui/shipbuilding/README.md); data model in [shipbuilding](docs/shipbuilding.md) |
+| HUD, port, battle dialogs, fleet command UI | [src/ui/AGENTS.md](src/ui/AGENTS.md), [DESIGN.md](DESIGN.md) quick reference, [shared controls](src/ui/components/README.md) |
+| Rendering, camera, `Game.ts` | [README architecture](README.md#architecture), [ocean guide](docs/ocean-configuration.md) |
+| Simulation, combat, bots, carrier operations | [crates/AGENTS.md](crates/AGENTS.md), then [air operations](docs/air-operations.md), [bot behavior](docs/bot-behavior.md) or [maneuvering](docs/maneuvering.md) |
+| A field crossing Rust and TypeScript (definitions, frames, commands) | The checklists in [crates/AGENTS.md](crates/AGENTS.md) |
+| Multiplayer server, accounts, deployment | [Rust multiplayer](docs/rust-multiplayer-implementation.md), [accounts](docs/accounts.md), [deployment](docs/deployment.md) |
 | See a UI or battle change in the real game | [Browser verification](docs/browser-verification.md): account-free harness, `bun run ui:shot`, saved custom designs |
+| New ship, ship model, parts, aircraft, paint | [assets/AGENTS.md](assets/AGENTS.md), then the [ship pipeline](docs/ship-pipeline.md) |
 | Merge, rebase or independent worktree | [Integration workflow](docs/integration-workflow.md) before starting |
+| Anything else | The [documentation map](docs/README.md). `docs/archive/` is history, not guidance |
+
+## Commands
+
+| Command | Use |
+| --- | --- |
+| `bun run bootstrap` | First thing in a fresh worktree: install, simulation content and dev WASM, `.env.local` |
+| `bun run check` | While iterating: incremental typecheck plus only the tests your diff affects. `--all` for every test |
+| `bun run test` | Every TypeScript test, quiet. `bun test <file>` runs one file with full output |
+| `bun run ship:browser:check -- --only <name>` | One editor browser check; `--list` shows them |
+| `bun run ui:shot -- --state port\|editor\|battle` | A screenshot of the real game, no account needed |
+| `bun run dev` | Dev server. The URL is printed and written to `.build/dev-server.json`; each worktree has its own port |
+| `bun run multiplayer:check` | Rust clippy and tests plus protocol checks (slow; CI runs it) |
+| `bun run build` | The release gate. Run once before a PR, not to confirm a small change |
+| `bun run ship:check all` | Which published ship outputs are stale; rebuild only those |
 
 ## Invariants
 
-- Before modeling ship equipment, search `bun run part:list` and inspect matching variants in `bun run model:viewer`. Reuse registered original builders through `assets/parts/library.py`; isolate published assemblies only for viewing. Preserve exact variants and declare dependencies with `part:inputs`. See [shared components](docs/shared-components.md).
-- Prefer one adjustable `custom-hull` for the main hull of each new ship (one per hull for multihulls). Start with `ship:new --template fletcher-hull` or another adjustable preset and edit its sections. Use freeform pieces for superstructure, appendages, and shapes the adjustable hull cannot represent; document any main-hull exception.
-- Author new ship construction through versioned blueprints and the custom editor/Rust compiler; use Blender indefinitely for original reusable component recipes under `assets/`. Existing Blender-backed ship recipes remain supported. Preserve `assets/ships/bismarck/baseline/`.
-- Do not create or commit ship `reports/` or `references/` directories. Downloads, exploratory captures, logs and diagnostic output belong in ignored `.build/`. Keep only concise configuration, source links and known limitations in the ship README; do not replace the deleted archive with another tracked folder.
-- Generated Blender/GLB files are build outputs. Record durable changes in a recipe or versioned original component asset.
-- Paint and deck changes follow [shared appearance rules](docs/ship-appearance.md): shared surface quality and metric texture scale, named paints, approved ship-specific schemes and restrained wear.
-- Use `ship:new`, `ship:compile`, `ship:build`, `ship:check` and `ship:review`. For construction-backed ships, follow [agent construction authoring](docs/construction-authoring.md) and inspect the exact exported model through its fixed views and native articulation checks. For reusable component geometry and legacy Blender-backed ships, use Blender MCP for interactive scene inspection, small modeling changes and visual correction; follow the [MCP authoring loop](docs/ship-build-reference.md#blender-mcp-authoring-loop). Verify the connection with a read-only scene query, inspect screenshots before and after meaningful changes, and preserve accepted edits in durable inputs before a clean `ship:build`. If MCP is unavailable or a call fails, report the specific limitation and continue the same visual loop with local Blender and inspected renders. A successful Python command is not visual review.
-- Preserve stable assembly/joint/socket IDs and the documented coordinate conversion. Keep independent moving parts and pivot empties.
 - Keep simulation renderer-free. CPU simulation owns combat poses, firing, hits, modules and flooding; GPU ocean samples are visual-only.
-- For a new ship, follow the [collaborative brief and reference approval](docs/ship-pipeline.md#start-a-new-ship-collaboratively): resolve the exact vessel, year/refit, paint and reference policy, then present inspected source previews for user approval before ship-specific geometry or paint work. Reuse existing answers/approvals. Recommend GameModels3D-only for the experiment; when selected, do not add historical photos/plans or other models without approval. Use the approved GameModels3D or War Thunder model as the primary visual reference and keep a concise approved brief in the ship README. Author geometry/textures independently. Model fidelity and export checks do not certify historical accuracy.
 - Extend the existing naval instrument styling. Keep the ship and sea visible and damage feedback inspectable.
-
-## Model acceptance
-
-Complete [all four visual checks](docs/ship-model-review.md):
-
-1. Every fitted part has a modeled physical attachment; no floating geometry.
-2. Turret shapes, bridge proportions and the bow's side profile match the approved model/configuration at a common scale. Unaccepted mismatches block completion. GameModels3D-only work targets fidelity to that model; historical claims require supporting evidence under the approved source policy. Keep accepted approximations explicit.
-3. Exposed guns have intricate, variant-specific mechanisms and fittings.
-4. Turrets, barrels and fittings clear the ship throughout traverse, elevation and recoil, including intermediate poses and independently moving neighbors.
-
-Review the exact published model. Fix failures in durable inputs and repeat affected reviews. Use `.build/` for temporary evidence; do not commit review reports or reference downloads.
+- Use one versioned blueprint/definition format for historical presets and future player-built ships.
+- Generated files (`public/models`, `src/generated`, `src/multiplayer/generated`, `crates/naval-sim/src/definition.rs`) change through their generators, never by hand.
+- Temporary output, captures, logs and downloads go in ignored `.build/`. Do not commit review evidence, `reports/` or `references/` directories.
+- Searches skip data and build outputs (see `.ignore`). To search a blueprint or published model, name the file: `rg pattern assets/ships/<id>/blueprint.json`.
+- Asset, model, paint and reference rules, and the four model acceptance checks, are in [assets/AGENTS.md](assets/AGENTS.md). They bind any change to ship models or combat geometry.
 
 ## Validation and integration
 
 - `bun run test` and `bun run ship:browser:check` report only failures that are not in their [known-red ledgers](docs/browser-verification.md#known-red-tests-and-checks); do not re-prove a listed failure against master.
-- Run relevant simulation tests and `bun run build`. Model changes also require `ship:build`, fixed review views and articulation in-game. Rebuild affected assets after shared recipe changes; follow the pipeline's validation matrix.
+- Iterate with `bun run check`; run relevant simulation tests and `bun run build` once before the PR. Model changes also require `ship:build`, fixed review views and articulation in-game. Rebuild affected assets after shared recipe changes; follow the pipeline's validation matrix.
 - Start independent tasks from current remote master in separate worktrees. Only one integrator may mutate the main checkout; check for already-integrated patches before replaying commits.
 - Run `bun run git:setup` from the durable main checkout once per clone for ID-aware catalog merging and remembered resolutions with manual staging.
 - Resolve authoring inputs first, run `bun run ship:check all`, and rebuild only stale outputs it identifies. Never automatically choose a binary side or rewrite hashes to bypass checks.
