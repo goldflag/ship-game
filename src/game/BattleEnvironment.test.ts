@@ -3,7 +3,7 @@ import { Color, DirectionalLight, Group, Vector3 } from 'three/webgpu';
 import { Atmosphere, Clouds, Sun, SunDriver, TimeOfDay } from '../../vendor/threejs-sky-pro/build/index.js';
 import { OCEAN_MAPS, oceanMap } from '../maps/catalog';
 import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
-import { VisualEnvironment } from './VisualEnvironment';
+import { PORT_WIND, VisualEnvironment } from './VisualEnvironment';
 import { validateBattleSetup } from './session/battleSetup';
 
 /** The Water Pro surface the environment writes to, reduced to its live uniforms. */
@@ -52,7 +52,7 @@ test('all battle conditions combine across maps without mutating their defaults'
   }
 });
 
-test('weather drives live waves across maps, overrides obsolete settings, and restores sheltered port water', () => {
+test('weather drives live waves across maps, overrides obsolete settings, and restores the port\'s standing wind', () => {
   const water = fakeWater();
   const effects = { ...windSink(), setSun() {}, setIllumination() {} }, funnelSmoke = windSink();
   const environment = new VisualEnvironment({ effects, funnelSmoke, sunAnchor: new Group() });
@@ -91,14 +91,17 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   environment.setBattle({ timeOfDay: 'map', weather: 'fog', conditions: { timeHours: 0 } }); environment.setScene(mapId, false);
   environment.setScene(mapId, true);
   expect(water.color.waterColor).toEqual(new Color(oceanMap('north-atlantic').water.waterColor));
-  expect(water.waves.amplitude.value).toBe(.12);
+  // The port's 9 m/s is the calibrated sea a battle resolves for that wind, on the berth's map.
+  const port = battleEnvironment(oceanMap(mapId), 'map', 'map', { windSpeed: PORT_WIND.speed }).waves;
+  expect(port.significantHeightM).toBeCloseTo(1.8 * oceanMap(mapId).water.amplitudeScale);
+  expect(water.waves.amplitude.value).toBe(port.amplitude);
   expect(water.waves.windSpeed.value).toBe(9);
-  expect(water.waves.peakWavelength.value).toBe(14);
-  expect(water.waves.choppiness.value).toBe(.65);
-  expect(water.waves.jonswapGamma.value).toBe(2.2);
-  expect(water.foam.waves.persistence.crestStrength).toBe(.99);
-  expect(water.foam.waves.persistence.windwardStrength).toBe(1.1);
-  expect(water.foam.waves.persistence.decayTime).toBe(1.48);
+  expect(water.waves.peakWavelength.value).toBe(port.peakWavelength);
+  expect(water.waves.choppiness.value).toBe(port.choppiness);
+  expect(water.waves.jonswapGamma.value).toBe(2.6);
+  expect(water.foam.waves.persistence.crestStrength).toBe(port.crestFoam);
+  expect(water.foam.waves.persistence.windwardStrength).toBe(port.windwardFoam);
+  expect(water.foam.waves.persistence.decayTime).toBe(2.8);
   expect(effects.wind).toEqual([9, 35 * Math.PI / 180]);
   expect(funnelSmoke.wind).toEqual(effects.wind);
 });
@@ -231,6 +234,13 @@ test('developer overrides replace only what they name, in port and at sea, until
 
   // Port: wind alone raises the sea; the sheltered light, clouds and fog stay.
   environment.setScene(map.id, true);
+  const standing = battleEnvironment(map, 'map', 'map', { windSpeed: PORT_WIND.speed });
+  expect(water.waves.amplitude.value).toBe(standing.waves.amplitude);
+  expect(sky.clouds.wind.speed).toBe(standing.cloudWind);
+  // Naming the standing wind changes nothing: the reading already was the sea.
+  environment.setOverrides({ windSpeed: PORT_WIND.speed });
+  expect(water.waves.amplitude.value).toBe(standing.waves.amplitude);
+  expect(water.waves.peakWavelength.value).toBe(standing.waves.peakWavelength);
   environment.setOverrides({ windSpeed: 20 });
   const windy = battleEnvironment(map, 'map', 'map', { windSpeed: 20 }).waves;
   expect(water.waves.amplitude.value).toBe(windy.amplitude);
@@ -244,7 +254,7 @@ test('developer overrides replace only what they name, in port and at sea, until
 
   // Port: time, clouds, direction and visibility each reach their uniforms.
   environment.setOverrides({ timeHours: 18, cloudCover: 80, windDirection: 270, visibilityKm: 2.8 });
-  expect(water.waves.amplitude.value).toBe(.12);
+  expect(water.waves.amplitude.value).toBe(standing.waves.amplitude);
   expect(sky.sun.elevationDeg).toBeCloseTo(battleEnvironment(map, 'map', 'map', { timeHours: 18 }).sky.elevation, 6);
   expect(sky.clouds.shape.coverage.value).toBe(.8);
   expect(water.waves.windDirection.value).toBeCloseTo(270 * Math.PI / 180);
@@ -270,6 +280,6 @@ test('developer overrides replace only what they name, in port and at sea, until
   expect(water.waves.windSpeed.value).toBe(9);
   environment.setScene(map.id, true);
   expect(environment.getOverrides()).toEqual({});
-  expect(water.waves.amplitude.value).toBe(.12);
+  expect(water.waves.amplitude.value).toBe(standing.waves.amplitude);
   expect(sky.clouds.shape.coverage.value).toBe(.38);
 });

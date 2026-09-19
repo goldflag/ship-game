@@ -47,8 +47,12 @@ Map height multipliers remain 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 In
 each has its own measured FFT gain to account for its wavelength scale. Numeric
 wind bypasses the map wind multiplier; legacy presets first resolve that wind
 multiplier, then enter the same calibration curve. Cloud cover remains independent
-of wave energy. Port restores amplitude 0.12, wind 9 m/s, peak wavelength 14 m,
-choppiness 0.65, gamma 2.2 and the original sheltered foam settings.
+of wave energy. Port resolves its standing 9 m/s wind through the same curve on
+the berth's map (1.8 m significant height, 32 m peak wavelength), so the developer
+console's reading is the sea on screen; only its daylight, clouds and fog stay
+port-specific. The hull on show rides that sea through `BerthMotion`, a
+presentation-only copy of the authority's sea response; the port session is
+still never stepped.
 
 CPU combat receives the same significant height through `src/game/session/sea.ts`
 and `crates/naval-sim/src/environment.rs`, using the shared content manifest.
@@ -113,12 +117,12 @@ without changing wave energy. Legacy presets retain their wind speeds (Clear/Fog
 5 m/s, Map default/Partly cloudy 9 m/s, Overcast 12 m/s, Storm clouds 16 m/s), then
 apply the map wind multiplier. Their old amplitude and wavelength entries have been
 replaced by the shared calibration. Scene transitions restore the complete battle
-or sheltered-port spectrum and foam settings. The [weather/sea consolidation review](../assets/maps/review/weather-seas/README.md)
+or port spectrum and foam settings from that same calibration. The [weather/sea consolidation review](../assets/maps/review/weather-seas/README.md)
 records the previous small-wave iteration.
 
 Nearby ships receive bow and stern wake generators scaled to their hull; their configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
 
-Funnel exhaust, gun and impact smoke, burning-turret smoke and falling-aircraft trails use the ocean's wind direction and weather-adjusted speed. Direction is in radians from +X toward +Z; visual drift uses 35% of ocean wind speed with each particle's existing response factor. Returning to port restores the sheltered wind (speed 9 m/s, direction 35°). The renderer-free sea model also uses this weather wind to drive gradual ship leeway. CPU waves add hull motion and heading-dependent resistance; shell flight still omits aerodynamic wind drift. See [the runtime contract](ship-runtime-contract.md#blueprint-and-simulation-contract).
+Funnel exhaust, gun and impact smoke, burning-turret smoke and falling-aircraft trails use the ocean's wind direction and weather-adjusted speed. Direction is in radians from +X toward +Z; visual drift uses 35% of ocean wind speed with each particle's existing response factor. Returning to port restores the harbor's standing wind (speed 9 m/s, direction 35°). The renderer-free sea model also uses this weather wind to drive gradual ship leeway. CPU waves add hull motion and heading-dependent resistance; shell flight still omits aerodynamic wind drift. See [the runtime contract](ship-runtime-contract.md#blueprint-and-simulation-contract).
 
 The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphere. That changes what the water reflects even if its material settings stay the same. Cloud reflections are baked at width 384 with 16 cloud march steps and 8 skipped frames. The game uses ACES tone mapping and neutral exposure; it does not add the demo's optional bloom or film grain.
 
@@ -272,7 +276,7 @@ The September 5 scale adjustment reduces Atlantic peak wavelength from 65 to 28 
 
 Custom battle’s **Battle conditions** combines time-of-day and weather selections. Each weather preset also sets wave amplitude, wind speed and peak wavelength, replacing the separate Sea conditions control in battle setup and Settings. Original presets live in `assets/maps/battle-conditions.v1.json`; the renderer-free `src/maps/conditions.ts` resolver applies the map’s water multipliers to the weather’s waves and layers weather over its sky/fog, then applies time-of-day sun angles, ambient scaling and twilight/night fog tint. Omitted selections and **Map default** retain existing map values. These are fixed artistic lighting presets, not geographic solar calculations. Dawn, Morning, Noon, Dusk and Night remain fixed during play; Clear, Partly cloudy, Overcast, Fog and Storm clouds control cloud coverage, altitude, fill, wind and distance haze. Old saved sea preferences are ignored; graphics settings store only quality and render scale. Storm clouds do not include precipitation or lightning, and visual visibility does not alter CPU bot acquisition or ballistics.
 
-`VisualEnvironment.setScene` applies the composed uniforms and freezes Sky Pro’s celestial clock on an arc matching the authored sun direction, keeping the full moon opposite the sun. Night retains low ambient fill for readable silhouettes and uses a dark fog tint. The provider’s sun-only fog sampler receives the same lunar ambient term as the sky dome, faded in with sky darkness; this prevents the distant fog blend from painting the night backdrop black. The water light’s shadow anchor follows the active sun/moon direction, with a restrained lunar directional fill at night. Returning to port restores cloud fill, cloud wind, horizon coverage, sun, atmospheric scattering and fog alongside the existing sheltered sea. Setup choices survive returns to port for the current page session. `Game.diagnostics()` exposes the selections and applied lighting for in-game review. See the [setup and environment review](../assets/maps/review/battle-conditions/README.md).
+`VisualEnvironment.setScene` applies the composed uniforms and freezes Sky Pro’s celestial clock on an arc matching the authored sun direction, keeping the full moon opposite the sun. Night retains low ambient fill for readable silhouettes and uses a dark fog tint. The provider’s sun-only fog sampler receives the same lunar ambient term as the sky dome, faded in with sky darkness; this prevents the distant fog blend from painting the night backdrop black. The water light’s shadow anchor follows the active sun/moon direction, with a restrained lunar directional fill at night. Returning to port restores cloud fill, horizon coverage, sun, atmospheric scattering and fog alongside the harbor's 9 m/s sea. Setup choices survive returns to port for the current page session. `Game.diagnostics()` exposes the selections and applied lighting for in-game review. See the [setup and environment review](../assets/maps/review/battle-conditions/README.md).
 
 Versioned map definitions live in `assets/maps/environments.v1.json`, consumed through `src/maps/catalog.ts`. Select a map, time of day and weather in Custom battle. These selections survive repeated battles during the current page session.
 
