@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "roma-1943-mainmast",
+  "revision": "b7702139788b31eeaa8a5c908a8e64c350585b220781c1af5fc23606f7e3d0ce",
+  "contentHash": "9fb98341617a608c7da3856c89722f0a9aaf1553bdf2e8745f270992c123ac51",
+  "modelSha256": "f6e1202bea6bac00237b0fb5c17e24aadba5f9074ebe14fcf7eae44aa4b443f6",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/roma-1943-mainmast/b7702139788b31eeaa8a5c908a8e64c350585b220781c1af5fc23606f7e3d0ce/model.glb",
+  "boundsCenter": [
+    0,
+    12.319999961182475,
+    0.10000002384185791
+  ],
+  "size": [
+    10.199999809265137,
+    24.63999992236495,
+    6.200000524520874
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1996,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}
