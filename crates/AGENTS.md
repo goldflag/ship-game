@@ -7,7 +7,9 @@
   `damage.rs`, `flooding.rs` and `floodwater.rs` are combat; `aviation/` is carrier operations; `bots.rs`,
   `captain.rs`, `admiral.rs` and `pve.rs` are AI; `construction*.rs` compile player designs;
   `frame_delta.rs`, `snapshot.rs` and `team_view.rs` are what clients see.
-- cargo is not on PATH. Use the `bun run` wrappers, or the lookup in `scripts/multiplayer/toolchain.ts`.
+- cargo is not on PATH. `bun run rust:test -- <test-file-stem> [filter]` runs one integration test on the fast
+  profile (seconds, not minutes); with no arguments it runs the workspace. `cargo fmt` is safe to run; the
+  workspace is format-clean and CI checks it. More in [README.md](README.md).
 - `definition.rs` is generated from `src/ships/blueprint.ts` by `bun run multiplayer:definitions`. Frame and
   command types are exported to `src/multiplayer/generated` by `bun run multiplayer:types`; a new root type
   also needs a line in `naval-protocol/src/bin/export.rs`. `tests/frame_types.rs` and
