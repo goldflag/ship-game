@@ -191,11 +191,6 @@
       "modelHash": "bea34f7d8196762d9049ec331af2da5a04332ba21704d20291d90d3e1c63c1b9",
       "imageHash": "6f8e80ce2fc6226cd618e37f7e4381cc0914ddf0a52ff13e4255ba2a27718426"
     },
-    "/models/components/generic-watertight-door/bf8d8aa0d6af3db69d93a81265b5853bb1aba99655913e24741e40a01096b428/model.glb": {
-      "url": "/models/components/thumbnails/b8abd6e6fa90dc72f6c95389706743f90dfe54daf11c251d49c9d359e603a634.png",
-      "modelHash": "42bc53a5ccc8fa46c0f356330c415127868ebb15cd7265ecc1fde4e4355f31c3",
-      "imageHash": "051e268ccaec9083bfc23f98e7b74e9523be86c94102674906bfc280c0dc782a"
-    },
     "/models/components/generic-deck-hatch/a818491f43e44095eccfc0fbbd5ff98074f7d307abdeb85782d567e123173cc8/model.glb": {
       "url": "/models/components/thumbnails/3605ab8cd59821ee73e3d0c0243eecb3bea8722963a8c140ea2aa3d53dca2591.png",
       "modelHash": "e87a7d61cfb002e116554a8ea0d1683020be02c3bb3647b5b3ead8487749c95a",
@@ -630,16 +625,6 @@
       "url": "/models/components/thumbnails/0ab2d066449f850e2c5502f8dc11a3e8d4c9b2edf45f4c20885c0d4d42e69eb1.png",
       "modelHash": "7740d4440cd29ed2586b348b0db930026659c915fface3aedf03f4d996dc04fa",
       "imageHash": "2e9ebde872078f445addd49bef35c22a8cd2af5a821e4d10207f56993e78f912"
-    },
-    "/models/components/generic-utility-door/a864dcf0b6992f137fe8409b7881974430d961ff6239d8ebb0e502c5401ab8ff/model.glb": {
-      "url": "/models/components/thumbnails/1cb1979b4f51d0f6a90477a230eeedfceb0bdc6c2e3322dc152db01dd93ac7cc.png",
-      "modelHash": "0c2a8efcb6eb0ac0ddb26ae0948fee38c321ee2d3c157318d556d531e30d741a",
-      "imageHash": "2b51eb6d9ae8b32325bc1f810d5dcab432cfcff3eed967105f3a0097e9f04600"
-    },
-    "/models/components/generic-windowed-door/c7e842744e46ab7ae6af8ca6d3e957875d12c9544dd0af3d91736001eb320815/model.glb": {
-      "url": "/models/components/thumbnails/8a809a7840bcf231658c783349411b0076d4fa42ecaedbb644bb702f01956991.png",
-      "modelHash": "65df0105016bb5d2af4d97a13a9791795a0c07aa1dbba01871ae234ae6cd9017",
-      "imageHash": "31b8116bd83a5dfe60084b65c11df394e8bb7b84a78341be7ec7d44e9bbab186"
     },
     "/models/components/generic-louvered-vent/5f8fc72694ab8bedde44b2ae6fb285ea6dac22c509486636d1fc424f39380472/model.glb": {
       "url": "/models/components/thumbnails/171a3993cd843a648bef7b84c5f3234bf18edbbbe4bcdfa2b67eae4c4b6fcbcc.png",
@@ -1511,6 +1496,21 @@
       "modelHash": "8797be1a3d6aa3672eed747bfb92551e02b5507b90d2780c88f322d625f59388",
       "imageHash": "948bd235721b2fcf4d67c4c438abc850db4cd91e178777859ecc87ffb9d0040d"
     },
+    "/models/components/generic-watertight-door/bf8d8aa0d6af3db69d93a81265b5853bb1aba99655913e24741e40a01096b428/model.glb": {
+      "url": "/models/components/thumbnails/b8abd6e6fa90dc72f6c95389706743f90dfe54daf11c251d49c9d359e603a634.png",
+      "modelHash": "42bc53a5ccc8fa46c0f356330c415127868ebb15cd7265ecc1fde4e4355f31c3",
+      "imageHash": "051e268ccaec9083bfc23f98e7b74e9523be86c94102674906bfc280c0dc782a"
+    },
+    "/models/components/generic-utility-door/a864dcf0b6992f137fe8409b7881974430d961ff6239d8ebb0e502c5401ab8ff/model.glb": {
+      "url": "/models/components/thumbnails/1cb1979b4f51d0f6a90477a230eeedfceb0bdc6c2e3322dc152db01dd93ac7cc.png",
+      "modelHash": "0c2a8efcb6eb0ac0ddb26ae0948fee38c321ee2d3c157318d556d531e30d741a",
+      "imageHash": "2b51eb6d9ae8b32325bc1f810d5dcab432cfcff3eed967105f3a0097e9f04600"
+    },
+    "/models/components/generic-windowed-door/c7e842744e46ab7ae6af8ca6d3e957875d12c9544dd0af3d91736001eb320815/model.glb": {
+      "url": "/models/components/thumbnails/8a809a7840bcf231658c783349411b0076d4fa42ecaedbb644bb702f01956991.png",
+      "modelHash": "65df0105016bb5d2af4d97a13a9791795a0c07aa1dbba01871ae234ae6cd9017",
+      "imageHash": "31b8116bd83a5dfe60084b65c11df394e8bb7b84a78341be7ec7d44e9bbab186"
+    },
     "/models/components/generic-round-wall-vent/c9f07aea1a9feff38e531101d500cff879d84cb23e001f07664041ad51cfebdb/model.glb": {
       "url": "/models/components/thumbnails/01eb573df617d4e7a923fa6beee9d1daf2704b3fd504beeb9e2c4d7037d79eab.png",
       "modelHash": "e7111fd3ef0968fe00b0234c2d9f2c9e5dee7848202b468d0f9f16ed4b8356a3",
@@ -1535,6 +1535,21 @@
       "url": "/models/components/thumbnails/9f6429d4094cf5670b7491c26c4b881e941ec6439961534db10726fa432b9d5f.png",
       "modelHash": "c93529a3da4318c1589f56deba379ce1be061b4f8f3fa7ce52f4be2b52f9e77f",
       "imageHash": "6e0383de0c1f7ed9d320fc74bb257290da81bf764015be59985a354dd39e622d"
+    },
+    "/models/components/generic-watertight-door/7a5632cd7d46db42809971f33405e66f28008ca6b5455109842f272429873d87/model.glb": {
+      "url": "/models/components/thumbnails/19cb53f807583cbb9ae133cd6172eb434349fee4b21a499c8f282a0a3adf5fb5.png",
+      "modelHash": "f643978697e310e7d0e0e11104d05f3f6ae186872bda3b2933a59718a1258368",
+      "imageHash": "2f5f4d6eb5e89cdc1e3533c4e6c5f526ad0e93dfbff426b342c2465381d08682"
+    },
+    "/models/components/generic-utility-door/5ab593408a0efaff5812f9262fd319147a983af152059f77302d762a9f23661f/model.glb": {
+      "url": "/models/components/thumbnails/0893f9f90e871953cec40db160542975240f6370d0ebb21aa5373a22f977bd93.png",
+      "modelHash": "04728bab74823478d59cc118d0a4f07e7df2f1023733cb990fb03a0eb80fe66d",
+      "imageHash": "23c797b6aa01b4de08d4b9ad313c099c9deaf13ab17c7d8443cb4ac3cf6fd1cc"
+    },
+    "/models/components/generic-windowed-door/89bcf2339e9b6ea259c85e15fb1cca31453518518d0561cd2ae750e04b775f4f/model.glb": {
+      "url": "/models/components/thumbnails/08f5a31bce4073276e3e6ceba966ae809646269b50cd802cf5cc2b75382d7423.png",
+      "modelHash": "c9e06888e9a46545877ff86a81f52530c6f617ccef7562071d89342f020ad841",
+      "imageHash": "d165bcdde4ddbbb35220bd3a8ddc261fbcd2d440120e856cf27ecc5b48bd1c96"
     },
     "/models/components/generic-single-bollard/840a976298ebe72d1e985a2048ca7202cf455f31cab7c77fbaa2a0e888add044/model.glb": {
       "url": "/models/components/thumbnails/fca5da68dccd91e2afe911148ab92ee9ed99c61b7618567df2bcb6c7006b5d1c.png",
