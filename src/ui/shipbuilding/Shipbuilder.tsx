@@ -557,7 +557,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </div>
     <aside className="sb-ledger" aria-label="Ledger">
       <h4>Ledger{!compiledResult && <span title={compile.retained ? 'Readings from the last checked revision. They update after you pause editing.' : 'Readings appear after the design is checked.'}>{compile.retained ? 'last check' : 'pending'}</span>}</h4>
-      {rows.map(row => <div key={row.label} className={`row ${row.tone ?? ''}`}><span>{row.label}</span><b>{row.value}</b></div>)}
+      {rows.map(row => <div key={row.label} className={`row ${row.tone ?? ''}`} title={row.help}><span>{row.label}</span><b>{row.value}</b></div>)}
       {totalMass > 0 && <><div className="sb-massbar" aria-hidden="true">{masses.filter(group => group.massKg > 0).map(group => <i key={group.name} style={{ width: `${(100 * group.massKg / totalMass).toFixed(1)}%`, background: group.color }}/>)}</div>
         <div className="sb-masskey">{masses.filter(group => group.massKg > 0).map(group => <span key={group.name} style={{ display: 'contents' }}><i style={{ background: group.color }}/><span>{group.name}</span><b>{formatTonnes(group.massKg, group.massKg < 1e5 ? 1 : 0)}</b></span>)}</div></>}
       {/* Every thickness on the ship, thickest first on the ship's own colour scale; a row picks that value's card. */}
