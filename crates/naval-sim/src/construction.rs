@@ -50,6 +50,10 @@ fn error(code: &str, message: impl Into<String>, id: Option<&str>) -> Constructi
         source_id: id.map(str::to_owned),
     }
 }
+/// Names the other party of an overlap; identical parts read as "another …".
+pub(crate) fn neighbor_name(own: &str, other: &str) -> String {
+    if own == other { format!("another {other}") } else { other.to_owned() }
+}
 fn portal_limit(connections: usize, openings: usize) -> ConstructionDiagnostic {
     error(
         "geometry-limit",
@@ -1606,6 +1610,9 @@ fn equipment(
         && matches!(p.kind.as_str(), "deck-fitting" | "mast" | "director" | "funnel");
     let relaxed_ids: std::collections::BTreeSet<_> = installed_parts.iter()
         .filter(|(_, p)| relaxed_fit(p)).map(|(id, _)| id.as_str()).collect();
+    // Diagnostics name the catalog part; source ids are opaque to the designer.
+    let part_name = |id: &str| installed_parts.iter().find(|(other, _)| other == id)
+        .map_or_else(|| id.to_owned(), |(_, p)| p.name.clone());
     let mut fitted = vec![];
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
     let mut fitting_index = cg::Broadphase::new(8.);
@@ -1757,6 +1764,7 @@ fn equipment(
                 &fitting_surfaces,
                 &all_envelopes,
                 &fitting_index,
+                &part_name,
             )?;
             path_members += path.cells.len();
             if path_members > 16_384 {
@@ -1835,7 +1843,7 @@ fn equipment(
             if fitting_cells.iter().any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                 return Err(error(
                     "equipment-overlap",
-                    format!("Equipment intersects {other}"),
+                    format!("{} intersects {}", p.name, neighbor_name(&p.name, &part_name(other))),
                     Some(&e.id),
                 ));
             }
@@ -1969,8 +1977,8 @@ fn equipment(
             }
             let members: Vec<_> = support.members.iter().flat_map(|m| crate::construction_propellers::cells(m).into_iter().map(move |cell| (m, cell))).collect();
             for (i, (member, cell)) in members.iter().enumerate() {
-                if all_envelopes.iter().any(|(id, other)| id != &e.id && cg::intersection(cell, other).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
-                    return Err(error("equipment-overlap", "Propeller shaft or support intersects another fitting", Some(&e.id)));
+                if let Some((id, _)) = all_envelopes.iter().find(|(id, other)| id != &e.id && cg::intersection(cell, other).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
+                    return Err(error("equipment-overlap", format!("Propeller shaft or support intersects {}", neighbor_name(&p.name, &part_name(id))), Some(&e.id)));
                 }
                 if crate::construction_propellers::crosses_hull(member, cell, hull) {
                     return Err(error("equipment-fit", &format!("Propeller {} crosses the hull; move the propeller to clear the plating", member.kind), Some(&e.id)));
@@ -3495,7 +3503,10 @@ mod tests {
         let result = compile(&source, &catalog);
         assert!(result.definition.is_some(), "{:?}", result.diagnostics);
         source.construction.equipment.last_mut().unwrap().position[0] = 0.;
-        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "equipment-overlap"));
+        let name = catalog.equipment.iter().find(|p| p.id == "gun-part").unwrap().name.clone();
+        let result = compile(&source, &catalog);
+        assert!(result.diagnostics.iter().any(|d| d.code == "equipment-overlap"
+            && d.message == format!("{name} intersects another {name}")), "{:?}", result.diagnostics);
     }
     #[test]
     fn fixed_fittings_cannot_overlap_weapons_in_either_source_order() {

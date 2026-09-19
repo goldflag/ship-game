@@ -54,6 +54,7 @@ pub(crate) fn compile(
     hull_index: &cg::Broadphase,
     fitted: &[(String, cg::Cell)],
     fitting_index: &cg::Broadphase,
+    part_name: &dyn Fn(&str) -> String,
 ) -> Result<FittedPath, ConstructionDiagnostic> {
     let source = e.path.as_ref().unwrap();
     let stairs = p.path.as_ref().unwrap().kind == "inclined-ladder";
@@ -335,7 +336,7 @@ pub(crate) fn compile(
             {
                 return Err(error(
                     &e.id,
-                    &format!("A ladder member intersects equipment {}", fitted[i].0),
+                    &format!("{} intersects {}", p.name, crate::construction::neighbor_name(&p.name, &part_name(&fitted[i].0))),
                 ));
             }
         }
