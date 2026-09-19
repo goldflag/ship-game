@@ -311,6 +311,7 @@ export class Game {
     this.input = new InputController({
       pause: () => { if (this.airOperationsOpen && !this.paused) this.setAirOperationsOpen(false); else if (!this.inPort) this.setPaused(!this.paused); },
       camera: () => this.cycleCamera(), recenter: () => this.recenter(),
+      portHome: () => { if (this.inPort && !this.paused) this.rig.portHome(); },
       hud: () => { if (!this.inPort) callbacks.hud(); }, fullscreen: () => this.fullscreen(),
       optics: () => this.toggleBinoculars(), weaponGroup: index => this.selectWeaponSlot(index),
       cursor: released => { if (released) this.rig.releasePointer(); else if (this.controls().capturePointer && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },

@@ -6,6 +6,8 @@ export interface InputActions {
   pause(): void;
   camera(): void;
   recenter(): void;
+  /** The helm is idle in port, but its camera still answers the recenter key. */
+  portHome?(): void;
   hud(): void;
   fullscreen(): void;
   optics(): void;
@@ -99,7 +101,7 @@ export class InputController {
       // current helm is a captain's or already on the bottom.
       if (action === 'helmWheel') this.actions.helmWheel?.(true);
     }
-    if (!this.enabled) return;
+    if (!this.enabled) { if (action === 'recenter' && !event.repeat) this.actions.portHome?.(); return; }
     this.keys.add(key);
     if (!event.repeat) {
       if (action === 'throttleUp') this.setOrder(this.order + 1);
