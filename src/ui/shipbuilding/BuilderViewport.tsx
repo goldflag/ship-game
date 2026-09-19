@@ -364,7 +364,7 @@ class Viewport {
         }
         if (props.scene.display === 'armor') {
           const count = Math.max(0, surface.vertices.length - 2) * 3;
-          const materialIndex = surface.material === 'armor-steel' && !surface.open ? 0 : 1;
+          const materialIndex = surface.open ? 1 : 0;
           const previous = armorGroups.at(-1);
           if (previous?.materialIndex === materialIndex) previous.count += count;
           else armorGroups.push({ start: vertices.length / 3 - count, count, materialIndex });
