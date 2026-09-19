@@ -63,7 +63,12 @@ fn valid(source: &ConstructionSource, catalog: &ConstructionCatalog) -> Construc
 
 #[test]
 fn automatic_shaft_reaches_stern_and_rotates_with_installation() {
-    for (z, bearing, sign) in [(13., 0., 1.), (-13., 180., -1.)] {
+    for (z, bearing, sign) in [
+        (13., 0., 1.),
+        (-13., 180., -1.),
+        (913., 0., 1.),
+        (-913., 180., -1.),
+    ] {
         let (mut source, catalog) = fixture([0., -1., z]);
         source.construction.equipment[0].bearing_deg = bearing;
         let result = valid(&source, &catalog);
@@ -82,6 +87,29 @@ fn automatic_shaft_reaches_stern_and_rotates_with_installation() {
                 .any(|m| m.id == "screw-support" && m.mass_kg > 100.)
         );
     }
+}
+
+#[test]
+fn suspended_shaft_reaches_distant_hull_instead_of_stopping_inside_bearing() {
+    let (mut source, catalog) = fixture([0., -3.5, 59.]);
+    source.construction.primitives[0].size[2] = 60.;
+    source.construction.primitives[0].position[2] = 30.;
+    source.construction.primitives.push(ConstructionPrimitive {
+        id: "deep-forward-hull".into(),
+        kind: "box".into(),
+        position: [0., -2., -10.],
+        size: [10., 8., 20.],
+        ..Default::default()
+    });
+    let result = valid(&source, &catalog);
+    let members = &result.propeller_supports.as_ref().unwrap()[0].members;
+    let shaft = members.iter().find(|m| m.kind == "shaft").unwrap();
+    let bearing = members.iter().find(|m| m.kind == "bearing").unwrap();
+    assert!((shaft.end[2] + 0.02).abs() < 1e-6);
+    assert!(shaft.hull_contact.is_some());
+    assert!(bearing.end[2] > 50.);
+    assert_eq!(members.iter().filter(|m| m.kind == "strut").count(), 2);
+    assert!(members.iter().any(|m| m.kind == "fairing"));
 }
 
 #[test]
@@ -114,7 +142,7 @@ fn directly_attached_screw_keeps_original_geometry() {
 }
 
 #[test]
-fn distant_and_open_hull_connections_are_rejected() {
+fn unreachable_and_open_hull_connections_are_rejected() {
     let (source, catalog) = fixture([0., -3.5, 30.]);
     let result = construction::compile(&source, &catalog);
     assert!(
@@ -149,7 +177,7 @@ fn distant_and_open_hull_connections_are_rejected() {
 
 #[test]
 fn shaft_cannot_cross_another_propeller_regardless_of_source_order() {
-    let (mut source, catalog) = fixture([0., -1., 14.]);
+    let (mut source, catalog) = fixture([0., -1., 60.]);
     source.construction.equipment.push(ConstructionEquipment {
         id: "other".into(),
         part_id: "propeller".into(),

@@ -85,12 +85,13 @@ to see its nominal plate thickness in millimetres and material. This includes
 the minimum structural skin; openings show no protective plate. Pending armor
 edits use the same thickness rules and color scale as the compiled preview.
 
-Propellers automatically grow an external shaft and support arms to nearby
-closed hull surfaces. Place a screw on the underside near the stern to leave
+Propellers automatically grow an external shaft to the hull and support arms to
+nearby closed hull surfaces. Place a screw on the underside near the stern to leave
 room for its blades, or move an existing screw outward; the connection follows
-each edit, copy and rotation. No small hull blocks are needed. A shaft can reach
-forward up to four propeller diameters (2–20 m); braces can reach upward within
-that range, capped at 10 m. Directly attached screws keep their original support.
+each edit, copy and rotation. No small hull blocks are needed. A shaft reaches
+the first hull surface along its forward axis with no distance cap; braces can
+reach upward up to four propeller diameters (2–10 m). Directly attached screws
+keep their original support.
 The compiler rejects unreachable connections, openings, blade/hull overlaps in
 these suspended installations and supports crossing other fittings. Generated
 steel members add weight and clearance geometry, without adding buoyancy or
@@ -102,7 +103,7 @@ streamlined fins with flared feet, and a tapered hull-exit fairing where the sha
 reaches the hull. An exposed shaft needs a closed hull face along the screw's
 forward axis. If that line misses the hull, fins can still support the screw but
 the shaft ends inside the bearing housing. Move the screw upward or inward to
-meet the hull ahead, then aft to leave a visible shaft run within its reach.
+meet the hull ahead, then aft to leave a visible shaft run with blade clearance.
 Rust emits the same loft sections for preview/export, clearance
 and provisional solid-steel loading. Fins and fairings seat against the closed
 hull surface; they stay fixed while the original propeller joint spins. Shapes

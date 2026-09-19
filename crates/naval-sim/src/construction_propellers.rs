@@ -136,9 +136,11 @@ pub(crate) fn derive(
         return None;
     }
     let diameter = p.size[0].max(p.size[1]);
-    let reach = (diameter * 4.).clamp(2., 20.);
+    let brace_reach = (diameter * 4.).clamp(2., 10.);
     let radius = (diameter * 0.04).clamp(0.03, 0.22);
-    let hit = hull_hit(surfaces, start, forward, reach);
+    // Trace to the actual hull, regardless of shaft length. The finite hull
+    // faces bound the result; the normal support clearance checks still apply.
+    let hit = hull_hit(surfaces, start, forward, f64::INFINITY);
     let shaft_length = hit
         .as_ref()
         .map_or(diameter * 0.65, |h| length(sub(seat(h), start)));
@@ -158,7 +160,7 @@ pub(crate) fn derive(
     if shaft_length > diameter * 0.35 {
         for side in directions {
             let direction = normalize(add([0., 1., 0.], scale(right, side)));
-            if let Some(top) = hull_hit(surfaces, bearing, direction, reach.min(10.)) {
+            if let Some(top) = hull_hit(surfaces, bearing, direction, brace_reach) {
                 // Avoid a grazing side-plating hit: its projected foot becomes
                 // an enormous fin. The inward brace can still seat underneath.
                 if top.normal[1] > -0.15 || dot(direction, top.normal) > -0.3 {
