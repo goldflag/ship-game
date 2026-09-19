@@ -59,10 +59,22 @@ impl ShipContact {
 pub struct ContactGeometry {
     pub structural: Vec<StructuralSurface>,
     pub hull: Option<HullContacts>,
+    /// Mounts whose gunhouse is authored as armor plates, parallel to `mounts`;
+    /// those take hits on their plates rather than on the gunhouse box.
+    pub plated_mounts: Vec<bool>,
 }
 impl ContactGeometry {
     pub fn new(def: &ShipDefinition) -> Result<Self, String> {
         Ok(Self {
+            plated_mounts: def
+                .mounts
+                .iter()
+                .map(|m| {
+                    def.armor
+                        .iter()
+                        .any(|a| a.plate.as_ref().and_then(|p| p.mount_id.as_ref()) == Some(&m.id))
+                })
+                .collect(),
             structural: structural_surfaces(def)?,
             hull: if def.stability.is_some()
                 && def.structural_plating.is_none()
@@ -180,13 +192,15 @@ pub fn ship_contacts(
     let ship = &actor.motion.id;
     for (i, a) in def.armor.iter().enumerate() {
         if a.plate.is_some() {
-            let key = format!("{ship}:armor:{}:plate", a.id);
-            if !shell.visited.contains(&key)
-                && let Some(hit) = plate_hit(from, to, a, def, &trains)
-            {
-                hits.push(ShipContact::new(hit, key, ContactKind::Armor, i as isize));
+            // Geometry first: a shell crosses a handful of a hull's plates, and
+            // naming every plate it misses cost more than the misses themselves.
+            if let Some(hit) = plate_hit(from, to, a, def, &trains) {
+                let key = format!("{ship}:armor:{}:plate", a.id);
+                if !shell.visited.contains(&key) {
+                    hits.push(ShipContact::new(hit, key, ContactKind::Armor, i as isize));
+                }
             }
-        } else {
+        } else if segment_box(from, to, a.center, a.size).is_some() {
             box_contacts(
                 shell,
                 from,
@@ -204,14 +218,15 @@ pub fn ship_contacts(
     for (i, m) in def.modules.iter().enumerate() {
         let pose = equipment_pose(actor, def, m);
         let (center, size) = equipment_box(def, m);
-        let key = format!("{ship}:module:{}", m.id);
         let (a, b) = pose.map_or((from, to), |p| {
             let basis = Basis::of(p);
             (basis.world_to_local(from), basis.world_to_local(to))
         });
-        if !shell.visited.contains(&key)
-            && let Some(hit) = segment_box(a, b, center, size)
-        {
+        let Some(hit) = segment_box(a, b, center, size) else {
+            continue;
+        };
+        let key = format!("{ship}:module:{}", m.id);
+        if !shell.visited.contains(&key) {
             let basis = Basis::of(pose.unwrap_or_default());
             hits.push(ShipContact::new(
                 PlateHit {
@@ -233,10 +248,11 @@ pub fn ship_contacts(
         if c.thickness_mm.is_none() || actor.damage.connections[i].state == "open" {
             continue;
         }
+        let Some(hit) = segment_box(from, to, bounds.center, bounds.size) else {
+            continue;
+        };
         let key = format!("{ship}:boundary:{}", actor.damage.connections[i].id);
-        if !shell.visited.contains(&key)
-            && let Some(hit) = segment_box(from, to, bounds.center, bounds.size)
-        {
+        if !shell.visited.contains(&key) {
             hits.push(ShipContact::new(
                 PlateHit {
                     t: hit.t,
@@ -251,11 +267,7 @@ pub fn ship_contacts(
         }
     }
     for (i, m) in def.mounts.iter().enumerate() {
-        if def
-            .armor
-            .iter()
-            .any(|a| a.plate.as_ref().and_then(|p| p.mount_id.as_ref()) == Some(&m.id))
-        {
+        if geometry.plated_mounts[i] {
             continue;
         }
         let pose = mount_frame(def, i, &|j| trains[j]);

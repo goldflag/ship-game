@@ -395,6 +395,91 @@ gun crews that commit to a target) rather than for the step time.
 - `AirOperations` map projection at the 20 Hz snapshot cadence instead of every
   frame.
 
+### Constructed ships
+
+A ship built in the editor (`hull.volume` present: Valiant, Resolute, every
+player design) cost 20–40 times a premade ship per tick, and a custom battle
+froze once rooms took on water: a two-ship duel went from 24 % simulation load
+to 458 ms per tick in the browser. `crates/naval-wasm/examples/custom_cost.rs`
+reproduces it natively through the worker's own `LocalRuntime`:
+
+```sh
+cargo run --release -p naval-wasm --example custom_cost -- valiant valiant 600 --aftermath 120
+```
+
+Teams are comma-separated preset ids; `--sources FILE --catalog FILE` admits
+editor designs, named `local:N`. It prints mean and worst ms per tick for each
+ten-second window beside every hull's integrity, wet rooms, water and breaches,
+so cost reads against damage. `--dump PATH` writes the complete final state for
+byte comparison; use the same `--aftermath` on both sides.
+
+Native CPU per tick, one-on-one, hard bots at 5 km (measured on a busy machine;
+the browser runs about three times slower):
+
+| Duel | Before | After |
+| --- | ---: | ---: |
+| Valiant, first 330 s (dry) | 1.56 ms | 0.10–0.12 ms |
+| Valiant, two or three wet rooms | 24–128 ms | 0.3 ms |
+| Valiant, wreck sinking with eight wet rooms | 20+ ms | 0.3–0.5 ms |
+| Resolute, first 140 s | 8.9 ms | 0.15 ms |
+| Baltimore (premade) | 0.054 ms | 0.034 ms |
+| Yamato (premade) | 0.18 ms | 0.11 ms |
+
+What it was, largest first:
+
+- **Flooded rooms.** `WaterBody::level_at_volume` bisected a clip of every cell
+  of the room thirty times whenever the room's water differed from the body's,
+  which is every tick of a flooding room, for every module, pump, exhaust path
+  and portal that asked. Volume under a rising plane is one cubic between
+  consecutive vertex heights, so the body now keeps a `LevelTable` per attitude:
+  a search over those heights, then the root of the interval's cubic fitted
+  through four exact clipped volumes, both filled in where queries land. It
+  agrees with direct bisection to 2e-11 m. The body a refresh publishes is
+  still the reference bisection, bit for bit
+  (`prepared_flood_cells_match_original_clipping_bit_for_bit`).
+- **Turret clearance.** Constructed ships carry swept bodies for every hull
+  cell. `MountClearance::distance` rebuilt every mount's barrel sections for
+  each call. Posed barrels are now kept per hull and rebuilt only for a mount
+  whose frame or elevation changed; runs of eight sections reject whole bodies
+  and whole runs of another mount; broad-phase rejections compare squares and
+  defer to the original expression inside a 1e-9 band. On top of that a mount
+  keeps its last measured gap (`ClearBound`): the sweep already trusts that no
+  point moves faster than its reach times its angular rate, so the same bound
+  says how far the gap can have closed since, and while what is left clears the
+  stop line the sweep's answer is known without measuring anything.
+- **Target armor scan.** `bots::ammunition` folded over every armor plate of
+  the target for every mount every tick (21 % of a dry tick against 4,205
+  plates). It is `CompiledShip::exterior_protection_mm` now.
+- **Mesh buoyancy.** Constructed hulls have no published table. In battle the
+  stability solve uses `flotation_near`: a bracketed secant from the previous
+  immersion, three or four trials instead of 27 bisections from the hull's
+  bounding distance, to 0.01 mm. `flotation` itself is unchanged, so compiled
+  definitions are too. Clipping no longer builds the clipped cell
+  (`clipped_moments`), and a flotation measures each cell's extent once.
+- **Shell contacts.** `ship_contacts` named every plate, module and portal
+  before testing it; geometry goes first now. `nearest_room` measures a cell
+  only when its bounding box could beat the nearest surface so far.
+- **Firing lane.** `HullContacts::blocks` stops at the first crossing.
+
+Everything but the level table and `flotation_near` is byte-identical on
+`--dump` for Valiant, Resolute, a mixed fleet, a battleship fleet and a premade
+fleet. Those two change constructed ships only, by nanometres; premade fleets
+stay byte-identical to the build before this work, and about 40 % cheaper.
+
+What is left in a dry constructed tick is the mesh itself: the firing-lane
+check against the whole exterior (~20 %), about six full hull clips per
+stability solve (~15 %), clearance measurements when a kept gap runs out
+(~12 %) and three loops a tick over thousands of portals (~4 %). Closing the
+rest belongs in the construction compiler, and changes compiled output: a
+hydrostatic table for constructed hulls (today's format assumes a symmetric
+hull), exterior-only merged clearance bodies and armor, one portal per pair of
+rooms rather than one per cell face, and a coarser hull for buoyancy alone.
+Every ship also solves stability on the same tick; staggering that would
+smooth the half-second spike but changes premade results too.
+
+With clearance this cheap, Yamato's retired swept profile (next section) may be
+affordable again; that is a separate decision.
+
 ### Yamato clearance
 
 Landed, outside the numbered phases because it is a content decision rather

@@ -196,7 +196,7 @@ pub fn update_stability(
         let (fy, fc) = if actor.submarine.is_some() || damage.sunk {
             (p.y, hydro.sample(p.y, p.roll, p.pitch).center)
         } else {
-            let f = hydro.flotation(volume, p.roll, p.pitch);
+            let f = hydro.flotation_near(volume, p.roll, p.pitch, s.target_y);
             (f.y, f.center)
         };
         let arms = righting_arms(fc, center, p.roll, p.pitch);
