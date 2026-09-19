@@ -4,20 +4,23 @@ import { constructionPaintColor, constructionFinishRoughness } from '../ships/co
 import { followsComponentPaint } from '../ships/componentMaterials';
 
 /** Recolor declared coatings, optionally setting sheen; preserve fixed materials and articulation.
+ * ropeColor opts a procedural rope route into recoloring without changing its fiber finish.
  * Cloned materials belong to the caller; geometry and textures remain shared. */
-export function paintConstructionFitting(model: THREE.Group, paint?: string, clone = true, finish?: ConstructionSurfaceFinish): THREE.Material[] {
-  if (!paint && !finish) return [];
+export function paintConstructionFitting(model: THREE.Group, paint?: string, clone = true, finish?: ConstructionSurfaceFinish, ropeColor?: string): THREE.Material[] {
+  if (!paint && !finish && !ropeColor) return [];
   const materials = new Map<THREE.Material, THREE.Material>();
   model.traverse(node => {
     if (!(node instanceof THREE.Mesh)) return;
     const coat = (original: THREE.Material): THREE.Material => {
       if (!(original instanceof THREE.MeshStandardMaterial) || original.transparent || original.opacity < 1) return original;
-      if (!followsComponentPaint(original.name, original.userData)) return original;
+      const rope = !!ropeColor && original.userData.componentMaterialVersion === 1 && original.userData.componentMaterialRole === 'rope';
+      if (!rope && !followsComponentPaint(original.name, original.userData)) return original;
       let material = materials.get(original);
       if (!material) {
         const coated = clone ? original.clone() : original;
-        if (paint) coated.color.set(constructionPaintColor(paint));
-        if (finish) { coated.roughness = constructionFinishRoughness(finish, coated.roughness); coated.metalness = 0; }
+        const color = rope ? ropeColor : paint;
+        if (color) coated.color.set(constructionPaintColor(color));
+        if (!rope && finish) { coated.roughness = constructionFinishRoughness(finish, coated.roughness); coated.metalness = 0; }
         materials.set(original, material = coated);
       }
       return material;
