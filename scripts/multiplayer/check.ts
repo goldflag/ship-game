@@ -8,6 +8,8 @@ const commands = [
   // Generated sources first: a stale definition.rs or ts-rs output explains later failures.
   [bun, 'test', 'scripts/multiplayer/generate-rust-definitions.test.ts'],
   [bun, 'scripts/multiplayer/check-generated-types.ts'],
+  // The workspace is rustfmt-clean; keeping it so makes `cargo fmt` a no-noise command.
+  [cargo, 'fmt', '--all', '--check'],
   [cargo, 'test', '--release', '--workspace', '--locked'],
   [cargo, 'clippy', '--workspace', '--all-targets', '--locked', '--', '-D', 'warnings'],
   [bun, 'scripts/multiplayer/build-wasm.ts'],
