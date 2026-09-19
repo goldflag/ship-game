@@ -109,6 +109,8 @@ export interface BattleSession {
  /** Simulated seconds per wall second actually reached; absent when unmeasured. */
  readonly achievedSpeed?: number;
  setSimulationSpeed?(speed: 1 | 2 | 4): void;
+ /** Local worker cost over the last measured window; absent for networked or unstepped sessions. */
+ readonly simulationLoad?: SimulationLoad;
  /** Camera subject, so the transport can narrow damage-control detail to it. */
  setFollowedShip?(id?: string): void;
  releaseHelm?(): boolean;
@@ -131,4 +133,17 @@ export interface BattleSession {
 
 export function battleExitLabel(session?: Pick<BattleSession, 'networked' | 'phase' | 'result'>): string {
   return session?.networked && session.phase === 'running' && session.result === 'active' ? 'Forfeit and return to port' : 'Return to port';
+}
+
+/** How hard the local battle worker works to keep up. `busy` is the share of wall
+ * time the worker spent stepping and snapshotting; near 1 the simulation, not the
+ * renderer, limits the battle. */
+export interface SimulationLoad {
+ /** Authoritative step cost per 60 Hz tick; 16.7 ms is the whole budget at 1×. */
+ tickMs: number;
+ /** Snapshot serialization and parsing per batch. */
+ snapshotMs: number;
+ busy: number;
+ /** Simulated ticks per wall second. */
+ ticksPerSecond: number;
 }

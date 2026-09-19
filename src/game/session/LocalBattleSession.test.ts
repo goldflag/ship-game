@@ -56,7 +56,9 @@ class TestWorker {
       // The Rust codec encodes against the frame this runtime published last,
       // exactly as local.worker.ts relays it.
       const update = JSON.parse(this.runtime.snapshot_delta(this.detail)) as FrameUpdate;
-      this.onmessage?.({ data: { type: 'snapshot', reset: message.type === 'restart', update } });
+      // A fixed synthetic cost: 2 ms per tick and 1 ms per snapshot.
+      const cost = message.type === 'advance' ? { ticks: message.ticks!, stepMs: message.ticks! * 2, snapshotMs: 1 } : undefined;
+      this.onmessage?.({ data: { type: 'snapshot', reset: message.type === 'restart', update, cost } });
       } catch (error) { this.onmessage?.({ data: { type: 'error', message: String(error) } }); }
     };
     if (this.manual) this.held.push(reply); else queueMicrotask(reply);
@@ -219,6 +221,23 @@ test('a round trip longer than the old clamp carries its debt instead of droppin
     await frame(session, 0);
     expect(session.tick - start).toBe(48);
     expect(session.achievedSpeed).toBe(4);
+  } finally { session.dispose(); }
+});
+
+test('simulation load reports worker step cost and busy share over the measured window', async () => {
+  const { session } = await fixture();
+  try {
+    session.releaseHelm();
+    expect(session.simulationLoad).toBeUndefined();
+    // Sixty-hertz helm batches of one tick: 2 ms step + 1 ms snapshot each, 60 per second.
+    for (let i = 0; i < 150; i++) await frame(session, 1 / 60);
+    const load = session.simulationLoad!;
+    expect(load.tickMs).toBeCloseTo(2);
+    expect(load.snapshotMs).toBeCloseTo(1);
+    expect(load.ticksPerSecond).toBeCloseTo(60, 0);
+    expect(load.busy).toBeCloseTo(.18, 1);
+    await session.restartPve();
+    expect(session.simulationLoad).toBeUndefined();
   } finally { session.dispose(); }
 });
 

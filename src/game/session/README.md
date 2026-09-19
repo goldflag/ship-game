@@ -75,7 +75,10 @@ one simulated second instead of being discarded at the old 0.4 s clamp, so a slo
 round trip is repaid rather than dropped. `achievedSpeed` reports the simulated
 seconds per wall second actually reached over the last two-second window; the
 speed control shows it when the worker cannot hold the requested setting, leaving
-the choice to step down with the player. Tests cover 1×/2×/4× equivalence, 120 Hz
+the choice to step down with the player. `simulationLoad` reports the worker's own cost over
+the same window (step milliseconds per tick, snapshot milliseconds per batch and
+the busy share of wall time); the in-game FPS counter shows it as `SIM` so a
+worker-bound battle is distinguishable from a renderer-bound one. Tests cover 1×/2×/4× equivalence, 120 Hz
 displays, pause/restart, prompt orders, taking the helm, dispatch from the reply
 and debt carried across a round trip longer than the old clamp.
 

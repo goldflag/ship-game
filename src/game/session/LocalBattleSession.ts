@@ -19,6 +19,7 @@ import { localConstructionInput, type LocalConstructionInput, type LocalBattleOp
 import type { HelmCommand } from '../../game/session/elements';
 import { BATTLE_SPAWN_DISTANCE, botSelection, setupSpawns, type BattleSetup } from './battleSetup';
 import type { CombatIntent } from './telemetry';
+import type { SimulationLoad } from './BattleSession';
 export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
   const spawns = setupSpawns(setup);
   const ships: RuntimeSetup['ships'] = [{ id: 'player', presetId: setup.playerShipId, team: 'a', controller: 'player', aiLevel: 'normal', spawn: spawns.friendly[0] }];
@@ -54,6 +55,8 @@ export class LocalBattleSession extends SnapshotSession {
   private lastInput?: { helm: HelmCommand; intent: CombatIntent };
   private window = { wall: 0, ticks: 0 };
   private achieved = 1;
+  private cost = { ticks: 0, stepMs: 0, snapshotMs: 0, batches: 0 };
+  private load?: SimulationLoad;
   /** A developer wind change that rides the next batch to the worker. */
   private pendingWind?: { speed: number; direction: number };
   /** Simulated seconds per wall second actually reached, averaged over the last
@@ -61,9 +64,10 @@ export class LocalBattleSession extends SnapshotSession {
    * display: the speed control offers a lower setting instead of dropping time. */
   get achievedSpeed() { return this.achieved; }
   get simulationSpeed() { return this.speed; }
+  get simulationLoad() { return this.load; }
   setSimulationSpeed(speed: 1 | 2 | 4): void {
     if (!this.missionRules || this.disposed || this.result !== 'active' || ![1, 2, 4].includes(speed)) return;
-    this.speed = speed; this.accumulator = 0; this.window = { wall: 0, ticks: 0 }; this.achieved = speed;
+    this.speed = speed; this.accumulator = 0; this.window = { wall: 0, ticks: 0 }; this.cost = { ticks: 0, stepMs: 0, snapshotMs: 0, batches: 0 }; this.achieved = speed;
   }
   onFailure?: (message: string) => void;
   private fail(message: string) { this.pending = undefined; this.busy = false; this.connectionStatus = message; this.phase = 'cancelled'; this.dispose(); this.onFailure?.(message); }
@@ -108,6 +112,7 @@ export class LocalBattleSession extends SnapshotSession {
         session.commandAcknowledged(data.accepted, data.message, data.command, data.shipId);
       }
       if (data.type === 'snapshot') {
+        if (data.cost) { const c = session.cost; c.ticks += data.cost.ticks; c.stepMs += data.cost.stepMs; c.snapshotMs += data.cost.snapshotMs; c.batches++; }
         if (data.reset) { session.received = undefined; session.pending = undefined; if (!data.trialAction) session.resetIntents(); }
         // The worker parsed the update; its reference is the frame received last.
         const frame = decodeFrameUpdate(session.received, data.update as FrameUpdate);
@@ -153,7 +158,10 @@ export class LocalBattleSession extends SnapshotSession {
     this.accumulator = Math.min(DEBT_SECONDS, this.accumulator + simulationDt);
     this.window.wall += dt;
     if (this.window.wall >= MEASURE_SECONDS) {
-      this.achieved = this.window.ticks / 60 / this.window.wall; this.window = { wall: 0, ticks: 0 };
+      this.achieved = this.window.ticks / 60 / this.window.wall;
+      const c = this.cost, wall = this.window.wall;
+      this.load = c.ticks ? { tickMs: c.stepMs / c.ticks, snapshotMs: c.snapshotMs / c.batches, busy: (c.stepMs + c.snapshotMs) / (wall * 1000), ticksPerSecond: c.ticks / wall } : undefined;
+      this.window = { wall: 0, ticks: 0 }; this.cost = { ticks: 0, stepMs: 0, snapshotMs: 0, batches: 0 };
     }
     this.dispatch();
   }
@@ -192,7 +200,7 @@ export class LocalBattleSession extends SnapshotSession {
   restartPve(): Promise<void> {
     if (!this.missionRules || this.disposed || this.restartRequest) return Promise.reject(new Error('This mission cannot restart right now.'));
     this.commands.clear(); this.accumulator = 0; this.speed = 1; this.pending = undefined; this.busy = true;
-    this.window = { wall: 0, ticks: 0 }; this.achieved = 1; this.resetSea();
+    this.window = { wall: 0, ticks: 0 }; this.cost = { ticks: 0, stepMs: 0, snapshotMs: 0, batches: 0 }; this.load = undefined; this.achieved = 1; this.resetSea();
     return new Promise((resolve, reject) => {
       this.restartRequest = { resolve, reject, timer: setTimeout(() => this.fail('Mission restart took too long.'), 30000) };
       this.worker.postMessage({ type: 'restart' });
