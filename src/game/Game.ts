@@ -20,6 +20,8 @@ import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
 import { VisualEnvironment, type DeveloperWeather, type EnvironmentOverrides } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
+import { BerthMotion } from './BerthMotion';
+import { createSeaState, type SeaState } from './session/sea';
 import { updateWaterShadows } from './WaterShadows';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
@@ -265,6 +267,8 @@ export class Game {
   private inPort = false;
   /** The port shows only the player's own designs; with none to show the quay stands empty. */
   private berthEmpty = false;
+  private readonly berthMotion = new BerthMotion();
+  private berthSea?: { wind: number; direction: number; state: SeaState };
   private harbor?: HarborBackdrop;
   private raf = 0;
   private lastTime = 0;
@@ -713,6 +717,20 @@ export class Game {
     return LocalBattleSession.port(definition, localShip(definition.id));
   }
 
+  /** The hull on show rides the port's sea on screen while its session stays
+   * still. The sea is the CPU mirror a battle would resolve for the wind the
+   * water shows, so a console wind change reaches the berth too. Inspection
+   * views settle the hull, keeping plates and rooms steady under the cursor. */
+  private updateBerthMotion(dt: number): void {
+    const view = this.playerView, reading = this.inPort ? this.environment.reading() : undefined;
+    if (!view || !reading) { if (view?.seaOffset) { view.seaOffset = undefined; this.berthMotion.reset(); } return; }
+    if (this.berthSea?.wind !== reading.windSpeed || this.berthSea.direction !== reading.windDirection)
+      this.berthSea = { wind: reading.windSpeed, direction: reading.windDirection, state: { ...createSeaState(this.simulation.mapId, 'clear', this.simulation.seed, reading.windSpeed), direction: reading.windDirection * Math.PI / 180 } };
+    const riding = view.inspection.mode === 'exterior' && !this.berthEmpty;
+    this.berthMotion.update(riding ? this.berthSea.state : { ...this.berthSea.state, amplitudeM: 0 }, view.definition.hull, view.actor.motion, dt);
+    view.seaOffset = this.berthMotion;
+  }
+
   private syncControlledShip(): void {
     if (this.playerView?.actor === this.simulation.player) return;
     const view = this.fleetViews.find(v => v.actor === this.simulation.player);
@@ -934,6 +952,7 @@ export class Game {
       this.syncControlledShip();
       state = this.simulation.ship;
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
+      this.updateBerthMotion(dt);
       this.fleetViews.forEach(view => view.updateMotion(alpha));
       this.observedShipViews?.update(this.simulation.observedShips ?? [], this.simulation.tick, !this.inPort && !this.inspecting,
         this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
@@ -956,7 +975,8 @@ export class Game {
       else {
         this.updateSpectator();
         const pose = this.cameraShipView.motion;
-        this.rig.update(pose, pose.y, realDt);
+        // The port camera frames the berth, so it holds still while the hull heaves.
+        this.rig.update(pose, pose.y - (this.cameraShipView.seaOffset?.heave ?? 0), realDt);
       }
       this.battlefieldCamera.applyTransition(realDt);
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,

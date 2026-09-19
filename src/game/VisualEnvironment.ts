@@ -5,6 +5,9 @@ import { DEFAULT_MAP, oceanMap, type OceanMapId } from '../maps/catalog';
 import { battleEnvironment, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
 
 const DAYLIGHT_COLOR = new Color(1, 1, 1);
+/** The harbor's standing wind. Its sea resolves through the same calibrated
+ * curve as a battle's, so the console's reading is the sea on screen. */
+export const PORT_WIND = { speed: 9, direction: 35 };
 
 /** Effects that follow the scene's wind and celestial light without owning any of it. */
 export interface EnvironmentSinks {
@@ -32,7 +35,7 @@ export interface DeveloperWeather {
 }
 
 /** Applies resolved battle conditions to the licensed water and sky, and owns
- * every live override of those uniforms: sheltered port defaults, the air map's
+ * every live override of those uniforms: the port's daylight and standing wind, the air map's
  * far fog, underwater attenuation and the celestial light shared with scene
  * lights and smoke. CPU combat reads the same resolved conditions through the
  * renderer-free conditions module; nothing here can move a hull. */
@@ -119,26 +122,26 @@ export class VisualEnvironment {
 
   private resolved() {
     const map = oceanMap(this.mapId);
-    // Port overrides resolve through the same day model on the berth's map; the
-    // sheltered literals below stay wherever nothing is overridden.
-    const conditions: BattleConditions = { ...(this.inPort ? {} : this.battle.conditions) };
+    // The port resolves its standing wind and any override through the same sea
+    // and day model on the berth's map; its sheltered light stays wherever
+    // nothing is overridden.
+    const conditions: BattleConditions = this.inPort ? { windSpeed: PORT_WIND.speed } : { ...this.battle.conditions };
     for (const key of ['timeHours', 'cloudCover', 'windSpeed'] as const) if (this.overrides[key] !== undefined) conditions[key] = this.overrides[key];
     return { map, environment: this.inPort ? battleEnvironment(map, 'map', 'map', conditions)
       : battleEnvironment(map, this.battle.timeOfDay, this.battle.weather, conditions) };
   }
-  private get shelteredSea() { return this.inPort && this.overrides.windSpeed === undefined; }
   private get shelteredLight() { return this.inPort && this.overrides.timeHours === undefined; }
   private applySea(): void {
     const water = this.water;
     if (!water) return;
-    const { map, environment: { waves, waterLightScale } } = this.resolved(), sheltered = this.shelteredSea;
-    // Metric wave heights are calibrated separately from the FFT gain. Port stays sheltered.
-    water.waves.amplitude.value = sheltered ? .12 : waves.amplitude;
-    water.waves.windSpeed.value = sheltered ? 9 : waves.windSpeed;
-    water.waves.peakWavelength.value = sheltered ? 14 : waves.peakWavelength;
-    water.waves.choppiness.value = sheltered ? .65 : waves.choppiness;
-    water.waves.jonswapGamma.value = sheltered ? 2.2 : 2.6;
-    water.waves.windDirection.value = (this.overrides.windDirection ?? (this.inPort ? 35 : map.water.windDirection)) * Math.PI / 180;
+    const { map, environment: { waves, waterLightScale } } = this.resolved();
+    // Metric wave heights are calibrated separately from the FFT gain.
+    water.waves.amplitude.value = waves.amplitude;
+    water.waves.windSpeed.value = waves.windSpeed;
+    water.waves.peakWavelength.value = waves.peakWavelength;
+    water.waves.choppiness.value = waves.choppiness;
+    water.waves.jonswapGamma.value = 2.6;
+    water.waves.windDirection.value = (this.overrides.windDirection ?? (this.inPort ? PORT_WIND.direction : map.water.windDirection)) * Math.PI / 180;
     water.waves.dirty = true;
     const colors = this.inPort ? oceanMap(DEFAULT_MAP).water : map.water;
     water.color.update({ waterColor: colors.waterColor, transmissionColor: colors.transmissionColor, absorptionColor: colors.absorptionColor });
@@ -151,15 +154,11 @@ export class VisualEnvironment {
     water.foam.waves.color.setScalar(waterFill);
     water.foam.shoreline.color.set('#edf9fd').multiplyScalar(waterFill);
     this.surfaceAbsorption.copy(water.color.absorptionColor);
-    water.foam.waves.opacity = sheltered ? .45 : .8 * map.water.foam / .45;
-    water.foam.waves.windStretch = sheltered ? .47 : .5;
-    water.foam.waves.persistence.update({
-      crestStrength: sheltered ? .99 : waves.crestFoam,
-      windwardStrength: sheltered ? 1.1 : waves.windwardFoam,
-      decayTime: sheltered ? 1.48 : 2.8,
-    });
-    water.foam.surface.opacity = sheltered ? .13 : .08 * Math.max(0, Math.min(1, (waves.windSpeed - 3) / 12));
-    water.foam.surface.coverage = sheltered ? .21 : .18;
+    water.foam.waves.opacity = .8 * map.water.foam / .45;
+    water.foam.waves.windStretch = .5;
+    water.foam.waves.persistence.update({ crestStrength: waves.crestFoam, windwardStrength: waves.windwardFoam, decayTime: 2.8 });
+    water.foam.surface.opacity = .08 * Math.max(0, Math.min(1, (waves.windSpeed - 3) / 12));
+    water.foam.surface.coverage = .18;
     this.sinks.effects.setWind(water.waves.windSpeed.value, water.waves.windDirection.value);
     this.sinks.funnelSmoke.setWind(water.waves.windSpeed.value, water.waves.windDirection.value);
   }
@@ -167,7 +166,7 @@ export class VisualEnvironment {
     const sky = this.sky;
     if (!sky) return;
     const { environment } = this.resolved(), authored = environment.sky, port = this.shelteredLight;
-    const clouds = this.inPort && this.overrides.cloudCover === undefined, cloudWind = this.inPort && this.overrides.windSpeed === undefined;
+    const clouds = this.inPort && this.overrides.cloudCover === undefined;
     const elevation = port ? 36 : authored.elevation, azimuth = port ? 58 : authored.azimuth;
     // Freeze the celestial clock at an arc endpoint matching the authored angles.
     // This keeps SunDriver's moon opposite the sun without advancing battle time.
@@ -179,7 +178,7 @@ export class VisualEnvironment {
     sky.clouds.shape.thickness.value = this.inPort ? 2400 : authored.thickness;
     sky.clouds.shape.coverage.value = clouds ? .38 : authored.coverage;
     sky.clouds.shape.horizonCoverageAmount.value = clouds ? .06 : environment.horizonCoverage;
-    sky.clouds.wind.speed = cloudWind ? 12 : environment.cloudWind;
+    sky.clouds.wind.speed = environment.cloudWind;
     sky.clouds.lighting.ambientIntensity.value = port ? 1.1 : environment.cloudAmbient;
     sky.clouds.lighting.baseShadowStrength.value = port ? .2 : environment.cloudShadow;
     // Lift shaded hulls and harbor buildings without raising sea/sky exposure.

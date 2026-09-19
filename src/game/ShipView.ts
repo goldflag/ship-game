@@ -20,6 +20,8 @@ export class ShipView {
   readonly root = new PreparedPoseGroup();
   readonly inspection: ShipInspection;
   readonly motion: Combatant['motion'];
+  /** The berth's presentation sea motion, added to the session pose. A battle leaves it unset. */
+  seaOffset?: { heave: number; roll: number; pitch: number };
   readonly impactMarks: ShipImpactMarks;
   readonly rig: ShipRigView;
   /** Original template materials identify surfaces that can share a fleet draw. */
@@ -184,6 +186,7 @@ export class ShipView {
       motion[key] = THREE.MathUtils.lerp(previous[key] ?? 0, current[key] ?? 0, t);
     }
     motion.heading = previous.heading + wrapAngle(current.heading - previous.heading) * t;
+    if (this.seaOffset) { motion.y += this.seaOffset.heave; motion.roll += this.seaOffset.roll; motion.pitch += this.seaOffset.pitch; }
     this.root.position.set(motion.x, motion.y, motion.z);
     this.root.rotation.set(motion.pitch, -motion.heading, motion.roll, 'YXZ');
   }

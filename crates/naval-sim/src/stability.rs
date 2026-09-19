@@ -87,6 +87,14 @@ fn wreck_depth(def: &ShipDefinition) -> f64 {
         -50.0_f64.max((def.hull.length / 2.0).hypot(def.hull.beam / 2.0) + def.hull.depth + 10.0)
     }
 }
+/// Levers through which the wave slope works the hull, as fractions of beam and
+/// length. The CPU swell is four times the visible peak wavelength and so a
+/// quarter as steep; these are tuned for the motion a hull of that size shows in
+/// that wind, not derived from GM. `tests/sea_motion.rs` holds the bands. Pitch
+/// beyond 0.8 drives the cargo hulls out of their linear range head-on into a
+/// 30 m/s sea. The berth's presentation copy is `src/game/BerthMotion.ts`.
+pub const WAVE_ROLL_LEVER: f64 = 0.14;
+pub const WAVE_PITCH_LEVER: f64 = 0.8;
 /// `interval` is how often the hydrostatic solve runs: half a second for every
 /// battle without mission rules, and whatever the PvE cadence asset says for a
 /// mission. Roll and pitch still integrate every tick; between solves they use
@@ -216,8 +224,8 @@ pub fn update_stability(
                 / epsilon,
         );
         let wave = if damage.sunk { None } else { sea };
-        s.roll_arm = arms.0 + wave.map_or(0.0, |w| w.roll) * def.hull.beam * 0.07;
-        s.pitch_arm = arms.1 + wave.map_or(0.0, |w| w.pitch) * def.hull.length * 0.4;
+        s.roll_arm = arms.0 + wave.map_or(0.0, |w| w.roll) * def.hull.beam * WAVE_ROLL_LEVER;
+        s.pitch_arm = arms.1 + wave.map_or(0.0, |w| w.pitch) * def.hull.length * WAVE_PITCH_LEVER;
         s.target_y = fy;
     }
     if damage.sunk {
