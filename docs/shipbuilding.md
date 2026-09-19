@@ -130,7 +130,7 @@ stationary blocks. Drags stop at the limit even across a fast pointer jump; exis
 excessive overlaps can be reduced. Mirrored placement, runs, Fill and copies are
 checked as a complete batch. Rejected placement shows a salmon preview and the
 10% rule in the placement feedback, without adding undo history. Ballast-to-ballast
-overlap restrictions remain. Fixed non-weapon deck fittings may overlap hull pieces and one another while at least 10% of each fitting remains exposed; physical attachment is still required. Weapons, internal packages, underwater machinery and connected paths retain their fit restrictions. This is an editor placement/movement
+overlap restrictions remain. Decorative fittings, including directors and connected paths, never collide with any other fitting. Fixed deck fittings still need physical hull support and at least 10% of their volume outside the hull. Guns, torpedo launchers and machinery retain their mutual fit restrictions, including the existing partial-overlap allowance for fixed masts and funnels. Paths retain hull and anchor checks. Placement previews suppress hover outlines on both supporting hull blocks and fittings. This is an editor placement/movement
 policy; imported and freeform drafts remain recoverable through the existing compiler.
 Mass, plating and buoyancy still derive from the physical union, so shared hull
 volume is counted once.
@@ -274,11 +274,9 @@ mirrored copy become one undoable edit. Finish or cancel before returning to
 port, opening Designs or starting a sea trial. Railings need deck support at
 every post. Choose **Two-rail railing** or **Three-rail railing** from **Outfit → Access**.
 Set **Railing height** (0.3–3 m) before drawing or in the completed railing’s
-object tag. Older routes retain their saved rail count and height. Minor contacts and joined endpoints are
-allowed; substantial burial in hull or equipment still blocks the route. Rope and chain can attach wherever you click on hull surfaces or fixed deck fittings,
+object tag. Older routes retain their saved rail count and height. Routes may cross or overlap other fittings freely. Rope, chain and ladder members still need hull clearance; railings may intersect the hull. Rope and chain can attach wherever you click on hull surfaces or fixed deck fittings,
 including mast poles and yardarms. Fitting clicks keep the exact surface position
-without grid rounding. Native checks use the published fitting geometry for support
-and clearance, so empty space between mast members stays clear. Existing designs
+without grid rounding. Native checks use the published fitting geometry for support, so empty space between mast members cannot anchor a rope. Existing designs
 need **Update parts library** to use surface attachment; retained older libraries
 continue to support their declared tie sockets. Moving weapons and scalable wall
 details do not provide rope attachment surfaces.
@@ -450,7 +448,7 @@ original datum and sockets; bounds centers are not replacement pivots.
 Connected fittings store `path.points` in equipment-local coordinates and an
 optional `path.slackM` in the same versioned construction source. The catalog
 supplies the railing, rope or chain profile; the equipment position and bearing
-transform the whole route. Native compilation owns support, clearance, length,
+transform the whole route. Native compilation owns support, hull clearance, length,
 mass, center of gravity and inertia. Procedural route meshes in
 [constructionPathModel.ts](../src/game/constructionPathModel.ts) display those
 source points and catalog profiles without adding a second physics solver.

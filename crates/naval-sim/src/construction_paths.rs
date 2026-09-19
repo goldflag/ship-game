@@ -38,13 +38,10 @@ pub(crate) fn supported_surface(
 }
 
 pub(crate) struct SupportSocket {
-    pub owner: String,
     pub position: Vec3,
-    pub direction: Vec3,
 }
 
 pub(crate) struct FittingSurface {
-    pub owner: String,
     pub tree: crate::mount_clearance::SurfaceTree,
 }
 impl FittingSurface {
@@ -118,7 +115,6 @@ impl FittingSurface {
             faces.push(indexes.map(|i| points[i]));
         }
         Ok(Some(Self {
-            owner: e.id.clone(),
             tree: crate::mount_clearance::SurfaceTree::new(faces),
         }))
     }
@@ -182,8 +178,6 @@ pub(crate) struct FittedPath {
     pub mass: ConstructionMass,
 }
 
-// Keep the hull and fitting queries explicit at this compiler boundary.
-#[allow(clippy::too_many_arguments)]
 pub(crate) fn compile(
     e: &ConstructionEquipment,
     p: &ConstructionEquipmentPart,
@@ -192,9 +186,6 @@ pub(crate) fn compile(
     hull_index: &cg::Broadphase,
     sockets: &[SupportSocket],
     fitting_surfaces: &[FittingSurface],
-    fitted: &[(String, cg::Cell)],
-    fitting_index: &cg::Broadphase,
-    part_name: &dyn Fn(&str) -> String,
 ) -> Result<FittedPath, ConstructionDiagnostic> {
     let source = e
         .path
@@ -261,7 +252,7 @@ pub(crate) fn compile(
         ));
     }
     if matches!(profile.kind.as_str(), "inclined-ladder" | "framed-ladder") {
-        return crate::construction_access::compile(e, p, surfaces, hull, hull_index, fitted, fitting_index, part_name);
+        return crate::construction_access::compile(e, p, surfaces, hull, hull_index);
     }
     if source.access.is_some() { return Err(error("Access settings apply only to stairs and framed ladders", &e.id)); }
     let railing = profile.kind == "railing";
@@ -405,7 +396,6 @@ pub(crate) fn compile(
     if actual_length > MAX_LENGTH_M {
         return Err(error("The sagging path length exceeds 500 m", &e.id));
     }
-    let mut supported_by = vec![];
     for &anchor in &anchors {
         let tolerance = if profile.kind == "chain" {
             (radius + 0.005).max(0.05)
@@ -432,8 +422,8 @@ pub(crate) fn compile(
                     .find(|s| length(sub(s.position, anchor)) <= 0.05)
             })
             .flatten();
-        if let Some(support) = support {
-            supported_by.push(support);
+        if support.is_some() {
+            continue;
         } else if !railing && !ladder && fitting_surfaces.iter().any(|s| s.tree.distance(anchor, anchor, radius + 0.006) <= radius + 0.005) {
             continue;
         } else {
@@ -460,41 +450,6 @@ pub(crate) fn compile(
                 "A path member runs through the hull; raise its anchors or reduce slack",
                 &e.id,
             ));
-        }
-        for i in fitting_index.candidates(cell) {
-            let (owner, other) = &fitted[i];
-            if !ladder {
-                if let Some(surface) = fitting_surfaces.iter().find(|s| &s.owner == owner) {
-                    if surface.tree.distance(member.a, member.b, radius) >= radius - 0.005_f64.min(radius * 0.2) {
-                        continue;
-                    }
-                    // Existing tie sockets retain their narrow exit corridor,
-                    // including catalog eyes intentionally seated in their post.
-                }
-            }
-            if let Some(overlap) = cg::intersection(cell, other).filter(|x| cg::moments(x).volume > 1e-8) {
-                // Explicit eyes/throats can sit inside a conservative catalog box.
-                // Their narrow outward corridor flares at 1:4 to accommodate a
-                // rope leaving an eye downward. A constant-width tunnel would
-                // mistake the empty box above a wide bedplate for the actual post.
-                // Behind-socket/body intersections still fail; the AABB grants no support.
-                let at_socket = supported_by.iter().any(|socket| {
-                    &socket.owner == owner
-                        && overlap.faces.iter().flat_map(|f| &f.vertices).all(|&v| {
-                            let delta = sub(v, socket.position);
-                            let along = dot(delta, socket.direction);
-                            along >= -radius * 1.5
-                                && length(sub(delta, scale(socket.direction, along)))
-                                    <= (radius * 2.5).max(0.075) + along.max(0.) * 0.25
-                        })
-                });
-                if !at_socket {
-                    return Err(error(
-                        format!("{} intersects {}", p.name, crate::construction::neighbor_name(&p.name, &part_name(owner))),
-                        &e.id,
-                    ));
-                }
-            }
         }
     }
     let mass_kg = base_mass + members.iter().map(|m| m.mass_kg).sum::<f64>();
