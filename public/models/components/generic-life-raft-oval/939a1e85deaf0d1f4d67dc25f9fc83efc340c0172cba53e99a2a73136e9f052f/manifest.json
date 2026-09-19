@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-life-raft-oval",
+  "revision": "939a1e85deaf0d1f4d67dc25f9fc83efc340c0172cba53e99a2a73136e9f052f",
+  "contentHash": "bfa6588acd8d71f7f42c0cf4671afa2372bd86ebb4768af663889dc248f34711",
+  "modelSha256": "b34f2b3fd464bfa140a0796c7e26576ce2f5d90330592ec0786beec59fdd5019",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-life-raft-oval/939a1e85deaf0d1f4d67dc25f9fc83efc340c0172cba53e99a2a73136e9f052f/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    -0.17499999115900522
+  ],
+  "size": [
+    1.224000096321106,
+    1.874000072479248,
+    0.3500000653657054
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 612,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review.",
+  "basis": "assets/parts/construction/README.md"
+}

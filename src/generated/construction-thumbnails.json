@@ -96,6 +96,36 @@
       "modelHash": "acfe6b1c9fa4ab361eadeb4c8ddadf5204f23b24fbe378edeb0cc6dfdc3bd6ca",
       "imageHash": "f55ad64febdee0434c52482f0c2d5f60b9c671d76d2f0adb8476599d29faaff4"
     },
+    "/models/components/generic-propeller-2400/6ddc9bffa84e9c923cb161dd33b62e506647bf04108c964ccb646c0e7ba3aa33/model.glb": {
+      "url": "/models/components/thumbnails/1ccb81f17c270be97f665ad1e47c62b990b33b6dac11ae3c23872599c220824d.png",
+      "modelHash": "69d6ad228ff8368ba8bd6465dfa9aed70a7ae548cb4de1a256e613a628d4763c",
+      "imageHash": "96141d3f462e0803492ac3c5173e2bcc224b4eac6bfe555c2b87dc72c62a9092"
+    },
+    "/models/components/generic-propeller-4200/45a70450b9f42860ea82bee52d82a128ff3d9ae75d910d5afb1f663e048829a4/model.glb": {
+      "url": "/models/components/thumbnails/7e3e8ddfd64bd9904f7280ef1ae6745e425cbac5ad47065ed9c5f7fcd93e0b39.png",
+      "modelHash": "67b538005a1a362957c4b4c60975517345435f73baaacbd77c647687f5471863",
+      "imageHash": "f2e6228853c70ac1f01fe0e53da4fba8a996e77b08be66570e7a44e2222b1e27"
+    },
+    "/models/components/generic-propeller-6000/30d3f9641b84ed34573ecaa85b1523b64aa503b26b1f7de95cf7a9236c2a66be/model.glb": {
+      "url": "/models/components/thumbnails/e59b9a035100bbc837674a064e71b89fd970c3ffbda386f0b460a783d7fa31cb.png",
+      "modelHash": "21822c437da89eceac60617d72d7c5c83b376fc224503ffe7aba6792c0227f91",
+      "imageHash": "ab58bf70a495782be09e78fe3e16fd635b9f329b1a6b476abfe6e4ad75438261"
+    },
+    "/models/components/generic-rudder-2000/566c55477084ab5b36a8c24b48028caede28097500ccbfb768b107bf42c648e7/model.glb": {
+      "url": "/models/components/thumbnails/b2c6b45f7d9286cc70d56458b78099fd01327d2883e44b4f7039d6e30f41714a.png",
+      "modelHash": "b4687bcfac753df6edf77c1530a5cf70daf5a81ce425499d16eace638ce589ec",
+      "imageHash": "f88ade157a31568c8b843e297d3d7724756b26343abf8f44c3a2e80f03494bec"
+    },
+    "/models/components/generic-rudder-4000/79dbecc2c31092441d3b4345fd47e0c5261de7c0a6bea998d01bc57ef1772ffc/model.glb": {
+      "url": "/models/components/thumbnails/834a7ec8aedc87da66e053ceec37be03892d4062e1b57eaa918820ecc8c194e2.png",
+      "modelHash": "2e0eb738892197c9fe45639a9102862bae9e66b195f17b05652d5237c89659af",
+      "imageHash": "f88ade157a31568c8b843e297d3d7724756b26343abf8f44c3a2e80f03494bec"
+    },
+    "/models/components/generic-rudder-6000/4c3a6e6f07a505a208283261b523f347d5bf7a0f85a61d8caaf342be4a25a1f8/model.glb": {
+      "url": "/models/components/thumbnails/a53e46669ebf1bd27410844bab27dce3cee25a757b06d5853cb85a638be36af1.png",
+      "modelHash": "50bce290a18cfcf249ba640ee1d2fe1bce322c531a9866e3e548a30206f04ace",
+      "imageHash": "6ed51bd91d2d7f94261c67a31d67a63c7863061ee2a14aa923310d5500ce9d1b"
+    },
     "/models/components/generic-magazine-2000/65207f3d1c5a7ca163aec7e42c7da77f5c789d593c599f29a8e1a698f104c78e/model.glb": {
       "url": "/models/components/thumbnails/6d8a969b4ae9be1ba2847ebae8bf20f27136a6135c4dd47439def2994ed26b02.png",
       "modelHash": "a1a3b549d044193c2064997d1b10100aa9b73253b92da57db1041497c182a036",
@@ -1506,35 +1536,20 @@
       "modelHash": "c93529a3da4318c1589f56deba379ce1be061b4f8f3fa7ce52f4be2b52f9e77f",
       "imageHash": "6e0383de0c1f7ed9d320fc74bb257290da81bf764015be59985a354dd39e622d"
     },
-    "/models/components/generic-propeller-2400/6ddc9bffa84e9c923cb161dd33b62e506647bf04108c964ccb646c0e7ba3aa33/model.glb": {
-      "url": "/models/components/thumbnails/1ccb81f17c270be97f665ad1e47c62b990b33b6dac11ae3c23872599c220824d.png",
-      "modelHash": "69d6ad228ff8368ba8bd6465dfa9aed70a7ae548cb4de1a256e613a628d4763c",
-      "imageHash": "96141d3f462e0803492ac3c5173e2bcc224b4eac6bfe555c2b87dc72c62a9092"
+    "/models/components/generic-life-ring/91d556391605c9a4ab0e56b5c69f2a43a2a9b003932128c4d99ce14a177022ad/model.glb": {
+      "url": "/models/components/thumbnails/70fca1684e7d82edfabce6b95c5689574e738880ea370a3716dc96b33d7d57ca.png",
+      "modelHash": "b36ee5e1bf6d5abc19eabdb8aaaaa587f37cae6b1ef9715180e945ffa937e7f8",
+      "imageHash": "481d3cab8f4288d83186a2f595b25d3f36db0b9cc6f17bc1bd5a578aa00da46c"
     },
-    "/models/components/generic-propeller-4200/45a70450b9f42860ea82bee52d82a128ff3d9ae75d910d5afb1f663e048829a4/model.glb": {
-      "url": "/models/components/thumbnails/7e3e8ddfd64bd9904f7280ef1ae6745e425cbac5ad47065ed9c5f7fcd93e0b39.png",
-      "modelHash": "67b538005a1a362957c4b4c60975517345435f73baaacbd77c647687f5471863",
-      "imageHash": "f2e6228853c70ac1f01fe0e53da4fba8a996e77b08be66570e7a44e2222b1e27"
+    "/models/components/generic-life-raft-oval/939a1e85deaf0d1f4d67dc25f9fc83efc340c0172cba53e99a2a73136e9f052f/model.glb": {
+      "url": "/models/components/thumbnails/31305235e30c7a970c123c9193dd8c6d015a167a4850f94f3a3aec644bd5d16a.png",
+      "modelHash": "b34f2b3fd464bfa140a0796c7e26576ce2f5d90330592ec0786beec59fdd5019",
+      "imageHash": "0dcb8995c071b3ba3c10441597b72efd34930bfd4add22112505e965790c431e"
     },
-    "/models/components/generic-propeller-6000/30d3f9641b84ed34573ecaa85b1523b64aa503b26b1f7de95cf7a9236c2a66be/model.glb": {
-      "url": "/models/components/thumbnails/e59b9a035100bbc837674a064e71b89fd970c3ffbda386f0b460a783d7fa31cb.png",
-      "modelHash": "21822c437da89eceac60617d72d7c5c83b376fc224503ffe7aba6792c0227f91",
-      "imageHash": "ab58bf70a495782be09e78fe3e16fd635b9f329b1a6b476abfe6e4ad75438261"
-    },
-    "/models/components/generic-rudder-2000/566c55477084ab5b36a8c24b48028caede28097500ccbfb768b107bf42c648e7/model.glb": {
-      "url": "/models/components/thumbnails/b2c6b45f7d9286cc70d56458b78099fd01327d2883e44b4f7039d6e30f41714a.png",
-      "modelHash": "b4687bcfac753df6edf77c1530a5cf70daf5a81ce425499d16eace638ce589ec",
-      "imageHash": "f88ade157a31568c8b843e297d3d7724756b26343abf8f44c3a2e80f03494bec"
-    },
-    "/models/components/generic-rudder-4000/79dbecc2c31092441d3b4345fd47e0c5261de7c0a6bea998d01bc57ef1772ffc/model.glb": {
-      "url": "/models/components/thumbnails/834a7ec8aedc87da66e053ceec37be03892d4062e1b57eaa918820ecc8c194e2.png",
-      "modelHash": "2e0eb738892197c9fe45639a9102862bae9e66b195f17b05652d5237c89659af",
-      "imageHash": "f88ade157a31568c8b843e297d3d7724756b26343abf8f44c3a2e80f03494bec"
-    },
-    "/models/components/generic-rudder-6000/4c3a6e6f07a505a208283261b523f347d5bf7a0f85a61d8caaf342be4a25a1f8/model.glb": {
-      "url": "/models/components/thumbnails/a53e46669ebf1bd27410844bab27dce3cee25a757b06d5853cb85a638be36af1.png",
-      "modelHash": "50bce290a18cfcf249ba640ee1d2fe1bce322c531a9866e3e548a30206f04ace",
-      "imageHash": "6ed51bd91d2d7f94261c67a31d67a63c7863061ee2a14aa923310d5500ce9d1b"
+    "/models/components/generic-life-raft-rectangular/854759d32cb7aec38aa4fb9267e78dddce2118c16c9ebd722d37c297ac220127/model.glb": {
+      "url": "/models/components/thumbnails/6dea55f162b6cfad59fac50f2556c21abce5ed5cb84e9db77abc9a08130f4ec4.png",
+      "modelHash": "0127413c0cc5b6d4dda3f3eea9e7d4296d54117c4d551d4303683d5013c7facc",
+      "imageHash": "ecffa2dd1a381b4f84209d69c07a0ec2636a109474922c5e8e80d16d105f8a12"
     }
   }
 }

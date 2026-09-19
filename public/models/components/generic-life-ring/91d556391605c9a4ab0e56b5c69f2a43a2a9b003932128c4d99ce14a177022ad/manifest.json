@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-life-ring",
+  "revision": "91d556391605c9a4ab0e56b5c69f2a43a2a9b003932128c4d99ce14a177022ad",
+  "contentHash": "71653248fd160ea95ade2249691b5876e1188b0832b22d207442f8c95ed3a868",
+  "modelSha256": "b36ee5e1bf6d5abc19eabdb8aaaaa587f37cae6b1ef9715180e945ffa937e7f8",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-life-ring/91d556391605c9a4ab0e56b5c69f2a43a2a9b003932128c4d99ce14a177022ad/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    -0.11599999666107763
+  ],
+  "size": [
+    0.8059825301170349,
+    0.8059825301170349,
+    0.2320000231287267
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 660,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review.",
+  "basis": "assets/parts/construction/README.md"
+}
