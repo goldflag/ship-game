@@ -80,6 +80,14 @@ pub struct GunPartGunhouseMeshFacesItem {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct GunPartGunhouseMeshAperturesItem {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "indices")]
+    pub indices: Vec<f64>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct GunPartGunhouseMeshProvenance {
     #[serde(rename = "sourceId")]
     pub source_id: String,
@@ -97,6 +105,8 @@ pub struct GunPartGunhouseMesh {
     pub vertices: Vec<[f64; 3]>,
     #[serde(rename = "faces")]
     pub faces: Vec<GunPartGunhouseMeshFacesItem>,
+    #[serde(rename = "apertures")]
+    pub apertures: Option<Vec<GunPartGunhouseMeshAperturesItem>>,
     #[serde(rename = "provenance")]
     pub provenance: Option<GunPartGunhouseMeshProvenance>,
 }
