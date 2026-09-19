@@ -91,10 +91,9 @@ fn reference(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, f6
 #[test]
 fn prepared_flood_cells_match_original_clipping_bit_for_bit() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let definition: ShipDefinition = serde_json::from_slice(
-        &std::fs::read(root.join("public/models/resolute.json")).unwrap(),
-    )
-    .unwrap();
+    let definition: ShipDefinition =
+        serde_json::from_slice(&std::fs::read(root.join("public/models/resolute.json")).unwrap())
+            .unwrap();
     for room in &definition.compartments {
         for (roll, pitch) in [
             (0., 0.),
@@ -119,4 +118,64 @@ fn prepared_flood_cells_match_original_clipping_bit_for_bit() {
             }
         }
     }
+}
+
+/// `clipped_moments` integrates a clipped cell without building it. It stands in
+/// for `clip` followed by `moments` everywhere a hull or a room is immersed, so
+/// it has to be that pair bit for bit: every published hull cell and room cell,
+/// cut at planes through and around it at several attitudes.
+#[test]
+fn clipped_moments_are_clip_then_moments_bit_for_bit() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let mut compared = 0usize;
+    for ship in ["resolute", "valiant"] {
+        let definition: ShipDefinition = serde_json::from_slice(
+            &std::fs::read(root.join(format!("public/models/{ship}.json"))).unwrap(),
+        )
+        .unwrap();
+        let hull = definition.hull.volume.iter().flat_map(|v| v.cells.iter());
+        let rooms = definition
+            .compartments
+            .iter()
+            .flat_map(|r| r.volumes.iter().flatten());
+        for (index, cell) in hull.chain(rooms).enumerate() {
+            let (center, size) = cg::bounds(cell);
+            for (roll, pitch) in [
+                (0., 0.),
+                (radians(7.), radians(-2.)),
+                (radians(-41.), radians(9.)),
+            ] {
+                let n = [
+                    roll.sin() * pitch.cos(),
+                    roll.cos() * pitch.cos(),
+                    -pitch.sin(),
+                ];
+                let (middle, reach) = (dot(n, center), length(size) / 2.);
+                // Through the middle, near both ends, exactly at a vertex, outside.
+                let vertex = dot(n, cell.faces[index % cell.faces.len()].vertices[0]);
+                for level in [
+                    middle,
+                    middle - reach * 0.93,
+                    middle + reach * 0.61,
+                    vertex,
+                    middle + reach * 2.,
+                ] {
+                    let built = cg::clip(cell, n, level).map(|c| cg::moments(&c));
+                    let direct = cg::clipped_moments(cell, n, level);
+                    let bits = |m: Option<cg::Moments>| {
+                        m.map(|m| {
+                            (
+                                m.volume.to_bits(),
+                                m.first.map(f64::to_bits),
+                                m.second.map(f64::to_bits),
+                            )
+                        })
+                    };
+                    assert_eq!(bits(direct), bits(built), "{ship} cell {index} at {level}");
+                    compared += 1;
+                }
+            }
+        }
+    }
+    assert!(compared > 10_000, "{compared}");
 }

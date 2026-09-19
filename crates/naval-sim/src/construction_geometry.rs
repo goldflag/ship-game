@@ -655,8 +655,9 @@ thread_local! {
 /// hydrostatic solve clips every waterline cell at each of some thirty levels
 /// and keeps only the integrals, so the faces live in reused buffers instead.
 /// Every float is produced by the same operations in the same order as the two
-/// calls it replaces; the cap's angles are computed once and sorted stably,
-/// which orders it exactly as comparing them pairwise does.
+/// calls it replaces; the cap is keyed once and sorted stably, which orders it
+/// exactly as comparing angles pairwise does
+/// (`clipped_moments_are_clip_then_moments_bit_for_bit`).
 pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
     let (mut outside, mut inside) = (false, false);
     for f in c.faces.iter() {
@@ -702,13 +703,28 @@ pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
                 cap.iter().copied().fold([0.; 3], add),
                 1.0 / cap.len() as f64,
             );
+            // Same axes as `clip`, to the bit: on a symmetric cap a vertex sits
+            // exactly opposite the first, and the rounding of its sign decides
+            // where the fan starts.
             let u = normalize(sub(cap[0], center));
             let v = cross(n, u);
+            // `clip` orders the cap by `atan2`. The diamond angle below rises
+            // and falls with it over the same (-pi, pi] turn, signed zeros
+            // included, so a stable sort on it yields the same order without the
+            // library call; a vertex on the centroid has no direction and keeps
+            // the original key for the whole cap.
             angles.clear();
             angles.extend(cap.iter().map(|p| {
                 let a = sub(*p, center);
-                (dot(a, v).atan2(dot(a, u)), *p)
+                let (x, y) = (dot(a, u), dot(a, v));
+                ((1.0 - x / (x.abs() + y.abs())).copysign(y), *p)
             }));
+            if angles.iter().any(|a| a.0.is_nan()) {
+                for a in angles.iter_mut() {
+                    let d = sub(a.1, center);
+                    a.0 = dot(d, v).atan2(dot(d, u));
+                }
+            }
             angles.sort_by(|a, b| a.0.total_cmp(&b.0));
             cap.clear();
             cap.extend(angles.iter().map(|a| a.1));
