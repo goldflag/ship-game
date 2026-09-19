@@ -14,14 +14,15 @@ import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, 
 import { assignConstructionSurfaces, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, projectConstructionSurfaces, surfaceKey, surfaceSelectionKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { applyConstructionBatch, constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
 import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../ships/constructionRevisionOwner';
-import { canEditVertices, selectionCorners, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
+import { canEditVertices, selectionCorners, splitVertexPrimitive, topology, VERTEX_UNITS, type HullSelection, type HullSelectionMode, type MirrorAxes } from '../../ships/constructionVertex';
 import { pathSlackLimit, pathProblem } from '../../ships/constructionPaths';
 import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
 import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
 import type { HullCategory } from './hullCategories';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
-import { blockMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_NOTICE } from './blockMovement';
+import { mirroredMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_NOTICE } from './blockMovement';
+import { mirroredDelta, mirrorTwins, twinPrimitive, withMirroredEdits, withTwinReplacements } from './mirrorEditing';
 import { internalSelectionIds } from './internalSelection';
 import { normalizedBearing } from './editorNumbers';
 import type { BuilderArc, BuilderDisplay, BuilderGesture, BuilderMoveTargets, BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderProposal, BuilderScene, BuilderView } from './builderScene';
@@ -90,6 +91,13 @@ const ARC_RADIUS = 12;
 const LIMITS = CONSTRUCTION_LIMITS;
 const AXIS = { x: 0, y: 1, z: 2 } as const;
 type SurfaceValues = Partial<Pick<ConstructionSurfaceAssignment, 'thicknessMm' | 'material' | 'paint' | 'open'>>;
+const NO_TWINS: ReadonlyMap<string, string> = new Map();
+export const FREEFORM_MODES: readonly HullSelectionMode[] = ['vertex', 'edge', 'face', 'ring'];
+/** Freeform editing opens on faces: the top of an eight-corner cage, the first face of other topology. */
+export function freeformSelection(p: ConstructionPrimitive | undefined, mode: HullSelectionMode = 'face'): HullSelection {
+  if (mode === 'ring' && !topology(p).rings.length) mode = 'face';
+  return { mode, index: mode === 'face' && !p?.mesh ? 5 : 0 };
+}
 
 /** The shipbuilder's tool: layer, tool, selection, cursor piece, gestures and readiness in one
  * plain module. Pointer events arrive with their targets already raycast; every edit leaves as a
@@ -107,13 +115,14 @@ export class BuilderTool {
   private pieceCache?: { key: string; piece?: BuilderPlacement };
   private internalCache?: { source: ConstructionSource; catalog: ConstructionCatalog; ids: Set<string> };
   private mirrorCache?: { key: string; piece?: BuilderPlacement };
+  private twinCache?: { source: ConstructionSource; selected: ReadonlySet<string>; twins: ReadonlyMap<string, string> };
 
   constructor(private readonly door: BuilderRevisionDoor, private readonly context: BuilderToolContext, initial: Partial<BuilderToolState> = {}) {
     this.state = {
       layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
       hullCategory: 'all', windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], pathBearing: 0, ropeSlack: .15, railingHeight: 1.1, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
       snapping: { ...DEFAULT_SNAPPING }, snapOverride: false, rotationAxis: 1, rotationSnap: true,
-      freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
+      freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'face', index: 5 } },
       view: 'orbit', perspective: true, fitRequest: 0,
       selected: new Set<string>(), surfaces: new Set(), notice: '', ...initial,
     };
@@ -146,7 +155,7 @@ export class BuilderTool {
   private reconcile() {
     if (this.state.freeform && !this.freeformPrimitive) this.state = { ...this.state, freeform: undefined };
     const p=this.freeformPrimitive;
-    if(p&&!selectionCorners(this.state.freeformSettings.selection,p).length)this.state={...this.state,freeformSettings:{...this.state.freeformSettings,selection:{mode:'vertex',index:0}}};
+    if(p&&!selectionCorners(this.state.freeformSettings.selection,p).length)this.state={...this.state,freeformSettings:{...this.state.freeformSettings,selection:freeformSelection(p)}};
   }
   /** The revision owner changed: a new design clears selections and proposals; a new revision retires a pending layout request. */
   private observe = () => {
@@ -199,17 +208,17 @@ export class BuilderTool {
   rotateBlock = (axis: number, degrees: number) => {
     const p = this.rotationPrimitive;
     if (!p || this.locked || ![0, 1, 2].includes(axis) || !Number.isFinite(degrees) || Math.abs(degrees % 360) < 1e-8) return;
-    return this.run('Rotate block', [{ op: 'primitive', value: rotateBlock(p, axis, degrees) }]);
+    return this.edit('Rotate block', [{ op: 'primitive', value: rotateBlock(p, axis, degrees) }]);
   };
   setBlockAngle = (axis: number, degrees: number) => {
     const p = this.rotationPrimitive;
     if (!p || this.locked || ![0, 1, 2].includes(axis) || !Number.isFinite(degrees) || Math.abs(degrees) > 3600) return;
     const angles = blockAngles(p); angles[axis] = degrees;
-    return this.run('Set block angle', [{ op: 'primitive', value: withBlockAngles(p, angles) }]);
+    return this.edit('Set block angle', [{ op: 'primitive', value: withBlockAngles(p, angles) }]);
   };
   resetBlockRotation = () => {
     const p = this.rotationPrimitive;
-    if (p && !this.locked && blockAngles(p).some(n => n !== 0)) this.run('Reset block orientation', [{ op: 'primitive', value: withBlockAngles(p, [0, 0, 0]) }]);
+    if (p && !this.locked && blockAngles(p).some(n => n !== 0)) this.edit('Reset block orientation', [{ op: 'primitive', value: withBlockAngles(p, [0, 0, 0]) }]);
   };
   get freeformPrimitive(): ConstructionPrimitive | undefined {
     const { freeform, layer, tool, selected } = this.state;
@@ -217,6 +226,27 @@ export class BuilderTool {
     return this.data.primitives.find(part => part.id === freeform.baseline.id && (part.kind==='box'||part.kind==='vertex'));
   }
   get freeformMode() { return !!this.freeformPrimitive; }
+  // ---- mirror editing: with Mirror on, an edit also reaches the piece that already mirrors it across the centerline
+  /** The separate twin of each of these pieces and fittings; a twin that is `within` the edit moves with it instead. */
+  private twinsOf(ids: Iterable<string>, within?: ReadonlySet<string>): Map<string, string> {
+    const edited = new Set(ids);
+    return this.state.mirror ? mirrorTwins(this.source, edited, within ? new Set([...edited, ...within]) : edited) : new Map();
+  }
+  /** The twins that follow the selection's edits; the viewport outlines them in mint. */
+  get selectionTwins(): ReadonlyMap<string, string> {
+    const { selected, mirror } = this.state, source = this.source;
+    if (!mirror || !selected.size) return NO_TWINS;
+    if (!this.twinCache || this.twinCache.source !== source || this.twinCache.selected !== selected) this.twinCache = { source, selected, twins: mirrorTwins(source, selected) };
+    return this.twinCache.twins;
+  }
+  /** The block that mirrors the one being shaped, whether or not Mirror is on. */
+  get freeformTwin(): ConstructionPrimitive | undefined {
+    const primitive = this.freeformPrimitive, twin = primitive && mirrorTwin(this.source, primitive);
+    return twin && twin.id !== primitive!.id ? twin : undefined;
+  }
+  private mirrored(commands: ConstructionCommand[]) { return this.state.mirror ? withMirroredEdits(this.source, commands) : commands; }
+  /** One labelled edit that also reaches the twins of the pieces it changes. */
+  edit = (label: string, commands: ConstructionCommand[]) => this.run(label, this.mirrored(commands));
   partOf = (instance: ConstructionEquipment) => { const part = this.catalog.equipment.find(part => part.id === instance.partId); return part && installedWallPart(part, instance); };
   /** Faces from the current compile, or from the last one with this source's assignments over them while a compile is pending. */
   private get surfaceState() {
@@ -305,7 +335,7 @@ export class BuilderTool {
     const s = this.state, locked = this.locked, freeformMode = this.freeformMode, pathPart = this.pathPart, freeformPrimitive = this.freeformPrimitive;
     return {
       source: this.source, result: retained, current: this.compiled, catalog: this.catalog,
-      selected: s.selected, selectedSurfaces: s.surfaces, view: s.view, perspective: s.perspective, display: this.display, fitRequest: s.fitRequest, armorScale: this.armorScale,
+      selected: s.selected, selectedSurfaces: s.surfaces, twins: locked ? NO_TWINS : this.selectionTwins, mirrorEdits: s.mirror && !locked, view: s.view, perspective: s.perspective, display: this.display, fitRequest: s.fitRequest, armorScale: this.armorScale,
       snapping: this.effectiveSnapping, gridStep: this.gridStep, gesture: locked ? 'none' : this.gesture, pickTargets: this.pickTargets, moveTargets: locked || freeformMode ? 'none' : this.moveTargets,
       placementPiece: locked || freeformMode ? undefined : this.piece, placementMirror: this.mirrorPiece,
       highlightFaces: this.faceLayer, rooms: s.layer === 'internals', showCenters: s.showCenters, arcs: this.arcs, proposed: this.proposed, measure: s.measure, measuring: s.tool === 'measure',
@@ -339,6 +369,7 @@ export class BuilderTool {
   /** Raising moves the gunhouse while preserving its deck connection and low magazine. */
   raiseTurrets = (ids: string[], height: (current: number) => number): ConstructionSubmission => {
     const next = structuredClone(this.source);
+    ids = [...ids, ...this.twinsOf(ids).values()];
     if (next.construction.version === 1) integrateConstructionMagazines(next, this.catalog);
     for (const item of next.construction.equipment) {
       if (ids.includes(item.id) && this.partOf(item)?.kind === 'gun') setBarbetteHeight(item, height(item.gun?.barbetteHeightM ?? 0));
@@ -450,6 +481,7 @@ export class BuilderTool {
     ids = new Set([...ids].filter(this.selectable));
     if (!ids.size) return undefined;
     const refused = this.refused(); if (refused) return refused;
+    ids = new Set([...ids, ...this.twinsOf(ids).values()]);
     const keep = this.data.primitives.every(part => ids.has(part.id)) ? this.data.primitives[0]?.id : undefined;
     const outcome = this.command(label, [{ op: 'remove', ids: [...ids] }]);
     this.update({ selected: new Set([...this.state.selected].filter(id => !ids.has(id) || id === keep)),
@@ -508,26 +540,28 @@ export class BuilderTool {
     const centers = constructionSnapFeatures(this.source, this.catalog).filter(f => this.state.selected.has(f.owner) && f.kind === 'center');
     if (!centers.length) return undefined;
     const x = (Math.min(...centers.map(f => f.point[0])) + Math.max(...centers.map(f => f.point[0]))) / 2;
-    return this.nudge([-x, 0, 0]);
+    // Centering places the selection itself; a twin would only land on top of it.
+    return this.movePieces([...this.state.selected], [-x, 0, 0], false);
   };
   nudge = (delta: Vec3): ConstructionSubmission | undefined => this.state.selected.size ? this.movePieces([...this.state.selected], delta) : undefined;
   /** Keep balcony edits and their physical seating in one undo transaction. */
   editPrimitive = (label: string, value: ConstructionPrimitive) => {
     const before = this.data.primitives.find(p => p.id === value.id);
-    return this.run(label, [{ op: 'primitive', value: before ? reseatBalcony(this.source, before, value) : value }]);
+    return this.edit(label, [{ op: 'primitive', value: before ? reseatBalcony(this.source, before, value) : value }]);
   };
-  /** A finished move drag or nudge retains the native overlap constraint. */
-  movePieces = (ids: string[], requested: Vec3): ConstructionSubmission | undefined => {
+  /** A finished move drag or nudge retains the native overlap constraint. Twins outside the selection travel the reflected path. */
+  movePieces = (ids: string[], requested: Vec3, mirror = true): ConstructionSubmission | undefined => {
     ids = ids.filter(this.selectable);
     if (!ids.length) return undefined;
     const refused = this.refused(); if (refused) return refused;
-    const moving = new Set(ids);
-    let delta = blockMoveConstraint(this.source, moving)(requested);
+    const moving = new Set(ids), twins = new Set(mirror ? this.twinsOf(moving, this.state.selected).values() : []);
+    let delta = mirroredMoveConstraint(this.source, moving, twins)(requested);
     if (delta.some((value, axis) => Math.abs(value - requested[axis]) > 1e-7)) this.update({ notice: OVERLAP_NOTICE });
     const wall = this.data.equipment.find(e => moving.has(e.id) && e.wall);
     if (wall) { const normal = wallNormal(wall.bearingDeg), d = delta.reduce((sum, v, k) => sum + v * normal[k], 0); delta = delta.map((v, k) => v - d * normal[k]) as Vec3; }
     if (delta.every(value => value === 0)) return undefined;
     const commands: ConstructionCommand[] = [{ op: 'move', ids, delta }];
+    if (twins.size) commands.push({ op: 'move', ids: [...twins], delta: mirroredDelta(delta) });
     for (const wall of this.data.boundaries) if (moving.has(wall.id)) commands.push({ op: 'boundary', value: { ...wall, offset: wall.offset + delta[AXIS[wall.axis]] } });
     if (this.data.equipment.some(e=>moving.has(e.id)&&e.wall) && this.compiled) {
       const next=applyConstructionBatch(this.source,{version:1,expectedRevision:this.source.revision,label:'Move fittings',commands});
@@ -546,7 +580,7 @@ export class BuilderTool {
     if (piece?.kind === 'equipment' && piece.wall) { this.notify('Wall fittings turn automatically to match their wall.'); return undefined; }
     if (piece?.kind === 'hull') return this.turn(1, fine ? -90 : 90);
     if (piece && piece.kind !== 'boundary') { this.update({ bearing: normalizedBearing(this.state.bearing + (fine ? 1 : 15)) }); return undefined; }
-    if (this.state.selected.size) return this.command('Rotate selection', [{ op: 'rotate', ids: [...this.state.selected], degrees: this.selectedPrimitives.length ? fine ? -90 : 90 : fine ? 1 : 15 }]);
+    if (this.state.selected.size) return this.command('Rotate selection', this.mirrored([{ op: 'rotate', ids: [...this.state.selected], degrees: this.selectedPrimitives.length ? fine ? -90 : 90 : fine ? 1 : 15 }]));
     return undefined;
   };
   /** A quarter turn of hull blocks about a ship axis: the block about to be placed, else each selected block in place. */
@@ -562,7 +596,7 @@ export class BuilderTool {
     }
     const blocks = this.selectedPrimitives;
     if (axis === 1 || !blocks.length) return axis === 1 ? this.rotate(degrees < 0) : undefined;
-    return this.command(blocks.length > 1 ? 'Rotate blocks' : 'Rotate block', blocks.map(p => ({ op: 'primitive', value: rotateBlock(p, axis, degrees) })));
+    return this.edit(blocks.length > 1 ? 'Rotate blocks' : 'Rotate block', blocks.map(p => ({ op: 'primitive', value: rotateBlock(p, axis, degrees) })));
   };
   /** Empty ids rotate the cursor; fitted parts rotate in place as one source edit. */
   rotateFittings = (ids: string[], degrees: number): ConstructionSubmission | undefined => {
@@ -573,7 +607,7 @@ export class BuilderTool {
     }
     ids = ids.filter(id => this.selectable(id) && this.data.equipment.some(item => item.id === id && !item.wall));
     if (!ids.length) return undefined;
-    return this.command('Rotate fittings', [{ op: 'rotate', ids, degrees }]);
+    return this.edit('Rotate fittings', [{ op: 'rotate', ids, degrees }]);
   };
   /** A click or a finished stroke: one piece per point plus mirrored twins, as one undoable edit. */
   placeAt = (points: Vec3[], bearingDeg?: number, hullPlacement?: Extract<BuilderPlacement, { kind: 'hull' }>): ConstructionSubmission | undefined => {
@@ -844,18 +878,34 @@ export class BuilderTool {
     if (!part || this.state.selected.size !== 1 || !canEditVertices(part)) return false;
     const converted=editableMesh(part);
     if(converted.mesh&&!part.mesh&&!this.commitFreeform([converted])?.accepted)return false;
-    this.update({ tool: 'select', layer: 'hull', surfaces: new Set(), freeformSettings:{...this.state.freeformSettings,selection:{mode:'vertex',index:0}}, freeform: { designId: this.source.id, baseline: structuredClone(part) } });
+    // The session keeps the selection mode last used; a new editor starts on faces.
+    this.update({ tool: 'select', layer: 'hull', surfaces: new Set(), freeformSettings:{...this.state.freeformSettings,selection:freeformSelection(converted,this.state.freeformSettings.selection.mode)}, freeform: { designId: this.source.id, baseline: structuredClone(part) } });
     return true;
   };
+  /** Vertex, edge, face or ring selection (1–4 while shaping); a mode the block lacks is ignored. */
+  setFreeformMode = (mode: HullSelectionMode) => {
+    const primitive = this.freeformPrimitive, selection = freeformSelection(primitive, mode);
+    if (primitive && selection.mode === mode && mode !== this.state.freeformSettings.selection.mode) this.changeFreeformSettings({ selection });
+  };
   exitFreeform = () => this.update({ freeform: undefined });
-  commitFreeform = (replacements: ConstructionPrimitive[]): ConstructionSubmission | undefined =>
-    replacements.length ? this.run('Shape freeform hull', replacements.filter(part => this.data.primitives.some(existing => existing.id === part.id)).map(value => ({ op: 'primitive', value }))) : undefined;
-  resetFreeform = () => { const freeform = this.state.freeform; return freeform ? this.run('Reset hull edit', [{ op: 'primitive', value: editableMesh(freeform.baseline) }]) : undefined; };
+  /** With Mirror on, the reshaped blocks' twins take the mirrored shape in the same edit. */
+  commitFreeform = (replacements: ConstructionPrimitive[]): ConstructionSubmission | undefined => {
+    const known = replacements.filter(part => this.data.primitives.some(existing => existing.id === part.id));
+    const shaped = this.state.mirror ? withTwinReplacements(this.source, known, this.state.freeform?.baseline.id) : known;
+    return shaped.length ? this.run('Shape freeform hull', shaped.map(value => ({ op: 'primitive', value }))) : undefined;
+  };
+  resetFreeform = () => { const freeform = this.state.freeform; return freeform ? this.edit('Reset hull edit', [{ op: 'primitive', value: editableMesh(freeform.baseline) }]) : undefined; };
   splitFreeform = () => {
     const primitive = this.freeformPrimitive, settings = this.state.freeformSettings;
     if (!primitive) return;
     try {
+      const twin = this.state.mirror ? this.freeformTwin : undefined;
       const next = structuredClone(this.source), ids = splitVertexPrimitive(next, primitive.id, settings.splitAxis, settings.count);
+      if (twin) {
+        // The twin splits into the reflected pieces, which run the other way along its mirrored local X.
+        const twins = splitVertexPrimitive(next, twin.id, settings.splitAxis, settings.count), pieces = next.construction.primitives;
+        ids.forEach((id, i) => { const at = pieces.findIndex(p => p.id === twins[settings.splitAxis === 0 ? ids.length - 1 - i : i]); pieces[at] = twinPrimitive(pieces.find(p => p.id === id)!, pieces[at]); });
+      }
       this.run('Split hull block', constructionDiffCommands(this.source, next));
       this.update({ selected: new Set([ids[0]]), freeform: undefined });
     } catch (cause) { this.fail(cause); }
@@ -888,8 +938,9 @@ export class BuilderTool {
       if (event.key === 'Escape') { this.exitFreeform(); event.preventDefault(); return; }
       if (lower === 'g') { this.cycleUnit(); event.preventDefault(); return; }
       if (lower === 'o') { this.toggleProjection(); event.preventDefault(); return; }
-      // The view strip stays visible while shaping, so its keys keep working.
-      if (!['w', 'q', 's', 'c'].includes(lower) && event.key !== 'Home') return;
+      if (/^[1-4]$/.test(event.key) && !event.altKey) { event.preventDefault(); if (!event.repeat) this.setFreeformMode(FREEFORM_MODES[Number(event.key) - 1]); return; }
+      // The view strip stays visible while shaping, so its keys keep working; M decides whether the twin follows.
+      if (!['w', 'q', 's', 'c', 'm'].includes(lower) && event.key !== 'Home') return;
     }
     // Without a selection, ⌘C and ⌘X stay with the browser so selected text still copies.
     if (modifier && lower === 'c') { if (!s.selected.size) return; event.preventDefault(); this.copy(event.shiftKey); return; }

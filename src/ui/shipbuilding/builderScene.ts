@@ -37,6 +37,10 @@ export interface BuilderScene {
   current?: ConstructionResult;
   catalog: ConstructionCatalog;
   selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
+  /** Mirror editing: each selected piece or fitting with a separate twin across the centerline, which follows its edits. */
+  twins: ReadonlyMap<string, string>;
+  /** Mirror is on, so move, rotation and freeform previews also show the twins of what they change. */
+  mirrorEdits: boolean;
   view: BuilderView; perspective: boolean; display: BuilderDisplay; fitRequest: number;
   /** The ship's thinnest and thickest plates: the green and red ends of the Armor layer's colour scale. */
   armorScale: ArmorScale;

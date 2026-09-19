@@ -6,7 +6,9 @@ import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionResult
 import { ConstructionRevisionOwner } from '../../ships/constructionRevisionOwner';
 import type { ConstructionRevision, ConstructionStore, SaveConstructionSource } from '../../ships/constructionStore';
 import { createStarterSource } from '../../ships/constructionStarter';
-import { CORNER_SIGNS, VERTEX_FACES } from '../../ships/constructionVertex';
+import { CORNER_SIGNS, VERTEX_EDGES, VERTEX_FACES, freeformEdit } from '../../ships/constructionVertex';
+import { mirroredPrimitive } from '../../ships/constructionEditor';
+import { mirrorTwins } from './mirrorEditing';
 import { BuilderTool, type BuilderChrome, type BuilderKey } from './builderTool';
 import type { BuilderPick } from './builderScene';
 import { pieceExtents, placementCenter } from './placement';
@@ -825,4 +827,112 @@ test('Erase sits on every layer rail and removes fittings from the Fittings and 
   expect(tool.pointer({ kind: 'pick', hit: hit({ id: second }) })).toMatchObject({ accepted: true });
   expect(data().equipment.map(item => item.id)).not.toContain(first);
   expect(data().equipment.map(item => item.id)).not.toContain(second);
+});
+
+/** The starting block with a mirrored pair of cubes on its deck, three metres off the centerline. */
+async function mirroredPair(kind: ConstructionSource['construction']['primitives'][number]['kind'] = 'box') {
+  const source = createStarterSource(catalog, 'blank');
+  source.construction.primitives[0].size = [10, 1, 10];
+  source.construction.primitives.push({ id: 'a', kind, size: [2, 1, 2], position: [3, 1, 0], rotationDeg: 0 }, { ...mirroredPrimitive({ id: 'b', kind, size: [2, 1, 2], position: [3, 1, 0], rotationDeg: 0 }), id: 'b' });
+  const context = await setup({ source });
+  const piece = (id: string) => context.data().primitives.find(part => part.id === id)!;
+  return { ...context, piece };
+}
+test('Mirror gives a move, a turn, a resize and a removal to the twin across the centerline as one edit each', async () => {
+  const { tool, piece, data, labels, owner } = await mirroredPair('wedge');
+  tool.choose('a');
+  expect([...tool.scene(undefined).twins]).toEqual([['a', 'b']]);
+  expect(tool.pointer({ kind: 'move', ids: ['a'], delta: [1, 0, 2] })).toMatchObject({ accepted: true });
+  expect([piece('a').position, piece('b').position]).toEqual([[4, 1, 2], [-4, 1, 2]]);
+  tool.key(key('ArrowLeft'), chrome());
+  expect([piece('a').position, piece('b').position]).toEqual([[3, 1, 2], [-3, 1, 2]]);
+  tool.key(key('r'), chrome());
+  expect([piece('a').rotationDeg, piece('b').rotationDeg]).toEqual([90, 270]);
+  tool.key(key('x'), chrome());
+  expect(piece('b')).toEqual({ ...mirroredPrimitive(piece('a')), id: 'b' });
+  tool.editPrimitive('Resize hull piece', { ...piece('a'), size: [2, 3, 2] });
+  expect(piece('b').size).toEqual([2, 3, 2]);
+  expect(labels()).toEqual(['Move selection', 'Move selection', 'Rotate selection', 'Rotate block', 'Resize hull piece']);
+  // Every edit left the pair twins, and one undo restores both sides.
+  expect([...tool.scene(undefined).twins]).toEqual([['a', 'b']]);
+  owner.undo(); expect([piece('a').size, piece('b').size]).toEqual([[2, 1, 2], [2, 1, 2]]);
+  tool.key(key('Delete'), chrome());
+  expect(data().primitives.map(part => part.id)).toEqual(['hull']);
+  owner.undo(); expect(data().primitives.map(part => part.id)).toEqual(['hull', 'a', 'b']);
+});
+test('Mirror off, a selection holding both sides and Center leave the twin to itself', async () => {
+  const { tool, piece } = await mirroredPair();
+  tool.choose('a'); tool.choose('b', true);
+  expect(tool.scene(undefined).twins.size).toBe(0);
+  tool.nudge([1, 0, 0]);
+  expect([piece('a').position, piece('b').position]).toEqual([[4, 1, 0], [-2, 1, 0]]);
+  tool.nudge([-1, 0, 0]); tool.choose('a'); tool.toggleMirror();
+  expect(tool.scene(undefined)).toMatchObject({ mirrorEdits: false });
+  tool.nudge([0, 0, 1]);
+  expect([piece('a').position, piece('b').position]).toEqual([[3, 1, 1], [-3, 1, 0]]);
+  tool.nudge([0, 0, -1]); tool.toggleMirror();
+  tool.centerSelection();
+  expect([piece('a').position, piece('b').position]).toEqual([[0, 1, 0], [-3, 1, 0]]);
+});
+test('a mirrored pair closing on the centerline stops while each side keeps its tenth outside the other', async () => {
+  const { tool, piece } = await mirroredPair();
+  tool.choose('a');
+  tool.nudge([-3, 0, 0]);
+  const x = piece('a').position[0];
+  expect(x).toBeGreaterThanOrEqual(.1); expect(x).toBeLessThan(.25);
+  expect(piece('b').position[0]).toBeCloseTo(-x, 9);
+});
+test('freeform opens on faces, 1–3 choose the selection mode, and Mirror shapes the twin with the block', async () => {
+  const { tool, piece, owner, labels } = await mirroredPair();
+  const ui = chrome();
+  tool.choose('a'); tool.key(key('d'), ui);
+  expect(tool.freeformMode).toBe(true);
+  expect(tool.getSnapshot().freeformSettings.selection).toEqual({ mode: 'face', index: 5 });
+  expect(tool.freeformTwin?.id).toBe('b');
+  tool.key(key('1'), ui); expect(tool.getSnapshot().freeformSettings.selection).toEqual({ mode: 'vertex', index: 0 });
+  tool.key(key('2'), ui); expect(tool.getSnapshot().freeformSettings.selection.mode).toBe('edge');
+  tool.key(key('4'), ui); expect(tool.getSnapshot().freeformSettings.selection.mode).toBe('edge');
+  tool.key(key('3'), ui); expect(tool.getSnapshot().freeformSettings.selection).toEqual({ mode: 'face', index: 5 });
+  expect(ui.log).toEqual(['slot']);
+  // Raise the outboard top edge of A: B's outboard edge, on the other side, rises with it.
+  const shaped = freeformEdit(owner.source, 'a', { mode: 'edge', index: VERTEX_EDGES.findIndex(edge => edge.join() === '2,6') }, [0, .5, 0], [false, false, false], false);
+  expect(tool.commitFreeform(shaped)).toMatchObject({ accepted: true });
+  expect(piece('b')).toEqual({ ...mirroredPrimitive(piece('a')), id: 'b' });
+  expect(piece('b').vertices![3][1]).toBeCloseTo(1); expect(piece('b').vertices![2][1]).toBeCloseTo(.5);
+  expect(labels()).toEqual(['Shape freeform hull']);
+  expect(tool.freeformTwin?.id).toBe('b');
+  // M still toggles ship Mirror while shaping; with it off the twin stays as it is.
+  tool.key(key('m'), ui);
+  const before = structuredClone(piece('b'));
+  tool.commitFreeform(freeformEdit(owner.source, 'a', { mode: 'face', index: 5 }, [0, .5, 0], [false, false, false], false));
+  expect(piece('b')).toEqual(before);
+  owner.undo(); tool.key(key('m'), ui);
+  // The session remembers the mode for the next block.
+  tool.key(key('2'), ui); tool.key(key('d'), ui); tool.choose('b'); tool.key(key('d'), ui);
+  expect(tool.getSnapshot().freeformSettings.selection).toEqual({ mode: 'edge', index: 0 });
+  tool.dispose();
+});
+test('splitting a block with Mirror on splits its twin into the reflected pieces', async () => {
+  const { tool, data, owner } = await mirroredPair();
+  tool.choose('a'); tool.enterFreeform();
+  tool.changeFreeformSettings({ splitAxis: 0, count: 2 }); tool.splitFreeform();
+  const pieces = data().primitives.slice(1);
+  expect(pieces.map(part => part.position[0]).sort((a, b) => a - b)).toEqual([-3.5, -2.5, 2.5, 3.5]);
+  for (const part of pieces) expect(mirrorTwins(owner.source, new Set([part.id])).size).toBe(1);
+  owner.undo(); expect(data().primitives.map(part => part.id)).toEqual(['hull', 'a', 'b']);
+});
+test('mirrored fittings follow a move, a turn and a removal; a linked wall partner keeps its own rule', async () => {
+  const source = createStarterSource(catalog, 'blank');
+  source.construction.primitives[0].size = [10, 1, 10];
+  source.construction.equipment.push({ id: 'p', partId: 'gun', position: [3, .5, 0], bearingDeg: 30, paint: 'sea-blue' }, { id: 's', partId: 'gun', position: [-3, .5, 0], bearingDeg: 330 });
+  const { tool, data } = await setup({ source });
+  const fitting = (id: string) => data().equipment.find(item => item.id === id)!;
+  tool.switchLayer('fittings'); tool.choose('p');
+  tool.nudge([.5, 0, 1]);
+  expect([fitting('p').position, fitting('s').position]).toEqual([[3.5, .5, 1], [-3.5, .5, 1]]);
+  tool.rotateFittings(['p'], 10);
+  expect([fitting('p').bearingDeg, fitting('s').bearingDeg]).toEqual([40, 320]);
+  expect(fitting('s').paint).toBeUndefined();
+  tool.remove();
+  expect(data().equipment).toEqual([]);
 });

@@ -33,7 +33,7 @@ export async function checkFreeformVisibility() {
     function Fixture() {
       const [source, setSource] = useState(initial), [selection, setSelection] = useState<HullSelection>({mode,index:0});
       return <main className="shipbuilder"><BuilderViewport scene={{ source, result, current: result, catalog,
-        selected: new Set(['hull']), selectedSurfaces: new Set(), view: 'orbit', perspective: false, display: 'paint', gridStep: 1,
+        selected: new Set(['hull']), selectedSurfaces: new Set(), twins: new Map(), mirrorEdits: false, view: 'orbit', perspective: false, display: 'paint', gridStep: 1,
         gesture: 'none', pickTargets: 'hull', moveTargets: 'none', highlightFaces: false, rooms: false, showCenters: false,
         arcs: [], proposed: [], fitRequest: 0,
         freeform: { id: 'hull', selection, axes: [false, false, false], unit: .2, snap: false,

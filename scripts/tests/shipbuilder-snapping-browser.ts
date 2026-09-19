@@ -129,6 +129,7 @@ export async function checkSnapping() {
   const oldStep = document.querySelector('.sb-snap-step-cycle')!.textContent;
   await key('s'); assert(document.querySelector('.sb-snap-step-cycle')!.textContent !== oldStep, 'S also cycles the freeform local move step');
   document.querySelector<HTMLButtonElement>('[aria-label="Mirror X"]')!.click(); await wait();
+  document.querySelector<HTMLButtonElement>('.sb-freeform-tools [aria-label="Vertex"]')!.click(); await wait();
   document.querySelector<HTMLButtonElement>('.sb-freeform-handle[data-index="0"]')!.click(); await wait();
   const vertexHandle = document.querySelector<HTMLButtonElement>('[aria-label="Move local X"]')!, vr = vertexHandle.getBoundingClientRect();
   const before = source().construction.primitives.find(p => p.id === 'moving')!, corner = worldVertex(before, cornerVertices(before)[0]);

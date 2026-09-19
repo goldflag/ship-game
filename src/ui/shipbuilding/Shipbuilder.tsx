@@ -281,6 +281,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const drawerItems = query ? filteredCards.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : filteredCards;
 
   const tags: BuilderTag[] = [];
+  // Mirror editing: the selection's edits also reach these twins, which the viewport outlines in mint.
+  const twinCount = locked ? 0 : tool.selectionTwins.size;
+  const twinNote = twinCount > 0 && <span className="sb-twin-note"> · {twinCount === 1 ? 'twin follows' : `${twinCount} twins follow`} <kbd>M</kbd></span>;
   const equipmentAnchor = (item: ConstructionEquipment): Vec3 => { const part = partOf(item), center = part ? rotateY(equipmentPathBounds(part, item).center, bearingRadians(item.bearingDeg)) : [0, 0, 0]; return item.position.map((value, index) => value + center[index]) as Vec3; };
   // The cursor piece reads out above the palette instead of following the ghost; its size fields stay editable there.
   // The Armor layer keeps its millimetre field here, above the bar: a new value also assigns the selected faces.
@@ -311,12 +314,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform} aria-label="Freeform hull" title="Edit freeform shape (D)">Freeform <kbd>D</kbd></button>}
       {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
       {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => { if (layer !== 'hull') tool.switchLayer('hull'); setBalconySession(primitive.id); }}>Edit balcony outline</button>}
-      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}{primitive.rotationDeg}° <kbd>R</kbd> · <kbd>X</kbd><kbd>Z</kbd> tip · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
+      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}{primitive.rotationDeg}° <kbd>R</kbd> · <kbd>X</kbd><kbd>Z</kbd> tip · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy{twinNote}
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiledResult, item.id);
     const catalogPart = catalog.equipment.find(p => p.id === item.partId);
-    const edit = (label: string, change: (target: ConstructionEquipment) => void) => { const target = structuredClone(item); change(target); run(label, [{ op: 'equipment', value: target }]); };
+    const edit = (label: string, change: (target: ConstructionEquipment) => void, mirrored = false) => { const target = structuredClone(item); change(target); (mirrored ? tool.edit : run)(label, [{ op: 'equipment', value: target }]); };
     const engines = data.equipment.filter(entry => partOf(entry)?.kind === 'engine');
     const assignedEngines = propellerEngines(source, compiledResult, item);
     const engineConnection = <label className="sb-engine-link">Engine <select className="sb-link" aria-label="Propeller engine" disabled={locked}
@@ -330,21 +333,21 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </select>{!item.powerSourceId && assignedEngines.length > 1 && <span className="sb-engine-sources">{assignedEngines.map(propellerEngineName).join('; ')}</span>}</label>;
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.path?.kind === 'railing' ? `${item.path?.railCount ?? part.path?.railCount ?? 3}-rail railing` : part?.name ?? item.partId}</b>
-      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? 'Hull aligned · ' : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/></>}
+      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? 'Hull aligned · ' : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); }, true)}/></>}
       {item.wall && catalogPart && <>
         <WallSizeFields part={catalogPart} wall={item.wall} onChange={(axis, value) => edit('Resize wall fitting', target => {
           Object.assign(target.wall!, resizedWallDimensions(catalogPart, target.wall!, axis, value));
         })}/>
         {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
       </>}
-      {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; })}/>}
-      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{!item.wall && <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove
+      {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; }, true)}/>}
+      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{!item.wall && <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove{twinNote}
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];
     const center = anchors.reduce((sum, point) => sum.map((value, index) => value + point[index] / anchors.length) as Vec3, [0, 0, 0] as Vec3);
     const mass = [...selectedPrimitives.map(part => pieceMassKg(compiledResult, part.id) ?? 0), ...selectedEquipment.map(part => equipmentMassKg(compiledResult, part.id) ?? 0)].reduce((sum, value) => sum + value, 0);
-    tags.push({ key: 'group', anchor: center, dx: 70, dy: -78, tone: 'mint', content: <><b>{selected.size} selected</b>{mass ? `${formatTonnes(mass)} · ` : ''}<kbd>R</kbd> rotate · <kbd>⌘C</kbd> copy · <kbd>⇧⌘C</kbd> mirror copy · <kbd>⌫</kbd> remove</> });
+    tags.push({ key: 'group', anchor: center, dx: 70, dy: -78, tone: 'mint', content: <><b>{selected.size} selected</b>{mass ? `${formatTonnes(mass)} · ` : ''}<kbd>R</kbd> rotate · <kbd>⌘C</kbd> copy · <kbd>⇧⌘C</kbd> mirror copy · <kbd>⌫</kbd> remove{twinNote}</> });
   } else if (selectedBoundary) {
     const wall = selectedBoundary, axis = { x: 0, y: 1, z: 2 }[wall.axis], bounds = hullBounds(source);
     const anchor = (bounds ? bounds.min.map((value, index) => (value + bounds.max[index]) / 2) : [0, 0, 0]) as Vec3; anchor[axis] = wall.offset;
@@ -423,7 +426,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // Keys already printed elsewhere (rail tools and modifiers, the view strip's Q P C A Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
   const faceLayer = layer === 'armor' || layer === 'paint';
   const movable = selectedPrimitives.length + selectedEquipment.length > 0;
-  const standing: KeyHint[] = [
+  // While shaping, 1–4 choose the selection mode and the freeform toolbar prints them; the cards are away.
+  const standing: KeyHint[] = freeformMode ? [] : [
     { keys: palette.bar.length < 4 ? palette.bar.map((_, index) => String(index + 1)) : ['1', '…', '9'], label: surfaces.size && faceLayer ? (layer === 'paint' ? 'Paint faces' : 'Assign armor') : 'Card' },
     ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
   ];
@@ -473,7 +477,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
       if (existing) {
         const commands: ConstructionCommand[] = [{ op: 'primitive', value: customHullPrimitive(hull, existing) }];
-        run('Edit custom hull', commands);
+        tool.edit('Edit custom hull', commands);
       }
       setCustomHullSession(undefined); tool.fit();
     } }}/>, document.body)}
@@ -481,7 +485,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       ? <div className="sb-empty" role="status">Loading ship…</div>
       : <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} status={status} onPointer={tool.pointer} onHover={setHoveredPart} onFreeformPreview={setFreeformPreview} onRotationPreview={setRotationPreview} createModel={props.createModel} onMemory={memoryOpen ? setVisualMemory : undefined}/>}
     {layer === 'hull' && s.tool === 'rotate' && <RotationToolbar tool={tool} preview={rotationPreview}/>}
-    {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} preview={freeformPreview} onCommit={tool.commitFreeform} settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit}
+    {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} preview={freeformPreview} onCommit={tool.commitFreeform} settings={freeformSettings} onChange={tool.changeFreeformSettings} onMode={tool.setFreeformMode} twin={!!tool.freeformTwin} mirror={mirror} onMirror={tool.toggleMirror} cycleUnit={tool.cycleUnit}
       onReset={tool.resetFreeform} onSplit={tool.splitFreeform} onExit={tool.exitFreeform}/>}
     <header className="sb-top">
       <button className="sb-port" disabled={!!busy || !!pathPoints.length} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
@@ -531,7 +535,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {layer==='hull' && <button aria-pressed={freeformMode} aria-label="Freeform (D)" disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?tool.exitFreeform:enterFreeform} {...railTip('Freeform', 'Select one editable shape to edit vertices, edges, faces or rings', 'D')}><ToolGlyph name="Freeform"/><kbd>D</kbd></button>}
         <i className="sb-rail-rule" aria-hidden="true"/>
         {/* Modifiers change where a click lands rather than what it does; freeform mode carries its own local mirror axes and unit. */}
-        {!freeformMode && <button className="toggle" disabled={locked} aria-pressed={mirror} aria-label="Mirror (M)" onClick={tool.toggleMirror} {...railTip(`Mirror · ${mirror ? 'On' : 'Off'}`, 'Place, move and paint the twin across the centerline', 'M')}><ToolGlyph name="Mirror"/><kbd>M</kbd></button>}
+        {!freeformMode && <button className="toggle" disabled={locked} aria-pressed={mirror} aria-label="Mirror (M)" onClick={tool.toggleMirror} {...railTip(`Mirror · ${mirror ? 'On' : 'Off'}`, 'Place across the centerline; moving, turning, resizing, shaping, painting or removing a piece does the same to its twin, outlined in mint', 'M')}><ToolGlyph name="Mirror"/><kbd>M</kbd></button>}
         <SnapControls tool={tool} locked={locked} onTip={showRailTip}/>
         {!freeformMode && <><i className="sb-rail-rule" aria-hidden="true"/>{viewBar}</>}
         <i className="sb-rail-rule" aria-hidden="true"/>
@@ -567,7 +571,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <nav className="sb-tabs" role="tablist" aria-label="Layers">{BUILDER_LAYERS.map(entry => <button key={entry.id} role="tab" aria-selected={layer === entry.id} title={entry.name} onClick={() => switchLayer(entry.id)}><ToolGlyph name={LAYER_GLYPHS[entry.id]}/><span>{entry.name}</span></button>)}</nav>
         <div className="sb-keys" aria-label="Hotkeys">
           {acting.length > 0 && <div className="sb-keys-row acting">{acting.map(chip)}</div>}
-          <div className="sb-keys-row">{standing.map(chip)}</div>
+          {standing.length > 0 && <div className="sb-keys-row">{standing.map(chip)}</div>}
         </div>
       </div>
       {layer === 'hull' && !freeformMode && <div className="sb-shelves">{hullFilters}</div>}

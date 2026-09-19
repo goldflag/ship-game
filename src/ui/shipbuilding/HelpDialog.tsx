@@ -36,7 +36,7 @@ const VIEW: [string[], string][] = [
   [['Q'], 'Cycle Orbit, Plan, Profile and Bow'],
   [['P'], 'Toggle perspective / orthographic camera (perspective by default)'],
   [['W'], 'Open or close the checks list under the top bar'],
-  [['M'], 'Mirror placements across the centerline'],
+  [['M'], 'Mirror: place across the centerline, and give every edit of a piece to its existing twin (outlined in mint)'],
   [['C'], 'Show or hide the centers of gravity and buoyancy'],
   [['A'], 'In Fittings: show or hide gun arcs'],
   [['Home'], 'Frame the ship'],
@@ -44,6 +44,7 @@ const VIEW: [string[], string][] = [
   [['0'], 'Open or close every card of the layer'],
   [['?'], 'This list'],
   [['D'], 'In Hull: enter or finish freeform editing for one selected shape'],
+  [['1', '2', '3', '4'], 'In Freeform hull: select vertices, edges, faces (the default) or rings'],
   [['G'], 'In Freeform hull: cycle the move increment'],
   [['O'], 'In Freeform hull: toggle orthographic / perspective'],
 ];
@@ -67,8 +68,8 @@ export function HelpDialog({ onClose }: { onClose(): void }) {
           <table><tbody>{BUILDER_LAYERS.map(layer => <tr key={layer.id}><th scope="row">{layer.name}</th><td>{BUILDER_RAIL[layer.id].map(entry => <span key={entry.id}><kbd>{entry.key}</kbd>{entry.name}</span>)}</td></tr>)}</tbody></table>
         </section>
       </div>
-      <p>Select one editable hull shape and press D to enter Freeform; D or Escape finishes. Select a vertex, edge, face or curved-shape ring; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the block; select none to turn symmetry off. An edge or face spanning a mirror plane cannot move across it. Move nearby corners is opt-in; Split creates independent blocks. Reset edit restores the block’s session-entry shape.</p>
-      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Drag pieces and handles to position them. Snap guides appear only when a snap is engaged: mint joins aligned geometry, brass marks the ship centerline. Dots mark the aligned points and a solid edge marks the target. Turning Snap off hides these guides. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
+      <p>Select one editable hull shape and press D to enter Freeform; D or Escape finishes. Select a vertex, edge, face or curved-shape ring; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the block; select none to turn symmetry off. With ship Mirror on (M), the block that mirrors this one across the centerline takes the same edits. An edge or face spanning a mirror plane cannot move across it. Move nearby corners is opt-in; Split creates independent blocks. Reset edit restores the block’s session-entry shape.</p>
+      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Drag pieces and handles to position them. Snap guides appear only when a snap is engaged: mint joins aligned geometry, brass marks the ship centerline. Dots mark the aligned points and a solid edge marks the target. Turning Snap off hides these guides. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. With Mirror on, moving, turning, resizing, shaping or removing a piece does the same to the piece that mirrors it across the centerline; select both sides to move them together instead. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
   </div>;
 }

@@ -1,5 +1,7 @@
 import { expect, test } from 'bun:test';
 import type { ConstructionSource, Vec3 } from '../../ships/blueprint';
+import { mirroredPrimitive } from '../../ships/constructionEditor';
+import { rotateBlock } from '../../ships/constructionOrientation';
 import { attachmentOffset, fillLattice, mirrorTwin, pieceExtents, placementCenter, strokeSegment } from './placement';
 
 test('underside propeller placement leaves the entire blade sweep below the hull', () => {
@@ -113,4 +115,18 @@ test('the complete balcony inner edge seats against sloped and tapered surfaces'
       expect(corner.reduce((sum, value, k) => sum + (value - point[k]) * normal[k], 0)).toBeLessThanOrEqual(0);
     }
   }
+});
+
+test('twins match by their turned axes and their shape, however the angles are written', () => {
+  const tipped = rotateBlock({ id: 'a', kind: 'vertex', size: [2, 1, 4], position: [3, 1, 0], rotationDeg: 90 }, 0, 90);
+  const source = { construction: { primitives: [tipped, { ...mirroredPrimitive(tipped), id: 'b' }] } } as unknown as ConstructionSource;
+  const [a, b] = source.construction.primitives;
+  expect(mirrorTwin(source, a)?.id).toBe('b');
+  expect(mirrorTwin(source, b)?.id).toBe('a');
+  // The same pose written with a full extra turn is still the twin; a rounded edge on one side is not.
+  b.rotationDeg += 360;
+  expect(mirrorTwin(source, a)?.id).toBe('b');
+  b.shaping = { version: 1, style: 'round', radius: .2, edges: [0] };
+  expect(mirrorTwin(source, a)).toBeUndefined();
+  expect(mirrorTwin(source, a, new Set(['b']))).toBeUndefined();
 });
