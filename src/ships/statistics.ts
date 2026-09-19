@@ -56,6 +56,23 @@ const thickest = (def: ShipDefinition) => def.armor.reduce((best, a) => a.thickn
 const mainMounts = (def: ShipDefinition) => def.mounts.filter(m => m.battery === 'main');
 const dualPurposeMounts = (def: ShipDefinition) => def.mounts.filter(m => antiAircraftRange(m) > 0);
 
+/** One figure on the builder's plate under a ship's name in port. */
+export interface SpecFigure { label: string; value: string; unit?: string }
+/** Principal dimensions, speed and the heaviest main guns, read from the same definition as the sheet. */
+export function shipSpec(def: ShipDefinition): SpecFigure[] {
+  const h = def.hull, main = mainMounts(def), speed = knots(effectiveHandling(def.handling, !!def.maneuvering).forwardSpeed);
+  const caliber = main.reduce((n, m) => Math.max(n, m.weapon.caliberM), 0);
+  const guns = main.filter(m => m.weapon.caliberM === caliber).reduce((n, m) => n + barrels(m.weapon), 0);
+  return [
+    { label: 'Length', value: format(h.length, 1), unit: 'm' },
+    { label: 'Beam', value: format(h.beam, 1), unit: 'm' },
+    { label: 'Draft', value: format(h.draft, 2), unit: 'm' },
+    { label: 'Displacement', value: format(h.massKg / 1000), unit: 't' },
+    { label: 'Speed', value: format(Number.isFinite(speed) ? speed : 0, 1), unit: 'kn' },
+    main.length ? { label: 'Main battery', value: `${guns} × ${format(Math.round(caliber * 1000))}`, unit: 'mm' } : { label: 'Main battery', value: 'None' },
+  ];
+}
+
 /** Gameplay calibration only: each score reads the same simulation inputs the sheet prints. */
 export function shipScores(def: ShipDefinition): StatScore[] {
   const r = SCORE_REFERENCES, main = mainMounts(def);
