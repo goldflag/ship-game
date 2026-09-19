@@ -27,12 +27,13 @@ const erase = tool('erase', 'Erase', 'E');
 /** The rail holds what a click does: modes and one-shot actions. Mirror and Snap, which change where a click lands, sit under the rail as modifiers; Arcs and Centers, which draw overlays, sit in the view strip. */
 export const BUILDER_RAIL: Record<BuilderLayer, RailEntry[]> = {
   hull: [select, tool('rotate', 'Rotate', 'O'), tool('place', 'Place', 'B'), tool('fill', 'Fill', 'F'), erase, tool('measure', 'Measure', 'T')],
-  armor: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I'), tool('opening', 'Opening', 'O'), erase],
+  // Armor is a paint bucket: the active card is the only selection, and every tool either lays it or picks it up.
+  armor: [tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Fill', 'A', 'Area'), tool('eyedrop', 'Eyedrop', 'I'), erase],
   internals: [select, tool('deck', 'Deck', 'D'), tool('bulkhead', 'Bulkhead', 'B'), tool('longitudinal', 'Split', 'L', 'Split'), tool('merge', 'Merge', 'J'), tool('module', 'Module', 'U'), erase, action('suggest', 'Suggest', 'G')],
   fittings: [select, tool('place', 'Place', 'B'), erase, action('rotate', 'Rotate', 'R'), action('suggest', 'Suggest', 'G')],
   paint: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I'), erase],
 };
-/** The tool a layer starts with; Select is always one key away. */
+/** The tool a layer starts with and returns to on Escape: Select, except Armor, which has no selection and keeps its brush. */
 export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = { hull: 'select', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
 
 export interface HullShape { id: string; name: string; note: string; kind: ConstructionPrimitive['kind']; size: Vec3 }

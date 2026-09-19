@@ -165,7 +165,7 @@ export class BuilderTool {
     const source = this.door.source;
     let patch: Partial<BuilderToolState> | undefined;
     if (source.id !== this.lastSourceId) {
-      patch = { selected: new Set(), surfaces: new Set(), suggestion: undefined, measure: undefined, pathPoints: [], tool: 'select' };
+      patch = { selected: new Set(), surfaces: new Set(), suggestion: undefined, measure: undefined, pathPoints: [], tool: this.restTool };
     }
     if (source.revision !== this.lastRevision) { this.suggestionRequest?.abort(); this.suggestionRequest = undefined; }
     this.lastSourceId = source.id; this.lastRevision = source.revision;
@@ -396,6 +396,8 @@ export class BuilderTool {
 
   // ---- layer, tool and cards
   setTool = (tool: BuilderToolId) => this.update({ tool });
+  /** Where Escape and a toggled-off card return: Select, or on Armor, which has no selection, the Paint brush. */
+  get restTool(): BuilderToolId { return this.state.layer === 'armor' ? 'apply' : 'select'; }
   switchLayer = (next: BuilderLayer) => {
     this.update({ layer: next, tool: DEFAULT_TOOL[next], surfaces: new Set(), measure: undefined, bearing: 0, tilt: undefined,
       ...(next === 'armor' || next === 'paint' ? { selected: new Set<string>() } : next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}) });
@@ -403,6 +405,8 @@ export class BuilderTool {
   /** Choose a card: true when it acted, so the caller closes the drawer and its tooltip. */
   toggleSlot = (item: SlotItem): boolean => {
     if (this.locked || item.kind === 'empty') return false;
+    // Armor has no Select to fall back to: pressing the active card again keeps its brush.
+    if (this.state.layer === 'armor' && this.active?.id === item.id) { if (this.state.tool !== 'area') this.setTool('apply'); return true; }
     if (this.state.tool !== 'select' && this.active?.id === item.id && item.kind !== 'scheme') {
       this.update({ tool: 'select', pathPoints: [] });
       return true;
@@ -427,7 +431,8 @@ export class BuilderTool {
       case 'thickness': this.update({ customMm: item.mm }); // falls through: a value card behaves as the Armor card holding that value
       case 'armor': case 'opening': case 'paint':
         if (item.kind === 'paint' && this.selectedEquipment.length) { this.paintFittings([...this.state.selected], item.id); break; }
-        if (surfaces.size) this.applyItem(item, surfaces); else if (!faceTools.includes(tool)) this.setTool('apply');
+        // Armor cards only load the bucket; Paint may still assign a hand-built face selection.
+        if (layer === 'armor') { if (tool !== 'area') this.setTool('apply'); } else if (surfaces.size) this.applyItem(item, surfaces); else if (!faceTools.includes(tool)) this.setTool('apply');
         break;
       case 'scheme': this.applyScheme(item.id); break;
       case 'tool': this.setTool(item.tool); break;
@@ -447,12 +452,8 @@ export class BuilderTool {
   };
   setRailingHeight = (railingHeight: number) => this.update({ railingHeight });
   setRopeSlack = (ropeSlack: number) => this.update({ ropeSlack });
-  /** The Armor card's millimetre field; a new value also assigns the selected faces. */
-  setThickness = (value: number) => {
-    this.update({ customMm: value, slots: { ...this.state.slots, armor: 'armor' } });
-    const armorItem = this.palette.drawer.find(item => item.kind === 'armor');
-    if (armorItem && this.state.surfaces.size) this.applyItem(armorItem, this.state.surfaces, value);
-  };
+  /** The Armor card's millimetre field: it loads the bucket and never edits the ship by itself. */
+  setThickness = (value: number) => this.update({ customMm: value, slots: { ...this.state.slots, armor: 'armor' }, ...(this.state.layer === 'armor' && this.state.tool !== 'area' ? { tool: 'apply' as const } : {}) });
   toggleMirror = () => this.update({ mirror: !this.state.mirror });
   toggleArcs = () => this.update({ showArcs: !this.state.showArcs });
   toggleCenters = () => this.update({ showCenters: !this.state.showCenters });
@@ -805,7 +806,10 @@ export class BuilderTool {
       const surface = this.editableSurfaces.find(entry => surfaceSelectionKey(entry) === hit.surface)!;
       switch (tool) {
         case 'apply': return this.applyFaces([hit.surface]);
-        case 'area': { const next = hit.additive ? new Set(this.state.surfaces) : new Set<string>(); for (const entry of this.editableSurfaces) if (entry.face === surface.face) next.add(surfaceSelectionKey(entry)); this.update({ surfaces: next }); return undefined; }
+        case 'area': {
+          // Armor's Fill pours the active card over every face with this name; Paint's Area gathers them into a selection.
+          if (layer === 'armor') return this.active ? this.applyItem(this.active, new Set(this.editableSurfaces.filter(entry => entry.face === surface.face).map(surfaceSelectionKey))) : undefined;
+          const next = hit.additive ? new Set(this.state.surfaces) : new Set<string>(); for (const entry of this.editableSurfaces) if (entry.face === surface.face) next.add(surfaceSelectionKey(entry)); this.update({ surfaces: next }); return undefined; }
         case 'eyedrop':
           if (layer === 'armor') this.update({ customMm: surface.thicknessMm, slots: { ...this.state.slots, armor: 'armor' }, notice: `Armor thickness set to ${surface.thicknessMm} mm from the picked face.`, tool: 'apply' });
           else this.update({ slots: { ...this.state.slots, paint: surface.paint }, notice: 'Paint slot set from the picked face.', tool: 'apply' });
@@ -836,7 +840,7 @@ export class BuilderTool {
     return tool === 'apply' && this.active ? this.applyItem(this.active, target) : undefined;
   };
   boxSelect = (ids: string[], additive: boolean) => {
-    if (this.locked) return;
+    if (this.locked || this.state.layer === 'armor') return;
     ids = ids.filter(this.selectable);
     this.update({ tool: 'select', surfaces: new Set(), selected: new Set(additive ? [...this.state.selected, ...ids] : ids) });
   };
@@ -973,7 +977,7 @@ export class BuilderTool {
       if (chrome.dismiss()) return;
       if (s.suggestion) this.dismissSuggestion();
       else if (s.measure) this.update({ measure: undefined });
-      else if (s.tool !== 'select') { this.setTool('select'); this.clearSelection(); }
+      else if (s.tool !== this.restTool) { this.setTool(this.restTool); this.clearSelection(); }
       else this.clearSelection();
       return;
     }
