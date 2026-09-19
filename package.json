@@ -40,6 +40,7 @@
     "multiplayer:content": "bun scripts/multiplayer/content.ts",
     "multiplayer:wasm": "bun scripts/multiplayer/build-wasm.ts",
     "multiplayer:check": "bun scripts/multiplayer/check.ts",
+    "rust:test": "bun scripts/multiplayer/rust-test.ts",
     "multiplayer:prepare": "bun scripts/multiplayer/content.ts && bun scripts/multiplayer/build-wasm.ts",
     "multiplayer:prepare:dev": "bun scripts/multiplayer/content.ts && bun scripts/multiplayer/build-wasm.ts --dev",
     "multiplayer:server": "cargo run --release --locked -p naval-server --bin naval-server",
