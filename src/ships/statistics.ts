@@ -1,4 +1,4 @@
-import { torpedoSpeed, effectiveHandling } from './mobility';
+import { effectiveHandling } from './mobility';
 import type { GunPart, ShipDefinition } from './blueprint';
 import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, gunTraverseLimitsDeg, torpedoArcLabel } from './armament';
 import { KNOTS_PER_MPS } from '../game/session/motion';
@@ -177,7 +177,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
         { label: 'Weapon', value: weapon.name, help: 'Torpedo component fitted to these tubes.', text: true },
         { label: 'Diameter', value: format(weapon.diameterM * 1000), unit: 'mm', help: 'Diameter of the torpedo body.' },
         { label: 'Ammunition', value: format(group.reduce((n, t) => n + t.ammo, 0)), unit: 'rounds', help: 'Initial ammunition across these tubes, including reloads.' },
-        { label: 'Speed', value: format(knots(torpedoSpeed(weapon.speed))), unit: 'kn', help: 'Constant speed after launch; no homing or later steering.' },
+        { label: 'Speed', value: format(knots(weapon.speed)), unit: 'kn', help: 'Constant speed after launch; no homing or later steering.' },
         { label: 'Maximum range', value: format(weapon.rangeM / 1000, 1), unit: 'km', help: 'Maximum distance before the torpedo expires.' },
         { label: 'Running depth', value: format(weapon.runningDepthM, 1), unit: 'm', help: 'Depth below the CPU sea datum, reached gradually after launch.' },
         { label: 'Arming distance', value: format(weapon.armingDistanceM), unit: 'm', help: 'Earlier contact is a harmless dud. Provisional game tuning.' },

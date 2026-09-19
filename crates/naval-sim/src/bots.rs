@@ -748,8 +748,11 @@ fn aim_solution(
         .and_then(|b| b.guns.get(&mount.id))
         .unwrap_or(&default_gun);
     let pose = track.map_or(fallback_pose, |t| t.pose);
-    let velocity = track.map_or(fallback_velocity, |t| t.velocity);
-    let inherited = motion.velocity();
+    // Solve in shell time, where world motion appears slower by the shell pace.
+    let shell_time = 1.0 / crate::mobility::SHELL_PACE;
+    let world_velocity = track.map_or(fallback_velocity, |t| t.velocity);
+    let velocity = scale(world_velocity, shell_time);
+    let inherited = scale(motion.velocity(), shell_time);
     let along = (track.map_or(1, |t| t.focus) as f64 - 1.0) * 0.23 + gun.along_hull;
     let selected = track.and_then(|t| {
         t.aim_points
@@ -773,7 +776,7 @@ fn aim_solution(
     let time = bot.map_or(0.0, |b| b.time);
     let mut point = add(
         local_to_world(local, pose),
-        scale(velocity, time - track.map_or(time, |t| t.observed_at)),
+        scale(world_velocity, time - track.map_or(time, |t| t.observed_at)),
     );
     point[1] = point[1].max(0.5);
     let from = muzzle_center_world(mount, state, motion);

@@ -3,6 +3,7 @@ import { selectedWeapon } from '../ships/weaponGroups';
 import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { add, scale } from './geometry';
 import { motionVelocity } from './session/motion';
+import { SHELL_PACE } from '../ships/mobility';
 import { supportPerformance } from './machinery';
 import { ballisticStep } from './ballistics';
 import type { Combatant, MountState } from '../game/session/elements';
@@ -22,7 +23,7 @@ export function gunAimPoints(actor: Combatant, definition: ShipDefinition, batte
   return definition.mounts.flatMap((mount, i) => {
     if (!surfaceGunAllowed(definition, mount.weapon) || !selectedWeapon(mount.battery, mount.weapon, battery, weaponGroupId)) return [];
     const state = actor.mounts[i], origin = muzzleCenterWorld(mount, state, actor.motion);
-    const velocity = add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), motionVelocity(actor.motion));
+    const velocity = add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), scale(motionVelocity(actor.motion), 1 / SHELL_PACE));
     const range = Math.hypot(aim[0] - origin[0], aim[2] - origin[2]);
     const drag = mount.weapon.ballistics?.dragPerSecond ?? 0;
     const factor = range / Math.max(.001, Math.hypot(velocity[0], velocity[2]));

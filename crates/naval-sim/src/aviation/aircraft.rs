@@ -282,6 +282,10 @@ pub(super) struct PlaneView<'a> {
     pub ammo: f64,
 }
 impl<'a> PlaneView<'a> {
+    /// True airspeed; `velocity` is paced world motion, as on the aircraft itself.
+    pub(super) fn airspeed(&self) -> f64 {
+        crate::geometry::length(self.velocity) / crate::mobility::SHIP_PACE
+    }
     pub(super) fn of(p: &'a Aircraft) -> Self {
         Self {
             id: &p.id,
@@ -336,6 +340,10 @@ pub(super) fn aircraft_service_seconds(base: f64, hp: f64) -> f64 {
     base * (1.0 + (100.0 - hp.clamp(0.0, 100.0)) / 100.0)
 }
 impl Aircraft {
+    /// True airspeed. `velocity` is world motion, which carries the world pace.
+    pub(super) fn airspeed(&self) -> f64 {
+        crate::geometry::length(self.velocity) / crate::mobility::SHIP_PACE
+    }
     pub(super) fn forward(&self) -> Vec3 {
         [
             self.heading.sin() * self.pitch.cos(),
