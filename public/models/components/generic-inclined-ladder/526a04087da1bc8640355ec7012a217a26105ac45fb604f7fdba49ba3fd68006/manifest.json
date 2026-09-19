@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-inclined-ladder",
+  "revision": "526a04087da1bc8640355ec7012a217a26105ac45fb604f7fdba49ba3fd68006",
+  "contentHash": "1a213501b77c441f0d222cb3b36f028f16cf74514587e7abe95050a3d1b7307d",
+  "modelSha256": "3fe2000ba9ffa38b84603114377035fea663852ce85a11825468b6661b832420",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-inclined-ladder/526a04087da1bc8640355ec7012a217a26105ac45fb604f7fdba49ba3fd68006/model.glb",
+  "boundsCenter": [
+    9.365375094883e-8,
+    1.9533123345281558,
+    -1.2499999278735374
+  ],
+  "size": [
+    0.9300001050221318,
+    3.9066245538778714,
+    2.740000522646853
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 588,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original adjustable generic access fitting; no specific historical vessel fit. Native validation owns support, clearance and provisional steel loading. The standalone model shows the default three-metre rise; installed geometry follows saved endpoints and access settings.",
+  "basis": "assets/parts/construction/README.md"
+}
