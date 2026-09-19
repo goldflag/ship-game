@@ -186,35 +186,40 @@ export class WakeFoam {
     width: number, length: number, strength: number, ring = false): void {
     if (strength < 0.015) return;
     if (this.stampTarget) { this.stampTarget.stamp(x, z, rightX, rightZ, width, length, strength, ring); return; }
-    const scale = this.resolution / EXTENT;
-    const cx = (x - this.origin.value.x) * scale + this.resolution / 2 - 0.5;
-    const cz = (z - this.origin.value.y) * scale + this.resolution / 2 - 0.5;
-    const rx = (Math.abs(rightX) * width + Math.abs(rightZ) * length) * scale;
-    const rz = (Math.abs(rightZ) * width + Math.abs(rightX) * length) * scale;
-    const minX = Math.max(0, Math.floor(cx - rx)), maxX = Math.min(this.resolution - 1, Math.ceil(cx + rx));
-    const minZ = Math.max(0, Math.floor(cz - rz)), maxZ = Math.min(this.resolution - 1, Math.ceil(cz + rz));
-    // Coverage combines by maximum. An overlapping footprint cannot change a
-    // pixel that already reaches this stamp's peak, even at the ring crest.
-    const peak = Math.round(strength * 255);
-    const inverseWidth = 1 / width, inverseLength = 1 / length;
-    for (let iz = minZ; iz <= maxZ; iz++) {
-      const row = iz * this.resolution;
-      const dz = (iz - cz) / scale;
-      const crossZ = dz * rightZ, alongZ = dz * rightX;
-      for (let ix = minX; ix <= maxX; ix++) {
-        const index = row + ix;
-        if (this.pixels[index] >= peak) continue;
-        const dx = (ix - cx) / scale;
-        const cross = (dx * rightX + crossZ) * inverseWidth;
-        const along = (-dx * rightZ + alongZ) * inverseLength;
-        const radius = cross * cross + along * along;
-        if (radius >= 1) continue;
-        const profile = ring ? Math.exp(-(((Math.sqrt(radius) - .75) / .13) ** 2)) : 1 - smooth(radius);
-        const coverage = strength * profile * 255;
-        this.pixels[index] = Math.max(this.pixels[index], Math.round(coverage));
-      }
-    }
+    rasterizeStamp(this.pixels, this.resolution, this.origin.value.x, this.origin.value.y, x, z, rightX, rightZ, width, length, strength, ring);
   }
 
   dispose(): void { this.texture.dispose(); }
+}
+
+/** Paint one max-coverage ellipse into a square scalar field centred on the origin. */
+export function rasterizeStamp(pixels: Uint8Array, resolution: number, originX: number, originZ: number,
+  x: number, z: number, rightX: number, rightZ: number, width: number, length: number, strength: number, ring = false): void {
+  const scale = resolution / EXTENT;
+  const cx = (x - originX) * scale + resolution / 2 - 0.5;
+  const cz = (z - originZ) * scale + resolution / 2 - 0.5;
+  const rx = (Math.abs(rightX) * width + Math.abs(rightZ) * length) * scale;
+  const rz = (Math.abs(rightZ) * width + Math.abs(rightX) * length) * scale;
+  const minX = Math.max(0, Math.floor(cx - rx)), maxX = Math.min(resolution - 1, Math.ceil(cx + rx));
+  const minZ = Math.max(0, Math.floor(cz - rz)), maxZ = Math.min(resolution - 1, Math.ceil(cz + rz));
+  // Coverage combines by maximum. An overlapping footprint cannot change a
+  // pixel that already reaches this stamp's peak, even at the ring crest.
+  const peak = Math.round(strength * 255);
+  const inverseWidth = 1 / width, inverseLength = 1 / length;
+  for (let iz = minZ; iz <= maxZ; iz++) {
+    const row = iz * resolution;
+    const dz = (iz - cz) / scale;
+    const crossZ = dz * rightZ, alongZ = dz * rightX;
+    for (let ix = minX; ix <= maxX; ix++) {
+      const index = row + ix;
+      if (pixels[index] >= peak) continue;
+      const dx = (ix - cx) / scale;
+      const cross = (dx * rightX + crossZ) * inverseWidth;
+      const along = (-dx * rightZ + alongZ) * inverseLength;
+      const radius = cross * cross + along * along;
+      if (radius >= 1) continue;
+      const profile = ring ? Math.exp(-(((Math.sqrt(radius) - .75) / .13) ** 2)) : 1 - smooth(radius);
+      pixels[index] = Math.max(pixels[index], Math.round(strength * profile * 255));
+    }
+  }
 }

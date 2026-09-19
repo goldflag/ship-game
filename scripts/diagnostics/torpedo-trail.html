@@ -19,13 +19,29 @@ game.setInPort(false);game.setPaused(true);
 game.simulation.actors.forEach(actor=>{if(actor!==game.simulation.player)actor.controller='idle';});
 game.fleetViews.forEach(view=>view.snap());
 const weapon=game.definition.torpedoTubes[0].weapon;
-window.trailFixture=async(degrees=45,depth=2,distance=60)=>{
-  const heading=degrees*Math.PI/180;
-  game.simulation.torpedoes.splice(0,game.simulation.torpedoes.length,{id:1,ownerId:'player',tubeId:'torpedo-forward-1',
-    position:[100,-depth,-100],velocity:[Math.sin(heading)*weapon.speed,0,-Math.cos(heading)*weapon.speed],distance,age:4,weapon});
+// Drive synthetic rounds through the renderer's own track layer: a bubble track
+// has a history, so a single posed frame would show none.
+window.trailFixture=async(degrees=45,depth=2,seconds=14,turnAt=9,view='high')=>{
+  game.effects.reset();game.shipWake.reset();
+  const rounds=[-1,0,1].map((lane,i)=>({id:i+1,ownerId:'player',tubeId:'torpedo-forward-1',heading:(degrees+lane*6)*Math.PI/180,
+    position:[60,-depth,-40],velocity:[0,0,0],distance:0,age:0,weapon}));
+  for(let t=0;t<seconds;t+=1/60){
+    for(const round of rounds){
+      if(t>turnAt&&round.id===3)round.heading+=.35/60;
+      round.velocity=[Math.sin(round.heading)*weapon.speed,0,-Math.cos(round.heading)*weapon.speed];
+      round.position=[round.position[0]+round.velocity[0]/60,-depth,round.position[2]+round.velocity[2]/60];
+      round.distance+=weapon.speed/60;round.age+=1/60;
+    }
+    game.simulation.torpedoes.splice(0,game.simulation.torpedoes.length,...rounds);
+    game.shipWake.update(game.fleetViews,1/60,[],game.camera,game.simulation.torpedoes);
+  }
   game.effects.update(game.simulation,0,game.camera);
-  game.camera.position.set(160,105,90);game.camera.lookAt(55,0,-55);game.camera.updateMatrixWorld();
-  status.textContent=`Torpedo heading ${degrees}° · depth ${depth} m · run ${distance} m`;
+  const lead=rounds[1].position, dx=Math.sin(rounds[1].heading), dz=-Math.cos(rounds[1].heading);
+  if(view==='chase'){game.camera.position.set(lead[0]-dx*420,40,lead[2]-dz*420);game.camera.lookAt(lead[0],0,lead[2]);}
+  else if(view==='low'){game.camera.position.set(lead[0]-dx*60+dz*70,14,lead[2]-dz*60-dx*70);game.camera.lookAt(lead[0]-dx*90,0,lead[2]-dz*90);}
+  else{game.camera.position.set(lead[0]-dx*120+dz*90,150,lead[2]-dz*120-dx*90);game.camera.lookAt(lead[0]-dx*120,0,lead[2]-dz*120);}
+  game.camera.updateMatrixWorld();
+  status.textContent=`Torpedo heading ${degrees}° · depth ${depth} m · ${seconds} s run · ${view}`;
   return window.captureTrail();
 };
 window.captureTrail=async()=>{
@@ -34,21 +50,6 @@ window.captureTrail=async()=>{
   game.water.deterministic=true;game.sky.update(0);await game.water.update(0);game.pipeline.render();
   if(game.renderer.backend.device)await game.renderer.backend.device.queue.onSubmittedWorkDone();
   return game.renderer.domElement.toDataURL('image/png');
-};
-// Exercise the actual trainable launcher and CPU flight, including water entry.
-window.launchTrail=async()=>{
-  game.simulation.reset();game.effects.reset();
-  const aim=[1000,0,-1000], helm={throttle:0,rudder:0};
-  const step=(seconds,fire=false)=>{
-    for(let i=0;i<seconds*60;i++){
-      game.simulation.step(helm,{battery:'torpedo',aim,fire});
-      game.effects.update(game.simulation,1/60,game.camera);
-    }
-  };
-  step(8);step(1/60,true);step(5);
-  game.fleetViews.forEach(view=>view.snap());
-  status.textContent='CPU launch · 45° starboard · five seconds after firing';
-  return window.captureTrail();
 };
 await window.trailFixture();window.trailReady=true;
 </script></html>
