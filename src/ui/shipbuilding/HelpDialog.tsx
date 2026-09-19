@@ -8,7 +8,7 @@ const MOUSE: [string, string][] = [
   ['Center action', 'Center the selected part or group on the ship using mounting centers'],
   ['Snap cell', 'Toggle snapping; the row under it cycles the grid spacing and its arrow opens target, spacing and guide settings'],
   ['Drag a selected piece', 'Click to select first, then drag to move it along the face under the pointer, using the enabled snap targets'],
-  ['Drag over faces', 'With Paint or Opening on the Armor and Paint layers: sweep the card over every face the drag crosses, as one edit'],
+  ['Drag over faces', 'With Paint on the Armor and Paint layers: sweep the card over every face the drag crosses, as one edit'],
   ['Drag unselected piece or empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Drag a rotation ring', 'In Hull Rotate mode (O): pitch, yaw or roll around ship axes. Snap 15° is optional; hold Shift for 0.1° angles. Escape cancels the drag'],
   ['Right-drag', 'Rotate a fitting or its placement preview; Shift for 0.1° fine control. Elsewhere, pan'],

@@ -743,11 +743,10 @@ Rust owns the physical solid and exterior. Planar convex shapes use one convex c
 ### Armor on custom hull panels
 
 Armor view shows the boundaries of each panel between neighboring hull sections,
-without triangulation diagonals. Click a panel in **Select**, then enter its
-**Face armor** thickness, or use the Armor tool to apply the palette value.
+without triangulation diagonals. Set the thickness on the Armor card, then click
+or sweep panels with **Paint**; **Fill** covers a whole named side at once.
 Bow and stern caps are individual faces. Mirror mode also changes the matching
-opposite panel; turn it off to armor the two sides independently. Shift-click
-selects multiple panels and Area selects a whole named side.
+opposite panel; turn it off to armor the two sides independently.
 
 Panel assignments are saved in the existing surface records using an optional
 `panelId`. Whole-side records remain defaults; panel records override them and
@@ -834,7 +833,7 @@ Curved shapes expose **Ring** selection, width/depth, **Add ring above** and
 ring joins its neighboring strips. End rings and singleton crowns remain editable
 but cannot be removed. Cones and domes retain real single-point crowns. Half and
 quarter shapes retain their flat cut surfaces. Open a cap through the existing
-Armor opening tool; plate thickness uses the existing surface armor controls.
+Armor layer's Opening card; plate thickness uses the same Armor cards.
 
 The optional `mesh.version: 1` record on a `vertex` primitive retains source
 vertices, mirror references, stable face IDs, canonical surface names and control

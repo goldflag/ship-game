@@ -47,6 +47,8 @@ export const controls = {
   },
   tab: async (name: string) => { const button = [...document.querySelectorAll<HTMLButtonElement>('.sb-tabs button')].find(item => item.textContent?.trim() === name); if (!button) throw new Error(`Tab unavailable: ${name}`); button.click(); await controls.settled(() => button.getAttribute('aria-selected') === 'true', name); },
   tool: async (name: string) => { const button = [...document.querySelectorAll<HTMLButtonElement>('.sb-rail button')].find(item => item.getAttribute('aria-label')?.startsWith(`${name} (`)); if (!button || button.disabled) throw new Error(`Tool unavailable: ${name}`); button.click(); await controls.settled(() => button.getAttribute('aria-pressed') !== 'false', name); },
+  /** The hotbar card whose name matches, e.g. the Armor layer's Opening. */
+  card: async (name: string) => { const cards = [...document.querySelectorAll<HTMLButtonElement>('.sb-hotbar .sb-slot')], index = cards.findIndex(item => item.getAttribute('aria-label')?.startsWith(name) || item.textContent?.includes(name)); if (index < 0) throw new Error(`Card unavailable: ${name}`); await controls.slot(index + 1); },
   slot: async (index: number) => { const button = document.querySelectorAll<HTMLButtonElement>('.sb-hotbar .sb-slot')[index - 1]; if (!button || button.disabled) throw new Error(`Slot unavailable: ${index}`); button.click(); await controls.settled(() => true, `slot ${index}`); },
   key: (key: string, options: KeyboardEventInit = {}) => document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...options })),
   /** The Armor layer's millimetre field above the bar; the number field commits on blur. */
@@ -116,7 +118,7 @@ export async function checkShipbuilderSuggestions() {
   return { passed: checks.length, checks };
 }
 
-/** Armor slots apply to the selected faces; both painting paths preserve protection and openings. */
+/** Armor is a bucket: typed thicknesses only load the card and Fill lays it; both painting paths preserve protection and openings. */
 export async function checkShipbuilderArmor() {
   const catalog = await loadConstructionCatalog(), template = createStarterSource(catalog);
   template.construction.equipment = []; template.construction.boundaries = []; template.construction.surfaces = [];
@@ -124,15 +126,19 @@ export async function checkShipbuilderArmor() {
   const checks: string[] = [], wait = waiter(checks);
   await wait(() => source() && compiled(), 'armor fixture compiles and saves');
   const top = await controls.screen([0, 2.5, 0]), side = await controls.screen([4, 0, 0]);
-  await controls.tab('Armor'); await controls.tool('Area'); controls.click(...top);
-  await wait(() => document.querySelector('[data-tag="faces"]'), 'area selection lights every top face and tags it');
+  await controls.tab('Armor');
   const original = JSON.stringify(source()!.construction);
   await controls.thickness(100);
-  await wait(() => source()!.construction.surfaces.some(surface => surface.face === 'top') && source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel'), 'a typed thickness applies exact millimeters and armor steel to the selection');
-  if (source()!.construction.surfaces.some(surface => surface.face !== 'top')) throw new Error('Armor leaked onto unselected faces');
-  checks.push('unselected faces keep their structural skin');
-  await controls.thickness(37);
-  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 37), 'a second typed thickness replaces the first on the selection');
+  if (JSON.stringify(source()!.construction) !== original) throw new Error('Typing a thickness changed the ship');
+  checks.push('a typed thickness only loads the Armor card');
+  await controls.tool('Fill'); controls.click(...top);
+  if (document.querySelector('[data-tag="faces"]')) throw new Error('Armor Fill built a face selection');
+  await wait(() => source()!.construction.surfaces.some(surface => surface.face === 'top') && source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel'), 'Fill lays exact millimeters and armor steel on every top face');
+  if (source()!.construction.surfaces.some(surface => surface.face !== 'top')) throw new Error('Armor leaked onto unfilled faces');
+  checks.push('unfilled faces keep their structural skin');
+  await wait(() => compiled(), 'armor fill compiles');
+  await controls.thickness(37); controls.click(...top);
+  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 37), 'a second Fill replaces the first thickness');
   if (!document.querySelector('.sb-hotbar .sb-slot')?.textContent?.includes('37 mm')) throw new Error('The Armor card does not show the typed thickness');
   checks.push('the Armor card carries the typed thickness');
   await wait(() => document.querySelector('.sb-armor-groups')?.textContent?.includes('37 mm · Armor steel'), 'the ledger reports native thickness and coverage');
@@ -144,8 +150,8 @@ export async function checkShipbuilderArmor() {
   if (!source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 37 && surface.material === 'armor-steel')) throw new Error('Painting changed protection');
   checks.push('painting preserves thickness and material');
   await controls.tab('Armor'); await wait(() => compiled(), 'native faces are current before opening');
-  await controls.tool('Opening'); controls.click(...top);
-  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.open), 'the opening tool opens the clicked face and its mirror');
+  await controls.card('Opening'); await controls.tool('Paint'); controls.click(...top);
+  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.open), 'the Opening card opens the clicked face and its mirror');
   await wait(() => document.querySelector('.sb-armor-groups')?.textContent?.includes('Open to sea'), 'the ledger distinguishes openings from protected skin');
   await controls.tab('Paint'); await controls.tool('Paint'); await controls.slot(6); await wait(() => compiled(), 'native faces are current before a clicked-face paint');
   controls.click(...side);
@@ -195,10 +201,9 @@ export async function checkShipbuilderEditing() {
   if (source()!.construction.primitives.map(part => part.id).join() !== copiedIds.join()) throw new Error('Redo changed stable IDs');
   await wait(() => compiled() && document.querySelector('[data-tag="group"]'), 'the selection tag follows the copied group');
   await controls.tab('Armor'); await wait(() => compiled(), 'native compiled faces become selectable');
-  await controls.tool('Area'); controls.click(...center); await wait(() => document.querySelector('[data-tag="faces"]'), 'area selection tags the picked faces');
-  await controls.slot(1); await wait(() => source()!.construction.surfaces.some(surface => surface.thicknessMm === 10), 'the Armor card assigns its current millimeters through the actual controls');
+  await controls.slot(1); await controls.tool('Fill'); controls.click(...center); await wait(() => source()!.construction.surfaces.some(surface => surface.thicknessMm === 10), 'the Armor card fills its current millimeters through the actual controls');
   await wait(() => compiled(), 'armor assignment compiles');
-  await controls.tool('Opening'); controls.click(...center); await wait(() => source()!.construction.surfaces.some(surface => surface.open), 'explicit openings remain distinct from armor');
+  await controls.card('Opening'); await controls.tool('Paint'); controls.click(...center); await wait(() => source()!.construction.surfaces.some(surface => surface.open), 'explicit openings remain distinct from armor');
   controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.surfaces.every(surface => !surface.open), 'undo restores closed skin and armor together');
   await controls.tab('Internals'); await wait(() => compiled(), 'internals layer has a compiled hull'); await controls.tool('Bulkhead'); controls.click(...center); await wait(() => source()!.construction.boundaries.length === 1, 'internal boundary source survives autosave');
   await controls.tab('Fittings'); await wait(() => compiled(), 'fittings layer has a compiled hull'); await controls.slot(1); controls.click(...center);

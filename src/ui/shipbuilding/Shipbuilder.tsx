@@ -185,7 +185,6 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const partOf = tool.partOf;
   const editableSurfaces = tool.editableSurfaces, armorScale = tool.armorScale;
   const turretArmor = useMemo(() => layer === 'armor' ? installedTurretArmor(source, catalog) : [], [layer, source, catalog]);
-  const openingKey = String(palette.bar.findIndex(item => item.kind === 'opening') + 1);
   const gridStep = tool.gridStep, piece = tool.piece;
   const fail = (cause: unknown) => owner.setError(cause instanceof Error ? cause.message : String(cause));
   const run = tool.run;
@@ -358,13 +357,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
       plating <NumberField value={wall.thicknessMm} min={.1} max={1000} unit="mm" onChange={value => run('Armor boundary', [{ op: 'boundary', value: { ...wall, thicknessMm: value } }])}/> · <kbd>⌫</kbd> remove and merge rooms
     </> });
   }
-  if (surfaces.size && (layer === 'armor' || layer === 'paint')) {
+  // Only Paint builds face selections; Armor is a bucket and never selects faces.
+  if (surfaces.size && layer === 'paint') {
     const chosen = editableSurfaces.filter(surface => surfaces.has(surfaceSelectionKey(surface)));
     const first = chosen[0], groups = armorInspectionGroups(chosen), area = chosen.reduce((sum, surface) => sum + surface.areaM2, 0);
     if (first) tags.push({ key: 'faces', anchor: surfaceCentroid(first), dx: 80, dy: -96, tone: 'mint', content: <>
-      <b>{surfaces.size} face{surfaces.size === 1 ? '' : 's'} · {groups.length === 1 ? (layer === 'paint' ? `${groups[0].surface.paint.replace('-', ' ')}` : describeArmorGroup(groups[0].surface)) : `${groups.length} different ${layer === 'paint' ? 'paints' : 'thicknesses'}`}</b>
-      {layer === 'armor' && <div className="sb-face-armor"><NumberField label="Face armor" description="Armor thickness for the selected faces" value={groups.length === 1 ? first.thicknessMm : customMm} min={0} max={1000} unit="mm" onChange={tool.setThickness}/>{mirror && <span>· mirror on</span>}</div>}
-      {format(area, 0)} m² · {layer === 'paint' ? <><kbd>1</kbd>–<kbd>9</kbd> paint</> : <><kbd>1</kbd> assign {customMm} mm · <kbd>{openingKey}</kbd> open</>} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
+      <b>{surfaces.size} face{surfaces.size === 1 ? '' : 's'} · {groups.length === 1 ? groups[0].surface.paint.replace('-', ' ') : `${groups.length} different paints`}</b>
+      {format(area, 0)} m² · <kbd>1</kbd>–<kbd>9</kbd> paint · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
     </> });
   }
   const hoveredBlock = blocks.find(entry => entry.sourceId && entry.sourceId === hoveredPart);
@@ -441,7 +440,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
   if(!freeformMode&&selected.size===1&&selectedPrimitives[0]&&canEditVertices(selectedPrimitives[0]))acting.push({keys:['D'],label:'Freeform'});
   if (surfaces.size && faceLayer) acting.push({ keys: ['⇧'], label: 'Click adds a face' });
-  const escape = pathPart ? 'Cancel path' : drawer || designsOpen || warningsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : activeTool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
+  const escape = pathPart ? 'Cancel path' : drawer || designsOpen || warningsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : activeTool !== tool.restTool ? (layer === 'armor' ? 'Paint tool' : 'Select tool') : selected.size || surfaces.size ? 'Clear' : '';
   if (escape) acting.push({ keys: ['Esc'], label: escape });
   const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
 
