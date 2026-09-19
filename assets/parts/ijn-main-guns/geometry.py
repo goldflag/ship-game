@@ -128,11 +128,10 @@ def create_yamato_main(mount, collection, helpers, materials):
     before = set(bpy.context.scene.objects)
     L, W, H = 16.6, 13.4, 6.55; floor = 2.4
     def roof_z(x): return H - max(0, min(12.65, x + 9.0)) * .52 / 12.65
-    # The ship's yaw datum is 2.4 m below the gunhouse floor: a rotating stalk
-    # fills what the ship's fixed barbette occupied, then the roller race.
-    cyl(n + '.stalk', (0, 0, (floor - .25) / 2), spec['barbetteRadius'], floor - .25, naval, col, 32)
-    cyl(n + '.roller', (0, 0, floor - .115), 6.525, .27, edge, col, 32)
-    for z in (.7, 1.45): cyl(n + '.stalk.band', (0, 0, z), spec['barbetteRadius'] + .025, .09, edge, col, 32)
+    # Retain the yaw/pivot datum, but only author the shallow bearing.
+    # The installation supplies the adjustable barbette up to Y=2.15 m.
+    # Its shoulder spans the native 7.1 m support radius at every facet.
+    cyl(n + '.roller', (0, 0, floor - .115), spec['barbetteRadius'] + .05, .27, edge, col, 32)
     # Continuous raked armor replaces the artificial horizontal waist. The
     # broad afterbody and gently forward-falling crown are original profiles
     # estimated from the registered JGM178 orthographic inspection views.

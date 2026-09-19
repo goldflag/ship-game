@@ -5344,12 +5344,12 @@
       "kind": "gun",
       "size": [
         15.801,
-        6.894,
+        4.744,
         30.907
       ],
       "boundsCenter": [
         0,
-        3.447,
+        4.522,
         -5.703
       ],
       "centerOfGravity": [
@@ -5365,7 +5365,7 @@
           "kind": "support",
           "position": [
             0,
-            0,
+            2.15,
             0
           ],
           "direction": [

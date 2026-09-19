@@ -117,17 +117,12 @@ materials=dict(naval=naval,roof=roof,edge=edge,hullgray=hullgray,canvas=canvas,d
 for mount in D['mounts']:
  if mount['partId']=='type89-127-yamato-twin':continue
  if mount['partId']=='type94-460-triple':
-  # The catalog original owns the gunhouse, articulated canvas and barrels.
-  # Preserve the installed yaw datum and the fixed support down to the deck;
-  # the source component's retained stalk supplies its upper 2.15 metres.
-  yaw=create_shared_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials)
-  bpy.context.view_layer.update()
-  for ob in list(yaw.children):
-   if '.stalk' in ob.name:
-    world=ob.matrix_world.copy();ob.parent=None;ob.matrix_world=world
-  px,pz,py=mount['position'];x,y=-py,-px;bottom=deck(x)
-  if pz-bottom>.015:
-   support=cyl(mount['id']+'.fixed-barbette-foundation',(x,y,(bottom+pz)/2),mount['weapon']['barbetteRadius'],pz-bottom+.02,hullgray,GUNS,64)
+  # The reusable gun owns only its shallow bearing. This historical
+  # installation supplies the fixed support up to its Y=2.15 m attachment.
+  create_shared_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials)
+  px,pz,py=mount['position'];x,y=-py,-px;bottom=deck(x);top=pz+2.15
+  if top-bottom>.015:
+   support=cyl(mount['id']+'.fixed-barbette-foundation',(x,y,(bottom+top)/2),mount['weapon']['barbetteRadius'],top-bottom,hullgray,GUNS,64)
    support['assemblyId']=mount['id']
   # Legacy gun_details creates rigid mantlets and duplicate service fittings.
   # Only secondary batteries continue through that original legacy path.

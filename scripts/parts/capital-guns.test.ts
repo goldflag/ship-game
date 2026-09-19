@@ -46,3 +46,12 @@ for (const id of ['bismarck', 'yamato', 'iowa', 'king-george-v']) {
     }
   });
 }
+
+test('Yamato exposes the shallow bearing as its adjustable-barbette attachment', async () => {
+  const part = catalog.equipment.find(p => p.id === 'type94-460-triple')!;
+  const attachment = part.sockets?.find(s => s.id === 'attachment')!;
+  expect(attachment.position).toEqual([0, 2.15, 0]);
+  const model = await inspect(part.modelUrl);
+  // A fixed column below this plane would duplicate the player-authored support.
+  expect(model.boundsCenter[1] - model.size[1] / 2).toBeCloseTo(attachment.position[1], 4);
+});
