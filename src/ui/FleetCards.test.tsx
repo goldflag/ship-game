@@ -6,20 +6,84 @@ import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { AirCluster, BattleComparison } from './fleetStats';
 import type { FleetFormation } from './fleetFormations';
 
-const track = (over: Partial<ContactTrack>): ContactTrack => ({ id: 'c', kind: 'surface', affiliation: 'hostile', status: 'tracked', firstObservedTick: 0, lastObservedTick: 100, measuredPosition: over.estimatedPosition ?? [0, 0, 0], estimatedPosition: [0, 0, 0], velocity: [0, 0, 0], uncertaintyM: 20, identificationConfidence: 1, classification: undefined, identifiedPresetId: undefined, sources: [], ...over });
+const track = (over: Partial<ContactTrack>): ContactTrack => ({
+  id: 'c',
+  kind: 'surface',
+  affiliation: 'hostile',
+  status: 'tracked',
+  firstObservedTick: 0,
+  lastObservedTick: 100,
+  measuredPosition: over.estimatedPosition ?? [0, 0, 0],
+  estimatedPosition: [0, 0, 0],
+  velocity: [0, 0, 0],
+  uncertaintyM: 20,
+  identificationConfidence: 1,
+  classification: undefined,
+  identifiedPresetId: undefined,
+  sources: [],
+  ...over,
+});
 
-const ship = (over: Partial<OwnFleetShip>): OwnFleetShip => ({ id: 'bb', name: 'Bismarck', shipClass: 'battleship', hull: .97, kn: 20, order: 'Route · 20 kn · Waypoint 2/4', damageDealt: 12_400, frags: 1, lost: false, warn: false, massKg: 43_978_000, ...over });
+const ship = (over: Partial<OwnFleetShip>): OwnFleetShip => ({
+  id: 'bb',
+  name: 'Bismarck',
+  shipClass: 'battleship',
+  hull: 0.97,
+  kn: 20,
+  order: 'Route · 20 kn · Waypoint 2/4',
+  damageDealt: 12_400,
+  frags: 1,
+  lost: false,
+  warn: false,
+  massKg: 43_978_000,
+  ...over,
+});
 
 const formations: readonly FleetFormation[] = [
   { index: 1, name: 'Bismarck formation', leaderId: 'bb', shipIds: ['bb', 'dd'], formation: 'screen' },
   { index: 2, name: 'Enterprise', leaderId: 'cv', shipIds: ['cv'], formation: 'column' },
 ];
-const ships = [ship({}), ship({ id: 'dd', name: 'Yukikaze', shipClass: 'destroyer', hull: .62, kn: 14, order: 'Straggling · 14 kn available', damageDealt: 600, frags: 0, warn: true, massKg: 2_924_000 }),
-  ship({ id: 'cv', name: 'Enterprise', shipClass: 'carrier', hull: 1, kn: 23, order: 'Patrol · 23 kn', damageDealt: 0, frags: 0, massKg: 25_500_000, aircraft: { remaining: 44, total: 48 } })];
+const ships = [
+  ship({}),
+  ship({
+    id: 'dd',
+    name: 'Yukikaze',
+    shipClass: 'destroyer',
+    hull: 0.62,
+    kn: 14,
+    order: 'Straggling · 14 kn available',
+    damageDealt: 600,
+    frags: 0,
+    warn: true,
+    massKg: 2_924_000,
+  }),
+  ship({
+    id: 'cv',
+    name: 'Enterprise',
+    shipClass: 'carrier',
+    hull: 1,
+    kn: 23,
+    order: 'Patrol · 23 kn',
+    damageDealt: 0,
+    frags: 0,
+    massKg: 25_500_000,
+    aircraft: { remaining: 44, total: 48 },
+  }),
+];
 
-const ownCard = (over: Partial<Parameters<typeof OwnFleetCard>[0]> = {}) => renderToStaticMarkup(<OwnFleetCard
-  formations={formations} ships={ships} selectedIds={['bb']} aircraft={{ remaining: 44, total: 48, airborne: 36, onDeck: 4, inHangar: 4 }}
-  onHover={() => {}} onSelectShip={() => {}} onSelectFormation={() => {}} {...over}/>);
+const ownCard = (over: Partial<Parameters<typeof OwnFleetCard>[0]> = {}) =>
+  renderToStaticMarkup(
+    <OwnFleetCard
+      formations={formations}
+      ships={ships}
+      selectedIds={['bb']}
+      aircraft={{ remaining: 44, total: 48, airborne: 36, onDeck: 4, inHangar: 4 }}
+      onHover={() => {}}
+      onSelectShip={() => {}}
+      onSelectFormation={() => {}}
+      {...over}
+    />,
+  );
 
 test('the own fleet card lists every formation with its ships, their standing orders and the wing at the foot', () => {
   const html = ownCard();
@@ -43,14 +107,21 @@ test('the own fleet card lists every formation with its ships, their standing or
 });
 
 test('the fleet cards name every formation the picker offers, the new columns included', () => {
-  for (const [formation, label] of [['double-column', 'Double column'], ['triple-column', 'Triple column']] as const) {
+  for (const [formation, label] of [
+    ['double-column', 'Double column'],
+    ['triple-column', 'Triple column'],
+  ] as const) {
     const led = [{ ...formations[0], formation }, formations[1]];
     expect(ownCard({ formations: led })).toContain(`2 ships \u00b7 ${label} \u00b7 13.0k dmg`);
   }
 });
 
 test('the own fleet card marks warnings in brass, reports losses and keeps stray ships visible', () => {
-  const html = ownCard({ ships: [...ships, ship({ id: 'ca', name: 'Prinz Eugen', shipClass: 'cruiser', lost: true, order: 'Sunk', damageDealt: 0, frags: 0 })], selectedIds: [], hoverId: 'dd' });
+  const html = ownCard({
+    ships: [...ships, ship({ id: 'ca', name: 'Prinz Eugen', shipClass: 'cruiser', lost: true, order: 'Sunk', damageDealt: 0, frags: 0 })],
+    selectedIds: [],
+    hoverId: 'dd',
+  });
   expect(html).toContain('class="brass"');
   expect(html).toContain('Unassigned');
   expect(html).toContain('Lost');
@@ -59,18 +130,54 @@ test('the own fleet card marks warnings in brass, reports losses and keeps stray
   expect(html).not.toContain('aria-pressed="true"');
 });
 
-const comparison: BattleComparison = { damageDealt: [21_300, 9_850], tonnageAfloat: [75_736_000, 61_400_000], unidentified: 1, aircraft: { own: [44, 48], enemySeen: 21, enemyLost: 4 }, shipsLost: [0, 1] };
+const comparison: BattleComparison = {
+  damageDealt: [21_300, 9_850],
+  tonnageAfloat: [75_736_000, 61_400_000],
+  unidentified: 1,
+  aircraft: { own: [44, 48], enemySeen: 21, enemyLost: 4 },
+  shipsLost: [0, 1],
+};
 const contacts = [
-  track({ id: 'c1', identifiedPresetId: 'yamato', estimatedPosition: [8_000, 0, -2_000], classification: 'Large warship', visibleCondition: { observedTick: 100, fire: true, heavySmoke: false, listing: false, sinking: false } }),
+  track({
+    id: 'c1',
+    identifiedPresetId: 'yamato',
+    estimatedPosition: [8_000, 0, -2_000],
+    classification: 'Large warship',
+    visibleCondition: { observedTick: 100, fire: true, heavySmoke: false, listing: false, sinking: false },
+  }),
   track({ id: 'c2', classification: 'Small warship', status: 'stale', lastObservedTick: 0, estimatedPosition: [12_000, 0, 1_000] }),
   track({ id: 'a1', kind: 'aircraft', classification: 'Fighter', estimatedPosition: [4_000, 800, -1_000] }),
   track({ id: 'a2', kind: 'aircraft', classification: 'Fighter', estimatedPosition: [4_100, 800, -1_100] }),
 ];
-const clusters: AirCluster[] = [{ id: 'air-a1+a2', type: 'fighter', label: '2 fighters', model: 'A6M2 Zero', count: 2, position: [4_000, 800, -1_000], heading: 0, trackIds: ['a1', 'a2'], smoking: 1, lastObservedTick: 100, stale: false }];
+const clusters: AirCluster[] = [
+  {
+    id: 'air-a1+a2',
+    type: 'fighter',
+    label: '2 fighters',
+    model: 'A6M2 Zero',
+    count: 2,
+    position: [4_000, 800, -1_000],
+    heading: 0,
+    trackIds: ['a1', 'a2'],
+    smoking: 1,
+    lastObservedTick: 100,
+    stale: false,
+  },
+];
 
 test('the enemy card reports hulls, aircraft seen and a comparison built only from what observers saw', () => {
-  const html = renderToStaticMarkup(<EnemyFleet tracks={contacts} clusters={clusters} tick={100} origin={{ x: 0, z: 0 }} selectedId="c1"
-    onSelect={() => {}} nameOf={t => t.identifiedPresetId ? 'Yamato' : t.classification ?? 'Surface contact'} comparison={comparison}/>);
+  const html = renderToStaticMarkup(
+    <EnemyFleet
+      tracks={contacts}
+      clusters={clusters}
+      tick={100}
+      origin={{ x: 0, z: 0 }}
+      selectedId="c1"
+      onSelect={() => {}}
+      nameOf={(t) => (t.identifiedPresetId ? 'Yamato' : (t.classification ?? 'Surface contact'))}
+      comparison={comparison}
+    />,
+  );
   expect(html).toContain('aria-label="Enemy fleet"');
   expect(html).toContain('2 spotted · total unknown');
   expect(html).toContain('Ships');
@@ -92,8 +199,22 @@ test('the enemy card reports hulls, aircraft seen and a comparison built only fr
 });
 
 test('the enemy card says so plainly when nothing has been reported', () => {
-  const html = renderToStaticMarkup(<EnemyFleet tracks={[]} clusters={[]} tick={100} origin={{ x: 0, z: 0 }}
-    onSelect={() => {}} nameOf={() => 'contact'} comparison={{ ...comparison, tonnageAfloat: [75_736_000, 0], unidentified: 0, aircraft: { own: [44, 48], enemySeen: 0, enemyLost: 0 } }}/>);
+  const html = renderToStaticMarkup(
+    <EnemyFleet
+      tracks={[]}
+      clusters={[]}
+      tick={100}
+      origin={{ x: 0, z: 0 }}
+      onSelect={() => {}}
+      nameOf={() => 'contact'}
+      comparison={{
+        ...comparison,
+        tonnageAfloat: [75_736_000, 0],
+        unidentified: 0,
+        aircraft: { own: [44, 48], enemySeen: 0, enemyLost: 0 },
+      }}
+    />,
+  );
   expect(html).toContain('No contacts reported. Send ships or aircraft forward to search.');
   expect(html).not.toContain('Aircraft seen');
   expect(html).toContain('—');

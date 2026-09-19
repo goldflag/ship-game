@@ -1,0 +1,21 @@
+# Prettier is adopted file by file (see scripts/tests/line-width.test.ts); never format generated output or data.
+public/
+assets/
+vendor/
+dist/
+.build/
+crates/
+docs/
+node_modules/
+src/generated/
+src/multiplayer/generated/
+*.json
+*.md
+
+# Source text hashed into published outputs. Formatting these stales the equipment catalog revision
+# (`bun run part:published:check`); reformat only together with a republish.
+scripts/parts/publish.ts
+scripts/parts/equipment.ts
+scripts/parts/rigging.ts
+# Not listed: the import closure of src/game/constructionModel.ts, src/game/ShipView.ts and tools/construction/*.ts
+# feeds the construction recipe hash. After formatting anything in it, run `bun run ship:check all`.

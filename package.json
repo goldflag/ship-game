@@ -17,6 +17,8 @@
     "check": "bun scripts/tests/check.ts",
     "harness:designs": "bun scripts/browser/designs.ts",
     "ui:shot": "bun run multiplayer:prepare:dev && bun scripts/browser/shot.ts",
+    "format": "prettier --write",
+    "format:check": "prettier --check",
     "typecheck": "bun run multiplayer:prepare:dev && tsc --noEmit",
     "audio:build": "python3 scripts/audio/build.py",
     "test": "bun run multiplayer:prepare:dev && bun scripts/tests/run.ts",
@@ -97,6 +99,7 @@
     "@types/three": "0.185.0",
     "@vitejs/plugin-react": "^4.5.0",
     "playwright": "^1.63.0",
+    "prettier": "3.9.8",
     "typescript": "~5.8.3",
     "vite": "^6.3.0"
   }
