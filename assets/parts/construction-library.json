@@ -128,11 +128,10 @@
       ]
     },
     "generic-watertight-door": {
-      "path": "assets/parts/construction/surface_fittings.py",
-      "function": "create_surface_fitting",
+      "path": "assets/parts/construction/doors.py",
+      "function": "create_door",
       "inputs": [
-        "assets/parts/construction/geometry.py",
-        "assets/parts/construction/windows.py"
+        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-deck-hatch": {
@@ -643,19 +642,17 @@
       ]
     },
     "generic-utility-door": {
-      "path": "assets/parts/construction/surface_fittings.py",
-      "function": "create_surface_fitting",
+      "path": "assets/parts/construction/doors.py",
+      "function": "create_door",
       "inputs": [
-        "assets/parts/construction/geometry.py",
-        "assets/parts/construction/windows.py"
+        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-windowed-door": {
-      "path": "assets/parts/construction/surface_fittings.py",
-      "function": "create_surface_fitting",
+      "path": "assets/parts/construction/doors.py",
+      "function": "create_door",
       "inputs": [
-        "assets/parts/construction/geometry.py",
-        "assets/parts/construction/windows.py"
+        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-louvered-vent": {
