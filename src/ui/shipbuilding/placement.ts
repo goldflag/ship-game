@@ -7,7 +7,7 @@ import { normalizedBearing, gridCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './builderScene';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { customHullFaces, customHullPrimitive, makeHull } from '../../ships/customHullModel';
-import { CORNER_SIGNS, VERTEX_FACES } from '../../ships/constructionVertex';
+import { CORNER_SIGNS, VERTEX_FACES, cornerVertices } from '../../ships/constructionVertex';
 
 /** An unwarped vertex hull is the unit box; its warped corners live on the source piece. */
 const VERTEX_SHAPE: Vec3[][] = VERTEX_FACES.map(face => face.corners.map(i => CORNER_SIGNS[i].map(v => v / 2) as Vec3));
@@ -160,12 +160,34 @@ export function strokeSegment(previous: Vec3, next: Vec3, extents: Vec3, axis: 0
 const near = (a: number, b: number) => Math.abs(a - b) < 1e-6;
 const sameVector = (a: Vec3, b: Vec3) => a.every((value, index) => near(value, b[index]));
 
-/** The existing piece that mirrors this one across the centerline: another piece, or itself when it straddles the centerline. */
-export function mirrorTwin(source: ConstructionSource, primitive: ConstructionPrimitive): ConstructionPrimitive | undefined {
+/** Pieces by kind and rounded position, so a twin lookup does not scan a 10,000-piece design. */
+const twinIndexes = new WeakMap<ConstructionPrimitive[], { count: number; cells: Map<string, ConstructionPrimitive[]> }>();
+const TWIN_CELL = 1e4;
+const twinCell = (kind: string, cell: number[]) => `${kind}|${cell.map(n => n || 0).join(',')}`;
+function twinCandidates(primitives: ConstructionPrimitive[], expected: ConstructionPrimitive): ConstructionPrimitive[] {
+  let index = twinIndexes.get(primitives);
+  if (!index || index.count !== primitives.length) {
+    index = { count: primitives.length, cells: new Map() };
+    for (const p of primitives) { const key = twinCell(p.kind, p.position.map(v => Math.round(v * TWIN_CELL))), cell = index.cells.get(key); if (cell) cell.push(p); else index.cells.set(key, [p]); }
+    twinIndexes.set(primitives, index);
+  }
+  // A position within the matching tolerance of a cell edge may round either way.
+  const [xs, ys, zs] = expected.position.map(v => [...new Set([Math.round((v - 1e-6) * TWIN_CELL), Math.round((v + 1e-6) * TWIN_CELL)])]);
+  return xs.flatMap(x => ys.flatMap(y => zs.flatMap(z => index.cells.get(twinCell(expected.kind, [x, y, z])) ?? [])));
+}
+const UNIT_AXES: Vec3[] = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+/** Pitch, yaw and roll name one orientation in more than one way, so twins compare the turned axes. */
+const sameOrientation = (a: ConstructionPrimitive, b: ConstructionPrimitive) => UNIT_AXES.every(axis => sameVector(orientVector(a, axis), orientVector(b, axis)));
+const sameCorners = (a: Vec3[], b: Vec3[]) => a.length === b.length && a.every((corner, i) => sameVector(corner, b[i]));
+/** A cage without corners of its own is the unit cube, which its reflection spells out. */
+const sameShape = (a: ConstructionPrimitive, b: ConstructionPrimitive) => (['mesh', 'customHull', 'shaping', 'balcony'] as const).every(key => JSON.stringify(a[key]) === JSON.stringify(b[key]))
+  && (a.kind !== 'vertex' || !!a.mesh || sameCorners(cornerVertices(a), cornerVertices(b)));
+
+/** The existing piece that mirrors this one across the centerline: another piece, or itself when it straddles the centerline. `claimed` twins belong to another piece of the same edit. */
+export function mirrorTwin(source: ConstructionSource, primitive: ConstructionPrimitive, claimed?: ReadonlySet<string>): ConstructionPrimitive | undefined {
   const expected = mirroredPrimitive(primitive);
-  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && JSON.stringify(candidate.vertices) === JSON.stringify(expected.vertices) && JSON.stringify(candidate.mesh) === JSON.stringify(expected.mesh) && JSON.stringify(candidate.customHull) === JSON.stringify(expected.customHull) && sameVector(candidate.size, expected.size) && near(candidate.tilt?.pitchDeg ?? 0, expected.tilt?.pitchDeg ?? 0) && near(candidate.tilt?.rollDeg ?? 0, expected.tilt?.rollDeg ?? 0)
-    && sameVector(candidate.position, expected.position) && near(normalizedBearing(candidate.rotationDeg), expected.rotationDeg);
-  return source.construction.primitives.find(candidate => candidate.id !== primitive.id && matches(candidate)) ?? (matches(primitive) ? primitive : undefined);
+  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && sameVector(candidate.size, expected.size) && sameVector(candidate.position, expected.position) && sameOrientation(candidate, expected) && sameShape(candidate, expected);
+  return twinCandidates(source.construction.primitives, expected).find(candidate => candidate.id !== primitive.id && !claimed?.has(candidate.id) && matches(candidate)) ?? (matches(primitive) ? primitive : undefined);
 }
 export function mirrorTwinEquipment(source: ConstructionSource, part: ConstructionEquipment): ConstructionEquipment | undefined {
   return source.construction.equipment.find(candidate => candidate.id !== part.id && candidate.partId === part.partId

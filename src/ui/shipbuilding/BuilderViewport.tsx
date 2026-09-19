@@ -19,7 +19,8 @@ import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
 import { FreeformHandles } from './FreeformHandles';
 import { MoveHandles } from './MoveHandles';
-import { blockMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_PREVIEW_NOTICE } from './blockMovement';
+import { mirroredMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_PREVIEW_NOTICE } from './blockMovement';
+import { mirrorTwins, withTwinReplacements } from './mirrorEditing';
 import { cornerVertices, worldVertex, selectionCenter, selectionCorners } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
@@ -61,9 +62,9 @@ export interface ViewportProps {
   onMemory?(memory: VisualMemory): void;
 }
 /** A secondary drag rotates installed fittings, or the cursor at its held placement. */
-interface RotationDrag { ids: string[]; degrees: number; travelDegrees: number; lastX: number; position?: Vec3 }
+interface RotationDrag { ids: string[]; /** Mirror editing: fittings that turn the opposite way. */ twins?: string[]; degrees: number; travelDegrees: number; lastX: number; position?: Vec3 }
 /** A primary drag that began on a piece: the pieces it carries, the plane it slides in and the snapped offset so far. */
-interface MoveDrag { ids: string[]; plane: THREE.Plane; origin: THREE.Vector3; free: [boolean, boolean, boolean]; delta: Vec3; built: boolean; constrain(delta: Vec3): Vec3 }
+interface MoveDrag { ids: string[]; /** Mirror editing: twins that travel the reflected path. */ twins: string[]; plane: THREE.Plane; origin: THREE.Vector3; free: [boolean, boolean, boolean]; delta: Vec3; built: boolean; constrain(delta: Vec3): Vec3 }
 
 const BRASS = '#e0c58d', BRASS_LIGHT = '#efd5a0', MINT = '#86e4c5', READY = '#94d9bf', SALMON = '#ffb5a6', IVORY = '#edf1ec';
 const LEADER: Record<BuilderTag['tone'], string> = { mint: MINT, brass: BRASS, bad: SALMON };
@@ -495,6 +496,13 @@ class Viewport {
       this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(outline), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })));
       if (thickness.length) this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(thickness), new THREE.LineBasicMaterial({ color: READY, depthTest: false })));
     }
+    // Mirror editing: the twins that will follow the selection's edits wear mint, as mirrored freeform corners do.
+    for (const id of props.scene.twins.values()) {
+      const primitive = props.scene.source.construction.primitives.find(p => p.id === id);
+      const edges = new THREE.LineSegments(primitive ? primitiveOutlineGeometry(primitive) : itemOutlineGeometry(this.pickMeshes, id), new THREE.LineBasicMaterial({ color: MINT, depthTest: false }));
+      if (primitive) { edges.position.set(...primitive.position); edges.rotation.copy(primitiveRotation(primitive)); }
+      this.selection.add(edges);
+    }
     const loading = props.scene.result?.loading;
     // Gravity is tagged above its dot and buoyancy below, so the tags stay apart when the centers nearly coincide.
     if (props.scene.showCenters && loading) for (const [point, color, text, side] of [[loading.centerOfGravity, BRASS, 'CG', 1], [loading.buoyancyCenter, READY, 'CB', -1]] as const) {
@@ -546,6 +554,9 @@ class Viewport {
     this.vertexPreview.visible=!!replacements;
     if (!replacements) { this.update(this.props); return; }
     this.hull.visible=false; this.composed.visible=false; this.selection.visible=false;
+    const shaped=new Set(replacements.map(p=>p.id)), scene=this.props.scene;
+    // The commit reshapes the twins too, so the preview shows them in mint.
+    if(scene.mirrorEdits) replacements=withTwinReplacements(scene.source,replacements,scene.freeform?.id??scene.rotation?.id);
     const map=new Map(replacements.map(p=>[p.id,p]));
     for(const original of this.props.scene.source.construction.primitives) {
       const p=map.get(original.id)??original;
@@ -553,7 +564,7 @@ class Viewport {
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor(constructionShipPaint(this.props.scene.source)),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.copy(primitiveRotation(p));this.vertexPreview.add(mesh);
       mesh.material.polygonOffset=true;mesh.material.polygonOffsetFactor=1;mesh.material.polygonOffsetUnits=1;
-      const edges=new THREE.LineSegments(primitiveOutlineGeometry(p),new THREE.LineBasicMaterial({color:map.has(p.id)?BRASS_LIGHT:'#142a31',depthWrite:false}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);
+      const edges=new THREE.LineSegments(primitiveOutlineGeometry(p),new THREE.LineBasicMaterial({color:shaped.has(p.id)?BRASS_LIGHT:map.has(p.id)?MINT:'#142a31',depthWrite:false}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);
     }
   }
 
@@ -1027,7 +1038,15 @@ class Viewport {
       normal.setComponent(hit.axis, Math.sign(hit.normal?.[hit.axis] ?? 1) || 1);
       free[hit.axis] = false;
     }
-    return { ids, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal.normalize(), origin), origin, free, delta: [0, 0, 0], built: false, constrain: blockMoveConstraint(this.props.scene.source, new Set(ids)) };
+    const twins = this.twinIds(ids);
+    return { ids, twins, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal.normalize(), origin), origin, free, delta: [0, 0, 0], built: false, constrain: mirroredMoveConstraint(this.props.scene.source, new Set(ids), new Set(twins)) };
+  }
+
+  /** Mirror editing: the twins that follow these pieces. The selection's twins are already known; another gesture finds its own. */
+  private twinIds(ids: string[]): string[] {
+    const scene = this.props.scene;
+    if (!scene.mirrorEdits) return [];
+    return ids.every(id => scene.selected.has(id)) ? ids.flatMap(id => scene.twins.get(id) ?? []) : [...mirrorTwins(scene.source, new Set(ids)).values()];
   }
 
   private updateMoveHandles() {
@@ -1053,9 +1072,10 @@ class Viewport {
     }
     if (!anchors.length) { this.moveHandles.update(); return; }
     const axes = [0, 1, 2].map(k => !!blocks.length || !!modules.length || walls.some(wall => 'xyz'.indexOf(wall.axis) === k)) as [boolean, boolean, boolean];
-    const key = JSON.stringify([props.scene.source.id, props.scene.source.revision, ids, props.scene.view, props.scene.perspective, props.scene.gridStep, props.scene.moveTargets, props.scene.pickTargets]);
+    const twins = this.twinIds(ids);
+    const key = JSON.stringify([props.scene.source.id, props.scene.source.revision, ids, twins, props.scene.view, props.scene.perspective, props.scene.gridStep, props.scene.moveTargets, props.scene.pickTargets]);
     if (key !== this.moveConstraintKey) {
-      this.moveConstraintKey = key; this.constrainMove = blockMoveConstraint(props.scene.source, selected);
+      this.moveConstraintKey = key; this.constrainMove = mirroredMoveConstraint(props.scene.source, selected, new Set(twins));
     }
     const anchor = anchors.reduce<Vec3>((sum, p) => sum.map((v, k) => v + p[k] / anchors.length) as Vec3, [0, 0, 0]);
     this.moveHandles.update({ key, anchor, axes, unit: props.scene.gridStep, snap: (raw, free) => this.snapMove(ids, raw, free), constrain: this.constrainMove,
@@ -1063,26 +1083,27 @@ class Viewport {
         if (!delta) { this.finishMove(); return; }
         this.moveOffset = delta; this.moveBlocked = !!blocked;
         if (blocked || !this.moveHandles.moving) this.clearSnap();
-        if (!this.movePreview.children.length) this.buildMovePreview(ids);
+        if (!this.movePreview.children.length) this.buildMovePreview(ids, twins);
         this.positionMovePreview(delta); this.movePreview.visible = delta.some(v => v !== 0);
       },
       commit: delta => props.onPointer({ kind: 'move', ids, delta }),
     });
   }
 
-  /** Brass copies of the moved pieces; the originals stay until the source commits on release. */
-  private buildMovePreview(ids: string[]) {
+  /** Brass copies of the moved pieces, mint copies of the twins that mirror the move; the originals stay until the source commits on release. */
+  private buildMovePreview(ids: string[], twins: string[] = []) {
     release(this.movePreview);
     const { primitives, equipment, boundaries } = this.props.scene.source.construction;
-    const partners = new Set<string>();
+    const partners = new Set<string>(twins);
     for (const item of equipment) if (ids.includes(item.id) && item.wall?.mirrorId && !ids.includes(item.wall.mirrorId)) partners.add(item.wall.mirrorId);
     for (const id of [...ids, ...partners]) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
+        const twin = partners.has(id);
         const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh);
-        const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
-        const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
-        for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.copy(primitiveRotation(primitive)); object.renderOrder = 20; this.movePreview.add(object); }
+        const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: twin ? MINT : BRASS, transparent: true, opacity: .22, depthWrite: false }));
+        const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: twin ? MINT : BRASS_LIGHT, depthTest: false }));
+        for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.copy(primitiveRotation(primitive)); object.renderOrder = 20; if (twin) object.userData.mirrorOrigin = [...primitive.position]; this.movePreview.add(object); }
         continue;
       }
       const item = equipment.find(part => part.id === id);
@@ -1140,7 +1161,7 @@ class Viewport {
   private updateMove(event: { clientX: number; clientY: number }) {
     const move = this.pointerStart?.move;
     if (!move) return;
-    if (!move.built) { this.buildMovePreview(move.ids); move.built = true; this.renderer.domElement.style.cursor = 'move'; }
+    if (!move.built) { this.buildMovePreview(move.ids, move.twins); move.built = true; this.renderer.domElement.style.cursor = 'move'; }
     const bounds = this.renderer.domElement.getBoundingClientRect();
     const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1), this.camera);
     const point = ray.ray.intersectPlane(move.plane, new THREE.Vector3());
@@ -1168,7 +1189,7 @@ class Viewport {
     if (hit?.id && scene.source.construction.equipment.some(item => item.id === hit.id)) {
       const allowed = scene.pickTargets === 'internals' ? internalSelectionIds(scene.source, scene.catalog) : undefined;
       const ids = scene.source.construction.equipment.filter(item => (!allowed || allowed.has(item.id)) && (scene.selected.has(hit.id!) ? scene.selected.has(item.id) : item.id === hit.id)).map(item => item.id);
-      return { ids, degrees: 0, travelDegrees: 0, lastX: event.clientX };
+      return { ids, twins: this.twinIds(ids), degrees: 0, travelDegrees: 0, lastX: event.clientX };
     }
     if (scene.placementPiece?.kind === 'equipment' && this.ghost.visible && this.ghostPosition) return { ids: [], degrees: 0, travelDegrees: 0, lastX: event.clientX, position: [...this.ghostPosition] };
     return undefined;
@@ -1176,10 +1197,12 @@ class Viewport {
 
   private previewRotation(rotation: RotationDrag, degrees: number) {
     for (const item of this.props.scene.source.construction.equipment) {
-      if (!rotation.ids.includes(item.id)) continue;
+      const twin = !!rotation.twins?.includes(item.id);
+      if (!twin && !rotation.ids.includes(item.id)) continue;
+      const bearing = item.bearingDeg + (twin ? -degrees : degrees);
       const object = this.equipment.group.getObjectByName(item.id);
-      if (object) { object.rotation.y = -(item.bearingDeg + degrees) * Math.PI / 180; object.updateMatrixWorld(true); }
-      for (const datum of this.details.children) if (datum.children.some(child => child.userData.sourceId === item.id)) datum.rotation.y = -(item.bearingDeg + degrees) * Math.PI / 180;
+      if (object) { object.rotation.y = -bearing * Math.PI / 180; object.updateMatrixWorld(true); }
+      for (const datum of this.details.children) if (datum.children.some(child => child.userData.sourceId === item.id)) datum.rotation.y = -bearing * Math.PI / 180;
     }
   }
   private down = (event: PointerEvent) => {

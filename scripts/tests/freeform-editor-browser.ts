@@ -56,6 +56,10 @@ export async function checkFreeformEditor() {
   const checks:string[]=[]; const assert=(ok:unknown,label:string)=>{if(!ok)throw new Error(label);checks.push(label);};
   await mountFreeformReview();
   const handles=()=>document.querySelectorAll('.sb-freeform-handle:not([hidden])').length;
+  assert(button('Face').getAttribute('aria-pressed')==='true'&&handles()===6,'freeform opens on faces');
+  controls.key('2'); await sleep(); assert(button('Edge').getAttribute('aria-pressed')==='true'&&handles()===12,'2 selects edges');
+  controls.key('3'); await sleep(); assert(button('Face').getAttribute('aria-pressed')==='true','3 selects faces');
+  controls.key('1'); await sleep(); assert(button('Vertex').getAttribute('aria-pressed')==='true','1 selects vertices');
   assert(handles()===8,'X symmetry keeps both sides selectable');
   assert(button('Mirror X').getAttribute('aria-pressed')==='true','local X symmetry starts on');
   assert(button('Move nearby corners').getAttribute('aria-pressed')==='false','neighbor matching starts off');

@@ -50,6 +50,7 @@
 .sb-tag.bad b { color: var(--sb-salmon); }
 .sb-face-armor { display:flex; align-items:baseline; gap:6px; margin:4px 0; }
 .sb-tag kbd { margin: 0 1px; }
+.sb-twin-note { color: var(--sb-mint); }
 /* cursor readout above the palette: the active piece with its size fields, then the ghost's cell or the move offset; the open drawer covers its place */
 .sb-cursor { position: absolute; left: 50%; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 12px); transform: translateX(-50%); display: flex; align-items: baseline; gap: 14px; pointer-events: auto; font-size: 12px; color: var(--sb-muted); white-space: nowrap; }
 .sb-cursor b { font: 500 13px/1 'Barlow Condensed', sans-serif; color: var(--sb-text); letter-spacing: .02em; margin-right: 2px; }
@@ -400,6 +401,7 @@
 .sb-freeform-tools button[aria-pressed=true] {background:var(--sb-card-selected);color:var(--sb-brass);border-color:var(--sb-brass);}
 .sb-freeform-tools b {font-weight:500;color:var(--sb-brass);}
 .sb-freeform-row {display:flex;gap:4px;}
+.sb-freeform-group button:not(.sb-unit) kbd {margin-left:6px;vertical-align:1px;}
 .sb-freeform-tools .sb-unit {display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:76px;}
 .sb-freeform-split-menu {position:relative;}
 .sb-freeform-popover {position:absolute;bottom:calc(100% + 10px);right:0;display:flex;flex-direction:column;gap:10px;width:190px;padding:12px;background:var(--sb-card);border:1px solid var(--sb-line2);border-radius:3px;color:var(--sb-muted);font-size:12px;}

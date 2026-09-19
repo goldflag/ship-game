@@ -7,11 +7,14 @@ import { NumberField } from './NumberField';
 import { blockDimensions, dimensionText } from './blockDimensions';
 
 export type { FreeformSettings } from './builderTool';
-import type { FreeformSettings } from './builderTool';
-export function FreeformToolbar({ primitive, preview, onCommit, settings: s, onChange, cycleUnit, onReset, onSplit, onExit }: {
+import { FREEFORM_MODES, type FreeformSettings } from './builderTool';
+export function FreeformToolbar({ primitive, preview, onCommit, settings: s, onChange, onMode, twin, mirror, onMirror, cycleUnit, onReset, onSplit, onExit }: {
   primitive: ConstructionPrimitive; onCommit(replacements: ConstructionPrimitive[]): unknown;
   preview?: ConstructionPrimitive;
-  settings: FreeformSettings; onChange(patch: Partial<FreeformSettings>): void; cycleUnit(): void; onReset(): void; onSplit(): void; onExit(): void;
+  settings: FreeformSettings; onChange(patch: Partial<FreeformSettings>): void; onMode(mode: HullSelectionMode): void;
+  /** A separate block mirrors this one across the centerline; with ship Mirror on it takes every edit too. */
+  twin: boolean; mirror: boolean; onMirror(): void;
+  cycleUnit(): void; onReset(): void; onSplit(): void; onExit(): void;
 }) {
   const [splitOpen, setSplitOpen] = useState(false);
   const split = useRef<HTMLDivElement>(null);
@@ -25,7 +28,6 @@ export function FreeformToolbar({ primitive, preview, onCommit, settings: s, onC
     window.addEventListener('keydown', escape, true);
     return () => { window.removeEventListener('pointerdown', outside); window.removeEventListener('keydown', escape, true); };
   }, [splitOpen]);
-  const mode = (mode: HullSelectionMode) => onChange({ selection: { mode, index: mode === 'face' && !primitive.mesh ? 5 : 0 } });
   return <section className="sb-freeform-tools" aria-label="Freeform hull editor">
     <div className="sb-freeform-title">
       <strong>Freeform {primitive.mesh?.label.toLowerCase() ?? 'block'}</strong>
@@ -35,7 +37,7 @@ export function FreeformToolbar({ primitive, preview, onCommit, settings: s, onC
     <div className="sb-freeform-controls">
       <div className="sb-freeform-group">
         <span>Select</span><div className="sb-freeform-row" role="group" aria-label="Selection mode">
-          {([...(['vertex','edge','face'] as const),...(primitive.mesh?.rings.length?['ring' as const]:[])]).map(m => <button key={m} aria-pressed={s.selection.mode === m} onClick={() => mode(m)}>{m[0].toUpperCase() + m.slice(1)}</button>)}
+          {FREEFORM_MODES.filter(m => m !== 'ring' || primitive.mesh?.rings.length).map(m => <button key={m} aria-label={m[0].toUpperCase() + m.slice(1)} aria-pressed={s.selection.mode === m} title={`Select ${m === 'vertex' ? 'vertices' : `${m}s`} (${FREEFORM_MODES.indexOf(m) + 1})`} onClick={() => onMode(m)}>{m[0].toUpperCase() + m.slice(1)}<kbd>{FREEFORM_MODES.indexOf(m) + 1}</kbd></button>)}
         </div>
       </div>
       <div className="sb-freeform-group">
@@ -43,6 +45,9 @@ export function FreeformToolbar({ primitive, preview, onCommit, settings: s, onC
           {['X','Y','Z'].map((a,k) => <button key={a} aria-label={`Mirror ${a}`} aria-pressed={s.axes[k]} title={`Reflect movement across the block's local ${a} plane`} onClick={() => { const axes: MirrorAxes = [...s.axes]; axes[k] = !axes[k]; onChange({ axes }); }}>{a}</button>)}
         </div>
       </div>
+      {twin && <div className="sb-freeform-group">
+        <span>Twin</span><button aria-label="Shape the mirrored twin" aria-pressed={mirror} onClick={onMirror} title="Ship Mirror: the block that mirrors this one across the centerline takes every edit too">Across centerline <b>{mirror ? 'On' : 'Off'}</b><kbd>M</kbd></button>
+      </div>}
       <div className="sb-freeform-group">
         <span>Move step</span><button className="sb-unit" aria-label="Cycle move step" onClick={cycleUnit} title="Cycle move increments: 0.05, 0.1, 0.2, 0.5, 1, 2 m (G)"><b>{s.unit} m</b><kbd>G</kbd></button>
       </div>

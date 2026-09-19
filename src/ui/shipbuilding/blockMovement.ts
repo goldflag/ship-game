@@ -29,6 +29,38 @@ export function blockMoveConstraint(source: ConstructionSource, selected: Readon
     catch { return [0, 0, 0]; }
   };
 }
+const restScenes = new WeakMap<ConstructionPrimitive[], { key: string; scene: ConstructionOverlap }>();
+/** Mirror editing: `twins` travel the reflected path of `selected`. A move along the ship is one rigid
+ * move of both sides. Across the beam each side is held by the stationary pieces, and the pair stops
+ * at the last of seven samples that leaves both sides their 10% outside each other. */
+export function mirroredMoveConstraint(source: ConstructionSource, selected: ReadonlySet<string>, twins: ReadonlySet<string>): (delta: Vec3) => Vec3 {
+  if (!twins.size) return blockMoveConstraint(source, selected);
+  const primitives = source.construction.primitives, reflect = (delta: Vec3): Vec3 => [-delta[0] || 0, delta[1], delta[2]];
+  const together = blockMoveConstraint(source, new Set([...selected, ...twins])), own = blockMoveConstraint(source, selected), reflected = blockMoveConstraint(source, twins);
+  const movers = primitives.filter(p => selected.has(p.id)), followers = primitives.filter(p => twins.has(p.id));
+  const placed = (delta: Vec3) => {
+    const key = JSON.stringify([...selected, ...twins]);
+    let rest = restScenes.get(primitives);
+    if (rest?.key !== key) { rest?.scene.free(); rest = { key, scene: new ConstructionOverlap(JSON.stringify(primitives.filter(p => !selected.has(p.id) && !twins.has(p.id)))) }; restScenes.set(primitives, rest); }
+    const moved = (parts: ConstructionPrimitive[], by: Vec3) => parts.map(p => ({ ...p, position: p.position.map((v, k) => v + by[k]) }));
+    return rest.scene.placement(JSON.stringify([...moved(movers, delta), ...moved(followers, reflect(delta))]));
+  };
+  // A pair that already overlaps too far keeps the single-sided rule, so it can still be pulled apart.
+  let strict: boolean | undefined;
+  return delta => {
+    if (!delta.every(Number.isFinite)) return [0, 0, 0];
+    if (Math.abs(delta[0]) < 1e-9) return together(delta);
+    const a = own(delta), b = reflect(reflected(reflect(delta))), held = Math.hypot(...b) < Math.hypot(...a) ? b : a;
+    if (!movers.length || !followers.length || held.every(v => v === 0)) return held;
+    try {
+      strict ??= placed([0, 0, 0]);
+      if (!strict || placed(held)) return held;
+      let low = 0, high = 1;
+      for (let i = 0; i < 6; i++) { const mid = (low + high) / 2; if (placed(held.map(v => v * mid) as Vec3)) low = mid; else high = mid; }
+      return held.map(v => v * low) as Vec3;
+    } catch { return [0, 0, 0]; }
+  };
+}
 export function blockPlacementAllowed(source: ConstructionSource, additions: ConstructionPrimitive[]): boolean {
   if (!additions.length) return true;
   try { return scene(source.construction.primitives).placement(JSON.stringify(additions)); }
