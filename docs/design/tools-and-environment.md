@@ -97,5 +97,5 @@ fixed views, and `assets/maps/terrain-notes.md` records construction and capture
 Water impacts retain the first PR #80 iteration's long, directional water streaks: curved sheets,
 fine filaments and a low crown that collapse into spray. This is the owner's preferred splash
 appearance. Preserve its silhouette and breakup when optimizing; the later dense parcel column was
-rejected. See the [current streaked-water
-review](../../assets/reviews/water-impact/streaks/README.md).
+rejected. See the current streaked-water
+review.
