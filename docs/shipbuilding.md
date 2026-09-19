@@ -19,9 +19,10 @@ under **Designs → New design…**. Choose **Edit design** to reopen a saved so
 The port berths only your saved designs. Ready ships line up in the fleet line beneath
 the berthed ship (side arrows and ← / → step through them); **All designs** opens the
 plan chest with ready ships and drafts together. Click a draft to edit it, or a ready
-ship to bring it alongside. **Edit design** and deletion for the berthed ship sit under
-its name, **New design** is in the top bar and the plan chest, and an empty port offers
-the generic and historical starting hulls directly. Drafts can also be deleted in the editor. Returning from the editor
+ship to bring it alongside. **Edit design**, **Clone** and deletion for the berthed ship sit under
+its name and on every plan-chest card; a clone saves the latest revision as a new design named
+“… copy” with its own history and comes alongside once compiled. **New design** is in the top bar and the plan chest, and an empty port offers
+the generic and historical starting hulls directly. Designs can also be cloned or deleted from the editor's **Designs** list. Returning from the editor
 saves and shows a valid design without requiring a sea trial. The separate
 **Armed patrol** starter includes a gun, ammunition
 integral gun ammunition, diesel machinery, funnel, propeller, rudder and mast. The twin-hull

@@ -1,8 +1,8 @@
 import { savedReference } from '../../ships/constructionCloud';
-import { DeleteDesignButton } from '../DeleteDesignButton';
+import { CloneDesignButton, DeleteDesignButton } from '../DeleteDesignButton';
 import { useEffect, useRef, useState } from 'react';
 import type { ConstructionSource } from '../../ships/blueprint';
-import type { ConstructionDesignHead, ConstructionRevision, ConstructionStore } from '../../ships/constructionStore';
+import { cloneConstructionDesign, type ConstructionDesignHead, type ConstructionRevision, type ConstructionStore } from '../../ships/constructionStore';
 import { decodeSavedConstruction, loadSavedConstructionWithCatalog, newConstructionId } from '../../ships/constructionEditor';
 import { loadConstructionCatalog } from '../../ships/constructionEquipment';
 import type { ConstructionStarter } from '../../ships/constructionStarter';
@@ -78,6 +78,11 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
         <button role="menuitem" disabled={loading || disabled} aria-pressed={chosen === design.id} onClick={() => browse(design.id)}>
           <span>{design.name}{design.id === currentId && <i> · open</i>}</span><small>{design.readError ?? when(design.updatedAt)}</small>
         </button>
+        <CloneDesignButton name={design.name} disabled={loading || disabled || !!design.readError} onClone={async () => {
+          setLoading(true);
+          try { await cloneConstructionDesign(store!, design.id, newConstructionId); }
+          finally { try { setDesigns(await store!.list()); } finally { setLoading(false); } }
+        }}/>
         <DeleteDesignButton name={design.name} disabled={loading || disabled} onDelete={async () => {
           setLoading(true);
           try { await onDelete(design.id, design.revisionId); if (chosen === design.id) { setChosen(''); setRevisions([]); } }

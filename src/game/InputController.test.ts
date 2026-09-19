@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), portHome: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), rangefind: mock(), rangeLock: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock(), helmWheel: mock() };
+    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), portHome: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), rangefind: mock(), rangeLock: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock(), helmWheel: mock(), freeCamera: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -45,6 +45,23 @@ describe('keyboard gameplay controls', () => {
     input.setEnabled(false); key('keydown', 'ArrowRight');
     input.setEnabled(true); modal = true; key('keydown', 'ArrowRight');
     expect(actions.cycleSpectator).toHaveBeenCalledTimes(2);
+  });
+
+  test('the free camera takes the helm keys for flight and hands them back on return', () => {
+    key('keydown', 'KeyO'); expect(actions.freeCamera).toHaveBeenCalledTimes(1);
+    key('keyup', 'KeyO');
+    input.setFlying(true);
+    key('keydown', 'KeyW'); key('keydown', 'KeyD'); key('keydown', 'KeyE'); key('keydown', 'ShiftLeft'); key('keydown', 'KeyT', { shiftKey: true });
+    expect(input.order).toBe(1); expect(input.rudderOrder).toBe(0);
+    expect(actions.shellFollow).not.toHaveBeenCalled(); expect(input.firing).toBe(false);
+    expect(input.flight).toEqual({ x: 1, y: 1, z: 1, fast: true });
+    key('keyup', 'ShiftLeft'); expect(actions.optics).not.toHaveBeenCalled();
+    key('keyup', 'KeyW'); key('keydown', 'KeyS'); key('keydown', 'KeyQ');
+    expect(input.flight).toEqual({ x: 1, y: 0, z: -1, fast: false });
+    key('keydown', 'KeyC'); expect(actions.camera).toHaveBeenCalledTimes(1);
+    input.setFlying(false);
+    expect(input.flight).toEqual({ x: 0, y: 0, z: 0, fast: false });
+    key('keydown', 'KeyW'); expect(input.order).toBe(2);
   });
 
   test('the recenter key reaches the port camera while the helm is idle, and the helm camera otherwise', () => {
@@ -247,7 +264,7 @@ describe('keyboard gameplay controls', () => {
     const bindings = defaultKeybindings();
     bindings.weaponGroup1 = ['KeyM', null]; bindings.weaponGroup2 = ['KeyN', null];
     bindings.periscope = ['KeyI', null]; bindings.airOperations = ['KeyK', null];
-    bindings.chartLarger = ['KeyP', null]; bindings.chartSmaller = ['KeyO', null];
+    bindings.chartLarger = ['KeyP', null]; bindings.chartSmaller = ['KeyO', null]; bindings.freeCamera = ['KeyY', null];
     input.setBindings(bindings);
     for (const code of ['Digit1', 'Digit2', 'Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'KeyG']) key('keydown', code);
     expect(actions.weaponGroup).not.toHaveBeenCalled(); expect(actions.chartSize).not.toHaveBeenCalled();
