@@ -466,6 +466,17 @@ What it was, largest first:
   across; reaching one tests the triangle it came from, so the answer is the
   full tree's (`tests/firing_lane.rs`).
 
+- **Snapshot publication.** Once the step was cheap, publishing cost more than
+  stepping: 88 % of a constructed hull's frame is `damage.connections`, 2,304
+  portals on Valiant that stay closed for minutes, and the frame encoder walked
+  every leaf of them every tick. The field now reaches the encoder through
+  `frame_delta::stable` with a digest of its content; while the digest matches
+  the reference frame the encoder reports it unchanged without walking it. The
+  patches are the same bytes, every other serializer sees the plain list, and
+  the worker's snapshot time for a Valiant duel fell from 0.7–0.95 to
+  0.22–0.45 ms per tick in WASM, the range a Baltimore duel publishes in
+  (`constructed_hull_connections_travel_when_and_only_when_they_change`).
+
 Everything but the level table and `flotation_near` is byte-identical on
 `--dump` for Valiant, Resolute, a mixed fleet, a battleship fleet and a premade
 fleet. Those two change constructed ships only, by nanometres; premade fleets

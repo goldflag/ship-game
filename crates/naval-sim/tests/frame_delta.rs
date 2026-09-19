@@ -121,10 +121,7 @@ fn full_knowledge_patches_rebuild_the_decoded_frame_through_a_large_battle() {
             1 => vec!["a-3".into()],
             _ => Vec::new(),
         };
-        stream.frame(
-            &battle.full_frame(&detail),
-            &format!("tick {tick}"),
-        );
+        stream.frame(&battle.full_frame(&detail), &format!("tick {tick}"));
         battle.step(&BTreeMap::new());
     }
     assert!(
@@ -132,6 +129,74 @@ fn full_knowledge_patches_rebuild_the_decoded_frame_through_a_large_battle() {
         "patches {} vs complete frames {}",
         stream.patch_bytes,
         stream.full_bytes
+    );
+}
+
+/// A player-built hull's flood connections reach the encoder behind a digest
+/// and are skipped while it holds. A portal that is breached, opened, hidden
+/// with its hull's detail and shown again must still reach the client exactly.
+#[test]
+fn constructed_hull_connections_travel_when_and_only_when_they_change() {
+    let catalog = catalog();
+    let mut compiled = BTreeMap::new();
+    compiled.insert(
+        "valiant".to_string(),
+        Arc::new(CompiledShip::new(catalog.definitions["valiant"].clone(), None).unwrap()),
+    );
+    let ships: Vec<_> = ["a", "b"]
+        .into_iter()
+        .map(|team| {
+            json!({"id": format!("{team}-0"), "presetId": "valiant", "team": team,
+                "controller": "bot", "aiLevel": "hard", "spawn": null})
+        })
+        .collect();
+    let setup: BattleSetup = serde_json::from_value(json!({"ships": ships, "seed": 17001,
+        "mapId": "north-atlantic", "weather": "overcast", "spawnDistance": 5000, "windSpeed": null}))
+    .unwrap();
+    let mut battle = Battle::new(catalog, &compiled, setup).unwrap();
+    assert!(battle.actors[0].damage.connections.len() > 1000);
+    let mut stream = Stream::new();
+    let both = vec!["a-0".to_string(), "b-0".to_string()];
+    for frame in 0..60u64 {
+        match frame {
+            20 => {
+                let portal = &mut battle.actors[0].damage.connections[7];
+                portal.state = "damaged".into();
+                portal.damage_area_m2 = 0.3;
+            }
+            30 => battle.actors[1].damage.connections[900].state = "open".into(),
+            _ => {}
+        }
+        // Frames 40 to 44 drop the first hull's detail, as a camera change does.
+        let detail = if (40..45).contains(&frame) {
+            &both[1..]
+        } else {
+            &both[..]
+        };
+        stream.frame(&battle.full_frame(detail), &format!("frame {frame}"));
+        let portals = stream.delta.patch().matches("portal-").count();
+        match frame {
+            0 | 45 => assert!(portals > 1000, "frame {frame} carried {portals} portals"),
+            _ => assert_eq!(
+                portals, 0,
+                "frame {frame} named a portal it did not need to"
+            ),
+        }
+        let changed = stream.delta.patch().contains("\"damaged\"")
+            || stream.delta.patch().contains("\"open\"");
+        // Frame 45 brings the whole list back, the breached portal with it.
+        assert_eq!(changed, matches!(frame, 20 | 30 | 45), "frame {frame}");
+        for _ in 0..6 {
+            battle.step(&BTreeMap::new());
+        }
+    }
+    assert_eq!(
+        stream.client["actors"][0]["damage"]["connections"][7]["state"],
+        "damaged"
+    );
+    assert_eq!(
+        stream.client["actors"][1]["damage"]["connections"][900]["state"],
+        "open"
     );
 }
 

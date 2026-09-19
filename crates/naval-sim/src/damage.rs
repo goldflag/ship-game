@@ -36,6 +36,23 @@ pub struct CompartmentState {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub water_level_y: Option<f64>,
 }
+/// Thousands of portals on a player-built hull, nearly all closed for the whole
+/// battle: the frame encoder takes a digest of them instead of walking them.
+fn stable_connections<S: serde::Serializer>(
+    connections: &[ConnectionState],
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    let mut digest = crate::frame_delta::Digest::default();
+    digest.word(connections.len() as u64);
+    for c in connections {
+        digest.bytes(c.id.as_bytes());
+        digest.bytes(c.state.as_bytes());
+        digest.word(c.damage_area_m2.to_bits());
+        digest.word(c.from_index as u64);
+        digest.word(c.to_index as u64);
+    }
+    crate::frame_delta::stable(digest.finish(), connections, serializer)
+}
 #[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectionState {
@@ -71,6 +88,7 @@ pub struct DamageState {
     pub hull_damage_remainder: f64,
     pub modules: Vec<ModuleState>,
     pub compartments: Vec<CompartmentState>,
+    #[serde(serialize_with = "stable_connections")]
     pub connections: Vec<ConnectionState>,
     pub sunk: bool,
     #[ts(as = "Option<crate::frame_vocabulary::DefeatCause>")]

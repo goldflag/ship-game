@@ -40,6 +40,57 @@ pub const KEEP_NULL: &str = crate::aviation::ACTIVE_FLIGHT_LIMIT_FIELD;
 
 type Error = serde_json::Error;
 
+/// The newtype name that marks a value serialized through [`stable`].
+const STABLE: &str = "$naval_sim::frame_delta::stable";
+thread_local! {
+    /// The digest of the value `stable` is serializing right now. The encoder
+    /// takes it; every other serializer never looks and `stable` clears it.
+    static STABLE_DIGEST: std::cell::Cell<Option<u64>> = const { std::cell::Cell::new(None) };
+}
+/// Serialize `value`, telling the frame encoder that `digest` stands for all of
+/// its content. A player-built hull carries thousands of flood connections,
+/// nine tenths of its frame, that stay closed for minutes on end; walking them
+/// leaf by leaf every tick cost more than stepping the ship. When the digest is
+/// the one the reference frame recorded, the encoder reports the value unchanged
+/// without walking it. Every other serializer sees `value` and nothing else, so
+/// complete frames, snapshots and the wire shape do not change.
+pub fn stable<T: Serialize + ?Sized, S: Serializer>(
+    digest: u64,
+    value: &T,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    STABLE_DIGEST.set(Some(digest));
+    let result = serializer.serialize_newtype_struct(STABLE, value);
+    STABLE_DIGEST.set(None);
+    result
+}
+/// A digest for [`stable`]: fold 64-bit words in order.
+#[derive(Clone, Copy)]
+pub struct Digest(u64);
+impl Default for Digest {
+    fn default() -> Self {
+        Self(0x9e37_79b9_7f4a_7c15)
+    }
+}
+impl Digest {
+    pub fn word(&mut self, word: u64) {
+        self.0 = (self.0 ^ word)
+            .wrapping_mul(0xff51_afd7_ed55_8ccd)
+            .rotate_left(29);
+    }
+    pub fn bytes(&mut self, bytes: &[u8]) {
+        self.word(bytes.len() as u64);
+        for chunk in bytes.chunks(8) {
+            let mut word = [0u8; 8];
+            word[..chunk.len()].copy_from_slice(chunk);
+            self.word(u64::from_le_bytes(word));
+        }
+    }
+    pub fn finish(self) -> u64 {
+        self.0
+    }
+}
+
 /// What both transports send: the tick of the reference frame the receiver
 /// must be holding (`null` when this update carries a whole frame and the
 /// receiver holds nothing), the tick the frame reaches, and the patch between
@@ -113,6 +164,8 @@ enum Node {
     Object(Vec<(Name, Node)>),
     /// Pre-rendered JSON for shapes compared whole rather than walked.
     Raw(Box<str>),
+    /// A value that arrived through [`stable`], with the digest it carried.
+    Stable(u64, Box<Node>),
 }
 
 impl Node {
@@ -130,8 +183,12 @@ impl Node {
         }
     }
     fn container(&self) -> bool {
-        matches!(self, Self::Array(_) | Self::Object(_))
-            || matches!(self, Self::Raw(text) if text.starts_with(['{', '[']))
+        match self {
+            Self::Stable(_, node) => node.container(),
+            Self::Array(_) | Self::Object(_) => true,
+            Self::Raw(text) => text.starts_with(['{', '[']),
+            _ => false,
+        }
     }
     fn write(&self, out: &mut String) {
         match self {
@@ -165,6 +222,7 @@ impl Node {
                 out.push('}');
             }
             Self::Raw(text) => out.push_str(text),
+            Self::Stable(_, node) => node.write(out),
         }
     }
     fn field(&self, key: &str) -> Option<&Node> {
@@ -741,10 +799,29 @@ impl<'a> Serializer for Diff<'a> {
     }
     fn serialize_newtype_struct<T: Serialize + ?Sized>(
         self,
-        _name: &'static str,
+        name: &'static str,
         value: &T,
     ) -> Result<Outcome, Error> {
-        value.serialize(self)
+        let digest = STABLE_DIGEST.take();
+        let Some(digest) = digest.filter(|_| name == STABLE) else {
+            return value.serialize(self);
+        };
+        if matches!(self.shadow, Node::Stable(held, _) if *held == digest) {
+            return Ok(Outcome::Unchanged);
+        }
+        // New content: patch it against what the reference holds, walked as any
+        // other value is, and record the digest it now stands for.
+        let mut held = match std::mem::take(self.shadow) {
+            Node::Stable(_, node) => *node,
+            node => node,
+        };
+        let outcome = value.serialize(Diff {
+            shadow: &mut held,
+            ctx: self.ctx,
+            in_object: self.in_object,
+        })?;
+        *self.shadow = Node::Stable(digest, Box::new(held));
+        Ok(outcome)
     }
     fn serialize_newtype_variant<T: Serialize + ?Sized>(
         self,
