@@ -15,6 +15,7 @@ for (const id of ['type-viic', 'fletcher']) test(`${id} preview uses launch sect
     expect(s.arming).toBeGreaterThan(0); expect(s.range).toBeGreaterThan(s.arming);
     expect(s.end).toBeGreaterThan(s.start);
     expect(Number.isFinite(s.heading)).toBe(true);
+    expect(s.speed).toBeGreaterThan(0); expect(s.aimDistance).toBeCloseTo(Math.hypot(aim[0] - s.origin[0], aim[2] - s.origin[2]), 6);
   }
   const tube = actor.definition.torpedoTubes![0];
   const solution = tubeSolution(actor, tube, { ...actor.torpedoTubes![0] }, aim, 0);

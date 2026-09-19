@@ -51,8 +51,11 @@ import { ShipLabels, type ObservedLabelReport } from './ShipLabels';
 import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
-import { ENGINE_ORDERS, FIXED_DT } from './session/motion';
+import { ENGINE_ORDERS, FIXED_DT, shipVelocity } from './session/motion';
 import { GunAimIndicators } from './GunAimIndicators';
+import { TorpedoAimIndicators } from './TorpedoAimIndicators';
+import { TorpedoMarkers } from './TorpedoMarkers';
+import { torpedoAimState, type LeadContact } from './torpedoLead';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
@@ -112,6 +115,7 @@ export function briefingControlGroups(briefing: { groups: readonly { id: string;
  * localhost and 14 s on a 50 Mbit line. The port keeps the ship, ocean and sky. Set this
  * back to true to restore the backdrop; nothing else needs changing. */
 const HARBOR_BACKDROP = false;
+const NO_SHIPS: ReadonlySet<string> = new Set();
 
 export class Game {
   definition: typeof selectedShip;
@@ -157,6 +161,8 @@ export class Game {
   private playerDamageFeedback!: HullDamageFeedback;
   private damageFeedbackShipId?: string;
   private gunAim: GunAimIndicators;
+  private torpedoAim: TorpedoAimIndicators;
+  private torpedoMarkers: TorpedoMarkers;
   private hitDirections: HitDirectionIndicators;
   private hudScale = 1;
   private loadedModel?: THREE.Group;
@@ -302,6 +308,8 @@ export class Game {
     this.shipLabels = new ShipLabels(this.host, id => this.observedShipViews?.labelAnchor(id));
     this.hitLabels = new HitLabels(this.host);
     this.gunAim = new GunAimIndicators(this.host);
+    this.torpedoAim = new TorpedoAimIndicators(this.host);
+    this.torpedoMarkers = new TorpedoMarkers(this.host);
     this.hitDirections = new HitDirectionIndicators(this.host.parentElement ?? this.host);
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
       pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
@@ -959,7 +967,12 @@ export class Game {
       const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
-      this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false', this.weaponGroupId);
+      const showTorpedoAim = showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false';
+      const torpedoAim = showTorpedoAim ? torpedoAimState(this.simulation.player, this.playerView!.motion, aim, this.torpedoContacts(), this.weaponGroupId) : undefined;
+      this.torpedoPreview.update(torpedoAim, showTorpedoAim);
+      this.torpedoAim.update(torpedoAim, this.camera, showTorpedoAim, id => this.shipLabels.tagBox(id));
+      const torpedoes = this.simulation.torpedoes;
+      this.torpedoMarkers.update(torpedoes, torpedoes.length ? this.friendlyShipIds() : NO_SHIPS, this.camera, !this.inPort && !this.inspecting);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.fleetViews.forEach(view => {
         view.rig.update(presentationDt, this.water!.waves.windSpeed.value, this.water!.waves.windDirection.value,
@@ -1151,6 +1164,8 @@ export class Game {
     this.shipLabels.resize(width, height);
     this.hitLabels.resize(width, height);
     this.gunAim.resize(width, height);
+    this.torpedoAim.resize(width, height);
+    this.torpedoMarkers.resize(width, height);
   }
 
   private resize(): void {
@@ -1335,6 +1350,19 @@ export class Game {
     const anchor = new THREE.Vector3(0, top, 0).applyMatrix4(view.root.matrixWorld);
     const point = projectShipLabel(anchor, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
     return point ? [point.x, point.y] : null;
+  }
+  /** Hostile hulls the sight can lead: simulated enemies afloat and fresh reports of the rest. */
+  private torpedoContacts(): LeadContact[] {
+    const { player, actors, observedShips, observationTracks, tick } = this.simulation;
+    const sinking = new Set((observationTracks ?? []).filter(track => track.visibleCondition?.sinking).map(track => track.id));
+    return [
+      ...actors.filter(actor => actor.team !== player.team && !actor.damage.sunk).map(actor => ({ id: actor.motion.id, position: [actor.motion.x, 0, actor.motion.z] as Vec3, velocity: shipVelocity(actor), lengthM: actor.definition.hull.length })),
+      ...(observedShips ?? []).filter(report => tick - report.observedTick <= 60 && !sinking.has(report.id)).map(report => ({ id: report.id, position: report.position, velocity: report.velocity })),
+    ];
+  }
+  private friendlyShipIds(): Set<string> {
+    const team = this.simulation.player.team;
+    return new Set(this.simulation.actors.filter(actor => actor.team === team).map(actor => actor.motion.id));
   }
   /** Enemy hulls in a PvE battle are reports, not actors: they carry the chart's
    * name for the contact and the observed hull fraction while the sighting is fresh. */
@@ -1914,6 +1942,8 @@ export class Game {
     this.hitLabels.dispose();
     this.torpedoPreview.dispose();
     this.gunAim.dispose();
+    this.torpedoAim.dispose();
+    this.torpedoMarkers.dispose();
     this.hitDirections.dispose();
     await this.initialization;
     await this.frameTask;

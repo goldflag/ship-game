@@ -77,13 +77,13 @@ test('live scale changes resize every projected overlay without recreating the r
   const dimensions = new Map<string, number[]>();
   Object.assign(game, {
     host: { clientWidth: 3800, clientHeight: 1600 },
-    ...Object.fromEntries(['shipLabels', 'hitLabels', 'gunAim'].map(name => [name, {
+    ...Object.fromEntries(['shipLabels', 'hitLabels', 'gunAim', 'torpedoAim', 'torpedoMarkers'].map(name => [name, {
       resize: (width: number, height: number) => dimensions.set(name, [width, height]),
     }])),
   });
   for (const scale of [1.5, .75]) {
     game.setHudScale(scale);
-    expect(dimensions.size).toBe(3);
+    expect(dimensions.size).toBe(5);
     for (const size of dimensions.values()) expect(size).toEqual([3800 / scale, 1600 / scale]);
   }
 });
