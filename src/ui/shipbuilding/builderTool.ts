@@ -729,6 +729,7 @@ export class BuilderTool {
     const { layer, tool } = this.state;
     if (!hit) { this.clearSelection(); return undefined; }
     if (tool === 'measure') { const current = this.state.measure; this.update({ measure: !current || current.to ? { from: hit.point } : { ...current, to: hit.point } }); return undefined; }
+    if (tool === 'erase') return hit.id ? this.erase(hit.id) : undefined;
     if (layer === 'paint' && hit.id) {
       const fitting = this.data.equipment.find(item => item.id === hit.id);
       if (fitting) {
@@ -762,7 +763,6 @@ export class BuilderTool {
       if (hit.id && this.data.boundaries.some(wall => wall.id === hit.id)) return this.run('Merge rooms', [{ op: 'remove', ids: [hit.id] }]);
       this.update({ notice: 'Click a deck or bulkhead to merge the rooms on either side.' }); return undefined;
     }
-    if (tool === 'erase') return hit.id ? this.erase(hit.id) : undefined;
     if (hit.id) this.choose(hit.id, hit.additive); else if (!hit.additive) this.clearSelection();
     return undefined;
   };
