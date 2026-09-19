@@ -47,6 +47,21 @@ describe('keyboard gameplay controls', () => {
     expect(actions.cycleSpectator).toHaveBeenCalledTimes(2);
   });
 
+  test('a disabled helm centres the rudder unless the chart holds the last orders for it', () => {
+    key('keydown', 'KeyW'); key('keyup', 'KeyW'); key('keydown', 'KeyD'); key('keyup', 'KeyD');
+    const held = input.sample();
+    expect(held.rudder).toBe(.5);
+    input.setEnabled(false);
+    expect(input.sample()).toEqual({ throttle: held.throttle, rudder: 0 });
+    // The fleet chart of a custom battle takes the keys but leaves the telegraph and wheel where they stood.
+    input.setEnabled(false, true);
+    expect(input.sample()).toEqual(held);
+    key('keydown', 'KeyA');
+    expect(input.sample()).toEqual(held);
+    input.setEnabled(true);
+    expect(input.sample()).toEqual(held);
+  });
+
   test('the recenter key reaches the port camera while the helm is idle, and the helm camera otherwise', () => {
     key('keydown', 'KeyR'); key('keyup', 'KeyR');
     expect(actions.recenter).toHaveBeenCalledTimes(1);

@@ -6,7 +6,8 @@
 .fleet-hud button { pointer-events:auto; }
 .fleet-hud button:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }
 .fleet-hud kbd { font:500 10px/1.2 'Barlow Condensed',sans-serif; min-width:18px; padding:2px 4px; border-radius:1px; }
-.fleet-fps { position:absolute; top:6px; left:var(--fleet-edge); color:var(--fleet-muted); font-size:10px; line-height:1; white-space:nowrap; }
+/* Quiet, and out of the battle corner: the readout keeps the upper right. */
+.fleet-fps { position:absolute; top:6px; right:var(--fleet-edge); color:var(--fleet-muted); font-size:10px; line-height:1; text-align:right; white-space:nowrap; }
 .fleet-fps strong { color:#edf5f2; font-weight:500; display:inline-block; text-align:right; min-width:3ch; margin-right:3px; }
 .fleet-fps .performance-simulation { margin-left:8px; }
 .fleet-fps .performance-simulation.strained strong { color:var(--fleet-gold); }
@@ -130,7 +131,6 @@
 
 .fleet-map-area { position:absolute; right:0; bottom:0; width:var(--chart-width); }
 .fleet-command-helm .fleet-reports,.fleet-following .fleet-reports { top:126px; }
-.fleet-command-helm .fleet-fps,.fleet-following .fleet-fps { left:486px; }
 /* Following: the captain's orders show on the telegraph and rudder; they read, they do not press. */
 .fleet-following .fleet-throttle button:disabled,.fleet-following .fleet-rudder-orders button:disabled { opacity:.85; cursor:default; }
 .fleet-following .fleet-throttle button[aria-pressed=true]:disabled,.fleet-following .fleet-rudder-orders button[aria-pressed=true]:disabled { color:var(--fleet-active); }
@@ -229,26 +229,59 @@
 @media (prefers-reduced-motion:reduce) { .fleet-hud { transition:none; } }
 
 /* Battle readouts remain small, transparent and at the screen edges. */
-.fleet-battle { position:absolute; top:24px; left:var(--fleet-edge); width:260px; pointer-events:auto; }
+.fleet-battle { position:absolute; top:24px; left:var(--fleet-edge); width:300px; pointer-events:auto; }
 .fleet-battle h2 { margin:0 0 5px; font:500 18px/1.2 'Barlow Condensed',sans-serif; }
 .fleet-battle small { display:block; margin-top:5px; font-size:10px; color:var(--fleet-muted); }
-.fleet-teams { display:flex; flex-direction:column; gap:3px; }
-.fleet-team { display:contents; --team-color:var(--fleet-active); }
-.fleet-team-enemy { --team-color:#ffb5a6; }
-.fleet-team-toggle { display:flex; align-items:baseline; gap:9px; width:100%; min-height:21px; padding:0; border:0; background:transparent; color:inherit; font:inherit; text-align:left; text-shadow:inherit; }
-.fleet-team-count { min-width:88px; color:var(--team-color); font-size:12px; white-space:nowrap; }
-.fleet-team-count strong { margin-left:3px; font:500 18px/1 'Barlow Condensed',sans-serif; }
-.fleet-team-count>span { color:var(--fleet-muted); font-size:11px; }
-.fleet-team-state { color:var(--fleet-muted); font-size:10px; white-space:nowrap; }
-.fleet-team-toggle:hover .fleet-team-count,.fleet-team-toggle[aria-expanded=true] .fleet-team-count { text-decoration:underline; text-underline-offset:3px; }
-.fleet-roster { order:1; margin-top:5px; }
-.fleet-roster ul { max-height:66px; overflow-y:auto; overscroll-behavior:contain; margin:0; padding:0; list-style:none; scrollbar-width:thin; }
-.fleet-roster li { display:flex; align-items:baseline; gap:8px; min-height:22px; font-size:11px; }
-.fleet-roster li>button,.fleet-roster li>strong { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:inherit; }
-.fleet-roster button { padding:2px 0; border:0; background:transparent; color:inherit; text-align:left; text-shadow:inherit; }
-.fleet-roster button:hover,.fleet-roster button[aria-pressed=true] { color:var(--fleet-gold); text-decoration:underline; text-underline-offset:3px; }
-.fleet-roster-condition { color:var(--fleet-muted); font-size:10px; text-transform:capitalize; }
-.fleet-roster-lost { color:#ffb5a6; }
+.fleet-network-status { color:#efce90; margin:6px 0; font-size:12px; }
+/* The tally: clock, a gauge per hull and the tonnage balance. It stays one glance tall;
+   the roster only unfolds while the cursor is free. */
+.fleet-tally-clock { display:flex; align-items:baseline; gap:8px; }
+.fleet-tally-clock strong { font:600 30px/1 'Barlow Condensed',sans-serif; }
+.fleet-tally-clock span { color:var(--fleet-muted); font-size:11px; }
+.fleet-tally-sides { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-top:7px; }
+.fleet-tally-side { display:flex; align-items:flex-end; gap:8px; min-width:0; color:var(--fleet-active); }
+.fleet-tally-enemy { flex-direction:row-reverse; color:#ffb5a6; }
+.fleet-tally-unknown { display:block; text-align:right; font-size:12px; }
+.fleet-tally-unknown small { margin-top:2px; }
+.fleet-tally-count { color:var(--fleet-muted); font-size:11px; white-space:nowrap; }
+.fleet-tally-count strong { font:600 21px/.9 'Barlow Condensed',sans-serif; }
+.fleet-tally-friendly .fleet-tally-count strong { color:var(--fleet-active); }
+.fleet-tally-enemy .fleet-tally-count strong { color:#ffb5a6; }
+.fleet-tally-gauges { display:flex; flex-wrap:wrap; align-items:flex-end; gap:3px 6px; min-width:0; }
+.fleet-tally-enemy .fleet-tally-gauges { justify-content:flex-end; }
+.fleet-tally-gauges>span { display:flex; align-items:flex-end; gap:3px; }
+.fleet-tally-gauges i { position:relative; display:block; box-sizing:border-box; width:5px; height:13px; border:1px solid currentColor; }
+.fleet-tally-gauges i.capital { height:18px; }
+.fleet-tally-gauges i.low { color:var(--fleet-gold); }
+.fleet-tally-gauges i.lost { border-style:dashed; opacity:.45; }
+.fleet-tally-gauges b { position:absolute; right:0; bottom:0; left:0; display:block; background:currentColor; }
+.fleet-tally-balance { display:flex; gap:2px; height:4px; margin-top:7px; }
+.fleet-tally-balance i,.fleet-tally-balance b { display:block; min-width:2px; height:4px; }
+.fleet-tally-balance i { background:var(--fleet-active); }
+.fleet-tally-balance b { background:#ffb5a6; }
+.fleet-tally-tons { display:flex; justify-content:space-between; gap:12px; margin:6px 0 0; color:var(--fleet-muted); font-size:11px; }
+.fleet-tally-keys { display:flex; align-items:center; gap:16px; min-height:18px; margin:8px 0 0; color:var(--fleet-muted); font-size:11px; }
+.fleet-tally-keys:empty { display:none; }
+.fleet-tally-keys button,.fleet-tally-keys span { display:inline-flex; align-items:center; gap:6px; padding:0; border:0; background:transparent; color:inherit; font:inherit; text-shadow:inherit; }
+.fleet-tally-keys button:hover,.fleet-tally-keys button:focus-visible { color:var(--fleet-gold); }
+.fleet-tally-keys kbd { min-width:16px; height:16px; padding:0 4px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--fleet-line); border-radius:1px; color:#f0f5f3; font:500 10px/1 'Barlow Condensed',sans-serif; letter-spacing:.04em; }
+.fleet-roster { --team-color:var(--fleet-active); }
+.fleet-roster-enemy { --team-color:#ffb5a6; }
+.fleet-roster h3 { display:flex; justify-content:space-between; align-items:baseline; margin:0 0 3px; padding:9px 0 4px; border-bottom:1px solid var(--fleet-line); color:var(--fleet-muted); font:400 10.5px/1.35 'Barlow',sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+.fleet-roster ul { margin:0; padding:0; list-style:none; }
+.fleet-roster-row { display:grid; grid-template-columns:20px minmax(0,1fr) auto 44px 32px; align-items:center; column-gap:8px; width:100%; min-height:22px; padding:0; border:0; background:transparent; color:inherit; font:inherit; text-align:left; text-shadow:inherit; }
+.fleet-roster-class { color:var(--fleet-muted); font:500 10px 'Barlow Condensed',sans-serif; letter-spacing:.06em; }
+/* overflow:clip keeps the ellipsis without swallowing the wheel over the list. */
+.fleet-roster-name { overflow:clip; text-overflow:ellipsis; white-space:nowrap; }
+.fleet-roster-name em { margin-left:6px; padding:0 4px; border:1px solid currentColor; color:var(--fleet-gold); font:500 9.5px/14px 'Barlow Condensed',sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+.fleet-roster-state { max-width:112px; overflow:clip; text-overflow:ellipsis; color:var(--fleet-muted); font-size:10.5px; white-space:nowrap; }
+.fleet-roster-state::first-letter { text-transform:uppercase; }
+.fleet-roster-bar { position:relative; display:block; height:3px; background:#c9dce033; color:var(--team-color); }
+.fleet-roster-bar i { position:absolute; top:0; bottom:0; left:0; display:block; background:currentColor; }
+.fleet-roster-hull { color:var(--team-color); font:500 13px 'Barlow Condensed',sans-serif; text-align:right; }
+button.fleet-roster-row:hover .fleet-roster-name,button.fleet-roster-row[aria-pressed=true] .fleet-roster-name { color:var(--fleet-gold); }
+.fleet-roster-fold .fleet-roster-name { color:var(--fleet-muted); }
+.fleet-roster-lost { color:#ffb5a6; opacity:.7; }
 .chart-contact.chart-friendly { fill:var(--fleet-active); stroke:#d9eee6; }
 
 .fleet-health-loss { position:absolute; top:0; height:100%; background:var(--fleet-gold); }
@@ -271,19 +304,18 @@
 .fleet-damage-log .fleet-damage-taken>strong { color:#ffb5a6; }
 
 @container hud (max-width:900px) {
-  .fleet-battle { top:14px; width:232px; }
-  .fleet-team-toggle { gap:6px; }
-  .fleet-team-count { min-width:79px; }
+  .fleet-battle { top:14px; width:248px; }
+  .fleet-roster-row { grid-template-columns:20px minmax(0,1fr) auto 32px 32px; column-gap:6px; }
   .fleet-combat-report { width:260px; }
 }
 @container hud (max-width:600px) {
   .fleet-battle { top:300px; width:calc(50cqw - 24px); }
-  .fleet-team-toggle { flex-wrap:wrap; gap:0 6px; }
-  .fleet-team-count { font-size:11px; }
-  .fleet-team-count strong { font-size:16px; }
-  .fleet-team-state { font-size:9px; }
-  .fleet-roster ul { max-height:44px; }
-  .fleet-roster-condition { max-width:44px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fleet-tally-clock strong { font-size:22px; }
+  .fleet-tally-count strong { font-size:16px; }
+  .fleet-tally-tons { font-size:10px; }
+  .fleet-rosters { max-height:88px; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
+  .fleet-roster-row { grid-template-columns:18px minmax(0,1fr) 30px; }
+  .fleet-roster-state,.fleet-roster-bar { display:none; }
   .fleet-combat-report { top:63px; width:220px; }
   .fleet-score { gap:5px 18px; }
   .fleet-score dd { font-size:21px; }
@@ -333,6 +365,3 @@
 .fleet-spectator-controls .ui-button { width: 36px; padding: 6px; }
 .fleet-spectator-controls .ui-select { font-size: 13px; }
 
-.fleet-battle-clock { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; font-size: 12px; }
-.fleet-battle-clock strong { font: 600 19px 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
-.fleet-tonnage { margin: 4px 0 10px; font-size: 11px; line-height: 1.5; font-variant-numeric: tabular-nums; }
