@@ -29,13 +29,7 @@ export function pathPoint(
     return {};
   const settings = scene.snapping ?? DEFAULT_SNAPPING;
   const raw = pathAnchor(draft.part, scene.source, scene.catalog, hit, null);
-  const grid = pathAnchor(
-    draft.part,
-    scene.source,
-    scene.catalog,
-    hit,
-    settings.enabled && settings.grid ? scene.gridStep : null,
-  );
+  const grid = pathAnchor(draft.part, scene.source, scene.catalog, hit, settings.enabled && settings.grid ? scene.gridStep : null);
   if (!raw || !grid || scene.source.construction.equipment.some((p) => p.id === hit.id)) return { point: grid };
   const point = snap(
     'path',

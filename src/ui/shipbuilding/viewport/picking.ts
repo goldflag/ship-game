@@ -45,10 +45,7 @@ export function pickScene(view: PickView, event: PickEvent, targets: BuilderScen
   const ray = pointerRay(event, view.canvas, view.camera);
   // Hull raycasts still support placement, but every object interaction in Internals
   // passes through the skin and external fittings to the internal packages/walls.
-  const allowed =
-    targets !== 'hull' && scene.pickTargets === 'internals'
-      ? internalSelectionIds(scene.source, scene.catalog)
-      : undefined;
+  const allowed = targets !== 'hull' && scene.pickTargets === 'internals' ? internalSelectionIds(scene.source, scene.catalog) : undefined;
   // Internal packages only fit inside the hull, so their ray passes the skin to the floor within.
   const cursor = scene.placementPiece,
     internal = targets === 'hull' && cursor?.kind === 'equipment' && cursor.inset !== undefined && !cursor.wall;
@@ -76,8 +73,7 @@ export function pickScene(view: PickView, event: PickEvent, targets: BuilderScen
     if (!surface || surface.open || Math.abs(normal[1]) >= 0.9 || !primitive) return undefined;
     piece = { ...piece, bearingDeg: wallBearing(normal) };
   }
-  if (piece?.kind === 'hull' && piece.shape === 'balcony')
-    piece = view.heldBalcony ?? balconyPlacement(piece, normal);
+  if (piece?.kind === 'hull' && piece.shape === 'balcony') piece = view.heldBalcony ?? balconyPlacement(piece, normal);
   const worldCorners = primitive && envelopeVertices(primitive).map((v) => worldVertex(primitive, v));
   const snapOrigin = worldCorners && ([0, 1, 2].map((k) => Math.min(...worldCorners.map((v) => v[k]))) as Vec3 | undefined);
   const settings = scene.snapping ?? DEFAULT_SNAPPING;

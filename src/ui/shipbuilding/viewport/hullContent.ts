@@ -21,7 +21,11 @@ export interface HullContent {
 }
 
 /** The hull as drawn in the editor: native surfaces when a compile (or carried faces) exists, source primitives otherwise. */
-export function buildHullContent(scene: BuilderScene, nativeSurfaces: ConstructionSurface[] | undefined, invalid: Set<string>): HullContent {
+export function buildHullContent(
+  scene: BuilderScene,
+  nativeSurfaces: ConstructionSurface[] | undefined,
+  invalid: Set<string>,
+): HullContent {
   const objects: THREE.Object3D[] = [],
     meshes: THREE.Object3D[] = [],
     surfaceTriangles: ConstructionSurface[] = [];
@@ -49,9 +53,7 @@ export function buildHullContent(scene: BuilderScene, nativeSurfaces: Constructi
         { ...surface, vertices: face.vertices },
         vertices,
         colors,
-        scene.display === 'armor' || invalid.has(surface.primitiveId)
-          ? color
-          : new THREE.Color(constructionPaintColor(face.paint)),
+        scene.display === 'armor' || invalid.has(surface.primitiveId) ? color : new THREE.Color(constructionPaintColor(face.paint)),
       );
       for (let i = 1; i < face.vertices.length - 1; i++) surfaceTriangles.push(surface);
     }
@@ -72,8 +74,7 @@ export function buildHullContent(scene: BuilderScene, nativeSurfaces: Constructi
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     geometry.computeVertexNormals();
-    if (scene.display === 'armor')
-      for (const group of armorGroups) geometry.addGroup(group.start, group.count, group.materialIndex);
+    if (scene.display === 'armor') for (const group of armorGroups) geometry.addGroup(group.start, group.count, group.materialIndex);
     const mesh = new THREE.Mesh(
       geometry,
       scene.display === 'armor'

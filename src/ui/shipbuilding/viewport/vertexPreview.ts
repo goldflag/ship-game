@@ -5,7 +5,12 @@ import { primitiveGeometry, primitiveOutlineGeometry, primitiveRotation } from '
 import { BRASS_LIGHT, MINT } from './resources';
 
 /** Every block redrawn from source with `map`'s replacements: brass edges on the shaped blocks, mint on their twins. */
-export function fillVertexPreview(group: THREE.Group, source: ConstructionSource, map: Map<string, ConstructionPrimitive>, shaped: Set<string>) {
+export function fillVertexPreview(
+  group: THREE.Group,
+  source: ConstructionSource,
+  map: Map<string, ConstructionPrimitive>,
+  shaped: Set<string>,
+) {
   for (const original of source.construction.primitives) {
     const p = map.get(original.id) ?? original;
     const geometry = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping, p.balcony, p.mesh);

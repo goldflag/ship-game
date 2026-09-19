@@ -43,8 +43,7 @@ export function moveDrag(scene: BuilderScene, hit: BuilderPick | undefined, came
   const wall = boundaries.find((entry) => entry.id === hit.id);
   if (!isPrimitive(hit.id) && !isEquipment(hit.id) && !wall) return undefined;
   if (targets === 'equipment' && !isEquipment(hit.id)) return undefined;
-  const allowed =
-    scene.pickTargets === 'internals' ? internalSelectionIds(scene.source, scene.catalog) : undefined;
+  const allowed = scene.pickTargets === 'internals' ? internalSelectionIds(scene.source, scene.catalog) : undefined;
   const ids = [...scene.selected].filter(
     (id) => (!allowed || allowed.has(id)) && (isPrimitive(id) || isEquipment(id) || boundaries.some((entry) => entry.id === id)),
   );
@@ -215,8 +214,7 @@ export function positionMovePreview(view: MovePreviewView, delta: Vec3) {
         if (child.userData.projectedKey !== key) {
           release(child);
           const template = view.equipment.clone(part.id, true);
-          if (template)
-            child.add(createConstructionWallModel(template, part, item, surfaces, view.scene.source.construction.primitives));
+          if (template) child.add(createConstructionWallModel(template, part, item, surfaces, view.scene.source.construction.primitives));
           child.scale.set(1, 1, 1);
           child.userData.projectedKey = key;
         }

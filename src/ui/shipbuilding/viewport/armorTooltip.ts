@@ -38,10 +38,7 @@ export function placeArmorTooltip(overlay: HTMLElement, event?: { clientX: numbe
 /** The hull face under the pointer, or a turret plate in front of it: turrets carry fixed catalog armor. */
 export function armorReading(view: ArmorView, event: { clientX: number; clientY: number }, pick?: BuilderPick): ArmorReading | undefined {
   const ray = pointerRay(event, view.canvas, view.camera);
-  const turret =
-    view.navigating || view.scene.measuring
-      ? undefined
-      : view.equipment.armorHit(ray, view.scene.source, view.scene.catalog);
+  const turret = view.navigating || view.scene.measuring ? undefined : view.equipment.armorHit(ray, view.scene.source, view.scene.catalog);
   const hull = ray.intersectObjects(view.hullMeshes, false)[0];
   if (turret && (!hull || turret.distance <= hull.distance))
     return {

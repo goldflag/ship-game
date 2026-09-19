@@ -15,7 +15,11 @@ export interface ScreenRect {
 type Project = (point: THREE.Vector3) => { x: number; y: number } | undefined;
 
 /** The box-selection rectangle from the press to the pointer, in canvas pixels. */
-export function boxRect(canvas: HTMLCanvasElement, start: { x: number; y: number }, event: { clientX: number; clientY: number }): ScreenRect {
+export function boxRect(
+  canvas: HTMLCanvasElement,
+  start: { x: number; y: number },
+  event: { clientX: number; clientY: number },
+): ScreenRect {
   const bounds = canvas.getBoundingClientRect();
   return {
     left: Math.min(start.x, event.clientX) - bounds.left,
@@ -107,7 +111,9 @@ export function placeTags(view: TagView) {
     element.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
     const endX = screen.x < x + tagWidth / 2 ? x : x + tagWidth,
       endY = y + tagHeight / 2;
-    leaders += `<line x1="${screen.x.toFixed(1)}" y1="${screen.y.toFixed(1)}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="${LEADER[tag.tone]}"/><circle cx="${screen.x.toFixed(1)}" cy="${screen.y.toFixed(1)}" r="2.5" fill="${LEADER[tag.tone]}"/>`;
+    leaders +=
+      `<line x1="${screen.x.toFixed(1)}" y1="${screen.y.toFixed(1)}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="${LEADER[tag.tone]}"/>` +
+      `<circle cx="${screen.x.toFixed(1)}" cy="${screen.y.toFixed(1)}" r="2.5" fill="${LEADER[tag.tone]}"/>`;
   }
   const svg = view.overlay.querySelector('svg');
   if (svg) {
@@ -126,7 +132,13 @@ export function showGestureFeedback(overlay: HTMLElement, text: string) {
 }
 
 /** The measuring line and its length tag; an open measurement follows `hoverPoint`. */
-export function placeMeasure(overlay: HTMLElement, line: THREE.Line, measured: BuilderScene['measure'], hoverPoint: () => Vec3 | undefined, project: Project) {
+export function placeMeasure(
+  overlay: HTMLElement,
+  line: THREE.Line,
+  measured: BuilderScene['measure'],
+  hoverPoint: () => Vec3 | undefined,
+  project: Project,
+) {
   const measure = overlay.querySelector<HTMLElement>('[data-measure]');
   if (measure) {
     const from = measured?.from,

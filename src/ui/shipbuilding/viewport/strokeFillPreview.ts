@@ -101,10 +101,7 @@ export function fillFacesPreview(target: THREE.Group, faces: Iterable<string>, s
           fill.push(...vertex.map((value, axis) => value + surface.normal[axis] * 0.02));
     for (const edge of surfaceOutline(group)) {
       const normal = new THREE.Vector3(...edge.surface.normal);
-      outline.push(
-        new THREE.Vector3(...edge.a).addScaledVector(normal, 0.03),
-        new THREE.Vector3(...edge.b).addScaledVector(normal, 0.03),
-      );
+      outline.push(new THREE.Vector3(...edge.a).addScaledVector(normal, 0.03), new THREE.Vector3(...edge.b).addScaledVector(normal, 0.03));
     }
   }
   const geometry = new THREE.BufferGeometry();

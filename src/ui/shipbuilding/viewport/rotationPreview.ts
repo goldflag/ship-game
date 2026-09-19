@@ -15,7 +15,12 @@ export interface RotationDrag {
 }
 
 /** The drag a secondary press begins: the fittings under it (or the selection it belongs to), else the held cursor ghost. */
-export function rotationDrag(scene: BuilderScene, pick: () => BuilderPick | undefined, clientX: number, ghostPosition: Vec3 | undefined): RotationDrag | undefined {
+export function rotationDrag(
+  scene: BuilderScene,
+  pick: () => BuilderPick | undefined,
+  clientX: number,
+  ghostPosition: Vec3 | undefined,
+): RotationDrag | undefined {
   if (
     scene.freeform ||
     scene.pathDraft ||
@@ -40,7 +45,13 @@ export function rotationDrag(scene: BuilderScene, pick: () => BuilderPick | unde
 }
 
 /** Turn the installed models (and their pick proxies) in place; the source commits once on release. */
-export function previewRotation(scene: BuilderScene, equipmentGroup: THREE.Object3D, details: THREE.Object3D, rotation: RotationDrag, degrees: number) {
+export function previewRotation(
+  scene: BuilderScene,
+  equipmentGroup: THREE.Object3D,
+  details: THREE.Object3D,
+  rotation: RotationDrag,
+  degrees: number,
+) {
   for (const item of scene.source.construction.equipment) {
     const twin = !!rotation.twins?.includes(item.id);
     if (!twin && !rotation.ids.includes(item.id)) continue;

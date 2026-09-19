@@ -240,7 +240,12 @@ class Viewport {
       this.facesPreview,
       this.measureGroup,
     );
-    this.snap = new ViewportSnapping(host, () => this.camera, () => this.props.scene, this.hullSize);
+    this.snap = new ViewportSnapping(
+      host,
+      () => this.camera,
+      () => this.props.scene,
+      this.hullSize,
+    );
     this.freeformHandles = new FreeformHandles(
       host,
       () => this.camera,
