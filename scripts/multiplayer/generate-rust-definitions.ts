@@ -29,8 +29,14 @@ const source = 'src/ships/blueprint.ts';
 const program = ts.createProgram([source], { strict: true, target: ts.ScriptTarget.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, module: ts.ModuleKind.ESNext });
 const checker = program.getTypeChecker();
 const file = program.getSourceFile(source)!;
-const declaration = file.statements.find(s => ts.isInterfaceDeclaration(s) && s.name.text === 'ShipDefinition')!;
-const root = checker.getTypeAtLocation(declaration);
+// blueprint.ts re-exports the contract from src/ships/blueprint/; roots resolve through its exports.
+const exported = new Map(checker.getExportsOfModule(checker.getSymbolAtLocation(file)!).map(symbol => [symbol.name, symbol]));
+const schemaRoot = (name: string): ts.Type => {
+  const symbol = exported.get(name);
+  if (!symbol) throw new Error(`Missing schema root ${name}`);
+  return checker.getDeclaredTypeOfSymbol(symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol);
+};
+const root = schemaRoot('ShipDefinition');
 const definitions: string[] = [];
 const usedTableEntries = new Set<string>();
 const assigned = new Map<ts.Type, string>();
@@ -87,9 +93,7 @@ function rustType(original: ts.Type, hint: string): string {
 rustType(root, 'ShipDefinition');
 // Additional source/result roots share the same type graph and generator. No object unions.
 for (const name of ['ConstructionSource', 'ConstructionResult', 'ConstructionCatalog', 'ConstructionSuggestion']) {
-  const node = file.statements.find(s => ts.isInterfaceDeclaration(s) && s.name.text === name);
-  if (!node) throw new Error(`Missing schema root ${name}`);
-  rustType(checker.getTypeAtLocation(node), name);
+  rustType(schemaRoot(name), name);
 }
 for (const key of [...Object.entries(SERDE_DEFAULT_FIELDS).flatMap(([name, fields]) => fields.map(field => `${name}.${field}`)), ...Object.keys(TYPE_OVERRIDES)]) {
   if (!usedTableEntries.has(key)) throw new Error(`${key} is configured in the generator but no longer exists in ${source}`);
