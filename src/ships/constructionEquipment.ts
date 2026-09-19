@@ -1,6 +1,23 @@
 import { assetUrl } from '../assetUrl';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionSource } from './blueprint';
 
+// Palette policy applies to retained catalogs too: removing an entry only from
+// the current publication would still offer it when editing an older design.
+const retiredDeckFittings = new Set([
+  'generic-paravane', 'generic-signal-lamp', 'generic-gun-tub', 'generic-gun-tub-large',
+  'generic-ready-ammo-locker', 'generic-splinter-shield', 'generic-breakwater',
+  'german-cruiser-capstan', 'german-cruiser-deck-hatch',
+]);
+export const isRetiredDeckFitting = (partId: string): boolean => retiredDeckFittings.has(partId);
+
+/** Remove retired instances from an editable copy. The caller owns its new revision/save. */
+export function removeRetiredDeckFittings(source: ConstructionSource): boolean {
+  const equipment = source.construction.equipment.filter(part => !isRetiredDeckFitting(part.partId));
+  if (equipment.length === source.construction.equipment.length) return false;
+  source.construction.equipment = equipment;
+  return true;
+}
+
 /** Describe an explicit catalog update; old source revisions keep their exact catalog. */
 export function constructionCatalogUpdate(source: ConstructionSource, current: ConstructionCatalog, next: ConstructionCatalog) {
   if (source.construction.catalogRevision !== current.revision) throw new Error('Load this design’s equipment revision before updating its parts library.');
