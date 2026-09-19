@@ -73,7 +73,7 @@ Squadron cards require a baked thumbnail for every model in `GAMEPLAY_AIRCRAFT`.
 BLENDER_MCP_BIN=/path/to/blender-mcp /path/to/python assets/aircraft/mcp_author.py all
 bun run aircraft:publish all
 /path/to/python assets/aircraft/mcp_author.py --inspect
-/path/to/python assets/aircraft/mcp_author.py --screenshot assets/aircraft/reports/blender-mcp-viewport.png
+/path/to/python assets/aircraft/mcp_author.py --screenshot .build/reviews/aircraft/blender-mcp-viewport.png
 ```
 
 Use `--code-file /path/to/review.py` for a repeatable inspection script. For example, after opening a retained SBD or Helldiver source in Blender, this previews the separate split-brake joints in the authoring frame:

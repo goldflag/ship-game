@@ -3,7 +3,7 @@ import { PerspectiveCamera } from 'three/webgpu';
 import { CombatSimulation } from '../../src/simulation/combat';
 import { shipPreset } from '../../src/ships/presets';
 import { CombatEffects } from '../../src/game/CombatEffects';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 const baseline = process.argv.includes('--baseline');
 const Effects = baseline ? (await import('../../src/game/CombatEffects.baseline.ts')).CombatEffects : CombatEffects;
 const def = shipPreset('bismarck');
@@ -25,5 +25,6 @@ times.sort((a, b) => a - b);
 const result = { fixture: '60 Bismarcks, every existing fire at intensity 1. Synthetic adapter saturation, not normal combat or a GPU timing.',
   bun: Bun.version, actors: sim.actors.length, burningLocations: sim.actors.reduce((n, a) => n + a.damage.control.rooms.length + a.damage.control.mounts.length, 0), samples: times.length,
   milliseconds: { median: times[300], p90: times[540], p99: times[594] }, effects: effects.diagnostics() };
-writeFileSync(`assets/reviews/localized-fire/${baseline ? 'before' : 'after'}-cpu-cost.json`, JSON.stringify(result, null, 2) + '\n');
+mkdirSync('.build/reviews/localized-fire', { recursive: true });
+writeFileSync(`.build/reviews/localized-fire/${baseline ? 'before' : 'after'}-cpu-cost.json`, JSON.stringify(result, null, 2) + '\n');
 console.log(result); effects.dispose();
