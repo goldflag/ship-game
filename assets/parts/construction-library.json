@@ -805,6 +805,30 @@
         "assets/parts/construction/small_appendages.py",
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-single-bollard": {
+      "path": "assets/parts/construction/bollards.py",
+      "function": "create_single_bollard",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/utility_fittings.py"
+      ]
+    },
+    "generic-t-head-bollard": {
+      "path": "assets/parts/construction/bollards.py",
+      "function": "create_t_head_bollard",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/utility_fittings.py"
+      ]
+    },
+    "generic-inclined-bollards": {
+      "path": "assets/parts/construction/bollards.py",
+      "function": "create_inclined_bollards",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/utility_fittings.py"
+      ]
     }
   },
   "components": [
@@ -1515,6 +1539,24 @@
       "builder": "generic-rudder-6000",
       "review": "unreviewed",
       "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-single-bollard",
+      "builder": "generic-single-bollard",
+      "review": "unreviewed",
+      "limitations": "Original generic mooring bollard; dimensions and dry mass are game estimates, not a historical reconstruction or load rating. Static painted fitting with a deck sole and rope sockets. Installed deck support and neighboring clearance require design-specific review."
+    },
+    {
+      "partId": "generic-t-head-bollard",
+      "builder": "generic-t-head-bollard",
+      "review": "unreviewed",
+      "limitations": "Original generic mooring bollard; dimensions and dry mass are game estimates, not a historical reconstruction or load rating. Static painted fitting with a deck sole and rope sockets. Installed deck support and neighboring clearance require design-specific review."
+    },
+    {
+      "partId": "generic-inclined-bollards",
+      "builder": "generic-inclined-bollards",
+      "review": "unreviewed",
+      "limitations": "Original generic mooring bollard; dimensions and dry mass are game estimates, not a historical reconstruction or load rating. Static painted fitting with a deck sole and rope sockets. Installed deck support and neighboring clearance require design-specific review."
     }
   ]
 }
