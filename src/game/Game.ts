@@ -75,6 +75,7 @@ import type { RangeTarget } from './rangefinderSight';
 import { RangefindingController } from './controllers/RangefindingController';
 import { SpectatorController } from './controllers/SpectatorController';
 import { GraphicsController } from './controllers/GraphicsController';
+import { HelmWheelController } from './controllers/HelmWheelController';
 import { ArticulationPreviewController, type ArticulationPreview } from './controllers/ArticulationPreviewController';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
@@ -226,9 +227,8 @@ export class Game {
   readonly controlGroups = new Map<number, ControlGroup>();
   private pveStartingGroups = new Map<number, ControlGroup>();
   private tacticalPause = false;
-  /** The ship picker while it is up, and the sunk hull it was last offered for. */
+  /** The ship picker while it is up. */
   helmWheel?: HelmWheelState;
-  private helmOfferedFor?: string;
   private cameraFrameListeners = new Set<() => void>();
   onCameraFrame(listener: () => void): () => void {
     this.cameraFrameListeners.add(listener);
@@ -816,7 +816,7 @@ export class Game {
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
-      this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.spectator.forgetHelm(); this.helmWheel = undefined; this.helmOfferedFor = undefined;
+      this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.spectator.forgetHelm(); this.helmWheel = undefined; this.wheel.forgetOffer();
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
       this.aimModule = simulation.target?.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
@@ -1241,57 +1241,25 @@ export class Game {
     this.simulation.selectShip?.(id);
     this.input.clear(); this.input.setOrder(1); this.input.setRudder(0);
   }
-  /** Friendly hulls the player could command next: afloat in a battle whose session
-   * transfers the helm, and not the hull already under the camera. */
-  get helmCandidates(): FleetActor[] {
-    if (this.inPort || !this.simulation.isBattle || !this.simulation.selectShip || this.simulation.result !== 'active') return [];
-    const current = this.spectatedShipId ?? this.simulation.player.motion.id;
-    return this.simulation.actors.filter(a => a.team === this.simulation.player.team && !physicalLoss(a) && a.motion.id !== current);
+  private helmWheelController?: HelmWheelController;
+  /** The ship picker held on Tab or offered after a sinking. Built on first use, so a test-assembled Game has one too. */
+  private get wheel(): HelmWheelController {
+    const game = this;
+    return this.helmWheelController ??= new HelmWheelController({
+      get simulation() { return game.simulation; }, get rig() { return game.rig; }, get input() { return game.input; },
+      get inPort() { return game.inPort; }, get paused() { return game.paused; }, get airOperationsOpen() { return game.airOperationsOpen; },
+      get inspecting() { return game.inspecting; }, get fleetCommandMode() { return game.fleetCommandMode; }, get spectatedShipId() { return game.spectatedShipId; },
+      get helmWheel() { return game.helmWheel; }, set helmWheel(state) { game.helmWheel = state; },
+      takeFleetHelm: id => game.takeFleetHelm(id), spectateTeammate: id => game.spectateTeammate(id),
+    });
   }
-  /** The helm wheel: the fleet fanned out around the current hull at true bearing.
-   * Held on its key it closes on release, taking the highlighted helm; offered
-   * after a sinking it stays up until a pick or Esc. The chart has its own picker. */
-  openHelmWheel(reason: HelmWheelState['reason']): void {
-    if (this.helmWheel || this.paused || this.airOperationsOpen || this.inspecting || !this.helmCandidates.length) return;
-    this.helmWheel = { reason };
-    this.rig.setHeld(true);
-    this.input.clear();
-  }
-  highlightHelmCandidate(id: string | undefined): void {
-    if (!this.helmWheel || this.helmWheel.highlightId === id) return;
-    this.helmWheel = { ...this.helmWheel, highlightId: id && this.helmCandidates.some(a => a.motion.id === id) ? id : undefined };
-  }
-  closeHelmWheel(): void {
-    if (!this.helmWheel) return;
-    this.helmWheel = undefined;
-    this.rig.setHeld(false);
-  }
-  /** Releasing the key commits to the highlighted hull; a wheel offered after a sinking waits for a pick. */
-  releaseHelmWheel(): void {
-    if (!this.helmWheel || this.helmWheel.reason !== 'held') return;
-    const id = this.helmWheel.highlightId;
-    this.closeHelmWheel();
-    if (id) this.takeHelm(id);
-  }
-  /** Command another friendly hull. Fleet command keeps its follow-then-helm path;
-   * a custom battle moves the camera onto the hull while the session confirms. */
-  takeHelm(id: string): void {
-    if (!this.helmCandidates.some(a => a.motion.id === id)) return;
-    this.closeHelmWheel();
-    this.helmOfferedFor = undefined;
-    if (this.fleetCommandMode) { this.takeFleetHelm(id); return; }
-    this.spectateTeammate(id);
-    this.simulation.selectShip?.(id);
-    this.input.clear(); this.input.setOrder(1); this.input.setRudder(0);
-  }
-  /** A sunk helm in a custom battle offers the wheel once; Esc leaves the spectator view in place. */
-  private offerHelmWheel(): void {
-    if (this.fleetCommandMode || this.helmWheel || this.paused) return;
-    const id = this.simulation.player.motion.id;
-    if (!this.simulation.player.damage.sunk || this.helmOfferedFor === id) return;
-    this.helmOfferedFor = id;
-    this.openHelmWheel('sunk');
-  }
+  get helmCandidates(): FleetActor[] { return this.wheel.candidates; }
+  openHelmWheel(reason: HelmWheelState['reason']): void { this.wheel.open(reason); }
+  highlightHelmCandidate(id: string | undefined): void { this.wheel.highlight(id); }
+  closeHelmWheel(): void { this.wheel.close(); }
+  releaseHelmWheel(): void { this.wheel.release(); }
+  takeHelm(id: string): void { this.wheel.takeHelm(id); }
+  private offerHelmWheel(): void { this.wheel.offer(); }
   launchAircraft(squadronId: string): void {
     const flight = squadronFlights(this.simulation.player).find(f => f.squadronId === squadronId && f.planeIds.every(id => ['ready', 'lost'].includes(this.simulation.aircraft.find(p => p.id === id)?.phase ?? 'lost')));
     if (!this.inPort && !this.paused && this.simulation.launchAircraft(squadronId)) this.selectedFlightId = flight?.id;
