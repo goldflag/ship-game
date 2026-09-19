@@ -45,16 +45,12 @@ fn error(id: &str, message: &str) -> ConstructionDiagnostic {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(crate) fn compile(
     e: &ConstructionEquipment,
     p: &ConstructionEquipmentPart,
     surfaces: &[ConstructionSurface],
     hull: &[cg::Cell],
     hull_index: &cg::Broadphase,
-    fitted: &[(String, cg::Cell)],
-    fitting_index: &cg::Broadphase,
-    part_name: &dyn Fn(&str) -> String,
 ) -> Result<FittedPath, ConstructionDiagnostic> {
     let source = e.path.as_ref().unwrap();
     let stairs = p.path.as_ref().unwrap().kind == "inclined-ladder";
@@ -329,15 +325,6 @@ pub(crate) fn compile(
                         "A ladder member intersects the hull; move the endpoints clear of the deck edge",
                     ));
                 }
-            }
-        }
-        for i in fitting_index.candidates(&cell) {
-            if cg::intersection(&cell, &fitted[i].1).is_some_and(|c| cg::moments(&c).volume > 1e-7)
-            {
-                return Err(error(
-                    &e.id,
-                    &format!("{} intersects {}", p.name, crate::construction::neighbor_name(&p.name, &part_name(&fitted[i].0))),
-                ));
             }
         }
         // Provisional steel loading: channel stringers and folded treads use

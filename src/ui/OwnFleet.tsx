@@ -13,6 +13,8 @@ export interface OwnFleetShip {
   damageDealt: number; frags: number; lost: boolean; warn: boolean; massKg: number;
   /** Only a carrier reports a wing; the formation header shows it instead of damage. */
   aircraft?: { remaining: number; total: number };
+  /** The hull under the player's own hand, in a battle that reads the chart from the helm. */
+  you?: boolean;
 }
 export interface OwnFleetAircraft { remaining: number; total: number; airborne: number; onDeck: number; inHangar: number }
 export interface OwnFleetCardProps {
@@ -20,6 +22,8 @@ export interface OwnFleetCardProps {
   /** Undefined when the fleet has no carrier. */
   aircraft?: OwnFleetAircraft;
   airOpen?: boolean;
+  /** A custom battle sails ship by ship: a formation of one is just its row, without a header of its own. */
+  flat?: boolean;
   onHover(id: string | undefined): void; onSelectShip(id: string, additive: boolean): void; onSelectFormation(formation: FleetFormation): void;
   onOpenAir?(): void;
 }
@@ -31,7 +35,7 @@ const tonnes = (kg: number) => `${Math.round(kg / 1000).toLocaleString()} t`;
 /** Our own order of battle in the top-left corner: every formation, every ship,
  * the order it is running and the score its captain has run up. The rows carry
  * the same hover id as the chart markers, so pointing at either lights both. */
-export function OwnFleetCard({ formations, ships, selectedIds, hoverId, aircraft, airOpen, onHover, onSelectShip, onSelectFormation, onOpenAir }: OwnFleetCardProps) {
+export function OwnFleetCard({ formations, ships, selectedIds, hoverId, aircraft, airOpen, flat, onHover, onSelectShip, onSelectFormation, onOpenAir }: OwnFleetCardProps) {
   const afloat = ships.filter(s => !s.lost);
   const assigned = new Set(formations.flatMap(f => f.shipIds));
   const orphans = ships.filter(s => !assigned.has(s.id));
@@ -42,7 +46,7 @@ export function OwnFleetCard({ formations, ships, selectedIds, hoverId, aircraft
       onMouseEnter={() => onHover(ship.id)} onMouseLeave={() => onHover(undefined)} onFocus={() => onHover(ship.id)} onBlur={() => onHover(undefined)}
       onClick={e => onSelectShip(ship.id, e.shiftKey || e.ctrlKey || e.metaKey)}>
       <svg className="fleet-card-glyph" viewBox="-13 -13 26 26" aria-hidden="true"><path className="fleet-card-hull" d={glyph.hull}/><path className="fleet-card-mark" d={glyph.mark}/></svg>
-      <span className="fleet-card-name">{ship.name}{ship.routeBlocked && <span className="fleet-route-warning" title="Route blocked"><Icon name="warning" size={14}/></span>}<small className={ship.warn ? 'brass' : ''}>{ship.order}</small></span>
+      <span className="fleet-card-name">{ship.name}{ship.you && <em>You</em>}{ship.routeBlocked && <span className="fleet-route-warning" title="Route blocked"><Icon name="warning" size={14}/></span>}<small className={ship.warn ? 'brass' : ''}>{ship.order}</small></span>
       <span className="fleet-card-value">{ship.lost ? 'Lost' : `${Math.round(ship.hull * 100)}%`}
         <small>{ship.kn} kn · {ship.damageDealt ? `${compact(ship.damageDealt)} dmg` : 'no hits'}{ship.frags ? ` · ${ship.frags} sunk` : ''}</small></span>
     </button>;
@@ -52,6 +56,7 @@ export function OwnFleetCard({ formations, ships, selectedIds, hoverId, aircraft
     {formations.map(formation => {
       const members = formation.shipIds.map(id => ships.find(s => s.id === id)).filter((s): s is OwnFleetShip => !!s);
       const carrier = members.find(s => s.aircraft?.total);
+      if (flat && members.length === 1) return <div key={formation.index}>{row(members[0])}</div>;
       return <div key={formation.index}>
         <button className="fleet-card-head" aria-pressed={members.length > 0 && members.every(s => selectedIds.includes(s.id))}
           title={`Select every ship in ${formation.name} · ${formation.index}${members.length > 1 ? ` · ${formationLabel(formation.formation)}` : ''}`} onClick={() => onSelectFormation(formation)}>

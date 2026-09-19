@@ -10,3 +10,11 @@
 .shipbuilder .design-delete button { min-height: 36px; padding: 6px 8px; color: var(--sb-salmon); }
 .shipbuilder .design-delete p { color: var(--sb-text); }
 .shipbuilder .design-delete p[role=alert] { color: var(--sb-salmon); }
+.design-clone { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.design-clone button { min-height: 36px; padding: 6px 8px; border: 0; background: transparent; color: #edf1ec; font: inherit; cursor: pointer; }
+.design-clone button:hover:not(:disabled) { background: #edf1ec18; }
+.design-clone button:focus-visible { outline: 2px solid #86e4c5; outline-offset: 2px; }
+.design-clone button:disabled { cursor: default; opacity: .45; }
+.design-clone p { margin: 0; color: #ffb5a6; font-size: 12px; }
+.shipbuilder .design-clone button { min-height: 36px; padding: 6px 8px; color: var(--sb-text); }
+.shipbuilder .design-clone p { color: var(--sb-salmon); }

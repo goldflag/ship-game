@@ -249,6 +249,9 @@
 .sb-ledger .row.warn b { color: var(--sb-gold); }
 .sb-ledger .row.bad b { color: var(--sb-salmon); }
 .sb-ledger .row.ok b { color: var(--sb-mint); }
+/* rows with an explanation take the pointer so their tooltip shows; the rest of the ledger stays click-through */
+.sb-ledger .row[title] { pointer-events: auto; cursor: help; }
+.sb-ledger .row[title] span { text-decoration: underline dotted color-mix(in srgb, var(--sb-muted) 60%, transparent); text-underline-offset: 3px; }
 .sb-massbar { display: flex; height: 6px; margin: 12px 0 7px; gap: 1px; }
 .sb-massbar i { display: block; height: 100%; }
 .sb-masskey { display: grid; grid-template-columns: 8px 1fr auto; gap: 3px 8px; font-size: 11px; color: var(--sb-muted); align-items: center; }

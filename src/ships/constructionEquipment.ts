@@ -77,7 +77,8 @@ export async function loadConstructionCatalog(revision?:string, request:(input:s
   if(!response.ok) throw new Error(`Equipment catalog unavailable (${response.status}); ${revision ? 'the saved revision is missing' : 'publish the construction equipment'}`);
   const result=parseConstructionCatalog(await response.json());
   if(revision && result.revision!==revision) throw new Error('Equipment catalog revision mismatch');
-  return result;
+  // Display the current name for saved designs without rewriting retained catalogs.
+  return { ...result, equipment: result.equipment.map(part => part.id === 'generic-rope' ? { ...part, name: 'Mooring rope' } : part) };
 }
 
 export function constructionEquipmentPart(catalog:ConstructionCatalog,partId:string,contentHash?:string):ConstructionEquipmentPart {

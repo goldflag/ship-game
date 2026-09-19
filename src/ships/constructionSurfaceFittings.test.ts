@@ -108,3 +108,11 @@ test('published door and vent originals preserve a separate relief assembly',asy
     expect(gltf.nodes.some((n:{extras?:{wallRelief?:boolean}})=>n.extras?.wallRelief),id).toBe(true);
   }
 });
+
+
+test('surface ladders can fully overlap other fittings', () => {
+  const source = fixture();
+  source.construction.equipment.push(ladder(), { ...ladder(), id: 'overlapping-ladder' });
+  const result = compile(source);
+  expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
+});

@@ -16,8 +16,9 @@ import { ShipClassIcon } from "./ShipClassIcons";
 import { battleModeName, type BattleMode } from "./battle/battleModes";
 import { localShips, shipTitle, subscribeLocalShips } from '../ships/localShips';
 import { usePortDesigns } from './usePortDesigns';
-import { DeleteDesignButton } from './DeleteDesignButton';
-import { openConstructionStore } from '../ships/constructionStore';
+import { CloneDesignButton, DeleteDesignButton } from './DeleteDesignButton';
+import { cloneConstructionDesign, openConstructionStore } from '../ships/constructionStore';
+import { restoreLocalShips } from '../ships/constructionLibrary';
 import { shipScores, shipSpec, type StatScoreId } from '../ships/statistics';
 import { HULL_PRESETS, type HullPresetChoice } from '../ships/constructionHullPresets';
 import { HullPresetPlan } from './shipbuilding/NewDesignDialog';
@@ -111,7 +112,7 @@ function specLine(design: PortDesign): string {
   return [`${Math.round(design.ship.definition.hull.length)} m`, `${spec.Displacement.value} t`, guns.unit ? `${guns.value} ${guns.unit}` : 'unarmed', `${spec.Speed.value} kn`].join(' · ');
 }
 
-function ChestCard({ design, berthed, ready, onOpen, onEdit, onDelete }: { design: PortDesign; berthed: boolean; ready: boolean; onOpen(): void; onEdit(): void; onDelete?: () => Promise<void> }) {
+function ChestCard({ design, berthed, ready, onOpen, onEdit, onClone, onDelete }: { design: PortDesign; berthed: boolean; ready: boolean; onOpen(): void; onEdit(): void; onClone?: () => Promise<void>; onDelete?: () => Promise<void> }) {
   const viewable = !!design.ship;
   return <article className="chest-card" data-berthed={berthed} data-status={design.status}>
     {berthed && <span className="chest-berthed"><Icon name="anchor" size={13} />Alongside now</span>}
@@ -128,6 +129,7 @@ function ChestCard({ design, berthed, ready, onOpen, onEdit, onDelete }: { desig
       <div className="chest-actions">
         {viewable && <button className="port-command" disabled={!ready} onClick={onOpen}><strong>{berthed ? 'BACK TO THE QUAY' : 'VIEW IN PORT'}</strong><Icon name="arrow" size={16} /></button>}
         <button className={viewable ? 'port-quiet' : 'port-command'} disabled={!ready} onClick={onEdit}><PortIcon name="pencil" size={15} />{viewable ? 'Edit' : <strong>EDIT DESIGN</strong>}</button>
+        {onClone && <CloneDesignButton name={design.name} disabled={!ready} onClone={onClone} />}
         {onDelete && <DeleteDesignButton key={design.id} name={design.name} disabled={!ready} onDelete={onDelete} />}
       </div>
     </footer>
@@ -138,9 +140,9 @@ const FILTERS: { id: PortFilter; label: string }[] = [{ id: 'all', label: 'All' 
 const SORTS: { id: PortSort; label: string }[] = [{ id: 'recent', label: 'Recent' }, { id: 'name', label: 'Name' }, { id: 'size', label: 'Size' }];
 
 /** Every saved design at once, over the dimmed quay. */
-function PlanChest({ designs, berthedId, berthedName, ready, query, onClose, onView, onEdit, onBuild, onDelete }: {
+function PlanChest({ designs, berthedId, berthedName, ready, query, onClose, onView, onEdit, onBuild, onClone, onDelete }: {
   designs: PortDesign[]; berthedId?: string; berthedName?: string; ready: boolean; query: string;
-  onClose(): void; onView(design: PortDesign): void; onEdit(design: PortDesign): void; onBuild(): void; onDelete(design: PortDesign): Promise<void>;
+  onClose(): void; onView(design: PortDesign): void; onEdit(design: PortDesign): void; onBuild(): void; onClone(design: PortDesign): Promise<void>; onDelete(design: PortDesign): Promise<void>;
 }) {
   const [filter, setFilter] = useState<PortFilter>('all'), [sort, setSort] = useState<PortSort>('recent');
   const shown = useMemo(() => sortDesigns(filterDesigns(designs, filter, query), sort), [designs, filter, query, sort]);
@@ -160,7 +162,7 @@ function PlanChest({ designs, berthedId, berthedName, ready, query, onClose, onV
         <Icon name="plus" size={30} /><strong>New design</strong><span>Start from a hull shape or a single block.</span>
       </button>
       {shown.map(design => <ChestCard key={design.id} design={design} berthed={!!design.ship && design.ship.definition.id === berthedId} ready={ready}
-        onOpen={() => onView(design)} onEdit={() => onEdit(design)} onDelete={design.head ? () => onDelete(design) : undefined} />)}
+        onOpen={() => onView(design)} onEdit={() => onEdit(design)} onClone={design.head ? () => onClone(design) : undefined} onDelete={design.head ? () => onDelete(design) : undefined} />)}
       {!shown.length && <p className="plan-chest-empty" role="status">{designs.length ? 'No designs match.' : 'No designs yet.'}</p>}
     </div>
     <p className="plan-chest-hint"><kbd>Esc</kbd>Back to the quay</p>
@@ -275,6 +277,17 @@ export function Garage({
     catch (error) { library.refresh(); throw error; }
     finally { store.close(); }
   };
+  /** The clone joins the library as its own design, then comes alongside once she has compiled. */
+  const clone = async (design: PortDesign) => {
+    const store = await openConstructionStore();
+    let cloneId: string;
+    try { cloneId = (await cloneConstructionDesign(store, design.head!.id)).sourceId; }
+    finally { store.close(); }
+    library.refresh();
+    await restoreLocalShips();
+    const ship = localShips().find(ship => ship.source.id === cloneId);
+    if (ship) { setChestOpen(false); rememberDesign(cloneId); onSelectShip(ship.definition.id); }
+  };
   const edit = (design: PortDesign) => onEditDesign(design.id);
 
   const state: GarageState = { inspection, selectedVolume, inspect, selectVolume: setSelectedVolume, battle: onBattle, chooseBattle: onChooseBattle, lastMode, ready: usable };
@@ -314,6 +327,7 @@ export function Garage({
               <dl className="port-spec">{shipSpec(selectedShip).map(figure => <div key={figure.label}><dt>{figure.label}</dt><dd>{figure.value}{figure.unit && <small>{figure.unit}</small>}</dd></div>)}</dl>
               {berthed && <div className="port-actions">
                 <button className="port-command" disabled={!usable} onClick={() => edit(berthed)}><PortIcon name="pencil" size={17} /><strong>EDIT DESIGN</strong></button>
+                {berthed.head && <CloneDesignButton name={berthed.name} disabled={!usable} onClone={() => clone(berthed)} />}
                 {berthed.head && <DeleteDesignButton key={berthed.id} name={berthed.name} disabled={!usable} onDelete={() => remove(berthed)} />}
               </div>}
             </section>
@@ -335,7 +349,7 @@ export function Garage({
         </div>
 
         {chestOpen && <PlanChest designs={designs} berthedId={berthed?.ship!.definition.id} berthedName={alongside ? shipTitle(selectedShip) : undefined} ready={usable} query={query}
-          onClose={() => setChestOpen(false)} onView={berth} onEdit={edit} onBuild={() => onBuild()} onDelete={remove} />}
+          onClose={() => setChestOpen(false)} onView={berth} onEdit={edit} onBuild={() => onBuild()} onClone={clone} onDelete={remove} />}
       </div>
       <InspectionTooltip game={game} />
       {switchError ? (

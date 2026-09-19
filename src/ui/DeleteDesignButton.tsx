@@ -22,3 +22,18 @@ export function DeleteDesignButton({ name, disabled, onDelete }: { name: string;
     </> : <button ref={trigger} disabled={disabled} aria-label={`Delete ${name}`} onClick={() => setConfirming(true)}>Delete</button>}
   </div>;
 }
+
+/** Clone sits beside Delete: one press saves the latest revision as a new design. */
+export function CloneDesignButton({ name, disabled, onClone }: { name: string; disabled?: boolean; onClone(): Promise<void> }) {
+  const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const clone = async () => {
+    setBusy(true); setError('');
+    try { await onClone(); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
+    finally { setBusy(false); }
+  };
+  return <div className="design-clone">
+    <button disabled={disabled || busy} aria-label={`Clone ${name}`} title="Save a copy as a new design" onClick={() => void clone()}>{busy ? 'Cloning…' : 'Clone'}</button>
+    {error && <p role="alert">{error}</p>}
+  </div>;
+}

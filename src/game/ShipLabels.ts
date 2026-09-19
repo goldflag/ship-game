@@ -126,13 +126,6 @@ export class ShipLabels {
 
   resize(width: number, height: number): void { this.width = width; this.height = height; }
 
-  /** Where a hull's name tag sat in the last frame, so other marks can stand clear of it.
-   * The tag hangs 8 px above its anchor: name, meter and condition (`ShipLabels.css`). */
-  tagBox(id: string): { x: number; top: number; bottom: number; halfWidth: number } | undefined {
-    const point = this.shown.get(id);
-    return point && { x: point.x, top: point.y - 54, bottom: point.y - 8, halfWidth: 72 };
-  }
-
   update(camera: Camera, time: number, events: readonly CombatEvent[] = [], playerId?: string): void {
     if (time < this.time) this.sequence = 0;
     this.time = time;

@@ -274,7 +274,7 @@ export function SettingsDialog({ graphics, launched, performance, inBattle, onGr
           <span>Pause / resume <kbd>Esc</kbd> <small>Always available</small></span>
           <span>Toggle binoculars <kbd>Shift</kbd> <small>Fixed control</small></span>
           <span>Hold for cursor <kbd>Ctrl</kbd> <small>Fixed control</small></span>
-          <span><small>Move the mouse to aim; hold left mouse to fire. Right mouse also toggles binoculars. Scroll adjusts camera distance or magnification.</small></span>
+          <span><small>Move the mouse to aim; hold left mouse to fire. Hold right mouse to lock the aim while you look around; Shift toggles binoculars. Scroll adjusts camera distance or magnification.</small></span>
         </div>
       </section>}
     </div>

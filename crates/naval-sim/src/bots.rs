@@ -390,15 +390,18 @@ pub(crate) fn gun_range(m: &MountDefinition) -> f64 {
         1800.0
     }
 }
-pub(crate) fn ammunition(def: &ShipDefinition, mount: &MountDefinition, state: &MountState) -> Ammunition {
-    let protection = def
-        .armor
+/// The thickest exterior armor a class carries: what a gunner judges a target by.
+pub(crate) fn exterior_protection_mm(def: &ShipDefinition) -> f64 {
+    def.armor
         .iter()
         .filter(|a| {
             a.exterior == Some(true) || a.plate.as_ref().is_some_and(|p| p.exterior == Some(true))
         })
         .map(|a| a.thickness_mm)
-        .fold(0.0, f64::max);
+        .fold(0.0, f64::max)
+}
+/// `protection` is the target's compiled `exterior_protection_mm`.
+pub(crate) fn ammunition(protection: f64, mount: &MountDefinition, state: &MountState) -> Ammunition {
     let preferred =
         if mount.weapon.he.is_some() && (mount.weapon.caliber_m < 0.2 || protection < 80.0) {
             Ammunition::He

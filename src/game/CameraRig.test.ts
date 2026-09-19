@@ -117,7 +117,7 @@ function pointerLockCamera() {
   Object.assign(document, { pointerLockElement: null, exitPointerLock: () => changeLock(null) });
   const pause = mock();
   const rig = new CameraRig(new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas as unknown as HTMLCanvasElement,
-    undefined, { pause, aim() {}, optics() {} });
+    undefined, { pause, aim() {}, aimLock() {} });
   const clickSea = () => canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button: 0, pointerType: 'mouse' }));
   return { rig, canvas, changeLock, clickSea, pause };
 }
@@ -421,12 +421,12 @@ for (const [pointerType, button] of [['mouse', 0], ['mouse', 2], ['touch', 0]] a
   });
 }
 
-test('pointer-locked follow controls orbit without firing, changing ship aim or triggering right-click optics', () => {
+test('pointer-locked follow controls orbit without firing, changing ship aim or starting a right-click aim lock', () => {
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   const canvas = Object.assign(new EventTarget(), { setPointerCapture() { throw new Error('Locked mouse must not capture a drag'); } });
   Object.assign(document, { pointerLockElement: canvas });
   let aim = 0, optics = 0;
-  const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement, undefined, { aim() { aim++; }, optics() { optics++; }, pause() {} });
+  const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement, undefined, { aim() { aim++; }, aimLock() { optics++; }, pause() {} });
   const ship = createShipState();
   const click = (button: number) => canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button, pointerType: 'mouse' }));
   click(0); expect(rig.firing).toBe(true);
@@ -726,4 +726,53 @@ test('a submerged submarine can also orbit to a near-vertical view of its hull',
   drag(0, 100000); rig.update(ship, ship.y, 0, true);
   expect(Math.hypot(camera.position.x, camera.position.z)).toBeLessThan((camera.position.y - ship.y) * .04);
   rig.dispose();
+});
+
+test('held right mouse locks the aim until that button lifts, while left mouse keeps firing', () => {
+  const canvas = Object.assign(new EventTarget(), { setPointerCapture() { throw new Error('Locked mouse must not capture a drag'); } });
+  Object.assign(document, { pointerLockElement: canvas });
+  const holds: boolean[] = [];
+  const rig = new CameraRig(new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas as unknown as HTMLCanvasElement, undefined, { aim() {}, aimLock: held => holds.push(held), pause() {} });
+  const press = (button: number) => canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button, pointerType: 'mouse' }));
+  const lift = (button: number) => window.dispatchEvent(Object.assign(new Event('pointerup'), { button }));
+  press(2); press(2); expect(holds).toEqual([true]);
+  press(0); lift(0); expect(rig.firing).toBe(false); expect(holds).toEqual([true]);
+  press(0); lift(2); expect(holds).toEqual([true, false]); expect(rig.firing).toBe(true);
+  press(2); window.dispatchEvent(new Event('blur')); expect(holds).toEqual([true, false, true, false]); expect(rig.firing).toBe(false);
+  Object.assign(document, { pointerLockElement: null }); rig.dispose();
+});
+
+test('the free camera flies from the current view on its own heading and returns the ship view untouched', () => {
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
+  Object.assign(document, { pointerLockElement: canvas });
+  const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement);
+  rig.setBattleTerrain((x) => x > 5000 ? 300 : 0);
+  const ship = createShipState();
+  rig.update(ship, 0, 0, true);
+  const bearing = rig.bearing, home = camera.position.clone(), facing = camera.getWorldDirection(new Vector3());
+  rig.setFreeCamera(true); rig.update(ship, 0, 0);
+  expect(camera.position.distanceTo(home)).toBeLessThan(1e-9);
+  expect(camera.getWorldDirection(new Vector3()).distanceTo(facing)).toBeLessThan(1e-6);
+  // Ahead at the default speed, then four times faster; the ship sailing on does not drag the view.
+  rig.setFreeMove({ x: 0, y: 0, z: 1, fast: false }); rig.update({ ...ship, x: ship.x + 50 }, 0, .5);
+  expect(camera.position.clone().sub(home).dot(facing)).toBeCloseTo(rig.freeCameraSpeed * .5, 6);
+  const before = camera.position.clone();
+  rig.setFreeMove({ x: 0, y: 0, z: 1, fast: true }); rig.update(ship, 0, .5);
+  expect(camera.position.distanceTo(before)).toBeCloseTo(rig.freeCameraSpeed * 2, 6);
+  // Mouse looks without firing or aiming the ship; the wheel changes speed.
+  canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button: 0, pointerType: 'mouse' }));
+  expect(rig.firing).toBe(false);
+  canvas.dispatchEvent(Object.assign(new Event('pointermove'), { movementX: 300, movementY: 0 }));
+  rig.setFreeMove({ x: 0, y: 0, z: 0, fast: false }); rig.update(ship, 0, .016);
+  expect(camera.getWorldDirection(new Vector3()).distanceTo(facing)).toBeGreaterThan(.3);
+  const speed = rig.freeCameraSpeed;
+  canvas.dispatchEvent(Object.assign(new Event('wheel', { cancelable: true }), { deltaY: -400 }));
+  expect(rig.freeCameraSpeed).toBeGreaterThan(speed);
+  // Below the sea is open; land is not.
+  camera.position.set(0, -30, 0); rig.update(ship, 0, .016); expect(camera.position.y).toBe(-30);
+  camera.position.set(6000, 10, 0); rig.update(ship, 0, .016); expect(camera.position.y).toBe(302);
+  rig.setFreeCamera(false); rig.update(ship, 0, 0, true);
+  expect(rig.bearing).toBe(bearing); expect(camera.position.distanceTo(home)).toBeLessThan(1e-9);
+  Object.assign(document, { pointerLockElement: null }); rig.dispose();
 });

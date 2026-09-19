@@ -44,10 +44,14 @@ fn step(a: &mut Vessel, throttle: f64, rudder: f64) {
 #[test]
 fn fleet_acceleration_and_crash_stops_retain_inertia() {
     for (id, cruise_range, stop_range) in [
-        ("fletcher", (11., 17.), (13., 21.)),
-        ("bismarck", (62., 88.), (58., 82.)),
-        ("valiant", (42., 59.), (38., 53.)),
-        ("resolute", (46., 65.), (44., 62.)),
+        // Budgets are the paced times at the current force response. Construction
+        // ships answer to compiled power on a calibrated resistance curve; their
+        // budgets follow the speeds that model gives, not the legacy presets'
+        // authored ones.
+        ("fletcher", (13., 21.), (12., 19.)),
+        ("bismarck", (62., 90.), (61., 89.)),
+        ("valiant", (52., 76.), (48., 70.)),
+        ("resolute", (62., 89.), (68., 98.)),
         ("type-viic", (11., 17.), (11., 17.)),
     ] {
         let mut a = ship(id);
@@ -79,11 +83,11 @@ fn fleet_can_change_course_and_countersteer_during_a_fight() {
     // Course changes are world heading, which advances at world pace; the budgets
     // below are the paced times at the current force response.
     for (id, min_seconds, turn_seconds) in [
-        ("fletcher", 11., 18.),
-        ("bismarck", 38., 58.),
-        ("valiant", 130., 190.),
-        ("resolute", 70., 100.),
-        ("type-viic", 17., 27.),
+        ("fletcher", 11., 19.),
+        ("bismarck", 37., 56.),
+        ("valiant", 117., 172.),
+        ("resolute", 64., 94.),
+        ("type-viic", 17., 26.),
     ] {
         for direction in [-1., 1.] {
             let mut a = ship(id);

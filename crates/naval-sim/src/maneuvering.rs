@@ -10,6 +10,13 @@ use crate::{
     rules::DT,
 };
 const RHO: f64 = 1025.;
+/// Seawater at about 15 °C, m²/s.
+const KINEMATIC_VISCOSITY: f64 = 1.19e-6;
+const FORM_FACTOR: f64 = 0.2;
+const ROUGHNESS_ALLOWANCE: f64 = 0.0004;
+/// Plateau wave-making coefficient at B/L = 1 and the Froude number of its midpoint.
+const WAVE_DRAG: f64 = 0.0075;
+const WAVE_HUMP_FROUDE: f64 = 0.32;
 const STRIPS: usize = 12;
 
 #[derive(Clone, Debug)]
@@ -116,15 +123,18 @@ impl Resistance {
         result.strips = zs.into_iter().zip(areas).filter(|(_, a)| *a > 0.).collect();
         result
     }
-    /// R(v) = k(v) v |v|. Skin/form drag plus a smooth Froude-dependent wave term.
+    /// R(v) = k(v) v |v|. ITTC-57 friction with a hull form factor and roughness allowance, a
+    /// wave term that rises through Froude 0.25–0.4 and levels off past the hump, and blunt-face
+    /// form drag. Calibrated so historical machinery drives preset hulls near their trial speeds
+    /// (Bismarck, King George V, Admiral Hipper, Baltimore, Fletcher, Kagero within ~0.7 kn).
     pub fn coefficient(&self, speed: f64) -> f64 {
         let froude = speed.abs() / (9.81 * self.length).sqrt();
-        let wave = 0.03
-            * self.fullness.powi(2)
-            * (self.beam / self.length).sqrt()
-            * (froude / 0.4).powi(4).min(25.);
+        let reynolds = (speed.abs() * self.length / KINEMATIC_VISCOSITY).max(1e5);
+        let friction = 0.075 / (reynolds.log10() - 2.).powi(2);
+        let hump = (froude / WAVE_HUMP_FROUDE).powi(10);
+        let wave = WAVE_DRAG * (self.beam / self.length).sqrt() * hump / (1. + hump);
         0.5 * RHO
-            * (self.wetted_area * (0.004 * (1. + self.fullness.powi(2)) + wave)
+            * (self.wetted_area * ((1. + FORM_FACTOR) * friction + ROUGHNESS_ALLOWANCE + wave)
                 + 0.18 * self.frontal_area)
     }
 }
@@ -818,4 +828,35 @@ pub fn step(
     s.z += v[2] * DT + before[1] - after[1];
     s.distance += s.speed.hypot(s.sway_speed) * DT;
     s.tick += 1;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    /// Guards the calibration constants: a Baltimore-scale hull needs roughly its historical
+    /// effective power at 33 kn, and a destroyer-scale hull stays past the wave hump instead of
+    /// climbing without bound.
+    #[test]
+    fn resistance_matches_the_calibrated_friction_and_wave_terms() {
+        let cruiser = Resistance {
+            length: 200.,
+            beam: 20.9,
+            draft: 6.8,
+            wetted_area: 4450.,
+            fullness: 0.53,
+            frontal_area: 5.,
+            strips: vec![],
+        };
+        let v = 33. / 1.943844;
+        let total = cruiser.coefficient(v) / (0.5 * RHO * cruiser.wetted_area);
+        assert!((0.0038..0.0050).contains(&total), "cruiser total coefficient {total}");
+        // Effective power at the trial speed. Below the real ship's ~58 MW towrope figure by
+        // about the margin between this model's propulsive efficiency and a real ship's.
+        let power = cruiser.coefficient(v) * v.powi(3) / 1e6;
+        assert!((40. ..56.).contains(&power), "cruiser effective power {power} MW");
+        let destroyer = Resistance { length: 108., beam: 11.9, draft: 3.8, wetted_area: 1394., fullness: 0.54, frontal_area: 1.4, strips: vec![] };
+        // Past the hump the wave term saturates: 40 kn costs well under twice 30 kn's coefficient.
+        let (slow, fast) = (destroyer.coefficient(30. / 1.943844), destroyer.coefficient(40. / 1.943844));
+        assert!(fast < slow * 1.3, "destroyer wave term keeps climbing: {slow} -> {fast}");
+    }
 }

@@ -73,7 +73,7 @@ import type { TrialAction } from './session/localConstruction';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow, type ShellView } from './ShellFollow';
-import { sightAim, torpedoCourseAim } from './aiming';
+import { sightAim, torpedoBearingAim, torpedoCourseAim } from './aiming';
 import { Rangefinder } from './Rangefinder';
 import { observeRangeTarget, pickRangeTarget, rangeTargetVisible, type RangeTarget } from './rangefinderSight';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
@@ -124,7 +124,6 @@ export class Game {
   private portDefinition = selectedShip;
   /** The port's session until the first sortie; set by `initialize`. */
   simulation!: BattleSession;
-  fleetWaypointShipId?: string;
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
   private scene = new FrameScene();
@@ -213,12 +212,17 @@ export class Game {
   aimModule: string;
   inspecting = false;
   private manualAim = true;
+  /** Held right mouse: the guns keep `currentAim` while the sight looks elsewhere. */
+  private aimLocked = false;
   private currentAim: Vec3 = [650, .5, -550];
   private ranging?: Rangefinder;
   private get rangefinder(): Rangefinder { return this.ranging ??= new Rangefinder(); }
   chartSize = 2;
   airOperationsOpen = false;
   fleetCommandMode = false;
+  /** A custom battle reads the fleet chart from its own helm: the ship keeps its last engine
+   * and rudder orders, and leaving the chart returns to it. Fleet command releases the helm. */
+  helmChart = false;
   battleRevision = 0;
   selectedShipIds: string[] = [];
   /** Task groups from the deployment screen: who sails together, under what
@@ -316,7 +320,7 @@ export class Game {
     this.torpedoMarkers = new TorpedoMarkers(this.host);
     this.hitDirections = new HitDirectionIndicators(this.host.parentElement ?? this.host);
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
-      pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
+      pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, aimLock: held => this.setAimLock(held),
     });
     this.inspectionHover = new InspectionHover(this.renderer.domElement, this.camera);
     this.rig.setHullLength(definition.hull.length);
@@ -330,12 +334,15 @@ export class Game {
       chartSize: direction => this.resizeChart(direction),
       simulationSpeed: () => this.cycleSimulationSpeed(),
       shellFollow: () => this.toggleShellFollow(),
+      freeCamera: () => this.toggleFreeCamera(),
       shellType: () => this.cycleAmmunition(),
       rangefind: () => this.measureRange(), rangeLock: () => this.toggleRangeLock(),
       isSpectating: () => !this.inPort && this.simulation.isBattle && this.simulation.player.damage.sunk,
       cycleSpectator: direction => this.cycleSpectator(direction),
       helmWheel: held => { if (held) this.openHelmWheel('held'); else this.releaseHelmWheel(); },
-      airOperations: () => this.fleetCommandMode ? this.airOperationsOpen ? this.followFleetShip(this.selectedShipIds[0] ?? this.simulation.ship.id) : this.enterFleetCommand() : this.setAirOperationsOpen(!this.airOperationsOpen),
+      airOperations: () => this.fleetCommandMode ? this.airOperationsOpen ? this.followFleetShip(this.selectedShipIds[0] ?? this.simulation.ship.id) : this.enterFleetCommand()
+        // A carrier keeps its own air chart on this key; its fleet chart opens from the battle tally.
+        : this.fleetChartAvailable && !this.simulation.player.airWing ? this.openFleetChart() : this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
       depthPreset: depthM => this.setDepth(depthM),
       emergencyBlow: () => this.setDepth(0, true),
@@ -819,7 +826,7 @@ export class Game {
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
-      this.fleetCommandMode = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.lastFleetHelmId = undefined; this.helmWheel = undefined; this.helmOfferedFor = undefined;
+      this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.lastFleetHelmId = undefined; this.helmWheel = undefined; this.helmOfferedFor = undefined;
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
       this.aimModule = simulation.target?.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
@@ -939,9 +946,12 @@ export class Game {
       this.rig.setSubmarine(focusView.definition.submarine);
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
+      // Whatever ends the flight (a follow, the chart, port), the helm keys return to the ship the same frame.
+      this.input.setFlying(this.rig.freeCamera);
+      this.rig.setFreeMove(this.input.flight);
       this.rig.update(focus, focus.y, 0);
       this.updateRangefinding(presentationDt);
-      const aim = this.manualAim ? this.simulation.player.damage.sunk || this.viewAway ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery, this.weaponGroupId);
+      const aim = this.manualAim ? this.simulation.player.damage.sunk || this.viewAway || this.aimLocked ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery, this.weaponGroupId);
       this.currentAim = aim;
       // The HUD reads damage-control detail for the camera's ship only; tell the
       // transport before it schedules the next batch.
@@ -975,6 +985,7 @@ export class Game {
       else {
         this.updateSpectator();
         const pose = this.cameraShipView.motion;
+        this.rig.setTorpedoView(this.battery === 'torpedo' && !this.definition.submarine && this.cameraShipView === this.playerView);
         // The port camera frames the berth, so it holds still while the hull heaves.
         this.rig.update(pose, pose.y - (this.cameraShipView.seaOffset?.heave ?? 0), realDt);
       }
@@ -990,7 +1001,7 @@ export class Game {
       const showTorpedoAim = showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false';
       const torpedoAim = showTorpedoAim ? torpedoAimState(this.simulation.player, this.playerView!.motion, aim, this.torpedoContacts(), this.weaponGroupId) : undefined;
       this.torpedoPreview.update(torpedoAim, showTorpedoAim);
-      this.torpedoAim.update(torpedoAim, this.camera, showTorpedoAim, id => this.shipLabels.tagBox(id));
+      this.torpedoAim.update(torpedoAim, this.camera, showTorpedoAim);
       const torpedoes = this.simulation.torpedoes;
       this.torpedoMarkers.update(torpedoes, torpedoes.length ? this.friendlyShipIds() : NO_SHIPS, this.camera, !this.inPort && !this.inspecting);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
@@ -1017,7 +1028,7 @@ export class Game {
       if (this.inPort) this.playerView!.root.visible = !emptyBerth;
       else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
-      this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera);
+      this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused || this.tacticalPause;
@@ -1073,7 +1084,7 @@ export class Game {
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           rangefinder: this.canRange ? { ...this.rangefinder.state } : undefined,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId, selectedFlightIds: [...this.selectedFlightIds],
-          fleetCommandMode: this.fleetCommandMode, selectedShipIds: [...this.selectedShipIds], controlledShipId: this.simulation.controlledShipId, helmWheel: this.helmWheel && { ...this.helmWheel }, tacticalPaused: this.tacticalPause, simulationSpeed: this.simulation.simulationSpeed, achievedSpeed: this.simulation.achievedSpeed,
+          fleetCommandMode: this.fleetCommandMode, helmChart: this.helmChart, selectedShipIds: [...this.selectedShipIds], controlledShipId: this.simulation.controlledShipId, helmWheel: this.helmWheel && { ...this.helmWheel }, tacticalPaused: this.tacticalPause, simulationSpeed: this.simulation.simulationSpeed, achievedSpeed: this.simulation.achievedSpeed,
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
           squadronMarkers: this.simulation.actors.flatMap(actor => (airWingTelemetry(actor, this.simulation.actors)?.groups ?? [])
             .filter(f => f.airborne > 0).map(f => {
@@ -1081,6 +1092,7 @@ export class Game {
               return { ...f, team: actor.team, ownerId: actor.motion.id, screen: point };
             })),
           shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId,
+          freeCamera: this.rig.freeCamera, freeCameraSpeed: this.rig.freeCameraSpeed, aimLocked: this.aimLocked,
           playerDamage,
           mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.water!.backend, performance: this.performanceReadout(), trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
@@ -1238,6 +1250,8 @@ export class Game {
    * has a recipient; a battle that opens on the chart starts with nothing selected. */
   enterFleetCommand(preselect = true): void {
     if (this.inPort || !this.simulation.releaseHelm) return;
+    // A chart read from the helm is already open, and its helm is not given up behind the player's back.
+    if (this.helmChart) return;
     this.fleetCommandMode = true;
     this.simulation.releaseHelm();
     if (preselect && !this.selectedShipIds.length) this.selectFleetShips([this.simulation.ship.id]);
@@ -1245,7 +1259,33 @@ export class Game {
     this.updateInputEligibility(true);
     this.rig.releasePointer();
   }
+  /** Whether this battle can order its fleet from the chart without giving up the helm. */
+  get fleetChartAvailable(): boolean {
+    return !this.inPort && this.simulation.isBattle && !this.simulation.missionRules && !!this.simulation.selectShip && !!this.simulation.releaseHelm;
+  }
+  /** Open the fleet chart from the helm. Nothing is preselected: an order to the hull under
+   * the player's hand would engage its autopilot, so that has to be a deliberate pick. */
+  openFleetChart(): void {
+    if (!this.fleetChartAvailable || this.fleetCommandMode || this.paused) return;
+    if (this.airOperationsOpen) this.setAirOperationsOpen(false);
+    this.closeHelmWheel();
+    this.helmChart = true; this.fleetCommandMode = true;
+    this.selectFleetShips([]); this.flightSelection = [];
+    this.setAirOperationsOpen(true);
+    this.updateInputEligibility();
+    this.rig.releasePointer();
+  }
+  /** Back to the helm the chart was opened from, or to the view a sunk helm leaves behind. */
+  leaveFleetChart(): void {
+    if (!this.helmChart) return;
+    // The chart closes while fleet command still owns it, so a ship without aircraft can close it.
+    this.setAirOperationsOpen(false);
+    this.helmChart = false; this.fleetCommandMode = false; this.tacticalPause = false;
+    this.selectedShipIds = []; this.flightSelection = [];
+    this.updateInputEligibility();
+  }
   followFleetShip(id: string): void {
+    if (this.helmChart) { this.leaveFleetChart(); return; }
     if (!this.fleetCommandMode) return;
     const view = this.fleetViews.find(v => v.actor.motion.id === id && this.simulation.actors.some(a => a === v.actor && a.team === 'friendly') && !physicalLoss(v.actor));
     if (!view) return;
@@ -1258,6 +1298,7 @@ export class Game {
   }
   takeFleetHelm(id: string): void {
     if (!this.fleetCommandMode || !this.simulation.actors.some(a => a.motion.id === id && a.team === 'friendly' && !physicalLoss(a))) return;
+    if (this.helmChart) { this.leaveFleetChart(); this.takeHelm(id); return; }
     this.followFleetShip(id);
     this.simulation.selectShip?.(id);
     this.input.clear(); this.input.setOrder(1); this.input.setRudder(0);
@@ -1494,11 +1535,12 @@ export class Game {
       hasHelm: !!this.simulation?.controlledShipId, sunk: !!this.simulation?.player.damage.sunk,
       chartOpen: !!this.airOperationsOpen, chartTransitioning: !!this.battlefieldCamera?.transitioning,
       inspecting: !!this.inspecting, shellFollow: !!this.shellFollow?.view, aircraftFollow: !!this.followedAircraftId,
+      freeCamera: !!this.rig?.freeCamera,
     }, inputSuspended);
   }
   /** Loading and a pending helm release can suspend input before session state catches up. */
   private updateInputEligibility(suspended = false): void {
-    this.input.setEnabled(this.controls(suspended).inputEnabled);
+    this.input.setEnabled(this.controls(suspended).inputEnabled, this.helmChart);
   }
   private get viewAway(): boolean { return this.controls().viewAway; }
   private get gunsCommandable(): boolean { return this.controls().gunsCommandable; }
@@ -1651,7 +1693,7 @@ export class Game {
    * a teammate has no sight to aim, so the lens opens along the bearing already being viewed. */
   toggleBinoculars(): void {
     if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
-    if (this.shellFollow.view || this.followedAircraftId) { this.endFollow(); return; }
+    if (this.shellFollow.view || this.followedAircraftId || this.rig.freeCamera) { this.endFollow(); return; }
     const spectated = this.spectatedShipId ? this.cameraShipView : undefined;
     if ((spectated?.actor ?? this.simulation.player).damage.sunk) return;
     const definition = spectated?.definition ?? this.definition;
@@ -1675,7 +1717,8 @@ export class Game {
     const aim = sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),
       this.simulation.actors.filter(actor => actor !== this.simulation.player && actor.motion.y > -40).map(actor => ({ pose: actor.motion, armor: actor.definition.armor, definition: actor.definition, trains: actor.mounts.map(m => m.train) })));
     const tube = this.definition.torpedoTubes?.find(t => selectedWeapon('torpedo', t.weapon, this.battery, this.weaponGroupId));
-    return this.battery === 'torpedo' && tube && this.camera.position.y < 0 ? torpedoCourseAim(aim, this.simulation.ship, tube.weapon.rangeM) : aim;
+    if (this.battery !== 'torpedo' || !tube) return aim;
+    return (this.camera.position.y < 0 ? torpedoCourseAim : torpedoBearingAim)(aim, this.simulation.ship, tube.weapon.rangeM);
   }
   private get canRange(): boolean {
     return !this.inPort && this.rig.binoculars && !this.viewAway && !this.simulation.player.damage.sunk
@@ -1789,11 +1832,6 @@ export class Game {
     }
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);
   }
-  fleetWaypoint(x: number, z: number): void {
-    const id = this.fleetWaypointShipId;
-    if (!id || this.paused || this.inPort || Math.abs(x) > 40000 || Math.abs(z) > 40000) return;
-    this.simulation.moveShip?.(id, [x, 0, z]); this.fleetWaypointShipId = undefined;
-  }
   fire(): void { if (this.gunsCommandable && !this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
   toggleShellFollow(): void {
     if (this.simulation.player.damage.sunk || this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
@@ -1801,12 +1839,30 @@ export class Game {
     this.endFollow();
     this.shellFollow.setEnabled(true);
   }
-  /** End any shell or aircraft follow and snap the camera back onto the focused hull;
+  /** Leave the ship and fly the view freely. The ship keeps her engine, rudder and gun orders;
+   * the helm keys steer the camera until the view returns. */
+  toggleFreeCamera(): void {
+    if (this.rig.freeCamera) { this.endFollow(); return; }
+    if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen || this.battlefieldCamera.transitioning) return;
+    this.endFollow();
+    this.rig.setFreeCamera(true); this.input.setFlying(true);
+  }
+  /** Right mouse held: the guns stay on the point they have while the sight looks around.
+   * Letting go brings the sight back onto that point. */
+  private setAimLock(held: boolean): void {
+    if (held === this.aimLocked) return;
+    const sighting = this.manualAim && !this.viewAway && !this.spectatedShipId && !this.simulation.player.damage.sunk;
+    if (held && !sighting) return;
+    this.aimLocked = held;
+    if (!held && sighting) this.rig.aimAt(this.currentAim, this.simulation.ship);
+  }
+  /** End any shell or aircraft follow or free flight and snap the camera back onto the focused hull;
    * the rig restores the optics it saved when the follow began. */
   private endFollow(): void {
     this.followedAircraftId = undefined;
     this.shellFollow.setEnabled(false);
     this.rig.setShellView();
+    this.rig.setFreeCamera(false);
     const focus = this.cameraShipView?.motion;
     if (focus) this.rig.update(focus, focus.y, 0, true);
   }
@@ -1896,6 +1952,7 @@ export class Game {
       islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
         shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId, followedShellId: this.shellFollow.shellId,
+        freeCamera: this.rig.freeCamera, aimLocked: this.aimLocked,
         pointerLocked: this.rig.pointerLocked, position: this.camera.position.toArray(), aim: this.currentAim, manualAim: this.manualAim,
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       network: { online: !!this.simulation.networked, phase: this.simulation.phase, status: this.simulation.connectionStatus, epoch: this.simulation instanceof RemoteBattleSession ? this.simulation.metadata.connectionEpoch : undefined },
@@ -1926,8 +1983,11 @@ export class Game {
       events: this.simulation.events.slice(-20) };
   }
   private projectAim(aim: Vec3): { x: number; y: number; visible: boolean } {
-    const point = new THREE.Vector3(...aim).project(this.camera);
-    return { x: (point.x + 1) * 50, y: (1 - point.y) * 50, visible: point.z > -1 && point.z < 1 && Math.abs(point.x) < .94 && Math.abs(point.y) < .85 };
+    const point = new THREE.Vector3(...aim);
+    // Clip depth does not tell ahead from astern under reversed depth; view space does.
+    const ahead = point.clone().applyMatrix4(this.camera.matrixWorldInverse).z < 0;
+    point.project(this.camera);
+    return { x: (point.x + 1) * 50, y: (1 - point.y) * 50, visible: ahead && Math.abs(point.x) < .94 && Math.abs(point.y) < .85 };
   }
   private refreshLandscape(): void {
     const mapId = this.simulation.mapId ?? DEFAULT_MAP;

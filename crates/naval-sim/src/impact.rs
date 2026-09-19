@@ -133,15 +133,25 @@ fn boxes(c: &crate::definition::Compartment) -> Vec<(Vec3, Vec3)> {
 /// waterline just because it is a few centimetres nearer.
 fn nearest_room(def: &ShipDefinition, point: Vec3) -> Option<usize> {
     if def.hull.volume.is_some() {
-        return def
-            .compartments
-            .iter()
-            .enumerate()
-            .min_by(|(_, a), (_, b)| {
-                crate::construction_geometry::room_distance(a, point)
-                    .total_cmp(&crate::construction_geometry::room_distance(b, point))
-            })
-            .map(|(i, _)| i);
+        // The first room at the smallest distance, as `min_by` over every
+        // room's distance picks; each room only has to beat the best so far.
+        let mut nearest: Option<(usize, f64)> = None;
+        for (i, room) in def.compartments.iter().enumerate() {
+            let bound = nearest.map_or(f64::INFINITY, |n| n.1);
+            let distance = match &room.volumes {
+                Some(cells) => {
+                    crate::construction_geometry::room_distance_within(cells, point, bound)
+                }
+                None => crate::construction_geometry::room_distance(room, point),
+            };
+            if nearest.is_none() || distance < bound {
+                nearest = Some((i, distance));
+            }
+            if distance == 0. {
+                break;
+            }
+        }
+        return nearest.map(|n| n.0);
     }
     let distance = |c: &crate::definition::Compartment| {
         boxes(c)

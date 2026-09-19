@@ -36,9 +36,16 @@ export interface Telemetry {
   chartSize?: number;
   shellFollow?: ShellFollow['phase'];
   followedAircraftId?: string;
+  /** The view has left the ship to fly freely; `freeCameraSpeed` is its travel in m/s. */
+  freeCamera?: boolean;
+  freeCameraSpeed?: number;
+  /** Held right mouse keeps the guns on their last point while the view looks around. */
+  aimLocked?: boolean;
   spectatedShipId?: string;
   airOperationsOpen?: boolean;
   fleetCommandMode?: boolean;
+  /** The fleet chart of a custom battle, read from a helm the player still holds. */
+  helmChart?: boolean;
   selectedShipIds?: string[];
   controlledShipId?: string;
   /** The ship picker is up: held on its key, or offered after the helm ship sank. */

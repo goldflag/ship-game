@@ -3,7 +3,7 @@
  * enough on the sea that the chart underneath still reads. */
 .fleet-card {
   position:absolute; top:58px; width:330px; max-height:calc(100% - 300px);
-  overflow:auto; overscroll-behavior:contain; scrollbar-width:thin;
+  overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#c9dce04a transparent;
   background:#0b1e2799; border:1px solid #c9dce022; border-radius:2px;
   text-shadow:0 1px 3px #07131bcc;
   --acc:var(--fleet-active, #86e4c5);
@@ -62,6 +62,7 @@
 .fleet-card-name { font-weight:500; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .fleet-card-name small { display:block; font-weight:400; font-size:10.5px; color:var(--fleet-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .fleet-card-name small.brass { color:var(--fleet-gold); }
+.fleet-card-name em { margin-left:6px; padding:0 4px; border:1px solid currentColor; color:var(--acc); font:500 9.5px/14px 'Barlow Condensed',sans-serif; letter-spacing:.08em; text-transform:uppercase; vertical-align:1px; }
 .fleet-card.foe .fleet-card-name { color:#ffb5a6; }
 .fleet-card.foe .fleet-card-row.last-known .fleet-card-name,
 .fleet-card.foe .fleet-card-row.confirmed-sinking .fleet-card-name { color:#ffb5a6aa; }

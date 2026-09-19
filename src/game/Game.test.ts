@@ -10,6 +10,7 @@ import { VisualEnvironment } from './VisualEnvironment';
 import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
+import { fleetDesk } from '../ui/fleet/fleetDesk';
 import { ShipView } from './ShipView';
 import { ObservedShipViews } from './ObservedShipViews';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
@@ -490,6 +491,56 @@ test('a battle that opens on the fleet chart selects nothing; leaving a helm kee
     game.followFleetShip('player');
     game.enterFleetCommand();
     expect(game.selectedShipIds).toEqual(['player']);
+  } finally { simulation.dispose(); rig.dispose(); }
+});
+
+test('a custom battle reads the fleet chart from its helm: nothing is released, the rudder holds, and M comes back to the ship', async () => {
+  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'baltimore'], enemies: ['mogami'], spawnDistance: 7500 });
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
+  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const views = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
+  const input = { isEnabled: true, helmHeld: false, clear() {}, setEnabled(value: boolean, held = false) { this.isEnabled = value; this.helmHeld = held; }, setOrder() {}, setRudder() {} };
+  const game = Object.assign(Object.create(Game.prototype), {
+    simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
+    inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
+    battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
+    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+  }) as Game;
+  const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
+  const advance = () => simulation.advance(.1, { throttle: 1, rudder: .5 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
+  try {
+    expect(game.fleetChartAvailable).toBe(true);
+    expect(fleetDesk(game).can.fleetChart).toBe(true);
+    fleetDesk(game).issue({ kind: 'fleet-command' }); advance(); update();
+    expect(game.helmChart).toBe(true);
+    expect(game.airOperationsOpen).toBe(true);
+    // The helm is still the player's, the keys are the chart's, and the wheel stays where it was put.
+    expect(simulation.controlledShipId).toBe('player');
+    expect(input.isEnabled).toBe(false);
+    expect(input.helmHeld).toBe(true);
+    expect(game.selectedShipIds).toEqual([]);
+    game.selectFleetShips(['friendly-1']);
+    fleetDesk(game).issue({ kind: 'autonomous', shipId: 'friendly-1' }); advance();
+    // An order to the hull under the player's hand steers it until the helm is touched again.
+    expect((simulation as unknown as { autopilot?: object }).autopilot).toBeUndefined();
+    fleetDesk(game).issue({ kind: 'route', shipId: 'player', point: [0, -1500], speedMps: 10, append: false }); advance();
+    expect((simulation as unknown as { autopilot?: object }).autopilot).toEqual({ throttle: 1, rudder: .5 });
+    // The chart's own key, Follow and the return button all take the same way back.
+    game.followFleetShip('friendly-1'); advance(); update();
+    expect(game.helmChart).toBe(false);
+    expect(game.fleetCommandMode).toBe(false);
+    expect(game.airOperationsOpen).toBe(false);
+    expect(game.spectatedShipId).toBeUndefined();
+    expect(simulation.controlledShipId).toBe('player');
+    expect(input.isEnabled).toBe(true);
+    expect(input.helmHeld).toBe(false);
+    expect(game.selectedShipIds).toEqual([]);
+    // Taking another helm from the chart leaves it through the custom battle's own transfer.
+    game.openFleetChart();
+    game.takeFleetHelm('friendly-2'); advance(); update();
+    expect(game.helmChart).toBe(false);
+    expect(game.airOperationsOpen).toBe(false);
+    expect(simulation.controlledShipId).toBe('friendly-2');
   } finally { simulation.dispose(); rig.dispose(); }
 });
 

@@ -265,7 +265,10 @@ pub fn operate_observed(
         } else if actor.controller == Controller::Bot
             && let Some(t) = target
         {
-            state.select_ammunition(m, bots::ammunition(t.definition(), m, &state));
+            state.select_ammunition(
+                m,
+                bots::ammunition(t.compiled.exterior_protection_mm, m, &state),
+            );
             let in_range = (t.motion.x - actor.motion.x).hypot(t.motion.z - actor.motion.z)
                 <= bots::gun_range(m);
             if in_range && state.hp > 0.0 && state.available(state.loaded) >= m.weapon.barrel_count
