@@ -18,6 +18,164 @@ pub struct HullContacts {
     size: Vec3,
     triangles: Vec<Triangle>,
     children: Vec<HullContacts>,
+    /// Built by the root on its first lane check; empty everywhere else.
+    lane: std::sync::OnceLock<Lane>,
+}
+/// The firing-lane index. A constructed hull's surfaces are fans over whole
+/// deck and side polygons, so its triangles are long, their boxes overlap, and
+/// a lane through the tree above reaches most of it. Here each triangle is cut
+/// into fragments a few metres across and the tree bounds those. A fragment only
+/// says where to look: reaching one tests the triangle it came from with
+/// `HullContacts::crossing`, the same test on the same triangle, so the answer
+/// is the one the full tree gives.
+#[derive(Clone, Debug)]
+struct Lane {
+    triangles: Vec<Triangle>,
+    nodes: Vec<LaneNode>,
+    /// Leaf contents: indices into `triangles`, distinct within a leaf.
+    parents: Vec<u32>,
+}
+#[derive(Clone, Debug)]
+struct LaneNode {
+    center: Vec3,
+    size: Vec3,
+    /// A leaf holds `parents[first..first + count]`; an inner node has no count,
+    /// its first child follows it and `first` is its second.
+    first: u32,
+    count: u32,
+}
+/// Longest fragment edge. Shorter buys little: the lane is a line, and what it
+/// passes within a few metres of is mostly what it has to test anyway.
+const FRAGMENT_M: f64 = 6.0;
+impl Lane {
+    fn new(root: &HullContacts) -> Self {
+        fn gather(node: &HullContacts, out: &mut Vec<Triangle>) {
+            out.extend(node.triangles.iter().cloned());
+            for child in &node.children {
+                gather(child, out);
+            }
+        }
+        fn cut(t: [Vec3; 3], parent: u32, depth: u32, out: &mut Vec<(Vec3, Vec3, u32)>) {
+            let edges = [(0, 1), (1, 2), (2, 0)];
+            let (i, j) = edges
+                .into_iter()
+                .max_by(|a, b| length(sub(t[a.0], t[a.1])).total_cmp(&length(sub(t[b.0], t[b.1]))))
+                .unwrap();
+            if depth >= 12 || length(sub(t[i], t[j])) <= FRAGMENT_M {
+                let (center, size) = bounds(t.into_iter());
+                out.push((center, size, parent));
+                return;
+            }
+            let middle = scale(add(t[i], t[j]), 0.5);
+            let k = 3 - i - j;
+            cut([t[i], middle, t[k]], parent, depth + 1, out);
+            cut([middle, t[j], t[k]], parent, depth + 1, out);
+        }
+        let mut triangles = vec![];
+        gather(root, &mut triangles);
+        let mut fragments = vec![];
+        for (parent, t) in triangles.iter().enumerate() {
+            cut([t.a, t.b, t.c], parent as u32, 0, &mut fragments);
+        }
+        let mut lane = Self {
+            triangles,
+            nodes: vec![],
+            parents: vec![],
+        };
+        if !fragments.is_empty() {
+            lane.build(&mut fragments);
+        }
+        lane
+    }
+    fn build(&mut self, fragments: &mut [(Vec3, Vec3, u32)]) -> u32 {
+        let (center, size) = bounds(fragments.iter().flat_map(|f| {
+            [
+                std::array::from_fn(|a| f.0[a] - f.1[a] / 2.0),
+                std::array::from_fn(|a| f.0[a] + f.1[a] / 2.0),
+            ]
+        }));
+        let index = self.nodes.len() as u32;
+        self.nodes.push(LaneNode {
+            center,
+            size,
+            first: 0,
+            count: 0,
+        });
+        if fragments.len() <= 8 {
+            let mut parents: Vec<u32> = fragments.iter().map(|f| f.2).collect();
+            parents.sort_unstable();
+            parents.dedup();
+            self.nodes[index as usize].first = self.parents.len() as u32;
+            self.nodes[index as usize].count = parents.len() as u32;
+            self.parents.extend(parents);
+            return index;
+        }
+        let axis = (0..3).max_by(|&a, &b| size[a].total_cmp(&size[b])).unwrap();
+        fragments.sort_by(|a, b| a.0[axis].total_cmp(&b.0[axis]).then(a.2.cmp(&b.2)));
+        let (left, right) = fragments.split_at_mut(fragments.len() / 2);
+        self.build(left);
+        let second = self.build(right);
+        self.nodes[index as usize].first = second;
+        index
+    }
+    fn blocks(&self, from: Vec3, direction: Vec3, inverse: Vec3) -> bool {
+        if self.nodes.is_empty() {
+            return false;
+        }
+        // Median splits keep the tree a few dozen levels deep at most.
+        let mut stack = [0u32; 128];
+        let mut depth = 1;
+        while depth > 0 {
+            depth -= 1;
+            let at = stack[depth] as usize;
+            let node = &self.nodes[at];
+            if !reached(node.center, node.size, from, direction, inverse) {
+                continue;
+            }
+            if node.count > 0 {
+                let leaf = node.first as usize..(node.first + node.count) as usize;
+                if self.parents[leaf].iter().any(|&t| {
+                    HullContacts::crossing(&self.triangles[t as usize], from, direction).is_some()
+                }) {
+                    return true;
+                }
+            } else if depth + 2 <= stack.len() {
+                stack[depth] = node.first;
+                stack[depth + 1] = at as u32 + 1;
+                depth += 2;
+            } else {
+                // Deeper than any hull should be: fall back to the whole list.
+                return self
+                    .triangles
+                    .iter()
+                    .any(|t| HullContacts::crossing(t, from, direction).is_some());
+            }
+        }
+        false
+    }
+}
+/// A slab test that only ever errs towards visiting. Nodes merely bound the
+/// triangles that decide the answer, and an accepted crossing lies within a few
+/// hundredths of a millimetre of its triangle, so a tenth of a millimetre of
+/// padding keeps every node that could hold one while one reciprocal per lane
+/// replaces six divisions per node.
+fn reached(center: Vec3, size: Vec3, from: Vec3, direction: Vec3, inverse: Vec3) -> bool {
+    let (mut enter, mut exit) = (0.0_f64, 1.0_f64);
+    for axis in 0..3 {
+        let half = size[axis] / 2.0 + 1e-4;
+        let (low, high) = (center[axis] - half, center[axis] + half);
+        if direction[axis].abs() < 1e-10 {
+            if from[axis] < low || from[axis] > high {
+                return false;
+            }
+            continue;
+        }
+        let a = (low - from[axis]) * inverse[axis];
+        let b = (high - from[axis]) * inverse[axis];
+        enter = enter.max(a.min(b));
+        exit = exit.min(a.max(b));
+    }
+    enter <= exit + 1e-6
 }
 #[derive(Clone, Debug, serde::Serialize)]
 pub struct HullContact {
@@ -77,6 +235,7 @@ impl HullContacts {
                 size,
                 triangles: ts,
                 children: vec![],
+                lane: Default::default(),
             };
         }
         let mut axis = 0;
@@ -92,6 +251,7 @@ impl HullContacts {
             size,
             triangles: vec![],
             children: vec![Self::tree(ts), Self::tree(tail)],
+            lane: Default::default(),
         }
     }
     pub fn new(h: &Hull) -> Self {
@@ -176,45 +336,11 @@ impl HullContacts {
     /// it stops at the first crossing and builds no contacts.
     pub fn blocks(&self, from: Vec3, to: Vec3) -> bool {
         let direction = sub(to, from);
-        self.blocked(from, direction, direction.map(|d| 1.0 / d))
-    }
-    fn blocked(&self, from: Vec3, direction: Vec3, inverse: Vec3) -> bool {
-        if !self.reached(from, direction, inverse) {
-            return false;
-        }
-        if self
-            .children
-            .iter()
-            .any(|child| child.blocked(from, direction, inverse))
-        {
-            return true;
-        }
-        self.triangles
-            .iter()
-            .any(|tri| Self::crossing(tri, from, direction).is_some())
-    }
-    /// A slab test that only ever errs towards visiting. Nodes merely bound the
-    /// triangles that decide the answer, and an accepted crossing lies within
-    /// micrometres of its triangle, so ten times `query`'s padding keeps every
-    /// node that could hold one while one reciprocal per lane replaces six
-    /// divisions per node.
-    fn reached(&self, from: Vec3, direction: Vec3, inverse: Vec3) -> bool {
-        let (mut enter, mut exit) = (0.0_f64, 1.0_f64);
-        for axis in 0..3 {
-            let half = self.size[axis] / 2.0 + 1e-4;
-            let (low, high) = (self.center[axis] - half, self.center[axis] + half);
-            if direction[axis].abs() < 1e-10 {
-                if from[axis] < low || from[axis] > high {
-                    return false;
-                }
-                continue;
-            }
-            let a = (low - from[axis]) * inverse[axis];
-            let b = (high - from[axis]) * inverse[axis];
-            enter = enter.max(a.min(b));
-            exit = exit.min(a.max(b));
-        }
-        enter <= exit + 1e-6
+        self.lane.get_or_init(|| Lane::new(self)).blocks(
+            from,
+            direction,
+            direction.map(|d| 1.0 / d),
+        )
     }
     /// Where along the segment it crosses the triangle, with its edge vectors.
     fn crossing(tri: &Triangle, from: Vec3, direction: Vec3) -> Option<(f64, Vec3, Vec3)> {

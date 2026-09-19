@@ -459,17 +459,22 @@ What it was, largest first:
 - **Shell contacts.** `ship_contacts` named every plate, module and portal
   before testing it; geometry goes first now. `nearest_room` measures a cell
   only when its bounding box could beat the nearest surface so far.
-- **Firing lane.** `HullContacts::blocks` stops at the first crossing.
+- **Firing lane.** `HullContacts::blocks` stops at the first crossing, and
+  answers from its own index. A constructed hull's surfaces are fans over whole
+  deck and side polygons, so its triangles are long and a lane through the
+  contact tree reached most of it. The lane index bounds fragments a few metres
+  across; reaching one tests the triangle it came from, so the answer is the
+  full tree's (`tests/firing_lane.rs`).
 
 Everything but the level table and `flotation_near` is byte-identical on
 `--dump` for Valiant, Resolute, a mixed fleet, a battleship fleet and a premade
 fleet. Those two change constructed ships only, by nanometres; premade fleets
 stay byte-identical to the build before this work, and about 40 % cheaper.
 
-What is left in a dry constructed tick is the mesh itself: the firing-lane
-check against the whole exterior (~20 %), about six full hull clips per
-stability solve (~15 %), clearance measurements when a kept gap runs out
-(~12 %) and three loops a tick over thousands of portals (~4 %). Closing the
+What is left in a dry constructed tick is spread thin: about six full hull
+clips per stability solve (~16 %), clearance measurements when a kept gap runs
+out (~12 %), per-module condition and capability checks (~15 %), the firing
+lane (~8 %) and three loops a tick over thousands of portals (~5 %). Closing the
 rest belongs in the construction compiler, and changes compiled output: a
 hydrostatic table for constructed hulls (today's format assumes a symmetric
 hull), exterior-only merged clearance bodies and armor, one portal per pair of
