@@ -101,6 +101,23 @@ test('procedural rope and chain retain their materials while railing follows com
   }
 });
 
+test('rope route colors preserve fiber finish, ignore ship coatings and leave neighboring ropes unchanged', () => {
+  const part = catalog.equipment.find(p => p.id === 'generic-rope')! as ConstructionEquipmentPart;
+  const path = { points: [[0, 0, 0], [0, 0, -4]] as [number, number, number][] };
+  for (const paint of [undefined, 'sea-blue', 'red-oxide']) {
+    const item = { id: 'rope', partId: part.id, position: [0, 0, 0] as [number, number, number], bearingDeg: 0, path, paint };
+    const model = createConstructionPathModel(part, path, false, { item, surfaces: [] });
+    const material = (model.children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial;
+    const natural = componentMaterial('rope');
+    const expected = paint === 'sea-blue' ? new THREE.Color('#405d70') : paint === 'red-oxide' ? new THREE.Color('#80483c') : new THREE.Color().setRGB(...natural.color as [number, number, number]);
+    paintConstructionFitting(model, 'naval-gray', false, 'gloss', paint);
+    expect(material.color.equals(expected)).toBe(true);
+    expect(material.roughness).toBe(natural.roughness);
+    expect(material.metalness).toBe(natural.metallic);
+    model.traverse(node => { if (node instanceof THREE.Mesh) node.geometry.dispose(); }); material.dispose();
+  }
+});
+
 test('fittings wear their own paint, then the ship paint; internal machinery keeps its finish', () => {
   const ship = { construction: { paint: 'sea-blue' } }, legacy = { construction: {} };
   expect(constructionFittingPaint(ship, { paint: 'red-oxide' }, { placement: 'deck' })).toBe('red-oxide');

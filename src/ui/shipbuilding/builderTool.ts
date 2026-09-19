@@ -764,7 +764,7 @@ export class BuilderTool {
     if (paint === this.data.paint) return undefined;
     const commands: ConstructionCommand[] = [{ op: 'ship-paint', paint }];
     if (previous !== next) for (const surface of this.data.surfaces) if (surface.paint === previous) commands.push({ op: 'surface', value: { ...surface, paint: next } });
-    if (paint) for (const item of this.data.equipment) if (item.paint === previous || item.paint === paint) commands.push({ op: 'equipment-patch', id: item.id, changes: { paint: null } });
+    if (paint) for (const item of this.data.equipment) if (this.partOf(item)?.path?.kind !== 'rope' && (item.paint === previous || item.paint === paint)) commands.push({ op: 'equipment-patch', id: item.id, changes: { paint: null } });
     return this.run('Set ship paint', commands);
   };
   /** Paint whole installations without changing the shared component or other instances. */

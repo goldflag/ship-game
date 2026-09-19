@@ -100,6 +100,10 @@ roughness, metalness, textures and articulation. Old immutable component
 revisions use the explicit `legacyRoles` mapping; unknown materials remain
 unchanged. Retained catalogs and saved designs are not rewritten.
 
+Procedural mooring routes also accept an explicit per-instance rope color from
+the named palette. They keep the shared rope roughness and metalness; ship paint
+and surface sheen do not recolor natural rope or rope details on other fittings.
+
 Both component hash paths track the shared palette, factory and ship finishes.
 After a material change run `part:publish`, `part:thumbnails`, `ship:check all`
 and the relevant tests/build checks. Review published components before and
