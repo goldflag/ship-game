@@ -42,9 +42,9 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 - Ship configuration, inspected primary-model links and lasting limitations: `assets/ships/<id>/README.md`.
 - Ship authoring: canonical blueprint, original recipes and registered shared components.
 - Current fixed model views: `assets/ships/<id>/generated/review/`.
-- Temporary ship research, downloads, logs and additional review output: ignored `.build/`.
+- Temporary research, downloads, logs, captures, measurements and review output for any task: ignored `.build/` (diagnostic scripts write to `.build/reviews/<task>/`). A quick test rejects tracked `reports/`, `references/`, `review/` and `assets/reviews/` paths.
 - Ship `reports/` and `references/` archives are removed; do not recreate them or rename them into another tracked archive.
-- Original asset collections: [asset index](../assets/README.md), [aircraft index](../assets/aircraft/README.md), [map review](../assets/maps/review/README.md).
+- Original asset collections: [asset index](../assets/README.md), [aircraft index](../assets/aircraft/README.md).
 - Playable ship roster: [src/ships/presets.ts](../src/ships/presets.ts).
 
 ## Historical context

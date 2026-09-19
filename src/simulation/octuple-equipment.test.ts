@@ -1,6 +1,8 @@
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/king-george-v/blueprint.json';
-import prototype from '../../assets/reviews/damageable-equipment/octuple-prototype/definition.json';
+// Retained KGV octuple prototype: its compiled definition and the node tree (no meshes) of its exported model.
+import prototype from './fixtures/octuple-prototype/definition.json';
+import prototypeNodes from './fixtures/octuple-prototype/model-nodes.json';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ShipView } from '../game/ShipView';
 import type { ShipDefinition } from '../ships/blueprint';
@@ -58,10 +60,7 @@ test('KGV component prototype fires eight finite rounds and destroyed mounts fre
 });
 
 test('retained octuple export sockets agree with CPU muzzle poses at intermediate train, elevation and recoil', async () => {
-  const bytes=await Bun.file(new URL('../../assets/reviews/damageable-equipment/octuple-prototype/model.glb',import.meta.url)).arrayBuffer();
-  const gltf=JSON.parse(new TextDecoder().decode(new Uint8Array(bytes,20,new DataView(bytes).getUint32(12,true))));
-  const nodes=gltf.nodes.map(({mesh:_mesh,...node}:{mesh?:number})=>node);
-  const model=await new GLTFLoader().parseAsync(JSON.stringify({asset:gltf.asset,scene:gltf.scene,scenes:gltf.scenes,nodes}),'');
+  const model=await new GLTFLoader().parseAsync(JSON.stringify(prototypeNodes),'');
   const definition=prototype as unknown as ShipDefinition,sim=new CombatSimulation(definition),view=new ShipView(model.scene,definition,sim.player);
   expect(view.muzzleErrors()).toHaveLength(58);
   for(const train of [-1,-.43,0,.27,1])for(const elevation of [0,.37,.72,1])for(const recoil of [0,.4,1]) {

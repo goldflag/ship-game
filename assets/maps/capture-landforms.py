@@ -1,6 +1,6 @@
 """Capture coast detail and a survey view of all nine actual game landforms with Orca."""
 import base64, json, pathlib, subprocess
-root=pathlib.Path('assets/maps/review')
+root=pathlib.Path('.build/reviews/maps')
 def evaluate(expression):
     expression='(async()=>{for(let i=0;i<250&&!window.ready;i++)await new Promise(r=>setTimeout(r,100));if(!window.ready)throw new Error("Map review did not initialize");return await ('+expression+');})()'
     process=subprocess.run(['orca','eval','--expression',expression,'--json'],capture_output=True,text=True)

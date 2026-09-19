@@ -50,7 +50,7 @@ Test-coverage gaps, checked against the retained logs rather than the prose:
 - No client tests for `MatchConnection` reconnect, cancel, or `RemoteBattleSession.reconnected`.
 - The GitHub workflow has never run from this branch. It skips LFS smudge, which may break the ship checks in `bun run build`, and it compiles wasm-bindgen from source on every run.
 
-Transport figures that drive the bandwidth items, from `assets/reviews/rust-multiplayer/capacity.json` and the on-disk benchmark output:
+Transport figures that drive the bandwidth items, from the since-deleted `assets/reviews/rust-multiplayer/capacity.json` and the on-disk benchmark output:
 
 | Measure | Value |
 | --- | --- |

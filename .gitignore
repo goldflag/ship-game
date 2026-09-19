@@ -17,6 +17,21 @@ assets/ships/**/reports/
 assets/ships/**/references/
 public/ship-reference/
 
+# Retired evidence folders for every other asset family; scripts/tests/tracked-evidence.test.ts
+# rejects the general patterns. Pipeline-verified generated/review/ views, per-aircraft
+# reports/export.json and assets/aircraft/references/ stay tracked, so they are not listed here.
+assets/reviews/
+assets/aircraft/reports/
+assets/effects/**/reports/
+assets/effects/**/review/
+assets/effects/**/references/
+assets/maps/review/
+assets/hud/reports/
+assets/hud/review/
+assets/hud/references/
+assets/audio/**/review/
+assets/ships/attachment-audit/review/
+
 # Retired ship comparisons and local aircraft comparisons.
 assets/ships/*/generated/comparison/
 assets/aircraft/*/generated/comparison/

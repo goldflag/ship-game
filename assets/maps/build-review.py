@@ -3,7 +3,10 @@ import json
 from pathlib import Path
 from html import escape
 maps = json.loads(Path('assets/maps/environments.v1.json').read_text())['maps']
-root = Path('assets/maps/review')
+import shutil
+root = Path('.build/reviews/maps')
+fonts=root/'fonts';fonts.mkdir(parents=True,exist_ok=True)
+for family,file in [('barlow','barlow-latin-400-normal.woff2'),('barlow-condensed','barlow-condensed-latin-500-normal.woff2')]:shutil.copy2(Path('node_modules/@fontsource')/family/'files'/file,fonts/file)
 notes = {
  'north-atlantic': ('Open water', 'The clearest battlefield: cool blue water, broken cloud, and an unobstructed horizon. The original smaller-wave tuning remains the reference for the other oceans.'),
  'pacific-islands': ('Island waters', 'A high sun lights turquoise water and pale sand. Forested islands frame a broad central channel, with smaller crests keeping the sea in scale with the ships.'),

@@ -4,7 +4,7 @@ Open /aircraft-review.html in this worktree first. Requires public orca CLI.
 import base64, hashlib, json, subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
-BASE=ROOT/'assets/aircraft';OUT=BASE/'reports/browser';OUT.mkdir(parents=True,exist_ok=True)
+BASE=ROOT/'.build/reviews/aircraft';OUT=BASE/'browser';OUT.mkdir(parents=True,exist_ok=True)
 CAT=json.loads((ROOT/'public/models/aircraft/catalog.json').read_text())
 records=[]
 for entry in CAT['aircraft']:
@@ -47,4 +47,4 @@ for entry in CAT['aircraft']:
                 item[suffix+'Capture']={'path':str(path.relative_to(BASE)),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
         records.append(item)
     print(entry['id']+': all 3 LODs rendered; articulation and source hash passed',flush=True)
-(BASE/'reports/browser-articulation.json').write_text(json.dumps({'schemaVersion':2,'contentHash':CAT['contentHash'],'loads':len(records),'records':records},indent=2)+'\n')
+(BASE/'browser-articulation.json').write_text(json.dumps({'schemaVersion':2,'contentHash':CAT['contentHash'],'loads':len(records),'records':records},indent=2)+'\n')

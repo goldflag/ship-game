@@ -1,10 +1,10 @@
-"""Build the self-contained review artifact from the retained runtime captures."""
+"""Build the self-contained review artifact from local runtime captures in ignored .build/reviews/naval-effects/."""
 import base64
 import json
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-review = root / 'assets/effects/naval/review'
+review = root / '.build/reviews/naval-effects'
 
 
 def data(path, mime):
@@ -30,6 +30,6 @@ tokens = {
 }
 for key, value in tokens.items():
     html = html.replace(f'__{key}__', value)
-output = root / 'assets/effects/naval/review/artifact.html'
+output = review / 'artifact.html'
 output.write_text(html)
 print(f'{output}: {output.stat().st_size:,} bytes')
