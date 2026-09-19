@@ -10,7 +10,7 @@ export type FittingCategory = 'running-gear' | 'funnels' | 'masts' | 'main-batte
 export const FITTING_CATEGORIES: { id: FittingCategory; group: FittingGroup; name: string; note: string }[] = [
   { id: 'running-gear', group: 'machinery', name: 'Running gear', note: 'screws and rudders' },
   { id: 'funnels', group: 'machinery', name: 'Funnels', note: 'uptakes and funnel caps' },
-  { id: 'masts', group: 'machinery', name: 'Masts', note: 'pole, tripod and main masts' },
+  { id: 'masts', group: 'machinery', name: 'Masts', note: 'pole, tripod, cage, lattice and tower masts' },
   { id: 'main-battery', group: 'armament', name: 'Main battery', note: 'guns of 100 mm and up' },
   { id: 'light-aa', group: 'armament', name: 'Light & AA', note: 'guns under 100 mm' },
   { id: 'torpedoes', group: 'armament', name: 'Torpedoes', note: 'deck launchers' },
@@ -47,10 +47,11 @@ export function fittingCategory(part: ConstructionEquipmentPart, catalog: Constr
   }
 }
 
-export type FittingNation = 'United States' | 'Germany' | 'Japan' | 'United Kingdom';
-export const NATION_SHORT: Record<FittingNation, string> = { 'United States': 'USA', Germany: 'Germany', Japan: 'Japan', 'United Kingdom': 'UK' };
+export type FittingNation = 'United States' | 'Germany' | 'Japan' | 'United Kingdom' | 'France' | 'Italy' | 'Russia' | 'Sweden' | 'Netherlands';
+export const NATION_SHORT: Record<FittingNation, string> = { 'United States': 'USA', Germany: 'Germany', Japan: 'Japan', 'United Kingdom': 'UK', France: 'France', Italy: 'Italy', Russia: 'Russia', Sweden: 'Sweden', Netherlands: 'Netherlands' };
 const NATION_PREFIXES: [RegExp, FittingNation][] = [
-  [/^(us|fletcher|iowa|oerlikon)-/, 'United States'], [/^(german|sk-?c\d|flak)/, 'Germany'], [/^(ijn|type\d)/, 'Japan'], [/^(rn|uk|british|qf|bl|lewis)-/, 'United Kingdom'],
+  [/^(us|fletcher|iowa|oerlikon|michigan|arizona|colorado)-/, 'United States'], [/^(german|scharnhorst|sk-?c\d|flak)/, 'Germany'], [/^(ijn|mikasa|type\d)/, 'Japan'], [/^(rn|uk|british|qf|bl|lewis|dreadnought|hood)-/, 'United Kingdom'],
+  [/^le-fantasque-/, 'France'], [/^roma-/, 'Italy'], [/^gangut-/, 'Russia'], [/^halland-/, 'Sweden'], [/^friesland-/, 'Netherlands'],
 ];
 /** The navy a part was drawn from; undefined for generic parts, which every nation filter keeps. */
 export const fittingNation = (part: ConstructionEquipmentPart): FittingNation | undefined => NATION_PREFIXES.find(([prefix]) => prefix.test(part.id))?.[1];

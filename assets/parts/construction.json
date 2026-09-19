@@ -7842,6 +7842,700 @@
           ]
         }
       ]
+    },
+    {
+      "id": "mikasa-1905-foremast",
+      "name": "Mikasa 1905 fighting foremast",
+      "kind": "mast",
+      "size": [
+        19.224,
+        47.723,
+        5.483
+      ],
+      "boundsCenter": [
+        0,
+        23.86,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        17,
+        0
+      ],
+      "massKg": 12000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dreadnought-1906-foremast",
+      "name": "Dreadnought 1906 tripod foremast",
+      "kind": "mast",
+      "size": [
+        10.942,
+        44.422000000000004,
+        7.309
+      ],
+      "boundsCenter": [
+        0.0,
+        22.21,
+        -1.3165
+      ],
+      "centerOfGravity": [
+        0,
+        15,
+        0
+      ],
+      "massKg": 18000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-1",
+          "kind": "support",
+          "position": [
+            4.85,
+            0,
+            -4.35
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-2",
+          "kind": "support",
+          "position": [
+            -4.85,
+            0,
+            -4.35
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "michigan-1916-cage-mainmast",
+      "name": "Michigan 1916 after cage mast",
+      "kind": "mast",
+      "size": [
+        11.022,
+        40.102000000000004,
+        6.263
+      ],
+      "boundsCenter": [
+        0.0,
+        20.05,
+        0.0
+      ],
+      "centerOfGravity": [
+        0,
+        16,
+        0
+      ],
+      "massKg": 15000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            -3.05
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-1",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            3.05
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-2",
+          "kind": "support",
+          "position": [
+            -3.05,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-3",
+          "kind": "support",
+          "position": [
+            3.05,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gangut-1918-foremast",
+      "name": "Gangut 1918 upper foremast",
+      "kind": "mast",
+      "size": [
+        7.011,
+        31.663,
+        2.0039999999999996
+      ],
+      "boundsCenter": [
+        0,
+        15.83,
+        -0.3095
+      ],
+      "centerOfGravity": [
+        0,
+        10,
+        0
+      ],
+      "massKg": 6000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hood-1941-mainmast",
+      "name": "Hood 1941 tripod mainmast",
+      "kind": "mast",
+      "size": [
+        12.228000000000002,
+        33.403000000000006,
+        4.45
+      ],
+      "boundsCenter": [
+        0,
+        16.7,
+        1.6062
+      ],
+      "centerOfGravity": [
+        0,
+        13,
+        0
+      ],
+      "massKg": 14000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-1",
+          "kind": "support",
+          "position": [
+            3.35,
+            0,
+            3.3
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-2",
+          "kind": "support",
+          "position": [
+            -3.35,
+            0,
+            3.3
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scharnhorst-1939-mainmast",
+      "name": "Scharnhorst 1939 mainmast",
+      "kind": "mast",
+      "size": [
+        12.536000000000001,
+        42.032000000000004,
+        5.237
+      ],
+      "boundsCenter": [
+        -0.0,
+        21.015,
+        0.6474
+      ],
+      "centerOfGravity": [
+        0,
+        14,
+        0
+      ],
+      "massKg": 15000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "roma-1943-mainmast",
+      "name": "Roma 1943 tubular mainmast",
+      "kind": "mast",
+      "size": [
+        10.202,
+        24.642,
+        6.202999999999999
+      ],
+      "boundsCenter": [
+        0,
+        12.32,
+        0.1
+      ],
+      "centerOfGravity": [
+        0,
+        7,
+        0
+      ],
+      "massKg": 24000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arizona-1941-mainmast",
+      "name": "Arizona 1941 after spotting mast",
+      "kind": "mast",
+      "size": [
+        11.253,
+        38.403000000000006,
+        9.928
+      ],
+      "boundsCenter": [
+        0.0,
+        19.2,
+        -4.017
+      ],
+      "centerOfGravity": [
+        0,
+        24,
+        0
+      ],
+      "massKg": 35000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-1",
+          "kind": "support",
+          "position": [
+            5,
+            0,
+            -8.5
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-2",
+          "kind": "support",
+          "position": [
+            -5,
+            0,
+            -8.5
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "colorado-1945-cage-foremast",
+      "name": "Colorado 1945 upper cage foremast",
+      "kind": "mast",
+      "size": [
+        9.553,
+        25.462999999999997,
+        8.103000000000002
+      ],
+      "boundsCenter": [
+        -0.0,
+        12.73,
+        1.725
+      ],
+      "centerOfGravity": [
+        0,
+        12,
+        0
+      ],
+      "massKg": 25000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            -1.82
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-1",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            1.82
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-2",
+          "kind": "support",
+          "position": [
+            -1.82,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-3",
+          "kind": "support",
+          "position": [
+            1.82,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "halland-1955-foremast",
+      "name": "Halland 1955 radar foremast",
+      "kind": "mast",
+      "size": [
+        5.803,
+        11.722000000000001,
+        3.5029999999999997
+      ],
+      "boundsCenter": [
+        0,
+        5.86,
+        -0.3798
+      ],
+      "centerOfGravity": [
+        0,
+        7,
+        0
+      ],
+      "massKg": 3500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "friesland-1956-foremast",
+      "name": "Friesland 1956 upper radar foremast",
+      "kind": "mast",
+      "size": [
+        10.808,
+        10.403,
+        5.322
+      ],
+      "boundsCenter": [
+        0.0,
+        5.2003,
+        -1.715
+      ],
+      "centerOfGravity": [
+        0,
+        3,
+        0
+      ],
+      "massKg": 2500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-1",
+          "kind": "support",
+          "position": [
+            0.75,
+            0,
+            -1.1
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-2",
+          "kind": "support",
+          "position": [
+            -0.75,
+            0,
+            -1.1
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "le-fantasque-1943-foremast",
+      "name": "Le Fantasque 1943 lattice foremast",
+      "kind": "mast",
+      "size": [
+        2.702,
+        9.965,
+        1.996
+      ],
+      "boundsCenter": [
+        -0.0,
+        4.9811,
+        -0.403
+      ],
+      "centerOfGravity": [
+        0,
+        5,
+        0
+      ],
+      "massKg": 1500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0.31,
+            0,
+            0.25
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-1",
+          "kind": "support",
+          "position": [
+            0.31,
+            0,
+            -0.25
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-2",
+          "kind": "support",
+          "position": [
+            -0.31,
+            0,
+            -0.25
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "support-3",
+          "kind": "support",
+          "position": [
+            -0.31,
+            0,
+            0.25
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
     }
   ]
 }

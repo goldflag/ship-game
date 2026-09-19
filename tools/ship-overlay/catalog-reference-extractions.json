@@ -418,6 +418,401 @@
       "notes": "Rebuild directly from the original unsimplified source hull face subset and attached listed fixtures. Original source axes convert directly to runtime; no viewer yaw correction required.",
       "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
       "expectedModelSha256": "301160475bc9c70e23150ca25e2f97eec48f1ea0a5de21a890d91f5b9985c676"
+    },
+    {
+      "partId": "mikasa-1905-foremast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb011",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/japan/ship/battleship/jsb011_mikasa_1905/jsb011_mikasa_1905_midfront",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -10,
+          15.9,
+          10.8
+        ],
+        "max": [
+          10,
+          53,
+          16.5
+        ],
+        "contactSeed": 4,
+        "forceIslands": [
+          123
+        ],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A_ATBA",
+        "A_Artillery",
+        "A_Finders"
+      ],
+      "fittedResources": [],
+      "expectedModelSha256": "d684b15f24f3f521d91acd0f35602a6ddade3d4e4c96deafc27277e6cac77a31"
+    },
+    {
+      "partId": "dreadnought-1906-foremast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb503",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/uk/ship/battleship/bsb020_dreadnought_1906/bsb020_dreadnought_1906_midfront",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -6,
+          6.65,
+          7
+        ],
+        "max": [
+          6,
+          52,
+          19
+        ],
+        "contactSeed": 9,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A1_Artillery",
+        "A_ATBA",
+        "A_Finders"
+      ],
+      "fittedResources": [],
+      "expectedModelSha256": "720fa7c543d03cb66b3b3b5ea960bbffec13455ff812bfd91f74f655a037b604"
+    },
+    {
+      "partId": "michigan-1916-cage-mainmast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb001",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/usa/ship/battleship/asb001_michigan_1916/asb001_michigan_1916_midback",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -8,
+          8.5,
+          -29
+        ],
+        "max": [
+          8,
+          50,
+          -20
+        ],
+        "contactSeed": 2,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A1_Artillery",
+        "AB_Finders",
+        "A_ATBA",
+        "A_Directors"
+      ],
+      "fittedResources": [],
+      "expectedModelSha256": "017423402370dc9c0086119e48bfd046d718aaa6dd9a711872cea34b18562549"
+    },
+    {
+      "partId": "gangut-1918-foremast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsb104",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/russia/ship/battleship/rsb012_gangut_1918/rsb012_gangut_1918_midfront",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -6,
+          13.19,
+          32
+        ],
+        "max": [
+          6,
+          46,
+          38
+        ],
+        "contactSeed": 5,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "AB1_Artillery",
+        "AB_ATBA",
+        "AB_Directors",
+        "AB_Finders",
+        "A_AirDefense"
+      ],
+      "fittedResources": [],
+      "expectedModelSha256": "40b1ebb1582b1ffae9dea53ecafe9ecebc9d7c51e0e7f64d14fbb19fc1c4d8f6"
+    },
+    {
+      "partId": "hood-1941-mainmast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb507",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/uk/ship/battleship/bsb010_hood_1941/bsb010_hood_1941_midback",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -8,
+          8.9,
+          -33
+        ],
+        "max": [
+          8,
+          43,
+          -26
+        ],
+        "contactSeed": 20,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A1_Artillery",
+        "A_ATBA",
+        "A_AirDefense",
+        "A_Directors",
+        "A_Finders",
+        "A_Radars"
+      ],
+      "fittedResources": [],
+      "expectedModelSha256": "9afca1c5675cd8b98fa91017b6ecbd0515269c43f44e74381e7dbaa4c6e19f70"
+    },
+    {
+      "partId": "scharnhorst-1939-mainmast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/germany/ship/battleship/gsb003_scharnhorst_1939/gsb003_scharnhorst_1939_midback",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -7,
+          6.35,
+          -45
+        ],
+        "max": [
+          7,
+          49,
+          -36
+        ],
+        "contactSeed": 3,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A_ATBA",
+        "A_AirArmament",
+        "A_AirDefense",
+        "A_Artillery",
+        "A_Directors",
+        "A_Finders",
+        "A_Torpedoes"
+      ],
+      "fittedResources": [],
+      "expectedModelSha256": "380b3e54575f3d66b32d16f0896bb6524d561f95320950a204e5c7482d64fd34"
+    },
+    {
+      "partId": "roma-1943-mainmast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb508",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/italy/ship/battleship/isb002_roma_1943/isb002_roma_1943_midback",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -5.2,
+          8.8,
+          -30
+        ],
+        "max": [
+          5.2,
+          34,
+          -23
+        ],
+        "contactSeed": 2,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A1_Artillery",
+        "A_ATBA",
+        "A_AirArmament",
+        "A_AirDefense",
+        "A_Directors",
+        "A_Radars"
+      ],
+      "fittedResources": [],
+      "expectedModelSha256": "0cbf48da369aec772ed3922078b196f98b9d38010425949ff685b68965d2bf29"
+    },
+    {
+      "partId": "arizona-1941-mainmast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb506",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/usa/ship/battleship/asb035_arizona_1941/asb035_arizona_1941_midback",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -5.7,
+          4.7,
+          -26
+        ],
+        "max": [
+          5.7,
+          44,
+          -14
+        ],
+        "contactSeed": 0,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A1_Artillery",
+        "A_ATBA",
+        "A_AirArmament",
+        "A_AirDefense",
+        "A_Directors",
+        "A_Finders",
+        "A_Radars"
+      ],
+      "fittedResources": [],
+      "expectedModelSha256": "b508f0604d50c79ec2d6e9b0e736b7bc7b2c496bf3322e50f25bb183829e7934"
+    },
+    {
+      "partId": "colorado-1945-cage-foremast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb008",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/usa/ship/battleship/asb008_colorado_1945/asb008_colorado_1945_midfront",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -6,
+          20.99,
+          6
+        ],
+        "max": [
+          6,
+          47,
+          16
+        ],
+        "contactSeed": 3,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "AB1_Artillery",
+        "AB_ATBA",
+        "AB_AirArmament",
+        "AB_Directors",
+        "AB_Finders",
+        "AB_Radars",
+        "A_AirDefense"
+      ],
+      "fittedResources": [
+        "common/visual/usa/radar/fcontrol/arf021_radar_mk27/arf021_radar_mk27",
+        "common/visual/usa/radar/fcontrol/arf007_radar_mk3/arf007_radar_mk3",
+        "common/visual/usa/radar/search/ars004_radar_sg/ars004_radar_sg",
+        "common/visual/usa/radar/search/ars026_radar_cxam1/ars026_radar_cxam1"
+      ],
+      "expectedModelSha256": "a58bb15c9c26a12c9368bd17fc62fb978a5c4d62d281c787a7072dcccb003947"
+    },
+    {
+      "partId": "halland-1955-foremast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd110",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/europe/ship/destroyer/wsd010_halland_1955/wsd010_halland_1955_midfront",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -3,
+          10.19,
+          8
+        ],
+        "max": [
+          3,
+          28,
+          13
+        ],
+        "contactSeed": 6,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A1_Artillery",
+        "A1_Torpedoes",
+        "A_AirDefense",
+        "A_DepthChargeGuns",
+        "A_Directors",
+        "A_Radars"
+      ],
+      "fittedResources": [
+        "common/visual/europe/radar/search/wrs017_radar_type_293q_outfit_ans/wrs017_radar_type_293q_outfit_ans",
+        "common/visual/europe/radar/search/wrs012_type_974_radar/wrs012_type_974_radar"
+      ],
+      "expectedModelSha256": "6dd662434f5341c0992b0b0e01f3b3a812cf0288104b66aa627a58175c4e9209"
+    },
+    {
+      "partId": "friesland-1956-foremast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd510",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/netherlands/ship/destroyer/hsd001_friesland_1956/hsd001_friesland_1956_midfront",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -6,
+          16.1,
+          4
+        ],
+        "max": [
+          6,
+          33,
+          13
+        ],
+        "contactSeed": 4,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "A_AirDefense",
+        "A_Artillery",
+        "A_DepthChargeGuns",
+        "A_Directors",
+        "A_Radars"
+      ],
+      "fittedResources": [
+        "common/visual/netherlands/radar/search/hrs005_zw_01/hrs005_zw_01",
+        "common/visual/netherlands/radar/search/hrs003_lw_02/hrs003_lw_02",
+        "common/visual/netherlands/radar/search/hrs004_da_01/hrs004_da_01"
+      ],
+      "expectedModelSha256": "c223e0bf7809d0d19e47a4b23f38b56e416a46fbedbcf2483c965af46be9f9eb"
+    },
+    {
+      "partId": "le-fantasque-1943-foremast",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsd108",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/france/ship/destroyer/fsd010_le_fantasque_1943/fsd010_le_fantasque_1943_midfront",
+      "geometryKey": "",
+      "sourceSelection": {
+        "min": [
+          -5,
+          14.7,
+          25.8
+        ],
+        "max": [
+          5,
+          27,
+          29
+        ],
+        "contactSeed": 21,
+        "forceIslands": [],
+        "retainAboveY": 0
+      },
+      "schemeComponents": [
+        "AB1_Artillery",
+        "AB1_Torpedoes",
+        "AB_DepthChargeGuns",
+        "AB_Directors",
+        "AB_Finders",
+        "AB_Radars",
+        "A_AirDefense"
+      ],
+      "fittedResources": [
+        "common/visual/usa/radar/search/ars036_radar_sa/ars036_radar_sa",
+        "common/visual/usa/radar/search/ars033_radar_sf/ars033_radar_sf"
+      ],
+      "expectedModelSha256": "8729b55a842a49b5aca83c58fe108a2b318b8162a59c9766150997e4df85b7b2"
     }
   ]
 }
