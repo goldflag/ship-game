@@ -33,20 +33,35 @@ pub fn area(p: &[Vec3]) -> f64 {
         .map(|i| length(cross(sub(p[i], p[0]), sub(p[i + 1], p[0]))) * 0.5)
         .sum()
 }
+/// `area(p) < limit`. The area sums non-negative triangle terms, and a rounded
+/// sum of those is never below any one of them, so a single triangle clearly
+/// larger than the limit settles it without the remaining square roots.
+fn area_below(p: &[Vec3], limit: f64) -> bool {
+    let square = limit * limit * 4.0;
+    if square.is_normal() {
+        for i in 1..p.len().saturating_sub(1) {
+            let c = cross(sub(p[i], p[0]), sub(p[i + 1], p[0]));
+            let squared = dot(c, c);
+            if squared.is_finite() && squared > square * (1.0 + 1e-9) {
+                return false;
+            }
+        }
+    }
+    area(p) < limit
+}
 pub fn clean(p: &mut Polygon) {
-    p.dedup_by(|a, b| length(sub(*a, *b)) < EPS);
-    if p.len() > 1 && length(sub(p[0], *p.last().unwrap())) < EPS {
+    p.dedup_by(|a, b| shorter(sub(*a, *b), EPS));
+    if p.len() > 1 && shorter(sub(p[0], *p.last().unwrap()), EPS) {
         p.pop();
     }
     // Collinear points can be the first three after a clip; remove them before computing a plane.
     let mut i = 0;
     while p.len() >= 3 && i < p.len() {
         let n = p.len();
-        if length(cross(
-            sub(p[i], p[(i + n - 1) % n]),
-            sub(p[(i + 1) % n], p[i]),
-        )) < EPS * EPS
-        {
+        if shorter(
+            cross(sub(p[i], p[(i + n - 1) % n]), sub(p[(i + 1) % n], p[i])),
+            EPS * EPS,
+        ) {
             p.remove(i);
             i = 0;
         } else {
@@ -56,6 +71,11 @@ pub fn clean(p: &mut Polygon) {
 }
 pub fn clip_polygon(p: &[Vec3], n: Vec3, d: f64) -> Polygon {
     let mut out = vec![];
+    clip_polygon_into(p, n, d, &mut out);
+    out
+}
+fn clip_polygon_into(p: &[Vec3], n: Vec3, d: f64, out: &mut Polygon) {
+    out.clear();
     for i in 0..p.len() {
         let (a, b) = (p[i], p[(i + 1) % p.len()]);
         let (da, db) = (dot(n, a) - d, dot(n, b) - d);
@@ -66,8 +86,7 @@ pub fn clip_polygon(p: &[Vec3], n: Vec3, d: f64) -> Polygon {
             out.push(add(a, scale(sub(b, a), da / (da - db))));
         }
     }
-    clean(&mut out);
-    out
+    clean(out);
 }
 pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
     let (mut faces, mut cap) = (vec![], vec![]);
@@ -158,6 +177,31 @@ pub fn closest_point(c: &Cell, p: Vec3) -> Vec3 {
         }
     }
     best.0
+}
+/// `room_distance(room, p).min(bound)` for a constructed room. A cell whose
+/// bounding box is clearly farther than the nearest surface found so far cannot
+/// hold it, and measuring that box is far cheaper than a closest point on every
+/// face; the cell that does hold it is never skipped, so the distance is exact.
+pub fn room_distance_within(cells: &[Cell], p: Vec3, bound: f64) -> f64 {
+    let mut nearest = bound;
+    for c in cells {
+        let (mut low, mut high) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
+        for v in c.faces.iter().flat_map(|f| &f.vertices) {
+            for i in 0..3 {
+                low[i] = low[i].min(v[i]);
+                high[i] = high[i].max(v[i]);
+            }
+        }
+        let gaps: Vec3 = std::array::from_fn(|i| (low[i] - p[i]).max(p[i] - high[i]).max(0.));
+        if dot(gaps, gaps) > nearest * nearest * (1. + 1e-9) {
+            continue;
+        }
+        nearest = nearest.min(length(sub(p, closest_point(c, p))));
+        if nearest == 0. {
+            break;
+        }
+    }
+    nearest
 }
 pub fn room_distance(room: &crate::definition::Compartment, p: Vec3) -> f64 {
     if let Some(cells) = &room.volumes {
@@ -571,16 +615,15 @@ impl Moments {
     }
 }
 pub fn moments(c: &Cell) -> Moments {
+    face_moments(c.faces.iter().map(|f| f.vertices.as_slice()))
+}
+fn face_moments<'a>(faces: impl Iterator<Item = &'a [Vec3]> + Clone) -> Moments {
     // Reference near the body avoids catastrophic cancellation after translations.
-    let origin = bounds(c).0;
+    let origin = crate::structure::bounds(faces.clone().flat_map(|f| f.iter().copied())).0;
     let mut m = Moments::default();
-    for f in c.faces.iter() {
-        for i in 1..f.vertices.len() - 1 {
-            let p = [
-                sub(f.vertices[0], origin),
-                sub(f.vertices[i], origin),
-                sub(f.vertices[i + 1], origin),
-            ];
+    for f in faces {
+        for i in 1..f.len() - 1 {
+            let p = [sub(f[0], origin), sub(f[i], origin), sub(f[i + 1], origin)];
             let v = dot(p[0], cross(p[1], p[2])) / 6.;
             m.volume += v;
             for k in 0..3 {
@@ -596,6 +639,88 @@ pub fn moments(c: &Cell) -> Moments {
     }
     m
 }
+/// Buffers `clipped_moments` reuses between cells; only their capacity survives.
+#[derive(Default)]
+struct ClipScratch {
+    points: Polygon,
+    faces: Vec<(usize, usize)>,
+    polygon: Polygon,
+    cap: Polygon,
+    angles: Vec<(f64, Vec3)>,
+}
+thread_local! {
+    static CLIP: std::cell::RefCell<ClipScratch> = std::cell::RefCell::new(ClipScratch::default());
+}
+/// `clip(c, n, d).map(|c| moments(&c))` without building the clipped cell. A
+/// hydrostatic solve clips every waterline cell at each of some thirty levels
+/// and keeps only the integrals, so the faces live in reused buffers instead.
+/// Every float is produced by the same operations in the same order as the two
+/// calls it replaces; the cap's angles are computed once and sorted stably,
+/// which orders it exactly as comparing them pairwise does.
+pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
+    let (mut outside, mut inside) = (false, false);
+    for f in c.faces.iter() {
+        for &p in &f.vertices {
+            outside |= dot(n, p) - d > EPS;
+            inside |= dot(n, p) - d < -EPS;
+        }
+    }
+    if !outside {
+        return Some(moments(c));
+    }
+    if !inside {
+        return None;
+    }
+    CLIP.with_borrow_mut(|work| {
+        let ClipScratch {
+            points,
+            faces,
+            polygon,
+            cap,
+            angles,
+        } = work;
+        points.clear();
+        faces.clear();
+        cap.clear();
+        for f in c.faces.iter() {
+            clip_polygon_into(&f.vertices, n, d, polygon);
+            if polygon.len() < 3 || area_below(polygon, EPS * EPS) {
+                continue;
+            }
+            for &v in polygon.iter() {
+                if (dot(n, v) - d).abs() < EPS * 8.0
+                    && !cap.iter().any(|q| shorter(sub(*q, v), EPS * 8.0))
+                {
+                    cap.push(v);
+                }
+            }
+            faces.push((points.len(), points.len() + polygon.len()));
+            points.extend_from_slice(polygon);
+        }
+        if cap.len() >= 3 {
+            let center = scale(
+                cap.iter().copied().fold([0.; 3], add),
+                1.0 / cap.len() as f64,
+            );
+            let u = normalize(sub(cap[0], center));
+            let v = cross(n, u);
+            angles.clear();
+            angles.extend(cap.iter().map(|p| {
+                let a = sub(*p, center);
+                (dot(a, v).atan2(dot(a, u)), *p)
+            }));
+            angles.sort_by(|a, b| a.0.total_cmp(&b.0));
+            cap.clear();
+            cap.extend(angles.iter().map(|a| a.1));
+            clean(cap);
+            if cap.len() >= 3 {
+                faces.push((points.len(), points.len() + cap.len()));
+                points.extend_from_slice(cap);
+            }
+        }
+        (faces.len() >= 4).then(|| face_moments(faces.iter().map(|&(a, b)| &points[a..b])))
+    })
+}
 pub fn total(cells: &[Cell]) -> Moments {
     let mut m = Moments::default();
     for c in cells {
@@ -606,8 +731,8 @@ pub fn total(cells: &[Cell]) -> Moments {
 pub fn submerged(cells: &[Cell], n: Vec3, d: f64) -> Moments {
     let mut m = Moments::default();
     for c in cells {
-        if let Some(c) = clip(c, n, d) {
-            m.add(moments(&c));
+        if let Some(part) = clipped_moments(c, n, d) {
+            m.add(part);
         }
     }
     m

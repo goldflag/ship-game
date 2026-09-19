@@ -34,6 +34,13 @@ export interface DeveloperWeather {
   seaWind?: number;
 }
 
+/** Share of each scene's authored forward sun haze that reaches the sky. At full
+ * strength the aureole bleached a third of the sun-facing sky and its reflections. */
+const SUN_HAZE = .45;
+/** Sun and moon disc radius as `1 - cos(θ)`: a 1.4° disc, under three times life size.
+ * Sky Pro's presets draw them at 3.2° and 3.6°. */
+const CELESTIAL_DISC = 7.5e-5;
+
 /** Applies resolved battle conditions to the licensed water and sky, and owns
  * every live override of those uniforms: the port's daylight and standing wind, the air map's
  * far fog, underwater attenuation and the celestial light shared with scene
@@ -65,7 +72,11 @@ export class VisualEnvironment {
   }
   /** Sky is attached after its preset. Water resynchronizes its provider light
    * every simulation step, so the host reapplies `syncLighting` from that sync. */
-  attachSky(sky: SkySystem): void { this.sky = sky; }
+  attachSky(sky: SkySystem): void {
+    this.sky = sky;
+    sky.sun.discSize.value = CELESTIAL_DISC;
+    sky.timeOfDay.moonAngularSize.value = CELESTIAL_DISC;
+  }
   /** Conditions for the next launch; the port keeps its own daylight until the scene changes. */
   setBattle(battle: BattleScene): void { this.battle = { ...battle, conditions: { ...battle.conditions } }; }
   /** Apply the sea, sky, fog and wind for a map in port or at sea. A new scene drops developer overrides. */
@@ -187,7 +198,7 @@ export class VisualEnvironment {
     // forward sun haze restrained so it cannot wash out the sky and reflections.
     sky.atmosphere.turbidity.value = port ? 3.2 : authored.turbidity;
     sky.atmosphere.rayleigh.value = port ? .42 : authored.rayleigh;
-    sky.atmosphere.mieScatteringStrength.value = port ? .25 : authored.mie;
+    sky.atmosphere.mieScatteringStrength.value = port ? .25 : authored.mie * SUN_HAZE;
     sky.atmosphere.mieDirectionalG.value = port ? .6 : authored.mieG;
     sky.atmosphere.skyMultipleScattering.value = port ? 1.4 : authored.multiple;
     this.applyFog();

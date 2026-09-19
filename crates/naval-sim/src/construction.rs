@@ -1604,9 +1604,12 @@ fn equipment(
     let installed_parts: Vec<_> = c.equipment.iter().filter_map(|e| catalog.equipment.iter().find(|p| p.id == e.part_id).map(|p| (e, p)))
         .map(|(e, p)| crate::construction_wall_fittings::installed(e, p, c, &out.surfaces).map(|p| (e.id.clone(), p)))
         .collect::<Result<_, _>>()?;
-    // Fixed exterior fittings may be seated into hulls and neighboring fittings.
-    // Weapons keep exact fit with everything; interior packages and moving underwater
-    // parts with one another; ropes, chains and ladders still clear solid bodies, and railings clear nothing.
+    // Decorative fittings never collide with other equipment. Keep machinery and
+    // weapon clearance independent of source order, including propeller supports.
+    let colliding_ids: std::collections::BTreeSet<_> = installed_parts.iter()
+        .filter(|(_, p)| p.path.is_none() && !matches!(p.kind.as_str(), "deck-fitting" | "director"))
+        .map(|(id, _)| id.as_str()).collect();
+    // Fixed exterior fittings may still seat partly into the hull.
     let relaxed_fit = |p: &ConstructionEquipmentPart| p.placement == "deck" && p.path.is_none()
         && matches!(p.kind.as_str(), "deck-fitting" | "mast" | "director" | "funnel");
     let relaxed_ids: std::collections::BTreeSet<_> = installed_parts.iter()
@@ -1765,9 +1768,6 @@ fn equipment(
                 &hull_index,
                 &support_sockets,
                 &fitting_surfaces,
-                &all_envelopes,
-                &fitting_index,
-                &part_name,
             )?;
             path_members += path.cells.len();
             if path_members > 16_384 {
@@ -1778,14 +1778,7 @@ fn equipment(
                 ));
             }
             masses.push(path.mass);
-            // Paths are cosmetic trim: their members never limit gun traverse or fire.
-            // Railings never obstruct anything: they share posts, flank stairs and
-            // cross lines, so their members stay out of the fit index.
-            let railing = p.path.as_ref().is_some_and(|path| path.kind == "railing");
-            for cell in path.cells.into_iter().filter(|_| !railing) {
-                fitting_index.insert(&cell);
-                all_envelopes.push((e.id.clone(), cell));
-            }
+            // Routes contribute loading and support checks, never fitting obstacles.
             fitted.push((e, p));
             continue;
         }
@@ -1828,8 +1821,8 @@ fn equipment(
             }
         }
         for (other, cell) in &all_envelopes {
-            // A cosmetic fitting may be seated into any fixed neighbor; only burial (below)
-            // fails. Weapons traverse, so they keep exact clearance from every fitting.
+            if !colliding_ids.contains(e.id.as_str()) || !colliding_ids.contains(other.as_str()) { continue; }
+            // Fixed machinery retains its partial-overlap rule; weapons need clearance.
             let weapon = |kind: &str| matches!(kind, "gun" | "torpedo-launcher");
             if (relaxed_fit(p) && !weapon_ids.contains(other.as_str())) || (relaxed_ids.contains(other.as_str()) && !weapon(&p.kind)) { continue; }
             if fitting_cells.iter().any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
@@ -1969,7 +1962,7 @@ fn equipment(
             }
             let members: Vec<_> = support.members.iter().flat_map(|m| crate::construction_propellers::cells(m).into_iter().map(move |cell| (m, cell))).collect();
             for (i, (member, cell)) in members.iter().enumerate() {
-                if let Some((id, _)) = all_envelopes.iter().find(|(id, other)| id != &e.id && cg::intersection(cell, other).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
+                if let Some((id, _)) = all_envelopes.iter().find(|(id, other)| id != &e.id && colliding_ids.contains(id.as_str()) && cg::intersection(cell, other).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                     return Err(error("equipment-overlap", format!("Propeller shaft or support intersects {}", neighbor_name(&p.name, &part_name(id))), Some(&e.id)));
                 }
                 if crate::construction_propellers::crosses_hull(member, cell, hull) {
@@ -2019,9 +2012,7 @@ fn equipment(
                         s.id != "attachment" && matches!(s.kind.as_str(), "support" | "rigging")
                     })
                     .map(|s| crate::construction_paths::SupportSocket {
-                        owner: e.id.clone(),
                         position: local_to_world(s.position, pose),
-                        direction: normalize(sub(local_to_world(s.direction, pose), e.position)),
                     }),
             );
         }
@@ -2311,8 +2302,8 @@ fn equipment(
             }
         }
     }
-    // Check every fitting against the complete layout, so source order cannot
-    // hide a swallowed neighbor. Subtraction counts combined overlaps only once.
+    // Hull burial applies to every fixed fitting. Only collision-bearing fittings
+    // can bury one another; decorative overlaps never consume their exposed volume.
     for id in &relaxed_ids {
         let cells: Vec<_> = all_envelopes.iter().filter(|(owner, _)| owner == id)
             .map(|(_, cell)| cell.clone()).collect();
@@ -2321,11 +2312,12 @@ fn equipment(
         let hull_candidates: std::collections::BTreeSet<_> = cells.iter().flat_map(|cell| hull_index.candidates(cell)).collect();
         let fitting_candidates: std::collections::BTreeSet<_> = cells.iter().flat_map(|cell| fitting_index.candidates(cell)).collect();
         let cutters = hull_candidates.iter().map(|&i| &hull[i]).chain(fitting_candidates.iter()
-            .filter(|&&i| all_envelopes[i].0 != *id).map(|&i| &all_envelopes[i].1));
+            .filter(|&&i| all_envelopes[i].0 != *id && colliding_ids.contains(id)
+                && colliding_ids.contains(all_envelopes[i].0.as_str())).map(|&i| &all_envelopes[i].1));
         for cutter in cutters {
             exposed = exposed.iter().flat_map(|cell| cg::subtract(cell, cutter)).collect();
             if cg::total(&exposed).volume + 1e-7 < volume * crate::construction_overlap::MIN_EXPOSED {
-                return Err(error("equipment-overlap", "Keep at least 10% of each fixed fitting outside the hull and other fittings", Some(id)));
+                return Err(error("equipment-overlap", "Keep at least 10% of each fixed fitting outside the hull; machinery must also remain exposed to other machinery and weapons", Some(id)));
             }
         }
     }
@@ -3497,7 +3489,7 @@ mod tests {
             && d.message == format!("{name} intersects another {name}")), "{:?}", result.diagnostics);
     }
     #[test]
-    fn fixed_fittings_cannot_overlap_weapons_in_either_source_order() {
+    fn fixed_fittings_can_overlap_weapons_in_either_source_order() {
         let (mut source, mut catalog) = equipped_fixture();
         let mut part = catalog.equipment.iter().find(|p| p.kind == "funnel").unwrap().clone();
         part.id = "fixed-part".into();
@@ -3511,7 +3503,7 @@ mod tests {
         });
         for _ in 0..2 {
             let result = compile(&source, &catalog);
-            assert!(result.diagnostics.iter().any(|d| d.code == "equipment-overlap"), "{:?}", result.diagnostics);
+            assert!(result.definition.is_some(), "{:?}", result.diagnostics);
             source.construction.equipment.reverse();
         }
     }

@@ -83,6 +83,7 @@ test('whole-ship finish changes one revision, supports undo and restores origina
 test('ship paint carries faces and fittings that wore the previous ship paint and keeps accents', async () => {
   const source = createStarterSource(catalog, 'patrol');
   const [first, second] = source.construction.equipment; first.paint = 'naval-gray'; second.paint = 'red-oxide';
+  source.construction.equipment.push({ id: 'colored-rope', partId: 'rope', position: [0, 0, 0], bearingDeg: 0, paint: 'naval-gray', path: { points: [[0, 0, 0], [0, 0, -4]] } });
   const accents = source.construction.surfaces.filter(surface => surface.paint !== 'naval-gray').length;
   source.construction.surfaces.push({ primitiveId: source.construction.primitives[0].id, face: 'port', thicknessMm: 50, material: 'armor-steel', paint: 'naval-gray' });
   const { tool, data, labels } = await setup({ source });
@@ -92,6 +93,7 @@ test('ship paint carries faces and fittings that wore the previous ship paint an
   expect(data().paint).toBe('sea-blue');
   expect(data().equipment[0].paint).toBeUndefined();
   expect(data().equipment[1].paint).toBe('red-oxide');
+  expect(data().equipment.at(-1)?.paint).toBe('naval-gray');
   expect(data().surfaces.at(-1)).toMatchObject({ paint: 'sea-blue', thicknessMm: 50 });
   expect(data().surfaces.filter(surface => surface.paint !== 'sea-blue')).toHaveLength(accents);
   expect(labels()).toEqual(['Set ship paint']);

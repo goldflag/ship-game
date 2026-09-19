@@ -61,6 +61,10 @@ pub fn equipment_condition(
         .filter(|ix| actor.damage.modules.len() == ix.modules)
         .and_then(|ix| Some((ix, ix.position(module)?)));
     let sea = sea.or_else(|| actor.sea.as_ref().map(|(s, t)| (s, *t)));
+    // One attitude serves every point this module checks, built on first use:
+    // most modules check none.
+    let mut attitude = None;
+    let mut hull = || *attitude.get_or_insert_with(|| actor.motion.basis());
     let hp = match known {
         Some((ix, i)) => actor.damage.modules[ix.module_state(i)].hp,
         None => actor
@@ -76,22 +80,16 @@ pub fn equipment_condition(
     let immersion = if (def.hull.volume.is_some() || def.maneuvering.is_some())
         && (module.role.as_deref() == Some("shaft") || module.kind == "steering")
     {
-        let bottom = local_to_world(
-            [
-                module.center[0],
-                module.center[1] - module.size[1] * 0.5,
-                module.center[2],
-            ],
-            actor.motion.pose(),
-        );
-        let top = local_to_world(
-            [
-                module.center[0],
-                module.center[1] + module.size[1] * 0.5,
-                module.center[2],
-            ],
-            actor.motion.pose(),
-        );
+        let bottom = hull().local_to_world([
+            module.center[0],
+            module.center[1] - module.size[1] * 0.5,
+            module.center[2],
+        ]);
+        let top = hull().local_to_world([
+            module.center[0],
+            module.center[1] + module.size[1] * 0.5,
+            module.center[2],
+        ]);
         let surface = sea.map_or(0., |(s, t)| s.height(top[0], top[2], t));
         ((surface - bottom[1].min(top[1])) / (top[1] - bottom[1]).abs().max(1e-6)).clamp(0., 1.)
     } else {
@@ -102,27 +100,21 @@ pub fn equipment_condition(
     } else if immersion <= 0. {
         EquipmentReason::Unimmersed
     } else if def.hull.volume.is_some() && module.role.as_deref() == Some("boiler") && {
-        let top = local_to_world(
-            [
-                module.center[0],
-                module.center[1] + module.size[1] * 0.5,
-                module.center[2],
-            ],
-            actor.motion.pose(),
-        );
+        let top = hull().local_to_world([
+            module.center[0],
+            module.center[1] + module.size[1] * 0.5,
+            module.center[2],
+        ]);
         top[1] <= sea.map_or(0., |(s, t)| s.height(top[0], top[2], t))
     } {
         EquipmentReason::Flooded
     } else if let Some(tolerance) = module.immersion_tolerance_m {
         let center = equipment_center(actor, def, module);
-        let datum = local_to_world(
-            [
-                center[0],
-                center[1] - module.size[1] / 2.0 + tolerance,
-                center[2],
-            ],
-            actor.motion.pose(),
-        );
+        let datum = hull().local_to_world([
+            center[0],
+            center[1] - module.size[1] / 2.0 + tolerance,
+            center[2],
+        ]);
         let flooded = if let Some(id) = &module.compartment_id {
             let i = match known {
                 Some((ix, mi)) => ix.room(mi).expect("validated room"),

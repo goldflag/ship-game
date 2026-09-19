@@ -33,6 +33,18 @@ pub fn within_distance(a: Vec3, b: Vec3, radius: f64) -> bool {
     }
     length(delta) <= radius
 }
+/// `length(a) < limit` for a positive limit, by the same rule: squares decide
+/// wherever they differ by far more than either rounding, the original otherwise.
+pub fn shorter(a: Vec3, limit: f64) -> bool {
+    let squared = dot(a, a);
+    let square = limit * limit;
+    if limit > 0.0 && squared.is_finite() && square.is_normal() {
+        if (squared - square).abs() > 1e-9 * squared.max(square) {
+            return squared < square;
+        }
+    }
+    length(a) < limit
+}
 pub fn normalize(a: Vec3) -> Vec3 {
     let n = length(a);
     scale(a, 1.0 / if n == 0.0 { 1.0 } else { n })
@@ -100,6 +112,10 @@ impl Basis {
     }
     pub fn local_to_world(&self, v: Vec3) -> Vec3 {
         add(self.rotate(v), self.origin)
+    }
+    /// `|cos heading|` and `|sin heading|`: how a yawed box spreads over x and z.
+    pub(crate) fn heading_spread(&self) -> (f64, f64) {
+        (self.ch.abs(), self.sh.abs())
     }
     pub fn world_to_local(&self, v: Vec3) -> Vec3 {
         let p = sub(v, self.origin);

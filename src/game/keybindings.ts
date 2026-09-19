@@ -22,6 +22,7 @@ export const INPUT_ACTIONS = [
   { id: 'periscope', label: 'Raise / lower periscope view', group: 'View' },
   { id: 'camera', label: 'Cycle camera', group: 'View' },
   { id: 'recenter', label: 'Recenter camera', group: 'View' },
+  { id: 'freeCamera', label: 'Toggle free camera', group: 'View' },
   { id: 'hud', label: 'Show / hide instruments', group: 'View' },
   { id: 'fullscreen', label: 'Toggle fullscreen', group: 'View' },
   { id: 'chartLarger', label: 'Increase minimap size', group: 'View' },
@@ -52,6 +53,7 @@ export function defaultKeybindings(): Keybindings {
     airOperations: ['KeyM', null], periscope: ['KeyP', null],
     simulationSpeed: ['KeyN', null],
     helmWheel: ['Tab', null],
+    freeCamera: ['KeyO', null],
   };
 }
 
@@ -103,7 +105,7 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50', 'simulationSpeed', 'helmWheel', 'rangefind', 'rangeLock'];
+  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50', 'simulationSpeed', 'helmWheel', 'rangefind', 'rangeLock', 'freeCamera'];
   for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
     if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;

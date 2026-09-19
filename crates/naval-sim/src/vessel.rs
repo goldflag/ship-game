@@ -203,6 +203,8 @@ pub struct CompiledShip {
     pub shell_radius: f64,
     pub obstructions: Obstructions,
     pub weapon_group_ids: Vec<String>,
+    /// Every mount of every opponent read this each tick by scanning the armor.
+    pub exterior_protection_mm: f64,
 }
 impl CompiledShip {
     /// `hydrostatics` is the class's published lookup. Without it the hull
@@ -282,6 +284,7 @@ impl CompiledShip {
             hydro,
             obstructions: Obstructions::new(d),
             weapon_group_ids: d.mounts.iter().map(crate::gunnery::group_id).collect(),
+            exterior_protection_mm: crate::bots::exterior_protection_mm(d),
             definition,
             shell_center,
             shell_size,

@@ -71,10 +71,15 @@ mass. Navigation's braking estimate uses the same response scale. The former
 acceleration/turn multipliers only inform legacy calibration. Submarines retain
 their authored submerged power calibration and separate depth controls.
 
-Hull coefficients are provisional: skin coefficient `0.004`, a fullness form
-factor, projected frontal coefficient `0.18`, and a bounded Froude-dependent wave
-term. These are deliberately simple engineering/game estimates, not CFD or
-measured performance curves. Forces are reduced to surge, sway and yaw; roll/pitch
+Hull resistance is the ITTC-57 friction line for the hull's Reynolds number with
+form factor `0.2` and roughness allowance `0.0004`, a wave term that rises through
+Froude `0.32` and levels off past the hump (plateau `0.0075 * sqrt(B/L)`), and
+projected frontal coefficient `0.18`. The wave and friction constants are
+calibrated so that preset hulls carrying their ships' historical machinery reach
+their trial speeds: Bismarck, King George V, Admiral Hipper, Baltimore, Fletcher
+and Kagero all land within 0.7 kn (0.5 kn RMS). Legacy authored ships are
+unaffected, because their drag is normalized to their authored ahead speed. These
+remain simple engineering/game estimates, not CFD or measured performance curves. Forces are reduced to surge, sway and yaw; roll/pitch
 moments from thrust, cavitation, detailed rudder stall, propeller swirl, shaft RPM
 inertia, unsteady wake flow and dynamic changes in dry ammunition/fuel mass are
 not modeled. Floodwater mass changes do not model inflow momentum exchange.

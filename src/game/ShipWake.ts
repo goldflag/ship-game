@@ -4,12 +4,15 @@ import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-wat
 import { FleetWakeFoam, WAKE_ATLAS_CAPACITY, type WakeShip } from './FleetWakeFoam';
 import type { CombatEvent } from '../game/session/elements';
 import { wakeHull } from './wakeHull';
+import { TorpedoTrackFoam } from './TorpedoTrackFoam';
+import type { Torpedo } from './torpedoAim';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
 export class ShipWake {
   private readonly anchor = new Camera();
   private readonly generators = new Map<WakeShip['root'], { bow: number; stern: number }>();
   private readonly foam: FleetWakeFoam;
+  private readonly torpedoTracks: TorpedoTrackFoam;
   private readonly materials = new Set<WaterSurfaceMaterial>();
   private eventSequence = 0;
 
@@ -27,13 +30,15 @@ export class ShipWake {
     wake.foamStrength = 1.2;
     wake.foamPersistence = Math.exp(-(1 / 60) / 9);
     this.foam = new FleetWakeFoam(Math.min(wake.resolution, 256), renderer);
+    // A bubble track is a few metres wide: finer than any fleet wake cell.
+    this.torpedoTracks = new TorpedoTrackFoam(renderer ? 1024 : 256, renderer);
     const native = wake.getSampler();
     const sampler: ReturnType<WaterSystem['wake']['getSampler']> = {
       sample: (x, z) => native.sample(x, z),
       sampleNormal: (x, z) => native.sampleNormal(x, z),
       // The vendor declaration erases scalar node types at its public boundary.
-      sampleFoamEnergy: (x, z) => max(native.sampleFoamEnergy(x, z) as Node<'float'>,
-        this.foam.sample(x as Node<'float'>, z as Node<'float'>)),
+      sampleFoamEnergy: (x, z) => max(max(native.sampleFoamEnergy(x, z) as Node<'float'>,
+        this.foam.sample(x as Node<'float'>, z as Node<'float'>)), this.torpedoTracks.sample(x as Node<'float'>, z as Node<'float'>)),
     };
     // Use Water Pro's public material sampler hook: the wake shares the real
     // ocean's displacement, lighting, reflections and foam dissolve texture.
@@ -47,7 +52,7 @@ export class ShipWake {
     this.materials.forEach(material => material.setWakeFieldSampler(sampler));
   }
 
-  update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[] = [], camera?: Camera): void {
+  update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[] = [], camera?: Camera, torpedoes: readonly Pick<Torpedo, 'id' | 'position' | 'velocity'>[] = []): void {
     const freshEvents = events.filter(event => event.sequence > this.eventSequence);
     for (const event of freshEvents) this.eventSequence = Math.max(this.eventSequence, event.sequence);
     const focus = ships[0]?.motion;
@@ -89,13 +94,14 @@ export class ShipWake {
     this.wake.foamStrength = 1.2 * strength;
     if (dt > 0) this.wake.foamPersistence = Math.exp(-dt / 9);
     this.foam.update(ships, dt, freshEvents, camera);
+    this.torpedoTracks.update(torpedoes, dt, this.anchor.position.x, this.anchor.position.z, camera);
   }
 
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }
-  diagnostics() { return this.foam.diagnostics(); }
+  diagnostics() { return { ...this.foam.diagnostics(), torpedoTracks: this.torpedoTracks.diagnostics() }; }
 
   reset(): void {
-    this.foam.reset();
+    this.foam.reset(); this.torpedoTracks.reset();
     this.eventSequence = 0;
     // Clear native displacement too when returning to port, even if the
     // reset distance is below the solver's automatic teleport threshold.
@@ -114,6 +120,6 @@ export class ShipWake {
     }
     this.generators.clear();
     this.materials.forEach(material => material.setWakeFieldSampler(this.wake.getSampler()));
-    this.foam.dispose();
+    this.foam.dispose(); this.torpedoTracks.dispose();
   }
 }

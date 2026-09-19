@@ -10,6 +10,8 @@ const NORMAL_FOV = 52;
 const MIN_MAGNIFICATION = 1, MAX_MAGNIFICATION = 32;
 const MAX_DOWNWARD_TILT = Math.PI / 2 - .015;
 const MIN_ORBIT_ELEVATION = .08;
+/** Torpedoes are laid on wedges drawn on the sea: the chase view climbs until the water fills the lower half of the frame. */
+const TORPEDO_ORBIT_ELEVATION = .38;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
@@ -22,12 +24,16 @@ const FOLLOW_DISTANCE = Math.hypot(45, 12, 12);
 const FOLLOW_AZIMUTH = Math.atan2(12, 45);
 const FOLLOW_ELEVATION = Math.atan2(12, Math.hypot(45, 12));
 const POINTER_LOCK_RETRY_MS = 1000;
+const FREE_SPEED = 120, FREE_MIN_SPEED = 5, FREE_MAX_SPEED = 3000, FREE_FAST = 4;
+const FREE_MAX_TILT = Math.PI / 2 - .02;
 
 export class CameraRig {
   mode: CameraMode = 'Chase';
   binoculars = false;
   private scopeMagnification = 4;
   private lockedRangeM?: number;
+  private torpedoView = false;
+  private chaseFloor = MIN_ORBIT_ELEVATION;
   private displayedDistance = 345;
   private opticsTransition?: { offset: Vector3; aim?: Vec3; elapsed: number };
   private readonly motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -71,17 +77,26 @@ export class CameraRig {
   private followAzimuth = FOLLOW_AZIMUTH;
   private followElevation = FOLLOW_ELEVATION;
   private followDistance = FOLLOW_DISTANCE;
+  /** The free camera leaves the ship and flies on its own heading; the ship's sight angles wait for its return. */
+  freeCamera = false;
+  private freeAzimuth = 0;
+  private freeElevation = 0;
+  private freeSpeed = FREE_SPEED;
+  private freeMove = { x: 0, y: 0, z: 0, fast: false };
+  private aimLockHeld = false;
 
   constructor(readonly camera: PerspectiveCamera, private canvas: HTMLCanvasElement, private bridge: Vec3 = [0, 29, -31],
-    private actions: { pause(): void; aim(): void; optics(): void } = { pause() {}, aim() {}, optics() {} }) {
+    private actions: { pause(): void; aim(): void; aimLock(held: boolean): void } = { pause() {}, aim() {}, aimLock() {} }) {
     const options = { signal: this.abort.signal };
     canvas.addEventListener('pointerdown', e => {
       if (!this.enabled || this.held || (e.button !== 0 && e.button !== 2)) return;
-      if (this.shellView && this.pointerLocked) return;
-      if (!this.shellView && !this.inPort && !this.inspecting && e.pointerType === 'mouse') {
+      const detached = !!this.shellView || this.freeCamera;
+      if (detached && this.pointerLocked) return;
+      if (!detached && !this.inPort && !this.inspecting && e.pointerType === 'mouse') {
         if (!this.pointerLocked) { this.capturePointer(); return; }
         if (e.button === 0) this.mouseFire = true;
-        if (e.button === 2) this.actions.optics();
+        // Held right mouse keeps the guns on their point while the view looks elsewhere.
+        if (e.button === 2) this.holdAimLock(true);
         return;
       }
       this.dragging = true; this.pointerId = e.pointerId;
@@ -95,7 +110,10 @@ export class CameraRig {
       if (!locked && (!this.dragging || e.pointerId !== this.pointerId)) return;
       const dx = locked ? e.movementX : e.clientX - this.previous.x;
       const dy = locked ? e.movementY : e.clientY - this.previous.y;
-      if (this.shellView) {
+      if (this.freeCamera) {
+        this.freeAzimuth += dx * .0025;
+        this.freeElevation = MathUtils.clamp(this.freeElevation + dy * .0025, -FREE_MAX_TILT, FREE_MAX_TILT);
+      } else if (this.shellView) {
         this.followAzimuth = MathUtils.euclideanModulo(this.followAzimuth - dx * .005, Math.PI * 2);
         this.followElevation = MathUtils.clamp(this.followElevation + dy * .004, -Math.PI / 2 + .06, Math.PI / 2 - .06);
       } else if (this.inPort && this.panning) {
@@ -112,7 +130,13 @@ export class CameraRig {
       }
       this.previous = { x: e.clientX, y: e.clientY };
     }, options);
-    const release = () => { this.dragging = false; this.panning = false; this.mouseFire = false; };
+    const release = (e?: Event) => {
+      // With the pointer captured each mouse button lets go of its own hold: firing continues under a released aim lock.
+      const button = e?.type === 'pointerup' && this.pointerLocked ? (e as PointerEvent).button : undefined;
+      if (button === undefined || button === 2) this.holdAimLock(false);
+      if (button === undefined || button === 0) this.mouseFire = false;
+      if (button === undefined) { this.dragging = false; this.panning = false; }
+    };
     window.addEventListener('pointerup', release, options);
     canvas.addEventListener('pointercancel', release, options);
     canvas.addEventListener('lostpointercapture', release, options);
@@ -131,7 +155,8 @@ export class CameraRig {
       if (!this.enabled) return;
       e.preventDefault();
       const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? this.canvas.clientHeight || 800 : 1);
-      if (this.shellView) this.followDistance = MathUtils.clamp(this.followDistance * Math.exp(delta * .001), 12, 800);
+      if (this.freeCamera) this.freeSpeed = MathUtils.clamp(this.freeSpeed * Math.exp(-delta * .001), FREE_MIN_SPEED, FREE_MAX_SPEED);
+      else if (this.shellView) this.followDistance = MathUtils.clamp(this.followDistance * Math.exp(delta * .001), 12, 800);
       else if (this.binoculars) this.scopeMagnification = MathUtils.clamp(this.scopeMagnification * Math.exp(-delta * .0015), MIN_MAGNIFICATION, MAX_MAGNIFICATION);
       else this.distance = MathUtils.clamp(this.distance * Math.exp(delta * .001), (this.inPort ? PORT_MIN_DISTANCE : 45) * this.distanceScale, this.inPort ? PORT_MAX_DISTANCE * this.portHullScale : 1400 * this.hullScale);
     }, { ...options, passive: false });
@@ -144,9 +169,17 @@ export class CameraRig {
   setSubmarine(equipment?: SubmarineDefinition): void { this.submarine = equipment; }
 
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
-  get firing(): boolean { return this.enabled && !this.shellView && this.pointerLocked && this.mouseFire; }
+  get firing(): boolean { return this.enabled && !this.shellView && !this.freeCamera && this.pointerLocked && this.mouseFire; }
+  private holdAimLock(held: boolean): void {
+    if (held === this.aimLockHeld) return;
+    this.aimLockHeld = held;
+    this.actions.aimLock(held);
+  }
   get magnification(): number { return Math.tan(NORMAL_FOV * Math.PI / 360) / Math.tan(this.camera.fov * Math.PI / 360); }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
+
+  /** Raise the lowest chase orbit while the torpedo sight is up. */
+  setTorpedoView(on: boolean): void { this.torpedoView = on; }
 
   setRangeLock(rangeM?: number): void {
     if (rangeM !== undefined && (!Number.isFinite(rangeM) || rangeM <= 0)) return;
@@ -174,6 +207,24 @@ export class CameraRig {
     }
     this.shellView = view;
   }
+
+  /** Leave the ship where the view stands, or return to it with the optics the flight interrupted. */
+  setFreeCamera(free: boolean): void {
+    if (free === this.freeCamera) return;
+    this.freeCamera = free;
+    this.opticsTransition = undefined;
+    this.dragging = false; this.mouseFire = false; this.holdAimLock(false);
+    if (free) {
+      this.returnBinoculars = this.binoculars; this.binoculars = false;
+      this.camera.getWorldDirection(this.look);
+      this.freeAzimuth = Math.atan2(this.look.x, -this.look.z);
+      this.freeElevation = MathUtils.clamp(-Math.asin(MathUtils.clamp(this.look.y, -1, 1)), -FREE_MAX_TILT, FREE_MAX_TILT);
+    } else { this.binoculars = this.returnBinoculars; this.followedShipId = undefined; }
+    this.updateProjection();
+  }
+  /** Travel for the next frame in the camera's own frame: x right, y up, z ahead. */
+  setFreeMove(move: { x: number; y: number; z: number; fast: boolean }): void { this.freeMove = move; }
+  get freeCameraSpeed(): number { return this.freeSpeed; }
 
   capturePointer(): void {
     if (!this.enabled || this.inPort || this.inspecting || this.pointerLocked || !this.canvas.requestPointerLock || !window.matchMedia('(pointer: fine)').matches) return;
@@ -204,10 +255,10 @@ export class CameraRig {
   /** Hold the view still while an overlay owns the mouse; the pointer stays captured. */
   setHeld(held: boolean): void {
     this.held = held;
-    if (held) { this.dragging = false; this.mouseFire = false; }
+    if (held) { this.dragging = false; this.mouseFire = false; this.holdAimLock(false); }
   }
   setInspecting(inspecting: boolean): void {
-    this.setShellView();
+    this.setShellView(); this.setFreeCamera(false);
     this.inspecting = inspecting;
     this.binoculars = false;
     this.updateProjection();
@@ -284,7 +335,7 @@ export class CameraRig {
   }
   setInPort(inPort: boolean): void {
     this.setRangeLock();
-    this.setShellView();
+    this.setShellView(); this.setFreeCamera(false);
     this.inPort = inPort;
     this.inspecting = false;
     this.followedShipId = undefined;
@@ -325,6 +376,21 @@ export class CameraRig {
     this.lastShip = ship;
     this.updateProjection(dt, snap);
     this.displayedDistance = snap || this.reducedMotion ? this.distance : MathUtils.lerp(this.displayedDistance, this.distance, 1 - Math.exp(-12 * dt));
+    if (this.freeCamera) {
+      const cos = Math.cos(this.freeElevation), { x, y, z, fast } = this.freeMove;
+      this.look.set(Math.sin(this.freeAzimuth) * cos, -Math.sin(this.freeElevation), -Math.cos(this.freeAzimuth) * cos);
+      const step = this.freeSpeed * (fast ? FREE_FAST : 1) * dt;
+      this.camera.position.addScaledVector(this.look, z * step);
+      this.camera.position.x += Math.cos(this.freeAzimuth) * x * step;
+      this.camera.position.z += Math.sin(this.freeAzimuth) * x * step;
+      this.camera.position.y += y * step;
+      // The sea is open above and below; only land stays solid.
+      const ground = this.battleTerrain(this.camera.position.x, this.camera.position.z);
+      if (ground > 0) this.camera.position.y = Math.max(this.camera.position.y, ground + 2);
+      this.camera.lookAt(this.look.add(this.camera.position));
+      this.camera.updateMatrixWorld();
+      return;
+    }
     if (this.shellView) {
       this.target.fromArray(this.shellView.position);
       this.shellDirection.fromArray(this.shellView.velocity).normalize();
@@ -386,7 +452,9 @@ export class CameraRig {
         if (this.binoculars && !periscope) this.desired.y += 8;
       } else {
         let distance = (this.mode === 'Tactical' ? Math.max(160 * this.hullScale, this.displayedDistance) : this.displayedDistance) * Math.max(1, 1.2 / this.camera.aspect);
-        const orbitElevation = Math.max(.08, this.elevation);
+        const floor = this.torpedoView && this.mode === 'Chase' ? TORPEDO_ORBIT_ELEVATION : MIN_ORBIT_ELEVATION;
+        this.chaseFloor = snap || this.reducedMotion ? floor : MathUtils.lerp(this.chaseFloor, floor, 1 - Math.exp(-7 * dt));
+        const orbitElevation = Math.max(this.chaseFloor, this.elevation);
         let lift = Math.sin(orbitElevation) * distance + 12 * this.hullScale;
         distance *= Math.cos(orbitElevation);
         if (this.submarine && this.mode === 'Chase') {

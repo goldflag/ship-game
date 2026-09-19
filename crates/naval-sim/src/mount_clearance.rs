@@ -80,10 +80,10 @@ impl Box3 {
         let (center, size) = bounds(points);
         Self { center, size }
     }
-    fn transformed(self, frame: Pose) -> Self {
-        let (c, s) = (frame.heading.cos().abs(), frame.heading.sin().abs());
+    fn transformed(self, frame: &Basis) -> Self {
+        let (c, s) = frame.heading_spread();
         Self {
-            center: local_to_world(self.center, frame),
+            center: frame.local_to_world(self.center),
             size: [
                 c * self.size[0] + s * self.size[2],
                 self.size[1],
@@ -91,11 +91,44 @@ impl Box3 {
             ],
         }
     }
-    fn separation(self, other: Self) -> f64 {
-        length(std::array::from_fn(|i| {
+    fn gaps(self, other: Self) -> Vec3 {
+        std::array::from_fn(|i| {
             ((self.center[i] - other.center[i]).abs() - (self.size[i] + other.size[i]) / 2.0)
                 .max(0.0)
-        }))
+        })
+    }
+    fn separation(self, other: Self) -> f64 {
+        length(self.gaps(other))
+    }
+    /// Whether `self.separation(other)` exceeds `reach`, when that is beyond
+    /// doubt. Broad-phase rejections need the comparison, not a correctly
+    /// rounded distance, so squares settle it wherever they differ by far more
+    /// than the rounding of either side; `None` inside that band and for a
+    /// non-positive reach, where the caller's original expression decides.
+    fn beyond(self, other: Self, reach: f64) -> Option<bool> {
+        let gaps = self.gaps(other);
+        let squared = dot(gaps, gaps);
+        if reach > 0.0 && squared.is_finite() && reach.is_finite() {
+            let reach = reach * reach;
+            if (squared - reach).abs() > 1e-9 * squared.max(reach) {
+                return Some(squared > reach);
+            }
+        }
+        None
+    }
+    /// `self.separation(other) - slack >= limit`.
+    fn clears(self, other: Self, slack: f64, limit: f64) -> bool {
+        self.beyond(other, limit + slack)
+            .unwrap_or_else(|| self.separation(other) - slack >= limit)
+    }
+    /// `self.separation(near) < self.separation(far)`, by the same rule.
+    fn nearer(self, near: Self, far: Self) -> bool {
+        let (a, b) = (self.gaps(near), self.gaps(far));
+        let (a2, b2) = (dot(a, a), dot(b, b));
+        if a2.is_finite() && b2.is_finite() && (a2 - b2).abs() > 1e-9 * a2.max(b2) {
+            return a2 < b2;
+        }
+        length(a) < length(b)
     }
 }
 #[derive(Clone, Debug)]
@@ -129,13 +162,11 @@ impl Chunk {
         }
     }
     fn distance(&self, capsule: Capsule, bounds: Box3, nearest: &mut f64) {
-        if bounds.separation(self.bounds) - capsule.radius >= *nearest {
+        if bounds.clears(self.bounds, capsule.radius, *nearest) {
             return;
         }
         if let Some(children) = &self.children {
-            let first = usize::from(
-                bounds.separation(children[1].bounds) < bounds.separation(children[0].bounds),
-            );
+            let first = usize::from(bounds.nearer(children[1].bounds, children[0].bounds));
             children[first].distance(capsule, bounds, nearest);
             children[1 - first].distance(capsule, bounds, nearest);
         } else {
@@ -181,8 +212,11 @@ impl Body {
         }
     }
     fn distance(&self, capsule: Capsule, limit: f64) -> f64 {
-        let bounds = capsule.bounds();
-        if bounds.separation(self.bounds) - capsule.radius >= limit {
+        self.distance_within(capsule, capsule.bounds(), limit)
+    }
+    /// `bounds` is `capsule.bounds()`, which a posed barrel already holds.
+    fn distance_within(&self, capsule: Capsule, bounds: Box3, limit: f64) -> f64 {
+        if bounds.clears(self.bounds, capsule.radius, limit) {
             return limit;
         }
         let mut nearest = limit;
@@ -200,17 +234,17 @@ impl Capsule {
     fn bounds(self) -> Box3 {
         Box3::points([self.a, self.b].into_iter())
     }
-    fn transformed(self, frame: Pose) -> Self {
+    fn transformed(self, frame: &Basis) -> Self {
         Self {
-            a: local_to_world(self.a, frame),
-            b: local_to_world(self.b, frame),
+            a: frame.local_to_world(self.a),
+            b: frame.local_to_world(self.b),
             ..self
         }
     }
-    fn inverse(self, frame: Pose) -> Self {
+    fn inverse(self, frame: &Basis) -> Self {
         Self {
-            a: world_to_local(self.a, frame),
-            b: world_to_local(self.b, frame),
+            a: frame.world_to_local(self.a),
+            b: frame.world_to_local(self.b),
             ..self
         }
     }
@@ -235,13 +269,63 @@ impl BodyIndex {
     fn query(&self, bounds: Box3, limit: f64, out: &mut Vec<usize>) {
         // Outward numerical slack only admits extra candidates; it never relaxes
         // the original per-body narrow phase or clearance margin.
-        if bounds.separation(self.bounds) > limit + 1e-8 { return; }
+        if bounds.beyond(self.bounds, limit + 1e-8).unwrap_or_else(|| bounds.separation(self.bounds) > limit + 1e-8) { return; }
         if let Some(children) = &self.children { for child in children.iter() { child.query(bounds, limit, out); } }
         else { out.extend_from_slice(&self.indices); }
     }
 }
+/// One mount's barrels in ship coordinates at one pose. `key` is the frame and
+/// elevation they were built from, compared bit for bit before any reuse.
+#[derive(Clone, Debug)]
+struct PosedMount {
+    key: [u64; 5],
+    frame: Basis,
+    capsules: Vec<Capsule>,
+    capsule_bounds: Vec<Box3>,
+    /// Runs of neighbouring barrel sections: a box around each run, its largest
+    /// radius, and the run. A body or another run clearly beyond that box is
+    /// beyond every section in it, which skips the per-section rejections.
+    runs: Vec<(Box3, f64, std::ops::Range<usize>)>,
+    bounds: Box3,
+}
+/// Sections per run; a run of an enclosed barrel is about four metres of tube.
+const RUN: usize = 8;
+/// Every mount of one hull, posed. A sweep moves one mount and its descendants;
+/// the rest keep their barrels between steps, mounts and ticks.
+#[derive(Default)]
+struct Posed {
+    mounts: Vec<Option<PosedMount>>,
+    candidates: Vec<usize>,
+    moving: Vec<usize>,
+}
+thread_local! {
+    /// Posed hulls by clearance geometry and caller-chosen owner, most recent last.
+    static POSED: std::cell::RefCell<Vec<(u64, usize, Posed)>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+const POSED_HULLS: usize = 32;
+static GEOMETRIES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+/// A gap one mount measured, with the poses it was measured at. The sweep
+/// already trusts that no point of a mount moves faster than its reach times
+/// its angular rate, so the same bound says how far that gap can have closed
+/// since: while what is left clears the sweep's needs, the mount is free to take
+/// its requested pose and no geometry has to be measured to say so.
+#[derive(Clone, Debug)]
+pub struct ClearBound {
+    generation: u64,
+    poses: Vec<[f64; 2]>,
+    gap: f64,
+}
 #[derive(Clone, Debug)]
 pub struct MountClearance {
+    /// Unique per built geometry, so a posed hull is never reused across designs.
+    generation: u64,
+    /// Per mount, every mount whose motion can close one of its checked gaps,
+    /// itself included: those near enough for a gap within the sweep's search
+    /// distance, or every mount when any is carried by another.
+    relevant: Vec<Vec<usize>>,
+    /// Per mount, each mount that moves it (itself and its carriers) with the
+    /// farthest any of its points sits from that mount's axis.
+    levers: Vec<Vec<(usize, f64)>>,
     enabled: Vec<bool>,
     margin: f64,
     bodies: Vec<Body>,
@@ -394,7 +478,41 @@ impl MountClearance {
             }
             bodies.push(Body::new(body.id.clone(), mount, false, triangles));
         }
+        let nested = def.mounts.iter().any(|m| m.parent_mount_id.is_some());
+        let relevant = (0..def.mounts.len())
+            .map(|i| {
+                (0..def.mounts.len())
+                    .filter(|&j| {
+                        nested
+                            || i == j
+                            || length(sub(def.mounts[i].position, def.mounts[j].position))
+                                - radii[i]
+                                - radii[j]
+                                < profile.margin_m + 2.0
+                    })
+                    .collect()
+            })
+            .collect();
+        let levers = (0..def.mounts.len())
+            .map(|i| {
+                let mut chain = vec![(i, radii[i])];
+                let mut at = i;
+                while let Some(parent) = def.mounts[at].parent_mount_id.as_ref().and_then(|id| {
+                    def.mounts[..at].iter().position(|m| &m.id == id)
+                }) {
+                    chain.push((
+                        parent,
+                        radii[i] + length(sub(def.mounts[i].position, def.mounts[parent].position)),
+                    ));
+                    at = parent;
+                }
+                chain
+            })
+            .collect();
         Ok(Some(Self {
+            generation: GEOMETRIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+            relevant,
+            levers,
             enabled,
             margin: profile.margin_m,
             static_index: BodyIndex::new(&bodies, (0..bodies.len()).filter(|&i| bodies[i].mount.is_none()).collect()),
@@ -437,7 +555,9 @@ impl MountClearance {
             return (f64::NEG_INFINITY, Some("invalid-poses".into()));
         }
         let changed = self.affected(def, index);
-        self.distance(def, poses, &changed, limit)
+        let mut posed = Posed::default();
+        self.pose(def, poses, None, &mut posed);
+        self.distance(def, &mut posed, &changed, limit)
     }
 
     /// Preserve the permitted angular interval, then accept only a continuously
@@ -449,6 +569,124 @@ impl MountClearance {
         poses: &[ClearancePose],
         requested: ClearancePose,
     ) -> ClearanceResult {
+        self.resolve_for(0, def, index, poses, requested, &mut None)
+    }
+    /// `owner` names the hull being posed (any stable value, such as the address
+    /// of its mount states) so two hulls of one class keep separate posed
+    /// barrels. It selects a cache only; the result never depends on it, nor on
+    /// `bound`, which the mount keeps between calls.
+    pub fn resolve_for(
+        &self,
+        owner: usize,
+        def: &ShipDefinition,
+        index: usize,
+        poses: &[ClearancePose],
+        requested: ClearancePose,
+        bound: &mut Option<ClearBound>,
+    ) -> ClearanceResult {
+        if let Some(result) = self.certified(def, index, poses, requested, bound) {
+            return result;
+        }
+        let mut posed = POSED.with_borrow_mut(|hulls| {
+            hulls
+                .iter()
+                .position(|h| h.0 == self.generation && h.1 == owner)
+                .map(|i| hulls.remove(i).2)
+                .unwrap_or_default()
+        });
+        let result = self.sweep(def, index, poses, requested, &mut posed, bound);
+        POSED.with_borrow_mut(|hulls| {
+            if hulls.len() >= POSED_HULLS {
+                hulls.remove(0);
+            }
+            hulls.push((self.generation, owner, posed));
+        });
+        result
+    }
+    /// The sweep's answer when a kept bound already decides it. Every gap this
+    /// mount checks closes no faster than the two mounts involved move, so since
+    /// the bound was measured it has lost at most twice the largest motion among
+    /// the mounts that matter, and along the requested path at most `speed` more.
+    /// If what remains stays above the stop line, and above the step the sweep's
+    /// iteration budget needs, the sweep would reach the requested pose without
+    /// meeting anything: that is its result, and the remainder is the new bound.
+    fn certified(
+        &self,
+        def: &ShipDefinition,
+        index: usize,
+        poses: &[ClearancePose],
+        requested: ClearancePose,
+        bound: &mut Option<ClearBound>,
+    ) -> Option<ClearanceResult> {
+        let kept = bound.as_mut()?;
+        if kept.generation != self.generation
+            || kept.poses.len() != poses.len()
+            || poses.len() != def.mounts.len()
+            || index >= poses.len()
+            || !self.enabled(index)
+        {
+            return None;
+        }
+        let w = &def.mounts[index].weapon;
+        let [min_train, max_train] = def.mounts[index]
+            .traverse_limits_deg
+            .unwrap_or([-w.traverse_deg, w.traverse_deg])
+            .map(radians);
+        let requested = ClearancePose {
+            train: clamp(requested.train, min_train, max_train),
+            elevation: clamp(
+                requested.elevation,
+                radians(w.elevation_min_deg),
+                radians(w.elevation_max_deg),
+            ),
+            recoil: clamp(requested.recoil, 0.0, 1.0),
+        };
+        let start = poses[index];
+        let turned = |a: usize| {
+            (poses[a].train - kept.poses[a][0]).abs() + (poses[a].elevation - kept.poses[a][1]).abs()
+        };
+        let motion = self.relevant[index]
+            .iter()
+            .map(|&m| self.levers[m].iter().map(|&(a, lever)| lever * turned(a)).sum::<f64>())
+            .fold(0.0, f64::max);
+        let changed = self.affected(def, index);
+        let radius = changed
+            .iter()
+            .enumerate()
+            .filter(|(_, v)| **v)
+            .map(|(i, _)| {
+                self.radii[i] + length(sub(def.mounts[i].position, def.mounts[index].position))
+            })
+            .fold(0.0, f64::max);
+        let speed = 2.0
+            * radius
+            * ((requested.train - start.train).abs() + (requested.elevation - start.elevation).abs());
+        let left = kept.gap - 2.0 * motion - speed;
+        // NaN poses or requests fail this comparison and take the full sweep.
+        if !(speed >= 1e-12 && left >= self.margin.max(speed / 100.0) + 1e-6) {
+            return None;
+        }
+        kept.gap = left;
+        for (kept, pose) in kept.poses.iter_mut().zip(poses) {
+            *kept = [pose.train, pose.elevation];
+        }
+        kept.poses[index] = [requested.train, requested.elevation];
+        Some(ClearanceResult {
+            pose: requested,
+            blocked: false,
+            obstruction_id: None,
+        })
+    }
+    fn sweep(
+        &self,
+        def: &ShipDefinition,
+        index: usize,
+        poses: &[ClearancePose],
+        requested: ClearancePose,
+        posed: &mut Posed,
+        bound: &mut Option<ClearBound>,
+    ) -> ClearanceResult {
+        *bound = None;
         if index >= def.mounts.len()
             || poses.len() != def.mounts.len()
             || poses
@@ -517,8 +755,8 @@ impl MountClearance {
             recoil: requested.recoil,
         };
         let mut t = 0.0;
-        let (mut gap, mut obstacle) =
-            self.distance(def, &candidate, &changed, speed + self.margin + 1.0);
+        self.pose(def, &candidate, None, posed);
+        let (mut gap, mut obstacle) = self.distance(def, posed, &changed, speed + self.margin + 1.0);
         if gap <= 1e-7 {
             return result(start, true, obstacle);
         }
@@ -533,9 +771,10 @@ impl MountClearance {
             }
             let next = t + step;
             candidate[index] = at(next);
+            self.pose(def, &candidate, Some(&changed), posed);
             let (next_gap, next_obstacle) = self.distance(
                 def,
-                &candidate,
+                posed,
                 &changed,
                 speed * (1.0 - next) + self.margin + 1.0,
             );
@@ -552,7 +791,8 @@ impl MountClearance {
                 for _ in 0..30 {
                     let mid = (low + high) / 2.0;
                     candidate[index] = at(mid);
-                    if self.distance(def, &candidate, &changed, stop_gap + 0.01).0 >= stop_gap {
+                    self.pose(def, &candidate, Some(&changed), posed);
+                    if self.distance(def, posed, &changed, stop_gap + 0.01).0 >= stop_gap {
                         low = mid;
                     } else {
                         high = mid;
@@ -564,6 +804,12 @@ impl MountClearance {
             gap = next_gap;
             obstacle = next_obstacle;
             if t >= 1.0 - 1e-12 {
+                // Measured at the pose just accepted, among these neighbours.
+                *bound = Some(ClearBound {
+                    generation: self.generation,
+                    poses: candidate.iter().map(|p| [p.train, p.elevation]).collect(),
+                    gap,
+                });
                 return result(requested, false, None);
             }
         }
@@ -584,83 +830,166 @@ impl MountClearance {
         }
         result
     }
-    fn distance(
+    /// Bring `posed` to `poses`. Only mounts in `only` can have moved since the
+    /// last call with this `posed`; `None` checks every mount. A mount whose
+    /// frame and elevation are unchanged keeps its barrels.
+    fn pose(
         &self,
         def: &ShipDefinition,
         poses: &[ClearancePose],
+        only: Option<&[bool]>,
+        posed: &mut Posed,
+    ) {
+        posed.mounts.resize_with(def.mounts.len(), || None);
+        for (i, m) in def.mounts.iter().enumerate() {
+            if only.is_some_and(|only| !only[i]) && posed.mounts[i].is_some() {
+                continue;
+            }
+            let frame = mount_frame(def, i, &|j| poses[j].train);
+            let key = [frame.x, frame.y, frame.z, frame.heading, poses[i].elevation]
+                .map(f64::to_bits);
+            if posed.mounts[i].as_ref().is_some_and(|p| p.key == key) {
+                continue;
+            }
+            let frame = Basis::of(frame);
+            // A tracking mount is re-posed at every sweep step; keep its buffers.
+            let (mut capsules, mut capsule_bounds, mut runs) = match posed.mounts[i].take() {
+                Some(p) => (p.capsules, p.capsule_bounds, p.runs),
+                None => Default::default(),
+            };
+            capsules.clear();
+            capsules.extend(
+                barrel_capsules(&m.weapon, poses[i].elevation, def.hull.volume.is_some())
+                    .into_iter()
+                    .map(|c| c.transformed(&frame)),
+            );
+            let mut bounds = Box3::points(capsules.iter().flat_map(|c| [c.a, c.b]));
+            let radius = capsules.iter().map(|c| c.radius).fold(0.0, f64::max);
+            bounds.size = bounds.size.map(|v| v + 2.0 * radius);
+            capsule_bounds.clear();
+            capsule_bounds.extend(capsules.iter().map(|c| c.bounds()));
+            runs.clear();
+            runs.extend((0..capsules.len()).step_by(RUN).map(|start| {
+                let run = start..(start + RUN).min(capsules.len());
+                let mut bounds = Box3::points(capsules[run.clone()].iter().flat_map(|c| [c.a, c.b]));
+                // A section's own box is never thinner than 0.01 mm, which
+                // can reach past the run's points on a flat axis.
+                bounds.size = bounds.size.map(|v| v + 0.00002);
+                let radius = capsules[run.clone()].iter().map(|c| c.radius).fold(0.0, f64::max);
+                (bounds, radius, run)
+            }));
+            posed.mounts[i] = Some(PosedMount {
+                key,
+                frame,
+                runs,
+                capsule_bounds,
+                capsules,
+                bounds,
+            });
+        }
+    }
+    fn distance(
+        &self,
+        def: &ShipDefinition,
+        posed: &mut Posed,
         changed: &[bool],
         limit: f64,
     ) -> (f64, Option<String>) {
-        let frames: Vec<_> = (0..def.mounts.len())
-            .map(|i| mount_frame(def, i, &|j| poses[j].train))
-            .collect();
-        let barrels: Vec<Vec<_>> = def
-            .mounts
-            .iter()
-            .enumerate()
-            .map(|(i, m)| {
-                barrel_capsules(&m.weapon, poses[i].elevation, def.hull.volume.is_some())
-                    .into_iter()
-                    .map(|c| c.transformed(frames[i]))
-                    .collect()
-            })
-            .collect();
-        let barrel_bounds: Vec<_> = barrels
-            .iter()
-            .map(|capsules| {
-                let mut bounds = Box3::points(capsules.iter().flat_map(|c| [c.a, c.b]));
-                let radius = capsules.iter().map(|c| c.radius).fold(0.0, f64::max);
-                bounds.size = bounds.size.map(|v| v + 2.0 * radius);
-                bounds
-            })
-            .collect();
-        let moving_bodies: Vec<_> = self.moving.iter().copied()
-            .filter(|&i| self.bodies[i].mount.is_some_and(|m| changed[m])).collect();
+        let Posed {
+            mounts,
+            candidates,
+            moving: moving_bodies,
+        } = posed;
+        let mount = |i: usize| mounts[i].as_ref().expect("posed mount");
+        moving_bodies.clear();
+        moving_bodies.extend(
+            self.moving
+                .iter()
+                .copied()
+                .filter(|&i| self.bodies[i].mount.is_some_and(|m| changed[m])),
+        );
         let (mut gap, mut id) = (limit, None);
-        for (i, capsules) in barrels.iter().enumerate() {
-            let mut candidates = Vec::new();
+        for i in 0..def.mounts.len() {
+            let barrels = mount(i);
+            candidates.clear();
             if changed[i] {
-                if let Some(tree) = &self.static_index { tree.query(barrel_bounds[i], gap, &mut candidates); }
+                if let Some(tree) = &self.static_index {
+                    tree.query(barrels.bounds, gap, candidates);
+                }
                 candidates.extend_from_slice(&self.moving);
                 candidates.sort_unstable();
-            } else { candidates.extend_from_slice(&moving_bodies); }
-            for index in candidates {
+            } else {
+                candidates.extend_from_slice(moving_bodies);
+            }
+            for &index in candidates.iter() {
                 let body = &self.bodies[index];
-                let bounds = body.mount.map_or(body.bounds, |j| body.bounds.transformed(frames[j]));
+                let bounds = body
+                    .mount
+                    .map_or(body.bounds, |j| body.bounds.transformed(&mount(j).frame));
                 if body.enclosure && body.mount == Some(i) {
                     continue;
                 }
                 if !changed[i] && !body.mount.is_some_and(|j| changed[j]) {
                     continue;
                 }
-                if barrel_bounds[i].separation(bounds) >= gap {
+                if barrels.bounds.clears(bounds, 0.0, gap) {
                     continue;
                 }
-                for &capsule in capsules {
-                    let local = body.mount.map_or(capsule, |j| capsule.inverse(frames[j]));
-                    let d = body.distance(local, gap);
-                    if d < gap {
-                        gap = d;
-                        id = Some(body.id.clone());
+                for (run_bounds, run_radius, run) in &barrels.runs {
+                    // Rejecting a section leaves `gap` alone, so a run whose box
+                    // is clearly out of reach changes nothing section by section.
+                    if body.mount.is_none()
+                        && run_bounds.beyond(body.bounds, gap + run_radius) == Some(true)
+                    {
+                        continue;
+                    }
+                    for k in run.clone() {
+                        let capsule = barrels.capsules[k];
+                        let d = match body.mount {
+                            Some(j) => body.distance(capsule.inverse(&mount(j).frame), gap),
+                            None => body.distance_within(capsule, barrels.capsule_bounds[k], gap),
+                        };
+                        if d < gap {
+                            gap = d;
+                            id = Some(body.id.clone());
+                        }
                     }
                 }
             }
-            for j in i + 1..barrels.len() {
+            for j in i + 1..def.mounts.len() {
                 if !changed[i] && !changed[j] {
                     continue;
                 }
-                if barrel_bounds[i].separation(barrel_bounds[j]) >= gap {
+                let other = mount(j);
+                if barrels.bounds.clears(other.bounds, 0.0, gap) {
                     continue;
                 }
-                for a in capsules {
-                    for b in &barrels[j] {
-                        if a.bounds().separation(b.bounds()) - a.radius - b.radius >= gap {
+                // Section pairs keep their authored order; only whole runs of
+                // the other mount that one section clearly cannot reach drop out.
+                for (a, a_bounds) in barrels.capsules.iter().zip(&barrels.capsule_bounds) {
+                    for (run_bounds, run_radius, run) in &other.runs {
+                        if a_bounds.beyond(*run_bounds, gap + a.radius + run_radius) == Some(true) {
                             continue;
                         }
-                        let d = segment_segment_distance(a.a, a.b, b.a, b.b) - a.radius - b.radius;
-                        if d < gap {
-                            gap = d;
-                            id = Some(format!("{}:barrels:{}", def.mounts[i].id, def.mounts[j].id));
+                        for k in run.clone() {
+                            let (b, b_bounds) = (&other.capsules[k], &other.capsule_bounds[k]);
+                            if a_bounds
+                                .beyond(*b_bounds, gap + a.radius + b.radius)
+                                .unwrap_or_else(|| {
+                                    a_bounds.separation(*b_bounds) - a.radius - b.radius >= gap
+                                })
+                            {
+                                continue;
+                            }
+                            let d =
+                                segment_segment_distance(a.a, a.b, b.a, b.b) - a.radius - b.radius;
+                            if d < gap {
+                                gap = d;
+                                id = Some(format!(
+                                    "{}:barrels:{}",
+                                    def.mounts[i].id, def.mounts[j].id
+                                ));
+                            }
                         }
                     }
                 }
@@ -730,14 +1059,15 @@ fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsul
             (trunnion, w.muzzle_forward + 0.035, radius),
         ]
     };
+    let (sin, cos) = (elevation.sin(), elevation.cos());
     for barrel in 0..w.barrel_count as usize {
         let (x, row) = (barrel_offset(w, barrel), barrel_height(w, barrel));
         let point = |forward: f64| {
             let along = forward - trunnion;
             [
                 x,
-                w.pivot_height + along * elevation.sin() + row * elevation.cos(),
-                -(trunnion + along * elevation.cos() - row * elevation.sin()),
+                w.pivot_height + along * sin + row * cos,
+                -(trunnion + along * cos - row * sin),
             ]
         };
         for &(a, b, radius) in &sections {

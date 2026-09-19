@@ -21,6 +21,25 @@ function fixture() {
   return { source, model, geometry };
 }
 const settled = async () => { await Promise.resolve(); await Promise.resolve(); };
+test('rope preview restores its natural color even when the removed override matches ship paint', () => {
+  const source = createStarterSource(catalog);
+  source.construction.paint = 'sea-blue';
+  source.construction.equipment = [{ id: 'rope', partId: 'generic-rope', position: [0, 0, 0], bearingDeg: 0, path: { points: [[0, 0, 0], [0, 0, -4]] } }];
+  const preview = new EquipmentPreview(() => {}, () => {});
+  const color = () => {
+    let result = '';
+    preview.group.getObjectByName('rope')!.traverse(node => { if (node instanceof THREE.Mesh) result = (node.material as THREE.MeshStandardMaterial).color.getHexString(); });
+    return result;
+  };
+  try {
+    preview.update(source, catalog); const original = color();
+    source.construction.equipment[0].paint = 'sea-blue'; preview.update(source, catalog);
+    expect(color()).toBe('405d70'); expect(color()).not.toBe(original);
+    delete source.construction.equipment[0].paint; preview.update(source, catalog);
+    expect(color()).toBe(original);
+  } finally { preview.dispose(); }
+});
+
 test('ship finish refreshes every fitting and restores original materials without reloading assets', async () => {
   const { source, model } = fixture();
   const original = (model.children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial;

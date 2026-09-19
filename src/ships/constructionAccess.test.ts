@@ -78,3 +78,14 @@ test('compact and tall installations keep valid native support as counts and sec
     accepted(accessFixture(settings));
   }
 });
+
+
+test('stairs and framed ladders can fully overlap other fittings', () => {
+  const source = accessFixture();
+  const initial = accepted(source);
+  source.construction.equipment.push(...source.construction.equipment.map(item => ({ ...structuredClone(item), id: `${item.id}-overlapping` })));
+  const doubled = accepted(source);
+  expect(doubled.loading!.massKg).toBeGreaterThan(initial.loading!.massKg);
+  source.construction.equipment.reverse();
+  accepted(source);
+});

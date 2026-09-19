@@ -43,7 +43,7 @@ function randomFor(seed: number): () => number {
 /** Ballistics come from the CPU simulation. Only gas, spray and fragments live here. */
 export class CombatEffects {
   readonly root = new THREE.Group();
-  private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), shellGlow: effectTexture('glow'), foam: effectTexture('foam'), tracer: effectTexture('tracer'), wake: effectTexture('wake'),
+  private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), shellGlow: effectTexture('glow'), foam: effectTexture('foam'), tracer: effectTexture('tracer'),
     droplet: effectTexture('droplet'), water: effectTexture('water') };
   private readonly volumeMap = effectVolumeTexture();
   private readonly sun = uniform(new THREE.Vector3(-.55, .74, -.39).normalize());
@@ -78,8 +78,6 @@ export class CombatEffects {
   private readonly torpedoBodies = new ExpandableInstances(new THREE.CapsuleGeometry(.5, 1, 3, 8),
     new THREE.MeshBasicMaterial({ color: '#82948f' }), 128);
   private readonly depthChargeBodies = new ExpandableInstances(new THREE.CylinderGeometry(.5, .5, 1, 12), new THREE.MeshBasicMaterial({ color: '#7b8d88' }), 128);
-  private readonly torpedoWakes = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: this.maps.wake, color: '#d7f1e7', transparent: true, opacity: .65, depthWrite: false, side: THREE.DoubleSide }), 128);
   private readonly lights = Array.from({ length: 4 }, () => ({ light: new THREE.PointLight('#ffd29a', 0, 145, 2), age: 1, power: 0, duration: .2 }));
   private readonly wind = new THREE.Vector3(2.4, 0, .9);
   private readonly position = new THREE.Vector3();
@@ -112,8 +110,8 @@ export class CombatEffects {
     this.root.add(this.spouts.mesh);
     this.pools.forEach(pool => this.root.add(pool.mesh));
     this.depthChargeBodies.name = 'Depth charge bodies';
-    this.torpedoBodies.name = 'Torpedo bodies'; this.torpedoWakes.name = 'Torpedo surface wakes';
-    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) {
+    this.torpedoBodies.name = 'Torpedo bodies';
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.depthChargeBodies]) {
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.frustumCulled = false; mesh.instanceMatrix.array.fill(0); this.root.add(mesh);
     }
@@ -280,23 +278,9 @@ export class CombatEffects {
       this.dummy.quaternion.setFromUnitVectors(UP, this.direction);
       this.dummy.scale.set(t.weapon.diameterM, t.weapon.lengthM / 2, t.weapon.diameterM);
       this.dummy.updateMatrix(); this.torpedoBodies.setMatrixAt(i, this.dummy.matrix);
-      const surface = t.position[1] > 0 ? 0 : THREE.MathUtils.clamp((t.position[1] + 6) / 4, 0, 1);
-      const length = Math.max(0, Math.min(60, t.distance)) * surface;
-      // Surface trails follow the horizontal course, even during depth settling.
-      // Place the center using the displayed length so its tip stays on the round.
-      this.direction.y = 0; this.direction.normalize();
-      this.dummy.position.addScaledVector(this.direction, -length / 2);
-      this.dummy.position.y = .45;
-      // Flattening the XY plane maps +Y to north (-Z); its in-plane rotation
-      // must oppose the clockwise course or diagonal wakes point across the run.
-      this.dummy.rotation.set(-Math.PI / 2, 0, -Math.atan2(this.direction.x, -this.direction.z));
-      if (length > 0 && this.direction.lengthSq() > 0) this.dummy.scale.set(3 * surface, length, 1);
-      else this.dummy.scale.setScalar(0);
-      this.dummy.updateMatrix(); this.torpedoWakes.setMatrixAt(i, this.dummy.matrix);
     }
-    for (const mesh of [this.torpedoBodies, this.torpedoWakes]) {
-      mesh.publish(count);
-    }
+    // ShipWake lays the bubble tracks on the ocean surface itself.
+    this.torpedoBodies.publish(count);
   }
 
   private updateShells(sim: BattleSession, camera: THREE.Camera): void {
@@ -599,7 +583,7 @@ export class CombatEffects {
 
   reset(): void {
     this.pools.forEach(pool => pool.reset()); this.spouts.reset(); this.shellTrails.reset(); this.aircraftTrails.clear(); this.airbursts.clear(); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.localFires.reset();
-    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.publish(0); }
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.depthChargeBodies]) { mesh.publish(0); }
     this.detailedProjectiles.publish(0);
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
@@ -616,7 +600,7 @@ export class CombatEffects {
   dispose(): void {
     this.root.removeFromParent(); this.localFires.dispose(); this.shellTrails.dispose(); this.pools.forEach(pool => pool.dispose()); this.spouts.dispose();
     this.detailedProjectiles.dispose(); this.detailedProjectiles.geometry.dispose();
-    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.depthChargeBodies]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
     Object.values(this.maps).forEach(map => map.dispose());
     this.volumeMap.dispose();
     this.volumeDepthTexture.dispose();

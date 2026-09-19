@@ -350,6 +350,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
       </>}
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; }, true)}/>}
+      {part?.path?.kind === 'rope' && <label>Rope color <select className="sb-link" aria-label="Rope color" disabled={locked} value={item.paint ?? ''} onChange={event => tool.paintFittings([item.id], event.target.value || undefined)}>
+        <option value="">Original rope</option>
+        {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
+      </select></label>}
       {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{item.wall ? <> · <kbd>R</kbd> turn · <kbd>⇧R</kbd> back</> : <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove{twinNote}
     </> });
   } else if (selected.size > 1) {
@@ -553,7 +557,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </div>
     <aside className="sb-ledger" aria-label="Ledger">
       <h4>Ledger{!compiledResult && <span title={compile.retained ? 'Readings from the last checked revision. They update after you pause editing.' : 'Readings appear after the design is checked.'}>{compile.retained ? 'last check' : 'pending'}</span>}</h4>
-      {rows.map(row => <div key={row.label} className={`row ${row.tone ?? ''}`}><span>{row.label}</span><b>{row.value}</b></div>)}
+      {rows.map(row => <div key={row.label} className={`row ${row.tone ?? ''}`} title={row.help}><span>{row.label}</span><b>{row.value}</b></div>)}
       {totalMass > 0 && <><div className="sb-massbar" aria-hidden="true">{masses.filter(group => group.massKg > 0).map(group => <i key={group.name} style={{ width: `${(100 * group.massKg / totalMass).toFixed(1)}%`, background: group.color }}/>)}</div>
         <div className="sb-masskey">{masses.filter(group => group.massKg > 0).map(group => <span key={group.name} style={{ display: 'contents' }}><i style={{ background: group.color }}/><span>{group.name}</span><b>{formatTonnes(group.massKg, group.massKg < 1e5 ? 1 : 0)}</b></span>)}</div></>}
       {/* Every thickness on the ship, thickest first on the ship's own colour scale; a row picks that value's card. */}

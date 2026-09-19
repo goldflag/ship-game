@@ -21,6 +21,15 @@ test('missing revisions remain visible instead of substituting current equipment
   const wrong=(async()=>Response.json(raw));
   await expect(loadConstructionCatalog('f'.repeat(64),wrong)).rejects.toThrow('revision mismatch');
 });
+
+test('retained rigging rope displays the current name without changing its published identity', async () => {
+  const old = structuredClone(raw), rope = old.equipment.find((p: { id: string }) => p.id === 'generic-rope');
+  rope.name = 'Rigging rope';
+  const loaded = await loadConstructionCatalog(old.revision, async () => Response.json(old));
+  expect(loaded.equipment.find(p => p.id === rope.id)).toEqual({ ...rope, name: 'Mooring rope' });
+  expect(loaded.revision).toBe(old.revision);
+  expect(rope.name).toBe('Rigging rope');
+});
 test('rejects viewer URLs, duplicate IDs and invented gun masses',()=>{
   const duplicate=structuredClone(raw);duplicate.equipment.push(duplicate.equipment[0]);
   expect(()=>parseConstructionCatalog(duplicate)).toThrow('Duplicate');
