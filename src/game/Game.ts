@@ -1,7 +1,7 @@
 import { controlEligibility } from './controlEligibility';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { physicalLoss } from './session/battleRules';
-import { ArticulationResolver } from './articulationPreview';
+import type { ArticulationResolver } from './articulationPreview';
 import { PveDraft } from './session/PveDraft';
 import type { Formation } from '../multiplayer/generated/Formation';
 import type { Placement } from '../multiplayer/generated/Placement';
@@ -61,7 +61,6 @@ import { CombatEffects } from './CombatEffects';
 import { configureRenderOrder } from './renderOrder';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
-import { gunTraverseAtFraction } from '../ships/armament';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, loadShipPresets } from '../ships/presets';
 import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
@@ -76,6 +75,7 @@ import type { RangeTarget } from './rangefinderSight';
 import { RangefindingController } from './controllers/RangefindingController';
 import { SpectatorController } from './controllers/SpectatorController';
 import { GraphicsController } from './controllers/GraphicsController';
+import { ArticulationPreviewController, type ArticulationPreview } from './controllers/ArticulationPreviewController';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
 import type { WakeShip } from './FleetWakeFoam';
@@ -94,8 +94,7 @@ export const BUOYS = [
   { x: -160, z: -800, color: '#b84734' }, { x: 160, z: -800, color: '#42a789' },
   { x: 220, z: -1800, color: '#b84734' }, { x: 540, z: -1800, color: '#42a789' },
 ];
-type JointPreview = { trainFraction: number; elevationFraction: number; recoilFraction: number };
-export type ArticulationPreview = JointPreview & { mounts?: Record<string, Partial<JointPreview>> };
+export type { ArticulationPreview };
 /** Battle preparation stages, reported as a label with a completion fraction in [0, 1). */
 export type BattleProgress = (label: string, fraction: number) => void;
 
@@ -279,10 +278,8 @@ export class Game {
   private initialization?: Promise<void>;
   private frameTask?: Promise<void>;
   private frameWaiters: (() => void)[] = [];
-  private articulationOriginal?: FleetActor['mounts'];
-  private articulationRequest = 0;
+  /** Owned here so `dispose` can release its worker; the articulation controller creates it on first use. */
   private articulationResolver?: ArticulationResolver;
-  private articulationLaunchers?: FleetActor['torpedoLaunchers'];
 
   private settings: GraphicsSettings;
   /** Ocean tier and terrain density this scene was built with; every other row applies live. */
@@ -813,9 +810,7 @@ export class Game {
       this.scene.add(this.fleetDraws.root);
       this.targetView = views.find(view => view.actor === simulation.target);
       this.shipLabels.setFleet(views, simulation.actors, simulation.ship.id);
-      this.articulationRequest++;
-      this.articulationOriginal = undefined;
-      this.articulationLaunchers = undefined;
+      this.articulation.discard();
       this.controlPriority = 'balanced'; this.controlFocus = '';
       this.lastShellPress = undefined;
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
@@ -1558,6 +1553,7 @@ export class Game {
   private get rangefinder(): Rangefinder { return this.rangefinding.rangefinder; }
   private get canRange(): boolean { return this.rangefinding.canRange; }
   private resetRangefinding(): void { this.rangefinding.reset(); }
+  /** Read by Game.test.ts. */
   private rangeTargets(): RangeTarget[] { return this.rangefinding.targets(); }
   measureRange(): void { this.rangefinding.measure(); }
   toggleRangeLock(): void { this.rangefinding.toggleLock(); }
@@ -1688,54 +1684,20 @@ export class Game {
     this.currentAim = this.simulation.aimAt('', this.battery, this.weaponGroupId);
     if (!this.inspecting && !this.simulation.player.damage.sunk) this.rig.aimAt(this.currentAim, this.simulation.ship);
   }
-  private restoreArticulation(): void {
-    this.articulationRequest++;
-    if (this.articulationOriginal) {
-      this.simulation.player.mounts.forEach((m, i) => Object.assign(m, this.articulationOriginal![i]));
-      this.simulation.player.torpedoLaunchers?.forEach((l, i) => Object.assign(l, this.articulationLaunchers?.[i]));
-      this.articulationLaunchers = undefined;
-      this.articulationOriginal = undefined;
-      this.playerView?.update();
-    }
+  private articulationController?: ArticulationPreviewController<ReturnType<Game['diagnostics']>>;
+  /** Development-only joint-limit review of the berthed ship. Built on first use, so a test-assembled Game has one too. */
+  private get articulation() {
+    const game = this;
+    return this.articulationController ??= new ArticulationPreviewController({
+      get simulation() { return game.simulation; }, get definition() { return game.definition; }, get playerView() { return game.playerView; },
+      get inPort() { return game.inPort; }, get disposed() { return game.disposed; },
+      get resolver() { return game.articulationResolver; }, set resolver(value) { game.articulationResolver = value; },
+      diagnostics: () => game.diagnostics(),
+    });
   }
+  private restoreArticulation(): void { this.articulation.restore(); }
   /** Development-only port inspection of the loaded model at catalog joint limits. */
-  async previewArticulation(pose: ArticulationPreview | null) {
-    if (!import.meta.env.DEV || !this.inPort || !this.playerView) throw new Error('Articulation review requires a loaded ship in the development port.');
-    if (pose === null) this.restoreArticulation();
-    else {
-      if (![pose.trainFraction, pose.elevationFraction, pose.recoilFraction].every(Number.isFinite)) throw new Error('Review fractions must be finite.');
-      for (const [id, override] of Object.entries(pose.mounts ?? {})) {
-        if (!this.definition.mounts.some(m => m.id === id) || !Object.entries(override).every(([key, value]) => ['trainFraction', 'elevationFraction', 'recoilFraction'].includes(key) && Number.isFinite(value))) throw new Error('Invalid mount articulation override.');
-      }
-      const request = ++this.articulationRequest;
-      const simulation = this.simulation;
-      const requested = this.definition.mounts.map(mount => {
-        const w = mount.weapon, selected = { ...pose, ...pose.mounts?.[mount.id] };
-        return {
-          train: gunTraverseAtFraction(mount, selected.trainFraction),
-          elevation: (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180,
-          recoil: THREE.MathUtils.clamp(selected.recoilFraction, 0, 1),
-        };
-      });
-      this.articulationResolver ??= new ArticulationResolver();
-      const accepted = await this.articulationResolver.resolve(this.definition, simulation.player.mounts, requested);
-      if (request !== this.articulationRequest || simulation !== this.simulation || !this.inPort || this.disposed) return this.diagnostics();
-      this.articulationOriginal ??= structuredClone(this.simulation.player.mounts);
-      this.articulationLaunchers ??= structuredClone(this.simulation.player.torpedoLaunchers);
-      this.simulation.player.torpedoLaunchers?.forEach(l => {
-        const limits = this.definition.torpedoLaunchers?.find(d => d.id === l.id)?.traverseLimitsDeg ?? [-140, 140];
-        const fraction = THREE.MathUtils.clamp(pose.trainFraction, -1, 1);
-        l.train = (fraction < 0 ? -fraction * limits[0] : fraction * limits[1]) * Math.PI / 180;
-      });
-      this.simulation.player.mounts.forEach((state, i) => {
-        Object.assign(state, accepted[i].pose);
-        state.status = accepted[i].blocked ? 'blocked' : 'ready';
-      });
-      this.playerView.update();
-      return { ...this.diagnostics(), articulation: accepted.map((result, i) => ({ id: this.definition.mounts[i].id, requested: requested[i], ...result })) };
-    }
-    return this.diagnostics();
-  }
+  previewArticulation(pose: ArticulationPreview | null) { return this.articulation.preview(pose); }
   diagnostics() {
     return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
       ...this.environment.diagnostics(),
