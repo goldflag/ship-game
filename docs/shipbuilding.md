@@ -266,6 +266,11 @@ Doors and hatches stay closed and do not cut hull openings; the boat and davits
 stay stowed. The searchlight is a static model with no beam, light source, power
 demand or detection effect.
 
+Mooring rope lives under **Outfit → Mooring**. Select a completed rope and use
+**Rope color** to choose a named color, or **Original rope** to restore its natural
+finish. Color saves with the route, supports undo/redo and carries into sea trials
+and GLB exports; ship surface sheen leaves the rope's material unchanged.
+
 Railing, rope and chain use connected routes. Click each point on the ship, then
 choose **Finish**, press **Enter** or double-click. **Backspace** or **Ctrl/⌘Z**
 removes the last pending point; **Escape** or **Cancel** discards the route.

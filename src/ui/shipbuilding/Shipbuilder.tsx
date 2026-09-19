@@ -350,6 +350,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
       </>}
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; }, true)}/>}
+      {part?.path?.kind === 'rope' && <label>Rope color <select className="sb-link" aria-label="Rope color" disabled={locked} value={item.paint ?? ''} onChange={event => tool.paintFittings([item.id], event.target.value || undefined)}>
+        <option value="">Original rope</option>
+        {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
+      </select></label>}
       {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{item.wall ? <> · <kbd>R</kbd> turn · <kbd>⇧R</kbd> back</> : <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove{twinNote}
     </> });
   } else if (selected.size > 1) {

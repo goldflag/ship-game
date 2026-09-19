@@ -170,7 +170,7 @@ export class EquipmentPreview {
     const part = this.catalog?.equipment.find(part => part.id === partId);
     if (part?.path) {
       const model = createConstructionPathModel(part, path, ghost, mount);
-      if (!ghost && !invalid) paintConstructionFitting(model, paint, false, finish);
+      if (!ghost && !invalid) paintConstructionFitting(model, paint, false, finish, part.path.kind === 'rope' ? mount?.item.paint : undefined);
       if (invalid) model.traverse(node => {
         if (!(node instanceof THREE.Mesh)) return;
         for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
@@ -224,7 +224,7 @@ export class EquipmentPreview {
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
       const catalogPart = this.catalog.equipment.find(part => part.id === item.partId), path = catalogPart?.path;
-      const paint = constructionFittingPaint(source, item, catalogPart);
+      const paint = path?.kind === 'rope' ? item.paint : constructionFittingPaint(source, item, catalogPart);
       const key = `${item.wall || path?.kind === 'ladder' ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${paint ?? ''}${source.construction.finish ? ':' + source.construction.finish : ''}`;
       if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
