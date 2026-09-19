@@ -3,10 +3,15 @@ import ts from 'typescript';
 import { rustTool } from './toolchain';
 import { mkdir } from 'node:fs/promises';
 const source = 'src/ships/blueprint.ts';
-const program = ts.createProgram([source], { strict: true, target: ts.ScriptTarget.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, module: ts.ModuleKind.ESNext });
+const program = ts.createProgram([source], {
+  strict: true,
+  target: ts.ScriptTarget.ESNext,
+  moduleResolution: ts.ModuleResolutionKind.Bundler,
+  module: ts.ModuleKind.ESNext,
+});
 const checker = program.getTypeChecker();
 const file = program.getSourceFile(source)!;
-const declaration = file.statements.find(s => ts.isInterfaceDeclaration(s) && s.name.text === 'ShipDefinition')!;
+const declaration = file.statements.find((s) => ts.isInterfaceDeclaration(s) && s.name.text === 'ShipDefinition')!;
 const root = checker.getTypeAtLocation(declaration);
 const definitions: string[] = [];
 const assigned = new Map<ts.Type, string>();
@@ -16,18 +21,18 @@ const pascal = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 function rustType(original: ts.Type, hint: string): string {
   let type = original;
   if (type.isUnion()) {
-    const members = type.types.filter(t => !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+    const members = type.types.filter((t) => !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
     if (members.length === 1) return rustType(members[0], hint);
-    if (members.every(t => !!(t.flags & ts.TypeFlags.StringLike))) return 'String';
-    if (members.every(t => !!(t.flags & ts.TypeFlags.NumberLike))) return 'f64';
-    if (members.every(t => !!(t.flags & ts.TypeFlags.BooleanLike))) return 'bool';
+    if (members.every((t) => !!(t.flags & ts.TypeFlags.StringLike))) return 'String';
+    if (members.every((t) => !!(t.flags & ts.TypeFlags.NumberLike))) return 'f64';
+    if (members.every((t) => !!(t.flags & ts.TypeFlags.BooleanLike))) return 'bool';
     throw new Error(`Unsupported union ${hint}: ${checker.typeToString(type)}`);
   }
   if (type.flags & ts.TypeFlags.StringLike) return 'String';
   if (type.flags & ts.TypeFlags.NumberLike) return 'f64';
   if (type.flags & ts.TypeFlags.BooleanLike) return 'bool';
   if (checker.isTupleType(type)) {
-    const types = checker.getTypeArguments(type as ts.TypeReference).map((t,i) => rustType(t, hint + i));
+    const types = checker.getTypeArguments(type as ts.TypeReference).map((t, i) => rustType(t, hint + i));
     if (new Set(types).size === 1) return `[${types[0]}; ${types.length}]`;
     return `(${types.join(', ')})`;
   }
@@ -35,14 +40,15 @@ function rustType(original: ts.Type, hint: string): string {
   const prior = assigned.get(type);
   if (prior) return prior;
   const symbolName = type.aliasSymbol?.name ?? type.symbol?.name;
-  let name = symbolName && !symbolName.startsWith('__') && !['Omit','Partial','Pick'].includes(symbolName) ? symbolName : hint;
+  let name = symbolName && !symbolName.startsWith('__') && !['Omit', 'Partial', 'Pick'].includes(symbolName) ? symbolName : hint;
   if (name === 'ShipDefinitionMountsItem') name = 'MountDefinition';
   if (name === 'ShipDefinitionTorpedoTubesItem') name = 'TubeDefinition';
   if (name === 'ShipDefinitionDepthChargeLaunchersItem') name = 'ChargeDefinition';
   if (names.has(name)) name = hint;
   if (names.has(name)) throw new Error(`Duplicate name ${name}`);
-  names.add(name); assigned.set(type, name);
-  const fields = checker.getPropertiesOfType(type).map(property => {
+  names.add(name);
+  assigned.set(type, name);
+  const fields = checker.getPropertiesOfType(type).map((property) => {
     const location = property.valueDeclaration ?? property.declarations?.[0];
     if (!location) throw new Error(`No declaration ${name}.${property.name}`);
     const field = snake(property.name);
@@ -50,8 +56,18 @@ function rustType(original: ts.Type, hint: string): string {
     const generatedType = rustType(checker.getTypeOfSymbolAtLocation(property, location), name + pascal(property.name));
     // Closed cells are immutable once compiled; hydrostatics/collision clones share their face storage.
     const fieldType = name === 'ConvexVolume' && field === 'faces' ? 'std::sync::Arc<[ConvexVolumeFacesItem]>' : generatedType;
-    const identifier = ['type','ref','match','mod','loop','move','where','in','self','use','fn'].includes(field) ? 'r#' + field : field;
-    const defaults = ((name === 'ShipDefinition' && field === 'maneuvering') || (name === 'ConstructionPrimitive' && field === 'tilt') || (name === 'ConstructionEquipmentPath' && field === 'access') || (name === 'ConstructionData' && ['finish', 'paint'].includes(field)) || (name === 'ConstructionEquipmentPart' && ['wall_sizing', 'rigging_surface'].includes(field)) || (name === 'ConstructionEquipmentWall' && field === 'turn_deg')) ? ', default, skip_serializing_if = "Option::is_none"' : '';
+    const identifier = ['type', 'ref', 'match', 'mod', 'loop', 'move', 'where', 'in', 'self', 'use', 'fn'].includes(field)
+      ? 'r#' + field
+      : field;
+    const defaults =
+      (name === 'ShipDefinition' && field === 'maneuvering') ||
+      (name === 'ConstructionPrimitive' && field === 'tilt') ||
+      (name === 'ConstructionEquipmentPath' && field === 'access') ||
+      (name === 'ConstructionData' && ['finish', 'paint'].includes(field)) ||
+      (name === 'ConstructionEquipmentPart' && ['wall_sizing', 'rigging_surface'].includes(field)) ||
+      (name === 'ConstructionEquipmentWall' && field === 'turn_deg')
+        ? ', default, skip_serializing_if = "Option::is_none"'
+        : '';
     return `    #[serde(rename = "${property.name}"${defaults})]\n    pub ${identifier}: ${optional ? `Option<${fieldType}>` : fieldType},`;
   });
   definitions.push(`#[derive(Clone, Debug, Default, Serialize, Deserialize)]\npub struct ${name} {\n${fields.join('\n')}\n}\n`);
@@ -60,12 +76,19 @@ function rustType(original: ts.Type, hint: string): string {
 rustType(root, 'ShipDefinition');
 // Additional source/result roots share the same type graph and generator. No object unions.
 for (const name of ['ConstructionSource', 'ConstructionResult', 'ConstructionCatalog', 'ConstructionSuggestion']) {
-  const node = file.statements.find(s => ts.isInterfaceDeclaration(s) && s.name.text === name);
+  const node = file.statements.find((s) => ts.isInterfaceDeclaration(s) && s.name.text === name);
   if (!node) throw new Error(`Missing schema root ${name}`);
   rustType(checker.getTypeAtLocation(node), name);
 }
 await mkdir('crates/naval-sim/src', { recursive: true });
-await Bun.write('crates/naval-sim/src/definition.rs', '// Generated by scripts/multiplayer/generate-rust-definitions.ts from src/ships/blueprint.ts.\n// Regenerate when the authoring contract changes; do not maintain a second schema.\nuse serde::{Deserialize, Serialize};\npub type Vec3 = [f64; 3];\n\n' + definitions.join('\n'));
-const format = Bun.spawn([rustTool('rustfmt'), '--edition', '2024', 'crates/naval-sim/src/definition.rs'], { stdout: 'inherit', stderr: 'inherit' });
+await Bun.write(
+  'crates/naval-sim/src/definition.rs',
+  '// Generated by scripts/multiplayer/generate-rust-definitions.ts from src/ships/blueprint.ts.\n// Regenerate when the authoring contract changes; do not maintain a second schema.\nuse serde::{Deserialize, Serialize};\npub type Vec3 = [f64; 3];\n\n' +
+    definitions.join('\n'),
+);
+const format = Bun.spawn([rustTool('rustfmt'), '--edition', '2024', 'crates/naval-sim/src/definition.rs'], {
+  stdout: 'inherit',
+  stderr: 'inherit',
+});
 if (await format.exited) throw new Error('Rust definition formatting failed.');
 console.log(`Generated ${definitions.length} Rust definition types.`);

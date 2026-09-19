@@ -23,123 +23,337 @@ import { maxHullIntegrity } from '../ships/durability';
 import { shipTitle } from '../ships/localShips';
 import { RangefinderReadout } from './RangefinderReadout';
 
-interface FleetHudProps { data: Telemetry; desk: FleetDesk | null; visible: boolean; bindings: Keybindings; }
+interface FleetHudProps {
+  data: Telemetry;
+  desk: FleetDesk | null;
+  visible: boolean;
+  bindings: Keybindings;
+}
 
 function ShipBearing({ data }: { data: Telemetry }) {
   const selectedShip = useShip();
-  const degrees = data.ship.heading * 180 / Math.PI;
-  const mounts = data.combat?.battery === 'depth-charge' ? selectedShip.depthChargeLaunchers ?? [] : data.combat?.battery === 'torpedo' ? selectedShip.torpedoTubes ?? [] : selectedShip.mounts.filter(m => data.combat?.mounts.some(state => state.id === m.id));
-  return <div className="fleet-bearing" aria-label={`Ship heading ${Math.round(degrees) % 360} degrees`}>
-    <svg viewBox="0 0 200 200" fill="none" aria-hidden="true">
-      <circle cx="100" cy="100" r="92" stroke="currentColor" strokeOpacity=".65"/>
-      <circle cx="100" cy="100" r="87" stroke="currentColor" strokeOpacity=".2"/>
-      {Array.from({ length: 36 }, (_, i) => <path key={i} d={i % 3 === 0 ? 'M100 8v7' : 'M100 8v3'} stroke="currentColor" strokeOpacity=".5" transform={`rotate(${i * 10} 100 100)`}/>)}
-      <text x="100" y="29" textAnchor="middle">N</text><text x="174" y="104" textAnchor="middle">E</text><text x="100" y="181" textAnchor="middle">S</text><text x="26" y="104" textAnchor="middle">W</text>
-      <g transform={`rotate(${(data.viewBearing ?? data.ship.heading) * 180 / Math.PI} 100 100)`}>
-        <path d="M100 100 66 15Q100 2 134 15Z" fill="currentColor" fillOpacity=".045"/>
-        <path d="M100 100V10" stroke="var(--fleet-active)" strokeOpacity=".55" strokeDasharray="3 4"/>
-        <circle cx="100" cy="13" r="3" fill="var(--fleet-active)"/>
-      </g>
-      <g transform={`rotate(${degrees} 100 100)`}>
-        <path d="M100 37c-8 12-14 24-14 39v66l6 16h16l6-16V76c0-15-6-27-14-39Z" stroke="currentColor" fill="currentColor" fillOpacity=".12"/>
-        <path d="M95 81h10v39H95ZM91 127h18v8H91ZM94 72h12v7H94Z" stroke="currentColor" strokeOpacity=".45"/>
-        {mounts.filter(m => data.combat?.mounts.some(state => state.id === m.id)).map((mount, i) => {
-          const status = data.combat?.mounts.find(m => m.id === mount.id)?.status;
-          const x = 100 + mount.position[0] / selectedShip.hull.beam * 25;
-          const y = 100 + mount.position[2] / selectedShip.hull.length * 114;
-          return <g key={mount.id} transform={`translate(${x} ${y})`} className={status === 'ready' ? 'bearing-gun-ready' : 'bearing-gun'}>
-            <circle r="3" fill="currentColor"/><text x={mount.position[0] < 0 ? -9 : 9} y="3" textAnchor="middle">{i + 1}</text>
-          </g>;
-        })}
-        {data.combat?.playerFires.filter(f => f.intensity > 0).map(fire => {
-          const point = selectedShip.mounts.find(m => m.id === fire.id)?.position ?? selectedShip.compartments.find(c => c.id === fire.id)?.center;
-          return point && <circle key={fire.id} cx={100 + point[0] / selectedShip.hull.beam * 25} cy={100 + point[2] / selectedShip.hull.length * 114} r="5" fill="#ee9b55" fillOpacity={.35 + fire.intensity * .5} stroke="#ffdcaa"/>;
-        })}
-      </g>
-    </svg>
-    <span className="fleet-bearing-course">{String(Math.round(degrees) % 360).padStart(3, '0')}°</span>
-  </div>;
+  const degrees = (data.ship.heading * 180) / Math.PI;
+  const mounts =
+    data.combat?.battery === 'depth-charge'
+      ? (selectedShip.depthChargeLaunchers ?? [])
+      : data.combat?.battery === 'torpedo'
+        ? (selectedShip.torpedoTubes ?? [])
+        : selectedShip.mounts.filter((m) => data.combat?.mounts.some((state) => state.id === m.id));
+  return (
+    <div className="fleet-bearing" aria-label={`Ship heading ${Math.round(degrees) % 360} degrees`}>
+      <svg viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="92" stroke="currentColor" strokeOpacity=".65" />
+        <circle cx="100" cy="100" r="87" stroke="currentColor" strokeOpacity=".2" />
+        {Array.from({ length: 36 }, (_, i) => (
+          <path
+            key={i}
+            d={i % 3 === 0 ? 'M100 8v7' : 'M100 8v3'}
+            stroke="currentColor"
+            strokeOpacity=".5"
+            transform={`rotate(${i * 10} 100 100)`}
+          />
+        ))}
+        <text x="100" y="29" textAnchor="middle">
+          N
+        </text>
+        <text x="174" y="104" textAnchor="middle">
+          E
+        </text>
+        <text x="100" y="181" textAnchor="middle">
+          S
+        </text>
+        <text x="26" y="104" textAnchor="middle">
+          W
+        </text>
+        <g transform={`rotate(${((data.viewBearing ?? data.ship.heading) * 180) / Math.PI} 100 100)`}>
+          <path d="M100 100 66 15Q100 2 134 15Z" fill="currentColor" fillOpacity=".045" />
+          <path d="M100 100V10" stroke="var(--fleet-active)" strokeOpacity=".55" strokeDasharray="3 4" />
+          <circle cx="100" cy="13" r="3" fill="var(--fleet-active)" />
+        </g>
+        <g transform={`rotate(${degrees} 100 100)`}>
+          <path
+            d="M100 37c-8 12-14 24-14 39v66l6 16h16l6-16V76c0-15-6-27-14-39Z"
+            stroke="currentColor"
+            fill="currentColor"
+            fillOpacity=".12"
+          />
+          <path d="M95 81h10v39H95ZM91 127h18v8H91ZM94 72h12v7H94Z" stroke="currentColor" strokeOpacity=".45" />
+          {mounts
+            .filter((m) => data.combat?.mounts.some((state) => state.id === m.id))
+            .map((mount, i) => {
+              const status = data.combat?.mounts.find((m) => m.id === mount.id)?.status;
+              const x = 100 + (mount.position[0] / selectedShip.hull.beam) * 25;
+              const y = 100 + (mount.position[2] / selectedShip.hull.length) * 114;
+              return (
+                <g key={mount.id} transform={`translate(${x} ${y})`} className={status === 'ready' ? 'bearing-gun-ready' : 'bearing-gun'}>
+                  <circle r="3" fill="currentColor" />
+                  <text x={mount.position[0] < 0 ? -9 : 9} y="3" textAnchor="middle">
+                    {i + 1}
+                  </text>
+                </g>
+              );
+            })}
+          {data.combat?.playerFires
+            .filter((f) => f.intensity > 0)
+            .map((fire) => {
+              const point =
+                selectedShip.mounts.find((m) => m.id === fire.id)?.position ??
+                selectedShip.compartments.find((c) => c.id === fire.id)?.center;
+              return (
+                point && (
+                  <circle
+                    key={fire.id}
+                    cx={100 + (point[0] / selectedShip.hull.beam) * 25}
+                    cy={100 + (point[2] / selectedShip.hull.length) * 114}
+                    r="5"
+                    fill="#ee9b55"
+                    fillOpacity={0.35 + fire.intensity * 0.5}
+                    stroke="#ffdcaa"
+                  />
+                )
+              );
+            })}
+        </g>
+      </svg>
+      <span className="fleet-bearing-course">{String(Math.round(degrees) % 360).padStart(3, '0')}°</span>
+    </div>
+  );
 }
 
 function BearingTape({ degrees }: { degrees: number }) {
   const heading = String(Math.round(degrees) % 360).padStart(3, '0');
   const cardinals: Record<number, string> = { 0: 'N', 90: 'E', 180: 'S', 270: 'W' };
-  return <div className="fleet-compass" aria-label={`View bearing ${heading} degrees`}>
-    <div className="fleet-compass-tape" aria-hidden="true">{Array.from({ length: 15 }, (_, i) => {
-      const value = Math.floor(degrees / 15) * 15 + (i - 7) * 15;
-      const normalized = ((value % 360) + 360) % 360;
-      return <span key={i} className={cardinals[normalized] ? 'fleet-cardinal' : ''} style={{ left: `calc(50% + ${(value - degrees) * 2.5}px)` }}>{cardinals[normalized] ?? String(normalized).padStart(3, '0')}</span>;
-    })}</div><i aria-hidden="true"/><strong>{heading}<small>°</small></strong>
-  </div>;
+  return (
+    <div className="fleet-compass" aria-label={`View bearing ${heading} degrees`}>
+      <div className="fleet-compass-tape" aria-hidden="true">
+        {Array.from({ length: 15 }, (_, i) => {
+          const value = Math.floor(degrees / 15) * 15 + (i - 7) * 15;
+          const normalized = ((value % 360) + 360) % 360;
+          return (
+            <span
+              key={i}
+              className={cardinals[normalized] ? 'fleet-cardinal' : ''}
+              style={{ left: `calc(50% + ${(value - degrees) * 2.5}px)` }}
+            >
+              {cardinals[normalized] ?? String(normalized).padStart(3, '0')}
+            </span>
+          );
+        })}
+      </div>
+      <i aria-hidden="true" />
+      <strong>
+        {heading}
+        <small>°</small>
+      </strong>
+    </div>
+  );
 }
 
-function AmmoGlyph({ secondary = false, torpedo = false, depthCharge = false, ammunition = 'ap' }: { secondary?: boolean; torpedo?: boolean; depthCharge?: boolean; ammunition?: Ammunition }) {
-  if (depthCharge) return <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 20v29c0 7 28 7 28 0V20" fill="#bacbd0" stroke="#e1e9e9"/><ellipse cx="32" cy="20" rx="14" ry="6" fill="#778991" stroke="#e1e9e9"/><path d="M18 27c0 7 28 7 28 0M18 43c0 7 28 7 28 0M32 14v8M28 18h8" stroke="#e8e0c3" strokeWidth="2"/></svg>;
-  if (torpedo) return <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true"><g transform="rotate(28 32 32)"><path d="M28 48V15c0-7 4-12 4-12s4 5 4 12v33Z" fill="#bacbd0" stroke="#e8e0c3"/><path d="M28 17h8v8h-8Z" fill="#d9b665"/><path d="m28 40-5 10h18l-5-10M32 49v9m-5-3h10" stroke="#e1e9e9"/><path d="M30 28v13" stroke="#fff" strokeOpacity=".45"/></g></svg>;
-  return <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-    <g transform={secondary ? 'translate(3 4) rotate(28 32 32)' : 'rotate(28 32 32)'}>
-      {secondary && <path d="M17 49V22l6-12 6 12v27Z" fill="#99a8ae" stroke="#e1e9e9"/>}
-      <path d="M26 48V21c0-7 6-16 6-16s6 9 6 16v27Z" fill={secondary ? '#bacbd0' : '#d9b665'} stroke="#e8e0c3" strokeWidth="1.2"/>
-      <path d="M26 21c0-7 6-16 6-16s6 9 6 16Z" fill={ammunition === 'he' ? '#bb715b' : '#f2e2a8'}/>
-      <path d="M28 23v20" stroke="#fff" strokeOpacity=".45" strokeWidth="2"/>
-      <path d="M25 44h14v4H25Zm-1 7h16v4H24Z" fill="#d9e0d7"/>
-      <path d="M26 48h12v3H26Z" fill="#778991"/>
-    </g>
-  </svg>;
+function AmmoGlyph({
+  secondary = false,
+  torpedo = false,
+  depthCharge = false,
+  ammunition = 'ap',
+}: {
+  secondary?: boolean;
+  torpedo?: boolean;
+  depthCharge?: boolean;
+  ammunition?: Ammunition;
+}) {
+  if (depthCharge)
+    return (
+      <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <path d="M18 20v29c0 7 28 7 28 0V20" fill="#bacbd0" stroke="#e1e9e9" />
+        <ellipse cx="32" cy="20" rx="14" ry="6" fill="#778991" stroke="#e1e9e9" />
+        <path d="M18 27c0 7 28 7 28 0M18 43c0 7 28 7 28 0M32 14v8M28 18h8" stroke="#e8e0c3" strokeWidth="2" />
+      </svg>
+    );
+  if (torpedo)
+    return (
+      <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <g transform="rotate(28 32 32)">
+          <path d="M28 48V15c0-7 4-12 4-12s4 5 4 12v33Z" fill="#bacbd0" stroke="#e8e0c3" />
+          <path d="M28 17h8v8h-8Z" fill="#d9b665" />
+          <path d="m28 40-5 10h18l-5-10M32 49v9m-5-3h10" stroke="#e1e9e9" />
+          <path d="M30 28v13" stroke="#fff" strokeOpacity=".45" />
+        </g>
+      </svg>
+    );
+  return (
+    <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <g transform={secondary ? 'translate(3 4) rotate(28 32 32)' : 'rotate(28 32 32)'}>
+        {secondary && <path d="M17 49V22l6-12 6 12v27Z" fill="#99a8ae" stroke="#e1e9e9" />}
+        <path d="M26 48V21c0-7 6-16 6-16s6 9 6 16v27Z" fill={secondary ? '#bacbd0' : '#d9b665'} stroke="#e8e0c3" strokeWidth="1.2" />
+        <path d="M26 21c0-7 6-16 6-16s6 9 6 16Z" fill={ammunition === 'he' ? '#bb715b' : '#f2e2a8'} />
+        <path d="M28 23v20" stroke="#fff" strokeOpacity=".45" strokeWidth="2" />
+        <path d="M25 44h14v4H25Zm-1 7h16v4H24Z" fill="#d9e0d7" />
+        <path d="M26 48h12v3H26Z" fill="#778991" />
+      </g>
+    </svg>
+  );
 }
 
 function ActiveArmament({ data, desk, bindings, locked = false }: FleetHudProps & { locked?: boolean }) {
   const selectedShip = useShip();
   const combat = data.combat;
   if (!combat) return null;
-  const torpedoes = combat.battery === 'torpedo', depthCharges = combat.battery === 'depth-charge';
+  const torpedoes = combat.battery === 'torpedo',
+    depthCharges = combat.battery === 'depth-charge';
   const groups = combat.weaponGroups;
-  const selected = groups.find(g => g.id === combat.weaponGroupId) ?? groups.find(g => g.battery === combat.battery);
-  const shortcut = (index: number) => WEAPON_GROUP_ACTIONS[index] ? bindingLabel(bindings, WEAPON_GROUP_ACTIONS[index]) : '';
-  const selectedTube = selectedShip.torpedoTubes?.find(t => selected?.mountIds.includes(t.id));
-  const selectedCharge = selectedShip.depthChargeLaunchers?.find(l => selected?.mountIds.includes(l.id));
-  return <section className={`fleet-armament ${groups.length > 2 ? 'fleet-armament-expanded' : ''} ${!torpedoes && !depthCharges ? 'fleet-armament-guns' : ''}`} aria-label="Weapons">
-    <div className="fleet-turrets" aria-label="Battery mount readiness">{combat.mounts.map((mount, i) => {
-      const reloadSeconds = (depthCharges ? selectedShip.depthChargeLaunchers?.find(m => m.id === mount.id)?.weapon.reloadSeconds : torpedoes ? selectedShip.torpedoTubes?.find(m => m.id === mount.id)?.weapon.reloadSeconds : selectedShip.mounts.find(m => m.id === mount.id)?.weapon.reloadSeconds) ?? 1;
-      const ready = mount.status === 'ready';
-      const unavailable = !['ready', 'turning', 'reloading'].includes(mount.status);
-      const countdown = !unavailable && mount.reload > 0;
-      const progress = countdown ? 1 - mount.reload / reloadSeconds : ready ? 1 : 0;
-      const label = ready ? depthCharges ? 'Ready to release' : 'On aim · Loaded' : mount.status === 'reloading' ? `Reloading · ${Math.ceil(mount.reload)} seconds` : `${mount.status.replaceAll('-', ' ')}${countdown ? ` · Reload ${Math.ceil(mount.reload)} seconds` : ''}`;
-      return <div key={mount.id} title={`${mount.name}: ${label} · ${mount.ammo} ${mount.loaded ? `${mount.loaded.toUpperCase()} ` : ''}${ammunitionName(combat.battery)}`} aria-label={`${mount.name}: ${label}`} className={`fleet-mount ${ready ? 'fleet-gun-ready' : ''} ${['blocked', 'disabled', 'empty'].includes(mount.status) ? 'fleet-gun-disabled' : ''}`}>
-        <svg viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="16"/><circle className="fleet-reload-progress" cx="19" cy="19" r="16" pathLength="100" strokeDasharray={`${progress * 100} 100`} transform="rotate(-90 19 19)"/></svg>
-        <b>{unavailable ? <Icon name="close" size={14}/> : countdown ? Math.ceil(mount.reload) : ready ? <Icon name="turret" size={18}/> : '—'}</b><small>{i + 1}</small>
-      </div>;
-    })}</div>
-    <div className="fleet-battery-heading"><span>{selected?.name ?? 'No weapons fitted'}</span><strong>{combat.ready}/{combat.total} can fire</strong></div>
-    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedTube?.weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedTube?.weapon.armingDistanceM} m · Lay the teal wedge on the pale one</p>}
-    {depthCharges && <p className="fleet-torpedo-help">Stern racks / side throwers · Burst at {selectedCharge?.weapon.detonationDepthM} m<br/>Drop on a close pass; keep moving clear of the blast.</p>}
-    <div className="fleet-weapon-controls">
-      {!torpedoes && !depthCharges && combat.total > 0 && !locked && <ShellCycle combat={combat} desk={desk} bindings={bindings}/>}
-      <div className="fleet-weapon-row">
-        {groups.map((group, index) => <button key={group.id} className="fleet-weapon-slot" disabled={combat.playerSunk || locked} title={`${group.name} · ${group.ready}/${group.total} ready · ${group.ammunition.toUpperCase()}`} aria-label={`Select ${group.name} · ${group.ammo} ${ammunitionName(group.battery)}${shortcut(index) ? ` · ${shortcut(index)}` : ''}`} aria-pressed={selected?.id === group.id} onClick={event => { desk?.issue({ kind: 'weapon-group', id: group.id }); event.currentTarget.blur(); }}>
-          <span className="fleet-slot-label">{group.battery === 'depth-charge' ? 'DEPTH' : group.battery === 'torpedo' ? 'TORPEDO' : `${Number(group.caliberMm.toFixed(2))} mm`}</span><AmmoGlyph secondary={group.battery === 'secondary'} torpedo={group.battery === 'torpedo'} depthCharge={group.battery === 'depth-charge'} ammunition={group.ammunition}/>
-          <strong className="fleet-ammo-count">{group.ammo}</strong>
-          {group.reload > 0 && Number.isFinite(group.reload) && group.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(group.reload)}<small>s</small></span>}
-          <kbd>{shortcut(index)}</kbd>
-        </button>)}
-        {combat.airWing && !data.fleetCommandMode && <button className="fleet-weapon-slot" disabled={combat.playerSunk} aria-label={`Open air operations · ${bindingLabel(bindings, 'airOperations')}`} title="Command carrier squadrons" onClick={event => { desk?.issue({ kind: 'air-operations', open: true }); event.currentTarget.blur(); }}>
-          <span className="fleet-slot-label">AIR WING</span><Icon name="aircraft" size={32}/>
-          <kbd>{bindingLabel(bindings, 'airOperations')}</kbd>
-        </button>}
+  const selected = groups.find((g) => g.id === combat.weaponGroupId) ?? groups.find((g) => g.battery === combat.battery);
+  const shortcut = (index: number) => (WEAPON_GROUP_ACTIONS[index] ? bindingLabel(bindings, WEAPON_GROUP_ACTIONS[index]) : '');
+  const selectedTube = selectedShip.torpedoTubes?.find((t) => selected?.mountIds.includes(t.id));
+  const selectedCharge = selectedShip.depthChargeLaunchers?.find((l) => selected?.mountIds.includes(l.id));
+  return (
+    <section
+      className={`fleet-armament ${groups.length > 2 ? 'fleet-armament-expanded' : ''} ${!torpedoes && !depthCharges ? 'fleet-armament-guns' : ''}`}
+      aria-label="Weapons"
+    >
+      <div className="fleet-turrets" aria-label="Battery mount readiness">
+        {combat.mounts.map((mount, i) => {
+          const reloadSeconds =
+            (depthCharges
+              ? selectedShip.depthChargeLaunchers?.find((m) => m.id === mount.id)?.weapon.reloadSeconds
+              : torpedoes
+                ? selectedShip.torpedoTubes?.find((m) => m.id === mount.id)?.weapon.reloadSeconds
+                : selectedShip.mounts.find((m) => m.id === mount.id)?.weapon.reloadSeconds) ?? 1;
+          const ready = mount.status === 'ready';
+          const unavailable = !['ready', 'turning', 'reloading'].includes(mount.status);
+          const countdown = !unavailable && mount.reload > 0;
+          const progress = countdown ? 1 - mount.reload / reloadSeconds : ready ? 1 : 0;
+          const label = ready
+            ? depthCharges
+              ? 'Ready to release'
+              : 'On aim · Loaded'
+            : mount.status === 'reloading'
+              ? `Reloading · ${Math.ceil(mount.reload)} seconds`
+              : `${mount.status.replaceAll('-', ' ')}${countdown ? ` · Reload ${Math.ceil(mount.reload)} seconds` : ''}`;
+          return (
+            <div
+              key={mount.id}
+              title={`${mount.name}: ${label} · ${mount.ammo} ${mount.loaded ? `${mount.loaded.toUpperCase()} ` : ''}${ammunitionName(combat.battery)}`}
+              aria-label={`${mount.name}: ${label}`}
+              className={`fleet-mount ${ready ? 'fleet-gun-ready' : ''} ${['blocked', 'disabled', 'empty'].includes(mount.status) ? 'fleet-gun-disabled' : ''}`}
+            >
+              <svg viewBox="0 0 38 38" aria-hidden="true">
+                <circle cx="19" cy="19" r="16" />
+                <circle
+                  className="fleet-reload-progress"
+                  cx="19"
+                  cy="19"
+                  r="16"
+                  pathLength="100"
+                  strokeDasharray={`${progress * 100} 100`}
+                  transform="rotate(-90 19 19)"
+                />
+              </svg>
+              <b>
+                {unavailable ? (
+                  <Icon name="close" size={14} />
+                ) : countdown ? (
+                  Math.ceil(mount.reload)
+                ) : ready ? (
+                  <Icon name="turret" size={18} />
+                ) : (
+                  '—'
+                )}
+              </b>
+              <small>{i + 1}</small>
+            </div>
+          );
+        })}
       </div>
-    </div>
-  </section>;
+      <div className="fleet-battery-heading">
+        <span>{selected?.name ?? 'No weapons fitted'}</span>
+        <strong>
+          {combat.ready}/{combat.total} can fire
+        </strong>
+      </div>
+      {torpedoes && (
+        <p className="fleet-torpedo-help">
+          {torpedoArcLabel(selectedShip)} · {((selectedTube?.weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at{' '}
+          {selectedTube?.weapon.armingDistanceM} m · Lay the teal wedge on the pale one
+        </p>
+      )}
+      {depthCharges && (
+        <p className="fleet-torpedo-help">
+          Stern racks / side throwers · Burst at {selectedCharge?.weapon.detonationDepthM} m<br />
+          Drop on a close pass; keep moving clear of the blast.
+        </p>
+      )}
+      <div className="fleet-weapon-controls">
+        {!torpedoes && !depthCharges && combat.total > 0 && !locked && <ShellCycle combat={combat} desk={desk} bindings={bindings} />}
+        <div className="fleet-weapon-row">
+          {groups.map((group, index) => (
+            <button
+              key={group.id}
+              className="fleet-weapon-slot"
+              disabled={combat.playerSunk || locked}
+              title={`${group.name} · ${group.ready}/${group.total} ready · ${group.ammunition.toUpperCase()}`}
+              aria-label={`Select ${group.name} · ${group.ammo} ${ammunitionName(group.battery)}${shortcut(index) ? ` · ${shortcut(index)}` : ''}`}
+              aria-pressed={selected?.id === group.id}
+              onClick={(event) => {
+                desk?.issue({ kind: 'weapon-group', id: group.id });
+                event.currentTarget.blur();
+              }}
+            >
+              <span className="fleet-slot-label">
+                {group.battery === 'depth-charge'
+                  ? 'DEPTH'
+                  : group.battery === 'torpedo'
+                    ? 'TORPEDO'
+                    : `${Number(group.caliberMm.toFixed(2))} mm`}
+              </span>
+              <AmmoGlyph
+                secondary={group.battery === 'secondary'}
+                torpedo={group.battery === 'torpedo'}
+                depthCharge={group.battery === 'depth-charge'}
+                ammunition={group.ammunition}
+              />
+              <strong className="fleet-ammo-count">{group.ammo}</strong>
+              {group.reload > 0 && Number.isFinite(group.reload) && group.ready === 0 && (
+                <span className="fleet-slot-cooldown">
+                  {Math.ceil(group.reload)}
+                  <small>s</small>
+                </span>
+              )}
+              <kbd>{shortcut(index)}</kbd>
+            </button>
+          ))}
+          {combat.airWing && !data.fleetCommandMode && (
+            <button
+              className="fleet-weapon-slot"
+              disabled={combat.playerSunk}
+              aria-label={`Open air operations · ${bindingLabel(bindings, 'airOperations')}`}
+              title="Command carrier squadrons"
+              onClick={(event) => {
+                desk?.issue({ kind: 'air-operations', open: true });
+                event.currentTarget.blur();
+              }}
+            >
+              <span className="fleet-slot-label">AIR WING</span>
+              <Icon name="aircraft" size={32} />
+              <kbd>{bindingLabel(bindings, 'airOperations')}</kbd>
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export function FleetHud(props: FleetHudProps) {
   const selectedShip = useShip();
-  return <ShipContext.Provider value={props.data.shipDefinition ?? selectedShip}><FleetHudInstruments {...props}/></ShipContext.Provider>;
+  return (
+    <ShipContext.Provider value={props.data.shipDefinition ?? selectedShip}>
+      <FleetHudInstruments {...props} />
+    </ShipContext.Provider>
+  );
 }
 
 function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
   const selectedShip = useShip();
-  const degrees = ((data.viewBearing ?? data.ship.heading) * 180 / Math.PI + 360) % 360;
+  const degrees = (((data.viewBearing ?? data.ship.heading) * 180) / Math.PI + 360) % 360;
   const speed = Math.abs(data.ship.speed * KNOTS_PER_MPS).toFixed(1);
   const rudder = Math.round(data.ship.rudder * 35);
   const integrity = Math.max(0, Math.min(1, data.combat?.playerIntegrity ?? 1));
@@ -156,73 +370,274 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
   const following = followingShell || !!data.followedAircraftId || !!data.freeCamera || !!data.combat?.playerSunk || followingShip;
   const wheel = !!data.helmWheel && !data.airOperationsOpen;
 
-  if (fleetCommand && data.airOperationsOpen) return <div className="fleet-hud">
-    <FleetCommand data={data} desk={desk!} bindings={bindings} instrumentsVisible={visible}/>
-  </div>;
-
-  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''} ${commandingShip ? 'fleet-command-helm' : ''} ${followingShip ? 'fleet-following' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
-    {fleetCommand && <FleetCommand data={data} desk={desk!} bindings={bindings}/>}
-    <BearingTape degrees={degrees}/>
-    {!fleetCommand && desk?.frame.missionRules && desk.can.commandFleet && !desk.frame.networked && <button className="fleet-command-entry" onClick={() => desk.issue({ kind: 'fleet-command' })}>Fleet command</button>}
-    <div className="fleet-reports">
-    {!fleetCommand && data.combat?.battle && <BattleStatus combat={data.combat} desk={desk} spectatedShipId={data.spectatedShipId} bindings={bindings} pointerLocked={!!data.pointerLocked}>
-      {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} desk={desk} bindings={bindings}/>}
-    </BattleStatus>}
-    </div>
-    <PerformanceCounter className="fleet-fps" fps={data.fps} performance={data.performance}/>
-    {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting}/>}
-
-    {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
-    {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { desk?.issue({ kind: 'return-to-ship' }); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
-    {data.freeCamera && <div className="fleet-shell-status" role="status" title="Mouse looks; scroll changes speed. The ship holds her engine, rudder and gun orders."><strong>Free camera · {Math.round(data.freeCameraSpeed ?? 0)} m/s</strong><span>{bindingLabel(bindings, 'throttleUp').split(' / ')[0]} {bindingLabel(bindings, 'port').split(' / ')[0]} {bindingLabel(bindings, 'throttleDown').split(' / ')[0]} {bindingLabel(bindings, 'starboard').split(' / ')[0]} fly · E / Q climb and sink · Shift faster · {bindingLabel(bindings, 'freeCamera')} to return to ship</span></div>}
-    {wheel && <HelmWheel data={data} desk={desk} bindings={bindings}/>}
-    {!data.inspecting && !following && !data.airOperationsOpen && !wheel && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden={data.binoculars ? undefined : true}>
-      {data.binoculars ? <><svg className="fleet-scope-scale" height="180" fill="none" aria-hidden="true">
-        <line x1="0" y1="90" x2="100%" y2="90" stroke="currentColor"/>
-        {/* Percentage positions widen the ruler without stretching its marks or labels. */}
-        {Array.from({ length: 33 }, (_, i) => i === 16 ? null : <svg key={i} x={`${50 + (i - 16) * 2.8}%`} y="80" width="1" height="38" overflow="visible">
-          <path d={`M0 ${i % 2 === 0 ? 5 : 8}v${i % 2 === 0 ? 11 : 5}`} stroke="currentColor"/>
-          {i % 2 === 0 && <text y="28" fill="currentColor" textAnchor="middle" fontSize="10">{Math.abs(i - 16) * 5}</text>}
-        </svg>)}
-        </svg><svg className="fleet-scope-reticle" viewBox="0 0 40 180" fill="none" aria-hidden="true">
-        <path d="M20 15v64m0 22v64" stroke="currentColor"/>
-        {[30, 50, 70, 110, 130, 150].map(y => <path key={y} d={`M${y === 50 || y === 130 ? 13 : 16} ${y}h${y === 50 || y === 130 ? 14 : 8}`} stroke="currentColor"/>)}
-        <circle cx="20" cy="90" r="5" stroke="currentColor"/><circle cx="20" cy="90" r="1.5" fill="currentColor"/></svg>
-        {data.rangefinder?.phase === 'measuring' && <div className="fleet-rangefinder-area" aria-hidden="true"/>}
-        <div className="fleet-scope-readout">
-          <strong>{((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small></strong>
-          {(data.combat?.battery === 'main' || data.combat?.battery === 'secondary') && <span><strong>{data.combat.flightTimeSeconds?.toFixed(1) ?? '—'} <small>s</small></strong><small>FLIGHT TIME</small></span>}
-          <strong>{(data.magnification ?? 1).toFixed(1)}×</strong>
-          {data.rangefinder && <RangefinderReadout state={data.rangefinder} bindings={bindings}/>}
-        </div></> :
-        <svg viewBox="0 0 44 44" fill="none"><path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor"/><circle cx="22" cy="22" r="5" stroke="currentColor"/><circle cx="22" cy="22" r="1" fill="currentColor"/></svg>}
-    </div>}
-    {!data.pointerLocked && !data.inspecting && !following && !data.airOperationsOpen && !wheel && <button className="fleet-capture-hint" onClick={() => desk?.issue({ kind: 'capture-pointer' })}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
-
-    <section className="fleet-ship" aria-label="Ship condition and helm">
-      {data.combat && !data.airOperationsOpen && !data.inspecting && <FireControl combat={data.combat} desk={desk} observedName={data.spectatedShipId && !commandingShip ? selectedShip.name : undefined}/>}
-      {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong><span>Hull damaged</span></p>}
-      <div className="fleet-ship-name"><h1>{shipTitle(selectedShip)}</h1><span className="fleet-hp" aria-label={`${hp} of ${maxIntegrity} HP`}><strong>{hp.toLocaleString()}</strong><span> / {maxIntegrity.toLocaleString()} HP</span></span></div>
-      <div className="fleet-health-track" role="meter" aria-label="HP" aria-valuenow={hp} aria-valuemin={0} aria-valuemax={maxIntegrity}><i style={{ width: `${integrity * 100}%` }}/>{damage && damage.amount > 0 && <b className="fleet-health-loss" style={{ left: `${integrity * 100}%`, width: `${damage.amount / maxIntegrity * 100}%`, opacity: damage.opacity }}/>}</div>
-      <div className="fleet-navigation"><ShipBearing data={data}/><div className="fleet-engine">
-        <div className="fleet-speed"><strong>{speed}</strong><span>kts</span></div>
-        <div className="fleet-throttle" role="group" aria-label="Engine telegraph">{[{ label: 'FULL', index: 5 }, { label: '3/4', index: 4 }, { label: '1/2', index: 3 }, { label: '1/4', index: 2 }, { label: 'STOP', index: 1 }, { label: 'FULL', index: 0 }].map(({ label, index }) => <button key={index} disabled={data.combat?.playerSunk || followingShip} aria-label={`Engine ${ENGINE_LABELS[index].toLowerCase()}`} title={ENGINE_LABELS[index]} aria-pressed={data.order === index} onClick={event => { desk?.issue({ kind: 'engine', order: index }); event.currentTarget.blur(); }}><span>{label}</span>{index === 0 && <small>ASTERN</small>}</button>)}</div>
-      </div></div>
-      <div className="fleet-steering" role="group" aria-label="Rudder order">
-        <div className="fleet-steering-heading"><span>PORT</span><strong>{rudder === 0 ? 'AMIDSHIPS' : `${Math.abs(rudder)}° ${rudder < 0 ? 'PORT' : 'STBD'}`}</strong><span>STBD</span></div>
-        <div className="fleet-rudder-orders">{[-1, -.5, 0, .5, 1].map(value => <button key={value} disabled={data.combat?.playerSunk || followingShip} aria-label={value === 0 ? 'Rudder amidships' : `${Math.abs(value) === 1 ? 'Hard' : 'Half'} ${value < 0 ? 'port' : 'starboard'} rudder`} aria-pressed={(data.rudderOrder ?? 0) === value} onClick={event => { desk?.issue({ kind: 'rudder', value }); event.currentTarget.blur(); }}>{value === 0 ? '0' : Math.abs(value) === 1 ? 'FULL' : '½'}</button>)}</div>
-        <div className="fleet-rudder-track" aria-label={`Actual rudder ${rudder} degrees`}><i style={{ left: `${50 + data.ship.rudder * 48}%` }}/></div>
+  if (fleetCommand && data.airOperationsOpen)
+    return (
+      <div className="fleet-hud">
+        <FleetCommand data={data} desk={desk!} bindings={bindings} instrumentsVisible={visible} />
       </div>
-      {data.combat && data.combat.playerStatus !== 'operational' && <p className="fleet-flood-warning">{data.combat.playerStatus === 'capsized' ? 'Capsized' : data.combat.playerStatus === 'sinking' ? 'Sinking' : `Afloat · ${data.combat.playerStatus.replaceAll('-', ' ')}`}</p>}
-      {(data.combat?.playerWater ?? 0) > .1 && <p className="fleet-flood-warning">Flooding · {data.combat!.playerWater.toFixed(1)} m³</p>}
-    </section>
+    );
 
-    {!data.airOperationsOpen && <ActiveArmament data={data} desk={desk} visible={visible} bindings={bindings} locked={followingShip}/>}
-    {(fleetCommand || !data.combat?.airWing) && <SquadronLabels data={data} desk={desk}/>}
-    {!fleetCommand && data.combat?.airWing && <AirOperations data={data} desk={desk} bindings={bindings} instrumentsVisible={visible}/>}
-    {data.combat?.submarine && <DepthControl combat={data.combat} desk={desk} bindings={bindings}/>}
-    {!following && (data.aimLocked || data.binoculars && data.aimModule !== 'point') && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>{data.aimLocked ? 'AIM LOCKED' : 'TRACKED AIM'}</small></div>}
-    {!following && data.aimLocked && !data.aimMarker?.visible && <div className="fleet-aim-locked" role="status">AIM LOCKED</div>}
-    <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart reports={fleetCommand ? desk?.frame.observationTracks : undefined} bindings={bindings} data={data} onResize={direction => desk?.issue({ kind: 'resize-chart', direction })}/></aside>
-  </div>;
+  return (
+    <div
+      className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''} ${commandingShip ? 'fleet-command-helm' : ''} ${followingShip ? 'fleet-following' : ''}`}
+      inert={!visible && !data.airOperationsOpen}
+      style={{ '--map-factor': mapSize / 400 } as CSSProperties}
+    >
+      {fleetCommand && <FleetCommand data={data} desk={desk!} bindings={bindings} />}
+      <BearingTape degrees={degrees} />
+      {!fleetCommand && desk?.frame.missionRules && desk.can.commandFleet && !desk.frame.networked && (
+        <button className="fleet-command-entry" onClick={() => desk.issue({ kind: 'fleet-command' })}>
+          Fleet command
+        </button>
+      )}
+      <div className="fleet-reports">
+        {!fleetCommand && data.combat?.battle && (
+          <BattleStatus
+            combat={data.combat}
+            desk={desk}
+            spectatedShipId={data.spectatedShipId}
+            bindings={bindings}
+            pointerLocked={!!data.pointerLocked}
+          >
+            {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} desk={desk} bindings={bindings} />}
+          </BattleStatus>
+        )}
+      </div>
+      <PerformanceCounter className="fleet-fps" fps={data.fps} performance={data.performance} />
+      {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting} />}
+
+      {followingShell && (
+        <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom.">
+          <strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong>
+          <span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span>
+        </div>
+      )}
+      {data.followedAircraftId && (
+        <div
+          className="fleet-shell-status fleet-aircraft-status"
+          title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."
+        >
+          <strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong>
+          <button
+            onClick={(e) => {
+              desk?.issue({ kind: 'return-to-ship' });
+              e.currentTarget.blur();
+            }}
+          >
+            Return to ship
+          </button>
+          <span>
+            {bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls
+          </span>
+        </div>
+      )}
+      {data.freeCamera && (
+        <div
+          className="fleet-shell-status"
+          role="status"
+          title="Mouse looks; scroll changes speed. The ship holds her engine, rudder and gun orders."
+        >
+          <strong>Free camera · {Math.round(data.freeCameraSpeed ?? 0)} m/s</strong>
+          <span>
+            {bindingLabel(bindings, 'throttleUp').split(' / ')[0]} {bindingLabel(bindings, 'port').split(' / ')[0]}{' '}
+            {bindingLabel(bindings, 'throttleDown').split(' / ')[0]} {bindingLabel(bindings, 'starboard').split(' / ')[0]} fly · E / Q climb
+            and sink · Shift faster · {bindingLabel(bindings, 'freeCamera')} to return to ship
+          </span>
+        </div>
+      )}
+      {wheel && <HelmWheel data={data} desk={desk} bindings={bindings} />}
+      {!data.inspecting && !following && !data.airOperationsOpen && !wheel && (
+        <div
+          className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`}
+          aria-hidden={data.binoculars ? undefined : true}
+        >
+          {data.binoculars ? (
+            <>
+              <svg className="fleet-scope-scale" height="180" fill="none" aria-hidden="true">
+                <line x1="0" y1="90" x2="100%" y2="90" stroke="currentColor" />
+                {/* Percentage positions widen the ruler without stretching its marks or labels. */}
+                {Array.from({ length: 33 }, (_, i) =>
+                  i === 16 ? null : (
+                    <svg key={i} x={`${50 + (i - 16) * 2.8}%`} y="80" width="1" height="38" overflow="visible">
+                      <path d={`M0 ${i % 2 === 0 ? 5 : 8}v${i % 2 === 0 ? 11 : 5}`} stroke="currentColor" />
+                      {i % 2 === 0 && (
+                        <text y="28" fill="currentColor" textAnchor="middle" fontSize="10">
+                          {Math.abs(i - 16) * 5}
+                        </text>
+                      )}
+                    </svg>
+                  ),
+                )}
+              </svg>
+              <svg className="fleet-scope-reticle" viewBox="0 0 40 180" fill="none" aria-hidden="true">
+                <path d="M20 15v64m0 22v64" stroke="currentColor" />
+                {[30, 50, 70, 110, 130, 150].map((y) => (
+                  <path key={y} d={`M${y === 50 || y === 130 ? 13 : 16} ${y}h${y === 50 || y === 130 ? 14 : 8}`} stroke="currentColor" />
+                ))}
+                <circle cx="20" cy="90" r="5" stroke="currentColor" />
+                <circle cx="20" cy="90" r="1.5" fill="currentColor" />
+              </svg>
+              {data.rangefinder?.phase === 'measuring' && <div className="fleet-rangefinder-area" aria-hidden="true" />}
+              <div className="fleet-scope-readout">
+                <strong>
+                  {((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small>
+                </strong>
+                {(data.combat?.battery === 'main' || data.combat?.battery === 'secondary') && (
+                  <span>
+                    <strong>
+                      {data.combat.flightTimeSeconds?.toFixed(1) ?? '—'} <small>s</small>
+                    </strong>
+                    <small>FLIGHT TIME</small>
+                  </span>
+                )}
+                <strong>{(data.magnification ?? 1).toFixed(1)}×</strong>
+                {data.rangefinder && <RangefinderReadout state={data.rangefinder} bindings={bindings} />}
+              </div>
+            </>
+          ) : (
+            <svg viewBox="0 0 44 44" fill="none">
+              <path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor" />
+              <circle cx="22" cy="22" r="5" stroke="currentColor" />
+              <circle cx="22" cy="22" r="1" fill="currentColor" />
+            </svg>
+          )}
+        </div>
+      )}
+      {!data.pointerLocked && !data.inspecting && !following && !data.airOperationsOpen && !wheel && (
+        <button className="fleet-capture-hint" onClick={() => desk?.issue({ kind: 'capture-pointer' })}>
+          Click sea to aim <span>Hold Ctrl for cursor</span>
+        </button>
+      )}
+
+      <section className="fleet-ship" aria-label="Ship condition and helm">
+        {data.combat && !data.airOperationsOpen && !data.inspecting && (
+          <FireControl
+            combat={data.combat}
+            desk={desk}
+            observedName={data.spectatedShipId && !commandingShip ? selectedShip.name : undefined}
+          />
+        )}
+        {damage && damage.amount > 0 && (
+          <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}>
+            <strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong>
+            <span>Hull damaged</span>
+          </p>
+        )}
+        <div className="fleet-ship-name">
+          <h1>{shipTitle(selectedShip)}</h1>
+          <span className="fleet-hp" aria-label={`${hp} of ${maxIntegrity} HP`}>
+            <strong>{hp.toLocaleString()}</strong>
+            <span> / {maxIntegrity.toLocaleString()} HP</span>
+          </span>
+        </div>
+        <div className="fleet-health-track" role="meter" aria-label="HP" aria-valuenow={hp} aria-valuemin={0} aria-valuemax={maxIntegrity}>
+          <i style={{ width: `${integrity * 100}%` }} />
+          {damage && damage.amount > 0 && (
+            <b
+              className="fleet-health-loss"
+              style={{ left: `${integrity * 100}%`, width: `${(damage.amount / maxIntegrity) * 100}%`, opacity: damage.opacity }}
+            />
+          )}
+        </div>
+        <div className="fleet-navigation">
+          <ShipBearing data={data} />
+          <div className="fleet-engine">
+            <div className="fleet-speed">
+              <strong>{speed}</strong>
+              <span>kts</span>
+            </div>
+            <div className="fleet-throttle" role="group" aria-label="Engine telegraph">
+              {[
+                { label: 'FULL', index: 5 },
+                { label: '3/4', index: 4 },
+                { label: '1/2', index: 3 },
+                { label: '1/4', index: 2 },
+                { label: 'STOP', index: 1 },
+                { label: 'FULL', index: 0 },
+              ].map(({ label, index }) => (
+                <button
+                  key={index}
+                  disabled={data.combat?.playerSunk || followingShip}
+                  aria-label={`Engine ${ENGINE_LABELS[index].toLowerCase()}`}
+                  title={ENGINE_LABELS[index]}
+                  aria-pressed={data.order === index}
+                  onClick={(event) => {
+                    desk?.issue({ kind: 'engine', order: index });
+                    event.currentTarget.blur();
+                  }}
+                >
+                  <span>{label}</span>
+                  {index === 0 && <small>ASTERN</small>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="fleet-steering" role="group" aria-label="Rudder order">
+          <div className="fleet-steering-heading">
+            <span>PORT</span>
+            <strong>{rudder === 0 ? 'AMIDSHIPS' : `${Math.abs(rudder)}° ${rudder < 0 ? 'PORT' : 'STBD'}`}</strong>
+            <span>STBD</span>
+          </div>
+          <div className="fleet-rudder-orders">
+            {[-1, -0.5, 0, 0.5, 1].map((value) => (
+              <button
+                key={value}
+                disabled={data.combat?.playerSunk || followingShip}
+                aria-label={
+                  value === 0 ? 'Rudder amidships' : `${Math.abs(value) === 1 ? 'Hard' : 'Half'} ${value < 0 ? 'port' : 'starboard'} rudder`
+                }
+                aria-pressed={(data.rudderOrder ?? 0) === value}
+                onClick={(event) => {
+                  desk?.issue({ kind: 'rudder', value });
+                  event.currentTarget.blur();
+                }}
+              >
+                {value === 0 ? '0' : Math.abs(value) === 1 ? 'FULL' : '½'}
+              </button>
+            ))}
+          </div>
+          <div className="fleet-rudder-track" aria-label={`Actual rudder ${rudder} degrees`}>
+            <i style={{ left: `${50 + data.ship.rudder * 48}%` }} />
+          </div>
+        </div>
+        {data.combat && data.combat.playerStatus !== 'operational' && (
+          <p className="fleet-flood-warning">
+            {data.combat.playerStatus === 'capsized'
+              ? 'Capsized'
+              : data.combat.playerStatus === 'sinking'
+                ? 'Sinking'
+                : `Afloat · ${data.combat.playerStatus.replaceAll('-', ' ')}`}
+          </p>
+        )}
+        {(data.combat?.playerWater ?? 0) > 0.1 && (
+          <p className="fleet-flood-warning">Flooding · {data.combat!.playerWater.toFixed(1)} m³</p>
+        )}
+      </section>
+
+      {!data.airOperationsOpen && <ActiveArmament data={data} desk={desk} visible={visible} bindings={bindings} locked={followingShip} />}
+      {(fleetCommand || !data.combat?.airWing) && <SquadronLabels data={data} desk={desk} />}
+      {!fleetCommand && data.combat?.airWing && <AirOperations data={data} desk={desk} bindings={bindings} instrumentsVisible={visible} />}
+      {data.combat?.submarine && <DepthControl combat={data.combat} desk={desk} bindings={bindings} />}
+      {!following && (data.aimLocked || (data.binoculars && data.aimModule !== 'point')) && data.aimMarker?.visible && (
+        <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}>
+          <span />
+          <small>{data.aimLocked ? 'AIM LOCKED' : 'TRACKED AIM'}</small>
+        </div>
+      )}
+      {!following && data.aimLocked && !data.aimMarker?.visible && (
+        <div className="fleet-aim-locked" role="status">
+          AIM LOCKED
+        </div>
+      )}
+      <aside className="fleet-map-area" aria-label="Navigation minimap">
+        <NavigationChart
+          reports={fleetCommand ? desk?.frame.observationTracks : undefined}
+          bindings={bindings}
+          data={data}
+          onResize={(direction) => desk?.issue({ kind: 'resize-chart', direction })}
+        />
+      </aside>
+    </div>
+  );
 }
