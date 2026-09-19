@@ -1,4 +1,4 @@
-import type { GunPart, PartCatalog, ShipBlueprint, ShipDefinition, Vec3, Volume } from './blueprintTypes';
+import type { PartCatalog, ShipBlueprint, ShipDefinition, Vec3, Volume } from './blueprintTypes';
 
 /** Same versioned blueprint family, before Rust derives hull/loading/system fields. */
 export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' | 'id' | 'name' | 'coordinates'> {
