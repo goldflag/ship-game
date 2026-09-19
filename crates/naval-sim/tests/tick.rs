@@ -234,3 +234,32 @@ fn aftermath_keeps_moving_without_changing_the_result() {
     assert_ne!(battle.actors[1].motion.y, y);
     assert_eq!(serde_json::to_value(&battle.outcome).unwrap(), outcome);
 }
+
+#[test]
+fn a_new_wind_reshapes_the_sea_from_the_next_step() {
+    let mut battle = battle();
+    assert_eq!(battle.sea.amplitude_m, 0.0);
+    let phase = battle.sea.phase;
+    battle.set_wind(22.0, 200.0).unwrap();
+    let (catalog, _) = content();
+    let launched = catalog
+        .resolve_environment(
+            "north-atlantic",
+            "storm-clouds",
+            54321,
+            1,
+            5000.0,
+            Some(22.0),
+        )
+        .unwrap()
+        .sea;
+    // The same calibrated sea a battle launched in this wind would ride.
+    assert_eq!(battle.sea.amplitude_m, launched.amplitude_m);
+    assert_eq!(battle.sea.wavelength_m, launched.wavelength_m);
+    assert_eq!(battle.sea.wind_mps, 22.0);
+    assert_eq!(battle.sea.direction, 200f64.to_radians());
+    assert_eq!(battle.sea.phase, phase);
+    battle.step(&BTreeMap::new());
+    assert!(battle.set_wind(31.0, 0.0).is_err());
+    assert!(battle.set_wind(10.0, f64::NAN).is_err());
+}

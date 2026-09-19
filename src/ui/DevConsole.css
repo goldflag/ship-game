@@ -1,0 +1,34 @@
+/* Shift-D developer console: a command line under the top instruments, over the scene. */
+.dev-console, .dev-console-tag { --dev-amber: #efb46a; --dev-mint: #86e4c5; --dev-panel: #0b1b23e6; --dev-line: #cfdfdf33; --dev-dim: #8fa5ac; }
+.dev-console { position: fixed; top: 84px; left: 50%; z-index: 6; width: min(600px, calc(100vw - 32px)); transform: translateX(-50%);
+  display: flex; flex-direction: column; background: var(--dev-panel); border: 1px solid var(--dev-line); border-radius: 3px;
+  box-shadow: 0 14px 40px #00000066; color: #edf1ec; font-size: 13px; user-select: none; }
+.dev-console svg { width: 16px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.dev-console-badge { padding: 2px 6px; border-radius: 2px; background: var(--dev-amber); color: #152b32; font: 600 12px/1.2 'Barlow Condensed', sans-serif; letter-spacing: .08em; }
+.dev-console-line { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 14px; border-bottom: 1px solid var(--dev-line); color: var(--dev-dim); }
+.dev-console-line input { flex: 1; min-width: 0; height: 36px; border: 0; background: transparent; color: #edf1ec; font: 400 17px 'Barlow', sans-serif; }
+.dev-console-line input::placeholder { color: #8fa5acb3; }
+.dev-console-results { list-style: none; margin: 0; padding: 6px; display: flex; flex-direction: column; gap: 2px; max-height: 212px; overflow: auto; scrollbar-width: thin; scrollbar-color: #cfdfdf33 transparent; }
+.dev-console-results li { display: flex; align-items: center; gap: 12px; min-height: 38px; padding: 0 14px; border-radius: 3px; color: #bacbd0; cursor: pointer; }
+.dev-console-results li.on { background: #e0c58d1f; color: #edf1ec; }
+.dev-console-results li.dev-console-empty { cursor: default; color: var(--dev-dim); }
+.dev-console-group { flex: 0 0 92px; font: 500 11px 'Barlow Condensed', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--dev-dim); }
+.dev-console-label { flex: 1; font-size: 14px; }
+.dev-console-value { font: 500 15px 'Barlow Condensed', sans-serif; color: var(--dev-dim); white-space: nowrap; }
+.dev-console-value b { font-weight: 500; color: var(--accent, #e0c58d); }
+.dev-console-now { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px 12px; border-top: 1px solid var(--dev-line); }
+.dev-console-caption { display: flex; align-items: center; gap: 8px; font: 500 11px 'Barlow Condensed', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--dev-dim); }
+.dev-console-caption span { flex: 1; }
+.dev-console-caption button { padding: 2px 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: #edf1ec; }
+.dev-console-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dev-console-chip { display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px; border: 1px solid var(--dev-line); border-radius: 3px; background: transparent;
+  color: #bacbd0; font: 500 15px 'Barlow Condensed', sans-serif; cursor: ew-resize; touch-action: none; }
+.dev-console-chip:hover:not(:disabled) { border-color: #cfdfdf66; color: #edf1ec; }
+.dev-console-chip.changed { border-color: #86e4c580; background: #86e4c514; color: #edf1ec; }
+.dev-console-chip.changed svg { color: var(--dev-mint); }
+.dev-console-chip:disabled { cursor: default; }
+.dev-console-note { margin: 0; font-size: 12px; color: var(--dev-dim); }
+.dev-console-note[role=status] { color: var(--dev-amber); }
+.dev-console-tag { position: fixed; top: 84px; left: 50%; z-index: 6; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px 0 4px;
+  border: 1px solid #efb46a80; border-radius: 3px; background: #0b1b23cc; color: #edf1ec; font-size: 12px; }
+.dev-console-tag kbd:first-of-type { margin-left: 2px; }

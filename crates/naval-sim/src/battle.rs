@@ -318,6 +318,31 @@ impl Battle {
         self.cadence = cadence;
         Ok(())
     }
+    /// Local developer console seam: re-resolve the sea for a new wind from
+    /// the next `step` on. The calibrated height and wavelength follow the same
+    /// content curve as launch; the swell keeps its seeded phase. Explicit wind
+    /// bypasses the forecast, so any listed weather resolves the same sea.
+    pub fn set_wind(
+        &mut self,
+        wind_mps: f64,
+        direction_deg: f64,
+    ) -> Result<(), crate::catalog::ContentError> {
+        if !direction_deg.is_finite() {
+            return Err(crate::catalog::ContentError::Invalid(
+                "wind direction must be finite".into(),
+            ));
+        }
+        let sea = self
+            .catalog
+            .resolve_environment(&self.map_id, "clear", self.seed, 1, 5000.0, Some(wind_mps))?
+            .sea;
+        self.sea = SeaState {
+            direction: direction_deg.rem_euclid(360.0).to_radians(),
+            phase: self.sea.phase,
+            ..sea
+        };
+        Ok(())
+    }
     pub fn survivors(&self) -> Vec<Survivor> {
         self.actors
             .iter()

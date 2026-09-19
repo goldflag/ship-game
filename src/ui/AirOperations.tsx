@@ -17,6 +17,7 @@ import { reportState } from './reconReports';
 import { projectAirMarker, projectMapHeading } from './fleet/fleetView';
 import type { FleetChart, FleetDesk } from './fleet/fleetDesk';
 import type { AirOrder } from '../multiplayer/generated/AirOrder';
+import { isDeveloperConsoleKey } from './devConsoleCommands';
 
 type Marker = {
   element: HTMLElement | SVGElement; svg: boolean; position: Vec3;
@@ -233,7 +234,7 @@ export function AirOperations({ data, desk, bindings, instrumentsVisible = true 
   useEffect(() => {
     // Capture map shortcuts before the ship's battery/helm bindings; no stuck rudder on exit.
     const key = (event: KeyboardEvent) => {
-      if (!state.current.mapOpen || document.querySelector('dialog[open]') || event.altKey || event.metaKey || event.ctrlKey) return;
+      if (!state.current.mapOpen || document.querySelector('dialog[open]') || event.altKey || event.metaKey || event.ctrlKey || isDeveloperConsoleKey(event)) return;
       const target = event.target as HTMLElement;
       if (target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable)) return;
       const index = /^Digit[1-9]$/.test(event.code) ? Number(event.code.at(-1)) - 1 : event.code === 'Digit0' ? 9 : -1;

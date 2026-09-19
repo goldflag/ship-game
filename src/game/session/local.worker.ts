@@ -56,7 +56,7 @@ async function loadContent(ids?: string[]): Promise<Uint8Array> {
 // LocalWorkerOperation correlates setup replies by this order and retires the
 // worker if a reply is abandoned; never publish unsolicited setup replies.
 let chain = Promise.resolve();
-self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean; construction?: LocalConstructionInput } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'trial-reset' } | { type: 'trial-action'; action: TrialAction } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[] }>) => {
+self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean; construction?: LocalConstructionInput } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'trial-reset' } | { type: 'trial-action'; action: TrialAction } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[]; wind?: { speed: number; direction: number } }>) => {
   chain = chain.then(async () => {
     try {
       const message = event.data;
@@ -96,6 +96,8 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
         runtime.restart_pve(); detail = [];
       } else {
         if (!runtime) throw new Error('Battle worker is not initialized.');
+        // A developer console wind change reshapes the sea from this batch on.
+        if (message.wind) runtime.set_wind(message.wind.speed, message.wind.direction);
         for (const command of message.commands) {
           try {
             runtime.command(JSON.stringify(command));

@@ -586,6 +586,14 @@ impl LocalRuntime {
             .apply(0, serde_json::from_str(json).map_err(error)?)
             .map_err(error)
     }
+    /// Developer console: the local sea physics answer a new wind mid-battle.
+    /// Deliberately absent from the online protocol.
+    pub fn set_wind(&mut self, wind_mps: f64, direction_deg: f64) -> Result<(), JsValue> {
+        self.session
+            .battle
+            .set_wind(wind_mps, direction_deg)
+            .map_err(error)
+    }
     pub fn step(&mut self, ticks: u32) -> Result<(), JsValue> {
         if ticks > 6 {
             return Err(error("Tick batch exceeds limit"));
