@@ -13,7 +13,7 @@ const MIN_ORBIT_ELEVATION = .08;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
-const PORT_AIM_HEIGHT = -28;
+const PORT_AIM_DROP = .148;
 const FOLLOW_DISTANCE = Math.hypot(45, 12, 12);
 const FOLLOW_AZIMUTH = Math.atan2(12, 45);
 const FOLLOW_ELEVATION = Math.atan2(12, Math.hypot(45, 12));
@@ -317,9 +317,10 @@ export class CameraRig {
     this.followedShipId = ship.id;
     if (this.inPort || this.inspecting) {
       const framingScale = this.inPort ? this.portHullScale : 1;
-      // Port aims below the waterline, lifting the ship into the clear upper half above her builder's plate.
-      this.target.set(ship.x + Math.sin(ship.heading) * 25 * framingScale, height + (this.inPort ? PORT_AIM_HEIGHT : 20) * framingScale, ship.z - Math.cos(ship.heading) * 25 * framingScale);
       const distance = this.displayedDistance * Math.max(1, 1.1 / this.camera.aspect);
+      // Port lowers its aim by a fixed share of the orbit distance: the same tilt at every zoom, so the
+      // ship rides in the clear upper half above her builder's plate without sliding off the top up close.
+      this.target.set(ship.x + Math.sin(ship.heading) * 25 * framingScale, height + 20 * framingScale - (this.inPort ? PORT_AIM_DROP * distance : 0), ship.z - Math.cos(ship.heading) * 25 * framingScale);
       const angle = this.azimuth - ship.heading;
       // Port stays aimed at the ship. Combat inspection can tilt toward the sky
       // below the lowest orbit while the camera stays above the water.
