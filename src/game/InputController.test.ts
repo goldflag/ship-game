@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), rangefind: mock(), rangeLock: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock(), helmWheel: mock() };
+    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), portHome: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), rangefind: mock(), rangeLock: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock(), helmWheel: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -45,6 +45,16 @@ describe('keyboard gameplay controls', () => {
     input.setEnabled(false); key('keydown', 'ArrowRight');
     input.setEnabled(true); modal = true; key('keydown', 'ArrowRight');
     expect(actions.cycleSpectator).toHaveBeenCalledTimes(2);
+  });
+
+  test('the recenter key reaches the port camera while the helm is idle, and the helm camera otherwise', () => {
+    key('keydown', 'KeyR'); key('keyup', 'KeyR');
+    expect(actions.recenter).toHaveBeenCalledTimes(1);
+    expect(actions.portHome).not.toHaveBeenCalled();
+    input.setEnabled(false);
+    key('keydown', 'KeyR'); key('keydown', 'KeyR', { repeat: true });
+    expect(actions.portHome).toHaveBeenCalledTimes(1);
+    expect(actions.recenter).toHaveBeenCalledTimes(1);
   });
 
   test('periscope shortcut respects rebinding, repeat, pause and dialogs', () => {

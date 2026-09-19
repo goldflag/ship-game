@@ -315,10 +315,12 @@ test('port zoom stays proportional when switching very small and large hulls', (
         rig.update(ship, 0, 0, true);
         expect(rig.bearing).toBe(bearing);
         expect(orbitRadius() / length).toBeCloseTo(relativeRadius, 6);
-        expect(camera.position.y).toBeGreaterThanOrEqual(12);
-        const center = new Vector3(ship.x, 0, ship.z).project(camera);
-        expect(Math.abs(center.x)).toBeLessThan(.5);
-        expect(Math.abs(center.y)).toBeLessThan(.7);
+        expect(camera.position.y).toBeGreaterThan(0);
+        // The closest zoom reads a fitting rather than the whole hull, so framing is judged at the
+        // point the orbit turns about: above the deck, a tenth of a length forward of amidships.
+        const scale = length / 250.5, pivot = new Vector3(ship.x, 20 * scale, ship.z - 25 * scale).project(camera);
+        expect(Math.abs(pivot.x)).toBeLessThan(.5);
+        expect(Math.abs(pivot.y)).toBeLessThan(.7);
       }
     }
   } finally { rig.dispose(); }
@@ -465,7 +467,7 @@ test('follow orbit stays bounded through vertical flight, extreme zoom, terrain 
   rig.dispose();
 });
 
-test('upward port dragging stops at the lowest ship-focused orbit across hull sizes and zoom limits', () => {
+test('upward port dragging carries the orbit beneath the ship and stops at a steady limit', () => {
   const { camera, canvas, rig, drag } = interactiveCamera();
   const ship = { ...createShipState(), x: 240 };
   rig.setInPort(true);
@@ -475,11 +477,10 @@ test('upward port dragging stops at the lowest ship-focused orbit across hull si
       canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: zoom }));
       drag(0, -100000);
       rig.update(ship, ship.y, 0, true);
+      // Under the surface, looking up at her bottom, still framed on the ship.
       const lowestOrbit = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
-      expect(direction.y).toBeLessThan(0);
-      expect(camera.position.y).toBeGreaterThanOrEqual(12);
-      const center = new Vector3(ship.x, 0, ship.z).project(camera);
-      expect(Math.abs(center.y)).toBeLessThan(1);
+      expect(camera.position.y).toBeLessThan(0);
+      expect(direction.y).toBeGreaterThan(0);
       drag(0, -250);
       rig.update(ship, ship.y, 0, true);
       expect(camera.position.distanceTo(lowestOrbit)).toBeLessThan(1e-9);
@@ -491,11 +492,12 @@ test('upward port dragging stops at the lowest ship-focused orbit across hull si
     }
     rig.recenter();
     rig.update(ship, ship.y, 0, true);
+    expect(camera.position.y).toBeGreaterThan(0);
     expect(camera.getWorldDirection(new Vector3()).y).toBeLessThan(0);
   } finally { rig.dispose(); }
 });
 
-test('a right-drag in port trucks the view across the ship, within reach, and recentring returns to her', () => {
+test('a right-drag in port trucks the view anywhere around the ship, underwater too, and recentring returns to her', () => {
   const { camera, canvas, rig, drag } = interactiveCamera();
   const ship = { ...createShipState(), x: 240 };
   const pan = (dx: number, dy: number, extra: object = { button: 2 }) => {
@@ -514,9 +516,13 @@ test('a right-drag in port trucks the view across the ship, within reach, and re
     expect(centre().y).toBeLessThan(home.y - .15);
     expect(rig.bearing).toBe(bearing);
     expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
-    // However far the drag, the view stays within three quarters of a hull length of the ship.
-    pan(1e6, 0); rig.update(ship, 0, 0, true);
-    expect(Math.hypot(camera.position.x - homeCamera.x, camera.position.z - homeCamera.z)).toBeCloseTo(250.5 * .75, 6);
+    // Nothing fences the pan in: it travels well past the hull, and down through the surface.
+    pan(4000, 0); rig.update(ship, 0, 0, true);
+    expect(Math.hypot(camera.position.x - homeCamera.x, camera.position.z - homeCamera.z)).toBeGreaterThan(250.5);
+    rig.recenter(); pan(0, -1500); rig.update(ship, 0, 0, true);
+    expect(camera.position.y).toBeLessThan(0);
+    expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
+    rig.recenter(); rig.update(ship, 0, 0, true);
     // A plain left-drag still orbits from the panned position; a Shift-drag pans like the right button.
     drag(60, 0); rig.update(ship, 0, 0, true);
     expect(rig.bearing).not.toBe(bearing);
@@ -526,6 +532,13 @@ test('a right-drag in port trucks the view across the ship, within reach, and re
     rig.recenter(); rig.update(ship, 0, 0, true);
     expect(centre().x).toBeCloseTo(home.x, 6);
     expect(centre().y).toBeCloseTo(home.y, 6);
+    // Double-click is the way home from anywhere: pan, orbit and zoom all return.
+    pan(3000, -2500); drag(400, -100000); canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: 100000 }));
+    rig.update(ship, 0, 0, true);
+    expect(camera.position.y).toBeLessThan(0);
+    canvas.dispatchEvent(new Event('dblclick')); rig.update(ship, 0, 0, true);
+    expect(camera.position.distanceTo(homeCamera)).toBeLessThan(1e-6);
+    expect(centre().x).toBeCloseTo(home.x, 6);
     // Another hull, or leaving port, never inherits a panned view; battle drags never pan.
     pan(200, 0); rig.setHullLength(120); rig.update(ship, 0, 0, true);
     expect(centre().x).toBeCloseTo(home.x, 6);
@@ -562,11 +575,11 @@ for (const mode of ['Chase', 'Bridge', 'Tactical'] as const) {
   });
 }
 
-for (const mode of ['Port', 'Inspection', 'Chase', 'Bridge', 'Tactical', 'Binoculars'] as const) {
+// Port is deliberately absent: its camera may go beneath the hull (see the port tests above).
+for (const mode of ['Inspection', 'Chase', 'Bridge', 'Tactical', 'Binoculars'] as const) {
   test(`${mode} camera stays above water through extreme input, zoom and sinking`, () => {
     const { camera, canvas, rig, drag } = interactiveCamera();
     const ship = createShipState();
-    rig.setInPort(mode === 'Port');
     if (mode === 'Inspection') rig.setInspecting(true);
     if (mode === 'Bridge' || mode === 'Tactical') rig.mode = mode;
     if (mode === 'Binoculars') rig.toggleBinoculars([0, .5, -1000], ship);

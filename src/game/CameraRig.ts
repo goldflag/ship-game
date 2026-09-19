@@ -14,8 +14,10 @@ const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
 const PORT_AIM_DROP = .148;
-/** Closest port orbit for a 250 m hull: near enough to read a mount once the view is panned onto it. */
-const PORT_MIN_DISTANCE = 60;
+/** Port orbit range for a 250 m hull: close enough to read a fitting, far enough to see her whole from any side. */
+const PORT_MIN_DISTANCE = 20;
+const PORT_MAX_DISTANCE = 1200;
+const PORT_MAX_ELEVATION = 1.35;
 const FOLLOW_DISTANCE = Math.hypot(45, 12, 12);
 const FOLLOW_AZIMUTH = Math.atan2(12, 45);
 const FOLLOW_ELEVATION = Math.atan2(12, Math.hypot(45, 12));
@@ -100,7 +102,7 @@ export class CameraRig {
         this.panPort(dx, dy);
       } else if (this.inPort || this.inspecting) {
         this.azimuth -= dx * .005;
-        this.elevation = MathUtils.clamp(this.elevation + dy * .003, this.inPort ? MIN_ORBIT_ELEVATION : -MAX_UPWARD_TILT, 1.35);
+        this.elevation = MathUtils.clamp(this.elevation + dy * .003, this.inPort ? -PORT_MAX_ELEVATION : -MAX_UPWARD_TILT, PORT_MAX_ELEVATION);
       } else {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
@@ -131,11 +133,11 @@ export class CameraRig {
       const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? this.canvas.clientHeight || 800 : 1);
       if (this.shellView) this.followDistance = MathUtils.clamp(this.followDistance * Math.exp(delta * .001), 12, 800);
       else if (this.binoculars) this.scopeMagnification = MathUtils.clamp(this.scopeMagnification * Math.exp(-delta * .0015), MIN_MAGNIFICATION, MAX_MAGNIFICATION);
-      else this.distance = MathUtils.clamp(this.distance * Math.exp(delta * .001), (this.inPort ? PORT_MIN_DISTANCE : 45) * this.distanceScale, this.inPort ? 650 * this.portHullScale : 1400 * this.hullScale);
+      else this.distance = MathUtils.clamp(this.distance * Math.exp(delta * .001), (this.inPort ? PORT_MIN_DISTANCE : 45) * this.distanceScale, this.inPort ? PORT_MAX_DISTANCE * this.portHullScale : 1400 * this.hullScale);
     }, { ...options, passive: false });
     canvas.addEventListener('contextmenu', e => e.preventDefault(), options);
-    // Double-click returns a panned port view to the ship, keeping the orbit and zoom.
-    canvas.addEventListener('dblclick', () => { if (this.enabled && this.inPort) this.portPan.set(0, 0, 0); }, options);
+    // The port camera roams without limits, so double-click always finds the ship again.
+    canvas.addEventListener('dblclick', () => { if (this.enabled) this.portHome(); }, options);
   }
 
   setBridge(bridge: Vec3 = [0, 29, -31]): void { this.bridge = bridge; }
@@ -258,18 +260,21 @@ export class CameraRig {
     this.updateProjection();
     this.recenter();
   }
-  /** Slide the port view in the screen plane so the hull follows the pointer, within reach of the ship. */
+  /** Slide the port view in the screen plane so the hull follows the pointer. Unbounded, as in the shipbuilder: recentring finds the ship again. */
   private panPort(dx: number, dy: number): void {
     const distance = this.displayedDistance * Math.max(1, 1.1 / this.camera.aspect);
     const perPixel = 2 * Math.tan(this.camera.fov * Math.PI / 360) * distance / (this.canvas.clientHeight || 800);
     const before = this.panStep.copy(this.portPan);
     this.portPan.addScaledVector(this.panAxis.setFromMatrixColumn(this.camera.matrixWorld, 0), -dx * perPixel)
       .addScaledVector(this.panAxis.setFromMatrixColumn(this.camera.matrixWorld, 1), dy * perPixel);
-    const reach = this.hullLength * .75, horizontal = Math.hypot(this.portPan.x, this.portPan.z);
-    if (horizontal > reach) { this.portPan.x *= reach / horizontal; this.portPan.z *= reach / horizontal; }
-    this.portPan.y = MathUtils.clamp(this.portPan.y, -this.hullLength * .1, this.hullLength * .3);
     // Truck the camera with the aim, so the view slides instead of swinging while the orbit eases.
     this.camera.position.add(before.subVectors(this.portPan, before));
+  }
+  /** Back to the port's opening view of the ship: pan, orbit and zoom. */
+  portHome(): void {
+    if (!this.inPort) return;
+    this.recenter();
+    this.distance = 325 * this.distanceScale;
   }
   recenter(): void {
     this.opticsTransition = undefined;
@@ -311,7 +316,9 @@ export class CameraRig {
   setBattleTerrain(height: (x: number, z: number) => number): void { this.battleTerrain = height; }
   private constrainCameraHeight(position: Vector3): void {
     const ground = this.inPort ? Math.max(0, terrainHeight(position.x, position.z)) : Math.max(0, this.battleTerrain(position.x, position.z));
-    if (ground === 0 && this.submarine && !this.inPort && !this.shellView && (this.mode !== 'Tactical' || this.inspecting)) return;
+    // Port looks at the hull from anywhere, including beneath her keel; only the harbor's land stays solid.
+    if (ground === 0 && this.inPort) return;
+    if (ground === 0 && this.submarine && !this.shellView && (this.mode !== 'Tactical' || this.inspecting)) return;
     position.y = Math.max(position.y, ground + CAMERA_CLEARANCE);
   }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
@@ -352,10 +359,12 @@ export class CameraRig {
       // ship rides in the clear upper half above her builder's plate without sliding off the top up close.
       this.target.set(ship.x + Math.sin(ship.heading) * 25 * framingScale, height + 20 * framingScale - (this.inPort ? PORT_AIM_DROP * distance : 0), ship.z - Math.cos(ship.heading) * 25 * framingScale);
       if (this.inPort) this.target.add(this.portPan);
+      // Up close the port's long near plane would slice the fitting being read; far out it keeps the town's depth precision.
+      if (this.inPort) { const near = MathUtils.clamp(distance * .02, .3, 3); if (Math.abs(this.camera.near - near) > 1e-3) { this.camera.near = near; this.camera.updateProjectionMatrix(); } }
       const angle = this.azimuth - ship.heading;
-      // Port stays aimed at the ship. Combat inspection can tilt toward the sky
-      // below the lowest orbit while the camera stays above the water.
-      const orbitElevation = Math.max(this.elevation, MIN_ORBIT_ELEVATION);
+      // Port orbits freely, below the waterline too. Combat inspection can tilt toward
+      // the sky below the lowest orbit while the camera stays above the water.
+      const orbitElevation = this.inPort ? this.elevation : Math.max(this.elevation, MIN_ORBIT_ELEVATION);
       const radius = Math.cos(orbitElevation) * distance;
       this.desired.set(ship.x + Math.sin(angle) * radius, height + Math.sin(orbitElevation) * distance + 15 * framingScale, ship.z + Math.cos(angle) * radius);
       if (this.inPort) this.desired.add(this.portPan);
