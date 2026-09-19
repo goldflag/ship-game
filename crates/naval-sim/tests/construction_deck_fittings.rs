@@ -722,7 +722,49 @@ fn railing_options_change_loading_and_allow_small_contacts() {
     compiled(&s, &c); // Independent of source order.
     c.equipment.last_mut().unwrap().size = [4., 2., 2.];
     c.equipment.last_mut().unwrap().bounds_center[1] = 1.;
+    compiled(&s, &c); // Even a run buried in a deckhouse-sized fitting is only trim.
+}
+
+#[test]
+fn railings_never_fail_on_intersections() {
+    let (mut s, mut c) = fixture();
+    c.equipment.push(route_part("railing"));
+    // Two identical runs from the same bow point, plus a crossing run.
+    for (id, points) in [
+        ("port", vec![[0., 2., -8.], [-4., 2., 0.]]),
+        ("twin", vec![[0., 2., -8.], [-4., 2., 0.]]),
+        ("starboard", vec![[0., 2., -8.], [4., 2., 0.]]),
+        ("crossing", vec![[-4., 2., -2.], [4., 2., -2.]]),
+    ] {
+        let mut e = route("railing", points, 0.);
+        e.id = id.into();
+        s.construction.equipment.push(e);
+    }
+    let d = compiled(&s, &c);
+    assert_eq!(contribution(&d, "port").mass_kg, contribution(&d, "twin").mass_kg);
+    // A deckhouse block raised through the runs does not reject them either.
+    s.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+        id: "deckhouse".into(),
+        kind: "box".into(),
+        position: [0., 3., -2.],
+        size: [3., 2., 3.],
+        ..Default::default()
+    });
+    compiled(&s, &c);
+    // Support is still physical: a post beyond the deck edge has nothing to stand on.
+    s.construction.equipment[0].path.as_mut().unwrap().points[1] = [-40., 2., 0.];
     rejected(&s, &c, "equipment-path");
+}
+
+#[test]
+fn lines_cross_railings_without_conflict() {
+    let (mut s, mut c) = fixture();
+    c.equipment.extend([route_part("rope"), route_part("railing")]);
+    let mut rope = route("rope", vec![[-4., 2.02, 0.], [4., 2.02, 0.]], 0.);
+    rope.id = "line".into();
+    s.construction.equipment.push(rope);
+    s.construction.equipment.push(route("railing", vec![[0., 2., -4.], [0., 2., 4.]], 0.));
+    compiled(&s, &c);
 }
 
 #[test]
@@ -788,5 +830,22 @@ fn fixed_fitting_exposure_counts_all_neighbors_together() {
     s.construction.equipment[2].position[0] = 0.5;
     rejected(&s, &c, "equipment-overlap"); // Neither neighbor alone buries it.
     s.construction.equipment.reverse();
+    rejected(&s, &c, "equipment-overlap");
+}
+
+#[test]
+fn cosmetic_fittings_seat_into_functional_neighbors_in_either_order() {
+    let (mut s, mut c) = fixture();
+    let mut gear = part("gear");
+    gear.kind = "magazine".into();
+    c.equipment.extend([gear, part("vent")]);
+    s.construction.equipment = vec![fixed("gear", [0., 2., 0.]), fixed("vent", [3., 2., 0.])];
+    compiled(&s, &c);
+    s.construction.equipment[1].position[0] = 0.5;
+    compiled(&s, &c);
+    s.construction.equipment.reverse();
+    compiled(&s, &c);
+    // Burial is still an error.
+    s.construction.equipment[0].position[0] = 0.;
     rejected(&s, &c, "equipment-overlap");
 }
