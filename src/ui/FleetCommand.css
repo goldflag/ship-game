@@ -157,6 +157,11 @@
 .fleet-command-top { position:absolute; left:24px; right:24px; top:18px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; pointer-events:none; }
 .fleet-command-top > div { display:flex; align-items:center; gap:12px; pointer-events:auto; }
 .fleet-command-top time { font:500 26px/1 'Barlow Condensed',sans-serif; }
+.fleet-command-top time small { margin-left:7px; color:var(--fleet-muted); font:400 11px 'Barlow',sans-serif; }
+/* The way back to the ship is the chart's one brass command. */
+.fleet-command-top nav .fleet-command-return,.fleet-command-top nav .fleet-command-return:hover:not(:disabled) { border-color:#e0c58d; background:#e0c58d; color:#152b32; font-weight:500; text-shadow:none; }
+.fleet-command-top nav .fleet-command-return:hover:not(:disabled) { border-color:#efd5a0; background:#efd5a0; }
+.fleet-command-top nav .fleet-command-return kbd { border-color:#152b3288; color:#152b32; }
 .fleet-command-hint { font-size:12px; color:var(--fleet-muted); }
 .fleet-command-hint kbd { margin:0 1px; }
 .fleet-command-top nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; pointer-events:auto; }
@@ -175,6 +180,11 @@
 .fleet-command-ticker p[data-state=accepted] { color:var(--fleet-active); }
 .fleet-command-ticker p[data-state=rejected] { color:#ffb5a6; }
 .fleet-command-ticker p[data-state=superseded] { color:var(--fleet-gold); }
+/* A custom battle's own ship sails on under the chart: what it is doing stays in view. */
+.fleet-command-own-helm { position:absolute; left:24px; bottom:22px; display:flex; align-items:baseline; gap:12px; max-width:calc(50% - 200px); margin:0; color:var(--fleet-muted); font-size:11.5px; pointer-events:none; }
+.fleet-command-own-helm strong { color:var(--fleet-text); font:600 20px/1 'Barlow Condensed',sans-serif; text-transform:uppercase; white-space:nowrap; }
+.fleet-command-own-helm b { color:var(--fleet-active); font:600 20px/1 'Barlow Condensed',sans-serif; white-space:nowrap; }
+.fleet-command-own-helm b small { font:400 11px 'Barlow',sans-serif; }
 .fleet-command-recon { position:absolute; right:24px; bottom:22px; display:grid; justify-items:end; gap:2px; color:#b2c2bf; font-size:11px; pointer-events:none; text-align:right; }
 .fleet-command-controls-hint { color:var(--fleet-muted); }
 .fleet-recon-coverage { pointer-events:none; }

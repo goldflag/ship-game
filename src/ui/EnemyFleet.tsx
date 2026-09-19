@@ -7,6 +7,7 @@ import { conditionReport, observationAge, reportPosition, reportState } from './
 import type { AirCluster, BattleComparison } from './fleetStats';
 import { loadLabel, type AirStrike } from './airIntent';
 import { duration } from './airFormat';
+import { resolveShip } from '../ships/localShips';
 
 export const bearingLabel = (dx: number, dz: number) => `${String(Math.round(((Math.atan2(dx, -dz) * 180 / Math.PI) % 360 + 360) % 360) % 360).padStart(3, '0')}°`;
 export const rangeLabel = (dx: number, dz: number) => `${(Math.hypot(dx, dz) / 1000).toFixed(1)} km`;
@@ -56,6 +57,35 @@ export function EnemyFleet({ tracks, clusters, strikes = [], tick, origin, selec
       <tr><td>Tonnage afloat</td><td>{tonnes(comparison.tonnageAfloat[0])}</td><td>{comparison.tonnageAfloat[1] || comparison.unidentified ? `≥ ${tonnes(comparison.tonnageAfloat[1])}` : '—'}{comparison.unidentified > 0 && <small>+{comparison.unidentified} unidentified</small>}</td></tr>
       <tr><td>Aircraft</td><td>{comparison.aircraft.own[1] ? `${comparison.aircraft.own[0]} of ${comparison.aircraft.own[1]}` : '—'}</td><td>{comparison.aircraft.enemySeen} seen{comparison.aircraft.enemyLost > 0 && <small>{comparison.aircraft.enemyLost} seen lost</small>}</td></tr>
       <tr><td>Ships lost</td><td>{comparison.shipsLost[0]}</td><td>{comparison.shipsLost[1]}</td></tr>
+    </tbody></table>
+  </section>;
+}
+
+export interface EnemyRosterShip { id: string; name: string; shipId: string; x: number; z: number; integrity: number; status: string; lost: boolean; engagedBy: number }
+
+/** The enemy card of a battle that sees the whole enemy fleet: every hull with what is left of
+ * it, in a fixed order, and the same comparison without the caveat about sightings. */
+export function EnemyRoster({ ships, origin, selectedId, onSelect, comparison, tonnageAfloatKg }: {
+  ships: readonly EnemyRosterShip[]; origin: { x: number; z: number }; selectedId?: string; onSelect(id: string): void; comparison: BattleComparison; tonnageAfloatKg: number | null;
+}) {
+  // Heaviest first and then by id: rows that reshuffle with every change of range cannot be clicked.
+  const mass = (s: EnemyRosterShip) => resolveShip(s.shipId).hull.massKg;
+  const afloat = ships.filter(s => !s.lost).sort((a, b) => mass(b) - mass(a) || a.id.localeCompare(b.id, undefined, { numeric: true })), sunk = ships.length - afloat.length;
+  return <section className="fleet-card foe" aria-label="Enemy fleet">
+    <h2>Enemy fleet<span>{afloat.length} afloat{sunk ? ` · ${sunk} sunk` : ''} · right-click to focus fire</span></h2>
+    {afloat.map(ship => {
+      const glyph = SHIP_GLYPHS[shipClassOf(resolveShip(ship.shipId))];
+      return <button key={ship.id} className={`fleet-card-row current ${ship.id === selectedId ? 'selected' : ''}`} aria-pressed={ship.id === selectedId} onClick={() => onSelect(ship.id)}>
+        <svg className="fleet-card-glyph" viewBox="-13 -13 26 26" aria-hidden="true"><path className="fleet-card-hull" d={glyph.hull}/><path className="fleet-card-mark" d={glyph.mark}/></svg>
+        <span className="fleet-card-name">{ship.name}<small>{[ship.status !== 'operational' && ship.status.replaceAll('-', ' '), ship.engagedBy ? `${ship.engagedBy} of yours ordered onto it` : 'no focus order'].filter(Boolean).join(' · ')}</small></span>
+        <span className="fleet-card-value">{Math.round(ship.integrity * 100)}%<small>{rangeLabel(ship.x - origin.x, ship.z - origin.z)} · {bearingLabel(ship.x - origin.x, ship.z - origin.z)}</small></span>
+      </button>;
+    })}
+    <table className="fleet-card-comparison" aria-label="Battle comparison"><thead><tr><th scope="col">Battle</th><th scope="col">Us</th><th scope="col">Them</th></tr></thead><tbody>
+      <tr><td>Damage dealt</td><td>{comparison.damageDealt[0].toLocaleString()}</td><td>{comparison.damageDealt[1].toLocaleString()}</td></tr>
+      <tr><td>Tonnage afloat</td><td>{tonnes(comparison.tonnageAfloat[0])}</td><td>{tonnageAfloatKg === null ? '—' : tonnes(tonnageAfloatKg)}</td></tr>
+      {comparison.aircraft.own[1] > 0 && <tr><td>Aircraft</td><td>{comparison.aircraft.own[0]} of {comparison.aircraft.own[1]}</td><td>{comparison.aircraft.enemyLost ? `${comparison.aircraft.enemyLost} lost` : '—'}</td></tr>}
+      <tr><td>Ships lost</td><td>{comparison.shipsLost[0]}</td><td>{sunk}</td></tr>
     </tbody></table>
   </section>;
 }

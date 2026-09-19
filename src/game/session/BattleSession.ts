@@ -114,6 +114,8 @@ export interface BattleSession {
  /** Camera subject, so the transport can narrow damage-control detail to it. */
  setFollowedShip?(id?: string): void;
  releaseHelm?(): boolean;
+ /** Let the standing order steer the held hull until its engine or rudder order changes. */
+ engageAutopilot?(): void;
  commandDeck?(flightId: string, action: DeckServiceAction): boolean;
  cancelDeckTask?(carrierId: string, requestId: number): boolean;
  setDeckPolicy?(carrierId: string, policy: DeckPolicy): boolean;

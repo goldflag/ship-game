@@ -1,50 +1,108 @@
-import { FleetOrders } from './FleetOrders';
 import { Button, Select, SelectOption } from './components';
 import { useState, type ReactNode } from 'react';
 import { Icon } from './Icons';
 import type { FleetDesk } from './fleet/fleetDesk';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import type { CombatTelemetry } from '../game/session/telemetry';
+import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
+import { resolveShip } from '../ships/localShips';
+import { shipClassOf, type ShipClass } from './shipGlyphs';
 
 type Contact = CombatTelemetry['contacts'][number];
 export const contactLabel = (contact: Contact) => contact.controller === 'player' && contact.team === 'friendly' ? `${contact.name} (You)` : `${contact.name} #${contact.id.split('-').at(-1)}`;
 const lost = (contact: Contact) => contact.physicalLost;
 const condition = (contact: Contact) => contact.status.replaceAll('-', ' ');
+const damaged = (contact: Contact) => contact.integrity < .995 || contact.status !== 'operational';
 
-function TeamStatus({ team, combat, desk, expanded, onToggle }: { team: Contact['team']; combat: CombatTelemetry; desk: FleetDesk | null; expanded: boolean; onToggle(): void }) {
+/** Heaviest first, so the gauges and the roster read like an order of battle. */
+const CLASSES: readonly { id: ShipClass; code: string; plural: string }[] = [
+  { id: 'battleship', code: 'BB', plural: 'Battleships' }, { id: 'carrier', code: 'CV', plural: 'Carriers' }, { id: 'cruiser', code: 'CA', plural: 'Cruisers' },
+  { id: 'destroyer', code: 'DD', plural: 'Destroyers' }, { id: 'submarine', code: 'SS', plural: 'Submarines' }, { id: 'auxiliary', code: 'AX', plural: 'Auxiliaries' },
+];
+/** A big fleet folds any class of more than this many hulls into one roster line. */
+const FOLD_FLEET = 10, FOLD_CLASS = 4;
+const classOf = (contact: Contact): ShipClass => { try { return shipClassOf(resolveShip(contact.shipId)); } catch { return 'auxiliary'; } };
+const byClass = (contacts: readonly Contact[]) => CLASSES.map(entry => ({ ...entry, ships: contacts.filter(c => classOf(c) === entry.id) })).filter(group => group.ships.length);
+const tonnes = (kg: number) => `${Math.round(kg / 1000).toLocaleString()} t`;
+const clock = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
+
+/** What a captain is doing, in a word: the focus target first, then how the ship moves. */
+function orderWord(order: FleetOrderState | undefined, nameOf: (id: string) => string | undefined): string {
+  if (!order || order.manual) return '';
+  const target = order.targetId && nameOf(order.targetId);
+  if (target) return `Attack ${target}`;
+  const task = order.movement;
+  return task.type === 'autonomous' ? 'Auto' : task.type === 'hold' ? 'Stop' : task.type === 'hold-area' ? 'Hold' : task.type === 'escort' ? `Escort ${nameOf(task.leaderId) ?? ''}`.trim() : 'Move';
+}
+
+/** One gauge per hull: the fill is the hull left, a capital ship stands taller, a loss is hollow. */
+function Gauges({ contacts }: { contacts: readonly Contact[] }) {
+  return <span className="fleet-tally-gauges" aria-hidden="true">{byClass(contacts).map(group => <span key={group.id}>{group.ships.map(ship =>
+    <i key={ship.id} className={`${group.id === 'battleship' || group.id === 'carrier' ? 'capital' : ''} ${lost(ship) ? 'lost' : ship.integrity < .5 ? 'low' : ''}`}><b style={{ height: `${lost(ship) ? 0 : Math.round(Math.max(0, Math.min(1, ship.integrity)) * 100)}%` }}/></i>)}</span>)}</span>;
+}
+
+function Roster({ team, combat, desk, open, onToggle }: { team: Contact['team']; combat: CombatTelemetry; desk: FleetDesk | null; open: ReadonlySet<string>; onToggle(key: string): void }) {
   const contacts = combat.contacts.filter(contact => contact.team === team);
-  const active = contacts.filter(contact => !lost(contact));
-  const damaged = active.filter(contact => contact.integrity < .995 || contact.status !== 'operational').length;
   const name = team === 'friendly' ? 'Friendly' : 'Enemy';
-  if (team === 'enemy' && combat.afloatKg[1] === null) return <div className="fleet-team fleet-team-enemy"><span className="fleet-team-count">Enemy strength <strong>Unknown</strong></span><span className="fleet-team-state">{desk?.frame.observationTracks?.filter(c => c.kind === 'surface').length ?? 0} surface reports · Search on the fleet map</span></div>;
-  return <div className={`fleet-team fleet-team-${team}`}>
-    <button className="fleet-team-toggle" aria-expanded={expanded} aria-controls={`fleet-roster-${team}`} onClick={event => { onToggle(); event.currentTarget.blur(); }} aria-label={`${name} fleet: ${active.length} of ${contacts.length} afloat, ${damaged} damaged, ${contacts.length - active.length} lost. ${expanded ? 'Hide' : 'Show'} ships.`}>
-      <span className="fleet-team-count">{name} <strong>{active.length}</strong><span>/{contacts.length}</span></span>
-      <span className="fleet-team-state">{damaged} damaged · {contacts.length - active.length} lost</span>
-    </button>
-    <div className="fleet-roster" id={`fleet-roster-${team}`} hidden={!expanded}>
-      <ul aria-label={`${name} ships`}>{contacts.map(contact => <li key={contact.id} className={lost(contact) ? 'fleet-roster-lost' : ''}>
-        {team === 'enemy' ? <button title={condition(contact)} aria-pressed={combat.targetId === contact.id} onClick={event => { desk?.issue({ kind: 'select-target', id: contact.id }); event.currentTarget.blur(); }}>{contactLabel(contact)}</button> : <strong title={condition(contact)}>{contactLabel(contact)}</strong>}
-        <span className="fleet-roster-condition">{contact.status !== 'operational' && condition(contact)}</span>
-        <span aria-label={`${contactLabel(contact)} hull ${Math.round(contact.integrity * 100)} percent`}>{Math.round(contact.integrity * 100)}%</span>
-      </li>)}</ul>
-    </div>
+  const nameOf = (id: string) => { const contact = combat.contacts.find(c => c.id === id); return contact && contact.name; };
+  const row = (contact: Contact, code: string) => {
+    const hull = Math.round(contact.integrity * 100), label = contactLabel(contact);
+    const state = lost(contact) ? 'Lost' : contact.status !== 'operational' ? condition(contact) : team === 'friendly' ? orderWord(desk?.frame.fleetOrders?.[contact.id], nameOf) : '';
+    const cells = <><span className="fleet-roster-class">{code}</span><span className="fleet-roster-name">{label}{team === 'enemy' && combat.targetId === contact.id && <em>Target</em>}</span>
+      <span className="fleet-roster-state">{state}</span><span className="fleet-roster-bar"><i style={{ width: `${lost(contact) ? 0 : hull}%` }}/></span>
+      <span className="fleet-roster-hull" aria-label={`${label} hull ${hull} percent`}>{hull}%</span></>;
+    return <li key={contact.id} className={lost(contact) ? 'fleet-roster-lost' : ''}>
+      {team === 'enemy' ? <button className="fleet-roster-row" title={condition(contact)} aria-pressed={combat.targetId === contact.id} onClick={event => { desk?.issue({ kind: 'select-target', id: contact.id }); event.currentTarget.blur(); }}>{cells}</button>
+        : <div className="fleet-roster-row" title={condition(contact)}>{cells}</div>}
+    </li>;
+  };
+  return <div className={`fleet-roster fleet-roster-${team}`} id={`fleet-roster-${team}`}>
+    <h3><span>{name}</span><span>{team === 'enemy' ? 'click to designate' : 'order · hull'}</span></h3>
+    <ul aria-label={`${name} ships`}>{byClass(contacts).flatMap(group => {
+      const key = `${team}:${group.id}`;
+      if (contacts.length <= FOLD_FLEET || group.ships.length <= FOLD_CLASS) return group.ships.map(ship => row(ship, group.code));
+      const afloat = group.ships.filter(ship => !lost(ship)), hurt = afloat.filter(damaged).length;
+      const mean = afloat.length ? Math.round(afloat.reduce((sum, ship) => sum + ship.integrity, 0) / afloat.length * 100) : 0;
+      return [<li key={key}><button className="fleet-roster-row fleet-roster-fold" aria-expanded={open.has(key)} onClick={event => { onToggle(key); event.currentTarget.blur(); }}>
+        <span className="fleet-roster-class">{group.code}</span><span className="fleet-roster-name">{group.plural} {afloat.length}/{group.ships.length}</span>
+        <span className="fleet-roster-state">{hurt ? `${hurt} damaged` : 'all sound'} · {open.has(key) ? 'hide' : 'show'}</span><span className="fleet-roster-bar"><i style={{ width: `${mean}%` }}/></span><span className="fleet-roster-hull">{mean}%</span>
+      </button></li>, ...(open.has(key) ? group.ships.map(ship => row(ship, group.code)) : [])];
+    })}</ul>
   </div>;
 }
 
-export function BattleStatus({ combat, desk, children, spectatedShipId, bindings }: { combat: CombatTelemetry; desk: FleetDesk | null; children?: ReactNode; spectatedShipId?: string; bindings?: Keybindings }) {
-  const [expandedTeam, setExpandedTeam] = useState<Contact['team'] | null>(null);
+function Side({ team, combat, desk }: { team: Contact['team']; combat: CombatTelemetry; desk: FleetDesk | null }) {
+  const contacts = combat.contacts.filter(contact => contact.team === team);
+  const active = contacts.filter(contact => !lost(contact));
+  const name = team === 'friendly' ? 'Friendly' : 'Enemy';
+  if (team === 'enemy' && combat.afloatKg[1] === null) return <div className="fleet-tally-side fleet-tally-enemy fleet-tally-unknown"><span>Enemy strength <strong>Unknown</strong></span><small>{desk?.frame.observationTracks?.filter(c => c.kind === 'surface').length ?? 0} surface reports · Search on the fleet map</small></div>;
+  return <div className={`fleet-tally-side fleet-tally-${team}`} role="group" aria-label={`${name} fleet: ${active.length} of ${contacts.length} afloat, ${active.filter(damaged).length} damaged, ${contacts.length - active.length} lost`}>
+    <span className="fleet-tally-count"><strong>{active.length}</strong>/{contacts.length}</span><Gauges contacts={contacts}/>
+  </div>;
+}
+
+/** The battle at a glance: the clock, both fleets hull by hull and who holds the tonnage.
+ * A free cursor (Ctrl, or before the sea is clicked) unfolds the roster; orders live on the fleet chart. */
+export function BattleStatus({ combat, desk, children, spectatedShipId, bindings, pointerLocked = false }: { combat: CombatTelemetry; desk: FleetDesk | null; children?: ReactNode; spectatedShipId?: string; bindings?: Keybindings; pointerLocked?: boolean }) {
+  const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
+  const toggle = (key: string) => setOpen(current => { const next = new Set(current); if (!next.delete(key)) next.add(key); return next; });
   const teammates = combat.contacts.filter(contact => contact.team === 'friendly' && contact.controller !== 'player' && !lost(contact));
+  const [friendlyKg, enemyKg] = combat.afloatKg;
+  const share = friendlyKg !== null && enemyKg !== null && friendlyKg + enemyKg > 0 ? friendlyKg / (friendlyKg + enemyKg) : undefined;
+  const seconds = combat.remainingSeconds ?? (desk?.frame.tick ?? 0) / 60;
+  const caption = combat.result === 'active' ? combat.remainingSeconds === null ? 'elapsed · no time limit' : 'remaining' : combat.outcome?.reason === 'time-limit' ? 'Time limit reached' : combat.outcome?.reason === 'forfeit' ? 'Battle forfeited' : combat.outcome?.reason === 'abandoned' ? 'Battle abandoned' : combat.outcome?.reason === 'infrastructure' ? 'Battle interrupted' : 'Fleet destroyed';
   return <section className="fleet-battle" aria-label="Battle status">
     {combat.result !== 'active' && <h2>{combat.outcome?.reason === 'infrastructure' ? 'Battle interrupted' : combat.outcome?.reason === 'abandoned' ? 'Battle abandoned' : combat.result === 'victory' ? 'Victory' : combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>}
-    <div className="fleet-battle-clock" aria-label="Battle time and afloat tonnage">
-      <span>{combat.result === 'active' ? combat.remainingSeconds === null ? 'No time limit · Elapsed' : 'Time remaining' : combat.outcome?.reason === 'time-limit' ? 'Time limit reached' : combat.outcome?.reason === 'forfeit' ? 'Battle forfeited' : combat.outcome?.reason === 'abandoned' ? 'Battle abandoned' : combat.outcome?.reason === 'infrastructure' ? 'Battle interrupted' : 'Fleet destroyed'}</span>
-      <strong>{String(Math.floor((combat.remainingSeconds ?? (desk?.frame.tick ?? 0) / 60) / 60)).padStart(2, '0')}:{String(Math.floor((combat.remainingSeconds ?? (desk?.frame.tick ?? 0) / 60) % 60)).padStart(2, '0')}</strong>
-    </div>
-    <p className="fleet-tonnage">Afloat · Friendly {combat.afloatKg[0] === null ? 'Unknown' : (combat.afloatKg[0]! / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + ' t'} · Enemy {combat.afloatKg[1] === null ? 'Unknown' : (combat.afloatKg[1]! / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + ' t'}</p>
+    <div className="fleet-tally-clock" aria-label={`${combat.remainingSeconds === null ? 'Time elapsed' : 'Time remaining'} ${clock(seconds)}`}><strong>{clock(seconds)}</strong><span>{caption}</span></div>
+    <div className="fleet-tally-sides" aria-label="Team status">{(['friendly', 'enemy'] as const).map(team => <Side key={team} team={team} combat={combat} desk={desk}/>)}</div>
+    {share !== undefined && <div className="fleet-tally-balance" role="img" aria-label={`Tonnage afloat: friendly ${tonnes(friendlyKg!)}, enemy ${tonnes(enemyKg!)}`}><i style={{ width: `${share * 100}%` }}/><b style={{ width: `${(1 - share) * 100}%` }}/></div>}
+    <p className="fleet-tally-tons"><span>{friendlyKg === null ? 'Unknown' : `${tonnes(friendlyKg)} afloat`}</span><span>{enemyKg === null ? 'Unknown' : tonnes(enemyKg)}</span></p>
     {(desk?.frame.networked || desk?.frame.connectionStatus || desk?.frame.phase === 'cancelled') && <p className="fleet-network-status" role="status">{desk.frame.connectionStatus || (desk.frame.phase === 'loading' ? 'Waiting for both fleets to load' : desk.frame.phase === 'countdown' ? 'Both fleets ready — battle starting' : desk.frame.phase === 'cancelled' ? 'Battle cancelled before starting' : '')}</p>}
-    <FleetOrders desk={desk} combat={combat}/>
-    <div className="fleet-teams" aria-label="Team status">{(['friendly', 'enemy'] as const).map(team => <TeamStatus key={team} team={team} combat={combat} desk={desk} expanded={expandedTeam === team} onToggle={() => setExpandedTeam(expandedTeam === team ? null : team)}/>)}</div>
+    <p className="fleet-tally-keys">
+      {desk?.can.fleetChart && <button onClick={event => { desk.issue({ kind: 'fleet-command' }); event.currentTarget.blur(); }} title="Order your fleet from the chart. Your ship keeps its engine and rudder orders." aria-keyshortcuts={!combat.airWing ? bindings?.airOperations[0] ?? undefined : undefined}>{bindings && !combat.airWing && <kbd>{bindingLabel(bindings, 'airOperations')}</kbd>}Fleet chart</button>}
+      {pointerLocked && <span><kbd>Ctrl</kbd>Roster</span>}
+    </p>
+    {!pointerLocked && <div className="fleet-rosters">{(['friendly', 'enemy'] as const).filter(team => team === 'friendly' || combat.afloatKg[1] !== null).map(team => <Roster key={team} team={team} combat={combat} desk={desk} open={open} onToggle={toggle}/>)}</div>}
     {combat.result !== 'active' && <small>Esc to return to port</small>}
     {combat.result === 'active' && combat.playerSunk && <small>Your ship is sinking · Allies still fighting</small>}
     {combat.playerSunk && <div className="fleet-spectator" aria-label="Teammate spectating">
