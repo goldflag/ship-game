@@ -216,7 +216,7 @@ test('switching layers resets the tool, faces and bearing; Internals keeps the w
   expect(tool.scene(undefined)).toMatchObject({ gridStep: .25, moveTargets: 'equipment' });
 });
 
-test('armor and paint: Paint assigns the active card to the clicked face and its mirror, Area gathers faces, Eyedrop copies, Opening toggles', async () => {
+test('armor is a paint bucket: Paint lays the card on the clicked face and its mirror, Fill pours it over a named side, Eyedrop loads it, Opening is a card', async () => {
   const { tool, data, state, labels } = await setup();
   tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[1, 0, 0]] });
@@ -226,23 +226,33 @@ test('armor and paint: Paint assigns the active card to the clicked face and its
     { primitiveId: 'hull-1', face: 'top', thicknessMm: 80, material: 'armor-steel', paint: 'naval-gray', open: false },
     { primitiveId: 'hull-2', face: 'top', thicknessMm: 80, material: 'armor-steel', paint: 'naval-gray', open: false },
   ]);
+  expect(tool.rail.map(entry => entry.id)).toEqual(['apply', 'area', 'eyedrop', 'erase']);
+  // Typing a thickness only loads the bucket.
+  tool.setThickness(0);
+  expect(labels().at(-1)).toBe('Assign 80 mm armor');
   tool.setTool('area');
   tool.pointer({ kind: 'pick', hit: hit({ id: 'hull', surface: 'hull:top' }) });
-  expect([...state().surfaces].sort()).toEqual(['hull-1:top', 'hull-2:top', 'hull:top']);
-  tool.setThickness(0);
-  expect(data().surfaces.find(surface => surface.primitiveId === 'hull')).toMatchObject({ thicknessMm: 0, material: 'steel' });
+  expect(state().surfaces.size).toBe(0);
+  expect(data().surfaces.filter(surface => surface.face === 'top').map(surface => [surface.primitiveId, surface.thicknessMm, surface.material])).toEqual([['hull-1', 0, 'steel'], ['hull-2', 0, 'steel'], ['hull', 0, 'steel']]);
   tool.setTool('eyedrop');
-  tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1', surface: 'hull-1:top' }) });
+  tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1', surface: 'hull-1:bow' }) });
   expect(state()).toMatchObject({ customMm: 16, tool: 'apply' });
-  tool.setTool('opening');
+  tool.selectSlot(tool.palette.bar.find(item => item.kind === 'opening')!);
+  expect(state().tool).toBe('apply');
   tool.pointer({ kind: 'pick', hit: hit({ id: 'hull', surface: 'hull:bow' }) });
   expect(data().surfaces.filter(surface => surface.open).map(surface => `${surface.primitiveId}:${surface.face}`)).toEqual(['hull:bow']);
+  tool.selectSlot(tool.palette.bar[0]);
   tool.pointer({ kind: 'pick', hit: hit({ id: 'hull', surface: 'hull:bow' }) });
   expect(data().surfaces.some(surface => surface.open)).toBe(false);
+  // Neither Escape nor a box drag leaves the bucket for a selection.
+  tool.setTool('eyedrop'); tool.key(key('Escape'), chrome());
+  expect(state().tool).toBe('apply');
+  tool.boxSelect(['hull'], false);
+  expect(state()).toMatchObject({ tool: 'apply' }); expect(state().selected.size).toBe(0);
   tool.switchLayer('paint'); tool.key(key('2'), chrome());
   tool.pointer({ kind: 'pick', hit: hit({ id: 'hull', surface: 'hull:top' }) });
   expect(data().surfaces.find(surface => surface.primitiveId === 'hull' && surface.face === 'top')?.paint).toBe(tool.palette.bar[1].id);
-  expect(labels()).toEqual(['Lay hull pieces', 'Assign 80 mm armor', 'Assign 0 mm armor', 'Open faces to sea', 'Close skin', `Paint ${tool.palette.bar[1].name.toLowerCase()}`]);
+  expect(labels()).toEqual(['Lay hull pieces', 'Assign 80 mm armor', 'Assign 0 mm armor', 'Open faces to sea', 'Assign 16 mm armor', `Paint ${tool.palette.bar[1].name.toLowerCase()}`]);
 });
 
 test('a face sweep assigns every crossed face and its mirror as one edit; the ship\'s thicknesses become keyed cards on its own colour scale', async () => {
@@ -265,13 +275,13 @@ test('a face sweep assigns every crossed face and its mirror as one edit; the sh
   tool.pointer({ kind: 'faces', surfaces: ['hull:top'] });
   expect(labels().at(-1)).toBe('Assign 16 mm armor');
   expect(data().surfaces.find(surface => surface.primitiveId === 'hull' && surface.face === 'top')).toMatchObject({ thicknessMm: 16, material: 'armor-steel' });
-  tool.setTool('opening');
+  tool.selectSlot(tool.palette.bar.find(item => item.kind === 'opening')!);
   expect(tool.scene(undefined).gesture).toBe('faces');
   tool.pointer({ kind: 'faces', surfaces: ['hull:bow', 'hull:stern'] });
   expect(data().surfaces.filter(surface => surface.open).map(surface => `${surface.primitiveId}:${surface.face}`).sort()).toEqual(['hull:bow', 'hull:stern']);
   expect(tool.pointer({ kind: 'faces', surfaces: ['equipment:gun:top'] })).toBeUndefined();
   expect(state().notice).toContain('fixed equipment support');
-  tool.setTool('select');
+  tool.setTool('eyedrop');
   expect(tool.scene(undefined).gesture).toBe('none');
 });
 
@@ -624,16 +634,17 @@ test('clicking an active placement card stops placement and clicking again resum
   }
 });
 
-test('armor and paint cards resume their brush after being toggled off', async () => {
+test('paint cards resume their brush after being toggled off; armor cards never leave it', async () => {
   const { tool } = await setup();
-  for (const layer of ['armor', 'paint'] as const) {
-    tool.switchLayer(layer);
-    const card = tool.active!;
-    tool.toggleSlot(card);
-    expect(tool.getSnapshot().tool).toBe('select');
-    tool.toggleSlot(card);
-    expect(tool.getSnapshot().tool).toBe('apply');
-  }
+  tool.switchLayer('paint');
+  const card = tool.active!;
+  tool.toggleSlot(card);
+  expect(tool.getSnapshot().tool).toBe('select');
+  tool.toggleSlot(card);
+  expect(tool.getSnapshot().tool).toBe('apply');
+  tool.switchLayer('armor');
+  tool.toggleSlot(tool.active!);
+  expect(tool.getSnapshot().tool).toBe('apply');
 });
 
 
