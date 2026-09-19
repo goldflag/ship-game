@@ -20,6 +20,7 @@ from blender_rig import radar_pivot
 from blender_fidelity import authored_hull, authored_structure, Fittings, loft_breadth
 sys.path.insert(0,str(ROOT/'assets/parts'))
 from aa_articulation import articulate_aa
+from library import create_mount as create_shared_mount
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 OUT=Path(os.environ['SHIP_OUTPUT']);H=D['hull'];L=H['length']
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -115,6 +116,22 @@ for i,(sa,sb) in enumerate(zip(stations,stations[1:])):
 materials=dict(naval=naval,roof=roof,edge=edge,hullgray=hullgray,canvas=canvas,dark=dark)
 for mount in D['mounts']:
  if mount['partId']=='type89-127-yamato-twin':continue
+ if mount['partId']=='type94-460-triple':
+  # The catalog original owns the gunhouse, articulated canvas and barrels.
+  # Preserve the installed yaw datum and the fixed support down to the deck;
+  # the source component's retained stalk supplies its upper 2.15 metres.
+  yaw=create_shared_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials)
+  bpy.context.view_layer.update()
+  for ob in list(yaw.children):
+   if '.stalk' in ob.name:
+    world=ob.matrix_world.copy();ob.parent=None;ob.matrix_world=world
+  px,pz,py=mount['position'];x,y=-py,-px;bottom=deck(x)
+  if pz-bottom>.015:
+   support=cyl(mount['id']+'.fixed-barbette-foundation',(x,y,(bottom+pz)/2),mount['weapon']['barbetteRadius'],pz-bottom+.02,hullgray,GUNS,64)
+   support['assemblyId']=mount['id']
+  # Legacy gun_details creates rigid mantlets and duplicate service fittings.
+  # Only secondary batteries continue through that original legacy path.
+  continue
  create_gun_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,deck)
  gun_finish=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),dict(**materials,glass=glass),GUNS)
  gun_finish.gun_details(mount)
