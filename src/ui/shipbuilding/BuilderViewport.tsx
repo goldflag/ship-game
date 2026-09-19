@@ -30,6 +30,7 @@ import { surfaceSelectionKey } from '../../ships/constructionEditor';
 import { pendingHullSurfaces } from './pendingHull';
 import { constructionPaintColor, constructionShipPaint } from '../../ships/constructionPaints';
 import { normalizedBearing, snapCoordinate, gridCoordinate } from './editorNumbers';
+import { baseFootprint, interiorFloor, type HullCrossing } from './internalPlacement';
 import { attachmentOffset, dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
 import { primitiveOutlineGeometry, primitiveGeometry, primitiveRotation, placementGeometry, placementRotation } from './primitiveGeometry';
 import type { BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderScene, BuilderView } from './builderScene';
@@ -169,6 +170,8 @@ class Viewport {
   private resize: ResizeObserver;
   private pickMeshes: THREE.Object3D[] = [];
   private hullMeshes: THREE.Object3D[] = [];
+  /** Deck planes: floors an internal package can land on. */
+  private deckMeshes: THREE.Object3D[] = [];
   private surfaceTriangles: ConstructionSurface[] = [];
   private props: ViewportProps;
   private frame = 0;
@@ -428,7 +431,7 @@ class Viewport {
     this.hull.visible = true;
     for (const mesh of this.hullMeshes) mesh.visible = !this.composed.visible || !this.composed.children.length;
     release(this.details); release(this.selection); this.selection.visible=true;
-    this.pickMeshes = this.pickMeshes.filter(mesh => mesh.parent === this.hull);
+    this.pickMeshes = this.pickMeshes.filter(mesh => mesh.parent === this.hull); this.deckMeshes = [];
     this.equipment.group.traverse(node => { if (node instanceof THREE.Mesh) this.pickMeshes.push(node); });
     if (!nativeSurfaces) for (const object of this.hull.children) {
       const mesh = object as THREE.Mesh;
@@ -466,6 +469,7 @@ class Viewport {
       const geometry = boundaryGeometry(props.scene.source.construction.primitives, wall.axis, wall.offset);
       const plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: invalid.has(wall.id) ? SALMON : BRASS, transparent: true, opacity: invalid.has(wall.id) ? .5 : props.scene.selected.has(wall.id) ? .3 : .09, depthWrite: false, side: THREE.DoubleSide }));
       plane.userData.sourceId = wall.id; plane.visible = invalid.has(wall.id) || props.scene.display === 'internals' || props.scene.selected.has(wall.id); this.details.add(plane); if (plane.visible) this.pickMeshes.push(plane);
+      if (wall.axis === 'y') { plane.userData.deckTopY = wall.offset + wall.thicknessMm / 2000; this.deckMeshes.push(plane); }
     }
     const outlinedHulls = new Set<string>();
     if (nativeSurfaces) for (const primitive of props.scene.source.construction.primitives) {
@@ -694,12 +698,15 @@ class Viewport {
     // Hull raycasts still support placement, but every object interaction in Internals
     // passes through the skin and external fittings to the internal packages/walls.
     const allowed = targets !== 'hull' && this.props.scene.pickTargets === 'internals' ? internalSelectionIds(this.props.scene.source, this.props.scene.catalog) : undefined;
-    const hit = ray.intersectObjects(targets === 'hull' ? this.hullMeshes : this.pickMeshes, false).find(hit =>
+    // Internal packages only fit inside the hull, so their ray passes the skin to the floor within.
+    const cursor = this.props.scene.placementPiece, internal = targets === 'hull' && cursor?.kind === 'equipment' && cursor.inset !== undefined && !cursor.wall;
+    const floor = internal ? this.interiorHit(ray) : undefined, direction = floor?.direction ?? ray.ray.direction;
+    const hit = internal ? floor?.hit : ray.intersectObjects(targets === 'hull' ? this.hullMeshes : this.pickMeshes, false).find(hit =>
       !allowed || allowed.has(hit.object.userData.sourceId));
     if (!hit) return undefined;
     const surface = hit.object.userData.hull ? this.surfaceTriangles[hit.faceIndex ?? -1] : undefined;
-    const facing = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : ray.ray.direction.clone().negate();
-    if (facing.dot(ray.ray.direction) > 0) facing.negate();
+    const facing = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : direction.clone().negate();
+    if (facing.dot(direction) > 0) facing.negate();
     const { point: raw, normal } = physicalPlacementHit({ point: hit.point.toArray() as Vec3, normal: facing.toArray() as Vec3 }, surface);
     const axis = dominantAxis(normal);
     const supportId = surface?.primitiveId.startsWith('equipment:') ? surface.primitiveId.slice('equipment:'.length) : undefined;
@@ -728,7 +735,40 @@ class Viewport {
       if (piece.kind !== 'boundary') placement[axis] -= placement.reduce((sum, v, k) => sum + (v - unsnapped[k]) * normal[k], 0) / normal[axis];
     }
     if (piece?.kind === 'hull' && piece.shape === 'balcony' && surface && Math.abs(normal[1]) < .9) placement = seatBalconyOnHull(piece, placement, surface, this.props.scene.result?.surfaces ?? []);
+    if (internal && piece?.kind === 'equipment') placement = this.clearFloor(piece, placement);
     return { id, hullPlacement: piece?.kind === 'hull' && piece.shape === 'balcony' ? piece : undefined, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, bearingDeg: piece?.kind === 'equipment' ? piece.bearingDeg : undefined, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
+  }
+
+  private crossings(ray: THREE.Raycaster): HullCrossing<THREE.Intersection>[] {
+    return ray.intersectObjects([...this.hullMeshes, ...this.deckMeshes], false).map(hit => {
+      const deck = hit.object.userData.deckTopY !== undefined;
+      const normal = deck ? undefined : hit.object.userData.hull ? this.surfaceTriangles[hit.faceIndex ?? -1]?.normal : hit.face?.normal.clone().transformDirection(hit.object.matrixWorld).toArray();
+      if (deck) hit.point.y = hit.object.userData.deckTopY;
+      return { point: hit.point.toArray() as Vec3, outward: normal ? new THREE.Vector3(...normal).normalize().toArray() as Vec3 : [0, 1, 0], deck, source: hit };
+    });
+  }
+
+  /** The floor inside the hull under the pointer. A ray that only passes through the
+   * sides lands on the floor beneath the middle of its path through the hull. */
+  private interiorHit(ray: THREE.Raycaster): { hit: THREE.Intersection; direction: THREE.Vector3 } | undefined {
+    const seen = interiorFloor(this.crossings(ray), ray.ray.direction.toArray() as Vec3);
+    if (seen.floor) return { hit: seen.floor.source!, direction: ray.ray.direction };
+    if (!seen.span) return undefined;
+    const drop = new THREE.Raycaster(new THREE.Vector3(...seen.span[0]).add(new THREE.Vector3(...seen.span[1])).multiplyScalar(.5), new THREE.Vector3(0, -1, 0));
+    const beneath = interiorFloor(this.crossings(drop), [0, -1, 0], true).floor;
+    return beneath && { hit: beneath.source!, direction: drop.ray.direction };
+  }
+
+  /** Raise a package until every corner of its base clears the floor; a hull bottom rises toward the bilges. */
+  private clearFloor(piece: Extract<BuilderPlacement, { kind: 'equipment' }>, placement: Vec3): Vec3 {
+    let lift = 0;
+    for (const corner of baseFootprint(piece, placement)) {
+      const drop = new THREE.Raycaster(new THREE.Vector3(corner[0], corner[1] + piece.size[1], corner[2]), new THREE.Vector3(0, -1, 0));
+      // Decks above the base are ceilings here, not floors.
+      const beneath = interiorFloor(this.crossings(drop).filter(crossing => !crossing.deck || crossing.point[1] <= corner[1] + 1e-3), [0, -1, 0], true).floor;
+      if (beneath) lift = Math.max(lift, beneath.point[1] + (piece.inset ?? 0) - corner[1]);
+    }
+    return lift > 1e-6 ? [placement[0], placement[1] + lift, placement[2]] : placement;
   }
 
   private showArmorTooltip(event?: { clientX: number; clientY: number }, pick?: BuilderPick) {
