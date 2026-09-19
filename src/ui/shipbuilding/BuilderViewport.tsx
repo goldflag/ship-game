@@ -819,13 +819,12 @@ class Viewport {
   }
 
   private highlight(event: { clientX: number; clientY: number }) {
-    // During placement, the ghost/path already identifies the action. Keep its support block clear.
+    // During placement, the ghost/path already identifies the action. Keep supporting hull blocks and fittings clear.
     const placing = !!this.props.scene.placementPiece || !!this.props.scene.pathDraft;
     const hit = this.navigating() || this.props.scene.measuring ? undefined : this.pick(event, this.props.scene.pickTargets);
     this.reportHover(hit?.id);
     this.showArmorTooltip(event, hit);
-    const supportBlock = this.props.scene.source.construction.primitives.some(part => part.id === hit?.id);
-    const pick = placing && supportBlock ? undefined : hit;
+    const pick = placing ? undefined : hit;
     const primitive = this.props.scene.source.construction.primitives.find(part => part.id === pick?.id);
     const face = this.props.scene.highlightFaces && !!primitive;
     const key = face ? pick?.surface ?? '' : pick?.id ?? '';

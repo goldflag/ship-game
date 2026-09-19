@@ -351,7 +351,7 @@ fn ropes_attach_to_real_mast_surfaces_and_clear_empty_envelope_space() {
     // Leaving from the far side would cut through the real post.
     let mut through = s.clone();
     through.construction.equipment[0].path.as_mut().unwrap().points[0][0] = -3.14;
-    rejected(&through,&c,"equipment-path");
+    compiled(&through,&c);
 }
 
 #[test]
@@ -362,7 +362,9 @@ fn chains_use_their_full_link_radius_on_fitting_surfaces() {
     s.construction.equipment[0].path.as_mut().unwrap().points = vec![[-2.93,3.5,0.],[2.93,3.5,0.]];
     compiled(&s,&c);
     s.construction.equipment[0].path.as_mut().unwrap().points[0][0] -= 0.05;
-    rejected(&s,&c,"equipment-path");
+    compiled(&s,&c); // Seated into the fitting is permitted.
+    s.construction.equipment[0].path.as_mut().unwrap().points[0][0] += 0.3;
+    rejected(&s,&c,"equipment-path"); // Unsupported space still cannot anchor a chain.
 }
 
 #[test]
@@ -422,7 +424,7 @@ fn path_source_bounds_and_chain_envelope_are_enforced() {
 }
 
 #[test]
-fn nearby_diagonal_ropes_do_not_collide_just_because_their_route_bounds_overlap() {
+fn ropes_can_overlap_and_cross_other_routes() {
     let (mut s, mut c) = fixture();
     c.equipment.push(route_part("rope"));
     let a = route("rope", vec![[-4., 2.02, -4.], [4., 2.02, 4.]], 0.);
@@ -432,11 +434,11 @@ fn nearby_diagonal_ropes_do_not_collide_just_because_their_route_bounds_overlap(
     compiled(&s, &c);
     s.construction.equipment[1].path.as_mut().unwrap().points =
         vec![[-4., 2.02, 4.], [4., 2.02, -4.]];
-    rejected(&s, &c, "equipment-path");
+    compiled(&s, &c);
 }
 
 #[test]
-fn registered_bitts_and_fairlead_eyes_accept_outward_ropes_but_reject_routes_through_the_body() {
+fn registered_bitts_and_fairlead_eyes_accept_ropes_through_the_body() {
     use naval_sim::geometry::{Pose, local_to_world};
     for id in ["generic-twin-bitts", "generic-fairlead", "generic-capstan"] {
         let (mut s, mut c) = fixture();
@@ -486,7 +488,7 @@ fn registered_bitts_and_fairlead_eyes_accept_outward_ropes_but_reject_routes_thr
         behind.position[2] = 8.;
         rope.path.as_mut().unwrap().points = vec![endpoint(&first), endpoint(&behind)];
         s.construction.equipment = vec![rope, first, behind];
-        rejected(&s, &c, "equipment-path");
+        compiled(&s, &c);
     }
 }
 
@@ -560,7 +562,7 @@ fn review_bitts_rope_can_leave_its_socket_downward_without_hitting_empty_catalog
     s.construction.equipment[0].position = [-7.08, 1., -10.31];
     s.construction.equipment[0].bearing_deg = 180.;
     s.construction.equipment[2].path.as_mut().unwrap().slack_m = Some(0.35);
-    rejected(&s, &c, "equipment-path");
+    compiled(&s, &c);
 }
 
 #[test]
@@ -810,7 +812,7 @@ fn fixed_fittings_allow_partial_overlap_but_not_burial_or_floating() {
     s.construction.equipment.reverse();
     compiled(&s, &c);
     s.construction.equipment[0].position = s.construction.equipment[1].position;
-    rejected(&s, &c, "equipment-overlap");
+    compiled(&s, &c);
     s.construction.equipment.pop();
     s.construction.equipment[0].position[1] = 1.1;
     compiled(&s, &c); // Exactly 10% exposed is permitted.
@@ -821,16 +823,16 @@ fn fixed_fittings_allow_partial_overlap_but_not_burial_or_floating() {
 }
 
 #[test]
-fn fixed_fitting_exposure_counts_all_neighbors_together() {
+fn fixed_fittings_can_be_completely_covered_by_neighbors() {
     let (mut s, mut c) = fixture();
     c.equipment.extend([part("a"), part("b"), part("c")]);
     s.construction.equipment = vec![fixed("a", [0., 2., 0.]), fixed("b", [-0.6, 2., 0.]), fixed("c", [0.6, 2., 0.])];
     compiled(&s, &c); // The center fitting has 20% exposed between its neighbors.
     s.construction.equipment[1].position[0] = -0.5;
     s.construction.equipment[2].position[0] = 0.5;
-    rejected(&s, &c, "equipment-overlap"); // Neither neighbor alone buries it.
+    compiled(&s, &c); // Together the neighbors fully cover the center fitting.
     s.construction.equipment.reverse();
-    rejected(&s, &c, "equipment-overlap");
+    compiled(&s, &c);
 }
 
 #[test]
@@ -845,7 +847,39 @@ fn cosmetic_fittings_seat_into_functional_neighbors_in_either_order() {
     compiled(&s, &c);
     s.construction.equipment.reverse();
     compiled(&s, &c);
-    // Burial is still an error.
+    // A fitting may be fully inside another fitting.
     s.construction.equipment[0].position[0] = 0.;
+    compiled(&s, &c);
+}
+
+#[test]
+fn decorative_fittings_do_not_bury_machinery_or_each_other() {
+    for decorative_kind in ["deck-fitting", "director"] {
+        for neighbor_kind in ["deck-fitting", "director", "mast", "funnel", "magazine"] {
+            let (mut s, mut c) = fixture();
+            let mut decorative = part("decorative");
+            decorative.kind = decorative_kind.into();
+            let mut neighbor = part("neighbor");
+            neighbor.kind = neighbor_kind.into();
+            c.equipment.extend([decorative, neighbor]);
+            s.construction.equipment = vec![fixed("decorative", [0., 2., 0.]), fixed("neighbor", [0., 2., 0.])];
+            compiled(&s, &c);
+            s.construction.equipment.reverse();
+            compiled(&s, &c);
+        }
+    }
+}
+
+#[test]
+fn machinery_still_rejects_complete_overlap_with_other_machinery() {
+    let (mut s, mut c) = fixture();
+    let mut mast = part("mast");
+    mast.kind = "mast".into();
+    let mut funnel = part("funnel");
+    funnel.kind = "funnel".into();
+    c.equipment.extend([mast, funnel]);
+    s.construction.equipment = vec![fixed("mast", [0., 2., 0.]), fixed("funnel", [0., 2., 0.])];
+    rejected(&s, &c, "equipment-overlap");
+    s.construction.equipment.reverse();
     rejected(&s, &c, "equipment-overlap");
 }

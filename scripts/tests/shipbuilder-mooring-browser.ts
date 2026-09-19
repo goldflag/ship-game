@@ -32,8 +32,7 @@ export async function checkMastRopeAttachment() {
   if (mirror.getAttribute('aria-pressed') === 'true') mirror.click();
   await controls.settled(() => mirror.getAttribute('aria-pressed') === 'false', 'mirror disabled');
   for (const [i, x] of [-3, 3].entries()) {
-    // Choose the visible side facing the span, so the route leaves the post
-    // outward. Clicking its far side should correctly fail native clearance.
+    // Choose a visible side facing the span for a clearly supported endpoint.
     let screen: [number, number] | undefined;
     for (let offset = 0; offset <= .12; offset += .005) {
       const toward = i === 0 ? 1 : -1;
@@ -43,6 +42,11 @@ export async function checkMastRopeAttachment() {
     }
     if (!screen) throw new Error(`Visible inward-facing mast surface missing: mast-${i}`);
     const [clientX, clientY] = screen;
+    const canvas = viewport().renderer.domElement as HTMLCanvasElement;
+    canvas.dispatchEvent(new PointerEvent('pointermove', { clientX, clientY, bubbles: true, pointerId: 1, pointerType: 'mouse' }));
+    await controls.settled(() => true, 'rope hover updated');
+    if (viewport().hoverGroup.children.length) throw new Error('Rope placement outlines its supporting fitting');
+    checks.push('rope placement keeps the supporting fitting clear');
     controls.click(clientX, clientY);
     await controls.settled(() => viewport().props.scene.pathDraft?.points.length === i + 1, 'surface click adds endpoint');
   }
@@ -64,5 +68,9 @@ export async function checkMastRopeAttachment() {
     if (JSON.stringify(recovered.construction.equipment.at(-1)) !== JSON.stringify(route)) throw new Error('Saved rope differs from its preview');
     checks.push('reloaded source preserves surface endpoints');
   } finally { store.close(); }
+  await controls.tool('Select');
+  const [clientX, clientY] = await controls.screen([-3, 6.34, .3]);
+  viewport().renderer.domElement.dispatchEvent(new PointerEvent('pointermove', { clientX, clientY, bubbles: true, pointerId: 1, pointerType: 'mouse' }));
+  await controls.settled(() => viewport().hoverGroup.children.length > 0, 'Select still outlines fittings');
   return { checks, route, points };
 }
