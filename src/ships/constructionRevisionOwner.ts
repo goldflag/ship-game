@@ -4,6 +4,7 @@ import { applyConstructionBatch, type ConstructionBatch, type ConstructionComman
 import { decodeConstructionSource, loadSavedConstructionWithCatalog, newConstructionId } from './constructionEditor';
 import { createConstructionHistory, editConstruction, redoConstruction, undoConstruction, type ConstructionHistory, rebaseConstruction } from './constructionHistory';
 import { ConstructionStoreError, type ConstructionRevision, type ConstructionStore, type SaveConstructionSource } from './constructionStore';
+import { isRetiredDeckFitting, removeRetiredDeckFittings } from './constructionEquipment';
 
 export type ConstructionHead = { kind: 'new' } | { kind: 'saved'; revisionId: string } | { kind: 'rejected'; revisionId: string };
 type LoadedConstruction = Pick<Awaited<ReturnType<typeof loadSavedConstructionWithCatalog>>, 'source' | 'head' | 'revision'>;
@@ -171,6 +172,12 @@ export class ConstructionRevisionOwner {
     const history = rebaseConstruction(this.snapshot.history, draft => { draft.construction.catalogRevision = catalogRevision; });
     this.change({ ...history, source: { ...history.source, revision: newConstructionId('revision') } });
     return true;
+  };
+  /** Recovery copies and supplied drafts receive the same cleanup as saved ships. */
+  retireDeckFittings = (): void => {
+    if (this.refusal || !this.source.construction.equipment.some(part => isRetiredDeckFitting(part.partId))) return;
+    const history = rebaseConstruction(this.snapshot.history, removeRetiredDeckFittings);
+    this.change({ ...history, source: { ...history.source, revision: newConstructionId('revision') } });
   };
   undo = () => this.travel(undoConstruction(this.snapshot.history));
   redo = () => this.travel(redoConstruction(this.snapshot.history));

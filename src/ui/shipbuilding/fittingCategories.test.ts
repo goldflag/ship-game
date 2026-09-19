@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
 import catalogJson from '../../../public/models/components/catalog.json';
+import retainedCatalogJson from '../../../public/models/components/catalogs/f8d5f622818e0ef20c6c3918ac36dc29d1904e18b13a83aa923e1e93d05ff697/catalog.json';
 import type { ConstructionCatalog } from '../../ships/blueprint';
 import { paletteFor } from './builderLayers';
 import { FITTING_CATEGORIES, fittingCategory, fittingNation } from './fittingCategories';
@@ -63,4 +64,22 @@ test('current deck gear contains only general ship hardware', () => {
     'german-cruiser-capstan', 'german-cruiser-deck-hatch']) {
     expect(catalog.equipment.some(entry => entry.id === id)).toBe(false);
   }
+});
+
+test('older designs cannot offer retired deck fittings in their shelf, hotbar or search', () => {
+  const retained = retainedCatalogJson as ConstructionCatalog;
+  const retired = ['generic-paravane', 'generic-signal-lamp', 'generic-gun-tub', 'generic-gun-tub-large',
+    'generic-ready-ammo-locker', 'generic-splinter-shield', 'generic-breakwater',
+    'german-cruiser-capstan', 'german-cruiser-deck-hatch'];
+  const original = structuredClone(retained);
+  // Use the real immutable publication an old design requests, not the already-curated current one.
+  for (const id of retired) expect(retained.equipment.some(entry => entry.id === id)).toBe(true);
+  for (const filter of [undefined, { category: 'deck-gear', nation: 'all' }, { category: 'deck-gear', nation: 'Germany' }] as const) {
+    const palette = paletteFor('fittings', retained, [], filter);
+    for (const items of [palette.bar, palette.drawer, palette.all!]) {
+      for (const id of retired) expect(items.map(item => item.id)).not.toContain(id);
+    }
+    expect(palette.drawer.map(item => item.id)).toContain('generic-capstan');
+  }
+  expect(retained).toEqual(original);
 });
