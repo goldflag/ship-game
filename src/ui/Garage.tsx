@@ -16,7 +16,10 @@ import { ShipStatistics } from "./ShipStatistics";
 import { ShipClassIcon } from "./ShipClassIcons";
 import { battleModeName, type BattleMode } from "./battle/battleModes";
 import { localShip, localShips, subscribeLocalShips } from '../ships/localShips';
-import { PortDesigns } from './PortDesigns';
+import { usePortDesigns } from './usePortDesigns';
+import { Button } from './components';
+import { DeleteDesignButton } from './DeleteDesignButton';
+import { openConstructionStore } from '../ships/constructionStore';
 
 const SHIPS = Object.values(shipPresets);
 const NATIONS = Array.from(new Set(SHIPS.map((ship) => shipIdentity(ship.id).nation).filter(Boolean))).sort();
@@ -134,6 +137,10 @@ function StatisticsPanel() {
 function FleetCarousel({ state }: { state: GarageState }) {
   const selectedShip = useShip();
   const local = useSyncExternalStore(subscribeLocalShips, localShips);
+  const library = usePortDesigns();
+  const selectedLocal = local.find(ship => ship.definition.id === selectedShip.id);
+  const selectedDesign = library.designs.find(design => (design.sourceId ?? design.id) === selectedLocal?.source.id);
+  const drafts = library.designs.filter(design => !local.some(ship => ship.source.id === (design.sourceId ?? design.id)));
   const [classFilter, setClassFilter] = useState<"All" | ShipClass>("All");
   const [nationFilter, setNationFilter] = useState("All");
   const ships = useMemo(
@@ -145,6 +152,7 @@ function FleetCarousel({ state }: { state: GarageState }) {
       ),
     [classFilter, nationFilter, local],
   );
+  const visibleDrafts = (classFilter === "All" || classFilter === "Other") && (nationFilter === "All" || nationFilter === "My designs") ? drafts : [];
   const trackRef = useRef<HTMLDivElement>(null);
   const [scrollState, setScrollState] = useState({ atStart: true, atEnd: true });
   const updateScrollState = () => {
@@ -155,7 +163,7 @@ function FleetCarousel({ state }: { state: GarageState }) {
       atEnd: el.scrollLeft >= el.scrollWidth - el.clientWidth - 1,
     });
   };
-  useEffect(updateScrollState, [ships]);
+  useEffect(updateScrollState, [ships, library.designs]);
   const scrollByPage = (direction: 1 | -1) => {
     trackRef.current?.scrollBy({
       left: direction * trackRef.current.clientWidth * 0.8,
@@ -171,6 +179,18 @@ function FleetCarousel({ state }: { state: GarageState }) {
   }, [selectedShip.id]);
   return (
     <section className="garage-fleet-carousel" aria-label="Your fleet">
+      <div className="garage-design-actions">
+        <Button variant="primary" disabled={!state.ready} onClick={state.build}>New design</Button>
+        {selectedLocal && <Button disabled={!state.ready} onClick={() => state.editDesign(selectedDesign?.id ?? selectedLocal.source.id)}>Edit design</Button>}
+        {selectedDesign && <DeleteDesignButton key={selectedDesign.id} name={selectedDesign.name} disabled={!state.ready} onDelete={async () => {
+          const store = await openConstructionStore();
+          try { await store.remove(selectedDesign.id, selectedDesign.revisionId); state.deleteDesign(selectedDesign.id); library.refresh(); }
+          catch (error) { library.refresh(); throw error; }
+          finally { store.close(); }
+        }}/>}
+        {(library.loading || state.libraryLoading) && <span role="status">Loading your designs…</span>}
+        {library.error && <span role="alert">{library.error} <button onClick={library.refresh}>Retry</button></span>}
+      </div>
       <div className="garage-fleet-filters">
         <div role="group" aria-label="Filter fleet by class">
           {(["All", ...SHIP_CLASSES] as const).map((type) => (
@@ -235,7 +255,13 @@ function FleetCarousel({ state }: { state: GarageState }) {
               </button>
             );
           })}
-          {!ships.length && <p className="garage-fleet-empty">No ships match these filters.</p>}
+          {visibleDrafts.map(design => <button key={`draft-${design.id}`} disabled={!state.ready}
+            aria-label={`Edit ${design.name}`} onClick={() => state.editDesign(design.id)}>
+            <div><span>{design.readError ? 'Needs recovery · open to edit' : state.libraryLoading ? 'Preparing preview…' : 'Draft · open to edit'}</span></div>
+            <ShipClassIcon shipClass="Other" className="garage-local-thumbnail" width={96}/>
+            <strong>{design.name}</strong>
+          </button>)}
+          {!ships.length && !visibleDrafts.length && <p className="garage-fleet-empty">No ships match these filters.</p>}
         </div>
         <button
           className="garage-fleet-nav garage-fleet-nav-next"
@@ -253,7 +279,6 @@ function FleetCarousel({ state }: { state: GarageState }) {
 function PortLayout({ state }: { state: GarageState }) {
   const selectedShip = useShip();
   const SHIP_MODEL = shipModel(selectedShip);
-  const local = useSyncExternalStore(subscribeLocalShips, localShips);
   return (
     <div
       className={`garage-layout garage-fleet-harbor ${state.inspection !== "exterior" ? "port-inspection-active" : "port-statistics-active"}`}
@@ -281,9 +306,6 @@ function PortLayout({ state }: { state: GarageState }) {
           {(SHIP_MODEL.nation || SHIP_MODEL.year) && <span>{[SHIP_MODEL.nation, SHIP_MODEL.year].filter(Boolean).join(" · ")}</span>}
         </div>
       </section>
-      <div className="garage-classic-left">
-        <PortDesigns ships={local} selectedId={selectedShip.id} ready={state.ready} preparing={state.libraryLoading} onNew={state.build} onEdit={state.editDesign} onInspect={state.selectShip} onDelete={state.deleteDesign}/>
-      </div>
       <aside className="garage-classic-details">
         <ModelViewControls
           mode={state.inspection}

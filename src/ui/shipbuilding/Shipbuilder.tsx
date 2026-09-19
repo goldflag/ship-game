@@ -222,7 +222,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const saveLocalCopy = async () => {
     let storage: ConstructionStore | undefined;
-    try { storage = await openConstructionStore(); const copy = freshConstruction(source); await storage.save({ designId: copy.id, name: copy.name, source: copy, schemaVersion: 1, catalogRevision: copy.construction.catalogRevision, expectedRevisionId: null }); tool.notify('A saved copy is available in the port Ship designs list.'); setDesignsOpen(false); } catch (cause) { fail(cause); } finally { storage?.close(); }
+    try { storage = await openConstructionStore(); const copy = freshConstruction(source); await storage.save({ designId: copy.id, name: copy.name, source: copy, schemaVersion: 1, catalogRevision: copy.construction.catalogRevision, expectedRevisionId: null }); tool.notify('A saved copy is available under My designs in the port carousel.'); setDesignsOpen(false); } catch (cause) { fail(cause); } finally { storage?.close(); }
   };
   const close = async () => { owner.setBusy('Saving'); try { await owner.flush(); await props.onClose(structuredClone(source), compiledResult); } catch (cause) { fail(cause); } finally { owner.setBusy(''); } };
   const launch = async () => {
