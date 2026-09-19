@@ -76,6 +76,7 @@ import { sightAim, torpedoBearingAim, torpedoCourseAim } from './aiming';
 import type { Rangefinder } from './Rangefinder';
 import type { RangeTarget } from './rangefinderSight';
 import { RangefindingController } from './controllers/RangefindingController';
+import { SpectatorController } from './controllers/SpectatorController';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
 import type { WakeShip } from './FleetWakeFoam';
@@ -227,7 +228,6 @@ export class Game {
   readonly controlGroups = new Map<number, ControlGroup>();
   private pveStartingGroups = new Map<number, ControlGroup>();
   private tacticalPause = false;
-  private lastFleetHelmId?: string;
   /** The ship picker while it is up, and the sunk hull it was last offered for. */
   helmWheel?: HelmWheelState;
   private helmOfferedFor?: string;
@@ -632,7 +632,7 @@ export class Game {
       await this.frameTask; cancelAnimationFrame(this.raf);
       await session.restartPve(); this.assertActive(); this.battleRevision++; this.environment.setOverrides({});
       this.endFollow(); this.spectatedShipId = undefined; this.selectedShipIds = [];
-      this.selectedFlightId = undefined; this.selectFlights([]); this.lastFleetHelmId = undefined;
+      this.selectedFlightId = undefined; this.selectFlights([]); this.spectator.forgetHelm();
       this.inspectionHover?.clear(); this.inspecting = false;
       this.fleetViews.forEach(view => { view.inspect(false); view.impactMarks.clear(); view.snap(); });
       this.syncControlledShip(); this.observedShipViews?.clear(); this.aircraftView.reset();
@@ -823,7 +823,7 @@ export class Game {
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
-      this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.lastFleetHelmId = undefined; this.helmWheel = undefined; this.helmOfferedFor = undefined;
+      this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.spectator.forgetHelm(); this.helmWheel = undefined; this.helmOfferedFor = undefined;
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
       this.aimModule = simulation.target?.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
@@ -1508,76 +1508,23 @@ export class Game {
     return this.fleetViews.find(view => view.actor.motion.id === this.spectatedShipId)
       ?? (this.inspecting ? this.targetView! : this.playerView!);
   }
-  /** Hulls the camera may sit on without the helm: every friendly in fleet command or
-   * after the player's loss, and, where the session transfers helms, the hull a
-   * custom-battle swap is landing on. */
-  private get spectatorCandidates(): ShipView[] {
-    if (this.inPort || !this.simulation.isBattle || (!this.fleetCommandMode && !this.simulation.player.damage.sunk && !this.simulation.selectShip)) return [];
-    return this.fleetViews.filter(({ actor }) => (this.fleetCommandMode || actor !== this.simulation.player) && this.simulation.actors.find(a => a === actor)?.team === this.simulation.player.team
-      && !physicalLoss(actor));
+  private spectatorController?: SpectatorController;
+  /** Which friendly hull the camera rides without the helm. Built on first use, so a test-assembled Game has one too. */
+  private get spectator(): SpectatorController {
+    const game = this;
+    return this.spectatorController ??= new SpectatorController({
+      get simulation() { return game.simulation; }, get definition() { return game.definition; }, get fleetViews() { return game.fleetViews; },
+      get rig() { return game.rig; }, get input() { return game.input; }, get battlefieldCamera() { return game.battlefieldCamera; },
+      get inPort() { return game.inPort; }, get fleetCommandMode() { return game.fleetCommandMode; }, get airOperationsOpen() { return game.airOperationsOpen; },
+      get inspecting() { return game.inspecting; }, get followingAircraft() { return !!game.followedAircraftId; },
+      get spectatedShipId() { return game.spectatedShipId; }, set spectatedShipId(id) { game.spectatedShipId = id; },
+      controls: () => game.controls(), enterFleetCommand: () => game.enterFleetCommand(), offerHelmWheel: () => game.offerHelmWheel(),
+      setAirOperationsOpen: open => game.setAirOperationsOpen(open), inspectTarget: () => game.inspectTarget(), endFollow: () => game.endFollow(),
+    });
   }
-  /** A spectator is chosen for the player only once the helm is gone: on the chart or on the bottom. */
-  private get autoSpectates(): boolean { return this.fleetCommandMode || this.simulation.player.damage.sunk; }
-  private updateSpectator(): void {
-    if (this.fleetCommandMode) {
-      const lost = this.lastFleetHelmId && !this.simulation.controlledShipId && this.simulation.actors.some(a => a.motion.id === this.lastFleetHelmId && physicalLoss(a));
-      this.lastFleetHelmId = this.simulation.controlledShipId;
-      if (lost) this.enterFleetCommand();
-    }
-    // Automatic ship selection must not replace an explicitly followed aircraft.
-    if (this.followedAircraftId) return;
-    if (this.fleetCommandMode && this.simulation.controlledShipId && !this.airOperationsOpen) {
-      this.spectatedShipId = undefined;
-      const enabled = this.controls().inputEnabled;
-      if (this.input.isEnabled !== enabled) this.input.setEnabled(enabled);
-      return;
-    }
-    if (this.fleetCommandMode && this.spectatedShipId && !this.spectatorCandidates.some(v => v.actor.motion.id === this.spectatedShipId)) this.enterFleetCommand();
-    if (this.fleetCommandMode && this.airOperationsOpen) return;
-    if (!this.fleetCommandMode) this.offerHelmWheel();
-    const candidates = this.spectatorCandidates;
-    if (candidates.some(view => view.actor.motion.id === this.spectatedShipId)) return;
-    const next = this.autoSpectates ? candidates[0] : undefined;
-    if (next) this.spectateTeammate(next.actor.motion.id);
-    else if (this.spectatedShipId) {
-      this.spectatedShipId = undefined;
-      this.rig.setBridge(this.definition.viewpoints?.bridge);
-      this.rig.setHullLength(this.definition.hull.length);
-      this.rig.setSubmarine(this.definition.submarine);
-    }
-  }
-  spectateTeammate(id: string): void {
-    const view = this.spectatorCandidates.find(view => view.actor.motion.id === id);
-    if (!view) return;
-    // Closing the chart starts the descent onto this ship; keep it. Switching
-    // between hulls already on the water stays a cut.
-    if (this.airOperationsOpen) this.setAirOperationsOpen(false);
-    else this.battlefieldCamera.cancelTransition();
-    if (this.inspecting) this.inspectTarget();
-    this.endFollow();
-    this.spectatedShipId = id;
-    this.input.clear();
-    // Arriving on a new hull starts in the chase view; the glasses belong to the hull left behind.
-    this.rig.exitBinoculars();
-    this.rig.setInspecting(false);
-    this.rig.mode = 'Chase';
-    this.rig.setBridge(view.definition.viewpoints?.bridge);
-    this.rig.setHullLength(view.definition.hull.length);
-    this.rig.setSubmarine(view.definition.submarine);
-    this.rig.update(view.motion, view.motion.y, 0, true);
-    // Following a captain in fleet command steers the camera like holding the helm:
-    // the mouse looks around at once and Ctrl frees the cursor for the orders panel.
-    // A sunk player's spectator keeps the cursor for the teammate picker; a swap
-    // landing on a new hull in a custom battle keeps aiming.
-    if (this.controls().captureAfterSpectate) this.rig.capturePointer();
-    else this.rig.releasePointer();
-  }
-  cycleSpectator(direction: number): void {
-    const candidates = this.spectatorCandidates;
-    if (!candidates.length) return;
-    const index = candidates.findIndex(view => view.actor.motion.id === this.spectatedShipId);
-    this.spectateTeammate(candidates[(Math.max(0, index) + (direction < 0 ? -1 : 1) + candidates.length) % candidates.length].actor.motion.id);
-  }
+  private updateSpectator(): void { this.spectator.update(); }
+  spectateTeammate(id: string): void { this.spectator.spectate(id); }
+  cycleSpectator(direction: number): void { this.spectator.cycle(direction); }
   returnToShip(): void { this.endFollow(); }
   private lastShellPress?: { time: number; group: string; type: Ammunition };
   cycleAmmunition(now = performance.now()): void {
