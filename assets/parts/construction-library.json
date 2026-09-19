@@ -821,6 +821,30 @@
         "assets/parts/construction/access_geometry.ts",
         "assets/parts/construction/access_sample.ts"
       ]
+    },
+    "generic-single-bollard": {
+      "path": "assets/parts/construction/bollards.py",
+      "function": "create_single_bollard",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/utility_fittings.py"
+      ]
+    },
+    "generic-t-head-bollard": {
+      "path": "assets/parts/construction/bollards.py",
+      "function": "create_t_head_bollard",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/utility_fittings.py"
+      ]
+    },
+    "generic-inclined-bollards": {
+      "path": "assets/parts/construction/bollards.py",
+      "function": "create_inclined_bollards",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/utility_fittings.py"
+      ]
     }
   },
   "components": [
@@ -1543,6 +1567,24 @@
       "builder": "generic-framed-ladder",
       "review": "unreviewed",
       "limitations": "Original adjustable generic access fitting; no specific historical vessel fit. Native validation owns support, clearance and provisional steel loading. The standalone model shows the default three-metre rise; installed geometry follows saved endpoints and access settings."
+    },
+    {
+      "partId": "generic-single-bollard",
+      "builder": "generic-single-bollard",
+      "review": "unreviewed",
+      "limitations": "Original generic mooring bollard; dimensions and dry mass are game estimates, not a historical reconstruction or load rating. Static painted fitting with a deck sole and rope sockets. Installed deck support and neighboring clearance require design-specific review."
+    },
+    {
+      "partId": "generic-t-head-bollard",
+      "builder": "generic-t-head-bollard",
+      "review": "unreviewed",
+      "limitations": "Original generic mooring bollard; dimensions and dry mass are game estimates, not a historical reconstruction or load rating. Static painted fitting with a deck sole and rope sockets. Installed deck support and neighboring clearance require design-specific review."
+    },
+    {
+      "partId": "generic-inclined-bollards",
+      "builder": "generic-inclined-bollards",
+      "review": "unreviewed",
+      "limitations": "Original generic mooring bollard; dimensions and dry mass are game estimates, not a historical reconstruction or load rating. Static painted fitting with a deck sole and rope sockets. Installed deck support and neighboring clearance require design-specific review."
     }
   ]
 }

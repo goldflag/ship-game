@@ -1,4 +1,5 @@
 import { bilgeKeelError } from './constructionBilgeKeels';
+import { hullPaintBandsError } from './hullPaintBands';
 import { constructionShipPaint, isConstructionSurfaceFinish } from './constructionPaints';
 import { mirroredOrientation } from './constructionOrientation';
 import { mirroredIndices } from './freeformShape';
@@ -84,6 +85,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       const hull = object(p.customHull, 'Custom hull');
       if (hull.version !== 1) throw new Error('Unsupported custom hull version');
       if (hull.redPaintY !== undefined) { number(hull.redPaintY, 'Red paint Y'); if (Math.abs(hull.redPaintY as number) > 500) throw new Error('Red paint Y must be between −500 and 500 m'); }
+      if (hull.paintBands !== undefined) { const error = hullPaintBandsError(hull.paintBands); if (error) throw new Error(error); }
       if (hull.bilgeKeels !== undefined) { const keel = object(hull.bilgeKeels, 'Bilge keels'); const error = bilgeKeelError(keel as unknown as import('./blueprint').ConstructionBilgeKeels); if (error) throw new Error(error); }
       number(hull.rake, 'Bow rake'); number(hull.bulb, 'Bow bulb');
       const stations = rows(hull.stations, 'Hull sections');

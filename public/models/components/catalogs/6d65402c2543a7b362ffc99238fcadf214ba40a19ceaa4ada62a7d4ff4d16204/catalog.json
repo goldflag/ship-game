@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "65d07c0b551b6afaabfdcea5ced149f862c3651e522db3e819e63d37b952b7b9",
+  "revision": "6d65402c2543a7b362ffc99238fcadf214ba40a19ceaa4ada62a7d4ff4d16204",
   "weapons": {
     "schemaVersion": 1,
     "parts": [
@@ -26488,96 +26488,6 @@
         "encoding": "deflate-f32-u32-v1",
         "data": "eNpNlDlPVGEYRg+Lyq6ssg4DCIrsM6IWcklsaGwmWpvYmIl20tAZiqkg9v4I1A6JyS2I5ag/hFDSWZj3er4Jk0zOyfM+33LvJPMUeAWc7B1mAI+q+9lXvVLdz0/2DnPz/Kteqe5n0f/VfLGT+uGpb170zbPTUiP7+O7ZzmXtIDvTL2oH+WmpkZvnZ/pF7aDof/4xtpv64alvXvTNs1LjqOjEXcp63CXul7yiRyf6z/+8bfXDUz95RY9OPI/7ZBU9nq/UOGp5WT+x7z5F332KfvKyHp34prslf/n9dbzbYs/aNU/9dLfkqR9eu+YxbzaPsy97b3bjXf5uHufhp/890/OmebzXyL99qLfy8LP/ns023rf2CY994jf4tDC2+/Oqnl3q51f1PH4z8/xSP7+qF/2/2xOtfnjqmxd986wDaAfagA4Zn07gBnBTD95y1uYM2WnWbq9N3jDrcG27vGmWzumQMesFeoBuPdgF9AH9wIAevO2s21mX7DPrsdct+816XdsjB8zSOb0yZsPAEDCoB+8AI8AoMKYH7zobdHZHjpgN2RuUo2bDrh2SY2bpnGEZsylgEpjQg+PANDADlPTgrLMJZ+Ny2mzS3oScMZty7aQsmaVzpmTMFoB5YE4PloF7wCKwpAfvO5tzVpb3zObtzclFswXXzssls3TOgozZA+AhsKoH14FlYANY04Mrdpav+YrrH+pr+pp7reob+ob7r+vL186L/arxvw5s6cHN+N8HtoHHevCJsy1nm/KRWcXeltw2q7q2Ih+bpXOqMmb/ALK9SRg="
       }
-    },
-    {
-      "id": "generic-inclined-ladder",
-      "name": "Adjustable inclined stairs",
-      "kind": "deck-fitting",
-      "size": [
-        1,
-        4,
-        3
-      ],
-      "boundsCenter": [
-        0,
-        2,
-        -1.25
-      ],
-      "centerOfGravity": [
-        0,
-        2,
-        -1.25
-      ],
-      "massKg": 1,
-      "placement": "deck",
-      "path": {
-        "kind": "inclined-ladder",
-        "diameterM": 0.032,
-        "massKgPerM": 1
-      },
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "modelUrl": "/models/components/generic-inclined-ladder/1c9bc08de14c55e49364df1d560a3f6ba93f51ec9efd3763075dc6ad655af6c3/model.glb",
-      "contentHash": "e01a9f03df4d1baa7de89e24a57310fbfd7b9479b699ff038d84c91a80bd87b2"
-    },
-    {
-      "id": "generic-framed-ladder",
-      "name": "Adjustable framed ladder",
-      "kind": "deck-fitting",
-      "size": [
-        0.8,
-        4.2,
-        0.4
-      ],
-      "boundsCenter": [
-        0,
-        1.95,
-        -0.2
-      ],
-      "centerOfGravity": [
-        0,
-        1.95,
-        -0.2
-      ],
-      "massKg": 1,
-      "placement": "deck",
-      "path": {
-        "kind": "framed-ladder",
-        "diameterM": 0.032,
-        "massKgPerM": 1
-      },
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            0,
-            1
-          ]
-        }
-      ],
-      "modelUrl": "/models/components/generic-framed-ladder/0558b1df68e335b8e18b209200582e14aa1036b56b613e7eb450fda0774e50f2/model.glb",
-      "contentHash": "eb02478e0262e66135d078064fef1359298030a3ad2a20230e7c1a900292311e"
     }
   ]
 }

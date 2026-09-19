@@ -457,7 +457,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-balcony-editing={balconyEditing || undefined} data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => tool.editPrimitive('Edit balcony', value)} onClose={() => setBalconySession(undefined)} />}
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
-    {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), designName: source.name,
+    {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), designName: source.name, appearance: source.construction,
       measure: hullMeasurer && (async (hull, signal) => {
         const draft = structuredClone(source), target = draft.construction.primitives.find(part => part.id === customHullSession.primitive.id);
         if (!target) throw new Error('This hull is no longer part of the design.');
@@ -470,12 +470,6 @@ export function Shipbuilder(props: ShipbuilderProps) {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
       if (existing) {
         const commands: ConstructionCommand[] = [{ op: 'primitive', value: customHullPrimitive(hull, existing) }];
-        // Older starters painted the whole bottom red. Replace that side default
-        // when first enabling a height boundary; retain panel overrides and armor.
-        if (existing.customHull?.redPaintY === undefined && hull.redPaintY !== undefined) {
-          const bottom = data.surfaces.find(s => s.primitiveId === existing.id && s.face === 'bottom' && s.panelId === undefined && s.paint === 'red-oxide');
-          if (bottom) commands.push({ op: 'surface', value: { ...bottom, paint: 'naval-gray' } });
-        }
         run('Edit custom hull', commands);
       }
       setCustomHullSession(undefined); tool.fit();

@@ -1560,6 +1560,21 @@
       "url": "/models/components/thumbnails/d2f362314851a493e118f422419004bfcc2f57fcf9c6479ba711d4cd596c95a1.png",
       "modelHash": "0c3912f49fb9f236e25f74aeea66d29df58e1ce60f0047e6cb91e9da8ea2d4b5",
       "imageHash": "beace069b705e722391ca3336970a8b5aef2cea6b99b2dfcd31ea360a83f7af5"
+    },
+    "/models/components/generic-single-bollard/840a976298ebe72d1e985a2048ca7202cf455f31cab7c77fbaa2a0e888add044/model.glb": {
+      "url": "/models/components/thumbnails/24e25acce73cf623faa8881b4f96c4a0ad130bf74c926d1fa9135f895e267c32.png",
+      "modelHash": "b394d17b65e27d40eefb7223d28d3bd8750a35d53cdfb6e549527729fe1cb9c0",
+      "imageHash": "e14a19a635454a4ea929a2565896e67fbea004fe46105d393b2f5059a5a7e683"
+    },
+    "/models/components/generic-t-head-bollard/7fce8c5dfb0112e1d7af6e9f94e713c69036f287bcb608e43ec2f02f7e690aa9/model.glb": {
+      "url": "/models/components/thumbnails/2aaa6e2d51902b3dd1ac482f0b3af61e0c7c8008fd52cffad0a070352e8d5b3e.png",
+      "modelHash": "bc0d25d44e133ec258d56970364120a23de32f3db986b58e0f695f28d7b12fe3",
+      "imageHash": "3ef036e43313724ab725cee899b6ea953bffdc11c55c6d5f16ac752854959bea"
+    },
+    "/models/components/generic-inclined-bollards/87f31d4e58703cf28ae53ebda98c7c139f02ac15d8288cf2cd28ced716aaf977/model.glb": {
+      "url": "/models/components/thumbnails/b93721b69754d684ecb33ccbacb5902896b6a92a1c3651a66a7b1c0b5f70449b.png",
+      "modelHash": "a3e2fb18dcc8958d5c88d633662de4735d3875d5ff308fe343ff03c01d429d7a",
+      "imageHash": "ed84f0b7e3043af9881074399a9c24e659ffcbea424a6757591b6bfac7c7480a"
     }
   }
 }
