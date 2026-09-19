@@ -15,6 +15,29 @@ function setup() {
 }
 function deferred<T>() { let resolve!: (value: T) => void; const promise = new Promise<T>(done => { resolve = done; }); return { promise, resolve }; }
 
+test('retiring fittings from a recovery copy saves once and prevents undo from restoring them', async () => {
+  const { owner, store, writes, external } = setup();
+  const recovered = source();
+  recovered.construction.equipment = [
+    { id: 'old-tub', partId: 'generic-gun-tub', position: [0, 0, 0], bearingDeg: 0 },
+    { id: 'capstan', partId: 'generic-capstan', position: [0, 0, 2], bearingDeg: 0 },
+  ];
+  external(loaded(recovered));
+  await owner.connect(store, 'design');
+  owner.submit('Rename', [{ op: 'name', name: 'Recovered copy' }]);
+  owner.retireDeckFittings();
+  await owner.flush();
+  expect(owner.source.construction.equipment).toEqual([recovered.construction.equipment[1]]);
+  expect(writes.at(-1)?.source).toEqual(owner.source);
+  const cleanRevision = owner.source.revision, count = writes.length;
+  owner.retireDeckFittings(); await owner.flush();
+  expect(owner.source.revision).toBe(cleanRevision); expect(writes).toHaveLength(count);
+  owner.undo();
+  expect(owner.source.name).toBe('Draft');
+  expect(owner.source.construction.equipment.map(part => part.id)).toEqual(['capstan']);
+  await owner.flush(); owner.disconnect();
+});
+
 test('synchronous edits and undo/redo enqueue exact revisions before an immediate flush', async () => {
   const { owner, store, writes, retained } = setup();
   await owner.connect(store, 'design');

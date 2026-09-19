@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { paintedHullFace } from './constructionHullPaint';
+import { constructionHullBasePaint, paintedHullFace } from './constructionHullPaint';
 import { createStarterSource } from './constructionStarter';
 import { customHullPrimitive, editableCustomHull } from './customHullModel';
 import { applyConstructionBatch } from './constructionCommands';
@@ -7,6 +7,23 @@ import { copyConstructionSelection, decodeConstructionSource, moveConstructionSe
 import type { ConstructionCatalog, ConstructionSurface, Vec3 } from './blueprint';
 const catalog = { revision: 'test' } as ConstructionCatalog;
 const surface: ConstructionSurface = { id: 'hull:port', primitiveId: 'hull', face: 'port', panelId: 'panel', vertices: [[0, -2, -2], [0, 2, -2], [0, 2, 2], [0, -2, 2]], normal: [-1, 0, 0], areaM2: 16, paint: 'sea-blue', thicknessMm: 100, material: 'armor-steel', open: false };
+test('legacy bottom defaults use ship paint above the line without erasing panel colors', () => {
+  const source = createStarterSource(catalog, 'fletcher-hull', 'sea-blue'), hull = source.construction.primitives[0];
+  const bottom = { ...surface, face: 'bottom', paint: 'red-oxide' };
+  source.construction.surfaces.push({ primitiveId: hull.id, face: 'bottom', thicknessMm: 30, material: 'steel', paint: 'red-oxide' });
+  const paint = constructionHullBasePaint(source.construction);
+  const faces = paintedHullFace(bottom, hull, undefined, paint(bottom));
+  expect(faces.map(f => f.paint)).toEqual(['sea-blue', 'red-oxide']);
+  expect(paint({ ...bottom, face: 'port' })).toBe('red-oxide');
+  expect(paint({ ...bottom, primitiveId: 'another-hull' })).toBe('red-oxide');
+  source.construction.surfaces.push({ ...source.construction.surfaces.at(-1)!, panelId: bottom.panelId });
+  expect(constructionHullBasePaint(source.construction)(bottom)).toBe('red-oxide');
+  source.construction.surfaces.pop();
+  delete source.construction.paint;
+  expect(constructionHullBasePaint(source.construction)(bottom)).toBe('naval-gray');
+  delete hull.customHull!.redPaintY;
+  expect(constructionHullBasePaint(source.construction)(bottom)).toBe('red-oxide');
+});
 test('red coating clips at an exact hull-local height, retaining face geometry and lighting', () => {
   const source = createStarterSource(catalog, 'fletcher-hull'), hull = source.construction.primitives[0];
   hull.position[1] = 1; hull.customHull!.redPaintY = -.5;

@@ -1,4 +1,5 @@
 import { bilgeKeelError } from './constructionBilgeKeels';
+import { hullPaintBandsError } from './hullPaintBands';
 import { constructionShipPaint, isConstructionSurfaceFinish } from './constructionPaints';
 import { mirroredOrientation } from './constructionOrientation';
 import { mirroredIndices } from './freeformShape';
@@ -10,7 +11,7 @@ import type { ConstructionEquipment, ConstructionSource, ConstructionPrimitive, 
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
 import { CONSTRUCTION_SHAPES, shapeMirror } from './constructionShapes';
 import { ConstructionStoreError, readConstructionSource, type ConstructionRevision, type ConstructionStore } from './constructionStore';
-import { loadConstructionCatalog } from './constructionEquipment';
+import { loadConstructionCatalog, removeRetiredDeckFittings } from './constructionEquipment';
 
 export const CONSTRUCTION_FACES = ['port', 'starboard', 'bottom', 'top', 'bow', 'stern', 'slope'] as const;
 export type ConstructionFace = ConstructionSurfaceAssignment['face'];
@@ -84,6 +85,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       const hull = object(p.customHull, 'Custom hull');
       if (hull.version !== 1) throw new Error('Unsupported custom hull version');
       if (hull.redPaintY !== undefined) { number(hull.redPaintY, 'Red paint Y'); if (Math.abs(hull.redPaintY as number) > 500) throw new Error('Red paint Y must be between −500 and 500 m'); }
+      if (hull.paintBands !== undefined) { const error = hullPaintBandsError(hull.paintBands); if (error) throw new Error(error); }
       if (hull.bilgeKeels !== undefined) { const keel = object(hull.bilgeKeels, 'Bilge keels'); const error = bilgeKeelError(keel as unknown as import('./blueprint').ConstructionBilgeKeels); if (error) throw new Error(error); }
       number(hull.rake, 'Bow rake'); number(hull.bulb, 'Bow bulb');
       const stations = rows(hull.stations, 'Hull sections');
@@ -193,8 +195,18 @@ export async function loadSavedConstruction(store: ConstructionStore, designId: 
 /** Resolve the saved immutable catalog before showing any of its equipment dimensions. */
 export async function loadSavedConstructionWithCatalog(store: ConstructionStore, designId: string, resolveCatalog = loadConstructionCatalog) {
   const saved = await loadSavedConstruction(store, designId);
-  try { return { ...saved, catalog: await resolveCatalog(saved.revision.catalogRevision) }; }
+  let catalog;
+  try { catalog = await resolveCatalog(saved.revision.catalogRevision); }
   catch (cause) { throw new ConstructionStoreError('catalog', `The saved equipment revision could not be loaded. ${cause instanceof Error ? cause.message : String(cause)}. Download the original or recover a compatible revision; no equipment was substituted.`, { cause }); }
+  if (!removeRetiredDeckFittings(saved.source)) return { ...saved, catalog };
+  const source = saved.source;
+  source.revision = newConstructionId('revision');
+  // Keep the original immutable revision and use the normal CAS save, including
+  // account storage IDs, so opening a stale tab cannot overwrite another edit.
+  const revision = await store.save({ designId: saved.head.id, name: source.name, source,
+    schemaVersion: source.schemaVersion, catalogRevision: source.construction.catalogRevision,
+    expectedRevisionId: saved.head.revisionId });
+  return { source, catalog, revision, head: { ...saved.head, revisionId: revision.id, updatedAt: revision.createdAt } };
 }
 
 export function removeConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>): void {

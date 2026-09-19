@@ -1,7 +1,8 @@
+import { hullPaintBands } from "../../ships/hullPaintBands";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import type { Vec3 } from "../../ships/blueprint";
+import type { ConstructionSource, Vec3 } from "../../ships/blueprint";
 import {
   influence,
   outline,
@@ -26,6 +27,7 @@ export type HullDragKind =
   | "paint";
 export interface HullDrag {
   kind: HullDragKind;
+  bandId?: string;
   stationId?: string;
   point?: number;
 }
@@ -62,6 +64,7 @@ export interface HullViewportProps {
   point: number;
   blend: Blend;
   invalid: boolean;
+  appearance?: ConstructionSource['construction'];
   waterline?: number;
   guides: HullGuide[];
   safe: SafeArea;
@@ -283,13 +286,14 @@ class HullScene {
       p.waterline,
       this.hover,
     ].join("|");
-    if (key === this.modelKey && this.model.userData.hull === h) return;
+    if (key === this.modelKey && this.model.userData.hull === h && this.model.userData.appearance === p.appearance) return;
     this.modelKey = key;
     this.clearModel();
     this.model.userData.hull = h;
+    this.model.userData.appearance = p.appearance;
     const cut = p.view === "section" ? this.cutIndex() : undefined;
     const mesh = new THREE.Mesh(
-      hullGeometry(h, cut),
+      hullGeometry(h, cut, p.appearance),
       hullMaterial(h, p.invalid),
     );
     mesh.name = "Custom hull";
@@ -661,21 +665,14 @@ class HullScene {
         });
       }
     }
-    if (
-      (p.view === "profile" || p.view === "section") &&
-      h.redPaintY !== undefined
-    ) {
-      const w = this.paintGrip();
-      specs.push({
-        key: "paint",
-        className: "hs-grip",
-        label: "Red lower hull height: drag up or down",
-        world: w,
-        press: (e, b) => {
-          p.onDragStart({ kind: "paint" });
-          this.beginDrag(e, b, v3(w), { axis: AXES[1] });
-        },
-      });
+    if (p.view === "profile" || p.view === "section") {
+      for (const [index, band] of hullPaintBands(h).entries()) {
+        const w = this.paintGrip(band.upperY, index);
+        specs.push({ key: `paint:${band.id}`, className: "hs-grip",
+          label: `Band ${index + 1} height: drag up or down`, world: w,
+          press: (e, b) => { p.onDragStart({ kind: "paint", bandId: band.id }); this.beginDrag(e, b, v3(w), { axis: AXES[1] }); },
+        });
+      }
     }
     return specs;
   }
@@ -700,9 +697,10 @@ class HullScene {
       [h.offset, 0, box.max.z + margin],
     ];
   }
-  private paintGrip(): Vec3 {
-    const [, end] = this.levelSpan();
-    return [end[0], this.props.hull.redPaintY ?? 0, end[2]];
+  private paintGrip(y: number, index: number): Vec3 {
+    const [start, end] = this.levelSpan(), t = 1 - index * .055;
+    // Stagger close boundaries horizontally so a narrow boot-top remains draggable.
+    return [start[0] + (end[0] - start[0]) * t, y, start[2] + (end[2] - start[2]) * t];
   }
 
   private beginPointDrag(
@@ -970,22 +968,23 @@ class HullScene {
       const [a, b] = this.levelSpan();
       const levels: [string, number | undefined, string][] = [
         ["waterline", p.waterline, "WL"],
-        ["paint", p.hull.redPaintY, "Red lower hull"],
+        ...hullPaintBands(p.hull).map((band, i): [string, number, string] => [`paint:${band.id}`, band.upperY, `Band ${i + 1}`]),
       ];
       for (const [key, y, label] of levels) {
         if (y === undefined) continue;
         const s = v3([a[0], y, a[2]]),
           e = v3([b[0], y, b[2]]);
         used.add(`level:${key}`);
-        this.line(`level:${key}`, `hs-level hs-level-${key}`, segment(s, e));
-        const start = this.project(s);
+        this.line(`level:${key}`, `hs-level hs-level-${key.startsWith("paint:") ? "paint" : key}`, segment(s, e));
+        const bandIndex = key.startsWith('paint:') ? hullPaintBands(p.hull).findIndex(band => `paint:${band.id}` === key) : -1;
+        const start = this.project(bandIndex >= 0 ? v3(this.paintGrip(y, bandIndex)) : s);
         usedText.add(key);
         this.text(
           key,
-          `hs-level-label hs-level-${key}`,
-          start.x,
-          start.y - 6,
-          label,
+          `hs-level-label hs-level-${key.startsWith("paint:") ? "paint" : key}`,
+          start.x + (bandIndex >= 0 ? 11 : 0),
+          start.y + (bandIndex >= 0 ? 4 : -6),
+          bandIndex >= 0 ? String(bandIndex + 1) : label,
         );
       }
     }

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import type { ConstructionCatalog, ConstructionSource, ConstructionSurface } from './blueprint';
-import type { ConstructionStore } from './constructionStore';
+import { ConstructionStoreError, type ConstructionStore } from './constructionStore';
 import { assignConstructionSurfaces, copyConstructionSelection, decodeConstructionSource, decodeSavedConstruction, editableConstructionSurfaces, loadSavedConstructionWithCatalog, mirroredFace, mirroredPrimitive, projectConstructionSurfaces, removeConstructionSelection, surfaceKey } from './constructionEditor';
 
 const source = (): ConstructionSource => ({ schemaVersion: 1, id: 'draft', revision: 'r1', name: 'Draft', coordinates: 'meters-y-up-bow-negative-z', construction: {
@@ -82,6 +82,46 @@ test('saved design loads its retained catalog revision rather than requiring the
   await expect(loadSavedConstructionWithCatalog(store, 'draft', async () => { throw new Error('revision missing'); })).rejects.toMatchObject({ code: 'catalog' });
   expect(saved.revision.sourceJson).toBe(raw);
   expect(() => decodeSavedConstruction({ ...saved.revision, designId: 'different-design' })).toThrow('identities disagree');
+});
+
+test('opening an old saved design removes retired fittings once and retains its original revision', async () => {
+  const draft = source();
+  const retired = ['generic-paravane', 'generic-signal-lamp', 'generic-gun-tub', 'generic-gun-tub-large',
+    'generic-ready-ammo-locker', 'generic-splinter-shield', 'generic-breakwater',
+    'german-cruiser-capstan', 'german-cruiser-deck-hatch'];
+  const equipment = structuredClone(draft.construction.equipment);
+  for (const [index, partId] of retired.entries()) draft.construction.equipment.push({ id: `old-${index}`, partId, position: [0, 0, 0], bearingDeg: 0 });
+  const original = { formatVersion: 1 as const, id: 'saved-1', designId: 'account-design', sourceId: draft.id, parentId: null as string | null,
+    createdAt: 1, schemaVersion: 1, catalogRevision: 'c1', sourceJson: JSON.stringify(draft) };
+  let saved = { head: { id: 'account-design', sourceId: draft.id, name: 'Draft', revisionId: 'saved-1', updatedAt: 1, schemaVersion: 1, catalogRevision: 'c1' }, revision: original };
+  let saves = 0;
+  const store: ConstructionStore = { load: async () => saved, list: async () => [saved.head],
+    revisions: async () => [original], remove: async () => {}, close() {}, save: async input => {
+    expect(input.designId).toBe('account-design');
+    expect(input.expectedRevisionId).toBe(saved.head.revisionId);
+    saves++;
+    const revision = { ...original, id: 'saved-2', parentId: input.expectedRevisionId, createdAt: 2, sourceJson: JSON.stringify(input.source) };
+    saved = { head: { ...saved.head, revisionId: revision.id, updatedAt: revision.createdAt }, revision };
+    return revision;
+  } };
+  const catalog = { revision: 'c1' } as ConstructionCatalog;
+  // Missing catalogs must not modify the stored source.
+  await expect(loadSavedConstructionWithCatalog(store, 'account-design', async () => { throw new Error('missing'); })).rejects.toMatchObject({ code: 'catalog' });
+  expect(saves).toBe(0);
+  const result = await loadSavedConstructionWithCatalog(store, 'account-design', async () => catalog);
+  expect(result.source.construction).toEqual({ ...draft.construction, equipment });
+  expect(result.source.revision).not.toBe(draft.revision);
+  expect(result.head.revisionId).toBe('saved-2');
+  expect(result.revision.parentId).toBe(original.id);
+  expect(decodeSavedConstruction(original)).toEqual(draft);
+  expect(JSON.parse(result.revision.sourceJson)).toEqual(result.source);
+  expect((await loadSavedConstructionWithCatalog(store, 'account-design', async () => catalog)).source).toEqual(result.source);
+  expect(saves).toBe(1);
+
+  saved = { ...saved, revision: original };
+  store.save = async () => { throw new ConstructionStoreError('conflict', 'Another tab saved'); };
+  await expect(loadSavedConstructionWithCatalog(store, 'account-design', async () => catalog)).rejects.toMatchObject({ code: 'conflict' });
+  expect(saved.revision).toBe(original);
 });
 
 

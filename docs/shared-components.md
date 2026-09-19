@@ -44,6 +44,14 @@ that check; runtime fetches use the existing base-path helper. See
 estimates, original source registrations, attachment datums and retained joints.
 Standalone viewer previews continue to live only in `.build/parts/`.
 
+The builder also retires paravanes, signal lamps, gun tubs, ammunition lockers,
+splinter shields, fixed-shape breakwaters and the German cruiser capstan/hatch
+from older catalogs' palettes. Opening a saved design or restoring the custom
+fleet removes their installed instances in a new saved revision. Recovery copies
+receive the same cleanup, including undo history. Earlier source revisions,
+immutable catalogs and original registrations remain available for source
+recovery and historical ship builds.
+
 ## Install in a ship
 
 1. Confirm the exact variant matches the approved ship fit. Check its limitations and review status in the viewer. Reuse existing reference approvals; this library does not authorize a different historical fit.

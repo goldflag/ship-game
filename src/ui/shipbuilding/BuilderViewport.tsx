@@ -11,7 +11,7 @@ import { constructionSnapFeatures, primitiveSnapFeatures, resolveSnap, DEFAULT_S
 import { add } from '../../ships/freeformShape';
 import { boundaryGeometry } from './boundaryGeometry';
 import { envelopeVertices } from '../../ships/freeformShape';
-import { paintedHullFace } from '../../ships/constructionHullPaint';
+import { constructionHullBasePaint, paintedHullFace } from '../../ships/constructionHullPaint';
 import { surfaceOutline } from './surfaceOutline';
 import { itemOutlineGeometry } from './itemOutline';
 import { internalSelectionIds } from './internalSelection';
@@ -351,11 +351,12 @@ class Viewport {
       this.contentKey = key; release(this.hull); this.surfaceTriangles = []; this.pickMeshes = []; this.hullMeshes = []; this.surfacesByKey = new Map();
       const vertices: number[] = [], colors: number[] = [];
       const armorGroups: { start: number; count: number; materialIndex: number }[] = [];
+      const basePaint = constructionHullBasePaint(props.scene.source.construction);
       for (const surface of nativeSurfaces ?? []) {
         if (surface.open && props.scene.display === 'paint') continue;
         const color = new THREE.Color(invalid.has(surface.primitiveId) ? SALMON : props.scene.display === 'armor' ? armorThicknessColor(surface.thicknessMm, props.scene.armorScale) : constructionPaintColor(surface.paint));
         const primitive = props.scene.source.construction.primitives.find(p => p.id === surface.primitiveId);
-        const painted = props.scene.display === 'armor' ? [{ vertices: surface.vertices, paint: surface.paint }] : paintedHullFace(surface, primitive);
+        const painted = props.scene.display === 'armor' ? [{ vertices: surface.vertices, paint: surface.paint }] : paintedHullFace(surface, primitive, undefined, basePaint(surface));
         for (const face of painted) {
           fan({ ...surface, vertices: face.vertices }, vertices, colors, props.scene.display === 'armor' || invalid.has(surface.primitiveId) ? color : new THREE.Color(constructionPaintColor(face.paint)));
           for (let i = 1; i < face.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
@@ -405,7 +406,7 @@ class Viewport {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
       if (nativeSurfaces && (!props.createModel || props.scene.current)) {
         const abort = new AbortController(); this.modelAbort = abort;
-        const model = props.createModel ? props.createModel(props.scene.source, props.scene.current!, abort.signal) : Promise.resolve(createConstructionHull([...nativeSurfaces, ...(props.scene.current?.bilgeKeelSurfaces ?? [])], props.scene.source.construction.primitives, props.scene.source.construction.finish));
+        const model = props.createModel ? props.createModel(props.scene.source, props.scene.current!, abort.signal) : Promise.resolve(createConstructionHull([...nativeSurfaces, ...(props.scene.current?.bilgeKeelSurfaces ?? [])], props.scene.source.construction.primitives, props.scene.source.construction.finish, props.scene.source.construction));
         model.then(group => {
           if (this.dead || abort.signal.aborted || modelKey !== this.modelKey) { release(group); return; }
           group.traverse(node => {
@@ -1222,8 +1223,7 @@ class Viewport {
     } else if (start.button === 2 && clicked && this.pendingRow()) {
       this.rowStart = undefined; this.updateStrokePreview();
     } else if (start.button === 2) {
-      const hit = clicked ? this.pick(event, 'all') : undefined;
-      if (hit?.id && !this.props.scene.freeform && !this.props.scene.pathDraft) this.props.onPointer({ kind: 'erase', id: hit.id });
+      // Right button only pans, rotates or cancels a pending row; removal is the Erase tool or Delete.
     } else if (this.props.scene.pathDraft && !rect) {
       const point = this.pathPick(event);
       if (clicked && point) this.props.onPointer({ kind: 'path-point', point, bearingDeg: wallBearing(this.pick(event, 'hull')?.normal ?? [0, 0, -1]) });
