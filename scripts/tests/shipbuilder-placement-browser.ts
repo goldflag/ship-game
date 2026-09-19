@@ -185,20 +185,25 @@ export async function checkShipbuilderPlacement() {
     check(source().construction.primitives.length === startCount, 'box selection never places pieces');
     check(orbit!.enabled && document.querySelector<HTMLElement>('[data-selection-box]')!.hidden, 'releasing selection restores navigation and removes the rectangle');
 
-    // A stationary secondary click deletes; a secondary drag remains navigation.
+    // A stationary secondary click removes nothing; Erase does, and a secondary drag remains navigation.
     [x, y] = screen([3, 2.5, 0]);
-    pointer('pointerdown', x, y, 2, 2); pointer('pointerup', x, y, 2);
-    await wait(() => source().construction.primitives.length === startCount - 1, 'right-click removes the targeted hull block');
-    controls.key('z', { ctrlKey: true }); await wait(() => source().construction.primitives.length === startCount, 'right-click deletion is undoable');
+    pointer('pointerdown', x, y, 2, 2); pointer('pointerup', x, y, 2); await frame();
+    check(source().construction.primitives.length === startCount, 'right-click leaves the targeted hull block');
+    await controls.tool('Erase'); controls.click(x, y);
+    await wait(() => source().construction.primitives.length === startCount - 1, 'Erase removes the targeted hull block');
+    controls.key('z', { ctrlKey: true }); await wait(() => source().construction.primitives.length === startCount, 'erasing is undoable');
     await wait(compiled, 'undo compiles'); await frame();
     const gun = source().construction.equipment.find(item => item.id === 'gun-forward')!;
     [x, y] = screen([gun.position[0], gun.position[1] + 1, gun.position[2]]);
     const equipmentCount = source().construction.equipment.length;
-    pointer('pointerdown', x, y, 2, 2); pointer('pointerup', x, y, 2);
-    await wait(() => source().construction.equipment.length === equipmentCount - 1, 'right-click removes a fitting');
+    pointer('pointerdown', x, y, 2, 2); pointer('pointerup', x, y, 2); await frame();
+    check(source().construction.equipment.length === equipmentCount, 'right-click leaves the fitting');
+    controls.click(x, y);
+    await wait(() => source().construction.equipment.length === equipmentCount - 1, 'Erase removes a fitting');
     check(!equipmentMeshes(gun.id).length, 'removed equipment disappears immediately');
     controls.key('z', { ctrlKey: true }); await wait(() => source().construction.equipment.length === equipmentCount, 'undo restores the fitting');
     await frame(); check(equipmentMeshes(gun.id).length > 0, 'undo restores the full fitting model from the cached asset');
+    await controls.tool('Place');
 
     await controls.tab('Fittings');
     document.querySelector<HTMLButtonElement>('.sb-hotbar .more')!.click();

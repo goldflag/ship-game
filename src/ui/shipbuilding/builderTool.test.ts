@@ -54,6 +54,19 @@ async function setup(options: { connect?: boolean; compile?: boolean; retained?:
   return { owner, tool, store, writes, data, labels, state: tool.getSnapshot };
 }
 const hit = (over: Partial<BuilderPick> = {}): BuilderPick => ({ point: [0, .5, 0], axis: 1, placement: [0, 1, 0], additive: false, ...over });
+test('two-tone paint uses the custom hull height instead of painting rising bottom panels red', async () => {
+  for (const coating of [true, false]) {
+    const source = createStarterSource(catalog, 'fletcher-hull');
+    if (!coating) delete source.construction.primitives[0].customHull!.redPaintY;
+    const { tool, data } = await setup({ source, compile: true });
+    const original = structuredClone(data());
+    expect(tool.applyScheme('two-tone')).toMatchObject({ accepted: true });
+    const bottom = data().surfaces.filter(s => s.face === 'bottom');
+    expect(bottom.length).toBeGreaterThan(0);
+    expect(bottom.every(s => s.paint === (coating ? 'naval-gray' : 'red-oxide'))).toBe(true);
+    tool.undo(); expect(data()).toEqual(original);
+  }
+});
 test('whole-ship finish changes one revision, supports undo and restores original materials', async () => {
   const { tool, data, labels } = await setup();
   const original = structuredClone(data());
@@ -139,7 +152,7 @@ test('a shut door refuses every edit with its reason and leaves the source untou
   expect(data().primitives).toHaveLength(2);
 });
 
-test('select, move and erase: a drag translates the pressed piece and preserves wall offsets, right-click removes, the last block stays', async () => {
+test('select, move and erase: a drag translates the pressed piece and preserves wall offsets, erase removes, the last block stays', async () => {
   const { tool, data, labels, state } = await setup();
   tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[0, 1, 0]] });

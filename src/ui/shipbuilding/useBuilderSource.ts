@@ -53,6 +53,8 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
   const source = revision.history.source;
   const [store, setStore] = useState<ConstructionStore>();
 
+  useEffect(() => { owner.retireDeckFittings(); }, [owner, source, revision.ready, revision.busy]);
+
   // A design opens on the newest parts catalog. It keeps its saved revision only while that newest one is unknown
   // or no longer has a part the design has fitted; the retained revision is fetched meanwhile.
   const [activeCatalog, setActiveCatalog] = useState(initialCatalog);

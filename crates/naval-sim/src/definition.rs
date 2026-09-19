@@ -1246,7 +1246,23 @@ pub struct ConstructionHullStation {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionHullPaintBand {
+    pub id: String,
+    #[serde(rename = "upperY")]
+    pub upper_y: f64,
+    pub paint: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionHullPaintBands {
+    pub version: f64,
+    pub bands: Vec<ConstructionHullPaintBand>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionCustomHull {
+    #[serde(rename = "paintBands", default, skip_serializing_if = "Option::is_none")]
+    pub paint_bands: Option<ConstructionHullPaintBands>,
     #[serde(rename = "bilgeKeels")]
     pub bilge_keels: Option<ConstructionBilgeKeels>,
     #[serde(rename = "redPaintY")]
@@ -1572,6 +1588,14 @@ pub struct ConstructionDiagnostic {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionPropellerSupportMembersItemHullContact {
+    #[serde(rename = "point")]
+    pub point: [f64; 3],
+    #[serde(rename = "normal")]
+    pub normal: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionPropellerSupportMembersItem {
     #[serde(rename = "start")]
     pub start: [f64; 3],
@@ -1581,6 +1605,10 @@ pub struct ConstructionPropellerSupportMembersItem {
     pub radius_m: f64,
     #[serde(rename = "kind")]
     pub kind: String,
+    #[serde(rename = "rings")]
+    pub rings: Option<Vec<Vec<[f64; 3]>>>,
+    #[serde(rename = "hullContact")]
+    pub hull_contact: Option<ConstructionPropellerSupportMembersItemHullContact>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

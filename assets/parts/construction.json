@@ -1894,6 +1894,204 @@
       "massKg": 145
     },
     {
+      "id": "generic-single-bollard",
+      "name": "Single-post bollard",
+      "kind": "deck-fitting",
+      "size": [
+        0.66,
+        0.64,
+        0.66
+      ],
+      "boundsCenter": [
+        0,
+        0.32,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.24,
+        0
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "rigging-forward",
+          "kind": "rigging",
+          "position": [
+            0,
+            0.34,
+            -0.18
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "id": "rigging-aft",
+          "kind": "rigging",
+          "position": [
+            0,
+            0.34,
+            0.18
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 65
+    },
+    {
+      "id": "generic-t-head-bollard",
+      "name": "T-head bollard",
+      "kind": "deck-fitting",
+      "size": [
+        1.1,
+        0.76,
+        0.68
+      ],
+      "boundsCenter": [
+        0,
+        0.38,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.29,
+        0
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "rigging-forward",
+          "kind": "rigging",
+          "position": [
+            0,
+            0.385,
+            -0.165
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "id": "rigging-aft",
+          "kind": "rigging",
+          "position": [
+            0,
+            0.385,
+            0.165
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 95
+    },
+    {
+      "id": "generic-inclined-bollards",
+      "name": "Paired inclined bollards",
+      "kind": "deck-fitting",
+      "size": [
+        1.72,
+        0.9,
+        0.82
+      ],
+      "boundsCenter": [
+        0,
+        0.45,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.35,
+        0
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "rigging-port",
+          "kind": "rigging",
+          "position": [
+            -0.5,
+            0.52,
+            -0.17
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "id": "rigging-starboard",
+          "kind": "rigging",
+          "position": [
+            0.5,
+            0.52,
+            -0.17
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "massKg": 220
+    },
+    {
       "id": "generic-fairlead",
       "name": "Roller fairlead",
       "kind": "deck-fitting",

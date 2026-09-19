@@ -68,6 +68,17 @@ cable windings, ornamental profiles and service-specific mechanisms are omitted;
 12-sided castings and six-sided thin rods follow the lightweight boxes and racks.
 These are static visual fittings; no new operating mechanisms are implied.
 
+`bollards.py` adds three original mooring silhouettes beside the existing twin
+bitts: **Single-post bollard** (0.66 × 0.64 × 0.66 m, 65 kg), **T-head bollard**
+(1.10 × 0.76 × 0.68 m, 95 kg), and **Paired inclined bollards**
+(1.72 × 0.90 × 0.82 m, 220 kg), listed as width × height × length.
+They reuse the plain 12-sided fitting primitives and shared instance paint,
+with a flat deck sole at Y=0, a downward support socket and two rope sockets.
+Find them under **Fittings → Deck gear**, or search for “bollard”. These are
+static generic game fittings with estimated envelopes and dry masses; no
+historical fidelity or working-load rating is claimed. Their fidelity status
+remains `unreviewed`; each installation still needs deck support and clearance.
+
 The first deck fittings collection adds bitts, fairleads, a capstan and anchor
 windlass, a stowed anchor, a lifeboat with cradles and paired davits, two vent
 styles, a watertight door, deck hatch, vertical ladder, inclined stairs, compact
