@@ -71,7 +71,7 @@ try {
   });
   await ready();
   assert.deepEqual(await snapshot(), moved, 'Reopening a saved ship must regenerate the same mounts');
-  await page.getByRole('tab', { name: 'Fittings', exact: true }).click();
+  await page.getByRole('tab', { name: 'Machinery', exact: true }).click();
   await page.evaluate(() => {
     const viewport = window.shipbuilderViewport;
     viewport.controls.target.set(0, -9, 98);

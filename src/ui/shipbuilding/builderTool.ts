@@ -16,8 +16,8 @@ import { applyConstructionBatch, constructionDiffCommands, type ConstructionComm
 import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../ships/constructionRevisionOwner';
 import { canEditVertices, selectionCorners, splitVertexPrimitive, topology, VERTEX_UNITS, type HullSelection, type HullSelectionMode, type MirrorAxes } from '../../ships/constructionVertex';
 import { pathSlackLimit, pathProblem } from '../../ships/constructionPaths';
-import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
-import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
+import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderTab, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
+import { FITTING_GROUPS, fittingCategory, fittingGroup, fittingNation, shelfNations, type FittingCategory, type FittingFilter, type FittingGroup, type FittingNation } from './fittingCategories';
 import type { HullCategory } from './hullCategories';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
@@ -38,6 +38,8 @@ export interface BuilderToolState {
   slots: Record<BuilderLayer, string>;
   /** The Fittings shelf on the bar and the nation it is narrowed to. */
   fittingFilter: FittingFilter;
+  /** The shelf each fitting tab last showed, so a tab reopens where it was left. */
+  groupShelves: Record<FittingGroup, FittingCategory>;
   hullCategory: HullCategory;
   windowRow: boolean; windowSpacing: number;
   customMm: number; sizeOverride?: Vec3; bearing: number;
@@ -123,6 +125,7 @@ export class BuilderTool {
   constructor(private readonly door: BuilderRevisionDoor, private readonly context: BuilderToolContext, initial: Partial<BuilderToolState> = {}) {
     this.state = {
       layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
+      groupShelves: { machinery: 'running-gear', armament: 'main-battery', outfit: 'mooring' },
       hullCategory: 'all', windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, wallTurn: 0, pathPoints: [], pathBearing: 0, ropeSlack: .15, railingHeight: 1.1, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
       snapping: { ...DEFAULT_SNAPPING }, snapOverride: false, rotationAxis: 1, rotationSnap: true,
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'face', index: 5 } },
@@ -148,6 +151,8 @@ export class BuilderTool {
   // ---- state changes
   private update(patch: Partial<BuilderToolState>) {
     const previous = this.state, next = { ...previous, ...patch };
+    const category = next.fittingFilter.category;
+    if (next.groupShelves[fittingGroup(category)] !== category) next.groupShelves = { ...next.groupShelves, [fittingGroup(category)]: category };
     this.state = next;
     // A pending route belongs to one part on one layer and tool of one design.
     if (next.pathPoints.length && (next.layer !== previous.layer || next.tool !== previous.tool || this.pathPartOf(next)?.id !== this.pathPartOf(previous)?.id)) this.state = { ...next, pathPoints: [] };
@@ -191,7 +196,9 @@ export class BuilderTool {
   setFittingFilter = (patch: Partial<FittingFilter>) => { this.update({ fittingFilter: { ...this.state.fittingFilter, ...patch }, pathPoints: [], sizeOverride: undefined }); };
   setHullCategory = (hullCategory: HullCategory) => { if (hullCategory !== this.state.hullCategory) this.update({ hullCategory, sizeOverride: undefined }); };
   get active(): SlotItem | undefined { return this.palette.drawer.find(item => item.id === this.state.slots[this.state.layer]) ?? this.palette.drawer[0]; }
-  get drawerName() { return this.state.layer === 'fittings' ? 'fittings' : this.state.layer === 'hull' ? 'shapes' : 'items'; }
+  /** The dock tab: the layer, or on Fittings the group of the open shelf. */
+  get tab(): BuilderTab { return this.state.layer === 'fittings' ? fittingGroup(this.state.fittingFilter.category) : this.state.layer; }
+  get drawerName() { return this.state.layer === 'fittings' ? FITTING_GROUPS.find(group => group.id === this.tab)!.name.toLowerCase() : this.state.layer === 'hull' ? 'shapes' : 'items'; }
   get hasDrawer() { return this.palette.drawer.length > this.palette.bar.filter(item => item.kind !== 'empty').length || this.state.layer === 'fittings' || this.state.layer === 'hull'; }
   private pathPartOf(state: BuilderToolState): ConstructionEquipmentPart | undefined {
     if (state.layer !== 'fittings' || state.tool !== 'place') return undefined;
@@ -401,6 +408,13 @@ export class BuilderTool {
   switchLayer = (next: BuilderLayer) => {
     this.update({ layer: next, tool: DEFAULT_TOOL[next], surfaces: new Set(), measure: undefined, bearing: 0, tilt: undefined,
       ...(next === 'armor' || next === 'paint' ? { selected: new Set<string>() } : next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}) });
+  };
+  /** Open a dock tab; a fitting tab opens the Fittings layer on the shelf it last showed. */
+  openTab = (tab: BuilderTab) => {
+    const group = FITTING_GROUPS.find(entry => entry.id === tab)?.id;
+    if (!group) { this.switchLayer(tab as Exclude<BuilderTab, FittingGroup>); return; }
+    if (this.state.layer !== 'fittings') this.switchLayer('fittings');
+    if (this.tab !== group) this.setFittingFilter({ category: this.state.groupShelves[group] });
   };
   /** Choose a card: true when it acted, so the caller closes the drawer and its tooltip. */
   toggleSlot = (item: SlotItem): boolean => {

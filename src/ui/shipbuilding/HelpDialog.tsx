@@ -38,7 +38,7 @@ const VIEW: [string[], string][] = [
   [['W'], 'Open or close the checks list under the top bar'],
   [['M'], 'Mirror: place across the centerline, and give every edit of a piece to its existing twin (outlined in mint)'],
   [['C'], 'Show or hide the centers of gravity and buoyancy'],
-  [['A'], 'In Fittings: show or hide gun arcs'],
+  [['A'], 'In Machinery, Armament and Outfit: show or hide gun arcs'],
   [['Home'], 'Frame the ship'],
   [['1', '…', '9'], 'Pick a palette card'],
   [['0'], 'Open or close every card of the layer'],

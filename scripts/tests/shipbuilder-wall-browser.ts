@@ -17,7 +17,7 @@ try {
     await mountShipbuilderReview(createStarterSource(catalog,'fletcher-hull'));
   });
   await page.waitForFunction(()=>window.constructionEditor?.source().construction.primitives[0].kind==='custom-hull');await ready();
-  await page.getByRole('tab',{name:'Fittings',exact:true}).click();
+  await page.getByRole('tab',{name:'Outfit',exact:true}).click();
   await page.getByRole('tab',{name:'Doors & windows',exact:true}).click();
   await page.getByRole('button',{name:'Round porthole',exact:true}).click();
   await page.keyboard.press('ArrowRight');await page.keyboard.press('Shift+ArrowUp');

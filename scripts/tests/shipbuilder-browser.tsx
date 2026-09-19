@@ -105,7 +105,7 @@ export async function checkShipbuilderSuggestions() {
   controls.key('z', { ctrlKey: true });
   await wait(() => JSON.stringify(source()!.construction) === before, 'one undo restores exact hull and module references');
   await wait(() => compiled(), 'restored hull is compiled before another suggestion');
-  await controls.tab('Fittings');
+  await controls.tab('Armament');
   document.querySelector<HTMLButtonElement>('.sb-slot.more')!.click(); await sleep(30);
   const oversized = catalog.equipment.find(part => part.id === 'sk-c34-380-twin')!;
   const fitting = [...document.querySelectorAll<HTMLButtonElement>('.sb-drawer .sb-slot')].find(button => button.getAttribute('aria-label') === oversized.name);
@@ -206,7 +206,7 @@ export async function checkShipbuilderEditing() {
   await controls.card('Opening'); await controls.tool('Paint'); controls.click(...center); await wait(() => source()!.construction.surfaces.some(surface => surface.open), 'explicit openings remain distinct from armor');
   controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.surfaces.every(surface => !surface.open), 'undo restores closed skin and armor together');
   await controls.tab('Internals'); await wait(() => compiled(), 'internals layer has a compiled hull'); await controls.tool('Bulkhead'); controls.click(...center); await wait(() => source()!.construction.boundaries.length === 1, 'internal boundary source survives autosave');
-  await controls.tab('Fittings'); await wait(() => compiled(), 'fittings layer has a compiled hull'); await controls.slot(1); controls.click(...center);
+  await controls.tab('Armament'); await wait(() => compiled(), 'fittings layer has a compiled hull'); await controls.slot(1); controls.click(...center);
   await wait(() => source()!.construction.equipment.length >= 1, 'fixed equipment placement remains saved even with a fit error');
   const saved = structuredClone(source()!);
   const { openConstructionStore } = await import('../../src/ships/constructionStore');

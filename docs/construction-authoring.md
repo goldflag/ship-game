@@ -51,7 +51,7 @@ Reload deliberately takes the file revision and retains the previous draft as an
 undo step. Save local copy puts an independent design in the normal IndexedDB
 library. Repository deletion remains a Git operation.
 
-Select a gun in Fittings to change **Turret rise**. Rise extends its circular
+Select a gun in Armament to change **Turret rise**. Rise extends its circular
 support above the deck. A turret well's integrated magazine stays at its lower
 end; a deck mount's ready ammunition follows the raised gun. The whole generated
 support wears the turret's `paint`, or the ship paint (`construction.paint`) under

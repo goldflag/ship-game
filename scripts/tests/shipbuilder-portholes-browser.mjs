@@ -20,7 +20,7 @@ try {
   await mountShipbuilderReview(source,catalog,()=>openConstructionStore({name:'porthole-review'}));
  });
  await page.waitForFunction(()=>window.constructionEditor?.result()?.definition);
- await page.evaluate(async()=>{const {controls}=await import('/scripts/tests/shipbuilder-browser.tsx');await controls.tab('Fittings');await controls.tool('Select');controls.click(...await controls.screen([1.5,0,0]));});
+ await page.evaluate(async()=>{const {controls}=await import('/scripts/tests/shipbuilder-browser.tsx');await controls.tab('Outfit');await controls.tool('Select');controls.click(...await controls.screen([1.5,0,0]));});
  const scale=page.getByRole('spinbutton',{name:'Scale',exact:true});await scale.waitFor();
  if(await page.getByRole('spinbutton',{name:/Width|Height|Diameter/}).count())throw Error('Independent dimensions visible');
  await scale.fill('1.5');await scale.press('Enter');

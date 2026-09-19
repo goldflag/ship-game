@@ -113,7 +113,7 @@ export async function checkEquipmentPaletteImages() {
   await mountShipbuilderReview();
   await controls.settled(() => !!document.querySelector('.sb-tabs'), 'editor mounted');
   const checks: string[] = [];
-  for (const layer of ['Internals', 'Fittings']) {
+  for (const layer of ['Internals', 'Machinery', 'Armament', 'Outfit']) {
     await controls.tab(layer);
     document.querySelector<HTMLButtonElement>('.sb-slot.more')!.click();
     await controls.settled(() => !!document.querySelector('.sb-drawer'), 'palette drawer');

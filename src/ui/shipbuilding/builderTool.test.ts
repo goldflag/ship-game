@@ -329,7 +329,7 @@ test('connected routes: points accumulate outside history, Enter commits the rou
   tool.selectSlot(tool.palette.all!.find(item => item.id === 'railing')!);
   expect(tool.pathPart?.id).toBe('railing');
   // The card came from another shelf: the bar opens that shelf.
-  expect(state().fittingFilter.category).toBe('deck-gear'); expect(tool.palette.drawer.map(item => item.id)).toContain('railing');
+  expect(state().fittingFilter.category).toBe('access'); expect(tool.tab).toBe('outfit'); expect(tool.palette.drawer.map(item => item.id)).toContain('railing');
   expect(tool.scene(undefined)).toMatchObject({ gesture: 'none', moveTargets: 'none', placementPiece: undefined, pathDraft: { points: [], mirror: true, slackM: 0 } });
   tool.pointer({ kind: 'path-point', point: [1, .5, -2] });
   expect(tool.pointer({ kind: 'path-finish' })).toBeUndefined();

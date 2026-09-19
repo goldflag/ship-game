@@ -22,7 +22,7 @@ try {
     source.construction.primitives[0].size = [8, 6, 12];
     await mountShipbuilderReview(source);
   }); await ready();
-  await page.getByRole('tab', { name: 'Fittings', exact: true }).click();
+  await page.getByRole('tab', { name: 'Outfit', exact: true }).click();
   await page.getByRole('tab', { name: 'Doors & windows', exact: true }).click();
   await page.evaluate(() => {
     const v = window.shipbuilderViewport; v.setView('side');

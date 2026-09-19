@@ -15,7 +15,7 @@ await page.evaluate(async()=>{window.check.armamentEditor().undo();await new Pro
 const restored=await page.evaluate(()=>window.check.armamentEditor().source());
 if(restored.construction.version!==1||!restored.construction.equipment.some(e=>e.id==='old-magazine'))throw Error('Conversion undo failed');
 await page.evaluate(()=>window.check.armamentEditor().redo());await ready();
-await page.getByRole('tab',{name:'Fittings',exact:true}).click();
+await page.getByRole('tab',{name:'Armament',exact:true}).click();
 await page.keyboard.press('v');
 const pos=await page.evaluate(async()=>{const T=await import('/node_modules/three/build/three.module.js');return window.shipbuilderViewport.project(new T.Vector3(0,4.5,-14));});
 await page.mouse.click(pos.x,pos.y);
