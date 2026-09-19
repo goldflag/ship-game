@@ -15,6 +15,13 @@ export function torpedoCourseAim(point: Vec3, ship: { x: number; z: number }, ra
   return range > 0 ? [ship.x + dx / range * distance, point[1], ship.z + dz / range * distance] : point;
 }
 
+/** A surface torpedo is aimed by bearing alone: the course runs to the end of the
+ * run whatever water the sight happens to rest on. */
+export function torpedoBearingAim(point: Vec3, ship: { x: number; z: number }, rangeM: number): Vec3 {
+  const dx = point[0] - ship.x, dz = point[2] - ship.z, range = Math.hypot(dx, dz);
+  return range > 0 ? [ship.x + dx / range * rangeM * .98, .5, ship.z + dz / range * rangeM * .98] : point;
+}
+
 /** CPU geometry only: the rendered ocean never chooses a gameplay aim point. */
 type AimTarget = { pose: Pose; armor: ShipDefinition['armor']; definition?: ShipDefinition; trains?: number[] };
 const aimBounds = new WeakMap<ShipDefinition, Pick<Volume, 'center' | 'size'>>();

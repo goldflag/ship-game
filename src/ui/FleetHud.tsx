@@ -112,7 +112,7 @@ function ActiveArmament({ data, desk, bindings, locked = false }: FleetHudProps 
       </div>;
     })}</div>
     <div className="fleet-battery-heading"><span>{selected?.name ?? 'No weapons fitted'}</span><strong>{combat.ready}/{combat.total} can fire</strong></div>
-    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedTube?.weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedTube?.weapon.armingDistanceM} m · Put the sight on the lead post</p>}
+    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedTube?.weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedTube?.weapon.armingDistanceM} m · Lay the teal wedge on the pale one</p>}
     {depthCharges && <p className="fleet-torpedo-help">Stern racks / side throwers · Burst at {selectedCharge?.weapon.detonationDepthM} m<br/>Drop on a close pass; keep moving clear of the blast.</p>}
     <div className="fleet-weapon-controls">
       {!torpedoes && !depthCharges && combat.total > 0 && !locked && <ShellCycle combat={combat} desk={desk} bindings={bindings}/>}

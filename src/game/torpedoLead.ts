@@ -12,35 +12,64 @@ export interface TorpedoLead {
   from: Vec3; point: Vec3; seconds: number;
   /** Signed turn of the sight onto the lead; positive is clockwise, to the right. */
   swing: number;
+  /** Course and run from the launcher to the meeting point. */
+  course: number; distance: number;
+  /** Every course that meets the hull, as signed turns from `course` to her two ends. */
+  window: [number, number];
   onSolution: boolean;
 }
 export interface TorpedoAimState {
   sectors: TorpedoSector[];
   /** The launcher the sight readout describes: a ready one on course where possible. */
-  solution?: { origin: Vec3; status: TorpedoSector['status']; distance: number; runSeconds: number; range: number };
+  solution?: { origin: Vec3; status: TorpedoSector['status']; distance: number; runSeconds: number; range: number; speed: number; reload: number };
   lead?: TorpedoLead;
+  /** Why the contact under the sight offers no lead. */
+  unreachable?: 'beyond-run' | 'inside-arming';
 }
 
 const courseTo = (from: Vec3, to: Vec3) => Math.atan2(to[0] - from[0], from[2] - to[2]);
 const MAX_SWING = radians(60);
 
+const NEAR_SIGHT = radians(15);
+/** How much of the hull counts: a torpedo crossing the last tenth of her length is a coin toss. */
+const HULL_SHARE = .9;
+
+function leadWindow(origin: Vec3, contact: LeadContact, course: number, distance: number, speedMps: number): [number, number] {
+  const length = contact.lengthM ?? 120, speed = Math.hypot(contact.velocity[0], contact.velocity[2]);
+  const least = Math.atan2(Math.max(12, length * .1), distance);
+  // A contact with no way on shows no heading: allow for her lying across the course.
+  if (speed < .5) { const half = Math.max(least, Math.atan2(length * .3, distance)); return [-half, half]; }
+  const reach = length * HULL_SHARE / 2 / speed;
+  const turns = [reach, -reach].map(along => {
+    const end = torpedoIntercept(origin, [contact.position[0] + contact.velocity[0] * along, 0, contact.position[2] + contact.velocity[2] * along], contact.velocity, speedMps);
+    return end ? wrapAngle(courseTo(origin, end) - course) : 0;
+  });
+  return [Math.min(...turns, -least), Math.max(...turns, least)];
+}
+
 /** The lead nearest the sight. A contact the torpedo cannot reach, or one far
- * off the sight, offers no lead rather than dragging the post across the view. */
-export function torpedoLead(origin: Vec3, aim: Vec3, contacts: readonly LeadContact[], speedMps: number, rangeM: number): TorpedoLead | undefined {
-  const course = courseTo(origin, aim);
-  let best: TorpedoLead | undefined;
+ * off the sight, offers no lead rather than dragging the wedge across the view. */
+export function torpedoLead(origin: Vec3, aim: Vec3, contacts: readonly LeadContact[], speedMps: number, rangeM: number, armingM = 0): TorpedoLead | undefined {
+  return leadOrReason(origin, aim, contacts, speedMps, rangeM, armingM).lead;
+}
+
+function leadOrReason(origin: Vec3, aim: Vec3, contacts: readonly LeadContact[], speedMps: number, rangeM: number, armingM: number): Pick<TorpedoAimState, 'lead' | 'unreachable'> {
+  const sight = courseTo(origin, aim);
+  let best: TorpedoLead | undefined, unreachable: TorpedoAimState['unreachable'], nearest = NEAR_SIGHT;
   for (const contact of contacts) {
     const point = torpedoIntercept(origin, contact.position, contact.velocity, speedMps);
     if (!point) continue;
     const distance = Math.hypot(point[0] - origin[0], point[2] - origin[2]);
-    if (distance > rangeM) continue;
-    const swing = wrapAngle(courseTo(origin, point) - course);
+    const course = courseTo(origin, point), swing = wrapAngle(course - sight);
+    if (distance > rangeM || distance < armingM) {
+      if (Math.abs(swing) < nearest) { nearest = Math.abs(swing); unreachable = distance > rangeM ? 'beyond-run' : 'inside-arming'; }
+      continue;
+    }
     if (Math.abs(swing) > MAX_SWING || (best && Math.abs(best.swing) <= Math.abs(swing))) continue;
-    // A straight runner passes this far abeam of the meeting point.
-    const miss = distance * Math.sin(Math.abs(swing));
-    best = { contactId: contact.id, from: contact.position, point, seconds: distance / speedMps, swing, onSolution: miss <= Math.max(12, (contact.lengthM ?? 120) * .3) };
+    const window = leadWindow(origin, contact, course, distance, speedMps);
+    best = { contactId: contact.id, from: contact.position, point, seconds: distance / speedMps, swing, course, distance, window, onSolution: -swing >= window[0] && -swing <= window[1] };
   }
-  return best;
+  return best ? { lead: best } : { unreachable };
 }
 
 export function torpedoAimState(actor: FleetActor, pose: ShipState, aim: Vec3, contacts: readonly LeadContact[], weaponGroupId?: string): TorpedoAimState {
@@ -50,8 +79,8 @@ export function torpedoAimState(actor: FleetActor, pose: ShipState, aim: Vec3, c
   const distance = Math.hypot(aim[0] - chosen.origin[0], aim[2] - chosen.origin[2]);
   return {
     sectors,
-    solution: { origin: chosen.origin, status: chosen.status, distance, runSeconds: distance / chosen.speed, range: chosen.range },
-    lead: torpedoLead(chosen.origin, aim, contacts, chosen.speed, chosen.range),
+    solution: { origin: chosen.origin, status: chosen.status, distance, runSeconds: distance / chosen.speed, range: chosen.range, speed: chosen.speed, reload: chosen.reload },
+    ...leadOrReason(chosen.origin, aim, contacts, chosen.speed, chosen.range, chosen.arming),
   };
 }
 
