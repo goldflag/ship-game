@@ -44,6 +44,7 @@ import { PathPointEditor } from './PathPointEditor';
 import { NumberField } from './NumberField';
 import { SlotImages, useSlotImages } from './slotImages';
 import { armorInspectionGroups, armorThicknessGroups, describeArmorGroup } from './ArmorInspection';
+import { describeTurretArmor, installedTurretArmor } from './turretArmor';
 import { attachmentOffset, rotateY, bearingRadians } from './placement';
 import type { BuilderView } from './builderScene';
 import { normalizedBearing } from './editorNumbers';
@@ -183,6 +184,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const selectedBoundary = tool.selectedBoundary;
   const partOf = tool.partOf;
   const editableSurfaces = tool.editableSurfaces, armorScale = tool.armorScale;
+  const turretArmor = useMemo(() => layer === 'armor' ? installedTurretArmor(source, catalog) : [], [layer, source, catalog]);
   const openingKey = String(palette.bar.findIndex(item => item.kind === 'opening') + 1);
   const gridStep = tool.gridStep, piece = tool.piece;
   const fail = (cause: unknown) => owner.setError(cause instanceof Error ? cause.message : String(cause));
@@ -554,6 +556,14 @@ export function Shipbuilder(props: ShipbuilderProps) {
         return card ? <button key={group.id} disabled={locked} aria-pressed={active?.kind === 'thickness' && active.mm === group.thicknessMm} title={`Pick ${group.thicknessMm} mm for the Armor card`} onClick={() => selectSlot(card)}><i style={{ background: armorThicknessColor(group.thicknessMm, armorScale) }}/><span>{text}</span></button>
           : <p key={group.id}><i/><span>{text}</span></p>;
       })}</div>}
+      {/* Guns bring their own protection from the catalog: shown on the same scale, never editable. */}
+      {layer === 'armor' && turretArmor.length > 0 && <div className="sb-armor-groups sb-turret-armor" aria-label="Turret armor">
+        <span className="sb-lead">Turret armor <small>fixed by the gun</small></span>
+        {turretArmor.map(({ name, count, armor }) => <p key={name}>
+          <i style={{ background: armorThicknessColor(Math.max(armor.armorMm, ...armor.plates.map(plate => plate.thicknessMm)), armorScale) }}/>
+          <span>{name}{count > 1 && <> ×{count}</>}<small>{describeTurretArmor(armor)}</small></span>
+        </p>)}
+      </div>}
     </aside>
     {drawer && <div className="sb-drawer" ref={drawerRef} style={drawerSize} aria-label={`All ${drawerName}`}>
       <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>

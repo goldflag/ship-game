@@ -24,6 +24,7 @@ import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
 import { mirroredMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_NOTICE } from './blockMovement';
 import { mirroredDelta, mirrorTwins, twinPrimitive, withMirroredEdits, withTwinReplacements } from './mirrorEditing';
 import { internalSelectionIds } from './internalSelection';
+import { installedTurretThicknesses } from './turretArmor';
 import { normalizedBearing } from './editorNumbers';
 import type { BuilderArc, BuilderDisplay, BuilderGesture, BuilderMoveTargets, BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderProposal, BuilderScene, BuilderView } from './builderScene';
 import type { ArmorScale } from '../../ships/inspection';
@@ -111,7 +112,7 @@ export class BuilderTool {
   private suggestionRequest?: AbortController;
   private readonly unsubscribe: () => void;
   private paletteCache?: { layer: BuilderLayer; catalog: ConstructionCatalog; thicknesses: string; filter: FittingFilter; hullCategory: HullCategory; palette: ReturnType<typeof paletteFor> };
-  private surfaceCache?: { source: ConstructionSource; compiled?: ConstructionResult; retained?: ConstructionResult; surfaces: ConstructionSurface[]; keys: Set<string>; thicknesses: number[]; armorScale: ArmorScale };
+  private surfaceCache?: { source: ConstructionSource; catalog: ConstructionCatalog; compiled?: ConstructionResult; retained?: ConstructionResult; surfaces: ConstructionSurface[]; keys: Set<string>; thicknesses: number[]; armorScale: ArmorScale };
   private pieceCache?: { key: string; piece?: BuilderPlacement };
   private internalCache?: { source: ConstructionSource; catalog: ConstructionCatalog; ids: Set<string> };
   private mirrorCache?: { key: string; piece?: BuilderPlacement };
@@ -251,10 +252,12 @@ export class BuilderTool {
   /** Faces from the current compile, or from the last one with this source's assignments over them while a compile is pending. */
   private get surfaceState() {
     const source = this.source, compiled = this.compiled, retained = compiled ? undefined : this.retained;
-    if (!this.surfaceCache || this.surfaceCache.source !== source || this.surfaceCache.compiled !== compiled || this.surfaceCache.retained !== retained) {
+    if (!this.surfaceCache || this.surfaceCache.source !== source || this.surfaceCache.catalog !== this.catalog || this.surfaceCache.compiled !== compiled || this.surfaceCache.retained !== retained) {
       const surfaces = editableConstructionSurfaces(source, compiled?.surfaces ?? (retained ? projectConstructionSurfaces(source, retained.surfaces) : []));
       const thicknesses = [...new Set(surfaces.filter(surface => !surface.open).map(surface => surface.thicknessMm))].sort((a, b) => b - a);
-      this.surfaceCache = { source, compiled, retained, surfaces, keys: new Set(surfaces.map(surface => surfaceSelectionKey(surface))), thicknesses, armorScale: { fromMm: thicknesses.at(-1) ?? 0, toMm: thicknesses[0] ?? 0 } };
+      // Turret plates are fixed catalog armor, not value cards, but they share the colour scale so the whole ship reads alike.
+      const scaled = [...thicknesses, ...installedTurretThicknesses(source, this.catalog)];
+      this.surfaceCache = { source, catalog: this.catalog, compiled, retained, surfaces, keys: new Set(surfaces.map(surface => surfaceSelectionKey(surface))), thicknesses, armorScale: { fromMm: scaled.length ? Math.min(...scaled) : 0, toMm: scaled.length ? Math.max(...scaled) : 0 } };
     }
     return this.surfaceCache;
   }
@@ -263,7 +266,7 @@ export class BuilderTool {
   get editableKeys(): ReadonlySet<string> { return this.surfaceState.keys; }
   /** Every thickness on the ship, thickest first; the Armor layer's value cards. */
   get thicknesses(): readonly number[] { return this.surfaceState.thicknesses; }
-  /** The ship's thinnest and thickest plates: the ends of the Armor layer's relative colour scale. */
+  /** The ship's thinnest and thickest plates, turrets included: the ends of the Armor layer's relative colour scale. */
   get armorScale(): ArmorScale { return this.surfaceState.armorScale; }
   /** Fittings and modules snap on the equipment step; everything else on the hull step. */
   get snapKind(): 'hull' | 'equipment' { const { layer, tool } = this.state; return layer === 'fittings' || (layer === 'internals' && tool === 'module') ? 'equipment' : 'hull'; }

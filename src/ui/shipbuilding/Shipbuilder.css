@@ -239,7 +239,9 @@
 .sb-help p { margin-top: 16px; font-size: 12px; color: var(--sb-muted); }
 
 /* ledger */
-.sb-ledger { position: absolute; right: 18px; top: 96px; width: 214px; }
+/* Stops above the dock and its two-row key legend; a long armor list scrolls instead of running into them. */
+.sb-ledger { position: absolute; right: 18px; top: 96px; width: 214px; max-height: calc(100% - 96px - 190px); overflow-y: auto; scrollbar-width: thin; }
+.sb-ledger .sb-armor-groups { pointer-events: auto; }
 .sb-ledger h4 { margin: 0 0 2px; font: 500 11px 'Barlow', sans-serif; letter-spacing: .09em; text-transform: uppercase; color: var(--sb-muted); display: flex; justify-content: space-between; }
 .sb-ledger h4 span { text-transform: none; letter-spacing: 0; color: var(--sb-brass); }
 .sb-ledger .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--sb-line); font-size: 12px; }
@@ -261,6 +263,8 @@
 .sb-armor-groups i { flex: none; width: 10px; height: 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px #edf1ec33; }
 .sb-armor-groups span { min-width: 0; }
 .sb-armor-groups small { display: block; color: var(--sb-muted); }
+.sb-turret-armor > .sb-lead { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0 3px; border-bottom: 1px solid var(--sb-line); }
+.sb-turret-armor > .sb-lead small { display: inline; text-transform: none; letter-spacing: 0; }
 
 /* hotkey legend at the tab row's right end: the standing keys on the bottom row, the keys acting on the cursor piece,
    the selection or the picked faces on a row above. Rows wrap upward. */
