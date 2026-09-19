@@ -3,14 +3,20 @@ import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimit
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
 import { isRetiredDeckFitting } from '../../ships/constructionEquipment';
-import { filterFittings, type FittingFilter } from './fittingCategories';
+import { filterFittings, type FittingFilter, type FittingGroup } from './fittingCategories';
 import { HULL_CATEGORY, type HullCategory } from './hullCategories';
 
 /** Layer tabs, tool rails and hotbar palettes of the "Slipway rails" editor.
  * Pure data: the component maps these onto source commands. */
 export type BuilderLayer = 'hull' | 'armor' | 'internals' | 'fittings' | 'paint';
 export const BUILDER_LAYERS: { id: BuilderLayer; name: string }[] = [
-  { id: 'hull', name: 'Hull' }, { id: 'armor', name: 'Armor' }, { id: 'internals', name: 'Internals' }, { id: 'fittings', name: 'Fittings' }, { id: 'paint', name: 'Paint' },
+  { id: 'hull', name: 'Hull' }, { id: 'fittings', name: 'Machinery · Armament · Outfit' }, { id: 'internals', name: 'Internals' }, { id: 'paint', name: 'Paint' }, { id: 'armor', name: 'Armor' },
+];
+/** The dock's tabs. The Fittings layer shows as three tabs, one per fitting group; each opens that group's shelves. */
+export type BuilderTab = Exclude<BuilderLayer, 'fittings'> | FittingGroup;
+export const BUILDER_TABS: { id: BuilderTab; name: string; glyph: string }[] = [
+  { id: 'hull', name: 'Hull', glyph: 'Hull' }, { id: 'machinery', name: 'Machinery', glyph: 'Machinery' }, { id: 'armament', name: 'Armament', glyph: 'Fitting' },
+  { id: 'outfit', name: 'Outfit', glyph: 'Outfit' }, { id: 'internals', name: 'Internals', glyph: 'Split' }, { id: 'paint', name: 'Paint', glyph: 'Paint' }, { id: 'armor', name: 'Armor', glyph: 'Armor' },
 ];
 
 export type BuilderToolId = 'rotate' | 'select' | 'place' | 'fill' | 'erase' | 'measure' | 'apply' | 'area' | 'eyedrop' | 'opening' | 'deck' | 'bulkhead' | 'longitudinal' | 'merge' | 'module';
@@ -99,7 +105,7 @@ export function partSlot(part: ConstructionEquipmentPart, catalog: ConstructionC
   return { kind: 'part', id: part.id, name: shortName, note: part.path ? `${part.path.kind} path · ${formatTonnes(part.path.massKgPerM)}/m` : `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`, part };
 }
 export function sortedParts(catalog: ConstructionCatalog, placement: (part: ConstructionEquipmentPart) => boolean): ConstructionEquipmentPart[] {
-  // Drawable paths lead the deck-gear shelf; guns run from the heaviest calibre down.
+  // Drawable paths lead the Mooring and Access shelves; guns run from the heaviest calibre down.
   const caliber = (part: ConstructionEquipmentPart) => part.kind === 'gun' ? catalog.weapons.parts.find(gun => gun.id === part.gunPartId)?.caliberM ?? 0 : 0;
   return catalog.equipment.filter(part => part.kind !== 'magazine' && part.id !== 'generic-vertical-ladder' && !isRetiredDeckFitting(part.id) && placement(part)).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || Number(!!b.path) - Number(!!a.path) || caliber(b) - caliber(a) || a.name.localeCompare(b.name));
 }

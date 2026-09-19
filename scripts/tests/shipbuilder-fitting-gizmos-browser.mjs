@@ -11,7 +11,7 @@ try {
   await page.waitForFunction(() => !!window.constructionEditor?.result()?.definition, undefined, { timeout: 60000 });
   await page.evaluate(async () => {
     const { controls } = await import('/scripts/tests/shipbuilder-browser.tsx');
-    await controls.tab('Fittings'); await controls.tool('Select');
+    await controls.tab('Machinery'); await controls.tool('Select');
     const viewport = window.shipbuilderViewport;
     viewport.props.onPointer({ kind: 'box', ids: ['funnel'], additive: false });
   });

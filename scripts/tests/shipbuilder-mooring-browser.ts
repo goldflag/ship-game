@@ -20,7 +20,7 @@ export async function checkMastRopeAttachment() {
   const saved = () => window.shipbuilderReview?.source;
   const ready = () => viewport()?.props.scene.current?.revision === saved()?.revision;
   await wait(() => saved()?.name === source.name && ready() && viewport().equipment.has('mast-0') && viewport().equipment.has('mast-1'), 'masts load and compile');
-  await controls.tab('Fittings');
+  await controls.tab('Outfit');
   viewport().camera.position.set(0, 6, -25); viewport().controls.target.set(0, 6, 0);
   viewport().camera.lookAt(0, 6, 0); viewport().controls.update();
   document.querySelector<HTMLButtonElement>('.sb-slot.more')!.click();

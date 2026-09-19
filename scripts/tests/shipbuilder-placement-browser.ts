@@ -205,7 +205,7 @@ export async function checkShipbuilderPlacement() {
     await frame(); check(equipmentMeshes(gun.id).length > 0, 'undo restores the full fitting model from the cached asset');
     await controls.tool('Place');
 
-    await controls.tab('Fittings');
+    await controls.tab('Machinery');
     document.querySelector<HTMLButtonElement>('.sb-hotbar .more')!.click();
     await controls.settled(() => !!document.querySelector('.sb-drawer'), 'fittings drawer');
     const funnelSlot = [...document.querySelectorAll<HTMLButtonElement>('.sb-drawer .sb-slot')].find(button => /funnel/i.test(button.getAttribute('aria-label') ?? ''))!;

@@ -3,7 +3,7 @@ import { ToolGlyph } from './builderGlyphs';
 export interface ViewBarTip { title: string; detail: string; key?: string; target: HTMLElement }
 export interface ViewBarProps {
   viewName: string; perspective: boolean; showCenters: boolean;
-  /** Undefined outside the Fittings layer, where arcs never draw; the Arcs square then stays off the strip. */
+  /** Undefined outside the fitting tabs, where arcs never draw; the Arcs square then stays off the strip. */
   showArcs?: boolean;
   onView(): void; onProjection(): void; onCenters(): void; onArcs(): void; onFit(): void;
   onTip(tip: ViewBarTip | undefined): void;

@@ -3,7 +3,7 @@ import catalogJson from '../../../public/models/components/catalog.json';
 import retainedCatalogJson from '../../../public/models/components/catalogs/f8d5f622818e0ef20c6c3918ac36dc29d1904e18b13a83aa923e1e93d05ff697/catalog.json';
 import type { ConstructionCatalog } from '../../ships/blueprint';
 import { paletteFor } from './builderLayers';
-import { FITTING_CATEGORIES, fittingCategory, fittingNation } from './fittingCategories';
+import { FITTING_CATEGORIES, FITTING_GROUPS, fittingCategory, fittingNation } from './fittingCategories';
 
 const catalog = catalogJson as ConstructionCatalog;
 const part = (id: string) => catalog.equipment.find(entry => entry.id === id)!;
@@ -16,7 +16,14 @@ test('every fitting sits on exactly one shelf and every shelf holds something', 
   for (const entry of FITTING_CATEGORIES) expect(shelf({ category: entry.id, nation: 'all' }).length).toBeGreaterThan(0);
 });
 
-test('guns split at 100 mm; deck fittings that aim or float leave the deck-gear shelf', () => {
+test('every tab has shelves, in tab order', () => {
+  expect(FITTING_GROUPS.map(group => group.id)).toEqual(['machinery', 'armament', 'outfit']);
+  const order = FITTING_CATEGORIES.map(entry => FITTING_GROUPS.findIndex(group => group.id === entry.group));
+  expect(order).toEqual(order.slice().sort());
+  expect(new Set(order).size).toBe(FITTING_GROUPS.length);
+});
+
+test('guns split at 100 mm; deck fittings are shelved by what they are', () => {
   expect(fittingCategory(part('skc33-105-c31-twin'), catalog)).toBe('main-battery');
   expect(fittingCategory(part('us-5in38-mk30-mod0-single'), catalog)).toBe('main-battery');
   expect(fittingCategory(part('flak28-40-single'), catalog)).toBe('light-aa');
@@ -24,19 +31,23 @@ test('guns split at 100 mm; deck fittings that aim or float leave the deck-gear 
   expect(fittingCategory(part('generic-static-searchlight'), catalog)).toBe('fire-control');
   expect(fittingCategory(part('generic-lifeboat-davits'), catalog)).toBe('boats-aviation');
   expect(fittingCategory(part('german-cruiser-catapult'), catalog)).toBe('boats-aviation');
-  expect(fittingCategory(part('generic-anchor-windlass'), catalog)).toBe('deck-gear');
+  expect(fittingCategory(part('generic-anchor-windlass'), catalog)).toBe('mooring');
   for (const id of ['generic-carley-float', 'rn-motor-pinnace', 'us-aircraft-crane', 'ijn-aircraft-catapult']) expect(fittingCategory(part(id), catalog)).toBe('boats-aviation');
-  for (const id of ['generic-capstan', 'generic-cowl-vent', 'generic-deck-storage-box']) expect(fittingCategory(part(id), catalog)).toBe('deck-gear');
+  for (const id of ['generic-capstan', 'generic-twin-bitts', 'generic-rope', 'generic-chain', 'generic-hawse-pipe']) expect(fittingCategory(part(id), catalog)).toBe('mooring');
+  for (const id of ['generic-railing', 'generic-surface-ladder', 'generic-inclined-stairs', 'generic-deck-hatch', 'generic-accommodation-ladder']) expect(fittingCategory(part(id), catalog)).toBe('access');
+  for (const id of ['generic-cowl-vent', 'generic-round-wall-vent', 'generic-deck-storage-box', 'generic-wall-cabinet', 'generic-life-ring', 'generic-life-raft-oval', 'generic-ensign-staff']) expect(fittingCategory(part(id), catalog)).toBe('fixtures');
+  expect(fittingCategory(part('us-cruiser-funnel'), catalog)).toBe('funnels');
+  expect(fittingCategory(part('rn-tripod-foremast'), catalog)).toBe('masts');
 });
 
 test('a nation keeps its own parts and the generic ones; a nation absent from the shelf filters nothing', () => {
   // Every authored id names its navy or says generic, so a new part cannot silently fall out of the filter.
   for (const entry of catalog.equipment.filter(entry => entry.placement !== 'internal')) expect(!!fittingNation(entry) || entry.id.startsWith('generic-')).toBe(true);
-  const german = shelf({ category: 'superstructure', nation: 'Germany' });
+  const german = shelf({ category: 'funnels', nation: 'Germany' });
   expect(german).toContain('german-cruiser-funnel-cap'); expect(german).toContain('generic-capital-funnel'); expect(german).not.toContain('fletcher-funnel');
   const american = shelf({ category: 'light-aa', nation: 'United States' });
   expect(american).toContain('us-20mm-oerlikon-mk4-hsienyang'); expect(american.every(id => fittingNation(part(id)) === 'United States')).toBe(true);
-  expect(shelf({ category: 'deck-gear', nation: 'Japan' })).toEqual(shelf({ category: 'deck-gear', nation: 'all' }));
+  expect(shelf({ category: 'mooring', nation: 'Japan' })).toEqual(shelf({ category: 'mooring', nation: 'all' }));
 });
 
 test('gun shelves list the heaviest calibre first', () => {
@@ -45,19 +56,17 @@ test('gun shelves list the heaviest calibre first', () => {
   expect(calibers[0]).toBeGreaterThan(.4);
 });
 
-test('deck gear puts every drawable path ahead of fixed hardware', () => {
-  const deck = shelf({ category: 'deck-gear', nation: 'all' });
-  const paths = deck.filter(id => part(id).path);
-  expect(paths).toContain('generic-rope');
-  expect(paths).toContain('generic-chain');
-  expect(paths).toContain('generic-surface-ladder');
-  expect(paths).toContain('generic-railing');
-  expect(paths).toContain('generic-railing-two-rail');
-  expect(deck.slice(0, paths.length)).toEqual(paths);
+test('mooring and access put every drawable path ahead of fixed hardware', () => {
+  const mooring = shelf({ category: 'mooring', nation: 'all' }), access = shelf({ category: 'access', nation: 'all' });
+  for (const [deck, expected] of [[mooring, ['generic-rope', 'generic-chain']], [access, ['generic-surface-ladder', 'generic-railing', 'generic-railing-two-rail']]] as const) {
+    const paths = deck.filter(id => part(id).path);
+    for (const id of expected) expect(paths).toContain(id);
+    expect(deck.slice(0, paths.length)).toEqual(paths);
+  }
 });
 
-test('current deck gear contains only general ship hardware', () => {
-  const deck = shelf({ category: 'deck-gear', nation: 'all' });
+test('current mooring, access and fixtures contain only general ship hardware', () => {
+  const deck = (['mooring', 'access', 'fixtures'] as const).flatMap(category => shelf({ category, nation: 'all' }));
   expect(deck.every(id => fittingNation(part(id)) === undefined)).toBe(true);
   for (const id of ['generic-paravane', 'generic-signal-lamp', 'generic-gun-tub', 'generic-gun-tub-large',
     'generic-ready-ammo-locker', 'generic-splinter-shield', 'generic-breakwater',
@@ -74,7 +83,7 @@ test('older designs cannot offer retired deck fittings in their shelf, hotbar or
   const original = structuredClone(retained);
   // Use the real immutable publication an old design requests, not the already-curated current one.
   for (const id of retired) expect(retained.equipment.some(entry => entry.id === id)).toBe(true);
-  for (const filter of [undefined, { category: 'deck-gear', nation: 'all' }, { category: 'deck-gear', nation: 'Germany' }] as const) {
+  for (const filter of [undefined, { category: 'mooring', nation: 'all' }, { category: 'mooring', nation: 'Germany' }] as const) {
     const palette = paletteFor('fittings', retained, [], filter);
     for (const items of [palette.bar, palette.drawer, palette.all!]) {
       for (const id of retired) expect(items.map(item => item.id)).not.toContain(id);

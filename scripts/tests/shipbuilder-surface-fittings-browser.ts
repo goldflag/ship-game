@@ -11,8 +11,8 @@ try {
   await page.evaluate(async()=>{
     window.shipbuilderReview?.close();const {createStarterSource}=await import('/src/ships/constructionStarter.ts');const {mountShipbuilderReview}=await import('/scripts/tests/shipbuilder-browser.tsx');const catalog=await(await fetch('/models/components/catalog.json')).json();const s=createStarterSource(catalog,'blank');s.construction.primitives[0].size=[8,8,20];await mountShipbuilderReview(s);
   });await ready();
-  await page.getByRole('tab',{name:'Fittings',exact:true}).click();
-  await page.getByRole('tab',{name:'Deck gear',exact:true}).click();
+  await page.getByRole('tab',{name:'Outfit',exact:true}).click();
+  await page.getByRole('tab',{name:'Access',exact:true}).click();
   const choose=async(name:string)=>{let button=page.getByRole('button',{name,exact:true});if(!await button.count()){await page.locator('.sb-slot.more').click();button=page.getByRole('button',{name,exact:true});}await button.click();};
   await choose('Surface rung ladder');
   if(await page.getByRole('button',{name:'Bulkhead ladder',exact:true}).count())throw new Error('Old fixed ladder remains in the shelf');
@@ -30,7 +30,7 @@ try {
   for(const [i,name] of ['Utility door','Watertight door','Windowed door'].entries()){
     await choose(name);const p=await screen([4,-1,-6+i*2]);await page.mouse.move(...p);await page.mouse.click(...p);await page.waitForFunction(n=>window.constructionEditor!.source().construction.equipment.length===n,4+i*2);await ready();
   }
-  await page.getByRole('tab',{name:'Deck gear',exact:true}).click();
+  await page.getByRole('tab',{name:'Fixtures',exact:true}).click();
   for(const [i,name] of ['Louvered wall vent','Round wall vent'].entries()){
     await choose(name);const p=await screen([4,1,3+i*2]);await page.mouse.move(...p);await page.mouse.click(...p);await page.waitForFunction(n=>window.constructionEditor!.source().construction.equipment.length===n,10+i*2);await ready();
   }

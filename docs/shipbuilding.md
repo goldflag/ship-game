@@ -73,8 +73,8 @@ Propulsion warnings identify missing engines, funnels or propellers. Click an
 engine's warning to select it. Incomplete propulsion remains a warning, so you
 can still launch a sea trial.
 
-Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
-Internals for rooms and machinery, and Paint for finishes. The **Surface finish**
+Use Hull for pieces, Machinery, Armament and Outfit for equipment, Internals for
+rooms and machinery, Paint for finishes, and Armor for plating and openings. The **Surface finish**
 selector in Paint applies **Matte**, **Satin**, **Semi-gloss** or **Gloss** to the
 whole ship's painted hull, fittings and supports. **Original** restores authored
 roughness. Colors, bare timber, glass, cloth and exposed component metals retain
@@ -196,7 +196,7 @@ modes continue to accept their historical content only.
 
 ## Doors, portholes and windows
 
-In **Fittings → Doors & windows**, choose a ship door, round porthole,
+In **Outfit → Doors & windows**, choose a ship door, round porthole,
 rectangular window or rounded-rectangle window. Doors have rounded frames and
 raised closure hardware; plain windows are flush silhouettes. Glazing stays opaque; fittings
 do not cut holes or change flooding. Click a hull side or superstructure wall,
@@ -255,8 +255,8 @@ hull surfaces. No separate ship format or equipment catalog entry is required.
 
 ## Deck fittings and connected paths
 
-In **Fittings**, open the **…** drawer (or press **0**) and search the parts by
-name. The deck collection includes bitts, a roller fairlead, capstan, anchor
+On a fitting tab (Machinery, Armament or Outfit), open the **…** drawer (or press
+**0**) and search the parts by name; the search reaches all three tabs. The deck collection includes bitts, a roller fairlead, capstan, anchor
 windlass, stowed anchor, lifeboat with davits, cowl and mushroom vents, watertight
 door, deck hatch, vertical ladder, inclined stairs, compact optical rangefinder
 and **Searchlight (unlit)**. They are generic naval parts with estimated
@@ -272,7 +272,7 @@ removes the last pending point; **Escape** or **Cancel** discards the route.
 The brass route is a preview until finished, when the entire route and any
 mirrored copy become one undoable edit. Finish or cancel before returning to
 port, opening Designs or starting a sea trial. Railings need deck support at
-every post. Choose **Two-rail railing** or **Three-rail railing** from Fittings.
+every post. Choose **Two-rail railing** or **Three-rail railing** from **Outfit → Access**.
 Set **Railing height** (0.3–3 m) before drawing or in the completed railing’s
 object tag. Older routes retain their saved rail count and height. Minor contacts and joined endpoints are
 allowed; substantial burial in hull or equipment still blocks the route. Rope and chain can attach wherever you click on hull surfaces or fixed deck fittings,
@@ -430,7 +430,7 @@ The Hull drawer also includes a square pyramid (⅓ hull), cylinders and partial
 cylinders, spheres and domes, open dome shells, a cone, round hollow cube,
 concave corner, six windowed bridge blocks/panels (straight, diagonal and rounded
 in each form), and a generic supported breakwater. Closed shapes and their
-open-shell counterparts remain separate entries. Both Hull and Fittings drawers
+open-shell counterparts remain separate entries. Both Hull and fitting drawers
 have search; Hull searches shape names and notes. Size controls cover the
 reference images' duplicate block dimensions; curved pieces use one smooth
 visual treatment.

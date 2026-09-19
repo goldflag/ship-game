@@ -7,7 +7,7 @@ export async function checkShipbuilderRotation() {
   window.shipbuilderReview?.close(); await mountShipbuilderReview();
   await controls.settled(() => window.shipbuilderViewport, 'viewport');
   const viewport = window.shipbuilderViewport as unknown as { ghost: THREE.Group; equipment: { group: THREE.Group }; props: { scene: BuilderScene }; camera: THREE.Camera };
-  await controls.tab('Fittings');
+  await controls.tab('Armament');
   const canvas = document.querySelector<HTMLCanvasElement>('.sb-canvas canvas')!;
   canvas.setPointerCapture = canvas.releasePointerCapture = () => {};
   const checks: string[] = [], failures: string[] = [];

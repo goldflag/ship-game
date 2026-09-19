@@ -38,7 +38,7 @@ export async function checkDeckFittingsEditor() {
   if(gltf.extensions?.KHR_lights_punctual||gltf.nodes?.some((n:any)=>n.extensions?.KHR_lights_punctual)||gltf.materials?.some((m:any)=>m.emissiveFactor?.some((v:number)=>v>0)))throw new Error('Searchlight contains active light or emissive material');
   if(searchlight.kind!=='deck-fitting'||searchlight.powerKw)throw new Error('Searchlight declares runtime capability');
   checks.push('searchlight is static, non-emissive equipment with no power or lighting behavior');
-  await controls.tab('Fittings');
+  await controls.tab('Outfit');
   document.querySelector<HTMLButtonElement>('.sb-slot.more')!.click();
   await controls.settled(()=>!!document.querySelector('.sb-drawer'),'fittings drawer');
   const card=[...document.querySelectorAll<HTMLButtonElement>('.sb-drawer .sb-slot')].find(b=>b.getAttribute('aria-label')?.includes('Three-rail railing'));

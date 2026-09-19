@@ -27,7 +27,7 @@ import { constructionCatalogUpdate, updateConstructionCatalog } from '../../ship
 import { constructionDiffCommands, type ConstructionCommand, type ConstructionBatch } from '../../ships/constructionCommands';
 import { armorThicknessColor } from '../../ships/inspection';
 import { BuilderViewport, type BuilderTag, type ConstructionModelFactory } from './BuilderViewport';
-import { BUILDER_LAYERS, FAMILY_NAMES, formatTonnes, type BuilderLayer, type SlotItem } from './builderLayers';
+import { BUILDER_TABS, FAMILY_NAMES, formatTonnes, type BuilderLayer, type BuilderTab, type SlotItem } from './builderLayers';
 import { BOUNDARY_NAMES } from './builderTool';
 import { FITTING_CATEGORIES, NATION_SHORT, fittingCategory } from './fittingCategories';
 import { HULL_CATEGORIES } from './hullCategories';
@@ -81,8 +81,6 @@ export interface ShipbuilderProps {
   suggestLayout?(source: ConstructionSource, partIds: string[], signal?: AbortSignal): Promise<ConstructionSuggestion>;
 }
 
-/** Glyphs the layer tabs show once the dock is too narrow for their names. */
-const LAYER_GLYPHS: Record<BuilderLayer, string> = { hull: 'Hull', armor: 'Armor', internals: 'Split', fittings: 'Fitting', paint: 'Paint' };
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
 interface KeyHint { keys: string[]; label: string }
 const metres = (value: number) => Number(value.toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -190,6 +188,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const fail = (cause: unknown) => owner.setError(cause instanceof Error ? cause.message : String(cause));
   const run = tool.run;
   const switchLayer = (next: BuilderLayer) => { tool.switchLayer(next); setDrawer(false); setQuery(''); setTip(undefined); };
+  const openTab = (next: BuilderTab) => { tool.openTab(next); setDrawer(false); setQuery(''); setTip(undefined); };
+  const tab = tool.tab;
+  /** A warning's fitting opens the tab and shelf that hold it; an internal one opens Internals. */
+  const showFitting = (id: string) => {
+    const item = data.equipment.find(part => part.id === id), part = item && partOf(item);
+    if (!item || layer === 'internals') return;
+    if (part?.placement === 'internal') { switchLayer('internals'); return; }
+    if (layer !== 'fittings') switchLayer('fittings');
+    if (part) tool.setFittingFilter({ category: fittingCategory(part, catalog) });
+  };
   const selectSlot = (item: SlotItem) => { if (tool.toggleSlot(item)) { setDrawer(false); setTip(undefined); } };
   const enterFreeform = () => { if (tool.enterFreeform()) setDrawer(false); };
   const suggestionChanged = tool.suggestionChanged;
@@ -516,7 +524,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
             <button onClick={() => downloadConstructionSource(JSON.stringify(source, null, 2), source.name)}>Download</button><button onClick={() => void owner.retrySave()?.catch(fail)}>Retry save</button>
             {props.repositoryId && <button onClick={() => void editor.reloadRepository().catch(fail)}>Reload repository</button>}
             <button onClick={() => void (props.repositoryId ? saveLocalCopy() : saveCopy())}>{props.repositoryId ? 'Save local copy' : 'Save a copy'}</button><button onClick={() => owner.setError('')}>Dismiss</button></div>}
-          {warningsOpen && (warnings.length ? <div className="rows">{warnings.map((entry, index) => { const [finding, advice] = splitDiagnostic(entry.message); return <button key={`${entry.code}-${index}`} className={`row ${entry.tone === 'note' ? 'note' : ''}`} title={entry.sourceId ? 'Select the affected part' : entry.code} onClick={() => { if (entry.sourceId) { tool.choose(entry.sourceId); if (data.equipment.some(part => part.id === entry.sourceId) && layer !== 'fittings' && layer !== 'internals') switchLayer(partOf(data.equipment.find(part => part.id === entry.sourceId)!)?.placement === 'internal' ? 'internals' : 'fittings'); } }}><i className={`sb-dot ${entry.tone}`}/><span>{finding}{advice && <small>{advice}</small>}</span></button>; })}</div>
+          {warningsOpen && (warnings.length ? <div className="rows">{warnings.map((entry, index) => { const [finding, advice] = splitDiagnostic(entry.message); return <button key={`${entry.code}-${index}`} className={`row ${entry.tone === 'note' ? 'note' : ''}`} title={entry.sourceId ? 'Select the affected part' : entry.code} onClick={() => { if (entry.sourceId) { tool.choose(entry.sourceId); showFitting(entry.sourceId); } }}><i className={`sb-dot ${entry.tone}`}/><span>{finding}{advice && <small>{advice}</small>}</span></button>; })}</div>
             : <div className="row note"><i className="sb-dot ok"/><span>{compiledResult ? 'Nothing blocks a sea trial.' : 'Checks appear after the design is checked.'}</span></div>)}
           {suggestion && <div className="row" role="status"><i className={`sb-dot ${suggestion.proposal.diagnostics.some(item => item.severity === 'error') ? 'block' : 'ok'}`}/>
             <span>{suggestion.proposal.diagnostics.map(item => item.message).join(' · ') || (suggestionChanged ? 'A layout is ready; the dashed outlines show where it adds equipment.' : 'The requested equipment is already fitted.')}</span>
@@ -570,15 +578,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape' || (event.key === '0' && !event.currentTarget.value)) { event.preventDefault(); event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
       {layer === 'hull' && hullFilters}
-      <div className="sb-drawer-grid" role="listbox">{layer === 'fittings' ? FITTING_CATEGORIES.map(shelf => {
-        // The drawer holds every shelf and nation at once; choosing a card there opens its shelf on the bar.
+      <div className="sb-drawer-grid" role="listbox">{layer === 'fittings' ? FITTING_CATEGORIES.filter(shelf => query || shelf.group === tab).map(shelf => {
+        // The drawer holds every shelf of the tab and every nation at once, and a search reaches all three fitting tabs; choosing a card opens its shelf on the bar.
         const cards = drawerItems.filter(item => item.kind === 'part' && fittingCategory(item.part, catalog) === shelf.id);
         return cards.length ? <div key={shelf.id} className="sb-drawer-shelf" role="group" aria-label={shelf.name}><span className="sb-lead">{shelf.name}</span><div>{cards.map(item => slot(item))}</div></div> : null;
       }) : drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No {layer === 'hull' ? 'shape' : 'fitting'} matches</span>}</div>
     </div>}
     <div className="sb-dock">
       <div className="sb-dock-tabs">
-        <nav className="sb-tabs" role="tablist" aria-label="Layers">{BUILDER_LAYERS.map(entry => <button key={entry.id} role="tab" aria-selected={layer === entry.id} title={entry.name} onClick={() => switchLayer(entry.id)}><ToolGlyph name={LAYER_GLYPHS[entry.id]}/><span>{entry.name}</span></button>)}</nav>
+        <nav className="sb-tabs" role="tablist" aria-label="Layers">{BUILDER_TABS.map(entry => <button key={entry.id} role="tab" aria-selected={tab === entry.id} title={entry.name} onClick={() => openTab(entry.id)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span></button>)}</nav>
         <div className="sb-keys" aria-label="Hotkeys">
           {acting.length > 0 && <div className="sb-keys-row acting">{acting.map(chip)}</div>}
           {standing.length > 0 && <div className="sb-keys-row">{standing.map(chip)}</div>}
@@ -594,7 +602,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <span>Whole ship · cards below paint single faces and fittings</span>
       </div>}
       {layer === 'fittings' && <div className="sb-shelves">
-        <div className="sb-chips" role="tablist" aria-label="Fitting shelves">{FITTING_CATEGORIES.map(shelf => <button key={shelf.id} role="tab" aria-selected={fittingFilter.category === shelf.id} title={shelf.note} onClick={() => { tool.setFittingFilter({ category: shelf.id }); setTip(undefined); }}>{shelf.name}</button>)}</div>
+        <div className="sb-chips" role="tablist" aria-label="Fitting shelves">{FITTING_CATEGORIES.filter(shelf => shelf.group === tab).map(shelf => <button key={shelf.id} role="tab" aria-selected={fittingFilter.category === shelf.id} title={shelf.note} onClick={() => { tool.setFittingFilter({ category: shelf.id }); setTip(undefined); }}>{shelf.name}</button>)}</div>
         {shelfNations.length > 0 && <div className="sb-chips nations" role="radiogroup" aria-label="Nation">
           {(['all', ...shelfNations] as const).map(nation => <button key={nation} role="radio" aria-checked={tool.shelfNation === nation} title={nation === 'all' ? 'Parts of every navy' : `${nation} parts, with the generic ones`} onClick={() => tool.setFittingFilter({ nation })}>{nation === 'all' ? 'All' : NATION_SHORT[nation]}</button>)}
         </div>}
