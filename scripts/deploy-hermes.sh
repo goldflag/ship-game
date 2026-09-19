@@ -2,6 +2,8 @@
 # Build and deploy a PostgreSQL-compatible release to Hermes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Shells without rustup on PATH still build the WASM through scripts/multiplayer/toolchain.ts; match its fallback.
+command -v cargo >/dev/null || PATH="$HOME/.cargo/bin:$PATH"
 target="${SHIP_DEPLOY_HOST:-root@5.78.237.254}"
 [[ "$target" =~ ^[a-zA-Z0-9_.@-]+$ ]] || { echo 'Invalid SHIP_DEPLOY_HOST' >&2; exit 1; }
 SHIP_REVIEW_PAGES=0 BASE_PATH=/ bun run build
