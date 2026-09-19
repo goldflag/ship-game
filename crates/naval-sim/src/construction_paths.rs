@@ -194,6 +194,7 @@ pub(crate) fn compile(
     fitting_surfaces: &[FittingSurface],
     fitted: &[(String, cg::Cell)],
     fitting_index: &cg::Broadphase,
+    part_name: &dyn Fn(&str) -> String,
 ) -> Result<FittedPath, ConstructionDiagnostic> {
     let source = e
         .path
@@ -260,7 +261,7 @@ pub(crate) fn compile(
         ));
     }
     if matches!(profile.kind.as_str(), "inclined-ladder" | "framed-ladder") {
-        return crate::construction_access::compile(e, p, surfaces, hull, hull_index, fitted, fitting_index);
+        return crate::construction_access::compile(e, p, surfaces, hull, hull_index, fitted, fitting_index, part_name);
     }
     if source.access.is_some() { return Err(error("Access settings apply only to stairs and framed ladders", &e.id)); }
     let railing = profile.kind == "railing";
@@ -489,7 +490,7 @@ pub(crate) fn compile(
                 });
                 if !at_socket {
                     return Err(error(
-                        format!("A path member intersects equipment {owner}"),
+                        format!("{} intersects {}", p.name, crate::construction::neighbor_name(&p.name, &part_name(owner))),
                         &e.id,
                     ));
                 }
