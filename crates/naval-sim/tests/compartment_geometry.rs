@@ -91,30 +91,37 @@ fn reference(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, f6
 #[test]
 fn prepared_flood_cells_match_original_clipping_bit_for_bit() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let definition: ShipDefinition =
-        serde_json::from_slice(&std::fs::read(root.join("public/models/resolute.json")).unwrap())
-            .unwrap();
-    for room in &definition.compartments {
-        for (roll, pitch) in [
-            (0., 0.),
-            (radians(15.), radians(3.)),
-            (radians(-35.), radians(-7.)),
-            (radians(90.), 0.),
-            (radians(170.), radians(10.)),
-        ] {
-            for f in [0., 0.1, 0.5, 0.9, 1.] {
-                let a = reference(room, room.capacity_m3 * f, roll, pitch);
-                let b = water_body(room, room.capacity_m3 * f, roll, pitch);
-                assert_eq!(
-                    (a.0.to_bits(), a.1.to_bits(), a.2.map(f64::to_bits)),
-                    (
-                        b.level.to_bits(),
-                        b.area.to_bits(),
-                        b.center.map(f64::to_bits)
-                    ),
-                    "{}, {roll}, {pitch}, {f}",
-                    room.id
-                );
+    // Every room of the box-built hull, and the largest lofted rooms of the
+    // adjustable one, whose cells run from keel to deck.
+    for (ship, largest) in [("resolute", usize::MAX), ("valiant", 4)] {
+        let definition: ShipDefinition = serde_json::from_slice(
+            &std::fs::read(root.join(format!("public/models/{ship}.json"))).unwrap(),
+        )
+        .unwrap();
+        let mut rooms: Vec<_> = definition.compartments.iter().collect();
+        rooms.sort_by_key(|r| std::cmp::Reverse(r.volumes.as_ref().map_or(0, |v| v.len())));
+        for room in rooms.into_iter().take(largest) {
+            for (roll, pitch) in [
+                (0., 0.),
+                (radians(15.), radians(3.)),
+                (radians(-35.), radians(-7.)),
+                (radians(90.), 0.),
+                (radians(170.), radians(10.)),
+            ] {
+                for f in [0., 0.1, 0.5, 0.9, 1.] {
+                    let a = reference(room, room.capacity_m3 * f, roll, pitch);
+                    let b = water_body(room, room.capacity_m3 * f, roll, pitch);
+                    assert_eq!(
+                        (a.0.to_bits(), a.1.to_bits(), a.2.map(f64::to_bits)),
+                        (
+                            b.level.to_bits(),
+                            b.area.to_bits(),
+                            b.center.map(f64::to_bits)
+                        ),
+                        "{ship} {}, {roll}, {pitch}, {f}",
+                        room.id
+                    );
+                }
             }
         }
     }
