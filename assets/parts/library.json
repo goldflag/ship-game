@@ -503,6 +503,114 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "rn-15in-twin": {
+      "path": "assets/parts/rn-15in-guns/bl_15_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "rn-16in-triple": {
+      "path": "assets/parts/rn-16in-guns/bl_16_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "us-mk6-triple": {
+      "path": "assets/parts/us-battleship-guns/mk6_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "us-alaska-triple": {
+      "path": "assets/parts/us-battleship-guns/alaska_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "us-mk1-twin": {
+      "path": "assets/parts/us-battleship-guns/mk1_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "us-14in45-mk8-twin": {
+      "path": "assets/parts/us-14in45-guns/ny_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py",
+        "assets/parts/us-14in45-guns/us14in45_common.py"
+      ]
+    },
+    "us-14in45-triple": {
+      "path": "assets/parts/us-14in45-guns/pa_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py",
+        "assets/parts/us-14in45-guns/us14in45_common.py"
+      ]
+    },
+    "us-14in50-newmexico": {
+      "path": "assets/parts/us-14in50-guns/newmexico_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py",
+        "assets/parts/us-14in50-guns/common.py"
+      ]
+    },
+    "us-14in50-tennessee": {
+      "path": "assets/parts/us-14in50-guns/tennessee_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py",
+        "assets/parts/us-14in50-guns/common.py"
+      ]
+    },
+    "ijn-410-type3": {
+      "path": "assets/parts/ijn-410-guns/type3_410.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "it-381-triple": {
+      "path": "assets/parts/it-381-guns/m1934_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "fr-380-quad": {
+      "path": "assets/parts/fr-380-guns/mle1935_quad.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "fr-330-quad": {
+      "path": "assets/parts/fr-380-guns/mle1931_quad.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
     }
   },
   "components": [
@@ -1268,6 +1376,174 @@
       "review": "unreviewed",
       "limitations": "Original reconstruction against GameModels3D pbsc206 Devonshire AB1 artillery (bgm129); Surrey and Hampshire fit the same visual, and Exeter's bgm105 is an identical mesh. Gun fairings ride the elevation joint; the front slope is one plane; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
       "builder": "rn-cruiser-8in50-twin"
+    },
+    {
+      "partId": "bl-15-mki-twin",
+      "nation": "United Kingdom",
+      "family": "15-inch Mk I twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D pbsb106 15-inch artillery. Canvas deformation, sight hoods, ladders and service fittings are approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-15in-twin"
+    },
+    {
+      "partId": "bl-15-mki-twin-rf",
+      "nation": "United Kingdom",
+      "family": "15-inch Mk I twin mount, rangefinder",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D pbsb106 15-inch artillery. Canvas deformation, sight hoods, ladders and service fittings are approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-15in-twin"
+    },
+    {
+      "partId": "bl-15-mkii-twin",
+      "nation": "United Kingdom",
+      "family": "15-inch Mk II twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D pbsb507 15-inch artillery. Canvas deformation, the rear hood fittings, rails and ladders are approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-15in-twin"
+    },
+    {
+      "partId": "bl-15-mki-vanguard-twin",
+      "nation": "United Kingdom",
+      "family": "15-inch Mk I twin mount, Vanguard",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D pbsb508 15-inch artillery. The circular port shields, roof cowls, lockers and ladders are approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-15in-twin"
+    },
+    {
+      "partId": "bl-15-mki-vanguard-twin-rf",
+      "nation": "United Kingdom",
+      "family": "15-inch Mk I twin mount, Vanguard rangefinder",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D pbsb508 15-inch artillery. The circular port shields, roof cowls, lockers and ladders are approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-15in-twin"
+    },
+    {
+      "partId": "bl-16-mki-triple",
+      "nation": "United Kingdom",
+      "family": "16-inch Mk I triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D Nelson A artillery visual; the rangefinder arms, cloth bloomers, ladders and small deck fittings are approximations, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-16in-triple"
+    },
+    {
+      "partId": "us-16in45-mk6-triple",
+      "nation": "United States",
+      "family": "406 mm/45 Mk.6 triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D North Carolina A artillery views; the reference's rounded under-floor belly and its starboard training-gear fairing are flattened onto the sole plane, and cloth folds, sight optics and small service fittings are approximations. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-mk6-triple"
+    },
+    {
+      "partId": "us-12in50-mk8-triple",
+      "nation": "United States",
+      "family": "305 mm/50 Mk.8 triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D Alaska A artillery views; the rear undercut is lifted onto the sole plane, the rounded back plate is carried on three facet stations, and cloth folds, rangefinder optics and small service fittings are approximations. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-alaska-triple"
+    },
+    {
+      "partId": "us-16in45-mk1-twin",
+      "nation": "United States",
+      "family": "406 mm/45 Mk.1 twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D Colorado A artillery views, which are a low-detail visual: the shell is carried on six stations, and cloth folds, the rangefinder arm ends and small service fittings are approximations. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-mk1-twin"
+    },
+    {
+      "partId": "us-14in45-mk8-twin",
+      "nation": "United States",
+      "family": "356 mm/45 Mk.8 twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved New York 14-inch/45 Mk 8 visual; the roof camber, the sight-hood hinges, the cloth port covers and the small service fittings are approximate, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-14in45-mk8-twin"
+    },
+    {
+      "partId": "us-14in45-triple",
+      "nation": "United States",
+      "family": "356 mm/45 Mk.8 triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved Arizona 14-inch/45 triple visual; the roof camber, the rangefinder end hoods, the cloth port covers and the small service fittings are approximate, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-14in45-triple"
+    },
+    {
+      "partId": "us-14in50-newmexico-triple",
+      "nation": "United States",
+      "family": "356 mm/50 New Mexico triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D New Mexico 14-inch/50 triple visual (pasb034, agm065_14in50_3gun_turret). Rangefinder hoods, sight hood, flank vent panel, ladders and canvas folds are approximations; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-14in50-newmexico"
+    },
+    {
+      "partId": "us-14in50-tennessee-triple",
+      "nation": "United States",
+      "family": "356 mm/50 Tennessee triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D Tennessee 14-inch/50 triple visual (pasb718, agm049_14in50_3gun_turret). Roof rim, sight hoods, ladders and canvas folds are approximations; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-14in50-tennessee"
+    },
+    {
+      "partId": "type3-410-nagato-twin",
+      "nation": "Japan",
+      "family": "41 cm Type 3 twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D visual; the faceted shell is a seven-station approximation of the rounded plan and domed roof, cloth folds and small service fittings are approximate, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-410-type3"
+    },
+    {
+      "partId": "type3-410-nagato-twin-rf",
+      "nation": "Japan",
+      "family": "41 cm Type 3 twin mount, rangefinder",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D visual; the faceted shell is a seven-station approximation of the rounded plan and domed roof, cloth folds and small service fittings are approximate, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-410-type3"
+    },
+    {
+      "partId": "type3-410-nagato-twin-rf-aft",
+      "nation": "Japan",
+      "family": "41 cm Type 3 twin mount, rangefinder, aft group",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D visual; the faceted shell is a seven-station approximation of the rounded plan and domed roof, cloth folds and small service fittings are approximate, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-410-type3"
+    },
+    {
+      "partId": "type3-410-mutsu-twin",
+      "nation": "Japan",
+      "family": "41 cm Type 3 twin mount, Mutsu",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D visual; the faceted shell is a seven-station approximation of the rounded plan and domed roof, cloth folds and small service fittings are approximate, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-410-type3"
+    },
+    {
+      "partId": "it-381-50-m1934-triple",
+      "nation": "Italy",
+      "family": "381 mm/50 Model 1934 triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D visual; the rotating structure, sponsons, rear fittings, ladders and cloth seals are authored approximations and the plate families are commonly published figures with estimated facet boundaries. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "it-381-triple"
+    },
+    {
+      "partId": "it-381-50-m1934-triple-short",
+      "nation": "Italy",
+      "family": "381 mm/50 Model 1934 triple mount, short rear",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved GameModels3D visual; the rotating structure, sponsons, rear fittings, ladders and cloth seals are authored approximations and the plate families are commonly published figures with estimated facet boundaries. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "it-381-triple"
+    },
+    {
+      "partId": "fr-380-45-mle1935-quad",
+      "nation": "France",
+      "family": "380 mm/45 Model 1935 quadruple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D Richelieu reference; the armored face is drawn as one upright plate instead of the reference 17 degree rake (the gun-port hoods and face ribs cover it), the four barrels sit on the evenly spaced rig pitch rather than the reference two-pair spacing, and the cloth gun-port covers replace the rigid shrouds of the reference. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "fr-380-quad"
+    },
+    {
+      "partId": "fr-330-52-mle1931-quad",
+      "nation": "France",
+      "family": "330 mm/52 Model 1931 quadruple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the GameModels3D Dunkerque reference; the four barrels sit on the evenly spaced rig pitch rather than the reference two-pair spacing, the rigid gun-port shrouds are reconstructed as articulated canvas covers on a raised port frame that stands higher than the reference hoods so the bores clear it at full elevation, and the fixed deck sponsons the reference hangs below its sole plane are omitted, as is the 0.18 m of shell skirt the reference hangs into its barbette well. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "fr-330-quad"
     }
   ]
 }

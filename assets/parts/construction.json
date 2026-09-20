@@ -6618,6 +6618,804 @@
       ]
     },
     {
+      "id": "bl-15-mki-twin",
+      "name": "15-inch Mk I twin",
+      "kind": "gun",
+      "size": [
+        10.52,
+        3.82,
+        22.82
+      ],
+      "boundsCenter": [
+        0.0,
+        1.91,
+        -3.8
+      ],
+      "centerOfGravity": [
+        0,
+        0.657,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-15-mki-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bl-15-mki-twin-rf",
+      "name": "15-inch Mk I twin with rangefinder",
+      "kind": "gun",
+      "size": [
+        10.52,
+        3.82,
+        22.82
+      ],
+      "boundsCenter": [
+        0.0,
+        1.91,
+        -3.8
+      ],
+      "centerOfGravity": [
+        0,
+        0.657,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-15-mki-twin-rf",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bl-15-mkii-twin",
+      "name": "15-inch Mk II twin",
+      "kind": "gun",
+      "size": [
+        10.48,
+        3.98,
+        22.53
+      ],
+      "boundsCenter": [
+        0.0,
+        1.99,
+        -3.765
+      ],
+      "centerOfGravity": [
+        0,
+        0.734,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-15-mkii-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bl-15-mki-vanguard-twin",
+      "name": "15-inch Mk I twin (Vanguard)",
+      "kind": "gun",
+      "size": [
+        10.54,
+        3.82,
+        22.75
+      ],
+      "boundsCenter": [
+        0.0,
+        1.91,
+        -3.725
+      ],
+      "centerOfGravity": [
+        0,
+        0.683,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-15-mki-vanguard-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bl-15-mki-vanguard-twin-rf",
+      "name": "15-inch Mk I twin with rangefinder (Vanguard)",
+      "kind": "gun",
+      "size": [
+        10.54,
+        3.82,
+        22.75
+      ],
+      "boundsCenter": [
+        0.0,
+        1.91,
+        -3.725
+      ],
+      "centerOfGravity": [
+        0,
+        0.683,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-15-mki-vanguard-twin-rf",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bl-16-mki-triple",
+      "name": "16-inch Mk I triple",
+      "kind": "gun",
+      "size": [
+        12.384,
+        3.81,
+        26.06
+      ],
+      "boundsCenter": [
+        0.0,
+        1.905,
+        -4.036
+      ],
+      "centerOfGravity": [
+        0,
+        0.593,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-16-mki-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-16in45-mk6-triple",
+      "name": "406 mm/45 Mk.6 triple",
+      "kind": "gun",
+      "size": [
+        13.24,
+        3.86,
+        26.66
+      ],
+      "boundsCenter": [
+        0.0,
+        1.93,
+        -4.03
+      ],
+      "centerOfGravity": [
+        0,
+        0.915,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-16in45-mk6-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-12in50-mk8-triple",
+      "name": "305 mm/50 Mk.8 triple",
+      "kind": "gun",
+      "size": [
+        10.92,
+        3.68,
+        22.843
+      ],
+      "boundsCenter": [
+        0.0,
+        1.84,
+        -3.0015
+      ],
+      "centerOfGravity": [
+        0,
+        0.788,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-12in50-mk8-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-16in45-mk1-twin",
+      "name": "406 mm/45 Mk.1 twin",
+      "kind": "gun",
+      "size": [
+        11.56,
+        3.96,
+        25.068
+      ],
+      "boundsCenter": [
+        0.0,
+        1.98,
+        -3.984
+      ],
+      "centerOfGravity": [
+        0,
+        0.72,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-16in45-mk1-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-14in45-mk8-twin",
+      "name": "356 mm/45 Mk.8 twin",
+      "kind": "gun",
+      "size": [
+        9.546,
+        3.626,
+        21.827
+      ],
+      "boundsCenter": [
+        0.0,
+        1.813,
+        -3.3005
+      ],
+      "centerOfGravity": [
+        0,
+        0.798,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-14in45-mk8-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-14in45-triple",
+      "name": "356 mm/45 Mk.8 triple",
+      "kind": "gun",
+      "size": [
+        10.244,
+        4.042,
+        22.966
+      ],
+      "boundsCenter": [
+        0.0,
+        2.021,
+        -3.123
+      ],
+      "centerOfGravity": [
+        0,
+        0.727,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-14in45-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-14in50-newmexico-triple",
+      "name": "356 mm/50 New Mexico triple",
+      "kind": "gun",
+      "size": [
+        11.64,
+        3.88,
+        25.041
+      ],
+      "boundsCenter": [
+        0.0,
+        1.94,
+        -3.7205
+      ],
+      "centerOfGravity": [
+        0,
+        0.647,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-14in50-newmexico-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-14in50-tennessee-triple",
+      "name": "356 mm/50 Tennessee triple",
+      "kind": "gun",
+      "size": [
+        11.66,
+        3.97,
+        25.069
+      ],
+      "boundsCenter": [
+        0.0,
+        1.985,
+        -3.7045
+      ],
+      "centerOfGravity": [
+        0,
+        0.612,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-14in50-tennessee-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-410-nagato-twin",
+      "name": "41 cm/45 Type 3 twin",
+      "kind": "gun",
+      "size": [
+        11.16,
+        4.21,
+        25.24
+      ],
+      "boundsCenter": [
+        0.0,
+        2.105,
+        -5.01
+      ],
+      "centerOfGravity": [
+        0,
+        0.786,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-410-nagato-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-410-nagato-twin-rf",
+      "name": "41 cm/45 Type 3 twin with rangefinder",
+      "kind": "gun",
+      "size": [
+        11.16,
+        4.21,
+        25.24
+      ],
+      "boundsCenter": [
+        0.0,
+        2.105,
+        -5.01
+      ],
+      "centerOfGravity": [
+        0,
+        0.786,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-410-nagato-twin-rf",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-410-nagato-twin-rf-aft",
+      "name": "41 cm/45 Type 3 twin with rangefinder, aft group",
+      "kind": "gun",
+      "size": [
+        11.38,
+        4.21,
+        25.92
+      ],
+      "boundsCenter": [
+        0.0,
+        2.105,
+        -4.67
+      ],
+      "centerOfGravity": [
+        0,
+        0.786,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-410-nagato-twin-rf-aft",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-410-mutsu-twin",
+      "name": "41 cm/45 Type 3 twin (Mutsu)",
+      "kind": "gun",
+      "size": [
+        11.08,
+        3.92,
+        25.52
+      ],
+      "boundsCenter": [
+        0.0,
+        1.96,
+        -4.46
+      ],
+      "centerOfGravity": [
+        0,
+        0.786,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-410-mutsu-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "it-381-50-m1934-triple",
+      "name": "381 mm/50 Model 1934 triple",
+      "kind": "gun",
+      "size": [
+        11.18,
+        4.71,
+        29.118
+      ],
+      "boundsCenter": [
+        0.0,
+        2.355,
+        -4.279
+      ],
+      "centerOfGravity": [
+        0,
+        0.887,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "it-381-50-m1934-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "it-381-50-m1934-triple-short",
+      "name": "381 mm/50 Model 1934 triple, short rear",
+      "kind": "gun",
+      "size": [
+        11.18,
+        4.71,
+        29.118
+      ],
+      "boundsCenter": [
+        0.0,
+        2.355,
+        -4.279
+      ],
+      "centerOfGravity": [
+        0,
+        0.887,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "it-381-50-m1934-triple-short",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fr-380-45-mle1935-quad",
+      "name": "380 mm/45 Model 1935 quadruple",
+      "kind": "gun",
+      "size": [
+        13.3,
+        4.64,
+        26.09
+      ],
+      "boundsCenter": [
+        0.0,
+        2.32,
+        -3.565
+      ],
+      "centerOfGravity": [
+        0,
+        0.741,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "fr-380-45-mle1935-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fr-330-52-mle1931-quad",
+      "name": "330 mm/52 Model 1931 quadruple",
+      "kind": "gun",
+      "size": [
+        11.12,
+        4.08,
+        24.59
+      ],
+      "boundsCenter": [
+        0.0,
+        2.04,
+        -3.545
+      ],
+      "centerOfGravity": [
+        0,
+        0.657,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "fr-330-52-mle1931-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
       "id": "generic-hawse-pipe",
       "name": "Hawse pipe and bolster",
       "kind": "deck-fitting",

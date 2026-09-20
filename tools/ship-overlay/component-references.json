@@ -1641,5 +1641,299 @@
       "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc020",
       "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm025_8in55_triple_mk16/agm025_8in55_triple_mk16.model"
     ]
+  },
+  {
+    "partId": "bl-15-mki-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb106",
+    "sourceVehicle": "pbsb106",
+    "resource": "common/visual/uk/gun/main/bgm009_15in42_mk1/bgm009_15in42_mk1",
+    "sourceName": "bgm009_15in42_mk1",
+    "match": "exact",
+    "notes": "Queen Elizabeth, Warspite and Renown A and Y turrets (bgm009). The Repulse (bgm158) and Royal Sovereign (bgm2013) visuals are the same shape; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb106",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm009_15in42_mk1/bgm009_15in42_mk1.model"
+    ]
+  },
+  {
+    "partId": "bl-15-mki-twin-rf",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb106",
+    "sourceVehicle": "pbsb106",
+    "resource": "common/visual/uk/gun/main/bgm010_15in42_mk1_rf/bgm010_15in42_mk1_rf",
+    "sourceName": "bgm010_15in42_mk1_rf",
+    "match": "exact",
+    "notes": "Queen Elizabeth, Warspite and Renown B and X turrets (bgm010): the A/Y gunhouse plus the transverse rangefinder across the rear roof. The Repulse visual bgm159 is the same shape; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb106",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm010_15in42_mk1_rf/bgm010_15in42_mk1_rf.model"
+    ]
+  },
+  {
+    "partId": "bl-15-mkii-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb507",
+    "sourceVehicle": "pbsb507",
+    "resource": "common/visual/uk/gun/main/bgm048_15in42_mk2/bgm048_15in42_mk2",
+    "sourceName": "bgm048_15in42_mk2",
+    "match": "exact",
+    "notes": "Hood, all four turrets (bgm048). The B-turret visual bgm052 is the same shape with a flank ladder added; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb507",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm048_15in42_mk2/bgm048_15in42_mk2.model"
+    ]
+  },
+  {
+    "partId": "bl-15-mki-vanguard-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb508",
+    "sourceVehicle": "pbsb508",
+    "resource": "common/visual/uk/gun/main/bgm101_15in42_mk1_vanguard/bgm101_15in42_mk1_vanguard",
+    "sourceName": "bgm101_15in42_mk1_vanguard",
+    "match": "exact",
+    "notes": "Vanguard A turret (bgm101): the Queen Elizabeth plan with the Vanguard roof and circular gun-port shields; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb508",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm101_15in42_mk1_vanguard/bgm101_15in42_mk1_vanguard.model"
+    ]
+  },
+  {
+    "partId": "bl-15-mki-vanguard-twin-rf",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb508",
+    "sourceVehicle": "pbsb508",
+    "resource": "common/visual/uk/gun/main/bgm106_15in42_mk1_rf_vanguard/bgm106_15in42_mk1_rf_vanguard",
+    "sourceName": "bgm106_15in42_mk1_rf_vanguard",
+    "match": "exact",
+    "notes": "Vanguard B, X and Y turrets (bgm106): the A-turret gunhouse plus the boxy rangefinder hood and its arms; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb508",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm106_15in42_mk1_rf_vanguard/bgm106_15in42_mk1_rf_vanguard.model"
+    ]
+  },
+  {
+    "partId": "bl-16-mki-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb517",
+    "sourceVehicle": "pbsb517",
+    "resource": "common/visual/uk/gun/main/bgm066_16in45_bl_mki/bgm066_16in45_bl_mki",
+    "sourceName": "bgm066_16in45_bl_mki",
+    "match": "exact",
+    "notes": "Nelson (pbsb517) and Rodney (pbsb717) carry this one visual at all three turret positions; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb517",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm066_16in45_bl_mki/bgm066_16in45_bl_mki.model"
+    ]
+  },
+  {
+    "partId": "us-16in45-mk6-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb012",
+    "sourceVehicle": "pasb012",
+    "resource": "common/visual/usa/gun/main/agm012_16in45_mk6/agm012_16in45_mk6",
+    "sourceName": "agm012_16in45_mk6",
+    "match": "exact",
+    "notes": "North Carolina (pasb012), Alabama (pasb508) and Massachusetts (pasb518) carry the visual agm012_16in45_mk6 at all three turret positions, so one part covers them; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb012",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm012_16in45_mk6/agm012_16in45_mk6.model"
+    ]
+  },
+  {
+    "partId": "us-12in50-mk8-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc510",
+    "sourceVehicle": "pasc510",
+    "resource": "common/visual/usa/gun/main/agm177_12in50_mk8_triple/agm177_12in50_mk8_triple",
+    "sourceName": "agm177_12in50_mk8_triple",
+    "match": "exact",
+    "notes": "Alaska (pasc510): the visual agm177_12in50_mk8_triple is fitted at all three turret positions; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc510",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm177_12in50_mk8_triple/agm177_12in50_mk8_triple.model"
+    ]
+  },
+  {
+    "partId": "us-16in45-mk1-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb008",
+    "sourceVehicle": "pasb008",
+    "resource": "common/visual/usa/gun/main/agm156_16in45_mk1/agm156_16in45_mk1",
+    "sourceName": "agm156_16in45_mk1",
+    "match": "exact",
+    "notes": "Colorado and West Virginia: the pasb008 visual agm156_16in45_mk1 is fitted at all four turret positions, and the West Virginia 1941 fit (pasb507) carries the same shape; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb008",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm156_16in45_mk1/agm156_16in45_mk1.model"
+    ]
+  },
+  {
+    "partId": "us-14in45-mk8-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb006",
+    "sourceVehicle": "pasb006",
+    "resource": "common/visual/usa/gun/main/agm125_14in_45_mk8/agm125_14in_45_mk8",
+    "sourceName": "agm125_14in_45_mk8",
+    "match": "exact",
+    "notes": "New York and Texas carry this mount at all five positions; the second Texas visual agm126 is the same shell with extra flank ladders (0.076 m chamfer distance, at the 0.073 m noise floor) and is covered by this part. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb006",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm125_14in_45_mk8/agm125_14in_45_mk8.model"
+    ]
+  },
+  {
+    "partId": "us-14in45-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb506",
+    "sourceVehicle": "pasb506",
+    "resource": "common/visual/usa/gun/main/agm162_14in45_triple/agm162_14in45_triple",
+    "sourceName": "agm162_14in45_triple",
+    "match": "exact",
+    "notes": "Arizona (pasb506) carries this mount; the middle-turret visual agm163 is the same shell (0.083 m chamfer distance, at the 0.073 m noise floor) and is covered by this part. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb506",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm162_14in45_triple/agm162_14in45_triple.model"
+    ]
+  },
+  {
+    "partId": "us-14in50-newmexico-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb034",
+    "sourceVehicle": "pasb034",
+    "resource": "common/visual/usa/gun/main/agm065_14in50_3gun_turret/agm065_14in50_3gun_turret",
+    "sourceName": "agm065_14in50_3gun_turret",
+    "match": "exact",
+    "notes": "New Mexico (pasb034) carries this visual at all four turret positions. The Tennessee and California visual agm049 is a different shell (about 0.12 m mean Chamfer distance) and is registered as the separate part us-14in50-tennessee-triple; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb034",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm065_14in50_3gun_turret/agm065_14in50_3gun_turret.model"
+    ]
+  },
+  {
+    "partId": "us-14in50-tennessee-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb718",
+    "sourceVehicle": "pasb718",
+    "resource": "common/visual/usa/gun/main/agm049_14in50_3gun_turret/agm049_14in50_3gun_turret",
+    "sourceName": "agm049_14in50_3gun_turret",
+    "match": "exact",
+    "notes": "Tennessee and California; visual-source equivalence only. The New Mexico visual agm065 is a different shell (about 0.12 m mean Chamfer distance) and is registered as the separate part us-14in50-newmexico-triple.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb718",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm049_14in50_3gun_turret/agm049_14in50_3gun_turret.model"
+    ]
+  },
+  {
+    "partId": "type3-410-nagato-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb010",
+    "sourceVehicle": "pjsb010",
+    "resource": "common/visual/japan/gun/main/jgm046_410mm45_type3/jgm046_410mm45_type3",
+    "sourceName": "jgm046_410mm45_type3",
+    "match": "exact",
+    "notes": "Nagato (pjsb010) A and Y turrets carry this visual exactly. The B and turret-3 visuals jgm047/jgm048 share this shell but add a transverse rangefinder housing and are registered separately; Mutsu carries a different, older shell (jgm127).",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb010",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm046_410mm45_type3/jgm046_410mm45_type3.model"
+    ]
+  },
+  {
+    "partId": "type3-410-nagato-twin-rf",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb010",
+    "sourceVehicle": "pjsb010",
+    "resource": "common/visual/japan/gun/main/jgm047_410mm45_type3_rf_f/jgm047_410mm45_type3_rf_f",
+    "sourceName": "jgm047_410mm45_type3_rf_f",
+    "match": "exact",
+    "notes": "Nagato (pjsb010) B turret. The shell is the same as the A/Y visual jgm046; the transverse rangefinder housing across the rear roof is the difference. Nagato turret 3 carries a longer rear plate with the housing further aft and is registered separately as type3-410-nagato-twin-rf-aft.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb010",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm047_410mm45_type3_rf_f/jgm047_410mm45_type3_rf_f.model"
+    ]
+  },
+  {
+    "partId": "type3-410-nagato-twin-rf-aft",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb010",
+    "sourceVehicle": "pjsb010",
+    "resource": "common/visual/japan/gun/main/jgm048_410mm45_type3_rf_r/jgm048_410mm45_type3_rf_r",
+    "sourceName": "jgm048_410mm45_type3_rf_r",
+    "match": "exact",
+    "notes": "Nagato (pjsb010) turret 3. Same 41 cm Type 3 equipment as the B turret, on a shell whose rear plate is 0.68 m longer and 0.11 m wider, with the rangefinder housing 0.65 m further aft and 0.51 m higher; the drawn bores are also 0.10 m further outboard than on jgm046/jgm047.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb010",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm048_410mm45_type3_rf_r/jgm048_410mm45_type3_rf_r.model"
+    ]
+  },
+  {
+    "partId": "type3-410-mutsu-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb506",
+    "sourceVehicle": "pjsb506",
+    "resource": "common/visual/japan/gun/main/jgm127_410mm45_type3_rf_old/jgm127_410mm45_type3_rf_old",
+    "sourceName": "jgm127_410mm45_type3_rf_old",
+    "match": "exact",
+    "notes": "Mutsu (pjsb506) carries this older, flatter-roofed shell at all four turrets. It is a different shape from the Nagato mount jgm046, not a paint or fitting variant; despite the resource name it carries no rangefinder housing.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb506",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm127_410mm45_type3_rf_old/jgm127_410mm45_type3_rf_old.model"
+    ]
+  },
+  {
+    "partId": "it-381-50-m1934-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb508",
+    "sourceVehicle": "pisb508",
+    "resource": "common/visual/italy/gun/main/igm011_381mm50_barrels_3_m1939_tower/igm011_381mm50_barrels_3_m1939_tower",
+    "sourceName": "igm011_381mm50_barrels_3_m1939_tower",
+    "match": "exact",
+    "notes": "Roma (pisb508), Vittorio Veneto (pisb108) and the Azur Lane collaboration Littorio (pisb708) all fit the same three turret visuals. Visual igm011 is the second turret, with the raised rear platform, its bulwark and the cylindrical rear hood. The third-turret visual igm012 shares the same armored shell, turntable, sponsons and rear platform and differs only by carrying no 2.0 m x 1.47 m cylindrical hood and by adding a face ladder; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb508",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/italy/gun/main/igm011_381mm50_barrels_3_m1939_tower/igm011_381mm50_barrels_3_m1939_tower.model"
+    ]
+  },
+  {
+    "partId": "it-381-50-m1934-triple-short",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb508",
+    "sourceVehicle": "pisb508",
+    "resource": "common/visual/italy/gun/main/igm010_381mm50_barrels_3_m1939_life_boat/igm010_381mm50_barrels_3_m1939_life_boat",
+    "sourceName": "igm010_381mm50_barrels_3_m1939_life_boat",
+    "match": "exact",
+    "notes": "Roma (pisb508), Vittorio Veneto (pisb108) and the Azur Lane collaboration Littorio (pisb708) all fit the same three turret visuals. Visual igm010 is the first turret: the same armored shell, turntable, working platform and rear sponsons as igm011, without the raised rear platform and its hood, with a boat stowage on the working platform and ladders on the face and the rear plate; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb508",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/italy/gun/main/igm010_381mm50_barrels_3_m1939_life_boat/igm010_381mm50_barrels_3_m1939_life_boat.model"
+    ]
+  },
+  {
+    "partId": "fr-380-45-mle1935-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsb108",
+    "sourceVehicle": "pfsb108",
+    "resource": "common/visual/france/gun/main/fgm049_380mm_45_mle_1935/fgm049_380mm_45_mle_1935",
+    "sourceName": "fgm049_380mm_45_mle_1935",
+    "match": "exact",
+    "notes": "Richelieu, Jean Bart and Gascogne share the single 380 mm/45 Model 1935 quadruple visual fgm049_380mm_45_mle_1935; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsb108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/france/gun/main/fgm049_380mm_45_mle_1935/fgm049_380mm_45_mle_1935.model"
+    ]
+  },
+  {
+    "partId": "fr-330-52-mle1931-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsb506",
+    "sourceVehicle": "pfsb506",
+    "resource": "common/visual/france/gun/main/fgm001_330_52_mle_1931/fgm001_330_52_mle_1931",
+    "sourceName": "fgm001_330_52_mle_1931",
+    "match": "exact",
+    "notes": "Dunkerque and Strasbourg share the 330 mm/52 Model 1931 quadruple shape; fgm001_330_52_mle_1931 (pfsb506) and the Strasbourg visual fgm007_330_52_mle_1931_prem (pfsb507) have identical joint nodes and a 0.10 m mean surface separation that is confined to added flank ladders and rails, so one part covers both. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsb506",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/france/gun/main/fgm001_330_52_mle_1931/fgm001_330_52_mle_1931.model"
+    ]
   }
 ]
