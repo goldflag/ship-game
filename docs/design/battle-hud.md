@@ -27,6 +27,9 @@ seconds and respect reduced motion. Surface gun optics use one third of the sele
 shell descent angle, using its muzzle speed and drag with a 10° viewing limit. At close range the former
 bridge-height angle is also divided by three, subject to sea and terrain clearance. Height changes
 preserve the sighted point; torpedo optics and submarine periscopes retain their physical eye height.
+Vertical gun-scope input adjusts sight range proportionally, with finer control at higher magnification.
+Equal opposite inputs return to the same range even as the camera rises or lowers; small movements near
+the horizon cannot jump across the battlefield. Continued input past the far sight limit can look skyward.
 Downward chase tilt orbits toward a near-vertical view above the
 hull. Hold Ctrl to release the cursor for HUD controls, then release it to resume captured aim. A
 visible prompt offers capture when the cursor is free. Esc pauses or resumes through the pause

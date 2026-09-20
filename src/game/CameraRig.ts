@@ -15,6 +15,9 @@ const MIN_ORBIT_ELEVATION = .08;
 const TORPEDO_ORBIT_ELEVATION = .38;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const SCOPE_DESCENT_SCALE = 1 / 3;
+/** About 1.25% range per vertical pixel at 2×; zoom refines it with the usual FOV sensitivity. */
+const SCOPE_RANGE_RESPONSE = 10;
+const MAX_SCOPE_RANGE = 30000;
 /** Keep even an out-of-range gunnery sight oblique, rather than overhead. */
 const MAX_SCOPE_DESCENT = 10 * Math.PI / 180;
 const CAMERA_CLEARANCE = 12;
@@ -140,7 +143,7 @@ export class CameraRig {
           this.elevation = Math.atan2(-this.look.y, Math.hypot(this.look.x, this.look.z));
         }
         this.azimuth += dx * sensitivity;
-        if (this.lockedRangeM === undefined) this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, MAX_DOWNWARD_TILT);
+        if (this.lockedRangeM === undefined) this.tiltSight(dy * sensitivity);
         if (dx || dy) {
           if (this.opticsTransition) {
             // Aim from the eye the player can see while it climbs, not the final elevated eye.
@@ -195,6 +198,24 @@ export class CameraRig {
   setScopeWeapon(weapon?: GunPart, muzzleHeight = 0): void {
     this.scopeWeapon = weapon;
     this.scopeMuzzleHeight = muzzleHeight;
+  }
+
+  private tiltSight(delta: number): void {
+    if (delta === 0) return;
+    let elevation = this.elevation + delta;
+    const height = this.camera.position.y - this.scopeAimHeight;
+    if (this.binoculars && this.scopeWeapon && !this.submarine && height > 0 && this.elevation > 0) {
+      const range = height / Math.tan(this.elevation);
+      if (range <= MAX_SCOPE_RANGE) {
+        // Steer range, not pitch: the rising eye must not amplify input or change its reverse.
+        // Log range makes equal opposite inputs reversible at every camera height.
+        const logRange = Math.log(range) - delta * SCOPE_RANGE_RESPONSE;
+        const excess = Math.max(0, logRange - Math.log(MAX_SCOPE_RANGE));
+        elevation = Math.atan2(height, Math.exp(Math.min(logRange, Math.log(MAX_SCOPE_RANGE)))) - excess / SCOPE_RANGE_RESPONSE;
+        // Past the far aiming limit, deliberate continued input can still look into the sky.
+      }
+    }
+    this.elevation = MathUtils.clamp(elevation, -MAX_UPWARD_TILT, MAX_DOWNWARD_TILT);
   }
 
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
@@ -425,7 +446,7 @@ export class CameraRig {
     let lift = 0;
     if (this.scopeWeapon) {
       const { muzzleSpeed, ballistics: { dragPerSecond } } = this.scopeWeapon;
-      const gunRange = Math.min(30000, Math.hypot(aim[0] - ship.x, aim[2] - ship.z));
+      const gunRange = Math.min(MAX_SCOPE_RANGE, Math.hypot(aim[0] - ship.x, aim[2] - ship.z));
       const from: Vec3 = [0, ship.y + this.scopeMuzzleHeight, 0];
       const arc = solveDragArc(from, [0, aim[1], -gunRange], muzzleSpeed, dragPerSecond);
       let descent = MAX_SCOPE_DESCENT / SCOPE_DESCENT_SCALE;
@@ -437,7 +458,7 @@ export class CameraRig {
       const bridgeDescent = Math.atan2(this.desired.y - aim[1], eyeRange);
       descent = MathUtils.clamp(Math.max(bridgeDescent, descent) * SCOPE_DESCENT_SCALE, 0, MAX_SCOPE_DESCENT);
       this.look.copy(this.desired);
-      this.look.y = aim[1] + Math.min(30000, eyeRange) * Math.tan(descent);
+      this.look.y = aim[1] + Math.min(MAX_SCOPE_RANGE, eyeRange) * Math.tan(descent);
       this.constrainCameraHeight(this.look);
       lift = this.look.y - this.desired.y;
     }

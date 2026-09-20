@@ -740,6 +740,50 @@ test('elevated scope holds the sight through zoom and gun changes, and gives pre
   rig.dispose();
 });
 
+test('small scope range adjustments stay local and reverse after the camera changes height', () => {
+  for (const range of [1000, 5000, 15000]) {
+    for (const zoom of [1, 2, 8, 32]) {
+      const { camera, canvas, rig, drag } = interactiveCamera();
+      const ship = createShipState();
+      rig.setScopeWeapon(shipPreset('bismarck').mounts[0].weapon);
+      rig.toggleBinoculars([0, .5, -range], ship);
+      canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -Math.log(zoom / 2) / .0015, deltaMode: 0 }));
+      const settle = () => { for (let frame = 0; frame < 120; frame++) {
+        rig.update(ship, ship.y, 0); rig.update(ship, ship.y, 1 / 60);
+      } };
+      const read = () => new Vector3(...sightAim(camera.position.toArray(), camera.getWorldDirection(new Vector3()).toArray()));
+      settle();
+      const start = read();
+      drag(0, -8); settle();
+      const farther = read();
+      expect(-farther.z).toBeGreaterThan(range);
+      expect(-farther.z).toBeLessThan(range * 1.25);
+      drag(0, 8); settle();
+      expect(read().distanceTo(start)).toBeLessThan(.01);
+      rig.dispose();
+    }
+  }
+});
+
+test('scope range input has the same result when mouse events are batched or separated by camera frames', () => {
+  const result = (steps: number, dt: number) => {
+    const { camera, rig, drag } = interactiveCamera();
+    const ship = createShipState();
+    rig.setScopeWeapon(shipPreset('bismarck').mounts[0].weapon);
+    rig.toggleBinoculars([0, .5, -5000], ship);
+    for (let frame = 0; frame < 120; frame++) rig.update(ship, ship.y, 1 / 60);
+    for (let step = 0; step < steps; step++) {
+      drag(0, -8 / steps);
+      rig.update(ship, ship.y, 0); rig.update(ship, ship.y, dt);
+    }
+    for (let frame = 0; frame < 120; frame++) rig.update(ship, ship.y, 1 / 60);
+    const aim = new Vector3(...sightAim(camera.position.toArray(), camera.getWorldDirection(new Vector3()).toArray()));
+    rig.dispose(); return aim;
+  };
+  const batched = result(1, 1 / 60);
+  for (const dt of [0, 1 / 144, 1 / 30]) expect(result(8, dt).distanceTo(batched)).toBeLessThan(.01);
+});
+
 test('gunnery lift leaves periscopes at their physical eye and permits looking above the horizon', () => {
   const { camera, rig, drag } = interactiveCamera();
   const ship = createShipState();
