@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ship-construction": {
+      "command": "bun",
+      "args": ["scripts/construction/mcp.ts"]
+    }
+  }
+}

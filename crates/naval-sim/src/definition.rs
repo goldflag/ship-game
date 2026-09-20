@@ -1611,6 +1611,36 @@ pub struct ConstructionSource {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionDiagnosticFit {
+    #[serde(
+        rename = "nearestSupportId",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub nearest_support_id: Option<String>,
+    #[serde(rename = "gapM", default, skip_serializing_if = "Option::is_none")]
+    pub gap_m: Option<f64>,
+    #[serde(
+        rename = "toleranceM",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub tolerance_m: Option<f64>,
+    #[serde(
+        rename = "seatPosition",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub seat_position: Option<[f64; 3]>,
+    #[serde(
+        rename = "penetrationM",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub penetration_m: Option<f64>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionDiagnostic {
     #[serde(rename = "severity")]
     pub severity: String,
@@ -1620,6 +1650,14 @@ pub struct ConstructionDiagnostic {
     pub message: String,
     #[serde(rename = "sourceId")]
     pub source_id: Option<String>,
+    #[serde(
+        rename = "relatedSourceIds",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub related_source_ids: Option<Box<[String]>>,
+    #[serde(rename = "fit", default, skip_serializing_if = "Option::is_none")]
+    pub fit: Option<Box<ConstructionDiagnosticFit>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

@@ -4,15 +4,22 @@ import type { ShipView } from '../../src/game/ShipView';
 import type { ConstructionSource, ShipDefinition } from '../../src/ships/blueprint';
 import type { ReviewView } from './review';
 
-/** Presentation changes invalidate images, never the exported model. */
-export function createReviewPresentation(view: ShipView, model: THREE.Object3D, source: ConstructionSource,
-  definition: ShipDefinition, resetPose: () => void, focus: (id?: string, isolate?: boolean) => THREE.Object3D) {
-  const scene = new THREE.Scene(); scene.add(view.root);
+/** The one canvas, renderer and lit scene of a review page; `render` and `view` both draw into it. */
+export function createReviewCanvas() {
+  const scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight('#eef3f5', '#66625b', 2.4));
   const sun = new THREE.DirectionalLight('#fff3db', 3); sun.position.set(70, 100, -50); scene.add(sun);
   const renderer = new WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1); renderer.outputColorSpace = THREE.SRGBColorSpace;
   document.body.append(renderer.domElement);
+  return { scene, renderer, sun, dispose() { renderer.dispose(); renderer.domElement.remove(); } };
+}
+export type ReviewCanvas = ReturnType<typeof createReviewCanvas>;
+
+/** Presentation changes invalidate images, never the exported model. */
+export function createReviewPresentation(view: ShipView, model: THREE.Object3D, source: ConstructionSource,
+  definition: ShipDefinition, resetPose: () => void, focus: (id?: string, isolate?: boolean) => THREE.Object3D, canvas: ReviewCanvas = createReviewCanvas()) {
+  const { scene, renderer } = canvas; scene.add(view.root);
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, .01, 10000);
   const render = async (name: ReviewView = 'quarter', options: { id?: string; isolate?: boolean; width?: number; height?: number; transparent?: boolean; keepPose?: boolean } = {}) => {
     if (!options.keepPose) resetPose();
@@ -36,5 +43,5 @@ export function createReviewPresentation(view: ShipView, model: THREE.Object3D, 
     renderer.render(scene, camera);
     return { png: renderer.domElement.toDataURL('image/png'), camera: { name, position: camera.position.toArray(), target: center.toArray(), up: camera.up.toArray(), projection: 'orthographic', width, height, halfHeight, sourceRevision: source.revision, contentHash: definition.contentHash } };
   };
-  return { render, dispose() { renderer.dispose(); renderer.domElement.remove(); } };
+  return { render, dispose() { canvas.dispose(); } };
 }

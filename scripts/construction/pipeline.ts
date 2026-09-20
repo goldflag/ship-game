@@ -6,9 +6,9 @@ import { compileConstruction } from './compiler';
 import { withConstructionBrowser } from './browser';
 import { constructionFingerprints } from './fingerprints';
 import { canonical, definitionData, hash, modelPayloadHash, publishedDefinition, sealModel } from './artifacts';
-import type { ReviewView } from '../../tools/construction/review';
+import { REVIEW_VIEWS } from './views';
 
-export const REVIEW_VIEWS: ReviewView[] = ['profile', 'plan', 'bow', 'stern', 'quarter'];
+export { REVIEW_VIEWS };
 const json = (value: unknown) => JSON.stringify(value, null, 2) + '\n';
 /** Read-only GLB integrity checks never trust a stored success flag. */
 export function inspectConstructionGlb(bytes: Buffer, definition: ShipDefinition) {

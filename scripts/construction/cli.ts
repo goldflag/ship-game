@@ -7,48 +7,43 @@ import { applyConstructionBatch, constructionDiffCommands, type ConstructionBatc
 import { DEFAULT_HULL_PRESET, HULL_PRESETS } from '../../src/ships/constructionHullPresets';
 import { customHullPanels } from '../../src/ships/constructionPanels';
 import { parseConstructionCatalog } from '../../src/ships/constructionEquipment';
+import { catalogParts, compactJson } from '../../src/ships/constructionQuery';
 import { readSource, readCatalog, repositoryStore, constructionId, sourcePath } from './files';
 import { compileConstruction, suggestConstruction } from './compiler';
-import { authoringServer, serverUrl, withConstructionBrowser } from './browser';
-import { constructionPipeline, REVIEW_VIEWS } from './pipeline';
+import { REVIEW_VIEWS } from './views';
+import { parseFlags, loadCommand, commandSummaries } from './command';
+import { FLAGS, BUILTIN_SUMMARIES } from './builtins';
+import { ConstructionCommandError } from '../../src/ships/constructionCommandSchema';
+
+// Vite, Playwright and the asset pipeline load only for commands that need them, so reads,
+// help and transactions work in a checkout without browser dependencies.
+const browserTools = () => import('./browser');
+const constructionPipeline = async (...input: Parameters<typeof import('./pipeline').constructionPipeline>) =>
+  (await import('./pipeline')).constructionPipeline(...input);
 
 const root = resolve(import.meta.dir, '../..');
-const args = process.argv.slice(2),
-  [action, id] = args;
-const option = (flag: string) => {
-  const i = args.indexOf(flag);
-  return i < 0 ? undefined : args[i + 1];
-};
+const argv = process.argv.slice(2),
+  action = argv[0];
 const print = (value: unknown) => console.log(JSON.stringify(value, null, 2));
-const help = {
-  usage: 'bun scripts/construction/cli.ts <command> <ship-id> [options]',
-  commands: {
-    templates: '— list adjustable hull presets and sandbox starters; no ship ID required',
-    new: `[--template ${[...HULL_PRESETS.map((p) => p.id), 'blank', 'patrol', 'catamaran'].join('|')}] [--name name]; default ${DEFAULT_HULL_PRESET}`,
-    edit: '[--port 5173] — serve the repository source in the game editor',
-    inspect:
-      '[--source] [--source-only] [--panels] — revisions, native diagnostics/loading, optional source and stable panel IDs; source-only skips compilation',
-    catalog: '[--query text] — exact retained equipment variants, dimensions and attachment sockets',
-    suggest: '--parts id,id [--out batch.json] — propose native placements as a revision-guarded batch; never saves the ship',
-    apply: '<batch.json> [--dry-run] — revision-guarded transaction; dry-run compiles the candidate without saving',
-    import: '<source.json> [--expect file-hash] — create or explicitly replace a construction source',
-    export: '<output.json> — exact source backup',
-    render:
-      '[--view profile|plan|bow|stern|quarter] [--part id] [--isolate] [--out directory] [--published] [--pose poses.json] [--quick]; quick skips the articulation sweep',
-    trial: '[--seconds 10] — real local native/WASM combat and reset',
-    register: '— add an already built ship to src/ships/presets.ts',
-    compile: 'native definition; also available through ship:compile',
-    build: 'GLB, native definition, thumbnail and fixed review views',
-    check: 'source, catalog and published artifact integrity',
-    review: 'fixed views and articulation of the exact published GLB',
-    thumbnail: 'refresh the published thumbnail',
-  },
-};
-if (!action || args.includes('--help')) {
-  print(help);
+const help = { usage: 'bun scripts/construction/cli.ts <command> <ship-id> [options]', commands: BUILTIN_SUMMARIES };
+if (!action || argv.includes('--help')) {
+  print({ ...help, commands: { ...help.commands, ...(await commandSummaries()) } });
   process.exit(0);
 }
 try {
+  const extension = FLAGS[action] ? undefined : await loadCommand(action);
+  if (!FLAGS[action] && !extension) throw new Error('Unknown construction command. Use --help.');
+  const parsed = parseFlags(argv.slice(1), extension ?? FLAGS[action]);
+  const id = parsed.id,
+    option = parsed.option,
+    // Kept in the historical shape: args[2] is the first positional after the ship ID.
+    args = { 2: parsed.positionals[0], includes: parsed.has } as { 2: string | undefined; includes(flag: string): boolean };
+  if (extension) {
+    if (extension.ship !== false) constructionId(id);
+    const output = await extension.run({ root, id, positionals: parsed.positionals, option, has: parsed.has, print });
+    if (output !== undefined) print(output);
+    process.exit(process.exitCode ?? 0);
+  }
   if (action === 'templates') {
     print({
       default: DEFAULT_HULL_PRESET,
@@ -96,6 +91,7 @@ try {
     await readSource(root, id);
     const port = Number(option('--port') ?? 0);
     if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Port must be 0–65535.');
+    const { authoringServer, serverUrl } = await browserTools();
     const server = await authoringServer(root, port, true);
     print({ url: serverUrl(server) + '/tools/construction/editor.html?ship=' + id, source: sourcePath(root, id), ready: true });
     for (const signal of ['SIGINT', 'SIGTERM'] as const)
@@ -125,12 +121,14 @@ try {
       { source } = current;
     if (action === 'catalog') {
       const catalog = await readCatalog(root, source.construction.catalogRevision);
-      const query = (option('--query') ?? '').toLowerCase();
-      print({
-        id,
-        catalogRevision: catalog.revision,
-        equipment: catalog.equipment.filter((part) => [part.id, part.name, part.kind].some((value) => value.toLowerCase().includes(query))),
+      const equipment = catalogParts(catalog, {
+        query: option('--query'),
+        kind: option('--kind'),
+        ids: option('--ids')?.split(',').map((part) => part.trim()).filter(Boolean),
+        brief: args.includes('--brief'),
       });
+      if (args.includes('--brief')) console.log(compactJson({ id, catalogRevision: catalog.revision, count: equipment.length, equipment }));
+      else print({ id, catalogRevision: catalog.revision, equipment });
     } else if (action === 'suggest') {
       const partIds = option('--parts')
         ?.split(',')
@@ -182,7 +180,8 @@ try {
           expectedFileHash: current.hash,
           launchable: !!result.definition,
           diagnostics: result.diagnostics,
-          loading: result.loading,
+          // Brief keeps the loading totals and drops the per-item mass contributions.
+          loading: args.includes('--brief') && result.loading ? { ...result.loading, contributions: undefined } : result.loading,
         });
         if (!result.definition) process.exitCode = 1;
       } else {
@@ -209,7 +208,24 @@ try {
       print({ id, registered: true, next: 'Run bun run build; registration does not certify visual acceptance.' });
     } else {
       const result = await compileConstruction(root, source);
-      if (action === 'inspect') {
+      if (action === 'inspect' && args.includes('--brief')) {
+        if (args.includes('--source') || args.includes('--panels')) throw new Error('--brief cannot be combined with --source or --panels.');
+        const { contributions, ...loading } = result.loading ?? { contributions: [] };
+        const c = source.construction;
+        console.log(
+          compactJson({
+            id,
+            revision: source.revision,
+            fileRevision: current.hash,
+            catalogRevision: c.catalogRevision,
+            launchable: !!result.definition,
+            compiled: true,
+            counts: { primitives: c.primitives.length, surfaces: c.surfaces.length, equipment: c.equipment.length, boundaries: c.boundaries.length, loads: c.loads.length, massContributions: contributions.length },
+            loading: result.loading ? loading : undefined,
+            diagnostics: result.diagnostics,
+          }),
+        );
+      } else if (action === 'inspect') {
         print({
           id,
           revision: source.revision,
@@ -232,8 +248,13 @@ try {
         if (published) await constructionPipeline(root, 'check', id);
         const definition = published ? JSON.parse(await readFile(join(root, 'public/models', id + '.json'), 'utf8')) : undefined;
         const input = { source, result, definition, modelUrl: definition?.modelUrl };
-        const directory = resolve(option('--out') ?? join(root, '.build/construction', id, action));
+        // Unique per call: concurrent agents never overwrite each other's evidence.
+        const directory = resolve(
+          option('--out') ??
+            join(root, '.build/construction', id, action, current.hash.slice(0, 8) + '-' + new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15) + '-' + process.pid),
+        );
         await mkdir(directory, { recursive: true });
+        const { withConstructionBrowser } = await browserTools();
         const output = await withConstructionBrowser(root, input, async (page) => {
           if (action === 'trial')
             return await page.evaluate((seconds) => window.constructionReview!.trial(seconds), Number(option('--seconds') ?? 10));
@@ -281,6 +302,8 @@ try {
     }
   }
 } catch (error) {
-  console.error(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+  // A malformed batch names its failing command: index, op, JSON path and close matches.
+  const detail = error instanceof ConstructionCommandError ? error.toJSON() : {};
+  console.error(JSON.stringify({ ...detail, error: error instanceof Error ? error.message : String(error) }));
   process.exitCode = 1;
 }
