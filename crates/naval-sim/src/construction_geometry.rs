@@ -629,9 +629,11 @@ impl Moments {
     }
 }
 pub fn moments(c: &Cell) -> Moments {
-    face_moments(c.faces.iter().map(|f| f.vertices.as_slice()))
+    face_integrals::<true>(c.faces.iter().map(|f| f.vertices.as_slice()))
 }
-fn face_moments<'a>(faces: impl Iterator<Item = &'a [Vec3]> + Clone) -> Moments {
+fn face_integrals<'a, const FULL: bool>(
+    faces: impl Iterator<Item = &'a [Vec3]> + Clone,
+) -> Moments {
     // Reference near the body avoids catastrophic cancellation after translations.
     let origin = crate::structure::bounds(faces.clone().flat_map(|f| f.iter().copied())).0;
     let mut m = Moments::default();
@@ -640,16 +642,20 @@ fn face_moments<'a>(faces: impl Iterator<Item = &'a [Vec3]> + Clone) -> Moments 
             let p = [sub(f[0], origin), sub(f[i], origin), sub(f[i + 1], origin)];
             let v = dot(p[0], cross(p[1], p[2])) / 6.;
             m.volume += v;
-            for k in 0..3 {
-                let s = p[0][k] + p[1][k] + p[2][k];
-                m.first[k] += v * s / 4.;
-                m.second[k] += v * (s * s + p.iter().map(|p| p[k] * p[k]).sum::<f64>()) / 20.;
+            if FULL {
+                for k in 0..3 {
+                    let s = p[0][k] + p[1][k] + p[2][k];
+                    m.first[k] += v * s / 4.;
+                    m.second[k] += v * (s * s + p.iter().map(|p| p[k] * p[k]).sum::<f64>()) / 20.;
+                }
             }
         }
     }
-    for (k, _) in origin.iter().enumerate() {
-        m.second[k] += 2. * origin[k] * m.first[k] + origin[k] * origin[k] * m.volume;
-        m.first[k] += origin[k] * m.volume;
+    if FULL {
+        for (k, _) in origin.iter().enumerate() {
+            m.second[k] += 2. * origin[k] * m.first[k] + origin[k] * origin[k] * m.volume;
+            m.first[k] += origin[k] * m.volume;
+        }
     }
     m
 }
@@ -672,6 +678,16 @@ thread_local! {
 /// calls it replaces; the cap's angles are computed once and sorted stably,
 /// which orders it exactly as comparing them pairwise does.
 pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
+    clipped_integrals::<true>(c, n, d)
+}
+/// Volume from the same clipping and tetrahedron sum as `clipped_moments`,
+/// without computing first or second moments discarded by a level search.
+/// Keep the origin, face order and additions identical so bisections retain
+/// their exact waterline, including tolerance-thin and translated cells.
+pub fn clipped_volume(c: &Cell, n: Vec3, d: f64) -> Option<f64> {
+    clipped_integrals::<false>(c, n, d).map(|m| m.volume)
+}
+fn clipped_integrals<const FULL: bool>(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
     let (mut outside, mut inside) = (false, false);
     for f in c.faces.iter() {
         for &p in &f.vertices {
@@ -680,7 +696,9 @@ pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
         }
     }
     if !outside {
-        return Some(moments(c));
+        return Some(face_integrals::<FULL>(
+            c.faces.iter().map(|f| f.vertices.as_slice()),
+        ));
     }
     if !inside {
         return None;
@@ -732,7 +750,8 @@ pub fn clipped_moments(c: &Cell, n: Vec3, d: f64) -> Option<Moments> {
                 points.extend_from_slice(cap);
             }
         }
-        (faces.len() >= 4).then(|| face_moments(faces.iter().map(|&(a, b)| &points[a..b])))
+        (faces.len() >= 4)
+            .then(|| face_integrals::<FULL>(faces.iter().map(|&(a, b)| &points[a..b])))
     })
 }
 pub fn total(cells: &[Cell]) -> Moments {

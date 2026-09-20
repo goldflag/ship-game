@@ -18,9 +18,12 @@ pub struct WaterBody {
     shape: OnceLock<WaterGeometry>,
     #[serde(skip)]
     exact_moments: Option<crate::construction_geometry::Moments>,
-    /// Constructed rooms: each cell's span along this attitude and its full
-    /// moments. Built by the first level query that has to clip, then shared by
-    /// every query until the attitude changes.
+    /// Constructed rooms: immutable moments of each cell in ship coordinates.
+    /// Kept across attitude changes; only partial-cell moments depend on water.
+    #[serde(skip)]
+    full_moments: OnceLock<Vec<crate::construction_geometry::Moments>>,
+    /// Constructed rooms: each cell's span along this attitude, paired with its
+    /// cached full moments. Shared until the attitude changes.
     #[serde(skip)]
     oriented: OnceLock<Vec<OrientedCell>>,
     /// Constructed rooms: volume against level at this attitude, filled in where
@@ -257,6 +260,7 @@ impl WaterBody {
             pitch: f64::NAN,
             shape: OnceLock::new(),
             exact_moments: None,
+            full_moments: OnceLock::new(),
             oriented: OnceLock::new(),
             levels: RefCell::new(None),
             spheres: OnceLock::new(),
@@ -284,6 +288,7 @@ impl WaterBody {
                 &self.oriented,
                 &self.levels,
                 &self.spheres,
+                &self.full_moments,
             )
             .level(volume);
         }
@@ -325,6 +330,7 @@ pub fn refresh(
             &body.oriented,
             &body.levels,
             &body.spheres,
+            &body.full_moments,
         )
         .water(volume);
         body.exact_moments = Some(moments);
@@ -532,6 +538,7 @@ struct ExactRoom<'a> {
     oriented: &'a OnceLock<Vec<OrientedCell>>,
     levels: &'a RefCell<Option<LevelTable>>,
     spheres: &'a OnceLock<Vec<(Vec3, f64)>>,
+    full_moments: &'a OnceLock<Vec<crate::construction_geometry::Moments>>,
 }
 impl<'a> ExactRoom<'a> {
     fn new(
@@ -541,6 +548,7 @@ impl<'a> ExactRoom<'a> {
         oriented: &'a OnceLock<Vec<OrientedCell>>,
         levels: &'a RefCell<Option<LevelTable>>,
         spheres: &'a OnceLock<Vec<(Vec3, f64)>>,
+        full_moments: &'a OnceLock<Vec<crate::construction_geometry::Moments>>,
     ) -> Self {
         Self {
             room,
@@ -549,6 +557,7 @@ impl<'a> ExactRoom<'a> {
             oriented,
             levels,
             spheres,
+            full_moments,
         }
     }
     /// Lowest and highest vertex along the water normal: the room's floor and
@@ -587,15 +596,21 @@ impl<'a> ExactRoom<'a> {
         }
         (lo, hi)
     }
-    /// A wholly submerged cell has the same moments at every level; compute
-    /// those once per attitude. Partial cells are clipped and integrated.
-    fn submerged(&self, level: f64) -> crate::construction_geometry::Moments {
-        use crate::construction_geometry::{EPS, Moments, clipped_moments, moments};
-        let n = self.normal;
-        let oriented = self.oriented.get_or_init(|| {
+    fn full_moments(&self) -> &[crate::construction_geometry::Moments] {
+        self.full_moments.get_or_init(|| {
             self.cells
                 .iter()
-                .map(|cell| {
+                .map(crate::construction_geometry::moments)
+                .collect()
+        })
+    }
+    fn oriented(&self) -> &[OrientedCell] {
+        let n = self.normal;
+        self.oriented.get_or_init(|| {
+            self.cells
+                .iter()
+                .zip(self.full_moments())
+                .map(|(cell, &full)| {
                     let (bottom, top) = cell.faces.iter().flat_map(|f| &f.vertices).fold(
                         (f64::INFINITY, f64::NEG_INFINITY),
                         |(lo, hi), p| {
@@ -603,21 +618,38 @@ impl<'a> ExactRoom<'a> {
                             (lo.min(y), hi.max(y))
                         },
                     );
-                    OrientedCell {
-                        bottom,
-                        top,
-                        full: moments(cell),
-                    }
+                    OrientedCell { bottom, top, full }
                 })
                 .collect()
-        });
+        })
+    }
+    /// Match the full integration's comparisons, cell order and volume sum.
+    /// Thirty level probes and the two area probes need no other moments.
+    fn submerged_volume(&self, level: f64) -> f64 {
+        use crate::construction_geometry::{EPS, clipped_volume};
+        let mut volume = 0.;
+        for (cell, o) in self.cells.iter().zip(self.oriented()) {
+            if o.top - level <= EPS {
+                volume += o.full.volume;
+            } else if o.bottom - level < -EPS
+                && let Some(part) = clipped_volume(cell, self.normal, level)
+            {
+                volume += part;
+            }
+        }
+        volume
+    }
+    /// A wholly submerged cell retains its moments for the lifetime of the
+    /// body. Only cells crossing the waterline need clipping and integration.
+    fn submerged(&self, level: f64) -> crate::construction_geometry::Moments {
+        use crate::construction_geometry::{EPS, Moments, clipped_moments};
         let mut total = Moments::default();
-        for (cell, o) in self.cells.iter().zip(oriented) {
+        for (cell, o) in self.cells.iter().zip(self.oriented()) {
             // Match clip's comparisons exactly, including epsilon-thin cells.
             if o.top - level <= EPS {
                 total.add(o.full);
             } else if o.bottom - level < -EPS
-                && let Some(part) = clipped_moments(cell, n, level)
+                && let Some(part) = clipped_moments(cell, self.normal, level)
             {
                 total.add(part);
             }
@@ -630,7 +662,7 @@ impl<'a> ExactRoom<'a> {
         levels
             .get_or_insert_with(|| LevelTable::new(self.cells, self.normal))
             .solve(volume, self.room.capacity_m3, |level| {
-                self.submerged(level).volume
+                self.submerged_volume(level)
             })
     }
     fn level(&self, volume: f64) -> f64 {
@@ -654,12 +686,15 @@ impl<'a> ExactRoom<'a> {
             return (lo, 0., self.room.center, Default::default());
         }
         if volume >= self.room.capacity_m3 {
-            let m = crate::construction_geometry::total(self.cells);
+            let mut m = crate::construction_geometry::Moments::default();
+            for &full in self.full_moments() {
+                m.add(full);
+            }
             return (hi, 0., m.center(), m);
         }
         for _ in 0..30 {
             let mid = (lo + hi) * 0.5;
-            if self.submerged(mid).volume < volume {
+            if self.submerged_volume(mid) < volume {
                 lo = mid;
             } else {
                 hi = mid;
@@ -668,7 +703,7 @@ impl<'a> ExactRoom<'a> {
         let level = (lo + hi) * 0.5;
         let m = self.submerged(level);
         let e = 0.0001;
-        let area = (self.submerged(level + e).volume - self.submerged(level - e).volume) / (2. * e);
+        let area = (self.submerged_volume(level + e) - self.submerged_volume(level - e)) / (2. * e);
         (level, area.max(0.), m.center(), m)
     }
 }
