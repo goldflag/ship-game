@@ -271,11 +271,7 @@ pub(super) fn steer_fighter(
     let tail =
         dot(forward, normalize(hostile.velocity)) > 0.6 && dot(forward, normalize(delta)) > 0.7;
     let speed = if tail && distance < 400.0 {
-        clamp(
-            hostile.airspeed() + (distance - 220.0) * 0.07,
-            65.0,
-            115.0,
-        )
+        clamp(hostile.airspeed() + (distance - 220.0) * 0.07, 65.0, 115.0)
     } else {
         115.0
     };

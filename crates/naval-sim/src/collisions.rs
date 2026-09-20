@@ -503,25 +503,28 @@ mod collision_index_tests {
     }
     #[test]
     fn spatial_candidates_preserve_exhaustive_contacts_and_lazy_transforms() {
-        let d = ShipDefinition { hull: Hull {
-            kind: "constructed-volume-v1".into(),
-            length: 30.,
-            beam: 10.,
-            draft: 3.,
-            depth: 4.,
-            mass_kg: 100000.,
-            half_breadths: vec![[0., 5.], [30., 5.]],
-            keel_heights: vec![[0., -3.], [30., -3.]],
-            deck_heights: vec![[0., 4.], [30., 4.]],
-            volume: Some(ConstructionGeometry {
-                version: 1.,
-                cells: (0..6)
-                    .map(|i| cg::box_cell([0., 0., i as f64 * 4. - 10.], [8., 5., 4.]))
-                    .collect(),
-                surfaces: vec![],
-            }),
+        let d = ShipDefinition {
+            hull: Hull {
+                kind: "constructed-volume-v1".into(),
+                length: 30.,
+                beam: 10.,
+                draft: 3.,
+                depth: 4.,
+                mass_kg: 100000.,
+                half_breadths: vec![[0., 5.], [30., 5.]],
+                keel_heights: vec![[0., -3.], [30., -3.]],
+                deck_heights: vec![[0., 4.], [30., 4.]],
+                volume: Some(ConstructionGeometry {
+                    version: 1.,
+                    cells: (0..6)
+                        .map(|i| cg::box_cell([0., 0., i as f64 * 4. - 10.], [8., 5., 4.]))
+                        .collect(),
+                    surfaces: vec![],
+                }),
+                ..Default::default()
+            },
             ..Default::default()
-        }, ..Default::default() };
+        };
         let compiled = Arc::new(CompiledShip::new(Arc::new(d), None).unwrap());
         for x in [0., 7.9, 8., 8.00001, 20., 100.] {
             for roll in [0., 0.4, std::f64::consts::FRAC_PI_2, std::f64::consts::PI] {

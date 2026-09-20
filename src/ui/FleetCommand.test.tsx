@@ -14,19 +14,75 @@ import { shipClassOf } from './shipGlyphs';
 import { SCREEN_INNER_RADIUS_M, SCREEN_OUTER_RADIUS_M, STATION_RADIUS_M } from './formationStations';
 
 function fixture() {
-  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const definition = shipPreset('bismarck'),
+    simulation = new CombatSimulation(definition);
   const id = simulation.ship.id;
   Object.assign(simulation, {
-    fleetOrders: { [id]: { manual: false, movement: { type: 'route', waypoints: [[100, 200], [300, 400]], speedMps: 10, looped: false }, weapons: { guns: true, aa: true, torpedoes: false } } },
+    fleetOrders: {
+      [id]: {
+        manual: false,
+        movement: {
+          type: 'route',
+          waypoints: [
+            [100, 200],
+            [300, 400],
+          ],
+          speedMps: 10,
+          looped: false,
+        },
+        weapons: { guns: true, aa: true, torpedoes: false },
+      },
+    },
     observationTracks: [
-      { id: 'hidden-air-report', kind: 'aircraft', status: 'stale', affiliation: 'hostile', classification: 'Torpedo bomber', estimatedPosition: [200, 400, 900], measuredPosition: [200, 400, 900], velocity: [0, 0, 0], uncertaintyM: 5000, lastObservedTick: 0, sources: [] },
-      { id: 'contact-a-1', kind: 'surface', status: 'tracked', affiliation: 'hostile', classification: 'Large warship', identifiedPresetId: 'yamato', estimatedPosition: [4000, 0, -9000], measuredPosition: [4000, 0, -9000], velocity: [0, 0, 0], uncertaintyM: 40, lastObservedTick: 0, sources: [{ observerId: id, kind: 'surface', tick: 0, strength: 1 }] },
+      {
+        id: 'hidden-air-report',
+        kind: 'aircraft',
+        status: 'stale',
+        affiliation: 'hostile',
+        classification: 'Torpedo bomber',
+        estimatedPosition: [200, 400, 900],
+        measuredPosition: [200, 400, 900],
+        velocity: [0, 0, 0],
+        uncertaintyM: 5000,
+        lastObservedTick: 0,
+        sources: [],
+      },
+      {
+        id: 'contact-a-1',
+        kind: 'surface',
+        status: 'tracked',
+        affiliation: 'hostile',
+        classification: 'Large warship',
+        identifiedPresetId: 'yamato',
+        estimatedPosition: [4000, 0, -9000],
+        measuredPosition: [4000, 0, -9000],
+        velocity: [0, 0, 0],
+        uncertaintyM: 40,
+        lastObservedTick: 0,
+        sources: [{ observerId: id, kind: 'surface', tick: 0, strength: 1 }],
+      },
     ],
     shipScores: { [id]: { damageDealt: 12400, frags: 1 } },
   });
-  const desk = fleetDesk({ simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map([[1, { name: 'Group 1', shipIds: [id] }]]) } as unknown as FleetAuthority);
-  const data: Telemetry = { ship: simulation.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -5000]), fleetCommandMode: true, airOperationsOpen: true, selectedShipIds: [] };
-  const render = (state = data) => renderToStaticMarkup(<FleetCommand data={state} desk={desk} bindings={defaultKeybindings()}/>);
+  const desk = fleetDesk({
+    simulation,
+    selectedShipIds: [],
+    selectedFlightIds: [],
+    controlGroups: new Map([[1, { name: 'Group 1', shipIds: [id] }]]),
+  } as unknown as FleetAuthority);
+  const data: Telemetry = {
+    ship: simulation.ship,
+    order: 1,
+    camera: 'Chase',
+    fps: 60,
+    backend: 'test',
+    trail: [],
+    combat: simulation.telemetry('main', [0, 0, -5000]),
+    fleetCommandMode: true,
+    airOperationsOpen: true,
+    selectedShipIds: [],
+  };
+  const render = (state = data) => renderToStaticMarkup(<FleetCommand data={state} desk={desk} bindings={defaultKeybindings()} />);
   return { render, data, id, simulation };
 }
 
@@ -57,7 +113,8 @@ test('the chart shows every formation, the enemy fleet and an order wheel with h
   expect(html).toContain('aria-label="Battle comparison"');
   expect(html).toContain('12,400');
   expect(html).toContain('aria-label="Order wheel"');
-  for (const item of ['Move · G', 'Hold · H', 'Escort · E', 'Focus fire · F', '20 kn · + / −']) expect(html).toContain(`aria-label="${item}"`);
+  for (const item of ['Move · G', 'Hold · H', 'Escort · E', 'Focus fire · F', '20 kn · + / −'])
+    expect(html).toContain(`aria-label="${item}"`);
   // The formation is a property of the group, not a global toggle on the wheel.
   expect(html).not.toContain('C · formation');
   expect(html).toContain('aria-label="Formation"');
@@ -95,7 +152,10 @@ test('following keeps one compact panel with the helm and the chart a key away',
 
 test('standing-order report distinguishes temporary evasion from its retained route', async () => {
   const { standingOrder } = await import('./FleetCommand');
-  const order = { movement: { type: 'route', waypoints: [[0, 1000]], speedMps: 10, looped: false }, navigation: { status: 'evading-torpedo', waypoint: 0 } } as unknown as import('../multiplayer/generated/FleetOrderState').FleetOrderState;
+  const order = {
+    movement: { type: 'route', waypoints: [[0, 1000]], speedMps: 10, looped: false },
+    navigation: { status: 'evading-torpedo', waypoint: 0 },
+  } as unknown as import('../multiplayer/generated/FleetOrderState').FleetOrderState;
   expect(standingOrder(order)).toContain('Avoiding spotted torpedoes');
   expect(standingOrder(order)).toContain('Waypoint 1/1');
 });
@@ -103,8 +163,8 @@ test('standing-order report distinguishes temporary evasion from its retained ro
 test('enemy HP appears only for current sightings with sampled health', () => {
   const { render, simulation } = fixture();
   Object.assign(simulation, {
-    observedShips: [{ id: 'contact-a-1', health: .42, observedTick: 0 }],
-    observedAircraft: [{ id: 'hidden-air-report', health: .73, observedTick: 0 }],
+    observedShips: [{ id: 'contact-a-1', health: 0.42, observedTick: 0 }],
+    observedAircraft: [{ id: 'hidden-air-report', health: 0.73, observedTick: 0 }],
   });
   expect(render()).toContain('42% HP');
   expect(render()).not.toContain('73% HP');
@@ -115,7 +175,6 @@ test('enemy HP appears only for current sightings with sampled health', () => {
   tracks[1].status = 'stale';
   expect(render()).not.toContain('42% HP');
 });
-
 
 test('an unselected blocked ship exposes its route and warnings, then clears them on recovery', () => {
   const { render, id, simulation } = fixture();
@@ -136,27 +195,69 @@ test('an unselected blocked ship exposes its route and warnings, then clears the
   expect(recovered).not.toContain('class="fleet-route-warning"');
 });
 
-const fleetFixture = (formation: Formation = 'column', notices: { tick: number; shipId: string; kind: 'guide-assumed'; text: string }[] = []) => {
+const fleetFixture = (
+  formation: Formation = 'column',
+  notices: { tick: number; shipId: string; kind: 'guide-assumed'; text: string }[] = [],
+) => {
   const definition = shipPreset('bismarck');
-  const simulation = new CombatSimulation(definition, resolveBattleFleet({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'baltimore'], enemies: ['yamato'], spawnDistance: 7500 }, shipPreset));
+  const simulation = new CombatSimulation(
+    definition,
+    resolveBattleFleet(
+      { playerShipId: 'bismarck', friendlyBots: ['fletcher', 'baltimore'], enemies: ['yamato'], spawnDistance: 7500 },
+      shipPreset,
+    ),
+  );
   const escorts: { id: string; leaderId: string; offset: [number, number]; radiusM: number; formation?: Formation; slot?: number }[] = [];
-  const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: undefined, manual: false, navigation: undefined });
-  Object.assign(simulation, { phase: 'running', fleetNotices: notices,
-    fleetOrders: { player: standing({ type: 'hold' }),
+  const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({
+    movement,
+    weapons: { guns: true, aa: true, torpedoes: false },
+    formationPolicy: 'slow-for-stragglers',
+    targetId: undefined,
+    manual: false,
+    navigation: undefined,
+  });
+  Object.assign(simulation, {
+    phase: 'running',
+    fleetNotices: notices,
+    fleetOrders: {
+      player: standing({ type: 'hold' }),
       'friendly-1': standing({ type: 'escort', leaderId: 'player', offset: [0, 900], radiusM: 160, formation, slot: 1 }),
-      'friendly-2': standing({ type: 'escort', leaderId: 'player', offset: [0, 450], radiusM: 160, formation, slot: 0 }) },
-    escortShip: (id: string, leaderId: string, offset: [number, number], radiusM: number, kind?: Formation, slot?: number) => { escorts.push({ id, leaderId, offset, radiusM, formation: kind, slot }); } });
-  const owned = simulation.telemetry('main', [0, 0, -7500]).contacts.filter(c => c.team === 'friendly');
-  const controlGroups = new Map<number, ControlGroup>([[1, { name: 'Group 1', shipIds: owned.map(c => c.id), formation }]]);
+      'friendly-2': standing({ type: 'escort', leaderId: 'player', offset: [0, 450], radiusM: 160, formation, slot: 0 }),
+    },
+    escortShip: (id: string, leaderId: string, offset: [number, number], radiusM: number, kind?: Formation, slot?: number) => {
+      escorts.push({ id, leaderId, offset, radiusM, formation: kind, slot });
+    },
+  });
+  const owned = simulation.telemetry('main', [0, 0, -7500]).contacts.filter((c) => c.team === 'friendly');
+  const controlGroups = new Map<number, ControlGroup>([[1, { name: 'Group 1', shipIds: owned.map((c) => c.id), formation }]]);
   const desk = fleetDesk({ simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups } as unknown as FleetAuthority);
-  const data: Telemetry = { ship: simulation.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -7500]), fleetCommandMode: true, airOperationsOpen: true, selectedShipIds: [] };
-  const render = (selectedShipIds: string[]) => renderToStaticMarkup(<FleetCommand data={{ ...data, selectedShipIds }} desk={desk} bindings={defaultKeybindings()}/>);
-  return { render, desk, controlGroups, escorts, owned, classes: owned.map(c => shipClassOf(simulation.actors.find(a => a.motion.id === c.id)!.definition)) };
+  const data: Telemetry = {
+    ship: simulation.ship,
+    order: 1,
+    camera: 'Chase',
+    fps: 60,
+    backend: 'test',
+    trail: [],
+    combat: simulation.telemetry('main', [0, 0, -7500]),
+    fleetCommandMode: true,
+    airOperationsOpen: true,
+    selectedShipIds: [],
+  };
+  const render = (selectedShipIds: string[]) =>
+    renderToStaticMarkup(<FleetCommand data={{ ...data, selectedShipIds }} desk={desk} bindings={defaultKeybindings()} />);
+  return {
+    render,
+    desk,
+    controlGroups,
+    escorts,
+    owned,
+    classes: owned.map((c) => shipClassOf(simulation.actors.find((a) => a.motion.id === c.id)!.definition)),
+  };
 };
 
 test('the formation picker acts on the selected group and explains itself when the selection is not one', () => {
   const { render, owned } = fleetFixture();
-  const whole = render(owned.map(c => c.id));
+  const whole = render(owned.map((c) => c.id));
   expect(whole).toContain('aria-label="Formation"');
   for (const label of ['Column', 'Double column', 'Triple column', 'Screen', 'Line abreast']) expect(whole).toContain(`>${label}</button>`);
   // The group sails in column until the picker says otherwise, and says so on the rail and in the own fleet card.
@@ -173,42 +274,57 @@ test('the formation picker acts on the selected group and explains itself when t
 
 test('choosing a formation records it on the control group and re-stations every escort by role', () => {
   const { desk, controlGroups, escorts, owned, classes } = fleetFixture();
-  const group = { index: 1, name: 'Bismarck formation', leaderId: owned[0].id, shipIds: owned.map(c => c.id), formation: 'column' as Formation };
+  const group = {
+    index: 1,
+    name: 'Bismarck formation',
+    leaderId: owned[0].id,
+    shipIds: owned.map((c) => c.id),
+    formation: 'column' as Formation,
+  };
   expect(controlGroups.get(1)!.formation).toBe('column');
   const members = owned.map((c, i) => ({ id: c.id, shipClass: classes[i] }));
   expect(classes).toEqual(['battleship', 'destroyer', 'cruiser']);
   expect(applyGroupFormation(desk, group, 'screen', members)).toBe('2 escort orders queued · Screen');
   // The group keeps how it sails, so the card, the chart and a later Move all agree.
-  expect(controlGroups.get(1)).toEqual({ name: 'Group 1', shipIds: owned.map(c => c.id), formation: 'screen' });
+  expect(controlGroups.get(1)).toEqual({ name: 'Group 1', shipIds: owned.map((c) => c.id), formation: 'screen' });
   // Cruiser inside, destroyer outside: role order decides the slots, and every order carries both.
-  expect(escorts.map(e => [e.id, e.formation, e.slot, e.radiusM])).toEqual([
+  expect(escorts.map((e) => [e.id, e.formation, e.slot, e.radiusM])).toEqual([
     [owned[2].id, 'screen', 0, STATION_RADIUS_M],
     [owned[1].id, 'screen', 1, STATION_RADIUS_M],
   ]);
-  expect(escorts.map(e => e.leaderId)).toEqual([owned[0].id, owned[0].id]);
+  expect(escorts.map((e) => e.leaderId)).toEqual([owned[0].id, owned[0].id]);
   expect(escorts[0].offset).toEqual([0, -SCREEN_INNER_RADIUS_M]);
   expect(SCREEN_INNER_RADIUS_M).toBe(700);
   expect(escorts[1].offset).toEqual([0, -SCREEN_OUTER_RADIUS_M]);
   // A column puts the same ships astern at the battleship's interval, heavies nearest.
   escorts.length = 0;
   expect(applyGroupFormation(desk, { ...group, formation: 'screen' }, 'column', members)).toBe('2 escort orders queued · Column');
-  expect(escorts.map(e => [e.id, e.offset, e.slot])).toEqual([[owned[2].id, [0, 450], 0], [owned[1].id, [0, 900], 1]]);
+  expect(escorts.map((e) => [e.id, e.offset, e.slot])).toEqual([
+    [owned[2].id, [0, 450], 0],
+    [owned[1].id, [0, 900], 1],
+  ]);
   expect(controlGroups.get(1)!.formation).toBe('column');
   // A double column re-stations the same pair abeam and astern of the guide's own column.
   escorts.length = 0;
-  expect(applyGroupFormation(desk, { ...group, formation: 'column' }, 'double-column', members)).toBe('2 escort orders queued · Double column');
-  expect(escorts.map(e => [e.id, e.formation, e.offset, e.slot])).toEqual([
+  expect(applyGroupFormation(desk, { ...group, formation: 'column' }, 'double-column', members)).toBe(
+    '2 escort orders queued · Double column',
+  );
+  expect(escorts.map((e) => [e.id, e.formation, e.offset, e.slot])).toEqual([
     [owned[2].id, 'double-column', [450, 0], 0],
     [owned[1].id, 'double-column', [0, 450], 1],
   ]);
   expect(controlGroups.get(1)!.formation).toBe('double-column');
   // A group with nobody to station still records the formation it was set to.
-  expect(applyGroupFormation(desk, { ...group, shipIds: [owned[0].id] }, 'line-abreast', [members[0]])).toBe('Bismarck formation · Line abreast · no escorts to station');
+  expect(applyGroupFormation(desk, { ...group, shipIds: [owned[0].id] }, 'line-abreast', [members[0]])).toBe(
+    'Bismarck formation · Line abreast · no escorts to station',
+  );
 });
 
 test('a guide-assumed notice reaches the feedback line so the fleet knows who has the group', () => {
-  const { render, owned } = fleetFixture('column', [{ tick: 120, shipId: 'friendly-1', kind: 'guide-assumed', text: 'Fletcher 2 has the guide' }]);
-  expect(render(owned.map(c => c.id))).toContain('Fletcher 2 has the guide');
+  const { render, owned } = fleetFixture('column', [
+    { tick: 120, shipId: 'friendly-1', kind: 'guide-assumed', text: 'Fletcher 2 has the guide' },
+  ]);
+  expect(render(owned.map((c) => c.id))).toContain('Fletcher 2 has the guide');
   expect(render([])).toContain('Fletcher 2 has the guide');
 });
 
@@ -225,11 +341,44 @@ test("the guide's label clears its escorts: to port in column, above the marker 
 test('a reported strike shows its slung weapons, the ship on its course and the time to release', () => {
   const { render, simulation, id } = fixture();
   const ship = simulation.ship;
-  const carrying = { id: 'tb-1', kind: 'aircraft', status: 'tracked', affiliation: 'hostile', classification: 'Torpedo bomber', identifiedPresetId: null, identificationConfidence: 1,
-    estimatedPosition: [ship.x + 4000, 30, ship.z], measuredPosition: [ship.x + 4000, 30, ship.z], velocity: [-60, 0, 0], uncertaintyM: 40, firstObservedTick: 0, lastObservedTick: simulation.tick, sources: [] };
-  const released = { ...carrying, id: 'tb-2', estimatedPosition: [ship.x + 4100, 30, ship.z + 200], measuredPosition: [ship.x + 4100, 30, ship.z + 200] };
-  const exterior = (track: typeof carrying, payload: boolean) => ({ id: track.id, modelId: 'tbd-1-devastator', position: track.estimatedPosition, heading: -Math.PI / 2, velocity: track.velocity, observedTick: simulation.tick, observers: [id], controls: {}, wingFold: 0, payload });
-  Object.assign(simulation, { observationTracks: [carrying, released], observedAircraft: [exterior(carrying, true), exterior(released, false)] });
+  const carrying = {
+    id: 'tb-1',
+    kind: 'aircraft',
+    status: 'tracked',
+    affiliation: 'hostile',
+    classification: 'Torpedo bomber',
+    identifiedPresetId: null,
+    identificationConfidence: 1,
+    estimatedPosition: [ship.x + 4000, 30, ship.z],
+    measuredPosition: [ship.x + 4000, 30, ship.z],
+    velocity: [-60, 0, 0],
+    uncertaintyM: 40,
+    firstObservedTick: 0,
+    lastObservedTick: simulation.tick,
+    sources: [],
+  };
+  const released = {
+    ...carrying,
+    id: 'tb-2',
+    estimatedPosition: [ship.x + 4100, 30, ship.z + 200],
+    measuredPosition: [ship.x + 4100, 30, ship.z + 200],
+  };
+  const exterior = (track: typeof carrying, payload: boolean) => ({
+    id: track.id,
+    modelId: 'tbd-1-devastator',
+    position: track.estimatedPosition,
+    heading: -Math.PI / 2,
+    velocity: track.velocity,
+    observedTick: simulation.tick,
+    observers: [id],
+    controls: {},
+    wingFold: 0,
+    payload,
+  });
+  Object.assign(simulation, {
+    observationTracks: [carrying, released],
+    observedAircraft: [exterior(carrying, true), exterior(released, false)],
+  });
   const html = render();
   // The plane seen after release goes hollow; the one still carrying keeps its stripe.
   expect(html).toMatch(/data-track="tb-2"[^>]*class="fleet-command-plane enemy tracked  unarmed"/);
@@ -250,17 +399,41 @@ test('a reported strike shows its slung weapons, the ship on its course and the 
 });
 
 test('a custom battle reads the same chart from its helm: a way back, no captain to follow, and the whole enemy fleet', () => {
-  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition, { friendlyBots: [shipPreset('fletcher')], enemies: [shipPreset('yamato')] });
+  const definition = shipPreset('bismarck'),
+    simulation = new CombatSimulation(definition, { friendlyBots: [shipPreset('fletcher')], enemies: [shipPreset('yamato')] });
   const id = simulation.ship.id;
-  const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: undefined, manual: false, navigation: undefined });
-  Object.assign(simulation, { fleetOrders: {
-    [id]: standing({ type: 'autonomous' }),
-    'friendly-1': { ...standing({ type: 'autonomous' }), targetId: 'enemy-1' },
-  } });
+  const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({
+    movement,
+    weapons: { guns: true, aa: true, torpedoes: false },
+    formationPolicy: 'slow-for-stragglers',
+    targetId: undefined,
+    manual: false,
+    navigation: undefined,
+  });
+  Object.assign(simulation, {
+    fleetOrders: {
+      [id]: standing({ type: 'autonomous' }),
+      'friendly-1': { ...standing({ type: 'autonomous' }), targetId: 'enemy-1' },
+    },
+  });
   const desk = fleetDesk({ simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as FleetAuthority);
   const combat = simulation.telemetry('main', [0, 0, -5000]);
-  const data: Telemetry = { ship: simulation.ship, order: 5, rudderOrder: -.5, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat, fleetCommandMode: true, helmChart: true, airOperationsOpen: true, controlledShipId: id, selectedShipIds: [] };
-  const render = (state: Telemetry) => renderToStaticMarkup(<FleetCommand data={state} desk={desk} bindings={defaultKeybindings()}/>);
+  const data: Telemetry = {
+    ship: simulation.ship,
+    order: 5,
+    rudderOrder: -0.5,
+    camera: 'Chase',
+    fps: 60,
+    backend: 'test',
+    trail: [],
+    combat,
+    fleetCommandMode: true,
+    helmChart: true,
+    airOperationsOpen: true,
+    controlledShipId: id,
+    selectedShipIds: [],
+  };
+  const render = (state: Telemetry) => renderToStaticMarkup(<FleetCommand data={state} desk={desk} bindings={defaultKeybindings()} />);
   const html = render(data);
   expect(html).toContain('Return to helm <kbd>M</kbd>');
   expect(html).toContain('aria-label="Time remaining"');

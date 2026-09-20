@@ -86,9 +86,7 @@ fn step(a: &mut Aviation, actors: &[Vessel], time: &mut f64, dt: f64) {
             p.model_id,
             p.phase
         );
-        let limit = a.ground[&p.model_id]
-            .deck_geometry
-            .hook_deck_fraction;
+        let limit = a.ground[&p.model_id].deck_geometry.hook_deck_fraction;
         assert!(
             p.controls.hook <= limit,
             "{} hook crossed its deck stop",
@@ -442,7 +440,10 @@ fn sortie(carrier: &str, role: &str) {
 
 #[test]
 fn balanced_recovery_clears_a_full_deck_without_waiting_for_airborne_group_mates() {
-    use naval_sim::{aviation::{DeckPose, place}, geometry::local_to_world};
+    use naval_sim::{
+        aviation::{DeckPose, place},
+        geometry::local_to_world,
+    };
     for carrier in ["enterprise-cv6", "shokaku"] {
         let (actors, mut a) = setup(carrier, 2);
         let actor = &actors[0];
@@ -604,7 +605,10 @@ fn recall_keeps_a_committed_takeoff_on_the_runway_until_it_can_return() {
 
 #[test]
 fn balanced_handling_recovers_an_entire_surviving_wing_onto_a_smaller_deck() {
-    use naval_sim::{aviation::{DeckPose, place}, geometry::local_to_world};
+    use naval_sim::{
+        aviation::{DeckPose, place},
+        geometry::local_to_world,
+    };
     for carrier in ["enterprise-cv6", "shokaku"] {
         let (actors, mut a) = setup(carrier, 0);
         let actor = &actors[0];
@@ -906,7 +910,10 @@ fn a_lift_can_move_during_the_final_roll_only_after_the_runway_clears_it() {
 
 #[test]
 fn returning_groups_cannot_permanently_block_a_queued_launch_behind_them() {
-    use naval_sim::{aviation::{DeckPose, place}, geometry::local_to_world};
+    use naval_sim::{
+        aviation::{DeckPose, place},
+        geometry::local_to_world,
+    };
     let (actors, mut a) = setup("enterprise-cv6", 0);
     let groups: Vec<_> = a.wings[0]
         .state
@@ -1035,7 +1042,10 @@ fn returning_groups_cannot_permanently_block_a_queued_launch_behind_them() {
 
 #[test]
 fn all_deck_preferences_drain_mixed_physical_traffic_without_losing_aircraft() {
-    use naval_sim::{aviation::{DeckPose, place}, geometry::local_to_world};
+    use naval_sim::{
+        aviation::{DeckPose, place},
+        geometry::local_to_world,
+    };
     for policy in [
         DeckPolicy::Balanced,
         DeckPolicy::LaunchFirst,

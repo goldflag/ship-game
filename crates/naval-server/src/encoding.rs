@@ -32,16 +32,28 @@ mod tests {
     /// number of them can be dropped.
     #[test]
     fn updates_reconstruct_from_the_same_baseline_after_skipped_frames() {
-        let baseline_frame =
-            json!({"tick":0,"actors":[{"x":0,"hp":100},{"x":4,"hp":100}],"events":[],"optional":null});
+        let baseline_frame = json!({"tick":0,"actors":[{"x":0,"hp":100},{"x":4,"hp":100}],"events":[],"optional":null});
         let mut baseline = FrameDelta::default();
         baseline.encode(&baseline_frame).unwrap();
-        let decoded: Value = serde_json::from_str(&FrameDelta::complete(&baseline_frame).unwrap()).unwrap();
-        assert_eq!(decoded, json!({"tick":0,"actors":[{"x":0,"hp":100},{"x":4,"hp":100}],"events":[]}));
+        let decoded: Value =
+            serde_json::from_str(&FrameDelta::complete(&baseline_frame).unwrap()).unwrap();
+        assert_eq!(
+            decoded,
+            json!({"tick":0,"actors":[{"x":0,"hp":100},{"x":4,"hp":100}],"events":[]})
+        );
         for (tick, value) in [
-            (3u64, json!({"tick":3,"actors":[{"x":2,"hp":99},{"x":5,"hp":100}],"events":[1],"optional":{"x":3}})),
-            (9, json!({"tick":9,"actors":[{"x":9,"hp":90},{"x":8,"hp":0}],"events":[],"optional":null})),
-            (12, json!({"tick":12,"actors":[{"x":4},{"x":8,"hp":0}],"events":{},"optional":[1]})),
+            (
+                3u64,
+                json!({"tick":3,"actors":[{"x":2,"hp":99},{"x":5,"hp":100}],"events":[1],"optional":{"x":3}}),
+            ),
+            (
+                9,
+                json!({"tick":9,"actors":[{"x":9,"hp":90},{"x":8,"hp":0}],"events":[],"optional":null}),
+            ),
+            (
+                12,
+                json!({"tick":12,"actors":[{"x":4},{"x":8,"hp":0}],"events":{},"optional":[1]}),
+            ),
             (15, json!({"tick":15,"actors":null,"events":[1]})),
         ] {
             let encoded = publish_bytes(&baseline, tick, &value).unwrap();

@@ -1,6 +1,6 @@
 # Documentation map
 
-Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's current guide, then follow its links to the relevant reference sections. The main [README](../README.md) covers setup, player behavior, controls and architecture.
+Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's current guide, then follow its links to the relevant reference sections. The main [README](../README.md) covers setup and architecture; the [player guide](player-guide.md) covers how the game plays.
 
 ## Current task guides
 
@@ -12,6 +12,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Build a local player ship | [Shipbuilding](shipbuilding.md) | Versioned source, native construction compiler, retained equipment catalog and IndexedDB revisions |
 | Iterate on ship geometry with Blender MCP | [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop) | Live scene inspection, durable recipe edits and clean rebuild verification |
 | Compare ships, aircraft and reference models | [Model library and comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
+| Verify a UI or battle change in a browser | [Browser verification](browser-verification.md) | Account-free harness page, Playwright driver, saved-design cache and known-red ledgers |
 | Review model quality | [Ship model review](ship-model-review.md) | Four required visual checks on the exact published model |
 | Paint ships consistently | [Ship appearance](ship-appearance.md) | Shared finishes, named paints and approved ship-specific schemes |
 | Reuse equipment or browse standalone models | [Shared components](shared-components.md), [model viewer](../tools/ship-overlay/README.md) | Component catalog, original builders and published ship assemblies |
@@ -26,9 +27,9 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Change ocean rendering | [Ocean configuration](ocean-configuration.md) | Visual ocean settings; CPU combat poses stay authoritative |
 | Work on port or HUD UI | [Garage design](garage-mockups/README.md), [HUD design](hud-mockups/README.md), [shared controls](../src/ui/components/README.md) | Existing naval instrument styling and current runtime UI |
 | Add or change graphics settings | [Graphics settings study](graphics-settings/README.md) | Renderer knobs, their apply timing and the proposed live-apply Graphics tab |
-| Develop Rust multiplayer | [Implementation status](rust-multiplayer-implementation.md), [reviewed proposal](rust-multiplayer-plan.md), [Fable critique](rust-multiplayer-critique-fable.md), [review response](rust-multiplayer-review-response.md) | Shared Rust authority for online/custom battles, local validation and measured deployment limits |
+| Develop Rust multiplayer | [Setup, architecture and validation](rust-multiplayer-implementation.md), [crates guide](../crates/AGENTS.md) | Authoritative Rust simulation, generated wire types and server settings |
 | Deploy and operate the public game | [Hermes deployment](deployment.md) | Separate Docker Compose stack, HTTPS routing, persistent results, deploy and rollback commands |
-| Develop PvE fleet command | [Agreed plan](pve-fleet-command-plan.md), [implementation status](pve-implementation-status.md), [selected UI D](pve-ui-studies/README.md) | Rust orders, observation, mission and air rules; approved selection/follow/helm workflows |
+| Develop PvE fleet command | [Current contracts](pve-implementation-status.md), [selected UI D](pve-ui-studies/README.md) | Rust orders, observation, mission and air rules |
 | Investigate test execution | [Test performance](test-performance.md) | Repository test runner and measured execution notes |
 | Measure fleet-command speed | [Fleet command speed](pve-speed-performance.md) | Actual 1×/2×/4× progress, fixed fleet scenarios and worker throughput |
 | Profile custom battles | [Custom battle performance](custom-battle-performance.md) | Actual application, Rust worker, frame intervals and graphics warmup |
@@ -41,19 +42,16 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 - Ship configuration, inspected primary-model links and lasting limitations: `assets/ships/<id>/README.md`.
 - Ship authoring: canonical blueprint, original recipes and registered shared components.
 - Current fixed model views: `assets/ships/<id>/generated/review/`.
-- Temporary ship research, downloads, logs and additional review output: ignored `.build/`.
+- Temporary research, downloads, logs, captures, measurements and review output for any task: ignored `.build/` (diagnostic scripts write to `.build/reviews/<task>/`). A quick test rejects tracked `reports/`, `references/`, `review/` and `assets/reviews/` paths.
 - Ship `reports/` and `references/` archives are removed; do not recreate them or rename them into another tracked archive.
-- Original asset collections: [asset index](../assets/README.md), [aircraft index](../assets/aircraft/README.md), [map review](../assets/maps/review/README.md).
+- Original asset collections: [asset index](../assets/README.md), [aircraft index](../assets/aircraft/README.md).
 - Playable ship roster: [src/ships/presets.ts](../src/ships/presets.ts).
 
 ## Historical context
 
-| Record | How to use it |
-| --- | --- |
-| [Original ship systems plan](ship-systems-plan.md) | Design rationale and proposed roadmap from the pre-pipeline baseline; implementation-status statements are historical |
-| [Ship validation log](ship-validation.md) | Dated tests, model hashes and limitations; a past pass does not validate today's build |
-| [Fleet fidelity integration](fleet-fidelity-integration.md) | Integration evidence for its recorded commits and assets |
-| `assets/reviews/` | Historical task evidence; ship report/reference archives are available only in Git history |
+Finished plans, reviews, handoffs and dated measurement logs are in [archive/](archive/README.md). They explain
+why things were built as they were; their commands, paths and status claims are as of each record's date. A past
+validation pass does not validate today's build. `assets/reviews/` holds historical task evidence.
 
 ## Maintaining these docs
 

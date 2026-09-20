@@ -170,7 +170,11 @@ fn escort_catches_a_moving_leader_and_holds_locally_after_its_loss() {
     );
     let mut ships = vec![ships.remove(1)];
     let at = [ships[0].motion.x, ships[0].motion.z];
-    let stopping_distance = ships[0].compiled.maneuvering.stopping_distance(ships[0].motion.speed, 1., ships[0].motion_mass.mass);
+    let stopping_distance = ships[0].compiled.maneuvering.stopping_distance(
+        ships[0].motion.speed,
+        1.,
+        ships[0].motion_mass.mass,
+    );
     for tick in 60 * 600..60 * 900 {
         step_tracked(&mut ships, &orders[1..], &[], tick, &mut trails);
     }
@@ -268,7 +272,9 @@ fn carrier_screen_traverses_a_passage_and_reforms_after_a_turn() {
     );
     assert!(
         gap(&ships[0], [2400.0, -2800.0]) < 150.0,
-        "leader failed route: {:?}, {:?}", ships[0].motion, ships[0].navigation
+        "leader failed route: {:?}, {:?}",
+        ships[0].motion,
+        ships[0].navigation
     );
     let leader = &ships[0];
     for (a, order) in ships[1..].iter().zip(&orders[1..]) {
@@ -807,7 +813,14 @@ fn a_double_column_rides_the_guides_wake_in_both_columns() {
         gap(&ships[0], [6000.0, -5000.0]) < 150.0,
         "guide failed its route"
     );
-    assert!(minimum_gap > 200.0, "unsafe column spacing: {minimum_gap}; {:?}", ships.iter().map(|a| (&a.motion,a.navigation.as_ref().map(|n| &n.status))).collect::<Vec<_>>());
+    assert!(
+        minimum_gap > 200.0,
+        "unsafe column spacing: {minimum_gap}; {:?}",
+        ships
+            .iter()
+            .map(|a| (&a.motion, a.navigation.as_ref().map(|n| &n.status)))
+            .collect::<Vec<_>>()
+    );
     // Each ship astern holds its own column's distance from the guide's track:
     // the port column on it, the starboard column one interval off it.
     for (a, station) in ships[1..].iter().zip(&stations) {

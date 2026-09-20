@@ -73,7 +73,7 @@ Squadron cards require a baked thumbnail for every model in `GAMEPLAY_AIRCRAFT`.
 BLENDER_MCP_BIN=/path/to/blender-mcp /path/to/python assets/aircraft/mcp_author.py all
 bun run aircraft:publish all
 /path/to/python assets/aircraft/mcp_author.py --inspect
-/path/to/python assets/aircraft/mcp_author.py --screenshot assets/aircraft/reports/blender-mcp-viewport.png
+/path/to/python assets/aircraft/mcp_author.py --screenshot .build/reviews/aircraft/blender-mcp-viewport.png
 ```
 
 Use `--code-file /path/to/review.py` for a repeatable inspection script. For example, after opening a retained SBD or Helldiver source in Blender, this previews the separate split-brake joints in the authoring frame:
@@ -126,6 +126,6 @@ python3 scripts/aircraft/compare.py all
 python3 scripts/aircraft/compare.py sbd-3-dauntless --allow-stale
 ```
 
-Per-aircraft `generated/comparison/` contains side/top overlays, reference crops, silhouettes and `comparison.json`. Reports include GLB, shape, reference and comparator hashes, measured bounds, wing-station residuals and wing-section heights. The fleet index is [schematic-comparisons.json](../assets/aircraft/reports/schematic-comparisons.json). A current hash means **ready for visual review**, not historical approval. Residuals assess how the export follows sampled landmarks; they cannot validate the original drawing, inferred cross-sections or a different variant.
+Per-aircraft `generated/comparison/` contains side/top overlays, reference crops, silhouettes and `comparison.json`. Reports include GLB, shape, reference and comparator hashes, measured bounds, wing-station residuals and wing-section heights. The fleet index is written to ignored `.build/reviews/aircraft/schematic-comparisons.json`. A current hash means **ready for visual review**, not historical approval. Residuals assess how the export follows sampled landmarks; they cannot validate the original drawing, inferred cross-sections or a different variant.
 
-Review top, side, front, rear, quarter and articulation views, registered overlays, cockpit visibility, surface finish and mechanism clearance. [review_sheets.py](../assets/aircraft/review_sheets.py) arranges the actual renders into overview sheets. Record observations and remaining discrepancies in the [validation record](../assets/aircraft/reports/validation.md) and [discrepancy register](../assets/aircraft/reports/discrepancies.md). The retained references include primary Navy sheets and credited technical drawings of varying resolution; source-specific variant extrapolations, generic paint, empty payload sockets and approximate deck operations remain explicit limitations.
+Review top, side, front, rear, quarter and articulation views, registered overlays, cockpit visibility, surface finish and mechanism clearance. [review_sheets.py](../assets/aircraft/review_sheets.py) arranges the actual renders into overview sheets. Record observations and remaining discrepancies in the [discrepancy register](../assets/aircraft/discrepancies.md); overview sheets and browser captures stay in ignored `.build/reviews/aircraft/`. The retained references include primary Navy sheets and credited technical drawings of varying resolution; source-specific variant extrapolations, generic paint, empty payload sockets and approximate deck operations remain explicit limitations.

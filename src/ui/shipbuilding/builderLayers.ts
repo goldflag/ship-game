@@ -10,16 +10,40 @@ import { HULL_CATEGORY, type HullCategory } from './hullCategories';
  * Pure data: the component maps these onto source commands. */
 export type BuilderLayer = 'hull' | 'armor' | 'internals' | 'fittings' | 'paint';
 export const BUILDER_LAYERS: { id: BuilderLayer; name: string }[] = [
-  { id: 'hull', name: 'Hull' }, { id: 'fittings', name: 'Machinery · Armament · Outfit' }, { id: 'internals', name: 'Internals' }, { id: 'paint', name: 'Paint' }, { id: 'armor', name: 'Armor' },
+  { id: 'hull', name: 'Hull' },
+  { id: 'fittings', name: 'Machinery · Armament · Outfit' },
+  { id: 'internals', name: 'Internals' },
+  { id: 'paint', name: 'Paint' },
+  { id: 'armor', name: 'Armor' },
 ];
 /** The dock's tabs. The Fittings layer shows as three tabs, one per fitting group; each opens that group's shelves. */
 export type BuilderTab = Exclude<BuilderLayer, 'fittings'> | FittingGroup;
 export const BUILDER_TABS: { id: BuilderTab; name: string; glyph: string }[] = [
-  { id: 'hull', name: 'Hull', glyph: 'Hull' }, { id: 'machinery', name: 'Machinery', glyph: 'Machinery' }, { id: 'armament', name: 'Armament', glyph: 'Fitting' },
-  { id: 'outfit', name: 'Outfit', glyph: 'Outfit' }, { id: 'internals', name: 'Internals', glyph: 'Split' }, { id: 'paint', name: 'Paint', glyph: 'Paint' }, { id: 'armor', name: 'Armor', glyph: 'Armor' },
+  { id: 'hull', name: 'Hull', glyph: 'Hull' },
+  { id: 'machinery', name: 'Machinery', glyph: 'Machinery' },
+  { id: 'armament', name: 'Armament', glyph: 'Fitting' },
+  { id: 'outfit', name: 'Outfit', glyph: 'Outfit' },
+  { id: 'internals', name: 'Internals', glyph: 'Split' },
+  { id: 'paint', name: 'Paint', glyph: 'Paint' },
+  { id: 'armor', name: 'Armor', glyph: 'Armor' },
 ];
 
-export type BuilderToolId = 'rotate' | 'select' | 'place' | 'fill' | 'erase' | 'measure' | 'apply' | 'area' | 'eyedrop' | 'opening' | 'deck' | 'bulkhead' | 'longitudinal' | 'merge' | 'module';
+export type BuilderToolId =
+  | 'rotate'
+  | 'select'
+  | 'place'
+  | 'fill'
+  | 'erase'
+  | 'measure'
+  | 'apply'
+  | 'area'
+  | 'eyedrop'
+  | 'opening'
+  | 'deck'
+  | 'bulkhead'
+  | 'longitudinal'
+  | 'merge'
+  | 'module';
 export type BuilderAction = 'rotate' | 'suggest';
 export type RailEntry =
   | { kind: 'tool'; id: BuilderToolId; name: string; key: string; glyph: string }
@@ -32,22 +56,50 @@ const erase = tool('erase', 'Erase', 'E');
 
 /** The rail holds what a click does: modes and one-shot actions. Mirror and Snap, which change where a click lands, sit under the rail as modifiers; Arcs and Centers, which draw overlays, sit in the view strip. */
 export const BUILDER_RAIL: Record<BuilderLayer, RailEntry[]> = {
-  hull: [select, tool('rotate', 'Rotate', 'O'), tool('place', 'Place', 'B'), tool('fill', 'Fill', 'F'), erase, tool('measure', 'Measure', 'T')],
+  hull: [
+    select,
+    tool('rotate', 'Rotate', 'O'),
+    tool('place', 'Place', 'B'),
+    tool('fill', 'Fill', 'F'),
+    erase,
+    tool('measure', 'Measure', 'T'),
+  ],
   // Armor is a paint bucket: the active card is the only selection, and every tool either lays it or picks it up.
   armor: [tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Fill', 'A', 'Area'), tool('eyedrop', 'Eyedrop', 'I'), erase],
-  internals: [select, tool('deck', 'Deck', 'D'), tool('bulkhead', 'Bulkhead', 'B'), tool('longitudinal', 'Split', 'L', 'Split'), tool('merge', 'Merge', 'J'), tool('module', 'Module', 'U'), erase, action('suggest', 'Suggest', 'G')],
+  internals: [
+    select,
+    tool('deck', 'Deck', 'D'),
+    tool('bulkhead', 'Bulkhead', 'B'),
+    tool('longitudinal', 'Split', 'L', 'Split'),
+    tool('merge', 'Merge', 'J'),
+    tool('module', 'Module', 'U'),
+    erase,
+    action('suggest', 'Suggest', 'G'),
+  ],
   fittings: [select, tool('place', 'Place', 'B'), erase, action('rotate', 'Rotate', 'R'), action('suggest', 'Suggest', 'G')],
   paint: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I'), erase],
 };
 /** The tool a layer starts with and returns to on Escape: Select, except Armor, which has no selection and keeps its brush. */
-export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = { hull: 'select', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
+export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = {
+  hull: 'select',
+  armor: 'apply',
+  internals: 'module',
+  fittings: 'place',
+  paint: 'apply',
+};
 
-export interface HullShape { id: string; name: string; note: string; kind: ConstructionPrimitive['kind']; size: Vec3 }
+export interface HullShape {
+  id: string;
+  name: string;
+  note: string;
+  kind: ConstructionPrimitive['kind'];
+  size: Vec3;
+}
 /** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin.
  * The first nine fill the keyed bar; block and balcony lead the palette. */
 export const HULL_SHAPES: HullShape[] = [
   { id: 'block', name: 'Block', note: 'freeform (D)', kind: 'box', size: [4, 4, 4] },
-  { id: 'balcony', name: 'Balcony', note: 'open mounting edge', kind: 'balcony', size: [1, .08, 2] },
+  { id: 'balcony', name: 'Balcony', note: 'open mounting edge', kind: 'balcony', size: [1, 0.08, 2] },
   { id: 'cube', name: 'Cube', note: 'freeform (D)', kind: 'box', size: [1, 1, 1] },
   { id: 'slab', name: 'Slab', note: 'freeform (D)', kind: 'box', size: [4, 1, 4] },
   { id: 'bar', name: 'Bar', note: 'freeform (D)', kind: 'box', size: [1, 1, 4] },
@@ -57,27 +109,59 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'corner-out', name: 'Corner out', note: 'freeform (D)', kind: 'corner', size: [4, 4, 4] },
   { id: 'corner-in', name: 'Corner in', note: 'freeform (D)', kind: 'inverse-corner', size: [4, 4, 4] },
   { id: 'custom-hull', name: 'Custom hull', note: 'whole hull · editable cross-sections', kind: 'custom-hull', size: [6.5, 4, 36] },
-  { id: 'plate', name: 'Plate', note: 'freeform (D)', kind: 'box', size: [4, .25, 4] },
+  { id: 'plate', name: 'Plate', note: 'freeform (D)', kind: 'box', size: [4, 0.25, 4] },
   { id: 'wide-slab', name: 'Wide slab', note: 'freeform (D)', kind: 'box', size: [8, 1, 8] },
   { id: 'long-bar', name: 'Long bar', note: 'freeform (D)', kind: 'box', size: [1, 1, 8] },
   { id: 'hull-section', name: 'Hull section', note: 'freeform (D)', kind: 'box', size: [8, 5, 8] },
   { id: 'bow-wedge', name: 'Bow wedge', note: 'freeform (D)', kind: 'wedge', size: [8, 5, 8] },
   { id: 'tall-wedge', name: 'Tall wedge', note: 'freeform (D)', kind: 'wedge', size: [4, 8, 4] },
-  ...([
-    ['ballast', [3, 1.5, 3]],
-    ['prism', [4, 4, 4]], ['half-hemisphere', [2, 2, 4]], ['quarter-hemisphere', [2, 2, 2]],
-    ['pyramid', [4, 4, 4]], ['cylinder', [4, 4, 4]], ['half-cylinder', [2, 4, 4]],
-    ['quarter-cylinder', [4, 4, 4]], ['quarter-cylinder-wall', [4, 4, 4]],
-    ['sphere', [4, 4, 4]], ['hemisphere', [4, 2, 4]], ['sphere-octant', [4, 4, 4]],
-    ['hemisphere-shell', [4, 2, 4]], ['half-hemisphere-shell', [2, 2, 4]],
-    ['quarter-hemisphere-shell', [4, 4, 4]], ['parabolic-shell', [4, 1, 4]],
-    ['cone', [4, 4, 4]], ['hollow-cube', [4, 4, 4]], ['concave-corner', [4, 4, 4]],
-    ['bridge', [4, 3, 4]], ['diagonal-bridge', [4, 3, 4]], ['rounded-bridge', [4, 3, 4]],
-    ['bridge-panel', [4, 3, .25]], ['diagonal-bridge-panel', [4, 3, 4]],
-    ['rounded-bridge-panel', [4, 3, 4]], ['breakwater', [8, 1.5, 2]],
-  ] satisfies [ConstructionPrimitive['kind'], Vec3][]).map(([kind, size]): HullShape => ({
-    id: kind, kind, name: CONSTRUCTION_SHAPE_NAMES[kind], size,
-    note: [EDITABLE_SHAPES.has(kind) ? 'freeform (D)' : '', kind === 'hemisphere' ? 'dome' : '', kind === 'ballast' ? '100 t fixed load + casing' : kind.includes('shell') ? 'open underneath' : kind.includes('bridge') ? 'open windows' : ''].filter(Boolean).join(' · '),
+  ...(
+    [
+      ['ballast', [3, 1.5, 3]],
+      ['prism', [4, 4, 4]],
+      ['half-hemisphere', [2, 2, 4]],
+      ['quarter-hemisphere', [2, 2, 2]],
+      ['pyramid', [4, 4, 4]],
+      ['cylinder', [4, 4, 4]],
+      ['half-cylinder', [2, 4, 4]],
+      ['quarter-cylinder', [4, 4, 4]],
+      ['quarter-cylinder-wall', [4, 4, 4]],
+      ['sphere', [4, 4, 4]],
+      ['hemisphere', [4, 2, 4]],
+      ['sphere-octant', [4, 4, 4]],
+      ['hemisphere-shell', [4, 2, 4]],
+      ['half-hemisphere-shell', [2, 2, 4]],
+      ['quarter-hemisphere-shell', [4, 4, 4]],
+      ['parabolic-shell', [4, 1, 4]],
+      ['cone', [4, 4, 4]],
+      ['hollow-cube', [4, 4, 4]],
+      ['concave-corner', [4, 4, 4]],
+      ['bridge', [4, 3, 4]],
+      ['diagonal-bridge', [4, 3, 4]],
+      ['rounded-bridge', [4, 3, 4]],
+      ['bridge-panel', [4, 3, 0.25]],
+      ['diagonal-bridge-panel', [4, 3, 4]],
+      ['rounded-bridge-panel', [4, 3, 4]],
+      ['breakwater', [8, 1.5, 2]],
+    ] satisfies [ConstructionPrimitive['kind'], Vec3][]
+  ).map(([kind, size]): HullShape => ({
+    id: kind,
+    kind,
+    name: CONSTRUCTION_SHAPE_NAMES[kind],
+    size,
+    note: [
+      EDITABLE_SHAPES.has(kind) ? 'freeform (D)' : '',
+      kind === 'hemisphere' ? 'dome' : '',
+      kind === 'ballast'
+        ? '100 t fixed load + casing'
+        : kind.includes('shell')
+          ? 'open underneath'
+          : kind.includes('bridge')
+            ? 'open windows'
+            : '',
+    ]
+      .filter(Boolean)
+      .join(' · '),
   })),
 ];
 
@@ -94,56 +178,149 @@ export type SlotItem =
   | { kind: 'empty'; id: string; name: string; note: string };
 
 export const HOTBAR_SIZE = 9;
-const FAMILY_ORDER: ConstructionEquipmentPart['kind'][] = ['gun', 'torpedo-launcher', 'funnel', 'director', 'mast', 'propeller', 'rudder', 'engine', 'magazine', 'deck-fitting'];
+const FAMILY_ORDER: ConstructionEquipmentPart['kind'][] = [
+  'gun',
+  'torpedo-launcher',
+  'funnel',
+  'director',
+  'mast',
+  'propeller',
+  'rudder',
+  'engine',
+  'magazine',
+  'deck-fitting',
+];
 export const FAMILY_NAMES: Record<ConstructionEquipmentPart['kind'], string> = {
-  'deck-fitting': 'deck fittings', gun: 'gun', 'torpedo-launcher': 'torpedoes', engine: 'machinery', magazine: 'magazine', funnel: 'funnel', propeller: 'screw', rudder: 'rudder', mast: 'mast', director: 'director',
+  'deck-fitting': 'deck fittings',
+  gun: 'gun',
+  'torpedo-launcher': 'torpedoes',
+  engine: 'machinery',
+  magazine: 'magazine',
+  funnel: 'funnel',
+  propeller: 'screw',
+  rudder: 'rudder',
+  mast: 'mast',
+  director: 'director',
 };
-export const formatTonnes = (kg: number, digits = 1) => Math.abs(kg) < 1000 ? `${kg.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg` : `${(kg / 1000).toLocaleString(undefined, { maximumFractionDigits: digits })} t`;
+export const formatTonnes = (kg: number, digits = 1) =>
+  Math.abs(kg) < 1000
+    ? `${kg.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`
+    : `${(kg / 1000).toLocaleString(undefined, { maximumFractionDigits: digits })} t`;
 
 export function partSlot(part: ConstructionEquipmentPart, catalog: ConstructionCatalog): SlotItem {
-  const massKg = part.kind === 'gun' ? catalog.weapons.parts.find(gun => gun.id === part.gunPartId)?.massKg : part.massKg;
-  const shortName = part.name.replace(/^Fletcher /, '').replace(/ package$/, '').replace(' machinery', '').replace(' mod.0', '').replace(' torpedo bank', '').replace('four-blade ', '').replace('starboard ', '').replace('-round magazine', ' rds');
-  return { kind: 'part', id: part.id, name: shortName, note: part.path ? `${part.path.kind} path · ${formatTonnes(part.path.massKgPerM)}/m` : `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`, part };
+  const massKg = part.kind === 'gun' ? catalog.weapons.parts.find((gun) => gun.id === part.gunPartId)?.massKg : part.massKg;
+  const shortName = part.name
+    .replace(/^Fletcher /, '')
+    .replace(/ package$/, '')
+    .replace(' machinery', '')
+    .replace(' mod.0', '')
+    .replace(' torpedo bank', '')
+    .replace('four-blade ', '')
+    .replace('starboard ', '')
+    .replace('-round magazine', ' rds');
+  return {
+    kind: 'part',
+    id: part.id,
+    name: shortName,
+    note: part.path
+      ? `${part.path.kind} path · ${formatTonnes(part.path.massKgPerM)}/m`
+      : `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`,
+    part,
+  };
 }
-export function sortedParts(catalog: ConstructionCatalog, placement: (part: ConstructionEquipmentPart) => boolean): ConstructionEquipmentPart[] {
+export function sortedParts(
+  catalog: ConstructionCatalog,
+  placement: (part: ConstructionEquipmentPart) => boolean,
+): ConstructionEquipmentPart[] {
   // Drawable paths lead the Mooring and Access shelves; guns run from the heaviest calibre down.
-  const caliber = (part: ConstructionEquipmentPart) => part.kind === 'gun' ? catalog.weapons.parts.find(gun => gun.id === part.gunPartId)?.caliberM ?? 0 : 0;
-  return catalog.equipment.filter(part => part.kind !== 'magazine' && part.id !== 'generic-vertical-ladder' && !isRetiredDeckFitting(part.id) && placement(part)).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || Number(!!b.path) - Number(!!a.path) || caliber(b) - caliber(a) || a.name.localeCompare(b.name));
+  const caliber = (part: ConstructionEquipmentPart) =>
+    part.kind === 'gun' ? (catalog.weapons.parts.find((gun) => gun.id === part.gunPartId)?.caliberM ?? 0) : 0;
+  return catalog.equipment
+    .filter(
+      (part) => part.kind !== 'magazine' && part.id !== 'generic-vertical-ladder' && !isRetiredDeckFitting(part.id) && placement(part),
+    )
+    .slice()
+    .sort(
+      (a, b) =>
+        FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) ||
+        Number(!!b.path) - Number(!!a.path) ||
+        caliber(b) - caliber(a) ||
+        a.name.localeCompare(b.name),
+    );
 }
 
 export const thicknessSlotId = (mm: number) => `mm-${mm}`;
 /** Nine keyed slots plus the drawer, which lists everything the layer can place. The Armor layer's cards are the
  * editable millimetre value, every thickness the ship already uses (thickest first) and the opening. A fitting
  * filter narrows Fittings to one shelf and nation; `all` stays the whole layer, for the drawer's search. */
-export function paletteFor(layer: BuilderLayer, catalog: ConstructionCatalog, thicknesses: readonly number[] = [], fittings?: FittingFilter, hullCategory: HullCategory = 'all'): { bar: SlotItem[]; drawer: SlotItem[]; all?: SlotItem[] } {
-  const pad = (items: SlotItem[]): SlotItem[] => [...items.slice(0, HOTBAR_SIZE), ...Array.from({ length: Math.max(0, HOTBAR_SIZE - items.length) }, (_, index): SlotItem => ({ kind: 'empty', id: `empty-${index}`, name: '', note: '' }))];
+export function paletteFor(
+  layer: BuilderLayer,
+  catalog: ConstructionCatalog,
+  thicknesses: readonly number[] = [],
+  fittings?: FittingFilter,
+  hullCategory: HullCategory = 'all',
+): { bar: SlotItem[]; drawer: SlotItem[]; all?: SlotItem[] } {
+  const pad = (items: SlotItem[]): SlotItem[] => [
+    ...items.slice(0, HOTBAR_SIZE),
+    ...Array.from({ length: Math.max(0, HOTBAR_SIZE - items.length) }, (_, index): SlotItem => ({
+      kind: 'empty',
+      id: `empty-${index}`,
+      name: '',
+      note: '',
+    })),
+  ];
   switch (layer) {
     case 'hull': {
       const shapes = HULL_SHAPES.map((shape): SlotItem => ({ kind: 'shape', id: shape.id, name: shape.name, note: shape.note, shape }));
-      const filtered = hullCategory === 'all' ? shapes : shapes.filter(item => item.kind === 'shape' && HULL_CATEGORY[item.shape.kind] === hullCategory);
+      const filtered =
+        hullCategory === 'all' ? shapes : shapes.filter((item) => item.kind === 'shape' && HULL_CATEGORY[item.shape.kind] === hullCategory);
       return { bar: filtered.slice(0, HOTBAR_SIZE), drawer: filtered, all: shapes };
     }
     case 'armor': {
       // The first card is the editor's millimetre field, not a preset; it shows the current value. The values in use follow it, the opening closes the bar.
-      const armor: SlotItem = { kind: 'armor', id: 'armor', name: 'Armor', note: 'thickness in mm' }, opening: SlotItem = { kind: 'opening', id: 'opening', name: 'Opening', note: 'open to sea' };
-      const values = [...new Set(thicknesses)].sort((a, b) => b - a).map((mm): SlotItem => ({ kind: 'thickness', id: thicknessSlotId(mm), name: `${mm} mm`, note: mm > 0 ? 'armor in use on this ship' : 'structural skin in use on this ship', mm }));
+      const armor: SlotItem = { kind: 'armor', id: 'armor', name: 'Armor', note: 'thickness in mm' },
+        opening: SlotItem = { kind: 'opening', id: 'opening', name: 'Opening', note: 'open to sea' };
+      const values = [...new Set(thicknesses)]
+        .sort((a, b) => b - a)
+        .map((mm): SlotItem => ({
+          kind: 'thickness',
+          id: thicknessSlotId(mm),
+          name: `${mm} mm`,
+          note: mm > 0 ? 'armor in use on this ship' : 'structural skin in use on this ship',
+          mm,
+        }));
       return { bar: [armor, ...values.slice(0, HOTBAR_SIZE - 2), opening], drawer: [armor, ...values, opening] };
     }
     case 'internals': {
-      const tools: SlotItem[] = [{ kind: 'tool', id: 'deck', name: 'Deck', note: 'level', tool: 'deck' }, { kind: 'tool', id: 'bulkhead', name: 'Bulkhead', note: 'transverse', tool: 'bulkhead' },
-        { kind: 'tool', id: 'longitudinal', name: 'Split', note: 'lengthwise', tool: 'longitudinal' }, { kind: 'tool', id: 'merge', name: 'Merge', note: 'rooms', tool: 'merge' }];
-      const parts = sortedParts(catalog, part => part.placement === 'internal').map(part => partSlot(part, catalog));
+      const tools: SlotItem[] = [
+        { kind: 'tool', id: 'deck', name: 'Deck', note: 'level', tool: 'deck' },
+        { kind: 'tool', id: 'bulkhead', name: 'Bulkhead', note: 'transverse', tool: 'bulkhead' },
+        { kind: 'tool', id: 'longitudinal', name: 'Split', note: 'lengthwise', tool: 'longitudinal' },
+        { kind: 'tool', id: 'merge', name: 'Merge', note: 'rooms', tool: 'merge' },
+      ];
+      const parts = sortedParts(catalog, (part) => part.placement === 'internal').map((part) => partSlot(part, catalog));
       return { bar: pad([...tools, ...parts]), drawer: [...tools, ...parts] };
     }
     case 'fittings': {
-      const every = sortedParts(catalog, part => part.placement !== 'internal'), all = every.map(part => partSlot(part, catalog));
+      const every = sortedParts(catalog, (part) => part.placement !== 'internal'),
+        all = every.map((part) => partSlot(part, catalog));
       if (!fittings) return { bar: pad(all), drawer: all, all };
-      const shelf = new Set(filterFittings(every, catalog, fittings)), parts = all.filter(item => item.kind === 'part' && shelf.has(item.part));
+      const shelf = new Set(filterFittings(every, catalog, fittings)),
+        parts = all.filter((item) => item.kind === 'part' && shelf.has(item.part));
       return { bar: pad(parts), drawer: parts, all };
     }
     case 'paint': {
-      const items: SlotItem[] = [...CONSTRUCTION_PAINTS.map((paint): SlotItem => ({ kind: 'paint', id: paint.id, name: paint.name, note: 'paint', color: paint.color })),
-        { kind: 'scheme', id: 'two-tone', name: 'Two tone', note: 'deck + sides' }, { kind: 'scheme', id: 'disruptive', name: 'Disruptive', note: '12 m bands' }];
+      const items: SlotItem[] = [
+        ...CONSTRUCTION_PAINTS.map((paint): SlotItem => ({
+          kind: 'paint',
+          id: paint.id,
+          name: paint.name,
+          note: 'paint',
+          color: paint.color,
+        })),
+        { kind: 'scheme', id: 'two-tone', name: 'Two tone', note: 'deck + sides' },
+        { kind: 'scheme', id: 'disruptive', name: 'Disruptive', note: '12 m bands' },
+      ];
       return { bar: pad(items), drawer: items };
     }
   }

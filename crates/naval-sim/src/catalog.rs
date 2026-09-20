@@ -342,12 +342,23 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
     {
         return Err(fail());
     }
-    if let Some(pool) = d.propulsion.as_ref().and_then(|p| p.shared_exhaust.as_ref()) {
+    if let Some(pool) = d
+        .propulsion
+        .as_ref()
+        .and_then(|p| p.shared_exhaust.as_ref())
+    {
         for (ratings, role) in [(&pool.engines, "combined-drive"), (&pool.funnels, "boiler")] {
             if ratings.len() > crate::construction::MAX_EQUIPMENT
                 || !ids_unique(ratings.iter().map(|r| r.id.as_str()))
-                || ratings.iter().any(|r| !r.kw.is_finite() || r.kw < 0. || r.kw > 1e9
-                    || !d.modules.iter().any(|m| m.id == r.id && m.role.as_deref() == Some(role)))
+                || ratings.iter().any(|r| {
+                    !r.kw.is_finite()
+                        || r.kw < 0.
+                        || r.kw > 1e9
+                        || !d
+                            .modules
+                            .iter()
+                            .any(|m| m.id == r.id && m.role.as_deref() == Some(role))
+                })
             {
                 return Err(fail());
             }
@@ -365,17 +376,17 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
                     || !positive(&[c.volume_m3])
                     || c.center.iter().any(|x| !x.is_finite() || x.abs() > 2000.)
             }))
-        {
-            return Err(fail());
-        }
+    {
+        return Err(fail());
+    }
     for room in &d.compartments {
         if let Some(cells) = &room.cells
             && cells
                 .iter()
                 .any(|c| c.volume_m3.is_some_and(|v| !v.is_finite() || v <= 0.))
-            {
-                return Err(fail());
-            }
+        {
+            return Err(fail());
+        }
     }
     if !positive(&[h.mass_kg, h.length, h.beam, h.draft, h.depth])
         || if h.kind == "constructed-volume-v1" {

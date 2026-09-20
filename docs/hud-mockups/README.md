@@ -14,19 +14,14 @@ The minimap uses a 40% opaque background and sits flush with the bottom and righ
 
 Desktop instruments are 240 px wide at lower left and 340 px wide at bottom center, with smaller dials, weapon illustrations and tighter spacing. Narrow portrait screens move armament below the top compass to keep the center sight clear. Short landscape screens compact the weapon row and retain gun-status access in the helm and weapon readiness indicators.
 
-The fleet report now includes a collapsed damage-control alert with burning locations, also marked on the existing ship instrument. **View crews** opens priority/focus controls and a scrolling report of intensity, remaining fuel, threatened equipment and crew setup/suppression/cooling. Target and spectated-ship reports remain read-only. On narrow screens the report sits beneath the weapons; its close control stays reachable above the helm. See the [runtime fire review](../../assets/reviews/localized-fire/README.md).
+The fleet report now includes a collapsed damage-control alert with burning locations, also marked on the existing ship instrument. **View crews** opens priority/focus controls and a scrolling report of intensity, remaining fuel, threatened equipment and crew setup/suppression/cooling. Target and spectated-ship reports remain read-only. On narrow screens the report sits beneath the weapons; its close control stays reachable above the helm.
 
 The battle score includes **Armor blocked**: potential hostile shell HP prevented by armor stops, ricochets and rejected HE fragments, using the loaded ammunition’s damage value minus any hull damage the same shell ultimately causes. It is recorded once per shell and defended ship after the projectile finishes, survives snapshot/reconnect updates, and resets with the battle. Penetrations, hits on wreckage, friendly fire and non-armor impacts do not earn blocked damage.
 
 Above enemy ships, your damage is gold and damage from other sources is pale blue. Mixed salvos retain separate numbers and colored portions of the hull-loss bar; detailed impact labels use the same ownership colors. Ownership comes from authoritative events, including after the projectile disappears. Sensor-limited fleet command retains its existing restrictions on enemy damage information.
 
-## Current review captures
+## References
 
-- [Desktop, 1600 × 900](../../assets/hud/review/desktop.png)
-- [Binoculars, 1600 × 900](../../assets/hud/review/binoculars.png)
-- [Landscape, 844 × 390](../../assets/hud/review/landscape.png)
-- [Portrait, 390 × 844](../../assets/hud/review/portrait.png)
-- [Controls and validation report](../../assets/hud/reports/controls-review.md)
 - [Supplied references and provenance](../../assets/hud/README.md)
 
 ## Archived studies

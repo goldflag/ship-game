@@ -5,7 +5,8 @@
 use crate::{
     damage::Combatant,
     definition::{
-        ConstructionCatalog, ConstructionDiagnostic, DamageControlProfile, Module, SharedExhaust, ShipDefinition,
+        ConstructionCatalog, ConstructionDiagnostic, DamageControlProfile, Module, SharedExhaust,
+        ShipDefinition,
     },
     environment::SeaState,
     machinery::equipment_condition,
@@ -89,11 +90,18 @@ fn engine_rating(def: &ShipDefinition, engine: &Module) -> f64 {
 
 /// Every running engine gets the same fraction of its available rated power.
 pub(crate) fn exhaust_fraction(capacity: f64, demand: f64) -> f64 {
-    if demand > 0. { (capacity / demand).clamp(0., 1.) } else { 0. }
+    if demand > 0. {
+        (capacity / demand).clamp(0., 1.)
+    } else {
+        0.
+    }
 }
 
 pub(crate) fn module_availability(
-    actor: &Combatant, def: &ShipDefinition, id: &str, sea: Option<(&SeaState, f64)>,
+    actor: &Combatant,
+    def: &ShipDefinition,
+    id: &str,
+    sea: Option<(&SeaState, f64)>,
 ) -> f64 {
     let module = match actor.index.of(def) {
         Some(ix) => ix.module(id).map(|i| &def.modules[i]),
@@ -103,12 +111,21 @@ pub(crate) fn module_availability(
 }
 
 pub(crate) fn live_exhaust_fraction(
-    actor: &Combatant, def: &ShipDefinition, pool: &SharedExhaust, sea: Option<(&SeaState, f64)>,
+    actor: &Combatant,
+    def: &ShipDefinition,
+    pool: &SharedExhaust,
+    sea: Option<(&SeaState, f64)>,
 ) -> f64 {
-    let capacity = pool.funnels.iter()
-        .map(|f| f.kw * module_availability(actor, def, &f.id, sea)).sum();
-    let demand = pool.engines.iter()
-        .map(|e| e.kw * module_availability(actor, def, &e.id, sea)).sum();
+    let capacity = pool
+        .funnels
+        .iter()
+        .map(|f| f.kw * module_availability(actor, def, &f.id, sea))
+        .sum();
+    let demand = pool
+        .engines
+        .iter()
+        .map(|e| e.kw * module_availability(actor, def, &e.id, sea))
+        .sum();
     exhaust_fraction(capacity, demand)
 }
 
@@ -126,7 +143,10 @@ pub(crate) fn availability(
     let Some(source) = &def.construction else {
         return 0.;
     };
-    let pool = def.propulsion.as_ref().and_then(|p| p.shared_exhaust.as_ref());
+    let pool = def
+        .propulsion
+        .as_ref()
+        .and_then(|p| p.shared_exhaust.as_ref());
     let engines: Vec<_> = def
         .modules
         .iter()
@@ -144,7 +164,8 @@ pub(crate) fn availability(
         let weight = engine_rating(def, engine);
         total += weight;
         if let Some(service) = shared_service {
-            available += weight * equipment_condition(actor, def, engine, sea).availability * service;
+            available +=
+                weight * equipment_condition(actor, def, engine, sea).availability * service;
             continue;
         }
         // Compatibility with definitions compiled before shared exhaust ratings.

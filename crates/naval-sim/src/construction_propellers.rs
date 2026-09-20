@@ -44,6 +44,8 @@ fn seat(hit: &Contact) -> Vec3 {
 
 /// Homothetic elliptical rings give closed convex frusta between sections.
 /// The last ring is sheared onto the actual hull plane, not a floating tangent.
+// The loft is one geometric primitive; its eight inputs are all independent.
+#[allow(clippy::too_many_arguments)]
 fn loft(
     start: Vec3,
     end: Vec3,

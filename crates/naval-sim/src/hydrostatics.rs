@@ -294,6 +294,8 @@ impl HullHydrostatics {
         // everything is immersed, at its bottom nothing: the excess displacement
         // falls from `full - volume` to `-volume` as y rises between them.
         let (mut deep, mut shallow) = (-highest, -lowest);
+        // Negated on purpose: a NaN bound must also take the early return.
+        #[allow(clippy::neg_cmp_op_on_partial_ord)]
         if !(deep < shallow) || volume <= 0.0 {
             return self.flotation(volume, roll, pitch);
         }

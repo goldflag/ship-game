@@ -401,7 +401,11 @@ pub(crate) fn exterior_protection_mm(def: &ShipDefinition) -> f64 {
         .fold(0.0, f64::max)
 }
 /// `protection` is the target's compiled `exterior_protection_mm`.
-pub(crate) fn ammunition(protection: f64, mount: &MountDefinition, state: &MountState) -> Ammunition {
+pub(crate) fn ammunition(
+    protection: f64,
+    mount: &MountDefinition,
+    state: &MountState,
+) -> Ammunition {
     let preferred =
         if mount.weapon.he.is_some() && (mount.weapon.caliber_m < 0.2 || protection < 80.0) {
             Ammunition::He
@@ -469,7 +473,11 @@ fn damage_aware_aim_points(
     options.sort_by(|a, b| b.1.total_cmp(&a.1).then_with(|| a.0[2].total_cmp(&b.0[2])));
     Some(options.into_iter().take(3).map(|o| o.0).collect())
 }
-pub(crate) fn torpedo_aim(bot: &BotState, motion: &ShipState, tube: &TubeDefinition) -> Option<Vec3> {
+pub(crate) fn torpedo_aim(
+    bot: &BotState,
+    motion: &ShipState,
+    tube: &TubeDefinition,
+) -> Option<Vec3> {
     let track = bot.track.as_ref()?;
     let point = add(
         [track.pose.x, 0.0, track.pose.z],

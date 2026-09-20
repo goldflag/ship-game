@@ -268,7 +268,9 @@ impl Captain for BotCaptain {
                             w.islands,
                         )
                     }
-                    Movement::Route { .. } | Movement::HoldArea { .. } | Movement::Escort { .. } => {
+                    Movement::Route { .. }
+                    | Movement::HoldArea { .. }
+                    | Movement::Escort { .. } => {
                         let mut state = crew
                             .navigation
                             .take()
@@ -312,8 +314,7 @@ impl Captain for BotCaptain {
                             w.reports.as_ref().map(|r| r.contacts),
                         );
                         if formation.as_ref().is_some_and(|f| !f.stragglers.is_empty())
-                            && o.formation_policy
-                                == navigation::FormationPolicy::SlowForStragglers
+                            && o.formation_policy == navigation::FormationPolicy::SlowForStragglers
                             && state.status == navigation::NavigationStatus::FollowingRoute
                         {
                             state.status = navigation::NavigationStatus::SlowingForStragglers;
@@ -345,14 +346,16 @@ impl Captain for BotCaptain {
                 w.terrain,
                 r.visibility_m,
             );
-            command =
-                crate::fleet_evasion::command(actor, r.contacts, &wakes, w.tick, &mut state, command);
+            command = crate::fleet_evasion::command(
+                actor, r.contacts, &wakes, w.tick, &mut state, command,
+            );
             if matches!(
                 state.status,
                 navigation::NavigationStatus::EvadingAircraft
                     | navigation::NavigationStatus::EvadingTorpedo
             ) {
-                command = navigation::safe_correction(actor, w.fleet, r.contacts, &mut state, command);
+                command =
+                    navigation::safe_correction(actor, w.fleet, r.contacts, &mut state, command);
             }
             crew.navigation = Some(state);
         }
