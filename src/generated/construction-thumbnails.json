@@ -581,6 +581,11 @@
       "modelHash": "2017cdde86e7389196d08a852c8c14c6cbed0938a44eec74124bb6d6a5d3a9dc",
       "imageHash": "0313b41c01cd539c7623f09389a532f5743f84b1b7d00fef80a0909d4c86020e"
     },
+    "/models/components/sk-c34-283-triple/c9a81a77eb770aae62d09cfc17b378067ca693c75ac1c59702bbda4bb7006470/model.glb": {
+      "url": "/models/components/thumbnails/bc44b0174fbea1cf3246b920d2d47a7b713ba11ea06edb86222764eb05a2d8a5.png",
+      "modelHash": "24bebd5db8a8dbb936f9727c3c4f72ca64b110c499925ab8d97c97e25812c292",
+      "imageHash": "e21460427c75de9b60a4a7899d559955cbd3e60b765131ea5243b192e500a5ed"
+    },
     "/models/components/generic-hawse-pipe/aa18cc7bf6e08d0c8e46a660870c17447dc6eefc18eaac71d22bdc929926fcf6/model.glb": {
       "url": "/models/components/thumbnails/300811aeb0e8cd76ff1e6d090d66769ee70f485fa5d71eec9764a17d83fb2d3d.png",
       "modelHash": "50e848c9ad5397e6cfbc1bcb5bb9368d854c324df5f5b50754fd916c9c92eee2",
@@ -2291,10 +2296,10 @@
       "modelHash": "21b23c909b60294686bc99b40abd77503d5bc12f852959f903173dfafb94686f",
       "imageHash": "567a0b3d6819aa933a22c30b0654ed0bd2d2bea781bfd6852abdcae782630f08"
     },
-    "/models/components/sk-c34-283-triple/c9a81a77eb770aae62d09cfc17b378067ca693c75ac1c59702bbda4bb7006470/model.glb": {
-      "url": "/models/components/thumbnails/bc44b0174fbea1cf3246b920d2d47a7b713ba11ea06edb86222764eb05a2d8a5.png",
-      "modelHash": "24bebd5db8a8dbb936f9727c3c4f72ca64b110c499925ab8d97c97e25812c292",
-      "imageHash": "e21460427c75de9b60a4a7899d559955cbd3e60b765131ea5243b192e500a5ed"
+    "/models/components/scharnhorst-funnel/760d38fafb8ae48d3c7d9c7299cb4d351a105b2fcdb91828d80166aa04342b14/model.glb": {
+      "url": "/models/components/thumbnails/f966534fdb56096c889afbb4736a2e4f659fde431b5bbcef5ca74c01ed0f632e.png",
+      "modelHash": "56f0b7495e2a1951145cd6ab49d97ed2c5e04fbf32023cd08442d0239a038b29",
+      "imageHash": "ccbbbe6014301c3fcd252fad9320a673f2e0b2ba2d509c9131449c068854d866"
     }
   }
 }

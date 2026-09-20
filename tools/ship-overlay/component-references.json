@@ -1101,6 +1101,23 @@
     "scale": 1
   },
   {
+    "partId": "scharnhorst-funnel",
+    "category": "funnel",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+    "sourceVehicle": "pgsb507",
+    "resource": "common/visual/germany/ship/battleship/gsb003_scharnhorst_1939/gsb003_scharnhorst_1939_midback",
+    "sourceName": "Scharnhorst 1939 \u00b7 funnel (GM3D default A_Hull)",
+    "match": "exact",
+    "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Jacket, cap and fittings wholly inside a box round the funnel; the wide searchlight platform crosses that box and is excluded, and the recipe deliberately replaces it with a walkway gallery. Metric scale retained; each model is horizontally centered and base aligned.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/ship/battleship/gsb003_scharnhorst_1939/gsb003_scharnhorst_1939_midback.model"
+    ],
+    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/scharnhorst-funnel.glb",
+    "scale": 1
+  },
+  {
     "partId": "mikasa-1905-foremast",
     "category": "mast",
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb011",

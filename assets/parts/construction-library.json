@@ -951,6 +951,13 @@
         "assets/parts/construction/geometry.py"
       ]
     },
+    "scharnhorst-funnel": {
+      "path": "assets/parts/historic-funnels/scharnhorst.py",
+      "function": "create_scharnhorst",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
     "mikasa-1905-foremast": {
       "path": "assets/parts/historical-masts/geometry.py",
       "function": "create_mikasa",
@@ -1876,6 +1883,13 @@
       "review": "unreviewed",
       "limitations": "Original Aurora 1917 \u00b7 middle funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
       "nation": "Russia"
+    },
+    {
+      "partId": "scharnhorst-funnel",
+      "builder": "scharnhorst-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Scharnhorst 1939 \u00b7 funnel interpretation from GameModels3D. Source asset date is not independent historical verification. The ship\u2019s wide searchlight platform is reduced to a walkway gallery; ventilator spacing, pipe runs, ladder cages and cap fittings simplified. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "Germany"
     },
     {
       "partId": "mikasa-1905-foremast",
