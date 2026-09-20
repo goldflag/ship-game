@@ -309,7 +309,9 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   await game.frame(time += 1000 / 60);
   expect(rig.binoculars).toBe(true);
   expect(camera.fov).toBeCloseTo(fov, 10);
-  expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);
+  // The gunnery eye returns above our bridge; its altitude follows the shell's descent.
+  expect(Math.hypot(camera.position.x - playerView.root.position.x, camera.position.z - playerView.root.position.z)).toBeLessThan(100);
+  expect(camera.position.y).toBeGreaterThan(playerView.root.position.y);
   game.toggleShellFollow();
   game.setInPort(true);
   expect(game.shellFollow.phase).toBe('off');
