@@ -119,6 +119,31 @@ warnings state the corrective action beside the controls.
 with actual depth filling the meter and the order marked independently. Show ballast, propulsion and
 movement state from live telemetry so the player can inspect the response to an order.
 
+### After-action report
+
+A decided battle replaces the instruments with the after-action report (`src/ui/report/`): the outcome
+and elapsed time at the top, two underlined tabs, and the exit commands (Battle again, New battle,
+Return to port) at the foot. It waits for the player; only an interrupted or abandoned battle keeps
+the short notice and its countdown. The sea stays visible under a dark scrim and nothing carries a
+panel fill except the selected hit's card, which is styled as a tooltip.
+
+**Battle results** sets the fleets side by side, mint for yours and salmon for the enemy: damage dealt
+as the headline, then per ship its state (afloat with integrity, sunk with time and victor), damage
+dealt, taken and blocked by armor, hits against shots fired, ships sunk and a by-weapon bar. Fleets
+of more than four fold to one line per ship. A stepped chart of both fleets' damage over the battle
+runs beneath, with each sinking marked. A ship's name opens its hits.
+
+**Your ship** turns the ship's own model on a turntable (drag to turn, scroll to zoom) with one mark
+per projectile where it first struck: salmon fill for a penetration, gold for high explosive, a salmon
+diamond for a torpedo or depth charge, a hollow mint ring for a hit the armor stopped. Larger marks
+did more damage; marks on the far side of the hull fade. Selecting a mark, or a mark on the timeline
+below, shows the weapon and firer, what was struck, the plate with its thickness, obliquity and
+effective thickness, the outcome, the damage, and each module damaged or destroyed and room opened to
+the sea. The debrief reveals both fleets, so the picker lists every ship.
+
+The data is the simulation's after-action record (`naval-sim` `records.rs`, `AfterAction`), carried
+only by a decided battle's debrief: up to 400 hits a ship, least damaging dropped first and counted.
+
 ### Hull damage feedback and score
 
 Incoming shell hits add a salmon arc and outward tip around the sight, pointing toward the source

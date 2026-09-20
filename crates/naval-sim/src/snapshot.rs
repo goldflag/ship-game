@@ -120,6 +120,11 @@ pub struct BattleFrame<'a, A, W, S, T, D, R, E, C, X> {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub ship_outcomes: Option<BTreeMap<String, ShipOutcome>>,
+    /// Every hit, shot count and damage tally, once the battle is decided: on a
+    /// team view's debrief, and on the full frame a custom battle plays from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub after_action: Option<&'a crate::records::AfterAction>,
     /// Full information once the mission is decided, never in the active world.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(optional, type = "BattleFrame<A, W, S, T, D, R, E, C>")]
@@ -260,6 +265,8 @@ impl Battle {
             observed_aircraft: None,
             recon_coverage: None,
             ship_outcomes: None,
+            // Full knowledge already; the report is only worth its bytes once decided.
+            after_action: self.outcome.is_some().then_some(&self.records.after_action),
             debrief: None,
             mission: None,
         }

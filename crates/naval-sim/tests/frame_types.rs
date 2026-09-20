@@ -240,6 +240,14 @@ fn declarations() -> Declarations {
     d.add::<records::VesselScore>();
     d.add::<records::DamageLogEntry>();
     d.add::<records::ShellHistory>();
+    d.add::<records::AfterAction>();
+    d.add::<records::ShipReport>();
+    d.add::<records::HitReport>();
+    d.add::<records::HitPlate>();
+    d.add::<records::HitModule>();
+    d.add::<records::DamageSample>();
+    d.add::<records::HitWeapon>();
+    d.add::<records::HitOutcome>();
     d.add::<frame_vocabulary::EventKind>();
     d.add::<frame_vocabulary::DefeatCause>();
     d.add::<frame_vocabulary::VesselStatus>();
@@ -268,6 +276,9 @@ fn check_frame(d: &Declarations, frame: &Value, label: &str) {
         ("records", "Records"),
     ] {
         d.check(ty, &frame[key], &format!("{label}.{key}"));
+    }
+    if let Some(report) = frame.get("afterAction") {
+        d.check("AfterAction", report, &format!("{label}.afterAction"));
     }
 }
 /// What a receiver holds: the frame as the codec normalizes it, null

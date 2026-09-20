@@ -4,7 +4,7 @@
   styling, keep the ship and sea visible, and use the controls in [components/](components/README.md) before
   writing a new button, select or dialog.
 - Files: `App.tsx` owns phases (port, battle, editor) and the `Game` instance. `Garage.tsx` is the port. `battle/`
-  is the battle board (custom battle, fleet command, 1v1). `FleetHud.tsx`, `FleetCommand.tsx` and `fleet/` are the
+  is the battle board (custom battle, fleet command, 1v1). `report/` is the after-action report a decided battle ends on. `FleetHud.tsx`, `FleetCommand.tsx` and `fleet/` are the
   in-battle fleet UI. `AirOperations.tsx`, `FlightLine.tsx` and `CarrierDeck.tsx` are carrier UI. Battle key
   bindings live in `src/game/keybindings.ts` (`INPUT_ACTIONS`), not in components.
 - The HUD reads telemetry at 10 Hz from `src/game/session/telemetry.ts`. Components do not reach into the

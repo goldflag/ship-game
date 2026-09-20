@@ -452,9 +452,7 @@ impl Battle {
         );
         for shell in &self.shells {
             self.records
-                .sources
-                .entry(shell.id)
-                .or_insert_with(|| crate::records::WeaponSource {
+                .source(shell.id, || crate::records::WeaponSource {
                     owner_id: shell.owner_id.clone(),
                     label: shell.weapon_label.clone().unwrap_or_else(|| "Shell".into()),
                     ammunition: shell.ammunition.unwrap_or_default(),
@@ -462,34 +460,28 @@ impl Battle {
                 });
         }
         for t in &self.torpedoes {
-            self.records
-                .sources
-                .entry(t.id)
-                .or_insert_with(|| crate::records::WeaponSource {
-                    owner_id: t.owner_id.clone(),
-                    label: format!(
-                        "{} · {}",
-                        t.weapon.name,
-                        if t.tube_id == "aircraft.payload" {
-                            "Air torpedo"
-                        } else {
-                            "Torpedo"
-                        }
-                    ),
-                    ammunition: Default::default(),
-                    damage: 0.0,
-                });
+            self.records.source(t.id, || crate::records::WeaponSource {
+                owner_id: t.owner_id.clone(),
+                label: format!(
+                    "{} · {}",
+                    t.weapon.name,
+                    if t.tube_id == "aircraft.payload" {
+                        "Air torpedo"
+                    } else {
+                        "Torpedo"
+                    }
+                ),
+                ammunition: Default::default(),
+                damage: 0.0,
+            });
         }
         for c in &self.depth_charges {
-            self.records
-                .sources
-                .entry(c.id)
-                .or_insert_with(|| crate::records::WeaponSource {
-                    owner_id: c.owner_id.clone(),
-                    label: format!("{} · Depth charge", c.weapon.name),
-                    ammunition: Default::default(),
-                    damage: 0.0,
-                });
+            self.records.source(c.id, || crate::records::WeaponSource {
+                owner_id: c.owner_id.clone(),
+                label: format!("{} · Depth charge", c.weapon.name),
+                ammunition: Default::default(),
+                damage: 0.0,
+            });
         }
     }
     /// **Strike.** Every projectile in flight advances one tick: shells fly,
@@ -649,7 +641,8 @@ impl Battle {
                 .chain(self.depth_charges.iter().map(|c| c.id)),
         );
         tick.active.sort_unstable();
-        self.records.finish_tick(&self.actors, &tick.active);
+        self.records
+            .finish_tick(&self.actors, &tick.active, self.tick);
         // The counter advances first: the outcome is judged for the tick that
         // just closed, and `remaining_seconds` counts from the same value.
         self.tick += 1;

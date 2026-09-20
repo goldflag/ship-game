@@ -832,6 +832,16 @@ export class Game {
     }
   }
 
+  /** A fresh, unbatched exterior of a ship in this battle, for a viewer that owns its own
+   * renderer (the after-action hit map). The caller disposes it. */
+  async reviewModel(definition: ShipDefinition): Promise<THREE.Group> {
+    const simulation = this.simulation;
+    const revision = (simulation instanceof LocalBattleSession || simulation instanceof RemoteBattleSession) ? simulation.constructionShips.get(definition.id) : localShip(definition.id);
+    if (revision) return createConstructionModel(revision.source, revision.result);
+    const hash = 'contentHash' in definition ? definition.contentHash as string : undefined;
+    return (await loadShipModel(assetUrl(definition.modelUrl), undefined, hash)).scene;
+  }
+
   /** How many derived hulls to keep beyond the fleet at sea. Enough for a repeat sortie with
    * the same fleet plus the hulls it met, small enough that an idle port is not holding a
    * battle's worth of vertex data. */
