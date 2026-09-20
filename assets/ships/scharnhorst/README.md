@@ -10,9 +10,9 @@ generic screws are 60 % efficient; the ship's real 31 kn is out of reach with th
 ## Method
 
 - **Hull**: one adjustable `custom-hull` (`hull`), 235.15 m × 30 m, 24 stations × 17 outline points, lofted from cross-sections of the reference hull mesh
-  (waterline y = 0, keel −9.93; displacement within 2 % of the mesh). The compiler needs every span star-shaped about the mean of its outline points, so the
+  (waterline y = 0, keel −9.93; displacement about 2 % under the mesh's, with coarser lower bow sections). The compiler needs every span star-shaped about the mean of its outline points, so the
   outline points are clustered toward the deck in the reference's hourglass bow.
-- **Superstructure**: 71 freeform 8-corner blocks and platforms read off reference plan slices and profile silhouettes (forward deckhouse and tower, funnel deckhouse,
+- **Superstructure**: 71 blocks and platforms (boxes, 8-corner freeform blocks and balconies) read off reference plan slices and profile silhouettes (forward deckhouse and tower, funnel deckhouse,
   hangar, aft deckhouses). The funnel and the 1939 mainmast collide as one bounding box each, so the hangar and aft house stop short of the mast envelope and the
   mast stands on a 0.6 m pad.
 - **Armament and fittings** (catalog parts at the reference hardpoints): 3 × 28 cm SK C/34 triple, 4 × 15 cm twin, 7 × 10.5 cm twin AA, 8 × 3.7 cm twin, 10 × 2 cm single,
