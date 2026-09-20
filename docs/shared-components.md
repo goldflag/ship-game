@@ -132,5 +132,7 @@ comparison is a related variant; its pedestal and controls are approximations,
 not a conversion to that variant. Secondary-only 15/15.5 cm guns and 5-inch twins
 belong to the separate small-gun pass. The unpublished Fletcher Mk30, Flower
 4-inch and Type VIIC 8.8 cm installed previews are outside this published scope.
-`component-before.json` retains the immutable 13e3e07 published URLs for these
-nine guns so the comparison page shows this pass's baseline, not older models.
+`component-before.json` retains immutable published URLs for comparison. The
+Type C, both Hipper 203 mm twins and Cleveland use the merged PR #389 publication
+at `08f1cd107` as their second-iteration baseline; the other five retain 13e3e07.
+All nine individual triangle ceilings remain fixed to the complete 13e3e07 assemblies.
