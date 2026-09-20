@@ -77,6 +77,53 @@ test('rangefinding uses a visible ship and feeds locked range into the real gun 
   } finally { rig.dispose(); simulation.dispose(); }
 });
 
+for (const spawnDistance of [5000, 15000]) test(`scope entry borrows a nearby visible ship's ${spawnDistance} m range without snapping bearing`, async () => {
+  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance });
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
+    host: { clientWidth: 1440, clientHeight: 810 }, battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false,
+  }) as Game;
+  const ship = simulation.ship, target = simulation.target!.motion;
+  const bearing = Math.atan2(target.x - ship.x, ship.z - target.z) + .03;
+  // The sight misses the hull and meets distant water, although the ship is nearby on screen.
+  rig.aimAt([ship.x + Math.sin(bearing) * 30000, .5, ship.z - Math.cos(bearing) * 30000], ship);
+  const entryBearing = rig.bearing;
+  const runtime = game as unknown as { readSightAim(): [number, number, number] };
+  try {
+    const before = runtime.readSightAim();
+    expect(Math.hypot(before[0] - ship.x, before[2] - ship.z)).toBeGreaterThan(29000);
+    game.toggleBinoculars();
+    for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60);
+    const aim = runtime.readSightAim();
+    expect(Math.hypot(aim[0] - ship.x, aim[2] - ship.z)).toBeCloseTo(Math.hypot(target.x - ship.x, target.z - ship.z), 5);
+    expect(rig.bearing).toBeCloseTo(entryBearing, 10);
+    expect(rig.rangeAim).toBeUndefined();
+    expect(simulation.target!.motion.id).toBe(target.id);
+    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeLessThanOrEqual(10 * Math.PI / 180);
+  } finally { rig.dispose(); simulation.dispose(); }
+});
+
+test('scope entry magnifies the existing view when no visible ship is near the sight', async () => {
+  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 });
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
+    host: { clientWidth: 1440, clientHeight: 810 }, battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false,
+  }) as Game;
+  const ship = simulation.ship, target = simulation.target!.motion;
+  const bearing = Math.atan2(target.x - ship.x, ship.z - target.z) + Math.PI / 2;
+  rig.aimAt([ship.x + Math.sin(bearing) * 30000, .5, ship.z - Math.cos(bearing) * 30000], ship);
+  const position = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
+  try {
+    game.toggleBinoculars();
+    for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60);
+    expect(camera.position.distanceTo(position)).toBeLessThan(1e-9);
+    expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
+    expect(rig.magnification).toBeCloseTo(2, 5);
+  } finally { rig.dispose(); simulation.dispose(); }
+});
+
 test('rangefinding admits only fresh enemy exteriors actually observed by the helm ship', () => {
   const ship = { id: 'own', x: 0, y: 0, z: 0 };
   const report = { id: 'contact', presetId: 'bismarck', position: [0, 0, -15000], heading: 0, observedTick: 100, observers: ['own'], health: 1 };
