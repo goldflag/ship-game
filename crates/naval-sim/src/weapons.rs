@@ -83,6 +83,10 @@ pub struct MountState {
     pub queued: Option<Ammunition>,
     pub status: MountStatus,
     pub aim_cache: Option<AimCache>,
+    /// Time available to the next surface-gun slew. AA consumes its own
+    /// movement each tick; switching back must not count that time twice.
+    #[serde(skip)]
+    pub(crate) surface_elapsed: f64,
     /// The air track this mount is firing at and the ticks left before it looks
     /// for a nearer one. A cadence, never authority state: a restored battle
     /// simply searches on its first tick, and it must never reach a snapshot,
@@ -146,6 +150,7 @@ impl MountState {
             status: MountStatus::Turning,
             queued: None,
             aim_cache: None,
+            surface_elapsed: 0.0,
             lead_cache: None,
             aa_discipline: None,
             aa_track: None,
@@ -176,6 +181,7 @@ impl MountState {
             queued: self.queued,
             status: self.status,
             aim_cache: self.aim_cache.clone(),
+            surface_elapsed: self.surface_elapsed,
             aa_track: None,
             aa_select: None,
             blocked_cache: None,
@@ -471,9 +477,23 @@ pub fn update_mount_at(
     obstructions: &Obstructions,
     mounted_states: &[MountState],
 ) -> bool {
-    // The hull holds one attitude for this call, and the muzzle check plus each
-    // pass of the lead solve below rotate through it.
-    let basis = p.basis();
+    update_mount_control_at(
+        index,
+        m,
+        s,
+        d,
+        p,
+        aim,
+        dt,
+        dt,
+        inherited,
+        power,
+        obstructions,
+        mounted_states,
+    )
+}
+
+pub(crate) fn advance_mount_clock(s: &mut MountState, dt: f64, power: f64) {
     let work = gun_work_rate(power);
     let was_reloading = s.reload > 0.0;
     s.reload = (s.reload - dt * work).max(0.0);
@@ -485,6 +505,28 @@ pub fn update_mount_at(
         s.aim_cache = None;
     }
     s.recoil = (s.recoil - dt / 1.4).max(0.0);
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn update_mount_control_at(
+    index: usize,
+    m: &MountDefinition,
+    s: &mut MountState,
+    d: &ShipDefinition,
+    p: &ShipState,
+    aim: Option<Vec3>,
+    dt: f64,
+    control_dt: f64,
+    inherited: Vec3,
+    power: f64,
+    obstructions: &Obstructions,
+    mounted_states: &[MountState],
+) -> bool {
+    // The hull holds one attitude for this call, and the muzzle check plus each
+    // pass of the lead solve below rotate through it.
+    let basis = p.basis();
+    let work = gun_work_rate(power);
+    advance_mount_clock(s, dt, power);
     let reject = |s: &mut MountState, status: MountStatus| {
         s.status = status;
         false
@@ -569,8 +611,8 @@ pub fn update_mount_at(
         radians(w.elevation_min_deg),
         radians(w.elevation_max_deg),
     );
-    let train_rate = radians(w.traverse_rate_deg) * dt * work;
-    let elevation_rate = radians(w.elevation_rate_deg) * dt * work;
+    let train_rate = radians(w.traverse_rate_deg) * control_dt * work;
+    let elevation_rate = radians(w.elevation_rate_deg) * control_dt * work;
     let requested_train = s.train + clamp(train - s.train, -train_rate, train_rate);
     let requested_elevation =
         s.elevation + clamp(elevation - s.elevation, -elevation_rate, elevation_rate);

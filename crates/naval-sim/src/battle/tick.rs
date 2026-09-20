@@ -389,7 +389,7 @@ impl Battle {
             let weapons = orders
                 .get(&a.motion.id)
                 .map_or_else(WeaponsPolicy::default, |o| o.weapons);
-            gunnery::operate_observed(
+            gunnery::operate_cadenced(
                 a,
                 &mut GunneryContext {
                     actors: fleet,
@@ -413,6 +413,7 @@ impl Battle {
                         islands: &self.islands,
                         terrain: &self.catalog.terrain,
                     }),
+                self.tick.is_multiple_of(gunnery::SURFACE_CONTROL_TICKS),
             );
             operate_underwater(
                 a,

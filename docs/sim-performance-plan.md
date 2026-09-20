@@ -72,8 +72,13 @@ interleave A/B runs on a quiet machine.
   water-level searches. Exact convex coalescing removes compatible subdivision seams after
   openings and flooding footprints are derived.
 - Constructed hull flotation caches tetrahedral displacement and evaluates exact piecewise
-  cubic volumes at each attitude, then clips once for final buoyancy moments. This covers
-  arbitrary heel/trim, with clipping fallback for invalid caches; no sampled attitude table.
+  cubic volumes and first moments at each attitude. This covers arbitrary heel/trim,
+  with clipping fallback for invalid caches; no sampled attitude table.
+- Fixed armor plates use a conservative spatial index, with authored contact order restored
+  before penetration is evaluated. Moving turret plates retain their live transforms.
+- Runtime construction barrels use enclosing tapered capsules. Short turret sweeps reuse
+  certified clearance distances, and fixed hull stops survive unrelated turret movement.
+  Authoring checks retain the fine barrel envelope.
 - Constructed armor merges compatible coplanar patches; hull clearance discards internal cell
   faces. Closed protection-linked flooding fragments share topology while retaining every
   footprint's damage cap, position and original sequential transfer order.
@@ -88,3 +93,24 @@ interleave A/B runs on a quiet machine.
 - Every ship solves stability on the same tick; staggering it would change premade results.
 
 Measurements, per-phase tables and rationale: [archived log](archive/sim-performance-plan-log.md).
+
+## Runtime approximations
+
+Surface guns make aim, traverse and fire decisions every six battle ticks (100 ms).
+The traverse solver sweeps the entire requested move, including intermediate collision
+checks; it does not test just the destination. Active AA and surface weapons with a reload
+shorter than 100 ms retain their per-tick controls. Reload, recoil, damage, ship motion,
+aircraft and projectiles still advance every tick. Time spent controlling a mount as AA
+is excluded from its next surface slew. A changed fire order takes effect at the next
+surface control tick. Shot timing and therefore seeded battle outcomes can change.
+
+Constructed compartment water geometry uses at most 64 weighted boxes per room, compiled
+once and shared between instances of the same design. The proxy preserves total capacity,
+full-water centroid and diagonal second moments. Partly filled water levels, centroids
+and free surfaces are approximations. Flood connections, localized breaches, armor and
+rendered compartment boundaries retain the authored geometry. Invalid proxy moments fall
+back to the original cells. The exact clipping path remains available for comparison.
+
+These are simulation choices shared by the native server and WASM worker, independent of
+rendering quality. Compare equal requested simulation durations and report battle outcomes
+alongside timings; faster destruction of a ship is not proof of a cheaper combat tick.
