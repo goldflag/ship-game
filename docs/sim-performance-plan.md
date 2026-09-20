@@ -498,13 +498,13 @@ rooms rather than one per cell face, and a coarser hull for buoyancy alone.
 Every ship also solves stability on the same tick; staggering that would
 smooth the half-second spike but changes premade results too.
 
-One result-neutral option is left on the table because a test pins it:
-`SimulationCadence::PER_TICK.capability_ticks` is 1, so custom battles and the
-server still run the captain-loop capability sweep every tick, although it is
-a pure refresh (the PvE cadence runs it every 6). Setting it to 6 kept final
-state byte-identical on custom, mixed, premade, battleship and carrier fleets
-and took about 3 % off both a Valiant and a Baltimore duel; it needs
-`pve_cadence.rs` line 147 changed with it.
+The captain-loop capability sweep is cadenced for every battle now, not only
+for missions: `SimulationCadence::PER_TICK.capability_ticks` is 6. The sweep is a
+pure refresh (see Phase 4), custom battles and the server ran it every tick
+anyway, and at 6 the final state is byte-identical on custom, mixed, premade,
+battleship and carrier fleets for about 3 % off both a Valiant and a Baltimore
+duel. It is its own commit; `the_capability_cadence_leaves_the_simulation_identical`
+now compares against an explicit every-tick cadence.
 
 With clearance this cheap, Yamato's retired swept profile (next section) may be
 affordable again; that is a separate decision.

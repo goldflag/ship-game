@@ -144,7 +144,8 @@ fn the_cadence_is_versioned_content_and_is_validated() {
     assert_eq!(cadence.stability_interval_seconds, 1.0);
     assert_eq!(SimulationCadence::PER_TICK.stability_interval_seconds, 0.5);
     assert!(cadence.validate().is_ok());
-    assert_eq!(SimulationCadence::PER_TICK.capability_ticks, 1);
+    // The sweep is a refresh, so the non-mission path cadences it as well.
+    assert_eq!(SimulationCadence::PER_TICK.capability_ticks, 6);
     assert_eq!(SimulationCadence::PER_TICK.damage_control_ticks, 1);
     for bad in [
         SimulationCadence {
@@ -195,10 +196,15 @@ fn the_capability_cadence_leaves_the_simulation_identical() {
         capability_ticks: 6,
         ..SimulationCadence::PER_TICK
     };
+    // Against a sweep on every tick, spelled out: `PER_TICK` is cadenced too.
+    let every_tick = SimulationCadence {
+        capability_ticks: 1,
+        ..SimulationCadence::PER_TICK
+    };
     let mut a = battle(true, "normal", 6000.0);
     let mut b = battle(true, "normal", 6000.0);
     a.set_cadence(cadenced).unwrap();
-    b.set_cadence(SimulationCadence::PER_TICK).unwrap();
+    b.set_cadence(every_tick).unwrap();
     ignite(&mut a.actors[1], 2.0);
     ignite(&mut b.actors[1], 2.0);
     let orders = BTreeMap::new();

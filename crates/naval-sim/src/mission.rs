@@ -78,10 +78,15 @@ impl Default for SimulationCadence {
     }
 }
 impl SimulationCadence {
-    /// Per-tick cadence: the shape the non-mission path already runs.
+    /// Per-tick cadence: the shape the non-mission path already runs. The
+    /// captain-loop capability sweep is the one exception. The post-damage call
+    /// at the end of every tick leaves that state current and nothing before
+    /// the next captain loop touches its inputs, so the sweep is a refresh: it
+    /// runs on the mission cadence here too and no result changes
+    /// (`the_capability_cadence_leaves_the_simulation_identical`).
     pub const PER_TICK: Self = Self {
         version: 1,
-        capability_ticks: 1,
+        capability_ticks: 6,
         damage_control_ticks: 1,
         stability_interval_seconds: 0.5,
     };
