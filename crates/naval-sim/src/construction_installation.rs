@@ -37,6 +37,63 @@ pub fn deck_backing(polygon: &[Vec3], top: f64) -> cg::Cell {
         faces: faces.into(),
     }
 }
+/// A working well crosses the deck it is seated on only when its top reaches that
+/// deck's plane. Seating arithmetic and lofted plating routinely land a fraction of a
+/// millimetre below it, which leaves a skin-thin lid over the well: the deck is never
+/// opened, the lid survives every later cut as cutting debris, and the fit check then
+/// reports the whole well as blocked. Lift the cutter onto any upward hull face within
+/// `crossing` above its top, so a well that all but touches a deck cuts it cleanly. A
+/// well already level with its deck, or clear of one, keeps its exact geometry.
+pub fn crossing_cell(cell: cg::Cell, hull: &[cg::Cell], crossing: f64) -> cg::Cell {
+    let (center, size) = cg::bounds(&cell);
+    let top = center[1] + size[1] / 2.;
+    let mut lift = top;
+    for face in hull.iter().flat_map(|h| h.faces.iter()) {
+        let plane = cg::normal(&face.vertices);
+        if plane[1] <= 0.95 {
+            continue;
+        }
+        let y = face.vertices[0][1];
+        if y > lift + cg::EPS
+            && y <= top + crossing
+            && [0, 2].iter().all(|&i| {
+                let low = face.vertices.iter().fold(f64::INFINITY, |a, v| a.min(v[i]));
+                let high = face
+                    .vertices
+                    .iter()
+                    .fold(f64::NEG_INFINITY, |a, v| a.max(v[i]));
+                low <= center[i] + size[i] / 2. && high >= center[i] - size[i] / 2.
+            })
+        {
+            lift = y;
+        }
+    }
+    if lift <= top {
+        return cell;
+    }
+    // Every well is a vertical prism, so raising the vertices on its top plane
+    // extrudes it without disturbing its footprint.
+    cg::Cell {
+        faces: cell
+            .faces
+            .iter()
+            .map(|f| ConvexVolumeFacesItem {
+                vertices: f
+                    .vertices
+                    .iter()
+                    .map(|v| {
+                        if v[1] >= top - cg::EPS {
+                            [v[0], lift, v[2]]
+                        } else {
+                            *v
+                        }
+                    })
+                    .collect(),
+            })
+            .collect::<Vec<_>>()
+            .into(),
+    }
+}
 fn cylinder(radius: f64, low: f64, high: f64) -> cg::Cell {
     let top: Vec<_> = (0..SIDES)
         .rev()

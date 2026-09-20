@@ -147,7 +147,7 @@ export function reseatItems(source: ConstructionSource, catalog: ConstructionCat
     const part: ConstructionEquipmentPart | undefined = catalog.equipment.find((p) => p.id === e.partId);
     const reason = !part ? 'unknown catalog part ' + e.partId
       : part.path || e.path ? 'connected fitting: its points are not seated by this command'
-      : part.kind === 'propeller' ? 'propeller: the compiler derives its shaft support; move it explicitly'
+      : part.kind === 'propeller' ? 'propeller: its height is valid where it is; the compiler derives the shaft support, so move it explicitly to change it'
       : followers.has(e.id) ? 'linked wall twin: follows ' + e.wall?.mirrorId
       : undefined;
     if (reason) { skipped.push({ id: e.id, reason }); continue; }

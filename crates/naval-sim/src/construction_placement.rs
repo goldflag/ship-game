@@ -423,7 +423,7 @@ pub fn place(
                 if hit.is_some() {
                     "Hung 0.65 diameters below the hull; shaft and struts are derived by the compiler"
                 } else {
-                    "No hull above this point; height kept, the compiler derives any shaft support"
+                    "Outboard of the hull: the authored height is already valid and is kept, and the compiler derives the shaft and struts"
                 }
                 .into(),
             );
