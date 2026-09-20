@@ -611,6 +611,44 @@
         "scripts/ships/blender_barrels.py",
         "assets/parts/gun_bloomers.py"
       ]
+    },
+    "rn-pompom-quad": {
+      "path": "assets/parts/rn-pompom-quad/geometry.py",
+      "function": "create_mount",
+      "inputs": []
+    },
+    "german-flakvierling": {
+      "path": "assets/parts/german-flakvierling/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-bofors-twin": {
+      "path": "assets/parts/rn-bofors-twin/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "german-flak-m42": {
+      "path": "assets/parts/german-flak-m42/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-bofors-quad": {
+      "path": "assets/parts/us-bofors-quad/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "oerlikon-mounts": {
+      "path": "assets/parts/oerlikon-mounts/geometry.py",
+      "function": "create_mount",
+      "inputs": []
     }
   },
   "components": [
@@ -1544,6 +1582,174 @@
       "review": "unreviewed",
       "limitations": "Original reconstruction against the GameModels3D Dunkerque reference; the four barrels sit on the evenly spaced rig pitch rather than the reference two-pair spacing, the rigid gun-port shrouds are reconstructed as articulated canvas covers on a raised port frame that stands higher than the reference hoods so the bores clear it at full elevation, and the fixed deck sponsons the reference hangs below its sole plane are omitted, as is the 0.18 m of shell skirt the reference hangs into its barbette well. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
       "builder": "fr-330-quad"
+    },
+    {
+      "partId": "qf-2pdr-mkvii-quad",
+      "nation": "United Kingdom",
+      "family": "Quadruple QF 2-pounder Mk VII pom-pom \u00b7 open",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga002_2_pdr_mkvii_quad. Muzzle sockets sit on the game's single barrel row, so the tubes of the real 2x2 block carry a 0.28 m offset from them. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "rn-pompom-quad"
+    },
+    {
+      "partId": "qf-2pdr-mkvii-quad-shielded",
+      "nation": "United Kingdom",
+      "family": "Quadruple QF 2-pounder Mk VII pom-pom \u00b7 splinter-shielded",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga072_2_pdr_mkvii_quad. Muzzle sockets sit on the game's single barrel row, so the tubes of the real 2x2 block carry a 0.28 m offset from them. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "rn-pompom-quad"
+    },
+    {
+      "partId": "qf-2pdr-mkvii-quad-plated",
+      "nation": "United Kingdom",
+      "family": "Quadruple QF 2-pounder Mk VII pom-pom \u00b7 plated",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga088_2_pdr_mkvii_quad. Muzzle sockets sit on the game's single barrel row, so the tubes of the real 2x2 block carry a 0.28 m offset from them. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "rn-pompom-quad"
+    },
+    {
+      "partId": "qf-2pdr-mkvii-quad-screened",
+      "nation": "United Kingdom",
+      "family": "Quadruple QF 2-pounder Mk VII pom-pom \u00b7 screened",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga152_2_pdr_mkvii_quad. Muzzle sockets sit on the game's single barrel row, so the tubes of the real 2x2 block carry a 0.28 m offset from them. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "rn-pompom-quad"
+    },
+    {
+      "partId": "flak38-20-vierling",
+      "nation": "Germany",
+      "family": "2 cm Flakvierling 38 \u00b7 pedestal",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D gga008_20mm_flack_38_quad. Muzzle sockets sit on the game's single barrel row, so the real barrel positions differ from them by up to 0.23 m. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "german-flakvierling"
+    },
+    {
+      "partId": "flak38-20-vierling-shielded",
+      "nation": "Germany",
+      "family": "2 cm Flakvierling 38 \u00b7 shielded",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D gga042_20mm_flack_38_quad. Muzzle sockets sit on the game's single barrel row, so the real barrel positions differ from them by up to 0.23 m. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "german-flakvierling"
+    },
+    {
+      "partId": "flak38-20-vierling-c35",
+      "nation": "Germany",
+      "family": "2 cm Flakvierling 38 \u00b7 C/35 trail",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D gga035_20mm_flak_38_c35. Muzzle sockets sit on the game's single barrel row, so the real barrel positions differ from them by up to 0.23 m. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "german-flakvierling"
+    },
+    {
+      "partId": "qf-40mm-bofors-staag-twin",
+      "nation": "United Kingdom",
+      "family": "40 mm Bofors twin \u00b7 STAAG Mk II",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga036_staag_markv. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "rn-bofors-twin"
+    },
+    {
+      "partId": "qf-40mm-bofors-hazemeyer-twin",
+      "nation": "United Kingdom",
+      "family": "40 mm Bofors twin \u00b7 Hazemeyer Mk IV",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga060_40mm_bofors_mark_iv_hazemeyer. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "rn-bofors-twin"
+    },
+    {
+      "partId": "flak-m42-37-twin",
+      "nation": "Germany",
+      "family": "3.7 cm Flak M42 \u00b7 twin LM/42",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D gga043_37mm_flak_m42_zwilling. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "german-flak-m42"
+    },
+    {
+      "partId": "flak-m42-37-single-lm42",
+      "nation": "Germany",
+      "family": "3.7 cm Flak M42 \u00b7 single LM/42",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D gga034_37mm_flak_m42. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "german-flak-m42"
+    },
+    {
+      "partId": "us-40mm-bofors-mk2-quad",
+      "nation": "United States",
+      "family": "40 mm Bofors Mk 2 quadruple \u00b7 open",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D aga008_40mm_bofors_mk2. Muzzle sockets sit on the game's single barrel row, so the real barrel positions differ from them by up to 0.45 m. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "us-bofors-quad"
+    },
+    {
+      "partId": "us-40mm-bofors-mk2-shielded-quad",
+      "nation": "United States",
+      "family": "40 mm Bofors Mk 2 quadruple \u00b7 shielded",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D aga056_40mm_bofors. Muzzle sockets sit on the game's single barrel row, so the real barrel positions differ from them by up to 0.45 m. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "us-bofors-quad"
+    },
+    {
+      "partId": "us-40mm-bofors-mk2-mk19-quad",
+      "nation": "United States",
+      "family": "40 mm Bofors Mk 2 quadruple \u00b7 Mk 19 director",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D aga175_40mm_bofors_mk2_mk19. Muzzle sockets sit on the game's single barrel row, so the real barrel positions differ from them by up to 0.45 m. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "us-bofors-quad"
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk15-quad",
+      "nation": "United States",
+      "family": "20 mm Oerlikon \u00b7 Mk 15 quadruple",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D aga225_20mm_oerlicon_quadruple. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "oerlikon-mounts"
+    },
+    {
+      "partId": "bl-20mm-oerlikon-mkv-twin",
+      "nation": "United Kingdom",
+      "family": "20 mm Oerlikon \u00b7 Mk V twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga020_20mm_oerlikon_mk_v. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "oerlikon-mounts"
+    },
+    {
+      "partId": "us-20mm-oerlikon-twin-tripod",
+      "nation": "United States",
+      "family": "20 mm Oerlikon \u00b7 twin \u00b7 tripod stand",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D aga070_20mm_oerlikon_twin. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "oerlikon-mounts"
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk14-twin",
+      "nation": "United States",
+      "family": "20 mm Oerlikon \u00b7 Mk 14 twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D aga214_20mm_oerlikon_mark14_twin. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "oerlikon-mounts"
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk4-twin",
+      "nation": "United States",
+      "family": "20 mm Oerlikon \u00b7 Mk 4 twin \u00b7 pedestal",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D aga224_20mm_oerlikon_mk4_twin. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "oerlikon-mounts"
+    },
+    {
+      "partId": "qf-40mm-bofors-mkv-twin",
+      "nation": "United Kingdom",
+      "family": "40 mm Bofors twin \u00b7 Mk V",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga025_40mm_bofors_twin. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "rn-bofors-twin"
+    },
+    {
+      "partId": "qf-40mm-bofors-rp-mk1-twin",
+      "nation": "United Kingdom",
+      "family": "40 mm Bofors twin \u00b7 RP Mk I",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D bga097_40mm_bofors_mk1. Weapon values are provisional game calibration; installed clearance requires ship review.",
+      "builder": "rn-bofors-twin"
     }
   ]
 }

@@ -1935,5 +1935,299 @@
       "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsb506",
       "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/france/gun/main/fgm001_330_52_mle_1931/fgm001_330_52_mle_1931.model"
     ]
+  },
+  {
+    "partId": "qf-2pdr-mkvii-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa508",
+    "sourceVehicle": "pbsa508",
+    "resource": "common/visual/uk/gun/aaircraft/bga002_2_pdr_mkvii_quad/bga002_2_pdr_mkvii_quad",
+    "sourceName": "bga002_2_pdr_mkvii_quad",
+    "match": "exact",
+    "notes": "Fitted to Albemarle, Black Swan, Dido, Duke of Bronte, Emerald, Hampshire and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa508",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga002_2_pdr_mkvii_quad/bga002_2_pdr_mkvii_quad.model"
+    ]
+  },
+  {
+    "partId": "qf-2pdr-mkvii-quad-shielded",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa108",
+    "sourceVehicle": "pbsa108",
+    "resource": "common/visual/uk/gun/aaircraft/bga072_2_pdr_mkvii_quad/bga072_2_pdr_mkvii_quad",
+    "sourceName": "bga072_2_pdr_mkvii_quad",
+    "match": "exact",
+    "notes": "Fitted to Auckland, Colossus, Danu, Devonshire, Drake, Duke of York and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga072_2_pdr_mkvii_quad/bga072_2_pdr_mkvii_quad.model"
+    ]
+  },
+  {
+    "partId": "qf-2pdr-mkvii-quad-plated",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc548",
+    "sourceVehicle": "pbsc548",
+    "resource": "common/visual/uk/gun/aaircraft/bga088_2_pdr_mkvii_quad/bga088_2_pdr_mkvii_quad",
+    "sourceName": "bga088_2_pdr_mkvii_quad",
+    "match": "exact",
+    "notes": "Fitted to Cossack, Cossack B, Eskimo, Nottingham; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc548",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga088_2_pdr_mkvii_quad/bga088_2_pdr_mkvii_quad.model"
+    ]
+  },
+  {
+    "partId": "qf-2pdr-mkvii-quad-screened",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb206",
+    "sourceVehicle": "pbsb206",
+    "resource": "common/visual/uk/gun/aaircraft/bga152_2_pdr_mkvii_quad/bga152_2_pdr_mkvii_quad",
+    "sourceName": "bga152_2_pdr_mkvii_quad",
+    "match": "exact",
+    "notes": "Fitted to Renown, Renown '44; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb206",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga152_2_pdr_mkvii_quad/bga152_2_pdr_mkvii_quad.model"
+    ]
+  },
+  {
+    "partId": "flak38-20-vierling",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+    "sourceVehicle": "pgsb507",
+    "resource": "common/visual/germany/gun/aaircraft/gga008_20mm_flack_38_quad/gga008_20mm_flack_38_quad",
+    "sourceName": "gga008_20mm_flack_38_quad",
+    "match": "exact",
+    "notes": "Fitted to Tirpitz, K\u00f6nig, Gneisenau, Bismarck, Scharnhorst, Odin and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/aaircraft/gga008_20mm_flack_38_quad/gga008_20mm_flack_38_quad.model"
+    ]
+  },
+  {
+    "partId": "flak38-20-vierling-shielded",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc508",
+    "sourceVehicle": "pgsc508",
+    "resource": "common/visual/germany/gun/aaircraft/gga042_20mm_flack_38_quad/gga042_20mm_flack_38_quad",
+    "sourceName": "gga042_20mm_flack_38_quad",
+    "match": "exact",
+    "notes": "Fitted to Weser, Grosser Kurf\u00fcrst, [Grosser Kurf\u00fcrst], Deutschland, Admiral Scheer, Knesebeck and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc508",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/aaircraft/gga042_20mm_flack_38_quad/gga042_20mm_flack_38_quad.model"
+    ]
+  },
+  {
+    "partId": "flak38-20-vierling-c35",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsa518",
+    "sourceVehicle": "pgsa518",
+    "resource": "common/visual/germany/gun/aaircraft/gga035_20mm_flak_38_c35/gga035_20mm_flak_38_c35",
+    "sourceName": "gga035_20mm_flak_38_c35",
+    "match": "exact",
+    "notes": "Fitted to Weser, Graf Zeppelin, Graf Zeppelin B, Bayern, Friedrich der Grosse, Grosser Kurf\u00fcrst and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsa518",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/aaircraft/gga035_20mm_flak_38_c35/gga035_20mm_flak_38_c35.model"
+    ]
+  },
+  {
+    "partId": "qf-40mm-bofors-staag-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb110",
+    "sourceVehicle": "pbsb110",
+    "resource": "common/visual/uk/gun/aaircraft/bga036_staag_markv/bga036_staag_markv",
+    "sourceName": "bga036_staag_markv",
+    "match": "exact",
+    "notes": "Fitted to Conqueror, Vanguard, Marlborough, Thunderer, Cumberland, Marlborough B and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb110",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga036_staag_markv/bga036_staag_markv.model"
+    ]
+  },
+  {
+    "partId": "qf-40mm-bofors-hazemeyer-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa108",
+    "sourceVehicle": "pbsa108",
+    "resource": "common/visual/uk/gun/aaircraft/bga060_40mm_bofors_mark_iv_hazemeyer/bga060_40mm_bofors_mark_iv_hazemeyer",
+    "sourceName": "bga060_40mm_bofors_mark_iv_hazemeyer",
+    "match": "exact",
+    "notes": "Fitted to Implacable, Monarch, Lion, Hawke, Duncan, St. Vincent and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga060_40mm_bofors_mark_iv_hazemeyer/bga060_40mm_bofors_mark_iv_hazemeyer.model"
+    ]
+  },
+  {
+    "partId": "flak-m42-37-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb108",
+    "sourceVehicle": "pgsb108",
+    "resource": "common/visual/germany/gun/aaircraft/gga043_37mm_flak_m42_zwilling/gga043_37mm_flak_m42_zwilling",
+    "sourceName": "gga043_37mm_flak_m42_zwilling",
+    "match": "exact",
+    "notes": "Fitted to Rhein, Weser, August von Parseval, Graf Zeppelin, Graf Zeppelin B, Gneisenau and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/aaircraft/gga043_37mm_flak_m42_zwilling/gga043_37mm_flak_m42_zwilling.model"
+    ]
+  },
+  {
+    "partId": "flak-m42-37-single-lm42",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb207",
+    "sourceVehicle": "pgsb207",
+    "resource": "common/visual/germany/gun/aaircraft/gga034_37mm_flak_m42/gga034_37mm_flak_m42",
+    "sourceName": "gga034_37mm_flak_m42",
+    "match": "exact",
+    "notes": "Fitted to Rhein, Prinz Heinrich, AL Prinz Heinrich, Prinz Sigismund, Roon, Z-39; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb207",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/aaircraft/gga034_37mm_flak_m42/gga034_37mm_flak_m42.model"
+    ]
+  },
+  {
+    "partId": "us-40mm-bofors-mk2-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa026",
+    "sourceVehicle": "pasa026",
+    "resource": "common/visual/usa/gun/aaircraft/aga008_40mm_bofors_mk2/aga008_40mm_bofors_mk2",
+    "sourceName": "aga008_40mm_bofors_mk2",
+    "match": "exact",
+    "notes": "Fitted to Independence, Yorktown, Ranger, Lexington, Enterprise, Saipan and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa026",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga008_40mm_bofors_mk2/aga008_40mm_bofors_mk2.model"
+    ]
+  },
+  {
+    "partId": "us-40mm-bofors-mk2-shielded-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa020",
+    "sourceVehicle": "pasa020",
+    "resource": "common/visual/usa/gun/aaircraft/aga056_40mm_bofors/aga056_40mm_bofors",
+    "sourceName": "aga056_40mm_bofors",
+    "match": "exact",
+    "notes": "Fitted to Essex, Midway, Franklin D. Roosevelt, [Midway], Pi\u00f1atapolis, Montana and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa020",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga056_40mm_bofors/aga056_40mm_bofors.model"
+    ]
+  },
+  {
+    "partId": "us-40mm-bofors-mk2-mk19-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa510",
+    "sourceVehicle": "pasa510",
+    "resource": "common/visual/usa/gun/aaircraft/aga175_40mm_bofors_mk2_mk19/aga175_40mm_bofors_mk2_mk19",
+    "sourceName": "aga175_40mm_bofors_mk2_mk19",
+    "match": "exact",
+    "notes": "Fitted to Franklin D. Roosevelt, Wichita, Boise, Kidd; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa510",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga175_40mm_bofors_mk2_mk19/aga175_40mm_bofors_mk2_mk19.model"
+    ]
+  },
+  {
+    "partId": "us-20mm-oerlikon-mk15-quad",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb111",
+    "sourceVehicle": "pasb111",
+    "resource": "common/visual/usa/gun/aaircraft/aga225_20mm_oerlicon_quadruple/aga225_20mm_oerlicon_quadruple",
+    "sourceName": "aga225_20mm_oerlicon_quadruple",
+    "match": "exact",
+    "notes": "Fitted to Maine, Maine +, West Virginia '44; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb111",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga225_20mm_oerlicon_quadruple/aga225_20mm_oerlicon_quadruple.model"
+    ]
+  },
+  {
+    "partId": "bl-20mm-oerlikon-mkv-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa106",
+    "sourceVehicle": "pbsa106",
+    "resource": "common/visual/uk/gun/aaircraft/bga020_20mm_oerlikon_mk_v/bga020_20mm_oerlikon_mk_v",
+    "sourceName": "bga020_20mm_oerlikon_mk_v",
+    "match": "exact",
+    "notes": "Fitted to AL Cheshire, Aberdeen, Albemarle, Belfast '43, Cerberus, Cheshire and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa106",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga020_20mm_oerlikon_mk_v/bga020_20mm_oerlikon_mk_v.model"
+    ]
+  },
+  {
+    "partId": "us-20mm-oerlikon-twin-tripod",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb707",
+    "sourceVehicle": "pasb707",
+    "resource": "common/visual/usa/gun/aaircraft/aga070_20mm_oerlikon_twin/aga070_20mm_oerlikon_twin",
+    "sourceName": "aga070_20mm_oerlikon_twin",
+    "match": "exact",
+    "notes": "Fitted to Burrows, California, Christopher, Osborne; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb707",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga070_20mm_oerlikon_twin/aga070_20mm_oerlikon_twin.model"
+    ]
+  },
+  {
+    "partId": "us-20mm-oerlikon-mk14-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa111",
+    "sourceVehicle": "pasa111",
+    "resource": "common/visual/usa/gun/aaircraft/aga214_20mm_oerlikon_mark14_twin/aga214_20mm_oerlikon_mark14_twin",
+    "sourceName": "aga214_20mm_oerlikon_mark14_twin",
+    "match": "exact",
+    "notes": "Fitted to Joshua Humphreys, Joshua Humphreys +, New Jersey, United States, Vallejo, Worcester; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasa111",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga214_20mm_oerlikon_mark14_twin/aga214_20mm_oerlikon_mark14_twin.model"
+    ]
+  },
+  {
+    "partId": "us-20mm-oerlikon-mk4-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb527",
+    "sourceVehicle": "pasb527",
+    "resource": "common/visual/usa/gun/aaircraft/aga224_20mm_oerlikon_mk4_twin/aga224_20mm_oerlikon_mk4_twin",
+    "sourceName": "aga224_20mm_oerlikon_mk4_twin",
+    "match": "exact",
+    "notes": "Fitted to West Virginia '44; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb527",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/aaircraft/aga224_20mm_oerlikon_mk4_twin/aga224_20mm_oerlikon_mk4_twin.model"
+    ]
+  },
+  {
+    "partId": "qf-40mm-bofors-mkv-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa111",
+    "sourceVehicle": "pbsa111",
+    "resource": "common/visual/uk/gun/aaircraft/bga025_40mm_bofors_twin/bga025_40mm_bofors_twin",
+    "sourceName": "bga025_40mm_bofors_twin",
+    "match": "exact",
+    "notes": "Fitted to Eagle, Audacious, [Audacious], Monarch, Lion, Fiji and others; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa111",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga025_40mm_bofors_twin/bga025_40mm_bofors_twin.model"
+    ]
+  },
+  {
+    "partId": "qf-40mm-bofors-rp-mk1-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa508",
+    "sourceVehicle": "pbsa508",
+    "resource": "common/visual/uk/gun/aaircraft/bga097_40mm_bofors_mk1/bga097_40mm_bofors_mk1",
+    "sourceName": "bga097_40mm_bofors_mk1",
+    "match": "exact",
+    "notes": "Fitted to Indomitable, Uganda; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa508",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga097_40mm_bofors_mk1/bga097_40mm_bofors_mk1.model"
+    ]
   }
 ]

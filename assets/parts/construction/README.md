@@ -443,6 +443,32 @@ game estimates. Gun tubs, the breakwater, the cranes and the catapults declare
 deck behind a breakwater stays usable and small gear fits under a crane jib.
 
 
+## Light anti-aircraft mounts
+
+Twenty-one open mounts under 100 mm were added as original recipes, each authored against the GameModels3D visual
+named in [`component-references.json`](../../../tools/ship-overlay/component-references.json) (match `exact`; one part
+per genuinely different visual, ships sharing a visual are listed in the family README):
+
+| Family (recipe directory) | Parts |
+| --- | --- |
+| US 40 mm Bofors Mk 2 quad (`../us-bofors-quad/`) | `us-40mm-bofors-mk2-quad`, `-shielded-quad` (also the RN RP Mk II), `-mk19-quad` |
+| RN quadruple pom-pom Mk VII (`../rn-pompom-quad/`) | `qf-2pdr-mkvii-quad`, `-quad-shielded`, `-quad-plated`, `-quad-screened` |
+| German 2 cm Flakvierling 38 (`../german-flakvierling/`) | `flak38-20-vierling`, `-vierling-shielded`, `-vierling-c35` |
+| German 3.7 cm Flak M42 (`../german-flak-m42/`) | `flak-m42-37-twin`, `flak-m42-37-single-lm42` |
+| RN twin 40 mm Bofors (`../rn-bofors-twin/`) | `qf-40mm-bofors-staag-twin`, `-hazemeyer-twin`, `-mkv-twin`, `-rp-mk1-twin` |
+| 20 mm Oerlikon multiples (`../oerlikon-mounts/`) | `us-20mm-oerlikon-mk15-quad`, `bl-20mm-oerlikon-mkv-twin`, `us-20mm-oerlikon-twin-tripod`, `-mk14-twin`, `-mk4-twin` |
+
+Each part has one yaw, and per barrel an elevation, recoil and muzzle joint. The simulation fires from one uniform
+row of barrels, and the publish check requires every muzzle socket to sit on that row, so joints and sockets are
+placed by the `aa_articulation` rule while the tubes, cradles and receivers stand where the reference has them (the
+quads and the 2x2 Flakvierling and pom-pom blocks differ from their sockets by up to 0.3 m; each family README
+lists the offsets). Weapon values are provisional game calibration scaled from the nearest sibling. Gun-tub fit and
+the elevation the native resolver grants on a deck are tabulated in each family README; the resolver's generic
+open-mount proxy assumes a 1.55 m breech behind the trunnion, so mounts with a low trunnion do not reach their
+catalog maximum on a flat deck (the existing octuple pom-pom has the same limit). Not built: the Bofors Mk VI
+six-barrel (the game supports 1 to 4 and 8 barrels), the `bga022` Boffin Mk V single/twin family, the
+`gga086` LM/43 single and the Commonwealth `bga025` variants that are identical to a built part.
+
 ## Flush windows
 
 `windows.py` authors round portholes, rectangular windows and rounded-rectangle
