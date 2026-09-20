@@ -12,6 +12,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Build a local player ship | [Shipbuilding](shipbuilding.md) | Versioned source, native construction compiler, retained equipment catalog and IndexedDB revisions |
 | Design-local fittings | [Custom fittings](custom-fittings-plan.md) | Non-structural parts defined inside a design: model, owner decisions, versioning, limits and the unbuilt phases |
 | Iterate on ship geometry with Blender MCP | [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop) | Live scene inspection, durable recipe edits and clean rebuild verification |
+| Measure a reference ship for an agent build | [Reference workflow](reference-workflow.md) | Ignored `.build/references/` caches of GameModels3D or local meshes, measured in ship metres |
 | Compare ships, aircraft and reference models | [Model library and comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
 | Verify a UI or battle change in a browser | [Browser verification](browser-verification.md) | Account-free harness page, Playwright driver, saved-design cache and known-red ledgers |
 | Review model quality | [Ship model review](ship-model-review.md) | Four required visual checks on the exact published model |

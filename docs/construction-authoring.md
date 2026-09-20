@@ -162,6 +162,10 @@ bun run ship:render my-ship
 bun run ship:trial my-ship --seconds 15
 ```
 
+Measuring a real vessel to build against — caching a reference mesh, slicing it for deck heights and hull
+stations, and reading its mount positions — is [the reference workflow](reference-workflow.md)
+(`ship:reference`, `ship:slice`, `ship:hardpoints`).
+
 Inspect returns the logical `revision`, the file's `fileRevision`, exact equipment
 variants, native diagnostics and loading. `--source` includes the complete source.
 `--source-only` reads the source and revisions without compiling and explicitly
