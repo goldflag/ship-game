@@ -4,6 +4,7 @@ import mission from '../../../assets/gameplay/pve-mission.v1.json';
 import {
   applyCustomDeployment,
   applyPveDeployment,
+  arrangeClearFormation,
   arrangeFormation,
   customDeployment,
   fitRadius,
@@ -13,6 +14,7 @@ import {
 } from './deploymentModel';
 import { roleInterval, SCREEN_OUTER_RADIUS_M } from '../formationStations';
 import { moveFormation } from '../pveSetup';
+import { MIN_SHIP_SEPARATION_M } from '../../game/session/battleSetup';
 import type { BattleSetup } from '../../game/session/battleSetup';
 
 const setup: BattleSetup = {
@@ -154,6 +156,38 @@ test('a formation preset stations a group around its guide and leaves every othe
   expect(pveDeployment(briefing, [{ id: 'dd', spawn: { x: 0, z: 12000, heading: 0 } }], { front: 'screen' }).groups).toEqual([
     { id: 'front', name: 'Screen', side: 'friendly', formation: 'screen' },
   ]);
+});
+
+test('choosing a formation slides the group astern rather than stationing it on another group', () => {
+  const unit = (id: string, presetId: string, groupId: string, x: number, z: number, heading = 0) => ({
+    id,
+    presetId,
+    name: id,
+    side: 'friendly' as const,
+    groupId,
+    spawn: { x, z, heading },
+  });
+  // A three-ship group steering north with a picket parked right where its column would form.
+  const units = [
+    unit('bb', 'bismarck', 'front', 0, 12000),
+    unit('ca', 'baltimore', 'front', 400, 12000),
+    unit('dd', 'fletcher', 'front', -400, 12000),
+    unit('picket', 'fletcher', 'solo', 0, 12000 + roleInterval('battleship')),
+  ];
+  const gap = (ships: readonly { id: string; spawn: { x: number; z: number } }[], id: string) => {
+    const ship = ships.find((entry) => entry.id === id)!,
+      picket = ships.find((entry) => entry.id === 'picket')!;
+    return Math.hypot(ship.spawn.x - picket.spawn.x, ship.spawn.z - picket.spawn.z);
+  };
+  // The plain arrangement stations a ship on top of the picket; the picker's must not.
+  const plain = arrangeFormation(units, 'front', 'column');
+  expect(Math.min(gap(plain, 'ca'), gap(plain, 'dd'))).toBeLessThan(MIN_SHIP_SEPARATION_M);
+  const cleared = arrangeClearFormation(units, 'front', 'column');
+  expect(Math.min(gap(cleared, 'bb'), gap(cleared, 'ca'), gap(cleared, 'dd'))).toBeGreaterThanOrEqual(MIN_SHIP_SEPARATION_M);
+  expect(cleared.find((entry) => entry.id === 'picket')!.spawn).toEqual(units[3].spawn); // The other group never moves.
+  // Sliding astern of a northward course means south, and the column keeps its shape.
+  expect(cleared.find((entry) => entry.id === 'bb')!.spawn.z).toBeGreaterThan(12000);
+  expect(cleared.find((entry) => entry.id === 'bb')!.spawn.x).toBeCloseTo(0);
 });
 
 test('the first chart puts each group on its formation stations around the centre the worker chose', () => {

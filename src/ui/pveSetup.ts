@@ -1,3 +1,4 @@
+import { MIN_SHIP_SEPARATION_M } from '../game/session/battleSetup';
 import { shipPreset } from '../ships/presets';
 import { resolveShip } from '../ships/localShips';
 import { islandRadius, mapIslands, type OceanMapId } from '../maps/catalog';
@@ -31,7 +32,7 @@ export function placementError(briefing: PveBriefing, placements: Placement[]): 
     if (z < briefing.deploymentMinZ) return `${name}: deploy in the shaded friendly sector.`;
     if (Math.hypot(x, z) > radius - shipPreset(unit.presetId).hull.length / 2) return `${name}: keep the hull inside the battle boundary.`;
     if (islands.some(i => islandRadius({ ...i, rx: i.rx + 250, rz: i.rz + 250 }, x, z) <= 1.05)) return `${name}: leave clearance from the coast.`;
-    if (placements.slice(0, index).some(p => Math.hypot(p.spawn.x - x, p.spawn.z - z) < 350)) return `${name}: leave at least 350 m between ships.`;
+    if (placements.slice(0, index).some(p => Math.hypot(p.spawn.x - x, p.spawn.z - z) < MIN_SHIP_SEPARATION_M)) return `${name}: leave at least ${MIN_SHIP_SEPARATION_M} m between ships.`;
   }
   return '';
 }

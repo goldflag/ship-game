@@ -3,6 +3,7 @@ import type { Formation } from '../../multiplayer/generated/Formation';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import { resolveShip } from '../../ships/localShips';
+import { berthsClear } from '../deploymentGestures';
 import { formationStations, stationPosition } from '../formationStations';
 import { deploymentIslands, moveFormation, placementError, unitName } from '../pveSetup';
 import { shipClassOf } from '../shipGlyphs';
@@ -95,6 +96,21 @@ export function arrangeFormation(units: readonly ChartUnit[], groupId: string, f
     const offset = unit.groupId === groupId ? stations.get(unit.id) : undefined;
     return offset ? { ...unit, spawn: { ...stationPosition(guide.spawn, offset), heading: guide.spawn.heading } } : unit;
   });
+}
+
+/** The formation picker's arrangement: stations first, then the whole group slides astern
+ * until nothing outside it stands in a taken berth. A group with nowhere to fall back to
+ * keeps the plain arrangement, which the placement error below the chart still reports. */
+export function arrangeClearFormation(units: readonly ChartUnit[], groupId: string, formation: Formation): ChartUnit[] {
+  const arranged = arrangeFormation(units, groupId, formation);
+  const members = arranged.filter(unit => unit.groupId === groupId), ids = members.map(unit => unit.id);
+  if (members.length < 2 || berthsClear(units, arranged, ids)) return arranged;
+  const center = unitsCenter(members), heading = members[0].spawn.heading;
+  for (let astern = 500; astern <= 3000; astern += 500) {
+    const candidate = moveFormation(arranged, ids, center.x - Math.sin(heading) * astern, center.z + Math.cos(heading) * astern);
+    if (berthsClear(units, candidate, ids)) return candidate;
+  }
+  return arranged;
 }
 
 export function unitsBox(units: readonly ChartUnit[]) {
