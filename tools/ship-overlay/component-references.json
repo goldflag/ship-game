@@ -1403,5 +1403,243 @@
     ],
     "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/le-fantasque-1943-foremast.glb",
     "scale": 1
+  },
+  {
+    "partId": "bl-8in50-mk8-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc206",
+    "sourceVehicle": "pbsc206",
+    "resource": "common/visual/uk/gun/main/bgm129_8in50_bl_mk8/bgm129_8in50_bl_mk8",
+    "sourceName": "bgm129_8in50_bl_mk8",
+    "match": "exact",
+    "notes": "Devonshire AB1, Surrey A1/B1 and Hampshire A artillery fit this twin at every position; Exeter's bgm105 is an identical mesh (same triangle and vertex counts and vertex set); no rangefinder variant. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc206",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm129_8in50_bl_mk8/bgm129_8in50_bl_mk8.model"
+    ]
+  },
+  {
+    "partId": "bl-6in50-mk21-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc106",
+    "sourceVehicle": "pbsc106",
+    "resource": "common/visual/uk/gun/main/bgm021_6in50_mk_xxi/bgm021_6in50_mk_xxi",
+    "sourceName": "bgm021_6in50_mk_xxi",
+    "match": "exact",
+    "notes": "Leander A1 and B1 artillery fit this twin at all four positions; no rangefinder variant. The visual name (mk_xxi) is the mounting mark. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc106",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm021_6in50_mk_xxi/bgm021_6in50_mk_xxi.model"
+    ]
+  },
+  {
+    "partId": "bl-6in50-mk23-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc107",
+    "sourceVehicle": "pbsc107",
+    "resource": "common/visual/uk/gun/main/bgm001_6in50_mk_xxiii/bgm001_6in50_mk_xxiii",
+    "sourceName": "bgm001_6in50_mk_xxiii",
+    "match": "exact",
+    "notes": "Fiji AB1, Belfast A1, Belfast '43, Edinburgh A1/B1 and Neptune AB1 artillery fit this turret at every position; no rangefinder variant. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm001_6in50_mk_xxiii/bgm001_6in50_mk_xxiii.model"
+    ]
+  },
+  {
+    "partId": "german-sk-l45-150-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc104",
+    "sourceVehicle": "pgsc104",
+    "resource": "common/visual/germany/gun/main/ggm047_150mm_sk_l45/ggm047_150mm_sk_l45",
+    "sourceName": "ggm047_150mm_sk_l45",
+    "match": "exact",
+    "notes": "Karlsruhe A1/B1 artillery fits this single at all eight positions. WoWS's Emden carries 10.5 cm guns only, so no Emden 15 cm mount is modelled; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc104",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/main/ggm047_150mm_sk_l45/ggm047_150mm_sk_l45.model"
+    ]
+  },
+  {
+    "partId": "sk-c25-150-triple-nurnberg",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc106",
+    "sourceVehicle": "pgsc106",
+    "resource": "common/visual/germany/gun/main/ggm029_149mm60_drhtr_sk_c25/ggm029_149mm60_drhtr_sk_c25",
+    "sourceName": "ggm029_149mm60_drhtr_sk_c25",
+    "match": "exact",
+    "notes": "Nuernberg AB, Nuernberg '44 and Weimar artillery fit this turret at all positions. Koenigsberg, Leipzig and Mainz use a different visual (ggm057), registered separately. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc106",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/main/ggm029_149mm60_drhtr_sk_c25/ggm029_149mm60_drhtr_sk_c25.model"
+    ]
+  },
+  {
+    "partId": "sk-c25-150-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc105",
+    "sourceVehicle": "pgsc105",
+    "resource": "common/visual/germany/gun/main/ggm057_149mm60_drhtr_c25/ggm057_149mm60_drhtr_c25",
+    "sourceName": "ggm057_149mm60_drhtr_c25",
+    "match": "exact",
+    "notes": "Koenigsberg A1/B1, Leipzig A and Mainz A1 artillery fit this turret at every position. Nuernberg, Nuernberg '44 and Weimar use a different visual (ggm029), registered separately. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc105",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/main/ggm057_149mm60_drhtr_c25/ggm057_149mm60_drhtr_c25.model"
+    ]
+  },
+  {
+    "partId": "type41-152-agano-twin-rf",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc205",
+    "sourceVehicle": "pjsc205",
+    "resource": "common/visual/japan/gun/main/jgm168_152mm50_type_41_rf/jgm168_152mm50_type_41_rf",
+    "sourceName": "jgm168_152mm50_type_41_rf",
+    "match": "exact",
+    "notes": "Agano AB1 artillery fits this rangefinder mounting at one of its three positions (Yahagi and Gokase likewise). Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc205",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm168_152mm50_type_41_rf/jgm168_152mm50_type_41_rf.model"
+    ]
+  },
+  {
+    "partId": "type41-152-agano-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc205",
+    "sourceVehicle": "pjsc205",
+    "resource": "common/visual/japan/gun/main/jgm167_152mm50_type_41/jgm167_152mm50_type_41",
+    "sourceName": "jgm167_152mm50_type_41",
+    "match": "exact",
+    "notes": "Agano AB1 artillery fits this turret at two of its three positions (Yahagi and Gokase likewise); the rangefinder mounting (jgm168) is a separate part. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc205",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm167_152mm50_type_41/jgm167_152mm50_type_41.model"
+    ]
+  },
+  {
+    "partId": "type3-140-3year-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc013",
+    "sourceVehicle": "pjsc013",
+    "resource": "common/visual/japan/gun/main/jgm035_140mm50_type_3year/jgm035_140mm50_type_3year",
+    "sourceName": "jgm035_140mm50_type_3year",
+    "match": "exact",
+    "notes": "Kuma AB1 artillery (seven mounts) fits this single; Tenryu, Iwaki A and Kitakami use the same visual. Yubari's jgm032 is a two-gun mounting and is not covered. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc013",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm035_140mm50_type_3year/jgm035_140mm50_type_3year.model"
+    ]
+  },
+  {
+    "partId": "type3-203-furutaka-twin-rf",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc005",
+    "sourceVehicle": "pjsc005",
+    "resource": "common/visual/japan/gun/main/jgm147_203mm50_type_e_rf/jgm147_203mm50_type_e_rf",
+    "sourceName": "jgm147_203mm50_type_e_rf",
+    "match": "exact",
+    "notes": "Furutaka AB1/AB2 artillery fits this rangefinder mounting at two positions; the visual is the same mesh (identical bounds, triangle count and components) as the one on Atago and Maya (jgm024). Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc005",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm147_203mm50_type_e_rf/jgm147_203mm50_type_e_rf.model"
+    ]
+  },
+  {
+    "partId": "type3-203-furutaka-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc005",
+    "sourceVehicle": "pjsc005",
+    "resource": "common/visual/japan/gun/main/jgm146_203mm50_type_e/jgm146_203mm50_type_e",
+    "sourceName": "jgm146_203mm50_type_e",
+    "match": "exact",
+    "notes": "Furutaka AB1/AB2 artillery fits this turret without rangefinder; the visual is the same mesh (identical bounds, triangle count and components) as the one on Atago and Maya (jgm025). Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc005",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm146_203mm50_type_e/jgm146_203mm50_type_e.model"
+    ]
+  },
+  {
+    "partId": "type3-203-aoba-twin-rf",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc007",
+    "sourceVehicle": "pjsc007",
+    "resource": "common/visual/japan/gun/main/jgm014_203mm50_type_c_rf/jgm014_203mm50_type_c_rf",
+    "sourceName": "jgm014_203mm50_type_c_rf",
+    "match": "exact",
+    "notes": "Aoba AB1 artillery fits this rangefinder mounting at two of its three positions. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc007",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm014_203mm50_type_c_rf/jgm014_203mm50_type_c_rf.model"
+    ]
+  },
+  {
+    "partId": "type3-203-aoba-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc007",
+    "sourceVehicle": "pjsc007",
+    "resource": "common/visual/japan/gun/main/jgm013_203mm50_type_c/jgm013_203mm50_type_c",
+    "sourceName": "jgm013_203mm50_type_c",
+    "match": "exact",
+    "notes": "Aoba AB1 artillery fits this turret, without rangefinder, at one of its three positions; the rangefinder mounting (jgm014) is a separate part. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc007",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm013_203mm50_type_c/jgm013_203mm50_type_c.model"
+    ]
+  },
+  {
+    "partId": "us-8in55-mk14-mod2-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc106",
+    "sourceVehicle": "pasc106",
+    "resource": "common/visual/usa/gun/main/agm021_8in55_mk14_mod2/agm021_8in55_mk14_mod2",
+    "sourceName": "agm021_8in55_mk14_mod2",
+    "match": "exact",
+    "notes": "Pensacola A1/B1 artillery fits this twin at its two lower positions. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc106",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm021_8in55_mk14_mod2/agm021_8in55_mk14_mod2.model"
+    ]
+  },
+  {
+    "partId": "us-8in55-mk14-mod1-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc507",
+    "sourceVehicle": "pasc507",
+    "resource": "common/visual/usa/gun/main/agm020_8in55_mk14_mod1/agm020_8in55_mk14_mod1",
+    "sourceName": "agm020_8in55_mk14_mod1",
+    "match": "exact",
+    "notes": "Indianapolis A1 artillery fits this turret at all three positions; Pensacola A1/B1 fits two of the same mounts. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc507",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm020_8in55_mk14_mod1/agm020_8in55_mk14_mod1.model"
+    ]
+  },
+  {
+    "partId": "us-8in55-ca32-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc107",
+    "sourceVehicle": "pasc107",
+    "resource": "common/visual/usa/gun/main/agm006_8in55_ca32/agm006_8in55_ca32",
+    "sourceName": "agm006_8in55_ca32",
+    "match": "exact",
+    "notes": "New Orleans AB1 artillery fits this turret at all three positions. The visual name (ca32) identifies the ship, not a gun mark; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm006_8in55_ca32/agm006_8in55_ca32.model"
+    ]
+  },
+  {
+    "partId": "us-8in55-mk16-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc020",
+    "sourceVehicle": "pasc020",
+    "resource": "common/visual/usa/gun/main/agm025_8in55_triple_mk16/agm025_8in55_triple_mk16",
+    "sourceName": "agm025_8in55_triple_mk16",
+    "match": "exact",
+    "notes": "Des Moines A1 and Salem A1 artillery fit this turret; no rangefinder variant. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc020",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/main/agm025_8in55_triple_mk16/agm025_8in55_triple_mk16.model"
+    ]
   }
 ]

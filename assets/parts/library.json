@@ -373,6 +373,136 @@
         "scripts/ships/blender_barrels.py",
         "assets/parts/gun_bloomers.py"
       ]
+    },
+    "us-cruiser-mk16-triple": {
+      "path": "assets/parts/us-cruiser-guns/mk16_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "us-cruiser-ca32-triple": {
+      "path": "assets/parts/us-cruiser-guns/ca32_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "us-cruiser-mk14-mod1-triple": {
+      "path": "assets/parts/us-cruiser-guns/mk14_mod1_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "us-cruiser-mk14-mod2-twin": {
+      "path": "assets/parts/us-cruiser-guns/mk14_mod2_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "ijn-heavy-aoba-twin": {
+      "path": "assets/parts/ijn-heavy-cruiser-guns/type3_203_c_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "ijn-heavy-aoba-twin-rf": {
+      "path": "assets/parts/ijn-heavy-cruiser-guns/type3_203_c_twin_rf.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "ijn-heavy-furutaka-twin": {
+      "path": "assets/parts/ijn-heavy-cruiser-guns/type3_203_e_rail_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "ijn-heavy-furutaka-twin-rf": {
+      "path": "assets/parts/ijn-heavy-cruiser-guns/type3_203_e_rail_twin_rf.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "ijn-light-140-single": {
+      "path": "assets/parts/ijn-light-cruiser-guns/type3_140_single.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "ijn-light-agano-twin": {
+      "path": "assets/parts/ijn-light-cruiser-guns/type41_152_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-light-agano-twin-rf": {
+      "path": "assets/parts/ijn-light-cruiser-guns/type41_152_twin_rf.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "german-light-sk-c25-triple": {
+      "path": "assets/parts/german-light-cruiser-guns/sk_c25_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "german-light-sk-c25-triple-nurnberg": {
+      "path": "assets/parts/german-light-cruiser-guns/sk_c25_triple_nurnberg.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "german-light-sk-l45-single": {
+      "path": "assets/parts/german-light-cruiser-guns/sk_l45_single.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-cruiser-6in50-triple": {
+      "path": "assets/parts/rn-cruiser-guns/bl_6in50_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-cruiser-6in50-twin": {
+      "path": "assets/parts/rn-cruiser-guns/bl_6in50_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-cruiser-8in50-twin": {
+      "path": "assets/parts/rn-cruiser-guns/bl_8in50_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -1002,6 +1132,142 @@
       "review": "unreviewed",
       "limitations": "Original reconstruction against GameModels3D pgsb507 A artillery (ggm058). Cloth deformation, sight hoods and service fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
       "builder": "german-sk-c34-triple"
+    },
+    {
+      "partId": "us-8in55-mk16-triple",
+      "nation": "United States",
+      "family": "8-inch/55 Mk 16 three-gun turret",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pasc020 Des Moines A1 artillery (agm025); Salem A1 fits the same visual. Canvas bag, service ladders and small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-cruiser-mk16-triple"
+    },
+    {
+      "partId": "us-8in55-ca32-triple",
+      "nation": "United States",
+      "family": "8-inch/55 CA-32 pattern three-gun turret",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pasc107 New Orleans AB1 artillery (agm006_8in55_ca32), a round-faced turret. Faceted curved face, rangefinder hoods and small fittings approximate; the mount mark is not asserted; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-cruiser-ca32-triple"
+    },
+    {
+      "partId": "us-8in55-mk14-mod1-triple",
+      "nation": "United States",
+      "family": "8-inch/55 Mk 14 Mod 1 triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pasc507 Indianapolis A1 artillery (agm020). Catalog shell ends at the back of the gun recess; wings, recess deck and port frames are recipe detail; faceted crown; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-cruiser-mk14-mod1-triple"
+    },
+    {
+      "partId": "us-8in55-mk14-mod2-twin",
+      "nation": "United States",
+      "family": "8-inch/55 Mk 14 Mod 2 twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pasc106 Pensacola A1 artillery (agm021), the two-gun mount. Catalog shell ends at the back of the gun recess; wings, recess deck and port frames are recipe detail; faceted crown; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-cruiser-mk14-mod2-twin"
+    },
+    {
+      "partId": "type3-203-aoba-twin",
+      "nation": "Japan",
+      "family": "20.3 cm/50 Type 3 Model C twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pjsc007 Aoba AB1 artillery (jgm013, the mount without rangefinder). Shoulder facets, forward-crown recess and small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-heavy-aoba-twin"
+    },
+    {
+      "partId": "type3-203-aoba-twin-rf",
+      "nation": "Japan",
+      "family": "20.3 cm/50 Type 3 Model C twin \u00b7 rangefinder",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pjsc007 Aoba AB1 artillery (jgm014, the rangefinder mounting). Shoulder facets, forward-crown recess and small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-heavy-aoba-twin-rf"
+    },
+    {
+      "partId": "type3-203-furutaka-twin",
+      "nation": "Japan",
+      "family": "20.3 cm/50 Type 3 Model E twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pjsc005 Furutaka AB1 artillery (jgm146; Atago/Maya jgm025 is the same mesh). Flattened face and glacis ridges stand in for the reference's gun-port pockets; small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-heavy-furutaka-twin"
+    },
+    {
+      "partId": "type3-203-furutaka-twin-rf",
+      "nation": "Japan",
+      "family": "20.3 cm/50 Type 3 Model E twin \u00b7 rangefinder",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pjsc005 Furutaka AB1 artillery (jgm147, the rangefinder mounting; Atago/Maya jgm024 is the same mesh). Flattened face and glacis ridges stand in for the reference's gun-port pockets; small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-heavy-furutaka-twin-rf"
+    },
+    {
+      "partId": "type3-140-3year-single",
+      "nation": "Japan",
+      "family": "14 cm/50 3rd Year Type single",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pjsc013 Kuma AB1 artillery (jgm035); Tenryu, Iwaki and Kitakami fit the same visual. The catalog shell is a thin closed slab of the open-backed shield; lower rear corner, the below-deck lip and interior fittings approximate; weapon and armor values are provisional game calibration. Installed clearance, including the port opening, requires ship review.",
+      "builder": "ijn-light-140-single"
+    },
+    {
+      "partId": "type41-152-agano-twin",
+      "nation": "Japan",
+      "family": "15.2 cm/50 Type 41 twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pjsc205 Agano AB1 artillery (jgm167, the mount without rangefinder). Elevating mass kept above the gunhouse sill; gun-port fairing is fixed; rear door and small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-light-agano-twin"
+    },
+    {
+      "partId": "type41-152-agano-twin-rf",
+      "nation": "Japan",
+      "family": "15.2 cm/50 Type 41 twin \u00b7 rangefinder",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pjsc205 Agano AB1 artillery (jgm168, the rangefinder mounting). The transverse rangefinder house is recipe geometry, not armor; elevating mass kept above the gunhouse sill; gun-port fairing is fixed; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-light-agano-twin-rf"
+    },
+    {
+      "partId": "sk-c25-150-triple",
+      "nation": "Germany",
+      "family": "15 cm SK C/25 triple turret",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pgsc105 Koenigsberg A1/B1 artillery (ggm057); Leipzig and Mainz fit the same visual. Canvas seam, sight hoods and small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "german-light-sk-c25-triple"
+    },
+    {
+      "partId": "sk-c25-150-triple-nurnberg",
+      "nation": "Germany",
+      "family": "15 cm SK C/25 triple turret \u00b7 Nuernberg fit",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pgsc106 Nuernberg AB artillery (ggm029); Nuernberg '44 and Weimar fit the same visual. Same armor shell as the Koenigsberg turret with a different roof plate, brackets, rear platforms and datums; canvas seam and small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "german-light-sk-c25-triple-nurnberg"
+    },
+    {
+      "partId": "german-sk-l45-150-single",
+      "nation": "Germany",
+      "family": "15 cm SK L/45 shielded single",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pgsc104 Karlsruhe A1/B1 artillery (ggm047). The catalog shell is a thin closed slab of the open-backed shield, so its two sight openings are drawn as framed panels; handwheels and rear gear simplified; weapon and armor values are provisional game calibration. Installed clearance, including the port opening, requires ship review.",
+      "builder": "german-light-sk-l45-single"
+    },
+    {
+      "partId": "bl-6in50-mk23-triple",
+      "nation": "United Kingdom",
+      "family": "6-inch/50 Mk XXIII triple",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsc107 Fiji AB1 artillery (bgm001); Belfast, Edinburgh and Neptune fit the same visual. The reference's 0.76 m centre-gun stagger is not reproduced (the catalog carries one trunnion and muzzle datum); well after-ends and small fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-cruiser-6in50-triple"
+    },
+    {
+      "partId": "bl-6in50-mk21-twin",
+      "nation": "United Kingdom",
+      "family": "6-inch/50 Mk XXI twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsc106 Leander A1/B1 artillery (bgm021, the twin mounting; the gun is the 6-inch Mk XXIII). Faceted sides, centre sighting tower and the recess floor step approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-cruiser-6in50-twin"
+    },
+    {
+      "partId": "bl-8in50-mk8-twin",
+      "nation": "United Kingdom",
+      "family": "8-inch/50 Mk VIII twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsc206 Devonshire AB1 artillery (bgm129); Surrey and Hampshire fit the same visual, and Exeter's bgm105 is an identical mesh. Gun fairings ride the elevation joint; the front slope is one plane; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-cruiser-8in50-twin"
     }
   ]
 }

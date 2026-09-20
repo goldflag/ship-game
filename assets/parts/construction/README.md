@@ -381,6 +381,26 @@ the catalog's closed armor shell, its canvas seals are the shared flexible
 Y = 0. The approved model fits the same gunhouse, without turret rangefinder
 arms, at all three positions, so the collection has one variant.
 
+Seventeen cruiser main guns of 150 to 203 mm follow the same pattern, one original recipe per
+genuinely different GameModels3D gun visual, each registered in
+[`component-references.json`](../../../tools/ship-overlay/component-references.json) as a same-variant
+source and described in its family README: British
+([`rn-cruiser-guns`](../rn-cruiser-guns/README.md): `bl-6in50-mk23-triple`, `bl-6in50-mk21-twin`,
+`bl-8in50-mk8-twin`), German
+([`german-light-cruiser-guns`](../german-light-cruiser-guns/README.md): `sk-c25-150-triple` and
+`sk-c25-150-triple-nurnberg`, whose two visuals share an armor shell but differ in fittings, and
+`german-sk-l45-150-single`), American ([`us-cruiser-guns`](../us-cruiser-guns/README.md):
+`us-8in55-mk16-triple`, `us-8in55-ca32-triple`, `us-8in55-mk14-mod1-triple`, `us-8in55-mk14-mod2-twin`)
+and Japanese ([`ijn-light-cruiser-guns`](../ijn-light-cruiser-guns/README.md): `type3-140-3year-single`,
+`type41-152-agano-twin` and its `-rf`; [`ijn-heavy-cruiser-guns`](../ijn-heavy-cruiser-guns/README.md):
+`type3-203-aoba-twin` and `type3-203-furutaka-twin`, each with an `-rf`). A rangefinder variant exists only
+where its reference visual visibly differs; two WoWS visuals that are the same mesh share one part. The
+visible gunhouse is the catalog's closed armor shell (a thin closed slab for the open-backed shields of the
+14 cm and 15 cm singles). All barrels of a mount share one trunnion and muzzle datum, so a reference's
+stagger between guns, such as the British triple's set-back centre gun, is not reproduced. Weapon and armor
+values are provisional game calibration scaled from the nearest sibling; plate families follow commonly
+published figures with estimated facet boundaries.
+
 ## Deck gear, boats and aviation fittings
 
 `../deck-gear/forecastle.py` (paravane, breakwater, hawse pipe with stopper,
