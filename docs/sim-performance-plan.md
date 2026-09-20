@@ -456,6 +456,9 @@ What it was, largest first:
   bounding distance, to 0.01 mm. `flotation` itself is unchanged, so compiled
   definitions are too. Clipping no longer builds the clipped cell
   (`clipped_moments`), and a flotation measures each cell's extent once.
+- **Portal state.** `ConnectionState.state` was a heap string compared in three
+  loops a tick over every portal; it is the `ConnectionStatus` enum the wire
+  already described (same text, same generated TypeScript, ~3 %).
 - **Shell contacts.** `ship_contacts` named every plate, module and portal
   before testing it; geometry goes first now, and fixed armor sits in a box
   tree (`ArmorIndex`) that nominates the few plates a segment can touch for the
@@ -494,6 +497,14 @@ hull), exterior-only merged clearance bodies and armor, one portal per pair of
 rooms rather than one per cell face, and a coarser hull for buoyancy alone.
 Every ship also solves stability on the same tick; staggering that would
 smooth the half-second spike but changes premade results too.
+
+One result-neutral option is left on the table because a test pins it:
+`SimulationCadence::PER_TICK.capability_ticks` is 1, so custom battles and the
+server still run the captain-loop capability sweep every tick, although it is
+a pure refresh (the PvE cadence runs it every 6). Setting it to 6 kept final
+state byte-identical on custom, mixed, premade, battleship and carrier fleets
+and took about 3 % off both a Valiant and a Baltimore duel; it needs
+`pve_cadence.rs` line 147 changed with it.
 
 With clearance this cheap, Yamato's retired swept profile (next section) may be
 affordable again; that is a separate decision.
