@@ -11,8 +11,8 @@ use crate::{
     vessel::{Controller, Fleet, Vessel},
     weapons::*,
 };
-/// Ticks a mount holds its air track before looking for a nearer one. Firing,
-/// lead and damage stay per tick; only the search is on this cadence.
+/// Ticks a mount holds its air track, or an empty search, before looking again.
+/// Firing, lead and damage stay per tick; only the search is on this cadence.
 pub const AA_SELECT_TICKS: u32 = 6;
 pub fn range(m: &MountDefinition) -> f64 {
     let w = &m.weapon;
@@ -185,6 +185,16 @@ pub fn update_observed_at(
         || actor.controller == Controller::Bot
             && actor.bot.as_ref().is_some_and(|b| b.ai_level.passive())
     {
+        return false;
+    }
+    if state.aa_track.is_none()
+        && let Some(left) = state.aa_select.as_mut()
+        && *left > 0
+    {
+        *left -= 1;
+        if let Some(discipline) = state.aa_discipline.as_mut() {
+            step_discipline(discipline, dt, 0., 0, false);
+        }
         return false;
     }
     let origin = local_to_world(muzzle_local(m, state, 0), actor.motion.pose());
