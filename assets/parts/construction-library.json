@@ -924,7 +924,7 @@
       ]
     },
     "aosta-forward-funnel": {
-      "path": "assets/parts/historic-funnels/geometry.py",
+      "path": "assets/parts/historic-funnels/aosta.py",
       "function": "create_aosta",
       "inputs": [
         "assets/parts/construction/geometry.py"

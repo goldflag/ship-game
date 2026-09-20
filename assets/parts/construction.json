@@ -8496,14 +8496,14 @@
       "name": "Duca d\u2019Aosta 1943 \u00b7 forward funnel",
       "kind": "funnel",
       "size": [
-        8.903,
-        8.282,
-        11.582
+        8.853,
+        8.569,
+        11.402
       ],
       "boundsCenter": [
         0,
-        4.1398,
-        0.0674
+        4.2834,
+        0
       ],
       "centerOfGravity": [
         0,
@@ -8546,7 +8546,7 @@
           "kind": "exhaust",
           "position": [
             0,
-            7.14,
+            7.55,
             0
           ],
           "direction": [
