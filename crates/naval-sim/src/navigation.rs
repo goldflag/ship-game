@@ -4,6 +4,7 @@ use crate::{
     environment::{Island, avoid_land},
     geometry::wrap_angle,
     machinery::system_health,
+    mobility::SHIP_PACE,
     motion::HelmCommand,
     vessel::Vessel,
 };
@@ -239,7 +240,7 @@ pub fn station_for(order: &Movement, leader: &Vessel, trail: Option<&Trail>) -> 
         // The slot slides along the track as fast as the guide is running now,
         // pointed the way the guide was pointed there: a follower keeps pace
         // without sprinting sideways, and drops back the moment the guide slows.
-        let along = leader.motion.speed;
+        let along = leader.motion.speed * SHIP_PACE;
         return Some(Station {
             position: [
                 track.position[0] + offset[0] * cos,
@@ -256,7 +257,7 @@ pub fn station_for(order: &Movement, leader: &Vessel, trail: Option<&Trail>) -> 
         trail.map_or(leader.motion.heading, |t| t.axis(leader.motion.heading))
     };
     let rate = if column {
-        leader.motion.yaw_rate
+        leader.motion.world_yaw_rate()
     } else {
         trail.map_or(0.0, |t| t.axis_rate())
     };
@@ -451,7 +452,8 @@ pub fn formation_report(
         } else {
             design
         };
-        let turn_speed = station.sweep_rate.abs() * offset[0].hypot(offset[1]);
+        // The station sweeps in world units; convert to the physical speed ships report.
+        let turn_speed = station.sweep_rate.abs() * offset[0].hypot(offset[1]) / SHIP_PACE;
         report.speed_limit_mps = report
             .speed_limit_mps
             .min((capability * 0.85 - turn_speed).max(capability * 0.4));
@@ -590,8 +592,10 @@ fn plan_path(
     Some(path)
 }
 
+/// Physical deceleration per world metre: `sqrt(2 * this * world_range)` is the
+/// physical speed a ship can still shed before covering that paced distance.
 fn braking_acceleration(a:&Vessel)->f64 {
-    a.compiled.maneuvering.braking_acceleration(a.motion.speed.abs(), system_health(a,a.definition(),"engine",None), a.motion_mass.mass).max(0.001)
+    a.compiled.maneuvering.braking_acceleration(a.motion.speed.abs(), system_health(a,a.definition(),"engine",None), a.motion_mass.mass).max(0.001) / SHIP_PACE
 }
 fn steer(a: &Vessel, heading: f64) -> f64 {
     let leeway = a.motion.sway_speed.atan2(a.motion.speed.max(0.5)).clamp(-0.5, 0.5);
@@ -643,7 +647,7 @@ fn avoid_neighbors(
         let r = [position[0] - a.motion.x, position[1] - a.motion.z];
         let gap = r[0].hypot(r[1]);
         let clearance = (a.definition().hull.length + length) * 0.6 + 100.0;
-        if gap > clearance + (a.motion.speed.abs() + theirs[0].hypot(theirs[2])) * 45.0 {
+        if gap > clearance + (a.motion.speed.abs() * SHIP_PACE + theirs[0].hypot(theirs[2])) * 45.0 {
             continue;
         }
         let velocity = [theirs[0] - own[0], theirs[2] - own[2]];
@@ -771,7 +775,7 @@ pub fn command_observed(
             }
             state.waypoint = state.waypoint.min(waypoints.len() - 1);
             requested = requested.min(*speed_mps);
-            let arrival = (a.motion.speed.abs() * 6.0).max(80.0);
+            let arrival = (a.motion.speed.abs() * SHIP_PACE * 6.0).max(80.0);
             if distance(at, waypoints[state.waypoint]) < arrival {
                 if state.waypoint + 1 < waypoints.len() {
                     state.waypoint += 1;
@@ -834,8 +838,8 @@ pub fn command_observed(
                     ];
                     let velocity = leader.motion.velocity();
                     station_velocity = [
-                        velocity[0] - leader.motion.yaw_rate * offset_world[1],
-                        velocity[2] + leader.motion.yaw_rate * offset_world[0],
+                        velocity[0] - leader.motion.world_yaw_rate() * offset_world[1],
+                        velocity[2] + leader.motion.world_yaw_rate() * offset_world[0],
                     ];
                     state.status = NavigationStatus::FormingColumn;
                 }
@@ -877,9 +881,10 @@ pub fn command_observed(
                     ];
                     // A slot on the guide's track stops when the guide stops.
                     // Leave room to shed catch-up speed instead of running past it.
-                    let braking = station_velocity[0].hypot(station_velocity[1])
+                    // Station velocities are world rates; helm speeds are physical.
+                    let braking = station_velocity[0].hypot(station_velocity[1]) / SHIP_PACE
                         + (2.0 * braking_acceleration(a) * range).sqrt();
-                    let speed = velocity[0].hypot(velocity[1]).min(maximum).min(braking);
+                    let speed = (velocity[0].hypot(velocity[1]) / SHIP_PACE).min(maximum).min(braking);
                     if range < radius && state.status != NavigationStatus::FormingColumn {
                         state.status = NavigationStatus::OnStation;
                     }

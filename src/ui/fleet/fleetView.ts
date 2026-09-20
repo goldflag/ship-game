@@ -336,6 +336,11 @@ export function sendHold(view: FleetView, issue: IssueOrder): string {
   view.recipients.forEach(s => issue({ kind: 'hold-area', shipId: s.id, position: [s.x, s.z], radiusM: HOLD_RADIUS_M }));
   return `${view.recipients.length} hold orders queued · ${HOLD_RADIUS_M} m station area`;
 }
+/** Hand the selected ships back to their captains. */
+export function sendAutonomous(view: FleetView, issue: IssueOrder): string {
+  view.recipients.forEach(s => issue({ kind: 'autonomous', shipId: s.id }));
+  return `${view.recipients.length === 1 ? view.recipients[0].name : `${view.recipients.length} ships`} · Captain's discretion ordered`;
+}
 export function sendFocus(view: FleetView, issue: IssueOrder, targetId: string): string {
   view.recipients.forEach(s => issue({ kind: 'focus', shipId: s.id, targetId }));
   return `${view.recipients.length} focus orders queued · Movement unchanged`;

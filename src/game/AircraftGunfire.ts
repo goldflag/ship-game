@@ -4,6 +4,7 @@ import { attribute } from 'three/tsl';
 import type { Vec3 } from '../ships/blueprint';
 import { FIXED_DT } from './session/motion';
 import { ballisticStep } from './ballistics';
+import { SHELL_PACE } from '../ships/mobility';
 import { effectTexture } from './EffectParticles';
 import { ExpandableInstances } from './ExpandableInstances';
 import type { CombatEvent } from '../game/session/elements';
@@ -18,6 +19,8 @@ interface TracerBurst {
   airburst: boolean;
   life: number;
   drag: number;
+  /** Physical shell seconds per battle second: ship AA fire runs at shell pace. */
+  pace: number;
   caliberScale: number;
   exposure: number;
   shots: { delay: number; origin: Vec3; velocity: Vec3 }[];
@@ -79,7 +82,8 @@ export class AircraftGunfire {
     if (data.direction) this.direction.fromArray(data.direction); else this.direction.normalize();
     // Light AA keeps flying beyond the sampled target, then burns out gradually.
     // Heavy AA terminates exactly at the CPU's sampled burst time and position.
-    const life = data.airburst?.flightTime ?? (aa ? Math.max(3, range / speed + 1) : Math.min(.95, (range + 100) / speed));
+    const pace = aa ? SHELL_PACE : 1;
+    const life = data.airburst?.flightTime ?? (aa ? Math.max(3, range / speed / pace + 1) : Math.min(.95, (range + 100) / speed));
     const caliber = data.caliberM ?? data.airburst?.caliberM ?? .02;
     const caliberScale = aa ? Math.sqrt(caliber / .105) : 1;
     const shots: TracerBurst['shots'] = [];
@@ -97,7 +101,7 @@ export class AircraftGunfire {
       }
       shots.push({ delay, origin: this.origin.toArray(), velocity: this.velocity.toArray() });
     }
-    return { tick: event.tick, aa, airburst: !!data.airburst, life, drag: data.dragPerSecond ?? 0, caliberScale,
+    return { tick: event.tick, aa, airburst: !!data.airburst, life, drag: data.dragPerSecond ?? 0, pace, caliberScale,
       exposure: aa ? .022 * THREE.MathUtils.clamp(caliberScale, .55, 1.2) : .022, shots };
   }
   update(sim: BattleSession, camera: THREE.Camera) {
@@ -125,7 +129,7 @@ export class AircraftGunfire {
           this.orientation.copy(camera.quaternion); this.scale.setScalar(.7);
           if (!cull || this.frustum.intersectsSphere(this.bounds.set(this.position, .5))) this.write(this.muzzles, flashes++, 1 - flight / .038);
         }
-        const shot = ballisticStep(launch.origin, launch.velocity, flight, burst.drag);
+        const shot = ballisticStep(launch.origin, launch.velocity, flight * burst.pace, burst.drag);
         this.position.fromArray(shot.position);
         this.velocity.fromArray(shot.velocity);
         if (this.position.y < 0) continue;
@@ -134,7 +138,7 @@ export class AircraftGunfire {
         const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
         const viewHeight = 2 * depth / camera.projectionMatrix.elements[5];
         const width = Math.max(.12, Math.min(2.4, viewHeight * .0012)) * caliberScale * (aa ? .95 : 1);
-        const length = this.velocity.length() * Math.min(exposure, flight);
+        const length = this.velocity.length() * burst.pace * Math.min(exposure, flight);
         // The sphere around the tip encloses the entire trailing ribbon and
         // its billboard tip. Keep the event alive so camera re-entry samples
         // the current trajectory, even after the history ring evicts the shot.

@@ -74,7 +74,7 @@ test('every fixed deck fitting stands on a deck without an error of its own', ()
   }
 });
 
-test('retained catalogs still compile removed gun tubs and lockers under the current decorative-contact policy', () => {
+test('retained catalogs still compile removed gun tubs and lockers with decorative overlap allowed', () => {
   const catalog = retainedCatalogJson as ConstructionCatalog;
   for (const [tub, gun] of [['generic-gun-tub-large', 'type96-25-triple'], ['generic-gun-tub', 'type93-13-twin']] as const) {
     const { source, deck } = bareDeck(catalog), wall = catalog.equipment.find(entry => entry.id === tub)!.sockets!.find(s => s.id === 'attachment')!.position[2];
@@ -84,8 +84,7 @@ test('retained catalogs still compile removed gun tubs and lockers under the cur
     const result = compile(source, catalog);
     expect(result.diagnostics.filter(entry => entry.severity === 'error'), `${tub}: ${JSON.stringify(result.diagnostics)}`).toEqual([]);
     expect(result.definition!.mounts.map(mount => mount.weapon.id)).toEqual([gun]);
-    // Current native rules allow decorative fittings to touch equipment, also
-    // for retained designs. Removing sparse boxes does not restore old blocking.
+    // Deck fittings remain decorative even in retained catalogs without sparse wall boxes.
     const solidCatalog = structuredClone(catalog); delete solidCatalog.equipment.find(entry => entry.id === tub)!.fitting;
     const solid = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(solidCatalog))) as ConstructionResult;
     expect(solid.diagnostics.filter(entry => entry.severity === 'error'), tub).toEqual([]);

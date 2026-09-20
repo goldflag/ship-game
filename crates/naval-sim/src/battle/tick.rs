@@ -503,10 +503,16 @@ impl Battle {
         tick.enter(Phase::Strike);
         let time = tick.time;
         for i in (0..self.shells.len()).rev() {
+            // Gun shells run on paced physical time: the same arc, sooner. Bombs keep battle time.
+            let pace = if self.shells[i].bomb.is_some() {
+                1.0
+            } else {
+                crate::mobility::SHELL_PACE
+            };
             let (end, mut emitted) = crate::projectile::advance_projectile(
                 &mut self.shells[i],
                 &mut self.actors,
-                DT,
+                DT * pace,
                 &self.islands,
                 &self.catalog.terrain,
                 &|x, z| self.sea.height(x, z, time),

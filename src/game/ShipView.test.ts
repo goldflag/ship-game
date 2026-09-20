@@ -56,15 +56,19 @@ test('Iowa exported blast bags keep fixed seams and follow gun collars through i
   view.snap(); view.root.updateMatrixWorld(true);
   const seams = covers.map(mesh => {
     const elevation = nodes.get(mesh.userData.gunCoverElevationId)!;
+    const mount = definition.mounts.find(m => mesh.userData.gunCoverElevationId.startsWith(m.id + '.'))!;
+    const radius = mount.weapon.barrelBaseRadius;
+    if (radius === undefined) throw new Error('Iowa cover requires a declared sleeve radius');
+    const sectors = mesh.userData.gunCoverFixedVertexCount;
     const fixed: { index: number; position: THREE.Vector3 }[] = [], collar: number[] = [];
     for (let i = 0; i < mesh.geometry.attributes.position.count; i++) {
       const p = mesh.getVertexPosition(i, new THREE.Vector3());
       if (mesh.geometry.morphAttributes.position!.every(a => new THREE.Vector3().fromBufferAttribute(a, i).length() < 1e-7)) fixed.push({ index: i, position: p.clone() });
       elevation.worldToLocal(mesh.localToWorld(p));
-      if (Math.abs(p.z + 6.91 - 3.657) < .003 && Math.abs(Math.hypot(p.x, p.y) - .647) < .003) collar.push(i);
+      if (Math.abs(p.z + 6.91 - 3.657) < .003 && Math.abs(Math.hypot(p.x, p.y) - radius) < .003) collar.push(i);
     }
-    expect(fixed.length).toBeGreaterThanOrEqual(40); expect(collar.length).toBeGreaterThanOrEqual(40);
-    return { mesh, elevation, fixed, collar };
+    expect(fixed.length).toBeGreaterThanOrEqual(sectors); expect(collar.length).toBeGreaterThanOrEqual(sectors);
+    return { mesh, elevation, fixed, collar, radius };
   });
   for (const degrees of [2.5, 11, 22.5, 38, 45]) {
     view.capturePreviousPose();
@@ -73,12 +77,12 @@ test('Iowa exported blast bags keep fixed seams and follow gun collars through i
     });
     for (const alpha of [.37, 1]) {
       view.update(alpha); view.root.updateMatrixWorld(true);
-      for (const { mesh, elevation, fixed, collar } of seams) {
+      for (const { mesh, elevation, fixed, collar, radius } of seams) {
         for (const { index, position } of fixed) expect(mesh.getVertexPosition(index, new THREE.Vector3()).distanceTo(position)).toBeLessThan(1e-6);
         for (const index of collar) {
           const p = elevation.worldToLocal(mesh.localToWorld(mesh.getVertexPosition(index, new THREE.Vector3())));
           expect(Math.abs(p.z + 6.91 - 3.657)).toBeLessThan(.01);
-          expect(Math.abs(Math.hypot(p.x, p.y) - .647)).toBeLessThan(.01);
+          expect(Math.abs(Math.hypot(p.x, p.y) - radius)).toBeLessThan(.01);
         }
       }
       expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);

@@ -51,3 +51,9 @@ J. G. Kuenzel's [Wood Requirements for Shipbuilding (1950), pp. 248–249](https
 which lists Iowa's wooden decking, including five-inch boards. These text records
 support substrate/coating distinctions; no additional external visual reference
 or refit has been substituted for the approved model.
+
+The main battery uses the registered `us-16in50-mk7-iowa` original builder,
+including its deforming bloomers, with the ship's existing mount IDs, positions
+and fixed barbettes. Ship paint and fitted neighboring AA remain installation
+choices. The former `main_battery.py` geometry is no longer executed; component
+shape limitations are documented in `assets/parts/us-main-guns/README.md`.
