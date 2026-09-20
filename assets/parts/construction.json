@@ -6622,14 +6622,14 @@
       "name": "15-inch Mk I twin",
       "kind": "gun",
       "size": [
-        10.52,
-        3.82,
-        22.82
+        9.521,
+        3.219,
+        21.825
       ],
       "boundsCenter": [
-        0.0,
-        1.91,
-        -3.8
+        0,
+        1.609,
+        -3.8019
       ],
       "centerOfGravity": [
         0,
@@ -6644,7 +6644,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6660,14 +6660,14 @@
       "name": "15-inch Mk I twin with rangefinder",
       "kind": "gun",
       "size": [
-        10.52,
-        3.82,
-        22.82
+        9.741,
+        3.273,
+        21.825
       ],
       "boundsCenter": [
-        0.0,
-        1.91,
-        -3.8
+        0,
+        1.636,
+        -3.8019
       ],
       "centerOfGravity": [
         0,
@@ -6682,7 +6682,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6698,14 +6698,14 @@
       "name": "15-inch Mk II twin",
       "kind": "gun",
       "size": [
-        10.48,
-        3.98,
-        22.53
+        9.591,
+        3.971,
+        21.631
       ],
       "boundsCenter": [
-        0.0,
-        1.99,
-        -3.765
+        0,
+        1.985,
+        -3.7189
       ],
       "centerOfGravity": [
         0,
@@ -6720,7 +6720,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6736,14 +6736,14 @@
       "name": "15-inch Mk I twin (Vanguard)",
       "kind": "gun",
       "size": [
-        10.54,
-        3.82,
-        22.75
+        9.541,
+        3.206,
+        21.755
       ],
       "boundsCenter": [
-        0.0,
-        1.91,
-        -3.725
+        0,
+        1.6023,
+        -3.7269
       ],
       "centerOfGravity": [
         0,
@@ -6758,7 +6758,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6774,14 +6774,14 @@
       "name": "15-inch Mk I twin with rangefinder (Vanguard)",
       "kind": "gun",
       "size": [
-        10.54,
-        3.82,
-        22.75
+        9.541,
+        3.671,
+        21.755
       ],
       "boundsCenter": [
-        0.0,
-        1.91,
-        -3.725
+        0,
+        1.835,
+        -3.7269
       ],
       "centerOfGravity": [
         0,
@@ -6796,7 +6796,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6812,13 +6812,13 @@
       "name": "16-inch Mk I triple",
       "kind": "gun",
       "size": [
-        12.384,
-        3.81,
-        26.06
+        13.071,
+        3.118,
+        25.061
       ],
       "boundsCenter": [
-        0.0,
-        1.905,
+        0,
+        1.5583,
         -4.036
       ],
       "centerOfGravity": [
@@ -6834,7 +6834,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6850,14 +6850,14 @@
       "name": "406 mm/45 Mk.6 triple",
       "kind": "gun",
       "size": [
-        13.24,
-        3.86,
-        26.66
+        14.081,
+        3.053,
+        26.244
       ],
       "boundsCenter": [
-        0.0,
-        1.93,
-        -4.03
+        0,
+        1.526,
+        -3.7416
       ],
       "centerOfGravity": [
         0,
@@ -6872,7 +6872,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6888,14 +6888,14 @@
       "name": "305 mm/50 Mk.8 triple",
       "kind": "gun",
       "size": [
-        10.92,
-        3.68,
-        22.843
+        13.001,
+        3.051,
+        21.846
       ],
       "boundsCenter": [
-        0.0,
-        1.84,
-        -3.0015
+        0,
+        1.525,
+        -3.0027
       ],
       "centerOfGravity": [
         0,
@@ -6910,7 +6910,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6926,14 +6926,14 @@
       "name": "406 mm/45 Mk.1 twin",
       "kind": "gun",
       "size": [
-        11.56,
-        3.96,
-        25.068
+        11.291,
+        3.061,
+        24.073
       ],
       "boundsCenter": [
-        0.0,
-        1.98,
-        -3.984
+        0,
+        1.53,
+        -3.9861
       ],
       "centerOfGravity": [
         0,
@@ -6948,7 +6948,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -6964,14 +6964,14 @@
       "name": "356 mm/45 Mk.8 twin",
       "kind": "gun",
       "size": [
-        9.546,
-        3.626,
-        21.827
+        9.401,
+        2.706,
+        20.832
       ],
       "boundsCenter": [
-        0.0,
-        1.813,
-        -3.3005
+        0,
+        1.3525,
+        -3.3023
       ],
       "centerOfGravity": [
         0,
@@ -6986,7 +6986,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7002,14 +7002,14 @@
       "name": "356 mm/45 Mk.8 triple",
       "kind": "gun",
       "size": [
-        10.244,
-        4.042,
-        22.966
+        10.041,
+        3.043,
+        21.971
       ],
       "boundsCenter": [
-        0.0,
-        2.021,
-        -3.123
+        0,
+        1.521,
+        -3.125
       ],
       "centerOfGravity": [
         0,
@@ -7024,7 +7024,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7040,14 +7040,14 @@
       "name": "356 mm/50 New Mexico triple",
       "kind": "gun",
       "size": [
-        11.64,
-        3.88,
-        25.041
+        10.821,
+        3.471,
+        24.045
       ],
       "boundsCenter": [
-        0.0,
-        1.94,
-        -3.7205
+        0,
+        1.735,
+        -3.7222
       ],
       "centerOfGravity": [
         0,
@@ -7062,7 +7062,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7078,14 +7078,14 @@
       "name": "356 mm/50 Tennessee triple",
       "kind": "gun",
       "size": [
-        11.66,
-        3.97,
-        25.069
+        10.661,
+        3.017,
+        24.073
       ],
       "boundsCenter": [
-        0.0,
-        1.985,
-        -3.7045
+        0,
+        1.5082,
+        -3.7062
       ],
       "centerOfGravity": [
         0,
@@ -7100,7 +7100,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7116,14 +7116,14 @@
       "name": "41 cm/45 Type 3 twin",
       "kind": "gun",
       "size": [
-        11.16,
-        4.21,
-        25.24
+        10.161,
+        4.764,
+        24.405
       ],
       "boundsCenter": [
-        0.0,
-        2.105,
-        -5.01
+        0,
+        2.3813,
+        -4.932
       ],
       "centerOfGravity": [
         0,
@@ -7138,7 +7138,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7154,14 +7154,14 @@
       "name": "41 cm/45 Type 3 twin with rangefinder",
       "kind": "gun",
       "size": [
-        11.16,
-        4.21,
-        25.24
+        11.901,
+        5.121,
+        24.245
       ],
       "boundsCenter": [
-        0.0,
-        2.105,
-        -5.01
+        0,
+        2.56,
+        -5.012
       ],
       "centerOfGravity": [
         0,
@@ -7176,7 +7176,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7192,14 +7192,14 @@
       "name": "41 cm/45 Type 3 twin with rangefinder, aft group",
       "kind": "gun",
       "size": [
-        11.38,
-        4.21,
-        25.92
+        11.901,
+        5.611,
+        24.925
       ],
       "boundsCenter": [
-        0.0,
-        2.105,
-        -4.67
+        0,
+        2.805,
+        -4.672
       ],
       "centerOfGravity": [
         0,
@@ -7214,7 +7214,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7230,14 +7230,14 @@
       "name": "41 cm/45 Type 3 twin (Mutsu)",
       "kind": "gun",
       "size": [
-        11.08,
-        3.92,
-        25.52
+        10.081,
+        3.175,
+        24.685
       ],
       "boundsCenter": [
-        0.0,
-        1.96,
-        -4.46
+        0,
+        1.5872,
+        -4.3821
       ],
       "centerOfGravity": [
         0,
@@ -7252,7 +7252,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7268,14 +7268,14 @@
       "name": "381 mm/50 Model 1934 triple",
       "kind": "gun",
       "size": [
-        11.18,
-        4.71,
-        29.118
+        13.801,
+        4.446,
+        29.643
       ],
       "boundsCenter": [
-        0.0,
-        2.355,
-        -4.279
+        0,
+        2.2225,
+        -3.521
       ],
       "centerOfGravity": [
         0,
@@ -7290,7 +7290,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7306,14 +7306,14 @@
       "name": "381 mm/50 Model 1934 triple, short rear",
       "kind": "gun",
       "size": [
-        11.18,
-        4.71,
-        29.118
+        13.801,
+        4.086,
+        28.255
       ],
       "boundsCenter": [
-        0.0,
-        2.355,
-        -4.279
+        0,
+        2.0425,
+        -4.215
       ],
       "centerOfGravity": [
         0,
@@ -7328,7 +7328,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7344,14 +7344,14 @@
       "name": "380 mm/45 Model 1935 quadruple",
       "kind": "gun",
       "size": [
-        13.3,
-        4.64,
-        26.09
+        15.101,
+        3.641,
+        25.145
       ],
       "boundsCenter": [
-        0.0,
-        2.32,
-        -3.565
+        0,
+        1.82,
+        -3.5421
       ],
       "centerOfGravity": [
         0,
@@ -7366,7 +7366,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [
@@ -7382,14 +7382,14 @@
       "name": "330 mm/52 Model 1931 quadruple",
       "kind": "gun",
       "size": [
-        11.12,
-        4.08,
-        24.59
+        12.701,
+        3.101,
+        23.594
       ],
       "boundsCenter": [
-        0.0,
-        2.04,
-        -3.545
+        0,
+        1.55,
+        -3.5465
       ],
       "centerOfGravity": [
         0,
@@ -7404,7 +7404,7 @@
           "kind": "support",
           "position": [
             0,
-            0.0,
+            0,
             0
           ],
           "direction": [

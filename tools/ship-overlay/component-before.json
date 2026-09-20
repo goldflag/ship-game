@@ -166,5 +166,89 @@
   "type96-25-kongo-single": {
     "modelUrl": "/models/components/type96-25-kongo-single/79ec83a6575ef9e42e75e979492c1990f27fa92856390e18acf68fc8b2e422db/model.glb",
     "triangles": 1364
+  },
+  "bl-15-mki-twin": {
+    "modelUrl": "/models/components/bl-15-mki-twin/cf8dca90ca0a77ef7014131d2b07ce4af5f5954c69a819a646281312846d30d9/model.glb",
+    "triangles": 2030
+  },
+  "bl-15-mki-twin-rf": {
+    "modelUrl": "/models/components/bl-15-mki-twin-rf/c2e18cecb967a181e80f8f50309e4aeeee409bec3f08601b570296ae7a47b429/model.glb",
+    "triangles": 2390
+  },
+  "bl-15-mkii-twin": {
+    "modelUrl": "/models/components/bl-15-mkii-twin/1a67a5bc7328a7f440d06ad3428e8aa3f0c02400b208597d4de2d67cf8aab959/model.glb",
+    "triangles": 1914
+  },
+  "bl-15-mki-vanguard-twin": {
+    "modelUrl": "/models/components/bl-15-mki-vanguard-twin/eca2ba4b3edd78b55ae099ee568cbec670c749e7fbf9333de81a9ee72ff26c70/model.glb",
+    "triangles": 2022
+  },
+  "bl-15-mki-vanguard-twin-rf": {
+    "modelUrl": "/models/components/bl-15-mki-vanguard-twin-rf/e119ef02c98ad6eb5f662d6489f5284c4e173f8de540853ffad5a12ba449b71a/model.glb",
+    "triangles": 2138
+  },
+  "bl-16-mki-triple": {
+    "modelUrl": "/models/components/bl-16-mki-triple/8eb7ad3fbd6581383a3647a3e78c5c3f541bd4fef8879a7a81111e0adb7161df/model.glb",
+    "triangles": 3142
+  },
+  "us-16in45-mk6-triple": {
+    "modelUrl": "/models/components/us-16in45-mk6-triple/56d761bb44033aac1fda660f9fa4a7f19a261c5e14705fecc6ec99f4105e9334/model.glb",
+    "triangles": 3084
+  },
+  "us-12in50-mk8-triple": {
+    "modelUrl": "/models/components/us-12in50-mk8-triple/4ac78d19aed051179649b914a619ab56be34727950234883e6cc6054afb0c344/model.glb",
+    "triangles": 3214
+  },
+  "us-16in45-mk1-twin": {
+    "modelUrl": "/models/components/us-16in45-mk1-twin/f1bcdef8d3f27eae8c2546a162d8d070987821b29e9abd696193f2051368feb3/model.glb",
+    "triangles": 1076
+  },
+  "us-14in45-mk8-twin": {
+    "modelUrl": "/models/components/us-14in45-mk8-twin/ea579a92653ce2698c1e69005637dcc3019a1aa0d904b3f036e7cf5588d39ac0/model.glb",
+    "triangles": 2170
+  },
+  "us-14in45-triple": {
+    "modelUrl": "/models/components/us-14in45-triple/b5c1a1179d446fdf19820332e2f4010d00d383ae3d8d29a322f5ef366e8ced66/model.glb",
+    "triangles": 3098
+  },
+  "us-14in50-newmexico-triple": {
+    "modelUrl": "/models/components/us-14in50-newmexico-triple/ab594e2e19f39823c5097116639bb654b52127a4211a2b97f5632336784b59cd/model.glb",
+    "triangles": 3356
+  },
+  "us-14in50-tennessee-triple": {
+    "modelUrl": "/models/components/us-14in50-tennessee-triple/1d91b08247789dff6a1a52cbf4bfa3f816e180dd5c1b4cfe3527c41469e62839/model.glb",
+    "triangles": 3378
+  },
+  "type3-410-nagato-twin": {
+    "modelUrl": "/models/components/type3-410-nagato-twin/f85899997f1bd7cf7a045682f886f9344c9c526588eaf7a29278c7cda9f74377/model.glb",
+    "triangles": 2782
+  },
+  "type3-410-nagato-twin-rf": {
+    "modelUrl": "/models/components/type3-410-nagato-twin-rf/70be38f703ffbea4c42a2f4481dc27afc4027b908b522ade2fda39133aa50bb4/model.glb",
+    "triangles": 2858
+  },
+  "type3-410-nagato-twin-rf-aft": {
+    "modelUrl": "/models/components/type3-410-nagato-twin-rf-aft/602b3ef921be2a0f0644fc4ea08dc51a8e469f33bdc247782064996b95b2dfbc/model.glb",
+    "triangles": 2926
+  },
+  "type3-410-mutsu-twin": {
+    "modelUrl": "/models/components/type3-410-mutsu-twin/7dd1d5782859927d0856214381f2b481e796eecb894d76da66aa07c8cb22dc35/model.glb",
+    "triangles": 2026
+  },
+  "it-381-50-m1934-triple": {
+    "modelUrl": "/models/components/it-381-50-m1934-triple/56b0707ca6df3638c45db604d20317006df4b7b09898d7f42a726c8881f822ed/model.glb",
+    "triangles": 3502
+  },
+  "it-381-50-m1934-triple-short": {
+    "modelUrl": "/models/components/it-381-50-m1934-triple-short/6025adee3dae47b36aafcd56ad23e8a70bb8e5ee96329533f6a4a952f1ecb508/model.glb",
+    "triangles": 2686
+  },
+  "fr-380-45-mle1935-quad": {
+    "modelUrl": "/models/components/fr-380-45-mle1935-quad/a00d7cc59d571dc978dbe6375ad32d94f4159d25cbff7111cc5aca4bd525e87f/model.glb",
+    "triangles": 3230
+  },
+  "fr-330-52-mle1931-quad": {
+    "modelUrl": "/models/components/fr-330-52-mle1931-quad/fe435a9722ea5808d36bbe49b79594009edb7352a2e6f45e98dd2ab733651df6/model.glb",
+    "triangles": 2986
   }
 }

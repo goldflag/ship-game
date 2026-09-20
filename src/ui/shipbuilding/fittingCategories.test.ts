@@ -72,6 +72,16 @@ test('Italian and French guns take their navy from the it- and fr- id prefixes, 
   for (const id of ['item-locker', 'frame-brace']) expect(fittingNation(named(id))).toBeUndefined();
 });
 
+test('the battleship guns of each navy sit on the Main battery shelf under their own nation filter', () => {
+  const guns = [['Italy', 'it-381-50-m1934-triple'], ['France', 'fr-380-45-mle1935-quad'], ['Japan', 'type3-410-nagato-twin'],
+    ['United Kingdom', 'bl-16-mki-triple'], ['United States', 'us-16in45-mk6-triple']] as const;
+  for (const [nation, id] of guns) {
+    expect(fittingCategory(part(id), catalog)).toBe('main-battery');
+    expect(fittingNation(part(id))).toBe(nation);
+    expect(shelf({ category: 'main-battery', nation })).toContain(id);
+  }
+});
+
 test('gun shelves list the heaviest calibre first', () => {
   const calibers = shelf({ category: 'main-battery', nation: 'all' }).map(id => catalog.weapons.parts.find(gun => gun.id === part(id).gunPartId)!.caliberM);
   expect(calibers).toEqual(calibers.slice().sort((a, b) => b - a));
