@@ -42,7 +42,7 @@ result = json.loads(subprocess.check_output(
 capture = result['result']['result']
 if isinstance(capture, str):
     capture = json.loads(capture)
-folder = Path(__file__).resolve().parents[2] / 'assets/reviews/hull-lighting'
+folder = Path(__file__).resolve().parents[2] / '.build/reviews/hull-lighting'
 folder.mkdir(parents=True, exist_ok=True)
 path = folder / (capture['quality'] + '-after.png')
 path.write_bytes(base64.b64decode(capture.pop('png').split(',')[1]))

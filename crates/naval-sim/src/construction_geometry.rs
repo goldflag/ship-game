@@ -137,7 +137,9 @@ pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
             faces.push(ConvexVolumeFacesItem { vertices: cap });
         }
     }
-    (faces.len() >= 4).then_some(Cell { faces: faces.into() })
+    (faces.len() >= 4).then_some(Cell {
+        faces: faces.into(),
+    })
 }
 pub fn contains(c: &Cell, p: Vec3) -> bool {
     c.faces
@@ -213,11 +215,17 @@ pub fn room_distance(room: &crate::definition::Compartment, p: Vec3) -> f64 {
     // Explicit weighted runtime proxies use their cell locations for damage
     // assignment. Legacy and exact definitions retain their original path.
     if let Some(cells) = &room.cells
-        && cells.iter().any(|c| c.volume_m3.is_some()) {
-            return cells.iter().map(|c| length(std::array::from_fn(|i| {
-                ((p[i]-c.center[i]).abs()-c.size[i]*0.5).max(0.)
-            }))).fold(f64::INFINITY, f64::min);
-        }
+        && cells.iter().any(|c| c.volume_m3.is_some())
+    {
+        return cells
+            .iter()
+            .map(|c| {
+                length(std::array::from_fn(|i| {
+                    ((p[i] - c.center[i]).abs() - c.size[i] * 0.5).max(0.)
+                }))
+            })
+            .fold(f64::INFINITY, f64::min);
+    }
     length(std::array::from_fn(|i| {
         ((p[i] - room.center[i]).abs() - room.size[i] * 0.5).max(0.)
     }))
@@ -303,7 +311,10 @@ pub fn subtract_all<'a>(
             }
         }
         if max_faces > MAX_CELL_FACES || vertices > MAX_FACE_VERTICES {
-            return Err(format!("Geometry budget exceeded: {} / {MAX_CELLS} convex cells, {max_faces} / {MAX_CELL_FACES} maximum faces per cell, {vertices} / {MAX_FACE_VERTICES} face vertices", next.len()));
+            return Err(format!(
+                "Geometry budget exceeded: {} / {MAX_CELLS} convex cells, {max_faces} / {MAX_CELL_FACES} maximum faces per cell, {vertices} / {MAX_FACE_VERTICES} face vertices",
+                next.len()
+            ));
         }
         cells = next;
     }
@@ -331,7 +342,8 @@ pub fn union_near(cells: &[Cell], neighbors: &[Vec<usize>]) -> Result<Vec<Cell>,
 }
 /// Keep union ordering and complexity limits identical for fresh and cached CSG.
 pub(crate) fn union_near_with(
-    cells: &[Cell], neighbors: &[Vec<usize>],
+    cells: &[Cell],
+    neighbors: &[Vec<usize>],
     mut subtract: impl FnMut(&Cell, &[Cell], &[usize]) -> Result<Vec<Cell>, String>,
 ) -> Result<Vec<Cell>, String> {
     let mut out: Vec<Cell> = vec![];
@@ -582,7 +594,9 @@ pub fn prism(p: &[Vec3], thickness: f64) -> Cell {
             vertices: vec![p[i], q[i], q[j], p[j]],
         });
     }
-    Cell { faces: faces.into() }
+    Cell {
+        faces: faces.into(),
+    }
 }
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Moments {
@@ -873,7 +887,13 @@ pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
                     .into_iter()
                     .map(|vertices| ConvexVolumeFacesItem { vertices })
                     .collect();
-                joined = Some((i, j, Cell { faces: faces.into() }));
+                joined = Some((
+                    i,
+                    j,
+                    Cell {
+                        faces: faces.into(),
+                    },
+                ));
                 break 'search;
             }
         }
@@ -893,24 +913,45 @@ mod tests {
     fn prepared_subtraction_matches_original_cutter_order_and_geometry() {
         for step in 0..24 {
             let subjects = vec![box_cell([0.; 3], [4.; 3]), box_cell([6., 0., 0.], [3.; 3])];
-            let cutters: Vec<_> = (0..8).map(|i| transform(&box_cell([0.; 3], [1., 5., 2.]),
-                [i as f64 - 2., 0., (step % 3) as f64 * 0.1], [1.; 3], step as f64 * 0.13)).collect();
+            let cutters: Vec<_> = (0..8)
+                .map(|i| {
+                    transform(
+                        &box_cell([0.; 3], [1., 5., 2.]),
+                        [i as f64 - 2., 0., (step % 3) as f64 * 0.1],
+                        [1.; 3],
+                        step as f64 * 0.13,
+                    )
+                })
+                .collect();
             let mut reference = subjects.clone();
             for cutter in &cutters {
-                reference = reference.iter().flat_map(|cell| subtract(cell, cutter)).collect();
+                reference = reference
+                    .iter()
+                    .flat_map(|cell| subtract(cell, cutter))
+                    .collect();
                 check_budget(&reference).unwrap();
             }
             let actual = subtract_all(subjects, &cutters).unwrap();
-            assert_eq!(serde_json::to_value(actual).unwrap(), serde_json::to_value(reference).unwrap());
+            assert_eq!(
+                serde_json::to_value(actual).unwrap(),
+                serde_json::to_value(reference).unwrap()
+            );
         }
     }
     #[test]
     fn geometry_budget_reports_actual_cell_and_face_counts() {
         // Budget validation is independent of geometric validity; empty cells
         // keep this boundary test small while exercising the real collection cap.
-        let mut cells = vec![Cell { faces: vec![].into() }; MAX_CELLS];
+        let mut cells = vec![
+            Cell {
+                faces: vec![].into()
+            };
+            MAX_CELLS
+        ];
         assert!(check_budget(&cells).is_ok());
-        cells.push(Cell { faces: vec![].into() });
+        cells.push(Cell {
+            faces: vec![].into(),
+        });
         let error = check_budget(&cells).unwrap_err();
         assert!(error.contains(&format!("{} / {MAX_CELLS} convex cells", MAX_CELLS + 1)));
         let mut cell = box_cell([0.; 3], [1.; 3]);

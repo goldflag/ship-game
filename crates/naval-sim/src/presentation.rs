@@ -48,7 +48,11 @@ impl Serialize for Actors<'_> {
 
 /// One team's own hulls, filtered, each captain's target addressed as the
 /// team knows it. This is the information boundary for live hulls.
-pub struct TeamActors<'a>(pub(crate) &'a Battle, pub(crate) TeamId, pub(crate) &'a [String]);
+pub struct TeamActors<'a>(
+    pub(crate) &'a Battle,
+    pub(crate) TeamId,
+    pub(crate) &'a [String],
+);
 impl Serialize for TeamActors<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]

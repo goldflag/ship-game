@@ -83,9 +83,7 @@ export type FleetOrder =
   | { kind: 'focus'; shipId: string; targetId: string }
   | { kind: 'weapons'; shipId: string; policy: WeaponsPolicy }
   | { kind: 'formation-policy'; shipId: string; policy: FormationPolicy }
-  | { kind: 'hold'; shipId: string }
   | { kind: 'autonomous'; shipId: string }
-  | { kind: 'move'; shipId: string; point: Vec3 }
   // Air wing: flights and their decks.
   | { kind: 'squadron'; flightId: string; order: AirOrder }
   | { kind: 'deck-service'; flightId: string; action: DeckServiceAction }
@@ -117,8 +115,6 @@ export type FleetOrder =
   | { kind: 'capture-pointer' }
   | { kind: 'return-to-ship' }
   | { kind: 'resize-chart'; direction: number }
-  | { kind: 'chart-waypoint'; shipId: string }
-  | { kind: 'waypoint'; x: number; z: number }
   | { kind: 'take-helm'; id: string }
   | { kind: 'helm-wheel'; reason: HelmWheelState['reason'] }
   | { kind: 'highlight-helm'; id?: string }
@@ -142,7 +138,9 @@ export interface FleetDesk {
   /** The crew orders the damage-control panel shows and sets. */
   readonly damageControl: { priority: ControlPriority; focus: string };
   /** What this battle's session lets the seat do. */
-  readonly can: { transferHelm: boolean; commandFleet: boolean; setSpeed: boolean };
+  readonly can: { transferHelm: boolean; commandFleet: boolean; setSpeed: boolean;
+    /** Order the fleet from the chart while keeping the helm: every battle that transfers helms and is not a mission. */
+    fleetChart: boolean };
   issue(order: FleetOrder): boolean;
 }
 
@@ -154,15 +152,16 @@ export interface FleetAuthority extends FleetChart {
   readonly selectedFlightIds: string[];
   readonly controlGroups: Map<number, ControlGroup>;
   readonly fleetCommandMode: boolean;
+  readonly helmChart?: boolean;
   controlPriority: ControlPriority;
   controlFocus: string;
-  fleetWaypointShipId?: string;
   readonly input: { setOrder(order: number): void; setRudder(rudder: number): void };
   selectFleetShips(ids: string[]): void;
   selectFlights(ids: string[]): void;
   selectFlight(id: string, additive?: boolean): void;
   selectTarget(id: string): void;
   enterFleetCommand(): void;
+  openFleetChart(): void;
   followFleetShip(id: string): void;
   takeFleetHelm(id: string): void;
   followAircraft(id: string): void;
@@ -188,7 +187,6 @@ export interface FleetAuthority extends FleetChart {
   capturePointer(): void;
   returnToShip(): void;
   resizeChart(direction: number): void;
-  fleetWaypoint(x: number, z: number): void;
 }
 
 /** The desk over a live `Game`: the session is the frame, the game is the chart,
@@ -197,18 +195,19 @@ export interface FleetAuthority extends FleetChart {
  * not offer a command refuses the order. */
 export function fleetDesk(game: FleetAuthority): FleetDesk {
   const session = () => game.simulation;
+  // A chart read from the helm can order the very hull the player steers; that order takes the
+  // wheel until the player touches it again. Fleet command never gets here holding a helm.
+  const steer = (shipId: string) => { const s = session(); if (game.helmChart && shipId === s.ship.id) s.engageAutopilot?.(); };
   const issue = (order: FleetOrder): boolean => {
     const s = session();
     switch (order.kind) {
-      case 'route': if (!s.routeShip) return false; s.routeShip(order.shipId, [order.point], order.speedMps, false, order.append); return true;
-      case 'hold-area': if (!s.holdShipArea) return false; s.holdShipArea(order.shipId, order.position, order.radiusM); return true;
-      case 'escort': if (!s.escortShip) return false; s.escortShip(order.shipId, order.leaderId, order.offset, order.radiusM, order.formation, order.slot); return true;
+      case 'route': if (!s.routeShip) return false; s.routeShip(order.shipId, [order.point], order.speedMps, false, order.append); steer(order.shipId); return true;
+      case 'hold-area': if (!s.holdShipArea) return false; s.holdShipArea(order.shipId, order.position, order.radiusM); steer(order.shipId); return true;
+      case 'escort': if (!s.escortShip) return false; s.escortShip(order.shipId, order.leaderId, order.offset, order.radiusM, order.formation, order.slot); steer(order.shipId); return true;
       case 'focus': if (!s.focusShip) return false; s.focusShip(order.shipId, order.targetId); return true;
       case 'weapons': if (!s.setShipWeapons) return false; s.setShipWeapons(order.shipId, order.policy); return true;
       case 'formation-policy': if (!s.setFormationPolicy) return false; s.setFormationPolicy(order.shipId, order.policy); return true;
-      case 'hold': if (!s.holdShip) return false; s.holdShip(order.shipId); return true;
       case 'autonomous': if (!s.automateShip) return false; s.automateShip(order.shipId); return true;
-      case 'move': if (!s.moveShip) return false; s.moveShip(order.shipId, order.point); return true;
       case 'squadron': return game.commandSquadron(order.flightId, order.order);
       case 'deck-service': return game.commandDeck(order.flightId, order.action);
       case 'deck-policy': return game.setDeckPolicy(order.carrierId, order.policy);
@@ -220,7 +219,8 @@ export function fleetDesk(game: FleetAuthority): FleetDesk {
       case 'select-flight': game.selectFlight(order.id, order.additive); return true;
       case 'select-target': game.selectTarget(order.id); return true;
       case 'control-group': game.controlGroups.set(order.index, order.group); return true;
-      case 'fleet-command': game.enterFleetCommand(); return true;
+      // Only a mission hands its ships to captains; any other battle reads the chart from the helm.
+      case 'fleet-command': if (s.missionRules) game.enterFleetCommand(); else game.openFleetChart(); return true;
       case 'follow-ship': game.followFleetShip(order.id); return true;
       case 'take-fleet-helm': game.takeFleetHelm(order.id); return true;
       case 'follow-aircraft': game.followAircraft(order.id); return true;
@@ -237,8 +237,6 @@ export function fleetDesk(game: FleetAuthority): FleetDesk {
       case 'capture-pointer': game.capturePointer(); return true;
       case 'return-to-ship': game.returnToShip(); return true;
       case 'resize-chart': game.resizeChart(order.direction); return true;
-      case 'chart-waypoint': game.fleetWaypointShipId = order.shipId; return true;
-      case 'waypoint': game.fleetWaypoint(order.x, order.z); return true;
       case 'take-helm': game.takeHelm(order.id); return true;
       case 'helm-wheel': game.openHelmWheel(order.reason); return true;
       case 'highlight-helm': game.highlightHelmCandidate(order.id); return true;
@@ -256,7 +254,7 @@ export function fleetDesk(game: FleetAuthority): FleetDesk {
     get controlGroups() { return game.controlGroups; },
     get fleetCommandMode() { return game.fleetCommandMode; },
     get damageControl() { return { priority: game.controlPriority, focus: game.controlFocus }; },
-    get can() { const s = session(); return { transferHelm: !!s.selectShip, commandFleet: !!s.releaseHelm, setSpeed: !!s.setSimulationSpeed }; },
+    get can() { const s = session(); return { transferHelm: !!s.selectShip, commandFleet: !!s.releaseHelm, setSpeed: !!s.setSimulationSpeed, fleetChart: !!s.selectShip && !!s.releaseHelm && !s.missionRules }; },
     issue,
   };
 }

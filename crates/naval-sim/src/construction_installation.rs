@@ -20,8 +20,12 @@ pub fn deck_backing(polygon: &[Vec3], top: f64) -> cg::Cell {
     let top = polygon.iter().map(|v| v[1]).fold(top, f64::max) + cg::EPS * 4.;
     let cap: Vec<_> = polygon.iter().map(|v| [v[0], top, v[2]]).collect();
     let mut faces = vec![
-        ConvexVolumeFacesItem { vertices: cap.clone() },
-        ConvexVolumeFacesItem { vertices: polygon.iter().copied().rev().collect() },
+        ConvexVolumeFacesItem {
+            vertices: cap.clone(),
+        },
+        ConvexVolumeFacesItem {
+            vertices: polygon.iter().copied().rev().collect(),
+        },
     ];
     for i in 0..polygon.len() {
         let j = (i + 1) % polygon.len();
@@ -29,7 +33,9 @@ pub fn deck_backing(polygon: &[Vec3], top: f64) -> cg::Cell {
             vertices: vec![cap[i], polygon[i], polygon[j], cap[j]],
         });
     }
-    cg::Cell { faces: faces.into() }
+    cg::Cell {
+        faces: faces.into(),
+    }
 }
 fn cylinder(radius: f64, low: f64, high: f64) -> cg::Cell {
     let top: Vec<_> = (0..SIDES)
@@ -50,12 +56,17 @@ pub fn space_cell(
     space: &ConstructionEquipmentPartOccupancyItem,
 ) -> cg::Cell {
     if part.kind == "gun"
-        && let Some(weapon) = catalog.weapons.parts.iter()
+        && let Some(weapon) = catalog
+            .weapons
+            .parts
+            .iter()
             .find(|w| Some(w.id.as_str()) == part.gun_part_id.as_deref())
     {
-        return cylinder(weapon.barbette_radius,
+        return cylinder(
+            weapon.barbette_radius,
             space.center[1] - space.size[1] / 2.,
-            space.center[1] + space.size[1] / 2.);
+            space.center[1] + space.size[1] / 2.,
+        );
     }
     if part.kind == "funnel" {
         return cg::transform(
@@ -77,12 +88,21 @@ pub fn raised(e: &ConstructionEquipment) -> f64 {
 /// Explicit catalog wells take precedence. An explicitly empty occupancy declares
 /// a deck mount; older catalogs without occupancy use a provisional light-gun
 /// default below 100 mm. Version-1 installations retain their authored behavior.
-pub fn deck_mounted(c: &ConstructionData, catalog: &ConstructionCatalog, p: &ConstructionEquipmentPart) -> bool {
-    c.version >= 2. && p.kind == "gun" && match &p.occupancy {
-        Some(spaces) => spaces.is_empty(),
-        None => catalog.weapons.parts.iter().any(|w|
-            Some(w.id.as_str()) == p.gun_part_id.as_deref() && w.caliber_m < 0.1),
-    }
+pub fn deck_mounted(
+    c: &ConstructionData,
+    catalog: &ConstructionCatalog,
+    p: &ConstructionEquipmentPart,
+) -> bool {
+    c.version >= 2.
+        && p.kind == "gun"
+        && match &p.occupancy {
+            Some(spaces) => spaces.is_empty(),
+            None => catalog
+                .weapons
+                .parts
+                .iter()
+                .any(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref() && w.caliber_m < 0.1),
+        }
 }
 pub fn spaces(
     c: &ConstructionData,
@@ -95,16 +115,26 @@ pub fn spaces(
         return spaces;
     }
     let raise = raised(e);
-    if c.version >= 2. && spaces.is_empty()
-        && let Some(w) = catalog.weapons.parts.iter()
+    if c.version >= 2.
+        && spaces.is_empty()
+        && let Some(w) = catalog
+            .weapons
+            .parts
+            .iter()
             .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
     {
         let top = attachment(p);
         // A deck mount already includes its pedestal. Only an explicit rise
         // adds a support, entirely above the deck. Other omitted wells keep
         // the existing size-based working-depth estimate, independent of hull.
-        let depth = if deck_mounted(c, catalog, p) { 0. } else { (w.barbette_radius * 1.2).max(0.75) };
-        if depth + raise == 0. { return spaces; }
+        let depth = if deck_mounted(c, catalog, p) {
+            0.
+        } else {
+            (w.barbette_radius * 1.2).max(0.75)
+        };
+        if depth + raise == 0. {
+            return spaces;
+        }
         spaces.push(ConstructionEquipmentPartOccupancyItem {
             center: [0., top - depth / 2., 0.],
             size: [w.barbette_radius * 2., depth, w.barbette_radius * 2.],
@@ -132,12 +162,19 @@ pub fn magazine(
     e: &ConstructionEquipment,
 ) -> Option<(Vec3, Vec3)> {
     if deck_mounted(c, catalog, p) {
-        let w = catalog.weapons.parts.iter().find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())?;
+        let w = catalog
+            .weapons
+            .parts
+            .iter()
+            .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())?;
         // Ready ammunition is a compact fixed package at the mount base. It
         // follows the fitting (including rise), with no invented hull opening.
         let width = (w.barbette_radius * 1.4).min(p.size[0]).min(p.size[2]);
         let height = 0.3_f64.min(p.size[1]);
-        return Some((add(e.position, [0., attachment(p) + height / 2., 0.]), [width, height, width]));
+        return Some((
+            add(e.position, [0., attachment(p) + height / 2., 0.]),
+            [width, height, width],
+        ));
     }
     let well = spaces(c, catalog, p, e).first()?.clone();
     let w = catalog
@@ -204,7 +241,12 @@ pub fn derive(
             .map_or(0., |s| s.position[1]);
         let low = space.center[1] - space.size[1] * 0.5;
         if inner <= 0.
-            || top - low <= if deck_mounted(source, catalog, part) { 0. } else { thickness }
+            || top - low
+                <= if deck_mounted(source, catalog, part) {
+                    0.
+                } else {
+                    thickness
+                }
             || space.center[0].abs() + radius > space.size[0] * 0.5 + 1e-7
             || space.center[2].abs() + radius > space.size[2] * 0.5 + 1e-7
         {
@@ -231,7 +273,11 @@ pub fn derive(
                 thickness_mm: source.default_thickness_mm,
                 material: "steel".into(),
                 // A barbette wears its turret's paint.
-                paint: e.paint.as_deref().unwrap_or_else(|| crate::construction::ship_paint(source)).into(),
+                paint: e
+                    .paint
+                    .as_deref()
+                    .unwrap_or_else(|| crate::construction::ship_paint(source))
+                    .into(),
                 open: false,
             });
         };

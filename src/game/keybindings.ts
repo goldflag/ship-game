@@ -27,7 +27,7 @@ export const INPUT_ACTIONS = [
   { id: 'fullscreen', label: 'Toggle fullscreen', group: 'View' },
   { id: 'chartLarger', label: 'Increase minimap size', group: 'View' },
   { id: 'chartSmaller', label: 'Decrease minimap size', group: 'View' },
-  { id: 'airOperations', label: 'Open / close air operations map', group: 'View' },
+  { id: 'airOperations', label: 'Open / close the fleet chart or air operations map', group: 'View' },
   { id: 'simulationSpeed', label: 'Cycle simulation speed (1× / 2× / 4×)', group: 'View' },
   { id: 'helmWheel', label: 'Hold to pick a ship to command', group: 'View' },
 ] as const;

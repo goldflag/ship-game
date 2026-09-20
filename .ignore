@@ -1,0 +1,20 @@
+# Search scope for ripgrep-based tools (rg, editor and agent search). These paths stay tracked; they are
+# data, build outputs or evidence whose hits bury source results, and several are single lines of 2-13 MB.
+# To search one anyway, name the file (`rg pattern assets/ships/yamato/blueprint.json`) or pass --no-ignore.
+public/models/
+assets/reviews/
+assets/**/reports/
+assets/**/references/
+assets/**/review/
+assets/ships/*/blueprint.json
+assets/ships/*/generated/
+assets/ships/*/baseline/
+assets/gameplay/hydrostatics.v1.json
+vendor/*/build/
+src/ships/presetCatalog.json
+src/ships/*.generated.json
+src/simulation/fixtures/
+src/generated/
+docs/archive/
+docs/**/*.html
+*.lock

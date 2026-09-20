@@ -58,7 +58,7 @@ test('the wheel renders the fleet with hull, speed and range, highlights the pic
   const render = (data: Telemetry) => renderToStaticMarkup(<HelmWheel data={data} desk={{} as never} bindings={defaultKeybindings()}/>);
   const held = render(telemetry({ helmWheel: { reason: 'held', highlightId: 'friendly-2' } }));
   expect(held).toContain('Choose a ship to command');
-  expect(held).toContain('<b>Bismarck</b>');
+  expect(held).toContain('<b>BISMARCK</b>'); // Historical names are set in capitals (`shipTitle`).
   expect(held).toContain('At the helm');
   expect(held).toContain('Take the helm of Fletcher · 100 percent hull · 2.0 km bearing 000 · key 1');
   expect(held).toContain('64% · 29 kn · 1.6 km');

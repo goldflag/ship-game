@@ -105,7 +105,9 @@ fn slender_rounded_hull_returns_from_small_heel_in_native_sea_trial() {
     let p = &mut source.construction.primitives[0];
     p.kind = "custom-hull".into();
     p.size = [10., 9., 120.];
-    p.custom_hull = Some(ConstructionCustomHull { paint_bands: None, bilge_keels: None,
+    p.custom_hull = Some(ConstructionCustomHull {
+        paint_bands: None,
+        bilge_keels: None,
         red_paint_y: None,
         version: 1.,
         rake: 0.65,
@@ -124,13 +126,21 @@ fn slender_rounded_hull_returns_from_small_heel_in_native_sea_trial() {
                 ];
                 let points = half
                     .iter()
-                    .map(|v| ConstructionHullPoint { x: -v[0], y: v[1], contour: None })
-                    .chain(std::iter::once(ConstructionHullPoint { x: 0., y: keel, contour: None }))
-                    .chain(
-                        half.iter()
-                            .rev()
-                            .map(|v| ConstructionHullPoint { x: v[0], y: v[1], contour: None }),
-                    )
+                    .map(|v| ConstructionHullPoint {
+                        x: -v[0],
+                        y: v[1],
+                        contour: None,
+                    })
+                    .chain(std::iter::once(ConstructionHullPoint {
+                        x: 0.,
+                        y: keel,
+                        contour: None,
+                    }))
+                    .chain(half.iter().rev().map(|v| ConstructionHullPoint {
+                        x: v[0],
+                        y: v[1],
+                        contour: None,
+                    }))
                     .collect();
                 ConstructionHullStation {
                     id: format!("s{i}"),
@@ -163,7 +173,6 @@ fn slender_rounded_hull_returns_from_small_heel_in_native_sea_trial() {
     );
 }
 
-
 #[test]
 fn intersecting_hull_blocks_match_one_equivalent_shell_in_all_loading() {
     let (mut source, catalog) = fixture();
@@ -172,13 +181,17 @@ fn intersecting_hull_blocks_match_one_equivalent_shell_in_all_loading() {
     source.construction.primitives[0].size[2] = 20.;
     source.construction.primitives[0].position[2] = -5.;
     let mut other = source.construction.primitives[0].clone();
-    other.id = "overlap".into(); other.position[2] = 5.;
+    other.id = "overlap".into();
+    other.position[2] = 5.;
     source.construction.primitives.push(other);
     let joined = compile(&source, &catalog);
-    let (a,b) = (single.loading.unwrap(), joined.loading.unwrap());
+    let (a, b) = (single.loading.unwrap(), joined.loading.unwrap());
     near(a.mass_kg, b.mass_kg);
     near(a.envelope_volume_m3, b.envelope_volume_m3);
     near(a.material_volume_m3, b.material_volume_m3);
     near(a.usable_volume_m3, b.usable_volume_m3);
-    for k in 0..3 { near(a.center_of_gravity[k],b.center_of_gravity[k]); near(a.inertia_kg_m2[k],b.inertia_kg_m2[k]); }
+    for k in 0..3 {
+        near(a.center_of_gravity[k], b.center_of_gravity[k]);
+        near(a.inertia_kg_m2[k], b.inertia_kg_m2[k]);
+    }
 }

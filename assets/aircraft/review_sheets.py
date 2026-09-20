@@ -6,6 +6,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT=Path(__file__).resolve().parent
+OUT=ROOT.parents[1]/'.build/reviews/aircraft';OUT.mkdir(parents=True,exist_ok=True)
 CAT=json.loads((ROOT/'catalog.json').read_text())
 font=ImageFont.load_default(size=19)
 small=ImageFont.load_default(size=13)
@@ -25,7 +26,7 @@ for view in ['quarter','top','side','front','rear','articulated']:
         sheet.paste(pic,(x+(400-pic.width)//2,y))
         draw.text((x+13,y+272),a['name'],font=font,fill=(235,231,211))
         draw.text((x+13,y+299),f"{a['year']}  /  {a['role']}  /  {a['wingspan']:.2f} m span",font=small,fill=(149,177,184))
-    path=ROOT/'reports'/f'{view}-sheet.jpg'
+    path=OUT/f'{view}-sheet.jpg'
     sheet.save(path,quality=91)
     record['sheets'][view]={'path':path.name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
-(ROOT/'reports/sheets.json').write_text(json.dumps(record,indent=2)+'\n')
+(OUT/'sheets.json').write_text(json.dumps(record,indent=2)+'\n')

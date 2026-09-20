@@ -64,12 +64,24 @@ impl ShipState {
     pub fn depth(&self) -> f64 {
         (-self.mean_y()).max(0.0)
     }
+    /// World velocity: paced surge/sway plus the unscaled sea drift.
     pub fn velocity(&self) -> Vec3 {
+        self.paced_velocity(crate::mobility::SHIP_PACE)
+    }
+    /// Physical hull velocity through the water plus drift, for impulses and contact energy.
+    pub fn physical_velocity(&self) -> Vec3 {
+        self.paced_velocity(1.)
+    }
+    /// World heading rate; `yaw_rate` itself stays physical.
+    pub fn world_yaw_rate(&self) -> f64 {
+        self.yaw_rate * crate::mobility::SHIP_PACE
+    }
+    fn paced_velocity(&self, pace: f64) -> Vec3 {
         let (sin, cos) = (self.heading.sin(), self.heading.cos());
         [
-            sin * self.speed + cos * self.sway_speed + self.drift_x,
+            pace * (sin * self.speed + cos * self.sway_speed) + self.drift_x,
             self.vertical_speed,
-            -cos * self.speed + sin * self.sway_speed + self.drift_z,
+            pace * (-cos * self.speed + sin * self.sway_speed) + self.drift_z,
         ]
     }
 }

@@ -14,11 +14,10 @@ Rock, ground, meadow textures and the broadleaf tree impostor reuse the retained
 
 ## Review
 
-- `review/before-landforms/`: the previous three coastal map renders.
-- `review/*-detail.png`: coast-level close views of the replacement terrain.
-- `review/*-survey-*.png`: clear-sky survey views of all nine landforms (cloud volume hidden, map lighting and water retained).
-- `review/landforms.html`: interactive before/after comparisons at the same camera and sea state.
+Captures and generated guides are local evidence in ignored `.build/reviews/maps/`; only the picker thumbnails under `public/maps/` are tracked.
+
 - `capture.py`: refresh standard map screenshots and picker thumbnails.
-- `capture-landforms.py`: refresh close and survey views from `/scripts/diagnostics/ocean-maps.html`.
+- `capture-landforms.py`: refresh close (`*-detail.png`) and clear-sky survey (`*-survey-*.png`, cloud volume hidden, map lighting and water retained) views from `/scripts/diagnostics/ocean-maps.html`.
+- `build-review.py`, `build-landform-review.py`: assemble the illustrated guide and the before/after page; the latter expects earlier renders in `before-landforms/`.
 
 The in-game review freezes simulation and wave time, advances real animation frames (Three caches scene passes per frame), and waits for GPU completion before readback. Standard and close views retain map clouds. Aerial terrain surveys hide the cloud volume: high Arctic survey cameras intersect the low cloud layer, whose compositor can obscure land with hard edges. This cloud-compositor limitation is separate from the terrain and is not concealed in gameplay captures. The terrain remains an approximation at the finite rendered triangle resolution; no caves, overhangs, tides, grounding damage or terrain deformation are introduced.

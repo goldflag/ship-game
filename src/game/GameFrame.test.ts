@@ -4,6 +4,7 @@ import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBu
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT, motionVelocity } from './session/motion';
+import { SHIP_PACE } from '../ships/mobility';
 import { seaHeight } from './session/sea';
 import { expendSalvo, updateMount, type MountState } from '../simulation/weapons';
 import { localToWorld, wrapAngle } from './geometry';
@@ -12,6 +13,8 @@ import { CameraRig } from './CameraRig';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
+import { HUD_LAYER_FIELDS } from '../ui/hudLayers';
+import { makeTestEnvironment, makeTestInput } from './testing/fakes';
 import { VisualEnvironment } from './VisualEnvironment';
 import { FrameScene } from './FrameScene';
 import { FleetVisibility } from './FleetVisibility';
@@ -137,21 +140,20 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
   rig.update = (ship, ...args) => { focusPositions.push(ship.z); updateCamera(ship, ...args); };
   const helm = { throttle: 1, rudder: 0 };
   const water = fakeWater();
-  const environment = new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() });
+  const environment = makeTestEnvironment();
   environment.attachWater(water as never);
   const battlefieldCamera = new BattlefieldCamera(camera);
-  const input = { sample: () => helm, firing: false, clear() {}, setEnabled() {}, flying: false, setFlying(value: boolean) { this.flying = value; },
-    flight: { x: 0, y: 0, z: 0, fast: false },
+  const input = makeTestInput({ sample: () => helm, flying: false, setFlying(value: boolean) { this.flying = value; },
     setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
-    setRudder: (rudder: number) => { helm.rudder = rudder; } };
+    setRudder: (rudder: number) => { helm.rudder = rudder; } });
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
     host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
-    shipLabels: { update() {}, setObserved() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} }, torpedoAim: { update() {} }, torpedoMarkers: { update() {} },
+    // Every registered HUD layer is inert here; gunAim below records what the frame hands it.
+    ...Object.fromEntries(HUD_LAYER_FIELDS.map(field => [field, { update() {}, setObserved() {}, resize() {} }])), torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
-    hitDirections: { update() {} },
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main', settings: DEFAULT_GRAPHICS,
     ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false, input,
@@ -201,7 +203,7 @@ test('battle loading holds input and starts one loop only after graphics finish 
       const graphics = new Promise<void>(resolve => { finish = resolve; });
       const game = Object.assign(Object.create(Game.prototype), {
         simulation: { player: { damage: { sunk: false } } }, water: {}, inPort: false,
-        input: { setEnabled(value: boolean) { enabled = value; } },
+        input: makeTestInput({ setEnabled(value: boolean) { enabled = value; } }),
         setInPort() {}, scheduleFrame() { scheduled++; },
         async warmupRendering() { await graphics; if (failure) throw new Error('Graphics failed'); },
       }) as Game;
@@ -338,7 +340,8 @@ test('target inspection follows the interpolated underway target and resets with
   for (let frame = 0; frame < 90; frame++) {
     const before = targetView.root.position.z;
     await game.frame(time += 1000 / 144);
-    if (frame > 3) expect((before - targetView.root.position.z) * 144).toBeCloseTo(simulation.target.motion.speed, 7);
+    // Drawn motion runs at world pace; the reported speed stays physical.
+    if (frame > 3) expect((before - targetView.root.position.z) * 144).toBeCloseTo(simulation.target.motion.speed * SHIP_PACE, 7);
     expect(focusPositions.at(-1)).toBe(targetView.root.position.z);
   }
   simulation.resetTarget();
@@ -360,8 +363,8 @@ test('pause holds the interpolated pose and resume continues without a tick-size
   }
   game.paused = false;
   await game.frame(time += 1000 / 144);
-  expect((position.z - playerView.root.position.z) * 144).toBeCloseTo(simulation.ship.speed, 7);
-  expect(Math.abs(simulation.ship.z - playerView.motion.z)).toBeLessThanOrEqual(simulation.ship.speed * FIXED_DT);
+  expect((position.z - playerView.root.position.z) * 144).toBeCloseTo(simulation.ship.speed * SHIP_PACE, 7);
+  expect(Math.abs(simulation.ship.z - playerView.motion.z)).toBeLessThanOrEqual(simulation.ship.speed * SHIP_PACE * FIXED_DT);
 });
 
 test('manual aiming and binoculars keep the camera attached to the displayed ship at full speed', async () => {
@@ -464,7 +467,7 @@ for (const frameTimes of [[1 / 30], [1 / 59], [1 / 60], [1 / 120], [1 / 144], [1
       const dt = frameTimes[frame % frameTimes.length];
       const before = playerView.root.position.z;
       await game.frame(time += dt * 1000);
-      if (frame > 3) expect((before - playerView.root.position.z) / dt).toBeCloseTo(simulation.ship.speed, 7);
+      if (frame > 3) expect((before - playerView.root.position.z) / dt).toBeCloseTo(simulation.ship.speed * SHIP_PACE, 7);
       expect(wakePositions.at(-1)).toBe(playerView.root.position.z);
       expect(focusPositions.at(-1)).toBe(playerView.root.position.z);
     }

@@ -2,8 +2,8 @@
 //! managed handling's failure/retry paths independently of route clearance.
 use naval_sim::{
     aviation::{
-        ActiveFlights, AirContext, AirRules, Aviation, DeckAction, DeckCycle, DeckPose, DeckTimings,
-        EndurancePolicy, place,
+        ActiveFlights, AirContext, AirRules, Aviation, DeckAction, DeckCycle, DeckPose,
+        DeckTimings, EndurancePolicy, place,
     },
     catalog::Catalog,
     geometry::{length, local_to_world, sub},
@@ -95,11 +95,7 @@ fn failed_takeoff_follows_the_moving_carrier_and_emits_launch_only_once_after_re
     let mut events = vec![];
     let mut time = 0.0;
     for expected_launches in [0, 1] {
-        a.ground
-            .get_mut(&ground.id)
-            .unwrap()
-            .deck_geometry
-            .tyres = Arc::new(vec![]);
+        a.ground.get_mut(&ground.id).unwrap().deck_geometry.tyres = Arc::new(vec![]);
         let timer = a.wings[0].state.planes[0].timer;
         let datum = a.wings[0].state.planes[0].deck_datum;
         let root = a.wings[0].state.planes[0].deck_position.unwrap();
@@ -135,11 +131,7 @@ fn failed_takeoff_follows_the_moving_carrier_and_emits_launch_only_once_after_re
                 expected_launches
             );
         }
-        a.ground
-            .get_mut(&ground.id)
-            .unwrap()
-            .deck_geometry
-            .tyres = patches.clone();
+        a.ground.get_mut(&ground.id).unwrap().deck_geometry.tyres = patches.clone();
         tick(&mut a, &actors, &mut events, &mut time);
         assert!(a.wings[0].state.planes[0].timer > timer);
         assert_eq!(
@@ -166,16 +158,8 @@ fn failed_initial_raise_preserves_hangar_state_reservations_and_retries_the_same
         .unwrap()
         .model_id
         .clone();
-    let patches = a.ground[&model]
-        .deck_geometry
-        .tyres
-        .clone();
-    a.ground
-        .get_mut(&model)
-        .unwrap()
-        .deck_geometry
-        
-        .tyres = Arc::new(
+    let patches = a.ground[&model].deck_geometry.tyres.clone();
+    a.ground.get_mut(&model).unwrap().deck_geometry.tyres = Arc::new(
         patches
             .iter()
             .map(|tyre| {
@@ -224,12 +208,7 @@ fn failed_initial_raise_preserves_hangar_state_reservations_and_retries_the_same
         assert_eq!(p.deck_position, None);
         tick(&mut a, &actors, &mut events, &mut time);
     }
-    a.ground
-        .get_mut(&model)
-        .unwrap()
-        .deck_geometry
-        
-        .tyres = patches;
+    a.ground.get_mut(&model).unwrap().deck_geometry.tyres = patches;
     tick(&mut a, &actors, &mut events, &mut time);
     let wing = &a.wings[0].state;
     let p = wing.planes.iter().find(|p| p.id == plane_id).unwrap();

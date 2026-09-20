@@ -10,16 +10,11 @@
 *.jpeg binary
 *.webp binary
 
-# Archival references, validation reports and review captures live in Git LFS. They are pipeline
-# inputs/evidence, never runtime assets; pipeline hashing accepts LFS pointers, so deployment hosts
-# can clone with GIT_LFS_SKIP_SMUDGE=1. Text records stay in plain Git for diffs.
+# Archived ship baselines live in Git LFS. They are pipeline inputs/evidence, never runtime
+# assets; pipeline hashing accepts LFS pointers, so deployment hosts can clone with
+# GIT_LFS_SKIP_SMUDGE=1. Text records stay in plain Git for diffs. Review captures, reports and
+# reference downloads are not tracked at all: they belong in ignored .build/.
 assets/ships/*/baseline/** filter=lfs diff=lfs merge=lfs -text
-assets/reviews/** filter=lfs diff=lfs merge=lfs -text
-assets/aircraft/reports/** filter=lfs diff=lfs merge=lfs -text
-assets/maps/review/** filter=lfs diff=lfs merge=lfs -text
-assets/effects/*/review/** filter=lfs diff=lfs merge=lfs -text
-assets/effects/*/reports/** filter=lfs diff=lfs merge=lfs -text
-assets/effects/*/references/** filter=lfs diff=lfs merge=lfs -text
 assets/**/*.md !filter !diff !merge text
 assets/**/*.json !filter !diff !merge text
 assets/**/*.txt !filter !diff !merge text
@@ -31,3 +26,15 @@ assets/**/*.svg !filter !diff !merge text
 # Install the repository-local driver with bun run git:setup after cloning.
 # Real same-field conflicts remain unmerged; binary outputs keep normal Git behavior.
 assets/parts/guns.json merge=ship-catalog
+
+# Build outputs and vendored bundles: keep them out of `git diff`, `git log -p` and review, where one
+# regenerated model prints tens of thousands of lines. Blueprints are authoring inputs and keep their diffs.
+# Use `git diff --text <path>` to see one anyway.
+public/models/**/*.json linguist-generated -diff
+src/ships/presetCatalog.json linguist-generated -diff
+src/ships/*.generated.json linguist-generated -diff
+src/generated/** linguist-generated -diff
+assets/ships/*/generated/** linguist-generated
+assets/gameplay/hydrostatics.v1.json linguist-generated -diff
+vendor/*/build/** linguist-vendored -diff
+docs/**/*.html linguist-generated -diff

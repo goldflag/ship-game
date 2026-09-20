@@ -87,7 +87,11 @@ fn main() {
         countdown: None,
     };
     let session_of = |battle: Battle| {
-        naval_protocol::session::Session::new(battle, [naval_sim::rules::TeamId::A, naval_sim::rules::TeamId::B]).unwrap()
+        naval_protocol::session::Session::new(
+            battle,
+            [naval_sim::rules::TeamId::A, naval_sim::rules::TeamId::B],
+        )
+        .unwrap()
     };
     let mut session = session_of(Battle::new(catalog.clone(), &compiled, setup.clone()).unwrap());
     let mut baseline = session.server_baseline(connection).unwrap().0;

@@ -54,8 +54,8 @@ with the cube of its magnitude. Thrust is power divided by an advance-speed and
 induced-flow estimate, which remains finite at rest. Rudder normal force includes
 both turning force and longitudinal resistance. There are no target speed/yaw
 interpolations, artificial turn-speed penalties or gameplay yaw caps. Shared
-gameplay tuning in `mobility.rs` applies a ×2.5 response to all planar forces and
-torques, up to ×4 rudder force authority at hard over, and ×1.2 authored rudder
+gameplay tuning in `mobility.rs` applies a ×2 response to all planar forces and
+torques, up to ×2 rudder force authority at hard over, and ×1.2 authored rudder
 shift. These moderated boosts retain heavier acceleration, braking and helm
 response while keeping course changes practical during a fight. Rudder authority
 is a gameplay coefficient, not a claim of physical blade performance; area, signed
@@ -71,10 +71,44 @@ mass. Navigation's braking estimate uses the same response scale. The former
 acceleration/turn multipliers only inform legacy calibration. Submarines retain
 their authored submerged power calibration and separate depth controls.
 
-Hull coefficients are provisional: skin coefficient `0.004`, a fullness form
-factor, projected frontal coefficient `0.18`, and a bounded Froude-dependent wave
-term. These are deliberately simple engineering/game estimates, not CFD or
-measured performance curves. Forces are reduced to surge, sway and yaw; roll/pitch
+## World pace
+
+`SHIP_PACE` (×1.5, mirrored in `src/ships/mobility.ts`) makes ships cover ground
+faster without changing their physics or readouts. `ShipState.speed`,
+`sway_speed` and `yaw_rate` stay physical: hydrodynamics, speed orders, the HUD,
+fleet chart and port statistics all show the authored/physical figure (a 30 kn
+ship reads 30 kn). Pose integration advances position and heading by
+`SHIP_PACE`, so a ship crosses the sea at 45 kn and keeps the same turning
+circle. `ShipState::velocity()` / `motionVelocity` return this world velocity
+(sea drift is not paced), and every world consumer — gun and torpedo leads,
+sensors, shell inheritance, carrier decks — reads it. `physical_velocity()`
+serves ship-to-ship and grounding contacts, whose impulses change the physical
+body speed; `world_yaw_rate()` serves anything that rotates with the hull.
+Navigation compares world distances with physical speeds by converting at the
+boundary: look-aheads and arrival radii multiply by the pace, station
+velocities divide by it before `throttle_for_speed`, and the braking estimate is
+expressed per world metre.
+
+Aircraft share the pace, so air-to-sea motion is unchanged: a strike closes, a
+fighter intercepts and a plane lands exactly as before. `Aircraft.velocity` is
+paced world motion and `Aircraft::airspeed()` is the real airspeed, which is what
+`fly` integrates, what requested speeds mean and what airframe limits bound.
+World turn rates (a bombing run's aim rate, a carrier's helm) convert to the
+physical rate the airframe banks for. Air-combat cadence — gun cooldowns, pilot
+re-assessment, aim and evasion timers — runs at the pace as well, so a pass
+carries the same fire and the same decisions as before.
+
+Gun shells run on their own pace; see the [runtime contract](ship-runtime-contract.md#mobility-tuning).
+
+Hull resistance is the ITTC-57 friction line for the hull's Reynolds number with
+form factor `0.2` and roughness allowance `0.0004`, a wave term that rises through
+Froude `0.32` and levels off past the hump (plateau `0.0075 * sqrt(B/L)`), and
+projected frontal coefficient `0.18`. The wave and friction constants are
+calibrated so that preset hulls carrying their ships' historical machinery reach
+their trial speeds: Bismarck, King George V, Admiral Hipper, Baltimore, Fletcher
+and Kagero all land within 0.7 kn (0.5 kn RMS). Legacy authored ships are
+unaffected, because their drag is normalized to their authored ahead speed. These
+remain simple engineering/game estimates, not CFD or measured performance curves. Forces are reduced to surge, sway and yaw; roll/pitch
 moments from thrust, cavitation, detailed rudder stall, propeller swirl, shaft RPM
 inertia, unsteady wake flow and dynamic changes in dry ammunition/fuel mass are
 not modeled. Floodwater mass changes do not model inflow momentum exchange.

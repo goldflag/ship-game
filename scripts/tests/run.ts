@@ -1,4 +1,5 @@
 import { availableParallelism } from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const roots = ['src', 'scripts'];
@@ -31,8 +32,29 @@ export function testNamePatterns(prefixes: string[]): string[] {
     escaped.length ? `^(?!(?:${escaped.join('|')}))` : '^'];
 }
 
-/** Isolate files while limiting simultaneous CPU and model-loading work. */
-export async function runTestFiles(files: string[], concurrency: number): Promise<number> {
+/** A test already failing on master. `test` is the full name Bun prints after `(fail)`; `*` covers a file that
+ * fails without reaching its tests. `flaky` entries may pass without being reported as fixed. */
+export interface KnownFailure { file: string; test: string; since: string; note?: string; flaky?: boolean }
+export const KNOWN_FAILURES = resolve(import.meta.dir, 'known-failures.json');
+export const readKnownFailures = (path = KNOWN_FAILURES): KnownFailure[] => JSON.parse(readFileSync(path, 'utf8'));
+
+/** Names from Bun's `(fail) suite > test [12.3ms]` lines. */
+export function failedTests(output: string): string[] {
+  return [...new Set([...output.matchAll(/^\(fail\) (.*?)(?: \[[\d.]+m?s\])?$/gm)].map(match => match[1]))];
+}
+
+const NOISE = /GLTFLoader: Couldn't load texture|^bun test v\d/;
+/** A failing file's output, bounded: asserting on rendered markup or a model can otherwise print tens of kilobytes. */
+export function boundedOutput(output: string, maxLines = 160, maxColumns = 400): string {
+  const lines = output.split('\n').filter(line => !NOISE.test(line)).map(line => line.length > maxColumns ? `${line.slice(0, maxColumns)}… (+${line.length - maxColumns} chars)` : line);
+  return lines.length > maxLines ? [...lines.slice(0, maxLines - 40), `… ${lines.length - maxLines} lines omitted; rerun this file with bun test for all of it …`, ...lines.slice(-40)].join('\n') : lines.join('\n');
+}
+
+export interface RunOptions { verbose?: boolean; known?: KnownFailure[]; record?: boolean }
+
+/** Isolate files while limiting simultaneous CPU and model-loading work. Passing files print nothing; the exit
+ * status reflects only failures that are not in the known-failures ledger. */
+export async function runTestFiles(files: string[], concurrency: number, options: RunOptions = {}): Promise<number> {
   if (!Number.isInteger(concurrency) || concurrency < 1) throw new Error('Concurrency must be a positive integer');
   const pending = files.flatMap(file => {
     const key = file.replace(/^\.\//, ''), groups = scenarios[key];
@@ -41,7 +63,8 @@ export async function runTestFiles(files: string[], concurrency: number): Promis
     return testNamePatterns(groups.map(([prefix]) => prefix)).map((pattern, i) => ({ file, pattern, seconds: weights[i] }));
   }).sort((a, b) => b.seconds - a.seconds || a.file.localeCompare(b.file));
   const children = new Set<ReturnType<typeof Bun.spawn>>();
-  const failures = new Set<string>();
+  const failed = new Map<string, Set<string>>();
+  const known = options.known ?? [], isKnown = (file: string, test: string) => known.some(entry => entry.file === file && (entry.test === test || entry.test === '*'));
   const interrupt = () => {
     for (const child of children) child.kill('SIGTERM');
     process.exit(130);
@@ -63,9 +86,14 @@ export async function runTestFiles(files: string[], concurrency: number): Promis
           new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited,
         ]);
         children.delete(child);
-        if (code !== 0) failures.add(job.file);
-        process.stdout.write(stdout);
-        process.stderr.write(stderr);
+        const file = job.file.replace(/^\.\//, '');
+        if (code !== 0) {
+          const names = failedTests(stdout + stderr), tests = failed.get(file) ?? new Set<string>();
+          for (const name of names.length ? names : ['*']) tests.add(name);
+          failed.set(file, tests);
+        }
+        if (options.verbose) { process.stdout.write(stdout); process.stderr.write(stderr); }
+        else if (code !== 0 && !options.record && ![...failed.get(file)!].every(test => isKnown(file, test))) console.log(`\n${file}:\n${boundedOutput(stdout + stderr)}`);
       }
     }));
   } finally {
@@ -73,15 +101,34 @@ export async function runTestFiles(files: string[], concurrency: number): Promis
     process.removeListener('SIGTERM', interrupt);
     for (const child of children) child.kill('SIGTERM');
   }
-  console.log(`\n${files.length} test files, ${failures.size} failed; ${(performance.now() - start).toFixed(0)} ms (${concurrency} workers)`);
-  return failures.size ? 1 : 0;
+  const failures = [...failed].flatMap(([file, tests]) => [...tests].map(test => ({ file, test }))).sort((a, b) => a.file.localeCompare(b.file) || a.test.localeCompare(b.test));
+  if (options.record) {
+    const today = new Date().toISOString().slice(0, 10);
+    const entries = failures.map(failure => known.find(entry => entry.file === failure.file && entry.test === failure.test) ?? { ...failure, since: today });
+    writeFileSync(KNOWN_FAILURES, `${JSON.stringify(entries, null, 2)}\n`);
+    console.log(`Recorded ${entries.length} known failures in scripts/tests/known-failures.json`);
+    return 0;
+  }
+  const fresh = failures.filter(failure => !isKnown(failure.file, failure.test));
+  const ran = new Set(files.map(file => file.replace(/^\.\//, '')));
+  const fixed = known.filter(entry => !entry.flaky && ran.has(entry.file) && !failures.some(failure => failure.file === entry.file && (entry.test === '*' || failure.test === entry.test)));
+  if (fresh.length) console.log(`\nNew failures:\n${fresh.map(failure => `  ${failure.file} > ${failure.test}`).join('\n')}`);
+  if (fixed.length) console.log(`\nNo longer failing; remove from scripts/tests/known-failures.json:\n${fixed.map(entry => `  ${entry.file} > ${entry.test}`).join('\n')}`);
+  console.log(`\n${files.length} test files: ${fresh.length} new failures, ${failures.length - fresh.length} known (scripts/tests/known-failures.json); ${((performance.now() - start) / 1000).toFixed(0)} s (${concurrency} workers)`);
+  return fresh.length ? 1 : 0;
 }
 
 if (import.meta.main) {
-  const args = process.argv.slice(2);
-  if (args.length) {
-    // Let Bun own filtering, watch mode, coverage and other native options.
-    const child = Bun.spawn([process.execPath, 'test', ...roots, ...args], {
+  // `--verbose` prints every file's output, `--record-known` rewrites the ledger from this run, and
+  // `--known` lists it. Anything else is handed to Bun, which owns filtering, watch mode and coverage.
+  const own = new Set(['--verbose', '--record-known', '--known']);
+  const args = process.argv.slice(2), passthrough = args.filter(arg => !own.has(arg));
+  if (args.includes('--known')) {
+    for (const entry of readKnownFailures()) console.log(`${entry.file} > ${entry.test}  (since ${entry.since}${entry.flaky ? ', flaky' : ''}${entry.note ? `; ${entry.note}` : ''})`);
+    process.exit(0);
+  }
+  if (passthrough.length) {
+    const child = Bun.spawn([process.execPath, 'test', ...roots, ...passthrough], {
       cwd, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit',
     });
     process.exit(await child.exited);
@@ -90,5 +137,5 @@ if (import.meta.main) {
   const glob = new Bun.Glob('**/*.{test,spec}.{js,jsx,ts,tsx,mjs,mts,cjs,cts}');
   const files = roots.flatMap(root => [...glob.scanSync({ cwd: resolve(cwd, root) })].map(file => `./${root}/${file}`)).sort();
   if (!files.length) throw new Error('No test files found');
-  process.exit(await runTestFiles(files, concurrency));
+  process.exit(await runTestFiles(files, concurrency, { verbose: args.includes('--verbose'), record: args.includes('--record-known'), known: readKnownFailures() }));
 }

@@ -401,7 +401,11 @@ pub(crate) fn exterior_protection_mm(def: &ShipDefinition) -> f64 {
         .fold(0.0, f64::max)
 }
 /// `protection` is the target's compiled `exterior_protection_mm`.
-pub(crate) fn ammunition(protection: f64, mount: &MountDefinition, state: &MountState) -> Ammunition {
+pub(crate) fn ammunition(
+    protection: f64,
+    mount: &MountDefinition,
+    state: &MountState,
+) -> Ammunition {
     let preferred =
         if mount.weapon.he.is_some() && (mount.weapon.caliber_m < 0.2 || protection < 80.0) {
             Ammunition::He
@@ -469,7 +473,11 @@ fn damage_aware_aim_points(
     options.sort_by(|a, b| b.1.total_cmp(&a.1).then_with(|| a.0[2].total_cmp(&b.0[2])));
     Some(options.into_iter().take(3).map(|o| o.0).collect())
 }
-pub(crate) fn torpedo_aim(bot: &BotState, motion: &ShipState, tube: &TubeDefinition) -> Option<Vec3> {
+pub(crate) fn torpedo_aim(
+    bot: &BotState,
+    motion: &ShipState,
+    tube: &TubeDefinition,
+) -> Option<Vec3> {
     let track = bot.track.as_ref()?;
     let point = add(
         [track.pose.x, 0.0, track.pose.z],
@@ -748,8 +756,11 @@ fn aim_solution(
         .and_then(|b| b.guns.get(&mount.id))
         .unwrap_or(&default_gun);
     let pose = track.map_or(fallback_pose, |t| t.pose);
-    let velocity = track.map_or(fallback_velocity, |t| t.velocity);
-    let inherited = motion.velocity();
+    // Solve in shell time, where world motion appears slower by the shell pace.
+    let shell_time = 1.0 / crate::mobility::SHELL_PACE;
+    let world_velocity = track.map_or(fallback_velocity, |t| t.velocity);
+    let velocity = scale(world_velocity, shell_time);
+    let inherited = scale(motion.velocity(), shell_time);
     let along = (track.map_or(1, |t| t.focus) as f64 - 1.0) * 0.23 + gun.along_hull;
     let selected = track.and_then(|t| {
         t.aim_points
@@ -773,7 +784,7 @@ fn aim_solution(
     let time = bot.map_or(0.0, |b| b.time);
     let mut point = add(
         local_to_world(local, pose),
-        scale(velocity, time - track.map_or(time, |t| t.observed_at)),
+        scale(world_velocity, time - track.map_or(time, |t| t.observed_at)),
     );
     point[1] = point[1].max(0.5);
     let from = muzzle_center_world(mount, state, motion);

@@ -10,11 +10,17 @@ const MOUSE: [string, string][] = [
   ['Drag a selected piece', 'Click to select first, then drag to move it along the face under the pointer, using the enabled snap targets'],
   ['Drag over faces', 'With Paint on the Armor and Paint layers: sweep the card over every face the drag crosses, as one edit'],
   ['Drag unselected piece or empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
-  ['Drag a rotation ring', 'In Hull Rotate mode (O): pitch, yaw or roll around ship axes. Snap 15° is optional; hold Shift for 0.1° angles. Escape cancels the drag'],
+  [
+    'Drag a rotation ring',
+    'In Hull Rotate mode (O): pitch, yaw or roll around ship axes. Snap 15° is optional; hold Shift for 0.1° angles. Escape cancels the drag',
+  ],
   ['Right-drag', 'Rotate a fitting or its placement preview; Shift for 0.1° fine control. Elsewhere, pan'],
   ['Wheel · middle-drag', 'Zoom · dolly'],
   ['Shift-drag', 'Box select; Ctrl or ⌘ adds to the selection'],
-  ['Railing · rope · chain', 'Click connected points; double-click or Enter finishes the path; Escape cancels; Backspace removes the last point'],
+  [
+    'Railing · rope · chain',
+    'Click connected points; double-click or Enter finishes the path; Escape cancels; Backspace removes the last point',
+  ],
   ['While placing', 'Click places; a drag lays a run; Fill drags a rectangle'],
 ];
 const EDITING: [string[], string][] = [
@@ -24,7 +30,10 @@ const EDITING: [string[], string][] = [
   [['Del', '⌫', '⌘X'], 'Remove the selection; a wall merges its rooms'],
   [['←', '→', '↑', '↓'], 'Resize a door/window; portholes scale uniformly (Shift for fine steps); otherwise nudge by the Snap step'],
   [['PgUp', 'PgDn'], 'Raise or lower the selection'],
-  [['X', 'Y', 'Z'], 'Hull: turn the cursor block or selected blocks 90° in pitch, yaw or roll (Shift reverses). In Rotate mode the key also aims the gizmo'],
+  [
+    ['X', 'Y', 'Z'],
+    'Hull: turn the cursor block or selected blocks 90° in pitch, yaw or roll (Shift reverses). In Rotate mode the key also aims the gizmo',
+  ],
   [['R', '⇧R'], 'Rotate the cursor piece or selection about the vertical: ±90° hull, 15° fittings; Shift-R turns fittings 1°'],
   [['N'], 'Toggle snapping; remembers enabled targets and grid spacing'],
   [['S'], 'Cycle grid spacing (local move step in freeform)'],
@@ -50,26 +59,88 @@ const VIEW: [string[], string][] = [
 ];
 
 function Rows({ rows }: { rows: [ReactNode, string][] }) {
-  return <div className="sb-help-rows">{rows.map(([keys, text], index) => <div key={index}><span>{keys}</span><span>{text}</span></div>)}</div>;
+  return (
+    <div className="sb-help-rows">
+      {rows.map(([keys, text], index) => (
+        <div key={index}>
+          <span>{keys}</span>
+          <span>{text}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 const keycaps = (keys: string[]) => keys.map((key, index) => <kbd key={index}>{key}</kbd>);
 
 export function HelpDialog({ onClose }: { onClose(): void }) {
   const close = useRef<HTMLButtonElement>(null);
-  useEffect(() => { close.current?.focus(); }, []);
-  return <div className="sb-help-backdrop" onPointerDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <div className="sb-help" role="dialog" aria-modal="true" aria-labelledby="sb-help-title">
-      <header><h2 id="sb-help-title">Controls and hotkeys</h2><button ref={close} className="sb-help-close" aria-label="Close" onClick={onClose}>×</button></header>
-      <div className="sb-help-columns">
-        <section><h3>Mouse</h3><Rows rows={MOUSE.map(([action, text]) => [<i key={action}>{action}</i>, text])}/></section>
-        <section><h3>Editing</h3><Rows rows={EDITING.map(([keys, text]) => [keycaps(keys), text])}/></section>
-        <section><h3>View and palette</h3><Rows rows={VIEW.map(([keys, text]) => [keycaps(keys), text])}/></section>
-        <section className="sb-help-tools"><h3>Tools by layer</h3>
-          <table><tbody>{BUILDER_LAYERS.map(layer => <tr key={layer.id}><th scope="row">{layer.name}</th><td>{BUILDER_RAIL[layer.id].map(entry => <span key={entry.id}><kbd>{entry.key}</kbd>{entry.name}</span>)}</td></tr>)}</tbody></table>
-        </section>
+  useEffect(() => {
+    close.current?.focus();
+  }, []);
+  return (
+    <div
+      className="sb-help-backdrop"
+      onPointerDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div className="sb-help" role="dialog" aria-modal="true" aria-labelledby="sb-help-title">
+        <header>
+          <h2 id="sb-help-title">Controls and hotkeys</h2>
+          <button ref={close} className="sb-help-close" aria-label="Close" onClick={onClose}>
+            ×
+          </button>
+        </header>
+        <div className="sb-help-columns">
+          <section>
+            <h3>Mouse</h3>
+            <Rows rows={MOUSE.map(([action, text]) => [<i key={action}>{action}</i>, text])} />
+          </section>
+          <section>
+            <h3>Editing</h3>
+            <Rows rows={EDITING.map(([keys, text]) => [keycaps(keys), text])} />
+          </section>
+          <section>
+            <h3>View and palette</h3>
+            <Rows rows={VIEW.map(([keys, text]) => [keycaps(keys), text])} />
+          </section>
+          <section className="sb-help-tools">
+            <h3>Tools by layer</h3>
+            <table>
+              <tbody>
+                {BUILDER_LAYERS.map((layer) => (
+                  <tr key={layer.id}>
+                    <th scope="row">{layer.name}</th>
+                    <td>
+                      {BUILDER_RAIL[layer.id].map((entry) => (
+                        <span key={entry.id}>
+                          <kbd>{entry.key}</kbd>
+                          {entry.name}
+                        </span>
+                      ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </div>
+        <p>
+          Select one editable hull shape and press D to enter Freeform; D or Escape finishes. Select a vertex, edge, face or curved-shape
+          ring; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the
+          block; select none to turn symmetry off. With ship Mirror on (M), the block that mirrors this one across the centerline takes the
+          same edits. An edge or face spanning a mirror plane cannot move across it. Move nearby corners is opt-in; Split creates
+          independent blocks. Reset edit restores the block’s session-entry shape.
+        </p>
+        <p>
+          In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Drag pieces and handles to
+          position them. Snap guides appear only when a snap is engaged: mint joins aligned geometry, brass marks the ship centerline. Dots
+          mark the aligned points and a solid edge marks the target. Turning Snap off hides these guides. Movement stops at another block’s
+          bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. With Mirror
+          on, moving, turning, resizing, shaping or removing a piece does the same to the piece that mirrors it across the centerline;
+          select both sides to move them together instead. Mirror also reaches the twin face when painting armor or paint.
+        </p>
       </div>
-      <p>Select one editable hull shape and press D to enter Freeform; D or Escape finishes. Select a vertex, edge, face or curved-shape ring; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the block; select none to turn symmetry off. With ship Mirror on (M), the block that mirrors this one across the centerline takes the same edits. An edge or face spanning a mirror plane cannot move across it. Move nearby corners is opt-in; Split creates independent blocks. Reset edit restores the block’s session-entry shape.</p>
-      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Drag pieces and handles to position them. Snap guides appear only when a snap is engaged: mint joins aligned geometry, brass marks the ship centerline. Dots mark the aligned points and a solid edge marks the target. Turning Snap off hides these guides. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. With Mirror on, moving, turning, resizing, shaping or removing a piece does the same to the piece that mirrors it across the centerline; select both sides to move them together instead. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
-  </div>;
+  );
 }

@@ -77,12 +77,35 @@ Construction emits these values; older presets infer missing fitting properties
 from module envelopes and authored handling. See [maneuvering physics](maneuvering.md)
 for force conventions, legacy calibration, caching, approximations and validation.
 
-Shared runtime tuning gives planar forces/torques ×4 response, hard-over rudders ×8 force
-authority and authored rudder shift ×1.8. It preserves straight-line equilibrium
-speed, actual displacement and the effects of damage/floodwater. Navigation uses
-the same braking response. Previous acceleration/turn-rate multipliers remain
-legacy calibration inputs. Torpedo run speed remains ×1.1; range and arming remain
-distance-based.
+Shared runtime tuning in `crates/naval-sim/src/mobility.rs` (mirrored in
+`src/ships/mobility.ts`) gives planar forces/torques ×2 response, rudder force
+authority ramping to ×2 at hard over and authored rudder shift ×1.2. It preserves
+straight-line equilibrium speed, actual displacement and the effects of
+damage/floodwater. Navigation uses the same braking response. Previous
+acceleration/turn-rate multipliers remain legacy calibration inputs.
+
+Pace multipliers speed up play while every readout keeps the real figure:
+
+- Ships cover ground and turn ×1.5 (`SHIP_PACE`). Speed, sway and yaw-rate state
+  stays physical, so the HUD, fleet chart, orders and port statistics show
+  authored/physical speed; world velocity comes from `ShipState::velocity()`.
+  Aircraft are paced with them, keeping air/sea motion as authored: their
+  `velocity` is world motion and `airspeed()` the real airspeed. See
+  [world pace](maneuvering.md#world-pace).
+- Gun shells, including AA fire, advance ×1.25 physical seconds per battle second
+  (`SHELL_PACE`): the same arc, range and penetration, arriving sooner. Shell
+  state, snapshot velocity and aim caches stay physical; aim solvers express world
+  motion per shell second, and flight-time readouts convert to battle seconds.
+  Muzzle velocity and maximum range in statistics remain authored values. Bombs
+  are not paced.
+- Air combat keeps the strength it was tuned for. Automatic AA and fighter guns
+  reload, and pilots re-assess, aim and evade, at the world pace, so the same
+  volume of fire and the same decisions land in a pass that now crosses the
+  envelope faster. AA burst and near-miss radii widen with the pace, since a
+  target crossing faster outruns a straight-line burst prediction by the same
+  factor. Player gun and torpedo reloads are unchanged.
+- Torpedoes run at ×2 authored speed; range and arming remain distance-based.
+  Statistics show the authored speed, while lead and run clocks use the real one.
 
 ### Gun firing and ammunition
 

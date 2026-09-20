@@ -28,6 +28,6 @@ for (const ammunition of ['ap', 'he'] as const) {
   }
   results.push({ ammunition, seed: sim.seed, seconds: 180, spawnDistance: 3000, definitions: sim.actors.map(a => ({ id: a.definition.id, hash: a.definition.contentHash })), eventCounts, maxSimultaneous, burns: [...burns.values()], result: sim.result });
 }
-mkdirSync('assets/reviews/localized-fire', { recursive: true });
-writeFileSync('assets/reviews/localized-fire/combat.json', JSON.stringify(results, null, 2) + '\n');
+mkdirSync('.build/reviews/localized-fire', { recursive: true });
+writeFileSync('.build/reviews/localized-fire/combat.json', JSON.stringify(results, null, 2) + '\n');
 console.log(JSON.stringify(results, null, 2));

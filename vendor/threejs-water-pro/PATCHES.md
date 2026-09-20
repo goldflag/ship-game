@@ -105,8 +105,7 @@ views is unchanged.
 The vendor distribution contains the runtime bundle and declarations, without
 the original TypeScript implementation. Preserve this patch when replacing
 the bundle until upstream has an equivalent correction. Run the production
-shader regression in `/scripts/diagnostics/water-detail.html`; see
-`assets/reviews/water-detail/README.md` for before/after evidence.
+shader regression in `/scripts/diagnostics/water-detail.html`.
 
 ## Directional ship shadows on water
 

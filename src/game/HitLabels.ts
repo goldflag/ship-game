@@ -1,3 +1,4 @@
+import { HUD_LAYERS } from '../ui/hudLayers';
 import type { BattleSession } from './session/BattleSession';
 import { Vector3, type Camera } from 'three/webgpu';
 
@@ -21,7 +22,7 @@ export class HitLabels {
   private width = 1;
   private height = 1;
   constructor(host: HTMLElement) {
-    this.root.className = 'hit-label-layer';
+    this.root.className = HUD_LAYERS.hitLabels.className;
     this.root.setAttribute('aria-label', 'Enemy impact damage');
     host.appendChild(this.root);
   }

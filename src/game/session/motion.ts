@@ -26,12 +26,14 @@ export function createShipState(id = 'player'): ShipState {
 }
 
 import type { ShipState } from '../../multiplayer/generated/ShipState';
+import { SHIP_PACE } from '../../ships/mobility';
 export const meanHullY = (state: { y: number; waveHeave?: number }): number => state.y - (state.waveHeave ?? 0);
 export const hullDepth = (state: { y: number; waveHeave?: number }): number => Math.max(0, -meanHullY(state));
 
+/** World velocity: paced surge/sway plus unscaled drift. `speed` itself stays physical. */
 export function motionVelocity(state: ShipState): import('../../ships/blueprint').Vec3 {
   const sin = Math.sin(state.heading), cos = Math.cos(state.heading);
-  return [sin * state.speed + cos * state.swaySpeed + (state.driftX ?? 0), state.verticalSpeed ?? 0, -cos * state.speed + sin * state.swaySpeed + (state.driftZ ?? 0)];
+  return [SHIP_PACE * (sin * state.speed + cos * state.swaySpeed) + (state.driftX ?? 0), state.verticalSpeed ?? 0, SHIP_PACE * (-cos * state.speed + sin * state.swaySpeed) + (state.driftZ ?? 0)];
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));

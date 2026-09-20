@@ -67,7 +67,8 @@ pub fn resolve_land_contact(
         } else {
             (1.0, 0.0)
         };
-        let velocity = ship.velocity();
+        // Contact energy and the body-speed round trip below use physical motion.
+        let velocity = ship.physical_velocity();
         let inward = -(velocity[0] * nx + velocity[2] * nz);
         if inward > 0.75 {
             let damage = damage_hull_contact(

@@ -23,6 +23,6 @@ for (let i = 0; i < 120 * 60; i++) updateDamageControl(actor, def, 1 / 60, () =>
 const result = { fixture: 'Isolated hull-consequence calibration, not a ballistic duel or historical survivability measurement',
   focused: hits(false), spread: hits(true), breachAddedM2: openings,
   unattendedMountFire: { remainingEquipmentHp: actor.mounts[0].hp, remainingFuel: actor.damage.control.mounts[0].fuel, intensity: actor.damage.control.mounts[0].intensity } };
-await mkdir('assets/reviews/local-damage', { recursive: true });
-await writeFile('assets/reviews/local-damage/calibration.json', JSON.stringify(result, null, 2) + '\n');
+await mkdir('.build/reviews/local-damage', { recursive: true });
+await writeFile('.build/reviews/local-damage/calibration.json', JSON.stringify(result, null, 2) + '\n');
 console.log(JSON.stringify(result, null, 2));

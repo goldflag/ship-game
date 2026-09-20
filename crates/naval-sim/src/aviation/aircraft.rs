@@ -226,7 +226,10 @@ pub struct AirRelease {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Another team's weapon is cut to its visible dimensions and speed in a team
     /// frame (`team_view`); the owner's travels whole.
-    #[ts(type = "Pick<import('../../ships/blueprint').TorpedoPart, 'diameterM' | 'lengthM' | 'speed'> & Partial<import('../../ships/blueprint').TorpedoPart>", optional)]
+    #[ts(
+        type = "Pick<import('../../ships/blueprint').TorpedoPart, 'diameterM' | 'lengthM' | 'speed'> & Partial<import('../../ships/blueprint').TorpedoPart>",
+        optional
+    )]
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
 pub(super) const FIGHTER_AMMO_BURSTS: f64 = 16.0;
@@ -282,6 +285,10 @@ pub(super) struct PlaneView<'a> {
     pub ammo: f64,
 }
 impl<'a> PlaneView<'a> {
+    /// True airspeed; `velocity` is paced world motion, as on the aircraft itself.
+    pub(super) fn airspeed(&self) -> f64 {
+        crate::geometry::length(self.velocity) / crate::mobility::SHIP_PACE
+    }
     pub(super) fn of(p: &'a Aircraft) -> Self {
         Self {
             id: &p.id,
@@ -336,6 +343,10 @@ pub(super) fn aircraft_service_seconds(base: f64, hp: f64) -> f64 {
     base * (1.0 + (100.0 - hp.clamp(0.0, 100.0)) / 100.0)
 }
 impl Aircraft {
+    /// True airspeed. `velocity` is world motion, which carries the world pace.
+    pub(super) fn airspeed(&self) -> f64 {
+        crate::geometry::length(self.velocity) / crate::mobility::SHIP_PACE
+    }
     pub(super) fn forward(&self) -> Vec3 {
         [
             self.heading.sin() * self.pitch.cos(),

@@ -6,7 +6,7 @@ import type { BuilderLayer } from './builderLayers';
 
 /** Ledger and checks content derived from the native compile result. */
 export type Tone = 'ok' | 'warn' | 'bad';
-export interface LedgerRow { label: string; value: string; tone?: Tone }
+export interface LedgerRow { label: string; value: string; tone?: Tone; help?: string }
 export interface MassGroup { name: string; massKg: number; color: string }
 export interface WarningEntry { tone: 'block' | 'warn' | 'note'; message: string; sourceId?: string; code: string }
 
@@ -41,10 +41,30 @@ export function splitDiagnostic(message: string): [lead: string, advice: string]
   return end < 0 ? [message, ''] : [message.slice(0, end + 1), message.slice(end + 2)];
 }
 
+const ENGINES = 'Engines', POWER = 'Power at screws', SPEED = 'Calm-water speed';
+/** Mirrors the native compiler: 2% of rated power runs auxiliaries before exhaust limits and propeller losses. */
+const AUXILIARY_POWER_SHARE = .02;
+
+/** Installed engine rating, then the share that reaches the water and why. */
+export function propulsionRows(result: ConstructionResult | undefined): LedgerRow[] {
+  const loading = result?.loading, pool = result?.definition?.propulsion?.sharedExhaust;
+  const rated = pool?.engines.reduce((sum, engine) => sum + engine.kw, 0) ?? 0, exhaust = pool?.funnels.reduce((sum, funnel) => sum + funnel.kw, 0) ?? 0;
+  const supply = rated > 0 ? Math.min(1, exhaust / rated) : 0, net = rated * Math.max(0, supply - AUXILIARY_POWER_SHARE);
+  const steps = [`${format(rated, 0)} kW rated`, supply < 1 ? `× ${format(supply * 100, 0)} % funnel capacity (${format(exhaust, 0)} kW)` : undefined, `less ${AUXILIARY_POWER_SHARE * 100} % for auxiliaries`,
+    loading && net > 0 ? `× ${format(loading.powerKw / net * 100, 0)} % propeller efficiency` : undefined].filter(Boolean);
+  return [
+    { label: ENGINES, value: loading ? `${format(rated, 0)} kW` : '—', help: 'Total catalog rating of the fitted engines.' },
+    { label: POWER, value: loading ? `${format(loading.powerKw, 0)} kW` : '—',
+      help: rated > 0 ? `Power that drives the ship: ${steps.join(', ')}. Engines without a funnel or propeller supply nothing.` : 'No engine supplies power.' },
+    { label: SPEED, value: loading ? `${format(loading.estimatedSpeedMps * MPS_TO_KNOTS)} kn` : '—',
+      help: 'Top speed in flat water. Waves add drag in battle, most when heading into them: a moderate sea costs roughly 10–15 %. Each doubling of power adds only about a fifth more speed.' },
+  ];
+}
+
 const TONE_BY_CODE: Record<string, { label: string; tone: Tone }[]> = {
   unstable: [{ label: 'GM', tone: 'warn' }], overloaded: [{ label: 'Displacement', tone: 'bad' }, { label: 'Draft', tone: 'bad' }],
-  'exhaust-capacity': [{ label: 'Power', tone: 'warn' }, { label: 'Speed', tone: 'warn' }],
-  unpowered: [{ label: 'Power', tone: 'warn' }, { label: 'Speed', tone: 'warn' }], 'propulsor-exposure': [{ label: 'Speed', tone: 'warn' }],
+  'exhaust-capacity': [{ label: POWER, tone: 'warn' }, { label: SPEED, tone: 'warn' }],
+  unpowered: [{ label: POWER, tone: 'warn' }, { label: SPEED, tone: 'warn' }], 'propulsor-exposure': [{ label: SPEED, tone: 'warn' }],
 };
 
 const SEA_DENSITY = 1025, LEVEL_DEG = .05;
@@ -74,7 +94,7 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
   const loading = result?.loading, bounds = hullBounds(source), data = source.construction;
   const tones = new Map<string, Tone>();
   for (const diagnostic of result?.diagnostics ?? []) for (const entry of TONE_BY_CODE[diagnostic.code] ?? []) tones.set(entry.label, entry.tone);
-  const row = (label: string, value: string, tone?: Tone): LedgerRow => ({ label, value, tone: tone ?? tones.get(label) });
+  const row = (label: string, value: string, tone?: Tone, help?: string): LedgerRow => ({ label, value, tone: tone ?? tones.get(label), ...help ? { help } : {} });
   const extent = (axis: number) => bounds ? `${format(bounds.max[axis] - bounds.min[axis])} m` : '—';
   const rows = [
     row('Length', extent(2)),
@@ -84,8 +104,7 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
     row('Draft', loading && bounds ? `${format(loading.waterlineY - bounds.min[1], 2)} m` : '—'),
     row('GM', loading ? `${format(loading.rollMetacentricHeightM, 2)} m` : '—'),
     ...attitudeRows(result, bounds ? bounds.max[2] - bounds.min[2] : undefined).map(entry => row(entry.label, entry.value, entry.tone)),
-    row('Power', loading ? `${format(loading.powerKw, 0)} kW` : '—'),
-    row('Speed', loading ? `${format(loading.estimatedSpeedMps * MPS_TO_KNOTS)} kn` : '—'),
+    ...propulsionRows(result).map(entry => row(entry.label, entry.value, entry.tone, entry.help)),
     row('Usable space', loading ? `${format(loading.usableVolumeM3, 0)} m³` : '—'),
   ];
   const surfaces = editableConstructionSurfaces(source, result?.surfaces ?? []);

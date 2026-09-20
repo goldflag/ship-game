@@ -4,6 +4,7 @@ import { DEFAULT_HUD, HUD_STORAGE_KEY, hudScaleFor, loadHudSettings, sanitizeHud
 import { projectShipLabel } from './ShipLabels';
 import { projectGunAim } from './GunAimIndicators';
 import { Game } from './Game';
+import { PROJECTED_HUD_LAYER_FIELDS } from '../ui/hudLayers';
 
 test('automatic HUD scale grows on ultrawides and contracts in laptop CSS viewports', () => {
   expect(hudScaleFor(DEFAULT_HUD, 1920, 1080)).toBe(1);
@@ -77,13 +78,13 @@ test('live scale changes resize every projected overlay without recreating the r
   const dimensions = new Map<string, number[]>();
   Object.assign(game, {
     host: { clientWidth: 3800, clientHeight: 1600 },
-    ...Object.fromEntries(['shipLabels', 'hitLabels', 'gunAim', 'torpedoAim', 'torpedoMarkers'].map(name => [name, {
+    ...Object.fromEntries(PROJECTED_HUD_LAYER_FIELDS.map(name => [name, {
       resize: (width: number, height: number) => dimensions.set(name, [width, height]),
     }])),
   });
   for (const scale of [1.5, .75]) {
     game.setHudScale(scale);
-    expect(dimensions.size).toBe(5);
+    expect(dimensions.size).toBe(PROJECTED_HUD_LAYER_FIELDS.length);
     for (const size of dimensions.values()) expect(size).toEqual([3800 / scale, 1600 / scale]);
   }
 });

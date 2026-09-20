@@ -48,7 +48,10 @@ export function fittingCategory(part: ConstructionEquipmentPart, catalog: Constr
 }
 
 export type FittingNation = 'United States' | 'Germany' | 'Japan' | 'United Kingdom' | 'France' | 'Italy' | 'Russia' | 'Sweden' | 'Netherlands';
-export const NATION_SHORT: Record<FittingNation, string> = { 'United States': 'USA', Germany: 'Germany', Japan: 'Japan', 'United Kingdom': 'UK', France: 'France', Italy: 'Italy', Russia: 'Russia', Sweden: 'Sweden', Netherlands: 'Netherlands' };
+export const NATION_SHORT: Record<FittingNation, string> = {
+  'United States': 'USA', Germany: 'Germany', Japan: 'Japan', 'United Kingdom': 'UK',
+  France: 'France', Italy: 'Italy', Russia: 'Russia', Sweden: 'Sweden', Netherlands: 'Netherlands',
+};
 const NATION_PREFIXES: [RegExp, FittingNation][] = [
   [/^(us|fletcher|iowa|oerlikon|michigan|arizona|colorado)-/, 'United States'], [/^(german|scharnhorst|sk-?c\d|flak)/, 'Germany'], [/^(ijn|mikasa|type\d)/, 'Japan'], [/^(rn|uk|british|qf|bl|lewis|dreadnought|hood)-/, 'United Kingdom'],
   [/^le-fantasque-/, 'France'], [/^roma-/, 'Italy'], [/^gangut-/, 'Russia'], [/^halland-/, 'Sweden'], [/^friesland-/, 'Netherlands'],

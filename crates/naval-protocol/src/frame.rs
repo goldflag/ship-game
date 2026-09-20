@@ -133,7 +133,10 @@ impl Session {
     }
     /// The frame the server publishes to both seats: full knowledge, every
     /// hull in full, plus connection state.
-    pub fn server_frame<'a>(&'a self, connection: Connection<'a>) -> SessionFrame<'a, FullFrame<'a>> {
+    pub fn server_frame<'a>(
+        &'a self,
+        connection: Connection<'a>,
+    ) -> SessionFrame<'a, FullFrame<'a>> {
         let players = &self.control.players;
         SessionFrame {
             battle: self.battle.full_frame(&[]),

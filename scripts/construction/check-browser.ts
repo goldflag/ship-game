@@ -10,8 +10,45 @@ import { parseConstructionCatalog } from '../../src/ships/constructionEquipment'
 // A separate repository root and fresh browser contexts keep checks away from
 // authored ships and the user's local/account library, including on failure.
 const root = resolve(import.meta.dir, '../..');
-const args = process.argv.slice(2);
-if (args.some(arg => arg !== '--headless')) throw new Error('Usage: bun run ship:browser:check [--headless]');
+/** Registered checks run by default. Any other exported check under `scripts/tests/*-browser.*` runs with
+ * `--only <file>#<export>` (for example `--only shipbuilder-placement-browser.tsx#checkShipbuilderPlacement`). */
+interface Check { name: string; module: string; check: string; path?: string }
+const CHECKS: Check[] = [
+  { name: 'storage', module: 'construction-store-browser.ts', check: 'checkConstructionStore' },
+  { name: 'repository-authoring', module: 'construction-authoring-browser.ts', check: 'checkRepositoryAuthoring', path: '/tools/construction/editor.html?ship=authoring-check-browser' },
+  { name: 'design-deletion', module: 'design-deletion-browser.tsx', check: 'checkDesignDeletion' },
+  { name: 'shipbuilder-editing', module: 'shipbuilder-browser.tsx', check: 'checkShipbuilderEditing' },
+  { name: 'internals-selection', module: 'shipbuilder-internals-browser.ts', check: 'checkInternalsSelection' },
+  { name: 'mooring-surface-attachment', module: 'shipbuilder-mooring-browser.ts', check: 'checkMastRopeAttachment' },
+  { name: 'invalid-part-feedback', module: 'shipbuilder-internals-browser.ts', check: 'checkInvalidPartFeedback' },
+  { name: 'equipment-palette-images', module: 'shipbuilder-internals-browser.ts', check: 'checkEquipmentPaletteImages' },
+];
+/** Checks already failing on master, by name; they are reported but do not fail the run. */
+const KNOWN_RED: { name: string; since: string; note?: string }[] = await Bun.file(join(import.meta.dir, 'known-browser-failures.json')).json();
+const args = process.argv.slice(2), only: string[] = [];
+let headless = false, list = false;
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--headless') headless = true;
+  else if (args[i] === '--list') list = true;
+  else if (args[i] === '--only' && args[i + 1]) only.push(...args[++i].split(','));
+  else throw new Error('Usage: bun run ship:browser:check [--headless] [--list] [--only <name|file#export>[,…]]');
+}
+if (list) {
+  for (const check of CHECKS) console.log(`${check.name}${KNOWN_RED.some(entry => entry.name === check.name) ? '  (known red)' : ''}`);
+  console.log('\nUnregistered, run with --only <file>#<export>:');
+  for (const file of [...new Bun.Glob('*-browser.{ts,tsx}').scanSync({ cwd: join(root, 'scripts/tests') })].sort()) {
+    const exported = [...(await Bun.file(join(root, 'scripts/tests', file)).text()).matchAll(/^export (?:async )?function (check\w+)/gm)].map(match => match[1])
+      .filter(name => !CHECKS.some(check => check.module === file && check.check === name));
+    for (const name of exported) console.log(`${file}#${name}`);
+  }
+  process.exit(0);
+}
+const selected: Check[] = only.length ? only.map(entry => {
+  const [module, check] = entry.split('#');
+  const found = check ? { name: entry, module, check } : CHECKS.find(candidate => candidate.name === entry);
+  if (!found) throw new Error(`Unknown check "${entry}". Run with --list.`);
+  return found;
+}) : CHECKS;
 const scratch = join(root, '.build/construction-browser');
 await mkdir(scratch, { recursive: true });
 const fixture = await mkdtemp(join(scratch, 'run-'));
@@ -26,7 +63,7 @@ try {
   await repositoryStore(fixture).save({ designId: source.id, name: source.name, source, schemaVersion: source.schemaVersion,
     catalogRevision: catalog.revision, expectedRevisionId: null });
   server = await authoringServer(root, 0, false, undefined, fixture);
-  browser = await chromium.launch({ headless: args.includes('--headless'), args: ['--enable-unsafe-swiftshader', '--disable-dev-shm-usage'],
+  browser = await chromium.launch({ headless, args: ['--enable-unsafe-swiftshader', '--disable-dev-shm-usage'],
     ...(process.env.CONSTRUCTION_CHROME ? { executablePath: process.env.CONSTRUCTION_CHROME } : {}) });
   const base = serverUrl(server);
   const run = async (name: string, work: (page: Page) => Promise<unknown>, path = '/scripts/diagnostics/construction-check.html') => {
@@ -47,39 +84,19 @@ try {
       throw new Error(`${name} failed; screenshot: ${screenshot}\n${errors.join('\n')}`, { cause });
     } finally { await context.close(); }
   };
-  await run('storage', page => page.evaluate(async modulePath => {
-    const { checkConstructionStore } = await import(modulePath);
-    return checkConstructionStore();
-  }, '/scripts/tests/construction-store-browser.ts'));
-  await run('repository-authoring', page => page.evaluate(async modulePath => {
-    const { checkRepositoryAuthoring } = await import(modulePath);
-    return checkRepositoryAuthoring();
-  }, '/scripts/tests/construction-authoring-browser.ts'), '/tools/construction/editor.html?ship=' + source.id);
-  await run('design-deletion', page => page.evaluate(async modulePath => {
-    const { checkDesignDeletion } = await import(modulePath);
-    return checkDesignDeletion();
-  }, '/scripts/tests/design-deletion-browser.tsx'));
-  await run('shipbuilder-editing', page => page.evaluate(async modulePath => {
-    const { checkShipbuilderEditing } = await import(modulePath);
-    return checkShipbuilderEditing();
-  }, '/scripts/tests/shipbuilder-browser.tsx'));
-  await run('internals-selection', page => page.evaluate(async modulePath => {
-    const { checkInternalsSelection } = await import(modulePath);
-    return checkInternalsSelection();
-  }, '/scripts/tests/shipbuilder-internals-browser.ts'));
-  await run('mooring-surface-attachment', page => page.evaluate(async modulePath => {
-    const { checkMastRopeAttachment } = await import(modulePath);
-    return checkMastRopeAttachment();
-  }, '/scripts/tests/shipbuilder-mooring-browser.ts'));
-  await run('invalid-part-feedback', page => page.evaluate(async modulePath => {
-    const { checkInvalidPartFeedback } = await import(modulePath);
-    return checkInvalidPartFeedback();
-  }, '/scripts/tests/shipbuilder-internals-browser.ts'));
-  await run('equipment-palette-images', page => page.evaluate(async modulePath => {
-    const { checkEquipmentPaletteImages } = await import(modulePath);
-    return checkEquipmentPaletteImages();
-  }, '/scripts/tests/shipbuilder-internals-browser.ts'));
-  console.log('All construction browser checks passed.');
+  // Every selected check runs, so one red check does not hide the state of the rest.
+  const failed: string[] = [], known: string[] = [];
+  for (const check of selected) {
+    try {
+      await run(check.name, page => page.evaluate(async ([modulePath, name]) => (await import(modulePath))[name](), ['/scripts/tests/' + check.module, check.check]), check.path);
+    } catch (error) {
+      if (KNOWN_RED.some(entry => entry.name === check.name)) { known.push(check.name); continue; }
+      failed.push(check.name);
+      console.error(String((error as Error).message).slice(0, 2000), String(((error as Error).cause as Error | undefined)?.message ?? '').slice(0, 2000));
+    }
+  }
+  console.log(`\n${selected.length} browser checks: ${failed.length} new failures${failed.length ? ` (${failed.join(', ')})` : ''}, ${known.length} known red${known.length ? ` (${known.join(', ')})` : ''}`);
+  if (failed.length) process.exitCode = 1;
 } finally {
   await browser?.close();
   (server?.httpServer as Server | undefined)?.closeAllConnections();

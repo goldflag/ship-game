@@ -3,7 +3,9 @@ import { InputController, type InputActions } from './InputController';
 import { defaultKeybindings } from './keybindings';
 
 describe('keyboard gameplay controls', () => {
-  const originals = Object.fromEntries(['window', 'document', 'HTMLElement'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  const originals = Object.fromEntries(
+    ['window', 'document', 'HTMLElement'].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]),
+  );
   let events: EventTarget;
   let modal: boolean;
   let input: InputController;
@@ -14,11 +16,37 @@ describe('keyboard gameplay controls', () => {
     return event;
   }
   beforeEach(() => {
-    events = new EventTarget(); modal = false;
+    events = new EventTarget();
+    modal = false;
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
-    Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
+    Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => (modal ? {} : null) } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), portHome: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), rangefind: mock(), rangeLock: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock(), helmWheel: mock(), freeCamera: mock() };
+    actions = {
+      isSpectating: mock(() => false),
+      cycleSpectator: mock(),
+      pause: mock(),
+      camera: mock(),
+      recenter: mock(),
+      portHome: mock(),
+      hud: mock(),
+      fullscreen: mock(),
+      optics: mock(),
+      weaponGroup: mock(),
+      cursor: mock(),
+      chartSize: mock(),
+      shellFollow: mock(),
+      shellType: mock(),
+      rangefind: mock(),
+      rangeLock: mock(),
+      depth: mock(),
+      depthPreset: mock(),
+      emergencyBlow: mock(),
+      periscope: mock(),
+      airOperations: mock(),
+      simulationSpeed: mock(),
+      helmWheel: mock(),
+      freeCamera: mock(),
+    };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -30,46 +58,83 @@ describe('keyboard gameplay controls', () => {
   });
 
   test('spectator arrows cycle once per press without changing the helm, and respect pause, modifiers and dialogs', () => {
-    key('keydown', 'ArrowRight'); expect(input.rudderOrder).toBe(.5);
+    key('keydown', 'ArrowRight');
+    expect(input.rudderOrder).toBe(0.5);
     key('keyup', 'ArrowRight');
     actions.isSpectating.mockReturnValue(true);
     expect(key('keydown', 'ArrowLeft').defaultPrevented).toBe(true);
     key('keydown', 'ArrowLeft', { repeat: true });
     expect(actions.cycleSpectator).toHaveBeenCalledTimes(1);
     expect(actions.cycleSpectator).toHaveBeenLastCalledWith(-1);
-    key('keyup', 'ArrowLeft'); key('keydown', 'ArrowRight');
+    key('keyup', 'ArrowLeft');
+    key('keydown', 'ArrowRight');
     expect(actions.cycleSpectator).toHaveBeenLastCalledWith(1);
-    expect(input.rudderOrder).toBe(.5);
+    expect(input.rudderOrder).toBe(0.5);
     key('keydown', 'ArrowRight', { ctrlKey: true });
     key('keydown', 'ArrowRight', { shiftKey: true });
-    input.setEnabled(false); key('keydown', 'ArrowRight');
-    input.setEnabled(true); modal = true; key('keydown', 'ArrowRight');
+    input.setEnabled(false);
+    key('keydown', 'ArrowRight');
+    input.setEnabled(true);
+    modal = true;
+    key('keydown', 'ArrowRight');
     expect(actions.cycleSpectator).toHaveBeenCalledTimes(2);
   });
 
+  test('a disabled helm centres the rudder unless the chart holds the last orders for it', () => {
+    key('keydown', 'KeyW');
+    key('keyup', 'KeyW');
+    key('keydown', 'KeyD');
+    key('keyup', 'KeyD');
+    const held = input.sample();
+    expect(held.rudder).toBe(0.5);
+    input.setEnabled(false);
+    expect(input.sample()).toEqual({ throttle: held.throttle, rudder: 0 });
+    // The fleet chart of a custom battle takes the keys but leaves the telegraph and wheel where they stood.
+    input.setEnabled(false, true);
+    expect(input.sample()).toEqual(held);
+    key('keydown', 'KeyA');
+    expect(input.sample()).toEqual(held);
+    input.setEnabled(true);
+    expect(input.sample()).toEqual(held);
+  });
+
   test('the free camera takes the helm keys for flight and hands them back on return', () => {
-    key('keydown', 'KeyO'); expect(actions.freeCamera).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyO');
+    expect(actions.freeCamera).toHaveBeenCalledTimes(1);
     key('keyup', 'KeyO');
     input.setFlying(true);
-    key('keydown', 'KeyW'); key('keydown', 'KeyD'); key('keydown', 'KeyE'); key('keydown', 'ShiftLeft'); key('keydown', 'KeyT', { shiftKey: true });
-    expect(input.order).toBe(1); expect(input.rudderOrder).toBe(0);
-    expect(actions.shellFollow).not.toHaveBeenCalled(); expect(input.firing).toBe(false);
+    key('keydown', 'KeyW');
+    key('keydown', 'KeyD');
+    key('keydown', 'KeyE');
+    key('keydown', 'ShiftLeft');
+    key('keydown', 'KeyT', { shiftKey: true });
+    expect(input.order).toBe(1);
+    expect(input.rudderOrder).toBe(0);
+    expect(actions.shellFollow).not.toHaveBeenCalled();
+    expect(input.firing).toBe(false);
     expect(input.flight).toEqual({ x: 1, y: 1, z: 1, fast: true });
-    key('keyup', 'ShiftLeft'); expect(actions.optics).not.toHaveBeenCalled();
-    key('keyup', 'KeyW'); key('keydown', 'KeyS'); key('keydown', 'KeyQ');
+    key('keyup', 'ShiftLeft');
+    expect(actions.optics).not.toHaveBeenCalled();
+    key('keyup', 'KeyW');
+    key('keydown', 'KeyS');
+    key('keydown', 'KeyQ');
     expect(input.flight).toEqual({ x: 1, y: 0, z: -1, fast: false });
-    key('keydown', 'KeyC'); expect(actions.camera).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyC');
+    expect(actions.camera).toHaveBeenCalledTimes(1);
     input.setFlying(false);
     expect(input.flight).toEqual({ x: 0, y: 0, z: 0, fast: false });
-    key('keydown', 'KeyW'); expect(input.order).toBe(2);
+    key('keydown', 'KeyW');
+    expect(input.order).toBe(2);
   });
 
   test('the recenter key reaches the port camera while the helm is idle, and the helm camera otherwise', () => {
-    key('keydown', 'KeyR'); key('keyup', 'KeyR');
+    key('keydown', 'KeyR');
+    key('keyup', 'KeyR');
     expect(actions.recenter).toHaveBeenCalledTimes(1);
     expect(actions.portHome).not.toHaveBeenCalled();
     input.setEnabled(false);
-    key('keydown', 'KeyR'); key('keydown', 'KeyR', { repeat: true });
+    key('keydown', 'KeyR');
+    key('keydown', 'KeyR', { repeat: true });
     expect(actions.portHome).toHaveBeenCalledTimes(1);
     expect(actions.recenter).toHaveBeenCalledTimes(1);
   });
@@ -78,144 +143,236 @@ describe('keyboard gameplay controls', () => {
     key('keydown', 'KeyP');
     key('keydown', 'KeyP', { repeat: true });
     expect(actions.periscope).toHaveBeenCalledTimes(1);
-    const bindings = defaultKeybindings(); bindings.periscope = ['KeyV', null];
+    const bindings = defaultKeybindings();
+    bindings.periscope = ['KeyV', null];
     input.setBindings(bindings);
     key('keydown', 'KeyP');
     key('keydown', 'KeyV');
     expect(actions.periscope).toHaveBeenCalledTimes(2);
-    input.setEnabled(false); key('keydown', 'KeyV');
-    input.setEnabled(true); modal = true; key('keydown', 'KeyV');
+    input.setEnabled(false);
+    key('keydown', 'KeyV');
+    input.setEnabled(true);
+    modal = true;
+    key('keydown', 'KeyV');
     expect(actions.periscope).toHaveBeenCalledTimes(2);
   });
 
   test('rangefinding and locking use rebindable keys once per press and respect pause, modifiers and dialogs', () => {
     expect(key('keydown', 'KeyG').defaultPrevented).toBe(true);
-    key('keydown', 'KeyG', { repeat: true }); key('keydown', 'KeyL');
-    expect(actions.rangefind).toHaveBeenCalledTimes(1); expect(actions.rangeLock).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyG', { repeat: true });
+    key('keydown', 'KeyL');
+    expect(actions.rangefind).toHaveBeenCalledTimes(1);
+    expect(actions.rangeLock).toHaveBeenCalledTimes(1);
     expect(actions.cursor).not.toHaveBeenCalled();
-    const bindings = defaultKeybindings(); bindings.rangefind = ['KeyK', null]; bindings.rangeLock = ['KeyV', null];
+    const bindings = defaultKeybindings();
+    bindings.rangefind = ['KeyK', null];
+    bindings.rangeLock = ['KeyV', null];
     input.setBindings(bindings);
-    key('keydown', 'KeyG'); key('keydown', 'KeyL'); key('keydown', 'KeyK'); key('keydown', 'KeyV');
-    expect(actions.rangefind).toHaveBeenCalledTimes(2); expect(actions.rangeLock).toHaveBeenCalledTimes(2);
+    key('keydown', 'KeyG');
+    key('keydown', 'KeyL');
+    key('keydown', 'KeyK');
+    key('keydown', 'KeyV');
+    expect(actions.rangefind).toHaveBeenCalledTimes(2);
+    expect(actions.rangeLock).toHaveBeenCalledTimes(2);
     for (const code of ['KeyK', 'KeyV']) {
-      key('keydown', code, { ctrlKey: true }); key('keydown', code, { shiftKey: true });
-      input.setEnabled(false); key('keydown', code); input.setEnabled(true);
-      modal = true; key('keydown', code); modal = false;
+      key('keydown', code, { ctrlKey: true });
+      key('keydown', code, { shiftKey: true });
+      input.setEnabled(false);
+      key('keydown', code);
+      input.setEnabled(true);
+      modal = true;
+      key('keydown', code);
+      modal = false;
     }
-    expect(actions.rangefind).toHaveBeenCalledTimes(2); expect(actions.rangeLock).toHaveBeenCalledTimes(2);
+    expect(actions.rangefind).toHaveBeenCalledTimes(2);
+    expect(actions.rangeLock).toHaveBeenCalledTimes(2);
   });
 
   test('custom engine keys replace defaults and only notch once per press', () => {
-    const bindings = defaultKeybindings(); bindings.throttleUp = ['KeyI', 'Numpad8'];
+    const bindings = defaultKeybindings();
+    bindings.throttleUp = ['KeyI', 'Numpad8'];
     input.setBindings(bindings);
-    key('keydown', 'KeyW'); expect(input.order).toBe(1);
-    key('keydown', 'ArrowUp'); expect(input.order).toBe(1);
+    key('keydown', 'KeyW');
+    expect(input.order).toBe(1);
+    key('keydown', 'ArrowUp');
+    expect(input.order).toBe(1);
     expect(key('keydown', 'KeyI').defaultPrevented).toBe(true);
-    key('keydown', 'KeyI', { repeat: true }); expect(input.order).toBe(2);
-    key('keyup', 'KeyI'); key('keydown', 'Numpad8'); expect(input.order).toBe(3);
-    key('keydown', 'Space'); expect(input.order).toBe(1);
+    key('keydown', 'KeyI', { repeat: true });
+    expect(input.order).toBe(2);
+    key('keyup', 'KeyI');
+    key('keydown', 'Numpad8');
+    expect(input.order).toBe(3);
+    key('keydown', 'Space');
+    expect(input.order).toBe(1);
   });
 
   test('custom steering latches one notch per tap while firing clears on release or pause', () => {
-    const bindings = defaultKeybindings(); bindings.dive50 = ['KeyK', null]; bindings.port = ['KeyJ', null]; bindings.fire = [null, 'KeyL'];
+    const bindings = defaultKeybindings();
+    bindings.dive50 = ['KeyK', null];
+    bindings.port = ['KeyJ', null];
+    bindings.fire = [null, 'KeyL'];
     input.setBindings(bindings);
-    key('keydown', 'KeyA'); key('keydown', 'KeyQ');
-    expect(input.sample().rudder).toBe(0); expect(input.firing).toBe(false);
-    key('keydown', 'KeyJ'); key('keydown', 'KeyL');
-    expect(input.sample().rudder).toBe(-.5); expect(input.firing).toBe(true);
-    key('keydown', 'KeyJ', { repeat: true }); expect(input.sample().rudder).toBe(-.5);
-    key('keyup', 'KeyJ'); key('keyup', 'KeyL');
-    expect(input.sample().rudder).toBe(-.5); expect(input.firing).toBe(false);
-    key('keydown', 'KeyL'); input.setBindings(defaultKeybindings()); expect(input.firing).toBe(false);
-    key('keydown', 'KeyQ'); input.setEnabled(false); expect(input.firing).toBe(false);
-    input.setEnabled(true); expect(input.firing).toBe(false);
-    expect(input.sample().rudder).toBe(-.5);
-    key('keydown', 'KeyD'); key('keyup', 'KeyD'); expect(input.sample().rudder).toBe(0);
-    for (let i = 0; i < 5; i++) { key('keydown', 'KeyD'); key('keyup', 'KeyD'); }
+    key('keydown', 'KeyA');
+    key('keydown', 'KeyQ');
+    expect(input.sample().rudder).toBe(0);
+    expect(input.firing).toBe(false);
+    key('keydown', 'KeyJ');
+    key('keydown', 'KeyL');
+    expect(input.sample().rudder).toBe(-0.5);
+    expect(input.firing).toBe(true);
+    key('keydown', 'KeyJ', { repeat: true });
+    expect(input.sample().rudder).toBe(-0.5);
+    key('keyup', 'KeyJ');
+    key('keyup', 'KeyL');
+    expect(input.sample().rudder).toBe(-0.5);
+    expect(input.firing).toBe(false);
+    key('keydown', 'KeyL');
+    input.setBindings(defaultKeybindings());
+    expect(input.firing).toBe(false);
+    key('keydown', 'KeyQ');
+    input.setEnabled(false);
+    expect(input.firing).toBe(false);
+    input.setEnabled(true);
+    expect(input.firing).toBe(false);
+    expect(input.sample().rudder).toBe(-0.5);
+    key('keydown', 'KeyD');
+    key('keyup', 'KeyD');
+    expect(input.sample().rudder).toBe(0);
+    for (let i = 0; i < 5; i++) {
+      key('keydown', 'KeyD');
+      key('keyup', 'KeyD');
+    }
     expect(input.sample().rudder).toBe(1);
-    input.setRudder(0); expect(input.sample().rudder).toBe(0);
+    input.setRudder(0);
+    expect(input.sample().rudder).toBe(0);
   });
 
   test('view shortcuts honor custom bindings and keep Esc available', () => {
-    const bindings = defaultKeybindings(); bindings.camera = ['KeyV', null];
+    const bindings = defaultKeybindings();
+    bindings.camera = ['KeyV', null];
     input.setBindings(bindings);
-    key('keydown', 'KeyC'); expect(actions.camera).not.toHaveBeenCalled();
-    key('keydown', 'KeyV'); key('keydown', 'KeyV', { repeat: true });
+    key('keydown', 'KeyC');
+    expect(actions.camera).not.toHaveBeenCalled();
+    key('keydown', 'KeyV');
+    key('keydown', 'KeyV', { repeat: true });
     expect(actions.camera).toHaveBeenCalledTimes(1);
-    input.setEnabled(false); key('keydown', 'KeyV');
+    input.setEnabled(false);
+    key('keydown', 'KeyV');
     expect(actions.camera).toHaveBeenCalledTimes(1);
-    key('keydown', 'Escape'); expect(actions.pause).toHaveBeenCalledTimes(1);
+    key('keydown', 'Escape');
+    expect(actions.pause).toHaveBeenCalledTimes(1);
   });
-  test('the simulation speed key cycles once per press, even while the helm is not the player\'s', () => {
-    key('keydown', 'KeyN'); key('keydown', 'KeyN', { repeat: true });
+  test("the simulation speed key cycles once per press, even while the helm is not the player's", () => {
+    key('keydown', 'KeyN');
+    key('keydown', 'KeyN', { repeat: true });
     expect(actions.simulationSpeed).toHaveBeenCalledTimes(1);
     // Following a captain or reading the chart disables helm input, not the battle clock.
-    input.setEnabled(false); key('keydown', 'KeyN');
+    input.setEnabled(false);
+    key('keydown', 'KeyN');
     expect(actions.simulationSpeed).toHaveBeenCalledTimes(2);
     input.setEnabled(true);
-    const bindings = defaultKeybindings(); bindings.simulationSpeed = ['KeyY', null]; input.setBindings(bindings);
-    key('keydown', 'KeyN'); expect(actions.simulationSpeed).toHaveBeenCalledTimes(2);
-    key('keydown', 'KeyY'); expect(actions.simulationSpeed).toHaveBeenCalledTimes(3);
+    const bindings = defaultKeybindings();
+    bindings.simulationSpeed = ['KeyY', null];
+    input.setBindings(bindings);
+    key('keydown', 'KeyN');
+    expect(actions.simulationSpeed).toHaveBeenCalledTimes(2);
+    key('keydown', 'KeyY');
+    expect(actions.simulationSpeed).toHaveBeenCalledTimes(3);
   });
   test('air operations opens once per press and respects remapped controls', () => {
-    key('keydown', 'KeyM'); key('keydown', 'KeyM', { repeat: true });
+    key('keydown', 'KeyM');
+    key('keydown', 'KeyM', { repeat: true });
     expect(actions.airOperations).toHaveBeenCalledTimes(1);
-    const bindings = defaultKeybindings(); bindings.airOperations = ['KeyV', null]; input.setBindings(bindings);
-    key('keydown', 'KeyM'); expect(actions.airOperations).toHaveBeenCalledTimes(1);
-    key('keydown', 'KeyV'); expect(actions.airOperations).toHaveBeenCalledTimes(2);
+    const bindings = defaultKeybindings();
+    bindings.airOperations = ['KeyV', null];
+    input.setBindings(bindings);
+    key('keydown', 'KeyM');
+    expect(actions.airOperations).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyV');
+    expect(actions.airOperations).toHaveBeenCalledTimes(2);
   });
 
   test('shell follow toggles once per press, supports rebinding and is inactive while paused', () => {
-    key('keydown', 'KeyT'); key('keydown', 'KeyT', { repeat: true }); key('keyup', 'KeyT');
+    key('keydown', 'KeyT');
+    key('keydown', 'KeyT', { repeat: true });
+    key('keyup', 'KeyT');
     expect(actions.shellFollow).toHaveBeenCalledTimes(1);
-    const bindings = defaultKeybindings(); bindings.shellFollow = ['KeyV', null];
+    const bindings = defaultKeybindings();
+    bindings.shellFollow = ['KeyV', null];
     input.setBindings(bindings);
-    key('keydown', 'KeyT'); key('keyup', 'KeyT');
+    key('keydown', 'KeyT');
+    key('keyup', 'KeyT');
     expect(actions.shellFollow).toHaveBeenCalledTimes(1);
-    key('keydown', 'KeyV'); key('keyup', 'KeyV');
+    key('keydown', 'KeyV');
+    key('keyup', 'KeyV');
     expect(actions.shellFollow).toHaveBeenCalledTimes(2);
-    input.setEnabled(false); key('keydown', 'KeyV');
+    input.setEnabled(false);
+    key('keydown', 'KeyV');
     expect(actions.shellFollow).toHaveBeenCalledTimes(2);
   });
 
   test('shell selection switches once per press, can be rebound, and respects pause and dialogs', () => {
-    key('keydown', 'KeyE'); key('keydown', 'KeyE', { repeat: true }); key('keyup', 'KeyE');
+    key('keydown', 'KeyE');
+    key('keydown', 'KeyE', { repeat: true });
+    key('keyup', 'KeyE');
     expect(actions.shellType).toHaveBeenCalledTimes(1);
-    const bindings = defaultKeybindings(); bindings.shellType = ['KeyV', null]; input.setBindings(bindings);
-    key('keydown', 'KeyE'); expect(actions.shellType).toHaveBeenCalledTimes(1);
-    key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
-    input.setEnabled(false); key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
-    input.setEnabled(true); modal = true; key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
+    const bindings = defaultKeybindings();
+    bindings.shellType = ['KeyV', null];
+    input.setBindings(bindings);
+    key('keydown', 'KeyE');
+    expect(actions.shellType).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyV');
+    expect(actions.shellType).toHaveBeenCalledTimes(2);
+    input.setEnabled(false);
+    key('keydown', 'KeyV');
+    expect(actions.shellType).toHaveBeenCalledTimes(2);
+    input.setEnabled(true);
+    modal = true;
+    key('keydown', 'KeyV');
+    expect(actions.shellType).toHaveBeenCalledTimes(2);
   });
 
   test('Shift taps toggle optics, Shift-plus resizes chart, and Ctrl holds the cursor', () => {
-    key('keydown', 'ShiftLeft', { shiftKey: true }); key('keyup', 'ShiftLeft');
+    key('keydown', 'ShiftLeft', { shiftKey: true });
+    key('keyup', 'ShiftLeft');
     expect(actions.optics).toHaveBeenCalledTimes(1);
-    key('keydown', 'ShiftLeft', { shiftKey: true }); key('keydown', 'Equal', { shiftKey: true });
-    key('keyup', 'Equal'); key('keyup', 'ShiftLeft');
+    key('keydown', 'ShiftLeft', { shiftKey: true });
+    key('keydown', 'Equal', { shiftKey: true });
+    key('keyup', 'Equal');
+    key('keyup', 'ShiftLeft');
     expect(actions.chartSize).toHaveBeenLastCalledWith(1);
     expect(actions.optics).toHaveBeenCalledTimes(1);
-    key('keydown', 'NumpadSubtract'); key('keyup', 'NumpadSubtract');
+    key('keydown', 'NumpadSubtract');
+    key('keyup', 'NumpadSubtract');
     expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
     key('keydown', 'ControlLeft', { ctrlKey: true });
     expect(actions.cursor).toHaveBeenLastCalledWith(true);
-    key('keyup', 'ControlLeft'); expect(actions.cursor).toHaveBeenLastCalledWith(false);
+    key('keyup', 'ControlLeft');
+    expect(actions.cursor).toHaveBeenLastCalledWith(false);
     // A follower without the helm still steers the camera, so Ctrl still frees and returns the cursor.
     input.setEnabled(false);
-    key('keydown', 'ControlRight', { ctrlKey: true }); expect(actions.cursor).toHaveBeenLastCalledWith(true);
-    key('keyup', 'ControlRight'); expect(actions.cursor).toHaveBeenLastCalledWith(false);
+    key('keydown', 'ControlRight', { ctrlKey: true });
+    expect(actions.cursor).toHaveBeenLastCalledWith(true);
+    key('keyup', 'ControlRight');
+    expect(actions.cursor).toHaveBeenLastCalledWith(false);
     expect(actions.cursor).toHaveBeenCalledTimes(4);
     input.setEnabled(true);
-    key('keydown', 'ShiftLeft'); events.dispatchEvent(new Event('blur')); key('keyup', 'ShiftLeft');
+    key('keydown', 'ShiftLeft');
+    events.dispatchEvent(new Event('blur'));
+    key('keyup', 'ShiftLeft');
     expect(actions.optics).toHaveBeenCalledTimes(1);
     // Following a teammate hands the helm to its captain; the minimap keys stay live.
     input.setEnabled(false);
-    key('keydown', 'Equal'); expect(actions.chartSize).toHaveBeenLastCalledWith(1);
+    key('keydown', 'Equal');
+    expect(actions.chartSize).toHaveBeenLastCalledWith(1);
     key('keyup', 'Equal');
-    key('keydown', 'Minus'); expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
-    key('keydown', 'Digit1'); expect(actions.weaponGroup).not.toHaveBeenCalled();
+    key('keydown', 'Minus');
+    expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
+    key('keydown', 'Digit1');
+    expect(actions.weaponGroup).not.toHaveBeenCalled();
     // The glasses are a view control too, so a spectator raises them without the helm.
-    key('keydown', 'ShiftLeft', { shiftKey: true }); key('keyup', 'ShiftLeft');
+    key('keydown', 'ShiftLeft', { shiftKey: true });
+    key('keyup', 'ShiftLeft');
     expect(actions.optics).toHaveBeenCalledTimes(2);
   });
 
@@ -227,24 +384,43 @@ describe('keyboard gameplay controls', () => {
     key('keydown', 'KeyJ', { repeat: true });
     expect(actions.depthPreset).toHaveBeenCalledTimes(2);
     const bindings = defaultKeybindings();
-    bindings.surface = ['KeyI', null]; bindings.dive50 = ['KeyK', null];
+    bindings.surface = ['KeyI', null];
+    bindings.dive50 = ['KeyK', null];
     input.setBindings(bindings);
-    key('keydown', 'KeyU'); key('keydown', 'KeyJ');
+    key('keydown', 'KeyU');
+    key('keydown', 'KeyJ');
     expect(actions.depthPreset).toHaveBeenCalledTimes(2);
-    key('keydown', 'KeyI'); expect(actions.depthPreset).toHaveBeenLastCalledWith(0);
-    key('keydown', 'KeyK'); expect(actions.depthPreset).toHaveBeenLastCalledWith(50);
-    input.setEnabled(false); key('keydown', 'KeyI'); key('keydown', 'KeyK');
-    input.setEnabled(true); modal = true; key('keydown', 'KeyI'); key('keydown', 'KeyK');
+    key('keydown', 'KeyI');
+    expect(actions.depthPreset).toHaveBeenLastCalledWith(0);
+    key('keydown', 'KeyK');
+    expect(actions.depthPreset).toHaveBeenLastCalledWith(50);
+    input.setEnabled(false);
+    key('keydown', 'KeyI');
+    key('keydown', 'KeyK');
+    input.setEnabled(true);
+    modal = true;
+    key('keydown', 'KeyI');
+    key('keydown', 'KeyK');
     expect(actions.depthPreset).toHaveBeenCalledTimes(4);
   });
 
   test('depth orders notch once, emergency blow is reachable, and pause blocks both', () => {
-    key('keydown', 'KeyZ'); key('keydown', 'KeyZ', { repeat: true }); key('keyup', 'KeyZ');
-    expect(actions.depth).toHaveBeenCalledTimes(1); expect(actions.depth).toHaveBeenLastCalledWith(1);
-    key('keydown', 'KeyX'); key('keyup', 'KeyX'); expect(actions.depth).toHaveBeenLastCalledWith(-1);
-    key('keydown', 'KeyB'); key('keyup', 'KeyB'); expect(actions.emergencyBlow).toHaveBeenCalledTimes(1);
-    input.setEnabled(false); key('keydown', 'KeyZ'); key('keydown', 'KeyB');
-    expect(actions.depth).toHaveBeenCalledTimes(2); expect(actions.emergencyBlow).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyZ');
+    key('keydown', 'KeyZ', { repeat: true });
+    key('keyup', 'KeyZ');
+    expect(actions.depth).toHaveBeenCalledTimes(1);
+    expect(actions.depth).toHaveBeenLastCalledWith(1);
+    key('keydown', 'KeyX');
+    key('keyup', 'KeyX');
+    expect(actions.depth).toHaveBeenLastCalledWith(-1);
+    key('keydown', 'KeyB');
+    key('keyup', 'KeyB');
+    expect(actions.emergencyBlow).toHaveBeenCalledTimes(1);
+    input.setEnabled(false);
+    key('keydown', 'KeyZ');
+    key('keydown', 'KeyB');
+    expect(actions.depth).toHaveBeenCalledTimes(2);
+    expect(actions.emergencyBlow).toHaveBeenCalledTimes(1);
   });
 
   test('all ten direct weapon keys dispatch fixed slots and respect repeat, pause and dialogs', () => {
@@ -255,34 +431,50 @@ describe('keyboard gameplay controls', () => {
       key('keyup', `Digit${digit}`);
     }
     expect(actions.weaponGroup).toHaveBeenCalledTimes(10);
-    input.setEnabled(false); key('keydown', 'Digit3');
-    input.setEnabled(true); modal = true; key('keydown', 'Digit3');
+    input.setEnabled(false);
+    key('keydown', 'Digit3');
+    input.setEnabled(true);
+    modal = true;
+    key('keydown', 'Digit3');
     expect(actions.weaponGroup).toHaveBeenCalledTimes(10);
   });
 
   test('battery and chart bindings replace the new HUD defaults', () => {
     const bindings = defaultKeybindings();
-    bindings.weaponGroup1 = ['KeyM', null]; bindings.weaponGroup2 = ['KeyN', null];
-    bindings.periscope = ['KeyI', null]; bindings.airOperations = ['KeyK', null];
-    bindings.chartLarger = ['KeyP', null]; bindings.chartSmaller = ['KeyO', null]; bindings.freeCamera = ['KeyY', null];
+    bindings.weaponGroup1 = ['KeyM', null];
+    bindings.weaponGroup2 = ['KeyN', null];
+    bindings.periscope = ['KeyI', null];
+    bindings.airOperations = ['KeyK', null];
+    bindings.chartLarger = ['KeyP', null];
+    bindings.chartSmaller = ['KeyO', null];
+    bindings.freeCamera = ['KeyY', null];
     input.setBindings(bindings);
     for (const code of ['Digit1', 'Digit2', 'Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'KeyG']) key('keydown', code);
-    expect(actions.weaponGroup).not.toHaveBeenCalled(); expect(actions.chartSize).not.toHaveBeenCalled();
-    key('keydown', 'KeyM'); expect(actions.weaponGroup).toHaveBeenLastCalledWith(0);
-    key('keydown', 'KeyN'); expect(actions.weaponGroup).toHaveBeenLastCalledWith(1);
-    key('keydown', 'KeyP'); expect(actions.chartSize).toHaveBeenLastCalledWith(1);
-    key('keydown', 'KeyO'); expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
+    expect(actions.weaponGroup).not.toHaveBeenCalled();
+    expect(actions.chartSize).not.toHaveBeenCalled();
+    key('keydown', 'KeyM');
+    expect(actions.weaponGroup).toHaveBeenLastCalledWith(0);
+    key('keydown', 'KeyN');
+    expect(actions.weaponGroup).toHaveBeenLastCalledWith(1);
+    key('keydown', 'KeyP');
+    expect(actions.chartSize).toHaveBeenLastCalledWith(1);
+    key('keydown', 'KeyO');
+    expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
   });
 
   test('dialogs and browser shortcuts do not trigger or consume gameplay input', () => {
     modal = true;
     expect(key('keydown', 'Escape').defaultPrevented).toBe(false);
     expect(key('keydown', 'KeyW').defaultPrevented).toBe(false);
-    expect(actions.pause).not.toHaveBeenCalled(); expect(input.order).toBe(1);
+    expect(actions.pause).not.toHaveBeenCalled();
+    expect(input.order).toBe(1);
     modal = false;
     expect(key('keydown', 'KeyW', { metaKey: true }).defaultPrevented).toBe(false);
-    key('keydown', 'KeyW', { ctrlKey: true }); expect(input.order).toBe(1);
-    key('keydown', 'KeyQ'); events.dispatchEvent(new Event('blur')); expect(input.firing).toBe(false);
+    key('keydown', 'KeyW', { ctrlKey: true });
+    expect(input.order).toBe(1);
+    key('keydown', 'KeyQ');
+    events.dispatchEvent(new Event('blur'));
+    expect(input.firing).toBe(false);
   });
 
   test('the helm wheel is held on Tab: pressed once, released on key up or window blur, even without the helm', () => {
@@ -298,7 +490,8 @@ describe('keyboard gameplay controls', () => {
     expect(actions.helmWheel).toHaveBeenLastCalledWith(true);
     events.dispatchEvent(new Event('blur'));
     expect(actions.helmWheel).toHaveBeenLastCalledWith(false);
-    modal = true; key('keydown', 'Tab');
+    modal = true;
+    key('keydown', 'Tab');
     expect(actions.helmWheel).toHaveBeenCalledTimes(4);
   });
 });

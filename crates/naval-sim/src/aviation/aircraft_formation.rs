@@ -81,7 +81,13 @@ pub(super) fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32
             )
         }
         "echelon" => (
-            slot as f64 * 35.0 * if layout_seed.is_multiple_of(2) { 1.0 } else { -1.0 },
+            slot as f64
+                * 35.0
+                * if layout_seed.is_multiple_of(2) {
+                    1.0
+                } else {
+                    -1.0
+                },
             slot as f64 * 38.0,
         ),
         _ => (side * row * 40.0, row * 36.0),
@@ -163,12 +169,14 @@ pub(super) fn fly_formation(
     }
     let slot = formation_position(f, p, leader, time, seed);
     let offset = sub(slot, leader.position);
-    let speed = length(leader.velocity).max(34.0);
-    let turn = -9.81 * leader.bank.tan() / (speed * leader.pitch.cos()).max(30.0);
+    // Leader velocity and the slot are world motion; requested speed is airspeed.
+    let pace = crate::mobility::SHIP_PACE;
+    let speed = leader.airspeed().max(34.0);
+    let turn = -9.81 * leader.bank.tan() / (speed * leader.pitch.cos()).max(30.0) * pace;
     let slot_velocity = add(leader.velocity, [-turn * offset[2], 0.0, turn * offset[0]]);
     let error = sub(slot, p.position);
     let desired = add(slot_velocity, scale(error, 0.24));
-    let speed = clamp(length(desired), speed - 20.0, speed + 24.0);
+    let speed = clamp(length(desired) / pace, speed - 20.0, speed + 24.0);
     let point = add(p.position, scale(desired, 3.0));
     fly(
         p,

@@ -40,6 +40,9 @@ pub(super) fn fighter_target(
     dt: f64,
     target_flight: Option<&str>,
 ) -> Option<usize> {
+    // Pilot cadence runs at world pace: a pilot re-assesses as often per metre
+    // flown as before, rather than thinning out as the world speeds up.
+    let dt = dt * crate::mobility::SHIP_PACE;
     p.pilot.think = (p.pilot.think - dt).max(0.0);
     // Hold the current track until the think timer expires. The allocation scan
     // is the expensive half of a fighter's tick and nothing downstream needs it
@@ -116,6 +119,8 @@ pub(super) fn fighter_fire_ready(
         && p.bank.abs() < 1.15
         && lane_clear
         && p.cooldown <= 0.0;
+    // Settling runs at world pace, with the rest of the pilot's cadence.
+    let dt = dt * crate::mobility::SHIP_PACE;
     p.pilot.aim_time = if on_aim { p.pilot.aim_time + dt } else { 0.0 };
     on_aim && p.pilot.aim_time >= if panic { 0.45 } else { 0.18 } && p.cooldown <= 0.0
 }
@@ -140,7 +145,11 @@ pub(super) fn steer_fighter(
 ) -> bool {
     let delta = sub(hostile.position, p.position);
     let distance = length(delta);
-    p.pilot.break_cooldown = (p.pilot.break_cooldown - dt).max(0.0);
+    // Only the cooldown between breaks follows world pace, so a fighter may
+    // break as often per pass as before. A break itself, and the pursuit it
+    // interrupts, stay in battle seconds: pacing them shortened engagements
+    // enough to leave a raid's lower group unengaged.
+    p.pilot.break_cooldown = (p.pilot.break_cooldown - dt * crate::mobility::SHIP_PACE).max(0.0);
     p.pilot.break_time = (p.pilot.break_time - dt).max(0.0);
     let forward = normalize(p.velocity);
     let threatened = planes.iter().any(|o| {
@@ -156,7 +165,7 @@ pub(super) fn steer_fighter(
     });
     let closing = dot(sub(p.velocity, hostile.velocity), normalize(delta));
     let alignment = dot(forward, normalize(delta));
-    let speed_advantage = length(p.velocity) - length(hostile.velocity);
+    let speed_advantage = p.airspeed() - hostile.airspeed();
     let maneuver = p.pilot.maneuver.get_or_insert_default();
     maneuver.pursuit_seconds = if alignment < 0.8 && distance < 1400.0 {
         maneuver.pursuit_seconds + dt
@@ -262,11 +271,7 @@ pub(super) fn steer_fighter(
     let tail =
         dot(forward, normalize(hostile.velocity)) > 0.6 && dot(forward, normalize(delta)) > 0.7;
     let speed = if tail && distance < 400.0 {
-        clamp(
-            length(hostile.velocity) + (distance - 220.0) * 0.07,
-            65.0,
-            115.0,
-        )
+        clamp(hostile.airspeed() + (distance - 220.0) * 0.07, 65.0, 115.0)
     } else {
         115.0
     };
@@ -471,14 +476,16 @@ mod tests {
             distance: 200.,
             point: [0., 850., -1700.],
         };
-        assert!(!fighter_fire_ready(&mut p, &gun, true, true, 0.15));
-        assert!(fighter_fire_ready(&mut p, &gun, true, true, 0.16));
-        assert!(!fighter_fire_ready(&mut p, &gun, true, false, 0.1));
-        assert!(!fighter_fire_ready(&mut p, &gun, true, true, 0.15));
+        // Settling is measured in the pilot's own seconds, which pass at world pace.
+        let battle = |seconds: f64| seconds / crate::mobility::SHIP_PACE;
+        assert!(!fighter_fire_ready(&mut p, &gun, true, true, battle(0.15)));
+        assert!(fighter_fire_ready(&mut p, &gun, true, true, battle(0.16)));
+        assert!(!fighter_fire_ready(&mut p, &gun, true, false, battle(0.1)));
+        assert!(!fighter_fire_ready(&mut p, &gun, true, true, battle(0.15)));
         p.cooldown = 0.8;
-        assert!(!fighter_fire_ready(&mut p, &gun, true, true, 1.));
+        assert!(!fighter_fire_ready(&mut p, &gun, true, true, battle(1.)));
         p.cooldown = 0.;
-        assert!(!fighter_fire_ready(&mut p, &gun, true, true, 0.15));
+        assert!(!fighter_fire_ready(&mut p, &gun, true, true, battle(0.15)));
     }
 
     #[test]

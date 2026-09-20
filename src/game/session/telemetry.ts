@@ -1,4 +1,4 @@
-import { torpedoSpeed } from '../../ships/mobility';
+import { SHELL_PACE, torpedoSpeed } from '../../ships/mobility';
 import { BATTLE_RULES, physicalLoss } from './battleRules';
 import { surfaceGunAllowed } from '../../ships/armament';
 import { equipmentCenter } from '../equipmentPose';
@@ -95,13 +95,15 @@ export function presentationAim(view: AimView, moduleId?: string, battery: Batte
     const weapon = view.definition.mounts.find(m => selectedWeapon(m.battery, m.weapon, battery, weaponGroupId))?.weapon;
     const speed = weapon?.muzzleSpeed ?? 820, drag = weapon?.ballistics.dragPerSecond ?? 0;
     const from: Vec3 = [view.ship.x, view.ship.y + 8, view.ship.z];
+    // Solve in shell time, where world motion appears slower by the shell pace.
+    const target = scale(shipVelocity(view.target), 1 / SHELL_PACE), own = scale(shipVelocity(view.player), 1 / SHELL_PACE);
     let time = Math.hypot(aim[0] - view.ship.x, aim[2] - view.ship.z) / speed;
     for (let i = 0; i < 3; i++) {
-      const solution = solveBallistic(from, sub(add(aim, scale(shipVelocity(view.target), time)), scale(shipVelocity(view.player), travelFactor(time, drag))), speed, drag);
+      const solution = solveBallistic(from, sub(add(aim, scale(target, time)), scale(own, travelFactor(time, drag))), speed, drag);
       if (!solution) break;
       time = solution.time;
     }
-    return add(aim, scale(shipVelocity(view.target), time));
+    return add(aim, scale(target, time));
   }
 export function presentationTelemetry(view: TelemetryView, battery: Battery, aim: Vec3, weaponGroupId?: string, subject: FleetActor = view.player): CombatTelemetry {
     const definition = subject.definition, ship = subject.motion;
@@ -125,7 +127,8 @@ export function presentationTelemetry(view: TelemetryView, battery: Battery, aim
     const significant = [...view.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'contact', 'burst', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired', 'depth-charge-launch', 'depth-charge-blast', 'depth-charge-hit'].includes(e.kind));
     const flightTimes = definition.mounts.flatMap((m, i) => {
       const state = subject.mounts[i];
-      const time = state.aimCache?.time;
+      // Aim caches hold physical shell time; report battle seconds.
+      const time = state.aimCache && state.aimCache.time / SHELL_PACE;
       return surfaceGunAllowed(definition, m.weapon) && selectedWeapon(m.battery, m.weapon, battery, weaponGroupId) && ['ready', 'reloading', 'turning'].includes(state.status) && time !== undefined && Number.isFinite(time) && time > 0 ? [time] : [];
     });
     const target = view.target;

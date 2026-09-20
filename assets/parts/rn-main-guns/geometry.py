@@ -16,10 +16,10 @@ QUAD_BASE = [(-8.3,0),(-8.14,-1.5),(-7.67,-3),(-6.92,-4.4),(-6.05,-5.42),(-2.8,-
 QUAD_ROOF = [(-8.3,0,2.72),(-8.14,-1.29,2.7316),(-7.67,-2.58,2.7658),(-6.92,-3.784,2.8204),(-6.05,-4.6612,2.8836),
              (-2.8,-4.9727,3.12),(.5,-5.289,3.0129),(4.9,-4.7128,2.87),(4.9,4.7128,2.87),(.5,5.289,3.0129),
              (-2.8,4.9727,3.12),(-6.05,4.6612,2.8836),(-6.92,3.784,2.8204),(-7.67,2.58,2.7658),(-8.14,1.29,2.7316)]
-TWIN_BASE = [(-7,0),(-6.83,-1.15),(-6.32,-2.3),(-5.49,-3.4),(-4.5,-4.15),(-1,-4.72),(4.9,-4.32),
-             (4.9,4.32),(-1,4.72),(-4.5,4.15),(-5.49,3.4),(-6.32,2.3),(-6.83,1.15)]
+TWIN_BASE = [(-7,0),(-6.83,-1.15),(-6.32,-2.3),(-5.49,-3.4),(-4.5,-4.15),(.35,-4.60),(4.9,-3.34),
+             (4.9,3.34),(.35,4.60),(-4.5,4.15),(-5.49,3.4),(-6.32,2.3),(-6.83,1.15)]
 TWIN_ROOF = [(-7,0,3.1),(-6.83,-.989,3.1037),(-6.32,-1.978,3.1147),(-5.49,-2.924,3.1327),(-4.5,-3.569,3.1542),
-             (-1,-4.0592,3.23),(4.9,-3.7152,2.87),(4.9,3.7152,2.87),(-1,4.0592,3.23),(-4.5,3.569,3.1542),
+             (.35,-3.96,3.23),(4.9,-2.87,2.87),(4.9,2.87,2.87),(.35,3.96,3.23),(-4.5,3.569,3.1542),
              (-5.49,2.924,3.1327),(-6.32,1.978,3.1147),(-6.83,.989,3.1037)]
 
 
@@ -81,7 +81,7 @@ def create_kgv_main(mount, collection, helpers, materials):
     count = spec['barrelCount']; quad = count == 4
     base = QUAD_BASE if quad else TWIN_BASE
     top = QUAD_ROOF if quad else TWIN_ROOF
-    ridge = -2.8 if quad else -1.0
+    ridge = -2.8 if quad else .35
     width = 12.3 if quad else 9.44
     rf_x = -3.9 if quad else -4.3
     rf_w = 12.5 if quad else 9.14
@@ -95,8 +95,25 @@ def create_kgv_main(mount, collection, helpers, materials):
     axes = [(i-(count-1)/2)*spacing for i in range(count)]  # starboard -> port for face building
     before = set(bpy.context.scene.objects)
 
+    # Refine the existing rounded rear outline with authored intermediate stations.
+    # The triangle budget comes from eliminating internal barrel end caps below.
+    refined_base, refined_top = [], []
+    for i, a in enumerate(base):
+        b = base[(i+1) % len(base)]; ta = top[i]; tb = top[(i+1) % len(top)]
+        refined_base.append(a); refined_top.append(ta)
+        limit = -6.0 if quad else -4.49
+        if a[0] <= limit and b[0] <= limit:
+            # Midpoint bows outward along the rear elliptical arc.
+            mx, my = (a[0]+b[0])/2, (a[1]+b[1])/2
+            bulge = .035
+            refined_base.append((mx-bulge, my))
+            refined_top.append(((ta[0]+tb[0])/2-bulge,(ta[1]+tb[1])/2,(ta[2]+tb[2])/2))
+    base, top = refined_base, refined_top
+    k = len(base)
+
     # Roller path mates with the hull's fixed barbette; D-shaped sill shields its exposed front.
-    ring = spec['barbetteRadius']
+    # The twin's narrower shell still needs a shoulder outside the native well.
+    ring = spec['barbetteRadius'] + (0 if quad else .05)
     cyl(n+'.roller', (0, 0, .125), ring, .25, edge, collection, 64)
     sill_r = ring+.15; ang = math.acos(min(.999, (front-.25)/sill_r))
     sill = [(sill_r*math.cos(a), sill_r*math.sin(a)) for a in [-ang+2*ang*i/24 for i in range(25)]]
@@ -150,8 +167,18 @@ def create_kgv_main(mount, collection, helpers, materials):
         outline = [(rf_x-.86, side*root_y), (rf_x+.86, side*root_y), (rf_x+1.07, side*(tip_y-.14)),
                    (rf_x+.99, side*tip_y), (rf_x-1.00, side*tip_y), (rf_x-1.08, side*(tip_y-.14))]
         if side < 0: outline.reverse()
-        prism(mesh, n+'.rangefinder.cover', outline, lambda x: roof_z(x)-.92, lambda x: roof_z(x)+.035, naval, collection)
-        z = roof_z(rf_x)-.44
+        # Chamfer the lower edge and outside corners: the source's end housings
+        # hang below the roof rather than reading as square boxes on top of it.
+        count_rf = len(outline)
+        lower = [(rf_x+(x-rf_x)*.90, y-side*.045, roof_z(x)-1.08) for x,y in outline]
+        belt = [(x,y,roof_z(x)-.91) for x,y in outline]
+        upper = [(x,y,roof_z(x)+.015) for x,y in outline]
+        rv = lower+belt+upper
+        faces_rf = [tuple(reversed(range(count_rf))),tuple(range(2*count_rf,3*count_rf))]
+        faces_rf += [(j*count_rf+i,j*count_rf+(i+1)%count_rf,(j+1)*count_rf+(i+1)%count_rf,(j+1)*count_rf+i)
+                     for j in range(2) for i in range(count_rf)]
+        mesh(n+'.rangefinder.cover',rv,faces_rf,naval,collection)
+        z = roof_z(rf_x)-.48
         rod(n+'.rangefinder.cap', (rf_x, side*(tip_y-.01), z), (rf_x, side*(tip_y+.05), z), .28, naval, collection, vertices=12)
         for dx in [-.66, .66]: box(n+'.rangefinder.hinge', (rf_x+dx, side*(tip_y+.04), z), (.12, .08, .30), edge, collection)
         box(n+'.rangefinder.window', (rf_x+1.035, side*(tip_y-.30), z), (.04, .30, .25), dark, collection)
@@ -160,23 +187,27 @@ def create_kgv_main(mount, collection, helpers, materials):
         lx0 = interp({(abs(y), x) for x, y in base if x < ridge and y <= 0}, ly)-.06
         lx1 = interp({(abs(y), x) for x, y, zz in top if x < ridge and y <= 0}, ly)-.06
         ladder(rod, n+'.rear.ladder', (lx0, side*ly, floor+.03), (lx1, side*ly, roof_z(lx1)+.10), .46, edge, collection)
-        # Escape covers and mushroom vents on the rear roof.
+        # Low escape covers on the rear roof.
         hx = -6.4 if quad else -5.4; hy = side*(3.4 if quad else 1.05)
-        cyl(n+'.roof.escape', (hx, hy, roof_z(hx)+.045), .35, .09, naval, collection, 28)
+        cyl(n+'.roof.escape', (hx, hy, roof_z(hx)+.045), .35, .09, naval, collection, 16)
         rod(n+'.roof.escape.handle', (hx-.14, hy, roof_z(hx)+.12), (hx+.14, hy, roof_z(hx)+.12), .028, edge, collection, vertices=6)
-        for vx, vy in ([(-5.3, 1.5), (-1.2, 4.1)] if quad else [(-3.2, 1.2), (.6, 3.0)]):
-            cyl(n+'.roof.vent.stem', (vx, side*vy, roof_z(vx)+.12), .13, .24, naval, collection, 14)
-            cyl(n+'.roof.vent.cap', (vx, side*vy, roof_z(vx)+.28), .24, .09, naval, collection, 16, r2=.14)
+        # The earlier generic tall mushroom array hid the clean roof crown.
+        # Keep low hatch covers; the main source shows only a small forward vent.
+    if quad:
+        vx=3.3
+        cyl(n+'.roof.vent.stem',(vx,0,roof_z(vx)+.075),.085,.15,naval,collection,10)
+        cyl(n+'.roof.vent.cap',(vx,0,roof_z(vx)+.16),.14,.045,naval,collection,12,r2=.10)
     if not quad:
         # The approved twin carries a rear roof guardrail; short stanchions
         # grow directly from the roof, with the front corners kept clear.
-        rail = [(-5.7,-1.6),(-4.6,-3.0),(-1.0,-3.7),(1.7,-3.6),
-                (1.7,3.6),(-1.0,3.7),(-4.6,3.0),(-5.7,1.6)]
+        rail = [(-6.73,-.9),(-6.3,-1.85),(-5.5,-2.75),(-3.2,-3.55),(-.6,-3.82),
+                (.15,-2.7),(.6,-1.35),(.75,0),(.6,1.35),(.15,2.7),
+                (-.6,3.82),(-3.2,3.55),(-5.5,2.75),(-6.3,1.85),(-6.73,.9)]
         for x,y in rail:
-            rod(n+'.roof.guard.post',(x,y,roof_z(x)),(x,y,roof_z(x)+.82),.026,edge,collection,vertices=6)
-        for lift in [.40,.82]:
+            rod(n+'.roof.guard.post',(x,y,roof_z(x)),(x,y,3.23+.96),.026,edge,collection,vertices=6)
+        for lift in [.46,.96]:
             for (xa,ya),(xb,yb) in zip(rail,rail[1:]+rail[:1]):
-                rod(n+'.roof.guard.rail',(xa,ya,roof_z(xa)+lift),(xb,yb,roof_z(xb)+lift),.022,edge,collection,vertices=6)
+                rod(n+'.roof.guard.rail',(xa,ya,3.23+lift),(xb,yb,3.23+lift),.022,edge,collection,vertices=6)
     # Gunlayers' face sights between the guns.
     for gy in [(a+b)/2 for a, b in zip(axes, axes[1:])]:
         box(n+'.face.sight', (front+.012, gy, front_z-.63), (.03, .20, .37), dark, collection)
@@ -195,11 +226,25 @@ def create_kgv_main(mount, collection, helpers, materials):
         az = lambda x: height+(x-pivot)*slope
         pt = lambda x: (x, lateral, az(x))
         # Mk VII: long parallel rear sleeve, step, light tapering chase.
-        profile = [(-.62, .60), (.43, .50), (3.80, .50), (3.85, .40), (length-1.0, .263), (length, .256)]
-        for (a, ra), (b, rb) in zip(profile, profile[1:]):
-            rod(n+'.barrel', pt(pivot+a), pt(pivot+b), ra, edge, collection, r2=rb, vertices=16)
-        rod(n+'.muzzle.face', pt(muzzle-.002), pt(muzzle), .256, edge, collection, r2=spec['caliberM']/2, vertices=12)
-        rod(n+'.bore', pt(muzzle+.003), pt(muzzle+.008), spec['caliberM']/2, dark, collection, vertices=12)
+        profile = [(-.62,.60),(.43,.50),(3.80,.475),(3.85,.365),
+                   (length-.28,.254),(length-.12,.265),(length,.278)]
+        # One lathed surface instead of independently capped cones: spend those
+        # hidden caps on the shallow muzzle swell and a genuinely open bore.
+        sides = 16
+        bv = [(pivot+a,lateral+r*math.cos(i*math.tau/sides),az(pivot+a)+r*math.sin(i*math.tau/sides))
+              for a,r in profile for i in range(sides)]
+        bf = [(j*sides+i,j*sides+(i+1)%sides,(j+1)*sides+(i+1)%sides,(j+1)*sides+i)
+              for j in range(len(profile)-1) for i in range(sides)]
+        inner = len(bv); bore_r = spec['caliberM']/2
+        bv += [(muzzle,lateral+bore_r*math.cos(i*math.tau/sides),az(muzzle)+bore_r*math.sin(i*math.tau/sides)) for i in range(sides)]
+        bv += [(muzzle-.32,lateral+bore_r*math.cos(i*math.tau/sides),az(muzzle-.32)+bore_r*math.sin(i*math.tau/sides)) for i in range(sides)]
+        outer=(len(profile)-1)*sides
+        bf += [(outer+i,outer+(i+1)%sides,inner+(i+1)%sides,inner+i) for i in range(sides)]
+        bf += [(inner+i,inner+(i+1)%sides,inner+sides+(i+1)%sides,inner+sides+i) for i in range(sides)]
+        barrel = mesh(n+'.barrel',bv,bf,edge,collection,True)
+        for poly in barrel.data.polygons:
+            if poly.index//sides in [2,6]: poly.use_smooth=False
+        mesh(n+'.bore',bv[inner+sides:],[tuple(reversed(range(sides)))],dark,collection)
         groups.append(list(set(bpy.context.scene.objects)-start))
     yaw = articulate_aa(mount, collection, frame, groups)
     for side, gy, _ in barrel_layout(spec):
@@ -216,7 +261,7 @@ def create_kgv_main(mount, collection, helpers, materials):
                 a=math.pi+(i-12)*math.pi/12
                 x,y,z=front+.012,gy+(radius+.018)*math.cos(a),zc+(radius+.018)*math.sin(a)
             seam.append((x,y,z))
-        create_bloomer(mount,collection,helpers,materials,side,seam,front+1.70,.505,rings=5,slack=.055)
+        create_bloomer(mount,collection,helpers,materials,side,seam,front+.78,.480,rings=5,fold_depth=.022,slack=.022)
     return yaw
 
 

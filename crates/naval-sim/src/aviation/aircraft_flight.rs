@@ -56,7 +56,8 @@ pub(super) fn fly(
     p.navigation_target = Some(point);
     let performance = crate::aviation::aircraft_performance::performance_for(p);
     let min_speed = performance.min_speed;
-    let speed = length(p.velocity).max(min_speed);
+    // The airframe flies at its real airspeed; only its world motion is paced.
+    let speed = p.airspeed().max(min_speed);
     let (dx, dz) = (point[0] - p.position[0], point[2] - p.position[2]);
     let horizontal = dx.hypot(dz);
     let error = wrap_angle(dx.atan2(-dz) - p.heading);
@@ -76,7 +77,7 @@ pub(super) fn fly(
     let (old_bank, old_pitch) = (p.bank, p.pitch);
     p.bank = approach(p.bank, desired, performance.roll_rate, dt);
     let turn = -9.81 * p.bank.tan() / (speed * p.pitch.cos()).max(30.0);
-    p.heading = wrap_angle(p.heading + turn * dt);
+    p.heading = wrap_angle(p.heading + turn * dt * crate::mobility::SHIP_PACE);
     let mut desired_pitch = clamp(
         (point[1] - p.position[1]).atan2(
             horizontal
@@ -128,7 +129,7 @@ pub(super) fn fly(
         },
         dt,
     );
-    p.velocity = scale(p.forward(), next);
+    p.velocity = scale(p.forward(), next * crate::mobility::SHIP_PACE);
     p.position = add(p.position, scale(p.velocity, dt));
     p.controls.aileron = clamp((p.bank - old_bank) / dt * 0.45, -0.35, 0.35);
     p.controls.elevator = clamp(
