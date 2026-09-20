@@ -192,6 +192,9 @@ pub struct CompiledShip {
     pub maneuvering: crate::maneuvering::Maneuvering,
     /// Shared by port, battle spawns and resets, solved once per loaded design.
     initial_pose: crate::geometry::Pose,
+    /// Immutable hydraulic proxies are compiled before ticking and shared by
+    /// every vessel. Mutable water and attitude caches remain per vessel.
+    flood_geometry: Vec<Option<Arc<crate::definition::Compartment>>>,
     pub deck_surface: Option<crate::aviation::DeckSurface>,
     pub collision_profile: Vec<[f64; 2]>,
     pub torpedo_hull: Vec<crate::structure::StructuralSurface>,
@@ -277,6 +280,14 @@ impl CompiledShip {
         Ok(Self {
             maneuvering: crate::maneuvering::Maneuvering::new(d),
             initial_pose,
+            flood_geometry: if d.hull.volume.is_some() && d.stability.is_some() {
+                d.compartments
+                    .iter()
+                    .map(crate::floodwater::runtime_geometry)
+                    .collect()
+            } else {
+                Vec::new()
+            },
             deck_surface,
             torpedo_hull: crate::torpedoes::torpedo_hull(d)?,
             collision_profile: crate::collisions::profile(&d.hull),
@@ -325,6 +336,21 @@ impl Vessel {
         state.motion.roll = compiled.initial_pose.roll;
         state.motion.pitch = compiled.initial_pose.pitch;
         state.damage.stability.target_y = compiled.initial_pose.y;
+        state.damage.stability.water = compiled
+            .definition
+            .compartments
+            .iter()
+            .zip(&compiled.flood_geometry)
+            .map(|(room, geometry)| {
+                crate::floodwater::water_body_prepared(
+                    room,
+                    geometry.clone(),
+                    0.,
+                    compiled.initial_pose.roll,
+                    compiled.initial_pose.pitch,
+                )
+            })
+            .collect();
         Self {
             navigation: None,
             helm: Default::default(),

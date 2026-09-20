@@ -3,6 +3,7 @@ use crate::{
     geometry::dot,
 };
 use std::{cell::RefCell, sync::OnceLock};
+mod proxy;
 #[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct WaterBody {
@@ -36,6 +37,10 @@ pub struct WaterBody {
     /// normal, and only cells that can reach past the running extremes are read.
     #[serde(skip)]
     spheres: OnceLock<Vec<(Vec3, f64)>>,
+    /// Runtime water geometry is bounded independently of authoring fragments.
+    /// The exact public reference solver leaves this uninitialised.
+    #[serde(skip)]
+    proxy: OnceLock<Option<std::sync::Arc<Compartment>>>,
 }
 #[derive(Clone, Copy, Debug)]
 struct OrientedCell {
@@ -264,6 +269,7 @@ impl WaterBody {
             oriented: OnceLock::new(),
             levels: RefCell::new(None),
             spheres: OnceLock::new(),
+            proxy: OnceLock::new(),
         }
     }
     fn shape(&self, room: &Compartment) -> &WaterGeometry {
@@ -280,6 +286,7 @@ impl WaterBody {
         })
     }
     pub fn level_at_volume(&self, room: &Compartment, volume: f64) -> f64 {
+        let room = self.proxy.get().and_then(|p| p.as_deref()).unwrap_or(room);
         if room.volumes.is_some() && volume != self.volume {
             return ExactRoom::new(
                 room,
@@ -311,6 +318,8 @@ pub fn refresh(
     pitch: f64,
     work: &mut Scratch,
 ) {
+    let proxy = body.proxy.get().and_then(Clone::clone);
+    let room = proxy.as_deref().unwrap_or(room);
     let volume = volume.clamp(0.0, room.capacity_m3);
     if body.volume == volume && body.roll == roll && body.pitch == pitch {
         return;
@@ -389,6 +398,75 @@ pub fn water_body_with(
 }
 pub fn water_body(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> WaterBody {
     water_body_with(room, volume, roll, pitch, &mut Scratch::default())
+}
+
+pub(crate) fn runtime_geometry(room: &Compartment) -> Option<std::sync::Arc<Compartment>> {
+    proxy::compact(room).map(std::sync::Arc::new)
+}
+
+pub(crate) fn water_body_prepared(
+    room: &Compartment,
+    geometry: Option<std::sync::Arc<Compartment>>,
+    volume: f64,
+    roll: f64,
+    pitch: f64,
+) -> WaterBody {
+    let mut body = WaterBody::pending();
+    let _ = body.proxy.set(geometry);
+    refresh(
+        &mut body,
+        room,
+        volume,
+        roll,
+        pitch,
+        &mut Scratch::default(),
+    );
+    body
+}
+
+/// Battle water model: compact constructed rooms once, then integrate the same
+/// bounded geometry at every attitude. Legacy rooms retain their existing model.
+/// `water_body` remains the authoring/reference calculation.
+pub fn refresh_runtime(
+    body: &mut WaterBody,
+    room: &Compartment,
+    volume: f64,
+    roll: f64,
+    pitch: f64,
+    work: &mut Scratch,
+) {
+    if body.proxy.get().is_none() {
+        let proxy = runtime_geometry(room);
+        if proxy.is_some() {
+            // A caller may promote an existing exact body into the runtime
+            // model. Its attitude/fill cache must not hide that model change.
+            body.volume = f64::NAN;
+            body.shape.take();
+            body.exact_moments = None;
+            body.full_moments.take();
+            body.oriented.take();
+            *body.levels.get_mut() = None;
+            body.spheres.take();
+        }
+        let _ = body.proxy.set(proxy);
+    }
+    refresh(body, room, volume, roll, pitch, work);
+}
+
+pub fn water_body_runtime_with(
+    room: &Compartment,
+    volume: f64,
+    roll: f64,
+    pitch: f64,
+    work: &mut Scratch,
+) -> WaterBody {
+    let mut body = WaterBody::pending();
+    refresh_runtime(&mut body, room, volume, roll, pitch, work);
+    body
+}
+
+pub fn water_body_runtime(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> WaterBody {
+    water_body_runtime_with(room, volume, roll, pitch, &mut Scratch::default())
 }
 impl WaterBody {
     /// Water inertia about a ship-local origin: exact clipped moments for
