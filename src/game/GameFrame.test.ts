@@ -381,7 +381,8 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
     const offset = camera.position.clone().sub(playerView.root.position);
     for (let frame = 0; frame < 30; frame++) {
       await game.frame(time += [1000 / 144, 1000 / 47, 1000 / 72, 43][frame % 4]);
-      expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-9);
+      // Scope height now includes a trigonometric angle scale and easing; allow sub-micrometre rounding.
+      expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-6);
       expect(playerView.root.visible).toBe(!binoculars);
       expect(game.currentAim.every(Number.isFinite)).toBe(true);
     }

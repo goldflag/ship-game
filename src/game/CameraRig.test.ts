@@ -685,22 +685,33 @@ test('range lock sweeps horizontally at the measured distance despite vertical i
   expect(rig.rangeAim).toBeUndefined(); rig.dispose();
 });
 
-test('gunnery scope looks down along the arriving low arc and rises with range', () => {
+test('gunnery scope uses one third of the arriving low arc and rises with range', () => {
   const { camera, rig } = interactiveCamera();
   const ship = createShipState(), weapon = shipPreset('bismarck').mounts[0].weapon;
   // With no drag and equal endpoint heights, descent equals launch elevation.
   rig.setScopeWeapon({ ...weapon, muzzleSpeed: 500, ballistics: { ...weapon.ballistics, dragPerSecond: 0 } }, .5);
   rig.binoculars = true;
   let previousHeight = 0;
-  for (const range of [2000, 5000, 15000]) {
+  for (const range of [500, 1000, 2000, 5000, 10000, 15000]) {
     rig.aimAt([0, .5, -range], ship);
     const descent = -Math.asin(camera.getWorldDirection(new Vector3()).y);
-    expect(descent).toBeCloseTo(Math.asin(9.81 * range / 500 ** 2) / 2, 6);
+    const previousDescent = Math.max(Math.asin(9.81 * range / 500 ** 2) / 2, Math.atan2(37 - .5, range - 31));
+    expect(descent).toBeCloseTo(previousDescent / 3, 6);
     expect(camera.position.y).toBeGreaterThan(previousHeight);
     previousHeight = camera.position.y;
   }
-  rig.aimAt([0, .5, -30000], ship);
-  expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(35 * Math.PI / 180, 6);
+  // Reachable steep arcs and out-of-range sights share the final viewing cap.
+  for (const range of [24000, 30000]) {
+    rig.aimAt([0, .5, -range], ship);
+    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(10 * Math.PI / 180, 6);
+  }
+  rig.aimAt([0, .5, -500], ship);
+  expect(camera.position.y).toBeLessThan(37);
+  rig.setScopeWeapon();
+  for (let i = 0; i < 120; i++) rig.update(ship, ship.y, 1 / 60);
+  expect(camera.position.y).toBeCloseTo(37, 3);
+  const point = new Vector3(0, .5, -500).project(camera);
+  expect(point.x).toBeCloseTo(0, 6); expect(point.y).toBeCloseTo(0, 6);
   rig.dispose();
 });
 
@@ -716,7 +727,7 @@ test('elevated scope holds the sight through zoom and gun changes, and gives pre
     canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY })); settle();
     expect(readAim().distanceTo(new Vector3(...aim))).toBeLessThan(1e-6);
   }
-  drag(0, 8); rig.update(ship, ship.y, 0);
+  drag(0, 2); rig.update(ship, ship.y, 0);
   const adjusted = readAim(), correction = adjusted.z - aim[2];
   expect(correction).toBeGreaterThan(0);
   expect(correction).toBeLessThan(500);
