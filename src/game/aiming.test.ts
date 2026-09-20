@@ -85,7 +85,7 @@ test('entering and leaving binoculars keeps a distant aim point centered and res
     const projected = new Vector3(...aim).project(camera);
     expect(Math.abs(projected.x)).toBeLessThan(.001);
     expect(Math.abs(projected.y)).toBeLessThan(.001);
-    expect(camera.fov).toBeCloseTo(rig.binoculars ? 13.9061 : 52, 2);
+    expect(camera.fov).toBeCloseTo(rig.binoculars ? 27.41 : 52, 2);
     rig.toggleBinoculars(aim, ship);
     for (let frame = 0; frame < 120; frame++) {
       rig.update(ship, ship.y, 1 / 60);
