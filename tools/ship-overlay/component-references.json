@@ -900,7 +900,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb503",
     "sourceVehicle": "pbsb503",
     "resource": "common/visual/uk/ship/battleship/bsb020_dreadnought_1906/bsb020_dreadnought_1906_midfront",
-    "sourceName": "Dreadnought 1906 · aft funnel (GM3D default A_Hull)",
+    "sourceName": "Dreadnought 1906 \u00b7 aft funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -916,7 +916,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb507",
     "sourceVehicle": "pbsb507",
     "resource": "common/visual/uk/ship/battleship/bsb010_hood_1941/bsb010_hood_1941_midfront",
-    "sourceName": "Hood 1941 · forward funnel (GM3D default A_Hull)",
+    "sourceName": "Hood 1941 \u00b7 forward funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -932,7 +932,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb517",
     "sourceVehicle": "pbsb517",
     "resource": "common/visual/uk/ship/battleship/bsb018_nelson_1944/bsb018_nelson_1944_midback",
-    "sourceName": "Nelson 1944 · funnel (GM3D default A_Hull)",
+    "sourceName": "Nelson 1944 \u00b7 funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -948,7 +948,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsc502",
     "sourceVehicle": "pgsc502",
     "resource": "common/visual/germany/ship/cruiser/gsc020_emden_1908/gsc020_emden_1908_midback",
-    "sourceName": "Emden 1908 · aft funnel (GM3D default A_Hull)",
+    "sourceName": "Emden 1908 \u00b7 aft funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -964,7 +964,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb011",
     "sourceVehicle": "pjsb011",
     "resource": "common/visual/japan/ship/battleship/jsb011_mikasa_1905/jsb011_mikasa_1905_midfront",
-    "sourceName": "Mikasa 1905 · forward funnel (GM3D default A_Hull)",
+    "sourceName": "Mikasa 1905 \u00b7 forward funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -980,7 +980,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd019",
     "sourceVehicle": "pasd019",
     "resource": "common/visual/usa/ship/destroyer/asd046_clemson_1930/asd046_clemson_1930_midfront",
-    "sourceName": "Clemson 1930 · No. 1 funnel (GM3D default A_Hull)",
+    "sourceName": "Clemson 1930 \u00b7 No. 1 funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -996,7 +996,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsb506",
     "sourceVehicle": "pfsb506",
     "resource": "common/visual/france/ship/battleship/fsb001_dunkerque_1940/fsb001_dunkerque_1940_midback",
-    "sourceName": "Dunkerque 1940 · funnel (GM3D default A_Hull)",
+    "sourceName": "Dunkerque 1940 \u00b7 funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -1012,7 +1012,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsc525",
     "sourceVehicle": "prsc525",
     "resource": "common/visual/russia/ship/cruiser/rsc007_kirov_1938/rsc007_kirov_1938_midfront",
-    "sourceName": "Kirov 1938 · forward funnel (GM3D default A_Hull)",
+    "sourceName": "Kirov 1938 \u00b7 forward funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -1028,7 +1028,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisc506",
     "sourceVehicle": "pisc506",
     "resource": "common/visual/italy/ship/cruiser/isc001_ducadaosta_1943/isc001_ducadaosta_1943_midfront",
-    "sourceName": "Duca d’Aosta 1943 · forward funnel (GM3D default A_Hull)",
+    "sourceName": "Duca d\u2019Aosta 1943 \u00b7 forward funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -1044,7 +1044,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb505",
     "sourceVehicle": "pisb505",
     "resource": "common/visual/italy/ship/battleship/isb001_giulio_cesare_1943/isb001_giulio_cesare_1943_midfront",
-    "sourceName": "Giulio Cesare 1943 · forward funnel (GM3D default A_Hull)",
+    "sourceName": "Giulio Cesare 1943 \u00b7 forward funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -1060,7 +1060,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd501",
     "sourceVehicle": "pwsd501",
     "resource": "common/visual/europe/ship/destroyer/wsd001_blyskawica_1938/wsd001_blyskawica_1938_midfront",
-    "sourceName": "Błyskawica 1938 · trunked funnel (GM3D default A_Hull)",
+    "sourceName": "B\u0142yskawica 1938 \u00b7 trunked funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -1076,7 +1076,7 @@
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsc001",
     "sourceVehicle": "prsc001",
     "resource": "common/visual/russia/ship/cruiser/rsc001_avrora_1917/rsc001_avrora_1917_midfront",
-    "sourceName": "Aurora 1917 · middle funnel (GM3D default A_Hull)",
+    "sourceName": "Aurora 1917 \u00b7 middle funnel (GM3D default A_Hull)",
     "match": "exact",
     "notes": "Same source fit and funnel position as the original recipe. Asset-year labels describe the game model, not independently verified historical refits. Casing/cap extraction; adjoining ship platforms, separately mounted fixtures and some disconnected fittings omitted. Metric scale retained; each model is horizontally centered and base aligned.",
     "evidence": [
@@ -1084,6 +1084,198 @@
     ],
     "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
     "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/aurora-middle-funnel.glb",
+    "scale": 1
+  },
+  {
+    "partId": "mikasa-1905-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb011",
+    "sourceVehicle": "pjsb011",
+    "resource": "common/visual/japan/ship/battleship/jsb011_mikasa_1905/jsb011_mikasa_1905_midfront",
+    "sourceName": "Mikasa 1905 fighting foremast / jsb011_mikasa_1905_midfront",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb011",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/ship/battleship/jsb011_mikasa_1905/jsb011_mikasa_1905_midfront.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/mikasa-1905-foremast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "dreadnought-1906-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb503",
+    "sourceVehicle": "pbsb503",
+    "resource": "common/visual/uk/ship/battleship/bsb020_dreadnought_1906/bsb020_dreadnought_1906_midfront",
+    "sourceName": "Dreadnought 1906 tripod foremast / bsb020_dreadnought_1906_midfront",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb503",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/ship/battleship/bsb020_dreadnought_1906/bsb020_dreadnought_1906_midfront.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/dreadnought-1906-foremast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "michigan-1916-cage-mainmast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb001",
+    "sourceVehicle": "pasb001",
+    "resource": "common/visual/usa/ship/battleship/asb001_michigan_1916/asb001_michigan_1916_midback",
+    "sourceName": "Michigan 1916 after cage mast / asb001_michigan_1916_midback",
+    "match": "close",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded. Page says South Carolina, but its selected resource is Michigan 1916: uncertain sister-ship/variant match, not an exact South Carolina reconstruction.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb001",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/ship/battleship/asb001_michigan_1916/asb001_michigan_1916_midback.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/michigan-1916-cage-mainmast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "gangut-1918-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsb104",
+    "sourceVehicle": "prsb104",
+    "resource": "common/visual/russia/ship/battleship/rsb012_gangut_1918/rsb012_gangut_1918_midfront",
+    "sourceName": "Gangut 1918 upper foremast / rsb012_gangut_1918_midfront",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded. Upper mast package only: installation supplies the supporting roof below the cut plane.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/prsb104",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/russia/ship/battleship/rsb012_gangut_1918/rsb012_gangut_1918_midfront.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/gangut-1918-foremast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "hood-1941-mainmast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb507",
+    "sourceVehicle": "pbsb507",
+    "resource": "common/visual/uk/ship/battleship/bsb010_hood_1941/bsb010_hood_1941_midback",
+    "sourceName": "Hood 1941 tripod mainmast / bsb010_hood_1941_midback",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb507",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/ship/battleship/bsb010_hood_1941/bsb010_hood_1941_midback.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/hood-1941-mainmast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "scharnhorst-1939-mainmast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+    "sourceVehicle": "pgsb507",
+    "resource": "common/visual/germany/ship/battleship/gsb003_scharnhorst_1939/gsb003_scharnhorst_1939_midback",
+    "sourceName": "Scharnhorst 1939 mainmast / gsb003_scharnhorst_1939_midback",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/ship/battleship/gsb003_scharnhorst_1939/gsb003_scharnhorst_1939_midback.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/scharnhorst-1939-mainmast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "roma-1943-mainmast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb508",
+    "sourceVehicle": "pisb508",
+    "resource": "common/visual/italy/ship/battleship/isb002_roma_1943/isb002_roma_1943_midback",
+    "sourceName": "Roma 1943 tubular mainmast / isb002_roma_1943_midback",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pisb508",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/italy/ship/battleship/isb002_roma_1943/isb002_roma_1943_midback.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/roma-1943-mainmast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "arizona-1941-mainmast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb506",
+    "sourceVehicle": "pasb506",
+    "resource": "common/visual/usa/ship/battleship/asb035_arizona_1941/asb035_arizona_1941_midback",
+    "sourceName": "Arizona 1941 after spotting mast / asb035_arizona_1941_midback",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb506",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/ship/battleship/asb035_arizona_1941/asb035_arizona_1941_midback.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/arizona-1941-mainmast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "colorado-1945-cage-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb008",
+    "sourceVehicle": "pasb008",
+    "resource": "common/visual/usa/ship/battleship/asb008_colorado_1945/asb008_colorado_1945_midfront",
+    "sourceName": "Colorado 1945 upper cage foremast / asb008_colorado_1945_midfront",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded. Upper mast package only: installation supplies the supporting roof below the cut plane.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasb008",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/ship/battleship/asb008_colorado_1945/asb008_colorado_1945_midfront.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/colorado-1945-cage-foremast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "halland-1955-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd110",
+    "sourceVehicle": "pwsd110",
+    "resource": "common/visual/europe/ship/destroyer/wsd010_halland_1955/wsd010_halland_1955_midfront",
+    "sourceName": "Halland 1955 radar foremast / wsd010_halland_1955_midfront",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd110",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/europe/ship/destroyer/wsd010_halland_1955/wsd010_halland_1955_midfront.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/halland-1955-foremast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "friesland-1956-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd510",
+    "sourceVehicle": "pwsd510",
+    "resource": "common/visual/netherlands/ship/destroyer/hsd001_friesland_1956/hsd001_friesland_1956_midfront",
+    "sourceName": "Friesland 1956 upper radar foremast / hsd001_friesland_1956_midfront",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded. Upper mast package only: installation supplies the supporting roof below the cut plane.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pwsd510",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/netherlands/ship/destroyer/hsd001_friesland_1956/hsd001_friesland_1956_midfront.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/friesland-1956-foremast.glb",
+    "scale": 1
+  },
+  {
+    "partId": "le-fantasque-1943-foremast",
+    "category": "mast",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsd108",
+    "sourceVehicle": "pfsd108",
+    "resource": "common/visual/france/ship/destroyer/fsd010_le_fantasque_1943/fsd010_le_fantasque_1943_midfront",
+    "sourceName": "Le Fantasque 1943 lattice foremast / fsd010_le_fantasque_1943_midfront",
+    "match": "exact",
+    "notes": "Original adaptation of the named Hull A mast assembly; resource date is a visual-source label, not independent historical verification. Fine hardware and ship-to-mast rigging simplified; bridge structures excluded.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pfsd108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/france/ship/destroyer/fsd010_le_fantasque_1943/fsd010_le_fantasque_1943_midfront.model"
+    ],
+    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/le-fantasque-1943-foremast.glb",
     "scale": 1
   }
 ]

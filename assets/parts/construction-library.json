@@ -950,6 +950,90 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "mikasa-1905-foremast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_mikasa",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "dreadnought-1906-foremast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_dreadnought",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "michigan-1916-cage-mainmast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_michigan",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "gangut-1918-foremast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_gangut",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "hood-1941-mainmast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_hood",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "scharnhorst-1939-mainmast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_scharnhorst",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "roma-1943-mainmast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_roma",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "arizona-1941-mainmast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_arizona",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "colorado-1945-cage-foremast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_colorado",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "halland-1955-foremast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_halland",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "friesland-1956-foremast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_friesland",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "le-fantasque-1943-foremast": {
+      "path": "assets/parts/historical-masts/geometry.py",
+      "function": "create_le_fantasque",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -1792,6 +1876,90 @@
       "review": "unreviewed",
       "limitations": "Original Aurora 1917 \u00b7 middle funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
       "nation": "Russia"
+    },
+    {
+      "partId": "mikasa-1905-foremast",
+      "builder": "mikasa-1905-foremast",
+      "nation": "Japan",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "dreadnought-1906-foremast",
+      "builder": "dreadnought-1906-foremast",
+      "nation": "United Kingdom",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "michigan-1916-cage-mainmast",
+      "builder": "michigan-1916-cage-mainmast",
+      "nation": "United States",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "gangut-1918-foremast",
+      "builder": "gangut-1918-foremast",
+      "nation": "Russia",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "hood-1941-mainmast",
+      "builder": "hood-1941-mainmast",
+      "nation": "United Kingdom",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "scharnhorst-1939-mainmast",
+      "builder": "scharnhorst-1939-mainmast",
+      "nation": "Germany",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "roma-1943-mainmast",
+      "builder": "roma-1943-mainmast",
+      "nation": "Italy",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "arizona-1941-mainmast",
+      "builder": "arizona-1941-mainmast",
+      "nation": "United States",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "colorado-1945-cage-foremast",
+      "builder": "colorado-1945-cage-foremast",
+      "nation": "United States",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "halland-1955-foremast",
+      "builder": "halland-1955-foremast",
+      "nation": "Sweden",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "friesland-1956-foremast",
+      "builder": "friesland-1956-foremast",
+      "nation": "Netherlands",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
+    },
+    {
+      "partId": "le-fantasque-1943-foremast",
+      "builder": "le-fantasque-1943-foremast",
+      "nation": "France",
+      "review": "unreviewed",
+      "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific."
     }
   ]
 }

@@ -474,6 +474,10 @@ these fittings add no buoyancy or crew pathfinding. Mounting ends may seat withi
 18 cm of their supported attachment; other hull and equipment intersections fail.
 Framed ladders currently require a straight wall run, without a horizontal bend.
 
+The original [historical mast packages](../historical-masts/README.md) add
+GameModels3D-based pole, tripod, cage, lattice and tubular-tower variants. Their
+source/variant table, attachment contract, budgets and remaining simplifications
+are documented beside the recipes; they add no active radar or weapon capability.
 
 ## Secondary and AA recipe scope
 

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "halland-1955-foremast",
+  "revision": "109aee8ef98edfc65bf6dae12a87501e38af0e196d0a4c887bca8b272c929ffa",
+  "contentHash": "9c2fb036b9083d0b53ca0bdbab13b8f08421af9d1a8d398f3b5ab0db7722b481",
+  "modelSha256": "a432836d6bf765a066868d54aed6bf693c7983b522a5f6036754b5267a95c29e",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/halland-1955-foremast/109aee8ef98edfc65bf6dae12a87501e38af0e196d0a4c887bca8b272c929ffa/model.glb",
+  "boundsCenter": [
+    0,
+    5.859999446198344,
+    -0.3797566294670105
+  ],
+  "size": [
+    5.800000190734863,
+    11.719998892396688,
+    3.500486969947815
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 2412,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}
