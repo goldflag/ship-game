@@ -47,7 +47,7 @@ def create_mount(m,col,helpers,materials):
  lc(rod(name+'.trunnion-axle',(trunnion,-(.16 if kongo else .23),pivot),(trunnion,.16 if kongo else .23,pivot),.022 if kongo else .045,materials['edge']))
  for angle in [0,120,240]:
   theta=math.radians(angle);foot_radius=sp['barbetteRadius']*.29/.35
-  vs=[(.12*math.cos(theta),.12*math.sin(theta),.16),(foot_radius*math.cos(theta),foot_radius*math.sin(theta),.16),(.10*math.cos(theta),.10*math.sin(theta),.42)]
+  vs=[(.12*math.cos(theta),.12*math.sin(theta),.16),(foot_radius*math.cos(theta),foot_radius*math.sin(theta),.16),(.10*math.cos(theta),.10*math.sin(theta),.65 if kongo else .42)]
   gusset=mesh(name+'.foot-gusset',vs,[(0,1,2)],materials['naval']);mod=gusset.modifiers.new('Gusset thickness','SOLIDIFY');mod.thickness=.022;lc(gusset,base)
  elev=empty(name+'.center.elevation',(trunnion,0,pivot));elev.parent=yaw;elev.rotation_euler.y=-math.radians(1)
  rec=empty(name+'.center.recoil',(0,0,0));rec.parent=elev
@@ -56,6 +56,10 @@ def create_mount(m,col,helpers,materials):
  lc(box(name+'.cradle',(-.13,0,-.10),(.74,.18,.10),materials['naval']),elev)
  lc(box(name+'.magazine-socket',(-.28,0,.13),(.28,.20,.10),materials['naval']),rec)
  lc(box(name+'.box-magazine',(-.28,0,.2965 if kongo else .37),(.27,.17,.253 if kongo else .40),materials['edge']),rec)
+ if kongo:
+  magazine=next(o for o in rec.children if o.name.startswith(name+'.box-magazine'))
+  for v in magazine.data.vertices:
+   if v.co.z>0:v.co.x-=.045;v.co.x*=.78
  lc(box(name+'.magazine-cap',(-.28,0,.434 if kongo else .58),(.30,.19,.022 if kongo else .04),materials['naval']),rec)
  lc(rod(name+'.gas-cylinder',(-.1,0,-.10),(.70,0,-.10),.032,materials['naval']),elev)
  length=sp['muzzleForward']-trunnion

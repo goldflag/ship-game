@@ -44,7 +44,11 @@ def create_mount(mount, col, helpers, materials, detail_adjust=None):
     for o in set(col.objects)-before:
         if o.type=='MESH' and 'roof hatch' in o.name:bpy.data.objects.remove(o,do_unlink=True)
     house=next(o for o in set(col.objects)-before if o.type=='MESH' and 'sloped gunhouse' in o.name)
-    bevel=house.modifiers.new('Mk30 rolled plate edges','BEVEL');bevel.width=.035;bevel.segments=1
+    bevel=house.modifiers.new('Mk30 rolled plate edges','BEVEL');bevel.width=.09 if detail_adjust else .035;bevel.segments=2 if detail_adjust else 1
+    if detail_adjust:
+        for v in house.data.vertices:
+            if v.co.z<.031:v.co.z=-.43
+            if abs(abs(v.co.y)-1.3802)<.002:v.co.y*=.925
     base_parts=set(col.objects)
     # Curved elevating shield slides inside the catalog's actual central recess.
     # Shield and weather sleeve follow elevation; the barrel slides through the cuff during recoil.
@@ -100,6 +104,15 @@ def create_mount(mount, col, helpers, materials, detail_adjust=None):
     local(rod(name+'.sight-crosshair',(-1.84,-.56,3.515),(-1.84,-.56,3.805),.008,materials['edge']),yaw,name)
 
     if detail_adjust:
+        # This variant has a tall central rear trunk, not the Fletcher doors
+        # and full-height rung ladder. Reuse their budget on the curved shoulders.
+        for obj in list(set(col.objects)-base_parts):
+            if any(tag in obj.name for tag in ['rear-door','rear-ladder','ladder-foot','roof-grab']):
+                bpy.data.objects.remove(obj,do_unlink=True)
+        rear=next(o for o in col.objects if o.name==name+'.rear-equipment')
+        rear.scale.z*=2.35
+        rear.scale.y*=.60
+        rear.location.z=1.30
         sx,sy,dz=detail_adjust
         for obj in set(col.objects)-base_parts:
             if obj.type=='MESH' and obj.parent==yaw and 'train-ring' not in obj.name:

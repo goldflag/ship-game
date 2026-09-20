@@ -20,6 +20,9 @@ def create_mount(mount,col,helpers,mats):
     def cube(label,loc,size,parent,mat=gray):return attach(box(name+'.'+label,loc,size,mat,col),parent)
     def bar(label,a,b,r,parent,mat=steel,vertices=10):return attach(rod(name+'.'+label,a,b,r,mat,col,vertices=vertices),parent)
     def drum(label,loc,r,h,parent,mat=gray,vertices=12):return attach(cyl(name+'.'+label,loc,r,h,mat,col,vertices),parent)
+    def cheek(label,profile,y,thickness,parent,mat=gray):
+        n=len(profile);vs=[(x,y+dy,z) for dy in [-thickness/2,thickness/2] for x,z in profile]
+        return attach(mesh(name+'.'+label,vs,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)],mat,col),parent)
     def ring(label,center,r,parent,axis='y',tube=.018):
         x,y,z=center
         def point(a):
@@ -29,10 +32,10 @@ def create_mount(mount,col,helpers,mats):
         for i in range(4):bar(label+'-spoke',center,point(i*math.pi/2),tube*.65,parent,vertices=6)
     a,b,c=mount['position'];root=empty('base',loc=(-c,-a,b));yaw=empty('yaw',root)
     yaw.rotation_euler.z=-math.radians(mount['bearingDeg'])
-    drum('foundation',(0,0,.075),spec['barbetteRadius'],.15,root,steel,24)
-    drum('roller-path',(0,0,.205),spec['barbetteRadius']*.84,.18,yaw,steel,24)
+    drum('foundation',(0,0,.075),spec['barbetteRadius']*(1 if heavy or shielded else .72),.15,root,steel,24)
+    drum('roller-path',(0,0,.205),spec['barbetteRadius']*(.84 if heavy or shielded else .60),.18,yaw,steel,24)
     for i in range(24 if heavy else 16):
-        t=i*math.tau/(24 if heavy else 16);r=spec['barbetteRadius']*.92
+        t=i*math.tau/(24 if heavy else 16);r=spec['barbetteRadius']*(.92 if heavy or shielded else .65)
         drum('foundation-bolt',(r*math.cos(t),r*math.sin(t),.157),.042 if heavy else .025,.035,root,steel,6)
     H=spec['pivotHeight'];T=spec['trunnionForward'];W=spec['gunhouseSize'][1]
     if heavy:
@@ -44,15 +47,20 @@ def create_mount(mount,col,helpers,mats):
     for sign in [-1,1]:
         y=sign*(1.27 if heavy else .69)
         bar('fork-leg',(T*.35,y,.42 if heavy else .25),(T,y,H*.65),.115 if heavy else .075,yaw,gray,12)
-        cube('bearing-cheek',(T,y,H*.78),(.8 if heavy else .48,.19,H*.53),yaw)
+        # The side plates rake into the bearing; a tall rectangular ear hides
+        # the open carriage and does not reproduce the Type 96 silhouette.
+        if not heavy:
+            cheek('bearing-cheek',[(T-.43,.36),(T+.40,.36),(T+.16,H+.11),(T-.10,H+.14),(T-.28,H-.22)],y,.14,yaw)
+        else:
+            cube('bearing-cheek',(T,y,H*.78),(.8,.19,H*.53),yaw)
         bar('trunnion-cap',(T,y-.13,H),(T,y+.13,H),.24 if heavy else .14,yaw,vertices=12)
         sy=sign*(1.48 if heavy else .86)
         seat_x=-.85 if heavy else -.64
         bar('seat-floor-arm',(0,0,.26),(seat_x,sy,.26),.045,yaw,gray)
         bar('seat-outrigger',(seat_x,sy,.26),(seat_x,sy,.65),.06,yaw,gray)
-        bar('seat-post',(seat_x,sy,.62),(seat_x,sy,.93),.048,yaw,gray)
-        cube('operator-seat',(seat_x,sy,.96),(.42,.38,.085),yaw,steel)
-        cube('seat-back',(seat_x-.19,sy,1.12),(.065,.37,.30),yaw,steel)
+        bar('seat-post',(seat_x,sy,.62),(seat_x,sy,.93 if heavy else .69),.048,yaw,gray)
+        cube('operator-seat',(seat_x,sy,.96 if heavy else .72),(.42,.38,.085),yaw,steel)
+        cube('seat-back',(seat_x-.19,sy,1.12 if heavy else .84),(.065,.37,.30 if heavy else .20),yaw,steel)
         bar('control-shaft',(-.40,y,H*.57),(-.40,sy,H*.57),.05,yaw)
         cube('control-gearbox',(-.30,y,H*.57),(.40,.24,.32),yaw)
         bar('control-gearbox-support',(-.3,y,H*.57),(T,y,H*.57),.055,yaw,gray)
@@ -105,20 +113,23 @@ def create_mount(mount,col,helpers,mats):
             for y in [-.24,.24]:bar('loader-platform-bracket',(-1.5,lateral+y,.27),(T-1.30,lateral+y,.52),.055,yaw,gray)
         else:
             cube('magazine-receiver',(-.28,0,.14),(.26,.20,.12),recoil)
-            cube('15-round-magazine',(-.3,0,.35),(.27,.17,.37),recoil,steel)
-            cube('magazine-cap',(-.3,0,.54),(.29,.19,.035),recoil)
+            cheek('15-round-magazine',[(-.435,.18),(-.165,.18),(-.12,.49),(-.19,.55),(-.39,.55),(-.46,.46)],0,.17,recoil,steel)
+            cube('magazine-cap',(-.29,0,.55),(.20,.19,.025),recoil)
             for sy in [-.09,.09]:
                 for xx in [-.37,-.26]:bar('magazine-stiffener',(xx,sy,.19),(xx,sy,.51),.008,recoil,gray,6)
             bar('gas-cylinder',(-.27,0,-.095),(.61,0,-.095),.032,elevation,gray,12)
             for n in range(12):
                 x=.15+n*.039
-                o=cyl(name+'.barrel-cooling-ring',(x,0,0),radius*1.12,.017,steel,col,8);o.rotation_euler.y=math.pi/2;attach(o,recoil)
+                o=cyl(name+'.barrel-cooling-ring',(x,0,0),radius*1.12,.017,steel,col,6);o.rotation_euler.y=math.pi/2;attach(o,recoil)
             attach(rod(name+'.conical-flash-hider',(length-.10,0,0),(length,0,0),.036,steel,col,vertices=12,r2=.057),recoil)
         if heavy or side==('center' if spec.get('barrelCount')==3 else 'left'):
             sy=.32 if heavy else .18
             bar('sight-bracket',(-.1,0,-.04),(-.1,sy,.43 if heavy else .3),.025 if heavy else .016,elevation)
             bar('sight-telescope',(-.24,sy,.43 if heavy else .3),(.18,sy,.43 if heavy else .3),.055 if heavy else .032,elevation,steel)
-            if not heavy:ring('ring-sight',(.18,sy,.30),.12,elevation,axis='x',tube=.009)
+            if not heavy:
+                ring('ring-sight',(.18,sy,.30),.12,elevation,axis='x',tube=.009)
+                bar('director-crossbar',(-.1,-.92-lateral,.30),(-.1,.92-lateral,.30),.022,elevation,gray,8)
+                for yy in [-.92-lateral,.92-lateral]:cube('director-end',(-.1,yy,.30),(.13,.16,.07),elevation)
     if shielded:
         length,width,height=spec['gunhouseSize'];width*=.98
         x0=-length*.48;x1=length*.28

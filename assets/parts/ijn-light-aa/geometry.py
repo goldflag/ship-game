@@ -33,7 +33,9 @@ def create_mount(m,col,helpers,mats):
  for a,b in intervals:bar('trunnion-shaft',(T,a,H),(T,b,H),.065,yaw,n=12)
  for sign in [-1,1]:
   yy=sign*half
-  cube('cheek',(T,yy,H*.6),(.46,.14,H*.85),yaw)
+  profile=[(T-.33,.19),(T+.29,.19),(T+.12,H+.08),(T-.10,H+.10),(T-.26,H-.15)]
+  n=len(profile);vs=[(x,yy+dy,z) for dy in [-.07,.07] for x,z in profile]
+  own(mesh(name+'.cheek',vs,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)],gray,col),yaw)
   bar('bearing',(T,yy-.1,H),(T,yy+.1,H),.11,yaw,n=12)
   # Open lower fork preserves the breech's downward sweep.
   bar('fork',(T-.25,yy,.18),(T,yy,H-.16),.06,yaw,gray)
@@ -56,13 +58,17 @@ def create_mount(m,col,helpers,mats):
   cube('breech-cover',(-.60,0,.025),(.12,.19,.21),rec)
   bar('charging-handle',(-.45,-.08,.04),(-.45,-.21,.04),.017,rec)
   cube('magazine-well',(-.24,0,.135),(.25,.19,.09),rec)
-  cube('magazine',(-.24,0,.34),(.25,.16,.34),rec,steel)
-  cube('magazine-cap',(-.24,0,.53),(.28,.18,.04),rec)
+  profile=[(-.365,.17),(-.115,.17),(-.07,.45),(-.14,.51),(-.32,.51),(-.40,.43)]
+  n=len(profile);vs=[(x,yy,z) for yy in [-.08,.08] for x,z in profile]
+  own(mesh(name+'.magazine',vs,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)],steel,col),rec)
+  cube('magazine-cap',(-.23,0,.52),(.18,.18,.025),rec)
   bar('barrel',(0,0,0),(L,0,0),.036,rec,n=12,r2=.024)
-  for j in range(10):bar('cooling-fin',(.12+j*.042,0,0),(.136+j*.042,0,0),.043,rec,gray,n=8)
+  for j in range(10):bar('cooling-fin',(.12+j*.042,0,0),(.136+j*.042,0,0),.043,rec,gray,n=6)
   bar('gas-cylinder',(-.1,0,-.09),(.68,0,-.09),.028,elev,gray,n=8)
   bar('flash-hider',(L-.1,0,0),(L,0,0),.027,rec,n=12,r2=.049)
   bar('bore',(L-.002,0,0),(L+.003,0,0),.0125,rec,dark,n=12)
-  bar('sight-upright',(-.1,.12,.0),(-.1,.12,.28),.014,elev,gray)
-  ring('ring-sight',(.05,.12,.28),.075,elev,axis='x',tube=.007)
+  if side==('center' if sp['barrelCount']==3 else 'left'):
+   bar('sight-upright',(-.1,.12,.0),(-.1,.12,.28),.014,elev,gray)
+   ring('ring-sight',(.05,.12,.28),.075,elev,axis='x',tube=.007)
+   bar('director-crossbar',(-.1,-half-.12-y,.28),(-.1,half+.12-y,.28),.020,elev,gray,n=8)
  return yaw
