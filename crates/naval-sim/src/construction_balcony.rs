@@ -1,4 +1,4 @@
-//! Editable open platforms. Only the steel deck/edge geometry encloses volume.
+//! Editable decorative platforms: geometry for rendering and authoring attachment only.
 use crate::{construction_geometry as cg, construction_vertex::VertexSolid, definition::*};
 use std::collections::BTreeSet;
 

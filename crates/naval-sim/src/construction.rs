@@ -637,7 +637,7 @@ fn validate(
             ));
         }
     }
-    if c.primitives.is_empty() {
+    if !c.primitives.iter().any(|p| p.kind != "balcony") {
         errors.push(error("complexity", "Add at least one hull primitive", None));
     }
     if !errors.is_empty() {
@@ -1075,7 +1075,39 @@ fn build(
         );
         return fail_all(out, errors);
     }
-    let cells = cache.union_near(&flat, &cell_neighbors).map_err(fail)?;
+    // Balcony geometry remains available for rendering and authoring attachments,
+    // but must never split hull cells or contribute to simulation solids.
+    let balconies: BTreeSet<_> = primitives
+        .iter()
+        .filter(|p| p.kind == "balcony")
+        .map(|p| p.id.as_str())
+        .collect();
+    let structural = |s: &ConstructionSurface| !balconies.contains(s.primitive_id.as_str());
+    let mut hull_cells = vec![];
+    let mut platform_cells = vec![];
+    let remap: Vec<_> = flat
+        .iter()
+        .enumerate()
+        .map(|(i, cell)| {
+            if primitives[owners[i]].kind == "balcony" {
+                platform_cells.push(cell.clone());
+                None
+            } else {
+                let index = hull_cells.len();
+                hull_cells.push(cell.clone());
+                Some(index)
+            }
+        })
+        .collect();
+    let hull_neighbors: Vec<_> = cell_neighbors
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| remap[*i].is_some())
+        .map(|(_, near)| near.iter().filter_map(|&j| remap[j]).collect())
+        .collect();
+    let cells = cache
+        .union_near(&hull_cells, &hull_neighbors)
+        .map_err(fail)?;
     let envelope = cg::total(&cells);
     // Catalog-declared installation wells cross only the supporting exterior deck.
     // Their enclosures seal the penetration; they do not carve nearby side armor.
@@ -1140,6 +1172,10 @@ fn build(
                 });
             let mut patches = vec![polygon.clone()];
             for &j in &neighbors[i] {
+                // Decorative platforms cannot cut or fragment structural plating.
+                if p.kind != "balcony" && primitives[j].kind == "balcony" {
+                    continue;
+                }
                 for cell in &raw[j].cells {
                     patches = patches
                         .iter()
@@ -1147,7 +1183,7 @@ fn build(
                         .collect();
                 }
             }
-            if cg::normal(polygon)[1] > 0.95 {
+            if p.kind != "balcony" && cg::normal(polygon)[1] > 0.95 {
                 for (id, kind, well) in &wells {
                     let mut remaining = vec![];
                     for patch in patches {
@@ -1218,28 +1254,13 @@ fn build(
     let mut material: Vec<cg::Cell> = vec![];
     let mut material_index = cg::Broadphase::new(hull_index.pitch());
     let mut contributions = vec![];
-    // Platforms and their exposed edge members are solid steel, with no invented
-    // enclosed room between rails or inside a thick deck. Count overlaps once.
-    for (i, p) in primitives
+    for (i, s) in out
+        .surfaces
         .iter()
+        .filter(|s| structural(s))
         .enumerate()
-        .filter(|(_, p)| p.kind == "balcony")
+        .filter(|(_, s)| !s.open)
     {
-        let occupied = cache
-            .subtract_all(cg::union(&raw[i].cells).map_err(fail)?, material.iter())
-            .map_err(fail)?;
-        contributions.push(mass(
-            format!("skin-{}-platform", p.id),
-            "skin",
-            &occupied,
-            STEEL_DENSITY,
-        ));
-        for cell in &occupied {
-            material_index.insert(cell);
-        }
-        material.extend(occupied);
-    }
-    for (i, s) in out.surfaces.iter().enumerate().filter(|(_, s)| !s.open) {
         let solid = cg::prism(&s.vertices, s.thickness_mm / 1000.);
         let clipped: Vec<_> = hull_index
             .candidates(&solid)
@@ -1447,6 +1468,7 @@ fn build(
         c,
         catalog,
         &cells,
+        &platform_cells,
         &material,
         &mut interior,
         &mut contributions,
@@ -1661,7 +1683,7 @@ fn build(
         out.diagnostics.push(diagnostic);
     }
     let mut openings = vec![];
-    for s in out.surfaces.iter().filter(|s| s.open) {
+    for s in out.surfaces.iter().filter(|s| structural(s) && s.open) {
         for room in &def.compartments {
             for polygon in room_plane_faces(room, s.normal, dot(s.normal, s.vertices[0])) {
                 let polygon = intersect_polygons(polygon, &s.vertices);
@@ -1705,7 +1727,8 @@ fn build(
         .surfaces
         .iter()
         .filter(|s| {
-            !s.open
+            structural(s)
+                && !s.open
                 && (!crate::construction_installation::internal(s)
                     || crate::construction_installation::protective(s))
         })
@@ -1896,7 +1919,12 @@ fn build(
         volume: Some(ConstructionGeometry {
             version: 1.,
             cells,
-            surfaces: out.surfaces.clone(),
+            surfaces: out
+                .surfaces
+                .iter()
+                .filter(|s| structural(s))
+                .cloned()
+                .collect(),
         }),
         ..Default::default()
     };
@@ -2241,6 +2269,7 @@ fn equipment(
     c: &ConstructionData,
     catalog: &ConstructionCatalog,
     hull: &[cg::Cell],
+    platforms: &[cg::Cell],
     _material: &[cg::Cell],
     interior: &mut Vec<cg::Cell>,
     masses: &mut Vec<ConstructionMass>,
@@ -2827,11 +2856,14 @@ fn equipment(
         // Internal powerplants are supported by their installation. The occupied-volume
         // check above already requires the entire package to fit in free hull interior.
         let attached = (p.kind == "engine" && p.placement == "internal")
-            || supports.iter().any(|h| {
-                cg::contains(h, attachment)
-                    || length(sub(cg::closest_point(h, attachment), attachment))
-                        <= fit::ATTACHMENT_M
-            });
+            || supports
+                .iter()
+                .chain(platforms.iter().filter(|_| p.placement == "deck"))
+                .any(|h| {
+                    cg::contains(h, attachment)
+                        || length(sub(cg::closest_point(h, attachment), attachment))
+                            <= fit::ATTACHMENT_M
+                });
         let attached = attached
             && ((p.kind != "deck-fitting"
                 && !crate::construction_installation::deck_mounted(c, catalog, p))
