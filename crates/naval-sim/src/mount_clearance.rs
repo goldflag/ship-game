@@ -8,6 +8,8 @@ use crate::{
     weapons::{MountState, barrel_height, barrel_offset},
 };
 use serde::{Deserialize, Serialize};
+mod containment;
+use containment::HullContainment;
 
 // Keep the installation preview/combat entry points stable while each geometry
 // encoding retains its own collision algorithm.
@@ -313,12 +315,18 @@ struct BodyIndex {
     children: Option<Box<[BodyIndex; 2]>>,
 }
 impl BodyIndex {
-    fn new(bodies: &[Body], mut indices: Vec<usize>) -> Option<Self> {
+    fn new(bodies: &[Body], indices: Vec<usize>) -> Option<Self> {
+        Self::from_bounds(
+            &bodies.iter().map(|b| b.bounds).collect::<Vec<_>>(),
+            indices,
+        )
+    }
+    fn from_bounds(boxes: &[Box3], mut indices: Vec<usize>) -> Option<Self> {
         if indices.is_empty() {
             return None;
         }
         let bounds = Box3::points(indices.iter().flat_map(|&i| {
-            let b = bodies[i].bounds;
+            let b = boxes[i];
             [
                 std::array::from_fn(|a| b.center[a] - b.size[a] * 0.5),
                 std::array::from_fn(|a| b.center[a] + b.size[a] * 0.5),
@@ -335,8 +343,8 @@ impl BodyIndex {
             .max_by(|&a, &b| bounds.size[a].total_cmp(&bounds.size[b]))
             .unwrap();
         indices.sort_by(|&a, &b| {
-            bodies[a].bounds.center[axis]
-                .total_cmp(&bodies[b].bounds.center[axis])
+            boxes[a].center[axis]
+                .total_cmp(&boxes[b].center[axis])
                 .then(a.cmp(&b))
         });
         let right = indices.split_off(indices.len() / 2);
@@ -344,8 +352,8 @@ impl BodyIndex {
             bounds,
             indices: vec![],
             children: Some(Box::new([
-                Self::new(bodies, indices).unwrap(),
-                Self::new(bodies, right).unwrap(),
+                Self::from_bounds(boxes, indices).unwrap(),
+                Self::from_bounds(boxes, right).unwrap(),
             ])),
         })
     }
@@ -390,6 +398,7 @@ struct Posed {
     mounts: Vec<Option<PosedMount>>,
     candidates: Vec<usize>,
     moving: Vec<usize>,
+    solid_candidates: Vec<usize>,
 }
 thread_local! {
     /// Posed hulls by clearance geometry and caller-chosen owner, most recent last.
@@ -426,6 +435,7 @@ pub struct MountClearance {
     moving: Vec<usize>,
     // Maximum distance from each yaw/elevation axis bounds every point's speed.
     radii: Vec<f64>,
+    containment: Option<HullContainment>,
 }
 impl MountClearance {
     pub fn new(def: &ShipDefinition) -> Result<Option<Self>, String> {
@@ -604,6 +614,7 @@ impl MountClearance {
                 chain
             })
             .collect();
+        let containment = HullContainment::new(def, &mut bodies);
         Ok(Some(Self {
             generation: GEOMETRIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             relevant,
@@ -621,6 +632,7 @@ impl MountClearance {
                 .collect(),
             bodies,
             radii,
+            containment,
         }))
     }
 
@@ -1025,6 +1037,7 @@ impl MountClearance {
             mounts,
             candidates,
             moving: moving_bodies,
+            solid_candidates,
         } = posed;
         let mount = |i: usize| mounts[i].as_ref().expect("posed mount");
         moving_bodies.clear();
@@ -1079,6 +1092,20 @@ impl MountClearance {
                             gap = d;
                             id = Some(body.id.clone());
                         }
+                    }
+                }
+            }
+            if changed[i]
+                && gap > 0.
+                && let Some(containment) = &self.containment
+            {
+                solid_candidates.clear();
+                containment.candidates(barrels.bounds, solid_candidates);
+                for &capsule in &barrels.capsules {
+                    if let Some(cell) = containment.blocked(i, capsule, solid_candidates) {
+                        gap = -capsule.radius.max(1e-8);
+                        id = Some(format!("hull-cell-{cell}"));
+                        break;
                     }
                 }
             }
