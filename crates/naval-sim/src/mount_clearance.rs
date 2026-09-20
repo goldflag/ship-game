@@ -419,6 +419,9 @@ pub struct ClearBound {
 }
 #[derive(Clone, Debug)]
 pub struct MountClearance {
+    /// Runtime keeps the authored taper breaks but drops half-metre sampling.
+    /// Each capsule encloses those finer sections, so stops stay conservative.
+    coarse_barrels: bool,
     /// Unique per built geometry, so a posed hull is never reused across designs.
     generation: u64,
     /// Per mount, every mount whose motion can close one of its checked gaps,
@@ -616,6 +619,7 @@ impl MountClearance {
             .collect();
         let containment = HullContainment::new(def, &mut bodies);
         Ok(Some(Self {
+            coarse_barrels: false,
             generation: GEOMETRIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             relevant,
             levers,
@@ -634,6 +638,16 @@ impl MountClearance {
             radii,
             containment,
         }))
+    }
+
+    /// Construction fitting and diagnostics keep the authored clearance model.
+    /// Battles use fewer enclosing barrel sections on constructed ships.
+    pub fn new_runtime(def: &ShipDefinition) -> Result<Option<Self>, String> {
+        let mut clearance = Self::new(def)?;
+        if let Some(clearance) = &mut clearance {
+            clearance.coarse_barrels = def.hull.volume.is_some();
+        }
+        Ok(clearance)
     }
 
     /// Offline runtime projection: retain every body within a mount's existing
@@ -993,9 +1007,14 @@ impl MountClearance {
             };
             capsules.clear();
             capsules.extend(
-                barrel_capsules(&m.weapon, poses[i].elevation, def.hull.volume.is_some())
-                    .into_iter()
-                    .map(|c| c.transformed(&frame)),
+                barrel_capsules_with_detail(
+                    &m.weapon,
+                    poses[i].elevation,
+                    def.hull.volume.is_some(),
+                    self.coarse_barrels,
+                )
+                .into_iter()
+                .map(|c| c.transformed(&frame)),
             );
             let mut bounds = Box3::points(capsules.iter().flat_map(|c| [c.a, c.b]));
             let radius = capsules.iter().map(|c| c.radius).fold(0.0, f64::max);
@@ -1164,6 +1183,14 @@ pub(crate) fn installation_bounds(w: &GunPart, elevation: f64) -> Vec<(Vec3, Vec
 }
 
 fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsule> {
+    barrel_capsules_with_detail(w, elevation, constructed, false)
+}
+fn barrel_capsules_with_detail(
+    w: &GunPart,
+    elevation: f64,
+    constructed: bool,
+    coarse: bool,
+) -> Vec<Capsule> {
     if constructed
         && matches!(
             w.id.as_str(),
@@ -1195,7 +1222,11 @@ fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsul
         let mut sections = vec![(trunnion - 0.65, trunnion + 0.7, radius * 1.12)];
         for pair in controls.windows(2) {
             let ((a, ra), (b, rb)) = (pair[0], pair[1]);
-            let count = ((b - a).abs() / 0.5).ceil().max(1.0) as usize;
+            let count = if coarse {
+                1
+            } else {
+                ((b - a).abs() / 0.5).ceil().max(1.0) as usize
+            };
             for i in 0..count {
                 let (t, u) = (i as f64 / count as f64, (i + 1) as f64 / count as f64);
                 sections.push((
@@ -1528,6 +1559,36 @@ fn segment_triangle_distance(p: Vec3, q: Vec3, triangle: [Vec3; 3]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn runtime_barrels_enclose_the_authored_taper_with_fewer_sections() {
+        let catalog: crate::definition::PartCatalog =
+            serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
+        let mut reduced = 0;
+        for w in &catalog.parts {
+            for degrees in [w.elevation_min_deg, 0., 23., w.elevation_max_deg] {
+                let fine = barrel_capsules(w, degrees.to_radians(), true);
+                let coarse = barrel_capsules_with_detail(w, degrees.to_radians(), true, true);
+                assert!(coarse.len() <= fine.len());
+                if coarse.len() < fine.len() {
+                    reduced += 1;
+                }
+                for capsule in fine {
+                    assert!(
+                        coarse.iter().any(|outer| {
+                            capsule.radius + point_segment_distance(capsule.a, outer.a, outer.b)
+                                <= outer.radius + 1e-8
+                                && capsule.radius
+                                    + point_segment_distance(capsule.b, outer.a, outer.b)
+                                    <= outer.radius + 1e-8
+                        }),
+                        "{} at {degrees}: runtime proxy must enclose every authored section",
+                        w.id
+                    );
+                }
+            }
+        }
+        assert!(reduced > 0);
+    }
     #[test]
     fn original_german_light_mechanisms_stay_inside_clearance_across_elevation() {
         let catalog: crate::definition::PartCatalog =

@@ -398,7 +398,7 @@ impl Obstructions {
                 .map(|_| crate::hull_contact::HullContacts::new(&d.hull)),
             entries,
             carried,
-            clearance: crate::mount_clearance::MountClearance::new(d)
+            clearance: crate::mount_clearance::MountClearance::new_runtime(d)
                 .expect("validated original mount clearance geometry"),
         }
     }
@@ -642,6 +642,27 @@ pub fn update_mount_at(
         }
         mechanically_blocked = !motion_clear;
     }
+    if mechanically_blocked {
+        return reject(s, MountStatus::Blocked);
+    }
+    let in_arc = desired_train >= lo - 1e-6
+        && desired_train <= hi + 1e-6
+        && desired_elevation >= radians(w.elevation_min_deg) - 1e-6
+        && desired_elevation <= radians(w.elevation_max_deg) + 1e-6;
+    if reachable && in_arc {
+        if (desired_train - s.train).abs() >= 0.0015
+            || (desired_elevation - s.elevation).abs() >= 0.0008
+        {
+            return reject(s, MountStatus::Turning);
+        }
+        if s.reload > 0.0 {
+            // Movement still has its physical interlock every tick. A gun
+            // training onto a reachable target checks its firing corridor
+            // when it finishes loading and could actually fire.
+            s.status = MountStatus::Reloading;
+            return true;
+        }
+    }
     // A parent can move an obstruction even when this gun has not traversed.
     // Use the detached mount's updated train when posing its own descendants.
     let blocked = SCRATCH.with_borrow_mut(|scratch| {
@@ -684,29 +705,16 @@ pub fn update_mount_at(
         });
         blocked
     });
-    if blocked || mechanically_blocked {
+    if blocked {
         return reject(s, MountStatus::Blocked);
     }
     if !reachable {
         return reject(s, MountStatus::OutOfRange);
     }
-    if desired_train < lo - 1e-6
-        || desired_train > hi + 1e-6
-        || desired_elevation < radians(w.elevation_min_deg) - 1e-6
-        || desired_elevation > radians(w.elevation_max_deg) + 1e-6
-    {
+    if !in_arc {
         return reject(s, MountStatus::OutOfArc);
     }
-    if (desired_train - s.train).abs() >= 0.0015
-        || (desired_elevation - s.elevation).abs() >= 0.0008
-    {
-        return reject(s, MountStatus::Turning);
-    }
-    s.status = if s.reload > 0.0 {
-        MountStatus::Reloading
-    } else {
-        MountStatus::Ready
-    };
+    s.status = MountStatus::Ready;
     true
 }
 
@@ -720,4 +728,81 @@ pub fn muzzle_center_world(m: &MountDefinition, state: &MountState, ship: &ShipS
         muzzle_center_local(m, state.train, state.elevation, state.carrier),
         ship.pose(),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn firing_clearance_is_required_when_ready_but_not_while_reloading() {
+        let def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/bismarck.json")).unwrap();
+        let m = &def.mounts[0];
+        let ship = ShipState::new("test");
+        let mut state = MountState::new(m);
+        let clear = Obstructions {
+            hull: None,
+            entries: vec![],
+            carried: vec![],
+            clearance: None,
+        };
+        let blocked = Obstructions {
+            hull: None,
+            entries: vec![Obstruction {
+                center: [0.; 3],
+                size: [10000.; 3],
+                mount_id: None,
+            }],
+            carried: vec![],
+            clearance: None,
+        };
+        let aim = Some([
+            m.position[0],
+            m.position[1] + m.weapon.pivot_height,
+            m.position[2] - 2000.,
+        ]);
+        assert!(update_mount(
+            m,
+            &mut state,
+            &def,
+            &ship,
+            aim,
+            100.,
+            [0.; 3],
+            1.,
+            &clear,
+            &[]
+        ));
+        assert_eq!(state.status, MountStatus::Ready);
+        state.blocked_cache = None;
+        state.reload = 2.;
+        assert!(update_mount(
+            m,
+            &mut state,
+            &def,
+            &ship,
+            aim,
+            0.,
+            [0.; 3],
+            1.,
+            &blocked,
+            &[]
+        ));
+        assert_eq!(state.status, MountStatus::Reloading);
+        state.reload = 0.;
+        assert!(!update_mount(
+            m,
+            &mut state,
+            &def,
+            &ship,
+            aim,
+            0.,
+            [0.; 3],
+            1.,
+            &blocked,
+            &[]
+        ));
+        assert_eq!(state.status, MountStatus::Blocked);
+    }
 }
