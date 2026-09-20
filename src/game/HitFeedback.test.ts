@@ -43,7 +43,7 @@ test('matching component results combine across time and distance without mergin
   sim.events.push(hit(5, { shellId: 2, targetId: 'turret', targetName: 'Anton turret', kind: 'mount', outcome: 'destroyed', hullDamage: 10 }));
   const cues = feedback.update(sim);
   expect(cues).toHaveLength(4);
-  expect(cues.find(c => c.part === 'Anton turret')).toMatchObject({ result: 'Destroyed', damage: 30, projectileIds: [2] });
+  expect(cues.find(c => c.part === 'Gun')).toMatchObject({ result: 'Destroyed', damage: 30, projectileIds: [2] });
   expect(cues.find(c => c.partId === 'belt' && c.result === 'Penetration')).toMatchObject({ damage: 20, projectileIds: [1] });
 
   sim.tick = 260;
@@ -76,7 +76,7 @@ test('impact labels combine one shell’s layers, keep module names and actual h
   sim.tick = 60;
   sim.events.push(hit(1), hit(2, { targetId: 'turret', targetName: 'Anton turret', kind: 'mount', outcome: 'destroyed', hullDamage: 14 }));
   const cue = feedback.update(sim)[0];
-  expect(cue.part).toBe('Anton turret'); expect(cue.result).toBe('Destroyed'); expect(cue.damage).toBe(59.5);
+  expect(cue.part).toBe('Gun'); expect(cue.result).toBe('Destroyed'); expect(cue.damage).toBe(59.5);
   expect(cue.position[2]).toBeCloseTo(-80);
   expect(feedback.update(sim)).toHaveLength(1); expect(feedback.update(sim)[0].damage).toBe(59.5);
   sim.tick = 230; expect(feedback.update(sim)[0].opacity).toBeLessThan(1);
@@ -91,11 +91,29 @@ test('torpedo HP and armor rejection are explicit, friendly impacts excluded, an
     torpedo: { id: 2, velocity: [0, 0, -20], diameterM: .533 } });
   sim.events.push({ ...sim.events[0], sequence: 2, shipId: sim.player.motion.id });
   expect(feedback.update(sim)).toHaveLength(1);
-  expect(feedback.update(sim)[0]).toMatchObject({ part: 'Engine room', damage: 300, result: 'Flooding breach' });
+  expect(feedback.update(sim)[0]).toMatchObject({ part: '', damage: 300, result: 'Flooding breach' });
   sim.events.push({ ...sim.events[0], sequence: 3, kind: 'torpedo-dud', hullDamage: 0, torpedo: { id: 3, velocity: [0, 0, -20], diameterM: .533 }, message: 'Torpedo dud · impact before arming' });
   expect(feedback.update(sim).at(-1)).toMatchObject({ damage: 0, result: 'Unarmed impact' });
   sim.events.push({ ...sim.events[2], sequence: 4, torpedo: { id: 4, velocity: [0, 0, -20], diameterM: .533 }, message: 'Torpedo dud · glancing impact' });
-  expect(feedback.update(sim).at(-1)).toMatchObject({ part: 'Hull', damage: 0, result: 'Dud · glancing impact' });
+  expect(feedback.update(sim).at(-1)).toMatchObject({ part: '', damage: 0, result: 'Dud · glancing impact' });
   expect(feedback.update(sim)).toHaveLength(3);
   expect(feedback.update(new CombatSimulation(shipPreset('type-viic')))).toHaveLength(0);
+});
+
+test('structural UUIDs stay hidden while critical equipment uses readable type labels', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), feedback = new HitFeedback();
+  sim.tick = 60;
+  const uuid = 'c847129a-4df1-45df-9269-dadab332996f';
+  const engine = sim.target.definition.modules.find(module => module.kind === 'engine')!;
+  const hit = (sequence: number, targetId: string, kind: 'armor' | 'module' | 'mount'): CombatEvent => ({
+    sequence, tick: 60, kind: 'penetration', shipId: sim.target.motion.id,
+    position: [0, 0, 0], message: 'impact',
+    impact: { shellId: sequence, shipId: sim.target.motion.id, targetId, targetName: uuid,
+      kind, position: [0, 0, 0], penetrationBeforeMm: 500, penetrationAfterMm: 100,
+      outcome: 'penetrated', hullDamage: 20 },
+  });
+  sim.events.push(hit(1, uuid, 'armor'), hit(2, engine.id, 'module'), hit(3, `mount-${uuid}`, 'mount'), hit(4, `module-${uuid}`, 'module'));
+  const cues = feedback.update(sim);
+  expect(cues.map(cue => cue.part)).toEqual(['', 'Engine', 'Gun', '']);
+  expect(cues.every(cue => cue.damage === 20 && cue.result === 'Penetration')).toBe(true);
 });

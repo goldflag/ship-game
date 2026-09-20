@@ -123,7 +123,7 @@ def run_blender(pack):
                 break
         return accepted
 
-    def assembled(scheme):
+    def assembled(scheme, components=None):
         import copy
         root = {'nodes': copy.deepcopy(scheme['A_Hull'])}
         def find(node, name):
@@ -134,7 +134,9 @@ def run_blender(pack):
                 result = find(child, name)
                 if result is not None:
                     return result
-        for category, entries in scheme.items():
+        # A documented fit must not be overwritten by later B/C upgrades.
+        for category in components if components is not None else scheme:
+            entries = scheme[category]
             if category == 'A_Hull' or not isinstance(entries, dict):
                 continue
             for name, payload in entries.items():
@@ -211,7 +213,7 @@ def run_blender(pack):
                 children = node.get('nodes', {})
                 for child in children if isinstance(children, list) else children.values():
                     visit(child, transform)
-            visit(assembled(data['schemes'][item['sourceUrl']]), Matrix.Identity(4))
+            visit(assembled(data['schemes'][item['sourceUrl']], item.get('schemeComponents')), Matrix.Identity(4))
         mn = Vector([min(p[k] for p in exported_points) for k in range(3)])
         mx = Vector([max(p[k] for p in exported_points) for k in range(3)])
         datum = Vector(((mn.x + mx.x) / 2, mn.y, (mn.z + mx.z) / 2))
@@ -247,7 +249,7 @@ def main():
         run_blender(Path(sys.argv[sys.argv.index('--blender-pack') + 1]))
         return
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--part', help='Extract one catalog part instead of all 15 available counterparts')
+    parser.add_argument('--part', help='Extract one catalog part instead of all configured counterparts')
     args = parser.parse_args()
     items = json.loads(CONFIG.read_text())['extractions']
     if args.part:

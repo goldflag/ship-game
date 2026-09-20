@@ -45,7 +45,7 @@ export class HitLabels {
         this.root.appendChild(label); this.labels.set(cue.id, label);
       }
       label.dataset.source = cue.source;
-      label.setAttribute('aria-label', `${cue.source === 'player' ? 'Your hit' : 'Other hit'}: ${Math.round(cue.damage)} hull HP · ${cue.part} · ${cue.result}`);
+      label.setAttribute('aria-label', `${cue.source === 'player' ? 'Your hit' : 'Other hit'}: ${Math.round(cue.damage)} hull HP · ${cue.part ? `${cue.part} · ` : ''}${cue.result}`);
       const content = JSON.stringify([cue.damage, cue.part, cue.result, cue.projectileIds.length]);
       if (this.content.get(label) !== content) {
         this.content.set(label, content); this.dimensions.delete(label);
@@ -55,7 +55,9 @@ export class HitLabels {
         const icon = OUTCOME_ICONS.find(icon => cue.result === icon.label || cue.result.startsWith(`${icon.label} · `));
         damage.textContent = cue.damage > 0 ? `−${cue.damage.toLocaleString(undefined, { maximumFractionDigits: 0 })} HP` : '';
         damage.hidden = cue.damage <= 0;
-        name.textContent = icon?.kind === 'destroyed' ? `Destroyed ${cue.part}` : cue.part;
+        name.textContent = cue.part && icon?.kind === 'destroyed' ? `Destroyed ${cue.part}` : cue.part;
+        name.hidden = !cue.part;
+        part.hidden = !cue.part && !icon;
         outcome.hidden = !icon;
         if (icon) {
           outcome.dataset.outcome = icon.kind;

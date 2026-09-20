@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "scharnhorst-1939-mainmast",
+  "revision": "e3d73ce7012e56771856d6a07094d3205517bc32bf21e4dd238dbc9466562d0a",
+  "contentHash": "36a9035e938b7c3196a162bea2b1c09e95202ef91702ed53d75200d5272a7650",
+  "modelSha256": "2ad5d2fe179caa8986b619a89e99e2b6eef4e57398ea2ccdb141b7440fd0b8d3",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/scharnhorst-1939-mainmast/e3d73ce7012e56771856d6a07094d3205517bc32bf21e4dd238dbc9466562d0a/model.glb",
+  "boundsCenter": [
+    -4.76837158203125e-7,
+    21.014998702332377,
+    0.6474495530128479
+  ],
+  "size": [
+    12.533790588378906,
+    42.029997404664755,
+    5.234964728355408
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 3028,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}

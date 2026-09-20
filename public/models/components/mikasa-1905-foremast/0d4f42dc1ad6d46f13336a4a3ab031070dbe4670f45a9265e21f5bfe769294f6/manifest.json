@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "mikasa-1905-foremast",
+  "revision": "0d4f42dc1ad6d46f13336a4a3ab031070dbe4670f45a9265e21f5bfe769294f6",
+  "contentHash": "720cf0b124f88f6bb8e09c84797c674d5797c220442502326a55be0f3a0334b5",
+  "modelSha256": "63ea88340d2b7b3d7ac440eda696d6eef98460ad1b7b52dc8f63fca254fabe3c",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/mikasa-1905-foremast/0d4f42dc1ad6d46f13336a4a3ab031070dbe4670f45a9265e21f5bfe769294f6/model.glb",
+  "boundsCenter": [
+    0,
+    23.860001830384135,
+    0
+  ],
+  "size": [
+    19.22176742553711,
+    47.72000366076827,
+    5.480000019073486
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 2256,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simplified GameModels3D visual adaptation; see assets/parts/historical-masts/README.md for precise source, scope and mismatches. Mass/CG are provisional, fixed radar fittings have no gameplay capability. Installation support and moving-neighbor clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}

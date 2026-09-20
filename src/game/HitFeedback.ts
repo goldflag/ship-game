@@ -1,6 +1,6 @@
 import type { BattleSession } from './session/BattleSession';
 
-import type { Vec3 } from '../ships/blueprint';
+import type { Module, Vec3 } from '../ships/blueprint';
 import { worldToLocal } from './geometry';
 import { FIXED_DT } from './session/motion';
 
@@ -10,6 +10,10 @@ export interface HitCue {
   source: 'player' | 'other';
 }
 const DURATION = 3.2;
+const MODULE_LABELS: Record<Module['kind'], string> = {
+  engine: 'Engine', steering: 'Steering', magazine: 'Magazine',
+  generator: 'Generator', 'fire-control': 'Fire control', launcher: 'Launcher',
+};
 const outcomes = { penetrated: 'Penetration', ricochet: 'Ricochet', stopped: 'Armor stopped', damaged: 'Damaged', destroyed: 'Destroyed', detonation: 'Detonation', backing: 'Backing struck' };
 
 /** Consume each projectile's layers once, then group matching visible component results. */
@@ -34,8 +38,12 @@ export class HitFeedback {
       if (time - hitTime >= DURATION) continue;
       const position = worldToLocal(event.position, actor.motion);
       const projectile = event.shell?.id ?? event.torpedo?.id ?? event.depthCharge?.id ?? impact?.shellId ?? event.sequence;
-      const part = impact?.targetName ?? (event.kind === 'torpedo-dud' ? 'Hull' : undefined) ?? event.message.split(' · ')[1] ?? 'Hull';
-      const partId = impact?.targetId ?? part;
+      // Structural names may be construction UUIDs. Only identify critical equipment,
+      // using its type so custom equipment IDs never leak into the combat HUD.
+      const module = impact?.kind === 'module'
+        ? actor.definition.modules.find(module => module.id === impact.targetId) : undefined;
+      const part = impact?.kind === 'mount' ? 'Gun' : module ? MODULE_LABELS[module.kind] : '';
+      const partId = impact?.targetId ?? event.message.split(' · ')[1] ?? 'Hull';
       const local = impact?.localDamage;
       // Equipment loss stays the headline; structural context explains reduced hull damage.
       const explanation = impact?.outcome === 'destroyed' ? `${outcomes.destroyed}${impact.throughWreckage ? ' · Through wreckage' : ''}`
