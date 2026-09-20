@@ -783,7 +783,9 @@ impl MountClearance {
                 .map(|i| hulls.remove(i).2)
                 .unwrap_or_default()
         });
-        let result = self.sweep(def, index, poses, requested, &mut posed, bound);
+        let result = self
+            .endpoint_bound(def, index, poses, requested, &mut posed, bound)
+            .unwrap_or_else(|| self.sweep(def, index, poses, requested, &mut posed, bound));
         POSED.with_borrow_mut(|hulls| {
             if hulls.len() >= POSED_HULLS {
                 hulls.remove(0);
@@ -792,6 +794,88 @@ impl MountClearance {
         });
         result
     }
+    /// A previously free mount often exhausts its conservative kept gap while
+    /// moving parallel to a wall. One new measurement at the destination can
+    /// certify the complete path backwards, without measuring both ends.
+    /// Failed or initially blocked moves still use the original sweep.
+    fn endpoint_bound(
+        &self,
+        def: &ShipDefinition,
+        index: usize,
+        poses: &[ClearancePose],
+        requested: ClearancePose,
+        posed: &mut Posed,
+        bound: &mut Option<ClearBound>,
+    ) -> Option<ClearanceResult> {
+        let kept = bound.as_ref()?;
+        if kept.generation != self.generation
+            || index >= poses.len()
+            || poses.len() != def.mounts.len()
+            || !self.enabled(index)
+            || poses
+                .iter()
+                .any(|p| !p.train.is_finite() || !p.elevation.is_finite())
+        {
+            return None;
+        }
+        let w = &def.mounts[index].weapon;
+        let [lo, hi] = def.mounts[index]
+            .traverse_limits_deg
+            .unwrap_or([-w.traverse_deg, w.traverse_deg])
+            .map(radians);
+        if !(lo..=hi).contains(&requested.train)
+            || !(radians(w.elevation_min_deg)..=radians(w.elevation_max_deg))
+                .contains(&requested.elevation)
+            || !(0.0..=1.0).contains(&requested.recoil)
+        {
+            return None;
+        }
+        let requested = ClearancePose {
+            train: clamp(requested.train, lo, hi),
+            elevation: clamp(
+                requested.elevation,
+                radians(w.elevation_min_deg),
+                radians(w.elevation_max_deg),
+            ),
+            recoil: clamp(requested.recoil, 0., 1.),
+        };
+        let changed = self.affected(def, index);
+        let radius = changed
+            .iter()
+            .enumerate()
+            .filter(|(_, v)| **v)
+            .map(|(i, _)| {
+                self.radii[i] + length(sub(def.mounts[i].position, def.mounts[index].position))
+            })
+            .fold(0., f64::max);
+        let speed = 2.
+            * radius
+            * ((requested.train - poses[index].train).abs()
+                + (requested.elevation - poses[index].elevation).abs());
+        // Restrict the probe to normal tick-sized movements; large diagnostic
+        // sweeps can spend more time advancing than this shortcut would save.
+        if !(1e-12..=1.).contains(&speed) {
+            return None;
+        }
+        let mut candidate = poses.to_vec();
+        candidate[index] = requested;
+        self.pose(def, &candidate, None, posed);
+        let (gap, _) = self.distance(def, posed, &changed, speed + self.margin + 1.);
+        if !(gap - speed >= self.margin.max(speed / 100.) + 1e-6) {
+            return None;
+        }
+        *bound = Some(ClearBound {
+            generation: self.generation,
+            poses: candidate.iter().map(|p| [p.train, p.elevation]).collect(),
+            gap,
+        });
+        Some(ClearanceResult {
+            pose: requested,
+            blocked: false,
+            obstruction_id: None,
+        })
+    }
+
     /// The sweep's answer when a kept bound already decides it. Every gap this
     /// mount checks closes no faster than the two mounts involved move, so since
     /// the bound was measured it has lost at most twice the largest motion among
@@ -1616,6 +1700,58 @@ fn segment_triangle_distance(p: Vec3, q: Vec3, triangle: [Vec3; 3]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn kept_endpoint_bounds_match_full_sweeps_while_neighbors_move() {
+        let def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/valiant.json")).unwrap();
+        let clearance = MountClearance::new_runtime(&def).unwrap().unwrap();
+        let mut poses: Vec<_> = def
+            .mounts
+            .iter()
+            .map(|m| ClearancePose::from(&MountState::new(m)))
+            .collect();
+        let mut bounds = vec![None; poses.len()];
+        let (mut checked, mut endpoint_certified) = (0, 0);
+        for tick in 0..120 {
+            for i in 0..poses.len() {
+                if !clearance.enabled(i) {
+                    continue;
+                }
+                let direction = if (i + tick / 40) % 2 == 0 { 1. } else { -1. };
+                let requested = ClearancePose {
+                    train: poses[i].train + direction * radians(0.2),
+                    elevation: poses[i].elevation + direction * radians(0.03),
+                    ..poses[i]
+                };
+                let expected = clearance.resolve(&def, i, &poses, requested);
+                if let Some(probe) = clearance.endpoint_bound(
+                    &def,
+                    i,
+                    &poses,
+                    requested,
+                    &mut Posed::default(),
+                    &mut bounds[i].clone(),
+                ) {
+                    assert_eq!(
+                        serde_json::to_value(probe).unwrap(),
+                        serde_json::to_value(&expected).unwrap()
+                    );
+                    endpoint_certified += 1;
+                }
+                let actual = clearance.resolve_for(456, &def, i, &poses, requested, &mut bounds[i]);
+                assert_eq!(
+                    serde_json::to_value(&actual).unwrap(),
+                    serde_json::to_value(&expected).unwrap(),
+                    "{} tick {tick}",
+                    def.mounts[i].id
+                );
+                poses[i] = actual.pose;
+                checked += 1;
+            }
+        }
+        assert!(checked > 100 && endpoint_certified > 0);
+    }
+
     #[test]
     fn distant_mount_motion_cannot_change_a_short_sweep() {
         let def: ShipDefinition =
