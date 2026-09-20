@@ -20015,6 +20015,839 @@
         "penetrationReferenceSpeedMps": 530,
         "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
       }
+    },
+    {
+      "id": "sk-c34-283-triple",
+      "name": "28 cm SK C/34 triple",
+      "kind": "gun",
+      "barrelCount": 3,
+      "massKg": 750000,
+      "barbetteRadius": 5.2,
+      "gunhouseSize": [
+        12.6,
+        9.72,
+        3.52
+      ],
+      "gunhouseBaseHeight": 0.17,
+      "pivotHeight": 1.3,
+      "trunnionForward": 2.98,
+      "muzzleForward": 13.77,
+      "barrelSpacing": 2.8,
+      "barrelBaseRadius": 0.36,
+      "caliberM": 0.283,
+      "mountingStyle": "enclosed",
+      "traverseDeg": 145,
+      "traverseRateDeg": 7.2,
+      "elevationMinDeg": -8,
+      "elevationMaxDeg": 40,
+      "elevationRateDeg": 8,
+      "reloadSeconds": 17,
+      "muzzleSpeed": 890,
+      "projectileMassKg": 330,
+      "penetrationMm": 425,
+      "damage": 55,
+      "recoilM": 1.2,
+      "ammoPerBarrel": 150,
+      "armorMm": 360,
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            4.67,
+            4.05,
+            0.17
+          ],
+          [
+            -0.78,
+            4.86,
+            0.17
+          ],
+          [
+            -6.84,
+            4.86,
+            0.17
+          ],
+          [
+            -7.29,
+            3.73,
+            0.17
+          ],
+          [
+            -7.7,
+            2.24,
+            0.17
+          ],
+          [
+            4.16,
+            4.12,
+            1.79
+          ],
+          [
+            -0.78,
+            4.86,
+            1.91
+          ],
+          [
+            -6.84,
+            4.86,
+            1.91
+          ],
+          [
+            -7.29,
+            3.73,
+            2.97
+          ],
+          [
+            -7.7,
+            2.24,
+            2.84
+          ],
+          [
+            4.07,
+            3.84,
+            2.05
+          ],
+          [
+            2.9,
+            2.82,
+            2.4
+          ],
+          [
+            -0.78,
+            3.14,
+            3.52
+          ],
+          [
+            -5.66,
+            3.14,
+            3.52
+          ],
+          [
+            4.67,
+            -4.05,
+            0.17
+          ],
+          [
+            -0.78,
+            -4.86,
+            0.17
+          ],
+          [
+            -6.84,
+            -4.86,
+            0.17
+          ],
+          [
+            -7.29,
+            -3.73,
+            0.17
+          ],
+          [
+            -7.7,
+            -2.24,
+            0.17
+          ],
+          [
+            4.16,
+            -4.12,
+            1.79
+          ],
+          [
+            -0.78,
+            -4.86,
+            1.91
+          ],
+          [
+            -6.84,
+            -4.86,
+            1.91
+          ],
+          [
+            -7.29,
+            -3.73,
+            2.97
+          ],
+          [
+            -7.7,
+            -2.24,
+            2.84
+          ],
+          [
+            4.07,
+            -3.84,
+            2.05
+          ],
+          [
+            2.9,
+            -2.82,
+            2.4
+          ],
+          [
+            -0.78,
+            -3.14,
+            3.52
+          ],
+          [
+            -5.66,
+            -3.14,
+            3.52
+          ],
+          [
+            -7.93,
+            0,
+            0.17
+          ],
+          [
+            -7.93,
+            0,
+            2.75
+          ]
+        ],
+        "faces": [
+          {
+            "id": "face-1",
+            "indices": [
+              14,
+              0,
+              5
+            ],
+            "thicknessMm": 360,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "face-2",
+            "indices": [
+              14,
+              5,
+              19
+            ],
+            "thicknessMm": 360,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "face-upper-1",
+            "indices": [
+              19,
+              5,
+              10
+            ],
+            "thicknessMm": 360,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "face-upper-2",
+            "indices": [
+              19,
+              10,
+              24
+            ],
+            "thicknessMm": 360,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "front-slope-1",
+            "indices": [
+              24,
+              10,
+              11
+            ],
+            "thicknessMm": 180,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "front-slope-2",
+            "indices": [
+              24,
+              11,
+              25
+            ],
+            "thicknessMm": 180,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "glacis-1",
+            "indices": [
+              25,
+              11,
+              12
+            ],
+            "thicknessMm": 180,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "glacis-2",
+            "indices": [
+              25,
+              12,
+              26
+            ],
+            "thicknessMm": 180,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-1",
+            "indices": [
+              26,
+              12,
+              13
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-2",
+            "indices": [
+              26,
+              13,
+              27
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "rear-roof-1",
+            "indices": [
+              29,
+              23,
+              22
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "rear-roof-2",
+            "indices": [
+              29,
+              22,
+              27
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "rear-roof-3",
+            "indices": [
+              29,
+              27,
+              13
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "rear-roof-4",
+            "indices": [
+              29,
+              13,
+              8
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "rear-roof-5",
+            "indices": [
+              29,
+              8,
+              9
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "roof"
+          },
+          {
+            "id": "cheek-port-1",
+            "indices": [
+              0,
+              1,
+              6
+            ],
+            "thicknessMm": 200,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "cheek-port-2",
+            "indices": [
+              0,
+              6,
+              5
+            ],
+            "thicknessMm": 200,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "side-port-1",
+            "indices": [
+              1,
+              2,
+              7
+            ],
+            "thicknessMm": 200,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "side-port-2",
+            "indices": [
+              1,
+              7,
+              6
+            ],
+            "thicknessMm": 200,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-corner-port-1",
+            "indices": [
+              2,
+              3,
+              8
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-corner-port-2",
+            "indices": [
+              2,
+              8,
+              7
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-quarter-port-1",
+            "indices": [
+              3,
+              4,
+              9
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-quarter-port-2",
+            "indices": [
+              3,
+              9,
+              8
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-port-1",
+            "indices": [
+              4,
+              28,
+              29
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-port-2",
+            "indices": [
+              4,
+              29,
+              9
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "forward-shoulder-port-1",
+            "indices": [
+              12,
+              5,
+              6
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "forward-shoulder-port-2",
+            "indices": [
+              12,
+              10,
+              5
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "forward-shoulder-port-3",
+            "indices": [
+              12,
+              11,
+              10
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "shoulder-port-1",
+            "indices": [
+              6,
+              13,
+              12
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "shoulder-port-2",
+            "indices": [
+              6,
+              7,
+              13
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-shoulder-port",
+            "indices": [
+              7,
+              8,
+              13
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "cheek-starboard-1",
+            "indices": [
+              14,
+              20,
+              15
+            ],
+            "thicknessMm": 200,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "cheek-starboard-2",
+            "indices": [
+              14,
+              19,
+              20
+            ],
+            "thicknessMm": 200,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "side-starboard-1",
+            "indices": [
+              15,
+              21,
+              16
+            ],
+            "thicknessMm": 200,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "side-starboard-2",
+            "indices": [
+              15,
+              20,
+              21
+            ],
+            "thicknessMm": 200,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-corner-starboard-1",
+            "indices": [
+              16,
+              22,
+              17
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-corner-starboard-2",
+            "indices": [
+              16,
+              21,
+              22
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-quarter-starboard-1",
+            "indices": [
+              17,
+              23,
+              18
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-quarter-starboard-2",
+            "indices": [
+              17,
+              22,
+              23
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-starboard-1",
+            "indices": [
+              18,
+              29,
+              28
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-starboard-2",
+            "indices": [
+              18,
+              23,
+              29
+            ],
+            "thicknessMm": 350,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "forward-shoulder-starboard-1",
+            "indices": [
+              26,
+              20,
+              19
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "forward-shoulder-starboard-2",
+            "indices": [
+              26,
+              19,
+              24
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "forward-shoulder-starboard-3",
+            "indices": [
+              26,
+              24,
+              25
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "shoulder-starboard-1",
+            "indices": [
+              20,
+              26,
+              27
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "shoulder-starboard-2",
+            "indices": [
+              20,
+              27,
+              21
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-shoulder-starboard",
+            "indices": [
+              21,
+              27,
+              22
+            ],
+            "thicknessMm": 150,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-1",
+            "indices": [
+              28,
+              4,
+              3
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-2",
+            "indices": [
+              28,
+              3,
+              2
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-3",
+            "indices": [
+              28,
+              2,
+              1
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-4",
+            "indices": [
+              28,
+              1,
+              0
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-5",
+            "indices": [
+              28,
+              0,
+              14
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-6",
+            "indices": [
+              28,
+              14,
+              15
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-7",
+            "indices": [
+              28,
+              15,
+              16
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-8",
+            "indices": [
+              28,
+              16,
+              17
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-9",
+            "indices": [
+              28,
+              17,
+              18
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          }
+        ],
+        "provenance": {
+          "sourceId": "gm3d-pgsb507",
+          "basis": "estimated",
+          "note": "Original faceted enclosure measured against the approved GameModels3D Scharnhorst A artillery views. Plate families follow the commonly published 360 mm face, 200 mm side, 350 mm rear and 150 mm roof figures; facet boundaries, slopes and the floor are game estimates."
+        }
+      },
+      "ballistics": {
+        "dragPerSecond": 0.02598,
+        "dispersionRad": 0.00075,
+        "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (760.247 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 760.247256
+      },
+      "ap": {
+        "armingResistanceMm": 47.1667,
+        "fuzeDelaySeconds": 0.035,
+        "explosiveKg": 8.25,
+        "fragmentPenetrationMm": 22.64,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 26.4,
+        "fragmentPenetrationMm": 47.1667,
+        "damage": 110,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+      }
     }
   ],
   "torpedoes": [

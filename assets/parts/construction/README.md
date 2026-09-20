@@ -341,6 +341,14 @@ turret carries a 2.15 m rotating stalk below the gunhouse, because its mount
 datum sits that far under the floor aboard Yamato. The ships themselves are
 unchanged: they do not read the mount registry and keep their inline turrets.
 
+The 28 cm SK C/34 triple (`sk-c34-283-triple`,
+`../german-battleship-guns/sk_c34_triple.py`) is the Scharnhorst main turret,
+authored against the GameModels3D pgsb507 A artillery. Its visible gunhouse is
+the catalog's closed armor shell, its canvas seals are the shared flexible
+`gun_bloomers` covers, and its support attachment is the turntable sole at
+Y = 0. The approved model fits the same gunhouse, without turret rangefinder
+arms, at all three positions, so the collection has one variant.
+
 ## Deck gear, boats and aviation fittings
 
 `../deck-gear/forecastle.py` (paravane, breakwater, hawse pipe with stopper,
