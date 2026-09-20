@@ -1028,13 +1028,33 @@ fn decorative_fittings_do_not_bury_machinery_or_each_other() {
 #[test]
 fn machinery_still_rejects_complete_overlap_with_other_machinery() {
     let (mut s, mut c) = fixture();
+    let mut hoist = part("hoist");
+    hoist.kind = "magazine".into();
+    let mut locker = part("locker");
+    locker.kind = "magazine".into();
+    c.equipment.extend([hoist, locker]);
+    s.construction.equipment = vec![fixed("hoist", [0., 2., 0.]), fixed("locker", [0., 2., 0.])];
+    rejected(&s, &c, "equipment-overlap");
+    s.construction.equipment.reverse();
+    rejected(&s, &c, "equipment-overlap");
+}
+
+#[test]
+fn masts_and_funnels_never_overlap_anything() {
+    // Each is one conservative box around rigging, platforms and uptakes, so
+    // neither is a collision body: anything may share their envelope.
+    let (mut s, mut c) = fixture();
     let mut mast = part("mast");
     mast.kind = "mast".into();
     let mut funnel = part("funnel");
     funnel.kind = "funnel".into();
-    c.equipment.extend([mast, funnel]);
-    s.construction.equipment = vec![fixed("mast", [0., 2., 0.]), fixed("funnel", [0., 2., 0.])];
-    rejected(&s, &c, "equipment-overlap");
-    s.construction.equipment.reverse();
-    rejected(&s, &c, "equipment-overlap");
+    let mut hoist = part("hoist");
+    hoist.kind = "magazine".into();
+    c.equipment.extend([mast, funnel, hoist]);
+    for neighbor in ["funnel", "hoist"] {
+        s.construction.equipment = vec![fixed("mast", [0., 2., 0.]), fixed(neighbor, [0., 2., 0.])];
+        compiled(&s, &c);
+        s.construction.equipment.reverse();
+        compiled(&s, &c);
+    }
 }

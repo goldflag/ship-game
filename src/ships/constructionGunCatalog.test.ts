@@ -64,6 +64,22 @@ const standing = (partId: string, id: string, deck: number, at: [number, number]
   return { id, partId, position: [at[0] - datum[0], deck - datum[1], at[1] - datum[2]] as [number, number, number], bearingDeg: 0 };
 };
 
+test('a catalog funnel or mast accepts an overlapping neighbour in either source order', () => {
+  // Both are one conservative box around uptakes, platforms, yards and rigging,
+  // so the compiler raises no overlap, intersection or clearance fault for them.
+  for (const uncontested of ['dreadnought-aft-funnel', 'us-cruiser-pole-mast']) {
+    for (const neighbour of ['us-5in38-mk30-mod0-single', 'nelson-funnel', 'fletcher-aft-mast']) {
+      const { source, deck } = bareDeck();
+      const pair = [standing(uncontested, 'uncontested', deck), standing(neighbour, 'neighbour', deck)];
+      for (const order of [pair, [...pair].reverse()]) {
+        source.construction.equipment = order;
+        const result = compile(source);
+        expect(result.diagnostics.filter(entry => entry.severity === 'error'), `${uncontested} + ${neighbour}: ${JSON.stringify(result.diagnostics)}`).toEqual([]);
+      }
+    }
+  }
+});
+
 test('every fixed deck fitting stands on a deck without an error of its own', () => {
   for (const part of catalog.equipment.filter(entry => entry.kind === 'deck-fitting' && !entry.path && entry.sockets!.find(s => s.id === 'attachment')!.direction[1] === -1)) {
     const { source, deck } = bareDeck();
