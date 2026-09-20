@@ -1980,6 +1980,11 @@
       "url": "/models/components/thumbnails/26065af72282267d48c5169cb86ff7f22000948739f81c6d3fbc9968216c9c7d.png",
       "modelHash": "b0cfa3fae253ad568c5b90653039749bafce20b8ba6235ba23730e835da0a88c",
       "imageHash": "124360533ec186054c3060f654a694403808829cc4c679a7a193dad14bf8a614"
+    },
+    "/models/components/aosta-forward-funnel/475693732a8d90eb9a17ee264e8768f2b9da68e73fad5ee75e697657c63f0471/model.glb": {
+      "url": "/models/components/thumbnails/9bb7f479df1bff8e52adb3b7fa701430aa60f051fb2004638a80dcdb6f87231d.png",
+      "modelHash": "0e1242258a80ca63df5a4b7cc34282672b6e019ce3a4cd59592cad2401daa1b3",
+      "imageHash": "d61aa234bdd521dc9a927f2f61dddc708b5c6aab57fad25c9a8ce040fa1be7a5"
     }
   }
 }
