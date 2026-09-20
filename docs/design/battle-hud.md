@@ -23,8 +23,9 @@ Mouse movement aims through the centered sailing sight while the cursor is captu
 mouse toggles binocular view. The numbered horizontal aiming scale appears only in binocular view,
 alongside range and magnification. Scrolling continuously adjusts 1×–32× binocular magnification;
 ordinary scrolling eases camera distance. Optics transitions preserve the aimed point over 0.42
-seconds and respect reduced motion. Surface gun optics rise with range to look down along the selected
-gun's estimated shell descent, using its muzzle speed and drag with a 35° viewing limit. Height changes
+seconds and respect reduced motion. Surface gun optics use one third of the selected gun's estimated
+shell descent angle, using its muzzle speed and drag with a 10° viewing limit. At close range the former
+bridge-height angle is also divided by three, subject to sea and terrain clearance. Height changes
 preserve the sighted point; torpedo optics and submarine periscopes retain their physical eye height.
 Downward chase tilt orbits toward a near-vertical view above the
 hull. Hold Ctrl to release the cursor for HUD controls, then release it to resume captured aim. A
