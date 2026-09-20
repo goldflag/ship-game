@@ -567,7 +567,15 @@ pub fn update_mount_at(
         radians(w.elevation_min_deg),
         radians(w.elevation_max_deg),
     );
-    let train_rate = radians(w.traverse_rate_deg) * dt * work;
+    // Heavy guns start at 7 deg/s for an authored 2 deg/s, retaining half
+    // the authored speed differences. Never slow a gun below its authored rate.
+    let traverse_rate_deg = if w.caliber_m >= 0.203 {
+        w.traverse_rate_deg
+            .max(7.0 + (w.traverse_rate_deg - 2.0).max(0.0) * 0.5)
+    } else {
+        w.traverse_rate_deg
+    };
+    let train_rate = radians(traverse_rate_deg) * dt * work;
     let elevation_rate = radians(w.elevation_rate_deg) * dt * work;
     let requested_train = s.train + clamp(train - s.train, -train_rate, train_rate);
     let requested_elevation =
