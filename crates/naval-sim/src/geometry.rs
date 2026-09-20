@@ -6,12 +6,15 @@ pub fn clamp(n: f64, min: f64, max: f64) -> f64 {
 pub fn radians(n: f64) -> f64 {
     n * std::f64::consts::PI / 180.0
 }
+#[inline(always)]
 pub fn add(a: Vec3, b: Vec3) -> Vec3 {
     [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
 }
+#[inline(always)]
 pub fn sub(a: Vec3, b: Vec3) -> Vec3 {
     [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 }
+#[inline(always)]
 pub fn scale(a: Vec3, s: f64) -> Vec3 {
     [a[0] * s, a[1] * s, a[2] * s]
 }
@@ -51,9 +54,11 @@ pub fn normalize(a: Vec3) -> Vec3 {
     let n = length(a);
     scale(a, 1.0 / if n == 0.0 { 1.0 } else { n })
 }
+#[inline(always)]
 pub fn dot(a: Vec3, b: Vec3) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
+#[inline(always)]
 pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
     [
         a[1] * b[2] - a[2] * b[1],

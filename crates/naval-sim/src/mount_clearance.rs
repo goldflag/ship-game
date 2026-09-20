@@ -185,18 +185,25 @@ impl PreparedTriangle {
                 return 0.0;
             }
         }
-        let [a, b, c] = self.vertices;
-        let edge = |a, b| {
-            let delta = segment_segment_delta(p, q, a, b);
+        let squared = dot(delta, delta);
+        let edge = |i| {
+            let delta = segment_edge_delta(
+                p,
+                delta,
+                squared,
+                self.vertices[i],
+                self.edges[i],
+                self.edge_squared[i],
+            );
             dot(delta, delta)
         };
         // Only the smallest distance needs a root. Physical coordinates are
         // bounded metres; scaled hypot on every edge added no useful range.
         self.point_squared(p)
             .min(self.point_squared(q))
-            .min(edge(a, b))
-            .min(edge(b, c))
-            .min(edge(c, a))
+            .min(edge(0))
+            .min(edge(1))
+            .min(edge(2))
             .sqrt()
     }
 }
@@ -1635,8 +1642,12 @@ fn segment_segment_distance(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> f64 {
     length(segment_segment_delta(p, q, a, b))
 }
 fn segment_segment_delta(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> Vec3 {
-    let (u, v, w) = (sub(q, p), sub(b, a), sub(p, a));
-    let (aa, bb, cc, dd, ee) = (dot(u, u), dot(u, v), dot(v, v), dot(u, w), dot(v, w));
+    let (u, v) = (sub(q, p), sub(b, a));
+    segment_edge_delta(p, u, dot(u, u), a, v, dot(v, v))
+}
+fn segment_edge_delta(p: Vec3, u: Vec3, aa: f64, a: Vec3, v: Vec3, cc: f64) -> Vec3 {
+    let w = sub(p, a);
+    let (bb, dd, ee) = (dot(u, v), dot(u, w), dot(v, w));
     if aa < 1e-20 {
         return point_edge_delta(p, a, v, cc);
     }
