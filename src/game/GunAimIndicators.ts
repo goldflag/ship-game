@@ -2,6 +2,9 @@ import { HUD_LAYERS } from '../ui/hudLayers';
 import { Vector3, type PerspectiveCamera } from 'three/webgpu';
 import type { GunAimPoint } from './gunAim';
 
+// An 80 ms time constant damps small corrections and settles 95% in 240 ms.
+const AIM_SMOOTHING_SECONDS = .08;
+
 export function projectGunAim(point: Vector3, camera: PerspectiveCamera, width: number, height: number) {
   const local = point.clone().applyMatrix4(camera.matrixWorldInverse);
   const behind = local.z >= 0;
@@ -77,6 +80,8 @@ export function placeGunAimLabels(labels: LabelBox[], width: number, height: num
 export class GunAimIndicators {
   private root = document.createElement('div');
   private marks: { root: HTMLDivElement; arrow: HTMLSpanElement; label: HTMLSpanElement }[] = [];
+  private aimPositions = new Map<string, Vector3>();
+  private source?: object;
   private width = 1;
   private height = 1;
 
@@ -93,10 +98,30 @@ export class GunAimIndicators {
     this.height = height;
   }
 
-  update(points: GunAimPoint[], camera: PerspectiveCamera, visible: boolean): void {
+  update(points: GunAimPoint[], camera: PerspectiveCamera, visible: boolean, dt: number, source: object): void {
     this.root.hidden = !visible;
+    if (!visible || this.source !== source) this.aimPositions.clear();
+    this.source = source;
     if (!visible) return;
-    const groups = groupGunAim(points, camera, this.width, this.height);
+    // Soften snapshot/aim-solution corrections before projection: mouse look and
+    // zoom still use this frame's camera with no added lag. Track turrets, not DOM
+    // groups, which can split/reorder whenever readiness or reload time changes.
+    const blend = -Math.expm1(-Math.max(0, dt) / AIM_SMOOTHING_SECONDS);
+    const active = new Set(points.map(point => point.id));
+    for (const id of this.aimPositions.keys()) if (!active.has(id)) this.aimPositions.delete(id);
+    const displayed = points.map(point => {
+      let position = this.aimPositions.get(point.id);
+      if (!position) {
+        position = new Vector3(...point.point);
+        this.aimPositions.set(point.id, position);
+      } else {
+        position.x += (point.point[0] - position.x) * blend;
+        position.y += (point.point[1] - position.y) * blend;
+        position.z += (point.point[2] - position.z) * blend;
+      }
+      return { ...point, point: position.toArray() };
+    });
+    const groups = groupGunAim(displayed, camera, this.width, this.height);
     groups.forEach((group, i) => {
       let mark = this.marks[i];
       if (!mark) {
@@ -146,7 +171,7 @@ export class GunAimIndicators {
     });
     for (let i = groups.length; i < this.marks.length; i++) this.marks[i].root.hidden = true;
     // Batch measurements after content writes, then move labels only. Rings keep
-    // the actual projected aim even when readiness differs at the same point.
+    // the smoothed projected aim even when readiness differs at the same point.
     const boxes = placeGunAimLabels(
       groups.map((group, i) => ({
         x: group.x,
