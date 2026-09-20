@@ -81,11 +81,11 @@ deck-mounted light guns, the separate funnel cap, closed hatches, vents and
 torpedo launchers do not. A well whose top stops within 1 cm below the deck still
 crosses it: seating arithmetic and lofted plating land fractions of a millimetre
 below a deck plane, and a well that did not cut it left a skin-thin lid the later
-checks could not measure. Platforms (`balcony`) are deliberately still not crossed, and this tolerance does
-not change that: a platform is solid steel with no compartment under it, so a well
-over one is rejected rather than opening an invented hole.
-Seat a mount whose well would reach a platform on the hull or deckhouse block
-below it, or raise it above the platform with **Turret rise**.
+checks could not measure. Platforms (`balcony`), including their walls and railings,
+are decorative and contribute no structural mass, buoyancy, armor, flooding volume or
+runtime collision geometry. They remain visible and can seat deck-mounted light guns
+and fittings. Working wells still need real hull or deckhouse interior beneath them;
+a balcony does not provide that interior or create a simulated deck penetration.
 
 ### Fit tolerances
 

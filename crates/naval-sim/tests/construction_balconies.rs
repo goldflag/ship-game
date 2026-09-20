@@ -23,24 +23,108 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
 }
 
 #[test]
-fn open_balcony_attaches_to_side_and_counts_solid_deck_once() {
-    let (source, catalog) = fixture();
-    let result = construction::compile(&source, &catalog);
-    assert!(result.definition.is_some(), "{:?}", result.diagnostics);
-    let loading = result.loading.unwrap();
-    let deck = loading
-        .contributions
-        .iter()
-        .find(|c| c.id == "skin-balcony-platform")
-        .unwrap();
-    assert!((deck.mass_kg - 4.06 * 4.06 * 0.08 * 7850.).abs() < 1e-6);
-    assert!((deck.center[0] - 7.).abs() < 1e-8);
-    let cells = construction::primitive_cells(&source.construction.primitives[1]).unwrap();
-    assert!((cg::total(&cells).volume - 4.06 * 4.06 * 0.08).abs() < 1e-8);
+fn balconies_render_without_changing_structural_physics() {
+    for x in [7., 4.5] {
+        let (mut source, catalog) = fixture();
+        source.construction.primitives[1].position[0] = x;
+        let balcony = source.construction.primitives[1].balcony.as_mut().unwrap();
+        balcony.points[0].edge = "wall".into();
+        balcony.points[1].edge = "railing".into();
+        balcony.points[2].edge = "triple-railing".into();
+        let result = construction::compile(&source, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        assert!(result.surfaces.iter().any(|s| s.primitive_id == "balcony"));
+        source
+            .construction
+            .primitives
+            .retain(|p| p.kind != "balcony");
+        let baseline = construction::compile(&source, &catalog);
+        assert!(baseline.definition.is_some(), "{:?}", baseline.diagnostics);
+        let mut actual = serde_json::to_value(result.definition.unwrap()).unwrap();
+        let mut expected = serde_json::to_value(baseline.definition.unwrap()).unwrap();
+        // Source identity changes, but every compiled gameplay field must match.
+        for key in ["id", "contentHash", "construction"] {
+            actual.as_object_mut().unwrap().remove(key);
+            expected.as_object_mut().unwrap().remove(key);
+        }
+        for (key, value) in expected.as_object().unwrap() {
+            assert_eq!(&actual[key], value, "changed {key} at balcony x={x}");
+        }
+        assert_eq!(
+            serde_json::to_value(result.loading).unwrap(),
+            serde_json::to_value(baseline.loading).unwrap()
+        );
+    }
 }
 
 #[test]
-fn mixed_edges_concavity_mirroring_and_native_steel_remain_valid() {
+fn balcony_alone_is_not_a_hull() {
+    let (mut source, catalog) = fixture();
+    source
+        .construction
+        .primitives
+        .retain(|p| p.kind == "balcony");
+    let result = construction::compile(&source, &catalog);
+    assert!(result.definition.is_none());
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .any(|d| d.message.contains("hull primitive"))
+    );
+}
+
+#[test]
+fn decorative_balcony_still_supports_deck_equipment() {
+    let (mut source, mut catalog) = fixture();
+    catalog.equipment.push(ConstructionEquipmentPart {
+        id: "fitting".into(),
+        name: "Fitting".into(),
+        kind: "deck-fitting".into(),
+        placement: "deck".into(),
+        size: [1., 1., 1.],
+        bounds_center: [0., 0.5, 0.],
+        center_of_gravity: [0., 0.5, 0.],
+        mass_kg: Some(300.),
+        model_url: "/models/components/fitting/test.glb".into(),
+        content_hash: "test".into(),
+        sockets: Some(vec![ConstructionEquipmentPartSocketsItem {
+            id: "attachment".into(),
+            kind: "support".into(),
+            position: [0.; 3],
+            direction: [0., -1., 0.],
+        }]),
+        ..Default::default()
+    });
+    source.construction.equipment.push(ConstructionEquipment {
+        id: "fitting".into(),
+        part_id: "fitting".into(),
+        position: [7., 1.04, 0.],
+        ..Default::default()
+    });
+    let result = construction::compile(&source, &catalog);
+    assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+    let def = result.definition.unwrap();
+    assert!(
+        !def.hull
+            .volume
+            .unwrap()
+            .cells
+            .iter()
+            .any(|cell| cg::contains(cell, [7., 1., 0.]))
+    );
+    assert!(
+        result
+            .loading
+            .unwrap()
+            .contributions
+            .iter()
+            .any(|c| c.mass_kg == 300.)
+    );
+}
+
+#[test]
+fn mixed_edges_concavity_and_mirroring_remain_visible() {
     let (mut source, catalog) = fixture();
     let b = source.construction.primitives[1].balcony.as_mut().unwrap();
     b.points[0].edge = "wall".into();

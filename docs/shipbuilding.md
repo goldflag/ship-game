@@ -198,7 +198,9 @@ without the record keep their shape.
 ### Balconies, wall fittings and paths
 
 - `balcony`: 3–32 outline points, concave allowed (`construction_balcony.rs`). Size Y is the deck
-  thickness. Solid edges and the platform add steel without creating a room.
+  thickness. The deck, walls and railings are decorative: no structural mass, buoyancy,
+  armor, flooding volume or runtime collision geometry. They remain visible and support
+  equipment placement in the editor.
 - `wall`: Rust validates support, linked-pair symmetry, clearance and scaled mass
   (`construction_wall_fittings.rs`). A linked partner carries the opposite `turnDeg`. Wall
   fittings never cut hull openings or change flooding.
