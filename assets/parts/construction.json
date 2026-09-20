@@ -5212,6 +5212,728 @@
       ]
     },
     {
+      "id": "qf-47-mkxii-twin",
+      "name": "4.7-inch QF Mk XII twin",
+      "kind": "gun",
+      "size": [
+        4.148,
+        2.383,
+        7.2443
+      ],
+      "boundsCenter": [
+        0,
+        1.1915,
+        -1.0779
+      ],
+      "centerOfGravity": [
+        0,
+        0.95,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-47-mkxii-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-47-mkix-single",
+      "name": "4.7-inch QF Mk IX shielded single",
+      "kind": "gun",
+      "size": [
+        3.588,
+        2.2048,
+        6.7202
+      ],
+      "boundsCenter": [
+        0,
+        1.1024,
+        -0.8801
+      ],
+      "centerOfGravity": [
+        0,
+        0.94,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-47-mkix-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-47-mkxi-twin",
+      "name": "4.7-inch/50 QF Mk XI twin",
+      "kind": "gun",
+      "size": [
+        4.38,
+        3.2524,
+        8.0174
+      ],
+      "boundsCenter": [
+        0,
+        1.6262,
+        -1.3487
+      ],
+      "centerOfGravity": [
+        0,
+        1.27,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-47-mkxi-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-45-mkiv-twin",
+      "name": "4.5-inch QF Mk IV twin",
+      "kind": "gun",
+      "size": [
+        4.68,
+        2.694,
+        7.8005
+      ],
+      "boundsCenter": [
+        0,
+        1.347,
+        -1.0003
+      ],
+      "centerOfGravity": [
+        0,
+        0.9,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-45-mkiv-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-45-mkv-twin",
+      "name": "4.5-inch QF Mk V twin",
+      "kind": "gun",
+      "size": [
+        4.0912,
+        3.884,
+        8.3321
+      ],
+      "boundsCenter": [
+        0,
+        1.942,
+        -1.2836
+      ],
+      "centerOfGravity": [
+        0,
+        1.4,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-45-mkv-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-45-mkiv-single",
+      "name": "4.5-inch QF Mk IV single",
+      "kind": "gun",
+      "size": [
+        3.02,
+        2.58,
+        7.1167
+      ],
+      "boundsCenter": [
+        0,
+        1.29,
+        -1.1083
+      ],
+      "centerOfGravity": [
+        0,
+        1.05,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-45-mkiv-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-4-mkxix-twin",
+      "name": "4-inch QF Mk XIX twin",
+      "kind": "gun",
+      "size": [
+        3.9,
+        2.63,
+        5.1986
+      ],
+      "boundsCenter": [
+        0,
+        1.315,
+        -0.9397
+      ],
+      "centerOfGravity": [
+        0,
+        1.22,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-4-mkxix-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-4-mkxix-twin-enclosed",
+      "name": "4-inch QF Mk XIX twin (enclosed)",
+      "kind": "gun",
+      "size": [
+        3.9054,
+        2.64,
+        5.6511
+      ],
+      "boundsCenter": [
+        0.0001,
+        1.32,
+        -0.7135
+      ],
+      "centerOfGravity": [
+        0,
+        1.22,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-4-mkxix-twin-enclosed",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sk-c36-150-single",
+      "name": "15 cm Tbts KC/36 single",
+      "kind": "gun",
+      "size": [
+        2.7781,
+        2.43,
+        7.6118
+      ],
+      "boundsCenter": [
+        0,
+        1.215,
+        -1.9435
+      ],
+      "centerOfGravity": [
+        0,
+        0.85,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "sk-c36-150-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sk-c34-127-single",
+      "name": "12.7 cm SK C/34 single",
+      "kind": "gun",
+      "size": [
+        2.7981,
+        2.18,
+        5.7556
+      ],
+      "boundsCenter": [
+        0,
+        1.09,
+        -1.3746
+      ],
+      "centerOfGravity": [
+        0,
+        0.8,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "sk-c34-127-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type98-100-twin",
+      "name": "100 mm/65 Type 98 twin",
+      "kind": "gun",
+      "size": [
+        5.3253,
+        3.2395,
+        9.8025
+      ],
+      "boundsCenter": [
+        0,
+        1.6203,
+        -1.0003
+      ],
+      "centerOfGravity": [
+        0,
+        1.2376,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type98-100-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-127-typea-twin",
+      "name": "127 mm/50 Type A twin",
+      "kind": "gun",
+      "size": [
+        3.6452,
+        2.6263,
+        7.9451
+      ],
+      "boundsCenter": [
+        0,
+        1.3132,
+        -0.7726
+      ],
+      "centerOfGravity": [
+        0,
+        1.1407,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-127-typea-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-127-typeb-twin",
+      "name": "127 mm/50 Type B twin",
+      "kind": "gun",
+      "size": [
+        4.924,
+        3.36,
+        9.3043
+      ],
+      "boundsCenter": [
+        0,
+        1.68,
+        -0.7721
+      ],
+      "centerOfGravity": [
+        0,
+        1.0881,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-127-typeb-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-127-type5-twin",
+      "name": "127 mm/50 Type 5 enclosed twin",
+      "kind": "gun",
+      "size": [
+        6.1598,
+        3.81,
+        10.9373
+      ],
+      "boundsCenter": [
+        0,
+        1.905,
+        -0.6586
+      ],
+      "centerOfGravity": [
+        0,
+        1.3293,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-127-type5-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-127-typeb-single",
+      "name": "127 mm/50 Type B single",
+      "kind": "gun",
+      "size": [
+        4.0632,
+        3.94,
+        8.5721
+      ],
+      "boundsCenter": [
+        0,
+        1.97,
+        -0.846
+      ],
+      "centerOfGravity": [
+        0,
+        1.0706,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-127-typeb-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-4in50-mk9-single",
+      "name": "4-inch/50 Mk 9 pedestal",
+      "kind": "gun",
+      "size": [
+        1.475,
+        1.4573,
+        5.3836
+      ],
+      "boundsCenter": [
+        0,
+        0.6866,
+        -0.8305
+      ],
+      "centerOfGravity": [
+        0,
+        0.73,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-4in50-mk9-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.042,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-4in50-mk9-shielded-single",
+      "name": "4-inch/50 Mk 9 shielded pedestal",
+      "kind": "gun",
+      "size": [
+        1.716,
+        1.92,
+        5.3836
+      ],
+      "boundsCenter": [
+        0,
+        0.918,
+        -0.8305
+      ],
+      "centerOfGravity": [
+        0,
+        0.73,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-4in50-mk9-shielded-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.042,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-5in51-mk7-open-single",
+      "name": "5-inch/51 Mk 7 open pedestal",
+      "kind": "gun",
+      "size": [
+        1.67,
+        1.6125,
+        6.7243
+      ],
+      "boundsCenter": [
+        0,
+        0.8062,
+        -1.3403
+      ],
+      "centerOfGravity": [
+        0,
+        0.79,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-5in51-mk7-open-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-5in51-mk7-single",
+      "name": "5-inch/51 Mk 7 shielded pedestal",
+      "kind": "gun",
+      "size": [
+        2.06,
+        1.977,
+        6.7243
+      ],
+      "boundsCenter": [
+        0,
+        0.9885,
+        -1.3403
+      ],
+      "centerOfGravity": [
+        0,
+        0.81,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-5in51-mk7-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
       "id": "sk-c34-283-triple",
       "name": "28 cm SK C/34 triple",
       "kind": "gun",
