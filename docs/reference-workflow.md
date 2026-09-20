@@ -2,7 +2,8 @@
 
 An agent building a construction ship against a real vessel needs three things the authoring commands did not
 provide: the reference geometry in the game's own coordinates, measurements taken from it, and the mount
-positions it carries. `ship:reference`, `ship:slice` and `ship:hardpoints` cover those three. They read and
+positions it carries. `ship:reference`, `ship:slice` and `ship:hardpoints` cover those three, and `ship:loft` fits an adjustable
+hull to a measured one. They read and
 write only the ignored `.build/` tree, so no downloaded geometry ever reaches `assets/`, `public/models` or a
 commit. GameModels3D data is a viewing reference: measure it, do not redistribute it.
 
@@ -81,6 +82,43 @@ column with the catalog ID to place.
 A hardpoint's `deckOffsetM` near zero means the source mount sits directly on that deck, so `ship:place --at
 x,z --y <deckY> --bearing <bearing>` reproduces it. A large offset means the reference carries the mount on a
 platform that has to be built first.
+
+## 4. Fit a hull to it: `ship:loft`
+
+```sh
+bun run ship:loft my-ship --reference pgsb507 --y 7 --max-stations 24 --points 17 --out .build/loft.json
+```
+
+It measures a station every `--sample` metres, greedily adds the station the current set represents worst until
+the worst half-breadth error is under `--tolerance` or `--max-stations` (≤ 24) is reached, resamples each
+outline by arc length to `--points` (odd, 5–33, the same count in every station, which the format requires),
+applies the tip rule — an end station narrower than a fifth of the maximum half-breadth becomes a true stem or
+transom point, and only an end station may — and then runs the native fold check **before** proposing
+anything.
+
+That check is a TypeScript port of the star-shaped test in `construction_custom_hull.rs`; the Rust builder
+remains the authority. It names the span and the piece, the same way the native message now does
+(`Sections "st0" and "st1" fold through each other at the bow cap at point 0`). If any span folds, no batch is
+written and the command exits non-zero. Otherwise it proposes a revision-guarded `primitive-patch` that sets
+the piece's `size`, `position` and `customHull.stations`; check it with `ship:apply … --dry-run` before
+applying, because only the native compiler decides fit, support and clearance.
+
+`--parts` defaults to `hull`, `--primitive` to `hull`, and `--box`/`--y` restrict the geometry the same way
+`ship:slice` does. Rake and bulb are left as they are: the fit assumes the native mapping with both at zero, so
+a non-zero bow setting will shift the fitted bow sections.
+
+### What it does not yet do well
+
+**A real warship bow still defeats the fit.** On the Scharnhorst the parallel body fits well — 24 stations
+reproduce the measured half-breadths to within 0.18 m — but the forwardmost span folds at the port deck edge
+whatever the station density, point count or tip fraction, because the deep narrow forefoot and the sheer put
+the span's own centre in the plane of the deck-edge quad. The native compiler rejects the same span with the
+same words, so the gate is doing its job; the fit is what needs more work. Until then, treat `ship:loft` as a
+measuring and checking tool: read the named spans, restrict `--box` to the body that fits, and shape the ends
+by hand with `ship:apply`.
+
+Adjustable levers: `--sample` (candidate spacing), `--tolerance` (when the greedy stops), `--max-stations`,
+`--points`, `--tip` (the fraction of maximum half-breadth below which an end station collapses to a point).
 
 ## Limits
 

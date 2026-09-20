@@ -4,8 +4,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { assembleParts, decodeMesh, encodeMesh, listReferences, packReference, readReference, selectTriangles, visualGroup, writeReference, type RawPart } from './reference';
 import { parseGlb, parseObj } from './referenceFile';
-import { halfBreadthAt, hullStation, levelHistogram, meshView, nearestDeck, planPolygons, probeColumn, topLine, triangleCount, widthBands } from './slice';
+import { halfBreadthAt, hullStation, levelHistogram, meshView, nearestDeck, planPolygons, probeColumn, topLine, triangleCount, widthBands, type Point2 } from './slice';
 import { loadCommand } from './command';
+import { chooseStations, fitHull, foldFailures, loftHull, measureStations, resampleHalf } from './loft';
 
 // Tiny synthetic fixtures only: the reference tooling is tested without touching the network or GameModels3D.
 const scratch = () => mkdtemp(join(tmpdir(), 'reference-'));
@@ -205,4 +206,63 @@ test('writeFile fixtures never leak outside the ignored build directory', async 
   await writeFile(join(root, 'marker'), 'x');
   await writeReference(root, packReference({ parts: [hullPart()], hardpoints: [], omitted: [] }, meta('guard')));
   expect((await listReferences(root)).length).toBe(1);
+});
+
+test('a lofted fit reproduces a prismatic hull, applies the tip rule and passes the ported fold check', () => {
+  const mesh = packReference({ parts: [hullPart()], hardpoints: [], omitted: [] }, meta('fixture'));
+  const view = meshView(mesh);
+  const measured = measureStations(view, mesh.meta.bounds, { sampleM: 5 });
+  expect(measured.length).toBeGreaterThan(10);
+  const { chosen, errorM } = chooseStations(measured, { maxStations: 24 });
+  // The fixture is prismatic, so two end stations already describe it; the format's four-station floor fills the rest.
+  expect(chosen.length).toBe(4);
+  expect(errorM.max).toBeLessThan(0.01);
+  const fit = loftHull(chosen, { points: 11 });
+  expect(fit.size[0]).toBeCloseTo(20, 2);
+  expect(fit.size[1]).toBeCloseTo(10, 2);
+  // The flat end caps lie in the cut plane and yield no station, so the fit starts one sample in at each end.
+  expect(fit.size[2]).toBeCloseTo(95, 2);
+  expect(fit.position).toEqual([0, 0, 2.5]);
+  expect(fit.tips).toEqual([]);
+  expect(fit.stations.map((station) => station.t)).toEqual([0, expect.any(Number), expect.any(Number), 1]);
+  for (const station of fit.stations) {
+    expect(station.points.length).toBe(11);
+    // Port first, keel on the centreline, starboard last, mirrored around it.
+    expect(station.points[0].x).toBeLessThan(0);
+    expect(station.points[5].x).toBe(0);
+    expect(station.points[10].x).toBeGreaterThan(0);
+    for (let i = 0; i < 5; i++) {
+      expect(station.points[i].x + station.points[10 - i].x).toBeCloseTo(0, 9);
+      expect(station.points[i].y).toBeCloseTo(station.points[10 - i].y, 9);
+    }
+    expect(station.points[0].y - station.points[5].y).toBeGreaterThan(0.06);
+  }
+  expect(foldFailures(fit.stations, fit.size, fit.position)).toEqual([]);
+  expect(fitHull(measured, { points: 11, maxStations: 24 }).folds).toEqual([]);
+  expect(() => loftHull(chosen, { points: 10 })).toThrow(/odd whole number/);
+  expect(() => loftHull(chosen.slice(0, 2), {})).toThrow(/4–24 stations/);
+});
+
+test('the ported fold check names the span that folds, and arc-length resampling keeps the ends', () => {
+  const half: Point2[] = [[5, 5], [5, 0], [0, 0]];
+  const resampled = resampleHalf(half, 5);
+  expect(resampled[0]).toEqual([5, 5]);
+  expect(resampled[4]).toEqual([0, 0]);
+  expect(resampled.length).toBe(5);
+  // Even spacing along a 10 m path: the midpoint lands at the corner.
+  expect(resampled[2][0]).toBeCloseTo(5, 6);
+  expect(resampled[2][1]).toBeCloseTo(0, 6);
+  const square = (width: number, t: number) => ({
+    id: 'st' + t, t,
+    points: [{ x: -width, y: 0.5 }, { x: -width, y: -0.5 }, { x: 0, y: -0.5 }, { x: width, y: -0.5 }, { x: width, y: 0.5 }],
+  });
+  const straight = [square(0.5, 0), square(0.5, 0.4), square(0.5, 0.7), square(0.5, 1)];
+  expect(foldFailures(straight, [10, 4, 20], [0, 0, 0])).toEqual([]);
+  // A section with port and starboard swapped turns the span inside out.
+  const twisted = [square(0.5, 0), square(0.5, 0.4), square(-0.5, 0.7), square(0.5, 1)];
+  const failures = foldFailures(twisted, [10, 4, 20], [0, 0, 0]);
+  expect(failures.length).toBeGreaterThan(0);
+  expect(failures[0].span).toBe(1);
+  expect(failures[0].message).toContain('"st0.4" and "st0.7"');
+  expect(failures[0].message).toMatch(/outline point|cap/);
 });

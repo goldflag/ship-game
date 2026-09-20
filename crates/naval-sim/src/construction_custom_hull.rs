@@ -184,7 +184,13 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         let ca = mean(a);
         let cb = mean(b);
         let center = scale(add(ca, cb), 0.5);
-        let mut boundary: Vec<(String, Vec<Vec3>, bool)> = vec![];
+        // The fourth field names the piece the way an author sees it, so a rejection can say where it failed.
+        let mut boundary: Vec<(String, Vec<Vec3>, bool, String)> = vec![];
+        let span_label = format!(
+            "\"{}\" and \"{}\"",
+            h.stations[span].id,
+            h.stations[span + 1].id
+        );
         for edge in 0..n {
             let k = (edge + 1) % n;
             let start = contour(&h.stations[span].points, edge);
@@ -208,22 +214,34 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
                 "{name}:{edge_key}@{}",
                 serde_json::to_string(&[&h.stations[span].id, &h.stations[span + 1].id]).unwrap()
             );
+            let label = format!("{name} edge {edge_key}");
             if (keel..n - 1).contains(&edge) {
-                boundary.push((tag.clone(), vec![a[edge], a[k], b[k]], true));
-                boundary.push((tag, vec![a[edge], b[k], b[edge]], true));
+                boundary.push((tag.clone(), vec![a[edge], a[k], b[k]], true, label.clone()));
+                boundary.push((tag, vec![a[edge], b[k], b[edge]], true, label));
             } else {
-                boundary.push((tag.clone(), vec![a[edge], a[k], b[edge]], true));
-                boundary.push((tag, vec![a[k], b[k], b[edge]], true));
+                boundary.push((
+                    tag.clone(),
+                    vec![a[edge], a[k], b[edge]],
+                    true,
+                    label.clone(),
+                ));
+                boundary.push((tag, vec![a[k], b[k], b[edge]], true, label));
             }
-            boundary.push(("bow".into(), vec![a[k], a[edge], ca], span == 0));
+            boundary.push((
+                "bow".into(),
+                vec![a[k], a[edge], ca],
+                span == 0,
+                format!("bow cap at point {edge}"),
+            ));
             boundary.push((
                 "stern".into(),
                 vec![b[edge], b[k], cb],
                 span == rings.len() - 2,
+                format!("stern cap at point {edge}"),
             ));
         }
         let mut pieces = vec![];
-        for (name, f, exterior) in boundary {
+        for (name, f, exterior, label) in boundary {
             if cg::area(&f) < 1e-10 {
                 continue;
             }
@@ -233,9 +251,7 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
             );
             if det < -1e-7 {
                 return Err(format!(
-                    "Hull folds through itself between sections {} and {}. Reduce the twist or add a section near this transition.",
-                    span + 1,
-                    span + 2
+                    "Hull folds through itself between sections {span_label} at the {label}. Reduce the twist there, move that outline point, or add a section near this transition.",
                 ));
             }
             if exterior {
@@ -258,10 +274,9 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
             });
         }
         if cg::total(&pieces).volume < 1e-8 {
-            return Err(
-                "A hull span has no enclosed volume. Only an end section may taper to zero width"
-                    .into(),
-            );
+            return Err(format!(
+                "The hull span between sections {span_label} has no enclosed volume. Only an end section may taper to zero width",
+            ));
         }
         cells.extend(cg::coalesce_cells(pieces));
     }
@@ -374,6 +389,17 @@ mod tests {
             p.custom_hull.as_mut().unwrap().stations[1].points.pop();
             assert!(build(&p).is_err());
         }
+    }
+    /// A rejection has to say which span failed: "sections 2 and 3" sent an agent counting rows by hand.
+    #[test]
+    fn a_folded_span_names_its_sections_and_edge() {
+        let mut p = hull(false);
+        let stations = &mut p.custom_hull.as_mut().unwrap().stations;
+        stations[2].points[1].x = -0.02;
+        stations[2].points[7].x = 0.02;
+        let message = build(&p).err().expect("the span should be rejected");
+        assert!(message.contains("\"s1\" and \"s2\""), "{message}");
+        assert!(message.contains("edge"), "{message}");
     }
     #[test]
     fn outline_positions_must_match_and_remain_symmetric() {

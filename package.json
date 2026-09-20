@@ -72,6 +72,7 @@
     "ship:reference": "bun scripts/construction/cli.ts reference",
     "ship:slice": "bun scripts/construction/cli.ts slice",
     "ship:hardpoints": "bun scripts/construction/cli.ts hardpoints",
+    "ship:loft": "bun scripts/construction/cli.ts loft",
     "ship:session": "bun scripts/construction/cli.ts session",
     "ship:timings": "bun scripts/construction/cli.ts timings",
     "ship:mcp": "bun scripts/construction/mcp.ts",
