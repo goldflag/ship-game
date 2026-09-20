@@ -228,6 +228,14 @@
       "path": "assets/parts/type96-single/geometry.py",
       "function": "create_mount",
       "inputs": []
+    },
+    "german-sk-c34-triple": {
+      "path": "assets/parts/german-battleship-guns/sk_c34_triple.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
     }
   },
   "components": [
@@ -697,6 +705,14 @@
       "builder": "type96-single",
       "review": "unreviewed",
       "limitations": "Kong\u014d approved-model variant with a 0.53 m fixed pedestal footprint. Original shared upper mechanism retained; detailed fidelity, installation and articulation acceptance remain pending."
+    },
+    {
+      "partId": "sk-c34-283-triple",
+      "nation": "Germany",
+      "family": "28 cm triple mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pgsb507 A artillery (ggm058). Cloth deformation, sight hoods and service fittings approximate; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "german-sk-c34-triple"
     }
   ]
 }

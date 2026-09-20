@@ -66,3 +66,39 @@ transforms remain unchanged; they are a coarser approximation of the visible
 aft curve. Fine cloth folds and the support race remain simplified. The projecting
 rangefinder installation remains a distinct flag, not a claim that `ggm2016`
 shows that equipment.
+
+## 28 cm SK C/34 triple
+
+`sk-c34-283-triple` is the original reusable Scharnhorst main turret
+(`sk_c34_triple.py`). Geometry follows the approved
+[GameModels3D Scharnhorst A artillery](https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507)
+visual `ggm058_280mm54_5_c34`, which that model fits at all three positions
+without turret rangefinder arms; there is therefore one variant. Geometry is
+independently authored from measured proportions; this is not historical
+certification.
+
+The catalog `gunhouseMesh` is both the armor and the visible shell: vertical
+flanks to a 1.91 m knuckle, 43° shoulders, a flat roof, the long forward glacis
+and a seven-station rounded back plate. The recipe adds the 5.53 m turntable
+sole and raised working platform, tapered shoulder sight hoods, flank ladders,
+shoulder grab rails, the side stowage tubes on saddles, rear ventilation hoods
+and the two gunlayers' sight ports, whose apertures both open toward starboard
+as on the approved model. The support attachment is the sole at Y = 0; the
+Shipbuilder owns the barbette below it.
+
+Barrels slide through flexible `gun_bloomers` cuffs on a constant 0.36 m jacket
+that spans the 1.2 m recoil stroke. The fixed seams are cast onto the real
+face, upper plate and glacis, and intermediate cloth rings are draped over the
+armor knuckle at depression and kept outside the jacket at high elevation.
+Pivot, spacing and muzzle datums come from the approved model's joint nodes.
+
+Weapon values are provisional game calibration scaled from the 38 cm sibling
+(330 kg at 890 m/s, 17 s reload, −8° to +40°); plate families use the commonly
+published 360/200/350/150 mm figures with estimated facet boundaries. Fine
+cloth folds, plate seams and the small rear fittings remain approximations.
+Library review stays unreviewed until installation review passes.
+
+```sh
+bun run part:build sk-c34-283-triple
+bun run part:check sk-c34-283-triple
+```

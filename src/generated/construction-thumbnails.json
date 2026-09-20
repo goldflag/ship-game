@@ -2290,6 +2290,11 @@
       "url": "/models/components/thumbnails/b5236ec59dd091d844c24804047921303ec0a08607f86eb75eb0c6fd55ae8e84.png",
       "modelHash": "21b23c909b60294686bc99b40abd77503d5bc12f852959f903173dfafb94686f",
       "imageHash": "567a0b3d6819aa933a22c30b0654ed0bd2d2bea781bfd6852abdcae782630f08"
+    },
+    "/models/components/sk-c34-283-triple/c9a81a77eb770aae62d09cfc17b378067ca693c75ac1c59702bbda4bb7006470/model.glb": {
+      "url": "/models/components/thumbnails/bc44b0174fbea1cf3246b920d2d47a7b713ba11ea06edb86222764eb05a2d8a5.png",
+      "modelHash": "24bebd5db8a8dbb936f9727c3c4f72ca64b110c499925ab8d97c97e25812c292",
+      "imageHash": "e21460427c75de9b60a4a7899d559955cbd3e60b765131ea5243b192e500a5ed"
     }
   }
 }
