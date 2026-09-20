@@ -1286,6 +1286,17 @@
   stroke: var(--battle-brass);
   stroke-width: 1.5;
 }
+/* Drawn at true scale while a drag is live: the rim is exactly where a moving ship stops,
+   so at the widest fit it is honestly only a few pixels across. */
+.chart-berths circle {
+  fill: var(--battle-brass);
+  fill-opacity: 0.06;
+  stroke: var(--battle-brass);
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
 .chart-label {
   text-anchor: middle;
   letter-spacing: 0.12em;
