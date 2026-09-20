@@ -1861,6 +1861,15 @@ fn build(
             def.openings.as_ref().unwrap().len(),
         ));
     }
+    let armor_ids = crate::construction_compact::compact_armor(&mut def.armor);
+    for c in &mut def.connections {
+        if let Some(id) = &mut c.armor_id
+            && let Some(merged) = armor_ids.get(id)
+        {
+            *id = merged.clone();
+        }
+    }
+    crate::construction_compact::compact_connections(&mut def.connections);
     let void_volume: f64 = def.compartments.iter().map(|r| r.capacity_m3).sum();
     def.local_damage = ShipDefinitionLocalDamage {
         version: 1.,
@@ -2021,20 +2030,9 @@ fn build(
         weapons: "Original component catalog".into(),
     };
     if !def.mounts.is_empty() {
-        let mut bodies: Vec<_> = def
-            .hull
-            .volume
-            .as_ref()
-            .unwrap()
-            .cells
-            .iter()
-            .enumerate()
-            .map(|(i, c)| MountClearanceProfileBodiesItem {
-                id: format!("hull-cell-{i}"),
-                mount_id: None,
-                surface: surface_mesh(c),
-            })
-            .collect();
+        let mut bodies = crate::construction_compact::exterior_clearance(
+            &def.hull.volume.as_ref().unwrap().cells,
+        );
         bodies.extend(
             def.obstructions
                 .iter()
@@ -2045,7 +2043,7 @@ fn build(
                 }),
         );
         bodies.extend(path_clearance);
-        def.mount_clearance=Some(MountClearanceProfile{version:1.,margin_m:0.01,basis:"Catalog gunhouses/barrels with full recoil envelope against exact hull cells and fixed equipment envelopes".into(),mount_ids:Some(def.mounts.iter().map(|m|m.id.clone()).collect()),bodies:Some(bodies),..Default::default()});
+        def.mount_clearance=Some(MountClearanceProfile{version:1.,margin_m:0.01,basis:"Catalog gunhouses/barrels with full recoil envelope against the exact hull exterior and fixed equipment envelopes".into(),mount_ids:Some(def.mounts.iter().map(|m|m.id.clone()).collect()),bodies:Some(bodies),..Default::default()});
         // Funnel and mast volumes stay in the shipped profile, so runtime gun arcs
         // and hit geometry are unchanged; barrels simply may not be rejected for
         // entering one. Lift them out for this check and put them back in place.

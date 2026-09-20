@@ -436,15 +436,11 @@ pub fn update_damage_control(
             }
         }
     }
-    for s in &actor.damage.connections {
+    for (i, s) in actor.damage.connections.iter().enumerate() {
         if s.state == "closed" {
             continue;
         }
-        let path = if s.state == "damaged" {
-            (s.damage_area_m2 / 0.5).min(1.0)
-        } else {
-            1.0
-        };
+        let path = crate::flood_connections::fire_path(&def.connections[i], s);
         if c.rooms[s.from_index].intensity > 0.0 && c.rooms[s.to_index].fuel > 0.0 {
             c.rooms[s.to_index].heat = (c.rooms[s.to_index].heat
                 + c.rooms[s.from_index].intensity * path * 0.02 * dt)
@@ -524,6 +520,7 @@ pub fn update_damage_control(
             if s.from_index == ri || s.to_index == ri {
                 s.state = "damaged".into();
                 s.damage_area_m2 = def.connections[j].area_m2;
+                s.patch_damage_m2 = None;
             }
         }
         f.heat = 2.0;

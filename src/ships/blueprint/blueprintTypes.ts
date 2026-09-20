@@ -351,6 +351,17 @@ export interface FloodConnection {
   armorId?: string;
   bounds?: { center: Vec3; size: Vec3 };
   thicknessMm?: number;
+  /** Compiled boundary fragments share topology, retaining their individual
+   * damage footprints and heights for local breaches and tilted waterplanes. */
+  patches?: FloodConnectionPatch[];
+  /** Original fragment order for conservative sequential water transfers. */
+  transferOrder?: number;
+}
+export interface FloodConnectionPatch {
+  areaM2: number;
+  position: Vec3;
+  bounds: { center: Vec3; size: Vec3 };
+  transferOrder: number;
 }
 /** Installed catalog ratings for ship-wide exhaust allocation and damage. */
 export interface MachineryRating {
