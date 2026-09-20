@@ -1207,6 +1207,34 @@ pub struct ConstructionFreeformMesh {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionSolidFace {
+    #[serde(rename = "corners")]
+    pub corners: Vec<f64>,
+    #[serde(rename = "group", default, skip_serializing_if = "Option::is_none")]
+    pub group: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionSolidPart {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "faces")]
+    pub faces: Vec<ConstructionSolidFace>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionSolid {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "label")]
+    pub label: String,
+    #[serde(rename = "vertices")]
+    pub vertices: Vec<[f64; 3]>,
+    #[serde(rename = "parts")]
+    pub parts: Vec<ConstructionSolidPart>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionFreeformShape {
     #[serde(rename = "version")]
     pub version: f64,
@@ -1338,6 +1366,8 @@ pub struct ConstructionPrimitive {
     pub vertices: Option<Vec<[f64; 3]>>,
     #[serde(rename = "mesh")]
     pub mesh: Option<ConstructionFreeformMesh>,
+    #[serde(rename = "solid", default, skip_serializing_if = "Option::is_none")]
+    pub solid: Option<ConstructionSolid>,
     #[serde(rename = "shaping")]
     pub shaping: Option<ConstructionFreeformShape>,
     #[serde(rename = "smoothGroup")]

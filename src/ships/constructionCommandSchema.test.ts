@@ -111,6 +111,7 @@ test('the JSON Schema is derived from the same specs', () => {
   expect(Object.keys(schema.$defs).sort()).toEqual([
     'AnglePair',
     'Boundary',
+    'CompoundSolid',
     'CustomHull',
     'Equipment',
     'EquipmentPatch',

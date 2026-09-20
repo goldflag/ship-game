@@ -69,6 +69,7 @@ schema, so older sources load unchanged:
 | `vertices` | `vertex` primitive | Eight normalized local corners |
 | `shaping` | `vertex` primitive | Reversible round/chamfer: edge indexes, radius, style |
 | `mesh` | `vertex` primitive | Editable topology for prisms, curved solids and wedges |
+| `solid` | `vertex` primitive | Compound solid: arbitrary closed geometry as an ordered union of convex parts |
 | `customHull` | `custom-hull` primitive | Section-authored whole hull |
 | `customHull.bilgeKeels` | custom hull | Symmetric visual fins |
 | `customHull.paintBands` | custom hull | Up to eight height coatings |
@@ -106,9 +107,48 @@ into a vertex hull without changing its ID.
 Rust validates closed oriented topology, finite coordinates, folds and self-overlap, and derives
 one faceted surface for rendering, collision, armor and buoyancy. Invalid drafts stay editable
 and saveable but cannot launch. Arbitrary topology, tunnels and subdivision surfaces are not
-supported. TypeScript counterparts: `constructionVertex.ts`, `freeformShape.ts` and
+supported on `vertices`, `shaping` or `mesh`; a block that needs them is a compound solid
+instead. TypeScript counterparts: `constructionVertex.ts`, `freeformShape.ts` and
 `constructionMesh.ts` under `src/ships/`. Editor controls are described in the
 [editor README](../src/ui/shipbuilding/README.md#freeform-and-shape-editors).
+
+### Compound solids
+
+`kind: "vertex"` with `solid.version: 1` is one hull block of arbitrary closed geometry:
+concave, curved, tunnelled, thin-walled or several shells. The block carries it already
+decomposed, so the compiler never has to decompose anything at compile time:
+
+| Field | Meaning |
+| --- | --- |
+| `label` | 1–80 characters, the shape's name in the editor and in diagnostics |
+| `vertices` | 4–8,192 local corners shared by every part, each component within ±0.5; `size` scales this frame |
+| `parts` | 1–256 convex parts, each a unique ID and 4–128 outward-wound polygons |
+| `parts[].faces[].corners` | 3–64 distinct indices into `vertices`, counter-clockwise seen from outside |
+| `parts[].faces[].group` | Optional surface group for armor and paint |
+
+Unlike a freeform `mesh`, the corner frame is clamped to ±0.5, so `size` and `position` are the
+block's real envelope and `ship:near`, `ship:bounds`, placement ghosts and mirroring stay honest
+about geometry the editor cannot otherwise see. Every part must be a closed, planar-faced, outward-wound convex polyhedron enclosing more than
+1e-7 m³, and parts may not share volume — they meet face to face. Rust rejects anything else
+with the part index, part ID and polygon index in the message
+(`crates/naval-sim/src/construction_solid.rs`). Whatever a sibling part covers becomes interior,
+so the block gets one outer skin however the decomposition split it; the block then contributes
+mass, buoyancy, rooms, flooding and hit geometry exactly like any other hull piece.
+
+A `group` addresses its polygons for armor and paint. Because one group's patches can land on
+more than one canonical side, its surface assignment is `{ primitiveId, face, panelId: group }`
+— the same `panelId` channel custom hull panels use. An ungrouped polygon stays on its canonical
+side with no panel. `solidPanels()` in `constructionEditor.ts` enumerates the addressable groups.
+
+Cost, measured on an Apple M-series release build by
+`cargo test -p naval-sim --release --lib solid_cost -- --nocapture`: a block of 16 or 64 boxed
+parts compiles in 0.5–0.8 ms, a maximal 256-part block in 3.2 ms. Coplanar patches of one
+surface group are merged below 64 patches, which is why the 16- and 64-part slabs come out as
+six faces and the 256-part one keeps its 516 part-by-part patches.
+
+A compound solid replaces `vertices`, `mesh` and `shaping` on the same primitive; carrying two
+shape records is an error. The editor draws the authored parts as a display-only draft envelope;
+the shipped surface always comes from the native compile.
 
 ### Custom hull sections
 
@@ -323,6 +363,8 @@ Source bounds are constants in `construction.rs`, mirrored by `CONSTRUCTION_LIMI
 | Equipment instances, loads | 128 each |
 | Custom fitting definitions / instances | 32 / 512, counted apart from equipment instances |
 | Solids / tubes / triangles per custom fitting | 48 / 16 / 20,000 |
+| Compound solid vertices / parts / polygons | 8,192 / 256 / 8,192, with 128 polygons per part |
+| Compound solid exterior patches | 32,768 per block |
 | Boundaries | 24 |
 | Derived cells (`MAX_CELLS`) | 131,072, with 128 faces per cell |
 | Face vertices per geometry collection | 4,194,304 |

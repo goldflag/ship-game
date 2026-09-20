@@ -53,6 +53,8 @@ export interface ConstructionPrimitive {
   vertices?: Vec3[];
   /** Versioned editable topology for prisms, curved solids and wedges. */
   mesh?: ConstructionFreeformMesh;
+  /** Compound solid v1: arbitrary closed geometry supplied as an ordered union of convex parts. */
+  solid?: ConstructionSolid;
   /** Reversible round/chamfer on the same eight-corner block; Rust derives the solid. */
   shaping?: ConstructionFreeformShape;
   /** Optional shared lighting seam group; physical surfaces remain unchanged. */
@@ -78,6 +80,28 @@ export interface ConstructionFreeformFace {
   id: string;
   name: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
   corners: number[];
+}
+/** One outward-wound polygon of a convex part; `corners` index the solid's shared vertex pool. */
+export interface ConstructionSolidFace {
+  corners: number[];
+  /** Stable surface group for armor, paint and openings; omission leaves the face on its canonical side. */
+  group?: string;
+}
+/** One closed convex polyhedron. Parts are interior-disjoint and unioned in the authored order. */
+export interface ConstructionSolidPart {
+  id: string;
+  faces: ConstructionSolidFace[];
+}
+/** Compound hull block v1: arbitrary closed geometry — concave, tunnelled, thin-walled or several
+ * shells — carried as an ordered union of convex parts over one shared vertex pool, so the compiler
+ * only has to validate convex cells. Rust derives the exterior boundary by removing the faces the
+ * parts share (`crates/naval-sim/src/construction_solid.rs`). */
+export interface ConstructionSolid {
+  version: 1;
+  label: string;
+  /** Shared local corners, each component within ±0.5, so `size` is the block's real envelope. */
+  vertices: Vec3[];
+  parts: ConstructionSolidPart[];
 }
 export interface ConstructionBalconyPoint {
   id: string;

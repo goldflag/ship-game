@@ -764,12 +764,11 @@ fn validate(
         } else if s.panel_id.as_ref().is_some_and(|panel| {
             panel.is_empty()
                 || panel.len() > 512
-                || !c
-                    .primitives
-                    .iter()
-                    .any(|p| p.id == s.primitive_id && p.kind == "custom-hull")
+                || !c.primitives.iter().any(|p| {
+                    p.id == s.primitive_id && (p.kind == "custom-hull" || p.solid.is_some())
+                })
         }) {
-            Some("has a panel ID that only a custom hull can carry".into())
+            Some("has a panel ID that only a custom hull or a compound solid can carry".into())
         } else if !s.thickness_mm.is_finite() || !(0.0..=1000.).contains(&s.thickness_mm) {
             Some("needs a thickness of 0–1000 mm".into())
         } else if !["steel", "armor-steel"].contains(&s.material.as_str()) {
@@ -820,7 +819,8 @@ fn validate(
 /// Dimensions, placement, rotation and shape records of one source piece; topology is checked
 /// when its cells are built.
 pub(crate) fn primitive_valid(p: &ConstructionPrimitive) -> bool {
-    !((p.kind != "vertex" && (p.vertices.is_some() || p.shaping.is_some() || p.mesh.is_some()))
+    !((p.kind != "vertex"
+        && (p.vertices.is_some() || p.shaping.is_some() || p.mesh.is_some() || p.solid.is_some()))
         || (p.kind != "custom-hull" && p.custom_hull.is_some())
         || (p.kind != "balcony" && p.balcony.is_some())
         || !size(p.size)
@@ -855,7 +855,7 @@ fn primitive(p: &ConstructionPrimitive) -> Vec<cg::Cell> {
         .map(|c| crate::construction_orientation::cell(p, c, p.size))
         .collect()
 }
-fn face_name(p: &[Vec3], primitive: &ConstructionPrimitive) -> String {
+pub(crate) fn face_name(p: &[Vec3], primitive: &ConstructionPrimitive) -> String {
     // Undo orientation to keep source face paint and armor attached.
     let n = if primitive.tilt.is_none() {
         normal_local(cg::normal(p), -primitive.rotation_deg.to_radians())
@@ -943,6 +943,9 @@ fn build(
             } else if p.kind == "custom-hull" {
                 crate::construction_custom_hull::build(p)
                     .map_err(|message| error("custom-hull", message, Some(&p.id)))
+            } else if p.solid.is_some() {
+                crate::construction_solid::build(p)
+                    .map_err(|message| error("compound-solid", message, Some(&p.id)))
             } else if p.kind == "vertex" {
                 crate::construction_vertex::build(p)
                     .map_err(|message| error("vertex-hull", message, Some(&p.id)))
@@ -1083,12 +1086,12 @@ fn build(
         for (face, polygon) in raw[i].faces.iter() {
             let panel = face.clone();
             let face = face.split(':').next().unwrap().to_string();
-            let panel_id = (p.kind == "custom-hull").then(|| {
-                panel
-                    .split_once(':')
-                    .map_or(panel.as_str(), |(_, id)| id)
-                    .to_string()
-            });
+            // A compound solid labels only the polygons that carry a surface group; the rest
+            // stay on their canonical side, so an ungrouped face has no panel to override.
+            let panel_id = panel
+                .split_once(':')
+                .map(|(_, id)| id.to_string())
+                .or_else(|| (p.kind == "custom-hull").then(|| panel.clone()));
             let a = c
                 .surfaces
                 .iter()
@@ -3737,6 +3740,7 @@ mod tests {
                     primitives: vec![ConstructionPrimitive {
                         tilt: None,
                         mesh: None,
+                        solid: None,
                         balcony: None,
                         shaping: None,
                         custom_hull: None,
@@ -3772,6 +3776,7 @@ mod tests {
             source.construction.primitives.push(ConstructionPrimitive {
                 tilt: None,
                 mesh: None,
+                solid: None,
                 balcony: None,
                 shaping: None,
                 custom_hull: None,
@@ -3798,6 +3803,7 @@ mod tests {
         source.construction.primitives.push(ConstructionPrimitive {
             tilt: None,
             mesh: None,
+            solid: None,
             balcony: None,
             shaping: None,
             custom_hull: None,
@@ -4003,6 +4009,7 @@ mod tests {
             ConstructionPrimitive {
                 tilt: None,
                 mesh: None,
+                solid: None,
                 balcony: None,
                 shaping: None,
                 custom_hull: None,
@@ -4017,6 +4024,7 @@ mod tests {
             ConstructionPrimitive {
                 tilt: None,
                 mesh: None,
+                solid: None,
                 balcony: None,
                 shaping: None,
                 custom_hull: None,
@@ -4031,6 +4039,7 @@ mod tests {
             ConstructionPrimitive {
                 tilt: None,
                 mesh: None,
+                solid: None,
                 balcony: None,
                 shaping: None,
                 custom_hull: None,

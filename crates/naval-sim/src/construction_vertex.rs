@@ -27,6 +27,9 @@ fn transform(p: &ConstructionPrimitive, v: Vec3) -> Vec3 {
     crate::construction_orientation::point(p, [x, y, z])
 }
 pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
+    if p.solid.is_some() {
+        return crate::construction_solid::build(p);
+    }
     if p.mesh.is_some() {
         return crate::construction_mesh::build(p);
     }

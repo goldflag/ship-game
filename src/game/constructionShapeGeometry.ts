@@ -13,7 +13,21 @@ import { customHullFaces, customHullPoints, customHullPrimitive, makeHull } from
 
 /** Display-only source envelopes for placement and invalid drafts. Rust remains
  * authoritative for unions, material, fit, loading and all battle geometry. */
-export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[], customHull?: ConstructionPrimitive['customHull'], shaping?: ConstructionPrimitive['shaping'], balcony?: ConstructionPrimitive['balcony'], mesh?: ConstructionPrimitive['mesh']): THREE.BufferGeometry {
+export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[], customHull?: ConstructionPrimitive['customHull'], shaping?: ConstructionPrimitive['shaping'], balcony?: ConstructionPrimitive['balcony'], mesh?: ConstructionPrimitive['mesh'], solid?: ConstructionPrimitive['solid']): THREE.BufferGeometry {
+  if (solid) {
+    // The union's own skin comes from Rust; the draft envelope just draws every part, whose
+    // shared faces sit inside the solid and are covered by the parts that meet them.
+    const positions: number[] = [];
+    for (const part of solid.parts) for (const face of part.faces) {
+      const q = face.corners.map(i => solid.vertices[i]);
+      if (q.some(v => !v)) continue;
+      const scaled = q.map(v => v.map((n, k) => n * size[k]) as Vec3);
+      for (let i = 1; i < scaled.length - 1; i++) positions.push(...scaled[0], ...scaled[i], ...scaled[i + 1]);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    g.computeVertexNormals(); return g;
+  }
   if(mesh){
     const faces=meshFaces(mesh,size).map(f=>({vertices:f.points,normal:new THREE.Vector3(...f.points[1]).sub(new THREE.Vector3(...f.points[0])).cross(new THREE.Vector3(...f.points[2]).sub(new THREE.Vector3(...f.points[0]))).normalize().toArray() as Vec3,group:'mesh'}));
     const normalAt=mesh.family==='rings'?constructionVertexNormals(faces):(_v:Vec3,n:Vec3)=>n;

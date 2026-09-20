@@ -29,6 +29,14 @@ export const surfaceKey = (primitiveId: string, face: string, panelId?: string) 
   panelId === undefined ? `${primitiveId}:${face}` : `${primitiveId}:${encodeURIComponent(panelId)}:${face}`;
 export const surfaceSelectionKey = (surface: Pick<ConstructionSurface, 'primitiveId' | 'face' | 'panelId'>) =>
   surfaceKey(surface.primitiveId, surface.face, surface.panelId);
+/** Surface groups of a compound solid. A group is a name the author put on polygons, so its
+ * patches can land on more than one canonical side; each side is addressed separately. */
+export function solidPanels(primitive: ConstructionPrimitive): { face: ConstructionFace; panelId: string }[] {
+  const groups = new Set(
+    primitive.solid?.parts.flatMap((part) => part.faces.map((face) => face.group)).filter((group): group is string => !!group) ?? [],
+  );
+  return [...groups].flatMap((panelId) => CONSTRUCTION_FACES.map((face) => ({ face: face as ConstructionFace, panelId })));
+}
 /** Source bounds, mirrored from the native compiler (crates/naval-sim/src/construction.rs). */
 export const CONSTRUCTION_LIMITS = { primitives: 10_000, surfaces: 65_536, equipment: 128, boundaries: 24 } as const;
 
@@ -207,6 +215,51 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
         mesh.rings.some((r) => !Array.isArray(r) || !r.length || r.length > 64 || !r.every(index))
       )
         throw new Error('Invalid freeform rings');
+    }
+    if (p.solid !== undefined) {
+      const solid = object(p.solid, 'Compound solid');
+      if (p.kind !== 'vertex' || p.vertices !== undefined || p.mesh !== undefined || p.shaping !== undefined || solid.version !== 1)
+        throw new Error('A compound solid is a vertex block carrying no other shape record');
+      string(solid.label, 'Compound solid label');
+      if (!(solid.label as string).length || (solid.label as string).length > 80)
+        throw new Error('Compound solid label must be 1–80 characters');
+      if (!Array.isArray(solid.vertices) || solid.vertices.length < 4 || solid.vertices.length > 8192)
+        throw new Error('A compound solid requires 4–8192 shared vertices');
+      solid.vertices.forEach((v) => {
+        vector(v, 'Compound solid vertex');
+        if ((v as number[]).some((n) => Math.abs(n) > 0.5 + 1e-9))
+          throw new Error('Compound solid corners are normalized within ±0.5, so size is the envelope');
+      });
+      const corner = (n: unknown) => typeof n === 'number' && Number.isInteger(n) && n >= 0 && n < (solid.vertices as unknown[]).length;
+      const parts = rows(solid.parts, 'Compound solid parts'),
+        partIds = new Set<string>();
+      if (!parts.length || parts.length > 256) throw new Error('A compound solid requires 1–256 convex parts');
+      let polygons = 0;
+      for (const part of parts) {
+        string(part.id, 'Compound solid part ID');
+        if (!(part.id as string).length || (part.id as string).length > 64 || partIds.has(part.id as string))
+          throw new Error('Compound solid part IDs must be unique text of 1–64 characters');
+        partIds.add(part.id as string);
+        const faces = rows(part.faces, 'Compound solid part polygons');
+        if (faces.length < 4 || faces.length > 128) throw new Error('A convex part requires 4–128 polygons');
+        polygons += faces.length;
+        for (const f of faces) {
+          if (f.group !== undefined) {
+            string(f.group, 'Surface group');
+            if (!(f.group as string).length || (f.group as string).length > 64 || (f.group as string).includes(':'))
+              throw new Error("A surface group is 1–64 characters and cannot contain ':'");
+          }
+          if (
+            !Array.isArray(f.corners) ||
+            f.corners.length < 3 ||
+            f.corners.length > 64 ||
+            !f.corners.every(corner) ||
+            new Set(f.corners).size !== f.corners.length
+          )
+            throw new Error('A compound solid polygon needs 3–64 distinct vertex indices');
+        }
+      }
+      if (polygons > 8192) throw new Error('A compound solid carries at most 8192 polygons');
     }
     if (p.shaping !== undefined) {
       const shape = object(p.shaping, 'Freeform shaping');
@@ -598,7 +651,11 @@ export function assignConstructionSurfaces(
   values: Partial<Pick<ConstructionSurfaceAssignment, 'thicknessMm' | 'material' | 'paint' | 'open'>>,
 ): void {
   for (const primitive of source.construction.primitives)
-    for (const { face, panelId } of [...CONSTRUCTION_FACES.map((face) => ({ face, panelId: undefined })), ...customHullPanels(primitive)]) {
+    for (const { face, panelId } of [
+      ...CONSTRUCTION_FACES.map((face) => ({ face, panelId: undefined })),
+      ...customHullPanels(primitive),
+      ...solidPanels(primitive),
+    ]) {
       if (!keys.has(surfaceKey(primitive.id, face, panelId))) continue;
       let assignment = source.construction.surfaces.find(
         (surface) => surface.primitiveId === primitive.id && surface.face === face && surface.panelId === panelId,

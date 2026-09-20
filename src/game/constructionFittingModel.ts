@@ -34,7 +34,7 @@ export function createConstructionFittingModel(def: ConstructionFittingDefinitio
     try {
       const part = solidPrimitive(solid);
       const matrix = new THREE.Matrix4().compose(new THREE.Vector3(...part.position), new THREE.Quaternion().setFromEuler(primitiveRotation(part)), new THREE.Vector3(1, 1, 1));
-      add(solid.paint, primitiveGeometry(part.kind, part.size, part.vertices, undefined, part.shaping, undefined, part.mesh), matrix);
+      add(solid.paint, primitiveGeometry(part.kind, part.size, part.vertices, undefined, part.shaping, undefined, part.mesh, part.solid), matrix);
     } catch {
       // An invalid draft solid stays out of the drawing; the compiler names it.
     }
