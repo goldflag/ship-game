@@ -7,6 +7,10 @@ const AIM_SMOOTHING_SECONDS = .08;
 
 export function projectGunAim(point: Vector3, camera: PerspectiveCamera, width: number, height: number) {
   const local = point.clone().applyMatrix4(camera.matrixWorldInverse);
+  return projectLocalGunAim(local, camera, width, height);
+}
+
+function projectLocalGunAim(local: Vector3, camera: PerspectiveCamera, width: number, height: number) {
   const behind = local.z >= 0;
   const distance = Math.max(0.001, Math.abs(local.z));
   let x = (local.x * camera.projectionMatrix.elements[0]) / distance;
@@ -34,9 +38,13 @@ function markerState(point: GunAimPoint): string {
 }
 
 export function groupGunAim(points: GunAimPoint[], camera: PerspectiveCamera, width: number, height: number): Marker[] {
+  return groupProjectedGunAim(points, point => projectGunAim(new Vector3(...point.point), camera, width, height));
+}
+
+function groupProjectedGunAim(points: GunAimPoint[], project: (point: GunAimPoint) => ReturnType<typeof projectGunAim>): Marker[] {
   const groups: Marker[] = [];
   for (const point of points) {
-    const screen = projectGunAim(new Vector3(...point.point), camera, width, height);
+    const screen = project(point);
     const state = markerState(point),
       reload = Math.ceil(point.reload);
     // A shared number/countdown must mean the same thing for every listed gun.
@@ -80,7 +88,7 @@ export function placeGunAimLabels(labels: LabelBox[], width: number, height: num
 export class GunAimIndicators {
   private root = document.createElement('div');
   private marks: { root: HTMLDivElement; arrow: HTMLSpanElement; label: HTMLSpanElement }[] = [];
-  private aimPositions = new Map<string, Vector3>();
+  private aimDirections = new Map<string, Vector3>();
   private source?: object;
   private width = 1;
   private height = 1;
@@ -100,28 +108,35 @@ export class GunAimIndicators {
 
   update(points: GunAimPoint[], camera: PerspectiveCamera, visible: boolean, dt: number, source: object): void {
     this.root.hidden = !visible;
-    if (!visible || this.source !== source) this.aimPositions.clear();
+    if (!visible || this.source !== source) this.aimDirections.clear();
     this.source = source;
     if (!visible) return;
-    // Soften snapshot/aim-solution corrections before projection: mouse look and
-    // zoom still use this frame's camera with no added lag. Track turrets, not DOM
-    // groups, which can split/reorder whenever readiness or reload time changes.
+    // Smooth angular error in the current sight, not old world positions: a
+    // trained gun must stay centered as its aim and the camera move together.
+    // Unit depth removes range weighting; the current projection preserves zoom.
+    // Track turrets, not DOM groups, which can split/reorder with readiness.
     const blend = -Math.expm1(-Math.max(0, dt) / AIM_SMOOTHING_SECONDS);
     const active = new Set(points.map(point => point.id));
-    for (const id of this.aimPositions.keys()) if (!active.has(id)) this.aimPositions.delete(id);
-    const displayed = points.map(point => {
-      let position = this.aimPositions.get(point.id);
-      if (!position) {
-        position = new Vector3(...point.point);
-        this.aimPositions.set(point.id, position);
-      } else {
-        position.x += (point.point[0] - position.x) * blend;
-        position.y += (point.point[1] - position.y) * blend;
-        position.z += (point.point[2] - position.z) * blend;
+    for (const id of this.aimDirections.keys()) if (!active.has(id)) this.aimDirections.delete(id);
+    const groups = groupProjectedGunAim(points, point => {
+      const local = new Vector3(...point.point).applyMatrix4(camera.matrixWorldInverse);
+      const raw = projectLocalGunAim(local, camera, this.width, this.height);
+      // Edge arrows are categorical direction cues. Never interpolate through
+      // the camera plane or retain a circle's old position on re-entry.
+      if (raw.edge) {
+        this.aimDirections.delete(point.id);
+        return raw;
       }
-      return { ...point, point: position.toArray() };
+      local.multiplyScalar(1 / -local.z);
+      let direction = this.aimDirections.get(point.id);
+      if (!direction) {
+        direction = local;
+        this.aimDirections.set(point.id, direction);
+      } else {
+        direction.lerp(local, blend);
+      }
+      return projectLocalGunAim(direction, camera, this.width, this.height);
     });
-    const groups = groupGunAim(displayed, camera, this.width, this.height);
     groups.forEach((group, i) => {
       let mark = this.marks[i];
       if (!mark) {
