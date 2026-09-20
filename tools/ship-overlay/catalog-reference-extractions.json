@@ -710,6 +710,30 @@
       "expectedModelSha256": "cc3c8114f572b1c60223b4d2e0dd953dbdbc459682154a1049ad8eea56b254b7"
     },
     {
+      "partId": "scharnhorst-funnel",
+      "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+      "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
+      "resource": "common/visual/germany/ship/battleship/gsb003_scharnhorst_1939/gsb003_scharnhorst_1939_midback",
+      "geometryKey": "",
+      "boundsSourceMetres": [
+        [
+          -3.4,
+          10.86,
+          -10.75
+        ],
+        [
+          3.4,
+          22.2,
+          -1.25
+        ]
+      ],
+      "forceIslands": [],
+      "wholeIslandsOnly": false,
+      "excludeIslands": [],
+      "seed": "largest selected connected component plus forced islands",
+      "expectedModelSha256": "380b3e54575f3d66b32d16f0896bb6524d561f95320950a204e5c7482d64fd34"
+    },
+    {
       "partId": "mikasa-1905-foremast",
       "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsb011",
       "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",

@@ -8854,6 +8854,87 @@
       ]
     },
     {
+      "id": "scharnhorst-funnel",
+      "name": "Scharnhorst 1939 \u00b7 funnel",
+      "kind": "funnel",
+      "size": [
+        6.721,
+        11.15,
+        10.201
+      ],
+      "boundsCenter": [
+        0,
+        5.5744,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        4.8,
+        0
+      ],
+      "massKg": 60000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            10.3,
+            0.1
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 120000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            4.27,
+            1,
+            7.06
+          ]
+        }
+      ]
+    },
+    {
       "id": "mikasa-1905-foremast",
       "name": "Mikasa 1905 fighting foremast",
       "kind": "mast",
