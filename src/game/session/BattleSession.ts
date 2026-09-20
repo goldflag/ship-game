@@ -18,6 +18,7 @@ import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 import type { BattleOutcome } from './battleRules';
 import type { FleetActor, Aircraft, Shell, Torpedo, DepthCharge, AirRelease, CombatEvent, ShellHistory, ShipState, HelmCommand } from './elements';
 import type { CombatIntent, CombatTelemetry } from './telemetry';
+import type { ShipReport } from '../../multiplayer/generated/ShipReport';
 /** Observed contacts are declared with the frame, in Rust (`naval_sim::snapshot`). */
 export type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
 export type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
@@ -25,10 +26,26 @@ export type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircr
 export type ObservedPose = Pick<ObservedShip, keyof ObservedShip & keyof ObservedAircraft>;
 /** How the battle stands from the local side. */
 export type BattleResult = 'active' | 'victory' | 'defeat' | 'draw';
+export interface DebriefShip {
+ id: string; presetId: string; team: 'friendly' | 'enemy'; status: 'operational' | 'sunk' | 'incapacitated'; damageDealt: number; frags: number; aircraftRemaining: number;
+ /** The definition's name; `presetId` says whether it is a historical ship or a player design. */
+ name: string;
+ /** Absent only when the debrief names content this client does not hold. */
+ definition?: ShipDefinition;
+ /** The hull at the helm when the battle was decided. */
+ isPlayer: boolean;
+ /** Hull integrity left, 0 to 1. */
+ integrity: number;
+ armorBlocked: number;
+ /** Hits received, shots fired and the damage tallies, from the simulation's after-action record. */
+ report: ShipReport;
+}
 export interface BattleDebrief {
  seed: number;
  tick: number;
- ships: { id: string; presetId: string; team: 'friendly' | 'enemy'; status: 'operational' | 'sunk' | 'incapacitated'; damageDealt: number; frags: number; aircraftRemaining: number }[];
+ ships: DebriefShip[];
+ /** Damage dealt by each side over the battle, from the local side's point of view. */
+ timeline: { tick: number; own: number; enemy: number }[];
 }
 /** The renderer/intent seam: everything a scene, HUD or audio consumer may
  * read of a battle, and every intent it may address to one. The state half is

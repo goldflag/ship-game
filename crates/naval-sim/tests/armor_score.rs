@@ -67,7 +67,7 @@ fn armor_scores_once_per_shell_after_its_delayed_damage_finishes() {
     source(&mut records, 1, "enemy");
     records.event(&impact(1, "armor", "ricochet", 0.0), 1, &actors);
     records.event(&impact(1, "mount", "stopped", 0.0), 2, &actors);
-    records.finish_tick(&actors, &[1]);
+    records.finish_tick(&actors, &[1], 0);
     assert_eq!(records.scores["own"].armor_blocked, 0.0);
     // A lodged fuze still explodes: that hull damage was not blocked.
     records.event(
@@ -75,10 +75,10 @@ fn armor_scores_once_per_shell_after_its_delayed_damage_finishes() {
         3,
         &actors,
     );
-    records.finish_tick(&actors, &[]);
+    records.finish_tick(&actors, &[], 0);
     assert_eq!(records.scores["own"].armor_blocked, 75.0 * HULL_HP_SCALE);
     assert_eq!(records.scores["enemy"].damage_dealt, 25.0 * HULL_HP_SCALE);
-    records.finish_tick(&actors, &[]);
+    records.finish_tick(&actors, &[], 0);
     assert_eq!(records.scores["own"].armor_blocked, 75.0 * HULL_HP_SCALE);
     assert_eq!(Records::default().scores.len(), 0);
 }
@@ -101,14 +101,14 @@ fn only_hostile_armor_rejections_on_live_hulls_count() {
     let mut wreckage = impact(5, "mount", "stopped", 0.0);
     wreckage.impact.as_mut().unwrap().through_wreckage = Some(true);
     records.event(&wreckage, 1, &actors);
-    records.finish_tick(&actors, &[]);
+    records.finish_tick(&actors, &[], 0);
     assert_eq!(records.scores["own"].armor_blocked, 100.0 * HULL_HP_SCALE);
     assert_eq!(records.scores["enemy"].armor_blocked, 0.0);
     actors[0].damage.integrity = 0.0;
     records.begin_tick(&actors);
     source(&mut records, 6, "enemy");
     records.event(&impact(6, "armor", "stopped", 0.0), 2, &actors);
-    records.finish_tick(&actors, &[]);
+    records.finish_tick(&actors, &[], 0);
     assert_eq!(records.scores["own"].armor_blocked, 100.0 * HULL_HP_SCALE);
 }
 
@@ -231,9 +231,9 @@ fn he_scoring_requires_armor_to_reject_fragments_and_deducts_burst_damage() {
         1,
         &actors,
     );
-    records.finish_tick(&actors, &[]);
+    records.finish_tick(&actors, &[], 0);
     assert_eq!(records.scores["own"].armor_blocked, 70.0 * HULL_HP_SCALE);
-    records.finish_tick(&actors, &[]);
+    records.finish_tick(&actors, &[], 0);
     assert_eq!(records.scores["own"].armor_blocked, 70.0 * HULL_HP_SCALE);
 }
 
@@ -278,6 +278,6 @@ fn he_gunhouse_contact_reports_the_armor_that_rejects_its_fragments() {
     source(&mut records, 1, "enemy");
     records.sources.get_mut(&1).unwrap().ammunition = Ammunition::He;
     records.event(&event, 1, &actors);
-    records.finish_tick(&actors, &[]);
+    records.finish_tick(&actors, &[], 0);
     assert_eq!(records.scores["own"].armor_blocked, 100.0 * HULL_HP_SCALE);
 }

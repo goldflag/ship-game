@@ -341,6 +341,7 @@ impl Battle {
             observed_aircraft: Some(observed_aircraft),
             recon_coverage: Some(self.sensors.coverage(team)),
             ship_outcomes: None,
+            after_action: None,
             debrief,
             mission: None,
         })

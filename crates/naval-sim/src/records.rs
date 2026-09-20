@@ -1,5 +1,7 @@
 //! Bounded inspectable combat evidence, independent of short-lived visual events.
 use crate::{
+    definition::Vec3,
+    geometry::world_to_local,
     impact::{DamageEvent, ImpactRecord},
     vessel::Vessel,
     weapons::Ammunition,
@@ -43,6 +45,109 @@ pub struct DamageLogEntry {
     #[serde(skip)]
     projectiles: BTreeSet<i64>,
 }
+/// What struck the ship in a [`HitReport`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum HitWeapon {
+    Shell,
+    Torpedo,
+    DepthCharge,
+}
+/// How one projectile's meeting with one ship ended.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum HitOutcome {
+    /// Defeated a plate, or reached something inside the ship.
+    Penetrated,
+    /// Burst on the outside; blast and fragments did the damage.
+    Burst,
+    Stopped,
+    Ricochet,
+    /// An underwater warhead went off against the hull.
+    Detonated,
+    Dud,
+}
+/// The plate a [`HitReport`] turns on: the one that stopped the shell, or the
+/// first it defeated.
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
+pub struct HitPlate {
+    pub name: String,
+    pub thickness_mm: f64,
+    pub obliquity_deg: Option<f64>,
+    pub resistance_mm: Option<f64>,
+}
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct HitModule {
+    pub id: String,
+    pub name: String,
+    pub damage: f64,
+    pub destroyed: bool,
+}
+/// One projectile's whole effect on one ship, kept to the end of the battle
+/// for the after-action report. `position` is ship-local, where it first met
+/// the ship.
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
+pub struct HitReport {
+    #[ts(type = "number")]
+    pub tick: u64,
+    pub source_id: String,
+    pub weapon: String,
+    pub kind: HitWeapon,
+    pub ammunition: Option<Ammunition>,
+    pub position: Vec3,
+    /// What it met first: a plate, a mount, a module or a room.
+    pub struck: String,
+    pub outcome: HitOutcome,
+    pub plate: Option<HitPlate>,
+    pub damage: f64,
+    pub breach_area_m2: f64,
+    /// Rooms this hit opened to the sea, by name.
+    pub flooded: Vec<String>,
+    pub modules: Vec<HitModule>,
+    #[serde(skip)]
+    projectile: i64,
+}
+/// A ship's line in the after-action report.
+#[derive(Clone, Debug, Default, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
+pub struct ShipReport {
+    pub damage_taken: f64,
+    pub shots_fired: u32,
+    /// Projectiles of this ship's that struck an enemy hull, stopped or not.
+    pub hits_landed: u32,
+    pub dealt_by_weapon: BTreeMap<String, f64>,
+    pub dealt_to: BTreeMap<String, f64>,
+    #[ts(optional, type = "number")]
+    pub lost_tick: Option<u64>,
+    pub sunk_by: Option<String>,
+    pub hits: Vec<HitReport>,
+    /// Hits dropped from `hits` once it was full, least damaging first.
+    pub hits_omitted: u32,
+}
+/// Damage dealt by each stable team up to `tick`.
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct DamageSample {
+    #[ts(type = "number")]
+    pub tick: u64,
+    pub dealt: [f64; 2],
+}
+/// Everything the after-action report reads beyond the score sheets. It rides
+/// the debrief only, never an active frame, and nothing in the battle reads it.
+#[derive(Clone, Debug, Default, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct AfterAction {
+    pub ships: BTreeMap<String, ShipReport>,
+    pub timeline: Vec<DamageSample>,
+}
+const MAX_HITS: usize = 400;
+const TIMELINE_INTERVAL_TICKS: u64 = 300;
 #[derive(Clone, Debug, Default, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct VesselScore {
@@ -58,6 +163,12 @@ pub struct VesselScore {
 pub struct Records {
     pub scores: BTreeMap<String, VesselScore>,
     pub shell_history: Vec<ShellHistory>,
+    #[serde(skip)]
+    pub after_action: AfterAction,
+    /// Module health as each tick opened, in actor order, so an underwater
+    /// blast that reports no impacts can still name what it broke.
+    #[serde(skip)]
+    module_hp: Vec<Vec<f64>>,
     #[serde(skip)]
     pub sources: BTreeMap<i64, WeaponSource>,
     #[serde(skip)]
@@ -111,6 +222,24 @@ impl Records {
             if !self.scores.contains_key(&a.motion.id) {
                 self.scores.insert(a.motion.id.clone(), Default::default());
             }
+        }
+        self.module_hp.resize_with(actors.len(), Vec::new);
+        for (hp, a) in self.module_hp.iter_mut().zip(actors) {
+            hp.clear();
+            hp.extend(a.damage.modules.iter().map(|m| m.hp));
+        }
+    }
+    /// Remember who fired a projectile the first time it is seen in flight;
+    /// that first sighting is also the shot the after-action report counts.
+    pub fn source(&mut self, id: i64, source: impl FnOnce() -> WeaponSource) {
+        if let std::collections::btree_map::Entry::Vacant(entry) = self.sources.entry(id) {
+            let source = source();
+            self.after_action
+                .ships
+                .entry(source.owner_id.clone())
+                .or_default()
+                .shots_fired += 1;
+            entry.insert(source);
         }
     }
     pub fn event(&mut self, e: &DamageEvent, tick: u64, actors: &[Vessel]) {
@@ -188,6 +317,7 @@ impl Records {
             {
                 self.armor_blocks.insert((id, e.ship_id.clone()));
             }
+            self.report(e, id, &source, tick, actors);
             let damage = e
                 .impact
                 .as_ref()
@@ -215,6 +345,195 @@ impl Records {
                     actors,
                 )
             }
+        }
+    }
+    /// Fold one event into the victim's hit list: a projectile's impacts on a
+    /// ship become one [`HitReport`], under the rules that decide whether the
+    /// hit scores at all (an enemy, afloat when the tick opened, not wreckage).
+    fn report(
+        &mut self,
+        e: &DamageEvent,
+        projectile: i64,
+        source: &WeaponSource,
+        tick: u64,
+        actors: &[Vessel],
+    ) {
+        let kind = if e.torpedo.is_some() {
+            HitWeapon::Torpedo
+        } else if e.depth_charge.is_some() {
+            HitWeapon::DepthCharge
+        } else {
+            HitWeapon::Shell
+        };
+        let relevant = match kind {
+            HitWeapon::Shell => e.impact.is_some(),
+            HitWeapon::Torpedo => matches!(e.kind.as_str(), "torpedo-hit" | "torpedo-dud"),
+            HitWeapon::DepthCharge => e.kind == "depth-charge-hit",
+        };
+        if !relevant
+            || e.impact
+                .as_ref()
+                .is_some_and(|i| i.through_wreckage == Some(true))
+        {
+            return;
+        }
+        let Some(j) = actors.iter().position(|a| a.motion.id == e.ship_id) else {
+            return;
+        };
+        let victim = &actors[j];
+        if !self.eligible.get(j).copied().unwrap_or(false)
+            || actors
+                .iter()
+                .find(|a| a.motion.id == source.owner_id)
+                .is_none_or(|owner| owner.team == victim.team)
+        {
+            return;
+        }
+        let ship = self
+            .after_action
+            .ships
+            .entry(e.ship_id.clone())
+            .or_default();
+        let index = ship
+            .hits
+            .iter()
+            .rposition(|h| h.projectile == projectile)
+            .unwrap_or_else(|| {
+                if ship.hits.len() >= MAX_HITS {
+                    let least = ship
+                        .hits
+                        .iter()
+                        .enumerate()
+                        .min_by(|a, b| a.1.damage.total_cmp(&b.1.damage))
+                        .map_or(0, |(i, _)| i);
+                    ship.hits.remove(least);
+                    ship.hits_omitted += 1;
+                }
+                ship.hits.push(HitReport {
+                    tick,
+                    source_id: source.owner_id.clone(),
+                    weapon: source.label.clone(),
+                    kind,
+                    ammunition: (kind == HitWeapon::Shell).then_some(source.ammunition),
+                    position: e.impact.as_ref().map_or_else(
+                        || world_to_local(e.position, victim.motion.pose()),
+                        |i| i.position,
+                    ),
+                    struck: e
+                        .impact
+                        .as_ref()
+                        .map_or_else(String::new, |i| i.target_name.clone()),
+                    outcome: match kind {
+                        HitWeapon::Shell => HitOutcome::Stopped,
+                        _ if e.kind == "torpedo-dud" => HitOutcome::Dud,
+                        _ => HitOutcome::Detonated,
+                    },
+                    plate: None,
+                    damage: 0.0,
+                    breach_area_m2: 0.0,
+                    flooded: vec![],
+                    modules: vec![],
+                    projectile,
+                });
+                ship.hits.len() - 1
+            });
+        let created = ship.hits[index].damage == 0.0
+            && ship.hits[index].plate.is_none()
+            && ship.hits[index].modules.is_empty()
+            && ship.hits[index].tick == tick;
+        let hit = &mut ship.hits[index];
+        let definition = &victim.compiled.definition;
+        if let Some(i) = &e.impact {
+            hit.damage += i.hull_damage.unwrap_or(0.0);
+            let area = i.breach_area_m2.unwrap_or(0.0);
+            hit.breach_area_m2 += area;
+            if area > 0.0
+                && let Some(room) = i
+                    .compartment_id
+                    .as_ref()
+                    .and_then(|id| definition.compartments.iter().find(|c| &c.id == id))
+                && !hit.flooded.contains(&room.name)
+            {
+                hit.flooded.push(room.name.clone());
+            }
+            let armor = matches!(i.kind.as_str(), "armor" | "mount") && i.thickness_mm.is_some();
+            let halted = matches!(i.outcome.as_str(), "stopped" | "ricochet");
+            if armor && (hit.plate.is_none() || halted) {
+                hit.plate = Some(HitPlate {
+                    name: i.target_name.clone(),
+                    thickness_mm: i.thickness_mm.unwrap_or(0.0),
+                    obliquity_deg: i.obliquity_deg,
+                    resistance_mm: i.resistance_mm,
+                });
+            }
+            // A shell is only as far along as its deepest impact: once inside
+            // it stays a penetration whatever stops it later.
+            hit.outcome = match (hit.outcome, i.outcome.as_str(), i.kind.as_str()) {
+                (HitOutcome::Penetrated, ..) => HitOutcome::Penetrated,
+                (_, "penetrated", _) | (_, _, "module" | "boundary" | "room") => {
+                    HitOutcome::Penetrated
+                }
+                (_, "detonation", _) | (HitOutcome::Burst, ..) => HitOutcome::Burst,
+                (_, "ricochet", _) => HitOutcome::Ricochet,
+                (_, "stopped", _) => HitOutcome::Stopped,
+                (current, ..) => current,
+            };
+            if e.kind == "burst" && hit.outcome != HitOutcome::Penetrated {
+                hit.outcome = HitOutcome::Burst;
+            }
+            let damage = i.damage.unwrap_or(0.0);
+            if matches!(i.kind.as_str(), "module" | "mount")
+                && matches!(i.outcome.as_str(), "damaged" | "destroyed" | "detonation")
+                && damage > 0.0
+            {
+                let destroyed = i.outcome != "damaged";
+                match hit.modules.iter_mut().find(|m| m.id == i.target_id) {
+                    Some(m) => {
+                        m.damage += damage;
+                        m.destroyed |= destroyed;
+                    }
+                    None => hit.modules.push(HitModule {
+                        id: i.target_id.clone(),
+                        name: i.target_name.clone(),
+                        damage,
+                        destroyed,
+                    }),
+                }
+            }
+        } else {
+            hit.damage += e.hull_damage.unwrap_or(0.0);
+            hit.breach_area_m2 = if hit.outcome == HitOutcome::Detonated {
+                1.0
+            } else {
+                0.0
+            };
+            // "Torpedo hit · <protection> · <room> · flooding breach"
+            let words: Vec<&str> = e.message.split(" · ").collect();
+            if hit.outcome == HitOutcome::Detonated && words.len() >= 3 {
+                hit.struck = words[words.len() - 2].into();
+                hit.flooded = vec![hit.struck.clone()];
+            }
+            for (m, (state, before)) in definition
+                .modules
+                .iter()
+                .zip(victim.damage.modules.iter().zip(&self.module_hp[j]))
+            {
+                if state.hp < *before {
+                    hit.modules.push(HitModule {
+                        id: state.id.clone(),
+                        name: m.name.clone(),
+                        damage: before - state.hp,
+                        destroyed: state.hp == 0.0,
+                    });
+                }
+            }
+        }
+        if created {
+            self.after_action
+                .ships
+                .entry(source.owner_id.clone())
+                .or_default()
+                .hits_landed += 1;
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -251,6 +570,14 @@ impl Records {
             return;
         }
         self.scores.entry(owner.into()).or_default().damage_dealt += damage;
+        let dealer = self.after_action.ships.entry(owner.into()).or_default();
+        *dealer.dealt_by_weapon.entry(weapon.into()).or_default() += damage;
+        *dealer.dealt_to.entry(victim.into()).or_default() += damage;
+        self.after_action
+            .ships
+            .entry(victim.into())
+            .or_default()
+            .damage_taken += damage;
         for subject in [owner, victim] {
             let score = self.scores.entry(subject.into()).or_default();
             let index = score.damage_log.iter().position(|e| {
@@ -299,7 +626,7 @@ impl Records {
         }
     }
     /// `active` is the sorted list of projectile ids still in flight.
-    pub fn finish_tick(&mut self, actors: &[Vessel], active: &[i64]) {
+    pub fn finish_tick(&mut self, actors: &[Vessel], active: &[i64], tick: u64) {
         self.armor_blocks.retain(|(id, victim)| {
             if active.binary_search(id).is_ok() {
                 return true;
@@ -326,9 +653,28 @@ impl Records {
                 continue;
             }
             self.credited.insert(a.motion.id.clone());
-            if let Some(owner) = self.last_damager.get(&a.motion.id).cloned() {
+            let owner = self.last_damager.get(&a.motion.id).cloned();
+            let lost = self
+                .after_action
+                .ships
+                .entry(a.motion.id.clone())
+                .or_default();
+            lost.lost_tick = Some(tick);
+            lost.sunk_by = owner.clone();
+            if let Some(owner) = owner {
                 self.scores.entry(owner).or_default().frags += 1;
             }
+        }
+        if tick.is_multiple_of(TIMELINE_INTERVAL_TICKS) {
+            let mut dealt = [0.0; 2];
+            for a in actors {
+                if let Some(score) = self.scores.get(&a.motion.id) {
+                    dealt[a.team.index()] += score.damage_dealt;
+                }
+            }
+            self.after_action
+                .timeline
+                .push(DamageSample { tick, dealt });
         }
         // Both ledgers are rebuilt every tick; reuse their storage and keep the
         // owner strings, so a steady battle stops allocating here entirely.

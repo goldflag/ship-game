@@ -1,0 +1,143 @@
+/* After-action report: instruments over the dimmed sea. Fleets and chart carry no panel
+   fill; only the selected hit's card does, like a tooltip. */
+.after-action { --aar-mint:#86e4c5; --aar-salmon:#ffb5a6; --aar-gold:#f0d68f; --aar-muted:#bacbd0; --aar-dim:#9fb3b9; --aar-line:#c9dce04a;
+  position:fixed; inset:0; z-index:30; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; gap:14px; padding:22px 56px 22px; box-sizing:border-box;
+  color:#edf1ec; font:400 13px/1.35 'Barlow',sans-serif; text-shadow:0 1px 2px #04101599,0 0 12px #041015cc; background:#0a1c24c4; }
+.after-action[data-tab='ship'] { background:#0a1c24e0; }
+.after-action h1, .after-action p, .after-action ul, .after-action dl, .after-action dd { margin:0; padding:0; }
+.after-action ul { list-style:none; }
+.aar-num { font-variant-numeric:tabular-nums; }
+.aar-muted { color:var(--aar-muted); }
+.aar-eyebrow { font:600 11px/1 'Barlow',sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--aar-muted); }
+.aar-head { display:grid; justify-items:center; gap:4px; text-align:center; }
+.aar-head h1 { font:600 50px/1 'Barlow Condensed',sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+.aar-head p { color:var(--aar-muted); }
+
+.aar-tabs { display:flex; justify-content:center; gap:28px; justify-self:center; border-bottom:1px solid #cfdfdf35; }
+.aar-tabs button { padding:0 0 10px; margin-bottom:-1px; background:none; border:0; border-bottom:2px solid transparent; color:var(--aar-muted); font:500 19px/1 'Barlow Condensed',sans-serif; letter-spacing:.03em; text-shadow:inherit; cursor:pointer; }
+.aar-tabs button small { margin-left:8px; font:400 12px/1 'Barlow',sans-serif; letter-spacing:0; color:var(--aar-dim); }
+.aar-tabs button:hover { color:#edf1ec; }
+.aar-tabs button[aria-selected='true'] { color:#e0c58d; border-bottom-color:#e0c58d; }
+.aar-panel { min-height:0; overflow-y:auto; overflow-x:clip; scrollbar-width:thin; scrollbar-color:#728b9266 transparent; }
+
+/* Battle results */
+.aar-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:26px 136px; max-width:1616px; margin:0 auto; padding-top:10px; }
+.aar-fleet[data-team='friendly'] .aar-eyebrow { color:var(--aar-mint); }
+.aar-fleet[data-team='enemy'] .aar-eyebrow { color:var(--aar-salmon); }
+.aar-total { display:flex; align-items:baseline; gap:10px; padding-bottom:12px; border-bottom:1px solid #c9dce06b; color:var(--aar-muted); }
+.aar-total strong { font:500 50px/1.1 'Barlow Condensed',sans-serif; color:#edf1ec; }
+.aar-fleet li { padding:14px 0 15px; border-bottom:1px solid #c9dce02e; }
+.aar-ship-name { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.aar-ship-name button { padding:0; background:none; border:0; color:#f0f5f3; font:500 25px/1.1 'Barlow Condensed',sans-serif; letter-spacing:.02em; text-shadow:inherit; cursor:pointer; text-align:left; }
+.aar-ship-name button:hover { color:#e0c58d; }
+.aar-ship-name em { padding:2px 4px; border-radius:2px; background:var(--aar-mint); color:#152b32; font:600 9.5px/1 'Barlow',sans-serif; letter-spacing:.1em; text-transform:uppercase; text-shadow:none; align-self:center; }
+.aar-ship-name span { color:var(--aar-muted); font-size:12.5px; }
+.aar-fleet li[data-lost='true'] .aar-ship-name button { color:#b4c4c8; }
+.aar-fleet li[data-lost='true'] .aar-ship-name span { color:var(--aar-salmon); }
+.aar-fleet dl { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-top:9px; }
+.aar-fleet dt { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#a9bbc0; }
+.aar-fleet dd { font-size:14px; font-weight:500; overflow-wrap:anywhere; }
+.aar-fleet dl div:first-child dd { font-size:17px; font-weight:600; }
+.aar-weapons { margin-top:9px; color:var(--aar-muted); font-size:11.5px; }
+.aar-weapons p { display:flex; flex-wrap:wrap; gap:0 16px; } .aar-weapons b { color:#dbe5e4; font-weight:500; }
+.aar-bar { display:flex; gap:2px; height:4px; margin-bottom:4px; }
+.aar-bar i { flex:0 0 0; min-width:2px; background:var(--aar-mint); }
+.aar-bar i:nth-child(2) { opacity:.55; } .aar-bar i:nth-child(3) { opacity:.3; }
+.aar-fleet[data-team='enemy'] .aar-bar i { background:var(--aar-salmon); }
+/* Large fleets: one line per ship. */
+.aar-fleet[data-dense='true'] li { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,2fr); gap:0 16px; align-items:center; padding:8px 0; }
+.aar-fleet[data-dense='true'] .aar-ship-name { display:grid; gap:0 8px; grid-template-columns:auto 1fr; }
+.aar-fleet[data-dense='true'] .aar-ship-name button { font-size:19px; }
+.aar-fleet[data-dense='true'] .aar-ship-name span { grid-column:1 / -1; font-size:12px; }
+.aar-fleet[data-dense='true'] dl { margin:0; }
+.aar-fleet[data-dense='true'] dd, .aar-fleet[data-dense='true'] dl div:first-child dd { font-size:13px; }
+.aar-fleet[data-dense='true'] li:not(:first-child) dt { display:none; }
+.aar-fleet[data-dense='true'] .aar-weapons { display:none; }
+
+.aar-race { grid-column:1 / -1; }
+.aar-race-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:46px; }
+.aar-race-head b { margin-left:16px; font-size:12px; font-weight:600; }
+.after-action [data-team='friendly'] { --aar-team:var(--aar-mint); } .after-action [data-team='enemy'] { --aar-team:var(--aar-salmon); }
+.aar-race-head b { color:var(--aar-team); }
+.aar-chart { position:relative; height:150px; margin-bottom:24px; }
+.aar-chart svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.aar-chart path { fill:none; stroke:var(--aar-team); stroke-width:2; vector-effect:non-scaling-stroke; }
+.aar-chart path.aar-grid { stroke:#cfdfdf26; stroke-width:1; }
+.aar-mark { position:absolute; top:0; bottom:0; padding-left:6px; color:var(--aar-team); font-size:11px; white-space:nowrap; pointer-events:none; }
+.aar-chart .aar-mark { top:calc(-42px + var(--row, 0) * 14px); }
+.aar-mark[data-flip='true'] { padding:0 6px 0 0; transform:translateX(-100%); } .aar-mark[data-flip='true'] i { left:auto; right:0; }
+.aar-mark i { position:absolute; left:0; top:0; bottom:0; border-left:1px dashed var(--aar-team); opacity:.6; }
+.aar-axis span { position:absolute; top:calc(100% + 6px); transform:translateX(-50%); font-size:11px; color:var(--aar-dim); }
+.aar-axis span:first-child { transform:none; } .aar-axis span:last-child { transform:translateX(-100%); }
+
+/* Your ship */
+.aar-ship { display:grid; grid-template-rows:auto minmax(220px,1fr) auto auto auto; gap:8px; height:100%; max-width:1300px; margin:0 auto; box-sizing:border-box; }
+.aar-ship-head { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; }
+.aar-ship-head > div { display:grid; gap:6px; justify-items:start; }
+.aar-ship-head p { color:var(--aar-muted); font:500 16px/1.2 'Barlow Condensed',sans-serif; }
+.aar-legend { display:flex; flex-wrap:wrap; gap:6px 20px; font-size:12px; color:var(--aar-muted); }
+.aar-legend li:last-child { color:#8fa3a9; }
+.aar-legend li[data-tone]::before { content:''; display:inline-block; width:9px; height:9px; margin-right:6px; border:1.5px solid var(--tone-line); background:var(--tone-fill); border-radius:50%; vertical-align:-1px; }
+.aar-legend li[data-tone='torpedo']::before { border-radius:2px; transform:rotate(45deg); }
+.after-action [data-tone='penetrated'] { --tone-line:#ffb5a6; --tone-fill:#b8493a; --tone-text:#ffb5a6; }
+.after-action [data-tone='explosive'] { --tone-line:#f0d68f; --tone-fill:#80621c; --tone-text:#f0d68f; }
+.after-action [data-tone='torpedo'] { --tone-line:#ffb5a6; --tone-fill:#8a2c22; --tone-text:#ffb5a6; }
+.after-action [data-tone='blocked'] { --tone-line:#86e4c5; --tone-fill:#0b1d25e6; --tone-text:#86e4c5; }
+.aar-model { position:relative; min-height:0; overflow:clip; cursor:grab; }
+.aar-model:active { cursor:grabbing; }
+.aar-model canvas { position:absolute; inset:0; width:100%; height:100%; filter:drop-shadow(0 18px 30px #02080b99); touch-action:none; }
+.aar-pins { position:absolute; inset:0; pointer-events:none; }
+.aar-model-note { position:absolute; inset:0; display:grid; place-items:center; color:var(--aar-muted); }
+.aar-hint { justify-self:start; color:var(--aar-dim); font-size:12px; }
+
+.aar-pin { --pin:20px; position:absolute; left:0; top:0; width:var(--pin); height:var(--pin); margin:calc(var(--pin) / -2) 0 0 calc(var(--pin) / -2); padding:0; display:grid; place-items:center;
+  background:none; border:0; color:#fff; font:600 11px/1 'Barlow Condensed',sans-serif; text-shadow:none; cursor:pointer; pointer-events:auto; transition:opacity .15s; }
+.aar-pin[data-size='m'] { --pin:25px; font-size:13px; } .aar-pin[data-size='l'] { --pin:31px; font-size:15px; }
+.aar-pin::before { content:''; position:absolute; inset:0; box-sizing:border-box; border:1.5px solid var(--tone-line); background:var(--tone-fill); border-radius:50%; }
+.aar-pin[data-tone='torpedo']::before { inset:2px; border-radius:3px; transform:rotate(45deg); }
+.aar-pin[data-tone='blocked'] { color:#c9f5e7; }
+.aar-pin span { position:relative; }
+.aar-pin:hover::before { box-shadow:0 0 0 2px #edf1ec99; }
+.aar-pin[aria-pressed='true'] { z-index:3; }
+.aar-pin[aria-pressed='true']::before { box-shadow:0 0 0 2px #0b1d25,0 0 0 4.5px #e0c58d; }
+.aar-pin[data-behind='true']:not([aria-pressed='true']) { opacity:.22; z-index:0; }
+
+.aar-hit { display:grid; grid-template-columns:64px minmax(0,1.25fr) minmax(0,1fr) auto; gap:20px; width:min(100%,1000px); min-height:96px; margin:0 auto; padding:14px 18px; box-sizing:border-box;
+  background:#0e2530f2; border:1px solid #cfdfdf35; border-radius:3px; text-shadow:none; }
+.aar-unhit { min-height:96px; display:grid; place-items:center; color:var(--aar-muted); }
+.aar-hit-n strong { display:block; font:500 42px/1 'Barlow Condensed',sans-serif; color:#e0c58d; }
+.aar-hit-n span { color:var(--aar-dim); font-size:12px; }
+.aar-hit-what { display:grid; gap:3px; align-content:start; }
+.aar-hit-what strong { font-size:14.5px; font-weight:600; }
+.aar-hit-what .aar-muted { font-size:12.5px; }
+.aar-hit-effect > div { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; color:var(--aar-muted); font-size:12px; }
+.aar-hit-effect b { color:var(--tone-text); font-size:13px; font-weight:600; }
+.aar-hit-effect > div strong { font:500 24px/1 'Barlow Condensed',sans-serif; color:#edf1ec; }
+.aar-hit-effect li { display:flex; justify-content:space-between; gap:12px; padding:4px 0; border-bottom:1px solid #cfdfdf1f; font-size:12.5px; }
+.aar-hit-effect li strong { font-weight:600; } .aar-hit-effect li span { color:var(--aar-salmon); text-align:right; }
+.aar-hit-effect ul { max-height:104px; overflow-y:auto; scrollbar-width:thin; }
+.aar-hit-step { display:flex; gap:4px; align-items:start; }
+.aar-hit-step .icon-button { font-size:20px; line-height:1; }
+
+.aar-timeline { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:14px; width:min(100%,1000px); margin:0 auto; height:74px; color:var(--aar-dim); font-size:11px; }
+.aar-timeline > div { position:relative; height:100%; }
+.aar-timeline > div::before { content:''; position:absolute; left:0; right:0; top:40px; border-top:1px solid #c9dce06b; }
+.aar-timeline .aar-pin { top:22px; }
+.aar-timeline .aar-mark { top:40px; bottom:auto; height:14px; padding:14px 0 0; transform:translateX(-50%); }
+.aar-timeline .aar-mark[data-flip='true'] { padding:0 6px 0 0; transform:translateX(-100%); } .aar-mark[data-flip='true'] i { left:auto; right:0; }
+.aar-mark i { left:50%; bottom:auto; height:12px; opacity:1; border-left-style:solid; }
+
+.aar-foot { display:grid; justify-items:center; gap:6px; text-shadow:none; }
+.aar-foot p { min-height:1lh; color:var(--aar-salmon); }
+.aar-foot > div { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.aar-foot .primary-button, .aar-foot .secondary-button { width:auto; min-height:40px; padding:0 20px; gap:10px; justify-content:center; }
+.aar-foot small { font-weight:400; font-size:11px; opacity:.75; }
+
+@media (max-width:1100px) {
+  .after-action { padding:16px 20px; }
+  .aar-results { grid-template-columns:minmax(0,1fr); gap:22px; }
+  .aar-head h1 { font-size:38px; }
+  .aar-hit { grid-template-columns:48px minmax(0,1fr); }
+  .aar-hit-effect, .aar-hit-step { grid-column:2; }
+}
+@media (max-height:820px) { .aar-head h1 { font-size:34px; } .after-action { gap:8px; padding-top:12px; padding-bottom:12px; } }

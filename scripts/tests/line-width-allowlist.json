@@ -129,7 +129,6 @@
   "src/ui/NavigationChart.tsx",
   "src/ui/OrderWheel.tsx",
   "src/ui/OwnFleet.tsx",
-  "src/ui/PveResults.css",
   "src/ui/RangefinderReadout.tsx",
   "src/ui/Reconnaissance.tsx",
   "src/ui/SettingsDialog.css",

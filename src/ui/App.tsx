@@ -1,5 +1,6 @@
 import { savedReference } from '../ships/constructionCloud';
 import { BattleEndNotice } from './BattleEndNotice';
+import { AfterActionReport, type ReportAction } from './report/AfterActionReport';
 import type { PveRequest } from '../multiplayer/generated/PveRequest';
 import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
 import type { PveDraft } from '../game/session/PveDraft';
@@ -707,6 +708,21 @@ function Harbor({ account, startup }: AppProps) {
     }
   };
 
+  const battleOver = phase === 'sailing' && ready && !error && !battleLoading && !pveRestarting && !trial && data.combat && data.combat.result !== 'active' ? data.combat.result : undefined;
+  // An interrupted or abandoned battle has nothing to report; it keeps the short notice and its countdown.
+  const ended = battleOver ? game.current?.simulation : undefined;
+  const report = ended && !['infrastructure', 'abandoned'].includes(data.combat?.outcome?.reason ?? '') ? ended.debrief : undefined;
+  const reportActions: ReportAction[] = ended?.networked
+    ? [{ label: battleExitLabel(ended), run: returnToPort }]
+    : [
+        ended?.missionRules
+          ? { label: 'Battle again', hint: 'Same fleets and seed', run: restartPve }
+          // A custom battle is prepared from an idle port, so go home first; the loading screen covers the turn-round.
+          : { label: 'Battle again', hint: 'Same fleets', run: async () => { await returnToPort(); await launch(); } },
+        { label: 'New battle', run: async () => { await returnToPort(); openBattle(); } },
+        { label: 'Return to port', run: returnToPort },
+      ];
+
   return (
     <ShipContext value={selectedShip}>
       <main
@@ -727,7 +743,7 @@ function Harbor({ account, startup }: AppProps) {
           ref={host}
           className="ocean-viewport"
           inert={!ready || !!error}
-          data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen}
+          data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen && !report}
         />
         {phase === 'garage' && ready && !error && !battleOpen && !builder && (
           <Garage
@@ -817,10 +833,10 @@ function Harbor({ account, startup }: AppProps) {
         )}
         {phase === 'sailing' && ready && !error && (
           <>
-            <BinocularOverlay data={data} />
+            {!report && <BinocularOverlay data={data} />}
             <div className="hud-viewport">
-              <FleetHud key={game.current?.battleRevision} data={data} desk={desk.current} visible={hud} bindings={bindings} />
-              {!hud && (
+              <FleetHud key={game.current?.battleRevision} data={data} desk={desk.current} visible={hud && !report} bindings={bindings} />
+              {!hud && !report && (
                 <button className="restore-hud" onClick={() => setHud(true)}>
                   Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd>
                 </button>
@@ -828,21 +844,25 @@ function Harbor({ account, startup }: AppProps) {
             </div>
           </>
         )}
-        {phase === 'sailing' &&
-          ready &&
-          !error &&
-          !battleLoading &&
-          !pveRestarting &&
-          !trial &&
-          data.combat &&
-          data.combat.result !== 'active' && (
-            <BattleEndNotice
-              key={game.current?.battleRevision}
-              result={data.combat.result}
-              outcome={data.combat.outcome}
-              onExit={() => void returnToPort()}
-            />
-          )}
+        {battleOver && (report && data.combat?.outcome ? (
+          <AfterActionReport
+            key={game.current?.battleRevision}
+            mode={ended?.networked ? 'Online battle' : ended?.missionRules ? 'Fleet command' : 'Custom battle'}
+            result={battleOver}
+            outcome={data.combat.outcome}
+            debrief={report}
+            actions={reportActions}
+            loadModel={(ship) => game.current!.reviewModel(ship.definition!)}
+            releasePointer={() => game.current?.releasePointer()}
+          />
+        ) : (
+          <BattleEndNotice
+            key={game.current?.battleRevision}
+            result={battleOver}
+            outcome={data.combat?.outcome}
+            onExit={() => void returnToPort()}
+          />
+        ))}
         {battleLoading && ready && !error && (
           <BattleLoadingScreen
             briefing={pveBriefing}

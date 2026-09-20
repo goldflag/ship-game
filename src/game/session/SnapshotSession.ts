@@ -208,18 +208,31 @@ export abstract class SnapshotSession implements BattleSession {
     this.afloatKg = this.relativeTonnage(frame.afloatKg);
     this.outcome = frame.outcome && { ...frame.outcome, winnerTeamId: frame.outcome.winnerTeamId ? frame.outcome.winnerTeamId === this.ownTeam ? 'a' : 'b' : null, afloatKg: this.relativeTonnage(frame.outcome.afloatKg) };
     this.result = !this.outcome ? 'active' : !this.outcome.winnerTeamId ? 'draw' : this.outcome.winnerTeamId === 'a' ? 'victory' : 'defeat';
-    this.debrief = frame.outcome && frame.debrief ? {
-      seed: this.seed, tick: frame.debrief.tick,
-      ships: frame.debrief.actors.map(actor => {
-        const score = frame.debrief!.records.scores[actor.motion.id];
-        return { id: actor.motion.id, presetId: actor.presetId, team: actor.team === this.ownTeam ? 'friendly' : 'enemy',
-          status: frame.debrief!.shipOutcomes?.[actor.motion.id] ?? (physicalLoss(actor) ? 'sunk' : 'operational'),
-          damageDealt: score?.damageDealt ?? 0, frags: score?.frags ?? 0,
-          aircraftRemaining: frame.debrief!.wings.find(w => w.ownerId === actor.motion.id)?.state.planes.filter(p => !['lost', 'withdrawn'].includes(p.phase) && p.hp > 0).length ?? 0 };
-      }),
-    } : undefined;
+    // A team view carries full knowledge as its debrief; a custom battle's full frame is its own.
+    const debrief = frame.outcome && (frame.debrief ?? (frame.afterAction ? frame : undefined));
+    this.debrief = debrief ? this.debriefOf(debrief) : undefined;
     this.phase = frame.phase ?? 'running'; this.connected = frame.connected; this.loaded = frame.loaded; this.countdown = frame.countdown ?? 0;
     if (frame.reason || frame.phase === 'finished') this.connectionStatus = frame.reason ?? '';
+  }
+  private debriefOf(debrief: NonNullable<Snapshot['debrief']>): BattleDebrief {
+    const own = this.ownTeam === 'a' ? 0 : 1;
+    return {
+      seed: this.seed, tick: debrief.tick,
+      timeline: (debrief.afterAction?.timeline ?? []).map(sample => ({ tick: sample.tick, own: sample.dealt[own], enemy: sample.dealt[1 - own] })),
+      ships: debrief.actors.map(actor => {
+        const score = debrief.records.scores[actor.motion.id];
+        const definition = this.actors.find(a => a.motion.id === actor.motion.id)?.definition ?? this.localDefinitions.get(actor.presetId)
+          ?? (Object.hasOwn(shipPresets, actor.presetId) ? shipPreset(actor.presetId) : undefined);
+        return { id: actor.motion.id, presetId: actor.presetId, team: actor.team === this.ownTeam ? 'friendly' : 'enemy',
+          name: definition?.name ?? actor.presetId, definition,
+          isPlayer: actor.motion.id === this.player.motion.id,
+          integrity: actor.damage.maxIntegrity > 0 ? Math.max(0, actor.damage.integrity / actor.damage.maxIntegrity) : 0,
+          status: debrief.shipOutcomes?.[actor.motion.id] ?? (physicalLoss(actor) ? 'sunk' : 'operational'),
+          damageDealt: score?.damageDealt ?? 0, armorBlocked: score?.armorBlocked ?? 0, frags: score?.frags ?? 0,
+          aircraftRemaining: debrief.wings.find(w => w.ownerId === actor.motion.id)?.state.planes.filter(p => !['lost', 'withdrawn'].includes(p.phase) && p.hp > 0).length ?? 0,
+          report: debrief.afterAction?.ships[actor.motion.id] ?? { damageTaken: 0, shotsFired: 0, hitsLanded: 0, dealtByWeapon: {}, dealtTo: {}, hits: [], hitsOmitted: 0 } };
+      }),
+    };
   }
   private relativeTonnage<T>(values: [T, T]): [T, T] { return this.ownTeam === 'a' ? values : [values[1], values[0]]; }
   protected input(helm: HelmCommand, intent: CombatIntent, active: boolean): void {
