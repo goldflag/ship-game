@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { createStarterSource, type ConstructionStarter } from '../../src/ships/constructionStarter';
-import { decodeConstructionSource } from '../../src/ships/constructionEditor';
+import { decodeConstructionSource, solidPanels } from '../../src/ships/constructionEditor';
 import { applyConstructionBatch, constructionDiffCommands, type ConstructionBatch } from '../../src/ships/constructionCommands';
 import { DEFAULT_HULL_PRESET, HULL_PRESETS } from '../../src/ships/constructionHullPresets';
 import { customHullPanels } from '../../src/ships/constructionPanels';
@@ -160,7 +160,7 @@ try {
         compiled: false,
         source,
         ...(args.includes('--panels')
-          ? { panels: source.construction.primitives.map((p) => ({ id: p.id, panels: customHullPanels(p) })) }
+          ? { panels: source.construction.primitives.map((p) => ({ id: p.id, panels: [...customHullPanels(p), ...solidPanels(p)] })) }
           : {}),
       });
     } else if (action === 'export') {
@@ -253,7 +253,7 @@ try {
           diagnostics: result.diagnostics,
           ...(args.includes('--source') ? { source } : {}),
           ...(args.includes('--panels')
-            ? { panels: source.construction.primitives.map((p) => ({ id: p.id, panels: customHullPanels(p) })) }
+            ? { panels: source.construction.primitives.map((p) => ({ id: p.id, panels: [...customHullPanels(p), ...solidPanels(p)] })) }
             : {}),
         });
       } else if (action === 'render' || action === 'trial') {

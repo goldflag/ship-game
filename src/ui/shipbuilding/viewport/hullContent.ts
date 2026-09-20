@@ -138,6 +138,7 @@ export function buildHullContent(
           primitive.shaping,
           primitive.balcony,
           primitive.mesh,
+          primitive.solid,
         ),
         new THREE.MeshStandardMaterial({
           color: invalid.has(primitive.id) ? SALMON : constructionPaintColor(constructionShipPaint(scene.source)),

@@ -283,6 +283,12 @@ Recent editor features are source-authorable through these patches:
   and `bilgeKeels` (`null` removes the keels).
 - Balconies: `balcony.points` with stable IDs and per-edge `open`/`railing`/`triple-railing`/`wall`,
   plus `heightM` and `wallThicknessM`.
+- Compound solids: `solid` with `version: 1` on a `vertex` primitive carries arbitrary closed
+  geometry — concave, curved, tunnelled or thin-walled — as an ordered union of convex parts
+  over one shared vertex pool. Send it whole through `primitive` or `primitive-patch`; `null`
+  drops the piece back to an eight-corner block. Armor and paint reach a polygon `group`
+  through `surface-patch` with `panelId` set to the group name. Format, rules and limits are in
+  [compound solids](shipbuilding.md#compound-solids).
 - Freeform edge treatments: `shaping` with `version: 1`, `edges`, `radius` and
   `style: "round" | "chamfer"` on a `vertex` primitive; `null` restores sharp edges.
 - Guns: nested `gun` settings for battery and arcs; use `turret-rise` for rise.

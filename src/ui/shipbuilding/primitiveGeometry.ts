@@ -28,7 +28,7 @@ export function placementRotation(piece: BuilderPlacement): THREE.Euler {
 /** Selection follows authored sections and chines, without tessellation diagonals. */
 export function primitiveOutlineGeometry(p: ConstructionPrimitive): THREE.BufferGeometry {
   if (p.kind !== 'custom-hull' || !p.customHull) {
-    const solid = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping, p.balcony, p.mesh);
+    const solid = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping, p.balcony, p.mesh, p.solid);
     const edges = new THREE.EdgesGeometry(solid, p.shaping ? 25 : 1); solid.dispose(); return edges;
   }
   const points = customHullPoints(p), n = p.customHull.stations[0].points.length, lines: number[] = [];

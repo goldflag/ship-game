@@ -13,7 +13,7 @@ export function fillVertexPreview(
 ) {
   for (const original of source.construction.primitives) {
     const p = map.get(original.id) ?? original;
-    const geometry = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping, p.balcony, p.mesh);
+    const geometry = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping, p.balcony, p.mesh, p.solid);
     const mesh = new THREE.Mesh(
       geometry,
       new THREE.MeshStandardMaterial({

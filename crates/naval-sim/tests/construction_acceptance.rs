@@ -16,6 +16,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
                 primitives: vec![ConstructionPrimitive {
                     tilt: None,
                     mesh: None,
+                    solid: None,
                     balcony: None,
                     shaping: None,
                     custom_hull: None,
@@ -370,6 +371,7 @@ fn separated_hull_rays_miss_water_and_hit_only_the_selected_skin() {
     .map(|(id, position, size)| ConstructionPrimitive {
         tilt: None,
         mesh: None,
+        solid: None,
         balcony: None,
         shaping: None,
         custom_hull: None,
@@ -819,6 +821,7 @@ fn original_oerlikon_reaches_full_elevation_but_stops_at_a_real_overhead_beam() 
         source.construction.primitives.push(ConstructionPrimitive {
             tilt: None,
             mesh: None,
+            solid: None,
             balcony: None,
             shaping: None,
             custom_hull: None,
@@ -915,4 +918,109 @@ fn internal_powerplants_need_interior_space_but_not_surface_contact() {
         assert!(result.definition.is_none());
         assert!(result.diagnostics.iter().any(|d| d.code == "equipment-fit"));
     }
+}
+
+/// One hull block authored as a compound solid: a U channel, which no convex piece can be.
+/// It must plate, arm, flood and stop shells exactly like the three boxes it replaces.
+#[test]
+fn a_compound_solid_hull_block_is_concave_armored_by_group_and_hollow_where_authored() {
+    use naval_sim::{
+        contacts::{ContactGeometry, ContactKind, contact_armor, ship_contacts},
+        hull_contact::HullContacts,
+        shell::Shell,
+    };
+    let mut vertices: Vec<[f64; 3]> = Vec::new();
+    let mut part = |id: &str, low: [f64; 3], high: [f64; 3], group: Option<&str>| {
+        let base = vertices.len();
+        for i in 0..8u32 {
+            vertices.push(std::array::from_fn(|k| {
+                if i >> k & 1 == 0 { low[k] } else { high[k] }
+            }));
+        }
+        // Outward-wound quads of the corner pool above: -x, +x, -y, +y, -z, +z.
+        let quads = [
+            [0, 4, 6, 2],
+            [1, 3, 7, 5],
+            [0, 1, 5, 4],
+            [2, 6, 7, 3],
+            [0, 2, 3, 1],
+            [4, 5, 7, 6],
+        ];
+        ConstructionSolidPart {
+            id: id.into(),
+            faces: quads
+                .iter()
+                .map(|q| ConstructionSolidFace {
+                    corners: q.iter().map(|k| (base + k) as f64).collect(),
+                    group: group.map(str::to_string),
+                })
+                .collect(),
+        }
+    };
+    let parts = vec![
+        part("keel", [-5.5, -2., -10.], [5.5, -1., 10.], None),
+        part("port", [-5.5, -1., -10.], [-2.5, 2., 10.], Some("belt")),
+        part("starboard", [2.5, -1., -10.], [5.5, 2., 10.], Some("belt")),
+    ];
+    // The source frame is normalized, so fold the 11 x 4 x 20 m extent into `size`.
+    let size: Vec3 = [11., 4., 20.];
+    let vertices: Vec<[f64; 3]> = vertices
+        .iter()
+        .map(|v| std::array::from_fn(|k| v[k] / size[k]))
+        .collect();
+    let (mut source, catalog) = fixture();
+    source.construction.primitives = vec![ConstructionPrimitive {
+        id: "channel".into(),
+        kind: "vertex".into(),
+        size,
+        position: [0.; 3],
+        rotation_deg: 0.,
+        solid: Some(ConstructionSolid {
+            version: 1.,
+            label: "U channel".into(),
+            vertices,
+            parts,
+        }),
+        ..Default::default()
+    }];
+    source
+        .construction
+        .surfaces
+        .push(ConstructionSurfaceAssignment {
+            panel_id: Some("belt".into()),
+            primitive_id: "channel".into(),
+            face: "port".into(),
+            thickness_mm: 50.,
+            material: "armor-steel".into(),
+            paint: "naval-gray".into(),
+            ..Default::default()
+        });
+    let def = compile(&source, &catalog);
+    // The decomposition survives compilation: one convex cell per authored part.
+    assert!(
+        def.hull.volume.as_ref().is_some_and(|v| v.cells.len() >= 3),
+        "the union keeps one cell per authored part"
+    );
+    let contacts = HullContacts::new(&def.hull);
+    // The open channel between the sides is outside the block: nothing to hit there.
+    assert!(
+        contacts.query([0., 0.5, -30.], [0., 0.5, 30.]).is_empty(),
+        "the authored notch must stay hollow"
+    );
+    assert!(!contacts.query([-8., 0.5, 2.], [-2., 0.5, 2.]).is_empty());
+    let actor = Combatant::new("cat", &def);
+    let geometry = ContactGeometry::new(&def).unwrap();
+    let hits = ship_contacts(
+        &Shell::default(),
+        [-8., 0.5, 2.],
+        [-2., 0.5, 2.],
+        &actor,
+        &def,
+        &geometry,
+    );
+    assert_eq!(hits.len(), 2, "entry and exit of the port side only");
+    assert!(hits.iter().all(|h| h.kind == ContactKind::Armor));
+    // The group carries the belt; the inner face of the notch keeps the skin default.
+    assert_eq!(contact_armor(&def, &hits[0]).thickness_mm, 50.);
+    assert_eq!(contact_armor(&def, &hits[1]).thickness_mm, 10.);
 }

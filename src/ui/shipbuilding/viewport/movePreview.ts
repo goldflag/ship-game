@@ -141,6 +141,7 @@ export function buildMovePreview(view: MovePreviewView, ids: string[], twins: st
         primitive.shaping,
         primitive.balcony,
         primitive.mesh,
+        primitive.solid,
       );
       const fill = new THREE.Mesh(
         geometry,

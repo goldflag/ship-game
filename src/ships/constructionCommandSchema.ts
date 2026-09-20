@@ -18,6 +18,9 @@ import type {
   ConstructionHullStation,
   ConstructionLoad,
   ConstructionPrimitive,
+  ConstructionSolid,
+  ConstructionSolidFace,
+  ConstructionSolidPart,
   ConstructionSurfaceAssignment,
 } from './blueprint';
 import type { ConstructionBatch, ConstructionCommand } from './constructionCommands';
@@ -111,6 +114,17 @@ const mesh = object<ConstructionFreeformMesh>('FreeformMesh', {
   faces: list(meshFace),
   rings: list(list(index())),
 });
+const solidFace = object<ConstructionSolidFace>(undefined, {
+  corners: list(index(), 'Indices into the solid vertex pool, counter-clockwise seen from outside the part.'),
+  group: optional(text('Surface group for armor and paint; omitted faces stay on their canonical side.')),
+});
+const solidPart = object<ConstructionSolidPart>(undefined, { id: id(), faces: list(solidFace, '4–128 polygons of one closed convex part.') });
+const solid = object<ConstructionSolid>('CompoundSolid', {
+  version: { type: 'number', enum: [1] },
+  label: text(),
+  vertices: list(vec3('Normalized local corner shared by every part.')),
+  parts: list(solidPart, '1–256 interior-disjoint convex parts, unioned in order.'),
+});
 const balconyPoint = object<ConstructionBalconyPoint>(undefined, {
   id: id(),
   x: number(),
@@ -130,6 +144,7 @@ export const PRIMITIVE = object<ConstructionPrimitive>(
     ),
     vertices: optional(list(vec3('Normalized local corner.'), 'Eight corners of a `vertex` block: bow (-X,-Y) (+X,-Y) (+X,+Y) (-X,+Y), then stern.')),
     mesh: optional(mesh),
+    solid: optional(solid),
     shaping: optional(
       object<ConstructionFreeformShape>(undefined, {
         version: { type: 'number', enum: [1] },

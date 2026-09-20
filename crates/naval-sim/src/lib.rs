@@ -21,6 +21,7 @@ mod construction_propulsion;
 mod construction_services;
 #[path = "../../../assets/parts/construction/hull_shapes.rs"]
 pub mod construction_shapes;
+mod construction_solid;
 mod construction_vertex;
 pub mod definition;
 pub mod fleet_evasion;

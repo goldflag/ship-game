@@ -49,7 +49,7 @@ export function createViewStage(source: ConstructionSource, result: Construction
 
   const primitiveMesh = (id: string, material: THREE.Material) => {
     const primitive = construction.primitives.find(p => p.id === id)!;
-    const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh), material);
+    const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh, primitive.solid), material);
     mesh.position.set(...primitive.position); mesh.rotation.copy(primitiveRotation(primitive)); mesh.userData.sourceId = id;
     return mesh;
   };
