@@ -146,6 +146,16 @@ parts compiles in 0.5–0.8 ms, a maximal 256-part block in 3.2 ms. Coplanar pat
 surface group are merged below 64 patches, which is why the 16- and 64-part slabs come out as
 six faces and the 256-part one keeps its 516 part-by-part patches.
 
+`bun run ship:mesh <ship> <file>` imports a closed OBJ, STL, PLY or GLB triangle mesh into this
+form: it welds near-coincident corners, refuses an open, inconsistently wound or self-intersecting
+surface by name, reverses an inside-out one, and decomposes the result with a BSP over the mesh's
+own face planes. That decomposition is exact — the parts tile the solid — rather than an
+approximate convex hull fit, because the compiler runs identically in the browser, the worker and
+the server. OBJ `usemtl`/`g` names and GLB material names become surface groups. The command
+proposes a revision-guarded batch and never saves; `ship:apply` commits it. Its real budget is
+`--max-planes` (48 by default): the BSP is exponential in the number of distinct face planes, so
+curved surfaces must be decimated before import.
+
 A compound solid replaces `vertices`, `mesh` and `shaping` on the same primitive; carrying two
 shape records is an error. The editor draws the authored parts as a display-only draft envelope;
 the shipped surface always comes from the native compile.

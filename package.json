@@ -71,6 +71,7 @@
     "ship:ballast": "bun scripts/construction/cli.ts ballast",
     "ship:armor": "bun scripts/construction/cli.ts armor",
     "ship:account": "bun scripts/construction/cli.ts account",
+    "ship:mesh": "bun scripts/construction/cli.ts mesh",
     "ship:view": "bun scripts/construction/cli.ts view",
     "ship:reference": "bun scripts/construction/cli.ts reference",
     "ship:slice": "bun scripts/construction/cli.ts slice",

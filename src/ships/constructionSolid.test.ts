@@ -29,7 +29,7 @@ test('a compound solid survives the source decoder, a batch and a copy unchanged
   const piece = lBlock(), before = structuredClone(piece);
   const changed = applyConstructionBatch(source, { version: 1, expectedRevision: source.revision, label: 'Add solid', commands: [{ op: 'primitive', value: piece }] });
   expect(decodeConstructionSource(JSON.parse(JSON.stringify(changed))).construction.primitives.at(-1)).toEqual(before);
-  const [copy] = copyConstructionSelection(changed, new Set([piece.id]), [0, 0, 5]);
+  const [copy] = copyConstructionSelection(changed, new Set([piece.id]), { offset: [0, 0, 5] });
   expect(changed.construction.primitives.find(p => p.id === copy)!.solid).toEqual(before.solid!);
 });
 
