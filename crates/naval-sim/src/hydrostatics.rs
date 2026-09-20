@@ -4,6 +4,8 @@ use crate::{
     hull::hull_section,
     hydro_table::HydrostaticTable,
 };
+mod displacement;
+use displacement::CellDisplacement;
 #[derive(Clone, Debug)]
 struct Slice {
     z: f64,
@@ -16,6 +18,7 @@ struct PolyCell {
     density: f64,
     full: crate::construction_geometry::Moments,
     vertices: Vec<Vec3>,
+    displacement: Option<CellDisplacement>,
 }
 /// Immutable precomputed geometry belongs to compiled content, shared by all matches.
 #[derive(Clone, Debug)]
@@ -72,6 +75,10 @@ impl HullHydrostatics {
                                 .flat_map(|f| f.vertices.iter().copied())
                                 .collect();
                             PolyCell {
+                                displacement: h
+                                    .volume
+                                    .as_ref()
+                                    .and_then(|_| CellDisplacement::new(&shape, full.volume)),
                                 shape,
                                 full,
                                 vertices,
@@ -84,15 +91,19 @@ impl HullHydrostatics {
                 h.volume.as_ref().map(|v| {
                     v.cells
                         .iter()
-                        .map(|c| PolyCell {
-                            shape: c.clone(),
-                            density: 1.,
-                            full: crate::construction_geometry::moments(c),
-                            vertices: c
-                                .faces
-                                .iter()
-                                .flat_map(|f| f.vertices.iter().copied())
-                                .collect(),
+                        .map(|c| {
+                            let full = crate::construction_geometry::moments(c);
+                            PolyCell {
+                                shape: c.clone(),
+                                density: 1.,
+                                full,
+                                displacement: CellDisplacement::new(c, full.volume),
+                                vertices: c
+                                    .faces
+                                    .iter()
+                                    .flat_map(|f| f.vertices.iter().copied())
+                                    .collect(),
+                            }
                         })
                         .collect()
                 })
@@ -270,20 +281,67 @@ impl HullHydrostatics {
                 afloat: true,
             };
         }
+        if self.constructed && volume > 0. && volume < self.full.volume {
+            return self.flotation_near(volume, roll, pitch, 0.);
+        }
         self.mesh_flotation(volume, roll, pitch)
     }
     /// `flotation` for a hull already floating near immersion `near`, as the
     /// stability solve knows from half a second earlier. Published tables and
     /// authored hulls answer exactly as `flotation` does. A constructed hull has
-    /// only its mesh, where every trial immersion clips each waterline cell, so
-    /// it replaces the 27 bisections from the hull's bounding distance with a
-    /// bracketed secant from `near`: three or four trials, to within 0.01 mm.
+    /// precomputed tetrahedral displacement polynomials. A bracketed secant
+    /// evaluates volume alone at each trial, then clips once for the final
+    /// buoyancy centre. Coincident vertex heights and extreme attitudes use the
+    /// same positive-volume formula, with no sampled-table domain to exceed.
     pub fn flotation_near(&self, volume: f64, roll: f64, pitch: f64, near: f64) -> Flotation {
         if self.table.is_some() || !self.constructed || volume >= self.full.volume {
             return self.flotation(volume, roll, pitch);
         }
-        let Some(extents) = self.cell_extents(roll, pitch) else {
-            return self.flotation(volume, roll, pitch);
+        let Some(cells) = &self.cells else {
+            return self.mesh_flotation(volume, roll, pitch);
+        };
+        let normal = [
+            roll.sin() * pitch.cos(),
+            roll.cos() * pitch.cos(),
+            -pitch.sin(),
+        ];
+        let curves: Vec<_> = cells
+            .iter()
+            .map(|cell| cell.displacement.as_ref().map(|d| d.at_normal(normal)))
+            .collect();
+        let extents: Vec<_> = cells
+            .iter()
+            .zip(&curves)
+            .map(|(cell, curve)| match curve {
+                Some(curve) => curve.bounds,
+                None => {
+                    cell.vertices
+                        .iter()
+                        .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), &p| {
+                            let height = crate::geometry::dot(normal, p);
+                            (lo.min(height), hi.max(height))
+                        })
+                }
+            })
+            .collect();
+        let displaced = |y: f64| {
+            let mut volume = 0.;
+            for ((cell, curve), &(lo, hi)) in cells.iter().zip(&curves).zip(&extents) {
+                if lo > -y {
+                    continue;
+                }
+                volume += if hi <= -y {
+                    cell.full.volume
+                } else if let Some(curve) = curve {
+                    curve.volume_at(-y)
+                } else {
+                    // A malformed/non-convex source cell cannot use the cache;
+                    // retain the original clipping solver for that cell.
+                    crate::construction_geometry::clipped_moments(&cell.shape, normal, -y)
+                        .map_or(0., |part| part.volume * cell.density)
+                };
+            }
+            volume
         };
         let (lowest, highest) = extents
             .iter()
@@ -297,7 +355,7 @@ impl HullHydrostatics {
         // Negated on purpose: a NaN bound must also take the early return.
         #[allow(clippy::neg_cmp_op_on_partial_ord)]
         if !(deep < shallow) || volume <= 0.0 {
-            return self.flotation(volume, roll, pitch);
+            return self.mesh_flotation(volume, roll, pitch);
         }
         let area = if self.waterplane.is_finite() && self.waterplane > 1.0 {
             self.waterplane
@@ -315,16 +373,15 @@ impl HullHydrostatics {
         let mut trial = 0;
         // The answer is the last immersion actually sampled, so its displaced
         // volume and centre come from the trial itself.
-        let sample = loop {
-            let s = self.mesh_sample_within(Some(&extents), y, roll, pitch);
-            let g = s.volume - volume;
+        loop {
+            let g = displaced(y) - volume;
             if g > 0.0 {
                 deep = y;
             } else {
                 shallow = y;
             }
             if g == 0.0 || shallow - deep < TOLERANCE_M || trial >= 96 {
-                break s;
+                break;
             }
             // Displacement falls by the waterplane area per metre of rise.
             let secant = match previous {
@@ -340,11 +397,12 @@ impl HullHydrostatics {
                 (deep + shallow) / 2.0
             };
             if (next - y).abs() < TOLERANCE_M {
-                break s;
+                break;
             }
             y = next;
             trial += 1;
-        };
+        }
+        let sample = self.mesh_sample_within(Some(&extents), y, roll, pitch);
         Flotation {
             volume: sample.volume,
             center: sample.center,

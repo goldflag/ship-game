@@ -154,7 +154,7 @@ fn a_warm_started_flotation_matches_the_bisected_one() {
                 continue;
             }
             for (roll, pitch) in [ATTITUDES[0], ATTITUDES[1], ATTITUDES[2], ATTITUDES[5]] {
-                let bisected = hydro.flotation(volume, roll, pitch);
+                let bisected = hydro.mesh_flotation(volume, roll, pitch);
                 for hint in [
                     bisected.y,
                     bisected.y + 2.5,
