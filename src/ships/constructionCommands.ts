@@ -1,13 +1,15 @@
 import { editableMesh } from './constructionMesh';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import { editableCustomHull, customHullPrimitive, setSectionCount } from './customHullModel';
-import { patchPrimitive, patchEquipment, type PrimitivePatch, type EquipmentPatch } from './constructionPatches';
+import { patchPrimitive, patchEquipment, patchFitting, type PrimitivePatch, type EquipmentPatch, type FittingPatch } from './constructionPatches';
+import { customFittingInstances } from './constructionCustomFittings';
 import { copyConstructionSelection, mirroredFace } from './constructionEditor';
 import { setBarbetteHeight } from './constructionArmament';
 import { ConstructionCommandError, suggestion, validateBatchShape, validateCommandShape } from './constructionCommandSchema';
 import type {
   ConstructionBoundary,
   ConstructionEquipment,
+  ConstructionFittingDefinition,
   ConstructionHullStation,
   ConstructionLoad,
   ConstructionPrimitive,
@@ -50,6 +52,8 @@ export type ConstructionCommand =
   | { op: 'hull-station'; id: string; stationId: string; changes: Partial<Pick<ConstructionHullStation, 't' | 'points'>> }
   | { op: 'equipment'; value: ConstructionEquipment }
   | { op: 'equipment-patch'; id: string; changes: EquipmentPatch }
+  | { op: 'fitting'; value: ConstructionFittingDefinition }
+  | { op: 'fitting-patch'; id: string; changes: FittingPatch }
   | { op: 'turret-rise'; id: string; heightM: number }
   | { op: 'copy'; copies: { from: string; to: string }[]; mirror?: boolean; offset?: Vec3 }
   | { op: 'boundary'; value: ConstructionBoundary }
@@ -84,7 +88,7 @@ type Fail = (detail: string, path?: string, value?: unknown) => never;
 /** One shape-checked command against the draft. `fail` reports a command the draft cannot honour. */
 function applyCommand(draft: ConstructionSource, command: ConstructionCommand, fail: Fail): void {
   const data = draft.construction;
-  const allIds = () => [...data.primitives, ...data.equipment, ...data.boundaries, ...data.loads].map((p) => p.id);
+  const allIds = () => [...data.primitives, ...data.equipment, ...data.boundaries, ...data.loads, ...(data.fittings ?? [])].map((p) => p.id);
   const unknown = (what: string, id: string, path: string, known: Iterable<string>) =>
     fail(`unknown ${what} ${JSON.stringify(id)}${suggestion(id, known)}`, path, id);
   const requireIds = (ids: string[], path: (i: number) => string) => {
@@ -179,6 +183,19 @@ function applyCommand(draft: ConstructionSource, command: ConstructionCommand, f
     case 'equipment-patch':
       equipment(patchEquipment(fitting(command.id, 'id'), command.changes));
       break;
+    case 'fitting':
+      upsert((data.fittings ??= []), command.value);
+      break;
+    case 'fitting-patch': {
+      const definitions = data.fittings ?? [];
+      const def =
+        definitions.find((p) => p.id === command.id) ??
+        (allIds().includes(command.id)
+          ? fail(`${JSON.stringify(command.id)} is not a custom fitting definition`, 'id', command.id)
+          : unknown('custom fitting ID', command.id, 'id', definitions.map((p) => p.id)));
+      upsert((data.fittings ??= []), patchFitting(def, command.changes));
+      break;
+    }
     case 'turret-rise': {
       // Same helper as the editor's Turret rise: position Y follows the rise so the deck attachment stays put.
       const part = structuredClone(fitting(command.id, 'id'));
@@ -195,8 +212,8 @@ function applyCommand(draft: ConstructionSource, command: ConstructionCommand, f
       });
       if (ids.size !== command.copies.length || new Set(destinations.values()).size !== ids.size)
         fail('copy destination IDs must be new and unique; source IDs must not repeat', 'copies');
-      const wall = data.boundaries.find((p) => ids.has(p.id));
-      if (wall) fail(`${JSON.stringify(wall.id)} is a boundary; copy accepts hull pieces, equipment and loads`, 'copies', wall.id);
+      const wall = data.boundaries.find((p) => ids.has(p.id)) ?? data.fittings?.find((p) => ids.has(p.id));
+      if (wall) fail(`${JSON.stringify(wall.id)} is a ${'axis' in wall ? 'boundary' : 'custom fitting definition'}; copy accepts hull pieces, equipment and loads`, 'copies', wall.id);
       if (command.mirror && command.offset) fail('choose mirror or offset, then move the copies separately', 'offset', command.offset);
       copyConstructionSelection(draft, ids, { ids: destinations, mirror: command.mirror, offset: command.offset });
       break;
@@ -207,9 +224,25 @@ function applyCommand(draft: ConstructionSource, command: ConstructionCommand, f
     case 'load':
       upsert(data.loads, command.value);
       break;
-    case 'remove':
-      removeConstructionSelection(draft, requireIds(command.ids, (i) => `ids[${i}]`));
+    case 'remove': {
+      const ids = requireIds(command.ids, (i) => `ids[${i}]`);
+      command.ids.forEach((id, i) => {
+        if (!data.fittings?.some((def) => def.id === id)) return;
+        const users = customFittingInstances(data, id).filter((item) => !ids.has(item.id)).map((item) => item.id);
+        if (users.length)
+          fail(
+            `custom fitting ${JSON.stringify(id)} is still fitted by ${users.slice(0, 8).join(', ')}${users.length > 8 ? ` and ${users.length - 8} more` : ''}; remove those instances in the same command or first`,
+            `ids[${i}]`,
+            id,
+          );
+      });
+      removeConstructionSelection(draft, ids);
+      if (data.fittings) {
+        data.fittings = data.fittings.filter((def) => !ids.has(def.id));
+        if (!data.fittings.length) delete data.fittings;
+      }
       break;
+    }
     case 'move': {
       const ids = requireIds(command.ids, (i) => `ids[${i}]`);
       moveConstructionSelection(draft, ids, command.delta);
@@ -219,8 +252,8 @@ function applyCommand(draft: ConstructionSource, command: ConstructionCommand, f
     case 'rotate': {
       const ids = requireIds(command.ids, (i) => `ids[${i}]`);
       command.ids.forEach((id, i) => {
-        if (data.boundaries.some((w) => w.id === id) || data.loads.some((l) => l.id === id))
-          fail(`${JSON.stringify(id)} is a boundary or load; rotate accepts hull pieces and equipment only`, `ids[${i}]`, id);
+        if (data.boundaries.some((w) => w.id === id) || data.loads.some((l) => l.id === id) || data.fittings?.some((def) => def.id === id))
+          fail(`${JSON.stringify(id)} is a boundary, load or custom fitting definition; rotate accepts hull pieces and equipment only`, `ids[${i}]`, id);
       });
       rotateConstructionSelection(draft, ids, command.degrees);
       break;
@@ -259,10 +292,11 @@ function applyCommand(draft: ConstructionSource, command: ConstructionCommand, f
 function settled(draft: ConstructionSource): ConstructionSource {
   const decoded = decodeConstructionSource(draft),
     data = decoded.construction;
-  const ids = [...data.primitives, ...data.equipment, ...data.boundaries, ...data.loads].map((p) => p.id);
-  const repeated = ids.find((id, i) => ids.indexOf(id) !== i);
+  const ids = [...data.primitives, ...data.equipment, ...data.boundaries, ...data.loads, ...(data.fittings ?? [])].map((p) => p.id);
+  const seen = new Set<string>();
+  const repeated = ids.find((id) => seen.size === seen.add(id).size);
   if (repeated !== undefined)
-    throw new Error(`Source IDs must be unique across pieces, equipment, boundaries and loads; ${JSON.stringify(repeated)} repeats.`);
+    throw new Error(`Source IDs must be unique across pieces, equipment, boundaries, loads and custom fittings; ${JSON.stringify(repeated)} repeats.`);
   return decoded;
 }
 const reason = (cause: unknown) => (cause instanceof Error ? cause.message : String(cause));
@@ -344,6 +378,8 @@ export function constructionDiffCommands(before: ConstructionSource, after: Cons
     for (const row of was) if (!kept.has(row.id)) removed.push(row.id);
     for (const row of is) if (previous.get(row.id) !== JSON.stringify(row)) commands.push(rows(structuredClone(row)));
   };
+  // Definitions precede the equipment that may reference them; `remove` follows every upsert.
+  table((value) => ({ op: 'fitting', value }), b.fittings ?? [], a.fittings ?? []);
   table((value) => ({ op: 'primitive', value }), b.primitives, a.primitives);
   table((value) => ({ op: 'equipment', value }), b.equipment, a.equipment);
   table((value) => ({ op: 'boundary', value }), b.boundaries, a.boundaries);

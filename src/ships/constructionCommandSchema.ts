@@ -6,6 +6,9 @@ import type {
   ConstructionBoundary,
   ConstructionCustomHull,
   ConstructionEquipment,
+  ConstructionFittingDefinition,
+  ConstructionFittingSolid,
+  ConstructionFittingTube,
   ConstructionFreeformFace,
   ConstructionFreeformMesh,
   ConstructionFreeformShape,
@@ -198,6 +201,48 @@ export const EQUIPMENT = object<ConstructionEquipment>(
   },
   'Fitted catalog part.',
 );
+export const FITTING_SOLID_KINDS = PRIMITIVE_KINDS.filter((kind) => kind !== 'custom-hull' && kind !== 'balcony' && kind !== 'ballast');
+const fittingSolid = object<ConstructionFittingSolid>(
+  'FittingSolid',
+  {
+    id: id('Unique among the solids and tubes of this fitting.'),
+    kind: choice(FITTING_SOLID_KINDS, 'Hull-piece shape; hull-only kinds are excluded.'),
+    size: vec3('Envelope [x, y, z] in metres, centered at position; at least 0.01 m.'),
+    position: vec3('Envelope center in fitting-local metres; the datum (local origin, y = 0) seats on the deck.'),
+    rotationDeg: PRIMITIVE.fields.rotationDeg,
+    tilt: PRIMITIVE.fields.tilt,
+    vertices: PRIMITIVE.fields.vertices,
+    mesh: PRIMITIVE.fields.mesh,
+    shaping: PRIMITIVE.fields.shaping,
+    paint: optional(text('Named coating; omission follows the instance paint, then the ship paint.')),
+  },
+  'One shape of a custom fitting: a hull-piece shape without armor, surfaces or structure.',
+);
+const fittingTube = object<ConstructionFittingTube>(
+  'FittingTube',
+  {
+    id: id('Unique among the solids and tubes of this fitting.'),
+    points: list(vec3('Fitting-local metres.'), '2–64 connected points; segments of at least 1 cm, 100 m in total.'),
+    diameterM: number('0.01–2 m.'),
+    paint: optional(text()),
+  },
+  'Round tube swept along a polyline: pipes, davit arms, stays, light masts.',
+);
+export const FITTING = object<ConstructionFittingDefinition>(
+  'Fitting',
+  {
+    id: id('Definition ID; instances are equipment with `partId: "design:<id>"`.'),
+    name: { type: 'string', minLength: 1, maxLength: 80 },
+    version: { type: 'number', enum: [1] },
+    attach: choice(['deck'], 'Seats on a deck at the local origin. `wall` and `internal` are reserved.'),
+    solids: list(fittingSolid, 'At most 48.'),
+    tubes: list(fittingTube, 'At most 16.'),
+    material: optional(choice(['steel', 'aluminium', 'brass', 'wood'], 'Density basis; omission is steel.')),
+    fill: optional(number('Solid fraction of the shape volume, 0.01–1; omission is 1.')),
+    massKg: optional(number('Explicit mass; overrides volume × density × fill.')),
+  },
+  'Design-local fitting definition: non-structural shapes that add mass only. Shells, armor, modules and flooding ignore it.',
+);
 export const BOUNDARY = object<ConstructionBoundary>(
   'Boundary',
   { id: id(), axis: choice(['x', 'y', 'z']), offset: number('Ship metres along the axis.'), thicknessMm: number() },
@@ -237,13 +282,16 @@ export function patchSpec(record: ObjectSpec, name?: string, omit: readonly stri
 export const UNPATCHABLE = {
   primitive: { id: 'IDs are stable; copy then remove to rename.' },
   equipment: { id: 'IDs are stable; copy then remove to rename.' },
+  fitting: { id: 'Instances reference the ID; define a new fitting and re-point the instances to rename.' },
 } as const;
 export const PRIMITIVE_PATCH = patchSpec(PRIMITIVE, 'PrimitivePatch', Object.keys(UNPATCHABLE.primitive));
 export const EQUIPMENT_PATCH = patchSpec(EQUIPMENT, 'EquipmentPatch', Object.keys(UNPATCHABLE.equipment));
+export const FITTING_PATCH = patchSpec(FITTING, 'FittingPatch', Object.keys(UNPATCHABLE.fitting));
 
 type Op = ConstructionCommand['op'];
 type CommandFields<K extends Op> = Record<Exclude<keyof Required<Extract<ConstructionCommand, { op: K }>>, 'op'>, Field>;
 const ids = list(id(), 'IDs of hull pieces, equipment, boundaries or loads.');
+const removable = list(id(), 'IDs of hull pieces, equipment, boundaries, loads or custom fitting definitions.');
 const mirror = optional(bool('Also target the opposite face or panel of the same primitive.'));
 export const COMMANDS = {
   name: { doc: 'Rename the design.', fields: { name: text() } },
@@ -263,6 +311,11 @@ export const COMMANDS = {
   },
   equipment: { doc: 'Add or replace a whole fitting by ID. A linked wall partner follows.', fields: { value: EQUIPMENT } },
   'equipment-patch': { doc: 'Merge fields into an existing fitting. A linked wall partner follows.', fields: { id: id(), changes: EQUIPMENT_PATCH } },
+  fitting: {
+    doc: 'Add or replace a whole custom fitting definition by ID. Fit it with `equipment` rows whose partId is `design:<id>`; every instance follows a change.',
+    fields: { value: FITTING },
+  },
+  'fitting-patch': { doc: 'Merge fields into an existing custom fitting definition; `solids` and `tubes` replace whole.', fields: { id: id(), changes: FITTING_PATCH } },
   'turret-rise': {
     doc: 'Set a gun’s rise above its deck attachment; position Y moves by the change so the attachment stays put, as in the editor.',
     fields: { id: id(), heightM: { type: 'number', minimum: 0, maximum: 30 } },
@@ -277,7 +330,10 @@ export const COMMANDS = {
   },
   boundary: { doc: 'Add or replace a boundary by ID.', fields: { value: BOUNDARY } },
   load: { doc: 'Add or replace a load by ID.', fields: { value: LOAD } },
-  remove: { doc: 'Remove records. The last hull piece is kept; a linked wall partner goes too.', fields: { ids } },
+  remove: {
+    doc: 'Remove records. The last hull piece is kept; a linked wall partner goes too. A custom fitting definition is refused while instances outside this command still use it.',
+    fields: { ids: removable },
+  },
   move: { doc: 'Translate pieces, equipment, loads and boundary offsets.', fields: { ids, delta: vec3('[x, y, z] metres: +X starboard, +Y up, −Z bow.') } },
   rotate: { doc: 'Yaw hull pieces and equipment about their own datums.', fields: { ids, degrees: number('Added to each `rotationDeg` and `bearingDeg`, then normalized to 0–360; wall fittings are skipped.') } },
   surface: { doc: 'Assign a whole face record.', fields: { value: SURFACE } },
@@ -518,7 +574,7 @@ export const CONSTRUCTION_CONVENTIONS = {
   units: 'Metres, kilograms, millimetres for plate thickness (`…Mm`), degrees for angles.',
   axes: '+X starboard, +Y up, −Z bow (`coordinates: "meters-y-up-bow-negative-z"`). Compilation never recenters a design.',
   bearings: 'Equipment `bearingDeg` is clockwise degrees seen from above: 0 faces the bow, 90 starboard. A hull piece `rotationDeg` is yaw about +Y, counter-clockwise seen from above.',
-  ids: 'IDs are stable and unique across hull pieces, equipment, boundaries and loads. Commands never rename; keep existing IDs.',
+  ids: 'IDs are stable and unique across hull pieces, equipment, boundaries, loads and custom fitting definitions. Commands never rename; keep existing IDs.',
   equipmentPosition: 'Equipment `position` is the retained catalog part datum, not necessarily its bounding-box center; `ship:catalog` lists size, bounds center and sockets.',
   primitivePosition: 'A hull piece `position` is the center of its `size` envelope. A custom hull `size` is [beam, depth, length].',
   patches: 'In `primitive-patch` and `equipment-patch`, objects merge, arrays replace and null removes an optional field.',

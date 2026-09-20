@@ -22,7 +22,7 @@ const SEA_DENSITY: f64 = 1025.;
 // Fitted equipment, service loads, ammunition and authored steel remain additive.
 const INTERNAL_ALLOWANCE_KG_PER_M3: f64 = 150.;
 
-fn valid_id(s: &str) -> bool {
+pub(crate) fn valid_id(s: &str) -> bool {
     !s.is_empty()
         && s.len() <= 64
         && s.bytes()
@@ -159,6 +159,8 @@ pub fn suggest(
         source: source.clone(),
         diagnostics: vec![error(code, message, id)],
     };
+    let catalog =
+        &*crate::construction_custom_fittings::effective_catalog(&source.construction, catalog);
     if ids.len() > 16 {
         return fail(
             "suggestion-limit",
@@ -560,6 +562,12 @@ fn validate(
         )];
     }
     let mut errors = vec![];
+    // Design-local fittings have their own instance budget.
+    let custom_instances = c
+        .equipment
+        .iter()
+        .filter(|e| crate::construction_custom_fittings::is_custom(&e.part_id))
+        .count();
     for (count, limit, noun) in [
         (c.primitives.len(), MAX_PRIMITIVES, "hull primitives"),
         (
@@ -567,7 +575,21 @@ fn validate(
             MAX_SURFACE_ASSIGNMENTS,
             "face assignments",
         ),
-        (c.equipment.len(), MAX_EQUIPMENT, "equipment instances"),
+        (
+            c.equipment.len() - custom_instances,
+            MAX_EQUIPMENT,
+            "equipment instances",
+        ),
+        (
+            custom_instances,
+            crate::construction_custom_fittings::MAX_INSTANCES,
+            "custom fitting instances",
+        ),
+        (
+            c.fittings.as_ref().map_or(0, Vec::len),
+            crate::construction_custom_fittings::MAX_DEFINITIONS,
+            "custom fitting definitions",
+        ),
         (c.boundaries.len(), MAX_BOUNDARIES, "boundaries"),
         (c.loads.len(), MAX_EQUIPMENT, "loads"),
     ] {
@@ -707,17 +729,7 @@ fn validate(
         if errors.len() >= MAX_ERRORS {
             break;
         }
-        if (p.kind != "vertex" && (p.vertices.is_some() || p.shaping.is_some() || p.mesh.is_some()))
-            || (p.kind != "custom-hull" && p.custom_hull.is_some())
-            || (p.kind != "balcony" && p.balcony.is_some())
-            || !size(p.size)
-            || !finite(p.position)
-            || !crate::construction_orientation::valid(p)
-            || (p.kind != "vertex"
-                && p.kind != "custom-hull"
-                && p.kind != "balcony"
-                && !crate::construction_shapes::KINDS.contains(&p.kind.as_str()))
-        {
+        if !primitive_valid(p) {
             errors.push(error(
                 "primitive",
                 "Invalid primitive dimensions, shape or rotation",
@@ -805,6 +817,20 @@ fn validate(
     }
     errors
 }
+/// Dimensions, placement, rotation and shape records of one source piece; topology is checked
+/// when its cells are built.
+pub(crate) fn primitive_valid(p: &ConstructionPrimitive) -> bool {
+    !((p.kind != "vertex" && (p.vertices.is_some() || p.shaping.is_some() || p.mesh.is_some()))
+        || (p.kind != "custom-hull" && p.custom_hull.is_some())
+        || (p.kind != "balcony" && p.balcony.is_some())
+        || !size(p.size)
+        || !finite(p.position)
+        || !crate::construction_orientation::valid(p)
+        || (p.kind != "vertex"
+            && p.kind != "custom-hull"
+            && p.kind != "balcony"
+            && !crate::construction_shapes::KINDS.contains(&p.kind.as_str())))
+}
 /// Original solid cells before union splitting. Experimental combat proxies may
 /// use their union for collision, provided buoyancy is supplied independently.
 pub fn primitive_cells(p: &ConstructionPrimitive) -> Result<Vec<cg::Cell>, String> {
@@ -874,6 +900,36 @@ fn build(
 ) -> Result<(), ConstructionDiagnostic> {
     fail_all(out, validate(source, catalog))?;
     let c = &source.construction;
+    // Design-local fittings join the catalog for every lookup below; a design without them
+    // keeps the supplied catalog untouched.
+    let custom = crate::construction_custom_fittings::resolve(c, MAX_ERRORS);
+    let extended;
+    let catalog = match custom {
+        Ok(parts)
+            if parts.is_empty()
+                && !catalog
+                    .equipment
+                    .iter()
+                    .any(|p| crate::construction_custom_fittings::is_custom(&p.id)) =>
+        {
+            catalog
+        }
+        Ok(parts) => {
+            let mut all = catalog.clone();
+            all.equipment
+                .retain(|p| !crate::construction_custom_fittings::is_custom(&p.id));
+            all.equipment.extend(parts);
+            extended = all;
+            &extended
+        }
+        Err(errors) => {
+            skipped(
+                out,
+                "Hull, fittings and loading were not checked: fix the custom fitting definitions first".into(),
+            );
+            return fail_all(out, errors);
+        }
+    };
     let fail = |s: String| error("geometry", s, None);
     let mut primitives: Vec<_> = c.primitives.iter().collect();
     primitives.sort_by(|a, b| a.id.cmp(&b.id));
@@ -2121,8 +2177,14 @@ fn equipment(
     cache: &mut GeometryCache,
     faults: &mut Vec<ConstructionDiagnostic>,
 ) -> Result<(), ConstructionDiagnostic> {
-    if catalog.equipment.len() > 256
-        || !unique(catalog.equipment.iter().map(|p| p.id.as_str()))
+    let published = || {
+        catalog
+            .equipment
+            .iter()
+            .filter(|p| !crate::construction_custom_fittings::is_custom(&p.id))
+    };
+    if published().count() > 256
+        || !unique(published().map(|p| p.id.as_str()))
         || !unique(catalog.weapons.parts.iter().map(|p| p.id.as_str()))
     {
         return Err(error(

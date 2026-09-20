@@ -6,6 +6,7 @@ mod construction_access;
 mod construction_balcony;
 mod construction_bilge_keels;
 mod construction_cache;
+pub mod construction_custom_fittings;
 mod construction_custom_hull;
 mod construction_diagnostics;
 pub mod construction_geometry;

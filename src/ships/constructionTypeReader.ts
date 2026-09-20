@@ -45,6 +45,11 @@ export function readTypes(paths: string[]) {
       const name = (ts.isTypeReferenceNode(node) ? node.typeName : node.expression).getText(),
         args = node.typeArguments ?? [];
       if (name === 'NonNullable') return resolve(args[0]);
+      if (name === 'Exclude') {
+        const literals = resolve(args[0]).literals,
+          dropped = names(args[1]);
+        return literals ? { literals: literals.filter((literal) => !dropped.includes(String(literal))) } : {};
+      }
       if (name === 'Partial') {
         const inner = resolve(args[0]).fields;
         return inner ? { fields: Object.fromEntries(Object.entries(inner).map(([key, field]) => [key, { ...field, optional: true }])) } : {};

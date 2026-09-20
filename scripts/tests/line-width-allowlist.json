@@ -179,7 +179,6 @@
   "src/ui/shipbuilding/pendingHull.test.ts",
   "src/ui/shipbuilding/placement.test.ts",
   "src/ui/shipbuilding/placement.ts",
-  "src/ui/shipbuilding/primitiveGeometry.ts",
   "src/ui/shipbuilding/propeller-playground/source.ts",
   "src/ui/shipbuilding/snapping.ts",
   "src/ui/shipbuilding/useBuilderSource.ts",

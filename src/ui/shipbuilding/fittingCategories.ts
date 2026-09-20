@@ -1,4 +1,5 @@
 import { wallMount } from '../../ships/constructionWallFittings';
+import { isCustomFittingPartId } from '../../ships/constructionCustomFittings';
 import type { ConstructionCatalog, ConstructionEquipmentPart } from '../../ships/blueprint';
 
 /** The three fitting tabs, their shelves and the nation filter. The published catalog carries none of these, so all
@@ -6,7 +7,7 @@ import type { ConstructionCatalog, ConstructionEquipmentPart } from '../../ships
  * from the id prefix every authored part uses. */
 export type FittingGroup = 'machinery' | 'armament' | 'outfit';
 export const FITTING_GROUPS: { id: FittingGroup; name: string }[] = [{ id: 'machinery', name: 'Machinery' }, { id: 'armament', name: 'Armament' }, { id: 'outfit', name: 'Outfit' }];
-export type FittingCategory = 'running-gear' | 'funnels' | 'masts' | 'main-battery' | 'light-aa' | 'torpedoes' | 'fire-control' | 'mooring' | 'access' | 'fixtures' | 'boats-aviation' | 'doors-windows';
+export type FittingCategory = 'running-gear' | 'funnels' | 'masts' | 'main-battery' | 'light-aa' | 'torpedoes' | 'fire-control' | 'mooring' | 'access' | 'fixtures' | 'boats-aviation' | 'doors-windows' | 'custom';
 export const FITTING_CATEGORIES: { id: FittingCategory; group: FittingGroup; name: string; note: string }[] = [
   { id: 'running-gear', group: 'machinery', name: 'Running gear', note: 'screws and rudders' },
   { id: 'funnels', group: 'machinery', name: 'Funnels', note: 'uptakes and funnel caps' },
@@ -20,6 +21,7 @@ export const FITTING_CATEGORIES: { id: FittingCategory; group: FittingGroup; nam
   { id: 'fixtures', group: 'outfit', name: 'Fixtures', note: 'vents, lockers, racks, life-saving gear, ensign staff' },
   { id: 'boats-aviation', group: 'outfit', name: 'Boats & aviation', note: 'boats, davits, catapults' },
   { id: 'doors-windows', group: 'outfit', name: 'Doors & windows', note: 'wall-mounted doors, portholes and windows' },
+  { id: 'custom', group: 'outfit', name: 'Custom', note: 'this design’s own fittings, saved inside the design' },
 ];
 export const fittingGroup = (category: FittingCategory): FittingGroup => FITTING_CATEGORIES.find(entry => entry.id === category)!.group;
 /** Guns at or above this calibre are main battery; below it, light and anti-aircraft. */
@@ -30,6 +32,7 @@ const FIRE_CONTROL_FITTING = /director|rangefinder|searchlight/, BOAT_FITTING = 
   MOORING_FITTING = /bitts|bollard|fairlead|capstan|windlass|anchor|hawse|cable-reel|winch/, ACCESS_FITTING = /ladder|stairs|hatch/;
 
 export function fittingCategory(part: ConstructionEquipmentPart, catalog: ConstructionCatalog): FittingCategory {
+  if (isCustomFittingPartId(part.id)) return 'custom';
   const route = part.path?.kind;
   if (route === 'rope' || route === 'chain') return 'mooring';
   if (route || ACCESS_FITTING.test(part.id)) return 'access';

@@ -6,6 +6,8 @@ import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport, ConstructionSurface, ConstructionSurfaceFinish } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
+import { createConstructionFittingModel } from '../../game/constructionFittingModel';
+import { customFittingDefinitionOfPart } from '../../ships/constructionCustomFittings';
 import { loadShipModel } from '../../game/loadShipModel';
 import { disposeConstructionModel } from '../../game/constructionModel';
 import { createConstructionPropellerSupports } from '../../game/constructionPropellerModel';
@@ -41,6 +43,8 @@ export class EquipmentPreview {
   readonly group = new THREE.Group();
   private painted = new Map<string, { model: THREE.Group; materials: THREE.Material[] }>();
   private templates = new Map<string, Template>();
+  /** Design-local fittings drawn from their definitions; instances and ghosts borrow these buffers. */
+  private custom = new Map<string, THREE.Group>();
   private requests = new Map<string, AbortController>();
   private instances = new Map<string, THREE.Group>();
   private catalog?: ConstructionCatalog;
@@ -123,7 +127,7 @@ export class EquipmentPreview {
 
   ensure(partId: string) {
     const part = this.catalog?.equipment.find(part => part.id === partId), key = this.key(partId);
-    if (!part || part.path || !key || this.templates.has(key) || this.requests.has(key)) return;
+    if (!part || part.path || customFittingDefinitionOfPart(part) || !key || this.templates.has(key) || this.requests.has(key)) return;
     const abort = new AbortController(); this.requests.set(key, abort);
     void loadShipModel(constructionEquipmentModelUrl(part), undefined, part.contentHash, abort.signal).then(asset => {
       if (this.dead || abort.signal.aborted) { disposeConstructionModel(asset.scene); return; }
@@ -168,6 +172,25 @@ export class EquipmentPreview {
 
   clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false, paint?: string, mount?: {item: ConstructionEquipment; surfaces: readonly ConstructionSurface[]}, finish?: ConstructionSurfaceFinish): THREE.Group | undefined {
     const part = this.catalog?.equipment.find(part => part.id === partId);
+    const definition = customFittingDefinitionOfPart(part);
+    if (definition) {
+      // No published GLB: the one fitting builder draws the definition.
+      const cacheKey = `${this.key(partId)}|${ghost ? 'ghost' : invalid ? 'invalid' : `${paint ?? ''}:${finish ?? ''}`}`;
+      let base = this.custom.get(cacheKey);
+      if (!base) {
+        base = createConstructionFittingModel(definition, { ghost, finish });
+        if (!ghost && !invalid) paintConstructionFitting(base, paint, false, finish);
+        if (invalid) base.traverse(node => {
+          if (!(node instanceof THREE.Mesh)) return;
+          const material = node.material as THREE.MeshStandardMaterial;
+          material.color.set('#ffb5a6'); material.emissive.set('#8a2018');
+        });
+        this.custom.set(cacheKey, base);
+      }
+      const clone = base.clone(true);
+      clone.traverse(node => { node.userData.sharedPreviewResources = true; });
+      return clone;
+    }
     if (part?.path) {
       const model = createConstructionPathModel(part, path, ghost, mount);
       if (!ghost && !invalid) paintConstructionFitting(model, paint, false, finish, part.path.kind === 'rope' ? mount?.item.paint : undefined);
@@ -241,6 +264,9 @@ export class EquipmentPreview {
       if (part && !item.wall) instance.scale.fromArray(wallScale(part, item));
       instance.position.set(...item.position); instance.rotation.y = -item.bearingDeg * Math.PI / 180;
     }
+    // Drawings of definitions that changed or left the design.
+    const current = new Set(catalog.equipment.filter(part => customFittingDefinitionOfPart(part)).map(part => this.key(part.id)));
+    for (const [key, model] of this.custom) if (!current.has(key.slice(0, key.indexOf('|')))) { disposeConstructionModel(model); this.custom.delete(key); }
     this.group.updateMatrixWorld(true);
   }
 
@@ -261,6 +287,8 @@ export class EquipmentPreview {
       template.invalidMaterials.forEach(material => material.dispose());
     }
     this.templates.clear();
+    for (const model of this.custom.values()) disposeConstructionModel(model);
+    this.custom.clear();
     for (const painted of this.painted.values()) painted.materials.forEach(material => material.dispose());
     this.painted.clear();
   }

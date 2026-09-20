@@ -27,6 +27,13 @@ impl ConstructionCompiler {
     }
 }
 
+/// The catalog parts the native compiler synthesizes for a source's design-local fittings,
+/// or the faults it would report. The TypeScript resolver is tested against this.
+#[wasm_bindgen]
+pub fn construction_custom_fitting_parts(source_json: &str) -> Result<String, JsValue> {
+    naval_sim::construction_custom_fittings::parts_json(source_json).map_err(error)
+}
+
 /// Display-only shape library generated from the native construction recipes.
 #[wasm_bindgen]
 pub fn construction_shape_library() -> String {

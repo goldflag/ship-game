@@ -23,7 +23,8 @@ import { loadConstructionCatalog, removeRetiredDeckFittings } from './constructi
 
 export const CONSTRUCTION_FACES = ['port', 'starboard', 'bottom', 'top', 'bow', 'stern', 'slope'] as const;
 export type ConstructionFace = ConstructionSurfaceAssignment['face'];
-export const newConstructionId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
+import { newConstructionId } from './constructionIds';
+export { newConstructionId };
 export const surfaceKey = (primitiveId: string, face: string, panelId?: string) =>
   panelId === undefined ? `${primitiveId}:${face}` : `${primitiveId}:${encodeURIComponent(panelId)}:${face}`;
 export const surfaceSelectionKey = (surface: Pick<ConstructionSurface, 'primitiveId' | 'face' | 'panelId'>) =>
@@ -89,7 +90,8 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   if (data.version !== 1 && data.version !== 2) throw new Error('Unsupported construction source version');
   string(data.catalogRevision, 'Catalog');
   number(data.defaultThicknessMm, 'Skin thickness');
-  for (const p of rows(data.primitives, 'Primitives')) {
+  /** One hull piece, or one solid of a design-local fitting: the same shape records. */
+  const piece = (p: Record<string, unknown>) => {
     string(p.id, 'Primitive ID');
     vector(p.size, 'Primitive size');
     vector(p.position, 'Primitive position');
@@ -223,6 +225,30 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       if (p.kind !== 'vertex' || !Array.isArray(p.vertices) || p.vertices.length !== 8)
         throw new Error('Vertex hulls require eight local corners');
       p.vertices.forEach((v) => vector(v, 'Hull corner'));
+    }
+  };
+  rows(data.primitives, 'Primitives').forEach(piece);
+  if (data.fittings !== undefined) {
+    for (const def of rows(data.fittings, 'Custom fittings')) {
+      string(def.id, 'Custom fitting ID');
+      string(def.name, 'Custom fitting name');
+      if (def.version !== 1) throw new Error('Unsupported custom fitting version');
+      if (def.attach !== 'deck') throw new Error('Custom fittings attach to a deck');
+      if (def.material !== undefined && !['steel', 'aluminium', 'brass', 'wood'].includes(def.material as string))
+        throw new Error('Unsupported custom fitting material');
+      for (const key of ['fill', 'massKg']) if (def[key] !== undefined) number(def[key], key);
+      for (const solid of rows(def.solids, 'Custom fitting solids')) {
+        piece(solid);
+        if (['custom-hull', 'balcony', 'ballast'].includes(solid.kind as string)) throw new Error('Hull-only shapes cannot be custom fitting solids');
+        if (solid.paint !== undefined) string(solid.paint, 'Solid paint');
+      }
+      for (const tube of rows(def.tubes, 'Custom fitting tubes')) {
+        string(tube.id, 'Tube ID');
+        number(tube.diameterM, 'Tube diameter');
+        if (!Array.isArray(tube.points) || tube.points.length < 2 || tube.points.length > 64) throw new Error('Tubes require 2–64 points');
+        tube.points.forEach((point) => vector(point, 'Tube point'));
+        if (tube.paint !== undefined) string(tube.paint, 'Tube paint');
+      }
     }
   }
   if (data.finish !== undefined && !isConstructionSurfaceFinish(data.finish)) throw new Error('Unsupported surface finish');

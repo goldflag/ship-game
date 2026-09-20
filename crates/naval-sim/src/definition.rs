@@ -1485,6 +1485,64 @@ pub struct ConstructionLoad {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFittingSolid {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "kind")]
+    pub kind: String,
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "rotationDeg")]
+    pub rotation_deg: f64,
+    #[serde(rename = "tilt", default, skip_serializing_if = "Option::is_none")]
+    pub tilt: Option<ConstructionPrimitiveTilt>,
+    #[serde(rename = "vertices", default, skip_serializing_if = "Option::is_none")]
+    pub vertices: Option<Vec<[f64; 3]>>,
+    #[serde(rename = "mesh", default, skip_serializing_if = "Option::is_none")]
+    pub mesh: Option<ConstructionFreeformMesh>,
+    #[serde(rename = "shaping", default, skip_serializing_if = "Option::is_none")]
+    pub shaping: Option<ConstructionFreeformShape>,
+    #[serde(rename = "paint", default, skip_serializing_if = "Option::is_none")]
+    pub paint: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFittingTube {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "points")]
+    pub points: Vec<[f64; 3]>,
+    #[serde(rename = "diameterM")]
+    pub diameter_m: f64,
+    #[serde(rename = "paint", default, skip_serializing_if = "Option::is_none")]
+    pub paint: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFittingDefinition {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "name")]
+    pub name: String,
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "attach")]
+    pub attach: String,
+    #[serde(rename = "solids")]
+    pub solids: Vec<ConstructionFittingSolid>,
+    #[serde(rename = "tubes")]
+    pub tubes: Vec<ConstructionFittingTube>,
+    #[serde(rename = "material", default, skip_serializing_if = "Option::is_none")]
+    pub material: Option<String>,
+    #[serde(rename = "fill", default, skip_serializing_if = "Option::is_none")]
+    pub fill: Option<f64>,
+    #[serde(rename = "massKg", default, skip_serializing_if = "Option::is_none")]
+    pub mass_kg: Option<f64>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionData {
     #[serde(rename = "finish", default, skip_serializing_if = "Option::is_none")]
     pub finish: Option<String>,
@@ -1506,6 +1564,8 @@ pub struct ConstructionData {
     pub boundaries: Vec<ConstructionBoundary>,
     #[serde(rename = "loads")]
     pub loads: Vec<ConstructionLoad>,
+    #[serde(rename = "fittings", default, skip_serializing_if = "Option::is_none")]
+    pub fittings: Option<Vec<ConstructionFittingDefinition>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

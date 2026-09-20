@@ -1,6 +1,22 @@
 import { expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { BOUNDARY, COMMANDS, COMMAND_OPS, CONSTRUCTION_CONVENTIONS, EQUIPMENT, FACES, FINISHES, LOAD, PRIMITIVE, PRIMITIVE_KINDS, SURFACE, closestMatches, constructionBatchJsonSchema, validateCommandShape, type Field } from './constructionCommandSchema';
+import {
+  BOUNDARY,
+  COMMANDS,
+  COMMAND_OPS,
+  CONSTRUCTION_CONVENTIONS,
+  EQUIPMENT,
+  FACES,
+  FINISHES,
+  LOAD,
+  PRIMITIVE,
+  PRIMITIVE_KINDS,
+  SURFACE,
+  closestMatches,
+  constructionBatchJsonSchema,
+  validateCommandShape,
+  type Field,
+} from './constructionCommandSchema';
 import { objectSpecDrift, readTypes, specDrift } from './constructionTypeReader';
 import { CONSTRUCTION_FACES } from './constructionEditor';
 import { CONSTRUCTION_SHAPE_NAMES } from './constructionShapes';
@@ -9,7 +25,13 @@ import { createStarterSource } from './constructionStarter';
 import type { ConstructionCatalog, ConstructionSource } from './blueprint';
 
 const here = import.meta.dir;
-const types = readTypes([join(here, 'blueprint/blueprintTypes.ts'), join(here, 'blueprint/constructionTypes.ts'), join(here, 'constructionVertex.ts'), join(here, 'constructionPatches.ts'), join(here, 'constructionCommands.ts')]);
+const types = readTypes([
+  join(here, 'blueprint/blueprintTypes.ts'),
+  join(here, 'blueprint/constructionTypes.ts'),
+  join(here, 'constructionVertex.ts'),
+  join(here, 'constructionPatches.ts'),
+  join(here, 'constructionCommands.ts'),
+]);
 
 test('the ConstructionCommand union and the command specs declare the same ops and fields', () => {
   const union = types.union('ConstructionCommand', 'op');
@@ -18,7 +40,9 @@ test('the ConstructionCommand union and the command specs declare the same ops a
   // The reader sees real drift rather than agreeing with everything.
   const { degrees: _, ...rotate } = COMMANDS.rotate.fields;
   expect(specDrift(rotate, union.rotate, 'rotate')).toEqual(['rotate.degrees is declared but has no spec']);
-  expect(specDrift({ ...COMMANDS.rotate.fields, degrees: { type: 'number', optional: true } }, union.rotate, 'rotate')).toEqual(['rotate.degrees is required in the type']);
+  expect(specDrift({ ...COMMANDS.rotate.fields, degrees: { type: 'number', optional: true } }, union.rotate, 'rotate')).toEqual([
+    'rotate.degrees is required in the type',
+  ]);
 });
 
 test('record specs match the declared source types, including nested records, optionality and literal choices', () => {
@@ -34,10 +58,17 @@ test('record specs match the declared source types, including nested records, op
 
 test('every record of the authored construction ships passes as a whole-record command', async () => {
   const sources: ConstructionSource[] = [createStarterSource({ revision: 'test' } as ConstructionCatalog, 'fletcher-hull')];
-  for (const id of ['valiant', 'resolute', 'balcony-playground']) sources.push((await Bun.file(join(here, '../../assets/ships', id, 'blueprint.json')).json()) as ConstructionSource);
+  for (const id of ['valiant', 'resolute', 'balcony-playground'])
+    sources.push((await Bun.file(join(here, '../../assets/ships', id, 'blueprint.json')).json()) as ConstructionSource);
   let records = 0;
   for (const { construction: data } of sources)
-    for (const [op, rows] of [['primitive', data.primitives], ['equipment', data.equipment], ['boundary', data.boundaries], ['load', data.loads], ['surface', data.surfaces]] as const)
+    for (const [op, rows] of [
+      ['primitive', data.primitives],
+      ['equipment', data.equipment],
+      ['boundary', data.boundaries],
+      ['load', data.loads],
+      ['surface', data.surfaces],
+    ] as const)
       for (const value of rows) {
         validateCommandShape({ op, value }, records++);
       }
@@ -45,7 +76,24 @@ test('every record of the authored construction ships passes as a whole-record c
 });
 
 test('the JSON Schema is derived from the same specs', () => {
-  const schema = constructionBatchJsonSchema() as { $schema: string; required: string[]; additionalProperties: boolean; properties: { commands: { items: { oneOf: { title: string; required: string[]; additionalProperties: boolean; properties: Record<string, { const?: string; $ref?: string }> }[] } } }; $defs: Record<string, { properties: Record<string, unknown>; required: string[] }> };
+  const schema = constructionBatchJsonSchema() as {
+    $schema: string;
+    required: string[];
+    additionalProperties: boolean;
+    properties: {
+      commands: {
+        items: {
+          oneOf: {
+            title: string;
+            required: string[];
+            additionalProperties: boolean;
+            properties: Record<string, { const?: string; $ref?: string }>;
+          }[];
+        };
+      };
+    };
+    $defs: Record<string, { properties: Record<string, unknown>; required: string[] }>;
+  };
   expect(schema.$schema).toBe('https://json-schema.org/draft/2020-12/schema');
   expect(schema.required).toEqual(['version', 'expectedRevision', 'label', 'commands']);
   expect(schema.additionalProperties).toBe(false);
@@ -60,7 +108,25 @@ test('the JSON Schema is derived from the same specs', () => {
   }
   expect(commands.find((command) => command.title === 'rotate')!.required).toContain('degrees');
   expect(commands.find((command) => command.title === 'equipment')!.properties.value.$ref).toBe('#/$defs/Equipment');
-  expect(Object.keys(schema.$defs).sort()).toEqual(['AnglePair', 'Boundary', 'CustomHull', 'Equipment', 'EquipmentPatch', 'FreeformMesh', 'HullStation', 'Load', 'Primitive', 'PrimitivePatch', 'SurfaceAssignment', 'SurfaceTarget', 'Vec3']);
+  expect(Object.keys(schema.$defs).sort()).toEqual([
+    'AnglePair',
+    'Boundary',
+    'CustomHull',
+    'Equipment',
+    'EquipmentPatch',
+    'Fitting',
+    'FittingPatch',
+    'FittingSolid',
+    'FittingTube',
+    'FreeformMesh',
+    'HullStation',
+    'Load',
+    'Primitive',
+    'PrimitivePatch',
+    'SurfaceAssignment',
+    'SurfaceTarget',
+    'Vec3',
+  ]);
   expect(schema.$defs.Equipment.required).toEqual(['id', 'partId', 'position', 'bearingDeg']);
   expect(schema.$defs.EquipmentPatch.required).toEqual([]);
   expect(schema.$defs.EquipmentPatch.properties).not.toHaveProperty('id');

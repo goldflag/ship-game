@@ -230,10 +230,11 @@ Commands are:
 | `ship-paint` | optional `paint` | Set the ship paint worn by faces without an assignment and by fittings (with their barbettes) without a `paint`; omission restores naval gray faces and original fitting finishes |
 | `primitive`, `equipment`, `boundary`, `load` | `value` | Add or replace the complete source record by stable ID |
 | `primitive-patch`, `equipment-patch` | `id`, `changes` | Merge only supplied fields into an existing record; nested objects merge, arrays replace, `null` removes optional fields |
+| `fitting`, `fitting-patch` | `value`; `id`, `changes` | Add, replace or patch a design-local fitting definition ([Custom fittings](#custom-fittings)); `solids` and `tubes` replace whole |
 | `hull-sections` | `id`, `count` | Resize an adjustable hull's section list with the same 4–24-section interpolation/simplification as the UI |
 | `hull-station` | `id`, `stationId`, `changes: {t?, points?}` | Edit one existing section while retaining its ID and other sections |
 | `copy` | `copies: [{from,to}]`, optional `mirror` or `offset` | Copy hull pieces, equipment and loads using caller-supplied new IDs; preserve surfaces and remap copied magazine/engine links |
-| `remove` | `ids` | Remove selected records; retain the last hull piece |
+| `remove` | `ids` | Remove selected records; retain the last hull piece. A custom fitting definition is refused while instances outside the command use it |
 | `move` | `ids`, `delta: [x,y,z]` | Translate pieces, equipment, loads and boundary offsets |
 | `turret-rise` | `id`, `heightM` (0–30) | Set a gun's rise above its deck attachment; `position` Y moves by the change, as the editor's **Turret rise** does |
 | `rotate` | `ids`, `degrees` (required) | Add `degrees` to each hull piece's `rotationDeg` and each fitting's `bearingDeg` about their own datums; wall fittings are skipped |
@@ -393,6 +394,83 @@ The development editor exposes `window.constructionEditor` with `source()`,
 repository's current file revision. `await flush()` after a batch waits for its
 save, including a batch submitted before React's next render. Wait for
 `result().revision === source().revision` before inspecting or launching.
+
+## Custom fittings
+
+When the catalog lacks a small part (a bollard, locker, davit, pipe run or light mast), define it
+inside the design instead of building it from hull pieces, which would become armored, buoyant,
+floodable structure. A definition is a set of hull-piece shapes (`solids`) and swept round `tubes`
+in fitting-local metres; the local origin at y = 0 seats on the deck. It adds mass only: shells,
+armor, modules and flooding ignore it. The format is in
+[shipbuilding](shipbuilding.md#custom-fittings).
+
+- `fitting` adds or replaces a whole definition; `fitting-patch` merges fields (`solids` and
+  `tubes` replace whole). Every instance follows a change.
+- An instance is an `equipment` row with `partId: "design:<definition id>"`. Seat it with
+  `ship:place --part design:<id>`; `--mirror`, `--repeat`, `ship:reseat`, `copy`, `move`, `rotate`
+  and `remove` work as for catalog deck fittings. Instances have their own limit of 512 and never
+  count against the 128 equipment instances.
+- `remove` with a definition ID is refused while instances outside that command use it; the error
+  names them.
+- `ship:summary` lists definitions as `[id, name, solids, tubes, massKg, instances, partId]` and
+  reports `customFittingInstances` and `customFittingDefinitions` headroom. `ship:get --ids
+  <definition id>` or `--kind custom-fitting` returns definitions, and `ship:catalog <ship> --query
+  design:` shows the resolved size and bounds centre.
+- `ship:view --focus <instance> --isolate` frames one instance.
+
+A twin bollard (chamfered base, two posts with black caps, a cross bar) and a davit whose arm, stay
+and fall are tubes:
+
+```json
+{
+  "version": 1,
+  "expectedRevision": "<revision>",
+  "expectedFileHash": "<fileRevision>",
+  "label": "Define custom fittings",
+  "commands": [
+    { "op": "fitting", "value": {
+      "id": "fit-bollard-a", "name": "Twin bollard", "version": 1, "attach": "deck", "material": "steel", "fill": 0.35,
+      "solids": [
+        { "id": "base", "kind": "vertex", "size": [1.3, 0.12, 0.5], "position": [0, 0.06, 0], "rotationDeg": 0,
+          "shaping": { "version": 1, "edges": [2, 6, 10, 11], "radius": 0.05, "style": "chamfer" } },
+        { "id": "post-port", "kind": "cylinder", "size": [0.32, 0.62, 0.32], "position": [-0.38, 0.43, 0], "rotationDeg": 0 },
+        { "id": "post-stbd", "kind": "cylinder", "size": [0.32, 0.62, 0.32], "position": [0.38, 0.43, 0], "rotationDeg": 0 },
+        { "id": "cap-port", "kind": "cylinder", "size": [0.42, 0.08, 0.42], "position": [-0.38, 0.78, 0], "rotationDeg": 0, "paint": "boot-top-black" },
+        { "id": "cap-stbd", "kind": "cylinder", "size": [0.42, 0.08, 0.42], "position": [0.38, 0.78, 0], "rotationDeg": 0, "paint": "boot-top-black" }
+      ],
+      "tubes": [{ "id": "cross-bar", "points": [[-0.38, 0.55, 0], [0.38, 0.55, 0]], "diameterM": 0.07 }]
+    } },
+    { "op": "fitting", "value": {
+      "id": "fit-davit", "name": "Radial davit", "version": 1, "attach": "deck", "massKg": 420,
+      "solids": [
+        { "id": "socket", "kind": "cylinder", "size": [0.45, 0.3, 0.45], "position": [0, 0.15, 0], "rotationDeg": 0 },
+        { "id": "block", "kind": "box", "size": [0.16, 0.22, 0.16], "position": [0, 2.85, -0.9], "rotationDeg": 0, "paint": "boot-top-black" }
+      ],
+      "tubes": [
+        { "id": "arm", "diameterM": 0.16,
+          "points": [[0, 0, 0], [0, 2.2, 0], [0, 2.433, -0.031], [0, 2.65, -0.121], [0, 2.836, -0.264], [0, 2.979, -0.45], [0, 3.069, -0.667], [0, 3.1, -0.9]] },
+        { "id": "stay", "points": [[0, 1.2, 0], [0, 2.95, -0.55]], "diameterM": 0.05 },
+        { "id": "fall", "points": [[0, 2.74, -0.9], [0, 1.5, -0.9]], "diameterM": 0.03, "paint": "boot-top-black" }
+      ]
+    } }
+  ]
+}
+```
+
+Edges 2, 6, 10 and 11 of a `vertex` block are its four top edges. The davit arm reaches along
+local −Z, so bearing 90 swings it out to starboard.
+
+```sh
+bun run ship:apply my-ship .build/fittings.json
+bun run ship:place my-ship --part design:fit-bollard-a --at 3,-30 --mirror --id bollard-fwd --out .build/bollards.json
+bun run ship:place my-ship --part design:fit-bollard-a --at 4,10 --bearing 90 --repeat 4 --step 0,8 --mirror --id bollard-row --out .build/row.json
+bun run ship:place my-ship --part design:fit-davit --at 4.6,0 --bearing 90 --mirror --id davit --out .build/davits.json
+```
+
+Limits: 32 definitions, 48 solids and 16 tubes each, about 20,000 triangles, tubes of 2–64 points
+up to 100 m and 0.01–2 m across. A `custom-fitting` diagnostic names the definition in `sourceId`
+and the solid, tube or instance in its message; a floating instance reports the usual
+`equipment-attachment` with `fit.gapM` and `fit.seatPosition`.
 
 ## Visual review and trials
 
