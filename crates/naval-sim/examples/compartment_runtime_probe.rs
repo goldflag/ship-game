@@ -370,7 +370,7 @@ fn main() {
         };
         let count = cells.len();
         let before = cg::total(&cells);
-        let (cells, rounds) = if mode == "columns" {
+        let (cells, steps) = if mode == "columns" {
             (columns(room, pitch), 0)
         } else if mode == "bounded" {
             coalesce(cells, pitch)
@@ -378,8 +378,8 @@ fn main() {
             naval_sim::compartment_geometry::coalesce(cells)
         };
         let after = cg::total(&cells);
-        report.push(serde_json::json!({"room":room.id,"beforeCells":count,"afterCells":cells.len(),"rounds":rounds,"volumeErrorM3":after.volume-before.volume,"centerErrorM":(0..3).map(|k|(after.center()[k]-before.center()[k]).abs()).fold(0.,f64::max)}));
-        eprintln!("room {i}: {count} -> {} ({rounds} rounds)", cells.len());
+        report.push(serde_json::json!({"room":room.id,"beforeCells":count,"afterCells":cells.len(),"mergeSteps":steps,"volumeErrorM3":after.volume-before.volume,"centerErrorM":(0..3).map(|k|(after.center()[k]-before.center()[k]).abs()).fold(0.,f64::max)}));
+        eprintln!("room {i}: {count} -> {} ({steps} merge steps)", cells.len());
         room.volumes = Some(cells);
     }
     std::fs::write(output, serde_json::to_vec(&definition).unwrap()).unwrap();

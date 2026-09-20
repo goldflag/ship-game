@@ -2099,6 +2099,13 @@ fn build(
         }
         fail_all(out, errors)?;
     }
+    // Keep room identity, capacity, bounds, and all opening/portal attribution
+    // from the original partition. Runtime flooding needs only its exact union.
+    for room in &mut def.compartments {
+        if let Some(volumes) = room.volumes.take() {
+            room.volumes = Some(crate::compartment_geometry::coalesce(volumes).0);
+        }
+    }
     crate::catalog::validate_definition(&def)
         .map_err(|e| error("definition", e.to_string(), None))?;
     out.definition = Some(def);
