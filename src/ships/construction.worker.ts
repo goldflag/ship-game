@@ -1,6 +1,7 @@
-import init, { ConstructionCompiler, suggest_construction } from '../generated/naval-wasm/naval_wasm';
+import init, { ConstructionCompiler, simulation_build, suggest_construction } from '../generated/naval-wasm/naval_wasm';
 import type { ConstructionSource } from './blueprint';
 import { loadConstructionCatalog } from './constructionEquipment';
+import { cachedConstructionCompile } from './constructionCompileCache';
 
 const ready = init();
 let catalog: ReturnType<typeof loadConstructionCatalog> | undefined;
@@ -18,8 +19,11 @@ self.onmessage = async (event: MessageEvent<{ type: 'compile' | 'suggest'; id: n
       const suggestion = JSON.parse(suggest_construction(JSON.stringify(source), JSON.stringify(parts), JSON.stringify(event.data.partIds ?? [])));
       self.postMessage({ id, sourceId: source.id, revision: source.revision, suggestion });
     } else {
-      compiler ??= new ConstructionCompiler();
-      const result = JSON.parse(compiler.compile(JSON.stringify(source), JSON.stringify(parts)));
+      const sourceJson = JSON.stringify(source), catalogJson = JSON.stringify(parts);
+      const result = JSON.parse(await cachedConstructionCompile(simulation_build(), sourceJson, catalogJson, () => {
+        compiler ??= new ConstructionCompiler();
+        return compiler.compile(sourceJson, catalogJson);
+      }));
       self.postMessage({ id, result });
     }
   } catch (error) { self.postMessage({ id, error: error instanceof Error ? error.message : String(error) }); }
