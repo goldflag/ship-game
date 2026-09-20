@@ -337,7 +337,9 @@ pub fn ship_contacts(
         let Some(bounds) = &c.bounds else {
             continue;
         };
-        if c.thickness_mm.is_none() || actor.damage.connections[i].state == "open" {
+        if c.thickness_mm.is_none()
+            || actor.damage.connections[i].state == crate::frame_vocabulary::ConnectionStatus::Open
+        {
             continue;
         }
         let Some(hit) = segment_box(from, to, bounds.center, bounds.size) else {

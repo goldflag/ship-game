@@ -93,7 +93,7 @@ fn main() {
                 .unwrap()
                 .0;
             a.damage.compartments[from].water_m3 = d.compartments[from].capacity_m3 * 0.5;
-            a.damage.connections[i].state = "damaged".into();
+            a.damage.connections[i].state = naval_sim::frame_vocabulary::ConnectionStatus::Damaged;
             a.damage.connections[i].damage_area_m2 = 0.5;
         }
         if mode == "flooded" {

@@ -3025,7 +3025,7 @@ mod tests {
         actor.damage.compartments[source].water_m3 = water;
         crate::flooding::update_flooding(&mut actor, &d, &hydro, 0.01, 0.5, None, None);
         assert_eq!(actor.damage.compartments[target].water_m3, 0.);
-        actor.damage.connections[0].state = "damaged".into();
+        actor.damage.connections[0].state = crate::frame_vocabulary::ConnectionStatus::Damaged;
         actor.damage.connections[0].damage_area_m2 = 0.1;
         crate::flooding::update_flooding(&mut actor, &d, &hydro, 0.01, 0.5, None, None);
         assert!(actor.damage.compartments[target].water_m3 > 0.);

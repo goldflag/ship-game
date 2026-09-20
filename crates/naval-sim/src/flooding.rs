@@ -112,7 +112,7 @@ pub fn update_flooding(
     }
     for (i, c) in def.connections.iter().enumerate() {
         let state = &actor.damage.connections[i];
-        if state.state == "closed" {
+        if state.state == crate::frame_vocabulary::ConnectionStatus::Closed {
             continue;
         }
         let (ai, bi) = (state.from_index, state.to_index);
@@ -134,7 +134,7 @@ pub fn update_flooding(
             water_level(actor, def, ai, None),
             water_level(actor, def, bi, None),
         );
-        let area = if state.state == "damaged" {
+        let area = if state.state == crate::frame_vocabulary::ConnectionStatus::Damaged {
             state.damage_area_m2
         } else {
             c.area_m2

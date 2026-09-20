@@ -286,7 +286,7 @@ pub fn update_damage_control(
         }
     }
     for (i, s) in actor.damage.connections.iter().enumerate() {
-        if s.state != "open" {
+        if s.state != crate::frame_vocabulary::ConnectionStatus::Open {
             continue;
         }
         let fire = c.rooms[s.from_index].intensity > 0.0 || c.rooms[s.to_index].intensity > 0.0;
@@ -347,7 +347,10 @@ pub fn update_damage_control(
             JobKind::Pump => {
                 c.pumping[i] = d.portable_pump_m3_per_second * portable_power * work / dt
             }
-            JobKind::Isolate => actor.damage.connections[i].state = "closed".into(),
+            JobKind::Isolate => {
+                actor.damage.connections[i].state =
+                    crate::frame_vocabulary::ConnectionStatus::Closed
+            }
             JobKind::Patch => {
                 let room = &mut actor.damage.compartments[i];
                 if let Some(b) = room
@@ -437,10 +440,10 @@ pub fn update_damage_control(
         }
     }
     for s in &actor.damage.connections {
-        if s.state == "closed" {
+        if s.state == crate::frame_vocabulary::ConnectionStatus::Closed {
             continue;
         }
-        let path = if s.state == "damaged" {
+        let path = if s.state == crate::frame_vocabulary::ConnectionStatus::Damaged {
             (s.damage_area_m2 / 0.5).min(1.0)
         } else {
             1.0
@@ -522,7 +525,7 @@ pub fn update_damage_control(
         );
         for (j, s) in actor.damage.connections.iter_mut().enumerate() {
             if s.from_index == ri || s.to_index == ri {
-                s.state = "damaged".into();
+                s.state = crate::frame_vocabulary::ConnectionStatus::Damaged;
                 s.damage_area_m2 = def.connections[j].area_m2;
             }
         }

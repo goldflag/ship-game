@@ -1,4 +1,5 @@
 //! Mutable durability and compartment state. Hull survival is independent of weapon capability.
+use crate::frame_vocabulary::ConnectionStatus;
 use crate::{
     damage_control::ControlState,
     definition::{ShipDefinition, Vec3},
@@ -46,7 +47,7 @@ fn stable_connections<S: serde::Serializer>(
     digest.word(connections.len() as u64);
     for c in connections {
         digest.bytes(c.id.as_bytes());
-        digest.bytes(c.state.as_bytes());
+        digest.word(c.state as u64);
         digest.word(c.damage_area_m2.to_bits());
         digest.word(c.from_index as u64);
         digest.word(c.to_index as u64);
@@ -57,8 +58,9 @@ fn stable_connections<S: serde::Serializer>(
 #[serde(rename_all = "camelCase")]
 pub struct ConnectionState {
     pub id: String,
-    #[ts(as = "crate::frame_vocabulary::ConnectionStatus")]
-    pub state: String,
+    // An enum rather than its wire text: flooding, damage control and shell
+    // contacts each walk every portal every tick, thousands on a built hull.
+    pub state: ConnectionStatus,
     pub damage_area_m2: f64,
     pub from_index: usize,
     pub to_index: usize,
@@ -225,7 +227,11 @@ impl DamageState {
                         .id
                         .clone()
                         .unwrap_or_else(|| format!("{}:{}", c.from_id, c.to_id)),
-                    state: c.state.clone().unwrap_or_else(|| "open".into()),
+                    state: match c.state.as_deref() {
+                        Some("closed") => ConnectionStatus::Closed,
+                        Some("damaged") => ConnectionStatus::Damaged,
+                        _ => ConnectionStatus::Open,
+                    },
                     damage_area_m2: if c.state.as_deref() == Some("damaged") {
                         c.area_m2
                     } else {

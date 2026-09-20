@@ -131,7 +131,8 @@ pub fn burst_shell(shell: &mut Shell, actors: &mut [Vessel]) -> Vec<DamageEvent>
         }
         for (i, c) in def.connections.iter().enumerate() {
             if c.thickness_mm.is_some()
-                && actor.damage.connections[i].state != "open"
+                && actor.damage.connections[i].state
+                    != crate::frame_vocabulary::ConnectionStatus::Open
                 && let Some(b) = &c.bounds
             {
                 target(
@@ -345,7 +346,7 @@ pub fn burst_shell(shell: &mut Shell, actors: &mut [Vessel]) -> Vec<DamageEvent>
                 }
                 TargetKind::Boundary => {
                     let state = &mut actor.damage.connections[target.index];
-                    state.state = "damaged".into();
+                    state.state = crate::frame_vocabulary::ConnectionStatus::Damaged;
                     state.damage_area_m2 = def.connections[target.index].area_m2.min(
                         state.damage_area_m2
                             + shell.caliber_m.powi(2) * (1.0 - target.distance / radius) * exposure,

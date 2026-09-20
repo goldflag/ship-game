@@ -592,7 +592,7 @@ pub fn resolve_ship_contact(
                     continue;
                 }
                 let s = &mut actor.damage.connections[j];
-                s.state = "damaged".into();
+                s.state = crate::frame_vocabulary::ConnectionStatus::Damaged;
                 s.damage_area_m2 = c.area_m2.min(s.damage_area_m2 + shell.caliber_m.powi(2));
                 r.evidence
                     .connection_ids
@@ -704,7 +704,7 @@ pub fn resolve_ship_contact(
             }
             pay(shell, resistance);
             let s = &mut actor.damage.connections[i];
-            s.state = "damaged".into();
+            s.state = crate::frame_vocabulary::ConnectionStatus::Damaged;
             s.damage_area_m2 = c.area_m2.min(s.damage_area_m2 + shell.caliber_m.powi(2));
             r.evidence.outcome = "penetrated".into();
             r.evidence.breach_area_m2 = Some(s.damage_area_m2);

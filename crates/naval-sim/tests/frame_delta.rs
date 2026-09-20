@@ -161,10 +161,13 @@ fn constructed_hull_connections_travel_when_and_only_when_they_change() {
         match frame {
             20 => {
                 let portal = &mut battle.actors[0].damage.connections[7];
-                portal.state = "damaged".into();
+                portal.state = naval_sim::frame_vocabulary::ConnectionStatus::Damaged;
                 portal.damage_area_m2 = 0.3;
             }
-            30 => battle.actors[1].damage.connections[900].state = "open".into(),
+            30 => {
+                battle.actors[1].damage.connections[900].state =
+                    naval_sim::frame_vocabulary::ConnectionStatus::Open
+            }
             _ => {}
         }
         // Frames 40 to 44 drop the first hull's detail, as a camera change does.
