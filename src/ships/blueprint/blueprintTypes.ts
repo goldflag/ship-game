@@ -92,10 +92,13 @@ export interface AuthoredSurface {
 }
 /** Physical movement stops derived from original geometry, independent of firing arcs. */
 export interface MountClearanceProfile {
+  /** Exterior hull meshes also reject barrel centers inside structural solids,
+   * except the mount's installed working bore. */
+  hullInteriorGuard?: boolean;
   version: 1;
   marginM: number;
   basis: string;
-  /** Select exactly one geometry encoding: closed bodies or installation envelopes. */
+  /** Select exactly one geometry encoding: triangle bodies or installation envelopes. */
   mountIds?: string[];
   /** Fixed bodies use hull coordinates; mounted fittings use yaw-local coordinates. */
   bodies?: { id: string; mountId?: string; surface: AuthoredSurface }[];

@@ -490,6 +490,8 @@ pub struct MountClearanceProfileStructuresItem {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct MountClearanceProfile {
+    #[serde(rename = "hullInteriorGuard")]
+    pub hull_interior_guard: Option<bool>,
     #[serde(rename = "version")]
     pub version: f64,
     #[serde(rename = "marginM")]

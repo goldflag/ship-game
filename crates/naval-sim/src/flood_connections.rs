@@ -80,7 +80,7 @@ pub fn fire_path(c: &FloodConnection, state: &ConnectionState) -> f64 {
                 let area = state
                     .patch_damage_m2
                     .as_ref()
-                    .map_or_else(|| p.area_m2 * state.damage_area_m2 / c.area_m2, |d| d[i]);
+                    .map_or_else(|| p.area_m2 * (state.damage_area_m2 / c.area_m2), |d| d[i]);
                 (area / 0.5).min(1.)
             })
             .sum(),

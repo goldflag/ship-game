@@ -119,7 +119,7 @@ pub fn update_flooding(
                 for (j, patch) in patches.iter().enumerate() {
                     let area = if state.state == "damaged" {
                         state.patch_damage_m2.as_ref().map_or_else(
-                            || patch.area_m2 * state.damage_area_m2 / c.area_m2,
+                            || patch.area_m2 * (state.damage_area_m2 / c.area_m2),
                             |d| d[j],
                         )
                     } else {

@@ -1,7 +1,7 @@
 //! Compact derived geometry without crossing authored material or room boundaries.
 
 use crate::{construction_geometry as cg, definition::*};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub fn compact_armor(armor: &mut Vec<Armor>) -> BTreeMap<String, String> {
     let mut lookup = BTreeMap::new();
@@ -32,58 +32,163 @@ pub fn compact_armor(armor: &mut Vec<Armor>) -> BTreeMap<String, String> {
             armor.extend(group);
             continue;
         }
-        let patches = crate::compartment_geometry::merge_faces(
-            group
-                .iter()
-                .map(|a| ConvexVolumeFacesItem {
-                    vertices: a.plate.as_ref().unwrap().vertices.clone(),
-                })
-                .collect(),
-        );
-        let mut compacted = vec![];
-        let mut mapped = BTreeMap::new();
-        for (template, face) in group.iter().zip(patches) {
-            let polygon = face.vertices;
-            let mut a = template.clone();
-            let normal = cg::normal(&polygon);
-            for old in &group {
-                let vertices = &old.plate.as_ref().unwrap().vertices;
-                let center = crate::geometry::scale(
-                    vertices.iter().copied().fold([0.; 3], crate::geometry::add),
-                    1. / vertices.len() as f64,
-                );
-                if crate::geometry::dot(normal, cg::normal(vertices)) > 1. - 1e-10
-                    && crate::geometry::dot(normal, crate::geometry::sub(center, polygon[0])).abs()
-                        < cg::EPS
-                    && (0..polygon.len()).all(|i| {
-                        let edge =
-                            crate::geometry::sub(polygon[(i + 1) % polygon.len()], polygon[i]);
-                        crate::geometry::dot(
-                            crate::geometry::cross(edge, crate::geometry::sub(center, polygon[i])),
-                            normal,
-                        ) >= -cg::EPS
-                    })
-                {
-                    mapped.insert(old.id.clone(), a.id.clone());
-                }
+        let limit = group.len().saturating_mul(128).min(1_000_000);
+        for patch in compact_armor_group(group, limit) {
+            for old in patch.original_ids {
+                remap.insert(old, patch.armor.id.clone());
             }
-            (a.center, a.size) = crate::structure::bounds(polygon.iter().copied());
-            a.plate.as_mut().unwrap().vertices = polygon;
-            compacted.push(a);
-        }
-        if group.iter().all(|a| mapped.contains_key(&a.id)) {
-            remap.extend(mapped);
-            armor.extend(compacted);
-        } else {
-            // Numerically degenerate authoring geometry keeps its original
-            // coverage and IDs instead of guessing a protection owner.
-            for a in group {
-                remap.insert(a.id.clone(), a.id.clone());
-                armor.push(a);
-            }
+            armor.push(patch.armor);
         }
     }
     remap
+}
+
+struct ArmorPatch {
+    armor: Armor,
+    original_ids: Vec<String>,
+    bounds: (Vec3, Vec3),
+}
+
+/// A pair can be replaced by its convex hull only if it is disjoint and the
+/// hull covers both complete operands with their combined area. Overlap can
+/// otherwise cancel a filled gap in the area-sum check.
+fn joined_armor_polygon(a: &[Vec3], b: &[Vec3]) -> Option<Vec<Vec3>> {
+    use crate::geometry::*;
+    if a.len() < 3 || b.len() < 3 {
+        return None;
+    }
+    let normal = cg::normal(a);
+    if length(normal) < 0.99
+        || dot(normal, cg::normal(b)) < 1. - 1e-12
+        || b.iter().any(|&p| dot(normal, sub(p, a[0])).abs() > 1e-9)
+    {
+        return None;
+    }
+    let mut overlap = a.to_vec();
+    for i in 0..b.len() {
+        let edge = sub(b[(i + 1) % b.len()], b[i]);
+        let side = normalize(cross(edge, normal));
+        if length(side) < 0.99 {
+            return None;
+        }
+        overlap = cg::clip_polygon(&overlap, side, dot(side, b[i]));
+        if overlap.len() < 3 {
+            break;
+        }
+    }
+    if overlap.len() >= 3 && cg::area(&overlap) > 0. {
+        return None;
+    }
+    let mut joined = crate::compartment_geometry::merge_faces(vec![
+        ConvexVolumeFacesItem {
+            vertices: a.to_vec(),
+        },
+        ConvexVolumeFacesItem {
+            vertices: b.to_vec(),
+        },
+    ]);
+    if joined.len() != 1 {
+        return None;
+    }
+    let polygon = joined.pop().unwrap().vertices;
+    let normal = cg::normal(&polygon);
+    if length(normal) < 0.99
+        || !a.iter().chain(b).all(|&p| {
+            dot(normal, sub(p, polygon[0])).abs() <= 1e-9
+                && (0..polygon.len()).all(|i| {
+                    let edge = sub(polygon[(i + 1) % polygon.len()], polygon[i]);
+                    dot(cross(edge, sub(p, polygon[i])), normal) >= -1e-9 * length(edge)
+                })
+        })
+    {
+        return None;
+    }
+    Some(polygon)
+}
+
+/// Carry source ownership through each accepted merge. Geometry is never used
+/// to rediscover provenance, so tiny or coincident patches cannot steal links.
+fn compact_armor_group(group: Vec<Armor>, limit: usize) -> Vec<ArmorPatch> {
+    let mut patches: Vec<_> = group
+        .into_iter()
+        .map(|armor| {
+            let bounds =
+                crate::structure::bounds(armor.plate.as_ref().unwrap().vertices.iter().copied());
+            Some(ArmorPatch {
+                original_ids: vec![armor.id.clone()],
+                armor,
+                bounds,
+            })
+        })
+        .collect();
+    let mut neighbors = vec![BTreeSet::new(); patches.len()];
+    let mut pairs = BTreeSet::new();
+    let mut searches = limit;
+    'search: for i in 0..patches.len() {
+        let (center, size) = patches[i].as_ref().unwrap().bounds;
+        for j in 0..i {
+            if searches == 0 {
+                break 'search;
+            }
+            searches -= 1;
+            let (other, extent) = patches[j].as_ref().unwrap().bounds;
+            if (0..3).all(|k| (center[k] - other[k]).abs() <= (size[k] + extent[k]) * 0.5 + 1e-9) {
+                neighbors[i].insert(j);
+                neighbors[j].insert(i);
+                pairs.insert((i, j));
+            }
+        }
+    }
+    let mut attempts = limit;
+    let mut vertex_work = patches.len().saturating_mul(4096).min(4_000_000);
+    while let Some((i, j)) = pairs.pop_first() {
+        if attempts == 0 {
+            break;
+        }
+        attempts -= 1;
+        let (Some(a), Some(b)) = (&patches[i], &patches[j]) else {
+            continue;
+        };
+        let (av, bv) = (
+            &a.armor.plate.as_ref().unwrap().vertices,
+            &b.armor.plate.as_ref().unwrap().vertices,
+        );
+        let cost = av
+            .len()
+            .saturating_mul(bv.len())
+            .saturating_mul(4)
+            .saturating_add(av.len().saturating_add(bv.len()).saturating_mul(16));
+        if cost > vertex_work {
+            continue;
+        }
+        vertex_work -= cost;
+        let Some(polygon) = joined_armor_polygon(av, bv) else {
+            continue;
+        };
+        let removed = patches[i].take().unwrap();
+        let survivor = patches[j].as_mut().unwrap();
+        survivor.original_ids.extend(removed.original_ids);
+        survivor.bounds = crate::structure::bounds(polygon.iter().copied());
+        (survivor.armor.center, survivor.armor.size) = survivor.bounds;
+        survivor.armor.plate.as_mut().unwrap().vertices = polygon;
+        let moved = std::mem::take(&mut neighbors[i]);
+        neighbors[j].extend(moved);
+        neighbors[j].remove(&i);
+        neighbors[j].remove(&j);
+        let adjacent: Vec<_> = neighbors[j]
+            .iter()
+            .copied()
+            .filter(|&k| patches[k].is_some())
+            .collect();
+        for k in adjacent {
+            neighbors[k].remove(&i);
+            neighbors[k].insert(j);
+            if pairs.len() < attempts {
+                pairs.insert((k.max(j), k.min(j)));
+            }
+        }
+    }
+    patches.into_iter().flatten().collect()
 }
 
 pub fn exterior_clearance(cells: &[cg::Cell]) -> Vec<MountClearanceProfileBodiesItem> {
@@ -270,6 +375,66 @@ mod tests {
                 .abs()
                 < 1e-15
         );
+    }
+
+    #[test]
+    fn armor_overlap_cannot_cancel_a_gap_in_the_convex_hull_area() {
+        let mut a = plate("a", 0., 0.);
+        a.plate.as_mut().unwrap().vertices =
+            vec![[0., 0., 0.], [2., 0., 0.], [2., 1., 0.], [0., 1., 0.]];
+        let mut b = plate("b", 1., 0.5);
+        b.plate.as_mut().unwrap().vertices =
+            vec![[1., 0.5, 0.], [3., 0.5, 0.], [3., 1.5, 0.], [1., 1.5, 0.]];
+        // Sum=4 m² and convex hull=4 m², but overlap=0.5 m² and true
+        // union=3.5 m². An area-sum check alone fills real unarmored space.
+        let mut armor = vec![a, b];
+        let map = compact_armor(&mut armor);
+        assert_eq!(armor.len(), 2);
+        assert_eq!(map["a"], "a");
+        assert_eq!(map["b"], "b");
+    }
+
+    #[test]
+    fn armor_disconnected_thin_plates_keep_their_own_damage_links() {
+        let mut armor = vec![plate("a", 0., 0.), plate("b", 1.1, 0.)];
+        for a in &mut armor {
+            for p in &mut a.plate.as_mut().unwrap().vertices {
+                p[1] *= 1e-8;
+            }
+        }
+        let map = compact_armor(&mut armor);
+        assert_eq!(armor.len(), 2);
+        assert_eq!(map["a"], "a");
+        assert_eq!(map["b"], "b");
+    }
+
+    #[test]
+    fn armor_exhausted_budget_preserves_every_source_patch_and_owner() {
+        for limit in [0, 1, 4] {
+            let original: Vec<_> = (0..64)
+                .map(|i| plate(&format!("plate-{i}"), i as f64, 0.))
+                .collect();
+            let compact = compact_armor_group(original.clone(), limit);
+            assert!(compact.len() >= original.len() - limit);
+            let mut retained: Vec<_> = compact
+                .iter()
+                .flat_map(|p| p.original_ids.iter().cloned())
+                .collect();
+            let mut expected: Vec<_> = original.iter().map(|a| a.id.clone()).collect();
+            retained.sort();
+            expected.sort();
+            assert_eq!(retained, expected);
+            assert!(compact.iter().all(|p| p.original_ids.contains(&p.armor.id)));
+            assert!(
+                (compact
+                    .iter()
+                    .map(|p| cg::area(&p.armor.plate.as_ref().unwrap().vertices))
+                    .sum::<f64>()
+                    - 64.)
+                    .abs()
+                    < 1e-10
+            );
+        }
     }
 
     #[test]

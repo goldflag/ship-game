@@ -278,6 +278,15 @@ What compilation does:
 
 - Unions convex polyhedra, clips shared exterior faces and subtracts material and equipment from
   room volume. Overlapping pieces count once for displacement and material.
+- Coalesces adjacent convex pieces within each finished room when their exact union is convex.
+  Room capacities, occupied spaces, cavities and openings are preserved; a bounded merge pass
+  leaves remaining pieces intact. A room's convex-piece count is not its compartment count.
+- Merges compatible coplanar armor patches within the same authored surface, retaining thickness,
+  material, mount ownership and openings. Closed flooding fragments sharing a room pair and
+  protection plate share one connection state; their original damage footprints, heights and
+  sequential transfer order remain distinct. Ordinary doors retain independent controls.
+- Builds gun clearance from the exposed structural hull faces, removing internal subdivision
+  faces. Decorative balconies remain excluded from structural collision geometry.
 - Accepts concave sections, asymmetry and multiple immersed hulls in one rigid ship.
 - Loads steel at 7,850 kg/m³ against seawater at 1,025 kg/m³, plus equipment, services and
   initial ammunition.
