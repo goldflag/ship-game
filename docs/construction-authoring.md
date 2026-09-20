@@ -14,6 +14,7 @@ bun run ship:schema --op move                     # the batch contract; ship:pla
 bun run ship:apply my-ship batch.json --dry-run --brief
 bun run ship:apply my-ship batch.json
 bun run ship:inspect my-ship --brief              # every independent error, with gaps and seat positions
+bun run ship:mesh my-ship shape.obj --id hangar --at 0,6,-18  # a closed mesh as one compound-solid hull block
 bun run ship:view my-ship --focus gun-forward     # works on drafts that do not compile
 ```
 
@@ -537,6 +538,37 @@ idempotency key so a retry cannot create a second revision. The account owns its
 design identity: `save` reuses the design whose name matches, takes one named by
 `--design`, or mints a new one. `--url` (or `ACCOUNTS_URL`) points at another service;
 the default is the live one.
+
+## Importing a mesh as a hull block
+
+`ship:mesh` turns a closed OBJ, STL, PLY or GLB triangle mesh into one compound-solid hull
+block — concave, curved, tunnelled or thin-walled geometry the block vocabulary cannot express.
+Like `ship:place` it never saves: it prints a revision-guarded batch for `ship:apply`, `--out`
+refuses to overwrite, and the exit code is nonzero when the candidate does not compile.
+
+```sh
+bun run ship:mesh my-ship .build/hangar.obj --id hangar --at 0,6.1,-18 --out .build/hangar.json
+bun run ship:mesh my-ship .build/tower.glb --id tower --up z --scale 0.001 --bearing 180
+bun run ship:mesh my-ship .build/boat.stl --id boat --group boats --weld 0.002 --max-planes 64
+```
+
+| Flag | Effect |
+| --- | --- |
+| `--id` | The new hull piece's ID; an existing ID is refused rather than overwritten |
+| `--at x,y,z` | Where the mesh's own centre lands, in ship metres. Geometry is never silently re-seated |
+| `--scale n` or `sx,sy,sz` | Applied before anything else; a negative axis mirrors and the winding is reversed with it |
+| `--up z` | Swap the source's Z-up frame into the ship's Y-up one, reversing the winding the swap flips |
+| `--bearing deg` | The block's `rotationDeg`, clockwise from the bow, applied by the compiler, not baked into the corners |
+| `--label`, `--group` | The shape's name; `--group` overrides every polygon's surface group with one name |
+| `--weld m` | Corner welding grid, by default 1e-5 of the mesh's largest dimension |
+| `--max-parts`, `--max-planes` | 256 and 48. `--max-planes` is the real budget: the decomposition is exponential in the number of distinct face planes |
+
+The mesh has to be one closed, consistently wound, non-self-intersecting shell. An open surface,
+a flipped triangle or two interpenetrating shells are refused with the count and a sample of the
+offending welded edges or triangle pairs; an inside-out mesh is reversed and the report says so.
+Boolean-union overlapping shells, close holes and decimate curved surfaces before importing.
+OBJ `usemtl`/`g` names and GLB material names become surface groups, which
+`ship:inspect --panels` lists and `surface-patch` arms through `panelId`.
 
 ## Custom fittings
 
