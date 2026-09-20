@@ -298,6 +298,39 @@ the catalog's `tubeOffsets`, which are the ships' own tube datums relative to
 the launcher pivot. The 11 t and 18 t package masses are gameplay estimates, and
 the torpedoes are the ships' provisional game variants (Type 8 and Type 93).
 
+## Destroyer and escort guns
+
+Nineteen 100 to 155 mm destroyer, escort and cruiser-secondary mounts stand on the Main battery shelf beside
+`type3-127-typec-twin` and the US 5-inch/38 family. Each is authored against exactly one approved GameModels3D
+gun visual: visuals that are the same mesh are one part (the recipe READMEs list the ships that share it),
+visuals that differ visibly are separate parts, and a source with no faithful buildable geometry is left out.
+
+| Navy | Parts | Recipes |
+| --- | --- | --- |
+| Britain | `qf-47-mkxii-twin`, `qf-47-mkix-single`, `qf-47-mkxi-twin`, `qf-45-mkiv-twin`, `qf-45-mkv-twin`, `qf-45-mkiv-single`, `qf-4-mkxix-twin`, `qf-4-mkxix-twin-enclosed` | [`../rn-destroyer-guns/`](../rn-destroyer-guns/README.md) |
+| Germany | `sk-c36-150-single`, `sk-c34-127-single` | [`../german-destroyer-guns/`](../german-destroyer-guns/README.md) |
+| Japan | `type98-100-twin`, `type3-127-typea-twin`, `type3-127-typeb-twin`, `type3-127-type5-twin`, `type3-127-typeb-single` | [`../ijn-destroyer-guns/`](../ijn-destroyer-guns/README.md) (`type_98.py`, `destroyer_mountings.py`) |
+| United States | `us-4in50-mk9-single`, `us-4in50-mk9-shielded-single`, `us-5in51-mk7-open-single`, `us-5in51-mk7-single` | [`../us-destroyer-guns/`](../us-destroyer-guns/README.md) |
+
+Every one stands on the deck: one `attachment` support socket on the model's own bottom plane (the sole, the
+turntable, or the pedestal's deck ring), no ammunition socket and no occupancy box, so nothing below the deck is
+reserved and the Shipbuilder owns the barbette or trunk under the sole. Where a mount has a shield or gunhouse, the
+catalog's `gunhouseMesh` is both the armor and the visible shell. It is a closed envelope, except where the shell stays
+open at the back, the floor, the crown slots or the gun port (the German singles, the US shielded singles, the 4-inch
+HA hoods and the Type 98): those are single-skin shells whose open boundary loops are declared `apertures`. The two open
+US pedestal mounts have no `gunhouseMesh`. `size` and `boundsCenter` are measured from each built GLB.
+
+Weapon and armor values are provisional game calibration scaled from the nearest sibling in `guns.json`, kept physical
+(muzzle speed, projectile mass, reload, plate thickness) so the simulation applies the world pace itself. Elevation
+limits are commonly published figures for each mounting, not measurements from the reference visuals, which carry none.
+Where a source shield would foul the gun at the published elevation (the closed crowns of the 4-inch HA hoods, the slot
+sills of the 4.5-inch and 4.7-inch shields, the US pedestal shields, the smaller mantlets of the Type 98) the authored
+shield opens or cuts that port instead, and each recipe README says so. The recipe READMEs also give the neighbour
+spacing each mount was swept against; the widest are the Type 98 (7.9 m between yaw axes for two identical mounts to
+train past one another), the 4.7-inch Mk XII twin and Mk IX single (9.5 m and 8.5 m) and the 4.7-inch/50 Mk XI twin
+(11.1 m). These figures cover the mounts alone: a ship's own platforms and neighbours still need installation review,
+and the library keeps every part `unreviewed` until that passes.
+
 ## National masts and directors
 
 Four recipe files adapt superstructure from the original ship recipes into

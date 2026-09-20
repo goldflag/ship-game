@@ -602,6 +602,272 @@
     ]
   },
   {
+    "partId": "qf-47-mkxii-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd107",
+    "sourceVehicle": "pbsd107",
+    "resource": "common/visual/uk/gun/main/bgm079_120mm_45_qf_cp_mkxix_twin/bgm079_120mm_45_qf_cp_mkxix_twin",
+    "sourceName": "bgm079_120mm_45_qf_cp_mkxix_twin",
+    "match": "exact",
+    "notes": "Jervis A artillery; Jupiter (1942), Cossack and Eskimo fit the same visual, so the collection gains one variant. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm079_120mm_45_qf_cp_mkxix_twin/bgm079_120mm_45_qf_cp_mkxix_twin.model"
+    ]
+  },
+  {
+    "partId": "qf-47-mkix-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd105",
+    "sourceVehicle": "pbsd105",
+    "resource": "common/visual/uk/gun/main/bgm075_120mm_45_qf_mkix/bgm075_120mm_45_qf_mkix",
+    "sourceName": "bgm075_120mm_45_qf_mkix",
+    "match": "exact",
+    "notes": "Acasta A artillery; Icarus, Gallant and Anthony fit the same visual, so the collection gains one variant. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd105",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm075_120mm_45_qf_mkix/bgm075_120mm_45_qf_mkix.model"
+    ]
+  },
+  {
+    "partId": "qf-47-mkxi-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd108",
+    "sourceVehicle": "pbsd108",
+    "resource": "common/visual/uk/gun/main/bgm086_4_7in_50qf_mkxi/bgm086_4_7in_50qf_mkxi",
+    "sourceName": "bgm086_4_7in_50qf_mkxi",
+    "match": "exact",
+    "notes": "Lightning A/B artillery; the only vehicle in the listing that fits this visual, so the collection gains one variant. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm086_4_7in_50qf_mkxi/bgm086_4_7in_50qf_mkxi.model"
+    ]
+  },
+  {
+    "partId": "qf-45-mkiv-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd109",
+    "sourceVehicle": "pbsd109",
+    "resource": "common/visual/uk/gun/main/bgm087_4_5in_45_mk4_2barrels/bgm087_4_5in_45_mk4_2barrels",
+    "sourceName": "bgm087_4_5in_45_mk4_2barrels",
+    "match": "exact",
+    "notes": "Jutland A1/B1 artillery fits this gunhouse at all five positions. Barfleur (pbsd719) and Somme (pbsd519) use the same resource, and the Drake (pbsc209) secondary bgs128_4_5in_45_mk4_2barrels is the same mesh re-exported (identical vertex and triangle sets), so one part covers both; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd109",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm087_4_5in_45_mk4_2barrels/bgm087_4_5in_45_mk4_2barrels.model"
+    ]
+  },
+  {
+    "partId": "qf-45-mkv-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd110",
+    "sourceVehicle": "pbsd110",
+    "resource": "common/visual/uk/gun/main/bgm102_4_5in45_mk_5/bgm102_4_5in45_mk_5",
+    "sourceName": "bgm102_4_5in45_mk_5",
+    "match": "exact",
+    "notes": "Daring A1 artillery fits this gunhouse at all three positions. The cruiser secondary bgs034_4_5in45_mk_5 (Cheshire pbsc508 and sisters) is byte-identical to this resource, so one part covers both; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd110",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm102_4_5in45_mk_5/bgm102_4_5in45_mk_5.model"
+    ]
+  },
+  {
+    "partId": "qf-45-mkiv-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd109",
+    "sourceVehicle": "pbsd109",
+    "resource": "common/visual/uk/gun/main/bgm093_4_5in_45_mk4_1barrel/bgm093_4_5in_45_mk4_1barrel",
+    "sourceName": "bgm093_4_5in_45_mk4_1barrel",
+    "match": "exact",
+    "notes": "Jutland A1 artillery carries this single mounting at HP_BGM_3 alongside the twin bgm087; no other approved vehicle in the scan uses it. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsd109",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/main/bgm093_4_5in_45_mk4_1barrel/bgm093_4_5in_45_mk4_1barrel.model"
+    ]
+  },
+  {
+    "partId": "qf-4-mkxix-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc101",
+    "sourceVehicle": "pbsc101",
+    "resource": "common/visual/uk/gun/secondary/bgs006_4in45_qf_mk_xix/bgs006_4in45_qf_mk_xix",
+    "sourceName": "bgs006_4in45_qf_mk_xix",
+    "match": "exact",
+    "notes": "Black Swan A artillery; the same open-backed hood is the high-angle secondary of Fiji pbsc107, Belfast pbsc507, Edinburgh pbsc108, Hood pbsb507, Warspite pbsb002 and Iron Duke pbsb105. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc101",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/secondary/bgs006_4in45_qf_mk_xix/bgs006_4in45_qf_mk_xix.model"
+    ]
+  },
+  {
+    "partId": "qf-4-mkxix-twin-enclosed",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc206",
+    "sourceVehicle": "pbsc206",
+    "resource": "common/visual/uk/gun/secondary/bgs127_4in45_qf_mk_xix/bgs127_4in45_qf_mk_xix",
+    "sourceName": "bgs127_4in45_qf_mk_xix",
+    "match": "exact",
+    "notes": "Devonshire secondary; the same fully plated hood is carried by London pbsc516, Belfast 1943 pbsc528 and Sinann pbsc708. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsc206",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/secondary/bgs127_4in45_qf_mk_xix/bgs127_4in45_qf_mk_xix.model"
+    ]
+  },
+  {
+    "partId": "sk-c36-150-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsd207",
+    "sourceVehicle": "pgsd207",
+    "resource": "common/visual/germany/gun/main/ggm076_150mm_tl_c_36/ggm076_150mm_tl_c_36",
+    "sourceName": "ggm076_150mm_tl_c_36",
+    "match": "exact",
+    "notes": "Z-31 carries this single at AB1 positions 2 and 3; Z-32, Z-33, Z-34, Z-38, Z-39, K. Schoenberg, G. J. Maerker and the Gaede AB2 hull fit the same visual. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsd207",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/main/ggm076_150mm_tl_c_36/ggm076_150mm_tl_c_36.model"
+    ]
+  },
+  {
+    "partId": "sk-c34-127-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsd108",
+    "sourceVehicle": "pgsd108",
+    "resource": "common/visual/germany/gun/main/ggm071_127mm_sk_c34/ggm071_127mm_sk_c34",
+    "sourceName": "ggm071_127mm_sk_c34",
+    "match": "exact",
+    "notes": "Z-23 fits this single at A1 and B1 positions; Maass, T-61, Z-35, Z-44 and the Gaede AB1 hull share the same visual. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsd108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/main/ggm071_127mm_sk_c34/ggm071_127mm_sk_c34.model"
+    ]
+  },
+  {
+    "partId": "type98-100-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd108",
+    "sourceVehicle": "pjsd108",
+    "resource": "common/visual/japan/gun/main/jgm055_100mm65_type98/jgm055_100mm65_type98",
+    "sourceName": "jgm055_100mm65_type98",
+    "match": "exact",
+    "notes": "Akizuki AB1 artillery; the same visual carries every mounting on Akizuki, Harekaze, Kitakaze, Fuyutsuki and Harugumo. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd108",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm055_100mm65_type98/jgm055_100mm65_type98.model"
+    ]
+  },
+  {
+    "partId": "type3-127-typea-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd706",
+    "sourceVehicle": "pjsd706",
+    "resource": "common/visual/japan/gun/main/jgm153_127_50_twin_type_a/jgm153_127_50_twin_type_a",
+    "sourceName": "jgm153_127_50_twin_type_a",
+    "match": "exact",
+    "notes": "Shinonome A1 artillery carries this gunhouse; the Shinonome B configuration (pjsd596) fits the same visual. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd706",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm153_127_50_twin_type_a/jgm153_127_50_twin_type_a.model"
+    ]
+  },
+  {
+    "partId": "type3-127-typeb-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd107",
+    "sourceVehicle": "pjsd107",
+    "resource": "common/visual/japan/gun/main/jgm148_127mm50_type_b/jgm148_127mm50_type_b",
+    "sourceName": "jgm148_127mm50_type_b",
+    "match": "exact",
+    "notes": "Akatsuki AB1 artillery carries this gunhouse. The Hatsuharu secondary slot (jgs021_127mm50_type_b, pjsd206) is the same mounting at reduced detail. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm148_127mm50_type_b/jgm148_127mm50_type_b.model"
+    ]
+  },
+  {
+    "partId": "type3-127-type5-twin",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd510",
+    "sourceVehicle": "pjsd510",
+    "resource": "common/visual/japan/gun/main/jgm176_127mm_50_type5/jgm176_127mm_50_type5",
+    "sourceName": "jgm176_127mm_50_type5",
+    "match": "exact",
+    "notes": "Hayate A artillery carries this gunhouse; Yamagiri (pjsd111, pjsd891) fits the same visual. The source names it 127mm_50_type5; no historical mounting designation is claimed. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd510",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm176_127mm_50_type5/jgm176_127mm_50_type5.model"
+    ]
+  },
+  {
+    "partId": "type3-127-typeb-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd207",
+    "sourceVehicle": "pjsd207",
+    "resource": "common/visual/japan/gun/main/jgm152_127mm50_type_b/jgm152_127mm50_type_b",
+    "sourceName": "jgm152_127mm50_type_b",
+    "match": "exact",
+    "notes": "Shiratsuyu AB1 artillery carries this single mounting; Yudachi (pjsd507) fits the same visual. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd207",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/japan/gun/main/jgm152_127mm50_type_b/jgm152_127mm50_type_b.model"
+    ]
+  },
+  {
+    "partId": "us-4in50-mk9-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd027",
+    "sourceVehicle": "pasd027",
+    "resource": "common/visual/usa/gun/secondary/ags040_4in50_mk12/ags040_4in50_mk12",
+    "sourceName": "ags040_4in50_mk12",
+    "match": "exact",
+    "notes": "Wickes broadside artillery HP_AGM_2/3/4; the same visual carries the Clemson (pasd019) and Sampson (pasd002) broadside positions. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd027",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/secondary/ags040_4in50_mk12/ags040_4in50_mk12.model"
+    ]
+  },
+  {
+    "partId": "us-4in50-mk9-shielded-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd027",
+    "sourceVehicle": "pasd027",
+    "resource": "common/visual/usa/gun/secondary/ags039_4in50_mk12/ags039_4in50_mk12",
+    "sourceName": "ags039_4in50_mk12",
+    "match": "exact",
+    "notes": "Wickes forecastle position HP_AGM_1; the same visual carries the Clemson (pasd019) forecastle gun. It is the ags040 pedestal mount under a splinter shield. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd027",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/secondary/ags039_4in50_mk12/ags039_4in50_mk12.model"
+    ]
+  },
+  {
+    "partId": "us-5in51-mk7-open-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd014",
+    "sourceVehicle": "pasd014",
+    "resource": "common/visual/usa/gun/secondary/ags085_5in51_mk_7_mod2/ags085_5in51_mk_7_mod2",
+    "sourceName": "ags085_5in51_mk_7_mod2",
+    "match": "exact",
+    "notes": "Nicholas broadside artillery HP_AGM_3/4, the open version of the Mk 7 pedestal mount. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd014",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/secondary/ags085_5in51_mk_7_mod2/ags085_5in51_mk_7_mod2.model"
+    ]
+  },
+  {
+    "partId": "us-5in51-mk7-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd014",
+    "sourceVehicle": "pasd014",
+    "resource": "common/visual/usa/gun/secondary/ags086_5in51_mk_7_mod2/ags086_5in51_mk_7_mod2",
+    "sourceName": "ags086_5in51_mk_7_mod2",
+    "match": "exact",
+    "notes": "Nicholas broadside artillery HP_AGM_1/2: the ags085 pedestal mount behind its shield. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd014",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/secondary/ags086_5in51_mk_7_mod2/ags086_5in51_mk_7_mod2.model"
+    ]
+  },
+  {
     "partId": "fletcher-quintuple-533",
     "category": "torpedo-launcher",
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",

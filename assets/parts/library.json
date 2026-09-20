@@ -15,6 +15,143 @@
         "scripts/ships/blender_barrels.py"
       ]
     },
+    "rn-qf-47-mkxii-twin": {
+      "path": "assets/parts/rn-destroyer-guns/qf_47_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-qf-47-mkix-single": {
+      "path": "assets/parts/rn-destroyer-guns/qf_47_single.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-qf-47-mkxi-twin": {
+      "path": "assets/parts/rn-destroyer-guns/qf_47_lightning_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-qf-45-mkiv-twin": {
+      "path": "assets/parts/rn-destroyer-guns/qf_45_mkiv_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-qf-45-mkv-twin": {
+      "path": "assets/parts/rn-destroyer-guns/qf_45_mkv_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-qf-45-mkiv-single": {
+      "path": "assets/parts/rn-destroyer-guns/qf_45_mkiv_single.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "rn-qf-4in-mkxix-twin": {
+      "path": "assets/parts/rn-destroyer-guns/qf_4in_mkxix.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "rn-qf-4in-mkxix-twin-enclosed": {
+      "path": "assets/parts/rn-destroyer-guns/qf_4in_mkxix.py",
+      "function": "create_enclosed_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "german-tbts-kc36-150": {
+      "path": "assets/parts/german-destroyer-guns/tbts_kc36_150.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "german-sk-c34-127": {
+      "path": "assets/parts/german-destroyer-guns/sk_c34_127.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "ijn-type98-100-twin": {
+      "path": "assets/parts/ijn-destroyer-guns/type_98.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-type-a": {
+      "path": "assets/parts/ijn-destroyer-guns/destroyer_mountings.py",
+      "function": "create_type_a",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-type-b-twin": {
+      "path": "assets/parts/ijn-destroyer-guns/destroyer_mountings.py",
+      "function": "create_type_b_twin",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-type-5": {
+      "path": "assets/parts/ijn-destroyer-guns/destroyer_mountings.py",
+      "function": "create_type_five",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-type-b-single": {
+      "path": "assets/parts/ijn-destroyer-guns/destroyer_mountings.py",
+      "function": "create_type_b_single",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-4in50-open-single": {
+      "path": "assets/parts/us-destroyer-guns/four_inch_fifty.py",
+      "function": "create_open_single",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-4in50-shielded-single": {
+      "path": "assets/parts/us-destroyer-guns/four_inch_fifty.py",
+      "function": "create_shielded_single",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-5in51-open-single": {
+      "path": "assets/parts/us-destroyer-guns/five_inch_fiftyone.py",
+      "function": "create_open_single",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-5in51-shielded-single": {
+      "path": "assets/parts/us-destroyer-guns/five_inch_fiftyone.py",
+      "function": "create_shielded_single",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
     "us-mk30": {
       "path": "assets/parts/us-mk30/geometry.py",
       "function": "create_mount",
@@ -477,6 +614,158 @@
       "review": "unreviewed",
       "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
       "builder": "ijn-type-c"
+    },
+    {
+      "partId": "qf-47-mkxii-twin",
+      "nation": "United Kingdom",
+      "family": "4.7-inch twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsd107 A artillery (bgm079). Shield plating, interior mechanisms and service fittings are approximate; weapon and armour values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-qf-47-mkxii-twin"
+    },
+    {
+      "partId": "qf-47-mkix-single",
+      "nation": "United Kingdom",
+      "family": "4.7-inch single mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsd105 A/B artillery (bgm075). Shield plating, interior mechanisms and service fittings are approximate; weapon and armour values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-qf-47-mkix-single"
+    },
+    {
+      "partId": "qf-47-mkxi-twin",
+      "nation": "United Kingdom",
+      "family": "4.7-inch twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsd108 A/B artillery (bgm086). Gunhouse facets, mantlet housings and external fittings are approximate; weapon and armour values are provisional game calibration over published mounting data. Installed clearance requires ship review.",
+      "builder": "rn-qf-47-mkxi-twin"
+    },
+    {
+      "partId": "qf-45-mkiv-twin",
+      "nation": "United Kingdom",
+      "family": "4.5-inch twin between-decks mounting",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsd109 A1 artillery (bgm087). The gun-port recess sill and back wall are set deeper than the approved visual so the elevating port shields and breeches clear through the published elevation range; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-qf-45-mkiv-twin"
+    },
+    {
+      "partId": "qf-45-mkv-twin",
+      "nation": "United Kingdom",
+      "family": "4.5-inch Mk V twin mounting",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsd110 A1 artillery (bgm102). The gun-slot sill is 0.25 m lower than the approved visual and the rigid elevating slab is replaced by a shield curved on the trunnion radius so nothing passes through the gunhouse; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-qf-45-mkv-twin"
+    },
+    {
+      "partId": "qf-45-mkiv-single",
+      "nation": "United Kingdom",
+      "family": "4.5-inch single shielded mounting",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsd109 A1 artillery (bgm093). The approved shield is an open-backed thin plate with a separate rear canopy; the catalog shell is the closed wedge solid of the same envelope, so the crew space behind it is not represented in the armor, and the slot sill and back wall are cut deeper so the barrel clears through the published elevation range. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-qf-45-mkiv-single"
+    },
+    {
+      "partId": "qf-4-mkxix-twin",
+      "nation": "United Kingdom",
+      "family": "4-inch QF Mk XIX twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsc101 (bgs006_4in45_qf_mk_xix). The crown port slots, interior fittings and canvas covers are approximations; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-qf-4in-mkxix-twin"
+    },
+    {
+      "partId": "qf-4-mkxix-twin-enclosed",
+      "nation": "United Kingdom",
+      "family": "4-inch QF Mk XIX twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pbsc206 (bgs127_4in45_qf_mk_xix). The crown port slots, interior fittings and canvas covers are approximations; weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "rn-qf-4in-mkxix-twin-enclosed"
+    },
+    {
+      "partId": "sk-c36-150-single",
+      "nation": "Germany",
+      "family": "15 cm single mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pgsd207 AB1 artillery (ggm076). The gun-port hood is carried on the elevating mass so the bore clears the shield through the full arc; the static source welds it to the plate. Vision openings are recessed frames, not cut armor. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "german-tbts-kc36-150"
+    },
+    {
+      "partId": "sk-c34-127-single",
+      "nation": "Germany",
+      "family": "12.7 cm single mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pgsd108 B1 artillery (ggm071). The gun-port slot is opened to the bore sweep and the front roof line flattened about 0.14 m so the barrel clears at full elevation; the static source needs neither. Vision openings are recessed wells, not cut armor. Weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "german-sk-c34-127"
+    },
+    {
+      "partId": "type98-100-twin",
+      "nation": "Japan",
+      "family": "10 cm twin mount",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pjsd108 AB1 artillery (jgm055). The two roof slots are drawn as one armoured trough with a separate splinter web, the mantlets are smaller than the original so they clear the trough sole, and weapon and armour values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-type98-100-twin"
+    },
+    {
+      "partId": "type3-127-typea-twin",
+      "nation": "Japan",
+      "family": "127 mm/50 Type A twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction from one approved visual; elevation limits and weapon values are published/provisional figures, not certified historical data.",
+      "builder": "ijn-type-a"
+    },
+    {
+      "partId": "type3-127-typeb-twin",
+      "nation": "Japan",
+      "family": "127 mm/50 Type B twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction from one approved visual; elevation limits and weapon values are published/provisional figures, not certified historical data.",
+      "builder": "ijn-type-b-twin"
+    },
+    {
+      "partId": "type3-127-type5-twin",
+      "nation": "Japan",
+      "family": "127 mm/50 Type 5 enclosed twin",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction from one approved visual; the mounting designation follows the source resource name and the weapon values are provisional.",
+      "builder": "ijn-type-5"
+    },
+    {
+      "partId": "type3-127-typeb-single",
+      "nation": "Japan",
+      "family": "127 mm/50 Type B single",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction from one approved visual; elevation limits and weapon values are published/provisional figures, not certified historical data.",
+      "builder": "ijn-type-b-single"
+    },
+    {
+      "partId": "us-4in50-mk9-single",
+      "nation": "United States",
+      "family": "US 4-inch/50 flush-decker mounts",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pasd027 broadside artillery (ags040); sighting gear, seats and handwheels approximate, and weapon values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-4in50-open-single"
+    },
+    {
+      "partId": "us-4in50-mk9-shielded-single",
+      "nation": "United States",
+      "family": "US 4-inch/50 flush-decker mounts",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pasd027 broadside artillery (ags039); the knuckle carries the gun port aft so the jacket clears the plating at full elevation, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-4in50-shielded-single"
+    },
+    {
+      "partId": "us-5in51-mk7-open-single",
+      "nation": "United States",
+      "family": "US 5-inch/51 pedestal mounts",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pasd014 broadside artillery (ags085); sighting gear, seats and handwheels approximate, and weapon values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-5in51-open-single"
+    },
+    {
+      "partId": "us-5in51-mk7-single",
+      "nation": "United States",
+      "family": "US 5-inch/51 pedestal mounts",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against GameModels3D pasd014 broadside artillery (ags086); the raked upper plate carries the gun port aft so the jacket clears the plating at full elevation, and weapon and armor values are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "us-5in51-shielded-single"
     },
     {
       "partId": "type96-25-yukikaze-triple",
