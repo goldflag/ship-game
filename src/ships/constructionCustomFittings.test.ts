@@ -13,7 +13,7 @@ import {
   publishedConstructionCatalog,
   resolveCustomFitting,
 } from './constructionCustomFittings';
-import { decodeConstructionSource, decodeSavedConstruction } from './constructionEditor';
+import { CONSTRUCTION_LIMITS, decodeConstructionSource, decodeSavedConstruction } from './constructionEditor';
 import { constructionCatalogUpdate } from './constructionEquipment';
 import { placementItems } from './constructionPlacement';
 import { constructionBounds, constructionGet, constructionSummary } from './constructionQuery';
@@ -141,13 +141,13 @@ test('custom instances have their own budget; decode checks the table', () => {
   const s = source();
   s.construction.equipment = Array.from({ length: 200 }, (_, i) => ({ id: `b${i}`, partId: 'design:fit-bollard', position: [0, 5, i] as [number, number, number], bearingDeg: 0 }));
   expect(equipmentCounts(s.construction)).toEqual({ catalog: 0, custom: 200 });
-  expect(equipmentOverLimit(s.construction, [{ partId: 'design:fit-bollard' }], 128)).toBe(false);
-  expect(equipmentOverLimit(s.construction, Array(CUSTOM_FITTING_LIMITS.instances - 199).fill({ partId: 'design:fit-bollard' }), 128)).toBe(true);
-  expect(equipmentOverLimit(s.construction, Array(129).fill({ partId: 'generic-bollard' }), 128)).toBe(true);
+  expect(equipmentOverLimit(s.construction, [{ partId: 'design:fit-bollard' }], CONSTRUCTION_LIMITS.equipment)).toBe(false);
+  expect(equipmentOverLimit(s.construction, Array(CUSTOM_FITTING_LIMITS.instances - 199).fill({ partId: 'design:fit-bollard' }), CONSTRUCTION_LIMITS.equipment)).toBe(true);
+  expect(equipmentOverLimit(s.construction, Array(CONSTRUCTION_LIMITS.equipment + 1).fill({ partId: 'generic-bollard' }), CONSTRUCTION_LIMITS.equipment)).toBe(true);
   expect(decodeConstructionSource(s).construction.fittings).toHaveLength(2);
   for (const broken of [{ ...bollard, version: 2 }, { ...bollard, attach: 'wall' }, { ...bollard, tubes: [{ id: 't', points: [[0, 0, 0]], diameterM: 0.1 }] }, { ...bollard, solids: [{ ...bollard.solids[1], kind: 'ballast' }] }])
     expect(() => decodeConstructionSource({ ...s, construction: { ...s.construction, fittings: [broken] } })).toThrow();
-  // 200 seated instances compile natively and stay outside the 128 equipment limit.
+  // 130 seated instances compile natively and stay outside the catalog equipment budget.
   const seated = structuredClone(s);
   seated.construction.equipment = seated.construction.equipment.slice(0, 130).map((item, i) => ({ ...item, position: [0, 0, 0] }));
   const result = JSON.parse(compile_construction(JSON.stringify(seated), JSON.stringify(catalog))) as ConstructionResult;
@@ -157,8 +157,8 @@ test('custom instances have their own budget; decode checks the table', () => {
 test('summary, get, bounds and place read definitions and instances', () => {
   const s = batch(source(), { op: 'equipment', value: { id: 'd1', partId: 'design:fit-davit', position: [4, 3, 0], bearingDeg: 90 } });
   const summary = constructionSummary(s, catalog);
-  expect(summary.limits.equipment).toEqual({ used: 0, limit: 128, free: 128 });
-  expect(summary.limits.customFittingInstances).toEqual({ used: 1, limit: 512, free: 511 });
+  expect(summary.limits.equipment).toEqual({ used: 0, limit: 1_000, free: 1_000 });
+  expect(summary.limits.customFittingInstances).toEqual({ used: 1, limit: 1_000, free: 999 });
   expect(summary.limits.customFittingDefinitions).toEqual({ used: 2, limit: 32, free: 30 });
   expect(summary.customFittings).toEqual([
     ['fit-bollard', 'Twin bollard', 3, 1, Number(resolveCustomFitting(bollard).massKg!.toFixed(3)), 0, 'design:fit-bollard'],

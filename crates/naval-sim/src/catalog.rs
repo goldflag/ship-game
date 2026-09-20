@@ -9,6 +9,10 @@ use std::{
     sync::Arc,
 };
 
+/// Machinery ratings in one shared-exhaust pool. Unrelated to the editor's fitting
+/// detail budget, which this bound used to borrow from `construction::MAX_EQUIPMENT`.
+const MAX_SHARED_EXHAUST_RATINGS: usize = 128;
+
 #[derive(Debug, thiserror::Error)]
 pub enum ContentError {
     #[error("Invalid content: {0}")]
@@ -348,7 +352,7 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         .and_then(|p| p.shared_exhaust.as_ref())
     {
         for (ratings, role) in [(&pool.engines, "combined-drive"), (&pool.funnels, "boiler")] {
-            if ratings.len() > crate::construction::MAX_EQUIPMENT
+            if ratings.len() > MAX_SHARED_EXHAUST_RATINGS
                 || !ids_unique(ratings.iter().map(|r| r.id.as_str()))
                 || ratings.iter().any(|r| {
                     !r.kw.is_finite()

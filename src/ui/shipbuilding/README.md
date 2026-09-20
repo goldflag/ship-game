@@ -131,7 +131,7 @@ Layer notes:
   design's own fitting definitions (`construction.fittings`) with cards drawn live from the
   definition and a `×N` count of fitted instances. A card arms placement like any deck fitting;
   instances select, move, rotate, mirror, copy, paint and delete like catalog fittings and have
-  their own limit (ledger row **Custom fittings**, 512). The shelf strip and a selected instance
+  their own limit (ledger row **Custom fittings**, 1,000). The shelf strip and a selected instance
   show the definition's name (editable), mass, solid and tube counts, **Duplicate definition** and
   **Delete definition**, which is disabled while instances use it (`CustomFittingFields.tsx`).
   Shapes are not editable in the editor yet; agents define them with the `fitting` command. See

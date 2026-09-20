@@ -125,8 +125,8 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
     case 'fittings': {
       const mounts = result?.definition?.mounts.length ?? 0, tubes = result?.definition?.torpedoTubes?.length ?? 0;
       const counts = equipmentCounts(data);
-      rows.push(row('Fittings', `${counts.catalog} / ${CONSTRUCTION_LIMITS.equipment} · ${mounts} guns · ${tubes} tubes`, counts.catalog > CONSTRUCTION_LIMITS.equipment * .95 ? 'warn' : undefined));
-      if (counts.custom || data.fittings?.length) rows.push(row('Custom fittings', `${counts.custom} / ${CUSTOM_FITTING_LIMITS.instances} · ${data.fittings?.length ?? 0} shapes`, counts.custom > CUSTOM_FITTING_LIMITS.instances * .95 ? 'warn' : undefined));
+      rows.push(row('Fittings', `${counts.catalog.toLocaleString()} / ${CONSTRUCTION_LIMITS.equipment.toLocaleString()} · ${mounts} guns · ${tubes} tubes`, counts.catalog > CONSTRUCTION_LIMITS.equipment * .95 ? 'warn' : undefined));
+      if (counts.custom || data.fittings?.length) rows.push(row('Custom fittings', `${counts.custom.toLocaleString()} / ${CUSTOM_FITTING_LIMITS.instances.toLocaleString()} · ${data.fittings?.length ?? 0} shapes`, counts.custom > CUSTOM_FITTING_LIMITS.instances * .95 ? 'warn' : undefined));
       break;
     }
     case 'paint': {
