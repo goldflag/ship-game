@@ -78,7 +78,33 @@ Full funnel casings use oval below-deck uptake openings. The native compiler use
 flooding openings, including separate uptakes on trunked funnels, preserving the
 surrounding deck. Guns with working wells and full funnels cut the deck;
 deck-mounted light guns, the separate funnel cap, closed hatches, vents and
-torpedo launchers do not.
+torpedo launchers do not. A well whose top stops within 1 cm below the deck still
+crosses it: seating arithmetic and lofted plating land fractions of a millimetre
+below a deck plane, and a well that did not cut it left a skin-thin lid the later
+checks could not measure. Platforms (`balcony`) are deliberately still not crossed, and this tolerance does
+not change that: a platform is solid steel with no compartment under it, so a well
+over one is rejected rather than opening an invented hole.
+Seat a mount whose well would reach a platform on the hull or deckhouse block
+below it, or raise it above the platform with **Turret rise**.
+
+### Fit tolerances
+
+A gun's working well is derived geometry, clipped against plating and against the
+seams between touching blocks, so it collects wedges and shavings no authoring move
+can remove. Its fit check ignores that residue up to the allowance below; an authored
+internal package or load still has to fit exactly. The constants live in one block,
+`fit` in `crates/naval-sim/src/construction.rs`:
+
+| Constant | Value | Meaning |
+| --- | --- | --- |
+| `OUTSIDE_FLOOR_M3` | 0.005 m³ | Outside volume ignored outright, for a small well |
+| `OUTSIDE_FRACTION` | 0.5% | Outside volume ignored, as a share of the well's own volume. Derived working wells only: an authored internal package must still fit exactly |
+| `ATTACHMENT_M` | 0.08 m | Attachment datum to its hull support, raised from 5 cm |
+| `FITTED_BASE_M` | 0.005 m | Depth an exterior body may sink into the hull under its base (unchanged) |
+| `DECK_CROSSING_M` | 0.01 m | Gap below a deck a working well still crosses |
+
+Real faults still fail: a mount floating 0.3 m over its deck, one buried 0.5 m in
+it, or a well half outside the hull are all far above these allowances.
 
 Funnels and masts are never collision bodies. Each catalog box encloses
 platforms, galleries, yards and rigging that real structure passes through, so
@@ -366,7 +392,7 @@ existing files. Failed proposals return no applicable batch and exit nonzero.
 ### Placing equipment
 
 Do not compute equipment heights by hand. The compiler rejects an attachment more than
-5 cm from its support (5 mm for wall fittings and fitted gun bases), decks are sheered
+8 cm from its support (5 mm for wall fittings and fitted gun bases), decks are sheered
 and `position` is the part's retained datum, not the centre or base of its bounds.
 `ship:place` and `ship:reseat` resolve the seat against the hull the native compiler
 builds, then compile the exact candidate before returning it. Like `ship:suggest` they
@@ -918,7 +944,7 @@ failed support, attachment or clearance check; the same numbers are in `message`
 | Field | Meaning |
 | --- | --- |
 | `gapM` | Metres from the attachment datum to the nearest support along the socket direction. Positive floats clear of it, negative is buried in it. When nothing lies on the socket line, the distance to the nearest support |
-| `toleranceM` | Tolerance the gap was tested against: `0.05` attachment, `0.005` fitted base |
+| `toleranceM` | Tolerance the gap was tested against: `0.08` attachment, `0.005` fitted base |
 | `nearestSupportId` | Hull piece that owns that support. Absent for internal structure |
 | `seatPosition` | Equipment `position` that closes the gap. It fixes this fault only; the next compile checks the rest |
 | `penetrationM` | Depth of the overlap with the hull along the seating axis, or the shallowest extent of the overlap with `relatedSourceIds[0]` |

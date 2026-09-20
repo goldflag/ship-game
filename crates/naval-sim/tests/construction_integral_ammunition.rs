@@ -186,16 +186,18 @@ fn sloped_custom_hull_turrets_still_reject_real_obstructions() {
         }
         let result = construction::compile(&draft, &catalog);
         assert!(result.definition.is_none(), "{fault} must block launch");
-        let code = if fault == "floating" {
-            "equipment-attachment"
+        // A well that leaves the hull may be caught by either the installation
+        // backing check or the later free-interior check, whichever measures it first.
+        let codes: &[&str] = if fault == "floating" {
+            &["equipment-attachment"]
         } else {
-            "equipment-fit"
+            &["equipment-fit", "installation-support"]
         };
         assert!(
             result
                 .diagnostics
                 .iter()
-                .any(|d| d.code == code && d.source_id.as_deref() == Some("gun")),
+                .any(|d| codes.contains(&d.code.as_str()) && d.source_id.as_deref() == Some("gun")),
             "{fault}: {:?}",
             result.diagnostics
         );

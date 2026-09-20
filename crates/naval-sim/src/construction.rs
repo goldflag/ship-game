@@ -22,6 +22,35 @@ const SEA_DENSITY: f64 = 1025.;
 // Fitted equipment, service loads, ammunition and authored steel remain additive.
 const INTERNAL_ALLOWANCE_KG_PER_M3: f64 = 150.;
 
+/// Fit tolerances. Lofted plating, touching blocks and near-coplanar cuts leave
+/// skin-thick residue around a package that no authoring move can remove, so every
+/// fit check ignores an outside volume up to one plating skin over the package's own
+/// boundary and reports the rest. Keep them here, nowhere else; the TypeScript side
+/// reads them back off diagnostics. `docs/construction-authoring.md` lists the values.
+pub mod fit {
+    /// Outside volume ignored outright, for small wells whose own skin is tiny.
+    pub const OUTSIDE_FLOOR_M3: f64 = 0.005;
+    /// Outside volume ignored as a fraction of the well's own occupied volume. The
+    /// wedges a sloped or seamed block leaves around a well measure well under 1%;
+    /// an authored wall or a well outside the hull is worth many times that.
+    pub const OUTSIDE_FRACTION: f64 = 0.005;
+    /// Distance from an attachment datum to its hull support that still counts as seated.
+    /// Lofted station plating moves by centimetres between frames. Kept under the 10 cm
+    /// that `tests/construction_deck_fittings.rs` pins as a real gap.
+    pub const ATTACHMENT_M: f64 = 0.08;
+    /// Depth an exterior body may sink into the hull under its own base area. Left at
+    /// 5 mm: it is already a volume allowance over the whole base, and the sloped-hull
+    /// obstruction case in `tests/construction_integral_ammunition.rs` sits just above
+    /// it, so a larger figure would stop catching a pillar through a gun body.
+    pub const FITTED_BASE_M: f64 = 0.005;
+    /// A working well whose top stops this far below a deck still crosses it.
+    pub const DECK_CROSSING_M: f64 = 0.01;
+    /// Outside volume a fit check ignores for a package of this occupied volume.
+    pub fn outside_allowance_m3(occupied_m3: f64) -> f64 {
+        OUTSIDE_FLOOR_M3.max(occupied_m3 * OUTSIDE_FRACTION)
+    }
+}
+
 pub(crate) fn valid_id(s: &str) -> bool {
     !s.is_empty()
         && s.len() <= 64
@@ -1071,11 +1100,15 @@ fn build(
                         Some(&e.id),
                     ));
                 }
-                let cell = cg::transform(
-                    &crate::construction_installation::space_cell(catalog, p, &space),
-                    e.position,
-                    [1.; 3],
-                    -e.bearing_deg.to_radians(),
+                let cell = crate::construction_installation::crossing_cell(
+                    cg::transform(
+                        &crate::construction_installation::space_cell(catalog, p, &space),
+                        e.position,
+                        [1.; 3],
+                        -e.bearing_deg.to_radians(),
+                    ),
+                    &cells,
+                    fit::DECK_CROSSING_M,
                 );
                 wells.push((e.id.clone(), p.kind.clone(), cell));
             }
@@ -1447,7 +1480,9 @@ fn build(
         let unsupported = cache
             .subtract_all(installation.solids.clone(), &backing)
             .map_err(fail)?;
-        if cg::total(&unsupported).volume > 1e-6 {
+        if cg::total(&unsupported).volume
+            > fit::outside_allowance_m3(cg::total(&installation.solids).volume).max(1e-6)
+        {
             let outside = cg::total(&unsupported);
             let near = outside.center();
             errors.push(error(
@@ -1490,7 +1525,7 @@ fn build(
                     )
                 });
             errors.push(match seat {
-                Some(seat) => seat.describe(d, 0.05),
+                Some(seat) => seat.describe(d, fit::ATTACHMENT_M),
                 None => d,
             });
             continue;
@@ -2654,11 +2689,15 @@ fn equipment(
                         Some(&e.id),
                     ));
                 }
-                let volume = cg::transform(
-                    &crate::construction_installation::space_cell(catalog, p, &space),
-                    e.position,
-                    [1.; 3],
-                    -e.bearing_deg.to_radians(),
+                let volume = crate::construction_installation::crossing_cell(
+                    cg::transform(
+                        &crate::construction_installation::space_cell(catalog, p, &space),
+                        e.position,
+                        [1.; 3],
+                        -e.bearing_deg.to_radians(),
+                    ),
+                    hull,
+                    fit::DECK_CROSSING_M,
                 );
                 if p.placement == "deck" {
                     occupied.extend(hull.iter().filter_map(|h| cg::intersection(&volume, h)));
@@ -2692,7 +2731,15 @@ fn equipment(
                     )
                 }
             };
-            if cg::total(&outside).volume > 1e-5 {
+            // Only derived working wells earn the skin allowance: they are clipped
+            // against plating and block seams the author cannot reach. An internal
+            // package is an authored box that must genuinely fit in free interior.
+            let allowance = if p.placement == "deck" {
+                fit::outside_allowance_m3(cg::total(&occupied).volume)
+            } else {
+                1e-5
+            };
+            if cg::total(&outside).volume > allowance {
                 let blocked = cg::total(&outside);
                 let near = blocked.center();
                 reject!(error(
@@ -2722,7 +2769,7 @@ fn equipment(
             );
         }
         // Check the explicit original attachment socket (or the package's base datum).
-        // Small 5 cm installation tolerance is independent of the 1 m hull grid.
+        // The `fit::ATTACHMENT_M` installation tolerance is independent of the 1 m hull grid.
         let mut local_attachment = p
             .sockets
             .as_ref()
@@ -2761,7 +2808,8 @@ fn equipment(
         let attached = (p.kind == "engine" && p.placement == "internal")
             || supports.iter().any(|h| {
                 cg::contains(h, attachment)
-                    || length(sub(cg::closest_point(h, attachment), attachment)) <= 0.05
+                    || length(sub(cg::closest_point(h, attachment), attachment))
+                        <= fit::ATTACHMENT_M
             });
         let attached = attached
             && ((p.kind != "deck-fitting"
@@ -2778,7 +2826,7 @@ fn equipment(
                     attachment,
                     Some(world_direction),
                     false,
-                    0.05,
+                    fit::ATTACHMENT_M,
                 ));
         let attached = attached
             && (p.placement != "underwater"
@@ -2787,7 +2835,7 @@ fn equipment(
                         && length(sub(
                             cg::closest_point(&cg::prism(&s.vertices, 0.001), attachment),
                             attachment,
-                        )) <= 0.05
+                        )) <= fit::ATTACHMENT_M
                 }));
         let support = if attached {
             None
@@ -2800,7 +2848,7 @@ fn equipment(
                 if p.kind == "propeller" {
                     "No hull connection for this propeller; move it closer to the stern or beneath the hull"
                 } else {
-                    "Equipment attachment has no physical hull support within 5 cm"
+                    "Equipment attachment has no physical hull support within 10 cm"
                 },
                 Some(&e.id),
             );
@@ -2818,7 +2866,7 @@ fn equipment(
                 )
             };
             reject!(match seat {
-                Some(seat) => seat.describe(d, 0.05),
+                Some(seat) => seat.describe(d, fit::ATTACHMENT_M),
                 None => d,
             });
         }
@@ -2911,7 +2959,8 @@ fn equipment(
                             p.size[0] * p.size[2]
                         };
                         let volume = cg::moments(&x);
-                        (volume.volume > base_area * 0.005).then(|| (volume.center(), x))
+                        (volume.volume > base_area * fit::FITTED_BASE_M)
+                            .then(|| (volume.center(), x))
                     })
                 })
             })
@@ -2946,7 +2995,7 @@ fn equipment(
                 true,
                 footprint,
             ) {
-                Some(seat) => seat.describe(d, 0.005),
+                Some(seat) => seat.describe(d, fit::FITTED_BASE_M),
                 None => d,
             });
         }
@@ -4523,7 +4572,10 @@ mod tests {
             .unwrap();
         assert_eq!(floating.code, "equipment-attachment");
         assert_eq!(floating.fit.as_ref().unwrap().gap_m, Some(0.8));
-        assert_eq!(floating.fit.as_ref().unwrap().tolerance_m, Some(0.05));
+        assert_eq!(
+            floating.fit.as_ref().unwrap().tolerance_m,
+            Some(fit::ATTACHMENT_M)
+        );
         assert_eq!(
             floating.fit.as_ref().unwrap().nearest_support_id.as_deref(),
             Some("box")
@@ -5542,6 +5594,61 @@ mod tests {
         assert_eq!(fresh.damage.compartments[0].water_m3, 0.);
     }
     #[test]
+    fn fit_tolerances_pass_skin_deep_faults_and_still_reject_real_ones() {
+        let (base, c) = equipped_fixture();
+        let mut fitted = base.clone();
+        fitted
+            .construction
+            .equipment
+            .retain(|e| matches!(e.id.as_str(), "gun" | "magazine"));
+        let at = |y: f64, x: f64| {
+            let mut s = fitted.clone();
+            let gun = s
+                .construction
+                .equipment
+                .iter_mut()
+                .find(|e| e.id == "gun")
+                .unwrap();
+            gun.position = [x, y, 0.];
+            compile(&s, &c)
+        };
+        // The hull box top is y = 2. Seating arithmetic lands a hair below a deck
+        // plane; such a well still crosses the deck and the gun still fits.
+        assert!(at(2., 0.).definition.is_some());
+        let well_openings = |result: &ConstructionResult| {
+            result
+                .definition
+                .as_ref()
+                .and_then(|d| d.openings.as_ref())
+                .map_or(0, |o| o.iter().filter(|o| o.id == "well-gun").count())
+        };
+        assert!(well_openings(&at(2., 0.)) > 0);
+        for y in [2. - 1e-6, 2. - 1e-4, 2. - fit::DECK_CROSSING_M / 2.] {
+            let result = at(y, 0.);
+            assert!(result.definition.is_some(), "{y}: {:?}", result.diagnostics);
+            // Without the crossing tolerance the deck keeps a skin-thin lid over the
+            // well: no penetration, and every later cut of that lid is degenerate.
+            assert!(well_openings(&result) > 0, "{y} did not open its deck");
+        }
+        // A well that stops clear of the deck does not cut it.
+        assert_eq!(well_openings(&at(2. - fit::DECK_CROSSING_M * 4., 0.)), 0);
+        // Genuinely wrong placements still fail: buried, floating, half outside.
+        for (y, x) in [(1.5, 0.), (2.3, 0.), (2., 4.5)] {
+            let result = at(y, x);
+            assert!(result.definition.is_none(), "{y} {x} was accepted");
+            assert!(
+                result
+                    .diagnostics
+                    .iter()
+                    .any(|d| d.code.starts_with("equipment-") || d.code == "installation-support"),
+                "{y} {x}: {:?}",
+                result.diagnostics
+            );
+        }
+        assert!(fit::outside_allowance_m3(0.) == fit::OUTSIDE_FLOOR_M3);
+        assert!(fit::outside_allowance_m3(100.) == 100. * fit::OUTSIDE_FRACTION);
+    }
+    #[test]
     fn intrinsic_well_never_carves_side_armor() {
         let (mut s, c) = equipped_fixture();
         s.construction
@@ -5555,7 +5662,14 @@ mod tests {
             .position = [4.5, 2., 4.];
         let result = compile(&s, &c);
         assert!(result.definition.is_none());
-        assert!(result.diagnostics.iter().any(|d| d.code == "equipment-fit"));
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "equipment-fit" || d.code == "installation-support"),
+            "{:?}",
+            result.diagnostics
+        );
     }
     #[test]
     fn proposals_preserve_existing_instances_and_fail_atomically() {
