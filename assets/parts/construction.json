@@ -11058,6 +11058,804 @@
           ]
         }
       ]
+    },
+    {
+      "id": "qf-2pdr-mkvii-quad",
+      "name": "Quadruple QF 2-pounder Mk VII pom-pom",
+      "kind": "gun",
+      "size": [
+        2.892,
+        2.607,
+        3.47
+      ],
+      "boundsCenter": [
+        0.0,
+        1.304,
+        0.075
+      ],
+      "centerOfGravity": [
+        0,
+        0.8515,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-2pdr-mkvii-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-2pdr-mkvii-quad-shielded",
+      "name": "Quadruple QF 2-pounder Mk VII pom-pom, shielded",
+      "kind": "gun",
+      "size": [
+        2.966,
+        2.607,
+        3.47
+      ],
+      "boundsCenter": [
+        0.0,
+        1.304,
+        0.075
+      ],
+      "centerOfGravity": [
+        0,
+        0.8515,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-2pdr-mkvii-quad-shielded",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-2pdr-mkvii-quad-plated",
+      "name": "Quadruple QF 2-pounder Mk VII pom-pom, plated",
+      "kind": "gun",
+      "size": [
+        2.916,
+        2.607,
+        3.571
+      ],
+      "boundsCenter": [
+        0.0,
+        1.304,
+        0.125
+      ],
+      "centerOfGravity": [
+        0,
+        0.8515,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-2pdr-mkvii-quad-plated",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-2pdr-mkvii-quad-screened",
+      "name": "Quadruple QF 2-pounder Mk VII pom-pom, screened",
+      "kind": "gun",
+      "size": [
+        3.64,
+        2.607,
+        3.47
+      ],
+      "boundsCenter": [
+        0.0,
+        1.304,
+        0.075
+      ],
+      "centerOfGravity": [
+        0,
+        0.8515,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-2pdr-mkvii-quad-screened",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak38-20-vierling",
+      "name": "2 cm Flakvierling 38 quadruple",
+      "kind": "gun",
+      "size": [
+        2.34,
+        2.8143,
+        2.9462
+      ],
+      "boundsCenter": [
+        0,
+        1.4071,
+        -0.2915
+      ],
+      "centerOfGravity": [
+        0,
+        0.936,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak38-20-vierling",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak38-20-vierling-shielded",
+      "name": "2 cm Flakvierling 38 quadruple, shielded mounting",
+      "kind": "gun",
+      "size": [
+        2.52,
+        2.3543,
+        2.6163
+      ],
+      "boundsCenter": [
+        0,
+        1.1771,
+        -0.3465
+      ],
+      "centerOfGravity": [
+        0,
+        0.637,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak38-20-vierling-shielded",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak38-20-vierling-c35",
+      "name": "2 cm Flakvierling 38 quadruple, C/35 mounting",
+      "kind": "gun",
+      "size": [
+        1.92,
+        2.231,
+        3.4974
+      ],
+      "boundsCenter": [
+        0,
+        1.1155,
+        -0.0559
+      ],
+      "centerOfGravity": [
+        0,
+        0.9035,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak38-20-vierling-c35",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-40mm-bofors-staag-twin",
+      "name": "40 mm Bofors STAAG Mk II twin",
+      "kind": "gun",
+      "size": [
+        4.08,
+        3.5351,
+        4.3659
+      ],
+      "boundsCenter": [
+        0,
+        1.7676,
+        -0.6079
+      ],
+      "centerOfGravity": [
+        0,
+        1.339,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-40mm-bofors-staag-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-40mm-bofors-hazemeyer-twin",
+      "name": "40 mm Bofors Hazemeyer Mk IV twin",
+      "kind": "gun",
+      "size": [
+        3.6819,
+        3.9929,
+        3.9109
+      ],
+      "boundsCenter": [
+        0,
+        1.9964,
+        -0.4854
+      ],
+      "centerOfGravity": [
+        0,
+        1.2415,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-40mm-bofors-hazemeyer-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak-m42-37-twin",
+      "name": "37 mm Flak M42 twin",
+      "kind": "gun",
+      "size": [
+        1.8486,
+        2.0213,
+        3.3608
+      ],
+      "boundsCenter": [
+        0,
+        1.0107,
+        -0.4654
+      ],
+      "centerOfGravity": [
+        0,
+        0.7943,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak-m42-37-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak-m42-37-single-lm42",
+      "name": "37 mm Flak M42 single",
+      "kind": "gun",
+      "size": [
+        1.7386,
+        2.0213,
+        3.3608
+      ],
+      "boundsCenter": [
+        0,
+        1.0107,
+        -0.4654
+      ],
+      "centerOfGravity": [
+        0,
+        0.7943,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak-m42-37-single-lm42",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-40mm-bofors-mk2-quad",
+      "name": "40 mm Bofors Mk 2 quadruple",
+      "kind": "gun",
+      "size": [
+        3.98,
+        2.2084,
+        3.7912
+      ],
+      "boundsCenter": [
+        0,
+        1.1042,
+        -0.5236
+      ],
+      "centerOfGravity": [
+        0,
+        1.1479,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-40mm-bofors-mk2-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-40mm-bofors-mk2-shielded-quad",
+      "name": "40 mm Bofors Mk 2 quadruple, shielded",
+      "kind": "gun",
+      "size": [
+        4.3789,
+        2.381,
+        3.7912
+      ],
+      "boundsCenter": [
+        0,
+        1.1905,
+        -0.5236
+      ],
+      "centerOfGravity": [
+        0,
+        1.1479,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-40mm-bofors-mk2-shielded-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-40mm-bofors-mk2-mk19-quad",
+      "name": "40 mm Bofors Mk 2 quadruple with Mk 19 director",
+      "kind": "gun",
+      "size": [
+        3.98,
+        3.156,
+        3.7912
+      ],
+      "boundsCenter": [
+        0,
+        1.578,
+        -0.5236
+      ],
+      "centerOfGravity": [
+        0,
+        1.1479,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-40mm-bofors-mk2-mk19-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-20mm-oerlikon-mk15-quad",
+      "name": "20 mm Oerlikon Mk 15 quadruple",
+      "kind": "gun",
+      "size": [
+        1.814,
+        1.737,
+        2.6116
+      ],
+      "boundsCenter": [
+        0.013,
+        0.8685,
+        -0.3884
+      ],
+      "centerOfGravity": [
+        0,
+        0.6702,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-20mm-oerlikon-mk15-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bl-20mm-oerlikon-mkv-twin",
+      "name": "20 mm Oerlikon Mk V twin",
+      "kind": "gun",
+      "size": [
+        1.698,
+        1.5993,
+        2.2833
+      ],
+      "boundsCenter": [
+        -0.189,
+        0.7996,
+        0.3336
+      ],
+      "centerOfGravity": [
+        0,
+        0.7885,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-20mm-oerlikon-mkv-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-20mm-oerlikon-twin-tripod",
+      "name": "20 mm Oerlikon twin, tripod stand",
+      "kind": "gun",
+      "size": [
+        1.578,
+        1.7055,
+        2.4725
+      ],
+      "boundsCenter": [
+        0,
+        0.8527,
+        -0.149
+      ],
+      "centerOfGravity": [
+        0,
+        0.7631,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-20mm-oerlikon-twin-tripod",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-20mm-oerlikon-mk14-twin",
+      "name": "20 mm Oerlikon Mk 14 twin",
+      "kind": "gun",
+      "size": [
+        1.402,
+        1.6943,
+        2.4725
+      ],
+      "boundsCenter": [
+        0,
+        0.8471,
+        -0.149
+      ],
+      "centerOfGravity": [
+        0,
+        0.83,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-20mm-oerlikon-mk14-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-20mm-oerlikon-mk4-twin",
+      "name": "20 mm Oerlikon Mk 4 twin, pedestal",
+      "kind": "gun",
+      "size": [
+        1.402,
+        1.6943,
+        2.4725
+      ],
+      "boundsCenter": [
+        0,
+        0.8471,
+        -0.149
+      ],
+      "centerOfGravity": [
+        0,
+        0.83,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-20mm-oerlikon-mk4-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-40mm-bofors-mkv-twin",
+      "name": "40 mm Bofors Mk V twin",
+      "kind": "gun",
+      "size": [
+        2.76,
+        2.576,
+        3.8209
+      ],
+      "boundsCenter": [
+        0,
+        1.288,
+        -0.3804
+      ],
+      "centerOfGravity": [
+        0,
+        1.2415,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-40mm-bofors-mkv-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-40mm-bofors-rp-mk1-twin",
+      "name": "40 mm Bofors RP Mk I twin",
+      "kind": "gun",
+      "size": [
+        2.6019,
+        2.398,
+        3.7416
+      ],
+      "boundsCenter": [
+        0,
+        1.199,
+        -0.3899
+      ],
+      "centerOfGravity": [
+        0,
+        1.235,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-40mm-bofors-rp-mk1-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
     }
   ]
 }
