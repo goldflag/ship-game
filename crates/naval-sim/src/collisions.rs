@@ -154,7 +154,7 @@ impl Body {
                 .map(|c| c.water_m3 * 1000.0)
                 .sum::<f64>();
         let tilt = p.roll.sin().abs() * h.beam / 2.0 + p.pitch.sin().abs() * h.length / 2.0;
-        let mut body = Self {
+        Self {
             pieces: vec![],
             definition: actor.compiled.definition.clone(),
             constructed: h.volume.is_some(),
@@ -181,13 +181,7 @@ impl Body {
                 .map_or(12.0 / (mass * (h.length.powi(2) + h.beam.powi(2))), |l| {
                     1. / (l.inertia_kg_m2[1] * mass / l.mass_kg)
                 }),
-        };
-        // Legacy pairs can translate before encountering a constructed body.
-        // Keep their original eager transform to preserve floating-point order.
-        if !body.constructed {
-            body.prepare_pieces();
         }
-        body
     }
     fn prepare_pieces(&mut self) {
         if !self.pieces.is_empty() {
@@ -247,6 +241,13 @@ impl Body {
         p.yaw_rate += cross(lever, direction) * magnitude * self.inverse_inertia;
     }
     fn translate(&mut self, normal: Point, distance: f64) {
+        // A legacy hull needs volume geometry only when it meets a constructed
+        // hull. If a planar collision moves it first, prepare at its original
+        // pose before applying that translation: this keeps the old eager
+        // transform's rounding and subsequent contact order exactly.
+        if !self.constructed {
+            self.prepare_pieces();
+        }
         let (dx, dz) = (normal[0] * distance, normal[1] * distance);
         self.motion.x += dx;
         self.motion.z += dz;
@@ -459,6 +460,57 @@ mod collision_index_tests {
     use super::*;
     use crate::{construction_geometry as cg, definition::*, rules::TeamId, vessel::CompiledShip};
     use std::sync::Arc;
+    fn legacy() -> Vessel {
+        let def =
+            serde_json::from_str(include_str!("../../../public/models/bismarck.json")).unwrap();
+        Vessel::new(
+            "legacy",
+            TeamId::A,
+            Arc::new(CompiledShip::new(Arc::new(def), None).unwrap()),
+        )
+    }
+    #[test]
+    fn distant_and_planar_legacy_contacts_do_not_build_volume_geometry() {
+        let a = legacy();
+        let mut b = a.clone();
+        b.motion.x = 2000.;
+        let (mut a_body, mut b_body) = (Body::new(&a), Body::new(&b));
+        assert!(contact(&mut a_body, &mut b_body).is_none());
+        assert!(a_body.pieces.is_empty() && b_body.pieces.is_empty());
+        b.motion.x = 10.;
+        let mut b_body = Body::new(&b);
+        assert!(contact(&mut a_body, &mut b_body).is_some());
+        assert!(a_body.pieces.is_empty() && b_body.pieces.is_empty());
+    }
+    #[test]
+    fn lazy_legacy_volume_keeps_eager_rounding_after_collision_translations() {
+        let mut actor = legacy();
+        actor.motion.x = 7123.456789;
+        actor.motion.z = -4821.987654;
+        actor.motion.heading = 0.371;
+        actor.motion.roll = -0.29;
+        actor.motion.pitch = 0.063;
+        let (mut lazy, mut eager) = (Body::new(&actor), Body::new(&actor));
+        eager.prepare_pieces();
+        for (normal, distance) in [([0.6, 0.8], 0.173), ([-0.8, 0.6], 1e-8), ([0., 1.], 1.31)] {
+            lazy.impulse([2., -3.], normal, 4e5);
+            eager.impulse([2., -3.], normal, 4e5);
+            lazy.translate(normal, distance);
+            eager.translate(normal, distance);
+        }
+        lazy.prepare_pieces();
+        let vertices = |body: &Body| {
+            body.pieces
+                .iter()
+                .flat_map(|c| {
+                    c.faces
+                        .iter()
+                        .flat_map(|f| f.vertices.iter().flat_map(|p| p.map(f64::to_bits)))
+                })
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(vertices(&lazy), vertices(&eager));
+    }
     fn exhaustive_contact(a: &mut Body, b: &mut Body) -> Option<Contact> {
         let (am, bm) = (&a.motion, &b.motion);
         if (am.x - bm.x).hypot(am.z - bm.z) > a.radius + b.radius
