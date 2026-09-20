@@ -43,6 +43,7 @@ pub struct ShipIndex {
     /// `(submerged, surface)` engine modules for submarines.
     pub submarine_engines: Option<SubmarineEngineModules>,
     pub propulsion: Vec<PropulsionIndex>,
+    pub(crate) services: Option<crate::construction_services::Services>,
 }
 #[derive(Clone, Debug, Default)]
 pub struct PropulsionIndex {
@@ -141,6 +142,7 @@ impl ShipIndex {
                     shafts: g.shaft_ids.iter().map(&module_index).collect(),
                 })
                 .collect(),
+            services: crate::construction_services::Services::new(d),
             by_kind,
             module_by_id,
             mount_by_id,

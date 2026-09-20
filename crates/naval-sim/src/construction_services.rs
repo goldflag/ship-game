@@ -89,6 +89,105 @@ fn engine_rating(def: &ShipDefinition, engine: &Module) -> f64 {
     })
 }
 
+/// Authoring relationships and service ratings do not change during battle.
+/// Keep their module indices alongside the ship's other immutable lookups.
+#[derive(Clone, Debug)]
+pub(crate) struct Services {
+    engines: Vec<ServiceEngine>,
+}
+#[derive(Clone, Debug)]
+struct ServiceEngine {
+    module: usize,
+    rating: f64,
+    exhaust: Vec<usize>,
+}
+impl Services {
+    pub(crate) fn new(def: &ShipDefinition) -> Option<Self> {
+        let source = def.construction.as_ref()?;
+        let pool = def
+            .propulsion
+            .as_ref()
+            .and_then(|p| p.shared_exhaust.as_ref());
+        let engines: Vec<_> = def
+            .modules
+            .iter()
+            .enumerate()
+            .filter(|(_, m)| m.role.as_deref() == Some("combined-drive"))
+            .filter(|(_, m)| {
+                pool.is_none_or(|p| p.engines.iter().any(|e| e.id == m.id && e.kw > 0.))
+            })
+            .collect();
+        Some(Self {
+            engines: engines
+                .iter()
+                .map(|&(i, engine)| ServiceEngine {
+                    module: i,
+                    rating: engine_rating(def, engine),
+                    exhaust: if pool.is_some() {
+                        vec![]
+                    } else {
+                        def.modules
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, m)| m.role.as_deref() == Some("boiler"))
+                            .filter(|(_, funnel)| {
+                                source
+                                    .equipment
+                                    .iter()
+                                    .find(|e| e.id == funnel.id)
+                                    .is_some_and(|e| {
+                                        e.power_source_id.as_deref() == Some(engine.id.as_str())
+                                            || (e.power_source_id.is_none() && engines.len() == 1)
+                                    })
+                            })
+                            .map(|(i, _)| i)
+                            .collect()
+                    },
+                })
+                .collect(),
+        })
+    }
+    fn availability(
+        &self,
+        actor: &Combatant,
+        def: &ShipDefinition,
+        room: Option<&str>,
+        sea: Option<(&SeaState, f64)>,
+    ) -> f64 {
+        let shared = def
+            .propulsion
+            .as_ref()
+            .and_then(|p| p.shared_exhaust.as_ref())
+            .map(|pool| {
+                (live_exhaust_fraction(actor, def, pool, sea) / AUXILIARY_POWER_SHARE).min(1.)
+            });
+        let mut total = 0.;
+        let mut available = 0.;
+        for engine in &self.engines {
+            let m = &def.modules[engine.module];
+            if room.is_some() && m.compartment_id.as_deref() != room {
+                continue;
+            }
+            total += engine.rating;
+            if let Some(service) = shared {
+                available +=
+                    engine.rating * equipment_condition(actor, def, m, sea).availability * service;
+            } else if !engine.exhaust.is_empty() {
+                let exhaust: f64 = engine
+                    .exhaust
+                    .iter()
+                    .map(|&i| equipment_condition(actor, def, &def.modules[i], sea).availability)
+                    .sum();
+                available += engine.rating
+                    * equipment_condition(actor, def, m, sea)
+                        .availability
+                        .min(exhaust / engine.exhaust.len() as f64);
+            }
+        }
+        if total > 0. { available / total } else { 0. }
+    }
+}
+
 /// Every running engine gets the same fraction of its available rated power.
 pub(crate) fn exhaust_fraction(capacity: f64, demand: f64) -> f64 {
     if demand > 0. {
@@ -140,6 +239,9 @@ pub(crate) fn availability(
 ) -> f64 {
     if actor.damage.sunk {
         return 0.;
+    }
+    if let Some(services) = actor.index.of(def).and_then(|ix| ix.services.as_ref()) {
+        return services.availability(actor, def, room, sea);
     }
     let Some(source) = &def.construction else {
         return 0.;
@@ -198,4 +300,62 @@ pub(crate) fn availability(
         }
     }
     if total > 0. { available / total } else { 0. }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn indexed_services_match_authoring_scans_as_machinery_floods_and_breaks() {
+        let original: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/valiant.json")).unwrap();
+        for shared in [false, true] {
+            let mut def = original.clone();
+            if !shared {
+                def.propulsion.as_mut().unwrap().shared_exhaust = None;
+                // Old definitions linked funnels to an individual engine.
+                let engine = def
+                    .modules
+                    .iter()
+                    .find(|m| m.role.as_deref() == Some("combined-drive"))
+                    .unwrap()
+                    .id
+                    .clone();
+                for e in &mut def.construction.as_mut().unwrap().equipment {
+                    if def
+                        .modules
+                        .iter()
+                        .any(|m| m.id == e.id && m.role.as_deref() == Some("boiler"))
+                    {
+                        e.power_source_id = Some(engine.clone());
+                    }
+                }
+            }
+            let mut actor = Combatant::new("services", &def);
+            assert!(availability(&actor, &def, None, None) > 0.);
+            for step in 0..5 {
+                actor.motion.y = -(step as f64) * 2.;
+                actor.motion.roll = step as f64 * 0.07;
+                for (i, m) in actor.damage.modules.iter_mut().enumerate() {
+                    m.hp = def.modules[i].hp * ((i + step) % 4) as f64 / 3.;
+                }
+                for (i, c) in actor.damage.compartments.iter_mut().enumerate() {
+                    c.water_m3 = def.compartments[i].capacity_m3 * step as f64 / 4.;
+                }
+                actor.damage.sunk = step == 4;
+                let mut scanned = actor.clone();
+                scanned.index = Default::default();
+                for room in std::iter::once(None)
+                    .chain(def.compartments.iter().map(|c| Some(c.id.as_str())))
+                    .chain([Some("unknown")])
+                {
+                    assert_eq!(
+                        availability(&actor, &def, room, None).to_bits(),
+                        availability(&scanned, &def, room, None).to_bits(),
+                        "shared={shared}, step={step}, room={room:?}"
+                    );
+                }
+            }
+        }
+    }
 }
