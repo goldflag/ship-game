@@ -677,6 +677,45 @@ impl MountClearance {
         self.enabled.get(index).copied().unwrap_or(false)
     }
 
+    /// A short sweep never searches beyond `margin + 2 m`. Mounts outside
+    /// `relevant` cannot change that query, so their poses do not invalidate
+    /// its answer. Large diagnostic jumps retain the complete pose key; any
+    /// carried installation already has every mount in its relevant set.
+    pub(crate) fn cache_key(
+        &self,
+        def: &ShipDefinition,
+        index: usize,
+        poses: &[ClearancePose],
+        requested: [f64; 2],
+        key: &mut Vec<[f64; 2]>,
+    ) {
+        let m = &def.mounts[index];
+        let w = &m.weapon;
+        let [lo, hi] = m
+            .traverse_limits_deg
+            .unwrap_or([-w.traverse_deg, w.traverse_deg])
+            .map(radians);
+        let train = clamp(requested[0], lo, hi);
+        let elevation = clamp(
+            requested[1],
+            radians(w.elevation_min_deg),
+            radians(w.elevation_max_deg),
+        );
+        let speed = 2.
+            * self.radii[index]
+            * ((train - poses[index].train).abs() + (elevation - poses[index].elevation).abs());
+        key.clear();
+        if speed <= 1. {
+            key.extend(
+                self.relevant[index]
+                    .iter()
+                    .map(|&i| [poses[i].train, poses[i].elevation]),
+            );
+        } else {
+            key.extend(poses.iter().map(|p| [p.train, p.elevation]));
+        }
+    }
+
     /// Smallest physical surface gap involving this mount (including its
     /// independently posed descendants), capped for broad-phase efficiency.
     pub fn minimum_clearance(
@@ -1559,6 +1598,74 @@ fn segment_triangle_distance(p: Vec3, q: Vec3, triangle: [Vec3; 3]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn distant_mount_motion_cannot_change_a_short_sweep() {
+        let def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/valiant.json")).unwrap();
+        let clearance = MountClearance::new_runtime(&def).unwrap().unwrap();
+        let poses: Vec<_> = def
+            .mounts
+            .iter()
+            .map(|m| ClearancePose::from(&MountState::new(m)))
+            .collect();
+        let mut omitted = 0;
+        for i in 0..poses.len() {
+            if !clearance.enabled(i) {
+                continue;
+            }
+            let requested = ClearancePose {
+                train: poses[i].train + radians(0.1),
+                ..poses[i]
+            };
+            let expected =
+                serde_json::to_value(clearance.resolve(&def, i, &poses, requested)).unwrap();
+            let mut key = vec![];
+            clearance.cache_key(
+                &def,
+                i,
+                &poses,
+                [requested.train, requested.elevation],
+                &mut key,
+            );
+            omitted += poses.len() - key.len();
+            for angle in [-110., -35., 42., 135.] {
+                let mut moved = poses.clone();
+                for (j, p) in moved.iter_mut().enumerate() {
+                    if !clearance.relevant[i].contains(&j) {
+                        p.train = radians(angle);
+                        p.elevation = radians(17.);
+                    }
+                }
+                let mut moved_key = vec![];
+                clearance.cache_key(
+                    &def,
+                    i,
+                    &moved,
+                    [requested.train, requested.elevation],
+                    &mut moved_key,
+                );
+                assert_eq!(key, moved_key);
+                assert_eq!(
+                    expected,
+                    serde_json::to_value(clearance.resolve(&def, i, &moved, requested)).unwrap(),
+                    "{} at {angle}",
+                    def.mounts[i].id
+                );
+            }
+            let large = ClearancePose {
+                train: poses[i].train + radians(30.),
+                ..poses[i]
+            };
+            clearance.cache_key(&def, i, &poses, [large.train, large.elevation], &mut key);
+            assert_eq!(
+                key.len(),
+                poses.len(),
+                "large diagnostic sweeps keep all dependencies"
+            );
+        }
+        assert!(omitted > 0);
+    }
+
     #[test]
     fn runtime_barrels_enclose_the_authored_taper_with_fewer_sections() {
         let catalog: crate::definition::PartCatalog =

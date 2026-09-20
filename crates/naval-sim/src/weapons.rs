@@ -589,9 +589,8 @@ pub fn update_mount_at(
                         .map(crate::mount_clearance::ClearancePose::from),
                 );
                 poses[index] = crate::mount_clearance::ClearancePose::from(&*s);
-                key.clear();
-                key.extend(poses.iter().map(|p| [p.train, p.elevation]));
                 let requested = [requested_train, requested_elevation];
+                clearance.cache_key(d, index, poses, requested, key);
                 let geometry = clearance as *const _ as usize;
                 if let Some(cache) = s.clearance_cache.as_ref().filter(|c| {
                     c.geometry == geometry && c.poses == *key && c.requested == requested
