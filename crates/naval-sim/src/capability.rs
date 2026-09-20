@@ -65,11 +65,28 @@ pub fn update(actor: &mut Combatant, def: &ShipDefinition, wing: Option<&AirWing
         let loaded = s.available(Ammunition::Ap) >= n
             || m.weapon.he.is_some() && s.available(Ammunition::He) >= n;
         any_salvo |= loaded;
-        if s.hp > 0.0 && loaded {
-            usable |= m.magazine_id.as_deref().is_none_or(available);
-            recoverable |= m.magazine_id.as_deref().is_none_or(|id| hp(id) > 0.0)
+        if s.hp <= 0.0 {
+            disabled.push(true);
+            continue;
         }
-        disabled.push(s.hp <= 0.0 || m.magazine_id.as_deref().is_some_and(|id| !available(id)));
+        // Resolve the magazine once. Its immersion/health query used to run
+        // again for the disabled list, and each query repeated the id lookup.
+        let magazine = m.magazine_id.as_deref().map(|id| {
+            module_of(id).map_or((false, false), |j| {
+                let healthy = if parallel {
+                    actor.damage.modules[j].hp > 0.
+                } else {
+                    hp(id) > 0.
+                };
+                (available_at(j), healthy)
+            })
+        });
+        let (available, healthy) = magazine.unwrap_or((true, true));
+        if s.hp > 0.0 && loaded {
+            usable |= available;
+            recoverable |= healthy;
+        }
+        disabled.push(s.hp <= 0.0 || !available);
     }
     let mut loaded_underwater = false;
     let mut check = |magazine: &str, launcher: Option<&str>| {
