@@ -77,50 +77,35 @@ test('rangefinding uses a visible ship and feeds locked range into the real gun 
   } finally { rig.dispose(); simulation.dispose(); }
 });
 
-for (const spawnDistance of [5000, 15000]) test(`scope entry borrows a nearby visible ship's ${spawnDistance} m range without snapping bearing`, async () => {
-  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance });
-  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
-  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
-  const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
-    host: { clientWidth: 1440, clientHeight: 810 }, battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false,
-  }) as Game;
-  const ship = simulation.ship, target = simulation.target!.motion;
-  const bearing = Math.atan2(target.x - ship.x, ship.z - target.z) + .03;
-  // The sight misses the hull and meets distant water, although the ship is nearby on screen.
-  rig.aimAt([ship.x + Math.sin(bearing) * 30000, .5, ship.z - Math.cos(bearing) * 30000], ship);
-  const entryBearing = rig.bearing;
-  const runtime = game as unknown as { readSightAim(): [number, number, number] };
-  try {
-    const before = runtime.readSightAim();
-    expect(Math.hypot(before[0] - ship.x, before[2] - ship.z)).toBeGreaterThan(29000);
-    game.toggleBinoculars();
-    for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60);
-    const aim = runtime.readSightAim();
-    expect(Math.hypot(aim[0] - ship.x, aim[2] - ship.z)).toBeCloseTo(Math.hypot(target.x - ship.x, target.z - ship.z), 5);
-    expect(rig.bearing).toBeCloseTo(entryBearing, 10);
-    expect(rig.rangeAim).toBeUndefined();
-    expect(simulation.target!.motion.id).toBe(target.id);
-    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeLessThanOrEqual(10 * Math.PI / 180);
-  } finally { rig.dispose(); simulation.dispose(); }
-});
-
-test('scope entry magnifies the existing view when no visible ship is near the sight', async () => {
+test('scoping over empty water still adapts when mouse aim moves to a nearby ship', async () => {
   const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 });
-  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
-  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
+  const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement);
   const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
     host: { clientWidth: 1440, clientHeight: 810 }, battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false,
   }) as Game;
   const ship = simulation.ship, target = simulation.target!.motion;
   const bearing = Math.atan2(target.x - ship.x, ship.z - target.z) + Math.PI / 2;
-  rig.aimAt([ship.x + Math.sin(bearing) * 30000, .5, ship.z - Math.cos(bearing) * 30000], ship);
-  const position = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
+  const settle = () => { for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60); };
   try {
-    game.toggleBinoculars();
-    for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60);
-    expect(camera.position.distanceTo(position)).toBeLessThan(1e-9);
-    expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
-    expect(rig.magnification).toBeCloseTo(2, 5);
+    rig.aimAt([ship.x + Math.sin(bearing) * 15000, .5, ship.z - Math.cos(bearing) * 15000], ship);
+    game.toggleBinoculars(); settle();
+    const height = camera.position.y, descent = -Math.asin(camera.getWorldDirection(new Vector3()).y);
+    const aim = new Vector3(target.x, .5, target.z), delta = aim.clone().sub(camera.position);
+    const turn = Math.atan2(delta.x, -delta.z) - rig.bearing;
+    const sensitivity = .0025 * Math.tan(camera.fov * Math.PI / 360) / Math.tan(52 * Math.PI / 360);
+    canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button: 0, pointerType: 'touch', pointerId: 1, clientX: 0, clientY: 0 }));
+    canvas.dispatchEvent(Object.assign(new Event('pointermove'), { pointerId: 1,
+      clientX: Math.atan2(Math.sin(turn), Math.cos(turn)) / sensitivity,
+      clientY: (Math.atan2(-delta.y, Math.hypot(delta.x, delta.z)) - descent) / sensitivity,
+    }));
+    window.dispatchEvent(new Event('pointerup')); settle();
+    expect(camera.position.y).toBeLessThan(height - 100);
+    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeLessThan(descent - .01);
+    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeLessThanOrEqual(5 * Math.PI / 180);
+    const projected = aim.project(camera);
+    expect(projected.x).toBeCloseTo(0, 6); expect(projected.y).toBeCloseTo(0, 6);
+    expect(rig.binoculars).toBe(true); expect(rig.rangeAim).toBeUndefined();
   } finally { rig.dispose(); simulation.dispose(); }
 });
 
