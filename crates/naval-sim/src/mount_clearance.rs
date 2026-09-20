@@ -451,6 +451,7 @@ pub struct MountClearance {
     enabled: Vec<bool>,
     margin: f64,
     bodies: Vec<Body>,
+    fixed_ids: std::collections::HashSet<String>,
     static_index: Option<BodyIndex>,
     moving: Vec<usize>,
     // Maximum distance from each yaw/elevation axis bounds every point's speed.
@@ -635,6 +636,14 @@ impl MountClearance {
             })
             .collect();
         let containment = HullContainment::new(def, &mut bodies);
+        let mut fixed_ids: std::collections::HashSet<_> = bodies
+            .iter()
+            .filter(|b| b.mount.is_none())
+            .map(|b| b.id.clone())
+            .collect();
+        for body in bodies.iter().filter(|b| b.mount.is_some()) {
+            fixed_ids.remove(&body.id);
+        }
         Ok(Some(Self {
             coarse_barrels: false,
             generation: GEOMETRIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
@@ -652,6 +661,7 @@ impl MountClearance {
                 .filter(|&i| bodies[i].mount.is_some())
                 .collect(),
             bodies,
+            fixed_ids,
             radii,
             containment,
         }))
@@ -688,6 +698,18 @@ impl MountClearance {
             })
             .map(|b| b.id.clone())
             .collect()
+    }
+
+    /// A stationary stop against the hull cannot be freed by an unrelated
+    /// turret. Carried descendants can change the colliding shape, so they
+    /// retain the complete pose-key path.
+    pub(crate) fn fixed_stop(&self, index: usize, obstruction: Option<&str>) -> bool {
+        obstruction.is_some_and(|id| self.fixed_ids.contains(id))
+            && self
+                .levers
+                .iter()
+                .enumerate()
+                .all(|(i, chain)| i == index || chain.iter().all(|&(parent, _)| parent != index))
     }
 
     pub fn enabled(&self, index: usize) -> bool {

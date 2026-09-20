@@ -114,6 +114,8 @@ struct ClearanceCache {
     geometry: usize,
     poses: Vec<[f64; 2]>,
     requested: [f64; 2],
+    carrier: Option<CarrierFrame>,
+    stationary_fixed_stop: bool,
     result: crate::mount_clearance::ClearanceResult,
 }
 #[derive(Clone, Debug)]
@@ -581,6 +583,18 @@ pub fn update_mount_at(
                 return reject(s, MountStatus::Blocked);
             }
             let accepted = SCRATCH.with_borrow_mut(|scratch| {
+                let requested = [requested_train, requested_elevation];
+                let geometry = clearance as *const _ as usize;
+                if let Some(cache) = s.clearance_cache.as_ref().filter(|c| {
+                    c.stationary_fixed_stop
+                        && c.geometry == geometry
+                        && c.requested == requested
+                        && c.carrier == s.carrier
+                        && c.result.pose.train == s.train
+                        && c.result.pose.elevation == s.elevation
+                }) {
+                    return cache.result.clone();
+                }
                 let (poses, key) = (&mut scratch.poses, &mut scratch.key);
                 poses.clear();
                 poses.extend(
@@ -589,9 +603,7 @@ pub fn update_mount_at(
                         .map(crate::mount_clearance::ClearancePose::from),
                 );
                 poses[index] = crate::mount_clearance::ClearancePose::from(&*s);
-                let requested = [requested_train, requested_elevation];
                 clearance.cache_key(d, index, poses, requested, key);
-                let geometry = clearance as *const _ as usize;
                 if let Some(cache) = s.clearance_cache.as_ref().filter(|c| {
                     c.geometry == geometry && c.poses == *key && c.requested == requested
                 }) {
@@ -613,6 +625,11 @@ pub fn update_mount_at(
                     geometry,
                     poses: key.clone(),
                     requested,
+                    carrier: s.carrier,
+                    stationary_fixed_stop: result.blocked
+                        && result.pose.train == s.train
+                        && result.pose.elevation == s.elevation
+                        && clearance.fixed_stop(index, result.obstruction_id.as_deref()),
                     result: result.clone(),
                 });
                 result
@@ -732,6 +749,93 @@ pub fn muzzle_center_world(m: &MountDefinition, state: &MountState, ship: &ShipS
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fixed_hull_stop_ignores_neighbor_motion_but_releases_for_a_new_request() {
+        let mut def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/bismarck.json")).unwrap();
+        def.mounts.truncate(2);
+        def.structures = None;
+        def.structural_plating = None;
+        def.hull.volume = None;
+        for (i, m) in def.mounts.iter_mut().enumerate() {
+            m.position = [i as f64 * 20., 10., 0.];
+            m.bearing_deg = 0.;
+            m.rangefinder = false;
+            m.parent_mount_id = None;
+            m.weapon.gunhouse_mesh = None;
+            m.weapon.gunhouse_shape = None;
+            m.weapon.gunhouse_size = [0.4; 3];
+            m.weapon.pivot_height = 1.;
+            m.weapon.trunnion_forward = 0.;
+            m.weapon.muzzle_forward = 10.;
+            m.weapon.barrel_count = 1.;
+            m.weapon.barrel_base_radius = Some(0.2);
+        }
+        // A vertical wall stops the first gun as it turns starboard. The
+        // second gun remains nearby, independently posed, beyond the wall.
+        def.mount_clearance = Some(
+            serde_json::from_value(serde_json::json!({
+                "version": 1, "marginM": 0.02, "basis": "Fixed-stop regression",
+                "mountIds": def.mounts.iter().map(|m| &m.id).collect::<Vec<_>>(),
+                "bodies": [{"id": "wall", "surface": {
+                    "vertices": [[6.,-5.,-30.],[6.,25.,-30.],[6.,25.,30.],[6.,-5.,30.]],
+                    "triangles": [[0,1,2],[0,2,3]]
+                }}]
+            }))
+            .unwrap(),
+        );
+        let obstructions = Obstructions::new(&def);
+        let mut states: Vec<_> = def.mounts.iter().map(MountState::new).collect();
+        let mut state = states[0].clone();
+        let ship = ShipState::new("test");
+        let advance = |state: &mut MountState, states: &[MountState], x| {
+            update_mount(
+                &def.mounts[0],
+                state,
+                &def,
+                &ship,
+                Some([x, 12., -2000.]),
+                1. / 60.,
+                [0.; 3],
+                1.,
+                &obstructions,
+                states,
+            );
+        };
+        for _ in 0..900 {
+            advance(&mut state, &states, 2000.);
+            states[0] = state.clone();
+        }
+        assert_eq!(state.status, MountStatus::Blocked);
+        assert!(
+            state
+                .clearance_cache
+                .as_ref()
+                .unwrap()
+                .stationary_fixed_stop
+        );
+        let stopped = state.train;
+        for i in 0..120 {
+            states[1].train = radians(i as f64 / 4.);
+            let mut reference = state.clone();
+            reference.clearance_cache = None;
+            reference.clear_bound = None;
+            advance(&mut reference, &states, 2000.);
+            advance(&mut state, &states, 2000.);
+            assert_eq!(
+                serde_json::to_value(&state).unwrap(),
+                serde_json::to_value(reference).unwrap()
+            );
+            assert_eq!(state.train, stopped);
+            states[0] = state.clone();
+        }
+        advance(&mut state, &states, -2000.);
+        assert!(
+            state.train < stopped,
+            "a changed request must release the stop"
+        );
+    }
 
     #[test]
     fn firing_clearance_is_required_when_ready_but_not_while_reloading() {
