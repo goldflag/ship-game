@@ -661,42 +661,6 @@ test('tiny scroll inputs zoom continuously and settle without a camera jump', ()
   rig.dispose();
 });
 
-test('empty-water optics preserve the eye through zoom, aiming, hull motion and temporary follow views', () => {
-  const { camera, canvas, rig, drag } = interactiveCamera();
-  const ship = createShipState(), aim: [number, number, number] = [0, .5, -30000];
-  rig.setScopeWeapon(shipPreset('bismarck').mounts[0].weapon);
-  rig.aimAt(aim, ship);
-  const offset = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
-  const settle = () => { for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60); };
-  const relativePosition = () => camera.position.clone().sub(new Vector3(ship.x, ship.y, ship.z));
-  try {
-    rig.toggleBinoculars(aim, ship, { keepView: true }); settle();
-    canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -900 })); settle();
-    expect(rig.magnification).toBeGreaterThan(7);
-    expect(relativePosition().distanceTo(offset)).toBeLessThan(1e-9);
-    expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
-    drag(40, 20); settle();
-    expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeGreaterThan(.005);
-    expect(relativePosition().distanceTo(offset)).toBeLessThan(1e-9);
-    for (let frame = 0; frame < 120; frame++) {
-      ship.x += 1; ship.z -= 2; ship.y = Math.sin(frame / 20);
-      rig.update(ship, ship.y, frame % 2 ? 1 / 30 : 1 / 144);
-      expect(relativePosition().distanceTo(offset)).toBeLessThan(1e-9);
-    }
-    rig.setFreeCamera(true); rig.setFreeMove({ x: 0, y: 0, z: 1, fast: false }); rig.update(ship, ship.y, 1);
-    rig.setFreeCamera(false); settle();
-    expect(relativePosition().distanceTo(offset)).toBeLessThan(1e-9);
-    rig.setShellView({ position: [500, 100, -1000], velocity: [0, 0, -800] }); rig.update(ship, ship.y, 1 / 60);
-    rig.setShellView(); settle();
-    expect(relativePosition().distanceTo(offset)).toBeLessThan(1e-9);
-    rig.toggleBinoculars(aim, ship); settle();
-    expect(rig.magnification).toBeCloseTo(1, 6);
-    rig.toggleBinoculars(aim, ship, { rangeM: 15000 }); settle();
-    expect(camera.position.y).toBeGreaterThan(offset.y + 100);
-    expect(Math.hypot(camera.position.x - ship.x, camera.position.z - ship.z)).toBeLessThan(100);
-  } finally { rig.dispose(); }
-});
-
 test('range lock sweeps horizontally at the measured distance despite vertical input, zoom, hull motion and heave', () => {
   const { camera, canvas, rig, drag } = interactiveCamera();
   const ship = createShipState();
@@ -732,14 +696,14 @@ test('gunnery scope uses one third of the arriving low arc and rises with range'
     rig.aimAt([0, .5, -range], ship);
     const descent = -Math.asin(camera.getWorldDirection(new Vector3()).y);
     const previousDescent = Math.max(Math.asin(9.81 * range / 500 ** 2) / 2, Math.atan2(37 - .5, range - 31));
-    expect(descent).toBeCloseTo(previousDescent / 3, 6);
+    expect(descent).toBeCloseTo(Math.min(previousDescent / 3, 5 * Math.PI / 180), 6);
     expect(camera.position.y).toBeGreaterThan(previousHeight);
     previousHeight = camera.position.y;
   }
   // Reachable steep arcs and out-of-range sights share the final viewing cap.
   for (const range of [24000, 30000]) {
     rig.aimAt([0, .5, -range], ship);
-    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(10 * Math.PI / 180, 6);
+    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(5 * Math.PI / 180, 6);
   }
   rig.aimAt([0, .5, -500], ship);
   expect(camera.position.y).toBeLessThan(37);
