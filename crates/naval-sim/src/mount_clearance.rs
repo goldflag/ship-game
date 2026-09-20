@@ -157,19 +157,22 @@ impl PreparedTriangle {
             normal_squared: dot(normal, normal),
         }
     }
-    fn point_distance(&self, p: Vec3) -> f64 {
+    fn point_squared(&self, p: Vec3) -> f64 {
         let n = self.normal;
         let nn = self.normal_squared;
         if nn > 1e-20 {
-            let projected = sub(p, scale(n, dot(sub(p, self.vertices[0]), n) / nn));
+            let plane = dot(sub(p, self.vertices[0]), n);
+            let projected = sub(p, scale(n, plane / nn));
             if (0..3)
                 .all(|i| dot(cross(self.edges[i], sub(projected, self.vertices[i])), n) >= -1e-12)
             {
-                return dot(sub(p, self.vertices[0]), n).abs() / nn.sqrt();
+                return plane * plane / nn;
             }
         }
-        let edge =
-            |i| point_edge_distance(p, self.vertices[i], self.edges[i], self.edge_squared[i]);
+        let edge = |i| {
+            let delta = point_edge_delta(p, self.vertices[i], self.edges[i], self.edge_squared[i]);
+            dot(delta, delta)
+        };
         edge(0).min(edge(1)).min(edge(2))
     }
     fn distance(&self, p: Vec3, q: Vec3) -> f64 {
@@ -178,16 +181,23 @@ impl PreparedTriangle {
         let denom = dot(n, delta);
         if denom.abs() > 1e-16 {
             let t = dot(n, sub(self.vertices[0], p)) / denom;
-            if (0.0..=1.0).contains(&t) && self.point_distance(add(p, scale(delta, t))) < 1e-8 {
+            if (0.0..=1.0).contains(&t) && self.point_squared(add(p, scale(delta, t))) < 1e-16 {
                 return 0.0;
             }
         }
         let [a, b, c] = self.vertices;
-        self.point_distance(p)
-            .min(self.point_distance(q))
-            .min(segment_segment_distance(p, q, a, b))
-            .min(segment_segment_distance(p, q, b, c))
-            .min(segment_segment_distance(p, q, c, a))
+        let edge = |a, b| {
+            let delta = segment_segment_delta(p, q, a, b);
+            dot(delta, delta)
+        };
+        // Only the smallest distance needs a root. Physical coordinates are
+        // bounded metres; scaled hypot on every edge added no useful range.
+        self.point_squared(p)
+            .min(self.point_squared(q))
+            .min(edge(a, b))
+            .min(edge(b, c))
+            .min(edge(c, a))
+            .sqrt()
     }
 }
 #[derive(Clone, Debug)]
@@ -1511,13 +1521,18 @@ fn box_triangles(center: Vec3, size: Vec3) -> Vec<[Vec3; 3]> {
     prism_triangles(&vertices, 4)
 }
 
+#[cfg(test)]
 fn point_segment_distance(p: Vec3, a: Vec3, b: Vec3) -> f64 {
     let ab = sub(b, a);
     let n = dot(ab, ab);
     point_edge_distance(p, a, ab, n)
 }
+#[cfg(test)]
 fn point_edge_distance(p: Vec3, a: Vec3, ab: Vec3, n: f64) -> f64 {
-    length(sub(
+    length(point_edge_delta(p, a, ab, n))
+}
+fn point_edge_delta(p: Vec3, a: Vec3, ab: Vec3, n: f64) -> Vec3 {
+    sub(
         p,
         add(
             a,
@@ -1530,16 +1545,19 @@ fn point_edge_distance(p: Vec3, a: Vec3, ab: Vec3, n: f64) -> f64 {
                 },
             ),
         ),
-    ))
+    )
 }
 fn segment_segment_distance(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> f64 {
+    length(segment_segment_delta(p, q, a, b))
+}
+fn segment_segment_delta(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> Vec3 {
     let (u, v, w) = (sub(q, p), sub(b, a), sub(p, a));
     let (aa, bb, cc, dd, ee) = (dot(u, u), dot(u, v), dot(v, v), dot(u, w), dot(v, w));
     if aa < 1e-20 {
-        return point_segment_distance(p, a, b);
+        return point_edge_delta(p, a, v, cc);
     }
     if cc < 1e-20 {
-        return point_segment_distance(a, p, q);
+        return point_edge_delta(a, p, u, aa);
     }
     let denom = aa * cc - bb * bb;
     let mut s = if denom > 1e-20 {
@@ -1555,7 +1573,7 @@ fn segment_segment_distance(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> f64 {
         t = 1.0;
         s = clamp((bb - dd) / aa, 0.0, 1.0);
     }
-    length(sub(add(p, scale(u, s)), add(a, scale(v, t))))
+    sub(add(p, scale(u, s)), add(a, scale(v, t)))
 }
 #[cfg(test)]
 fn point_triangle_distance(p: Vec3, [a, b, c]: [Vec3; 3]) -> f64 {
@@ -1791,10 +1809,10 @@ mod tests {
                         radius: 0.12,
                     };
                     let expected = segment_triangle_distance(p, q, triangle) - capsule.radius;
-                    assert_eq!(
-                        body.distance(capsule, 100.).to_bits(),
-                        expected.to_bits(),
-                        "{triangle:?}, {p:?} -> {q:?}"
+                    let actual = body.distance(capsule, 100.);
+                    assert!(
+                        (actual - expected).abs() < 1e-11,
+                        "{triangle:?}, {p:?} -> {q:?}: {actual} != {expected}"
                     );
                 }
             }
