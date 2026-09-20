@@ -43,6 +43,10 @@ pub struct ConnectionState {
     #[ts(as = "crate::frame_vocabulary::ConnectionStatus")]
     pub state: String,
     pub damage_area_m2: f64,
+    // Allocated only when a grouped boundary is locally breached.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub patch_damage_m2: Option<Vec<f64>>,
     pub from_index: usize,
     pub to_index: usize,
 }
@@ -213,6 +217,7 @@ impl DamageState {
                     } else {
                         0.0
                     },
+                    patch_damage_m2: None,
                     from_index: def
                         .compartments
                         .iter()

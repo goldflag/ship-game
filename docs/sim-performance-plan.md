@@ -68,13 +68,23 @@ interleave A/B runs on a quiet machine.
 - Behaviour: 0.65 s pilot think timer, AA target selection every `AA_SELECT_TICKS` (6); see
   [air operations](air-operations.md#decision-cadence). Unchanged render proxies are skipped.
 - Constructed ships: flood `LevelTable`, `ClearBound`, `flotation_near`, `exterior_protection_mm`.
+- Constructed flood spaces cache immutable cell moments and use volume-only clipping during
+  water-level searches. Exact convex coalescing removes compatible subdivision seams after
+  openings and flooding footprints are derived.
+- Constructed hull flotation caches tetrahedral displacement and evaluates exact piecewise
+  cubic volumes at each attitude, then clips once for final buoyancy moments. This covers
+  arbitrary heel/trim, with clipping fallback for invalid caches; no sampled attitude table.
+- Constructed armor merges compatible coplanar patches; hull clearance discards internal cell
+  faces. Closed protection-linked flooding fragments share topology while retaining every
+  footprint's damage cap, position and original sequential transfer order.
 - Yamato's swept `mountClearance` profile is gone from her blueprint; tests keep it as
   `src/simulation/fixtures/yamato-swept-clearance.json`.
 
 ## Remaining
 
-- Constructed ships are still mesh-bound. Compiler-level options, all changing compiled output:
-  a hydrostatic table, exterior-only clearance bodies and armor, one portal per room pair.
+- Remaining interior pieces often surround machinery or nonconvex hull sections. Further
+  reduction needs a different exact partition or a measured approximation; merging across
+  a cavity or replacing different breach heights with one centroid changes physical behavior.
 - Every ship solves stability on the same tick; staggering it would change premade results.
 
 Measurements, per-phase tables and rationale: [archived log](archive/sim-performance-plan-log.md).

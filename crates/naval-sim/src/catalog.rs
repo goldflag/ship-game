@@ -495,7 +495,13 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         }
     }
     for connection in &d.connections {
-        if !d.compartments.iter().any(|c| c.id == connection.from_id)
+        if !crate::flood_connections::valid(connection)
+            || (connection.patches.is_some()
+                && !d
+                    .armor
+                    .iter()
+                    .any(|a| Some(&a.id) == connection.armor_id.as_ref()))
+            || !d.compartments.iter().any(|c| c.id == connection.from_id)
             || !d.compartments.iter().any(|c| c.id == connection.to_id)
         {
             return Err(fail());

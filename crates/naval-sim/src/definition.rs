@@ -490,6 +490,8 @@ pub struct MountClearanceProfileStructuresItem {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct MountClearanceProfile {
+    #[serde(rename = "hullInteriorGuard")]
+    pub hull_interior_guard: Option<bool>,
     #[serde(rename = "version")]
     pub version: f64,
     #[serde(rename = "marginM")]
@@ -1019,6 +1021,26 @@ pub struct FloodConnectionBounds {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct FloodConnectionPatchBounds {
+    #[serde(rename = "center")]
+    pub center: [f64; 3],
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct FloodConnectionPatch {
+    #[serde(rename = "areaM2")]
+    pub area_m2: f64,
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "bounds")]
+    pub bounds: FloodConnectionPatchBounds,
+    #[serde(rename = "transferOrder")]
+    pub transfer_order: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct FloodConnection {
     #[serde(rename = "id")]
     pub id: Option<String>,
@@ -1038,6 +1060,10 @@ pub struct FloodConnection {
     pub bounds: Option<FloodConnectionBounds>,
     #[serde(rename = "thicknessMm")]
     pub thickness_mm: Option<f64>,
+    #[serde(rename = "patches")]
+    pub patches: Option<Vec<FloodConnectionPatch>>,
+    #[serde(rename = "transferOrder")]
+    pub transfer_order: Option<f64>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

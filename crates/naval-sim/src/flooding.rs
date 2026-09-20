@@ -106,64 +106,75 @@ pub fn update_flooding(
         let state = &mut actor.damage.compartments[i];
         state.water_m3 = clamp(state.water_m3 + (inflow - pumping) * dt, 0.0, c.capacity_m3);
     }
-    for (i, c) in def.connections.iter().enumerate() {
-        let state = &actor.damage.connections[i];
-        if state.state == "closed" {
-            continue;
-        }
-        let (ai, bi) = (state.from_index, state.to_index);
-        let (a, b) = (
-            actor.damage.compartments[ai].water_m3,
-            actor.damage.compartments[bi].water_m3,
-        );
-        let portal = c.position.map_or(f64::NEG_INFINITY, |p| {
-            local_to_world(p, actor.motion.pose())[1]
-        });
-        let head = |a: f64, b: f64| {
-            if c.position.is_some() {
-                (a - portal).max(0.0) - (b - portal).max(0.0)
-            } else {
-                a - b
+    if def.connections.iter().any(|c| c.patches.is_some()) {
+        // Grouping changes storage order. Restore the original global fragment
+        // order only for active transfers, since each transfer changes the next head.
+        let mut flows = vec![];
+        for (i, c) in def.connections.iter().enumerate() {
+            let state = &actor.damage.connections[i];
+            if state.state == "closed" {
+                continue;
             }
-        };
-        let difference = head(
-            water_level(actor, def, ai, None),
-            water_level(actor, def, bi, None),
-        );
-        let area = if state.state == "damaged" {
-            state.damage_area_m2
-        } else {
-            c.area_m2
-        };
-        let direction = sign(difference);
-        let mut requested = (0.6 * area * (2.0 * 9.81 * difference.abs()).sqrt() * dt)
-            .min(if direction > 0.0 { a } else { b })
-            .min(if direction > 0.0 {
-                def.compartments[bi].capacity_m3 - b
-            } else {
-                def.compartments[ai].capacity_m3 - a
-            });
-        let remaining = |transfer| {
-            direction
-                * head(
-                    water_level(actor, def, ai, Some(a - direction * transfer)),
-                    water_level(actor, def, bi, Some(b + direction * transfer)),
-                )
-        };
-        if requested > 0.0 && remaining(requested) < 0.0 {
-            let (mut low, mut high) = (0.0, requested);
-            for _ in 0..28 {
-                let mid = (low + high) / 2.0;
-                if remaining(mid) >= 0.0 {
-                    low = mid;
-                } else {
-                    high = mid;
+            if let Some(patches) = &c.patches {
+                for (j, patch) in patches.iter().enumerate() {
+                    let area = if state.state == "damaged" {
+                        state.patch_damage_m2.as_ref().map_or_else(
+                            || patch.area_m2 * (state.damage_area_m2 / c.area_m2),
+                            |d| d[j],
+                        )
+                    } else {
+                        patch.area_m2
+                    };
+                    if area > 0. {
+                        flows.push((
+                            patch.transfer_order,
+                            state.from_index,
+                            state.to_index,
+                            Some(patch.position),
+                            area,
+                        ));
+                    }
                 }
+            } else {
+                let area = if state.state == "damaged" {
+                    state.damage_area_m2
+                } else {
+                    c.area_m2
+                };
+                flows.push((
+                    c.transfer_order.unwrap_or(i as f64),
+                    state.from_index,
+                    state.to_index,
+                    c.position,
+                    area,
+                ));
             }
-            requested = low;
         }
-        actor.damage.compartments[ai].water_m3 -= direction * requested;
-        actor.damage.compartments[bi].water_m3 += direction * requested;
+        flows.sort_by(|a, b| a.0.total_cmp(&b.0));
+        for (_, ai, bi, position, area) in flows {
+            transfer(actor, def, ai, bi, position, area, dt);
+        }
+    } else {
+        for (i, c) in def.connections.iter().enumerate() {
+            let state = &actor.damage.connections[i];
+            if state.state == "closed" {
+                continue;
+            }
+            let area = if state.state == "damaged" {
+                state.damage_area_m2
+            } else {
+                c.area_m2
+            };
+            transfer(
+                actor,
+                def,
+                state.from_index,
+                state.to_index,
+                c.position,
+                area,
+                dt,
+            );
+        }
     }
     let water: f64 = actor.damage.compartments.iter().map(|c| c.water_m3).sum();
     if def.stability.is_none() {
@@ -201,4 +212,62 @@ pub fn update_flooding(
             actor.damage.compartments[i].water_level_y = Some(y);
         }
     }
+}
+
+fn transfer(
+    actor: &mut Combatant,
+    def: &ShipDefinition,
+    ai: usize,
+    bi: usize,
+    position: Option<crate::definition::Vec3>,
+    area: f64,
+    dt: f64,
+) {
+    let (a, b) = (
+        actor.damage.compartments[ai].water_m3,
+        actor.damage.compartments[bi].water_m3,
+    );
+    let portal = position.map_or(f64::NEG_INFINITY, |p| {
+        local_to_world(p, actor.motion.pose())[1]
+    });
+    let head = |a: f64, b: f64| {
+        if position.is_some() {
+            (a - portal).max(0.0) - (b - portal).max(0.0)
+        } else {
+            a - b
+        }
+    };
+    let difference = head(
+        water_level(actor, def, ai, None),
+        water_level(actor, def, bi, None),
+    );
+    let direction = sign(difference);
+    let mut requested = (0.6 * area * (2.0 * 9.81 * difference.abs()).sqrt() * dt)
+        .min(if direction > 0.0 { a } else { b })
+        .min(if direction > 0.0 {
+            def.compartments[bi].capacity_m3 - b
+        } else {
+            def.compartments[ai].capacity_m3 - a
+        });
+    let remaining = |transfer| {
+        direction
+            * head(
+                water_level(actor, def, ai, Some(a - direction * transfer)),
+                water_level(actor, def, bi, Some(b + direction * transfer)),
+            )
+    };
+    if requested > 0.0 && remaining(requested) < 0.0 {
+        let (mut low, mut high) = (0.0, requested);
+        for _ in 0..28 {
+            let mid = (low + high) / 2.0;
+            if remaining(mid) >= 0.0 {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+        requested = low;
+    }
+    actor.damage.compartments[ai].water_m3 -= direction * requested;
+    actor.damage.compartments[bi].water_m3 += direction * requested;
 }

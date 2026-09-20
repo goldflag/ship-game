@@ -584,16 +584,13 @@ pub fn resolve_ship_contact(
                 r.evidence.local_damage.as_ref(),
             ));
             for (j, c) in def.connections.iter().enumerate() {
-                if c.armor_id.as_ref() != Some(&a.id)
-                    || c.bounds
-                        .as_ref()
-                        .is_some_and(|b| !contains(b.center, b.size, hit.point))
-                {
+                if c.armor_id.as_ref() != Some(&a.id) {
                     continue;
                 }
                 let s = &mut actor.damage.connections[j];
-                s.state = "damaged".into();
-                s.damage_area_m2 = c.area_m2.min(s.damage_area_m2 + shell.caliber_m.powi(2));
+                if !crate::flood_connections::breach_at(c, s, hit.point, shell.caliber_m.powi(2)) {
+                    continue;
+                }
                 r.evidence
                     .connection_ids
                     .get_or_insert_default()

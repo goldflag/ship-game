@@ -92,10 +92,13 @@ export interface AuthoredSurface {
 }
 /** Physical movement stops derived from original geometry, independent of firing arcs. */
 export interface MountClearanceProfile {
+  /** Exterior hull meshes also reject barrel centers inside structural solids,
+   * except the mount's installed working bore. */
+  hullInteriorGuard?: boolean;
   version: 1;
   marginM: number;
   basis: string;
-  /** Select exactly one geometry encoding: closed bodies or installation envelopes. */
+  /** Select exactly one geometry encoding: triangle bodies or installation envelopes. */
   mountIds?: string[];
   /** Fixed bodies use hull coordinates; mounted fittings use yaw-local coordinates. */
   bodies?: { id: string; mountId?: string; surface: AuthoredSurface }[];
@@ -351,6 +354,17 @@ export interface FloodConnection {
   armorId?: string;
   bounds?: { center: Vec3; size: Vec3 };
   thicknessMm?: number;
+  /** Compiled boundary fragments share topology, retaining their individual
+   * damage footprints and heights for local breaches and tilted waterplanes. */
+  patches?: FloodConnectionPatch[];
+  /** Original fragment order for conservative sequential water transfers. */
+  transferOrder?: number;
+}
+export interface FloodConnectionPatch {
+  areaM2: number;
+  position: Vec3;
+  bounds: { center: Vec3; size: Vec3 };
+  transferOrder: number;
 }
 /** Installed catalog ratings for ship-wide exhaust allocation and damage. */
 export interface MachineryRating {
