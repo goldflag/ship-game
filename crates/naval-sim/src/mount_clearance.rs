@@ -131,10 +131,67 @@ impl Box3 {
         length(a) < length(b)
     }
 }
+/// A clearance body's triangles never deform: moving mounts transform the
+/// query into the body's frame. Keep the edge and plane terms with that shared
+/// geometry instead of deriving them for every barrel section on every tick.
+#[derive(Clone, Debug)]
+struct PreparedTriangle {
+    vertices: [Vec3; 3],
+    edges: [Vec3; 3],
+    edge_squared: [f64; 3],
+    normal: Vec3,
+    normal_squared: f64,
+}
+impl PreparedTriangle {
+    fn new(vertices: [Vec3; 3]) -> Self {
+        let [a, b, c] = vertices;
+        let edges = [sub(b, a), sub(c, b), sub(a, c)];
+        let normal = cross(sub(b, a), sub(c, a));
+        Self {
+            vertices,
+            edges,
+            edge_squared: edges.map(|e| dot(e, e)),
+            normal,
+            normal_squared: dot(normal, normal),
+        }
+    }
+    fn point_distance(&self, p: Vec3) -> f64 {
+        let n = self.normal;
+        let nn = self.normal_squared;
+        if nn > 1e-20 {
+            let projected = sub(p, scale(n, dot(sub(p, self.vertices[0]), n) / nn));
+            if (0..3)
+                .all(|i| dot(cross(self.edges[i], sub(projected, self.vertices[i])), n) >= -1e-12)
+            {
+                return dot(sub(p, self.vertices[0]), n).abs() / nn.sqrt();
+            }
+        }
+        let edge =
+            |i| point_edge_distance(p, self.vertices[i], self.edges[i], self.edge_squared[i]);
+        edge(0).min(edge(1)).min(edge(2))
+    }
+    fn distance(&self, p: Vec3, q: Vec3) -> f64 {
+        let n = self.normal;
+        let delta = sub(q, p);
+        let denom = dot(n, delta);
+        if denom.abs() > 1e-16 {
+            let t = dot(n, sub(self.vertices[0], p)) / denom;
+            if (0.0..=1.0).contains(&t) && self.point_distance(add(p, scale(delta, t))) < 1e-8 {
+                return 0.0;
+            }
+        }
+        let [a, b, c] = self.vertices;
+        self.point_distance(p)
+            .min(self.point_distance(q))
+            .min(segment_segment_distance(p, q, a, b))
+            .min(segment_segment_distance(p, q, b, c))
+            .min(segment_segment_distance(p, q, c, a))
+    }
+}
 #[derive(Clone, Debug)]
 struct Chunk {
     bounds: Box3,
-    triangles: Vec<[Vec3; 3]>,
+    triangles: Vec<PreparedTriangle>,
     children: Option<Box<[Chunk; 2]>>,
 }
 impl Chunk {
@@ -143,7 +200,7 @@ impl Chunk {
         if triangles.len() <= 12 {
             return Self {
                 bounds,
-                triangles,
+                triangles: triangles.into_iter().map(PreparedTriangle::new).collect(),
                 children: None,
             };
         }
@@ -171,9 +228,7 @@ impl Chunk {
             children[1 - first].distance(capsule, bounds, nearest);
         } else {
             for triangle in &self.triangles {
-                *nearest = nearest.min(
-                    segment_triangle_distance(capsule.a, capsule.b, *triangle) - capsule.radius,
-                );
+                *nearest = nearest.min(triangle.distance(capsule.a, capsule.b) - capsule.radius);
             }
         }
     }
@@ -1362,6 +1417,9 @@ fn box_triangles(center: Vec3, size: Vec3) -> Vec<[Vec3; 3]> {
 fn point_segment_distance(p: Vec3, a: Vec3, b: Vec3) -> f64 {
     let ab = sub(b, a);
     let n = dot(ab, ab);
+    point_edge_distance(p, a, ab, n)
+}
+fn point_edge_distance(p: Vec3, a: Vec3, ab: Vec3, n: f64) -> f64 {
     length(sub(
         p,
         add(
@@ -1402,6 +1460,7 @@ fn segment_segment_distance(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> f64 {
     }
     length(sub(add(p, scale(u, s)), add(a, scale(v, t))))
 }
+#[cfg(test)]
 fn point_triangle_distance(p: Vec3, [a, b, c]: [Vec3; 3]) -> f64 {
     let n = cross(sub(b, a), sub(c, a));
     let nn = dot(n, n);
@@ -1418,6 +1477,7 @@ fn point_triangle_distance(p: Vec3, [a, b, c]: [Vec3; 3]) -> f64 {
         .min(point_segment_distance(p, b, c))
         .min(point_segment_distance(p, c, a))
 }
+#[cfg(test)]
 fn segment_triangle_distance(p: Vec3, q: Vec3, triangle: [Vec3; 3]) -> f64 {
     let [a, b, c] = triangle;
     let n = cross(sub(b, a), sub(c, a));
@@ -1513,6 +1573,35 @@ mod tests {
                     gap.min(segment_triangle_distance(capsule.a, capsule.b, *t) - capsule.radius)
                 });
                 assert!((body.distance(capsule, limit) - exhaustive).abs() < 1e-10);
+            }
+        }
+    }
+    #[test]
+    fn prepared_triangles_preserve_face_edge_and_degenerate_distances() {
+        let triangles = [
+            [[0., 0., 0.], [2., 0., 0.], [0., 0., 2.]],
+            [[10., -3., 7.], [12., -2., 7.], [10., -3., 9.]],
+            [[0., 0., 0.], [1., 0., 0.], [2., 0., 0.]],
+            [[0., 0., 0.]; 3],
+            [[0., 0., 0.], [1e-11, 0., 0.], [0., 0., 1e-11]],
+        ];
+        for triangle in triangles {
+            let body = Body::new("test".into(), None, false, vec![triangle]);
+            for i in 0..100 {
+                let p = [i as f64 * 0.17 - 3., (i % 7) as f64 - 3., 0.3];
+                for q in [p, [p[0], -p[1], 0.3], [0.3, 1e-12, 0.3], [0.; 3]] {
+                    let capsule = Capsule {
+                        a: p,
+                        b: q,
+                        radius: 0.12,
+                    };
+                    let expected = segment_triangle_distance(p, q, triangle) - capsule.radius;
+                    assert_eq!(
+                        body.distance(capsule, 100.).to_bits(),
+                        expected.to_bits(),
+                        "{triangle:?}, {p:?} -> {q:?}"
+                    );
+                }
             }
         }
     }
