@@ -30,11 +30,6 @@
     "since": "2026-09-19"
   },
   {
-    "file": "src/ships/constructionGunCatalog.test.ts",
-    "test": "retained catalogs still compile removed gun tubs and lockers with their original collision envelopes",
-    "since": "2026-09-19"
-  },
-  {
     "file": "src/ships/constructionMesh.test.ts",
     "test": "hemisphere: rings insert without changing volume and remain editable",
     "since": "2026-09-19",
