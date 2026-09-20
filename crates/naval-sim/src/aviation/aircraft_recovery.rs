@@ -52,6 +52,8 @@ pub(super) fn track_progress(p: &mut Aircraft, distance: f64, dt: f64) {
 pub(super) const MAX_RECOVERY_YAW_RATE: f64 = 0.012;
 
 pub(super) fn turn_delays_recovery(actor: &Vessel) -> bool {
+    // The gate is on the helm order, not the paced world rate: the same turn
+    // that allowed recovery before world pace still allows it.
     actor.motion.yaw_rate.abs() > MAX_RECOVERY_YAW_RATE
 }
 
@@ -70,9 +72,9 @@ pub(super) fn fly_final(p: &mut Aircraft, actor: &Vessel, datum: Vec3, landing: 
     let platform_velocity = add(
         actor.motion.velocity(),
         [
-            -actor.motion.yaw_rate * offset[2],
+            -actor.motion.world_yaw_rate() * offset[2],
             0.0,
-            actor.motion.yaw_rate * offset[0],
+            actor.motion.world_yaw_rate() * offset[0],
         ],
     );
     let side = clamp((datum[0] - local[0]) * 0.28, -32.0, 32.0);
@@ -81,13 +83,20 @@ pub(super) fn fly_final(p: &mut Aircraft, actor: &Vessel, datum: Vec3, landing: 
     } else {
         0.0
     };
-    let relative = sub(
-        local_to_world([side, vertical, -closing_speed], pose),
-        local_to_world([0.0; 3], pose),
+    // Closing and lineup are speeds over the deck, which now runs at world pace:
+    // pacing them too keeps the whole circuit the approach it was tuned as.
+    let pace = crate::mobility::SHIP_PACE;
+    let relative = scale(
+        sub(
+            local_to_world([side, vertical, -closing_speed], pose),
+            local_to_world([0.0; 3], pose),
+        ),
+        pace,
     );
     let mut velocity = add(platform_velocity, relative);
-    velocity[1] += clamp((center[1] - p.position[1]) * 0.6, -12.0, 12.0);
-    let speed = length(velocity);
+    velocity[1] += clamp((center[1] - p.position[1]) * 0.6, -12.0, 12.0) * pace;
+    // The approach is world motion; `fly` takes the airspeed that produces it.
+    let speed = length(velocity) / pace;
     fly(
         p,
         add(p.position, scale(velocity, 3.0)),
@@ -96,7 +105,7 @@ pub(super) fn fly_final(p: &mut Aircraft, actor: &Vessel, datum: Vec3, landing: 
         FlightOptions {
             landing,
             turn_rate: actor.motion.yaw_rate,
-            altitude_lookahead: Some(speed * 3.0),
+            altitude_lookahead: Some(speed * pace * 3.0),
             ..Default::default()
         },
     );

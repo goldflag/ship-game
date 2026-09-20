@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu';
 import { barrelIds, type ShipDefinition } from '../ships/blueprint';
 import { shipPreset } from '../ships/presets';
 import { radians } from './geometry';
+import { SHIP_PACE } from '../ships/mobility';
 import { ObservedMotion } from './ObservedMotion';
 import type { WakeShip } from './FleetWakeFoam';
 import type { ObservedShip } from './session/BattleSession';
@@ -85,7 +86,8 @@ export class ObservedShipViews {
     motion.x = pose.position.x; motion.y = pose.position.y; motion.z = pose.position.z;
     motion.heading = -this.euler.setFromQuaternion(pose.rotation).y;
     const [vx, , vz] = report.velocity;
-    motion.speed = vx * Math.sin(motion.heading) - vz * Math.cos(motion.heading);
+    // Reports carry world velocity; the wake reads physical speed.
+    motion.speed = (vx * Math.sin(motion.heading) - vz * Math.cos(motion.heading)) / SHIP_PACE;
   }
   private articulate(view: View, report: ObservedShip, blend: number): void {
     const { joints } = view;

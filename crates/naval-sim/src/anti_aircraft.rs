@@ -276,8 +276,14 @@ pub fn update_observed_at(
         true,
     );
     let panic = discipline.panic;
+    // Shell times below are physical; the target moves in battle time, which
+    // passes more slowly than shell time by the shell pace.
+    let shell_time = 1.0 / crate::mobility::SHELL_PACE;
     let flight_time = closest / m.weapon.muzzle_speed;
-    let aim = add(target_position, scale(target_velocity, flight_time));
+    let aim = add(
+        target_position,
+        scale(target_velocity, flight_time * shell_time),
+    );
     let crew_aim = if panic {
         panic_aim(origin, target_position, discipline)
     } else {
@@ -294,7 +300,7 @@ pub fn update_observed_at(
             },
         )
     }
-    let velocity = actor.motion.velocity();
+    let velocity = scale(actor.motion.velocity(), shell_time);
     let (power, fire_control) = mount_support(actor, actor.definition(), Some(&m.id), None);
     let aligned = update_mount_at(
         index,
@@ -345,11 +351,23 @@ pub fn update_observed_at(
         }
         shots.push((position, direction, endpoint));
     }
-    state.expend_salvo(m, m.weapon.reload_seconds.max(0.35));
+    // Aircraft cross the envelope at world pace, so automatic AA fires at that
+    // pace too and puts the authored number of rounds into each pass.
+    state.expend_salvo(
+        m,
+        m.weapon.reload_seconds.max(0.35) / crate::mobility::SHIP_PACE,
+    );
+    // A target crossing at world pace outruns a straight-line burst prediction by
+    // the same factor, so the burst and near-miss envelopes widen with it: AA keeps
+    // the effectiveness it was tuned for instead of thinning as the game speeds up.
+    let envelope = crate::mobility::SHIP_PACE;
     for (position, direction, endpoint) in shots {
         if let Some(actual) = air.plane_mut(&target_id) {
             let hit_position = if knowledge.is_some() {
-                add(actual.position, scale(actual.velocity, burst_time))
+                add(
+                    actual.position,
+                    scale(actual.velocity, burst_time * shell_time),
+                )
             } else {
                 aim
             };
@@ -359,15 +377,26 @@ pub fn update_observed_at(
             if clear
                 && nearer_distance(
                     sub(endpoint, hit_position),
-                    if heavy { 100.0 } else { 45.0 },
+                    if heavy {
+                        100.0 * envelope
+                    } else {
+                        45.0 * envelope
+                    },
                 )
                 .is_some()
             {
                 crate::aviation::near_fire(actual, position);
             }
             if clear
-                && nearer_distance(sub(endpoint, hit_position), if heavy { 14.0 } else { 6.0 })
-                    .is_some()
+                && nearer_distance(
+                    sub(endpoint, hit_position),
+                    if heavy {
+                        14.0 * envelope
+                    } else {
+                        6.0 * envelope
+                    },
+                )
+                .is_some()
             {
                 actual.hp -= aa_damage(m.weapon.caliber_m);
             }
@@ -386,8 +415,9 @@ pub fn update_observed_at(
                 velocity: Some(velocity),
                 panic: Some(panic),
                 drag_per_second: Some(drag),
+                // Battle seconds until the burst; clients replay the arc at shell pace.
                 airburst: heavy.then_some(AirburstEffect {
-                    flight_time: burst_time,
+                    flight_time: burst_time * shell_time,
                     caliber_m: m.weapon.caliber_m,
                 }),
                 ..Default::default()

@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { BoxGeometry, Euler, Group, Mesh, Quaternion } from 'three/webgpu';
 import { ObservedShipViews } from './ObservedShipViews';
+import { SHIP_PACE } from '../ships/mobility';
 import { shipPreset } from '../ships/presets';
 import type { ObservedShip } from './session/BattleSession';
 
@@ -140,9 +141,10 @@ test('a visible exterior leaves a wake with its drawn pose and reported way; a h
   expect(ship.definition.hull.length).toBe(shipPreset('fletcher').hull.length);
   expect([ship.motion.x, ship.motion.z]).toEqual([1000, -2000]);
   expect(ship.motion.heading).toBeCloseTo(Math.PI / 2, 6);
-  expect(ship.motion.speed).toBeCloseTo(12, 6);
+  // Reports carry world velocity; the wake reads the physical way behind it.
+  expect(ship.motion.speed).toBeCloseTo(12 / SHIP_PACE, 6);
   views.update([report({ position: [1000, 0, -2000], heading: Math.PI / 2, velocity: [-6, 0, 0] })], 0, true, 'forward-destroyer', 0);
-  expect(views.wakeShips()[0].motion.speed).toBeCloseTo(-6, 6);
+  expect(views.wakeShips()[0].motion.speed).toBeCloseTo(-6 / SHIP_PACE, 6);
   views.update([report({ position: [1000, 0, -2000], heading: Math.PI / 2, velocity: [12, 0, 0] })], 0, true, 'rear-carrier', 0);
   expect(views.wakeShips()).toHaveLength(0);
   views.update([report()], 0, false, 'forward-destroyer', 0);

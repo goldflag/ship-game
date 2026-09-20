@@ -213,7 +213,7 @@ impl Island {
 }
 pub fn avoid_land(p: &ShipState, command: HelmCommand, islands: &[Island]) -> HelmCommand {
     for island in islands {
-        let look = 650.0f64.max(p.speed.abs() * 50.0);
+        let look = 650.0f64.max(p.speed.abs() * crate::mobility::SHIP_PACE * 50.0);
         let x = p.x + p.heading.sin() * look;
         let z = p.z - p.heading.cos() * look;
         if island.radius(x, z) > 1.3 && island.radius(p.x, p.z) > 1.2 {

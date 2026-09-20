@@ -805,7 +805,7 @@ pub fn step(
         );
     }
     let old = s.heading;
-    let dh = s.yaw_rate * DT;
+    let dh = s.world_yaw_rate() * DT;
     let (sin, cos) = dh.sin_cos();
     let u = s.speed * cos + s.sway_speed * sin;
     s.sway_speed = s.sway_speed * cos - s.speed * sin;

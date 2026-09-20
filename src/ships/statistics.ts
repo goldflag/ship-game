@@ -1,4 +1,4 @@
-import { torpedoSpeed, effectiveHandling } from './mobility';
+import { effectiveHandling } from './mobility';
 import type { GunPart, ShipDefinition } from './blueprint';
 import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, gunTraverseLimitsDeg, torpedoArcLabel } from './armament';
 import { KNOTS_PER_MPS } from '../game/session/motion';
@@ -412,7 +412,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
         },
         {
           label: 'Speed',
-          value: format(knots(torpedoSpeed(weapon.speed))),
+          value: format(knots(weapon.speed)),
           unit: 'kn',
           help: 'Constant speed after launch; no homing or later steering.',
         },

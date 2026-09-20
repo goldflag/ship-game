@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu';
 import type { ShipDefinition } from '../ships/blueprint';
 import type { EnsignDesign } from '../ships/rig';
 import { motionVelocity } from './session/motion';
+import { SHIP_PACE } from '../ships/mobility';
 import { ensignAspects, rasterEnsign } from '../../assets/parts/ensigns';
 import { FlagCloth } from './FlagCloth';
 import type { Combatant } from '../game/session/elements';
@@ -93,8 +94,8 @@ export class ShipRigView {
       this.wind.set(Math.cos(windDirection) * windSpeed - velocity[0], -velocity[1], Math.sin(windDirection) * windSpeed - velocity[2]);
       this.wind.applyQuaternion(this.inverse);
       // Apparent wind includes the hoist's velocity as the hull turns.
-      this.wind.x += motion.yawRate * mesh.position.z;
-      this.wind.z -= motion.yawRate * mesh.position.x;
+      this.wind.x += motion.yawRate * SHIP_PACE * mesh.position.z;
+      this.wind.z -= motion.yawRate * SHIP_PACE * mesh.position.x;
       this.wind.toArray(this.relativeWind);
       if (cloth.advance(step, this.relativeWind, this.localGravity)) {
         mesh.geometry.attributes.position.needsUpdate = true;

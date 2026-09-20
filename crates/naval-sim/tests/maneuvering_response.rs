@@ -44,13 +44,15 @@ fn step(a: &mut Vessel, throttle: f64, rudder: f64) {
 #[test]
 fn fleet_acceleration_and_crash_stops_retain_inertia() {
     for (id, cruise_range, stop_range) in [
-        ("fletcher", (9., 14.), (11., 17.)),
-        ("bismarck", (55., 75.), (50., 70.)),
-        // Construction ships answer to compiled power on a calibrated resistance curve;
-        // their budgets follow the speeds that model gives, not the legacy presets' authored ones.
-        ("valiant", (42., 62.), (38., 56.)),
-        ("resolute", (50., 72.), (55., 80.)),
-        ("type-viic", (9., 14.), (9., 14.)),
+        // Budgets are the paced times at the current force response. Construction
+        // ships answer to compiled power on a calibrated resistance curve; their
+        // budgets follow the speeds that model gives, not the legacy presets'
+        // authored ones.
+        ("fletcher", (13., 21.), (12., 19.)),
+        ("bismarck", (62., 90.), (61., 89.)),
+        ("valiant", (52., 76.), (48., 70.)),
+        ("resolute", (62., 89.), (68., 98.)),
+        ("type-viic", (11., 17.), (11., 17.)),
     ] {
         let mut a = ship(id);
         let speed = a.compiled.maneuvering.estimated_speed;
@@ -78,12 +80,14 @@ fn fleet_acceleration_and_crash_stops_retain_inertia() {
 
 #[test]
 fn fleet_can_change_course_and_countersteer_during_a_fight() {
+    // Course changes are world heading, which advances at world pace; the budgets
+    // below are the paced times at the current force response.
     for (id, min_seconds, turn_seconds) in [
-        ("fletcher", 15., 22.),
-        ("bismarck", 50., 65.),
-        ("valiant", 120., 160.),
-        ("resolute", 65., 90.),
-        ("type-viic", 22., 30.),
+        ("fletcher", 11., 19.),
+        ("bismarck", 37., 56.),
+        ("valiant", 117., 172.),
+        ("resolute", 64., 94.),
+        ("type-viic", 17., 26.),
     ] {
         for direction in [-1., 1.] {
             let mut a = ship(id);
@@ -143,4 +147,35 @@ fn response_tuning_preserves_top_speed_and_navigation_braking_estimate() {
             a.motion.speed
         );
     }
+}
+
+/// World pace moves and turns the hull faster without touching the physical
+/// state every readout shows.
+#[test]
+fn world_pace_moves_the_hull_faster_than_it_reports() {
+    let mut a = ship("fletcher");
+    a.motion.speed = 12.;
+    a.motion.yaw_rate = 0.01;
+    let (before, heading) = ([a.motion.x, a.motion.z], a.motion.heading);
+    let reported = a.motion.speed;
+    step(&mut a, 0., 0.);
+    let travelled = (a.motion.x - before[0]).hypot(a.motion.z - before[1]);
+    assert!(
+        (travelled / (reported * DT) - naval_sim::mobility::SHIP_PACE).abs() < 0.02,
+        "covered {travelled} m while reporting {reported} m/s over {DT}s"
+    );
+    let turned = wrap_angle(a.motion.heading - heading);
+    assert!(
+        (turned / (0.01 * DT) - naval_sim::mobility::SHIP_PACE).abs() < 0.02,
+        "turned {turned} rad at a reported 0.01 rad/s over {DT}s"
+    );
+    assert!(
+        (a.motion.velocity()[2].abs() / (reported * naval_sim::mobility::SHIP_PACE) - 1.).abs()
+            < 0.02,
+        "world velocity must carry the pace"
+    );
+    assert!(
+        (a.motion.physical_velocity()[2].abs() / reported - 1.).abs() < 0.02,
+        "physical velocity must not"
+    );
 }
