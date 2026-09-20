@@ -719,7 +719,7 @@ test('elevated scope holds the sight through zoom and gun changes, and gives pre
   drag(0, 8); rig.update(ship, ship.y, 0);
   const adjusted = readAim(), correction = adjusted.z - aim[2];
   expect(correction).toBeGreaterThan(0);
-  expect(correction).toBeLessThan(500);
+  expect(correction).toBeLessThan(1000);
   settle(); expect(readAim().distanceTo(adjusted)).toBeLessThan(1e-6);
   rig.setScopeWeapon({ ...weapon, muzzleSpeed: weapon.muzzleSpeed * .8 }); settle();
   expect(readAim().distanceTo(adjusted)).toBeLessThan(1e-6);

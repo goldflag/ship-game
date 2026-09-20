@@ -8,7 +8,7 @@ import type { ShipState } from '../game/session/elements';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
-const MIN_MAGNIFICATION = 1, MAX_MAGNIFICATION = 32;
+const MIN_MAGNIFICATION = 1, MAX_MAGNIFICATION = 32, DEFAULT_SCOPE_MAGNIFICATION = 2;
 const MAX_DOWNWARD_TILT = Math.PI / 2 - .015;
 const MIN_ORBIT_ELEVATION = .08;
 /** Torpedoes are laid on wedges drawn on the sea: the chase view climbs until the water fills the lower half of the frame. */
@@ -33,7 +33,7 @@ const FREE_MAX_TILT = Math.PI / 2 - .02;
 export class CameraRig {
   mode: CameraMode = 'Chase';
   binoculars = false;
-  private scopeMagnification = 4;
+  private scopeMagnification = DEFAULT_SCOPE_MAGNIFICATION;
   private scopeWeapon?: GunPart;
   private scopeMuzzleHeight = 0;
   private scopeLift = 0;
@@ -312,7 +312,8 @@ export class CameraRig {
     const position = this.camera.position.clone(), orientation = this.camera.quaternion.clone(), fov = this.camera.fov;
     this.opticsTransition = undefined;
     this.binoculars = !this.binoculars;
-    if (!this.binoculars) this.setRangeLock();
+    if (this.binoculars) this.scopeMagnification = DEFAULT_SCOPE_MAGNIFICATION;
+    else this.setRangeLock();
     this.aimAt(aim, ship);
     if (!this.reducedMotion) {
       this.opticsTransition = { offset: position.clone().sub(this.camera.position), aim: [...aim], elapsed: 0 };
