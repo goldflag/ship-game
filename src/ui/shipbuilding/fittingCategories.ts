@@ -47,10 +47,12 @@ export function fittingCategory(part: ConstructionEquipmentPart, catalog: Constr
   }
 }
 
-export type FittingNation = 'United States' | 'Germany' | 'Japan' | 'United Kingdom';
-export const NATION_SHORT: Record<FittingNation, string> = { 'United States': 'USA', Germany: 'Germany', Japan: 'Japan', 'United Kingdom': 'UK' };
+export type FittingNation = 'United States' | 'Germany' | 'Japan' | 'United Kingdom' | 'France' | 'Italy' | 'Poland' | 'Russia';
+export const NATION_SHORT: Record<FittingNation, string> = { 'United States': 'USA', Germany: 'Germany', Japan: 'Japan', 'United Kingdom': 'UK', France: 'France', Italy: 'Italy', Poland: 'Poland', Russia: 'Russia' };
 const NATION_PREFIXES: [RegExp, FittingNation][] = [
   [/^(us|fletcher|iowa|oerlikon)-/, 'United States'], [/^(german|sk-?c\d|flak)/, 'Germany'], [/^(ijn|type\d)/, 'Japan'], [/^(rn|uk|british|qf|bl|lewis)-/, 'United Kingdom'],
+  [/^clemson-/, 'United States'], [/^emden-/, 'Germany'], [/^mikasa-/, 'Japan'], [/^(dreadnought|hood|nelson)-/, 'United Kingdom'],
+  [/^dunkerque-/, 'France'], [/^(aosta|cesare)-/, 'Italy'], [/^blyskawica-/, 'Poland'], [/^(kirov|aurora)-/, 'Russia'],
 ];
 /** The navy a part was drawn from; undefined for generic parts, which every nation filter keeps. */
 export const fittingNation = (part: ConstructionEquipmentPart): FittingNation | undefined => NATION_PREFIXES.find(([prefix]) => prefix.test(part.id))?.[1];

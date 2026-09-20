@@ -79,7 +79,7 @@ export async function componentItems(root: string, ships: ShipDefinition[]): Pro
   const published = await readFile(join(root, 'public/models/components/catalog.json'), 'utf8').then(JSON.parse).catch(() => undefined);
   const fittings = await Promise.all(equipment.filter(p => p.kind !== 'gun').map(async part => {
     const entry = registry.components.find(e => e.partId === part.id)!;
-    const item: ComponentItem = { ...entry, name: part.name, nation: part.id.startsWith('fletcher-') ? 'United States' : 'Generic',
+    const item: ComponentItem = { ...entry, name: part.name, nation: entry.nation ?? (part.id.startsWith('fletcher-') ? 'United States' : 'Generic'),
       family: part.path?.kind ?? part.kind, equipment: part, installations: [], previewStatus: 'missing' };
     const hash = await equipmentHash(root, part);
     try {

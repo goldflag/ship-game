@@ -61,7 +61,9 @@ export function suggestStarterEquipment(catalog: ConstructionCatalog, kind: Excl
   const gun = parts.find(p => p.id === 'us-5in38-mk30-mod0-single') ?? find('gun');
   const supportY = (part: ConstructionEquipmentPart | undefined) => part?.sockets?.find(s => s.id === 'attachment')?.position[1] ?? 0;
   fit('gun-forward', gun, [0, 2.5 - supportY(gun), twin ? -8 : -14]);
-  const funnel = find('funnel');
+  // Keep the starter's established exhaust allowance when smaller historical
+  // funnels enter the catalog. Older catalogs can still use their smallest fit.
+  const funnel = parts.find(p => p.id === 'rn-corvette-funnel') ?? find('funnel');
   fit('funnel', funnel, [twin ? 6 : 0, 2.5 - supportY(funnel), 5]);
   const propeller = find('propeller'), rudder = find('rudder');
   const shaftZ = propeller?.sockets?.find(s => s.id === 'attachment')?.position[2] ?? 0;
