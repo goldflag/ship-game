@@ -1,9 +1,9 @@
 import { useEffect, useId, useRef, useState, type DragEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { coastOutline } from '../../maps/catalog';
 import { resolveShip } from '../../ships/localShips';
-import { dragFormation, rotateFormation, zoomDeployment, type DeploymentPoint } from '../deploymentGestures';
+import { MIN_SHIP_SEPARATION_M } from '../../game/session/battleSetup';
+import { dragFormation, placeFormation, rotateFormation, zoomDeployment, type DeploymentPoint } from '../deploymentGestures';
 import { formationLabel } from '../formationStations';
-import { moveFormation } from '../pveSetup';
 import { SHIP_GLYPHS, shipClassOf } from '../shipGlyphs';
 import { formatHeading, headingDegrees, unitsBox, unitsCenter, type ChartUnit, type Deployment } from './deploymentModel';
 
@@ -67,6 +67,9 @@ export function DeploymentChart({
   const [size, setSize] = useState({ w: 600, h: 600 });
   const [dragging, setDragging] = useState(false),
     [dropActive, setDropActive] = useState(false);
+  /** Ships standing still while something is dragged: their berths are drawn so the player
+   * sees what the moving selection is stopping against. */
+  const [berths, setBerths] = useState<readonly string[]>([]);
   const viewport = useRef({ center, zoom });
   viewport.current = { center, zoom };
   const focusX = deployment.focus.x,
@@ -143,12 +146,14 @@ export function DeploymentChart({
       moved: false,
     };
     setDragging(true);
+    setBerths(kind === 'pan' ? [] : units.filter((unit) => !ids.includes(unit.id)).map((unit) => unit.id));
   };
   const finishGesture = (cancel = false) => {
     const current = gesture.current;
     if (!current) return;
     gesture.current = undefined;
     setDragging(false);
+    setBerths([]);
     if (current.moved) {
       if (cancel) {
         if (current.kind === 'pan') setCenter(current.center);
@@ -188,7 +193,7 @@ export function DeploymentChart({
   const nudge = (dx: number, dz: number, turn = 0) => {
     if (disabled || !active.length || !focus) return;
     const ids = active.map((unit) => unit.id);
-    onChange(moveFormation(units, ids, focus.x + dx, focus.z + dz, turn));
+    onChange(placeFormation(units, ids, focus.x + dx, focus.z + dz, turn));
     onCommit(units);
   };
   const keyDown = (event: KeyboardEvent<SVGSVGElement>) => {
@@ -317,7 +322,7 @@ export function DeploymentChart({
           if (!ids.length) return;
           const first = units.find((unit) => unit.id === ids[0])!;
           onSelect(ids.length === 1 ? { kind: 'ship', id: ids[0] } : { kind: 'group', id: first.groupId });
-          onChange(moveFormation(units, ids, point.x, point.z));
+          onChange(placeFormation(units, ids, point.x, point.z));
           onCommit(units);
         } catch {
           /* Ignore drops that are not a deployment selection. */
@@ -378,6 +383,17 @@ export function DeploymentChart({
         <text x={view.x + px(14)} y={view.z + px(20)} className="chart-rose" fontSize={px(13)} textAnchor="start">
           N ↑
         </text>
+      )}
+      {/* A moving ship stops at the rim of a standing ship's berth, so the rims are what the
+          player is aiming between while a drag is live. */}
+      {berths.length > 0 && (
+        <g className="chart-berths">
+          {units
+            .filter((unit) => berths.includes(unit.id))
+            .map((unit) => (
+              <circle key={unit.id} cx={unit.spawn.x} cy={unit.spawn.z} r={MIN_SHIP_SEPARATION_M} />
+            ))}
+        </g>
       )}
       {/* The compass ring sits beneath every frame, tag and ship marker: SVG paints later
         siblings on top, so a press on another group always reaches that group instead of

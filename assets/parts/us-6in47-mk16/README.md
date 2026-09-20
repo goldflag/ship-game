@@ -18,3 +18,7 @@ access hoods, two face ladders and fuller upper canvas folds. Roof hatches absen
 from the registered AGM009 reference are omitted. The slotted roof and sliding
 canvas cuff remain deliberate articulation approximations; source cloth folds
 and rear access detailing are simplified. Weapon/armor data are unchanged.
+
+The follow-up shortens the cloth return to the front roof edge (local X = 1.00 m),
+closes the roof behind it and reduces forward cloth fullness. The fixed seam and
+elevating cuff remain separate; no new triangles are needed.

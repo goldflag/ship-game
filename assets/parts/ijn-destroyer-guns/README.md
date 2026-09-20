@@ -15,7 +15,9 @@ Type 93 cooling ribs are spaced more coarsely for the inspection mesh, and
 small unsupported decorative magazine apertures are omitted.
 
 Type C's 13e3e07 published assembly sets a 6,460-triangle ceiling. The refinement
-uses larger rear access doors, a lower offset sight hood, fewer rear steps and
-reworked canvas folds, spending fewer triangles on rolled edges. The broad roof
-profile and small face fittings still differ from the registered source. Fubuki
-and Yukikaze retain this exact registered part, their pivots and weapon values.
+now separates the raised aft roof from the low forward shoulders, with rounded
+ends, a raked front apron, relocated roof rail feet and longer floor knees.
+The visual shell is authored in yaw-local coordinates for both standalone and
+installed models. The original armor definition is unchanged. Canvas folds,
+front sight housing and access-door detail remain simplified. Fubuki and
+Yukikaze retain this exact registered part, their pivots and weapon values.

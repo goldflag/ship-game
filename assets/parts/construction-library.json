@@ -867,6 +867,90 @@
         "assets/parts/construction/superstructure_fittings.py"
       ]
     },
+    "dreadnought-aft-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_dreadnought",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "hood-forward-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_hood",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "nelson-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_nelson",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "emden-aft-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_emden",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "mikasa-forward-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_mikasa",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "clemson-forward-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_clemson",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "dunkerque-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_dunkerque",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "kirov-forward-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_kirov",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "aosta-forward-funnel": {
+      "path": "assets/parts/historic-funnels/aosta.py",
+      "function": "create_aosta",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "cesare-forward-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_cesare",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "blyskawica-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_blyskawica",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "aurora-middle-funnel": {
+      "path": "assets/parts/historic-funnels/geometry.py",
+      "function": "create_aurora",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
     "mikasa-1905-foremast": {
       "path": "assets/parts/historical-masts/geometry.py",
       "function": "create_mikasa",
@@ -1708,6 +1792,90 @@
       "builder": "generic-life-raft-rectangular",
       "review": "unreviewed",
       "limitations": "Original generic low-poly stowed lifesaving gear, not an exact historical variant. Dimensions and dry mass are game estimates. Wall brackets and retaining hardware included; no deployment or rescue simulation. Installation support and clearance require design review."
+    },
+    {
+      "partId": "dreadnought-aft-funnel",
+      "builder": "dreadnought-aft-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Dreadnought 1906 \u00b7 aft funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "United Kingdom"
+    },
+    {
+      "partId": "hood-forward-funnel",
+      "builder": "hood-forward-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Hood 1941 \u00b7 forward funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "United Kingdom"
+    },
+    {
+      "partId": "nelson-funnel",
+      "builder": "nelson-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Nelson 1944 \u00b7 funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "United Kingdom"
+    },
+    {
+      "partId": "emden-aft-funnel",
+      "builder": "emden-aft-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Emden 1908 \u00b7 aft funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "Germany"
+    },
+    {
+      "partId": "mikasa-forward-funnel",
+      "builder": "mikasa-forward-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Mikasa 1905 \u00b7 forward funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "Japan"
+    },
+    {
+      "partId": "clemson-forward-funnel",
+      "builder": "clemson-forward-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Clemson 1930 \u00b7 No. 1 funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "United States"
+    },
+    {
+      "partId": "dunkerque-funnel",
+      "builder": "dunkerque-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Dunkerque 1940 \u00b7 funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "France"
+    },
+    {
+      "partId": "kirov-forward-funnel",
+      "builder": "kirov-forward-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Kirov 1938 \u00b7 forward funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "Russia"
+    },
+    {
+      "partId": "aosta-forward-funnel",
+      "builder": "aosta-forward-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Duca d\u2019Aosta 1943 \u00b7 forward funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "Italy"
+    },
+    {
+      "partId": "cesare-forward-funnel",
+      "builder": "cesare-forward-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Giulio Cesare 1943 \u00b7 forward funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "Italy"
+    },
+    {
+      "partId": "blyskawica-funnel",
+      "builder": "blyskawica-funnel",
+      "review": "unreviewed",
+      "limitations": "Original B\u0142yskawica 1938 \u00b7 trunked funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "Poland"
+    },
+    {
+      "partId": "aurora-middle-funnel",
+      "builder": "aurora-middle-funnel",
+      "review": "unreviewed",
+      "limitations": "Original Aurora 1917 \u00b7 middle funnel interpretation from GameModels3D. Source asset date is not independent historical verification. Small fittings and cap grilles simplified; installation-owned platforms omitted. Mass and exhaust capacity reuse catalog-scale game estimates. See assets/parts/historic-funnels/README.md.",
+      "nation": "Russia"
     },
     {
       "partId": "mikasa-1905-foremast",

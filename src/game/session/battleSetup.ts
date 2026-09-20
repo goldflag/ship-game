@@ -10,6 +10,9 @@ export const BATTLE_SPAWN_DISTANCE = 5000;
 export const MIN_BATTLE_SPAWN_DISTANCE = 1000;
 export const MAX_BATTLE_SPAWN_DISTANCE = 20000;
 export const MAX_TEAM_SHIPS = 30;
+/** Berth kept clear around every ship on the deployment chart. The chart's gestures
+ * stop a ship at the rim of this circle, so a player never has to read the error below. */
+export const MIN_SHIP_SEPARATION_M = 350;
 /** Plain IDs/definitions remain supported for existing scenarios; they use Normal AI. */
 export type BotSelection = string | { shipId: string; aiLevel: ShipAiLevel };
 export const botSelection = (selection: BotSelection): { shipId: string; aiLevel: ShipAiLevel } =>
@@ -79,7 +82,7 @@ export function validateSpawns(spawns: SpawnPositions, friendly: number, enemy: 
     // Expand the coastline by a hull clearance, using the same rim as the map.
     if (islands.some(island => islandRadius({ ...island, rx: island.rx + 250, rz: island.rz + 250 }, pose.x, pose.z) <= 1.05))
       throw new Error('Move the ship farther from land.');
-    if (poses.slice(0, i).some(other => Math.hypot(other.x - pose.x, other.z - pose.z) < 350))
-      throw new Error('Leave at least 350 m between ships.');
+    if (poses.slice(0, i).some(other => Math.hypot(other.x - pose.x, other.z - pose.z) < MIN_SHIP_SEPARATION_M))
+      throw new Error(`Leave at least ${MIN_SHIP_SEPARATION_M} m between ships.`);
   }
 }

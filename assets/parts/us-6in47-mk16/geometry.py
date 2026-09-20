@@ -41,8 +41,8 @@ def create_mount(mount, collection, helpers, materials):
         return out
     def roof_panel(poly):
         if len(poly)>2:mesh(n+'.roof.panel',poly,[tuple(range(len(poly)))],roof,collection)
-    roof_panel(clip(top,0,.65,-1))
-    forward=clip(top,0,.65,1)
+    roof_panel(clip(top,0,1.00,-1))
+    forward=clip(top,0,1.00,1)
     gaps=sorted([(c-.43,c+.43) for c in [spec['barrelSpacing'],0,-spec['barrelSpacing']]])
     low=-4
     for a,b in gaps:
@@ -100,16 +100,16 @@ def create_mount(mount, collection, helpers, materials):
              (2.225,.15,.675),(2.225,.30,.675),(2.225,.455,.675),
              (2.215,.455,1.0),(2.20,.455,1.34)]
     # Seat the complete face/roof seam on the raked aperture.
-    contour=[(x-1.02*max(0,min(1,(z-.22)/2.43)),y,z-.05*max(0,(z-.70)/2)) for x,y,z in contour]
+    contour=[(max(1.00,x-1.02*max(0,min(1,(z-.22)/2.43))),y,z-.05*max(0,(z-.70)/2)) for x,y,z in contour]
     for side,lateral in zip(['left','center','right'],centers):
         cover=create_bloomer(mount,collection,helpers,materials,side,
                        [(x,y+lateral,z) for x,y,z in contour],2.70,.20,
-                       rings=5,fold_depth=.065,slack=.08,fullness=.11,forward_fullness=.34)
+                       rings=5,fold_depth=.065,slack=.08,fullness=.11,forward_fullness=.16)
 
         # Upper cloth folds stand proud of the roof return. Only interior rings
         # change; the seam and sliding cuff retain their exact attachment loci.
         for shape in cover.data.shape_keys.key_blocks:
             for j in range(1,4):
                 for i in range(24):
-                    shape.data[j*24+i].co.z += .58*math.sin(math.pi*j/4)*max(0,math.sin(i*math.tau/24))
+                    shape.data[j*24+i].co.z += .40*math.sin(math.pi*j/4)*max(0,math.sin(i*math.tau/24))
     return yaw

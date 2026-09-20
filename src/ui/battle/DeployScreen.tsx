@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState, type DragEvent, type ReactNode } from 're
 import { shipIdentity } from '../../game/shipModel';
 import { Button, Input, Select, SelectOption } from '../components';
 import { FORMATIONS, type Formation } from '../formationStations';
-import { moveFormation } from '../pveSetup';
+import { placeFormation } from '../deploymentGestures';
 import { NationFlag } from './NationFlag';
 import { ShipThumbnail } from './ShipCard';
 import { DEPLOYMENT_DRAG, DeploymentChart, selectedUnits, type ChartScope, type ChartSelection } from './DeploymentChart';
 import {
-  arrangeFormation,
+  arrangeClearFormation,
   fitRadius,
   formatHeading,
   headingDegrees,
@@ -120,7 +120,7 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
   const turn = (angle: number) => {
     if (center)
       change(
-        moveFormation(
+        placeFormation(
           units,
           active.map((unit) => unit.id),
           center.x,
@@ -136,9 +136,8 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
   const chooseFormation = (next: Formation) => {
     if (!onFormation || !selectedGroup) return;
     onFormation(selectedGroup.id, next);
-    // Arranging goes through `change`, so an unwanted formation is one Undo away, and an
-    // illegal arrangement still lands on the chart with the usual placement error under it.
-    change(arrangeFormation(units, selectedGroup.id, next));
+    // Arranging goes through `change`, so an unwanted formation is one Undo away.
+    change(arrangeClearFormation(units, selectedGroup.id, next));
   };
   const rosterDrag = (event: DragEvent<HTMLElement>, ids: string[], next: ChartSelection) => {
     event.stopPropagation();

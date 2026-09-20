@@ -4,8 +4,8 @@
     "triangles": 3372
   },
   "us-6in47-mk16-cleveland": {
-    "modelUrl": "/models/components/us-6in47-mk16-cleveland/6d6c1ad38e7f71d123506eeeaa59669208c1d45850a617e657ce7381dbec1349/model.glb",
-    "triangles": 2224
+    "modelUrl": "/models/components/us-6in47-mk16-cleveland/7055b8d207e16d9c7c2adb93bbc7279e23e22dd8f377e06629f82bad5e45aeaf/model.glb",
+    "triangles": 1996
   },
   "sk-c34-380-twin": {
     "modelUrl": "/models/components/sk-c34-380-twin/e161a207a9325f42e8e6b925664a39bf4271badcbc0d005a3a12bf822d6a00e4/model.glb",
@@ -16,12 +16,12 @@
     "triangles": 4456
   },
   "skc34-203-twin": {
-    "modelUrl": "/models/components/skc34-203-twin/058f012f826cacbe26837d38c105ef8ec34d41c54d8385ae3c59791e5151eba6/model.glb",
-    "triangles": 1756
+    "modelUrl": "/models/components/skc34-203-twin/f24b8ff2cae7de95c74d993751c0acfca51e4f6a27acd99e4327722e2f837f9e/model.glb",
+    "triangles": 1748
   },
   "skc34-203-twin-rf": {
-    "modelUrl": "/models/components/skc34-203-twin-rf/78972c5849b86023bdf197a27f9f171b27c888b8fe597ee48336d1d38e0c6f45/model.glb",
-    "triangles": 1876
+    "modelUrl": "/models/components/skc34-203-twin-rf/194820758fff7a12f72af5d7320b42489a594c9c3a14b0597541c1966d21077f/model.glb",
+    "triangles": 1868
   },
   "skc33-105-c31-twin": {
     "modelUrl": "/models/components/skc33-105-c31-twin/3ea3849909369abcdf865b7bbf1f1280c10e36ff4e1d3312b72a51a9a06e883c/model.glb",
@@ -76,8 +76,8 @@
     "triangles": 5852
   },
   "type3-127-typec-twin": {
-    "modelUrl": "/models/components/type3-127-typec-twin/fca6707ab2d853d3ad6fa40fd4ee565e30dd862fb43143d6581f7cf28d1a629b/model.glb",
-    "triangles": 6460
+    "modelUrl": "/models/components/type3-127-typec-twin/3ac860ad46a992c2aed49a8f3385bf2895515b93b89f5a8d8b96c6e570e1fdc7/model.glb",
+    "triangles": 5672
   },
   "type96-25-mogami-2": {
     "modelUrl": "/models/components/type96-25-mogami-2/566203f9498f88a30e3b0b24cc6ef06ff499441b93433fc7f1d212fa2234ae7f/model.glb",

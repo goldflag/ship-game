@@ -1,9 +1,12 @@
 import { expect, test } from 'bun:test';
-import { Camera, InstancedMesh, Matrix4, Vector3 } from 'three/webgpu';
+import { Camera, Group, InstancedMesh, Matrix4, Object3D, Vector3 } from 'three/webgpu';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import { localToWorld } from './geometry';
 import { funnelOutlets, ShipFunnelSmoke } from './ShipFunnelSmoke';
+import { createStarterSource } from '../ships/constructionStarter';
+import catalogJson from '../../public/models/components/catalog.json';
+import type { ConstructionCatalog } from '../ships/blueprint';
 
 const fixture = (id = 'bismarck') => {
   const definition = shipPreset(id), sim = new CombatSimulation(definition);
@@ -17,11 +20,36 @@ const instances = (smoke: ShipFunnelSmoke) => {
   });
 };
 
+test('construction smoke uses installed exhaust sockets and cancels the ship world pose', () => {
+  const base = shipPreset('bismarck'), definition = { ...base, modules: base.modules.map(m => ({ ...m })) };
+  definition.structures = [];
+  definition.construction = createStarterSource(catalogJson as ConstructionCatalog, 'patrol').construction;
+  definition.construction.equipment = [{ id: 'stack', partId: 'kirov-forward-funnel', position: [3, 2, 7], bearingDeg: 90 }];
+  definition.modules = [{ ...definition.modules[0], id: 'stack', role: 'boiler', size: [4, 12, 11] }];
+  const model = new Group(), installed = new Group(), root = new Group(), socket = new Object3D();
+  model.position.set(300, 40, -900); model.rotation.set(.1, .6, -.2);
+  installed.position.set(3, 2, 7); installed.rotation.y = -Math.PI / 2;
+  root.userData = { nodeId: 'stack.root', funnelOutletWidthM: 2.6, funnelOutletLengthM: 6.5 };
+  socket.userData.nodeId = 'stack.socket.exhaust-out'; socket.position.set(0, 10, 2);
+  model.add(installed); installed.add(root); root.add(socket);
+  const before = JSON.stringify(definition), [outlet] = funnelOutlets(definition, model);
+  expect(outlet.id).toBe('stack');
+  outlet.position.forEach((value, i) => expect(value).toBeCloseTo([1, 12, 7][i], 9));
+  expect(outlet.width).toBe(2.6); expect(outlet.length).toBe(6.5);
+  expect(outlet.bearingRad).toBeCloseTo(Math.PI / 2, 9);
+  expect(JSON.stringify(definition)).toBe(before);
+  socket.userData.nodeId = 'stack.socket.exhaust-in';
+  expect(funnelOutlets(definition, model)).toEqual([]);
+  socket.userData.nodeId = 'stack.socket.exhaust-out'; definition.modules[0].role = 'combined-drive';
+  expect(funnelOutlets(definition, model)).toEqual([]);
+});
+
 test('all registered funnel mouths are found without smoking from bases, caps or the submarine', () => {
   const counts: Record<string, number> = { resolute: 0, 'admiral-hipper': 1, bismarck: 1, yamato: 1, iowa: 2, 'king-george-v': 2, baltimore: 2, mogami: 2, 'enterprise-cv6': 1, 'type-viic': 0,
     'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, gleaves: 2, shokaku: 2, yukikaze: 2, fubuki: 2, cleveland: 2 };
   for (const id of Object.keys(shipPresets)) {
     const outlets = funnelOutlets(shipPreset(id));
+    if (shipPreset(id).construction) { expect(outlets).toEqual([]); continue; }
     expect(outlets.length).toBe(counts[id]);
     for (const outlet of outlets) {
       expect(outlet.position.every(Number.isFinite)).toBe(true);

@@ -47,7 +47,9 @@ Validation: `bun run model:viewer:check`. Optional frontend bundle check: `bun -
 The gun comparison's **Our model** selector switches between the current published
 component and its retained baseline model. For guns of at least 12 inches,
 the baseline is the merged PR #376 model at `7e8e4e7d`, captured before the
-capital-gun shape pass; smaller guns retain their earlier baselines. `component-before.json` records
+capital-gun shape pass. Type C, both Hipper 203 mm twins and Cleveland use the merged
+PR #389 publication at `08f1cd107` for their follow-up iteration; other smaller guns
+retain their earlier baselines. `component-before.json` records
 only immutable URLs and measured triangle counts for our original assets. Both
 revisions use the same geometry-only GameModels3D reference and metric scale.
 The reduction shown beside the measurements is calculated from the loaded mesh.
