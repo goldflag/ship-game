@@ -34,6 +34,7 @@ pub struct ShipIndex {
     module_room: Vec<Option<usize>>,
     /// Per mount index, the module index of its magazine.
     pub mount_magazine: Vec<Option<usize>>,
+    pub(crate) room_distances: Vec<Option<crate::construction_geometry::RoomDistance>>,
     /// Per module index, the mounts drawing from it as their magazine.
     magazine_mounts: Vec<Vec<usize>>,
     by_kind: HashMap<String, Vec<usize>>,
@@ -122,6 +123,15 @@ impl ShipIndex {
                 })
                 .collect(),
             mount_magazine,
+            room_distances: d
+                .compartments
+                .iter()
+                .map(|r| {
+                    r.volumes
+                        .as_ref()
+                        .map(|cells| crate::construction_geometry::RoomDistance::new(cells))
+                })
+                .collect(),
             magazine_mounts,
             directors,
             mount_directors,

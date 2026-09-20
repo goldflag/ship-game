@@ -184,16 +184,47 @@ pub fn closest_point(c: &Cell, p: Vec3) -> Vec3 {
 /// bounding box is clearly farther than the nearest surface found so far cannot
 /// hold it, and measuring that box is far cheaper than a closest point on every
 /// face; the cell that does hold it is never skipped, so the distance is exact.
-pub fn room_distance_within(cells: &[Cell], p: Vec3, bound: f64) -> f64 {
-    let mut nearest = bound;
-    for c in cells {
-        let (mut low, mut high) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
-        for v in c.faces.iter().flat_map(|f| &f.vertices) {
-            for i in 0..3 {
-                low[i] = low[i].min(v[i]);
-                high[i] = high[i].max(v[i]);
-            }
+fn cell_bounds(c: &Cell) -> (Vec3, Vec3) {
+    let (mut low, mut high) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
+    for v in c.faces.iter().flat_map(|f| &f.vertices) {
+        for i in 0..3 {
+            low[i] = low[i].min(v[i]);
+            high[i] = high[i].max(v[i]);
         }
+    }
+    (low, high)
+}
+
+/// The room's immutable broad-phase boxes, in original cell order. Breach
+/// assignment queries them repeatedly; no faces need scanning to rebuild them.
+#[derive(Clone, Debug)]
+pub(crate) struct RoomDistance {
+    pointer: usize,
+    bounds: Vec<(Vec3, Vec3)>,
+}
+impl RoomDistance {
+    pub fn new(cells: &[Cell]) -> Self {
+        Self {
+            pointer: cells.as_ptr() as usize,
+            bounds: cells.iter().map(cell_bounds).collect(),
+        }
+    }
+    pub fn distance(&self, cells: &[Cell], p: Vec3, bound: f64) -> Option<f64> {
+        (self.pointer == cells.as_ptr() as usize && self.bounds.len() == cells.len())
+            .then(|| distance_with_bounds(cells.iter().zip(self.bounds.iter().copied()), p, bound))
+    }
+}
+
+pub fn room_distance_within(cells: &[Cell], p: Vec3, bound: f64) -> f64 {
+    distance_with_bounds(cells.iter().map(|c| (c, cell_bounds(c))), p, bound)
+}
+fn distance_with_bounds<'a>(
+    cells: impl Iterator<Item = (&'a Cell, (Vec3, Vec3))>,
+    p: Vec3,
+    bound: f64,
+) -> f64 {
+    let mut nearest = bound;
+    for (c, (low, high)) in cells {
         let gaps: Vec3 = std::array::from_fn(|i| (low[i] - p[i]).max(p[i] - high[i]).max(0.));
         if dot(gaps, gaps) > nearest * nearest * (1. + 1e-9) {
             continue;
