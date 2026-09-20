@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import catalogJson from '../../../public/models/components/catalog.json';
 import retainedCatalogJson from '../../../public/models/components/catalogs/f8d5f622818e0ef20c6c3918ac36dc29d1904e18b13a83aa923e1e93d05ff697/catalog.json';
-import type { ConstructionCatalog } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionEquipmentPart } from '../../ships/blueprint';
 import { effectiveConstructionCatalog } from '../../ships/constructionCustomFittings';
 import { isRetiredDeckFitting } from '../../ships/constructionEquipment';
 import { paletteFor } from './builderLayers';
@@ -60,6 +60,26 @@ test('a nation keeps its own parts and the generic ones; a nation absent from th
   const american = shelf({ category: 'light-aa', nation: 'United States' });
   expect(american).toContain('us-20mm-oerlikon-mk4-hsienyang'); expect(american.every(id => fittingNation(part(id)) === 'United States')).toBe(true);
   expect(shelf({ category: 'mooring', nation: 'Japan' })).toEqual(shelf({ category: 'mooring', nation: 'all' }));
+});
+
+test('Italian and French guns take their navy from the it- and fr- id prefixes, and the older prefixes keep theirs', () => {
+  const named = (id: string) => ({ id, kind: 'gun' }) as ConstructionEquipmentPart;
+  expect(fittingNation(named('it-381-50-m1934-triple'))).toBe('Italy');
+  expect(fittingNation(named('fr-380-45-mle1935-quad'))).toBe('France');
+  for (const id of ['roma-1943-mainmast', 'aosta-forward-funnel', 'cesare-forward-funnel']) expect(fittingNation(named(id))).toBe('Italy');
+  for (const id of ['le-fantasque-1943-foremast', 'dunkerque-funnel']) expect(fittingNation(named(id))).toBe('France');
+  // A prefix needs its hyphen: ids that merely start with the letters are not claimed.
+  for (const id of ['item-locker', 'frame-brace']) expect(fittingNation(named(id))).toBeUndefined();
+});
+
+test('the battleship guns of each navy sit on the Main battery shelf under their own nation filter', () => {
+  const guns = [['Italy', 'it-381-50-m1934-triple'], ['France', 'fr-380-45-mle1935-quad'], ['Japan', 'type3-410-nagato-twin'],
+    ['United Kingdom', 'bl-16-mki-triple'], ['United States', 'us-16in45-mk6-triple']] as const;
+  for (const [nation, id] of guns) {
+    expect(fittingCategory(part(id), catalog)).toBe('main-battery');
+    expect(fittingNation(part(id))).toBe(nation);
+    expect(shelf({ category: 'main-battery', nation })).toContain(id);
+  }
 });
 
 test('gun shelves list the heaviest calibre first', () => {

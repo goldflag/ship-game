@@ -401,6 +401,31 @@ stagger between guns, such as the British triple's set-back centre gun, is not r
 values are provisional game calibration scaled from the nearest sibling; plate families follow commonly
 published figures with estimated facet boundaries.
 
+Twenty-one battleship main-gun turrets follow the same contract as the 28 cm
+triple, one part per genuinely different GameModels3D visual: the visible
+gunhouse is the catalog's closed armor shell, the canvas seals are the shared
+`gun_bloomers` covers (the Vanguard mounts, whose visual seals each port with a
+rigid shield, carry none), and the support attachment is the turntable sole at
+Y = 0, so the Shipbuilder owns the barbette below it. Each recipe directory has
+its own README with the source vehicles, the merged and split visuals and the
+approximations: Britain `../rn-15in-guns/` (15-inch Mk I twin with and without
+its rangefinder, the Hood Mk II twin and the Vanguard pair) and
+`../rn-16in-guns/` (Nelson 16-inch triple); the United States
+`../us-battleship-guns/` (16-inch/45 Mk 6 triple, 12-inch/50 Mk 8 triple,
+16-inch/45 Mk 1 twin), `../us-14in45-guns/` (14-inch/45 twin and triple) and
+`../us-14in50-guns/` (New Mexico and Tennessee triples); Japan
+`../ijn-410-guns/` (41 cm Type 3 twin in three Nagato visuals and the Mutsu
+one); Italy `../it-381-guns/` (381 mm/50 triple, two visuals); France
+`../fr-380-guns/` (380 mm/45 and 330 mm/52 quadruples). Weapon values are
+provisional game calibration (real muzzle speed, shell mass and reload; the
+simulation applies the world pace) and plate families use commonly published
+figures with estimated facet boundaries. The visuals carry no elevation stops,
+so each mount states the commonly published limits it uses. Where a source draws
+geometry below its turntable (roller discs, skirts, sponsons) the part stops at
+the sole plane. Quadruple barrels sit on the catalog's even `barrelSpacing`, so
+the French mounts place their inner bores up to 0.33 m inboard of the reference's
+two-pair spacing.
+
 ## Deck gear, boats and aviation fittings
 
 `../deck-gear/forecastle.py` (paravane, breakwater, hawse pipe with stopper,
