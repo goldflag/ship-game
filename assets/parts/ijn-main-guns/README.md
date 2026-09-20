@@ -39,3 +39,11 @@ articulation-driven approximation to the neutral reference. The canvas retains
 fixed seams and pitching cuffs; intermediate rings clear the full recoiling
 jacket, with a short neck behind each cuff so its faces cannot cross the barrel
 shoulder. The cuff radius includes 7 mm of extra chord/interpolation clearance.
+
+Mogami E3/E retain their 13e3e07 whole-assembly ceilings of 3,406/3,666 triangles.
+The main-battery refinement removes bearing fasteners, narrows aft shoulders,
+adds a seated rear access ladder and replaces the E variant's exposed rangefinder
+tube/braces with a continuous tapered armored casing. Canvas folds remain an
+approximation; small face mechanisms and optical housings are simplified. The
+Yamato 15.5 cm variant is secondary-only in current consumers and belongs to the
+separate secondary/AA pass, despite that caliber's use as main armament elsewhere.

@@ -20,14 +20,20 @@ def create_mount(mount, collection, helpers, materials):
     canvas = materials.get('canvas', dark)
     before = set(bpy.context.scene.objects)
     # Roller path mates to the ship's fixed cylindrical barbette.
-    cyl(n+'.roller', (0, 0, .125), spec['barbetteRadius'], .25, edge, collection, 64)
+    cyl(n+'.roller', (0, 0, .125), spec['barbetteRadius'], .25, edge, collection, 32)
     v = [(-3.9,-2.15,.25),(2,-2.55,.25),(2.75,-1.7,.25),(2.75,1.7,.25),(2,2.55,.25),(-3.9,2.15,.25),
          (-3.82,-2.02,2.18),(-1.2,-2.21,2.6),(1.95,-2.43,2.08),(2.55,-1.6,1.85),
          (2.55,1.6,1.85),(1.95,2.43,2.08),(-1.2,2.21,2.6),(-3.82,2.02,2.18)]
     # The front plate is built separately around the two gun ports.
     walls = [(5,4,3,2,1,0),(0,1,8,7,6),(1,2,9,8),(3,4,11,10),(4,5,13,12,11),(5,0,6,13)]
-    mesh(n+'.gunhouse', v, walls, naval, collection)
-    mesh(n+'.roof', v, [(6,7,12,13),(7,8,11,12),(8,9,10,11)], roof, collection)
+    # Faceted round rear corners, retaining the front and its clearance planes.
+    # Split the rear panel along a pair of cut lines, using the same shell datum.
+    v.extend([(-3.90,-1.55,.25),(-3.90,1.55,.25),(-3.82,-1.48,2.18),(-3.82,1.48,2.18),
+              (-3.56,-2.173,.25),(-3.56,2.173,.25),(-3.50,-2.044,2.228),(-3.50,2.044,2.228)])
+    walls=[(14,15,5,4,3,2,1,0),(18,1,8,7,20),(1,2,9,8),(3,4,11,10),(4,19,21,12,11),
+           (14,18,20,16),(15,17,21,19),(14,16,17,15)]
+    mesh(n+'.gunhouse',v,walls,naval,collection)
+    mesh(n+'.roof',v,[(16,20,7,12,21,17),(7,8,11,12),(8,9,10,11)],roof,collection)
     lateral = [spec['barrelSpacing']/2, -spec['barrelSpacing']/2]
     fx = lambda z: 2.75-.2*(z-.25)/1.6
     fy = lambda z: 1.7-.1*(z-.25)/1.6
@@ -35,7 +41,7 @@ def create_mount(mount, collection, helpers, materials):
         a0, a1 = (-fy(z0) if e0 else y0), (fy(z0) if e1 else y1)
         b0, b1 = (-fy(z1) if e0 else y0), (fy(z1) if e1 else y1)
         mesh(n+name, [(fx(z0),a0,z0),(fx(z0),a1,z0),(fx(z1),b1,z1),(fx(z1),b0,z1)], [(0,1,2,3)], naval, collection)
-    port_w, port_lo, port_hi = .27, .80, 1.52
+    port_w, port_lo, port_hi = .32, .66, 1.70
     panel('.front.sill', 0, 0, .25, port_lo, True, True)
     panel('.front.brow', 0, 0, port_hi, 1.85, True, True)
     panel('.front.web', 0, lateral[1]-port_w, port_lo, port_hi, True, False)
@@ -43,11 +49,6 @@ def create_mount(mount, collection, helpers, materials):
     panel('.front.web', lateral[0]+port_w, 0, port_lo, port_hi, False, True)
     # Dark cradle well behind the ports, closed off by the blast bags.
     box(n+'.port.well', (2.28, 0, 1.2), (.06, 3.1, 1.0), dark, collection)
-    # Access rungs climb the face between the ports; grabs on the clipped cheeks.
-    for z in [.5+i*.3 for i in range(5)]:
-        rod(n+'.face.rung', (fx(z)+.07, -.2, z), (fx(z)+.07, .2, z), .022, edge, collection, vertices=6)
-        for y in [-.2, .2]:
-            rod(n+'.face.rung.foot', (fx(z)-.01, y, z), (fx(z)+.07, y, z), .02, edge, collection, vertices=6)
     for s in [-1, 1]:
         ca, cb = (2.12+.07, s*(2.47+.06), 1.45), (2.62+.07, s*(1.90+.06), 1.45)
         rod(n+'.cheek.grab', ca, cb, .022, edge, collection, vertices=6)
@@ -58,17 +59,11 @@ def create_mount(mount, collection, helpers, materials):
             w = 2.15+(x+3.9)*.4/5.9
             rod(n+'.side.seam', (x, s*(w+.005), .3), (x, s*(w-.107), 2.25), .016, edge, collection, vertices=5)
     # Rear access hatch and ladder, carried by the yawing shell.
-    box(n+'.rear.hatch', (-3.90, 0, 1.12), (.07, .78, 1.18), edge, collection)
-    box(n+'.rear.hatch.inset', (-3.945, 0, 1.12), (.035, .63, 1.02), naval, collection)
-    for z in [.72, 1.52]:
-        rod(n+'.rear.hatch.dog', (-3.97, .2, z), (-3.97, .34, z), .025, edge, collection, vertices=6)
     rear = lambda z: -3.94+.08*(z-.25)/1.93
-    for y in [-1.25, -.73]:
+    for y in [-.26,.26]:
         rod(n+'.rear.ladder.rail', (rear(.3)-.03, y, .3), (rear(2.2)-.03, y, 2.2), .025, edge, collection, vertices=6)
     for z in [.42+i*.26 for i in range(7)]:
-        rod(n+'.rear.ladder.rung', (rear(z)-.03, -1.25, z), (rear(z)-.03, -.73, z), .022, edge, collection, vertices=6)
-    for y in [1.0, 1.5]:
-        box(n+'.rear.vent', (-3.93, y, 1.55), (.12, .34, .46), naval, collection)
+        rod(n+'.rear.ladder.rung', (rear(z)-.03, -.26, z), (rear(z)-.03, .26, z), .022, edge, collection, vertices=6)
     side = lambda x: 2.15+(x+3.9)*.4/5.9
     for s in [-1, 1]:
         # Covered gunlayer sights and floor drains on the near-vertical walls.
@@ -113,7 +108,7 @@ def create_mount(mount, collection, helpers, materials):
         seam=[]
         for i in range(16):
             a=i*math.tau/16;ca,sa=math.cos(a),math.sin(a)
-            scale=1/max(abs(ca),abs(sa));z=1.16+.38*sa*scale
-            seam.append((fx(z)+.016,y+.285*ca*scale,z))
+            scale=1/max(abs(ca),abs(sa));z=1.18+.54*sa*scale
+            seam.append((fx(z)+.016,y+.335*ca*scale,z))
         create_bloomer(mount,collection,helpers,materials,side,seam,pivot+1.10,.194,rings=4,fold_depth=.02,slack=.02)
     return yaw

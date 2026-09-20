@@ -20,9 +20,10 @@ def create_mount(mount, collection, helpers, materials):
     before = set(bpy.context.scene.objects)
     # The circular bearing mates to the ship's fixed cylindrical barbette.
     cyl(n+'.roller', (0,0,.12), spec['barbetteRadius'], .24, edge, collection, 32)
-    outline = [(-5.65,-2.15),(-5.18,-2.85),(-1.4,-3.12),(1.6,-2.92),(2.22,-2.5),
-               (2.22,2.5),(1.6,2.92),(-1.4,3.12),(-5.18,2.85),(-5.65,2.15)]
-    top = [(x-.1 if x>0 else x, y*.98, 2.78 if x<0 else 2.65) for x,y in outline]
+    outline = [(-5.40,-2.35),(-5.18,-2.70),(-1.4,-3.12),(1.6,-2.92),(2.22,-2.5),
+               (2.22,2.5),(1.6,2.92),(-1.4,3.12),(-5.18,2.70),(-5.40,2.35)]
+    # Face rake and rear tumblehome are visual recipe dimensions; ballistics stay canonical.
+    top = [(x-1.12 if x>0 else x-.12, y*.96, 2.60) for x,y in outline]
     vertices = [(x,y,.22) for x,y in outline] + top
     faces = [tuple(reversed(range(10)))]
     # Three gun ports occupy the forward flat face; the other shell faces remain closed.
@@ -48,28 +49,31 @@ def create_mount(mount, collection, helpers, materials):
         roof_panel(clip(clip(forward,1,low,1),1,a,-1));low=b
     roof_panel(clip(forward,1,low,1))
     def panel(name,y0,y1,z0,z1):
-        front=lambda z:2.22-.1*(z-.22)/(2.65-.22)
+        front=lambda z:2.22-1.12*(z-.22)/(2.60-.22)
         return mesh(n+name,[(front(z0),y0,z0),(front(z0),y1,z0),(front(z1),y1,z1),(front(z1),y0,z1)],[(0,1,2,3)],naval,collection)
     panel('.front.sill',-2.5,2.5,.22,.70)
     centers=[spec['barrelSpacing'],0,-spec['barrelSpacing']]
     edges=sorted([(c-.43,c+.43) for c in centers])
     lo=-2.5
     for a,b in edges:
-        panel('.front.web',lo,a,.70,2.65);lo=b
-    panel('.front.web',lo,2.5,.70,2.65)
+        panel('.front.web',lo,a,.70,2.60);lo=b
+    panel('.front.web',lo,2.5,.70,2.60)
     # Rear access and roof fittings all attach directly to the yawing shell.
-    box(n+'.rear.door',(-5.69,0,1.30),(.09,.9,1.95),naval,collection)
-    for z in [.5,1.3,2.1]:rod(n+'.door.dog',(-5.76,-.32,z),(-5.76,-.14,z),.028,edge,collection,vertices=6)
-    for y in [-2.1,2.1]:
-        cyl(n+'.roof.hatch',(-3.6,y,2.84),.32,.13,roof,collection,16)
-        cyl(n+'.roof.vent',(-4.8,y,2.91),.17,.26,naval,collection,12)
-        for z in [.84,1.7]:
-            o=cyl(n+'.side.optic',(.8,y/abs(y)*3.01,z),.14,.11,edge,collection,12)
+    # Paired rear access hoods replace the unsupported central door/hatch pattern.
+    for y in [-1.65,1.65]:
+        box(n+'.rear.access',(-5.50,y,1.35),(.14,.86,1.38),naval,collection)
+        box(n+'.rear.hood',(-5.56,y,2.06),(.28,.94,.16),roof,collection)
+    for side in [-1,1]:
+        for z in [1.20,1.80]:
+            o=cyl(n+'.side.optic',(.50,side*2.96,z),.14,.11,edge,collection,10)
             o.rotation_euler.x=math.pi/2
-    for z in [.45,.78,1.11,1.44,1.77,2.10,2.43]:
-        rod(n+'.face.ladder.rung',(2.31,.53,z),(2.31,.79,z),.024,edge,collection,vertices=6)
-    for y in [.52,.80]:rod(n+'.face.ladder.rail',(2.27,y,.3),(2.17,y,2.68),.026,naval,collection,vertices=6)
-    rod(n+'.roof.sight',(-.4,0,2.72),(-.4,0,3.42),.045,naval,collection,vertices=12)
+    for y in [-spec['barrelSpacing']/2,spec['barrelSpacing']/2]:
+        for z in [.45,.78,1.11,1.44,1.77,2.10,2.43]:
+            x=2.22-1.12*(z-.22)/2.38+.05
+            rod(n+'.face.ladder.rung',(x,y-.13,z),(x,y+.13,z),.024,edge,collection,vertices=4)
+        for dy in [-.13,.13]:
+            rod(n+'.face.ladder.rail',(2.24,y+dy,.25),(1.12,y+dy,2.60),.023,naval,collection,vertices=4)
+    rod(n+'.roof.sight',(-.4,0,2.59),(-.4,0,3.25),.045,naval,collection,vertices=12)
     frame = list(set(bpy.context.scene.objects)-before)
     groups=[]
     for lateral in centers:
@@ -78,7 +82,7 @@ def create_mount(mount, collection, helpers, materials):
         slope=math.tan(math.radians(1))
         def pt(x):return (x,lateral,height+(x-pivot)*slope)
         # Stepped jacket, chase and bored muzzle, owned by this barrel's recoil joint.
-        sections=[(pivot,.22),(2.6,.20),(3.5,.20),(3.65,.135),(5.7,.105),(muzzle,.092)]
+        sections=[(pivot,.22),(2.6,.20),(3.5,.20),(3.65,.135),(5.7,.123),(muzzle,.108)]
         for (a,ra),(b,rb) in zip(sections,sections[1:]):
             barrel=rod(n+'.barrel',pt(a),pt(b),ra,edge,collection,r2=rb,vertices=12)
             for p in barrel.data.polygons:p.use_smooth=len(p.vertices)==4
@@ -95,8 +99,17 @@ def create_mount(mount, collection, helpers, materials):
              (2.225,-.30,.675),(2.225,-.15,.675),(2.225,0,.675),
              (2.225,.15,.675),(2.225,.30,.675),(2.225,.455,.675),
              (2.215,.455,1.0),(2.20,.455,1.34)]
+    # Seat the complete face/roof seam on the raked aperture.
+    contour=[(x-1.02*max(0,min(1,(z-.22)/2.43)),y,z-.05*max(0,(z-.70)/2)) for x,y,z in contour]
     for side,lateral in zip(['left','center','right'],centers):
-        create_bloomer(mount,collection,helpers,materials,side,
+        cover=create_bloomer(mount,collection,helpers,materials,side,
                        [(x,y+lateral,z) for x,y,z in contour],2.70,.20,
-                       rings=5,fold_depth=.045,slack=.06,fullness=.06,forward_fullness=.48)
+                       rings=5,fold_depth=.065,slack=.08,fullness=.11,forward_fullness=.34)
+
+        # Upper cloth folds stand proud of the roof return. Only interior rings
+        # change; the seam and sliding cuff retain their exact attachment loci.
+        for shape in cover.data.shape_keys.key_blocks:
+            for j in range(1,4):
+                for i in range(24):
+                    shape.data[j*24+i].co.z += .58*math.sin(math.pi*j/4)*max(0,math.sin(i*math.tau/24))
     return yaw

@@ -272,7 +272,7 @@ def create_kgv_secondary(mount, collection, helpers, materials):
     naval, dark, edge = (materials[k] for k in ['naval', 'dark', 'edge'])
     roof = materials.get('roof', naval); canvas = materials.get('canvas', dark)
     before = set(bpy.context.scene.objects)
-    cyl(n+'.roller', (0, 0, .125), spec['barbetteRadius'], .25, edge, collection, 48)
+    cyl(n+'.roller', (0, 0, .125), spec['barbetteRadius'], .25, edge, collection, 24)
     # Catalog armor facets are also the visual shell: one durable contour.
     shape=spec['gunhouseMesh']
     multi_mesh(n+'.gunhouse',shape['vertices'],[f['indices'] for f in shape['faces']],
@@ -306,9 +306,15 @@ def create_kgv_secondary(mount, collection, helpers, materials):
         mx, my = (-2.67-2.13)/2, (.92+1.77)/2; a = math.atan2(1.77-.92, -2.13+2.67)
         d = box(n+'.rear.door', (mx-.03*math.sin(a), side*(my+.03*math.cos(a)), 1.22), (.72, .05, 1.35), roof, collection)
         d.rotation_euler.z = side*a
+    # Narrow armoured bustle between the two gun tracks. Its sloping upper
+    # plate stops below the moving barrel envelope, including full depression.
+    profile=[(2.70,.65),(3.12,.65),(3.12,1.38),(2.72,1.85)]
+    k=len(profile);vv=[(x,y,z) for y in [-.825,.825] for x,z in profile]
+    mesh(n+'.central-apron',vv,[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],naval,collection)
+    for y in [-.58,0,.58]:box(n+'.apron-service-cover',(3.135,y,1.35),(.025,.30,.34),edge,collection)
     # Single rear ladder: vertical leg up the back wall, then a leg lying on the shoulder bevel.
-    ladder(rod, n+'.rear.ladder', (-2.87, 0, .28), (-2.87, 0, 2.70), .42, edge, collection)
-    ladder(rod, n+'.rear.ladder.upper', (-2.87, 0, 2.70), (-2.655, 0, 3.32), .42, edge, collection)
+    ladder(rod, n+'.rear.ladder', (-2.87, .54, .28), (-2.87, .54, 2.70), .42, edge, collection)
+    ladder(rod, n+'.rear.ladder.upper', (-2.87, .54, 2.70), (-2.655, .54, 3.32), .42, edge, collection)
     for yy in [-1.10,1.10]:
         cyl(n+'.roof.hatch',(-1.15,yy,3.40),.46,.20,naval,collection,16)
         rod(n+'.roof.hatch.handle',(-1.30,yy,3.54),(-1.00,yy,3.54),.026,edge,collection,vertices=6)

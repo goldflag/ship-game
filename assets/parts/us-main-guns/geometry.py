@@ -196,7 +196,7 @@ def create_baltimore_main(mount, collection, helpers, materials):
             z = vz - vh / 2 + .06 + i * .11
             box(n + '.vent.louver', (vx, side * (wall(z) + .05), z), (vw, .11, .04), naval, collection)
         box(n + '.vent.hood', (vx, side * (wall(vz + vh / 2) + .09), vz + vh / 2 + .03), (vw + .12, .26, .07), roof, collection)
-        cyl(n + '.roof.hatch', (-2.7, side * 2.262, H + .06), .36, .13, edge, collection, 20)
+        # The registered turret has a plain roof aft of the four sight heads.
         for x in [-1.75, 0]:
             y = side * 2.184
             rod(n + '.roof.handhold', (x, y, H + .09), (x + .63, y, H + .09), .025, edge, collection, vertices=6)
@@ -207,11 +207,6 @@ def create_baltimore_main(mount, collection, helpers, materials):
         box(n + '.side.sight', (1.15, side * (sy + .12), 1.85), (.52, .30, .46), naval, collection)
         box(n + '.side.sight.bezel', (1.42, side * (sy + .12), 1.85), (.05, .22, .34), edge, collection)
         box(n + '.side.sight.lens', (1.45, side * (sy + .12), 1.85), (.018, .15, .24), dark, collection)
-        rail = [(-5.5, 3.7), (-3.4, 3.62), (-1.3, 3.53), (.8, 3.44)]
-        for (xa, ya), (xb, yb) in zip(rail, rail[1:]):
-            rod(n + '.roof.rail', (xa, side * ya, H + .42), (xb, side * yb, H + .42), .02, edge, collection, vertices=6)
-        for x, y in rail:
-            rod(n + '.roof.rail.post', (x, side * y, H - .01), (x, side * y, H + .42), .02, edge, collection, vertices=6)
     # Rung ladders climb the sloped face between the ports.
     for y in [-spacing / 2, spacing / 2]:
         ladder('.face.ladder', (face_x(.35) + .05, y, .35), (face_x(H - .1) + .05, y, H - .1), .34, 'y', edge)
@@ -219,7 +214,8 @@ def create_baltimore_main(mount, collection, helpers, materials):
             for dy in [-.17, .17]:
                 rod(n + '.face.ladder.shoe', (face_x(z) - .01, y + dy, z), (face_x(z) + .07, y + dy, z), .02, naval, collection, vertices=6)
     for lateral in [-2.5, -.86, .86, 2.5]:
-        cyl(n + '.roof.periscope.hood', (1.02, lateral, 3.16), .17, .35, naval, collection, 12)
+        cyl(n + '.roof.periscope.hood', (1.02, lateral, 3.16), .17, .35, naval, collection, 10)
+        box(n + '.roof.periscope.hood.cap', (1.05, lateral, 3.24), (.48,.35,.22), naval, collection)
         box(n + '.roof.periscope.sight', (1.18, lateral, 3.2), (.025, .14, .10), dark, collection)
     cyl(n + '.aft.sight.mast', (-4.85, 0, H + .32), .055, .64, naval, collection, 8)
     box(n + '.rear.door', (-6.12, 0, 1.35), (.08, .85, 1.85), naval, collection)
@@ -235,7 +231,7 @@ def create_baltimore_main(mount, collection, helpers, materials):
         bore = spec['caliberM'] / 2
         rad = spec.get('barrelBaseRadius', .30)
         x0 = pivot[0]
-        profile = [(x0 + .2, rad * .83), (x0 + 3.0, rad * .83), (x0 + 3.1, rad * .64), (muzzle - 2.0, rad * .43), (muzzle, rad * .40),
+        profile = [(x0 + .2, rad * .83), (x0 + 3.0, rad * .83), (x0 + 3.1, rad * .64), (muzzle - 2.0, rad * .48), (muzzle, rad * .44),
                    (muzzle, bore), (muzzle - .45, bore)]
         lathe('.barrel', pivot, profile, edge, bore_from=5, sides=16)
         groups.append(list(set(bpy.context.scene.objects) - start))
@@ -245,6 +241,6 @@ def create_baltimore_main(mount, collection, helpers, materials):
         for i in range(24):
             a=i*math.tau/24;c=math.cos(a);s=math.sin(a);r=max(abs(c),abs(s))
             z=pz+.05+1.05*math.copysign(abs(s)**.5,s)
-            rim.append((face_x(z)+.008,lateral+.60*math.copysign(abs(c)**.5,c),z))
-        create_bloomer(mount, collection, helpers, materials, side, rim, x0+2.05, rad*.83, rings=5, fold_depth=.045, slack=.055, fullness=.10, forward_fullness=.22)
+            rim.append((face_x(z)+.008,lateral+.53*math.copysign(abs(c)**.65,c),z))
+        create_bloomer(mount, collection, helpers, materials, side, rim, x0+2.05, rad*.83, rings=5, fold_depth=.08, slack=.08, fullness=.075, forward_fullness=.17)
     return yaw

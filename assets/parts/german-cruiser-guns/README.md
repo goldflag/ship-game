@@ -14,3 +14,11 @@ Tube and handwheel tessellation is reduced, and the Flak 38 catcher retains a
 sparse modeled net over its continuous bag. These are independent original
 geometry changes; reference geometry remains viewing-only. Standalone review
 does not certify neighboring or installed ship clearance.
+
+The 203 mm main-gun variants retain separate IDs and ceilings of 1,756 triangles
+(plain) and 1,876 (rangefinder), measured from the complete 13e3e07 publication.
+Their original shell now has tapered aft shoulders and a forward-set rear roof
+break; sight recesses and rear access hoods replace hidden breech caps. Rangefinder
+wings remain simplified polygonal housings. The registered RF resource has a
+shorter barrel than the canonical muzzle datum; that datum and all weapon/armor
+values remain unchanged. This pass does not edit secondary/AA builders.

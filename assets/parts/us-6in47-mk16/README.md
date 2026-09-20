@@ -11,3 +11,10 @@ visible folds with twelve-sided, smooth-shaded gun tubes. Fabric fullness and
 folding remain visual approximations. Joint/socket IDs and gameplay geometry
 parameters are unchanged. Standalone checks do not certify installed clearance
 or historical accuracy.
+
+The sub-12-inch main-battery pass uses the published 13e3e07 assembly (2,224
+triangles) as its ceiling. The original recipe now uses a raked face, paired rear
+access hoods, two face ladders and fuller upper canvas folds. Roof hatches absent
+from the registered AGM009 reference are omitted. The slotted roof and sliding
+canvas cuff remain deliberate articulation approximations; source cloth folds
+and rear access detailing are simplified. Weapon/armor data are unchanged.

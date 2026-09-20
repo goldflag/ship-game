@@ -22,3 +22,8 @@ Baltimore retains its separate rangefinder hoods, roof fittings and aft sight ma
 Standalone review is not historical certification or installed ship clearance.
 Remaining approximations include Iowa's smooth canvas folds versus the coarse
 reference facets, simplified sight boxes and omitted shallow rear base recesses.
+
+Baltimore's current whole-assembly ceiling is 3,756 triangles (13e3e07). Its
+refinement removes unsupported roof hatches/edge rails, gives the four periscope
+heads forward hoods, and reshapes the barrel chase and canvas folds. Small
+rangefinder hoods and cloth folds remain simplified. Iowa is outside this pass.

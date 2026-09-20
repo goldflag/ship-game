@@ -74,10 +74,12 @@ def create_mount(mount, col, helpers, materials):
         # Lower cross tie leaves the jacket sweep clear at full depression;
         # short outboard ears retain its physical connection to both shields.
         for side in [-1,1]:put(rod('cross-tie-ear',(.465,side*.72,.89),(.4725,side*.72,.97),.014,gray,vertices=6),yaw)
-    wheel_center=Vector((.12,-.27,.812) if twin else (-.112,-.2085,.812))
-    wheel_u=Vector((1,0,0)) if twin else Vector((.866,-.5,0))
+    # The pzsd108 controls and single drum are on opposite sides of the bore.
+    # Change fittings only: yaw/elevation/recoil and the bore keep their contract.
+    wheel_center=Vector((.12,.27,.812) if twin else (-.112,.2085,.812))
+    wheel_u=Vector((1,0,0)) if twin else Vector((.866,.5,0))
     wheel_axis=Vector((-wheel_u.y,wheel_u.x,0));wr=.195
-    put(rod('height-adjust-shaft',wheel_center+wheel_axis*.14,wheel_center,.025,steel),yaw)
+    put(rod('height-adjust-shaft',wheel_center-wheel_axis*.14,wheel_center,.025,steel),yaw)
     for i in range(12):
         a=i*math.tau/12;b=(i+1)*math.tau/12
         put(rod('height-wheel',wheel_center+wheel_u*(wr*math.cos(a))+Vector((0,0,wr*math.sin(a))),wheel_center+wheel_u*(wr*math.cos(b))+Vector((0,0,wr*math.sin(b))),.013,steel,vertices=6),yaw)
@@ -188,7 +190,7 @@ def create_mount(mount, col, helpers, materials):
             for j in range(cross):ff.append((i*cross+j,i*cross+(j+1)%cross,(i+1)*cross+(j+1)%cross,(i+1)*cross+j))
         put(mesh('recoil-spring',vv,ff,steel),recoil)
         # Narrow twin drums lean outboard; both barrel/recoil chains remain independent.
-        center=Vector((.11,sign*.112,.194 if twin else .1855))
+        center=Vector((.11,sign*.112 if twin else -.112,.194 if twin else .1855))
         drum_tilt=0 if twin else math.radians(4.5)
         drum_rotation=Matrix.Rotation(drum_tilt,3,'Y')
         drum_axis=drum_rotation@Vector((1,0,0));radius=.1365;half_depth=.07 if twin else .088
@@ -217,7 +219,7 @@ def create_mount(mount, col, helpers, materials):
             put(rod('trigger-grip',(-.415,sign*.35,-.20),(-.55,sign*.45,-.235),.023,dark),elevation)
         else:
             put(rod('shoulder-crossbar',(-.424,-.234,0),(-.424,.234,0),.021,steel),elevation)
-            for py in [-.2115,.1015]:
+            for py in [.2115,-.1015]:
                 put(rod('shoulder-rest',(-.424,py,0),(-.784,py,.13),.023,steel),elevation)
                 shoulder_cup(elevation,py,dx=-.034,dz=.09)
                 put(rod('trigger-arm',(-.424,py,.02),(-.48,py,.175),.014,steel),elevation)
@@ -226,7 +228,7 @@ def create_mount(mount, col, helpers, materials):
         # One central sight on the pair's non-recoiling cradle. The runtime
         # commands both elevation joints together; each recoil stays separate.
         if not twin or barrel=='left':
-            sx=-.085;sy=.038-lateral if twin else -.057
+            sx=-.085;sy=.038-lateral if twin else .057
             put(rod('sight-bracket',(-.48,0,.045),(sx,sy,.36),.012,steel),elevation)
             ring('ring-sight',(sx,sy,.43),.085,.006,elevation,segments=12)
             put(rod('sight-crosshair',(sx,sy-.085,.43),(sx,sy+.085,.43),.003,steel,vertices=4),elevation)
