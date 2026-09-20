@@ -1976,6 +1976,23 @@ fn build(
         );
         bodies.extend(path_clearance);
         def.mount_clearance=Some(MountClearanceProfile{version:1.,margin_m:0.01,basis:"Catalog gunhouses/barrels with full recoil envelope against exact hull cells and fixed equipment envelopes".into(),mount_ids:Some(def.mounts.iter().map(|m|m.id.clone()).collect()),bodies:Some(bodies),..Default::default()});
+        // Funnel and mast volumes stay in the shipped profile, so runtime gun arcs
+        // and hit geometry are unchanged; barrels simply may not be rejected for
+        // entering one. Lift them out for this check and put them back in place.
+        let mut lifted = vec![];
+        if let Some(bodies) = def.mount_clearance.as_mut().and_then(|p| p.bodies.as_mut()) {
+            for i in (0..bodies.len()).rev() {
+                if c.equipment.iter().any(|e| {
+                    e.id == bodies[i].id
+                        && catalog
+                            .equipment
+                            .iter()
+                            .any(|p| p.id == e.part_id && uncontested(p))
+                }) {
+                    lifted.push((i, bodies.remove(i)));
+                }
+            }
+        }
         let clearance = crate::mount_clearance::MountClearance::new(&def)
             .map_err(|e| error("clearance", e, None))?
             .unwrap();
@@ -2005,6 +2022,11 @@ fn build(
                     .filter(|body| c.equipment.iter().any(|e| e.id == *body))
                     .map(|body| [body].into());
                 errors.push(d);
+            }
+        }
+        if let Some(bodies) = def.mount_clearance.as_mut().and_then(|p| p.bodies.as_mut()) {
+            for (i, body) in lifted.into_iter().rev() {
+                bodies.insert(i, body);
             }
         }
         fail_all(out, errors)?;
@@ -2163,6 +2185,15 @@ fn assign_rooms(
     }
     Ok(())
 }
+/// A funnel or mast is one conservative catalog box drawn around uptakes,
+/// platforms, galleries, yards and rigging that real hull structure and real
+/// fittings pass through. Neither is ever a collision body: no overlap,
+/// intersection or clearance fault may be raised against one, or against
+/// anything that enters one. Seating, mass, exhaust, flooding openings and the
+/// runtime obstruction volumes are unaffected.
+pub(crate) fn uncontested(p: &ConstructionEquipmentPart) -> bool {
+    matches!(p.kind.as_str(), "funnel" | "mast")
+}
 #[allow(clippy::too_many_arguments)]
 fn equipment(
     c: &ConstructionData,
@@ -2221,11 +2252,19 @@ fn equipment(
         .collect();
     // Decorative fittings never collide with other equipment. Keep machinery and
     // weapon clearance independent of source order, including propeller supports.
+    // Funnels and masts collide with nothing at all; see `uncontested`.
     let colliding_ids: std::collections::BTreeSet<_> = installed_parts
         .iter()
         .filter(|(_, p)| {
-            p.path.is_none() && !matches!(p.kind.as_str(), "deck-fitting" | "director")
+            p.path.is_none()
+                && !matches!(p.kind.as_str(), "deck-fitting" | "director")
+                && !uncontested(p)
         })
+        .map(|(id, _)| id.as_str())
+        .collect();
+    let uncontested_ids: std::collections::BTreeSet<_> = installed_parts
+        .iter()
+        .filter(|(_, p)| uncontested(p))
         .map(|(id, _)| id.as_str())
         .collect();
     // Fixed exterior fittings may still seat partly into the hull.
@@ -2255,6 +2294,9 @@ fn equipment(
         .map(|(id, _)| id.as_str())
         .collect();
     let mut fitted = vec![];
+    // Interior a funnel or mast reserved: removed from `interior` as before, but
+    // restored when any other package is measured against it.
+    let mut uncontested_space: Vec<cg::Cell> = vec![];
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
     let mut fitting_index = cg::Broadphase::new(8.);
     let hull_index = cg::Broadphase::sized_for(hull);
@@ -2625,11 +2667,28 @@ fn equipment(
         let occupied =
             attempt!(cg::union(&occupied).map_err(|x| error("equipment-fit", x, Some(&e.id))));
         if !occupied.is_empty() {
-            let outside = attempt!(
-                cache
-                    .subtract_all(occupied.clone(), interior.iter())
-                    .map_err(|x| error("equipment-fit", x, Some(&e.id)))
-            );
+            // A funnel's uptake shares its space: plating, bulkheads and loads may
+            // cross it. It still reserves the volume it occupies, below.
+            let outside = if uncontested(p) {
+                vec![]
+            } else {
+                let outside = attempt!(
+                    cache
+                        .subtract_all(occupied.clone(), interior.iter())
+                        .map_err(|x| error("equipment-fit", x, Some(&e.id)))
+                );
+                // Neither is the space a funnel or mast reserved an obstacle to
+                // anything else, whichever of the two the source lists first.
+                if uncontested_space.is_empty() {
+                    outside
+                } else {
+                    attempt!(
+                        cache
+                            .subtract_all(outside, uncontested_space.iter())
+                            .map_err(|x| error("equipment-fit", x, Some(&e.id)))
+                    )
+                }
+            };
             if cg::total(&outside).volume > 1e-5 {
                 let blocked = cg::total(&outside);
                 let near = blocked.center();
@@ -2649,6 +2708,9 @@ fn equipment(
                     ),
                     Some(&e.id),
                 ));
+            }
+            if uncontested(p) {
+                uncontested_space.extend(occupied.iter().cloned());
             }
             *interior = attempt!(
                 cache
@@ -3282,7 +3344,10 @@ fn equipment(
     // can bury one another; decorative overlaps never consume their exposed volume.
     'burial: for id in &relaxed_ids {
         // One fault per fitting; a rejected fitting is not measured again.
-        if errors.len() >= MAX_ERRORS || errors.iter().any(|d| d.source_id.as_deref() == Some(*id))
+        // A funnel or mast may be buried to any depth by hull pieces or fittings.
+        if errors.len() >= MAX_ERRORS
+            || uncontested_ids.contains(id)
+            || errors.iter().any(|d| d.source_id.as_deref() == Some(*id))
         {
             continue;
         }
@@ -5177,6 +5242,172 @@ mod tests {
             source.construction.equipment.reverse();
         }
     }
+    /// A funnel and a mast standing on the test hull, plus a deck fitting and a
+    /// second funnel available to overlap them.
+    fn uncontested_fixture() -> (ConstructionSource, ConstructionCatalog) {
+        let (mut source, mut catalog) = equipped_fixture();
+        let funnel = catalog
+            .equipment
+            .iter()
+            .find(|p| p.kind == "funnel")
+            .unwrap()
+            .clone();
+        for (id, kind) in [
+            ("mast-part", "mast"),
+            ("fixed-part", "deck-fitting"),
+            ("director-part", "director"),
+        ] {
+            let mut part = funnel.clone();
+            part.id = id.into();
+            part.kind = kind.into();
+            part.exhaust_kw = None;
+            part.occupancy = None;
+            catalog.equipment.push(part);
+        }
+        source.construction.equipment.push(ConstructionEquipment {
+            id: "mast".into(),
+            part_id: "mast-part".into(),
+            position: [0., 2., 3.],
+            ..Default::default()
+        });
+        (source, catalog)
+    }
+    fn launchable_in_either_order(source: &ConstructionSource, catalog: &ConstructionCatalog) {
+        let mut source = source.clone();
+        for _ in 0..2 {
+            let result = compile(&source, catalog);
+            assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+            source.construction.equipment.reverse();
+        }
+    }
+    #[test]
+    fn hull_pieces_may_bury_a_funnel_or_a_mast() {
+        let (source, catalog) = uncontested_fixture();
+        // A deckhouse abaft the gun swallows the mast and the funnel whole.
+        for size in [[4., 3., 6.5], [4., 3.2, 6.5]] {
+            let mut source = source.clone();
+            source.construction.primitives.push(ConstructionPrimitive {
+                id: "house".into(),
+                kind: "box".into(),
+                position: [0., 2. + size[1] / 2., 4.75],
+                size,
+                ..Default::default()
+            });
+            launchable_in_either_order(&source, &catalog);
+        }
+    }
+    #[test]
+    fn equipment_may_overlap_a_funnel_or_a_mast_in_either_source_order() {
+        let (source, catalog) = uncontested_fixture();
+        // Weapons, decorative fittings and another funnel, each sharing the
+        // envelope of the funnel at z = 5 or the mast at the origin.
+        for (id, part_id, position) in [
+            ("neighbor-gun", "gun-part", [0., 2., 5.]),
+            ("neighbor-fixed", "fixed-part", [0., 2., 3.]),
+            ("neighbor-funnel", "funnel-part", [0., 2., 3.2]),
+            ("neighbor-mast", "mast-part", [0., 2., 5.]),
+            ("neighbor-director", "director-part", [0., 2., 3.]),
+        ] {
+            let mut source = source.clone();
+            source.construction.equipment.push(ConstructionEquipment {
+                id: id.into(),
+                part_id: part_id.into(),
+                position,
+                ..Default::default()
+            });
+            launchable_in_either_order(&source, &catalog);
+        }
+    }
+    #[test]
+    fn a_funnel_uptake_may_cross_plating_a_bulkhead_or_a_load() {
+        let (source, catalog) = uncontested_fixture();
+        let mut bulkhead = source.clone();
+        bulkhead.construction.boundaries.push(ConstructionBoundary {
+            id: "frame".into(),
+            axis: "z".into(),
+            offset: 5.,
+            thickness_mm: 20.,
+        });
+        let mut load = source.clone();
+        load.construction.loads.push(ConstructionLoad {
+            id: "stores".into(),
+            name: "Stores".into(),
+            mass_kg: 1000.,
+            center: [0., 1.4, 5.],
+            size: [2., 1., 2.],
+        });
+        for source in [bulkhead, load] {
+            launchable_in_either_order(&source, &catalog);
+        }
+    }
+    #[test]
+    fn a_funnel_keeps_its_module_opening_and_runtime_obstruction_when_buried() {
+        let (mut source, catalog) = uncontested_fixture();
+        source.construction.primitives.push(ConstructionPrimitive {
+            id: "house".into(),
+            kind: "box".into(),
+            position: [0., 3.5, 4.75],
+            size: [4., 3., 6.5],
+            ..Default::default()
+        });
+        // The uptake still cuts its sealed flooding opening through the deck it
+        // stands on; what changed is only that the hull around it is admissible.
+        let open = uncontested_fixture().0;
+        assert!(
+            compiled(&open, &catalog)
+                .openings
+                .iter()
+                .flatten()
+                .any(|o| o.sealed_by_module_id.as_deref() == Some("funnel")),
+            "the uptake keeps its sealed flooding opening"
+        );
+        let definition = compiled(&source, &catalog);
+        // Combat is unchanged: both remain gun-arc obstructions and clearance bodies.
+        for id in ["funnel", "mast"] {
+            assert!(definition.obstructions.iter().any(|o| o.id == id));
+            assert!(
+                definition
+                    .mount_clearance
+                    .as_ref()
+                    .unwrap()
+                    .bodies
+                    .iter()
+                    .flatten()
+                    .any(|b| b.id == id)
+            );
+        }
+    }
+    #[test]
+    fn gun_barrels_may_enter_a_mast_but_not_other_installed_geometry() {
+        let (mut source, catalog) = uncontested_fixture();
+        // The mast stands in the gun's barrel envelope at its initial pose.
+        source
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "mast")
+            .unwrap()
+            .position = [0., 2., -7.];
+        launchable_in_either_order(&source, &catalog);
+        // Another fitting in the same place is still a clearance fault.
+        source.construction.equipment.push(ConstructionEquipment {
+            id: "rangefinder".into(),
+            part_id: "director-part".into(),
+            position: [0., 2., -7.],
+            ..Default::default()
+        });
+        let result = compile(&source, &catalog);
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "weapon-clearance"
+                    && d.related_source_ids.as_deref() == Some(&["rangefinder".to_owned()][..])),
+            "{:?}",
+            result.diagnostics
+        );
+    }
+
     #[test]
     fn construction_retains_bounded_gun_installation_settings() {
         let (mut source, catalog) = equipped_fixture();
