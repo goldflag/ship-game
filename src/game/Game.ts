@@ -67,11 +67,11 @@ import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolv
 import { createConstructionModel } from './constructionModel';
 import type { TrialAction } from './session/localConstruction';
 import { InputController } from './InputController';
-import { CameraRig } from './CameraRig';
+import { CameraRig, type ScopeEntryFocus } from './CameraRig';
 import { ShellFollow, type ShellView } from './ShellFollow';
 import { sightAim, torpedoBearingAim, torpedoCourseAim } from './aiming';
 import type { Rangefinder } from './Rangefinder';
-import type { RangeTarget } from './rangefinderSight';
+import { pickRangeTarget, type RangeTarget } from './rangefinderSight';
 import { RangefindingController } from './controllers/RangefindingController';
 import { SpectatorController } from './controllers/SpectatorController';
 import { GraphicsController } from './controllers/GraphicsController';
@@ -1499,7 +1499,7 @@ export class Game {
     const spectated = this.spectatedShipId ? this.cameraShipView : undefined;
     if ((spectated?.actor ?? this.simulation.player).damage.sunk) return;
     const definition = spectated?.definition ?? this.definition;
-    const ship = spectated?.motion ?? this.simulation.ship;
+    const ship = spectated?.motion ?? this.playerView?.motion ?? this.simulation.ship;
     const bearing = this.rig.bearing;
     const range = (definition.torpedoTubes?.[0]?.weapon.rangeM ?? 5000) * .98;
     const alongBearing = (): Vec3 => [ship.x + Math.sin(bearing) * range, .5, ship.z - Math.cos(bearing) * range];
@@ -1512,7 +1512,12 @@ export class Game {
       if (ahead < definition.hull.length) aim = alongBearing();
     }
     this.updateScopeWeapon(definition);
-    this.rig.toggleBinoculars(aim, ship);
+    let entry: ScopeEntryFocus | undefined;
+    if (!spectated && !this.rig.binoculars && !definition.submarine && (this.battery === 'main' || this.battery === 'secondary')) {
+      const focus = pickRangeTarget(this.rangeTargets(), this.camera, ship, this.host.clientWidth, this.host.clientHeight, this.simulation.islands);
+      entry = focus ? { rangeM: focus.rangeM } : { keepView: true };
+    }
+    this.rig.toggleBinoculars(aim, ship, entry);
   }
   private readSightAim(): Vec3 {
     const lockedAim = this.rig.rangeAim;
