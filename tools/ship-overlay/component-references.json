@@ -588,6 +588,20 @@
     "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
   },
   {
+    "partId": "sk-c34-283-triple",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+    "sourceVehicle": "pgsb507",
+    "resource": "common/visual/germany/gun/main/ggm058_280mm54_5_c34/ggm058_280mm54_5_c34",
+    "sourceName": "ggm058_280mm54_5_c34",
+    "match": "exact",
+    "notes": "Scharnhorst A artillery fits this gunhouse at all three positions, without turret rangefinder arms; visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb507",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/main/ggm058_280mm54_5_c34/ggm058_280mm54_5_c34.model"
+    ]
+  },
+  {
     "partId": "fletcher-quintuple-533",
     "category": "torpedo-launcher",
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
