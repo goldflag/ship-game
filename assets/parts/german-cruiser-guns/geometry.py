@@ -47,52 +47,79 @@ class MountBuilder:
 def create_main(mount,col,helpers,materials):
     b=MountBuilder(mount,col,helpers,materials);s=b.s
     b.cyl('bearing lower',(0,0,-.10),3.02,.20,'edge');b.cyl('rotating floor',(0,0,.015),3.08,.09)
-    shape=s['gunhouseMesh']
-    # Taper the aft footprint and rake the rear roof with the existing facets.
-    vertices=[]
-    for x,y,z in shape['vertices']:
-        taper=1-.07*max(0,min(1,(-x-2)/3.45))
-        # Move the aft roof break forward, retaining a level crown and
-        # a continuous sloping rear shoulder beneath the rangefinder.
-        xx=max(x,-3.65) if z>2.5 and x<-3.65 else x
-        vertices.append((xx,y*taper,z))
-    o=b.mesh('faceted gunhouse',vertices,[f['indices'] for f in shape['faces']])
+    # Original visual shell: rounded ends, tapered aft flanks and a long
+    # forward roof slope. The optical variant has its own taller crown.
+    # Canonical armor and weapon definitions are deliberately independent.
+    rf=s['id']=='skc34-203-twin-rf'
+    half=[(2.62,0),(2.58,1.45),(2.35,2.45),(1.65,3.12),
+          (-1.15,3.27),(-4.60,2.86),(-5.22,2.00),(-5.48,1.00),(-5.55,0)]
+    outline=half+[(x,-y) for x,y in half[-2:0:-1]]
+    k=len(outline)
+    shoulder=[];crown=[]
+    for x,y in outline:
+        front=max(0,min(1,(x+1.15)/3.77))
+        rear=max(0,min(1,(-x-3.0)/2.55))
+        shoulder.append((x-.32*front,y,1.72+(.72 if rf else .43)*rear*(1-abs(y)/3.27)))
+        # Inner ring retains curvature at the rear while making the roof's
+        # front-to-back pitch readable from the side and quarter views.
+        xx=max(-4.75,min(-1.15 if rf else -.65,x))
+        crown.append((xx,max(-1.80 if rf else -2.04,min(1.80 if rf else 2.04,y)),3.10 if rf else 2.43))
+    vertices=[(x,y,.02) for x,y in outline]+shoulder+crown
+    faces=[tuple(reversed(range(k)))]
+    faces += [(i,(i+1)%k,(i+1)%k+k,i+k) for i in range(k)]
+    faces += [(i+k,(i+1)%k+k,(i+1)%k+2*k,i+2*k) for i in range(k)]
+    faces.append(tuple(range(2*k,3*k)))
+    o=b.mesh('faceted gunhouse',vertices,faces)
     o.data.materials.append(materials.get('roof',materials['edge']))
-    for p,f in zip(o.data.polygons,shape['faces']):p.material_index=int(f['finish']=='roof')
+    for face in o.data.polygons:face.material_index=int(face.index>k)
     for side,y,_ in barrel_layout(s):
         e,r=b.gun_joints(side,y);length=s['muzzleForward']-s['trunnionForward']
         b.barrel(side+' stepped barrel',length,.265,.139,.1015,r,start=.46)
         # Hidden breech cap omitted: spend its triangles on visible sight recesses.
+    from mathutils import Vector
+    from mathutils.geometry import intersect_ray_tri
+    shell=o.data;shell.calc_loop_triangles()
+    def roof_height(x,y):
+        hits=[intersect_ray_tri(*[shell.vertices[i].co for i in t.vertices],Vector((0,0,-1)),Vector((x,y,5))) for t in shell.loop_triangles]
+        return max(h.z for h in hits if h is not None)
+    def front_x(y,z):
+        hits=[intersect_ray_tri(*[shell.vertices[i].co for i in t.vertices],Vector((-1,0,0)),Vector((8,y,z))) for t in shell.loop_triangles]
+        return max(h.x for h in hits if h is not None)
     for y in [-2.62,2.62]:
         # The approved gunhouse has a flush rear roof, without the raised
         # rectangular hatches used on some other German turret variants.
-        b.cyl('roof ventilator',(-1.3,y*.78,2.72),.15,.25,'edge')
+        b.cyl('roof ventilator',(.0,y*.99,roof_height(0,y*.99)+.13),.15,.30,'edge')
         # Front sight flap follows the sloped face.
-        o=b.box('front sight recess',(2.16,y,1.42),(.07,.63,.39),'dark');o.rotation_euler.y=-.34
-        b.box('front sight hood',(2.17,y,1.64),(.22,.76,.08))
-        b.box('front sight sill',(2.31,y,1.21),(.17,.76,.07))
+        o=b.box('front sight recess',(front_x(y*.90,1.42)+.015,y*.90,1.42),(.07,.63,.39),'dark');o.rotation_euler.y=-.34
+        b.box('front sight hood',(front_x(y*.90,1.64)+.06,y*.90,1.64),(.22,.76,.08))
+        b.box('front sight sill',(front_x(y*.90,1.21)+.04,y*.90,1.21),(.17,.76,.07))
         sign=y/abs(y)
-        def ladder_y(z):return sign*(3.34-max(0,z-1.68)*.49)
-        for z in [.42,.7,.98,1.26,1.54,1.82,2.1,2.38]:
-            b.rod('side ladder rung',(-1.65,ladder_y(z),z),(-1.28,ladder_y(z),z),.025,'edge')
+        def ladder_y(x,z):
+            hits=[intersect_ray_tri(*[shell.vertices[i].co for i in t.vertices],Vector((0,-sign,0)),Vector((x,sign*8,z))) for t in shell.loop_triangles]
+            return sign*(max(abs(h.y) for h in hits if h is not None)+.018)
+        for z in [.24,.53,.82,1.11,1.40,1.69,1.98,2.27]+([2.56,2.85] if rf else []):
+            b.put(helpers['rod'](b.name+'.side ladder rung',(-1.65,ladder_y(-1.65,z),z),(-1.28,ladder_y(-1.28,z),z),.025,materials['edge'],col,vertices=4))
         # Square stringers seat against the flank and follow its roof chine.
         for x in [-1.65,-1.28]:
-            for lo,hi in [(.42,1.68),(1.68,2.38)]:
+            for lo,hi in [(.24,1.72),(1.72,2.90 if rf else 2.38)]:
                 b.put(helpers['rod'](b.name+'.side ladder stringer',
-                    (x,ladder_y(lo),lo),(x,ladder_y(hi),hi),.022,
+                    (x,ladder_y(x,lo),lo),(x,ladder_y(x,hi),hi),.022,
                     materials['edge'],col,vertices=4))
-        b.box('rear access hood',(-5.48,y*.72,1.49),(.14,.55,.65))
+        yy=y*(.72 if rf else .19)
+        rear_x=-5.55+max(0,abs(yy)-1.0)*.30
+        b.box('rear access hood',(rear_x,yy,1.48),(.24,.55,.65))
     if s['id']=='skc34-203-twin-rf':
         for sign in [-1,1]:
-            b.plate('rangefinder armored wing',[(-4.55,2.03),(-4.55,2.98),(-4.35,3.11),(-2.60,3.11),(-2.60,2.10),(-2.85,1.98)],*sorted([sign*2.58,sign*4.02]))
+            b.plate('rangefinder armored wing',[(-4.35,1.95),(-4.62,2.12),(-4.72,2.52),(-4.59,2.88),(-4.32,3.00),(-2.55,3.00),(-2.55,1.95)],*sorted([sign*2.58,sign*4.02]))
             b.rod('optical lens',(-2.59,sign*3.65,2.47),(-2.54,sign*3.65,2.47),.22,'dark')
             b.box('lens brow',(-2.55,sign*3.65,2.75),(.22,.57,.10),'edge')
     for side,y,_ in barrel_layout(s):
         seam=[]
         for i in range(16):
-            a=i*math.tau/16;z=1.32+.91*math.sin(a)
-            x=2.6-.58*(z-.06)/1.62 if z<=1.68 else 2.02-.57*(z-1.68)/.96
-            seam.append((x+.022,y+.48*math.cos(a),z))
+            a=i*math.tau/16;z=.98+.84*math.sin(a)
+            # Narrow sewn opening follows the new face and roof shoulder.
+            x=2.59-.32*(z-.02)/1.70 if z<=1.72 else 2.27-(z-1.72)*(3.62 if rf else 2.92)/(1.38 if rf else .71)
+            seam.append((x+.022,y+.36*math.cos(a),z))
         create_bloomer(mount,col,helpers,materials,side,seam,s['trunnionForward']+1.50,.267,rings=5,fold_depth=.050,slack=.085,fullness=.055)
     return b.finish()
 

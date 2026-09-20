@@ -17,8 +17,10 @@ does not certify neighboring or installed ship clearance.
 
 The 203 mm main-gun variants retain separate IDs and ceilings of 1,756 triangles
 (plain) and 1,876 (rangefinder), measured from the complete 13e3e07 publication.
-Their original shell now has tapered aft shoulders and a forward-set rear roof
-break; sight recesses and rear access hoods replace hidden breech caps. Rangefinder
-wings remain simplified polygonal housings. The registered RF resource has a
+The second silhouette iteration uses rounded end outlines, a long forward roof
+slope, and distinct crown heights for the plain and RF variants. Ladder rails
+follow the new flanks; roof vents and rear hoods remain physically seated. Square
+ladder rods fund the extra shell facets. Rangefinder wings and cloth remain
+simplified; their cross-sections and the rear roof curvature still differ. The registered RF resource has a
 shorter barrel than the canonical muzzle datum; that datum and all weapon/armor
 values remain unchanged. This pass does not edit secondary/AA builders.
