@@ -180,13 +180,13 @@ estimates are construction allowances, not researched magazine drawings; gun
 mass already includes the catalog mounting/protection and must not receive a
 second charge for those plates.
 
-The quintuple bank, forward funnel, legacy starboard screw and rudder, aftermast and Mk37
+The quintuple bank, legacy starboard screw and rudder, aftermast and Mk37
 director adapt original source in `assets/ships/fletcher/build.py`, with the
 original source dimensions preserved. The torpedo bank references canonical
 `us-mk15-fast` ammunition and retains its five muzzle offsets. The screw is the
 4.2 m three-blade starboard hand; its pitch/chord distribution is the existing
 original approximation. The director retains its supported optical bar and
-mattress antenna. Funnel external guy wires and ship-wide mast stays belong to
+mattress antenna. Ship-wide mast stays belong to
 the installation and are excluded; integral feet/bearings/stock supports remain.
 The source basis is the [Fletcher README](../../ships/fletcher/README.md),
 including its approved visual sources. No published ship GLB, generated Blender
@@ -199,8 +199,7 @@ engine rating. The 3 × 2.5 × 4 m magazine has 1.8 t dry mass and capacity for
 1,000 rounds; loaded ammunition mass belongs to the authoritative compiler.
 Fletcher-derived fitting masses and functional capacities are also provisional
 package estimates: torpedo bank 18 t **including its five ready torpedoes** (no
-reserve torpedoes or additional torpedo-ammunition mass), funnel 8.5 t/12,000 kW exhaust capacity,
-screw 2.5 t/0.65 efficiency, rudder 2.6 t/7 m², mast 0.45 t, director 6.5 t.
+reserve torpedoes or additional torpedo-ammunition mass), screw 2.5 t/0.65 efficiency, rudder 2.6 t/7 m², mast 0.45 t, director 6.5 t.
 These values are fixed by catalog revision. They do not claim historical
 engineering certification. Funnel capacity consumes engine exhaust demand and
 does not create propulsion power. Director connection is typed fire control;
@@ -257,7 +256,7 @@ engineering estimates; ammunition mass still comes from the canonical weapon
 and native compiler. The fixed 1,000-round variant and previous publications
 remain available.
 
-## Modular machinery and capital funnel
+## Modular machinery
 
 The current catalog has three machinery families. Each placed engine is a
 complete fixed package including auxiliaries, foundation and service space.
@@ -290,13 +289,6 @@ and exhaust sockets. Engines remain static; propellers retain their spin joints.
 The former 36 MW and 82 MW options are removed from the current catalog. Retained
 immutable catalog snapshots remain build artifacts for exact published content.
 
-`generic-capital-funnel` is a separate fixed oval uptake: 6 × 11.1 × 10.5 m
-conservative envelope, 75 t dry mass and 40,000 kW exhaust capacity. Its original
-open hood, grille, reinforcing bands, steam pipes and access ladder are authored
-in `capital_machinery.py`; the supporting deck is external. It retains a Y=0
-attachment sole and an `exhaust-out` socket. This is a provisional capacity,
-not a thermodynamic or historical claim.
-
 ## Japanese destroyer torpedo banks
 
 `../ijn-destroyer-equipment/geometry.py` adapts the original Fubuki triple and
@@ -306,22 +298,29 @@ the catalog's `tubeOffsets`, which are the ships' own tube datums relative to
 the launcher pivot. The 11 t and 18 t package masses are gameplay estimates, and
 the torpedoes are the ships' provisional game variants (Type 8 and Type 93).
 
-## National funnels, masts and directors
+## National masts and directors
 
 Four recipe files adapt superstructure from the original ship recipes into
-standalone deck fittings: `../us-superstructure/` (Iowa funnel and Mk 38
-director, Baltimore funnel and pole mast), `../german-capital-superstructure/`
-(Bismarck funnel, 10.5 m rangefinder cupola and mainmast), `../ijn-superstructure/`
-(Yamato funnel and Type 98 director, Mogami trunked funnel and Type 95 director
-tower, Fubuki funnel, Yukikaze tripod foremast) and `../rn-superstructure/`
-(King George V funnel, tripod foremast and HACS director, Flower-class funnel).
+standalone deck fittings: `../us-superstructure/` (Iowa Mk 38 director and
+Baltimore pole mast), `../german-capital-superstructure/` (10.5 m rangefinder
+cupola and mainmast), `../ijn-superstructure/` (Yamato Type 98 director, Mogami
+Type 95 director tower, Yukikaze tripod foremast) and `../rn-superstructure/`
+(King George V tripod foremast and HACS director).
 Each stands on the deck at its origin; parts that sat on superstructure aboard
 ship are extended to the deck, so some read taller than they do on the ship.
 Jacket outlines and heights come from the ship recipes and blueprints; small
 fittings (ladders, walkways, whistles, lookouts, radar aerials the source ship
 did not carry, including the FuMO mattress on the German cupola) are plausible
-additions. Masses and exhaust ratings are gameplay estimates. Directors train on
+additions. Masses are gameplay estimates. Directors train on
 a `yaw` joint; mast radar arrays are fixed.
+
+The funnels adapted the same way (Iowa, Baltimore, Bismarck, Yamato, Mogami, Fubuki,
+King George V and Flower), the Fletcher forward funnel, the German cruiser funnel cap and
+`generic-capital-funnel` are retired. None had a same-variant source model, so the current
+catalog offers only the historically sourced funnels in `../historic-funnels/`. A
+retired funnel is hidden from every catalog's palette, and opening a saved design removes
+its instances in a new revision, as for the other retired fittings. The registrations,
+recipes and published models remain for exact retained catalogs and ships built on them.
 
 ## Capital and cruiser turrets
 

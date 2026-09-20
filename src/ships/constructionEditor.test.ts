@@ -88,7 +88,9 @@ test('opening an old saved design removes retired fittings once and retains its 
   const draft = source();
   const retired = ['generic-paravane', 'generic-signal-lamp', 'generic-gun-tub', 'generic-gun-tub-large',
     'generic-ready-ammo-locker', 'generic-splinter-shield', 'generic-breakwater',
-    'german-cruiser-capstan', 'german-cruiser-deck-hatch'];
+    'german-cruiser-capstan', 'german-cruiser-deck-hatch',
+    'fletcher-funnel', 'german-cruiser-funnel-cap', 'generic-capital-funnel', 'us-battleship-funnel', 'us-cruiser-funnel',
+    'german-battleship-funnel', 'ijn-battleship-funnel', 'ijn-cruiser-trunked-funnel', 'ijn-destroyer-funnel', 'rn-battleship-funnel', 'rn-corvette-funnel'];
   const equipment = structuredClone(draft.construction.equipment);
   for (const [index, partId] of retired.entries()) draft.construction.equipment.push({ id: `old-${index}`, partId, position: [0, 0, 0], bearingDeg: 0 });
   const original = { formatVersion: 1 as const, id: 'saved-1', designId: 'account-design', sourceId: draft.id, parentId: null as string | null,

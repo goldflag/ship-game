@@ -6,15 +6,21 @@ import { suggestStarterEquipment } from './constructionStarter';
 const raw=JSON.parse(await readFile(new URL('../../public/models/components/catalog.json',import.meta.url),'utf8'));
 
 test('catalog growth preserves starter machinery and exhaust balance',()=>{
-  const expanded=structuredClone(raw), funnel=expanded.equipment.find((p:{id:string})=>p.id==='rn-corvette-funnel');
+  const expanded=structuredClone(raw), funnel=expanded.equipment.find((p:{id:string})=>p.id==='clemson-forward-funnel');
   expanded.equipment.push({...funnel,id:'future-small-funnel',size:[.1,.1,.1],massKg:9999,exhaustKw:99999});
   for(const kind of ['patrol','catamaran'] as const) {
     const before=suggestStarterEquipment(raw,kind);
-    expect(before.find(e=>e.id==='funnel')!.partId).toBe('rn-corvette-funnel');
+    expect(before.find(e=>e.id==='funnel')!.partId).toBe('clemson-forward-funnel');
     expect(suggestStarterEquipment(expanded,kind)).toEqual(before);
   }
   const older={...expanded,equipment:expanded.equipment.filter((p:{id:string})=>p.id!==funnel.id)};
   expect(suggestStarterEquipment(older,'patrol').find(e=>e.id==='funnel')!.partId).toBe('future-small-funnel');
+});
+
+test('the starter never fits a retired funnel, even from an older catalog that still lists one',()=>{
+  const funnel=raw.equipment.find((p:{id:string})=>p.id==='clemson-forward-funnel');
+  const older={...raw,equipment:[...raw.equipment.filter((p:{id:string})=>p.id!==funnel.id),{...funnel,id:'rn-corvette-funnel',size:[.1,.1,.1]}]};
+  expect(suggestStarterEquipment(older,'patrol').find(e=>e.id==='funnel')!.partId).not.toBe('rn-corvette-funnel');
 });
 
 test('production loader resolves current and exact retained catalogs through the configured base',async()=>{

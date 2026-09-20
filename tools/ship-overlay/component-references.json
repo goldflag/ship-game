@@ -658,38 +658,6 @@
     "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/"
   },
   {
-    "partId": "us-battleship-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/russia/vehicles/pasb018",
-    "sourceVehicle": "pasb018",
-    "resource": "common/visual/usa/ship/battleship/asb028_iowa_1945/asb028_iowa_1945_midfront",
-    "sourceName": "Iowa 1945 (B hull, Russia branch)",
-    "match": "close",
-    "notes": "Iowa 1945 forward funnel jacket and cap from the public Russia branch. Original editor recipe derives from Iowa; branch and fit are explicit, not a historical configuration certification. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/games/worldofwarships/russia/vehicles/pasb018"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/russia/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/us-battleship-funnel.glb",
-    "scale": 1
-  },
-  {
-    "partId": "fletcher-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
-    "sourceVehicle": "pasd021",
-    "resource": "common/visual/usa/ship/destroyer/asd048_fletcher_1945/asd048_fletcher_1945_midfront",
-    "sourceName": "Fletcher 1945 (B hull)",
-    "match": "close",
-    "notes": "Forward funnel jacket and cap from Fletcher 1945; original editor recipe is a simplified Fletcher adaptation. Attached source platforms and most installation fixtures excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/fletcher-funnel.glb",
-    "scale": 1
-  },
-  {
     "partId": "fletcher-aft-mast",
     "category": "mast",
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
@@ -703,22 +671,6 @@
     ],
     "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
     "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/fletcher-aft-mast.glb",
-    "scale": 1
-  },
-  {
-    "partId": "us-cruiser-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108",
-    "sourceVehicle": "pasc108",
-    "resource": "common/visual/usa/ship/cruiser/asc017_baltimore_1944/asc017_baltimore_1944_midfront",
-    "sourceName": "Baltimore 1944 (A hull)",
-    "match": "close",
-    "notes": "Baltimore 1944 forward funnel jacket and cap. Installation-only support structures and most small mounted fixtures excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc108"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/us-cruiser-funnel.glb",
     "scale": 1
   },
   {
@@ -738,54 +690,6 @@
     "scale": 1
   },
   {
-    "partId": "ijn-battleship-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pjsb018",
-    "sourceVehicle": "pjsb018",
-    "resource": "common/visual/japan/ship/battleship/jsb039_yamato_1945/jsb039_yamato_1945_midback",
-    "sourceName": "Yamato 1945 (A hull)",
-    "match": "close",
-    "notes": "Yamato 1945 raked funnel upper assembly and fitted pipes. Lower support house and separately mounted fixtures excluded; extraction starts at the upper support datum. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pjsb018"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/ijn-battleship-funnel.glb",
-    "scale": 1
-  },
-  {
-    "partId": "ijn-cruiser-trunked-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009",
-    "sourceVehicle": "pjsc009",
-    "resource": "common/visual/japan/ship/cruiser/jsc010_mogami_1944/jsc010_mogami_1944_midfront",
-    "sourceName": "Mogami 1944 (B hull)",
-    "match": "close",
-    "notes": "Mogami 1944 forward trunked funnel above its supporting house. Lower integrated uptake/support structure and installation fixtures excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsc009"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/ijn-cruiser-trunked-funnel.glb",
-    "scale": 1
-  },
-  {
-    "partId": "ijn-destroyer-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106",
-    "sourceVehicle": "pjsd106",
-    "resource": "common/visual/japan/ship/destroyer/jsd019_fubuki_1943/jsd019_fubuki_1943_midfront",
-    "sourceName": "Fubuki 1943 (A hull)",
-    "match": "close",
-    "notes": "Fubuki 1943 forward raked funnel, including jacket and cap. The editor recipe explicitly derives its stations from Fubuki. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd106"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/ijn-destroyer-funnel.glb",
-    "scale": 1
-  },
-  {
     "partId": "ijn-destroyer-tripod-foremast",
     "category": "mast",
     "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pjsd718",
@@ -799,22 +703,6 @@
     ],
     "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/current/",
     "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/ijn-destroyer-tripod-foremast.glb",
-    "scale": 1
-  },
-  {
-    "partId": "rn-battleship-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pbsb107",
-    "sourceVehicle": "pbsb107",
-    "resource": "common/visual/uk/ship/battleship/bsb016_king_george_v_1943/bsb016_king_george_v_1943_midfront",
-    "sourceName": "King George V 1943 (A hull)",
-    "match": "close",
-    "notes": "King George V 1943 forward funnel from A hull. Retains jacket and cap, omits supporting house and most installation fixtures. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pbsb107"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/rn-battleship-funnel.glb",
     "scale": 1
   },
   {
@@ -834,38 +722,6 @@
     "scale": 1
   },
   {
-    "partId": "german-cruiser-funnel-cap",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsc108",
-    "sourceVehicle": "pgsc108",
-    "resource": "common/visual/germany/ship/cruiser/gsc004_hipper_1943/gsc004_hipper_1943_midfront",
-    "sourceName": "Admiral Hipper 1943 (B hull)",
-    "match": "close",
-    "notes": "Admiral Hipper 1943 swept open funnel cap, grille and flange; matching vessel family used by original German cruiser recipe. Jacket excluded. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsc108"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/german-cruiser-funnel-cap.glb",
-    "scale": 1
-  },
-  {
-    "partId": "german-battleship-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
-    "sourceVehicle": "pgsb708",
-    "resource": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midfront",
-    "sourceName": "Bismarck (A hull, test branch)",
-    "match": "close",
-    "notes": "Bismarck funnel assembly from original unsimplified GM3D test source, including attached searchlight platforms. Original editor recipe derives from Bismarck; installation scope differs. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/german-battleship-funnel.glb",
-    "scale": 1
-  },
-  {
     "partId": "german-battleship-mainmast",
     "category": "mast",
     "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
@@ -880,33 +736,6 @@
     "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
     "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/german-battleship-mainmast.glb",
     "scale": 1
-  },
-  {
-    "partId": "generic-capital-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708",
-    "sourceVehicle": "pgsb708",
-    "resource": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midfront",
-    "sourceName": "Bismarck (A hull, test branch)",
-    "match": "family",
-    "notes": "Family-level comparison only: the editor funnel is an invented adjustable capital-ship package, with no exact historical counterpart. Bismarck is a representative oval capital-ship funnel, including source installation platforms. Partial hull extraction; cut edges are extraction boundaries. Dimensions describe the selected geometry, not a complete fitted assembly.",
-    "evidence": [
-      "https://gamemodels3d.com/games/worldofwarships/test/vehicles/pgsb708"
-    ],
-    "dataRoot": "https://gamemodels3d.com/games/worldofwarships/data/test/",
-    "referenceGlb": ".build/component-comparison/research/masts-funnels/glb/generic-capital-funnel.glb",
-    "scale": 1
-  },
-  {
-    "partId": "rn-corvette-funnel",
-    "category": "funnel",
-    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles",
-    "sourceName": "Flower-class counterpart not identified",
-    "match": "missing",
-    "notes": "Original recipe derives from Flower-class convoy geometry. No confirmed Flower-class GM3D counterpart was identified. The available DCS Castle-class listing is a different class and is not silently substituted.",
-    "evidence": [
-      "https://gamemodels3d.com/games/dcsworld/vehicles/corvettes"
-    ]
   },
   {
     "partId": "dreadnought-aft-funnel",
