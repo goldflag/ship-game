@@ -79,3 +79,36 @@ export async function openEditor(page: Page, name: string): Promise<void> {
 
 /** Advance real time while the battle runs; the simulation is not stepped by hand here. */
 export const settle = (page: Page, seconds: number) => page.waitForTimeout(seconds * 1000);
+
+export interface DesignCheck {
+  /** The chip's own words: `No warnings`, `2 warnings`, `1 block · 2 warnings`, prefixed `Draft · ` before the first compile. */
+  status: string;
+  blocks: number;
+  warnings: number;
+  findings: string[];
+  /** The ledger as it reads on screen: `Displacement` → `38,280 t`. */
+  ledger: Record<string, string>;
+}
+
+/** Wait for the editor's in-browser design check to finish, then read what it decided.
+ *
+ * The ledger heading carries a `pending`/`last check` badge for exactly as long as there is no
+ * current compiled result, so its absence is the settled signal every shipbuilder browser check
+ * already uses. On the dev WASM build a first check takes about 30 s. The checks panel is opened to
+ * read the findings and closed again, so a capture afterwards shows the editor as it was. */
+export async function designCheck(page: Page, timeoutMs = 120_000): Promise<DesignCheck> {
+  await page.waitForFunction(() => !document.querySelector('.sb-ledger h4 span'), undefined, { polling: 250, timeout: timeoutMs });
+  const chip = page.locator('.sb-warn .lead');
+  const status = (await chip.innerText()).replace(/\s*W\s*$/, '').trim();
+  const wasOpen = (await chip.getAttribute('aria-expanded')) === 'true';
+  if (!wasOpen) await chip.click();
+  const panel = await page.evaluate(() => ({
+    blocks: document.querySelectorAll('.sb-checks .rows button.row .sb-dot.block').length,
+    warnings: document.querySelectorAll('.sb-checks .rows button.row .sb-dot.warn').length,
+    findings: [...document.querySelectorAll('.sb-checks .rows button.row span')].map(node => (node.textContent ?? '').trim()).filter(Boolean),
+  }));
+  if (!wasOpen) await chip.click();
+  const ledger = await page.evaluate(() =>
+    Object.fromEntries([...document.querySelectorAll('.sb-ledger > .row')].map(row => [row.querySelector('span')?.textContent ?? '', row.querySelector('b')?.textContent ?? ''])));
+  return { status, ...panel, ledger };
+}

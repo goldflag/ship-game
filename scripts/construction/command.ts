@@ -12,6 +12,8 @@ export interface FlagSpec {
   positionals?: number;
   /** False for a command that takes no ship ID. */
   ship?: boolean;
+  /** True for a command that can change the repository or an account, so MCP announces it as a write. */
+  writes?: boolean;
 }
 export interface CommandContext {
   root: string;

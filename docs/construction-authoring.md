@@ -151,6 +151,10 @@ bun run ship:catalog my-ship --query gun
 bun run ship:inspect my-ship --source
 bun run ship:apply my-ship .build/refit-batch.json --dry-run
 bun run ship:apply my-ship .build/refit-batch.json
+bun run ship:place my-ship --table .build/fittings.json
+bun run ship:ballast my-ship --waterline -9.9
+bun run ship:armor my-ship --rules .build/scheme.json
+bun run ship:account list
 bun run ship:export my-ship .build/my-ship-backup.json
 bun run ship:import other-ship .build/my-ship-backup.json
 bun run ship:compile my-ship
@@ -193,6 +197,22 @@ A batch applies as one transaction:
   ]
 }
 ```
+
+`--commands` takes the command list on its own, without the two expectations, and reads the
+current revisions itself:
+
+```sh
+bun run ship:apply my-ship --commands .build/refit.json --label "Move the forward gun" --dry-run
+bun run ship:apply my-ship --commands .build/refit.json --label "Move the forward gun"
+```
+
+The file is a bare JSON array, or `{"label": …, "commands": […]}`; an explicit `--label` wins.
+A file that already carries `expectedRevision` or `expectedFileHash` is refused, because its own
+expectations would be replaced rather than honoured: pass it as the positional argument instead.
+The transaction is unchanged. Both revision checks still run against the source read in the same
+process, and the save still fails if the file changed between that read and the write, so a
+competing editor or agent is caught exactly as before. Use the guarded form when a batch is
+written now and applied later; use `--commands` when it is written and applied in one step.
 
 The shared command implementation is `src/ships/constructionCommands.ts`. Command
 shapes are declared once in `src/ships/constructionCommandSchema.ts`; the runtime
@@ -394,6 +414,119 @@ The development editor exposes `window.constructionEditor` with `source()`,
 repository's current file revision. `await flush()` after a batch waits for its
 save, including a batch submitted before React's next render. Wait for
 `result().revision === source().revision` before inspecting or launching.
+
+### A whole placement table at once
+
+`ship:place --table rows.json` seats every row in one native resolver call and one
+compile session instead of one process per fitting. A row carries the flags of a single
+placement — `part`, `x`, `z` and optional `id`, `y`, `on`, `bearing`, `mirror`, `repeat`,
+`step` — plus `extra`, an object merged into every record the row produces (gun battery
+and arcs, launcher settings, paint). `extra` may not set `id`, `partId`, `position` or
+`bearingDeg`; the seat resolver owns those. The file is a bare array or
+`{"version": 1, "rows": [...]}`, at most 128 rows, and is checked whole before anything
+is placed.
+
+```sh
+bun run ship:place my-ship --table .build/secondaries.json --out .build/secondaries-batch.json
+bun run ship:place my-ship --table .build/secondaries.json --apply
+```
+
+Rows are planned against each other, so IDs stay unique and the 128-record limit counts
+the rows before it. A row that cannot be expressed at all (unknown part, taken ID) is
+reported and the rest continue; a row with no support is reported `unsupported` and left
+out of the batch while the seated rows still compile together. The result carries `rows`
+(one line each: status, position, support, errors), `counts`, and `conflicts` — pairs of
+seated rows whose source-level boxes, working spaces included, claim the same space.
+Conflicts are approximate and conservative: they name candidates the compiler may stop
+before reaching. The exit code is nonzero when any row failed.
+
+`--apply` saves the proposed batch through the same guarded transaction as `ship:apply`;
+without it nothing is written. `--table` cannot be combined with the single-placement
+flags, because every row carries its own.
+
+### Ballast and trim
+
+`ship:ballast` fills box loads until the native compiler floats the ship where you asked.
+It models nothing itself: each step is a real compile whose `loading` it reads.
+
+```sh
+bun run ship:ballast my-ship --waterline -1.25                       # the design's own tank- loads
+bun run ship:ballast my-ship --tanks .build/tanks.json --waterline -9.9 --trim 0 --apply
+```
+
+Tanks are the design's `load` records whose IDs start with `--prefix` (default `tank-`),
+the ones named by `--ids`, or the boxes in a `--tanks` plan file, which also creates them.
+A plan row is a load — `id`, `name`, `center`, `size` — with an optional `capacityKg`;
+otherwise capacity is the box volume at `--density` (default 1025 kg/m³ seawater; use the
+fuel or feedwater density for those tanks).
+
+The solve moves two numbers: how much ballast, and how far forward or aft its centre sits.
+Mass is filled bottom-first — lowest tanks first, and within a tier the tank nearest the
+wanted centre — so the vertical centre stays as low as the plan allows. `--waterline` is
+the ship-space height the sea should reach (`loading.waterlineY`). `--trim` is the
+distance LCG should sit from LCB: `0`, the default, is even keel; a negative value trims
+by the bow. `--tolerance` (default 0.02 m) and `--iterations` (default 12) bound the
+search; the longitudinal tolerance is five times the waterline one.
+
+The result reports every compile it took (`steps`), the per-tank fill, the flotation it
+reached and, when it fell short, a `note` saying whether the tanks ran out of capacity,
+could not put their centre far enough fore or aft, or simply ran out of iterations.
+A tank that ends empty is left out of the batch, or removed if it was already in the
+design, because the compiler rejects a massless load. Without `--apply` nothing is saved
+and the exit code is nonzero unless it converged.
+
+### Armor schemes
+
+`ship:armor --rules scheme.json` writes a protection table the way one reads it — a belt
+between two frames, a deck over the magazines — and turns it into `surface-patch`
+commands. It decides nothing about the plating; the compiler still judges mass and fit.
+
+```sh
+bun run ship:armor my-ship --rules .build/scheme.json --out .build/armor.json
+bun run ship:armor my-ship --rules .build/scheme.json --targets --apply
+```
+
+```json
+[
+  { "name": "belt", "faces": ["port", "starboard"], "z": [-60, 60], "y": [-6, 2],
+    "changes": { "thicknessMm": 320, "material": "armor-steel" } },
+  { "name": "armored deck", "panels": ["8@[\"section-90\",\"section-82\"]"],
+    "changes": { "thicknessMm": 80, "material": "armor-steel" } }
+]
+```
+
+A rule selects by `primitives` (or `primitivePrefix`), `faces`, `panels`, and the `z` and
+`y` windows a target must lie inside; `null` leaves a window's end open. Omitting a
+selector means every value of it. The custom-hull panel IDs are the ones
+`ship:inspect --panels` prints, and a target's window is the strip's own extent between
+its two stations, so a belt is written in frame positions rather than panel names. Rules
+are read in order and a later rule wins where two overlap, exactly as the file reads.
+`mirror` defaults to true, so a rule reaches the opposite side or panel.
+
+Each rule becomes one command, and the report gives each rule's target count, anything it
+named but did not match (`unmatched`, which is a nonzero exit), and with `--targets` every
+face it reached. `mass` is the compiler's own answer before and after, so the estimate
+needs no second mass model. Without `--apply` nothing is saved.
+
+### The account library
+
+`ship:account` reaches the game account named by `NAVAL_TEST_EMAIL` and
+`NAVAL_TEST_PASSWORD` in `.env.local` (`bun run bootstrap` copies the file into a
+worktree). Neither value, nor the account's address, is ever printed or returned.
+
+```sh
+bun run ship:account list
+bun run ship:account save my-ship --name "Scharnhorst" --confirm
+```
+
+`list` is read-only: one sign-in, one read of the saved library, one sign-out. `save`
+uploads one repository source as a new revision of an account design and refuses to run
+without `--confirm`. It replaces the revision it just read, so a save that races another
+writer is rejected by the service rather than overwriting it, and the request carries an
+idempotency key so a retry cannot create a second revision. The account owns its own
+design identity: `save` reuses the design whose name matches, takes one named by
+`--design`, or mints a new one. `--url` (or `ACCOUNTS_URL`) points at another service;
+the default is the live one.
 
 ## Custom fittings
 

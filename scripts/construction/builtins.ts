@@ -9,7 +9,7 @@ export const FLAGS: Record<string, FlagSpec> = {
   inspect: { switches: ['--source', '--source-only', '--panels', '--brief'] },
   catalog: { values: ['--query', '--kind', '--ids'], switches: ['--brief'] },
   suggest: { values: ['--parts', '--out'] },
-  apply: { switches: ['--dry-run', '--brief'], positionals: 1 },
+  apply: { values: ['--commands', '--label'], switches: ['--dry-run', '--brief'], positionals: 1 },
   import: { values: ['--expect'], positionals: 1 },
   export: { positionals: 1 },
   render: { values: ['--view', '--part', '--out', '--pose'], switches: ['--isolate', '--published', '--quick'] },
@@ -29,7 +29,10 @@ export const BUILTIN_SUMMARIES = {
     '[--brief] [--source] [--source-only] [--panels] — revisions, native diagnostics/loading, optional source and stable panel IDs; source-only skips compilation; brief returns counts, diagnostics and loading totals only',
   catalog: '[--query text] [--kind kind] [--ids id,id] [--brief] — exact retained equipment variants, dimensions and attachment sockets; brief keeps id, name, kind, placement and dimensions',
   suggest: '--parts id,id [--out batch.json] — propose native placements as a revision-guarded batch; never saves the ship',
-  apply: '<batch.json> [--dry-run [--brief]] — revision-guarded transaction; dry-run compiles the candidate without saving; brief omits per-item mass contributions',
+  apply:
+    '<batch.json> | --commands commands.json [--label text] [--dry-run [--brief]] — revision-guarded transaction; ' +
+    'commands takes a bare command list and reads the current revisions itself; dry-run compiles the candidate ' +
+    'without saving; brief omits per-item mass contributions',
   import: '<source.json> [--expect file-hash] — create or explicitly replace a construction source',
   export: '<output.json> — exact source backup',
   render:

@@ -9,8 +9,11 @@ bun run harness:designs                                   # once per machine: ca
 bun run ui:shot -- --list                                 # saved designs, their battle ids, or why one cannot launch
 bun run ui:shot -- --state port --design "Fletcher design"
 bun run ui:shot -- --state editor --design "Fletcher design" --out .build/shots/editor.png
+bun run ui:shot -- --state editor --design "Fletcher design" --settle
 bun run ui:shot -- --state battle --battle "Battleship design;fletcher;bismarck:easy,yamato" --range 8000 --param bearing=90 --wait 6
 ```
+
+`--settle` (editor only) waits for the editor's in-browser design check to finish before capturing, then prints the chip's own status (`No warnings`, `1 block · 2 warnings`), the block and warning counts, every finding, and the ledger as it reads on screen. Without it the image can show the previous revision's readings while the check is still running — about 30 s on the dev WASM build for a large design. The checks panel is opened to read the findings and closed again, so the capture shows the editor as it was. `designCheck(page)` in `scripts/browser/harness.ts` is the same wait for a script.
 
 Images land in ignored `.build/shots/`. `--viewport WxH` defaults to 1728x1030, `--eval "<js>"` runs in the page before the capture (`review.game` is the live `Game`), `--param key=value` passes any page parameter, and `--url http://127.0.0.1:5200` reuses a running dev server instead of starting one on a free port.
 
