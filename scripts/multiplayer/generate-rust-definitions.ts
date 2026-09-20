@@ -12,7 +12,10 @@ export const DEFINITION_PATH = 'crates/naval-sim/src/definition.rs';
  */
 const SERDE_DEFAULT_FIELDS: Record<string, string[]> = {
   ShipDefinition: ['maneuvering'],
-  ConstructionData: ['finish', 'paint'],
+  ConstructionData: ['finish', 'paint', 'fittings'],
+  ConstructionFittingSolid: ['tilt', 'vertices', 'mesh', 'shaping', 'paint'],
+  ConstructionFittingTube: ['paint'],
+  ConstructionFittingDefinition: ['material', 'fill', 'massKg'],
   ConstructionPrimitive: ['tilt'],
   ConstructionCustomHull: ['paintBands'],
   ConstructionEquipmentPath: ['access'],

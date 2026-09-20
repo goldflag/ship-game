@@ -282,6 +282,8 @@ pub fn place(
     let mut hull = source.clone();
     hull.construction.equipment.clear();
     let compiled = cc::compile(&hull, catalog);
+    let catalog =
+        &*crate::construction_custom_fittings::effective_catalog(&source.construction, catalog);
     if compiled.surfaces.is_empty() {
         report.diagnostics.extend(compiled.diagnostics);
         report.diagnostics.push(diagnostic(

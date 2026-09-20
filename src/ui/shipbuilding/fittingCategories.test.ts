@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import catalogJson from '../../../public/models/components/catalog.json';
 import retainedCatalogJson from '../../../public/models/components/catalogs/f8d5f622818e0ef20c6c3918ac36dc29d1904e18b13a83aa923e1e93d05ff697/catalog.json';
 import type { ConstructionCatalog } from '../../ships/blueprint';
+import { effectiveConstructionCatalog } from '../../ships/constructionCustomFittings';
 import { paletteFor } from './builderLayers';
 import { FITTING_CATEGORIES, FITTING_GROUPS, fittingCategory, fittingNation } from './fittingCategories';
 
@@ -13,7 +14,17 @@ test('every fitting sits on exactly one shelf and every shelf holds something', 
   const all = paletteFor('fittings', catalog).drawer;
   const shelved = FITTING_CATEGORIES.flatMap(entry => shelf({ category: entry.id, nation: 'all' }));
   expect(shelved.slice().sort()).toEqual(all.map(item => item.id).sort());
-  for (const entry of FITTING_CATEGORIES) expect(shelf({ category: entry.id, nation: 'all' }).length).toBeGreaterThan(0);
+  // Custom holds the open design's own fittings, so the published catalog leaves it empty.
+  for (const entry of FITTING_CATEGORIES) expect(shelf({ category: entry.id, nation: 'all' }).length > 0).toBe(entry.id !== 'custom');
+});
+
+test('a design’s own fittings sit on the Custom shelf of the Outfit tab', () => {
+  const definition = { id: 'fit-locker', name: 'Deck locker', version: 1 as const, attach: 'deck' as const, tubes: [],
+    solids: [{ id: 'body', kind: 'box' as const, size: [1, 0.8, 0.5] as [number, number, number], position: [0, 0.4, 0] as [number, number, number], rotationDeg: 0 }] };
+  const own = effectiveConstructionCatalog({ fittings: [definition] }, catalog);
+  expect(paletteFor('fittings', own, [], { category: 'custom', nation: 'all' }).drawer.map(item => [item.id, item.note])).toEqual([['design:fit-locker', 'custom fitting · 3.1 t']]);
+  expect(FITTING_CATEGORIES.find(entry => entry.id === 'custom')!.group).toBe('outfit');
+  expect(fittingNation(own.equipment.at(-1)!)).toBeUndefined();
 });
 
 test('every tab has shelves, in tab order', () => {

@@ -195,6 +195,47 @@ export interface ConstructionEquipment {
     railCount?: 2 | 3;
   };
 }
+/** A shape of a design-local fitting, in fitting-local metres. The hull-piece shape vocabulary without
+ * armor, surfaces or structure: never part of the hull union, buoyancy, rooms or hit geometry. */
+export interface ConstructionFittingSolid {
+  id: string;
+  kind: Exclude<ConstructionPrimitive['kind'], 'custom-hull' | 'balcony' | 'ballast'>;
+  /** Envelope centered at position; shapes scale and rotate (YXZ) exactly as hull pieces do. */
+  size: Vec3;
+  position: Vec3;
+  rotationDeg: number;
+  tilt?: ConstructionPrimitive['tilt'];
+  vertices?: Vec3[];
+  mesh?: ConstructionFreeformMesh;
+  shaping?: ConstructionFreeformShape;
+  /** Named coating; omission follows the instance paint, then the ship paint. */
+  paint?: string;
+}
+/** Round tube swept along a polyline in fitting-local metres: pipes, davit arms, stays, light masts. */
+export interface ConstructionFittingTube {
+  id: string;
+  points: Vec3[];
+  diameterM: number;
+  paint?: string;
+}
+/** Design-local fitting definition. Instances are ordinary equipment rows whose `partId` is
+ * `design:<id>`; the datum is the local origin, seated on a deck like a catalog deck fitting.
+ * Non-structural: mass, CG and inertia only. Shells, armor, modules and flooding ignore it. */
+export interface ConstructionFittingDefinition {
+  id: string;
+  name: string;
+  version: 1;
+  /** `wall` and `internal` are reserved; version 1 compiles deck fittings only. */
+  attach: 'deck';
+  solids: ConstructionFittingSolid[];
+  tubes: ConstructionFittingTube[];
+  /** Density basis; omission is steel. */
+  material?: 'steel' | 'aluminium' | 'brass' | 'wood';
+  /** Solid fraction of the shape volume, 0.01–1; omission is 1. */
+  fill?: number;
+  /** Explicit mass; overrides volume × density × fill. */
+  massKg?: number;
+}
 export interface ConstructionBoundary {
   id: string;
   axis: 'x' | 'y' | 'z';
@@ -220,6 +261,8 @@ export interface ConstructionData {
   equipment: ConstructionEquipment[];
   boundaries: ConstructionBoundary[];
   loads: ConstructionLoad[];
+  /** Design-local fitting definitions, fitted through `equipment` rows with `partId: "design:<id>"`. */
+  fittings?: ConstructionFittingDefinition[];
 }
 /** Convex closed outward-facing polygons; generated, never accepted as local source input. */
 export interface ConvexVolume {

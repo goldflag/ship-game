@@ -1,7 +1,7 @@
 import { orientVector, unorientVector } from './constructionOrientation';
 import { EDITABLE_SHAPES, editableMesh, meshEdges } from './constructionMesh';
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from './blueprint';
-import { newConstructionId } from './constructionEditor';
+import { newConstructionId } from './constructionIds';
 import { customHullPoints } from './customHullModel';
 
 export const VERTEX_UNITS = [.05, .1, .2, .5, 1, 2] as const;

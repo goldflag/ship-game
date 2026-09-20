@@ -8,6 +8,7 @@ import { DEFAULT_HULL_PRESET, HULL_PRESETS } from '../../src/ships/constructionH
 import { customHullPanels } from '../../src/ships/constructionPanels';
 import { parseConstructionCatalog } from '../../src/ships/constructionEquipment';
 import { catalogParts, compactJson } from '../../src/ships/constructionQuery';
+import { effectiveConstructionCatalog } from '../../src/ships/constructionCustomFittings';
 import { readSource, readCatalog, repositoryStore, constructionId, sourcePath } from './files';
 import { compileConstruction, suggestConstruction } from './compiler';
 import { REVIEW_VIEWS } from './views';
@@ -121,7 +122,8 @@ try {
       { source } = current;
     if (action === 'catalog') {
       const catalog = await readCatalog(root, source.construction.catalogRevision);
-      const equipment = catalogParts(catalog, {
+      // A ship's own custom fittings list beside the published parts (`--query design:`).
+      const equipment = catalogParts(effectiveConstructionCatalog(source.construction, catalog), {
         query: option('--query'),
         kind: option('--kind'),
         ids: option('--ids')?.split(',').map((part) => part.trim()).filter(Boolean),

@@ -336,6 +336,19 @@
   max-width: 160px;
   text-shadow: none;
 }
+.sb-custom-fitting {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+.sb-custom-fitting input {
+  width: 132px;
+}
+.sb-custom-fitting button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .sb-engine-link {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

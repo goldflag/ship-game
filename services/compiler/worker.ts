@@ -1,4 +1,4 @@
-import { enforceDerivedLimits } from './limits';
+import { enforceDerivedLimits, enforceSourceLimits } from './limits';
 import { OUTPUT_LIMIT,runCompiler,JobQueue } from './runner';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
@@ -16,8 +16,7 @@ async function compile(sourceJson: string) {
   const source = JSON.parse(sourceJson), revision = source.construction?.catalogRevision;
   if (Object.keys(source).some(key=>!['schemaVersion','id','name','coordinates','revision','construction'].includes(key))) throw new Error('Online sources must not contain derived definitions, mass or catalogs');
   if (!/^[a-f0-9]{64}$/.test(revision)) throw new Error('Invalid catalog revision');
-  if (!Array.isArray(source.construction.primitives) || source.construction.primitives.length > 512
-    || !Array.isArray(source.construction.equipment) || source.construction.equipment.length > 32) throw new Error('Online limit: 512 hull primitives and 32 equipment instances');
+  enforceSourceLimits(source);
   const catalogFile = join(process.env.CATALOG_ROOT ?? 'public/models/components/catalogs',revision,'catalog.json');
   const catalog = await readFile(catalogFile,'utf8');
   if (JSON.parse(catalog).revision !== revision) throw new Error('Retained catalog mismatch');

@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir, rename, rm } from 'node:fs/promises';
+import { isCustomFittingPartId } from '../../src/ships/constructionCustomFittings';
 import { join, dirname } from 'node:path';
-import { barrelIds, type ShipDefinition } from '../../src/ships/blueprint';
+import { barrelIds, type ConstructionSource, type ShipDefinition } from '../../src/ships/blueprint';
 import { digest, readSource, readCatalog } from './files';
 import { compileConstruction } from './compiler';
 import { withConstructionBrowser } from './browser';
@@ -8,6 +9,8 @@ import { constructionFingerprints } from './fingerprints';
 import { canonical, definitionData, hash, modelPayloadHash, publishedDefinition, sealModel } from './artifacts';
 import { REVIEW_VIEWS } from './views';
 
+/** Fitted catalog parts; design-local fittings have no published component to verify. */
+const publishedPartIds = (source: ConstructionSource) => new Set(source.construction.equipment.map((p) => p.partId).filter((partId) => !isCustomFittingPartId(partId)));
 export { REVIEW_VIEWS };
 const json = (value: unknown) => JSON.stringify(value, null, 2) + '\n';
 /** Read-only GLB integrity checks never trust a stored success flag. */
@@ -78,7 +81,7 @@ export async function constructionPipeline(
   const inputs = await constructionFingerprints(root, source, result);
   const catalog = await readCatalog(root, source.construction.catalogRevision);
   // Verify exact retained component bytes; never substitute the current catalog.
-  for (const partId of new Set(source.construction.equipment.map((p) => p.partId))) {
+  for (const partId of publishedPartIds(source)) {
     const part = catalog.equipment.find((p) => p.id === partId)!;
     const path = join(root, 'public', part.modelUrl);
     const manifest = JSON.parse(await readFile(join(dirname(path), 'manifest.json'), 'utf8'));
@@ -188,7 +191,7 @@ export async function constructionPipeline(
       )
         throw new Error('Authoring inputs changed during build. Re-run ship:' + action + '.');
       // Components are immutable inputs; detect changes during the browser work.
-      for (const partId of new Set(source.construction.equipment.map((p) => p.partId))) {
+      for (const partId of publishedPartIds(source)) {
         const part = catalog.equipment.find((p) => p.id === partId)!;
         const path = join(root, 'public', part.modelUrl);
         const manifest = JSON.parse(await readFile(join(dirname(path), 'manifest.json'), 'utf8'));

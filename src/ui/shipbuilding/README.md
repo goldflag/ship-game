@@ -127,6 +127,15 @@ Layer notes:
 - **Fittings.** Deck parts attach through their socket, underwater parts to the hull surface.
   Railing, rope and chain cards draw connected paths (Enter or double-click finishes, Backspace
   removes a point, Escape cancels). Pending points stay out of source, autosave and history.
+- **Custom fittings.** <a id="custom-fittings"></a>The Outfit tab's **Custom** shelf lists the open
+  design's own fitting definitions (`construction.fittings`) with cards drawn live from the
+  definition and a `×N` count of fitted instances. A card arms placement like any deck fitting;
+  instances select, move, rotate, mirror, copy, paint and delete like catalog fittings and have
+  their own limit (ledger row **Custom fittings**, 512). The shelf strip and a selected instance
+  show the definition's name (editable), mass, solid and tube counts, **Duplicate definition** and
+  **Delete definition**, which is disabled while instances use it (`CustomFittingFields.tsx`).
+  Shapes are not editable in the editor yet; agents define them with the `fitting` command. See
+  the [plan](../../../docs/custom-fittings-plan.md).
 - **Internals.** Entering it clears external selections. Deck, Bulkhead and Split add
   boundaries; Merge removes one; Module places a package on the first floor inside the hull.
 - **Paint.** Keeps a face selection. **Ship paint** is `construction.paint`; **Surface finish**

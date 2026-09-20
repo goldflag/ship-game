@@ -2,7 +2,10 @@ import type { CliCommand } from '../command';
 
 export default {
   summary:
-    '[--kind kind] [--positions|--no-positions] [--compile] — one-screen overview without compiling: revisions, conventions, hull bounds, limit headroom, compact hull-piece rows and equipment grouped by catalog part (deck-fitting placements need --positions or --kind deck-fitting); --compile adds launchable, diagnostics and loading totals',
+    '[--kind kind] [--positions|--no-positions] [--compile] — one-screen overview without compiling: revisions, ' +
+    'conventions, hull bounds, limit headroom, compact hull-piece rows and equipment grouped by catalog part ' +
+    '(deck-fitting placements need --positions or --kind deck-fitting); --compile adds launchable, diagnostics and ' +
+    'loading totals',
   values: ['--kind'],
   switches: ['--compile', '--positions', '--no-positions'],
   async run(ctx) {
@@ -20,10 +23,21 @@ export default {
         diagnosticCounts: { error: count('error'), warning: count('warning') },
         diagnostics: result.diagnostics,
         loading: result.loading ? loading : undefined,
-        derived: { surfaces: { used: result.surfaces.length, limit: derived.surfaces }, ...(result.definition ? { floodingPortals: { used: result.definition.connections.length, limit: derived.floodingPortals } } : {}) },
+        derived: {
+          surfaces: { used: result.surfaces.length, limit: derived.surfaces },
+          ...(result.definition ? { floodingPortals: { used: result.definition.connections.length, limit: derived.floodingPortals } } : {}),
+        },
       };
       if (!result.definition) process.exitCode = 1;
     }
-    emit({ ...header, ...compiled, ...constructionSummary(source, catalog, { kind: ctx.option('--kind'), positions: ctx.has('--no-positions') ? 'none' : ctx.has('--positions') ? 'all' : undefined, sourceBytes: Buffer.byteLength(current.json) }) });
+    emit({
+      ...header,
+      ...compiled,
+      ...constructionSummary(source, catalog, {
+        kind: ctx.option('--kind'),
+        positions: ctx.has('--no-positions') ? 'none' : ctx.has('--positions') ? 'all' : undefined,
+        sourceBytes: Buffer.byteLength(current.json),
+      }),
+    });
   },
 } satisfies CliCommand;

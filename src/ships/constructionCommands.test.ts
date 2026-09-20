@@ -231,7 +231,7 @@ test('unknown IDs name the command, the offending ID and close matches', () => {
   expect(failure(s, { op: 'equipment-patch', id: 'hull', changes: {} }).message).toBe('Command 0 (equipment-patch): "hull" is not equipment');
   expect(failure(s, { op: 'primitive-patch', id: 'zzz', changes: {} }).message).toBe('Command 0 (primitive-patch): unknown hull piece ID "zzz"');
   expect(failure(s, { op: 'hull-sections', id: 'hull', count: 8 }).message).toBe('Command 0 (hull-sections): "hull" is a box, not a custom hull');
-  expect(failure(s, { op: 'rotate', ids: ['hull', 'deck'], degrees: 5 }).message).toContain('Command 0 (rotate): "deck" is a boundary or load');
+  expect(failure(s, { op: 'rotate', ids: ['hull', 'deck'], degrees: 5 }).message).toContain('Command 0 (rotate): "deck" is a boundary, load or custom fitting definition');
   expect(failure(s, { op: 'copy', copies: [{ from: 'hull', to: 'deck' }] }).message).toContain('Command 0 (copy): destination ID "deck" already exists');
   expect(failure(s, { op: 'surface', value: { primitiveId: 'hul', face: 'top', thicknessMm: 1, material: 'steel', paint: 'gray' } }).message).toBe('Command 0 (surface): unknown hull piece ID "hul"; closest: "hull"');
   const hull = createStarterSource({ revision: 'test' } as ConstructionCatalog, 'fletcher-hull');

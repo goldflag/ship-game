@@ -53,7 +53,8 @@ outstanding job per account. Its container has 512 MiB memory (no swap), 0.5 CPU
 and 64 PIDs. A subprocess has a ten-second wall limit, 8 MiB stdout and 64 KiB
 stderr limits; failure kills and reaps it. A bounded cache keys source bytes,
 catalog digest and simulation/compiler build. Online limits are 512 primitives,
-32 equipment instances, 2,048 derived hull/compartment cells and 4,096 surface patches. These do not
+32 equipment instances, 16 custom fitting definitions, 96 custom fitting instances (counted apart from
+equipment instances), 2,048 derived hull/compartment cells and 4,096 surface patches. These do not
 change editor or local battle limits. There is no new custom-carrier authoring
 or campaign support.
 

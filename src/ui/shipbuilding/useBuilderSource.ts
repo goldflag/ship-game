@@ -1,4 +1,5 @@
 import { initBlockGeometry } from './blockMovement';
+import { effectiveConstructionCatalog, isCustomFittingPartId } from '../../ships/constructionCustomFittings';
 import { currentAccount } from '../../accounts/session';
 import { retainRecovery, savedReference } from '../../ships/constructionCloud';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
@@ -65,7 +66,8 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
   useEffect(() => {
     if (!latestLoaded || !revision.ready || revision.busy || catalogRevision === latestCatalog.revision) return;
     const available = new Set(latestCatalog.equipment.map(part => part.id));
-    if (source.construction.equipment.some(fitted => !available.has(fitted.partId))) return;
+    // Design-local fittings travel with the source, so they never hold a design on an old catalog.
+    if (source.construction.equipment.some(fitted => !isCustomFittingPartId(fitted.partId) && !available.has(fitted.partId))) return;
     if (owner.adoptCatalog(latestCatalog.revision)) setActiveCatalog(latestCatalog);
   }, [latestLoaded, latestCatalog, catalogRevision, revision.ready, revision.busy, revision.adoption, owner]);
   useEffect(() => {
@@ -74,7 +76,9 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
     void loadConstructionCatalog(catalogRevision).then(catalog => { if (active) setActiveCatalog(catalog); }).catch(cause => { if (active) owner.setError(`The saved equipment revision is unavailable. ${cause instanceof Error ? cause.message : String(cause)}`); });
     return () => { active = false; };
   }, [catalogRevision, activeCatalog.revision]);
-  const catalog = useMemo(() => activeCatalog.revision === catalogRevision ? activeCatalog : { ...activeCatalog, equipment: [] }, [activeCatalog, catalogRevision]);
+  const publishedCatalog = useMemo(() => activeCatalog.revision === catalogRevision ? activeCatalog : { ...activeCatalog, equipment: [] }, [activeCatalog, catalogRevision]);
+  // Every part lookup in the editor sees the design's own fittings beside the published parts; identity holds while the definitions do.
+  const catalog = publishedCatalog.equipment.length ? effectiveConstructionCatalog(source.construction, publishedCatalog) : publishedCatalog;
   catalogRef.current = catalog;
 
   useEffect(() => {

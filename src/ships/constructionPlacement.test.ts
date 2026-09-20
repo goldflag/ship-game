@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { parseConstructionCatalog } from './constructionEquipment';
 import { createStarterSource } from './constructionStarter';
 import { applyConstructionBatch } from './constructionCommands';
+import { effectiveConstructionCatalog } from './constructionCustomFittings';
 import { placementCommands, placementItems, reseatCommands, reseatItems, type Placement } from './constructionPlacement';
 
 const catalog = parseConstructionCatalog(JSON.parse(readFileSync(join(import.meta.dir, '../../public/models/components/catalog.json'), 'utf8')));
@@ -20,6 +21,14 @@ describe('construction placement requests', () => {
       ['generic-twin-bitts-2-starboard', [3, 0, -12], 80, undefined, 'first'],
       ['generic-twin-bitts-2-port', [-3, 0, -12], 280, 'generic-twin-bitts-2-starboard', undefined],
     ]);
+  });
+  test('a design-local part gets a valid default ID without its design: prefix', () => {
+    const design = source();
+    design.construction.fittings = [
+      { id: 'fit-post', name: 'Post', version: 1, attach: 'deck', solids: [{ id: 'post', kind: 'cylinder', size: [0.3, 0.6, 0.3], position: [0, 0.3, 0], rotationDeg: 0 }], tubes: [] },
+    ];
+    const items = placementItems(design, effectiveConstructionCatalog(design.construction, catalog), { partId: 'design:fit-post', at: [2, -10], mirror: true });
+    expect(items.map((i) => i.equipment.id)).toEqual(['fit-post-starboard', 'fit-post-port']);
   });
   test('centerline mirrors stay single, internal parts seat low, a height hint picks the nearest support', () => {
     expect(placementItems(source(), catalog, { partId: 'generic-twin-bitts', at: [0, 0], mirror: true })).toHaveLength(1);

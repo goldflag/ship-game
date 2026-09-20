@@ -1,4 +1,5 @@
 import { EDITABLE_SHAPES } from '../../ships/constructionMesh';
+import { isCustomFittingPartId } from '../../ships/constructionCustomFittings';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
@@ -222,7 +223,9 @@ export function partSlot(part: ConstructionEquipmentPart, catalog: ConstructionC
     kind: 'part',
     id: part.id,
     name: shortName,
-    note: part.path
+    note: isCustomFittingPartId(part.id)
+      ? `custom fitting${massKg ? ` · ${formatTonnes(massKg)}` : ''}`
+      : part.path
       ? `${part.path.kind} path · ${formatTonnes(part.path.massKgPerM)}/m`
       : `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`,
     part,

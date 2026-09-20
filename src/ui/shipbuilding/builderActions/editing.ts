@@ -1,6 +1,7 @@
 /** Edits of what is already on the ship: remove, copy, center, move, reseat and raise.
  * Each function runs as a `BuilderTool` member: the class binds it under the same name. */
 import { reseatBalcony } from '../balconyPlacement';
+import { equipmentCounts, equipmentOverLimit } from '../../../ships/constructionCustomFittings';
 import { wallNormal, seatWallFitting } from '../../../ships/constructionWallFittings';
 import { constructionSnapFeatures } from '../snapping';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../../ships/constructionArmament';
@@ -46,7 +47,7 @@ export function copy(this: BuilderTool, mirrorCopy = false): ConstructionSubmiss
   if (!selected.size) return undefined;
   if (
     this.data.primitives.length + this.selectedPrimitives.length > LIMITS.primitives ||
-    this.data.equipment.length + this.selectedEquipment.length > LIMITS.equipment
+    equipmentOverLimit(this.data, this.selectedEquipment, LIMITS.equipment)
   ) {
     this.door.setError('This copy would exceed the design limit. Select fewer pieces or remove a section first.');
     return undefined;
@@ -96,7 +97,7 @@ export function copy(this: BuilderTool, mirrorCopy = false): ConstructionSubmiss
       }
     }
     if (!commands.length) return undefined;
-    if (this.data.equipment.length + copied.length > LIMITS.equipment) {
+    if (equipmentCounts(this.data).catalog + copied.length > LIMITS.equipment) {
       this.door.setError('This copy would exceed the fittings limit. Remove a fitting first.');
       return undefined;
     }

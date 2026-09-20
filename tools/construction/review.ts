@@ -4,6 +4,7 @@ import { createViewStage } from './viewStage';
 import { exportReviewGlb } from './export';
 import { resetReviewPose } from './pose';
 import { createConstructionModel, disposeConstructionModel } from '../../src/game/constructionModel';
+import { effectiveConstructionCatalog } from '../../src/ships/constructionCustomFittings';
 import { loadShipModel } from '../../src/game/loadShipModel';
 import { loadConstructionCatalog } from '../../src/ships/constructionEquipment';
 import type { ConstructionResult, ConstructionSource, ShipDefinition } from '../../src/ships/blueprint';
@@ -30,7 +31,7 @@ export async function openReview(input: ReviewInput) {
   const refuse = (): never => { throw new Error('Resolve compile errors before rendering or trial.'); };
   if (!definition || result.diagnostics.some(d => d.severity === 'error')) {
     if (!input.draft) refuse();
-    const canvas = createReviewCanvas(), stage = createViewStage(source, result, await loadConstructionCatalog(source.construction.catalogRevision), canvas);
+    const canvas = createReviewCanvas(), stage = createViewStage(source, result, effectiveConstructionCatalog(source.construction, await loadConstructionCatalog(source.construction.catalogRevision)), canvas);
     return { render: refuse, pose: refuse, poseTorpedoes: refuse, sweep: refuse, exportGlb: refuse, trial: refuse, inspect: refuse, view: stage.render, fallback: true, dispose() { stage.dispose(); canvas.dispose(); } } as unknown as CompiledReview;
   }
   return openCompiledReview(input, definition);
@@ -38,7 +39,7 @@ export async function openReview(input: ReviewInput) {
 type CompiledReview = Awaited<ReturnType<typeof openCompiledReview>>;
 async function openCompiledReview(input: ReviewInput, definition: ShipDefinition) {
   const { source, result } = input;
-  const catalog = await loadConstructionCatalog(source.construction.catalogRevision);
+  const catalog = effectiveConstructionCatalog(source.construction, await loadConstructionCatalog(source.construction.catalogRevision));
   const model = input.modelUrl ? (await loadShipModel(input.modelUrl, false, definition.contentHash)).scene : await createConstructionModel(source, result);
   if (input.modelUrl && model.userData.definitionHash !== definition.contentHash) throw new Error('Published model/definition identity mismatch.');
   model.userData.definitionHash = definition.contentHash;

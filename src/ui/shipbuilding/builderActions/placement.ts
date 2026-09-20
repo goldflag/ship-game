@@ -1,6 +1,7 @@
 /** Placing new hull pieces, fittings and room boundaries.
  * Each function runs as a `BuilderTool` member: the class binds it under the same name. */
 import { seatWallFitting } from '../../../ships/constructionWallFittings';
+import { equipmentOverLimit } from '../../../ships/constructionCustomFittings';
 import type { ConstructionBoundary, ConstructionEquipment, Vec3 } from '../../../ships/blueprint';
 import { mirroredEquipment } from '../../../ships/constructionEditor';
 import type { ConstructionSubmission } from '../../../ships/constructionRevisionOwner';
@@ -64,7 +65,7 @@ export function placeAt(
         parts.push(twin);
       }
     }
-    if (this.data.equipment.length + parts.length > LIMITS.equipment) {
+    if (equipmentOverLimit(this.data, parts, LIMITS.equipment)) {
       this.door.setError(`A design supports up to ${LIMITS.equipment} fittings. Remove a fitting before adding more.`);
       return undefined;
     }

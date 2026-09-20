@@ -1,4 +1,5 @@
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionSource, Vec3 } from './blueprint';
+import { customFittingDefinitions, customFittingFault, customFittingOf, effectiveConstructionCatalog, isCustomFittingPartId } from './constructionCustomFittings';
 import type { ConstructionCommand } from './constructionCommands';
 import { mirroredWall, wallMount } from './constructionWallFittings';
 
@@ -58,8 +59,16 @@ const validId = (id: string) => /^[A-Za-z0-9_-]{1,64}$/.test(id);
 
 /** Equipment records for one `place` request, positions still provisional. */
 export function placementItems(source: ConstructionSource, catalog: ConstructionCatalog, options: PlaceOptions): PlacementItem[] {
+  catalog = effectiveConstructionCatalog(source.construction, catalog);
   const part = catalog.equipment.find((p) => p.id === options.partId);
-  if (!part) throw new Error('Unknown catalog part ' + options.partId + '. List exact IDs with ship:catalog.');
+  const definition = customFittingOf(source.construction, options);
+  if (!part && definition) throw new Error('Custom fitting ' + definition.id + ' ' + customFittingFault(definition) + '.');
+  if (!part)
+    throw new Error(
+      isCustomFittingPartId(options.partId)
+        ? 'Unknown custom fitting ' + options.partId + '. Define it with a `fitting` command; ship:summary lists this design’s definitions.'
+        : 'Unknown catalog part ' + options.partId + '. List exact IDs with ship:catalog.',
+    );
   if (part.path) throw new Error(part.name + ' is a connected fitting drawn between points; write its path with an equipment command instead.');
   if (source.construction.version >= 2 && part.kind === 'magazine') throw new Error('Ammunition is built into each weapon in this design; do not place magazines.');
   const count = options.repeat ?? 1;
@@ -72,8 +81,9 @@ export function placementItems(source: ConstructionSource, catalog: Construction
   const horizontal = !wall && part.kind !== 'propeller' && Math.abs(part.sockets?.find((s) => s.id === 'attachment')?.direction[1] ?? -1) < 0.5;
   if (horizontal && (options.y === undefined || options.bearingDeg === undefined))
     throw new Error(part.name + ' attaches sideways: give its datum height with --y and the --bearing that faces away from its support.');
-  const taken = new Set([...source.construction.primitives, ...source.construction.equipment, ...source.construction.boundaries, ...source.construction.loads].map((p) => p.id));
-  const base = options.id ?? part.id.slice(0, 48);
+  const taken = new Set([...source.construction.primitives, ...source.construction.equipment, ...source.construction.boundaries, ...source.construction.loads, ...customFittingDefinitions(source.construction)].map((p) => p.id));
+  // A design-local part ID is `design:<definition id>`; the colon is not valid in a source ID.
+  const base = options.id ?? part.id.replace(/^design:/, '').slice(0, 48);
   if (!validId(base)) throw new Error('--id accepts 1–64 letters, digits, hyphens and underscores.');
   const fresh = (wanted: string) => {
     let id = wanted;
@@ -124,6 +134,7 @@ export function placementCommands(items: PlacementItem[], placements: Placement[
 export interface ReseatSelection { items: PlacementItem[]; skipped: { id: string; reason: string }[] }
 /** Existing equipment to seat again along its attachment direction (Y for everything but wall and sideways fittings). */
 export function reseatItems(source: ConstructionSource, catalog: ConstructionCatalog, ids: string[] | 'all', slide = false): ReseatSelection {
+  catalog = effectiveConstructionCatalog(source.construction, catalog);
   const equipment = source.construction.equipment;
   if (ids !== 'all') {
     const unknown = ids.filter((id) => !equipment.some((e) => e.id === id));

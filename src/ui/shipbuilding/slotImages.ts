@@ -9,6 +9,8 @@ import { loadShipModel } from '../../game/loadShipModel';
 import { constructionPaintColor } from '../../ships/constructionPaints';
 import { CORNER_SIGNS } from '../../ships/constructionVertex';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
+import { createConstructionFittingModel } from '../../game/constructionFittingModel';
+import { customFittingDefinitionOfPart } from '../../ships/constructionCustomFittings';
 import { primitiveGeometry } from './primitiveGeometry';
 import { SMOOTH_HULL_SHAPES } from '../../game/constructionShading';
 import type { SlotItem } from './builderLayers';
@@ -47,6 +49,9 @@ function cornerHandles(size: Vec3): THREE.Object3D[] {
 }
 
 async function partModel(part: ConstructionEquipmentPart, signal: AbortSignal): Promise<THREE.Object3D> {
+  // Design-local fittings have no published image: the card is drawn from the definition.
+  const definition = customFittingDefinitionOfPart(part);
+  if (definition) return createConstructionFittingModel(definition);
   if (part.path) return createConstructionPathModel(part);
   const asset = await loadShipModel(constructionEquipmentModelUrl(part), undefined, part.contentHash, signal);
   const vent = constructionVentModel(asset.scene, part, part.size[0], part.size[1]);

@@ -1,4 +1,5 @@
 import { envelopeVertices } from '../../ships/freeformShape';
+import { CUSTOM_FITTING_LIMITS, equipmentCounts } from '../../ships/constructionCustomFittings';
 import { worldVertex } from '../../ships/constructionVertex';
 import type { ConstructionDiagnostic, ConstructionResult, ConstructionSource, ConstructionSurface } from '../../ships/blueprint';
 import { CONSTRUCTION_LIMITS, editableConstructionSurfaces } from '../../ships/constructionEditor';
@@ -123,7 +124,9 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
     }
     case 'fittings': {
       const mounts = result?.definition?.mounts.length ?? 0, tubes = result?.definition?.torpedoTubes?.length ?? 0;
-      rows.push(row('Fittings', `${data.equipment.length} / ${CONSTRUCTION_LIMITS.equipment} · ${mounts} guns · ${tubes} tubes`, data.equipment.length > CONSTRUCTION_LIMITS.equipment * .95 ? 'warn' : undefined));
+      const counts = equipmentCounts(data);
+      rows.push(row('Fittings', `${counts.catalog} / ${CONSTRUCTION_LIMITS.equipment} · ${mounts} guns · ${tubes} tubes`, counts.catalog > CONSTRUCTION_LIMITS.equipment * .95 ? 'warn' : undefined));
+      if (counts.custom || data.fittings?.length) rows.push(row('Custom fittings', `${counts.custom} / ${CUSTOM_FITTING_LIMITS.instances} · ${data.fittings?.length ?? 0} shapes`, counts.custom > CUSTOM_FITTING_LIMITS.instances * .95 ? 'warn' : undefined));
       break;
     }
     case 'paint': {

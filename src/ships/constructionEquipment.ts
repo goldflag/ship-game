@@ -21,7 +21,8 @@ export function removeRetiredDeckFittings(source: ConstructionSource): boolean {
 /** Describe an explicit catalog update; old source revisions keep their exact catalog. */
 export function constructionCatalogUpdate(source: ConstructionSource, current: ConstructionCatalog, next: ConstructionCatalog) {
   if (source.construction.catalogRevision !== current.revision) throw new Error('Load this design’s equipment revision before updating its parts library.');
-  const used = new Set(source.construction.equipment.map(p => p.partId));
+  // Design-local fittings (`design:…`) live in the source and are in no published library.
+  const used = new Set(source.construction.equipment.map(p => p.partId).filter(id => !id.startsWith('design:')));
   const changedParts: string[] = [], missingParts: string[] = [];
   for (const id of used) {
     const before = current.equipment.find(p => p.id === id), after = next.equipment.find(p => p.id === id);

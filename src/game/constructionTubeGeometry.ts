@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import type { Vec3 } from '../ships/blueprint';
 
-/** Six-sided welded tubing. Adjacent spans share one miter ring, so corners
+/** Welded tubing, six-sided unless told otherwise. Adjacent spans share one miter ring, so corners
  * have neither open wedges nor overlapping end caps. Dimensions stay in metres. */
-export function constructionTubeGeometry(paths: readonly (readonly Vec3[])[], radius: number, projectEnd?: (point: Vec3) => Vec3 | undefined): THREE.BufferGeometry {
-  const positions: number[] = [], indices: number[] = [], sides = 6;
+export function constructionTubeGeometry(paths: readonly (readonly Vec3[])[], radius: number, projectEnd?: (point: Vec3) => Vec3 | undefined, sides = 6): THREE.BufferGeometry {
+  const positions: number[] = [], indices: number[] = [];
   for (const points of paths) {
     if (points.length < 2) continue;
     const directions = points.slice(1).map((p, i) => new THREE.Vector3(...p).sub(new THREE.Vector3(...points[i])).normalize());

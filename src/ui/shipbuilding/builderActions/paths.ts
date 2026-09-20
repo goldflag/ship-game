@@ -1,6 +1,7 @@
 /** Connected routes and two-click ladders: pending points, finish and draw.
  * Each function runs as a `BuilderTool` member: the class binds it under the same name. */
 import { accessDefaults, accessLayout, isAccessKind } from '../../../../assets/parts/construction/access_geometry';
+import { equipmentOverLimit } from '../../../ships/constructionCustomFittings';
 import { fittedLadder } from '../../../ships/constructionLadders';
 import type { Vec3 } from '../../../ships/blueprint';
 import { mirroredEquipment } from '../../../ships/constructionEditor';
@@ -83,7 +84,7 @@ export function finishPath(this: BuilderTool): ConstructionSubmission | undefine
   if (this.state.fittingPaint) item.paint = this.state.fittingPaint;
   const parts = [item];
   if (mirror && pathPoints.some((point) => Math.abs(point[0]) > 1e-6)) parts.push({ ...mirroredEquipment(item), id: this.newId('path') });
-  if (this.data.equipment.length + parts.length > LIMITS.equipment) {
+  if (equipmentOverLimit(this.data, parts, LIMITS.equipment)) {
     this.update({ notice: 'The fittings limit is reached. Remove a fitting before adding this path.' });
     return undefined;
   }

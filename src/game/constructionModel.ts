@@ -5,6 +5,8 @@ import { constructionHullBasePaint, paintedHullFace } from '../ships/constructio
 import * as THREE from 'three/webgpu';
 import { loadShipModel } from './loadShipModel';
 import { createConstructionPathModel } from './constructionPathModel';
+import { createConstructionFittingModel } from './constructionFittingModel';
+import { customFittingOf, effectiveConstructionCatalog } from '../ships/constructionCustomFittings';
 import { createConstructionPropellerSupports } from './constructionPropellerModel';
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, ConstructionSurfaceFinish } from '../ships/blueprint';
 import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from './constructionShading';
@@ -106,11 +108,22 @@ export async function createConstructionModel(source: ConstructionSource, result
   const templates = new Map<string, THREE.Group>();
   try {
     if (source.construction.equipment.length) {
-      const catalog = await loadConstructionCatalog(source.construction.catalogRevision); abort(signal);
+      const catalog = effectiveConstructionCatalog(source.construction, await loadConstructionCatalog(source.construction.catalogRevision)); abort(signal);
       for (const instance of source.construction.equipment) {
         abort(signal);
         const part = catalog.equipment.find(p => p.id === instance.partId);
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
+        const custom = customFittingOf(source.construction, instance);
+        if (custom) {
+          // Design-local fitting: drawn from the source definition, never a published GLB.
+          const model = createConstructionFittingModel(custom, { finish: source.construction.finish });
+          paintConstructionFitting(model, constructionFittingPaint(source, instance, part), false, source.construction.finish);
+          model.name = instance.id;
+          model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;
+          model.userData = { sourceId: instance.id, assemblyId: instance.id, equipmentKind: part.kind };
+          model.traverse(node => { node.userData.sourceId = instance.id; node.userData.assemblyId = instance.id; node.userData.constructionEquipmentKind = part.kind; });
+          group.add(model); continue;
+        }
         if (part.path) {
           const model = createConstructionPathModel(part, instance.path, false, {item:instance,surfaces:result.surfaces});
           paintConstructionFitting(model, constructionFittingPaint(source, instance, part), false, source.construction.finish, part.path.kind === 'rope' ? instance.paint : undefined);

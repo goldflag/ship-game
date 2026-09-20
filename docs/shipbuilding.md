@@ -56,6 +56,7 @@ Equipment `bearingDeg` is clockwise. Published parts keep their original datum a
 | `equipment` | Fitted catalog parts: `partId`, `position`, `bearingDeg`, optional `paint`, `gun`, `launcher`, `wall`, `path`, `powerSourceId` |
 | `boundaries` | Internal decks and bulkheads: `axis`, `offset`, `thicknessMm` |
 | `loads` | Named box loads with `massKg` |
+| `fittings` | Optional design-local fitting definitions; see [Custom fittings](#custom-fittings) |
 | `defaultThicknessMm` | Structural skin for the whole design, 0.1–1,000 mm |
 | `paint`, `finish` | Optional ship-wide paint and surface sheen (`matte`, `satin`, `semi-gloss`, `gloss`) |
 
@@ -74,6 +75,7 @@ schema, so older sources load unchanged:
 | `balcony` | `balcony` primitive | Outline points, edge treatments, edge height, wall thickness |
 | `wall` | equipment | Wall fitting size, linked `mirrorId`, optional `turnDeg` (90, 180, 270) |
 | `path` | equipment | Connected route: local `points`, `slackM`, `access`, `heightM`, `railCount` |
+| definition | `construction.fittings` | Design-local fitting: `solids`, `tubes`, `attach`, `material`, `fill`, `massKg` |
 
 Surface assignments reference primitive IDs and canonical face names (`port`, `starboard`,
 `bottom`, `top`, `bow`, `stern`, `slope`). Clipped patches of one face share that identity;
@@ -154,6 +156,42 @@ without the record keep their shape.
   segment; a route is at most 500 m (`construction_paths.rs`). Native code owns support, hull
   clearance, mass, CG and inertia. `src/game/constructionPathModel.ts` only draws the route.
 
+### Custom fittings
+
+`construction.fittings` holds design-local fitting definitions for small parts the catalog lacks.
+An instance is an equipment row with `partId: "design:<definition id>"`, so N instances share one
+shape and Clone carries definitions with the design.
+
+```jsonc
+{ "id": "fit-bollard-a", "name": "Twin bollard", "version": 1, "attach": "deck",
+  "solids": [{ "id": "post", "kind": "cylinder", "size": [0.32, 0.62, 0.32], "position": [0, 0.31, 0], "rotationDeg": 0 }],
+  "tubes": [{ "id": "bar", "points": [[-0.4, 0.5, 0], [0.4, 0.5, 0]], "diameterM": 0.07 }],
+  "material": "steel", "fill": 0.35 }
+```
+
+- A solid is a hull-piece shape in fitting-local metres: `kind`, `size`, `position`, `rotationDeg`
+  and optional `tilt`, `vertices`, `mesh`, `shaping` and `paint`. It has no armor, surfaces or
+  `smoothGroup`, and `custom-hull`, `balcony` and `ballast` are excluded.
+- A tube is a round section swept along `points` with `diameterM` and optional `paint`.
+- The datum is the local origin. `attach` is `"deck"`: y = 0 seats on the deck and the lowest
+  solid or tube must reach it. `"wall"` and `"internal"` are reserved.
+- Mass is shape volume × density × `fill` (`material`: `steel` 7,850, `aluminium` 2,700, `brass`
+  8,500, `wood` 700 kg/m³; `fill` 0.01–1, default 1), or `massKg` when given. Overlapping solids
+  count their volume twice.
+- A solid or tube without `paint` follows the instance `paint`, then the ship paint.
+
+`construction_custom_fittings.rs` resolves each definition into a synthesized deck-fitting part
+(bounds, centre of gravity, mass, one conservative box per solid and tube segment) and adds it to
+the catalog the compiler looks parts up in. The published catalog and the content hash input are
+unchanged, and a supplied `design:` catalog entry is discarded. A custom fitting therefore follows
+the deck-fitting rules: support within 5 cm of its datum (`equipment-attachment` with `fit.gapM`
+and `fit.seatPosition`), 10% of its boxes outside the hull, and one mass contribution. It never
+joins the hull union and has no armor, buoyancy, room, flooding, module, obstruction or hit
+geometry. Faults are `custom-fitting` diagnostics that name the definition and the solid, tube or
+instance. `src/ships/constructionCustomFittings.ts` is the TypeScript resolver for the editor and
+tools, tested against the native one; `src/game/constructionFittingModel.ts` is the one renderer.
+Phases, versioning and deployment order are in the [plan](custom-fittings-plan.md).
+
 ## Compiler
 
 The compiler is part of the `naval-sim` crate, identified by `COMPILER` in
@@ -171,6 +209,7 @@ The compiler is part of the `naval-sim` crate, identified by `COMPILER` in
 | `construction_propellers.rs` | Generated shafts, bearing housings and fins |
 | `construction_services.rs` | Auxiliary power, pumps and work party included in machinery |
 | `construction_paths.rs`, `_access.rs`, `_wall_fittings.rs`, `_bilge_keels.rs` | Fitting families |
+| `construction_custom_fittings.rs` | Design-local fitting definitions resolved into deck-fitting parts |
 | `construction_overlap.rs` | Editor-only hull overlap policy |
 
 Entry points:
@@ -282,6 +321,8 @@ Source bounds are constants in `construction.rs`, mirrored by `CONSTRUCTION_LIMI
 | Primitives | 10,000 |
 | Surface assignments | 65,536 |
 | Equipment instances, loads | 128 each |
+| Custom fitting definitions / instances | 32 / 512, counted apart from equipment instances |
+| Solids / tubes / triangles per custom fitting | 48 / 16 / 20,000 |
 | Boundaries | 24 |
 | Derived cells (`MAX_CELLS`) | 131,072, with 128 faces per cell |
 | Face vertices per geometry collection | 4,194,304 |

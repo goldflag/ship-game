@@ -27,6 +27,8 @@ import type {
   Vec3,
 } from '../../ships/blueprint';
 import { newConstructionId, surfaceSelectionKey } from '../../ships/constructionEditor';
+import { customFittingOf, isCustomFittingPartId } from '../../ships/constructionCustomFittings';
+import { CustomFittingFields } from './CustomFittingFields';
 import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
 import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
@@ -864,6 +866,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
               />
             </>
           )}
+          {customFittingOf(data, item) && (
+            <>
+              {' '}
+              · <CustomFittingFields definition={customFittingOf(data, item)!} data={data} locked={locked} run={run} />
+            </>
+          )}
           {item.wall && catalogPart && (
             <>
               <WallSizeFields
@@ -1113,6 +1121,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
           {picture ?? <SlotGlyph item={item} customMm={customMm} />}
           <i className="sb-dims">{dimensions(active?.id === item.id && s.sizeOverride ? s.sizeOverride : item.shape.size)}</i>
           {item.shape.kind === 'ballast' && <small className="sb-slot-weight">100 t</small>}
+        </>
+      );
+    if (item.kind === 'part' && isCustomFittingPartId(item.part.id))
+      return (
+        <>
+          {picture ?? <SlotGlyph item={item} customMm={customMm} scale={armorScale} />}
+          <small className="sb-slot-weight" title="Instances fitted in this design">
+            ×{data.equipment.filter((fitted) => fitted.partId === item.part.id).length}
+          </small>
         </>
       );
     if (picture) return picture;
@@ -1932,6 +1949,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
                 </button>
               ))}
             </div>
+            {fittingFilter.category === 'custom' &&
+              (active?.kind === 'part' && customFittingOf(data, { partId: active.part.id }) ? (
+                <CustomFittingFields definition={customFittingOf(data, { partId: active.part.id })!} data={data} locked={locked} run={run} />
+              ) : (
+                <span className="sb-lead">
+                  No custom fittings in this design yet. They are small non-structural shapes saved inside the design; agents define them with a
+                  `fitting` command.
+                </span>
+              ))}
             {shelfNations.length > 0 && (
               <div className="sb-chips nations" role="radiogroup" aria-label="Nation">
                 {(['all', ...shelfNations] as const).map((nation) => (

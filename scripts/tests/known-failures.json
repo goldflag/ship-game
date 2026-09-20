@@ -1,10 +1,5 @@
 [
   {
-    "file": "scripts/parts/publication.test.ts",
-    "test": "source-backed equipment publication > support sockets coincide with actual sole, stock and shaft bounds without hidden overlap",
-    "since": "2026-09-19"
-  },
-  {
     "file": "scripts/ships/appearance.test.ts",
     "test": "published fleet appearance > valiant: shared finishes and their UVs survive the actual GLB export",
     "since": "2026-09-19"
@@ -22,11 +17,6 @@
   {
     "file": "src/game/FleetShipDraws.test.ts",
     "test": "fleet instances preserve separate poses, inspection, hidden hulls and damage-mark children",
-    "since": "2026-09-19"
-  },
-  {
-    "file": "src/game/ShipFunnelSmoke.test.ts",
-    "test": "all registered funnel mouths are found without smoking from bases, caps or the submarine",
     "since": "2026-09-19"
   },
   {
