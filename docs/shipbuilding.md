@@ -300,6 +300,14 @@ Gun installation (`construction_installation.rs`, version 2):
 - `gun.barbetteHeightM` (turret rise) is 0–30 m and requires version 2. It raises the support
   above deck; the lower magazine stays fixed. Supports add structural mass, never buoyancy.
 
+Funnels and masts (`uncontested` in `construction.rs`) are never collision bodies. Their catalog
+box encloses platforms, galleries, yards and rigging, so no overlap, intersection or clearance
+fault is raised for one, or for anything entering one, in either source order; a funnel's uptake
+reserves its volume without reporting it outside the free hull interior. Attachment and support,
+mass, CG, inertia, power and exhaust, the sealed flooding opening an uptake cuts, rendering and
+the runtime obstruction volumes are unchanged. The mount-clearance profile still ships their
+bodies for combat; they are only withheld from the compile-time clearance check.
+
 The editor overlap policy (`construction_overlap.rs`, `MIN_EXPOSED = 0.1`) requires each hull
 block to keep 10% of its volume outside the other blocks. It is an editing aid; loading always
 uses the physical union.

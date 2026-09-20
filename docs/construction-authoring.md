@@ -80,6 +80,18 @@ surrounding deck. Guns with working wells and full funnels cut the deck;
 deck-mounted light guns, the separate funnel cap, closed hatches, vents and
 torpedo launchers do not.
 
+Funnels and masts are never collision bodies. Each catalog box encloses
+platforms, galleries, yards and rigging that real structure passes through, so
+the compiler raises no overlap, intersection or clearance fault for one, or for
+anything entering one, whichever the source lists first: hull pieces may bury
+them, equipment may share their envelope, a gun may train through them, and a
+funnel's below-deck uptake never reports volume outside the free hull interior.
+`ship:place`, `ship:reseat` and `ship:suggest` follow the same rule. Their
+attachment and support checks, mass, CG, exhaust capacity, the sealed flooding
+opening an uptake cuts and their runtime gun-arc obstruction volumes are
+unchanged: the obstruction data is shared with the barrel-clearance profile, and
+only the compile-time rejection is lifted from it.
+
 Sea Trials transfers the exact draft to the game and uses the real native local
 battle path. Returning reopens that source; combat damage never enters the file.
 The normal local-design menu also imports downloaded JSON as a new local copy.

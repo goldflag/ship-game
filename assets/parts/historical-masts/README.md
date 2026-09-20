@@ -63,9 +63,12 @@ installation supplies that roof and supporting structure. Michigan starts at
 its cage ring rather than incidental neighboring deck fittings in the crop.
 
 `construction.json` records the measured exported bounds with a small rounding
-margin. The normal mast AABB is its conservative collision envelope, including
-platforms and yards. It intentionally does not allow another part through an
-open cage. There are no below-deck occupancy volumes. Mass and CG are explicit
+margin. The normal mast AABB is its conservative envelope, including platforms
+and yards. Because that box encloses far more air than steelwork, the compiler
+treats a mast as no collision body at all: hull pieces and other fittings may
+occupy it freely, in either source order, and nothing is rejected for passing
+through an open cage. Attachment/support, mass, CG and the runtime gun-arc
+obstruction are unchanged. There are no below-deck occupancy volumes. Mass and CG are explicit
 provisional package estimates, not measured historical engineering data. No
 existing ship or capability rating is changed by these additions.
 
