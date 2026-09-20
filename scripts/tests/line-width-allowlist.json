@@ -66,6 +66,7 @@
   "src/game/constructionAccessModel.ts",
   "src/game/constructionModel.ts",
   "src/game/constructionPathModel.ts",
+  "src/game/constructionShapeGeometry.ts",
   "src/game/constructionWallModel.ts",
   "src/game/graphicsSettings.test.ts",
   "src/game/keybindings.ts",
