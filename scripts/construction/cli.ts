@@ -14,6 +14,7 @@ import { compileConstruction, suggestConstruction } from './compiler';
 import { REVIEW_VIEWS } from './views';
 import { parseFlags, loadCommand, commandSummaries } from './command';
 import { FLAGS, BUILTIN_SUMMARIES } from './builtins';
+import { guardedBatch, unguardedCommands } from './transaction';
 import { ConstructionCommandError } from '../../src/ships/constructionCommandSchema';
 
 // Vite, Playwright and the asset pipeline load only for commands that need them, so reads,
@@ -168,8 +169,18 @@ try {
       await writeFile(path, current.json, { flag: 'wx' });
       print({ path, fileRevision: current.hash });
     } else if (action === 'apply') {
-      if (!args[2] || args[2].startsWith('--')) throw new Error('Provide a command batch JSON file.');
-      const batch = JSON.parse(await readFile(resolve(args[2]), 'utf8')) as ConstructionBatch & { expectedFileHash: string };
+      const unguarded = option('--commands');
+      if (unguarded && args[2]) throw new Error('Give either a guarded batch file or --commands, not both.');
+      if (!unguarded && (!args[2] || args[2].startsWith('--'))) throw new Error('Provide a command batch JSON file, or --commands with a bare command list.');
+      if (option('--label') && !unguarded) throw new Error('--label names a batch built by --commands; a guarded batch carries its own label.');
+      const document = JSON.parse(await readFile(resolve(unguarded ?? args[2]!), 'utf8'));
+      // --commands reads the current revisions here instead of asking the caller to copy them. The
+      // transaction is unchanged: both checks still run and the save still fails if the file moved.
+      let batch: ConstructionBatch & { expectedFileHash: string };
+      if (unguarded) {
+        const { label, commands } = unguardedCommands(document);
+        batch = guardedBatch(current, option('--label') ?? label ?? 'Apply ' + commands.length + ' command' + (commands.length === 1 ? '' : 's'), commands);
+      } else batch = document as ConstructionBatch & { expectedFileHash: string };
       if (batch.expectedFileHash !== current.hash)
         throw new Error('File revision changed. Inspect the source and update the batch before retrying.');
       const next = applyConstructionBatch(source, batch);

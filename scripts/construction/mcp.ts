@@ -13,10 +13,16 @@ const cli = join(import.meta.dir, 'cli.ts');
 const PROTOCOL = '2024-11-05';
 /** Commands that never return (`edit`) or manage the host rather than a ship are not tools. */
 const HIDDEN = new Set(['edit', 'timings']);
-/** Commands that change the repository. Everything else is announced read-only. */
+/** Commands that change the repository. Everything else is announced read-only. An extension
+ * command declares its own writes with `writes: true`; several write only under a flag. */
 const WRITES = new Set(['new', 'apply', 'import', 'register', 'build', 'thumbnail', 'session']);
+const writes = (name: string, spec: FlagSpec) => WRITES.has(name) || spec.writes === true;
 /** A positional JSON file becomes an inline object: the server writes it to a scratch file. */
 const INLINE: Record<string, string> = { apply: 'batch', import: 'source' };
+/** Value flags whose argument is a JSON file. The tool takes the document inline and the server
+ * writes it to a scratch file, so an agent never has to put a temporary file on disk itself. */
+const INLINE_FLAGS: Record<string, string[]> = { apply: ['--commands'], place: ['--table'], armor: ['--rules'], ballast: ['--tanks'] };
+const inlineFlags = (name: string, spec: FlagSpec) => (INLINE_FLAGS[name] ?? []).filter((flag) => spec.values?.includes(flag));
 const MAX_TEXT = 60_000,
   MAX_IMAGES = 6;
 
@@ -35,7 +41,11 @@ export function toolFor(name: string, spec: FlagSpec & { summary: string }): Too
     properties.ship = { type: 'string', description: 'Ship ID: the directory name under assets/ships.' };
     required.push('ship');
   }
-  for (const flag of spec.values ?? []) properties[property(flag)] = { type: ['string', 'number'], description: flag + ' <value>' };
+  const inline = inlineFlags(name, spec);
+  for (const flag of spec.values ?? [])
+    properties[property(flag)] = inline.includes(flag)
+      ? { type: ['array', 'object'], description: flag + ': the JSON document itself, not a path.' }
+      : { type: ['string', 'number'], description: flag + ' <value>' };
   for (const flag of spec.switches ?? []) properties[property(flag)] = { type: 'boolean', description: flag };
   if (INLINE[name]) {
     properties[INLINE[name]] = { type: 'object', description: 'The JSON document this command reads. `schema` describes a batch.' };
@@ -46,7 +56,7 @@ export function toolFor(name: string, spec: FlagSpec & { summary: string }): Too
     name: 'ship_' + name.replaceAll('-', '_'),
     description: spec.summary.replace(/^—\s*/, ''),
     inputSchema: { type: 'object', properties, required, additionalProperties: false },
-    annotations: { readOnlyHint: !WRITES.has(name), destructiveHint: WRITES.has(name) },
+    annotations: { readOnlyHint: !writes(name, spec), destructiveHint: writes(name, spec) },
   };
 }
 
@@ -97,11 +107,19 @@ const pngPaths = (value: unknown, found: string[] = []): string[] => {
 
 async function call(name: string, spec: FlagSpec, input: Record<string, unknown>) {
   const scratch = join(root, '.build/construction/mcp');
-  let inlineFile: string | undefined;
-  if (INLINE[name] && input[INLINE[name]] !== undefined) {
+  const written: string[] = [];
+  const spill = async (value: unknown) => {
     await mkdir(scratch, { recursive: true });
-    inlineFile = join(scratch, crypto.randomUUID() + '.json');
-    await writeFile(inlineFile, JSON.stringify(input[INLINE[name]]));
+    const path = join(scratch, crypto.randomUUID() + '.json');
+    await writeFile(path, JSON.stringify(value));
+    written.push(path);
+    return path;
+  };
+  let inlineFile: string | undefined;
+  if (INLINE[name] && input[INLINE[name]] !== undefined) inlineFile = await spill(input[INLINE[name]]);
+  for (const flag of inlineFlags(name, spec)) {
+    const value = input[property(flag)];
+    if (value !== undefined && value !== null) input = { ...input, [property(flag)]: await spill(value) };
   }
   try {
     const line = commandLine(name, spec, input, inlineFile);
@@ -127,7 +145,7 @@ async function call(name: string, spec: FlagSpec, input: Record<string, unknown>
       content.push({ type: 'image', mimeType: 'image/png', data: (await readFile(path)).toString('base64') });
     return { content, isError: code !== 0 };
   } finally {
-    if (inlineFile) await rm(inlineFile, { force: true });
+    for (const path of written) await rm(path, { force: true });
   }
 }
 
