@@ -31,6 +31,15 @@ Images land in ignored `.build/shots/`. `--viewport WxH` defaults to 1728x1030, 
 
 `window.review` holds `ready`, `inBattle`, `game`, `errors`, `designs` (`name`, `sourceId`, `shipId` or `issue`) and the effective `battle` setup.
 
+### Horizon rendering check
+
+On the ready battle harness page, run
+`await (await import('/scripts/browser/sky-horizon-check.ts')).checkSkyHorizon(review.game)`
+to read back the real GPU sky LUT. It checks increasing horizon lift, an unchanged
+upper sky and palette, dusk/night preservation, and restoration after switching.
+The game uses a 0.8 attenuation correction, tapered across the lowest 6° of
+daylight sky. The check restores the scene's weather and correction afterward.
+
 ## Driving it from a script
 
 ```ts

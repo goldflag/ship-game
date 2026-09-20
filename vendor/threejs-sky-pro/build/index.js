@@ -73,6 +73,8 @@ class yi {
    * Default 0.5.
    */
   skyMultipleScattering = g(0.5);
+  /** Local patch: correct long-step attenuation only in the lowest 6° of daylight sky. */
+  horizonCorrection = g(0);
   /** Tonemap exposure — a scalar multiply on linear radiance. 1 = neutral. Default 1. */
   exposure = g(1);
   /**
@@ -104,6 +106,7 @@ class yi {
   }
   /** Writes each provided field onto its uniform. Omitted fields are left untouched. */
   applyParams(e) {
+    e.horizonCorrection !== void 0 && (this.horizonCorrection.value = e.horizonCorrection);
     e.rayleigh !== void 0 && (this.rayleigh.value = e.rayleigh), e.turbidity !== void 0 && (this.turbidity.value = e.turbidity), e.mieDirectionalG !== void 0 && (this.mieDirectionalG.value = e.mieDirectionalG), e.mieScatteringStrength !== void 0 && (this.mieScatteringStrength.value = e.mieScatteringStrength), e.multipleScattering !== void 0 && (this.multipleScattering.value = e.multipleScattering), e.skyMultipleScattering !== void 0 && (this.skyMultipleScattering.value = e.skyMultipleScattering), e.exposure !== void 0 && (this.exposure.value = e.exposure), e.groundAlbedo !== void 0 && this.groundAlbedo.value.copy(e.groundAlbedo), e.fogDensity !== void 0 && (this.fogDensity.value = e.fogDensity), e.fogFarFadeStart !== void 0 && (this.fogFarFadeStart.value = e.fogFarFadeStart), e.fogFarFadeEnd !== void 0 && (this.fogFarFadeEnd.value = e.fogFarFadeEnd);
   }
   /**
@@ -119,6 +122,7 @@ class yi {
       mieScatteringStrength: this.mieScatteringStrength.value,
       multipleScattering: this.multipleScattering.value,
       skyMultipleScattering: this.skyMultipleScattering.value,
+      horizonCorrection: this.horizonCorrection.value,
       exposure: this.exposure.value,
       groundAlbedo: this.groundAlbedo.value.clone(),
       fogDensity: this.fogDensity.value,
@@ -911,17 +915,25 @@ function Et(n, e, t) {
   return de(n, Li(e, t)).level(a(0)).rgb;
 }
 const es = 12;
-function js(n, e, t, s, i, o, r, h) {
+function js(n, e, t, s, i, o, r, h, horizonCorrection = a(0)) {
   const l = Ei.mul(o), c = qt.add(1e-4), d = j(a(0), c, a(0)), y = be(
     j(t.x, D(t.y, a(1e-3)), t.z)
   ), p = be(s), m = a(2).mul(c).mul(y.y), S = c.mul(c).sub(Qt.mul(Qt)), A = m.negate().add(me(D(m.mul(m).sub(a(4).mul(S)), a(0)))).div(2), H = r ? pe(A, r) : A, P = a(es), v = a(2).mul(H).div(P), x = j(0, 0, 0).toVar(), T = j(0, 0, 0).toVar(), _ = j(0, 0, 0).toVar(), R = a(0).toVar(), b = a(0).toVar(), f = j(St, St, St).mul(i), w = Z(d, p).toVar(), O = Z(y, p).toVar();
+  // The original march attenuates a sample by its entire segment before adding
+  // its light. Long, near-horizontal segments consequently create a dark band.
+  // Sample attenuation at the segment midpoint instead. Restrict this correction
+  // to the lowest 6° and fade it out at low sun; the authored upper sky is exact.
+  const horizonWeight = horizonCorrection.mul(a(1).sub(ye(a(0), a(0.104528463), y.y)))
+    .mul(ye(a(0.104528463), a(0.309016994), p.y));
   ke(es, ({ i: C }) => {
     const N = a(C).add(0.5).div(P), V = N.mul(N).mul(H), U = N.mul(v), L = d.add(y.mul(V)), Y = Oe(L).toVar(), I = D(Y.sub(qt), a(0)), E = h ? re(I.negate().div(Zt)).mul(h) : re(I.negate().div(Zt)), F = h ? re(I.negate().div(Jt)).mul(h) : re(I.negate().div(Jt));
     R.addAssign(E.mul(U)), b.addAssign(F.mul(U));
     const K = w.add(O.mul(V)).div(Y), ee = z(
       K.mul(a(0.5)).add(a(0.5)),
       I.div(a(zi))
-    ), Q = de(n, ee).rgb, te = l.mul(R).add(f.mul($t).mul(b)), q = re(te.negate()), G = q.mul(Q);
+    ), Q = de(n, ee).rgb, te = l.mul(R).add(f.mul($t).mul(b)),
+    halfSegment = l.mul(E).add(f.mul($t).mul(F)).mul(U).mul(0.5).mul(horizonWeight),
+    q = re(te.sub(halfSegment).negate()), G = q.mul(Q);
     x.addAssign(G.mul(E).mul(U)), T.addAssign(G.mul(F).mul(U));
     const B = de(e, ee).rgb, J = l.mul(E).add(f.mul(F));
     _.addAssign(q.mul(B).mul(J).mul(U));
@@ -936,7 +948,7 @@ function Vs(n, e, t, s, i, o, r, h, l) {
   ), S = a(3).mul(a(1).sub(p)).div(a(8).mul(xe).mul(a(2).add(p))).mul(a(1).add(c)).div(m.mul(me(m)));
   return s.mul(n).mul(d).add(i.mul(e).mul(S).mul(l)).add(t.mul(h));
 }
-function qe(n, e) {
+function qe(n, e, horizonCorrection = a(0)) {
   return le(
     ([t, s, i, o, r, h, l]) => {
       const c = js(
@@ -947,7 +959,8 @@ function qe(n, e) {
         i,
         l,
         null,
-        null
+        null,
+        horizonCorrection
       );
       return Vs(
         c.accumR,
@@ -1024,7 +1037,8 @@ class Es extends u.MeshBasicNodeMaterial {
   _buildColorNode() {
     const e = this.sun.direction, t = this.atmosphere.rayleigh, s = this.atmosphere.turbidity, i = this.atmosphere.mieDirectionalG, o = this.atmosphere.mieScatteringStrength, r = this.atmosphere.skyMultipleScattering, h = this.sun.intensity, l = this.sun.discSize, c = this.transmittanceLUT, d = this.skyViewLUT, y = d ? null : qe(
       this.transmittanceLUT,
-      this.multiScatterLUT
+      this.multiScatterLUT,
+      this.atmosphere.horizonCorrection
     );
     return le(() => {
       const p = this.viewDirOverride, m = e, A = (d ? Et(d, p, m) : y(
@@ -1959,7 +1973,7 @@ class Gs extends u.MeshBasicNodeMaterial {
     this.cirrusTexture = e, this.rebuildShader();
   }
   _buildColorNode() {
-    const e = a(Te), t = this.planetCenter, s = this._rayHitDistProp, i = de(this.weatherTexture), o = Ps(this.baseShapeTexture), r = this.blueNoiseTexture ? de(this.blueNoiseTexture) : null, h = this.blueNoiseTexture?.image.width ?? 1, l = this.cirrusTexture, c = this.weatherTexture, d = this.rayOriginOverride, y = this.rayDirOverride, p = this.atmosphere, m = this.sun, S = this.cloud, A = this.quality, H = this.timeOfDay, P = this._sunConeOffsets.nodes, v = this._moonConeOffsets?.nodes ?? null, x = this._ambientSky, T = this._aerialPerspective, _ = this.aerialInscatterLUT, R = this.aerialTransmittanceLUT, b = this.skyViewLUT, f = !b && this.transmittanceLUT && this.multiScatterLUT ? qe(this.transmittanceLUT, this.multiScatterLUT) : null;
+    const e = a(Te), t = this.planetCenter, s = this._rayHitDistProp, i = de(this.weatherTexture), o = Ps(this.baseShapeTexture), r = this.blueNoiseTexture ? de(this.blueNoiseTexture) : null, h = this.blueNoiseTexture?.image.width ?? 1, l = this.cirrusTexture, c = this.weatherTexture, d = this.rayOriginOverride, y = this.rayDirOverride, p = this.atmosphere, m = this.sun, S = this.cloud, A = this.quality, H = this.timeOfDay, P = this._sunConeOffsets.nodes, v = this._moonConeOffsets?.nodes ?? null, x = this._ambientSky, T = this._aerialPerspective, _ = this.aerialInscatterLUT, R = this.aerialTransmittanceLUT, b = this.skyViewLUT, f = !b && this.transmittanceLUT && this.multiScatterLUT ? qe(this.transmittanceLUT, this.multiScatterLUT, p.horizonCorrection) : null;
     return le(() => {
       const w = d.toVar(), O = y.toVar(), k = j(0).toVar(), C = a(1).toVar(), N = {
         weightedDist: a(0).toVar(),
@@ -3255,6 +3269,7 @@ class pn {
   _lastMieG = Number.NaN;
   _lastMieStrength = Number.NaN;
   _lastSkyMultipleScattering = Number.NaN;
+  _lastHorizonCorrection = Number.NaN;
   _lastGroundAlbedo = new u.Color(
     Number.NaN,
     Number.NaN,
@@ -3276,7 +3291,8 @@ class pn {
     ), this.target.texture.name = "skyViewLUT", this.texture = this.target.texture;
     const o = qe(
       s,
-      i
+      i,
+      this._atmosphere.horizonCorrection
     );
     this._material = new u.MeshBasicNodeMaterial(), this._material.depthTest = !1, this._material.depthWrite = !1, this._material.colorNode = le(() => {
       const h = z(ge().x, ge().y.oneMinus()), l = h.x.mul(h.x).mul(xe), c = h.y.mul(h.y), d = me(D(a(1).sub(c.mul(c)), 0)), y = j(
@@ -3300,9 +3316,9 @@ class pn {
   /** Bake when sun elevation or any radiance-producing atmosphere input changes. */
   update(e) {
     const t = this._atmosphere, s = this._sun.direction.value.y, i = t.groundAlbedo.value;
-    if (!(s !== this._lastSunY || t.rayleigh.value !== this._lastRayleigh || t.turbidity.value !== this._lastTurbidity || t.mieDirectionalG.value !== this._lastMieG || t.mieScatteringStrength.value !== this._lastMieStrength || t.skyMultipleScattering.value !== this._lastSkyMultipleScattering || !i.equals(this._lastGroundAlbedo))) return;
+    if (!(s !== this._lastSunY || t.rayleigh.value !== this._lastRayleigh || t.turbidity.value !== this._lastTurbidity || t.mieDirectionalG.value !== this._lastMieG || t.mieScatteringStrength.value !== this._lastMieStrength || t.skyMultipleScattering.value !== this._lastSkyMultipleScattering || t.horizonCorrection.value !== this._lastHorizonCorrection || !i.equals(this._lastGroundAlbedo))) return;
     const r = e.getRenderTarget(), h = e.autoClear;
-    e.autoClear = !0, e.setRenderTarget(this.target), e.clear(), e.render(this._scene, X.camera), e.setRenderTarget(r), e.autoClear = h, this._lastSunY = s, this._lastRayleigh = t.rayleigh.value, this._lastTurbidity = t.turbidity.value, this._lastMieG = t.mieDirectionalG.value, this._lastMieStrength = t.mieScatteringStrength.value, this._lastSkyMultipleScattering = t.skyMultipleScattering.value, this._lastGroundAlbedo.copy(i);
+    e.autoClear = !0, e.setRenderTarget(this.target), e.clear(), e.render(this._scene, X.camera), e.setRenderTarget(r), e.autoClear = h, this._lastSunY = s, this._lastRayleigh = t.rayleigh.value, this._lastTurbidity = t.turbidity.value, this._lastMieG = t.mieDirectionalG.value, this._lastMieStrength = t.mieScatteringStrength.value, this._lastSkyMultipleScattering = t.skyMultipleScattering.value, this._lastHorizonCorrection = t.horizonCorrection.value, this._lastGroundAlbedo.copy(i);
   }
   dispose() {
     this.target.dispose(), this._material.dispose();
@@ -3741,6 +3757,7 @@ class bn {
       () => h.mieScatteringStrength.value,
       () => h.multipleScattering.value,
       () => h.skyMultipleScattering.value,
+      () => h.horizonCorrection.value,
       () => h.groundAlbedo.value.r,
       () => h.groundAlbedo.value.g,
       () => h.groundAlbedo.value.b,
@@ -4245,7 +4262,8 @@ const wn = 0.03;
 function Mn(n) {
   const { sceneColor: e, viewDir: t, sceneDist: s, atmosphere: i, sun: o } = n, r = n.skyViewLUT ? null : qe(
     n.transmittanceLUT,
-    n.multiScatterLUT
+    n.multiScatterLUT,
+    i.horizonCorrection
   );
   return le(() => {
     const h = (n.skyViewLUT ? Et(n.skyViewLUT, t, o.direction) : r(
@@ -4677,7 +4695,8 @@ class qn {
   constructor(e, t = null) {
     this.sys = e, this._skyColorLUT = qe(
       this.sys.pipeline.transmittanceLUTTexture,
-      this.sys.pipeline.multiScatterLUTTexture
+      this.sys.pipeline.multiScatterLUTTexture,
+      this.sys.atmosphere.horizonCorrection
     ), t ? (this._envMap = t, this._ownsEnvMap = !1) : (this._envMap = e.createEnvironmentMap({ includeClouds: !1 }), this._ownsEnvMap = !0);
   }
   // Reuses the dome's sun-ray LUT so fog matches the direct view.
