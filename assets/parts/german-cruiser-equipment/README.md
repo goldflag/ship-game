@@ -6,7 +6,9 @@ the construction conversion target. Fresh external-reference verification is
 incomplete; these are not independently certified historical variants.
 
 The open funnel cap preserves its swept rim and rain grating. Its datum is the
-jacket top; the ship owns the lower uptake and supporting gallery. The triple
+jacket top; the ship owns the lower uptake and supporting gallery. It is retired from
+the catalog, having no same-variant source model; its recipe stays registered for
+retained catalogs. The triple
 533 mm bank retains open launching troughs, breech covers, bands, air flasks,
 control shelter and separate yaw/muzzle nodes. It uses canonical G7a ammunition.
 Port and starboard 3.4 m screws are distinct handed variants, with independent

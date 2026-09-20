@@ -43,7 +43,7 @@ fn every_catalog_plant_fits_powers_independent_shafts_and_loses_only_its_own_ser
         for (side, x) in [("port", -7.5), ("starboard", 7.5)] {
             for (kind, part_id, position) in [
                 ("engine", engine["id"].as_str().unwrap(), [x, -5.99, 0.]),
-                ("funnel", "generic-capital-funnel", [x, 6., 0.]),
+                ("funnel", "nelson-funnel", [x, 6., 0.]),
                 ("screw", "generic-propeller-1200", [x, -5.0, 50.42]),
             ] {
                 source.construction.equipment.push(ConstructionEquipment {

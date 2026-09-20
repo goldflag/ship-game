@@ -3,6 +3,7 @@ import catalogJson from '../../../public/models/components/catalog.json';
 import retainedCatalogJson from '../../../public/models/components/catalogs/f8d5f622818e0ef20c6c3918ac36dc29d1904e18b13a83aa923e1e93d05ff697/catalog.json';
 import type { ConstructionCatalog } from '../../ships/blueprint';
 import { effectiveConstructionCatalog } from '../../ships/constructionCustomFittings';
+import { isRetiredDeckFitting } from '../../ships/constructionEquipment';
 import { paletteFor } from './builderLayers';
 import { FITTING_CATEGORIES, FITTING_GROUPS, fittingCategory, fittingNation } from './fittingCategories';
 
@@ -47,7 +48,7 @@ test('guns split at 100 mm; deck fittings are shelved by what they are', () => {
   for (const id of ['generic-capstan', 'generic-twin-bitts', 'generic-rope', 'generic-chain', 'generic-hawse-pipe']) expect(fittingCategory(part(id), catalog)).toBe('mooring');
   for (const id of ['generic-railing', 'generic-surface-ladder', 'generic-inclined-stairs', 'generic-deck-hatch', 'generic-accommodation-ladder']) expect(fittingCategory(part(id), catalog)).toBe('access');
   for (const id of ['generic-cowl-vent', 'generic-round-wall-vent', 'generic-deck-storage-box', 'generic-wall-cabinet', 'generic-life-ring', 'generic-life-raft-oval', 'generic-ensign-staff']) expect(fittingCategory(part(id), catalog)).toBe('fixtures');
-  expect(fittingCategory(part('us-cruiser-funnel'), catalog)).toBe('funnels');
+  expect(fittingCategory(part('clemson-forward-funnel'), catalog)).toBe('funnels');
   expect(fittingCategory(part('rn-tripod-foremast'), catalog)).toBe('masts');
 });
 
@@ -55,7 +56,7 @@ test('a nation keeps its own parts and the generic ones; a nation absent from th
   // Every authored id names its navy or says generic, so a new part cannot silently fall out of the filter.
   for (const entry of catalog.equipment.filter(entry => entry.placement !== 'internal')) expect(!!fittingNation(entry) || entry.id.startsWith('generic-')).toBe(true);
   const german = shelf({ category: 'funnels', nation: 'Germany' });
-  expect(german).toContain('german-cruiser-funnel-cap'); expect(german).toContain('generic-capital-funnel'); expect(german).not.toContain('fletcher-funnel');
+  expect(german).toContain('scharnhorst-funnel'); expect(german).toContain('emden-aft-funnel'); expect(german).not.toContain('clemson-forward-funnel');
   const american = shelf({ category: 'light-aa', nation: 'United States' });
   expect(american).toContain('us-20mm-oerlikon-mk4-hsienyang'); expect(american.every(id => fittingNation(part(id)) === 'United States')).toBe(true);
   expect(shelf({ category: 'mooring', nation: 'Japan' })).toEqual(shelf({ category: 'mooring', nation: 'all' }));
@@ -86,11 +87,17 @@ test('current mooring, access and fixtures contain only general ship hardware', 
   }
 });
 
+test('the current catalog publishes no retired part', () => {
+  expect(catalog.equipment.filter(entry => isRetiredDeckFitting(entry.id)).map(entry => entry.id)).toEqual([]);
+});
+
 test('older designs cannot offer retired deck fittings in their shelf, hotbar or search', () => {
   const retained = retainedCatalogJson as ConstructionCatalog;
   const retired = ['generic-paravane', 'generic-signal-lamp', 'generic-gun-tub', 'generic-gun-tub-large',
     'generic-ready-ammo-locker', 'generic-splinter-shield', 'generic-breakwater',
-    'german-cruiser-capstan', 'german-cruiser-deck-hatch'];
+    'german-cruiser-capstan', 'german-cruiser-deck-hatch',
+    'fletcher-funnel', 'german-cruiser-funnel-cap', 'generic-capital-funnel', 'us-battleship-funnel', 'us-cruiser-funnel',
+    'german-battleship-funnel', 'ijn-battleship-funnel', 'ijn-cruiser-trunked-funnel', 'ijn-destroyer-funnel', 'rn-battleship-funnel', 'rn-corvette-funnel'];
   const original = structuredClone(retained);
   // Use the real immutable publication an old design requests, not the already-curated current one.
   for (const id of retired) expect(retained.equipment.some(entry => entry.id === id)).toBe(true);

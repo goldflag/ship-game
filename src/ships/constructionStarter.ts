@@ -1,6 +1,7 @@
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, Vec3 } from './blueprint';
 import { HULL_PRESETS, type HullPresetChoice } from './constructionHullPresets';
 import { makeHull, customHullPrimitive } from './customHullModel';
+import { isRetiredDeckFitting } from './constructionEquipment';
 
 export type ConstructionStarter = 'patrol' | 'catamaran' | HullPresetChoice;
 export const startingHullBlock = (): ConstructionPrimitive => ({ id: 'hull', kind: 'box', size: [1, 1, 1], position: [0, 0, 0], rotationDeg: 0 });
@@ -52,7 +53,7 @@ export function createStarterSource(catalog: ConstructionCatalog, kind: Construc
  * No scaling, silent ballast, or relocation of existing user modules. */
 export function suggestStarterEquipment(catalog: ConstructionCatalog, kind: Exclude<ConstructionStarter, 'blank'>): ConstructionEquipment[] {
   const parts = catalog.equipment, result: ConstructionEquipment[] = [];
-  const find = (family: ConstructionEquipmentPart['kind']) => parts.filter(p => p.kind === family).sort((a, b) => a.size[0] * a.size[1] * a.size[2] - b.size[0] * b.size[1] * b.size[2])[0];
+  const find = (family: ConstructionEquipmentPart['kind']) => parts.filter(p => p.kind === family && !isRetiredDeckFitting(p.id)).sort((a, b) => a.size[0] * a.size[1] * a.size[2] - b.size[0] * b.size[1] * b.size[2])[0];
   const fit = (id: string, part: ConstructionEquipmentPart | undefined, position: Vec3, links: Partial<ConstructionEquipment> = {}) => {
     if (part) result.push({ id, partId: part.id, position, bearingDeg: 0, ...links });
   };
@@ -61,9 +62,9 @@ export function suggestStarterEquipment(catalog: ConstructionCatalog, kind: Excl
   const gun = parts.find(p => p.id === 'us-5in38-mk30-mod0-single') ?? find('gun');
   const supportY = (part: ConstructionEquipmentPart | undefined) => part?.sockets?.find(s => s.id === 'attachment')?.position[1] ?? 0;
   fit('gun-forward', gun, [0, 2.5 - supportY(gun), twin ? -8 : -14]);
-  // Keep the starter's established exhaust allowance when smaller historical
-  // funnels enter the catalog. Older catalogs can still use their smallest fit.
-  const funnel = parts.find(p => p.id === 'rn-corvette-funnel') ?? find('funnel');
+  // Keep the starter's established small funnel when other historical funnels
+  // enter the catalog. Older catalogs can still use their smallest fit.
+  const funnel = parts.find(p => p.id === 'clemson-forward-funnel') ?? find('funnel');
   fit('funnel', funnel, [twin ? 6 : 0, 2.5 - supportY(funnel), 5]);
   const propeller = find('propeller'), rudder = find('rudder');
   const shaftZ = propeller?.sockets?.find(s => s.id === 'attachment')?.position[2] ?? 0;

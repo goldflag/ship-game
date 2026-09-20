@@ -46,7 +46,8 @@ Standalone viewer previews continue to live only in `.build/parts/`.
 
 The builder also retires paravanes, signal lamps, gun tubs, ammunition lockers,
 splinter shields, fixed-shape breakwaters and the German cruiser capstan/hatch
-from older catalogs' palettes. Opening a saved design or restoring the custom
+from older catalogs' palettes, and every funnel without a same-variant source
+model (only the historical funnels remain). Opening a saved design or restoring the custom
 fleet removes their installed instances in a new saved revision. Recovery copies
 receive the same cleanup, including undo history. Earlier source revisions,
 immutable catalogs and original registrations remain available for source

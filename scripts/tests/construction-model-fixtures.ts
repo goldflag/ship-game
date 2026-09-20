@@ -45,7 +45,7 @@ export function equipmentReviewSource(catalog: ConstructionCatalog, kind: 'colle
     ['aa-b', 'us-20mm-oerlikon-mk4-hsienyang', 22, 45, -90],
   ] as const) gun(id, partId, x, z, bearing);
   put('engine', 'generic-diesel-3000kw', [0, -9.984, 65]);
-  deck('funnel', 'fletcher-funnel', 0, 65, 0, { powerSourceId: 'engine' });
+  deck('funnel', 'clemson-forward-funnel', 0, 65, 0, { powerSourceId: 'engine' });
   deck('mast', 'fletcher-aft-mast', 0, 42);
   deck('director', 'fletcher-mk37-director', 0, -70);
   for (const [id, x, bearing] of [['torpedo-a', -22, 90], ['torpedo-b', 22, -90]] as const) {

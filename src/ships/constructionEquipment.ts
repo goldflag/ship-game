@@ -3,10 +3,15 @@ import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionSource
 
 // Palette policy applies to retained catalogs too: removing an entry only from
 // the current publication would still offer it when editing an older design.
+// Funnels are deck-mounted equipment: the ones retired here had no same-variant
+// source model to compare against, leaving only the historically sourced funnels.
 const retiredDeckFittings = new Set([
   'generic-paravane', 'generic-signal-lamp', 'generic-gun-tub', 'generic-gun-tub-large',
   'generic-ready-ammo-locker', 'generic-splinter-shield', 'generic-breakwater',
   'german-cruiser-capstan', 'german-cruiser-deck-hatch',
+  'fletcher-funnel', 'german-cruiser-funnel-cap', 'generic-capital-funnel', 'us-battleship-funnel',
+  'us-cruiser-funnel', 'german-battleship-funnel', 'ijn-battleship-funnel', 'ijn-cruiser-trunked-funnel',
+  'ijn-destroyer-funnel', 'rn-battleship-funnel', 'rn-corvette-funnel',
 ]);
 export const isRetiredDeckFitting = (partId: string): boolean => retiredDeckFittings.has(partId);
 

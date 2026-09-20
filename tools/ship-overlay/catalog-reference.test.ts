@@ -27,5 +27,7 @@ test('comparison catalog includes published requested kinds only with unique ref
   expect(catalog.items.length).toBeGreaterThan(0);
   expect(catalog.items.every(item => ['gun', 'torpedo-launcher', 'mast', 'funnel'].includes(item.kind))).toBe(true);
   for (const item of catalog.items.filter(item => ['gun', 'torpedo-launcher'].includes(item.kind))) expect(item.reference?.partId).toBe(item.id);
+  // A funnel without a same-variant source model is not published.
+  for (const item of catalog.items.filter(item => item.kind === 'funnel')) expect([item.id, item.reference?.match]).toEqual([item.id, 'exact']);
   await expect(loadComponentReference(process.cwd(), '../../arbitrary')).rejects.toThrow('Unknown published');
 });
