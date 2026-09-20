@@ -87,6 +87,9 @@ pub struct MountState {
     /// movement each tick; switching back must not count that time twice.
     #[serde(skip)]
     pub(crate) surface_elapsed: f64,
+    /// A brief manual trigger press survives until the next control decision.
+    #[serde(skip)]
+    pub(crate) surface_fire: bool,
     /// The air track this mount is firing at and the ticks left before it looks
     /// for a nearer one. A cadence, never authority state: a restored battle
     /// simply searches on its first tick, and it must never reach a snapshot,
@@ -151,6 +154,7 @@ impl MountState {
             queued: None,
             aim_cache: None,
             surface_elapsed: 0.0,
+            surface_fire: false,
             lead_cache: None,
             aa_discipline: None,
             aa_track: None,
@@ -182,6 +186,7 @@ impl MountState {
             status: self.status,
             aim_cache: self.aim_cache.clone(),
             surface_elapsed: self.surface_elapsed,
+            surface_fire: self.surface_fire,
             aa_track: None,
             aa_select: None,
             blocked_cache: None,

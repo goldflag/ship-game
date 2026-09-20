@@ -149,3 +149,37 @@ fn shots_use_fresh_decisions_but_shells_keep_moving_between_them() {
         );
     }
 }
+
+#[test]
+fn a_one_tick_fire_press_is_not_lost_between_control_ticks() {
+    let mut battle = battle();
+    let idle = orders(0.);
+    for _ in 0..600 {
+        battle.step(&idle);
+    }
+    // Deliver the press just after a control update, as requestFire can do.
+    battle.step(&idle);
+    assert_eq!(battle.tick % SURFACE_CONTROL_TICKS, 1);
+    let mut press = idle.clone();
+    press.get_mut("own").unwrap().guns.as_mut().unwrap().fire = true;
+    let request_tick = battle.tick;
+    battle.step(&press);
+    for _ in 1..SURFACE_CONTROL_TICKS {
+        battle.step(&idle);
+    }
+    assert!(
+        battle.events.iter().any(|e| e.tick >= request_tick
+            && e.tick < request_tick + SURFACE_CONTROL_TICKS
+            && e.data.ship_id == "own"
+            && e.data.kind == "shot"),
+        "a brief press must fire at the next control tick"
+    );
+    let shot_count = battle.sequence;
+    for _ in 0..600 {
+        battle.step(&idle);
+    }
+    assert_eq!(
+        battle.sequence, shot_count,
+        "the press must be consumed once"
+    );
+}

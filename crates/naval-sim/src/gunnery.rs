@@ -168,6 +168,7 @@ pub(crate) fn operate_cadenced(
         {
             actor.mounts[i].status = MountStatus::Disabled;
             actor.mounts[i].surface_elapsed = 0.;
+            actor.mounts[i].surface_fire = false;
             continue;
         }
         let independent_secondary = knowledge.is_some() && m.battery == "secondary";
@@ -205,6 +206,7 @@ pub(crate) fn operate_cadenced(
                 p.battery == m.battery && p.weapon_group_id.as_ref().is_none_or(|id| id == group)
             });
         let manual = selected && player.unwrap().weapon_group_id.is_some();
+        state.surface_fire = selected && (state.surface_fire || player.unwrap().fire);
         if !manual
             && policy.aa
             && anti_aircraft::update_observed_at(
@@ -223,6 +225,7 @@ pub(crate) fn operate_cadenced(
             )
         {
             state.surface_elapsed = 0.;
+            state.surface_fire = false;
             if state.reload > previous_reload {
                 actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
             }
@@ -237,6 +240,7 @@ pub(crate) fn operate_cadenced(
             continue;
         }
         let control_dt = std::mem::take(&mut state.surface_elapsed);
+        let manual_fire = std::mem::take(&mut state.surface_fire);
         if !allowed {
             update_mount_control_at(
                 i,
@@ -271,7 +275,7 @@ pub(crate) fn operate_cadenced(
                 continue;
             };
             aim = Some(point);
-            fire = p.fire && selected;
+            fire = manual_fire;
         } else if actor.controller == Controller::Bot
             && let Some(c) = contact
         {
