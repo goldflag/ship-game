@@ -16,14 +16,14 @@ test('the summary of a finished battleship fits one screen and reports real head
     expect(compactJson(summary).length).toBeLessThan(10_000);
     expect(JSON.stringify(summary).length).toBeLessThan(9_000);
     const c = source.construction;
-    expect(summary.limits.equipment).toEqual({ used: c.equipment.length, limit: 128, free: 128 - c.equipment.length });
+    expect(summary.limits.equipment).toEqual({ used: c.equipment.length, limit: 1_000, free: 1_000 - c.equipment.length });
     expect(summary.limits.primitives.limit).toBe(10_000);
     expect(summary.limits.boundaries.limit).toBe(24);
     expect(summary.primitives.length).toBe(c.primitives.length);
     expect(Object.values(summary.equipmentCounts).reduce((sum, n) => sum + n, 0)).toBe(c.equipment.length);
   }
   const summary = constructionSummary(valiant, valiantCatalog);
-  expect(summary.limits.equipment.free).toBe(8);
+  expect(summary.limits.equipment.free).toBe(880);
   expect(summary.primitives[0]).toEqual(['hull', 'custom-hull', [0, 0, 0], [35, 16, 252], 0, 6]);
   expect((summary.equipment.gun['us-16in50-mk7-iowa'] as Record<string, number[]>)['main-charlie']).toEqual([0, 7.8, 78, 180]);
   // Outfit lists IDs only by default; asking for the kind or every position restores placements.

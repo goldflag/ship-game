@@ -32,10 +32,9 @@ export const CONSTRUCTION_CONVENTIONS = {
     'size [x,y,z] is the envelope centred at position; custom-hull size is [beam, depth, length]; rotationDeg is yaw, optional tilt adds pitch/roll (YXZ)',
   equipment: 'position is the catalog part datum (not its bounds centre); catalog boundsCenter/size are datum-local',
 } as const;
-/** Source bounds checked by `validate_source` in crates/naval-sim/src/construction.rs; loads share the equipment bound. */
+/** Source bounds checked by `validate_source` in crates/naval-sim/src/construction.rs. */
 export const CONSTRUCTION_SOURCE_LIMITS = {
   ...CONSTRUCTION_LIMITS,
-  loads: CONSTRUCTION_LIMITS.equipment,
   sourceBytes: 16_000_000,
   idCharacters: 64,
   pathPoints: 64,

@@ -37,8 +37,10 @@ export function solidPanels(primitive: ConstructionPrimitive): { face: Construct
   );
   return [...groups].flatMap((panelId) => CONSTRUCTION_FACES.map((face) => ({ face: face as ConstructionFace, panelId })));
 }
-/** Source bounds, mirrored from the native compiler (crates/naval-sim/src/construction.rs). */
-export const CONSTRUCTION_LIMITS = { primitives: 10_000, surfaces: 65_536, equipment: 128, boundaries: 24 } as const;
+/** Source bounds, mirrored from the native compiler (crates/naval-sim/src/construction.rs).
+ * `equipment` is the detail budget for catalog fittings; design-local fitting instances have
+ * their own budget in `CUSTOM_FITTING_LIMITS.instances`, and `loads` is separate again. */
+export const CONSTRUCTION_LIMITS = { primitives: 10_000, surfaces: 65_536, equipment: 1_000, loads: 128, boundaries: 24 } as const;
 
 /** Native equipment supports stay visible but are not editable hull source assignments. */
 export function editableConstructionSurfaces(source: ConstructionSource, surfaces: readonly ConstructionSurface[]): ConstructionSurface[] {

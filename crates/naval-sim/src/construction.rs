@@ -8,7 +8,11 @@ pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
 pub const MAX_PRIMITIVES: usize = 10_000;
 pub const MAX_SURFACE_ASSIGNMENTS: usize = 65_536;
-pub const MAX_EQUIPMENT: usize = 128;
+/// Catalog equipment rows per design: the editor's detail budget. Design-local
+/// fittings are counted separately (`construction_custom_fittings::MAX_INSTANCES`).
+pub const MAX_EQUIPMENT: usize = 1_000;
+/// Ballast and cargo entries, which are unrelated to the fitting detail budget.
+pub const MAX_LOADS: usize = 128;
 pub const MAX_BOUNDARIES: usize = 24;
 /// Derived exposed skin patches, including installation supports.
 pub const MAX_SURFACES: usize = 131_072;
@@ -620,7 +624,7 @@ fn validate(
             "custom fitting definitions",
         ),
         (c.boundaries.len(), MAX_BOUNDARIES, "boundaries"),
-        (c.loads.len(), MAX_EQUIPMENT, "loads"),
+        (c.loads.len(), MAX_LOADS, "loads"),
     ] {
         if count > limit {
             errors.push(error(
@@ -2632,22 +2636,39 @@ fn equipment(
                 ));
             }
         }
-        let clash = all_envelopes.iter().find_map(|(other, cell)| {
-            if !colliding_ids.contains(e.id.as_str()) || !colliding_ids.contains(other.as_str()) {
-                return None;
-            }
-            // Fixed machinery retains its partial-overlap rule; weapons need clearance.
-            let weapon = |kind: &str| matches!(kind, "gun" | "torpedo-launcher");
-            if (relaxed_fit(p) && !weapon_ids.contains(other.as_str()))
-                || (relaxed_ids.contains(other.as_str()) && !weapon(&p.kind))
-            {
-                return None;
-            }
-            fitting_cells
+        // Only registered cells whose bounds meet this fitting's can intersect it, so the
+        // broadphase replaces the scan over every earlier envelope. Candidate indices are
+        // `all_envelopes` positions in ascending order, so the neighbour reported first is
+        // the one the full scan reported.
+        let clash = if colliding_ids.contains(e.id.as_str()) {
+            let mut candidates: Vec<usize> = fitting_cells
                 .iter()
-                .find_map(|f| cg::intersection(f, cell).filter(|x| cg::moments(x).volume > 1e-5))
-                .map(|shared| (other.clone(), shared))
-        });
+                .flat_map(|f| fitting_index.candidates(f))
+                .collect();
+            candidates.sort_unstable();
+            candidates.dedup();
+            candidates.into_iter().find_map(|i| {
+                let (other, cell) = &all_envelopes[i];
+                if !colliding_ids.contains(other.as_str()) {
+                    return None;
+                }
+                // Fixed machinery retains its partial-overlap rule; weapons need clearance.
+                let weapon = |kind: &str| matches!(kind, "gun" | "torpedo-launcher");
+                if (relaxed_fit(p) && !weapon_ids.contains(other.as_str()))
+                    || (relaxed_ids.contains(other.as_str()) && !weapon(&p.kind))
+                {
+                    return None;
+                }
+                fitting_cells
+                    .iter()
+                    .find_map(|f| {
+                        cg::intersection(f, cell).filter(|x| cg::moments(x).volume > 1e-5)
+                    })
+                    .map(|shared| (other.clone(), shared))
+            })
+        } else {
+            None
+        };
         // A clashing fitting still registers, so later fittings are tested against it.
         for fitted_cell in &fitting_cells {
             fitting_index.insert(fitted_cell);

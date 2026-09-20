@@ -312,6 +312,11 @@ The editor overlap policy (`construction_overlap.rs`, `MIN_EXPOSED = 0.1`) requi
 block to keep 10% of its volume outside the other blocks. It is an editing aid; loading always
 uses the physical union.
 
+Equipment clash tests go through the fitting broadphase (`construction_geometry.rs`,
+`Broadphase`) instead of comparing every fitting with every earlier one, so a design near the
+1,000-row budget costs about linear time. Candidates keep insertion order, so the neighbour a
+clash names is the one the exhaustive comparison named.
+
 ## Equipment catalog
 
 `loadConstructionCatalog(revision?)` in `src/ships/constructionEquipment.ts` fetches
@@ -378,8 +383,9 @@ Source bounds are constants in `construction.rs`, mirrored by `CONSTRUCTION_LIMI
 | Source JSON / catalog JSON | 16 MB / 4 MB |
 | Primitives | 10,000 |
 | Surface assignments | 65,536 |
-| Equipment instances, loads | 128 each |
-| Custom fitting definitions / instances | 32 / 512, counted apart from equipment instances |
+| Equipment instances | 1,000 (32 online) |
+| Loads | 128 |
+| Custom fitting definitions / instances | 32 / 1,000, counted apart from equipment instances |
 | Solids / tubes / triangles per custom fitting | 48 / 16 / 20,000 |
 | Compound solid vertices / parts / polygons | 8,192 / 256 / 8,192, with 128 polygons per part |
 | Compound solid exterior patches | 32,768 per block |

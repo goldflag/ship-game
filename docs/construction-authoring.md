@@ -428,9 +428,9 @@ reflection across X=0 (bearing negated, IDs `…-starboard`/`…-port`, wall fit
 through `wall.mirrorId` as the editor does) and reports the twin's own `residualM`; a
 twin more than 5 cm off its support is an error, so place each side separately on an
 asymmetric hull. A centreline request stays single. `--repeat n --step dx,dz` seats
-each copy on its own support (IDs `…-1`, `…-2`; at most 64 copies, 128 equipment records
-per design). Connected fittings (railings, ropes, ladders with a path) have no single
-seat; write their points with an `equipment` command. `place` does not set
+each copy on its own support (IDs `…-1`, `…-2`; at most 1,000 copies per request and
+1,000 equipment records per design). Connected fittings (railings, ropes, ladders
+with a path) have no single seat; write their points with an `equipment` command. `place` does not set
 `magazineId` or `powerSourceId`; patch them afterwards in a version-1 design.
 
 `reseat` takes each record to its **nearest** support along its attachment direction
@@ -621,8 +621,8 @@ armor, modules and flooding ignore it. The format is in
   `tubes` replace whole). Every instance follows a change.
 - An instance is an `equipment` row with `partId: "design:<definition id>"`. Seat it with
   `ship:place --part design:<id>`; `--mirror`, `--repeat`, `ship:reseat`, `copy`, `move`, `rotate`
-  and `remove` work as for catalog deck fittings. Instances have their own limit of 512 and never
-  count against the 128 equipment instances.
+  and `remove` work as for catalog deck fittings. Instances have their own limit of 1,000 and never
+  count against the 1,000 equipment instances.
 - `remove` with a definition ID is refused while instances outside that command use it; the error
   names them.
 - `ship:summary` lists definitions as `[id, name, solids, tubes, massKg, instances, partId]` and

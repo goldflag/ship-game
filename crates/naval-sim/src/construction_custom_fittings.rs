@@ -10,7 +10,8 @@ pub const PART_PREFIX: &str = "design:";
 pub const MAX_DEFINITIONS: usize = 32;
 pub const MAX_SOLIDS: usize = 48;
 pub const MAX_TUBES: usize = 16;
-pub const MAX_INSTANCES: usize = 512;
+/// Design-local fitting instances per design, counted apart from catalog equipment rows.
+pub const MAX_INSTANCES: usize = 1_000;
 /// Convex-cell face triangles plus swept tube triangles, per definition.
 pub const MAX_TRIANGLES: usize = 20_000;
 pub const MAX_TUBE_LENGTH_M: f64 = 100.;
@@ -639,7 +640,8 @@ mod tests {
         let d = &result.diagnostics[0];
         assert_eq!(d.code, "complexity");
         assert!(
-            d.message.contains("513 custom fitting instances"),
+            d.message
+                .contains(&format!("{} custom fitting instances", MAX_INSTANCES + 1)),
             "{}",
             d.message
         );

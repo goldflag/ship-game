@@ -23,7 +23,7 @@ export const CUSTOM_FITTING_LIMITS = {
   definitions: 32,
   solids: 48,
   tubes: 16,
-  instances: 512,
+  instances: 1_000,
   triangles: 20_000,
   tubeLengthM: 100,
   localM: 100,

@@ -66,7 +66,7 @@ export function placeAt(
       }
     }
     if (equipmentOverLimit(this.data, parts, LIMITS.equipment)) {
-      this.door.setError(`A design supports up to ${LIMITS.equipment} fittings. Remove a fitting before adding more.`);
+      this.door.setError(`A design supports up to ${LIMITS.equipment.toLocaleString()} fittings. Remove a fitting before adding more.`);
       return undefined;
     }
     return this.run(

@@ -1,6 +1,7 @@
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionSource, Vec3 } from './blueprint';
-import { customFittingDefinitions, customFittingFault, customFittingOf, effectiveConstructionCatalog, isCustomFittingPartId } from './constructionCustomFittings';
+import { CUSTOM_FITTING_LIMITS, customFittingDefinitions, customFittingFault, customFittingOf, effectiveConstructionCatalog, equipmentCounts, isCustomFittingPartId } from './constructionCustomFittings';
 import type { ConstructionCommand } from './constructionCommands';
+import { CONSTRUCTION_LIMITS } from './constructionEditor';
 import { mirroredWall, wallMount } from './constructionWallFittings';
 
 /** Requests and results of the native seat resolver (`crates/naval-sim/src/construction_placement.rs`).
@@ -52,7 +53,9 @@ export interface PlaceOptions {
   repeat?: number;
   step?: [number, number];
 }
-export const PLACEMENT_LIMIT = 64;
+/** Copies one `place` request may seat. The design's own equipment and custom-fitting
+ * budgets still apply, so a long run is refused by the budget, not by this cap. */
+export const PLACEMENT_LIMIT = 1_000;
 
 const bearing = (degrees: number) => (((degrees % 360) + 360) % 360) || 0;
 const validId = (id: string) => /^[A-Za-z0-9_-]{1,64}$/.test(id);
@@ -116,7 +119,14 @@ export function placementItems(source: ConstructionSource, catalog: Construction
       on: options.on, mirrorOf: id,
     });
   }
-  if (source.construction.equipment.length + items.length > 128) throw new Error('A design holds at most 128 equipment records; this placement needs ' + items.length + ' and ' + (128 - source.construction.equipment.length) + ' remain.');
+  // Catalog rows and design-local fitting instances have separate budgets, as in the compiler.
+  const now = equipmentCounts(source.construction), more = equipmentCounts({ equipment: items.map((item) => item.equipment) });
+  for (const [count, added, limit, noun] of [
+    [now.catalog, more.catalog, CONSTRUCTION_LIMITS.equipment, 'equipment records'],
+    [now.custom, more.custom, CUSTOM_FITTING_LIMITS.instances, 'custom fitting instances'],
+  ] as const)
+    if (added > 0 && count + added > limit)
+      throw new Error('A design holds at most ' + limit.toLocaleString('en-US') + ' ' + noun + '; this placement needs ' + added + ' and ' + (limit - count) + ' remain.');
   return items;
 }
 

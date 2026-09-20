@@ -5,7 +5,7 @@ import { parseConstructionCatalog } from './constructionEquipment';
 import { createStarterSource } from './constructionStarter';
 import { applyConstructionBatch } from './constructionCommands';
 import { effectiveConstructionCatalog } from './constructionCustomFittings';
-import { placementCommands, placementItems, reseatCommands, reseatItems, type Placement } from './constructionPlacement';
+import { PLACEMENT_LIMIT, placementCommands, placementItems, reseatCommands, reseatItems, type Placement } from './constructionPlacement';
 
 const catalog = parseConstructionCatalog(JSON.parse(readFileSync(join(import.meta.dir, '../../public/models/components/catalog.json'), 'utf8')));
 const source = () => createStarterSource(catalog, 'fletcher-hull');
@@ -53,7 +53,7 @@ describe('construction placement requests', () => {
     bad({ partId: 'generic-stowed-anchor', y: 2 }, /--bearing/);
     bad({ repeat: 3 }, /--step/);
     bad({ step: [1, 0] }, /--repeat only/);
-    bad({ repeat: 65, step: [1, 0] }, /1–64/);
+    bad({ repeat: PLACEMENT_LIMIT + 1, step: [1, 0] }, new RegExp(`1–${PLACEMENT_LIMIT}`));
     bad({ id: 'bad id' }, /--id accepts/);
     bad({ id: 'hull' }, /already exists/);
     bad({ at: [Number.NaN, 0] }, /finite/);
