@@ -28,6 +28,47 @@ export async function readCatalog(root: string, revision: string): Promise<Const
   if (catalog.revision !== revision) throw new Error('Equipment catalog identity mismatch.');
   return catalog;
 }
+/** A lock directory holding its owner's pid and start time. A holder that died, or that has held the lock longer than
+ * `staleMs`, is broken and replaced; a live holder rejects with code `EEXIST`. Returns the release. */
+export async function acquireLock(lock: string, staleMs = 30_000): Promise<() => Promise<void>> {
+  const owner = crypto.randomUUID(), record = join(lock, 'owner.json');
+  const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch (error) { return (error as NodeJS.ErrnoException).code === 'EPERM'; } };
+  let breaking = '';
+  for (let attempt = 0; ; attempt++) {
+    try {
+      // After a takeover the breaker mutex stays held until the new owner is on record.
+      try { await mkdir(lock); await writeFile(record, JSON.stringify({ pid: process.pid, at: Date.now(), owner })); }
+      finally { if (breaking) await rm(breaking, { recursive: true, force: true }); }
+      return async () => {
+        // A lock taken over after this holder stalled belongs to its new owner.
+        const current = await readFile(record, 'utf8').then(text => JSON.parse(text).owner).catch(() => undefined);
+        if (current === owner) await rm(lock, { recursive: true, force: true });
+      };
+    } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'EEXIST' || attempt) throw error; }
+    const held = await readFile(record, 'utf8').then(text => JSON.parse(text) as { pid: number; at: number; owner: string }).catch(() => undefined);
+    // Locks written before owners were recorded, and the instant between mkdir and its record, carry only a directory time.
+    const since = held?.at ?? (await stat(lock).then(s => s.mtimeMs, () => Date.now()));
+    const broken = held ? !alive(held.pid) || Date.now() - since > staleMs : Date.now() - since > Math.min(staleMs, 5_000);
+    if (!broken) throw held_(lock);
+    // One breaker at a time: contenders that judged the same dead lock must not remove each other's fresh one.
+    const breaker = lock + '.takeover';
+    try { await mkdir(breaker); } catch {
+      // A breaker that died mid-takeover leaves this behind; it is only ever held for a few file operations.
+      if (Date.now() - await stat(breaker).then(s => s.mtimeMs, () => Date.now()) > 10_000) await rm(breaker, { recursive: true, force: true });
+      throw held_(lock);
+    }
+    breaking = breaker;
+    try {
+      const aside = lock + '.broken-' + owner;
+      try { await rename(lock, aside); } catch { continue; }
+      const moved = await readFile(join(aside, 'owner.json'), 'utf8').then(text => JSON.parse(text).owner).catch(() => undefined);
+      // The holder changed since it was judged: put the live lock back.
+      if (moved !== held?.owner) { await rename(aside, lock).catch(() => rm(aside, { recursive: true, force: true })); throw held_(lock); }
+      await rm(aside, { recursive: true, force: true });
+    } catch (error) { await rm(breaker, { recursive: true, force: true }); throw error; }
+  }
+}
+const held_ = (lock: string) => Object.assign(new Error('Lock is held: ' + lock), { code: 'EEXIST' });
 function saved(id: string, json: string, createdAt: number, parentId: string | null = null): ConstructionRevision {
   const source = decodeConstructionSource(JSON.parse(json));
   return { formatVersion: 1, id: digest(json), designId: id, parentId, createdAt, schemaVersion: source.schemaVersion, catalogRevision: source.construction.catalogRevision, sourceJson: json };
@@ -66,7 +107,7 @@ export function repositoryStore(root: string): ConstructionStore {
       await readCatalog(root, source.construction.catalogRevision);
       const lock = join(root, '.build/construction', id + '.lock');
       await mkdir(join(root, '.build/construction'), { recursive: true });
-      try { await mkdir(lock); } catch { throw new ConstructionStoreError('conflict', 'Another writer is saving this ship. Read the latest source and retry.'); }
+      const release = await acquireLock(lock).catch(error => { if (error.code !== 'EEXIST') throw error; throw new ConstructionStoreError('conflict', 'Another writer is saving this ship. Read the latest source and retry.'); });
       let temporary = '';
       try {
         const current = await readSource(root, id).catch(error => { if (error.code === 'ENOENT') return undefined; throw error; });
@@ -88,7 +129,7 @@ export function repositoryStore(root: string): ConstructionStore {
         return saved(id, json, Date.now(), current?.hash ?? null);
       } finally {
         if (temporary) await rm(temporary, { force: true });
-        await rm(lock, { recursive: true, force: true });
+        await release();
       }
     },
     async remove() { throw new Error('Repository ships are deleted through Git. Download a backup before removing their source.'); },

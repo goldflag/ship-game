@@ -13,6 +13,7 @@ fn error(message: impl Into<String>, id: &str) -> ConstructionDiagnostic {
         code: "equipment-path".into(),
         message: message.into(),
         source_id: Some(id.into()),
+        ..Default::default()
     }
 }
 fn finite(p: Vec3) -> bool {

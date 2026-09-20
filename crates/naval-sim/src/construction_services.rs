@@ -76,6 +76,7 @@ pub(crate) fn install(
             "Auxiliaries reserve 2% rated power and provide {capacity:.4} m³/s fixed pumping with {teams} automatic work parties; engine health and shared exhaust capacity control service"
         ),
         source_id: None,
+        ..Default::default()
     })
 }
 

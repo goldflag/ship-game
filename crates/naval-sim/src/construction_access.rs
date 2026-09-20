@@ -42,6 +42,7 @@ fn error(id: &str, message: &str) -> ConstructionDiagnostic {
         code: "equipment-path".into(),
         source_id: Some(id.into()),
         message: message.into(),
+        ..Default::default()
     }
 }
 

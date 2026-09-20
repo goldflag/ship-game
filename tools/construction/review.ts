@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
-import { createReviewPresentation } from './presentation';
+import { createReviewCanvas, createReviewPresentation } from './presentation';
+import { createViewStage } from './viewStage';
 import { exportReviewGlb } from './export';
 import { resetReviewPose } from './pose';
 import { createConstructionModel, disposeConstructionModel } from '../../src/game/constructionModel';
@@ -19,13 +20,24 @@ import init, { ArticulationPreview } from '../../src/generated/naval-wasm/naval_
 
 export type ReviewView = 'profile' | 'plan' | 'bow' | 'stern' | 'quarter';
 type Pose = { train: number; elevation: number; recoil: number };
-export interface ReviewInput { source: ConstructionSource; result: ConstructionResult; definition?: ShipDefinition; modelUrl?: string; }
+/** `draft` lets `ship:view` open a design whose compile has errors: only `view` works then, and it draws the editor's source preview. */
+export interface ReviewInput { source: ConstructionSource; result: ConstructionResult; definition?: ShipDefinition; modelUrl?: string; draft?: boolean; }
 
 export async function openReview(input: ReviewInput) {
   await init();
   const { source, result } = input;
   const definition = input.definition ?? result.definition;
-  if (!definition || result.diagnostics.some(d => d.severity === 'error')) throw new Error('Resolve compile errors before rendering or trial.');
+  const refuse = (): never => { throw new Error('Resolve compile errors before rendering or trial.'); };
+  if (!definition || result.diagnostics.some(d => d.severity === 'error')) {
+    if (!input.draft) refuse();
+    const canvas = createReviewCanvas(), stage = createViewStage(source, result, await loadConstructionCatalog(source.construction.catalogRevision), canvas);
+    return { render: refuse, pose: refuse, poseTorpedoes: refuse, sweep: refuse, exportGlb: refuse, trial: refuse, inspect: refuse, view: stage.render, fallback: true, dispose() { stage.dispose(); canvas.dispose(); } } as unknown as CompiledReview;
+  }
+  return openCompiledReview(input, definition);
+}
+type CompiledReview = Awaited<ReturnType<typeof openCompiledReview>>;
+async function openCompiledReview(input: ReviewInput, definition: ShipDefinition) {
+  const { source, result } = input;
   const catalog = await loadConstructionCatalog(source.construction.catalogRevision);
   const model = input.modelUrl ? (await loadShipModel(input.modelUrl, false, definition.contentHash)).scene : await createConstructionModel(source, result);
   if (input.modelUrl && model.userData.definitionHash !== definition.contentHash) throw new Error('Published model/definition identity mismatch.');
@@ -59,7 +71,9 @@ export async function openReview(input: ReviewInput) {
     }
     return target;
   };
-  const presentation = createReviewPresentation(view, model, source, definition, resetPose, focus);
+  const canvas = createReviewCanvas();
+  const presentation = createReviewPresentation(view, model, source, definition, resetPose, focus, canvas);
+  const stage = input.modelUrl ? undefined : createViewStage(source, result, catalog, canvas, { root: view.root, model, resetPose });
   const { render } = presentation;
   const articulation = new ArticulationPreview(JSON.stringify(definition));
   const pose = (requested: Pose[]) => {
@@ -140,7 +154,8 @@ export async function openReview(input: ReviewInput) {
     nodes: [...nodes.keys()],
   });
   await render();
-  return { render, pose, poseTorpedoes, sweep, exportGlb, trial, inspect, dispose() { articulation.free(); presentation.dispose(); disposeConstructionModel(model); } };
+  const viewUnavailable = (): never => { throw new Error('ship:view draws the source design, not a published model.'); };
+  return { render, pose, poseTorpedoes, sweep, exportGlb, trial, inspect, view: stage?.render ?? viewUnavailable as never, fallback: false, dispose() { articulation.free(); stage?.dispose(); presentation.dispose(); disposeConstructionModel(model); } };
 }
 
 declare global {

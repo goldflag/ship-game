@@ -5,6 +5,22 @@ Blender remains the permanent authoring tool for original reusable components.
 Existing Blender-backed ships remain supported; migrating their hulls is separate work.
 Both routes use the versioned blueprint/definition family in `src/ships/blueprint.ts`.
 
+## The agent loop
+
+```sh
+bun run ship:summary my-ship                      # one screen: revisions, conventions, headroom, rows
+bun run ship:get my-ship --ids gun-forward        # exact records; ship:bounds and ship:near answer where
+bun run ship:schema --op move                     # the batch contract; ship:place and ship:reseat propose batches
+bun run ship:apply my-ship batch.json --dry-run --brief
+bun run ship:apply my-ship batch.json
+bun run ship:inspect my-ship --brief              # every independent error, with gaps and seat positions
+bun run ship:view my-ship --focus gun-forward     # works on drafts that do not compile
+```
+
+Read narrowly, edit through guarded batches, let the native compiler judge, then look. Misspelled
+flags and malformed commands fail without changing anything. The same commands are Model Context
+Protocol tools; see [MCP server](#mcp-server).
+
 ## Start and edit
 
 ```sh
@@ -78,18 +94,54 @@ to assembling a whole ship hull from many vertex pieces.
 The UI's **Edit hull sections** and the agent source share exactly the same
 `customHull.version: 1` data. `size` is `[beam, depth, length]` in metres;
 `position` and `rotationDeg` place the whole hull. Optional `tilt: {version: 1, pitchDeg, rollDeg}` adds pitch and roll; local axes rotate in YXZ order. Section `t` runs from bow (0)
-to stern (1). Each section has a stable ID and nine ordered cross-section points:
-port deck down to keel (index 4), then up to starboard deck. Point X scales by
-half the beam and point Y by depth. Retain left/right symmetry, point ordering
+to stern (1). Each section has a stable ID and an ordered cross-section outline:
+port deck down to the keel (the middle point), then up to starboard deck. Every
+section of one hull uses the same odd point count, 5–33 (`src/ships/customHullTopology.ts`);
+presets start with nine. Outlines with other counts carry a `contour` position per
+point on the 0–8 outline scale (keel 4), mirrored about the keel and equal across sections.
+Point X scales by half the beam and point Y by depth. Retain left/right symmetry, point ordering
 and existing IDs. Rust validates the physical solid; source edits do not certify fit.
 
 Use `primitive-patch` for dimensions, rake, bulb and `customHull.paintBands` (or legacy `redPaintY`)
 (hull-local metres; `null` disables the red coating). Use `hull-station` to change
-one existing section's `t` or nine-point outline, and `hull-sections` for the UI's
+one existing section's `t` or outline (keep the hull's point count; to change the count, replace
+every section's `points` in one `primitive-patch` of `customHull.stations`), and `hull-sections` for the UI's
 4–24-section interpolation/simplification. Increasing count retains existing
 sections. Changing section adjacency creates new panel IDs; old panel overrides
 remain stored and new panels inherit side defaults. Inspect panel IDs again before
 assigning armor. Equipment stays at its authored placement when the hull changes.
+
+## Reading a design cheaply
+
+A finished ship is large: Valiant's source is about 130 KB, `ship:inspect` about 800 KB and
+`--source` more. Read in this order and stop as soon as the question is answered:
+
+```sh
+bun scripts/construction/cli.ts summary my-ship
+bun scripts/construction/cli.ts get my-ship --ids gun-forward,hull --fields position,bearingDeg,size
+bun scripts/construction/cli.ts bounds my-ship --kind gun
+bun scripts/construction/cli.ts near my-ship --point 0,8,-40 --radius 6
+bun scripts/construction/cli.ts near my-ship --between gun-forward,bridge
+```
+
+None of these compile. Each returns `revision` and `fileRevision`, so a result can seed a
+guarded batch directly. Output is JSON with one record per line.
+
+| Command | Returns |
+| --- | --- |
+| `summary` | Coordinate conventions, hull-piece bounds, used/limit/free for every source limit, hull pieces as `[id, kind, position, size, rotation, surface assignments]` rows, equipment as kind → catalog part → `id: [x, y, z, bearingDeg]`, boundaries and loads. Deck fittings list IDs only unless `--positions` or `--kind deck-fitting`; `--no-positions` lists IDs everywhere. `--kind` keeps one hull-piece or equipment kind. `--compile` adds launchability, diagnostics, loading totals and derived surface/flooding-portal usage |
+| `get` | Exact source records from any table. Selectors `--ids`, `--kind`, `--part`, `--prefix` intersect; `--fields` projects (the ID is always kept); `--surfaces` adds the face assignments of selected hull pieces. An unknown ID fails and lists the closest IDs |
+| `bounds` | Axis-aligned boxes in ship coordinates: hull pieces from their size, rotation, tilt and section or vertex controls; equipment from the catalog dimensions around its datum, turned by its bearing, including wall sizing, path points and turret rise; part working spaces as `occupancy`. No selector lists hull pieces and loads; `--all` adds every equipment row. Boundaries return their plane |
+| `near` | Records whose box lies within `--radius` of `--point`, or intersects `--box x0,y0,z0,x1,y1,z1`, nearest first (`--limit`, default 25; `--kind`). `--between idA,idB` gives the per-axis gap between two boxes; negative is overlap depth |
+
+Boxes are source-level estimates. `approximate: true` with `why` marks a conservative or
+incomplete box: curved and sloped shapes use their size envelope, adjustable hulls their section
+controls, guns and launchers their stowed pose, and parts turned off the ship axes the box around
+the turned part. Use them to choose positions and find neighbours, then confirm with
+`ship:apply --dry-run`; only the native compiler decides fit, support and clearance.
+
+The query implementation is `src/ships/constructionQuery.ts`. Use `ship:inspect --source` only
+when a whole-source read is needed.
 
 ## Agent commands
 
@@ -113,8 +165,13 @@ returns `compiled: false`; it makes no launchability claim. `--panels` adds cano
 custom-hull panel IDs for armor/paint targeting. `ship:catalog` searches the design's
 exact retained equipment catalog by ID, name or kind and returns dimensions,
 capabilities and sockets. Do not substitute a current variant for a retained one.
+`ship:inspect --brief` keeps the revisions, launchability, table counts, loading totals and
+diagnostics and drops the per-equipment and per-mass rows. `ship:catalog` also accepts
+`--kind <kind>`, `--ids id,id` (unknown IDs list the closest) and `--brief` (ID, name, kind,
+placement and dimensions; no sockets or model data).
 
-`ship:apply --dry-run` applies the batch to a detached candidate and runs the native
+`--brief` on a dry run keeps the loading totals and drops the per-item mass contributions
+(about 60 KB on a bare hull). `ship:apply --dry-run` applies the batch to a detached candidate and runs the native
 compiler without changing the file or revision history. Invalid candidates exit
 nonzero with diagnostics. An ordinary apply still permits physically invalid drafts
 so agents can repair them over several transactions. A dry run does not reserve the
@@ -137,7 +194,33 @@ A batch applies as one transaction:
 }
 ```
 
-The shared command implementation is `src/ships/constructionCommands.ts`.
+The shared command implementation is `src/ships/constructionCommands.ts`. Command
+shapes are declared once in `src/ships/constructionCommandSchema.ts`; the runtime
+validator, the patch tables and the JSON Schema derive from it, and tests fail when the
+TypeScript types drift from it.
+
+```sh
+bun run ship:schema              # JSON Schema (draft 2020-12) of a batch, plus conventions
+bun run ship:schema --op move    # one command and the records it references
+```
+
+Every command is shape-checked before the first one applies: unknown `op`, unknown or
+missing fields, wrong types, non-finite numbers and `null` on a required field are
+rejected, and nothing is saved. Shape only: a physically invalid draft still applies and
+the native compiler judges it. Errors name the zero-based command index, the op, the
+JSON path within that command and the offending value or ID, with close matches:
+
+```text
+Command 3 (move): delta[1] must be a finite number, got null
+Command 0 (rotate): degrees is required
+Command 7 (remove): unknown source ID "gun-fwd"; closest: "gun-forward"
+Command 2 (primitive-patch): result is not a valid source: Custom hulls require 4–24 sections
+Batch: label is required
+```
+
+In code the error is a `ConstructionCommandError` with `commandIndex`, `op`, `path`
+and `value`; the CLI prints its message as `{"error": …}`.
+
 Commands are:
 
 | Operation | Fields | Behavior |
@@ -152,9 +235,11 @@ Commands are:
 | `copy` | `copies: [{from,to}]`, optional `mirror` or `offset` | Copy hull pieces, equipment and loads using caller-supplied new IDs; preserve surfaces and remap copied magazine/engine links |
 | `remove` | `ids` | Remove selected records; retain the last hull piece |
 | `move` | `ids`, `delta: [x,y,z]` | Translate pieces, equipment, loads and boundary offsets |
-| `rotate` | `ids`, `degrees` | Rotate hull/equipment around their own datums |
+| `turret-rise` | `id`, `heightM` (0–30) | Set a gun's rise above its deck attachment; `position` Y moves by the change, as the editor's **Turret rise** does |
+| `rotate` | `ids`, `degrees` (required) | Add `degrees` to each hull piece's `rotationDeg` and each fitting's `bearingDeg` about their own datums; wall fittings are skipped |
 | `surface` | `value` | Assign a canonical source face's armor, paint or opening |
 | `surface-patch` | `targets: [{primitiveId,face,panelId?}]`, `changes`, optional `mirror` | Change armor/material/paint/opening independently; mirror targets the opposite face/panel on the same primitive |
+| `surface-remove` | `targets: [{primitiveId,face,panelId?}]`, optional `mirror` | Remove face assignments so the faces inherit again (panel from its side, side from the ship paint and default skin). Each named target must hold an assignment; the mirrored one is removed when present. Stale panel overrides are removable |
 | `construction-version` | `version` | Set construction format 1 or 2 atomically with the equipment migration |
 | `catalog` | `revision` | Adopt another retained parts-catalog revision; fitted variants must exist in it |
 | `vertices` | `id`, `selection`, `delta`, optional `mirror`, `nearby` | Use the same freeform transformation as the UI |
@@ -162,21 +247,26 @@ Commands are:
 `selection` is `{mode: "vertex" | "edge" | "face", index: number}`; `mirror` is
 three booleans for the local X/Y/Z planes. Coordinate order and corner indexing
 are documented in [freeform hulls](shipbuilding.md#freeform-hulls).
+Equipment `bearingDeg` is clockwise seen from above (0 bow, 90 starboard); a hull piece's
+`rotationDeg` is yaw about +Y, counter-clockwise seen from above. `rotate` adds the same
+number to both.
 Rust remains authoritative for geometry, fit, loading and launch validity.
 
 Recent editor features are source-authorable through these patches:
 
-- Adjustable hulls: `size`, `customHull.rake`, `bulb`, `paintBands`, legacy `redPaintY` and `stations`.
+- Adjustable hulls: `size`, `customHull.rake`, `bulb`, `paintBands`, legacy `redPaintY`, `stations`
+  and `bilgeKeels` (`null` removes the keels).
 - Balconies: `balcony.points` with stable IDs and per-edge `open`/`railing`/`triple-railing`/`wall`,
   plus `heightM` and `wallThicknessM`.
 - Freeform edge treatments: `shaping` with `version: 1`, `edges`, `radius` and
   `style: "round" | "chamfer"` on a `vertex` primitive; `null` restores sharp edges.
-- Guns: nested `gun` settings for turret rise, battery and arcs.
+- Guns: nested `gun` settings for battery and arcs; use `turret-rise` for rise.
   Exact catalog variants retain their integrated ammunition and working spaces;
   current light deck mounts do not need an invented below-deck magazine.
 - Fittings: fractional `bearingDeg`, instance `paint`, wall dimensions and linked
   mirrored windows/doors/portholes. Patching a linked wall updates its partner.
-- Railing, rope and chain: `path.points` in equipment-local metres and `slackM`.
+- Railing, rope, chain and ladders: `path.points` in equipment-local metres, `slackM`, railing
+  `heightM`/`railCount` and ladder `access` settings.
 - Propulsion: `powerSourceId: null` removes an explicit engine override and restores
   native automatic assignment. Funnel capacity is pooled by the native compiler.
 
@@ -192,11 +282,19 @@ For example, these commands can be placed in the revision-guarded batch above:
       ] }
     }
   } },
-  { "op": "equipment-patch", "id": "gun-forward", "changes": {
-    "gun": { "barbetteHeightM": 0.6 }
-  } }
+  { "op": "turret-rise", "id": "gun-forward", "heightM": 0.6 }
 ]
 ```
+
+`position` is the turret datum and `gun.barbetteHeightM` is the support generated below
+it. `turret-rise` changes both, so the deck attachment stays where it was. Patching
+`gun.barbetteHeightM` alone keeps the gunhouse still and moves the attachment instead,
+detaching the gun from its deck height. The batch has no catalog: `turret-rise` does not
+check that the ID is a gun, and it does not perform the editor's version-1 magazine conversion.
+
+Every source field of a hull piece or fitting except `id` is patchable; a test compares
+the patch tables with the types in `src/ships/blueprint/constructionTypes.ts`. `null` is
+accepted only on optional fields.
 
 `copy` defaults to a 1 m starboard offset, matching the UI. `mirror: true` reflects
 across ship X=0 instead; move the copies in a subsequent command if needed.
@@ -220,6 +318,65 @@ connected paths must still be authored explicitly. Add an internal deck/floor be
 requesting machinery in a curved hull; the solver needs a suitable flat support.
 Proposal files never overwrite
 existing files. Failed proposals return no applicable batch and exit nonzero.
+
+### Placing equipment
+
+Do not compute equipment heights by hand. The compiler rejects an attachment more than
+5 cm from its support (5 mm for wall fittings and fitted gun bases), decks are sheered
+and `position` is the part's retained datum, not the centre or base of its bounds.
+`ship:place` and `ship:reseat` resolve the seat against the hull the native compiler
+builds, then compile the exact candidate before returning it. Like `ship:suggest` they
+never save: they print a guarded batch for `ship:apply`, `--out` refuses to overwrite,
+and the exit code is nonzero when there is no launchable proposal.
+
+```sh
+bun run ship:place my-ship --part us-5in38-mk30-mod0-single --at 0,-35 --id gun-a --out .build/gun.json
+bun run ship:place my-ship --part generic-twin-bitts --at 3.2,-20 --bearing 90 --mirror --repeat 3 --step 0,8
+bun run ship:place my-ship --part generic-diesel-3000kw --at 0,15 --on machinery-floor
+bun run ship:place my-ship --part generic-watertight-door --at 3.4,10 --y 2.95 --mirror
+bun run ship:reseat my-ship --all --out .build/reseat.json
+bun run ship:reseat my-ship --ids gun-a,mast-fore --slide
+```
+
+Coordinates are ship metres: +X starboard, +Y up, −Z bow. `--at x,z` is the datum of
+the new record and `--bearing` is clockwise from the bow. X and Z are kept exactly; only
+the coordinate along the part's attachment direction is solved:
+
+| Part | Seat |
+| --- | --- |
+| Deck parts (guns, launchers, funnels, masts, directors, deck fittings) | Y, so the `attachment` socket lies on the support under (x,z); a gun's `barbetteHeightM` is included. Topmost exposed surface by default, so a point under a deckhouse lands on its roof. |
+| Internal parts (engines) | Y, on the inner face of the bottom plating by default (lowest), raised until all four base corners clear a curved or V floor; `residualM` is how far the datum then floats. Internal decks are supports: name one with `--on <boundary id>`. |
+| Rudders | Y, below the hull bottom above (x,z). |
+| Propellers | Y, 0.65 diameters below the hull above (x,z), the editor's rule; the compiler derives shaft and struts. Not touched by `reseat`. |
+| Wall fittings (doors, windows, portholes, vents, hardware) | Along the wall normal. `--y` (datum height) is required; without `--bearing` the fitting faces out of the nearest hull side. Installed at catalog size, upright; patch `wall` afterwards to resize or turn. |
+| Sideways fittings without a wall mount (stowed anchor, vertical ladder) | Along the socket direction; `--y` and `--bearing` are required. |
+
+`--y` selects the support nearest that datum height instead of the outermost one;
+`--on <id>` restricts supports to one hull piece or internal deck. Faces covered by
+another piece and faces marked open are not supports. `--mirror` adds the exact
+reflection across X=0 (bearing negated, IDs `…-starboard`/`…-port`, wall fittings linked
+through `wall.mirrorId` as the editor does) and reports the twin's own `residualM`; a
+twin more than 5 cm off its support is an error, so place each side separately on an
+asymmetric hull. A centreline request stays single. `--repeat n --step dx,dz` seats
+each copy on its own support (IDs `…-1`, `…-2`; at most 64 copies, 128 equipment records
+per design). Connected fittings (railings, ropes, ladders with a path) have no single
+seat; write their points with an `equipment` command. `place` does not set
+`magazineId` or `powerSourceId`; patch them afterwards in a version-1 design.
+
+`reseat` takes each record to its **nearest** support along its attachment direction
+and reports `from`, `position`, the signed `gapM` found (negative was buried, positive
+floated) and the support piece, face and slope. Records within 1 mm are left alone, so
+a valid design yields no batch. Wall fittings only reach as far as the editor's wall
+snap (0.75 × their larger dimension); a linked twin follows its partner. With `--slide`
+a record with nothing under it moves sideways to the closest support, 1 cm inside its
+edge. Under `--all`, a record without a seat is a warning and the rest are still
+proposed; when the candidate then stops at an error on a record the batch does not
+touch, the batch is returned with `candidate.unverified` and a nonzero exit code.
+
+Limits: only the attachment point is seated. Whether the whole body fits (a gun base
+across a deck edge, a door taller than its wall, an engine wider than the hull) is
+decided by the candidate compile, whose diagnostics are returned in `candidate`.
+Batches contain only `equipment` and `equipment-patch` commands.
 
 Read again after a conflict; do not blindly replace an expected revision.
 Replacing an existing file through `ship:import` requires
@@ -250,15 +407,15 @@ bun run ship:trial my-ship --seconds 15
 Render defaults to profile, plan, bow, stern and quarter orthographic views.
 `--quick` skips the sampled articulation sweep for an iteration preview and records
 that omission in JSON. It does not replace `ship:review` or model acceptance.
-Rendering currently requires a valid compiled draft; use the editor's source
-preview to inspect invalid geometry.
+Rendering requires a valid compiled draft; use `ship:view` to look at an invalid one.
 `--part` accepts an installed equipment ID or retained node ID. `--isolate`
 hides other meshes. Pose files map gun mount IDs to
 `{"trainDeg": 30, "elevationDeg": 20, "recoil": 0.5}`; native clearance resolves
 the request before rendering and the output records any blocked movement.
 
 Images, camera metadata, inspection data and sampled articulation results go to
-`.build/construction/<id>/render/`. `--out` chooses another diagnostic directory.
+a directory unique to the call under `.build/construction/<id>/render/`, printed in the
+result, so concurrent agents keep separate evidence. `--out` chooses another diagnostic directory.
 Review actually opens the GLB for `--published`; source review composes the same
 native surfaces and component models as the editor. The automated sweep includes
 endpoint/intermediate train and elevation, recoil, and differently posed neighbors.
@@ -267,10 +424,125 @@ not silently treated as cleared travel. Sampling is not a proof of every pose or
 historical-fidelity certification; inspect the images and complete the four model
 acceptance checks.
 
+### Looking while you work: `ship:view`
+
+```sh
+bun run ship:view my-ship                                           # quarter view, exterior
+bun run ship:view my-ship --view profile,plan --mode armor
+bun run ship:view my-ship --focus gun-forward,bridge --highlight gun-forward
+bun run ship:view my-ship --focus engine-1 --isolate --azimuth 120 --elevation 25 --perspective
+bun run ship:view my-ship --mode internals --section x=0 --view profile
+bun run ship:view my-ship --mode ids --region -8,0,-40,8,20,-10
+```
+
+`view` is exploratory and never replaces `ship:render`/`ship:review`. It works on a
+draft that does not compile: JSON then carries `fallback: true`, the diagnostics and
+`invalidIds`, and the image is the editor's source preview — native faces when the
+compiler still produced them, source solids otherwise — with the pieces and fittings
+named by an error drawn salmon. A valid exterior is the same composed model
+`ship:render` draws. JSON always includes `revision`, `fileRevision` and `contentHash`.
+
+| Flag | Meaning |
+| --- | --- |
+| `--view a,b` | `profile`, `plan`, `bow`, `stern`, `quarter` (default); several names give several PNGs from one browser session |
+| `--azimuth deg`, `--elevation deg` | Camera bearing from the ship (bow 0°, starboard 90°, stern 180°) and height above the horizon (−90…90); overrides that part of a single preset |
+| `--focus id,id` | Frame these primitive, equipment or boundary IDs (union bounds plus margin). `--isolate` hides everything else |
+| `--region x0,y0,z0,x1,y1,z1` | Frame a box in ship metres (+x starboard, +y up, −z bow) |
+| `--zoom f`, `--perspective`, `--size WxH` | Magnify the framing; 35° perspective instead of orthographic; image size up to 3200x2400. Without `--size` the image is at most 1600x1000 and one side shrinks to the framing |
+| `--mode exterior\|armor\|internals\|ids` | `armor`: the editor's thickness colours; `legend` lists the scale and each thickness in mm with its colour. `internals`: translucent hull with machinery, magazines, boundaries, CG and CB. `ids`: one flat colour per primitive and equipment ID; `legend.visible` maps colour → ID with pixel count and `pixelBox` |
+| `--section x\|y\|z=value` | Clip at a plane, keeping the half away from the camera; `x<0` or `x>0` names the kept half |
+| `--highlight id,id` | Tint the IDs magenta and box them through the ship |
+| `--out dir` | Default is a new `.build/construction/<id>/view/<file revision>-<time>/` per call, so concurrent calls never overwrite each other |
+
+Each view reports its file, `camera` (position, target, up, right, projection,
+`worldUnitsPerPixel` and the world-to-pixel formula), `framedBounds`, the bounds of
+every focused ID, the section kept and the mode legend. A negative first number needs
+the space form: `--region -8,0,…`. Gun poses are the defaults; use `ship:render --pose`
+for posed mounts.
+
 Trial advances the real local worker/WASM simulation with helm and firing commands,
 then resets it. JSON includes source/hash, initial and final motion/ammunition,
 result, and reset state. Duration is 1–120 simulated seconds. Trial output stays
-under `.build/construction/<id>/trial/`.
+in a directory unique to the call under `.build/construction/<id>/trial/`.
+
+## Iteration latency and warm sessions
+
+`bun run ship:timings <id>` measures each phase of the loop and checks that every compiler
+path returns identical bytes. Measured 2026-09-19 (Apple silicon, other work running; ms):
+
+| Phase | Valiant | Resolute |
+| --- | --- | --- |
+| Native compile through `cargo run` (previous path) | 2693 | 1289 |
+| Native compile, example binary run directly | 2541 | 969 |
+| Same, warm `--serve` process, first / repeat request | 2484 / 2293 | 970 / 813 |
+| Same source and compiler again (result cache) | 44 | 30 |
+| Vite start / Chromium launch / review page load | 130 / 143 / 627 | 113 / 143 / 743 |
+| Compose model / each view / close | 1192 / 210 / 31 | 930 / 154 / 29 |
+| One view in a cold browser, all phases | 2334 | 2111 |
+| One view through a warm session | 1405 | 1134 |
+| `inspect` or `apply --dry-run`: before / now / repeated revision | 2694 / 2543 / 44 | 1291 / 971 / 30 |
+| `render --quick`, five views: before / now / warm session / warm and repeated revision | 5869 / 5718 / 4387 / 2289 | 4025 / 3706 / 2609 / 1787 |
+
+What the numbers decided:
+
+- The native compile dominates and its geometry cache does not help natively: a repeat request
+  reuses 4726 operations on Valiant and saves under 0.3 s, because room and path solving
+  (`room_plane_faces`, about 40 % of samples) is not cached. A warm compiler process is therefore
+  not worth starting for compile latency alone.
+- Commands recompile the same revision repeatedly (`inspect`, `render`, `view`, `trial`). Results are
+  cached in `.build/construction/compile-cache/` by compiler build, catalog revision and exact
+  source text (eight entries, least recently used removed). `CONSTRUCTION_COMPILE_CACHE=off` disables it.
+- The example binary runs directly when `.build/construction/compiler-stamp.json` proves it fresh:
+  every input in Cargo's dep-info (Rust sources, embedded assets, manifests, lockfile) must be
+  older than the start of the `cargo build` that produced it. The check costs about 1 ms; a stale
+  binary is rebuilt first, and anything unverifiable (custom target directory or `RUSTFLAGS`,
+  inputs edited during the build, missing dep-info) uses `cargo run` as before. Only a binary
+  proven fresh reads or writes the result cache.
+- A warm browser saves about 1 s per browser command. Composition, not start-up, is the larger cost.
+
+```sh
+bun run ship:session start            # [--idle-minutes 30] [--no-browser]
+bun run ship:session status
+bun run ship:session stop
+bun scripts/construction/check-session.ts valiant   # cold and warm bytes, PNG hash, killed-daemon fallback
+```
+
+A session is opt-in and per worktree: one daemon on `127.0.0.1` with a random port and a bearer
+token in `.build/construction/session.json` (mode 0600), log in `session.log`. It keeps one
+`compile_construction --serve` process, one review server and one Chromium; each browser request
+gets a fresh context and page, and requests run one at a time in arrival order. It exits after the
+idle timeout, when its own sources change (`scripts/construction/{session,session-daemon,compiler,browser,server,files}.ts`,
+`package.json`, `bun.lock`), or on `stop`. Before every compile it repeats the binary freshness
+check and restarts only the compiler process after a rebuild; review TypeScript is served by Vite
+and needs no restart.
+
+Fallback guarantees: `compileConstruction`, `suggestConstruction` and `withConstructionBrowser` use a
+session only after a probe bounded at 500 ms confirms the file's version, worktree, source
+fingerprint, live pid and token. A missing, stale or foreign file, a crashed or hung daemon, a
+compiler the daemon cannot vouch for, a compile error, or a page that fails to open all run the
+cold path, which also produces the error message. `CONSTRUCTION_SESSION=off` ignores sessions.
+Cold and warm compiler output, the profile PNG and the inspection JSON are byte-identical on
+Valiant (`check-session.ts`).
+
+Bun cannot attach Playwright to a remote Chromium, so the daemon holds the page. In a session the
+`page` given to `withConstructionBrowser` forwards `page.evaluate` only, with arguments and results
+as JSON; any other member throws and names the `CONSTRUCTION_SESSION=off` escape.
+
+The repository save lock (`.build/construction/<id>.lock/owner.json`) records its pid and time.
+A lock whose process is gone, or that is older than 30 s, is taken over; a live holder still
+returns the conflict error.
+
+## MCP server
+
+`bun run ship:mcp` serves every construction command as a tool over stdio; the repository's
+`.mcp.json` registers it as `ship-construction`. Each tool is one CLI command run as a child
+process, so names (`ship_summary`, `ship_apply`, `ship_view`, …), flags and results are exactly
+those above: `--dry-run` is the boolean `dry_run`, `--ids a,b` the string `ids`. `ship_apply` and
+`ship_import` take the JSON document inline as `batch` or `source`. Unknown arguments are rejected
+before anything runs. PNGs named in a result are attached as images, text beyond 60,000 characters
+is cut with a pointer to the narrower reads, and calls run one at a time. Tools that write the
+repository are marked destructive; `edit` and `timings` are not served. A live warm session is used
+automatically.
 
 ## Build and publish
 
@@ -346,6 +618,58 @@ The editor/file API is loopback-only development tooling; it is absent from the
 production server. Source and complexity limits remain those of the construction
 compiler. Repository undo snapshots under `.build/construction/history/` are
 scratch recovery; commit source revisions to Git for durable history.
+
+### Diagnostics
+
+Every compile (`ship:inspect`, `ship:apply --dry-run`, `ship:suggest`, the editor)
+returns `diagnostics: [{ severity, code, message, sourceId?, relatedSourceIds?, fit? }]`.
+A ship is launchable only with no `error`. Optional fields are absent, never null.
+
+One compile reports every independent fault it can reach, at most 32 per phase.
+A fitting reports only its first fault. The phases run in order and a failed phase
+stops the ones after it:
+
+1. Source: counts over a limit (each with its count), invalid or duplicate IDs
+   (each named), then every bad fitting paint or barbette height, primitive,
+   surface assignment (with the reason), boundary and load.
+2. Hull pieces: every piece whose shape fails, then every detached piece
+   (`relatedSourceIds` names a piece of the group it is not joined to).
+3. Boundaries that miss the interior, ballast and loads that do not fit.
+4. Fittings and gun installations together: attachment, fit, overlap, links,
+   weapon data, then barbette and magazine support for guns without a fault. A
+   faulty fitting stays in place as an obstacle, so a neighbor that overlaps it is
+   reported too.
+5. Gun clearance at the initial pose, for every mount.
+
+A closing `checks-skipped` warning lists the phases that did not run; their
+silence is not a pass. Geometry budget, subdivision, loading and stability faults
+describe the whole ship and carry no `sourceId`.
+
+`sourceId` is the hull piece, fitting, boundary or load at fault.
+`relatedSourceIds` lists the other instances involved: the overlapped fitting, the
+engine named by a power link, the mounts drawing on a magazine. `fit` measures a
+failed support, attachment or clearance check; the same numbers are in `message`:
+
+| Field | Meaning |
+| --- | --- |
+| `gapM` | Metres from the attachment datum to the nearest support along the socket direction. Positive floats clear of it, negative is buried in it. When nothing lies on the socket line, the distance to the nearest support |
+| `toleranceM` | Tolerance the gap was tested against: `0.05` attachment, `0.005` fitted base |
+| `nearestSupportId` | Hull piece that owns that support. Absent for internal structure |
+| `seatPosition` | Equipment `position` that closes the gap. It fixes this fault only; the next compile checks the rest |
+| `penetrationM` | Depth of the overlap with the hull along the seating axis, or the shallowest extent of the overlap with `relatedSourceIds[0]` |
+
+`equipment-attachment`, the hull-overlap form of `equipment-fit` and the
+unconnected-collar form of `installation-support` carry a seat;
+`equipment-overlap` carries the other fitting and the depth. Volume faults state
+the cubic metres outside free interior and where. A gun floating 0.8 m and one sunk
+0.5 m report in one compile as `gapM: 0.8` and `gapM: -0.5`, each with its
+`seatPosition`.
+
+`ship:suggest` accepts a draft whose only faults name fittings. It sets those
+fittings aside for support geometry, accepts a placement only if the draft without
+them compiles and the full draft gains no new fault, and returns a
+`suggestion-draft` warning listing them in `relatedSourceIds`. They are returned
+unchanged. Hull, boundary, ballast and load faults still refuse the suggestion.
 
 ### Freeform shape topology
 

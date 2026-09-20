@@ -2,7 +2,6 @@
   "scripts/aircraft/catalog.ts",
   "scripts/aircraft/check_deck_contact.ts",
   "scripts/aircraft/pipeline.ts",
-  "scripts/construction/compiler.ts",
   "scripts/construction/files.test.ts",
   "scripts/diagnostics/combat-lethality.ts",
   "scripts/diagnostics/combat-profile-browser.ts",

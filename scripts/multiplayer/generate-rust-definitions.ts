@@ -18,11 +18,16 @@ const SERDE_DEFAULT_FIELDS: Record<string, string[]> = {
   ConstructionEquipmentPath: ['access'],
   ConstructionEquipmentPart: ['wallSizing', 'riggingSurface'],
   ConstructionEquipmentWall: ['turnDeg'],
+  ConstructionDiagnostic: ['relatedSourceIds', 'fit'],
+  ConstructionDiagnosticFit: ['nearestSupportId', 'gapM', 'toleranceM', 'seatPosition', 'penetrationM'],
 };
 /** Rust types the TypeScript shape cannot express. Keyed `Struct.property`. */
 const TYPE_OVERRIDES: Record<string, string> = {
   // Closed cells are immutable once compiled; hydrostatics/collision clones share their face storage.
   'ConvexVolume.faces': 'std::sync::Arc<[ConvexVolumeFacesItem]>',
+  // Keeps Result<_, ConstructionDiagnostic> under clippy's 128-byte error size.
+  'ConstructionDiagnostic.relatedSourceIds': 'Box<[String]>',
+  'ConstructionDiagnostic.fit': 'Box<ConstructionDiagnosticFit>',
 };
 const RUST_KEYWORDS = ['type', 'ref', 'match', 'mod', 'loop', 'move', 'where', 'in', 'self', 'use', 'fn'];
 const source = 'src/ships/blueprint.ts';

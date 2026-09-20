@@ -2,7 +2,9 @@ import { expect, test } from 'bun:test';
 import { applyConstructionBatch, constructionDiffCommands, type ConstructionBatch } from './constructionCommands';
 import { createStarterSource } from './constructionStarter';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
-import type { ConstructionCommand } from './constructionCommands';
+import { ConstructionCommandError, type ConstructionCommand } from './constructionCommands';
+import { rotateConstructionSelection } from './constructionEditor';
+import { setBarbetteHeight } from './constructionArmament';
 import type { ConstructionCatalog, ConstructionSource } from './blueprint';
 const source = (): ConstructionSource => ({ schemaVersion: 1, id: 'test', name: 'Test', revision: 'one', coordinates: 'meters-y-up-bow-negative-z', construction: { version: 1, catalogRevision: 'test', defaultThicknessMm: 10, primitives: [{ id: 'hull', kind: 'box', size: [10, 4, 20], position: [0, 0, 0], rotationDeg: 0 }], surfaces: [], equipment: [], boundaries: [], loads: [] } });
 test('ship finish round-trips through source commands without changing geometry or colors', () => {
@@ -13,13 +15,13 @@ test('ship finish round-trips through source commands without changing geometry 
   const saved = JSON.parse(JSON.stringify(finished));
   expect(constructionDiffCommands(original, saved)).toEqual([{ op: 'finish', finish: 'semi-gloss' }]);
   expect(apply(saved, [{ op: 'finish' }]).construction).toEqual(original.construction);
-  expect(() => apply(original, [{ op: 'finish', finish: 'chrome' } as unknown as ConstructionCommand])).toThrow('Unsupported surface finish');
+  expect(() => apply(original, [{ op: 'finish', finish: 'chrome' } as unknown as ConstructionCommand])).toThrow('Command 0 (finish): finish must be one of "matte", "satin", "semi-gloss", "gloss", got "chrome"');
   expect(original.construction.finish).toBeUndefined();
   const painted = apply(original, [{ op: 'ship-paint', paint: 'sea-blue' }]);
   expect(painted.construction.paint).toBe('sea-blue');
   expect(constructionDiffCommands(original, painted)).toEqual([{ op: 'ship-paint', paint: 'sea-blue' }]);
   expect(apply(painted, [{ op: 'ship-paint' }]).construction).toEqual(original.construction);
-  expect(() => apply(original, [{ op: 'ship-paint', paint: '' }])).toThrow('Ship paint');
+  expect(() => apply(original, [{ op: 'ship-paint', paint: '' }])).toThrow('Command 0 (ship-paint): paint must be a string of 1 to 64 characters, got ""');
 });
 test('agent batch is atomic and rejects stale revisions and syntax failures', () => {
   const original = source(), before = JSON.stringify(original);
@@ -57,7 +59,9 @@ test('a diff between a source and its edited copy replays as one batch, upsertin
   expect({ ...applied, revision: s.revision }).toEqual({ ...next, revision: s.revision });
   expect(constructionDiffCommands(s, s)).toEqual([]);
   const cleared = structuredClone(s); cleared.construction.surfaces = [];
-  expect(() => constructionDiffCommands(s, cleared)).toThrow('cannot be removed');
+  const removal = constructionDiffCommands(s, cleared);
+  expect(removal).toEqual([{ op: 'surface-remove', targets: [{ primitiveId: 'hull', face: 'top' }] }]);
+  expect(applyConstructionBatch(s, { version: 1, expectedRevision: s.revision, label: 'Inherit', commands: removal }).construction.surfaces).toEqual([]);
 });
 
 test('adjustable hull edits preserve section IDs, equipment and panel armor; malformed patches roll back', () => {
@@ -88,7 +92,7 @@ test('adjustable hull edits preserve section IDs, equipment and panel armor; mal
   const before = JSON.stringify(s);
   expect(() => run([{ op: 'name', name: 'Bad' }, { op: 'hull-sections', id: 'hull', count: 25 }])).toThrow('4 to 24');
   expect(() => run([{ op: 'primitive-patch', id: 'hull', changes: { customHull: { stations: [] } } }])).toThrow('4–24');
-  expect(() => run([{ op: 'primitive-patch', id: 'hull', changes: { customHull: { typo: 1 } } } as unknown as ConstructionCommand])).toThrow('Unknown patch field');
+  expect(() => run([{ op: 'primitive-patch', id: 'hull', changes: { customHull: { typo: 1 } } } as unknown as ConstructionCommand])).toThrow('Command 0 (primitive-patch): unknown field changes.customHull.typo');
   expect(JSON.stringify(s)).toBe(before);
 });
 
@@ -144,4 +148,148 @@ test('balcony edges and freeform treatments can be patched without replacing unr
   expect(next.construction.primitives[0].shaping?.edges).toEqual([0, 1]);
   const cleared = applyConstructionBatch(next, { version: 1, expectedRevision: next.revision, label: 'Sharp', commands: [{ op: 'primitive-patch', id: 'hull', changes: { shaping: null } }] });
   expect(cleared.construction.primitives[0].shaping).toBeUndefined();
+});
+
+const apply = (s: ConstructionSource, ...commands: unknown[]) => applyConstructionBatch(s, { version: 1, expectedRevision: s.revision, label: 'Test', commands: commands as ConstructionCommand[] });
+const failure = (s: ConstructionSource, ...commands: unknown[]): ConstructionCommandError => {
+  const before = JSON.stringify(s);
+  try { apply(s, ...commands); } catch (error) {
+    expect(JSON.stringify(s)).toBe(before);
+    expect(error).toBeInstanceOf(ConstructionCommandError);
+    return error as ConstructionCommandError;
+  }
+  throw new Error('Expected the batch to be rejected.');
+};
+const armed = () => {
+  const s = source();
+  s.construction.equipment = [{ id: 'gun-forward', partId: 'variant', position: [0, 2, -5], bearingDeg: 0 }];
+  s.construction.boundaries = [{ id: 'deck', axis: 'y', offset: 1, thicknessMm: 10 }];
+  return s;
+};
+
+test('malformed commands are rejected before anything applies, naming the command, path and value', () => {
+  const s = armed(), ok = { op: 'name', name: 'Applied first' };
+  const cases: [unknown, string, string | undefined][] = [
+    [{ op: 'move', ids: ['gun-forward'], delta: [0, null, 1] }, 'Command 1 (move): delta[1] must be a finite number, got null', 'delta[1]'],
+    [{ op: 'move', ids: ['gun-forward'], delta: [0, 1] }, 'Command 1 (move): delta must be an array of 3 values, got [0,1]', 'delta'],
+    [{ op: 'move', ids: ['gun-forward'] }, 'Command 1 (move): delta is required', 'delta'],
+    [{ op: 'move', ids: ['gun-forward'], delta: [0, NaN, 0] }, 'Command 1 (move): delta[1] must be a finite number, got NaN', 'delta[1]'],
+    [{ op: 'rotate', ids: ['gun-forward'] }, 'Command 1 (rotate): degrees is required', 'degrees'],
+    [{ op: 'rotate', ids: ['gun-forward'], degrees: '90' }, 'Command 1 (rotate): degrees must be a finite number, got "90"', 'degrees'],
+    [{ op: 'rotate', ids: ['gun-forward'], degress: 90 }, 'Command 1 (rotate): unknown field degress; closest: "degrees". Accepted: ids, degrees', 'degress'],
+    [{ op: 'rotat', ids: ['gun-forward'], degrees: 90 }, 'Command 1 (rotat): unknown op "rotat"; closest: "rotate"', 'op'],
+    [{ ids: [] }, 'Command 1 (unknown): unknown op undefined', 'op'],
+    [null, 'Command 1 (unknown): it must be an object, got null', ''],
+    [{ op: 'skin', thicknessMm: Infinity }, 'Command 1 (skin): thicknessMm must be a finite number, got Infinity', 'thicknessMm'],
+    [{ op: 'name', name: 7 }, 'Command 1 (name): name must be a string, got 7', 'name'],
+    [{ op: 'remove', ids: 'gun-forward' }, 'Command 1 (remove): ids must be an array, got "gun-forward"', 'ids'],
+    [{ op: 'remove', ids: ['gun-forward', 4] }, 'Command 1 (remove): ids[1] must be a string, got 4', 'ids[1]'],
+    [{ op: 'hull-sections', id: 'hull', count: 8.5 }, 'Command 1 (hull-sections): count must be an integer from 4 to 24, got 8.5', 'count'],
+    [{ op: 'construction-version', version: 3 }, 'Command 1 (construction-version): version must be one of 1, 2, got 3', 'version'],
+    [{ op: 'copy', copies: [] }, 'Command 1 (copy): copies must be an array of at least 1 item, got []', 'copies'],
+    [{ op: 'copy', copies: [{ from: 'hull' }] }, 'Command 1 (copy): copies[0].to is required', 'copies[0].to'],
+    [{ op: 'vertices', id: 'hull', selection: { mode: 'corner', index: 0 }, delta: [0, 0, 0] }, 'selection.mode must be one of "vertex", "edge", "face", "ring", got "corner"', 'selection.mode'],
+    [{ op: 'vertices', id: 'hull', selection: { mode: 'face', index: 0 }, delta: [0, 0, 0], mirror: [true, false] }, 'mirror must be an array of 3 values', 'mirror'],
+    [{ op: 'surface-patch', targets: [{ primitiveId: 'hull', face: 'deck' }], changes: {} }, 'targets[0].face must be one of', 'targets[0].face'],
+    [{ op: 'surface-patch', targets: [{ primitiveId: 'hull', face: 'top' }], changes: { thicknessMm: '20' } }, 'changes.thicknessMm must be a finite number, got "20"', 'changes.thicknessMm'],
+    [{ op: 'equipment', value: { id: 'gun', partId: 'variant', position: [0, 0, 0], bearingdeg: 0 } }, 'Command 1 (equipment): unknown field value.bearingdeg; closest: "bearingDeg"', 'value.bearingdeg'],
+    [{ op: 'equipment-patch', id: 'gun-forward', changes: { position: null } }, 'Command 1 (equipment-patch): changes.position must be an array of 3 values, got null', 'changes.position'],
+    [{ op: 'equipment-patch', id: 'gun-forward', changes: { gun: { barbetteHeightM: 'high' } } }, 'changes.gun.barbetteHeightM must be a finite number', 'changes.gun.barbetteHeightM'],
+    [{ op: 'turret-rise', id: 'gun-forward', heightM: 31 }, 'Command 1 (turret-rise): heightM must be a number from 0 to 30, got 31', 'heightM'],
+  ];
+  for (const [command, message, path] of cases) {
+    const error = failure(s, ok, command);
+    expect(error.message).toContain(message);
+    expect({ commandIndex: error.commandIndex, path: error.path }).toEqual({ commandIndex: 1, path });
+  }
+  expect(failure(s, { op: 'move', ids: ['gun-forward'], delta: [0, null, 1] }).toJSON()).toEqual({
+    error: 'Command 0 (move): delta[1] must be a finite number, got null', commandIndex: 0, op: 'move', path: 'delta[1]', value: null,
+  });
+  // The editor builds commands with undefined members; they are omitted fields, not unknown ones.
+  expect(apply(s, { op: 'finish', finish: undefined }, { op: 'surface-patch', targets: [], changes: {}, mirror: undefined })).toEqual(s);
+});
+
+test('a malformed batch envelope is rejected without a command index', () => {
+  const s = source();
+  const run = (batch: unknown) => { try { applyConstructionBatch(s, batch as ConstructionBatch); } catch (error) { return error as ConstructionCommandError; } throw new Error('accepted'); };
+  expect(run({ version: 2, expectedRevision: 'one', label: 'x', commands: [] }).message).toBe('Batch: version must be 1, got 2');
+  expect(run({ version: 1, expectedRevision: 'one', commands: [] }).message).toBe('Batch: label is required');
+  expect(run({ version: 1, expectedRevision: 'one', label: 'x' }).message).toBe('Batch: commands must be an array, got undefined');
+  expect(run({ version: 1, expectedRevision: 'one', label: 'x', commands: [], comands: [] }).message).toContain('unknown field comands; closest: "commands"');
+  expect(run({ version: 1, expectedRevision: 'one', label: 'x', commands: Array(10_001).fill({ op: 'name', name: 'x' }) }).message).toContain('at most 10000 commands');
+  expect(run({ version: 1, expectedRevision: 'one', label: 7, commands: [] })).toMatchObject({ commandIndex: undefined, path: 'label', value: 7 });
+  // ship:apply carries its file guard in the same object.
+  expect(applyConstructionBatch(s, { version: 1, expectedRevision: 'one', expectedFileHash: 'abc', label: 'x', commands: [] } as ConstructionBatch)).toEqual(s);
+});
+
+test('unknown IDs name the command, the offending ID and close matches', () => {
+  const s = armed();
+  const error = failure(s, { op: 'name', name: 'x' }, { op: 'remove', ids: ['hull', 'gun-fwd'] });
+  expect(error.message).toBe('Command 1 (remove): unknown source ID "gun-fwd"; closest: "gun-forward"');
+  expect({ op: error.op, path: error.path, value: error.value }).toEqual({ op: 'remove', path: 'ids[1]', value: 'gun-fwd' });
+  expect(failure(s, { op: 'equipment-patch', id: 'gun-foward', changes: {} }).message).toBe('Command 0 (equipment-patch): unknown equipment ID "gun-foward"; closest: "gun-forward"');
+  expect(failure(s, { op: 'equipment-patch', id: 'hull', changes: {} }).message).toBe('Command 0 (equipment-patch): "hull" is not equipment');
+  expect(failure(s, { op: 'primitive-patch', id: 'zzz', changes: {} }).message).toBe('Command 0 (primitive-patch): unknown hull piece ID "zzz"');
+  expect(failure(s, { op: 'hull-sections', id: 'hull', count: 8 }).message).toBe('Command 0 (hull-sections): "hull" is a box, not a custom hull');
+  expect(failure(s, { op: 'rotate', ids: ['hull', 'deck'], degrees: 5 }).message).toContain('Command 0 (rotate): "deck" is a boundary or load');
+  expect(failure(s, { op: 'copy', copies: [{ from: 'hull', to: 'deck' }] }).message).toContain('Command 0 (copy): destination ID "deck" already exists');
+  expect(failure(s, { op: 'surface', value: { primitiveId: 'hul', face: 'top', thicknessMm: 1, material: 'steel', paint: 'gray' } }).message).toBe('Command 0 (surface): unknown hull piece ID "hul"; closest: "hull"');
+  const hull = createStarterSource({ revision: 'test' } as ConstructionCatalog, 'fletcher-hull');
+  const stationId = hull.construction.primitives[0].customHull!.stations[2].id;
+  expect(failure(hull, { op: 'hull-station', id: 'hull', stationId: stationId + 'x', changes: { t: .2 } }).message).toContain(`closest: "${stationId}"`);
+  const panel = customHullPanels(hull.construction.primitives[0]).find(p => p.face === 'port')!;
+  expect(failure(hull, { op: 'surface-patch', targets: [{ primitiveId: 'hull', face: 'port', panelId: panel.panelId + '0' }], changes: { paint: 'x' } }).path).toBe('targets[0].panelId');
+});
+
+test('a result the source syntax check rejects is blamed on the command that produced it; physically odd drafts pass', () => {
+  const s = armed();
+  const error = failure(s, { op: 'name', name: 'x' }, { op: 'primitive-patch', id: 'hull', changes: { kind: 'custom-hull' } }, { op: 'name', name: 'y' });
+  expect(error.message).toBe('Command 1 (primitive-patch): result is not a valid source: Custom hull must be an object');
+  expect(failure(s, { op: 'boundary', value: { id: 'hull', axis: 'y', offset: 0, thicknessMm: 5 } }).message).toContain('Command 0 (boundary): result is not a valid source: Source IDs must be unique');
+  // Far outside any hull and absurdly armored: the native compiler judges that, not the command door.
+  const odd = apply(s, { op: 'move', ids: ['gun-forward'], delta: [900, -900, 0] }, { op: 'skin', thicknessMm: -5 });
+  expect(odd.construction.equipment[0].position).toEqual([900, -898, -5]);
+});
+
+test('rotate requires degrees while the editor helper keeps its quarter-turn default', () => {
+  const s = armed();
+  expect(apply(s, { op: 'rotate', ids: ['gun-forward'], degrees: 12.5 }).construction.equipment[0].bearingDeg).toBe(12.5);
+  const draft = structuredClone(s);
+  rotateConstructionSelection(draft, new Set(['gun-forward']));
+  expect(draft.construction.equipment[0].bearingDeg).toBe(90);
+});
+
+test('turret-rise moves the gun with its rise exactly as the editor helper does; patching the field alone does not', () => {
+  const s = armed();
+  const risen = apply(s, { op: 'turret-rise', id: 'gun-forward', heightM: 1.5 }).construction.equipment[0];
+  const expected = structuredClone(s.construction.equipment[0]);
+  setBarbetteHeight(expected, 1.5);
+  expect(risen).toEqual(expected);
+  expect(risen).toMatchObject({ position: [0, 3.5, -5], gun: { barbetteHeightM: 1.5 } });
+  const lowered = applyConstructionBatch({ ...s, construction: { ...s.construction, equipment: [risen] } }, { version: 1, expectedRevision: s.revision, label: 'Lower', commands: [{ op: 'turret-rise', id: 'gun-forward', heightM: .5 }] });
+  expect(lowered.construction.equipment[0]).toMatchObject({ position: [0, 2.5, -5], gun: { barbetteHeightM: .5 } });
+  expect(apply(s, { op: 'equipment-patch', id: 'gun-forward', changes: { gun: { barbetteHeightM: 1.5 } } }).construction.equipment[0].position).toEqual([0, 2, -5]);
+  expect(failure(s, { op: 'turret-rise', id: 'hull', heightM: 1 }).message).toBe('Command 0 (turret-rise): "hull" is not equipment');
+});
+
+test('surface-remove restores inheritance for sides and panels, mirrored on request, and refuses absent assignments', () => {
+  const s = createStarterSource({ revision: 'test' } as ConstructionCatalog, 'fletcher-hull');
+  const panel = customHullPanels(s.construction.primitives[0]).find(p => p.face === 'port')!;
+  const twin = { face: 'starboard' as const, panelId: mirroredPanelId(panel.panelId) };
+  const armored = apply(s,
+    { op: 'surface-patch', targets: [{ primitiveId: 'hull', face: 'top' }], changes: { paint: 'deck-gray' } },
+    { op: 'surface-patch', targets: [{ primitiveId: 'hull', ...panel }], changes: { thicknessMm: 80 }, mirror: true });
+  expect(armored.construction.surfaces.filter(p => p.panelId !== undefined && p.thicknessMm === 80)).toHaveLength(2);
+  const one = apply(armored, { op: 'surface-remove', targets: [{ primitiveId: 'hull', ...panel }] });
+  expect(one.construction.surfaces.some(p => p.panelId === panel.panelId)).toBe(false);
+  expect(one.construction.surfaces.some(p => p.panelId === twin.panelId)).toBe(true);
+  const both = apply(armored, { op: 'surface-remove', targets: [{ primitiveId: 'hull', ...panel }], mirror: true });
+  expect(both.construction.surfaces.filter(p => p.panelId !== undefined)).toEqual(s.construction.surfaces.filter(p => p.panelId !== undefined));
+  expect(both.construction.surfaces.some(p => p.face === 'top' && p.paint === 'deck-gray')).toBe(true);
+  // The mirrored side may already inherit; only the named target must exist.
+  expect(apply(one, { op: 'surface-remove', targets: [{ primitiveId: 'hull', ...twin }], mirror: true }).construction.surfaces).toEqual(both.construction.surfaces);
+  const error = failure(both, { op: 'surface-remove', targets: [{ primitiveId: 'hull', ...panel }] });
+  expect(error.message).toContain('has no assignment to remove');
+  expect(error.path).toBe('targets[0]');
+  expect(constructionDiffCommands(armored, both)).toEqual([{ op: 'surface-remove', targets: [{ primitiveId: 'hull', ...panel }, { primitiveId: 'hull', ...twin }] }]);
 });

@@ -48,7 +48,30 @@ fn error(code: &str, message: impl Into<String>, id: Option<&str>) -> Constructi
         code: code.into(),
         message: message.into(),
         source_id: id.map(str::to_owned),
+        ..Default::default()
     }
+}
+/// Independent fatal diagnostics collected per compile before collection stops.
+pub const MAX_ERRORS: usize = 32;
+/// Reports every collected fatal diagnostic; the caller returns the last one.
+fn fail_all(
+    out: &mut ConstructionResult,
+    mut errors: Vec<ConstructionDiagnostic>,
+) -> Result<(), ConstructionDiagnostic> {
+    let Some(last) = errors.pop() else {
+        return Ok(());
+    };
+    out.diagnostics.append(&mut errors);
+    Err(last)
+}
+/// States which checks a failed phase left unrun, so their silence is not read as a pass.
+fn skipped(out: &mut ConstructionResult, message: String) {
+    out.diagnostics.push(ConstructionDiagnostic {
+        severity: "warning".into(),
+        code: "checks-skipped".into(),
+        message,
+        ..Default::default()
+    });
 }
 /// Names the other party of an overlap; identical parts read as "another …".
 pub(crate) fn neighbor_name(own: &str, other: &str) -> String {
@@ -73,6 +96,7 @@ fn warn(out: &mut ConstructionResult, code: &str, message: &str) {
         code: code.into(),
         message: message.into(),
         source_id: None,
+        ..Default::default()
     });
 }
 
@@ -184,13 +208,39 @@ pub fn suggest(
         _ => 6,
     });
     let mut attempts = 0;
+    // A draft whose only faults belong to fittings still offers its hull. Those
+    // fittings are set aside for support geometry and must stay exactly as faulty.
+    let mut set_aside: BTreeSet<String> = BTreeSet::new();
     for part in requested {
-        let preview = compile(&result, catalog);
+        let mut preview = compile(&result, catalog);
+        let draft_faults = fault_keys(&preview);
+        if preview.definition.is_none() {
+            let blocked = preview.diagnostics.clone();
+            let mut sound = result.clone();
+            // Setting fittings aside can uncover faults of later phases; bounded rounds.
+            for _ in 0..4 {
+                let Some(faulty) = fitting_faults(&sound, &preview.diagnostics) else {
+                    break;
+                };
+                set_aside.extend(faulty);
+                sound
+                    .construction
+                    .equipment
+                    .retain(|e| !set_aside.contains(&e.id));
+                preview = compile(&sound, catalog);
+                if preview.definition.is_some() {
+                    break;
+                }
+            }
+            if preview.definition.is_none() {
+                return ConstructionSuggestion {
+                    source: source.clone(),
+                    diagnostics: blocked,
+                };
+            }
+        }
         let Some(def) = preview.definition.as_ref() else {
-            return ConstructionSuggestion {
-                source: source.clone(),
-                diagnostics: preview.diagnostics,
-            };
+            unreachable!()
         };
         let socket = part
             .sockets
@@ -307,7 +357,23 @@ pub fn suggest(
             };
             let mut candidate = result.clone();
             candidate.construction.equipment.push(e);
-            let compiled = compile(&candidate, catalog);
+            let compiled = if set_aside.is_empty() {
+                compile(&candidate, catalog)
+            } else {
+                // Valid without the faulty fittings, and no new fault beside them.
+                let mut sound = candidate.clone();
+                sound
+                    .construction
+                    .equipment
+                    .retain(|e| !set_aside.contains(&e.id));
+                let compiled = compile(&sound, catalog);
+                if compiled.definition.is_some()
+                    && fault_keys(&compile(&candidate, catalog)) != draft_faults
+                {
+                    continue;
+                }
+                compiled
+            };
             if compiled.definition.is_some() {
                 accepted = Some(candidate);
                 break;
@@ -339,8 +405,48 @@ pub fn suggest(
     );
     ConstructionSuggestion {
         source: result,
-        diagnostics: vec![],
+        diagnostics: if set_aside.is_empty() {
+            vec![]
+        } else {
+            let ids: Vec<_> = set_aside.into_iter().collect();
+            vec![ConstructionDiagnostic {
+                severity: "warning".into(),
+                code: "suggestion-draft".into(),
+                message: format!(
+                    "Placed against the draft without its faulty fittings: {}. They are unchanged and still block the compile",
+                    ids.join(", ")
+                ),
+                related_source_ids: Some(ids.into()),
+                ..Default::default()
+            }]
+        },
     }
+}
+/// Fatal diagnostics by code and source; equal sets mean an edit added no fault.
+fn fault_keys(result: &ConstructionResult) -> BTreeSet<(String, Option<String>)> {
+    result
+        .diagnostics
+        .iter()
+        .filter(|d| d.severity == "error")
+        .map(|d| (d.code.clone(), d.source_id.clone()))
+        .collect()
+}
+/// The fittings to set aside, when every fatal diagnostic names one; otherwise the hull is at fault.
+fn fitting_faults(
+    source: &ConstructionSource,
+    diagnostics: &[ConstructionDiagnostic],
+) -> Option<BTreeSet<String>> {
+    let faulty: Option<BTreeSet<String>> = diagnostics
+        .iter()
+        .filter(|d| d.severity == "error")
+        .map(|d| {
+            d.source_id
+                .as_ref()
+                .filter(|id| source.construction.equipment.iter().any(|e| e.id == **id))
+                .cloned()
+        })
+        .collect();
+    faulty.filter(|ids| !ids.is_empty())
 }
 /// TypeScript optional properties are omitted, rather than encoded as JSON null.
 pub fn to_json(value: &impl serde::Serialize) -> Result<String, String> {
@@ -386,6 +492,15 @@ fn compile_cached(
     if let Err(e) = build(source, catalog, &mut out, &mut installation_surfaces, cache) {
         out.definition = None;
         out.diagnostics.push(e);
+        // The note on unrun checks reads last.
+        if let Some(i) = out
+            .diagnostics
+            .iter()
+            .position(|d| d.code == "checks-skipped")
+        {
+            let note = out.diagnostics.remove(i);
+            out.diagnostics.push(note);
+        }
     }
     // Invalid drafts still show their fixed supports and deck collars. A fit
     // diagnostic blocks admission, not the geometry needed to repair the draft.
@@ -413,10 +528,12 @@ fn compile_cached(
     }
     out
 }
+/// Every independent source fault, in source order. Header and size faults stop the
+/// list: nothing below them can be read reliably.
 fn validate(
     source: &ConstructionSource,
     catalog: &ConstructionCatalog,
-) -> Result<(), ConstructionDiagnostic> {
+) -> Vec<ConstructionDiagnostic> {
     let c = &source.construction;
     if source.schema_version != 1.
         || (c.version != 1. && c.version != 2.)
@@ -426,52 +543,102 @@ fn validate(
         || source.name.len() > 160
         || !valid_id(&source.revision)
     {
-        return Err(error(
+        return vec![error(
             "source",
             "Unsupported source version, coordinates or identity",
             None,
-        ));
+        )];
     }
     if catalog.schema_version != 1.
         || catalog.weapons.schema_version != 1.
         || c.catalog_revision != catalog.revision
     {
-        return Err(error(
+        return vec![error(
             "catalog-revision",
             "The saved equipment catalog revision is unavailable",
             None,
-        ));
+        )];
+    }
+    let mut errors = vec![];
+    for (count, limit, noun) in [
+        (c.primitives.len(), MAX_PRIMITIVES, "hull primitives"),
+        (
+            c.surfaces.len(),
+            MAX_SURFACE_ASSIGNMENTS,
+            "face assignments",
+        ),
+        (c.equipment.len(), MAX_EQUIPMENT, "equipment instances"),
+        (c.boundaries.len(), MAX_BOUNDARIES, "boundaries"),
+        (c.loads.len(), MAX_EQUIPMENT, "loads"),
+    ] {
+        if count > limit {
+            errors.push(error(
+                "complexity",
+                format!(
+                    "{count} {noun} exceed the limit of {limit}; remove {}",
+                    count - limit
+                ),
+                None,
+            ));
+        }
+    }
+    if c.primitives.is_empty() {
+        errors.push(error("complexity", "Add at least one hull primitive", None));
+    }
+    if !errors.is_empty() {
+        return errors;
+    }
+    for (noun, ids) in [
+        (
+            "hull primitive",
+            c.primitives
+                .iter()
+                .map(|p| p.id.as_str())
+                .collect::<Vec<_>>(),
+        ),
+        (
+            "equipment",
+            c.equipment.iter().map(|p| p.id.as_str()).collect(),
+        ),
+        (
+            "boundary",
+            c.boundaries.iter().map(|p| p.id.as_str()).collect(),
+        ),
+        ("load", c.loads.iter().map(|p| p.id.as_str()).collect()),
+    ] {
+        let mut seen = BTreeSet::new();
+        let mut reported = BTreeSet::new();
+        for (i, id) in ids.into_iter().enumerate() {
+            if errors.len() >= MAX_ERRORS {
+                break;
+            }
+            if !valid_id(id) {
+                errors.push(error(
+                    "identity",
+                    format!(
+                        "The {noun} at index {i} needs an ID of 1–64 letters, digits, '-' or '_'"
+                    ),
+                    (!id.is_empty() && id.len() <= 64).then_some(id),
+                ));
+            } else if !seen.insert(id) && reported.insert(id) {
+                errors.push(error(
+                    "identity",
+                    format!(
+                        "More than one {noun} uses the ID {id}; instances require unique stable IDs"
+                    ),
+                    Some(id),
+                ));
+            }
+        }
+    }
+    // Every later check names an instance by ID.
+    if !errors.is_empty() {
+        return errors;
     }
     if !c.default_thickness_mm.is_finite() || !(0.1..=1000.).contains(&c.default_thickness_mm) {
-        return Err(error(
+        errors.push(error(
             "plating",
             "Structural skin must be 0.1–1000 mm",
-            None,
-        ));
-    }
-    if c.primitives.is_empty()
-        || c.primitives.len() > MAX_PRIMITIVES
-        || c.surfaces.len() > MAX_SURFACE_ASSIGNMENTS
-        || c.equipment.len() > MAX_EQUIPMENT
-        || c.boundaries.len() > MAX_BOUNDARIES
-        || c.loads.len() > MAX_EQUIPMENT
-    {
-        return Err(error(
-            "complexity",
-            format!(
-                "Use 1–{MAX_PRIMITIVES} hull primitives, at most {MAX_SURFACE_ASSIGNMENTS} face assignments, {MAX_EQUIPMENT} equipment/loads and {MAX_BOUNDARIES} boundaries"
-            ),
-            None,
-        ));
-    }
-    if !unique(c.primitives.iter().map(|p| p.id.as_str()))
-        || !unique(c.equipment.iter().map(|p| p.id.as_str()))
-        || !unique(c.boundaries.iter().map(|p| p.id.as_str()))
-        || !unique(c.loads.iter().map(|p| p.id.as_str()))
-    {
-        return Err(error(
-            "identity",
-            "Instances require unique stable IDs",
             None,
         ));
     }
@@ -479,7 +646,7 @@ fn validate(
         .as_deref()
         .is_some_and(|f| !["matte", "satin", "semi-gloss", "gloss"].contains(&f))
     {
-        return Err(error(
+        errors.push(error(
             "surface-finish",
             "Unsupported ship surface finish",
             None,
@@ -489,44 +656,57 @@ fn validate(
         .as_ref()
         .is_some_and(|paint| paint.is_empty() || paint.len() > 64)
     {
-        return Err(error(
+        errors.push(error(
             "ship-paint",
             "Ship paint must be a nonempty name of at most 64 bytes",
             None,
         ));
     }
     for e in &c.equipment {
+        if errors.len() >= MAX_ERRORS {
+            break;
+        }
+        let rise = crate::construction_installation::raised(e);
         if e.paint
             .as_ref()
             .is_some_and(|paint| paint.is_empty() || paint.len() > 64)
         {
-            return Err(error(
+            errors.push(error(
                 "equipment-paint",
                 "Fitting paint must be a nonempty name of at most 64 bytes",
                 Some(&e.id),
             ));
-        }
-        let rise = crate::construction_installation::raised(e);
-        if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
-            return Err(error(
+        } else if !rise.is_finite()
+            || !(0. ..=30.).contains(&rise)
+            || (c.version < 2. && rise != 0.)
+        {
+            errors.push(error(
                 "barbette-height",
                 "Barbette height must be between 0 and 30 m on a version-2 gun installation",
                 Some(&e.id),
             ));
-        }
-        if c.version >= 2.
-            && c.equipment
+        } else if c.version >= 2.
+            && let Some(other) = c
+                .equipment
                 .iter()
-                .any(|other| other.id == format!("{}-magazine", e.id))
+                .find(|other| other.id == format!("{}-magazine", e.id))
         {
-            return Err(error(
+            let mut d = error(
                 "identity",
-                "Equipment ID conflicts with a built-in magazine",
+                format!(
+                    "Equipment ID conflicts with the built-in magazine of {}; rename {}",
+                    e.id, other.id
+                ),
                 Some(&e.id),
-            ));
+            );
+            d.related_source_ids = Some([other.id.clone()].into());
+            errors.push(d);
         }
     }
     for p in &c.primitives {
+        if errors.len() >= MAX_ERRORS {
+            break;
+        }
         if (p.kind != "vertex" && (p.vertices.is_some() || p.shaping.is_some() || p.mesh.is_some()))
             || (p.kind != "custom-hull" && p.custom_hull.is_some())
             || (p.kind != "balcony" && p.balcony.is_some())
@@ -538,7 +718,7 @@ fn validate(
                 && p.kind != "balcony"
                 && !crate::construction_shapes::KINDS.contains(&p.kind.as_str()))
         {
-            return Err(error(
+            errors.push(error(
                 "primitive",
                 "Invalid primitive dimensions, shape or rotation",
                 Some(&p.id),
@@ -547,35 +727,50 @@ fn validate(
     }
     let mut assignments = BTreeSet::new();
     for s in &c.surfaces {
-        if !c.primitives.iter().any(|p| p.id == s.primitive_id)
-            || ![
-                "port",
-                "starboard",
-                "bottom",
-                "top",
-                "bow",
-                "stern",
-                "slope",
-            ]
-            .contains(&s.face.as_str())
-            || !assignments.insert((&s.primitive_id, &s.face, &s.panel_id))
-            || s.panel_id.as_ref().is_some_and(|panel| {
-                panel.is_empty()
-                    || panel.len() > 512
-                    || !c
-                        .primitives
-                        .iter()
-                        .any(|p| p.id == s.primitive_id && p.kind == "custom-hull")
-            })
-            || !s.thickness_mm.is_finite()
-            || !(0.0..=1000.).contains(&s.thickness_mm)
-            || !["steel", "armor-steel"].contains(&s.material.as_str())
-            || s.paint.is_empty()
-            || s.paint.len() > 64
+        if errors.len() >= MAX_ERRORS {
+            break;
+        }
+        let fault = if !c.primitives.iter().any(|p| p.id == s.primitive_id) {
+            Some(format!(
+                "names the missing hull primitive {}",
+                s.primitive_id
+            ))
+        } else if ![
+            "port",
+            "starboard",
+            "bottom",
+            "top",
+            "bow",
+            "stern",
+            "slope",
+        ]
+        .contains(&s.face.as_str())
         {
-            return Err(error(
+            Some(format!("has the unknown face {}", s.face))
+        } else if !assignments.insert((&s.primitive_id, &s.face, &s.panel_id)) {
+            Some(format!("repeats the {} face", s.face))
+        } else if s.panel_id.as_ref().is_some_and(|panel| {
+            panel.is_empty()
+                || panel.len() > 512
+                || !c
+                    .primitives
+                    .iter()
+                    .any(|p| p.id == s.primitive_id && p.kind == "custom-hull")
+        }) {
+            Some("has a panel ID that only a custom hull can carry".into())
+        } else if !s.thickness_mm.is_finite() || !(0.0..=1000.).contains(&s.thickness_mm) {
+            Some("needs a thickness of 0–1000 mm".into())
+        } else if !["steel", "armor-steel"].contains(&s.material.as_str()) {
+            Some(format!("has the unknown material {}", s.material))
+        } else if s.paint.is_empty() || s.paint.len() > 64 {
+            Some("needs a paint name of 1–64 bytes".into())
+        } else {
+            None
+        };
+        if let Some(fault) = fault {
+            errors.push(error(
                 "surface",
-                "Invalid or duplicate surface assignment",
+                format!("Invalid or duplicate surface assignment: it {fault}"),
                 Some(&s.primitive_id),
             ));
         }
@@ -587,7 +782,7 @@ fn validate(
             || !b.thickness_mm.is_finite()
             || !(0.1..=1000.).contains(&b.thickness_mm)
         {
-            return Err(error(
+            errors.push(error(
                 "boundary",
                 "Invalid deck/bulkhead plane or thickness",
                 Some(&b.id),
@@ -601,14 +796,14 @@ fn validate(
             || l.mass_kg <= 0.
             || l.mass_kg > 1e9
         {
-            return Err(error(
+            errors.push(error(
                 "load",
                 "Load mass and occupied volume must be positive and bounded",
                 Some(&l.id),
             ));
         }
     }
-    Ok(())
+    errors
 }
 /// Original solid cells before union splitting. Experimental combat proxies may
 /// use their union for collision, provided buoyancy is supplied independently.
@@ -677,11 +872,12 @@ fn build(
     installation_surfaces: &mut Vec<ConstructionSurface>,
     cache: &mut GeometryCache,
 ) -> Result<(), ConstructionDiagnostic> {
-    validate(source, catalog)?;
+    fail_all(out, validate(source, catalog))?;
     let c = &source.construction;
     let fail = |s: String| error("geometry", s, None);
     let mut primitives: Vec<_> = c.primitives.iter().collect();
     primitives.sort_by(|a, b| a.id.cmp(&b.id));
+    let mut errors = vec![];
     let raw: Vec<_> = primitives
         .iter()
         .map(|p| {
@@ -704,7 +900,16 @@ fn build(
                 Ok(crate::construction_vertex::VertexSolid { cells, faces })
             }
         })
-        .collect::<Result<Vec<_>, _>>()?;
+        .filter_map(|solid| solid.map_err(|e| errors.push(e)).ok())
+        .collect();
+    if !errors.is_empty() {
+        errors.truncate(MAX_ERRORS);
+        skipped(
+            out,
+            "Hull attachment, plating, subdivision, fittings and loading were not checked: fix the hull pieces first".into(),
+        );
+        return fail_all(out, errors);
+    }
     // Index convex cells once, then collect their owning source-piece neighbors.
     // Vertex solids and compound library shapes may hold several cells;
     // single-cell primitives retain the 10k-piece fast path.
@@ -749,12 +954,34 @@ fn build(
             }
         }
     }
-    if let Some(detached) = reached.iter().position(|r| !r) {
-        return Err(error(
-            "attachment",
-            "Detached hull pieces need a physical face attachment or connecting beam",
-            Some(&primitives[detached].id),
-        ));
+    // Every piece outside the first piece's connected group, up to the diagnostic cap.
+    // The smaller side of the split is the one reported as detached.
+    let mut detached: Vec<_> = (0..raw.len()).filter(|&i| !reached[i]).collect();
+    if !detached.is_empty() {
+        if detached.len() * 2 > raw.len() {
+            detached = (0..raw.len()).filter(|&i| reached[i]).collect();
+        }
+        let anchor = (0..raw.len()).find(|i| !detached.contains(i)).unwrap_or(0);
+        for &i in detached.iter().take(MAX_ERRORS) {
+            let mut d = error(
+                "attachment",
+                format!(
+                    "Detached hull pieces need a physical face attachment or connecting beam: {} is not joined to the group of {}",
+                    primitives[i].id, primitives[anchor].id
+                ),
+                Some(&primitives[i].id),
+            );
+            d.related_source_ids = Some([primitives[anchor].id.clone()].into());
+            errors.push(d);
+        }
+        skipped(
+            out,
+            format!(
+                "{} hull pieces are detached; plating, subdivision, fittings and loading were not checked",
+                detached.len()
+            ),
+        );
+        return fail_all(out, errors);
     }
     let cells = cache.union_near(&flat, &cell_neighbors).map_err(fail)?;
     let envelope = cg::total(&cells);
@@ -988,11 +1215,12 @@ fn build(
             );
         }
         if occupied.is_empty() {
-            return Err(error(
+            errors.push(error(
                 "boundary",
                 "Boundary does not cut the hull interior",
                 Some(&b.id),
             ));
+            continue;
         }
         contributions.push(mass(b.id.clone(), "bulkhead", &occupied, STEEL_DENSITY));
         for cell in &occupied {
@@ -1017,18 +1245,19 @@ fn build(
     // Ballast is a visible construction block with a fixed 100-tonne payload.
     // Its casing/armor is counted above; its fill occupies real interior space
     // and contributes at the authored position, without adjusting buoyancy/CG.
-    for p in c.primitives.iter().filter(|p| p.kind == "ballast") {
+    'ballast: for p in c.primitives.iter().filter(|p| p.kind == "ballast") {
         let envelope = primitive(p);
         let occupied: Vec<_> = interior
             .iter()
             .flat_map(|room| envelope.iter().filter_map(|c| cg::intersection(room, c)))
             .collect();
         if cg::total(&occupied).volume < cg::EPS {
-            return Err(error(
+            errors.push(error(
                 "ballast-fit",
                 "Ballast fill has no space inside its casing, or overlaps another ballast block",
                 Some(&p.id),
             ));
+            continue;
         }
         // Overlapping ballast cannot hide two fixed weights in one envelope.
         let other_ballast = c
@@ -1041,11 +1270,17 @@ fn build(
                     cg::intersection(a, b).is_some_and(|c| cg::moments(&c).volume > cg::EPS)
                 })
             }) {
-                return Err(error(
+                let mut d = error(
                     "ballast-fit",
-                    "Ballast blocks must not overlap",
+                    format!(
+                        "Ballast blocks must not overlap: {} overlaps {}",
+                        p.id, other.id
+                    ),
                     Some(&p.id),
-                ));
+                );
+                d.related_source_ids = Some([other.id.clone()].into());
+                errors.push(d);
+                continue 'ballast;
             }
         }
         let mut payload = mass(
@@ -1065,11 +1300,16 @@ fn build(
             .subtract_all(vec![load.clone()], &interior)
             .map_err(fail)?;
         if cg::total(&remaining).volume > 1e-6 {
-            return Err(error(
+            errors.push(error(
                 "load-fit",
-                "Load intersects plating, another package, or exterior water",
+                format!(
+                    "Load intersects plating, another package, or exterior water: {:.3} m³ of {} lies outside free hull interior",
+                    cg::total(&remaining).volume,
+                    l.id
+                ),
                 Some(&l.id),
             ));
+            continue;
         }
         let mut point = mass(
             l.id.clone(),
@@ -1080,6 +1320,14 @@ fn build(
         point.mass_kg = l.mass_kg;
         contributions.push(point);
         interior = cache.subtract_all(interior, &[load]).map_err(fail)?;
+    }
+    if !errors.is_empty() {
+        errors.truncate(MAX_ERRORS);
+        skipped(
+            out,
+            "Fittings, installation support, subdivision and loading were not checked: fix the boundaries, ballast and loads first".into(),
+        );
+        return fail_all(out, errors);
     }
     let mut def = ShipDefinition {
         schema_version: 1.,
@@ -1110,8 +1358,18 @@ fn build(
         out,
         &mut path_clearance,
         cache,
+        &mut errors,
     )?;
+    // Installation support is independent of fitting faults, so both report together.
+    // A fitting that already has a fault is not measured again.
     for installation in installations {
+        if errors.len() >= MAX_ERRORS
+            || errors
+                .iter()
+                .any(|d| d.source_id.as_deref() == Some(installation.id.as_str()))
+        {
+            continue;
+        }
         let mut backing = cells.clone();
         if let Some(above_deck) = &installation.raised_space {
             backing.push(above_deck.clone());
@@ -1131,22 +1389,52 @@ fn build(
             .subtract_all(installation.solids.clone(), &backing)
             .map_err(fail)?;
         if cg::total(&unsupported).volume > 1e-6 {
-            return Err(error(
+            let outside = cg::total(&unsupported);
+            let near = outside.center();
+            errors.push(error(
                 "installation-support",
-                "Barbette or magazine extends through the hull sides or bottom; widen or deepen the hull, or move this turret",
+                format!(
+                    "Barbette or magazine extends through the hull sides or bottom; widen or deepen the hull, or move this turret. {:.3} m³ of it lies outside the hull near [{:.3}, {:.3}, {:.3}]",
+                    outside.volume, near[0], near[1], near[2]
+                ),
                 Some(&installation.id),
             ));
+            continue;
         }
         if !installation
             .solids
             .iter()
             .any(|a| material.iter().any(|b| cg::connected(a, b)))
         {
-            return Err(error(
+            let d = error(
                 "installation-support",
                 "Barbette collar has no physical connection to hull plating or an internal deck",
                 Some(&installation.id),
-            ));
+            );
+            // Failure path only: the collar hangs from the gun's attachment datum.
+            let seat = c
+                .equipment
+                .iter()
+                .find(|e| e.id == installation.id)
+                .and_then(|e| {
+                    let p = catalog.equipment.iter().find(|p| p.id == e.part_id)?;
+                    let mut datum = e.position;
+                    datum[1] += crate::construction_installation::attachment(p)
+                        - crate::construction_installation::raised(e);
+                    crate::construction_diagnostics::seat_on_surfaces(
+                        &out.surfaces,
+                        e.position,
+                        datum,
+                        [0., -1., 0.],
+                        true,
+                        p.size[0].max(p.size[2]),
+                    )
+                });
+            errors.push(match seat {
+                Some(seat) => seat.describe(d, 0.05),
+                None => d,
+            });
+            continue;
         }
         // Fixed trunks participate in native articulation, including neighboring guns.
         if installation.raised_space.is_some() || sloped_deck {
@@ -1183,6 +1471,22 @@ fn build(
                 }
             }
         }
+    }
+    if !errors.is_empty() {
+        let count = errors.len();
+        errors.truncate(MAX_ERRORS);
+        skipped(
+            out,
+            format!(
+                "{count} fitting faults{}; gun clearance, subdivision, loading and stability were not checked",
+                if count >= MAX_ERRORS {
+                    " (the list stops at the limit; more may remain)"
+                } else {
+                    ""
+                }
+            ),
+        );
+        return fail_all(out, errors);
     }
     out.surfaces.append(installation_surfaces);
     // Boundaries have already removed physical material. Split by source plane to keep
@@ -1627,15 +1931,27 @@ fn build(
                 ..Default::default()
             })
             .collect();
+        let mut errors = vec![];
         for (i, m) in def.mounts.iter().enumerate() {
-            if clearance.minimum_clearance(&def, i, &poses, 1.).0 <= 0. {
-                return Err(error(
+            let (gap, body) = clearance.minimum_clearance(&def, i, &poses, 1.);
+            if gap <= 0. && errors.len() < MAX_ERRORS {
+                let mut d = error(
                     "weapon-clearance",
-                    "Gun barrels intersect installed geometry at the initial pose",
+                    format!(
+                        "Gun barrels intersect installed geometry at the initial pose{}",
+                        body.as_deref()
+                            .map_or(String::new(), |body| format!(": {body}"))
+                    ),
                     Some(&m.id),
-                ));
+                );
+                // Clearance bodies also include hull cells and derived supports.
+                d.related_source_ids = body
+                    .filter(|body| c.equipment.iter().any(|e| e.id == *body))
+                    .map(|body| [body].into());
+                errors.push(d);
             }
         }
+        fail_all(out, errors)?;
     }
     crate::catalog::validate_definition(&def)
         .map_err(|e| error("definition", e.to_string(), None))?;
@@ -1803,6 +2119,7 @@ fn equipment(
     out: &mut ConstructionResult,
     path_clearance: &mut Vec<MountClearanceProfileBodiesItem>,
     cache: &mut GeometryCache,
+    faults: &mut Vec<ConstructionDiagnostic>,
 ) -> Result<(), ConstructionDiagnostic> {
     if catalog.equipment.len() > 256
         || !unique(catalog.equipment.iter().map(|p| p.id.as_str()))
@@ -1814,6 +2131,10 @@ fn equipment(
             None,
         ));
     }
+    // A fitting's first fault ends only that fitting; the others are still checked
+    // against everything placed so far, the faulty fitting's envelope included.
+    let mut errors: Vec<ConstructionDiagnostic> = vec![];
+    let mut unseated = BTreeSet::new();
     let installed_parts: Vec<_> = c
         .equipment
         .iter()
@@ -1824,11 +2145,18 @@ fn equipment(
                 .find(|p| p.id == e.part_id)
                 .map(|p| (e, p))
         })
-        .map(|(e, p)| {
+        .filter_map(|(e, p)| {
             crate::construction_wall_fittings::installed(e, p, c, &out.surfaces)
                 .map(|p| (e.id.clone(), p))
+                .map_err(|d| {
+                    unseated.insert(e.id.as_str());
+                    if errors.len() < MAX_ERRORS {
+                        errors.push(d);
+                    }
+                })
+                .ok()
         })
-        .collect::<Result<_, _>>()?;
+        .collect();
     // Decorative fittings never collide with other equipment. Keep machinery and
     // weapon clearance independent of source order, including propeller supports.
     let colliding_ids: std::collections::BTreeSet<_> = installed_parts
@@ -1888,14 +2216,34 @@ fn equipment(
             .find(|p| p.id == e.part_id)
             .is_some_and(|p| p.path.is_some())
     };
-    for e in c
+    'fittings: for e in c
         .equipment
         .iter()
         .filter(|e| !is_path(e))
         .chain(c.equipment.iter().filter(is_path))
     {
+        macro_rules! reject {
+            ($diagnostic:expr) => {{
+                errors.push($diagnostic);
+                if errors.len() >= MAX_ERRORS {
+                    break 'fittings;
+                }
+                continue 'fittings;
+            }};
+        }
+        macro_rules! attempt {
+            ($result:expr) => {
+                match $result {
+                    Ok(value) => value,
+                    Err(diagnostic) => reject!(diagnostic),
+                }
+            };
+        }
+        if unseated.contains(e.id.as_str()) {
+            continue;
+        }
         let Some((_, p)) = installed_parts.iter().find(|(id, _)| id == &e.id) else {
-            return Err(error(
+            reject!(error(
                 "missing-part",
                 "Exact equipment part is unavailable in this catalog revision",
                 Some(&e.id),
@@ -1914,25 +2262,30 @@ fn equipment(
                     })
             })
         {
-            return Err(error(
+            let mut d = error(
                 "power-link",
-                "Power connection must reference a fitted engine",
+                format!(
+                    "Power connection must reference a fitted engine; {} is not one",
+                    e.power_source_id.as_deref().unwrap_or_default()
+                ),
                 Some(&e.id),
-            ));
+            );
+            d.related_source_ids = e.power_source_id.clone().map(|id| [id].into());
+            reject!(d);
         }
         let raise = crate::construction_installation::raised(e);
         if !raise.is_finite()
             || !(0. ..=30.).contains(&raise)
             || (raise > 0. && (p.kind != "gun" || c.version < 2.))
         {
-            return Err(error(
+            reject!(error(
                 "barbette-height",
                 "Barbette height must be between 0 and 30 m on a gun installation",
                 Some(&e.id),
             ));
         }
         if c.version >= 2. && (p.kind == "magazine" || e.magazine_id.is_some()) {
-            return Err(error(
+            reject!(error(
                 "integrated-magazine",
                 "Ammunition is built into each weapon; remove separate magazines and magazine links",
                 Some(&e.id),
@@ -1968,14 +2321,14 @@ fn equipment(
             .contains(&p.kind.as_str())
             || !["internal", "deck", "underwater"].contains(&p.placement.as_str())
         {
-            return Err(error(
+            reject!(error(
                 "equipment-data",
                 "Equipment transform, model identity or fixed dimensions are invalid",
                 Some(&e.id),
             ));
         }
         if e.path.is_some() && p.path.is_none() {
-            return Err(error(
+            reject!(error(
                 "equipment-path",
                 "This fixed fitting cannot contain path points",
                 Some(&e.id),
@@ -1986,7 +2339,7 @@ fn equipment(
             .flatten()
             .any(|s| !finite(s.position) || !finite(s.direction) || length(s.direction) < 1e-6)
         {
-            return Err(error(
+            reject!(error(
                 "equipment-data",
                 "Invalid equipment socket position or direction",
                 Some(&e.id),
@@ -2004,7 +2357,7 @@ fn equipment(
         .flatten()
         {
             if !n.is_finite() || !(0.0..=1e9).contains(&n) {
-                return Err(error(
+                reject!(error(
                     "equipment-data",
                     "Invalid equipment capability",
                     Some(&e.id),
@@ -2024,14 +2377,14 @@ fn equipment(
             .flatten()
             .any(|x| *x != 0.)
         {
-            return Err(error(
+            reject!(error(
                 "equipment-data",
                 "Deck fittings contribute mass without machinery or weapon capabilities",
                 Some(&e.id),
             ));
         }
         if p.path.is_some() {
-            let path = crate::construction_paths::compile(
+            let path = attempt!(crate::construction_paths::compile(
                 e,
                 p,
                 &out.surfaces,
@@ -2039,10 +2392,10 @@ fn equipment(
                 &hull_index,
                 &support_sockets,
                 &fitting_surfaces,
-            )?;
+            ));
             path_members += path.cells.len();
             if path_members > 16_384 {
-                return Err(error(
+                reject!(error(
                     "equipment-path",
                     "Connected fittings exceed 16384 physical members; simplify the routes",
                     Some(&e.id),
@@ -2070,12 +2423,18 @@ fn equipment(
         };
         let envelope = transform_cell(p.bounds_center, p.size);
         let mut fitting_cells = if p.kind == "gun" {
-            let weapon = catalog
-                .weapons
-                .parts
-                .iter()
-                .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
-                .ok_or_else(|| error("weapon", "Missing canonical gun definition", Some(&e.id)))?;
+            let weapon = attempt!(
+                catalog
+                    .weapons
+                    .parts
+                    .iter()
+                    .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
+                    .ok_or_else(|| error(
+                        "weapon",
+                        "Missing canonical gun definition",
+                        Some(&e.id)
+                    ))
+            );
             crate::mount_clearance::installation_bounds(
                 weapon,
                 e.gun
@@ -2100,7 +2459,7 @@ fn equipment(
                         })
                 })
             {
-                return Err(error(
+                reject!(error(
                     "equipment-data",
                     "Invalid original fitting boxes",
                     Some(&e.id),
@@ -2131,35 +2490,41 @@ fn equipment(
                 ));
             }
         }
-        for (other, cell) in &all_envelopes {
+        let clash = all_envelopes.iter().find_map(|(other, cell)| {
             if !colliding_ids.contains(e.id.as_str()) || !colliding_ids.contains(other.as_str()) {
-                continue;
+                return None;
             }
             // Fixed machinery retains its partial-overlap rule; weapons need clearance.
             let weapon = |kind: &str| matches!(kind, "gun" | "torpedo-launcher");
             if (relaxed_fit(p) && !weapon_ids.contains(other.as_str()))
                 || (relaxed_ids.contains(other.as_str()) && !weapon(&p.kind))
             {
-                continue;
+                return None;
             }
-            if fitting_cells
+            fitting_cells
                 .iter()
-                .any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5))
-            {
-                return Err(error(
+                .find_map(|f| cg::intersection(f, cell).filter(|x| cg::moments(x).volume > 1e-5))
+                .map(|shared| (other.clone(), shared))
+        });
+        // A clashing fitting still registers, so later fittings are tested against it.
+        for fitted_cell in &fitting_cells {
+            fitting_index.insert(fitted_cell);
+            all_envelopes.push((e.id.clone(), fitted_cell.clone()));
+        }
+        if let Some((other, shared)) = clash {
+            reject!(crate::construction_diagnostics::overlap(
+                error(
                     "equipment-overlap",
                     format!(
                         "{} intersects {}",
                         p.name,
-                        neighbor_name(&p.name, &part_name(other))
+                        neighbor_name(&p.name, &part_name(&other))
                     ),
                     Some(&e.id),
-                ));
-            }
-        }
-        for fitted_cell in &fitting_cells {
-            fitting_index.insert(fitted_cell);
-            all_envelopes.push((e.id.clone(), fitted_cell.clone()));
+                ),
+                &other,
+                Some(&shared),
+            ));
         }
         let mut occupied = vec![];
         if p.placement == "internal" {
@@ -2168,7 +2533,7 @@ fn equipment(
         {
             let spaces = crate::construction_installation::spaces(c, catalog, p, e);
             if spaces.len() > 16 {
-                return Err(error(
+                reject!(error(
                     "equipment-data",
                     "Too many intrinsic equipment spaces",
                     Some(&e.id),
@@ -2176,7 +2541,7 @@ fn equipment(
             }
             for space in spaces {
                 if !finite(space.center) || !size(space.size) {
-                    return Err(error(
+                    reject!(error(
                         "equipment-data",
                         "Invalid intrinsic equipment space",
                         Some(&e.id),
@@ -2195,25 +2560,39 @@ fn equipment(
                 }
             }
         }
-        let occupied = cg::union(&occupied).map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
+        let occupied =
+            attempt!(cg::union(&occupied).map_err(|x| error("equipment-fit", x, Some(&e.id))));
         if !occupied.is_empty() {
-            let outside = cache
-                .subtract_all(occupied.clone(), interior.iter())
-                .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
+            let outside = attempt!(
+                cache
+                    .subtract_all(occupied.clone(), interior.iter())
+                    .map_err(|x| error("equipment-fit", x, Some(&e.id)))
+            );
             if cg::total(&outside).volume > 1e-5 {
-                return Err(error(
+                let blocked = cg::total(&outside);
+                let near = blocked.center();
+                reject!(error(
                     "equipment-fit",
-                    if p.kind == "gun" {
-                        "Barbette or magazine intersects hull plating, an internal wall or another load; move the turret or provide more hull space"
-                    } else {
-                        "Package intersects inward plating, internal wall, another load or exterior water"
-                    },
+                    format!(
+                        "{}. {:.3} m³ of it lies outside free hull interior near [{:.3}, {:.3}, {:.3}]",
+                        if p.kind == "gun" {
+                            "Barbette or magazine intersects hull plating, an internal wall or another load; move the turret or provide more hull space"
+                        } else {
+                            "Package intersects inward plating, internal wall, another load or exterior water"
+                        },
+                        blocked.volume,
+                        near[0],
+                        near[1],
+                        near[2]
+                    ),
                     Some(&e.id),
                 ));
             }
-            *interior = cache
-                .subtract_all(interior.clone(), &occupied)
-                .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
+            *interior = attempt!(
+                cache
+                    .subtract_all(interior.clone(), &occupied)
+                    .map_err(|x| error("equipment-fit", x, Some(&e.id)))
+            );
         }
         // Check the explicit original attachment socket (or the package's base datum).
         // Small 5 cm installation tolerance is independent of the 1 m hull grid.
@@ -2241,6 +2620,10 @@ fn equipment(
             .and_then(|s| s.iter().find(|s| s.id == "attachment"))
             .map_or([0., -1., 0.], |s| normalize(s.direction));
         let world_direction = sub(local_to_world(attachment_direction, pose), e.position);
+        // Failure diagnostics search this far off the socket line for a support.
+        let footprint = (0..3)
+            .map(|i| p.bounds_center[i].abs() + p.size[i] / 2.)
+            .fold(0., f64::max);
         let supports = if p.placement == "internal" {
             _material
         } else {
@@ -2285,7 +2668,7 @@ fn equipment(
             crate::construction_propellers::derive(e, p, &out.surfaces)
         };
         if !attached && support.is_none() && e.wall.is_none() {
-            return Err(error(
+            let d = error(
                 "equipment-attachment",
                 if p.kind == "propeller" {
                     "No hull connection for this propeller; move it closer to the stern or beneath the hull"
@@ -2293,13 +2676,30 @@ fn equipment(
                     "Equipment attachment has no physical hull support within 5 cm"
                 },
                 Some(&e.id),
-            ));
+            );
+            // Failure path only: measure to the support this datum is tested against.
+            let seat = if p.placement == "internal" {
+                crate::construction_diagnostics::seat_on_cells(supports, e.position, attachment)
+            } else {
+                crate::construction_diagnostics::seat_on_surfaces(
+                    &out.surfaces,
+                    e.position,
+                    attachment,
+                    normalize(world_direction),
+                    p.placement == "deck",
+                    footprint,
+                )
+            };
+            reject!(match seat {
+                Some(seat) => seat.describe(d, 0.05),
+                None => d,
+            });
         }
         if let Some(support) = support {
             if hull.iter().any(|h| {
                 cg::intersection(&envelope, h).is_some_and(|x| cg::moments(&x).volume > 1e-5)
             }) {
-                return Err(error(
+                reject!(error(
                     "equipment-fit",
                     "Propeller blades need clearance from the hull; move the propeller farther out",
                     Some(&e.id),
@@ -2315,23 +2715,27 @@ fn equipment(
                 })
                 .collect();
             for (i, (member, cell)) in members.iter().enumerate() {
-                if let Some((id, _)) = all_envelopes.iter().find(|(id, other)| {
+                if let Some((id, other)) = all_envelopes.iter().find(|(id, other)| {
                     id != &e.id
                         && colliding_ids.contains(id.as_str())
                         && cg::intersection(cell, other)
                             .is_some_and(|x| cg::moments(&x).volume > 1e-5)
                 }) {
-                    return Err(error(
-                        "equipment-overlap",
-                        format!(
-                            "Propeller shaft or support intersects {}",
-                            neighbor_name(&p.name, &part_name(id))
+                    reject!(crate::construction_diagnostics::overlap(
+                        error(
+                            "equipment-overlap",
+                            format!(
+                                "Propeller shaft or support intersects {}",
+                                neighbor_name(&p.name, &part_name(id))
+                            ),
+                            Some(&e.id),
                         ),
-                        Some(&e.id),
+                        id,
+                        cg::intersection(cell, other).as_ref(),
                     ));
                 }
                 if crate::construction_propellers::crosses_hull(member, cell, hull) {
-                    return Err(error(
+                    reject!(error(
                         "equipment-fit",
                         format!(
                             "Propeller {} crosses the hull; move the propeller to clear the plating",
@@ -2350,7 +2754,8 @@ fn equipment(
             }
             // Union joined lofts before integrating weight; never add them to hull cells.
             let cells: Vec<_> = members.into_iter().map(|(_, cell)| cell).collect();
-            let solids = cg::union(&cells).map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
+            let solids =
+                attempt!(cg::union(&cells).map_err(|x| error("equipment-fit", x, Some(&e.id))));
             masses.push(mass(
                 format!("{}-support", e.id),
                 "equipment",
@@ -2379,26 +2784,49 @@ fn equipment(
                             p.size[0] * p.size[2]
                         };
                         let volume = cg::moments(&x);
-                        (volume.volume > base_area * 0.005).then(|| volume.center())
+                        (volume.volume > base_area * 0.005).then(|| (volume.center(), x))
                     })
                 })
             })
         } else {
             None
         };
-        if let Some(point) = intrusion {
-            return Err(error(
+        if let Some((point, shared)) = intrusion {
+            let mut d = error(
                 "equipment-fit",
                 format!(
                     "Exterior equipment body overlaps the hull near [{:.3}, {:.3}, {:.3}]; use its original support datum (5 mm fitted-base tolerance)",
                     point[0], point[1], point[2]
                 ),
                 Some(&e.id),
-            ));
+            );
+            // Depth of the shared volume along the seating axis.
+            let (_, extent) = cg::bounds(&shared);
+            let axis = (0..3)
+                .max_by(|a, b| {
+                    attachment_direction[*a]
+                        .abs()
+                        .total_cmp(&attachment_direction[*b].abs())
+                })
+                .unwrap();
+            d.fit.get_or_insert_default().penetration_m =
+                Some(crate::construction_diagnostics::rounded(extent[axis]));
+            reject!(match crate::construction_diagnostics::seat_on_surfaces(
+                &out.surfaces,
+                e.position,
+                attachment,
+                normalize(world_direction),
+                true,
+                footprint,
+            ) {
+                Some(seat) => seat.describe(d, 0.005),
+                None => d,
+            });
         }
         if p.placement == "deck" {
             if has_lines
-                && let Some(surface) = crate::construction_paths::FittingSurface::new(e, p)?
+                && let Some(surface) =
+                    attempt!(crate::construction_paths::FittingSurface::new(e, p))
             {
                 fitting_surfaces.push(surface);
             }
@@ -2415,7 +2843,7 @@ fn equipment(
             );
         }
         let weapon = if p.kind == "gun" {
-            Some(
+            Some(attempt!(
                 catalog
                     .weapons
                     .parts
@@ -2423,14 +2851,14 @@ fn equipment(
                     .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
                     .ok_or_else(|| {
                         error("weapon", "Missing canonical gun definition", Some(&e.id))
-                    })?,
-            )
+                    })
+            ))
         } else {
             None
         };
         let mass_kg = weapon.map_or(p.mass_kg.unwrap_or(0.), |w| w.mass_kg);
         if !mass_kg.is_finite() || mass_kg <= 0. || mass_kg > 1e9 {
-            return Err(error(
+            reject!(error(
                 "equipment-mass",
                 "Equipment requires a positive catalog mass",
                 Some(&e.id),
@@ -2526,21 +2954,22 @@ fn equipment(
                 || !w.barbette_radius.is_finite()
                 || w.barbette_radius <= 0.
             {
-                return Err(error(
+                reject!(error(
                     "weapon",
                     "Invalid canonical weapon statistics",
                     Some(&e.id),
                 ));
             }
             let (magazine_id, ammo_center, ammo_size) = if c.version >= 2. {
-                let (center, size) = crate::construction_installation::magazine(c, catalog, p, e)
-                    .ok_or_else(|| {
-                    error(
-                        "magazine-fit",
-                        "Gun needs an integral ammunition package",
-                        Some(&e.id),
-                    )
-                })?;
+                let (center, size) = attempt!(
+                    crate::construction_installation::magazine(c, catalog, p, e).ok_or_else(|| {
+                        error(
+                            "magazine-fit",
+                            "Gun needs an integral ammunition package",
+                            Some(&e.id),
+                        )
+                    })
+                );
                 let id = integral_magazine(
                     def,
                     e,
@@ -2551,7 +2980,7 @@ fn equipment(
                 );
                 (id, center, size)
             } else {
-                let magazine = resolve_magazine(c, catalog, e)?;
+                let magazine = attempt!(resolve_magazine(c, catalog, e));
                 (
                     magazine.id.clone(),
                     magazine_load_center(catalog, magazine),
@@ -2590,7 +3019,7 @@ fn equipment(
                         || b > train
                 })
             {
-                return Err(error(
+                reject!(error(
                     "weapon-installation",
                     "Gun installation exceeds its canonical capability",
                     Some(&e.id),
@@ -2637,39 +3066,42 @@ fn equipment(
                 inertia_kg_m2: if c.version >= 2. {
                     box_inertia(ammo_size, kg)
                 } else {
-                    magazine_load_inertia(catalog, resolve_magazine(c, catalog, e)?, kg)
+                    magazine_load_inertia(catalog, attempt!(resolve_magazine(c, catalog, e)), kg)
                 },
             });
         }
         if p.kind == "torpedo-launcher" {
-            let w = catalog
-                .weapons
-                .torpedoes
-                .iter()
-                .flatten()
-                .find(|w| Some(w.id.as_str()) == p.torpedo_part_id.as_deref())
-                .ok_or_else(|| {
-                    error(
-                        "weapon",
-                        "Missing canonical torpedo definition",
-                        Some(&e.id),
-                    )
-                })?;
-            let offsets = p
-                .tube_offsets
-                .as_ref()
-                .filter(|o| !o.is_empty() && o.len() <= 8)
-                .ok_or_else(|| {
-                    error(
-                        "weapon",
-                        "Torpedo launcher needs 1–8 original tube offsets",
-                        Some(&e.id),
-                    )
-                })?;
+            let w = attempt!(
+                catalog
+                    .weapons
+                    .torpedoes
+                    .iter()
+                    .flatten()
+                    .find(|w| Some(w.id.as_str()) == p.torpedo_part_id.as_deref())
+                    .ok_or_else(|| {
+                        error(
+                            "weapon",
+                            "Missing canonical torpedo definition",
+                            Some(&e.id),
+                        )
+                    })
+            );
+            let offsets = attempt!(
+                p.tube_offsets
+                    .as_ref()
+                    .filter(|o| !o.is_empty() && o.len() <= 8)
+                    .ok_or_else(|| {
+                        error(
+                            "weapon",
+                            "Torpedo launcher needs 1–8 original tube offsets",
+                            Some(&e.id),
+                        )
+                    })
+            );
             let magazine_id = if c.version >= 2. {
                 integral_magazine(def, e, add(e.position, p.bounds_center), p.size, true, true)
             } else {
-                resolve_magazine(c, catalog, e)?.id.clone()
+                attempt!(resolve_magazine(c, catalog, e)).id.clone()
             };
             if let Some(installation) = &e.launcher {
                 let [lo, hi] = installation.traverse_limits_deg;
@@ -2686,7 +3118,7 @@ fn equipment(
                         !a.is_finite() || !b.is_finite() || a >= b || *a < lo || *b > hi
                     })
                 {
-                    return Err(error(
+                    reject!(error(
                         "weapon-installation",
                         "Launcher arcs must lie within traverse limits and include the installed resting bearing",
                         Some(&e.id),
@@ -2708,7 +3140,7 @@ fn equipment(
                 });
             for (i, &offset) in offsets.iter().enumerate() {
                 if !finite(offset) {
-                    return Err(error(
+                    reject!(error(
                         "weapon",
                         "Invalid torpedo muzzle offset",
                         Some(&e.id),
@@ -2765,24 +3197,45 @@ fn equipment(
                 .map(|m| m.weapon.ammo_per_barrel * m.weapon.barrel_count)
                 .sum();
             if stock > p.ammunition_capacity.unwrap_or(0.) {
-                return Err(error(
+                let mut d = error(
                     "magazine-capacity",
-                    "Magazine cannot hold all initially loaded rounds",
+                    format!(
+                        "Magazine cannot hold all initially loaded rounds: {stock:.0} assigned, capacity {:.0}",
+                        p.ammunition_capacity.unwrap_or(0.)
+                    ),
                     Some(&e.id),
-                ));
+                );
+                d.related_source_ids = Some(
+                    def.mounts
+                        .iter()
+                        .filter(|m| m.magazine_id.as_deref() == Some(e.id.as_str()))
+                        .map(|m| m.id.clone())
+                        .collect(),
+                );
+                errors.push(d);
             }
         }
     }
     // Hull burial applies to every fixed fitting. Only collision-bearing fittings
     // can bury one another; decorative overlaps never consume their exposed volume.
-    for id in &relaxed_ids {
+    'burial: for id in &relaxed_ids {
+        // One fault per fitting; a rejected fitting is not measured again.
+        if errors.len() >= MAX_ERRORS || errors.iter().any(|d| d.source_id.as_deref() == Some(*id))
+        {
+            continue;
+        }
         let cells: Vec<_> = all_envelopes
             .iter()
             .filter(|(owner, _)| owner == id)
             .map(|(_, cell)| cell.clone())
             .collect();
-        let mut exposed =
-            cg::union(&cells).map_err(|message| error("equipment-overlap", message, Some(id)))?;
+        let mut exposed = match cg::union(&cells) {
+            Ok(exposed) => exposed,
+            Err(message) => {
+                errors.push(error("equipment-overlap", message, Some(id)));
+                continue;
+            }
+        };
         let volume = cg::total(&exposed).volume;
         let hull_candidates: std::collections::BTreeSet<_> = cells
             .iter()
@@ -2809,13 +3262,23 @@ fn equipment(
                 .collect();
             if cg::total(&exposed).volume + 1e-7 < volume * crate::construction_overlap::MIN_EXPOSED
             {
-                return Err(error(
+                errors.push(error(
                     "equipment-overlap",
-                    "Keep at least 10% of each fixed fitting outside the hull; machinery must also remain exposed to other machinery and weapons",
+                    format!(
+                        "Keep at least 10% of each fixed fitting outside the hull; machinery must also remain exposed to other machinery and weapons. {} has under {:.0}% exposed",
+                        part_name(id),
+                        crate::construction_overlap::MIN_EXPOSED * 100.
+                    ),
                     Some(id),
                 ));
+                continue 'burial;
             }
         }
+    }
+    // Propulsion and services describe a fitted ship; the caller reports the faults.
+    if !errors.is_empty() {
+        faults.append(&mut errors);
+        return Ok(());
     }
     let assignments = crate::construction_propulsion::assignments(&fitted);
     out.propeller_assignments = Some(assignments.clone());
@@ -2912,6 +3375,7 @@ fn equipment(
                 code: "unpowered".into(),
                 message: format!("Engine {} has no propulsion: {}. Sea trial is still available, but this engine provides no thrust.", engine.id, reasons.join(". ")),
                 source_id: Some(engine.id.clone()),
+                ..Default::default()
             });
             continue;
         }
@@ -3900,6 +4364,156 @@ mod tests {
         (s, c)
     }
     #[test]
+    fn every_faulty_fitting_is_reported_with_its_measured_gap_and_seat() {
+        let (mut source, catalog) = equipped_fixture();
+        let mut sunk = source.construction.equipment[2].clone();
+        assert_eq!(sunk.id, "gun");
+        sunk.id = "sunk".into();
+        sunk.position = [0., 1.5, 1.];
+        sunk.bearing_deg = 90.;
+        source.construction.equipment.push(sunk);
+        source.construction.equipment[2].position[1] = 2.8;
+        let result = compile(&source, &catalog);
+        assert!(result.definition.is_none());
+        let errors: Vec<_> = result
+            .diagnostics
+            .iter()
+            .filter(|d| d.severity == "error")
+            .collect();
+        assert_eq!(errors.len(), 2, "{:?}", result.diagnostics);
+        let floating = errors
+            .iter()
+            .find(|d| d.source_id.as_deref() == Some("gun"))
+            .unwrap();
+        assert_eq!(floating.code, "equipment-attachment");
+        assert_eq!(floating.fit.as_ref().unwrap().gap_m, Some(0.8));
+        assert_eq!(floating.fit.as_ref().unwrap().tolerance_m, Some(0.05));
+        assert_eq!(
+            floating.fit.as_ref().unwrap().nearest_support_id.as_deref(),
+            Some("box")
+        );
+        assert_eq!(
+            floating.fit.as_ref().unwrap().seat_position,
+            Some([0., 2., -5.])
+        );
+        assert!(floating.message.contains("0.800 m clear of hull piece box"));
+        let buried = errors
+            .iter()
+            .find(|d| d.source_id.as_deref() == Some("sunk"))
+            .unwrap();
+        assert_eq!(buried.code, "equipment-fit", "{buried:?}");
+        assert_eq!(buried.fit.as_ref().unwrap().gap_m, Some(-0.5));
+        // The catalog body starts just above its datum.
+        assert!(
+            buried
+                .fit
+                .as_ref()
+                .unwrap()
+                .penetration_m
+                .is_some_and(|depth| depth > 0.4 && depth <= 0.5)
+        );
+        assert_eq!(
+            buried.fit.as_ref().unwrap().seat_position,
+            Some([0., 2., 1.])
+        );
+        let note = result.diagnostics.last().unwrap();
+        assert_eq!(
+            (note.severity.as_str(), note.code.as_str()),
+            ("warning", "checks-skipped")
+        );
+        // Both corrections together compile.
+        for e in &mut source.construction.equipment {
+            if let Some(d) = errors
+                .iter()
+                .find(|d| d.source_id.as_deref() == Some(e.id.as_str()))
+            {
+                e.position = d.fit.as_ref().unwrap().seat_position.unwrap();
+            }
+        }
+        let repaired = compile(&source, &catalog);
+        assert!(repaired.definition.is_some(), "{:?}", repaired.diagnostics);
+    }
+    #[test]
+    fn suggestions_set_faulty_fittings_aside_but_not_a_faulty_hull() {
+        let (mut source, catalog) = equipped_fixture();
+        source.construction.equipment.retain(|e| e.id != "funnel");
+        source.construction.equipment[2].position[1] = 2.8;
+        let before = source.construction.equipment.clone();
+        let proposal = suggest(&source, &catalog, &["funnel-part".into()]);
+        assert!(
+            proposal.diagnostics.iter().all(|d| d.severity == "warning"),
+            "{:?}",
+            proposal.diagnostics
+        );
+        assert_eq!(proposal.diagnostics[0].code, "suggestion-draft");
+        assert_eq!(
+            proposal.diagnostics[0].related_source_ids.as_deref(),
+            Some(&["gun".to_owned()][..])
+        );
+        let added = proposal.source.construction.equipment.last().unwrap();
+        assert_eq!(added.part_id, "funnel-part");
+        assert_eq!(
+            serde_json::to_string(&proposal.source.construction.equipment[..before.len()]).unwrap(),
+            serde_json::to_string(&before).unwrap()
+        );
+        // Seating the faulty gun then yields a valid ship with the proposed funnel.
+        let mut repaired = proposal.source.clone();
+        repaired.construction.equipment[2].position[1] = 2.;
+        let result = compile(&repaired, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        source.construction.boundaries.push(ConstructionBoundary {
+            id: "outside".into(),
+            axis: "y".into(),
+            offset: 50.,
+            thickness_mm: 10.,
+        });
+        let refused = suggest(&source, &catalog, &["funnel-part".into()]);
+        assert!(refused.diagnostics.iter().any(|d| d.code == "boundary"));
+        assert_eq!(refused.source.construction.equipment.len(), before.len());
+    }
+    #[test]
+    fn independent_source_faults_are_reported_together() {
+        let (mut source, catalog) = equipped_fixture();
+        let mut surface = ConstructionSurfaceAssignment {
+            primitive_id: "absent".into(),
+            face: "top".into(),
+            thickness_mm: 10.,
+            material: "steel".into(),
+            paint: "naval-gray".into(),
+            ..Default::default()
+        };
+        source.construction.surfaces.push(surface.clone());
+        surface.primitive_id = "box".into();
+        surface.material = "tin".into();
+        source.construction.surfaces.push(surface);
+        source.construction.equipment[0].paint = Some(String::new());
+        let result = compile(&source, &catalog);
+        let found: Vec<_> = result
+            .diagnostics
+            .iter()
+            .filter(|d| d.severity == "error")
+            .map(|d| (d.code.as_str(), d.source_id.as_deref()))
+            .collect();
+        assert_eq!(
+            found,
+            [
+                ("equipment-paint", Some("engine")),
+                ("surface", Some("absent")),
+                ("surface", Some("box"))
+            ],
+            "{:?}",
+            result.diagnostics
+        );
+        // Optional measurement fields never appear on diagnostics without them.
+        let json = to_json(&result).unwrap();
+        assert!(!json.contains("gapM") && !json.contains("relatedSourceIds"));
+        assert!(
+            !serde_json::to_string(&result.diagnostics)
+                .unwrap()
+                .contains("gapM")
+        );
+    }
+    #[test]
     fn propulsion_warnings_identify_missing_parts_and_keep_trials_available() {
         for (removed, needed) in [
             ("funnel", "funnel"),
@@ -4465,7 +5079,12 @@ mod tests {
                 .diagnostics
                 .iter()
                 .any(|d| d.code == "equipment-overlap"
-                    && d.message == format!("{name} intersects another {name}")),
+                    && d.message
+                        .starts_with(&format!("{name} intersects another {name}. "))
+                    && d.related_source_ids.as_deref() == Some(&["gun".to_owned()][..])
+                    && d.fit
+                        .as_ref()
+                        .is_some_and(|fit| fit.penetration_m > Some(0.))),
             "{:?}",
             result.diagnostics
         );

@@ -281,6 +281,23 @@ export interface ConstructionDiagnostic {
   code: string;
   message: string;
   sourceId?: string;
+  /** Other source instances involved: the overlapped fitting, a duplicate ID, the wall or engine named by a link. */
+  relatedSourceIds?: string[];
+  /** Measurements of a failed support, attachment or clearance check. */
+  fit?: ConstructionDiagnosticFit;
+}
+export interface ConstructionDiagnosticFit {
+  /** Hull piece that could carry the failed attachment datum; absent for internal structure, which has no source ID. */
+  nearestSupportId?: string;
+  /** Metres from the attachment datum to that support, signed along the socket direction:
+   * positive floats clear of it, negative is buried in it. */
+  gapM?: number;
+  /** Attachment tolerance the gap was tested against, metres. */
+  toleranceM?: number;
+  /** Equipment `position` that closes the gap; the other checks still apply there. */
+  seatPosition?: Vec3;
+  /** Depth of the overlap with the hull or with `relatedSourceIds[0]`, metres. */
+  penetrationM?: number;
 }
 export interface ConstructionResult {
   /** Native visual bilge-keel faces; excluded from buoyancy, armor and loading. */

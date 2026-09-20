@@ -16,6 +16,7 @@ pub(crate) fn installed(
         code: "wall-fitting".into(),
         message: message.into(),
         source_id: Some(e.id.clone()),
+        ..Default::default()
     };
     let socket = p
         .sockets
