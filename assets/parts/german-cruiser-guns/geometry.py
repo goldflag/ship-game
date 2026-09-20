@@ -47,34 +47,53 @@ class MountBuilder:
 def create_main(mount,col,helpers,materials):
     b=MountBuilder(mount,col,helpers,materials);s=b.s
     b.cyl('bearing lower',(0,0,-.10),3.02,.20,'edge');b.cyl('rotating floor',(0,0,.015),3.08,.09)
-    shape=s['gunhouseMesh'];o=b.mesh('faceted gunhouse',shape['vertices'],[f['indices'] for f in shape['faces']])
+    shape=s['gunhouseMesh']
+    # Taper the aft footprint and rake the rear roof with the existing facets.
+    vertices=[]
+    for x,y,z in shape['vertices']:
+        taper=1-.07*max(0,min(1,(-x-2)/3.45))
+        # Move the aft roof break forward, retaining a level crown and
+        # a continuous sloping rear shoulder beneath the rangefinder.
+        xx=max(x,-3.65) if z>2.5 and x<-3.65 else x
+        vertices.append((xx,y*taper,z))
+    o=b.mesh('faceted gunhouse',vertices,[f['indices'] for f in shape['faces']])
     o.data.materials.append(materials.get('roof',materials['edge']))
     for p,f in zip(o.data.polygons,shape['faces']):p.material_index=int(f['finish']=='roof')
     for side,y,_ in barrel_layout(s):
         e,r=b.gun_joints(side,y);length=s['muzzleForward']-s['trunnionForward']
         b.barrel(side+' stepped barrel',length,.265,.139,.1015,r,start=.46)
-        b.rod(side+' breech',(-1.2,0,0),(.46,0,0),.28,parent=r)
+        # Hidden breech cap omitted: spend its triangles on visible sight recesses.
     for y in [-2.62,2.62]:
         # The approved gunhouse has a flush rear roof, without the raised
         # rectangular hatches used on some other German turret variants.
         b.cyl('roof ventilator',(-1.3,y*.78,2.72),.15,.25,'edge')
         # Front sight flap follows the sloped face.
-        o=b.box('front sight flap',(2.16,y,1.15),(.07,.63,.39),'edge');o.rotation_euler.y=-.34
-        for z in [.42,.7,.98,1.26,1.54,1.82,2.1]:b.rod('side ladder rung',(-3.55,y/abs(y)*(3.34-max(0,z-1.68)*.49),z),(-3.18,y/abs(y)*(3.34-max(0,z-1.68)*.49),z),.025,'edge')
-        for z in [.64,1.39]:
-            b.rod('rear handrail',(-5.45,y-.30,z),(-5.45,y+.30,z),.023,'edge')
+        o=b.box('front sight recess',(2.16,y,1.42),(.07,.63,.39),'dark');o.rotation_euler.y=-.34
+        b.box('front sight hood',(2.17,y,1.64),(.22,.76,.08))
+        b.box('front sight sill',(2.31,y,1.21),(.17,.76,.07))
+        sign=y/abs(y)
+        def ladder_y(z):return sign*(3.34-max(0,z-1.68)*.49)
+        for z in [.42,.7,.98,1.26,1.54,1.82,2.1,2.38]:
+            b.rod('side ladder rung',(-1.65,ladder_y(z),z),(-1.28,ladder_y(z),z),.025,'edge')
+        # Square stringers seat against the flank and follow its roof chine.
+        for x in [-1.65,-1.28]:
+            for lo,hi in [(.42,1.68),(1.68,2.38)]:
+                b.put(helpers['rod'](b.name+'.side ladder stringer',
+                    (x,ladder_y(lo),lo),(x,ladder_y(hi),hi),.022,
+                    materials['edge'],col,vertices=4))
+        b.box('rear access hood',(-5.48,y*.72,1.49),(.14,.55,.65))
     if s['id']=='skc34-203-twin-rf':
         for sign in [-1,1]:
-            b.plate('rangefinder armored wing',[(-4.17,2.24),(-4.17,3.20),(-4.04,3.31),(-2.72,3.31),(-2.72,2.24),(-2.90,2.13)],*sorted([sign*2.85,sign*4.02]))
-            b.rod('optical lens',(-2.71,sign*3.65,2.72),(-2.66,sign*3.65,2.72),.22,'dark')
-            b.box('lens brow',(-2.62,sign*3.65,2.97),(.22,.57,.10),'edge')
+            b.plate('rangefinder armored wing',[(-4.55,2.03),(-4.55,2.98),(-4.35,3.11),(-2.60,3.11),(-2.60,2.10),(-2.85,1.98)],*sorted([sign*2.58,sign*4.02]))
+            b.rod('optical lens',(-2.59,sign*3.65,2.47),(-2.54,sign*3.65,2.47),.22,'dark')
+            b.box('lens brow',(-2.55,sign*3.65,2.75),(.22,.57,.10),'edge')
     for side,y,_ in barrel_layout(s):
         seam=[]
-        for i in range(20):
-            a=i*math.tau/20;z=1.38+.99*math.sin(a)
+        for i in range(16):
+            a=i*math.tau/16;z=1.32+.91*math.sin(a)
             x=2.6-.58*(z-.06)/1.62 if z<=1.68 else 2.02-.57*(z-1.68)/.96
             seam.append((x+.022,y+.48*math.cos(a),z))
-        create_bloomer(mount,col,helpers,materials,side,seam,s['trunnionForward']+1.50,.267,rings=5,fold_depth=.025,slack=.045)
+        create_bloomer(mount,col,helpers,materials,side,seam,s['trunnionForward']+1.50,.267,rings=5,fold_depth=.050,slack=.085,fullness=.055)
     return b.finish()
 
 
@@ -100,13 +119,24 @@ def create_secondary(mount,col,helpers,materials):
         b.cyl('crew seat',(-1.55,sign*1.15,1.09),.22,.10,'roof');b.rod('seat stem',(-1.55,sign*1.15,.63),(-1.55,sign*1.15,1.04),.049)
         b.wheel('elevation handwheel',(-.30,sign*1.70,1.10),.18)
         b.rod('control shaft',(-.3,sign*.65,1.10),(-.3,sign*1.70,1.10),.041)
+        b.plate('control gearcase',[(-.63,.80),(-.02,.80),(.08,1.13),(-.20,1.40),(-.58,1.30)],*sorted([sign*1.28,sign*1.57]))
         b.box('trunnion bearing',(s['trunnionForward'],sign*.94,s['pivotHeight']-.16),(.63,.34,.66))
     # Sloped front armor connects the cheeks; slots leave both cradles free.
     half=s['barrelSpacing']/2;slot=.19
     for lo,hi in [(-1.42,-half-slot),(-half+slot,half-slot),(half+slot,1.42)]:
         b.plate('front shield web',[(2.32,.58),(1.98,1.48),(1.945,1.48),(2.285,.58)],lo,hi)
-    b.plate('continuous front sill',[(2.32,.58),(2.11,1.18),(2.075,1.18),(2.285,.58)],-1.42,1.42)
-    b.plate('front central housing',[(2.38,.58),(2.38,1.23),(2.17,1.45),(2.09,1.20),(2.09,.58)],-.23,.23)
+    for lo,hi in [(-1.42,0),(0,1.42)]:
+        b.plate('continuous front sill',[(2.32,.58),(2.11,1.18),(2.075,1.18),(2.285,.58)],lo,hi)
+    # The C/31 shield has a shallow V nose and a low central apron. This is
+    # geometry only; keep the existing shared builder and trunnion contract.
+    for ob in list(b.yaw.children):
+        if ob.type=='MESH' and any(k in ob.name for k in ['front shield web','continuous front sill','forward shield cheek']):
+            for v in ob.data.vertices:
+                t=max(0,1-abs(v.co.y)/1.42)
+                v.co.x+=.12*t
+                if v.co.z<.65:v.co.z-=.22*t
+
+    b.plate('front central housing',[(2.38,.35),(2.38,1.23),(2.17,1.45),(2.09,1.20),(2.09,.35)],-.23,.23)
     for sign in [-1,1]:
         b.cyl('front sight housing',(1.92,sign*1.10,1.56),.145,.30)
         b.cyl('front sight cap',(1.92,sign*1.10,1.73),.18,.065,'edge')
@@ -124,9 +154,9 @@ def create_secondary(mount,col,helpers,materials):
         verts=[]
         for xx in [-1.10,-.80,.26,.55]:
             crown=.57 if -.9<xx<.4 else .40
-            for i in range(13):
-                a=i*math.pi/12;verts.append((xx,.30*math.cos(a),.12+crown*math.sin(a)))
-        hood=b.mesh(side+' rounded receiver hood',verts,[(j*13+i,j*13+i+1,(j+1)*13+i+1,(j+1)*13+i) for j in range(3) for i in range(12)],parent=e)
+            for i in range(7):
+                a=i*math.pi/6;verts.append((xx,.30*math.cos(a),.12+crown*math.sin(a)))
+        hood=b.mesh(side+' rounded receiver hood',verts,[(j*7+i,j*7+i+1,(j+1)*7+i+1,(j+1)*7+i) for j in range(3) for i in range(6)],parent=e)
         mod=hood.modifiers.new('Hood thickness','SOLIDIFY');mod.thickness=.018
         b.mesh(side+' receiver hood front',[(.555,yy,zz) for yy,zz in [(-.30,.12),(-.30,.28),(-.21,.42),(0,.52),(.21,.42),(.30,.28),(.30,.12)]],[tuple(range(7))],parent=e)
         for xx in [-.65,-.35,-.05]:b.box(side+' loading rail',(xx,0,.44),(.08,.43,.04),'edge',e)
@@ -140,7 +170,7 @@ def create_light(mount,col,helpers,materials):
     # Flak 28 has a low turntable and two outboard seated stations. The two
     # 20 mm variants use a tall cone with standing, elevating hand controls.
     base=.36 if bofors else (.82 if twin else .88)
-    b.cyl('sole',(0,0,.035),.48 if bofors else .36,.09,'edge')
+    b.put(helpers['cyl'](b.name+'.sole',(0,0,.035),.48 if bofors else .36,.09,materials['edge'],col,12))
     b.cyl('tapered pedestal',(0,0,(base-.06)/2+.08),.40 if bofors else .25,base-.06,r2=.33 if bofors else .12)
     b.cyl('training bearing',(0,0,base),.42 if bofors else .15,.12,'edge')
     fw=.34 if bofors or twin else .18
@@ -154,10 +184,14 @@ def create_light(mount,col,helpers,materials):
         upper=.23 if twin else .04
         for sign in [-1,1]:
             # The M43U shield has a taller right panel and a broad central slot.
-            peak=top if not twin or sign<0 else 1.70
+            peak=top if not twin or sign>0 else 1.70
             xx=front+(upper-front)*(peak-low)/(top-low)
-            b.plate('shield plate',[(front,low),(xx,peak),(xx-.045,peak),(front-.045,low)],sign*(.38 if twin else .16),sign*shieldw)
-            b.rod('shield brace',(.05,sign*.34,base+.1),(front-.03,sign*shieldw*.82,low+.20),.033)
+            shield=b.plate('shield plate',[(front,low),(xx,peak),(xx-.045,peak),(front-.045,low)],sign*(.38 if twin else .16),sign*shieldw)
+            # Outer wings turn aft; the central strip remains forward of the
+            # cradle and leaves the full elevation slot open.
+            for v in shield.data.vertices:
+                v.co.x-=max(0,abs(v.co.y)-(.38 if twin else .16))*(.22 if twin else .27)
+            b.rod('shield brace',(.05,sign*.34,base+.1),(front+(upper-front)*.20/(top-low)-max(0,shieldw*.82-(.38 if twin else .16))*(.22 if twin else .27)-.02,sign*shieldw*.82,low+.20),.033)
         knee=low+(.45 if twin else .55);xx=front+(upper-front)*(knee-low)/(top-low)
         b.plate('shield lower web',[(front,low),(xx,knee),(xx-.045,knee),(front-.045,low)],-(.39 if twin else .17),.39 if twin else .17)
     if bofors:
@@ -165,7 +199,7 @@ def create_light(mount,col,helpers,materials):
             b.box('carriage footboard',(-.24,sign*.68,.41),(1.75,.40,.07),'roof')
             b.rod('footboard beam',(0,0,.36),(0,sign*.86,.40),.055)
             b.rod('seat stalk',(-.82,sign*.68,.44),(-.94,sign*.68,.82),.044)
-            b.box('operator seat',(-.94,sign*.68,.84),(.34,.32,.07),'roof')
+            b.put(helpers['cyl'](b.name+'.operator seat',(-.94,sign*.68,.84),.18,.07,materials.get('roof',materials['naval']),col,8))
             b.rod('backrest post',(-1.10,sign*.68,.84),(-1.10,sign*.68,1.11),.027)
             b.box('seat back',(-1.10,sign*.68,1.08),(.055,.30,.22),'roof')
             b.rod('foot rest support',(-.18,sign*.68,.44),(-.36,sign*.68,.59),.032)
@@ -193,10 +227,6 @@ def create_light(mount,col,helpers,materials):
         for zz,cx,w,yy in [rows[0],rows[2]]:
             b.rod('case frame support',(tr,.18,z),(cx+w,yy,zz),.022)
         for j,((zz,cx,w,yy),(vz,ux,q,vy)) in enumerate(zip(rows,rows[1:])):
-            for t in [i/4 for i in range(5)]:b.rod('case net warp',(cx-w+2*w*t,yy,zz),(ux-q+2*q*t,vy,vz),.006,'edge')
-            for t in [i/2 for i in range(2)]:
-                xx,hh,ww,lat=cx+(ux-cx)*t,zz+(vz-zz)*t,w+(q-w)*t,yy+(vy-yy)*t
-                b.rod('case net weft',(xx-ww,lat,hh),(xx+ww,lat,hh),.006,'edge')
             for sign in [-1,1]:b.rod('case net seam',(cx+sign*w,yy,zz),(ux+sign*q,vy,vz),.012,'dark')
     for side,y,_ in barrel_layout(s):
         e,r=b.gun_joints(side,y);length=s['muzzleForward']-tr
@@ -214,7 +244,7 @@ def create_light(mount,col,helpers,materials):
         if bofors:
             b.box('vertical feed well',(-.25,0,.25),(.27,.22,.29),'naval',r)
             for xx in [-.33,-.22,-.11]:b.rod('loaded clip round',(xx,0,.18),(xx,0,.49),.025,'edge',r)
-            b.rod('bofors muzzle collar',(length-.13,0,0),(length-.03,0,0),.049,'edge',r)
+            b.rod('bofors conical muzzle',(length-.15,0,0),(length,0,0),.035,'edge',r,r2=.065)
         else:
             sign=(-1 if y<0 else 1) if twin else -1
             ob=b.box(side+' curved magazine',(-.18,sign*.25,.22),(.24,.37,.15),'dark',r);ob.rotation_euler.x=sign*.18
@@ -231,4 +261,12 @@ def create_light(mount,col,helpers,materials):
             guard=[(0,-y,.20),(.60,-y,.20),(.85,-y,-.27),(2.45,-y,-.27)]
             for a,c in zip(guard,guard[1:]):b.rod('central bent guard',a,c,.018,'edge',e)
         b.rod(side+' rear grip',(-.68,0,0),(-.79,0,-.11),.024,'edge',r)
+    if not twin and not bofors:
+        # Correct this exact single mount's catcher, controls and feed hand.
+        # Symmetric joints remain on the bore; only authored fittings reflect.
+        reflection=Matrix.Diagonal((1,-1,1,1))
+        for ob in b.yaw.children_recursive:
+            if ob.type=='MESH':
+                ob.data.transform(reflection);ob.data.flip_normals()
+                ob.matrix_basis=reflection@ob.matrix_basis@reflection
     return b.finish()

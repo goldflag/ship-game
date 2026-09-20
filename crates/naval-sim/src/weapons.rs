@@ -226,8 +226,7 @@ impl MountState {
             return;
         }
         self.queued = Some(kind);
-        if self.reload == 0.0 && self.available(self.loaded) < m.weapon.barrel_count
-        {
+        if self.reload == 0.0 && self.available(self.loaded) < m.weapon.barrel_count {
             self.select_ammunition(m, kind);
         }
     }

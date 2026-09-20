@@ -54,10 +54,10 @@ def create_mount(mount, col, helpers, materials):
 
     # Low sole and bearing ring: the installation root is slightly above the
     # source deck, so the sole extends down to the actual support surface.
-    put(cyl(name + '.mounting-sole', (0, 0, -.035), .49, .13, gray, col, 32))
-    put(cyl(name + '.training-bearing', (0, 0, .16), .47, .26, edge, col, 32))
-    put(cyl(name + '.pedestal', (0, 0, .61), .25, .82, gray, col, 24))
-    put(cyl(name + '.pedestal-shoulder', (0, 0, 1.02), .30, .14, edge, col, 24))
+    put(cyl(name + '.mounting-sole', (0, 0, -.035), .49, .13, gray, col, 16))
+    put(cyl(name + '.training-bearing', (0, 0, .16), .47, .26, edge, col, 16))
+    put(cyl(name + '.pedestal', (0, 0, .61), .25, .82, gray, col, 12))
+    put(cyl(name + '.pedestal-shoulder', (0, 0, 1.02), .30, .14, edge, col, 12))
     # Broad load-bearing pedestal webs follow the source's braced base.
     for sign in [-1,1]:
         for lateral in [-.22,.22]:
@@ -84,10 +84,14 @@ def create_mount(mount, col, helpers, materials):
         put(mesh(name+'.footboard',verts,[tuple(range(k)),tuple(range(k,2*k))]+[(i,(i+1)%k,(i+1)%k+k,i+k) for i in range(k)],deck,col))
         put(rod(name + '.footboard-outrigger', (0, 0, .20), (.67, sign*.73, .20), .060, gray, col, vertices=8))
         put(rod(name + '.seat-post', (.65, sign*.76, .20), (.65, sign*.76, .70), .045, gray, col, vertices=8))
-        put(cyl(name + '.crew-seat', (.65, sign*.76, .74), .20, .09, deck, col, 20))
+        put(cyl(name + '.crew-seat', (.65, sign*.76, .74), .20, .09, deck, col, 10))
         put(rod(name + '.handwheel-shaft', (.03, sign*.40, 1.10), (.66, sign*.76, .98), .035, edge, col, vertices=10))
         wheel('training-handwheel', (.66, sign*.78, .98), .16)
-        put(box(name + '.control-housing', (.14, sign*.43, 1.10), (.29, .16, .27), gray, col))
+        profile=[(-.12,.83),(.28,.83),(.44,1.10),(.23,1.33),(-.10,1.24)]
+        k=len(profile);vs=[(x,sign*.44+dy,z) for dy in [-.10,.10] for x,z in profile]
+        put(mesh(name+'.control-gearcase',vs,[tuple(reversed(range(k))),tuple(range(k,2*k))]+[(i,(i+1)%k,k+(i+1)%k,k+i) for i in range(k)],gray,col))
+        put(box(name+'.foot-pedal',(.95,sign*.68,.29),(.23,.17,.045),edge,col))
+        put(rod(name+'.pedal-link',(.95,sign*.68,.27),(.27,sign*.44,.90),.019,edge,col,vertices=6))
 
     for side, y, _ in barrel_layout(spec):
         elevation = joint(side + '.elevation', yaw, (tr, y, height))
@@ -97,7 +101,7 @@ def create_mount(mount, col, helpers, materials):
         # The nonrecoiling annular cradle carries the sliding receiver. A real
         # bore between both surfaces avoids hiding the breech in a solid block.
         tube(side + '.receiver-cradle', -.18, .18, .139, .108, elevation, gray)
-        put(rod(name + '.' + side + '.receiver', (-.80, 0, 0), (.50, 0, 0), .10, gray, col, vertices=12), recoil)
+        put(box(name + '.' + side + '.receiver', (-.15,0,0),(1.30,.18,.20),gray,col),recoil)
         put(box(name + '.' + side + '.breech-cap', (-.81, 0, 0), (.14, .18, .18), edge, col), recoil)
         put(box(name + '.' + side + '.top-feed', (-.43, 0, .135), (.38, .20, .15), dark, col), recoil)
         put(rod(name + '.' + side + '.recoil-cylinder', (-.32, 0, -.22), (.93, 0, -.22), .062, gray, col, vertices=14), recoil)
@@ -115,6 +119,11 @@ def create_mount(mount, col, helpers, materials):
         # Small loading handle remains on the receiver during recoil.
         put(rod(name + '.' + side + '.charging-handle', (-.63, -.085, -.04), (-.63, -.17, -.04), .022, edge, col, vertices=8), recoil)
 
+    profile=[(-.12,.63),(.37,.63),(.40,1.02),(.21,1.26),(-.09,1.17)]
+    k=len(profile);vs=[(x,y,z) for y in [-.22,.22] for x,z in profile]
+    put(mesh(name+'.central-drive-casting',vs,[tuple(reversed(range(k))),tuple(range(k,2*k))]+[(i,(i+1)%k,k+(i+1)%k,k+i) for i in range(k)],gray,col))
+    for y in [-.63,.63]:put(box(name+'.director-end',(.40,y,1.76),(.16,.14,.08),edge,col))
+    put(rod(name+'.director-crossbar',(.40,-.66,1.76),(.40,.66,1.76),.025,edge,col,vertices=8))
     # Sight bridge and ring are rooted on the pedestal between the twin guns.
     put(rod(name + '.sight-bracket', (.13, 0, 1.05), (.40, 0, 1.76), .030, gray, col, vertices=8))
     put(rod(name + '.sight-mount', (.40, 0, 1.76), (.59, 0, 1.76), .025, edge, col, vertices=8))

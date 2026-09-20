@@ -42,7 +42,9 @@ pub struct DepthCharge {
     pub submerged: bool,
     /// Another team's weapon is cut to its visible dimensions and speed in a team
     /// frame (`team_view`); the owner's travels whole.
-    #[ts(type = "Pick<import('../../ships/blueprint').DepthChargePart, 'diameterM' | 'lengthM'> & Partial<import('../../ships/blueprint').DepthChargePart>")]
+    #[ts(
+        type = "Pick<import('../../ships/blueprint').DepthChargePart, 'diameterM' | 'lengthM'> & Partial<import('../../ships/blueprint').DepthChargePart>"
+    )]
     pub weapon: DepthChargePart,
 }
 pub fn update_launcher(

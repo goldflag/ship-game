@@ -396,10 +396,14 @@ impl Battle {
     }
     fn emit(&mut self, mut event: DamageEvent) {
         if event.source_id.is_none() {
-            let id = event.shell.as_ref().map(|s| s.id)
+            let id = event
+                .shell
+                .as_ref()
+                .map(|s| s.id)
                 .or_else(|| event.torpedo.as_ref().map(|t| t.id))
                 .or_else(|| event.depth_charge.as_ref().map(|c| c.id));
-            event.source_id = id.and_then(|id| self.records.sources.get(&id))
+            event.source_id = id
+                .and_then(|id| self.records.sources.get(&id))
                 .map(|source| source.owner_id.clone());
         }
         if self.mission_rules.is_some() {

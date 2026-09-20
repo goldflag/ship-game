@@ -22,6 +22,9 @@ def create_mount(mount,col,helpers,mats):
     def cube(label,loc,size,parent,mat=gray):return attach(box(name+'.'+label,loc,size,mat,col),parent)
     def bar(label,a,b,r,parent,mat=steel,vertices=10):return attach(rod(name+'.'+label,a,b,r,mat,col,vertices=vertices),parent)
     def drum(label,loc,r,h,parent,mat=gray,vertices=12):return attach(cyl(name+'.'+label,loc,r,h,mat,col,vertices),parent)
+    def cheek(label,profile,y,thickness,parent,mat=gray):
+        n=len(profile);vs=[(x,y+dy,z) for dy in [-thickness/2,thickness/2] for x,z in profile]
+        return attach(mesh(name+'.'+label,vs,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)],mat,col),parent)
     def ring(label,center,r,parent,axis='y',tube=.018):
         x,y,z=center
         def point(a):
@@ -31,35 +34,46 @@ def create_mount(mount,col,helpers,mats):
         for i in range(4):bar(label+'-spoke',center,point(i*math.pi/2),tube*.65,parent,vertices=6)
     a,b,c=mount['position'];root=empty('base',loc=(-c,-a,b));yaw=empty('yaw',root)
     yaw.rotation_euler.z=-math.radians(mount['bearingDeg'])
-    drum('foundation',(0,0,.075),spec['barbetteRadius'],.15,root,steel,24)
-    drum('roller-path',(0,0,.205),spec['barbetteRadius']*.84,.18,yaw,steel,24)
+    drum('foundation',(0,0,.075),spec['barbetteRadius']*(1 if heavy or shielded else .72),.15,root,steel,24)
+    drum('roller-path',(0,0,.205),spec['barbetteRadius']*(.84 if heavy or shielded else .60),.18,yaw,steel,24)
     # Roller bolts belong to the fixed seat; rotating floor is physically seated.
-    for i in range(24 if heavy else 16):
-        t=i*math.tau/(24 if heavy else 16);r=spec['barbetteRadius']*.92
+    for i in range(12 if shielded else (16 if heavy else 16)):
+        t=i*math.tau/(12 if shielded else (16 if heavy else 16));r=spec['barbetteRadius']*(.92 if heavy or shielded else .65)
         drum('foundation-bolt',(r*math.cos(t),r*math.sin(t),.157),.042 if heavy else .025,.035,root,steel,6)
     H=spec['pivotHeight'];T=spec['trunnionForward'];W=spec['gunhouseSize'][1]
     # Open fork on a low rotating base. A solid high central column would
     # occupy the descending breech/loader path at high elevation.
     drum('rotating-pedestal',(0,0,.40 if heavy else .35),.72 if heavy else .37,.38 if heavy else .30,yaw)
     cube('cross-saddle',(T*.35,0,.42 if heavy else .35),(.95 if heavy else .55,W*.68,.26 if heavy else .16),yaw)
+    seat_x=-.69 if shielded and not heavy else -.85
     for sign in [-1,1]:
         y=sign*(1.27 if heavy else .8)
         bar('fork-leg',(T*.35,y,.42 if heavy else .35),(T,y,H*.65),.115 if heavy else .075,yaw,gray,12)
-        cube('bearing-cheek',(T,y,H*.78),(.8 if heavy else .48,.19,H*.53),yaw)
+        # The side plates rake into the bearing; a tall rectangular ear hides
+        # the open carriage and does not reproduce the Type 96 silhouette.
+        if not heavy:
+            cheek('bearing-cheek',[(T-.43,.36),(T+.40,.36),(T+.16,H+.11),(T-.10,H+.14),(T-.28,H-.22)],y,.14,yaw)
+        else:
+            cheek('bearing-cheek',[(T-.46,.42),(T+.46,.42),(T+.26,H-.1),(T+.11,H+.15),(T-.15,H+.15),(T-.25,H-.1)],y,.19,yaw)
         bar('trunnion-cap',(T,y-.13,H),(T,y+.13,H),.24 if heavy else .14,yaw,vertices=12)
         # Training/elevation operator's seats, shafts and handwheels.
         sy=sign*(1.48 if heavy else 1.04)
-        bar('seat-floor-arm',(0,0,.26),(-.85,sy,.26),.045,yaw,gray)
-        bar('seat-outrigger',(-.85,sy,.26),(-.85,sy,.65),.06,yaw,gray)
-        bar('seat-post',(-.85,sy,.62),(-.85,sy,.93),.048,yaw,gray)
-        cube('operator-seat',(-.85,sy,.96),(.42,.38,.085),yaw,steel)
-        cube('seat-back',(-1.07,sy,1.12),(.065,.37,.30),yaw,steel)
+        bar('seat-floor-arm',(0,0,.26),(seat_x,sy,.26),.045,yaw,gray)
+        bar('seat-outrigger',(seat_x,sy,.26),(seat_x,sy,.65),.06,yaw,gray)
+        bar('seat-post',(seat_x,sy,.62),(seat_x,sy,.93 if heavy else .69),.048,yaw,gray)
+        cube('operator-seat',(seat_x,sy,.96 if heavy else .72),(.42,.38,.085),yaw,steel)
+        cube('seat-back',(seat_x-.22,sy,1.12 if heavy else .84),(.065,.37,.30 if heavy else .20),yaw,steel)
         bar('control-shaft',(-.40,y,H*.57),(-.40,sy,H*.57),.05,yaw)
         cube('control-gearbox',(-.30,y,H*.57),(.40,.24,.32),yaw)
         bar('control-gearbox-support',(-.3,y,H*.57),(T,y,H*.57),.055,yaw,gray)
         ring('control-handwheel',(-.4,sy,H*.57),.24 if heavy else .18,yaw)
         cube('footrest',(-.4,sy,.4),(.42,.35,.065),yaw,steel)
-        bar('footrest-bracket',(-.4,sy,.4),(-.85,sy,.70),.032,yaw,gray)
+        bar('footrest-bracket',(-.4,sy,.4),(seat_x,sy,.70),.032,yaw,gray)
+    if not heavy:
+        for yy in [-.64,.64]:
+            bar('lower-carriage-runner',(-.72,yy,.32),(.65,yy,.32),.032,yaw,gray,6)
+            bar('front-footboard-support',(.20,yy,.34),(.67,yy,.16),.030,yaw,gray,6)
+        bar('front-carriage-tie',(.65,-.64,.32),(.65,.64,.32),.032,yaw,gray,6)
     # Bearing stubs terminate in the annular elevating seats. Do not put a
     # continuous solid axle through the recoiling receivers and gas systems.
     gap=.20 if heavy else .13
@@ -117,21 +131,24 @@ def create_mount(mount,col,helpers,mats):
         else:
             # Top-mounted 15-round box magazines, receiver and ribbed gas system.
             cube('magazine-receiver',(-.28,0,.14),(.26,.20,.12),recoil)
-            cube('15-round-magazine',(-.3,0,.35),(.27,.17,.37),recoil,steel)
-            cube('magazine-cap',(-.3,0,.54),(.29,.19,.035),recoil)
+            cheek('15-round-magazine',[(-.435,.18),(-.165,.18),(-.12,.49),(-.19,.55),(-.39,.55),(-.46,.46)],0,.17,recoil,steel)
+            cube('magazine-cap',(-.29,0,.55),(.20,.19,.025),recoil)
             for sy in [-.09,.09]:
                 for xx in [-.37,-.26]:bar('magazine-stiffener',(xx,sy,.19),(xx,sy,.51),.008,recoil,gray,6)
             bar('gas-cylinder',(-.27,0,-.095),(.61,0,-.095),.032,elevation,gray,12)
             for n in range(12):
                 x=.15+n*.039
-                o=cyl(name+'.barrel-cooling-ring',(x,0,0),radius*1.12,.017,steel,col,8);o.rotation_euler.y=math.pi/2;attach(o,recoil)
+                o=cyl(name+'.barrel-cooling-ring',(x,0,0),radius*1.12,.017,steel,col,6);o.rotation_euler.y=math.pi/2;attach(o,recoil)
             attach(rod(name+'.conical-flash-hider',(length-.10,0,0),(length,0,0),.036,steel,col,vertices=12,r2=.057),recoil)
         # The sight bracket is seated on the elevating slide, so it follows the bore.
         if heavy or side=='center':
             sy=.32 if heavy else .18
             bar('sight-bracket',(-.1,0,-.04),(-.1,sy,.43 if heavy else .3),.025 if heavy else .016,elevation)
             bar('sight-telescope',(-.24,sy,.43 if heavy else .3),(.18,sy,.43 if heavy else .3),.055 if heavy else .032,elevation,steel)
-            if not heavy:ring('ring-sight',(.18,sy,.30),.12,elevation,axis='x',tube=.009)
+            if not heavy:
+                ring('ring-sight',(.18,sy,.30),.12,elevation,axis='x',tube=.009)
+                bar('director-crossbar',(-.1,-.92-lateral,.30),(-.1,.92-lateral,.30),.022,elevation,gray,8)
+                for yy in [-.92-lateral,.92-lateral]:cube('director-end',(-.1,yy,.30),(.13,.16,.07),elevation)
     if heavy and not shielded:
         # The open A1 still carries an operator's curved splinter screen and
         # the flanking machinery cabinets seen in the approved source. These
@@ -148,55 +165,54 @@ def create_mount(mount,col,helpers,mats):
             bar('screen-support',(-1.58,yy,.54),(-1.58,yy,2.42),.045,yaw,gray,8)
         for sy in [-1,1]:
             yy=sy*1.37
-            cube('side-machinery-cabinet',(-.03,yy,.91),(1.23,.58,1.04),yaw)
+            cheek('side-machinery-cabinet',[(-.85,.38),(.68,.38),(.68,1.48 if sy<0 else 1.85),(.38,1.83 if sy<0 else 2.10),(-.85,1.83 if sy<0 else 2.10)],yy,.66,yaw)
             cube('cabinet-seat',(-.03,yy,.36),(1.36,.69,.12),yaw,steel)
-            for zz in [.69,.98,1.27]:
-                cube('cabinet-access-panel',(.60,yy,zz),(.035,.46,.24),yaw)
-                bar('cabinet-pull',(.625,yy-.09,zz),(.625,yy+.09,zz),.017,yaw,steel,6)
+            for zz in [.69,1.12,1.55]:
+                cube('cabinet-access-panel',(.69,yy,zz),(.035,.46,.24),yaw)
+                bar('cabinet-pull',(.718,yy-.09,zz),(.718,yy+.09,zz),.017,yaw,steel,6)
     if shielded:
-        # Gas protection uses the carrier hood, not the much heavier Yamato shield.
-        # Curved roof and vertical lower skirt are open at the two gun slots.
-        length,width,height=spec['gunhouseSize'];width*=.98
-        x0=-length*.48;x1=length*.28
-        sections=[(-width/2,.35),(-width/2,height*.53),(-width*.41,height*.79),(-width*.23,height*.94),(0,height),(width*.23,height*.94),(width*.41,height*.79),(width/2,height*.53),(width/2,.35)]
-        # Gun openings continue over the crown for high-angle elevation.
-        # Keep a solid rear arch; roof strips are attached to that arch.
+        # Original polygonal smoke/gas enclosure. The circular plan, broad
+        # skirt and sloping shoulders distinguish these from a rectangular
+        # barrel-vault shelter. The existing bore and motion contract are kept.
+        rx,ry,cx=(2.10,2.00,-.30) if heavy else (1.42,1.42,-.16)
+        bottom=.25 if heavy else .48
+        height=spec['gunhouseSize'][2]
+        front=T+.85 if heavy else T+.56
         slot_half=.32 if heavy else .16
         slots=[(lateral-slot_half,lateral+slot_half) for _,lateral,_ in barrel_layout(spec)]
-        ys=sorted(set([p[0] for p in sections]+[v for slot in slots for v in slot]))
-        roof=sections[1:-1]
-        def height_at(y):
-            for (a,h0),(b,h1) in zip(roof,roof[1:]):
-                if a<=y<=b:return h0+(h1-h0)*(y-a)/(b-a)
-            return height*.53
+        ys=sorted(set([-ry,-ry*.92,-ry*.71,-ry*.38,0,ry*.38,ry*.71,ry*.92,ry]+[v for slot in slots for v in slot]))
+        def extent(y):return rx*math.sqrt(max(0,1-(y/ry)**2))
+        def rear(y):return cx-extent(y)*(.84 if heavy else .94)
+        def forward(y):return min(front,cx+extent(y))
+        def crown(y):return height*(1-.23*max(0,(abs(y)/ry-.30)/.70)) if heavy else height*(1-.10*max(0,(abs(y)/ry-.71)/.29))
         verts=[];faces=[]
-        def quad(points):
-            n=len(verts);verts.extend(points);faces.append((n,n+1,n+2,n+3))
-        split=T-.65
+        def panel(points):
+            k=len(verts);verts.extend(points);faces.append(tuple(range(k,len(verts))))
+        split=T-.85 if heavy else T-.62
         for a,b in zip(ys,ys[1:]):
-            for lo,hi in [(x0,split),(split,x1)]:
-                if lo==split and any(s0<(a+b)/2<s1 for s0,s1 in slots):continue
-                quad([(lo,a,height_at(a)),(hi,a,height_at(a)),(hi,b,height_at(b)),(lo,b,height_at(b))])
-        for y in [-width/2,width/2]:quad([(x0,y,.35),(x1,y,.35),(x1,y,height*.53),(x0,y,height*.53)])
-        # Close the forward enclosure except its two/three narrow tracks.
-        # The previous broad opening exposed most of the mount through what
-        # the reference shows as a continuous protective face.
-        for a,b in zip(ys,ys[1:]):
-            inside=any(s0<(a+b)/2<s1 for s0,s1 in slots)
-            top=min(H-.24 if heavy else H-.13,height_at(a),height_at(b)) if inside else min(height_at(a),height_at(b))
-            quad([(x1,a,.35),(x1,b,.35),(x1,b,top),(x1,a,top)])
-
-        n=len(verts);verts.extend((x0,y,z) for y,z in sections);faces.append(tuple(range(n,n+len(sections))))
-        o=attach(mesh(name+'.curved-gas-hood',verts,faces,gray,col),yaw)
-        solid=o.modifiers.new('Physical shield thickness','SOLIDIFY');solid.thickness=.035 if heavy else .02
-        cube('front-apron',(x1,0,H-.85 if heavy else .48),(.045,width,.85 if heavy else .43),yaw)
-        for y in [-width*.48,width*.48]:cube('front-cheek',(x1,y,H-.03),(.045,.12,1.6 if heavy else .9),yaw)
-        for a,b in zip(ys,ys[1:]):
-            if any(s0<(a+b)/2<s1 for s0,s1 in slots):continue
-            bar('front-roof-edge',(x1,a,height_at(a)),(x1,b,height_at(b)),.025,yaw,gray)
-        for y in [-width*.46,width*.46]:bar('hood-frame',(x0,y,.24),(x0,y,height*.57),.035,yaw,gray)
-        for y in [-width*.46,width*.46]:bar('hood-underframe',(0,0,.26),(x0,y,.30),.065,yaw,gray)
-        cube('rear-access-door',(x0-.01,0,1.06 if heavy else .83),(.045,.72 if heavy else .5,1.35 if heavy else .85),yaw,steel)
-        bar('door-handle',(x0-.06,.21,.95),(x0-.06,.21,1.15),.029,yaw)
+            middle=(a+b)/2;inside=any(lo<middle<hi for lo,hi in slots)
+            ra,rb=rear(a),rear(b);fa,fb=forward(a),forward(b)
+            sa,sb=min(fa,max(ra,split)),min(fb,max(rb,split))
+            ha,hb=crown(a),crown(b)
+            # Rear shoulder connects the faceted side wall to the roof.
+            panel([(cx-extent(a),a,bottom),(cx-extent(b),b,bottom),(rb,b,hb*.88),(ra,a,ha*.88)])
+            panel([(ra,a,ha*.88),(rb,b,hb*.88),(sb,b,hb),(sa,a,ha)])
+            nose_a=min(ha*.96,H+.38 if heavy else H-.16);nose_b=min(hb*.96,H+.38 if heavy else H-.16)
+            if not inside:panel([(sa,a,ha),(sb,b,hb),(fb,b,nose_b),(fa,a,nose_a)])
+            low=H-(.34 if heavy else .16)
+            panel([(fa,a,bottom),(fa,a,min(low,nose_a) if inside else nose_a),(fb,b,min(low,nose_b) if inside else nose_b),(fb,b,bottom)])
+        hood=attach(mesh(name+'.faceted-gas-hood',verts,faces,gray,col),yaw)
+        solid=hood.modifiers.new('Physical shield thickness','SOLIDIFY');solid.thickness=.035 if heavy else .02
+        # Continuous rotating skirt sits directly on the retained foundation.
+        drum('hood-skirt',(cx,0,bottom/2),ry,bottom,yaw,gray,16)
+        # Low rail follows the outer rear shoulder; every stanchion ends in it.
+        for i in range(8):
+            a=math.pi/2+i*math.pi/8;b=a+math.pi/8
+            p=(cx+rx*.84*math.cos(a),ry*.94*math.sin(a),height*.95)
+            q=(cx+rx*.84*math.cos(b),ry*.94*math.sin(b),height*.95)
+            # The heavy hood has no high rear rail in the registered resource.
+            if not heavy:
+                bar('hood-roof-rail',p,q,.015,yaw,gray,6)
+                bar('hood-rail-foot',(p[0],p[1],height*.86),p,.012,yaw,gray,6)
     for o in set(bpy.context.scene.objects)-before:o['assemblyId']=name
     return yaw

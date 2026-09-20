@@ -1,3 +1,4 @@
+import { HUD_LAYERS } from '../ui/hudLayers';
 import { Vector3, type Camera } from 'three/webgpu';
 import { projectShipLabel } from './ShipLabels';
 import type { Torpedo } from './session/elements';
@@ -13,7 +14,7 @@ export class TorpedoMarkers {
   private height = 1;
 
   constructor(host: HTMLElement) {
-    this.root.className = 'torpedo-marker-layer';
+    this.root.className = HUD_LAYERS.torpedoMarkers.className;
     this.root.setAttribute('aria-hidden', 'true');
     this.root.hidden = true;
     host.appendChild(this.root);

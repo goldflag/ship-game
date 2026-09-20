@@ -1,0 +1,25 @@
+[
+  {
+    "name": "repository-authoring",
+    "since": "2026-09-19"
+  },
+  {
+    "name": "design-deletion",
+    "since": "2026-09-19"
+  },
+  {
+    "name": "shipbuilder-editing",
+    "since": "2026-09-19",
+    "note": "Menu item unavailable: New design (menu text changed)."
+  },
+  {
+    "name": "internals-selection",
+    "since": "2026-09-19",
+    "note": "selected() reads props of undefined."
+  },
+  {
+    "name": "invalid-part-feedback",
+    "since": "2026-09-19",
+    "note": "Reads props of undefined at shipbuilder-internals-browser.ts:143."
+  }
+]

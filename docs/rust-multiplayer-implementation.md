@@ -5,7 +5,7 @@ Hermes at **https://ships.tomato.gg**. See [deployment and operations](deploymen
 The implementation and measurement record below describes the original local
 validation; its statements about unprovisioned infrastructure are historical.
 
-Implemented on `goldflag/rust-fleet-multiplayer`, integrated with remote master `8495e905`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work. See the [retained validation evidence](../assets/reviews/rust-multiplayer/README.md).
+Implemented on `goldflag/rust-fleet-multiplayer`, integrated with remote master `8495e905`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work.
 
 ## Implemented
 
@@ -85,7 +85,7 @@ bun run multiplayer:benchmark 1800
 
 `multiplayer:check` generates content, runs the full native suite in the optimized release profile and Clippy, builds WASM. Release-profile tests keep long carrier scenarios within the CI time budget without skipping coverage. Standalone Cargo tests require the generated manifest. Wire types, including the battle frame (`BattleFrame`, `SessionFrame`) and its update envelope (`FrameUpdate`), are exported with `bun run multiplayer:types` (`cargo run -p naval-protocol --bin export`; `.cargo/config.toml` sets `TS_RS_EXPORT_DIR`).
 
-Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 28,800 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 133 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite, production build and release-server HTTP/WebSocket smoke. See the PR checks for remote execution status. The [implementation review disposition](reviews/rust-multiplayer-review-disposition.md) records Fable’s findings and their fixes.
+Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 28,800 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 133 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite, production build and release-server HTTP/WebSocket smoke. See the PR checks for remote execution status. The [implementation review disposition](archive/reviews/rust-multiplayer-review-disposition.md) records Fable’s findings and their fixes.
 
 Real TCP checks cover load barrier, ownership, movement, reconnect epochs, old socket replacement, forfeit, frozen final-result retrieval, HTTP queue cancellation, four players in two simultaneous maximum-size legal fleets and refusal of a third match. PostgreSQL integration tests verify committed writes after flush, immutable results and restart aborts; SQLite tests remain for legacy import compatibility. Both custom battle launch and two-client online play ran in the actual GPU browser, including ship switching, a 150 ms network-latency setting, a three-second game-socket outage, reconnection with a new epoch and the opponent's victory display. The isolated browser required `--use-angle=metal`; its default software graphics path stalled during harbor warmup.
 

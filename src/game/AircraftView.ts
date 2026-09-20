@@ -25,7 +25,16 @@ import { aircraftDeckSpot, onFlightDeck } from './airWing';
 const BATCH_CAPACITY = 768;
 type AircraftBatch = THREE.InstancedMesh<THREE.InstancedBufferGeometry>;
 type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler };
-type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[]; parts: AircraftPartsBatch[]; count: number; wingspan: number; radius: number; storageMatrices: boolean };
+type Model = {
+  root: THREE.Group;
+  joints: Joint[];
+  meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[];
+  parts: AircraftPartsBatch[];
+  count: number;
+  wingspan: number;
+  radius: number;
+  storageMatrices: boolean;
+};
 
 function aircraftBatch(source: THREE.Mesh, name: string, storageMatrices: boolean): AircraftBatch {
   // Three sizes the shader's matrix array from mesh.count on its first draw.
@@ -47,7 +56,8 @@ function aircraftBatch(source: THREE.Mesh, name: string, storageMatrices: boolea
   // second pass would upload the full array after the first consumed its range.
   // Static usage still accepts needsUpdate and uses the same writable GPU buffer.
   batch.instanceMatrix.setUsage(storageMatrices ? THREE.StaticDrawUsage : THREE.DynamicDrawUsage);
-  batch.visible = false; batch.frustumCulled = false;
+  batch.visible = false;
+  batch.frustumCulled = false;
   return batch;
 }
 /** Shared authored geometry/materials, instanced per rigid component at each LOD. */
@@ -65,7 +75,7 @@ export class AircraftView {
   private unit = new THREE.Vector3(1, 1, 1);
   private payloadGeometry = aircraftOrdnanceGeometry('torpedo');
   private bombGeometry = aircraftOrdnanceGeometry('bomb');
-  private payloadMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .65, metalness: .25 });
+  private payloadMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65, metalness: 0.25 });
   private bombs = new ExpandableInstances(this.bombGeometry, this.payloadMaterial, 768);
   private direction = new THREE.Vector3();
   private releaseRotation = new THREE.Quaternion();
@@ -81,71 +91,120 @@ export class AircraftView {
   private culled = 0;
   private silhouettes = 0;
   constructor() {
-    this.payloads.name = 'Aircraft torpedo payloads'; this.bombs.name = 'Aircraft bombs';
+    this.payloads.name = 'Aircraft torpedo payloads';
+    this.bombs.name = 'Aircraft bombs';
     this.root.add(this.gunfire.root, this.payloads, this.contacts.mesh, this.bombs);
     for (const mesh of [this.payloads, this.bombs]) {
-      mesh.instanceMatrix.array.fill(0); mesh.visible = false; mesh.frustumCulled = false; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      mesh.instanceMatrix.array.fill(0);
+      mesh.visible = false;
+      mesh.frustumCulled = false;
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     }
   }
-  resize(height: number) { this.height = Math.max(1, height); this.contacts.resize(height); }
+  resize(height: number) {
+    this.height = Math.max(1, height);
+    this.contacts.resize(height);
+  }
   /** Multiplier on the wingspan thresholds that keep fuller airframes; above 1 simplifies sooner. */
   detailScale = 1;
   load(modelIds: readonly string[] = Object.keys(GAMEPLAY_AIRCRAFT), storageMatrices = false): Promise<void> {
     const ids = [...new Set(modelIds)];
-    if (ids.some(id => !Object.hasOwn(GAMEPLAY_AIRCRAFT, id))) return Promise.reject(new Error('Unsupported combat aircraft'));
+    if (ids.some((id) => !Object.hasOwn(GAMEPLAY_AIRCRAFT, id))) return Promise.reject(new Error('Unsupported combat aircraft'));
     // A later fleet can introduce another air group. Serialize additions so
     // overlapping requests share existing models and disposal can await them.
-    return this.loadPromise = (this.loadPromise ?? Promise.resolve()).catch(() => {}).then(() => this.loadModels(ids, storageMatrices));
+    return (this.loadPromise = (this.loadPromise ?? Promise.resolve()).catch(() => {}).then(() => this.loadModels(ids, storageMatrices)));
   }
   private async loadModels(ids: readonly string[], storageMatrices: boolean) {
     const previous = new Set(this.models.keys());
     const palette = new ShipMaterialPalette();
-    const results = await Promise.allSettled(ids.flatMap(id => [0, 1, 2].filter(lod => !previous.has(`${id}/${lod}`)).map(async lod => {
-      const url = assetUrl(lod ? `models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `models/aircraft/${id}.glb`);
-      const root = (await loadShipModel(url)).scene;
-      // The shared authoring-node boundaries preserve propellers, controls,
-      // landing gear and sockets while rigid paint surfaces share a draw.
-      palette.apply(root); batchShipModel(root);
-      const bounds = new THREE.Box3().setFromObject(root);
-      const model: Model = { root, joints: [], meshes: [], parts: [], count: 0, storageMatrices, wingspan: bounds.max.x - bounds.min.x,
-        radius: Math.hypot(...(['x', 'y', 'z'] as const).map(axis => Math.max(Math.abs(bounds.min[axis]), Math.abs(bounds.max[axis])))) + 2 };
-      const sources: THREE.Mesh[] = [];
-      root.traverse(object => {
-        const nodeId = object.userData.nodeId as string | undefined;
-        if (nodeId) model.joints.push({ object, id: nodeId, rotation: object.rotation.clone() });
-        if (!(object as THREE.Mesh).isMesh) return;
-        sources.push(object as THREE.Mesh);
-      });
-      const grouped = new Set<THREE.Mesh>();
-      if (storageMatrices) for (const group of aircraftPartGroups(sources)) {
-        const parts = new AircraftPartsBatch(group, `Aircraft parts ${id}/${lod}`);
-        group.forEach(source => grouped.add(source)); model.parts.push(parts); this.root.add(parts.mesh);
-      }
-      for (const source of sources) {
-        if (grouped.has(source)) continue;
-        const batch = aircraftBatch(source, `Aircraft model ${id}/${lod}`, storageMatrices);
-        this.root.add(batch);
-        const batches = [batch];
-        model.meshes.push({ source, batches });
-      }
-      // Most authored nodes are fixed. Only mechanism owners need their local
-      // matrices recomposed for each aircraft pose.
-      const moving = new Set(model.joints.map(j => j.object));
-      root.traverse(object => { if (!moving.has(object)) { object.updateMatrix(); object.matrixAutoUpdate = false; } });
-      this.models.set(`${id}/${lod}`, model);
-    })));
-    const failure = results.find(r => r.status === 'rejected');
-    if (failure?.status === 'rejected') { this.clearModels(new Set([...this.models.keys()].filter(key => !previous.has(key)))); throw failure.reason; }
+    const results = await Promise.allSettled(
+      ids.flatMap((id) =>
+        [0, 1, 2]
+          .filter((lod) => !previous.has(`${id}/${lod}`))
+          .map(async (lod) => {
+            const url = assetUrl(lod ? `models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `models/aircraft/${id}.glb`);
+            const root = (await loadShipModel(url)).scene;
+            // The shared authoring-node boundaries preserve propellers, controls,
+            // landing gear and sockets while rigid paint surfaces share a draw.
+            palette.apply(root);
+            batchShipModel(root);
+            const bounds = new THREE.Box3().setFromObject(root);
+            const model: Model = {
+              root,
+              joints: [],
+              meshes: [],
+              parts: [],
+              count: 0,
+              storageMatrices,
+              wingspan: bounds.max.x - bounds.min.x,
+              radius:
+                Math.hypot(...(['x', 'y', 'z'] as const).map((axis) => Math.max(Math.abs(bounds.min[axis]), Math.abs(bounds.max[axis])))) +
+                2,
+            };
+            const sources: THREE.Mesh[] = [];
+            root.traverse((object) => {
+              const nodeId = object.userData.nodeId as string | undefined;
+              if (nodeId) model.joints.push({ object, id: nodeId, rotation: object.rotation.clone() });
+              if (!(object as THREE.Mesh).isMesh) return;
+              sources.push(object as THREE.Mesh);
+            });
+            const grouped = new Set<THREE.Mesh>();
+            if (storageMatrices)
+              for (const group of aircraftPartGroups(sources)) {
+                const parts = new AircraftPartsBatch(group, `Aircraft parts ${id}/${lod}`);
+                group.forEach((source) => grouped.add(source));
+                model.parts.push(parts);
+                this.root.add(parts.mesh);
+              }
+            for (const source of sources) {
+              if (grouped.has(source)) continue;
+              const batch = aircraftBatch(source, `Aircraft model ${id}/${lod}`, storageMatrices);
+              this.root.add(batch);
+              const batches = [batch];
+              model.meshes.push({ source, batches });
+            }
+            // Most authored nodes are fixed. Only mechanism owners need their local
+            // matrices recomposed for each aircraft pose.
+            const moving = new Set(model.joints.map((j) => j.object));
+            root.traverse((object) => {
+              if (!moving.has(object)) {
+                object.updateMatrix();
+                object.matrixAutoUpdate = false;
+              }
+            });
+            this.models.set(`${id}/${lod}`, model);
+          }),
+      ),
+    );
+    const failure = results.find((r) => r.status === 'rejected');
+    if (failure?.status === 'rejected') {
+      this.clearModels(new Set([...this.models.keys()].filter((key) => !previous.has(key))));
+      throw failure.reason;
+    }
   }
-  update(sim: BattleSession, camera: THREE.Camera, visible: boolean, inPort = false, carrierRoots = new Map<string, THREE.Object3D>(), observerId?: string, dt = 1 / 60) {
+  update(
+    sim: BattleSession,
+    camera: THREE.Camera,
+    visible: boolean,
+    inPort = false,
+    carrierRoots = new Map<string, THREE.Object3D>(),
+    observerId?: string,
+    dt = 1 / 60,
+  ) {
     this.root.visible = visible;
     if (!visible) return;
     for (const model of this.models.values()) model.count = 0;
-    this.culled = 0; this.silhouettes = 0;
-    this.frustum.setFromProjectionMatrix(this.matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
-    const actors = new Map(sim.actors.map(a => [a.motion.id, a]));
+    this.culled = 0;
+    this.silhouettes = 0;
+    this.frustum.setFromProjectionMatrix(
+      this.matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+      camera.coordinateSystem,
+      camera.reversedDepth,
+    );
+    const actors = new Map(sim.actors.map((a) => [a.motion.id, a]));
     this.contacts.begin();
-    this.payloadCount = 0; this.bombCount = 0;
+    this.payloadCount = 0;
+    this.bombCount = 0;
     const alpha = sim.interpolationAlpha;
     for (const plane of sim.aircraft) {
       const crashing = plane.phase === 'lost' && plane.wreck && !plane.wreck.impacted;
@@ -170,37 +229,44 @@ export class AircraftView {
         const attitude = aircraftAttitude(plane, alpha);
         this.quaternion.setFromEuler(new THREE.Euler(attitude.pitch, -attitude.heading, attitude.bank, 'YXZ'));
       }
-      const payload = plane.payload && !['ready', 'queued', 'rearming', 'parking', 'rollout'].includes(plane.phase)
-        ? plane.role === 'dive-bomber' ? 'bomb' : 'torpedo' : undefined;
+      const payload =
+        plane.payload && !['ready', 'queued', 'rearming', 'parking', 'rollout'].includes(plane.phase)
+          ? plane.role === 'dive-bomber'
+            ? 'bomb'
+            : 'torpedo'
+          : undefined;
       this.drawAircraft(plane, camera, inPort, deck, !!crashing, alpha, aircraftAttitude(plane, alpha).bank, payload);
     }
-    const reports = inPort ? [] : sim.observedAircraft ?? [];
+    const reports = inPort ? [] : (sim.observedAircraft ?? []);
     this.observedMotion.update(reports, sim.tick, dt);
     for (const plane of reports) {
       if (observerId && !plane.observers.includes(observerId)) continue;
       const pose = this.observedMotion.get(plane.id)!;
-      this.position.copy(pose.position); this.quaternion.copy(pose.rotation);
+      this.position.copy(pose.position);
+      this.quaternion.copy(pose.rotation);
       // Recognition exteriors have no owner, mission, health or ammunition.
       this.drawAircraft(plane, camera, false, false, false, 1, plane.roll ?? 0);
     }
 
     for (const model of this.models.values()) {
       for (const parts of model.parts) parts.publish(model.count);
-      for (const { batches } of model.meshes) batches.forEach((batch, i) => {
-        batch.geometry.instanceCount = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
-        batch.visible = batch.geometry.instanceCount > 0;
-        if (batch.visible) {
-          batch.instanceMatrix.clearUpdateRanges();
-          batch.instanceMatrix.addUpdateRange(0, batch.geometry.instanceCount * 16);
-          batch.instanceMatrix.needsUpdate = true;
-        }
-      });
+      for (const { batches } of model.meshes)
+        batches.forEach((batch, i) => {
+          batch.geometry.instanceCount = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
+          batch.visible = batch.geometry.instanceCount > 0;
+          if (batch.visible) {
+            batch.instanceMatrix.clearUpdateRanges();
+            batch.instanceMatrix.addUpdateRange(0, batch.geometry.instanceCount * 16);
+            batch.instanceMatrix.needsUpdate = true;
+          }
+        });
     }
     this.contacts.finish();
     for (const bomb of sim.shells) {
       if (!bomb.bomb) continue;
       // Sample the same one-tick presentation delay as the aircraft, bounded by release.
-      const lag = Math.min(bomb.age, (1 - alpha) * FIXED_DT), age = bomb.age - lag;
+      const lag = Math.min(bomb.age, (1 - alpha) * FIXED_DT),
+        age = bomb.age - lag;
       this.position.fromArray(bomb.position).addScaledVector(this.direction.fromArray(bomb.velocity), -lag);
       this.position.y -= 4.905 * lag * lag;
       this.direction.y += 9.81 * lag;
@@ -222,16 +288,27 @@ export class AircraftView {
     this.bombs.publish(this.bombCount);
     this.gunfire.update(sim, camera);
   }
-  private drawAircraft(plane: Pick<Aircraft, 'modelId' | 'wingFold' | 'controls' | 'previousControls'>,
-    camera: THREE.Camera, inPort: boolean, deck: boolean, crashing: boolean, alpha: number, bank: number, payload?: 'bomb' | 'torpedo'): void {
+  private drawAircraft(
+    plane: Pick<Aircraft, 'modelId' | 'wingFold' | 'controls' | 'previousControls'>,
+    camera: THREE.Camera,
+    inPort: boolean,
+    deck: boolean,
+    crashing: boolean,
+    alpha: number,
+    bank: number,
+    payload?: 'bomb' | 'torpedo',
+  ): void {
     const dimensions = this.models.get(`${plane.modelId}/0`);
     if (!dimensions) return;
     this.sphere.set(this.position, dimensions.radius);
     // Aircraft do not cast fleet shadows; water captures share this camera.
     // Keep the nearby radius conservative through wing fold and control travel.
-    if (!inPort && !this.frustum.intersectsSphere(this.sphere)) { this.culled++; return; }
+    if (!inPort && !this.frustum.intersectsSphere(this.sphere)) {
+      this.culled++;
+      return;
+    }
     const depth = -this.viewPosition.copy(this.position).applyMatrix4(camera.matrixWorldInverse).z;
-    const span = dimensions.wingspan * camera.projectionMatrix.elements[5] * this.height / (2 * Math.max(.001, depth));
+    const span = (dimensions.wingspan * camera.projectionMatrix.elements[5] * this.height) / (2 * Math.max(0.001, depth));
     if (!deck && !inPort && !crashing) this.contacts.add(this.position, dimensions.wingspan, camera, bank);
     // Keep the lowest-detail airframe at every distance. The contact supplements
     // thin/subpixel geometry instead of replacing it at a hard zoom threshold.
@@ -239,61 +316,111 @@ export class AircraftView {
     const lod = span > 90 * this.detailScale ? 0 : span > 28 * this.detailScale ? 1 : 2;
     const model = this.models.get(`${plane.modelId}/${lod}`);
     if (!model) return;
-    for (const { source, batches } of model.meshes) if (model.count >= batches.length * BATCH_CAPACITY) {
-      const batch = aircraftBatch(source, batches[0].name, model.storageMatrices);
-      this.root.add(batch); batches.push(batch);
-    }
+    for (const { source, batches } of model.meshes)
+      if (model.count >= batches.length * BATCH_CAPACITY) {
+        const batch = aircraftBatch(source, batches[0].name, model.storageMatrices);
+        this.root.add(batch);
+        batches.push(batch);
+      }
     this.transform.compose(this.position, this.quaternion, this.unit);
-    const controls = aircraftControls(plane, alpha), gear = 1 - controls.gear;
+    const controls = aircraftControls(plane, alpha),
+      gear = 1 - controls.gear;
     for (const { object, id, rotation } of model.joints) {
       object.rotation.copy(rotation);
-      if (id.startsWith('wing.fold.')) object.rotateOnAxis(new THREE.Vector3().fromArray(object.userData.foldAxis), plane.wingFold * Number(object.userData.foldAngleDegrees) * Math.PI / 180);
+      if (id.startsWith('wing.fold.'))
+        object.rotateOnAxis(
+          new THREE.Vector3().fromArray(object.userData.foldAxis),
+          (plane.wingFold * Number(object.userData.foldAngleDegrees) * Math.PI) / 180,
+        );
       if (id === 'propeller.spin') object.rotateZ(controls.propeller);
       if (id.startsWith('gear.') && !object.userData.fixed && object.userData.articulation !== 'fixed') {
-        const angle = gear * Math.PI * .43 * (id.endsWith('.port') ? 1 : -1) * (id.endsWith('.tail') ? .5 : 1);
-        if (object.userData.axis === 'spanwise') object.rotateX(angle); else object.rotateZ(angle);
+        const angle = gear * Math.PI * 0.43 * (id.endsWith('.port') ? 1 : -1) * (id.endsWith('.tail') ? 0.5 : 1);
+        if (object.userData.axis === 'spanwise') object.rotateX(angle);
+        else object.rotateZ(angle);
       }
       if (id.startsWith('control.aileron.')) object.rotateX(controls.aileron * (id.endsWith('.port') ? 1 : -1));
       if (id.startsWith('control.elevator.')) object.rotateX(controls.elevator);
       if (id === 'control.rudder') object.rotateY(controls.rudder);
-      if (id === 'arrestor.hook') object.rotateX(controls.hook * .65);
-      if (id.startsWith('diveBrake.')) object.rotateX(controls.brakes * .55 * Number(object.userData.rotationMultiplier ?? 1));
+      if (id === 'arrestor.hook') object.rotateX(controls.hook * 0.65);
+      if (id.startsWith('diveBrake.')) object.rotateX(controls.brakes * 0.55 * Number(object.userData.rotationMultiplier ?? 1));
     }
     model.root.updateMatrixWorld(true);
-    for (const { source, batches } of model.meshes) batches[Math.floor(model.count / BATCH_CAPACITY)].setMatrixAt(model.count % BATCH_CAPACITY, this.matrix.multiplyMatrices(this.transform, source.matrixWorld));
+    for (const { source, batches } of model.meshes)
+      batches[Math.floor(model.count / BATCH_CAPACITY)].setMatrixAt(
+        model.count % BATCH_CAPACITY,
+        this.matrix.multiplyMatrices(this.transform, source.matrixWorld),
+      );
     for (const parts of model.parts) parts.setPose(model.count, this.transform);
     if (payload && this.payloadCount < 768) {
-      const socket = model.joints.find(j => j.id === 'socket.payload')?.object;
+      const socket = model.joints.find((j) => j.id === 'socket.payload')?.object;
       this.matrix.copy(this.transform);
       if (socket) this.matrix.multiply(socket.matrixWorld);
-      if (payload === 'bomb') { this.bombs.setMatrixAt(this.bombCount++, this.matrix); }
-      else this.payloads.setMatrixAt(this.payloadCount++, this.matrix);
+      if (payload === 'bomb') {
+        this.bombs.setMatrixAt(this.bombCount++, this.matrix);
+      } else this.payloads.setMatrixAt(this.payloadCount++, this.matrix);
     }
     model.count++;
   }
-  observedPosition(id: string) { return this.observedMotion.get(id)?.position; }
-  diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length + (m.count ? m.parts.length : 0), 0), culled: this.culled, silhouettes: this.silhouettes, contacts: this.contacts.count, payloads: this.payloadCount + this.bombCount, bombs: this.bombCount, tracers: this.gunfire.diagnostics() }; }
+  observedPosition(id: string) {
+    return this.observedMotion.get(id)?.position;
+  }
+  diagnostics() {
+    return {
+      models: this.models.size,
+      instances: [...this.models.values()].reduce((n, m) => n + m.count, 0),
+      batches: [...this.models.values()].reduce(
+        (n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length + (m.count ? m.parts.length : 0),
+        0,
+      ),
+      culled: this.culled,
+      silhouettes: this.silhouettes,
+      contacts: this.contacts.count,
+      payloads: this.payloadCount + this.bombCount,
+      bombs: this.bombCount,
+      tracers: this.gunfire.diagnostics(),
+    };
+  }
   warmupParts(): () => void {
     const restore: (() => void)[] = [];
-    for (const model of this.models.values()) for (const parts of model.parts) {
-      const finish = parts.warmup();
-      if (finish) restore.push(finish);
-    }
-    return () => { for (const finish of restore) finish(); };
+    for (const model of this.models.values())
+      for (const parts of model.parts) {
+        const finish = parts.warmup();
+        if (finish) restore.push(finish);
+      }
+    return () => {
+      for (const finish of restore) finish();
+    };
   }
   private clearModels(keys = new Set(this.models.keys())) {
     for (const key of keys) {
       const model = this.models.get(key)!;
-      for (const { batches } of model.meshes) for (const batch of batches) { batch.removeFromParent(); batch.dispose(); batch.geometry.dispose(); }
+      for (const { batches } of model.meshes)
+        for (const batch of batches) {
+          batch.removeFromParent();
+          batch.dispose();
+          batch.geometry.dispose();
+        }
       for (const parts of model.parts) parts.dispose();
-      disposeObjects(model.root); this.models.delete(key);
+      disposeObjects(model.root);
+      this.models.delete(key);
     }
   }
-  reset(): void { this.observedMotion.clear(); this.gunfire.reset(); this.contacts.begin(); this.contacts.finish(); }
+  reset(): void {
+    this.observedMotion.clear();
+    this.gunfire.reset();
+    this.contacts.begin();
+    this.contacts.finish();
+  }
   async dispose() {
     await this.loadPromise?.catch(() => {});
-    this.clearModels(); this.root.removeFromParent(); this.gunfire.dispose();
+    this.clearModels();
+    this.root.removeFromParent();
+    this.gunfire.dispose();
     this.contacts.dispose();
-    this.payloads.dispose(); this.bombs.dispose(); this.payloadGeometry.dispose(); this.bombGeometry.dispose(); this.payloadMaterial.dispose();
+    this.payloads.dispose();
+    this.bombs.dispose();
+    this.payloadGeometry.dispose();
+    this.bombGeometry.dispose();
+    this.payloadMaterial.dispose();
   }
 }

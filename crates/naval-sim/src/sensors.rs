@@ -409,26 +409,30 @@ impl Sensors {
                         {
                             let tracked = self.records[team.index()].contains_key(&target.id);
                             let formation = if target.kind == ContactKind::Aircraft {
-                                *formation_sizes.entry(target.id.as_str()).or_insert_with(|| {
-                                    let (tx, tz) = cell(target.position);
-                                    let mut count = 0;
-                                    for x in tx - 1..=tx + 1 {
-                                        for z in tz - 1..=tz + 1 {
-                                            count += cells
-                                                .get(&(x, z))
-                                                .into_iter()
-                                                .flatten()
-                                                .filter(|p| {
-                                                    p.team == target.team
-                                                        && p.kind == ContactKind::Aircraft
-                                                        && horizontal(p.position, target.position)
-                                                            < 900.0
-                                                })
-                                                .count();
+                                *formation_sizes
+                                    .entry(target.id.as_str())
+                                    .or_insert_with(|| {
+                                        let (tx, tz) = cell(target.position);
+                                        let mut count = 0;
+                                        for x in tx - 1..=tx + 1 {
+                                            for z in tz - 1..=tz + 1 {
+                                                count += cells
+                                                    .get(&(x, z))
+                                                    .into_iter()
+                                                    .flatten()
+                                                    .filter(|p| {
+                                                        p.team == target.team
+                                                            && p.kind == ContactKind::Aircraft
+                                                            && horizontal(
+                                                                p.position,
+                                                                target.position,
+                                                            ) < 900.0
+                                                    })
+                                                    .count();
+                                            }
                                         }
-                                    }
-                                    count.max(1)
-                                })
+                                        count.max(1)
+                                    })
                             } else {
                                 1
                             };

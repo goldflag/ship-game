@@ -37,7 +37,8 @@ button, select { touch-action: manipulation; }
 .game-shell, .ocean-viewport { position: fixed; inset: 0; }
 .ocean-viewport canvas { display: block; touch-action: none; outline: none; }
 /* Only the instrument layers scale. The renderer and its pointer coordinates stay
-   in viewport pixels; menus stay reachable even with a large manual HUD setting. */
+   in viewport pixels; menus stay reachable even with a large manual HUD setting.
+   The layer list is src/ui/hudLayers.ts; hudLayers.test.ts fails if this selector differs. */
 .hud-viewport, .ocean-viewport :is(.ship-label-layer, .hit-label-layer, .gun-aim-layer, .torpedo-aim-layer, .torpedo-marker-layer), .game-shell > .hit-direction-layer {
   position: absolute; inset: 0 auto auto 0;
   width: calc(100% / var(--hud-scale, 1)); height: calc(100% / var(--hud-scale, 1));

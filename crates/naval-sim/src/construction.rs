@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
+use crate::construction_cache::GeometryCache;
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-use crate::construction_cache::GeometryCache;
 pub const COMPILER: &str = "construction-polyhedra-8";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
@@ -52,12 +52,18 @@ fn error(code: &str, message: impl Into<String>, id: Option<&str>) -> Constructi
 }
 /// Names the other party of an overlap; identical parts read as "another …".
 pub(crate) fn neighbor_name(own: &str, other: &str) -> String {
-    if own == other { format!("another {other}") } else { other.to_owned() }
+    if own == other {
+        format!("another {other}")
+    } else {
+        other.to_owned()
+    }
 }
 fn portal_limit(connections: usize, openings: usize) -> ConstructionDiagnostic {
     error(
         "geometry-limit",
-        format!("Subdivision has {connections} flooding portals (limit {MAX_CONNECTIONS}) and {openings} openings (limit 4096)"),
+        format!(
+            "Subdivision has {connections} flooding portals (limit {MAX_CONNECTIONS}) and {openings} openings (limit 4096)"
+        ),
         None,
     )
 }
@@ -87,16 +93,26 @@ impl ConstructionCompiler {
             return Err("Construction input exceeds bounded JSON size".into());
         }
         let source: ConstructionSource = serde_json::from_str(source).map_err(|e| e.to_string())?;
-        let catalog: ConstructionCatalog = serde_json::from_str(catalog).map_err(|e| e.to_string())?;
+        let catalog: ConstructionCatalog =
+            serde_json::from_str(catalog).map_err(|e| e.to_string())?;
         to_json(&self.compile(&source, &catalog))
     }
-    pub fn compile(&mut self, source: &ConstructionSource, catalog: &ConstructionCatalog) -> ConstructionResult {
+    pub fn compile(
+        &mut self,
+        source: &ConstructionSource,
+        catalog: &ConstructionCatalog,
+    ) -> ConstructionResult {
         let scope = (source.id.clone(), catalog.revision.clone());
-        if self.scope.as_ref() != Some(&scope) { self.geometry = GeometryCache::default(); self.scope = Some(scope); }
+        if self.scope.as_ref() != Some(&scope) {
+            self.geometry = GeometryCache::default();
+            self.scope = Some(scope);
+        }
         self.geometry.begin();
         compile_cached(source, catalog, &mut self.geometry)
     }
-    pub fn reused_geometry_operations(&self) -> usize { self.geometry.hits }
+    pub fn reused_geometry_operations(&self) -> usize {
+        self.geometry.hits
+    }
 }
 pub fn suggest_json(source: &str, catalog: &str, part_ids: &str) -> Result<String, String> {
     if source.len() > MAX_SOURCE_BYTES || catalog.len() > MAX_CATALOG_BYTES || part_ids.len() > 4096
@@ -133,7 +149,11 @@ pub fn suggest(
             return fail("missing-part", format!("Unknown requested part {id}"), None);
         };
         if source.construction.version >= 2. && p.kind == "magazine" {
-            return fail("integrated-magazine", "Ammunition is already built into each weapon".into(), None);
+            return fail(
+                "integrated-magazine",
+                "Ammunition is already built into each weapon".into(),
+                None,
+            );
         }
         if p.path.is_some() {
             return fail(
@@ -347,7 +367,11 @@ pub fn to_json(value: &impl serde::Serialize) -> Result<String, String> {
 pub fn compile(source: &ConstructionSource, catalog: &ConstructionCatalog) -> ConstructionResult {
     ConstructionCompiler::default().compile(source, catalog)
 }
-fn compile_cached(source: &ConstructionSource, catalog: &ConstructionCatalog, cache: &mut GeometryCache) -> ConstructionResult {
+fn compile_cached(
+    source: &ConstructionSource,
+    catalog: &ConstructionCatalog,
+    cache: &mut GeometryCache,
+) -> ConstructionResult {
     let content_hash = sha256(
         &serde_json::to_vec(&(COMPILER, crate::SIMULATION_BUILD, source, catalog))
             .unwrap_or_default(),
@@ -369,14 +393,23 @@ fn compile_cached(source: &ConstructionSource, catalog: &ConstructionCatalog, ca
     if out.definition.is_some() {
         let mut faces = vec![];
         for primitive in &source.construction.primitives {
-            faces.extend(crate::construction_bilge_keels::surfaces(primitive, ship_paint(&source.construction)));
+            faces.extend(crate::construction_bilge_keels::surfaces(
+                primitive,
+                ship_paint(&source.construction),
+            ));
             if out.surfaces.len() + faces.len() > MAX_SURFACES {
                 out.definition = None;
-                out.diagnostics.push(error("complexity", "Bilge keels exceed the exposed surface limit", Some(&primitive.id)));
+                out.diagnostics.push(error(
+                    "complexity",
+                    "Bilge keels exceed the exposed surface limit",
+                    Some(&primitive.id),
+                ));
                 return out;
             }
         }
-        if !faces.is_empty() { out.bilge_keel_surfaces = Some(faces); }
+        if !faces.is_empty() {
+            out.bilge_keel_surfaces = Some(faces);
+        }
     }
     out
 }
@@ -442,22 +475,55 @@ fn validate(
             None,
         ));
     }
-    if c.finish.as_deref().is_some_and(|f| !["matte", "satin", "semi-gloss", "gloss"].contains(&f)) {
-        return Err(error("surface-finish", "Unsupported ship surface finish", None));
+    if c.finish
+        .as_deref()
+        .is_some_and(|f| !["matte", "satin", "semi-gloss", "gloss"].contains(&f))
+    {
+        return Err(error(
+            "surface-finish",
+            "Unsupported ship surface finish",
+            None,
+        ));
     }
-    if c.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
-        return Err(error("ship-paint", "Ship paint must be a nonempty name of at most 64 bytes", None));
+    if c.paint
+        .as_ref()
+        .is_some_and(|paint| paint.is_empty() || paint.len() > 64)
+    {
+        return Err(error(
+            "ship-paint",
+            "Ship paint must be a nonempty name of at most 64 bytes",
+            None,
+        ));
     }
     for e in &c.equipment {
-        if e.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
-            return Err(error("equipment-paint", "Fitting paint must be a nonempty name of at most 64 bytes", Some(&e.id)));
+        if e.paint
+            .as_ref()
+            .is_some_and(|paint| paint.is_empty() || paint.len() > 64)
+        {
+            return Err(error(
+                "equipment-paint",
+                "Fitting paint must be a nonempty name of at most 64 bytes",
+                Some(&e.id),
+            ));
         }
         let rise = crate::construction_installation::raised(e);
         if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
-            return Err(error("barbette-height", "Barbette height must be between 0 and 30 m on a version-2 gun installation", Some(&e.id)));
+            return Err(error(
+                "barbette-height",
+                "Barbette height must be between 0 and 30 m on a version-2 gun installation",
+                Some(&e.id),
+            ));
         }
-        if c.version >= 2. && c.equipment.iter().any(|other| other.id == format!("{}-magazine", e.id)) {
-            return Err(error("identity", "Equipment ID conflicts with a built-in magazine", Some(&e.id)));
+        if c.version >= 2.
+            && c.equipment
+                .iter()
+                .any(|other| other.id == format!("{}-magazine", e.id))
+        {
+            return Err(error(
+                "identity",
+                "Equipment ID conflicts with a built-in magazine",
+                Some(&e.id),
+            ));
         }
     }
     for p in &c.primitives {
@@ -467,7 +533,10 @@ fn validate(
             || !size(p.size)
             || !finite(p.position)
             || !crate::construction_orientation::valid(p)
-            || (p.kind != "vertex" && p.kind != "custom-hull" && p.kind != "balcony" && !crate::construction_shapes::KINDS.contains(&p.kind.as_str()))
+            || (p.kind != "vertex"
+                && p.kind != "custom-hull"
+                && p.kind != "balcony"
+                && !crate::construction_shapes::KINDS.contains(&p.kind.as_str()))
         {
             return Err(error(
                 "primitive",
@@ -490,7 +559,14 @@ fn validate(
             ]
             .contains(&s.face.as_str())
             || !assignments.insert((&s.primitive_id, &s.face, &s.panel_id))
-            || s.panel_id.as_ref().is_some_and(|panel| panel.is_empty() || panel.len() > 512 || !c.primitives.iter().any(|p| p.id == s.primitive_id && p.kind == "custom-hull"))
+            || s.panel_id.as_ref().is_some_and(|panel| {
+                panel.is_empty()
+                    || panel.len() > 512
+                    || !c
+                        .primitives
+                        .iter()
+                        .any(|p| p.id == s.primitive_id && p.kind == "custom-hull")
+            })
             || !s.thickness_mm.is_finite()
             || !(0.0..=1000.).contains(&s.thickness_mm)
             || !["steel", "armor-steel"].contains(&s.material.as_str())
@@ -537,19 +613,34 @@ fn validate(
 /// Original solid cells before union splitting. Experimental combat proxies may
 /// use their union for collision, provided buoyancy is supplied independently.
 pub fn primitive_cells(p: &ConstructionPrimitive) -> Result<Vec<cg::Cell>, String> {
-    if p.kind == "balcony" { return crate::construction_balcony::build(p).map(|s| s.cells); }
-    if p.kind == "custom-hull" { return crate::construction_custom_hull::build(p).map(|s| s.cells); }
-    if p.kind == "vertex" { return crate::construction_vertex::build(p).map(|s| s.cells); }
-    if !crate::construction_shapes::KINDS.contains(&p.kind.as_str()) { return Err("Unknown construction shape".into()); }
+    if p.kind == "balcony" {
+        return crate::construction_balcony::build(p).map(|s| s.cells);
+    }
+    if p.kind == "custom-hull" {
+        return crate::construction_custom_hull::build(p).map(|s| s.cells);
+    }
+    if p.kind == "vertex" {
+        return crate::construction_vertex::build(p).map(|s| s.cells);
+    }
+    if !crate::construction_shapes::KINDS.contains(&p.kind.as_str()) {
+        return Err("Unknown construction shape".into());
+    }
     Ok(primitive(p))
 }
 fn primitive(p: &ConstructionPrimitive) -> Vec<cg::Cell> {
-    crate::construction_shapes::cells(&p.kind).unwrap().iter()
-        .map(|c| crate::construction_orientation::cell(p, c, p.size)).collect()
+    crate::construction_shapes::cells(&p.kind)
+        .unwrap()
+        .iter()
+        .map(|c| crate::construction_orientation::cell(p, c, p.size))
+        .collect()
 }
 fn face_name(p: &[Vec3], primitive: &ConstructionPrimitive) -> String {
     // Undo orientation to keep source face paint and armor attached.
-    let n = if primitive.tilt.is_none() { normal_local(cg::normal(p), -primitive.rotation_deg.to_radians()) } else { crate::construction_orientation::inverse(primitive, cg::normal(p)) };
+    let n = if primitive.tilt.is_none() {
+        normal_local(cg::normal(p), -primitive.rotation_deg.to_radians())
+    } else {
+        crate::construction_orientation::inverse(primitive, cg::normal(p))
+    };
     for (name, axis, sign) in [
         ("port", 0, -1.),
         ("starboard", 0, 1.),
@@ -683,7 +774,9 @@ fn build(
                     Some(&e.id),
                 ));
             }
-            if crate::construction_installation::deck_mounted(c, catalog, p) { continue; }
+            if crate::construction_installation::deck_mounted(c, catalog, p) {
+                continue;
+            }
             for space in crate::construction_installation::spaces(c, catalog, p, e) {
                 if !finite(space.center) || !size(space.size) {
                     return Err(error(
@@ -707,12 +800,21 @@ fn build(
         for (face, polygon) in raw[i].faces.iter() {
             let panel = face.clone();
             let face = face.split(':').next().unwrap().to_string();
-            let panel_id = (p.kind == "custom-hull").then(|| panel.split_once(':').map_or(panel.as_str(), |(_, id)| id).to_string());
+            let panel_id = (p.kind == "custom-hull").then(|| {
+                panel
+                    .split_once(':')
+                    .map_or(panel.as_str(), |(_, id)| id)
+                    .to_string()
+            });
             let a = c
                 .surfaces
                 .iter()
                 .find(|a| a.primitive_id == p.id && a.face == face && a.panel_id == panel_id)
-                .or_else(|| c.surfaces.iter().find(|a| a.primitive_id == p.id && a.face == face && a.panel_id.is_none()));
+                .or_else(|| {
+                    c.surfaces
+                        .iter()
+                        .find(|a| a.primitive_id == p.id && a.face == face && a.panel_id.is_none())
+                });
             let mut patches = vec![polygon.clone()];
             for &j in &neighbors[i] {
                 for cell in &raw[j].cells {
@@ -747,7 +849,8 @@ fn build(
                     continue;
                 }
                 let id = format!("{}:{}", p.id, panel);
-                out.surfaces.push(ConstructionSurface { panel_id: panel_id.clone(),
+                out.surfaces.push(ConstructionSurface {
+                    panel_id: panel_id.clone(),
                     id,
                     primitive_id: p.id.clone(),
                     face: face.clone(),
@@ -772,8 +875,18 @@ fn build(
     // mass/protection is added, so it cannot count as plating or an attachment.
     let mut installations = crate::construction_installation::derive(c, catalog)
         .map_err(|e| error("installation-support", e, None))?;
-    if out.surfaces.len() + installations.iter().map(|i| i.surfaces.len()).sum::<usize>() > MAX_SURFACES {
-        return Err(error("complexity", format!("Installation surfaces exceed the {MAX_SURFACES} surface limit"), None));
+    if out.surfaces.len()
+        + installations
+            .iter()
+            .map(|i| i.surfaces.len())
+            .sum::<usize>()
+        > MAX_SURFACES
+    {
+        return Err(error(
+            "complexity",
+            format!("Installation surfaces exceed the {MAX_SURFACES} surface limit"),
+            None,
+        ));
     }
     for installation in &mut installations {
         installation_surfaces.append(&mut installation.surfaces);
@@ -784,10 +897,23 @@ fn build(
     let mut contributions = vec![];
     // Platforms and their exposed edge members are solid steel, with no invented
     // enclosed room between rails or inside a thick deck. Count overlaps once.
-    for (i, p) in primitives.iter().enumerate().filter(|(_, p)| p.kind == "balcony") {
-        let occupied = cache.subtract_all(cg::union(&raw[i].cells).map_err(fail)?, material.iter()).map_err(fail)?;
-        contributions.push(mass(format!("skin-{}-platform", p.id), "skin", &occupied, STEEL_DENSITY));
-        for cell in &occupied { material_index.insert(cell); }
+    for (i, p) in primitives
+        .iter()
+        .enumerate()
+        .filter(|(_, p)| p.kind == "balcony")
+    {
+        let occupied = cache
+            .subtract_all(cg::union(&raw[i].cells).map_err(fail)?, material.iter())
+            .map_err(fail)?;
+        contributions.push(mass(
+            format!("skin-{}-platform", p.id),
+            "skin",
+            &occupied,
+            STEEL_DENSITY,
+        ));
+        for cell in &occupied {
+            material_index.insert(cell);
+        }
         material.extend(occupied);
     }
     for (i, s) in out.surfaces.iter().enumerate().filter(|(_, s)| !s.open) {
@@ -801,13 +927,16 @@ fn build(
         // Keep the full plating thickness out of the vertical working well,
         // using the same cutters as the exposed deck; side armor stays intact.
         let clipped = if s.normal[1] > 0.95 {
-            cache.subtract_all(clipped, wells.iter().map(|(_, _, well)| well)).map_err(fail)?
+            cache
+                .subtract_all(clipped, wells.iter().map(|(_, _, well)| well))
+                .map_err(fail)?
         } else {
             clipped
         };
         let cutters = material_index.candidates(&solid);
-        let occupied =
-            cache.subtract_all(clipped, cutters.iter().map(|&k| &material[k])).map_err(fail)?;
+        let occupied = cache
+            .subtract_all(clipped, cutters.iter().map(|&k| &material[k]))
+            .map_err(fail)?;
         if !occupied.is_empty() {
             contributions.push(mass(
                 format!("skin-{}-{i}", s.id),
@@ -853,7 +982,8 @@ fn build(
         for piece in cells.iter().filter_map(|c| cg::intersection(&slab, c)) {
             let cutters = material_index.candidates(&piece);
             occupied.extend(
-                cache.subtract_all(vec![piece], cutters.iter().map(|&k| &material[k]))
+                cache
+                    .subtract_all(vec![piece], cutters.iter().map(|&k| &material[k]))
                     .map_err(fail)?,
             );
         }
@@ -878,7 +1008,8 @@ fn build(
     for cell in &cells {
         let cutters = material_index.candidates(cell);
         interior.extend(
-            cache.subtract_all(vec![cell.clone()], cutters.iter().map(|&k| &material[k]))
+            cache
+                .subtract_all(vec![cell.clone()], cutters.iter().map(|&k| &material[k]))
                 .map_err(fail)?,
         );
     }
@@ -886,18 +1017,43 @@ fn build(
     // Ballast is a visible construction block with a fixed 100-tonne payload.
     // Its casing/armor is counted above; its fill occupies real interior space
     // and contributes at the authored position, without adjusting buoyancy/CG.
-    for p in c.primitives.iter().filter(|p|p.kind == "ballast") {
+    for p in c.primitives.iter().filter(|p| p.kind == "ballast") {
         let envelope = primitive(p);
-        let occupied: Vec<_> = interior.iter().flat_map(|room|envelope.iter().filter_map(|c|cg::intersection(room,c))).collect();
+        let occupied: Vec<_> = interior
+            .iter()
+            .flat_map(|room| envelope.iter().filter_map(|c| cg::intersection(room, c)))
+            .collect();
         if cg::total(&occupied).volume < cg::EPS {
-            return Err(error("ballast-fit","Ballast fill has no space inside its casing, or overlaps another ballast block",Some(&p.id)));
+            return Err(error(
+                "ballast-fit",
+                "Ballast fill has no space inside its casing, or overlaps another ballast block",
+                Some(&p.id),
+            ));
         }
         // Overlapping ballast cannot hide two fixed weights in one envelope.
-        let other_ballast = c.primitives.iter().filter(|other|other.kind == "ballast" && other.id < p.id);
-        for other in other_ballast { if primitive(other).iter().any(|a|envelope.iter().any(|b|cg::intersection(a,b).is_some_and(|c|cg::moments(&c).volume>cg::EPS))) {
-            return Err(error("ballast-fit","Ballast blocks must not overlap",Some(&p.id)));
-        } }
-        let mut payload = mass(p.id.clone(), "load", &occupied, 100_000. / cg::total(&occupied).volume);
+        let other_ballast = c
+            .primitives
+            .iter()
+            .filter(|other| other.kind == "ballast" && other.id < p.id);
+        for other in other_ballast {
+            if primitive(other).iter().any(|a| {
+                envelope.iter().any(|b| {
+                    cg::intersection(a, b).is_some_and(|c| cg::moments(&c).volume > cg::EPS)
+                })
+            }) {
+                return Err(error(
+                    "ballast-fit",
+                    "Ballast blocks must not overlap",
+                    Some(&p.id),
+                ));
+            }
+        }
+        let mut payload = mass(
+            p.id.clone(),
+            "load",
+            &occupied,
+            100_000. / cg::total(&occupied).volume,
+        );
         payload.mass_kg = 100_000.;
         contributions.push(payload);
         interior = cache.subtract_all(interior, &envelope).map_err(fail)?;
@@ -905,7 +1061,9 @@ fn build(
     // Source loads are visible occupied packages, never invisible ballast.
     for l in &c.loads {
         let load = cg::box_cell(l.center, l.size);
-        let remaining = cache.subtract_all(vec![load.clone()], &interior).map_err(fail)?;
+        let remaining = cache
+            .subtract_all(vec![load.clone()], &interior)
+            .map_err(fail)?;
         if cg::total(&remaining).volume > 1e-6 {
             return Err(error(
                 "load-fit",
@@ -955,18 +1113,23 @@ fn build(
     )?;
     for installation in installations {
         let mut backing = cells.clone();
-        if let Some(above_deck) = &installation.raised_space { backing.push(above_deck.clone()); }
+        if let Some(above_deck) = &installation.raised_space {
+            backing.push(above_deck.clone());
+        }
         let (bore_center, bore_size) = cg::bounds(&installation.bore);
         let mut sloped_deck = false;
-        for (_, _, polygon) in penetrations.iter().filter(|(id, _, polygon)|
-            *id == installation.id && cg::normal(polygon)[1] < 1. - cg::EPS)
-        {
+        for (_, _, polygon) in penetrations.iter().filter(|(id, _, polygon)| {
+            *id == installation.id && cg::normal(polygon)[1] < 1. - cg::EPS
+        }) {
             backing.push(crate::construction_installation::deck_backing(
-                polygon, bore_center[1] + bore_size[1] / 2.,
+                polygon,
+                bore_center[1] + bore_size[1] / 2.,
             ));
             sloped_deck = true;
         }
-        let unsupported = cache.subtract_all(installation.solids.clone(), &backing).map_err(fail)?;
+        let unsupported = cache
+            .subtract_all(installation.solids.clone(), &backing)
+            .map_err(fail)?;
         if cg::total(&unsupported).volume > 1e-6 {
             return Err(error(
                 "installation-support",
@@ -989,11 +1152,15 @@ fn build(
         if installation.raised_space.is_some() || sloped_deck {
             for (i, cell) in installation.solids.iter().enumerate() {
                 path_clearance.push(MountClearanceProfileBodiesItem {
-                    id: format!("{}-barbette-{i}", installation.id), mount_id: None, surface: surface_mesh(cell),
+                    id: format!("{}-barbette-{i}", installation.id),
+                    mount_id: None,
+                    surface: surface_mesh(cell),
                 });
             }
         }
-        let occupied = cache.subtract_all(installation.solids, &material).map_err(fail)?;
+        let occupied = cache
+            .subtract_all(installation.solids, &material)
+            .map_err(fail)?;
         material_volume += cg::total(&occupied).volume;
         contributions.push(mass(
             format!("{}-installation", installation.id),
@@ -1252,7 +1419,10 @@ fn build(
                                 ..Default::default()
                             });
                             if def.connections.len() > MAX_CONNECTIONS {
-                                return Err(portal_limit(def.connections.len(), def.openings.as_ref().unwrap().len()));
+                                return Err(portal_limit(
+                                    def.connections.len(),
+                                    def.openings.as_ref().unwrap().len(),
+                                ));
                             }
                         }
                     }
@@ -1261,7 +1431,10 @@ fn build(
         }
     }
     if def.connections.len() > MAX_CONNECTIONS || def.openings.as_ref().unwrap().len() > 4096 {
-        return Err(portal_limit(def.connections.len(), def.openings.as_ref().unwrap().len()));
+        return Err(portal_limit(
+            def.connections.len(),
+            def.openings.as_ref().unwrap().len(),
+        ));
     }
     let void_volume: f64 = def.compartments.iter().map(|r| r.capacity_m3).sum();
     def.local_damage = ShipDefinitionLocalDamage {
@@ -1383,15 +1556,28 @@ fn build(
         );
     }
     def.loading = Some(loading.clone());
-    let mut maneuvering = ManeuveringProfile { version: 1., ..Default::default() };
+    let mut maneuvering = ManeuveringProfile {
+        version: 1.,
+        ..Default::default()
+    };
     for e in &c.equipment {
-        let Some(p) = catalog.equipment.iter().find(|p| p.id == e.part_id) else { continue; };
+        let Some(p) = catalog.equipment.iter().find(|p| p.id == e.part_id) else {
+            continue;
+        };
         if p.kind == "propeller" {
-            maneuvering.propellers.push(ManeuveringProfilePropellersItem { module_id: e.id.clone(),
-                bearing_deg: e.bearing_deg.rem_euclid(360.), diameter_m: p.size[0].max(p.size[1]) });
+            maneuvering
+                .propellers
+                .push(ManeuveringProfilePropellersItem {
+                    module_id: e.id.clone(),
+                    bearing_deg: e.bearing_deg.rem_euclid(360.),
+                    diameter_m: p.size[0].max(p.size[1]),
+                });
         } else if p.kind == "rudder" && p.rudder_area_m2.unwrap_or(0.) > 0. {
-            maneuvering.rudders.push(ManeuveringProfileRuddersItem { module_id: e.id.clone(),
-                bearing_deg: e.bearing_deg.rem_euclid(360.), area_m2: p.rudder_area_m2.unwrap() });
+            maneuvering.rudders.push(ManeuveringProfileRuddersItem {
+                module_id: e.id.clone(),
+                bearing_deg: e.bearing_deg.rem_euclid(360.),
+                area_m2: p.rudder_area_m2.unwrap(),
+            });
         }
     }
     def.maneuvering = Some(maneuvering);
@@ -1433,10 +1619,14 @@ fn build(
         let clearance = crate::mount_clearance::MountClearance::new(&def)
             .map_err(|e| error("clearance", e, None))?
             .unwrap();
-        let poses: Vec<_> = def.mounts.iter().map(|m| crate::mount_clearance::ClearancePose {
-            elevation: m.initial_elevation_deg.unwrap_or(0.).to_radians(),
-            ..Default::default()
-        }).collect();
+        let poses: Vec<_> = def
+            .mounts
+            .iter()
+            .map(|m| crate::mount_clearance::ClearancePose {
+                elevation: m.initial_elevation_deg.unwrap_or(0.).to_radians(),
+                ..Default::default()
+            })
+            .collect();
         for (i, m) in def.mounts.iter().enumerate() {
             if clearance.minimum_clearance(&def, i, &poses, 1.).0 <= 0. {
                 return Err(error(
@@ -1535,33 +1725,56 @@ fn connected_spaces(mut cells: Vec<cg::Cell>) -> Vec<Vec<cg::Cell>> {
 struct RoomLookup(Vec<Vec<(Vec3, Vec3)>>);
 impl RoomLookup {
     fn new(rooms: &[Compartment]) -> Self {
-        Self(rooms.iter().map(|room| room.volumes.iter().flatten().map(cg::bounds).collect()).collect())
+        Self(
+            rooms
+                .iter()
+                .map(|room| room.volumes.iter().flatten().map(cg::bounds).collect())
+                .collect(),
+        )
     }
     fn nearest<'a>(&self, rooms: &'a [Compartment], p: Vec3) -> Option<&'a Compartment> {
         // AABB distance is a lower bound on distance to the exact cell. Keep
         // source order and exact closest-point distances for all possible winners.
-        let lower = |(center, size): (Vec3, Vec3)| length(std::array::from_fn(|i|
-            ((p[i] - center[i]).abs() - size[i] * 0.5 - 1e-7).max(0.)));
+        let lower = |(center, size): (Vec3, Vec3)| {
+            length(std::array::from_fn(|i| {
+                ((p[i] - center[i]).abs() - size[i] * 0.5 - 1e-7).max(0.)
+            }))
+        };
         let mut best = None;
         let mut distance = f64::INFINITY;
         for (room, bounds) in rooms.iter().zip(&self.0) {
-            if lower((room.center, room.size)) > distance { continue; }
+            if lower((room.center, room.size)) > distance {
+                continue;
+            }
             if let Some(cells) = &room.volumes {
                 for (cell, &bounds) in cells.iter().zip(bounds) {
-                    if lower(bounds) > distance { continue; }
+                    if lower(bounds) > distance {
+                        continue;
+                    }
                     let d = length(sub(p, cg::closest_point(cell, p)));
-                    if best.is_none() || d < distance { distance = d; best = Some(room); }
-                    if distance == 0. { return best; }
+                    if best.is_none() || d < distance {
+                        distance = d;
+                        best = Some(room);
+                    }
+                    if distance == 0. {
+                        return best;
+                    }
                 }
             } else {
                 let d = cg::room_distance(room, p);
-                if best.is_none() || d < distance { distance = d; best = Some(room); }
+                if best.is_none() || d < distance {
+                    distance = d;
+                    best = Some(room);
+                }
             }
         }
         best
     }
 }
-fn assign_rooms(def: &mut ShipDefinition, lookup: &RoomLookup) -> Result<(), ConstructionDiagnostic> {
+fn assign_rooms(
+    def: &mut ShipDefinition,
+    lookup: &RoomLookup,
+) -> Result<(), ConstructionDiagnostic> {
     for i in 0..def.modules.len() {
         if def.modules[i].placement.as_deref() == Some("fixed") {
             continue;
@@ -1601,32 +1814,70 @@ fn equipment(
             None,
         ));
     }
-    let installed_parts: Vec<_> = c.equipment.iter().filter_map(|e| catalog.equipment.iter().find(|p| p.id == e.part_id).map(|p| (e, p)))
-        .map(|(e, p)| crate::construction_wall_fittings::installed(e, p, c, &out.surfaces).map(|p| (e.id.clone(), p)))
+    let installed_parts: Vec<_> = c
+        .equipment
+        .iter()
+        .filter_map(|e| {
+            catalog
+                .equipment
+                .iter()
+                .find(|p| p.id == e.part_id)
+                .map(|p| (e, p))
+        })
+        .map(|(e, p)| {
+            crate::construction_wall_fittings::installed(e, p, c, &out.surfaces)
+                .map(|p| (e.id.clone(), p))
+        })
         .collect::<Result<_, _>>()?;
     // Decorative fittings never collide with other equipment. Keep machinery and
     // weapon clearance independent of source order, including propeller supports.
-    let colliding_ids: std::collections::BTreeSet<_> = installed_parts.iter()
-        .filter(|(_, p)| p.path.is_none() && !matches!(p.kind.as_str(), "deck-fitting" | "director"))
-        .map(|(id, _)| id.as_str()).collect();
+    let colliding_ids: std::collections::BTreeSet<_> = installed_parts
+        .iter()
+        .filter(|(_, p)| {
+            p.path.is_none() && !matches!(p.kind.as_str(), "deck-fitting" | "director")
+        })
+        .map(|(id, _)| id.as_str())
+        .collect();
     // Fixed exterior fittings may still seat partly into the hull.
-    let relaxed_fit = |p: &ConstructionEquipmentPart| p.placement == "deck" && p.path.is_none()
-        && matches!(p.kind.as_str(), "deck-fitting" | "mast" | "director" | "funnel");
-    let relaxed_ids: std::collections::BTreeSet<_> = installed_parts.iter()
-        .filter(|(_, p)| relaxed_fit(p)).map(|(id, _)| id.as_str()).collect();
+    let relaxed_fit = |p: &ConstructionEquipmentPart| {
+        p.placement == "deck"
+            && p.path.is_none()
+            && matches!(
+                p.kind.as_str(),
+                "deck-fitting" | "mast" | "director" | "funnel"
+            )
+    };
+    let relaxed_ids: std::collections::BTreeSet<_> = installed_parts
+        .iter()
+        .filter(|(_, p)| relaxed_fit(p))
+        .map(|(id, _)| id.as_str())
+        .collect();
     // Diagnostics name the catalog part; source ids are opaque to the designer.
-    let part_name = |id: &str| installed_parts.iter().find(|(other, _)| other == id)
-        .map_or_else(|| id.to_owned(), |(_, p)| p.name.clone());
-    let weapon_ids: std::collections::BTreeSet<_> = installed_parts.iter()
-        .filter(|(_, p)| matches!(p.kind.as_str(), "gun" | "torpedo-launcher")).map(|(id, _)| id.as_str()).collect();
+    let part_name = |id: &str| {
+        installed_parts
+            .iter()
+            .find(|(other, _)| other == id)
+            .map_or_else(|| id.to_owned(), |(_, p)| p.name.clone())
+    };
+    let weapon_ids: std::collections::BTreeSet<_> = installed_parts
+        .iter()
+        .filter(|(_, p)| matches!(p.kind.as_str(), "gun" | "torpedo-launcher"))
+        .map(|(id, _)| id.as_str())
+        .collect();
     let mut fitted = vec![];
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
     let mut fitting_index = cg::Broadphase::new(8.);
     let hull_index = cg::Broadphase::sized_for(hull);
     let mut support_sockets = vec![];
     let mut fitting_surfaces = vec![];
-    let has_lines = c.equipment.iter().any(|e| catalog.equipment.iter().any(|p| p.id == e.part_id
-        && p.path.as_ref().is_some_and(|path| matches!(path.kind.as_str(), "rope" | "chain"))));
+    let has_lines = c.equipment.iter().any(|e| {
+        catalog.equipment.iter().any(|p| {
+            p.id == e.part_id
+                && p.path
+                    .as_ref()
+                    .is_some_and(|path| matches!(path.kind.as_str(), "rope" | "chain"))
+        })
+    });
     let mut path_members = 0;
     // A route can attach to an explicit eye only after its owning fixed fitting
     // has independently passed hull support/fit. Source order cannot form cycles.
@@ -1651,16 +1902,18 @@ fn equipment(
             ));
         };
         // Legacy funnel links are accepted but no longer constrain shared exhaust.
-        if p.kind != "funnel" && e.power_source_id.as_ref().is_some_and(|id| {
-            p.kind != "propeller"
-                || !c.equipment.iter().any(|e| {
-                    &e.id == id
-                        && catalog
-                            .equipment
-                            .iter()
-                            .any(|p| p.id == e.part_id && p.kind == "engine")
-                })
-        }) {
+        if p.kind != "funnel"
+            && e.power_source_id.as_ref().is_some_and(|id| {
+                p.kind != "propeller"
+                    || !c.equipment.iter().any(|e| {
+                        &e.id == id
+                            && catalog
+                                .equipment
+                                .iter()
+                                .any(|p| p.id == e.part_id && p.kind == "engine")
+                    })
+            })
+        {
             return Err(error(
                 "power-link",
                 "Power connection must reference a fitted engine",
@@ -1668,16 +1921,34 @@ fn equipment(
             ));
         }
         let raise = crate::construction_installation::raised(e);
-        if !raise.is_finite() || !(0. ..=30.).contains(&raise) || (raise > 0. && (p.kind != "gun" || c.version < 2.)) {
-            return Err(error("barbette-height", "Barbette height must be between 0 and 30 m on a gun installation", Some(&e.id)));
+        if !raise.is_finite()
+            || !(0. ..=30.).contains(&raise)
+            || (raise > 0. && (p.kind != "gun" || c.version < 2.))
+        {
+            return Err(error(
+                "barbette-height",
+                "Barbette height must be between 0 and 30 m on a gun installation",
+                Some(&e.id),
+            ));
         }
         if c.version >= 2. && (p.kind == "magazine" || e.magazine_id.is_some()) {
-            return Err(error("integrated-magazine", "Ammunition is built into each weapon; remove separate magazines and magazine links", Some(&e.id)));
+            return Err(error(
+                "integrated-magazine",
+                "Ammunition is built into each weapon; remove separate magazines and magazine links",
+                Some(&e.id),
+            ));
         }
         if !finite(e.position)
             || !e.bearing_deg.is_finite()
             || e.bearing_deg.abs() > 3600.
-            || !(size(p.size) || p.wall_mount.is_some() && finite(p.size) && p.size[0] >= 0.01 && p.size[1] >= 0.01 && p.size[0] <= 500. && p.size[1] <= 500. && (0.001..=0.01).contains(&p.size[2]))
+            || !(size(p.size)
+                || p.wall_mount.is_some()
+                    && finite(p.size)
+                    && p.size[0] >= 0.01
+                    && p.size[1] >= 0.01
+                    && p.size[0] <= 500.
+                    && p.size[1] <= 500.
+                    && (0.001..=0.01).contains(&p.size[2]))
             || !finite(p.bounds_center)
             || !finite(p.center_of_gravity)
             || !p.model_url.starts_with("/models/components/")
@@ -1799,36 +2070,89 @@ fn equipment(
         };
         let envelope = transform_cell(p.bounds_center, p.size);
         let mut fitting_cells = if p.kind == "gun" {
-            let weapon = catalog.weapons.parts.iter().find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
+            let weapon = catalog
+                .weapons
+                .parts
+                .iter()
+                .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
                 .ok_or_else(|| error("weapon", "Missing canonical gun definition", Some(&e.id)))?;
-            crate::mount_clearance::installation_bounds(weapon, e.gun.as_ref().and_then(|g| g.initial_elevation_deg).unwrap_or(0.).to_radians())
-                .into_iter().map(|(center, size)| transform_cell(center, size)).collect::<Vec<_>>()
+            crate::mount_clearance::installation_bounds(
+                weapon,
+                e.gun
+                    .as_ref()
+                    .and_then(|g| g.initial_elevation_deg)
+                    .unwrap_or(0.)
+                    .to_radians(),
+            )
+            .into_iter()
+            .map(|(center, size)| transform_cell(center, size))
+            .collect::<Vec<_>>()
         } else if let Some(boxes) = &p.fitting {
-            if p.kind != "deck-fitting" || boxes.is_empty() || boxes.len() > 64 || boxes.iter().any(|b| !finite(b.center) || !size(b.size)
-                || (0..3).any(|i| (b.center[i] - p.bounds_center[i]).abs() + b.size[i] / 2. > p.size[i] / 2. + 0.025)) {
-                return Err(error("equipment-data", "Invalid original fitting boxes", Some(&e.id)));
+            if p.kind != "deck-fitting"
+                || boxes.is_empty()
+                || boxes.len() > 64
+                || boxes.iter().any(|b| {
+                    !finite(b.center)
+                        || !size(b.size)
+                        || (0..3).any(|i| {
+                            (b.center[i] - p.bounds_center[i]).abs() + b.size[i] / 2.
+                                > p.size[i] / 2. + 0.025
+                        })
+                })
+            {
+                return Err(error(
+                    "equipment-data",
+                    "Invalid original fitting boxes",
+                    Some(&e.id),
+                ));
             }
-            boxes.iter().map(|b| transform_cell(b.center, b.size)).collect()
-        } else { vec![envelope.clone()] };
+            boxes
+                .iter()
+                .map(|b| transform_cell(b.center, b.size))
+                .collect()
+        } else {
+            vec![envelope.clone()]
+        };
         let body_cell_count = fitting_cells.len();
         if p.kind == "gun" && crate::construction_installation::raised(e) > 0. {
             let top = crate::construction_installation::attachment(p);
             for space in crate::construction_installation::spaces(c, catalog, p, e) {
                 fitting_cells.push(transform_cell(
-                    [space.center[0], top - crate::construction_installation::raised(e) / 2., space.center[2]],
-                    [space.size[0], crate::construction_installation::raised(e), space.size[2]],
+                    [
+                        space.center[0],
+                        top - crate::construction_installation::raised(e) / 2.,
+                        space.center[2],
+                    ],
+                    [
+                        space.size[0],
+                        crate::construction_installation::raised(e),
+                        space.size[2],
+                    ],
                 ));
             }
         }
         for (other, cell) in &all_envelopes {
-            if !colliding_ids.contains(e.id.as_str()) || !colliding_ids.contains(other.as_str()) { continue; }
+            if !colliding_ids.contains(e.id.as_str()) || !colliding_ids.contains(other.as_str()) {
+                continue;
+            }
             // Fixed machinery retains its partial-overlap rule; weapons need clearance.
             let weapon = |kind: &str| matches!(kind, "gun" | "torpedo-launcher");
-            if (relaxed_fit(p) && !weapon_ids.contains(other.as_str())) || (relaxed_ids.contains(other.as_str()) && !weapon(&p.kind)) { continue; }
-            if fitting_cells.iter().any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
+            if (relaxed_fit(p) && !weapon_ids.contains(other.as_str()))
+                || (relaxed_ids.contains(other.as_str()) && !weapon(&p.kind))
+            {
+                continue;
+            }
+            if fitting_cells
+                .iter()
+                .any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5))
+            {
                 return Err(error(
                     "equipment-overlap",
-                    format!("{} intersects {}", p.name, neighbor_name(&p.name, &part_name(other))),
+                    format!(
+                        "{} intersects {}",
+                        p.name,
+                        neighbor_name(&p.name, &part_name(other))
+                    ),
                     Some(&e.id),
                 ));
             }
@@ -1860,7 +2184,9 @@ fn equipment(
                 }
                 let volume = cg::transform(
                     &crate::construction_installation::space_cell(catalog, p, &space),
-                    e.position, [1.; 3], -e.bearing_deg.to_radians(),
+                    e.position,
+                    [1.; 3],
+                    -e.bearing_deg.to_radians(),
                 );
                 if p.placement == "deck" {
                     occupied.extend(hull.iter().filter_map(|h| cg::intersection(&volume, h)));
@@ -1871,7 +2197,8 @@ fn equipment(
         }
         let occupied = cg::union(&occupied).map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
         if !occupied.is_empty() {
-            let outside = cache.subtract_all(occupied.clone(), interior.iter())
+            let outside = cache
+                .subtract_all(occupied.clone(), interior.iter())
                 .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
             if cg::total(&outside).volume > 1e-5 {
                 return Err(error(
@@ -1884,7 +2211,8 @@ fn equipment(
                     Some(&e.id),
                 ));
             }
-            *interior = cache.subtract_all(interior.clone(), &occupied)
+            *interior = cache
+                .subtract_all(interior.clone(), &occupied)
                 .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
         }
         // Check the explicit original attachment socket (or the package's base datum).
@@ -1920,16 +2248,21 @@ fn equipment(
         };
         // Internal powerplants are supported by their installation. The occupied-volume
         // check above already requires the entire package to fit in free hull interior.
-        let attached = (p.kind == "engine" && p.placement == "internal") || supports.iter().any(|h| {
-            cg::contains(h, attachment)
-                || length(sub(cg::closest_point(h, attachment), attachment)) <= 0.05
-        });
+        let attached = (p.kind == "engine" && p.placement == "internal")
+            || supports.iter().any(|h| {
+                cg::contains(h, attachment)
+                    || length(sub(cg::closest_point(h, attachment), attachment)) <= 0.05
+            });
         let attached = attached
-            && ((p.kind != "deck-fitting" && !crate::construction_installation::deck_mounted(c, catalog, p))
-                || (relaxed_fit(p) && hull.iter().any(|h| h.faces.iter().all(|f| {
-                    let n = cg::normal(&f.vertices);
-                    dot(n, sub(attachment, f.vertices[0])) < -1e-6
-                })))
+            && ((p.kind != "deck-fitting"
+                && !crate::construction_installation::deck_mounted(c, catalog, p))
+                || (relaxed_fit(p)
+                    && hull.iter().any(|h| {
+                        h.faces.iter().all(|f| {
+                            let n = cg::normal(&f.vertices);
+                            dot(n, sub(attachment, f.vertices[0])) < -1e-6
+                        })
+                    }))
                 || crate::construction_paths::supported_surface(
                     &out.surfaces,
                     attachment,
@@ -1946,63 +2279,128 @@ fn equipment(
                             attachment,
                         )) <= 0.05
                 }));
-        let support = if attached { None } else {
+        let support = if attached {
+            None
+        } else {
             crate::construction_propellers::derive(e, p, &out.surfaces)
         };
         if !attached && support.is_none() && e.wall.is_none() {
             return Err(error(
                 "equipment-attachment",
-                if p.kind == "propeller" { "No hull connection for this propeller; move it closer to the stern or beneath the hull" } else { "Equipment attachment has no physical hull support within 5 cm" },
+                if p.kind == "propeller" {
+                    "No hull connection for this propeller; move it closer to the stern or beneath the hull"
+                } else {
+                    "Equipment attachment has no physical hull support within 5 cm"
+                },
                 Some(&e.id),
             ));
         }
         if let Some(support) = support {
-            if hull.iter().any(|h| cg::intersection(&envelope,h).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
-                return Err(error("equipment-fit", "Propeller blades need clearance from the hull; move the propeller farther out", Some(&e.id)));
+            if hull.iter().any(|h| {
+                cg::intersection(&envelope, h).is_some_and(|x| cg::moments(&x).volume > 1e-5)
+            }) {
+                return Err(error(
+                    "equipment-fit",
+                    "Propeller blades need clearance from the hull; move the propeller farther out",
+                    Some(&e.id),
+                ));
             }
-            let members: Vec<_> = support.members.iter().flat_map(|m| crate::construction_propellers::cells(m).into_iter().map(move |cell| (m, cell))).collect();
+            let members: Vec<_> = support
+                .members
+                .iter()
+                .flat_map(|m| {
+                    crate::construction_propellers::cells(m)
+                        .into_iter()
+                        .map(move |cell| (m, cell))
+                })
+                .collect();
             for (i, (member, cell)) in members.iter().enumerate() {
-                if let Some((id, _)) = all_envelopes.iter().find(|(id, other)| id != &e.id && colliding_ids.contains(id.as_str()) && cg::intersection(cell, other).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
-                    return Err(error("equipment-overlap", format!("Propeller shaft or support intersects {}", neighbor_name(&p.name, &part_name(id))), Some(&e.id)));
+                if let Some((id, _)) = all_envelopes.iter().find(|(id, other)| {
+                    id != &e.id
+                        && colliding_ids.contains(id.as_str())
+                        && cg::intersection(cell, other)
+                            .is_some_and(|x| cg::moments(&x).volume > 1e-5)
+                }) {
+                    return Err(error(
+                        "equipment-overlap",
+                        format!(
+                            "Propeller shaft or support intersects {}",
+                            neighbor_name(&p.name, &part_name(id))
+                        ),
+                        Some(&e.id),
+                    ));
                 }
                 if crate::construction_propellers::crosses_hull(member, cell, hull) {
-                    return Err(error("equipment-fit", &format!("Propeller {} crosses the hull; move the propeller to clear the plating", member.kind), Some(&e.id)));
+                    return Err(error(
+                        "equipment-fit",
+                        format!(
+                            "Propeller {} crosses the hull; move the propeller to clear the plating",
+                            member.kind
+                        ),
+                        Some(&e.id),
+                    ));
                 }
                 fitting_index.insert(cell);
                 all_envelopes.push((e.id.clone(), cell.clone()));
-                path_clearance.push(MountClearanceProfileBodiesItem { id:format!("{}-support-{i}",e.id), mount_id:None, surface:surface_mesh(cell) });
+                path_clearance.push(MountClearanceProfileBodiesItem {
+                    id: format!("{}-support-{i}", e.id),
+                    mount_id: None,
+                    surface: surface_mesh(cell),
+                });
             }
             // Union joined lofts before integrating weight; never add them to hull cells.
             let cells: Vec<_> = members.into_iter().map(|(_, cell)| cell).collect();
-            let solids = cg::union(&cells).map_err(|x| error("equipment-fit",x,Some(&e.id)))?;
-            masses.push(mass(format!("{}-support",e.id), "equipment", &solids, STEEL_DENSITY));
-            out.propeller_supports.get_or_insert_with(Vec::new).push(support);
+            let solids = cg::union(&cells).map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
+            masses.push(mass(
+                format!("{}-support", e.id),
+                "equipment",
+                &solids,
+                STEEL_DENSITY,
+            ));
+            out.propeller_supports
+                .get_or_insert_with(Vec::new)
+                .push(support);
         }
         let intrusion = if p.placement == "deck" && e.wall.is_none() && !relaxed_fit(p) {
             // The fixed support crosses the deck by design. Its well and hull
             // backing are validated separately; only the gun body must clear it.
-            hull.iter().find_map(|h| fitting_cells[..body_cell_count].iter().find_map(|f| {
-                cg::intersection(f, h).and_then(|x| {
-                    let base_area = if p.kind == "deck-fitting" {
-                        (0..3).map(|i| attachment_direction[i].abs() * p.size[(i + 1) % 3] * p.size[(i + 2) % 3]).sum()
-                    } else { p.size[0] * p.size[2] };
-                    let volume = cg::moments(&x);
-                    (volume.volume > base_area * 0.005).then(|| volume.center())
+            hull.iter().find_map(|h| {
+                fitting_cells[..body_cell_count].iter().find_map(|f| {
+                    cg::intersection(f, h).and_then(|x| {
+                        let base_area = if p.kind == "deck-fitting" {
+                            (0..3)
+                                .map(|i| {
+                                    attachment_direction[i].abs()
+                                        * p.size[(i + 1) % 3]
+                                        * p.size[(i + 2) % 3]
+                                })
+                                .sum()
+                        } else {
+                            p.size[0] * p.size[2]
+                        };
+                        let volume = cg::moments(&x);
+                        (volume.volume > base_area * 0.005).then(|| volume.center())
+                    })
                 })
-            }))
-        } else { None };
+            })
+        } else {
+            None
+        };
         if let Some(point) = intrusion {
             return Err(error(
                 "equipment-fit",
-                format!("Exterior equipment body overlaps the hull near [{:.3}, {:.3}, {:.3}]; use its original support datum (5 mm fitted-base tolerance)", point[0], point[1], point[2]),
+                format!(
+                    "Exterior equipment body overlaps the hull near [{:.3}, {:.3}, {:.3}]; use its original support datum (5 mm fitted-base tolerance)",
+                    point[0], point[1], point[2]
+                ),
                 Some(&e.id),
             ));
         }
         if p.placement == "deck" {
-            if has_lines {
-                if let Some(surface) = crate::construction_paths::FittingSurface::new(e, p)? {
-                    fitting_surfaces.push(surface);
-                }
+            if has_lines
+                && let Some(surface) = crate::construction_paths::FittingSurface::new(e, p)?
+            {
+                fitting_surfaces.push(surface);
             }
             support_sockets.extend(
                 p.sockets
@@ -2136,40 +2534,90 @@ fn equipment(
             }
             let (magazine_id, ammo_center, ammo_size) = if c.version >= 2. {
                 let (center, size) = crate::construction_installation::magazine(c, catalog, p, e)
-                    .ok_or_else(|| error("magazine-fit", "Gun needs an integral ammunition package", Some(&e.id)))?;
-                let id = integral_magazine(def, e, center, size, false, crate::construction_installation::deck_mounted(c, catalog, p));
+                    .ok_or_else(|| {
+                    error(
+                        "magazine-fit",
+                        "Gun needs an integral ammunition package",
+                        Some(&e.id),
+                    )
+                })?;
+                let id = integral_magazine(
+                    def,
+                    e,
+                    center,
+                    size,
+                    false,
+                    crate::construction_installation::deck_mounted(c, catalog, p),
+                );
                 (id, center, size)
             } else {
                 let magazine = resolve_magazine(c, catalog, e)?;
-                (magazine.id.clone(), magazine_load_center(catalog, magazine), [0.; 3])
+                (
+                    magazine.id.clone(),
+                    magazine_load_center(catalog, magazine),
+                    [0.; 3],
+                )
             };
             let installation = e.gun.clone().unwrap_or_default();
             let train = installation.traverse_deg.unwrap_or(w.traverse_deg);
-            let low = installation.elevation_min_deg.unwrap_or(w.elevation_min_deg);
-            let high = installation.elevation_max_deg.unwrap_or(w.elevation_max_deg);
+            let low = installation
+                .elevation_min_deg
+                .unwrap_or(w.elevation_min_deg);
+            let high = installation
+                .elevation_max_deg
+                .unwrap_or(w.elevation_max_deg);
             let initial = installation.initial_elevation_deg.unwrap_or(0.);
-            if ![train,low,high,initial].iter().all(|v| v.is_finite())
-                || train <= 0. || train > w.traverse_deg || low < w.elevation_min_deg
-                || low > 0. || high > w.elevation_max_deg || high < 0.
-                || initial < low || initial > high
-                || installation.battery.as_deref().is_some_and(|b| !matches!(b,"main"|"secondary"))
-                || installation.traverse_limits_deg.is_some_and(|[a,b]| !a.is_finite() || !b.is_finite() || a > 0. || b < 0. || a >= b || a < -train || b > train)
-            { return Err(error("weapon-installation", "Gun installation exceeds its canonical capability", Some(&e.id))); }
+            if ![train, low, high, initial].iter().all(|v| v.is_finite())
+                || train <= 0.
+                || train > w.traverse_deg
+                || low < w.elevation_min_deg
+                || low > 0.
+                || high > w.elevation_max_deg
+                || high < 0.
+                || initial < low
+                || initial > high
+                || installation
+                    .battery
+                    .as_deref()
+                    .is_some_and(|b| !matches!(b, "main" | "secondary"))
+                || installation.traverse_limits_deg.is_some_and(|[a, b]| {
+                    !a.is_finite()
+                        || !b.is_finite()
+                        || a > 0.
+                        || b < 0.
+                        || a >= b
+                        || a < -train
+                        || b > train
+                })
+            {
+                return Err(error(
+                    "weapon-installation",
+                    "Gun installation exceeds its canonical capability",
+                    Some(&e.id),
+                ));
+            }
             let mut installed = w.clone();
             installed.traverse_deg = train;
-            if installation.elevation_min_deg.is_some() { installed.catalog_elevation_min_deg = Some(w.elevation_min_deg); }
-            if installation.elevation_max_deg.is_some() { installed.catalog_elevation_max_deg = Some(w.elevation_max_deg); }
-            installed.elevation_min_deg = low; installed.elevation_max_deg = high;
+            if installation.elevation_min_deg.is_some() {
+                installed.catalog_elevation_min_deg = Some(w.elevation_min_deg);
+            }
+            if installation.elevation_max_deg.is_some() {
+                installed.catalog_elevation_max_deg = Some(w.elevation_max_deg);
+            }
+            installed.elevation_min_deg = low;
+            installed.elevation_max_deg = high;
             def.mounts.push(MountDefinition {
                 id: e.id.clone(),
                 name: p.name.clone(),
                 part_id: w.id.clone(),
-                battery: installation.battery.unwrap_or_else(|| if w.caliber_m >= 0.1 {
-                    "main"
-                } else {
-                    "secondary"
-                }
-                .into()),
+                battery: installation.battery.unwrap_or_else(|| {
+                    if w.caliber_m >= 0.1 {
+                        "main"
+                    } else {
+                        "secondary"
+                    }
+                    .into()
+                }),
                 position: e.position,
                 bearing_deg: e.bearing_deg,
                 magazine_id: Some(magazine_id),
@@ -2186,7 +2634,11 @@ fn equipment(
                 kind: "ammunition".into(),
                 mass_kg: kg,
                 center: ammo_center,
-                inertia_kg_m2: if c.version >= 2. { box_inertia(ammo_size, kg) } else { magazine_load_inertia(catalog, resolve_magazine(c, catalog, e)?, kg) },
+                inertia_kg_m2: if c.version >= 2. {
+                    box_inertia(ammo_size, kg)
+                } else {
+                    magazine_load_inertia(catalog, resolve_magazine(c, catalog, e)?, kg)
+                },
             });
         }
         if p.kind == "torpedo-launcher" {
@@ -2216,14 +2668,30 @@ fn equipment(
                 })?;
             let magazine_id = if c.version >= 2. {
                 integral_magazine(def, e, add(e.position, p.bounds_center), p.size, true, true)
-            } else { resolve_magazine(c, catalog, e)?.id.clone() };
+            } else {
+                resolve_magazine(c, catalog, e)?.id.clone()
+            };
             if let Some(installation) = &e.launcher {
                 let [lo, hi] = installation.traverse_limits_deg;
-                if !lo.is_finite() || !hi.is_finite() || lo < -180. || hi > 180.
-                    || lo >= hi || e.bearing_deg < lo || e.bearing_deg > hi
-                    || installation.launch_arcs_deg.is_empty() || installation.launch_arcs_deg.len() > 8
-                    || installation.launch_arcs_deg.iter().any(|[a,b]| !a.is_finite() || !b.is_finite() || a >= b || *a < lo || *b > hi)
-                { return Err(error("weapon-installation", "Launcher arcs must lie within traverse limits and include the installed resting bearing", Some(&e.id))); }
+                if !lo.is_finite()
+                    || !hi.is_finite()
+                    || lo < -180.
+                    || hi > 180.
+                    || lo >= hi
+                    || e.bearing_deg < lo
+                    || e.bearing_deg > hi
+                    || installation.launch_arcs_deg.is_empty()
+                    || installation.launch_arcs_deg.len() > 8
+                    || installation.launch_arcs_deg.iter().any(|[a, b]| {
+                        !a.is_finite() || !b.is_finite() || a >= b || *a < lo || *b > hi
+                    })
+                {
+                    return Err(error(
+                        "weapon-installation",
+                        "Launcher arcs must lie within traverse limits and include the installed resting bearing",
+                        Some(&e.id),
+                    ));
+                }
             }
             def.torpedo_launchers
                 .get_or_insert_default()
@@ -2232,7 +2700,10 @@ fn equipment(
                     name: p.name.clone(),
                     position: e.position,
                     traverse_rate_deg: 10.,
-                    launch_arcs_deg: e.launcher.as_ref().map_or_else(|| vec![[-180., 180.]], |l| l.launch_arcs_deg.clone()),
+                    launch_arcs_deg: e
+                        .launcher
+                        .as_ref()
+                        .map_or_else(|| vec![[-180., 180.]], |l| l.launch_arcs_deg.clone()),
                     traverse_limits_deg: e.launcher.as_ref().map(|l| l.traverse_limits_deg),
                 });
             for (i, &offset) in offsets.iter().enumerate() {
@@ -2305,19 +2776,44 @@ fn equipment(
     // Hull burial applies to every fixed fitting. Only collision-bearing fittings
     // can bury one another; decorative overlaps never consume their exposed volume.
     for id in &relaxed_ids {
-        let cells: Vec<_> = all_envelopes.iter().filter(|(owner, _)| owner == id)
-            .map(|(_, cell)| cell.clone()).collect();
-        let mut exposed = cg::union(&cells).map_err(|message| error("equipment-overlap", message, Some(id)))?;
+        let cells: Vec<_> = all_envelopes
+            .iter()
+            .filter(|(owner, _)| owner == id)
+            .map(|(_, cell)| cell.clone())
+            .collect();
+        let mut exposed =
+            cg::union(&cells).map_err(|message| error("equipment-overlap", message, Some(id)))?;
         let volume = cg::total(&exposed).volume;
-        let hull_candidates: std::collections::BTreeSet<_> = cells.iter().flat_map(|cell| hull_index.candidates(cell)).collect();
-        let fitting_candidates: std::collections::BTreeSet<_> = cells.iter().flat_map(|cell| fitting_index.candidates(cell)).collect();
-        let cutters = hull_candidates.iter().map(|&i| &hull[i]).chain(fitting_candidates.iter()
-            .filter(|&&i| all_envelopes[i].0 != *id && colliding_ids.contains(id)
-                && colliding_ids.contains(all_envelopes[i].0.as_str())).map(|&i| &all_envelopes[i].1));
+        let hull_candidates: std::collections::BTreeSet<_> = cells
+            .iter()
+            .flat_map(|cell| hull_index.candidates(cell))
+            .collect();
+        let fitting_candidates: std::collections::BTreeSet<_> = cells
+            .iter()
+            .flat_map(|cell| fitting_index.candidates(cell))
+            .collect();
+        let cutters = hull_candidates.iter().map(|&i| &hull[i]).chain(
+            fitting_candidates
+                .iter()
+                .filter(|&&i| {
+                    all_envelopes[i].0 != *id
+                        && colliding_ids.contains(id)
+                        && colliding_ids.contains(all_envelopes[i].0.as_str())
+                })
+                .map(|&i| &all_envelopes[i].1),
+        );
         for cutter in cutters {
-            exposed = exposed.iter().flat_map(|cell| cg::subtract(cell, cutter)).collect();
-            if cg::total(&exposed).volume + 1e-7 < volume * crate::construction_overlap::MIN_EXPOSED {
-                return Err(error("equipment-overlap", "Keep at least 10% of each fixed fitting outside the hull; machinery must also remain exposed to other machinery and weapons", Some(id)));
+            exposed = exposed
+                .iter()
+                .flat_map(|cell| cg::subtract(cell, cutter))
+                .collect();
+            if cg::total(&exposed).volume + 1e-7 < volume * crate::construction_overlap::MIN_EXPOSED
+            {
+                return Err(error(
+                    "equipment-overlap",
+                    "Keep at least 10% of each fixed fitting outside the hull; machinery must also remain exposed to other machinery and weapons",
+                    Some(id),
+                ));
             }
         }
     }
@@ -2333,38 +2829,62 @@ fn equipment(
                 missing.push(kind);
             }
         }
-        warn(out, "unpowered", &format!(
-            "No propulsion: missing {}. Add the missing equipment; funnels supply shared exhaust capacity and propellers connect to powered engines automatically. Sea trial is still available, but the ship cannot propel itself.",
-            missing.join(", ")
-        ));
+        warn(
+            out,
+            "unpowered",
+            &format!(
+                "No propulsion: missing {}. Add the missing equipment; funnels supply shared exhaust capacity and propellers connect to powered engines automatically. Sea trial is still available, but the ship cannot propel itself.",
+                missing.join(", ")
+            ),
+        );
     }
     let funnels: Vec<_> = fitted.iter().filter(|(_, p)| p.kind == "funnel").collect();
     let shared_exhaust = SharedExhaust {
-        engines: fitted.iter().filter(|(_, p)| p.kind == "engine" && p.power_kw.unwrap_or(0.) > 0.)
-            .map(|(e, p)| MachineryRating { id: e.id.clone(), kw: p.power_kw.unwrap_or(0.) }).collect(),
-        funnels: funnels.iter()
-            .map(|(e, p)| MachineryRating { id: e.id.clone(), kw: p.exhaust_kw.unwrap_or(0.) }).collect(),
+        engines: fitted
+            .iter()
+            .filter(|(_, p)| p.kind == "engine" && p.power_kw.unwrap_or(0.) > 0.)
+            .map(|(e, p)| MachineryRating {
+                id: e.id.clone(),
+                kw: p.power_kw.unwrap_or(0.),
+            })
+            .collect(),
+        funnels: funnels
+            .iter()
+            .map(|(e, p)| MachineryRating {
+                id: e.id.clone(),
+                kw: p.exhaust_kw.unwrap_or(0.),
+            })
+            .collect(),
     };
     let exhaust: f64 = shared_exhaust.funnels.iter().map(|f| f.kw).sum();
     let demand: f64 = shared_exhaust.engines.iter().map(|e| e.kw).sum();
     let supply = crate::construction_services::exhaust_fraction(exhaust, demand);
     if exhaust > 0. && exhaust < demand {
-        warn(out, "exhaust-capacity", &format!(
-            "Insufficient exhaust capacity: {exhaust:.0} kW available for {demand:.0} kW of engines. Add another funnel or use a higher-capacity funnel. Propulsion is limited; sea trial is still available."
-        ));
+        warn(
+            out,
+            "exhaust-capacity",
+            &format!(
+                "Insufficient exhaust capacity: {exhaust:.0} kW available for {demand:.0} kW of engines. Add another funnel or use a higher-capacity funnel. Propulsion is limited; sea trial is still available."
+            ),
+        );
     }
     for (engine, part) in fitted.iter().filter(|(_, p)| p.kind == "engine") {
         let props: Vec<_> = fitted
             .iter()
             .filter(|(e, p)| {
                 p.kind == "propeller"
-                    && assignments.iter().any(|a| a.propeller_id == e.id && a.engine_id == engine.id)
+                    && assignments
+                        .iter()
+                        .any(|a| a.propeller_id == e.id && a.engine_id == engine.id)
             })
             .collect();
         let rated = part.power_kw.unwrap_or(0.);
         let mut reasons: Vec<String> = vec![];
         if funnels.is_empty() {
-            reasons.push("Missing funnel. Add a funnel in Fittings to provide shared exhaust capacity".into());
+            reasons.push(
+                "Missing funnel. Add a funnel in Fittings to provide shared exhaust capacity"
+                    .into(),
+            );
         }
         if props.is_empty() {
             reasons.push(if fitted.iter().any(|(_, p)| p.kind == "propeller") {
@@ -2374,7 +2894,10 @@ fn equipment(
             });
         }
         if rated == 0. {
-            reasons.push("This engine has no rated power. Replace it with an engine that supplies power".into());
+            reasons.push(
+                "This engine has no rated power. Replace it with an engine that supplies power"
+                    .into(),
+            );
         }
         if !funnels.is_empty() {
             if exhaust == 0. {
@@ -2397,8 +2920,7 @@ fn equipment(
             .map(|(_, p)| p.thrust_efficiency.unwrap_or(0.6).clamp(0.01, 1.))
             .sum::<f64>()
             / props.len() as f64;
-        let kw = (rated * (supply - crate::construction_services::AUXILIARY_POWER_SHARE))
-            .max(0.)
+        let kw = (rated * (supply - crate::construction_services::AUXILIARY_POWER_SHARE)).max(0.)
             * efficiency;
         if kw == 0. {
             continue;
@@ -2417,7 +2939,10 @@ fn equipment(
     }
     def.propulsion = Some(ShipDefinitionPropulsion { groups, shared_exhaust: Some(shared_exhaust), basis: "Catalog power limited by shared funnel capacity, allocated in proportion to engine power, less 2% rated power reserved for included auxiliaries, then propeller efficiency; damaged or submerged funnels reduce shared capacity at runtime".into() });
     // Final hull/loading and fitted datums are needed before deriving force-based estimates.
-    def.handling = Handling { rudder_rate: 0.35, ..Default::default() };
+    def.handling = Handling {
+        rudder_rate: 0.35,
+        ..Default::default()
+    };
     out.loading = Some(ConstructionLoading {
         power_kw: power,
         ..Default::default()
@@ -2427,11 +2952,23 @@ fn equipment(
 fn box_inertia(size: Vec3, kg: f64) -> Vec3 {
     std::array::from_fn(|i| kg * (size[(i + 1) % 3].powi(2) + size[(i + 2) % 3].powi(2)) / 12.)
 }
-fn integral_magazine(def: &mut ShipDefinition, e: &ConstructionEquipment, center: Vec3, size: Vec3, launcher: bool, exposed: bool) -> String {
+fn integral_magazine(
+    def: &mut ShipDefinition,
+    e: &ConstructionEquipment,
+    center: Vec3,
+    size: Vec3,
+    launcher: bool,
+    exposed: bool,
+) -> String {
     let id = format!("{}-magazine", e.id);
     def.modules.push(Module {
-        id: id.clone(), name: format!("{} ammunition", e.id), kind: "magazine".into(), center, size,
-        hp: 100., placement: exposed.then(|| "fixed".into()),
+        id: id.clone(),
+        name: format!("{} ammunition", e.id),
+        kind: "magazine".into(),
+        center,
+        size,
+        hp: 100.,
+        placement: exposed.then(|| "fixed".into()),
         immersion_tolerance_m: (!exposed).then_some((size[1] * 0.2).max(0.1)),
         torpedo_launcher_id: launcher.then(|| e.id.clone()),
         ..Default::default()
@@ -2523,19 +3060,37 @@ mod tests {
         compiler.compile(&source, &catalog);
         for finish in ["matte", "satin", "semi-gloss", "gloss"] {
             source.construction.finish = Some(finish.into());
-            let saved: ConstructionSource = serde_json::from_str(&to_json(&source).unwrap()).unwrap();
+            let saved: ConstructionSource =
+                serde_json::from_str(&to_json(&source).unwrap()).unwrap();
             assert_eq!(saved.construction.finish.as_deref(), Some(finish));
             let result = compiler.compile(&saved, &catalog);
             assert!(result.definition.is_some(), "{:?}", result.diagnostics);
             assert_ne!(result.content_hash, original.content_hash);
-            assert_eq!(to_json(&result.surfaces).unwrap(), to_json(&original.surfaces).unwrap());
-            assert_eq!(to_json(&result.loading).unwrap(), to_json(&original.loading).unwrap());
-            assert_eq!(to_json(&result).unwrap(), to_json(&compile(&saved, &catalog)).unwrap());
+            assert_eq!(
+                to_json(&result.surfaces).unwrap(),
+                to_json(&original.surfaces).unwrap()
+            );
+            assert_eq!(
+                to_json(&result.loading).unwrap(),
+                to_json(&original.loading).unwrap()
+            );
+            assert_eq!(
+                to_json(&result).unwrap(),
+                to_json(&compile(&saved, &catalog)).unwrap()
+            );
         }
         source.construction.finish = Some("chrome".into());
-        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "surface-finish"));
+        assert!(
+            compile(&source, &catalog)
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "surface-finish")
+        );
         source.construction.finish = None;
-        assert_eq!(compile(&source, &catalog).content_hash, original.content_hash);
+        assert_eq!(
+            compile(&source, &catalog).content_hash,
+            original.content_hash
+        );
     }
     #[test]
     fn ship_paint_coats_unassigned_faces_without_changing_physics() {
@@ -2547,17 +3102,34 @@ mod tests {
         assert_eq!(saved.construction.paint.as_deref(), Some("sea-blue"));
         let result = compile(&saved, &catalog);
         assert!(result.definition.is_some(), "{:?}", result.diagnostics);
-        assert_eq!(to_json(&result.loading).unwrap(), to_json(&original.loading).unwrap());
-        let assigned = |s: &ConstructionSurface| source.construction.surfaces.iter()
-            .any(|a| a.primitive_id == s.primitive_id && a.face == s.face);
+        assert_eq!(
+            to_json(&result.loading).unwrap(),
+            to_json(&original.loading).unwrap()
+        );
+        let assigned = |s: &ConstructionSurface| {
+            source
+                .construction
+                .surfaces
+                .iter()
+                .any(|a| a.primitive_id == s.primitive_id && a.face == s.face)
+        };
         let mut repainted = 0;
         for (before, after) in original.surfaces.iter().zip(&result.surfaces) {
-            if assigned(before) { assert_eq!(before.paint, after.paint); }
-            else { assert_eq!(after.paint, "sea-blue"); repainted += 1; }
+            if assigned(before) {
+                assert_eq!(before.paint, after.paint);
+            } else {
+                assert_eq!(after.paint, "sea-blue");
+                repainted += 1;
+            }
         }
         assert!(repainted > 0);
         source.construction.paint = Some(String::new());
-        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "ship-paint"));
+        assert!(
+            compile(&source, &catalog)
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "ship-paint")
+        );
     }
     #[test]
     fn incremental_revisions_match_fresh_compilation_including_invalid_edits() {
@@ -2580,23 +3152,49 @@ mod tests {
             }
             let actual = compiler.compile(&source, &catalog);
             let fresh = compile(&source, &catalog);
-            assert_eq!(to_json(&actual).unwrap(), to_json(&fresh).unwrap(), "edit {edit}");
-            if edit == 1 { assert!(compiler.reused_geometry_operations() > 0); }
+            assert_eq!(
+                to_json(&actual).unwrap(),
+                to_json(&fresh).unwrap(),
+                "edit {edit}"
+            );
+            if edit == 1 {
+                assert!(compiler.reused_geometry_operations() > 0);
+            }
         }
     }
     #[test]
     fn room_lookup_matches_full_exact_distance_with_ties_and_concavities() {
-        let rooms: Vec<_> = (0..4).map(|i| {
-            let cells = vec![cg::box_cell([i as f64 * 6., 0., -2.], [2., 4., 8.]), cg::box_cell([i as f64 * 6. + 1., 0., 3.], [4., 4., 2.])];
-            let (center, size) = crate::structure::bounds(cells.iter().flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())));
-            Compartment { id: format!("room-{i}"), center, size, volumes: Some(cells), ..Default::default() }
-        }).collect();
+        let rooms: Vec<_> = (0..4)
+            .map(|i| {
+                let cells = vec![
+                    cg::box_cell([i as f64 * 6., 0., -2.], [2., 4., 8.]),
+                    cg::box_cell([i as f64 * 6. + 1., 0., 3.], [4., 4., 2.]),
+                ];
+                let (center, size) = crate::structure::bounds(
+                    cells
+                        .iter()
+                        .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),
+                );
+                Compartment {
+                    id: format!("room-{i}"),
+                    center,
+                    size,
+                    volumes: Some(cells),
+                    ..Default::default()
+                }
+            })
+            .collect();
         let lookup = RoomLookup::new(&rooms);
-        for x in -4..26 { for z in -8..9 {
-            let p = [x as f64, 0., z as f64];
-            let expected = rooms.iter().min_by(|a,b| cg::room_distance(a,p).total_cmp(&cg::room_distance(b,p))).unwrap();
-            assert_eq!(lookup.nearest(&rooms, p).unwrap().id, expected.id, "{p:?}");
-        } }
+        for x in -4..26 {
+            for z in -8..9 {
+                let p = [x as f64, 0., z as f64];
+                let expected = rooms
+                    .iter()
+                    .min_by(|a, b| cg::room_distance(a, p).total_cmp(&cg::room_distance(b, p)))
+                    .unwrap();
+                assert_eq!(lookup.nearest(&rooms, p).unwrap().id, expected.id, "{p:?}");
+            }
+        }
     }
     pub fn fixture() -> (ConstructionSource, ConstructionCatalog) {
         (
@@ -2610,7 +3208,12 @@ mod tests {
                     version: 1.,
                     catalog_revision: "test".into(),
                     default_thickness_mm: 10.,
-                    primitives: vec![ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+                    primitives: vec![ConstructionPrimitive {
+                        tilt: None,
+                        mesh: None,
+                        balcony: None,
+                        shaping: None,
+                        custom_hull: None,
                         vertices: None,
                         smooth_group: None,
                         id: "box".into(),
@@ -2640,14 +3243,23 @@ mod tests {
         source.construction.primitives[0].size = [30., 1., 2.];
         source.construction.primitives[0].position = [0.; 3];
         for i in 0..257 {
-            source.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
-                id: format!("tiny-{i}"), kind: "box".into(), size: [0.01; 3],
+            source.construction.primitives.push(ConstructionPrimitive {
+                tilt: None,
+                mesh: None,
+                balcony: None,
+                shaping: None,
+                custom_hull: None,
+                id: format!("tiny-{i}"),
+                kind: "box".into(),
+                size: [0.01; 3],
                 position: [-14. + i as f64 * 0.1, 0.505, 0.],
                 ..Default::default()
             });
         }
         source.construction.boundaries.push(ConstructionBoundary {
-            id: "tiny-void-floor".into(), axis: "y".into(), offset: 0.501,
+            id: "tiny-void-floor".into(),
+            axis: "y".into(),
+            offset: 0.501,
             thickness_mm: 0.1,
         });
         let result = compile(&source, &catalog);
@@ -2656,40 +3268,88 @@ mod tests {
     }
     #[test]
     fn ballast_adds_exact_fixed_payload_and_displaces_real_interior() {
-        let (mut source,catalog) = fixture();
-        source.construction.primitives.push(ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None, id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None, smooth_group:None });
-        let empty = compile(&source,&catalog).loading.unwrap();
+        let (mut source, catalog) = fixture();
+        source.construction.primitives.push(ConstructionPrimitive {
+            tilt: None,
+            mesh: None,
+            balcony: None,
+            shaping: None,
+            custom_hull: None,
+            id: "weight".into(),
+            kind: "box".into(),
+            size: [3., 2., 3.],
+            position: [2., 3., 0.],
+            rotation_deg: 0.,
+            vertices: None,
+            smooth_group: None,
+        });
+        let empty = compile(&source, &catalog).loading.unwrap();
         source.construction.primitives[1].kind = "ballast".into();
-        let result = compile(&source,&catalog);
-        assert!(result.definition.is_some(),"{:?}",result.diagnostics);
+        let result = compile(&source, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
         let loaded = result.loading.unwrap();
-        assert!((loaded.mass_kg-empty.mass_kg-100_000.).abs()<1e-6);
-        assert!((loaded.envelope_volume_m3-empty.envelope_volume_m3).abs()<1e-7);
-        assert!(loaded.usable_volume_m3<empty.usable_volume_m3);
-        let weight = loaded.contributions.iter().find(|c|c.id == "weight").unwrap();
-        assert_eq!(weight.mass_kg,100_000.);
-        assert!((weight.center[0]-2.).abs()<1e-7);
-        assert!(loaded.center_of_gravity[0]>empty.center_of_gravity[0]);
-        source.construction.primitives[1].size = [4.,2.,4.];
-        assert_eq!(compile(&source,&catalog).loading.unwrap().contributions.iter().find(|c|c.id=="weight").unwrap().mass_kg,100_000.);
-        let mut duplicate = source.construction.primitives[1].clone(); duplicate.id = "weight2".into(); source.construction.primitives.push(duplicate);
-        assert!(compile(&source,&catalog).diagnostics.iter().any(|d|d.code == "ballast-fit"));
+        assert!((loaded.mass_kg - empty.mass_kg - 100_000.).abs() < 1e-6);
+        assert!((loaded.envelope_volume_m3 - empty.envelope_volume_m3).abs() < 1e-7);
+        assert!(loaded.usable_volume_m3 < empty.usable_volume_m3);
+        let weight = loaded
+            .contributions
+            .iter()
+            .find(|c| c.id == "weight")
+            .unwrap();
+        assert_eq!(weight.mass_kg, 100_000.);
+        assert!((weight.center[0] - 2.).abs() < 1e-7);
+        assert!(loaded.center_of_gravity[0] > empty.center_of_gravity[0]);
+        source.construction.primitives[1].size = [4., 2., 4.];
+        assert_eq!(
+            compile(&source, &catalog)
+                .loading
+                .unwrap()
+                .contributions
+                .iter()
+                .find(|c| c.id == "weight")
+                .unwrap()
+                .mass_kg,
+            100_000.
+        );
+        let mut duplicate = source.construction.primitives[1].clone();
+        duplicate.id = "weight2".into();
+        source.construction.primitives.push(duplicate);
+        assert!(
+            compile(&source, &catalog)
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "ballast-fit")
+        );
     }
     #[test]
     fn every_library_shape_compiles_with_real_material_and_voids() {
         for kind in crate::construction_shapes::KINDS {
             let (mut source, catalog) = fixture();
             source.construction.primitives[0].kind = (*kind).into();
-            source.construction.primitives[0].size = [8.,6.,10.];
+            source.construction.primitives[0].size = [8., 6., 10.];
             let started = std::time::Instant::now();
             let result = compile(&source, &catalog);
-            eprintln!("{kind}: {:?} {} surfaces",started.elapsed(),result.surfaces.len());
-            assert!(result.definition.is_some(),"{kind}: {:?}",result.diagnostics);
+            eprintln!(
+                "{kind}: {:?} {} surfaces",
+                started.elapsed(),
+                result.surfaces.len()
+            );
+            assert!(
+                result.definition.is_some(),
+                "{kind}: {:?}",
+                result.diagnostics
+            );
             let definition = result.definition.unwrap();
             crate::catalog::validate_definition(&definition).unwrap();
             let loading = definition.loading.unwrap();
-            assert!(loading.mass_kg>0. && loading.envelope_volume_m3>0.,"{kind}");
-            assert!(loading.material_volume_m3<=loading.envelope_volume_m3+1e-6,"{kind}");
+            assert!(
+                loading.mass_kg > 0. && loading.envelope_volume_m3 > 0.,
+                "{kind}"
+            );
+            assert!(
+                loading.material_volume_m3 <= loading.envelope_volume_m3 + 1e-6,
+                "{kind}"
+            );
         }
     }
     #[test]
@@ -2710,7 +3370,8 @@ mod tests {
             [0.5, 0.5, 0.5],
             [-0.5, 0.5, 0.5],
         ]);
-        s.construction.surfaces.push(ConstructionSurfaceAssignment { panel_id: None,
+        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+            panel_id: None,
             primitive_id: "box".into(),
             face: "starboard".into(),
             thickness_mm: 25.,
@@ -2813,27 +3474,42 @@ mod tests {
         let (mut s, c) = fixture();
         s.id = "catamaran".into();
         s.construction.primitives = vec![
-            ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+            ConstructionPrimitive {
+                tilt: None,
+                mesh: None,
+                balcony: None,
+                shaping: None,
+                custom_hull: None,
                 vertices: None,
-                        smooth_group: None,
+                smooth_group: None,
                 id: "port".into(),
                 kind: "box".into(),
                 position: [-4., 0., 0.],
                 size: [3., 4., 20.],
                 rotation_deg: 0.,
             },
-            ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+            ConstructionPrimitive {
+                tilt: None,
+                mesh: None,
+                balcony: None,
+                shaping: None,
+                custom_hull: None,
                 vertices: None,
-                        smooth_group: None,
+                smooth_group: None,
                 id: "starboard".into(),
                 kind: "box".into(),
                 position: [4., 0., 0.],
                 size: [3., 4., 20.],
                 rotation_deg: 0.,
             },
-            ConstructionPrimitive { tilt: None, mesh: None, balcony: None, shaping: None, custom_hull: None,
+            ConstructionPrimitive {
+                tilt: None,
+                mesh: None,
+                balcony: None,
+                shaping: None,
+                custom_hull: None,
                 vertices: None,
-                        smooth_group: None,
+                smooth_group: None,
                 id: "bridge".into(),
                 kind: "box".into(),
                 position: [0., 2.5, 0.],
@@ -2950,7 +3626,8 @@ mod tests {
     fn armor_uses_submillimeter_space_and_changes_draft() {
         let (mut s, c) = fixture();
         let thin = compiled(&s, &c);
-        s.construction.surfaces.push(ConstructionSurfaceAssignment { panel_id: None,
+        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+            panel_id: None,
             primitive_id: "box".into(),
             face: "starboard".into(),
             thickness_mm: 200.,
@@ -2977,7 +3654,8 @@ mod tests {
     #[test]
     fn submerged_opening_floods_without_subtracting_buoyancy_twice() {
         let (mut s, c) = fixture();
-        s.construction.surfaces.push(ConstructionSurfaceAssignment { panel_id: None,
+        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+            panel_id: None,
             primitive_id: "box".into(),
             face: "top".into(),
             thickness_mm: 0.,
@@ -3047,7 +3725,8 @@ mod tests {
                 .iter()
                 .all(|c| c.water_level_y.is_some())
         );
-        s.construction.surfaces.push(ConstructionSurfaceAssignment { panel_id: None,
+        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+            panel_id: None,
             primitive_id: "box".into(),
             face: "top".into(),
             open: Some(true),
@@ -3222,13 +3901,21 @@ mod tests {
     }
     #[test]
     fn propulsion_warnings_identify_missing_parts_and_keep_trials_available() {
-        for (removed, needed) in [("funnel", "funnel"), ("screw", "propeller"), ("engine", "engine")] {
+        for (removed, needed) in [
+            ("funnel", "funnel"),
+            ("screw", "propeller"),
+            ("engine", "engine"),
+        ] {
             let (mut source, catalog) = equipped_fixture();
             source.construction.equipment.retain(|e| e.id != removed);
             let result = compile(&source, &catalog);
             assert!(result.definition.is_some(), "{:?}", result.diagnostics);
             assert_eq!(result.loading.as_ref().unwrap().power_kw, 0.);
-            let warning = result.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
+            let warning = result
+                .diagnostics
+                .iter()
+                .find(|d| d.code == "unpowered")
+                .unwrap();
             assert_eq!(warning.severity, "warning");
             assert!(warning.message.contains(needed), "{}", warning.message);
             assert!(warning.message.contains("Add"), "{}", warning.message);
@@ -3238,9 +3925,16 @@ mod tests {
             }
         }
         let (mut source, catalog) = equipped_fixture();
-        source.construction.equipment.retain(|e| e.id != "funnel" && e.id != "screw");
+        source
+            .construction
+            .equipment
+            .retain(|e| e.id != "funnel" && e.id != "screw");
         let result = compile(&source, &catalog);
-        let warning = result.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
+        let warning = result
+            .diagnostics
+            .iter()
+            .find(|d| d.code == "unpowered")
+            .unwrap();
         assert!(warning.message.contains("funnel") && warning.message.contains("propeller"));
     }
 
@@ -3248,9 +3942,20 @@ mod tests {
     fn shared_propeller_combines_power_but_keeps_engine_damage_independent() {
         use crate::{damage::Combatant, machinery::system_health};
         let (mut source, mut catalog) = equipped_fixture();
-        catalog.equipment.iter_mut().find(|p| p.kind == "funnel").unwrap().exhaust_kw = Some(2000.);
+        catalog
+            .equipment
+            .iter_mut()
+            .find(|p| p.kind == "funnel")
+            .unwrap()
+            .exhaust_kw = Some(2000.);
         let baseline = compile(&source, &catalog).loading.unwrap().power_kw;
-        let mut second = source.construction.equipment.iter().find(|e| e.id == "engine").unwrap().clone();
+        let mut second = source
+            .construction
+            .equipment
+            .iter()
+            .find(|e| e.id == "engine")
+            .unwrap()
+            .clone();
         second.id = "second-engine".into();
         second.position[0] = 3.;
         source.construction.equipment.push(second);
@@ -3262,17 +3967,38 @@ mod tests {
         let def = result.definition.as_ref().unwrap();
         let groups = &def.propulsion.as_ref().unwrap().groups;
         assert_eq!(groups.len(), 2);
-        assert!(groups.iter().all(|g| g.shaft_ids == ["screw"] && g.drive_ids.len() == 1));
+        assert!(
+            groups
+                .iter()
+                .all(|g| g.shaft_ids == ["screw"] && g.drive_ids.len() == 1)
+        );
         let fresh = Combatant::new("shared", def);
         assert!((system_health(&fresh, def, "engine", None) - 1.).abs() < 1e-9);
         let mut actor = fresh.clone();
-        actor.damage.modules.iter_mut().find(|m| m.id == "engine").unwrap().hp = 0.;
+        actor
+            .damage
+            .modules
+            .iter_mut()
+            .find(|m| m.id == "engine")
+            .unwrap()
+            .hp = 0.;
         assert!((system_health(&actor, def, "engine", None) - 0.5).abs() < 1e-9);
         actor = fresh.clone();
-        let shaft = actor.damage.modules.iter_mut().find(|m| m.id == "screw").unwrap();
+        let shaft = actor
+            .damage
+            .modules
+            .iter_mut()
+            .find(|m| m.id == "screw")
+            .unwrap();
         shaft.hp *= 0.5;
         assert!((system_health(&actor, def, "engine", None) - 0.5).abs() < 1e-9);
-        actor.damage.modules.iter_mut().find(|m| m.id == "screw").unwrap().hp = 0.;
+        actor
+            .damage
+            .modules
+            .iter_mut()
+            .find(|m| m.id == "screw")
+            .unwrap()
+            .hp = 0.;
         assert_eq!(system_health(&actor, def, "engine", None), 0.);
         assert!((system_health(&fresh, def, "engine", None) - 1.).abs() < 1e-9);
     }
@@ -3281,10 +4007,27 @@ mod tests {
     fn automatic_propellers_recompile_layout_and_freeze_connections_for_damage() {
         use crate::{damage::Combatant, machinery::system_health};
         let (mut source, mut catalog) = equipped_fixture();
-        catalog.equipment.iter_mut().find(|p| p.kind == "funnel").unwrap().exhaust_kw = Some(2000.);
-        source.construction.equipment.iter_mut().find(|e| e.id == "screw").unwrap().position[0] = -3.;
+        catalog
+            .equipment
+            .iter_mut()
+            .find(|p| p.kind == "funnel")
+            .unwrap()
+            .exhaust_kw = Some(2000.);
+        source
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "screw")
+            .unwrap()
+            .position[0] = -3.;
         for (original, id) in [("engine", "starboard-engine"), ("screw", "starboard-screw")] {
-            let mut copy = source.construction.equipment.iter().find(|e| e.id == original).unwrap().clone();
+            let mut copy = source
+                .construction
+                .equipment
+                .iter()
+                .find(|e| e.id == original)
+                .unwrap()
+                .clone();
             copy.id = id.into();
             copy.position[0] = 3.;
             source.construction.equipment.push(copy);
@@ -3292,31 +4035,73 @@ mod tests {
         let result = compile(&source, &catalog);
         assert!(result.definition.is_some(), "{:?}", result.diagnostics);
         assert!(!result.diagnostics.iter().any(|d| d.code == "unpowered"));
-        let assignment = |r: &ConstructionResult, prop: &str| r.propeller_assignments.as_ref().unwrap().iter()
-            .find(|a| a.propeller_id == prop).map(|a| a.engine_id.clone());
+        let assignment = |r: &ConstructionResult, prop: &str| {
+            r.propeller_assignments
+                .as_ref()
+                .unwrap()
+                .iter()
+                .find(|a| a.propeller_id == prop)
+                .map(|a| a.engine_id.clone())
+        };
         assert_eq!(assignment(&result, "screw").as_deref(), Some("engine"));
-        assert_eq!(assignment(&result, "starboard-screw").as_deref(), Some("starboard-engine"));
+        assert_eq!(
+            assignment(&result, "starboard-screw").as_deref(),
+            Some("starboard-engine")
+        );
         let def = result.definition.as_ref().unwrap();
         let mut actor = Combatant::new("frozen", def);
         for id in ["engine", "starboard-screw"] {
-            actor.damage.modules.iter_mut().find(|m| m.id == id).unwrap().hp = 0.;
+            actor
+                .damage
+                .modules
+                .iter_mut()
+                .find(|m| m.id == id)
+                .unwrap()
+                .hp = 0.;
         }
         assert_eq!(system_health(&actor, def, "engine", None), 0.); // No damage-time reassignment.
         assert_eq!(assignment(&result, "screw").as_deref(), Some("engine"));
-        for e in source.construction.equipment.iter_mut().filter(|e| e.id == "engine" || e.id == "starboard-engine") {
+        for e in source
+            .construction
+            .equipment
+            .iter_mut()
+            .filter(|e| e.id == "engine" || e.id == "starboard-engine")
+        {
             e.position[0] *= -1.;
         }
         let moved = compile(&source, &catalog);
         assert!(moved.definition.is_some(), "{:?}", moved.diagnostics);
-        assert_eq!(assignment(&moved, "screw").as_deref(), Some("starboard-engine"));
-        assert_eq!(assignment(&moved, "starboard-screw").as_deref(), Some("engine"));
-        source.construction.equipment.iter_mut().find(|e| e.id == "screw").unwrap().power_source_id = Some("engine".into());
+        assert_eq!(
+            assignment(&moved, "screw").as_deref(),
+            Some("starboard-engine")
+        );
+        assert_eq!(
+            assignment(&moved, "starboard-screw").as_deref(),
+            Some("engine")
+        );
+        source
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "screw")
+            .unwrap()
+            .power_source_id = Some("engine".into());
         let manual = compile(&source, &catalog);
         assert_eq!(assignment(&manual, "screw").as_deref(), Some("engine"));
-        assert_eq!(assignment(&manual, "starboard-screw").as_deref(), Some("starboard-engine"));
-        source.construction.equipment.retain(|e| e.id != "starboard-screw");
+        assert_eq!(
+            assignment(&manual, "starboard-screw").as_deref(),
+            Some("starboard-engine")
+        );
+        source
+            .construction
+            .equipment
+            .retain(|e| e.id != "starboard-screw");
         let short = compile(&source, &catalog);
-        let warning = short.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
+        let warning = short
+            .diagnostics
+            .iter()
+            .find(|d| d.code == "unpowered")
+            .unwrap();
         assert_eq!(warning.source_id.as_deref(), Some("starboard-engine"));
         assert!(warning.message.contains("Set a propeller to Automatic"));
         // Routing still appears while a missing funnel prevents thrust.
@@ -3328,80 +4113,183 @@ mod tests {
 
     #[test]
     fn propulsion_warnings_explain_zero_power_and_exhaust_capacity() {
-        for (rated, exhaust, expected) in [(0., 1000., "rated power"), (1000., 0., "exhaust capacity"), (1000., 10., "auxiliary")] {
+        for (rated, exhaust, expected) in [
+            (0., 1000., "rated power"),
+            (1000., 0., "exhaust capacity"),
+            (1000., 10., "auxiliary"),
+        ] {
             let (source, mut catalog) = equipped_fixture();
-            catalog.equipment.iter_mut().find(|p| p.kind == "engine").unwrap().power_kw = Some(rated);
-            catalog.equipment.iter_mut().find(|p| p.kind == "funnel").unwrap().exhaust_kw = Some(exhaust);
+            catalog
+                .equipment
+                .iter_mut()
+                .find(|p| p.kind == "engine")
+                .unwrap()
+                .power_kw = Some(rated);
+            catalog
+                .equipment
+                .iter_mut()
+                .find(|p| p.kind == "funnel")
+                .unwrap()
+                .exhaust_kw = Some(exhaust);
             let result = compile(&source, &catalog);
             assert!(result.definition.is_some(), "{:?}", result.diagnostics);
             assert_eq!(result.loading.as_ref().unwrap().power_kw, 0.);
-            let warning = result.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
+            let warning = result
+                .diagnostics
+                .iter()
+                .find(|d| d.code == "unpowered")
+                .unwrap();
             assert!(warning.message.contains(expected), "{}", warning.message);
         }
         let (source, catalog) = equipped_fixture();
-        assert!(!compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "unpowered"));
+        assert!(
+            !compile(&source, &catalog)
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "unpowered")
+        );
     }
 
     fn shared_exhaust_fixture() -> (ConstructionSource, ConstructionCatalog) {
         let (mut source, mut catalog) = equipped_fixture();
-        let mut engine_part = catalog.equipment.iter().find(|p| p.kind == "engine").unwrap().clone();
+        let mut engine_part = catalog
+            .equipment
+            .iter()
+            .find(|p| p.kind == "engine")
+            .unwrap()
+            .clone();
         engine_part.id = "large-engine-part".into();
         engine_part.power_kw = Some(3000.);
         catalog.equipment.push(engine_part);
         for (original, id, part, position) in [
-            ("engine", "second-engine", "large-engine-part", [-3., -1.99, 6.]),
+            (
+                "engine",
+                "second-engine",
+                "large-engine-part",
+                [-3., -1.99, 6.],
+            ),
             ("screw", "second-screw", "screw-part", [2., -1.5, 10.25]),
         ] {
-            let mut copy = source.construction.equipment.iter().find(|e| e.id == original).unwrap().clone();
+            let mut copy = source
+                .construction
+                .equipment
+                .iter()
+                .find(|e| e.id == original)
+                .unwrap()
+                .clone();
             copy.id = id.into();
             copy.part_id = part.into();
             copy.position = position;
-            if original == "screw" { copy.power_source_id = Some("second-engine".into()); }
+            if original == "screw" {
+                copy.power_source_id = Some("second-engine".into());
+            }
             source.construction.equipment.push(copy);
         }
-        source.construction.equipment.iter_mut().find(|e| e.id == "screw").unwrap().power_source_id = Some("engine".into());
+        source
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "screw")
+            .unwrap()
+            .power_source_id = Some("engine".into());
         (source, catalog)
     }
 
     #[test]
     fn shared_exhaust_limits_all_engines_and_accepts_obsolete_funnel_links() {
         let (mut source, mut catalog) = shared_exhaust_fixture();
-        for (capacity, expected) in [(0., 0.), (40., 0.), (2000., 1152.), (4000., 2352.), (8000., 2352.)] {
-            catalog.equipment.iter_mut().find(|p| p.kind == "funnel").unwrap().exhaust_kw = Some(capacity);
+        for (capacity, expected) in [
+            (0., 0.),
+            (40., 0.),
+            (2000., 1152.),
+            (4000., 2352.),
+            (8000., 2352.),
+        ] {
+            catalog
+                .equipment
+                .iter_mut()
+                .find(|p| p.kind == "funnel")
+                .unwrap()
+                .exhaust_kw = Some(capacity);
             let result = compile(&source, &catalog);
             assert!(result.definition.is_some(), "{:?}", result.diagnostics);
             assert!((result.loading.as_ref().unwrap().power_kw - expected).abs() < 1e-9);
-            assert_eq!(result.diagnostics.iter().any(|d| d.code == "exhaust-capacity"), capacity > 0. && capacity < 4000.);
+            assert_eq!(
+                result
+                    .diagnostics
+                    .iter()
+                    .any(|d| d.code == "exhaust-capacity"),
+                capacity > 0. && capacity < 4000.
+            );
             if expected > 0. {
-                let groups = &result.definition.as_ref().unwrap().propulsion.as_ref().unwrap().groups;
+                let groups = &result
+                    .definition
+                    .as_ref()
+                    .unwrap()
+                    .propulsion
+                    .as_ref()
+                    .unwrap()
+                    .groups;
                 assert_eq!(groups.len(), 2);
                 assert!((groups[0].share - 0.25).abs() < 1e-9);
                 assert!((groups[1].share - 0.75).abs() < 1e-9);
             }
         }
         // An old link to an engine that has since been deleted is harmless.
-        source.construction.equipment.iter_mut().find(|e| e.id == "funnel").unwrap().power_source_id = Some("deleted-engine".into());
+        source
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "funnel")
+            .unwrap()
+            .power_source_id = Some("deleted-engine".into());
         assert!((compiled(&source, &catalog).loading.unwrap().power_kw - 2352.).abs() < 1e-9);
-        source.construction.equipment.iter_mut().find(|e| e.id == "screw").unwrap().power_source_id = Some("deleted-engine".into());
-        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "power-link"));
+        source
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "screw")
+            .unwrap()
+            .power_source_id = Some("deleted-engine".into());
+        assert!(
+            compile(&source, &catalog)
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "power-link")
+        );
     }
 
     #[test]
     fn shared_exhaust_damage_uses_capacity_and_reallocates_after_engine_loss() {
-        use crate::{damage::Combatant, machinery::{electrical_power, system_health}};
+        use crate::{
+            damage::Combatant,
+            machinery::{electrical_power, system_health},
+        };
         let (mut source, mut catalog) = shared_exhaust_fixture();
-        let mut large = catalog.equipment.iter().find(|p| p.kind == "funnel").unwrap().clone();
+        let mut large = catalog
+            .equipment
+            .iter()
+            .find(|p| p.kind == "funnel")
+            .unwrap()
+            .clone();
         large.id = "large-funnel-part".into();
         large.exhaust_kw = Some(5000.);
         catalog.equipment.push(large);
-        let mut funnel = source.construction.equipment.iter().find(|e| e.id == "funnel").unwrap().clone();
+        let mut funnel = source
+            .construction
+            .equipment
+            .iter()
+            .find(|e| e.id == "funnel")
+            .unwrap()
+            .clone();
         funnel.id = "large-funnel".into();
         funnel.part_id = "large-funnel-part".into();
         funnel.position[0] = 3.;
         source.construction.equipment.push(funnel);
         let definition = compiled(&source, &catalog);
         // Ratings must survive the native/JSON definition boundary.
-        let def: ShipDefinition = serde_json::from_str(&serde_json::to_string(&definition).unwrap()).unwrap();
+        let def: ShipDefinition =
+            serde_json::from_str(&serde_json::to_string(&definition).unwrap()).unwrap();
         let mut actor = Combatant::new("pool", &def);
         let health = |a: &Combatant| system_health(a, &def, "engine", None);
         let set = |a: &mut Combatant, id: &str, fraction: f64| {
@@ -3410,12 +4298,29 @@ mod tests {
         };
         assert_eq!(health(&actor), 1.);
         let mut submerged = def.clone();
-        submerged.modules.iter_mut().find(|m| m.id == "large-funnel").unwrap().center[1] = -100.;
+        submerged
+            .modules
+            .iter_mut()
+            .find(|m| m.id == "large-funnel")
+            .unwrap()
+            .center[1] = -100.;
         let immersed_actor = Combatant::new("immersed", &submerged);
-        assert!((system_health(&immersed_actor, &submerged, "engine", None) - (1000. - 80.) / 3920.).abs() < 1e-9);
+        assert!(
+            (system_health(&immersed_actor, &submerged, "engine", None) - (1000. - 80.) / 3920.)
+                .abs()
+                < 1e-9
+        );
         assert!(crate::catalog::validate_definition(&def).is_ok());
         let mut invalid = def.clone();
-        invalid.propulsion.as_mut().unwrap().shared_exhaust.as_mut().unwrap().funnels[0].kw = -1.;
+        invalid
+            .propulsion
+            .as_mut()
+            .unwrap()
+            .shared_exhaust
+            .as_mut()
+            .unwrap()
+            .funnels[0]
+            .kw = -1.;
         assert!(crate::catalog::validate_definition(&invalid).is_err());
         set(&mut actor, "funnel", 0.);
         assert_eq!(health(&actor), 1.); // 5000 kW still covers 4000 kW.
@@ -3431,7 +4336,13 @@ mod tests {
         assert_eq!(health(&actor), 0.);
         let mut no_exhaust_limit = actor.clone();
         set(&mut no_exhaust_limit, "funnel", 1.);
-        assert!((electrical_power(&actor, &def, None) / electrical_power(&no_exhaust_limit, &def, None) - 0.5).abs() < 1e-9);
+        assert!(
+            (electrical_power(&actor, &def, None)
+                / electrical_power(&no_exhaust_limit, &def, None)
+                - 0.5)
+                .abs()
+                < 1e-9
+        );
         set(&mut no_exhaust_limit, "screw", 0.);
         assert_eq!(health(&no_exhaust_limit), 0.);
         assert!(electrical_power(&no_exhaust_limit, &def, None) > 0.);
@@ -3443,29 +4354,76 @@ mod tests {
         s.construction.version = 2.;
         s.construction.equipment.retain(|e| e.id != "magazine");
         let normal = compiled(&s, &c);
-        let magazine = normal.modules.iter().find(|m| m.id == "gun-magazine").unwrap();
-        assert_eq!(normal.mounts[0].magazine_id.as_deref(), Some("gun-magazine"));
-        let gun = s.construction.equipment.iter_mut().find(|e| e.id == "gun").unwrap();
+        let magazine = normal
+            .modules
+            .iter()
+            .find(|m| m.id == "gun-magazine")
+            .unwrap();
+        assert_eq!(
+            normal.mounts[0].magazine_id.as_deref(),
+            Some("gun-magazine")
+        );
+        let gun = s
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "gun")
+            .unwrap();
         gun.position[1] += 3.;
-        gun.gun = Some(ConstructionEquipmentGun { barbette_height_m: Some(3.), ..Default::default() });
+        gun.gun = Some(ConstructionEquipmentGun {
+            barbette_height_m: Some(3.),
+            ..Default::default()
+        });
         let raised = compiled(&s, &c);
-        assert!(length(sub(magazine.center, raised.modules.iter().find(|m| m.id == "gun-magazine").unwrap().center)) < 1e-9);
+        assert!(
+            length(sub(
+                magazine.center,
+                raised
+                    .modules
+                    .iter()
+                    .find(|m| m.id == "gun-magazine")
+                    .unwrap()
+                    .center
+            )) < 1e-9
+        );
         assert!((raised.mounts[0].position[1] - normal.mounts[0].position[1] - 3.).abs() < 1e-9);
-        assert!(raised.loading.as_ref().unwrap().mass_kg > normal.loading.as_ref().unwrap().mass_kg);
-        let ammo = |d: &ShipDefinition| d.loading.as_ref().unwrap().contributions.iter().find(|m| m.kind == "ammunition").unwrap().clone();
+        assert!(
+            raised.loading.as_ref().unwrap().mass_kg > normal.loading.as_ref().unwrap().mass_kg
+        );
+        let ammo = |d: &ShipDefinition| {
+            d.loading
+                .as_ref()
+                .unwrap()
+                .contributions
+                .iter()
+                .find(|m| m.kind == "ammunition")
+                .unwrap()
+                .clone()
+        };
         assert_eq!(ammo(&normal).center, ammo(&raised).center);
         assert_eq!(ammo(&normal).mass_kg, ammo(&raised).mass_kg);
     }
     #[test]
     fn integral_barbettes_block_thin_hulls_and_separate_magazines() {
-        let (mut s, c) = equipped_fixture(); s.construction.version = 2.;
-        assert!(compile(&s, &c).diagnostics.iter().any(|d| d.code == "integrated-magazine"));
+        let (mut s, c) = equipped_fixture();
+        s.construction.version = 2.;
+        assert!(
+            compile(&s, &c)
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "integrated-magazine")
+        );
         s.construction.equipment.retain(|e| e.id == "gun");
         compiled(&s, &c);
         s.construction.primitives[0].size[0] = 2.;
         let narrow = compile(&s, &c);
         assert!(narrow.definition.is_none());
-        assert!(narrow.diagnostics.iter().any(|d| d.source_id.as_deref() == Some("gun")));
+        assert!(
+            narrow
+                .diagnostics
+                .iter()
+                .any(|d| d.source_id.as_deref() == Some("gun"))
+        );
         s.construction.primitives[0].size = [10., 0.5, 20.];
         s.construction.equipment[0].position[1] = 0.25;
         assert!(compile(&s, &c).definition.is_none());
@@ -3473,32 +4431,63 @@ mod tests {
     #[test]
     fn separate_gun_geometry_allows_overlapping_empty_catalog_bounds() {
         let (mut source, mut catalog) = equipped_fixture();
-        let part = catalog.equipment.iter_mut().find(|p| p.id == "gun-part").unwrap();
+        let part = catalog
+            .equipment
+            .iter_mut()
+            .find(|p| p.id == "gun-part")
+            .unwrap();
         part.size = [10., 3., 10.];
         part.occupancy = None;
         part.bounds_center = [0., 1.5, 0.];
-        let mut second = source.construction.equipment.iter().find(|e| e.id == "gun").unwrap().clone();
-        second.id = "neighbor".into(); second.position[0] = 4.;
+        let mut second = source
+            .construction
+            .equipment
+            .iter()
+            .find(|e| e.id == "gun")
+            .unwrap()
+            .clone();
+        second.id = "neighbor".into();
+        second.position[0] = 4.;
         source.construction.equipment.push(second);
         let result = compile(&source, &catalog);
         assert!(result.definition.is_some(), "{:?}", result.diagnostics);
         source.construction.equipment.last_mut().unwrap().position[0] = 0.;
-        let name = catalog.equipment.iter().find(|p| p.id == "gun-part").unwrap().name.clone();
+        let name = catalog
+            .equipment
+            .iter()
+            .find(|p| p.id == "gun-part")
+            .unwrap()
+            .name
+            .clone();
         let result = compile(&source, &catalog);
-        assert!(result.diagnostics.iter().any(|d| d.code == "equipment-overlap"
-            && d.message == format!("{name} intersects another {name}")), "{:?}", result.diagnostics);
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "equipment-overlap"
+                    && d.message == format!("{name} intersects another {name}")),
+            "{:?}",
+            result.diagnostics
+        );
     }
     #[test]
     fn fixed_fittings_can_overlap_weapons_in_either_source_order() {
         let (mut source, mut catalog) = equipped_fixture();
-        let mut part = catalog.equipment.iter().find(|p| p.kind == "funnel").unwrap().clone();
+        let mut part = catalog
+            .equipment
+            .iter()
+            .find(|p| p.kind == "funnel")
+            .unwrap()
+            .clone();
         part.id = "fixed-part".into();
         part.kind = "deck-fitting".into();
         part.exhaust_kw = None;
         part.occupancy = None;
         catalog.equipment.push(part);
         source.construction.equipment.push(ConstructionEquipment {
-            id: "fixed".into(), part_id: "fixed-part".into(), position: [1.4, 2., -5.],
+            id: "fixed".into(),
+            part_id: "fixed-part".into(),
+            position: [1.4, 2., -5.],
             ..Default::default()
         });
         for _ in 0..2 {
@@ -3510,19 +4499,40 @@ mod tests {
     #[test]
     fn construction_retains_bounded_gun_installation_settings() {
         let (mut source, catalog) = equipped_fixture();
-        let gun = source.construction.equipment.iter_mut().find(|e| e.id == "gun").unwrap();
+        let gun = source
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "gun")
+            .unwrap();
         gun.gun = Some(ConstructionEquipmentGun {
-            battery: Some("secondary".into()), initial_elevation_deg: Some(10.),
-            traverse_deg: Some(60.), traverse_limits_deg: Some([-45., 60.]),
+            battery: Some("secondary".into()),
+            initial_elevation_deg: Some(10.),
+            traverse_deg: Some(60.),
+            traverse_limits_deg: Some([-45., 60.]),
             ..Default::default()
         });
         let definition = compiled(&source, &catalog);
         assert_eq!(definition.mounts[0].battery, "secondary");
         assert_eq!(definition.mounts[0].initial_elevation_deg, Some(10.));
         assert_eq!(definition.mounts[0].weapon.traverse_deg, 60.);
-        assert_eq!(definition.mounts[0].traverse_limits_deg, Some([-45.,60.]));
-        source.construction.equipment.iter_mut().find(|e| e.id == "gun").unwrap().gun.as_mut().unwrap().traverse_deg = Some(361.);
-        assert!(compile(&source,&catalog).diagnostics.iter().any(|d|d.code=="weapon-installation"));
+        assert_eq!(definition.mounts[0].traverse_limits_deg, Some([-45., 60.]));
+        source
+            .construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "gun")
+            .unwrap()
+            .gun
+            .as_mut()
+            .unwrap()
+            .traverse_deg = Some(361.);
+        assert!(
+            compile(&source, &catalog)
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "weapon-installation")
+        );
     }
     #[test]
     fn equipped_loading_penetrations_and_real_machinery_damage() {
@@ -3546,8 +4556,10 @@ mod tests {
                     .filter(|m| m.kind == "installation")
                     .map(|m| m.mass_kg / STEEL_DENSITY)
                     .sum::<f64>()
-                - 32. * (0.5_f64.powi(2) + c.weapons.parts[0].barbette_radius.powi(2))
-                    * (std::f64::consts::TAU / 64.).sin() * 0.01)
+                - 32.
+                    * (0.5_f64.powi(2) + c.weapons.parts[0].barbette_radius.powi(2))
+                    * (std::f64::consts::TAU / 64.).sin()
+                    * 0.01)
                 .abs()
                 < 1e-6
         );

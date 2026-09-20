@@ -207,7 +207,8 @@ impl BattleArea {
         }
         let p = &actor.motion;
         let radial = p.x.hypot(p.z);
-        let look = p.speed.abs() * crate::mobility::SHIP_PACE * 75.0 + actor.definition().hull.length;
+        let look =
+            p.speed.abs() * crate::mobility::SHIP_PACE * 75.0 + actor.definition().hull.length;
         let next = [p.x + p.heading.sin() * look, p.z - p.heading.cos() * look];
         if radial < self.radius_m - self.warning_margin_m && self.contains(next, 0.0) {
             return command;

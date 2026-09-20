@@ -278,9 +278,10 @@ impl Aviation {
         if let Some(f) = self
             .wing_mut(owner)
             .and_then(|w| w.flights.iter_mut().find(|f| f.id == id))
-            && f.notice.as_deref() != Some(notice) {
-                f.notice = Some(notice.into());
-            }
+            && f.notice.as_deref() != Some(notice)
+        {
+            f.notice = Some(notice.into());
+        }
     }
     fn patrol_spare(
         &self,

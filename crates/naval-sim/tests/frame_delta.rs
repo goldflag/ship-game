@@ -121,10 +121,7 @@ fn full_knowledge_patches_rebuild_the_decoded_frame_through_a_large_battle() {
             1 => vec!["a-3".into()],
             _ => Vec::new(),
         };
-        stream.frame(
-            &battle.full_frame(&detail),
-            &format!("tick {tick}"),
-        );
+        stream.frame(&battle.full_frame(&detail), &format!("tick {tick}"));
         battle.step(&BTreeMap::new());
     }
     assert!(

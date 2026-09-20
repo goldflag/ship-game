@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright-core');
 const label = process.argv[2] ?? 'sample';
 const url = process.env.PERFORMANCE_URL ?? 'http://localhost:5299/scripts/diagnostics/live-performance.html?seconds=30&profile';
-const output = new URL('../../assets/reviews/windows-carrier-performance/', import.meta.url);
+const output = new URL('../../.build/reviews/windows-carrier-performance/', import.meta.url);
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: 'chrome', headless: true, args: [
   '--enable-unsafe-webgpu', '--autoplay-policy=no-user-gesture-required',

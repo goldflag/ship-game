@@ -4,6 +4,8 @@
     "src",
     "tools/construction",
     "scripts/construction",
+    "scripts/browser",
+    "scripts/diagnostics/app.tsx",
     "vite.config.ts"
   ]
 }

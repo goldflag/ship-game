@@ -6,7 +6,7 @@ import json
 import pathlib
 import subprocess
 
-root = pathlib.Path('assets/maps/review')
+root = pathlib.Path('.build/reviews/maps')
 root.mkdir(parents=True, exist_ok=True)
 
 def evaluate(expression):

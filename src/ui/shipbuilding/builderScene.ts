@@ -1,5 +1,12 @@
 import type { SnapSettings } from './snapping';
-import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, Vec3 } from '../../ships/blueprint';
+import type {
+  ConstructionCatalog,
+  ConstructionEquipmentPart,
+  ConstructionPrimitive,
+  ConstructionResult,
+  ConstructionSource,
+  Vec3,
+} from '../../ships/blueprint';
 import type { HullSelection, MirrorAxes } from '../../ships/constructionVertex';
 import type { ArmorScale } from '../../ships/inspection';
 
@@ -14,19 +21,71 @@ export type BuilderDisplay = 'paint' | 'armor' | 'internals';
 export type BuilderGesture = 'none' | 'stroke' | 'fill' | 'faces';
 /** What a primary drag may move: nothing, fittings only (while placing fittings), or pieces, fittings and walls. */
 export type BuilderMoveTargets = 'none' | 'equipment' | 'all';
-export interface BuilderPick { id?: string; surface?: string; point: Vec3; normal?: Vec3; axis: 0 | 1 | 2; placement: Vec3; bearingDeg?: number; hullPlacement?: Extract<BuilderPlacement, { kind: 'hull' }>; additive: boolean }
-export interface BuilderArc { position: Vec3; bearingDeg: number; traverseDeg: number; radius: number; color: string }
-export interface BuilderProposal { position: Vec3; bearingDeg: number; size: Vec3; boundsCenter: Vec3 }
+export interface BuilderPick {
+  id?: string;
+  surface?: string;
+  point: Vec3;
+  normal?: Vec3;
+  axis: 0 | 1 | 2;
+  placement: Vec3;
+  bearingDeg?: number;
+  hullPlacement?: Extract<BuilderPlacement, { kind: 'hull' }>;
+  additive: boolean;
+}
+export interface BuilderArc {
+  position: Vec3;
+  bearingDeg: number;
+  traverseDeg: number;
+  radius: number;
+  color: string;
+}
+export interface BuilderProposal {
+  position: Vec3;
+  bearingDeg: number;
+  size: Vec3;
+  boundsCenter: Vec3;
+}
 export type BuilderPlacement =
-  | { kind: 'hull'; shape: ConstructionPrimitive['kind']; size: Vec3; rotationDeg: number; tilt?: ConstructionPrimitive['tilt']; balcony?: ConstructionPrimitive['balcony'] }
-  | { kind: 'equipment'; partId?: string; wall?: { version: 1; widthM: number; heightM: number }; rowSpacing?: number; propellerDiameterM?: number; size: Vec3; boundsCenter: Vec3; bearingDeg: number; sockets?: ConstructionEquipmentPart['sockets']; arc?: { traverseDeg: number; radius: number }; /** Clearance from the hit face, e.g. the inward skin thickness for internal packages. */ inset?: number }
+  | {
+      kind: 'hull';
+      shape: ConstructionPrimitive['kind'];
+      size: Vec3;
+      rotationDeg: number;
+      tilt?: ConstructionPrimitive['tilt'];
+      balcony?: ConstructionPrimitive['balcony'];
+    }
+  | {
+      kind: 'equipment';
+      partId?: string;
+      wall?: { version: 1; widthM: number; heightM: number };
+      rowSpacing?: number;
+      propellerDiameterM?: number;
+      size: Vec3;
+      boundsCenter: Vec3;
+      bearingDeg: number;
+      sockets?: ConstructionEquipmentPart['sockets'];
+      arc?: { traverseDeg: number; radius: number };
+      /** Clearance from the hit face, e.g. the inward skin thickness for internal packages. */ inset?: number;
+    }
   | { kind: 'boundary'; axis: 'x' | 'y' | 'z'; thicknessMm: number };
 export interface BuilderFreeformOptions {
-  id: string; selection: HullSelection; axes: MirrorAxes; unit: number; snap: boolean;
+  id: string;
+  selection: HullSelection;
+  axes: MirrorAxes;
+  unit: number;
+  snap: boolean;
   onSelect(selection: HullSelection): void;
   onCommit(replacements: ConstructionPrimitive[]): void;
 }
-export interface BuilderPathDraft { part: ConstructionEquipmentPart; points: Vec3[]; bearingDeg: number; heightM: number; railCount: 2 | 3; slackM: number; mirror: boolean }
+export interface BuilderPathDraft {
+  part: ConstructionEquipmentPart;
+  points: Vec3[];
+  bearingDeg: number;
+  heightM: number;
+  railCount: 2 | 3;
+  slackM: number;
+  mirror: boolean;
+}
 
 /** Everything the viewport draws, derived by the tool from its state, the source and the compile. */
 export interface BuilderScene {
@@ -36,22 +95,31 @@ export interface BuilderScene {
   /** The compile of exactly this source revision, or undefined while it is pending. */
   current?: ConstructionResult;
   catalog: ConstructionCatalog;
-  selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
+  selected: ReadonlySet<string>;
+  selectedSurfaces: ReadonlySet<string>;
   /** Mirror editing: each selected piece or fitting with a separate twin across the centerline, which follows its edits. */
   twins: ReadonlyMap<string, string>;
   /** Mirror is on, so move, rotation and freeform previews also show the twins of what they change. */
   mirrorEdits: boolean;
-  view: BuilderView; perspective: boolean; display: BuilderDisplay; fitRequest: number;
+  view: BuilderView;
+  perspective: boolean;
+  display: BuilderDisplay;
+  fitRequest: number;
   /** The ship's thinnest and thickest plates: the green and red ends of the Armor layer's colour scale. */
   armorScale: ArmorScale;
   snapping?: SnapSettings;
-  gridStep: number; gesture: BuilderGesture;
+  gridStep: number;
+  gesture: BuilderGesture;
   /** What a click may select: hull faces only (armor), internal packages and walls only (internals), or everything. */
   pickTargets: 'hull' | 'internals' | 'all';
   moveTargets: BuilderMoveTargets;
-  placementPiece?: BuilderPlacement; placementMirror?: BuilderPlacement;
-  highlightFaces: boolean; rooms: boolean; showCenters: boolean;
-  arcs: BuilderArc[]; proposed: BuilderProposal[];
+  placementPiece?: BuilderPlacement;
+  placementMirror?: BuilderPlacement;
+  highlightFaces: boolean;
+  rooms: boolean;
+  showCenters: boolean;
+  arcs: BuilderArc[];
+  proposed: BuilderProposal[];
   measure?: { from: Vec3; to?: Vec3 };
   /** The measure tool is active: pointer hover draws no outlines, tooltips or hovered-part readouts. */
   measuring: boolean;

@@ -7,6 +7,7 @@ import { shipTransfers } from './scripts/build/ship-transfers';
 import { devPort } from './scripts/build/dev-port';
 import { presetIds } from './scripts/ships/runtime-assets';
 import { constructionFiles } from './scripts/construction/server';
+import { harnessDesigns } from './scripts/browser/designs';
 
 // Sky Pro resolves cloud volumes dynamically beside the final JS bundle.
 // Vite cannot discover that dynamic URL, so preserve its data/ directory explicitly.
@@ -22,7 +23,7 @@ const accountsProxy = { target: accountsUrl, changeOrigin: true, secure: true, h
 export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
   base: basePath,
-  plugins: [constructionFiles(root), devPort(root), react(), vendorTextures(), shipTransfers(`${root}public/models`), {
+  plugins: [constructionFiles(root), harnessDesigns(root), devPort(root), react(), vendorTextures(), shipTransfers(`${root}public/models`), {
     name: 'trim-preset-debug-json',
     // Full compiler/debug JSON stays in the workspace; production uses the
     // hash-checked indexed runtime assets and lightweight menu metadata.

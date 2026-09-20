@@ -201,7 +201,9 @@ fn circular_boundary_turns_under_physics_without_teleporting_or_eliminating_drif
     a.motion.z = 0.0;
     a.motion.speed = 0.0;
     let command = area.constrain(&a, order);
-    for m in &mut a.damage.modules { m.hp=0.; }
+    for m in &mut a.damage.modules {
+        m.hp = 0.;
+    }
     step_ship(&mut a, command, None);
     assert!((a.motion.x - 25100.0).abs() < 0.1);
     assert!(a.physical_loss().is_none());

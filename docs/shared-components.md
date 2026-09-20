@@ -122,3 +122,15 @@ ship recipes continue to supply their approved ship-specific palettes.
 Do not create ship `reports/` or `references/` directories or a replacement tracked evidence archive. Temporary review captures stay in `.build/`; durable source, concise configuration and limitations belong with the original component.
 
 For long-term fleet planning, see [WWII equipment reuse](wwii-equipment-reuse.md).
+
+The September 2026 sub-12-inch main-battery refinement covers the nine published
+Shipbuilder assemblies constrained by `scripts/parts/main-battery-budget.test.ts`.
+Roles come from registered builders and actual consumers: the open Mk 21 is a
+main battery on Enterprise and merchant presets, while Shōkaku's Type 89 AA mounts
+remain AA despite their `main` control-group label. The Mk 21's registered Mk 24
+comparison is a related variant; its pedestal and controls are approximations,
+not a conversion to that variant. Secondary-only 15/15.5 cm guns and 5-inch twins
+belong to the separate small-gun pass. The unpublished Fletcher Mk30, Flower
+4-inch and Type VIIC 8.8 cm installed previews are outside this published scope.
+`component-before.json` retains the immutable 13e3e07 published URLs for these
+nine guns so the comparison page shows this pass's baseline, not older models.
