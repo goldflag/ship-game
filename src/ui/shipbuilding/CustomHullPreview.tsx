@@ -23,17 +23,18 @@ export function hullGeometry(h: Hull, cut?: number, appearance?: ConstructionSou
   const points = stations.flatMap((s, i) => rings[i].map(p => new THREE.Vector3(...worldPoint(h, s.t, p))));
   const coordinates = stations.flatMap((s, i) => rings[i].map(p => [s.t, p.y]));
   const n = rings[0].length;
-  // Share lighting along each longitudinal panel strip, but never across its
-  // outline edges (deck, chines and keel). Average whole panels so the chosen
-  // triangle diagonal cannot bias the normals or break left/right symmetry.
-  const stripNormals = Array.from({ length: n }, () => points.map(() => new THREE.Vector3()));
+  // Share lighting across each curved side, keeping the deck and keel sharp.
+  // Average whole panels so the triangle diagonal cannot bias the normals
+  // or break left/right symmetry.
+  const sideNormals = Array.from({ length: 3 }, () => points.map(() => new THREE.Vector3()));
+  const stripNormals = Array.from({ length: n }, (_, i) => sideNormals[i === n - 1 ? 2 : i < (n - 1) / 2 ? 0 : 1]);
   for (let j = 0; j < stations.length - 1; j++) for (let i = 0; i < n; i++) {
     const a = j * n + i, b = j * n + (i + 1) % n, c = a + n, d = b + n;
     const normal = points[b].clone().sub(points[a]).cross(points[c].clone().sub(points[a]))
       .add(points[d].clone().sub(points[b]).cross(points[c].clone().sub(points[b])));
     for (const vertex of [a, b, c, d]) stripNormals[i][vertex].add(normal);
   }
-  stripNormals.forEach(strip => strip.forEach(normal => normal.normalize()));
+  sideNormals.forEach(side => side.forEach(normal => normal.normalize()));
   const triangle = (a: number, b: number, c: number, color: THREE.Color, strip?: number) => {
     // A pointed end contains coincident vertices. Omit its zero-area triangles.
     const normal = points[b].clone().sub(points[a]).cross(points[c].clone().sub(points[a]));

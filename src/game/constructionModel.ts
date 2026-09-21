@@ -9,7 +9,7 @@ import { createConstructionFittingModel } from './constructionFittingModel';
 import { customFittingOf, effectiveConstructionCatalog } from '../ships/constructionCustomFittings';
 import { createConstructionPropellerSupports } from './constructionPropellerModel';
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, ConstructionSurfaceFinish } from '../ships/blueprint';
-import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from './constructionShading';
+import { constructionVertexNormals, customHullSmoothingGroup, SMOOTH_HULL_SHAPES } from './constructionShading';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
 import { CONSTRUCTION_FINISH, constructionFittingPaint, constructionPaintColor, constructionFinishRoughness } from '../ships/constructionPaints';
 
@@ -18,9 +18,13 @@ import { CONSTRUCTION_FINISH, constructionFittingPaint, constructionPaintColor, 
 export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = [], finish?: ConstructionSurfaceFinish, appearance?: ConstructionSource['construction']): THREE.Group {
   const group = new THREE.Group(); group.name = 'Constructed hull';
   const smooth = new Map(primitives.filter(p => p.smoothGroup || p.mesh?.family === 'rings' || (p.shaping?.style === 'round' && p.shaping.radius > 0 && p.shaping.edges.length > 0) || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
+  // Turret wells are compiler-generated surfaces, with no source primitive.
+  // Smooth each cylindrical wall separately; their rims and floors stay flat.
+  const barbetteGroup = (s: ConstructionSurface) => s.primitiveId.startsWith('equipment:') && (s.face === 'installation-outer' || s.face === 'installation-inner') ? `${s.primitiveId}:${s.face}` : undefined;
+  const barbetteNormalAt = constructionVertexNormals(surfaces.filter(s => !s.open && barbetteGroup(s)).map(s => ({ ...s, group: barbetteGroup(s)! })));
   const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
   const custom = new Set(primitives.filter(p => p.kind === 'custom-hull').map(p => p.id));
-  const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${surface.panelId.split('@')[0]}` : surface.id;
+  const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${customHullSmoothingGroup(surface.panelId)}` : surface.id;
   const customNormalAt = constructionVertexNormals(surfaces.filter(s => !s.open && custom.has(s.primitiveId)).map(s => ({ ...s, group: customGroup(s) })), -1);
   const textureSize = 128, pixels = new Uint8Array(textureSize * textureSize * 4);
   // Subtle repeatable coating grain. UVs remain in ship coordinates, so adjacent
@@ -59,7 +63,8 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
   const basePaint = constructionHullBasePaint(appearance);
   for (const surface of surfaces) {
     if (surface.open || surface.vertices.length < 3) continue;
-    const normals = surface.vertices.map(point => custom.has(surface.primitiveId) ? customNormalAt(point, surface.normal, customGroup(surface)) : smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, smooth.get(surface.primitiveId)!) : surface.normal);
+    const barbette = barbetteGroup(surface);
+    const normals = surface.vertices.map(point => custom.has(surface.primitiveId) ? customNormalAt(point, surface.normal, customGroup(surface)) : barbette ? barbetteNormalAt(point, surface.normal, barbette) : smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, smooth.get(surface.primitiveId)!) : surface.normal);
     for (const painted of paintedHullFace(surface, primitiveById.get(surface.primitiveId), normals, basePaint(surface))) {
       const deck = surface.normal[1] > 0.7, key = `${painted.paint}:${deck}`;
       let batch = batches.get(key);
