@@ -1,7 +1,6 @@
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { localToWorld } from './geometry';
-import type { GunPart, SubmarineDefinition, Vec3 } from '../ships/blueprint';
-import { ballisticStep, solveDragArc } from './ballistics';
+import type { SubmarineDefinition, Vec3 } from '../ships/blueprint';
 import { terrainHeight } from './HarborTerrain';
 import type { ShellView } from './ShellFollow';
 import type { ShipState } from '../game/session/elements';
@@ -14,9 +13,8 @@ const MIN_ORBIT_ELEVATION = .08;
 /** Torpedoes are laid on wedges drawn on the sea: the chase view climbs until the water fills the lower half of the frame. */
 const TORPEDO_ORBIT_ELEVATION = .38;
 const MAX_UPWARD_TILT = Math.PI / 6;
-const SCOPE_DESCENT_SCALE = 1 / 3;
-/** Keep even an out-of-range gunnery sight oblique, rather than overhead. */
-const MAX_SCOPE_DESCENT = 5 * Math.PI / 180;
+/** A common viewing angle for every gun and shell, independent of ballistics. */
+const SCOPE_DESCENT = 5 * Math.PI / 180;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
 const PORT_AIM_DROP = .148;
@@ -35,8 +33,7 @@ export class CameraRig {
   mode: CameraMode = 'Chase';
   binoculars = false;
   private scopeMagnification = DEFAULT_SCOPE_MAGNIFICATION;
-  private scopeWeapon?: GunPart;
-  private scopeMuzzleHeight = 0;
+  private gunScope = false;
   private scopeLift = 0;
   private scopeAimHeight = .5;
   private scopeAim?: Vec3;
@@ -133,7 +130,7 @@ export class CameraRig {
       } else {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
-        const transitioningAim = this.binoculars && !this.submarine && this.scopeWeapon && this.opticsTransition?.aim;
+        const transitioningAim = this.binoculars && !this.submarine && this.gunScope && this.opticsTransition?.aim;
         if (transitioningAim) {
           this.look.fromArray(transitioningAim).sub(this.camera.position);
           this.azimuth = Math.atan2(this.look.x, -this.look.z);
@@ -191,11 +188,8 @@ export class CameraRig {
 
   setBridge(bridge: Vec3 = [0, 29, -31]): void { this.bridge = bridge; }
   setSubmarine(equipment?: SubmarineDefinition): void { this.submarine = equipment; }
-  /** Presentation only: approximate the selected gun's arriving arc, without changing its firing solution. */
-  setScopeWeapon(weapon?: GunPart, muzzleHeight = 0): void {
-    this.scopeWeapon = weapon;
-    this.scopeMuzzleHeight = muzzleHeight;
-  }
+  /** Gun optics use a common angle; torpedoes and periscopes retain their own view. */
+  setGunScope(enabled: boolean): void { this.gunScope = enabled; }
 
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
   get firing(): boolean { return this.enabled && !this.shellView && !this.freeCamera && this.pointerLocked && this.mouseFire; }
@@ -407,7 +401,7 @@ export class CameraRig {
   }
   /** Lift around the point already under the sight. Reading range from the old
    * elevated eye prevents camera height feeding back into range and drifting away. */
-  private updateScopeLift(ship: ShipState, dt: number, snap: boolean): void {
+  private updateScopeLift(dt: number, snap: boolean): void {
     const lockedAim = this.rangeAim;
     if (lockedAim) this.scopeAimHeight = lockedAim[1];
     const fixedAim = lockedAim ?? this.scopeAim ?? this.opticsTransition?.aim;
@@ -415,7 +409,7 @@ export class CameraRig {
     const range = (originHeight - this.scopeAimHeight) / Math.tan(this.elevation);
     // Looking above the horizon remains free; hold altitude until there is a sighting again.
     if (!fixedAim && (this.elevation <= 0 || range <= 0)) {
-      if (!this.scopeWeapon) this.scopeLift = snap || this.reducedMotion ? 0 : this.scopeLift * Math.exp(-7 * dt);
+      if (!this.gunScope) this.scopeLift = snap || this.reducedMotion ? 0 : this.scopeLift * Math.exp(-7 * dt);
       this.desired.y += this.scopeLift;
       return;
     }
@@ -423,26 +417,14 @@ export class CameraRig {
       this.desired.z - Math.cos(this.azimuth) * range];
     const eyeRange = Math.hypot(aim[0] - this.desired.x, aim[2] - this.desired.z);
     let lift = 0;
-    if (this.scopeWeapon) {
-      const { muzzleSpeed, ballistics: { dragPerSecond } } = this.scopeWeapon;
-      const gunRange = Math.min(30000, Math.hypot(aim[0] - ship.x, aim[2] - ship.z));
-      const from: Vec3 = [0, ship.y + this.scopeMuzzleHeight, 0];
-      const arc = solveDragArc(from, [0, aim[1], -gunRange], muzzleSpeed, dragPerSecond);
-      let descent = MAX_SCOPE_DESCENT / SCOPE_DESCENT_SCALE;
-      if (arc) {
-        const { velocity } = ballisticStep(from, arc.direction.map(n => n * muzzleSpeed) as Vec3, arc.time, dragPerSecond);
-        descent = Math.atan2(-velocity[1], Math.hypot(velocity[0], velocity[2]));
-      }
-      // Scale the previous viewing angle, including the bridge-height floor at close range.
-      const bridgeDescent = Math.atan2(this.desired.y - aim[1], eyeRange);
-      descent = MathUtils.clamp(Math.max(bridgeDescent, descent) * SCOPE_DESCENT_SCALE, 0, MAX_SCOPE_DESCENT);
+    if (this.gunScope) {
       this.look.copy(this.desired);
-      this.look.y = aim[1] + Math.min(30000, eyeRange) * Math.tan(descent);
+      this.look.y = aim[1] + Math.min(30000, eyeRange) * Math.tan(SCOPE_DESCENT);
       this.constrainCameraHeight(this.look);
       lift = this.look.y - this.desired.y;
     }
     this.scopeLift = snap || this.reducedMotion ? lift : MathUtils.lerp(this.scopeLift, lift, 1 - Math.exp(-7 * dt));
-    if (!this.scopeWeapon && Math.abs(this.scopeLift) < .001) this.scopeLift = 0;
+    if (!this.gunScope && Math.abs(this.scopeLift) < .001) this.scopeLift = 0;
     this.desired.y += this.scopeLift;
     this.constrainCameraHeight(this.desired);
     if (!lockedAim) this.azimuth = Math.atan2(aim[0] - this.desired.x, this.desired.z - aim[2]);
@@ -527,7 +509,7 @@ export class CameraRig {
         this.desired.set(...localToWorld(periscope ? this.submarine!.periscopeEye : this.bridge, { ...ship, y: height }));
         if (this.binoculars && !periscope) this.desired.y += 8;
         this.constrainCameraHeight(this.desired);
-        if (this.binoculars && !periscope && (this.scopeWeapon || this.scopeLift !== 0)) this.updateScopeLift(ship, dt, snap);
+        if (this.binoculars && !periscope && (this.gunScope || this.scopeLift !== 0)) this.updateScopeLift(dt, snap);
         else this.scopeLift = 0;
       } else {
         this.scopeLift = 0;

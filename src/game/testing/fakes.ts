@@ -43,7 +43,7 @@ export function makeTestRig<Extra extends object = object>(overrides?: Partial<T
     freeCameraSpeed: 0,
     setBridge() {},
     setSubmarine() {},
-    setScopeWeapon() {},
+    setGunScope() {},
     setTorpedoView() {},
     setRangeLock() {},
     setShellView() {},

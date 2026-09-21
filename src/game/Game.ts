@@ -944,7 +944,7 @@ export class Game {
       const focusView = this.cameraShipView;
       const focus = focusView.motion;
       this.rig.setSubmarine(focusView.definition.submarine);
-      this.updateScopeWeapon(focusView.definition);
+      this.updateGunScope(focusView.definition);
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       // Whatever ends the flight (a follow, the chart, port), the helm keys return to the ship the same frame.
@@ -1486,10 +1486,10 @@ export class Game {
     if (!this.definition.submarine || this.simulation.player.damage.sunk) return;
     this.toggleBinoculars();
   }
-  private updateScopeWeapon(definition: ShipDefinition): void {
-    const mount = definition.mounts.find(m => this.spectatedShipId ? m.battery === 'main'
+  private updateGunScope(definition: ShipDefinition): void {
+    const hasGun = definition.mounts.some(m => this.spectatedShipId ? m.battery === 'main'
       : selectedWeapon(m.battery, m.weapon, this.battery, this.weaponGroupId));
-    this.rig.setScopeWeapon(mount?.weapon, mount ? mount.position[1] + mount.weapon.pivotHeight : 0);
+    this.rig.setGunScope(hasGun);
   }
   /** Raise or lower the glasses on whichever hull carries the camera. A spectator following
    * a teammate has no sight to aim, so the lens opens along the bearing already being viewed. */
@@ -1511,7 +1511,7 @@ export class Game {
       // Continue along the viewing bearing, including deliberate stern aiming.
       if (ahead < definition.hull.length) aim = alongBearing();
     }
-    this.updateScopeWeapon(definition);
+    this.updateGunScope(definition);
     this.rig.toggleBinoculars(aim, ship);
   }
   private readSightAim(): Vec3 {
