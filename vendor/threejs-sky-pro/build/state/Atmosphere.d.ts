@@ -16,6 +16,8 @@ export interface AtmosphereParams {
     multipleScattering: number;
     /** Sky-dome multi-scatter strength. 0 = single-scatter dome, 1 = nominal. Default 0.5. */
     skyMultipleScattering: number;
+    /** Local patch: midpoint attenuation correction within 6° of the daylight horizon. Range [0, 1]. Default 0. */
+    horizonCorrection?: number;
     /** Scalar multiply on linear radiance. 1 = neutral. Default 1. */
     exposure: number;
     /** Ground albedo, linear RGB. Tints the sky's multiple-scatter bounce. Default (0.18, 0.17, 0.15). */
@@ -60,6 +62,8 @@ export declare class Atmosphere {
      * Default 0.5.
      */
     readonly skyMultipleScattering: import("three/webgpu").UniformNode<"float", number>;
+    /** Local patch: midpoint attenuation correction within 6° of the daylight horizon. Range [0, 1]. Default 0. */
+    readonly horizonCorrection: import("three/webgpu").UniformNode<"float", number>;
     /** Tonemap exposure — a scalar multiply on linear radiance. 1 = neutral. Default 1. */
     readonly exposure: import("three/webgpu").UniformNode<"float", number>;
     /**

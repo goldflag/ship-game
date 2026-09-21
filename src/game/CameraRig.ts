@@ -7,7 +7,6 @@ import type { ShellView } from './ShellFollow';
 import type { ShipState } from '../game/session/elements';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
-export type ScopeEntryFocus = { rangeM: number } | { keepView: true };
 const NORMAL_FOV = 52;
 const MIN_MAGNIFICATION = 1, MAX_MAGNIFICATION = 32, DEFAULT_SCOPE_MAGNIFICATION = 2;
 const MAX_DOWNWARD_TILT = Math.PI / 2 - .015;
@@ -17,7 +16,7 @@ const TORPEDO_ORBIT_ELEVATION = .38;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const SCOPE_DESCENT_SCALE = 1 / 3;
 /** Keep even an out-of-range gunnery sight oblique, rather than overhead. */
-const MAX_SCOPE_DESCENT = 10 * Math.PI / 180;
+const MAX_SCOPE_DESCENT = 5 * Math.PI / 180;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
 const PORT_AIM_DROP = .148;
@@ -41,8 +40,6 @@ export class CameraRig {
   private scopeLift = 0;
   private scopeAimHeight = .5;
   private scopeAim?: Vec3;
-  /** Empty-water entry magnifies the current eye instead of deriving altitude from the horizon. */
-  private scopeViewOffset?: Vector3;
   private lockedRangeM?: number;
   private torpedoView = false;
   private chaseFloor = MIN_ORBIT_ELEVATION;
@@ -305,38 +302,19 @@ export class CameraRig {
   }
   exitBinoculars(): void {
     this.setRangeLock();
-    this.scopeViewOffset = undefined;
     this.returnBinoculars = false;
     if (!this.binoculars) return;
     this.binoculars = false;
     this.opticsTransition = undefined;
     this.updateProjection();
   }
-  toggleBinoculars(aim: Vec3, ship: ShipState, entry?: ScopeEntryFocus): void {
+  toggleBinoculars(aim: Vec3, ship: ShipState): void {
     if (this.inPort || this.inspecting) return;
     const position = this.camera.position.clone(), orientation = this.camera.quaternion.clone(), fov = this.camera.fov;
     this.opticsTransition = undefined;
     this.binoculars = !this.binoculars;
     if (this.binoculars) this.scopeMagnification = DEFAULT_SCOPE_MAGNIFICATION;
     else this.setRangeLock();
-    if (this.binoculars && entry && 'keepView' in entry) {
-      this.scopeViewOffset = position.clone().sub(new Vector3(ship.x, ship.y, ship.z));
-      this.scopeLift = 0;
-      this.camera.getWorldDirection(this.look);
-      this.azimuth = Math.atan2(this.look.x, -this.look.z);
-      this.elevation = Math.atan2(-this.look.y, Math.hypot(this.look.x, this.look.z));
-      if (this.reducedMotion) this.updateProjection();
-      return;
-    }
-    if (this.binoculars && entry && 'rangeM' in entry) {
-      // Intersect the existing bearing from the bridge with the chosen hull's range.
-      // Only distance is borrowed: neither the horizontal sight nor a target lock snaps to that hull.
-      const [x, , z] = localToWorld(this.bridge, ship), dx = x - ship.x, dz = z - ship.z;
-      const sin = Math.sin(this.azimuth), cos = Math.cos(this.azimuth);
-      const along = dx * sin - dz * cos, across = dx * cos + dz * sin;
-      const range = Math.max(1, Math.sqrt(Math.max(0, entry.rangeM ** 2 - across ** 2)) - along);
-      aim = [x + sin * range, .5, z - cos * range];
-    }
     this.aimAt(aim, ship);
     if (!this.reducedMotion) {
       this.opticsTransition = { offset: position.clone().sub(this.camera.position), aim: [...aim], elapsed: 0 };
@@ -345,7 +323,6 @@ export class CameraRig {
     }
   }
   aimAt(aim: Vec3, ship: ShipState): void {
-    this.scopeViewOffset = undefined;
     this.scopeAim = aim;
     this.scopeAimHeight = aim[1];
     this.azimuth = Math.atan2(aim[0] - ship.x, ship.z - aim[2]);
@@ -384,14 +361,12 @@ export class CameraRig {
     this.distance = 325 * this.distanceScale;
   }
   recenter(): void {
-    this.scopeViewOffset = undefined;
     this.opticsTransition = undefined;
     this.portPan.set(0, 0, 0);
     this.azimuth = this.inPort || this.inspecting ? 1.08 : this.lastShip?.heading ?? 0;
     this.elevation = this.inPort || this.inspecting ? PORT_ELEVATION : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
   }
   setInPort(inPort: boolean): void {
-    this.scopeViewOffset = undefined;
     this.setRangeLock();
     this.setShellView(); this.setFreeCamera(false);
     this.inPort = inPort;
@@ -547,9 +522,7 @@ export class CameraRig {
         this.look.add(this.camera.position);
       }
     } else {
-      if (this.binoculars && this.scopeViewOffset) {
-        this.desired.set(ship.x, height, ship.z).add(this.scopeViewOffset);
-      } else if (this.binoculars || this.mode === 'Bridge') {
+      if (this.binoculars || this.mode === 'Bridge') {
         const periscope = this.submarine && (this.binoculars || height < -.5);
         this.desired.set(...localToWorld(periscope ? this.submarine!.periscopeEye : this.bridge, { ...ship, y: height }));
         if (this.binoculars && !periscope) this.desired.y += 8;

@@ -616,7 +616,15 @@ pub(crate) fn update_mount_control_at(
         radians(w.elevation_min_deg),
         radians(w.elevation_max_deg),
     );
-    let train_rate = radians(w.traverse_rate_deg) * control_dt * work;
+    // Heavy guns start at 7 deg/s for an authored 2 deg/s, retaining half
+    // the authored speed differences. Never slow a gun below its authored rate.
+    let traverse_rate_deg = if w.caliber_m >= 0.203 {
+        w.traverse_rate_deg
+            .max(7.0 + (w.traverse_rate_deg - 2.0).max(0.0) * 0.5)
+    } else {
+        w.traverse_rate_deg
+    };
+    let train_rate = radians(traverse_rate_deg) * control_dt * work;
     let elevation_rate = radians(w.elevation_rate_deg) * control_dt * work;
     let requested_train = s.train + clamp(train - s.train, -train_rate, train_rate);
     let requested_elevation =
@@ -726,7 +734,7 @@ pub(crate) fn update_mount_control_at(
             return reject(s, MountStatus::Turning);
         }
         if s.reload > 0.0 {
-            // Movement still has its physical interlock every tick. A gun
+            // Every movement still has its physical interlock. A gun
             // training onto a reachable target checks its firing corridor
             // when it finishes loading and could actually fire.
             s.status = MountStatus::Reloading;

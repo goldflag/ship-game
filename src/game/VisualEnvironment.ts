@@ -74,6 +74,8 @@ export class VisualEnvironment {
    * every simulation step, so the host reapplies `syncLighting` from that sync. */
   attachSky(sky: SkySystem): void {
     this.sky = sky;
+    // Lift the dark horizon band without retuning the authored sky palette.
+    sky.atmosphere.horizonCorrection.value = .8;
     sky.sun.discSize.value = CELESTIAL_DISC;
     sky.timeOfDay.moonAngularSize.value = CELESTIAL_DISC;
   }
