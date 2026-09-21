@@ -129,7 +129,7 @@ export class AirMapController {
     }
     view.root.updateWorldMatrix(true, false);
     const anchor = new THREE.Vector3(0, top, 0).applyMatrix4(view.root.matrixWorld);
-    const point = projectShipLabel(anchor, this.context.camera, this.logicalWidth, this.logicalHeight);
+    const point = projectShipLabel(anchor, this.context.camera, this.logicalWidth, this.logicalHeight, view.root.getWorldPosition(new THREE.Vector3()));
     return point ? [point.x, point.y] : null;
   }
 

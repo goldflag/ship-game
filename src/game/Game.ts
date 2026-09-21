@@ -305,7 +305,7 @@ export class Game {
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
-    this.shipLabels = new ShipLabels(this.host, id => this.observedShipViews?.labelAnchor(id));
+    this.shipLabels = new ShipLabels(this.host, id => this.observedShipViews?.labelAnchor(id), id => this.observedShipViews?.position(id));
     this.hitLabels = new HitLabels(this.host);
     this.gunAim = new GunAimIndicators(this.host);
     this.torpedoAim = new TorpedoAimIndicators(this.host);

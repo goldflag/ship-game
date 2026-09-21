@@ -23,6 +23,12 @@ test.each([
   expect(projectShipLabel(new Vector3(0, 0, -.4), camera, 1600, 900)).toBeNull();
   expect(projectShipLabel(new Vector3(0, 0, -70000), camera, 1600, 900)).toBeNull();
   expect(projectShipLabel(new Vector3(9000, 0, -5000), camera, 1600, 900)).toBeNull();
+  // A visible hull keeps its tall mast's tag nearby, including at the top edge.
+  const hull = new Vector3(0, 0, -100);
+  expect(projectShipLabel(new Vector3(0, 60, -100), camera, 1600, 900, hull)).toEqual({ x: 800, y: 354 });
+  expect(projectShipLabel(new Vector3(0, 100, -100), camera, 1600, 900, new Vector3(0, 48, -100))).toEqual({ x: 800, y: 60 });
+  expect(projectShipLabel(new Vector3(0, 100, -100), camera, 1600, 900, new Vector3(0, 60, -100))).toBeNull();
+  expect(projectShipLabel(new Vector3(0, 60, 100), camera, 1600, 900, new Vector3(0, 0, 100))).toBeNull();
   const above = projectShipLabel(new Vector3(0, 60, -5000), camera, 1600, 900)!;
   expect(above.y).toBeLessThan(450);
   camera.lookAt(5000, 0, 0); camera.updateMatrixWorld();
@@ -65,6 +71,13 @@ test('overhead condition meters preserve own damage colors for either online shi
       labels.update(camera, 0);
       const label = host.find('ship-label ship-label-enemy')!;
       expect(label.hidden).toBe(false);
+      camera.fov = .1; camera.updateProjectionMatrix();
+      labels.update(camera, 0);
+      expect(label.hidden).toBe(false);
+      const closeY = Number(label.style.transform.match(/, ([\d.]+)px/)![1]);
+      expect(closeY).toBeGreaterThanOrEqual(354);
+      camera.fov = 52; camera.updateProjectionMatrix();
+      labels.update(camera, 0);
       expect(host.find('ship-label-health')!.textContent).toBe('100%');
       expect(host.find('ship-label-meter')!.attributes.get('aria-valuemax')).toBe(String(maxHp));
       actor.damage.integrity *= .6;
@@ -138,7 +151,7 @@ test('reported enemy hulls get a named label with the observed condition, hidden
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement: () => new Element() } });
   try {
     const anchors = new Map<string, Vector3 | undefined>([['contact-0-3', new Vector3(0, 30, -5000)]]);
-    const host = new Element(), labels = new ShipLabels(host as unknown as HTMLElement, id => anchors.get(id));
+    const host = new Element(), labels = new ShipLabels(host as unknown as HTMLElement, id => anchors.get(id), () => new Vector3(0, 0, -5000));
     labels.resize(1600, 900);
     const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
     camera.coordinateSystem = WebGPUCoordinateSystem;
@@ -148,6 +161,12 @@ test('reported enemy hulls get a named label with the observed condition, hidden
     labels.update(camera, 0);
     const label = host.find('ship-label ship-label-enemy ship-label-observed')!;
     expect(label.hidden).toBe(false);
+    camera.fov = .1; camera.updateProjectionMatrix();
+    labels.update(camera, 0);
+    expect(label.hidden).toBe(false);
+    expect(label.style.transform).toBe('translate(800.00px, 354.00px)');
+    camera.fov = 52; camera.updateProjectionMatrix();
+    labels.update(camera, 0);
     expect(label.dataset.shipId).toBe('contact-0-3');
     expect(host.find('ship-label-name')!.textContent).toBe('Large warship');
     expect(host.find('ship-label-health')!.textContent).toBe('62%');
