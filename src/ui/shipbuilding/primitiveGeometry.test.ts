@@ -24,9 +24,13 @@ function onPolygon(point: THREE.Vector3, polygon: readonly number[][]) {
   return false;
 }
 
-test.each(Object.keys(CONSTRUCTION_SHAPES) as ConstructionPrimitive['kind'][])('%s draft and cursor match the native exterior at every quarter turn', kind => {
+// Every recipe is checked against native geometry. Exercise the shared placement
+// transform at all quarter turns on asymmetric solid, curved, hollow and panel
+// shapes; the inexpensive full mirror matrix below still covers every recipe.
+const rotationShapes = new Set<ConstructionPrimitive['kind']>(['wedge', 'quarter-cylinder', 'quarter-cylinder-wall', 'diagonal-bridge-panel']);
+test.each(Object.keys(CONSTRUCTION_SHAPES) as ConstructionPrimitive['kind'][])('%s draft and cursor match the native exterior', kind => {
   const catalog = catalogJson as ConstructionCatalog;
-  for (const rotationDeg of [0, 90, 180, 270]) {
+  for (const rotationDeg of rotationShapes.has(kind) ? [0, 90, 180, 270] : [0]) {
     const source = createStarterSource(catalog, 'blank');
     const piece: ConstructionPrimitive = { id: 'shape', kind, size: [8, 6, 14], position: [7, -3, 11], rotationDeg };
     source.construction.primitives = [piece];

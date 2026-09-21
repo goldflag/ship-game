@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /** Wide lines make every search hit and exact-string edit expensive. New and formatted files stay under the limit;
@@ -16,7 +16,8 @@ function trackedSources(): string[] {
   return listed.stdout
     .toString()
     .split('\0')
-    .filter((path) => (/^src\/.*\.(ts|tsx|css)$/.test(path) || /^scripts\/.*\.(ts|tsx)$/.test(path)) && !GENERATED.test(path));
+    // Unstaged deletions remain in Git's index, but have no source to inspect.
+    .filter((path) => (/^src\/.*\.(ts|tsx|css)$/.test(path) || /^scripts\/.*\.(ts|tsx)$/.test(path)) && !GENERATED.test(path) && existsSync(resolve(root, path)));
 }
 
 /** The first over-wide line of each file, as `[file, line number, width]`. */

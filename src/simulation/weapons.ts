@@ -32,9 +32,8 @@ function obstructionTree(definition: ShipDefinition) {
   return tree;
 }
 /** The engine's mount keeps what the frame drops: the derived carrier pose,
- * AA discipline and lead/aim caches. The published shape is the generated one. */
+ * lead/aim caches. The published shape is the generated one. */
 export interface MountState extends Omit<import('../game/session/elements').MountState, 'aimCache'> {
-  aaDiscipline?: import('./airGunnery').FireDiscipline;
   aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
   leadCache?: { time: number; point: Vec3 };
 }

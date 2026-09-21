@@ -47,6 +47,15 @@ describe('source-backed equipment publication',()=>{
       }
       const source=JSON.parse(await readFile(join(temp,'assets/parts/construction.json'),'utf8'));
       const fixture=JSON.parse(await readFile(join(root,'public/models/components/catalog.json'),'utf8'));
+      // Retention is a publication contract; the test above validates the full
+      // production catalog. Keep gun, fixed and path assets across the revision.
+      const ids=['us-20mm-oerlikon-mk4-hsienyang','generic-magazine-1000','generic-railing','generic-magazine-2000'];
+      source.equipment=ids.map(id=>{
+        const part=source.equipment.find((p:{id:string})=>p.id===id);
+        expect(part,`Missing publication fixture: ${id}`).toBeDefined();
+        return part;
+      });
+      await writeFile(join(temp,'assets/parts/construction.json'),JSON.stringify(source));
       for(const p of source.equipment) {
         const path=join('.build/parts',p.gunPartId ?? p.id,'model.glb');
         await mkdir(resolve(temp,path,'..'),{recursive:true});
@@ -59,6 +68,8 @@ describe('source-backed equipment publication',()=>{
       await writeFile(join(temp,'assets/parts/construction.json'),JSON.stringify(source));
       const second=await publishEquipment(temp);
       expect(second.revision).not.toBe(first.revision);
+      expect(first.equipment.map(p=>p.id)).toEqual(ids);
+      expect(second.equipment.map(p=>p.id)).toEqual(ids.slice(0,-1));
       for(const p of second.equipment) expect(p.modelUrl).toBe(first.equipment.find(e=>e.id===p.id)!.modelUrl);
       const retained=await readFile(join(temp,'public/models/components/catalogs',first.revision,'catalog.json'),'utf8');
       // Retention promises exact JSON bytes; JSON canonicalizes negative zero.

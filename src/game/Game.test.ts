@@ -1,5 +1,7 @@
 import { HeadlessSession } from '../../scripts/multiplayer/headless-session';
 import { LocalBattleSession } from './session/LocalBattleSession';
+import { SnapshotSession, type Snapshot } from './session/SnapshotSession';
+import { decodeSnapshot } from './session/snapshotCodec';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -45,6 +47,48 @@ afterEach(() => {
 
 const model = loadShipJoints;
 
+// Presentation-only tests consume real initial frames, but never advance the
+// authority. Each instance owns its mutable state; loading/gameplay tests below
+// still create fresh WASM sessions. Unexpected authority use fails loudly.
+class PresentationSession extends SnapshotSession {
+  readonly networked = false;
+  constructor(setup: HeadlessSession['setup'], frame: Snapshot, port: boolean) {
+    super(structuredClone(setup), 'a', 0, new Map(), port);
+    this.apply(structuredClone(frame));
+  }
+  protected send(): void { throw new Error('Use HeadlessSession for authority commands'); }
+  advance(): void { throw new Error('Use HeadlessSession for simulation steps'); }
+  dispose(): void {}
+}
+const presentationFrames = new Map<boolean, Promise<{ setup: HeadlessSession['setup']; frame: Snapshot }>>();
+async function presentationSession(port = true): Promise<PresentationSession> {
+  let template = presentationFrames.get(port);
+  if (!template) {
+    template = (async () => {
+      const session = port ? await HeadlessSession.port(shipPreset('bismarck'))
+        : await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 });
+      try { return { setup: session.setup, frame: decodeSnapshot(session.runtime.snapshot()) }; }
+      finally { session.dispose(); }
+    })();
+    presentationFrames.set(port, template);
+  }
+  const { setup, frame } = await template;
+  return new PresentationSession(setup, frame, port);
+}
+
+test('presentation fixtures isolate mutable ship state and refuse authority work', async () => {
+  const first = await presentationSession(), second = await presentationSession();
+  const ammunition = second.player.mounts[0].ammo;
+  first.player.mounts[0].ammo = 0;
+  first.player.damage.sunk = true;
+  first.ship.x = 12345;
+  expect(second.player.mounts[0].ammo).toBe(ammunition);
+  expect(second.player.damage.sunk).toBe(false);
+  expect(second.ship.x).not.toBe(12345);
+  expect((await presentationSession()).player.mounts[0].ammo).toBe(ammunition);
+  expect(() => first.advance()).toThrow('Use HeadlessSession');
+});
+
 test('rangefinding uses a visible ship and feeds locked range into the real gun aim path', async () => {
   const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 18000 });
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
@@ -78,7 +122,7 @@ test('rangefinding uses a visible ship and feeds locked range into the real gun 
 });
 
 test('scoping over empty water follows a closer aim while retaining the fixed viewing angle', async () => {
-  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 });
+  const simulation = await presentationSession(false);
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
   const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement);
   const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
@@ -109,7 +153,7 @@ test('scoping over empty water follows a closer aim while retaining the fixed vi
 });
 
 test('switching guns and AP/HE leaves the scoped camera and aim unchanged', async () => {
-  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 });
+  const simulation = await presentationSession(false);
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
   const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
@@ -156,7 +200,7 @@ test('rangefinding admits only fresh enemy exteriors actually observed by the he
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
 async function port(storageMatrices = false) {
   const definition = shipPreset('bismarck');
-  const simulation = await HeadlessSession.port(definition);
+  const simulation = await presentationSession();
   simulation.ship.x = 240;
   const loaded = (await model(definition.id)).scene;
   const playerView = new ShipView(loaded.clone(true), definition, simulation.player);
@@ -186,7 +230,7 @@ async function port(storageMatrices = false) {
 }
 
 test('shell commands affect only the active gun battery and reject unavailable rounds or inactive play', async () => {
-  const definition = shipPreset('bismarck'), simulation = await HeadlessSession.port(definition);
+  const definition = shipPreset('bismarck'), simulation = await presentationSession();
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, currentAim: [2000, 10, 0],
     battery: 'main', ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
     inPort: false, paused: false, airOperationsOpen: false }) as Game;
@@ -721,7 +765,7 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
 });
 
 test('direct slots select a single type, never cycle, and retain selection when guns are lost', async () => {
-  const definition = shipPreset('bismarck'), simulation = await HeadlessSession.port(definition);
+  const definition = shipPreset('bismarck'), simulation = await presentationSession();
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
     ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
   const groups = game.weaponGroups;
@@ -742,7 +786,7 @@ test('direct slots select a single type, never cycle, and retain selection when 
 });
 
 test('single shell presses queue, rapid pairs force that choice, and slow presses cancel it', async () => {
-  const definition = shipPreset('bismarck'), simulation = await HeadlessSession.port(definition);
+  const definition = shipPreset('bismarck'), simulation = await presentationSession();
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
     ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
     inPort: false, paused: false, airOperationsOpen: false }) as Game;
@@ -761,7 +805,7 @@ test('single shell presses queue, rapid pairs force that choice, and slow presse
 });
 
 test('rapid shell presses in different secondary groups never force a neighboring group to reload', async () => {
-  const definition = shipPreset('bismarck'), simulation = await HeadlessSession.port(definition);
+  const definition = shipPreset('bismarck'), simulation = await presentationSession();
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
     ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
   const groups = game.weaponGroups;

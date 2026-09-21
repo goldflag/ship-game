@@ -4,20 +4,33 @@ import { resolve } from 'node:path';
 
 const roots = ['src', 'scripts'];
 const cwd = resolve(import.meta.dir, '../..');
-// Scheduling hints from full-suite measurements, not a test roster. Discovery
+// Scheduling hints from September 2026 warm-suite measurements, not a roster. Discovery
 // below still runs every file, including new tests without an estimate.
 const seconds: Record<string, number> = {
+  'scripts/construction/authoring.test.ts': 20,
+  'src/game/Game.test.ts': 16,
+  'src/game/session/LocalBattleSession.test.ts': 11,
+  'src/game/session/ReconSnapshot.test.ts': 11,
+  'src/ships/customHullCompilation.test.ts': 10,
+  'src/game/session/SnapshotSession.test.ts': 10,
+  'src/ships/constructionGunCatalog.test.ts': 9,
+  'src/ui/shipbuilding/primitiveGeometry.test.ts': 7,
+  'src/ui/shipbuilding/customHullAttachment.test.ts': 7,
+  'src/game/session/frameDelta.test.ts': 7,
   'src/game/ShipDetail.test.ts': 6,
-  'src/game/CombatEffects.test.ts': 6,
-  'src/ships/inspection.test.ts': 6,
-  'src/game/GameFrame.test.ts': 6,
-  'src/game/ShipBatching.test.ts': 5,
-  'src/game/ShipPoseMatrices.test.ts': 3,
+  'src/ships/constructionMesh.test.ts': 6,
+  'src/game/ShipBatching.test.ts': 6,
+  'scripts/tests/construction-model.test.ts': 6,
+  'src/game/GameFrame.test.ts': 5,
+  'src/game/session/RemoteBattleSession.test.ts': 5,
+  'src/ships/constructionWallFittings.test.ts': 4,
+  'src/ships/inspection.test.ts': 4,
   'src/game/ShipRenderAssemblies.test.ts': 3,
-  'src/game/Game.test.ts': 5,
-  'src/game/session/frameDelta.test.ts': 5,
-  'src/game/session/SnapshotSession.test.ts': 3,
+  'scripts/parts/publication.test.ts': 3,
+  'src/game/CombatEffects.test.ts': 3,
+  'src/game/ShipPoseMatrices.test.ts': 3,
   'src/game/ShipView.test.ts': 3,
+  'src/game/session/PveDraft.test.ts': 3,
 };
 
 // Keep long independent scenarios from serializing the end of a run. A final
