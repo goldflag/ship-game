@@ -1,5 +1,6 @@
 mod armor_index;
 mod installations;
+mod surfaces;
 use crate::{
     damage::Combatant,
     definition::{Armor, ArmorPlate, ShipDefinition, Vec3},
@@ -61,6 +62,7 @@ impl ShipContact {
 pub struct ContactGeometry {
     armor_index: Option<armor_index::ArmorIndex>,
     installations: installations::InstallationContacts,
+    surfaces: surfaces::SurfaceContacts,
     pub structural: Vec<StructuralSurface>,
     pub hull: Option<HullContacts>,
     /// Mounts whose gunhouse is authored as armor plates, parallel to `mounts`;
@@ -70,9 +72,17 @@ pub struct ContactGeometry {
 impl ContactGeometry {
     pub fn new(def: &ShipDefinition) -> Result<Self, String> {
         let installations = installations::InstallationContacts::new(def);
+        let surfaces = surfaces::SurfaceContacts::new(def);
+        let excluded: Vec<_> = installations
+            .replaced
+            .iter()
+            .zip(&surfaces.replaced)
+            .map(|(&a, &b)| a || b)
+            .collect();
         Ok(Self {
-            armor_index: armor_index::ArmorIndex::new(&def.armor, &installations.replaced),
+            armor_index: armor_index::ArmorIndex::new(&def.armor, &excluded),
             installations,
+            surfaces,
             plated_mounts: def
                 .mounts
                 .iter()
@@ -100,6 +110,7 @@ impl ContactGeometry {
         if self.installations.matches(&def.armor) {
             def.armor.len() - self.installations.replaced.iter().filter(|&&v| v).count()
                 + self.installations.shape_count()
+                - self.surfaces.reduction()
         } else {
             def.armor.len()
         }
@@ -215,6 +226,13 @@ pub fn ship_contacts(
     if let Some(installations) = installations {
         installations.contacts(shell, from, to, ship, &def.armor, &mut hits);
     }
+    let surfaces = geometry
+        .surfaces
+        .matches(&def.armor)
+        .then_some(&geometry.surfaces);
+    if let Some(surfaces) = surfaces {
+        surfaces.contacts(shell, from, to, ship, def, &mut hits);
+    }
     let candidates = geometry
         .armor_index
         .as_ref()
@@ -223,7 +241,7 @@ pub fn ship_contacts(
     let count = candidates.as_ref().map_or(def.armor.len(), Vec::len);
     for position in 0..count {
         let i = candidates.as_ref().map_or(position, |ids| ids[position]);
-        if installations.is_some_and(|p| p.replaced[i]) {
+        if installations.is_some_and(|p| p.replaced[i]) || surfaces.is_some_and(|p| p.replaced[i]) {
             continue;
         }
         let a = &def.armor[i];

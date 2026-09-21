@@ -5,6 +5,7 @@ use crate::{
     hydro_table::HydrostaticTable,
 };
 mod displacement;
+mod proxy;
 use displacement::CellDisplacement;
 #[derive(Clone, Debug)]
 struct Slice {
@@ -26,7 +27,7 @@ pub struct HullHydrostatics {
     cells: Option<Vec<PolyCell>>,
     slices: Vec<Slice>,
     bound: f64,
-    /// A player-built hull: exact polyhedral cells and no published table.
+    /// A player-built hull: polyhedral cells and no published table.
     constructed: bool,
     /// Authored waterplane area, the first slope guess of a warm-started solve.
     waterplane: f64,
@@ -48,6 +49,19 @@ pub struct Flotation {
     pub afloat: bool,
 }
 impl HullHydrostatics {
+    /// Battle geometry may use fewer weighted volumes after checking displaced
+    /// volume and center against the original at a fixed set of attitudes/drafts.
+    /// Authoring and the public `new` reference path retain the full hull.
+    pub fn new_runtime(h: &Hull, table: Option<&HydrostaticTable>) -> Self {
+        let exact = Self::new(h, table);
+        proxy::compact(h, &exact).unwrap_or(exact)
+    }
+
+    /// Explicit buoyancy cells, or station slices for the legacy mesh solver.
+    pub fn volume_shape_count(&self) -> usize {
+        self.cells.as_ref().map_or(self.slices.len(), Vec::len)
+    }
+
     pub fn new(h: &Hull, table: Option<&HydrostaticTable>) -> Self {
         let mut stations: Vec<f64> = vec![0.0, h.length];
         stations.extend(h.half_breadths.iter().map(|p| p[0]));
@@ -145,9 +159,8 @@ impl HullHydrostatics {
         }
         self.integrated_sample(None, None, y, roll, pitch, true)
     }
-    /// Clips every hull section at the given immersion. The published table is
-    /// solved from and measured against this; it stays the reference, not the
-    /// path a battle takes.
+    /// Clips this model's hull sections at the given immersion. `new` retains
+    /// the authored reference; `new_runtime` may hold validated coarse cells.
     pub fn mesh_sample(&self, y: f64, roll: f64, pitch: f64) -> Hydrostatics {
         self.mesh_sample_within(None, y, roll, pitch)
     }

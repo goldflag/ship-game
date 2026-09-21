@@ -287,6 +287,11 @@ What compilation does:
   sequential transfer order remain distinct. Ordinary doors retain independent controls.
 - Builds gun clearance from the exposed structural hull faces, removing internal subdivision
   faces. Decorative balconies remain excluded from structural collision geometry.
+- Battle caches can simplify armor contacts and buoyancy/flooding volumes separately from
+  this authored output. Near-coplanar armor groups preserve original panel footprints and
+  hit identities; hull/room volume candidates pass geometry and hydraulic accuracy checks.
+  See [runtime approximations](sim-performance-plan.md#runtime-approximations). The serialized
+  definition and editor geometry counts remain the detailed authoring model.
 - Accepts concave sections, asymmetry and multiple immersed hulls in one rigid ship.
 - Loads steel at 7,850 kg/m³ against seawater at 1,025 kg/m³, plus equipment, services and
   initial ammunition.
