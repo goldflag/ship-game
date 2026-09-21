@@ -53,18 +53,6 @@ function ShipBearing({ data }: { data: Telemetry }) {
             transform={`rotate(${i * 10} 100 100)`}
           />
         ))}
-        <text x="100" y="29" textAnchor="middle">
-          N
-        </text>
-        <text x="174" y="104" textAnchor="middle">
-          E
-        </text>
-        <text x="100" y="181" textAnchor="middle">
-          S
-        </text>
-        <text x="26" y="104" textAnchor="middle">
-          W
-        </text>
         <g transform={`rotate(${((data.viewBearing ?? data.ship.heading) * 180) / Math.PI} 100 100)`}>
           <path d="M100 100 66 15Q100 2 134 15Z" fill="currentColor" fillOpacity=".045" />
           <path d="M100 100V10" stroke="var(--fleet-active)" strokeOpacity=".55" strokeDasharray="3 4" />
