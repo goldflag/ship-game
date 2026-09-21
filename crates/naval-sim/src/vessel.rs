@@ -23,6 +23,8 @@ pub struct ShipIndex {
     /// Identity of the definition this was built from: the heap buffer of
     /// `modules` survives moves of the definition and only a clone changes it.
     modules_ptr: usize,
+    mounts_ptr: usize,
+    propulsion_ptr: usize,
     pub modules: usize,
     pub compartments: usize,
     pub mounts: usize,
@@ -105,6 +107,11 @@ impl ShipIndex {
             .collect();
         Self {
             modules_ptr: d.modules.as_ptr() as usize,
+            mounts_ptr: d.mounts.as_ptr() as usize,
+            propulsion_ptr: d
+                .propulsion
+                .as_ref()
+                .map_or(0, |p| p.groups.as_ptr() as usize),
             modules: d.modules.len(),
             compartments: d.compartments.len(),
             mounts: d.mounts.len(),
@@ -163,6 +170,23 @@ impl ShipIndex {
     /// caller falls back to the original scan otherwise.
     pub fn of<'a>(&'a self, d: &ShipDefinition) -> Option<&'a Self> {
         (self.modules_ptr == d.modules.as_ptr() as usize).then_some(self)
+    }
+    /// Resolve a precompiled magazine only while the original mount array
+    /// is being used; copied definitions retain the string-lookup fallback.
+    pub(crate) fn indexed_magazine(&self, d: &ShipDefinition, i: usize) -> Option<Option<usize>> {
+        (self.mounts_ptr == d.mounts.as_ptr() as usize && self.mounts == d.mounts.len())
+            .then(|| self.mount_magazine.get(i).copied())
+            .flatten()
+    }
+    pub(crate) fn indexed_propulsion(
+        &self,
+        d: &ShipDefinition,
+        i: usize,
+    ) -> Option<&PropulsionIndex> {
+        let groups = &d.propulsion.as_ref()?.groups;
+        (self.propulsion_ptr == groups.as_ptr() as usize && self.propulsion.len() == groups.len())
+            .then(|| self.propulsion.get(i))
+            .flatten()
     }
     /// Position of a module borrowed from `d.modules`, without scanning.
     pub fn position(&self, module: &crate::definition::Module) -> Option<usize> {

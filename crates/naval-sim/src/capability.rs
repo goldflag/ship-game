@@ -72,7 +72,10 @@ pub fn update(actor: &mut Combatant, def: &ShipDefinition, wing: Option<&AirWing
         // Resolve the magazine once. Its immersion/health query used to run
         // again for the disabled list, and each query repeated the id lookup.
         let magazine = m.magazine_id.as_deref().map(|id| {
-            module_of(id).map_or((false, false), |j| {
+            let module = index
+                .and_then(|ix| ix.indexed_magazine(def, i))
+                .unwrap_or_else(|| module_of(id));
+            module.map_or((false, false), |j| {
                 let healthy = if parallel {
                     actor.damage.modules[j].hp > 0.
                 } else {

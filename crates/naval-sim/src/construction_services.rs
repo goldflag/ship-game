@@ -345,6 +345,28 @@ mod tests {
                 actor.damage.sunk = step == 4;
                 let mut scanned = actor.clone();
                 scanned.index = Default::default();
+                for kind in ["engine", "generator", "steering"] {
+                    assert_eq!(
+                        crate::machinery::system_health(&actor, &def, kind, None).to_bits(),
+                        crate::machinery::system_health(&scanned, &def, kind, None).to_bits(),
+                        "shared={shared}, step={step}, kind={kind}"
+                    );
+                }
+                for group in 0..def.propulsion.as_ref().unwrap().groups.len() {
+                    assert_eq!(
+                        crate::machinery::drive_health(&actor, &def, group, None).to_bits(),
+                        crate::machinery::drive_health(&scanned, &def, group, None).to_bits(),
+                        "shared={shared}, step={step}, group={group}"
+                    );
+                }
+                let mut indexed_capability = actor.clone();
+                let mut scanned_capability = scanned.clone();
+                crate::capability::update(&mut indexed_capability, &def, None);
+                crate::capability::update(&mut scanned_capability, &def, None);
+                assert_eq!(
+                    serde_json::to_value(indexed_capability).unwrap(),
+                    serde_json::to_value(scanned_capability).unwrap()
+                );
                 for room in std::iter::once(None)
                     .chain(def.compartments.iter().map(|c| Some(c.id.as_str())))
                     .chain([Some("unknown")])
