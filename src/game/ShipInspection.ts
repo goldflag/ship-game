@@ -28,7 +28,7 @@ export class ShipInspection {
   private armorBatches: THREE.Mesh[] = [];
   private armorColors = new Map<string, { attribute: THREE.BufferAttribute; offset: number; count: number; color: THREE.Color }>();
   private regionOutlines: { id: string; mesh: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial> }[] = [];
-  private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicNodeMaterial>; waterline?: { value: number } }[] = [];
+  private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.BufferGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicNodeMaterial>; waterline?: { value: number } }[] = [];
   constructor(private definition: ShipDefinition) {
     this.entries = inspectionEntries(definition);
     this.root.name = 'Ship inspection'; this.root.visible = false;
@@ -53,7 +53,8 @@ export class ShipInspection {
       const material = new Material({ color, transparent: true, depthWrite: false, depthTest: false, side:THREE.DoubleSide, toneMapped: entry.kind !== 'armor' });
       if (material instanceof THREE.MeshBasicNodeMaterial) material.colorNode = armorColor;
       const fill = new THREE.Mesh(geometry, material);
-      const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: entry.kind === 'armor', toneMapped: entry.kind !== 'armor' }));
+      const edges = entry.armorIds && entry.armorIds.length > 1 ? panelEdges(geometry, entry.plate!.vertices.length) : new THREE.EdgesGeometry(geometry);
+      const outline = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: entry.kind === 'armor', toneMapped: entry.kind !== 'armor' }));
       fill.matrixAutoUpdate = outline.matrixAutoUpdate = false;
       fill.renderOrder = 100; outline.renderOrder = 102;
       group.add(fill, outline); this.root.add(group);
@@ -330,6 +331,19 @@ function plateGeometry(entry: InspectionEntry): THREE.BufferGeometry {
   for (let i=1;i<n-1;i++) indices.push(0,i+1,i,n,n+i,n+i+1);
   for (let i=0;i<n;i++) { const j=(i+1)%n; indices.push(i,j,n+j,i,n+j,n+i); }
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
+}
+
+/** Outline the panel's perimeter and thickness, never its triangulation crease. */
+function panelEdges(geometry: THREE.BufferGeometry, count: number): THREE.BufferGeometry {
+  const positions = geometry.getAttribute('position'), vertices: number[] = [];
+  const edge = (a: number, b: number) => {
+    for (const i of [a, b]) vertices.push(positions.getX(i), positions.getY(i), positions.getZ(i));
+  };
+  for (let i = 0; i < count; i++) {
+    const j = (i + 1) % count;
+    edge(i, j); edge(count + i, count + j); edge(i, count + i);
+  }
+  return new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 }
 
 function cellGeometry(entry: InspectionEntry): THREE.BufferGeometry {
