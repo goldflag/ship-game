@@ -18,7 +18,9 @@ export async function cachedConstructionCompile(
       cache = await storage.open(CONSTRUCTION_COMPILE_CACHE);
       const hit = await cache.match(key);
       if (hit) {
-        const output = await hit.text();
+        const body = hit.headers.get('X-Construction-Compression') === 'gzip'
+          ? new Response(hit.body!.pipeThrough(new DecompressionStream('gzip'))) : hit;
+        const output = await body.text();
         JSON.parse(output); // An unreadable entry falls back to the real compiler.
         return output;
       }
@@ -27,9 +29,19 @@ export async function cachedConstructionCompile(
 
   const output = compile(); // Compiler errors propagate once and never enter the cache.
   try {
-    if (cache && key && new Blob([output]).size <= COMPILE_CACHE_MAX_BYTES) {
+    const blob = new Blob([output], { type: 'application/json' });
+    if (cache && key && blob.size <= COMPILE_CACHE_MAX_BYTES) {
       // Finish writing before replying: callers may immediately dispose the worker.
-      await cache.put(key, new Response(output, { headers: { 'Content-Type': 'application/json' } }));
+      let response = new Response(blob);
+      if (blob.size >= 64 * 1024 && typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined') {
+        try {
+          const compressed = await new Response(blob.stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+          if (compressed.byteLength < blob.size) response = new Response(compressed, {
+            headers: { 'Content-Type': 'application/json', 'X-Construction-Compression': 'gzip' },
+          });
+        } catch { /* A compression failure still permits an ordinary cache entry. */ }
+      }
+      await cache.put(key, response);
       const keys = await cache.keys();
       for (const old of keys.slice(0, Math.max(0, keys.length - COMPILE_CACHE_ENTRIES))) await cache.delete(old);
     }

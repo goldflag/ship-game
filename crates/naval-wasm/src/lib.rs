@@ -20,6 +20,15 @@ impl ConstructionCompiler {
     pub fn new() -> Self {
         Self::default()
     }
+    pub fn compile_compact(
+        &mut self,
+        source_json: &str,
+        catalog_json: &str,
+    ) -> Result<String, JsValue> {
+        self.inner
+            .compile_compact_json(source_json, catalog_json)
+            .map_err(error)
+    }
     pub fn compile(&mut self, source_json: &str, catalog_json: &str) -> Result<String, JsValue> {
         self.inner
             .compile_json(source_json, catalog_json)

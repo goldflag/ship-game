@@ -61,3 +61,26 @@ test('an unreadable cache entry is repaired by compilation', async () => {
   expect(await cachedConstructionCompile('a','b','c', () => { calls++; return '{"repaired":true}'; }, disk)).toBe('{"repaired":true}');
   expect(calls).toBe(1);
 });
+
+test('large results are stored compressed and read back byte-for-byte', async () => {
+  const disk = storage(); let calls = 0;
+  const output = JSON.stringify({ vertices: Array.from({ length: 10000 }, () => [1.23456789, -0.25, 100]) });
+  const run = () => cachedConstructionCompile('build', 'source', 'catalog', () => { calls++; return output; }, disk);
+  expect(await run()).toBe(output);
+  const response = [...disk.entries.values()][0];
+  expect(response.headers.get('X-Construction-Compression')).toBe('gzip');
+  expect((await response.clone().arrayBuffer()).byteLength).toBeLessThan(output.length / 4);
+  expect(await run()).toBe(output);
+  expect(calls).toBe(1);
+});
+
+test('damaged compressed entries fall back to compilation and are replaced', async () => {
+  const disk = storage();
+  await cachedConstructionCompile('build', 'source', 'catalog', () => '{}', disk);
+  const key = [...disk.entries.keys()][0];
+  disk.entries.set(key, new Response('bad gzip', { headers: { 'X-Construction-Compression': 'gzip' } }));
+  let calls = 0;
+  expect(await cachedConstructionCompile('build', 'source', 'catalog', () => { calls++; return '{"repaired":true}'; }, disk)).toBe('{"repaired":true}');
+  expect(calls).toBe(1);
+  expect(disk.entries.get(key)!.headers.get('X-Construction-Compression')).toBeNull();
+});
