@@ -36,6 +36,7 @@ describe('player keybindings', () => {
   test('round-trips customized primary and alternate bindings', () => {
     const bindings = defaultKeybindings();
     bindings.throttleUp = ['KeyI', 'Numpad8'];
+    bindings.shipDamage = ['KeyV', null];
     bindings.fire = [null, 'KeyK'];
     expect(keybindingsOf(JSON.parse(JSON.stringify(bindings)))).toEqual(bindings);
     expect(bindingLabel(bindings, 'throttleUp')).toBe('I / Num 8');
@@ -70,6 +71,16 @@ describe('player keybindings', () => {
     changed.fire[0] = 'KeyK';
     expect(defaultKeybindings().fire[0]).toBe('KeyQ');
   });
+});
+
+test('older saves gain ship damage inspection without taking a custom I binding', () => {
+  const { shipDamage: _newAction, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyI', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.shipDamage[0]).toBeTruthy();
+  expect(loaded.shipDamage).not.toContain('KeyI');
+  expect(keybindingsOf(loaded)).toEqual(loaded);
 });
 
 test('older custom controls survive new diving actions even when Z, X and B are taken', () => {

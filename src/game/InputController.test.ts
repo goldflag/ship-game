@@ -46,6 +46,7 @@ describe('keyboard gameplay controls', () => {
       simulationSpeed: mock(),
       helmWheel: mock(),
       freeCamera: mock(),
+      shipDamage: mock(),
     };
     input = new InputController(actions, defaultKeybindings());
   });
@@ -96,6 +97,18 @@ describe('keyboard gameplay controls', () => {
     expect(input.sample()).toEqual(held);
     input.setEnabled(true);
     expect(input.sample()).toEqual(held);
+  });
+
+  test('ship inspection toggles once per press, can be rebound, and respects dialogs and modifiers', () => {
+    key('keydown', 'KeyI'); key('keydown', 'KeyI', { repeat: true }); key('keyup', 'KeyI');
+    expect(actions.shipDamage).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyI', { ctrlKey: true }); key('keydown', 'KeyI', { shiftKey: true });
+    modal = true; key('keydown', 'KeyI'); modal = false;
+    expect(actions.shipDamage).toHaveBeenCalledTimes(1);
+    const bindings = defaultKeybindings(); bindings.shipDamage = ['KeyV', null]; input.setBindings(bindings);
+    key('keydown', 'KeyI'); expect(actions.shipDamage).toHaveBeenCalledTimes(1);
+    input.setEnabled(false); key('keydown', 'KeyV');
+    expect(actions.shipDamage).toHaveBeenCalledTimes(2);
   });
 
   test('the free camera takes the helm keys for flight and hands them back on return', () => {

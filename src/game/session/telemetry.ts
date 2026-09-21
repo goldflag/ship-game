@@ -6,6 +6,7 @@ import { weaponGroups, selectedWeapon } from '../../ships/weaponGroups';
 import { airWingTelemetry } from './airTelemetry';
 import { equipmentCondition, supportPerformance } from '../machinery';
 import { fireReadout, regionReadout } from './damageReadout';
+import { shipDamageReadout, type ShipDamageReadout } from './shipDamageReadout';
 import { hullDepth, meanHullY } from './motion';
 import { add, localToWorld, scale, sub } from '../geometry';
 import { travelFactor } from '../ballistics';
@@ -29,6 +30,7 @@ import { shipVelocity } from './motion';
 /** The helm and sight the renderer forwards each frame. */
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; weaponGroupId?: string; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
 export interface FullCombatTelemetry {
+  playerDamageReport?: ShipDamageReadout;
   targetKnowledge?: 'full';
   playerSupport: { power: number; fireControl: number }; targetSupport: { power: number; fireControl: number };
   playerFires: FireReadout[]; targetFireDetails: FireReadout[];
@@ -172,6 +174,7 @@ export function presentationTelemetry(view: TelemetryView, battery: Battery, aim
       control: structuredClone(subject.damage.control),
       playerSupport: supportPerformance(subject, subject.definition),
       playerFires: fireReadout(subject, subject.definition),
+      playerDamageReport: shipDamageReadout(subject, subject.definition),
       controlTargets: [...subject.definition.compartments.map(c => ({ id: c.id, name: c.name })), ...subject.definition.mounts.map(m => ({ id: m.id, name: m.name }))],
       mounts: selectedMounts,
       playerIntegrity: subject.damage.integrity / subject.damage.maxIntegrity,

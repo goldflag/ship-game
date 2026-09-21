@@ -11,12 +11,13 @@ import { EXTERIOR_PLATING_REPLACEMENT_M } from './hullStructure';
 import type { Combatant } from '../game/session/elements';
 import { waterLevel as compartmentWaterLevel } from './floodwater';
 import { regionCondition } from './session/damageReadout';
+import { DAMAGE_COLORS, damageTone, type DamageTone } from './session/shipDamageReadout';
 
 /** Shared port and combat X-ray geometry. No simulation state is changed by inspection. */
 export class ShipInspection {
   readonly root = new THREE.Group();
   readonly entries: InspectionEntry[];
-  mode: InspectionMode | 'all' = 'exterior';
+  mode: InspectionMode | 'all' | 'damage' = 'exterior';
   selectedId?: string;
   hoveredId?: string;
   private hoverColor = new THREE.Color('#ffffff');
@@ -63,7 +64,7 @@ export class ShipInspection {
       return { entry, color, group, fill, outline, water, waterline };
     });
   }
-  setMode(mode: InspectionMode | 'all', selectedId?: string): void {
+  setMode(mode: InspectionMode | 'all' | 'damage', selectedId?: string): void {
     if (mode !== 'exterior') this.buildVolumes();
     this.mode = mode;
     this.selectedId = this.entries.some(e => e.id === selectedId && this.inMode(e, mode)) ? selectedId : undefined;
@@ -88,7 +89,7 @@ export class ShipInspection {
     });
   }
   private inMode(entry: InspectionEntry, mode = this.mode): boolean {
-    return mode === 'all' || entryInMode(entry, mode);
+    return mode === 'all' || (mode === 'damage' ? entry.kind !== 'armor' : entryInMode(entry, mode));
   }
   /** Pick the nearest visible plate (with physical thickness and current turret pose) in the
    * armor view, equipment in Internals, or spaces in Flooding. */
@@ -132,12 +133,15 @@ export class ShipInspection {
     if (!this.root.visible) return;
     for (const { id, mesh } of this.regionOutlines) {
       const condition = regionCondition(actor, id);
-      mesh.visible = this.mode === 'all' && !this.selectedId && condition < .95;
+      mesh.visible = (this.mode === 'all' || this.mode === 'damage') && !this.selectedId && condition < .95;
       mesh.material.color.set(condition < .05 ? '#aebabe' : '#dfbd83');
       mesh.material.opacity = condition < .05 ? .55 : .3;
     }
     this.volumes.forEach(volume => {
-      const { entry, group, fill, water, waterline } = volume;
+      const { entry, group, fill, outline, water, waterline } = volume;
+      let tone: DamageTone = 'healthy';
+      fill.renderOrder = 100; outline.renderOrder = 102;
+      if (water) water.renderOrder = this.mode === 'damage' ? 111 : 101;
       // Defense coverage is a gameplay envelope, not a plate that should hide armor.
       group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId)
         && (!entry.underwaterProtection || entry.id === this.selectedId);
@@ -148,11 +152,21 @@ export class ShipInspection {
         group.rotation.y = -(equipmentPose(actor, this.definition, module)?.heading ?? 0);
         const condition = actor.damage.modules[entry.moduleIndex].hp / this.definition.modules[entry.moduleIndex].hp;
         if (condition < 1) { fill.material.color.set(condition <= 0 ? '#d36b4f' : '#dfbd83'); if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3); }
-        if (equipmentCondition(actor, this.definition, this.definition.modules[entry.moduleIndex]).reason === 'flooded') fill.material.color.set('#519fc0');
+        const equipment = equipmentCondition(actor, this.definition, module);
+        if (equipment.reason === 'flooded') fill.material.color.set('#519fc0');
+        if (this.mode === 'damage') {
+          const room = this.definition.compartments.findIndex(c => c.id === module.compartmentId);
+          const fire = room < 0 ? 0 : actor.damage.control.rooms[room].intensity;
+          tone = damageTone(condition, equipment.reason === 'flooded', fire);
+        }
       }
       if (entry.kind === 'weapon' && entry.mountIndex !== undefined) {
         const hp = actor.mounts[entry.mountIndex].hp;
         if (hp < entry.hp!) fill.material.color.set(hp <= 0 ? '#d36b4f' : '#dfbd83');
+        if (this.mode === 'damage') {
+          tone = damageTone(hp / entry.hp!, false, actor.damage.control.mounts[entry.mountIndex].intensity);
+          if (tone === 'healthy' && actor.mounts[entry.mountIndex].status === 'disabled') tone = 'damaged';
+        }
       }
       if (entry.mountIndex !== undefined) {
         const pose = mountFrame(this.definition, entry.mountIndex, actor.mounts.map(m => m.train));
@@ -166,9 +180,22 @@ export class ShipInspection {
         // available in the port's Flooding view and through selection.
         const fire = actor.damage.control.rooms[entry.compartmentIndex].intensity;
         if (fire > 0) { fill.material.color.set('#e69b57'); fill.material.opacity = .12; }
-        if (this.mode === 'all' && entry.id !== this.selectedId && fraction <= .0001 && fire <= 0) group.visible = false;
+        if ((this.mode === 'all' || this.mode === 'damage') && entry.id !== this.selectedId && fraction <= .0001 && fire <= 0 && actor.damage.compartments[entry.compartmentIndex].breachAreaM2 <= 0) group.visible = false;
+        if (this.mode === 'damage') {
+          tone = fire > 0 ? 'fire' : fraction > .0001 ? 'flooded' : actor.damage.compartments[entry.compartmentIndex].breachAreaM2 > 0 ? 'damaged' : 'healthy';
+        }
         water.visible = fraction > .0001;
         waterline!.value = this.definition.construction ? (actor.damage.compartments[entry.compartmentIndex] as { waterLevelY?: number }).waterLevelY ?? -1e6 : compartmentWaterLevel(actor, this.definition, entry.compartmentIndex);
+      }
+      if (this.mode === 'damage') {
+        const selected = entry.id === this.selectedId, affected = tone !== 'healthy';
+        fill.material.color.set(DAMAGE_COLORS[tone]);
+        fill.material.opacity = entry.kind === 'compartment' ? selected ? .24 : .1 : selected || affected ? .6 : .08;
+        // Healthy machinery supplies context; damage must remain visible through overlapping volumes.
+        fill.renderOrder = affected || selected ? 110 : 100;
+        outline.renderOrder = affected || selected ? 112 : 102;
+        outline.material.opacity = selected ? 1 : affected ? .9 : .25;
+        if (!selected) outline.material.color.copy(fill.material.color);
       }
     });
   }

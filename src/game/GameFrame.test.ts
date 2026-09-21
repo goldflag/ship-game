@@ -352,6 +352,29 @@ test('target inspection follows the interpolated underway target and resets with
   expect(targetView.motion).toEqual(simulation.target.motion);
 });
 
+test('ship damage inspection follows our hull, isolates real geometry and restores it on close or port return', async () => {
+  const { game, playerView, targetView, simulation, focusPositions } = await frameHarness();
+  const controls = game as unknown as Game;
+  Reflect.set(game, 'currentAim', [0, 0, -5000]);
+  controls.toggleShipDamage();
+  expect(controls.shipDamageOpen).toBe(true);
+  expect(playerView.inspection.mode).toBe('damage');
+  expect(targetView.inspection.mode).toBe('exterior');
+  const id = `module:${simulation.definition.modules[0].id}`;
+  controls.inspectShipPart(id);
+  expect(playerView.inspection.selectedId).toBe(id);
+  await game.frame(16);
+  expect(focusPositions.at(-1)).toBe(playerView.motion.z);
+  controls.toggleShipDamage();
+  expect(controls.shipDamageOpen).toBe(false);
+  expect(playerView.inspection.mode).toBe('exterior');
+  expect(playerView.inspection.selectedId).toBeUndefined();
+  game.paused = true; controls.toggleShipDamage(); expect(controls.shipDamageOpen).toBe(false);
+  game.paused = false; controls.toggleShipDamage(); controls.setInPort(true);
+  expect(controls.shipDamageOpen).toBe(false);
+  expect(playerView.inspection.mode).toBe('exterior');
+});
+
 test('pause holds the interpolated pose and resume continues without a tick-sized jump', async () => {
   const { game, simulation, playerView } = await frameHarness();
   let time = 0;

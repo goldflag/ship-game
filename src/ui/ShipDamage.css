@@ -1,0 +1,54 @@
+.ship-damage {
+  position:absolute; top:64px; right:var(--fleet-edge); bottom:260px; width:340px;
+  display:flex; flex-direction:column; pointer-events:auto; color:#f0f5f3;
+  border-top:1px solid var(--fleet-line); padding-top:10px; font-size:12px;
+}
+.ship-damage-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.ship-damage-heading h2 { margin:0; font:500 26px/1 'Barlow Condensed',sans-serif; }
+.ship-damage button,.fleet-ship .ship-damage-toggle {
+  width:auto; min-height:30px; padding:4px 0; border:0; border-radius:0; background:transparent;
+  color:inherit; text-shadow:inherit; font:inherit; box-shadow:none;
+}
+.ship-damage button:hover:not(:disabled),.fleet-ship .ship-damage-toggle:hover { background:transparent; color:var(--fleet-gold); }
+.ship-damage-instructions { color:var(--fleet-muted); line-height:1.5; margin:10px 0 14px; }
+.ship-damage-summary { display:grid; grid-template-columns:1fr 1fr; gap:7px 22px; margin:0 0 14px; }
+.ship-damage-summary div { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.ship-damage-summary dt { color:var(--fleet-muted); }
+.ship-damage-summary dd { margin:0; white-space:nowrap; }
+.ship-damage-legend { display:flex; flex-wrap:wrap; gap:7px 14px; list-style:none; margin:0 0 16px; padding:0; font-size:11px; }
+.ship-damage-legend li { display:flex; gap:5px; align-items:center; }
+.ship-damage-legend i { width:7px; height:7px; background:var(--damage-color); }
+.ship-damage-filters { display:flex; gap:20px; border-bottom:1px solid var(--fleet-line); }
+.ship-damage-filters button { padding:5px 0 8px; color:var(--fleet-muted); }
+.ship-damage-filters button[aria-pressed=true] { color:var(--fleet-gold); border-bottom:1px solid currentColor; }
+.ship-damage-selection { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:42px; color:var(--fleet-muted); font-size:11px; }
+.ship-damage-selection span { overflow-wrap:anywhere; }
+.ship-damage-selection button { color:var(--fleet-gold); flex-shrink:0; }
+.ship-damage-list { min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:var(--fleet-line) transparent; padding-right:6px; }
+.ship-damage-list:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }
+.ship-damage .ship-damage-part { display:block; width:100%; text-align:left; padding:12px 0; border-top:1px solid var(--fleet-line); }
+.ship-damage-part-title { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.ship-damage-part-title strong { font:500 17px/1.2 'Barlow Condensed',sans-serif; overflow-wrap:anywhere; }
+.ship-damage-part-title b { font-size:11px; font-weight:500; color:var(--damage-color); text-align:right; }
+.ship-damage .ship-damage-part[aria-pressed=true] .ship-damage-part-title strong { color:var(--fleet-gold); text-decoration:underline; text-underline-offset:4px; }
+.ship-damage-location { display:block; color:var(--fleet-muted); font-size:11px; margin-top:4px; }
+.ship-damage-values { display:flex; flex-wrap:wrap; gap:3px 12px; margin-top:6px; }
+.ship-damage-crew { display:block; margin-top:6px; color:var(--fleet-active); font-size:11px; }
+.ship-damage-empty { margin:10px 0; line-height:1.5; color:var(--fleet-muted); }
+.ship-damage-structure { border-top:1px solid var(--fleet-line); margin-top:10px; padding-top:10px; }
+.ship-damage-structure h3 { margin:0 0 8px; font:500 18px 'Barlow Condensed',sans-serif; }
+.ship-damage-structure div { display:flex; justify-content:space-between; gap:12px; margin:6px 0; color:var(--fleet-muted); }
+.ship-damage-structure strong { color:var(--fleet-gold); font-weight:500; }
+.fleet-ship .ship-damage-toggle { display:flex; align-items:center; gap:7px; color:var(--fleet-muted); font-size:12px; }
+.fleet-ship .ship-damage-toggle[aria-pressed=true] { color:var(--fleet-gold); }
+.fleet-damage-view :is(.fleet-map-area,.fleet-score) { visibility:hidden; }
+@container hud (max-height:800px) { .ship-damage { top:46px; bottom:24px; width:320px; } }
+@container hud (max-width:900px) { .ship-damage { width:min(300px,40cqw); top:50px; bottom:20px; } .ship-damage-summary { grid-template-columns:1fr; gap:4px; } }
+@container hud (max-width:600px) {
+  .ship-damage { top:44px; bottom:170px; width:44cqw; }
+  .ship-damage-heading h2 { font-size:22px; }
+  .ship-damage-heading { flex-wrap:wrap; gap:4px; }
+  .ship-damage-filters { gap:10px; }
+  .ship-damage-legend { gap:6px 10px; }
+  .ship-damage-part-title { flex-wrap:wrap; gap:4px; }
+}

@@ -114,6 +114,8 @@ export type FleetOrder =
   | { kind: 'periscope' }
   | { kind: 'capture-pointer' }
   | { kind: 'return-to-ship' }
+  | { kind: 'ship-damage' }
+  | { kind: 'inspect-part'; id?: string }
   | { kind: 'resize-chart'; direction: number }
   | { kind: 'take-helm'; id: string }
   | { kind: 'helm-wheel'; reason: HelmWheelState['reason'] }
@@ -186,6 +188,8 @@ export interface FleetAuthority extends FleetChart {
   togglePeriscope(): void;
   capturePointer(): void;
   returnToShip(): void;
+  toggleShipDamage(): void;
+  inspectShipPart(id?: string): void;
   resizeChart(direction: number): void;
 }
 
@@ -236,6 +240,8 @@ export function fleetDesk(game: FleetAuthority): FleetDesk {
       case 'periscope': game.togglePeriscope(); return true;
       case 'capture-pointer': game.capturePointer(); return true;
       case 'return-to-ship': game.returnToShip(); return true;
+      case 'ship-damage': game.toggleShipDamage(); return true;
+      case 'inspect-part': game.inspectShipPart(order.id); return true;
       case 'resize-chart': game.resizeChart(order.direction); return true;
       case 'take-helm': game.takeHelm(order.id); return true;
       case 'helm-wheel': game.openHelmWheel(order.reason); return true;

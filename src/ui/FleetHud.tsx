@@ -19,6 +19,8 @@ import { ShipContext, useShip } from './ShipContext';
 import type { FleetDesk } from './fleet/fleetDesk';
 import './FleetHud.css';
 import { bindingLabel, WEAPON_GROUP_ACTIONS, type Keybindings } from '../game/keybindings';
+import { ShipDamage } from './ShipDamage';
+import { Button } from './components';
 import { maxHullIntegrity } from '../ships/durability';
 import { shipTitle } from '../ships/localShips';
 import { RangefinderReadout } from './RangefinderReadout';
@@ -367,8 +369,8 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
 
   return (
     <div
-      className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''} ${commandingShip ? 'fleet-command-helm' : ''} ${followingShip ? 'fleet-following' : ''}`}
-      inert={!visible && !data.airOperationsOpen}
+      className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.shipDamageOpen ? 'fleet-damage-view' : ''} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''} ${commandingShip ? 'fleet-command-helm' : ''} ${followingShip ? 'fleet-following' : ''}`}
+      inert={!visible && !data.airOperationsOpen && !data.shipDamageOpen}
       style={{ '--map-factor': mapSize / 400 } as CSSProperties}
     >
       {fleetCommand && <FleetCommand data={data} desk={desk!} bindings={bindings} />}
@@ -393,6 +395,7 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
       </div>
       <PerformanceCounter className="fleet-fps" fps={data.fps} performance={data.performance} />
       {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting} />}
+      {data.shipDamageOpen && <ShipDamage key={data.ship.id} data={data} desk={desk} bindings={bindings}/>}
 
       {followingShell && (
         <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom.">
@@ -498,6 +501,11 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
       )}
 
       <section className="fleet-ship" aria-label="Ship condition and helm">
+        {data.combat && !data.airOperationsOpen && <Button className="ship-damage-toggle" aria-pressed={!!data.shipDamageOpen}
+          disabled={['sinking', 'capsized'].includes(data.combat.playerStatus) && !data.shipDamageOpen}
+          onClick={event => { desk?.issue({ kind: 'ship-damage' }); event.currentTarget.blur(); }}>
+          <kbd>{bindingLabel(bindings, 'shipDamage')}</kbd> {data.shipDamageOpen ? 'Close ship damage' : 'Ship damage'}
+        </Button>}
         {data.combat && !data.airOperationsOpen && !data.inspecting && (
           <FireControl
             combat={data.combat}

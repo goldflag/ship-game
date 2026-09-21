@@ -29,6 +29,7 @@ export interface InputActions {
   /** The helm wheel is held open like binoculars: true on press, false on release. */
   helmWheel?(held: boolean): void;
   freeCamera?(): void;
+  shipDamage?(): void;
 }
 
 export class InputController {
@@ -106,6 +107,7 @@ export class InputController {
       if (action === 'helmWheel') this.actions.helmWheel?.(true);
       // The free camera is a view as well: it leaves the ship's orders as they stand.
       if (action === 'freeCamera') this.actions.freeCamera?.();
+      if (action === 'shipDamage') this.actions.shipDamage?.();
     }
     if (this.flying) {
       this.keys.add(key);
