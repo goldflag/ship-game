@@ -2,7 +2,7 @@
 //! recipe; native cells own support, clearance, distributed mass and inertia.
 use crate::{
     construction_geometry as cg,
-    construction_paths::{FittedPath, supported_surface},
+    construction_paths::{FittedPath, SurfaceSupport},
     definition::*,
     geometry::*,
 };
@@ -50,6 +50,7 @@ pub(crate) fn compile(
     e: &ConstructionEquipment,
     p: &ConstructionEquipmentPart,
     surfaces: &[ConstructionSurface],
+    support: &SurfaceSupport<'_>,
     hull: &[cg::Cell],
     hull_index: &cg::Broadphase,
 ) -> Result<FittedPath, ConstructionDiagnostic> {
@@ -276,7 +277,7 @@ pub(crate) fn compile(
         }
     }
     for &anchor in &anchors {
-        if !supported_surface(surfaces, anchor, None, stairs, 0.025) {
+        if !support.supported(anchor, None, stairs, 0.025) {
             return Err(error(
                 &e.id,
                 if stairs {

@@ -10,19 +10,125 @@ pub const MAX_CELL_FACES: usize = 128;
 pub const MAX_FACE_VERTICES: usize = 4_194_304;
 pub type Polygon = Vec<Vec3>;
 pub type Cell = ConvexVolume;
-pub fn check_budget(cells: &[Cell]) -> Result<(), String> {
-    let max_faces = cells.iter().map(|c| c.faces.len()).max().unwrap_or(0);
-    let vertices = cells
-        .iter()
-        .map(|c| c.faces.iter().map(|f| f.vertices.len()).sum::<usize>())
-        .sum::<usize>();
-    if cells.len() > MAX_CELLS || max_faces > MAX_CELL_FACES || vertices > MAX_FACE_VERTICES {
-        return Err(format!(
-            "Geometry budget exceeded: {} / {MAX_CELLS} convex cells, {max_faces} / {MAX_CELL_FACES} maximum faces per cell, {vertices} / {MAX_FACE_VERTICES} face vertices",
-            cells.len()
-        ));
+// Derived facts belong to the immutable face allocation. Weak ownership keeps
+// its address unique, including after the last cell is dropped or Arc::make_mut
+// detaches it. A fixed-size direct-mapped cache bounds retained allocations.
+struct CellFacts {
+    faces: std::sync::Weak<[ConvexVolumeFacesItem]>,
+    bounds: std::cell::OnceCell<(Vec3, Vec3)>,
+    normals: std::cell::OnceCell<Vec<Vec3>>,
+    fingerprint: std::cell::OnceCell<[u8; 32]>,
+}
+const FACT_SLOTS: usize = 32_768;
+const FACT_BYTES: usize = 16 * 1024 * 1024;
+struct FactCache {
+    slots: Vec<Option<std::rc::Rc<CellFacts>>>,
+    bytes: usize,
+}
+impl CellFacts {
+    fn bytes(&self) -> usize {
+        // Weak faces retain the Arc allocation and face headers, but no vertex
+        // buffers once the cell dies. Include room for the lazily derived normals.
+        std::mem::size_of::<Self>()
+            + 32
+            + self.faces.as_ptr().len()
+                * (std::mem::size_of::<ConvexVolumeFacesItem>() + std::mem::size_of::<Vec3>())
     }
-    Ok(())
+}
+thread_local! {
+    static CELL_FACTS: std::cell::RefCell<FactCache> =
+        std::cell::RefCell::new(FactCache { slots: vec![None; FACT_SLOTS], bytes: FACT_SLOTS * std::mem::size_of::<Option<std::rc::Rc<CellFacts>>>() });
+}
+fn facts(cell: &Cell) -> std::rc::Rc<CellFacts> {
+    CELL_FACTS.with_borrow_mut(|cache| {
+        let key = std::sync::Arc::as_ptr(&cell.faces) as *const () as usize;
+        let slot = ((key >> 4) ^ (key >> 16)) % cache.slots.len();
+        if let Some(entry) = &cache.slots[slot]
+            && std::ptr::eq(entry.faces.as_ptr(), std::sync::Arc::as_ptr(&cell.faces))
+        {
+            return entry.clone();
+        }
+        let entry = std::rc::Rc::new(CellFacts {
+            faces: std::sync::Arc::downgrade(&cell.faces),
+            bounds: std::cell::OnceCell::new(),
+            normals: std::cell::OnceCell::new(),
+            fingerprint: std::cell::OnceCell::new(),
+        });
+        if let Some(old) = cache.slots[slot].take() {
+            cache.bytes -= old.bytes();
+        }
+        let bytes = entry.bytes();
+        if cache.bytes + bytes <= FACT_BYTES {
+            cache.bytes += bytes;
+            cache.slots[slot] = Some(entry.clone());
+        }
+        entry
+    })
+}
+
+impl CellFacts {
+    fn normals<'a>(&'a self, cell: &Cell) -> &'a [Vec3] {
+        self.normals.get_or_init(|| {
+            cell.faces
+                .iter()
+                .map(|face| normal(&face.vertices))
+                .collect()
+        })
+    }
+}
+
+/// Ordered content identity for the construction CSG cache. Repeated operations
+/// on a shared immutable cell hash its vertices only once.
+pub(crate) fn fingerprint(cell: &Cell) -> [u8; 32] {
+    use sha2::{Digest, Sha256};
+    *facts(cell).fingerprint.get_or_init(|| {
+        let mut hash = Sha256::new();
+        hash.update((cell.faces.len() as u64).to_le_bytes());
+        for face in cell.faces.iter() {
+            hash.update((face.vertices.len() as u64).to_le_bytes());
+            for vertex in &face.vertices {
+                for n in vertex {
+                    hash.update(n.to_bits().to_le_bytes());
+                }
+            }
+        }
+        hash.finalize().into()
+    })
+}
+
+/// Running bounds for a collection that only appends cells. Rechecking every
+/// existing face after each skin patch makes large hulls quadratic in size.
+#[derive(Default)]
+pub(crate) struct CellBudget {
+    cells: usize,
+    max_faces: usize,
+    vertices: usize,
+}
+impl CellBudget {
+    pub fn add(&mut self, cells: &[Cell]) -> Result<(), String> {
+        self.cells += cells.len();
+        for cell in cells {
+            self.max_faces = self.max_faces.max(cell.faces.len());
+            self.vertices += cell
+                .faces
+                .iter()
+                .map(|face| face.vertices.len())
+                .sum::<usize>();
+        }
+        if self.cells > MAX_CELLS
+            || self.max_faces > MAX_CELL_FACES
+            || self.vertices > MAX_FACE_VERTICES
+        {
+            return Err(format!(
+                "Geometry budget exceeded: {} / {MAX_CELLS} convex cells, {} / {MAX_CELL_FACES} maximum faces per cell, {} / {MAX_FACE_VERTICES} face vertices",
+                self.cells, self.max_faces, self.vertices
+            ));
+        }
+        Ok(())
+    }
+}
+pub fn check_budget(cells: &[Cell]) -> Result<(), String> {
+    CellBudget::default().add(cells)
 }
 
 pub fn normal(p: &[Vec3]) -> Vec3 {
@@ -70,7 +176,7 @@ pub fn clean(p: &mut Polygon) {
     }
 }
 pub fn clip_polygon(p: &[Vec3], n: Vec3, d: f64) -> Polygon {
-    let mut out = vec![];
+    let mut out = Vec::with_capacity(p.len() + 1);
     clip_polygon_into(p, n, d, &mut out);
     out
 }
@@ -89,13 +195,15 @@ fn clip_polygon_into(p: &[Vec3], n: Vec3, d: f64, out: &mut Polygon) {
     clean(out);
 }
 pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
-    let (mut faces, mut cap) = (vec![], vec![]);
     let mut outside = false;
     let mut inside = false;
-    for f in c.faces.iter() {
+    'classify: for f in c.faces.iter() {
         for &p in &f.vertices {
             outside |= dot(n, p) - d > EPS;
             inside |= dot(n, p) - d < -EPS;
+            if outside && inside {
+                break 'classify;
+            }
         }
     }
     if !outside {
@@ -104,14 +212,16 @@ pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
     if !inside {
         return None;
     }
+    let mut faces = Vec::with_capacity(c.faces.len() + 1);
+    let mut cap = Vec::with_capacity(c.faces.len());
     for f in c.faces.iter() {
         let p = clip_polygon(&f.vertices, n, d);
-        if p.len() < 3 || area(&p) < EPS * EPS {
+        if p.len() < 3 || area_below(&p, EPS * EPS) {
             continue;
         }
         for &v in &p {
             if (dot(n, v) - d).abs() < EPS * 8.0
-                && !cap.iter().any(|q| length(sub(*q, v)) < EPS * 8.0)
+                && !cap.iter().any(|q| shorter(sub(*q, v), EPS * 8.0))
             {
                 cap.push(v);
             }
@@ -125,13 +235,16 @@ pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
         );
         let u = normalize(sub(cap[0], center));
         let v = cross(n, u);
-        cap.sort_by(|a, b| {
-            let a = sub(*a, center);
-            let b = sub(*b, center);
-            dot(a, v)
-                .atan2(dot(a, u))
-                .total_cmp(&dot(b, v).atan2(dot(b, u)))
-        });
+        let mut angles: Vec<_> = cap
+            .iter()
+            .map(|p| {
+                let a = sub(*p, center);
+                (dot(a, v).atan2(dot(a, u)), *p)
+            })
+            .collect();
+        angles.sort_by(|a, b| a.0.total_cmp(&b.0));
+        cap.clear();
+        cap.extend(angles.into_iter().map(|a| a.1));
         clean(&mut cap);
         if cap.len() >= 3 {
             faces.push(ConvexVolumeFacesItem { vertices: cap });
@@ -142,9 +255,11 @@ pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
     })
 }
 pub fn contains(c: &Cell, p: Vec3) -> bool {
+    let facts = facts(c);
     c.faces
         .iter()
-        .all(|f| dot(normal(&f.vertices), sub(p, f.vertices[0])) <= EPS)
+        .zip(facts.normals(c))
+        .all(|(f, &n)| dot(n, sub(p, f.vertices[0])) <= EPS)
 }
 pub fn closest_point(c: &Cell, p: Vec3) -> Vec3 {
     if contains(c, p) {
@@ -157,8 +272,8 @@ pub fn closest_point(c: &Cell, p: Vec3) -> Vec3 {
             best = (q, d);
         }
     };
-    for f in c.faces.iter() {
-        let n = normal(&f.vertices);
+    let facts = facts(c);
+    for (f, &n) in c.faces.iter().zip(facts.normals(c)) {
         let q = sub(p, scale(n, dot(n, sub(p, f.vertices[0]))));
         if (0..f.vertices.len()).all(|i| {
             dot(
@@ -262,7 +377,9 @@ pub fn room_distance(room: &crate::definition::Compartment, p: Vec3) -> f64 {
     }))
 }
 pub fn bounds(c: &Cell) -> (Vec3, Vec3) {
-    crate::structure::bounds(c.faces.iter().flat_map(|f| f.vertices.iter().copied()))
+    *facts(c).bounds.get_or_init(|| {
+        crate::structure::bounds(c.faces.iter().flat_map(|f| f.vertices.iter().copied()))
+    })
 }
 pub fn separated(a: &Cell, b: &Cell) -> bool {
     let (ac, asz) = bounds(a);
@@ -274,37 +391,54 @@ pub fn intersection(a: &Cell, b: &Cell) -> Option<Cell> {
         return None;
     }
     let mut c = a.clone();
-    for f in b.faces.iter() {
-        let n = normal(&f.vertices);
+    let facts = facts(b);
+    for (f, &n) in b.faces.iter().zip(facts.normals(b)) {
         c = clip(&c, n, dot(n, f.vertices[0]))?;
     }
     Some(c)
+}
+fn planes(cell: &Cell) -> Vec<(Vec3, f64)> {
+    let facts = facts(cell);
+    cell.faces
+        .iter()
+        .zip(facts.normals(cell))
+        .map(|(face, &n)| (n, dot(n, face.vertices[0])))
+        .collect()
 }
 pub fn subtract(a: &Cell, b: &Cell) -> Vec<Cell> {
     if separated(a, b) {
         return vec![a.clone()];
     }
-    // An overlapping AABB is common for neighboring curve facets. Splitting by
-    // a non-intersecting cutter preserves volume but needlessly fragments it.
-    // Prove actual positive-volume contact before introducing any cut planes.
-    if intersection(a, b).is_none_or(|overlap| moments(&overlap).volume <= EPS) {
+    subtract_overlapping(a, &planes(b))
+}
+/// The caller has already compared bounds. One cutter's exact planes are shared
+/// by all subjects, including the contact test and the subsequent split.
+fn subtract_overlapping(a: &Cell, planes: &[(Vec3, f64)]) -> Vec<Cell> {
+    // The overlap test already walks the inside of every cut. Retain those
+    // immutable cells so a positive overlap need not repeat the same clipping.
+    let mut inside = a.clone();
+    let mut stages = Vec::with_capacity(planes.len());
+    for &(n, d) in planes {
+        let Some(next) = clip(&inside, n, d) else {
+            return vec![a.clone()];
+        };
+        stages.push(inside);
+        inside = next;
+    }
+    if moments(&inside).volume <= EPS {
         return vec![a.clone()];
     }
-    let mut inside = Some(a.clone());
     let mut out = vec![];
-    for f in b.faces.iter() {
-        let Some(c) = inside else { break };
-        let n = normal(&f.vertices);
-        let d = dot(n, f.vertices[0]);
-        if let Some(piece) = clip(&c, scale(n, -1.), -d)
+    for (cell, &(n, d)) in stages.iter().zip(planes) {
+        if let Some(piece) = clip(cell, scale(n, -1.), -d)
             && moments(&piece).volume > EPS
         {
             out.push(piece);
         }
-        inside = clip(&c, n, d);
     }
     out
 }
+
 pub fn subtract_all<'a>(
     cells: Vec<Cell>,
     cutters: impl IntoIterator<Item = &'a Cell>,
@@ -320,6 +454,7 @@ pub fn subtract_all<'a>(
     let mut cells: Vec<_> = cells.into_iter().map(prepare).collect();
     for b in cutters {
         let (bc, bs) = bounds(b);
+        let planes = std::cell::OnceCell::new();
         let mut next = vec![];
         let mut max_faces = 0;
         let mut vertices = 0;
@@ -328,7 +463,11 @@ pub fn subtract_all<'a>(
             if (0..3).any(|i| (ac[i] - bc[i]).abs() > (asz[i] + bs[i]) * 0.5 + EPS) {
                 next.push((a, (ac, asz), count));
             } else {
-                next.extend(subtract(&a, b).into_iter().map(prepare));
+                next.extend(
+                    subtract_overlapping(&a, planes.get_or_init(|| self::planes(b)))
+                        .into_iter()
+                        .map(prepare),
+                );
             }
             for (cell, _, count) in &next[start..] {
                 vertices += count;
@@ -480,6 +619,9 @@ impl Broadphase {
     /// Appends a cell; its index is the number of cells inserted before it.
     pub fn insert(&mut self, cell: &Cell) -> usize {
         let (lo, hi) = Self::extent(cell);
+        self.insert_box(lo, hi)
+    }
+    pub fn insert_box(&mut self, lo: Vec3, hi: Vec3) -> usize {
         let index = self.boxes.len();
         self.boxes.push((lo, hi));
         let (a, b) = self.range(lo, hi);
@@ -808,16 +950,15 @@ pub fn connected(a: &Cell, b: &Cell) -> bool {
     if intersection(a, b).is_some_and(|c| moments(&c).volume > EPS) {
         return true;
     }
-    a.faces.iter().any(|fa| {
-        let n = normal(&fa.vertices);
-        b.faces.iter().any(|fb| {
-            let bn = normal(&fb.vertices);
+    let af = facts(a);
+    let bf = facts(b);
+    a.faces.iter().zip(af.normals(a)).any(|(fa, &n)| {
+        b.faces.iter().zip(bf.normals(b)).any(|(fb, &bn)| {
             if dot(n, bn) > -1. + EPS || (dot(n, sub(fa.vertices[0], fb.vertices[0]))).abs() > EPS {
                 return false;
             }
             let mut p = fa.vertices.clone();
-            for f in b.faces.iter() {
-                let n = normal(&f.vertices);
+            for (f, &n) in b.faces.iter().zip(bf.normals(b)) {
                 p = clip_polygon(&p, n, dot(n, f.vertices[0]));
                 if p.len() < 3 {
                     return false;
@@ -911,15 +1052,15 @@ pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
                     for f in a.faces.iter() {
                         let matches = b.faces.iter().any(|g| {
                             f.vertices.len() == g.vertices.len()
-                                && dot(normal(&f.vertices), normal(&g.vertices)) < -1. + EPS
                                 && f.vertices
                                     .iter()
-                                    .all(|p| g.vertices.iter().any(|q| length(sub(*p, *q)) < EPS))
+                                    .all(|p| g.vertices.iter().any(|q| shorter(sub(*p, *q), EPS)))
+                                && dot(normal(&f.vertices), normal(&g.vertices)) < -1. + EPS
                         });
                         if matches {
                             shared = true;
                         } else {
-                            faces.push(f.clone());
+                            faces.push(f);
                         }
                     }
                 }
@@ -933,10 +1074,11 @@ pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
                 }) {
                     continue;
                 }
-                let faces: Vec<_> = merge_patches(faces.into_iter().map(|f| f.vertices).collect())
-                    .into_iter()
-                    .map(|vertices| ConvexVolumeFacesItem { vertices })
-                    .collect();
+                let faces: Vec<_> =
+                    merge_patches(faces.into_iter().map(|f| f.vertices.clone()).collect())
+                        .into_iter()
+                        .map(|vertices| ConvexVolumeFacesItem { vertices })
+                        .collect();
                 joined = Some((
                     i,
                     j,
@@ -960,7 +1102,108 @@ pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
 mod tests {
     use super::*;
     #[test]
+    fn appended_geometry_enforces_cumulative_cell_face_and_vertex_limits() {
+        let cube = box_cell([0.; 3], [1.; 3]);
+        let batch = vec![cube.clone(); MAX_CELLS / 2];
+        let mut budget = CellBudget::default();
+        budget.add(&batch).unwrap();
+        budget.add(&batch).unwrap();
+        assert!(
+            budget
+                .add(&[cube])
+                .unwrap_err()
+                .starts_with("Geometry budget exceeded: 131073 / 131072 convex cells")
+        );
+        let many_faces = Cell {
+            faces: vec![
+                ConvexVolumeFacesItem {
+                    vertices: vec![[0.; 3]; 3]
+                };
+                MAX_CELL_FACES + 1
+            ]
+            .into(),
+        };
+        assert!(
+            CellBudget::default()
+                .add(&[many_faces])
+                .unwrap_err()
+                .contains("129 / 128 maximum faces per cell")
+        );
+        let many_vertices = Cell {
+            faces: vec![
+                ConvexVolumeFacesItem {
+                    vertices: vec![[0.; 3]; 128]
+                };
+                128
+            ]
+            .into(),
+        };
+        let mut budget = CellBudget::default();
+        let batch = vec![many_vertices.clone(); 128];
+        budget.add(&batch).unwrap();
+        budget.add(&batch).unwrap();
+        assert!(
+            budget
+                .add(&[many_vertices])
+                .unwrap_err()
+                .contains("4210688 / 4194304 face vertices")
+        );
+    }
+
+    #[test]
+    fn derived_cell_facts_follow_copy_on_write_and_cache_eviction() {
+        let original = box_cell([1., 2., 3.], [4., 6., 8.]);
+        assert_eq!(bounds(&original), ([1., 2., 3.], [4., 6., 8.]));
+        assert!(contains(&original, [1., 2., 3.]));
+        let original_hash = fingerprint(&original);
+        let mut moved = original.clone();
+        for face in std::sync::Arc::make_mut(&mut moved.faces) {
+            for point in &mut face.vertices {
+                point[0] += 20.;
+            }
+        }
+        assert_eq!(bounds(&moved), ([21., 2., 3.], [4., 6., 8.]));
+        assert!(contains(&moved, [21., 2., 3.]));
+        assert!(!contains(&moved, [1., 2., 3.]));
+        assert_eq!(closest_point(&moved, [0., 2., 3.]), [19., 2., 3.]);
+        assert_ne!(original_hash, fingerprint(&moved));
+        for i in 0..(FACT_SLOTS * 2) {
+            let cell = box_cell([i as f64, 0., 0.], [1.; 3]);
+            assert_eq!(bounds(&cell).0, [i as f64, 0., 0.]);
+            assert!(contains(&cell, [i as f64, 0., 0.]));
+        }
+        assert_eq!(bounds(&original), ([1., 2., 3.], [4., 6., 8.]));
+        assert_eq!(closest_point(&original, [-9., 2., 3.]), [-1., 2., 3.]);
+        assert!(contains(&moved, [21., 2., 3.]));
+        assert_eq!(fingerprint(&original), original_hash);
+        CELL_FACTS.with_borrow(|cache| {
+            assert!(cache.bytes <= FACT_BYTES);
+            assert_eq!(cache.slots.len(), FACT_SLOTS);
+        });
+    }
+
+    #[test]
     fn prepared_subtraction_matches_original_cutter_order_and_geometry() {
+        // Reference keeps the old independent overlap and subtraction passes.
+        fn original_subtract(a: &Cell, b: &Cell) -> Vec<Cell> {
+            if separated(a, b) || intersection(a, b).is_none_or(|c| moments(&c).volume <= EPS) {
+                return vec![a.clone()];
+            }
+            let mut inside = Some(a.clone());
+            let mut out = vec![];
+            for face in b.faces.iter() {
+                let Some(cell) = inside else { break };
+                let n = normal(&face.vertices);
+                let d = dot(n, face.vertices[0]);
+                if let Some(piece) = clip(&cell, scale(n, -1.), -d)
+                    && moments(&piece).volume > EPS
+                {
+                    out.push(piece);
+                }
+                inside = clip(&cell, n, d);
+            }
+            out
+        }
         for step in 0..24 {
             let subjects = vec![box_cell([0.; 3], [4.; 3]), box_cell([6., 0., 0.], [3.; 3])];
             let cutters: Vec<_> = (0..8)
@@ -977,7 +1220,7 @@ mod tests {
             for cutter in &cutters {
                 reference = reference
                     .iter()
-                    .flat_map(|cell| subtract(cell, cutter))
+                    .flat_map(|cell| original_subtract(cell, cutter))
                     .collect();
                 check_budget(&reference).unwrap();
             }

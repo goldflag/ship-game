@@ -272,7 +272,16 @@ Entry points:
   catalog JSON. `compile_construction_edits` replays an array of revisions through one warm
   compiler and asserts equality with fresh compilation.
 - Browser: `ConstructionClient` (`src/ships/constructionClient.ts`) runs the compiler in a
-  dedicated worker (`construction.worker.ts`).
+  dedicated worker (`construction.worker.ts`). The worker sends the compiler's JSON directly;
+  the client parses it once, avoiding a structured clone of the expanded geometry.
+
+Geometry queries reuse bounds, face normals and content fingerprints for immutable face
+allocations. Weak references preserve allocation identity without retaining dead vertex buffers;
+copy-on-write edits get fresh facts. Spatial indexes narrow fitting support tests to nearby
+geometry, and material budgets accumulate counts as cells are appended. These shortcuts preserve
+exact clipping order, geometry limits and validation. The `wasm-dev` profile uses full Rust
+optimization for interactive compilation, with incremental compilation and no LTO for faster
+local rebuilds.
 
 What compilation does:
 
@@ -417,6 +426,7 @@ Source bounds are constants in `construction.rs`, mirrored by `CONSTRUCTION_LIMI
 | Piece dimensions / positions | 0.01–500 m / within ±1,000 m |
 | IDs | 1–64 characters, ASCII letters, digits, `-`, `_` |
 | Geometry cache | 32 MiB and 8,192 entries |
+| Derived cell facts cache | 16 MiB and 32,768 slots per thread |
 | Run or Fill gesture (editor) | 128 pieces |
 
 Complexity failures keep the source and ask for simpler geometry. These are technical bounds,

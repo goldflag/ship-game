@@ -62,12 +62,15 @@ export class ConstructionClient {
       this.worker.postMessage({ type: pending.type, id: pending.id, source: pending.source, partIds: pending.partIds });
     } catch (error) { this.fail(error instanceof Error ? error : new Error(String(error))); }
   }
-  private receive(message: { id: number; result?: ConstructionResult; suggestion?: ConstructionSuggestion; sourceId?: string; revision?: string; error?: string }) {
+  private receive(message: { id: number; resultJson?: string; suggestion?: ConstructionSuggestion; sourceId?: string; revision?: string; error?: string }) {
     const pending = this.active;
     if (!pending || message.id !== pending.id) return;
-    const result = pending.type === 'compile' ? message.result : message.suggestion;
+    let compiled: ConstructionResult | undefined;
+    try { if (message.resultJson) compiled = JSON.parse(message.resultJson); }
+    catch { this.fail(new Error('The compiler returned an unreadable design.')); return; }
+    const result = pending.type === 'compile' ? compiled : message.suggestion;
     if (message.error || !result) { this.fail(new Error(message.error || 'The compiler returned no design.')); return; }
-    if ((message.result?.sourceId ?? message.sourceId) !== pending.source.id || (message.result?.revision ?? message.revision) !== pending.source.revision) {
+    if ((compiled?.sourceId ?? message.sourceId) !== pending.source.id || (compiled?.revision ?? message.revision) !== pending.source.revision) {
       this.fail(new Error('The compiler returned a different design revision. Reopen the design to retry.')); return;
     }
     this.active = undefined; clearTimeout(this.timer); pending.cleanup();

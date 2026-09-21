@@ -1252,6 +1252,7 @@ fn build(
     }
     let hull_index = cg::Broadphase::sized_for(&cells);
     let mut material: Vec<cg::Cell> = vec![];
+    let mut material_budget = cg::CellBudget::default();
     let mut material_index = cg::Broadphase::new(hull_index.pitch());
     let mut contributions = vec![];
     for (i, s) in out
@@ -1291,8 +1292,8 @@ fn build(
             for cell in &occupied {
                 material_index.insert(cell);
             }
+            material_budget.add(&occupied).map_err(fail)?;
             material.extend(occupied);
-            cg::check_budget(&material).map_err(fail)?;
         }
     }
     let (center, dimensions) = crate::structure::bounds(
@@ -1343,8 +1344,8 @@ fn build(
         for cell in &occupied {
             material_index.insert(cell);
         }
+        material_budget.add(&occupied).map_err(fail)?;
         material.extend(occupied);
-        cg::check_budget(&material).map_err(fail)?;
     }
     let mut material_volume = cg::total(&material).volume;
     // Each hull cell loses only the plating near it; cells never interact, so this equals
@@ -1521,11 +1522,12 @@ fn build(
             ));
             continue;
         }
-        if !installation
-            .solids
-            .iter()
-            .any(|a| material.iter().any(|b| cg::connected(a, b)))
-        {
+        if !installation.solids.iter().any(|a| {
+            material_index
+                .candidates(a)
+                .into_iter()
+                .any(|i| cg::connected(a, &material[i]))
+        }) {
             let d = error(
                 "installation-support",
                 "Barbette collar has no physical connection to hull plating or an internal deck",
@@ -1576,8 +1578,11 @@ fn build(
             &occupied,
             STEEL_DENSITY,
         ));
+        for cell in &occupied {
+            material_index.insert(cell);
+        }
+        material_budget.add(&occupied).map_err(fail)?;
         material.extend(occupied);
-        cg::check_budget(&material).map_err(fail)?;
         // A destroyed installation exposes only the actual bore; its fixed
         // collar and trunk remain ordinary physical material.
         for (id, kind, polygon) in &mut penetrations {
@@ -1800,31 +1805,47 @@ fn build(
     for b in &boundaries {
         let mut n = [0.; 3];
         n[axis(&b.axis)] = 1.;
+        // These faces depend only on the boundary and the completed rooms. A
+        // fragmented hull can have hundreds of plates on this plane; scanning
+        // every room again for each plate and each left face is quadratic work.
+        let plane_faces = |normal, offset| {
+            def.compartments
+                .iter()
+                .map(|room| {
+                    room_plane_faces(room, normal, offset)
+                        .into_iter()
+                        .map(|mut face| {
+                            for p in &mut face {
+                                p[axis(&b.axis)] = b.offset;
+                            }
+                            face
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>()
+        };
+        let left_faces = plane_faces(n, b.offset - b.thickness_mm / 2000.);
+        let right_faces = plane_faces(scale(n, -1.), -(b.offset + b.thickness_mm / 2000.));
         for armor in def
             .armor
             .iter()
             .filter(|a| a.name == b.id && a.exterior == Some(false))
         {
             let plate = &armor.plate.as_ref().unwrap().vertices;
-            for left in &def.compartments {
-                for mut a in room_plane_faces(left, n, b.offset - b.thickness_mm / 2000.) {
-                    for p in &mut a {
-                        p[axis(&b.axis)] = b.offset;
-                    }
-                    let a = intersect_polygons(a, plate);
+            for (left, faces) in def.compartments.iter().zip(&left_faces) {
+                for a in faces {
+                    let a = intersect_polygons(a.clone(), plate);
                     if cg::area(&a) < 1e-8 {
                         continue;
                     }
-                    for right in def.compartments.iter().filter(|r| r.id != left.id) {
-                        for mut p in room_plane_faces(
-                            right,
-                            scale(n, -1.),
-                            -(b.offset + b.thickness_mm / 2000.),
-                        ) {
-                            for v in &mut p {
-                                v[axis(&b.axis)] = b.offset;
-                            }
-                            let polygon = intersect_polygons(a.clone(), &p);
+                    for (right, faces) in def
+                        .compartments
+                        .iter()
+                        .zip(&right_faces)
+                        .filter(|(r, _)| r.id != left.id)
+                    {
+                        for p in faces {
+                            let polygon = intersect_polygons(a.clone(), p);
                             let area = cg::area(&polygon);
                             if area < 1e-8 {
                                 continue;
@@ -2148,15 +2169,17 @@ fn intersect_polygons(mut polygon: Vec<Vec3>, clip: &[Vec3]) -> Vec<Vec3> {
     polygon
 }
 fn room_plane_faces(room: &Compartment, normal: Vec3, offset: f64) -> Vec<Vec<Vec3>> {
+    #[cfg(test)]
+    tests::ROOM_PLANE_SCANS.with(|count| count.set(count.get() + 1));
     room.volumes
         .iter()
         .flatten()
         .flat_map(|c| c.faces.iter())
         .filter(|f| {
-            dot(cg::normal(&f.vertices), normal) > 1. - 1e-7
-                && f.vertices
-                    .iter()
-                    .all(|v| (dot(normal, *v) - offset).abs() < 1e-7)
+            f.vertices
+                .iter()
+                .all(|v| (dot(normal, *v) - offset).abs() < 1e-7)
+                && dot(cg::normal(&f.vertices), normal) > 1. - 1e-7
         })
         .map(|f| f.vertices.clone())
         .collect()
@@ -2376,6 +2399,9 @@ fn equipment(
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
     let mut fitting_index = cg::Broadphase::new(8.);
     let hull_index = cg::Broadphase::sized_for(hull);
+    let platform_index = cg::Broadphase::sized_for(platforms);
+    let material_support_index = cg::Broadphase::sized_for(_material);
+    let surface_support = crate::construction_paths::SurfaceSupport::new(&out.surfaces);
     let mut support_sockets = vec![];
     let mut fitting_surfaces = vec![];
     let has_lines = c.equipment.iter().any(|e| {
@@ -2568,6 +2594,7 @@ fn equipment(
                 e,
                 p,
                 &out.surfaces,
+                &surface_support,
                 hull,
                 &hull_index,
                 &support_sockets,
@@ -2860,10 +2887,25 @@ fn equipment(
         };
         // Internal powerplants are supported by their installation. The occupied-volume
         // check above already requires the entire package to fit in free hull interior.
+        let low = sub(attachment, [fit::ATTACHMENT_M; 3]);
+        let high = add(attachment, [fit::ATTACHMENT_M; 3]);
+        let support_index = if p.placement == "internal" {
+            &material_support_index
+        } else {
+            &hull_index
+        };
         let attached = (p.kind == "engine" && p.placement == "internal")
-            || supports
-                .iter()
-                .chain(platforms.iter().filter(|_| p.placement == "deck"))
+            || support_index
+                .candidates_box(low, high)
+                .into_iter()
+                .map(|i| &supports[i])
+                .chain(
+                    platform_index
+                        .candidates_box(low, high)
+                        .into_iter()
+                        .filter(|_| p.placement == "deck")
+                        .map(|i| &platforms[i]),
+                )
                 .any(|h| {
                     cg::contains(h, attachment)
                         || length(sub(cg::closest_point(h, attachment), attachment))
@@ -2879,8 +2921,7 @@ fn equipment(
                             dot(n, sub(attachment, f.vertices[0])) < -1e-6
                         })
                     }))
-                || crate::construction_paths::supported_surface(
-                    &out.surfaces,
+                || surface_support.supported(
                     attachment,
                     Some(world_direction),
                     false,
@@ -2888,13 +2929,7 @@ fn equipment(
                 ));
         let attached = attached
             && (p.placement != "underwater"
-                || out.surfaces.iter().any(|s| {
-                    !s.open
-                        && length(sub(
-                            cg::closest_point(&cg::prism(&s.vertices, 0.001), attachment),
-                            attachment,
-                        )) <= fit::ATTACHMENT_M
-                }));
+                || surface_support.supported(attachment, None, false, fit::ATTACHMENT_M));
         let support = if attached {
             None
         } else {
@@ -3752,6 +3787,68 @@ fn resolve_magazine<'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    thread_local! {
+        pub(super) static ROOM_PLANE_SCANS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    }
+
+    #[test]
+    fn fragmented_bulkheads_scan_each_room_once_per_side() {
+        let (mut source, catalog) = fixture();
+        source.construction.primitives = (0..12)
+            .map(|i| ConstructionPrimitive {
+                id: format!("segment-{i:02}"),
+                kind: "box".into(),
+                position: [0., 0., (i as f64 - 5.5) * 4.],
+                size: [10., 4., 4.],
+                ..Default::default()
+            })
+            .collect();
+        source.construction.boundaries = vec![
+            ConstructionBoundary {
+                id: "deck".into(),
+                axis: "y".into(),
+                offset: 0.,
+                thickness_mm: 20.,
+            },
+            ConstructionBoundary {
+                id: "bulkhead".into(),
+                axis: "z".into(),
+                offset: 0.,
+                thickness_mm: 20.,
+            },
+        ];
+        ROOM_PLANE_SCANS.with(|count| count.set(0));
+        let result = compile(&source, &catalog);
+        let scans = ROOM_PLANE_SCANS.with(|count| count.get());
+        let def = result.definition.expect("Segmented hull must compile");
+        assert_eq!(def.compartments.len(), 4);
+        assert!(!def.connections.is_empty());
+        // Bound work independently of the number of hull/armor fragments. Count
+        // scans, not elapsed time, so this catches the regression on any machine.
+        assert!(
+            scans <= 2 * source.construction.boundaries.len() * def.compartments.len(),
+            "Repeated compartment scans: {scans}"
+        );
+        for connection in &def.connections {
+            assert_eq!(connection.state.as_deref(), Some("closed"));
+            assert_ne!(connection.from_id, connection.to_id);
+            assert!(
+                def.armor
+                    .iter()
+                    .any(|armor| Some(&armor.id) == connection.armor_id.as_ref())
+            );
+        }
+        let area: f64 = def
+            .connections
+            .iter()
+            .map(|connection| connection.area_m2)
+            .sum();
+        // The deck spans both halves and the transverse wall both decks, minus
+        // the exterior plating and their shared steel intersection.
+        let expected = (10. - 0.02) * (48. - 0.02 - 0.02) + (10. - 0.02) * (4. - 0.02 - 0.02);
+        assert!((area - expected).abs() < 1e-6, "{area} != {expected}");
+    }
+
     #[test]
     fn ship_surface_finish_preserves_physics_and_validates_saved_source() {
         let (mut source, catalog) = fixture();

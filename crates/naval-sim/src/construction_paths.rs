@@ -20,22 +20,44 @@ fn finite(p: Vec3) -> bool {
     p.iter().all(|x| x.is_finite() && x.abs() <= 1000.)
 }
 
-pub(crate) fn supported_surface(
-    surfaces: &[ConstructionSurface],
-    point: Vec3,
-    direction: Option<Vec3>,
-    deck_only: bool,
-    tolerance: f64,
-) -> bool {
-    surfaces.iter().any(|s| {
-        !s.open
-            && (!deck_only || s.normal[1] >= 0.35)
-            && direction.is_none_or(|d| dot(s.normal, d) <= -0.5)
-            && length(sub(
-                cg::closest_point(&cg::prism(&s.vertices, 0.001), point),
-                point,
-            )) <= tolerance
-    })
+/// Immutable hull skin queried by fitting sockets and path anchors. Index the
+/// thin support prisms once; construct exact geometry only for nearby faces.
+pub(crate) struct SurfaceSupport<'a> {
+    surfaces: &'a [ConstructionSurface],
+    index: cg::Broadphase,
+}
+impl<'a> SurfaceSupport<'a> {
+    pub fn new(surfaces: &'a [ConstructionSurface]) -> Self {
+        let mut index = cg::Broadphase::new(8.);
+        for surface in surfaces {
+            let (center, size) = crate::structure::bounds(surface.vertices.iter().copied());
+            // The exact test extrudes the polygon by 1 mm along its normal.
+            let half = add(scale(size, 0.5), [0.002; 3]);
+            index.insert_box(sub(center, half), add(center, half));
+        }
+        Self { surfaces, index }
+    }
+    pub fn supported(
+        &self,
+        point: Vec3,
+        direction: Option<Vec3>,
+        deck_only: bool,
+        tolerance: f64,
+    ) -> bool {
+        self.index
+            .candidates_box(sub(point, [tolerance; 3]), add(point, [tolerance; 3]))
+            .into_iter()
+            .any(|i| {
+                let s = &self.surfaces[i];
+                !s.open
+                    && (!deck_only || s.normal[1] >= 0.35)
+                    && direction.is_none_or(|d| dot(s.normal, d) <= -0.5)
+                    && length(sub(
+                        cg::closest_point(&cg::prism(&s.vertices, 0.001), point),
+                        point,
+                    )) <= tolerance
+            })
+    }
 }
 
 pub(crate) struct SupportSocket {
@@ -183,6 +205,7 @@ pub(crate) fn compile(
     e: &ConstructionEquipment,
     p: &ConstructionEquipmentPart,
     surfaces: &[ConstructionSurface],
+    support: &SurfaceSupport<'_>,
     hull: &[cg::Cell],
     hull_index: &cg::Broadphase,
     sockets: &[SupportSocket],
@@ -261,7 +284,7 @@ pub(crate) fn compile(
         ));
     }
     if matches!(profile.kind.as_str(), "inclined-ladder" | "framed-ladder") {
-        return crate::construction_access::compile(e, p, surfaces, hull, hull_index);
+        return crate::construction_access::compile(e, p, surfaces, support, hull, hull_index);
     }
     if source.access.is_some() {
         return Err(error(
@@ -453,7 +476,7 @@ pub(crate) fn compile(
         } else {
             0.05
         };
-        if supported_surface(surfaces, anchor, None, railing, tolerance) {
+        if support.supported(anchor, None, railing, tolerance) {
             continue;
         }
         // A run may continue into a deckhouse or step: a foot covered by a later
@@ -540,4 +563,75 @@ pub(crate) fn compile(
             inertia_kg_m2: inertia,
         },
     })
+}
+
+#[cfg(test)]
+mod support_tests {
+    use super::*;
+    #[test]
+    fn indexed_support_matches_full_skin_scan_at_edges_and_tolerances() {
+        let mut surfaces = vec![];
+        for i in 0..8 {
+            let cell = cg::transform(
+                &cg::box_cell([0.; 3], [3., 2., 4.]),
+                [i as f64 * 7., (i % 2) as f64, 0.],
+                [1.; 3],
+                i as f64 * 0.17,
+            );
+            for (j, face) in cell.faces.iter().enumerate() {
+                surfaces.push(ConstructionSurface {
+                    vertices: face.vertices.clone(),
+                    normal: cg::normal(&face.vertices),
+                    open: i == 3 && j == 3,
+                    ..Default::default()
+                });
+            }
+        }
+        let support = SurfaceSupport::new(&surfaces);
+        for face in &surfaces {
+            let center = scale(
+                face.vertices.iter().copied().fold([0.; 3], add),
+                1. / face.vertices.len() as f64,
+            );
+            for datum in [
+                center,
+                face.vertices[0],
+                scale(add(face.vertices[0], face.vertices[1]), 0.5),
+            ] {
+                for tolerance in [0.025, 0.05, 0.08] {
+                    for distance in [
+                        -0.001,
+                        0.,
+                        tolerance - 1e-9,
+                        tolerance,
+                        tolerance + 1e-9,
+                        1.,
+                    ] {
+                        let point = add(datum, scale(face.normal, distance));
+                        for deck_only in [false, true] {
+                            for direction in [None, Some([0., -1., 0.]), Some([1., 0., 0.])] {
+                                let expected = surfaces.iter().any(|surface| {
+                                    !surface.open
+                                        && (!deck_only || surface.normal[1] >= 0.35)
+                                        && direction.is_none_or(|d| dot(surface.normal, d) <= -0.5)
+                                        && length(sub(
+                                            cg::closest_point(
+                                                &cg::prism(&surface.vertices, 0.001),
+                                                point,
+                                            ),
+                                            point,
+                                        )) <= tolerance
+                                });
+                                assert_eq!(
+                                    support.supported(point, direction, deck_only, tolerance),
+                                    expected,
+                                    "point={point:?} direction={direction:?} deck={deck_only} tolerance={tolerance}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
