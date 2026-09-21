@@ -4,6 +4,39 @@ import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import { ShipInspection } from './ShipInspection';
 
+test('port inspection picks, highlights and isolates both triangles of an authored hull panel together', () => {
+  const definition = shipPreset('valiant');
+  const first = definition.armor.find(a => a.plate?.surfaceId?.startsWith('hull:port:') && a.plate.vertices.length === 3)!;
+  const halves = definition.armor.filter(a => a.plate?.surfaceId === first.plate!.surfaceId);
+  expect(halves).toHaveLength(2);
+  const before = JSON.stringify(definition.armor);
+  const inspection = new ShipInspection(definition), sim = new CombatSimulation(definition);
+  const panels = inspection.entries.filter(e => e.plate?.surfaceId === first.plate!.surfaceId);
+  expect(panels).toHaveLength(1);
+  const panel = panels[0];
+  expect(panel.plate!.vertices).toHaveLength(4);
+  inspection.setMode('armor', panel.id); inspection.update(sim.player);
+  const group = inspection.root.children.find(g => g.userData.inspectionId === panel.id)!;
+  const fill = group.children[0] as THREE.Mesh;
+  const outline = group.children[1] as THREE.LineSegments;
+  for (const half of halves) {
+    const [a, b, c] = half.plate!.vertices.map(p => new THREE.Vector3(...p));
+    const normal = b.clone().sub(a).cross(c.clone().sub(a)).normalize();
+    const center = a.clone().add(b).add(c).divideScalar(3);
+    const ray = new THREE.Raycaster(center.clone().addScaledVector(normal, 2), normal.negate());
+    expect(inspection.pick(ray)?.id).toBe(panel.id);
+    // The original outside triangles still lie on the rendered hull.
+    const hit = ray.intersectObject(fill, false)[0];
+    expect(hit.point.distanceTo(center)).toBeLessThan(.0001);
+  }
+  inspection.setHovered(panel.id);
+  expect(outline.visible).toBe(true);
+  // Four perimeter edges on each face and four thickness edges, no diagonal.
+  expect(outline.geometry.getAttribute('position').count).toBe(24);
+  expect(inspection.root.children.filter(g => g.visible && g.userData.inspectionId)).toEqual([group]);
+  expect(JSON.stringify(definition.armor)).toBe(before);
+});
+
 test('armor surfaces share draws while exact plate picking, isolation, colors and turret poses remain available', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition), inspection = new ShipInspection(definition);
   const entries = new Map(inspection.entries.map(entry => [entry.id, entry]));

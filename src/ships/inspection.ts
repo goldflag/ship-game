@@ -1,5 +1,6 @@
 import type { Armor, AuthoredSurface, ConvexVolume, ShipDefinition, Vec3 } from './blueprint';
 import { structuralSurfaces } from '../game/hullStructure';
+import { inspectionArmor } from './inspectionArmor';
 
 export type InspectionMode = 'exterior' | 'armor' | 'internals' | 'compartments';
 export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'generator' | 'fire-control' | 'weapon' | 'launcher' | 'compartment';
@@ -23,6 +24,8 @@ export interface InspectionEntry {
   id: string; name: string; kind: InspectionKind; center: Vec3; size: Vec3;
   underwaterProtection?: { damageReduction: number; breachReduction: number };
   plate?: Armor['plate']; provenance?: Armor['provenance']; anchor?: Vec3;
+  /** Simulation plates represented by this viewer panel. */
+  armorIds?: string[];
   cells?: { center: Vec3; size: Vec3 }[];
   volumes?: ConvexVolume[];
   inwardPlate?: boolean;
@@ -55,7 +58,7 @@ export function inspectionColor(entry: InspectionEntry): string {
   // Teak backing has no steel-equivalent resistance in combat.
   return entry.plate?.material === 'teak' ? '#aebabe' : armorThicknessColor(entry.thicknessMm ?? 0);
 }
-/** The port lists and renders the same volumes used by hit and flooding simulation. */
+/** The port lists and renders simulation volumes, joining authored panel halves for inspection. */
 export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
   return [
     ...(def.hull.volume ? [] : structuralSurfaces(def)).map(s=>({id:`structure:${s.id}`,name:s.name,kind:'armor' as const,center:s.center,size:s.size,surface:s,thicknessMm:s.thicknessMm,
@@ -65,9 +68,9 @@ export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
       kind: 'armor' as const, center: z.center, size: z.size, underwaterProtection: { damageReduction: z.damageReduction, breachReduction: z.breachReduction },
       provenance: { sourceId: 'underwater-defense-calibration', basis: 'estimated' as const, note: def.underwaterProtection!.basis },
     })),
-    ...def.armor.map(a => {
+    ...inspectionArmor(def.armor).map(({ armor: a, ids: armorIds }) => {
       const mountIndex = def.mounts.findIndex(m => m.id === a.plate?.mountId);
-      return { id: `armor:${a.id}`, name:a.name, kind:'armor' as const, center:a.center, size:a.size, thicknessMm:a.thicknessMm, plate:a.plate, provenance:a.provenance,
+      return { id: `armor:${a.id}`, name:a.name, kind:'armor' as const, center:a.center, size:a.size, thicknessMm:a.thicknessMm, plate:a.plate, provenance:a.provenance, armorIds,
         inwardPlate: !!def.construction && a.plate?.exterior === true,
         ...(mountIndex >= 0 ? { mountIndex, anchor:def.mounts[mountIndex].position, bearingDeg:def.mounts[mountIndex].bearingDeg } : {}) };
     }),
