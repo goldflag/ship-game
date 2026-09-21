@@ -640,7 +640,7 @@ pub(crate) fn update_mount_control_at(
                         && c.result.pose.train == s.train
                         && c.result.pose.elevation == s.elevation
                 }) {
-                    return cache.result.clone();
+                    return (cache.result.pose, cache.result.blocked);
                 }
                 let (poses, key) = (&mut scratch.poses, &mut scratch.key);
                 poses.clear();
@@ -654,7 +654,7 @@ pub(crate) fn update_mount_control_at(
                 if let Some(cache) = s.clearance_cache.as_ref().filter(|c| {
                     c.geometry == geometry && c.poses == *key && c.requested == requested
                 }) {
-                    return cache.result.clone();
+                    return (cache.result.pose, cache.result.blocked);
                 }
                 let result = clearance.resolve_for(
                     mounted_states.as_ptr() as usize,
@@ -668,22 +668,29 @@ pub(crate) fn update_mount_control_at(
                     },
                     &mut s.clear_bound,
                 );
+                let accepted = (result.pose, result.blocked);
+                let mut cached_poses = s
+                    .clearance_cache
+                    .as_mut()
+                    .map(|c| std::mem::take(&mut c.poses))
+                    .unwrap_or_default();
+                cached_poses.clone_from(key);
                 s.clearance_cache = Some(ClearanceCache {
                     geometry,
-                    poses: key.clone(),
+                    poses: cached_poses,
                     requested,
                     carrier: s.carrier,
                     stationary_fixed_stop: result.blocked
                         && result.pose.train == s.train
                         && result.pose.elevation == s.elevation
                         && clearance.fixed_stop(index, result.obstruction_id.as_deref()),
-                    result: result.clone(),
+                    result,
                 });
-                result
+                accepted
             });
-            s.train = accepted.pose.train;
-            s.elevation = accepted.pose.elevation;
-            mechanically_blocked = accepted.blocked;
+            s.train = accepted.0.train;
+            s.elevation = accepted.0.elevation;
+            mechanically_blocked = accepted.1;
         } else {
             s.train = requested_train;
             s.elevation = requested_elevation;
