@@ -125,33 +125,33 @@ alongside timings; faster destruction of a ship is not proof of a cheaper combat
 
 ## Scharnhorst performance pass (September 2026)
 
-The saved custom Scharnhorst was measured against `4bcd0e66`, after the earlier exact
-geometry compaction. On an Apple M5 Pro, the shared simulation ran the same seed (17001),
+The saved custom Scharnhorst was measured against `a8a392267`, including the earlier exact
+geometry compaction and faster heavy-gun traverse. The integrated candidate is `e32e420f`. On an Apple M5 Pro, the shared simulation ran the same seed (17001),
 5 km deployment and requested duration on both builds. Compilation, loading, snapshots
 and rendering are excluded from these step timings. Native cases alternate baseline and
 candidate order; the browser worker alternates six-tick batches within one process.
 
 | Workload | Baseline ms/tick | Updated ms/tick | Speedup |
 | --- | ---: | ---: | ---: |
-| Chrome worker, Scharnhorst vs Bismarck, 230 s | 1.504 | 0.148 | 10.15× |
-| Same browser run, opening 160 s of combat | 1.852 | 0.162 | 11.44× |
-| Native, Scharnhorst vs Bismarck, 230 s | 0.257 | 0.043 | 5.99× |
-| Native, Scharnhorst vs three Bismarcks, 140 s | 0.528 | 0.093 | 5.69× |
-| Native, four Scharnhorsts vs four Bismarcks, 180 s | 1.696 | 0.350 | 4.84× |
-| Native, surface PvE, 600 s | 0.536 | 0.234 | 2.30× |
-| Native, carrier PvE, 600 s | 0.963 | 0.606 | 1.59× |
-| Native, 30-ship custom battle, 180 s | 1.126 | 0.489 | 2.30× |
-| Native, 30-ship server battle, 180 s | 1.107 | 0.498 | 2.23× |
+| Chrome worker, Scharnhorst vs Bismarck, 230 s | 1.424 | 0.139 | 10.25× |
+| Same browser run, opening 160 s of combat | 1.691 | 0.153 | 11.08× |
+| Native, Scharnhorst vs Bismarck, 230 s | 0.407 | 0.063 | 6.49× |
+| Native, Scharnhorst vs three Bismarcks, 140 s | 0.442 | 0.098 | 4.51× |
+| Native, four Scharnhorsts vs four Bismarcks, 180 s | 1.827 | 0.415 | 4.40× |
+| Native, surface PvE, 600 s | 0.561 | 0.259 | 2.17× |
+| Native, carrier PvE, 600 s | 0.876 | 0.508 | 1.73× |
+| Native, 30-ship custom battle, 180 s | 1.186 | 0.527 | 2.25× |
+| Native, 30-ship server battle, 180 s | 1.373 | 0.535 | 2.57× |
 
 Chrome 153 uses `wasm-dev` (optimization level 1) for both modules; native uses release
 with symbols (optimization level 3). The browser result demonstrates a roughly tenfold
 development-worker improvement for this custom ship, not a production-WASM, FPS or
-fleet-wide tenfold guarantee. A separate Bun/JSC comparison measured 9.86× for the full
-230 s and 10.93× for the first 160 s. Host scheduling and engine optimization affect timings.
+fleet-wide tenfold guarantee. Host scheduling and engine optimization affect timings;
+these are paired measurements on one machine, not universal performance bounds.
 
-The 230 s case deliberately continues after combat ends. Bismarck sinks around 160 s in
-the baseline and 193 s with the new controls; Scharnhorst survives with 8,117 and 4,257 HP
-respectively. Both ships are still fighting during the opening 160 s comparison. Changed
+The 230 s case deliberately continues after combat ends. Bismarck sinks between 160 and 170 s
+in the baseline and between 190 and 200 s with the new controls; Scharnhorst survives with
+5,391 and 4,257 HP respectively. Both ships are still fighting during the opening 160 s comparison. Changed
 shot timing, AA acquisition and hydraulic approximations mean this is a behavior-changing
 pass, not an equality claim. Equal-duration aftermath remains part of the full-run result.
 
@@ -162,7 +162,7 @@ Accuracy checks separate the exact changes from these approximations:
   differs from clipping by at most `4.3e-14` m in buoyancy center over 72 sampled attitudes.
 - Across 864 room/fill/attitude samples, the bounded water model's largest error in ship
   center of gravity induced by one room is 2.38 cm. Room water-level error reaches 1.15 m
-  in a normal-heel outlier and 4.33 m across the full attitude matrix near fill endpoints.
+  for samples at 1–95% fill, and 4.33 m when the 0.1% and fully filled samples are included.
   These local level errors can affect flooding pressure; full-room moments alone do not
   guarantee accurate partial flooding.
 - The 100 ms transfer test conserves closed-system water to `1e-9` m³ and stays within
@@ -173,7 +173,7 @@ Accuracy checks separate the exact changes from these approximations:
   bounded aiming delay and per-tick projectile motion. Swept-clearance differential tests
   retain intermediate poses, moving neighbors and carried mounts.
 
-The standard browser harness also ran the actual Scharnhorst battle, observed 1,079 ticks
+The standard browser harness also ran the actual Scharnhorst battle, observed 1,080 ticks
 over 18 seconds, checked authoritative and rendered gun articulation, and reported no
 browser errors. Valiant and Resolute were regenerated through `ship:build`: loading values
 changed only by floating-point rounding (under `3e-13` m), while exported geometry payloads
