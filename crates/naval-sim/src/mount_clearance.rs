@@ -890,7 +890,10 @@ impl MountClearance {
         candidate[index] = requested;
         self.pose(def, &candidate, None, posed);
         let (gap, _) = self.distance(def, posed, &changed, speed + self.margin + 1.);
-        if !(gap - speed >= self.margin.max(speed / 100.) + 1e-6) {
+        if (gap - speed)
+            .partial_cmp(&(self.margin.max(speed / 100.) + 1e-6))
+            .is_none_or(|order| order.is_lt())
+        {
             return None;
         }
         *bound = Some(ClearBound {
