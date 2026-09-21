@@ -664,7 +664,7 @@ test('tiny scroll inputs zoom continuously and settle without a camera jump', ()
 test('range lock sweeps horizontally at the measured distance despite vertical input, zoom, hull motion and heave', () => {
   const { camera, canvas, rig, drag } = interactiveCamera();
   const ship = createShipState();
-  rig.setScopeWeapon(shipPreset('bismarck').mounts[0].weapon);
+  rig.setGunScope(true);
   rig.toggleBinoculars([0, .5, -18000], ship); rig.setRangeLock(18000); rig.update(ship, 0, 0, true);
   const bearing = rig.bearing, direction = camera.getWorldDirection(new Vector3());
   drag(0, 1000); rig.update(ship, 0, 0, true);
@@ -679,49 +679,42 @@ test('range lock sweeps horizontally at the measured distance despite vertical i
     const projected = new Vector3(...aim).project(camera);
     expect(projected.x).toBeCloseTo(0, 6); expect(projected.y).toBeCloseTo(0, 6);
   }
-  const before = camera.getWorldDirection(new Vector3());
+  const height = camera.position.y;
   rig.setRangeLock(); drag(0, 100); rig.update(ship, ship.y, 0, true);
-  expect(camera.getWorldDirection(new Vector3()).distanceTo(before)).toBeGreaterThan(.001);
+  // At a fixed sight angle, unlocked vertical input moves the eye and aim range.
+  expect(camera.position.y).toBeLessThan(height - 1);
+  const aim = sightAim(camera.position.toArray(), camera.getWorldDirection(new Vector3()).toArray());
+  expect(Math.hypot(aim[0] - ship.x, aim[2] - ship.z)).toBeLessThan(17900);
   expect(rig.rangeAim).toBeUndefined(); rig.dispose();
 });
 
-test('gunnery scope uses one third of the arriving low arc and rises with range', () => {
+for (const shipId of ['bismarck', 'fletcher', 'yamato']) test(`${shipId} gun scope keeps five degrees across engagement ranges`, () => {
   const { camera, rig } = interactiveCamera();
-  const ship = createShipState(), weapon = shipPreset('bismarck').mounts[0].weapon;
-  // With no drag and equal endpoint heights, descent equals launch elevation.
-  rig.setScopeWeapon({ ...weapon, muzzleSpeed: 500, ballistics: { ...weapon.ballistics, dragPerSecond: 0 } }, .5);
+  const ship = createShipState(), definition = shipPreset(shipId);
+  rig.setBridge(definition.viewpoints?.bridge);
+  rig.setHullLength(definition.hull.length);
+  rig.setGunScope(true);
   rig.binoculars = true;
   let previousHeight = 0;
-  for (const range of [500, 1000, 2000, 5000, 10000, 15000]) {
-    rig.aimAt([0, .5, -range], ship);
-    const descent = -Math.asin(camera.getWorldDirection(new Vector3()).y);
-    const previousDescent = Math.max(Math.asin(9.81 * range / 500 ** 2) / 2, Math.atan2(37 - .5, range - 31));
-    expect(descent).toBeCloseTo(Math.min(previousDescent / 3, 5 * Math.PI / 180), 6);
-    expect(camera.position.y).toBeGreaterThan(previousHeight);
-    previousHeight = camera.position.y;
-  }
-  // Reachable steep arcs and out-of-range sights share the final viewing cap.
-  for (const range of [24000, 30000]) {
-    rig.aimAt([0, .5, -range], ship);
-    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(5 * Math.PI / 180, 6);
-  }
-  rig.aimAt([0, .5, -500], ship);
-  expect(camera.position.y).toBeLessThan(37);
-  rig.setScopeWeapon();
-  for (let i = 0; i < 120; i++) rig.update(ship, ship.y, 1 / 60);
-  expect(camera.position.y).toBeCloseTo(37, 3);
-  const point = new Vector3(0, .5, -500).project(camera);
-  expect(point.x).toBeCloseTo(0, 6); expect(point.y).toBeCloseTo(0, 6);
-  rig.dispose();
+  try {
+    for (const range of [500, 1000, 2000, 5000, 10000, 15000, 24000, 29000]) {
+      rig.aimAt([0, .5, -range], ship);
+      expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(5 * Math.PI / 180, 6);
+      expect(camera.position.y).toBeGreaterThan(previousHeight);
+      const point = new Vector3(0, .5, -range).project(camera);
+      expect(point.x).toBeCloseTo(0, 6); expect(point.y).toBeCloseTo(0, 6);
+      previousHeight = camera.position.y;
+    }
+  } finally { rig.dispose(); }
 });
 
-test('elevated scope holds the sight through zoom and gun changes, and gives precise range corrections', () => {
+test('elevated scope holds the sight through zoom and gives precise range corrections', () => {
   const { camera, canvas, rig, drag } = interactiveCamera();
-  const ship = createShipState(), weapon = shipPreset('bismarck').mounts[0].weapon;
+  const ship = createShipState();
   const aim: [number, number, number] = [0, .5, -15000];
   const readAim = () => new Vector3(...sightAim(camera.position.toArray(), camera.getWorldDirection(new Vector3()).toArray()));
   const settle = () => { for (let frame = 0; frame < 240; frame++) rig.update(ship, ship.y, [1 / 144, 1 / 30, .043][frame % 3]); };
-  rig.setScopeWeapon(weapon);
+  rig.setGunScope(true);
   rig.toggleBinoculars(aim, ship); settle();
   for (const deltaY of [-900, 900]) {
     canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY })); settle();
@@ -732,9 +725,7 @@ test('elevated scope holds the sight through zoom and gun changes, and gives pre
   expect(correction).toBeGreaterThan(0);
   expect(correction).toBeLessThan(1000);
   settle(); expect(readAim().distanceTo(adjusted)).toBeLessThan(1e-6);
-  rig.setScopeWeapon({ ...weapon, muzzleSpeed: weapon.muzzleSpeed * .8 }); settle();
-  expect(readAim().distanceTo(adjusted)).toBeLessThan(1e-6);
-  rig.setScopeWeapon(); settle();
+  rig.setGunScope(false); settle();
   expect(camera.position.y).toBeCloseTo(37, 4);
   expect(readAim().distanceTo(adjusted)).toBeLessThan(1e-6);
   rig.dispose();
@@ -743,7 +734,7 @@ test('elevated scope holds the sight through zoom and gun changes, and gives pre
 test('gunnery lift leaves periscopes at their physical eye and permits looking above the horizon', () => {
   const { camera, rig, drag } = interactiveCamera();
   const ship = createShipState();
-  rig.setScopeWeapon(shipPreset('bismarck').mounts[0].weapon);
+  rig.setGunScope(true);
   rig.binoculars = true; rig.aimAt([0, .5, -15000], ship);
   drag(0, -100000); rig.update(ship, ship.y, 1 / 60);
   expect(camera.getWorldDirection(new Vector3()).y).toBeGreaterThan(0);
@@ -774,7 +765,7 @@ test('aiming during an optics transition keeps the camera glide and rapid toggle
   const { camera, rig, drag } = interactiveCamera();
   const ship = createShipState();
   const aim: [number, number, number] = [0, .5, -5000];
-  rig.setScopeWeapon(shipPreset('bismarck').mounts[0].weapon);
+  rig.setGunScope(true);
   rig.aimAt(aim, ship); rig.toggleBinoculars(aim, ship); rig.update(ship, 0, .08);
   const start = camera.position.clone();
   const direction = camera.getWorldDirection(new Vector3());

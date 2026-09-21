@@ -79,7 +79,7 @@ test('entering and leaving binoculars keeps a distant aim point centered and res
   const ship = { ...createShipState(), x: 120, z: -80, heading: .6 };
   const aim: Vec3 = [6200, .5, -9500];
   rig.setInPort(false);
-  rig.setScopeWeapon(shipPreset('bismarck').mounts[0].weapon);
+  rig.setGunScope(true);
   rig.aimAt(aim, ship);
   for (let i = 0; i < 4; i++) {
     const projected = new Vector3(...aim).project(camera);
