@@ -585,11 +585,12 @@ impl Battle {
                     self.sea
                         .response(&def.hull, &a.motion, a.submarine.is_some(), time)
                 });
-            crate::flooding::update_flooding(
+            crate::flooding::update_flooding_with_transfer_step(
                 a,
                 def,
                 &compiled.hydro,
                 DT,
+                crate::flooding::transfer_step(self.tick),
                 self.cadence.stability_interval_seconds,
                 response,
                 (self.sea.amplitude_m != 0.0).then_some((&self.sea, time)),

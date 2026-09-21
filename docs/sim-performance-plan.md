@@ -111,6 +111,14 @@ and free surfaces are approximations. Flood connections, localized breaches, arm
 rendered compartment boundaries retain the authored geometry. Invalid proxy moments fall
 back to the original cells. The exact clipping path remains available for comparison.
 
+Flood inflow, pumping and inter-room transfers run every six ticks (100 ms), using
+one pressure sample for that window. Sequential transfers still conserve water and clamp
+to the available water, receiving capacity and pressure equilibrium. The first tick
+integrates only one tick of water. Stability, sinking motion and published water levels
+continue updating every tick with the current water volumes. This changes intermediate
+water levels and can shift combat outcomes; the per-tick transfer function remains the
+reference path for accuracy tests.
+
 These are simulation choices shared by the native server and WASM worker, independent of
 rendering quality. Compare equal requested simulation durations and report battle outcomes
 alongside timings; faster destruction of a ship is not proof of a cheaper combat tick.
