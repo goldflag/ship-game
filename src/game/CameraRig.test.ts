@@ -688,7 +688,7 @@ test('range lock sweeps horizontally at the measured distance despite vertical i
   expect(rig.rangeAim).toBeUndefined(); rig.dispose();
 });
 
-for (const shipId of ['bismarck', 'fletcher', 'yamato']) test(`${shipId} gun scope keeps five degrees across engagement ranges`, () => {
+for (const shipId of ['bismarck', 'fletcher', 'yamato']) test(`${shipId} gun scope keeps two degrees across engagement ranges`, () => {
   const { camera, rig } = interactiveCamera();
   const ship = createShipState(), definition = shipPreset(shipId);
   rig.setBridge(definition.viewpoints?.bridge);
@@ -699,7 +699,7 @@ for (const shipId of ['bismarck', 'fletcher', 'yamato']) test(`${shipId} gun sco
   try {
     for (const range of [500, 1000, 2000, 5000, 10000, 15000, 24000, 29000]) {
       rig.aimAt([0, .5, -range], ship);
-      expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(5 * Math.PI / 180, 6);
+      expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(2 * Math.PI / 180, 6);
       expect(camera.position.y).toBeGreaterThan(previousHeight);
       const point = new Vector3(0, .5, -range).project(camera);
       expect(point.x).toBeCloseTo(0, 6); expect(point.y).toBeCloseTo(0, 6);
@@ -720,7 +720,8 @@ test('elevated scope holds the sight through zoom and gives precise range correc
     canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY })); settle();
     expect(readAim().distanceTo(new Vector3(...aim))).toBeLessThan(1e-6);
   }
-  drag(0, 2); rig.update(ship, ship.y, 0);
+  // Check a single-pixel correction at the shallower sight angle and 2× zoom.
+  drag(0, 1); rig.update(ship, ship.y, 0);
   const adjusted = readAim(), correction = adjusted.z - aim[2];
   expect(correction).toBeGreaterThan(0);
   expect(correction).toBeLessThan(1000);

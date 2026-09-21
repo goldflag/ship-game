@@ -14,7 +14,7 @@ const MIN_ORBIT_ELEVATION = .08;
 const TORPEDO_ORBIT_ELEVATION = .38;
 const MAX_UPWARD_TILT = Math.PI / 6;
 /** A common viewing angle for every gun and shell, independent of ballistics. */
-const SCOPE_DESCENT = 5 * Math.PI / 180;
+const SCOPE_DESCENT = 2 * Math.PI / 180;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
 const PORT_AIM_DROP = .148;
