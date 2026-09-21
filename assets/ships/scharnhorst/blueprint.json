@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "scharnhorst",
   "name": "Scharnhorst",
-  "revision": "revision-04e827a2-49b8-426c-8629-796c2b84c1f6",
+  "revision": "revision-78f1a474-cf9f-4ff5-9a72-215f1150cdda",
   "coordinates": "meters-y-up-bow-negative-z",
   "construction": {
     "version": 2,
@@ -7021,6 +7021,13 @@
       {
         "primitiveId": "hull",
         "face": "stern",
+        "thicknessMm": 16,
+        "material": "steel",
+        "paint": "dark-gray"
+      },
+      {
+        "primitiveId": "hull",
+        "face": "bottom",
         "thicknessMm": 16,
         "material": "steel",
         "paint": "dark-gray"
