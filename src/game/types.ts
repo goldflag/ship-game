@@ -65,6 +65,8 @@ export interface Telemetry {
   combat?: CombatTelemetry;
   playerDamage?: HullDamageCue;
   inspecting?: boolean;
+  shipDamageOpen?: boolean;
+  inspectedPartId?: string;
   aimModule?: string;
   aimMarker?: { x: number; y: number; visible: boolean };
 }

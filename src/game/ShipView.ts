@@ -114,7 +114,7 @@ export class ShipView {
     this.update();
   }
   inspect(enabled: boolean): void { this.setInspection(enabled ? 'all' : 'exterior'); }
-  setInspection(mode: InspectionMode | 'all', selectedId?: string): void {
+  setInspection(mode: InspectionMode | 'all' | 'damage', selectedId?: string): void {
     this.inspection.setMode(mode, selectedId);
     const enabled = mode !== 'exterior';
     this.rig.root.visible = !enabled;

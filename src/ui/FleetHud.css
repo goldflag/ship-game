@@ -17,7 +17,7 @@
   text-shadow: 0 2px 4px #07131bea;
   transition: opacity 0.18s;
 }
-.fleet-hud-hidden > :not(.fleet-sight-optics):not(.air-battlefield),
+.fleet-hud-hidden > :not(.fleet-sight-optics):not(.air-battlefield):not(.ship-damage),
 .fleet-hud-hidden .fleet-scope-readout,
 .fleet-hud-hidden .fleet-rangefinder-area {
   opacity: 0;

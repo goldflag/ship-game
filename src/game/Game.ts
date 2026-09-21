@@ -210,6 +210,8 @@ export class Game {
   }
   aimModule: string;
   inspecting = false;
+  private damageInspectionShipId?: string;
+  get shipDamageOpen(): boolean { return this.inspecting && !!this.damageInspectionShipId; }
   private manualAim = true;
   /** Held right mouse: the guns keep `currentAim` while the sight looks elsewhere. */
   private aimLocked = false;
@@ -317,7 +319,7 @@ export class Game {
     this.inspectionHover = new InspectionHover(this.renderer.domElement, this.camera);
     this.rig.setHullLength(definition.hull.length);
     this.input = new InputController({
-      pause: () => { if (this.airOperationsOpen && !this.paused) this.setAirOperationsOpen(false); else if (!this.inPort) this.setPaused(!this.paused); },
+      pause: () => { if (this.shipDamageOpen && !this.paused) this.closeInspection(); else if (this.airOperationsOpen && !this.paused) this.setAirOperationsOpen(false); else if (!this.inPort) this.setPaused(!this.paused); },
       camera: () => this.cycleCamera(), recenter: () => this.recenter(),
       portHome: () => { if (this.inPort && !this.paused) this.rig.portHome(); },
       hud: () => { if (!this.inPort) callbacks.hud(); }, fullscreen: () => this.fullscreen(),
@@ -327,6 +329,7 @@ export class Game {
       simulationSpeed: () => this.cycleSimulationSpeed(),
       shellFollow: () => this.toggleShellFollow(),
       freeCamera: () => this.toggleFreeCamera(),
+      shipDamage: () => this.toggleShipDamage(),
       shellType: () => this.cycleAmmunition(),
       rangefind: () => this.measureRange(), rangeLock: () => this.toggleRangeLock(),
       isSpectating: () => !this.inPort && this.simulation.isBattle && this.simulation.player.damage.sunk,
@@ -628,7 +631,7 @@ export class Game {
       await session.restartPve(); this.assertActive(); this.battleRevision++; this.environment.setOverrides({});
       this.endFollow(); this.spectatedShipId = undefined; this.selectedShipIds = [];
       this.selectedFlightId = undefined; this.selectFlights([]); this.spectator.forgetHelm();
-      this.inspectionHover?.clear(); this.inspecting = false;
+      this.inspectionHover?.clear(); this.inspecting = false; this.damageInspectionShipId = undefined;
       this.fleetViews.forEach(view => { view.inspect(false); view.impactMarks.clear(); view.snap(); });
       this.syncControlledShip(); this.observedShipViews?.clear(); this.aircraftView.reset();
       this.playerDamageFeedback = new HullDamageFeedback(session.player.damage.integrity);
@@ -735,12 +738,13 @@ export class Game {
     const view = this.fleetViews.find(v => v.actor === this.simulation.player);
     if (!view) return;
     if (!view.definition.contentHash) throw new Error('The controlled ship has no content identity.');
+    if (this.inspecting) this.closeInspection();
     this.resetRangefinding();
     this.playerView = view; this.definition = view.definition as IdentifiedShip;
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors, view.actor.motion.id);
     this.playerDamageFeedback = new HullDamageFeedback(view.actor.damage.integrity);
     this.rig.setBridge(this.definition.viewpoints?.bridge); this.rig.setHullLength(this.definition.hull.length);
-    this.inspecting = false; this.spectatedShipId = undefined; this.airOperationsOpen = false; this.selectedFlightId = undefined;
+    this.inspecting = false; this.damageInspectionShipId = undefined; this.spectatedShipId = undefined; this.airOperationsOpen = false; this.selectedFlightId = undefined;
     this.battery = this.definition.torpedoTubes?.length ? 'torpedo' : 'main';
     this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
     this.controlPriority = view.actor.damage.control.priority; this.controlFocus = view.actor.damage.control.focus ?? '';
@@ -814,7 +818,7 @@ export class Game {
       this.controlPriority = 'balanced'; this.controlFocus = '';
       this.lastShellPress = undefined;
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
-      this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
+      this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false; this.damageInspectionShipId = undefined;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
       this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.spectator.forgetHelm(); this.helmWheel = undefined; this.wheel.forgetOffer();
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
@@ -1095,6 +1099,7 @@ export class Game {
           shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId,
           freeCamera: this.rig.freeCamera, freeCameraSpeed: this.rig.freeCameraSpeed, aimLocked: this.aimLocked,
           playerDamage,
+          shipDamageOpen: this.shipDamageOpen, inspectedPartId: this.shipDamageOpen ? this.cameraShipView.inspection.selectedId : undefined,
           mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.water!.backend, performance: this.performanceReadout(), trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
       }
@@ -1351,7 +1356,7 @@ export class Game {
     this.airOperationsOpen = open;
     this.input.clear();
     if (open) {
-      if (this.inspecting) this.inspectTarget();
+      if (this.inspecting) this.closeInspection();
       this.endFollow(); this.rig.setEnabled(this.controls().rigEnabled);
       this.battlefieldCamera.enter(this.airMap.reportedPoints(), this.host.clientWidth, this.host.clientHeight);
       if (!this.fleetCommandMode) this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
@@ -1429,7 +1434,8 @@ export class Game {
     return [focus, ...this.fleetViews.filter(view => view !== focus), ...this.observedShipViews?.wakeShips() ?? []];
   }
   private get cameraShipView(): ShipView {
-    return this.fleetViews.find(view => view.actor.motion.id === this.spectatedShipId)
+    return this.fleetViews.find(view => view.actor.motion.id === this.damageInspectionShipId)
+      ?? this.fleetViews.find(view => view.actor.motion.id === this.spectatedShipId)
       ?? (this.inspecting ? this.targetView! : this.playerView!);
   }
   private spectatorController?: SpectatorController;
@@ -1443,7 +1449,7 @@ export class Game {
       get inspecting() { return game.inspecting; }, get followingAircraft() { return !!game.followedAircraftId; },
       get spectatedShipId() { return game.spectatedShipId; }, set spectatedShipId(id) { game.spectatedShipId = id; },
       controls: () => game.controls(), enterFleetCommand: () => game.enterFleetCommand(), offerHelmWheel: () => game.offerHelmWheel(),
-      setAirOperationsOpen: open => game.setAirOperationsOpen(open), inspectTarget: () => game.inspectTarget(), endFollow: () => game.endFollow(),
+      setAirOperationsOpen: open => game.setAirOperationsOpen(open), inspectTarget: () => game.closeInspection(), endFollow: () => game.endFollow(),
     });
   }
   private updateSpectator(): void { this.spectator.update(); }
@@ -1570,7 +1576,7 @@ export class Game {
     if (this.landscape) this.landscape.visible = !inPort;
     if (this.harbor) this.harbor.visible = inPort;
     this.fleetViews.forEach(view => { view.root.visible = view === this.playerView || !inPort; view.inspect(false); });
-    this.inspecting = false; this.targetView?.inspect(false); this.playerView?.inspect(false);
+    this.inspecting = false; this.damageInspectionShipId = undefined; this.targetView?.inspect(false); this.playerView?.inspect(false);
     this.rig.setInspecting(false);
     this.manualAim = true;
     this.airOperationsOpen = false; this.selectedFlightId = undefined;
@@ -1645,7 +1651,38 @@ export class Game {
     return this.inspectionHover.subscribe(listener);
   }
   selectAim(moduleId: string): void { this.resetRangefinding(); this.endFollow(); this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
+  /** Live X-ray of the ship whose condition the helm HUD reports; never the enemy target. */
+  toggleShipDamage(): void {
+    if (this.inPort || this.paused || this.switchingShip || !this.playerView) return;
+    if (this.shipDamageOpen) { this.closeInspection(); return; }
+    if (this.airOperationsOpen || this.battlefieldCamera?.transitioning) return;
+    const view = this.fleetViews.find(view => view.actor.motion.id === this.spectatedShipId) ?? this.playerView;
+    if (view.actor.damage.sunk) return;
+    if (this.inspecting) this.closeInspection();
+    this.closeHelmWheel(); this.endFollow(); this.input.clear(); this.setAimLock(false);
+    this.damageInspectionShipId = view.actor.motion.id;
+    this.inspecting = true;
+    view.setInspection('damage');
+    this.rig.setHullLength(view.definition.hull.length);
+    this.rig.setInspecting(true);
+  }
+  inspectShipPart(id?: string): void {
+    if (!this.shipDamageOpen) return;
+    this.cameraShipView.setInspection('damage', id);
+  }
+  private closeInspection(): void {
+    this.inspectionHover?.clear();
+    this.fleetViews.forEach(view => view.inspect(false));
+    this.inspecting = false; this.damageInspectionShipId = undefined;
+    const view = this.cameraShipView;
+    this.rig.setHullLength(view.definition.hull.length);
+    this.rig.setInspecting(false);
+    this.input.clear();
+    if (!this.spectatedShipId && !this.simulation.player.damage.sunk) this.rig.aimAt(this.currentAim, this.simulation.ship);
+    if (!this.paused && !this.airOperationsOpen && !this.simulation.player.damage.sunk) this.rig.capturePointer();
+  }
   inspectTarget(): void {
+    if (this.inspecting) { this.closeInspection(); return; }
     const target = this.simulation.target;
     if (!target) return;
     if (this.simulation.player.damage.sunk && !this.inspecting) return;
@@ -1662,9 +1699,9 @@ export class Game {
     this.endFollow();
     this.targetView?.inspect(false);
     this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
-    this.targetView?.inspect(this.inspecting);
-    if (!this.simulation.target) { this.inspecting = false; this.rig.setInspecting(false); }
-    if (this.inspecting && this.simulation.target) this.rig.setHullLength(this.simulation.target.definition.hull.length);
+    this.targetView?.inspect(this.inspecting && !this.shipDamageOpen);
+    if (!this.simulation.target && !this.shipDamageOpen) { this.inspecting = false; this.rig.setInspecting(false); }
+    if (this.inspecting && !this.shipDamageOpen && this.simulation.target) this.rig.setHullLength(this.simulation.target.definition.hull.length);
     this.aimModule = ''; this.manualAim = false;
     this.currentAim = this.simulation.aimAt('', this.battery, this.weaponGroupId);
     if (!this.inspecting && !this.simulation.player.damage.sunk) this.rig.aimAt(this.currentAim, this.simulation.ship);
