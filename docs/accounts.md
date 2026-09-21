@@ -40,6 +40,11 @@ The account menu offers explicit import of the old same-origin IndexedDB library
 Other origins use JSON download/import. Recovery downloads can be imported as new
 copies in the builder; they are never automatically uploaded to a different account.
 
+Browser construction workers cache compiled output across reloads, keyed by the
+compiler build and complete source/catalog bytes. The disposable cache retains up
+to eight results of at most 32 MiB each; unavailable storage falls back to compilation.
+Saved sources still come from the account store, and online admission still compiles server-side.
+
 ## Online construction
 
 Protocol 5 fleet references distinguish historical presets from owned saved

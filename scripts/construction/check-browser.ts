@@ -14,6 +14,7 @@ const root = resolve(import.meta.dir, '../..');
  * `--only <file>#<export>` (for example `--only shipbuilder-placement-browser.tsx#checkShipbuilderPlacement`). */
 interface Check { name: string; module: string; check: string; path?: string }
 const CHECKS: Check[] = [
+  { name: 'compile-cache', module: 'construction-compile-cache-browser.ts', check: 'checkConstructionCompileCache' },
   { name: 'storage', module: 'construction-store-browser.ts', check: 'checkConstructionStore' },
   { name: 'repository-authoring', module: 'construction-authoring-browser.ts', check: 'checkRepositoryAuthoring', path: '/tools/construction/editor.html?ship=authoring-check-browser' },
   { name: 'design-deletion', module: 'design-deletion-browser.tsx', check: 'checkDesignDeletion' },
