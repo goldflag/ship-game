@@ -310,6 +310,10 @@ Gun installation (`construction_installation.rs`, version 2):
   guns below 100 mm default to deck mounts.
 - `gun.barbetteHeightM` (turret rise) is 0–30 m and requires version 2. It raises the support
   above deck; the lower magazine stays fixed. Supports add structural mass, never buoyancy.
+- Combat shell contacts use a circular wall and open annular top for each complete generated
+  support, while the visual and authoring model retains 64 sides. Hits retain their original
+  armor sector's identity, material and thickness. This runtime approximation does not change
+  working wells, gun clearance, mass or flooding; see [runtime approximations](sim-performance-plan.md#runtime-approximations).
 
 Funnels and masts (`uncontested` in `construction.rs`) are never collision bodies. Their catalog
 box encloses platforms, galleries, yards and rigging, so no overlap, intersection or clearance

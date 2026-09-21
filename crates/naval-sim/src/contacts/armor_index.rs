@@ -61,16 +61,18 @@ pub(super) struct ArmorIndex {
     moving: Vec<usize>,
 }
 impl ArmorIndex {
-    pub fn new(armor: &[Armor]) -> Option<Self> {
+    pub fn new(armor: &[Armor], excluded: &[bool]) -> Option<Self> {
         if armor.len() < 64 {
             return None;
         }
-        let (moving, fixed): (Vec<_>, Vec<_>) = (0..armor.len()).partition(|&i| {
-            armor[i]
-                .plate
-                .as_ref()
-                .is_some_and(|p| p.mount_id.is_some())
-        });
+        let (moving, fixed): (Vec<_>, Vec<_>) = (0..armor.len())
+            .filter(|&i| !excluded.get(i).copied().unwrap_or(false))
+            .partition(|&i| {
+                armor[i]
+                    .plate
+                    .as_ref()
+                    .is_some_and(|p| p.mount_id.is_some())
+            });
         Some(Self {
             pointer: armor.as_ptr() as usize,
             len: armor.len(),

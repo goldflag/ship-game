@@ -123,6 +123,23 @@ These are simulation choices shared by the native server and WASM worker, indepe
 rendering quality. Compare equal requested simulation durations and report battle outcomes
 alongside timings; faster destruction of a ship is not proof of a cheaper combat tick.
 
+Generated gun installation supports use a separate runtime shell-contact representation:
+one analytic circular wall and one annular top replace 64 wall and 64 top polygon tests.
+The bore stays open; no inner wall or bottom plate is added. Contacts retain the original
+sector's plate ID, material and thickness, including independently armored sectors. The
+common top/wall rim is one crossing, with both plate identities marked visited. The fixed
+armor index excludes the replaced polygons. This applies to custom ships and construction
+presets; legacy barbettes retain their authored collision geometry.
+
+The proxy recognizes complete, fixed, horizontal 64-sided supports and falls back to literal
+plates for incomplete, edited or protection-linked flooding geometry. Circular walls differ
+from the inscribed visual polygon by at most `radius × (1 − cos(π/64))`, about 0.121% of radius;
+wall normals can differ by up to 2.8125°. The top's inner and outer edges use the corresponding
+circles. Grazing contacts and penetration/ricochet outcomes can therefore change. Visuals,
+authoring clearance, structural solids, mass, buoyancy, flood openings and compartment geometry
+keep their existing meshes. `ContactGeometry::armor_shape_count` reports collision shapes;
+the serialized definition still reports all authored armor plates.
+
 ## Scharnhorst performance pass (September 2026)
 
 The saved custom Scharnhorst was measured against `a8a392267`, including the earlier exact

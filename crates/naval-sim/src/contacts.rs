@@ -1,4 +1,5 @@
 mod armor_index;
+mod installations;
 use crate::{
     damage::Combatant,
     definition::{Armor, ArmorPlate, ShipDefinition, Vec3},
@@ -59,6 +60,7 @@ impl ShipContact {
 #[derive(Clone, Debug)]
 pub struct ContactGeometry {
     armor_index: Option<armor_index::ArmorIndex>,
+    installations: installations::InstallationContacts,
     pub structural: Vec<StructuralSurface>,
     pub hull: Option<HullContacts>,
     /// Mounts whose gunhouse is authored as armor plates, parallel to `mounts`;
@@ -67,8 +69,10 @@ pub struct ContactGeometry {
 }
 impl ContactGeometry {
     pub fn new(def: &ShipDefinition) -> Result<Self, String> {
+        let installations = installations::InstallationContacts::new(def);
         Ok(Self {
-            armor_index: armor_index::ArmorIndex::new(&def.armor),
+            armor_index: armor_index::ArmorIndex::new(&def.armor, &installations.replaced),
+            installations,
             plated_mounts: def
                 .mounts
                 .iter()
@@ -88,6 +92,17 @@ impl ContactGeometry {
                 None
             },
         })
+    }
+
+    /// Runtime armor shapes, including analytic installation walls and annuli.
+    /// The definition retains every authored plate for visuals and damage identity.
+    pub fn armor_shape_count(&self, def: &ShipDefinition) -> usize {
+        if self.installations.matches(&def.armor) {
+            def.armor.len() - self.installations.replaced.iter().filter(|&&v| v).count()
+                + self.installations.shape_count()
+        } else {
+            def.armor.len()
+        }
     }
 }
 pub fn contact_armor(def: &ShipDefinition, hit: &ShipContact) -> Armor {
@@ -193,6 +208,13 @@ pub fn ship_contacts(
     let trains: Vec<_> = actor.mounts.iter().map(|m| m.train).collect();
     let mut hits = vec![];
     let ship = &actor.motion.id;
+    let installations = geometry
+        .installations
+        .matches(&def.armor)
+        .then_some(&geometry.installations);
+    if let Some(installations) = installations {
+        installations.contacts(shell, from, to, ship, &def.armor, &mut hits);
+    }
     let candidates = geometry
         .armor_index
         .as_ref()
@@ -201,6 +223,9 @@ pub fn ship_contacts(
     let count = candidates.as_ref().map_or(def.armor.len(), Vec::len);
     for position in 0..count {
         let i = candidates.as_ref().map_or(position, |ids| ids[position]);
+        if installations.is_some_and(|p| p.replaced[i]) {
+            continue;
+        }
         let a = &def.armor[i];
         if a.plate.is_some() {
             // Geometry first: a shell crosses a handful of a hull's plates, and
