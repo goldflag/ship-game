@@ -5,6 +5,14 @@ export const SMOOTH_HULL_SHAPES = new Set(['cylinder', 'half-cylinder', 'quarter
   'parabolic-shell', 'cone', 'hollow-cube', 'concave-corner', 'rounded-bridge', 'rounded-bridge-panel']);
 
 interface Face { vertices: readonly Vec3[]; normal: Vec3; group: string }
+
+/** Panel IDs own paint/armor assignments, not lighting seams. Join the curved
+ * strips on each hull side, keeping the deck, keel and end caps sharp. */
+export function customHullSmoothingGroup(panel: string): string {
+  const edge = panel.split('@')[0];
+  const start = Number(edge.split('~')[0]);
+  return Number.isFinite(start) && start >= 0 && start < 8 ? (start < 4 ? 'port' : 'starboard') : edge;
+}
 const key = (point: Vec3, group: string) => `${group}:${point.map(v => Math.round(v * 1e6)).join(',')}`;
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
