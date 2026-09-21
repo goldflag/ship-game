@@ -1,5 +1,5 @@
 import { Input } from './components';
-import { useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import type { ShipDefinition } from '../ships/blueprint';
 import {
   INSPECTION_EFFECTS,
@@ -34,7 +34,8 @@ export function ModelViewControls({
   );
 }
 
-export function PortInspection({
+// Port telemetry refreshes at 10 Hz; thousands of unchanged armor rows should not.
+export const PortInspection = memo(function PortInspection({
   definition,
   mode,
   selectedId,
@@ -46,7 +47,7 @@ export function PortInspection({
   onSelect(id?: string): void;
 }) {
   const [query, setQuery] = useState('');
-  const entries = entriesForMode(inspectionEntries(definition), mode);
+  const entries = useMemo(() => entriesForMode(inspectionEntries(definition), mode), [definition, mode]);
   const filtered = entries.filter((entry) => entry.name.toLowerCase().includes(query.trim().toLowerCase()));
   const groups = new Map<string, typeof entries>();
   for (const entry of filtered) {
@@ -179,4 +180,4 @@ export function PortInspection({
       )}
     </section>
   );
-}
+});
