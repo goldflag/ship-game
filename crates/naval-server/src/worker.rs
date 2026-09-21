@@ -1,6 +1,6 @@
 use crate::persistence::Writer;
 use naval_protocol::{
-    CommandEnvelope,
+    CommandEnvelope, FleetControl,
     frame::{Connection, Phase},
     session::Session,
 };
@@ -89,6 +89,52 @@ impl Default for WorkerConfig {
         }
     }
 }
+
+struct Connections {
+    loaded: [bool; 2],
+    online: [bool; 2],
+    last_seen: [Instant; 2],
+    absent: [Option<Instant>; 2],
+}
+impl Connections {
+    fn new(now: Instant) -> Self {
+        Self {
+            loaded: [false; 2],
+            online: [false; 2],
+            last_seen: [now; 2],
+            absent: [None; 2],
+        }
+    }
+
+    /// Explicit socket loss and heartbeat expiry make the same transition.
+    /// A stale socket cannot disconnect its replacement or extend its grace.
+    fn disconnect(
+        &mut self,
+        control: &mut FleetControl,
+        input_ready: &mut [bool; 2],
+        player: usize,
+        epoch: u32,
+        now: Instant,
+    ) {
+        if control.disconnect(player, epoch) {
+            self.online[player] = false;
+            self.loaded[player] = false;
+            input_ready[player] = false;
+            self.absent[player].get_or_insert(now);
+        }
+    }
+}
+
+// The worker's public frame retains its string field for transport callers.
+fn phase_name(phase: Phase) -> &'static str {
+    match phase {
+        Phase::Loading => "loading",
+        Phase::Countdown => "countdown",
+        Phase::Running => "running",
+        Phase::Finished => "finished",
+        Phase::Cancelled => "cancelled",
+    }
+}
 #[allow(clippy::too_many_arguments)]
 pub fn spawn(
     id: String,
@@ -157,21 +203,18 @@ pub fn spawn(
             let mut session = session;
             session.input_ready = [false; 2];
             let mut record = metadata;
-            let mut phase = "loading";
+            let mut phase = Phase::Loading;
             let mut reason = None::<String>;
-            let mut loaded = [false; 2];
-            let mut online = [false; 2];
-            let mut last_seen = [Instant::now(); 2];
-            let mut absent = [None::<Instant>; 2];
+            let mut connections = Connections::new(Instant::now());
             let created = Instant::now();
             let mut countdown = None;
             let mut start = None;
             let mut last_publish = created - Duration::from_secs(1);
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                while !matches!(phase, "finished" | "cancelled") {
+                while !matches!(phase, Phase::Finished | Phase::Cancelled) {
                     let now = Instant::now();
                     for action in rx.try_iter().take(256) {
-                        if matches!(phase, "finished" | "cancelled") {
+                        if matches!(phase, Phase::Finished | Phase::Cancelled) {
                             break;
                         }
                         match action {
@@ -179,32 +222,34 @@ pub fn spawn(
                                 let epoch =
                                     session.control.reconnect(player).map_err(|e| e.to_string());
                                 if epoch.is_ok() {
-                                    online[player] = true;
-                                    last_seen[player] = now;
-                                    loaded[player] = false;
+                                    connections.online[player] = true;
+                                    connections.last_seen[player] = now;
+                                    connections.loaded[player] = false;
                                     session.input_ready[player] = false;
-                                    if phase == "running" {
-                                        absent[player].get_or_insert(now);
+                                    if phase == Phase::Running {
+                                        connections.absent[player].get_or_insert(now);
                                     }
                                 }
                                 let _ = reply.send(epoch);
                             }
                             Action::Ready { player, epoch } => {
-                                if session.control.players[player].epoch == epoch && online[player]
+                                if session.control.players[player].epoch == epoch
+                                    && connections.online[player]
                                 {
-                                    loaded[player] = true;
-                                    last_seen[player] = now;
+                                    connections.loaded[player] = true;
+                                    connections.last_seen[player] = now;
                                     session.input_ready[player] = true;
-                                    absent[player] = None;
+                                    connections.absent[player] = None;
                                 }
                             }
                             Action::Disconnect { player, epoch } => {
-                                if session.control.disconnect(player, epoch) {
-                                    online[player] = false;
-                                    loaded[player] = false;
-                                    session.input_ready[player] = false;
-                                    absent[player].get_or_insert(now);
-                                }
+                                connections.disconnect(
+                                    &mut session.control,
+                                    &mut session.input_ready,
+                                    player,
+                                    epoch,
+                                    now,
+                                );
                             }
                             Action::Input {
                                 player,
@@ -214,89 +259,94 @@ pub fn spawn(
                             } => {
                                 if command.connection_epoch == epoch
                                     && session.control.players[player].epoch == epoch
-                                    && online[player]
+                                    && connections.online[player]
                                 {
-                                    last_seen[player] = now;
+                                    connections.last_seen[player] = now;
                                 }
-                                let accepted = if phase != "running" || !loaded[player] {
-                                    Err("Battle is not ready".into())
-                                } else if command.connection_epoch != epoch {
-                                    Err("Connection has been replaced".into())
-                                } else {
-                                    session.apply(player, command).map_err(|e| e.to_string())
-                                };
+                                let accepted =
+                                    if phase != Phase::Running || !connections.loaded[player] {
+                                        Err("Battle is not ready".into())
+                                    } else if command.connection_epoch != epoch {
+                                        Err("Connection has been replaced".into())
+                                    } else {
+                                        session.apply(player, command).map_err(|e| e.to_string())
+                                    };
                                 let _ = reply.send(accepted);
                             }
                             Action::Surrender { player, epoch } => {
-                                if session.control.players[player].epoch == epoch && online[player]
+                                if session.control.players[player].epoch == epoch
+                                    && connections.online[player]
                                 {
-                                    if phase == "running" {
+                                    if phase == Phase::Running {
                                         session.finish(
                                             Some(session.owners[1 - player]),
                                             FinishReason::Forfeit,
                                         );
-                                        phase = "finished"
+                                        phase = Phase::Finished
                                     } else {
-                                        phase = "cancelled";
+                                        phase = Phase::Cancelled;
                                         reason = Some("Player left before battle".into());
                                     }
                                 }
                             }
                             Action::Heartbeat { player, epoch } => {
                                 if session.control.players[player].epoch == epoch {
-                                    last_seen[player] = now;
+                                    connections.last_seen[player] = now;
                                 }
                             }
                             Action::CancelLoading => {
-                                if matches!(phase, "loading" | "countdown") {
-                                    phase = "cancelled";
+                                if matches!(phase, Phase::Loading | Phase::Countdown) {
+                                    phase = Phase::Cancelled;
                                     reason = Some("Player left before battle".into());
                                 }
                             }
                             Action::Shutdown => {
-                                if phase == "running" {
+                                if phase == Phase::Running {
                                     session.finish(None, FinishReason::Infrastructure);
-                                    phase = "finished"
+                                    phase = Phase::Finished
                                 } else {
-                                    phase = "cancelled";
+                                    phase = Phase::Cancelled;
                                     reason = Some("Server shutting down".into());
                                 }
                             }
                         }
                     }
                     for player in 0..2 {
-                        if online[player]
-                            && now.duration_since(last_seen[player]) > config.heartbeat_timeout
+                        if connections.online[player]
+                            && now.duration_since(connections.last_seen[player])
+                                > config.heartbeat_timeout
                         {
                             let epoch = session.control.players[player].epoch;
-                            session.control.disconnect(player, epoch);
-                            online[player] = false;
-                            loaded[player] = false;
-                            session.input_ready[player] = false;
-                            absent[player].get_or_insert(now);
+                            connections.disconnect(
+                                &mut session.control,
+                                &mut session.input_ready,
+                                player,
+                                epoch,
+                                now,
+                            );
                         }
                     }
-                    if phase == "loading" {
-                        if loaded.iter().all(|v| *v) {
-                            phase = "countdown";
+                    if phase == Phase::Loading {
+                        if connections.loaded.iter().all(|v| *v) {
+                            phase = Phase::Countdown;
                             countdown = Some(now + config.countdown)
                         } else if now.duration_since(created) >= config.load_timeout {
-                            phase = "cancelled";
+                            phase = Phase::Cancelled;
                             reason =
                                 Some("Loading timed out; no battle result was recorded".into());
                         }
                     }
-                    if phase == "countdown" {
-                        if !loaded.iter().all(|v| *v) {
-                            phase = "loading";
+                    if phase == Phase::Countdown {
+                        if !connections.loaded.iter().all(|v| *v) {
+                            phase = Phase::Loading;
                             countdown = None
                         } else if now >= countdown.unwrap() {
-                            phase = "running";
+                            phase = Phase::Running;
                             start = Some(now);
                         }
                     }
-                    if phase == "running" {
-                        let expired = absent.map(|t| {
+                    if phase == Phase::Running {
+                        let expired = connections.absent.map(|t| {
                             t.is_some_and(|t| now.duration_since(t) >= config.reconnect_grace)
                         });
                         if expired.iter().all(|x| *x) {
@@ -322,25 +372,25 @@ pub fn spawn(
                             }
                         }
                         if session.battle.outcome.is_some() {
-                            phase = "finished";
+                            phase = Phase::Finished;
                         }
                     }
                     if now.duration_since(last_publish) >= Duration::from_millis(50)
-                        || matches!(phase, "finished" | "cancelled")
+                        || matches!(phase, Phase::Finished | Phase::Cancelled)
                     {
                         publish(
                             &session,
                             &baseline_delta,
                             phase,
                             reason.as_deref(),
-                            loaded,
-                            online,
+                            connections.loaded,
+                            connections.online,
                             countdown.map(|t| t.saturating_duration_since(now).as_secs_f64()),
                             &frames,
                         )?;
                         last_publish = now;
                     }
-                    if !matches!(phase, "finished" | "cancelled") {
+                    if !matches!(phase, Phase::Finished | Phase::Cancelled) {
                         std::thread::sleep(Duration::from_millis(2));
                     }
                 }
@@ -348,15 +398,15 @@ pub fn spawn(
             }));
             if !matches!(result, Ok(Ok(()))) {
                 session.finish(None, FinishReason::Infrastructure);
-                phase = "finished";
+                phase = Phase::Finished;
                 reason = Some("Match worker failed".into());
                 let _ = publish(
                     &session,
                     &baseline_delta,
                     phase,
                     reason.as_deref(),
-                    loaded,
-                    online,
+                    connections.loaded,
+                    connections.online,
                     None,
                     &frames,
                 );
@@ -392,8 +442,8 @@ pub fn spawn(
                             &baseline_delta,
                             phase,
                             reason.as_deref(),
-                            loaded,
-                            online,
+                            connections.loaded,
+                            connections.online,
                             None,
                             &frames,
                         )
@@ -433,7 +483,7 @@ impl Drop for CompletionGuard {
 fn publish(
     session: &Session,
     baseline: &naval_sim::frame_delta::FrameDelta,
-    phase: &'static str,
+    phase: Phase,
     reason: Option<&str>,
     loaded: [bool; 2],
     online: [bool; 2],
@@ -442,7 +492,7 @@ fn publish(
 ) -> Result<(), String> {
     let epochs = std::array::from_fn(|i| session.control.players[i].epoch);
     let frame = session.server_frame(Connection {
-        phase: Phase::parse(phase).ok_or_else(|| format!("unknown phase {phase}"))?,
+        phase,
         reason,
         connected: online,
         loaded,
@@ -452,7 +502,7 @@ fn publish(
     tx.send_replace(Arc::new(Frame {
         bytes,
         epochs,
-        phase,
+        phase: phase_name(phase),
     }));
     Ok(())
 }
@@ -460,6 +510,35 @@ fn publish(
 mod tests {
     use super::*;
     use naval_sim::{battle::ShipSetup, bots::AiLevel, rules::TeamId, vessel::Controller};
+
+    #[test]
+    fn disconnect_preserves_replacement_epoch_and_original_grace() {
+        let now = Instant::now();
+        let mut connections = Connections::new(now);
+        let mut control = FleetControl::new([("ship-0".into(), 0), ("ship-1".into(), 1)]).unwrap();
+        let mut input_ready = [true; 2];
+        connections.online = [true; 2];
+        connections.loaded = [true; 2];
+        let epoch = control.players[0].epoch;
+
+        connections.disconnect(&mut control, &mut input_ready, 0, epoch, now);
+        assert_eq!(connections.online, [false, true]);
+        assert_eq!(connections.loaded, [false, true]);
+        assert_eq!(input_ready, [false, true]);
+        assert_eq!(connections.absent, [Some(now), None]);
+
+        // A replacement is still loading. Losing it must not restart the grace
+        // that began at the original disconnect; only Ready clears that clock.
+        let replacement = control.reconnect(0).unwrap();
+        connections.online[0] = true;
+        let later = now + Duration::from_secs(5);
+        connections.disconnect(&mut control, &mut input_ready, 0, epoch, later);
+        assert!(connections.online[0]);
+        connections.disconnect(&mut control, &mut input_ready, 0, replacement, later);
+        assert!(!connections.online[0]);
+        assert_eq!(connections.absent[0], Some(now));
+    }
+
     /// What a client holds after one update: the baseline it received with
     /// its metadata, patched.
     async fn frame(handle: &mut MatchHandle, phase: &str) -> serde_json::Value {

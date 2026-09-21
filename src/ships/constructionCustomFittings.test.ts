@@ -14,7 +14,7 @@ import {
   resolveCustomFitting,
 } from './constructionCustomFittings';
 import { CONSTRUCTION_LIMITS, decodeConstructionSource, decodeSavedConstruction } from './constructionEditor';
-import { constructionCatalogUpdate } from './constructionEquipment';
+import { missingConstructionCatalogParts } from './constructionEquipment';
 import { placementItems } from './constructionPlacement';
 import { constructionBounds, constructionGet, constructionSummary } from './constructionQuery';
 import { createStarterSource } from './constructionStarter';
@@ -106,7 +106,7 @@ test('the effective catalog adds design parts, keeps its identity and never reac
   expect(effectiveConstructionCatalog(source([{ ...bollard, fill: 7 }]).construction, catalog).equipment.length).toBe(catalog.equipment.length);
   // Design parts never hold a design on an old parts library.
   const fitted = batch(s, { op: 'equipment', value: { id: 'b1', partId: 'design:fit-bollard', position: [0, 5, 0], bearingDeg: 0 } });
-  expect(constructionCatalogUpdate(fitted, catalog, { ...catalog, revision: 'next' })).toEqual({ changedParts: [], missingParts: [] });
+  expect(missingConstructionCatalogParts(fitted, { ...catalog, revision: 'next' }, catalog)).toEqual([]);
 });
 
 test('fitting, fitting-patch, remove and diff commands edit the definitions table', () => {

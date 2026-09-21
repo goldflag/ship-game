@@ -24,6 +24,7 @@ import { selectedShip as initialShip, loadShipPresets } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { BattleDialog } from './battle/BattleDialog';
+import { BattleEntry } from './battle/BattleEntry';
 import { loadBattleMode, loadSkipSortieBoard, type BattleMode } from './battle/battleModes';
 import { SortieBoard } from './battle/SortieBoard';
 import { BattleLoadingScreen, type BattleLoadingState } from './BattleLoadingScreen';
@@ -157,7 +158,7 @@ function Harbor({ account, startup }: AppProps) {
   });
   const [battleLoading, setBattleLoading] = useState<BattleLoadingState | null>(null);
   const [battleError, setBattleError] = useState('');
-  const battlePending = useRef(false);
+  const battleEntry = useRef<BattleEntry | null>(null);
   const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
   const [builder, setBuilder] = useState<{ catalog: ConstructionCatalog; source?: ConstructionSource; repositoryId?: string } | null>(null);
   const repositoryId = useRef<string | undefined>(undefined);
@@ -178,7 +179,6 @@ function Harbor({ account, startup }: AppProps) {
     setBattleOpen(false);
     setSortieOpen(false);
     setBattleLoading(null);
-    battlePending.current = false;
     setSwitching(false);
     setSwitchError('');
     switchPending.current = false;
@@ -224,6 +224,11 @@ function Harbor({ account, startup }: AppProps) {
     );
     session.input.setBindings(bindingsRef.current);
     game.current = session;
+    battleEntry.current = new BattleEntry(
+      () => active,
+      (label, progress) => setBattleLoading({ label, progress, leaving: false }),
+      () => setBattleLoading(null),
+    );
     desk.current = fleetDesk(session);
     session.setHudScale(hudScaleRef.current);
     session.setInPort(true);
@@ -239,6 +244,7 @@ function Harbor({ account, startup }: AppProps) {
     return () => {
       active = false;
       game.current = null;
+      battleEntry.current = null;
       desk.current = null;
       if (import.meta.env.DEV) {
         delete reviewWindow.shipTrialDiagnostics;
@@ -329,59 +335,51 @@ function Harbor({ account, startup }: AppProps) {
   };
   const launch = async () => {
     const session = game.current;
-    if (!ready || !session || switchPending.current || battlePending.current) return;
-    battlePending.current = true;
+    const entry = battleEntry.current;
+    if (!ready || !session || !entry || switchPending.current || entry.pending) return;
     setBattleError('');
     setBattleLoading({ label: 'Preparing the fleets', progress: 0, leaving: false });
     try {
-      await session.prepareBattle(battleSetup, (label, progress) => {
-        if (game.current === session) setBattleLoading({ label, progress, leaving: false });
-      });
-      if (game.current !== session) return;
-      const definition = resolveShip(battleSetup.playerShipId);
-      selectedRef.current = definition;
-      setSelectedShip(definition);
-      const url = new URL(window.location.href);
-      if (PINNED_SHIP && !definition.id.startsWith('local-')) url.searchParams.set('ship', definition.id);
-      window.history.replaceState(null, '', url);
-      setBattleLoading({ label: 'Getting underway', progress: 0.95, leaving: false });
-      setTrial(false);
-      setBattleOpen(false);
-      setHud(true);
-      setPhase('sailing');
+      await entry.run(
+        (progress) => session.prepareBattle(battleSetup, progress),
+        () => {
+          const definition = resolveShip(battleSetup.playerShipId);
+          selectedRef.current = definition;
+          setSelectedShip(definition);
+          const url = new URL(window.location.href);
+          if (PINNED_SHIP && !definition.id.startsWith('local-')) url.searchParams.set('ship', definition.id);
+          window.history.replaceState(null, '', url);
+          setBattleLoading({ label: 'Getting underway', progress: 0.95, leaving: false });
+          setTrial(false);
+          setBattleOpen(false);
+          setHud(true);
+          setPhase('sailing');
+        },
+      );
     } catch (error) {
       if (game.current === session) {
-        setBattleLoading(null);
         setBattleError(error instanceof Error ? error.message : String(error));
       }
-    } finally {
-      if (game.current === session) battlePending.current = false;
     }
   };
   const launchPve = async (draft: PveDraft, placements: Placement[]) => {
     const session = game.current;
-    if (!ready || !session || switchPending.current || battlePending.current) throw new Error('The port is still preparing.');
-    battlePending.current = true;
+    const entry = battleEntry.current;
+    if (!ready || !session || !entry || switchPending.current || entry.pending) throw new Error('The port is still preparing.');
     setBattleSetup((value) => ({ ...value, mapId: draft.briefing.setup.mapId as BattleSetup['mapId'] }));
     setPveBriefing(draft.briefing);
     setPveRequest(draft.request);
     setBattleLoading({ label: 'Preparing mission waters', progress: 0, leaving: false });
-    try {
-      await session.preparePveBattle(draft, placements, (label, progress) => {
-        if (game.current === session) setBattleLoading({ label, progress, leaving: false });
-      });
-      if (game.current !== session) return;
-      selectedRef.current = session.definition;
-      setSelectedShip(session.definition);
-      setBattleOpen(false);
-      setHud(true);
-      setPhase('sailing');
-    } catch (error) {
-      if (game.current === session) setBattleLoading(null);
-      throw error;
-    } finally {
-      if (game.current === session) battlePending.current = false;
-    }
+    await entry.run(
+      (progress) => session.preparePveBattle(draft, placements, progress),
+      () => {
+        selectedRef.current = session.definition;
+        setSelectedShip(session.definition);
+        setBattleOpen(false);
+        setHud(true);
+        setPhase('sailing');
+      },
+    );
   };
   const returnToPort = async () => {
     try {
@@ -480,7 +478,8 @@ function Harbor({ account, startup }: AppProps) {
   }, [ready]);
   const launchTrial = async (source: ConstructionSource, result: ConstructionResult) => {
     const session = game.current;
-    if (!session || battlePending.current) throw new Error('The harbor is still preparing.');
+    const entry = battleEntry.current;
+    if (!session || !entry || entry.pending) throw new Error('The harbor is still preparing.');
     const revision = registerLocalShip(source, result);
     const setup: BattleSetup = {
       playerShipId: revision.definition.id,
@@ -492,26 +491,21 @@ function Harbor({ account, startup }: AppProps) {
       cloudCover: 10,
       windSpeed: 9,
     };
-    battlePending.current = true;
     setPveBriefing(undefined);
     setBattleSetup(setup);
     setBattleLoading({ label: 'Preparing sea trial', progress: 0, leaving: false });
-    try {
-      await session.prepareBattle(setup, (label, progress) => setBattleLoading({ label, progress, leaving: false }), true);
-      if (game.current !== session) return;
-      builderSource.current = revision.source;
-      setBuilder(null);
-      setTrial(true);
-      selectedRef.current = revision.definition;
-      setSelectedShip(revision.definition);
-      setHud(true);
-      setPhase('sailing');
-    } catch (error) {
-      setBattleLoading(null);
-      throw error;
-    } finally {
-      battlePending.current = false;
-    }
+    await entry.run(
+      (progress) => session.prepareBattle(setup, progress, true),
+      () => {
+        builderSource.current = revision.source;
+        setBuilder(null);
+        setTrial(true);
+        selectedRef.current = revision.definition;
+        setSelectedShip(revision.definition);
+        setHud(true);
+        setPhase('sailing');
+      },
+    );
   };
   const suggestLayout = async (source: ConstructionSource, partIds: string[], signal?: AbortSignal): Promise<ConstructionSuggestion> => {
     const client = new ConstructionClient();
@@ -533,9 +527,14 @@ function Harbor({ account, startup }: AppProps) {
   };
   const onlineBattle = async (remote: RemoteBattleSession) => {
     const current = game.current;
-    if (!current) {
+    const entry = battleEntry.current;
+    if (!current || !entry) {
       remote.surrender();
       return;
+    }
+    if (entry.pending) {
+      remote.surrender();
+      throw new Error('The port is still preparing.');
     }
     setPveBriefing(undefined);
     const friendly = remote.setup.ships.filter((s) => s.team === remote.ownTeam);
@@ -550,18 +549,18 @@ function Harbor({ account, startup }: AppProps) {
     });
     setBattleLoading({ label: 'Loading the fleets', progress: 0, leaving: false });
     try {
-      await current.prepareOnlineBattle(remote, (label, progress) => setBattleLoading({ label, progress, leaving: false }));
-      if (current !== game.current) {
-        remote.dispose();
-        return;
-      }
-      selectedRef.current = current.definition;
-      setSelectedShip(current.definition);
-      setBattleOpen(false);
-      setHud(true);
-      setPhase('sailing');
+      await entry.run(
+        (progress) => current.prepareOnlineBattle(remote, progress),
+        () => {
+          selectedRef.current = current.definition;
+          setSelectedShip(current.definition);
+          setBattleOpen(false);
+          setHud(true);
+          setPhase('sailing');
+        },
+        () => remote.dispose(),
+      );
     } catch (error) {
-      setBattleLoading(null);
       remote.surrender();
       throw error;
     }

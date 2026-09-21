@@ -257,7 +257,7 @@ The compiler is part of the `naval-sim` crate, identified by `COMPILER` in
 | `construction_custom_hull.rs`, `_vertex.rs`, `_freeform.rs`, `_mesh.rs`, `_balcony.rs` | Shape families |
 | `construction_orientation.rs` | Yaw plus optional tilt, YXZ |
 | `construction_installation.rs` | Gun wells, deck mounts, raised supports |
-| `construction_propulsion.rs` | Compile-time propeller-to-engine routing |
+| `construction_propulsion.rs` | Compile-time propeller routing, exhaust capacity and effective power |
 | `construction_propellers.rs` | Generated shafts, bearing housings and fins |
 | `construction_services.rs` | Auxiliary power, pumps and work party included in machinery |
 | `construction_paths.rs`, `_access.rs`, `_wall_fittings.rs`, `_bilge_keels.rs` | Fitting families |

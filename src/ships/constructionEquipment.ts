@@ -1,5 +1,6 @@
 import { assetUrl } from '../assetUrl';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionSource } from './blueprint';
+import { isCustomFittingPartId } from './constructionCustomFittings';
 
 // Palette policy applies to retained catalogs too: removing an entry only from
 // the current publication would still offer it when editing an older design.
@@ -23,25 +24,12 @@ export function removeRetiredDeckFittings(source: ConstructionSource): boolean {
   return true;
 }
 
-/** Describe an explicit catalog update; old source revisions keep their exact catalog. */
-export function constructionCatalogUpdate(source: ConstructionSource, current: ConstructionCatalog, next: ConstructionCatalog) {
-  if (source.construction.catalogRevision !== current.revision) throw new Error('Load this design’s equipment revision before updating its parts library.');
+/** Fitted parts that prevent automatic adoption of a catalog. The retained catalog supplies display names only. */
+export function missingConstructionCatalogParts(source: ConstructionSource, next: ConstructionCatalog, retained?: ConstructionCatalog): string[] {
   // Design-local fittings (`design:…`) live in the source and are in no published library.
-  const used = new Set(source.construction.equipment.map(p => p.partId).filter(id => !id.startsWith('design:')));
-  const changedParts: string[] = [], missingParts: string[] = [];
-  for (const id of used) {
-    const before = current.equipment.find(p => p.id === id), after = next.equipment.find(p => p.id === id);
-    if (!before || !after) { missingParts.push(before?.name ?? id); continue; }
-    if (before.contentHash !== after.contentHash) changedParts.push(before.name);
-  }
-  return { changedParts, missingParts };
-}
-
-/** Call inside one editor history command, after reviewing changed fitted variants. */
-export function updateConstructionCatalog(source: ConstructionSource, current: ConstructionCatalog, next: ConstructionCatalog): void {
-  const { missingParts } = constructionCatalogUpdate(source, current, next);
-  if (missingParts.length) throw new Error(`The new parts library is missing fitted parts: ${missingParts.join(', ')}. Keep this design’s existing library.`);
-  source.construction.catalogRevision = next.revision;
+  const used = new Set(source.construction.equipment.map(p => p.partId).filter(id => !isCustomFittingPartId(id)));
+  const available = new Set(next.equipment.map(part => part.id));
+  return [...used].filter(id => !available.has(id)).map(id => retained?.equipment.find(part => part.id === id)?.name ?? id);
 }
 
 const hashPattern=/^[a-f0-9]{64}$/;

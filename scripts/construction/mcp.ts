@@ -18,7 +18,10 @@ const HIDDEN = new Set(['edit', 'timings']);
 const WRITES = new Set(['new', 'apply', 'import', 'register', 'build', 'thumbnail', 'session']);
 const writes = (name: string, spec: FlagSpec) => WRITES.has(name) || spec.writes === true;
 /** A positional JSON file becomes an inline object: the server writes it to a scratch file. */
-const INLINE: Record<string, string> = { apply: 'batch', import: 'source' };
+const INLINE: Record<string, { property: string; alternative?: string }> = {
+  apply: { property: 'batch', alternative: 'commands' },
+  import: { property: 'source' },
+};
 /** Value flags whose argument is a JSON file. The tool takes the document inline and the server
  * writes it to a scratch file, so an agent never has to put a temporary file on disk itself. */
 const INLINE_FLAGS: Record<string, string[]> = { apply: ['--commands'], place: ['--table'], armor: ['--rules'], ballast: ['--tanks'] };
@@ -47,15 +50,27 @@ export function toolFor(name: string, spec: FlagSpec & { summary: string }): Too
       ? { type: ['array', 'object'], description: flag + ': the JSON document itself, not a path.' }
       : { type: ['string', 'number'], description: flag + ' <value>' };
   for (const flag of spec.switches ?? []) properties[property(flag)] = { type: 'boolean', description: flag };
-  if (INLINE[name]) {
-    properties[INLINE[name]] = { type: 'object', description: 'The JSON document this command reads. `schema` describes a batch.' };
-    required.push(INLINE[name]);
+  const document = INLINE[name];
+  if (document) {
+    properties[document.property] = { type: 'object', description: 'The JSON document this command reads. `schema` describes a batch.' };
+    if (!document.alternative) required.push(document.property);
   } else if (spec.positionals)
-    properties.arguments = { type: 'array', items: { type: 'string' }, maxItems: spec.positionals, description: 'Positional arguments after the ship ID.' };
+    properties.arguments = {
+      type: 'array',
+      items: { type: 'string' },
+      maxItems: spec.positionals,
+      description: 'Positional arguments after the ship ID.',
+    };
   return {
     name: 'ship_' + name.replaceAll('-', '_'),
     description: spec.summary.replace(/^—\s*/, ''),
-    inputSchema: { type: 'object', properties, required, additionalProperties: false },
+    inputSchema: {
+      type: 'object',
+      properties,
+      required,
+      additionalProperties: false,
+      ...(document?.alternative ? { oneOf: [{ required: [document.property] }, { required: [document.alternative] }] } : {}),
+    },
     annotations: { readOnlyHint: !writes(name, spec), destructiveHint: writes(name, spec) },
   };
 }
@@ -76,10 +91,14 @@ export function commandLine(name: string, spec: FlagSpec, input: Record<string, 
     line.push(input.ship);
     rest.delete('ship');
   }
-  if (INLINE[name]) {
-    if (!inlineFile) throw new Error(INLINE[name] + ' is required.');
-    line.push(inlineFile);
-    rest.delete(INLINE[name]);
+  const document = INLINE[name];
+  if (document) {
+    const alternative = document.alternative && input[document.alternative] != null;
+    if (inlineFile && alternative) throw new Error('Give either ' + document.property + ' or ' + document.alternative + ', not both.');
+    if (!inlineFile && !alternative)
+      throw new Error(document.property + (document.alternative ? ' or ' + document.alternative : '') + ' is required.');
+    if (inlineFile) line.push(inlineFile);
+    rest.delete(document.property);
   } else if (Array.isArray(input.arguments)) {
     line.push(...input.arguments.map(String));
     rest.delete('arguments');
@@ -116,7 +135,8 @@ async function call(name: string, spec: FlagSpec, input: Record<string, unknown>
     return path;
   };
   let inlineFile: string | undefined;
-  if (INLINE[name] && input[INLINE[name]] !== undefined) inlineFile = await spill(input[INLINE[name]]);
+  const document = INLINE[name];
+  if (document && input[document.property] !== undefined) inlineFile = await spill(input[document.property]);
   for (const flag of inlineFlags(name, spec)) {
     const value = input[property(flag)];
     if (value !== undefined && value !== null) input = { ...input, [property(flag)]: await spill(value) };
@@ -139,7 +159,11 @@ async function call(name: string, spec: FlagSpec, input: Record<string, unknown>
       /* Failures and partial output are returned as text. */
     }
     if (text.length > MAX_TEXT)
-      text = text.slice(0, MAX_TEXT) + '\n… truncated ' + (text.length - MAX_TEXT) + ' characters. Use ship_summary, ship_get or narrower flags.';
+      text =
+        text.slice(0, MAX_TEXT) +
+        '\n… truncated ' +
+        (text.length - MAX_TEXT) +
+        ' characters. Use ship_summary, ship_get or narrower flags.';
     content.push({ type: 'text', text });
     for (const path of [...new Set(pngPaths(parsed))].slice(0, MAX_IMAGES))
       content.push({ type: 'image', mimeType: 'image/png', data: (await readFile(path)).toString('base64') });
@@ -178,7 +202,9 @@ export async function handle(message: { id?: unknown; method?: string; params?: 
     }
     default:
       // Notifications carry no ID and take no reply.
-      return message.id === undefined ? undefined : { jsonrpc: '2.0', id: message.id, error: { code: -32601, message: 'Method not found.' } };
+      return message.id === undefined
+        ? undefined
+        : { jsonrpc: '2.0', id: message.id, error: { code: -32601, message: 'Method not found.' } };
   }
 }
 
