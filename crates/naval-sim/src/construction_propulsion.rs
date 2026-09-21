@@ -1,9 +1,144 @@
-//! Compile-time propeller routing. Battle machinery only consumes the frozen groups.
+//! Compile-time propeller routing and power. Battle machinery consumes the frozen groups.
+use crate::construction::warn;
 use crate::definition::{
-    ConstructionEquipment, ConstructionEquipmentPart, ConstructionPropellerAssignment,
+    ConstructionDiagnostic, ConstructionEquipment, ConstructionEquipmentPart,
+    ConstructionPropellerAssignment, ConstructionResult, MachineryRating, PropulsionGroup,
+    SharedExhaust, ShipDefinition, ShipDefinitionPropulsion,
 };
 
 type Fitting<'a> = (&'a ConstructionEquipment, &'a ConstructionEquipmentPart);
+
+/// Freeze machinery groups and report incomplete propulsion after fitting validation.
+/// Returns effective shaft power for the compiler's final loading estimate.
+pub(crate) fn install(
+    fitted: &[Fitting<'_>],
+    def: &mut ShipDefinition,
+    out: &mut ConstructionResult,
+) -> f64 {
+    let assignments = assignments(fitted);
+    out.propeller_assignments = Some(assignments.clone());
+    let mut power = 0.;
+    let mut groups = vec![];
+    let engine_count = fitted.iter().filter(|(_, p)| p.kind == "engine").count();
+    if engine_count == 0 {
+        let mut missing = vec!["engine"];
+        for kind in ["funnel", "propeller"] {
+            if !fitted.iter().any(|(_, p)| p.kind == kind) {
+                missing.push(kind);
+            }
+        }
+        warn(
+            out,
+            "unpowered",
+            &format!(
+                "No propulsion: missing {}. Add the missing equipment; funnels supply shared exhaust capacity and propellers connect to powered engines automatically. Sea trial is still available, but the ship cannot propel itself.",
+                missing.join(", ")
+            ),
+        );
+    }
+    let funnels: Vec<_> = fitted.iter().filter(|(_, p)| p.kind == "funnel").collect();
+    let shared_exhaust = SharedExhaust {
+        engines: fitted
+            .iter()
+            .filter(|(_, p)| p.kind == "engine" && p.power_kw.unwrap_or(0.) > 0.)
+            .map(|(e, p)| MachineryRating {
+                id: e.id.clone(),
+                kw: p.power_kw.unwrap_or(0.),
+            })
+            .collect(),
+        funnels: funnels
+            .iter()
+            .map(|(e, p)| MachineryRating {
+                id: e.id.clone(),
+                kw: p.exhaust_kw.unwrap_or(0.),
+            })
+            .collect(),
+    };
+    let exhaust: f64 = shared_exhaust.funnels.iter().map(|f| f.kw).sum();
+    let demand: f64 = shared_exhaust.engines.iter().map(|e| e.kw).sum();
+    let supply = crate::construction_services::exhaust_fraction(exhaust, demand);
+    if exhaust > 0. && exhaust < demand {
+        warn(
+            out,
+            "exhaust-capacity",
+            &format!(
+                "Insufficient exhaust capacity: {exhaust:.0} kW available for {demand:.0} kW of engines. Add another funnel or use a higher-capacity funnel. Propulsion is limited; sea trial is still available."
+            ),
+        );
+    }
+    for (engine, part) in fitted.iter().filter(|(_, p)| p.kind == "engine") {
+        let props: Vec<_> = fitted
+            .iter()
+            .filter(|(e, p)| {
+                p.kind == "propeller"
+                    && assignments
+                        .iter()
+                        .any(|a| a.propeller_id == e.id && a.engine_id == engine.id)
+            })
+            .collect();
+        let rated = part.power_kw.unwrap_or(0.);
+        let mut reasons: Vec<String> = vec![];
+        if funnels.is_empty() {
+            reasons.push(
+                "Missing funnel. Add a funnel in Fittings to provide shared exhaust capacity"
+                    .into(),
+            );
+        }
+        if props.is_empty() {
+            reasons.push(if fitted.iter().any(|(_, p)| p.kind == "propeller") {
+                "No propeller assigned to this engine. Set a propeller to Automatic to share it, choose this engine in its Engine setting, or add another propeller".into()
+            } else {
+                "Missing propeller. Add a propeller in Fittings; its engine is assigned automatically".into()
+            });
+        }
+        if rated == 0. {
+            reasons.push(
+                "This engine has no rated power. Replace it with an engine that supplies power"
+                    .into(),
+            );
+        }
+        if !funnels.is_empty() {
+            if exhaust == 0. {
+                reasons.push("Funnels have no exhaust capacity. Replace them with a funnel that provides exhaust capacity".into());
+            } else if rated > 0. && supply <= crate::construction_services::AUXILIARY_POWER_SHARE {
+                reasons.push("Shared exhaust capacity is too low to power propulsion after auxiliary services. Add another funnel or use a higher-capacity funnel".into());
+            }
+        }
+        if !reasons.is_empty() {
+            out.diagnostics.push(ConstructionDiagnostic {
+                severity: "warning".into(),
+                code: "unpowered".into(),
+                message: format!("Engine {} has no propulsion: {}. Sea trial is still available, but this engine provides no thrust.", engine.id, reasons.join(". ")),
+                source_id: Some(engine.id.clone()),
+                ..Default::default()
+            });
+            continue;
+        }
+        let efficiency = props
+            .iter()
+            .map(|(_, p)| p.thrust_efficiency.unwrap_or(0.6).clamp(0.01, 1.))
+            .sum::<f64>()
+            / props.len() as f64;
+        let kw = (rated * (supply - crate::construction_services::AUXILIARY_POWER_SHARE)).max(0.)
+            * efficiency;
+        if kw == 0. {
+            continue;
+        }
+        power += kw;
+        groups.push(PropulsionGroup {
+            id: engine.id.clone(),
+            share: kw,
+            boiler_ids: funnels.iter().map(|(e, _)| e.id.clone()).collect(),
+            drive_ids: vec![engine.id.clone()],
+            shaft_ids: props.iter().map(|(e, _)| e.id.clone()).collect(),
+        });
+    }
+    for g in &mut groups {
+        g.share /= power.max(1.);
+    }
+    def.propulsion = Some(ShipDefinitionPropulsion { groups, shared_exhaust: Some(shared_exhaust), basis: "Catalog power limited by shared funnel capacity, allocated in proportion to engine power, less 2% rated power reserved for included auxiliaries, then propeller efficiency; damaged or submerged funnels reduce shared capacity at runtime".into() });
+    power
+}
 
 pub(crate) fn assignments(fitted: &[Fitting<'_>]) -> Vec<ConstructionPropellerAssignment> {
     let mut engines: Vec<_> = fitted

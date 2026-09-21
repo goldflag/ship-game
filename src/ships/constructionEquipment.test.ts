@@ -65,18 +65,20 @@ test('stable instance prefixes preserve complete independent joint and cover ide
   expect(()=>prefixComponentNodeId('mount-1','different.yaw')).toThrow('prefix');
 });
 
-test('explicit parts updates preserve fitted identities and reject removed variants',async()=>{
-  const {constructionCatalogUpdate,updateConstructionCatalog}=await import('./constructionEquipment');
+test('catalog adoption only waits for missing published parts, retaining names and source identity',async()=>{
+  const {missingConstructionCatalogParts}=await import('./constructionEquipment');
   const {createStarterSource}=await import('./constructionStarter');
   const source=createStarterSource(raw,'patrol'), before=structuredClone(source);
   const next=structuredClone(raw);next.revision='a'.repeat(64);
   const used=source.construction.equipment[0].partId;
-  expect(constructionCatalogUpdate(source,raw,next)).toEqual({changedParts:[],missingParts:[]});
+  expect(missingConstructionCatalogParts(source,next,raw)).toEqual([]);
   next.equipment.find((p:{id:string})=>p.id===used).contentHash='b'.repeat(64);
-  expect(constructionCatalogUpdate(source,raw,next).changedParts).toHaveLength(1);
-  updateConstructionCatalog(source,raw,next);
-  expect(source).toEqual({...before,construction:{...before.construction,catalogRevision:next.revision}});
+  expect(missingConstructionCatalogParts(source,next,raw)).toEqual([]);
+  expect(source).toEqual(before);
   const missing=structuredClone(next);missing.equipment=missing.equipment.filter((p:{id:string})=>p.id!==used);
-  expect(()=>updateConstructionCatalog(before,raw,missing)).toThrow('missing fitted parts');
-  expect(before.construction.catalogRevision).toBe(raw.revision);
+  source.construction.equipment.push({...source.construction.equipment[0],id:'duplicate'});
+  expect(missingConstructionCatalogParts(source,missing,raw)).toEqual([raw.equipment.find((p:{id:string})=>p.id===used).name]);
+  expect(missingConstructionCatalogParts(source,missing)).toEqual([used]);
+  source.construction.equipment=source.construction.equipment.filter(part=>part.partId!==used);
+  expect(missingConstructionCatalogParts(source,missing,raw)).toEqual([]);
 });

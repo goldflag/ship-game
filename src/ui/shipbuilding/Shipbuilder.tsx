@@ -33,7 +33,6 @@ import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
 import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
 import { createStarterSource, startingHullBlock, type ConstructionStarter } from '../../ships/constructionStarter';
-import { constructionCatalogUpdate, updateConstructionCatalog } from '../../ships/constructionEquipment';
 import { constructionDiffCommands, type ConstructionCommand, type ConstructionBatch } from '../../ships/constructionCommands';
 import { armorThicknessColor } from '../../ships/inspection';
 import { BuilderViewport, type BuilderTag, type ConstructionModelFactory } from './BuilderViewport';
@@ -132,9 +131,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       toolState: s,
       source,
       catalog,
-      activeCatalog,
-      latestCatalog,
-      setActiveCatalog,
+      missingCatalogParts,
     } = editor,
     data = source.construction;
   const {
@@ -351,25 +348,6 @@ export function Shipbuilder(props: ShipbuilderProps) {
       owner.setBusy('');
     }
   };
-  const partsUpdate =
-    activeCatalog.revision === data.catalogRevision && latestCatalog.revision !== data.catalogRevision
-      ? {
-          ...constructionCatalogUpdate(source, activeCatalog, latestCatalog),
-          onApply: () => {
-            try {
-              const next = structuredClone(source);
-              updateConstructionCatalog(next, activeCatalog, latestCatalog);
-              run('Update parts library', constructionDiffCommands(source, next));
-              setActiveCatalog(latestCatalog);
-              setDesignsOpen(false);
-              tool.clearPath();
-              tool.notify('Parts library updated. Undo restores the previous library.');
-            } catch (cause) {
-              fail(cause);
-            }
-          },
-        }
-      : undefined;
   const saveCopy = async () => {
     setDesignsOpen(false);
     const copy = structuredClone(source);
@@ -1452,7 +1430,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
           </i>
           {designsOpen && !props.repositoryId && (
             <DesignsMenu
-              partsUpdate={partsUpdate}
+              missingCatalogParts={missingCatalogParts}
               disabled={locked}
               store={editor.store}
               currentId={source.id}

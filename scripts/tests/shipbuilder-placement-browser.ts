@@ -62,6 +62,7 @@ export async function checkShipbuilderPlacement() {
     check(!!viewport.floorGrid.getObjectByName('Ship centerline'), 'the floor grid has a ship centerline');
     const floorObjects = new Set<THREE.Object3D>(); viewport.floorGrid.traverse(object => floorObjects.add(object));
     check(viewport.pickMeshes.every(object => !floorObjects.has(object)), 'the floor grid is visual only, never a placement target');
+    await controls.tool('Place'); // New editors open in Select; this check exercises placement.
     const startCount = source().construction.primitives.length, initialIds = new Set(source().construction.primitives.map(part => part.id));
     const placed = () => source().construction.primitives.find(part => !initialIds.has(part.id))!;
     controls.key('m'); await frame();

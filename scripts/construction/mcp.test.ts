@@ -17,12 +17,34 @@ test('tools mirror the command line exactly', async () => {
   const apply = toolFor('apply', all.apply);
   expect(apply.name).toBe('ship_apply');
   expect(apply.annotations.destructiveHint).toBe(true);
-  expect(apply.inputSchema.required).toEqual(['ship', 'batch']);
-  expect(commandLine('apply', all.apply, { ship: 'valiant', batch: {}, dry_run: true }, '/tmp/b.json')).toEqual(['apply', 'valiant', '/tmp/b.json', '--dry-run']);
-  expect(() => commandLine('apply', all.apply, { ship: 'valiant', batch: {}, dryrun: true }, '/tmp/b.json')).toThrow('Unknown argument dryrun');
+  expect(apply.inputSchema.required).toEqual(['ship']);
+  expect(apply.inputSchema.oneOf).toEqual([{ required: ['batch'] }, { required: ['commands'] }]);
+  expect(commandLine('apply', all.apply, { ship: 'valiant', batch: {}, dry_run: true }, '/tmp/b.json')).toEqual([
+    'apply',
+    'valiant',
+    '/tmp/b.json',
+    '--dry-run',
+  ]);
+  expect(() => commandLine('apply', all.apply, { ship: 'valiant', batch: {}, dryrun: true }, '/tmp/b.json')).toThrow(
+    'Unknown argument dryrun',
+  );
   expect(() => commandLine('apply', all.apply, { ship: 'valiant', batch: {}, dry_run: 'yes' }, '/tmp/b.json')).toThrow('boolean');
   expect(commandLine('templates', all.templates, {})).toEqual(['templates']);
   expect(toolFor('inspect', all.inspect).annotations.readOnlyHint).toBe(true);
+});
+
+test('apply accepts either inline document form and rejects ambiguous or missing input', () => {
+  const line = commandLine('apply', FLAGS.apply, { ship: 'valiant', commands: '/tmp/commands.json', label: 'Refit', dry_run: true });
+  const parsed = parseFlags(line.slice(1), FLAGS.apply);
+  expect(parsed.positionals).toEqual([]);
+  expect(parsed.option('--commands')).toBe('/tmp/commands.json');
+  expect(parsed.option('--label')).toBe('Refit');
+  expect(parsed.has('--dry-run')).toBe(true);
+  expect(() => commandLine('apply', FLAGS.apply, { ship: 'valiant' })).toThrow('batch or commands is required');
+  expect(() =>
+    commandLine('apply', FLAGS.apply, { ship: 'valiant', batch: {}, commands: '/tmp/commands.json' }, '/tmp/batch.json'),
+  ).toThrow('not both');
+  expect(() => commandLine('import', FLAGS.import, { ship: 'valiant' })).toThrow('source is required');
 });
 
 test('the protocol lists tools and ignores notifications', async () => {

@@ -1,5 +1,5 @@
 import { initBlockGeometry } from './blockMovement';
-import { effectiveConstructionCatalog, isCustomFittingPartId } from '../../ships/constructionCustomFittings';
+import { effectiveConstructionCatalog } from '../../ships/constructionCustomFittings';
 import { currentAccount } from '../../accounts/session';
 import { retainRecovery, savedReference } from '../../ships/constructionCloud';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
@@ -7,7 +7,7 @@ import type { ConstructionCatalog, ConstructionSource, ConstructionSuggestion } 
 import { CompiledRevision, type BuilderCompiler } from '../../ships/compiledRevision';
 import { compiledLocalShip } from '../../ships/localShips';
 import { ConstructionRevisionOwner } from '../../ships/constructionRevisionOwner';
-import { loadConstructionCatalog } from '../../ships/constructionEquipment';
+import { loadConstructionCatalog, missingConstructionCatalogParts } from '../../ships/constructionEquipment';
 import { startingHullBlock } from '../../ships/constructionStarter';
 import { openConstructionStore, type ConstructionStore } from '../../ships/constructionStore';
 import { newConstructionId } from '../../ships/constructionEditor';
@@ -63,13 +63,13 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
   const [latestLoaded, setLatestLoaded] = useState(false);
   useEffect(() => { let active = true; void loadConstructionCatalog().then(next => { if (active) { setLatestCatalog(next); setLatestLoaded(true); } }).catch(() => {}); return () => { active = false; }; }, []);
   const catalogRevision = source.construction.catalogRevision;
+  const missingCatalogParts = useMemo(() => missingConstructionCatalogParts(source, latestCatalog,
+    activeCatalog.revision === catalogRevision ? activeCatalog : undefined), [source, latestCatalog, activeCatalog, catalogRevision]);
   useEffect(() => {
     if (!latestLoaded || !revision.ready || revision.busy || catalogRevision === latestCatalog.revision) return;
-    const available = new Set(latestCatalog.equipment.map(part => part.id));
-    // Design-local fittings travel with the source, so they never hold a design on an old catalog.
-    if (source.construction.equipment.some(fitted => !isCustomFittingPartId(fitted.partId) && !available.has(fitted.partId))) return;
+    if (missingCatalogParts.length) return;
     if (owner.adoptCatalog(latestCatalog.revision)) setActiveCatalog(latestCatalog);
-  }, [latestLoaded, latestCatalog, catalogRevision, revision.ready, revision.busy, revision.adoption, owner]);
+  }, [latestLoaded, latestCatalog, catalogRevision, missingCatalogParts, revision.ready, revision.busy, revision.adoption, owner]);
   useEffect(() => {
     if (activeCatalog.revision === catalogRevision) return;
     let active = true;
@@ -107,6 +107,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
     return () => clearInterval(timer);
   }, [store, repositoryId, revision.ready, owner]);
 
-  return { owner, revision, compiled, compile, tool, toolState, source, store, catalog, activeCatalog, latestCatalog, setActiveCatalog,
+  return { owner, revision, compiled, compile, tool, toolState, source, store, catalog,
+    missingCatalogParts: latestLoaded && catalogRevision !== latestCatalog.revision ? missingCatalogParts : [],
     reloadRepository: async () => { if (repositoryId) await owner.reloadRepository(repositoryId); } };
 }

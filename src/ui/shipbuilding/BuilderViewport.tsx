@@ -1118,14 +1118,7 @@ class Viewport {
     if (event.button !== this.pointerStart?.button || event.pointerId !== this.pointerStart.id) return;
     const start = this.pointerStart,
       rect = start.box ? this.boxRect(event) : undefined;
-    this.pointerStart = undefined;
-    this.controls.enabled = true;
-    this.fillPreview.visible = false;
-    release(this.strokePreview);
-    this.strokeKey = '';
-    this.updateFacesPreview();
-    this.showBox();
-    if (this.renderer.domElement.hasPointerCapture(event.pointerId)) this.renderer.domElement.releasePointerCapture(event.pointerId);
+    this.endGesture(event.pointerId);
     const clicked = !start.moved && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5;
     const piece = this.props.scene.placementPiece;
     if (start.rotate && !clicked) {
@@ -1264,17 +1257,21 @@ class Viewport {
     release(this.hoverGroup);
     this.hoverSurface = '';
   };
-  private cancel = () => {
-    const pointer = this.pointerStart;
+  /** Finish shared pointer/preview state before committing an edit or cancelling it. */
+  private endGesture(pointerId?: number) {
     this.pointerStart = undefined;
     this.controls.enabled = true;
-    if (pointer?.rotate) this.previewRotation(pointer.rotate, 0);
-    if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
     this.fillPreview.visible = false;
     release(this.strokePreview);
     this.strokeKey = '';
     this.updateFacesPreview();
     this.showBox();
+    if (pointerId !== undefined && this.renderer.domElement.hasPointerCapture(pointerId)) this.renderer.domElement.releasePointerCapture(pointerId);
+  }
+  private cancel = () => {
+    const pointer = this.pointerStart;
+    if (pointer?.rotate) this.previewRotation(pointer.rotate, 0);
+    this.endGesture(pointer?.id);
     this.finishMove();
     this.leave();
   };

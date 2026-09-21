@@ -83,30 +83,44 @@ export async function checkDeckFittingsEditor() {
   return {passed:checks.length,checks,catalogRevision:catalog.revision,source:source()};
 }
 
-/** Existing designs opt into new parts while retaining their exact source and undo history. */
-export async function checkDeckCatalogUpgrade(retainedRevision:string) {
+/** Opening adopts available parts automatically; missing fitted parts retain the saved library. */
+export async function checkDeckCatalogUpgrade() {
   const {createStarterSource}=await import('../../src/ships/constructionStarter');
-  const retained=await loadConstructionCatalog(retainedRevision),latest=await loadConstructionCatalog();
-  const template=createStarterSource(retained,'patrol'); template.name='Parts library upgrade review';
+  const latest=await loadConstructionCatalog();
+  const retainedRevision=(latest.revision==='a'.repeat(64)?'b':'a').repeat(64);
+  const retained={...latest,revision:retainedRevision};
+  const template=createStarterSource(retained,'blank'); template.name='Parts library adoption review';
   window.shipbuilderReview?.close(); await mountShipbuilderReview(template,retained);
-  const checks:string[]=[],source=()=>window.shipbuilderReview?.source;
+  const checks:string[]=[],source=()=>window.constructionEditor?.source();
   const wait=async(predicate:()=>unknown,label:string)=>{
     const start=performance.now();
     while(!predicate()){if(performance.now()-start>45000)throw new Error(`Timed out: ${label}`);await new Promise(r=>setTimeout(r,25));}
     checks.push(label);
   };
-  await wait(()=>source()?.construction.catalogRevision===retainedRevision&&!document.querySelector('.sb-ledger h4 span'),'retained catalog source opens unchanged');
-  const original=JSON.stringify(source()!.construction);
+  await wait(()=>source()?.construction.catalogRevision===latest.revision,'opening adopts the latest available catalog automatically');
+  if(JSON.stringify({...source()!.construction,catalogRevision:retainedRevision})!==JSON.stringify(template.construction))
+    throw new Error('Catalog adoption changed authored geometry');
+  const editor=window.constructionEditor!;
+  editor.apply({version:1,expectedRevision:source()!.revision,label:'Rename after adoption',commands:[{op:'name',name:'Renamed design'}]});
+  editor.undo();
+  await wait(()=>source()?.name===template.name&&source()?.construction.catalogRevision===latest.revision,'undo edits without restoring the old catalog');
+  editor.redo();
+  await wait(()=>source()?.name==='Renamed design'&&source()?.construction.catalogRevision===latest.revision,'redo keeps the latest catalog');
+  await editor.flush();
+  await wait(()=>window.shipbuilderReview?.source?.construction.catalogRevision===latest.revision,'the adopted catalog is saved');
+
+  const missingPart={...latest.equipment.find(part=>part.kind==='funnel')!,id:'retained-only-funnel',name:'Retained funnel'};
+  const unavailable={...retained,equipment:[...retained.equipment,missingPart]};
+  const draft=createStarterSource(unavailable,'blank');
+  draft.construction.equipment.push({id:'missing-fitting',partId:missingPart.id,position:[0,1,0],bearingDeg:0});
+  window.shipbuilderReview?.close(); await mountShipbuilderReview(draft,unavailable);
+  await wait(()=>source()?.construction.catalogRevision===retainedRevision&&window.shipbuilderReview?.source,'a fitted part missing from the latest library retains the saved catalog');
   document.querySelector<HTMLButtonElement>('.sb-meta')!.click();
-  await wait(()=>[...document.querySelectorAll('button')].some(b=>b.textContent==='Update parts library'),'existing design offers the latest parts');
-  [...document.querySelectorAll<HTMLButtonElement>('button')].find(b=>b.textContent==='Update parts library')!.click();
-  await wait(()=>source()?.construction.catalogRevision===latest.revision&&!document.querySelector('.sb-ledger h4 span'),'parts update recompiles against the current catalog');
-  const changed={...source()!.construction,catalogRevision:retainedRevision};
-  if(JSON.stringify(changed)!==original)throw new Error('Library update changed authored fittings or hull geometry');
-  checks.push('upgrade preserves exact authored pieces and fitted variants');
-  controls.key('z',{ctrlKey:true});
-  await wait(()=>JSON.stringify(source()?.construction)===original&&!document.querySelector('.sb-ledger h4 span'),'one undo restores the retained catalog and source');
-  controls.key('z',{ctrlKey:true,shiftKey:true});
-  await wait(()=>source()?.construction.catalogRevision===latest.revision&&!document.querySelector('.sb-ledger h4 span'),'redo restores the parts upgrade');
+  await wait(()=>document.querySelector('.sb-menu')?.textContent?.includes('Unavailable in the latest library: Retained funnel'),'the menu names the missing part without offering an upgrade');
+  if([...document.querySelectorAll('.sb-menu button')].some(button=>/parts (library|update)/i.test(button.textContent??'')))
+    throw new Error('Obsolete manual parts upgrade action remains');
+  const retainedEditor=window.constructionEditor!;
+  retainedEditor.apply({version:1,expectedRevision:source()!.revision,label:'Remove unavailable fitting',commands:[{op:'remove',ids:['missing-fitting']}]});
+  await wait(()=>source()?.construction.catalogRevision===latest.revision,'removing the missing fitting resumes automatic adoption');
   return {passed:checks.length,checks};
 }
