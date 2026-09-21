@@ -22,10 +22,10 @@ self.onmessage = async (event: MessageEvent<{ type: 'compile' | 'suggest'; id: n
       const sourceJson = JSON.stringify(source), catalogJson = JSON.stringify(parts);
       const resultJson = await cachedConstructionCompile(simulation_build(), sourceJson, catalogJson, () => {
         compiler ??= new ConstructionCompiler();
-        return compiler.compile(sourceJson, catalogJson);
+        return compiler.compile_compact(sourceJson, catalogJson);
       });
-      // WASM already produced JSON. Parsing here would make postMessage clone
-      // hundreds of thousands of geometry arrays before the editor can use them.
+      // Keep the compact Rust packet through caching and transport; the client
+      // restores ordinary geometry only once, after it crosses the worker boundary.
       self.postMessage({ id, resultJson });
     }
   } catch (error) { self.postMessage({ id, error: error instanceof Error ? error.message : String(error) }); }

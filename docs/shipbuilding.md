@@ -254,6 +254,7 @@ The compiler is part of the `naval-sim` crate, identified by `COMPILER` in
 | `construction.rs` | Validation, union, skin, rooms, loading, definition, `suggest` |
 | `construction_geometry.rs` | Convex polyhedra CSG and its bounds |
 | `construction_cache.rs` | Content-addressed CSG reuse across editor revisions |
+| `construction_transport.rs` | Lossless compact worker results; shared surfaces, loading and indexed vertices |
 | `construction_custom_hull.rs`, `_vertex.rs`, `_freeform.rs`, `_mesh.rs`, `_balcony.rs` | Shape families |
 | `construction_orientation.rs` | Yaw plus optional tilt, YXZ |
 | `construction_installation.rs` | Gun wells, deck mounts, raised supports |
@@ -272,8 +273,20 @@ Entry points:
   catalog JSON. `compile_construction_edits` replays an array of revisions through one warm
   compiler and asserts equality with fresh compilation.
 - Browser: `ConstructionClient` (`src/ships/constructionClient.ts`) runs the compiler in a
-  dedicated worker (`construction.worker.ts`). The worker sends the compiler's JSON directly;
-  the client parses it once, avoiding a structured clone of the expanded geometry.
+  dedicated worker (`construction.worker.ts`). Its `compile_compact` WASM entry emits a
+  `naval-construction-result` version-1 envelope: ordinary result fields, a shared vertex table,
+  and optional references for hull surfaces and loading already present elsewhere in the result.
+  Coordinates retain all floating-point bits, including signed zero. `constructionTransport.ts`
+  validates and expands the packet into an ordinary `ConstructionResult` with independent mutable
+  arrays before exposing it to the editor, port or battle. Native/public `compile` JSON, saved
+  sources and the battle definition format stay unchanged.
+
+The disposable browser cache stores compact packets. Results of at least 64 KiB are gzip-compressed
+when browser compression streams are available; a custom `X-Construction-Compression: gzip` header
+marks these entries. Reads explicitly decompress them. Plain entries remain readable, and corrupt
+or unavailable storage falls back to compilation. Cache writes finish before the worker replies,
+so immediately closing the editor still leaves a reusable result. The worker sends compact JSON
+rather than compressed bytes to the client, keeping decompression off the UI thread.
 
 Geometry queries reuse bounds, face normals and content fingerprints for immutable face
 allocations. Weak references preserve allocation identity without retaining dead vertex buffers;

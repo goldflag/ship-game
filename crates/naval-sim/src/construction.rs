@@ -146,13 +146,20 @@ pub struct ConstructionCompiler {
 }
 impl ConstructionCompiler {
     pub fn compile_json(&mut self, source: &str, catalog: &str) -> Result<String, String> {
+        to_json(&self.compile_input(source, catalog)?)
+    }
+    /// Compact editor-only result; native/public definition JSON remains unchanged.
+    pub fn compile_compact_json(&mut self, source: &str, catalog: &str) -> Result<String, String> {
+        crate::construction_transport::encode(&self.compile_input(source, catalog)?)
+    }
+    fn compile_input(&mut self, source: &str, catalog: &str) -> Result<ConstructionResult, String> {
         if source.len() > MAX_SOURCE_BYTES || catalog.len() > MAX_CATALOG_BYTES {
             return Err("Construction input exceeds bounded JSON size".into());
         }
         let source: ConstructionSource = serde_json::from_str(source).map_err(|e| e.to_string())?;
         let catalog: ConstructionCatalog =
             serde_json::from_str(catalog).map_err(|e| e.to_string())?;
-        to_json(&self.compile(&source, &catalog))
+        Ok(self.compile(&source, &catalog))
     }
     pub fn compile(
         &mut self,
@@ -485,6 +492,9 @@ fn fitting_faults(
 }
 /// TypeScript optional properties are omitted, rather than encoded as JSON null.
 pub fn to_json(value: &impl serde::Serialize) -> Result<String, String> {
+    serde_json::to_string(&json_value(value)?).map_err(|e| e.to_string())
+}
+pub(crate) fn json_value(value: &impl serde::Serialize) -> Result<serde_json::Value, String> {
     fn omit(value: &mut serde_json::Value) {
         match value {
             serde_json::Value::Object(o) => {
@@ -503,7 +513,7 @@ pub fn to_json(value: &impl serde::Serialize) -> Result<String, String> {
     }
     let mut value = serde_json::to_value(value).map_err(|e| e.to_string())?;
     omit(&mut value);
-    serde_json::to_string(&value).map_err(|e| e.to_string())
+    Ok(value)
 }
 pub fn compile(source: &ConstructionSource, catalog: &ConstructionCatalog) -> ConstructionResult {
     ConstructionCompiler::default().compile(source, catalog)

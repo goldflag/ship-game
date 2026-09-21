@@ -1,3 +1,4 @@
+import { decodeConstructionResult } from './constructionTransport';
 import type { ConstructionResult, ConstructionSource, ConstructionSuggestion } from './blueprint';
 
 export interface ConstructionWorker {
@@ -66,7 +67,7 @@ export class ConstructionClient {
     const pending = this.active;
     if (!pending || message.id !== pending.id) return;
     let compiled: ConstructionResult | undefined;
-    try { if (message.resultJson) compiled = JSON.parse(message.resultJson); }
+    try { if (message.resultJson) compiled = decodeConstructionResult(message.resultJson); }
     catch { this.fail(new Error('The compiler returned an unreadable design.')); return; }
     const result = pending.type === 'compile' ? compiled : message.suggestion;
     if (message.error || !result) { this.fail(new Error(message.error || 'The compiler returned no design.')); return; }
