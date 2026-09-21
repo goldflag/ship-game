@@ -180,10 +180,6 @@ pub fn closest_point(c: &Cell, p: Vec3) -> Vec3 {
     }
     best.0
 }
-/// `room_distance(room, p).min(bound)` for a constructed room. A cell whose
-/// bounding box is clearly farther than the nearest surface found so far cannot
-/// hold it, and measuring that box is far cheaper than a closest point on every
-/// face; the cell that does hold it is never skipped, so the distance is exact.
 fn cell_bounds(c: &Cell) -> (Vec3, Vec3) {
     let (mut low, mut high) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
     for v in c.faces.iter().flat_map(|f| &f.vertices) {
@@ -215,6 +211,10 @@ impl RoomDistance {
     }
 }
 
+/// `room_distance(room, p).min(bound)` for a constructed room. A cell whose
+/// bounding box is clearly farther than the nearest surface found so far cannot
+/// hold it, and measuring that box is far cheaper than a closest point on every
+/// face; the cell that does hold it is never skipped, so the distance is exact.
 pub fn room_distance_within(cells: &[Cell], p: Vec3, bound: f64) -> f64 {
     distance_with_bounds(cells.iter().map(|c| (c, cell_bounds(c))), p, bound)
 }
