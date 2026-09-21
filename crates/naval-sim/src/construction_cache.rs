@@ -2,11 +2,12 @@
 //! geometry is cached; validation, source identities and physical loading are rebuilt.
 use crate::{construction_geometry as cg, definition::Vec3};
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 const MAX_BYTES: usize = 32 * 1024 * 1024;
 const MAX_ENTRIES: usize = 8192;
 struct Entry {
+    shape: (usize, usize),
     cells: Vec<cg::Cell>,
     bytes: usize,
     used: u64,
@@ -14,6 +15,7 @@ struct Entry {
 #[derive(Default)]
 pub(crate) struct GeometryCache {
     entries: HashMap<[u8; 32], Entry>,
+    shapes: HashSet<(usize, usize)>,
     bytes: usize,
     revision: u64,
     pub hits: usize,
@@ -22,17 +24,10 @@ pub(crate) struct GeometryCache {
 fn hash_cells(hash: &mut Sha256, cells: &[&cg::Cell]) {
     hash.update((cells.len() as u64).to_le_bytes());
     for cell in cells {
-        hash.update((cell.faces.len() as u64).to_le_bytes());
-        for face in cell.faces.iter() {
-            hash.update((face.vertices.len() as u64).to_le_bytes());
-            for vertex in &face.vertices {
-                for n in vertex {
-                    hash.update(n.to_bits().to_le_bytes());
-                }
-            }
-        }
+        hash.update(cg::fingerprint(cell));
     }
 }
+
 fn stored_bytes(cells: &[cg::Cell]) -> usize {
     128 + cells
         .iter()
@@ -56,6 +51,7 @@ impl GeometryCache {
         // cannot grow the cache indefinitely, even below the hard memory bound.
         self.entries.retain(|_, e| e.used + 1 >= self.revision);
         self.bytes = self.entries.values().map(|e| e.bytes).sum();
+        self.shapes = self.entries.values().map(|e| e.shape).collect();
     }
 
     pub fn subtract_all<'a>(
@@ -86,22 +82,34 @@ impl GeometryCache {
             cg::check_budget(&cells)?;
             return Ok(cells);
         }
-        let mut hash = Sha256::new();
-        hash_cells(&mut hash, &cells.iter().collect::<Vec<_>>());
-        hash_cells(&mut hash, &cutters);
-        let key: [u8; 32] = hash.finalize().into();
-        if let Some(entry) = self.entries.get_mut(&key) {
+        let shape = (cells.len(), cutters.len());
+        let key_for = |cells: &[cg::Cell]| -> [u8; 32] {
+            let mut hash = Sha256::new();
+            hash_cells(&mut hash, &cells.iter().collect::<Vec<_>>());
+            hash_cells(&mut hash, &cutters);
+            hash.finalize().into()
+        };
+        // Large interior operations may not fit the cache. Their cell counts
+        // prove a miss cheaply, so do not hash megabytes that cannot be reused.
+        let key = self.shapes.contains(&shape).then(|| key_for(&cells));
+        if let Some(entry) = key.and_then(|key| self.entries.get_mut(&key)) {
             entry.used = self.revision;
             self.hits += 1;
             return Ok(entry.cells.clone());
         }
-        let result = cg::subtract_all(cells, cutters)?;
+        // Cells share immutable faces; retaining these handles is cheap. Hash
+        // on insertion only after knowing the result fits the memory budget.
+        let input = key.is_none().then(|| cells.clone());
+        let result = cg::subtract_all(cells, cutters.iter().copied())?;
         let bytes = stored_bytes(&result);
         if self.entries.len() < MAX_ENTRIES && self.bytes + bytes <= MAX_BYTES {
             self.bytes += bytes;
+            let key = key.unwrap_or_else(|| key_for(input.as_ref().unwrap()));
+            self.shapes.insert(shape);
             self.entries.insert(
                 key,
                 Entry {
+                    shape,
                     cells: result.clone(),
                     bytes,
                     used: self.revision,

@@ -20,11 +20,13 @@ self.onmessage = async (event: MessageEvent<{ type: 'compile' | 'suggest'; id: n
       self.postMessage({ id, sourceId: source.id, revision: source.revision, suggestion });
     } else {
       const sourceJson = JSON.stringify(source), catalogJson = JSON.stringify(parts);
-      const result = JSON.parse(await cachedConstructionCompile(simulation_build(), sourceJson, catalogJson, () => {
+      const resultJson = await cachedConstructionCompile(simulation_build(), sourceJson, catalogJson, () => {
         compiler ??= new ConstructionCompiler();
         return compiler.compile(sourceJson, catalogJson);
-      }));
-      self.postMessage({ id, result });
+      });
+      // WASM already produced JSON. Parsing here would make postMessage clone
+      // hundreds of thousands of geometry arrays before the editor can use them.
+      self.postMessage({ id, resultJson });
     }
   } catch (error) { self.postMessage({ id, error: error instanceof Error ? error.message : String(error) }); }
 };

@@ -9,7 +9,7 @@ class WorkerDouble implements ConstructionWorker {
   messages: any[] = []; terminated = false;
   postMessage(message: unknown) { this.messages.push(message); }
   terminate() { this.terminated = true; }
-  reply(result: ConstructionResult) { this.onmessage?.({ data: { id: this.messages.at(-1).id, result } } as MessageEvent); }
+  reply(result: ConstructionResult) { this.onmessage?.({ data: { id: this.messages.at(-1).id, resultJson: JSON.stringify(result) } } as MessageEvent); }
 }
 test('switching designs terminates the old compile and its late events cannot stop the replacement', async () => {
   const workers: WorkerDouble[] = [], client = new ConstructionClient(() => { const worker = new WorkerDouble(); workers.push(worker); return worker; });
@@ -34,7 +34,7 @@ test('rapid edits retain the warm worker and compile only the newest queued revi
   const result: ConstructionResult = { sourceId: source.id, revision: source.revision, contentHash: 'compiled', surfaces: [], diagnostics: [] };
   workers[0].reply(result);
   expect(workers[0].messages).toHaveLength(2); expect(workers[0].messages[1].source.revision).toBe('latest');
-  workers[0].onmessage?.({ data: { id: workers[0].messages[0].id, result } } as MessageEvent);
+  workers[0].onmessage?.({ data: { id: workers[0].messages[0].id, resultJson: JSON.stringify(result) } } as MessageEvent);
   workers[0].reply({ ...result, revision: 'latest' });
   expect((await next).revision).toBe('latest'); client.dispose(); expect(workers[0].terminated).toBe(true);
 });
@@ -90,4 +90,20 @@ test('an obsolete job cannot hold the newest revision past its deadline', async 
   expect(workers[0].terminated).toBe(true); expect(workers).toHaveLength(2);
   workers[1].reply({ sourceId: source.id, revision: 'next', contentHash: 'compiled', surfaces: [], diagnostics: [] });
   expect((await next).revision).toBe('next'); client.dispose();
+});
+
+
+test('malformed compiler JSON rejects the active job and restarts the latest queued revision', async () => {
+  const workers: WorkerDouble[] = [];
+  const client = new ConstructionClient(() => { const worker = new WorkerDouble(); workers.push(worker); return worker; });
+  const source = createStarterSource(catalog as ConstructionCatalog, 'blank');
+  const first = client.compile(source).catch(error => error);
+  const next = client.compile({ ...source, revision: 'latest' });
+  expect((await first).name).toBe('AbortError');
+  workers[0].onmessage?.({ data: { id: workers[0].messages[0].id, resultJson: '{broken' } } as MessageEvent);
+  expect(workers[0].terminated).toBe(true);
+  expect(workers).toHaveLength(2);
+  workers[1].reply({ sourceId: source.id, revision: 'latest', contentHash: 'compiled', surfaces: [], diagnostics: [] });
+  expect((await next).revision).toBe('latest');
+  client.dispose();
 });
