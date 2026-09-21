@@ -12,7 +12,6 @@ import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/c
 import type { FleetActor as SessionActor, Shell as SessionShell, Torpedo as SessionTorpedo, DepthCharge as SessionDepthCharge, AirRelease as SessionAirRelease } from '../game/session/elements';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { BattleResult } from '../game/session/BattleSession';
-import { DamageLog } from './damageLog';
 import { createShipState, FIXED_DT, type HelmCommand } from '../game/session/motion';
 import { availableAmmunition, createMountState, queueAmmunition, selectAmmunition, type MountState } from './weapons';
 import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type FleetActor, type Team } from './battle';
@@ -67,7 +66,6 @@ export class CombatSimulation {
   private ammunitionSelection: Record<string, Ammunition> = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
   private playerDamageDealt = 0;
   private playerFrags = 0;
-  private damageLog = new DamageLog();
   private initialSpawns?: SpawnPositions;
   /** Without a fleet, create an idle gunnery fixture for port and isolated asset tests. */
   constructor(readonly definition: ShipDefinition, fleet?: BattleFleet, seed = fleet?.seed ?? 0x6e617661) {
@@ -135,7 +133,6 @@ export class CombatSimulation {
     this.targetUnderway = false; this.shells.length = 0; this.torpedoes.length = 0; this.depthCharges.length = 0;
     this.events.length = 0; this.shellHistory.length = 0; this.fireQueued = false;
     this.playerDamageDealt = 0; this.playerFrags = 0;
-    this.damageLog.clear();
   }
   resetTarget(): void {
     if (this.isBattle) return;
@@ -162,7 +159,7 @@ export class CombatSimulation {
   /** Ship instruments may observe a teammate; player death and scoring remain session-owned. */
   telemetry(battery: Battery, aim: Vec3, weaponGroupId?: string, subject: SessionActor = this.player): CombatTelemetry {
     return presentationTelemetry({ ...this, ship: this.ship, aircraft: this.aircraft, ammunitionSelection: this.ammunitionSelection,
-      playerDamageDealt: this.playerDamageDealt, playerArmorBlocked: 0, playerFrags: this.playerFrags, damageLog: this.damageLog.snapshot(), afloatKg: afloatKg(this.survivors()) }, battery, aim, weaponGroupId, subject);
+      playerDamageDealt: this.playerDamageDealt, playerArmorBlocked: 0, playerFrags: this.playerFrags, damageLog: [], afloatKg: afloatKg(this.survivors()) }, battery, aim, weaponGroupId, subject);
   }
 
 }

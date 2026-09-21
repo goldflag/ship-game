@@ -3,7 +3,7 @@ import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from './combat';
 import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
 import { localToWorld } from '../game/geometry';
-import { antiAircraftRange } from './antiAircraft';
+import { antiAircraftRange } from '../ships/armament';
 
 const stop = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, .5, -5000] as [number, number, number], fire: false, battery: 'main' as const };

@@ -5,9 +5,9 @@
 `bun run test` prepares multiplayer content/WASM and discovers every test under
 `src/` and `scripts/`. It uses up to 16 workers, bounded by available CPU
 parallelism, with Bun's smaller-heap mode for each worker. Expensive files start
-first. Several long independent scenarios run in separate processes; disjoint
-name filters and a complementary group ensure every test still runs, including
-new and renamed tests. Scheduling hints do not control discovery.
+first. The runner also supports splitting independent scenarios with disjoint
+name filters and a complementary group, so new and renamed tests still run.
+Scheduling hints do not control discovery.
 
 Files remain isolated. Both output streams are drained while each worker runs,
 failures propagate to the command exit status, and interruption terminates child
@@ -20,7 +20,152 @@ Construction's browser helpers run separately with `bun run ship:browser:check`
 IndexedDB, design deletion and shipbuilder editing in isolated browser contexts.
 It is not discovered by the test/spec filename glob above.
 
-## Current measurements
+## September 2026 follow-up
+
+The runner's weights now reflect the warm suite at `3eba5acfe`: game lifecycle,
+native construction authoring, equipment publication, and construction geometry
+checks start early instead of inheriting a one-second estimate. Discovery,
+file isolation, worker count, heap mode, assertions, and failure handling stay
+the same. The machinery-services optimization returns zero before evaluating
+shared exhaust when no eligible engine supplies the requested room. It retains
+the original arithmetic for supplied rooms and whole-ship queries. A test-local
+counter verifies that empty/unknown rooms, engine-free ships and sunk ships
+skip the expensive calculation; the existing damaged/flooded-state differential
+assertions are retained.
+
+Carrier wing recovery now has one test per carrier, both calling the original
+scenario and every original assertion. Rust's test threads can overlap the two
+independent aviation states; the simulation horizon and success conditions are
+unchanged.
+
+Measured against `3eba5acfe` on September 21, 2026 (Apple M5 Pro, 18 logical
+CPUs, Bun 1.3.3). Rust numbers below are execution time reported by the test
+binaries, excluding compilation. The shared host had other workloads; these
+are local measurements rather than performance guarantees.
+
+| Rust workload (`test-fast`) | Before | After |
+| --- | ---: | ---: |
+| Simulation unit tests, dominated by service equivalence | 73.17 s | 32.75 s |
+| Carrier deck operations | 73.77 s | 43.62 s |
+| Whole workspace, sum of binary execution times | 208.19 s | 137.45 s |
+
+The scheduling-only comparison alternated the original and updated runners
+in before/after/after/before order against the same updated simulation and warm
+assets. These times exclude content/WASM preparation:
+
+| Pair | Original scheduling | Updated scheduling |
+| --- | ---: | ---: |
+| 1 | 19.24 s | 18.29 s |
+| 2 (reverse order) | 19.77 s | 20.19 s |
+| Median | 19.51 s | 19.24 s |
+
+The small difference is within observed variation; the earlier exploratory
+24-to-18.5-second result was not reproduced as a dependable scheduling gain.
+Every run executes the same multiset of 1,661 test names and results: 1,656 pass
+and five fail. The updated hints reflect the expensive files without changing
+coverage or asserting a repeatable TypeScript speedup.
+
+The full workspace passes 572 tests with five ignored. The count grew by two:
+one exhaust-evaluation regression and one extra test entry from splitting the
+existing two-carrier scenario. The changed Rust files pass formatting checks.
+Final authority-state dumps are byte-identical before/after in the native
+profiling harness: 120 simulated seconds each for surface/carrier PvE, 60 each
+for custom/server battles, plus a 60-second Valiant-versus-Valiant constructed
+ship battle. The existing unit comparison additionally exercises flooded and
+damaged machinery in both shared and legacy exhaust configurations.
+
+`bun run check` passes the source typecheck and runs all 254 TypeScript test
+files. The suite retains four failures in its known-red ledger and the existing
+line-width failure in `AfterActionReport.css:17` and `AfterActionReport.tsx:145`;
+this change does not alter that ledger or those files.
+
+## Fixture scope reduction
+
+The next pass reduces two fixtures without deleting test cases:
+
+- Equipment catalog retention publishes four real parts (a gun, a path fitting
+  and two fixed magazines), then removes one. It still checks unchanged model
+  URLs and exact historical catalog bytes. The separate full-production-catalog
+  validation remains. The runner's publication weight is updated accordingly.
+- Machinery equivalence compiles a box hull with separate rooms, two differently
+  rated engines, two shafts, linked funnels and an armed mount with a magazine.
+  It retains both exhaust configurations, all five damage/flooding/sinking states,
+  room/global/unknown queries, bitwise health comparisons and whole-actor
+  capability comparisons. Assertions verify that damaged, destroyed and flooded
+  equipment states are reached. A separate published-Valiant smoke test retains
+  dry and wet/damaged comparisons against the scan implementation. Empty-room,
+  engine-free and sunk exhaust-skip regression coverage remains unchanged.
+
+Isolated before/after runs on the same host, following the preceding optimizations:
+
+| Workload | Before | After |
+| --- | ---: | ---: |
+| Equipment publication file (8 tests) | 6.71 s | 1.92 s |
+| Catalog retention test within that file | 4.82 s | 0.13 s |
+| Machinery services unit group (2 → 3 tests, excluding compilation) | 32.11 s | 7.19 s |
+
+These measure the affected workloads, not an equivalent reduction in parallel
+whole-suite wall time. Runtime simulation code and published assets are unchanged
+by this fixture pass.
+
+Validation: all 199 simulation unit tests pass, as do both applicable TypeScript
+typechecks and the publication file's eight tests. `bun run check` executes all
+254 TypeScript files and retains the same four ledger failures plus the existing
+after-action-report line-width failure. Formatting and whitespace checks pass.
+
+## Presentation, geometry and carrier follow-up
+
+The next pass addresses four remaining sources of work:
+
+- `Game.test.ts` captures initial port/battle frames from the real WASM authority
+  once, then gives presentation-only tests independent copies through the real
+  `SnapshotSession`. A fixture-isolation regression checks mutations do not leak.
+  These sessions reject simulation stepping and authority commands; loading,
+  helm-transfer and gameplay integration cases still create fresh WASM sessions.
+- Primitive geometry checks compile all 30 recipes once. Four representative
+  asymmetric solid, curved, hollow and panel recipes retain all quarter turns,
+  reducing that matrix from 120 native compilations to 42. Every recipe keeps
+  the exhaustive inexpensive mirroring checks; hull-preset, placement and edited
+  vertex checks remain.
+- Sampling full-wing carrier recovery found repeated polygon checks against
+  distant deck structures. A conservative bounding-box rejection now skips those
+  scans, keeping the original predicate for overlapping or nearly touching
+  bounds. The regression compares concave/rectangular, rotated and touching
+  cases against the original predicate and verifies distant pairs skip the scan.
+  No route samples, search budgets, aircraft counts or recovery deadlines change.
+- Retired TypeScript AA, gunnery calibration and damage-log tests are removed
+  with their unused implementations and the obsolete equipment-rollout diagnostic.
+  The two octuple tests that stepped the retired AA implementation are removed;
+  its shared muzzle geometry and exported-model checks remain. Runtime Rust AA
+  and scoring are untouched. Twelve obsolete tests are removed in total.
+
+In isolated file runs, Game tests decreased from 12.74 s to 9.12 s and primitive
+geometry from 7.86 s to 5.10 s. The later fixture-isolation assertion adds one Game
+test. Runner weights reflect the reduced work. These are local workload timings,
+not a whole-suite speedup claim.
+
+Temporary instrumentation hashed every serialized wing state during full recovery.
+Before/after traces are identical over 15,903 Enterprise steps and 22,087 Shokaku
+steps, including the completion tick. The instrumented pair fell from 48.31 s to
+25.74 s; the full uninstrumented deck-operations binary fell from 44.46 s to
+33.85 s. Instrumentation and profiling output remain only in ignored `.build/`.
+
+The source-width check also skips tracked files deleted from the working tree,
+so retiring code does not turn an unstaged deletion into an unrelated read error.
+
+The full Rust workspace passes 574 tests with five ignored. Final authority states
+are byte-identical in all four native gate scenarios (surface/carrier: 7,200 ticks;
+custom/server: 3,600 ticks), in addition to the complete wing-recovery traces.
+The gate is a correctness comparison; its short-run timings vary with host load
+and do not establish a general battle-runtime speedup.
+
+Final `bun run check`: both applicable typechecks pass; all 251 remaining test
+files execute, with the same four ledger failures and the pre-existing report
+line-width failure. The parallel test phase took 33 s on this run, so the isolated
+workload improvements above are not presented as a measured whole-suite gain.
+Changed Rust files pass formatting checks, and `git diff --check` is clean.
+
+## September 9 measurements
 
 Measured September 9, 2026 on an Apple M5 Pro Mac with 18 logical CPUs, Bun 1.3.3,
 and dependencies installed with `bun install --frozen-lockfile`. Wall times include

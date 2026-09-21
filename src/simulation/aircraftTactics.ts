@@ -10,7 +10,6 @@ export interface AirPilot {
   defense?: { fireSeconds: number; fireDirection: Vec3; cooldown: number; maneuverSeconds: number; spreadSeconds: number; heading: number; altitude: number; side: number; sequence: number; notice?: string | null };
   formation?: { kind: string; offset: Vec3 };
   maneuver?: { kind: string; speed: number; pursuitSeconds: number };
-  fireDiscipline?: import('./airGunnery').FireDiscipline;
   think: number; hostileId?: string; aimTime: number;
   breakTime: number; breakCooldown: number; breakPoint?: Vec3;
   attackHeading?: number; attackStage?: 'ingress' | 'run' | 'egress';

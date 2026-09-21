@@ -32,7 +32,34 @@ fn intersect(a: [f64; 2], b: [f64; 2], c: [f64; 2], d: [f64; 2]) -> bool {
         && cd_a * cd_b <= 0.0
         && (0..2).all(|i| a[i].min(b[i]) <= c[i].max(d[i]) && c[i].min(d[i]) <= a[i].max(b[i]))
 }
+#[cfg(test)]
+thread_local! {
+    static OVERLAP_SCANS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
 fn polygons_overlap(a: &[[f64; 2]], b: &[[f64; 2]]) -> bool {
+    // Most height-compatible fittings are far from a route sample. Reject only
+    // disjoint bounds; touching/near-touching edges keep the exact predicate.
+    // Non-finite input falls through to the original polygon checks.
+    let bounds = |polygon: &[[f64; 2]]| {
+        let (mut low, mut high) = ([f64::INFINITY; 2], [f64::NEG_INFINITY; 2]);
+        for point in polygon {
+            for axis in 0..2 {
+                if !point[axis].is_finite() {
+                    return None;
+                }
+                low[axis] = low[axis].min(point[axis]);
+                high[axis] = high[axis].max(point[axis]);
+            }
+        }
+        Some((low, high))
+    };
+    if let (Some((al, ah)), Some((bl, bh))) = (bounds(a), bounds(b))
+        && (0..2).any(|i| ah[i] + 1e-7 < bl[i] || bh[i] + 1e-7 < al[i])
+    {
+        return false;
+    }
+    #[cfg(test)]
+    OVERLAP_SCANS.set(OVERLAP_SCANS.get() + 1);
     a.iter().any(|p| inside(b, p[0], p[1]))
         || b.iter().any(|p| inside(a, p[0], p[1]))
         || a.iter().enumerate().any(|(i, &p)| {
@@ -382,6 +409,61 @@ mod tests {
             position,
             heading: 0.0,
         }
+    }
+
+    #[test]
+    fn obstacle_overlap_matches_polygon_reference_at_rotated_and_touching_edges() {
+        let reference = |a: &[[f64; 2]], b: &[[f64; 2]]| {
+            a.iter().any(|p| inside(b, p[0], p[1]))
+                || b.iter().any(|p| inside(a, p[0], p[1]))
+                || a.iter().enumerate().any(|(i, &p)| {
+                    b.iter()
+                        .enumerate()
+                        .any(|(j, &q)| intersect(p, a[(i + 1) % a.len()], q, b[(j + 1) % b.len()]))
+                })
+        };
+        let rectangle = Envelope {
+            min: [-2., 0., -3.],
+            max: [2., 1., 3.],
+        };
+        let concave = [
+            [-3., -3.],
+            [3., -3.],
+            [3., -1.],
+            [-1., -1.],
+            [-1., 3.],
+            [-3., 3.],
+        ];
+        for heading in [0., 0.27, 1.57, 2.3, std::f64::consts::PI] {
+            for x in [-100., -5., -4.99999999, -2., 0., 2., 4.99999999, 5., 100.] {
+                for z in [-100., -6., -5.99999999, -2., 0., 2., 5.99999999, 6., 100.] {
+                    let a = rectangle.corners(
+                        DeckPose {
+                            position: [x, 0., z],
+                            heading,
+                        },
+                        0.,
+                    );
+                    for b in [&concave[..], &rectangle.corners(pose([0.; 3]), 0.)[..]] {
+                        assert_eq!(
+                            polygons_overlap(&a, b),
+                            reference(&a, b),
+                            "{x},{z}/{heading}"
+                        );
+                        assert_eq!(
+                            polygons_overlap(b, &a),
+                            reference(b, &a),
+                            "reversed {x},{z}/{heading}"
+                        );
+                    }
+                }
+            }
+        }
+        // The broad phase must actually avoid the expensive polygon scan.
+        OVERLAP_SCANS.set(0);
+        let far = rectangle.corners(pose([100., 0., 100.]), 0.);
+        assert!(!polygons_overlap(&far, &concave));
+        assert_eq!(OVERLAP_SCANS.get(), 0);
     }
 
     #[test]

@@ -8,7 +8,6 @@
   "scripts/diagnostics/combat-profile-load.ts",
   "scripts/diagnostics/combat-profile-resident.ts",
   "scripts/diagnostics/custom-battle-worker-bench.ts",
-  "scripts/diagnostics/equipment-rollout.ts",
   "scripts/diagnostics/firing-performance.ts",
   "scripts/diagnostics/fleet-performance.ts",
   "scripts/diagnostics/helm-optics.tsx",

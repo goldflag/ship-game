@@ -603,96 +603,105 @@ fn recall_keeps_a_committed_takeoff_on_the_runway_until_it_can_return() {
     );
 }
 
-#[test]
-fn balanced_handling_recovers_an_entire_surviving_wing_onto_a_smaller_deck() {
+fn assert_balanced_wing_recovery(carrier: &str) {
     use naval_sim::{
         aviation::{DeckPose, place},
         geometry::local_to_world,
     };
-    for carrier in ["enterprise-cv6", "shokaku"] {
-        let (actors, mut a) = setup(carrier, 0);
-        let actor = &actors[0];
-        let layout = actor
-            .definition()
-            .air_wing
-            .as_ref()
-            .unwrap()
-            .deck_layout
-            .as_ref()
-            .unwrap();
-        let mut recovered = BTreeSet::new();
-        for (i, p) in a.wings[0].state.planes.iter_mut().enumerate() {
-            p.phase = "returning".into();
-            p.wing_fold = 0.0;
-            p.hp = 30.0 + i as f64;
-            p.recovery_requested_at = Some(i as f64);
-            p.pilot.recovery_stage = Some("final".into());
-            p.position = local_to_world(
-                [
-                    layout.recovery_touchdown[0],
-                    90.0,
-                    layout.recovery_touchdown[2] + 1100.0,
-                ],
-                actor.motion.pose(),
-            );
-        }
-        for _ in 0..40000 {
-            let mut ops = a.deck_operations.remove("carrier").unwrap();
-            ops.step(&mut a.wings[0].state, actor, &a.ground, true, true, 0.25);
-            if let Some(id) = ops.landing_clearance() {
-                let p = a.wings[0]
-                    .state
-                    .planes
-                    .iter_mut()
-                    .find(|p| p.id == id)
-                    .unwrap();
-                if p.phase != "rollout" {
-                    assert!(recovered.insert(p.id.clone()));
-                    p.phase = "rollout".into();
-                    place(
-                        p,
-                        actor,
-                        DeckPose {
-                            position: layout.recovery_touchdown,
-                            heading: 0.0,
-                        },
-                        &a.ground[&p.model_id],
-                    );
-                }
-            }
-            a.deck_operations.insert("carrier".into(), ops);
-            let planes = &a.wings[0].state.planes;
-            assert_eq!(planes.len(), 48);
-            assert!(planes.iter().filter(|p| p.deck_slot.is_some()).count() <= 24);
-            let slots: Vec<_> = planes.iter().filter_map(|p| p.deck_slot).collect();
-            assert_eq!(slots.iter().collect::<BTreeSet<_>>().len(), slots.len());
-            if recovered.len() == 48
-                && planes
-                    .iter()
-                    .all(|p| matches!(p.phase.as_str(), "ready" | "hangar"))
-            {
-                break;
-            }
-        }
-        assert_eq!(
-            recovered.len(),
-            48,
-            "{carrier}: {:?}",
-            a.wings[0].state.deck
+    let (actors, mut a) = setup(carrier, 0);
+    let actor = &actors[0];
+    let layout = actor
+        .definition()
+        .air_wing
+        .as_ref()
+        .unwrap()
+        .deck_layout
+        .as_ref()
+        .unwrap();
+    let mut recovered = BTreeSet::new();
+    for (i, p) in a.wings[0].state.planes.iter_mut().enumerate() {
+        p.phase = "returning".into();
+        p.wing_fold = 0.0;
+        p.hp = 30.0 + i as f64;
+        p.recovery_requested_at = Some(i as f64);
+        p.pilot.recovery_stage = Some("final".into());
+        p.position = local_to_world(
+            [
+                layout.recovery_touchdown[0],
+                90.0,
+                layout.recovery_touchdown[2] + 1100.0,
+            ],
+            actor.motion.pose(),
         );
-        assert!(
-            a.wings[0]
+    }
+    for _ in 0..40000 {
+        let mut ops = a.deck_operations.remove("carrier").unwrap();
+        ops.step(&mut a.wings[0].state, actor, &a.ground, true, true, 0.25);
+        if let Some(id) = ops.landing_clearance() {
+            let p = a.wings[0]
                 .state
                 .planes
+                .iter_mut()
+                .find(|p| p.id == id)
+                .unwrap();
+            if p.phase != "rollout" {
+                assert!(recovered.insert(p.id.clone()));
+                p.phase = "rollout".into();
+                place(
+                    p,
+                    actor,
+                    DeckPose {
+                        position: layout.recovery_touchdown,
+                        heading: 0.0,
+                    },
+                    &a.ground[&p.model_id],
+                );
+            }
+        }
+        a.deck_operations.insert("carrier".into(), ops);
+        let planes = &a.wings[0].state.planes;
+        assert_eq!(planes.len(), 48);
+        assert!(planes.iter().filter(|p| p.deck_slot.is_some()).count() <= 24);
+        let slots: Vec<_> = planes.iter().filter_map(|p| p.deck_slot).collect();
+        assert_eq!(slots.iter().collect::<BTreeSet<_>>().len(), slots.len());
+        if recovered.len() == 48
+            && planes
                 .iter()
-                .all(|p| matches!(p.phase.as_str(), "ready" | "hangar")),
-            "{carrier}: {:?}",
-            a.wings[0].state.deck
-        );
-        for (i, p) in a.wings[0].state.planes.iter().enumerate() {
-            assert_eq!(p.hp, 30.0 + i as f64);
+                .all(|p| matches!(p.phase.as_str(), "ready" | "hangar"))
+        {
+            break;
         }
     }
+    assert_eq!(
+        recovered.len(),
+        48,
+        "{carrier}: {:?}",
+        a.wings[0].state.deck
+    );
+    assert!(
+        a.wings[0]
+            .state
+            .planes
+            .iter()
+            .all(|p| matches!(p.phase.as_str(), "ready" | "hangar")),
+        "{carrier}: {:?}",
+        a.wings[0].state.deck
+    );
+    for (i, p) in a.wings[0].state.planes.iter().enumerate() {
+        assert_eq!(p.hp, 30.0 + i as f64);
+    }
+}
+
+// Each case owns its aviation state; libtest can run the full recovery scenarios
+// concurrently while retaining every assertion for both carrier layouts.
+#[test]
+fn balanced_handling_recovers_an_entire_surviving_wing_onto_a_smaller_deck_enterprise() {
+    assert_balanced_wing_recovery("enterprise-cv6");
+}
+
+#[test]
+fn balanced_handling_recovers_an_entire_surviving_wing_onto_a_smaller_deck_shokaku() {
+    assert_balanced_wing_recovery("shokaku");
 }
 
 #[test]

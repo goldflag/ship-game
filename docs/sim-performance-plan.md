@@ -76,6 +76,9 @@ interleave A/B runs on a quiet machine.
   with clipping fallback for invalid caches; no sampled attitude table.
 - Fixed armor plates use a conservative spatial index, with authored contact order restored
   before penetration is evaluated. Moving turret plates retain their live transforms.
+- Deck routing rejects disjoint aircraft-layer/structure polygon bounds before
+  running the original overlap predicate. Touching and near-touching bounds keep
+  the exact check; route sampling, search budgets and handling cadence are unchanged.
 - Runtime construction barrels use enclosing tapered capsules. Short turret sweeps reuse
   certified clearance distances, and fixed hull stops survive unrelated turret movement.
   Authoring checks retain the fine barrel envelope.

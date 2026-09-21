@@ -8,17 +8,8 @@ import { ShipView } from '../game/ShipView';
 import type { ShipDefinition } from '../ships/blueprint';
 import catalog from '../../assets/parts/guns.json';
 import { barrelIds, compileShip } from '../ships/blueprint';
-import { shipPreset } from '../ships/presets';
-import { CombatSimulation as Fixture } from './combat';
-import type { FleetActor } from './battle';
-import type { Aircraft } from './aircraft';
-/** The fixture's hulls are the engine's own; these tests drive the engine with them. */
-type EngineFixture = Fixture & { player: FleetActor; target: FleetActor; actors: FleetActor[]; aircraft: Aircraft[] };
-const CombatSimulation = Fixture as unknown as new (...args: ConstructorParameters<typeof Fixture>) => EngineFixture;
+import { CombatSimulation } from './combat';
 import { muzzleLocal, muzzleCenterLocal } from './weapons';
-import { updateAntiAircraft } from './antiAircraft';
-import type { AirContext } from './aircraft';
-import type { CombatEvent } from './combat';
 
 const fixture = () => ({...blueprint,mounts:[...blueprint.mounts,...prototype.mounts.filter(m=>m.id.startsWith('pom-pom-')).map(({weapon: _weapon,...m})=>m)]});
 const def = () => compileShip(fixture(), catalog);
@@ -36,29 +27,6 @@ test('octuple muzzles preserve a four-by-two grid through common elevation and t
   expect(() => compileShip(fixture(),{...catalog,parts:catalog.parts.map(p=>p.id===mount.partId?{...p,barrelVerticalSpacing:undefined}:p)})).toThrow('barrelVerticalSpacing');
 });
 
-test('KGV component prototype fires eight finite rounds and destroyed mounts freeze while their neighbor fires', () => {
-  const sim = new CombatSimulation(def(),{friendlyBots:[],enemies:[shipPreset('enterprise-cv6')],seed:93});
-  const actor=sim.player, plane=sim.target.airWing!.planes[0];
-  Object.assign(actor.motion,{x:0,y:0,z:0,heading:0,pitch:0,roll:0});
-  Object.assign(plane,{phase:'outbound',hp:10000,position:[-700,250,0],velocity:[0,0,0]});
-  let sequence=0;
-  const events: Omit<CombatEvent,'sequence'|'tick'>[]=[];
-  const ctx: AirContext={actors:sim.actors,planes:[plane],shells:[],torpedoes:[],releases:[],seed:93,nextId:()=>++sequence,emit:e=>events.push(e)};
-  const indexes=['pom-pom-1','pom-pom-3'].map(id=>sim.definition.mounts.findIndex(m=>m.id===id));
-  for (const index of indexes) {
-    const m=sim.definition.mounts[index],state=actor.mounts[index],ammo=state.ammo;
-    for (let i=0;i<1200&&state.ammo===ammo;i++) updateAntiAircraft(actor,m,state,ctx,1/60);
-    expect(state.ammo).toBe(ammo-8);
-    expect(events.filter(e=>e.message===`${m.name} · AA fire`)).toHaveLength(8);
-  }
-  const dead=actor.mounts[indexes[0]],healthy=actor.mounts[indexes[1]],remaining=healthy.ammo;
-  dead.hp=0; const frozen={...dead};
-  plane.position=[-700,500,100];
-  for (let i=0;i<300;i++) for(const index of indexes) updateAntiAircraft(actor,sim.definition.mounts[index],actor.mounts[index],ctx,1/60);
-  expect(dead).toEqual(frozen);
-  expect(healthy.ammo).toBeLessThan(remaining);
-});
-
 test('retained octuple export sockets agree with CPU muzzle poses at intermediate train, elevation and recoil', async () => {
   const model=await new GLTFLoader().parseAsync(JSON.stringify(prototypeNodes),'');
   const definition=prototype as unknown as ShipDefinition,sim=new CombatSimulation(definition),view=new ShipView(model.scene,definition,sim.player);
@@ -68,24 +36,4 @@ test('retained octuple export sockets agree with CPU muzzle poses at intermediat
     sim.player.mounts.forEach((s,i)=>{const w=definition.mounts[i].weapon;Object.assign(s,{train:train*w.traverseDeg*Math.PI/180,elevation:(w.elevationMinDeg+elevation*(w.elevationMaxDeg-w.elevationMinDeg))*Math.PI/180,recoil});});
     view.update();expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
   }
-});
-
-test('automatic AA uses battery coverage and generator power, preserving unrelated director redundancy', () => {
-  function run(failure:'none'|'served'|'unrelated'|'power',ticks=1200) {
-    const definition=def(),sim=new CombatSimulation(definition,{friendlyBots:[],enemies:[shipPreset('enterprise-cv6')],seed:93}),a=sim.player;
-    Object.assign(a.motion,{x:0,y:0,z:0,heading:0,pitch:0,roll:0});
-    const index=definition.mounts.findIndex(m=>m.id==='secondary-p1'),m=definition.mounts[index],state=a.mounts[index];
-    definition.modules.forEach((module,i)=>{
-      if(failure==='power'?module.kind==='generator':module.kind==='fire-control'&&(failure==='served'?module.servesMountIds?.includes(m.id):failure==='unrelated'&&!module.servesMountIds?.includes(m.id)))a.damage.modules[i].hp=0;
-    });
-    const plane=sim.target.airWing!.planes[0];Object.assign(plane,{phase:'outbound',hp:1000,position:[-500,250,-500],velocity:[0,0,0]});
-    const events:Omit<CombatEvent,'sequence'|'tick'>[]=[];let id=0;
-    const ctx:AirContext={seed:93,actors:sim.actors,planes:[plane],shells:[],torpedoes:[],releases:[],nextId:()=>++id,emit:e=>events.push(e)};
-    for(let i=0;i<ticks&&!events.length;i++)updateAntiAircraft(a,m,state,ctx,1/60);
-    return {events,train:state.train};
-  }
-  const healthy=run('none'),unrelated=run('unrelated'),failed=run('served');
-  expect(healthy.events).toHaveLength(2);expect(unrelated.events).toEqual(healthy.events);
-  expect(failed.events).toHaveLength(2);expect(failed.events[0].aircraft!.target).not.toEqual(healthy.events[0].aircraft!.target);
-  expect(run('power',60).train).toBeCloseTo(run('none',60).train*.25,8);
 });

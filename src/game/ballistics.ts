@@ -1,5 +1,5 @@
 import type { Vec3 } from '../ships/blueprint';
-import { add, normalize, scale } from './geometry';
+import { normalize } from './geometry';
 
 export const GRAVITY = 9.81;
 /** Linear drag is a calibrated point-mass approximation. Its closed solution
@@ -104,14 +104,3 @@ export function dispersedSpeed(speed: number, sigmaFraction: number, seed: numbe
  * This is not a historical penetration equation or a shell-deformation model. */
 export const velocityPenetration = (budgetMm: number, beforeSpeed: number, afterSpeed: number): number =>
   beforeSpeed > 1e-8 ? budgetMm * (afterSpeed / beforeSpeed) ** 1.4 : 0;
-/** Per-shot seeded Gaussian angular error, bounded to three standard deviations.
- * Stateless: unrelated render frames, telemetry and sound cannot consume RNG. */
-export function dispersedDirection(direction: Vec3, spreadRad: number, seed: number, shot: number): Vec3 {
-  if (spreadRad === 0) return [...direction];
-  const first = seed ^ Math.imul(shot + 1, 0x9e3779b9);
-  const radius = Math.min(3, Math.sqrt(-2 * Math.log(Math.max(1e-12, random(first))))) * spreadRad;
-  const angle = 2 * Math.PI * random(first ^ 0x68bc21eb);
-  const side = normalize(Math.abs(direction[1]) < .99 ? [direction[2], 0, -direction[0]] : [0, direction[2], -direction[1]]);
-  const up: Vec3 = [side[1] * direction[2] - side[2] * direction[1], side[2] * direction[0] - side[0] * direction[2], side[0] * direction[1] - side[1] * direction[0]];
-  return normalize(add(add(direction, scale(side, radius * Math.cos(angle))), scale(up, radius * Math.sin(angle))));
-}
