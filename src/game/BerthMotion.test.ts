@@ -5,6 +5,20 @@ import { createSeaState, seaHeight, seaResponse } from './session/sea';
 const hull = { length: 241, beam: 36, draft: 9.3 }, berth = { x: 240, z: 0, heading: 0 };
 const port = { ...createSeaState('north-atlantic', 'clear', 0x6e617661, 9), direction: 35 * Math.PI / 180 };
 
+test('a berthed destroyer rolls moderately in the default 9 m/s wind', () => {
+  const destroyer = { length: 114.7, beam: 12.1, draft: 4.2 };
+  for (const [direction, low, high] of [[35, 2, 3.5], [0, 3, 4.8]]) {
+    const motion = new BerthMotion();
+    let peakDegrees = 0;
+    for (let tick = 0; tick < 120 * 60; tick++) {
+      motion.update({ ...port, direction: direction * Math.PI / 180 }, destroyer, berth, 1 / 60);
+      if (tick >= 30 * 60) peakDegrees = Math.max(peakDegrees, Math.abs(motion.roll) * 180 / Math.PI);
+    }
+    expect(peakDegrees).toBeGreaterThan(low);
+    expect(peakDegrees).toBeLessThan(high);
+  }
+});
+
 test('the sea response mirrors the authority: mean height under the hull and clamped slopes', () => {
   expect(seaResponse(createSeaState('north-atlantic', undefined, 1), hull, berth, 12)).toEqual({ heave: 0, roll: 0, pitch: 0 });
   const wave = seaResponse(port, hull, berth, 12);

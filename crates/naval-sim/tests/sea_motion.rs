@@ -77,19 +77,19 @@ fn a_destroyer_works_in_the_default_wind_and_a_battleship_in_heavy_weather() {
     let destroyer = ride("fletcher", 9.0, 0.0);
     within(
         destroyer.roll_deg,
-        4.0,
-        9.0,
+        2.5,
+        4.5,
         "Fletcher roll, 9 m/s beam sea",
     );
     let battleship = ride("bismarck", 9.0, 0.0);
     within(
         battleship.roll_deg,
-        0.7,
-        1.8,
+        0.35,
+        0.9,
         "Bismarck roll, 9 m/s beam sea",
     );
     let heavy = ride("bismarck", 22.0, 0.0);
-    within(heavy.roll_deg, 4.0, 8.0, "Bismarck roll, 22 m/s beam sea");
+    within(heavy.roll_deg, 2.0, 4.0, "Bismarck roll, 22 m/s beam sea");
     // Her 38 cm guns elevate at 6 deg/s and must still hold a target through the roll.
     assert!(
         heavy.roll_rate_deg < 4.5,

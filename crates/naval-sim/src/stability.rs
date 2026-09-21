@@ -96,7 +96,7 @@ fn wreck_depth(def: &ShipDefinition) -> f64 {
 /// that wind, not derived from GM. `tests/sea_motion.rs` holds the bands. Pitch
 /// beyond 0.8 drives the cargo hulls out of their linear range head-on into a
 /// 30 m/s sea. The berth's presentation copy is `src/game/BerthMotion.ts`.
-pub const WAVE_ROLL_LEVER: f64 = 0.14;
+pub const WAVE_ROLL_LEVER: f64 = 0.07;
 pub const WAVE_PITCH_LEVER: f64 = 0.8;
 /// `interval` is how often the hydrostatic solve runs: half a second for every
 /// battle without mission rules, and whatever the PvE cadence asset says for a
