@@ -23,6 +23,8 @@ pub struct ShipIndex {
     /// Identity of the definition this was built from: the heap buffer of
     /// `modules` survives moves of the definition and only a clone changes it.
     modules_ptr: usize,
+    mounts_ptr: usize,
+    propulsion_ptr: usize,
     pub modules: usize,
     pub compartments: usize,
     pub mounts: usize,
@@ -34,6 +36,7 @@ pub struct ShipIndex {
     module_room: Vec<Option<usize>>,
     /// Per mount index, the module index of its magazine.
     pub mount_magazine: Vec<Option<usize>>,
+    pub(crate) room_distances: Vec<Option<crate::construction_geometry::RoomDistance>>,
     /// Per module index, the mounts drawing from it as their magazine.
     magazine_mounts: Vec<Vec<usize>>,
     by_kind: HashMap<String, Vec<usize>>,
@@ -43,6 +46,7 @@ pub struct ShipIndex {
     /// `(submerged, surface)` engine modules for submarines.
     pub submarine_engines: Option<SubmarineEngineModules>,
     pub propulsion: Vec<PropulsionIndex>,
+    pub(crate) services: Option<crate::construction_services::Services>,
 }
 #[derive(Clone, Debug, Default)]
 pub struct PropulsionIndex {
@@ -103,6 +107,11 @@ impl ShipIndex {
             .collect();
         Self {
             modules_ptr: d.modules.as_ptr() as usize,
+            mounts_ptr: d.mounts.as_ptr() as usize,
+            propulsion_ptr: d
+                .propulsion
+                .as_ref()
+                .map_or(0, |p| p.groups.as_ptr() as usize),
             modules: d.modules.len(),
             compartments: d.compartments.len(),
             mounts: d.mounts.len(),
@@ -121,6 +130,15 @@ impl ShipIndex {
                 })
                 .collect(),
             mount_magazine,
+            room_distances: d
+                .compartments
+                .iter()
+                .map(|r| {
+                    r.volumes
+                        .as_ref()
+                        .map(|cells| crate::construction_geometry::RoomDistance::new(cells))
+                })
+                .collect(),
             magazine_mounts,
             directors,
             mount_directors,
@@ -141,6 +159,7 @@ impl ShipIndex {
                     shafts: g.shaft_ids.iter().map(&module_index).collect(),
                 })
                 .collect(),
+            services: crate::construction_services::Services::new(d),
             by_kind,
             module_by_id,
             mount_by_id,
@@ -151,6 +170,23 @@ impl ShipIndex {
     /// caller falls back to the original scan otherwise.
     pub fn of<'a>(&'a self, d: &ShipDefinition) -> Option<&'a Self> {
         (self.modules_ptr == d.modules.as_ptr() as usize).then_some(self)
+    }
+    /// Resolve a precompiled magazine only while the original mount array
+    /// is being used; copied definitions retain the string-lookup fallback.
+    pub(crate) fn indexed_magazine(&self, d: &ShipDefinition, i: usize) -> Option<Option<usize>> {
+        (self.mounts_ptr == d.mounts.as_ptr() as usize && self.mounts == d.mounts.len())
+            .then(|| self.mount_magazine.get(i).copied())
+            .flatten()
+    }
+    pub(crate) fn indexed_propulsion(
+        &self,
+        d: &ShipDefinition,
+        i: usize,
+    ) -> Option<&PropulsionIndex> {
+        let groups = &d.propulsion.as_ref()?.groups;
+        (self.propulsion_ptr == groups.as_ptr() as usize && self.propulsion.len() == groups.len())
+            .then(|| self.propulsion.get(i))
+            .flatten()
     }
     /// Position of a module borrowed from `d.modules`, without scanning.
     pub fn position(&self, module: &crate::definition::Module) -> Option<usize> {
@@ -192,6 +228,9 @@ pub struct CompiledShip {
     pub maneuvering: crate::maneuvering::Maneuvering,
     /// Shared by port, battle spawns and resets, solved once per loaded design.
     initial_pose: crate::geometry::Pose,
+    /// Immutable hydraulic proxies are compiled before ticking and shared by
+    /// every vessel. Mutable water and attitude caches remain per vessel.
+    flood_geometry: Vec<Option<Arc<crate::definition::Compartment>>>,
     pub deck_surface: Option<crate::aviation::DeckSurface>,
     pub collision_profile: Vec<[f64; 2]>,
     pub torpedo_hull: Vec<crate::structure::StructuralSurface>,
@@ -277,6 +316,14 @@ impl CompiledShip {
         Ok(Self {
             maneuvering: crate::maneuvering::Maneuvering::new(d),
             initial_pose,
+            flood_geometry: if d.hull.volume.is_some() && d.stability.is_some() {
+                d.compartments
+                    .iter()
+                    .map(crate::floodwater::runtime_geometry)
+                    .collect()
+            } else {
+                Vec::new()
+            },
             deck_surface,
             torpedo_hull: crate::torpedoes::torpedo_hull(d)?,
             collision_profile: crate::collisions::profile(&d.hull),
@@ -325,6 +372,21 @@ impl Vessel {
         state.motion.roll = compiled.initial_pose.roll;
         state.motion.pitch = compiled.initial_pose.pitch;
         state.damage.stability.target_y = compiled.initial_pose.y;
+        state.damage.stability.water = compiled
+            .definition
+            .compartments
+            .iter()
+            .zip(&compiled.flood_geometry)
+            .map(|(room, geometry)| {
+                crate::floodwater::water_body_prepared(
+                    room,
+                    geometry.clone(),
+                    0.,
+                    compiled.initial_pose.roll,
+                    compiled.initial_pose.pitch,
+                )
+            })
+            .collect();
         Self {
             navigation: None,
             helm: Default::default(),

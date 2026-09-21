@@ -157,19 +157,22 @@ impl PreparedTriangle {
             normal_squared: dot(normal, normal),
         }
     }
-    fn point_distance(&self, p: Vec3) -> f64 {
+    fn point_squared(&self, p: Vec3) -> f64 {
         let n = self.normal;
         let nn = self.normal_squared;
         if nn > 1e-20 {
-            let projected = sub(p, scale(n, dot(sub(p, self.vertices[0]), n) / nn));
+            let plane = dot(sub(p, self.vertices[0]), n);
+            let projected = sub(p, scale(n, plane / nn));
             if (0..3)
                 .all(|i| dot(cross(self.edges[i], sub(projected, self.vertices[i])), n) >= -1e-12)
             {
-                return dot(sub(p, self.vertices[0]), n).abs() / nn.sqrt();
+                return plane * plane / nn;
             }
         }
-        let edge =
-            |i| point_edge_distance(p, self.vertices[i], self.edges[i], self.edge_squared[i]);
+        let edge = |i| {
+            let delta = point_edge_delta(p, self.vertices[i], self.edges[i], self.edge_squared[i]);
+            dot(delta, delta)
+        };
         edge(0).min(edge(1)).min(edge(2))
     }
     fn distance(&self, p: Vec3, q: Vec3) -> f64 {
@@ -178,16 +181,30 @@ impl PreparedTriangle {
         let denom = dot(n, delta);
         if denom.abs() > 1e-16 {
             let t = dot(n, sub(self.vertices[0], p)) / denom;
-            if (0.0..=1.0).contains(&t) && self.point_distance(add(p, scale(delta, t))) < 1e-8 {
+            if (0.0..=1.0).contains(&t) && self.point_squared(add(p, scale(delta, t))) < 1e-16 {
                 return 0.0;
             }
         }
-        let [a, b, c] = self.vertices;
-        self.point_distance(p)
-            .min(self.point_distance(q))
-            .min(segment_segment_distance(p, q, a, b))
-            .min(segment_segment_distance(p, q, b, c))
-            .min(segment_segment_distance(p, q, c, a))
+        let squared = dot(delta, delta);
+        let edge = |i| {
+            let delta = segment_edge_delta(
+                p,
+                delta,
+                squared,
+                self.vertices[i],
+                self.edges[i],
+                self.edge_squared[i],
+            );
+            dot(delta, delta)
+        };
+        // Only the smallest distance needs a root. Physical coordinates are
+        // bounded metres; scaled hypot on every edge added no useful range.
+        self.point_squared(p)
+            .min(self.point_squared(q))
+            .min(edge(0))
+            .min(edge(1))
+            .min(edge(2))
+            .sqrt()
     }
 }
 #[derive(Clone, Debug)]
@@ -419,6 +436,9 @@ pub struct ClearBound {
 }
 #[derive(Clone, Debug)]
 pub struct MountClearance {
+    /// Runtime keeps the authored taper breaks but drops half-metre sampling.
+    /// Each capsule encloses those finer sections, so stops stay conservative.
+    coarse_barrels: bool,
     /// Unique per built geometry, so a posed hull is never reused across designs.
     generation: u64,
     /// Per mount, every mount whose motion can close one of its checked gaps,
@@ -431,6 +451,7 @@ pub struct MountClearance {
     enabled: Vec<bool>,
     margin: f64,
     bodies: Vec<Body>,
+    fixed_ids: std::collections::HashSet<String>,
     static_index: Option<BodyIndex>,
     moving: Vec<usize>,
     // Maximum distance from each yaw/elevation axis bounds every point's speed.
@@ -615,7 +636,16 @@ impl MountClearance {
             })
             .collect();
         let containment = HullContainment::new(def, &mut bodies);
+        let mut fixed_ids: std::collections::HashSet<_> = bodies
+            .iter()
+            .filter(|b| b.mount.is_none())
+            .map(|b| b.id.clone())
+            .collect();
+        for body in bodies.iter().filter(|b| b.mount.is_some()) {
+            fixed_ids.remove(&body.id);
+        }
         Ok(Some(Self {
+            coarse_barrels: false,
             generation: GEOMETRIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             relevant,
             levers,
@@ -631,9 +661,20 @@ impl MountClearance {
                 .filter(|&i| bodies[i].mount.is_some())
                 .collect(),
             bodies,
+            fixed_ids,
             radii,
             containment,
         }))
+    }
+
+    /// Construction fitting and diagnostics keep the authored clearance model.
+    /// Battles use fewer enclosing barrel sections on constructed ships.
+    pub fn new_runtime(def: &ShipDefinition) -> Result<Option<Self>, String> {
+        let mut clearance = Self::new(def)?;
+        if let Some(clearance) = &mut clearance {
+            clearance.coarse_barrels = def.hull.volume.is_some();
+        }
+        Ok(clearance)
     }
 
     /// Offline runtime projection: retain every body within a mount's existing
@@ -659,8 +700,59 @@ impl MountClearance {
             .collect()
     }
 
+    /// A stationary stop against the hull cannot be freed by an unrelated
+    /// turret. Carried descendants can change the colliding shape, so they
+    /// retain the complete pose-key path.
+    pub(crate) fn fixed_stop(&self, index: usize, obstruction: Option<&str>) -> bool {
+        obstruction.is_some_and(|id| self.fixed_ids.contains(id))
+            && self
+                .levers
+                .iter()
+                .enumerate()
+                .all(|(i, chain)| i == index || chain.iter().all(|&(parent, _)| parent != index))
+    }
+
     pub fn enabled(&self, index: usize) -> bool {
         self.enabled.get(index).copied().unwrap_or(false)
+    }
+
+    /// A short sweep never searches beyond `margin + 2 m`. Mounts outside
+    /// `relevant` cannot change that query, so their poses do not invalidate
+    /// its answer. Large diagnostic jumps retain the complete pose key; any
+    /// carried installation already has every mount in its relevant set.
+    pub(crate) fn cache_key(
+        &self,
+        def: &ShipDefinition,
+        index: usize,
+        poses: &[ClearancePose],
+        requested: [f64; 2],
+        key: &mut Vec<[f64; 2]>,
+    ) {
+        let m = &def.mounts[index];
+        let w = &m.weapon;
+        let [lo, hi] = m
+            .traverse_limits_deg
+            .unwrap_or([-w.traverse_deg, w.traverse_deg])
+            .map(radians);
+        let train = clamp(requested[0], lo, hi);
+        let elevation = clamp(
+            requested[1],
+            radians(w.elevation_min_deg),
+            radians(w.elevation_max_deg),
+        );
+        let speed = 2.
+            * self.radii[index]
+            * ((train - poses[index].train).abs() + (elevation - poses[index].elevation).abs());
+        key.clear();
+        if speed <= 1. {
+            key.extend(
+                self.relevant[index]
+                    .iter()
+                    .map(|&i| [poses[i].train, poses[i].elevation]),
+            );
+        } else {
+            key.extend(poses.iter().map(|p| [p.train, p.elevation]));
+        }
     }
 
     /// Smallest physical surface gap involving this mount (including its
@@ -720,7 +812,9 @@ impl MountClearance {
                 .map(|i| hulls.remove(i).2)
                 .unwrap_or_default()
         });
-        let result = self.sweep(def, index, poses, requested, &mut posed, bound);
+        let result = self
+            .endpoint_bound(def, index, poses, requested, &mut posed, bound)
+            .unwrap_or_else(|| self.sweep(def, index, poses, requested, &mut posed, bound));
         POSED.with_borrow_mut(|hulls| {
             if hulls.len() >= POSED_HULLS {
                 hulls.remove(0);
@@ -729,6 +823,91 @@ impl MountClearance {
         });
         result
     }
+    /// A previously free mount often exhausts its conservative kept gap while
+    /// moving parallel to a wall. One new measurement at the destination can
+    /// certify the complete path backwards, without measuring both ends.
+    /// Failed or initially blocked moves still use the original sweep.
+    fn endpoint_bound(
+        &self,
+        def: &ShipDefinition,
+        index: usize,
+        poses: &[ClearancePose],
+        requested: ClearancePose,
+        posed: &mut Posed,
+        bound: &mut Option<ClearBound>,
+    ) -> Option<ClearanceResult> {
+        let kept = bound.as_ref()?;
+        if kept.generation != self.generation
+            || index >= poses.len()
+            || poses.len() != def.mounts.len()
+            || !self.enabled(index)
+            || poses
+                .iter()
+                .any(|p| !p.train.is_finite() || !p.elevation.is_finite())
+        {
+            return None;
+        }
+        let w = &def.mounts[index].weapon;
+        let [lo, hi] = def.mounts[index]
+            .traverse_limits_deg
+            .unwrap_or([-w.traverse_deg, w.traverse_deg])
+            .map(radians);
+        if !(lo..=hi).contains(&requested.train)
+            || !(radians(w.elevation_min_deg)..=radians(w.elevation_max_deg))
+                .contains(&requested.elevation)
+            || !(0.0..=1.0).contains(&requested.recoil)
+        {
+            return None;
+        }
+        let requested = ClearancePose {
+            train: clamp(requested.train, lo, hi),
+            elevation: clamp(
+                requested.elevation,
+                radians(w.elevation_min_deg),
+                radians(w.elevation_max_deg),
+            ),
+            recoil: clamp(requested.recoil, 0., 1.),
+        };
+        let changed = self.affected(def, index);
+        let radius = changed
+            .iter()
+            .enumerate()
+            .filter(|(_, v)| **v)
+            .map(|(i, _)| {
+                self.radii[i] + length(sub(def.mounts[i].position, def.mounts[index].position))
+            })
+            .fold(0., f64::max);
+        let speed = 2.
+            * radius
+            * ((requested.train - poses[index].train).abs()
+                + (requested.elevation - poses[index].elevation).abs());
+        // Restrict the probe to normal tick-sized movements; large diagnostic
+        // sweeps can spend more time advancing than this shortcut would save.
+        if !(1e-12..=1.).contains(&speed) {
+            return None;
+        }
+        let mut candidate = poses.to_vec();
+        candidate[index] = requested;
+        self.pose(def, &candidate, None, posed);
+        let (gap, _) = self.distance(def, posed, &changed, speed + self.margin + 1.);
+        if (gap - speed)
+            .partial_cmp(&(self.margin.max(speed / 100.) + 1e-6))
+            .is_none_or(|order| order.is_lt())
+        {
+            return None;
+        }
+        *bound = Some(ClearBound {
+            generation: self.generation,
+            poses: candidate.iter().map(|p| [p.train, p.elevation]).collect(),
+            gap,
+        });
+        Some(ClearanceResult {
+            pose: requested,
+            blocked: false,
+            obstruction_id: None,
+        })
+    }
+
     /// The sweep's answer when a kept bound already decides it. Every gap this
     /// mount checks closes no faster than the two mounts involved move, so since
     /// the bound was measured it has lost at most twice the largest motion among
@@ -993,9 +1172,14 @@ impl MountClearance {
             };
             capsules.clear();
             capsules.extend(
-                barrel_capsules(&m.weapon, poses[i].elevation, def.hull.volume.is_some())
-                    .into_iter()
-                    .map(|c| c.transformed(&frame)),
+                barrel_capsules_with_detail(
+                    &m.weapon,
+                    poses[i].elevation,
+                    def.hull.volume.is_some(),
+                    self.coarse_barrels,
+                )
+                .into_iter()
+                .map(|c| c.transformed(&frame)),
             );
             let mut bounds = Box3::points(capsules.iter().flat_map(|c| [c.a, c.b]));
             let radius = capsules.iter().map(|c| c.radius).fold(0.0, f64::max);
@@ -1164,6 +1348,14 @@ pub(crate) fn installation_bounds(w: &GunPart, elevation: f64) -> Vec<(Vec3, Vec
 }
 
 fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsule> {
+    barrel_capsules_with_detail(w, elevation, constructed, false)
+}
+fn barrel_capsules_with_detail(
+    w: &GunPart,
+    elevation: f64,
+    constructed: bool,
+    coarse: bool,
+) -> Vec<Capsule> {
     if constructed
         && matches!(
             w.id.as_str(),
@@ -1195,7 +1387,11 @@ fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsul
         let mut sections = vec![(trunnion - 0.65, trunnion + 0.7, radius * 1.12)];
         for pair in controls.windows(2) {
             let ((a, ra), (b, rb)) = (pair[0], pair[1]);
-            let count = ((b - a).abs() / 0.5).ceil().max(1.0) as usize;
+            let count = if coarse {
+                1
+            } else {
+                ((b - a).abs() / 0.5).ceil().max(1.0) as usize
+            };
             for i in 0..count {
                 let (t, u) = (i as f64 / count as f64, (i + 1) as f64 / count as f64);
                 sections.push((
@@ -1441,13 +1637,18 @@ fn box_triangles(center: Vec3, size: Vec3) -> Vec<[Vec3; 3]> {
     prism_triangles(&vertices, 4)
 }
 
+#[cfg(test)]
 fn point_segment_distance(p: Vec3, a: Vec3, b: Vec3) -> f64 {
     let ab = sub(b, a);
     let n = dot(ab, ab);
     point_edge_distance(p, a, ab, n)
 }
+#[cfg(test)]
 fn point_edge_distance(p: Vec3, a: Vec3, ab: Vec3, n: f64) -> f64 {
-    length(sub(
+    length(point_edge_delta(p, a, ab, n))
+}
+fn point_edge_delta(p: Vec3, a: Vec3, ab: Vec3, n: f64) -> Vec3 {
+    sub(
         p,
         add(
             a,
@@ -1460,16 +1661,23 @@ fn point_edge_distance(p: Vec3, a: Vec3, ab: Vec3, n: f64) -> f64 {
                 },
             ),
         ),
-    ))
+    )
 }
 fn segment_segment_distance(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> f64 {
-    let (u, v, w) = (sub(q, p), sub(b, a), sub(p, a));
-    let (aa, bb, cc, dd, ee) = (dot(u, u), dot(u, v), dot(v, v), dot(u, w), dot(v, w));
+    length(segment_segment_delta(p, q, a, b))
+}
+fn segment_segment_delta(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> Vec3 {
+    let (u, v) = (sub(q, p), sub(b, a));
+    segment_edge_delta(p, u, dot(u, u), a, v, dot(v, v))
+}
+fn segment_edge_delta(p: Vec3, u: Vec3, aa: f64, a: Vec3, v: Vec3, cc: f64) -> Vec3 {
+    let w = sub(p, a);
+    let (bb, dd, ee) = (dot(u, v), dot(u, w), dot(v, w));
     if aa < 1e-20 {
-        return point_segment_distance(p, a, b);
+        return point_edge_delta(p, a, v, cc);
     }
     if cc < 1e-20 {
-        return point_segment_distance(a, p, q);
+        return point_edge_delta(a, p, u, aa);
     }
     let denom = aa * cc - bb * bb;
     let mut s = if denom > 1e-20 {
@@ -1485,7 +1693,7 @@ fn segment_segment_distance(p: Vec3, q: Vec3, a: Vec3, b: Vec3) -> f64 {
         t = 1.0;
         s = clamp((bb - dd) / aa, 0.0, 1.0);
     }
-    length(sub(add(p, scale(u, s)), add(a, scale(v, t))))
+    sub(add(p, scale(u, s)), add(a, scale(v, t)))
 }
 #[cfg(test)]
 fn point_triangle_distance(p: Vec3, [a, b, c]: [Vec3; 3]) -> f64 {
@@ -1528,6 +1736,156 @@ fn segment_triangle_distance(p: Vec3, q: Vec3, triangle: [Vec3; 3]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn kept_endpoint_bounds_match_full_sweeps_while_neighbors_move() {
+        let def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/valiant.json")).unwrap();
+        let clearance = MountClearance::new_runtime(&def).unwrap().unwrap();
+        let mut poses: Vec<_> = def
+            .mounts
+            .iter()
+            .map(|m| ClearancePose::from(&MountState::new(m)))
+            .collect();
+        let mut bounds = vec![None; poses.len()];
+        let (mut checked, mut endpoint_certified) = (0, 0);
+        for tick in 0..120 {
+            for i in 0..poses.len() {
+                if !clearance.enabled(i) {
+                    continue;
+                }
+                let direction = if (i + tick / 40) % 2 == 0 { 1. } else { -1. };
+                let requested = ClearancePose {
+                    train: poses[i].train + direction * radians(0.2),
+                    elevation: poses[i].elevation + direction * radians(0.03),
+                    ..poses[i]
+                };
+                let expected = clearance.resolve(&def, i, &poses, requested);
+                if let Some(probe) = clearance.endpoint_bound(
+                    &def,
+                    i,
+                    &poses,
+                    requested,
+                    &mut Posed::default(),
+                    &mut bounds[i].clone(),
+                ) {
+                    assert_eq!(
+                        serde_json::to_value(probe).unwrap(),
+                        serde_json::to_value(&expected).unwrap()
+                    );
+                    endpoint_certified += 1;
+                }
+                let actual = clearance.resolve_for(456, &def, i, &poses, requested, &mut bounds[i]);
+                assert_eq!(
+                    serde_json::to_value(&actual).unwrap(),
+                    serde_json::to_value(&expected).unwrap(),
+                    "{} tick {tick}",
+                    def.mounts[i].id
+                );
+                poses[i] = actual.pose;
+                checked += 1;
+            }
+        }
+        assert!(checked > 100 && endpoint_certified > 0);
+    }
+
+    #[test]
+    fn distant_mount_motion_cannot_change_a_short_sweep() {
+        let def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/valiant.json")).unwrap();
+        let clearance = MountClearance::new_runtime(&def).unwrap().unwrap();
+        let poses: Vec<_> = def
+            .mounts
+            .iter()
+            .map(|m| ClearancePose::from(&MountState::new(m)))
+            .collect();
+        let mut omitted = 0;
+        for i in 0..poses.len() {
+            if !clearance.enabled(i) {
+                continue;
+            }
+            let requested = ClearancePose {
+                train: poses[i].train + radians(0.1),
+                ..poses[i]
+            };
+            let expected =
+                serde_json::to_value(clearance.resolve(&def, i, &poses, requested)).unwrap();
+            let mut key = vec![];
+            clearance.cache_key(
+                &def,
+                i,
+                &poses,
+                [requested.train, requested.elevation],
+                &mut key,
+            );
+            omitted += poses.len() - key.len();
+            for angle in [-110., -35., 42., 135.] {
+                let mut moved = poses.clone();
+                for (j, p) in moved.iter_mut().enumerate() {
+                    if !clearance.relevant[i].contains(&j) {
+                        p.train = radians(angle);
+                        p.elevation = radians(17.);
+                    }
+                }
+                let mut moved_key = vec![];
+                clearance.cache_key(
+                    &def,
+                    i,
+                    &moved,
+                    [requested.train, requested.elevation],
+                    &mut moved_key,
+                );
+                assert_eq!(key, moved_key);
+                assert_eq!(
+                    expected,
+                    serde_json::to_value(clearance.resolve(&def, i, &moved, requested)).unwrap(),
+                    "{} at {angle}",
+                    def.mounts[i].id
+                );
+            }
+            let large = ClearancePose {
+                train: poses[i].train + radians(30.),
+                ..poses[i]
+            };
+            clearance.cache_key(&def, i, &poses, [large.train, large.elevation], &mut key);
+            assert_eq!(
+                key.len(),
+                poses.len(),
+                "large diagnostic sweeps keep all dependencies"
+            );
+        }
+        assert!(omitted > 0);
+    }
+
+    #[test]
+    fn runtime_barrels_enclose_the_authored_taper_with_fewer_sections() {
+        let catalog: crate::definition::PartCatalog =
+            serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
+        let mut reduced = 0;
+        for w in &catalog.parts {
+            for degrees in [w.elevation_min_deg, 0., 23., w.elevation_max_deg] {
+                let fine = barrel_capsules(w, degrees.to_radians(), true);
+                let coarse = barrel_capsules_with_detail(w, degrees.to_radians(), true, true);
+                assert!(coarse.len() <= fine.len());
+                if coarse.len() < fine.len() {
+                    reduced += 1;
+                }
+                for capsule in fine {
+                    assert!(
+                        coarse.iter().any(|outer| {
+                            capsule.radius + point_segment_distance(capsule.a, outer.a, outer.b)
+                                <= outer.radius + 1e-8
+                                && capsule.radius
+                                    + point_segment_distance(capsule.b, outer.a, outer.b)
+                                    <= outer.radius + 1e-8
+                        }),
+                        "{} at {degrees}: runtime proxy must enclose every authored section",
+                        w.id
+                    );
+                }
+            }
+        }
+        assert!(reduced > 0);
+    }
     #[test]
     fn original_german_light_mechanisms_stay_inside_clearance_across_elevation() {
         let catalog: crate::definition::PartCatalog =
@@ -1623,10 +1981,10 @@ mod tests {
                         radius: 0.12,
                     };
                     let expected = segment_triangle_distance(p, q, triangle) - capsule.radius;
-                    assert_eq!(
-                        body.distance(capsule, 100.).to_bits(),
-                        expected.to_bits(),
-                        "{triangle:?}, {p:?} -> {q:?}"
+                    let actual = body.distance(capsule, 100.);
+                    assert!(
+                        (actual - expected).abs() < 1e-11,
+                        "{triangle:?}, {p:?} -> {q:?}: {actual} != {expected}"
                     );
                 }
             }

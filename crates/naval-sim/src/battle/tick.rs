@@ -389,7 +389,7 @@ impl Battle {
             let weapons = orders
                 .get(&a.motion.id)
                 .map_or_else(WeaponsPolicy::default, |o| o.weapons);
-            gunnery::operate_observed(
+            gunnery::operate_cadenced(
                 a,
                 &mut GunneryContext {
                     actors: fleet,
@@ -413,6 +413,7 @@ impl Battle {
                         islands: &self.islands,
                         terrain: &self.catalog.terrain,
                     }),
+                self.tick.is_multiple_of(gunnery::SURFACE_CONTROL_TICKS),
             );
             operate_underwater(
                 a,
@@ -584,11 +585,12 @@ impl Battle {
                     self.sea
                         .response(&def.hull, &a.motion, a.submarine.is_some(), time)
                 });
-            crate::flooding::update_flooding(
+            crate::flooding::update_flooding_with_transfer_step(
                 a,
                 def,
                 &compiled.hydro,
                 DT,
+                crate::flooding::transfer_step(self.tick),
                 self.cadence.stability_interval_seconds,
                 response,
                 (self.sea.amplitude_m != 0.0).then_some((&self.sea, time)),

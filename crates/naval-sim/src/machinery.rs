@@ -286,6 +286,9 @@ pub fn system_health(
                 .map(|(i, g)| {
                     let shafts = if g.shaft_ids.is_empty() {
                         1.
+                    } else if let Some(group) = indexed.and_then(|ix| ix.indexed_propulsion(def, i))
+                    {
+                        group.shafts.iter().map(at).sum::<f64>() / group.shafts.len() as f64
                     } else {
                         g.shaft_ids.iter().map(available).sum::<f64>() / g.shaft_ids.len() as f64
                     };
@@ -346,7 +349,16 @@ pub fn drive_health(
         };
         module.map_or(0., |m| equipment_condition(actor, def, m, sea).availability)
     };
-    let drive = g.drive_ids.iter().map(available).fold(1., f64::min);
+    let compiled = index.and_then(|ix| ix.indexed_propulsion(def, group));
+    let at = |i: &Option<usize>| {
+        i.map_or(0., |i| {
+            equipment_condition(actor, def, &def.modules[i], sea).availability
+        })
+    };
+    let drive = compiled.map_or_else(
+        || g.drive_ids.iter().map(available).fold(1., f64::min),
+        |c| c.drives.iter().map(at).fold(1., f64::min),
+    );
     if let Some(pool) = &p.shared_exhaust {
         use crate::construction_services::{
             AUXILIARY_POWER_SHARE, exhaust_fraction, live_exhaust_fraction,
@@ -364,6 +376,8 @@ pub fn drive_health(
     } else {
         let steam = if g.boiler_ids.is_empty() {
             1.
+        } else if let Some(c) = compiled {
+            c.boilers.iter().map(at).sum::<f64>() / c.boilers.len() as f64
         } else {
             g.boiler_ids.iter().map(available).sum::<f64>() / g.boiler_ids.len() as f64
         };

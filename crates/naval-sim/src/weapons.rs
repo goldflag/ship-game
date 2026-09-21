@@ -83,6 +83,13 @@ pub struct MountState {
     pub queued: Option<Ammunition>,
     pub status: MountStatus,
     pub aim_cache: Option<AimCache>,
+    /// Time available to the next surface-gun slew. AA consumes its own
+    /// movement each tick; switching back must not count that time twice.
+    #[serde(skip)]
+    pub(crate) surface_elapsed: f64,
+    /// A brief manual trigger press survives until the next control decision.
+    #[serde(skip)]
+    pub(crate) surface_fire: bool,
     /// The air track this mount is firing at and the ticks left before it looks
     /// for a nearer one. A cadence, never authority state: a restored battle
     /// simply searches on its first tick, and it must never reach a snapshot,
@@ -114,6 +121,8 @@ struct ClearanceCache {
     geometry: usize,
     poses: Vec<[f64; 2]>,
     requested: [f64; 2],
+    carrier: Option<CarrierFrame>,
+    stationary_fixed_stop: bool,
     result: crate::mount_clearance::ClearanceResult,
 }
 #[derive(Clone, Debug)]
@@ -144,6 +153,8 @@ impl MountState {
             status: MountStatus::Turning,
             queued: None,
             aim_cache: None,
+            surface_elapsed: 0.0,
+            surface_fire: false,
             lead_cache: None,
             aa_discipline: None,
             aa_track: None,
@@ -174,6 +185,8 @@ impl MountState {
             queued: self.queued,
             status: self.status,
             aim_cache: self.aim_cache.clone(),
+            surface_elapsed: self.surface_elapsed,
+            surface_fire: self.surface_fire,
             aa_track: None,
             aa_select: None,
             blocked_cache: None,
@@ -398,7 +411,7 @@ impl Obstructions {
                 .map(|_| crate::hull_contact::HullContacts::new(&d.hull)),
             entries,
             carried,
-            clearance: crate::mount_clearance::MountClearance::new(d)
+            clearance: crate::mount_clearance::MountClearance::new_runtime(d)
                 .expect("validated original mount clearance geometry"),
         }
     }
@@ -469,9 +482,23 @@ pub fn update_mount_at(
     obstructions: &Obstructions,
     mounted_states: &[MountState],
 ) -> bool {
-    // The hull holds one attitude for this call, and the muzzle check plus each
-    // pass of the lead solve below rotate through it.
-    let basis = p.basis();
+    update_mount_control_at(
+        index,
+        m,
+        s,
+        d,
+        p,
+        aim,
+        dt,
+        dt,
+        inherited,
+        power,
+        obstructions,
+        mounted_states,
+    )
+}
+
+pub(crate) fn advance_mount_clock(s: &mut MountState, dt: f64, power: f64) {
     let work = gun_work_rate(power);
     let was_reloading = s.reload > 0.0;
     s.reload = (s.reload - dt * work).max(0.0);
@@ -483,6 +510,28 @@ pub fn update_mount_at(
         s.aim_cache = None;
     }
     s.recoil = (s.recoil - dt / 1.4).max(0.0);
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn update_mount_control_at(
+    index: usize,
+    m: &MountDefinition,
+    s: &mut MountState,
+    d: &ShipDefinition,
+    p: &ShipState,
+    aim: Option<Vec3>,
+    dt: f64,
+    control_dt: f64,
+    inherited: Vec3,
+    power: f64,
+    obstructions: &Obstructions,
+    mounted_states: &[MountState],
+) -> bool {
+    // The hull holds one attitude for this call, and the muzzle check plus each
+    // pass of the lead solve below rotate through it.
+    let basis = p.basis();
+    let work = gun_work_rate(power);
+    advance_mount_clock(s, dt, power);
     let reject = |s: &mut MountState, status: MountStatus| {
         s.status = status;
         false
@@ -575,8 +624,8 @@ pub fn update_mount_at(
     } else {
         w.traverse_rate_deg
     };
-    let train_rate = radians(traverse_rate_deg) * dt * work;
-    let elevation_rate = radians(w.elevation_rate_deg) * dt * work;
+    let train_rate = radians(traverse_rate_deg) * control_dt * work;
+    let elevation_rate = radians(w.elevation_rate_deg) * control_dt * work;
     let requested_train = s.train + clamp(train - s.train, -train_rate, train_rate);
     let requested_elevation =
         s.elevation + clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
@@ -589,6 +638,18 @@ pub fn update_mount_at(
                 return reject(s, MountStatus::Blocked);
             }
             let accepted = SCRATCH.with_borrow_mut(|scratch| {
+                let requested = [requested_train, requested_elevation];
+                let geometry = clearance as *const _ as usize;
+                if let Some(cache) = s.clearance_cache.as_ref().filter(|c| {
+                    c.stationary_fixed_stop
+                        && c.geometry == geometry
+                        && c.requested == requested
+                        && c.carrier == s.carrier
+                        && c.result.pose.train == s.train
+                        && c.result.pose.elevation == s.elevation
+                }) {
+                    return (cache.result.pose, cache.result.blocked);
+                }
                 let (poses, key) = (&mut scratch.poses, &mut scratch.key);
                 poses.clear();
                 poses.extend(
@@ -597,14 +658,11 @@ pub fn update_mount_at(
                         .map(crate::mount_clearance::ClearancePose::from),
                 );
                 poses[index] = crate::mount_clearance::ClearancePose::from(&*s);
-                key.clear();
-                key.extend(poses.iter().map(|p| [p.train, p.elevation]));
-                let requested = [requested_train, requested_elevation];
-                let geometry = clearance as *const _ as usize;
+                clearance.cache_key(d, index, poses, requested, key);
                 if let Some(cache) = s.clearance_cache.as_ref().filter(|c| {
                     c.geometry == geometry && c.poses == *key && c.requested == requested
                 }) {
-                    return cache.result.clone();
+                    return (cache.result.pose, cache.result.blocked);
                 }
                 let result = clearance.resolve_for(
                     mounted_states.as_ptr() as usize,
@@ -618,17 +676,29 @@ pub fn update_mount_at(
                     },
                     &mut s.clear_bound,
                 );
+                let accepted = (result.pose, result.blocked);
+                let mut cached_poses = s
+                    .clearance_cache
+                    .as_mut()
+                    .map(|c| std::mem::take(&mut c.poses))
+                    .unwrap_or_default();
+                cached_poses.clone_from(key);
                 s.clearance_cache = Some(ClearanceCache {
                     geometry,
-                    poses: key.clone(),
+                    poses: cached_poses,
                     requested,
-                    result: result.clone(),
+                    carrier: s.carrier,
+                    stationary_fixed_stop: result.blocked
+                        && result.pose.train == s.train
+                        && result.pose.elevation == s.elevation
+                        && clearance.fixed_stop(index, result.obstruction_id.as_deref()),
+                    result,
                 });
-                result
+                accepted
             });
-            s.train = accepted.pose.train;
-            s.elevation = accepted.pose.elevation;
-            mechanically_blocked = accepted.blocked;
+            s.train = accepted.0.train;
+            s.elevation = accepted.0.elevation;
+            mechanically_blocked = accepted.1;
         } else {
             s.train = requested_train;
             s.elevation = requested_elevation;
@@ -649,6 +719,27 @@ pub fn update_mount_at(
             motion_clear = (s.train - next.0).abs() < 1e-9 && (s.elevation - next.1).abs() < 1e-9;
         }
         mechanically_blocked = !motion_clear;
+    }
+    if mechanically_blocked {
+        return reject(s, MountStatus::Blocked);
+    }
+    let in_arc = desired_train >= lo - 1e-6
+        && desired_train <= hi + 1e-6
+        && desired_elevation >= radians(w.elevation_min_deg) - 1e-6
+        && desired_elevation <= radians(w.elevation_max_deg) + 1e-6;
+    if reachable && in_arc {
+        if (desired_train - s.train).abs() >= 0.0015
+            || (desired_elevation - s.elevation).abs() >= 0.0008
+        {
+            return reject(s, MountStatus::Turning);
+        }
+        if s.reload > 0.0 {
+            // Every movement still has its physical interlock. A gun
+            // training onto a reachable target checks its firing corridor
+            // when it finishes loading and could actually fire.
+            s.status = MountStatus::Reloading;
+            return true;
+        }
     }
     // A parent can move an obstruction even when this gun has not traversed.
     // Use the detached mount's updated train when posing its own descendants.
@@ -692,29 +783,16 @@ pub fn update_mount_at(
         });
         blocked
     });
-    if blocked || mechanically_blocked {
+    if blocked {
         return reject(s, MountStatus::Blocked);
     }
     if !reachable {
         return reject(s, MountStatus::OutOfRange);
     }
-    if desired_train < lo - 1e-6
-        || desired_train > hi + 1e-6
-        || desired_elevation < radians(w.elevation_min_deg) - 1e-6
-        || desired_elevation > radians(w.elevation_max_deg) + 1e-6
-    {
+    if !in_arc {
         return reject(s, MountStatus::OutOfArc);
     }
-    if (desired_train - s.train).abs() >= 0.0015
-        || (desired_elevation - s.elevation).abs() >= 0.0008
-    {
-        return reject(s, MountStatus::Turning);
-    }
-    s.status = if s.reload > 0.0 {
-        MountStatus::Reloading
-    } else {
-        MountStatus::Ready
-    };
+    s.status = MountStatus::Ready;
     true
 }
 
@@ -728,4 +806,168 @@ pub fn muzzle_center_world(m: &MountDefinition, state: &MountState, ship: &ShipS
         muzzle_center_local(m, state.train, state.elevation, state.carrier),
         ship.pose(),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fixed_hull_stop_ignores_neighbor_motion_but_releases_for_a_new_request() {
+        let mut def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/bismarck.json")).unwrap();
+        def.mounts.truncate(2);
+        def.structures = None;
+        def.structural_plating = None;
+        def.hull.volume = None;
+        for (i, m) in def.mounts.iter_mut().enumerate() {
+            m.position = [i as f64 * 20., 10., 0.];
+            m.bearing_deg = 0.;
+            m.rangefinder = false;
+            m.parent_mount_id = None;
+            m.weapon.gunhouse_mesh = None;
+            m.weapon.gunhouse_shape = None;
+            m.weapon.gunhouse_size = [0.4; 3];
+            m.weapon.pivot_height = 1.;
+            m.weapon.trunnion_forward = 0.;
+            m.weapon.muzzle_forward = 10.;
+            m.weapon.barrel_count = 1.;
+            m.weapon.barrel_base_radius = Some(0.2);
+        }
+        // A vertical wall stops the first gun as it turns starboard. The
+        // second gun remains nearby, independently posed, beyond the wall.
+        def.mount_clearance = Some(
+            serde_json::from_value(serde_json::json!({
+                "version": 1, "marginM": 0.02, "basis": "Fixed-stop regression",
+                "mountIds": def.mounts.iter().map(|m| &m.id).collect::<Vec<_>>(),
+                "bodies": [{"id": "wall", "surface": {
+                    "vertices": [[6.,-5.,-30.],[6.,25.,-30.],[6.,25.,30.],[6.,-5.,30.]],
+                    "triangles": [[0,1,2],[0,2,3]]
+                }}]
+            }))
+            .unwrap(),
+        );
+        let obstructions = Obstructions::new(&def);
+        let mut states: Vec<_> = def.mounts.iter().map(MountState::new).collect();
+        let mut state = states[0].clone();
+        let ship = ShipState::new("test");
+        let advance = |state: &mut MountState, states: &[MountState], x| {
+            update_mount(
+                &def.mounts[0],
+                state,
+                &def,
+                &ship,
+                Some([x, 12., -2000.]),
+                1. / 60.,
+                [0.; 3],
+                1.,
+                &obstructions,
+                states,
+            );
+        };
+        for _ in 0..900 {
+            advance(&mut state, &states, 2000.);
+            states[0] = state.clone();
+        }
+        assert_eq!(state.status, MountStatus::Blocked);
+        assert!(
+            state
+                .clearance_cache
+                .as_ref()
+                .unwrap()
+                .stationary_fixed_stop
+        );
+        let stopped = state.train;
+        for i in 0..120 {
+            states[1].train = radians(i as f64 / 4.);
+            let mut reference = state.clone();
+            reference.clearance_cache = None;
+            reference.clear_bound = None;
+            advance(&mut reference, &states, 2000.);
+            advance(&mut state, &states, 2000.);
+            assert_eq!(
+                serde_json::to_value(&state).unwrap(),
+                serde_json::to_value(reference).unwrap()
+            );
+            assert_eq!(state.train, stopped);
+            states[0] = state.clone();
+        }
+        advance(&mut state, &states, -2000.);
+        assert!(
+            state.train < stopped,
+            "a changed request must release the stop"
+        );
+    }
+
+    #[test]
+    fn firing_clearance_is_required_when_ready_but_not_while_reloading() {
+        let def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/bismarck.json")).unwrap();
+        let m = &def.mounts[0];
+        let ship = ShipState::new("test");
+        let mut state = MountState::new(m);
+        let clear = Obstructions {
+            hull: None,
+            entries: vec![],
+            carried: vec![],
+            clearance: None,
+        };
+        let blocked = Obstructions {
+            hull: None,
+            entries: vec![Obstruction {
+                center: [0.; 3],
+                size: [10000.; 3],
+                mount_id: None,
+            }],
+            carried: vec![],
+            clearance: None,
+        };
+        let aim = Some([
+            m.position[0],
+            m.position[1] + m.weapon.pivot_height,
+            m.position[2] - 2000.,
+        ]);
+        assert!(update_mount(
+            m,
+            &mut state,
+            &def,
+            &ship,
+            aim,
+            100.,
+            [0.; 3],
+            1.,
+            &clear,
+            &[]
+        ));
+        assert_eq!(state.status, MountStatus::Ready);
+        state.blocked_cache = None;
+        state.reload = 2.;
+        assert!(update_mount(
+            m,
+            &mut state,
+            &def,
+            &ship,
+            aim,
+            0.,
+            [0.; 3],
+            1.,
+            &blocked,
+            &[]
+        ));
+        assert_eq!(state.status, MountStatus::Reloading);
+        state.reload = 0.;
+        assert!(!update_mount(
+            m,
+            &mut state,
+            &def,
+            &ship,
+            aim,
+            0.,
+            [0.; 3],
+            1.,
+            &blocked,
+            &[]
+        ));
+        assert_eq!(state.status, MountStatus::Blocked);
+    }
 }

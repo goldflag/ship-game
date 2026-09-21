@@ -2,7 +2,10 @@ use crate::{
     damage::Combatant,
     definition::ShipDefinition,
     environment::SeaResponse,
-    floodwater::{Scratch, WaterBody, refresh, water_body, water_body_with},
+    floodwater::{
+        Scratch, WaterBody, refresh_runtime as refresh, water_body_runtime as water_body,
+        water_body_runtime_with as water_body_with,
+    },
     geometry::*,
     hydrostatics::{HullHydrostatics, righting_arms},
 };

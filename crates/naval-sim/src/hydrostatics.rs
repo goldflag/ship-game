@@ -143,7 +143,7 @@ impl HullHydrostatics {
             let (volume, center) = t.sample(y, roll, pitch);
             return Hydrostatics { volume, center };
         }
-        self.mesh_sample(y, roll, pitch)
+        self.integrated_sample(None, None, y, roll, pitch, true)
     }
     /// Clips every hull section at the given immersion. The published table is
     /// solved from and measured against this; it stays the reference, not the
@@ -181,6 +181,18 @@ impl HullHydrostatics {
         roll: f64,
         pitch: f64,
     ) -> Hydrostatics {
+        self.integrated_sample(extents, None, y, roll, pitch, false)
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn integrated_sample(
+        &self,
+        extents: Option<&[(f64, f64)]>,
+        curves: Option<&[Option<displacement::CellCurve<'_>>]>,
+        y: f64,
+        roll: f64,
+        pitch: f64,
+        tetrahedral: bool,
+    ) -> Hydrostatics {
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
         let nz = -pitch.sin();
@@ -209,6 +221,22 @@ impl HullHydrostatics {
                 }
                 if !outside {
                     m.add(cell.full);
+                } else if tetrahedral && cell.displacement.is_some() {
+                    // Reuse the projected tetrahedra from the draft search when
+                    // available. Arbitrary sample attitudes prepare only the
+                    // cells intersected by the waterline; full/dry cells above
+                    // need no temporary geometry.
+                    let fresh;
+                    let curve = match curves.and_then(|c| c[k].as_ref()) {
+                        Some(curve) => curve,
+                        None => {
+                            fresh = cell.displacement.as_ref().unwrap().at_normal(n);
+                            &fresh
+                        }
+                    };
+                    let (volume, first) = curve.first_moments_at(-y);
+                    m.volume += volume;
+                    m.first = crate::geometry::add(m.first, first);
                 } else if let Some(mut part) =
                     crate::construction_geometry::clipped_moments(&cell.shape, n, -y)
                 {
@@ -402,7 +430,7 @@ impl HullHydrostatics {
             y = next;
             trial += 1;
         }
-        let sample = self.mesh_sample_within(Some(&extents), y, roll, pitch);
+        let sample = self.integrated_sample(Some(&extents), Some(&curves), y, roll, pitch, true);
         Flotation {
             volume: sample.volume,
             center: sample.center,

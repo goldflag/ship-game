@@ -1,3 +1,4 @@
+mod armor_index;
 use crate::{
     damage::Combatant,
     definition::{Armor, ArmorPlate, ShipDefinition, Vec3},
@@ -57,6 +58,7 @@ impl ShipContact {
 }
 #[derive(Clone, Debug)]
 pub struct ContactGeometry {
+    armor_index: Option<armor_index::ArmorIndex>,
     pub structural: Vec<StructuralSurface>,
     pub hull: Option<HullContacts>,
     /// Mounts whose gunhouse is authored as armor plates, parallel to `mounts`;
@@ -66,6 +68,7 @@ pub struct ContactGeometry {
 impl ContactGeometry {
     pub fn new(def: &ShipDefinition) -> Result<Self, String> {
         Ok(Self {
+            armor_index: armor_index::ArmorIndex::new(&def.armor),
             plated_mounts: def
                 .mounts
                 .iter()
@@ -190,7 +193,15 @@ pub fn ship_contacts(
     let trains: Vec<_> = actor.mounts.iter().map(|m| m.train).collect();
     let mut hits = vec![];
     let ship = &actor.motion.id;
-    for (i, a) in def.armor.iter().enumerate() {
+    let candidates = geometry
+        .armor_index
+        .as_ref()
+        .filter(|index| index.matches(&def.armor))
+        .map(|index| index.query(from, to));
+    let count = candidates.as_ref().map_or(def.armor.len(), Vec::len);
+    for position in 0..count {
+        let i = candidates.as_ref().map_or(position, |ids| ids[position]);
+        let a = &def.armor[i];
         if a.plate.is_some() {
             // Geometry first: a shell crosses a handful of a hull's plates, and
             // naming every plate it misses cost more than the misses themselves.
@@ -418,4 +429,94 @@ pub fn ship_contacts(
         }
     }
     unique
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn indexed_armor_matches_exhaustive_contacts_at_edges_and_moving_mounts() {
+        for source in [
+            include_str!("../../../public/models/valiant.json"),
+            include_str!("../../../public/models/iowa.json"),
+            include_str!("../../../public/models/bismarck.json"),
+        ] {
+            let def: ShipDefinition = serde_json::from_str(source).unwrap();
+            let geometry = ContactGeometry::new(&def).unwrap();
+            assert!(geometry.armor_index.is_some());
+            let mut linear = geometry.clone();
+            linear.armor_index = None;
+            let mut actor = Combatant::new("indexed", &def);
+            let shell = Shell::default();
+            let mut rays = vec![];
+            for i in 0..192 {
+                let z = (i as f64 / 191. - 0.5) * def.hull.length * 1.2;
+                let y = (i % 17) as f64 - def.hull.draft - 1.;
+                rays.push((
+                    [-def.hull.beam, y, z],
+                    [def.hull.beam, y + (i % 3) as f64, z + 7.],
+                ));
+                rays.push((
+                    [z * 0.1, def.hull.depth + 15., z],
+                    [z * 0.1, -def.hull.draft - 5., z - 3.],
+                ));
+            }
+            for a in def.armor.iter().step_by(11) {
+                // Exact box edges, the plate broad-phase padding, and rays
+                // whose end only reaches the plane within its t tolerance.
+                for epsilon in [-1.01e-5, -1e-9, 0., 1e-9, 1.01e-5] {
+                    let edge = a.center[0] + a.size[0] / 2. + epsilon;
+                    rays.push((
+                        [edge, a.center[1], a.center[2] - a.size[2] - 5.],
+                        [edge, a.center[1], a.center[2] + a.size[2] + 5.],
+                    ));
+                }
+                if let Some(plate) = &a.plate
+                    && plate.vertices.len() >= 3
+                {
+                    let normal = normalize(cross(
+                        sub(plate.vertices[1], plate.vertices[0]),
+                        sub(plate.vertices[2], plate.vertices[0]),
+                    ));
+                    for &v in &plate.vertices {
+                        rays.push((add(v, scale(normal, 30.)), add(v, scale(normal, 1e-9))));
+                        rays.push((add(v, scale(normal, 30.)), add(v, scale(normal, -30.))));
+                    }
+                }
+            }
+            for (yaw, roll, pitch) in [(0., 0., 0.), (0.7, 0.2, -0.08)] {
+                actor.motion.x = 327.;
+                actor.motion.z = -724.;
+                actor.motion.heading = yaw;
+                actor.motion.roll = roll;
+                actor.motion.pitch = pitch;
+                for (i, m) in actor.mounts.iter_mut().enumerate() {
+                    m.train = yaw * if i % 2 == 0 { 1. } else { -1. };
+                }
+                let basis = actor.motion.basis();
+                for &(from, to) in &rays {
+                    let (from, to) = (basis.local_to_world(from), basis.local_to_world(to));
+                    let indexed = ship_contacts(&shell, from, to, &actor, &def, &geometry);
+                    let exhaustive = ship_contacts(&shell, from, to, &actor, &def, &linear);
+                    assert_eq!(
+                        serde_json::to_value(indexed).unwrap(),
+                        serde_json::to_value(exhaustive).unwrap(),
+                        "{}: {from:?} -> {to:?}",
+                        def.id
+                    );
+                }
+            }
+            let from = [def.hull.beam * 3., 0., 0.];
+            let candidates = geometry
+                .armor_index
+                .as_ref()
+                .unwrap()
+                .query(from, add(from, [1., 0., 0.]));
+            assert!(
+                candidates.len() < def.armor.len(),
+                "the broad phase must prune misses"
+            );
+        }
+    }
 }

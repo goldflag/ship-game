@@ -20,6 +20,40 @@ pub fn update_flooding(
     response: Option<SeaResponse>,
     sea: Option<(&SeaState, f64)>,
 ) {
+    update_flooding_with_transfer_step(
+        actor,
+        def,
+        hydro,
+        dt,
+        dt,
+        stability_interval,
+        response,
+        sea,
+    );
+}
+
+pub(crate) const TRANSFER_TICKS: u64 = 6;
+pub(crate) fn transfer_step(tick: u64) -> f64 {
+    if tick == 0 {
+        crate::rules::DT
+    } else if tick.is_multiple_of(TRANSFER_TICKS) {
+        TRANSFER_TICKS as f64 * crate::rules::DT
+    } else {
+        0.
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn update_flooding_with_transfer_step(
+    actor: &mut Combatant,
+    def: &ShipDefinition,
+    hydro: &HullHydrostatics,
+    dt: f64,
+    transfer_dt: f64,
+    stability_interval: f64,
+    response: Option<SeaResponse>,
+    sea: Option<(&SeaState, f64)>,
+) {
     if dt <= 0.0 {
         return;
     }
@@ -28,6 +62,55 @@ pub fn update_flooding(
         actor.damage.defeat_cause = Some("hull-failure".into());
     }
     update_stability(actor, def, hydro, dt, stability_interval, response);
+    if transfer_dt > 0. {
+        update_transfers(actor, def, transfer_dt, sea);
+    }
+    let water: f64 = actor.damage.compartments.iter().map(|c| c.water_m3).sum();
+    if def.stability.is_none() {
+        if !actor.damage.sunk && water >= def.hull.reserve_buoyancy_m3 {
+            actor.damage.defeat_cause.get_or_insert("flooding".into());
+            actor.damage.sunk = true;
+        }
+        if actor.submarine.is_none() && !actor.damage.sunk {
+            actor.motion.y = -water / def.hull.waterplane_area_m2;
+        }
+        let mass = def.hull.mass_kg + water * 1000.0;
+        let moment = |axis| {
+            actor
+                .damage
+                .compartments
+                .iter()
+                .zip(&def.compartments)
+                .map(|(c, r)| c.water_m3 * 1000.0 * r.center[axis])
+                .sum::<f64>()
+        };
+        let roll = clamp(-moment(0) / mass * 0.5, -0.45, 0.45);
+        let pitch = clamp(moment(2) / mass * 0.02, -0.2, 0.2);
+        let blend = if actor.damage.sunk {
+            1.0 - (-dt / 4.0).exp()
+        } else {
+            1.0
+        };
+        actor.motion.roll += (roll - actor.motion.roll) * blend;
+        actor.motion.pitch += (pitch - actor.motion.pitch) * blend;
+    }
+    update_sinking(actor, def, dt);
+    if def.hull.volume.is_some() {
+        for i in 0..def.compartments.len() {
+            let y = water_level(actor, def, i, None);
+            actor.damage.compartments[i].water_level_y = Some(y);
+        }
+    }
+}
+
+/// Sample pressures and pumping once for this bounded transfer window. The
+/// existing per-connection limits still prevent overfill and head reversal.
+fn update_transfers(
+    actor: &mut Combatant,
+    def: &ShipDefinition,
+    dt: f64,
+    sea: Option<(&SeaState, f64)>,
+) {
     let power = if def.compartments.iter().any(|c| c.pump_m3_per_second > 0.0) {
         electrical_power(actor, def, sea)
     } else {
@@ -176,42 +259,6 @@ pub fn update_flooding(
             );
         }
     }
-    let water: f64 = actor.damage.compartments.iter().map(|c| c.water_m3).sum();
-    if def.stability.is_none() {
-        if !actor.damage.sunk && water >= def.hull.reserve_buoyancy_m3 {
-            actor.damage.defeat_cause.get_or_insert("flooding".into());
-            actor.damage.sunk = true;
-        }
-        if actor.submarine.is_none() && !actor.damage.sunk {
-            actor.motion.y = -water / def.hull.waterplane_area_m2;
-        }
-        let mass = def.hull.mass_kg + water * 1000.0;
-        let moment = |axis| {
-            actor
-                .damage
-                .compartments
-                .iter()
-                .zip(&def.compartments)
-                .map(|(c, r)| c.water_m3 * 1000.0 * r.center[axis])
-                .sum::<f64>()
-        };
-        let roll = clamp(-moment(0) / mass * 0.5, -0.45, 0.45);
-        let pitch = clamp(moment(2) / mass * 0.02, -0.2, 0.2);
-        let blend = if actor.damage.sunk {
-            1.0 - (-dt / 4.0).exp()
-        } else {
-            1.0
-        };
-        actor.motion.roll += (roll - actor.motion.roll) * blend;
-        actor.motion.pitch += (pitch - actor.motion.pitch) * blend;
-    }
-    update_sinking(actor, def, dt);
-    if def.hull.volume.is_some() {
-        for i in 0..def.compartments.len() {
-            let y = water_level(actor, def, i, None);
-            actor.damage.compartments[i].water_level_y = Some(y);
-        }
-    }
 }
 
 fn transfer(
@@ -270,4 +317,182 @@ fn transfer(
     }
     actor.damage.compartments[ai].water_m3 -= direction * requested;
     actor.damage.compartments[bi].water_m3 += direction * requested;
+}
+
+#[cfg(test)]
+mod cadence_tests {
+    use super::*;
+    use crate::{
+        definition::{Compartment, FloodConnection},
+        rules::DT,
+    };
+
+    fn fixture() -> (ShipDefinition, Combatant, HullHydrostatics) {
+        let mut def: ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/bismarck.json")).unwrap();
+        def.stability = None;
+        def.hull.volume = None;
+        def.hull.reserve_buoyancy_m3 = 1e6;
+        def.openings = None;
+        def.compartments = ["a", "b", "c"]
+            .into_iter()
+            .map(|id| Compartment {
+                id: id.into(),
+                name: id.into(),
+                center: [0., 2., 0.],
+                size: [5., 4., 5.],
+                capacity_m3: 100.,
+                ..Default::default()
+            })
+            .collect();
+        def.connections = [("a", "b"), ("b", "c")]
+            .into_iter()
+            .map(|(a, b)| FloodConnection {
+                id: Some(format!("{a}-{b}")),
+                from_id: a.into(),
+                to_id: b.into(),
+                area_m2: 0.5,
+                state: Some("open".into()),
+                ..Default::default()
+            })
+            .collect();
+        let mut actor = Combatant::new("test", &def);
+        for (room, fill) in actor.damage.compartments.iter_mut().zip([100., 0., 50.]) {
+            room.water_m3 = fill;
+        }
+        actor.damage.control.pumping.fill(0.);
+        let hydro = HullHydrostatics::new(&def.hull, None);
+        (def, actor, hydro)
+    }
+
+    #[test]
+    fn cadenced_transfers_conserve_water_and_track_small_steps() {
+        let (def, mut coarse, hydro) = fixture();
+        let mut fine = coarse.clone();
+        let mut worst = 0.0_f64;
+        let mut boundary_error = 0.0_f64;
+        for tick in 0..=3600 {
+            update_flooding(&mut fine, &def, &hydro, DT, 0.5, None, None);
+            update_flooding_with_transfer_step(
+                &mut coarse,
+                &def,
+                &hydro,
+                DT,
+                transfer_step(tick),
+                0.5,
+                None,
+                None,
+            );
+            let total: f64 = coarse.damage.compartments.iter().map(|r| r.water_m3).sum();
+            assert!((total - 150.).abs() < 1e-9);
+            for (a, b) in coarse
+                .damage
+                .compartments
+                .iter()
+                .zip(&fine.damage.compartments)
+            {
+                assert!((0. ..=100.).contains(&a.water_m3));
+                let error = (a.water_m3 - b.water_m3).abs();
+                worst = worst.max(error);
+                if tick.is_multiple_of(TRANSFER_TICKS) {
+                    boundary_error = boundary_error.max(error);
+                }
+            }
+        }
+        // Between samples, the middle room can receive both portals' flow.
+        // Bound that intentional lag by the maximum four-metre pressure head.
+        let held_flow = 2. * 0.6 * 0.5 * (2.0_f64 * 9.81 * 4.).sqrt() * TRANSFER_TICKS as f64 * DT;
+        assert!(worst < held_flow, "maximum held fill error {worst} m3");
+        assert!(
+            boundary_error < def.compartments[0].capacity_m3 * 0.001,
+            "integrated fill error {boundary_error} m3"
+        );
+    }
+
+    #[test]
+    fn constructed_flooding_tracks_small_steps_with_open_connections() {
+        let catalog = crate::catalog::Catalog::load(
+            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
+        )
+        .unwrap();
+        for id in ["valiant", "resolute"] {
+            let compiled = std::sync::Arc::new(catalog.compile(id).unwrap());
+            let mut coarse =
+                crate::vessel::Vessel::new("test", crate::rules::TeamId::A, compiled.clone()).state;
+            let def = &compiled.definition;
+            let mut breaches = 0;
+            for (i, room) in def.compartments.iter().enumerate() {
+                if room.center[1] + coarse.motion.y < -0.5 && breaches < 3 {
+                    crate::breaches::add_breach(
+                        &mut coarse.damage.compartments[i],
+                        room.center,
+                        0.04,
+                        i as i64,
+                        None,
+                        None,
+                        false,
+                    );
+                    breaches += 1;
+                }
+            }
+            assert!(breaches > 0);
+            for link in &mut coarse.damage.connections {
+                link.state = "open".into();
+            }
+            let mut fine = coarse.clone();
+            let (mut water_error, mut draft_error) = (0.0_f64, 0.0_f64);
+            for tick in 0..=3600 {
+                update_flooding(&mut fine, def, &compiled.hydro, DT, 0.5, None, None);
+                update_flooding_with_transfer_step(
+                    &mut coarse,
+                    def,
+                    &compiled.hydro,
+                    DT,
+                    transfer_step(tick),
+                    0.5,
+                    None,
+                    None,
+                );
+                let total = |a: &Combatant| {
+                    a.damage
+                        .compartments
+                        .iter()
+                        .map(|c| c.water_m3)
+                        .sum::<f64>()
+                };
+                water_error = water_error.max((total(&coarse) - total(&fine)).abs());
+                draft_error = draft_error.max((coarse.motion.y - fine.motion.y).abs());
+                for (room, state) in def.compartments.iter().zip(&coarse.damage.compartments) {
+                    assert!((0. ..=room.capacity_m3 + 1e-8).contains(&state.water_m3));
+                }
+            }
+            assert!(water_error < 1., "{id} water error {water_error} m3");
+            assert!(draft_error < 0.02, "{id} draft error {draft_error} m");
+            assert_eq!(coarse.damage.sunk, fine.damage.sunk);
+        }
+    }
+
+    #[test]
+    fn sinking_does_not_wait_for_a_transfer_tick() {
+        let (def, mut actor, hydro) = fixture();
+        actor.damage.integrity = 0.;
+        for tick in 1..TRANSFER_TICKS {
+            let before = actor.motion.y;
+            update_flooding_with_transfer_step(
+                &mut actor,
+                &def,
+                &hydro,
+                DT,
+                transfer_step(tick),
+                0.5,
+                None,
+                None,
+            );
+            assert!(actor.damage.sunk);
+            assert!(
+                actor.motion.y < before,
+                "sinking motion must advance on every tick"
+            );
+        }
+    }
 }

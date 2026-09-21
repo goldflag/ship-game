@@ -131,7 +131,11 @@ fn boxes(c: &crate::definition::Compartment) -> Vec<(Vec3, Vec3)> {
 /// whatever lies behind it at that height, so prefer a space the point is level
 /// with; a hull breach a metre under should not find a wing void above the
 /// waterline just because it is a few centimetres nearer.
-fn nearest_room(def: &ShipDefinition, point: Vec3) -> Option<usize> {
+fn nearest_room(
+    def: &ShipDefinition,
+    point: Vec3,
+    index: Option<&crate::vessel::ShipIndex>,
+) -> Option<usize> {
     if def.hull.volume.is_some() {
         // The first room at the smallest distance, as `min_by` over every
         // room's distance picks; each room only has to beat the best so far.
@@ -139,9 +143,16 @@ fn nearest_room(def: &ShipDefinition, point: Vec3) -> Option<usize> {
         for (i, room) in def.compartments.iter().enumerate() {
             let bound = nearest.map_or(f64::INFINITY, |n| n.1);
             let distance = match &room.volumes {
-                Some(cells) => {
-                    crate::construction_geometry::room_distance_within(cells, point, bound)
-                }
+                Some(cells) => index
+                    .and_then(|ix| {
+                        ix.room_distances
+                            .get(i)?
+                            .as_ref()?
+                            .distance(cells, point, bound)
+                    })
+                    .unwrap_or_else(|| {
+                        crate::construction_geometry::room_distance_within(cells, point, bound)
+                    }),
                 None => crate::construction_geometry::room_distance(room, point),
             };
             if nearest.is_none() || distance < bound {
@@ -187,6 +198,7 @@ pub fn exterior_breaches(
     let radius = (area / std::f64::consts::PI).sqrt();
     let (bottom, top) = (point[1] - radius, point[1] + radius);
     let mut assignments = vec![];
+    let room_index = actor.index.clone();
     let mut assign = |i: usize, point: Vec3, area: f64, radius: f64| {
         let c = &mut actor.damage.compartments[i];
         assignments.push(BreachAssignment {
@@ -200,7 +212,7 @@ pub fn exterior_breaches(
         .as_ref()
         .filter(|_| normal[1].abs() <= 0.5)
     else {
-        if let Some(i) = nearest_room(def, point) {
+        if let Some(i) = nearest_room(def, point, room_index.of(def)) {
             assign(i, point, area, radius);
         }
         return assignments;
@@ -235,7 +247,7 @@ pub fn exterior_breaches(
                 .iter()
                 .position(|c| c.id == r.compartment_id)
         } else {
-            nearest_room(def, p)
+            nearest_room(def, p, room_index.of(def))
         };
         if let Some(i) = i {
             assign(
@@ -802,4 +814,51 @@ pub struct DepthChargeEffect {
     #[ts(type = "number")]
     pub id: i64,
     pub radius_m: f64,
+}
+
+#[cfg(test)]
+mod room_tests {
+    use super::*;
+
+    #[test]
+    fn cached_room_bounds_preserve_breach_assignment_at_faces_and_ties() {
+        let catalog = crate::catalog::Catalog::load(
+            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
+        )
+        .unwrap();
+        for id in ["valiant", "resolute"] {
+            let def = &catalog.definitions[id];
+            let index = crate::vessel::ShipIndex::new(def);
+            let mut points = vec![[0.; 3]];
+            for room in &def.compartments {
+                points.push(room.center);
+                for cell in room.volumes.iter().flatten().step_by(13) {
+                    let v = cell.faces[0].vertices[0];
+                    for dx in [-1e-7, 0., 1e-7] {
+                        points.push([v[0] + dx, v[1], v[2]]);
+                    }
+                }
+            }
+            for i in 0..200 {
+                points.push([
+                    (i as f64 * 1.731).sin() * def.hull.beam,
+                    (i as f64 * 2.719).cos() * def.hull.depth,
+                    (i as f64 * 0.831).sin() * def.hull.length,
+                ]);
+            }
+            for p in points {
+                assert_eq!(
+                    nearest_room(def, p, Some(&index)),
+                    nearest_room(def, p, None),
+                    "{id} {p:?}"
+                );
+            }
+            // A caller with copied or replaced cells cannot reuse their boxes.
+            let copied = (**def).clone();
+            assert_eq!(
+                nearest_room(&copied, [0.; 3], Some(&index)),
+                nearest_room(&copied, [0.; 3], None)
+            );
+        }
+    }
 }

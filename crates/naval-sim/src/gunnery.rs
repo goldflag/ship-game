@@ -13,6 +13,10 @@ use crate::{
     weapons::*,
 };
 use std::collections::BTreeMap;
+
+/// Surface aim, swept traverse and fire decisions run at 10 Hz. Ship motion,
+/// projectiles, reload, recoil and active AA continue on the 60 Hz battle tick.
+pub const SURFACE_CONTROL_TICKS: u64 = 6;
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlayerGunOrders {
@@ -114,6 +118,20 @@ pub fn operate_observed(
     policy: crate::navigation::WeaponsPolicy,
     knowledge: Option<crate::sensors::Knowledge<'_>>,
 ) {
+    operate_cadenced(actor, ctx, target, contact, player, policy, knowledge, true);
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn operate_cadenced(
+    actor: &mut Vessel,
+    ctx: &mut GunneryContext<'_>,
+    target: Option<&Vessel>,
+    contact: Option<&crate::sensors::ContactTrack>,
+    player: Option<&PlayerGunOrders>,
+    policy: crate::navigation::WeaponsPolicy,
+    knowledge: Option<crate::sensors::Knowledge<'_>>,
+    surface_update: bool,
+) {
     let compiled = actor.compiled.clone();
     let def = &compiled.definition;
     let power = electrical_power(actor, def, None);
@@ -149,6 +167,8 @@ pub fn operate_observed(
             })
         {
             actor.mounts[i].status = MountStatus::Disabled;
+            actor.mounts[i].surface_elapsed = 0.;
+            actor.mounts[i].surface_fire = false;
             continue;
         }
         let independent_secondary = knowledge.is_some() && m.battery == "secondary";
@@ -173,6 +193,7 @@ pub fn operate_observed(
         let detached = actor.mounts[i].detached();
         let previous_reload = detached.reload;
         let mut state = std::mem::replace(&mut actor.mounts[i], detached);
+        state.surface_elapsed += ctx.dt;
         let bot = if independent_secondary {
             actor.secondary_bot.as_ref()
         } else {
@@ -185,6 +206,7 @@ pub fn operate_observed(
                 p.battery == m.battery && p.weapon_group_id.as_ref().is_none_or(|id| id == group)
             });
         let manual = selected && player.unwrap().weapon_group_id.is_some();
+        state.surface_fire = selected && (state.surface_fire || player.unwrap().fire);
         if !manual
             && policy.aa
             && anti_aircraft::update_observed_at(
@@ -202,14 +224,25 @@ pub fn operate_observed(
                 &observable,
             )
         {
+            state.surface_elapsed = 0.;
+            state.surface_fire = false;
             if state.reload > previous_reload {
                 actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
             }
             actor.mounts[i] = state;
             continue;
         }
+        // Fast surface automatics retain their rate; a 100 ms decision
+        // window must not cap a weapon authored above ten rounds per second.
+        if !surface_update && m.weapon.reload_seconds >= 0.1 {
+            advance_mount_clock(&mut state, ctx.dt, power);
+            actor.mounts[i] = state;
+            continue;
+        }
+        let control_dt = std::mem::take(&mut state.surface_elapsed);
+        let manual_fire = std::mem::take(&mut state.surface_fire);
         if !allowed {
-            update_mount_at(
+            update_mount_control_at(
                 i,
                 m,
                 &mut state,
@@ -217,6 +250,7 @@ pub fn operate_observed(
                 &actor.motion,
                 None,
                 ctx.dt,
+                control_dt,
                 velocity,
                 power,
                 &compiled.obstructions,
@@ -241,7 +275,7 @@ pub fn operate_observed(
                 continue;
             };
             aim = Some(point);
-            fire = p.fire && selected;
+            fire = manual_fire;
         } else if actor.controller == Controller::Bot
             && let Some(c) = contact
         {
@@ -284,7 +318,7 @@ pub fn operate_observed(
             }
             fire = policy.guns && in_range && lane && bot.is_some_and(|b| b.ready(Some(m)));
         }
-        let aligned = update_mount_at(
+        let aligned = update_mount_control_at(
             i,
             m,
             &mut state,
@@ -292,6 +326,7 @@ pub fn operate_observed(
             &actor.motion,
             aim,
             ctx.dt,
+            control_dt,
             velocity,
             power,
             &compiled.obstructions,
