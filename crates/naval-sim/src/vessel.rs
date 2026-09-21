@@ -296,7 +296,7 @@ impl CompiledShip {
         let shell_radius = length(std::array::from_fn(|i| {
             shell_center[i].abs() + shell_size[i] / 2.0
         }));
-        let hydro = HullHydrostatics::new(&d.hull, hydrostatics);
+        let hydro = HullHydrostatics::new_runtime(&d.hull, hydrostatics);
         let mut initial_pose = crate::geometry::Pose::default();
         // Legacy hulls use a calibrated authored waterline; constructed hulls
         // carry physical loading in editor coordinates, not a sea-level origin.

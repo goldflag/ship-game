@@ -40,6 +40,7 @@ pub mod rules;
 pub mod ballistics;
 
 pub mod floodwater;
+mod volume_proxy;
 pub mod hull;
 pub mod hydro_table;
 pub mod hydrostatics;

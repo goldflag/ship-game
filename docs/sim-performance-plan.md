@@ -123,6 +123,52 @@ These are simulation choices shared by the native server and WASM worker, indepe
 rendering quality. Compare equal requested simulation durations and report battle outcomes
 alongside timings; faster destruction of a ship is not proof of a cheaper combat tick.
 
+Generated gun installation supports use a separate runtime shell-contact representation:
+one analytic circular wall and one annular top replace 64 wall and 64 top polygon tests.
+The bore stays open; no inner wall or bottom plate is added. Contacts retain the original
+sector's plate ID, material and thickness, including independently armored sectors. The
+common top/wall rim is one crossing, with both plate identities marked visited. The fixed
+armor index excludes the replaced polygons. This applies to custom ships and construction
+presets; legacy barbettes retain their authored collision geometry.
+
+The proxy recognizes complete, fixed, horizontal 64-sided supports and falls back to literal
+plates for incomplete, edited or protection-linked flooding geometry. Circular walls differ
+from the inscribed visual polygon by at most `radius × (1 − cos(π/64))`, about 0.121% of radius;
+wall normals can differ by up to 2.8125°. The top's inner and outer edges use the corresponding
+circles. Grazing contacts and penetration/ricochet outcomes can therefore change. Visuals,
+authoring clearance, structural solids, mass, buoyancy, flood openings and compartment geometry
+keep their existing meshes. `ContactGeometry::armor_shape_count` reports collision shapes;
+the serialized definition still reports all authored armor plates.
+
+Hull and superstructure shell contacts also group touching, equally armored fixed
+panels across authored surface IDs. Each group fits one plane, with a maximum 2 cm
+distance from every original vertex and a maximum 2° difference between original
+normals. Every merge checks the original geometry, so repeated merges cannot accumulate
+drift. A convex envelope provides the broad phase; original panel footprints retain holes
+and concave corners and select the hit's original damage identity. Overlapping armor layers,
+different thicknesses/materials, moving plates and flooding-protection-linked plates stay
+separate. This changes shell contacts, not gun-clearance or ship-ramming geometry.
+
+Runtime buoyancy additionally merges connected hull cells into convex envelopes. Added
+space must remain within 2 cm of the original union, including a centroid correction of at
+most 5 mm; a convex-piece containment check prevents filling a cavity between nearby walls.
+Each cluster adds at most 0.05% geometric volume before weighting restores its exact full
+displacement and center. A ship-level acceptance grid checks 168 immersion/heel/trim cases,
+including inversion, for at most 0.1% of full displacement error and 5 cm of buoyancy-center
+error when at least 1% submerged. A failed model keeps the original cells. Authoring and
+published loading calculations still use the original hull through `HullHydrostatics::new`.
+
+Flooding chooses smaller moment-preserving models per room, trying 16/32-box partitions
+and then bounded local merges of the established 64-box model. Each candidate is compared
+with that original runtime model over 1,344 combinations of heel, trim and fill, including
+0.1% and full rooms. The acceptance limits are 2.5 cm of water level and a first-moment error
+equivalent to moving full-room water by 2 mm. Capacity, full-water center and diagonal
+inertia are preserved by the box construction. Deterministic geometric ordering prevents
+equivalent CSG subdivisions from choosing different merges. Watertight topology, breaches,
+doors and compartment definitions are unchanged; difficult rooms keep the existing model.
+These sampled hydraulic limits are acceptance checks, not universal error guarantees, and
+flooding errors are additional to the earlier 64-box approximation described above.
+
 ## Scharnhorst performance pass (September 2026)
 
 The saved custom Scharnhorst was measured against `a8a392267`, including the earlier exact
