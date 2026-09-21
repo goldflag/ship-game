@@ -1901,6 +1901,41 @@ fn build(
         }
     }
     crate::construction_compact::compact_connections(&mut def.connections);
+    // Gunhouses stay in their mount-local frame, separate from the fixed hull
+    // and barbette surfaces. Both combat and inspection consume these plates;
+    // retaining only weapon.gunhouse_mesh would leave them on the box fallback.
+    // Match the preset compiler's facet identities and forward/port/up conversion.
+    for mount in &def.mounts {
+        let Some(mesh) = &mount.weapon.gunhouse_mesh else {
+            continue;
+        };
+        for face in &mesh.faces {
+            let vertices: Vec<Vec3> = face
+                .indices
+                .iter()
+                .map(|&i| {
+                    let [forward, port, up] = mesh.vertices[i as usize];
+                    [-port, up, -forward]
+                })
+                .collect();
+            let (center, size) = crate::structure::bounds(vertices.iter().copied());
+            def.armor.push(Armor {
+                id: format!("{}-turret-{}", mount.id, face.id),
+                name: format!("{} · {}", mount.name, face.id.replace('-', " ")),
+                center,
+                size: size.map(|n| n.max(0.001)),
+                thickness_mm: face.thickness_mm,
+                plate: Some(ArmorPlate {
+                    vertices,
+                    material: face.material.clone(),
+                    mount_id: Some(mount.id.clone()),
+                    ..Default::default()
+                }),
+                provenance: mesh.provenance.clone(),
+                ..Default::default()
+            });
+        }
+    }
     let void_volume: f64 = def.compartments.iter().map(|r| r.capacity_m3).sum();
     def.local_damage = ShipDefinitionLocalDamage {
         version: 1.,
