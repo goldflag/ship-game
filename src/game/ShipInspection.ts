@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { positionWorld, float } from 'three/tsl';
 import * as THREE from 'three/webgpu';
 import { mountFrame } from './mountFrames';
-import { materialColor, mix, normalFlat, uniform, vec3 } from 'three/tsl';
+import { attribute, materialColor, mix, normalFlat, uniform, vec3 } from 'three/tsl';
 import type { ShipDefinition } from '../ships/blueprint';
 import { entryInMode, inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
 import { equipmentCondition } from './machinery';
@@ -12,6 +12,9 @@ import type { Combatant } from '../game/session/elements';
 import { waterLevel as compartmentWaterLevel } from './floodwater';
 import { regionCondition } from './session/damageReadout';
 import { DAMAGE_COLORS, damageTone, type DamageTone } from './session/shipDamageReadout';
+
+// A neutral inspection light follows the camera, independent of harbor exposure.
+const armorShade = () => normalFlat.dot(vec3(-.55, .8, .7).normalize()).max(0).mul(.68).add(.32);
 
 /** Shared port and combat X-ray geometry. No simulation state is changed by inspection. */
 export class ShipInspection {
@@ -22,6 +25,8 @@ export class ShipInspection {
   hoveredId?: string;
   private hoverColor = new THREE.Color('#ffffff');
   private armorShading = uniform(0);
+  private armorBatches: THREE.Mesh[] = [];
+  private armorColors = new Map<string, { attribute: THREE.BufferAttribute; offset: number; count: number; color: THREE.Color }>();
   private regionOutlines: { id: string; mesh: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial> }[] = [];
   private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicNodeMaterial>; waterline?: { value: number } }[] = [];
   constructor(private definition: ShipDefinition) {
@@ -38,19 +43,18 @@ export class ShipInspection {
       mesh.position.fromArray(r.center); mesh.visible = false; mesh.renderOrder = 99; this.root.add(mesh);
       return { id: r.id, mesh };
     });
-    // A neutral upper-left inspection light follows the camera, independent of
-    // harbor exposure. Face normals keep plate edges crisp, including back faces.
-    const shade = normalFlat.dot(vec3(-.55, .8, .7).normalize()).max(0).mul(.68).add(.32);
-    const armorColor = materialColor.mul(mix(1, shade, this.armorShading));
+    const armorColor = materialColor.mul(mix(1, armorShade(), this.armorShading));
     this.volumes = this.entries.map(entry => {
       const geometry = entry.surface ? surfaceGeometry(entry, definition) : entry.plate ? plateGeometry(entry) : entry.volumes ? volumeGeometry(entry) : entry.cells ? cellGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
       group.position.fromArray(entry.anchor ?? entry.center); group.userData.inspectionId = entry.id;
+      group.updateMatrix(); group.matrixAutoUpdate = false;
       const color = inspectionColor(entry);
       const Material = entry.kind === 'armor' ? THREE.MeshBasicNodeMaterial : THREE.MeshBasicMaterial;
       const material = new Material({ color, transparent: true, depthWrite: false, depthTest: false, side:THREE.DoubleSide, toneMapped: entry.kind !== 'armor' });
       if (material instanceof THREE.MeshBasicNodeMaterial) material.colorNode = armorColor;
       const fill = new THREE.Mesh(geometry, material);
       const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: entry.kind === 'armor', toneMapped: entry.kind !== 'armor' }));
+      fill.matrixAutoUpdate = outline.matrixAutoUpdate = false;
       fill.renderOrder = 100; outline.renderOrder = 102;
       group.add(fill, outline); this.root.add(group);
       let water: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicNodeMaterial> | undefined;
@@ -59,13 +63,56 @@ export class ShipInspection {
         const material = new THREE.MeshBasicNodeMaterial({ color: '#519fc0', transparent: true, depthWrite: false, depthTest: false });
         material.opacityNode = positionWorld.y.lessThanEqual(waterline).select(float(.45), float(0));
         water = new THREE.Mesh(geometry, material);
-        water.renderOrder = 101; water.visible = false; group.add(water);
+        water.renderOrder = 101; water.visible = false; water.matrixAutoUpdate = false; group.add(water);
       }
       return { entry, color, group, fill, outline, water, waterline };
     });
   }
+  /** Opaque plates share one draw per moving mount (and one for the fixed hull).
+   * Original solids remain the pick targets and the isolated-plate view. */
+  private buildArmorBatches(): void {
+    if (this.armorBatches.length) return;
+    const groups = new Map<number | undefined, typeof this.volumes>();
+    for (const volume of this.volumes) {
+      if (volume.entry.kind !== 'armor' || volume.entry.underwaterProtection) continue;
+      const group = groups.get(volume.entry.mountIndex) ?? [];
+      group.push(volume); groups.set(volume.entry.mountIndex, group);
+    }
+    const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, toneMapped: false,
+      polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+    material.colorNode = armorShade().mul(attribute('color', 'vec3'));
+    for (const volumes of groups.values()) {
+      const owner = volumes[0].group;
+      owner.updateMatrix();
+      const inverse = owner.matrix.clone().invert();
+      let offset = 0;
+      const ranges = volumes.map(({ entry, color, group, fill }) => {
+        group.updateMatrix();
+        const geometry = fill.geometry.index ? fill.geometry.toNonIndexed() : fill.geometry.clone();
+        // Boxes also carry UVs; all plates use the same position/normal/color layout.
+        for (const name of Object.keys(geometry.attributes)) if (name !== 'position' && name !== 'normal') geometry.deleteAttribute(name);
+        geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverse, group.matrix));
+        const count = geometry.attributes.position.count, tint = new THREE.Color(color);
+        const colors = new Float32Array(count * 3);
+        for (let i = 0; i < count; i++) tint.toArray(colors, i * 3);
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        const range = { id: entry.id, geometry, offset, count, color: tint }; offset += count;
+        return range;
+      });
+      const geometry = mergeGeometries(ranges.map(range => range.geometry))!;
+      for (const range of ranges) {
+        range.geometry.dispose();
+        this.armorColors.set(range.id, { attribute: geometry.getAttribute('color') as THREE.BufferAttribute,
+          offset: range.offset, count: range.count, color: range.color });
+      }
+      const mesh = new THREE.Mesh(geometry, material); mesh.renderOrder = 100; mesh.name = 'Armor surfaces';
+      mesh.matrixAutoUpdate = false;
+      owner.add(mesh); this.armorBatches.push(mesh);
+    }
+  }
   setMode(mode: InspectionMode | 'all' | 'damage', selectedId?: string): void {
     if (mode !== 'exterior') this.buildVolumes();
+    if (mode === 'armor') this.buildArmorBatches();
     this.mode = mode;
     this.selectedId = this.entries.some(e => e.id === selectedId && this.inMode(e, mode)) ? selectedId : undefined;
     this.root.visible = mode !== 'exterior';
@@ -73,8 +120,10 @@ export class ShipInspection {
     this.setHovered(undefined);
     const opaqueArmor = mode === 'armor';
     this.armorShading.value = opaqueArmor ? 1 : 0;
+    this.armorBatches.forEach(mesh => mesh.visible = opaqueArmor && !this.selectedId);
     this.volumes.forEach(({ entry, fill, outline }) => {
       if (entry.kind !== 'armor') return;
+      fill.visible = !opaqueArmor || !!this.selectedId || !!entry.underwaterProtection;
       outline.visible = false;
       if (fill.material.transparent === opaqueArmor) {
         fill.material.transparent = !opaqueArmor;
@@ -87,6 +136,7 @@ export class ShipInspection {
         fill.material.needsUpdate = true;
       }
     });
+    this.volumes.forEach(volume => this.paint(volume));
   }
   private inMode(entry: InspectionEntry, mode = this.mode): boolean {
     return mode === 'all' || (mode === 'damage' ? entry.kind !== 'armor' : entryInMode(entry, mode));
@@ -109,9 +159,19 @@ export class ShipInspection {
   }
   setHovered(id?: string): void {
     if (id === this.hoveredId) return;
+    this.paintBatchedArmor(this.hoveredId, false);
     const hoverable = this.mode === 'armor' || this.mode === 'internals' || this.mode === 'compartments';
     this.hoveredId = hoverable && (!this.selectedId || this.selectedId === id) && this.entries.some(e => e.id === id && this.inMode(e)) ? id : undefined;
+    this.paintBatchedArmor(this.hoveredId, true);
     this.volumes.forEach(volume => this.paint(volume));
+  }
+  private paintBatchedArmor(id: string | undefined, hovered: boolean): void {
+    const range = id ? this.armorColors.get(id) : undefined;
+    if (!range) return;
+    const { attribute, offset, count } = range, color = range.color.clone();
+    if (hovered) color.lerp(this.hoverColor, .3);
+    for (let i = offset; i < offset + count; i++) attribute.setXYZ(i, color.r, color.g, color.b);
+    attribute.addUpdateRange(offset * 3, count * 3); attribute.needsUpdate = true;
   }
   /** Hover and selection styling shared by immediate hover changes and per-frame updates. */
   private paint({ entry, color, fill, outline }: (typeof this.volumes)[number]): void {
@@ -131,6 +191,7 @@ export class ShipInspection {
   }
   update(actor: Combatant): void {
     if (!this.root.visible) return;
+    const trains = actor.mounts.map(mount => mount.train);
     for (const { id, mesh } of this.regionOutlines) {
       const condition = regionCondition(actor, id);
       mesh.visible = (this.mode === 'all' || this.mode === 'damage') && !this.selectedId && condition < .95;
@@ -145,7 +206,9 @@ export class ShipInspection {
       // Defense coverage is a gameplay envelope, not a plate that should hide armor.
       group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId)
         && (!entry.underwaterProtection || entry.id === this.selectedId);
-      this.paint(volume);
+      if (!group.visible) return;
+      // Opaque armor colors change only on mode, selection or hover changes.
+      if (this.mode !== 'armor') this.paint(volume);
       if (entry.moduleIndex !== undefined) {
         const module = this.definition.modules[entry.moduleIndex];
         group.position.fromArray(equipmentCenter(actor, this.definition, module));
@@ -169,11 +232,12 @@ export class ShipInspection {
         }
       }
       if (entry.mountIndex !== undefined) {
-        const pose = mountFrame(this.definition, entry.mountIndex, actor.mounts.map(m => m.train));
+        const pose = mountFrame(this.definition, entry.mountIndex, trains);
         const mount = this.definition.mounts[entry.mountIndex], anchor = entry.anchor ?? entry.center;
         group.position.set(pose.x + anchor[0] - mount.position[0], pose.y + anchor[1] - mount.position[1], pose.z + anchor[2] - mount.position[2]);
         group.rotation.y = -pose.heading;
       }
+      if (entry.moduleIndex !== undefined || entry.mountIndex !== undefined) group.updateMatrix();
       if (water && entry.compartmentIndex !== undefined) {
         const fraction = actor.damage.compartments[entry.compartmentIndex].waterM3 / entry.capacityM3!;
         // Combat emphasizes consequences; the complete dry layout stays

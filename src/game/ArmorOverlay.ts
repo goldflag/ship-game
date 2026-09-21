@@ -13,15 +13,19 @@ export class ArmorOverlay {
     renderer.getDrawingBufferSize(this.size);
     this.target.setSize(this.size.x, this.size.y);
     const target = renderer.getRenderTarget(), autoClear = renderer.autoClear, alpha = renderer.getClearAlpha();
+    const matrixWorldAutoUpdate = root.matrixWorldAutoUpdate;
     renderer.getClearColor(this.clearColor);
     try {
       renderer.setRenderTarget(this.target);
       renderer.setClearColor(0, 0);
       renderer.autoClear = true;
-      root.updateWorldMatrix(true, true);
+      // ShipView.updateRenderMatrices has completed this pose before the water
+      // and overlay passes. Do not walk thousands of inspection solids again.
+      root.matrixWorldAutoUpdate = false;
       renderer.render(root, camera);
       this.enabled.value = 1;
     } finally {
+      root.matrixWorldAutoUpdate = matrixWorldAutoUpdate;
       renderer.setRenderTarget(target);
       renderer.setClearColor(this.clearColor, alpha);
       renderer.autoClear = autoClear;

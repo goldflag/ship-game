@@ -5,6 +5,7 @@ import { mixedSimulation } from '../../scripts/diagnostics/mixed-fleet';
 import { ShipView } from './ShipView';
 import { batchShipModel } from './ShipBatching';
 import { FleetShipDraws } from './FleetShipDraws';
+import { prepareShipDetail } from './ShipDetail';
 
 test('fleet instances preserve separate poses, inspection, hidden hulls and damage-mark children', async () => {
   const sim = mixedSimulation(), actors = [sim.player, sim.actors[10]], model = await loadShipGeometry('bismarck');
@@ -67,4 +68,57 @@ test('hiding one fixed component restores the remaining original surfaces withou
   expect((proxyRoot.children[0] as THREE.Mesh).geometry).toBe(b.geometry);
   a.visible = true; draws.update(); expect(draws.diagnostics().instances).toBe(1); expect(proxyRoot.children).toHaveLength(0);
   draws.dispose(); expect(model.children).toEqual([a, b]);
+});
+
+test('armor keeps the translucent exterior assembled and distance-reduced with independent ship materials', async () => {
+  const sim = mixedSimulation(), actor = sim.player;
+  const definition = { ...actor.definition, mounts: [], rig: undefined };
+  const template = new THREE.Group(), material = new THREE.MeshStandardMaterial();
+  const geometry = new THREE.SphereGeometry(1, 64, 32);
+  for (let i = 0; i < 8; i++) {
+    const mesh = new THREE.Mesh(geometry, material); mesh.position.x = i * 3; template.add(mesh);
+  }
+  await prepareShipDetail(template);
+  const views = [0, 1].map(() => new ShipView(template.clone(true), definition, actor));
+  const draws = new FleetShipDraws(views), camera = new THREE.PerspectiveCamera(60, 16 / 9, .1, 100000);
+  const update = (distance: number) => {
+    views.forEach(v => { v.update(); v.updateRenderMatrices(); });
+    camera.position.copy(views[0].root.position).add(new THREE.Vector3(0, 0, distance));
+    camera.lookAt(views[0].root.position); camera.updateMatrixWorld(true); draws.update(camera, 1080);
+    draws.root.updateMatrixWorld(true);
+  };
+  const contextMeshes = () => {
+    const meshes: THREE.Mesh[] = [];
+    draws.root.traverseVisible(object => { if (object instanceof THREE.Mesh && !(object instanceof THREE.BatchedMesh)) meshes.push(object); });
+    return meshes;
+  };
+  update(1000);
+  views[0].setInspection('armor'); update(1000);
+  // Eight fixed surfaces must not revert to eight full-detail transparent draws.
+  expect(contextMeshes()).toHaveLength(1);
+  const context = contextMeshes()[0], source = views[0].renderMeshes[0].mesh;
+  expect(context.material).toBe(source.material);
+  expect(context.material).not.toBe(views[1].renderMeshes[0].mesh.material);
+  expect((context.material as THREE.MeshStandardMaterial).opacity).toBe(.16);
+  expect((views[1].renderMeshes[0].mesh.material as THREE.MeshStandardMaterial).opacity).toBe(1);
+  expect(views[0].renderMeshes.every(({ mesh }) => mesh.layers.mask === 0)).toBe(true);
+  expect(context.geometry.index!.count).toBeLessThan(geometry.index!.count * 8);
+  expect(context.matrixWorld.equals(views[0].root.matrixWorld)).toBe(true);
+  update(5);
+  expect(context.geometry.index!.count).toBe(geometry.index!.count * 8);
+  expect(source.geometry).toBe(geometry);
+  // Independently hidden components still use the original, per-surface fallback.
+  source.visible = false; update(1000);
+  expect(contextMeshes()).toHaveLength(7);
+  source.visible = true; update(1000);
+  expect(contextMeshes()).toHaveLength(1);
+  views[0].root.visible = false; draws.update(camera, 1080);
+  expect(contextMeshes()).toHaveLength(0);
+  views[0].root.visible = true; views[0].setInspection('exterior'); update(1000);
+  expect(contextMeshes()).toHaveLength(0);
+  expect(draws.diagnostics().instances).toBe(2);
+  draws.dispose();
+  expect(views[0].model.visible).toBe(true);
+  expect(views[0].renderMeshes.every(({ mesh }) => mesh.layers.mask === 1)).toBe(true);
+  views.forEach(v => v.impactMarks.dispose());
 });

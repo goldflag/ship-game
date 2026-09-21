@@ -5,12 +5,13 @@ import { ShipRenderProxy } from './ShipRenderProxy';
 import { FleetBatch } from './FleetBatch';
 import { ShipRenderAssemblies, type RenderAssembly } from './ShipRenderAssemblies';
 
-type Source = RenderAssembly & { view: ShipView; layers: number; instance?: number; levels?: { id: number; error: number }[]; level: number };
+type Source = RenderAssembly & { view: ShipView; layers: number; instance?: number; levels?: { id: number; error: number }[]; level: number; armorContext?: THREE.Mesh };
 type Batch = { mesh: FleetBatch; sources: Source[] };
 
 /** Group surfaces by material for submission while each ship keeps its CPU pose, joint
- * hierarchy and decal receivers. Inspection switches that hull to its own
- * materials; mask only the source surface so its impact-mark children still draw. */
+ * hierarchy and decal receivers. Armor inspection retains rigid assemblies and
+ * detail levels for its faint exterior, using that ship's translucent materials.
+ * Mask only the source surface so its impact-mark children still draw. */
 export class FleetShipDraws {
   readonly root = new THREE.Group();
   private batches: Batch[] = [];
@@ -70,16 +71,18 @@ export class FleetShipDraws {
       mesh.invalidateDrawList();
       let count = 0;
       for (const source of sources) {
+        if (source.armorContext) source.armorContext.visible = false;
         if (source.view.renderActive === false) { mesh.setVisibleAt(source.instance!, false); continue; }
         const batched = source.view.inspection.mode === 'exterior';
+        const armor = source.view.inspection.mode === 'armor';
         const proxy = this.proxies.get(source.view);
         const sourceVisible = (surface: THREE.Mesh) => {
           if (proxy) return proxy.sourceVisible(surface, this.visibility);
           for (let ancestor: THREE.Object3D | null = surface; ancestor; ancestor = ancestor.parent) if (!ancestor.visible) return false;
           return true;
         };
-        const together = batched && source.members.every(member => sourceVisible(member.mesh));
-        // A hidden component or inspection falls back to original surfaces.
+        const together = (batched || armor) && source.members.every(member => sourceVisible(member.mesh));
+        // A hidden component or another inspection mode falls back to original surfaces.
         for (const member of source.members) {
           member.mesh.layers.mask = together ? 0 : member.layers;
         }
@@ -103,8 +106,16 @@ export class FleetShipDraws {
           }
         }
         if (level !== source.level) { mesh.setGeometryIdAt(source.instance!, source.levels![level].id); source.level = level; }
-        mesh.setVisibleAt(source.instance!, visible);
-        if (visible) { mesh.setMatrixAt(source.instance!, source.mesh.matrixWorld); count++; if (level > 0) this.reducedInstances++; }
+        mesh.setVisibleAt(source.instance!, visible && batched);
+        if (visible && batched) { mesh.setMatrixAt(source.instance!, source.mesh.matrixWorld); count++; if (level > 0) this.reducedInstances++; }
+        if (visible && armor) {
+          // Reuse prepared buffers; the exact inspection plates and pick meshes
+          // remain separate. Do not expand this context back into authoring parts.
+          const context = source.armorContext ??= this.createArmorContext(source);
+          context.geometry = shipDetailLevels(source.mesh.geometry)[level].geometry;
+          context.matrix.copy(source.mesh.matrixWorld); context.matrixWorldNeedsUpdate = true;
+          context.visible = true;
+        }
       }
       mesh.visible = count > 0; this.visibleInstances += count;
     }
@@ -112,6 +123,14 @@ export class FleetShipDraws {
       proxy.root.visible = view.renderActive !== false;
       if (proxy.root.visible) proxy.update(camera, framebufferHeight, this.visibility);
     });
+  }
+  private createArmorContext(source: Source): THREE.Mesh {
+    const context = new THREE.Mesh(source.mesh.geometry, source.members[0].mesh.material);
+    context.name = `${source.mesh.name} armor context`; context.matrixAutoUpdate = false;
+    context.layers.mask = source.layers; context.renderOrder = source.mesh.renderOrder;
+    context.castShadow = source.mesh.castShadow; context.receiveShadow = source.mesh.receiveShadow;
+    this.root.add(context);
+    return context;
   }
   diagnostics() { return { batches: this.batches.length, instances: this.visibleInstances, reduced: this.reducedInstances, subpixel: this.subpixelInstances }; }
   dispose(): void {
