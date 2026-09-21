@@ -7,11 +7,18 @@ import type { CombatEvent, FleetActor } from '../game/session/elements';
 type ScreenPoint = { x: number; y: number };
 
 /** Match the renderer's depth range so ships behind the camera never acquire mirrored labels. */
-export function projectShipLabel(anchor: Vector3, camera: Camera, width: number, height: number): ScreenPoint | null {
+export function projectShipLabel(anchor: Vector3, camera: Camera, width: number, height: number, hull?: Vector3): ScreenPoint | null {
   const point = anchor.clone().project(camera);
   // Three.js uses 0..1 for WebGPU and for reversed depth on either backend.
   const minDepth = camera.reversedDepth || camera.coordinateSystem === WebGPUCoordinateSystem ? 0 : -1;
-  if (![point.x, point.y, point.z].every(Number.isFinite) || point.z < minDepth || point.z > 1 || Math.abs(point.x) > 1 || Math.abs(point.y) > 1) return null;
+  if (![point.x, point.y, point.z].every(Number.isFinite) || point.z < minDepth || point.z > 1 || Math.abs(point.x) > 1) return null;
+  // Bound the world-space mast offset in logical HUD pixels when the hull is visible.
+  // Generic map projections keep strict clipping and never become edge markers.
+  const hullPoint = hull && projectShipLabel(hull, camera, width, height);
+  if (hullPoint) {
+    return { x: (point.x + 1) * width / 2, y: Math.max(60, hullPoint.y - 96, (1 - point.y) * height / 2) };
+  }
+  if (Math.abs(point.y) > 1) return null;
   return { x: (point.x + 1) * width / 2, y: (1 - point.y) * height / 2 };
 }
 
@@ -39,7 +46,7 @@ export class ShipLabels {
   private sequence = 0;
   private time = 0;
 
-  constructor(host: HTMLElement, private observedAnchor: (id: string) => Vector3 | undefined = () => undefined) {
+  constructor(host: HTMLElement, private observedAnchor: (id: string) => Vector3 | undefined = () => undefined, private observedPosition: (id: string) => Vector3 | undefined = () => undefined) {
     this.root.className = HUD_LAYERS.shipLabels.className;
     this.root.setAttribute('role', 'group');
     this.root.setAttribute('aria-label', 'Ship names and hull condition');
@@ -181,13 +188,13 @@ export class ShipLabels {
       }
       view.root.updateWorldMatrix(true, false);
       const anchor = label.anchor.clone().applyMatrix4(view.root.matrixWorld);
-      const point = view.root.visible && view.motion.y > -40 ? projectShipLabel(anchor, camera, this.width, this.height) : null;
+      const point = view.root.visible && view.motion.y > -40 ? projectShipLabel(anchor, camera, this.width, this.height, view.root.getWorldPosition(new Vector3())) : null;
       root.hidden = !point;
       if (point) { this.shown.set(actor.motion.id, point); root.style.transform = `translate(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px)`; } else this.shown.delete(actor.motion.id);
     }
     for (const [id, label] of this.observed) {
       const anchor = this.observedAnchor(id);
-      const point = anchor && anchor.y > -40 ? projectShipLabel(anchor, camera, this.width, this.height) : null;
+      const point = anchor && anchor.y > -40 ? projectShipLabel(anchor, camera, this.width, this.height, this.observedPosition(id)) : null;
       label.root.hidden = !point;
       if (point) { this.shown.set(id, point); label.root.style.transform = `translate(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px)`; } else this.shown.delete(id);
     }
