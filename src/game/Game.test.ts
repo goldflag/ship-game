@@ -101,7 +101,7 @@ test('scoping over empty water follows a closer aim while retaining the fixed vi
     }));
     window.dispatchEvent(new Event('pointerup')); settle();
     expect(camera.position.y).toBeLessThan(height - 100);
-    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(5 * Math.PI / 180, 6);
+    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(2 * Math.PI / 180, 6);
     const projected = aim.project(camera);
     expect(projected.x).toBeCloseTo(0, 6); expect(projected.y).toBeCloseTo(0, 6);
     expect(rig.binoculars).toBe(true); expect(rig.rangeAim).toBeUndefined();
@@ -122,7 +122,7 @@ test('switching guns and AP/HE leaves the scoped camera and aim unchanged', asyn
     game.toggleBinoculars();
     for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60);
     const position = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
-    expect(-Math.asin(direction.y)).toBeCloseTo(5 * Math.PI / 180, 6);
+    expect(-Math.asin(direction.y)).toBeCloseTo(2 * Math.PI / 180, 6);
     const groups = game.weaponGroups.filter(group => group.battery === 'main' || group.battery === 'secondary');
     expect(groups.length).toBeGreaterThan(1);
     for (const group of groups) {
