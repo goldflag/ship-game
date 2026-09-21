@@ -122,3 +122,59 @@ reference path for accuracy tests.
 These are simulation choices shared by the native server and WASM worker, independent of
 rendering quality. Compare equal requested simulation durations and report battle outcomes
 alongside timings; faster destruction of a ship is not proof of a cheaper combat tick.
+
+## Scharnhorst performance pass (September 2026)
+
+The saved custom Scharnhorst was measured against `4bcd0e66`, after the earlier exact
+geometry compaction. On an Apple M5 Pro, the shared simulation ran the same seed (17001),
+5 km deployment and requested duration on both builds. Compilation, loading, snapshots
+and rendering are excluded from these step timings. Native cases alternate baseline and
+candidate order; the browser worker alternates six-tick batches within one process.
+
+| Workload | Baseline ms/tick | Updated ms/tick | Speedup |
+| --- | ---: | ---: | ---: |
+| Chrome worker, Scharnhorst vs Bismarck, 230 s | 1.504 | 0.148 | 10.15× |
+| Same browser run, opening 160 s of combat | 1.852 | 0.162 | 11.44× |
+| Native, Scharnhorst vs Bismarck, 230 s | 0.257 | 0.043 | 5.99× |
+| Native, Scharnhorst vs three Bismarcks, 140 s | 0.528 | 0.093 | 5.69× |
+| Native, four Scharnhorsts vs four Bismarcks, 180 s | 1.696 | 0.350 | 4.84× |
+| Native, surface PvE, 600 s | 0.536 | 0.234 | 2.30× |
+| Native, carrier PvE, 600 s | 0.963 | 0.606 | 1.59× |
+| Native, 30-ship custom battle, 180 s | 1.126 | 0.489 | 2.30× |
+| Native, 30-ship server battle, 180 s | 1.107 | 0.498 | 2.23× |
+
+Chrome 153 uses `wasm-dev` (optimization level 1) for both modules; native uses release
+with symbols (optimization level 3). The browser result demonstrates a roughly tenfold
+development-worker improvement for this custom ship, not a production-WASM, FPS or
+fleet-wide tenfold guarantee. A separate Bun/JSC comparison measured 9.86× for the full
+230 s and 10.93× for the first 160 s. Host scheduling and engine optimization affect timings.
+
+The 230 s case deliberately continues after combat ends. Bismarck sinks around 160 s in
+the baseline and 193 s with the new controls; Scharnhorst survives with 8,117 and 4,257 HP
+respectively. Both ships are still fighting during the opening 160 s comparison. Changed
+shot timing, AA acquisition and hydraulic approximations mean this is a behavior-changing
+pass, not an equality claim. Equal-duration aftermath remains part of the full-run result.
+
+Accuracy checks separate the exact changes from these approximations:
+
+- Fixed armor contacts match the original query on 2,000 saved-Scharnhorst rays (3,625 hits),
+  with additional moving-plate and grazing-contact tests. Exact tetrahedral hull integration
+  differs from clipping by at most `4.3e-14` m in buoyancy center over 72 sampled attitudes.
+- Across 864 room/fill/attitude samples, the bounded water model's largest error in ship
+  center of gravity induced by one room is 2.38 cm. Room water-level error reaches 1.15 m
+  in a normal-heel outlier and 4.33 m across the full attitude matrix near fill endpoints.
+  These local level errors can affect flooding pressure; full-room moments alone do not
+  guarantee accurate partial flooding.
+- The 100 ms transfer test conserves closed-system water to `1e-9` m³ and stays within
+  0.1% of room capacity at aligned update boundaries. Sixty-second, three-breach tests on
+  Valiant and Resolute stay within 1 m³ of total water and 2 cm of draft versus per-tick
+  transfers. These are tested cases, not universal error bounds.
+- Gun-control tests cover short trigger presses, reload/recoil clocks, immediate damage,
+  bounded aiming delay and per-tick projectile motion. Swept-clearance differential tests
+  retain intermediate poses, moving neighbors and carried mounts.
+
+The standard browser harness also ran the actual Scharnhorst battle, observed 1,079 ticks
+over 18 seconds, checked authoritative and rendered gun articulation, and reported no
+browser errors. Valiant and Resolute were regenerated through `ship:build`: loading values
+changed only by floating-point rounding (under `3e-13` m), while exported geometry payloads
+and all fixed-view images remained byte-identical. Their reloaded exports passed articulation.
