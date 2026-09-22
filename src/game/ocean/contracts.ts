@@ -68,6 +68,7 @@ export interface WaveSurfaceSample {
  * periodic tiles. Surfaces sample it at the undisplaced (grid) world position. */
 export interface WaveField {
   readonly params: WaveParameters;
+  readonly foamParams: WaveFoamParameters;
   readonly cascades: readonly WaveCascadeInfo[];
   /** Upper bound (m) on the wave height for the current spectrum, excluding the wake. */
   readonly maxHeight: number;
@@ -87,9 +88,19 @@ export interface WaveField {
   dispose(): void;
 }
 
+/** How crest foam builds and fades in the wave field. Live; the facade's `foam.crest` object is passed in. */
+export interface WaveFoamParameters {
+  /** Foam injected where crests fold (Jacobian below threshold). */
+  crestStrength: number;
+  /** Foam injected on steep downwind faces. */
+  windwardStrength: number;
+  /** e-folding lifetime of crest foam in seconds. */
+  decayTime: number;
+}
+
 /** `waves/index.ts` exports `createWaveField` and `createWaveHeightSampler` with these shapes. The field
- * reads `params` live: the facade owns that object and the game writes to it. */
-export type CreateWaveField = (renderer: WebGPURenderer, cascades: readonly WaveCascadeInfo[], params: WaveParameters) => WaveField;
+ * reads `params` and `foam` live: the facade owns those objects and the game writes to them. */
+export type CreateWaveField = (renderer: WebGPURenderer, cascades: readonly WaveCascadeInfo[], params: WaveParameters, foam: WaveFoamParameters) => WaveField;
 export type CreateWaveHeightSampler = (renderer: WebGPURenderer, field: WaveField) => WaveHeightSampler;
 /** `wake/index.ts` exports `createWakeField` with this shape. */
 export type CreateWakeField = (renderer: WebGPURenderer, resolution: number) => WakeFieldApi;
@@ -190,18 +201,12 @@ export interface OceanSun {
   readonly color: Color;
 }
 
-export interface CrestFoamParameters {
+export interface CrestFoamParameters extends WaveFoamParameters {
   /** Emitted radiance of foam; the game pre-scales it for night. */
   readonly color: Color;
   opacity: number;
   /** 0 round patches … 1 streaks drawn out along the wind. */
   windStretch: number;
-  /** Foam injected where crests fold (Jacobian below threshold). */
-  crestStrength: number;
-  /** Foam injected on steep downwind faces. */
-  windwardStrength: number;
-  /** e-folding lifetime of crest foam in seconds. */
-  decayTime: number;
 }
 export interface SurfaceFoamParameters { readonly color: Color; opacity: number; /** Share of the sea covered, 0–1. */ coverage: number }
 export interface ShorelineFoamParameters { readonly color: Color; opacity: number }
