@@ -67,6 +67,10 @@ test('slice measures the plan, the deck levels, the silhouette, the half-breadth
   // 20 m across by 100 m long at the waterline, minus nothing: the sweep is prismatic.
   expect(plan[0].area).toBeCloseTo(2000, 0);
   expect(plan[0].bounds).toEqual({ min: [-10, -50], max: [10, 50] });
+  // Simplifying a closed ring keeps its corners instead of collapsing onto the start point.
+  const simplified = planPolygons(view, 2, { simplify: 0.2 });
+  expect(simplified[0].ring.length).toBeGreaterThanOrEqual(4);
+  expect(simplified[0].bounds).toEqual({ min: [-10, -50], max: [10, 50] });
   const hullOnly = meshView(mesh, ['hull']);
   const levels = levelHistogram(hullOnly);
   const deck = levels.find((row) => Math.abs(row.y - 5) < 0.2);

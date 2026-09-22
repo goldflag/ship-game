@@ -321,9 +321,9 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
         !surface.panelId.length ||
         surface.panelId.length > 512 ||
         !data.primitives ||
-        !(data.primitives as ConstructionPrimitive[]).some((p) => p.id === surface.primitiveId && p.kind === 'custom-hull'))
+        !(data.primitives as ConstructionPrimitive[]).some((p) => p.id === surface.primitiveId && (p.kind === 'custom-hull' || p.solid !== undefined)))
     )
-      throw new Error('Panel assignments require a custom hull and a bounded panel ID');
+      throw new Error('Panel assignments require a custom hull or a compound solid and a bounded panel ID');
     if (surface.open !== undefined && typeof surface.open !== 'boolean') throw new Error('Opening must be true or false');
   }
   for (const part of rows(data.equipment, 'Equipment')) {

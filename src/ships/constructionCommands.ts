@@ -3,7 +3,7 @@ import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import { editableCustomHull, customHullPrimitive, setSectionCount } from './customHullModel';
 import { patchPrimitive, patchEquipment, patchFitting, type PrimitivePatch, type EquipmentPatch, type FittingPatch } from './constructionPatches';
 import { customFittingInstances } from './constructionCustomFittings';
-import { copyConstructionSelection, mirroredFace } from './constructionEditor';
+import { copyConstructionSelection, mirroredFace, solidPanels } from './constructionEditor';
 import { setBarbetteHeight } from './constructionArmament';
 import { ConstructionCommandError, suggestion, validateBatchShape, validateCommandShape } from './constructionCommandSchema';
 import type {
@@ -132,7 +132,8 @@ function applyCommand(draft: ConstructionSource, command: ConstructionCommand, f
     return keys;
   };
   const requirePanel = (part: ConstructionPrimitive, face: string, panelId: string, path: string) => {
-    const panels = customHullPanels(part).filter((panel) => panel.face === face);
+    // Custom-hull strips and compound-solid surface groups are both addressed through `panelId`.
+    const panels = [...customHullPanels(part), ...solidPanels(part)].filter((panel) => panel.face === face);
     if (!panels.some((panel) => panel.panelId === panelId))
       fail(`unknown ${face} panel ${JSON.stringify(panelId)} on ${JSON.stringify(part.id)}${suggestion(panelId, panels.map((panel) => panel.panelId!))}`, path, panelId);
   };

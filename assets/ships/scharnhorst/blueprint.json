@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "scharnhorst",
   "name": "Scharnhorst",
-  "revision": "revision-78f1a474-cf9f-4ff5-9a72-215f1150cdda",
+  "revision": "revision-42572e09-1fc2-4305-9189-7ff32a52e800",
   "coordinates": "meters-y-up-bow-negative-z",
   "construction": {
     "version": 2,
-    "catalogRevision": "b9aa9fe4c3a0a5b4cd30f8584185c6639c0e26c861069268c2214bc31945049e",
+    "catalogRevision": "2655fec16973f5bd1978d2f33422e18fe9d41986d5ada92ecfb5d76f4160597e",
     "defaultThicknessMm": 16,
     "primitives": [
       {
@@ -1964,76 +1964,582 @@
         "rotationDeg": 0
       },
       {
-        "id": "tw-roofhouse-f",
-        "kind": "box",
-        "size": [
-          5.7,
-          2.25,
-          5
-        ],
-        "position": [
-          0,
-          13.325,
-          -30.5
-        ],
-        "rotationDeg": 0
-      },
-      {
         "id": "tw-roofhouse-a",
         "kind": "vertex",
         "size": [
-          6.1,
+          6.28,
           2.65,
-          6.6
+          11.61
         ],
         "position": [
           0,
           13.525,
-          -24.7
+          -27.165
         ],
         "rotationDeg": 0,
-        "vertices": [
-          [
-            -0.5,
-            -0.5,
-            -0.5
+        "solid": {
+          "version": 1,
+          "label": "Conning tower and forward bridge house",
+          "vertices": [
+            [
+              -0.283439,
+              -0.5,
+              -0.5
+            ],
+            [
+              0.283439,
+              -0.5,
+              -0.5
+            ],
+            [
+              0.453822,
+              -0.5,
+              -0.342377
+            ],
+            [
+              0.453822,
+              -0.5,
+              -0.277778
+            ],
+            [
+              0.324841,
+              -0.5,
+              -0.210594
+            ],
+            [
+              -0.324841,
+              -0.5,
+              -0.210594
+            ],
+            [
+              -0.453822,
+              -0.5,
+              -0.277778
+            ],
+            [
+              -0.453822,
+              -0.5,
+              -0.342377
+            ],
+            [
+              -0.283439,
+              0.349057,
+              -0.5
+            ],
+            [
+              0.283439,
+              0.349057,
+              -0.5
+            ],
+            [
+              0.453822,
+              0.349057,
+              -0.342377
+            ],
+            [
+              0.453822,
+              0.349057,
+              -0.277778
+            ],
+            [
+              0.324841,
+              0.349057,
+              -0.210594
+            ],
+            [
+              -0.324841,
+              0.349057,
+              -0.210594
+            ],
+            [
+              -0.453822,
+              0.349057,
+              -0.277778
+            ],
+            [
+              -0.453822,
+              0.349057,
+              -0.342377
+            ],
+            [
+              0.415605,
+              -0.5,
+              -0.131352
+            ],
+            [
+              0.474522,
+              -0.5,
+              -0.036606
+            ],
+            [
+              0.5,
+              -0.5,
+              0.065891
+            ],
+            [
+              0.471338,
+              -0.5,
+              0.220069
+            ],
+            [
+              0.401274,
+              -0.5,
+              0.312231
+            ],
+            [
+              0.294586,
+              -0.5,
+              0.398363
+            ],
+            [
+              0.149682,
+              -0.5,
+              0.478467
+            ],
+            [
+              0.073248,
+              -0.5,
+              0.5
+            ],
+            [
+              -0.073248,
+              -0.5,
+              0.5
+            ],
+            [
+              -0.149682,
+              -0.5,
+              0.478467
+            ],
+            [
+              -0.294586,
+              -0.5,
+              0.398363
+            ],
+            [
+              -0.401274,
+              -0.5,
+              0.312231
+            ],
+            [
+              -0.471338,
+              -0.5,
+              0.220069
+            ],
+            [
+              -0.5,
+              -0.5,
+              0.065891
+            ],
+            [
+              -0.474522,
+              -0.5,
+              -0.036606
+            ],
+            [
+              -0.415605,
+              -0.5,
+              -0.131352
+            ],
+            [
+              0.324841,
+              0.5,
+              -0.210594
+            ],
+            [
+              0.415605,
+              0.5,
+              -0.131352
+            ],
+            [
+              0.474522,
+              0.5,
+              -0.036606
+            ],
+            [
+              0.5,
+              0.5,
+              0.065891
+            ],
+            [
+              0.471338,
+              0.5,
+              0.220069
+            ],
+            [
+              0.401274,
+              0.5,
+              0.312231
+            ],
+            [
+              0.294586,
+              0.5,
+              0.398363
+            ],
+            [
+              0.149682,
+              0.5,
+              0.478467
+            ],
+            [
+              0.073248,
+              0.5,
+              0.5
+            ],
+            [
+              -0.073248,
+              0.5,
+              0.5
+            ],
+            [
+              -0.149682,
+              0.5,
+              0.478467
+            ],
+            [
+              -0.294586,
+              0.5,
+              0.398363
+            ],
+            [
+              -0.401274,
+              0.5,
+              0.312231
+            ],
+            [
+              -0.471338,
+              0.5,
+              0.220069
+            ],
+            [
+              -0.5,
+              0.5,
+              0.065891
+            ],
+            [
+              -0.474522,
+              0.5,
+              -0.036606
+            ],
+            [
+              -0.415605,
+              0.5,
+              -0.131352
+            ],
+            [
+              -0.324841,
+              0.5,
+              -0.210594
+            ]
           ],
-          [
-            0.5,
-            -0.5,
-            -0.5
-          ],
-          [
-            0.5,
-            0.5,
-            -0.5
-          ],
-          [
-            -0.5,
-            0.5,
-            -0.5
-          ],
-          [
-            -0.163934,
-            -0.5,
-            0.5
-          ],
-          [
-            0.163934,
-            -0.5,
-            0.5
-          ],
-          [
-            0.163934,
-            0.5,
-            0.5
-          ],
-          [
-            -0.163934,
-            0.5,
-            0.5
+          "parts": [
+            {
+              "id": "p0",
+              "faces": [
+                {
+                  "corners": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ]
+                },
+                {
+                  "corners": [
+                    15,
+                    14,
+                    13,
+                    12,
+                    11,
+                    10,
+                    9,
+                    8
+                  ]
+                },
+                {
+                  "corners": [
+                    8,
+                    9,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "corners": [
+                    9,
+                    10,
+                    2,
+                    1
+                  ]
+                },
+                {
+                  "corners": [
+                    10,
+                    11,
+                    3,
+                    2
+                  ]
+                },
+                {
+                  "corners": [
+                    11,
+                    12,
+                    4,
+                    3
+                  ]
+                },
+                {
+                  "corners": [
+                    12,
+                    13,
+                    5,
+                    4
+                  ]
+                },
+                {
+                  "corners": [
+                    13,
+                    14,
+                    6,
+                    5
+                  ]
+                },
+                {
+                  "corners": [
+                    14,
+                    15,
+                    7,
+                    6
+                  ]
+                },
+                {
+                  "corners": [
+                    15,
+                    8,
+                    0,
+                    7
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "p1",
+              "faces": [
+                {
+                  "corners": [
+                    4,
+                    16,
+                    17,
+                    18,
+                    19,
+                    20,
+                    21,
+                    22,
+                    23,
+                    24,
+                    25,
+                    26,
+                    27,
+                    28,
+                    29,
+                    30,
+                    31,
+                    5
+                  ]
+                },
+                {
+                  "corners": [
+                    49,
+                    48,
+                    47,
+                    46,
+                    45,
+                    44,
+                    43,
+                    42,
+                    41,
+                    40,
+                    39,
+                    38,
+                    37,
+                    36,
+                    35,
+                    34,
+                    33,
+                    32
+                  ],
+                  "group": "conning-tower-roof"
+                },
+                {
+                  "corners": [
+                    32,
+                    33,
+                    16,
+                    4
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    33,
+                    34,
+                    17,
+                    16
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    34,
+                    35,
+                    18,
+                    17
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    35,
+                    36,
+                    19,
+                    18
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    36,
+                    37,
+                    20,
+                    19
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    37,
+                    38,
+                    21,
+                    20
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    38,
+                    39,
+                    22,
+                    21
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    39,
+                    40,
+                    23,
+                    22
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    40,
+                    41,
+                    24,
+                    23
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    41,
+                    42,
+                    25,
+                    24
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    42,
+                    43,
+                    26,
+                    25
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    43,
+                    44,
+                    27,
+                    26
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    44,
+                    45,
+                    28,
+                    27
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    45,
+                    46,
+                    29,
+                    28
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    46,
+                    47,
+                    30,
+                    29
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    47,
+                    48,
+                    31,
+                    30
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    48,
+                    49,
+                    5,
+                    31
+                  ],
+                  "group": "conning-tower"
+                },
+                {
+                  "corners": [
+                    49,
+                    32,
+                    4,
+                    5
+                  ],
+                  "group": "conning-tower"
+                }
+              ]
+            }
           ]
-        ]
+        }
       },
       {
         "id": "tw-roof-rail",
@@ -2385,18 +2891,319 @@
       },
       {
         "id": "tw-shaft-lo",
-        "kind": "box",
+        "kind": "vertex",
         "size": [
-          4.7,
-          5.1,
-          6.45
+          3.9,
+          10.6,
+          6.32
         ],
         "position": [
           0,
-          16.35,
-          -12.175
+          19.1,
+          -12.08
         ],
-        "rotationDeg": 0
+        "rotationDeg": 0,
+        "solid": {
+          "version": 1,
+          "label": "Upper tower",
+          "vertices": [
+            [
+              0.5,
+              -0.5,
+              0.191456
+            ],
+            [
+              0.433013,
+              -0.5,
+              0.345728
+            ],
+            [
+              0.25,
+              -0.5,
+              0.458663
+            ],
+            [
+              0,
+              -0.5,
+              0.5
+            ],
+            [
+              -0.25,
+              -0.5,
+              0.458663
+            ],
+            [
+              -0.433013,
+              -0.5,
+              0.345728
+            ],
+            [
+              -0.5,
+              -0.5,
+              0.191456
+            ],
+            [
+              -0.5,
+              -0.5,
+              -0.191456
+            ],
+            [
+              -0.433013,
+              -0.5,
+              -0.345728
+            ],
+            [
+              -0.25,
+              -0.5,
+              -0.458663
+            ],
+            [
+              0,
+              -0.5,
+              -0.5
+            ],
+            [
+              0.25,
+              -0.5,
+              -0.458663
+            ],
+            [
+              0.433013,
+              -0.5,
+              -0.345728
+            ],
+            [
+              0.5,
+              -0.5,
+              -0.191456
+            ],
+            [
+              0.5,
+              0.5,
+              0.191456
+            ],
+            [
+              0.433013,
+              0.5,
+              0.345728
+            ],
+            [
+              0.25,
+              0.5,
+              0.458663
+            ],
+            [
+              0,
+              0.5,
+              0.5
+            ],
+            [
+              -0.25,
+              0.5,
+              0.458663
+            ],
+            [
+              -0.433013,
+              0.5,
+              0.345728
+            ],
+            [
+              -0.5,
+              0.5,
+              0.191456
+            ],
+            [
+              -0.5,
+              0.5,
+              -0.191456
+            ],
+            [
+              -0.433013,
+              0.5,
+              -0.345728
+            ],
+            [
+              -0.25,
+              0.5,
+              -0.458663
+            ],
+            [
+              0,
+              0.5,
+              -0.5
+            ],
+            [
+              0.25,
+              0.5,
+              -0.458663
+            ],
+            [
+              0.433013,
+              0.5,
+              -0.345728
+            ],
+            [
+              0.5,
+              0.5,
+              -0.191456
+            ]
+          ],
+          "parts": [
+            {
+              "id": "p0",
+              "faces": [
+                {
+                  "corners": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10,
+                    11,
+                    12,
+                    13
+                  ]
+                },
+                {
+                  "corners": [
+                    27,
+                    26,
+                    25,
+                    24,
+                    23,
+                    22,
+                    21,
+                    20,
+                    19,
+                    18,
+                    17,
+                    16,
+                    15,
+                    14
+                  ]
+                },
+                {
+                  "corners": [
+                    14,
+                    15,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "corners": [
+                    15,
+                    16,
+                    2,
+                    1
+                  ]
+                },
+                {
+                  "corners": [
+                    16,
+                    17,
+                    3,
+                    2
+                  ]
+                },
+                {
+                  "corners": [
+                    17,
+                    18,
+                    4,
+                    3
+                  ]
+                },
+                {
+                  "corners": [
+                    18,
+                    19,
+                    5,
+                    4
+                  ]
+                },
+                {
+                  "corners": [
+                    19,
+                    20,
+                    6,
+                    5
+                  ]
+                },
+                {
+                  "corners": [
+                    20,
+                    21,
+                    7,
+                    6
+                  ]
+                },
+                {
+                  "corners": [
+                    21,
+                    22,
+                    8,
+                    7
+                  ]
+                },
+                {
+                  "corners": [
+                    22,
+                    23,
+                    9,
+                    8
+                  ]
+                },
+                {
+                  "corners": [
+                    23,
+                    24,
+                    10,
+                    9
+                  ]
+                },
+                {
+                  "corners": [
+                    24,
+                    25,
+                    11,
+                    10
+                  ]
+                },
+                {
+                  "corners": [
+                    25,
+                    26,
+                    12,
+                    11
+                  ]
+                },
+                {
+                  "corners": [
+                    26,
+                    27,
+                    13,
+                    12
+                  ]
+                },
+                {
+                  "corners": [
+                    27,
+                    14,
+                    0,
+                    13
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       },
       {
         "id": "tw-plat17",
@@ -2540,18 +3347,259 @@
       },
       {
         "id": "tw-bridge",
-        "kind": "box",
+        "kind": "vertex",
         "size": [
-          6.76,
+          6.78,
           1.8,
-          7.85
+          7.81
         ],
         "position": [
           0,
           19.7,
-          -12.875
+          -12.855
         ],
-        "rotationDeg": 0
+        "rotationDeg": 0,
+        "solid": {
+          "version": 1,
+          "label": "Navigating bridge",
+          "vertices": [
+            [
+              -0.498525,
+              -0.5,
+              0.5
+            ],
+            [
+              -0.5,
+              -0.5,
+              -0.053137
+            ],
+            [
+              -0.471976,
+              -0.5,
+              -0.428297
+            ],
+            [
+              -0.339233,
+              -0.5,
+              -0.473111
+            ],
+            [
+              -0.176991,
+              -0.5,
+              -0.494878
+            ],
+            [
+              0,
+              -0.5,
+              -0.5
+            ],
+            [
+              0.176991,
+              -0.5,
+              -0.494878
+            ],
+            [
+              0.339233,
+              -0.5,
+              -0.473111
+            ],
+            [
+              0.471976,
+              -0.5,
+              -0.428297
+            ],
+            [
+              0.5,
+              -0.5,
+              -0.053137
+            ],
+            [
+              0.498525,
+              -0.5,
+              0.5
+            ],
+            [
+              -0.498525,
+              0.5,
+              0.5
+            ],
+            [
+              -0.5,
+              0.5,
+              -0.053137
+            ],
+            [
+              -0.471976,
+              0.5,
+              -0.428297
+            ],
+            [
+              -0.339233,
+              0.5,
+              -0.473111
+            ],
+            [
+              -0.176991,
+              0.5,
+              -0.494878
+            ],
+            [
+              0,
+              0.5,
+              -0.5
+            ],
+            [
+              0.176991,
+              0.5,
+              -0.494878
+            ],
+            [
+              0.339233,
+              0.5,
+              -0.473111
+            ],
+            [
+              0.471976,
+              0.5,
+              -0.428297
+            ],
+            [
+              0.5,
+              0.5,
+              -0.053137
+            ],
+            [
+              0.498525,
+              0.5,
+              0.5
+            ]
+          ],
+          "parts": [
+            {
+              "id": "p0",
+              "faces": [
+                {
+                  "corners": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10
+                  ]
+                },
+                {
+                  "corners": [
+                    21,
+                    20,
+                    19,
+                    18,
+                    17,
+                    16,
+                    15,
+                    14,
+                    13,
+                    12,
+                    11
+                  ]
+                },
+                {
+                  "corners": [
+                    11,
+                    12,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "corners": [
+                    12,
+                    13,
+                    2,
+                    1
+                  ]
+                },
+                {
+                  "corners": [
+                    13,
+                    14,
+                    3,
+                    2
+                  ]
+                },
+                {
+                  "corners": [
+                    14,
+                    15,
+                    4,
+                    3
+                  ]
+                },
+                {
+                  "corners": [
+                    15,
+                    16,
+                    5,
+                    4
+                  ]
+                },
+                {
+                  "corners": [
+                    16,
+                    17,
+                    6,
+                    5
+                  ]
+                },
+                {
+                  "corners": [
+                    17,
+                    18,
+                    7,
+                    6
+                  ]
+                },
+                {
+                  "corners": [
+                    18,
+                    19,
+                    8,
+                    7
+                  ]
+                },
+                {
+                  "corners": [
+                    19,
+                    20,
+                    9,
+                    8
+                  ]
+                },
+                {
+                  "corners": [
+                    20,
+                    21,
+                    10,
+                    9
+                  ]
+                },
+                {
+                  "corners": [
+                    21,
+                    11,
+                    0,
+                    10
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       },
       {
         "id": "tw-bridge-wing",
@@ -2565,21 +3613,6 @@
           0,
           19.7,
           -10.8
-        ],
-        "rotationDeg": 0
-      },
-      {
-        "id": "tw-shaft-up",
-        "kind": "box",
-        "size": [
-          4.4,
-          3.85,
-          6.35
-        ],
-        "position": [
-          0,
-          22.475,
-          -12.125
         ],
         "rotationDeg": 0
       },
@@ -4318,6 +5351,253 @@
         "position": [
           0,
           6.75,
+          39
+        ],
+        "rotationDeg": 0
+      },
+      {
+        "id": "boat-deck",
+        "kind": "balcony",
+        "size": [
+          18.6,
+          0.2,
+          15.75
+        ],
+        "position": [
+          0,
+          9.2,
+          0.325
+        ],
+        "rotationDeg": 0,
+        "balcony": {
+          "version": 1,
+          "heightM": 1,
+          "wallThicknessM": 0.08,
+          "points": [
+            {
+              "id": "boat-deck-p0",
+              "x": -0.319892,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-deck-p1",
+              "x": 0.319892,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-deck-p2",
+              "x": 0.319892,
+              "z": -0.293651,
+              "edge": "open"
+            },
+            {
+              "id": "boat-deck-p3",
+              "x": 0.5,
+              "z": -0.293651,
+              "edge": "railing"
+            },
+            {
+              "id": "boat-deck-p4",
+              "x": 0.5,
+              "z": 0.5,
+              "edge": "railing"
+            },
+            {
+              "id": "boat-deck-p5",
+              "x": 0.155914,
+              "z": 0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-deck-p6",
+              "x": 0.155914,
+              "z": -0.274603,
+              "edge": "open"
+            },
+            {
+              "id": "boat-deck-p7",
+              "x": -0.155914,
+              "z": -0.274603,
+              "edge": "open"
+            },
+            {
+              "id": "boat-deck-p8",
+              "x": -0.155914,
+              "z": 0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-deck-p9",
+              "x": -0.5,
+              "z": 0.5,
+              "edge": "railing"
+            },
+            {
+              "id": "boat-deck-p10",
+              "x": -0.5,
+              "z": -0.293651,
+              "edge": "railing"
+            },
+            {
+              "id": "boat-deck-p11",
+              "x": -0.319892,
+              "z": -0.293651,
+              "edge": "open"
+            }
+          ]
+        }
+      },
+      {
+        "id": "boat-skid-stbd",
+        "kind": "balcony",
+        "size": [
+          3.13,
+          0.2,
+          9.4
+        ],
+        "position": [
+          4.635,
+          8.9,
+          22.9
+        ],
+        "rotationDeg": 0,
+        "balcony": {
+          "version": 1,
+          "heightM": 1,
+          "wallThicknessM": 0.08,
+          "points": [
+            {
+              "id": "boat-skid-stbd-p0",
+              "x": -0.5,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-skid-stbd-p1",
+              "x": 0.5,
+              "z": -0.5,
+              "edge": "railing"
+            },
+            {
+              "id": "boat-skid-stbd-p2",
+              "x": 0.5,
+              "z": 0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-skid-stbd-p3",
+              "x": -0.5,
+              "z": 0.5,
+              "edge": "open"
+            }
+          ]
+        }
+      },
+      {
+        "id": "boat-skid-port",
+        "kind": "balcony",
+        "size": [
+          3.13,
+          0.2,
+          9.4
+        ],
+        "position": [
+          -4.635,
+          8.9,
+          22.9
+        ],
+        "rotationDeg": 0,
+        "balcony": {
+          "version": 1,
+          "heightM": 1,
+          "wallThicknessM": 0.08,
+          "points": [
+            {
+              "id": "boat-skid-port-p0",
+              "x": -0.5,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-skid-port-p1",
+              "x": 0.5,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-skid-port-p2",
+              "x": 0.5,
+              "z": 0.5,
+              "edge": "open"
+            },
+            {
+              "id": "boat-skid-port-p3",
+              "x": -0.5,
+              "z": 0.5,
+              "edge": "railing"
+            }
+          ]
+        }
+      },
+      {
+        "id": "mast-sl-plat",
+        "kind": "balcony",
+        "size": [
+          7.8,
+          0.1,
+          4.2
+        ],
+        "position": [
+          0,
+          17.45,
+          39.05
+        ],
+        "rotationDeg": 0,
+        "balcony": {
+          "version": 1,
+          "heightM": 1,
+          "wallThicknessM": 0.05,
+          "points": [
+            {
+              "id": "mast-sl-plat-p0",
+              "x": -0.5,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "mast-sl-plat-p1",
+              "x": 0.5,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "mast-sl-plat-p2",
+              "x": 0.5,
+              "z": 0.5,
+              "edge": "open"
+            },
+            {
+              "id": "mast-sl-plat-p3",
+              "x": -0.5,
+              "z": 0.5,
+              "edge": "open"
+            }
+          ]
+        }
+      },
+      {
+        "id": "mast-sl-post",
+        "kind": "cylinder",
+        "size": [
+          0.6,
+          10.3,
+          0.6
+        ],
+        "position": [
+          0,
+          12.25,
           39
         ],
         "rotationDeg": 0
@@ -7031,6 +8311,54 @@
         "thicknessMm": 16,
         "material": "steel",
         "paint": "dark-gray"
+      },
+      {
+        "primitiveId": "tw-roofhouse-a",
+        "face": "port",
+        "thicknessMm": 350,
+        "material": "armor-steel",
+        "paint": "light-gray",
+        "panelId": "conning-tower"
+      },
+      {
+        "primitiveId": "tw-roofhouse-a",
+        "face": "starboard",
+        "thicknessMm": 350,
+        "material": "armor-steel",
+        "paint": "light-gray",
+        "panelId": "conning-tower"
+      },
+      {
+        "primitiveId": "tw-roofhouse-a",
+        "face": "bow",
+        "thicknessMm": 350,
+        "material": "armor-steel",
+        "paint": "light-gray",
+        "panelId": "conning-tower"
+      },
+      {
+        "primitiveId": "tw-roofhouse-a",
+        "face": "stern",
+        "thicknessMm": 350,
+        "material": "armor-steel",
+        "paint": "light-gray",
+        "panelId": "conning-tower"
+      },
+      {
+        "primitiveId": "tw-roofhouse-a",
+        "face": "slope",
+        "thicknessMm": 350,
+        "material": "armor-steel",
+        "paint": "light-gray",
+        "panelId": "conning-tower"
+      },
+      {
+        "primitiveId": "tw-roofhouse-a",
+        "face": "top",
+        "thicknessMm": 200,
+        "material": "armor-steel",
+        "paint": "light-gray",
+        "panelId": "conning-tower-roof"
       }
     ],
     "equipment": [
@@ -7468,16 +8796,6 @@
         "bearingDeg": 0
       },
       {
-        "id": "c15s-ggs_5",
-        "partId": "design:fit-15cm-single",
-        "position": [
-          -12.57,
-          4.1,
-          -1.49
-        ],
-        "bearingDeg": 0
-      },
-      {
         "id": "flak105-ggs_7",
         "partId": "flak-105-bismarck-1941",
         "position": [
@@ -7488,37 +8806,17 @@
         "bearingDeg": 0
       },
       {
-        "id": "c15s-ggs_6",
-        "partId": "design:fit-15cm-single",
-        "position": [
-          12.57,
-          4.1,
-          -1.49
-        ],
-        "bearingDeg": 0
-      },
-      {
         "id": "c15-ggs_2",
         "partId": "sk-c28-150-twin",
         "position": [
           8.68,
           4.75,
-          -15.2
+          -16.5
         ],
         "bearingDeg": 0,
         "gun": {
           "barbetteHeightM": 0.65
         }
-      },
-      {
-        "id": "c15s-ggs_9",
-        "partId": "design:fit-15cm-single",
-        "position": [
-          -12.57,
-          4.1,
-          10.45
-        ],
-        "bearingDeg": 180
       },
       {
         "id": "flak105-ggs_8",
@@ -7537,16 +8835,6 @@
           0,
           6.87,
           55.33
-        ],
-        "bearingDeg": 180
-      },
-      {
-        "id": "c15s-ggs_10",
-        "partId": "design:fit-15cm-single",
-        "position": [
-          12.57,
-          4.1,
-          10.45
         ],
         "bearingDeg": 180
       },
@@ -7671,36 +8959,6 @@
         "bearingDeg": 225
       },
       {
-        "id": "flak20q-gga_13",
-        "partId": "design:fit-flak-quad-20mm",
-        "position": [
-          5.69,
-          9.31,
-          30.42
-        ],
-        "bearingDeg": 90
-      },
-      {
-        "id": "flak20q-gga_12",
-        "partId": "design:fit-flak-quad-20mm",
-        "position": [
-          -5.69,
-          9.31,
-          30.42
-        ],
-        "bearingDeg": 270
-      },
-      {
-        "id": "flak20q-gga_11",
-        "partId": "design:fit-flak-quad-20mm",
-        "position": [
-          0,
-          16.08,
-          12.89
-        ],
-        "bearingDeg": 180
-      },
-      {
         "id": "flak20-gga_19",
         "partId": "flak38-20-single",
         "position": [
@@ -7801,72 +9059,12 @@
         "bearingDeg": 90
       },
       {
-        "id": "dir-gd_9",
-        "partId": "german-guarded-director-optic",
-        "position": [
-          -3.15,
-          8.86,
-          51.6
-        ],
-        "bearingDeg": 180
-      },
-      {
-        "id": "dir-gd_10",
-        "partId": "german-guarded-director-optic",
-        "position": [
-          3.15,
-          8.86,
-          51.6
-        ],
-        "bearingDeg": 180
-      },
-      {
-        "id": "dir-gd_4",
-        "partId": "german-guarded-director-optic",
-        "position": [
-          5.96,
-          12.01,
-          -17.92
-        ],
-        "bearingDeg": 90
-      },
-      {
-        "id": "dir-gd_5",
-        "partId": "german-guarded-director-optic",
-        "position": [
-          -3.3,
-          24.72,
-          -14.754968
-        ],
-        "bearingDeg": 0
-      },
-      {
-        "id": "dir-gd_6",
-        "partId": "german-guarded-director-optic",
-        "position": [
-          3.3,
-          24.72,
-          -14.754968
-        ],
-        "bearingDeg": 0
-      },
-      {
-        "id": "dir-gd_3",
-        "partId": "german-guarded-director-optic",
-        "position": [
-          -5.96,
-          12.01,
-          -17.92
-        ],
-        "bearingDeg": 270
-      },
-      {
         "id": "flak20-gga_9",
         "partId": "flak38-20-single",
         "position": [
-          -5,
+          -3.68,
           16.09,
-          6.5
+          10.51
         ],
         "bearingDeg": 225
       },
@@ -7874,9 +9072,9 @@
         "id": "flak20-gga_10",
         "partId": "flak38-20-single",
         "position": [
-          5,
+          3.68,
           16.09,
-          6.5
+          10.51
         ],
         "bearingDeg": 135
       },
@@ -7884,9 +9082,9 @@
         "id": "flak37-gga_14",
         "partId": "flak-37-bismarck-1941",
         "position": [
-          -3.5,
+          -2.35,
           8.96,
-          44.6
+          42.41
         ],
         "bearingDeg": 225
       },
@@ -7894,9 +9092,9 @@
         "id": "flak37-gga_15",
         "partId": "flak-37-bismarck-1941",
         "position": [
-          3.5,
+          2.35,
           8.96,
-          44.6
+          42.41
         ],
         "bearingDeg": 135
       },
@@ -7952,32 +9150,12 @@
         "position": [
           -8.68,
           4.75,
-          -15.2
+          -16.5
         ],
         "bearingDeg": 0,
         "gun": {
           "barbetteHeightM": 0.65
         }
-      },
-      {
-        "id": "launch-stbd",
-        "partId": "german-open-launch-1000",
-        "position": [
-          4.3,
-          6.5,
-          26
-        ],
-        "bearingDeg": 0
-      },
-      {
-        "id": "launch-port",
-        "partId": "german-open-launch-1000",
-        "position": [
-          -4.3,
-          6.5,
-          26
-        ],
-        "bearingDeg": 0
       },
       {
         "id": "crane-stbd",
@@ -8098,6 +9276,2012 @@
           14.8
         ],
         "bearingDeg": 180
+      },
+      {
+        "id": "c15s-ggs_5",
+        "partId": "sk-c36-150-single",
+        "position": [
+          -12.57,
+          4.099999,
+          -1.49
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "c15s-ggs_6",
+        "partId": "sk-c36-150-single",
+        "position": [
+          12.57,
+          4.099999,
+          -1.49
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "c15s-ggs_9",
+        "partId": "sk-c36-150-single",
+        "position": [
+          -12.57,
+          4.099999,
+          10.45
+        ],
+        "bearingDeg": 180
+      },
+      {
+        "id": "c15s-ggs_10",
+        "partId": "sk-c36-150-single",
+        "position": [
+          12.57,
+          4.099999,
+          10.45
+        ],
+        "bearingDeg": 180
+      },
+      {
+        "id": "flak20q-gga_11",
+        "partId": "flak38-20-vierling",
+        "position": [
+          0,
+          16.08,
+          12.89
+        ],
+        "bearingDeg": 180
+      },
+      {
+        "id": "flak20q-gga_12",
+        "partId": "flak38-20-vierling",
+        "position": [
+          -5.69,
+          9.31,
+          30.42
+        ],
+        "bearingDeg": 270
+      },
+      {
+        "id": "flak20q-gga_13",
+        "partId": "flak38-20-vierling",
+        "position": [
+          5.69,
+          9.31,
+          30.42
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "breakwater",
+        "partId": "design:fit-breakwater",
+        "position": [
+          0,
+          4.700683,
+          -77.8
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "capstan-fwd",
+        "partId": "design:fit-capstan",
+        "position": [
+          2.2,
+          4.791698,
+          -80
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "capstan-fwd-port",
+        "partId": "design:fit-capstan",
+        "position": [
+          -2.2,
+          4.791698,
+          -80
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "vent-fc-1",
+        "partId": "design:fit-vent-head",
+        "position": [
+          0,
+          5.008349,
+          -85
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "vent-fc-2",
+        "partId": "design:fit-vent-head",
+        "position": [
+          0,
+          5.160004,
+          -88.5
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "bitts-fc-1",
+        "partId": "generic-twin-bitts",
+        "position": [
+          5.3,
+          5.397742,
+          -92.6
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "bitts-fc-1-port",
+        "partId": "generic-twin-bitts",
+        "position": [
+          -5.3,
+          5.397742,
+          -92.6
+        ],
+        "bearingDeg": 270
+      },
+      {
+        "id": "bitts-fc-2",
+        "partId": "generic-twin-bitts",
+        "position": [
+          7.1,
+          4.835028,
+          -81
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "bitts-fc-2-port",
+        "partId": "generic-twin-bitts",
+        "position": [
+          -7.1,
+          4.835028,
+          -81
+        ],
+        "bearingDeg": 270
+      },
+      {
+        "id": "bitts-fc-3",
+        "partId": "generic-twin-bitts",
+        "position": [
+          9.8,
+          4.377118,
+          -62
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "bitts-fc-3-port",
+        "partId": "generic-twin-bitts",
+        "position": [
+          -9.8,
+          4.377118,
+          -62
+        ],
+        "bearingDeg": 270
+      },
+      {
+        "id": "acc-ladder",
+        "partId": "generic-accommodation-ladder",
+        "position": [
+          10.9,
+          4.213643,
+          -46.4
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "acc-ladder-port",
+        "partId": "generic-accommodation-ladder",
+        "position": [
+          -10.9,
+          4.213643,
+          -46.4
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "capstan-aft",
+        "partId": "design:fit-capstan",
+        "position": [
+          2.2,
+          4.614334,
+          88.2
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "capstan-aft-port",
+        "partId": "design:fit-capstan",
+        "position": [
+          -2.2,
+          4.614334,
+          88.2
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "vent-qd-1",
+        "partId": "design:fit-vent-head",
+        "position": [
+          0,
+          4.657318,
+          91.8
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "vent-qd-2",
+        "partId": "design:fit-vent-head",
+        "position": [
+          0,
+          4.746344,
+          98.5
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "bitts-qd-1",
+        "partId": "generic-twin-bitts",
+        "position": [
+          5.3,
+          4.769671,
+          100
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "bitts-qd-1-port",
+        "partId": "generic-twin-bitts",
+        "position": [
+          -5.3,
+          4.769671,
+          100
+        ],
+        "bearingDeg": 270
+      },
+      {
+        "id": "bitts-qd-2",
+        "partId": "generic-twin-bitts",
+        "position": [
+          8.3,
+          4.573459,
+          84
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "bitts-qd-2-port",
+        "partId": "generic-twin-bitts",
+        "position": [
+          -8.3,
+          4.573459,
+          84
+        ],
+        "bearingDeg": 270
+      },
+      {
+        "id": "bitts-qd-3",
+        "partId": "generic-twin-bitts",
+        "position": [
+          10.3,
+          4.384314,
+          66
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "bitts-qd-3-port",
+        "partId": "generic-twin-bitts",
+        "position": [
+          -10.3,
+          4.384314,
+          66
+        ],
+        "bearingDeg": 270
+      },
+      {
+        "id": "mvent-qd",
+        "partId": "generic-mushroom-vent",
+        "position": [
+          3.5,
+          4.828408,
+          105
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "mvent-qd-port",
+        "partId": "generic-mushroom-vent",
+        "position": [
+          -3.5,
+          4.828408,
+          105
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "mvent-fc",
+        "partId": "generic-mushroom-vent",
+        "position": [
+          1.5,
+          5.623637,
+          -96
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "mvent-fc-port",
+        "partId": "generic-mushroom-vent",
+        "position": [
+          -1.5,
+          5.623637,
+          -96
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "chain-stbd",
+        "partId": "generic-chain",
+        "position": [
+          2.2,
+          4.908,
+          -81
+        ],
+        "bearingDeg": 0,
+        "path": {
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0.15,
+              0.0867,
+              -2
+            ],
+            [
+              0.3,
+              0.1733,
+              -4
+            ],
+            [
+              0.45,
+              0.2816,
+              -6.5
+            ],
+            [
+              0.6,
+              0.39,
+              -9
+            ],
+            [
+              0.75,
+              0.5561,
+              -11.5
+            ],
+            [
+              0.9,
+              0.7222,
+              -14
+            ],
+            [
+              1,
+              0.855,
+              -16
+            ],
+            [
+              1.1,
+              1.0095,
+              -18
+            ],
+            [
+              1.15,
+              1.1323,
+              -19.5
+            ],
+            [
+              1.2,
+              1.2551,
+              -21
+            ]
+          ],
+          "slackM": 0
+        }
+      },
+      {
+        "id": "chain-port",
+        "partId": "generic-chain",
+        "position": [
+          -2.2,
+          4.908,
+          -81
+        ],
+        "bearingDeg": 0,
+        "path": {
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              -0.15,
+              0.0867,
+              -2
+            ],
+            [
+              -0.3,
+              0.1733,
+              -4
+            ],
+            [
+              -0.45,
+              0.2816,
+              -6.5
+            ],
+            [
+              -0.6,
+              0.39,
+              -9
+            ],
+            [
+              -0.75,
+              0.5561,
+              -11.5
+            ],
+            [
+              -0.9,
+              0.7222,
+              -14
+            ],
+            [
+              -1,
+              0.855,
+              -16
+            ],
+            [
+              -1.1,
+              1.0095,
+              -18
+            ],
+            [
+              -1.15,
+              1.1323,
+              -19.5
+            ],
+            [
+              -1.2,
+              1.2551,
+              -21
+            ]
+          ],
+          "slackM": 0
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-1-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          1.633305,
+          2.9,
+          -104.661442
+        ],
+        "bearingDeg": 75.98656999999997,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-1-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-1-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -1.633305,
+          2.9,
+          -104.661442
+        ],
+        "bearingDeg": 284.01343,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-1-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-2-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          2.115275,
+          2.9,
+          -102.381731
+        ],
+        "bearingDeg": 75.98656999999997,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-2-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-2-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -2.115275,
+          2.9,
+          -102.381731
+        ],
+        "bearingDeg": 284.01343,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-2-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-3-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          2.64908,
+          2.9,
+          -99.917905
+        ],
+        "bearingDeg": 74.32565399999999,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-3-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-3-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -2.64908,
+          2.9,
+          -99.917905
+        ],
+        "bearingDeg": 285.674346,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-3-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-4-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          3.126812,
+          2.9,
+          -97.651958
+        ],
+        "bearingDeg": 74.32565399999999,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-4-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-4-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -3.126812,
+          2.9,
+          -97.651958
+        ],
+        "bearingDeg": 285.674346,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-4-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-5-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          3.56772,
+          2.9,
+          -95.568899
+        ],
+        "bearingDeg": 76.231788,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-5-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-5-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -3.56772,
+          2.9,
+          -95.568899
+        ],
+        "bearingDeg": 283.768212,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-5-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-6-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          4.052777,
+          2.9,
+          -93.287756
+        ],
+        "bearingDeg": 76.231788,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-6-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-6-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -4.052777,
+          2.9,
+          -93.287756
+        ],
+        "bearingDeg": 283.768212,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-6-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-7-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          4.540429,
+          2.9,
+          -91.007247
+        ],
+        "bearingDeg": 76.231788,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-7-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-7-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -4.540429,
+          2.9,
+          -91.007247
+        ],
+        "bearingDeg": 283.768212,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-7-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-8-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          5.067817,
+          2.9,
+          -88.925377
+        ],
+        "bearingDeg": 78.85567900000001,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-8-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-8-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -5.067817,
+          2.9,
+          -88.925377
+        ],
+        "bearingDeg": 281.144321,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-8-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-9-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          5.616518,
+          2.9,
+          -86.666789
+        ],
+        "bearingDeg": 79.39983699999999,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-9-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-9-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -5.616518,
+          2.9,
+          -86.666789
+        ],
+        "bearingDeg": 280.600163,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-9-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-10-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          6.159284,
+          2.9,
+          -84.368366
+        ],
+        "bearingDeg": 79.39983699999999,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-10-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-10-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -6.159284,
+          2.9,
+          -84.368366
+        ],
+        "bearingDeg": 280.600163,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-10-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-11-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          6.533009,
+          2.9,
+          -82.038308
+        ],
+        "bearingDeg": 79.39983699999999,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-11-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-11-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -6.533009,
+          2.9,
+          -82.038308
+        ],
+        "bearingDeg": 280.600163,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-11-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-12-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          6.906734,
+          2.9,
+          -79.70825
+        ],
+        "bearingDeg": 79.39983699999999,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-12-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-12-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -6.906734,
+          2.9,
+          -79.70825
+        ],
+        "bearingDeg": 280.600163,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-12-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-13-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          7.287236,
+          2.9,
+          -77.461278
+        ],
+        "bearingDeg": 82.06533000000002,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-13-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-13-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -7.287236,
+          2.9,
+          -77.461278
+        ],
+        "bearingDeg": 277.93467,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-13-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-14-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          7.667611,
+          2.9,
+          -75.114294
+        ],
+        "bearingDeg": 82.06533000000002,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-14-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-lo-14-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -7.667611,
+          2.9,
+          -75.114294
+        ],
+        "bearingDeg": 277.93467,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-lo-14-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-1-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          1.801683,
+          5.2,
+          -109.621713
+        ],
+        "bearingDeg": 74.64457199999998,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-1-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-1-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -1.801683,
+          5.2,
+          -109.621713
+        ],
+        "bearingDeg": 285.355428,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-1-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-2-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          2.327935,
+          5.2,
+          -107.34422
+        ],
+        "bearingDeg": 74.20672100000002,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-2-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-2-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -2.327935,
+          5.2,
+          -107.34422
+        ],
+        "bearingDeg": 285.793279,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-2-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-3-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          2.841339,
+          5.2,
+          -105.106181
+        ],
+        "bearingDeg": 74.61914000000002,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-3-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-3-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -2.841339,
+          5.2,
+          -105.106181
+        ],
+        "bearingDeg": 285.38086,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-3-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-4-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          3.402529,
+          5.2,
+          -102.848839
+        ],
+        "bearingDeg": 74.22914800000001,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-4-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-4-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -3.402529,
+          5.2,
+          -102.848839
+        ],
+        "bearingDeg": 285.770852,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-4-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-5-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          3.944504,
+          5.2,
+          -100.618032
+        ],
+        "bearingDeg": 75.04310600000002,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-5-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-5-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -3.944504,
+          5.2,
+          -100.618032
+        ],
+        "bearingDeg": 284.956894,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-5-starboard"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-6-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          4.526863,
+          5.2,
+          -98.375099
+        ],
+        "bearingDeg": 75.21212100000002,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-6-port"
+        }
+      },
+      {
+        "id": "scuttle-fwd-hi-6-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -4.526863,
+          5.2,
+          -98.375099
+        ],
+        "bearingDeg": 284.787879,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-fwd-hi-6-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-1-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          9.313895,
+          2.8,
+          78.041445
+        ],
+        "bearingDeg": 97.52146399999998,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-1-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-1-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -9.313895,
+          2.8,
+          78.041445
+        ],
+        "bearingDeg": 262.478536,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-1-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-2-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          9.002444,
+          2.8,
+          80.400323
+        ],
+        "bearingDeg": 97.52146399999998,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-2-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-2-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -9.002444,
+          2.8,
+          80.400323
+        ],
+        "bearingDeg": 262.478536,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-2-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-3-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          8.690992,
+          2.8,
+          82.759201
+        ],
+        "bearingDeg": 97.52146399999998,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-3-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-3-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -8.690992,
+          2.8,
+          82.759201
+        ],
+        "bearingDeg": 262.478536,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-3-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-4-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          8.379541,
+          2.8,
+          85.118079
+        ],
+        "bearingDeg": 97.52146399999998,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-4-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-4-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -8.379541,
+          2.8,
+          85.118079
+        ],
+        "bearingDeg": 262.478536,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-4-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-5-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          8.060795,
+          2.8,
+          87.454933
+        ],
+        "bearingDeg": 98.78038099999998,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-5-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-5-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -8.060795,
+          2.8,
+          87.454933
+        ],
+        "bearingDeg": 261.219619,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-5-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-6-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          7.68809,
+          2.8,
+          89.780827
+        ],
+        "bearingDeg": 99.484465,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-6-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-6-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -7.68809,
+          2.8,
+          89.780827
+        ],
+        "bearingDeg": 260.515535,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-6-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-7-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          7.298024,
+          2.8,
+          92.115661
+        ],
+        "bearingDeg": 99.484465,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-7-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-7-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -7.298024,
+          2.8,
+          92.115661
+        ],
+        "bearingDeg": 260.515535,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-7-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-8-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          6.907958,
+          2.8,
+          94.450495
+        ],
+        "bearingDeg": 99.484465,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-8-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-8-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -6.907958,
+          2.8,
+          94.450495
+        ],
+        "bearingDeg": 260.515535,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-8-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-9-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          6.508026,
+          2.8,
+          96.697022
+        ],
+        "bearingDeg": 101.41121199999998,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-9-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-9-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -6.508026,
+          2.8,
+          96.697022
+        ],
+        "bearingDeg": 258.588788,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-9-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-10-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          6.031774,
+          2.8,
+          98.99565
+        ],
+        "bearingDeg": 101.508488,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-10-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-10-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -6.031774,
+          2.8,
+          98.99565
+        ],
+        "bearingDeg": 258.491512,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-10-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-11-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          5.569051,
+          2.8,
+          101.231271
+        ],
+        "bearingDeg": 102.62895500000002,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-11-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-11-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -5.569051,
+          2.8,
+          101.231271
+        ],
+        "bearingDeg": 257.371045,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-11-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-12-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          5.056737,
+          2.8,
+          103.516484
+        ],
+        "bearingDeg": 102.62895500000002,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-12-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-12-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -5.056737,
+          2.8,
+          103.516484
+        ],
+        "bearingDeg": 257.371045,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-12-starboard"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-13-starboard",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          4.546417,
+          2.8,
+          105.801566
+        ],
+        "bearingDeg": 102.63601799999998,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-13-port"
+        }
+      },
+      {
+        "id": "scuttle-aft-lo-13-port",
+        "partId": "generic-rimmed-porthole",
+        "position": [
+          -4.546417,
+          2.8,
+          105.801566
+        ],
+        "bearingDeg": 257.363982,
+        "wall": {
+          "version": 1,
+          "widthM": 0.6,
+          "heightM": 0.6,
+          "mirrorId": "scuttle-aft-lo-13-starboard"
+        }
+      },
+      {
+        "id": "aircraft-crane-stbd",
+        "partId": "generic-boat-crane",
+        "position": [
+          10.3,
+          4.099999,
+          31
+        ],
+        "bearingDeg": 343.6
+      },
+      {
+        "id": "aircraft-crane-port",
+        "partId": "generic-boat-crane",
+        "position": [
+          -10.3,
+          4.099999,
+          31
+        ],
+        "bearingDeg": 16.399999999999977
+      },
+      {
+        "id": "dir-gd_9",
+        "partId": "german-guarded-director-optic",
+        "position": [
+          -3.15,
+          8.86,
+          51.6
+        ],
+        "bearingDeg": 180
+      },
+      {
+        "id": "dir-gd_10",
+        "partId": "german-guarded-director-optic",
+        "position": [
+          3.15,
+          8.86,
+          51.6
+        ],
+        "bearingDeg": 180
+      },
+      {
+        "id": "dir-gd_3",
+        "partId": "german-guarded-director-optic",
+        "position": [
+          -5.96,
+          12.01,
+          -17.92
+        ],
+        "bearingDeg": 270
+      },
+      {
+        "id": "dir-gd_4",
+        "partId": "german-guarded-director-optic",
+        "position": [
+          5.96,
+          12.01,
+          -17.92
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "dir-gd_5",
+        "partId": "german-guarded-director-optic",
+        "position": [
+          -3.3,
+          24.73,
+          -14.754968
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "dir-gd_6",
+        "partId": "german-guarded-director-optic",
+        "position": [
+          3.3,
+          24.73,
+          -14.754968
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "boat-traffic-centre",
+        "partId": "german-traffic-boat-1170",
+        "position": [
+          0,
+          9.3,
+          -5.95
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "boat-traffic",
+        "partId": "german-traffic-boat-1170",
+        "position": [
+          7.47,
+          9.3,
+          1.85
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "boat-traffic-port",
+        "partId": "german-traffic-boat-1170",
+        "position": [
+          -7.47,
+          9.3,
+          1.85
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "boat-pinnace",
+        "partId": "german-motor-launch-900",
+        "position": [
+          4.37,
+          9.3,
+          4.03
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "boat-pinnace-port",
+        "partId": "german-motor-launch-900",
+        "position": [
+          -4.37,
+          9.3,
+          4.03
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "boat-cutter",
+        "partId": "german-cutter-750",
+        "position": [
+          4.61,
+          9,
+          22.86
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "boat-cutter-port",
+        "partId": "german-cutter-750",
+        "position": [
+          -4.61,
+          9,
+          22.86
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-1-starboard",
+        "partId": "design:fit-raft",
+        "position": [
+          2.75,
+          11.6,
+          13.4
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-1-port",
+        "partId": "design:fit-raft",
+        "position": [
+          -2.75,
+          11.6,
+          13.4
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-2-starboard",
+        "partId": "design:fit-raft",
+        "position": [
+          2.75,
+          11.6,
+          16.5
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-2-port",
+        "partId": "design:fit-raft",
+        "position": [
+          -2.75,
+          11.6,
+          16.5
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-3-starboard",
+        "partId": "design:fit-raft",
+        "position": [
+          2.75,
+          11.6,
+          19.6
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-3-port",
+        "partId": "design:fit-raft",
+        "position": [
+          -2.75,
+          11.6,
+          19.6
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-4-starboard",
+        "partId": "design:fit-raft",
+        "position": [
+          2.75,
+          11.6,
+          22.700000000000003
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-4-port",
+        "partId": "design:fit-raft",
+        "position": [
+          -2.75,
+          11.6,
+          22.700000000000003
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-5-starboard",
+        "partId": "design:fit-raft",
+        "position": [
+          2.75,
+          11.6,
+          25.8
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-5-port",
+        "partId": "design:fit-raft",
+        "position": [
+          -2.75,
+          11.6,
+          25.8
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-aft",
+        "partId": "design:fit-raft",
+        "position": [
+          1.84,
+          12.35,
+          36.15
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "raft-aft-port",
+        "partId": "design:fit-raft",
+        "position": [
+          -1.84,
+          12.35,
+          36.15
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "float-1-starboard",
+        "partId": "design:fit-raft-small",
+        "position": [
+          5.55,
+          6.5,
+          20.3
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "float-1-port",
+        "partId": "design:fit-raft-small",
+        "position": [
+          -5.55,
+          6.5,
+          20.3
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "float-2-starboard",
+        "partId": "design:fit-raft-small",
+        "position": [
+          5.55,
+          6.5,
+          23.6
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "float-2-port",
+        "partId": "design:fit-raft-small",
+        "position": [
+          -5.55,
+          6.5,
+          23.6
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "float-3-starboard",
+        "partId": "design:fit-raft-small",
+        "position": [
+          5.55,
+          6.5,
+          26.9
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "float-3-port",
+        "partId": "design:fit-raft-small",
+        "position": [
+          -5.55,
+          6.5,
+          26.9
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "float-4-starboard",
+        "partId": "design:fit-raft-small",
+        "position": [
+          5.55,
+          6.5,
+          30.2
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "float-4-port",
+        "partId": "design:fit-raft-small",
+        "position": [
+          -5.55,
+          6.5,
+          30.2
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "bd-post-a",
+        "partId": "design:fit-stanchion",
+        "position": [
+          8.9,
+          6.5,
+          -3.9
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "bd-post-a-port",
+        "partId": "design:fit-stanchion",
+        "position": [
+          -8.9,
+          6.5,
+          -3.9
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "bd-post-b",
+        "partId": "design:fit-stanchion",
+        "position": [
+          8.9,
+          6.5,
+          7.8
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "bd-post-b-port",
+        "partId": "design:fit-stanchion",
+        "position": [
+          -8.9,
+          6.5,
+          7.8
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "bd-post-d",
+        "partId": "design:fit-stanchion",
+        "position": [
+          5.6,
+          6.5,
+          -7.2
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "bd-post-d-port",
+        "partId": "design:fit-stanchion",
+        "position": [
+          -5.6,
+          6.5,
+          -7.2
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "skid-post-1-starboard",
+        "partId": "design:fit-stanchion",
+        "position": [
+          5.9,
+          6.5,
+          18.6
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "skid-post-1-port",
+        "partId": "design:fit-stanchion",
+        "position": [
+          -5.9,
+          6.5,
+          18.6
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "skid-post-2-starboard",
+        "partId": "design:fit-stanchion",
+        "position": [
+          5.9,
+          4.099999,
+          27.200000000000003
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "skid-post-2-port",
+        "partId": "design:fit-stanchion",
+        "position": [
+          -5.9,
+          4.099999,
+          27.200000000000003
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "searchlight-mast",
+        "partId": "german-cruiser-searchlight",
+        "position": [
+          1.6,
+          17.5,
+          39.7
+        ],
+        "bearingDeg": 90
+      },
+      {
+        "id": "searchlight-mast-port",
+        "partId": "german-cruiser-searchlight",
+        "position": [
+          -1.6,
+          17.5,
+          39.7
+        ],
+        "bearingDeg": 270
       }
     ],
     "boundaries": [
@@ -8182,7 +11366,7 @@
           4.5,
           15.4
         ],
-        "massKg": 95054
+        "massKg": 131670
       },
       {
         "id": "tank-wing-b-stbd",
@@ -8197,7 +11381,7 @@
           7,
           15.4
         ],
-        "massKg": 171589
+        "massKg": 184338
       },
       {
         "id": "tank-wing-b-port",
@@ -8212,7 +11396,7 @@
           7,
           15.4
         ],
-        "massKg": 171589
+        "massKg": 184338
       },
       {
         "id": "tank-oil-f3-t1",
@@ -8227,7 +11411,7 @@
           4.5,
           10.9
         ],
-        "massKg": 466070
+        "massKg": 456655.5
       },
       {
         "id": "tank-oil-f3-t2",
@@ -8242,7 +11426,7 @@
           4.5,
           10.9
         ],
-        "massKg": 1131883
+        "massKg": 1109020.5
       },
       {
         "id": "tank-oil-f4-t1",
@@ -8257,7 +11441,7 @@
           4.5,
           17.9
         ],
-        "massKg": 1181202
+        "massKg": 1056010.5
       },
       {
         "id": "tank-oil-f4-t2",
@@ -8272,7 +11456,7 @@
           4.5,
           17.9
         ],
-        "massKg": 2225454
+        "massKg": 1989585
       },
       {
         "id": "tank-oil-f5-t1",
@@ -8287,7 +11471,7 @@
           4.5,
           6.9
         ],
-        "massKg": 709963
+        "massKg": 589950
       },
       {
         "id": "tank-oil-f5-t2",
@@ -8302,7 +11486,7 @@
           4.5,
           6.9
         ],
-        "massKg": 993949
+        "massKg": 825930
       },
       {
         "id": "tank-wing-t-stbd",
@@ -8317,7 +11501,7 @@
           7,
           28.4
         ],
-        "massKg": 515089
+        "massKg": 339948
       },
       {
         "id": "tank-wing-t-port",
@@ -8332,7 +11516,7 @@
           7,
           28.4
         ],
-        "massKg": 515089
+        "massKg": 339948
       },
       {
         "id": "tank-wing-c-stbd",
@@ -8347,7 +11531,7 @@
           2.7,
           17.4
         ],
-        "massKg": 134051
+        "massKg": 80336
       },
       {
         "id": "tank-wing-c-port",
@@ -8362,7 +11546,7 @@
           2.7,
           17.4
         ],
-        "massKg": 134051
+        "massKg": 80336
       },
       {
         "id": "tank-hold-a9",
@@ -8377,346 +11561,280 @@
           4.5,
           11.4
         ],
-        "massKg": 154969
+        "massKg": 87723
+      },
+      {
+        "id": "tank-wing-a-stbd",
+        "name": "Fuel oil wing-a stbd",
+        "center": [
+          2.883,
+          -3.968,
+          -76
+        ],
+        "size": [
+          1.566,
+          3.937,
+          15
+        ],
+        "massKg": 87856
+      },
+      {
+        "id": "tank-wing-a-port",
+        "name": "Fuel oil wing-a port",
+        "center": [
+          -2.883,
+          -3.968,
+          -76
+        ],
+        "size": [
+          1.566,
+          3.937,
+          15
+        ],
+        "massKg": 87856
+      },
+      {
+        "id": "tank-wing-b2-stbd",
+        "name": "Fuel oil wing-b outer stbd",
+        "center": [
+          9.166,
+          -2.566,
+          -44
+        ],
+        "size": [
+          1.331,
+          4.134,
+          15
+        ],
+        "massKg": 78408
+      },
+      {
+        "id": "tank-wing-b2-port",
+        "name": "Fuel oil wing-b outer port",
+        "center": [
+          -9.166,
+          -2.566,
+          -44
+        ],
+        "size": [
+          1.331,
+          4.134,
+          15
+        ],
+        "massKg": 78408
+      },
+      {
+        "id": "tank-wing-e-stbd",
+        "name": "Fuel oil wing-e stbd",
+        "center": [
+          11.667,
+          -3.335,
+          16
+        ],
+        "size": [
+          1.734,
+          5.67,
+          27
+        ],
+        "massKg": 252185
+      },
+      {
+        "id": "tank-wing-e-port",
+        "name": "Fuel oil wing-e port",
+        "center": [
+          -11.667,
+          -3.335,
+          16
+        ],
+        "size": [
+          1.734,
+          5.67,
+          27
+        ],
+        "massKg": 252185
+      },
+      {
+        "id": "tank-wing-t2-stbd",
+        "name": "Fuel oil wing-t outer stbd",
+        "center": [
+          9.366,
+          -2.066,
+          45.5
+        ],
+        "size": [
+          1.331,
+          4.134,
+          27
+        ],
+        "massKg": 141135
+      },
+      {
+        "id": "tank-wing-t2-port",
+        "name": "Fuel oil wing-t outer port",
+        "center": [
+          -9.366,
+          -2.066,
+          45.5
+        ],
+        "size": [
+          1.331,
+          4.134,
+          27
+        ],
+        "massKg": 141135
+      },
+      {
+        "id": "load-outfit-0-stbd",
+        "name": "Outfit and internal structure 0 stbd",
+        "center": [
+          5.5,
+          2,
+          -30.25
+        ],
+        "size": [
+          5,
+          3.4,
+          10.9
+        ],
+        "massKg": 176035
+      },
+      {
+        "id": "load-outfit-0-port",
+        "name": "Outfit and internal structure 0 port",
+        "center": [
+          -5.5,
+          2,
+          -30.25
+        ],
+        "size": [
+          5,
+          3.4,
+          10.9
+        ],
+        "massKg": 176035
+      },
+      {
+        "id": "load-outfit-1-stbd",
+        "name": "Outfit and internal structure 1 stbd",
+        "center": [
+          4.535,
+          2.461,
+          -15.25
+        ],
+        "size": [
+          3.07,
+          2.479,
+          17.9
+        ],
+        "massKg": 106696
+      },
+      {
+        "id": "load-outfit-1-port",
+        "name": "Outfit and internal structure 1 port",
+        "center": [
+          -4.535,
+          2.461,
+          -15.25
+        ],
+        "size": [
+          3.07,
+          2.479,
+          17.9
+        ],
+        "massKg": 106696
+      },
+      {
+        "id": "load-outfit-2-stbd",
+        "name": "Outfit and internal structure 2 stbd",
+        "center": [
+          5.5,
+          2,
+          -2.25
+        ],
+        "size": [
+          5,
+          3.4,
+          6.9
+        ],
+        "massKg": 111435
+      },
+      {
+        "id": "load-outfit-2-port",
+        "name": "Outfit and internal structure 2 port",
+        "center": [
+          -5.5,
+          2,
+          -2.25
+        ],
+        "size": [
+          5,
+          3.4,
+          6.9
+        ],
+        "massKg": 111435
+      },
+      {
+        "id": "load-outfit-3-stbd",
+        "name": "Outfit and internal structure 3 stbd",
+        "center": [
+          5.5,
+          2,
+          16.25
+        ],
+        "size": [
+          5,
+          3.4,
+          28.9
+        ],
+        "massKg": 466735
+      },
+      {
+        "id": "load-outfit-3-port",
+        "name": "Outfit and internal structure 3 port",
+        "center": [
+          -5.5,
+          2,
+          16.25
+        ],
+        "size": [
+          5,
+          3.4,
+          28.9
+        ],
+        "massKg": 466735
+      },
+      {
+        "id": "load-outfit-4-stbd",
+        "name": "Outfit and internal structure 4 stbd",
+        "center": [
+          4.305,
+          2.585,
+          45.5
+        ],
+        "size": [
+          2.609,
+          2.231,
+          28.4
+        ],
+        "massKg": 88569
+      },
+      {
+        "id": "load-outfit-4-port",
+        "name": "Outfit and internal structure 4 port",
+        "center": [
+          -4.305,
+          2.585,
+          45.5
+        ],
+        "size": [
+          2.609,
+          2.231,
+          28.4
+        ],
+        "massKg": 88569
       }
     ],
     "fittings": [
-      {
-        "id": "fit-15cm-single",
-        "name": "15 cm SK C/28 single shielded mount",
-        "version": 1,
-        "attach": "deck",
-        "material": "steel",
-        "fill": 0.3,
-        "massKg": 21000,
-        "solids": [
-          {
-            "id": "base",
-            "kind": "cylinder",
-            "size": [
-              2.4,
-              0.22,
-              2.4
-            ],
-            "position": [
-              0,
-              0.11,
-              0.35
-            ],
-            "rotationDeg": 0
-          },
-          {
-            "id": "pedestal",
-            "kind": "cylinder",
-            "size": [
-              1.5,
-              0.4,
-              1.5
-            ],
-            "position": [
-              0,
-              0.42,
-              0.35
-            ],
-            "rotationDeg": 0
-          },
-          {
-            "id": "shield",
-            "kind": "vertex",
-            "size": [
-              2.84,
-              2.65,
-              3.9
-            ],
-            "position": [
-              0,
-              1.545,
-              0.5
-            ],
-            "rotationDeg": 0,
-            "vertices": [
-              [
-                -0.5,
-                -0.5,
-                -0.5
-              ],
-              [
-                0.5,
-                -0.5,
-                -0.5
-              ],
-              [
-                0.5,
-                0.40566,
-                -0.282051
-              ],
-              [
-                -0.5,
-                0.40566,
-                -0.282051
-              ],
-              [
-                -0.5,
-                -0.5,
-                0.5
-              ],
-              [
-                0.5,
-                -0.5,
-                0.5
-              ],
-              [
-                0.5,
-                0.5,
-                0.5
-              ],
-              [
-                -0.5,
-                0.5,
-                0.5
-              ]
-            ]
-          },
-          {
-            "id": "mantlet",
-            "kind": "box",
-            "size": [
-              0.9,
-              0.7,
-              0.5
-            ],
-            "position": [
-              0,
-              1.72,
-              -0.75
-            ],
-            "rotationDeg": 0,
-            "paint": "boot-top-black"
-          }
-        ],
-        "tubes": [
-          {
-            "id": "barrel",
-            "points": [
-              [
-                0,
-                1.75,
-                -0.9
-              ],
-              [
-                0,
-                1.72,
-                -3.4
-              ],
-              [
-                0,
-                1.66,
-                -6.2
-              ]
-            ],
-            "diameterM": 0.27
-          },
-          {
-            "id": "sleeve",
-            "points": [
-              [
-                0,
-                1.74,
-                -0.6
-              ],
-              [
-                0,
-                1.74,
-                -1.9
-              ]
-            ],
-            "diameterM": 0.4
-          }
-        ]
-      },
-      {
-        "id": "fit-flak-quad-20mm",
-        "name": "2 cm Flakvierling 38 quad mount",
-        "version": 1,
-        "attach": "deck",
-        "material": "steel",
-        "fill": 0.25,
-        "massKg": 2200,
-        "solids": [
-          {
-            "id": "plate",
-            "kind": "cylinder",
-            "size": [
-              1.7,
-              0.14,
-              1.7
-            ],
-            "position": [
-              0,
-              0.07,
-              0
-            ],
-            "rotationDeg": 0
-          },
-          {
-            "id": "column",
-            "kind": "cylinder",
-            "size": [
-              0.75,
-              1,
-              0.75
-            ],
-            "position": [
-              0,
-              0.62,
-              0
-            ],
-            "rotationDeg": 0
-          },
-          {
-            "id": "platform",
-            "kind": "cylinder",
-            "size": [
-              1.9,
-              0.16,
-              1.9
-            ],
-            "position": [
-              0,
-              1.2,
-              0
-            ],
-            "rotationDeg": 0
-          },
-          {
-            "id": "cradle",
-            "kind": "box",
-            "size": [
-              0.95,
-              0.55,
-              0.9
-            ],
-            "position": [
-              0,
-              1.6,
-              0.05
-            ],
-            "rotationDeg": 0
-          },
-          {
-            "id": "shield-l",
-            "kind": "box",
-            "size": [
-              0.06,
-              1,
-              0.9
-            ],
-            "position": [
-              -0.62,
-              1.85,
-              -0.3
-            ],
-            "rotationDeg": 0
-          },
-          {
-            "id": "shield-r",
-            "kind": "box",
-            "size": [
-              0.06,
-              1,
-              0.9
-            ],
-            "position": [
-              0.62,
-              1.85,
-              -0.3
-            ],
-            "rotationDeg": 0
-          },
-          {
-            "id": "sight",
-            "kind": "box",
-            "size": [
-              0.3,
-              0.3,
-              0.35
-            ],
-            "position": [
-              0.75,
-              1.5,
-              0.15
-            ],
-            "rotationDeg": 0,
-            "paint": "boot-top-black"
-          }
-        ],
-        "tubes": [
-          {
-            "id": "gun-ul",
-            "points": [
-              [
-                -0.34,
-                2.43,
-                0.55
-              ],
-              [
-                -0.34,
-                2.43,
-                -1.58
-              ]
-            ],
-            "diameterM": 0.09
-          },
-          {
-            "id": "gun-ur",
-            "points": [
-              [
-                0.34,
-                2.43,
-                0.55
-              ],
-              [
-                0.34,
-                2.43,
-                -1.58
-              ]
-            ],
-            "diameterM": 0.09
-          },
-          {
-            "id": "gun-ll",
-            "points": [
-              [
-                -0.34,
-                2.13,
-                0.55
-              ],
-              [
-                -0.34,
-                2.13,
-                -1.58
-              ]
-            ],
-            "diameterM": 0.09
-          },
-          {
-            "id": "gun-lr",
-            "points": [
-              [
-                0.34,
-                2.13,
-                0.55
-              ],
-              [
-                0.34,
-                2.13,
-                -1.58
-              ]
-            ],
-            "diameterM": 0.09
-          }
-        ]
-      },
       {
         "id": "fit-foremast",
         "name": "Scharnhorst foremast (pole, yards, crow's nest)",
@@ -8883,6 +12001,1422 @@
               ]
             ],
             "diameterM": 0.06
+          },
+          {
+            "id": "aerial-main-upper",
+            "points": [
+              [
+                0,
+                29.2,
+                0
+              ],
+              [
+                0,
+                29.404,
+                0.885
+              ],
+              [
+                0,
+                29.608,
+                1.771
+              ],
+              [
+                0,
+                29.812,
+                2.656
+              ],
+              [
+                0,
+                30.015,
+                3.542
+              ],
+              [
+                0,
+                30.219,
+                4.427
+              ],
+              [
+                0,
+                30.423,
+                5.312
+              ],
+              [
+                0,
+                30.627,
+                6.198
+              ],
+              [
+                0,
+                30.831,
+                7.083
+              ],
+              [
+                0,
+                31.035,
+                7.969
+              ],
+              [
+                0,
+                31.239,
+                8.854
+              ],
+              [
+                0,
+                31.443,
+                9.74
+              ],
+              [
+                0,
+                31.646,
+                10.625
+              ],
+              [
+                0,
+                31.85,
+                11.51
+              ],
+              [
+                0,
+                32.054,
+                12.396
+              ],
+              [
+                0,
+                32.258,
+                13.281
+              ],
+              [
+                0,
+                32.462,
+                14.167
+              ],
+              [
+                0,
+                32.666,
+                15.052
+              ],
+              [
+                0,
+                32.87,
+                15.938
+              ],
+              [
+                0,
+                33.074,
+                16.823
+              ],
+              [
+                0,
+                33.277,
+                17.708
+              ],
+              [
+                0,
+                33.481,
+                18.594
+              ],
+              [
+                0,
+                33.685,
+                19.479
+              ],
+              [
+                0,
+                33.889,
+                20.365
+              ],
+              [
+                0,
+                34.093,
+                21.25
+              ],
+              [
+                0,
+                34.297,
+                22.135
+              ],
+              [
+                0,
+                34.501,
+                23.021
+              ],
+              [
+                0,
+                34.705,
+                23.906
+              ],
+              [
+                0,
+                34.908,
+                24.792
+              ],
+              [
+                0,
+                35.112,
+                25.677
+              ],
+              [
+                0,
+                35.316,
+                26.562
+              ],
+              [
+                0,
+                35.52,
+                27.448
+              ],
+              [
+                0,
+                35.724,
+                28.333
+              ],
+              [
+                0,
+                35.928,
+                29.219
+              ],
+              [
+                0,
+                36.132,
+                30.104
+              ],
+              [
+                0,
+                36.336,
+                30.99
+              ],
+              [
+                0,
+                36.539,
+                31.875
+              ],
+              [
+                0,
+                36.743,
+                32.76
+              ],
+              [
+                0,
+                36.947,
+                33.646
+              ],
+              [
+                0,
+                37.151,
+                34.531
+              ],
+              [
+                0,
+                37.355,
+                35.417
+              ],
+              [
+                0,
+                37.559,
+                36.302
+              ],
+              [
+                0,
+                37.763,
+                37.188
+              ],
+              [
+                0,
+                37.967,
+                38.073
+              ],
+              [
+                0,
+                38.17,
+                38.958
+              ],
+              [
+                0,
+                38.374,
+                39.844
+              ],
+              [
+                0,
+                38.578,
+                40.729
+              ],
+              [
+                0,
+                38.782,
+                41.615
+              ],
+              [
+                0,
+                38.986,
+                42.5
+              ]
+            ],
+            "diameterM": 0.03
+          },
+          {
+            "id": "aerial-main-lower",
+            "points": [
+              [
+                0,
+                16.7,
+                0
+              ],
+              [
+                0,
+                16.906,
+                0.894
+              ],
+              [
+                0,
+                17.112,
+                1.787
+              ],
+              [
+                0,
+                17.318,
+                2.681
+              ],
+              [
+                0,
+                17.524,
+                3.575
+              ],
+              [
+                0,
+                17.73,
+                4.469
+              ],
+              [
+                0,
+                17.936,
+                5.362
+              ],
+              [
+                0,
+                18.142,
+                6.256
+              ],
+              [
+                0,
+                18.348,
+                7.15
+              ],
+              [
+                0,
+                18.554,
+                8.044
+              ],
+              [
+                0,
+                18.76,
+                8.938
+              ],
+              [
+                0,
+                18.966,
+                9.831
+              ],
+              [
+                0,
+                19.171,
+                10.725
+              ],
+              [
+                0,
+                19.377,
+                11.619
+              ],
+              [
+                0,
+                19.583,
+                12.513
+              ],
+              [
+                0,
+                19.789,
+                13.406
+              ],
+              [
+                0,
+                19.995,
+                14.3
+              ],
+              [
+                0,
+                20.201,
+                15.194
+              ],
+              [
+                0,
+                20.407,
+                16.087
+              ],
+              [
+                0,
+                20.613,
+                16.981
+              ],
+              [
+                0,
+                20.819,
+                17.875
+              ],
+              [
+                0,
+                21.025,
+                18.769
+              ],
+              [
+                0,
+                21.231,
+                19.662
+              ],
+              [
+                0,
+                21.437,
+                20.556
+              ],
+              [
+                0,
+                21.643,
+                21.45
+              ],
+              [
+                0,
+                21.849,
+                22.344
+              ],
+              [
+                0,
+                22.055,
+                23.237
+              ],
+              [
+                0,
+                22.261,
+                24.131
+              ],
+              [
+                0,
+                22.467,
+                25.025
+              ],
+              [
+                0,
+                22.673,
+                25.919
+              ],
+              [
+                0,
+                22.879,
+                26.812
+              ],
+              [
+                0,
+                23.085,
+                27.706
+              ],
+              [
+                0,
+                23.291,
+                28.6
+              ],
+              [
+                0,
+                23.497,
+                29.494
+              ],
+              [
+                0,
+                23.703,
+                30.387
+              ],
+              [
+                0,
+                23.909,
+                31.281
+              ],
+              [
+                0,
+                24.114,
+                32.175
+              ],
+              [
+                0,
+                24.32,
+                33.069
+              ],
+              [
+                0,
+                24.526,
+                33.962
+              ],
+              [
+                0,
+                24.732,
+                34.856
+              ],
+              [
+                0,
+                24.938,
+                35.75
+              ],
+              [
+                0,
+                25.144,
+                36.644
+              ],
+              [
+                0,
+                25.35,
+                37.538
+              ],
+              [
+                0,
+                25.556,
+                38.431
+              ],
+              [
+                0,
+                25.762,
+                39.325
+              ],
+              [
+                0,
+                25.968,
+                40.219
+              ],
+              [
+                0,
+                26.174,
+                41.112
+              ],
+              [
+                0,
+                26.38,
+                42.006
+              ],
+              [
+                0,
+                26.586,
+                42.9
+              ]
+            ],
+            "diameterM": 0.03
+          },
+          {
+            "id": "aerial-main-lead-0",
+            "points": [
+              [
+                0,
+                36.592,
+                32.1
+              ],
+              [
+                0,
+                33.511,
+                32.1
+              ],
+              [
+                0,
+                30.431,
+                32.1
+              ],
+              [
+                0,
+                27.35,
+                32.1
+              ],
+              [
+                0,
+                24.27,
+                32.1
+              ],
+              [
+                0,
+                21.189,
+                32.1
+              ],
+              [
+                0,
+                18.108,
+                32.1
+              ],
+              [
+                0,
+                15.028,
+                32.1
+              ],
+              [
+                0,
+                11.947,
+                32.1
+              ],
+              [
+                0,
+                8.867,
+                32.1
+              ],
+              [
+                0,
+                5.786,
+                32.1
+              ]
+            ],
+            "diameterM": 0.03
+          },
+          {
+            "id": "aerial-main-lead-1",
+            "points": [
+              [
+                0,
+                33.944,
+                20.6
+              ],
+              [
+                0,
+                31.128,
+                20.6
+              ],
+              [
+                0,
+                28.312,
+                20.6
+              ],
+              [
+                0,
+                25.497,
+                20.6
+              ],
+              [
+                0,
+                22.681,
+                20.6
+              ],
+              [
+                0,
+                19.865,
+                20.6
+              ],
+              [
+                0,
+                17.049,
+                20.6
+              ],
+              [
+                0,
+                14.233,
+                20.6
+              ],
+              [
+                0,
+                11.418,
+                20.6
+              ],
+              [
+                0,
+                8.602,
+                20.6
+              ],
+              [
+                0,
+                5.786,
+                20.6
+              ]
+            ],
+            "diameterM": 0.03
+          }
+        ]
+      },
+      {
+        "id": "fit-capstan",
+        "name": "Capstan",
+        "version": 1,
+        "attach": "deck",
+        "massKg": 3200,
+        "solids": [
+          {
+            "id": "base",
+            "kind": "cylinder",
+            "size": [
+              1.8,
+              0.14,
+              1.8
+            ],
+            "position": [
+              0,
+              0.07,
+              0
+            ],
+            "rotationDeg": 0
+          },
+          {
+            "id": "drum",
+            "kind": "cylinder",
+            "size": [
+              1.1,
+              0.6,
+              1.1
+            ],
+            "position": [
+              0,
+              0.44,
+              0
+            ],
+            "rotationDeg": 0
+          },
+          {
+            "id": "whelps",
+            "kind": "cylinder",
+            "size": [
+              1.3,
+              0.3,
+              1.3
+            ],
+            "position": [
+              0,
+              0.35,
+              0
+            ],
+            "rotationDeg": 0
+          },
+          {
+            "id": "cap",
+            "kind": "cylinder",
+            "size": [
+              1.45,
+              0.14,
+              1.45
+            ],
+            "position": [
+              0,
+              0.81,
+              0
+            ],
+            "rotationDeg": 0
+          },
+          {
+            "id": "boss",
+            "kind": "cylinder",
+            "size": [
+              0.4,
+              0.08,
+              0.4
+            ],
+            "position": [
+              0,
+              0.92,
+              0
+            ],
+            "rotationDeg": 0
+          }
+        ],
+        "tubes": []
+      },
+      {
+        "id": "fit-vent-head",
+        "name": "Pyramid-roofed ventilator head",
+        "version": 1,
+        "attach": "deck",
+        "material": "steel",
+        "fill": 0.15,
+        "solids": [
+          {
+            "id": "trunk",
+            "kind": "box",
+            "size": [
+              1.1,
+              0.55,
+              1.1
+            ],
+            "position": [
+              0,
+              0.275,
+              0
+            ],
+            "rotationDeg": 0
+          },
+          {
+            "id": "roof",
+            "kind": "pyramid",
+            "size": [
+              1.3,
+              0.35,
+              1.3
+            ],
+            "position": [
+              0,
+              0.725,
+              0
+            ],
+            "rotationDeg": 0
+          }
+        ],
+        "tubes": []
+      },
+      {
+        "id": "fit-breakwater",
+        "name": "Forecastle breakwater",
+        "version": 1,
+        "attach": "deck",
+        "material": "steel",
+        "fill": 1,
+        "massKg": 9000,
+        "solids": [
+          {
+            "id": "plate-stbd",
+            "kind": "box",
+            "size": [
+              0.1,
+              1.3,
+              10.707007051459339
+            ],
+            "position": [
+              4.5,
+              0.65,
+              2.9
+            ],
+            "rotationDeg": 57.20046872738079
+          },
+          {
+            "id": "brace-stbd-0",
+            "kind": "wedge",
+            "size": [
+              0.08,
+              1.1,
+              0.9
+            ],
+            "position": [
+              1.9791493331364962,
+              0.55,
+              1.8702855175468163
+            ],
+            "rotationDeg": 57.20046872738079
+          },
+          {
+            "id": "brace-stbd-1",
+            "kind": "wedge",
+            "size": [
+              0.08,
+              1.1,
+              0.9
+            ],
+            "position": [
+              4.229149333136496,
+              0.55,
+              3.3202855175468162
+            ],
+            "rotationDeg": 57.20046872738079
+          },
+          {
+            "id": "brace-stbd-2",
+            "kind": "wedge",
+            "size": [
+              0.08,
+              1.1,
+              0.9
+            ],
+            "position": [
+              6.479149333136496,
+              0.55,
+              4.7702855175468155
+            ],
+            "rotationDeg": 57.20046872738079
+          },
+          {
+            "id": "plate-port",
+            "kind": "box",
+            "size": [
+              0.1,
+              1.3,
+              10.707007051459339
+            ],
+            "position": [
+              -4.5,
+              0.65,
+              2.9
+            ],
+            "rotationDeg": -57.20046872738079
+          },
+          {
+            "id": "brace-port-0",
+            "kind": "wedge",
+            "size": [
+              0.08,
+              1.1,
+              0.9
+            ],
+            "position": [
+              -1.9791493331364962,
+              0.55,
+              1.8702855175468163
+            ],
+            "rotationDeg": -57.20046872738079
+          },
+          {
+            "id": "brace-port-1",
+            "kind": "wedge",
+            "size": [
+              0.08,
+              1.1,
+              0.9
+            ],
+            "position": [
+              -4.229149333136496,
+              0.55,
+              3.3202855175468162
+            ],
+            "rotationDeg": -57.20046872738079
+          },
+          {
+            "id": "brace-port-2",
+            "kind": "wedge",
+            "size": [
+              0.08,
+              1.1,
+              0.9
+            ],
+            "position": [
+              -6.479149333136496,
+              0.55,
+              4.7702855175468155
+            ],
+            "rotationDeg": -57.20046872738079
+          }
+        ],
+        "tubes": []
+      },
+      {
+        "id": "fit-raft",
+        "name": "Carley float, large",
+        "version": 1,
+        "attach": "deck",
+        "massKg": 160,
+        "solids": [
+          {
+            "id": "grating",
+            "kind": "box",
+            "size": [
+              0.06,
+              1.02,
+              2.42
+            ],
+            "position": [
+              0,
+              0.85,
+              0
+            ],
+            "rotationDeg": 0,
+            "paint": "teak-natural"
+          },
+          {
+            "id": "chock",
+            "kind": "box",
+            "size": [
+              0.44000000000000006,
+              0.08,
+              1.55
+            ],
+            "position": [
+              0,
+              0.04,
+              0
+            ],
+            "rotationDeg": 0
+          }
+        ],
+        "tubes": [
+          {
+            "id": "ring",
+            "points": [
+              [
+                0,
+                0.17,
+                0
+              ],
+              [
+                0,
+                0.178,
+                0.216
+              ],
+              [
+                0,
+                0.203,
+                0.426
+              ],
+              [
+                0,
+                0.244,
+                0.627
+              ],
+              [
+                0,
+                0.3,
+                0.811
+              ],
+              [
+                0,
+                0.369,
+                0.976
+              ],
+              [
+                0,
+                0.45,
+                1.116
+              ],
+              [
+                0,
+                0.541,
+                1.23
+              ],
+              [
+                0,
+                0.64,
+                1.312
+              ],
+              [
+                0,
+                0.744,
+                1.363
+              ],
+              [
+                0,
+                0.85,
+                1.38
+              ],
+              [
+                0,
+                0.956,
+                1.363
+              ],
+              [
+                0,
+                1.06,
+                1.312
+              ],
+              [
+                0,
+                1.159,
+                1.23
+              ],
+              [
+                0,
+                1.25,
+                1.116
+              ],
+              [
+                0,
+                1.331,
+                0.976
+              ],
+              [
+                0,
+                1.4,
+                0.811
+              ],
+              [
+                0,
+                1.456,
+                0.627
+              ],
+              [
+                0,
+                1.497,
+                0.426
+              ],
+              [
+                0,
+                1.522,
+                0.216
+              ],
+              [
+                0,
+                1.53,
+                0
+              ],
+              [
+                0,
+                1.522,
+                -0.216
+              ],
+              [
+                0,
+                1.497,
+                -0.426
+              ],
+              [
+                0,
+                1.456,
+                -0.627
+              ],
+              [
+                0,
+                1.4,
+                -0.811
+              ],
+              [
+                0,
+                1.331,
+                -0.976
+              ],
+              [
+                0,
+                1.25,
+                -1.116
+              ],
+              [
+                0,
+                1.159,
+                -1.23
+              ],
+              [
+                0,
+                1.06,
+                -1.312
+              ],
+              [
+                0,
+                0.956,
+                -1.363
+              ],
+              [
+                0,
+                0.85,
+                -1.38
+              ],
+              [
+                0,
+                0.744,
+                -1.363
+              ],
+              [
+                0,
+                0.64,
+                -1.312
+              ],
+              [
+                0,
+                0.541,
+                -1.23
+              ],
+              [
+                0,
+                0.45,
+                -1.116
+              ],
+              [
+                0,
+                0.369,
+                -0.976
+              ],
+              [
+                0,
+                0.3,
+                -0.811
+              ],
+              [
+                0,
+                0.244,
+                -0.627
+              ],
+              [
+                0,
+                0.203,
+                -0.426
+              ],
+              [
+                0,
+                0.178,
+                -0.216
+              ],
+              [
+                0,
+                0.17,
+                0
+              ]
+            ],
+            "diameterM": 0.34,
+            "paint": "light-gray"
+          }
+        ]
+      },
+      {
+        "id": "fit-raft-small",
+        "name": "Carley float, small",
+        "version": 1,
+        "attach": "deck",
+        "massKg": 90,
+        "solids": [
+          {
+            "id": "grating",
+            "kind": "box",
+            "size": [
+              0.06,
+              1.2000000000000002,
+              1.2000000000000002
+            ],
+            "position": [
+              0,
+              0.9,
+              0
+            ],
+            "rotationDeg": 0,
+            "paint": "deck-wood"
+          },
+          {
+            "id": "chock",
+            "kind": "box",
+            "size": [
+              0.4,
+              0.08,
+              0.9
+            ],
+            "position": [
+              0,
+              0.04,
+              0
+            ],
+            "rotationDeg": 0
+          }
+        ],
+        "tubes": [
+          {
+            "id": "ring",
+            "points": [
+              [
+                0,
+                0.15,
+                0
+              ],
+              [
+                0,
+                0.159,
+                0.117
+              ],
+              [
+                0,
+                0.187,
+                0.232
+              ],
+              [
+                0,
+                0.232,
+                0.34
+              ],
+              [
+                0,
+                0.293,
+                0.441
+              ],
+              [
+                0,
+                0.37,
+                0.53
+              ],
+              [
+                0,
+                0.459,
+                0.607
+              ],
+              [
+                0,
+                0.56,
+                0.668
+              ],
+              [
+                0,
+                0.668,
+                0.713
+              ],
+              [
+                0,
+                0.783,
+                0.741
+              ],
+              [
+                0,
+                0.9,
+                0.75
+              ],
+              [
+                0,
+                1.017,
+                0.741
+              ],
+              [
+                0,
+                1.132,
+                0.713
+              ],
+              [
+                0,
+                1.24,
+                0.668
+              ],
+              [
+                0,
+                1.341,
+                0.607
+              ],
+              [
+                0,
+                1.43,
+                0.53
+              ],
+              [
+                0,
+                1.507,
+                0.441
+              ],
+              [
+                0,
+                1.568,
+                0.34
+              ],
+              [
+                0,
+                1.613,
+                0.232
+              ],
+              [
+                0,
+                1.641,
+                0.117
+              ],
+              [
+                0,
+                1.65,
+                0
+              ],
+              [
+                0,
+                1.641,
+                -0.117
+              ],
+              [
+                0,
+                1.613,
+                -0.232
+              ],
+              [
+                0,
+                1.568,
+                -0.34
+              ],
+              [
+                0,
+                1.507,
+                -0.441
+              ],
+              [
+                0,
+                1.43,
+                -0.53
+              ],
+              [
+                0,
+                1.341,
+                -0.607
+              ],
+              [
+                0,
+                1.24,
+                -0.668
+              ],
+              [
+                0,
+                1.132,
+                -0.713
+              ],
+              [
+                0,
+                1.017,
+                -0.741
+              ],
+              [
+                0,
+                0.9,
+                -0.75
+              ],
+              [
+                0,
+                0.783,
+                -0.741
+              ],
+              [
+                0,
+                0.668,
+                -0.713
+              ],
+              [
+                0,
+                0.56,
+                -0.668
+              ],
+              [
+                0,
+                0.459,
+                -0.607
+              ],
+              [
+                0,
+                0.37,
+                -0.53
+              ],
+              [
+                0,
+                0.293,
+                -0.441
+              ],
+              [
+                0,
+                0.232,
+                -0.34
+              ],
+              [
+                0,
+                0.187,
+                -0.232
+              ],
+              [
+                0,
+                0.159,
+                -0.117
+              ],
+              [
+                0,
+                0.15,
+                0
+              ]
+            ],
+            "diameterM": 0.3,
+            "paint": "light-gray"
+          }
+        ]
+      },
+      {
+        "id": "fit-stanchion",
+        "name": "Boat deck stanchion",
+        "version": 1,
+        "attach": "deck",
+        "massKg": 180,
+        "solids": [],
+        "tubes": [
+          {
+            "id": "post",
+            "points": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                2.6,
+                0
+              ]
+            ],
+            "diameterM": 0.22
           }
         ]
       }

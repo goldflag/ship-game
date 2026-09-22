@@ -66,3 +66,24 @@ test('surface groups are addressable per side and draft geometry covers every pa
   const geometry = primitiveGeometry(piece.kind, piece.size, undefined, undefined, undefined, undefined, undefined, piece.solid);
   expect(geometry.getAttribute('position').count).toBe(2 * 6 * 2 * 3);
 });
+
+test('a surface-patch batch reaches a compound solid surface group through panelId', () => {
+  const source = createStarterSource(catalog as ConstructionCatalog, 'blank');
+  const piece = lBlock();
+  const added = applyConstructionBatch(source, { version: 1, expectedRevision: source.revision, label: 'Add solid', commands: [{ op: 'primitive', value: piece }] });
+  const armored = applyConstructionBatch(added, {
+    version: 1,
+    expectedRevision: added.revision,
+    label: 'Armor the leg',
+    commands: [{ op: 'surface-patch', targets: [{ primitiveId: piece.id, face: 'port', panelId: 'leg' }], changes: { thicknessMm: 120, material: 'armor-steel' } }],
+  });
+  expect(armored.construction.surfaces.find(surface => surface.panelId === 'leg')).toMatchObject({ primitiveId: 'solid', face: 'port', thicknessMm: 120 });
+  expect(() =>
+    applyConstructionBatch(added, {
+      version: 1,
+      expectedRevision: added.revision,
+      label: 'Unknown group',
+      commands: [{ op: 'surface-patch', targets: [{ primitiveId: piece.id, face: 'port', panelId: 'arm' }], changes: { thicknessMm: 120 } }],
+    }),
+  ).toThrow('unknown port panel');
+});

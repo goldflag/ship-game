@@ -136,9 +136,12 @@ export function simplifyPath(points: Point2[], epsilon: number): Point2[] {
     let at = -1;
     const [ax, ay] = points[from];
     const [bx, by] = points[to];
-    const length = Math.hypot(bx - ax, by - ay) || 1;
+    const length = Math.hypot(bx - ax, by - ay);
     for (let i = from + 1; i < to; i++) {
-      const distance = Math.abs((bx - ax) * (ay - points[i][1]) - (ax - points[i][0]) * (by - ay)) / length;
+      // A closed ring starts and ends on the same point: measure from that point, not from a zero-length chord.
+      const distance = length > 0
+        ? Math.abs((bx - ax) * (ay - points[i][1]) - (ax - points[i][0]) * (by - ay)) / length
+        : Math.hypot(points[i][0] - ax, points[i][1] - ay);
       if (distance > worst) [worst, at] = [distance, i];
     }
     if (worst > epsilon && at > 0) {
