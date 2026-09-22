@@ -84,8 +84,21 @@ below a deck plane, and a well that did not cut it left a skin-thin lid the late
 checks could not measure. Platforms (`balcony`), including their walls and railings,
 are decorative and contribute no structural mass, buoyancy, armor, flooding volume or
 runtime collision geometry. They remain visible and can seat deck-mounted light guns
-and fittings. Working wells still need real hull or deckhouse interior beneath them;
-a balcony does not provide that interior or create a simulated deck penetration.
+and fittings. A balcony may float: it needs no contact with the hull. A balcony that does
+touch the hull still carries a hull piece standing on it, as saved designs rely on. Working wells still need real hull or
+deckhouse interior beneath them; a balcony does not provide that interior or create a
+simulated deck penetration.
+
+### Floating fittings
+
+Non-structural deck equipment needs no support under it: catalog and custom deck fittings,
+masts, and light deck-mounted guns without a working well (under 100 mm, or no occupancy).
+They add mass, or a ready-ammunition module at their datum, and nothing in the simulation
+depends on what is beneath them, so a searchlight may stand on a mast's own platform and a
+float may hang beside a deckhouse. Their datum must stay within `FLOAT_MARGIN_M` (10 m) of
+the hull's bounding box; further out is an `equipment-attachment` error, because it is almost
+always a mistyped position. Guns with wells, torpedo launchers, directors, funnels,
+machinery, rudders, propellers, wall fittings and paths keep their support rules.
 
 ### Fit tolerances
 
@@ -102,9 +115,10 @@ internal package or load still has to fit exactly. The constants live in one blo
 | `ATTACHMENT_M` | 0.08 m | Attachment datum to its hull support, raised from 5 cm |
 | `FITTED_BASE_M` | 0.005 m | Depth an exterior body may sink into the hull under its base (unchanged) |
 | `DECK_CROSSING_M` | 0.01 m | Gap below a deck a working well still crosses |
+| `FLOAT_MARGIN_M` | 10 m | How far outside the hull's bounding box a [floating](#floating-fittings) datum may stand |
 
-Real faults still fail: a mount floating 0.3 m over its deck, one buried 0.5 m in
-it, or a well half outside the hull are all far above these allowances.
+Real faults still fail: a turret with a well floating 0.3 m over its deck, one buried
+0.5 m in it, or a well half outside the hull are all far above these allowances.
 
 Funnels and masts are never collision bodies. Each catalog box encloses
 platforms, galleries, yards and rigging that real structure passes through, so
@@ -392,7 +406,8 @@ existing files. Failed proposals return no applicable batch and exit nonzero.
 ### Placing equipment
 
 Do not compute equipment heights by hand. The compiler rejects an attachment more than
-8 cm from its support (5 mm for wall fittings and fitted gun bases), decks are sheered
+8 cm from its support (5 mm for wall fittings and fitted gun bases) for equipment that
+cannot [float](#floating-fittings), decks are sheered
 and `position` is the part's retained datum, not the centre or base of its bounds.
 `ship:place` and `ship:reseat` resolve the seat against the hull the native compiler
 builds, then compile the exact candidate before returning it. Like `ship:suggest` they
@@ -439,7 +454,9 @@ floated) and the support piece, face and slope. Records within 1 mm are left alo
 a valid design yields no batch. Wall fittings only reach as far as the editor's wall
 snap (0.75 × their larger dimension); a linked twin follows its partner. With `--slide`
 a record with nothing under it moves sideways to the closest support, 1 cm inside its
-edge. Under `--all`, a record without a seat is a warning and the rest are still
+edge. Under `--all`, equipment that may float is lifted out of a support that rose into
+it but left where it floats above one, and never slid sideways; name it with `--ids` to
+seat it. Under `--all`, a record without a seat is a warning and the rest are still
 proposed; when the candidate then stops at an error on a record the batch does not
 touch, the batch is returned with `candidate.unverified` and a nonzero exit code.
 

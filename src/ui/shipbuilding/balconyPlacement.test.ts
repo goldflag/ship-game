@@ -33,12 +33,13 @@ test('the long open edge faces each clicked side, even an inward-facing wall awa
   }
 });
 
-test('resizing and opening an existing detached balcony restore physical support in the saved source', () => {
+test('resizing and opening an existing detached balcony seat it back against its wall', () => {
   const design = source();
   const before = { id: 'balcony', kind: 'balcony' as const, size: [2, .08, 1] as Vec3, position: [5.1, 0, 0] as Vec3, rotationDeg: 0, balcony: defaultBalcony() };
   before.balcony.points.forEach(p => { p.edge = 'wall'; });
   design.construction.primitives.push(before);
-  expect(compile(design).diagnostics.some(d => d.code === 'attachment')).toBe(true);
+  // A detached balcony floats (hull connectivity ignores platforms), but the editor still seats a resize.
+  expect(compile(design).diagnostics.some(d => d.code === 'attachment')).toBe(false);
   const after = structuredClone(before); after.size[0] = 1; after.balcony.points[3].edge = 'open';
   const seated = reseatBalcony(design, before, after);
   expect(seated.position[0]).toBeCloseTo(4.49, 7);

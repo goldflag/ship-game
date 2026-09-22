@@ -200,7 +200,7 @@ without the record keep their shape.
 - `balcony`: 3–32 outline points, concave allowed (`construction_balcony.rs`). Size Y is the deck
   thickness. The deck, walls and railings are decorative: no structural mass, buoyancy,
   armor, flooding volume or runtime collision geometry. They remain visible and support
-  equipment placement in the editor.
+  equipment placement in the editor. A balcony may float; one that touches the hull still carries a piece standing on it.
 - `wall`: Rust validates support, linked-pair symmetry, clearance and scaled mass
   (`construction_wall_fittings.rs`). A linked partner carries the opposite `turnDeg`. Wall
   fittings never cut hull openings or change flooding.
@@ -394,7 +394,7 @@ Every save writes an immutable revision and advances the design head only if
 `expectedRevisionId` matches. A stale writer is rejected. Compiled geometry and battle damage
 are never stored. Invalid physical drafts are saveable. See
 [account storage](accounts.md#source-storage-and-recovery) for quotas and recovery, and
-[online construction](accounts.md#online-construction) for the tighter online limits.
+[online construction](accounts.md#online-construction) for how designs reach online battles.
 
 Editing pipeline (`src/ships/`):
 

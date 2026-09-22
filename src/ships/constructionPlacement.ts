@@ -141,7 +141,24 @@ export function placementCommands(items: PlacementItem[], placements: Placement[
   });
 }
 
-export interface ReseatSelection { items: PlacementItem[]; skipped: { id: string; reason: string }[] }
+/** Mirrors `floats` in `crates/naval-sim/src/construction.rs`: non-structural deck equipment needs no hull
+ * under it (deck fittings, masts, light deck-mounted guns without a well); wall and path fittings do. */
+export function mayFloat(source: ConstructionSource, catalog: ConstructionCatalog, e: ConstructionEquipment, part: ConstructionEquipmentPart): boolean {
+  if (part.placement !== 'deck' || e.wall || part.wallMount || part.path) return false;
+  if (part.kind === 'deck-fitting' || part.kind === 'mast') return true;
+  return (
+    source.construction.version >= 2 &&
+    part.kind === 'gun' &&
+    (part.occupancy ? part.occupancy.length === 0 : catalog.weapons.parts.some((w) => w.id === part.gunPartId && w.caliberM < 0.1))
+  );
+}
+
+export interface ReseatSelection {
+  items: PlacementItem[];
+  skipped: { id: string; reason: string }[];
+  /** Under `all`: records allowed to float. They are lifted out of a support but left where they float above one. */
+  floating: string[];
+}
 /** Existing equipment to seat again along its attachment direction (Y for everything but wall and sideways fittings). */
 export function reseatItems(source: ConstructionSource, catalog: ConstructionCatalog, ids: string[] | 'all', slide = false): ReseatSelection {
   catalog = effectiveConstructionCatalog(source.construction, catalog);
@@ -152,7 +169,7 @@ export function reseatItems(source: ConstructionSource, catalog: ConstructionCat
     if (new Set(ids).size !== ids.length) throw new Error('Equipment IDs must not repeat.');
   }
   const chosen = ids === 'all' ? equipment : ids.map((id) => equipment.find((e) => e.id === id)!);
-  const items: PlacementItem[] = [], skipped: ReseatSelection['skipped'] = [], followers = new Set<string>();
+  const items: PlacementItem[] = [], skipped: ReseatSelection['skipped'] = [], floating: string[] = [], followers = new Set<string>();
   for (const e of chosen) {
     const part: ConstructionEquipmentPart | undefined = catalog.equipment.find((p) => p.id === e.partId);
     const reason = !part ? 'unknown catalog part ' + e.partId
@@ -162,11 +179,19 @@ export function reseatItems(source: ConstructionSource, catalog: ConstructionCat
       : undefined;
     if (reason) { skipped.push({ id: e.id, reason }); continue; }
     if (e.wall?.mirrorId) followers.add(e.wall.mirrorId);
+    const floats = ids === 'all' && mayFloat(source, catalog, e, part!);
+    if (floats) floating.push(e.id);
     // Same reach as the editor's wall snap: a fitting whose wall moved away is not thrown onto another wall.
     const reach = e.wall ? { maxTravelM: Math.max(0.15, Math.max(e.wall.widthM, e.wall.heightM) * 0.75) } : {};
-    items.push({ equipment: structuredClone(e), select: 'nearest', ...(slide && !e.wall ? { slide: true } : {}), ...reach });
+    items.push({ equipment: structuredClone(e), select: 'nearest', ...(slide && !e.wall && !floats ? { slide: true } : {}), ...reach });
   }
-  return { items, skipped };
+  return { items, skipped, floating };
+}
+
+/** Records that may float and stand above their nearest support: `reseat --all` leaves them where they are. */
+export function floatingAbove(placements: Placement[], floating: readonly string[]): Set<string> {
+  const allowed = new Set(floating);
+  return new Set(placements.filter((p) => allowed.has(p.id) && (p.gapM ?? 0) > 0).map((p) => p.id));
 }
 
 /** Absolute position patches for records more than 1 mm off their seat; patching a linked wall fitting moves its twin. */
