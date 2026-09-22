@@ -87,6 +87,13 @@ export interface WaveField {
   dispose(): void;
 }
 
+/** `waves/index.ts` exports `createWaveField` and `createWaveHeightSampler` with these shapes. The field
+ * reads `params` live: the facade owns that object and the game writes to it. */
+export type CreateWaveField = (renderer: WebGPURenderer, cascades: readonly WaveCascadeInfo[], params: WaveParameters) => WaveField;
+export type CreateWaveHeightSampler = (renderer: WebGPURenderer, field: WaveField) => WaveHeightSampler;
+/** `wake/index.ts` exports `createWakeField` with this shape. */
+export type CreateWakeField = (renderer: WebGPURenderer, resolution: number) => WakeFieldApi;
+
 /** Height readback at a set of world points, one frame late. Presentation only. */
 export interface WaveHeightSampler {
   setPositions(points: readonly { x: number; z: number }[]): void;
