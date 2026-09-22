@@ -709,11 +709,6 @@ export function Garage({
           {!alongside && !underway && !loading && !switching && (
             <EmptyPort drafts={designs.length} ready={usable} onBuild={onBuild} onChest={() => setChestOpen(true)} />
           )}
-          {!alongside && (loading || underway) && !switching && (
-            <p className="port-loading" role="status">
-              Loading your designs…
-            </p>
-          )}
           {library.error && (
             <p className="port-loading" role="alert">
               {library.error}{' '}
@@ -775,8 +770,14 @@ export function Garage({
           <span>{switchError}</span>
         </div>
       ) : (
-        switching && (
-          <svg className="garage-spinner" role="status" aria-label="Preparing ship" viewBox="0 0 24 24" fill="currentColor">
+        (switching || (!alongside && (loading || underway))) && (
+          <svg
+            className="garage-spinner"
+            role="status"
+            aria-label={switching ? 'Preparing ship' : 'Loading your designs'}
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
             <circle cx="12" cy="12" r="2.2" />
             <path id="garage-spinner-blade" d="M12 10.2c-.6-3.2.4-6.6 2.6-8.2 1.9 2.2 1.6 5.8-.8 8.2Z" />
             <use href="#garage-spinner-blade" transform="rotate(120 12 12)" />
