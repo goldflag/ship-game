@@ -30,8 +30,8 @@ async function compile(sourceJson: string) {
       if (!result.definition || result.diagnostics?.some((d: any) => d.severity === 'error')) throw new Error('Finish this design before joining an online battle');
       enforceDerivedLimits(result.definition);
       const artifact = JSON.stringify({ key, source, result });
-      if (Buffer.byteLength(artifact) > OUTPUT_LIMIT) throw new Error('Construction artifact exceeds 8 MiB');
-      while (cacheBytes + Buffer.byteLength(artifact) > 32 * 1024 * 1024 && cache.size) {
+      if (Buffer.byteLength(artifact) > OUTPUT_LIMIT) throw new Error('Construction artifact exceeds 64 MiB');
+      while (cacheBytes + Buffer.byteLength(artifact) > 96 * 1024 * 1024 && cache.size) {
         const first = cache.keys().next().value!; cacheBytes -= Buffer.byteLength(cache.get(first)!); cache.delete(first);
       }
       cache.set(key,artifact); cacheBytes += Buffer.byteLength(artifact); return artifact;

@@ -18,7 +18,7 @@ the fitting for free) and is built from the shape vocabulary the editor already 
 ## Owner's decisions
 
 1. Custom-fitting instances do not count against the 1,000 equipment instances. They have their
-   own limit: 1,000 per design, 96 online.
+   own limit: 1,000 per design, online as well as local.
 2. Format versioning was left to the implementation; see [Versioning](#versioning-and-deployment).
 3. Shells ignore custom fittings completely: no collision, hit volume, damage, armor or module.
 4. Tubes are part of version 1.
@@ -88,8 +88,8 @@ refused for online play with a clear message. Local play, saving and cloning are
 
 | Limit | Value |
 | --- | --- |
-| Definitions per design | 32 (16 online) |
-| Instances per design | 1,000 (96 online), separate from the 1,000 catalog instances (32 online) |
+| Definitions per design | 32 |
+| Instances per design | 1,000, separate from the 1,000 catalog instances |
 | Solids / tubes per definition | 48 / 16 |
 | Triangles per definition (cell faces plus tubes) | 20,000 |
 | Tube | 2–64 points, segments ≥ 1 cm, ≤ 100 m, diameter 0.01–2 m |
@@ -98,7 +98,7 @@ refused for online play with a clear message. Local play, saving and cloning are
 | Mass | 0.001–1,000,000 kg |
 
 Rust constants are in `construction_custom_fittings.rs`, mirrored by `CUSTOM_FITTING_LIMITS`.
-Online limits are in `services/compiler/limits.ts`.
+Online designs use the same limits (`services/compiler/limits.ts` checks only the source shape).
 
 ## Phase 1 (built)
 
