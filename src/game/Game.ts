@@ -118,6 +118,8 @@ export function briefingControlGroups(briefing: { groups: readonly { id: string;
  * localhost and 14 s on a 50 Mbit line. The port keeps the ship, ocean and sky. Set this
  * back to true to restore the backdrop; nothing else needs changing. */
 const HARBOR_BACKDROP = false;
+/** Half-width of the sun shadow square at sea, in meters. */
+const BATTLE_SHADOW_HALF = 380;
 const NO_SHIPS: ReadonlySet<string> = new Set();
 
 export class Game {
@@ -421,7 +423,7 @@ export class Game {
     params.fog.fadeEnd = 16000;
     params.fog.skyBlendDistance = 10000;
     params.fog.fadePower = 1.4;
-    // Full sky illumination keeps the shaded hull readable in daylight.
+    // VisualEnvironment trims sky light on meshes with the sun; the sea ignores it.
     params.environment.intensity = 1;
     params.clipmap.baseSize = 256;
     params.clipmap.levels = 6;
@@ -480,9 +482,7 @@ export class Game {
         .mul(max(0, moon.moonDirection.y))));
     this.water.setSky(skyProvider);
     const sunlight = this.water.lighting.sunLight;
-    Object.assign(sunlight.shadow.camera, { left: -380, right: 380, top: 380, bottom: -380, near: 1, far: 1800 });
-    sunlight.shadow.camera.updateProjectionMatrix();
-    this.graphicsControl.applyShadows();
+    this.fitSunShadow();
     this.graphicsControl.applyReflections();
     this.scene.add(sunlight.target);
     this.water.lighting.addSunSyncListener(() => this.environment.syncLighting());
@@ -851,6 +851,21 @@ export class Game {
    * battle's worth of vertex data. */
   private static readonly HULL_CACHE = 8;
 
+  /** Fit the one sun shadow map to what it must cover: the berthed hull in port, a
+   * fixed square around the shadow focus at sea. At 2048 px the battle's 760 m square
+   * is 0.37 m per texel, which smears a bridge's shadow; a 263 m hull fits in a third. */
+  private fitSunShadow(): void {
+    const sunlight = this.water?.lighting.sunLight;
+    if (!sunlight) return;
+    const half = this.inPort ? THREE.MathUtils.clamp(this.definition.hull.length / 2 + 30, 60, BATTLE_SHADOW_HALF) : BATTLE_SHADOW_HALF;
+    const camera = sunlight.shadow.camera;
+    if (camera.right === half) return;
+    Object.assign(camera, { left: -half, right: half, top: half, bottom: -half, near: 1, far: 1800 });
+    camera.updateProjectionMatrix();
+    // Recomputes the texel-proportional normal bias for the new extent.
+    this.graphicsControl.applyShadows();
+  }
+
   /** A derived hull template: fetched, painted and batched once, then reused. */
   private async hull(definition: ShipDefinition, revision?: LocalShipRevision): Promise<THREE.Group> {
     const hash = 'contentHash' in definition ? definition.contentHash as string : undefined;
@@ -1033,6 +1048,7 @@ export class Game {
       if (this.inPort) this.playerView!.root.visible = !emptyBerth;
       else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
+      this.fitSunShadow();
       this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.

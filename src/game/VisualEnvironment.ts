@@ -40,6 +40,18 @@ const SUN_HAZE = .45;
 /** Sun and moon disc radius as `1 - cos(θ)`: a 1.4° disc, under three times life size.
  * Sky Pro's presets draw them at 3.2° and 3.6°. */
 const CELESTIAL_DISC = 7.5e-5;
+/** Sky Pro and Water Pro are vendored shaders tuned by eye against the raw sun.
+ * Three's lit meshes turn the same intensity into about twice the light a Cycles
+ * render of the same GLB shows: 0.29-albedo Kure gray reached sRGB 200 in port.
+ * Only the scene's DirectionalLight is scaled; the sky, sea and smoke keep the raw sun. */
+const MESH_SUNLIGHT = .5;
+/** Share of the authored hemisphere fill, and of sky reflection, that reaches lit
+ * meshes in full daylight. Neither is occluded, so at full strength shaded faces
+ * read nearly as bright as sunlit ones. Without a strong sun the fill is all a
+ * backlit or moonlit hull has, so the shares return to 1 as the sun fades. */
+const MESH_FILL = .3, MESH_SKY = .6;
+/** Direct light at which the daylight shares start and complete. */
+const FILL_DAYLIGHT = [1, 4] as const;
 
 /** Applies resolved battle conditions to the licensed water and sky, and owns
  * every live override of those uniforms: the port's daylight and standing wind, the air map's
@@ -48,6 +60,8 @@ const CELESTIAL_DISC = 7.5e-5;
  * renderer-free conditions module; nothing here can move a hull. */
 export class VisualEnvironment {
   readonly ambientLight = new HemisphereLight('#dcebf2', '#65757e', .65);
+  /** The scene's authored ambient before the mesh share; smoke and diagnostics read this. */
+  private ambient = .65;
   private water?: WaterSystem;
   private sky?: SkySystem;
   private mapId: OceanMapId = DEFAULT_MAP;
@@ -128,7 +142,7 @@ export class VisualEnvironment {
         peakWavelength: this.water.waves.peakWavelength.value } : undefined,
       ...this.battle.conditions, timeOfDay: this.battle.timeOfDay, weather: this.battle.weather,
       environment: this.sky ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
-        sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambientLight.intensity,
+        sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambient,
         cloudCoverage: this.sky.clouds.shape.coverage.value, cloudWind: this.sky.clouds.wind.speed,
         cloudAmbient: this.sky.clouds.lighting.ambientIntensity.value, fogEnd: this.water?.fog.fadeEnd } : undefined };
   }
@@ -194,8 +208,9 @@ export class VisualEnvironment {
     sky.clouds.wind.speed = environment.cloudWind;
     sky.clouds.lighting.ambientIntensity.value = port ? 1.1 : environment.cloudAmbient;
     sky.clouds.lighting.baseShadowStrength.value = port ? .2 : environment.cloudShadow;
-    // Lift shaded hulls and harbor buildings without raising sea/sky exposure.
-    this.ambientLight.intensity = port ? 1.75 : authored.ambient;
+    // Lift shaded hulls without raising sea/sky exposure.
+    this.ambient = port ? 1.75 : authored.ambient;
+    this.ambientLight.intensity = this.ambient;
     // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
     // forward sun haze restrained so it cannot wash out the sky and reflections.
     sky.atmosphere.turbidity.value = port ? 3.2 : authored.turbidity;
@@ -246,15 +261,17 @@ export class VisualEnvironment {
       lighting.sun.intensity.value = intensity;
       lighting.sun.color.copy(this.celestialColor);
       const light = lighting.sunLight;
-      light.intensity = intensity;
+      light.intensity = intensity * MESH_SUNLIGHT;
+      const daylight = MathUtils.smoothstep(intensity, ...FILL_DAYLIGHT);
+      this.ambientLight.intensity = this.ambient * MathUtils.lerp(1, MESH_FILL, daylight);
+      this.water!.environment.intensity = MathUtils.lerp(1, MESH_SKY, daylight);
       light.color.copy(this.celestialColor);
       light.target.position.copy(this.inPort ? this.sinks.sunAnchor.position : this.shadowFocus ?? this.sinks.sunAnchor.position);
-      if (this.inPort) light.target.position.x -= 160;
       light.position.copy(direction).multiplyScalar(this.inPort ? 800 : 500).add(light.target.position);
       light.target.updateMatrixWorld();
     }
     this.sinks.effects.setSun(direction, this.inPort ? 1 : Math.min(1, night
-      ? .18 + this.ambientLight.intensity * .5 : this.ambientLight.intensity * .45 + intensity * .09));
-    this.sinks.effects.setIllumination(this.celestialColor, intensity, this.ambientLight.intensity);
+      ? .18 + this.ambient * .5 : this.ambient * .45 + intensity * .09));
+    this.sinks.effects.setIllumination(this.celestialColor, intensity, this.ambient);
   }
 }
