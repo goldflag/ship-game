@@ -36,6 +36,8 @@ stops a realistic ship:
 6. The visual mesh has a detail budget that works in online battles, and it is never armorable.
 7. The hull stays the in-game `custom-hull`. Blender may be used to shape it, but the saved hull
    is sections.
+8. Online designs use the same limits as local ones, including the visual mesh budget (2026-09-22).
+9. Masts float freely, like deck fittings (2026-09-22).
 
 ## The result, by part
 
@@ -112,11 +114,15 @@ floating fitting stays manageable.
 
 ### 1d. Online limits
 
-The online caps in `services/compiler/limits.ts` were set before decorative fittings were
-mass-only. Count only equipment that has simulation weight (guns, launchers, directors, machinery,
-propulsion) against a raised structural cap, and give decorative rows (deck fittings, custom
-instances) their own larger cap. Set the numbers by measuring a maximal realistic design (the
-Scharnhorst) against the compile worker's 10 s, 0.5 CPU and 8 MiB artifact limits.
+Online designs use the local limits (decision 8): the compile worker checks only the source shape
+and the native compiler enforces the rest. The realistic Scharnhorst compiles to a 27.8 MB artifact
+(7,208 cells, 8,772 patches) in under a second, so the worker's artifact bound rises to 64 MiB. The
+server's 320 MiB pin on queued and running match content stays for now; about eight
+Scharnhorst-sized designs in flight would reach it.
+
+Status: 1a (floating fittings and balconies) and 1d are PR #448. PR #447 fixes a separate blocker:
+the current published catalog (4.6 MB) exceeded the compiler's 4 MB input bound, so the online
+worker could not compile any design pinned to it.
 
 ### Acceptance
 
@@ -142,12 +148,12 @@ of simulation geometry).
   paint comes from the mesh's paint, then the instance, then the ship paint.
 - **Budgets (starting values, to be measured):**
 
-| Budget | Local | Online |
-| --- | --- | --- |
-| Triangles per mesh | 20,000 | 20,000 |
-| Unique mesh triangles per design | 100,000 | 50,000 |
-| Encoded mesh bytes per design | 1 MiB | 512 KiB |
-| Rendered triangles per design (instances × definition) | 1,000,000 | 200,000 |
+| Budget | Local and online |
+| --- | --- |
+| Triangles per mesh | 20,000 |
+| Unique mesh triangles per design | 100,000 |
+| Encoded mesh bytes per design | 1 MiB |
+| Rendered triangles per design (instances × definition) | 1,000,000 |
 
 - Strip mesh data from the compiled definition's echo of the source (`construction.rs:1474` embeds
   the whole source) so match content does not carry it twice.
@@ -239,7 +245,8 @@ a ship without the new fields.
 
 ## Open questions
 
-- Should masts and directors, which carry modules or gun-arc obstructions, float freely,
-  or only when parented?
-- Are the starting online budgets right? They should be set by measurement, not taken from this page.
-- Paint on visual meshes: one paint per mesh, per material group, or vertex colours from Blender?
+- Should directors, which carry fire-control modules, float freely or only when parented?
+- Are the starting mesh budgets right? They should be set by measurement, not taken from this page.
+- Paint on visual meshes: the proposal is one construction paint per Blender material slot, so a
+  mesh can carry several paints and each stays repaintable in the editor; vertex colours were the
+  alternative, but they cannot be repainted.
