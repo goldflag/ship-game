@@ -7,6 +7,8 @@ import type {
   ConstructionCustomHull,
   ConstructionEquipment,
   ConstructionFittingDefinition,
+  ConstructionFittingMesh,
+  ConstructionFittingMeshGroup,
   ConstructionFittingSolid,
   ConstructionFittingTube,
   ConstructionFreeformFace,
@@ -172,6 +174,14 @@ export const EQUIPMENT = object<ConstructionEquipment>(
     paint: optional(text('Named coating for this installation and its barbette.')),
     magazineId: optional(id()),
     powerSourceId: optional(id('Explicit engine for a propeller; omission uses native assignment.')),
+    scale: optional(vec3('Custom fitting instances only: per-axis scale about the datum, 0.05–20; mass follows the volume.')),
+    parent: optional(
+      id(
+        'A hull piece or equipment row this row rides on: move, rotate, copy and remove carry it with the parent. ' +
+          'Position and bearing stay absolute. Only equipment that may float (deck fittings, masts, light deck guns without a well) ' +
+          'takes one; parents are hull pieces, deck fittings, masts, funnels and directors, at most 8 deep.',
+      ),
+    ),
     gun: optional(
       object<NonNullable<ConstructionEquipment['gun']>>(undefined, {
         barbetteHeightM: optional(number('Turret rise. Use the `turret-rise` command: it moves position Y with the rise.')),
@@ -238,24 +248,47 @@ const fittingTube = object<ConstructionFittingTube>(
   'FittingTube',
   {
     id: id('Unique among the solids and tubes of this fitting.'),
-    points: list(vec3('Fitting-local metres.'), '2–64 connected points; segments of at least 1 cm, 100 m in total.'),
+    points: list(vec3('Fitting-local metres.'), '2–256 connected points; segments of at least 1 cm, 100 m in total.'),
     diameterM: number('0.01–2 m.'),
     paint: optional(text()),
   },
   'Round tube swept along a polyline: pipes, davit arms, stays, light masts.',
+);
+const fittingMeshGroup = object<ConstructionFittingMeshGroup>(undefined, {
+  start: index(),
+  count: { type: 'number', integer: true, minimum: 1 },
+  name: optional(text('The source material or group name.')),
+  paint: optional(text('Named coating; omission follows the instance paint, then the ship paint.')),
+});
+const fittingMesh = object<ConstructionFittingMesh>(
+  'FittingMesh',
+  {
+    id: id('Unique among the solids, tubes and meshes of this fitting.'),
+    encoding: choice(['deflate-q16-u16-v1']),
+    data: text(
+      'Base64 of zlib-deflated little-endian u16s: vertices × (x, y, z) quantized over `bounds`, then triangles × 3 vertex indices. Write it with `ship:fitting-mesh`.',
+    ),
+    vertices: { type: 'number', integer: true, minimum: 1, maximum: 65535 },
+    triangles: { type: 'number', integer: true, minimum: 1, doc: 'At most 20,000 per mesh and 100,000 per design.' },
+    bounds: object<ConstructionFittingMesh['bounds']>(undefined, { min: vec3(), max: vec3() }),
+    groups: optional(list(fittingMeshGroup, 'Ascending, non-overlapping triangle runs; at most 64.')),
+  },
+  'A visual triangle mesh, open or non-convex, in fitting-local metres: drawn and weighed, never hull, armor or hit geometry.',
 );
 export const FITTING = object<ConstructionFittingDefinition>(
   'Fitting',
   {
     id: id('Definition ID; instances are equipment with `partId: "design:<id>"`.'),
     name: { type: 'string', minLength: 1, maxLength: 80 },
-    version: { type: 'number', enum: [1] },
+    version: { type: 'number', enum: [1, 2], doc: '2 when the definition has `meshes` or `centerOfGravity`.' },
     attach: choice(['deck'], 'Seats on a deck at the local origin. `wall` and `internal` are reserved.'),
-    solids: list(fittingSolid, 'At most 48.'),
-    tubes: list(fittingTube, 'At most 16.'),
+    solids: list(fittingSolid, 'At most 256.'),
+    tubes: list(fittingTube, 'At most 128.'),
     material: optional(choice(['steel', 'aluminium', 'brass', 'wood'], 'Density basis; omission is steel.')),
     fill: optional(number('Solid fraction of the shape volume, 0.01–1; omission is 1.')),
-    massKg: optional(number('Explicit mass; overrides volume × density × fill.')),
+    massKg: optional(number('Explicit mass; overrides volume × density × fill. Required with meshes.')),
+    meshes: optional(list(fittingMesh, 'Visual meshes (version 2); at most 16.')),
+    centerOfGravity: optional(vec3('Explicit fitting-local centre of gravity (version 2).')),
   },
   'Design-local fitting definition: non-structural shapes that add mass only. Shells, armor, modules and flooding ignore it.',
 );
@@ -337,7 +370,10 @@ export const COMMANDS = {
     fields: { id: id(), heightM: { type: 'number', minimum: 0, maximum: 30 } },
   },
   copy: {
-    doc: 'Copy hull pieces, equipment and loads to new IDs. Default offset is 1 m to starboard; choose mirror or offset, not both.',
+    doc:
+      'Copy hull pieces, equipment and loads to new IDs. Default offset is 1 m to starboard; choose mirror or offset, not both. ' +
+      'A copied parent brings everything it carries, so list a copy for each of those rows too; copies ride the copied parent. ' +
+      'A row copied without its parent keeps that parent, except that a mirrored copy drops a parent off the centreline.',
     fields: {
       copies: { type: 'array', minItems: 1, items: { type: 'object', fields: { from: id(), to: id('New unique ID.') } } },
       mirror: optional(bool('Reflect across ship X=0.')),
@@ -347,11 +383,21 @@ export const COMMANDS = {
   boundary: { doc: 'Add or replace a boundary by ID.', fields: { value: BOUNDARY } },
   load: { doc: 'Add or replace a load by ID.', fields: { value: LOAD } },
   remove: {
-    doc: 'Remove records. The last hull piece is kept; a linked wall partner goes too. A custom fitting definition is refused while instances outside this command still use it.',
+    doc:
+      'Remove records. The last hull piece is kept; a linked wall partner goes too, and so does everything a removed piece or row ' +
+      'carries (`parent`). A custom fitting definition is refused while instances outside this command still use it.',
     fields: { ids: removable },
   },
-  move: { doc: 'Translate pieces, equipment, loads and boundary offsets.', fields: { ids, delta: vec3('[x, y, z] metres: +X starboard, +Y up, −Z bow.') } },
-  rotate: { doc: 'Yaw hull pieces and equipment about their own datums.', fields: { ids, degrees: number('Added to each `rotationDeg` and `bearingDeg`, then normalized to 0–360; wall fittings are skipped.') } },
+  move: {
+    doc: 'Translate pieces, equipment, loads and boundary offsets. Everything a moved piece or row carries (`parent`) moves by the same delta.',
+    fields: { ids, delta: vec3('[x, y, z] metres: +X starboard, +Y up, −Z bow.') },
+  },
+  rotate: {
+    doc:
+      'Yaw hull pieces and equipment about their own datums. Rows a turned piece or row carries (`parent`) swing about its datum ' +
+      'and keep their pose on it: a fitting’s riders turn by +degrees, a hull piece’s by −degrees, because `rotationDeg` is counter-clockwise.',
+    fields: { ids, degrees: number('Added to each `rotationDeg` and `bearingDeg`, then normalized to 0–360; wall fittings are skipped.') },
+  },
   surface: { doc: 'Assign a whole face record.', fields: { value: SURFACE } },
   'surface-patch': {
     doc: 'Change some values of faces; unassigned faces start from what they inherit.',

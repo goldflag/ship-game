@@ -1,4 +1,5 @@
-export const OUTPUT_LIMIT=8*1024*1024;
+/** Largest compiler output and artifact. A realistic battleship compiles to about 28 MB of JSON. */
+export const OUTPUT_LIMIT=64*1024*1024;
 export async function boundedRead(stream: ReadableStream<Uint8Array>, limit:number) {
  const reader=stream.getReader(),chunks:Uint8Array[]=[];let size=0;
  try {for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>limit)throw new Error('Compiler output limit exceeded');chunks.push(value);}}

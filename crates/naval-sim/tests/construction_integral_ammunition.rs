@@ -899,13 +899,10 @@ fn deck_mounts_leave_room_for_internal_decks_and_loads_below() {
     });
     let result = construction::compile(&source, &catalog);
     assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+    // A light deck mount has no well, so it may float above the deck like a fitting.
     source.construction.equipment[0].position[1] += 0.25;
-    assert!(
-        construction::compile(&source, &catalog)
-            .definition
-            .is_none(),
-        "A floating deck mount must still fail"
-    );
+    let floating = construction::compile(&source, &catalog);
+    assert!(floating.definition.is_some(), "{:?}", floating.diagnostics);
     source.construction.equipment[0].position[1] = 8.;
     source
         .construction
@@ -919,10 +916,7 @@ fn deck_mounts_leave_room_for_internal_decks_and_loads_below() {
             paint: "naval-gray".into(),
             ..Default::default()
         });
-    assert!(
-        construction::compile(&source, &catalog)
-            .definition
-            .is_none(),
-        "An open deck cannot support a pedestal"
-    );
+    // Over an opening the pedestal has no support either; it floats like any light mount.
+    let open = construction::compile(&source, &catalog);
+    assert!(open.definition.is_some(), "{:?}", open.diagnostics);
 }

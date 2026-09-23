@@ -3,6 +3,7 @@ import type { Vec3 } from '../../../ships/blueprint';
 import type { BuilderPick, BuilderScene } from '../builderScene';
 import { internalSelectionIds } from '../internalSelection';
 import { twinIds } from './movePreview';
+import { carriedIds, carryRoots, turnedAbout } from '../../../ships/constructionParents';
 
 /** A secondary drag rotates installed fittings, or the cursor at its held placement. */
 export interface RotationDrag {
@@ -44,7 +45,8 @@ export function rotationDrag(
   return undefined;
 }
 
-/** Turn the installed models (and their pick proxies) in place; the source commits once on release. */
+/** Turn the installed models (and their pick proxies) in place; the source commits once on release. What a turned
+ * fitting carries (`parent`) swings about its datum, as the `rotate` command will move it. */
 export function previewRotation(
   scene: BuilderScene,
   equipmentGroup: THREE.Object3D,
@@ -52,16 +54,35 @@ export function previewRotation(
   rotation: RotationDrag,
   degrees: number,
 ) {
-  for (const item of scene.source.construction.equipment) {
-    const twin = !!rotation.twins?.includes(item.id);
-    if (!twin && !rotation.ids.includes(item.id)) continue;
-    const bearing = item.bearingDeg + (twin ? -degrees : degrees);
-    const object = equipmentGroup.getObjectByName(item.id);
+  const data = scene.source.construction;
+  const pose = (id: string, bearing: number, position?: Vec3) => {
+    const object = equipmentGroup.getObjectByName(id);
     if (object) {
       object.rotation.y = (-bearing * Math.PI) / 180;
+      if (position) object.position.fromArray(position);
       object.updateMatrixWorld(true);
     }
     for (const datum of details.children)
-      if (datum.children.some((child) => child.userData.sourceId === item.id)) datum.rotation.y = (-bearing * Math.PI) / 180;
+      if (datum.children.some((child) => child.userData.sourceId === id)) {
+        datum.rotation.y = (-bearing * Math.PI) / 180;
+        if (position) datum.position.fromArray(position);
+      }
+  };
+  for (const item of data.equipment) {
+    const twin = !!rotation.twins?.includes(item.id);
+    if (!twin && !rotation.ids.includes(item.id)) continue;
+    pose(item.id, item.bearingDeg + (twin ? -degrees : degrees));
+  }
+  for (const [ids, sign] of [
+    [rotation.ids, 1],
+    [rotation.twins ?? [], -1],
+  ] as const) {
+    for (const id of carryRoots(data, new Set(ids))) {
+      const root = data.equipment.find((item) => item.id === id),
+        riders = carriedIds(data, [id]);
+      if (!root || !riders.size) continue;
+      for (const rider of data.equipment)
+        if (riders.has(rider.id)) pose(rider.id, rider.bearingDeg + sign * degrees, turnedAbout(rider.position, root.position, sign * degrees));
+    }
   }
 }

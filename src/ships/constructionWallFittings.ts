@@ -5,8 +5,11 @@ export function wallMount(part: ConstructionEquipmentPart): ConstructionEquipmen
   return part.wallMount ?? (part.id === 'generic-watertight-door' ? 'door' : undefined);
 }
 
-export function wallScale(part: ConstructionEquipmentPart, item: Pick<ConstructionEquipment, 'wall'>): Vec3 {
-  if (!item.wall || !wallMount(part)) return [1, 1, 1];
+/** Per-axis scale of an installation: a wall fitting's sizing, or a custom fitting instance's own `scale`
+ * (mirrors `scale_instance` in `construction_wall_fittings.rs`). */
+export function wallScale(part: ConstructionEquipmentPart, item: Pick<ConstructionEquipment, 'wall' | 'scale'>): Vec3 {
+  if (!item.wall) return item.scale && part.id.startsWith('design:') ? item.scale : [1, 1, 1];
+  if (!wallMount(part)) return [1, 1, 1];
   const x = item.wall.widthM / part.size[0];
   return part.wallSizing === 'uniform' ? [x, x, x] : [x, item.wall.heightM / part.size[1], 1];
 }
@@ -30,8 +33,8 @@ export function spunWallVector(v: Vec3, turnDeg: number): Vec3 {
 }
 
 /** Installation dimensions for picking, snapping and display. Rust owns physical validation. */
-export function installedWallPart(part: ConstructionEquipmentPart, item: Pick<ConstructionEquipment, 'wall'>): ConstructionEquipmentPart {
-  if (!item.wall) return part;
+export function installedWallPart(part: ConstructionEquipmentPart, item: Pick<ConstructionEquipment, 'wall' | 'scale'>): ConstructionEquipmentPart {
+  if (!item.wall && !(item.scale && part.id.startsWith('design:'))) return part;
   const scale = wallScale(part, item), turn = wallTurn(item.wall), swap = turn === 90 || turn === 270;
   const scaled = (v: Vec3) => spunWallVector(v.map((n, k) => n * scale[k]) as Vec3, turn);
   const sized = (v: Vec3): Vec3 => { const n = v.map((x, k) => x * scale[k]) as Vec3; return swap ? [n[1], n[0], n[2]] : n; };

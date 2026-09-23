@@ -3,6 +3,7 @@ import { CUSTOM_FITTING_LIMITS, customFittingDefinitions, customFittingFault, cu
 import type { ConstructionCommand } from './constructionCommands';
 import { CONSTRUCTION_LIMITS } from './constructionEditor';
 import { mirroredWall, wallMount } from './constructionWallFittings';
+import { CENTERLINE_M, MAX_PARENT_DEPTH, carriedIds, carrierOf, mayCarry, mayFloat, mayRideTrainable, parentChain, trains } from './constructionParents';
 
 /** Requests and results of the native seat resolver (`crates/naval-sim/src/construction_placement.rs`).
  * This module only builds records and batches; every height comes from the native hull geometry. */
@@ -52,6 +53,9 @@ export interface PlaceOptions {
   mirror?: boolean;
   repeat?: number;
   step?: [number, number];
+  /** A hull piece or equipment row the new records ride on (`parent`). Seating is unchanged: the seat is still
+   * the hull support under (x,z). Only equipment that may float takes a parent. */
+  parent?: string;
 }
 /** Copies one `place` request may seat. The design's own equipment and custom-fitting
  * budgets still apply, so a long run is refused by the budget, not by this cap. */
@@ -95,6 +99,9 @@ export function placementItems(source: ConstructionSource, catalog: Construction
     taken.add(id);
     return id;
   };
+  const parentAt = options.parent === undefined ? undefined : placementParent(source, catalog, part, options.parent);
+  if (parentAt && options.mirror && Math.abs(parentAt[0]) > CENTERLINE_M && Math.abs(options.at[0]) > 1e-6)
+    throw new Error('--mirror would give the twin a parent on the other side; place each side with its own --parent.');
   const explicit = options.id !== undefined && count === 1;
   if (explicit && taken.has(base)) throw new Error('ID ' + base + ' already exists. Use reseat or a move command for existing equipment.');
   const items: PlacementItem[] = [];
@@ -108,6 +115,7 @@ export function placementItems(source: ConstructionSource, catalog: Construction
     const equipment: ConstructionEquipment = {
       id, partId: part.id, position: [x, options.y ?? 0, z], bearingDeg: bearing(options.bearingDeg ?? 0),
       ...(wall ? { wall: { ...wall, ...(twinId ? { mirrorId: twinId } : {}) } } : {}),
+      ...(options.parent === undefined ? {} : { parent: options.parent }),
     };
     items.push({
       equipment, on: options.on,
@@ -141,7 +149,38 @@ export function placementCommands(items: PlacementItem[], placements: Placement[
   });
 }
 
-export interface ReseatSelection { items: PlacementItem[]; skipped: { id: string; reason: string }[] }
+export { mayFloat };
+
+/** The datum of a requested parent, after checking the relationship the compiler will check. */
+function placementParent(source: ConstructionSource, catalog: ConstructionCatalog, part: ConstructionEquipmentPart, id: string): Vec3 {
+  const data = source.construction;
+  const row = data.equipment.find((e) => e.id === id),
+    piece = data.primitives.find((p) => p.id === id);
+  if (!row && !piece) throw new Error('Unknown parent ' + id + '. A parent is a hull piece or an equipment ID (ship:summary lists them).');
+  if (!mayFloat(source, catalog, { id: '', partId: part.id, position: [0, 0, 0], bearingDeg: 0 }, part))
+    throw new Error(part.name + ' needs hull support, so it cannot ride a parent; only equipment that may float (deck fittings, masts, light deck-mounted guns without a well) takes one.');
+  if (row) {
+    const parentPart = catalog.equipment.find((p) => p.id === row.partId);
+    if (!mayCarry(row, parentPart))
+      throw new Error(
+        parentPart?.kind === 'torpedo-launcher'
+          ? id + ' is a trainable torpedo launcher; equipment cannot ride a launcher yet.'
+          : id + ' cannot carry equipment; parents are hull pieces, guns, masts, funnels, directors and deck fittings.',
+      );
+    const carrier = trains(parentPart) ? id : carrierOf(data, catalog, id);
+    if (carrier !== undefined && !mayRideTrainable(source, catalog, { id: '', partId: part.id, position: [0, 0, 0], bearingDeg: 0 }, part))
+      throw new Error(part.name + ' cannot ride the trainable gun ' + carrier + '; only deck fittings and light deck guns train with a gun.');
+    if (parentChain(data, id).length >= MAX_PARENT_DEPTH) throw new Error(id + ' already rides ' + MAX_PARENT_DEPTH + ' parents deep; attach closer to the hull.');
+  }
+  return (row ?? piece)!.position;
+}
+
+export interface ReseatSelection {
+  items: PlacementItem[];
+  skipped: { id: string; reason: string }[];
+  /** Under `all`: records allowed to float. They are lifted out of a support but left where they float above one. */
+  floating: string[];
+}
 /** Existing equipment to seat again along its attachment direction (Y for everything but wall and sideways fittings). */
 export function reseatItems(source: ConstructionSource, catalog: ConstructionCatalog, ids: string[] | 'all', slide = false): ReseatSelection {
   catalog = effectiveConstructionCatalog(source.construction, catalog);
@@ -152,26 +191,42 @@ export function reseatItems(source: ConstructionSource, catalog: ConstructionCat
     if (new Set(ids).size !== ids.length) throw new Error('Equipment IDs must not repeat.');
   }
   const chosen = ids === 'all' ? equipment : ids.map((id) => equipment.find((e) => e.id === id)!);
-  const items: PlacementItem[] = [], skipped: ReseatSelection['skipped'] = [], followers = new Set<string>();
+  const items: PlacementItem[] = [], skipped: ReseatSelection['skipped'] = [], floating: string[] = [], followers = new Set<string>();
   for (const e of chosen) {
     const part: ConstructionEquipmentPart | undefined = catalog.equipment.find((p) => p.id === e.partId);
     const reason = !part ? 'unknown catalog part ' + e.partId
       : part.path || e.path ? 'connected fitting: its points are not seated by this command'
       : part.kind === 'propeller' ? 'propeller: its height is valid where it is; the compiler derives the shaft support, so move it explicitly to change it'
       : followers.has(e.id) ? 'linked wall twin: follows ' + e.wall?.mirrorId
+      : ids === 'all' && e.parent !== undefined ? 'rides its parent ' + e.parent + ', which carries it; name it with --ids to seat it'
       : undefined;
     if (reason) { skipped.push({ id: e.id, reason }); continue; }
     if (e.wall?.mirrorId) followers.add(e.wall.mirrorId);
+    const floats = ids === 'all' && mayFloat(source, catalog, e, part!);
+    if (floats) floating.push(e.id);
     // Same reach as the editor's wall snap: a fitting whose wall moved away is not thrown onto another wall.
     const reach = e.wall ? { maxTravelM: Math.max(0.15, Math.max(e.wall.widthM, e.wall.heightM) * 0.75) } : {};
-    items.push({ equipment: structuredClone(e), select: 'nearest', ...(slide && !e.wall ? { slide: true } : {}), ...reach });
+    items.push({ equipment: structuredClone(e), select: 'nearest', ...(slide && !e.wall && !floats ? { slide: true } : {}), ...reach });
   }
-  return { items, skipped };
+  return { items, skipped, floating };
 }
 
-/** Absolute position patches for records more than 1 mm off their seat; patching a linked wall fitting moves its twin. */
-export function reseatCommands(placements: Placement[], minimumM = 1e-3): ConstructionCommand[] {
-  return placements
-    .filter((p) => (p.status === 'seated' || p.status === 'slid') && p.position.some((v, i) => Math.abs(v - p.from[i]) > minimumM))
-    .map((p) => ({ op: 'equipment-patch', id: p.id, changes: { position: p.position } }));
+/** Records that may float and stand above their nearest support: `reseat --all` leaves them where they are. */
+export function floatingAbove(placements: Placement[], floating: readonly string[]): Set<string> {
+  const allowed = new Set(floating);
+  return new Set(placements.filter((p) => allowed.has(p.id) && (p.gapM ?? 0) > 0).map((p) => p.id));
+}
+
+/** Absolute position patches for records more than 1 mm off their seat; patching a linked wall fitting moves its twin.
+ * With the source, what a reseated record carries (`parent`) moves by the same delta, unless it was reseated itself. */
+export function reseatCommands(placements: Placement[], minimumM = 1e-3, source?: ConstructionSource): ConstructionCommand[] {
+  const moved = placements.filter((p) => (p.status === 'seated' || p.status === 'slid') && p.position.some((v, i) => Math.abs(v - p.from[i]) > minimumM));
+  const commands: ConstructionCommand[] = moved.map((p) => ({ op: 'equipment-patch', id: p.id, changes: { position: p.position } }));
+  if (!source) return commands;
+  const own = new Set(moved.map((p) => p.id));
+  for (const p of moved) {
+    const riders = [...carriedIds(source.construction, [p.id])].filter((id) => !own.has(id));
+    if (riders.length) commands.push({ op: 'move', ids: riders, delta: p.position.map((v, i) => v - p.from[i]) as Vec3 });
+  }
+  return commands;
 }

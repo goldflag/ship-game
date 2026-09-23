@@ -16,8 +16,10 @@ Related guides:
 - Machinery auxiliaries, pumps and repair: [machinery services](construction-services.md).
 - Propeller and rudder forces: [maneuvering](maneuvering.md).
 
-Blender remains the authoring tool for reusable components only. Player designs never pass
-through Blender.
+Blender remains the authoring tool for reusable components. For a construction design it is at
+most an optional authoring front end ([Blender front end](construction-authoring.md#blender-front-end)):
+its only output is a revision-guarded batch, builds and compiles never run it, and the construction
+source stays the only durable record of a design.
 
 ## Ownership
 
@@ -53,7 +55,7 @@ Equipment `bearingDeg` is clockwise. Published parts keep their original datum a
 | --- | --- |
 | `primitives` | Hull pieces: `kind`, `size`, `position`, `rotationDeg` (yaw) and optional records below |
 | `surfaces` | Face assignments: `primitiveId`, canonical `face`, `thicknessMm`, `material`, `paint`, `open`, optional `panelId` |
-| `equipment` | Fitted catalog parts: `partId`, `position`, `bearingDeg`, optional `paint`, `gun`, `launcher`, `wall`, `path`, `powerSourceId` |
+| `equipment` | Fitted catalog parts: `partId`, `position`, `bearingDeg`, optional `paint`, `gun`, `launcher`, `wall`, `path`, `powerSourceId`, `scale` (custom fittings), `parent` |
 | `boundaries` | Internal decks and bulkheads: `axis`, `offset`, `thicknessMm` |
 | `loads` | Named box loads with `massKg` |
 | `fittings` | Optional design-local fitting definitions; see [Custom fittings](#custom-fittings) |
@@ -216,10 +218,16 @@ without the record keep their shape.
 - `balcony`: 3–32 outline points, concave allowed (`construction_balcony.rs`). Size Y is the deck
   thickness. The deck, walls and railings are decorative: no structural mass, buoyancy,
   armor, flooding volume or runtime collision geometry. They remain visible and support
-  equipment placement in the editor.
+  equipment placement in the editor. A balcony may float; one that touches the hull still carries a piece standing on it.
 - `wall`: Rust validates support, linked-pair symmetry, clearance and scaled mass
   (`construction_wall_fittings.rs`). A linked partner carries the opposite `turnDeg`. Wall
   fittings never cut hull openings or change flooding.
+- `parent`: the hull piece or equipment row this row rides on (`construction_parents.rs`).
+  `position` and `bearingDeg` stay absolute. Moving, turning, copying, mirroring and removing the
+  parent carries the row; see [Parents](construction-authoring.md#parents). Under a fixed parent
+  nothing physical reads it. A row with a gun up its chain trains with that gun: a carried gun's
+  mount gets `parentMountId`, and the model draws the row under the gun's yaw joint; see
+  [Trainable parents](construction-authoring.md#trainable-parents).
 - `path`: points are equipment-local. Rope and chain sag is sampled at 16 intervals per
   segment; a route is at most 500 m (`construction_paths.rs`). Native code owns support, hull
   clearance, mass, CG and inertia. `src/game/constructionPathModel.ts` only draws the route.
@@ -247,9 +255,19 @@ shape and Clone carries definitions with the design.
   8,500, `wood` 700 kg/m³; `fill` 0.01–1, default 1), or `massKg` when given. Overlapping solids
   count their volume twice.
 - A solid or tube without `paint` follows the instance `paint`, then the ship paint.
+- `meshes` (version 2) are visual triangle meshes, open or non-convex, for detail the shape
+  vocabulary cannot express: `{ id, encoding: "deflate-q16-u16-v1", data, vertices, triangles,
+  bounds: { min, max }, groups? }`. `data` is base64 of zlib-deflated little-endian u16s: the
+  vertices' x, y, z quantized over `bounds` (0 is `min`, 65535 is `max`), then three vertex indices
+  per triangle. `groups` are ascending runs `{ start, count, name?, paint? }` of triangles; each keeps
+  its own paint in the editor, and unpainted triangles follow the instance, then the ship paint.
+  A mesh-bearing definition must be `version: 2` (older compilers refuse it instead of ignoring the
+  meshes), needs `massKg`, and may set `centerOfGravity`; otherwise the centre of gravity is the
+  area centroid of the mesh triangles. `ship:fitting-mesh` writes them from OBJ, STL, PLY or GLB.
 
 `construction_custom_fittings.rs` resolves each definition into a synthesized deck-fitting part
-(bounds, centre of gravity, mass, one conservative box per solid and tube segment) and adds it to
+(bounds, centre of gravity, mass, one conservative box per solid and tube segment and up to eight per
+mesh, from three longest-axis splits of its triangles) and adds it to
 the catalog the compiler looks parts up in. The published catalog and the content hash input are
 unchanged, and a supplied `design:` catalog entry is discarded. A custom fitting therefore follows
 the deck-fitting rules: support within 5 cm of its datum (`equipment-attachment` with `fit.gapM`
@@ -410,7 +428,7 @@ Every save writes an immutable revision and advances the design head only if
 `expectedRevisionId` matches. A stale writer is rejected. Compiled geometry and battle damage
 are never stored. Invalid physical drafts are saveable. See
 [account storage](accounts.md#source-storage-and-recovery) for quotas and recovery, and
-[online construction](accounts.md#online-construction) for the tighter online limits.
+[online construction](accounts.md#online-construction) for how designs reach online battles.
 
 Editing pipeline (`src/ships/`):
 
@@ -443,8 +461,10 @@ Source bounds are constants in `construction.rs`, mirrored by `CONSTRUCTION_LIMI
 | Surface assignments | 65,536 |
 | Equipment instances | 1,000 (32 online) |
 | Loads | 128 |
-| Custom fitting definitions / instances | 32 / 1,000, counted apart from equipment instances |
-| Solids / tubes / triangles per custom fitting | 48 / 16 / 20,000 |
+| Custom fitting definitions / instances | 256 / 1,000, counted apart from equipment instances |
+| Solids / tubes / triangles per custom fitting | 256 / 128 / 32,000 (solid faces and tubes) |
+| Visual meshes | 16 per definition, 20,000 triangles and 65,535 vertices each |
+| Visual mesh budgets per design | 100,000 unique mesh triangles, 1 MiB encoded mesh data, 1,000,000 drawn custom fitting triangles |
 | Compound solid vertices / parts / polygons | 8,192 / 256 / 8,192, with 128 polygons per part |
 | Compound solid exterior patches | 32,768 per block |
 | Boundaries | 24 |
