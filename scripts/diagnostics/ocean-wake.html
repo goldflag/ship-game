@@ -85,12 +85,14 @@ async function probe(cx, cz, extent, sampler = field.sampler) {
     const i = Math.floor(((x - cx) / extent + .5) * PROBE), j = Math.floor(((z - cz) / extent + .5) * PROBE);
     return i >= 0 && j >= 0 && i < PROBE && j < PROBE ? (j * PROBE + i) * 4 : -1;
   };
-  let maxHeight = 0, totalFoam = 0, maxFoam = 0, finite = true;
+  let maxHeight = 0, totalFoam = 0, maxFoam = 0, maxSlope = 0, finite = true;
   for (let i = 0; i < data.length; i += 4) {
     finite &&= Number.isFinite(data[i]) && Number.isFinite(data[i + 1]);
     maxHeight = Math.max(maxHeight, Math.abs(data[i])); totalFoam += data[i + 1]; maxFoam = Math.max(maxFoam, data[i + 1]);
+    const across = Math.hypot(data[i + 2], data[i + 3]);
+    maxSlope = Math.max(maxSlope, across / Math.sqrt(Math.max(1 - across * across, 1e-9)));
   }
-  return { data, maxHeight, totalFoam, maxFoam, finite,
+  return { data, maxHeight, totalFoam, maxFoam, maxSlope, finite,
     height: (x, z) => { const i = index(x, z); return i < 0 ? 0 : data[i]; },
     foam: (x, z) => { const i = index(x, z); return i < 0 ? 0 : data[i + 1]; } };
 }
@@ -201,6 +203,8 @@ try {
   results.visibleTrail = results.trailFoam > .35;
   const whole = await probe(ship.position.x, ship.position.z, 1536);
   results.maxHeight = whole.maxHeight;
+  results.straightFoam = whole.totalFoam;
+  results.maxSlope = (await probe(ship.position.x, ship.position.z, 400)).maxSlope;
   results.boundedHeight = whole.finite && whole.maxHeight < 7.99;
   results.freshWidth = foamWidth(straight, sternPoint(150)); results.olderWidth = foamWidth(straight, sternPoint(300));
   results.wakeSpreads = results.olderWidth > results.freshWidth;
@@ -248,8 +252,17 @@ try {
   results.teleportStreak = Math.max(across.maxFoam, across.maxHeight);
   results.teleportClean = across.maxFoam < .01 && across.maxHeight < .01;
 
+  note('Breaking');
+  // The straight run again with a low break threshold: at the game's depths the wake stays below 0.09,
+  // so this is where breaking foam must show, and only it can make the difference.
+  field.reset(); ship.rotation.y = 0; field.foamBreakThreshold = .015; run(30);
+  results.breakingFoam = (await probe(ship.position.x, ship.position.z, 1536)).totalFoam;
+  results.breakingFoams = results.breakingFoam > 1.2 * results.straightFoam;
+  images.breaking = await capture('sea'); images.breakingMap = await capture('map');
+  field.foamBreakThreshold = .09;
+
   results.passed = results.stationaryClean && results.visibleTrail && results.boundedHeight && results.wakeSpreads && results.scrollKeepsContent && results.pausePreservesWake
-    && results.turnRetainsTrail && results.stoppedWakeFades && results.resetClears && results.teleportClean;
+    && results.turnRetainsTrail && results.stoppedWakeFades && results.resetClears && results.teleportClean && results.breakingFoams;
 } catch (error) { results.passed = false; results.error = String(error?.stack ?? error); }
 note(JSON.stringify(results, null, 1));
 window.oceanWake = { results, images, measure, capture, probe, run, frame, field, motion, ship };

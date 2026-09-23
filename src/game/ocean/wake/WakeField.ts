@@ -26,6 +26,9 @@ const FOAM_SPREAD = 3;
 const HULL_FOAM = 1.5;
 /** Foam per second added where the steepness is twice the break threshold, before `foamStrength`. */
 const BREAK_RATE = 1;
+/** Half the baseline (m) over which breaking steepness is measured, so a threshold means the same on every
+ * tier: finer grids resolve steeper short waves than a 6 m Medium cell can. */
+const BREAK_BASELINE = 6;
 /** Footprints narrower than this many cells would alias on the grid. */
 const MIN_RADIUS_CELLS = 1.5;
 
@@ -106,7 +109,7 @@ export class WakeField implements WakeFieldApi {
   private readonly uniforms = {
     cellSize: uniform(1), worldSize: uniform(1), shift: uniform(new Vector2(), 'ivec2'),
     acceleration: uniform(0), damping: uniform(0), foamDecay: uniform(1), foamDiffusion: uniform(0), foamStrength: uniform(0), foamThreshold: uniform(1),
-    minRadius: uniform(1), count: uniform(0, 'int'), fraction: uniform(1), gain: uniform(1),
+    minRadius: uniform(1), breakCells: uniform(1, 'int'), count: uniform(0, 'int'), fraction: uniform(1), gain: uniform(1),
     origin: uniform(new Vector2()), previousOrigin: uniform(new Vector2()),
   };
   /** Per generator and step: swept segment (x0, z0, x1, z1) relative to the field centre, and (radius, depth, gate, 0). */
@@ -169,10 +172,11 @@ export class WakeField implements WakeFieldApi {
       const sponge = float(1).sub(smoothstep(0, n * SPONGE, edge));
       const a = u.damping.add(sponge.mul(sponge).mul(SPONGE_DAMPING * STEP / 2));
       const height = clamp(h.mul(2).sub(float(1).sub(a).mul(previous)).sub(u.acceleration.mul(operator)).div(a.add(1)), -MAX_HEIGHT, MAX_HEIGHT);
-      const east = state(source.add(ivec2(1, 0))), west = state(source.add(ivec2(-1, 0)));
-      const north = state(source.add(ivec2(0, 1))), south = state(source.add(ivec2(0, -1)));
-      const slope = vec2(east.x.sub(west.x), north.x.sub(south.x)).div(u.cellSize.mul(2));
-      const spread = east.z.add(west.z).add(north.z).add(south.z).sub(foam.mul(4)).mul(u.foamDiffusion);
+      const reach = ivec2(u.breakCells, 0), up = ivec2(0, u.breakCells);
+      const slope = vec2(state(source.add(reach)).x.sub(state(source.sub(reach)).x), state(source.add(up)).x.sub(state(source.sub(up)).x))
+        .div(u.cellSize.mul(float(u.breakCells).mul(2)));
+      const spread = state(source.add(ivec2(1, 0))).z.add(state(source.add(ivec2(-1, 0))).z).add(state(source.add(ivec2(0, 1))).z)
+        .add(state(source.add(ivec2(0, -1))).z).sub(foam.mul(4)).mul(u.foamDiffusion);
       const breaking = max(sqrt(dot(slope, slope)).sub(u.foamThreshold), 0).div(u.foamThreshold).mul(u.foamStrength.mul(BREAK_RATE * STEP));
       // Footprints are laid on the new grid, relative to its centre.
       const position = vec2(cell).add(.5 - n / 2).mul(u.cellSize);
@@ -276,6 +280,7 @@ export class WakeField implements WakeFieldApi {
     u.foamStrength.value = Math.max(this.foamStrength, 0);
     u.foamThreshold.value = Math.max(this.foamBreakThreshold, 1e-4);
     u.minRadius.value = MIN_RADIUS_CELLS * cellSize;
+    u.breakCells.value = Math.max(1, Math.round(BREAK_BASELINE / cellSize));
     this.generators.step(fraction, STEP, this.emissions);
     u.count.value = this.emissions.length;
     this.emissions.forEach((e, i) => {
