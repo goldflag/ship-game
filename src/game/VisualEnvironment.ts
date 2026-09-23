@@ -43,9 +43,10 @@ const SUN_HAZE = .45;
 const CELESTIAL_DISC = 7.5e-5;
 /** Opacity of a windrow's line of old foam: a film the sea shows through. */
 const WINDROW_OPACITY = .85;
-/** Windrows at `windSpeed` (m/s): lines of old foam holding their share of the wind's whitecap coverage, counted by opacity. */
-export function windrowFoam(windSpeed: number): { coverage: number; opacity: number } {
-  return { opacity: WINDROW_OPACITY, coverage: Math.min(1, windrowCoverage(windSpeed) / WINDROW_OPACITY) };
+/** Windrows at `windSpeed` (m/s), with the map's whitecap `scale`: lines of old foam holding their share of the wind's
+ * whitecap coverage, counted by opacity. */
+export function windrowFoam(windSpeed: number, scale = 1): { coverage: number; opacity: number } {
+  return { opacity: WINDROW_OPACITY, coverage: Math.min(1, windrowCoverage(windSpeed, scale) / WINDROW_OPACITY) };
 }
 /** e-folding lifetime of whitecap foam in periods of the breaking waves: about 3 s for a 25 m/s storm's large breakers. */
 const WHITECAP_LIFETIME = .55;
@@ -190,7 +191,7 @@ export class VisualEnvironment {
     shoreline.color.set('#edf9fd');
     // Whitecaps cover the share of the sea the wind calls for; the ocean places them from its own spectrum.
     Object.assign(crest, { opacity: 1, windStretch: .5, coverageScale: map.water.foam / REFERENCE_FOAM, lifetime: WHITECAP_LIFETIME });
-    Object.assign(surface, windrowFoam(waves.windSpeed));
+    Object.assign(surface, windrowFoam(waves.windSpeed, crest.coverageScale));
     this.sinks.effects.setWind(ocean.waves.windSpeed, ocean.waves.windDirection);
     this.sinks.funnelSmoke.setWind(ocean.waves.windSpeed, ocean.waves.windDirection);
   }

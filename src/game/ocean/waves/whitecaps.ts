@@ -20,6 +20,8 @@ const ONSET_START = 3.5, ONSET_FULL = 5;
  * in streaks along the wind", 8: "well-marked streaks", 9: "dense streaks"), and the share of the whitecap coverage
  * they then hold. */
 const WINDROW_START = 12, WINDROW_FULL = 24, WINDROW_SHARE = .25;
+/** The most of the sea windrows cover, about what their thin lines hold before they saturate; whitecaps take the rest. */
+const WINDROW_MOST = .04;
 /** Forward shift of the breaking indicator from the crest (radians of wave phase): foam starts on the crest and
  * spills down the face ahead of it. */
 const FACE_SHIFT = .9;
@@ -39,10 +41,11 @@ export function whitecapCoverage(windSpeed: number): number {
   return MONAHAN_SCALE * wind ** MONAHAN_EXPONENT * t * t * (3 - 2 * t);
 }
 
-/** The share of the sea old foam covers in windrows at `windSpeed`: part of `whitecapCoverage`, not added to it. */
-export function windrowCoverage(windSpeed: number): number {
+/** The share of the sea old foam covers in windrows at `windSpeed`, times `scale`: part of `whitecapCoverage`, not
+ * added to it. */
+export function windrowCoverage(windSpeed: number, scale = 1): number {
   const t = Math.min(1, Math.max(0, ((windSpeed || 0) - WINDROW_START) / (WINDROW_FULL - WINDROW_START)));
-  return whitecapCoverage(windSpeed) * WINDROW_SHARE * t * t * (3 - 2 * t);
+  return Math.min(WINDROW_MOST, whitecapCoverage(windSpeed) * WINDROW_SHARE * t * t * (3 - 2 * t)) * Math.max(0, scale);
 }
 
 /** Inverse of the standard normal CDF (Acklam's rational approximation, relative error below 1.2e-9). */
@@ -132,13 +135,13 @@ const PERSISTENCE = 2.3, GATED_SHOWING = .62, SATURATION = 1.3;
 /** The most injection the saturation correction may call for, as a multiple of the depth wanted. */
 const MAX_BOOST = 4;
 
-/** The whitecaps' optical depth to inject for `windSpeed`, times `scale`: −ln(1 − W) for the coverage W that
- * whitecaps (less windrows) hold, raised against saturation. Patches land at random, so a cascade breaking over a
- * fraction q of the sea covers 1 − e^(−K·q) of it (K its persistence) and independent cascades overlap
- * multiplicatively; shares of this depth add. */
+/** The whitecaps' optical depth to inject for `windSpeed`, with the coverage scaled by `scale`: −ln(1 − W) for the
+ * coverage W the whitecaps must add to the windrows' (which overlap them at random) to cover the wind's share of the
+ * sea, raised against saturation. Patches land at random, so a cascade breaking over a fraction q of the sea covers
+ * 1 − e^(−K·q) of it (K its persistence) and independent cascades overlap multiplicatively; shares of this depth add. */
 export function whitecapDepth(windSpeed: number, scale = 1): number {
-  const coverage = Math.min(.95, (whitecapCoverage(windSpeed) - windrowCoverage(windSpeed)) * Math.max(0, scale));
-  const depth = -Math.log(1 - coverage);
+  const total = Math.min(.95, whitecapCoverage(windSpeed) * Math.max(0, scale)), rows = Math.min(total, windrowCoverage(windSpeed, scale));
+  const depth = -Math.log((1 - total) / (1 - rows));
   return depth / Math.max(1 / MAX_BOOST, 1 - SATURATION * depth);
 }
 
