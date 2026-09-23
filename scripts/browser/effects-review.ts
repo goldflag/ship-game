@@ -68,7 +68,9 @@ if (values.list) {
   process.exit(0);
 }
 
-const harness = await launchHarness({ params, viewport: { width, height } });
+// Several reviews may share one desktop; an occluded window must not have its frame loop throttled.
+const harness = await launchHarness({ params, viewport: { width, height },
+  args: ['--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'] });
 const columns = Number(values.columns);
 try {
   if (!values.serve) {

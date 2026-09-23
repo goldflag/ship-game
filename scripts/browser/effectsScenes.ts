@@ -40,6 +40,67 @@ export const scenes: Record<string, Scene> = {
     stage.fire(0, { mounts: [0] });
     await timeline(stage, shoot, [.02, .06, .12, .25, .5, 1, 2, 4, 7]);
   },
+  /** A turret fired across the view, so the flame jet, side lobes and cloud read in profile. */
+  async 'a-muzzle-side'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.aim(0, 1, 3, 'main');
+    stage.camera({ ship: 0, offset: [95, 24, -250], look: [55, 14, -70], fov: 42 });
+    stage.fire(0, { mounts: [0] });
+    await timeline(stage, shoot, [.02, .05, .1, .2, .4, .8, 1.5, 3, 6]);
+  },
+  /** Heavy AA airbursts over the target: the shared gas shader must keep flak charcoal and brief. */
+  async 'a-flak'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.camera({ ship: 1, offset: [stage.facing() * 420, 150, 160], look: [0, 170, 0], fov: 40 });
+    stage.flak(1, [0, 180, 0]); stage.advance(.3); stage.flak(1, [40, 200, -60]); stage.flak(1, [-30, 165, 50], .127);
+    await timeline(stage, shoot, [.32, .4, .6, 1, 2, 4]);
+  },
+  /** The secondary battery firing: proportionally smaller, faster blasts. */
+  async 'a-secondary'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.aim(0, 1, 3, 'secondary');
+    stage.camera({ ship: 0, offset: [120, 30, -150], look: [15, 10, -20], fov: 45 });
+    stage.fire(0, { battery: 'secondary' });
+    await timeline(stage, shoot, [.02, .06, .15, .4, 1, 2.5]);
+  },
+  /** The magazine detonation framed whole from 2.5 km: fireball, column, cap and pall. */
+  async 'a-magazine-wide'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.camera({ ship: 1, offset: [stage.facing() * 2400, 60, 600], look: [0, 190, 0], fov: 32 });
+    stage.hit(1, { kind: 'magazine' });
+    await timeline(stage, shoot, [.1, .5, 1.5, 3, 6, 10, 18, 30, 45]);
+  },
+  /** One high-explosive burst on the superstructure, close. */
+  async 'a-he-close'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 85, 22, -10], look: [0, 10, -30], fov: 50 });
+    stage.hit(1, { kind: 'burst', along: .6, height: 11 });
+    await timeline(stage, shoot, [.02, .06, .12, .25, .5, 1, 2, 4, 8]);
+  },
+  /** Paired A/B cost of the combat effects (shown vs hidden, interleaved) during a close
+   * broadside, a hit sequence and a magazine detonation. Robust to other GPU load. */
+  async 'a-cost'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.aim(0, 1, 4, 'main'); stage.aim(1, 0, 4, 'main');
+    stage.camera({ ship: 0, offset: [-150, 42, 150], look: [70, 14, -35], fov: 50 });
+    stage.fire(0); stage.fire(1); stage.advance(.6);
+    stage.note('broadsides 0.6 s', await stage.effectsCost());
+    stage.advance(2.4);
+    stage.note('broadsides 3 s', await stage.effectsCost());
+    await shoot('broadsides 3 s');
+    stage.reset();
+    stage.camera({ ship: 1, offset: [stage.facing() * 230, 40, 110], look: [0, 10, -10], fov: 45 });
+    for (let i = 0; i < 4; i++) stage.hit(1, { kind: i % 2 ? 'burst' : 'penetration', along: .3 + i * .15, height: 4 + i * 2 });
+    stage.advance(1);
+    stage.note('4 hits 1 s', await stage.effectsCost());
+    await shoot('4 hits 1 s');
+    stage.reset();
+    stage.camera({ ship: 1, offset: [stage.facing() * 2400, 60, 600], look: [0, 190, 0], fov: 32 });
+    stage.hit(1, { kind: 'magazine' }); stage.advance(8);
+    stage.note('magazine 8 s at 2.5 km', await stage.effectsCost());
+    await shoot('magazine 8 s');
+  },
   /** Night broadside: the flash must light the ship, the sea and its own smoke. */
   async 'muzzle-night'(stage, shoot) {
     stage.reset(); stage.weather({ timeHours: 23 });
