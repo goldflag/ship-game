@@ -31,6 +31,7 @@ interface GameInternals {
   paused: boolean; raf: number; frameTask?: Promise<void>;
   scheduleFrame(): void; frame(time: number): Promise<void>; renderFrame(): void;
   setDeveloperWeather(overrides: EnvironmentOverrides): void;
+  environment?: { update(camera: THREE.PerspectiveCamera, dt: number): void };
   lastTime: number;
 }
 
@@ -284,7 +285,12 @@ export function installStage(game: Game) {
     return { label, png: g.renderer.domElement.toDataURL('image/png') };
   }
 
-  function weather(overrides: EnvironmentOverrides): void { g.setDeveloperWeather(overrides); }
+  /** Developer weather, applied before the next `advance`: the sky moves the sun and moon only in its
+   * per-frame update, so step it once here or effects emitted meanwhile would see the old light. */
+  function weather(overrides: EnvironmentOverrides): void {
+    g.setDeveloperWeather(overrides);
+    g.environment?.update(g.camera, 0);
+  }
 
   /** +1 when `fromIndex` lies off `targetIndex`'s starboard side, −1 to port: the side its shells strike. */
   function facing(targetIndex = 1, fromIndex = 0): 1 | -1 {
@@ -318,7 +324,7 @@ export function installStage(game: Game) {
 
   /** Median GPU and CPU milliseconds of the render pipeline for the current staged scene (the ocean
    * simulation is frozen and excluded), with WebGPU timestamps when the adapter offers them. */
-  async function measure(samples = 60): Promise<{ gpuMs: number | null; cpuMs: number; drawCalls: number }> {
+  async function measure(samples = 60, warmup = 30): Promise<{ gpuMs: number | null; cpuMs: number; drawCalls: number }> {
     await render();
     const renderer = g.renderer as unknown as THREE.WebGPURenderer & { backend: { trackTimestamp: boolean } };
     const timed = renderer.hasFeature('timestamp-query'), tracking = renderer.backend.trackTimestamp, autoReset = renderer.info.autoReset;
@@ -327,7 +333,7 @@ export function installStage(game: Game) {
     renderer.backend.trackTimestamp = timed; renderer.info.autoReset = false;
     try {
       // GPU clocks ramp after the page's first frames; discard a generous warm-up.
-      for (let i = -30; i < samples; i++) {
+      for (let i = -warmup; i < samples; i++) {
         g.renderer._nodes.nodeFrame.update(); renderer.info.reset();
         const start = performance.now();
         g.renderFrame();

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Camera, InstancedMesh, Matrix4, MeshBasicNodeMaterial, PerspectiveCamera, PointLight, Vector3 } from 'three/webgpu';
+import { Camera, InstancedBufferGeometry, InstancedMesh, Matrix4, MeshBasicNodeMaterial, PerspectiveCamera, PointLight, Vector3 } from 'three/webgpu';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import submarine from '../../assets/ships/type-viic/blueprint.json';
@@ -112,25 +112,33 @@ test('light AA never schedules flak, and reset cancels a heavy burst in flight',
   } finally { effects.dispose(); }
 });
 
-test('burning-turret smoke drifts with wind, responds to changes, and freezes on pause', () => {
+test('burning-turret smoke climbs, drifts with wind, responds to changes, and freezes on pause', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
-  sim.player.damage.control.mounts[0].intensity = 1;
+  const fire = sim.player.damage.control.mounts[0]; fire.intensity = 1; fire.heat = 1;
   sim.tick = 15;
-  effects.update(sim, .4, camera);
-  expect(effects.diagnostics().smoke).toBe(1);
-  const mesh = effects.root.getObjectByName('Local fire smoke') as InstancedMesh;
-  const matrix = new Matrix4();
-  const position = () => { mesh.getMatrixAt(0, matrix); return new Vector3().setFromMatrixPosition(matrix); };
+  // The displayed fire eases up over a couple of seconds before its column is full.
+  for (let i = 0; i < 300; i++) effects.update(sim, 1 / 60, camera);
+  expect(effects.diagnostics().smoke).toBeGreaterThan(5);
+  // Follow the existing column only: no new puffs enter while the wind changes.
+  effects.setDensity(0);
+  const mesh = effects.root.getObjectByName('Ship fire smoke') as InstancedMesh<InstancedBufferGeometry>;
+  const mean = () => {
+    const center = mesh.geometry.getAttribute('fireCenter'), n = mesh.geometry.instanceCount, sum = new Vector3();
+    for (let i = 0; i < n; i++) sum.add(new Vector3(center.getX(i), center.getY(i), center.getZ(i)));
+    return sum.divideScalar(n);
+  };
   const beforeSimulation = JSON.stringify(sim);
   for (const [speed, direction] of [[10, 0], [10, Math.PI / 2], [20, Math.PI], [10, -Math.PI / 2], [0, 1]]) {
-    const before = position();
+    const before = mean();
     effects.setWind(speed, direction);
     effects.update(sim, 0, camera);
-    expect(position().distanceTo(before)).toBe(0);
+    expect(mean().distanceTo(before)).toBe(0);
     effects.update(sim, .1, camera);
-    const drift = position().sub(before);
-    expect(drift.x).toBeCloseTo(Math.cos(direction) * speed * .35 * .8 * .1, 4);
-    expect(drift.z).toBeCloseTo(Math.sin(direction) * speed * .35 * .8 * .1, 4);
+    const drift = mean().sub(before);
+    const along = drift.x * Math.cos(direction) + drift.z * Math.sin(direction);
+    const across = -drift.x * Math.sin(direction) + drift.z * Math.cos(direction);
+    // Wind carries a third of its drift at the fire and all of it higher up the column.
+    if (speed) { expect(along).toBeGreaterThan(speed * .35 * .35 * .1 * .9); expect(Math.abs(across)).toBeLessThan(along * .5); }
     expect(drift.y).toBeGreaterThan(0);
   }
   expect(JSON.stringify(sim)).toBe(beforeSimulation);
