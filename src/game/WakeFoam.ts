@@ -16,6 +16,7 @@ export interface WakeStampTarget {
 export const WAKE_EXTENT = 1536;
 const EXTENT = WAKE_EXTENT;
 const LIFETIME = 55;
+const IMPACT_LIFETIME = 24;
 const SAMPLE_DISTANCE = 3;
 const UPDATE_INTERVAL = 1 / 20;
 /** Preparation estimate only; unusual motion can still grow the retained buffers. */
@@ -110,7 +111,7 @@ export class WakeFoam {
     }
     this.previous = { ...state };
     while (this.samples.length && this.time.value - this.samples[0].born > LIFETIME) this.samples.shift();
-    while (this.impacts.length && this.time.value - this.impacts[0].born > 10) this.impacts.shift();
+    while (this.impacts.length && this.time.value - this.impacts[0].born > IMPACT_LIFETIME) this.impacts.shift();
     if (this.elapsed < updateInterval || (!this.samples.length && !this.impacts.length && !this.dirty)) return;
     this.elapsed %= updateInterval;
     this.rasterize(state);
@@ -143,8 +144,10 @@ export class WakeFoam {
     this.stampTarget?.begin(this.origin.value.x, this.origin.value.y);
     for (const impact of this.impacts) {
       const age = this.time.value - impact.born;
-      const radius = (4 + age * 3.5) * impact.scale;
-      const strength = smooth(age / .25) * Math.exp(-age / 3.2) * (1 - smooth((age - 7) / 3));
+      // A shell's column leaves a broad slick of aerated water that spreads as the
+      // spray rains back and lingers well after the air has cleared.
+      const radius = (4 + 15 * (1 - Math.exp(-age / 3.5))) * impact.scale;
+      const strength = smooth(age / .25) * (.8 + .15 * Math.exp(-age / 2)) * (1 - smooth((age - 10) / (IMPACT_LIFETIME - 10)));
       // Aerated center and a broken outward crest share the actual displaced,
       // lit ocean surface instead of hovering on a horizontal sprite plane.
       this.stamp(impact.x, impact.z, 1, 0, radius, radius, strength * .9);

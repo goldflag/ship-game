@@ -3,6 +3,8 @@ import { attribute } from 'three/tsl';
 
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 const RIGHT = new THREE.Vector3(1, 0, 0);
+/** Speed (m/s) at which a `streak` particle reaches its full smear. */
+const STREAK_SPEED = 20;
 const smooth = (n: number) => { const t = clamp(n); return t * t * (3 - 2 * t); };
 const hash = (x: number, y: number) => {
   const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
@@ -109,7 +111,8 @@ export interface EffectParticle {
   spin: number;
   stretch: number;
   fadeIn: number;
-  align: 'billboard' | 'velocity' | 'water';
+  /** `streak` smears like `velocity` in proportion to speed, so a drop rounds out at its apex. */
+  align: 'billboard' | 'velocity' | 'streak' | 'water';
   waterline: boolean;
   surfaceY: number;
   distance: number;
@@ -304,10 +307,13 @@ export class EffectParticlePool {
         if (p.align === 'water') this.orientation.setFromAxisAngle(RIGHT, -Math.PI / 2);
         else {
           this.orientation.copy(camera.quaternion);
-          if (p.align === 'velocity') {
+          if (p.align === 'velocity' || p.align === 'streak') {
             this.direction.copy(p.velocity).applyQuaternion(this.cameraInverse);
             angle = Math.atan2(-this.direction.x, this.direction.y);
-            stretch *= Math.max(.35, Math.hypot(this.direction.x, this.direction.y) / Math.max(.01, p.velocity.length()));
+            const speed = Math.max(.01, p.velocity.length()), across = Math.hypot(this.direction.x, this.direction.y) / speed;
+            // An exposure smear grows with speed and foreshortens; the drop itself stays round.
+            if (p.align === 'streak') stretch = 1 + (stretch - 1) * Math.min(1, speed / STREAK_SPEED) * across;
+            else stretch *= Math.max(.35, across);
           }
         }
         this.orientation.multiply(this.turn.setFromAxisAngle(this.axis, angle));
