@@ -24,7 +24,7 @@ export class Ocean implements OceanApi {
   readonly waves: WaveParameters;
   readonly colors = { waterColor: new Color('#2d373c'), transmissionColor: new Color('#49575e'), absorptionColor: new Color('#945b57') };
   readonly foam = {
-    crest: { crestStrength: .8, windwardStrength: 1.2, decayTime: 2.8, color: new Color(1, 1, 1), opacity: .8, windStretch: .5 },
+    crest: { coverageScale: 1, lifetime: .55, color: new Color(1, 1, 1), opacity: .8, windStretch: .5 },
     surface: { color: new Color(1, 1, 1), opacity: .05, coverage: .18 },
     shoreline: { color: new Color('#edf9fd'), opacity: .8 },
   };

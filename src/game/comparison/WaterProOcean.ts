@@ -8,7 +8,7 @@ import type { IWakeFieldSampler } from '../../../vendor/threejs-water-pro/build/
 import type { CrestFoamParameters, OceanApi, OceanQuality, OceanRealism, OceanSky, WakeFieldApi, WakeGeneratorOptions, WakeSampler } from '../ocean/contracts';
 import type { WaveCascadeInfo, WaveField, WaveHeightSampler, WaveParameters, WaveSurfaceSample } from '../ocean/contracts';
 import { nearPlaneMayBeSubmerged } from '../ocean/screen/underwater';
-import { WATER_PRO_BREAK_SCALE, waterProAmplitude, waterProSurfaceFoam } from './waterProSea';
+import { WATER_PRO_BREAK_SCALE, waterProAmplitude, waterProCrestFoam, waterProSurfaceFoam } from './waterProSea';
 
 /** The vendored Water Pro 3.5.1 behind the game's ocean facade, driven through its public API as the game drove it
  * before its own ocean replaced it (master 6b60ac454), so the two can be compared in the real game. Developer
@@ -91,10 +91,10 @@ export class WaterProOcean implements OceanApi {
     this.underwaterEnabled = water.underwater.enabled;
 
     // The facade starts from the library's own state, so values the game never writes keep the preset's.
-    const { color, foam, fog, lighting } = water, persistence = foam.waves.persistence;
+    const { color, foam, fog, lighting } = water;
     this.colors = { waterColor: color.waterColor.clone(), transmissionColor: color.transmissionColor.clone(), absorptionColor: color.absorptionColor.clone() };
-    const crest: CrestFoamParameters = { crestStrength: persistence.crestStrength, windwardStrength: persistence.windwardStrength, decayTime: persistence.decayTime,
-      color: foam.waves.color.clone(), opacity: foam.waves.opacity, windStretch: foam.waves.windStretch };
+    const crest: CrestFoamParameters = { coverageScale: foam.waves.opacity / .8, lifetime: .55,
+      color: foam.waves.color.clone(), opacity: 1, windStretch: foam.waves.windStretch };
     this.foam = { crest, surface: { color: foam.surface.color.clone(), opacity: foam.surface.opacity, coverage: foam.surface.coverage },
       shoreline: { color: foam.shoreline.color.clone(), opacity: foam.shoreline.opacity } };
     this.fog = { color: fog.color.clone(), start: fog.fadeStart, end: fog.fadeEnd, power: fog.fadePower, skyBlendDistance: fog.skyBlendDistance, aerial: false };
@@ -226,9 +226,10 @@ export class WaterProOcean implements OceanApi {
     this.send('surface', surface.color, value => { foam.surface.color = value; });
     this.send('shoreline', shoreline.color, value => { foam.shoreline.color = value; });
     this.send('fog', this.fog.color, value => { water.fog.color = value; });
-    foam.waves.opacity = crest.opacity;
+    const { opacity, ...persistence } = waterProCrestFoam(waves.windSpeed, crest.coverageScale);
+    foam.waves.opacity = opacity * crest.opacity;
     foam.waves.windStretch = crest.windStretch;
-    Object.assign(foam.waves.persistence, { crestStrength: crest.crestStrength, windwardStrength: crest.windwardStrength, decayTime: crest.decayTime });
+    Object.assign(foam.waves.persistence, persistence);
     foam.shoreline.opacity = shoreline.opacity;
     Object.assign(water.fog, { fadeStart: this.fog.start, fadeEnd: this.fog.end, fadePower: this.fog.power, skyBlendDistance: this.fog.skyBlendDistance });
     // Paused frames do not step, so the sync listener alone would miss a changed light.

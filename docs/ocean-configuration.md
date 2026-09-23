@@ -36,7 +36,8 @@ sea replaces them with a real wind sea's unless the realism switch is off (see
 [Realistic sea state](#realistic-sea-state)).
 
 `src/maps/seaCalibration.ts` turns wind into significant height and peak wavelength in metres,
-choppiness (0.65, rising to 1.55 between 3 and 15 m/s) and the crest and windward foam gains.
+choppiness (0.65, rising to 1.55 between 3 and 15 m/s) and the crest and windward foam gains (which only
+the Water Pro comparison still reads).
 `VisualEnvironment` writes them to `ocean.waves` with JONSWAP γ 2.6; `Game` keeps directional
 sharpness at 0.8, whose broader spread breaks parallel ripples into small crossing waves. The ocean
 normalises its spectrum so that 4 × the standard deviation of the rendered surface equals
@@ -45,11 +46,17 @@ so no renderer-specific gain is fitted and the table needs no recalibration when
 cascades change. `window.reviewWaves()` on `/scripts/diagnostics/helm-optics.html` reads GPU heights
 back around the hull at four wave times and reports 4 × RMS beside the requested height.
 
-Wind speed also changes foam: whitecaps start earlier, and the high-wind gains decrease to retain dark
-water between breakers. Crest foam decays over 2.8 s with opacity 0.8 × the map's foam value / 0.45
-(0.8 in the Atlantic) and a 0.5 wind stretch. Surface foam is wind streaks: none up to 10 m/s, rising
-to opacity 0.15 over 5% of the sea by 25 m/s. Foam is an artistic choice; the flatter high-wind coverage
-is not a calibrated whitecap-fraction model.
+Wind speed sets the share of the sea whitecaps cover, from Monahan & O'Muircheartaigh's measured
+whitecap fraction 3.84·10⁻⁶·U^3.41: none below 3.5 m/s, 0.17% at 6 m/s (scattered white horses), 0.7%
+at 9, 1.8% at 12, 3.9% at 15, 7.3% at 18, 22% at 25 and 42% at 30, scaled by the map's foam value /
+0.45 (1 in the Atlantic, 0.56 Pacific, 0.67 Arctic, 1.1 Indian). The ocean places whitecaps where its
+own spectrum's crests break to give that share (see the ocean README), so the coverage holds on the
+table's sea and on the realistic one alike; measured on High it is within a tenth of the curve from
+6 to 30 m/s on the table's sea, and on the realistic one except its 25 m/s storm (19% of the sea). Foam lives 0.55 periods of the waves that broke (`lifetime`)
+with a 0.5 wind stretch and opacity 1. From 12 m/s part of that coverage lies in windrows, lines of
+old foam along the wind (Beaufort 7, "foam begins to be blown in streaks", to 9, "dense streaks"): a
+quarter of it by 24 m/s and at most 4% of the sea (0.16% at 15 m/s, 1% at 18, 2.7% at 21), at 0.85
+opacity (`foam.surface`, whose `coverage` is set so that coverage × opacity is the windrows' share).
 
 Map multipliers are height 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 Indian; wavelength 1.0,
 0.8, 0.8 and 1.1; and the preset wind multiplier 1.0, 0.7, 0.65 and 1.1. Numeric wind bypasses the map
@@ -109,8 +116,8 @@ Atlantic figures; Low draws the first tile, Medium the first two, Ultra the same
 A map's height scale makes its seas younger, so shorter and steeper (the Pacific's 5.7 m at 25 m/s peaks
 at 169 m, 1/30); its wavelength scale does not apply while the switch is on. Off, the ocean draws the
 table's wavelength, γ 2.6 and choppiness on the tier's tiles exactly as before. Either way combat,
-hull motion and the port's `BerthMotion` read the table through `session/sea.ts`, and the foam gains
-stay the table's. The realistic sea's heights are also easier to invert: `heightAt` (buoys, the torpedo
+hull motion and the port's `BerthMotion` read the table through `session/sea.ts`, and whitecaps cover
+the same share of the sea. The realistic sea's heights are also easier to invert: `heightAt` (buoys, the torpedo
 overlay, the waterline) misses by 2 cm at the 90th percentile in the 25 m/s storm, where the table's
 folded crests cost 12 cm.
 
@@ -119,8 +126,9 @@ folded crests cost 12 cm.
 The selected **A · Steel blue** palette uses `waterColor #2d373c` and `transmissionColor #49575e`
 across all four maps and the port, a muted, cool blue-gray. Absorption is map-specific (Atlantic
 `#945b57`, Pacific `#b67b45`, Arctic `#916d59`, Indian `#a97851`) and the port inherits the Atlantic
-swatches. The pigment and foam are emitted radiance: `VisualEnvironment` scales them for night (see
-below), always starting from the original map swatches. The sky's environment lights every material
+swatches. The pigment is emitted radiance: `VisualEnvironment` scales it for night (see below), always
+starting from the original map swatches. Foam is lit like any white surface by the sky and the sun or
+moon, so it needs no night scaling. The sky's environment lights every material
 at intensity 1.
 
 Reflectance keeps a 1e-4 grazing guard rather than 0.05, so distant wave slopes keep distinct
@@ -392,8 +400,8 @@ direction, intensity and colour), the scene's directional light and its shadows,
 including on paused frames. Moonlight fades near the horizon; the low sun receives a warmer tint and
 reduced direct intensity, reaching the full daylight at 18°.
 
-Moon ambient is 0.07 with tint `#b4c9f0`. The water pigment, transmission and foam use 24% of their
-original linear radiance at night, reaching 100% at 18°. Absorption and wave energy are unchanged.
+Moon ambient is 0.07 with tint `#b4c9f0`. The water pigment and transmission use 24% of their
+original linear radiance at night, reaching 100% at 18°; foam takes the moon and the night sky's light. Absorption and wave energy are unchanged.
 Port restores its original colours, fill and direct light.
 
 Cloud ambient gain remains 1.1 × weather scale because Sky Pro already attenuates the incoming solar
@@ -550,7 +558,8 @@ ocean tier. `Game` then loads `src/game/comparison/WaterProOcean.ts`, and with i
 bundle, as a separate chunk; the default game never downloads it. The adapter drives the library
 through its declarations as the game did before the replacement, with the same scene values from
 `VisualEnvironment`, translated where Water Pro measures them differently: the significant height
-becomes the per-map FFT gain the game once measured, and surface foam and the wake's breaking slope
-take the values the game gave the library. The realism switches do not apply to it.
+becomes the per-map FFT gain the game once measured, and crest foam (the calibration table's crest and
+windward gains, a 2.8 s decay and 0.8 of the map's foam opacity), surface foam and the wake's breaking
+slope take the values the game gave the library. The realism switches do not apply to it.
 `bun scripts/browser/ocean-review.ts --tag <name> --param renderer=waterpro` renders the review
 scenes with it. The clean-room rule in the ocean README applies: never open the library's `index.js`.

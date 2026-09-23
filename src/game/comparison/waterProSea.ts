@@ -1,4 +1,5 @@
 import { oceanMap, type OceanMapId } from '../../maps/catalog';
+import { windSea } from '../../maps/seaCalibration';
 
 /** Where the game's ocean parameters mean something else to Water Pro, the values the game sent the library
  * before it was replaced. Nothing here reads the library; `WaterProOcean` applies these to it. */
@@ -49,6 +50,14 @@ export function waterProAmplitude(significantHeight: number, windSpeed: number):
  * game's own `foam.surface` values are tuned for its equalised foam texture, where coverage is an exact share. */
 export function waterProSurfaceFoam(windSpeed: number): { opacity: number; coverage: number } {
   return { opacity: .08 * Math.max(0, Math.min(1, (windSpeed - 3) / 12)), coverage: .18 };
+}
+
+/** Water Pro's crest foam as the game set it: the calibration table's crest and windward gains at the wind, a 2.8 s
+ * decay and 0.8 opacity, scaled by the map's foam value (which the game's own whitecaps take as `coverageScale`).
+ * The game's whitecaps place themselves from their spectrum's statistics instead of fixed gains. */
+export function waterProCrestFoam(windSpeed: number, coverageScale: number): { crestStrength: number; windwardStrength: number; decayTime: number; opacity: number } {
+  const { crestFoam, windwardFoam } = windSea(oceanMap('north-atlantic'), windSpeed);
+  return { crestStrength: crestFoam, windwardStrength: windwardFoam, decayTime: 2.8, opacity: .8 * coverageScale };
 }
 
 /** The game's wake field measures breaking slope over a 12 m baseline and starts foam at 0.015; Water Pro's solver

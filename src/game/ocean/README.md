@@ -72,8 +72,7 @@ the old GPU readback of the spectrum. Short waves are held to a saturation range
 the peak: the game's calibrated seas are far steeper than developed ones, and a JONSWAP normalised
 to their height would roughen every ripple. α = 0.02, a young sea's, is where the drawn slopes meet
 Cox–Munk's measured total from 9 to 18 m/s (Phillips' developed 0.0081 left two thirds of it).
-Crest foam persists per cascade in tile space; only cascades near the spectral peak inject it. Mip
-chains stop at 16×16 texels, and `surface()` fades a cascade whose waves are finer than that under
+Mip chains stop at 16×16 texels, and `surface()` fades a cascade whose waves are finer than that under
 the pixel into `slopeVariance`. Close to the camera `surface()` also draws the band below the finest
 cascade as ripples: its slopes read as many times finer as its band spans (16 on High, 32 on Ultra;
 the saturation range is self-similar in slope), shown where the pixel resolves them, with the
@@ -103,6 +102,37 @@ the sea as drawn (spectral reads such as the peak belong there, not on `params`)
 on the tier's tiles, pixel for pixel as before. Combat, hull motion and `session/sea.ts` read the
 table either way.
 
+**Whitecaps** (`waves/whitecaps.ts`, the resolve pass in `waves/field.ts`). A crest breaks where it
+is both compressed along the wind (the choppy displacement's −ŵ·∇(D·ŵ)) and steep on its forward
+face (the slope falling away downwind). Both fields are linear in the wave amplitudes and a quarter
+period apart for every travelling mode, so over a tile they are uncorrelated Gaussians whose
+variances the CPU spectrum gives exactly (a unit test checks the blend's tile variance is 1 against
+the inverse DFT); weighted by cos⁴θ and cos²θ of each wave's angle to the wind, they favour the
+wind-driven waves whose crests run across it, so breaking zones stretch along the crests. Blended
+0.9 rad onto the face and normalised, they make a standard-normal breaking indicator per cascade.
+The wind sets the share of the sea whitecaps and windrows cover (Monahan & O'Muircheartaigh,
+3.84·10⁻⁶·U^3.41, none below 3.5 m/s, scaled by the map); the whitecaps' part, what must add to the
+windrows' coverage as the two overlap at random, becomes an optical depth −ln(1 − W) (patches land at
+random and overlap). Each cascade takes the share of it its breaking waves carry (slope variance
+within 1/32 to 2 of the sea's mean wavelength, none shorter than 3 m); its threshold is the normal
+quantile of that share over a measured persistence (2.3; a finer cascade shows 0.62 of its foam
+through its gate; dense seas saturate as D/(1 + 1.3·D)); a cascade asked to break over more than half
+its sea hands the rest to the others by share. Injection ramps from 0 to 1 over ±1/z of the
+indicator around the threshold z, so breakers reach full strength alike at every wind, and foam
+decays with e-folding time 0.55 periods of the waves that broke (about 1.4 s at 9 m/s, 3 s for a
+storm's big breakers). Because thresholds follow the spectrum's own statistics, coverage holds
+whatever the wavelengths, heights or choppiness: on High, whitecaps and windrows cover
+0.18/0.64/1.9/4.1/7.8/13/24/44% of the sea at 6/9/12/15/18/21/25/30 m/s on the table's sea and
+0.19/0.66/1.9/4.1/7.7/12/19/40% on the realistic one, against Monahan's
+0.17/0.69/1.8/3.9/7.3/12/22/42% (`ocean-waves.html`'s `foamCoverage`, a square kilometre at three
+instants, through the surface's own foam functions; light airs vary by a few hundredths of a
+percent between runs). The extras texture's fourth channel persists
+the bubble cloud the same way for half the foam's lifetime. `surface()` returns foam per area of sea
+(divided by the surface's compression J, held to 0.35–2.5, so foam gathers on converging crests),
+and a finer cascade's foam shows where the coarser cascades' compression, in its own standard
+deviations, passes −1 (full from 0.75): short waves break on the crests of long ones, and the long
+tiles hide a finer tile's repeats. Paused frames leave both channels untouched.
+
 **Mesh.** Camera-centred clipmap, 256 m base, 6 levels, snapped per level so vertices never swim,
 seam-free between levels; a flat horizon ring from the clipmap edge to 95% of `camera.far`,
 growable when the air map raises `far` (`ensureHorizon(far)`). Vertex displacement samples a
@@ -110,19 +140,36 @@ distance-appropriate mip. Low/Medium/High/Ultra segments 16/32/64/128.
 
 **Surface.** Opaque result, alpha 1. This paragraph is the look first tuned to the replaced library,
 which `realism.reflections` and `realism.waterColor` replace (see *Physical shading*); foam, crest
-light and the underside are shared. Custom colours (`WaterColors`): pigment and foam are
-emitted radiance, pre-scaled by the game at night. Fresnel reflection of the sky provider with
+light and the underside are shared. Custom colours (`WaterColors`): the pigment is emitted
+radiance, pre-scaled by the game at night; foam is lit (below). Fresnel reflection of the sky provider with
 roughness from unresolved slope variance and a tiny grazing guard (1e-4, not 0.05: distant slopes
 must keep distinct reflectance under 24× binoculars). Sun glints on the resolved facets (a lobe of
 slope variance 1e-3, weighted by the share of the slopes the pixel resolves: glitter close up, no
 bleached sheen far off), subsurface
-light through crests toward the sun, crest foam (Jacobian, persistence, windward streaks, wind
-stretch), wind streaks of surface foam, shoreline foam where the water column is shallow (islands
-and hulls), and wake foam. Every foam reads one generated texture whose channels are equalised
-(lace, patches, streaks), so thresholding a channel at 1 − coverage covers exactly that share:
-thinning foam keeps fewer filaments instead of turning grey, and where filtering has flattened
-the pattern the pixel takes the coverage itself. Foam facing away from the sun keeps 60% of its
-light, so whitecaps take the shape of their wave. Straight-through visibility of submerged
+light through crests toward the sun, whitecaps, windrows, shoreline foam where the water column is
+shallow (islands and hulls), and wake foam. Foam shading lives in `surface/foam.ts`. Every foam reads
+one generated texture (`surface/foamTexture.ts`): lace (warped Worley filaments around holes),
+patches (fbm) and churn are equalised, and every mip level is averaged from the raw fields and
+equalised again, so thresholding a channel at 1 − coverage keeps exactly that share at any
+distance: thinning foam keeps fewer filaments instead of turning grey, and only below 8×8 texels
+per pattern does the pixel take the coverage itself. Whitecaps: foam per area above 1.2 is a fresh
+sheet (0.97 opaque, 90% of its patch, darkened up to 30% by churn); below it a patch frays into lace
+of fewer, fainter filaments (to 0.35 opaque) until clear water is left under 0.04; the broad patches
+sway the amount ±45%, so whitecaps differ and their outlines fray at scales a distant pixel
+resolves. The bubble cloud (read from a mip whose texels span at least 4 m) brightens the water
+body toward daylight scattered back by bubbles (18%) and tinted by 2.5 m of water (pale turquoise,
+up to 60% of the way), and scatters half the reflection away: a soft veil around each fresh
+whitecap. Windrows, old foam in lines along the wind, take a growing share of the wind's coverage
+from 12 m/s (Beaufort 6; 7 is "foam begins to be blown in streaks", 9 "dense streaks") to a quarter
+of it by 24 m/s, at most 4% of the sea (counted by opacity; thinner lines saturate beyond it): a
+streak mask of lines 0.5–2 m wide and 8–20 m apart that meander, wiggle over 20 m of their length,
+swell and break, gathered in bands built from the patches at two scales an irrational ratio apart,
+which also shift the lines across the wind (no lattice from the air), and beaded by the lace; the
+mask is scaled, not thresholded, so its mean holds at every distance. All foam is a diffuse scatterer (albedo 0.8): the
+sky's radiance about its normal plus half the sun's irradiance over π (the share the game's lit
+meshes take), wrapped 0.5 past the terminator and cut by the sun's shadow, so it follows the sky and
+the moon at night without a tint. Its wet top keeps half the water's Fresnel reflection, and it is
+never darker than the water it covers without glints. Straight-through visibility of submerged
 geometry: the opaque scene at the same screen position, attenuated by `exp(-absorption × column)`
 and filled with the pigment. No refraction offset. An optional sun shadow node attenuates the lit
 terms; ambient pigment keeps 45% in full shadow; sky reflection is unshadowed. The underside, seen
@@ -266,7 +313,8 @@ coverage, the wake's dispersion pyramid (including aliasing on a real grid), its
 share of each cascade a slick stills.
 `bun scripts/browser/ocean-waves.ts` runs `/scripts/diagnostics/ocean-waves.html` headed: it checks
 the wave field alone on WebGPU (GPU transform against a CPU inverse DFT, Hm0, mipmaps, `heightAt`,
-foam persistence and coverage, update timings per tier) and writes to `.build/ocean-waves/`;
+foam persistence and whitecap coverage by wind through the surface's own foam functions, update
+timings per tier) and writes to `.build/ocean-waves/`;
 `--sea-state off` checks the table's sea as given. Cascades holding under a millionth of the variance
 (a light air's 1 km tile) are reported but not judged: their amplitudes are below half-float
 resolution.

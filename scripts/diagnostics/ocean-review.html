@@ -116,6 +116,14 @@ const scenes = {
   },
   storm: async () => { await battle({ wind: 25 }); look(...NEAR); },
   calm: async () => { await battle({ wind: 3 }); look(...NEAR); },
+  // Whitecaps through the Beaufort scale at the near camera, and a storm's close up.
+  wind6: async () => { await battle({ wind: 6 }); look(...NEAR); },
+  wind12: async () => { await battle({ wind: 12 }); look(...NEAR); },
+  gale: async () => { await battle({ wind: 15 }); look(...NEAR); },
+  wind18: async () => { await battle({ wind: 18 }); look(...NEAR); },
+  wind30: async () => { await battle({ wind: 30 }); look(...NEAR); },
+  stormClose: async () => { await battle({ wind: 25 }); look([120, 40, 150], [0, 0, 0], 50); },
+  galeClose: async () => { await battle({ wind: 15 }); look([120, 40, 150], [0, 0, 0], 50); },
   dusk: async () => { await battle({ hours: 17.8 }); look(...WIDE); },
   night: async () => { await battle({ hours: 0 }); look(...NEAR); },
   islands: async () => {
@@ -126,6 +134,9 @@ const scenes = {
   zoom5km: async () => { await battle({ range: 5000 }); look([0, 29, 0], [5000, 14, 0], zoom(24)); },
   zoom20km: async () => { await battle({ range: 20000 }); look([0, 29, 0], [20000, 14, 0], zoom(24)); },
   air: async () => { await battle(); look([0, 2600, 2400], [0, 0, -1800], 52); },
+  // Foam patterns must not repeat as a lattice at the air map's scale.
+  airGale: async () => { await battle({ wind: 15 }); look([0, 2600, 2400], [0, 0, -1800], 52); },
+  airStorm: async () => { await battle({ wind: 25 }); look([0, 2600, 2400], [0, 0, -1800], 52); },
   submerged: async ({ depth = 30, mode = 'Chase' } = {}) => {
     await battle({ player: 'type-viic' });
     game.rig.update = rigUpdate;

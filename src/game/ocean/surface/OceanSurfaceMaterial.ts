@@ -1,11 +1,12 @@
 import { DepthTexture, DoubleSide, NoBlending, NodeMaterial, type Color, type Node, type Texture } from 'three/webgpu';
-import { Fn, If, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, fwidth, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
+import { Fn, If, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
   pmremTexture, positionView, positionWorld, reference, reflect, refract, select, sin, smoothstep, texture, uniform, varying, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
 import { EffectDepthTextureNode } from '../../EffectVolume';
 import { writeSceneTargets } from '../../TemporalAntialiasing';
 import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../screen/reflections';
-import { FOAM_TEXELS, foamTexture } from './foamTexture';
+import { aeratedReflectance, aeration, bubbleCloud, foamOpacity, foamOver, foamPatterns, foamRadiance, whitecapOpacity, windrowOpacity } from './foam';
+import { foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
 import { TRACE_BELOW, footprintVariance, meanFresnel, reflectionLobe, skyLobe, sunGlitter, windVariances } from './physicalReflection';
 import { backscatter, columnTransmittance, skyIrradiance, subsurfaceReflectance, upwelling, waterBody } from './waterBody';
@@ -16,28 +17,11 @@ const WATER_F0 = .02;
 const WATER_IOR = 1.333;
 /** Pigment kept in full sun shadow: the sea is lit by the sky as well as the sun. */
 const SHADOWED_PIGMENT = .45;
-/** Foam kept in full sun shadow. */
-const SHADOWED_FOAM = .6;
-/** Foam lit only by the sky, relative to foam facing the sun. */
-const FOAM_AMBIENT = .6;
 /** Slope variance of a glint: the sun disc's (2e-4 for the game's 1.4° disc) widened by facets just finer than a
  * pixel, which tilt within it. */
 const GLINT_VARIANCE = 1e-3;
 /** Share of the wave slope screen-space reflections follow: about the longest waves' share of it at moderate winds. */
 const TRACE_SLOPE = .3;
-/** Metres across the wind per tile of the foam texture; along the wind it stretches with the crest foam's `windStretch`. */
-const FOAM_TILE = 40;
-/** Texels per pixel over which a foam pattern blurs into its mean. */
-const FOAM_BLUR_START = 4, FOAM_BLUR_END = 48;
-/** Crest foam (the wave field's persisted injection) that starts to show, and that covers its patch completely:
- * the faint, spread-out remains of a whitecap stay clear water. */
-const CREST_START = .1, CREST_FULL = 1;
-/** Edge half-width of whitecaps in levels of the equalised lace: firm, not cut out. */
-const CREST_EDGE = .15;
-/** Opacity of the thinnest crest foam relative to a fresh whitecap: old foam is a translucent film. */
-const THIN_FOAM = .35;
-/** Edge half-width of wind streaks. */
-const STREAK_EDGE = .1;
 /** Wake foam energy at which churned water starts to show, where it covers the sea completely, and how softly its
  * edge dissolves: the trail's own energy shapes its puffs and gaps. */
 const WAKE_START = .05, WAKE_FULL = .6, WAKE_EDGE = .8;
@@ -145,35 +129,6 @@ function crestTransmission(view: Node<'vec3'>, sun: Node<'vec3'>, radiance: Node
 /** Fraction of light surviving `column` metres of water. */
 function transmittance(absorption: Node<'vec3'>, column: Node<'float'>): Node<'vec3'> {
   return exp(absorption.mul(column).negate());
-}
-
-/** Share of the foam texture's contrast that filtering has averaged away at `uv`: none while a pixel spans a few
- * texels, all of it once a pixel averages dozens and the texture reads as its mean. */
-function foamBlur(uv: Node<'vec2'>): Node<'float'> {
-  return smoothstep(FOAM_BLUR_START, FOAM_BLUR_END, max(fwidth(uv.x), fwidth(uv.y)).mul(FOAM_TEXELS));
-}
-
-/** Opacity of foam covering a share `coverage` of the sea. The texture channel `pattern` is equalised, so
- * thresholding it at 1 − coverage keeps exactly that share: a fresh sheet is solid white and thinning foam keeps only
- * the pattern's brightest filaments, instead of turning grey. Where the pattern is blurred to its mean the pixel
- * takes the coverage itself. */
-function foamOpacity(coverage: Node<'float'>, pattern: Node<'float'>, blur: Node<'float'>, edge: number): Node<'float'> {
-  // The threshold runs from just above the pattern's top to just below its bottom, so no coverage shows nothing.
-  const share = coverage.clamp(0, 1), threshold = mix(float(1 + edge), float(-edge), share);
-  return mix(smoothstep(threshold.sub(edge), threshold.add(edge), pattern), share, blur);
-}
-
-/** Whitecaps from the wave field's crest foam `amount`: fresh breaking crests are solid white, and as the foam
- * decays it keeps fewer, fainter filaments of the lace until only clear water is left. */
-function crestFoamOpacity(amount: Node<'float'>, lace: Node<'float'>, blur: Node<'float'>): Node<'float'> {
-  const coverage = amount.sub(CREST_START).div(CREST_FULL - CREST_START).clamp(0, 1);
-  return foamOpacity(coverage, lace, blur, CREST_EDGE).mul(mix(THIN_FOAM, 1, coverage));
-}
-
-/** Light on foam: the sun's shadow leaves SHADOWED_FOAM, and foam facing away from the sun keeps FOAM_AMBIENT, so
- * whitecaps take the shape of the wave they ride instead of lying on it as flat white. */
-function foamIllumination(lit: Node<'float'>, normal: Node<'vec3'>, sun: Node<'vec3'>): Node<'float'> {
-  return mix(SHADOWED_FOAM, 1, lit).mul(mix(FOAM_AMBIENT, 1, dot(normal, sun).max(0)));
 }
 
 /** The lit sea seen along `direction` from just below the surface: the pigment looking down into the deep,
@@ -291,32 +246,34 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const glint = variances ? sunGlitter(up, view, sunDirection, sunRadiance, variances, downwind)
       : sunGlint(up, view, sunDirection, sunRadiance, sample.slopeVariance);
     const direct = glint.add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
-    let above: Node<'vec3'> = mix(body, reflected, reflectance).add(direct.mul(lit));
+    // Foam is lit like any diffuse white surface, by the sky about its normal and the sun; the bubble cloud under
+    // fresh whitecaps scatters the same daylight back up through the water.
+    const foamLight = foamRadiance(skyReflection(environment, up, float(1)), sunRadiance, up, sunDirection, lit);
+    const aerated = aeration(sample.bubbles);
+    const water = mix(bubbleCloud(body, aerated, foamLight, absorption), reflected, aeratedReflectance(reflectance, aerated));
+    let above: Node<'vec3'> = water.add(direct.mul(lit));
 
-    // Foam, from the widest and faintest to the brightest: surface streaks, crests, wakes, shorelines. One read
-    // of the foam texture, laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
-    const wind = reference('windDirection', 'float', waves.params), along = vec2(cos(wind), sin(wind));
-    const foamXz = vec2(dot(xz, along).div(reference('windStretch', 'float', foam.crest).mul(2).add(1)), dot(xz, vec2(along.y.negate(), along.x)));
-    const foamUv = foamXz.div(FOAM_TILE);
-    const pattern = texture(this.foamDetail, foamUv), blur = foamBlur(foamUv), lace = pattern.r;
-    const foamLight = foamIllumination(lit, up, sunDirection);
-    // Residual foam gathers in the patches (twice the mean coverage where they peak) and lies in wind streaks.
-    const surfaceFoam = foamOpacity(reference('coverage', 'float', foam.surface).mul(pattern.g.mul(2)), pattern.b, blur, STREAK_EDGE)
+    // Foam, from the widest and faintest to the brightest: windrows, whitecaps and wakes, shorelines. The foam
+    // texture is laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
+    const stretch = reference('windStretch', 'float', foam.crest).mul(2).add(1);
+    const { pattern, blur, rows, bands } = foamPatterns(this.foamDetail, xz, reference('windDirection', 'float', waves.params), stretch);
+    const lace = pattern.r;
+    // Old foam gathers in the broad patches and lies in lines along the wind.
+    const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), bands, rows.b, lace, blur, this.foamDetail.userData.streakMean)
       .mul(reference('opacity', 'float', foam.surface));
-    const crestFoam = crestFoamOpacity(sample.foam, lace, blur).mul(reference('opacity', 'float', foam.crest));
+    const whitecaps = whitecapOpacity(sample.foam, pattern, blur).mul(reference('opacity', 'float', foam.crest));
     // Churned water is soft-edged and puffy where the trail's energy thins, not cut into lace.
     const churned = wake.slick !== undefined;
     const wakeFoam = foamOpacity(smoothstep(churned ? CHURN_START : WAKE_START, churned ? CHURN_FULL : WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur,
       churned ? CHURN_EDGE : WAKE_EDGE).mul(churned ? CHURN_OPACITY : WAKE_OPACITY);
     // Where the water column behind the surface thins to nothing: a beach, or the line along a hull.
     const shoreFoam = foamOpacity(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), lace, blur, SHORE_EDGE).mul(reference('opacity', 'float', foam.shoreline));
-    const crestColor = rgb(foam.crest.color).mul(foamLight);
     // Bubble clouds just under churned water scatter daylight back up through it, in place of the water body.
-    if (wake.bubbles) above = above.add(crestColor.mul(transmittance(absorption, float(BUBBLE_PATH))).mul(BUBBLE_ALBEDO).sub(body)
+    if (wake.bubbles) above = above.add(rgb(foam.crest.color).mul(foamLight).mul(transmittance(absorption, float(BUBBLE_PATH))).mul(BUBBLE_ALBEDO).sub(body)
       .mul(wake.bubbles(xz.x, xz.y).mul(float(1).sub(reflectance))));
-    above = mix(above, rgb(foam.surface.color).mul(foamLight), surfaceFoam.clamp(0, 1));
-    above = mix(above, crestColor, max(crestFoam, wakeFoam).clamp(0, 1));
-    above = mix(above, rgb(foam.shoreline.color).mul(foamLight), shoreFoam.clamp(0, 1));
+    above = foamOver(above, water, foamLight.mul(rgb(foam.surface.color)), reflected, reflectance, windrows);
+    above = foamOver(above, water, foamLight.mul(rgb(foam.crest.color)), reflected, reflectance, max(whitecaps, wakeFoam));
+    above = foamOver(above, water, foamLight.mul(rgb(foam.shoreline.color)), reflected, reflectance, shoreFoam);
 
     this.fragmentNode = Fn(() => {
       // Everything above is evaluated first, in uniform control flow: it takes screen-space derivatives. Only back

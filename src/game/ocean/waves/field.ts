@@ -10,6 +10,7 @@ import type { OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, Wave
 import { fftRadices } from './fft';
 import { drawnSea, seaStateCascades } from './seaState';
 import { FOLD_PERIOD, buildSpectrum, cascadeBands } from './spectrum';
+import { type CascadeBreaking, cascadeBreaking, setBreakingThresholds, whitecapDepth } from './whitecaps';
 
 type Vec4 = Node<'vec4'>;
 type Float = Node<'float'>;
@@ -18,7 +19,7 @@ type TextureMap = ReturnType<typeof texture>;
 const floatUniform = () => uniform(0);
 
 /** Fields per cascade layer: displacement (Dx, Dy, Dz, ·), derivatives (∂y/∂x, ∂y/∂z, ∂Dx/∂x, ∂Dz/∂z)
- * and extras (∂Dx/∂z, foam, (∂y/∂x)² + (∂y/∂z)², ·). The squared slope is mip-filtered with the slope,
+ * and extras (∂Dx/∂z, foam, (∂y/∂x)² + (∂y/∂z)², bubbles). The squared slope is mip-filtered with the slope,
  * so E[s²] − E[s]² is the slope variance inside any pixel's filter footprint (LEAN mapping). */
 const FIELDS = ['displacement', 'derivatives', 'extras'] as const;
 /** Mip chains stop at this many texels per edge. WebGPU builds every level of every layer in its own
@@ -26,19 +27,26 @@ const FIELDS = ['displacement', 'derivatives', 'extras'] as const;
  * into the slope variance instead (see surface()). */
 const COARSEST_TEXELS = 16;
 const ANISOTROPY = 16;
-/** Crest foam: none while a cascade's Jacobian stays above CREST_START, all of `crestStrength` once it
- * falls to CREST_FULL. A single choppy wave at Stokes' breaking steepness (ka ≈ 0.44) has J ≈ 0.5,
- * so injection sits around breaking crests. Windward foam: downwind faces steeper than FACE_START
- * (slope), full at FACE_FULL. With the game's calibrated gains, surface() averages 0.8% foam at
- * 9 m/s, 4.4% at 15 and 14% at 25, against Monahan & O'Muircheartaigh's whitecap fraction
- * (3.84e-6·U^3.41) of 0.7%, 3.9% and 22%. */
-const CREST_START = .6, CREST_FULL = .2;
-const FACE_START = .22, FACE_FULL = .5;
-/** Whitecaps form on waves near the spectral peak, not on ripples: a cascade injects foam in full once
- * its longest waves reach a third of the peak wavelength, and none below an eighth. */
-const WHITECAP_SHORTEST = 1 / 8, WHITECAP_FULL = 1 / 3;
-/** Compression of the longer waves (∂Dx/∂x + ∂Dz/∂z) over which a finer cascade's foam fades in. */
-const CREST_MODULATION = .1;
+/** Crest foam (see whitecaps.ts): a cascade's crests break where its standard-normal breaking indicator passes the
+ * threshold z the wind's coverage sets; injection ramps from nothing to fresh foam (1) over BREAKING_RAMP / z of the
+ * indicator, centred on the threshold, so a whitecap's rim is thinner than its core. A Gaussian field's peaks pass a
+ * high threshold by about 1 / z, so the ramp keeps pace and breakers reach full strength alike at every wind. */
+const BREAKING_RAMP = 2;
+/** A threshold uniform standing for "never breaks". */
+const NEVER = 1e4;
+/** Short waves break on the crests of longer ones: a finer cascade's foam shows in full where the coarser cascades'
+ * compression, in their own standard deviations, passes GATE_FULL and not below GATE_NONE. The longer tiles also
+ * keep a finer tile's few whitecaps from repeating in a visible lattice. */
+const GATE_NONE = -1, GATE_FULL = .75;
+/** The surface's areal compression J that foam density follows is held within these: a fold (J ≤ 0) gathers at
+ * most 1 / FOAM_JACOBIAN_MIN, and a stretched back thins foam at most to 1 / FOAM_JACOBIAN_MAX. */
+const FOAM_JACOBIAN_MIN = .35, FOAM_JACOBIAN_MAX = 2.5;
+/** Bubbles a breaking crest carries down persist like its foam but for this share of the foam's lifetime: the cloud
+ * rises and dissolves within about a wave period, while the surface foam it leaves lingers. */
+const BUBBLE_LIFE = .5;
+/** The bubble cloud is read from a mip whose texels span at least this many metres: bubbles carried down under a
+ * whitecap spread about as far again around it. */
+const BUBBLE_SPREAD = 4;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
 const MIN_JACOBIAN = .1;
@@ -128,13 +136,13 @@ export class GpuWaveField implements WaveField {
   private readonly phase = uniform(0);
   private readonly choppiness = uniform(0);
   private readonly elapsed = uniform(0);
-  private readonly decay = uniform(1);
-  private readonly crest = uniform(0);
-  private readonly windward = uniform(0);
   private readonly wind = uniform(new Vector2(1, 0));
   private readonly layer = uniform(0, 'int');
-  /** Share of the foam injection the cascade in `layer` receives. */
-  private readonly whitecaps = uniform(0);
+  /** The cascade in `layer`: e-folding lifetime (s) of its foam, weights of its breaking indicator (compression,
+   * forward face) and the indicator at which its crests break. */
+  private readonly decay = uniform(1);
+  private readonly breakingWeights = uniform(new Vector2());
+  private readonly breakingThreshold = uniform(NEVER);
   private readonly tail = uniform(0);
   /** All of the tail, for `unresolvedVariance`. */
   private readonly tailFull = uniform(0);
@@ -142,6 +150,10 @@ export class GpuWaveField implements WaveField {
   private readonly slopes: ReturnType<typeof floatUniform>[];
   /** What a slick damps of each cascade (`slickShares`); it follows the tiles. */
   private readonly slickShares: ReturnType<typeof floatUniform>[];
+  /** 1 / the standard deviation of the compression of the cascades coarser than each one (0 for the coarsest). */
+  private readonly gates: ReturnType<typeof floatUniform>[];
+  /** How each cascade breaks, for the current spectrum. */
+  private breaking: CascadeBreaking[] = [];
   private lastPhase = -1;
 
   /** `tier` is the quality tier's layout; `realism.seaState` is read live, and flipping it rebuilds. */
@@ -152,6 +164,7 @@ export class GpuWaveField implements WaveField {
     this.size = n;
     this.top = Math.max(0, Math.log2(n / COARSEST_TEXELS));
     this.slopes = tier.map(floatUniform);
+    this.gates = tier.map(floatUniform);
     this.tiles = tier.map(floatUniform);
     this.texels = tier.map(floatUniform);
     this.longestWaves = tier.map(floatUniform);
@@ -270,17 +283,19 @@ export class GpuWaveField implements WaveField {
       ab = ab.add(rotate(direct(maps[0].load(at)) as unknown as Vec4, c, s));
       cd = cd.add(rotate(direct(maps[1].load(at)) as unknown as Vec4, c, s));
     }
-    const jacobian = cd.z.add(1).mul(cd.w.add(1)).sub(ab.w.mul(ab.w));
-    const downwind = cd.x.mul(this.wind.x).add(cd.y.mul(this.wind.y));
-    // Crest foam where this cascade nears breaking; windward foam on steep downwind faces.
-    const injection = this.crest.mul(float(1).sub(smoothstep(CREST_FULL, CREST_START, jacobian)))
-      .add(this.windward.mul(smoothstep(FACE_START, FACE_FULL, downwind.negate()))).mul(this.whitecaps);
-    const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer).y;
-    const foam = select(this.elapsed.greaterThan(0), max(previous.mul(exp(this.elapsed.negate().div(this.decay))), injection), previous);
+    // Crests break where they are compressed along the wind and steep on their forward face (see whitecaps.ts).
+    const wx = this.wind.x, wz = this.wind.y;
+    const compression = cd.z.mul(wx.mul(wx)).add(ab.w.mul(wx.mul(wz).mul(2))).add(cd.w.mul(wz.mul(wz))).negate();
+    const face = cd.x.mul(wx).add(cd.y.mul(wz)).negate();
+    const indicator = compression.mul(this.breakingWeights.x).add(face.mul(this.breakingWeights.y));
+    const ramp = float(BREAKING_RAMP / 2).div(this.breakingThreshold.max(1));
+    const injection = smoothstep(this.breakingThreshold.sub(ramp), this.breakingThreshold.add(ramp), indicator);
+    const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer);
+    const persisted = (last: Float, lifetime: Float): Float => select(this.elapsed.greaterThan(0), max(last.mul(exp(this.elapsed.negate().div(lifetime))), injection), last);
     return mrt({
       displacement: vec4(ab.xyz, 0),
       derivatives: cd,
-      extras: vec4(ab.w, foam, cd.x.mul(cd.x).add(cd.y.mul(cd.y)), 0),
+      extras: vec4(ab.w, persisted(previous.y, this.decay), cd.x.mul(cd.x).add(cd.y.mul(cd.y)), persisted(previous.w, this.decay.mul(BUBBLE_LIFE))),
     });
   }
 
@@ -305,19 +320,21 @@ export class GpuWaveField implements WaveField {
     const across = dFdx(xz).length(), down = dFdy(xz).length();
     const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
     const stilled = slick(calm);
-    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0);
+    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), bubbles: Float = float(0);
     let variance: Float = stilled(this.tail, 1), unresolved: Float = stilled(this.tailFull, 1);
     this.tier.forEach((_, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
       // last level (slopes, strain and foam alike, which would otherwise repeat with the tile); its
       // whole slope variance then roughens the surface instead.
-      const detail = float(1).sub(smoothstep(this.top - 1, this.top, log2(footprint.mul(this.texels[i]))));
+      const level = log2(footprint.mul(this.texels[i]));
+      const detail = float(1).sub(smoothstep(this.top - 1, this.top, level));
       const derivatives = this.sample('derivatives', xz, i), extras = this.sample('extras', xz, i);
-      // Short waves break on the crests of longer ones: finer cascades' foam follows the compression
-      // (∂Dx/∂x + ∂Dz/∂z < 0) of the coarser ones summed so far, whose longer tiles also keep a
-      // finer tile's few whitecaps from repeating in a visible lattice.
-      const crests = i ? smoothstep(CREST_MODULATION, -CREST_MODULATION, strain.x.add(strain.y)) : float(1);
-      foam = foam.add(extras.y.mul(detail).mul(crests));
+      // A finer cascade's foam shows on the crests of the coarser ones summed so far (their compression is
+      // −(∂Dx/∂x + ∂Dz/∂z), gated in its own standard deviations).
+      const crests = i ? smoothstep(GATE_NONE, GATE_FULL, strain.x.add(strain.y).mul(this.gates[i]).negate()) : float(1);
+      foam = max(foam, extras.y.mul(detail).mul(crests));
+      const spread = clamp(max(level, log2(this.texels[i].mul(BUBBLE_SPREAD))), 0, this.top);
+      bubbles = max(bubbles, this.sample('extras', xz, i, spread).w.mul(detail).mul(crests));
       slope = slope.add(stilled(derivatives.xy.mul(detail), this.slickShares[i]));
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
       const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
@@ -331,7 +348,10 @@ export class GpuWaveField implements WaveField {
     const jacobian = xx.mul(zz).sub(cross.mul(cross));
     const world = vec2(zz.mul(slope.x).sub(cross.mul(slope.y)), xx.mul(slope.y).sub(cross.mul(slope.x))).div(max(jacobian, MIN_JACOBIAN));
     const ripples = this.ripples(xz, footprint, stilled);
-    return { slope: world.add(ripples.slope), jacobian, foam, slopeVariance: variance.add(ripples.variance), unresolvedVariance: unresolved.add(ripples.unresolved) };
+    // Foam rides the water: per area of sea it is as dense as the surface is compressed (1 / J), gathered on
+    // converging crests and thinned where their backs stretch.
+    const density = foam.div(clamp(jacobian, FOAM_JACOBIAN_MIN, FOAM_JACOBIAN_MAX));
+    return { slope: world.add(ripples.slope), jacobian, foam: density, bubbles, slopeVariance: variance.add(ripples.variance), unresolvedVariance: unresolved.add(ripples.unresolved) };
   }
 
   /** Waves shorter than the finest cascade, drawn close to the camera instead of only roughening the reflection.
@@ -388,6 +408,7 @@ export class GpuWaveField implements WaveField {
       this.tailFull.value = spectrum.tailSlopeVariance;
       this.choppiness.value = this.sea.choppiness;
       this.wind.value.set(Math.cos(this.sea.windDirection), Math.sin(this.sea.windDirection));
+      this.prepareWhitecaps(spectrum);
       this.params.dirty = false; this.built = rebuilt = true;
     }
     const phase = Math.fround((time % FOLD_PERIOD + FOLD_PERIOD) % FOLD_PERIOD / FOLD_PERIOD);
@@ -395,8 +416,7 @@ export class GpuWaveField implements WaveField {
     if (!rebuilt && dt <= 0 && phase === this.lastPhase) return;
     this.lastPhase = phase; this.phase.value = phase;
     this.elapsed.value = Math.max(0, dt);
-    this.decay.value = Math.max(1e-3, this.foamParams.decayTime);
-    this.crest.value = this.foamParams.crestStrength; this.windward.value = this.foamParams.windwardStrength;
+    setBreakingThresholds(this.breaking, whitecapDepth(this.params.windSpeed, this.foamParams.coverageScale));
     const target = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), level = renderer.getActiveMipmapLevel(), mrtState = renderer.getMRT();
     try {
       renderer.setMRT(null);
@@ -407,8 +427,7 @@ export class GpuWaveField implements WaveField {
         // Mipmaps once per update, after the last layer: generation covers every layer.
         for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1;
         this.layer.value = c;
-        const ratio = this.longest[c] / this.sea.peakWavelength;
-        this.whitecaps.value = Math.min(1, Math.max(0, (ratio - WHITECAP_SHORTEST) / (WHITECAP_FULL - WHITECAP_SHORTEST)));
+        this.setBreaking(c);
         renderer.setRenderTarget(output, c);
         this.finalPass.render(renderer);
       });
@@ -417,6 +436,27 @@ export class GpuWaveField implements WaveField {
     } finally {
       renderer.setRenderTarget(target, face, level); renderer.setMRT(mrtState);
     }
+  }
+
+  /** Whitecap statistics of a rebuilt spectrum, from the choppiness and wind the surface is drawn with: how each
+   * cascade breaks, and each finer cascade's gate on the coarser cascades' compression (variance: choppiness² × their
+   * slope variance). */
+  private prepareWhitecaps(spectrum: ReturnType<typeof buildSpectrum>): void {
+    const choppiness = Math.max(0, this.choppiness.value), wind = this.wind.value;
+    this.breaking = cascadeBreaking(spectrum, wind.x, wind.y, choppiness);
+    let coarser = 0;
+    spectrum.cascades.forEach((cascade, c) => {
+      this.gates[c].value = coarser > 0 ? 1 / Math.sqrt(coarser) : 0;
+      coarser += choppiness ** 2 * cascade.slopeVariance;
+    });
+  }
+
+  /** The resolve pass's foam uniforms for cascade `c`: its breaking indicator, threshold and foam lifetime. */
+  private setBreaking(c: number): void {
+    const breaking = this.breaking[c];
+    this.breakingWeights.value.set(breaking.compression, breaking.face);
+    this.breakingThreshold.value = Math.min(NEVER, breaking.threshold);
+    this.decay.value = Math.max(1e-3, this.foamParams.lifetime * breaking.period);
   }
 
   dispose(): void {

@@ -61,8 +61,12 @@ export interface WaveSurfaceSample {
   slope: Node<'vec2'>;
   /** Jacobian determinant of the horizontal displacement (1 is undistorted, < 0 folds). */
   jacobian: Node<'float'>;
-  /** Accumulated crest-foam coverage, ≥ 0, with the persistence already applied. */
+  /** Whitecap foam per area of sea: 1 on a crest breaking now, e-folding over the lifetime once it has passed, and
+   * denser where the surface converges (up to about 3 on a fold). */
   foam: Node<'float'>;
+  /** The bubble cloud breaking crests leave in the water under and around them, 0–1: shorter-lived than their foam and
+   * spread over a few metres. */
+  bubbles: Node<'float'>;
   /** Slope variance of the waves this pixel does not resolve; the surface turns it into roughness. */
   slopeVariance: Node<'float'>;
   /** The same with all of Cox–Munk's tail instead of the share that roughens `slopeVariance`: the physical reflections'. */
@@ -98,14 +102,13 @@ export interface WaveField {
   dispose(): void;
 }
 
-/** How crest foam builds and fades in the wave field. Live; the facade's `foam.crest` object is passed in. */
+/** How crest foam builds and fades in the wave field. Live; the facade's `foam.crest` object is passed in. Crests
+ * break where the spectrum's own statistics put the share of the sea the wind whitens (`waves/whitecaps.ts`). */
 export interface WaveFoamParameters {
-  /** Foam injected where crests fold (Jacobian below threshold). */
-  crestStrength: number;
-  /** Foam injected on steep downwind faces. */
-  windwardStrength: number;
-  /** e-folding lifetime of crest foam in seconds. */
-  decayTime: number;
+  /** Scale on the whitecap coverage the wind calls for (Monahan & O'Muircheartaigh's fraction): 1 is calibrated, 0 none. */
+  coverageScale: number;
+  /** e-folding lifetime of whitecap foam in periods of the waves that broke: a larger breaker's foam lasts longer. */
+  lifetime: number;
 }
 
 /** `waves/index.ts` exports `createWaveField` and `createWaveHeightSampler` with these shapes. The field
@@ -188,7 +191,7 @@ export interface WakeFieldApi {
   dispose(): void;
 }
 
-/** Custom water colours. The pigment and foam are emitted radiance: the game pre-scales them for night. */
+/** Custom water colours. The pigment is emitted radiance: the game pre-scales it for night. */
 export interface WaterColors {
   /** Colour of deep water looked into (scattered light). */
   readonly waterColor: Color;
@@ -222,12 +225,13 @@ export interface OceanSun {
 }
 
 export interface CrestFoamParameters extends WaveFoamParameters {
-  /** Emitted radiance of foam; the game pre-scales it for night. */
+  /** Tint of whitecap and wake foam, which is lit by the sky and the sun or moon like any white surface. */
   readonly color: Color;
   opacity: number;
   /** 0 round patches … 1 streaks drawn out along the wind. */
   windStretch: number;
 }
+/** Windrows: old foam the wind draws out in lines along itself. */
 export interface SurfaceFoamParameters { readonly color: Color; opacity: number; /** Share of the sea covered, 0–1. */ coverage: number }
 export interface ShorelineFoamParameters { readonly color: Color; opacity: number }
 
