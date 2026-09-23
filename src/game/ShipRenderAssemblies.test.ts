@@ -35,7 +35,7 @@ test('rigid render assemblies preserve vertices, paint and separate articulated 
             expected.fromBufferAttribute(source, i).applyMatrix4(mesh.matrixWorld);
             error = Math.max(error, actual.distanceTo(expected));
           }
-          for (const name of ['color', 'shipSurface']) if (mesh.geometry.hasAttribute(name)) {
+          for (const name of ['color', 'shipSurface', 'shipWear']) if (mesh.geometry.hasAttribute(name)) {
             const attribute = mesh.geometry.getAttribute(name), merged = draw.mesh.geometry.getAttribute(name);
             expect(merged.array.slice(offset * attribute.itemSize, (offset + source.count) * attribute.itemSize)).toEqual(attribute.array.slice());
           }

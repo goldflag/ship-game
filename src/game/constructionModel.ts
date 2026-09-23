@@ -12,7 +12,10 @@ import { createConstructionPropellerSupports } from './constructionPropellerMode
 import type { ConstructionCatalog, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, ConstructionSurfaceFinish } from '../ships/blueprint';
 import { constructionVertexNormals, customHullSmoothingGroup, SMOOTH_HULL_SHAPES } from './constructionShading';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
-import { CONSTRUCTION_FINISH, constructionFittingPaint, constructionPaintColor, constructionFinishRoughness } from '../ships/constructionPaints';
+import {
+  CONSTRUCTION_FINISH, constructionFittingPaint, constructionFittingRoofColor, constructionPaintColor, constructionFinishRoughness, constructionRoofColor, constructionShipPaint,
+} from '../ships/constructionPaints';
+import { applyConstructionWear } from './constructionWear';
 
 /** Render the native exterior exactly. Triangle attribution remains a reference
  * to source faces; triangulation and material batching never become source IDs. */
@@ -63,6 +66,8 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
   const batches = new Map<string, { paint: string; deck: boolean; positions: number[]; normals: number[]; uv: number[]; faces: ConstructionSurface[] }>();
   const primitiveById = new Map(primitives.map(p => [p.id, p]));
   const basePaint = constructionHullBasePaint(appearance);
+  // Decks that wear the ship paint are drawn in the roof colour; teak and other paints keep their own.
+  const ship = { construction: appearance ?? {} }, shipPaint = constructionShipPaint(ship), roofColor = constructionRoofColor(ship);
   for (const surface of surfaces) {
     if (surface.open || surface.vertices.length < 3) continue;
     const barbette = barbetteGroup(surface);
@@ -89,8 +94,9 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
     geometry.setAttribute('normal', new THREE.Float32BufferAttribute(batch.normals, 3));
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uv, 2));
     geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-    const wood = batch.paint === 'teak-natural';
-    const material = new THREE.MeshStandardMaterial({ color: constructionPaintColor(batch.paint), map: wood ? timberTexture() : coating, roughness: constructionFinishRoughness(wood ? undefined : finish, batch.deck ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness), metalness: CONSTRUCTION_FINISH.metalness, side: THREE.DoubleSide });
+    const wood = batch.paint === 'teak-natural', roof = batch.deck && !wood && batch.paint === shipPaint;
+    const roughness = constructionFinishRoughness(wood ? undefined : finish, batch.deck ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness);
+    const material = new THREE.MeshStandardMaterial({ color: roof ? roofColor : constructionPaintColor(batch.paint), map: wood ? timberTexture() : coating, roughness, metalness: CONSTRUCTION_FINISH.metalness, side: THREE.DoubleSide });
     if (wood) material.userData = { deckSubstrate: 'timber', deckCoating: 'bare' };
     material.name = `construction.${key}`;
     const mesh = new THREE.Mesh(geometry, material); mesh.name = `hull.${key}`;
@@ -114,6 +120,7 @@ export async function createConstructionModel(source: ConstructionSource, result
   group.userData.constructionRevision = source.revision;
   const templates = new Map<string, THREE.Group>();
   const fittings = new Map<string, THREE.Group>();
+  const roof = { shipPaint: constructionShipPaint(source), color: constructionRoofColor(source) };
   try {
     let catalog: ConstructionCatalog | undefined;
     if (source.construction.equipment.length) {
@@ -129,8 +136,8 @@ export async function createConstructionModel(source: ConstructionSource, result
           const paint = constructionFittingPaint(source, instance, part), key = `${custom.id}\u0000${paint ?? ''}`;
           let template = fittings.get(key);
           if (!template) {
-            template = createConstructionFittingModel(custom, { finish: source.construction.finish });
-            paintConstructionFitting(template, paint, false, source.construction.finish);
+            template = createConstructionFittingModel(custom, { finish: source.construction.finish, roof });
+            paintConstructionFitting(template, paint, false, source.construction.finish, undefined, constructionFittingRoofColor(source, paint));
             fittings.set(key, template);
           }
           const model = template.clone(true);
@@ -155,7 +162,8 @@ export async function createConstructionModel(source: ConstructionSource, result
           if (template.userData.definitionHash !== part.contentHash) throw new Error(`Equipment identity mismatch: ${part.name}.`);
         }
         const model = instance.wall ? createConstructionWallModel(template, part, instance, result.surfaces, source.construction.primitives) : template.clone(true);
-        paintConstructionFitting(model, constructionFittingPaint(source, instance, part), true, source.construction.finish);
+        const paint = constructionFittingPaint(source, instance, part);
+        paintConstructionFitting(model, paint, true, source.construction.finish, undefined, constructionFittingRoofColor(source, paint));
         const installation = new THREE.Group(); installation.name = instance.id;
         if (!instance.wall) installation.scale.fromArray(wallScale(part, instance));
         installation.position.fromArray(instance.position); installation.rotation.y = -instance.bearingDeg * Math.PI / 180;
@@ -199,7 +207,7 @@ export async function createConstructionModel(source: ConstructionSource, result
     const unused = new Set<THREE.Material>();
     for (const template of templates.values()) template.traverse(node => { if (node instanceof THREE.Mesh) for (const material of Array.isArray(node.material) ? node.material : [node.material]) if (!used.has(material)) unused.add(material); });
     unused.forEach(material => material.dispose());
-    group.updateMatrixWorld(true); return group;
+    group.updateMatrixWorld(true); applyConstructionWear(group, source, result); return group;
   } catch (error) {
     // Include templates that failed before their first instance was installed.
     for (const template of templates.values()) group.add(template);

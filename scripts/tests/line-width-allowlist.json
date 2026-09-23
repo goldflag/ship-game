@@ -170,7 +170,6 @@
   "src/ui/shipbuilding/builderReadings.test.ts",
   "src/ui/shipbuilding/builderReadings.ts",
   "src/ui/shipbuilding/builderTool.test.ts",
-  "src/ui/shipbuilding/equipmentPreview.ts",
   "src/ui/shipbuilding/fittingCategories.test.ts",
   "src/ui/shipbuilding/pendingHull.test.ts",
   "src/ui/shipbuilding/placement.test.ts",

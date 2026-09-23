@@ -367,6 +367,8 @@ export class BuilderTool extends BuilderSelectors {
   applyItem = surfaces.applyItem.bind(this);
   setFinish = surfaces.setFinish.bind(this);
   setShipPaint = surfaces.setShipPaint.bind(this);
+  setRoofPaint = surfaces.setRoofPaint.bind(this);
+  setWear = surfaces.setWear.bind(this);
   paintFittings = surfaces.paintFittings.bind(this);
   applyScheme = surfaces.applyScheme.bind(this);
   pick = picking.pick.bind(this);

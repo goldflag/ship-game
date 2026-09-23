@@ -7,8 +7,10 @@ import { wallMount } from '../../ships/constructionWallFittings';
 import { automaticPropellerLabel, propellerEngineName, propellerEngines } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
 import { BalconyEditor } from './BalconyEditor';
-import { CONSTRUCTION_PAINTS, constructionPaintColor, constructionShipPaint } from '../../ships/constructionPaints';
+import { CONSTRUCTION_PAINTS, constructionPaintColor, constructionRoofColor, constructionShipPaint } from '../../ships/constructionPaints';
 import { SurfaceFinishSelect } from './SurfaceFinishSelect';
+import { RoofPaintSelect } from './RoofPaintSelect';
+import { WearSelect } from './WearSelect';
 import { integrateConstructionMagazines } from '../../ships/constructionArmament';
 import { FreeformToolbar } from './FreeformToolbar';
 import CustomHullEditor from './CustomHullEditor';
@@ -1971,7 +1973,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
                 ))}
               </select>
             </label>
+            <RoofPaintSelect value={data.roofPaint} color={constructionRoofColor(source)} disabled={locked} onChange={tool.setRoofPaint} />
             <SurfaceFinishSelect value={data.finish} disabled={locked} onChange={tool.setFinish} />
+            <WearSelect value={data.wear} disabled={locked} onChange={tool.setWear} />
             <span>Whole ship · cards below paint single faces and fittings</span>
           </div>
         )}

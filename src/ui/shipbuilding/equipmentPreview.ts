@@ -1,7 +1,7 @@
 import { createConstructionWallModel } from '../../game/constructionWallModel';
 import { wallScale } from '../../ships/constructionWallFittings';
 import { paintConstructionFitting } from '../../game/constructionFittingPaint';
-import { constructionFittingPaint } from '../../ships/constructionPaints';
+import { constructionFittingPaint, constructionFittingRoofColor, constructionRoofColor, constructionShipPaint } from '../../ships/constructionPaints';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport, ConstructionSurface, ConstructionSurfaceFinish } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
@@ -170,16 +170,19 @@ export class EquipmentPreview {
     });
   }
 
-  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false, paint?: string, mount?: {item: ConstructionEquipment; surfaces: readonly ConstructionSurface[]}, finish?: ConstructionSurfaceFinish): THREE.Group | undefined {
+  /** `ship` gives roofs the colours the game draws them: the ship's roof colour, or a coating's own shade. */
+  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false, paint?: string,
+    mount?: {item: ConstructionEquipment; surfaces: readonly ConstructionSurface[]}, finish?: ConstructionSurfaceFinish, ship?: ConstructionSource): THREE.Group | undefined {
     const part = this.catalog?.equipment.find(part => part.id === partId);
     const definition = customFittingDefinitionOfPart(part);
+    const roof = ship && { shipPaint: constructionShipPaint(ship), color: constructionRoofColor(ship) }, roofColor = ship && constructionFittingRoofColor(ship, paint);
     if (definition) {
       // No published GLB: the one fitting builder draws the definition.
-      const cacheKey = `${this.key(partId)}|${ghost ? 'ghost' : invalid ? 'invalid' : `${paint ?? ''}:${finish ?? ''}`}`;
+      const cacheKey = `${this.key(partId)}|${ghost ? 'ghost' : invalid ? 'invalid' : `${paint ?? ''}:${finish ?? ''}:${roof ? `${roof.shipPaint}:${roof.color}` : ''}`}`;
       let base = this.custom.get(cacheKey);
       if (!base) {
-        base = createConstructionFittingModel(definition, { ghost, finish });
-        if (!ghost && !invalid) paintConstructionFitting(base, paint, false, finish);
+        base = createConstructionFittingModel(definition, { ghost, finish, roof });
+        if (!ghost && !invalid) paintConstructionFitting(base, paint, false, finish, undefined, roofColor);
         if (invalid) base.traverse(node => {
           if (!(node instanceof THREE.Mesh)) return;
           const material = node.material as THREE.MeshStandardMaterial;
@@ -207,11 +210,11 @@ export class EquipmentPreview {
     if (!template) return undefined;
     let base = ghost ? template.ghost : invalid ? template.invalid : template.model;
     if ((paint || finish) && !ghost && !invalid) {
-      const paintKey = `${key}:${paint ?? ''}${finish ? ':' + finish : ''}`;
+      const paintKey = `${key}:${paint ?? ''}${finish ? ':' + finish : ''}${roofColor ? ':' + roofColor : ''}`;
       let painted = this.painted.get(paintKey);
       if (!painted) {
         const model = template.model.clone(true);
-        painted = { model, materials: paintConstructionFitting(model, paint, true, finish) };
+        painted = { model, materials: paintConstructionFitting(model, paint, true, finish, undefined, roofColor) };
         this.painted.set(paintKey, painted);
       }
       base = painted.model;
@@ -242,16 +245,17 @@ export class EquipmentPreview {
       this.supportKey = supportKey;
     }
     if (this.wallSurfaces !== surfaces) { this.wallSurfaces=surfaces; this.surfaceRevision++; }
-    const ids = new Set(source.construction.equipment.map(item => item.id));
+    const ids = new Set(source.construction.equipment.map(item => item.id)), roofs = `${constructionShipPaint(source)}:${constructionRoofColor(source)}`;
     for (const [id, instance] of this.instances) if (!ids.has(id)) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(id); }
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
       const catalogPart = this.catalog.equipment.find(part => part.id === item.partId), path = catalogPart?.path;
       const paint = path?.kind === 'rope' ? item.paint : constructionFittingPaint(source, item, catalogPart);
-      const key = `${item.wall || path?.kind === 'ladder' ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${paint ?? ''}${source.construction.finish ? ':' + source.construction.finish : ''}`;
+      const key = `${item.wall || path?.kind === 'ladder' ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}`
+        + `:${invalid.has(item.id)}:${paint ?? ''}${source.construction.finish ? ':' + source.construction.finish : ''}:${roofs}`;
       if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
-        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), paint, {item,surfaces}, source.construction.finish);
+        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), paint, {item,surfaces}, source.construction.finish, source);
         const part = catalog.equipment.find(p => p.id === item.partId);
         if (model && item.wall && part) model = createConstructionWallModel(model, part, item, surfaces, source.construction.primitives);
         if (!model) continue;
