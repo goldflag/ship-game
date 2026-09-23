@@ -101,7 +101,7 @@ function moonAlbedo(p: Node<'vec2'>, pixels: Node<'float'>): Node<'vec3'> {
   }
   // Lava flows of different ages: the maria are not one flat shade.
   dark.mulAssign(mx_noise_float(p.mul(6.1).add(11.7)).mul(.16).add(.92));
-  // Mottling: lava flows of different ages inside the maria, rougher ground in the highlands.
+  // Mottling: rougher ground in the highlands, and finer grain seen through glasses.
   const mottle = mx_noise_float(p.mul(8.3).add(1.3)).mul(.09).mul(coarse).add(mx_noise_float(p.mul(21.5).add(8.2)).mul(.05).mul(detail));
   let albedo: Node<'float'> = float(1).sub(dark.mul(.44)).mul(mottle.add(1));
   for (const [x, y, radius, contrast] of CRATERS) {
@@ -153,19 +153,21 @@ export function moonDisc(direction: Node<'vec3'>, moon: MoonInputs, pixel: Node<
     const result = vec3(0).toVar();
     const offset = direction.sub(moon.direction), angle2 = dot(offset, offset);
     If(angle2.lessThan(reach * reach), () => {
-      const angle = sqrt(angle2);
-      const p = vec2(dot(offset, moon.right), dot(offset, moon.up)).div(DISC_RADIUS).toVar();
-      const z = sqrt(float(1).sub(dot(p, p)).max(0));
-      const edge = smoothstep(pixel.mul(-EDGE_PX), pixel.mul(EDGE_PX), angle.sub(DISC_RADIUS).negate());
-      // Mountains and crater walls catch the light past the terminator and shadow it before: a ragged edge.
-      const rough = mx_noise_float(p.mul(9.3).add(2.2)).mul(.03).add(mx_noise_float(p.mul(23.1)).mul(.01));
-      const lit = max(dot(vec3(p, z), moon.sun).add(rough), 0);
-      // Lommel–Seeliger, cos i / (cos i + cos e), is 1/2 across a full moon; a little Lambert darkens the limb.
-      const shade = lit.div(lit.add(z).add(1e-3)).mul(1.7).add(lit.mul(.15));
-      const albedo = moonAlbedo(p, pixel.reciprocal().mul(DISC_RADIUS * 2));
-      const face = moon.surface.mul(albedo).mul(moon.earthshine.mul(pow(z, .4)).add(shade.mul(moon.phase)));
-      const halo = moon.surface.mul(moon.glow).mul(exp(max(angle.sub(DISC_RADIUS), 0).div(-MOON_HALO_WIDTH))).mul(edge.oneMinus());
-      result.assign(face.mul(edge).add(halo));
+      const angle = sqrt(angle2).toVar();
+      const edge = smoothstep(pixel.mul(-EDGE_PX), pixel.mul(EDGE_PX), angle.sub(DISC_RADIUS).negate()).toVar();
+      result.assign(moon.surface.mul(moon.glow).mul(exp(max(angle.sub(DISC_RADIUS), 0).div(-MOON_HALO_WIDTH))).mul(edge.oneMinus()));
+      // The face itself only where the disc covers the pixel: the halo reaches seven times its area.
+      If(edge.greaterThan(0), () => {
+        const p = vec2(dot(offset, moon.right), dot(offset, moon.up)).div(DISC_RADIUS).toVar();
+        const z = sqrt(float(1).sub(dot(p, p)).max(0));
+        // Mountains and crater walls catch the light past the terminator and shadow it before: a ragged edge.
+        const rough = mx_noise_float(p.mul(9.3).add(2.2)).mul(.03).add(mx_noise_float(p.mul(23.1)).mul(.01));
+        const lit = max(dot(vec3(p, z), moon.sun).add(rough), 0);
+        // Lommel–Seeliger, cos i / (cos i + cos e), is 1/2 across a full moon; a little Lambert darkens the limb.
+        const shade = lit.div(lit.add(z).add(1e-3)).mul(1.7).add(lit.mul(.15));
+        const albedo = moonAlbedo(p, pixel.reciprocal().mul(DISC_RADIUS * 2));
+        result.addAssign(moon.surface.mul(albedo).mul(moon.earthshine.mul(pow(z, .4)).add(shade.mul(moon.phase))).mul(edge));
+      });
     });
     return result;
   })();
