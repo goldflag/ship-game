@@ -4,7 +4,9 @@ use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometr
 use std::collections::{BTreeMap, BTreeSet};
 pub const COMPILER: &str = "construction-polyhedra-8";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
-pub const MAX_CATALOG_BYTES: usize = 4_000_000;
+/// The online compile worker hands the published catalog file to the compiler unchanged, so this
+/// must hold every published revision with room to grow (`tests/construction_catalog_size.rs`).
+pub const MAX_CATALOG_BYTES: usize = 16_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
 pub const MAX_PRIMITIVES: usize = 10_000;
 pub const MAX_SURFACE_ASSIGNMENTS: usize = 65_536;
