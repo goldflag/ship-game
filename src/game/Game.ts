@@ -458,6 +458,8 @@ export class Game {
 
     this.callbacks.progress('Lighting the sky', 0.59);
     const sky = this.sky = await this.createSky(ocean);
+    // Each lightning strike's thunder, heard after the sound's travel time.
+    sky.onThunder = strike => this.audio?.thunder(strike);
     this.assertActive();
     this.environment.attachSky(sky);
     // Water and sky both exist now; nothing renders before the warmup below.
@@ -514,8 +516,10 @@ export class Game {
       const { SkyProSky } = await import('./comparison/SkyProSky');
       return SkyProSky.create(this.renderer, this.scene, this.camera, { quality });
     }
-    // Splashes sit on the drawn waves; the wake's small heights are not worth a second lookup.
-    return Sky.create(this.renderer, this.scene, this.camera, { quality, weather: { seaHeight: (x, z) => ocean.waveField.heightAt(vec2(x, z)) } });
+    // Splashes sit on the drawn waves; the wake's small heights are not worth a second lookup. Rain stays out of
+    // the hull views that hide funnel smoke: the port's cutaways and the damage X-ray.
+    return Sky.create(this.renderer, this.scene, this.camera, { quality, weather: { seaHeight: (x, z) => ocean.waveField.heightAt(vec2(x, z)),
+      sheltered: () => this.inspecting || (this.inPort && this.playerView?.inspection.mode !== 'exterior') } });
   }
 
   private async warmupRendering(progress?: BattleProgress): Promise<void> {
