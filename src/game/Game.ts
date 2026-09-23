@@ -402,7 +402,9 @@ export class Game {
     // The port session compiles the hull in its worker while the model loads.
     // Through the same cache the fleets use, so the first sortie does not fetch and rebuild
     // the hull the player has been looking at in port.
-    const [simulation, model] = await Promise.all([this.portSession(this.definition), this.hull(this.definition).then(async model => { await prepareShipDetail(model); return model; })]);
+    // A saved design's hull is built from its frozen revision, as its port session is: a rebuilt port (a launch-time
+    // setting, the ocean renderer switch) starts with the design already berthed.
+    const [simulation, model] = await Promise.all([this.portSession(this.definition), this.hull(this.definition, localShip(this.definition.id)).then(async model => { await prepareShipDetail(model); return model; })]);
     if (this.disposed) { simulation.dispose(); this.assertActive(); }
     this.simulation = simulation;
     this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
