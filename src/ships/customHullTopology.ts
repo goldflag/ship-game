@@ -26,3 +26,22 @@ export function hullEdgeFace(start: number, end: number): 'port' | 'bottom' | 's
   const middle = (start + end) / 2;
   return start === 8 ? 'top' : middle < 3 ? 'port' : middle <= 5 ? 'bottom' : 'starboard';
 }
+/** Why a crease list does not fit an outline, or undefined when it does. Mirrors the native rule: port outline points
+ * strictly between the deck edge (0) and the keel (4), in order. */
+export function hullCreasesError(creases: unknown, points: Point[]): string | undefined {
+  if (!Array.isArray(creases)) return 'Hull creases must be a list of outline positions.';
+  const keel = (points.length - 1) / 2;
+  let previous = 0;
+  for (const c of creases) {
+    if (typeof c !== 'number' || !Number.isFinite(c) || c <= previous || c >= 4 || !Array.from({ length: keel - 1 }, (_, j) => contourAt(points, j + 1)).includes(c))
+      return 'Put each hull crease on a port outline point between the deck edge and the keel, in order.';
+    previous = c;
+  }
+}
+/** Lighting group of a side panel: the side, split at each crease (mirrored to starboard). */
+export function hullSideSegment(start: number, creases: readonly number[] = []): string {
+  const port = start < 4;
+  if (!creases.length) return port ? 'port' : 'starboard';
+  const below = creases.filter(c => (port ? c : 8 - c) <= start).length;
+  return `${port ? 'port' : 'starboard'}:${port ? below : creases.length - below}`;
+}

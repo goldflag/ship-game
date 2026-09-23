@@ -18,7 +18,7 @@ const SERDE_DEFAULT_FIELDS: Record<string, string[]> = {
   ConstructionFittingDefinition: ['material', 'fill', 'massKg'],
   ConstructionPrimitive: ['tilt', 'solid'],
   ConstructionSolidFace: ['group'],
-  ConstructionCustomHull: ['paintBands'],
+  ConstructionCustomHull: ['paintBands', 'creases'],
   ConstructionEquipmentPath: ['access'],
   ConstructionEquipmentPart: ['wallSizing', 'riggingSurface'],
   ConstructionEquipmentWall: ['turnDeg'],

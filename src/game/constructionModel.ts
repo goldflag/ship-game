@@ -24,7 +24,8 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
   const barbetteNormalAt = constructionVertexNormals(surfaces.filter(s => !s.open && barbetteGroup(s)).map(s => ({ ...s, group: barbetteGroup(s)! })));
   const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
   const custom = new Set(primitives.filter(p => p.kind === 'custom-hull').map(p => p.id));
-  const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${customHullSmoothingGroup(surface.panelId)}` : surface.id;
+  const creases = new Map(primitives.filter(p => p.kind === 'custom-hull').map(p => [p.id, p.customHull?.creases]));
+  const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${customHullSmoothingGroup(surface.panelId, creases.get(surface.primitiveId))}` : surface.id;
   const customNormalAt = constructionVertexNormals(surfaces.filter(s => !s.open && custom.has(s.primitiveId)).map(s => ({ ...s, group: customGroup(s) })), -1);
   const textureSize = 128, pixels = new Uint8Array(textureSize * textureSize * 4);
   // Subtle repeatable coating grain. UVs remain in ship coordinates, so adjacent

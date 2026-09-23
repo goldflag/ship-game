@@ -88,6 +88,7 @@ const customHull = object<ConstructionCustomHull>('CustomHull', {
   rake: number('Bow rake, 0–1.5.'),
   bulb: number('Bow bulb, 0–1.'),
   redPaintY: optional(number('Legacy red lower-hull coating below this hull-local Y.')),
+  creases: optional(list(number(), 'Crease lines: port outline positions (0–8 contour scale) strictly between the deck edge and the keel, ascending, each on an outline point; mirrored to starboard. Lighting only.')),
   paintBands: optional(
     object<ConstructionHullPaintBands>(undefined, { version: { type: 'number', enum: [1] }, bands: list(paintBand, 'Bottom to top.') }),
   ),

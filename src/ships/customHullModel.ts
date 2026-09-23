@@ -3,27 +3,29 @@ import { hullPaintBandsError } from './hullPaintBands';
 import { bilgeKeelError, bilgeKeelFaces, defaultBilgeKeels } from './constructionBilgeKeels';
 import { DEFAULT_HULL_PRESET, HULL_PRESETS } from './constructionHullPresets';
 import type { ConstructionBilgeKeels, ConstructionHullPaintBands, ConstructionPrimitive, ConstructionHullPoint, ConstructionHullStation, Vec3 } from './blueprint';
-import { contourAt, contourWeight, hullEdgeId, MAX_HULL_POINTS, MIN_HULL_POINTS, outlineTopologyError } from './customHullTopology';
+import { contourAt, contourWeight, hullCreasesError, hullEdgeId, MAX_HULL_POINTS, MIN_HULL_POINTS, outlineTopologyError } from './customHullTopology';
 import { endCap, spanCut } from './customHullSpans';
 export type Point = ConstructionHullPoint;
 export type Station = ConstructionHullStation;
 export type Hull = {
   id: string; name: string; length: number; beam: number; depth: number; offset: number;
   bulb: number; rake: number; redPaintY?: number; paintBands?: ConstructionHullPaintBands; bilgeKeels?: ConstructionBilgeKeels;
+  /** Port contour positions of crease lines (`customHull.creases`). */
+  creases?: number[];
   stations: Station[];
   region: { enabled: boolean; start: number; end: number; low: number; high: number; armor: number; color: string };
 };
 export const uid = () => crypto.randomUUID().slice(0, 8);
 export const clone = <T,>(v: T): T => structuredClone(v);
 export function lockSymmetry(h: Hull): Hull {
-  const { id, name, length, beam, depth, offset, bulb, rake, redPaintY, paintBands, bilgeKeels, region } = h;
+  const { id, name, length, beam, depth, offset, bulb, rake, redPaintY, paintBands, bilgeKeels, creases, region } = h;
   const stations = h.stations.map(s => {
     const points = s.points.map(p => ({ ...p })), last = points.length - 1, keel = last / 2;
     points[keel].x = 0;
     for (let i = 0; i < keel; i++) points[i] = { ...points[i], x: points[last - i].x ? -points[last - i].x : 0, y: points[last - i].y };
     return { id: s.id, t: s.t, points };
   });
-  return { id, name, length, beam, depth, offset, bulb, rake, redPaintY, paintBands, bilgeKeels, region, stations };
+  return { id, name, length, beam, depth, offset, bulb, rake, redPaintY, paintBands, bilgeKeels, ...(creases ? { creases } : {}), region, stations };
 }
 export const presets = HULL_PRESETS;
 export function makeHull(index = presets.findIndex(p => p.id === DEFAULT_HULL_PRESET)): Hull {
@@ -97,10 +99,15 @@ export function resizeSection(s: Station, halfWidth: number) {
 }
 /** Re-space each side along its old outline, measuring distance in hull metres.
  * Sample before changing topology so removal does not first cut off a corner.
- * Keep contour identities for panel assignments; deck edges and keel stay fixed. */
+ * Keep contour identities for panel assignments; deck edges, keel and crease
+ * points stay fixed, and the points between them share out that stretch. */
 function redistributeOutline(h: Hull, original: Point[], topology: Point[]): Point[] {
   const oldKeel = (original.length - 1) / 2, keel = (topology.length - 1) / 2;
   const next = topology.map(p => ({ ...p }));
+  // Port indices of each crease before and after; creases are mirrored, so the reversed starboard side shares them.
+  const pins = (h.creases ?? []).map(c => [original.findIndex((_, i) => i > 0 && i < oldKeel && contourAt(original, i) === c), topology.findIndex((_, i) => i > 0 && i < keel && contourAt(topology, i) === c)])
+    .filter(([from, to]) => from > 0 && to > 0);
+  const anchors = [[0, 0], ...pins, [oldKeel, keel]];
   for (const side of [0, 1]) {
     const source = side ? original.slice(oldKeel).reverse() : original.slice(0, oldKeel + 1);
     const distances = [0];
@@ -108,13 +115,16 @@ function redistributeOutline(h: Hull, original: Point[], topology: Point[]): Poi
       (source[i].x - source[i - 1].x) * h.beam / 2,
       (source[i].y - source[i - 1].y) * h.depth,
     ));
-    let edge = 1;
+    let edge = 1, anchor = 0;
     for (let i = 0; i <= keel; i++) {
-      const distance = distances[oldKeel] * i / keel;
+      while (anchor < anchors.length - 2 && anchors[anchor + 1][1] <= i && i !== keel) anchor++;
+      const [[fromOld, fromNew], [toOld, toNew]] = [anchors[anchor], anchors[anchor + 1]];
+      const pinned = anchors.find(([, to]) => to === i);
+      const distance = distances[fromOld] + (distances[toOld] - distances[fromOld]) * (i - fromNew) / (toNew - fromNew);
       while (edge < oldKeel && distances[edge] < distance) edge++;
       const span = distances[edge] - distances[edge - 1];
       const t = span > 0 ? (distance - distances[edge - 1]) / span : 0;
-      const point = i === 0 ? source[0] : i === keel ? source[oldKeel] : {
+      const point = pinned ? source[pinned[0]] : {
         x: mix(source[edge - 1].x, source[edge].x, t),
         y: mix(source[edge - 1].y, source[edge].y, t),
       };
@@ -123,6 +133,21 @@ function redistributeOutline(h: Hull, original: Point[], topology: Point[]): Poi
   }
   return next;
 }
+/** Mark or clear a crease at a selected outline point (either side; creases are mirrored). Deck edges and the keel are
+ * already sharp. Returns whether the point is now a crease. */
+export function toggleHullCrease(h: Hull, selected: number): boolean {
+  const points = h.stations[0].points, last = points.length - 1, port = Math.min(selected, last - selected);
+  if (!canCreaseHullPoint(points, selected)) throw new Error('Choose a side point between the deck edge and the keel.');
+  const c = contourAt(points, port), creases = h.creases ?? [];
+  const next = creases.includes(c) ? creases.filter(v => v !== c) : [...creases, c].sort((a, b) => a - b);
+  if (next.length) h.creases = next; else delete h.creases;
+  return next.includes(c);
+}
+export const canCreaseHullPoint = (points: Point[], selected: number) => Number.isInteger(selected) && selected > 0 && selected < points.length - 1 && selected !== (points.length - 1) / 2;
+export const isHullCrease = (h: Hull, selected: number) => {
+  const points = h.stations[0].points, port = Math.min(selected, points.length - 1 - selected);
+  return canCreaseHullPoint(points, selected) && (h.creases ?? []).includes(contourAt(points, port));
+};
 /** Add a mirrored pair, then redistribute controls around every section. */
 export function addHullPointPair(h: Hull, selected: number): number {
   const count = h.stations[0].points.length, last = count - 1, keel = last / 2;
@@ -148,6 +173,10 @@ export function removeHullPointPair(h: Hull, selected: number): number {
     const topology = s.points.map((p, i) => ({ ...p, contour: contourAt(s.points, i) })).filter((_, i) => i !== port && i !== last - port);
     s.points = redistributeOutline(h, s.points, topology);
   }
+  if (h.creases) {
+    const kept = h.creases.filter(c => h.stations[0].points.some((_, i) => contourAt(h.stations[0].points, i) === c));
+    if (kept.length) h.creases = kept; else delete h.creases;
+  }
   const nextPort = Math.min(port, (last - 2) / 2 - 1);
   return selected > last / 2 ? last - 2 - nextPort : nextPort;
 }
@@ -161,6 +190,7 @@ export function invalidReason(h: Hull): string | undefined {
   const topology = outlineTopologyError(h.stations); if (topology) return topology;
   if (![h.length, h.beam, h.depth, h.offset, h.bulb, h.rake].every(Number.isFinite)) return 'Enter a finite dimension.';
   if (h.redPaintY !== undefined && (!Number.isFinite(h.redPaintY) || Math.abs(h.redPaintY) > 500)) return 'Use a red paint Y from −500 to 500 m.';
+  if (h.creases !== undefined) { const reason = hullCreasesError(h.creases, h.stations[0].points); if (reason) return reason; }
   if (h.length < 5 || h.length > 500 || h.beam < 1 || h.beam > 100 || h.depth < 1 || h.depth > 60) return 'Use length 5–500 m, beam 1–100 m and depth 1–60 m.';
   for (let i = 1; i < h.stations.length; i++) if (h.stations[i].t - h.stations[i - 1].t < .005) return 'Sections cannot cross or sit less than 0.5% of the hull length apart.';
   for (const s of sampledStations(h)) {
@@ -211,7 +241,7 @@ export function breadthAt(points: Point[], level: number): number | undefined {
 export function customHullPrimitive(h: Hull, previous?: ConstructionPrimitive): ConstructionPrimitive {
   return { id: previous?.id ?? h.id, kind: 'custom-hull', size: [h.beam, h.depth, h.length],
     position: previous ? [...previous.position] : [h.offset, 0, 0], rotationDeg: previous?.rotationDeg ?? 0, ...(previous?.tilt ? { tilt: { ...previous.tilt } } : {}),
-    customHull: { version: 1, ...(h.paintBands ? { paintBands: clone(h.paintBands) } : {}), ...(h.bilgeKeels ? { bilgeKeels: clone(h.bilgeKeels) } : {}), rake: h.rake, bulb: h.bulb, ...(h.redPaintY !== undefined ? { redPaintY: h.redPaintY } : {}), stations: clone(h.stations) } };
+    customHull: { version: 1, ...(h.paintBands ? { paintBands: clone(h.paintBands) } : {}), ...(h.bilgeKeels ? { bilgeKeels: clone(h.bilgeKeels) } : {}), rake: h.rake, bulb: h.bulb, ...(h.redPaintY !== undefined ? { redPaintY: h.redPaintY } : {}), ...(h.creases?.length ? { creases: [...h.creases] } : {}), stations: clone(h.stations) } };
 }
 export function editableCustomHull(p: ConstructionPrimitive): Hull {
   if (!p.customHull) throw new Error('Custom hull sections are missing.');
@@ -219,6 +249,7 @@ export function editableCustomHull(p: ConstructionPrimitive): Hull {
     region: { enabled: false, start: .25, end: .75, low: .32, high: .7, armor: 200, color: '#9aac9b' },
     ...(p.customHull.paintBands ? { paintBands: clone(p.customHull.paintBands) } : {}),
     ...(p.customHull.bilgeKeels ? { bilgeKeels: clone(p.customHull.bilgeKeels) } : {}),
+    ...(p.customHull.creases?.length ? { creases: [...p.customHull.creases] } : {}),
     offset: 0, redPaintY: p.customHull.redPaintY, rake: p.customHull.rake, bulb: p.customHull.bulb, stations: clone(p.customHull.stations) };
 }
 /** Local display vertices, before the primitive's position and yaw. */

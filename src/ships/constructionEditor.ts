@@ -7,7 +7,7 @@ import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
 import { mirroredWall } from './constructionWallFittings';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
-import { outlineTopologyError } from './customHullTopology';
+import { hullCreasesError, outlineTopologyError } from './customHullTopology';
 import type {
   ConstructionEquipment,
   ConstructionSource,
@@ -169,6 +169,10 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       }
       const topology = outlineTopologyError(stations as unknown as import('./blueprint').ConstructionHullStation[]);
       if (topology) throw new Error(topology);
+      if (hull.creases !== undefined) {
+        const error = hullCreasesError(hull.creases, (stations[0] as unknown as import('./blueprint').ConstructionHullStation).points);
+        if (error) throw new Error(error);
+      }
     } else if (p.customHull !== undefined) throw new Error('Section data belongs to a custom hull');
     if (p.mesh !== undefined) {
       const mesh = object(p.mesh, 'Freeform topology');

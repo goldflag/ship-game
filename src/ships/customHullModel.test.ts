@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
-import { addHullPointPair, canRemoveHullPointPair, clone, customHullFaces, customHullPrimitive, invalidReason, lockSymmetry, makeHull, removeHullPointPair, resizeSection, setSectionCount } from './customHullModel';
-import { contourAt, MAX_HULL_POINTS } from './customHullTopology';
+import { addHullPointPair, canCreaseHullPoint, canRemoveHullPointPair, clone, customHullFaces, customHullPrimitive, editableCustomHull, invalidReason, isHullCrease, lockSymmetry, makeHull, removeHullPointPair, resizeSection, setSectionCount, toggleHullCrease } from './customHullModel';
+import { contourAt, hullCreasesError, MAX_HULL_POINTS } from './customHullTopology';
+import { customHullSmoothingGroup } from '../game/constructionShading';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
 
 const arcPosition = (points: { x: number; y: number }[], p: { x: number; y: number }, beam: number, depth: number) => {
@@ -82,4 +83,41 @@ test('mismatched counts and contour positions cannot enter the loft', () => {
   h.stations[1].points.pop();
   expect(invalidReason(h)).toContain('odd number');
   expect(contourAt(makeHull().stations[0].points, 4)).toBe(4);
+});
+
+test('a crease holds its point while pairs are added and removed, and travels with the source', () => {
+  const h = makeHull();
+  expect(toggleHullCrease(h, 2)).toBe(true);
+  const c = contourAt(h.stations[0].points, 2);
+  expect(h.creases).toEqual([c]);
+  // Either side marks the same mirrored crease.
+  expect(isHullCrease(h, h.stations[0].points.length - 1 - 2)).toBe(true);
+  const at = h.stations.map(s => ({ ...s.points[2] }));
+  addHullPointPair(h, 0);
+  addHullPointPair(h, 6);
+  for (const [i, s] of h.stations.entries()) {
+    const k = s.points.findIndex((_, j) => contourAt(s.points, j) === c);
+    expect({ x: s.points[k].x, y: s.points[k].y }).toEqual({ x: at[i].x, y: at[i].y });
+  }
+  expect(invalidReason(h)).toBeUndefined();
+  const source = customHullPrimitive(h);
+  expect(source.customHull?.creases).toEqual([c]);
+  expect(editableCustomHull(source).creases).toEqual([c]);
+  // Removing the creased pair drops the crease with it.
+  removeHullPointPair(h, h.stations[0].points.findIndex((_, j) => contourAt(h.stations[0].points, j) === c));
+  expect(h.creases).toBeUndefined();
+  expect(canCreaseHullPoint(h.stations[0].points, 0)).toBe(false);
+  expect(canCreaseHullPoint(h.stations[0].points, (h.stations[0].points.length - 1) / 2)).toBe(false);
+});
+
+test('creases split the side lighting at their point, mirrored, and nowhere else', () => {
+  expect(customHullSmoothingGroup('1@["a","b"]')).toBe('port');
+  expect(customHullSmoothingGroup('1@["a","b"]', [2])).toBe('port:0');
+  expect(customHullSmoothingGroup('2@["a","b"]', [2])).toBe('port:1');
+  expect(customHullSmoothingGroup('5@["a","b"]', [2])).toBe('starboard:1');
+  expect(customHullSmoothingGroup('6@["a","b"]', [2])).toBe('starboard:0');
+  expect(customHullSmoothingGroup('8@["a","b"]', [2])).toBe('8');
+  const h = makeHull();
+  expect(hullCreasesError([contourAt(h.stations[0].points, 1)], h.stations[0].points)).toBeUndefined();
+  for (const bad of [[0], [4], [0.3], [3, 1]]) expect(hullCreasesError(bad, h.stations[0].points)).toBeDefined();
 });

@@ -2,7 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   addHullPointPair,
   BLEND_REACH,
+  canCreaseHullPoint,
   canRemoveHullPointPair,
+  isHullCrease,
   clone,
   hullExtent,
   invalidReason,
@@ -10,6 +12,7 @@ import {
   makeHull,
   presets,
   removeHullPointPair,
+  toggleHullCrease,
   sectionAt,
   sectionMetres,
   setSectionCount,
@@ -1015,6 +1018,19 @@ export default function CustomHullEditor({
             onClick={() => pair(false)}
           >
             − Pair
+          </button>
+          <button
+            className="hs-small"
+            aria-pressed={isHullCrease(hull, k0)}
+            title={
+              canCreaseHullPoint(primary.points, k0)
+                ? "A crease keeps the lighting sharp along this point on both sides, like a knuckle or chine, and holds the point in place when pairs are added or removed"
+                : "The deck edges and the keel are already sharp"
+            }
+            disabled={!canCreaseHullPoint(primary.points, k0) || !!pending}
+            onClick={() => edit((draft) => { toggleHullCrease(draft, k0); })}
+          >
+            Crease
           </button>
         </div>
         <button

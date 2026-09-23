@@ -216,6 +216,24 @@ fn band_cut(
     Some((pieces, sides.chain(caps).collect()))
 }
 
+/// Crease lines only split the side lighting, but each must name a port outline point between the deck edge and the
+/// keel, in order, so every renderer and the editor agree on where the hull turns sharply.
+fn validate_creases(creases: &[f64], outline: &[ConstructionHullPoint]) -> Result<(), String> {
+    let keel = (outline.len() - 1) / 2;
+    let mut previous = 0.;
+    for &c in creases {
+        if !c.is_finite()
+            || c <= previous
+            || c >= 4.
+            || !(1..keel).any(|j| contour(outline, j) == c)
+        {
+            return Err("Put each hull crease on a port outline point between the deck edge and the keel, in order".into());
+        }
+        previous = c;
+    }
+    Ok(())
+}
+
 pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
     let h = p
         .custom_hull
@@ -297,6 +315,9 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         if area < -1e-10 || (area < 1e-10 && i > 0 && i < h.stations.len() - 1) {
             return Err("Only a bow or stern section may taper to zero area".into());
         }
+    }
+    if let Some(creases) = &h.creases {
+        validate_creases(creases, &h.stations[0].points)?;
     }
     let rings: Vec<Vec<Vec3>> = h
         .stations
@@ -632,6 +653,18 @@ mod tests {
             .sum();
         assert!((cg::total(&solid.cells).volume - enclosed).abs() < 1e-9);
         assert!(solid.cells.iter().all(|c| cg::moments(c).volume > 0.));
+    }
+    #[test]
+    fn creases_sit_on_port_outline_points_and_leave_the_solid_alone() {
+        let plain = build(&hull(false)).unwrap();
+        let mut p = hull(false);
+        p.custom_hull.as_mut().unwrap().creases = Some(vec![1., 3.]);
+        let creased = build(&p).unwrap();
+        assert_eq!(plain.faces, creased.faces);
+        for bad in [vec![0.], vec![4.], vec![1.5], vec![3., 1.], vec![f64::NAN]] {
+            p.custom_hull.as_mut().unwrap().creases = Some(bad);
+            assert!(build(&p).is_err());
+        }
     }
     #[test]
     fn outline_positions_must_match_and_remain_symmetric() {

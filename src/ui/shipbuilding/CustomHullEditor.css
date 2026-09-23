@@ -642,6 +642,11 @@
   background: var(--hs-card-hover);
   border-color: var(--hs-line2);
 }
+.hs-root .hs-small[aria-pressed='true'] {
+  color: var(--hs-brass);
+  background: #3a3427;
+  border-color: #e0c58d80;
+}
 .hs-root .hs-blend {
   align-self: flex-start;
   display: inline-flex;

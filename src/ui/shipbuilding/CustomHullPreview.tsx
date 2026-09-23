@@ -6,6 +6,7 @@ import { customHullPanels } from '../../ships/constructionPanels';
 import { constructionHullBasePaint } from '../../ships/constructionHullPaint';
 import type { ConstructionSource, Vec3 } from '../../ships/blueprint';
 import { endCap, spanCut } from '../../ships/customHullSpans';
+import { contourAt, hullSideSegment } from '../../ships/customHullTopology';
 
 /** Display-only faces for the section editor. `cut` keeps the sections from the bow to that
  * index and closes the hull there with a tinted cap, as the Section view's slice. */
@@ -27,8 +28,13 @@ export function hullGeometry(h: Hull, cut?: number, appearance?: ConstructionSou
   // Share lighting across each curved side, keeping the deck and keel sharp.
   // Average whole panels so the triangle diagonal cannot bias the normals
   // or break left/right symmetry.
-  const sideNormals = Array.from({ length: 3 }, () => points.map(() => new THREE.Vector3()));
-  const stripNormals = Array.from({ length: n }, (_, i) => sideNormals[i === n - 1 ? 2 : i < (n - 1) / 2 ? 0 : 1]);
+  // Crease lines (`creases`) split a side into separately smoothed stretches.
+  const sideNormals = new Map<string, THREE.Vector3[]>();
+  const stripNormals = Array.from({ length: n }, (_, i) => {
+    const group = i === n - 1 ? 'top' : hullSideSegment(contourAt(h.stations[0].points, i), h.creases);
+    if (!sideNormals.has(group)) sideNormals.set(group, points.map(() => new THREE.Vector3()));
+    return sideNormals.get(group)!;
+  });
   for (let j = 0; j < stations.length - 1; j++) for (let i = 0; i < n; i++) {
     const a = j * n + i, b = j * n + (i + 1) % n, c = a + n, d = b + n;
     const normal = points[b].clone().sub(points[a]).cross(points[c].clone().sub(points[a]))
