@@ -19,7 +19,7 @@ for (const indexed of [false, true]) test(`native fleet draws preserve every cul
   expect(Array.from(state._indirectTexture.image.data!).slice(0, state._multiDrawCount)).toEqual([0, 2, 1]);
   const native: number[][] = [], counts: number[][] = [];
   let binds = 0;
-  const backend = { isWebGPUBackend: true, _draw() { binds++; expect(state._multiDrawCount).toBe(0); } };
+  const backend = { _draw() { binds++; expect(state._multiDrawCount).toBe(0); } };
   installFleetBatchInstancing(backend); installFleetBatchInstancing(backend);
   const args = [
     { object: mesh, material, getIndex: () => mesh.geometry.index },
@@ -38,12 +38,11 @@ for (const indexed of [false, true]) test(`native fleet draws preserve every cul
   mesh.dispose(); box.dispose(); plane.dispose(); geometries.forEach(g => g.dispose()); material.dispose();
 });
 
-test('other meshes and compatibility backends retain the original submission path', () => {
+test('other meshes retain the original submission path', () => {
   let calls = 0;
   const original = () => { calls++; };
-  const backend = { isWebGPUBackend: false, _draw: original };
-  installFleetBatchInstancing(backend); expect(backend._draw).toBe(original);
-  backend.isWebGPUBackend = true; installFleetBatchInstancing(backend);
+  const backend = { _draw: original };
+  installFleetBatchInstancing(backend);
   (backend._draw as (...args: unknown[]) => void)({ object: new THREE.Mesh(), material: new THREE.MeshBasicMaterial() });
   expect(calls).toBe(1);
 });
@@ -52,7 +51,7 @@ test('ordered materials retain their submission path and binding failures restor
   const material = new THREE.MeshBasicMaterial(), mesh = new FleetBatch(2, 6, 0, material);
   const state = mesh as unknown as FleetDrawState; state._multiDrawCount = 1;
   let fallback = true, calls = 0;
-  const backend = { isWebGPUBackend: true, _draw() {
+  const backend = { _draw() {
     calls++; expect(state._multiDrawCount).toBe(fallback ? 1 : 0);
     if (!fallback) throw new Error('binding failed');
   } };
@@ -84,7 +83,7 @@ test('bundles reuse live pose buffers but rebuild changed draw ranges and GPU bi
   const recorded: number[][][] = [], executed: object[][] = [];
   let binds = 0, native = 0, submittedInstances = 0;
   const backend = {
-    isWebGPUBackend: true, get: (resource: object) => resources.get(resource)!,
+    get: (resource: object) => resources.get(resource)!,
     pipelineUtils: { createBundleEncoder() {
       const draws: number[][] = []; recorded.push(draws);
       return { draw(...args: number[]) { draws.push(args); }, drawIndexed(...args: number[]) { draws.push(args); }, finish() { return draws; } };

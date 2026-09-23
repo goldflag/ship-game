@@ -10,6 +10,7 @@ import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
 import { Button } from './components';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../game/Game';
+import { WEBGPU_REQUIRED } from '../game/webgpu';
 import { createShipState } from '../game/session/motion';
 import type { Telemetry } from '../game/types';
 import { GRAPHICS_STORAGE_KEY, launchMatches, loadGraphicsSettings, type GraphicsSettings } from '../game/graphicsSettings';
@@ -61,7 +62,7 @@ import type { HullPresetChoice } from '../ships/constructionHullPresets';
 /** The port berths only the player's designs. A `?ship=` link keeps a historical preset alongside for review and diagnostics. */
 const PINNED_SHIP = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('ship');
 
-const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
+const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, trail: [] };
 
 type AppProps = { account?: AccountSession; startup?: StartupReporter };
 export function App(props: AppProps) {
@@ -892,7 +893,7 @@ function Harbor({ account, startup }: AppProps) {
               <div className="error-message">
                 <h2>Unable to launch the battle</h2>
                 <p>{error}</p>
-                <p>Try reloading in a current Chrome or Edge browser with hardware acceleration enabled.</p>
+                {error !== WEBGPU_REQUIRED && <p>Try reloading in a current Chrome or Edge browser with hardware acceleration enabled.</p>}
                 <Button variant="primary" onClick={() => setGeneration((value) => value + 1)}>
                   Try again <Icon name="arrow" size={18} />
                 </Button>

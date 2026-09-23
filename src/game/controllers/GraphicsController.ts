@@ -2,7 +2,7 @@ import * as THREE from 'three/webgpu';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { smaa } from 'three/addons/tsl/display/SMAANode.js';
 import type { SkySystem } from '../../../vendor/threejs-sky-pro/build/index.js';
-import type { WaterSystem } from '../../../vendor/threejs-water-pro/build/index.js';
+import type { OceanApi } from '../ocean/contracts';
 import type { AircraftView } from '../AircraftView';
 import type { CombatEffects } from '../CombatEffects';
 import type { DisplayTransform } from '../DisplayTransform';
@@ -17,6 +17,7 @@ import {
   type GraphicsSettings,
 } from '../graphicsSettings';
 import type { ShipFunnelSmoke } from '../ShipFunnelSmoke';
+import type { ShipOcclusion } from '../ShipOcclusion';
 
 /** What applying graphics settings reads from and writes to `Game`, each member at the moment
  * of use. The settings, frame pacing, detail budget and display pipeline stay fields of `Game`:
@@ -29,10 +30,12 @@ export interface GraphicsContext {
   readonly renderer: THREE.WebGPURenderer;
   /** Builds the composited frame the display pass smooths; absent until start-up has built it. */
   readonly display?: DisplayTransform;
-  readonly water?: WaterSystem;
-  /** The scene's sun, whose shadow settings the near and wide maps follow. */
+  readonly ocean?: Pick<OceanApi, 'reflections'>;
+  /** The scene's sun, whose shadow settings the near and wide maps follow; absent until start-up creates it. */
   readonly sunLight?: THREE.DirectionalLight;
   readonly sky?: SkySystem;
+  /** Ship-on-ship ambient occlusion; absent until start-up has created it. */
+  readonly occlusion?: Pick<ShipOcclusion, 'setLevel'>;
   readonly aircraftView: Pick<AircraftView, 'detailScale'>;
   readonly effects: Pick<CombatEffects, 'setDensity'>;
   readonly funnelSmoke: Pick<ShipFunnelSmoke, 'density'>;
@@ -64,6 +67,13 @@ export class GraphicsController {
     if (previous.reflections !== settings.reflections) this.applyReflections();
     if (previous.shadows !== settings.shadows) this.applyShadows();
     if (previous.clouds !== settings.clouds) this.applyClouds();
+    if (previous.ambientOcclusion !== settings.ambientOcclusion) this.applyAmbientOcclusion();
+  }
+
+  /** Off removes the occlusion node from every ship material and skips its passes, so the
+   * frame is exactly the one without it; turning it on recompiles the ship materials once. */
+  applyAmbientOcclusion(): void {
+    this.context.occlusion?.setLevel(this.context.settings.ambientOcclusion);
   }
 
   applyDetail(): void {
@@ -87,10 +97,10 @@ export class GraphicsController {
     pipeline.outputColorTransform = false;
   }
 
-  /** Screen-space reflections are a live uniform; the sky-only mirror stays on. */
+  /** Screen-space reflections switch live; the sky reflection stays on. */
   applyReflections(): void {
-    const { water, settings } = this.context;
-    if (water) water.ssr.enabled = settings.reflections === 'scene';
+    const { ocean, settings } = this.context;
+    if (ocean) ocean.reflections.screenSpace = settings.reflections === 'scene';
   }
 
   applyShadows(): void {

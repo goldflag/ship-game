@@ -32,10 +32,10 @@ export async function measureFleetFrames(game, { warmup = 30, frames = 120, batt
   game.camera.updateMatrixWorld();
   game.paused = false;
   const samples = [], draws = [], triangles = [], slowFrames = [];
-  const phases = { simulation: [], render: [], water: [] };
+  const phases = { simulation: [], render: [], ocean: [] };
   const originals = [], autoReset = renderer.info.autoReset;
   renderer.info.autoReset = false;
-  for (const [target, key, name] of [[simulation, 'advance', 'simulation'], [game, 'renderFrame', 'render'], [game.water, 'update', 'water']]) {
+  for (const [target, key, name] of [[simulation, 'advance', 'simulation'], [game, 'renderFrame', 'render'], [game.ocean, 'update', 'ocean']]) {
     const original = target[key];
     originals.push(() => { target[key] = original; });
     target[key] = function (...args) {
@@ -54,8 +54,7 @@ export async function measureFleetFrames(game, { warmup = 30, frames = 120, batt
       renderer.info.frame = renderer._nodes.nodeFrame.frameId;
       game.lastTime = start - 1000 / 60;
       await game.frame(start);
-      if (renderer.backend.device) await renderer.backend.device.queue.onSubmittedWorkDone();
-      else renderer.backend.gl.finish();
+      await renderer.backend.device.queue.onSubmittedWorkDone();
       if (i >= warmup) {
         const ms = performance.now() - start;
         samples.push(ms);

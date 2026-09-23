@@ -8,8 +8,8 @@ import { ShipImpactMarks } from '/src/game/ShipImpactMarks.ts';
 import { CombatEffects } from '/src/game/CombatEffects.ts';
 
 // Actual production decals and GPU pixels, isolated from ocean animation.
-async function checkDepth(reversedDepthBuffer, forceWebGL = false) {
-  const renderer = new THREE.WebGPURenderer({ reversedDepthBuffer, forceWebGL });
+async function checkDepth(reversedDepthBuffer) {
+  const renderer = new THREE.WebGPURenderer({ reversedDepthBuffer });
   renderer.setSize(256, 256); await renderer.init();
   const scene = new THREE.Scene(), root = new THREE.Group(), model = new THREE.Group();
   const receiver = new THREE.Mesh(new THREE.BoxGeometry(20, 10, 2), new THREE.MeshStandardMaterial({ color: '#aaaaaa' }));
@@ -63,8 +63,7 @@ async function checkDepth(reversedDepthBuffer, forceWebGL = false) {
     const foregroundContrast = await scarContrast();
     plume.position.set(0, 0, -9); effects.smoke.update(0, camera, new THREE.Vector3());
     const rearContrast = await scarContrast();
-    return { requestedReversedDepth: reversedDepthBuffer, reversedDepth: renderer.reversedDepthBuffer,
-      backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL', marks: marks.count,
+    return { requestedReversedDepth: reversedDepthBuffer, reversedDepth: renderer.reversedDepthBuffer, marks: marks.count,
       visiblePixels, blockedPixels, foregroundContrast, rearContrast,
       pass: visiblePixels > 100 && blockedPixels === 0 && foregroundContrast < .2 && rearContrast > .8 };
   } finally {
@@ -72,8 +71,8 @@ async function checkDepth(reversedDepthBuffer, forceWebGL = false) {
   }
 }
 window.depthResults = [];
-for (const webgl of [false, true]) for (const reversed of [false, true]) {
-  depthResults.push(await checkDepth(reversed, webgl));
+for (const reversed of [false, true]) {
+  depthResults.push(await checkDepth(reversed));
   document.querySelector('#result').textContent = JSON.stringify(depthResults, null, 2);
 }
 window.depthDone = true;
