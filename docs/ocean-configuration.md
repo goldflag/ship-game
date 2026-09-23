@@ -107,7 +107,10 @@ is a gameplay visibility adjustment, not measured Atlantic water clarity.
 
 A submerged camera sees the ocean's underwater pass (`ocean.postProcess`): exponential absorption
 toward the pigment over the distance to the first surface, with the waterline across the near plane
-handled per pixel. Nothing runs for it when the camera is certainly above the waves.
+handled per pixel. Nothing runs for it when the camera is certainly above the waves. The surface seen
+from below shows the sky through Snell's window and, outside it, a lit ceiling: daylight from the sky
+scattered along the surface, tinted by the map's absorption and dimmed over 60 m of camera depth, so
+the waves stay visible from a submarine's depth.
 
 `/scripts/diagnostics/underwater-visibility.html?test` runs the actual `Game.frame` at 7, 50 and 150 m.
 It compares visible-hull pixels with the same view without the hull and checks surface and periscope

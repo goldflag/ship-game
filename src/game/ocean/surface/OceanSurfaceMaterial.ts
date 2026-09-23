@@ -4,7 +4,6 @@ import { Fn, If, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, d
 import { EffectDepthTextureNode } from '../../EffectVolume';
 import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../screen/reflections';
-import { waterLight } from '../screen/underwater';
 import { FOAM_TEXELS, foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
 
@@ -16,8 +15,7 @@ const WATER_IOR = 1.333;
 const SHADOWED_PIGMENT = .45;
 /** Foam kept in full sun shadow. */
 const SHADOWED_FOAM = .6;
-/** Foam lit only by the sky, relative to foam facing the sun: whitecaps take the shape of the wave they ride
- * instead of lying on it as flat white. */
+/** Foam lit only by the sky, relative to foam facing the sun. */
 const FOAM_AMBIENT = .6;
 /** Slope variance of a glint: the sun disc's (2e-4 for the game's 1.4° disc) widened by facets just finer than a
  * pixel, which tilt within it. */
@@ -44,10 +42,18 @@ const WAKE_START = .05, WAKE_FULL = .6, WAKE_EDGE = .8;
 const WAKE_OPACITY = .75;
 /** Water column (m) over which shoreline foam fades out, and its soft edge: a thin line along a hull. */
 const SHORE_DEPTH = .8, SHORE_EDGE = .4;
-/** Depth (m) over which unmodified sea water dims the surface seen from below. The game eases the view-ray
- * absorption for a submerged camera so hulls stay visible, which would leave the surface as bright from 50 m as
- * from 5 m; its daylight fades with the camera's depth instead. */
+/** Camera depth (m) over which the surface seen from below dims by e. */
 const DAYLIGHT_DEPTH = 60;
+/** Seen from below, daylight scattered along the underside of the surface relative to the sky's mean radiance
+ * overhead: the sun and the whole dome feed it through Snell's window. */
+const SIDE_LIGHT = 2.5;
+/** Optical depth, in its most transparent channel, over which that daylight takes the colour of what the water
+ * absorbs least. Relative to that channel, so the game's submerged easing of the absorption (a uniform scale) keeps
+ * the hue. */
+const TINT_DEPTH = .5;
+/** Vertical components of a mirrored ray over which the sea seen from below turns from the deep's upwelling to the
+ * daylight along the surface. */
+const DEEP_VIEW = -1, SIDE_VIEW = 0;
 
 /** What the surface reads live; every object is owned by the facade and mutated by the game. */
 export interface SurfaceParameters extends Pick<OceanApi, 'colors' | 'foam' | 'sun' | 'reflections'> {
@@ -155,6 +161,35 @@ function crestFoamOpacity(amount: Node<'float'>, lace: Node<'float'>, blur: Node
   return foamOpacity(coverage, lace, blur, CREST_EDGE).mul(mix(THIN_FOAM, 1, coverage));
 }
 
+/** Light on foam: the sun's shadow leaves SHADOWED_FOAM, and foam facing away from the sun keeps FOAM_AMBIENT, so
+ * whitecaps take the shape of the wave they ride instead of lying on it as flat white. */
+function foamIllumination(lit: Node<'float'>, normal: Node<'vec3'>, sun: Node<'vec3'>): Node<'float'> {
+  return mix(SHADOWED_FOAM, 1, lit).mul(mix(FOAM_AMBIENT, 1, dot(normal, sun).max(0)));
+}
+
+/** The lit sea seen along `direction` from just below the surface: the pigment looking down into the deep,
+ * brightening toward the horizontal into daylight scattered along the surface, tinted by what the water absorbs
+ * least. `daylight` is the sky's mean radiance overhead, dark at night like the sky itself. */
+function seaFromBelow(pigment: Node<'vec3'>, absorption: Node<'vec3'>, daylight: Node<'vec3'>, direction: Node<'vec3'>): Node<'vec3'> {
+  const tint = exp(absorption.div(max(absorption.x, max(absorption.y, absorption.z)).max(1e-6)).mul(-TINT_DEPTH));
+  return mix(pigment, daylight.mul(tint).mul(SIDE_LIGHT), smoothstep(DEEP_VIEW, SIDE_VIEW, direction.y));
+}
+
+/** The surface seen from a submerged camera: Snell's window shows the sky refracted through it; outside the window
+ * it mirrors the lit sea by total internal reflection, so the waves show as their facets tilt the mirrored ray
+ * between the dark deep and the bright daylight along the surface. The daylight dims with the water above the
+ * camera: the game eases the view-ray absorption under water so hulls stay visible, which would otherwise leave the
+ * surface as bright from 50 m as from 5 m. */
+function underside(environment: Texture | null, view: Node<'vec3'>, normal: Node<'vec3'>, pigment: Node<'vec3'>, absorption: Node<'vec3'>): Node<'vec3'> {
+  const incident = view.negate(), down = normal.negate();
+  const refracted = refract(incident, down, WATER_IOR).toVar();
+  // The sky's mean radiance overhead is the fully blurred bake.
+  const daylight = skyReflection(environment, vec3(0, 1, 0), float(1)).mul(exp(cameraPosition.y.min(0).div(DAYLIGHT_DEPTH)));
+  const sea = seaFromBelow(pigment, absorption, daylight, reflect(incident, down)).toVar();
+  const window = mix(skyReflection(environment, refracted, float(0)), sea, fresnel(dot(refracted, normal).max(0)));
+  return select(dot(refracted, refracted).greaterThan(1e-6), window, sea);
+}
+
 /** The ocean surface, drawn first in the scene pass's transparent queue so three's viewport copies
  * hold the opaque scene: straight-through transmission, shoreline foam and screen-space reflections
  * all read the same two copies. Colours and foam are emitted radiance that the game pre-scales for
@@ -224,7 +259,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const foamXz = vec2(dot(xz, along).div(reference('windStretch', 'float', foam.crest).mul(2).add(1)), dot(xz, vec2(along.y.negate(), along.x)));
     const foamUv = foamXz.div(FOAM_TILE);
     const pattern = texture(this.foamDetail, foamUv), blur = foamBlur(foamUv), lace = pattern.r;
-    const foamLight = mix(SHADOWED_FOAM, 1, lit).mul(mix(FOAM_AMBIENT, 1, dot(up, sunDirection).max(0)));
+    const foamLight = foamIllumination(lit, up, sunDirection);
     // Residual foam gathers in the patches (twice the mean coverage where they peak) and lies in wind streaks.
     const surfaceFoam = foamOpacity(reference('coverage', 'float', foam.surface).mul(pattern.g.mul(2)), pattern.b, blur, STREAK_EDGE)
       .mul(reference('opacity', 'float', foam.surface));
@@ -239,20 +274,10 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     above = mix(above, rgb(foam.shoreline.color).mul(foamLight), shoreFoam.clamp(0, 1));
 
     this.fragmentNode = Fn(() => {
-      // Everything above is evaluated first, in uniform control flow: it takes screen-space derivatives.
+      // Everything above is evaluated first, in uniform control flow: it takes screen-space derivatives. Only back
+      // faces, seen from a submerged camera, pay for the underside.
       const color = above.toVar();
-      // Below, only for back faces (a submerged camera): Snell's window shows the sky refracted through the
-      // surface; outside it the surface mirrors the lit sea by total internal reflection, and the waves show as
-      // their facets tilt the mirrored ray between the dark deep and the daylight scattered along the surface.
-      If(frontFacing.not(), () => {
-        const incident = view.negate(), down = up.negate();
-        const refracted = refract(incident, down, WATER_IOR).toVar(), mirror = reflect(incident, down);
-        // The sky's mean radiance overhead (the fully blurred bake), dimmed by the water above the camera.
-        const daylight = skyReflection(environment, vec3(0, 1, 0), float(1)).mul(exp(cameraPosition.y.min(0).div(DAYLIGHT_DEPTH)));
-        const sea = waterLight(pigment, absorption, daylight, mirror).toVar();
-        const window = mix(skyReflection(environment, refracted, float(0)), sea, fresnel(dot(refracted, up).max(0)));
-        color.assign(select(dot(refracted, refracted).greaterThan(1e-6), window, sea));
-      });
+      If(frontFacing.not(), () => { color.assign(underside(environment, view, up, pigment, absorption)); });
       return vec4(color, 1);
     })();
     this.needsUpdate = true;
