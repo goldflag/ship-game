@@ -1,16 +1,21 @@
 # Ocean
 
 The game's own ocean renderer, limited to what the game uses. It replaced a vendored
-commercial ocean library, which is no longer in the tree. Sky Pro stays vendored; the ocean
-consumes its provider through `OceanSky` in `contracts.ts`. The game renders only through
-WebGPU (`src/game/webgpu.ts`); there is no WebGL path.
+commercial ocean library, Water Pro, which stays in `vendor/threejs-water-pro` only so the two
+can be compared in the real game: `src/game/comparison/WaterProOcean.ts` drives it behind
+`OceanApi`, loaded on demand when the developer console's "Switch ocean renderer" (the
+`oceanRenderer` graphics setting) selects it. Sky Pro stays vendored; the ocean consumes its
+provider through `OceanSky` in `contracts.ts`. The game renders only through WebGPU
+(`src/game/webgpu.ts`); there is no WebGL path.
 
 ## Clean-room rule
 
 The license of the ocean library this folder replaced forbids decompiling, deobfuscating or
-otherwise reverse engineering its compiled bundle, and that bundle remains in the repository's
-history. Nobody working on this folder opens, reads, greps, diffs or pattern-matches it in any
-past revision, or Sky Pro's vendored `index.js`, including through tools or subagents. Build
+otherwise reverse engineering its compiled bundle, which is vendored for the comparison and
+remains in the repository's history. Nobody opens, reads, greps, diffs or pattern-matches
+`vendor/threejs-water-pro/build/index.js` in any revision, or Sky Pro's vendored `index.js`,
+including through tools or subagents; the comparison adapter uses only the library's `.d.ts`
+declarations and the game's former integration code. Build
 from the game's own code, this document, three.js (`node_modules/three`),
 published literature and black-box observation of the running game (screenshots, frame times,
 values read through the public API the game already calls). The repository is public: code
@@ -59,8 +64,9 @@ replaced library and were not rebuilt.
 **Waves.** JONSWAP spectrum with peak wavelength, wind speed, γ, wind direction and directional
 spreading; significant height is exact (normalise the realised spectrum so 4σ equals
 `significantHeight`, time-averaged, over the tier's cascades). Choppy horizontal displacement.
-Integer-safe seeded randomness (no float hash inputs). Periodic cascades, largest tile 1,024 m,
-bands split so no wavelength is counted twice. Time folds modulo a period with every ω quantised
+Integer-safe seeded randomness (no float hash inputs). Periodic cascades, largest tile 1,024 m
+(more in a realistic storm), bands split so no wavelength is counted twice. Time folds modulo a
+period with every ω quantised
 to it, so float32 time stays precise. CPU bounds on height and horizontal displacement replace
 the old GPU readback of the spectrum. Short waves are held to a saturation range (α·g²·ω⁻⁵) above
 the peak: the game's calibrated seas are far steeper than developed ones, and a JONSWAP normalised
@@ -74,6 +80,27 @@ the saturation range is self-similar in slope), shown where the pixel resolves t
 variance they draw taken out of the tail's roughness. Low's single cascade holds the peak and draws
 none. A quarter of the tail (Cox–Munk's total less the drawn slopes) roughens the sky reflection:
 in full it hazed a light air's mirrored clouds.
+
+**Realistic sea state** (`waves/seaState.ts`; `realism.seaState`, on by default). The calibration
+table's heights are realistic but its peak wavelengths are an art direction's: Hs/λp runs from 1/18
+at 9 m/s to 1/7 at 25 m/s, the breaking limit, where real wind seas run 1/33 to 1/41. With the
+switch on the field draws the table's significant height on the sea a real wind raises to that
+height. Eliminating the fetch between JONSWAP's growth laws (Hasselmann et al. 1973: g²m0/U⁴ =
+1.6·10⁻⁷χ, fp·U/g = 3.5·χ^−0.33) gives the peak wavelength from Hs and U, a 3/2 law: 70 m at 9 m/s
+(Pierson–Moskowitz's developed sea), 146 m at 15, 298 m at 25. Donelan, Hamilton & Hui's (1985)
+measured wind-sea spectrum at that wave age replaces JONSWAP: Toba's ω⁻⁴ equilibrium range above the
+peak, γ = 1.7 + 6·log10(U/cp) and a peak width from U/cp, held to the same saturation range (they
+meet 4–6 ωp above the peak). Its drawn slopes are 79% of Cox–Munk's total at 9 m/s and a third in a
+storm; the tail keeps the rest. Choppiness is 1/(π·0.1412) ≈ 2.25, at which a trochoid cusps exactly
+at Stokes' limiting steepness: crests sharpen (J < 0.5 on a tenth of the surface on High) and fold
+only where the linear sea passes breaking (0.03–0.08%). Tiles grow by one factor until the largest
+holds 8 peak wavelengths (never shrunk, at most 4×: the tier's layout up to 12 m/s, 2,381 / 421 / 72
+m on High at 25 m/s), so every band keeps its place on its lattice, and the longest waves no longer
+repeat 3–4 times a tile from the air. Tile sizes are uniforms, so a new layout adds no work per
+frame. The field reads the switch live and rebuilds when it flips, paused or not; `WaveField.sea` is
+the sea as drawn (spectral reads such as the peak belong there, not on `params`). Off draws `params`
+on the tier's tiles, pixel for pixel as before. Combat, hull motion and `session/sea.ts` read the
+table either way.
 
 **Mesh.** Camera-centred clipmap, 256 m base, 6 levels, snapped per level so vertices never swim,
 seam-free between levels; a flat horizon ring from the clipmap edge to 95% of `camera.far`,
@@ -154,16 +181,23 @@ caustics, the built-in sky, masking, multiplayer tick sync.
 | High | 3 × 256 | 64 | 512² | 16 steps |
 | Ultra | 3 × 512 | 128 | 1024² | 32 steps |
 
+Tiles are 1,024 / 181 / 31 m (Low takes the first, Medium two). A realistic sea whose peak passes
+128 m grows all of them by one factor (above).
+
 ## Validation
 
 Unit tests (`bun test src/game/ocean`) cover the spectrum, bounds, seeds, quality tiers, geometry
 coverage, the wake's dispersion pyramid (including aliasing on a real grid) and its generators.
 `bun scripts/browser/ocean-waves.ts` runs `/scripts/diagnostics/ocean-waves.html` headed: it checks
 the wave field alone on WebGPU (GPU transform against a CPU inverse DFT, Hm0, mipmaps, `heightAt`,
-foam persistence and coverage, update timings per tier) and writes to `.build/ocean-waves/`.
+foam persistence and coverage, update timings per tier) and writes to `.build/ocean-waves/`;
+`--sea-state off` checks the table's sea as given. Cascades holding under a millionth of the variance
+(a light air's 1 km tile) are reported but not judged: their amplitudes are below half-float
+resolution.
 `bun scripts/browser/ocean-wake.ts [--resolution 256|512|1024] [--measure]` runs
 `/scripts/diagnostics/ocean-wake.html` headed: a Bismarck-sized hull sails, turns, stops, resets and
 teleports, every check reads the public sampler back, and the captures, results and step cost land
 in `.build/ocean-wake/`. `/scripts/diagnostics/ocean-review.html` renders fixed scenes of the real game
 for side-by-side review (`bun scripts/browser/ocean-review.ts --tag <name>` saves them to
-`.build/ocean-review/<name>/`); keep a baseline tag to compare a change against.
+`.build/ocean-review/<name>/`; `--param wind=<m/s>` sets the wind of scenes without their own,
+`--param realism=off` the replaced library's look); keep a baseline tag to compare a change against.

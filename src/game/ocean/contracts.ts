@@ -42,6 +42,9 @@ export interface WaveParameters {
   directionalSharpness: number;
   /** Integer seed; any integer is safe. */
   seed: number;
+  /** Short waves follow Donelan et al.'s measured ω⁻⁴ equilibrium range, with its wave-age peak width, instead of
+   * JONSWAP's ω⁻⁵ (both held to the saturation range). The realistic sea state sets it; absent is JONSWAP. */
+  equilibriumRange?: boolean;
   dirty: boolean;
 }
 
@@ -72,6 +75,10 @@ export interface WaveSurfaceSample {
 export interface WaveField {
   readonly params: WaveParameters;
   readonly foamParams: WaveFoamParameters;
+  /** The sea as drawn: `params` itself, or with `OceanRealism.seaState` on a real wind sea's peak wavelength, γ and
+   * choppiness at the same height and wind. Spectral reads (peak, choppiness) belong here, not on `params`. */
+  readonly sea: Readonly<WaveParameters>;
+  /** The current tiles: the tier's, grown by one factor with the sea's peak wavelength while the sea state is realistic. */
   readonly cascades: readonly WaveCascadeInfo[];
   /** Upper bound (m) on the wave height for the current spectrum, excluding the wake. */
   readonly maxHeight: number;
@@ -101,8 +108,10 @@ export interface WaveFoamParameters {
 }
 
 /** `waves/index.ts` exports `createWaveField` and `createWaveHeightSampler` with these shapes. The field
- * reads `params` and `foam` live: the facade owns those objects and the game writes to them. */
-export type CreateWaveField = (renderer: WebGPURenderer, cascades: readonly WaveCascadeInfo[], params: WaveParameters, foam: WaveFoamParameters) => WaveField;
+ * reads `params`, `foam` and `realism.seaState` live: the facade owns those objects and the game writes to them.
+ * `cascades` is the quality tier's layout; without `realism` the sea is drawn as `params` give it. */
+export type CreateWaveField = (renderer: WebGPURenderer, cascades: readonly WaveCascadeInfo[], params: WaveParameters, foam: WaveFoamParameters,
+  realism?: Pick<OceanRealism, 'seaState'>) => WaveField;
 export type CreateWaveHeightSampler = (renderer: WebGPURenderer, field: WaveField) => WaveHeightSampler;
 /** `wake/index.ts` exports `createWakeField` with this shape. */
 export type CreateWakeField = (renderer: WebGPURenderer, resolution: number) => WakeFieldApi;
@@ -251,7 +260,9 @@ export interface OceanApi {
   readonly cameraNearSurface: boolean;
   /** Finest vertex spacing of the surface mesh in metres (the clipmap's innermost cells). */
   readonly meshSpacing: number;
-  update(dt: number): void;
+  /** Advance and prepare the sea for this frame. The game's ocean finishes synchronously; the Water Pro comparison
+   * (`src/game/comparison`) returns a promise the frame awaits before it renders. */
+  update(dt: number): void | Promise<void>;
   setSky(sky: OceanSky | null): void;
   /** Replace the wake the surface reads (the game composes its own foam on top of `wake.sampler`). */
   setWakeSampler(sampler: WakeSampler | null): void;
@@ -264,5 +275,6 @@ export interface OceanApi {
   /** Let an object ride the surface: y follows the height readback, eased over `smoothing` seconds. */
   addFloater(object: Object3D, options?: { smoothing?: number }): void;
   resize(width: number, height: number): void;
-  dispose(): void;
+  /** A promise when GPU readbacks must drain first (the Water Pro comparison). */
+  dispose(): void | Promise<void>;
 }

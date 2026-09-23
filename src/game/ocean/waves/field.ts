@@ -6,8 +6,9 @@ import { DataTexture, FloatType, HalfFloatType, LinearFilter, LinearMipmapLinear
   QuadMesh, RGBAFormat, RenderTarget, RepeatWrapping, Vector2, type Node, type Texture, type WebGPURenderer } from 'three/webgpu';
 import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max, min, mix, mrt, screenCoordinate, select, sin, smoothstep,
   texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
-import type { WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
+import type { OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
+import { drawnSea, seaStateCascades } from './seaState';
 import { FOLD_PERIOD, buildSpectrum, cascadeBands } from './spectrum';
 import { type CascadeBreaking, cascadeBreaking, setBreakingThresholds, whitecapDepth } from './whitecaps';
 
@@ -77,6 +78,11 @@ function stockham(j: Int, radix: number, span: number) {
 export class GpuWaveField implements WaveField {
   maxHeight = 0;
   maxHorizontalDisplacement = 0;
+  /** The sea as drawn: `params` with the realism switch applied. */
+  sea: WaveParameters;
+  /** Current tiles: the tier's, grown with the sea's peak while `realism.seaState` is on. */
+  cascades: readonly WaveCascadeInfo[];
+  private seaState: boolean;
   private readonly size: number;
   private readonly spectrum: DataTexture;
   /** Frequency-domain atlas (cascades side by side), two packed complex signals per texture. */
@@ -93,10 +99,19 @@ export class GpuWaveField implements WaveField {
   private readonly passes: QuadMesh[] = [];
   /** The last vertical pass, drawn once per cascade layer. */
   private readonly finalPass: QuadMesh;
-  /** Longest wavelength each cascade holds (m). */
-  private readonly longest: number[];
-  /** Tile (m) of the close-range ripples, or 0 where the finest cascade holds the spectral peak (a single cascade). */
-  private readonly rippleTile: number;
+  /** Each cascade's tile edge (m) and texels per metre; tiles follow the sea state, so shaders read them as uniforms.
+   * `this.texels[i]` stands wherever a fixed layout would have `this.size / cascade.size`. */
+  private readonly tiles: ReturnType<typeof floatUniform>[];
+  private readonly texels: ReturnType<typeof floatUniform>[];
+  /** Longest wavelength each cascade holds (m), on the CPU and as uniforms. */
+  private longest: number[] = [];
+  private readonly longestWaves: ReturnType<typeof floatUniform>[];
+  /** Tile (m) of the close-range ripples and its texels per metre; none where the finest cascade holds the spectral
+   * peak (a single cascade). */
+  private readonly rippleTile = uniform(0);
+  private readonly rippleTexels = uniform(0);
+  /** Wavenumber step 2π/size of each tile, as the first transform pass reads it. */
+  private readonly wavenumbers: ReturnType<typeof uniformArray>;
   private readonly phase = uniform(0);
   private readonly choppiness = uniform(0);
   private readonly elapsed = uniform(0);
@@ -116,17 +131,23 @@ export class GpuWaveField implements WaveField {
   private breaking: CascadeBreaking[] = [];
   private lastPhase = -1;
 
-  constructor(readonly cascades: readonly WaveCascadeInfo[], readonly params: WaveParameters, readonly foamParams: WaveFoamParameters) {
-    const n = cascades[0]?.resolution ?? 0, count = cascades.length;
-    if (!count || cascades.some(c => c.resolution !== n)) throw new Error('Wave cascades must share one resolution');
+  /** `tier` is the quality tier's layout; `realism.seaState` is read live, and flipping it rebuilds. */
+  constructor(private readonly tier: readonly WaveCascadeInfo[], readonly params: WaveParameters, readonly foamParams: WaveFoamParameters,
+    private readonly realism: Pick<OceanRealism, 'seaState'> = { seaState: false }) {
+    const n = tier[0]?.resolution ?? 0, count = tier.length;
+    if (!count || tier.some(c => c.resolution !== n)) throw new Error('Wave cascades must share one resolution');
     this.size = n;
     this.top = Math.max(0, Math.log2(n / COARSEST_TEXELS));
-    this.slopes = cascades.map(floatUniform);
-    this.gates = cascades.map(floatUniform);
-    const bands = cascadeBands(cascades), finest = bands[count - 1];
-    this.longest = bands.map((band, i) => i ? 2 * Math.PI / band.lo : cascades[0].size);
-    // Read as many times finer as the finest band spans, the ripples continue it without overlap.
-    this.rippleTile = count > 1 ? cascades[count - 1].size * finest.lo / finest.hi : 0;
+    this.slopes = tier.map(floatUniform);
+    this.gates = tier.map(floatUniform);
+    this.tiles = tier.map(floatUniform);
+    this.texels = tier.map(floatUniform);
+    this.longestWaves = tier.map(floatUniform);
+    this.wavenumbers = uniformArray(tier.map(() => 0), 'float');
+    this.seaState = realism.seaState;
+    this.sea = drawnSea(params, this.seaState);
+    this.cascades = tier;
+    this.layOut(tier);
     this.spectrum = new DataTexture(new Float32Array(n * n * count * 4), n * count, n, RGBAFormat, FloatType);
     this.spectrum.minFilter = this.spectrum.magFilter = NearestFilter;
     const atlas = () => {
@@ -162,7 +183,23 @@ export class GpuWaveField implements WaveField {
   /** The latest displacement, derivatives and extras textures (one layer per cascade), for diagnostics. */
   get textures(): readonly Texture[] { return this.fields[this.current].textures; }
 
-  private layered(node: TextureMap, layer: Int): TextureMap { return this.cascades.length > 1 ? node.depth(layer) : node; }
+  /** Point every size-dependent read at a tile layout (same count and resolution as the tier's). */
+  private layOut(cascades: readonly WaveCascadeInfo[]): void {
+    const bands = cascadeBands(cascades), count = cascades.length, finest = bands[count - 1];
+    this.cascades = cascades;
+    this.longest = bands.map((band, i) => i ? 2 * Math.PI / band.lo : cascades[0].size);
+    cascades.forEach((cascade, i) => {
+      this.tiles[i].value = cascade.size;
+      this.texels[i].value = this.size / cascade.size;
+      this.longestWaves[i].value = this.longest[i];
+      this.wavenumbers.array[i] = 2 * Math.PI / cascade.size;
+    });
+    // Read as many times finer as the finest band spans, the ripples continue it without overlap.
+    this.rippleTile.value = count > 1 ? cascades[count - 1].size * finest.lo / finest.hi : 0;
+    this.rippleTexels.value = count > 1 ? this.size / this.rippleTile.value : 0;
+  }
+
+  private layered(node: TextureMap, layer: Int): TextureMap { return this.tier.length > 1 ? node.depth(layer) : node; }
 
   /** Complex spectra of the eight fields at one atlas texel, packed as four complex signals
    * f + i·g (each IFFT then yields two real fields): (Dx, Dy), (Dz, ∂Dx/∂z), (∂y/∂x, ∂y/∂z),
@@ -195,7 +232,7 @@ export class GpuWaveField implements WaveField {
       const maps = inputs.map(t => texture(t));
       read = index => maps.map(map => direct(map.load(horizontal ? ivec2(tile.mul(n).add(index), pixel.y) : ivec2(pixel.x, index))) as unknown as Vec4);
     } else {
-      const spectrum = texture(this.spectrum), wavenumber = uniformArray(this.cascades.map(c => 2 * Math.PI / c.size), 'float').element(tile) as unknown as Float;
+      const spectrum = texture(this.spectrum), wavenumber = this.wavenumbers.element(tile) as unknown as Float;
       read = index => this.evolve(spectrum, index, pixel.y, tile, wavenumber);
     }
     const sums: [Vec4, Vec4] = [vec4(0), vec4(0)];
@@ -233,17 +270,17 @@ export class GpuWaveField implements WaveField {
   }
 
   private sample(field: typeof FIELDS[number], xz: Node<'vec2'>, cascade: number, level?: Float): Vec4 {
-    const node = this.layered(direct(this.maps[field].sample(xz.div(this.cascades[cascade].size).add(.5 / this.size))), int(cascade));
+    const node = this.layered(direct(this.maps[field].sample(xz.div(this.tiles[cascade]).add(.5 / this.size))), int(cascade));
     return (level ? node.level(level) : node) as unknown as Vec4;
   }
 
   displacement(xz: Node<'vec2'>, spacing?: Float): Node<'vec3'> {
-    return this.cascades.reduce<Node<'vec3'>>((sum, cascade, i) => {
+    return this.tier.reduce<Node<'vec3'>>((sum, _, i) => {
       if (!spacing) return sum.add(this.sample('displacement', xz, i, float(0)).xyz);
       // The mip whose texel matches the vertex spacing; the cascade fades out between four and two
       // vertices per its longest wave, where the mesh can no longer carry any of it.
-      const level = clamp(log2(spacing.mul(this.size / cascade.size)), 0, this.top);
-      const fade = float(1).sub(smoothstep(this.longest[i] / 4, this.longest[i] / 2, spacing));
+      const level = clamp(log2(spacing.mul(this.texels[i])), 0, this.top);
+      const fade = float(1).sub(smoothstep(this.longestWaves[i].mul(.25), this.longestWaves[i].mul(.5), spacing));
       return sum.add(this.sample('displacement', xz, i, level).xyz.mul(fade));
     }, vec3(0));
   }
@@ -253,18 +290,18 @@ export class GpuWaveField implements WaveField {
     const across = dFdx(xz).length(), down = dFdy(xz).length();
     const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
     let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), bubbles: Float = float(0), variance: Float = this.tail;
-    this.cascades.forEach((cascade, i) => {
+    this.tier.forEach((_, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
       // last level (slopes, strain and foam alike, which would otherwise repeat with the tile); its
       // whole slope variance then roughens the surface instead.
-      const level = log2(footprint.mul(this.size / cascade.size));
+      const level = log2(footprint.mul(this.texels[i]));
       const detail = float(1).sub(smoothstep(this.top - 1, this.top, level));
       const derivatives = this.sample('derivatives', xz, i), extras = this.sample('extras', xz, i);
       // A finer cascade's foam shows on the crests of the coarser ones summed so far (their compression is
       // −(∂Dx/∂x + ∂Dz/∂z), gated in its own standard deviations).
       const crests = i ? smoothstep(GATE_NONE, GATE_FULL, strain.x.add(strain.y).mul(this.gates[i]).negate()) : float(1);
       foam = max(foam, extras.y.mul(detail).mul(crests));
-      const spread = clamp(max(level, Math.log2(BUBBLE_SPREAD * this.size / cascade.size)), 0, this.top);
+      const spread = clamp(max(level, log2(this.texels[i].mul(BUBBLE_SPREAD))), 0, this.top);
       bubbles = max(bubbles, this.sample('extras', xz, i, spread).y.mul(detail).mul(crests));
       slope = slope.add(derivatives.xy.mul(detail));
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
@@ -290,9 +327,9 @@ export class GpuWaveField implements WaveField {
    * change to the total: the share of the tail's roughness they draw as resolved slopes (the game's steep seas can
    * leave no tail; the ripples then only add detail). A single cascade holds the peak, which is not self-similar. */
   private ripples(xz: Node<'vec2'>, footprint: Float): { slope: Node<'vec2'>; variance: Float } {
-    if (!this.rippleTile) return { slope: vec2(0), variance: float(0) };
-    const finest = this.cascades.length - 1, size = this.rippleTile;
-    const level = log2(footprint.mul(this.size / size)).max(0);
+    if (this.tier.length < 2) return { slope: vec2(0), variance: float(0) };
+    const finest = this.tier.length - 1, size = this.rippleTile;
+    const level = log2(footprint.mul(this.rippleTexels)).max(0);
     const shown = float(1).sub(smoothstep(this.top - 1, this.top, level));
     const read = this.layered(direct(this.maps.derivatives.sample(xz.div(size).add(.5 / this.size))), int(finest)) as unknown as Vec4;
     // Each mip level averages away about one octave of the band's slopes, which then stay roughness.
@@ -303,19 +340,23 @@ export class GpuWaveField implements WaveField {
   heightAt(xz: Node<'vec2'>): Float {
     // Fixed-point inversion of the choppy map (the grid point whose displaced position is xz),
     // damped after the first step: undamped steps oscillate where storm crests fold.
-    const horizontal = (at: Node<'vec2'>) => this.cascades.reduce<Node<'vec2'>>((sum, _, i) => sum.add(this.sample('displacement', at, i, float(0)).xz), vec2(0));
+    const horizontal = (at: Node<'vec2'>) => this.tier.reduce<Node<'vec2'>>((sum, _, i) => sum.add(this.sample('displacement', at, i, float(0)).xz), vec2(0));
     let grid: Node<'vec2'> = xz;
     for (let step = 0; step < INVERSION_STEPS; step++) {
       const target = xz.sub(horizontal(grid));
       grid = step ? grid.add(target.sub(grid).mul(INVERSION_DAMPING)) : target;
     }
-    return this.cascades.reduce<Float>((sum, _, i) => sum.add(this.sample('displacement', grid, i, float(0)).y), float(0));
+    return this.tier.reduce<Float>((sum, _, i) => sum.add(this.sample('displacement', grid, i, float(0)).y), float(0));
   }
 
   update(renderer: WebGPURenderer, time: number, dt: number): void {
     let rebuilt = false;
-    if (this.params.dirty || !this.built) {
-      const spectrum = buildSpectrum(this.cascades, this.params), n = this.size, count = this.cascades.length;
+    if (this.params.dirty || !this.built || this.realism.seaState !== this.seaState) {
+      // The drawn sea and its tiles follow the realism switch; flipping it rebuilds like any change, paused or not.
+      this.seaState = this.realism.seaState;
+      this.sea = { ...drawnSea(this.params, this.seaState), dirty: false };
+      this.layOut(this.seaState ? seaStateCascades(this.tier, this.sea.peakWavelength) : this.tier);
+      const spectrum = buildSpectrum(this.cascades, this.sea), n = this.size, count = this.cascades.length;
       const data = this.spectrum.image.data as Float32Array;
       spectrum.cascades.forEach((cascade, c) => {
         for (let z = 0; z < n; z++) data.set(cascade.amplitudes.subarray(z * n * 4, (z + 1) * n * 4), (z * count + c) * n * 4);
@@ -324,8 +365,8 @@ export class GpuWaveField implements WaveField {
       this.spectrum.needsUpdate = true;
       this.maxHeight = spectrum.maxHeight; this.maxHorizontalDisplacement = spectrum.maxHorizontalDisplacement;
       this.tail.value = spectrum.tailSlopeVariance * TAIL_ROUGHNESS;
-      this.choppiness.value = this.params.choppiness;
-      this.wind.value.set(Math.cos(this.params.windDirection), Math.sin(this.params.windDirection));
+      this.choppiness.value = this.sea.choppiness;
+      this.wind.value.set(Math.cos(this.sea.windDirection), Math.sin(this.sea.windDirection));
       this.prepareWhitecaps(spectrum);
       this.params.dirty = false; this.built = rebuilt = true;
     }

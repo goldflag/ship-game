@@ -31,7 +31,9 @@ interpolation between these targets:
 Zero wind is flat. Lower-speed anchors retain small waves and ease into whitecaps.
 These are representative conditions, not a wave forecast: the model has no fetch,
 wind-duration history, water-depth-dependent spectrum or independent incoming
-swell. The peak wavelengths and wave periods remain visual/gameplay choices.
+swell. The table's peak wavelengths and wave periods remain visual/gameplay choices; the rendered
+sea replaces them with a real wind sea's unless the realism switch is off (see
+[Realistic sea state](#realistic-sea-state)).
 
 `src/maps/seaCalibration.ts` turns wind into significant height and peak wavelength in metres,
 choppiness (0.65, rising to 1.55 between 3 and 15 m/s) and the crest and windward foam gains.
@@ -65,6 +67,52 @@ Its two sine components have weights 0.7/0.3, so their envelope amplitude is
 `Hs / (4 × sqrt((0.7² + 0.3²) / 2))`. The CPU retains its coarse four-times-peak-wavelength
 envelope and seeded phase; GPU waves never supply combat poses, collision or flooding samples.
 The two surfaces share height statistics, not exact phases or a hydrodynamic model.
+
+### Realistic sea state
+
+The table's wavelengths are an art direction's: 32 m at 9 m/s and 62 m at 25 m/s make the sea
+Hs/λp = 1/18 to 1/7 steep, the last at the breaking limit, where real wind seas run 1/33 to 1/41.
+With `ocean.realism.seaState` on (the default; the developer console's *Toggle realistic sea state*
+flips it live, paused or not) the ocean draws the table's significant height, wind and direction on
+the sea a real wind raises to that height (`src/game/ocean/waves/seaState.ts`):
+
+- **Peak wavelength.** JONSWAP's fetch-limited growth laws (Hasselmann et al. 1973) give the total
+  variance, g²m0/U⁴ = 1.6·10⁻⁷χ, and the peak frequency, fp·U/g = 3.5·χ^−0.33, at a dimensionless
+  fetch χ = gX/U². Eliminating χ gives Hs ∝ Tp^(3/2) at a given wind (the form of Toba's 3/2 law), so
+  Hs and U fix the peak. The table's seas up to 9 m/s are fully developed: at 9 m/s it gives 70 m,
+  Pierson–Moskowitz's 71 m for that height. Above 9 m/s the table's heights are those of younger,
+  fetch-limited seas, a little steeper.
+- **Spectrum.** Donelan, Hamilton & Hui's (1985) measured wind-sea spectrum at the resulting wave age
+  U/cp: Toba's ω⁻⁴ equilibrium range above the peak (JONSWAP's ω⁻⁵ tail left a storm's 10–80 m wind
+  waves as smooth swell), γ = 1.7 + 6·log10(U/cp) and a peak width 0.08·(1 + 4·(U/cp)⁻³), held to
+  the same α = 0.02 saturation range, which it meets 4–6 ωp above the peak. The drawn slopes are 79%
+  of Cox–Munk's total at 9 m/s and a third in a storm; the rest stays unresolved roughness.
+- **Choppiness** 1/(π·0.1412) ≈ 2.25: a trochoid then cusps exactly at Stokes' limiting steepness,
+  so crests sharpen as waves steepen (the Jacobian falls below 0.5 on about a tenth of the surface
+  on High) and fold into loops only where the linear sea passes breaking (0.03–0.08%).
+- **Tiles.** Every cascade grows by one factor until the largest tile holds 8 peak wavelengths
+  (never shrunk, at most 4×), so the bands keep their places on each lattice and the longest waves no
+  longer repeat 3–4 times a tile from the air map.
+
+| Wind (m/s) | 3 | 6 | 9 | 12 | 15 | 18 | 21 | 25 | 30 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Significant height (m) | 0.15 | 0.9 | 1.8 | 2.7 | 4.0 | 5.5 | 7.0 | 8.8 | 11.3 |
+| Table peak (m), Hs/λp | 11, 1/71 | 21, 1/24 | 32, 1/18 | 43, 1/16 | 53, 1/13 | 60, 1/11 | 60, 1/9 | 62, 1/7 | 75, 1/7 |
+| Drawn peak (m) | 5 | 37 | 70 | 100 | 146 | 197 | 246 | 298 | 368 |
+| Peak period (s) | 1.9 | 4.8 | 6.7 | 8.0 | 9.7 | 11.2 | 12.6 | 13.8 | 15.4 |
+| Drawn Hs/λp | 1/36 | 1/41 | 1/39 | 1/37 | 1/36 | 1/36 | 1/35 | 1/34 | 1/33 |
+| Wave age U/cp | 1.04 | 0.79 | 0.86 | 0.96 | 0.99 | 1.03 | 1.07 | 1.16 | 1.25 |
+| γ | 1.80 | 1.70 | 1.70 | 1.70 | 1.70 | 1.76 | 1.88 | 2.09 | 2.28 |
+| Tiles on High (m) | 1,024 / 181 / 31 | ← | ← | ← | 1,166 / 206 / 35 | 1,580 / 279 / 48 | 1,968 / 348 / 60 | 2,381 / 421 / 72 | 2,947 / 521 / 89 |
+
+Atlantic figures; Low draws the first tile, Medium the first two, Ultra the same sizes at 512².
+A map's height scale makes its seas younger, so shorter and steeper (the Pacific's 5.7 m at 25 m/s peaks
+at 169 m, 1/30); its wavelength scale does not apply while the switch is on. Off, the ocean draws the
+table's wavelength, γ 2.6 and choppiness on the tier's tiles exactly as before. Either way combat,
+hull motion and the port's `BerthMotion` read the table through `session/sea.ts`, and the foam gains
+stay the table's. The realistic sea's heights are also easier to invert: `heightAt` (buoys, the torpedo
+overlay, the waterline) misses by 2 cm at the 90th percentile in the 25 m/s storm, where the table's
+folded crests cost 12 cm.
 
 ## Water colour
 
@@ -391,3 +439,18 @@ islands, 5 and 20 km zoom, air, submerged, periscope and a ninety-second wake) i
 baseline tag. Every page above freezes waves with `game.ocean.time = seconds`; a paused frame never
 advances it, and parameter changes still apply on the next update. Temporary captures belong in
 ignored `.build/`.
+
+## Comparing with Water Pro
+
+The vendored Water Pro 3.5.1 library the game's ocean replaced can still draw the sea, to compare the
+two in the real game. The developer console (Shift-D) command "Switch ocean renderer" flips the
+`oceanRenderer` graphics setting (`game` or `waterpro`, saved with the other rows but outside the
+quality presets): in port the scene rebuilds at once, at sea it applies on the return to port, like the
+ocean tier. `Game` then loads `src/game/comparison/WaterProOcean.ts`, and with it the library's
+bundle, as a separate chunk; the default game never downloads it. The adapter drives the library
+through its declarations as the game did before the replacement, with the same scene values from
+`VisualEnvironment`, translated where Water Pro measures them differently: the significant height
+becomes the per-map FFT gain the game once measured, and surface foam and the wake's breaking slope
+take the values the game gave the library. The realism switches do not apply to it.
+`bun scripts/browser/ocean-review.ts --tag <name> --param renderer=waterpro` renders the review
+scenes with it. The clean-room rule in the ocean README applies: never open the library's `index.js`.

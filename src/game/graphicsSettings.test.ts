@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { DEFAULT_GRAPHICS, GRAPHICS_PRESETS, GRAPHICS_STORAGE_KEY, PRESET_ORDER, aircraftDetailScale, effectsDensity, frameIntervalMs, launchMatches, loadGraphicsSettings, matchingPreset, nearestPreset, sanitizeGraphicsSettings, sanitizeRenderScale, shadowMapSize, shipDetailBudgetPx } from './graphicsSettings';
+import { DEFAULT_GRAPHICS, GRAPHICS_PRESETS, GRAPHICS_STORAGE_KEY, PRESET_ORDER, aircraftDetailScale, effectsDensity, frameIntervalMs, launchMatches, loadGraphicsSettings, matchingPreset, nearestPreset, sanitizeGraphicsSettings, sanitizeRenderScale, shadowMapSize, shipDetailBudgetPx, withPreset } from './graphicsSettings';
 
 test('invalid stored graphics recover to High and unknown rows fall back individually', () => {
   for (const value of [null, [], 'bad', 42, { ocean: 'extreme', shadows: 7, renderScale: 'big' }]) {
@@ -71,4 +71,19 @@ test('water shadows migrate old presets and stay independently configurable with
   }
   expect(matchingPreset({ ...DEFAULT_GRAPHICS, waterShadows: 'medium' })).toBeNull();
   expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, waterShadows: 'invalid' }).waterShadows).toBe('high');
+});
+
+test('the ocean renderer comparison persists, rebuilds the port and stays outside the quality presets', () => {
+  expect(DEFAULT_GRAPHICS.oceanRenderer).toBe('game');
+  const library = { ...DEFAULT_GRAPHICS, oceanRenderer: 'waterpro' as const };
+  expect(sanitizeGraphicsSettings(JSON.parse(JSON.stringify(library)))).toEqual(library);
+  for (const value of [undefined, 'fft', 3]) expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, oceanRenderer: value }).oceanRenderer).toBe('game');
+  // Older saves have no renderer and keep every other row.
+  const { oceanRenderer, ...oldSave } = GRAPHICS_PRESETS.ultra;
+  expect(sanitizeGraphicsSettings(oldSave)).toEqual(GRAPHICS_PRESETS.ultra);
+  expect(launchMatches(DEFAULT_GRAPHICS, library)).toBe(false);
+  expect(launchMatches(library, library)).toBe(true);
+  expect(matchingPreset(library)).toBe('high');
+  for (const name of PRESET_ORDER) expect(withPreset(library, name)).toEqual({ ...GRAPHICS_PRESETS[name], oceanRenderer: 'waterpro' });
+  expect(withPreset(DEFAULT_GRAPHICS, 'low')).toEqual(GRAPHICS_PRESETS.low);
 });

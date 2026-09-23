@@ -18,7 +18,7 @@ export interface WeatherSetting {
 export interface WeatherPreset { kind: 'preset'; id: string; group: 'Weather'; label: string; words: string[]; overrides: EnvironmentOverrides; }
 /** A realism feature the console switches off and on, to compare it with the look first tuned to the replaced library. */
 export type RealismToggle = `realism:${keyof OceanRealism}`;
-export interface ConsoleAction { kind: 'action'; id: 'reset' | 'diagnostics' | 'bowWaves' | RealismToggle; group: 'Weather' | 'Diagnostics' | 'Water'; label: string; words: string[]; }
+export interface ConsoleAction { kind: 'action'; id: 'reset' | 'diagnostics' | 'bowWaves' | 'oceanRenderer' | RealismToggle; group: 'Weather' | 'Diagnostics' | 'Water'; label: string; words: string[]; }
 export type ConsoleCommand = WeatherSetting | WeatherPreset | ConsoleAction;
 
 const trim = (value: number, digits = 1) => String(Number(value.toFixed(digits)));
@@ -46,6 +46,8 @@ export const CONSOLE_ACTIONS: ConsoleAction[] = [
   { kind: 'action', id: 'realism:reflections', group: 'Water', label: 'Toggle physical reflections', words: ['physical', 'realism', 'reflections', 'fresnel', 'glitter', 'toggle'] },
   { kind: 'action', id: 'realism:waterColor', group: 'Water', label: 'Toggle physical water colour', words: ['physical', 'realism', 'water', 'colour', 'color', 'toggle'] },
   { kind: 'action', id: 'realism:wake', group: 'Water', label: 'Toggle realistic wakes', words: ['realistic', 'realism', 'wakes', 'slick', 'toggle'] },
+  // The vendored library the game's ocean replaced, kept to compare the two in the real game.
+  { kind: 'action', id: 'oceanRenderer', group: 'Water', label: 'Switch ocean renderer', words: ['switch', 'ocean', 'renderer', 'water', 'pro', 'waterpro', 'library', 'compare', 'comparison', 'toggle'] },
 ];
 export const CONSOLE_COMMANDS: ConsoleCommand[] = [...WEATHER_SETTINGS, ...WEATHER_PRESETS, ...CONSOLE_ACTIONS];
 

@@ -62,7 +62,7 @@ export class Ocean implements OceanApi {
     // A screen-space ray may travel about a battleship's length and a half before it gives up;
     // WaterViewFocus stretches it for a hull seen through the lens.
     this.reflections = { screenSpace: tier.reflectionSteps > 0, maxDistance: 400, steps: tier.reflectionSteps };
-    this.waveField = createWaveField(renderer, tier.cascades, this.waves, this.foam.crest);
+    this.waveField = createWaveField(renderer, tier.cascades, this.waves, this.foam.crest, this.realism);
     this.heights = createWaveHeightSampler(renderer, this.waveField);
     this.wake = createWakeField(renderer, tier.wakeResolution);
     this.geometry = new OceanGeometry(tier.segments, camera.far);
