@@ -5,7 +5,7 @@ import { parseConstructionCatalog } from './constructionEquipment';
 import { createStarterSource } from './constructionStarter';
 import { applyConstructionBatch } from './constructionCommands';
 import { effectiveConstructionCatalog } from './constructionCustomFittings';
-import { PLACEMENT_LIMIT, placementCommands, placementItems, reseatCommands, reseatItems, type Placement } from './constructionPlacement';
+import { floatingAbove, PLACEMENT_LIMIT, placementCommands, placementItems, reseatCommands, reseatItems, type Placement } from './constructionPlacement';
 
 const catalog = parseConstructionCatalog(JSON.parse(readFileSync(join(import.meta.dir, '../../public/models/components/catalog.json'), 'utf8')));
 const source = () => createStarterSource(catalog, 'fletcher-hull');
@@ -67,8 +67,14 @@ describe('construction placement requests', () => {
       { id: 'door-port', partId: 'generic-watertight-door', position: [-3, 3, 10], bearingDeg: 270, wall: { version: 1, widthM: 0.94, heightM: 2.12, mirrorId: 'door' } },
     );
     const all = reseatItems(design, catalog, 'all', true);
-    expect(all.items.map((i) => [i.equipment.id, i.slide, i.maxTravelM])).toEqual([['a', true, undefined], ['door', undefined, 2.12 * 0.75]]);
+    // Bitts may float, so --all never slides them sideways; the wall door keeps its wall rules.
+    expect(all.items.map((i) => [i.equipment.id, i.slide, i.maxTravelM])).toEqual([['a', undefined, undefined], ['door', undefined, 2.12 * 0.75]]);
     expect(all.skipped.map((s) => s.id)).toEqual(['screw', 'door-port']);
+    expect(all.floating).toEqual(['a']);
+    expect(reseatItems(design, catalog, ['a'], true).items[0].slide).toBe(true);
+    // A floating record is lifted out of a support that rose into it, but left where it floats above one.
+    expect([...floatingAbove([{ ...seat('a', [1, 3, 0], 0, [1, 3.4, 0]), gapM: 0.4 }], all.floating)]).toEqual(['a']);
+    expect([...floatingAbove([{ ...seat('a', [1, 3.4, 0], 0, [1, 3, 0]), gapM: -0.4 }], all.floating)]).toEqual([]);
     expect(() => reseatItems(design, catalog, ['a', 'missing'])).toThrow(/Unknown equipment ID missing/);
     expect(() => reseatItems(design, catalog, [])).toThrow(/--ids/);
     const commands = reseatCommands([seat('a', [1, 3.4, 0], 0, [1, 3, 0]), seat('door', [3, 3, 10], 90), { ...seat('b', [0, 0, 0]), status: 'unsupported' }]);

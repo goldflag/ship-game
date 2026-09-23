@@ -166,7 +166,7 @@ fn mixed_edges_concavity_and_mirroring_remain_visible() {
 }
 
 #[test]
-fn crossed_outlines_and_detached_platforms_cannot_launch() {
+fn crossed_outlines_cannot_launch_but_platforms_may_float() {
     let (mut source, catalog) = fixture();
     source.construction.primitives[1]
         .balcony
@@ -177,11 +177,32 @@ fn crossed_outlines_and_detached_platforms_cannot_launch() {
     let result = construction::compile(&source, &catalog);
     assert!(result.definition.is_none());
     assert!(result.diagnostics.iter().any(|d| d.code == "balcony"));
+    // A platform clear of every hull piece is decorative and still launches.
     let (mut source, catalog) = fixture();
     source.construction.primitives[1].position[1] = 12.;
     let result = construction::compile(&source, &catalog);
-    assert!(result.definition.is_none());
-    assert!(result.diagnostics.iter().any(|d| d.code == "attachment"));
+    assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+}
+
+#[test]
+fn a_platform_still_carries_the_piece_above_it() {
+    // Saved designs stand deckhouses on platforms: the balcony spans x 5..9 and is the only
+    // contact between the two boxes, as it was before platforms were allowed to float.
+    let (mut source, catalog) = fixture();
+    let mut second = source.construction.primitives[0].clone();
+    second.id = "hull-b".into();
+    second.size = [4., 4., 20.];
+    second.position = [11., 0., 0.];
+    source.construction.primitives.push(second);
+    let result = construction::compile(&source, &catalog);
+    assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+    // Without the platform the second box is detached.
+    source.construction.primitives.retain(|p| p.kind != "balcony");
+    let result = construction::compile(&source, &catalog);
+    assert!(result
+        .diagnostics
+        .iter()
+        .any(|d| d.code == "attachment" && d.source_id.as_deref() == Some("hull-b")));
 }
 
 #[test]

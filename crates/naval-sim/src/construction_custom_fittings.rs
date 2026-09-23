@@ -549,9 +549,12 @@ mod tests {
     }
 
     #[test]
-    fn a_floating_instance_reports_the_gap_and_the_seat() {
+    fn an_instance_may_float_but_not_far_off_the_ship() {
         let (mut source, catalog) = fixture();
         source.construction.equipment = vec![instance("bollard-1", [2., 2.4, -5.])];
+        let result = compile(&source, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        source.construction.equipment = vec![instance("bollard-1", [2., 60., -5.])];
         let result = compile(&source, &catalog);
         assert!(result.definition.is_none());
         let d = result
@@ -560,9 +563,7 @@ mod tests {
             .find(|d| d.code == "equipment-attachment")
             .unwrap();
         assert_eq!(d.source_id.as_deref(), Some("bollard-1"));
-        let fit = d.fit.as_ref().unwrap();
-        assert!((fit.gap_m.unwrap() - 0.4).abs() < 1e-6, "{fit:?}");
-        assert!((fit.seat_position.unwrap()[1] - 2.).abs() < 1e-6);
+        assert!(d.message.contains("within 10 m of the hull"), "{}", d.message);
     }
 
     #[test]

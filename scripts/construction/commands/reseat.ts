@@ -10,7 +10,7 @@ export default {
   values: ['--ids', '--out'],
   switches: ['--all', '--slide'],
   async run(ctx) {
-    const { reseatItems, reseatCommands } = await import('../../../src/ships/constructionPlacement');
+    const { reseatItems, reseatCommands, floatingAbove } = await import('../../../src/ships/constructionPlacement');
     const { readSource, readCatalog } = await import('../files');
     const { resolvePlacement, proposeBatch } = await import('../placement');
     const { emit } = await import('../query');
@@ -23,7 +23,7 @@ export default {
     const current = await readSource(ctx.root, ctx.id),
       { source } = current;
     const catalog = await readCatalog(ctx.root, source.construction.catalogRevision);
-    const { items, skipped } = reseatItems(source, catalog, ids ?? 'all', ctx.has('--slide'));
+    const { items, skipped, floating } = reseatItems(source, catalog, ids ?? 'all', ctx.has('--slide'));
     if (!items.length)
       return void emit({
         id: ctx.id,
@@ -35,6 +35,10 @@ export default {
         batch: null,
       });
     const report = await resolvePlacement(ctx.root, source, items);
+    // Fittings that may float are lifted out of a support that rose into them, but a float is intentional.
+    const above = floatingAbove(report.placements, floating);
+    const placements = report.placements.filter((p) => !above.has(p.id));
+    skipped.push(...[...above].map((id) => ({ id, reason: 'floats above its support, which this fitting may do; name it with --ids to seat it' })));
     // Under --all an unsupported record is reported but does not block reseating the rest.
     const blocking = ctx.has('--all')
       ? {
@@ -43,7 +47,7 @@ export default {
         }
       : report;
     emit(
-      await proposeBatch(ctx, current, 'Reseat equipment', reseatCommands(report.placements), blocking, {
+      await proposeBatch(ctx, current, 'Reseat equipment', reseatCommands(placements), blocking, {
         skipped,
         ...(!ctx.has('--slide') && report.placements.some((p) => p.status === 'unsupported' && !p.message?.includes('within'))
           ? {
