@@ -41,6 +41,8 @@ const freeze = seconds => {
   game.ocean.time = seconds;
 };
 const frames = async count => { for (let i = 0; i < count; i++) { await new Promise(requestAnimationFrame); await game.frame(performance.now()); } };
+/** Render the scene again: a new node frame, so the scene pass redraws instead of reusing its last result. */
+const redraw = () => { game.renderer._nodes.nodeFrame.update(); game.pipeline.render(); };
 const settle = async (count = 48) => { resetSkyHistory(); await frames(count); };
 const look = (position, target, fov = 60, far) => {
   game.rig.update = noop;
@@ -172,10 +174,40 @@ async function benchmark(iterations = 60, blocks = 5) {
   return { ...result, sky: result.passes + result.draw };
 }
 
+/** The whole sky's GPU cost per frame (its passes and its meshes' share of a redrawn frame): frames with the sky
+ * alternating with frames without it, timed by GPU timestamps where the browser allows them. */
+async function benchmarkSky(pairs = 120, clock = 'gpu') {
+  const renderer = game.renderer, backend = renderer.backend, device = backend.device, sky = game.sky, meshes = sky.meshes();
+  const timestamps = clock === 'gpu' && backend.hasFeature('timestamp-query');
+  const gpu = async () => (await renderer.resolveTimestampsAsync('render') ?? 0) + (await renderer.resolveTimestampsAsync('compute') ?? 0);
+  const frame = async on => {
+    const visible = meshes.map(mesh => mesh.visible);
+    if (!on) meshes.forEach(mesh => { mesh.visible = false; });
+    try {
+      if (timestamps) { if (on) sky.update(1 / 60); redraw(); return gpu(); }
+      await device.queue.onSubmittedWorkDone();
+      const start = performance.now();
+      if (on) sky.update(1 / 60);
+      redraw();
+      await device.queue.onSubmittedWorkDone();
+      return performance.now() - start;
+    } finally { meshes.forEach((mesh, i) => { mesh.visible = visible[i]; }); }
+  };
+  backend.trackTimestamp = timestamps;
+  try {
+    if (timestamps) await gpu();
+    const on = [], off = [], differences = [];
+    for (let i = 0; i < pairs; i++) { const a = await frame(true), b = await frame(false); on.push(a); off.push(b); differences.push(a - b); }
+    const sorted = values => [...values].sort((a, b) => a - b);
+    return { clock: timestamps ? 'gpu' : 'wall', sky: sorted(differences)[pairs >> 1], quartile: sorted(differences)[pairs >> 2],
+      frame: sorted(off)[pairs >> 1], withSky: sorted(on)[pairs >> 1] };
+  } finally { backend.trackTimestamp = false; }
+}
+
 window.skyReview = {
   game, scenes: Object.keys(scenes), errors,
   async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors] }; },
-  capture, measure, benchmark,
+  capture, measure, benchmark, benchmarkSky,
 };
 window.ready = true; output.textContent = '';
 </script>

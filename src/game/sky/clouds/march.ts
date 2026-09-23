@@ -87,6 +87,10 @@ export interface MarchContext {
   readonly baseShadow: UniformNode<'float', number>;
 }
 
+/** `AtmospherePart.aerial` with the real atmosphere's optional third argument: seen from sea level under the camera.
+ * The stub takes two and ignores a third. */
+type AerialFrom = (direction: Vec3, distance: Float, fromSea?: boolean) => { inscatter: Vec3; transmittance: Vec3 };
+
 /** What a march returns: in-scattered radiance (premultiplied), transmittance, and the transmittance-weighted
  * mean distance of what it met (`MAX_DISTANCE` where it met nothing). */
 export interface MarchResult { radiance: Vec3; transmittance: Float; depth: Float }
@@ -153,6 +157,9 @@ export interface MarchOptions {
   readonly pixelAngle?: Float;
   /** Scale on the steps' growth with distance: below 1 under magnification, where far clouds fill the view. */
   readonly stepScale?: Float;
+  /** The ray starts at sea level under the camera (the environment bake), not at the camera: aerial
+   * perspective is then taken from there. */
+  readonly fromSea?: boolean;
   /** Rain shafts below the base (the screen march). */
   readonly rain?: RainOptions;
 }
@@ -239,7 +246,7 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
   If(weight.greaterThan(1e-4), () => {
     depth.assign(weighted.div(weight));
     // Aerial perspective once, at the mean depth: the air between dims the cloud and adds its own glow.
-    const air = context.atmosphere.aerial(direction, depth);
+    const air = (context.atmosphere.aerial as AerialFrom)(direction, depth, options.fromSea);
     radiance.assign(radiance.mul(air.transmittance).add(air.inscatter.mul(transmittance.oneMinus())));
   });
   return { radiance, transmittance, depth };

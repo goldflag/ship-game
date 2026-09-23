@@ -48,17 +48,20 @@ const AUTHORED_AMBIENT = 1.1;
 const TILE = 8;
 /** Frames drawn with the per-pixel-depth composite first, so both composite pipelines compile at startup. */
 const WARMUP_FRAMES = 3;
+/** Sun elevation (degrees) below which the moon lights the clouds instead. */
+const NIGHT_BELOW = -10;
 /** Finest the march's distance-proportional steps get under magnification (a share of their normal length). */
 const ZOOMED_STEPS = .25;
 /** Metres below the base under which the camera is "under the layer": clouds then lie behind everything. */
 const UNDER_MARGIN = 20;
-/** Lightning. `SkyUniforms.lightningIntensity` is the irradiance, in the sea's units, the channel casts 1 km
- * away (the sun's is about 6), falling off with the square of distance, softened inside `LIGHTNING_CORE` metres
- * (the cloud around the channel diffuses it rather than showing a point). A cloud glows with `LIGHTNING_GLOW` of
- * the irradiance reaching it, dimmed over `LIGHTNING_SPREAD` metres as the light works through the cloud. At 150,
- * a cloud 5 km from the strike glows about 0.35 (bright against a moonlit cloud's 0.1, visible against a sunlit
- * one's 1), one 3 km away about 1.2, and one beside the channel about 6, a flash into the bloom. */
-const LIGHTNING_GLOW = .15, LIGHTNING_SPREAD = 6_000, LIGHTNING_CORE = 1_500;
+/** Lightning, in the weather part's convention: `SkyUniforms.lightningIntensity` is the irradiance, in the sea's
+ * units, the channel casts 1 km away (the sun's is about 6; a stroke peaks at 40), falling off with the square of
+ * distance, here softened inside `LIGHTNING_CORE` metres (the cloud around the channel diffuses it rather than
+ * showing a point). A cloud glows with `LIGHTNING_GLOW` of the irradiance reaching it, dimmed over
+ * `LIGHTNING_SPREAD` metres as the light works through the cloud. At a peak of 40, a cloud 5 km from the strike
+ * glows about 0.35 (bright against a moonlit cloud's 0.1, visible against a sunlit one's 1), one 3 km away about
+ * 1.2, one beside the channel about 6, a flash into the bloom. */
+const LIGHTNING_GLOW = .55, LIGHTNING_SPREAD = 6_000, LIGHTNING_CORE = 1_500;
 const LIGHTNING_TINT = [.8, .85, 1] as const;
 
 /** Visit order of the pixels of an n × n block, spread so consecutive frames march far-apart pixels. */
@@ -230,7 +233,7 @@ export class CloudLayer implements CloudPart {
   bake(origin: Vec3, direction: Vec3): Vec4 {
     return Fn(() => {
       const result = marchClouds(this.context, origin, this.field.altitude(origin), direction,
-        { steps: this.u.bakeSteps, lightSteps: 0, jitter: .5 });
+        { steps: this.u.bakeSteps, lightSteps: 0, jitter: .5, fromSea: true });
       return vec4(result.radiance, result.transmittance);
     })();
   }
@@ -371,10 +374,11 @@ export class CloudLayer implements CloudPart {
     this.weather.needsUpdate = true;
   }
 
-  /** The sun lights the clouds until it is low enough that even their tops stand in the planet's shadow;
-   * then the moon does. The atmosphere's transmittance darkens the sun long before the switch. */
+  /** The sun lights the clouds until it is well below the horizon, then the moon does. Through twilight the
+   * atmosphere's sun transmittance (with its dusk lift, above 1 on purpose) makes the clouds glow against the
+   * brightened sky while the planet's shadow climbs them; by the switch the sun's light on them is spent. */
   private updateLight(): void {
-    const sun = this.sky.sunDirection.value, night = sun.y < Math.sin(-5 * Math.PI / 180);
+    const sun = this.sky.sunDirection.value, night = sun.y < Math.sin(NIGHT_BELOW * Math.PI / 180);
     this.light.night.value = night ? 1 : 0;
     this.light.direction.value.copy(night ? this.sky.moonDirection.value : sun);
     this.u.shadowStrength.value = smooth(sun.y, SHADOW_SUN[0], SHADOW_SUN[1]);
