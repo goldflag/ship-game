@@ -80,6 +80,35 @@ reflectance under 24× binoculars instead of turning into one flat colour. Subme
 show straight through the surface: the opaque scene at the same screen position, attenuated by
 `exp(−absorption × column)` and filled with the pigment, with no refraction offset.
 
+### Physical water colour and reflections
+
+`ocean.realism.waterColor` and `ocean.realism.reflections` (both on by default; the developer
+console's **Toggle physical water colour** and **Toggle physical reflections**, or
+`?realism=off` on the review page) replace the look above, which was tuned to match the replaced
+library; switched off, the surface is exactly that look. The physics and constants are in the
+[ocean README](../src/game/ocean/README.md) under *Physical shading*; in short:
+
+- **Water colour.** The body is sunlight and skylight scattered back out of the water, from the
+  map's absorption and one open-ocean backscattering, (0.00323, 0.00395, 0.00565)/m (sea water plus
+  particles, Jerlov's oceanic type II–III), through Lee et al.'s (2002) remote-sensing reflectance,
+  lit by the sun and sky that cross the surface and ÷ n² on the way out. It follows noon, dusk,
+  night, overcast and ship shadows without the night pigment scaling. The Atlantic's water is about
+  a third as bright as the Steel-blue pigment and bluer; the Pacific's is deep blue. Shallows and
+  submerged hulls use the same optics: attenuation (a + b_b)·s·(1 + |view.y|/0.85) over the column,
+  97% of the daylight through the surface and ÷ n², so they read darker and bluer than before.
+- **Reflections.** The unresolved facets (all of Cox–Munk's tail plus the pixel's footprint, split
+  along and across the wind) reflect as a lobe centred on the facets the viewer sees, weighted by
+  their Fresnel reflectance, with Bruneton et al.'s mean Fresnel: a 9 m/s sea mirrors about 37% of
+  the sky some 18° up at the horizon instead of nearly all of the horizon, so the far sea is darker
+  than the sky and the horizon crisp. Reflections smear toward the viewer and stay sharp sideways;
+  the sun makes a glitter path that widens with the wind and toward the horizon; ship reflections
+  follow the whole wave slope and blur by the same lobe, so light air leaves only a faint smear under
+  a hull and a 9 m/s sea little beyond the waterline.
+
+Measured interleaved in one page (`measure()` between flips of the switches, while other GPU work
+ran) at 1600 × 900 on High, both switches cost about 0.5–0.9 ms per frame (10th percentile of
+serialised frame times: 12.7 → 13.6 ms near, 12.5 → 13.0 ms grazing).
+
 ## Fog
 
 `ocean.fog` becomes `scene.fogNode` for every fogged material, including transparent effects: a ramp
@@ -130,7 +159,9 @@ Graphics → Reflections **Ships and sky** turns on screen-space ship reflection
 them: High with 16 ray steps and Ultra with 32. Low and Medium reflect only the sky. Rays are clipped
 to the viewport, marched in reciprocal depth and refined with binary steps against full-float depth
 (see the ocean README), off a normal keeping 30% of the wave slope so a hull's image wavers rather than
-breaking into speckle. Screen-space reflections still omit offscreen geometry.
+breaking into speckle. With physical reflections on, rays follow the whole slope and the hit image is
+smeared along the plane of incidence by the unresolved facets instead. Screen-space reflections still
+omit offscreen geometry.
 
 The displaced surface also receives ship shadows from the same directional shadow map.
 `src/game/WaterShadows.ts` builds a receiver node from the light's depth texture and binds it with
@@ -138,8 +169,8 @@ The displaced surface also receives ship shadows from the same directional shado
 removes the sampling, Low uses one comparison, Medium four and High a nine-tap soft filter. The
 Low/Medium/High/Ultra presets choose Off/Low/High/High. A shader branch skips the texture reads
 outside the shadow camera's bounds. Shadows attenuate the lit terms (sun specular and glints,
-subsurface light and foam); the ambient pigment keeps 45% in full shadow and the sky reflection is
-unshadowed. They follow the active sun or moon and the local or zoomed hull anchor; ships outside the
+subsurface light and foam); the ambient pigment keeps 45% in full shadow (with physical water colour,
+shadowed water keeps the skylight's share of its upwelling) and the sky reflection is unshadowed. They follow the active sun or moon and the local or zoomed hull anchor; ships outside the
 map's 760 m footprint cast no water shadows. The Shadows setting controls map resolution for both hull
 and water shadows; its Off option overrides Water shadows without losing the selected water quality.
 Off stops shadow-map rendering and sets its intensity to zero; an already allocated map is kept so
@@ -387,7 +418,9 @@ continuous CPU height function, so very close grazing contacts remain approximat
 `bun scripts/browser/ocean-review.ts --tag <name>` renders the fixed scenes of
 `/scripts/diagnostics/ocean-review.html` (port, near, wide, grazing, sun, storm, calm, dusk, night,
 islands, 5 and 20 km zoom, air, submerged, periscope and a ninety-second wake) into
-`.build/ocean-review/<name>/`; `--measure` adds serialised frame costs. Compare a change against a
-baseline tag. Every page above freezes waves with `game.ocean.time = seconds`; a paused frame never
+`.build/ocean-review/<name>/`; `--measure` adds serialised frame costs and `--param realism=off` renders
+the look tuned to the replaced library. Compare a change against a baseline tag. Other GPU work on the
+machine moves frame times by several milliseconds: compare shading costs by flipping
+`game.ocean.realism` between `oceanReview.measure()` calls in one page and reading low percentiles. Every page above freezes waves with `game.ocean.time = seconds`; a paused frame never
 advances it, and parameter changes still apply on the next update. Temporary captures belong in
 ignored `.build/`.

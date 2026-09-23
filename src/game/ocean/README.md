@@ -73,14 +73,17 @@ cascade as ripples: its slopes read as many times finer as its band spans (16 on
 the saturation range is self-similar in slope), shown where the pixel resolves them, with the
 variance they draw taken out of the tail's roughness. Low's single cascade holds the peak and draws
 none. A quarter of the tail (Cox–Munk's total less the drawn slopes) roughens the sky reflection:
-in full it hazed a light air's mirrored clouds.
+in full it hazed a light air's mirrored clouds. `unresolvedVariance` carries all of it for the physical
+reflections, which blur it along the plane of incidence instead (see *Physical shading*).
 
 **Mesh.** Camera-centred clipmap, 256 m base, 6 levels, snapped per level so vertices never swim,
 seam-free between levels; a flat horizon ring from the clipmap edge to 95% of `camera.far`,
 growable when the air map raises `far` (`ensureHorizon(far)`). Vertex displacement samples a
 distance-appropriate mip. Low/Medium/High/Ultra segments 16/32/64/128.
 
-**Surface.** Opaque result, alpha 1. Custom colours (`WaterColors`): pigment and foam are
+**Surface.** Opaque result, alpha 1. This paragraph is the look first tuned to the replaced library,
+which `realism.reflections` and `realism.waterColor` replace (see *Physical shading*); foam, crest
+light and the underside are shared. Custom colours (`WaterColors`): pigment and foam are
 emitted radiance, pre-scaled by the game at night. Fresnel reflection of the sky provider with
 roughness from unresolved slope variance and a tiny grazing guard (1e-4, not 0.05: distant slopes
 must keep distinct reflectance under 24× binoculars). Sun glints on the resolved facets (a lobe of
@@ -106,7 +109,67 @@ when Graphics → Reflections is Scene. Clip each ray to the viewport before spe
 budget; march in reciprocal depth; refine hits with 8 binary steps; full-float depth; fade by
 confidence and screen edge. Rays leave a normal keeping 30% of the wave slope: one ray per pixel
 off the full slope breaks a hull's image into speckle. `maxDistance` is live: `WaterViewFocus`
-stretches it to twice the range of a hull seen through binoculars.
+stretches it to twice the range of a hull seen through binoculars. With physical reflections the
+ray follows the whole resolved slope instead, and the image is filtered rather than the surface
+flattened (see *Physical shading*).
+
+**Physical shading.** Two of `ocean.realism`'s switches change the surface's shading; each is live
+(flipping it rebuilds the surface graph, so the look tuned to the replaced library is exactly the
+graph with it off). Both are on by default.
+
+*`realism.reflections`* (`surface/physicalReflection.ts`, after Bruneton, Neyret & Holzschuch 2010).
+The pixel's normal is the mean of the waves it resolves; the facets it does not resolve form a
+Gaussian slope distribution around it: `unresolvedVariance` (the filtered and faded cascades plus
+all of Cox–Munk's tail) plus the slope change across the pixel's own footprint (screen-space
+derivatives × 0.25, Kaplanyan et al. 2016, at most 0.1), split along and across the wind in Cox &
+Munk's measured proportions (3.16e-3·U : 0.003 + 1.92e-3·U).
+- A viewer sees each facet by its projected area, which favours facets turned toward them (Smith;
+  Heitz's visible normals), and each mirrors by its Fresnel reflectance, which falls steeply as a
+  facet turns toward the viewer. Taking F ≈ e^{−k·cos θ} near the view (k is Schlick's own falloff,
+  about 5 at grazing and 0 looking down) multiplies the Gaussian by an exponential, which only moves
+  its mean by −kσ²; the visible facets of that shifted distribution give the lobe's centre and its
+  spread in closed form (within 2° of the numerical average up to σ = 0.18). A 9 m/s sea seen at a
+  grazing angle mirrors sky about 18° up, not the horizon, so the far sea is darker than the sky
+  over it and the horizon is crisp, as on a clear day at sea.
+- The rays spread by twice the facets' in-plane spread but across the plane of incidence only by
+  twice the cross slope times the cosine of incidence: grazing reflections smear toward the viewer
+  and stay sharp sideways. The PMREM filters isotropically, so an elongated lobe takes three taps
+  along the plane of incidence (weights ½, ¼, ¼), each blurred by the short axis but at least half
+  the long one. Lookup roughness comes from a measured table: a thin line filtered through the
+  game's 384 px sky bake spreads to angular deviations of 1.1° at roughness 0.1, 4.7° at 0.2, 10° at
+  0.4, 20° at 0.6 and 33° at 0.8 (three's PMREM is a chain of GGX-sampled passes whose roughness
+  names no lobe). Rays below the horizon read the horizon (the sky bake holds its colour below it).
+- The reflectance is Bruneton et al.'s mean Fresnel over the visible facets,
+  F0 + (1 − F0)(1 − cos θ)^{5e^{−2.69σ}}/(1 + 22.7σ^{1.5}) with σ the RMS slope along the view (0.37
+  at the horizon at 9 m/s, where a mirror would reflect nearly all), and the water body takes the rest.
+- The sun (or moon) is reflected by the same anisotropic distribution plus its 1.4° disc's own
+  spread (9.4e-6 per axis) as a Beckmann glitter BRDF with Smith masking: single resolved facets
+  sparkle close up, farther pixels average them into a glitter path that widens with the wind and
+  toward the horizon, and from the air the glint is a broad patch.
+- Screen-space rays follow the whole resolved slope, one in-plane deviation below the lobe's centre
+  (hulls stand above the water that mirrors them, so the lobe's lower part meets a hull its raised
+  centre would miss); four taps read the image over the whole lobe along its projected smear
+  (±0.5 and ±1.5 deviations, at most 4% of the viewport per deviation). Light air still breaks a
+  hull's image into a faint vertical smear: Cox–Munk's 0.018 mean square slope at 3 m/s spreads the
+  rays ±6–9°.
+
+*`realism.waterColor`* (`surface/waterBody.ts`). The body is light scattered back out of the water:
+subsurface remote-sensing reflectance r_rs = (0.089 + 0.125u)u, u = b_b/(a + b_b) (Lee et al. 2002,
+with their 1/(1 − 1.7 r_rs) for light the surface returns), times the downwelling irradiance under
+the surface: the sun's on the horizontal less its Fresnel reflection, where the shadow lets it, plus
+the sky's (π × the PMREM's roughest level, less 6.6% hemispherical Fresnel), crossing back into air
+÷ n². Absorption a is the map's `absorptionColor`; backscattering b_b is one open-ocean default,
+(0.00323, 0.00395, 0.00565)/m at about 620/550/460 nm: sea water's own (half of Morel's 1974
+scattering) plus particles at 0.003/m at 550 nm on a λ⁻¹ slope, Jerlov's oceanic type II–III, whose
+chlorophyll (about 1 mg/m³) goes with the maps' absorption. Noon, dusk, night, overcast and ship
+shadows follow the light with no night scaling; `waterColor` and the 45% shadow share are unused.
+Submerged hulls, terrain and shallows use the same optics: the scene behind a column s of water is
+dimmed by exp(−(a + b_b)·s·(1 + |view.y|/0.85)) (the image's path plus daylight reaching its depth
+with μ_d = 0.85), receives 97% of the day's light through the surface, fills in with the deep
+water's upwelling in proportion to what the column takes away, and crosses into air ÷ n². The
+underside and the underwater view keep the pigment. The North Atlantic's water comes out about a
+third as bright as the pigment and bluer (r_rs ≈ 0.001, 0.0034, 0.0054/sr); the Pacific's clearer
+blue much bluer.
 
 **Fog.** `scene.fogNode` for every fogged material: ramp from `start` to `end` raised to `power`,
 colour blending from `color` to the sky's fog sampler along the view ray over
