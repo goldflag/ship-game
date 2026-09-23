@@ -32,9 +32,7 @@ fn decoded(json: &str) -> Value {
 }
 
 fn catalog() -> Arc<Catalog> {
-    Arc::new(
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
-    )
+    Catalog::installed()
 }
 
 /// Every frame travels as a patch; the client's copy must match the frame it

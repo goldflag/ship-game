@@ -12,8 +12,7 @@ use std::sync::Arc;
 
 #[test]
 fn no_target_search_waits_then_acquires_and_replaces_a_lost_track() {
-    let catalog =
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
+    let catalog = Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap();
     let mut ship = Vessel::new(
         "own",
         TeamId::A,

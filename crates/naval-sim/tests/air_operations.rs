@@ -9,9 +9,7 @@ use naval_sim::{
 use std::sync::{Arc, OnceLock};
 fn catalog() -> &'static Catalog {
     static C: OnceLock<Catalog> = OnceLock::new();
-    C.get_or_init(|| {
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap()
-    })
+    C.get_or_init(|| Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap())
 }
 fn actors() -> Vec<Vessel> {
     [

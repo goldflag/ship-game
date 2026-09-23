@@ -8,12 +8,66 @@ fn contour(points: &[ConstructionHullPoint], index: usize) -> f64 {
         .contour
         .unwrap_or(index as f64 * 8. / (points.len() - 1) as f64)
 }
+/// An outline point's source coordinates, as a rejection quotes them.
+fn xy(s: &ConstructionHullStation, j: usize) -> String {
+    format!("({:.3}, {:.3})", s.points[j].x, s.points[j].y)
+}
 fn edge_id(start: f64, end: f64) -> String {
     if start.fract() == 0. && end == start + 1. {
         start.to_string()
     } else {
         format!("{start}~{end}")
     }
+}
+/// The side panel on the outline edge from point `edge` to the next (the last closes the deck) and its contour key.
+fn side_edge(points: &[ConstructionHullPoint], edge: usize) -> (&'static str, String) {
+    let start = contour(points, edge);
+    let end = if edge == points.len() - 1 {
+        9.
+    } else {
+        contour(points, edge + 1)
+    };
+    let middle = (start + end) / 2.;
+    let name = if start == 8. {
+        "top"
+    } else if middle < 3. {
+        "port"
+    } else if middle <= 5. {
+        "bottom"
+    } else {
+        "starboard"
+    };
+    (name, edge_id(start, end))
+}
+/// Where a span folds, naming the outline points with their source coordinates in each section they come from, so
+/// an author can find the fold without re-deriving the check.
+fn fold_place(place: Place, [from, to]: [&ConstructionHullStation; 2]) -> String {
+    let n = from.points.len();
+    let (cap, section, edge) = match place {
+        Place::Side(edge) => {
+            let k = (edge + 1) % n;
+            let (name, key) = side_edge(&from.points, edge);
+            return format!(
+                "{name} edge {key}, outline points {edge} and {k}: \"{}\" {} to {}, \"{}\" {} to {}",
+                from.id,
+                xy(from, edge),
+                xy(from, k),
+                to.id,
+                xy(to, edge),
+                xy(to, k)
+            );
+        }
+        Place::Bow(edge) => ("bow", from, edge),
+        Place::Stern(edge) => ("stern", to, edge),
+        Place::Band => return "band cut".into(),
+    };
+    let k = (edge + 1) % n;
+    format!(
+        "{cap} cap, outline points {edge} {} and {k} {} of \"{}\"",
+        xy(section, edge),
+        xy(section, k),
+        section.id
+    )
 }
 pub(super) fn transform(
     p: &ConstructionPrimitive,
@@ -75,18 +129,27 @@ fn validate_paint_bands(paint: &ConstructionHullPaintBands) -> Result<(), String
     Ok(())
 }
 
-type Boundary = (String, Vec<Vec3>, bool, String);
+/// Where a boundary triangle sits, so a rejection can say where it failed: the side panel or an end cap on the
+/// outline edge from point `usize` to the next, or a band cut's own slab wall or cap, which is never reported.
+#[derive(Clone, Copy, Debug)]
+enum Place {
+    Side(usize),
+    Bow(usize),
+    Stern(usize),
+    Band,
+}
+type Boundary = (String, Vec<Vec3>, bool, Place);
 type Cut = (Vec<cg::Cell>, Vec<(String, Vec<Vec3>)>);
 
-/// Tetrahedra from `center` to every boundary triangle, with the exterior triangles, or the label of the first
+/// Tetrahedra from `center` to every boundary triangle, with the exterior triangles, or the place of the first
 /// triangle that faces away from the centre: the span is not star-shaped about it.
 fn star_cut<'a>(
     boundary: impl IntoIterator<Item = &'a Boundary>,
     center: Vec3,
-) -> Result<Cut, String> {
+) -> Result<Cut, Place> {
     let mut pieces = vec![];
     let mut exterior_faces = vec![];
-    for (name, f, exterior, label) in boundary {
+    for (name, f, exterior, place) in boundary {
         if cg::area(f) < 1e-10 {
             continue;
         }
@@ -95,7 +158,7 @@ fn star_cut<'a>(
             cross(sub(f[1], center), sub(f[2], center)),
         );
         if det < -1e-7 {
-            return Err(label.clone());
+            return Err(*place);
         }
         if *exterior {
             exterior_faces.push((name.clone(), f.clone()));
@@ -124,23 +187,28 @@ fn star_cut<'a>(
 /// horizontal chords between them cut every section into symmetric trapezoids. The span is split into slabs of
 /// consecutive bands, each star-shaped about its own centre: one band per slab where that holds, more where a band is a
 /// thin twisted sliver (a flat keel beside a shallow V) that only its neighbour can carry. Exterior side triangles are the star cut's own; only the end caps
-/// are split by band. A side whose height reverses has no such cut, and `None` keeps the original rejection.
+/// are split by band. A side whose height reverses has no such cut; the error says why, to follow the original rejection.
 fn band_cut(
     a: &[Vec3],
     b: &[Vec3],
-    outlines: [&[ConstructionHullPoint]; 2],
+    stations: [&ConstructionHullStation; 2],
     boundary: &[Boundary],
     [bow, stern]: [bool; 2],
-) -> Option<Cut> {
+) -> Result<Cut, String> {
     let n = a.len();
     let keel = (n - 1) / 2;
-    if outlines
-        .iter()
-        .any(|s| (0..keel).any(|j| s[j].y < s[j + 1].y))
-    {
-        return None;
+    for s in stations {
+        if let Some(j) = (0..keel).find(|&j| s.points[j].y < s.points[j + 1].y) {
+            return Err(format!(
+                "no horizontal band cut either, because port outline point {} of \"{}\" (y {:.3}) sits above point {j} (y {:.3})",
+                j + 1,
+                s.id,
+                s.points[j + 1].y,
+                s.points[j].y
+            ));
+        }
     }
-    let interior = |f: Vec<Vec3>| (String::new(), f, false, String::new());
+    let interior = |f: Vec<Vec3>| (String::new(), f, false, Place::Band);
     // The slab between mirrored pairs `top` and `bottom`, and its centre.
     let slab = |top: usize, bottom: usize| {
         let (top_m, low_m) = (n - 1 - top, n - 1 - bottom);
@@ -167,7 +235,7 @@ fn band_cut(
                 ("stern", vec![b[low], b[band_low_m], b[band_top_m]], stern),
             ];
             for (name, f, exterior) in cap {
-                members.push((name.into(), f, exterior, String::new()));
+                members.push((name.into(), f, exterior, Place::Band));
             }
         }
         let corners: Vec<usize> = (top..=bottom)
@@ -193,7 +261,9 @@ fn band_cut(
     let mut slabs = vec![];
     let mut bottom = keel;
     while bottom > 0 {
-        let (top, cut) = last[bottom].take()?;
+        let (top, cut) = last[bottom]
+            .take()
+            .ok_or("no stack of horizontal bands is star-shaped either")?;
         slabs.push(cut);
         bottom = top;
     }
@@ -213,7 +283,7 @@ fn band_cut(
         .enumerate()
         .filter(|(i, (_, f, _, _))| i % 4 < 2 && cg::area(f) >= 1e-10)
         .map(|(_, (name, f, _, _))| (name.clone(), f.clone()));
-    Some((pieces, sides.chain(caps).collect()))
+    Ok((pieces, sides.chain(caps).collect()))
 }
 
 /// Crease lines only split the side lighting, but each must name a port outline point between the deck edge and the
@@ -227,7 +297,9 @@ fn validate_creases(creases: &[f64], outline: &[ConstructionHullPoint]) -> Resul
             || c >= 4.
             || !(1..keel).any(|j| contour(outline, j) == c)
         {
-            return Err("Put each hull crease on a port outline point between the deck edge and the keel, in order".into());
+            return Err(format!(
+                "Put each hull crease on a port outline point between the deck edge and the keel, in order (crease {c} after {previous})"
+            ));
         }
         previous = c;
     }
@@ -246,7 +318,13 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         || !h.bulb.is_finite()
         || !(0.0..=1.0).contains(&h.bulb)
     {
-        return Err("Custom hulls need version 1, 4–48 sections and valid bow settings".into());
+        return Err(format!(
+            "Custom hulls need version 1, 4–48 sections and valid bow settings (version {}, {} sections, rake {} of 0–1.5, bulb {} of 0–1)",
+            h.version,
+            h.stations.len(),
+            h.rake,
+            h.bulb
+        ));
     }
     if h.red_paint_y
         .is_some_and(|y| !y.is_finite() || y.abs() > 500.)
@@ -260,8 +338,14 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         crate::construction_bilge_keels::validate(k)?;
     }
     let n = h.stations[0].points.len();
-    if !(5..=33).contains(&n) || n % 2 != 1 || h.stations.iter().any(|s| s.points.len() != n) {
-        return Err("Use the same odd number of outline points (5–33) in every section".into());
+    if let Some(s) = h.stations.iter().find(|s| {
+        !(5..=33).contains(&s.points.len()) || s.points.len() % 2 != 1 || s.points.len() != n
+    }) {
+        return Err(format!(
+            "Use the same odd number of outline points (5–33) in every section (\"{}\" has {})",
+            s.id,
+            s.points.len()
+        ));
     }
     let keel = (n - 1) / 2;
     let mut ids = std::collections::BTreeSet::new();
@@ -275,13 +359,19 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
                 .iter()
                 .any(|p| !p.x.is_finite() || !p.y.is_finite())
         {
-            return Err("Each hull section needs a unique ID, finite outline points and a position from bow to stern".into());
+            return Err(format!(
+                "Each hull section needs a unique ID, finite outline points and a position from bow to stern (section {i} \"{}\" at t {})",
+                s.id, s.t
+            ));
         }
         if (i == 0 && s.t != 0.)
             || (i == h.stations.len() - 1 && s.t != 1.)
             || (i > 0 && s.t - h.stations[i - 1].t < 0.005)
         {
-            return Err("Hull end sections must stay at bow and stern; keep other sections ordered and at least 0.5% apart".into());
+            return Err(format!(
+                "Hull end sections must stay at bow and stern; keep other sections ordered and at least 0.5% apart (section {i} \"{}\" at t {})",
+                s.id, s.t
+            ));
         }
         for j in 0..n {
             let t = contour(&s.points, j);
@@ -293,18 +383,40 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
                 || (t + contour(&s.points, n - 1 - j) - 8.).abs() > 1e-10
                 || t != contour(&h.stations[0].points, j)
             {
-                return Err("Keep matching, ordered outline positions mirrored around the keel in every section".into());
+                return Err(format!(
+                    "Keep matching, ordered outline positions mirrored around the keel in every section (\"{}\" point {j} at contour {t})",
+                    s.id
+                ));
             }
         }
-        if s.points[keel].x.abs() > 1e-10
-            || (0..keel).any(|j| {
-                s.points[j].x > 1e-10
-                    || (s.points[j].x + s.points[n - 1 - j].x).abs() > 1e-10
-                    || (s.points[j].y - s.points[n - 1 - j].y).abs() > 1e-10
-            })
-            || s.points[0].y - s.points[keel].y < 0.06
-        {
-            return Err("Keep hull sections symmetric, on their own side of the centerline, with the deck above the keel".into());
+        let asymmetric = (0..keel).find(|&j| {
+            s.points[j].x > 1e-10
+                || (s.points[j].x + s.points[n - 1 - j].x).abs() > 1e-10
+                || (s.points[j].y - s.points[n - 1 - j].y).abs() > 1e-10
+        });
+        let offending = if s.points[keel].x.abs() > 1e-10 {
+            Some(format!("keel point {keel} is off the centerline"))
+        } else if let Some(j) = asymmetric {
+            Some(format!(
+                "point {j} {} and its mirror {} {}",
+                xy(s, j),
+                n - 1 - j,
+                xy(s, n - 1 - j)
+            ))
+        } else if s.points[0].y - s.points[keel].y < 0.06 {
+            Some(format!(
+                "deck edge point 0 {} is not 0.06 above keel point {keel} {}",
+                xy(s, 0),
+                xy(s, keel)
+            ))
+        } else {
+            None
+        };
+        if let Some(offending) = offending {
+            return Err(format!(
+                "Keep hull sections symmetric, on their own side of the centerline, with the deck above the keel (\"{}\": {offending})",
+                s.id
+            ));
         }
         let area: f64 = s
             .points
@@ -313,7 +425,10 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
             .map(|(j, p)| p.x * s.points[(j + 1) % n].y - s.points[(j + 1) % n].x * p.y)
             .sum();
         if area < -1e-10 || (area < 1e-10 && i > 0 && i < h.stations.len() - 1) {
-            return Err("Only a bow or stern section may taper to zero area".into());
+            return Err(format!(
+                "Only a bow or stern section may taper to zero area (section {i} \"{}\" signed area {area:.3})",
+                s.id
+            ));
         }
     }
     if let Some(creases) = &h.creases {
@@ -330,15 +445,20 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
                 .collect()
         })
         .collect();
-    if rings
-        .iter()
-        .flatten()
-        .flatten()
-        .any(|v| !v.is_finite() || v.abs() > 1000.)
-    {
-        return Err("Hull points must stay within 1000 m of the design origin".into());
+    for (s, ring) in h.stations.iter().zip(&rings) {
+        if let Some(j) = ring
+            .iter()
+            .position(|v| v.iter().any(|v| !v.is_finite() || v.abs() > 1000.))
+        {
+            return Err(format!(
+                "Hull points must stay within 1000 m of the design origin (\"{}\" point {j} lands at {:?} m)",
+                s.id, ring[j]
+            ));
+        }
     }
     let mut cells = vec![];
+    // The span each cell came from, so an overlap can name both.
+    let mut spans = vec![];
     let mut faces = vec![];
     for span in 0..rings.len() - 1 {
         let a = &rings[span];
@@ -346,60 +466,36 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         let ca = mean(a);
         let cb = mean(b);
         let center = scale(add(ca, cb), 0.5);
-        // The fourth field names the piece the way an author sees it, so a rejection can say where it failed.
+        // The fourth field places the piece the way an author sees it, so a rejection can say where it failed.
         let mut boundary: Vec<Boundary> = vec![];
-        let span_label = format!(
-            "\"{}\" and \"{}\"",
-            h.stations[span].id,
-            h.stations[span + 1].id
-        );
+        let (from, to) = (&h.stations[span], &h.stations[span + 1]);
+        let span_label = format!("\"{}\" and \"{}\"", from.id, to.id);
         for edge in 0..n {
             let k = (edge + 1) % n;
-            let start = contour(&h.stations[span].points, edge);
-            let end = if edge == n - 1 {
-                9.
-            } else {
-                contour(&h.stations[span].points, edge + 1)
-            };
-            let middle = (start + end) / 2.;
-            let name = if start == 8. {
-                "top"
-            } else if middle < 3. {
-                "port"
-            } else if middle <= 5. {
-                "bottom"
-            } else {
-                "starboard"
-            };
-            let edge_key = edge_id(start, end);
+            let (name, edge_key) = side_edge(&from.points, edge);
             let tag = format!(
                 "{name}:{edge_key}@{}",
-                serde_json::to_string(&[&h.stations[span].id, &h.stations[span + 1].id]).unwrap()
+                serde_json::to_string(&[&from.id, &to.id]).unwrap()
             );
-            let label = format!("{name} edge {edge_key}");
+            let side = Place::Side(edge);
             if (keel..n - 1).contains(&edge) {
-                boundary.push((tag.clone(), vec![a[edge], a[k], b[k]], true, label.clone()));
-                boundary.push((tag, vec![a[edge], b[k], b[edge]], true, label));
+                boundary.push((tag.clone(), vec![a[edge], a[k], b[k]], true, side));
+                boundary.push((tag, vec![a[edge], b[k], b[edge]], true, side));
             } else {
-                boundary.push((
-                    tag.clone(),
-                    vec![a[edge], a[k], b[edge]],
-                    true,
-                    label.clone(),
-                ));
-                boundary.push((tag, vec![a[k], b[k], b[edge]], true, label));
+                boundary.push((tag.clone(), vec![a[edge], a[k], b[edge]], true, side));
+                boundary.push((tag, vec![a[k], b[k], b[edge]], true, side));
             }
             boundary.push((
                 "bow".into(),
                 vec![a[k], a[edge], ca],
                 span == 0,
-                format!("bow cap at point {edge}"),
+                Place::Bow(edge),
             ));
             boundary.push((
                 "stern".into(),
                 vec![b[edge], b[k], cb],
                 span == rings.len() - 2,
-                format!("stern cap at point {edge}"),
+                Place::Stern(edge),
             ));
         }
         let pieces = match star_cut(&boundary, center) {
@@ -407,18 +503,20 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
                 faces.extend(exterior);
                 pieces
             }
-            Err(label) => {
-                let Some((pieces, exterior)) = band_cut(
+            Err(place) => {
+                let (pieces, exterior) = band_cut(
                     a,
                     b,
-                    [&h.stations[span].points, &h.stations[span + 1].points],
+                    [from, to],
                     &boundary,
                     [span == 0, span == rings.len() - 2],
-                ) else {
-                    return Err(format!(
-                        "Hull folds through itself between sections {span_label} at the {label}. Reduce the twist there, move that outline point, or add a section near this transition.",
-                    ));
-                };
+                )
+                .map_err(|band| {
+                    format!(
+                        "Hull folds through itself between sections {span_label} at the {}; {band}. Reduce the twist there, move that outline point, or add a section near this transition.",
+                        fold_place(place, [from, to]),
+                    )
+                })?;
                 faces.extend(exterior);
                 pieces
             }
@@ -428,15 +526,27 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
                 "The hull span between sections {span_label} has no enclosed volume. Only an end section may taper to zero width",
             ));
         }
-        cells.extend(cg::coalesce_cells(pieces));
+        let merged = cg::coalesce_cells(pieces);
+        spans.extend(std::iter::repeat_n(span, merged.len()));
+        cells.extend(merged);
     }
+    let span_label = |span: usize| {
+        format!(
+            "\"{}\" and \"{}\"",
+            h.stations[span].id,
+            h.stations[span + 1].id
+        )
+    };
     let index = cg::Broadphase::sized_for(&cells);
     for (i, cell) in cells.iter().enumerate() {
         for j in index.candidates(cell).into_iter().filter(|j| *j < i) {
-            if cg::intersection(cell, &cells[j]).is_some_and(|c| cg::moments(&c).volume > 1e-7) {
-                return Err(
-                    "Hull sections overlap. Move the crossed sections or points apart".into(),
-                );
+            let overlap = cg::intersection(cell, &cells[j]).map_or(0., |c| cg::moments(&c).volume);
+            if overlap > 1e-7 {
+                return Err(format!(
+                    "Hull sections overlap: the span between sections {} crosses the span between {} by {overlap:.3} m³. Move the crossed sections or points apart",
+                    span_label(spans[i]),
+                    span_label(spans[j])
+                ));
             }
         }
     }
@@ -492,10 +602,15 @@ mod tests {
     fn malformed_sections_are_rejected() {
         let mut p = hull(false);
         p.custom_hull.as_mut().unwrap().stations[1].t = 0.;
-        assert!(build(&p).is_err());
+        let message = build(&p).err().unwrap();
+        assert!(message.ends_with("(section 1 \"s1\" at t 0)"), "{message}");
         let mut p = hull(false);
         p.custom_hull.as_mut().unwrap().stations[1].points[0].x = 0.3;
-        assert!(build(&p).is_err());
+        let message = build(&p).err().unwrap();
+        assert!(
+            message.ends_with("(\"s1\": point 0 (0.300, 0.500) and its mirror 8 (1.000, 0.500))"),
+            "{message}"
+        );
         let mut p = hull(false);
         p.custom_hull.as_mut().unwrap().stations[2].points[2].y = f64::NAN;
         assert!(build(&p).is_err());
@@ -552,7 +667,20 @@ mod tests {
         }
         let message = build(&p).err().expect("the span should be rejected");
         assert!(message.contains("\"s1\" and \"s2\""), "{message}");
-        assert!(message.contains("edge"), "{message}");
+        // And which outline points, where they sit in each section, and why the band cut cannot take the span:
+        // one agent ported the check to Python to find them.
+        assert!(
+            message.contains(
+                "port edge 0, outline points 0 and 1: \"s1\" (-1.000, 0.500) to (-1.000, 0.250), \
+                 \"s2\" (-1.000, 0.500) to (-0.020, 0.600)"
+            ),
+            "{message}"
+        );
+        assert!(
+            message
+                .contains("port outline point 1 of \"s2\" (y 0.600) sits above point 0 (y 0.500)"),
+            "{message}"
+        );
     }
     /// Wine-glass sections (flare over a narrow waist over a wider forefoot) are not star-shaped about any one
     /// centre. The band cut takes those spans and keeps the exact volume; star-shaped spans keep the star cut.

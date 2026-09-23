@@ -7,9 +7,7 @@ use naval_sim::{
     hydrostatics::HullHydrostatics,
 };
 fn catalog() -> Catalog {
-    let bytes = std::fs::read("../../.build/naval-content/manifest.json")
-        .expect("Run bun run multiplayer:content first");
-    Catalog::load(&bytes).unwrap()
+    Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap()
 }
 const ATTITUDES: [(f64, f64); 6] = [
     (0.0, 0.0),

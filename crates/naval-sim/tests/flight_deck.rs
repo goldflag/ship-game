@@ -6,9 +6,7 @@ use std::sync::OnceLock;
 
 fn catalog() -> &'static Catalog {
     static CONTENT: OnceLock<Catalog> = OnceLock::new();
-    CONTENT.get_or_init(|| {
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap()
-    })
+    CONTENT.get_or_init(|| Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap())
 }
 fn pose(position: [f64; 3]) -> DeckPose {
     DeckPose {

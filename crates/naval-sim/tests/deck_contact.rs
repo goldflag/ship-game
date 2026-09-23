@@ -18,9 +18,7 @@ use std::{
 
 fn catalog() -> &'static Catalog {
     static CONTENT: OnceLock<Catalog> = OnceLock::new();
-    CONTENT.get_or_init(|| {
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap()
-    })
+    CONTENT.get_or_init(|| Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap())
 }
 const CARRIERS: [&str; 2] = ["enterprise-cv6", "shokaku"];
 

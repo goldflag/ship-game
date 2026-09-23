@@ -193,8 +193,7 @@ fn parent_motion_invalidates_a_stationary_neighbors_clearance() {
 
 #[test]
 fn iowa_roof_bofors_fires_from_the_moving_main_turret() {
-    let catalog =
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
+    let catalog = Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap();
     let compiled = Arc::new(catalog.compile("iowa").unwrap());
     let mut actor = Vessel::new("iowa", TeamId::A, compiled.clone());
     let def = &compiled.definition;

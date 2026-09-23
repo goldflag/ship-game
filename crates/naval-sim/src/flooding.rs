@@ -411,10 +411,7 @@ mod cadence_tests {
 
     #[test]
     fn constructed_flooding_tracks_small_steps_with_open_connections() {
-        let catalog = crate::catalog::Catalog::load(
-            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
-        )
-        .unwrap();
+        let catalog = crate::catalog::Catalog::load(&crate::catalog::installed_manifest()).unwrap();
         for id in ["valiant", "resolute"] {
             let compiled = std::sync::Arc::new(catalog.compile(id).unwrap());
             let mut coarse =

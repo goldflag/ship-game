@@ -12,7 +12,7 @@ use naval_sim::{
 };
 
 fn fixture() -> ShipDefinition {
-    let bytes = std::fs::read("../../.build/naval-content/manifest.json").unwrap();
+    let bytes = naval_sim::catalog::installed_manifest();
     let catalog = Catalog::load(&bytes).unwrap();
     let mut def = catalog.definitions["bismarck"].as_ref().clone();
     def.stability = None;

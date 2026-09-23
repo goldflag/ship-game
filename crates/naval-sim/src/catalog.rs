@@ -19,6 +19,10 @@ pub enum ContentError {
     Invalid(String),
     #[error("Invalid content JSON: {0}")]
     Json(#[from] serde_json::Error),
+    /// The caller's selection, not installed content: the message names the
+    /// `BattleSetup` field, its value and the allowed range.
+    #[error("Invalid battle setup: {0}")]
+    Setup(String),
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -71,7 +75,40 @@ pub struct Catalog {
 pub fn sha256(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
+/// Where `bun scripts/multiplayer/content.ts` (run by `bun run bootstrap`) writes
+/// the installed content, relative to the workspace root.
+pub const MANIFEST_PATH: &str = ".build/naval-content/manifest.json";
+/// Test and tool seam: the installed manifest's bytes, from the workspace root
+/// (examples) or a crate directory (tests). A fresh worktree has none; the panic
+/// names the command that builds it instead of a bare "No such file".
+#[doc(hidden)]
+pub fn installed_manifest() -> Vec<u8> {
+    [MANIFEST_PATH.to_string(), format!("../../{MANIFEST_PATH}")]
+        .iter()
+        .find_map(|path| std::fs::read(path).ok())
+        .unwrap_or_else(|| {
+            panic!(
+                "missing {MANIFEST_PATH}: run bun run bootstrap (or bun scripts/multiplayer/content.ts)"
+            )
+        })
+}
 impl Catalog {
+    /// Test and tool seam: the installed catalog, parsed once per process. The
+    /// manifest is about 24 MB, so a sweep that loads it per battle spends its
+    /// time in JSON; share this `Arc`, and clone the catalog only to change it.
+    #[doc(hidden)]
+    pub fn installed() -> Arc<Catalog> {
+        static INSTALLED: std::sync::OnceLock<Arc<Catalog>> = std::sync::OnceLock::new();
+        INSTALLED
+            .get_or_init(|| {
+                Arc::new(Catalog::load(&installed_manifest()).unwrap_or_else(|e| {
+                    panic!(
+                        "{MANIFEST_PATH}: {e}; rebuild it with bun scripts/multiplayer/content.ts"
+                    )
+                }))
+            })
+            .clone()
+    }
     pub fn with_construction_catalogs(
         &self,
         sources: &[crate::definition::ConstructionSource],
@@ -539,7 +576,7 @@ mod environment_tests {
     use super::*;
     #[test]
     fn malformed_environment_catalogs_fail_before_admission() {
-        let bytes = std::fs::read("../../.build/naval-content/manifest.json").unwrap();
+        let bytes = crate::catalog::installed_manifest();
         for field in ["maps", "conditions"] {
             for bad in [
                 serde_json::json!(null),

@@ -4,8 +4,7 @@ use naval_sim::{catalog::Catalog, hydrostatics::HullHydrostatics};
 
 #[test]
 fn constructed_buoyancy_matches_clipped_hulls_through_the_waterline() {
-    let catalog =
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
+    let catalog = Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap();
     for id in ["valiant", "resolute"] {
         let def = &catalog.definitions[id];
         assert!(def.hull.volume.is_some());

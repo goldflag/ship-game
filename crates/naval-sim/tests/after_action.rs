@@ -15,14 +15,7 @@ use std::sync::{Arc, OnceLock};
 
 fn catalog() -> Arc<Catalog> {
     static CATALOG: OnceLock<Arc<Catalog>> = OnceLock::new();
-    CATALOG
-        .get_or_init(|| {
-            Arc::new(
-                Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                    .unwrap(),
-            )
-        })
-        .clone()
+    CATALOG.get_or_init(Catalog::installed).clone()
 }
 fn actors() -> Vec<Vessel> {
     let ship = Arc::new(catalog().compile("bismarck").unwrap());

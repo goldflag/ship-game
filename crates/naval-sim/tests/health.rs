@@ -5,8 +5,7 @@ use naval_sim::{
 
 #[test]
 fn hull_hp_has_a_gentle_small_ship_bonus() {
-    let catalog =
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
+    let catalog = Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap();
     let mut def = (*catalog.definitions["bismarck"]).clone();
     assert_eq!(max_hull_integrity(&def), 50_750.0);
     assert_eq!(

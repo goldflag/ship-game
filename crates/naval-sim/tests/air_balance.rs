@@ -13,9 +13,7 @@ use std::sync::{Arc, OnceLock};
 
 fn catalog() -> &'static Catalog {
     static CATALOG: OnceLock<Catalog> = OnceLock::new();
-    CATALOG.get_or_init(|| {
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap()
-    })
+    CATALOG.get_or_init(|| Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap())
 }
 fn vessel(id: &str, preset: &str, team: TeamId, x: f64, z: f64) -> Vessel {
     let mut vessel = Vessel::new(id, team, Arc::new(catalog().compile(preset).unwrap()));

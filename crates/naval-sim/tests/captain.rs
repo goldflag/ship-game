@@ -19,10 +19,7 @@ type Content = (Arc<Catalog>, BTreeMap<String, Arc<CompiledShip>>);
 fn content() -> &'static Content {
     static CONTENT: OnceLock<Content> = OnceLock::new();
     CONTENT.get_or_init(|| {
-        let catalog = Arc::new(
-            Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                .unwrap(),
-        );
+        let catalog = Catalog::installed();
         let compiled = ["fletcher"]
             .into_iter()
             .map(|id| (id.to_owned(), Arc::new(catalog.compile(id).unwrap())))

@@ -290,9 +290,7 @@ fn received<T: serde::Serialize>(frame: &T) -> Value {
     .expect("frame json")
 }
 fn catalog() -> Arc<Catalog> {
-    Arc::new(
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
-    )
+    Catalog::installed()
 }
 fn compile(
     catalog: &Catalog,

@@ -13,9 +13,8 @@ use std::sync::{Arc, OnceLock};
 
 fn target(armor_mm: f64) -> Vessel {
     static CATALOG: OnceLock<Catalog> = OnceLock::new();
-    let catalog = CATALOG.get_or_init(|| {
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap()
-    });
+    let catalog =
+        CATALOG.get_or_init(|| Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap());
     let mut def = (*catalog.definitions["enterprise-cv6"]).clone();
     def.modules.clear();
     def.mounts.clear();

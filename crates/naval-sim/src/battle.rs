@@ -23,11 +23,15 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Arc};
+/// A ship's start in world metres (y up; a hull's bow is its local -z).
 #[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Spawn {
     pub x: f64,
     pub z: f64,
+    /// Radians, clockwise seen from above: 0 steams toward -z, pi/2 toward +x,
+    /// so the bow points along (sin h, -cos h) in x and z. Default spawns face
+    /// team a at 0 and team b at pi, toward each other.
     pub heading: f64,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
@@ -47,7 +51,10 @@ pub struct BattleSetup {
     pub seed: u32,
     pub map_id: String,
     pub weather: String,
+    /// Metres between the default spawn lines, 1000..=20000: team a at z = 0,
+    /// team b at z = -spawnDistance, islands laid out around the midpoint.
     pub spawn_distance: f64,
+    /// Metres per second, 0..=30; null takes the weather preset's wind.
     pub wind_speed: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
@@ -133,7 +140,10 @@ impl Battle {
         let counts = [TeamId::A, TeamId::B]
             .map(|team| setup.ships.iter().filter(|s| s.team == team).count());
         if counts.iter().any(|n| !(1..=30).contains(n)) {
-            return Err("Choose one to 30 ships per side".into());
+            return Err(format!(
+                "Choose one to 30 ships per side; team a has {}, team b has {}",
+                counts[0], counts[1]
+            ));
         }
         if let Some(mission) = &setup.mission_rules {
             mission.validate_selection(&catalog)?;
@@ -176,11 +186,21 @@ impl Battle {
                 || ship.id.len() > 128
                 || actors.iter().any(|a: &Vessel| a.motion.id == ship.id)
             {
-                return Err("Invalid ship instance identity".into());
+                return Err(format!(
+                    "Invalid ship instance identity {:?}: ids are 1-128 bytes and unique",
+                    ship.id
+                ));
             }
             let content = compiled
                 .get(&ship.preset_id)
-                .ok_or("Unknown ship preset")?
+                .ok_or_else(|| {
+                    format!(
+                        "Unknown ship preset {:?} for ship {:?}; compiled: {}",
+                        ship.preset_id,
+                        ship.id,
+                        compiled.keys().cloned().collect::<Vec<_>>().join(", ")
+                    )
+                })?
                 .clone();
             let mut a = Vessel::new(ship.id, ship.team, content);
             a.preset_id = ship.preset_id.clone();
@@ -212,26 +232,44 @@ impl Battle {
                     std::f64::consts::PI
                 },
             });
-            if ![p.x, p.z, p.heading].iter().all(|n| n.is_finite())
-                || setup.mission_rules.as_ref().is_some_and(|m| {
-                    !m.area
-                        .contains([p.x, p.z], a.definition().hull.length / 2.0)
-                })
-                || p.x.abs() > 40000.0
-                || p.z.abs() > 40000.0
-                || actors
-                    .iter()
-                    .any(|a: &Vessel| (a.motion.x - p.x).hypot(a.motion.z - p.z) < 350.0)
-            {
-                return Err("Invalid fleet deployment".into());
+            let deployment = |why: String| {
+                format!(
+                    "Invalid fleet deployment: ship {:?} at x {}, z {} (heading {} rad) {why}",
+                    a.motion.id, p.x, p.z, p.heading
+                )
+            };
+            if ![p.x, p.z, p.heading].iter().all(|n| n.is_finite()) {
+                return Err(deployment("must be finite".into()));
             }
-            if environment.islands.iter().any(|i| {
-                let mut expanded = i.clone();
+            if setup.mission_rules.as_ref().is_some_and(|m| {
+                !m.area
+                    .contains([p.x, p.z], a.definition().hull.length / 2.0)
+            }) {
+                return Err(deployment("is outside the mission area".into()));
+            }
+            if p.x.abs() > 40000.0 || p.z.abs() > 40000.0 {
+                return Err(deployment("is outside -40000..=40000 m".into()));
+            }
+            if let Some(other) = actors
+                .iter()
+                .find(|a: &&Vessel| (a.motion.x - p.x).hypot(a.motion.z - p.z) < 350.0)
+            {
+                return Err(deployment(format!(
+                    "is {:.0} m from ship {:?}; keep ships 350 m apart",
+                    (other.motion.x - p.x).hypot(other.motion.z - p.z),
+                    other.motion.id
+                )));
+            }
+            if let Some(island) = environment.islands.iter().find(|i| {
+                let mut expanded = (*i).clone();
                 expanded.rx += 250.0;
                 expanded.rz += 250.0;
                 expanded.radius(p.x, p.z) <= 1.05
             }) {
-                return Err("Deployment is too close to land".into());
+                return Err(format!(
+                    "Deployment is too close to land: ship {:?} at x {}, z {} is within about 250 m of island {} (centre x {:.0}, z {:.0})",
+                    a.motion.id, p.x, p.z, island.id, island.x, island.z
+                ));
             }
             a.motion.x = p.x;
             a.motion.z = p.z;
@@ -322,6 +360,7 @@ impl Battle {
     /// the next `step` on. The calibrated height and wavelength follow the same
     /// content curve as launch; the swell keeps its seeded phase. Explicit wind
     /// bypasses the forecast, so any listed weather resolves the same sea.
+    /// `direction_deg` is [`SeaState::direction`] in degrees: where the waves run to.
     pub fn set_wind(
         &mut self,
         wind_mps: f64,

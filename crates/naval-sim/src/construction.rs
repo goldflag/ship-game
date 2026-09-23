@@ -4636,10 +4636,7 @@ mod tests {
     }
     #[test]
     fn cloned_catalog_admits_only_recompiled_local_sources() {
-        let trusted = crate::catalog::Catalog::load(
-            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
-        )
-        .unwrap();
+        let trusted = crate::catalog::Catalog::load(&crate::catalog::installed_manifest()).unwrap();
         let before = trusted.definitions.len();
         let (s, c) = fixture();
         let d = compiled(&s, &c);
@@ -5920,10 +5917,7 @@ mod tests {
     }
     #[test]
     fn mixed_retained_catalogs_match_every_revision_exactly() {
-        let trusted = crate::catalog::Catalog::load(
-            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
-        )
-        .unwrap();
+        let trusted = crate::catalog::Catalog::load(&crate::catalog::installed_manifest()).unwrap();
         let (s, c) = fixture();
         let mut newer = s.clone();
         newer.revision = "two".into();

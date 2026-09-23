@@ -16,9 +16,7 @@ use std::sync::{Arc, OnceLock};
 fn actors() -> Vec<Vessel> {
     static SHIP: OnceLock<Arc<naval_sim::vessel::CompiledShip>> = OnceLock::new();
     let ship = SHIP.get_or_init(|| {
-        let catalog =
-            Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                .unwrap();
+        let catalog = Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap();
         Arc::new(catalog.compile("bismarck").unwrap())
     });
     vec![
@@ -114,9 +112,7 @@ fn only_hostile_armor_rejections_on_live_hulls_count() {
 
 #[test]
 fn yamato_armor_counts_real_ap_and_he_impacts() {
-    let catalog = Arc::new(
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
-    );
+    let catalog = Catalog::installed();
     let compiled = ["yamato", "bismarck"]
         .into_iter()
         .map(|id| (id.to_owned(), Arc::new(catalog.compile(id).unwrap())))

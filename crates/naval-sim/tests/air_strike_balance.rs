@@ -20,14 +20,7 @@ use std::{
 
 fn catalog() -> Arc<Catalog> {
     static CATALOG: OnceLock<Arc<Catalog>> = OnceLock::new();
-    CATALOG
-        .get_or_init(|| {
-            Arc::new(
-                Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                    .unwrap(),
-            )
-        })
-        .clone()
+    CATALOG.get_or_init(Catalog::installed).clone()
 }
 fn compiled(id: &str) -> Arc<CompiledShip> {
     Arc::new(catalog().compile(id).unwrap())
