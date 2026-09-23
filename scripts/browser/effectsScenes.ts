@@ -369,6 +369,25 @@ export const scenes: Record<string, Scene> = {
     stage.note('fire turret', await stage.effectsCost());
     await shoot('fire turret');
   },
+  /** The close burning-ship cost split by fire mesh (flames, smoke, embers, glow, sea glow). */
+  async 'cost-fire-split'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 });
+    stage.advance(25);
+    stage.camera({ ship: 1, offset: [-200, 50, 140], look: [0, 12, -10], fov: 45 });
+    for (const name of ['Ship fire', 'Ship fire flames', 'Ship fire smoke', 'Ship fire embers', 'Ship fire glow', 'Ship fire glow on the water', 'funnel', 'Drifting'])
+      stage.note(name, await stage.effectsCost(40, name));
+    await shoot('fire close');
+  },
+  /** Cost of smouldering shell holes alone, after the hit volumes have cleared. */
+  async 'cost-smoulder'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.camera({ ship: 1, offset: [stage.facing() * 230, 40, 110], look: [0, 10, -10], fov: 45 });
+    for (let i = 0; i < 4; i++) stage.hit(1, { kind: 'penetration', along: .25 + i * .15, height: 3 + i * 2 });
+    stage.advance(9);
+    stage.note('smoulders at 9 s', await stage.effectsCost());
+    await shoot('smoulders 9 s');
+  },
   /** GPU cost of a busy moment: two broadsides in the air, hits, three fires and both ships underway. */
   async perf(stage, shoot) {
     stage.reset(); stage.weather({ timeHours: 15 });

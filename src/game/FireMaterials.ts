@@ -44,8 +44,8 @@ export function fireFlameMaterial(noise: THREE.Data3DTexture): THREE.MeshBasicNo
  *
  * Coherent 3D noise gives each puff billowing relief, the sun or moon lights the facing side through
  * `EffectLighting`, sky fill reaches the shaded folds and backlit edges thin and brighten. Young puffs
- * near the fire carry an orange underglow on their downward faces. Edges fade into decks, hulls and
- * the sea by depth.
+ * near the fire carry an orange underglow on their downward faces. Each puff fades out inside its
+ * own quad, so it needs no scene-depth read where it rises off the deck.
  *
  * Detail follows the puff's size on screen: a puff a few pixels across keeps only its broad shape
  * and a soft, several-pixel edge, so distant columns read as continuous smoke instead of stipple.
@@ -101,6 +101,9 @@ export function fireSmokeMaterial(noise: THREE.Data3DTexture, lighting: EffectLi
     return vec4(tint.rgb.mul(light).add(glow), density);
   })();
   material.colorNode = vec4(shaded.rgb, 1);
-  material.opacityNode = shaded.a.mul(state.w).mul(lighting.softEdge(radius.mul(.45).min(8)));
+  // No scene-depth soft edge: a column layers several screens of puffs, and the depth read over
+  // that overdraw tripled a burning ship's close-up cost (≈5 → 1.6 ms). Each puff already fades to
+  // nothing inside its own quad, so no hard line shows where it rises off the deck.
+  material.opacityNode = shaded.a.mul(state.w);
   return material;
 }

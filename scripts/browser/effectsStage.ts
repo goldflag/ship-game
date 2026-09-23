@@ -314,7 +314,8 @@ export function installStage(game: Game) {
 
   /** GPU cost of the combat effects in the current staged scene: frames alternate with `game.effects.root`
    * shown and hidden, so load from other GPU work on the machine cancels out of the difference. */
-  async function effectsCost(samples = 60): Promise<{ withMs: number; withoutMs: number; deltaMs: number } | null> {
+  /** Interleaved GPU cost of effect meshes; `only` narrows it to meshes whose name contains that text. */
+  async function effectsCost(samples = 60, only?: string): Promise<{ withMs: number; withoutMs: number; deltaMs: number } | null> {
     await render();
     const renderer = g.renderer as unknown as THREE.WebGPURenderer & { backend: { trackTimestamp: boolean } };
     if (!renderer.hasFeature('timestamp-query')) return null;
@@ -322,7 +323,7 @@ export function installStage(game: Game) {
     // recompile every lit material, which costs far more than the effects themselves.
     const meshes: THREE.Object3D[] = [], tracking = renderer.backend.trackTimestamp;
     for (const root of [(g.effects as unknown as { root: THREE.Object3D }).root, (g.funnelSmoke as unknown as { root: THREE.Object3D }).root])
-      root.traverse(node => { if ((node as THREE.Mesh).isMesh && node.visible) meshes.push(node); });
+      root.traverse(node => { if ((node as THREE.Mesh).isMesh && node.visible && (!only || node.name.includes(only))) meshes.push(node); });
     const times: [number[], number[]] = [[], []];
     renderer.backend.trackTimestamp = true;
     try {
