@@ -42,6 +42,9 @@ export interface WaveParameters {
   directionalSharpness: number;
   /** Integer seed; any integer is safe. */
   seed: number;
+  /** Short waves follow Donelan et al.'s measured ω⁻⁴ equilibrium range, with its wave-age peak width, instead of
+   * JONSWAP's ω⁻⁵ (both held to the saturation range). The realistic sea state sets it; absent is JONSWAP. */
+  equilibriumRange?: boolean;
   dirty: boolean;
 }
 
@@ -58,10 +61,47 @@ export interface WaveSurfaceSample {
   slope: Node<'vec2'>;
   /** Jacobian determinant of the horizontal displacement (1 is undistorted, < 0 folds). */
   jacobian: Node<'float'>;
-  /** Accumulated crest-foam coverage, ≥ 0, with the persistence already applied. */
+  /** Whitecap foam per area of sea: 1 on a crest breaking now, spreading and e-folding over the lifetime once it has
+   * passed, and denser where the surface converges (up to about 3 on a fold). */
   foam: Node<'float'>;
+  /** The part of `foam` that broke in the last few seconds (half its lifetime), gathered the same way: a whitecap's core. */
+  fresh: Node<'float'>;
+  /** Whitecap foam averaged over the pixel's whole footprint (at least a few metres), without the gathering on crests:
+   * what a whitecap too small for its pixel contributes to it. */
+  foamMean: Node<'float'>;
+  /** The share of the sea whitecaps cover at this wind (their patches, windrows apart): the mean a pixel too coarse to
+   * draw any whitecap takes. */
+  whitecapShare: Node<'float'>;
+  /** The bubble cloud breaking crests leave in the water under and around them, 0–1: shorter-lived than their foam and
+   * spread over a few metres. */
+  bubbles: Node<'float'>;
   /** Slope variance of the waves this pixel does not resolve; the surface turns it into roughness. */
   slopeVariance: Node<'float'>;
+  /** The same with all of Cox–Munk's tail instead of the share that roughens `slopeVariance`: the physical reflections'. */
+  unresolvedVariance: Node<'float'>;
+}
+
+/** One long-crested sine of the sea hulls ride (combat's): height a·sin(k·(x cos θ + z sin θ) − ω·t + φ), k = 2π/λ,
+ * ω = √(g·k). */
+export interface HullSeaWave {
+  amplitude: number;
+  wavelength: number;
+  /** Direction of travel θ, radians from +X toward +Z. */
+  direction: number;
+  phase: number;
+}
+
+/** A drawn hull the surface around it agrees with. */
+export interface HullFootprint {
+  /** Centre of the hull's waterplane, world metres. */
+  x: number;
+  z: number;
+  /** Bow direction, radians from +X toward +Z. */
+  bearing: number;
+  length: number;
+  beam: number;
+  /** 0–1: 1 for a hull afloat, 0 for a submarine or wreck none of which reaches the surface. */
+  contact: number;
 }
 
 /** GPU wave field: a JONSWAP spectrum evolved and inverse-transformed every frame into
@@ -69,6 +109,10 @@ export interface WaveSurfaceSample {
 export interface WaveField {
   readonly params: WaveParameters;
   readonly foamParams: WaveFoamParameters;
+  /** The sea as drawn: `params` itself, or with `OceanRealism.seaState` on a real wind sea's peak wavelength, γ and
+   * choppiness at the same height and wind. Spectral reads (peak, choppiness) belong here, not on `params`. */
+  readonly sea: Readonly<WaveParameters>;
+  /** The current tiles: the tier's, grown by one factor with the sea's peak wavelength while the sea state is realistic. */
   readonly cascades: readonly WaveCascadeInfo[];
   /** Upper bound (m) on the wave height for the current spectrum, excluding the wake. */
   readonly maxHeight: number;
@@ -77,30 +121,38 @@ export interface WaveField {
   /** Vertex stage: world displacement (x, y, z) of the grid point `xz`. `spacing` is the local
    * vertex spacing in metres; waves it cannot represent are faded out instead of aliasing. */
   displacement(xz: Node<'vec2'>, spacing?: Node<'float'>): Node<'vec3'>;
-  /** Fragment stage: slope, jacobian, foam and unresolved variance at grid point `xz`. */
-  surface(xz: Node<'vec2'>): WaveSurfaceSample;
+  /** Fragment stage: slope, jacobian, foam and unresolved variance at grid point `xz`. `calm` (0–1) is the share of
+   * the short waves a wake's slick has damped: their slopes and the roughness they leave unresolved drop by it. `at`
+   * is where the point is drawn (the displaced world position), which the sea coupled to hulls is evaluated at; `xz`
+   * when omitted. */
+  surface(xz: Node<'vec2'>, calm?: Node<'float'>, at?: Node<'vec2'>): WaveSurfaceSample;
   /** Any stage: surface height at a world position, inverting the choppy displacement with a
    * few fixed-point steps. Used by overlays laid on the sea and the waterline test. */
   heightAt(xz: Node<'vec2'>): Node<'float'>;
   /** Rebuild the spectrum if dirty, then evolve and transform to `time` (seconds). `dt` advances
    * foam persistence; 0 renders without advancing it. */
   update(renderer: WebGPURenderer, time: number, dt: number): void;
+  /** Near `hulls`, blend the drawn long waves into the sea they ride: `waves` at `time`, the simulation's clock (not
+   * the field's). Only the realistic sea state couples; the art-directed sea is drawn as given. Presentation only.
+   * `origin`, a world point near the camera, keeps float32 phases small. */
+  couple(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[], origin: { x: number; z: number }): void;
   dispose(): void;
 }
 
-/** How crest foam builds and fades in the wave field. Live; the facade's `foam.crest` object is passed in. */
+/** How crest foam builds and fades in the wave field. Live; the facade's `foam.crest` object is passed in. Crests
+ * break where the spectrum's own statistics put the share of the sea the wind whitens (`waves/whitecaps.ts`). */
 export interface WaveFoamParameters {
-  /** Foam injected where crests fold (Jacobian below threshold). */
-  crestStrength: number;
-  /** Foam injected on steep downwind faces. */
-  windwardStrength: number;
-  /** e-folding lifetime of crest foam in seconds. */
-  decayTime: number;
+  /** Scale on the whitecap coverage the wind calls for (Monahan & O'Muircheartaigh's fraction): 1 is calibrated, 0 none. */
+  coverageScale: number;
+  /** e-folding lifetime of whitecap foam in periods of the waves that broke: a larger breaker's foam lasts longer. */
+  lifetime: number;
 }
 
 /** `waves/index.ts` exports `createWaveField` and `createWaveHeightSampler` with these shapes. The field
- * reads `params` and `foam` live: the facade owns those objects and the game writes to them. */
-export type CreateWaveField = (renderer: WebGPURenderer, cascades: readonly WaveCascadeInfo[], params: WaveParameters, foam: WaveFoamParameters) => WaveField;
+ * reads `params`, `foam` and `realism.seaState` live: the facade owns those objects and the game writes to them.
+ * `cascades` is the quality tier's layout; without `realism` the sea is drawn as `params` give it. */
+export type CreateWaveField = (renderer: WebGPURenderer, cascades: readonly WaveCascadeInfo[], params: WaveParameters, foam: WaveFoamParameters,
+  realism?: Pick<OceanRealism, 'seaState'>) => WaveField;
 export type CreateWaveHeightSampler = (renderer: WebGPURenderer, field: WaveField) => WaveHeightSampler;
 /** `wake/index.ts` exports `createWakeField` with this shape. */
 export type CreateWakeField = (renderer: WebGPURenderer, resolution: number) => WakeFieldApi;
@@ -119,7 +171,8 @@ export interface WaveHeightSampler {
   dispose(): void;
 }
 
-/** The wake field as the surface material reads it. Outside the field every read is calm. */
+/** The wake field as the surface material reads it. Outside the field every read is calm. A sampler with a slick is
+ * the realistic wake (`OceanRealism.wake`): the surface shades its foam as dense churned water. */
 export interface WakeSampler {
   /** Vertical displacement in metres at a world position. */
   height(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
@@ -127,6 +180,11 @@ export interface WakeSampler {
   normal(x: Node<'float'>, z: Node<'float'>): Node<'vec3'>;
   /** Foam energy ≥ 0, shaded like crest foam. */
   foam(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
+  /** Calm-slick strength 0–1 behind hulls, where turbulence has damped the short waves; absent reads as none. */
+  slick?(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
+  /** Density 0–1 of the bubble clouds just under churned water, which light the water body turquoise; absent reads
+   * as none. */
+  bubbles?(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
 }
 
 export interface WakeGeneratorOptions {
@@ -170,7 +228,7 @@ export interface WakeFieldApi {
   dispose(): void;
 }
 
-/** Custom water colours. The pigment and foam are emitted radiance: the game pre-scales them for night. */
+/** Custom water colours. The pigment is emitted radiance: the game pre-scales it for night. */
 export interface WaterColors {
   /** Colour of deep water looked into (scattered light). */
   readonly waterColor: Color;
@@ -191,6 +249,8 @@ export interface OceanFogParameters {
   power: number;
   /** Distance (m) over which the fog colour turns into the sky colour behind it. */
   skyBlendDistance: number;
+  /** Whether this scene's haze may follow real extinction when `OceanRealism.atmosphere` is on; false keeps the ramp. */
+  aerial: boolean;
 }
 
 /** Celestial light the ocean shades with. The game owns the values and the scene light. */
@@ -202,18 +262,38 @@ export interface OceanSun {
 }
 
 export interface CrestFoamParameters extends WaveFoamParameters {
-  /** Emitted radiance of foam; the game pre-scales it for night. */
+  /** Tint of whitecap and wake foam, which is lit by the sky and the sun or moon like any white surface. */
   readonly color: Color;
   opacity: number;
   /** 0 round patches … 1 streaks drawn out along the wind. */
   windStretch: number;
 }
+/** Windrows: old foam the wind draws out in lines along itself. */
 export interface SurfaceFoamParameters { readonly color: Color; opacity: number; /** Share of the sea covered, 0–1. */ coverage: number }
 export interface ShorelineFoamParameters { readonly color: Color; opacity: number }
+
+/** Realism features, each live. All but `atmosphere` are on by default; the developer console switches one to
+ * compare it with the look first tuned to match the library this ocean replaced. */
+export interface OceanRealism {
+  /** Wavelengths follow a real wind sea's steepness; heights and combat keep the calibration table. */
+  seaState: boolean;
+  /** Reflections blur by every unresolved facet, with the rough-sea mean Fresnel and sub-pixel sun glitter. */
+  reflections: boolean;
+  /** The water body's colour comes from absorption and scattering lit by the sun and sky, not a fixed pigment. */
+  waterColor: boolean;
+  /** Hulls leave a continuous turbulent wake that fades into a calm slick. */
+  wake: boolean;
+  /** Distance haze thickens from the camera outward as real extinction does (Koschmieder: 2 % contrast left at the
+   * scene's visibility, `fog.end`), instead of the gameplay ramp that starts kilometres out. Scenes whose fog is
+   * art-directed (the port) opt out through `OceanFogParameters.aerial`. Off by default: the maps' visibilities
+   * were authored for the ramp, and read as real visual ranges they leave a battleship at 20 km at 20 % contrast. */
+  atmosphere: boolean;
+}
 
 /** The facade the game holds (`Ocean.ts`). Game code touches the ocean only through this. */
 export interface OceanApi {
   readonly quality: OceanQuality;
+  readonly realism: OceanRealism;
   readonly waves: WaveParameters;
   readonly colors: WaterColors;
   readonly foam: { readonly crest: CrestFoamParameters; readonly surface: SurfaceFoamParameters; readonly shoreline: ShorelineFoamParameters };
@@ -232,7 +312,13 @@ export interface OceanApi {
   readonly cameraNearSurface: boolean;
   /** Finest vertex spacing of the surface mesh in metres (the clipmap's innermost cells). */
   readonly meshSpacing: number;
-  update(dt: number): void;
+  /** Advance and prepare the sea for this frame. The game's ocean finishes synchronously; the Water Pro comparison
+   * (`src/game/comparison`) returns a promise the frame awaits before it renders. */
+  update(dt: number): void | Promise<void>;
+  /** Draw the sea hulls ride around them: near each of `hulls` (the nearest sixteen) the long waves become `waves` at
+   * `time`, the simulation's clock, so a hull's waterline matches the water drawn beside it (with `realism.seaState`
+   * on). Call before `update`; the last call holds on paused frames, and empty lists turn it off. */
+  setHullSea(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[]): void;
   setSky(sky: OceanSky | null): void;
   /** Replace the wake the surface reads (the game composes its own foam on top of `wake.sampler`). */
   setWakeSampler(sampler: WakeSampler | null): void;
@@ -245,5 +331,6 @@ export interface OceanApi {
   /** Let an object ride the surface: y follows the height readback, eased over `smoothing` seconds. */
   addFloater(object: Object3D, options?: { smoothing?: number }): void;
   resize(width: number, height: number): void;
-  dispose(): void;
+  /** A promise when GPU readbacks must drain first (the Water Pro comparison). */
+  dispose(): void | Promise<void>;
 }

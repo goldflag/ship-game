@@ -6,7 +6,7 @@ import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT, motionVelocity } from './session/motion';
 import { SHIP_PACE } from '../ships/mobility';
-import { seaHeight } from './session/sea';
+import { seaHeight, seaWaves } from './session/sea';
 import { expendSalvo, updateMount, type MountState } from '../simulation/weapons';
 import { localToWorld, wrapAngle } from './geometry';
 import { shipPreset } from '../ships/presets';
@@ -45,11 +45,11 @@ function fakeOcean() {
   return {
     waves: { significantHeight: 0, windSpeed: 8, windDirection: .5, peakWavelength: 0, choppiness: 0, gamma: 0, directionalSharpness: .8, seed: 1, dirty: false },
     colors: { waterColor: new Color(), transmissionColor: new Color(), absorptionColor: new Color(.296, .105, .095) },
-    foam: { crest: { crestStrength: 0, windwardStrength: 0, decayTime: 0, color: new Color(), opacity: 0, windStretch: 0 },
+    foam: { crest: { coverageScale: 0, lifetime: 0, color: new Color(), opacity: 0, windStretch: 0 },
       surface: { color: new Color(), opacity: 0, coverage: 0 }, shoreline: { color: new Color(), opacity: 0 } },
     fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 },
     sun: { direction: new Vector3(), intensity: 0, color: new Color() },
-    update() {}, setShadowNode() {}, ensureHorizon() {},
+    update() {}, setShadowNode() {}, ensureHorizon() {}, setHullSea() {},
   };
 }
 
@@ -743,4 +743,23 @@ test('aim lock holds the guns while the sight looks away; the free camera flies 
   game.toggleFreeCamera(); await frames(10); game.toggleFreeCamera();
   expect(rig.freeCamera).toBe(false); expect(rig.binoculars).toBe(true); expect(rig.bearing).toBe(recentred);
   game.inspecting = true; game.toggleFreeCamera(); expect(rig.freeCamera).toBe(false);
+});
+
+test('the water around every drawn hull is the combat sea at the time its pose is drawn, held by a paused frame', async () => {
+  const { game, simulation, ocean, playerView, targetView } = await frameHarness();
+  Object.assign(simulation.sea, { amplitudeM: 2.5, windMps: 18 });
+  const calls: { waves: unknown; time: number; hulls: { x: number; z: number; contact: number }[] }[] = [];
+  Object.assign(ocean, { setHullSea: (waves: unknown, time: number, hulls: { x: number; z: number; contact: number }[]) => calls.push({ waves, time, hulls: hulls.map(h => ({ ...h })) }) });
+  let time = 0;
+  for (let frame = 0; frame < 30; frame++) await game.frame(time += 1000 / 144);
+  const last = calls.at(-1)!;
+  expect(last.waves).toEqual(seaWaves(simulation.sea));
+  // The pose drawn this frame is interpolated between ticks; the sea is read at the same moment.
+  expect(last.time).toBeCloseTo(simulation.tick / 60, 9);
+  expect(last.hulls).toHaveLength(2);
+  for (const view of [playerView, targetView])
+    expect(last.hulls.some(h => Math.abs(h.x - view.motion.x) < 60 && Math.abs(h.z - view.motion.z) < 60 && h.contact === 1)).toBe(true);
+  game.paused = true;
+  for (let frame = 0; frame < 5; frame++) await game.frame(time += 1000 / 59);
+  expect(calls.slice(-5).every(call => call.time === calls.at(-5)!.time && JSON.stringify(call.hulls) === JSON.stringify(calls.at(-5)!.hulls))).toBe(true);
 });

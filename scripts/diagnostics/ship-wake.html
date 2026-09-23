@@ -10,12 +10,14 @@
   // a real battle, the player's hull driven through Game.frame with a controlled clock and helm, and
   // the GPU foam atlas read back. The dispersive wake field has its own page, ocean-wake.html, and
   // wake-foam-gpu.html compares the atlas with the CPU raster. Never included in the production build.
-  // ?quality=low|medium|high|ultra. Results land in window.wakeDiagnostic.
+  // ?quality=low|medium|high|ultra; ?realism=off checks the trail first tuned to match the replaced library, otherwise
+  // the realistic wake (turbulence in the atlas's red channel, the slick in green). Results land in window.wakeDiagnostic.
   import { Game } from '/src/game/Game.ts';
   import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
-  import { WAKE_EXTENT } from '/src/game/WakeFoam.ts';
+  import { SLICK_EXTENT, WAKE_EXTENT } from '/src/game/WakeFoam.ts';
   const noop = () => {};
   const quality = new URLSearchParams(location.search).get('quality') ?? 'high';
+  const realistic = new URLSearchParams(location.search).get('realism') !== 'off';
   let error;
   const game = new Game(document.querySelector('#scene'), (GRAPHICS_PRESETS[quality] ?? GRAPHICS_PRESETS.high), {
     progress:noop, ready:noop, telemetry:noop, pause:noop, hud:noop, error:m=>{error=m;},
@@ -32,21 +34,26 @@
     for(let i=0;i<Math.round(seconds*10);i++) { await new Promise(requestAnimationFrame); await game.frame(game.lastTime+100); }
     if(error) throw new Error(error);
   };
-  /** The player's trail as painted: its tile of the GPU foam atlas, read back. */
+  /** The player's trail as painted: its tile of the GPU foam atlas, read back. Channel 0 is the trail foam (the
+   * realistic wake's turbulence), channel 1 the realistic wake's slick on its wider square. */
   const field = async() => {
     const foam=game.shipWake.foam, target=foam.painter.target, size=target.width, res=size/8;
-    const pixels=await game.renderer.readRenderTargetPixelsAsync(target,0,0,size,size);
+    const pixels=await game.renderer.readRenderTargetPixelsAsync(target,0,0,size,size), channels=pixels.length/(size*size);
     const entry=foam.entries.get(game.playerView.root);
-    const tile=entry ? {slot:entry.slot,x:entry.collector.centerX,z:entry.collector.centerZ} : undefined;
-    const index=(ix,iz)=>(Math.floor(tile.slot/8)*res+iz)*size+(tile.slot%8)*res+ix;
-    let total=0, max=0;
-    if(tile) for(let iz=0;iz<res;iz++) for(let ix=0;ix<res;ix++) { const value=pixels[index(ix,iz)]/255; total+=value; max=Math.max(max,value); }
-    const at=(x,z)=>{
-      if(!tile) return 0;
-      const ix=Math.floor((x-tile.x)/WAKE_EXTENT*res+res/2), iz=Math.floor((z-tile.z)/WAKE_EXTENT*res+res/2);
-      return ix>=0 && ix<res && iz>=0 && iz<res ? pixels[index(ix,iz)]/255 : 0;
+    const tile=entry ? {slot:entry.slot,x:entry.collector.centerX,z:entry.collector.centerZ,slickX:entry.collector.slickX,slickZ:entry.collector.slickZ} : undefined;
+    const index=(ix,iz,channel=0)=>((Math.floor(tile.slot/8)*res+iz)*size+(tile.slot%8)*res+ix)*channels+channel;
+    let total=0, max=0, slickMax=0;
+    if(tile) for(let iz=0;iz<res;iz++) for(let ix=0;ix<res;ix++) {
+      const value=pixels[index(ix,iz)]/255; total+=value; max=Math.max(max,value);
+      if(channels>1) slickMax=Math.max(slickMax,pixels[index(ix,iz,1)]/255);
+    }
+    const at=(x,z,channel=0)=>{
+      if(!tile || channel>=channels) return 0;
+      const [cx,cz,extent]=channel ? [tile.slickX,tile.slickZ,SLICK_EXTENT] : [tile.x,tile.z,WAKE_EXTENT];
+      const ix=Math.floor((x-cx)/extent*res+res/2), iz=Math.floor((z-cz)/extent*res+res/2);
+      return ix>=0 && ix<res && iz>=0 && iz<res ? pixels[index(ix,iz,channel)]/255 : 0;
     };
-    return {pixels,total,max,at,tile,centers:foam.centers.map(center=>center.toArray())};
+    return {pixels,total,max,slickMax,at,tile,centers:foam.centers.map(center=>center.toArray())};
   };
   const pose = () => {
     const ship=game.simulation.ship, forward=[Math.sin(ship.heading),-Math.cos(ship.heading)];
@@ -78,11 +85,14 @@
     game.start();
     await game.initialization;
     if(error) throw new Error(error);
+    game.ocean.realism.wake = realistic;
+    results.realistic = realistic;
     game.setInPort(true); game.setPaused(true);
     await game.prepareBattle({playerShipId:'bismarck',friendlyBots:[],enemies:[{shipId:'bismarck',aiLevel:'static'}],spawnDistance:15000,mapId:'north-atlantic',windSpeed:6,timeHours:12});
     game.setInPort(false); game.setPaused(true); game.rig.releasePointer();
     await advance(1);
-    results.stationaryClean=(await field()).max===0;
+    const stationary=await field();
+    results.stationaryClean=stationary.max===0 && stationary.slickMax===0;
     command={throttle:1,rudder:0};
     await advance(60);
     const straight=await field(), cruise=pose();
@@ -92,14 +102,26 @@
     // Energy must clear the material's dissolve threshold; merely nonzero
     // foam can still be visually absent in the actual shaded scene.
     results.visibleTrail=results.trailFoam>0.35;
+    // The realistic band's turbulence decays as it widens, so its footprint, not its brightest core, shows the spread;
+    // its outline bulges and draws in along the track, so the width is averaged over 100 m of it.
+    const edge=realistic ? .03 : .2, stations=realistic ? [-50,-25,0,25,50] : [0];
     const widthAt=(aft)=>{
       let width=0;
-      for(let across=-50;across<=50;across+=2) { const p=cruise.point(aft,across); if(straight.at(p.x,p.z)>0.2) width+=2; }
-      return width;
+      for(const station of stations) for(let across=-80;across<=80;across+=2) { const p=cruise.point(aft+station,across); if(straight.at(p.x,p.z)>edge) width+=2; }
+      return width/stations.length;
     };
     results.freshWidth=widthAt(150);
     results.olderWidth=widthAt(300);
     results.wakeSpreads=results.olderWidth>results.freshWidth;
+    if(realistic) {
+      // The slick is painted wherever the trail runs and outlasts the churned water far astern (a minute from rest
+      // lays about 500 m of trail).
+      const far=cruise.point(420);
+      results.slickNear=straight.at(point.x,point.z,1);
+      results.slickFar=straight.at(far.x,far.z,1);
+      results.churnFar=straight.at(far.x,far.z);
+      results.slickOutlastsChurn=results.slickNear>.2 && results.slickFar>.2 && results.slickFar>results.churnFar;
+    }
     game.rig.distance=650;
     game.rig.elevation=0.65;
     game.rig.update(game.simulation.ship,game.ship.position.y,0,true);
@@ -126,16 +148,20 @@
     window.wakeTurningImage=await capture();
     command={throttle:0,rudder:0};
     await advance(40);
-    results.foamAfterStop=(await field()).total;
+    const stopped=await field();
+    results.foamAfterStop=stopped.total;
     results.foamWhileTurning=turning.total;
     results.stoppedWakeFades=results.foamAfterStop<turning.total;
+    // The slick lasts minutes after the white water has gone.
+    if(realistic) results.slickAfterStop=stopped.slickMax;
     window.wakeStoppedImage=await capture();
     game.setInPort(true);
     await advance(1);
-    results.portClearsWake=(await field()).max===0;
+    const port=await field();
+    results.portClearsWake=port.max===0 && port.slickMax===0;
     results.passed=results.stationaryClean && results.visibleTrail
       && results.pausePreservesWake && results.orbitPreservesAnchor && results.turnRetainsTrail && results.stoppedWakeFades
-      && results.wakeSpreads && results.portClearsWake;
+      && results.wakeSpreads && results.portClearsWake && (!realistic || results.slickOutlastsChurn && results.slickAfterStop>.1);
     window.captureWake=capture;
     report();
   } catch(e) { results.passed=false; results.error=String(e?.stack ?? e); report(); }

@@ -7,7 +7,8 @@
 <script type="module">
 // Development-only check of the wave field alone (src/game/ocean/waves): a displaced, simply
 // shaded sea at the ocean-review cameras, plus GPU-vs-CPU validation and timings.
-// `scripts/browser/ocean-waves.ts` drives it. ?quality=low|medium|high|ultra.
+// `scripts/browser/ocean-waves.ts` drives it. ?quality=low|medium|high|ultra; ?seaState=off draws the calibration table's
+// wavelengths as given (the game's realism.seaState switch, on by default).
 import * as THREE from 'three/webgpu';
 import { attribute, cameraPosition, dot, exp, float, int, ivec2, max, mix, normalize, positionGeometry, positionWorld, pow, reflect,
   screenCoordinate, texture, uniform, varying, vec2, vec3, vec4 } from 'three/tsl';
@@ -17,6 +18,10 @@ import { buildSpectrum, FOLD_PERIOD } from '/src/game/ocean/waves/spectrum.ts';
 import { activeModes, referenceTexel } from '/src/game/ocean/waves/reference.ts';
 import { windSea } from '/src/maps/seaCalibration.ts';
 import { oceanMap } from '/src/maps/catalog.ts';
+import { foamPatterns, inWhitecap, spreadWhitecaps, whitecapFoam, windrowOpacity } from '/src/game/ocean/surface/foam.ts';
+import { foamTexture } from '/src/game/ocean/surface/foamTexture.ts';
+import { whitecapCoverage } from '/src/game/ocean/waves/whitecaps.ts';
+import { WHITECAP_LIFETIME, windrowFoam } from '/src/game/VisualEnvironment.ts';
 
 const query = new URLSearchParams(location.search);
 const output = document.querySelector('output');
@@ -36,11 +41,14 @@ const sync = () => renderer.backend.device.queue.onSubmittedWorkDone();
 /** Named winds (m/s); any number also works. Seas and foam gains come from the game's calibration. */
 const SEAS = { calm: 3, moderate: 9, storm: 25 };
 const params = { significantHeight: 0, windSpeed: 0, windDirection: .61, peakWavelength: 1, choppiness: 0, gamma: 2.6, directionalSharpness: .8, seed: 1, dirty: true };
-const foam = { crestStrength: 0, windwardStrength: 0, decayTime: 2.8 };
+const foam = { coverageScale: 1, lifetime: WHITECAP_LIFETIME };
+/** The crest foam's look as the game sets it in the Atlantic (VisualEnvironment). */
+const foamLook = { opacity: 1, windStretch: .5 };
+const foamMap = foamTexture();
+const realism = { seaState: query.get('seaState') !== 'off' };
 function setSea(name) {
   const sea = windSea(oceanMap('north-atlantic'), SEAS[name] ?? Number(name));
   Object.assign(params, { significantHeight: sea.significantHeightM, windSpeed: sea.windSpeed, peakWavelength: sea.peakWavelength, choppiness: sea.choppiness, dirty: true });
-  Object.assign(foam, { crestStrength: sea.crestFoam, windwardStrength: sea.windwardFoam });
 }
 
 let quality = query.get('quality') ?? 'high', field, sampler, mesh;
@@ -74,10 +82,10 @@ const grid = polarGrid();
 const center = uniform(new THREE.Vector2());
 const show = query.get('show') ?? 'shaded';
 
-function build() {
+function build(tileScale = 1) {
   field?.dispose(); sampler?.dispose();
   if (mesh) { scene.remove(mesh); mesh.material.dispose(); }
-  field = createWaveField(renderer, OCEAN_TIERS[quality].cascades, params, foam);
+  field = createWaveField(renderer, OCEAN_TIERS[quality].cascades, params, foam, realism);
   sampler = createWaveHeightSampler(renderer, field);
   const material = new THREE.MeshBasicNodeMaterial();
   const xz = positionGeometry.xz.add(center);
@@ -161,21 +169,26 @@ async function readLayer(cascade, level = 0) {
   return result;
 }
 
+/** Cascades holding less of the sea's variance than this are reported but not judged. */
+const NEGLIGIBLE_SHARE = 1e-6;
 /** GPU fields vs a direct CPU inverse DFT of the same amplitudes at the same folded time. */
 async function validate() {
   const report = { quality, backend, cascades: [] };
   const t = 1234.5678;
   params.dirty = true; field.update(renderer, t, 0); await sync();
   const phase = Math.fround((t % FOLD_PERIOD) / FOLD_PERIOD);
-  const spectrum = buildSpectrum(field.cascades, params);
+  // The field draws its own sea (realism applied) on its current tiles.
+  const sea = field.sea, spectrum = buildSpectrum(field.cascades, sea);
+  report.seaState = realism.seaState; report.peakWavelength = sea.peakWavelength; report.choppiness = sea.choppiness;
   let variance = 0;
+  const total = spectrum.cascades.reduce((sum, c) => sum + c.variance, 0);
   for (let c = 0; c < field.cascades.length; c++) {
     const [displacement, derivatives, extras] = await readLayer(c), cascade = spectrum.cascades[c], modes = activeModes(cascade);
     const n = cascade.resolution, names = ['dx', 'dy', 'dz', 'hx', 'hz', 'dxx', 'dzz', 'dxz'];
     const worst = Object.fromEntries(names.map(k => [k, 0])), scale = Object.fromEntries(names.map(k => [k, 0]));
     for (let i = 0; i < 160; i++) {
       const x = (i * 97 + 13) % n, z = (i * 61 + 7 * (i >> 3)) % n, at = (z * n + x) * 4;
-      const cpu = referenceTexel(cascade, modes, params.choppiness, phase, x, z);
+      const cpu = referenceTexel(cascade, modes, sea.choppiness, phase, x, z);
       const gpu = { dx: displacement[at], dy: displacement[at + 1], dz: displacement[at + 2], hx: derivatives[at], hz: derivatives[at + 1], dxx: derivatives[at + 2], dzz: derivatives[at + 3], dxz: extras[at] };
       for (const k of names) { worst[k] = Math.max(worst[k], Math.abs(gpu[k] - cpu[k])); scale[k] = Math.max(scale[k], Math.abs(cpu[k])); }
     }
@@ -191,10 +204,12 @@ async function validate() {
       for (let z = 0; z < block; z++) for (let x = 0; x < block; x++) mean += derivatives[((bz * block + z) * n + bx * block + x) * 4];
       mipError = Math.max(mipError, Math.abs(coarse[(bz * m + bx) * 4] - mean / (block * block)));
     }
-    report.cascades.push({ size: cascade.size, relativeError: Object.fromEntries(names.map(k => [k, scale[k] ? worst[k] / scale[k] : 0])), mipError: mipError / Math.sqrt(rms / (n * n)) });
+    report.cascades.push({ size: cascade.size, share: cascade.variance / total, relativeError: Object.fromEntries(names.map(k => [k, scale[k] ? worst[k] / scale[k] : 0])), mipError: mipError / Math.sqrt(rms / (n * n)) });
   }
   report.hm0 = 4 * Math.sqrt(variance); report.hm0Target = params.significantHeight;
-  report.maxRelativeError = Math.max(...report.cascades.flatMap(c => Object.values(c.relativeError)));
+  // A cascade far from the peak can hold next to nothing (a light air's 1 km tile: 1e-10 of the variance, amplitudes
+  // below half-float resolution), where a relative error measures only the storage of zero; it is reported, not judged.
+  report.maxRelativeError = Math.max(...report.cascades.filter(c => c.share >= NEGLIGIBLE_SHARE).flatMap(c => Object.values(c.relativeError)));
   return report;
 }
 
@@ -229,9 +244,14 @@ async function heights() {
     worstUnfolded: unfolded.reduce((a, b) => Math.max(a, b), 0), significantHeight: params.significantHeight, normalLengthError: normalWorst };
 }
 
-/** Foam persists and decays with dt and never changes on a paused (dt = 0) update. */
+/** Foam and bubbles persist and decay with dt and never change on a paused (dt = 0) update. */
 async function foamCheck() {
-  const layerFoam = async () => (await readLayer(0))[2].filter((_, i) => i % 4 === 1);
+  // Every layer's foam and bubble channels (extras .y and .w).
+  const layerFoam = async () => {
+    const all = [];
+    for (let c = 0; c < field.cascades.length; c++) all.push((await readLayer(c))[2].filter((_, i) => i % 4 === 1 || i % 4 === 3));
+    return Float32Array.from(all.flatMap(layer => Array.from(layer)));
+  };
   await frames(240);
   const before = await layerFoam();
   field.update(renderer, time, 0); await sync();
@@ -246,22 +266,61 @@ async function foamCheck() {
     pausedUnchanged: before.every((v, i) => v === paused[i]), rebuiltWhilePausedUnchanged: before.every((v, i) => v === rebuilt[i]) };
 }
 
-/** Crest foam as the surface reads it (field.surface) over a 512 m square at 0.5 m per pixel, after
- * `seconds` of field-only updates at wind `sea`: its mean and the share of the area above 0.5 and 1. */
-async function foamCoverage(sea, seconds = 15) {
+/** Foam as the surface draws it, after `seconds` of field-only updates at wind `sea` with the realistic sea state on or
+ * off, averaged over `samples` instants 4 s apart, each a 1,024 m square at 0.5 m per pixel (four 512 m tiles), through
+ * the material's own foam functions: the share of the sea whitecap patches cover (their area, Monahan's W), the
+ * windrows' share, both together, the mean opacity of all foam (what brightens the sea), and the mean spread foam
+ * (`foamMean`) and the opacity its mean path gives. `only` lets a single cascade break. */
+async function foamCoverage(sea, seconds = 15, seaState = realism.seaState, only, samples = 3) {
   setSea(sea);
+  realism.seaState = seaState;
+  time += 1 / 60; field.update(renderer, time, 1 / 60);
+  if (only !== undefined) field.breaking.forEach((breaking, c) => { if (c !== only) breaking.share = 0; });
   for (let i = 0; i < seconds * 60; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
-  const n = 1024, target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
-  const material = new THREE.NodeMaterial();
-  material.fragmentNode = vec4(field.surface(screenCoordinate.mul(512 / n)).foam, 0, 0, 1);
-  material.blending = THREE.NoBlending;
-  renderer.setRenderTarget(target); new THREE.QuadMesh(material).render(renderer); renderer.setRenderTarget(null);
-  const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, n, n);
-  let mean = 0, half = 0, full = 0;
-  for (let i = 0; i < n * n; i++) { const f = pixels[i * 4]; mean += f; if (f > .5) half++; if (f > 1) full++; }
-  target.dispose(); material.dispose();
-  return { wind: params.windSpeed, significantHeight: params.significantHeight, gains: [foam.crestStrength, foam.windwardStrength],
-    mean: mean / (n * n), above05: half / (n * n), above1: full / (n * n), monahan: 3.84e-6 * params.windSpeed ** 3.41 };
+  const mean = new Array(8).fill(0);
+  for (let sample = 0; sample < samples; sample++) {
+    if (sample) for (let i = 0; i < 240; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
+    for (const [x, z] of [[0, 0], [512, 0], [0, 512], [512, 512]]) {
+      const frame = await coverageFrame(x, z);
+      frame.forEach((value, c) => { mean[c] += value / (samples * 4); });
+    }
+  }
+  const [whitecapArea, windrowArea, area, opacity, whitecapOpacity, foamMean, meanPath, amount] = mean;
+  return { wind: params.windSpeed, significantHeight: params.significantHeight, seaState, peakWavelength: field.sea.peakWavelength, choppiness: field.sea.choppiness,
+    tile: field.cascades[0].size, breaking: field.breaking.map(b => ({ share: b.share, threshold: b.threshold, period: b.period })),
+    whitecapArea, windrowArea, area, opacity, whitecapOpacity, foamMean, meanPath, amount, target: whitecapCoverage(params.windSpeed) };
+}
+
+/** One 512 m tile at 0.5 m per pixel, its corner at (x, z): the mean of whitecap area (patch at least half there),
+ * windrow area (their share), both, all foam's opacity, the whitecaps' opacity, the spread foam, the opacity of the
+ * whitecaps' mean path from it, and the drawn foam amount. */
+async function coverageFrame(x, z) {
+  const n = 1024, sums = [];
+  for (const pass of [0, 1]) {
+    const target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
+    const material = new THREE.NodeMaterial();
+    const xz = screenCoordinate.mul(512 / n).add(vec2(x, z)), sample = field.surface(xz);
+    const patterns = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1), vec3(0, 1, 0));
+    const { pattern, blur, streaks, streaksBlur, lines, gather, coarse } = patterns;
+    const whitecaps = whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, patterns, float(0));
+    const rowsFoam = windrowFoam(params.windSpeed);
+    const rowsShare = windrowOpacity(float(rowsFoam.coverage), lines, foamMap.userData.streakMean, gather, pattern.r, streaks, float(1), sample.jacobian);
+    const rows = windrowOpacity(float(rowsFoam.coverage), lines, foamMap.userData.streakMean, gather, pattern.r, streaks, max(blur, streaksBlur), sample.jacobian)
+      .mul(rowsFoam.opacity);
+    const patch = inWhitecap(sample.foam, pattern, blur);
+    const opacity = float(1).sub(float(1).sub(whitecaps.opacity.clamp(0, 1)).mul(float(1).sub(rows.clamp(0, 1))));
+    material.fragmentNode = pass
+      ? vec4(whitecaps.opacity, sample.foamMean, spreadWhitecaps(sample.foamMean, sample.bubbles, coarse, float(0)), sample.foam)
+      : vec4(patch, rowsShare, float(1).sub(float(1).sub(patch).mul(float(1).sub(rowsShare))), opacity);
+    material.blending = THREE.NoBlending;
+    renderer.setRenderTarget(target); new THREE.QuadMesh(material).render(renderer); renderer.setRenderTarget(null);
+    const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, n, n);
+    const mean = [0, 0, 0, 0];
+    for (let i = 0; i < n * n; i++) for (let c = 0; c < 4; c++) mean[c] += pixels[i * 4 + c] / (n * n);
+    target.dispose(); material.dispose();
+    sums.push(...mean);
+  }
+  return sums;
 }
 
 /** CPU time of update() (batches without waiting) and GPU-inclusive wall time per update. Other

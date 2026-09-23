@@ -658,6 +658,21 @@ function Harbor({ account, startup }: AppProps) {
     setSettingsOpen(false);
     setGeneration((value) => value + 1);
   };
+  // Developer console: compare the game's ocean with the Water Pro library it replaced. The port rebuilds at
+  // once; at sea the choice waits for the return to port, like the ocean tier.
+  const switchOceanRenderer = (): string => {
+    const current = graphicsRef.current;
+    const next: GraphicsSettings = { ...current, oceanRenderer: current.oceanRenderer === 'waterpro' ? 'game' : 'waterpro' };
+    const kept = changeGraphics(next) ? '' : ' Browser storage is unavailable, so this lasts for the session.';
+    const name = next.oceanRenderer === 'waterpro' ? 'Water Pro' : 'The game ocean';
+    const session = game.current;
+    if (session && launchMatches(session.launchedGraphics, next)) return `${name} stays on the sea.${kept}`;
+    if (session && phase === 'garage' && !switchPending.current && !battleEntry.current?.pending) {
+      setGeneration((value) => value + 1);
+      return `${name} is loading.${kept}`;
+    }
+    return `${name} draws the sea when you return to port.${kept}`;
+  };
 
   const changeBindings = (next: Keybindings): boolean => {
     bindingsRef.current = next;
@@ -873,7 +888,9 @@ function Harbor({ account, startup }: AppProps) {
           />
         )}
 
-        {ready && !error && !builder && !battleLoading && !pveRestarting && game.current && <DevConsole host={game.current} />}
+        {ready && !error && !builder && !battleLoading && !pveRestarting && game.current && (
+          <DevConsole host={game.current} oceanRenderer={{ current: graphics.oceanRenderer, toggle: switchOceanRenderer }} />
+        )}
         {!ready && !error && !startup && <StartupScreen {...loading} />}
 
         {error && (

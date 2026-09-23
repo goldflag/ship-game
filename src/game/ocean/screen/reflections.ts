@@ -20,6 +20,10 @@ export interface ScreenReflectionInput {
   readonly maxDistance: Node<'float'>;
   /** Steps along the clipped ray, fixed when the shader is built (the tier's `reflectionSteps`). */
   readonly steps: number;
+  /** Rough water's smear of the image: the ray turned by one standard deviation `spread` (radians) toward `up` (view
+   * space, perpendicular to the ray in the plane of incidence) lands `spread` × its length along the hit surface, and
+   * the image is read over that span on screen, centred `centre` deviations up from the hit, instead of at the hit alone. */
+  readonly blur?: { readonly up: Node<'vec3'>; readonly spread: Node<'float'>; readonly centre?: number };
 }
 
 export interface ScreenReflection {
@@ -40,6 +44,10 @@ const SEARCHES = 3;
 const THICKNESS = .02;
 /** Screen-edge fade, as a share of the viewport. */
 const EDGE = .06;
+/** A smeared image is read at ±0.5 and ±1.5 standard deviations of the smear, with the normal density's weights. */
+const SMEAR_TAPS = [[-1.5, .1344], [-.5, .3656], [.5, .3656], [1.5, .1344]] as const;
+/** Longest smear per standard deviation, as a share of the viewport: beyond it the taps would land as separate images. */
+const SMEAR_LIMIT = .04;
 
 /** A screen-space read at `uv` (and `level`): never through the texture's UV transform, which three
  * otherwise re-enables for reads from a node built without UVs, one matrix uniform per read. */
@@ -71,7 +79,7 @@ export function screenRead(map: TextureNode, uv: Node<'vec2'>, level?: Node<'flo
  * Pass the mirror direction unclamped: rays reflected below the horizon re-enter the sea and miss
  * here (the sky lookup may still bend them up to the horizon). */
 export function screenSpaceReflection(input: ScreenReflectionInput): ScreenReflection {
-  const { position, direction, sceneColor, sceneDepth, enabled, maxDistance, steps } = input;
+  const { position, direction, sceneColor, sceneDepth, enabled, maxDistance, steps, blur } = input;
   const result = Fn(() => {
     const color = vec3(0).toVar(), confidence = float(0).toVar();
     const ray = direction.normalize().toVar();
@@ -139,7 +147,14 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
         const range = smoothstep(.7, 1, point.distance(origin).div(maxDistance)).oneMinus();
         // Depth holds only camera-facing surfaces; rays coming back toward the camera would see their backs.
         const facing = smoothstep(0, .5, ray.z).oneMinus();
-        color.assign(screenRead(sceneColor, uv, float(0)).rgb);
+        if (blur) {
+          // Where the ray turned by one deviation lands, on screen: the smear's step.
+          const lifted = cameraProjectionMatrix.mul(vec4(point.add(blur.up.mul(point.distance(origin).mul(blur.spread))), 1));
+          const smear = vec2(lifted.x.div(lifted.w).mul(.5).add(.5), lifted.y.div(lifted.w).mul(-.5).add(.5)).sub(uv).toVar();
+          smear.assign(smear.mul(min(float(1), float(SMEAR_LIMIT).div(smear.length().max(1e-6)))));
+          const centre = blur.centre ?? 0;
+          color.assign(SMEAR_TAPS.reduce<Node<'vec3'>>((sum, [at, weight]) => sum.add(screenRead(sceneColor, uv.add(smear.mul(at + centre)).clamp(0, 1), float(0)).rgb.mul(weight)), vec3(0)));
+        } else color.assign(screenRead(sceneColor, uv, float(0)).rgb);
         confidence.assign(edges.mul(range).mul(facing));
       });
     });
