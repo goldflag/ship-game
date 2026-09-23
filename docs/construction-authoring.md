@@ -15,6 +15,7 @@ bun run ship:apply my-ship batch.json --dry-run --brief
 bun run ship:apply my-ship batch.json
 bun run ship:inspect my-ship --brief              # every independent error, with gaps and seat positions
 bun run ship:mesh my-ship shape.obj --id hangar --at 0,6,-18  # a closed mesh as one compound-solid hull block
+bun run ship:fitting-mesh my-ship bridge.glb --id fit-bridge --mass 40000 --out bridge.json  # any mesh as visual detail
 bun run ship:view my-ship --focus gun-forward     # works on drafts that do not compile
 ```
 
@@ -642,8 +643,9 @@ armor, modules and flooding ignore it. The format is in
   count against the 1,000 equipment instances.
 - `remove` with a definition ID is refused while instances outside that command use it; the error
   names them.
-- `ship:summary` lists definitions as `[id, name, solids, tubes, massKg, instances, partId]` and
-  reports `customFittingInstances` and `customFittingDefinitions` headroom. `ship:get --ids
+- `ship:summary` lists definitions as `[id, name, solids, tubes, massKg, instances, partId, mesh
+  triangles]` and reports `customFittingInstances` and `customFittingDefinitions` headroom, plus
+  `meshTriangles`, `meshBytes` and `renderedTriangles` once a definition has meshes. `ship:get --ids
   <definition id>` or `--kind custom-fitting` returns definitions, and `ship:catalog <ship> --query
   design:` shows the resolved size and bounds centre.
 - `ship:view --focus <instance> --isolate` frames one instance.
@@ -705,6 +707,51 @@ axis, custom fittings only): the shape scales about its datum in its own axes an
 volume, so one definition covers every size of float or locker. A `custom-fitting` diagnostic names
 the definition in `sourceId` and the solid, tube or instance in its message; an instance more than
 10 m outside the hull's box reports `equipment-attachment`, and a bad scale `equipment-scale`.
+
+### Visual mesh fittings
+
+`ship:fitting-mesh` turns any OBJ, STL, PLY or GLB triangle mesh (open, non-convex, thin-walled,
+with holes) into a custom fitting definition whose shape is a visual mesh. It is detail, not
+structure: the mesh is drawn and weighed and nothing else. Shells, armor, buoyancy, flooding and
+the armor view ignore it, so put a few simple blocks underneath for the structure, armor and gun
+seats, and let the mesh carry the look. Like `ship:mesh` it never saves: it prints a
+revision-guarded batch (a `fitting` command, plus an `equipment` row with `--at`), `--out` refuses
+to overwrite, and a native dry-run compile gates it.
+
+```sh
+bun run ship:fitting-mesh my-ship .build/bridge.glb --id fit-bridge --name "Bridge detail" --mass 40000 --up z --out .build/bridge.json
+bun run ship:fitting-mesh my-ship .build/house.obj --id fit-house --mass 12000 --paint roof=deck-gray,glass=boot-top-black --at 0,-20 --bearing 180
+bun run ship:apply my-ship .build/bridge.json
+bun run ship:place my-ship --part design:fit-bridge --at 0,-32 --y 14 --out .build/bridge-seat.json
+```
+
+| Flag | Effect |
+| --- | --- |
+| `--id`, `--name` | The new definition; an existing ID is refused |
+| `--mass kg` | Required: a mesh has no volume to weigh. The centre of gravity is the area centroid of the triangles |
+| `--scale n` or `sx,sy,sz` | Applied first, positive only (a file in centimetres needs 0.01); turn with `--bearing`, never mirror |
+| `--up z` | Turns a Z-up file (Blender, most CAD) −90° about X into the ship's Y-up frame: a rotation, so nothing is mirrored |
+| `--paint group=paint,…` | Coatings for the file's `usemtl`/`g` or GLB material names; other groups follow the instance, then the ship paint |
+| `--at x,z [--y h \| --on id] [--bearing deg] [--instance id]` | Also seats one instance, exactly as `ship:place` would |
+| `--out file` | Writes the batch; the printed report then leaves the encoded payload out, which keeps MCP output short |
+
+The mesh is centred on its footprint with its lowest point on the datum (the report gives
+`sourceOrigin`), quantized to 16 bits over its own bounds, welded, and split into meshes of at
+most 20,000 triangles. There is no decimation: a mesh over budget is refused with the counts, so
+simplify it in a modelling tool first. Budgets, identical online and local:
+
+| Budget | Value |
+| --- | --- |
+| Triangles per mesh / meshes per definition | 20,000 / 16 |
+| Unique mesh triangles per design (each definition once) | 100,000 |
+| Encoded mesh bytes per design (base64 `data`) | 1 MiB, about 7–9 bytes per triangle |
+| Drawn triangles per design (instances × definition triangles, meshes, solids and tubes) | 1,000,000 |
+
+A definition with meshes is `version: 2`, needs `massKg` and may give `centerOfGravity`. An
+instance's `scale` multiplies the mass by the volume factor like any custom fitting. The
+compiler checks seat and burial against up to eight boxes per mesh (the triangles split three times
+along their longest axis), so an L- or U-shaped deckhouse does not claim its open notch. Mirrored
+copies are placed and turned, not reflected; model both sides in the file when they differ.
 
 ## Visual review and trials
 
