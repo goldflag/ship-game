@@ -2,7 +2,8 @@ import type { WebGPURenderer } from 'three/webgpu';
 
 /** Keep authored layers in order with Three r185's reversed depth buffer. */
 export function configureRenderOrder(renderer: WebGPURenderer): void {
-  // Installed after init: WebGL can decline reversed depth without EXT_clip_control.
+  // Three reverses its sorted lists only for a reversed depth buffer. The game always asks
+  // for one; diagnostics that render with ordinary depth keep Three's own order.
   if (!renderer.reversedDepthBuffer) return;
   // r185 RenderList.sort reverses the entire sorted list, including explicit
   // priorities and stable IDs. Counter those reversals, but retain reversed Z

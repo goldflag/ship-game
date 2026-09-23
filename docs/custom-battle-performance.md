@@ -46,9 +46,8 @@ creations, worker timings, browser version, CPU concurrency, WebGPU adapter, pag
 | `GPU_PROFILE_AFTER=1` | render/compute timestamp queries over 30 frames, where supported |
 | `UPLOAD_PROFILE_AFTER=1` | `GPUQueue.writeBuffer` calls, bytes and ms per buffer label over 60 frames |
 | `SUBMISSION_PROFILE_AFTER=1` | per-object draw submission cost; nested passes are inclusive, do not sum |
-| `LAYOUT_PROFILE_AFTER=1`, `REFRACTION_PROFILE_AFTER=1`, `PARTICLE_CULL_PROFILE_AFTER=1` | A/B of label layout batching, ocean refraction and particle culling |
+| `LAYOUT_PROFILE_AFTER=1`, `REFLECTION_PROFILE_AFTER=1`, `PARTICLE_CULL_PROFILE_AFTER=1` | A/B of label layout batching, the ocean's screen-space ship reflections (High and Ultra) and particle culling |
 | `VISUAL_REVIEW=1` | ship, aircraft, distant and 24× captures plus maximum muzzle error |
-| `FORCE_WEBGL=1` | hides `navigator.gpu` to exercise the fallback renderer |
 
 ## Read the results
 
@@ -56,7 +55,7 @@ creations, worker timings, browser version, CPU concurrency, WebGPU adapter, pag
 interval in ms, `over50`/`over100` counts and mean `work` ms. `result.tick / 60` is simulated
 seconds: compare it with wall time, because a battle that falls behind is not a valid way to reach
 a frame rate. Judge by the late windows, not the average; busy combat is slower than the opening.
-Also check `backend`, `framebuffer`, `hidden` (must be false) and `errors`.
+Also check `framebuffer`, `hidden` (must be false) and `errors`.
 
 ## Caveats
 

@@ -486,7 +486,6 @@ export function SettingsDialog({
                     <>
                       <span className="detail">{performance.frameMs.toFixed(1)} ms</span>
                       <span className="detail">{renderSize}</span>
-                      <span className="detail">{performance.backend === 'webgl' ? 'WebGL' : 'WebGPU'}</span>
                     </>
                   )}
                 </div>

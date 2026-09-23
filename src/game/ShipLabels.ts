@@ -9,7 +9,8 @@ type ScreenPoint = { x: number; y: number };
 /** Match the renderer's depth range so ships behind the camera never acquire mirrored labels. */
 export function projectShipLabel(anchor: Vector3, camera: Camera, width: number, height: number, hull?: Vector3): ScreenPoint | null {
   const point = anchor.clone().project(camera);
-  // Three.js uses 0..1 for WebGPU and for reversed depth on either backend.
+  // Clip depth runs 0..1 once WebGPU has drawn the camera (and for reversed depth); a camera
+  // nothing has rendered yet keeps three's default -1..1.
   const minDepth = camera.reversedDepth || camera.coordinateSystem === WebGPUCoordinateSystem ? 0 : -1;
   if (![point.x, point.y, point.z].every(Number.isFinite) || point.z < minDepth || point.z > 1 || Math.abs(point.x) > 1) return null;
   // Bound the world-space mast offset in logical HUD pixels when the hull is visible.
