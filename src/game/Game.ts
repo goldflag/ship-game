@@ -20,7 +20,8 @@ import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape
 import { VisualEnvironment, type DeveloperWeather, type EnvironmentOverrides } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
 import { BerthMotion } from './BerthMotion';
-import { createSeaState, type SeaState } from './session/sea';
+import { createSeaState, seaWaves, type SeaState } from './session/sea';
+import { hullFootprints } from './hullSea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
 import * as THREE from 'three/webgpu';
@@ -284,6 +285,8 @@ export class Game {
   private berthEmpty = false;
   private readonly berthMotion = new BerthMotion();
   private berthSea?: { wind: number; direction: number; state: SeaState };
+  /** The sea the berth hull rode this frame (still water while it is inspected), which the water around it shows. */
+  private berthRidden?: SeaState;
   private harbor?: HarborBackdrop;
   private raf = 0;
   private lastTime = 0;
@@ -749,11 +752,13 @@ export class Game {
    * views settle the hull, keeping plates and rooms steady under the cursor. */
   private updateBerthMotion(dt: number): void {
     const view = this.playerView, reading = this.inPort ? this.environment.reading() : undefined;
+    this.berthRidden = undefined;
     if (!view || !reading) { if (view?.seaOffset) { view.seaOffset = undefined; this.berthMotion.reset(); } return; }
     if (this.berthSea?.wind !== reading.windSpeed || this.berthSea.direction !== reading.windDirection)
       this.berthSea = { wind: reading.windSpeed, direction: reading.windDirection, state: { ...createSeaState(this.simulation.mapId, 'clear', this.simulation.seed, reading.windSpeed), direction: reading.windDirection * Math.PI / 180 } };
     const riding = view.inspection.mode === 'exterior' && !this.berthEmpty;
-    this.berthMotion.update(riding ? this.berthSea.state : { ...this.berthSea.state, amplitudeM: 0 }, view.definition.hull, view.actor.motion, dt);
+    this.berthRidden = riding ? this.berthSea.state : { ...this.berthSea.state, amplitudeM: 0 };
+    this.berthMotion.update(this.berthRidden, view.definition.hull, view.actor.motion, dt);
     view.seaOffset = this.berthMotion;
   }
 
@@ -1106,6 +1111,7 @@ export class Game {
         this.occlusion.render(this.renderer, this.scene);
         // A paused frame (dt 0) renders the same waves, foam and wake again. The Water Pro comparison steps
         // asynchronously and renders its capture passes before this frame may.
+        this.coupleHullSea(emptyBerth);
         const stepping = this.ocean!.update(dt);
         if (stepping) { await stepping; if (this.disposed) return; }
         this.renderFrame();
@@ -1491,6 +1497,15 @@ export class Game {
   }
   /** Every hull on the water leaves a wake: the fleet's views and the reported
    * enemy exteriors. The camera's hull leads so the swell solver centres on it. */
+  /** Around every drawn hull the water shows the sea it rides: the battle's combat sea at the time its poses are drawn
+   * (paused and tactical-paused frames hold it), or the berth's in port. Presentation only. */
+  private coupleHullSea(emptyBerth: boolean): void {
+    const sea = this.inPort ? this.berthRidden : this.simulation.sea;
+    if (!sea || emptyBerth) { this.ocean!.setHullSea([], 0, []); return; }
+    const time = this.inPort ? this.berthMotion.seaTime : this.simulation.presentationTime ?? this.simulation.tick / 60;
+    const ships = this.inPort ? [this.playerView!] : this.wakeShips();
+    this.ocean!.setHullSea(seaWaves(sea), time, hullFootprints(ships, { x: this.camera.position.x, z: this.camera.position.z }, sea.amplitudeM));
+  }
   private wakeShips(): WakeShip[] {
     const focus = this.cameraShipView;
     return [focus, ...this.fleetViews.filter(view => view !== focus), ...this.observedShipViews?.wakeShips() ?? []];

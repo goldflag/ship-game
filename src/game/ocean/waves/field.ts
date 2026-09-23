@@ -6,8 +6,9 @@ import { DataTexture, FloatType, HalfFloatType, LinearFilter, LinearMipmapLinear
   QuadMesh, RGBAFormat, RenderTarget, RepeatWrapping, Vector2, type Node, type Texture, type WebGPURenderer } from 'three/webgpu';
 import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max, min, mix, mrt, screenCoordinate, select, sin, smoothstep,
   texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
-import type { OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
+import type { HullFootprint, HullSeaWave, OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
+import { HullSea, cascadeModes, hullSeaWavelength, splitLevel } from './hullSea';
 import { drawnSea, seaStateCascades } from './seaState';
 import { FOLD_PERIOD, buildSpectrum, cascadeBands } from './spectrum';
 import { type CascadeBreaking, cascadeBreaking, setBreakingThresholds, whitecapDepth } from './whitecaps';
@@ -155,6 +156,12 @@ export class GpuWaveField implements WaveField {
   /** How each cascade breaks, for the current spectrum. */
   private breaking: CascadeBreaking[] = [];
   private lastPhase = -1;
+  /** Near hulls the long waves give way to the sea the hulls ride (hullSea.ts). */
+  private readonly hullSea = new HullSea();
+  /** The first cascade's spectrum as `splitLevel` weighs it, and the combat wavelength its split was last chosen for (NaN: choose again). */
+  private firstModes: Float32Array = new Float32Array(0);
+  private combatWavelength = 0;
+  private splitFor = NaN;
 
   /** `tier` is the quality tier's layout; `realism.seaState` is read live, and flipping it rebuilds. */
   constructor(private readonly tier: readonly WaveCascadeInfo[], readonly params: WaveParameters, readonly foamParams: WaveFoamParameters,
@@ -304,29 +311,34 @@ export class GpuWaveField implements WaveField {
     return (level ? node.level(level) : node) as unknown as Vec4;
   }
 
+  /** Mip level whose texels match `metres` on cascade `i`'s tile (unclamped). */
+  private mip(metres: Float, i: number): Float { return log2(metres.mul(this.texels[i])); }
+
   displacement(xz: Node<'vec2'>, spacing?: Float): Node<'vec3'> {
-    return this.tier.reduce<Node<'vec3'>>((sum, _, i) => {
+    const waves = this.tier.reduce<Node<'vec3'>>((sum, _, i) => {
       if (!spacing) return sum.add(this.sample('displacement', xz, i, float(0)).xyz);
       // The mip whose texel matches the vertex spacing; the cascade fades out between four and two
       // vertices per its longest wave, where the mesh can no longer carry any of it.
-      const level = clamp(log2(spacing.mul(this.texels[i])), 0, this.top);
+      const level = clamp(this.mip(spacing, i), 0, this.top);
       const fade = float(1).sub(smoothstep(this.longestWaves[i].mul(.25), this.longestWaves[i].mul(.5), spacing));
       return sum.add(this.sample('displacement', xz, i, level).xyz.mul(fade));
     }, vec3(0));
+    return this.hullSea.displace(waves, this.longWaves('displacement', xz, spacing).xyz, xz, spacing);
   }
 
-  surface(xz: Node<'vec2'>, calm?: Float): WaveSurfaceSample {
+  surface(xz: Node<'vec2'>, calm?: Float, at: Node<'vec2'> = xz): WaveSurfaceSample {
     // The pixel's footprint on the grid (m), as the anisotropic filter resolves it.
     const across = dFdx(xz).length(), down = dFdy(xz).length();
     const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
     const stilled = slick(calm);
+    const hulls = this.hullSurface(xz, at, footprint);
     let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), bubbles: Float = float(0);
     let variance: Float = stilled(this.tail, 1), unresolved: Float = stilled(this.tailFull, 1);
     this.tier.forEach((_, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
       // last level (slopes, strain and foam alike, which would otherwise repeat with the tile); its
       // whole slope variance then roughens the surface instead.
-      const level = log2(footprint.mul(this.texels[i]));
+      const level = this.mip(footprint, i);
       const detail = float(1).sub(smoothstep(this.top - 1, this.top, level));
       const derivatives = this.sample('derivatives', xz, i), extras = this.sample('extras', xz, i);
       // A finer cascade's foam shows on the crests of the coarser ones summed so far (their compression is
@@ -341,6 +353,8 @@ export class GpuWaveField implements WaveField {
       const cascadeVariance = stilled(mix(this.slopes[i], filtered, detail), this.slickShares[i]);
       variance = variance.add(cascadeVariance);
       unresolved = unresolved.add(cascadeVariance);
+      // Near hulls the first cascade's long waves give way to the sea they ride, before finer foam follows its crests.
+      if (!i) { slope = slope.add(hulls.slope.mul(detail)); strain = strain.add(hulls.strain.mul(detail)); }
     });
     // World slope of the displaced surface: the grid slope through the inverse transpose of the
     // horizontal map's Jacobian [[1 + ∂Dx/∂x, ∂Dx/∂z], [∂Dx/∂z, 1 + ∂Dz/∂z]].
@@ -351,7 +365,34 @@ export class GpuWaveField implements WaveField {
     // Foam rides the water: per area of sea it is as dense as the surface is compressed (1 / J), gathered on
     // converging crests and thinned where their backs stretch.
     const density = foam.div(clamp(jacobian, FOAM_JACOBIAN_MIN, FOAM_JACOBIAN_MAX));
-    return { slope: world.add(ripples.slope), jacobian, foam: density, bubbles, slopeVariance: variance.add(ripples.variance), unresolvedVariance: unresolved.add(ripples.unresolved) };
+    return {
+      slope: world.add(ripples.slope).add(hulls.world), jacobian, foam: density, bubbles,
+      slopeVariance: variance.add(ripples.variance).add(hulls.variance), unresolvedVariance: unresolved.add(ripples.unresolved).add(hulls.variance),
+    };
+  }
+
+  /** The first cascade low-passed to the hull sea's split, and never finer than the vertex `spacing` (or, given as a
+   * mip level, the pixel's): the long waves hulls replace. */
+  private longWaves(field: typeof FIELDS[number], xz: Node<'vec2'>, spacing?: Float, level?: Float): Vec4 {
+    const fine = level ?? (spacing ? this.mip(spacing, 0) : float(0));
+    const long = this.sample(field, xz, 0, clamp(max(fine, this.hullSea.split), 0, this.top)).mul(this.hullSea.replace);
+    return spacing ? long.mul(float(1).sub(smoothstep(this.longestWaves[0].mul(.25), this.longestWaves[0].mul(.5), spacing))) : long;
+  }
+
+  /** The hull sea's share of a pixel's surface: grid slope and strain to add with the first cascade's (its long waves
+   * scaled by the blend), world slope to add after the displaced-surface transform (the combat sea's own and the
+   * blend's gradient across both seas), and the combat slopes' unresolved variance. */
+  private hullSurface(xz: Node<'vec2'>, at: Node<'vec2'>, footprint: Float) {
+    const weight = this.hullSea.weightGradient(xz), blend = this.hullSea.blend(weight.x, weight.yz);
+    const level = this.mip(footprint, 0), derivatives = this.longWaves('derivatives', xz, undefined, level);
+    const extras = this.longWaves('extras', xz, undefined, level), height = this.longWaves('displacement', xz, undefined, level).y;
+    const sea = this.hullSea.surface(at, footprint);
+    return {
+      slope: derivatives.xy.mul(blend.lowpass),
+      strain: vec3(derivatives.zw, extras.x).mul(blend.lowpass),
+      world: sea.yz.mul(blend.sea).add(blend.lowpassGradient.mul(height)).add(blend.seaGradient.mul(sea.x)),
+      variance: sea.w.mul(blend.sea.mul(blend.sea)),
+    };
   }
 
   /** Waves shorter than the finest cascade, drawn close to the camera instead of only roughening the reflection.
@@ -378,15 +419,36 @@ export class GpuWaveField implements WaveField {
   }
 
   heightAt(xz: Node<'vec2'>): Float {
+    // Near hulls the long waves give way to the sea they ride; the blend is smooth over metres, so it is read once at xz,
+    // and the long waves' sideways motion (smooth over tens of metres) at xz and again at the first step's grid point.
+    const hulls = this.hullSea.blend(this.hullSea.weight(xz));
+    let long = this.longWaves('displacement', xz).xz.mul(hulls.lowpass);
     // Fixed-point inversion of the choppy map (the grid point whose displaced position is xz),
     // damped after the first step: undamped steps oscillate where storm crests fold.
-    const horizontal = (at: Node<'vec2'>) => this.tier.reduce<Node<'vec2'>>((sum, _, i) => sum.add(this.sample('displacement', at, i, float(0)).xz), vec2(0));
+    const horizontal = (at: Node<'vec2'>) => this.tier.reduce<Node<'vec2'>>((sum, _, i) => sum.add(this.sample('displacement', at, i, float(0)).xz), vec2(0)).add(long);
     let grid: Node<'vec2'> = xz;
     for (let step = 0; step < INVERSION_STEPS; step++) {
       const target = xz.sub(horizontal(grid));
       grid = step ? grid.add(target.sub(grid).mul(INVERSION_DAMPING)) : target;
+      if (!step) long = this.longWaves('displacement', grid).xz.mul(hulls.lowpass);
     }
-    return this.tier.reduce<Float>((sum, _, i) => sum.add(this.sample('displacement', grid, i, float(0)).y), float(0));
+    return this.tier.reduce<Float>((sum, _, i) => sum.add(this.sample('displacement', grid, i, float(0)).y), float(0))
+      .add(this.longWaves('displacement', grid).y.mul(hulls.lowpass)).add(this.hullSea.height(xz).mul(hulls.sea));
+  }
+
+  couple(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[], origin: { x: number; z: number }): void {
+    // Only the realistic sea couples: the art-directed sea is drawn as given (hullSea.ts).
+    this.hullSea.set(waves, time, this.realism.seaState ? hulls : [], origin);
+    this.combatWavelength = hullSeaWavelength(waves);
+    this.chooseSplit();
+  }
+
+  /** Split the first cascade for the combat sea's wavelength, once per spectrum and wavelength. */
+  private chooseSplit(): void {
+    if (this.splitFor === this.combatWavelength || !(this.combatWavelength > 0) || !this.built) return;
+    const level = splitLevel(this.firstModes, this.cascades[0].size / this.size, this.top, this.combatWavelength);
+    this.hullSea.split.value = level ?? this.top; this.hullSea.replace.value = level === null ? 0 : 1;
+    this.splitFor = this.combatWavelength;
   }
 
   update(renderer: WebGPURenderer, time: number, dt: number): void {
@@ -410,6 +472,7 @@ export class GpuWaveField implements WaveField {
       this.wind.value.set(Math.cos(this.sea.windDirection), Math.sin(this.sea.windDirection));
       this.prepareWhitecaps(spectrum);
       this.params.dirty = false; this.built = rebuilt = true;
+      this.firstModes = cascadeModes(spectrum.cascades[0].amplitudes, n, this.cascades[0].size); this.splitFor = NaN; this.chooseSplit();
     }
     const phase = Math.fround((time % FOLD_PERIOD + FOLD_PERIOD) % FOLD_PERIOD / FOLD_PERIOD);
     // A paused frame with nothing changed keeps last frame's fields, foam included.

@@ -201,8 +201,9 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     this.positionNode = vec3(grid.x.add(offset.x), offset.y.add(wake.height(grid.x, grid.y)), grid.y.add(offset.z));
 
     const xz = varying(grid, 'oceanGrid');
-    // A wake's slick stills the short waves: their slopes and the roughness they leave unresolved.
-    const sample = waves.surface(xz, wake.slick?.(xz.x, xz.y));
+    // A wake's slick stills the short waves: their slopes and the roughness they leave unresolved. The sea coupled to
+    // hulls is read where the point is drawn.
+    const sample = waves.surface(xz, wake.slick?.(xz.x, xz.y), positionWorld.xz);
     const toCamera = cameraPosition.sub(positionWorld), distance = toCamera.length(), view = toCamera.div(distance);
     const wakeNormal = wake.normal(xz.x, xz.y);
     const up = surfaceNormal(sample.slope, wakeNormal);
