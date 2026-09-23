@@ -5,7 +5,7 @@
  * `absorptionColor` (per metre); backscattering is BACKSCATTER. Remote-sensing reflectance after Lee, Carder & Arnone
  * (2002); optical constants after Morel (1974, 1988) and Mobley, "Light and Water" (1994). */
 import type { Node, Texture } from 'three/webgpu';
-import { exp, float, pmremTexture, vec3 } from 'three/tsl';
+import { exp, float, pmremTexture, varying, vec3 } from 'three/tsl';
 import { schlick } from './physicalReflection';
 
 type Float = Node<'float'>;
@@ -47,16 +47,14 @@ export function subsurfaceReflectance(absorption: Vec3, scatter: Vec3): Vec3 {
   return reflectance.div(float(1).sub(reflectance.mul(INTERNAL_RETURN)));
 }
 
-/** Downwelling irradiance just under the surface: the sun's on the horizontal, less its Fresnel reflection at its own
- * incidence and where the sun shadow (`lit`) keeps it off, plus the sky's, less its hemispherical Fresnel average. */
-export function downwellingIrradiance(sun: Vec3, sunIrradiance: Vec3, sky: Vec3, lit: Float): Vec3 {
+/** Radiance just under the surface looking down into optically deep water, r_rs times the downwelling irradiance: the
+ * sun's on the horizontal, less its Fresnel reflection at its own incidence and where the sun shadow (`lit`) keeps it
+ * off, plus the sky's, less its hemispherical Fresnel average. The sun's part depends on no pixel and is evaluated per
+ * vertex (the sky's reads the PMREM, which three samples correctly only per fragment); the shadow applies per pixel. */
+export function upwelling(reflectance: Vec3, sun: Vec3, sunIrradiance: Vec3, sky: Vec3, lit: Float): Vec3 {
   const height = sun.y.max(0);
-  return sunIrradiance.mul(height.mul(float(1).sub(schlick(height))).mul(lit)).add(sky.mul(1 - SKY_FRESNEL));
-}
-
-/** Radiance just under the surface looking down into optically deep water: r_rs times the downwelling irradiance. */
-export function upwelling(reflectance: Vec3, irradiance: Vec3): Vec3 {
-  return reflectance.mul(irradiance);
+  const sunlit = varying(reflectance.mul(sunIrradiance).mul(height.mul(float(1).sub(schlick(height)))), 'oceanSunUpwelling');
+  return sunlit.mul(lit).add(reflectance.mul(sky).mul(1 - SKY_FRESNEL));
 }
 
 /** Share of a submerged object's light that survives the column `column` (m, along the view ray) of water above it:

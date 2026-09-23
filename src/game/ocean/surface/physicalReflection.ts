@@ -41,6 +41,10 @@ const PMREM_BLUR: readonly (readonly [angle: number, roughness: number])[] = [
 const TAP_BLUR = .5;
 /** Below this spread of the taps (relative to their blur) one tap already has the lobe's shape. */
 const TAP_SPREAD = .3;
+/** In-plane deviations below the lobe's centre at which the screen-space ray is traced. Hulls stand above the water
+ * that mirrors them, so the lobe's lower part meets a hull that its centre, turned up by the visible facets, would pass
+ * over; the image is then read over the whole lobe around its centre (`ReflectionLobe.traced`). */
+export const TRACE_BELOW = 1;
 
 /** Schlick's approximation with the surface's tiny grazing guard. */
 export function schlick(cosine: Float): Float {
@@ -140,6 +144,8 @@ export interface ReflectionLobe {
   readonly across: Float;
   /** RMS unresolved slope along the view's azimuth, for the mean Fresnel. */
   readonly sigmaView: Float;
+  /** The ray the screen-space trace follows: TRACE_BELOW in-plane deviations below `direction`. */
+  readonly traced: Vec3;
 }
 
 /** Schlick's reflectance falls with the cosine of incidence c at the rate k = −d ln F/dc = 5(1 − F0)(1 − c)⁴/F(c): about
@@ -172,8 +178,9 @@ export function reflectionLobe(view: Vec3, normal: Vec3, variances: Vec2, wind: 
   const up = normalize(facet.sub(direction.mul(dot(facet, direction))).add(vec3(0, 1e-6, 0)));
   // A slope s turns a facet by atan s, and the mirrored ray by twice that.
   const mean = visible.mean.sub(shift), turn = float(2).div(mean.mul(mean).add(1));
-  return { facet, direction, up, inPlane: visible.variance.sqrt().mul(turn), across: acrossVariance.sqrt().mul(dot(facet, view).max(0).mul(2)),
-    sigmaView: inPlaneVariance.sqrt() };
+  const inPlane = visible.variance.sqrt().mul(turn), below = inPlane.mul(TRACE_BELOW);
+  return { facet, direction, up, inPlane, across: acrossVariance.sqrt().mul(dot(facet, view).max(0).mul(2)), sigmaView: inPlaneVariance.sqrt(),
+    traced: direction.mul(cos(below)).sub(up.mul(sin(below))) };
 }
 
 /** Sky radiance over the reflected lobe. The PMREM blurs isotropically, so an elongated lobe takes three taps along

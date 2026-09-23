@@ -22,8 +22,8 @@ export interface ScreenReflectionInput {
   readonly steps: number;
   /** Rough water's smear of the image: the ray turned by one standard deviation `spread` (radians) toward `up` (view
    * space, perpendicular to the ray in the plane of incidence) lands `spread` × its length along the hit surface, and
-   * the image is read over that span on screen instead of at the hit alone. */
-  readonly blur?: { readonly up: Node<'vec3'>; readonly spread: Node<'float'> };
+   * the image is read over that span on screen, centred `centre` deviations up from the hit, instead of at the hit alone. */
+  readonly blur?: { readonly up: Node<'vec3'>; readonly spread: Node<'float'>; readonly centre?: number };
 }
 
 export interface ScreenReflection {
@@ -152,7 +152,8 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
           const lifted = cameraProjectionMatrix.mul(vec4(point.add(blur.up.mul(point.distance(origin).mul(blur.spread))), 1));
           const smear = vec2(lifted.x.div(lifted.w).mul(.5).add(.5), lifted.y.div(lifted.w).mul(-.5).add(.5)).sub(uv).toVar();
           smear.assign(smear.mul(min(float(1), float(SMEAR_LIMIT).div(smear.length().max(1e-6)))));
-          color.assign(SMEAR_TAPS.reduce<Node<'vec3'>>((sum, [at, weight]) => sum.add(screenRead(sceneColor, uv.add(smear.mul(at)).clamp(0, 1), float(0)).rgb.mul(weight)), vec3(0)));
+          const centre = blur.centre ?? 0;
+          color.assign(SMEAR_TAPS.reduce<Node<'vec3'>>((sum, [at, weight]) => sum.add(screenRead(sceneColor, uv.add(smear.mul(at + centre)).clamp(0, 1), float(0)).rgb.mul(weight)), vec3(0)));
         } else color.assign(screenRead(sceneColor, uv, float(0)).rgb);
         confidence.assign(edges.mul(range).mul(facing));
       });

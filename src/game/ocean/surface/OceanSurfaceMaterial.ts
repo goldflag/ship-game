@@ -6,8 +6,8 @@ import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../screen/reflections';
 import { FOAM_TEXELS, foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
-import { footprintVariance, meanFresnel, reflectionLobe, skyLobe, sunGlitter, windVariances } from './physicalReflection';
-import { backscatter, columnTransmittance, downwellingIrradiance, skyIrradiance, subsurfaceReflectance, upwelling, waterBody } from './waterBody';
+import { TRACE_BELOW, footprintVariance, meanFresnel, reflectionLobe, skyLobe, sunGlitter, windVariances } from './physicalReflection';
+import { backscatter, columnTransmittance, skyIrradiance, subsurfaceReflectance, upwelling, waterBody } from './waterBody';
 
 /** Reflectance of water at normal incidence. */
 const WATER_F0 = .02;
@@ -253,7 +253,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     if (physical.waterColor) {
       // Light scattered back out of the water, lit by the sun and sky that cross the surface (see waterBody.ts).
       const scatter = backscatter();
-      const deep = upwelling(subsurfaceReflectance(absorption, scatter), downwellingIrradiance(sunDirection, sunRadiance, skyIrradiance(environment), lit));
+      const deep = upwelling(subsurfaceReflectance(absorption, scatter), sunDirection, sunRadiance, skyIrradiance(environment), lit);
       body = waterBody(this.sceneColor.rgb, deep, columnTransmittance(absorption, scatter, column, view));
     } else {
       const through = transmittance(absorption, column);
@@ -269,10 +269,10 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const sky = lobe ? skyLobe(environment, lobe) : skyReflection(environment, reflect(view.negate(), up), roughness(sample.slopeVariance));
     // Ships and islands the mirrored ray meets on screen replace the sky (High and Ultra only).
     const toView = (direction: Node<'vec3'>) => cameraViewMatrix.mul(vec4(direction, 0)).xyz;
-    const traced = reflections.steps > 0 ? screenSpaceReflection({ position: positionView, direction: toView(lobe ? lobe.direction : traceDirection(view, up)),
+    const traced = reflections.steps > 0 ? screenSpaceReflection({ position: positionView, direction: toView(lobe ? lobe.traced : traceDirection(view, up)),
       sceneColor: this.sceneColor, sceneDepth: this.sceneDepth, enabled: this.screenReflections,
       maxDistance: reference('maxDistance', 'float', reflections), steps: reflections.steps,
-      blur: lobe ? { up: toView(lobe.up), spread: lobe.inPlane } : undefined }) : undefined;
+      blur: lobe ? { up: toView(lobe.up), spread: lobe.inPlane, centre: TRACE_BELOW } : undefined }) : undefined;
     const reflected = traced ? mix(sky, traced.color, traced.confidence) : sky;
     // How far up a wave this point sits: crests reach about Hs / 2, rare ones Hs.
     const crest = positionWorld.y.div(reference('significantHeight', 'float', waves.params).max(.1)).clamp(0, 1);
