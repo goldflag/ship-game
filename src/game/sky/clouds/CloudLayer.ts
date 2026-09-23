@@ -309,11 +309,12 @@ export class CloudLayer implements CloudPart {
     const due = this.catchUp > 0 || ++this.sinceUpdate >= (under ? tier.cloudUpdateInterval : 1);
     this.chooseComposite(camera);
     if (!this.compiled) {
-      // Every tier's march compiles now, under the loading screen: a later tier change must not hitch.
+      // Every tier's march compiles now, under the loading screen: a later tier change must not hitch. One
+      // workgroup runs with a count of zero, so the kernel's bounds check returns before anything is written.
       for (const kernel of this.marchKernels.values()) {
         const count = kernel.count;
         kernel.count = 0;
-        renderer.compute(kernel);
+        renderer.compute(kernel, [1, 1, 1]);
         kernel.count = count;
       }
       this.compiled = true;

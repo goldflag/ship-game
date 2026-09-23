@@ -95,9 +95,15 @@ type AerialFrom = (direction: Vec3, distance: Float, fromSea?: boolean) => { ins
  * mean distance of what it met (`MAX_DISTANCE` where it met nothing). */
 export interface MarchResult { radiance: Vec3; transmittance: Float; depth: Float }
 
-/** Light colour (irradiance) at a world point: the sun's or the moon's through the air above it. */
+/** Light colour (irradiance) at a world point: the sun's or the moon's through the air above it. `night` is 0 or
+ * 1, so a uniform branch reads only the lighting body's transmittance. */
 export function cloudLightAt(sky: SkyUniforms, atmosphere: AtmospherePart, light: CloudLight, p: Vec3): Vec3 {
-  return mix(atmosphere.sunTransmittance(p).mul(sky.sunIrradiance), atmosphere.moonTransmittance(p).mul(sky.moonIrradiance), light.night);
+  return Fn(() => {
+    const colour = vec3(0).toVar();
+    If(light.night.greaterThan(.5), () => { colour.assign(atmosphere.moonTransmittance(p).mul(sky.moonIrradiance)); })
+      .Else(() => { colour.assign(atmosphere.sunTransmittance(p).mul(sky.sunIrradiance)); });
+    return colour;
+  })();
 }
 const lightAt = (context: MarchContext, p: Vec3) => cloudLightAt(context.sky, context.atmosphere, context.light, p);
 

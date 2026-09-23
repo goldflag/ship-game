@@ -113,9 +113,9 @@ are one compute submission: a ray in every interleave block of a reduced-resolut
 jitter, clear air crossed in leaps the weather map's distances allow, strides and a step back at
 cloud edges, early exit), the temporal reconstruction (every pixel reprojects its history by the
 nearest rays' depth and the wind's drift, then blends in this frame's four nearest rays weighted by
-distance: temporal upsampling, no block pattern), and a slice of the shadow map. Lower tiers update
-every few frames; the composite turns the last update to the current view in between, and after a
-cut every pixel is marched for two frames. Light: unrolled samples toward the sun (the moon at night)
+distance: temporal upsampling, no block pattern), and a slice of the shadow map. A tier may update
+only every few frames (`cloudUpdateInterval`, 1 on every tier today): the composite turns the last
+update to the current view in between. After a cut every pixel is marched for two frames. Light: unrolled samples toward the sun (the moon at night)
 with the nearest reading the detail, two far samples reading only the weather cover, multiple-scattering
 octaves over a dual-lobe phase (silver linings), Beer–powder, and the atmosphere's ambient (sky above,
 sea below, darkened toward bases by `baseShadow`); aerial perspective once per ray at the
@@ -148,10 +148,10 @@ light) and the sea reflects it through `OceanSky.createReflectionSampler`. The f
 
 | Tier | Cloud buffer | Marched per update | Updated | Steps / light | Shadow map | Bake | Shafts | Rain drops |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Low | ¼ res | 1 of 16 | every 4th frame | 24 / 2 | 256² | 256 × 128, 12 steps | 16 | 3,000 |
-| Medium | ⅓ res | 1 of 16 | every 2nd frame | 40 / 3 | 512² | 384 × 192, 16 steps | 24 | 8,000 |
-| High | ½ res | 1 of 16 | every 2nd frame | 48 / 3 | 512² | 512 × 256, 24 steps | 32 | 16,000 |
-| Ultra | ½ res | 1 of 16 | every frame | 64 / 4 | 1024² | 768 × 384, 32 steps | 48 | 30,000 |
+| Low | ⅓ res | 1 of 16 | every frame | 40 / 3 | 512² | 256 × 128, 12 steps | 16 | 3,000 |
+| Medium | ½ res | 1 of 16 | every frame | 64 / 4 | 1024² | 384 × 192, 16 steps | 24 | 8,000 |
+| High | ½ res | 1 of 4 | every frame | 80 / 4 | 1024² | 512 × 256, 24 steps | 32 | 16,000 |
+| Ultra | ½ res | 1 of 4 | every frame | 128 / 5 | 1024² | 768 × 384, 32 steps | 48 | 30,000 |
 
 ## Budget
 
