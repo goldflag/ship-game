@@ -12,6 +12,7 @@
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
+import { Vector3 } from 'three/webgpu';
 
 const params = new URLSearchParams(location.search);
 const output = document.querySelector('output'), noop = () => {};
@@ -56,6 +57,8 @@ const gaze = (eye, heading, elevation, fov = 60) => {
 const headingOf = direction => Math.atan2(direction.z, direction.x);
 const elevationOf = direction => Math.asin(Math.max(-1, Math.min(1, direction.y))) * 180 / Math.PI;
 const place = (view, pose) => { Object.assign(view.actor.motion, pose); view.snap(); };
+/** The game sky's weather part (src/game/sky/weather), for forced lightning; absent under Sky Pro. */
+const weatherPart = () => game.sky.parts?.weather;
 let battleKey, far;
 /** Enter (or stay in) a paused battle with these conditions; ships at fixed poses. */
 async function battle({ map = 'north-atlantic', hours = 12, wind = 9, cloud, weather = 'map', range = 5000 } = {}) {
@@ -70,6 +73,8 @@ async function battle({ map = 'north-atlantic', hours = 12, wind = 9, cloud, wea
   game.environment.setBattle({ weather, timeOfDay: 'map', conditions: { timeHours: hours, windSpeed: wind, ...(cloud === undefined ? {} : { cloudCover: cloud }) } });
   game.setInPort(false); game.setPaused(true); game.rig.releasePointer();
   game.environment.setScene(game.simulation.mapId, false);
+  // Frames stand still here, so a forced flash would never end on its own.
+  weatherPart()?.clearStrike();
   game.camera.far = far;
   place(game.playerView, { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 });
   if (game.targetView) { place(game.targetView, { x: range, y: 0, z: 0, heading: Math.PI / 2, pitch: 0, roll: 0 }); game.targetView.root.visible = true; }
@@ -79,6 +84,9 @@ async function battle({ map = 'north-atlantic', hours = 12, wind = 9, cloud, wea
   await frames(4);
 }
 const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
+/** Draw the whole frame again. The scene pass renders once per node frame, which advances only on the browser's
+ * animation frames: without a new one, back-to-back renders redo the post passes alone and time no mesh. */
+const redraw = () => { game.renderer._nodes.nodeFrame.update(); game.pipeline.render(); };
 /** A bridge-height eye beside the player's ship. */
 const BRIDGE = [-60, 32, 90];
 /** The standard battle view: the ship in the foreground, the enemy and the sky beyond. */
@@ -125,7 +133,78 @@ const scenes = {
     const distance = 14000, tilt = 65 * Math.PI / 180;
     look([0, distance * Math.cos(tilt), distance * Math.sin(tilt)], [0, 0, 0], 52, 1000000);
   },
+  /** A daylight downpour from the bridge toward the enemy: streaks, splashes on the sea, the far hull veiled. */
+  rain: async () => { await battle({ hours: 13, weather: 'storm-clouds', wind: 16, range: 2500 }); gaze(BRIDGE, -.12, 1.5); },
+  /** Moonlit rain from the bridge, facing the moon through broken cloud: dark but for the drops it backlights. */
+  rainNight: async () => {
+    await battle({ hours: 21.5, cloud: 60, wind: 12 });
+    game.environment.setOverrides({ precipitation: 70 });
+    const moon = moonDirection(); gaze(BRIDGE, headingOf(moon), Math.max(4, elevationOf(moon) - 30), 70);
+  },
+  /** A night storm lit by a cloud-to-ground bolt 4 km off the bow, 6 ms into its first return stroke (seeded). */
+  lightning: async () => {
+    await battle({ hours: 23, weather: 'storm-clouds', wind: 16, range: 2500 });
+    gaze(BRIDGE, .05, 4);
+    weatherPart()?.forceStrike(new Vector3(4000, 0, 450), .006, 'ground', 7);
+  },
+  /** The same bolt by day, from the standard gameplay view. */
+  lightningDay: async () => {
+    await battle({ hours: 15, weather: 'storm-clouds', wind: 16 });
+    look(...WIDE);
+    weatherPart()?.forceStrike(new Vector3(-3200, 0, -5200), .006, 'ground', 7);
+  },
 };
+
+/** The weather's own cost in this scene, in milliseconds per frame. Its update is CPU only, so this is its meshes'
+ * share of the frame. A few hundredths of a millisecond drown in the noise of a shared GPU, so each of rain and
+ * splashes is drawn at none and at `copies` times its full capacity (the mesh drawn again by copies sharing its
+ * geometry and material) in alternate frames, and its cost here is the per-instance slope times the scene's count:
+ * from the median of the paired differences, their lower quartile, and the difference of the fastest frames.
+ * Frames are timed by GPU timestamps where the browser allows them (exact with --enable-webgpu-developer-features),
+ * else as serialised wall-clock frames. */
+async function benchmarkWeather(pairs = 160, copies = 8) {
+  const part = weatherPart();
+  if (!part) return undefined;
+  const renderer = game.renderer, backend = renderer.backend, device = backend.device;
+  const sorted = values => [...values].sort((a, b) => a - b);
+  const timestamps = backend.hasFeature('timestamp-query');
+  const frame = async () => {
+    if (timestamps) { redraw(); return renderer.resolveTimestampsAsync('render'); }
+    await device.queue.onSubmittedWorkDone();
+    const start = performance.now(); redraw(); await device.queue.onSubmittedWorkDone();
+    return performance.now() - start;
+  };
+  const result = { clock: timestamps ? 'gpu' : 'wall', copies };
+  backend.trackTimestamp = timestamps;
+  try {
+    if (timestamps) await renderer.resolveTimestampsAsync('render');
+    for (const [name, field] of [['rain', part.rain], ['splashes', part.splashes]]) {
+      const count = field.count, visible = field.mesh.visible, full = [], none = [], differences = [];
+      if (!count) { result[name] = { count: 0, cost: 0 }; continue; }
+      const extra = Array.from({ length: copies - 1 }, () => {
+        const copy = field.mesh.clone();
+        copy.visible = false;
+        game.scene.add(copy);
+        return copy;
+      });
+      const show = on => { field.count = on ? field.capacity : 0; for (const mesh of [field.mesh, ...extra]) mesh.visible = on; };
+      try {
+        for (let i = 0; i < pairs; i++) {
+          show(true); const a = await frame();
+          show(false); const b = await frame();
+          full.push(a); none.push(b); differences.push(a - b);
+        }
+      } finally { extra.forEach(copy => copy.removeFromParent()); field.count = count; field.mesh.visible = visible; }
+      const drawn = field.capacity * copies, scale = count / drawn;
+      const median = sorted(differences)[differences.length >> 1], quartile = sorted(differences)[differences.length >> 2];
+      const fastest = sorted(full)[3] - sorted(none)[3];
+      result[name] = { count, drawn, cost: median * scale, quartile: quartile * scale, fastest: fastest * scale,
+        atDrawn: median, frame: sorted(none)[none.length >> 1] };
+    }
+  } finally { backend.trackTimestamp = false; }
+  result.total = (result.rain?.cost ?? 0) + (result.splashes?.cost ?? 0);
+  return result;
+}
 
 async function capture() {
   await game.frame(performance.now());
@@ -161,10 +240,10 @@ async function benchmark(iterations = 60, blocks = 5) {
   const passes = [], frame = [], bare = [];
   for (let block = 0; block < blocks; block++) {
     passes.push(await time(() => sky.update(1 / 60)));
-    frame.push(await time(() => game.pipeline.render()));
+    frame.push(await time(redraw));
     const visible = meshes.map(mesh => mesh.visible);
     meshes.forEach(mesh => { mesh.visible = false; });
-    try { bare.push(await time(() => game.pipeline.render())); }
+    try { bare.push(await time(redraw)); }
     finally { meshes.forEach((mesh, i) => { mesh.visible = visible[i]; }); }
   }
   const median = values => [...values].sort((a, b) => a - b)[values.length >> 1];
@@ -175,7 +254,7 @@ async function benchmark(iterations = 60, blocks = 5) {
 window.skyReview = {
   game, scenes: Object.keys(scenes), errors,
   async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors] }; },
-  capture, measure, benchmark,
+  capture, measure, benchmark, benchmarkWeather,
 };
 window.ready = true; output.textContent = '';
 </script>
