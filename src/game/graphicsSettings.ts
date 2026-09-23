@@ -6,7 +6,7 @@ export type WaterShadowQuality = 'off' | 'low' | 'medium' | 'high';
 export type ModelDetail = 'low' | 'medium' | 'high' | 'full';
 export type TerrainQuality = 'medium' | 'high';
 export type EffectsQuality = 'low' | 'medium' | 'high';
-export type Antialiasing = 'off' | 'fxaa' | 'smaa';
+export type Antialiasing = 'off' | 'fxaa' | 'smaa' | 'taa';
 export type Reflections = 'sky' | 'scene';
 export type PerformanceReadoutMode = 'hidden' | 'fps' | 'detailed';
 /** Frames per second; 0 follows the display refresh. */
@@ -63,7 +63,7 @@ export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
   return {
     renderScale: sanitizeRenderScale(saved.renderScale, base.renderScale),
     frameLimit: FRAME_LIMITS.includes(saved.frameLimit as FrameLimit) ? saved.frameLimit as FrameLimit : base.frameLimit,
-    antialiasing: oneOf(saved.antialiasing, ['off', 'fxaa', 'smaa'], base.antialiasing),
+    antialiasing: oneOf(saved.antialiasing, ['off', 'fxaa', 'smaa', 'taa'], base.antialiasing),
     ocean: oneOf(saved.ocean, ['low', 'medium', 'high', 'ultra'], base.ocean),
     reflections: oneOf(saved.reflections, ['sky', 'scene'], base.reflections),
     clouds: oneOf(saved.clouds, ['low', 'medium', 'high', 'ultra'], base.clouds),

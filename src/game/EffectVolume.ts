@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu';
 import { Break, Fn, If, Loop, attribute, cameraFar, cameraNear, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cos, exp, float, mix,
   perspectiveDepthToViewZ, positionWorld, screenSize, sin, smoothstep,
   texture3D, vec3, vec4 } from 'three/tsl';
+import { writeSceneTargets } from './TemporalAntialiasing';
 
 /** The ocean renders several targets: float scene depth and integer auxiliary
  * depth. WebGPU requires each viewport copy to use its source target's format. */
@@ -62,6 +63,8 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
   // This is a single bounding plane, not a closed transparent shell. Rendering
   // separate back/front passes repeats submission without adding another surface.
   material.forceSinglePass = true;
+  // Its own fragment output: keep extra scene targets (temporal AA motion) intact.
+  writeSceneTargets(material);
   const volume = texture3D(map);
   material.fragmentNode = Fn(() => {
     const sphere = attribute<'vec4'>('effectSphere', 'vec4');
