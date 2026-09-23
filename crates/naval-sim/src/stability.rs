@@ -36,6 +36,10 @@ pub struct StabilityState {
     scratch: Scratch,
     #[serde(skip)]
     weighted_radii: Option<[f64; 2]>,
+    /// The hydrostatic righting arms (roll, pitch) from the last solve. The sea's
+    /// heeling arms join them every tick in `roll_arm` and `pitch_arm`.
+    #[serde(skip)]
+    righting: [f64; 2],
 }
 impl Default for StabilityState {
     fn default() -> Self {
@@ -58,6 +62,7 @@ impl Default for StabilityState {
             combat_lost: false,
             scratch: Scratch::default(),
             weighted_radii: None,
+            righting: [0.0; 2],
         }
     }
 }
@@ -194,6 +199,7 @@ pub fn update_stability(
             s.target_y = 0.0;
             s.roll_arm = 0.0;
             s.pitch_arm = 0.0;
+            s.righting = [0.0; 2];
             return;
         }
         let (fy, fc) = if actor.submarine.is_some() || damage.sunk {
@@ -226,9 +232,7 @@ pub fn update_stability(
             .1 - arms.1)
                 / epsilon,
         );
-        let wave = if damage.sunk { None } else { sea };
-        s.roll_arm = arms.0 + wave.map_or(0.0, |w| w.roll) * def.hull.beam * WAVE_ROLL_LEVER;
-        s.pitch_arm = arms.1 + wave.map_or(0.0, |w| w.pitch) * def.hull.length * WAVE_PITCH_LEVER;
+        s.righting = [arms.0, arms.1];
         s.target_y = fy;
     }
     if damage.sunk {
@@ -242,6 +246,12 @@ pub fn update_stability(
         p.y = mean + clamp((s.target_y - mean) * blend, -dt, dt) + p.wave_heave;
         p.vertical_speed = (p.y - previous) / dt;
     }
+    // The sea heels the hull every tick; only the hydrostatic solve keeps its
+    // interval. Held for the interval, the wave's arm drove roll in steps.
+    let wave = if damage.sunk { None } else { sea };
+    s.roll_arm = s.righting[0] + wave.map_or(0.0, |w| w.roll) * def.hull.beam * WAVE_ROLL_LEVER;
+    s.pitch_arm =
+        s.righting[1] + wave.map_or(0.0, |w| w.pitch) * def.hull.length * WAVE_PITCH_LEVER;
     s.roll_rate = (s.roll_rate
         + 9.81
             * (s.roll_arm

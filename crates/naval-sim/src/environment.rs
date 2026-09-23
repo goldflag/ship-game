@@ -50,7 +50,16 @@ impl Wave {
     fn sample(&self, x: f64, z: f64, time: f64) -> f64 {
         (self.k * (x * self.cos + z * self.sin) - self.omega * time + self.phase).sin()
     }
+    /// How much of this component's surface pressure remains `depth` below it.
+    fn felt_at(&self, depth: f64) -> f64 {
+        (-self.k * depth).exp()
+    }
 }
+/// Where, as a fraction of draft, the wave pressure that heels a hull acts: about
+/// the centre of its underwater body. Wave pressure fades with depth, faster for
+/// shorter waves, so a deep hull feels a gentler slope than the surface shows
+/// (the Smith effect) and a battleship rolls less than a destroyer in one sea.
+pub const ROLL_PRESSURE_DEPTH: f64 = 0.5;
 /// Both components of a sea state, resolved once for many samples.
 #[derive(Clone, Copy, Debug)]
 pub struct Waves([Wave; 2]);
@@ -81,8 +90,8 @@ impl SeaState {
     pub fn response(&self, h: &Hull, p: &ShipState, submarine: bool, time: f64) -> SeaResponse {
         let attenuation = (-(if submarine { p.depth() } else { 0.0 }) / 8.0).exp();
         let waves = self.waves();
-        let at = |x: f64, z: f64| {
-            let point = local_to_world(
+        let world = |x: f64, z: f64| {
+            local_to_world(
                 [x, 0.0, z],
                 Pose {
                     x: p.x,
@@ -90,8 +99,22 @@ impl SeaState {
                     heading: p.heading,
                     ..Pose::default()
                 },
-            );
+            )
+        };
+        let at = |x: f64, z: f64| {
+            let point = world(x, z);
             self.height_at(&waves, point[0], point[2], time) * attenuation
+        };
+        let depth = h.draft * ROLL_PRESSURE_DEPTH;
+        let felt = |x: f64| {
+            if self.amplitude_m == 0.0 {
+                return 0.0;
+            }
+            let point = world(x, 0.0);
+            self.amplitude_m
+                * (0.7 * waves.0[0].sample(point[0], point[2], time) * waves.0[0].felt_at(depth)
+                    + 0.3 * waves.0[1].sample(point[0], point[2], time) * waves.0[1].felt_at(depth))
+                * attenuation
         };
         let mut heave = 0.0;
         for z in [-0.4, -0.2, 0.0, 0.2, 0.4] {
@@ -102,7 +125,7 @@ impl SeaState {
         SeaResponse {
             heave,
             roll: clamp(
-                (at(h.beam * 0.4, 0.0) - at(-h.beam * 0.4, 0.0)) / (h.beam * 0.8),
+                (felt(h.beam * 0.4) - felt(-h.beam * 0.4)) / (h.beam * 0.8),
                 -0.18,
                 0.18,
             ) + clamp(p.speed * p.yaw_rate / 9.81 * 0.3, -0.06, 0.06),
