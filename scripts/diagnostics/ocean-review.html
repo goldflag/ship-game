@@ -7,8 +7,8 @@
 <script type="module">
 // Development-only fixed scenes of the real game for reviewing the ocean side by side.
 // `scripts/browser/ocean-review.ts` drives it and saves one PNG per scene.
-// ?quality=low|medium|high|ultra, ?ship=<preset> for the player, ?renderer=waterpro for the vendored Water Pro
-// library the game's ocean replaced (src/game/comparison), to compare the two.
+// ?quality=low|medium|high|ultra, ?ship=<preset> for the player, ?wind=<m/s> for scenes without their own (9),
+// ?renderer=waterpro for the vendored Water Pro library the game's ocean replaced (src/game/comparison), to compare the two.
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
@@ -63,7 +63,7 @@ const look = (position, target, fov = 60) => {
 const place = (view, pose) => { Object.assign(view.actor.motion, pose); view.snap(); };
 let battleKey, wakeState;
 /** Enter (or stay in) a paused battle with these conditions; ships at fixed poses. */
-async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12, wind = 9, cloud, range = 5000 } = {}) {
+async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12, wind = Number(params.get('wind') ?? 9), cloud, range = 5000 } = {}) {
   const key = `${map}/${player}/${range}`;
   if (key !== battleKey) {
     game.rig.update = rigUpdate;

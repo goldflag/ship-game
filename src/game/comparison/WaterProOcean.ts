@@ -305,6 +305,8 @@ export class WaterProOcean implements OceanApi {
     };
     return {
       params: this.waves,
+      // Water Pro draws the sea it is given; the realism switches are the game ocean's.
+      sea: this.waves,
       foamParams: this.foam.crest,
       get cascades(): WaveCascadeInfo[] {
         return Array.from({ length: simulation.getCascadeCount() }, (_, i) => ({ size: simulation.getScale(i), resolution: simulation.getResolution(i) }));
