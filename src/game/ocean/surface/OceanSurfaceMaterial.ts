@@ -226,7 +226,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     this.positionNode = vec3(grid.x.add(offset.x), offset.y.add(wake.height(grid.x, grid.y)), grid.y.add(offset.z));
 
     const xz = varying(grid, 'oceanGrid');
-    const sample = waves.surface(xz);
+    const sample = waves.surface(xz, positionWorld.xz);
     const toCamera = cameraPosition.sub(positionWorld), distance = toCamera.length(), view = toCamera.div(distance);
     const wakeNormal = wake.normal(xz.x, xz.y);
     const up = surfaceNormal(sample.slope, wakeNormal);

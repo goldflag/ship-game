@@ -49,7 +49,7 @@ function fakeOcean() {
       surface: { color: new Color(), opacity: 0, coverage: 0 }, shoreline: { color: new Color(), opacity: 0 } },
     fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 },
     sun: { direction: new Vector3(), intensity: 0, color: new Color() },
-    update() {}, setShadowNode() {}, ensureHorizon() {},
+    update() {}, setShadowNode() {}, ensureHorizon() {}, setHullSea() {},
   };
 }
 

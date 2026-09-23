@@ -19,6 +19,12 @@ export function seaHeight(sea: SeaState, x: number, z: number, time: number): nu
   };
   return sea.amplitudeM * (.7 * sample(sea.direction, sea.wavelengthM, sea.phase) + .3 * sample(sea.direction + .8, sea.wavelengthM * .57, sea.phase + 2));
 }
+/** The sea's components, the Rust authority's `SeaState::waves`: a·sin(k·(x cos θ + z sin θ) − √(g·k)·t + φ) each,
+ * k = 2π/wavelength, summing to `seaHeight` (the ocean draws them around the hulls that ride them). */
+export function seaWaves(sea: SeaState): { amplitude: number; wavelength: number; direction: number; phase: number }[] {
+  return [{ amplitude: sea.amplitudeM * .7, wavelength: sea.wavelengthM, direction: sea.direction, phase: sea.phase },
+    { amplitude: sea.amplitudeM * .3, wavelength: sea.wavelengthM * .57, direction: sea.direction + .8, phase: sea.phase + 2 }];
+}
 export interface SeaResponse { heave: number; roll: number; pitch: number; }
 /** The Rust authority's `SeaState::response` for a surfaced hull at rest, sample
  * for sample: mean height under the waterplane and the wave slope across 80% of

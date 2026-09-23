@@ -6,8 +6,9 @@ import { DataTexture, FloatType, HalfFloatType, LinearFilter, LinearMipmapLinear
   QuadMesh, RGBAFormat, RenderTarget, RepeatWrapping, Vector2, type Node, type Texture, type WebGPURenderer } from 'three/webgpu';
 import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max, min, mix, mrt, screenCoordinate, select, sin, smoothstep,
   texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
-import type { OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
+import type { HullFootprint, HullSeaWave, OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
+import { HullSea } from './hullSea';
 import { drawnSea, seaStateCascades } from './seaState';
 import { FOLD_PERIOD, buildSpectrum, cascadeBands } from './spectrum';
 
@@ -120,6 +121,8 @@ export class GpuWaveField implements WaveField {
   /** Each cascade's whole slope variance, which becomes roughness where it cannot be filtered. */
   private readonly slopes: ReturnType<typeof floatUniform>[];
   private lastPhase = -1;
+  /** Near hulls the long waves give way to the sea the hulls ride (hullSea.ts). */
+  private readonly hullSea = new HullSea();
 
   /** `tier` is the quality tier's layout; `realism.seaState` is read live, and flipping it rebuilds. */
   constructor(private readonly tier: readonly WaveCascadeInfo[], readonly params: WaveParameters, readonly foamParams: WaveFoamParameters,
@@ -267,7 +270,7 @@ export class GpuWaveField implements WaveField {
   private mip(metres: Float, i: number): Float { return log2(metres.mul(this.texels[i])); }
 
   displacement(xz: Node<'vec2'>, spacing?: Float): Node<'vec3'> {
-    return this.tier.reduce<Node<'vec3'>>((sum, _, i) => {
+    const waves = this.tier.reduce<Node<'vec3'>>((sum, _, i) => {
       if (!spacing) return sum.add(this.sample('displacement', xz, i, float(0)).xyz);
       // The mip whose texel matches the vertex spacing; the cascade fades out between four and two
       // vertices per its longest wave, where the mesh can no longer carry any of it.
@@ -275,12 +278,14 @@ export class GpuWaveField implements WaveField {
       const fade = float(1).sub(smoothstep(this.longestWaves[i].mul(.25), this.longestWaves[i].mul(.5), spacing));
       return sum.add(this.sample('displacement', xz, i, level).xyz.mul(fade));
     }, vec3(0));
+    return this.hullSea.displace(waves, this.longWaves('displacement', xz, spacing).xyz, xz, spacing);
   }
 
-  surface(xz: Node<'vec2'>): WaveSurfaceSample {
+  surface(xz: Node<'vec2'>, at: Node<'vec2'> = xz): WaveSurfaceSample {
     // The pixel's footprint on the grid (m), as the anisotropic filter resolves it.
     const across = dFdx(xz).length(), down = dFdy(xz).length();
     const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
+    const hulls = this.hullSurface(xz, at, footprint);
     let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), variance: Float = this.tail;
     this.tier.forEach((_, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
@@ -297,6 +302,8 @@ export class GpuWaveField implements WaveField {
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
       const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
       variance = variance.add(mix(this.slopes[i], filtered, detail));
+      // Near hulls the first cascade's long waves give way to the sea they ride, before finer foam follows its crests.
+      if (!i) { slope = slope.add(hulls.slope.mul(detail)); strain = strain.add(hulls.strain.mul(detail)); }
     });
     // World slope of the displaced surface: the grid slope through the inverse transpose of the
     // horizontal map's Jacobian [[1 + ∂Dx/∂x, ∂Dx/∂z], [∂Dx/∂z, 1 + ∂Dz/∂z]].
@@ -304,7 +311,32 @@ export class GpuWaveField implements WaveField {
     const jacobian = xx.mul(zz).sub(cross.mul(cross));
     const world = vec2(zz.mul(slope.x).sub(cross.mul(slope.y)), xx.mul(slope.y).sub(cross.mul(slope.x))).div(max(jacobian, MIN_JACOBIAN));
     const ripples = this.ripples(xz, footprint);
-    return { slope: world.add(ripples.slope), jacobian, foam, slopeVariance: variance.add(ripples.variance) };
+    return { slope: world.add(ripples.slope).add(hulls.world), jacobian, foam, slopeVariance: variance.add(ripples.variance).add(hulls.variance) };
+  }
+
+  /** The first cascade low-passed to the hull sea's split, and never finer than the vertex `spacing` (or, given as a
+   * mip level, the pixel's): the long waves hulls replace. */
+  private longWaves(field: typeof FIELDS[number], xz: Node<'vec2'>, spacing?: Float, level?: Float): Vec4 {
+    const split = log2(this.hullSea.split.mul(this.texels[0]));
+    const fine = level ?? (spacing ? this.mip(spacing, 0) : float(0));
+    const long = this.sample(field, xz, 0, clamp(max(fine, split), 0, this.top));
+    return spacing ? long.mul(float(1).sub(smoothstep(this.longestWaves[0].mul(.25), this.longestWaves[0].mul(.5), spacing))) : long;
+  }
+
+  /** The hull sea's share of a pixel's surface: grid slope and strain to add with the first cascade's (its long waves
+   * scaled by the blend), world slope to add after the displaced-surface transform (the combat sea's own and the
+   * blend's gradient across both seas), and the combat slopes' unresolved variance. */
+  private hullSurface(xz: Node<'vec2'>, at: Node<'vec2'>, footprint: Float) {
+    const weight = this.hullSea.weightGradient(xz), blend = this.hullSea.blend(weight.x, weight.yz);
+    const level = this.mip(footprint, 0), derivatives = this.longWaves('derivatives', xz, undefined, level);
+    const extras = this.longWaves('extras', xz, undefined, level), height = this.longWaves('displacement', xz, undefined, level).y;
+    const sea = this.hullSea.surface(at, footprint);
+    return {
+      slope: derivatives.xy.mul(blend.lowpass),
+      strain: vec3(derivatives.zw, extras.x).mul(blend.lowpass),
+      world: sea.yz.mul(blend.sea).add(blend.lowpassGradient.mul(height)).add(blend.seaGradient.mul(sea.x)),
+      variance: sea.w.mul(blend.sea.mul(blend.sea)),
+    };
   }
 
   /** Waves shorter than the finest cascade, drawn close to the camera instead of only roughening the reflection.
@@ -325,15 +357,23 @@ export class GpuWaveField implements WaveField {
   }
 
   heightAt(xz: Node<'vec2'>): Float {
+    // Near hulls the long waves give way to the sea they ride; the blend is smooth over metres, so it is read once at xz.
+    const hulls = this.hullSea.blend(this.hullSea.weight(xz));
     // Fixed-point inversion of the choppy map (the grid point whose displaced position is xz),
     // damped after the first step: undamped steps oscillate where storm crests fold.
-    const horizontal = (at: Node<'vec2'>) => this.tier.reduce<Node<'vec2'>>((sum, _, i) => sum.add(this.sample('displacement', at, i, float(0)).xz), vec2(0));
+    const horizontal = (at: Node<'vec2'>) => this.tier.reduce<Node<'vec2'>>((sum, _, i) => sum.add(this.sample('displacement', at, i, float(0)).xz), vec2(0))
+      .add(this.longWaves('displacement', at).xz.mul(hulls.lowpass));
     let grid: Node<'vec2'> = xz;
     for (let step = 0; step < INVERSION_STEPS; step++) {
       const target = xz.sub(horizontal(grid));
       grid = step ? grid.add(target.sub(grid).mul(INVERSION_DAMPING)) : target;
     }
-    return this.tier.reduce<Float>((sum, _, i) => sum.add(this.sample('displacement', grid, i, float(0)).y), float(0));
+    return this.tier.reduce<Float>((sum, _, i) => sum.add(this.sample('displacement', grid, i, float(0)).y), float(0))
+      .add(this.longWaves('displacement', grid).y.mul(hulls.lowpass)).add(this.hullSea.height(xz).mul(hulls.sea));
+  }
+
+  couple(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[], origin: { x: number; z: number }): void {
+    this.hullSea.set(waves, time, hulls, origin);
   }
 
   update(renderer: WebGPURenderer, time: number, dt: number): void {

@@ -67,6 +67,29 @@ export interface WaveSurfaceSample {
   slopeVariance: Node<'float'>;
 }
 
+/** One long-crested sine of the sea hulls ride (combat's): height a·sin(k·(x cos θ + z sin θ) − ω·t + φ), k = 2π/λ,
+ * ω = √(g·k). */
+export interface HullSeaWave {
+  amplitude: number;
+  wavelength: number;
+  /** Direction of travel θ, radians from +X toward +Z. */
+  direction: number;
+  phase: number;
+}
+
+/** A drawn hull the surface around it agrees with. */
+export interface HullFootprint {
+  /** Centre of the hull's waterplane, world metres. */
+  x: number;
+  z: number;
+  /** Bow direction, radians from +X toward +Z. */
+  bearing: number;
+  length: number;
+  beam: number;
+  /** 0–1: 1 for a hull afloat, 0 for a submarine or wreck none of which reaches the surface. */
+  contact: number;
+}
+
 /** GPU wave field: a JONSWAP spectrum evolved and inverse-transformed every frame into
  * periodic tiles. Surfaces sample it at the undisplaced (grid) world position. */
 export interface WaveField {
@@ -84,14 +107,18 @@ export interface WaveField {
   /** Vertex stage: world displacement (x, y, z) of the grid point `xz`. `spacing` is the local
    * vertex spacing in metres; waves it cannot represent are faded out instead of aliasing. */
   displacement(xz: Node<'vec2'>, spacing?: Node<'float'>): Node<'vec3'>;
-  /** Fragment stage: slope, jacobian, foam and unresolved variance at grid point `xz`. */
-  surface(xz: Node<'vec2'>): WaveSurfaceSample;
+  /** Fragment stage: slope, jacobian, foam and unresolved variance at grid point `xz`. `at` is where the point is
+   * drawn (the displaced world position), which the sea coupled to hulls is evaluated at; `xz` when omitted. */
+  surface(xz: Node<'vec2'>, at?: Node<'vec2'>): WaveSurfaceSample;
   /** Any stage: surface height at a world position, inverting the choppy displacement with a
    * few fixed-point steps. Used by overlays laid on the sea and the waterline test. */
   heightAt(xz: Node<'vec2'>): Node<'float'>;
   /** Rebuild the spectrum if dirty, then evolve and transform to `time` (seconds). `dt` advances
    * foam persistence; 0 renders without advancing it. */
   update(renderer: WebGPURenderer, time: number, dt: number): void;
+  /** Near `hulls`, blend the drawn long waves into the sea they ride: `waves` at `time`, the simulation's clock (not
+   * the field's). Presentation only. `origin`, a world point near the camera, keeps float32 phases small. */
+  couple(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[], origin: { x: number; z: number }): void;
   dispose(): void;
 }
 
@@ -260,6 +287,10 @@ export interface OceanApi {
   /** Advance and prepare the sea for this frame. The game's ocean finishes synchronously; the Water Pro comparison
    * (`src/game/comparison`) returns a promise the frame awaits before it renders. */
   update(dt: number): void | Promise<void>;
+  /** Draw the sea hulls ride around them: near each of `hulls` (the nearest sixteen) the long waves become `waves` at
+   * `time`, the simulation's clock, so a hull's waterline matches the water drawn beside it. Call before `update`;
+   * the last call holds on paused frames, and empty lists turn it off. */
+  setHullSea(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[]): void;
   setSky(sky: OceanSky | null): void;
   /** Replace the wake the surface reads (the game composes its own foam on top of `wake.sampler`). */
   setWakeSampler(sampler: WakeSampler | null): void;

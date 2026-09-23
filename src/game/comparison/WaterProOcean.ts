@@ -140,6 +140,9 @@ export class WaterProOcean implements OceanApi {
     this.captureBound();
   }
 
+  /** Water Pro draws its own sea; blending it into the sea hulls ride is the game ocean's. */
+  setHullSea(): void {}
+
   setSky(sky: OceanSky | null): void {
     // Sky Pro's provider is the object Water Pro always took; the facade types only the members the game's ocean reads.
     this.water.setSky(sky as unknown as SkyProvider | null);
@@ -318,6 +321,7 @@ export class WaterProOcean implements OceanApi {
       surface(): WaveSurfaceSample { throw new Error('Water Pro shades its own surface; only the game ocean\'s material reads surface().'); },
       // Water Pro steps its waves inside WaterSystem.update; here the time only moves.
       update(_renderer, time) { ocean.time = time; },
+      couple() {},
       dispose() {},
     };
   }
