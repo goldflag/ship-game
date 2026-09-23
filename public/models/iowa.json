@@ -1346,7 +1346,7 @@
         "barrelBaseRadius": 0.612,
         "traverseDeg": 150,
         "traverseRateDeg": 4,
-        "elevationMinDeg": 0,
+        "elevationMinDeg": -2,
         "elevationMaxDeg": 45,
         "elevationRateDeg": 12,
         "reloadSeconds": 29,
@@ -2010,6 +2010,7 @@
         "heatPerDamage": 0.014
       },
       "traverseDeg": 142.5,
+      "elevationMinDeg": 0,
       "weapon": {
         "id": "us-16in50-mk7-iowa",
         "name": "406 mm/50 Mk.7 triple",
@@ -2674,7 +2675,8 @@
           "damage": 130,
           "stockFraction": 0.35,
           "basis": "Provisional shared game HE behavior; no separate HE velocity model."
-        }
+        },
+        "catalogElevationMinDeg": -2
       }
     },
     {
@@ -2718,7 +2720,7 @@
         "barrelBaseRadius": 0.612,
         "traverseDeg": 146,
         "traverseRateDeg": 4,
-        "elevationMinDeg": 0,
+        "elevationMinDeg": -2,
         "elevationMaxDeg": 45,
         "elevationRateDeg": 12,
         "reloadSeconds": 29,
@@ -67672,5 +67674,5 @@
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   },
   "compilerVersion": 1,
-  "contentHash": "98191cfe2bd50258552d4bd534b0778d0fcb0e0a293c6a4f128fc779b31b1b57"
+  "contentHash": "b2ecc49b468504f9e11112f6cb51d38fd3797f129f5a8b0782d340531ae74cfe"
 }

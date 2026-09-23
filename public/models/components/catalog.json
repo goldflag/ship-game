@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "2655fec16973f5bd1978d2f33422e18fe9d41986d5ada92ecfb5d76f4160597e",
+  "revision": "0a5c70ddd3bdcaad62ed5e2fd37043db3c3da08b0d3cfdbf505432d88f66c238",
   "weapons": {
     "schemaVersion": 1,
     "parts": [
@@ -13380,7 +13380,7 @@
         "barrelBaseRadius": 0.612,
         "traverseDeg": 150,
         "traverseRateDeg": 4,
-        "elevationMinDeg": 0,
+        "elevationMinDeg": -2,
         "elevationMaxDeg": 45,
         "elevationRateDeg": 12,
         "reloadSeconds": 29,
@@ -104767,8 +104767,8 @@
           ]
         }
       ],
-      "modelUrl": "/models/components/us-16in50-mk7-iowa/2cd4cad56dea84fb59211afd4aabca44396149a442bbbf7367560b07972cb073/model.glb",
-      "contentHash": "5ea846f9cc1caa6af71c6a40c589a0139e152f0dcf10cbe74f5643f28e5c7698"
+      "modelUrl": "/models/components/us-16in50-mk7-iowa/d44e2baffb83b37c23ce73ef3be59ef443c670e47018d814aed425b398b15061/model.glb",
+      "contentHash": "d67300135760fa4bfe8c155ed6190198af87b92893843f18ceb524c0be3409bf"
     },
     {
       "id": "us-8in55-mk12-triple",
