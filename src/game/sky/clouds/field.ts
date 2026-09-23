@@ -1,7 +1,8 @@
 import { Vector3, type Node, type Texture, type TextureNode, type UniformNode } from 'three/webgpu';
 import { If, add, bool, float, length, max, min, mix, mul, saturate, select, smoothstep, sqrt, sub, texture, texture3D, uniform, vec2, vec3 } from 'three/tsl';
 import type { SkyUniforms } from '../contracts';
-import { cloudType, heightProfile, liftedCoverage, localCover, CLEAR_RANGE, PLANET_RADIUS, WEATHER_SIZE, WEATHER_TILE, type Arithmetic } from './model';
+import { cloudTop, cloudType, deckRelief, heightProfile, liftedCoverage, localCover, CLEAR_RANGE, PLANET_RADIUS, WEATHER_SIZE, WEATHER_TILE,
+  type Arithmetic } from './model';
 import { BASE_VOLUME, DETAIL_VOLUME } from './noise';
 
 type Float = Node<'float'>;
@@ -32,17 +33,21 @@ const RESHAPE = .06, RISE = .35;
 const SWIRL = new Vector3(1.1, 1.7, -.8);
 /** Share of the base shape the low billow octaves erode away from the billows' centres, and share the
  * detail volume erodes from the edges: uniforms, so the shapes can be tuned live. */
-export const erosion = { shape: uniform(.7), detail: uniform(.7), sharpen: uniform(1.5) };
+export const erosion = { shape: uniform(.75), detail: uniform(.85), sharpen: uniform(3) };
 /** A volume's features alias once a pixel's footprint (m) spans a couple of its texels: over these
  * footprints, in texels, the finer octaves fade to their mean, which keeps the cloud's size and drops only
  * what the pixel cannot resolve. */
 const RESOLVED = [1.5, 5] as const;
 const BASE_TEXEL = BASE_TILE / BASE_VOLUME, DETAIL_TEXEL = DETAIL_TILE / DETAIL_VOLUME;
-/** Mean of the billow octaves, what they fade to. */
-const BILLOW_MEAN = .45;
+/** Mean of the billow octaves, what they fade to, and the octaves' weights, coarsest first: the finer octaves
+ * carry enough weight to bud small lobes off the big ones (a cauliflower top rather than a smooth dome). */
+const BILLOW_MEAN = .45, BILLOW_WEIGHTS = [.46, .32, .22] as const;
 /** Horizontal distance (m) of the farthest cloud a march reaches, and the share of it from which cover fades
  * out: beyond ~100 km a cloud is a sliver on the horizon, more haze than cloud. */
 export const FARTHEST = 120_000, FADE_FROM = .85;
+/** Share of the detail erosion a closed deck (a column filled past its cover, `localCover` > 1) gives up: its
+ * texture is the shape's lumps, and eroded like a cumulus its thin parts would open into holes. */
+const DECK_EROSION = .6;
 /** Most opacity the horizon's cloud bank reaches (a fully covered sky). */
 const BANK_OPACITY = .95;
 
@@ -97,6 +102,10 @@ export interface CloudSample {
   readonly type: Float;
   /** The scene's coverage there, lifted toward the horizon. */
   readonly coverage: Float;
+  /** The column's cover (`localCover`) before the height profile: how much cloud the column holds. */
+  readonly column: Float;
+  /** Height fraction of the column's top (its type's, lowered in a storm deck's thinner parts). */
+  readonly top: Float;
   /** The weather texel: (cover potential, type variation, storm potential, curtain texture). */
   readonly weather: Vec4;
   /** Horizontal distance (m) from here to the nearest column that can hold cloud at the scene's coverage. */
@@ -144,9 +153,11 @@ export function createCloudField(sky: SkyUniforms, layer: LayerUniforms, maps: {
     read.updateMatrix = false;
     return read as unknown as Vec4;
   };
-  /** The octave sum of three billow channels, stretched from its 0.25–0.75 range and faded to its mean. */
+  /** The octave sum of three billow channels (weighted by `BILLOW_WEIGHTS`), stretched from its 0.25–0.75 range and
+   * faded to its mean. */
   const billowSum = (texel: Vec4, fade: Float, first: 'x' | 'y') => {
-    const sum = first === 'x' ? texel.x.mul(.625).add(texel.y.mul(.25)).add(texel.z.mul(.125)) : texel.y.mul(.625).add(texel.z.mul(.25)).add(texel.w.mul(.125));
+    const [a, b, c] = BILLOW_WEIGHTS, octaves = first === 'x' ? [texel.x, texel.y, texel.z] : [texel.y, texel.z, texel.w];
+    const sum = octaves[0].mul(a).add(octaves[1].mul(b)).add(octaves[2].mul(c));
     return mix(float(BILLOW_MEAN), saturate(sum.sub(.25).mul(2)), fade);
   };
   /** The column's cover at a height: weather potential, cloud type and height profile, faded out toward the
@@ -156,13 +167,18 @@ export function createCloudField(sky: SkyUniforms, layer: LayerUniforms, maps: {
     const coverage = liftedCoverage(nodes, layer.coverage, layer.horizon, distance).toVar();
     const type = cloudType(nodes, coverage, w.y, w.z, height).toVar();
     const fade = smoothstep(FARTHEST, FARTHEST * FADE_FROM, distance).mul(layer.enabled);
-    return { type, coverage, cover: localCover(nodes, w.x, coverage).mul(heightProfile(nodes, height, type)).mul(fade) };
+    const column = localCover(nodes, w.x, coverage).mul(fade).toVar();
+    const relief = deckRelief(nodes, coverage, w.y), top = cloudTop(nodes, type).mul(relief.crown);
+    return { type, coverage, column, top, cover: column.mul(heightProfile(nodes, height, type, relief.lift, relief.crown, relief.rise)) };
   };
-  const cover = (p: Vec3, alt: Float, near: CloudSample): Float =>
-    localCover(nodes, weather(p).x, near.coverage).mul(heightProfile(nodes, alt.sub(layer.base).div(layer.thickness), near.type));
+  const cover = (p: Vec3, alt: Float, near: CloudSample): Float => {
+    const w = weather(p), relief = deckRelief(nodes, near.coverage, w.y);
+    return localCover(nodes, w.x, near.coverage)
+      .mul(heightProfile(nodes, alt.sub(layer.base).div(layer.thickness), near.type, relief.lift, relief.crown, relief.rise));
+  };
   const sample = (p: Vec3, alt: Float, footprint?: Float, branch = true): CloudSample => {
     const w = weather(p), height = alt.sub(layer.base).div(layer.thickness);
-    const { type, coverage, cover } = columnCover(w, p, height);
+    const { type, coverage, column, top, cover } = columnCover(w, p, height);
     const shaped = () => {
       const drift = vec2(wind.x, wind.z).mul(1 + RESHAPE);
       const uvw = vec3(p.x.sub(drift.x), alt.sub(time.mul(RISE)).mul(BASE_STRETCH), p.z.sub(drift.y)).div(BASE_TILE);
@@ -177,11 +193,14 @@ export function createCloudField(sky: SkyUniforms, layer: LayerUniforms, maps: {
     // Clear columns (most samples of a fair sky) skip the 3D read. Light samples read unconditionally: without
     // branches the GPU issues all of a light march's reads together.
     if (branch) If(cover.greaterThan(0), () => { (coarse as unknown as { assign(v: Float): void }).assign(shaped()); });
-    return { coarse, height, type, coverage, weather: w, clear: w.w.mul(CLEAR_RANGE * WEATHER_TILE / WEATHER_SIZE) };
+    return { coarse, height, type, coverage, column, top, weather: w, clear: w.w.mul(CLEAR_RANGE * WEATHER_TILE / WEATHER_SIZE) };
   };
-  /** Ragged, wispy bases (erode the billows' centres); cauliflower above them (erode between the billows). */
+  /** Wisps low down (erode the billows' centres), cauliflower above (erode between the billows); the lowest few
+   * per cent erode less, so a cumulus keeps the flat base of its condensation level. */
   const eroded = (s: CloudSample, billows: Float) => {
-    const eroding = mix(billows, billows.oneMinus(), saturate(s.height.mul(5))).mul(erosion.detail);
+    const closing = smoothstep(1, 1.3, s.column).mul(DECK_EROSION);
+    const eroding = mix(billows, billows.oneMinus(), saturate(s.height.mul(5))).mul(erosion.detail).mul(smoothstep(0, .08, s.height).mul(.3).add(.7))
+      .mul(closing.oneMinus());
     return saturate(s.coarse.sub(eroding).div(eroding.oneMinus()).mul(erosion.sharpen));
   };
   const erode = (s: CloudSample, p: Vec3, footprint?: Float, branch = true): Float => {

@@ -1,5 +1,5 @@
 import { Vector3, type Node, type UniformNode } from 'three/webgpu';
-import { Break, Fn, If, Loop, dot, exp, exp2, float, fract, int, max, min, mix, normalize, pow, select, smoothstep, sqrt, uniform, vec2, vec3 } from 'three/tsl';
+import { Break, Fn, If, Loop, dot, exp, exp2, float, fract, int, max, min, mix, normalize, pow, select, smoothstep, uniform, vec2, vec3 } from 'three/tsl';
 import type { AtmospherePart, SkyUniforms } from '../contracts';
 import type { CloudField, CloudSample } from './field';
 import { FARTHEST, shellSegment } from './field';
@@ -23,8 +23,15 @@ export const look = {
   /** Each octave carries `energy` of the previous one's light, sees `reach` of its optical depth toward the
    * light and `flatten` of its phase asymmetry. */
   energy: uniform(.68), reach: uniform(.3), flatten: uniform(.5),
-  /** How much the sky light filling a cloud (the atmosphere's ambient) is worth against direct light. */
-  ambient: uniform(.2),
+  /** Gain on the sky light filling a cloud (the atmosphere's ambient, from above and from the sea below, each
+   * through the cloud between: see `scatter`) by day, and through twilight (`CloudLight.glow`), when the sky is
+   * the clouds' only light and its brightest part, low around the horizon, lights their sides. */
+  ambient: uniform(.45), dusk: uniform(1.4),
+  /** Sky light's diffuse transmittance through optical depth τ is 1 / (1 + `diffuse` τ) (see `COLUMN_DENSITY`),
+   * and cloud whose shape density is under `edge` takes it from the side as well. */
+  diffuse: uniform(.2), edge: uniform(.15),
+  /** Solid angle (sr) of the bright afterglow that lights the clouds through twilight (see `afterglow`). */
+  glow: uniform(.8),
   /** Beer–powder: how dark the thin rims of a cloud seen away from the light go (0 none). */
   powder: uniform(.5),
   /** Overall gain on the sunlit (direct) term. */
@@ -49,6 +56,16 @@ const CLEAR_MARGIN = 250;
 const HORIZON_BANK = 60_000;
 /** A ray whose transmittance falls below this stops: the rest is renormalised rather than marched. */
 const OPAQUE = .03;
+/** Sky light diffuses into a cloud far deeper than direct light: through optical depth τ it keeps 1 / (1 +
+ * `look.diffuse` τ) (the two-stream diffuse transmittance, 0.75 (1 − g) τ with droplets' g ≈ 0.85). The optical
+ * depth above and below a point is estimated from its column: its cover at `COLUMN_DENSITY` up to the cloud
+ * type's top, or down to the base. */
+const COLUMN_DENSITY = .45;
+/** Height of a view ray (its upward component) under which the haze in front of a deck's clouds turns from
+ * shaded to the lit horizon's. */
+const SHADE_HORIZON = .1;
+/** Share of the sky light a cumulonimbus's base loses against the deck around it. */
+const CELL_GLOOM = .45;
 
 /** Henyey–Greenstein phase for the angle between the view ray and the light (`cosine`). */
 export function henyeyGreenstein(cosine: Float, g: Float | number): Float {
@@ -66,14 +83,34 @@ export function gradientJitter(pixel: Node<'vec2'>, frame: Float): Float {
   return fract(fract(dot(p, vec2(.06711056, .00583715))).mul(52.9829189));
 }
 
-/** The light the clouds are lit by: the sun, or the moon once the sun is too low to reach even their tops. */
+/** The light the clouds are lit by: the sun, or the moon once the sun is too low to reach even their tops.
+ * Between them, through twilight, the afterglow (`afterglow`) lights them from low over the set sun. */
 export interface CloudLight {
   readonly direction: UniformNode<'vec3', Vector3>;
   /** 1 while the moon lights them. */
   readonly night: UniformNode<'float', number>;
+  /** How much the afterglow lights them, 0 by day and night, 1 through twilight. */
+  readonly glow: UniformNode<'float', number>;
 }
 export function createCloudLight(): CloudLight {
-  return { direction: uniform(new Vector3(0, 1, 0)), night: uniform(0) };
+  return { direction: uniform(new Vector3(0, 1, 0)), night: uniform(0), glow: uniform(0) };
+}
+
+/** Where the afterglow is read, as (elevation, bearing from the set sun) in degrees. */
+const GLOW_SAMPLES = [[3, 0], [8, 0], [15, 0], [6, 35], [6, -35]] as const;
+
+/** The afterglow's irradiance: once the sun has set, the bright sky low over it lights the clouds from that side,
+ * warm on the sides facing it, and in a silver lining around those seen against it. The sky's own radiance there
+ * (its twilight lift included) over the solid angle of that glow (`look.glow`), times `light.glow`. */
+export function afterglow(atmosphere: AtmospherePart, light: CloudLight): Vec3 {
+  const flat = light.direction.xz, heading = flat.div(max(flat.length(), 1e-4));
+  let sum: Vec3 = vec3(0);
+  for (const [elevation, bearing] of GLOW_SAMPLES) {
+    const e = elevation * Math.PI / 180, b = bearing * Math.PI / 180;
+    const x = heading.x.mul(Math.cos(b)).sub(heading.y.mul(Math.sin(b))), z = heading.x.mul(Math.sin(b)).add(heading.y.mul(Math.cos(b)));
+    sum = sum.add(atmosphere.sky(vec3(x.mul(Math.cos(e)), Math.sin(e), z.mul(Math.cos(e)))));
+  }
+  return sum.mul(light.glow.mul(look.glow).div(GLOW_SAMPLES.length));
 }
 
 /** Everything a march needs. */
@@ -82,9 +119,16 @@ export interface MarchContext {
   readonly atmosphere: AtmospherePart;
   readonly field: CloudField;
   readonly light: CloudLight;
+  /** The light's colour (irradiance) at a world point `height` (fraction) through the layer: the sun's or moon's
+   * through the air, with the planet's shadow, so at dusk its edge climbs through the layer. */
+  lightAt(p: Vec3, height: Float): Vec3;
   /** Gain on the sky light filling the clouds, and darkening of their bases (the scene's, mapped). */
   readonly ambient: UniformNode<'float', number>;
   readonly baseShadow: UniformNode<'float', number>;
+  /** Share of the clear sky's light the air and sea under the layer still get (1 in fair weather, low under a
+   * storm deck, which shades them): scales the sea's bounce onto the bases, the rain's fill and, for rays from
+   * under the layer, the haze in front of the clouds (see `MarchOptions.under`). */
+  readonly deckShade: UniformNode<'float', number>;
 }
 
 /** `AtmospherePart.aerial` with the real atmosphere's optional third argument: seen from sea level under the camera.
@@ -105,25 +149,39 @@ export function cloudLightAt(sky: SkyUniforms, atmosphere: AtmospherePart, light
     return colour;
   })();
 }
-const lightAt = (context: MarchContext, p: Vec3) => cloudLightAt(context.sky, context.atmosphere, context.light, p);
 
 /** The octaves' phase weights for one view ray (the angle to the light is the same all along it). */
 function octavePhases(cosine: Float): Float[] {
   return Array.from({ length: OCTAVES }, (_, i) => cloudPhase(cosine, pow(look.flatten, i)).mul(pow(look.energy, i)).mul(look.direct).toVar());
 }
 
+/** How much of the sky above and of the sea's light below reaches a point of cloud through the rest of its
+ * column (see `DIFFUSE`). */
+function skyReach(context: MarchContext, s: CloudSample): { above: Float; below: Float } {
+  const layer = context.field.layer;
+  // Near a cloud's edge (thin shape density) the sky reaches in from the side as well as through the column.
+  const inner = smoothstep(0, look.edge, s.coarse);
+  const column = s.column.clamp(0, 1).mul(layer.extinction.mul(layer.thickness).mul(look.diffuse.mul(COLUMN_DENSITY))).mul(inner);
+  const overhead = s.top.sub(s.height).max(0), underneath = s.height.clamp(0, 1);
+  return { above: float(1).div(column.mul(overhead).add(1)), below: float(1).div(column.mul(underneath).add(1)) };
+}
+
 /** Radiance a unit of cloud scatters toward the viewer, given its optical depth toward the light. */
-function scatter(context: MarchContext, lightColour: Vec3, phases: Float[], cosine: Float, lightDepth: Float, height: Float, density: Float,
+function scatter(context: MarchContext, lightColour: Vec3, phases: Float[], cosine: Float, lightDepth: Float, s: CloudSample, density: Float,
   ambient: { above: Vec3; below: Vec3 }): Vec3 {
+  const height = s.height;
   let direct: Float = phases[0].mul(exp(lightDepth.negate()));
   for (let i = 1; i < OCTAVES; i++) direct = direct.add(phases[i].mul(exp(lightDepth.mul(pow(look.reach, i)).negate())));
   // Beer–powder (Schneider & Vos 2015): the lit rim of a cloud seen side-on scatters less than its depths,
   // which draws the dark creases between cauliflower lobes. It fades out toward the backlit silver lining.
   const powder = mix(exp(density.mul(-6)).oneMinus().mul(look.powder).add(look.powder.oneMinus()), float(1), smoothstep(.2, .9, cosine));
-  // Sky from above, the sea's bounce from below; bases darken where the whole cloud stands over them.
-  const fill = mix(ambient.below, ambient.above, sqrt(height.clamp(0, 1))).mul(context.ambient)
-    .mul(mix(context.baseShadow.oneMinus(), float(1), smoothstep(0, .6, height)));
-  return lightColour.mul(direct.mul(powder)).add(fill.mul(look.ambient));
+  // Sky from above and the sea's bounce from below, each through the cloud between; a storm's bases darken
+  // further where the whole cloud stands over them (the scene's `baseShadow`).
+  const reach = skyReach(context, s);
+  // A cumulonimbus's heavier water darkens its base against the deck around it.
+  const fill = ambient.above.mul(reach.above).add(ambient.below.mul(reach.below).mul(context.deckShade)).mul(context.ambient)
+    .mul(mix(context.baseShadow.oneMinus(), float(1), smoothstep(0, .6, height))).mul(smoothstep(.85, 1, s.type).mul(-CELL_GLOOM).add(1));
+  return lightColour.mul(direct.mul(powder)).add(fill.mul(mix(look.ambient, look.dusk, context.light.glow)));
 }
 
 /** Optical depth toward the light from `p` (whose cloud sample is `near`) over `steps` samples, cone-spread so
@@ -168,6 +226,9 @@ export interface MarchOptions {
   readonly fromSea?: boolean;
   /** Rain shafts below the base (the screen march). */
   readonly rain?: RainOptions;
+  /** 1 while the ray starts under the layer (the air in front of the clouds lies in the deck's shade), 0 above it;
+   * the bake from the sea is always under. */
+  readonly under?: Float | number;
 }
 
 /** March a ray from `origin` (height `altitude` above the sea) along `direction` through the shell.
@@ -188,8 +249,6 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
     const span = to.sub(from);
     const cosine = dot(direction, light.direction).toVar();
     const phases = octavePhases(cosine);
-    // The light's colour at both ends of the stretch; between them it varies smoothly enough to interpolate.
-    const lightNear = lightAt(context, origin.add(direction.mul(from))).toVar(), lightFar = lightAt(context, origin.add(direction.mul(to))).toVar();
     const ambient = context.atmosphere.ambient(layer.base.add(layer.thickness.mul(.5)));
     const above = ambient.above.toVar(), below = ambient.below.toVar();
     // Never so fine that the budget could not cross the whole stretch at the empty stride.
@@ -216,8 +275,7 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
         If(density.greaterThan(0), () => {
           const extinction = density.mul(layer.extinction);
           const toward = lightDepth(context, p, s, options.lightSteps, footprint);
-          const colour = mix(lightNear, lightFar, t.sub(from).div(span).clamp(0, 1));
-          const source = scatter(context, colour, phases, cosine, toward, s.height, density, { above, below });
+          const source = scatter(context, context.lightAt(p, s.height), phases, cosine, toward, s, density, { above, below });
           const absorbed = exp(extinction.mul(fine).negate()).oneMinus();
           const share = transmittance.mul(absorbed);
           radiance.addAssign(source.mul(share));
@@ -236,8 +294,11 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
     // Past the farthest cloud marched the layer still runs on to the horizon: a ray that reached that limit
     // meets more of it there, as a bank of cloud the haze swallows, in proportion to the sky's cover.
     If(end.greaterThan(MAX_DISTANCE).and(t.greaterThanEqual(to)).and(transmittance.greaterThan(OPAQUE)), () => {
-      const bank = field.bank(origin.add(direction.mul(to))).mul(smoothstep(0, HORIZON_BANK, end.sub(MAX_DISTANCE)));
-      const colour = lightFar.mul(phases[OCTAVES - 1].mul(.5)).add(mix(below, above, .5).mul(context.ambient).mul(look.ambient));
+      const far = origin.add(direction.mul(to));
+      const bank = field.bank(far).mul(smoothstep(0, HORIZON_BANK, end.sub(MAX_DISTANCE)));
+      // A bank's face: sunlit in its last octave, and lit by the sky about as a cloud's middle is.
+      const colour = context.lightAt(far, float(.5)).mul(phases[OCTAVES - 1].mul(.5))
+        .add(mix(below, above, .5).mul(context.ambient).mul(mix(look.ambient, look.dusk, light.glow).mul(.5)));
       const share = transmittance.mul(bank);
       radiance.addAssign(colour.mul(share));
       weighted.addAssign(to.mul(share)); weight.addAssign(share);
@@ -251,9 +312,13 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
   });
   If(weight.greaterThan(1e-4), () => {
     depth.assign(weighted.div(weight));
-    // Aerial perspective once, at the mean depth: the air between dims the cloud and adds its own glow.
+    // Aerial perspective once, at the mean depth: the air between dims the cloud and adds its own glow, which the
+    // deck shades when that air lies under it (a storm's base stays dark instead of taking the clear sky's haze).
     const air = (context.atmosphere.aerial as AerialFrom)(direction, depth, options.fromSea);
-    radiance.assign(radiance.mul(air.transmittance).add(air.inscatter.mul(transmittance.oneMinus())));
+    // Toward the horizon the shaded air gives way to the lit air beyond the deck, so the clouds melt into the
+    // horizon's haze (whose colour the sky below them shows) instead of ending in a line against it.
+    const glow = mix(float(1), context.deckShade, asFloat(options.under ?? 0).mul(smoothstep(0, SHADE_HORIZON, direction.y)));
+    radiance.assign(radiance.mul(air.transmittance).add(air.inscatter.mul(glow).mul(transmittance.oneMinus())));
   });
   return { radiance, transmittance, depth };
 }
