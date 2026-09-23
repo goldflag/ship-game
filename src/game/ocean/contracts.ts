@@ -213,7 +213,6 @@ export interface ShorelineFoamParameters { readonly color: Color; opacity: numbe
 
 /** The facade the game holds (`Ocean.ts`). Game code touches the ocean only through this. */
 export interface OceanApi {
-  readonly backend: 'webgpu' | 'webgl';
   readonly quality: OceanQuality;
   readonly waves: WaveParameters;
   readonly colors: WaterColors;

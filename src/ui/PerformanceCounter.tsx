@@ -18,7 +18,7 @@ export function PerformanceCounter({ performance, fps, className }: { performanc
       <strong>{Math.round(sim.busy * 100)}%</strong> SIM · {sim.tickMs.toFixed(1)} ms/tick{behind && ` · ${sim.achievedSpeed!.toFixed(1)}× of ${sim.speed}×`}
     </span>}
     {mode === 'detailed' && performance && <span className="performance-detail">
-      {performance.frameMs.toFixed(1)} ms · {performance.width} × {performance.height} · {performance.backend === 'webgl' ? 'WebGL' : 'WebGPU'}
+      {performance.frameMs.toFixed(1)} ms · {performance.width} × {performance.height}
       {sim && ` · sim ${Math.round(sim.ticksPerSecond)} ticks/s, ${sim.snapshotMs.toFixed(1)} ms snapshot`}
       {detail && ` · ${detail.shipInstances} ship draws (${detail.reducedInstances} reduced) · ${detail.particles} particles · ${detail.aircraft} aircraft`}
     </span>}

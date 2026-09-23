@@ -5,8 +5,8 @@ import { shipPreset } from '../../src/ships/presets';
 
 /** Compare the aircraft presentation with its actual lit airframe. Only a
  * faint subpixel contact may supplement geometry, within its projected span. */
-export async function checkAircraftDistanceRendering(forceWebGL = false, verify = true) {
-  const renderer = new THREE.WebGPURenderer({ forceWebGL });
+export async function checkAircraftDistanceRendering(verify = true) {
+  const renderer = new THREE.WebGPURenderer();
   await renderer.init();
   const size = 512;
   renderer.setSize(size, size); renderer.setClearColor(0, 0);
@@ -72,6 +72,6 @@ export async function checkAircraftDistanceRendering(forceWebGL = false, verify 
       }
       plane.phase = 'lost';
     }
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
+    return { frames };
   } finally { target.dispose(); await view.dispose(); renderer.dispose(); }
 }

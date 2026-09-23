@@ -1,4 +1,4 @@
-/** `bun scripts/browser/ocean-wake.ts [--resolution 512] [--webgl] [--measure] [--tag name] [--url http://127.0.0.1:5210]`
+/** `bun scripts/browser/ocean-wake.ts [--resolution 512] [--measure] [--tag name] [--url http://127.0.0.1:5210]`
  * Runs `scripts/diagnostics/ocean-wake.html` in a headed Chromium (headless stalls WebGPU) and saves the
  * checks, the step cost and the captures to `.build/ocean-wake/<tag>/`. Exits non-zero when a check fails. */
 import type { Server } from 'node:http';
@@ -10,10 +10,10 @@ import { authoringServer, serverUrl } from '../construction/browser';
 import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
-  resolution: { type: 'string', default: '512' }, webgl: { type: 'boolean', default: false }, measure: { type: 'boolean', default: false },
+  resolution: { type: 'string', default: '512' }, measure: { type: 'boolean', default: false },
   tag: { type: 'string' }, url: { type: 'string' },
 } });
-const tag = values.tag ?? `${values.webgl ? 'webgl' : 'webgpu'}-${values.resolution}`;
+const tag = values.tag ?? `webgpu-${values.resolution}`;
 const out = resolve(ROOT, '.build/ocean-wake', tag);
 mkdirSync(out, { recursive: true });
 const server = values.url ? undefined : await authoringServer(ROOT, 0, true);
@@ -28,7 +28,7 @@ try {
   page.setDefaultTimeout(600_000);
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') pageErrors.push(message.text()); });
-  const query = new URLSearchParams({ resolution: values.resolution!, ...(values.webgl ? { webgl: '1' } : {}) });
+  const query = new URLSearchParams({ resolution: values.resolution! });
   await page.goto(`${url}/scripts/diagnostics/ocean-wake.html?${query}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => (window as unknown as { oceanWake?: unknown }).oceanWake, undefined, { polling: 500 });
   const { results, images } = await page.evaluate(() => (window as any).oceanWake as { results: Record<string, unknown>; images: Record<string, string> });

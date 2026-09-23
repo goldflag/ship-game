@@ -42,7 +42,6 @@ afterEach(() => globals.forEach((name, i) => {
 /** The ocean's live parameters, without its GPU parts. */
 function fakeOcean() {
   return {
-    backend: 'webgpu' as const,
     waves: { significantHeight: 0, windSpeed: 8, windDirection: .5, peakWavelength: 0, choppiness: 0, gamma: 0, directionalSharpness: .8, seed: 1, dirty: false },
     colors: { waterColor: new Color(), transmissionColor: new Color(), absorptionColor: new Color(.296, .105, .095) },
     foam: { crest: { crestStrength: 0, windwardStrength: 0, decayTime: 0, color: new Color(), opacity: 0, windStretch: 0 },

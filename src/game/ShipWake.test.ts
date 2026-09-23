@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { float, vec3 } from 'three/tsl';
 import { ShipWake } from './ShipWake';
+import { cpuWakeFoamPainter } from './testing/wakeFoam';
 import type { WakeShip } from './FleetWakeFoam';
 import { PreparedPoseGroup } from './FrameScene';
 import { CombatSimulation } from '../simulation/combat';
@@ -23,7 +24,7 @@ test('fleet displacement respects the field capacity, hull size, depth, and repl
     step() {}, dispose() {},
   };
   let bound: WakeSampler | null = null;
-  const wake = new ShipWake({ wake: field, setWakeSampler(sampler) { bound = sampler; } });
+  const wake = new ShipWake({ wake: field, setWakeSampler(sampler) { bound = sampler; } }, cpuWakeFoamPainter);
   expect(bound).not.toBeNull();
   expect(field.foamLifetime).toBe(9);
   const definition = shipPreset('fletcher'), initial = new CombatSimulation(definition).ship;

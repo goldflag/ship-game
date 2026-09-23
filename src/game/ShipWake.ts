@@ -1,10 +1,11 @@
-import { Vector2, Vector3, type Camera, type WebGPURenderer } from 'three/webgpu';
+import { Vector2, Vector3, type Camera } from 'three/webgpu';
 import { max } from 'three/tsl';
 import { FleetWakeFoam, WAKE_ATLAS_CAPACITY, type WakeShip } from './FleetWakeFoam';
 import type { CombatEvent } from '../game/session/elements';
 import type { OceanApi, WakeFieldApi } from './ocean/contracts';
 import { wakeHull } from './wakeHull';
 import { TorpedoTrackFoam } from './TorpedoTrackFoam';
+import type { WakeFoamPainterFactory } from './WakeFoamGpu';
 import type { Torpedo } from './torpedoAim';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
@@ -16,7 +17,8 @@ export class ShipWake {
   private readonly torpedoTracks: TorpedoTrackFoam;
   private eventSequence = 0;
 
-  constructor(private readonly ocean: Pick<OceanApi, 'wake' | 'setWakeSampler'>, renderer?: WebGPURenderer) {
+  /** `painter` draws the trail and torpedo foam: `gpuWakeFoamPainter(renderer)` in the game. */
+  constructor(private readonly ocean: Pick<OceanApi, 'wake' | 'setWakeSampler'>, painter: WakeFoamPainterFactory) {
     const wake = this.wake = ocean.wake;
     // A 1.5 km field centred on the focus hull keeps a 250 m hull's whole trail while the
     // camera orbits and zooms; the tier's resolution sets the cells spent on it.
@@ -28,9 +30,9 @@ export class ShipWake {
     wake.foamStrength = 1.2;
     wake.foamLifetime = 9;
     // Trail foam is the game's own and stays on when the tier runs no wake field.
-    this.foam = new FleetWakeFoam(wake.resolution ? Math.min(wake.resolution, 256) : 128, renderer);
+    this.foam = new FleetWakeFoam(wake.resolution ? Math.min(wake.resolution, 256) : 128, painter);
     // A bubble track is a few metres wide: finer than any fleet wake cell.
-    this.torpedoTracks = new TorpedoTrackFoam(renderer ? 1024 : 256, renderer);
+    this.torpedoTracks = new TorpedoTrackFoam(1024, painter);
     // The surface shades the wake's swell with the ocean's own lighting; the game adds its
     // trail and torpedo foam on top of the field's breaking foam.
     const field = wake.sampler;

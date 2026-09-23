@@ -57,6 +57,7 @@ import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import { configureRenderOrder } from './renderOrder';
+import { requireWebGPU, requireWebGPUBackend } from './webgpu';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
@@ -77,6 +78,7 @@ import { HelmWheelController } from './controllers/HelmWheelController';
 import { ArticulationPreviewController, type ArticulationPreview } from './controllers/ArticulationPreviewController';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
+import { gpuWakeFoamPainter } from './WakeFoamGpu';
 import type { WakeShip } from './FleetWakeFoam';
 import { ShipFunnelSmoke } from './ShipFunnelSmoke';
 import type { GameCallbacks, HelmWheelState, PerformanceReadout } from './types';
@@ -365,12 +367,13 @@ export class Game {
     this.graphicsControl.applyDetail();
     this.callbacks.progress('Starting graphics', 0.08);
     this.resize();
+    // Constructing the renderer touched no GPU API; ask before three can fall back to WebGL2.
+    await requireWebGPU();
     await this.renderer.init();
+    requireWebGPUBackend(this.renderer);
     installFleetBatchInstancing(this.renderer.backend);
     installInstanceBufferNames(this.renderer.backend);
-    if ((this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend) {
-      for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
-    }
+    for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
     configureRenderOrder(this.renderer);
     this.assertActive();
     this.callbacks.progress(`Loading ${this.definition.name}`, 0.2);
@@ -395,7 +398,7 @@ export class Game {
     if (this.targetView) this.targetView.root.visible = !this.inPort;
     if (this.definition.airWing) {
       this.callbacks.progress('Loading aircraft', 0.32);
-      await this.aircraftView.load(this.definition.airWing.squadrons.map(s => s.modelId), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend);
+      await this.aircraftView.load(this.definition.airWing.squadrons.map(s => s.modelId));
     }
     this.assertActive();
     this.scene.add(...this.fleetViews.map(view => view.root), this.observedShipViews.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
@@ -465,7 +468,7 @@ export class Game {
 
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
-    this.shipWake = new ShipWake(ocean, this.renderer);
+    this.shipWake = new ShipWake(ocean, gpuWakeFoamPainter(this.renderer));
     for (const buoy of BUOYS) this.addBuoy(buoy);
     if (HARBOR_BACKDROP) {
       this.callbacks.progress('Building the naval anchorage', 0.72);
@@ -521,7 +524,7 @@ export class Game {
     }
     await this.frame(performance.now(), true);
     // A submitted frame is not necessarily finished on the GPU. A tiny readback
-    // drains the startup work on both WebGPU and the WebGL compatibility backend.
+    // drains the startup work.
     await this.renderer.readRenderTargetPixelsAsync(this.finalFrame!.renderTarget!, 0, 0, 1, 1);
     this.assertActive();
   }
@@ -759,7 +762,7 @@ export class Game {
         const next = definitions.find(d => !models.has(d.id));
         progress?.(simulation.missionRules ? 'Preparing the fleet' : next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
       }
-      if (definitions.some(d => d.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(definitions.flatMap(d => d.airWing?.squadrons.map(s => s.modelId) ?? []), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend); }
+      if (definitions.some(d => d.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(definitions.flatMap(d => d.airWing?.squadrons.map(s => s.modelId) ?? [])); }
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
       progress?.('Mustering the fleets', 0.78);
@@ -876,7 +879,7 @@ export class Game {
         if (this.disposed || recognition !== this.recognition) return;
         recognition.models.set(presetId, model);
         this.fleetModels.push(model);
-        if (definition.airWing) await this.aircraftView.load(definition.airWing.squadrons.map(squadron => squadron.modelId), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend);
+        if (definition.airWing) await this.aircraftView.load(definition.airWing.squadrons.map(squadron => squadron.modelId));
       } catch (error) {
         // A hull that will not load stays undrawn rather than costing the battle.
         console.warn(`Recognition model unavailable: ${presetId}`, error);
@@ -1069,7 +1072,7 @@ export class Game {
           freeCamera: this.rig.freeCamera, freeCameraSpeed: this.rig.freeCameraSpeed, aimLocked: this.aimLocked,
           playerDamage,
           shipDamageOpen: this.shipDamageOpen, inspectedPartId: this.shipDamageOpen ? this.cameraShipView.inspection.selectedId : undefined,
-          mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.ocean!.backend, performance: this.performanceReadout(), trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
+          mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), performance: this.performanceReadout(), trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
       }
       if (!warmingUp) this.scheduleFrame();
@@ -1101,7 +1104,7 @@ export class Game {
 
   private performanceReadout(): PerformanceReadout {
     const { width = 0, height = 0 } = this.renderer.domElement;
-    const readout: PerformanceReadout = { mode: this.settings.readout, fps: Math.round(this.fps), frameMs: this.fps > 0 ? 1000 / this.fps : 0, width, height, backend: this.ocean?.backend ?? 'webgpu' };
+    const readout: PerformanceReadout = { mode: this.settings.readout, fps: Math.round(this.fps), frameMs: this.fps > 0 ? 1000 / this.fps : 0, width, height };
     const load = this.inPort ? undefined : this.simulation.simulationLoad;
     if (load) readout.simulation = { ...load, speed: this.simulation.simulationSpeed ?? 1, achievedSpeed: this.simulation.achievedSpeed };
     if (this.settings.readout === 'detailed') {
@@ -1692,7 +1695,7 @@ export class Game {
   diagnostics() {
     return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
       ...this.environment.diagnostics(),
-      islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.ocean?.backend,
+      islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
         shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId, followedShellId: this.shellFollow.shellId,
         freeCamera: this.rig.freeCamera, aimLocked: this.aimLocked,

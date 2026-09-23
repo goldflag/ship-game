@@ -7,23 +7,24 @@
 <script type="module">
 // Development-only check of the ocean's wake field (src/game/ocean/wake) with its own renderer: a
 // Bismarck-sized hull sails at 15 m/s, turns and stops. `scripts/browser/ocean-wake.ts` drives it.
-// ?resolution=256|512|1024, ?webgl for the fallback backend, ?exaggerate=4 for the shaded view's heights.
+// ?resolution=256|512|1024, ?exaggerate=4 for the shaded view's heights. The game and this page need WebGPU.
 // Every check reads the public sampler back through a probe pass, as the surface material would.
 import * as THREE from 'three/webgpu';
 import { Fn, cameraPosition, dot, float, max, mix, normalize, positionLocal, positionWorld, pow, reflect, screenCoordinate, screenSize, smoothstep, uniform,
   vec2, vec3, vec4 } from 'three/tsl';
 import { createWakeField } from '/src/game/ocean/wake/index.ts';
+import { requireWebGPU, requireWebGPUBackend } from '/src/game/webgpu.ts';
 
 const params = new URLSearchParams(location.search);
-if (params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter = async () => null;
 const output = document.querySelector('output');
 const resolution = Number(params.get('resolution') ?? 512);
 const WIDTH = 1600, HEIGHT = 900, DT = 1 / 60, MAX_SPEED = 15, LENGTH = 250, BEAM = 36;
 const renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true });
 renderer.setPixelRatio(1); renderer.setSize(WIDTH, HEIGHT);
 document.body.prepend(renderer.domElement);
+await requireWebGPU();
 await renderer.init();
-const backend = renderer.backend.isWebGPUBackend ? 'webgpu' : 'webgl';
+requireWebGPUBackend(renderer);
 const field = createWakeField(renderer, resolution);
 
 // The hull: bow and stern generators placed and scaled the way ShipWake places them for Bismarck.
@@ -70,11 +71,11 @@ function probeQuad(sampler) {
   probeQuads.set(sampler, quad);
   return quad;
 }
-/** Rows arrive in memory order; WebGL keeps logical row j at memory row N − 1 − j. */
+/** Rows arrive in memory order, logical row j at memory row j. */
 async function readRows(target, size) {
   const raw = await renderer.readRenderTargetPixelsAsync(target, 0, 0, size, size);
   const data = new Float32Array(size * size * 4);
-  for (let row = 0; row < size; row++) data.set(raw.subarray(row * size * 4, (row + 1) * size * 4), (backend === 'webgl' ? size - 1 - row : row) * size * 4);
+  for (let row = 0; row < size; row++) data.set(raw.subarray(row * size * 4, (row + 1) * size * 4), row * size * 4);
   return data;
 }
 async function probe(cx, cz, extent, sampler = field.sampler) {
@@ -154,14 +155,14 @@ function render(view) {
 }
 async function capture(view) {
   renderer.setRenderTarget(null); render(view);
-  if (backend === 'webgpu') await renderer.backend.device.queue.onSubmittedWorkDone();
+  await renderer.backend.device.queue.onSubmittedWorkDone();
   return renderer.domElement.toDataURL('image/png');
 }
 
 /** Milliseconds per simulation step (median of batches): a batch of steps is submitted, then timed until
  * the GPU finishes it. Per-pass timestamps overstate small dependent passes on Metal, so none are used. */
 async function measure(steps = 30, repeats = 9) {
-  const finish = () => backend === 'webgpu' ? renderer.backend.device.queue.onSubmittedWorkDone() : renderer.readRenderTargetPixelsAsync(probeTarget, 0, 0, 1, 1);
+  const finish = () => renderer.backend.device.queue.onSubmittedWorkDone();
   const total = [], submit = [];
   let passes = 0;
   motion.speed = MAX_SPEED;
@@ -178,8 +179,8 @@ async function measure(steps = 30, repeats = 9) {
   return { msPerStep: median([...total]), cpuMsPerStep: median([...submit]), samples: total, passesPerStep: passes };
 }
 
-const results = { backend, resolution }, images = {};
-const note = text => { output.textContent = `${backend} ${resolution}²\n${text}`; };
+const results = { resolution }, images = {};
+const note = text => { output.textContent = `${resolution}²\n${text}`; };
 try {
   note('At rest');
   run(1);

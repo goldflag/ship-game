@@ -1,6 +1,6 @@
-/** `bun scripts/browser/ocean-review.ts --tag <name> [--only near,wide] [--quality high] [--webgl] [--measure] [--url http://127.0.0.1:5210]`
+/** `bun scripts/browser/ocean-review.ts --tag <name> [--only near,wide] [--quality high] [--measure] [--url http://127.0.0.1:5210]`
  * Renders the fixed scenes of `scripts/diagnostics/ocean-review.html` in a headed Chromium and saves one PNG
- * per scene to `.build/ocean-review/<tag>/`, with `results.json` (backend, errors, optional frame timings). */
+ * per scene to `.build/ocean-review/<tag>/`, with `results.json` (errors, optional frame timings). */
 import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -11,7 +11,7 @@ import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
   tag: { type: 'string', default: 'current' }, only: { type: 'string' }, quality: { type: 'string', default: 'high' },
-  webgl: { type: 'boolean', default: false }, measure: { type: 'boolean', default: false }, url: { type: 'string' },
+  measure: { type: 'boolean', default: false }, url: { type: 'string' },
 } });
 const out = resolve(ROOT, '.build/ocean-review', values.tag!);
 mkdirSync(out, { recursive: true });
@@ -26,7 +26,7 @@ try {
   page.setDefaultTimeout(600_000);
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') pageErrors.push(message.text()); });
-  const query = new URLSearchParams({ quality: values.quality!, ...(values.webgl ? { webgl: '1' } : {}) });
+  const query = new URLSearchParams({ quality: values.quality! });
   await page.goto(`${url}/scripts/diagnostics/ocean-review.html?${query}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready, undefined, { polling: 250 });
   const all = await page.evaluate(() => (window as unknown as { oceanReview: { scenes: string[] } }).oceanReview.scenes);
@@ -43,7 +43,7 @@ try {
     results[name] = { ...info, seconds: (Date.now() - started) / 1000, ...(timing ? { timing } : {}) };
     console.log(name, JSON.stringify(results[name]));
   }
-  writeFileSync(resolve(out, 'results.json'), JSON.stringify({ quality: values.quality, webgl: values.webgl, results, pageErrors }, null, 1));
+  writeFileSync(resolve(out, 'results.json'), JSON.stringify({ quality: values.quality, results, pageErrors }, null, 1));
   if (pageErrors.length) console.error(pageErrors.join('\n'));
 } finally {
   await browser?.close().catch(() => undefined);

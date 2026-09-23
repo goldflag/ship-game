@@ -1,7 +1,7 @@
-import { DataTexture, LinearFilter, RedFormat, Vector2, Vector3, type Camera, type Node, type Texture, type WebGPURenderer } from 'three/webgpu';
+import { LinearFilter, Vector2, Vector3, type Camera, type Node, type Texture } from 'three/webgpu';
 import { Fn, If, float, mx_noise_float, smoothstep, texture, uniform, vec2, vec3 } from 'three/tsl';
-import { WAKE_EXTENT, rasterizeStamp } from './WakeFoam';
-import { WakeFoamGpu, WakeStampCollector } from './WakeFoamGpu';
+import { WAKE_EXTENT } from './WakeFoam';
+import { WakeStampCollector, type WakeFoamPainter, type WakeFoamPainterFactory } from './WakeFoamGpu';
 import type { Torpedo } from './torpedoAim';
 
 type TrackTorpedo = Pick<Torpedo, 'id' | 'position' | 'velocity'>;
@@ -26,8 +26,7 @@ export class TorpedoTrackFoam {
   private readonly origin = uniform(new Vector2());
   private readonly time = uniform(0);
   private readonly field;
-  private readonly pixels: Uint8Array;
-  private readonly gpu?: WakeFoamGpu;
+  private readonly painter: WakeFoamPainter;
   private readonly collector = new WakeStampCollector();
   private readonly running = new Map<number, { x: number; z: number; carry: number }>();
   private readonly forward = new Vector3();
@@ -35,10 +34,10 @@ export class TorpedoTrackFoam {
   private elapsed = 0;
   private painted = false;
 
-  constructor(private readonly resolution: number, renderer?: WebGPURenderer) {
-    if ((renderer?.backend as { isWebGPUBackend?: boolean } | undefined)?.isWebGPUBackend) this.gpu = new WakeFoamGpu(renderer!, resolution, 1);
-    this.pixels = new Uint8Array(this.gpu ? 0 : resolution * resolution);
-    this.texture = this.gpu?.target.texture ?? new DataTexture(this.pixels, resolution, resolution, RedFormat);
+  /** `painter` draws the field: `gpuWakeFoamPainter(renderer)` in the game. */
+  constructor(private readonly resolution: number, painter: WakeFoamPainterFactory) {
+    this.painter = painter(resolution, 1);
+    this.texture = this.painter.texture;
     this.texture.minFilter = this.texture.magFilter = LinearFilter;
     this.texture.generateMipmaps = false;
     this.texture.needsUpdate = true;
@@ -123,7 +122,7 @@ export class TorpedoTrackFoam {
 
   private rasterize(now: number): void {
     const { x: originX, y: originZ } = this.origin.value, reach = WAKE_EXTENT / 2;
-    if (this.gpu) this.collector.begin(originX, originZ); else this.pixels.fill(0);
+    this.collector.begin(originX, originZ);
     let count = 0;
     for (const sample of this.samples) {
       const age = now - sample.surfaced;
@@ -135,11 +134,10 @@ export class TorpedoTrackFoam {
       const drift = Math.sin(sample.phase + age * .21) * Math.min(age * .09, 1.3);
       const x = sample.x + sample.rightX * drift, z = sample.z + sample.rightZ * drift;
       const width = 1.3 + Math.sqrt(age) * .75, length = SAMPLE_DISTANCE * 1.6;
-      if (this.gpu) this.collector.stamp(x, z, sample.rightX, sample.rightZ, width, length, strength, false);
-      else rasterizeStamp(this.pixels, this.resolution, originX, originZ, x, z, sample.rightX, sample.rightZ, width, length, strength);
+      this.collector.stamp(x, z, sample.rightX, sample.rightZ, width, length, strength, false);
       count++;
     }
-    if (this.gpu) this.gpu.update([this.collector]); else this.texture.needsUpdate = true;
+    this.painter.update([this.collector]);
     this.painted = count > 0;
   }
 
@@ -148,10 +146,10 @@ export class TorpedoTrackFoam {
   reset(): void {
     this.samples = []; this.running.clear(); this.elapsed = 0;
     if (this.painted) {
-      if (this.gpu) { this.collector.clear(); this.gpu.update([this.collector]); } else { this.pixels.fill(0); this.texture.needsUpdate = true; }
+      this.collector.clear(); this.painter.update([this.collector]);
     }
     this.painted = false;
   }
 
-  dispose(): void { this.samples = []; this.running.clear(); if (this.gpu) this.gpu.dispose(); else this.texture.dispose(); }
+  dispose(): void { this.samples = []; this.running.clear(); this.painter.dispose(); }
 }

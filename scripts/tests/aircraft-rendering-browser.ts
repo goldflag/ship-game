@@ -5,8 +5,8 @@ import { shipPreset } from '../../src/ships/presets';
 
 /** Run through Vite in a browser. Count airframe pixels separately from payloads
  * after the GPU has already rendered a smaller flight. CPU counts miss this bug. */
-export async function checkAircraftRendering(forceWebGL = false, verify = true) {
-  const renderer = new THREE.WebGPURenderer({ forceWebGL });
+export async function checkAircraftRendering(verify = true) {
+  const renderer = new THREE.WebGPURenderer();
   await renderer.init();
   const size = 768, cells = 3, cellSize = size / cells;
   renderer.setSize(size, size); renderer.setClearColor(0, 0);
@@ -74,6 +74,6 @@ export async function checkAircraftRendering(forceWebGL = false, verify = true) 
           || frame.contacts !== view.diagnostics().contacts)) throw new Error(`Aircraft visibility failed: ${JSON.stringify(frames)}`);
       }
     }
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
+    return { frames };
   } finally { target.dispose(); await view.dispose(); renderer.dispose(); }
 }

@@ -7,13 +7,12 @@
 <script type="module">
 // Development-only fixed scenes of the real game for reviewing the ocean side by side.
 // `scripts/browser/ocean-review.ts` drives it and saves one PNG per scene.
-// ?quality=low|medium|high|ultra, ?webgl for the fallback backend, ?ship=<preset> for the player.
+// ?quality=low|medium|high|ultra, ?ship=<preset> for the player.
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
 
 const params = new URLSearchParams(location.search);
-if (params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter = async () => null;
 const output = document.querySelector('output'), noop = () => {};
 const errors = [];
 addEventListener('error', event => errors.push(event.message));
@@ -26,19 +25,9 @@ game.scheduleFrame = noop;
 game.setInPort(true); game.start(); await game.initialization;
 const rigUpdate = game.rig.update.bind(game.rig);
 
-/** The same frozen wave time on either ocean implementation. */
-const ocean = {
-  get legacy() { return !game.ocean && !!game.water; },
-  freeze(seconds) {
-    if (this.legacy) { game.water.deterministic = true; game.water.syncToTick(Math.round(seconds * 60)); }
-    else game.ocean.time = seconds;
-  },
-  /** Water Pro rebuilds a changed spectrum only inside a simulation step; ours on any update. */
-  async apply(seconds) {
-    if (this.legacy) { await game.water.update(1 / 60); game.water.syncToTick(Math.round(seconds * 60)); }
-  },
-  backend() { return (game.ocean ?? game.water).backend; },
-};
+/** Every scene renders the same frozen wave time: a paused frame never advances it, and parameter
+ * changes still apply on the next update. */
+const freeze = seconds => { game.ocean.time = seconds; };
 
 const frames = async count => { for (let i = 0; i < count; i++) { await new Promise(requestAnimationFrame); await game.frame(performance.now()); } };
 const settle = async (count = 40) => {
@@ -67,14 +56,14 @@ async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12,
   place(game.playerView, { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 });
   if (game.targetView) { place(game.targetView, { x: range, y: 0, z: 0, heading: Math.PI / 2, pitch: 0, roll: 0 }); game.targetView.root.visible = true; }
   game.ship.position.copy(game.playerView.root.position);
-  ocean.freeze(60); await ocean.apply(60);
+  freeze(60);
 }
 const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
 const NEAR = [[300, 95, 350], [0, 20, 0]], WIDE = [[550, 200, 700], [-650, 75, -1000]];
 
 /** Each scene leaves the game paused with a fixed camera and ocean time. */
 const scenes = {
-  port: async () => { game.rig.update = rigUpdate; game.setInPort(true); game.setPaused(true); battleKey = undefined; ocean.freeze(60); },
+  port: async () => { game.rig.update = rigUpdate; game.setInPort(true); game.setPaused(true); battleKey = undefined; freeze(60); },
   near: async () => { await battle(); look(...NEAR); },
   wide: async () => { await battle(); look(...WIDE); },
   grazing: async () => { await battle(); look([0, 12, 160], [0, 6, -4000], 55); },
@@ -128,7 +117,7 @@ const scenes = {
 
 async function capture() {
   await game.frame(performance.now());
-  await game.renderer.backend.device?.queue.onSubmittedWorkDone();
+  await game.renderer.backend.device.queue.onSubmittedWorkDone();
   return game.renderer.domElement.toDataURL('image/png');
 }
 /** Serialised CPU + GPU cost of whole frames: each frame waits for the GPU before the next. */
@@ -140,8 +129,7 @@ async function measure(count = 120, stepping = true) {
     for (let i = 0; i < count + 10; i++) {
       const start = performance.now();
       await game.frame(game.lastTime + 1000 / 60);
-      if (device) await device.queue.onSubmittedWorkDone();
-      else await game.renderer.readRenderTargetPixelsAsync(game.finalFrame.renderTarget, 0, 0, 1, 1);
+      await device.queue.onSubmittedWorkDone();
       if (i >= 10) times.push(performance.now() - start);
     }
   } finally { game.setPaused(true); }
@@ -151,8 +139,8 @@ async function measure(count = 120, stepping = true) {
 }
 
 window.oceanReview = {
-  game, ocean, scenes: Object.keys(scenes), errors,
-  async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, backend: ocean.backend(), legacy: ocean.legacy, errors: [...errors], ...(name === 'wake' ? { wakeState } : {}) }; },
+  game, scenes: Object.keys(scenes), errors,
+  async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors], ...(name === 'wake' ? { wakeState } : {}) }; },
   capture, measure,
 };
 window.ready = true; output.textContent = '';

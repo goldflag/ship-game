@@ -21,7 +21,6 @@ const SURFACE_ORDER = -30;
  * and floating objects behind one facade. Every parameter object is live: the game writes to
  * it and the next frame renders it. See `README.md` in this folder. */
 export class Ocean implements OceanApi {
-  readonly backend: 'webgpu' | 'webgl';
   readonly waves: WaveParameters;
   readonly colors = { waterColor: new Color('#2d373c'), transmissionColor: new Color('#49575e'), absorptionColor: new Color('#945b57') };
   readonly foam = {
@@ -56,7 +55,6 @@ export class Ocean implements OceanApi {
   private constructor(private readonly renderer: WebGPURenderer, private readonly scene: Scene, private readonly camera: PerspectiveCamera,
     readonly quality: OceanQuality, seed: number) {
     const tier = OCEAN_TIERS[quality];
-    this.backend = (renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend ? 'webgpu' : 'webgl';
     this.waves = { significantHeight: 1.8, windSpeed: 9, windDirection: 35 * Math.PI / 180, peakWavelength: 32, choppiness: 1.2, gamma: 2.6, directionalSharpness: .8, seed, dirty: true };
     // A screen-space ray may travel about a battleship's length and a half before it gives up;
     // WaterViewFocus stretches it for a hull seen through the lens.
