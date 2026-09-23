@@ -306,6 +306,10 @@ export class Game {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1;
     this.renderer.shadowMap.enabled = true;
+    // Three's default PCF takes five noise-rotated taps within about one texel, so where a
+    // grazing wall stretches a texel across many pixels its edges stair-step. PCFSoft's
+    // bilinear 3×3 gather is smooth at the same cost; water shadows keep their own filter.
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
