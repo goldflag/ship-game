@@ -28,12 +28,12 @@ try {
   page.setDefaultTimeout(600_000);
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') pageErrors.push(message.text()); });
-  const query = new URLSearchParams({ resolution: values.resolution!, ...(values.webgl ? { webgl: '1' } : {}), ...(values.measure ? { timing: '1' } : {}) });
+  const query = new URLSearchParams({ resolution: values.resolution!, ...(values.webgl ? { webgl: '1' } : {}) });
   await page.goto(`${url}/scripts/diagnostics/ocean-wake.html?${query}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => (window as unknown as { oceanWake?: unknown }).oceanWake, undefined, { polling: 500 });
   const { results, images } = await page.evaluate(() => (window as any).oceanWake as { results: Record<string, unknown>; images: Record<string, string> });
   for (const [name, image] of Object.entries(images)) writeFileSync(resolve(out, `${name}.png`), Buffer.from(image.split(',')[1], 'base64'));
-  const timing = values.measure ? await page.evaluate(() => (window as any).oceanWake.measure(60, 7)) : undefined;
+  const timing = values.measure ? await page.evaluate(() => (window as any).oceanWake.measure()) : undefined;
   passed = results.passed === true;
   writeFileSync(resolve(out, 'results.json'), JSON.stringify({ results, timing, pageErrors }, null, 1));
   console.log(JSON.stringify({ results, timing }, null, 1));

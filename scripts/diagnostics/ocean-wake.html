@@ -7,7 +7,7 @@
 <script type="module">
 // Development-only check of the ocean's wake field (src/game/ocean/wake) with its own renderer: a
 // Bismarck-sized hull sails at 15 m/s, turns and stops. `scripts/browser/ocean-wake.ts` drives it.
-// ?resolution=256|512|1024, ?webgl for the fallback backend, ?timing for GPU timestamps.
+// ?resolution=256|512|1024, ?webgl for the fallback backend, ?exaggerate=4 for the shaded view's heights.
 // Every check reads the public sampler back through a probe pass, as the surface material would.
 import * as THREE from 'three/webgpu';
 import { Fn, cameraPosition, dot, float, max, mix, normalize, positionLocal, positionWorld, pow, reflect, screenCoordinate, screenSize, smoothstep, uniform,
@@ -19,7 +19,7 @@ if (params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter = async (
 const output = document.querySelector('output');
 const resolution = Number(params.get('resolution') ?? 512);
 const WIDTH = 1600, HEIGHT = 900, DT = 1 / 60, MAX_SPEED = 15, LENGTH = 250, BEAM = 36;
-const renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true, trackTimestamp: params.has('timing') });
+const renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true });
 renderer.setPixelRatio(1); renderer.setSize(WIDTH, HEIGHT);
 document.body.prepend(renderer.domElement);
 await renderer.init();
@@ -109,12 +109,14 @@ const same = (a, b) => a.length === b.length && a.every((v, i) => Object.is(v, b
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9fb8cc);
 const camera = new THREE.PerspectiveCamera(40, WIDTH / HEIGHT, 1, 20000);
-const seaCenter = uniform(new THREE.Vector2());
+const seaCenter = uniform(new THREE.Vector2()), exaggerate = uniform(Number(params.get('exaggerate') ?? 4));
 const seaMaterial = new THREE.MeshBasicNodeMaterial();
 const worldXZ = () => positionLocal.xz.add(seaCenter);
-seaMaterial.positionNode = Fn(() => { const w = worldXZ(); return positionLocal.add(vec3(0, field.sampler.height(w.x, w.y), 0)); })();
+// Wake waves are decimetres over tens of metres; the shaded view scales heights and slopes alike.
+seaMaterial.positionNode = Fn(() => { const w = worldXZ(); return positionLocal.add(vec3(0, field.sampler.height(w.x, w.y).mul(exaggerate), 0)); })();
 seaMaterial.colorNode = Fn(() => {
-  const w = worldXZ(), n = field.sampler.normal(w.x, w.y), view = normalize(cameraPosition.sub(positionWorld));
+  const w = worldXZ(), wake = field.sampler.normal(w.x, w.y), n = normalize(vec3(wake.x.mul(exaggerate), wake.y, wake.z.mul(exaggerate)));
+  const view = normalize(cameraPosition.sub(positionWorld));
   // No sun glint: on a flat sea it is one bright disc. The sky gradient shows the slopes instead.
   const sun = normalize(vec3(.3, .5, .8)), mirrored = reflect(view.negate(), n);
   const fresnel = pow(float(1).sub(max(dot(n, view), 0)), 5).mul(.98).add(.02);
@@ -144,8 +146,8 @@ function render(view) {
   hull.position.set(cx, 3, cz); hull.rotation.y = ship.rotation.y;
   // Behind and to starboard, looking up the wake at the hull, like the game's chase view.
   const back = new THREE.Vector3(Math.sin(ship.rotation.y), 0, Math.cos(ship.rotation.y));
-  camera.position.set(cx, 0, cz).addScaledVector(back, 700).add(new THREE.Vector3(back.z * 260, 240, -back.x * 260));
-  camera.lookAt(cx + back.x * 180, 0, cz + back.z * 180);
+  camera.position.set(cx, 0, cz).addScaledVector(back, 760).add(new THREE.Vector3(back.z * 300, 150, -back.x * 300));
+  camera.lookAt(cx + back.x * 200, 0, cz + back.z * 200);
   renderer.render(scene, camera);
 }
 async function capture(view) {
@@ -154,24 +156,24 @@ async function capture(view) {
   return renderer.domElement.toDataURL('image/png');
 }
 
-/** Median GPU (or wall) milliseconds per simulation step, and the passes a step renders. */
-async function measure(steps = 60, repeats = 5) {
-  const samples = [], calls = [];
+/** Milliseconds per simulation step (median of batches): a batch of steps is submitted, then timed until
+ * the GPU finishes it. Per-pass timestamps overstate small dependent passes on Metal, so none are used. */
+async function measure(steps = 30, repeats = 9) {
+  const finish = () => backend === 'webgpu' ? renderer.backend.device.queue.onSubmittedWorkDone() : renderer.readRenderTargetPixelsAsync(probeTarget, 0, 0, 1, 1);
+  const total = [], submit = [];
+  let passes = 0;
+  motion.speed = MAX_SPEED;
   for (let r = 0; r < repeats; r++) {
-    if (renderer.backend.trackTimestamp) await renderer.resolveTimestampsAsync('render');
-    const before = renderer.info.render.calls, started = performance.now();
-    for (let i = 0; i < steps; i++) { motion.speed = MAX_SPEED; frame(1 / 30); }
-    calls.push((renderer.info.render.calls - before) / steps);
-    if (renderer.backend.trackTimestamp) {
-      const gpu = await renderer.resolveTimestampsAsync('render');
-      if (gpu) { samples.push(gpu / steps); continue; }
-    }
-    if (backend === 'webgpu') await renderer.backend.device.queue.onSubmittedWorkDone();
-    else await renderer.readRenderTargetPixelsAsync(probeTarget, 0, 0, 1, 1);
-    samples.push((performance.now() - started) / steps);
+    await finish();
+    const calls = renderer.info.render.calls, started = performance.now();
+    for (let i = 0; i < steps; i++) frame(1 / 30);
+    submit.push((performance.now() - started) / steps);
+    passes = (renderer.info.render.calls - calls) / steps;
+    await finish();
+    total.push((performance.now() - started) / steps);
   }
-  samples.sort((a, b) => a - b);
-  return { msPerStep: samples[Math.floor(samples.length / 2)], samples, passesPerStep: calls[0], clock: renderer.backend.trackTimestamp ? 'gpu' : 'wall' };
+  const median = values => values.sort((a, b) => a - b)[Math.floor(values.length / 2)];
+  return { msPerStep: median([...total]), cpuMsPerStep: median([...submit]), samples: total, passesPerStep: passes };
 }
 
 const results = { backend, resolution }, images = {};

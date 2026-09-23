@@ -1,6 +1,6 @@
 import { Color, FloatType, HalfFloatType, LinearFilter, MeshBasicNodeMaterial, NearestFilter, NoBlending, QuadMesh, RedFormat, RenderTarget, RGBAFormat, Vector2, Vector4,
   type Node, type Object3D, type TextureNode, type WebGPURenderer } from 'three/webgpu';
-import { Fn, Loop, clamp, dot, exp, float, floor, fract, int, ivec2, max, min, mix, normalize, screenCoordinate, select, smoothstep, sqrt, texture, uniform, uniformArray,
+import { Fn, Loop, clamp, dot, exp, float, floor, fract, ivec2, max, min, mix, normalize, screenCoordinate, select, smoothstep, sqrt, texture, uniform, uniformArray,
   vec2, vec3, vec4 } from 'three/tsl';
 import type { WakeFieldApi, WakeGeneratorOptions, WakeSampler } from '../contracts';
 import { dispersionPyramid, type KernelTap } from './kernel';
@@ -31,8 +31,15 @@ const MIN_RADIUS_CELLS = 1.5;
 
 type Loader = (cell: Node<'ivec2'>) => Node<'vec4'>;
 
+/** Every `sample`/`load` clone of a base texture node re-enables the texture's UV matrix, which would cost a
+ * matrix uniform and a multiply per read; the base node stays the one whose `value` ping-pongs. */
+function direct(node: TextureNode): TextureNode {
+  node.updateMatrix = false;
+  return node;
+}
+
 /** Clamped texel reads: the pyramid treats the sea beyond the field as continuing the edge value. */
-const loader = (node: TextureNode, size: number): Loader => cell => node.load(ivec2(clamp(vec2(cell), 0, size - 1)));
+const loader = (node: TextureNode, size: number): Loader => cell => direct(node.load(ivec2(clamp(vec2(cell), 0, size - 1))));
 
 /** Bilinear 2× upsample of a level onto the next finer grid, texel centre aligned: fine texel p lies at
  * coarse coordinate p/2 − 1/4. Matches the collapse the kernels were fitted for. */
@@ -284,16 +291,24 @@ export class WakeField implements WakeFieldApi {
   }
 
   private createSampler(): WakeSampler {
-    const u = this.uniforms;
-    /** Both displays at a world point, blended by the step fraction; calm outside the field. */
-    const read = (x: Node<'float'>, z: Node<'float'>) => {
-      const at = (display: TextureNode, origin: Node<'vec2'>) => {
-        const uv = vec2(x, z).sub(origin).div(u.worldSize).add(.5);
-        const fade = smoothstep(0, EDGE_FADE, uv.x).mul(smoothstep(0, EDGE_FADE, uv.x.oneMinus()))
-          .mul(smoothstep(0, EDGE_FADE, uv.y)).mul(smoothstep(0, EDGE_FADE, uv.y.oneMinus()));
-        return display.sample(uv).mul(fade);
-      };
-      return mix(at(this.previousDisplay, u.previousOrigin), at(this.currentDisplay, u.origin), u.fraction).mul(u.gain);
+    const u = this.uniforms, reads = new WeakMap<Node, WeakMap<Node, Node<'vec4'>>>();
+    const at = (display: TextureNode, origin: Node<'vec2'>, x: Node<'float'>, z: Node<'float'>) => {
+      const uv = vec2(x, z).sub(origin).div(u.worldSize).add(.5);
+      const fade = smoothstep(0, EDGE_FADE, uv.x).mul(smoothstep(0, EDGE_FADE, uv.x.oneMinus()))
+        .mul(smoothstep(0, EDGE_FADE, uv.y)).mul(smoothstep(0, EDGE_FADE, uv.y.oneMinus()));
+      return direct(display.sample(uv)).mul(fade);
+    };
+    /** Both displays at a world point, blended by the step fraction; calm outside the field. One read per
+     * (x, z) node pair, so height, normal and foam at the same point share their two fetches. */
+    const read = (x: Node<'float'>, z: Node<'float'>): Node<'vec4'> => {
+      let byZ = reads.get(x);
+      if (!byZ) reads.set(x, byZ = new WeakMap());
+      let value = byZ.get(z);
+      if (!value) {
+        const previous = at(this.previousDisplay, u.previousOrigin, x, z), current = at(this.currentDisplay, u.origin, x, z);
+        byZ.set(z, value = previous.add(current.sub(previous).mul(u.fraction)).mul(u.gain));
+      }
+      return value;
     };
     return {
       height: (x, z) => read(x, z).x,
