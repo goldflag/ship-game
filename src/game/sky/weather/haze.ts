@@ -18,6 +18,10 @@ export interface HazeInput {
   readonly ceiling: UniformNode<'float', number>;
   /** Radiance of the rain-filled air seen along a world direction: the light it scatters toward the camera. */
   readonly air: (direction: Node<'vec3'>) => Node<'vec3'>;
+  /** Lightning the rain scatters toward the camera along a view ray, while `lightning` (the strike's irradiance at
+   * the camera) is above 0; evaluated per pixel, so the veil glows around the strike rather than everywhere. */
+  readonly glow: (ray: Node<'vec3'>) => Node<'vec3'>;
+  readonly lightning: UniformNode<'float', number>;
 }
 
 /** Heavy rain's veil over the composed scene, in linear radiance: by the length of rain along each view ray, colour
@@ -27,7 +31,7 @@ export interface HazeInput {
  * work, and what the veil changes (sea, horizon, far ships) lies at the sea's distance anyway; a hull in the
  * foreground stands below the horizon, where the sea behind it is near and the veil faint. A uniform branch skips
  * everything when dry. */
-export function rainHaze(scenePass: PassNode, color: Node<'vec4'>, { strength, height, ceiling, air }: HazeInput): Node<'vec4'> {
+export function rainHaze(scenePass: PassNode, color: Node<'vec4'>, { strength, height, ceiling, air, glow, lightning }: HazeInput): Node<'vec4'> {
   // Camera nodes in the output chain belong to its quad camera; read the scene camera's own matrices.
   const camera = scenePass.camera;
   const cameraWorld = uniform(camera.matrixWorld), projectionInverse = uniform(camera.projectionMatrixInverse);
@@ -47,7 +51,9 @@ export function rainHaze(scenePass: PassNode, color: Node<'vec4'>, { strength, h
       const veil = float(1).sub(exp(rain.div(-RAIN_VISIBILITY))).mul(strength);
       const rgb = result.rgb;
       const grey = mix(rgb, vec3(luminance(rgb)), veil.mul(DESATURATE));
-      result.assign(vec4(mix(grey, tint, veil.mul(LIFT)), result.a));
+      const lit = vec3(tint).toVar();
+      If(lightning.greaterThan(0), () => { lit.addAssign(glow(ray)); });
+      result.assign(vec4(mix(grey, lit, veil.mul(LIFT)), result.a));
     });
     return result;
   })();

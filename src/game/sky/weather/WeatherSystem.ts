@@ -1,12 +1,12 @@
 import { MathUtils, Vector3, type Node, type Object3D, type PassNode } from 'three/webgpu';
-import { uniform, vec3 } from 'three/tsl';
+import { dot, uniform, vec3 } from 'three/tsl';
 import type { AtmospherePart, SkyFrame, SkyPartContext, SkyQuality, SkyScene, WeatherPart } from '../contracts';
 import { SKY_TIERS, type SkyTier } from '../quality';
 import { buildBolt } from './bolt';
 import { BOLT_RADIANCE, BoltMesh } from './boltMesh';
 import { rainHaze } from './haze';
 import { flashAt, LightningScheduler, placeChannel, planStrokes, seededRandom, Strike, thunderFor, type StrikeKind } from './lightning';
-import { RainField, skyAround, type RainLighting } from './rain';
+import { phase, RainField, skyAround, type RainLighting } from './rain';
 import { SplashField } from './splashes';
 
 /** Frames after creation in which empty rain, splash and bolt meshes still draw (no instances), so their
@@ -27,8 +27,10 @@ const SPLASH_ZOOM = 3;
 const SUBMERGED = -.3;
 /** Distance (m) over which the air dims a bolt by e, dry and in a downpour. */
 const BOLT_VISIBILITY = { dry: 40000, rain: 11000 };
-/** Brightness of the rain-lit air relative to the sky behind it, and its share of the lightning at the camera. */
-const AIR = .85, AIR_LIGHTNING = .04;
+/** Brightness of the rain-lit air relative to the sky behind it. Lightning lights it by forward scattering: the veil
+ * glows toward the strike (Henyey–Greenstein `AIR_LIGHTNING_G`) with `AIR_LIGHTNING` of the strike's irradiance at
+ * the camera, and hardly away from it. */
+const AIR = .85, AIR_LIGHTNING = .12, AIR_LIGHTNING_G = .6;
 /** Where a ground bolt ends below sea level (m), so it meets the waves even in a trough. */
 const BOLT_FOOT = -3;
 
@@ -52,8 +54,10 @@ export class WeatherSystem implements WeatherPart {
    * along a view ray ends. */
   private readonly hazeHeight = uniform(1);
   private readonly hazeCeiling = uniform(0);
-  /** Radiance of the rain-filled air along a view ray, which the haze pulls distance toward. */
+  /** Radiance of the rain-filled air along a view ray, which the haze pulls distance toward, and the lightning it
+   * scatters toward the camera along one. */
   private readonly air: (ray: Node<'vec3'>) => Node<'vec3'>;
+  private readonly glow: (ray: Node<'vec3'>) => Node<'vec3'>;
   private active: Strike | null = null;
   private boltVisible = false;
   private flashValue = 0;
@@ -67,7 +71,7 @@ export class WeatherSystem implements WeatherPart {
     const { uniforms } = context;
     const ambient = atmosphere.ambient(uniforms.cameraPosition.y.max(0));
     const lighting: RainLighting = { sky: direction => atmosphere.sky(direction), below: ambient.below,
-      lightDirection: uniforms.lightDirection, lightColor: uniforms.lightColor };
+      lightDirection: uniforms.lightDirection, lightColor: uniforms.lightColor, flash: uniforms.flash };
     const capacity = Math.max(...Object.values(SKY_TIERS).map(tier => tier.rainDrops));
     this.rain = new RainField(capacity, lighting);
     this.splashes = new SplashField(Math.ceil(capacity * SPLASH_SHARE), lighting, options.seaHeight);
@@ -76,9 +80,9 @@ export class WeatherSystem implements WeatherPart {
     this.meshes = [this.splashes.mesh, this.bolt.mesh, this.rain.mesh];
     this.tier = SKY_TIERS[context.quality];
     this.setQuality(context.quality);
-    // The air takes the colour of the sky behind it, greyed under a deck, lit up by a flash.
-    this.air = ray => skyAround(lighting, ray, this.rain.grey).mul(this.rain.flash.add(1)).mul(AIR)
-      .add(vec3(.8, .87, 1).mul(this.rain.boltIrradiance.mul(AIR_LIGHTNING)));
+    // The air takes the colour of the sky behind it, greyed under a deck; a strike lights the rain toward it.
+    this.air = ray => skyAround(lighting, ray, this.rain.grey).mul(AIR);
+    this.glow = ray => vec3(.8, .87, 1).mul(this.rain.boltIrradiance.mul(phase(dot(ray, this.rain.boltDirection), AIR_LIGHTNING_G)).mul(AIR_LIGHTNING));
   }
 
   get strike(): Strike | null { return this.active; }
@@ -144,7 +148,8 @@ export class WeatherSystem implements WeatherPart {
   clearStrike(): void { this.active = null; this.boltVisible = false; this.flashValue = 0; }
 
   postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'> {
-    return rainHaze(scenePass, color, { strength: this.hazeStrength, height: this.hazeHeight, ceiling: this.hazeCeiling, air: this.air });
+    return rainHaze(scenePass, color, { strength: this.hazeStrength, height: this.hazeHeight, ceiling: this.hazeCeiling, air: this.air,
+      glow: this.glow, lightning: this.rain.boltIrradiance });
   }
 
   setQuality(quality: SkyQuality): void {
@@ -173,12 +178,12 @@ export class WeatherSystem implements WeatherPart {
     const { rain } = this;
     this.boltVisible = false;
     if (!this.active) {
-      this.flashValue = rain.flash.value = this.splashes.flash.value = rain.boltIrradiance.value = 0;
+      this.flashValue = rain.boltIrradiance.value = 0;
       this.bolt.main.value = this.bolt.branches.value = 0;
       return;
     }
     const active = this.active, toStrike = this.toStrike.subVectors(active.position, camera), distance = Math.max(1, toStrike.length());
-    this.flashValue = rain.flash.value = this.splashes.flash.value = flashAt(active.kind, active.brightness, distance);
+    this.flashValue = flashAt(active.kind, active.brightness, distance);
     rain.boltIrradiance.value = active.intensity * (1000 / distance) ** 2;
     rain.boltDirection.value.copy(toStrike).divideScalar(distance);
     if (active.kind === 'ground') {
