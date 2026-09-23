@@ -127,9 +127,11 @@ export class Atmosphere implements AtmospherePart {
     return { inscatter: this.radiance(direction, fromSea, false).mul(share), transmittance };
   }
 
+  /** The sky's mean radiance over the hemisphere above an altitude (irradiance over π), and that of the air and
+   * sea below it, from the ambient table (0–16 km; held beyond). */
   ambient(altitude: Float): { above: Vec3; below: Vec3 } {
-    const uv = vec2(unitToTexel(altitude.div(AMBIENT_TOP * 1000).clamp(0, 1), AMBIENT_SIZE), .5);
-    return { above: direct(texture(this.tables.above, uv)).rgb, below: direct(texture(this.tables.below, uv)).rgb };
+    const u = unitToTexel(altitude.div(AMBIENT_TOP * 1000).clamp(0, 1), AMBIENT_SIZE);
+    return { above: direct(texture(this.tables.ambient, vec2(u, .25))).rgb, below: direct(texture(this.tables.ambient, vec2(u, .75))).rgb };
   }
 
   dispose(): void { this.tables.dispose(); }

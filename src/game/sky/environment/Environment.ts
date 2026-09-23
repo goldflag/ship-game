@@ -5,14 +5,14 @@ import type { OceanSky } from '../../ocean/contracts';
 import type { EnvironmentPart, EnvironmentSources, SkyFrame, SkyQuality, SkyUniforms } from '../contracts';
 import { SKY_TIERS } from '../quality';
 
-/** Bands the sky above the horizon is baked in, one per frame; the sea below takes one more. A full sweep
- * then takes BANDS + 1 frames, after which the PMREM refilters the finished bake. */
-const BANDS = 8;
-/** Frames between the starts of two sweeps: the bake idles after a sweep until then, so the PMREM refilters
- * at most this often. Clouds drift a fraction of a degree a second, so a fifth of a second is plenty. */
-const SWEEP_FRAMES = 12;
-/** Directions this far below the horizon (as a vertical component) see only the dome: the clouds' bake
- * starts here, a little under the horizon so the seam hides in its haze. */
+/** A sweep bakes the sky in this many horizontal bands, evenly over SWEEP_FRAMES frames, and the PMREM then
+ * refilters the finished bake once. Every draw is its own render pass, whose fixed cost outweighs a band's
+ * shading until the clouds' march arrives, so a few bands a sweep beat one a frame. Clouds drift a fraction of
+ * a degree a second: a quarter of a second between refreshes does not show. */
+const BANDS = 4, SWEEP_FRAMES = 16;
+/** Directions this far below the horizon (as a vertical component) see only the dome: the sweep and the
+ * clouds' bake start here, a little under the horizon, where the most distant clouds sink. Beneath it the
+ * dome shows the horizon's colour, which changes only with the scene, so full bakes alone refresh it. */
 const CLOUD_FLOOR = -.02;
 /** A sweep restarts at once, baking everything in one frame, after the sun or the sky's light changes or
  * the bake's origin jumps this far (m): a scene change or a teleport must not show a stale sky. */
@@ -31,9 +31,10 @@ export class Environment implements EnvironmentPart {
   /** Bake origin: the sea under the camera. */
   private readonly origin = uniform(new Vector3());
   private readonly size = uniform(new Vector2(1, 1));
-  /** Next band to bake; BANDS is the sea below the horizon; above it the bake idles until the sweep's frames end. */
-  private band = 0;
+  /** Frame of the current sweep. */
   private frame = 0;
+  /** First texel row the sweep bakes (rows below it hold the dome under the horizon). */
+  private floorRow = 0;
   private full = true;
   private readonly bakedOrigin = new Vector3(Infinity, 0, 0);
   private readonly bakedSun = new Vector3();
@@ -76,31 +77,27 @@ export class Environment implements EnvironmentPart {
   }
 
   update(_frame: SkyFrame): void {
-    const { sunDirection, sunIrradiance } = this.uniforms;
+    const { sunDirection, sunIrradiance } = this.uniforms, origin = this.origin.value;
     if (!this.bakedSun.equals(sunDirection.value) || !this.bakedLight.equals(sunIrradiance.value)
-      || Math.hypot(this.origin.value.x - this.bakedOrigin.x, this.origin.value.z - this.bakedOrigin.z) > JUMP) this.full = true;
+      || Math.hypot(origin.x - this.bakedOrigin.x, origin.z - this.bakedOrigin.z) > JUMP) this.full = true;
     if (this.full) {
       this.full = false;
-      this.bakedSun.copy(sunDirection.value); this.bakedLight.copy(sunIrradiance.value); this.bakedOrigin.copy(this.origin.value);
+      this.bakedSun.copy(sunDirection.value); this.bakedLight.copy(sunIrradiance.value); this.bakedOrigin.copy(origin);
       this.bake(0, this.target.height);
-      this.band = 0; this.frame = 0;
+      this.frame = 0;
       this.refilter();
       return;
     }
-    const frame = this.frame++;
-    if (this.frame >= SWEEP_FRAMES) this.frame = 0;
-    if (frame > BANDS) return;
-    const height = this.target.height, half = height / 2;
-    if (frame === BANDS) {
-      // The sea's half last: dome only, and the sweep's bake is complete.
-      this.bake(0, half);
-      this.bakedOrigin.copy(this.origin.value);
+    const frame = this.frame, stride = SWEEP_FRAMES / BANDS;
+    this.frame = (frame + 1) % SWEEP_FRAMES;
+    if (frame % stride) return;
+    // Rows grow with elevation (v = 1 at the zenith): the sweep runs from the zenith down to the cloud floor.
+    const band = frame / stride, height = this.target.height, span = height - this.floorRow;
+    this.bake(height - Math.round((band + 1) * span / BANDS), height - Math.round(band * span / BANDS));
+    if (band === BANDS - 1) {
+      this.bakedOrigin.copy(origin);
       this.refilter();
-      return;
     }
-    // Rows grow upward in elevation (v = 1 at the zenith); bake the sky from the zenith down to the horizon.
-    const top = Math.round(height - frame * half / BANDS), bottom = Math.round(height - (frame + 1) * half / BANDS);
-    this.bake(bottom, top);
   }
 
   setQuality(quality: SkyQuality): void {
@@ -122,6 +119,7 @@ export class Environment implements EnvironmentPart {
       depthBuffer: false, generateMipmaps: false });
     target.texture.name = 'Sky environment';
     this.size.value.set(target.width, target.height);
+    this.floorRow = Math.max(0, Math.floor((Math.asin(CLOUD_FLOOR) / Math.PI + .5) * target.height));
     return target;
   }
 

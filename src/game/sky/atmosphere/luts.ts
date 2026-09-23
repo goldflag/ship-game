@@ -15,8 +15,8 @@
  * Lengths are kilometres, directions unit vectors in a frame whose +Y is the local vertical at the
  * camera (the planet's centre lies straight below it). See `model.ts` for the profiles. */
 import { FloatType, HalfFloatType, LinearFilter, NoBlending, NodeMaterial, QuadMesh, RGBAFormat, RenderTarget, Vector2, Vector3,
-  type Node, type Texture, type UniformNode } from 'three/webgpu';
-import { Fn, If, Loop, abs, acos, cos, dot, exp, float, floor, int, max, min, mrt, normalize, pow, screenCoordinate, select, sin, smoothstep,
+  type Node, type Texture, type UniformNode, type WebGPURenderer } from 'three/webgpu';
+import { Fn, If, Loop, abs, acos, cos, dot, exp, float, floor, int, ivec2, max, min, mrt, normalize, pow, screenCoordinate, select, sin, smoothstep,
   sqrt, texture, vec2, vec3, vec4 } from 'three/tsl';
 import { ATMOSPHERE_TOP, AUREOLE, MIE_HEIGHT, OZONE_HALF_WIDTH, OZONE_PEAK, PLANET_RADIUS, RAYLEIGH_HEIGHT, SEA_ALBEDO } from './model';
 
@@ -125,8 +125,8 @@ export interface Tables {
   readonly multiple: Texture;
   readonly scatter: Texture;
   readonly mie: Texture;
-  readonly above: Texture;
-  readonly below: Texture;
+  /** Ambient light by altitude: row 0 from above, row 1 from below. */
+  readonly ambient: Texture;
 }
 
 /** Optical depth from radius `r` along `mu` to the top of the air (valid where the ray misses the sea). */
@@ -235,22 +235,27 @@ export interface PassInputs {
   readonly moonLight: Vec3;
 }
 
-/** The atmosphere's render targets and the passes that fill them. */
+/** The atmosphere's render targets and the passes that fill them. The multiple-scattering and ambient tables
+ * integrate many directions per texel; each direction is its own texel of a larger target and a second pass
+ * sums them, which keeps the GPU full instead of leaving a few threads to march serially. */
 export class AtmosphereTables implements Tables {
   private readonly opticalDepthTarget = target(TRANSMITTANCE_SIZE.x, TRANSMITTANCE_SIZE.y, FloatType, ['opticalDepth']);
+  private readonly multipleDirectionsTarget = target(MULTIPLE_SIZE * MULTIPLE_DIRECTIONS, MULTIPLE_SIZE * MULTIPLE_DIRECTIONS, HalfFloatType, ['light', 'transfer']);
   private readonly multipleTarget = target(MULTIPLE_SIZE, MULTIPLE_SIZE, HalfFloatType, ['multiple']);
   private readonly skyViewTarget = target(SKY_VIEW_SIZE.x, SKY_VIEW_SIZE.y * 4, HalfFloatType, ['scatter', 'mie']);
-  private readonly aboveTarget = target(AMBIENT_SIZE, 1, HalfFloatType, ['above']);
-  private readonly belowTarget = target(AMBIENT_SIZE, 1, HalfFloatType, ['below']);
-  private readonly passes: { opticalDepth: QuadMesh; multiple: QuadMesh; skyView: QuadMesh; above: QuadMesh; below: QuadMesh };
+  private readonly ambientDirectionsTarget = target(AMBIENT_SIZE, 2 * AMBIENT_DIRECTIONS ** 2, HalfFloatType, ['radiance']);
+  private readonly ambientTarget = target(AMBIENT_SIZE, 2, HalfFloatType, ['ambient']);
+  private readonly passes: Record<'opticalDepth' | 'multipleDirections' | 'multiple' | 'skyView' | 'ambientDirections' | 'ambient', QuadMesh>;
 
   constructor(inputs: PassInputs) {
+    const pass = (output: Node, name: string) => new QuadMesh(passMaterial(output, name));
     this.passes = {
-      opticalDepth: new QuadMesh(passMaterial(this.opticalDepthPass(inputs.air), 'Sky optical depth')),
-      multiple: new QuadMesh(passMaterial(this.multiplePass(inputs.air), 'Sky multiple scattering')),
-      skyView: new QuadMesh(passMaterial(this.skyViewPass(inputs), 'Sky view')),
-      above: new QuadMesh(passMaterial(this.ambientPass(inputs, true), 'Sky ambient above')),
-      below: new QuadMesh(passMaterial(this.ambientPass(inputs, false), 'Sky ambient below')),
+      opticalDepth: pass(this.opticalDepthPass(inputs.air), 'Sky optical depth'),
+      multipleDirections: pass(this.multipleDirectionsPass(inputs.air), 'Sky multiple scattering directions'),
+      multiple: pass(this.multiplePass(), 'Sky multiple scattering'),
+      skyView: pass(this.skyViewPass(inputs), 'Sky view'),
+      ambientDirections: pass(this.ambientDirectionsPass(inputs), 'Sky ambient directions'),
+      ambient: pass(this.ambientPass(), 'Sky ambient'),
     };
   }
 
@@ -258,11 +263,10 @@ export class AtmosphereTables implements Tables {
   get multiple(): Texture { return this.multipleTarget.texture; }
   get scatter(): Texture { return this.skyViewTarget.textures[0]; }
   get mie(): Texture { return this.skyViewTarget.textures[1]; }
-  get above(): Texture { return this.aboveTarget.texture; }
-  get below(): Texture { return this.belowTarget.texture; }
+  get ambient(): Texture { return this.ambientTarget.texture; }
 
   /** Rebuild what changed: the air (every table), the lights (sky views and ambient), or only the camera's altitude. */
-  render(renderer: import('three/webgpu').WebGPURenderer, what: { air: boolean; lights: boolean; camera: boolean }): void {
+  render(renderer: WebGPURenderer, what: { air: boolean; lights: boolean; camera: boolean }): void {
     const previous = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), level = renderer.getActiveMipmapLevel();
     const mrtState = renderer.getMRT(), autoClear = renderer.autoClear;
     const draw = (target: RenderTarget, pass: QuadMesh, rows?: [number, number]) => {
@@ -276,15 +280,14 @@ export class AtmosphereTables implements Tables {
       renderer.autoClear = false;
       if (what.air) {
         draw(this.opticalDepthTarget, this.passes.opticalDepth);
+        draw(this.multipleDirectionsTarget, this.passes.multipleDirections);
         draw(this.multipleTarget, this.passes.multiple);
       }
-      const rows = SKY_VIEW_SIZE.y;
-      if (what.air || what.lights) draw(this.skyViewTarget, this.passes.skyView);
-      else if (what.camera) draw(this.skyViewTarget, this.passes.skyView, [0, 2 * rows]);
       if (what.air || what.lights) {
-        draw(this.aboveTarget, this.passes.above);
-        draw(this.belowTarget, this.passes.below);
-      }
+        draw(this.skyViewTarget, this.passes.skyView);
+        draw(this.ambientDirectionsTarget, this.passes.ambientDirections);
+        draw(this.ambientTarget, this.passes.ambient);
+      } else if (what.camera) draw(this.skyViewTarget, this.passes.skyView, [0, 2 * SKY_VIEW_SIZE.y]);
     } finally {
       renderer.setRenderTarget(previous, face, level);
       renderer.setMRT(mrtState);
@@ -311,47 +314,60 @@ export class AtmosphereTables implements Tables {
     })();
   }
 
-  /** Hillaire's multiple scattering: second-order light arriving at a point from every direction under an
-   * isotropic phase, summed as a geometric series with the share of light the surroundings return. */
-  private multiplePass(air: AirUniforms): Vec4 {
-    return Fn(() => {
-      const mu = texelToUnit(screenCoordinate.x, MULTIPLE_SIZE).mul(2).sub(1);
-      const altitude = texelToUnit(screenCoordinate.y, MULTIPLE_SIZE).mul(RT - RB).max(SEA_HEIGHT);
+  /** Hillaire's multiple scattering, one direction per texel: an 8 × 8 tile per table texel holds stratified
+   * uniform directions over the sphere, each marched for the second-order light it brings under an isotropic
+   * phase (`light`) and the share of light the surroundings return (`transfer`). */
+  private multipleDirectionsPass(air: AirUniforms): Node {
+    const transfer = vec3(0).toVar();
+    const light = Fn(() => {
+      const pixel = floor(screenCoordinate), cell = floor(pixel.div(MULTIPLE_DIRECTIONS)), stratum = pixel.sub(cell.mul(MULTIPLE_DIRECTIONS));
+      const mu = texelToUnit(cell.x.add(.5), MULTIPLE_SIZE).mul(2).sub(1);
+      const altitude = texelToUnit(cell.y.add(.5), MULTIPLE_SIZE).mul(RT - RB).max(SEA_HEIGHT);
       const origin = vec3(0, altitude.add(RB), 0);
-      const light = vec3(sqrt(float(1).sub(mu.mul(mu)).max(0)), mu, 0);
-      const luminance = vec3(0).toVar(), transfer = vec3(0).toVar();
-      const count = MULTIPLE_DIRECTIONS * MULTIPLE_DIRECTIONS;
-      Loop({ start: int(0), end: int(count), type: 'int', condition: '<' }, ({ i }: { i: Node<'int'> }) => {
-        // Stratified uniform directions over the sphere.
-        const a = float(i.div(MULTIPLE_DIRECTIONS)).add(.5).div(MULTIPLE_DIRECTIONS), b = float(i.mod(MULTIPLE_DIRECTIONS)).add(.5).div(MULTIPLE_DIRECTIONS);
-        const cosine = float(1).sub(a.mul(2)), sine = sqrt(float(1).sub(cosine.mul(cosine)).max(0)), phi = b.mul(2 * Math.PI);
-        const direction = vec3(sine.mul(cos(phi)), cosine, sine.mul(sin(phi))).toVar();
-        const r = origin.y, viewMu = direction.y;
-        const ground = distanceToGround(r, viewMu).toVar();
-        const length = select(ground.greaterThan(0), ground, distanceToTop(r, viewMu)).toVar();
-        const segment = vec3(0).toVar(), gathered = vec3(0).toVar(), throughput = vec3(1).toVar();
-        // Nested loops both count in `i`; WGSL lets the inner one shadow the outer.
-        Loop({ start: int(0), end: int(MULTIPLE_STEPS), type: 'int', condition: '<' }, ({ i: j }: { i: Node<'int'> }) => {
-          const t0 = length.mul(float(j).div(MULTIPLE_STEPS)), dt = length.div(MULTIPLE_STEPS), t = t0.add(dt.mul(.5));
-          const position = origin.add(direction.mul(t)), radius = position.length();
-          const lightMu = dot(position.div(radius), light), air_ = medium(air, radius.sub(RB));
-          const scattering = air_.rayleigh.add(air_.mie), extinction = air_.extinction.max(1e-7);
-          const step = exp(extinction.mul(dt).negate()), weight = throughput.mul(float(1).sub(step)).div(extinction);
-          segment.addAssign(scattering.mul(lightTransmittance(this, radius, lightMu)).mul(1 / (4 * Math.PI)).mul(weight));
-          gathered.addAssign(scattering.mul(weight));
-          throughput.mulAssign(step);
-        });
-        // The sea returns a little of the light that reaches it.
-        If(ground.greaterThan(0), () => {
-          const point = origin.add(direction.mul(ground)), normal = normalize(point);
-          const lightMu = dot(normal, light);
-          segment.addAssign(throughput.mul(lightTransmittance(this, float(RB), lightMu)).mul(lightMu.max(0)).mul(SEA_ALBEDO / Math.PI));
-        });
-        luminance.addAssign(segment.div(count));
-        transfer.addAssign(gathered.div(count));
+      const sun = vec3(sqrt(float(1).sub(mu.mul(mu)).max(0)), mu, 0);
+      const cosine = float(1).sub(stratum.y.add(.5).div(MULTIPLE_DIRECTIONS).mul(2)), sine = sqrt(float(1).sub(cosine.mul(cosine)).max(0));
+      const phi = stratum.x.add(.5).div(MULTIPLE_DIRECTIONS).mul(2 * Math.PI);
+      const direction = vec3(sine.mul(cos(phi)), cosine, sine.mul(sin(phi))).toVar();
+      const r = origin.y;
+      const ground = distanceToGround(r, direction.y).toVar();
+      const length = select(ground.greaterThan(0), ground, distanceToTop(r, direction.y)).toVar();
+      const segment = vec3(0).toVar(), throughput = vec3(1).toVar();
+      Loop({ start: int(0), end: int(MULTIPLE_STEPS), type: 'int', condition: '<' }, ({ i }: { i: Node<'int'> }) => {
+        const dt = length.div(MULTIPLE_STEPS), t = float(i).add(.5).mul(dt);
+        const position = origin.add(direction.mul(t)), radius = position.length();
+        const lightMu = dot(position.div(radius), sun), air_ = medium(air, radius.sub(RB));
+        const scattering = air_.rayleigh.add(air_.mie), extinction = air_.extinction.max(1e-7);
+        const step = exp(extinction.mul(dt).negate()), weight = throughput.mul(float(1).sub(step)).div(extinction);
+        segment.addAssign(scattering.mul(lightTransmittance(this, radius, lightMu)).mul(1 / (4 * Math.PI)).mul(weight));
+        transfer.addAssign(scattering.mul(weight));
+        throughput.mulAssign(step);
       });
-      // Each further order is the last one times the share the surroundings return: L₂ / (1 − f).
-      return vec4(luminance.div(float(1).sub(transfer).max(1e-3)), 1);
+      // The sea returns a little of the light that reaches it.
+      If(ground.greaterThan(0), () => {
+        const normal = normalize(origin.add(direction.mul(ground)));
+        const lightMu = dot(normal, sun);
+        segment.addAssign(throughput.mul(lightTransmittance(this, float(RB), lightMu)).mul(lightMu.max(0)).mul(SEA_ALBEDO / Math.PI));
+      });
+      return vec4(segment, 1);
+    })();
+    return mrt({ light, transfer: vec4(transfer, 1) });
+  }
+
+  /** Sums each tile of directions: every further order is the last one times the share the surroundings
+   * return, so the whole series is L₂ / (1 − f). Each bilinear read at a shared corner averages four texels. */
+  private multiplePass(): Vec4 {
+    const light = direct(texture(this.multipleDirectionsTarget.textures[0])), transfer = direct(texture(this.multipleDirectionsTarget.textures[1]));
+    const size = MULTIPLE_SIZE * MULTIPLE_DIRECTIONS, half = MULTIPLE_DIRECTIONS / 2;
+    return Fn(() => {
+      const corner = floor(screenCoordinate).mul(MULTIPLE_DIRECTIONS);
+      const total = vec3(0).toVar(), returned = vec3(0).toVar();
+      Loop({ start: int(0), end: int(half * half), type: 'int', condition: '<' }, ({ i }: { i: Node<'int'> }) => {
+        const uv = corner.add(vec2(float(i.mod(half)), float(i.div(half))).mul(2).add(1)).div(size);
+        total.addAssign(direct(light.sample(uv)).rgb);
+        returned.addAssign(direct(transfer.sample(uv)).rgb);
+      });
+      const count = half * half;
+      return vec4(total.div(count).div(float(1).sub(returned.div(count)).max(1e-3)), 1);
     })();
   }
 
@@ -386,46 +402,60 @@ export class AtmosphereTables implements Tables {
     return mrt({ scatter, mie: vec4(mie, 1) });
   }
 
-  /** The sky's mean radiance over the hemisphere above (or the air's and sea's below) at each altitude:
-   * cosine-weighted directions, each marched toward both lights and composed as the dome is. */
-  private ambientPass(inputs: PassInputs, upward: boolean): Vec4 {
+  /** The light arriving at each altitude, one direction per texel: rows [0, 64) are cosine-weighted
+   * directions over the hemisphere above, rows [64, 128) over the one below, each marched toward both
+   * lights and composed as the dome is. Below, alpha holds the throughput to the sea and the sea's own
+   * bounce of the sun and moon is added; the sky it reflects follows in the sum. */
+  private ambientDirectionsPass(inputs: PassInputs): Vec4 {
     const { air, sunDirection, moonDirection, compose } = inputs;
     return Fn(() => {
-      const altitude = texelToUnit(screenCoordinate.x, AMBIENT_SIZE).mul(AMBIENT_TOP).max(SEA_HEIGHT);
+      const pixel = floor(screenCoordinate), count = AMBIENT_DIRECTIONS ** 2;
+      const upward = pixel.y.lessThan(count), index = select(upward, pixel.y, pixel.y.sub(count));
+      const altitude = texelToUnit(pixel.x.add(.5), AMBIENT_SIZE).mul(AMBIENT_TOP).max(SEA_HEIGHT);
       const origin = vec3(0, altitude.add(RB), 0), r = origin.y;
-      const total = vec3(0).toVar();
-      const count = AMBIENT_DIRECTIONS * AMBIENT_DIRECTIONS;
-      // The sea's radiance as the cloud bases see it: the diffuse bounce of sun, moon and sky, and the sky it mirrors.
-      const skyAtSea = upward ? vec3(0) : direct(texture(this.above, vec2(.5 / AMBIENT_SIZE, .5))).rgb;
-      Loop({ start: int(0), end: int(count), type: 'int', condition: '<' }, ({ i }: { i: Node<'int'> }) => {
-        const a = float(i.div(AMBIENT_DIRECTIONS)).add(.5).div(AMBIENT_DIRECTIONS), b = float(i.mod(AMBIENT_DIRECTIONS)).add(.5).div(AMBIENT_DIRECTIONS);
-        // Cosine-weighted: the plain mean of these samples is the irradiance over π.
-        const cosine = sqrt(float(1).sub(a)), sine = sqrt(a), phi = b.mul(2 * Math.PI);
-        const direction = vec3(sine.mul(cos(phi)), upward ? cosine : cosine.negate(), sine.mul(sin(phi))).toVar();
-        const ground = distanceToGround(r, direction.y).toVar();
-        const length = select(ground.greaterThan(0), ground, distanceToTop(r, direction.y));
-        const toSun = march(air, this, origin, direction, sunDirection, length, AMBIENT_STEPS, rayleighPhase(dot(direction, sunDirection)));
-        const toMoon = march(air, this, origin, direction, moonDirection, length, AMBIENT_STEPS, rayleighPhase(dot(direction, moonDirection)));
-        const radiance = compose(toSun, toMoon, direction).toVar();
-        if (!upward) {
-          If(ground.greaterThan(0), () => {
-            const normal = normalize(origin.add(direction.mul(ground)));
-            const sunMu = dot(normal, sunDirection), moonMu = dot(normal, moonDirection);
-            const direct_ = inputs.sunLight.mul(lightTransmittance(this, float(RB), sunMu)).mul(sunMu.max(0))
-              .add(inputs.moonLight.mul(lightTransmittance(this, float(RB), moonMu)).mul(moonMu.max(0)));
-            // Water's hemispherical Fresnel reflectance of a uniform sky is about 0.066.
-            const sea = direct_.mul(SEA_ALBEDO / Math.PI).add(skyAtSea.mul(SEA_ALBEDO + .066));
-            radiance.addAssign(sea.mul(toSun.transmittance));
-          });
-        }
-        total.addAssign(radiance.div(count));
+      const ring = floor(index.div(AMBIENT_DIRECTIONS)), sector = index.sub(ring.mul(AMBIENT_DIRECTIONS));
+      // Cosine-weighted: the plain mean of these samples is the irradiance over π.
+      const a = ring.add(.5).div(AMBIENT_DIRECTIONS), phi = sector.add(.5).div(AMBIENT_DIRECTIONS).mul(2 * Math.PI);
+      const cosine = sqrt(float(1).sub(a)), sine = sqrt(a);
+      const direction = vec3(sine.mul(cos(phi)), select(upward, cosine, cosine.negate()), sine.mul(sin(phi))).toVar();
+      const ground = distanceToGround(r, direction.y).toVar();
+      const length = select(ground.greaterThan(0), ground, distanceToTop(r, direction.y)).toVar();
+      const toSun = march(air, this, origin, direction, sunDirection, length, AMBIENT_STEPS, rayleighPhase(dot(direction, sunDirection)));
+      const toMoon = march(air, this, origin, direction, moonDirection, length, AMBIENT_STEPS, rayleighPhase(dot(direction, moonDirection)));
+      const radiance = compose(toSun, toMoon, direction).toVar(), throughput = float(0).toVar();
+      If(ground.greaterThan(0), () => {
+        const normal = normalize(origin.add(direction.mul(ground)));
+        const sunMu = dot(normal, sunDirection), moonMu = dot(normal, moonDirection);
+        const bounce = inputs.sunLight.mul(lightTransmittance(this, float(RB), sunMu)).mul(sunMu.max(0))
+          .add(inputs.moonLight.mul(lightTransmittance(this, float(RB), moonMu)).mul(moonMu.max(0)));
+        radiance.addAssign(bounce.mul(SEA_ALBEDO / Math.PI).mul(toSun.transmittance));
+        throughput.assign(toSun.transmittance.g);
       });
-      return vec4(total, 1);
+      return vec4(radiance, throughput);
+    })();
+  }
+
+  /** Sums the directions: the mean radiance above and below each altitude. Below adds the sky the sea
+   * reflects and scatters back (water's hemispherical Fresnel reflectance of a uniform sky, about 0.066,
+   * plus its diffuse albedo), seen through the air in between. */
+  private ambientPass(): Vec4 {
+    const directions = direct(texture(this.ambientDirectionsTarget.texture));
+    return Fn(() => {
+      const pixel = ivec2(floor(screenCoordinate)), count = AMBIENT_DIRECTIONS ** 2;
+      const below = pixel.y.equal(1), first = select(below, int(count), int(0));
+      const total = vec4(0).toVar(), skyAtSea = vec3(0).toVar();
+      Loop({ start: int(0), end: int(count), type: 'int', condition: '<' }, ({ i }: { i: Node<'int'> }) => {
+        total.addAssign(direct(directions.load(ivec2(pixel.x, first.add(i)))));
+        skyAtSea.addAssign(direct(directions.load(ivec2(0, i))).rgb);
+      });
+      const mean = total.div(count);
+      return vec4(mean.rgb.add(select(below, skyAtSea.div(count).mul(mean.a).mul(SEA_ALBEDO + .066), vec3(0))), 1);
     })();
   }
 
   dispose(): void {
-    for (const target of [this.opticalDepthTarget, this.multipleTarget, this.skyViewTarget, this.aboveTarget, this.belowTarget]) target.dispose();
+    for (const target of [this.opticalDepthTarget, this.multipleDirectionsTarget, this.multipleTarget, this.skyViewTarget, this.ambientDirectionsTarget,
+      this.ambientTarget]) target.dispose();
     for (const pass of Object.values(this.passes)) (pass.material as NodeMaterial).dispose();
   }
 }
