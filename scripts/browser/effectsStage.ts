@@ -205,6 +205,15 @@ export function installStage(game: Game) {
     return position;
   }
 
+  /** A heavy AA airburst at a ship-local point above `shipIndex` (the stage's frozen clock makes it burst at once). */
+  function flak(shipIndex = 1, local: Vec3 = [0, 180, 0], caliberM = .105): Vec3 {
+    freeze();
+    const target = localToWorld(local, actor(shipIndex).motion);
+    push({ kind: 'aircraft-fire', shipId: actor(shipIndex).motion.id, position: target,
+      aircraft: { id: 'stage-flak', target, caliberM, airburst: { flightTime: 0, caliberM } } });
+    return target;
+  }
+
   /** Seed exterior fire state on a ship: vented compartments and/or mounts. */
   function burn(shipIndex = 1, options: BurnOptions = {}): { rooms: number[]; mounts: number[] } {
     freeze();
@@ -283,6 +292,30 @@ export function installStage(game: Game) {
     return worldToShip([from.x, 0, from.z], actor(targetIndex).motion)[0] >= 0 ? 1 : -1;
   }
 
+  /** GPU cost of the combat effects in the current staged scene: frames alternate with `game.effects.root`
+   * shown and hidden, so load from other GPU work on the machine cancels out of the difference. */
+  async function effectsCost(samples = 60): Promise<{ withMs: number; withoutMs: number; deltaMs: number } | null> {
+    await render();
+    const renderer = g.renderer as unknown as THREE.WebGPURenderer & { backend: { trackTimestamp: boolean } };
+    if (!renderer.hasFeature('timestamp-query')) return null;
+    const root = (g.effects as unknown as { root: THREE.Object3D }).root, tracking = renderer.backend.trackTimestamp;
+    const times: [number[], number[]] = [[], []];
+    renderer.backend.trackTimestamp = true;
+    try {
+      for (let i = -20; i < samples * 2; i++) {
+        const shown = i % 2 === 0;
+        root.visible = shown;
+        g.renderer._nodes.nodeFrame.update();
+        g.renderFrame();
+        const time = await renderer.resolveTimestampsAsync(THREE.TimestampQuery.RENDER);
+        if (i >= 0 && typeof time === 'number') times[shown ? 0 : 1].push(time);
+      }
+    } finally { root.visible = true; renderer.backend.trackTimestamp = tracking; }
+    const median = (values: number[]) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
+    const deltas = times[0].map((time, i) => time - (times[1][i] ?? time));
+    return { withMs: median(times[0]), withoutMs: median(times[1]), deltaMs: median(deltas) };
+  }
+
   /** Median GPU and CPU milliseconds of the render pipeline for the current staged scene (the ocean
    * simulation is frozen and excluded), with WebGPU timestamps when the adapter offers them. */
   async function measure(samples = 60): Promise<{ gpuMs: number | null; cpuMs: number; drawCalls: number }> {
@@ -310,7 +343,7 @@ export function installStage(game: Game) {
   }
 
   return {
-    freeze, reset, aim, fire, hit, burn, underway, camera: place, advance, render, capture, weather, facing, measure,
+    freeze, reset, aim, fire, hit, flak, burn, underway, camera: place, advance, render, capture, weather, facing, measure, effectsCost,
     get elapsed() { return elapsed; },
     ships: () => views().map((v, i) => ({ index: i, id: v.actor.motion.id, preset: v.definition.id, team: v.actor.team,
       position: [v.actor.motion.x, v.actor.motion.z], heading: v.actor.motion.heading,
