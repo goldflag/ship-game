@@ -53,7 +53,7 @@ Equipment `bearingDeg` is clockwise. Published parts keep their original datum a
 | --- | --- |
 | `primitives` | Hull pieces: `kind`, `size`, `position`, `rotationDeg` (yaw) and optional records below |
 | `surfaces` | Face assignments: `primitiveId`, canonical `face`, `thicknessMm`, `material`, `paint`, `open`, optional `panelId` |
-| `equipment` | Fitted catalog parts: `partId`, `position`, `bearingDeg`, optional `paint`, `gun`, `launcher`, `wall`, `path`, `powerSourceId` |
+| `equipment` | Fitted catalog parts: `partId`, `position`, `bearingDeg`, optional `paint`, `gun`, `launcher`, `wall`, `path`, `powerSourceId`, `scale` (custom fittings), `parent` |
 | `boundaries` | Internal decks and bulkheads: `axis`, `offset`, `thicknessMm` |
 | `loads` | Named box loads with `massKg` |
 | `fittings` | Optional design-local fitting definitions; see [Custom fittings](#custom-fittings) |
@@ -204,6 +204,10 @@ without the record keep their shape.
 - `wall`: Rust validates support, linked-pair symmetry, clearance and scaled mass
   (`construction_wall_fittings.rs`). A linked partner carries the opposite `turnDeg`. Wall
   fittings never cut hull openings or change flooding.
+- `parent`: the hull piece or equipment row this row rides on (`construction_parents.rs`). An editing
+  relationship only: `position` and `bearingDeg` stay absolute and nothing physical reads it. Moving,
+  turning, copying, mirroring and removing the parent carries the row; see
+  [Parents](construction-authoring.md#parents).
 - `path`: points are equipment-local. Rope and chain sag is sampled at 16 intervals per
   segment; a route is at most 500 m (`construction_paths.rs`). Native code owns support, hull
   clearance, mass, CG and inertia. `src/game/constructionPathModel.ts` only draws the route.

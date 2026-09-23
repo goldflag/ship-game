@@ -136,6 +136,14 @@ Layer notes:
   **Delete definition**, which is disabled while instances use it (`CustomFittingFields.tsx`).
   Shapes are not editable in the editor yet; agents define them with the `fitting` command. See
   the [plan](../../../docs/custom-fittings-plan.md).
+- **Parents.** <a id="parents"></a>A selected fitting that may float (deck fittings, masts, light
+  deck guns without a well) shows **Attached to**: *Nothing* or one of the twenty nearest hull
+  pieces and fittings that can carry it (deck fittings, masts, funnels, directors; never itself or
+  what it carries). A parent's tag reads **carries N**. Moving, turning, copying, mirror-copying and
+  removing a parent carries its riders, in the handles' previews too; a removal's undo label and
+  notice count the attached fittings. Hull-block quarter turns and the Rotate toolbar carry riders
+  through a pure yaw only. The rules are in
+  [construction authoring](../../../docs/construction-authoring.md#parents).
 - **Internals.** Entering it clears external selections. Deck, Bulkhead and Split add
   boundaries; Merge removes one; Module places a package on the first floor inside the hull.
 - **Paint.** Keeps a face selection. **Ship paint** is `construction.paint`; **Surface finish**

@@ -422,6 +422,7 @@ pub fn suggest(
                 path: None,
                 power_source_id: None,
                 scale: None,
+                parent: None,
             };
             let mut candidate = result.clone();
             candidate.construction.equipment.push(e);
@@ -794,6 +795,9 @@ fn validate(
             errors.push(d);
         }
     }
+    // A parent is a source relationship; its faults are independent of every physical check.
+    let room = MAX_ERRORS.saturating_sub(errors.len());
+    errors.extend(crate::construction_parents::check(c, catalog, room));
     for p in &c.primitives {
         if errors.len() >= MAX_ERRORS {
             break;

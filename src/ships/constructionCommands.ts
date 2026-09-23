@@ -3,6 +3,7 @@ import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import { editableCustomHull, customHullPrimitive, setSectionCount } from './customHullModel';
 import { patchPrimitive, patchEquipment, patchFitting, type PrimitivePatch, type EquipmentPatch, type FittingPatch } from './constructionPatches';
 import { customFittingInstances } from './constructionCustomFittings';
+import { carriedIds } from './constructionParents';
 import { copyConstructionSelection, mirroredFace, solidPanels } from './constructionEditor';
 import { setBarbetteHeight } from './constructionArmament';
 import { ConstructionCommandError, suggestion, validateBatchShape, validateCommandShape } from './constructionCommandSchema';
@@ -216,6 +217,14 @@ function applyCommand(draft: ConstructionSource, command: ConstructionCommand, f
       const wall = data.boundaries.find((p) => ids.has(p.id)) ?? data.fittings?.find((p) => ids.has(p.id));
       if (wall) fail(`${JSON.stringify(wall.id)} is a ${'axis' in wall ? 'boundary' : 'custom fitting definition'}; copy accepts hull pieces, equipment and loads`, 'copies', wall.id);
       if (command.mirror && command.offset) fail('choose mirror or offset, then move the copies separately', 'offset', command.offset);
+      // A copied parent brings its riders; the caller names their new IDs as for every other copy.
+      const riders = [...carriedIds(data, ids)];
+      if (riders.length)
+        fail(
+          `a copied parent brings everything it carries; add copies for ${riders.slice(0, 8).map((id) => JSON.stringify(id)).join(', ')}${riders.length > 8 ? ` and ${riders.length - 8} more` : ''}`,
+          'copies',
+          riders,
+        );
       copyConstructionSelection(draft, ids, { ids: destinations, mirror: command.mirror, offset: command.offset });
       break;
     }
