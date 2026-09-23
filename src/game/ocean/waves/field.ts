@@ -94,7 +94,8 @@ export class GpuWaveField implements WaveField {
   private readonly passes: QuadMesh[] = [];
   /** The last vertical pass, drawn once per cascade layer. */
   private readonly finalPass: QuadMesh;
-  /** Each cascade's tile edge (m) and texels per metre; tiles follow the sea state, so shaders read them as uniforms. */
+  /** Each cascade's tile edge (m) and texels per metre; tiles follow the sea state, so shaders read them as uniforms.
+   * `this.texels[i]` stands wherever a fixed layout would have `this.size / cascade.size`. */
   private readonly tiles: ReturnType<typeof floatUniform>[];
   private readonly texels: ReturnType<typeof floatUniform>[];
   /** Longest wavelength each cascade holds (m), on the CPU and as uniforms. */
@@ -263,15 +264,12 @@ export class GpuWaveField implements WaveField {
     return (level ? node.level(level) : node) as unknown as Vec4;
   }
 
-  /** Mip level whose texels match `metres` on cascade `i`'s tile (unclamped). */
-  private mip(metres: Float, i: number): Float { return log2(metres.mul(this.texels[i])); }
-
   displacement(xz: Node<'vec2'>, spacing?: Float): Node<'vec3'> {
     return this.tier.reduce<Node<'vec3'>>((sum, _, i) => {
       if (!spacing) return sum.add(this.sample('displacement', xz, i, float(0)).xyz);
       // The mip whose texel matches the vertex spacing; the cascade fades out between four and two
       // vertices per its longest wave, where the mesh can no longer carry any of it.
-      const level = clamp(this.mip(spacing, i), 0, this.top);
+      const level = clamp(log2(spacing.mul(this.texels[i])), 0, this.top);
       const fade = float(1).sub(smoothstep(this.longestWaves[i].mul(.25), this.longestWaves[i].mul(.5), spacing));
       return sum.add(this.sample('displacement', xz, i, level).xyz.mul(fade));
     }, vec3(0));
@@ -286,7 +284,7 @@ export class GpuWaveField implements WaveField {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
       // last level (slopes, strain and foam alike, which would otherwise repeat with the tile); its
       // whole slope variance then roughens the surface instead.
-      const detail = float(1).sub(smoothstep(this.top - 1, this.top, this.mip(footprint, i)));
+      const detail = float(1).sub(smoothstep(this.top - 1, this.top, log2(footprint.mul(this.texels[i]))));
       const derivatives = this.sample('derivatives', xz, i), extras = this.sample('extras', xz, i);
       // Short waves break on the crests of longer ones: finer cascades' foam follows the compression
       // (∂Dx/∂x + ∂Dz/∂z < 0) of the coarser ones summed so far, whose longer tiles also keep a
