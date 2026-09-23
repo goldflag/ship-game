@@ -43,11 +43,12 @@ const GATE_NONE = -1, GATE_FULL = .75;
  * most 1 / FOAM_JACOBIAN_MIN, and a stretched back thins foam at most to 1 / FOAM_JACOBIAN_MAX. */
 const FOAM_JACOBIAN_MIN = .35, FOAM_JACOBIAN_MAX = 2.5;
 /** Turbulent spreading of whitecap foam and bubbles: a diffusivity of FOAM_SPREAD × λ·c for the breaking waves of
- * wavelength λ and phase speed c (the breaker's own turbulence scales with it), along the wind, and ACROSS_SHARE of it
- * across: over its life an ageing patch spreads by about a third of the breaking wavelength, whatever the sea, so it
- * grows from the few metres of its crest into a larger, fainter patch drawn out downwind. The explicit step's gain per
- * axis stays below SPREAD_LIMIT (stable under a quarter), whatever the texel and frame time. */
-const FOAM_SPREAD = .05, ACROSS_SHARE = .5, SPREAD_LIMIT = .24;
+ * wavelength λ and phase speed c (the breaker's own turbulence scales with it), at most SPREAD_MOST m²/s, along the wind,
+ * and ACROSS_SHARE of it across: over its life an ageing patch spreads by a few metres, so it grows from its breaking
+ * crest into a larger, fainter patch drawn out downwind, without a storm's big breakers turning into round blobs tens
+ * of metres wide. The explicit step's gain per axis stays below SPREAD_LIMIT (stable under a quarter), whatever the
+ * texel and frame time. */
+const FOAM_SPREAD = .05, SPREAD_MOST = 3, ACROSS_SHARE = .5, SPREAD_LIMIT = .24;
 /** Bubbles a breaking crest carries down persist like its foam but for this share of the foam's lifetime: the cloud
  * rises and dissolves within about a wave period, while the surface foam it leaves lingers. */
 const BUBBLE_LIFE = .5;
@@ -564,7 +565,8 @@ export class GpuWaveField implements WaveField {
     // Spreading along the texel axes from the wind-aligned rates: D·dt/Δx², held below the explicit scheme's limit.
     const texel = this.cascades[c].size / this.size, gain = Math.max(0, dt) / (texel * texel);
     const wx = this.wind.value.x, wz = this.wind.value.y, period = breaking.period;
-    const wavelength = GRAVITY * period * period / (2 * Math.PI), along = period > 0 ? FOAM_SPREAD * wavelength * wavelength / period : 0, across = along * ACROSS_SHARE;
+    const wavelength = GRAVITY * period * period / (2 * Math.PI);
+    const along = period > 0 ? Math.min(SPREAD_MOST, FOAM_SPREAD * wavelength * wavelength / period) : 0, across = along * ACROSS_SHARE;
     this.spreading.value.set(Math.min(SPREAD_LIMIT, gain * (along * wx * wx + across * wz * wz)), Math.min(SPREAD_LIMIT, gain * (along * wz * wz + across * wx * wx)));
   }
 
