@@ -14,14 +14,15 @@ const EMPTY = .25;
  * buffer, not a texture: the water's fragment stage is already at the sampled-texture limit. */
 const PROFILE = 6, STRIDE = PROFILE + PROFILE_LEVELS * PROFILE_STATIONS;
 
-/** Live-tunable look of the foam that hugs a hull where it meets the water. Visual only. */
+/** Live-tunable look of the foam that hugs a hull where it meets the water. Visual only. The surface
+ * shades wake foam energy from 0.05 (first flecks) to 0.6 (solid), so these coverages stay below that. */
 export const HULL_FOAM_TUNING = {
   /** Coverage along a hull lying still in calm water, and what a rough sea adds per metre of significant height. */
-  rest: .2, sea: .035,
+  rest: .12, sea: .025,
   /** Coverage added at full speed along the side, and again toward the stem. */
-  underway: .4, bow: .55,
+  underway: .3, bow: .4,
   /** Metres of foam outboard of the hull at rest, per metre of significant height, and at full speed. */
-  width: .9, seaWidth: .18, speedWidth: 1.4,
+  width: .9, seaWidth: .1, speedWidth: 1.2,
   /** Share of the hull length, from the stem, over which the bow's extra foam fades. */
   bowLength: .3,
 };
@@ -181,7 +182,7 @@ export class HullContactFoam {
               // Distant water keeps the mean coverage instead of sub-pixel noise.
               const detail = float(1).sub(smoothstep(1.5, 6, finest));
               const noise = strands.mul(.6).add(flecks.mul(.4)).mul(detail);
-              foam.assign(max(foam, smoothstep(.1, .7, white.add(noise.mul(.6))).mul(white.min(.8))));
+              foam.assign(max(foam, smoothstep(.1, .7, white.add(noise.mul(.6))).mul(white.min(.55))));
             });
           });
         });
