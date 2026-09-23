@@ -3,7 +3,7 @@
 Agents should be able to build ships that look like the real vessel, and the result must stay a
 normal construction design that people open, understand and change in the editor. This plan
 covers four steps: flexible fittings, visual mesh fittings, a Blender front end and a better
-hull fit. None of them is built yet.
+hull fit. All four are built as pull requests (2026-09-22); see [Status](#status).
 
 Related: [construction authoring](construction-authoring.md), [custom fittings](custom-fittings-plan.md),
 [shipbuilding](shipbuilding.md), [reference workflow](reference-workflow.md).
@@ -250,3 +250,22 @@ a ship without the new fields.
 - Paint on visual meshes: the proposal is one construction paint per Blender material slot, so a
   mesh can carry several paints and each stays repaintable in the editor; vertex colours were the
   alternative, but they cannot be repainted.
+
+## Status
+
+| Step | Pull request | Base |
+| --- | --- | --- |
+| Catalog input bound (blocker for online compiles) | #447 | master |
+| 1a floating fittings and balconies, 1d online limits = local | #448 | master |
+| 1c bigger custom fittings, per-instance scale | #450 | #448 |
+| 1b phase 1 parents (hull pieces, fixed equipment) | #452 | #450 |
+| 1b phase 2 trainable parents (fittings ride turrets) | #456 | #452 |
+| 2 visual mesh fittings | #454 | #450 |
+| 3 Blender front end (import, export of blocks, equipment, loads) | #451 | #450 |
+| 4 hull fit (band-cut fallback, creases, 48 sections) | #458 | master |
+
+Follow-ups found while building: Blender export of visual meshes, hull sections through `ship:loft` and
+parents; stripping mesh data from the compiled definition's copy of the source (about 0.9 MB per mesh-heavy
+design in match content); account storage keeps every revision in full (100 MiB per account); the server's
+320 MiB match-content pin; re-lofting renames sections, so per-panel paint and armor must be reassigned;
+a stem profile for raked forefoots.
