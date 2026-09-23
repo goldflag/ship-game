@@ -1,7 +1,8 @@
-import { Vector3, type Node, type Texture, type UniformNode } from 'three/webgpu';
-import { add, float, length, max, min, mix, mul, saturate, select, smoothstep, sqrt, sub, texture, texture3D, uniform, vec2, vec3 } from 'three/tsl';
+import { Vector3, type Node, type Texture, type TextureNode, type UniformNode } from 'three/webgpu';
+import { If, add, bool, float, length, max, min, mix, mul, saturate, select, smoothstep, sqrt, sub, texture, texture3D, uniform, vec2, vec3 } from 'three/tsl';
 import type { SkyUniforms } from '../contracts';
-import { cloudType, heightProfile, liftedCoverage, localCover, PLANET_RADIUS, WEATHER_TILE, type Arithmetic } from './model';
+import { cloudType, heightProfile, liftedCoverage, localCover, CLEAR_RANGE, PLANET_RADIUS, WEATHER_SIZE, WEATHER_TILE, type Arithmetic } from './model';
+import { BASE_VOLUME, DETAIL_VOLUME } from './noise';
 
 type Float = Node<'float'>;
 type Vec3 = Node<'vec3'>;
@@ -30,15 +31,18 @@ const RESHAPE = .06, RISE = .35;
 /** Edge detail swirls through the shapes at this speed (m/s), on top of the drift. */
 const SWIRL = new Vector3(1.1, 1.7, -.8);
 /** Share of the base shape the low billow octaves erode away from the billows' centres, and share the
- * detail volume erodes from the edges. */
-const SHAPE_EROSION = .45, DETAIL_EROSION = .38;
+ * detail volume erodes from the edges: uniforms, so the shapes can be tuned live. */
+export const erosion = { shape: uniform(.7), detail: uniform(.7) };
 /** A volume's features alias once a pixel's footprint (m) spans a couple of its texels: over these
  * footprints, in texels, the finer octaves fade to their mean, which keeps the cloud's size and drops only
  * what the pixel cannot resolve. */
 const RESOLVED = [1.5, 5] as const;
-const BASE_TEXEL = BASE_TILE / 128, DETAIL_TEXEL = DETAIL_TILE / 32;
+const BASE_TEXEL = BASE_TILE / BASE_VOLUME, DETAIL_TEXEL = DETAIL_TILE / DETAIL_VOLUME;
 /** Mean of the billow octaves, what they fade to. */
 const BILLOW_MEAN = .45;
+/** Horizontal distance (m) of the farthest cloud a march reaches, and the share of it from which cover fades
+ * out: beyond ~100 km a cloud is a sliver on the horizon, more haze than cloud. */
+export const FARTHEST = 120_000, FADE_FROM = .6;
 
 /** What every cloud pass reads besides the sky's shared uniforms: the scene's layer, live. */
 export interface LayerUniforms {
@@ -89,8 +93,12 @@ export interface CloudSample {
   readonly height: Float;
   /** Cloud type (see `model.ts`), for lighting that differs between a deck and a cumulus. */
   readonly type: Float;
+  /** The scene's coverage there, lifted toward the horizon. */
+  readonly coverage: Float;
   /** The weather texel: (cover potential, type variation, storm potential, curtain texture). */
   readonly weather: Vec4;
+  /** Horizontal distance (m) from here to the nearest column that can hold cloud at the scene's coverage. */
+  readonly clear: Float;
 }
 
 export interface CloudField {
@@ -101,9 +109,14 @@ export interface CloudField {
   weather(p: Vec3): Vec4;
   /** Density before the detail erosion at a world point (`altitude` its height above the sea). `footprint`
    * is the width (m) a pixel covers there; the base shape's finer billows fade where it cannot resolve them. */
-  sample(p: Vec3, altitude: Float, footprint?: Float): CloudSample;
+  sample(p: Vec3, altitude: Float, footprint?: Float, branch?: boolean): CloudSample;
   /** Density after eroding the edges with the detail volume, faded like the billows by `footprint`. */
-  erode(sample: CloudSample, p: Vec3, footprint?: Float): Float;
+  erode(sample: CloudSample, p: Vec3, footprint?: Float, branch?: boolean): Float;
+  /** The weather map's cover at a point near `near` (no 3D noise; the cloud type and coverage are taken from
+   * that sample): the cheap density a far light sample reads. */
+  cover(p: Vec3, altitude: Float, near: CloudSample): Float;
+  /** The texture nodes it reads (diagnostics swap their textures). */
+  readonly maps: { readonly weather: TextureNode; readonly base: TextureNode; readonly detail: TextureNode };
 }
 
 /** 1 where a pixel `footprint` (m) wide resolves features of `texel` metres, fading to 0 where it cannot. */
@@ -132,29 +145,52 @@ export function createCloudField(sky: SkyUniforms, layer: LayerUniforms, maps: {
     const sum = first === 'x' ? texel.x.mul(.625).add(texel.y.mul(.25)).add(texel.z.mul(.125)) : texel.y.mul(.625).add(texel.z.mul(.25)).add(texel.w.mul(.125));
     return mix(float(BILLOW_MEAN), saturate(sum.sub(.25).mul(2)), fade);
   };
-  const sample = (p: Vec3, alt: Float, footprint?: Float): CloudSample => {
-    const w = weather(p), height = alt.sub(layer.base).div(layer.thickness);
+  /** The column's cover at a height: weather potential, cloud type and height profile, faded out toward the
+   * farthest clouds a march reaches so the layer sinks into the horizon haze instead of ending. */
+  const columnCover = (w: Vec4, p: Vec3, height: Float) => {
     const distance = length(p.xz.sub(camera.xz));
-    const coverage = liftedCoverage(nodes, layer.coverage, layer.horizon, distance);
-    const type = cloudType(nodes, coverage, w.y, w.z, height);
-    const cover = localCover(nodes, w.x, coverage).mul(heightProfile(nodes, height, type)).mul(layer.enabled);
-    const drift = vec2(wind.x, wind.z).mul(1 + RESHAPE);
-    const uvw = vec3(p.x.sub(drift.x), alt.sub(time.mul(RISE)).mul(BASE_STRETCH), p.z.sub(drift.y)).div(BASE_TILE);
-    const shape = baseMap.sample(uvw).level(float(0)) as unknown as Vec4;
-    const erosion = billowSum(shape, resolved(footprint, BASE_TEXEL), 'y').oneMinus().mul(SHAPE_EROSION);
-    const body = saturate(shape.x.sub(erosion).div(erosion.oneMinus()));
-    // A thin cover keeps only the strongest parts of the shape: that is what rounds tops and breaks a sky up;
-    // a cover past 1 fills the shape's hollows into a deck.
-    const coarse = saturate(body.sub(cover.oneMinus()).div(max(cover, 1e-3))).mul(select(cover.greaterThan(0), float(1), float(0)));
-    return { coarse, height, type, weather: w };
+    const coverage = liftedCoverage(nodes, layer.coverage, layer.horizon, distance).toVar();
+    const type = cloudType(nodes, coverage, w.y, w.z, height).toVar();
+    const fade = smoothstep(FARTHEST, FARTHEST * FADE_FROM, distance).mul(layer.enabled);
+    return { type, coverage, cover: localCover(nodes, w.x, coverage).mul(heightProfile(nodes, height, type)).mul(fade) };
   };
-  const erode = (s: CloudSample, p: Vec3, footprint?: Float): Float => {
-    const uvw = p.sub(wind).sub(vec3(SWIRL.x, SWIRL.y, SWIRL.z).mul(time)).div(DETAIL_TILE);
-    const detail = detailMap.sample(uvw).level(float(0)) as unknown as Vec4;
-    const billows = billowSum(detail, resolved(footprint, DETAIL_TEXEL), 'x');
-    // Ragged, wispy bases (erode the billows' centres); cauliflower above them (erode between the billows).
-    const erosion = mix(billows, billows.oneMinus(), saturate(s.height.mul(5))).mul(DETAIL_EROSION);
-    return saturate(s.coarse.sub(erosion).div(erosion.oneMinus()));
+  const cover = (p: Vec3, alt: Float, near: CloudSample): Float =>
+    localCover(nodes, weather(p).x, near.coverage).mul(heightProfile(nodes, alt.sub(layer.base).div(layer.thickness), near.type));
+  const sample = (p: Vec3, alt: Float, footprint?: Float, branch = true): CloudSample => {
+    const w = weather(p), height = alt.sub(layer.base).div(layer.thickness);
+    const { type, coverage, cover } = columnCover(w, p, height);
+    const shaped = () => {
+      const drift = vec2(wind.x, wind.z).mul(1 + RESHAPE);
+      const uvw = vec3(p.x.sub(drift.x), alt.sub(time.mul(RISE)).mul(BASE_STRETCH), p.z.sub(drift.y)).div(BASE_TILE);
+      const shape = baseMap.sample(uvw).level(float(0)) as unknown as Vec4;
+      const eroding = billowSum(shape, resolved(footprint, BASE_TEXEL), 'y').oneMinus().mul(erosion.shape);
+      const body = saturate(shape.x.sub(eroding).div(eroding.oneMinus()));
+      // A thin cover keeps only the strongest parts of the shape: that is what rounds tops and breaks a sky up;
+      // a cover past 1 fills the shape's hollows into a deck.
+      return saturate(body.sub(cover.oneMinus()).div(max(cover, 1e-3))).mul(select(cover.greaterThan(0), float(1), float(0)));
+    };
+    const coarse = branch ? float(0).toVar() : shaped();
+    // Clear columns (most samples of a fair sky) skip the 3D read. Light samples read unconditionally: without
+    // branches the GPU issues all of a light march's reads together.
+    if (branch) If(cover.greaterThan(0), () => { (coarse as unknown as { assign(v: Float): void }).assign(shaped()); });
+    return { coarse, height, type, coverage, weather: w, clear: w.w.mul(CLEAR_RANGE * WEATHER_TILE / WEATHER_SIZE) };
   };
-  return { layer, altitude, weather, sample, erode };
+  /** Ragged, wispy bases (erode the billows' centres); cauliflower above them (erode between the billows). */
+  const eroded = (s: CloudSample, billows: Float) => {
+    const eroding = mix(billows, billows.oneMinus(), saturate(s.height.mul(5))).mul(erosion.detail);
+    return saturate(s.coarse.sub(eroding).div(eroding.oneMinus()));
+  };
+  const erode = (s: CloudSample, p: Vec3, footprint?: Float, branch = true): Float => {
+    const detailed = () => {
+      const uvw = p.sub(wind).sub(vec3(SWIRL.x, SWIRL.y, SWIRL.z).mul(time)).div(DETAIL_TILE);
+      const detail = detailMap.sample(uvw).level(float(0)) as unknown as Vec4;
+      return eroded(s, billowSum(detail, resolved(footprint, DETAIL_TEXEL), 'x'));
+    };
+    if (!branch) return detailed();
+    const result = eroded(s, float(BILLOW_MEAN)).toVar();
+    // Where a pixel cannot resolve the detail it erodes by its mean, without reading it.
+    If(footprint ? footprint.lessThan(DETAIL_TEXEL * RESOLVED[1]) : bool(true), () => { result.assign(detailed()); });
+    return result;
+  };
+  return { layer, altitude, weather, sample, erode, cover, maps: { weather: weatherMap, base: baseMap, detail: detailMap } };
 }

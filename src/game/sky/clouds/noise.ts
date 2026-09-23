@@ -62,8 +62,8 @@ export interface GeneratedVolume { readonly map: Storage3DTexture; dispose(): vo
  * wherever either is), so shapes connect like Perlin noise but swell into round cumulus lobes, and a full
  * cover reads as a solid, lumpy deck rather than a sieve; G, B, A, billows at doubling frequencies that the
  * density function erodes the shape with. */
-export function baseVolume(renderer: WebGPURenderer): GeneratedVolume {
-  return volume(renderer, BASE_VOLUME, 'Cloud base shape', p => {
+export function baseVolume(renderer: WebGPURenderer, size = BASE_VOLUME): GeneratedVolume {
+  return volume(renderer, size, 'Cloud base shape', p => {
     const perlin = gradient(p, 4, 1).add(gradient(p, 8, 2).mul(.5)).add(gradient(p, 16, 3).mul(.25)).mul(.5).add(.5).clamp(0, 1);
     const cells = billow(p, 4, 4).mul(.625).add(billow(p, 8, 5).mul(.25)).add(billow(p, 16, 6).mul(.125));
     // The union sits in 0.55–0.9 for nine points in ten; stretched to fill the byte.

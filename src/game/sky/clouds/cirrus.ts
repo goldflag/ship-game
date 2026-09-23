@@ -11,9 +11,9 @@ type Vec3 = Node<'vec3'>;
 const CIRRUS_DRIFT = 2.5;
 /** Ice crystals: a forward lobe and an isotropic share. Their thin sheet scatters this much of the light
  * falling on it, and takes this much of the sky's fill. */
-const ICE_FORWARD = .7, CIRRUS_SCATTER = 1.6, CIRRUS_FILL = .35;
+const ICE_FORWARD = .7, CIRRUS_SCATTER = 1, CIRRUS_FILL = .35;
 /** Most opacity a fibre reaches, and the veil's. */
-const FIBRE_OPACITY = .3, VEIL_OPACITY = .14;
+const FIBRE_OPACITY = .22, VEIL_OPACITY = .12;
 /** The cirrus fade into the horizon haze over these heights of the view ray (its upward component). */
 const HORIZON = [.015, .22] as const;
 

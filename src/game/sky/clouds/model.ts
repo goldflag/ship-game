@@ -85,15 +85,18 @@ export function cloudTop<T>(m: Arithmetic<T>, type: T | number): T {
   return m.mix(STRATUS_TOP, 1, m.mul(type, m.sub(2, type)));
 }
 
-/** Density envelope (0–1) of a cloud type at a height fraction of the shell: a flat base rounding in over
- * the lowest few percent, full through the body and thinning toward the type's top, where the coverage
- * erosion then carves rounded domes. A cumulonimbus keeps its density to a flat anvil top. */
+/** Density envelope (0–1) of a cloud type at a height fraction of the shell: a flat base rounding in over the
+ * lowest few percent, then thinning toward the type's top. The coverage erosion turns the thinning into shape:
+ * where the envelope is low only the strongest noise survives, so a cumulus narrows upward from its broad base
+ * into a dome, a stratocumulus stays a flat slab, and a cumulonimbus holds its width to a flat anvil top. */
 export function heightProfile<T>(m: Arithmetic<T>, height: T | number, type: T | number): T {
   const top = cloudTop(m, type);
-  const fade = m.mix(.45, .86, m.smoothstep(.8, 1, type));
+  // Where the thinning starts, as a share of the top: early for cumulus, late for slabs and cumulonimbus.
+  const slab = m.sub(1, m.smoothstep(TYPE.stratocumulus, TYPE.cumulus, type));
+  const fade = m.mix(m.mix(.12, .55, slab), .82, m.smoothstep(.8, 1, type));
   const bottom = m.smoothstep(0, BASE_RISE, height);
   const upper = m.sub(1, m.smoothstep(m.mul(top, fade), top, height));
-  return m.mul(bottom, upper);
+  return m.mul(bottom, m.mul(upper, m.sub(2, upper)));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -175,43 +178,79 @@ const toBytes = (channels: Float32Array[], size: number) => {
   return bytes;
 };
 
-/** The weather map, RGBA8 over `WEATHER_TILE`: (coverage potential, type variation, storm-cell potential,
- * rain-curtain texture). Coverage and storm potentials are rank-equalised (see `localCover`). */
+/** The weather map's first three channels over `WEATHER_TILE`: coverage potential, type variation and
+ * storm-cell potential, the potentials rank-equalised (see `localCover`). */
 export function weatherChannels(size = WEATHER_SIZE, seed = 7): Float32Array[] {
-  const n = size * size, cover = new Float32Array(n), variation = new Float32Array(n), storm = new Float32Array(n), curtain = new Float32Array(n);
+  const n = size * size, cover = new Float32Array(n), variation = new Float32Array(n), storm = new Float32Array(n);
   // Clusters and gaps from a few octaves of gradient noise; individual cells from Worley points about 2.6 km
   // apart (and finer ones between), so a thin sky still breaks into separate cumulus rather than one ragged blob.
   const clusters = octaves(4, 3, 3, seed), cells = lattice('point', 14, 14, seed + 20), small = lattice('point', 29, 29, seed + 23);
   const types = octaves(2, 4, 4, seed + 30), stormCells = lattice('point', 6, 6, seed + 40), stormNoise = lattice('gradient', 5, 5, seed + 41);
-  const curtains = octaves(2, 40, 40, seed + 50);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + .5) / size, v = (y + .5) / size, k = y * size + x;
     cover[k] = fbm(clusters, u, v) * .62 + (1 - Math.min(worleyAt(cells, u, v) / .75, 1)) * .5 + (1 - Math.min(worleyAt(small, u, v) / .75, 1)) * .14;
     variation[k] = fbm(types, u, v);
     storm[k] = (1 - Math.min(worleyAt(stormCells, u, v) / .8, 1)) + gradientAt(stormNoise, u, v) * .45;
-    curtain[k] = .5 + fbm(curtains, u, v) * .8;
   }
-  return [equalise(cover), equalise(variation), equalise(storm), curtain];
+  return [equalise(cover), equalise(variation), equalise(storm)];
 }
 
-export function weatherMap(size = WEATHER_SIZE, seed = 7): Uint8Array { return toBytes(weatherChannels(size, seed), size); }
+/** Texels of clear air the weather map's alpha can express: farther reads as this far. */
+export const CLEAR_RANGE = 48;
+
+/** Distance (texels, wrapping) from every texel of a `size`² map to the nearest one whose potential reaches
+ * `threshold`: how far a ray may cross the sky knowing it meets no cloud. A two-pass chamfer transform, run
+ * twice so distances carry across the wrap; `CLEAR_RANGE` when nothing reaches the threshold. */
+export function clearDistance(potential: Float32Array, threshold: number, size = WEATHER_SIZE): Float32Array {
+  const n = size * size, d = new Float32Array(n);
+  for (let k = 0; k < n; k++) d[k] = potential[k] >= threshold ? 0 : CLEAR_RANGE;
+  const at = (x: number, y: number) => ((y + size) % size) * size + ((x + size) % size);
+  const relax = (k: number, x: number, y: number, dx: number, dy: number, cost: number) => { const v = d[at(x + dx, y + dy)] + cost; if (v < d[k]) d[k] = v; };
+  for (let repeat = 0; repeat < 2; repeat++) {
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const k = y * size + x;
+      relax(k, x, y, -1, 0, 1); relax(k, x, y, 0, -1, 1); relax(k, x, y, -1, -1, Math.SQRT2); relax(k, x, y, 1, -1, Math.SQRT2);
+    }
+    for (let y = size - 1; y >= 0; y--) for (let x = size - 1; x >= 0; x--) {
+      const k = y * size + x;
+      relax(k, x, y, 1, 0, 1); relax(k, x, y, 0, 1, 1); relax(k, x, y, 1, 1, Math.SQRT2); relax(k, x, y, -1, 1, Math.SQRT2);
+    }
+  }
+  return d;
+}
+
+/** Potential below which a column is certainly clear for a coverage (the horizon's lift included). */
+export function clearThreshold(coverage: number, horizon: number): number {
+  return 1 - Math.min(coverage + Math.max(horizon, 0), 1) - COVER_BELOW;
+}
+
+/** The weather map, RGBA8: the three `weatherChannels` and, in alpha, the clear distance as a share of `CLEAR_RANGE`. */
+export function weatherMap(channels: Float32Array[], clear: Float32Array, size = WEATHER_SIZE): Uint8Array {
+  return toBytes([...channels, clear.map(d => d / CLEAR_RANGE)], size);
+}
 
 /** The cirrus map, RGBA8 over `CIRRUS_TILE`: (fibrous cirrus, a patchy cirrostratus veil, where cirrus
  * grows in clusters, unused). The fibres run along +u; the shader turns them to the wind. */
 export function cirrusMap(size = CIRRUS_SIZE, seed = 11): Uint8Array {
   const n = size * size, fibres = new Float32Array(n), veil = new Float32Array(n), clusters = new Float32Array(n);
-  // A slow warp bends the streaks into hooks; the streaks themselves are noise stretched eight times along u.
-  const warp = octaves(2, 3, 3, seed), streaks = octaves(4, 3, 24, seed + 2), veils = octaves(4, 3, 3, seed + 10), groups = octaves(2, 2, 2, seed + 20);
+  // Two slow warps bend the streaks into hooks and fans; the streaks are ridged noise stretched six times
+  // along u, so each is a thin bright filament with soft sides rather than a band.
+  const warpU = octaves(3, 2, 2, seed), warpV = octaves(3, 3, 3, seed + 5), streaks = octaves(3, 4, 24, seed + 2);
+  const veils = octaves(4, 3, 3, seed + 10), groups = octaves(3, 2, 2, seed + 20);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const u = (x + .5) / size, v = (y + .5) / size, k = y * size + x, bend = fbm(warp, u, v) * .07;
+    const u = (x + .5) / size, v = (y + .5) / size, k = y * size + x;
+    const wu = u + fbm(warpU, u, v) * .16, wv = v + fbm(warpV, u, v) * .1;
     let sum = 0;
-    for (let o = 0, amplitude = 1; o < streaks.length; o++, amplitude *= .5) sum += Math.abs(gradientAt(streaks[o], u, v + bend)) * amplitude;
+    for (let o = 0, amplitude = 1; o < streaks.length; o++, amplitude *= .55) {
+      const ridge = 1 - Math.abs(gradientAt(streaks[o], ((wu % 1) + 1) % 1, ((wv % 1) + 1) % 1)) * 2.2;
+      sum += Math.max(ridge, 0) ** 3 * amplitude;
+    }
     fibres[k] = sum;
     veil[k] = fbm(veils, u, v);
     clusters[k] = fbm(groups, u, v);
   }
   const f = equalise(fibres), c = equalise(clusters);
-  // Fibres show only in their densest quarter, and more where a cluster gathers them.
-  for (let k = 0; k < n; k++) f[k] = numbers.smoothstep(.62, .98, f[k]) * numbers.smoothstep(.2, .75, c[k]);
+  // Filaments only where a patch of cirrus gathers them: a third of the sky, thickest at the patches' hearts.
+  for (let k = 0; k < n; k++) f[k] = numbers.smoothstep(.55, .97, f[k]) * numbers.smoothstep(.62, .92, c[k]);
   return toBytes([f, equalise(veil), c, new Float32Array(n).fill(1)], size);
 }

@@ -1,45 +1,59 @@
 import { Vector3, type Node, type UniformNode } from 'three/webgpu';
-import { Break, Fn, If, Loop, dot, exp, exp2, float, fract, int, max, min, mix, normalize, pow, select, smoothstep, sqrt, uniform, vec2, vec3, vec4 } from 'three/tsl';
+import { Break, Fn, If, Loop, dot, exp, exp2, float, fract, int, max, min, mix, normalize, pow, select, smoothstep, sqrt, uniform, vec2, vec3 } from 'three/tsl';
 import type { AtmospherePart, SkyUniforms } from '../contracts';
-import type { CloudField } from './field';
-import { shellSegment } from './field';
+import type { CloudField, CloudSample } from './field';
+import { FARTHEST, shellSegment } from './field';
 
 type Float = Node<'float'>;
 type Vec3 = Node<'vec3'>;
-type Vec4 = Node<'vec4'>;
 type Int = Node<'int'>;
 
 const asFloat = (x: Float | Int | number): Float => typeof x === 'number' ? float(x) : float(x);
 const asInt = (x: Int | number): Int => typeof x === 'number' ? int(x) : x;
 
-/** Henyey–Greenstein lobes of cloud droplets: a strong forward lobe (the silver lining around a backlit
- * cloud) and a weak backward one (the glory side), mixed. Each multiple-scattering octave flattens both. */
-const FORWARD = .8, BACKWARD = -.3, BACKWARD_SHARE = .2;
-/** Multiple-scattering octaves (Wrenninge et al. 2013): each carries `ENERGY` of the previous one's light,
- * sees `REACH` of its optical depth toward the light and `FLATTEN` of its phase asymmetry. */
-const OCTAVES = 4, ENERGY = .75, REACH = .25, FLATTEN = .5;
-/** First light-march segment (m); each further one doubles, so five reach 1.2 km toward the light. */
-const LIGHT_STEP = 40;
-/** How much the sky light filling a cloud (the atmosphere's ambient) is worth against direct light. */
-const AMBIENT = .28;
+/** Multiple-scattering octaves (Wrenninge et al. 2013). */
+const OCTAVES = 4;
+
+/** The cloud lighting's grade: uniforms, so the look can be tuned live (the diagnostics page does). */
+export const look = {
+  /** Henyey–Greenstein lobes of cloud droplets: a strong forward lobe (the silver lining around a backlit
+   * cloud) and a weak backward one (the glory side), mixed by `backShare`. */
+  forward: uniform(.8), backward: uniform(-.3), backShare: uniform(.2),
+  /** Each octave carries `energy` of the previous one's light, sees `reach` of its optical depth toward the
+   * light and `flatten` of its phase asymmetry. */
+  energy: uniform(.68), reach: uniform(.3), flatten: uniform(.5),
+  /** How much the sky light filling a cloud (the atmosphere's ambient) is worth against direct light. */
+  ambient: uniform(.2),
+  /** Beer–powder: how dark the thin rims of a cloud seen away from the light go (0 none). */
+  powder: uniform(.5),
+  /** Overall gain on the sunlit (direct) term. */
+  direct: uniform(1.4),
+};
 /** A ray this far below the horizon (its upward component) from under the layer meets the sea first. */
 export const HORIZON_SKIP = -.002;
 /** Rays march at most this far (m); a cloud farther than that is lost in the horizon haze anyway. */
-export const MAX_DISTANCE = 160_000;
-/** Shortest primary step (m), and the share of a step an empty stretch is crossed in multiples of. */
-const MIN_STEP = 32, EMPTY_STRIDE = 2.2;
-/** Lightning: its uniform is the irradiance (the sea's units) the channel casts 1 km away, falling off with
- * the square of distance. Light spreads through cloud by multiple scattering rather than straight lines, so
- * it is dimmed by `LIGHTNING_REACH` of the local extinction along the way instead of the full optical depth. */
-const LIGHTNING_REACH = .015;
+export const MAX_DISTANCE = FARTHEST;
+/** Shortest fine step (m); fine steps grow by this share of the distance (a pixel spans more cloud farther
+ * out); empty air is crossed in strides this many fine steps long; this many empty fine steps end a stretch
+ * of cloud. */
+const MIN_STEP = 30, STEP_PER_DISTANCE = .008, EMPTY_STRIDE = 3, MISSES_BEFORE_STRIDE = 3;
+/** Light-march samples toward the light: the first `LIGHT_FIRST` metres out, each further one 2^`LIGHT_GROWTH`
+ * times farther, standing for `LIGHT_SPAN` of its distance. Four reach about 460 m, five 1.2 km. */
+const LIGHT_FIRST = 25, LIGHT_GROWTH = 1.4, LIGHT_SPAN = .8;
+/** Mean density of covered cloud, for the far light samples that read only the cover, and where they lie (m). */
+const COVER_DENSITY = .45, FAR_LIGHT = [600, 1500] as const;
+/** Metres short of the nearest cloud column a leap across clear air stops (the map is filtered). */
+const CLEAR_MARGIN = 250;
+/** A ray whose transmittance falls below this stops: the rest is renormalised rather than marched. */
+const OPAQUE = .03;
 
 /** Henyey–Greenstein phase for the angle between the view ray and the light (`cosine`). */
 export function henyeyGreenstein(cosine: Float, g: Float | number): Float {
   const eccentricity = asFloat(g), gg = eccentricity.mul(eccentricity);
   return gg.oneMinus().div(pow(gg.add(1).sub(eccentricity.mul(cosine).mul(2)).max(1e-4), 1.5).mul(4 * Math.PI));
 }
-function cloudPhase(cosine: Float, flatten: number): Float {
-  return mix(henyeyGreenstein(cosine, FORWARD * flatten), henyeyGreenstein(cosine, BACKWARD * flatten), BACKWARD_SHARE);
+function cloudPhase(cosine: Float, flatten: Float): Float {
+  return mix(henyeyGreenstein(cosine, look.forward.mul(flatten)), henyeyGreenstein(cosine, look.backward.mul(flatten)), look.backShare);
 }
 
 /** Interleaved gradient noise (Jimenez 2014) in [0, 1), animated per frame: a well spread jitter for the
@@ -71,7 +85,7 @@ export interface MarchContext {
 }
 
 /** What a march returns: in-scattered radiance (premultiplied), transmittance, and the transmittance-weighted
- * mean distance of what it met (the `far` default where it met nothing). */
+ * mean distance of what it met (`MAX_DISTANCE` where it met nothing). */
 export interface MarchResult { radiance: Vec3; transmittance: Float; depth: Float }
 
 /** Light colour (irradiance) at a world point: the sun's or the moon's through the air above it. */
@@ -80,54 +94,66 @@ export function cloudLightAt(sky: SkyUniforms, atmosphere: AtmospherePart, light
 }
 const lightAt = (context: MarchContext, p: Vec3) => cloudLightAt(context.sky, context.atmosphere, context.light, p);
 
-/** Radiance a unit of cloud scatters toward the viewer at `p`, given its optical depth toward the light. */
-function scatter(context: MarchContext, lightColour: Vec3, cosine: Float, lightDepth: Float, height: Float, density: Float, ambient: { above: Vec3; below: Vec3 }): Vec3 {
-  let direct: Float = float(0);
-  for (let i = 0; i < OCTAVES; i++) direct = direct.add(exp(lightDepth.mul(-(REACH ** i))).mul(cloudPhase(cosine, FLATTEN ** i)).mul(ENERGY ** i));
+/** The octaves' phase weights for one view ray (the angle to the light is the same all along it). */
+function octavePhases(cosine: Float): Float[] {
+  return Array.from({ length: OCTAVES }, (_, i) => cloudPhase(cosine, pow(look.flatten, i)).mul(pow(look.energy, i)).mul(look.direct).toVar());
+}
+
+/** Radiance a unit of cloud scatters toward the viewer, given its optical depth toward the light. */
+function scatter(context: MarchContext, lightColour: Vec3, phases: Float[], cosine: Float, lightDepth: Float, height: Float, density: Float,
+  ambient: { above: Vec3; below: Vec3 }): Vec3 {
+  let direct: Float = phases[0].mul(exp(lightDepth.negate()));
+  for (let i = 1; i < OCTAVES; i++) direct = direct.add(phases[i].mul(exp(lightDepth.mul(pow(look.reach, i)).negate())));
   // Beer–powder (Schneider & Vos 2015): the lit rim of a cloud seen side-on scatters less than its depths,
   // which draws the dark creases between cauliflower lobes. It fades out toward the backlit silver lining.
-  const powder = mix(exp(density.mul(-6)).oneMinus().mul(.5).add(.5), float(1), smoothstep(.2, .9, cosine));
+  const powder = mix(exp(density.mul(-6)).oneMinus().mul(look.powder).add(look.powder.oneMinus()), float(1), smoothstep(.2, .9, cosine));
   // Sky from above, the sea's bounce from below; bases darken where the whole cloud stands over them.
   const fill = mix(ambient.below, ambient.above, sqrt(height.clamp(0, 1))).mul(context.ambient)
     .mul(mix(context.baseShadow.oneMinus(), float(1), smoothstep(0, .6, height)));
-  return lightColour.mul(direct.mul(powder)).add(fill.mul(AMBIENT));
+  return lightColour.mul(direct.mul(powder)).add(fill.mul(look.ambient));
 }
 
-/** Optical depth toward the light from `p`, over `steps` doubling segments; cone-spread so shadows soften
- * with distance. The first segment reads the eroded density (it draws the lobes' self-shadowing), the rest
- * the cheaper coarse one. */
-function lightDepth(context: MarchContext, p: Vec3, steps: Node<'int'> | number, footprint: Float | undefined): Float {
+/** Optical depth toward the light from `p` (whose cloud sample is `near`) over `steps` samples, cone-spread so
+ * shadows soften with distance. Unrolled: the samples are independent, so the GPU issues all their texture
+ * reads at once instead of waiting out each in turn (15–20 % faster than a loop, measured). With no steps, an
+ * estimate from the height in the layer: the blurred environment bake needs only the bulk of the light. */
+function lightDepth(context: MarchContext, p: Vec3, near: CloudSample, steps: number, footprint?: Float): Float {
   const { field, light } = context;
-  const at = (i: Float) => {
-    const segment = exp2(i).mul(LIGHT_STEP), along = segment.mul(1.5).sub(LIGHT_STEP * .5);
-    const spread = vec3(i.mul(2.4).sin(), i.mul(1.7).cos(), i.mul(3.1).sin()).mul(.18);
+  if (steps === 0) return near.height.oneMinus().mul(field.layer.thickness).mul(COVER_DENSITY * .5).mul(field.layer.extinction);
+  let depth: Float = float(0);
+  for (let i = 0; i < steps; i++) {
+    const along = 2 ** (i * LIGHT_GROWTH) * LIGHT_FIRST;
+    const spread = vec3(Math.sin(i * 2.4), Math.cos(i * 1.7), Math.sin(i * 3.1)).mul(.12 * i);
     const q = p.add(normalize(light.direction.add(spread)).mul(along));
-    return { segment, q, sample: field.sample(q, field.altitude(q)) };
-  };
-  const first = at(float(0));
-  const depth = (footprint ? field.erode(first.sample, first.q, footprint) : first.sample.coarse).mul(first.segment).toVar();
-  Loop({ start: int(1), end: asInt(steps), type: 'int' }, ({ i }) => {
-    const { segment, sample } = at(float(i));
-    depth.addAssign(sample.coarse.mul(segment));
-  });
+    const s = field.sample(q, field.altitude(q), footprint, false);
+    // The nearest sample reads the detail too: lobes shadowing each other draw the creases of a cauliflower top.
+    const density = i === 0 && footprint ? field.erode(s, q, footprint, false) : s.coarse;
+    depth = depth.add(density.mul(along * LIGHT_SPAN));
+  }
+  // Beyond the near samples only the cloud's bulk matters: two reads of the weather map's cover, out to 1.6 km,
+  // shade the far side of a big cumulus and the underside of a deck.
+  for (const along of FAR_LIGHT) {
+    const q = p.add(light.direction.mul(along));
+    depth = depth.add(field.cover(q, field.altitude(q), near).clamp(0, 1).mul(COVER_DENSITY * along * .5));
+  }
   return depth.mul(field.layer.extinction);
 }
 
 export interface MarchOptions {
-  /** Most steps (a uniform, so a tier change recompiles nothing), and light steps per lit sample. */
-  readonly steps: Node<'int'> | number;
-  readonly lightSteps: Node<'int'> | number;
+  /** Most steps: a uniform, so a tier change recompiles nothing. */
+  readonly steps: Int | number;
+  /** Light samples per lit step, fixed when the shader is built (see `lightDepth`); 0 estimates them. */
+  readonly lightSteps: number;
   /** Jitter of the first step, 0–1. */
   readonly jitter: Float | number;
   /** Width (radians) of a pixel, for the detail erosion's footprint fade; bakes and shadows go without detail. */
   readonly pixelAngle?: Float;
-  /** Add the lightning's light (a uniform-gated branch: nothing when there is no strike). */
-  readonly lightning?: boolean;
 }
 
 /** March a ray from `origin` (height `altitude` above the sea) along `direction` through the shell.
  * Emission-free, single-albedo medium integrated per step as Hillaire (2016): each step adds its in-scattering
- * weighted by what the step itself absorbs, which keeps coarse steps energy-conserving. */
+ * weighted by what the step itself absorbs, which keeps coarse steps energy-conserving. Empty air is crossed
+ * in long strides of the cheap density; the first hit steps back a stride and continues finely. */
 export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float, direction: Vec3, options: MarchOptions): MarchResult {
   const { field, sky, light } = context, layer = field.layer;
   const radiance = vec3(0).toVar(), transmittance = float(1).toVar(), depth = float(MAX_DISTANCE).toVar();
@@ -137,43 +163,59 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
   // From under the layer, a ray below the horizon meets the sea (or the planet) before any cloud.
   const seaward = altitude.lessThan(layer.base).and(direction.y.lessThan(HORIZON_SKIP));
   If(to.greaterThan(from).and(layer.enabled.greaterThan(0)).and(seaward.not()), () => {
-    const span = to.sub(from), budget = asFloat(options.steps);
-    const step = max(span.div(budget.mul(.75)), MIN_STEP).toVar();
-    const cosine = dot(direction, light.direction);
+    const span = to.sub(from);
+    const cosine = dot(direction, light.direction).toVar();
+    const phases = octavePhases(cosine);
     // The light's colour at both ends of the stretch; between them it varies smoothly enough to interpolate.
-    const lightNear = lightAt(context, origin.add(direction.mul(from))), lightFar = lightAt(context, origin.add(direction.mul(to)));
+    const lightNear = lightAt(context, origin.add(direction.mul(from))).toVar(), lightFar = lightAt(context, origin.add(direction.mul(to))).toVar();
     const ambient = context.atmosphere.ambient(layer.base.add(layer.thickness.mul(.5)));
-    const t = from.add(step.mul(asFloat(options.jitter))).toVar();
+    const above = ambient.above.toVar(), below = ambient.below.toVar();
+    // Never so fine that the budget could not cross the whole stretch at the empty stride.
+    const shortest = max(span.div(asFloat(options.steps).mul(EMPTY_STRIDE)), MIN_STEP).toVar();
+    const t = from.add(shortest.mul(EMPTY_STRIDE).mul(asFloat(options.jitter))).toVar();
     const weighted = float(0).toVar(), weight = float(0).toVar();
+    const inside = float(0).toVar(), misses = float(0).toVar();
+    // Clear air is crossed by the weather map's distance to the nearest cloud column, turned into distance
+    // along this ray by how fast it moves across the ground.
+    const across = max(direction.xz.length(), .05);
     Loop({ start: int(0), end: asInt(options.steps), type: 'int' }, () => {
-      If(t.greaterThanEqual(to).or(transmittance.lessThan(.01)), () => { Break(); });
+      If(t.greaterThanEqual(to).or(transmittance.lessThan(OPAQUE)), () => { Break(); });
       const p = origin.add(direction.mul(t)).toVar();
-      const footprint = options.pixelAngle ? t.mul(options.pixelAngle) : undefined;
+      const fine = max(shortest, t.mul(STEP_PER_DISTANCE)).toVar();
+      const footprint = options.pixelAngle ? t.mul(options.pixelAngle).toVar() : undefined;
       const s = field.sample(p, field.altitude(p), footprint);
-      const stride = step.mul(EMPTY_STRIDE).toVar();
-      If(s.coarse.greaterThan(0), () => {
-        stride.assign(step);
-        const density = footprint ? field.erode(s, p, footprint) : s.coarse;
+      const coarse = s.coarse.toVar();
+      If(coarse.greaterThan(0).and(inside.equal(0)), () => {
+        // Found cloud from a stride: back up so its edge is met at the fine step.
+        inside.assign(1); misses.assign(0);
+        t.assign(max(t.sub(fine.mul(EMPTY_STRIDE - 1)), from));
+      }).ElseIf(coarse.greaterThan(0), () => {
+        misses.assign(0);
+        const density = (footprint ? field.erode(s, p, footprint) : coarse).toVar();
         If(density.greaterThan(0), () => {
           const extinction = density.mul(layer.extinction);
-          const toward = lightDepth(context, p, options.lightSteps, footprint);
+          const toward = lightDepth(context, p, s, options.lightSteps, footprint);
           const colour = mix(lightNear, lightFar, t.sub(from).div(span).clamp(0, 1));
-          const source = scatter(context, colour, cosine, toward, s.height, density, ambient).toVar();
-          if (options.lightning) {
-            If(sky.lightningIntensity.greaterThan(0), () => {
-              const offset = sky.lightningPosition.sub(p), distance = sqrt(dot(offset, offset)).max(50);
-              const reach = exp(extinction.mul(distance).mul(-LIGHTNING_REACH));
-              source.addAssign(vec3(.75, .8, 1).mul(sky.lightningIntensity.mul(1e6).div(distance.mul(distance)).mul(reach).div(4 * Math.PI)));
-            });
-          }
-          const absorbed = exp(extinction.mul(step).negate()).oneMinus();
+          const source = scatter(context, colour, phases, cosine, toward, s.height, density, { above, below });
+          const absorbed = exp(extinction.mul(fine).negate()).oneMinus();
           const share = transmittance.mul(absorbed);
           radiance.addAssign(source.mul(share));
           weighted.addAssign(t.mul(share)); weight.addAssign(share);
           transmittance.mulAssign(absorbed.oneMinus());
         });
+        t.addAssign(fine);
+      }).Else(() => {
+        // Out of cloud: a few more fine steps (lobes are ragged), then back to striding.
+        misses.addAssign(inside);
+        If(misses.greaterThan(MISSES_BEFORE_STRIDE), () => { inside.assign(0); });
+        const leap = max(fine.mul(EMPTY_STRIDE), s.clear.sub(CLEAR_MARGIN).div(across));
+        t.addAssign(select(inside.greaterThan(0), fine, leap));
       });
-      t.addAssign(stride);
+    });
+    // A ray stopped as nearly opaque: what lay behind the last step would have looked like what it met.
+    If(transmittance.lessThan(OPAQUE), () => {
+      radiance.divAssign(transmittance.oneMinus());
+      transmittance.assign(0);
     });
     If(weight.greaterThan(1e-4), () => {
       depth.assign(weighted.div(weight));
@@ -183,11 +225,6 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
     });
   });
   return { radiance, transmittance, depth };
-}
-
-/** The screen march's output for the reconstruction: (radiance, transmittance) and (depth km, 0, 0, 1). */
-export function packMarch(result: MarchResult): { color: Vec4; depth: Vec4 } {
-  return { color: vec4(result.radiance, result.transmittance), depth: vec4(result.depth.div(1000), 0, 0, 1) };
 }
 
 /** Sun transmittance through the shell from a point at sea level, for the shadow map: a short march of the
