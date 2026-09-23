@@ -1,74 +1,57 @@
-import { Camera, Mesh, Vector3, type Node, type Object3D, type Scene, type WebGPURenderer } from 'three/webgpu';
+import { Vector2, Vector3, type Camera, type WebGPURenderer } from 'three/webgpu';
 import { max } from 'three/tsl';
-import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 import { FleetWakeFoam, WAKE_ATLAS_CAPACITY, type WakeShip } from './FleetWakeFoam';
 import type { CombatEvent } from '../game/session/elements';
+import type { OceanApi, WakeFieldApi } from './ocean/contracts';
 import { wakeHull } from './wakeHull';
 import { TorpedoTrackFoam } from './TorpedoTrackFoam';
 import type { Torpedo } from './torpedoAim';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
 export class ShipWake {
-  private readonly anchor = new Camera();
+  private readonly wake: WakeFieldApi;
+  private readonly center = new Vector2();
   private readonly generators = new Map<WakeShip['root'], { bow: number; stern: number }>();
   private readonly foam: FleetWakeFoam;
   private readonly torpedoTracks: TorpedoTrackFoam;
-  private readonly materials = new Set<WaterSurfaceMaterial>();
   private eventSequence = 0;
 
-  constructor(private readonly wake: WaterSystem['wake'], ship: Object3D, scene: Scene, renderer?: WebGPURenderer) {
-    // The default 100 m camera-centered field misses a 250 m hull in chase view.
-    // Anchor a larger field to the ship so orbiting/zooming cannot erase its trail.
-    this.anchor.position.set(ship.position.x, 1, ship.position.z);
-    this.anchor.rotation.x = -Math.PI / 2;
-    wake.setCamera(this.anchor);
+  constructor(private readonly ocean: Pick<OceanApi, 'wake' | 'setWakeSampler'>, renderer?: WebGPURenderer) {
+    const wake = this.wake = ocean.wake;
+    // A 1.5 km field centred on the focus hull keeps a 250 m hull's whole trail while the
+    // camera orbits and zooms; the tier's resolution sets the cells spent on it.
     wake.worldSize = 1536;
-    // Retain the selected quality's grid resolution: expanding world coverage
-    // does not increase the number of cells dispatched per wake solve.
     wake.friction = 0.065;
     wake.foamBreakThreshold = 0.09;
     wake.foamStrength = 1.2;
-    wake.foamPersistence = Math.exp(-(1 / 60) / 9);
-    this.foam = new FleetWakeFoam(Math.min(wake.resolution, 256), renderer);
+    wake.foamLifetime = 9;
+    // Trail foam is the game's own and stays on when the tier runs no wake field.
+    this.foam = new FleetWakeFoam(wake.resolution ? Math.min(wake.resolution, 256) : 128, renderer);
     // A bubble track is a few metres wide: finer than any fleet wake cell.
     this.torpedoTracks = new TorpedoTrackFoam(renderer ? 1024 : 256, renderer);
-    const native = wake.getSampler();
-    const sampler: ReturnType<WaterSystem['wake']['getSampler']> = {
-      sample: (x, z) => native.sample(x, z),
-      sampleNormal: (x, z) => native.sampleNormal(x, z),
-      // The vendor declaration erases scalar node types at its public boundary.
-      sampleFoamEnergy: (x, z) => max(max(native.sampleFoamEnergy(x, z) as Node<'float'>,
-        this.foam.sample(x as Node<'float'>, z as Node<'float'>)), this.torpedoTracks.sample(x as Node<'float'>, z as Node<'float'>)),
-    };
-    // Use Water Pro's public material sampler hook: the wake shares the real
-    // ocean's displacement, lighting, reflections and foam dissolve texture.
-    // Game recreates this binding with its water system when quality changes.
-    scene.traverse(object => {
-      if (!(object instanceof Mesh)) return;
-      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-        if (material instanceof WaterSurfaceMaterial) this.materials.add(material);
-      }
+    // The surface shades the wake's swell with the ocean's own lighting; the game adds its
+    // trail and torpedo foam on top of the field's breaking foam.
+    const field = wake.sampler;
+    ocean.setWakeSampler({
+      height: (x, z) => field.height(x, z),
+      normal: (x, z) => field.normal(x, z),
+      foam: (x, z) => max(max(field.foam(x, z), this.foam.sample(x, z)), this.torpedoTracks.sample(x, z)),
     });
-    this.materials.forEach(material => material.setWakeFieldSampler(sampler));
   }
 
   update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[] = [], camera?: Camera, torpedoes: readonly Pick<Torpedo, 'id' | 'position' | 'velocity'>[] = []): void {
     const freshEvents = events.filter(event => event.sequence > this.eventSequence);
     for (const event of freshEvents) this.eventSequence = Math.max(this.eventSequence, event.sequence);
     const focus = ships[0]?.motion;
-    if (focus) this.anchor.position.set(focus.x, 1, focus.z);
+    if (focus) { this.center.set(focus.x, focus.z); this.wake.setCenter(focus.x, focus.z); }
     // The foam atlas holds a fixed number of trails. A battle larger than that
     // keeps the focus hull and the trails nearest to it.
-    if (ships.length > WAKE_ATLAS_CAPACITY) {
-      const span = (ship: WakeShip) => Math.hypot(ship.motion.x - this.anchor.position.x, ship.motion.z - this.anchor.position.z);
-      ships = [ships[0], ...ships.slice(1).sort((a, b) => span(a) - span(b))].slice(0, WAKE_ATLAS_CAPACITY);
-    }
-    // The pinned vendor solver accepts 16 generators. Give its local swell
-    // field to the nearest eight hulls; the foam atlas covers every ship.
-    const nearby = ships.filter(ship => Math.abs(ship.motion.x - this.anchor.position.x) < 900
-      && Math.abs(ship.motion.z - this.anchor.position.z) < 900)
-      .sort((a, b) => Math.hypot(a.motion.x - this.anchor.position.x, a.motion.z - this.anchor.position.z)
-        - Math.hypot(b.motion.x - this.anchor.position.x, b.motion.z - this.anchor.position.z)).slice(0, 8);
+    const span = (ship: WakeShip) => Math.hypot(ship.motion.x - this.center.x, ship.motion.z - this.center.y);
+    if (ships.length > WAKE_ATLAS_CAPACITY) ships = [ships[0], ...ships.slice(1).sort((a, b) => span(a) - span(b))].slice(0, WAKE_ATLAS_CAPACITY);
+    // The wake field takes 16 generators. Give its local swell to the nearest eight hulls;
+    // the foam atlas covers every ship.
+    const nearby = ships.filter(ship => Math.abs(ship.motion.x - this.center.x) < 900 && Math.abs(ship.motion.z - this.center.y) < 900)
+      .sort((a, b) => span(a) - span(b)).slice(0, 8);
     const roots = new Set(nearby.map(ship => ship.root));
     for (const [root, ids] of this.generators) if (!roots.has(root)) {
       this.wake.removeGenerator(ids.bow); this.wake.removeGenerator(ids.stern); this.generators.delete(root);
@@ -92,26 +75,18 @@ export class ShipWake {
       strength = Math.max(strength, ratio);
     }
     this.wake.foamStrength = 1.2 * strength;
-    if (dt > 0) this.wake.foamPersistence = Math.exp(-dt / 9);
     this.foam.update(ships, dt, freshEvents, camera);
-    this.torpedoTracks.update(torpedoes, dt, this.anchor.position.x, this.anchor.position.z, camera);
+    this.torpedoTracks.update(torpedoes, dt, this.center.x, this.center.y, camera);
   }
 
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }
   diagnostics() { return { ...this.foam.diagnostics(), torpedoTracks: this.torpedoTracks.diagnostics() }; }
 
+  /** Clear every trail, including the field's displacement when returning to port. */
   reset(): void {
     this.foam.reset(); this.torpedoTracks.reset();
     this.eventSequence = 0;
-    // Clear native displacement too when returning to port, even if the
-    // reset distance is below the solver's automatic teleport threshold.
-    const enabled = this.wake.enabled;
-    this.wake.enabled = false;
-    this.wake.enabled = enabled;
-    for (const ids of this.generators.values()) for (const id of [ids.bow, ids.stern]) {
-      const generator = this.wake.getGenerators().get(id);
-      if (generator) generator.isFirstFrame = true;
-    }
+    this.wake.reset();
   }
 
   dispose(): void {
@@ -119,7 +94,7 @@ export class ShipWake {
       this.wake.removeGenerator(ids.bow); this.wake.removeGenerator(ids.stern);
     }
     this.generators.clear();
-    this.materials.forEach(material => material.setWakeFieldSampler(this.wake.getSampler()));
+    this.ocean.setWakeSampler(null);
     this.foam.dispose(); this.torpedoTracks.dispose();
   }
 }

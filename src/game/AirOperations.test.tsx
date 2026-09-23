@@ -14,8 +14,8 @@ import { makeTestEnvironment, makeTestInput, makeTestRig } from './testing/fakes
 import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { VisualEnvironment } from './VisualEnvironment';
-import { Color, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from 'three/webgpu';
-import { WaterSurfaceGeometry, WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
+import { Color, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from 'three/webgpu';
+import { OceanGeometry } from './ocean/surface/OceanGeometry';
 import { battleEnvironment } from '../maps/conditions';
 import { oceanMap } from '../maps/catalog';
 import { squadronTargetOrder } from '../ui/airCommands';
@@ -183,14 +183,13 @@ test('older keybindings keep a custom M binding while adding a reachable map sho
 
 for (const [width, height] of [[2048, 1176], [390, 844]]) test(`carrier water covers maximum zoom and pan at ${width}×${height}`, () => {
   const camera = new PerspectiveCamera(52, width / height, .5, 60000);
-  const material = new MeshBasicMaterial();
-  const clipmap = new WaterSurfaceGeometry({ levels: 6, segments: 16, baseSize: 256, infinityRingExtent: camera.far * .95 }, material);
-  // Exercise the actual vendor geometry/rebuild API without needing a GPU.
-  const water = Object.assign(Object.create(WaterSystem.prototype), { _camera: camera, clipmap, waterMaterial: material, _fresnel: {}, atmosphericFogPass: {} }) as WaterSystem;
+  // The actual surface geometry and horizon growth, without a GPU.
+  const surface = new OceanGeometry(16, camera.far);
+  const ocean = { ensureHorizon: (far: number) => surface.ensureHorizon(far) };
   const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
   const battlefieldCamera = new BattlefieldCamera(camera);
   const rig = makeTestRig();
-  const game = Object.assign(Object.create(Game.prototype), { camera, simulation, water, rig, battlefieldCamera, shellFollow: new ShellFollow(), input: makeTestInput(),
+  const game = Object.assign(Object.create(Game.prototype), { camera, simulation, ocean, rig, battlefieldCamera, shellFollow: new ShellFollow(), input: makeTestInput(),
     environment: { setChartFog() {} }, host: { clientWidth: width, clientHeight: height }, inPort: false, paused: false, inspecting: false, fleetViews: [], playerView: {} }) as Game;
   try {
     game.setAirOperationsOpen(true);
@@ -198,23 +197,20 @@ for (const [width, height] of [[2048, 1176], [390, 844]]) test(`carrier water co
     battlefieldCamera.zoom(100000, width / 2, height / 2, width, height);
     battlefieldCamera.pan(-100000, 100000, width, height);
     battlefieldCamera.update();
-    clipmap.update(camera.position);
-    clipmap.getObject().updateMatrixWorld(true);
-    const mesh = clipmap.getObject().children[0] as Mesh;
-    mesh.geometry.computeBoundingBox();
-    const waterBounds = mesh.geometry.boundingBox!.clone().applyMatrix4(mesh.matrixWorld);
+    camera.updateMatrixWorld();
+    surface.update(camera);
+    const mesh = surface.mesh.geometry;
     for (const x of [-1, 1]) for (const y of [-1, 1]) {
       const ray = new Raycaster(); ray.setFromCamera(new Vector2(x, y), camera);
-      const surface = ray.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), 0), new Vector3())!;
-      expect(surface.clone().project(camera).z).toBeLessThan(1);
-      expect(waterBounds.containsPoint(surface)).toBe(true);
-      expect(ray.intersectObject(mesh).length).toBeGreaterThan(0);
+      const point = ray.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), 0), new Vector3())!;
+      expect(point.clone().project(camera).z).toBeLessThan(1);
+      expect(surface.covers(point.x, point.z)).toBe(true);
     }
     game.setAirOperationsOpen(false);
     battlefieldCamera.cancelTransition();
     game.setAirOperationsOpen(true);
-    expect(clipmap.getObject().children[0]).toBe(mesh); // Reopening reuses the expanded mesh.
-  } finally { clipmap.dispose(); material.dispose(); }
+    expect(surface.mesh.geometry).toBe(mesh); // Reopening reuses the expanded ring.
+  } finally { surface.dispose(); }
 });
 
 
@@ -224,19 +220,19 @@ test('closing the carrier map restores the chosen weather visibility', () => {
   for (const weather of ['clear', 'storm-clouds', 'fog'] as const) {
     const map = oceanMap(simulation.mapId), expected = battleEnvironment(map, 'night', weather);
     const camera = new PerspectiveCamera();
-    const water = { fog: {} as Record<string, unknown>, color: { absorptionColor: new Color() }, underwaterDistortion: { intensity: 0 }, getGeometryConfig: () => ({ infinityRingExtent: 950000 }) };
+    const ocean = { fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 }, colors: { absorptionColor: new Color() }, ensureHorizon() {} };
     const environment = makeTestEnvironment();
-    environment.attachWater(water as never);
+    environment.attachOcean(ocean as never);
     environment.setBattle({ timeOfDay: 'night', weather, conditions: {} });
     environment.setChartFog(false);
-    const authored = { ...water.fog };
-    expect(authored).toMatchObject({ fadeStart: expected.fog.start, fadeEnd: expected.fog.end, color: expected.fog.color, skyBlendDistance: expected.fog.skyBlend });
-    const game = Object.assign(Object.create(Game.prototype), { camera, simulation, water, rig, environment, shellFollow: new ShellFollow(), input: makeTestInput(),
+    const authored = { ...ocean.fog, color: ocean.fog.color.getHexString() };
+    expect(authored).toMatchObject({ start: expected.fog.start, end: expected.fog.end, color: expected.fog.color.slice(1), skyBlendDistance: expected.fog.skyBlend });
+    const game = Object.assign(Object.create(Game.prototype), { camera, simulation, ocean, rig, environment, shellFollow: new ShellFollow(), input: makeTestInput(),
       battlefieldCamera: new BattlefieldCamera(camera), host: { clientWidth: 1280, clientHeight: 800 },
       inPort: false, paused: false, inspecting: false, fleetViews: [], playerView: {} }) as Game;
-    game.setAirOperationsOpen(true); expect(water.fog.fadeEnd).toBe(900000); expect(water.fog.fadeStart).toBe(400000);
+    game.setAirOperationsOpen(true); expect(ocean.fog.end).toBe(900000); expect(ocean.fog.start).toBe(400000);
     game.setAirOperationsOpen(false);
-    expect(water.fog).toEqual(authored);
+    expect({ ...ocean.fog, color: ocean.fog.color.getHexString() }).toEqual(authored);
   }
 });
 

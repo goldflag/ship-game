@@ -25,8 +25,7 @@ import { updateWaterShadows } from './WaterShadows';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
-import { VisualWaveSampler } from './VisualWaveSampler';
-import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
+import { Ocean } from './ocean/Ocean';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
@@ -36,7 +35,6 @@ import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { loadShipModel } from './loadShipModel';
-import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { RemoteBattleSession } from './session/RemoteBattleSession';
 import { LocalBattleSession } from './session/LocalBattleSession';
@@ -128,7 +126,6 @@ export class Game {
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
   private scene = new FrameScene();
-  private underwaterPassVisibility?: UnderwaterPassVisibility;
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
   private battlefieldCamera = new BattlefieldCamera(this.camera);
@@ -144,7 +141,6 @@ export class Game {
   private observedShipViews = new ObservedShipViews();
   private readonly fleetVisibility = new FleetVisibility();
   private waterViewFocus?: WaterViewFocus;
-  private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
   /** Public hulls a mission may reveal, brought aboard the first time a contact needs one. */
   private recognition?: { models: Map<string, THREE.Group>; asked: Set<string> };
@@ -250,7 +246,7 @@ export class Game {
   }
   get selectedFlightId(): string | undefined { return this.selectedFlightIds[0]; }
   set selectedFlightId(id: string | undefined) { this.flightSelection = id ? [id] : []; }
-  private water?: WaterSystem;
+  private ocean?: Ocean;
   private landscape?: THREE.Group;
   private sky?: SkySystem;
   private shipWake?: ShipWake;
@@ -406,39 +402,20 @@ export class Game {
     this.scene.add(this.environment.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
-    // Water Pro 3.5.1 combines seed * 100000 + cellIndex in float32.
-    // Large seeds (e.g. 1941) collapse adjacent inputs, creating repeated arcs.
-    // Keep the library's small, deterministic seed until its hash input is fixed.
-    this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.ocean,
-      { seed: 1, refractionEnabled: false, surfaceTransmissionEnabled: true });
-    this.visualWaveSampler = new VisualWaveSampler(this.water.buoyancy.getSampler());
-    this.water.buoyancy.setSampler(this.visualWaveSampler);
+    const ocean = this.ocean = await Ocean.create(this.renderer, this.scene, this.camera, { quality: this.settings.ocean, seed: 1941 });
     this.assertActive();
-    const params = getPresetParams('blackFlag');
-    params.oceanFloor.enabled = false;
-    params.oceanFloor.depth = 200;
-    params.fog.fadeStart = 2500;
-    params.fog.fadeEnd = 16000;
-    params.fog.skyBlendDistance = 10000;
-    params.fog.fadePower = 1.4;
-    // Full sky illumination keeps the shaded hull readable in daylight.
-    params.environment.intensity = 1;
-    params.clipmap.baseSize = 256;
-    params.clipmap.levels = 6;
-    params.foam.surface.opacity = 0.13;
-    params.foam.waves.opacity = 0.45;
+    // Until the first scene applies its own: fog from 2.5 km, complete at 16 km, fading into the sky over 10 km.
+    Object.assign(ocean.fog, { start: 2500, end: 16000, power: 1.4, skyBlendDistance: 10000 });
+    Object.assign(ocean.foam.surface, { opacity: .13 });
+    Object.assign(ocean.foam.crest, { opacity: .45 });
     // A broader directional spectrum breaks up parallel ripples into the
     // small crossing waves of the supplied naval-game water references.
-    params.waves.fft.spectralSharpness = .8;
-    params.postProcessing.underwaterParticles.enabled = false;
-    params.spray.enabled = false;
-    this.water.loadPreset(params);
-    this.water.underwaterDistortion.enabled = false;
-    this.water.waves.jonswapGamma.value = 2.2;
-    this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
-    this.torpedoPreview.setWater(this.water);
-    this.environment.attachWater(this.water);
-    this.waterViewFocus = new WaterViewFocus(this.water.ssr);
+    ocean.waves.directionalSharpness = .8;
+    // Full sky illumination keeps the shaded hull readable in daylight.
+    ocean.environmentIntensity = 1;
+    this.torpedoPreview.setOcean(ocean);
+    this.environment.attachOcean(ocean);
+    this.waterViewFocus = new WaterViewFocus(ocean.reflections);
 
     this.callbacks.progress('Lighting the sky', 0.59);
     this.sky = await SkySystem.create({ renderer: this.renderer, camera: this.camera, scene: this.scene,
@@ -478,18 +455,17 @@ export class Game {
     skyProvider.createFogSampler = () => Fn(([direction]: [THREE.Node]) => daylightFog(direction).add(
       moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
         .mul(max(0, moon.moonDirection.y))));
-    this.water.setSky(skyProvider);
-    const sunlight = this.water.lighting.sunLight;
+    ocean.setSky(skyProvider);
+    const sunlight = this.environment.sunLight;
     Object.assign(sunlight.shadow.camera, { left: -380, right: 380, top: 380, bottom: -380, near: 1, far: 1800 });
     sunlight.shadow.camera.updateProjectionMatrix();
     this.graphicsControl.applyShadows();
     this.graphicsControl.applyReflections();
-    this.scene.add(sunlight.target);
-    this.water.lighting.addSunSyncListener(() => this.environment.syncLighting());
+    this.scene.add(sunlight, sunlight.target);
 
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
-    this.shipWake = new ShipWake(this.water.wake, this.ship, this.scene, this.renderer);
+    this.shipWake = new ShipWake(ocean, this.renderer);
     for (const buoy of BUOYS) this.addBuoy(buoy);
     if (HARBOR_BACKDROP) {
       this.callbacks.progress('Building the naval anchorage', 0.72);
@@ -502,11 +478,10 @@ export class Game {
     this.callbacks.progress('Preparing ocean effects and lighting', 0.82);
     this.scenePass = pass(this.scene, this.camera);
     const sceneColor = this.scenePass.getTextureNode('output');
-    const waterColor = this.water.postProcessing.buildNode(this.scenePass, sceneColor);
-    // Water Pro's scene.fogNode already fogs each material at its own distance.
+    // The ocean's scene.fogNode already fogs each material at its own distance.
     // Sky's depth-based post fog sees the distant sea behind transparent smoke,
     // erasing a horizontal band of nearby gas at the horizon's far-fade distance.
-    const output = waterColor as THREE.Node<'vec4'>;
+    const output = ocean.postProcess(this.scenePass, sceneColor);
     // FXAA detects edges in display space, after tone mapping and sRGB conversion.
     const sceneDisplay = renderOutput(vec4(output.rgb.mul(this.sky.atmosphere.exposure), output.a), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace);
     this.armorOverlay = new ArmorOverlay();
@@ -524,10 +499,9 @@ export class Game {
   private async warmupRendering(progress?: BattleProgress): Promise<void> {
     const scar = this.playerView!.impactMarks.createWarmupMesh();
     this.scene.add(scar);
-    // Exercise the actual ship batches, ocean captures and post-processing targets.
+    // Exercise the actual ship batches, the sea's viewport copies and post-processing targets.
     // Compiling the scene against the canvas misses those pipeline variants.
-    // Twelve frames also cover the sky reflection's nine-frame update cycle and
-    // both ping-pong targets, including the asynchronous underwater visibility bound.
+    // Twelve frames also cover the sky environment's nine-frame update cycle.
     // Prepare scenery behind the initial camera too, before the first port drag.
     const culled: THREE.Object3D[] = [];
     this.scene.traverse(object => {
@@ -922,7 +896,7 @@ export class Game {
     group.add(base, stem, cap);
     group.position.set(buoy.x, 0, buoy.z);
     this.scene.add(group);
-    this.water!.buoyancy.addObject(group, { multiPoint: false, heightSmoothing: 0.6 });
+    this.ocean!.addFloater(group, { smoothing: 0.6 });
   }
 
   private scheduleFrame(): void {
@@ -998,7 +972,7 @@ export class Game {
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,
         !this.inPort && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && this.rig.magnification > 1.5));
       this.environment.update(this.camera, dt);
-      this.fleetVisibility.update(this.fleetViews, this.camera, this.water!.lighting.sunLight, this.inPort || warmingUp);
+      this.fleetVisibility.update(this.fleetViews, this.camera, this.environment.sunLight, this.inPort || warmingUp);
       this.fleetViews.forEach(view => { if (view.renderActive || view === this.playerView) view.updateArticulation(alpha); });
       const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim, realDt, this.playerView!);
@@ -1011,7 +985,7 @@ export class Game {
       this.torpedoMarkers.update(torpedoes, torpedoes.length ? this.friendlyShipIds() : NO_SHIPS, this.camera, !this.inPort && !this.inspecting);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.fleetViews.forEach(view => {
-        view.rig.update(presentationDt, this.water!.waves.windSpeed.value, this.water!.waves.windDirection.value,
+        view.rig.update(presentationDt, this.ocean!.waves.windSpeed, this.ocean!.waves.windDirection,
           view.root, view.motion, view.actor.damage.sunk, this.camera, !this.inPort);
         view.updateRenderMatrices();
       });
@@ -1034,12 +1008,8 @@ export class Game {
       else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
-      // Fixed-step mode with zero delta renders without stepping the wake's
-      // leapfrog/foam integrators. Host-clock update(0) would still step them.
-      this.water!.deterministic = this.paused || this.tacticalPause;
-      // Water captures ship depth/color too, so publish batch poses before its passes.
+      // The sea reads the opaque ships through the scene pass, so publish batch poses first.
       this.fleetDraws?.update(this.camera, this.renderer.domElement.height, this.detailBudgetPx);
-      this.underwaterPassVisibility?.update(this.camera);
       // Hidden hangar aircraft, LODs and dormant effects must compile against
       // the actual ocean capture and final targets before their first appearance.
       const warmInstances: { mesh: THREE.InstancedMesh; visible: boolean; count?: number }[] = [];
@@ -1053,11 +1023,10 @@ export class Game {
       });
       this.scene.beginFrame();
       try {
-        await this.water!.update(dt);
-        this.underwaterPassVisibility?.capture();
-        if (this.disposed) return;
+        // A paused frame (dt 0) renders the same waves, foam and wake again.
+        this.ocean!.update(dt);
         this.renderFrame();
-        updateWaterShadows(this.scene, this.water!.lighting.sunLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
+        updateWaterShadows(this.ocean!, this.environment.sunLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();
@@ -1100,7 +1069,7 @@ export class Game {
           freeCamera: this.rig.freeCamera, freeCameraSpeed: this.rig.freeCameraSpeed, aimLocked: this.aimLocked,
           playerDamage,
           shipDamageOpen: this.shipDamageOpen, inspectedPartId: this.shipDamageOpen ? this.cameraShipView.inspection.selectedId : undefined,
-          mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.water!.backend, performance: this.performanceReadout(), trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
+          mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.ocean!.backend, performance: this.performanceReadout(), trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
       }
       if (!warmingUp) this.scheduleFrame();
@@ -1122,7 +1091,8 @@ export class Game {
       get frameIntervalMs() { return game.frameIntervalMs; }, set frameIntervalMs(value) { game.frameIntervalMs = value; },
       get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
       get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
-      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get water() { return game.water; }, get sky() { return game.sky; },
+      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get ocean() { return game.ocean; }, get sky() { return game.sky; },
+      get sunLight() { return game.environment.sunLight; },
       get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
       get disposed() { return game.disposed; },
       requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),
@@ -1131,7 +1101,7 @@ export class Game {
 
   private performanceReadout(): PerformanceReadout {
     const { width = 0, height = 0 } = this.renderer.domElement;
-    const readout: PerformanceReadout = { mode: this.settings.readout, fps: Math.round(this.fps), frameMs: this.fps > 0 ? 1000 / this.fps : 0, width, height, backend: this.water?.backend ?? 'webgpu' };
+    const readout: PerformanceReadout = { mode: this.settings.readout, fps: Math.round(this.fps), frameMs: this.fps > 0 ? 1000 / this.fps : 0, width, height, backend: this.ocean?.backend ?? 'webgpu' };
     const load = this.inPort ? undefined : this.simulation.simulationLoad;
     if (load) readout.simulation = { ...load, speed: this.simulation.simulationSpeed ?? 1, achievedSpeed: this.simulation.achievedSpeed };
     if (this.settings.readout === 'detailed') {
@@ -1160,7 +1130,7 @@ export class Game {
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.water?.resize(width, height);
+    this.ocean?.resize(width, height);
     this.resizeHudOverlays();
     this.aircraftView.resize(height);
     this.sky?.resize(width, height);
@@ -1360,9 +1330,8 @@ export class Game {
       this.endFollow(); this.rig.setEnabled(this.controls().rigEnabled);
       this.battlefieldCamera.enter(this.airMap.reportedPoints(), this.host.clientWidth, this.host.clientHeight);
       if (!this.fleetCommandMode) this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
-      // Water Pro sizes its horizon ring when geometry is built, before the map
-      // increases camera.far. Grow it once and retain it for subsequent map visits.
-      if (this.water && this.water.getGeometryConfig().infinityRingExtent < this.camera.far * .95) this.water.rebuildGeometry({});
+      // The map raises camera.far; the horizon ring grows once and keeps that reach.
+      this.ocean?.ensureHorizon(this.camera.far);
       this.environment.setChartFog(true);
     } else {
       this.battlefieldCamera.exit();
@@ -1385,7 +1354,7 @@ export class Game {
   private controls(inputSuspended = false) {
     return controlEligibility({
       paused: !!this.paused, tacticalPause: !!this.tacticalPause, inPort: !!this.inPort,
-      waterReady: !!this.water, fleetCommand: !!this.fleetCommandMode,
+      waterReady: !!this.ocean, fleetCommand: !!this.fleetCommandMode,
       // Before the port session arrives there is no helm and nothing has sunk.
       hasHelm: !!this.simulation?.controlledShipId, sunk: !!this.simulation?.player.damage.sunk,
       chartOpen: !!this.airOperationsOpen, chartTransitioning: !!this.battlefieldCamera?.transitioning,
@@ -1723,7 +1692,7 @@ export class Game {
   diagnostics() {
     return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
       ...this.environment.diagnostics(),
-      islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
+      islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.ocean?.backend,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
         shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId, followedShellId: this.shellFollow.shellId,
         freeCamera: this.rig.freeCamera, aimLocked: this.aimLocked,
@@ -1786,7 +1755,6 @@ export class Game {
     this.articulationResolver?.dispose();
     this.simulation.dispose?.();
     this.disposed = true;
-    this.underwaterPassVisibility?.dispose();
     this.audio?.dispose();
     cancelAnimationFrame(this.raf);
     const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve());
@@ -1813,8 +1781,7 @@ export class Game {
     if (this.landscape) disposeBattleLandscape(this.landscape);
     this.effects.dispose();
     this.funnelSmoke.dispose();
-    await this.visualWaveSampler?.drain();
-    this.water?.dispose();
+    this.ocean?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();

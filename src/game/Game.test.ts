@@ -591,7 +591,7 @@ test('a battle that opens on the fleet chart selects nothing; leaving a helm kee
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   try {
     game.enterFleetCommand(false);
@@ -613,7 +613,7 @@ test('a custom battle reads the fleet chart from its helm: nothing is released, 
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 1, rudder: .5 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
@@ -663,7 +663,7 @@ test('the helm wheel swaps hulls in a custom battle: held on its key, offered on
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} }, callbacks: { pause() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} }, callbacks: { pause() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
@@ -719,7 +719,7 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera, selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });

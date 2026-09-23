@@ -3,7 +3,7 @@ import type { rtt } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { smaa } from 'three/addons/tsl/display/SMAANode.js';
 import type { SkySystem } from '../../../vendor/threejs-sky-pro/build/index.js';
-import type { WaterSystem } from '../../../vendor/threejs-water-pro/build/index.js';
+import type { OceanApi } from '../ocean/contracts';
 import type { AircraftView } from '../AircraftView';
 import type { CombatEffects } from '../CombatEffects';
 import {
@@ -29,7 +29,9 @@ export interface GraphicsContext {
   readonly renderer: THREE.WebGPURenderer;
   /** The composited frame the display pass smooths; absent until start-up has built it. */
   readonly finalFrame?: ReturnType<typeof rtt>;
-  readonly water?: WaterSystem;
+  readonly ocean?: Pick<OceanApi, 'reflections'>;
+  /** The scene's sun light, whose shadow map the Shadows row sizes. */
+  readonly sunLight: THREE.DirectionalLight;
   readonly sky?: SkySystem;
   readonly aircraftView: Pick<AircraftView, 'detailScale'>;
   readonly effects: Pick<CombatEffects, 'setDensity'>;
@@ -83,15 +85,14 @@ export class GraphicsController {
     pipeline.outputColorTransform = false;
   }
 
-  /** Screen-space reflections are a live uniform; the sky-only mirror stays on. */
+  /** Screen-space reflections switch live; the sky reflection stays on. */
   applyReflections(): void {
-    const { water, settings } = this.context;
-    if (water) water.ssr.enabled = settings.reflections === 'scene';
+    const { ocean, settings } = this.context;
+    if (ocean) ocean.reflections.screenSpace = settings.reflections === 'scene';
   }
 
   applyShadows(): void {
-    const sunlight = this.context.water?.lighting.sunLight;
-    if (!sunlight) return;
+    const sunlight = this.context.sunLight;
     const size = shadowMapSize(this.context.settings.shadows);
     // Retain an allocated map when switching Off: Three's cached capture
     // programs still reference it. Zero intensity removes shadows and stopping
