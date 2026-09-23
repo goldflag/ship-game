@@ -135,13 +135,19 @@ const PERSISTENCE = 2.3, GATED_SHOWING = .62, SATURATION = 1.3;
 /** The most injection the saturation correction may call for, as a multiple of the depth wanted. */
 const MAX_BOOST = 4;
 
+/** The share of the sea whitecap patches cover at `windSpeed` with the map's `scale`: the wind's coverage less what
+ * windrows add to it, as the two overlap at random. */
+export function whitecapArea(windSpeed: number, scale = 1): number {
+  const total = Math.min(.95, whitecapCoverage(windSpeed) * Math.max(0, scale)), rows = Math.min(total, windrowCoverage(windSpeed, scale));
+  return 1 - (1 - total) / (1 - rows);
+}
+
 /** The whitecaps' optical depth to inject for `windSpeed`, with the coverage scaled by `scale`: −ln(1 − W) for the
  * coverage W the whitecaps must add to the windrows' (which overlap them at random) to cover the wind's share of the
  * sea, raised against saturation. Patches land at random, so a cascade breaking over a fraction q of the sea covers
  * 1 − e^(−K·q) of it (K its persistence) and independent cascades overlap multiplicatively; shares of this depth add. */
 export function whitecapDepth(windSpeed: number, scale = 1): number {
-  const total = Math.min(.95, whitecapCoverage(windSpeed) * Math.max(0, scale)), rows = Math.min(total, windrowCoverage(windSpeed, scale));
-  const depth = -Math.log((1 - total) / (1 - rows));
+  const depth = -Math.log(1 - whitecapArea(windSpeed, scale));
   return depth / Math.max(1 / MAX_BOOST, 1 - SATURATION * depth);
 }
 

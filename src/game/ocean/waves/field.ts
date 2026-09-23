@@ -10,7 +10,7 @@ import type { OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, Wave
 import { fftRadices } from './fft';
 import { drawnSea, seaStateCascades } from './seaState';
 import { FOLD_PERIOD, buildSpectrum, cascadeBands } from './spectrum';
-import { type CascadeBreaking, cascadeBreaking, setBreakingThresholds, whitecapDepth } from './whitecaps';
+import { type CascadeBreaking, cascadeBreaking, setBreakingThresholds, whitecapArea, whitecapDepth } from './whitecaps';
 
 type Vec4 = Node<'vec4'>;
 type Float = Node<'float'>;
@@ -44,8 +44,9 @@ const FOAM_JACOBIAN_MIN = .35, FOAM_JACOBIAN_MAX = 2.5;
 /** Bubbles a breaking crest carries down persist like its foam but for this share of the foam's lifetime: the cloud
  * rises and dissolves within about a wave period, while the surface foam it leaves lingers. */
 const BUBBLE_LIFE = .5;
-/** The bubble cloud is read from a mip whose texels span at least this many metres: bubbles carried down under a
- * whitecap spread about as far again around it. */
+/** The bubble cloud, and the foam's mean, are read from a mip whose texels span the pixel's whole footprint and at least
+ * this many metres: bubbles carried down under a whitecap spread about as far again around it, and a whitecap smaller
+ * than its pixel reads as its share of the pixel instead of a fleck (see `foam.ts`). */
 const BUBBLE_SPREAD = 4;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
@@ -154,6 +155,8 @@ export class GpuWaveField implements WaveField {
   private readonly gates: ReturnType<typeof floatUniform>[];
   /** How each cascade breaks, for the current spectrum. */
   private breaking: CascadeBreaking[] = [];
+  /** The share of the sea whitecaps cover at the current wind (less windrows): `WaveSurfaceSample.whitecapShare`. */
+  private readonly whitecapShare = uniform(0);
   private lastPhase = -1;
 
   /** `tier` is the quality tier's layout; `realism.seaState` is read live, and flipping it rebuilds. */
@@ -319,8 +322,9 @@ export class GpuWaveField implements WaveField {
     // The pixel's footprint on the grid (m), as the anisotropic filter resolves it.
     const across = dFdx(xz).length(), down = dFdy(xz).length();
     const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
+    const wide = max(across, down);
     const stilled = slick(calm);
-    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), bubbles: Float = float(0);
+    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), foamMean: Float = float(0), bubbles: Float = float(0);
     let variance: Float = stilled(this.tail, 1), unresolved: Float = stilled(this.tailFull, 1);
     this.tier.forEach((_, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
@@ -333,8 +337,11 @@ export class GpuWaveField implements WaveField {
       // −(∂Dx/∂x + ∂Dz/∂z), gated in its own standard deviations).
       const crests = i ? smoothstep(GATE_NONE, GATE_FULL, strain.x.add(strain.y).mul(this.gates[i]).negate()) : float(1);
       foam = max(foam, extras.y.mul(detail).mul(crests));
-      const spread = clamp(max(level, log2(this.texels[i].mul(BUBBLE_SPREAD))), 0, this.top);
-      bubbles = max(bubbles, this.sample('extras', xz, i, spread).w.mul(detail).mul(crests));
+      // One read serves the bubble cloud and the foam's mean: isotropic, over the whole footprint and at least BUBBLE_SPREAD.
+      const spreadLevel = clamp(log2(max(wide, BUBBLE_SPREAD).mul(this.texels[i])), 0, this.top);
+      const spread = this.sample('extras', xz, i, spreadLevel);
+      bubbles = max(bubbles, spread.w.mul(detail).mul(crests));
+      foamMean = max(foamMean, spread.y.mul(detail).mul(crests));
       slope = slope.add(stilled(derivatives.xy.mul(detail), this.slickShares[i]));
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
       const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
@@ -351,7 +358,8 @@ export class GpuWaveField implements WaveField {
     // Foam rides the water: per area of sea it is as dense as the surface is compressed (1 / J), gathered on
     // converging crests and thinned where their backs stretch.
     const density = foam.div(clamp(jacobian, FOAM_JACOBIAN_MIN, FOAM_JACOBIAN_MAX));
-    return { slope: world.add(ripples.slope), jacobian, foam: density, bubbles, slopeVariance: variance.add(ripples.variance), unresolvedVariance: unresolved.add(ripples.unresolved) };
+    return { slope: world.add(ripples.slope), jacobian, foam: density, foamMean, whitecapShare: this.whitecapShare, bubbles,
+      slopeVariance: variance.add(ripples.variance), unresolvedVariance: unresolved.add(ripples.unresolved) };
   }
 
   /** Waves shorter than the finest cascade, drawn close to the camera instead of only roughening the reflection.
@@ -417,6 +425,7 @@ export class GpuWaveField implements WaveField {
     this.lastPhase = phase; this.phase.value = phase;
     this.elapsed.value = Math.max(0, dt);
     setBreakingThresholds(this.breaking, whitecapDepth(this.params.windSpeed, this.foamParams.coverageScale));
+    this.whitecapShare.value = whitecapArea(this.params.windSpeed, this.foamParams.coverageScale);
     const target = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), level = renderer.getActiveMipmapLevel(), mrtState = renderer.getMRT();
     try {
       renderer.setMRT(null);

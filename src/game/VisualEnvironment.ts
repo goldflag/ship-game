@@ -41,15 +41,16 @@ const SUN_HAZE = .45;
 /** Sun and moon disc radius as `1 - cos(θ)`: a 1.4° disc, under three times life size.
  * Sky Pro's presets draw them at 3.2° and 3.6°. */
 const CELESTIAL_DISC = 7.5e-5;
-/** Opacity of a windrow's line of old foam: a film the sea shows through. */
-const WINDROW_OPACITY = .85;
-/** Windrows at `windSpeed` (m/s), with the map's whitecap `scale`: lines of old foam holding their share of the wind's
- * whitecap coverage, counted by opacity. */
+/** Opacity of a windrow's old foam: a thin film the sea shows through. */
+const WINDROW_OPACITY = .5;
+/** Windrows at `windSpeed` (m/s), with the map's whitecap `scale`: lines of old foam covering their share of the wind's
+ * whitecap coverage. */
 export function windrowFoam(windSpeed: number, scale = 1): { coverage: number; opacity: number } {
-  return { opacity: WINDROW_OPACITY, coverage: Math.min(1, windrowCoverage(windSpeed, scale) / WINDROW_OPACITY) };
+  return { opacity: WINDROW_OPACITY, coverage: windrowCoverage(windSpeed, scale) };
 }
-/** e-folding lifetime of whitecap foam in periods of the breaking waves: about 3 s for a 25 m/s storm's large breakers. */
-const WHITECAP_LIFETIME = .55;
+/** e-folding lifetime of whitecap foam in periods of the breaking waves: 2.6 s for a 9 m/s sea's breakers, 5 s for a
+ * storm's big ones, within the few to ten seconds real stage-B foam takes to clear (Callaghan et al. 2012). */
+export const WHITECAP_LIFETIME = 1;
 /** The map foam value whose whitecaps cover what the wind calls for (the Atlantic's); other maps scale their coverage
  * by their value over this one, so a calmer-looking sea has fewer whitecaps, not greyer ones. */
 const REFERENCE_FOAM = .45;
