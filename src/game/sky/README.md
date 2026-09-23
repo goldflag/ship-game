@@ -175,13 +175,16 @@ lightning come from the weather preset (`src/maps/conditions.ts`) and the develo
 
 **Environment** (`environment/`). Equirectangular linear HDR bake (RGBA16F, the tier's width) from sea
 level under the camera: the dome (sky, celestial bodies without the sun's disc and stars, cirrus) with the
-clouds' short march over it, the clouds skipped below the horizon. A sweep bakes the sky in four
-horizontal bands, one every fourth frame, the last also taking the cheap half below the horizon, and
-bumps `needsPMREMUpdate` once finished: three's PMREM (about 0.07 ms on the development machine)
-refilters once per 16 frames. A change of sun or light, or a jump of the origin by 2 km, re-bakes it
-whole at once. `scene.environment` is this texture (ships' image-based light) and the sea reflects it
-through PMREM. The far fog colour (`createFogSampler`) is the sky seen from the camera without discs,
-stars or clouds.
+clouds' short march over it above the horizon, and below it the sea as ships see it from above (the sky
+mirrored with water's Fresnel over the dark water body). A sweep bakes the sky in four horizontal bands,
+one every fourth frame, the last also taking the sea's half, then prefilters the bake into three's PMREM
+(CubeUV) layout itself, once per 16 frames. The prefilter keeps three's layout and Gaussian chain but not
+its GGX importance sampling (512 samples per texel at every level, about 7 ms of GPU per refilter on the
+development machine, a spike every sweep): about 0.6 ms, for reflections nobody can tell apart. A change
+of sun or light, or a jump of the origin by 2 km, re-bakes and prefilters it whole at once.
+`scene.environment` is the prefiltered texture (ships' image-based light) and the sea reflects it through
+`pmremTexture`, which reads it as it is. The far fog colour (`createFogSampler`) is the sky seen from the
+camera without discs, stars or clouds.
 
 ## Quality tiers
 

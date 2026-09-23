@@ -1,5 +1,5 @@
-import { HalfFloatType, LinearFilter, NoBlending, NodeMaterial, QuadMesh, RGBAFormat, RenderTarget, Vector2, Vector3, type Camera, type Texture,
-  type WebGPURenderer } from 'three/webgpu';
+import { HalfFloatType, LinearFilter, NoBlending, NodeMaterial, PMREMGenerator, QuadMesh, RGBAFormat, RenderTarget, Vector2, Vector3, type Camera,
+  type Texture, type WebGPURenderer } from 'three/webgpu';
 import { Fn, If, cos, float, mix, pmremTexture, pow, screenCoordinate, sin, uniform, vec3, vec4 } from 'three/tsl';
 import type { OceanSky } from '../../ocean/contracts';
 import type { EnvironmentPart, EnvironmentSources, SkyFrame, SkyQuality, SkyUniforms } from '../contracts';
@@ -26,9 +26,38 @@ const JUMP = 2000;
 
 type PmremNode = ReturnType<typeof pmremTexture>;
 
+/** Directions the prefilter's blur poles turn among from level to level, so no one pole gathers the
+ * latitudinal blur's pinch: an icosahedron's vertices (from the golden ratio) and a cube's diagonals. */
+const PHI = (1 + Math.sqrt(5)) / 2, INVERSE_PHI = 1 / PHI;
+const POLES = [[-PHI, INVERSE_PHI, 0], [PHI, INVERSE_PHI, 0], [-INVERSE_PHI, 0, PHI], [INVERSE_PHI, 0, PHI], [0, PHI, -INVERSE_PHI], [0, PHI, INVERSE_PHI],
+  [-1, 1, -1], [1, 1, -1], [-1, 1, 1], [1, 1, 1]].map(([x, y, z]) => new Vector3(x, y, z).normalize());
+
+/** What the prefilter reaches in three's generator (r185), which its typings leave out. */
+interface GeneratorInternals {
+  _renderer: WebGPURenderer;
+  _lodMeshes: unknown[];
+  _sigmas: number[];
+  _blur(target: RenderTarget, lodIn: number, lodOut: number, sigma: number, poleAxis: Vector3): void;
+}
+
+/** three's PMREM generator (the CubeUV layout every `pmremTexture` and `scene.environment` reads) with its
+ * separable Gaussian chain in place of its GGX importance sampling. The GGX filter takes 512 samples per texel
+ * at every roughness level: about 7 ms of GPU per refilter on the development machine, a frame spike every
+ * sweep. The chain takes a few dozen, and a sky's smooth light hides the difference in the lobes: each level
+ * blurs the one before by the Gaussian that widens it to the level's own width. */
+class SkyPMREMGenerator extends PMREMGenerator {
+  _applyPMREM(target: RenderTarget): void {
+    const generator = this as unknown as GeneratorInternals, renderer = generator._renderer, autoClear = renderer.autoClear;
+    renderer.autoClear = false;
+    const levels = generator._lodMeshes.length, sigmas = generator._sigmas;
+    for (let i = 1; i < levels; i++) generator._blur(target, i - 1, i, Math.sqrt(sigmas[i] ** 2 - sigmas[i - 1] ** 2), POLES[(levels - i - 1) % POLES.length]);
+    renderer.autoClear = autoClear;
+  }
+}
+
 /** The environment the sea reflects and every material is lit by: an equirectangular bake of the dome
  * and the clouds from sea level under the camera, in horizontal bands over several frames, then one
- * PMREM refilter per sweep (three's `pmremTexture` regenerates when `pmremVersion` moves). */
+ * prefilter per sweep into the PMREM (CubeUV) texture consumers read (`SkyPMREMGenerator`). */
 export class Environment implements EnvironmentPart {
   readonly oceanSky: OceanSky;
   private target: RenderTarget;
@@ -46,9 +75,13 @@ export class Environment implements EnvironmentPart {
   private readonly bakedSun = new Vector3();
   private readonly bakedLight = new Vector3();
   private readonly reflections: PmremNode[] = [];
+  private readonly generator: SkyPMREMGenerator;
+  /** The prefiltered environment (three's CubeUV layout) consumers sample. */
+  private pmrem: RenderTarget;
 
   constructor(private readonly renderer: WebGPURenderer, private readonly sources: EnvironmentSources, private readonly uniforms: SkyUniforms, quality: SkyQuality) {
     this.target = this.makeTarget(SKY_TIERS[quality].environmentWidth);
+    this.generator = new SkyPMREMGenerator(renderer);
     const material = this.material;
     material.name = 'Sky environment';
     material.depthTest = material.depthWrite = false;
@@ -69,20 +102,22 @@ export class Environment implements EnvironmentPart {
       return vec4(color, 1);
     })();
     this.quad = new QuadMesh(material);
+    // Allocate the prefiltered target now, so its texture object stands from the start (the first update fills it).
+    this.pmrem = this.prefilter(null);
     this.oceanSky = {
       createReflectionSampler: () => (direction, roughness) => {
-        const node = pmremTexture(this.target.texture, direction, roughness ?? float(0));
+        const node = pmremTexture(this.pmrem.texture, direction, roughness ?? float(0));
         this.reflections.push(node);
         return node.rgb;
       },
       createFogSampler: () => direction => sources.fog(direction),
-      getEnvironmentTexture: () => this.target.texture,
+      getEnvironmentTexture: () => this.pmrem.texture,
       getMeshes: () => sources.meshes(),
       followCamera: camera => this.followCamera(camera),
     };
   }
 
-  get texture(): Texture { return this.target.texture; }
+  get texture(): Texture { return this.pmrem.texture; }
 
   followCamera(camera: Camera): void {
     this.origin.value.set(camera.position.x, 0, camera.position.z);
@@ -97,7 +132,7 @@ export class Environment implements EnvironmentPart {
       this.bakedSun.copy(sunDirection.value); this.bakedLight.copy(sunIrradiance.value); this.bakedOrigin.copy(origin);
       this.bake(0, this.target.height);
       this.frame = 0;
-      this.refilter();
+      this.prefilter(this.pmrem);
       return;
     }
     const frame = this.frame, stride = SWEEP_FRAMES / BANDS;
@@ -109,7 +144,7 @@ export class Environment implements EnvironmentPart {
     this.bake(band === BANDS - 1 ? 0 : height - Math.round((band + 1) * span / BANDS), height - Math.round(band * span / BANDS));
     if (band === BANDS - 1) {
       this.bakedOrigin.copy(origin);
-      this.refilter();
+      this.prefilter(this.pmrem);
     }
   }
 
@@ -118,12 +153,17 @@ export class Environment implements EnvironmentPart {
     if (width === this.target.width) return;
     this.target.dispose();
     this.target = this.makeTarget(width);
-    for (const node of this.reflections) node.value = this.target.texture;
+    // The prefiltered texture's size follows the bake's (a tier change is the one time its object changes).
+    this.pmrem.dispose();
+    this.pmrem = this.prefilter(null);
+    for (const node of this.reflections) node.value = this.pmrem.texture;
     this.full = true;
   }
 
   dispose(): void {
     this.target.dispose();
+    this.pmrem.dispose();
+    this.generator.dispose();
     this.material.dispose();
   }
 
@@ -155,9 +195,15 @@ export class Environment implements EnvironmentPart {
     }
   }
 
-  /** Let three's PMREM refilter the bake the next time a material samples it. */
-  private refilter(): void {
-    this.target.texture.needsPMREMUpdate = true;
+  /** Prefilter the bake into `into` (in place), or into a new target of the bake's size when null. */
+  private prefilter(into: RenderTarget | null): RenderTarget {
+    const renderer = this.renderer, mrt = renderer.getMRT();
+    try {
+      renderer.setMRT(null);
+      return this.generator.fromEquirectangular(this.target.texture, into);
+    } finally {
+      renderer.setMRT(mrt);
+    }
   }
 }
 
