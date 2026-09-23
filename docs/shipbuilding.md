@@ -204,10 +204,12 @@ without the record keep their shape.
 - `wall`: Rust validates support, linked-pair symmetry, clearance and scaled mass
   (`construction_wall_fittings.rs`). A linked partner carries the opposite `turnDeg`. Wall
   fittings never cut hull openings or change flooding.
-- `parent`: the hull piece or equipment row this row rides on (`construction_parents.rs`). An editing
-  relationship only: `position` and `bearingDeg` stay absolute and nothing physical reads it. Moving,
-  turning, copying, mirroring and removing the parent carries the row; see
-  [Parents](construction-authoring.md#parents).
+- `parent`: the hull piece or equipment row this row rides on (`construction_parents.rs`).
+  `position` and `bearingDeg` stay absolute. Moving, turning, copying, mirroring and removing the
+  parent carries the row; see [Parents](construction-authoring.md#parents). Under a fixed parent
+  nothing physical reads it. A row with a gun up its chain trains with that gun: a carried gun's
+  mount gets `parentMountId`, and the model draws the row under the gun's yaw joint; see
+  [Trainable parents](construction-authoring.md#trainable-parents).
 - `path`: points are equipment-local. Rope and chain sag is sampled at 16 intervals per
   segment; a route is at most 500 m (`construction_paths.rs`). Native code owns support, hull
   clearance, mass, CG and inertia. `src/game/constructionPathModel.ts` only draws the route.

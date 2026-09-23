@@ -1,14 +1,22 @@
 //! Equipment parents. An equipment row may name a hull piece or another equipment row as its
-//! `parent`: the editing tools move, turn, copy, mirror and remove it with that parent. It is a
-//! source relationship only. The row keeps its own absolute `position` and `bearingDeg`, and
-//! nothing the compiler derives reads it, so a parent never changes a compiled ship.
+//! `parent`: the editing tools move, turn, copy, mirror and remove it with that parent.
 //!
-//! Phase 1 parents are hull pieces and equipment that never trains: deck fittings (catalog and
-//! design-local), masts, funnels and directors. A trainable gun or torpedo launcher cannot carry
-//! equipment yet. Only equipment that may float (`construction::floats`) takes a parent.
-//! Mirrored by `src/ships/constructionParents.ts`.
+//! Parents are hull pieces, equipment that never trains (deck fittings, catalog and design-local,
+//! masts, funnels and directors) and trainable guns. Only equipment that may float
+//! (`construction::floats`) takes a parent. Under a fixed parent the link is a source relationship
+//! only: the row keeps its own absolute `position` and `bearingDeg`, and nothing the compiler
+//! derives reads it.
+//!
+//! A row with a gun anywhere up its chain is carried: it trains with the nearest such gun, its
+//! carrier. Its `position` and `bearingDeg` stay absolute at the neutral pose (every train zero). A
+//! carried gun's mount names its carrier as `parentMountId`, so the runtime composes its frame
+//! (`mount_frames.rs`); a carried fitting is drawn under the carrier's yaw joint. Only deck fittings
+//! (catalog and design-local) and light deck guns without a raised barbette may be carried: a mast
+//! adds a fixed gun-arc obstruction and a barbette adds fixed hull material, neither of which could
+//! train. A torpedo launcher cannot carry equipment yet. Mirrored by `src/ships/constructionParents.ts`.
 use crate::construction::floats;
 use crate::construction_custom_fittings::is_custom;
+use crate::construction_installation::{deck_mounted, raised};
 use crate::definition::*;
 use std::collections::BTreeMap;
 
@@ -55,23 +63,18 @@ fn carry_fault(catalog: &ConstructionCatalog, e: &ConstructionEquipment) -> Opti
         Part::Custom if e.wall.is_none() && e.path.is_none() => return None,
         Part::Custom => {
             return Some(format!(
-                "{} (wall or path fitting) cannot carry equipment; parents are hull pieces, masts, funnels, directors and deck fittings",
+                "{} (wall or path fitting) cannot carry equipment; parents are hull pieces, guns, masts, funnels, directors and deck fittings",
                 e.id
             ));
         }
         Part::Unknown => return None,
     };
     match p.kind.as_str() {
-        "gun" | "torpedo-launcher" => Some(format!(
-            "{} is a trainable {}; equipment cannot ride a trainable mount yet",
-            e.id,
-            if p.kind == "gun" {
-                "gun"
-            } else {
-                "torpedo launcher"
-            }
+        "torpedo-launcher" => Some(format!(
+            "{} is a trainable torpedo launcher; equipment cannot ride a launcher yet",
+            e.id
         )),
-        "deck-fitting" | "mast" | "funnel" | "director"
+        "gun" | "deck-fitting" | "mast" | "funnel" | "director"
             if p.placement == "deck"
                 && p.path.is_none()
                 && p.wall_mount.is_none()
@@ -81,7 +84,7 @@ fn carry_fault(catalog: &ConstructionCatalog, e: &ConstructionEquipment) -> Opti
             None
         }
         kind => Some(format!(
-            "{} ({}) cannot carry equipment; parents are hull pieces, masts, funnels, directors and deck fittings",
+            "{} ({}) cannot carry equipment; parents are hull pieces, guns, masts, funnels, directors and deck fittings",
             e.id,
             if p.path.is_some() || e.path.is_some() {
                 "connected path fitting"
@@ -90,6 +93,38 @@ fn carry_fault(catalog: &ConstructionCatalog, e: &ConstructionEquipment) -> Opti
             } else {
                 kind
             }
+        )),
+    }
+}
+
+/// Whether this row is a trainable gun, which carries its riders through its train.
+fn trains(catalog: &ConstructionCatalog, e: &ConstructionEquipment) -> bool {
+    matches!(part_of(catalog, e), Part::Catalog(p) if p.kind == "gun")
+}
+
+/// Why this row cannot ride a trainable gun, or `None` when it can: deck fittings (catalog and
+/// design-local) and light deck guns without a raised barbette. Its other faults (wall, path, a
+/// gun with a well) are reported first as a row that cannot float.
+fn ride_fault(
+    c: &ConstructionData,
+    catalog: &ConstructionCatalog,
+    e: &ConstructionEquipment,
+    carrier: &str,
+) -> Option<String> {
+    let p = match part_of(catalog, e) {
+        Part::Catalog(p) => p,
+        Part::Custom | Part::Unknown => return None,
+    };
+    match p.kind.as_str() {
+        "deck-fitting" => None,
+        "gun" if deck_mounted(c, catalog, p) && raised(e) == 0. => None,
+        "gun" => Some(format!(
+            "{} stands on a raised barbette, which is fixed hull material and cannot train with {carrier}; remove the barbette height",
+            e.id
+        )),
+        kind => Some(format!(
+            "{} ({kind}) cannot ride the trainable gun {carrier}; only deck fittings and light deck guns train with a gun",
+            e.id
         )),
     }
 }
@@ -155,10 +190,11 @@ pub(crate) fn check(
             out.push(fault(&e.id, parent, message));
             continue;
         }
-        // Walk up to the first hull piece or unparented row.
+        // Walk up to the first hull piece or unparented row, noting the first trainable gun.
         let mut seen = vec![e.id.as_str()];
         let mut current = parent;
         let mut depth = 1;
+        let mut carrier = None;
         loop {
             if seen.contains(&current) {
                 out.push(fault(
@@ -168,7 +204,13 @@ pub(crate) fn check(
                 ));
                 break;
             }
+            if carrier.is_none() && rows.get(current).is_some_and(|r| trains(catalog, r)) {
+                carrier = Some(current);
+            }
             let Some(next) = rows.get(current).and_then(|r| r.parent.as_deref()) else {
+                if let Some(message) = carrier.and_then(|gun| ride_fault(c, catalog, e, gun)) {
+                    out.push(fault(&e.id, parent, message));
+                }
                 break;
             };
             depth += 1;
@@ -188,6 +230,51 @@ pub(crate) fn check(
         }
     }
     out
+}
+
+/// The trainable guns that carry each carried row, nearest (its carrier) first. Rows under fixed
+/// parents only, or none, are absent, so a design without trainable parents gets an empty map. The
+/// walk is bounded and stops at a loop or a missing row: it may run before `check` reports them.
+pub(crate) fn carriers(
+    c: &ConstructionData,
+    catalog: &ConstructionCatalog,
+) -> BTreeMap<String, Vec<String>> {
+    let mut out = BTreeMap::new();
+    if c.equipment.iter().all(|e| e.parent.is_none()) {
+        return out;
+    }
+    let rows: BTreeMap<&str, &ConstructionEquipment> =
+        c.equipment.iter().map(|e| (e.id.as_str(), e)).collect();
+    for e in &c.equipment {
+        let mut guns = vec![];
+        let mut current = e.parent.as_deref();
+        for _ in 0..=MAX_DEPTH {
+            let Some(row) = current.and_then(|id| rows.get(id)) else {
+                break;
+            };
+            if row.id == e.id {
+                break;
+            }
+            if trains(catalog, row) && !guns.contains(&row.id) {
+                guns.push(row.id.clone());
+            }
+            current = row.parent.as_deref();
+        }
+        if !guns.is_empty() {
+            out.insert(e.id.clone(), guns);
+        }
+    }
+    out
+}
+
+/// Whether one of two rows carries the other through its train.
+pub(crate) fn carried_pair(carriers: &BTreeMap<String, Vec<String>>, a: &str, b: &str) -> bool {
+    let carries = |row: &str, gun: &str| {
+        carriers
+            .get(row)
+            .is_some_and(|g| g.iter().any(|g| g == gun))
+    };
+    carries(a, b) || carries(b, a)
 }
 
 #[cfg(test)]
@@ -265,7 +352,6 @@ mod tests {
                     part("mast-part", "mast", "deck"),
                     part("engine-part", "engine", "internal"),
                 ],
-                ..Default::default()
             },
         )
     }
@@ -383,14 +469,38 @@ mod tests {
     }
 
     #[test]
-    fn trainable_mounts_cannot_carry_and_supported_equipment_cannot_ride() {
-        let (mut source, catalog) = fixture();
+    fn guns_carry_launchers_cannot_and_supported_equipment_cannot_ride() {
+        let (mut source, mut catalog) = fixture();
+        // An explicitly empty occupancy declares a light deck gun without a well: it may float.
+        catalog.equipment.push(ConstructionEquipmentPart {
+            occupancy: Some(vec![]),
+            ..part("light-gun-part", "gun", "deck")
+        });
+        let mut raised = row(
+            "raised-on-gun",
+            "light-gun-part",
+            [1., 4., -6.],
+            Some("gun"),
+        );
+        raised.gun = Some(ConstructionEquipmentGun {
+            barbette_height_m: Some(1.),
+            ..Default::default()
+        });
         source.construction.equipment = vec![
             row("gun", "gun-part", [0., 2., -6.], None),
             row("tubes", "launcher-part", [0., 2., 6.], None),
             row("mast", "mast-part", [0., 2., 0.], None),
             row("engine", "engine-part", [0., -1., 0.], None),
             row("on-gun", "design:fit-bollard", [0., 4., -6.], Some("gun")),
+            row(
+                "light-on-gun",
+                "light-gun-part",
+                [-1., 4., -6.],
+                Some("gun"),
+            ),
+            raised,
+            row("mast-on-gun", "mast-part", [0., 5., -6.], Some("gun")),
+            row("mast-on-rider", "mast-part", [0., 5., -6.], Some("on-gun")),
             row(
                 "on-tubes",
                 "design:fit-bollard",
@@ -420,9 +530,8 @@ mod tests {
                 .map(|(_, m)| m.as_str())
                 .unwrap_or_default()
         };
-        assert!(by("on-gun").contains("trainable gun"), "{found:?}");
         assert!(
-            by("on-tubes").contains("trainable torpedo launcher"),
+            by("on-tubes").contains("cannot ride a launcher yet"),
             "{found:?}"
         );
         assert!(
@@ -433,6 +542,49 @@ mod tests {
             by("gun-on-mast").contains("needs hull support"),
             "{found:?}"
         );
-        assert_eq!(found.len(), 4, "{found:?}");
+        assert!(by("raised-on-gun").contains("raised barbette"), "{found:?}");
+        assert!(
+            by("mast-on-gun").contains("cannot ride the trainable gun gun"),
+            "{found:?}"
+        );
+        // Carried through a deck fitting that the gun carries.
+        assert!(
+            by("mast-on-rider").contains("cannot ride the trainable gun gun"),
+            "{found:?}"
+        );
+        assert_eq!(found.len(), 6, "{found:?}");
+        let carriers = carriers(&source.construction, &catalog);
+        assert_eq!(carriers["on-gun"], ["gun"]);
+        assert_eq!(carriers["light-on-gun"], ["gun"]);
+        assert_eq!(carriers["mast-on-rider"], ["gun"]);
+        assert!(!carriers.contains_key("light-on-mast"));
+        assert!(!carriers.contains_key("gun"));
+        assert!(carried_pair(&carriers, "gun", "light-on-gun"));
+        assert!(carried_pair(&carriers, "light-on-gun", "gun"));
+        assert!(!carried_pair(&carriers, "light-on-gun", "on-gun"));
+    }
+
+    #[test]
+    fn nested_carriers_list_the_nearest_gun_first() {
+        let (mut source, mut catalog) = fixture();
+        catalog.equipment.push(ConstructionEquipmentPart {
+            occupancy: Some(vec![]),
+            ..part("light-gun-part", "gun", "deck")
+        });
+        source.construction.equipment = vec![
+            row("lamp", "design:fit-bollard", [0., 6., -6.], Some("light")),
+            row("light", "light-gun-part", [0., 5., -6.], Some("platform")),
+            row("platform", "design:fit-bollard", [0., 4., -6.], Some("gun")),
+            row("gun", "gun-part", [0., 2., -6.], None),
+        ];
+        assert!(faults(&source, &catalog).is_empty());
+        let carriers = carriers(&source.construction, &catalog);
+        assert_eq!(carriers["lamp"], ["light", "gun"]);
+        assert_eq!(carriers["light"], ["gun"]);
+        assert_eq!(carriers["platform"], ["gun"]);
+        assert_eq!(carriers.len(), 3);
+        source.construction.equipment[3].parent = Some("lamp".into());
+        // A loop never hangs the walk; `check` reports it.
+        let _ = super::carriers(&source.construction, &catalog);
     }
 }

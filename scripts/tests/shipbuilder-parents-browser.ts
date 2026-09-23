@@ -3,7 +3,7 @@ import { loadConstructionCatalog } from '../../src/ships/constructionEquipment';
 import { createStarterSource } from '../../src/ships/constructionStarter';
 import { controls, mountShipbuilderReview } from './shipbuilder-browser';
 
-/** A deck with a windlass carrying a searchlight on its top, and a loose pair of bitts. */
+/** A deck with a windlass carrying a searchlight on its top, a loose pair of bitts and a light gun. */
 export function parentsFixture(source: ConstructionSource): ConstructionSource {
   source.name = 'Equipment parents review';
   source.construction.primitives = [{ id: 'review-deck', kind: 'box', size: [24, 2, 36], position: [0, 0, 0], rotationDeg: 0 }];
@@ -14,12 +14,14 @@ export function parentsFixture(source: ConstructionSource): ConstructionSource {
     { id: 'review-windlass', partId: 'generic-anchor-windlass', position: [0, 1, -4], bearingDeg: 0 },
     { id: 'review-light', partId: 'generic-static-searchlight', position: [0, 2.12, -4], bearingDeg: 0, parent: 'review-windlass' },
     { id: 'review-bitts', partId: 'generic-twin-bitts', position: [-6, 1, 8], bearingDeg: 0 },
+    { id: 'review-gun', partId: 'flak38-20-single', position: [6, 1, -8], bearingDeg: 0 },
   ];
   return source;
 }
 
 /** The mounted editor honours `parent`: the tag shows what a parent carries and what a rider is attached to, a nudge
- * carries the rider, the Attached to control clears and restores the link, and removing the parent takes the rider. */
+ * carries the rider, the Attached to control clears and restores the link and offers a gun, which trains it, and
+ * removing the parent takes the rider. */
 export async function checkEquipmentParents() {
   const catalog = await loadConstructionCatalog();
   window.shipbuilderReview?.close();
@@ -77,6 +79,13 @@ export async function checkEquipmentParents() {
   controls.key('z', { ctrlKey: true });
   await wait(() => item('review-light')?.parent === 'review-windlass', 'a second undo restores the windlass');
   await wait(() => compiled(), 'relinked layout compiles');
+  const gun = [...attached()!.options].find((option) => option.value === 'review-gun');
+  if (!gun?.textContent?.includes(' · trains · ')) throw new Error(`A gun is not offered as a trainable parent: ${gun?.textContent}`);
+  choose('review-gun');
+  await wait(() => item('review-light')?.parent === 'review-gun', 'Attached to a gun sets it');
+  await wait(() => compiled(), 'a searchlight riding a gun compiles');
+  controls.key('z', { ctrlKey: true });
+  await wait(() => item('review-light')?.parent === 'review-windlass', 'undo returns it to the windlass');
 
   await select('review-windlass', [0, 1.6, -4]);
   controls.key('Delete');

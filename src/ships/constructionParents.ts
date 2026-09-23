@@ -10,9 +10,11 @@ import { isCustomFittingPartId } from './constructionCustomFittings';
 
 /** Equipment parents. An equipment row may name a hull piece or another equipment row as its `parent`; moving,
  * turning, copying, mirroring and removing the parent carries it. The row keeps its own absolute position and
- * bearing, and nothing physical reads the link. The compiler checks it (`construction_parents.rs`, code
- * `equipment-parent`): phase-1 parents are hull pieces, deck fittings, masts, funnels and directors, only
- * equipment that may float takes a parent, and a chain is at most `MAX_PARENT_DEPTH` links long. */
+ * bearing (at the neutral pose). The compiler checks it (`construction_parents.rs`, code `equipment-parent`):
+ * parents are hull pieces, deck fittings, masts, funnels, directors and guns, only equipment that may float
+ * takes a parent, and a chain is at most `MAX_PARENT_DEPTH` links long. A row with a gun up its chain trains
+ * with the nearest one, its carrier (`carrierOf`): only deck fittings and light deck guns without a raised
+ * barbette may (`mayRideTrainable`). Under fixed parents nothing physical reads the link. */
 export const MAX_PARENT_DEPTH = 8;
 /** A parent this close to X=0 counts as on the centreline when a mirrored copy decides whether to keep it. */
 export const CENTERLINE_M = 1e-6;
@@ -37,8 +39,8 @@ export function mayFloat(
   );
 }
 
-/** Whether this row may carry equipment in phase 1: deck fittings, masts, funnels and directors that are
- * neither wall nor path fittings. Trainable guns and torpedo launchers are phase 2. */
+/** Whether this row may carry equipment: guns, deck fittings, masts, funnels and directors that are neither
+ * wall nor path fittings. A torpedo launcher cannot carry equipment yet. */
 export function mayCarry(item: ConstructionEquipment, part: ConstructionEquipmentPart | undefined): boolean {
   if (item.wall || item.path) return false;
   if (isCustomFittingPartId(item.partId)) return true;
@@ -47,8 +49,39 @@ export function mayCarry(item: ConstructionEquipment, part: ConstructionEquipmen
     part.placement === 'deck' &&
     !part.path &&
     !part.wallMount &&
-    (part.kind === 'deck-fitting' || part.kind === 'mast' || part.kind === 'funnel' || part.kind === 'director')
+    (part.kind === 'gun' || part.kind === 'deck-fitting' || part.kind === 'mast' || part.kind === 'funnel' || part.kind === 'director')
   );
+}
+
+/** Whether a row trains, carrying its riders with it: a gun. */
+export const trains = (part: ConstructionEquipmentPart | undefined): boolean => part?.kind === 'gun';
+
+/** Whether this row may ride a trainable gun: deck fittings (catalog and design-local) and light deck guns
+ * without a raised barbette. A mast would leave its fixed gun-arc obstruction behind, a barbette its hull
+ * material. Mirrors `ride_fault` in `construction_parents.rs`. */
+export function mayRideTrainable(
+  source: ConstructionSource,
+  catalog: ConstructionCatalog,
+  item: ConstructionEquipment,
+  part: ConstructionEquipmentPart | undefined,
+): boolean {
+  if (item.wall || item.path) return false;
+  if (isCustomFittingPartId(item.partId)) return true;
+  if (!part || !mayFloat(source, catalog, item, part)) return false;
+  return part.kind === 'deck-fitting' || (part.kind === 'gun' && !(item.gun?.barbetteHeightM ?? 0));
+}
+
+/** The nearest trainable gun up this row's parent chain, which the row trains with; none under fixed parents. */
+export function carrierOf(
+  data: Rows,
+  catalog: Pick<ConstructionCatalog, 'equipment'>,
+  id: string,
+  byId = rowsById(data),
+): string | undefined {
+  return parentChain(data, id, byId).find((ancestor) => {
+    const row = byId.get(ancestor);
+    return !!row && trains(catalog.equipment.find((p) => p.id === row.partId));
+  });
 }
 
 /** Rows by the ID they name as parent. */
@@ -143,7 +176,9 @@ export interface ParentCandidate {
   distanceM: number;
 }
 /** The nearest hull pieces and equipment that could carry `item`: not itself, nothing it already carries
- * (that would loop), nothing too deep to add a link, and only kinds a parent may be. Sorted by datum distance. */
+ * (that would loop), nothing too deep to add a link, and only kinds a parent may be. A gun, or anything a gun
+ * carries, is offered only when the item and everything it carries may ride a trainable gun. Sorted by datum
+ * distance. */
 export function parentCandidates(
   source: ConstructionSource,
   catalog: ConstructionCatalog,
@@ -157,6 +192,10 @@ export function parentCandidates(
   const depthBelow = (id: string): number =>
     Math.max(0, ...data.equipment.filter((e) => e.parent === id && below.has(e.id)).map((e) => 1 + depthBelow(e.id)));
   const room = MAX_PARENT_DEPTH - depthBelow(item.id);
+  const partOf = (row: ConstructionEquipment) => catalog.equipment.find((p) => p.id === row.partId);
+  const rides = [item, ...data.equipment.filter((e) => below.has(e.id))].every((row) =>
+    mayRideTrainable(source, catalog, row, partOf(row)),
+  );
   const distance = (p: Vec3) => Math.hypot(p[0] - item.position[0], p[1] - item.position[1], p[2] - item.position[2]);
   const candidates: ParentCandidate[] = [];
   for (const piece of data.primitives)
@@ -166,10 +205,11 @@ export function parentCandidates(
     const part = catalog.equipment.find((p) => p.id === other.partId);
     if (!mayCarry(other, part)) continue;
     if (parentChain(data, other.id, byId).length >= room) continue;
+    if (!rides && (trains(part) || carrierOf(data, catalog, other.id, byId) !== undefined)) continue;
     candidates.push({
       id: other.id,
       kind: 'equipment',
-      label: `${part?.name ?? other.partId} · ${other.id}`,
+      label: `${part?.name ?? other.partId} · ${other.id}${trains(part) ? ' · trains' : ''}`,
       distanceM: distance(other.position),
     });
   }

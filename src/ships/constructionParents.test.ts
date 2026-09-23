@@ -5,7 +5,7 @@ import type { ConstructionEquipment, ConstructionSource, Vec3 } from './blueprin
 import { applyConstructionBatch, ConstructionCommandError, type ConstructionCommand } from './constructionCommands';
 import { copyConstructionSelection, decodeConstructionSource } from './constructionEditor';
 import { parseConstructionCatalog } from './constructionEquipment';
-import { carriedIds, carriedPoses, parentCandidates, parentChain } from './constructionParents';
+import { carriedIds, carriedPoses, carrierOf, mayRideTrainable, parentCandidates, parentChain } from './constructionParents';
 import { placementItems, reseatCommands, reseatItems, type Placement } from './constructionPlacement';
 import { constructionSummary } from './constructionQuery';
 import { createStarterSource } from './constructionStarter';
@@ -161,15 +161,43 @@ describe('equipment parents in commands', () => {
     ]);
   });
 
-  test('candidates are nearby pieces and carriers, never the row, its riders or a gun', () => {
+  test('candidates are nearby pieces and carriers, never the row or its riders; a gun only for what may ride one', () => {
     const source = rigged();
-    const ids = parentCandidates(source, catalog, at(source, 'light')!).map((c) => c.id);
+    const options = parentCandidates(source, catalog, at(source, 'light')!, 100);
+    const ids = options.map((c) => c.id);
     expect(ids).toContain('mast');
     expect(ids).toContain('hull');
     expect(ids).not.toContain('light');
     expect(ids).not.toContain('lamp');
-    expect(ids).not.toContain('gun');
+    expect(options.find((c) => c.id === 'gun')?.label).toEndWith(' · trains');
     expect(parentCandidates(source, catalog, at(source, 'cap')!)[0].id).toBe('post');
+    // A mast cannot ride a gun, nor anything a gun carries; neither can a fitting that carries a mast.
+    source.construction.equipment.push(row('roof', 'generic-single-bollard', [0, 9, -30], 'gun'));
+    const forMast = parentCandidates(source, catalog, at(source, 'mast')!, 100).map((c) => c.id);
+    expect(forMast).not.toContain('gun');
+    expect(forMast).not.toContain('roof');
+    expect(forMast).toContain('post');
+    source.construction.equipment.find((e) => e.id === 'mast')!.parent = 'post';
+    expect(parentCandidates(source, catalog, at(source, 'post')!, 100).map((c) => c.id)).not.toContain('gun');
+  });
+
+  test('a row trains with the nearest gun up its chain', () => {
+    const source = rigged();
+    source.construction.equipment.push(
+      row('roof', 'generic-single-bollard', [0, 9, -30], 'gun'),
+      row('lantern', 'generic-single-bollard', [0, 10, -30], 'roof'),
+    );
+    const data = source.construction;
+    expect(carrierOf(data, catalog, 'roof')).toBe('gun');
+    expect(carrierOf(data, catalog, 'lantern')).toBe('gun');
+    expect(carrierOf(data, catalog, 'lamp')).toBeUndefined();
+    expect(carrierOf(data, catalog, 'gun')).toBeUndefined();
+    const part = (id: string) => catalog.equipment.find((p) => p.id === id);
+    expect(mayRideTrainable(source, catalog, at(source, 'light')!, part('generic-single-bollard'))).toBe(true);
+    expect(mayRideTrainable(source, catalog, at(source, 'mast')!, part('fletcher-aft-mast'))).toBe(false);
+    const flak = row('flak', 'flak38-20-vierling', [0, 9, -30], 'gun');
+    expect(mayRideTrainable(source, catalog, flak, part('flak38-20-vierling'))).toBe(true);
+    expect(mayRideTrainable(source, catalog, { ...flak, gun: { barbetteHeightM: 1 } }, part('flak38-20-vierling'))).toBe(false);
   });
 });
 
@@ -183,7 +211,10 @@ describe('equipment parents in placement and queries', () => {
     const bad = (options: Partial<Parameters<typeof placementItems>[2]>, message: RegExp) =>
       expect(() => placementItems(source, catalog, { partId: 'generic-twin-bitts', at: [0, 0], ...options })).toThrow(message);
     bad({ parent: 'nowhere' }, /Unknown parent nowhere/);
-    bad({ parent: 'gun' }, /trainable mount/);
+    expect(placementItems(source, catalog, { partId: 'generic-twin-bitts', at: [0, -30], parent: 'gun' })[0].equipment.parent).toBe('gun');
+    bad({ partId: 'fletcher-aft-mast', parent: 'gun' }, /cannot ride the trainable gun gun/);
+    source.construction.equipment.push(row('tubes', 'fletcher-quintuple-533', [0, 6, 20]));
+    bad({ parent: 'tubes' }, /launcher yet/);
     bad({ partId: 'us-5in38-mk30-mod0-single', parent: 'mast' }, /needs hull support/);
     bad({ parent: 'post', at: [2, 0], mirror: true }, /its own --parent/);
   });

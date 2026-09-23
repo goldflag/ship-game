@@ -3,7 +3,7 @@ import { CUSTOM_FITTING_LIMITS, customFittingDefinitions, customFittingFault, cu
 import type { ConstructionCommand } from './constructionCommands';
 import { CONSTRUCTION_LIMITS } from './constructionEditor';
 import { mirroredWall, wallMount } from './constructionWallFittings';
-import { CENTERLINE_M, MAX_PARENT_DEPTH, carriedIds, mayCarry, mayFloat, parentChain } from './constructionParents';
+import { CENTERLINE_M, MAX_PARENT_DEPTH, carriedIds, carrierOf, mayCarry, mayFloat, mayRideTrainable, parentChain, trains } from './constructionParents';
 
 /** Requests and results of the native seat resolver (`crates/naval-sim/src/construction_placement.rs`).
  * This module only builds records and batches; every height comes from the native hull geometry. */
@@ -163,10 +163,13 @@ function placementParent(source: ConstructionSource, catalog: ConstructionCatalo
     const parentPart = catalog.equipment.find((p) => p.id === row.partId);
     if (!mayCarry(row, parentPart))
       throw new Error(
-        parentPart?.kind === 'gun' || parentPart?.kind === 'torpedo-launcher'
-          ? id + ' is a trainable mount; equipment cannot ride one yet.'
-          : id + ' cannot carry equipment; parents are hull pieces, masts, funnels, directors and deck fittings.',
+        parentPart?.kind === 'torpedo-launcher'
+          ? id + ' is a trainable torpedo launcher; equipment cannot ride a launcher yet.'
+          : id + ' cannot carry equipment; parents are hull pieces, guns, masts, funnels, directors and deck fittings.',
       );
+    const carrier = trains(parentPart) ? id : carrierOf(data, catalog, id);
+    if (carrier !== undefined && !mayRideTrainable(source, catalog, { id: '', partId: part.id, position: [0, 0, 0], bearingDeg: 0 }, part))
+      throw new Error(part.name + ' cannot ride the trainable gun ' + carrier + '; only deck fittings and light deck guns train with a gun.');
     if (parentChain(data, id).length >= MAX_PARENT_DEPTH) throw new Error(id + ' already rides ' + MAX_PARENT_DEPTH + ' parents deep; attach closer to the hull.');
   }
   return (row ?? piece)!.position;

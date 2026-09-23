@@ -66,7 +66,7 @@ export default {
     '--part catalog-id --at x,z [--y height | --on primitive-or-deck-id] [--bearing deg] [--id new-id] [--mirror] ' +
     '[--repeat n --step dx,dz] [--parent hull-or-equipment-id] | --table rows.json — seat new equipment on the native hull under (x,z): topmost ' +
     'support by default, the one nearest --y, or the named piece; wall fittings need --y and seat along the wall ' +
-    'normal; --parent makes a floating-capable record ride that piece or fitting; --table seats every row in one compile session, continues past a failed row, reports each row and ' +
+    'normal; --parent makes a floating-capable record ride that piece, fitting or gun (a gun trains it); --table seats every row in one compile session, continues past a failed row, reports each row and ' +
     'lists overlapping rows; [--label text] [--out batch.json] [--apply] — proposes a revision-guarded batch ' +
     'validated by a native dry-run and saves it only with --apply',
   values: ['--part', '--at', '--y', '--on', '--bearing', '--id', '--repeat', '--step', '--parent', '--out', '--table', '--label'],

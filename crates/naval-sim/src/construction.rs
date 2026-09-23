@@ -2490,6 +2490,9 @@ fn equipment(
             .find(|(other, _)| other == id)
             .map_or_else(|| id.to_owned(), |(_, p)| p.name.clone())
     };
+    // Rows a trainable gun carries, and the guns that carry them: a carried gun's mount names its
+    // carrier, and a gun never clashes with a gun that carries it or that it carries.
+    let carriers = crate::construction_parents::carriers(c, catalog);
     let weapon_ids: std::collections::BTreeSet<_> = installed_parts
         .iter()
         .filter(|(_, p)| matches!(p.kind.as_str(), "gun" | "torpedo-launcher"))
@@ -2817,7 +2820,9 @@ fn equipment(
             candidates.dedup();
             candidates.into_iter().find_map(|i| {
                 let (other, cell) = &all_envelopes[i];
-                if !colliding_ids.contains(other.as_str()) {
+                if !colliding_ids.contains(other.as_str())
+                    || crate::construction_parents::carried_pair(&carriers, &e.id, other)
+                {
                     return None;
                 }
                 // Fixed machinery retains its partial-overlap rule; weapons need clearance.
@@ -3420,6 +3425,7 @@ fn equipment(
                 initial_elevation_deg: installation.initial_elevation_deg,
                 traverse_limits_deg: installation.traverse_limits_deg,
                 rangefinder: false,
+                parent_mount_id: carriers.get(&e.id).map(|guns| guns[0].clone()),
                 ..Default::default()
             });
             let stock = w.ammo_per_barrel * w.barrel_count;
@@ -3553,6 +3559,9 @@ fn equipment(
         }
         fitted.push((e, p));
     }
+    if !carriers.is_empty() {
+        def.mounts = parent_first(std::mem::take(&mut def.mounts));
+    }
     // Validate magazine stocks together, so repeated mounts cannot each consume the same capacity.
     for (e, p) in &fitted {
         if p.kind == "magazine" {
@@ -3660,6 +3669,33 @@ fn equipment(
         ..Default::default()
     });
     Ok(())
+}
+/// Mounts in source order, except that a carried mount follows its carrier: the runtime resolves
+/// carrier frames parent-first. A mount whose carrier was not built (the compile already has a fault
+/// for it) loses the link rather than breaking that order.
+fn parent_first(mounts: Vec<MountDefinition>) -> Vec<MountDefinition> {
+    let mut out: Vec<MountDefinition> = Vec::with_capacity(mounts.len());
+    let mut waiting: Vec<MountDefinition> = vec![];
+    let placed = |out: &[MountDefinition], m: &MountDefinition| {
+        m.parent_mount_id
+            .as_ref()
+            .is_none_or(|p| out.iter().any(|x| &x.id == p))
+    };
+    for m in mounts {
+        if !placed(&out, &m) {
+            waiting.push(m);
+            continue;
+        }
+        out.push(m);
+        while let Some(i) = waiting.iter().position(|w| placed(&out, w)) {
+            out.push(waiting.remove(i));
+        }
+    }
+    for mut orphan in waiting {
+        orphan.parent_mount_id = None;
+        out.push(orphan);
+    }
+    out
 }
 fn box_inertia(size: Vec3, kg: f64) -> Vec3 {
     std::array::from_fn(|i| kg * (size[(i + 1) % 3].powi(2) + size[(i + 2) % 3].powi(2)) / 12.)
