@@ -34,6 +34,7 @@ const sync = async () => {
   else await renderer.readRenderTargetPixelsAsync(probe, 0, 0, 1, 1);
 };
 const probe = new THREE.RenderTarget(1, 1, { type: THREE.FloatType, depthBuffer: false });
+renderer.initRenderTarget(probe);
 
 /** Game sea states from src/maps/seaCalibration.ts (North Atlantic), foam gains included. */
 const SEAS = {
@@ -150,13 +151,13 @@ async function capture() {
   return renderer.domElement.toDataURL('image/png');
 }
 
-/** Copies one cascade layer of the field's outputs into readable float targets. */
-async function readLayer(cascade) {
-  const n = field.cascades[0].resolution, count = field.cascades.length, result = [];
+/** Copies one cascade layer (at one mip level) of the field's outputs into readable float targets. */
+async function readLayer(cascade, level = 0) {
+  const n = field.cascades[0].resolution >> level, count = field.cascades.length, result = [];
   for (const source of field.textures) {
     const target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
     const material = new THREE.NodeMaterial();
-    const load = texture(source).load(ivec2(screenCoordinate));
+    const load = texture(source).load(ivec2(screenCoordinate)).level(int(level));
     material.fragmentNode = count > 1 ? load.depth(int(cascade)) : load;
     material.blending = THREE.NoBlending;
     const quad = new THREE.QuadMesh(material);
@@ -192,7 +193,16 @@ async function validate() {
     let mean = 0, square = 0;
     for (let i = 0; i < n * n; i++) { mean += displacement[i * 4 + 1]; square += displacement[i * 4 + 1] ** 2; }
     mean /= n * n; variance += square / (n * n) - mean * mean;
-    report.cascades.push({ size: cascade.size, relativeError: Object.fromEntries(names.map(k => [k, scale[k] ? worst[k] / scale[k] : 0])) });
+    // Mipmaps are regenerated for every layer each update: a coarse level equals block means of level 0.
+    const level = 3, block = 1 << level, [, coarse] = await readLayer(c, level), m = n >> level;
+    let mipError = 0, rms = 0;
+    for (let i = 0; i < n * n; i++) rms += derivatives[i * 4] ** 2;
+    for (let bz = 0; bz < m; bz++) for (let bx = 0; bx < m; bx++) {
+      let mean = 0;
+      for (let z = 0; z < block; z++) for (let x = 0; x < block; x++) mean += derivatives[((bz * block + z) * n + bx * block + x) * 4];
+      mipError = Math.max(mipError, Math.abs(coarse[(bz * m + bx) * 4] - mean / (block * block)));
+    }
+    report.cascades.push({ size: cascade.size, relativeError: Object.fromEntries(names.map(k => [k, scale[k] ? worst[k] / scale[k] : 0])), mipError: mipError / Math.sqrt(rms / (n * n)) });
   }
   report.hm0 = 4 * Math.sqrt(variance); report.hm0Target = params.significantHeight;
   report.maxRelativeError = Math.max(...report.cascades.flatMap(c => Object.values(c.relativeError)));
@@ -274,7 +284,7 @@ window.oceanWaves = {
   async view(name, sea = 'moderate', seconds = 6) {
     setSea(sea); VIEWS[name](); await frames(Math.round(seconds * 60)); return { name, sea, backend, errors: [...errors] };
   },
-  capture, validate, heights, foamCheck, timing,
+  capture, validate, heights, foamCheck, timing, readLayer, get field() { return field; },
 };
 renderer.info.autoReset = false;
 setSea('moderate'); build(); VIEWS.near(); await frames(2);

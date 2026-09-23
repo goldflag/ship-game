@@ -57,7 +57,9 @@ export class GpuWaveField implements WaveField {
   /** Spatial fields, one array layer per cascade; they alternate so foam reads last frame's. */
   private readonly fields: [RenderTarget, RenderTarget];
   private current = 0;
-  private initialized = false;
+  /** Whether each field target has been drawn: its first draw allocates the mip chain. */
+  private readonly allocated = [false, false];
+  private built = false;
   private readonly maps: Record<typeof FIELDS[number], TextureMap>;
   private readonly previousExtras: TextureMap;
   /** Horizontal passes, then all but the last vertical pass; pass t writes spectra[t % 2]. */
@@ -228,7 +230,7 @@ export class GpuWaveField implements WaveField {
 
   update(renderer: WebGPURenderer, time: number, dt: number): void {
     let rebuilt = false;
-    if (this.params.dirty || !this.initialized) {
+    if (this.params.dirty || !this.built) {
       const spectrum = buildSpectrum(this.cascades, this.params), n = this.size, count = this.cascades.length;
       const data = this.spectrum.image.data as Float32Array;
       spectrum.cascades.forEach((cascade, c) => {
@@ -239,12 +241,7 @@ export class GpuWaveField implements WaveField {
       this.tail.value = spectrum.tailSlopeVariance;
       this.choppiness.value = this.params.choppiness;
       this.wind.value.set(Math.cos(this.params.windDirection), Math.sin(this.params.windDirection));
-      this.params.dirty = false; rebuilt = true;
-    }
-    if (!this.initialized) {
-      // Allocate the mip chains now; the per-layer passes then generate them once, after the last layer.
-      for (const target of this.fields) renderer.initRenderTarget(target);
-      this.initialized = true;
+      this.params.dirty = false; this.built = rebuilt = true;
     }
     const phase = Math.fround((time % FOLD_PERIOD + FOLD_PERIOD) % FOLD_PERIOD / FOLD_PERIOD);
     // A paused frame with nothing changed keeps last frame's fields, foam included.
@@ -260,12 +257,15 @@ export class GpuWaveField implements WaveField {
       const next = this.current ^ 1, output = this.fields[next];
       this.previousExtras.value = this.fields[this.current].textures[2];
       this.cascades.forEach((_, c) => {
-        // Mipmaps once per update, after the last layer: generation covers every layer.
-        for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1;
+        // Mipmaps once per update, after the last layer: generation covers every layer. A target's
+        // first draw keeps them on so the texture is created with its chain. (Not initRenderTarget():
+        // on the WebGL fallback it caches a layer's framebuffer under another layer's key.)
+        for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1 || !this.allocated[next];
         this.layer.value = c;
         renderer.setRenderTarget(output, c);
         this.finalPass.render(renderer);
       });
+      this.allocated[next] = true;
       this.current = next;
       FIELDS.forEach((field, i) => { this.maps[field].value = output.textures[i]; });
     } finally {
