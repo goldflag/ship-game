@@ -13,11 +13,12 @@ test('a typed word and number pick settings and set their values', () => {
   expect(labels('storm')).toEqual([['Storm', undefined]]);
   expect(labels('storm 3')).toEqual([]);
   expect(labels('copy')).toEqual([['Copy scene diagnostics', undefined]]);
-  expect(matchCommands('').length).toBe(14);
+  expect(labels('bow')).toEqual([['Toggle bow waves', undefined]]);
+  expect(matchCommands('').length).toBe(15);
 });
 
-test('online battles offer diagnostics only', () => {
-  expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined]]);
+test('online battles offer only the visual diagnostics', () => {
+  expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined], ['Toggle bow waves', undefined]]);
   expect(labels('wind 14', true)).toEqual([]);
 });
 

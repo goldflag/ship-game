@@ -101,6 +101,69 @@ the hull's bounding box; further out is an `equipment-attachment` error, because
 always a mistyped position. Guns with wells, torpedo launchers, directors, funnels,
 machinery, rudders, propellers, wall fittings and paths keep their support rules.
 
+### Parents
+
+An equipment row may name a `parent`: a hull piece or another equipment row it rides on. It keeps
+a searchlight on its mast's platform, or a float beside its deckhouse, as the parent is moved,
+turned, copied or removed, and it keeps a light gun on a turret roof as the turret trains. The row
+keeps its own absolute `position` and `bearingDeg`; the format has no relative coordinates. Under
+a fixed parent the compiled ship is identical with or without the link.
+
+- Only equipment that may [float](#floating-fittings) takes a parent. A gun with a well, a
+  launcher, a director, a funnel, machinery or a wall or path fitting is refused.
+- Parents are hull pieces, deck fittings (catalog and custom), masts, funnels, directors and guns.
+  A torpedo launcher cannot carry equipment yet.
+- Chains are allowed, at most 8 links from a row to its first hull piece or unparented row: a
+  lamp on a searchlight platform on a mast is two.
+- An unknown parent, a row naming itself, a loop, a chain deeper than 8, an ID that names both a
+  hull piece and an equipment row, a row that cannot float, a parent that cannot carry and a row
+  that cannot [train](#trainable-parents) are each an `equipment-parent` error naming the row
+  (`sourceId`) and its parent (`relatedSourceIds`). They are source faults: they report with the
+  other source checks and stop the compile there.
+
+The edits the editor and `ship:apply` share honour the link:
+
+| Edit | A parent | A child alone |
+| --- | --- | --- |
+| `move` | Everything it carries moves by the same delta, once | Moves alone |
+| `rotate` | Its riders swing about its datum and keep their pose on it: a fitting's riders turn by +degrees; a hull piece's by −degrees, because `rotationDeg` is counter-clockwise | Turns about its own datum |
+| `copy` | Brings everything it carries; list a destination for each rider, or the command fails naming them. Copies ride the copied parent | Keeps its parent |
+| `copy` with `mirror` | As `copy`; each mirrored rider rides the mirrored parent | Keeps a parent on the centreline (within 1 µm of X = 0); drops one off it, since the reflection would not stand on it |
+| `remove` | Removes everything it carries too | Removes only itself |
+
+The editor's copy and mirror copy bring the riders with fresh IDs, and its undo label says how
+many attached fittings a removal took. Rewriting a record whole (`equipment`, `equipment-patch`,
+`primitive`) never moves anything else, so a batch that must carry riders uses `move` or
+`rotate`. In the editor, the rotation toolbar and quarter turns of a hull block carry its riders
+through a pure yaw; a block tipped about X or Z leaves them where they stand.
+
+### Trainable parents
+
+A row with a gun anywhere up its chain is carried: it trains with the nearest such gun, its
+carrier. A 2 cm Flakvierling on a 15 cm turret roof, or a searchlight on a platform on that roof,
+turns with the turret in battle and in port. Its `position` and `bearingDeg` are its place at the
+neutral pose, with every gun trained to zero, and the editor draws it there.
+
+- Only deck fittings (catalog and custom) and light deck guns without a well or a raised barbette
+  may be carried; each row a gun carries, directly or through other rows, is checked. A mast is
+  refused because its gun-arc obstruction is fixed, and a raised barbette because it is fixed hull
+  material; neither could train.
+- A carried gun is a mount with `parentMountId` naming its carrier. The compiler lists mounts in
+  source order except that a carried mount follows its carrier, so a rider may come first in the
+  source. The runtime composes its frame from the carrier's train (as for Iowa's roof Bofors):
+  its muzzles, aim, fire, clearance, contacts and turret armor follow the turret.
+- A carried gun never clashes (`equipment-overlap`) with a gun that carries it, nor that gun with
+  it. It is still checked against everything else at the neutral pose, as a fixed gun is.
+- Gun clearance on a constructed ship: a carrier's barrels pass through what it carries, and a
+  carried gun's barrels pass its carriers' barrels. A carried gun's barrels still clear its
+  carrier's gunhouse (it cannot fire down through the roof it stands on) and everything else.
+  Keep a roof mount behind or above the turret's barrels, since nothing stops them meeting.
+- Mass, ready ammunition and the loading's centre of gravity stay at the neutral pose. The
+  carried gun's ready-ammunition module also stays there, a few metres at most from where the
+  turret takes it; this is the one piece of carried geometry that does not train.
+- The model draws each carried row under its carrier's yaw joint (`constructionModel.ts`), so it
+  batches and turns with it. `ship:render --pose` poses the carrier; the rows follow.
+
 ### Fit tolerances
 
 A gun's working well is derived geometry, clipped against plating and against the
@@ -183,7 +246,7 @@ guarded batch directly. Output is JSON with one record per line.
 
 | Command | Returns |
 | --- | --- |
-| `summary` | Coordinate conventions, hull-piece bounds, used/limit/free for every source limit, hull pieces as `[id, kind, position, size, rotation, surface assignments]` rows, equipment as kind → catalog part → `id: [x, y, z, bearingDeg]`, boundaries and loads. Deck fittings list IDs only unless `--positions` or `--kind deck-fitting`; `--no-positions` lists IDs everywhere. `--kind` keeps one hull-piece or equipment kind. `--compile` adds launchability, diagnostics, loading totals and derived surface/flooding-portal usage |
+| `summary` | Coordinate conventions, hull-piece bounds, used/limit/free for every source limit, hull pieces as `[id, kind, position, size, rotation, surface assignments]` rows, equipment as kind → catalog part → `id: [x, y, z, bearingDeg]`, boundaries and loads. Deck fittings list IDs only unless `--positions` or `--kind deck-fitting`; `--no-positions` lists IDs everywhere. `--kind` keeps one hull-piece or equipment kind. `parents` maps each equipment ID with a [parent](#parents) to it. `--compile` adds launchability, diagnostics, loading totals and derived surface/flooding-portal usage |
 | `get` | Exact source records from any table. Selectors `--ids`, `--kind`, `--part`, `--prefix` intersect; `--fields` projects (the ID is always kept); `--surfaces` adds the face assignments of selected hull pieces. An unknown ID fails and lists the closest IDs |
 | `bounds` | Axis-aligned boxes in ship coordinates: hull pieces from their size, rotation, tilt and section or vertex controls; equipment from the catalog dimensions around its datum, turned by its bearing, including wall sizing, path points and turret rise; part working spaces as `occupancy`. No selector lists hull pieces and loads; `--all` adds every equipment row. Boundaries return their plane |
 | `near` | Records whose box lies within `--radius` of `--point`, or intersects `--box x0,y0,z0,x1,y1,z1`, nearest first (`--limit`, default 25; `--kind`). `--between idA,idB` gives the per-axis gap between two boxes; negative is overlap depth |
@@ -311,11 +374,11 @@ Commands are:
 | `fitting`, `fitting-patch` | `value`; `id`, `changes` | Add, replace or patch a design-local fitting definition ([Custom fittings](#custom-fittings)); `solids` and `tubes` replace whole |
 | `hull-sections` | `id`, `count` | Resize an adjustable hull's section list with the same 4–24-section interpolation/simplification as the UI |
 | `hull-station` | `id`, `stationId`, `changes: {t?, points?}` | Edit one existing section while retaining its ID and other sections |
-| `copy` | `copies: [{from,to}]`, optional `mirror` or `offset` | Copy hull pieces, equipment and loads using caller-supplied new IDs; preserve surfaces and remap copied magazine/engine links |
-| `remove` | `ids` | Remove selected records; retain the last hull piece. A custom fitting definition is refused while instances outside the command use it |
-| `move` | `ids`, `delta: [x,y,z]` | Translate pieces, equipment, loads and boundary offsets |
+| `copy` | `copies: [{from,to}]`, optional `mirror` or `offset` | Copy hull pieces, equipment and loads using caller-supplied new IDs; preserve surfaces and remap copied magazine/engine links and [parents](#parents). A copied parent needs a copy of each rider |
+| `remove` | `ids` | Remove selected records and everything they carry; retain the last hull piece. A custom fitting definition is refused while instances outside the command use it |
+| `move` | `ids`, `delta: [x,y,z]` | Translate pieces, equipment, loads and boundary offsets; riders move with their parent |
 | `turret-rise` | `id`, `heightM` (0–30) | Set a gun's rise above its deck attachment; `position` Y moves by the change, as the editor's **Turret rise** does |
-| `rotate` | `ids`, `degrees` (required) | Add `degrees` to each hull piece's `rotationDeg` and each fitting's `bearingDeg` about their own datums; wall fittings are skipped |
+| `rotate` | `ids`, `degrees` (required) | Add `degrees` to each hull piece's `rotationDeg` and each fitting's `bearingDeg` about their own datums; wall fittings are skipped; riders swing with their parent |
 | `surface` | `value` | Assign a canonical source face's armor, paint or opening |
 | `surface-patch` | `targets: [{primitiveId,face,panelId?}]`, `changes`, optional `mirror` | Change armor/material/paint/opening independently; mirror targets the opposite face/panel on the same primitive |
 | `surface-remove` | `targets: [{primitiveId,face,panelId?}]`, optional `mirror` | Remove face assignments so the faces inherit again (panel from its side, side from the ship paint and default skin). Each named target must hold an assignment; the mirrored one is removed when present. Stale panel overrides are removable |
@@ -385,7 +448,8 @@ accepted only on optional fields.
 across ship X=0 instead; move the copies in a subsequent command if needed.
 Destinations must be new unique IDs. Boundaries are not copyable. Wall copies are
 independent, matching the UI. Copying an engine and its linked propeller together
-remaps the propeller's link; copying only the propeller retains its original link.
+remaps the propeller's link; copying only the propeller retains its original link. [Parents](#parents)
+follow the same rule, and a copied parent brings its riders.
 
 Native layout proposals are available without editing the ship:
 
@@ -420,6 +484,7 @@ bun run ship:place my-ship --part us-5in38-mk30-mod0-single --at 0,-35 --id gun-
 bun run ship:place my-ship --part generic-twin-bitts --at 3.2,-20 --bearing 90 --mirror --repeat 3 --step 0,8
 bun run ship:place my-ship --part generic-diesel-3000kw --at 0,15 --on machinery-floor
 bun run ship:place my-ship --part generic-watertight-door --at 3.4,10 --y 2.95 --mirror
+bun run ship:place my-ship --part generic-twin-bitts --at 3.2,-12 --parent forecastle
 bun run ship:reseat my-ship --all --out .build/reseat.json
 bun run ship:reseat my-ship --ids gun-a,mast-fore --slide
 ```
@@ -445,7 +510,10 @@ through `wall.mirrorId` as the editor does) and reports the twin's own `residual
 twin more than 5 cm off its support is an error, so place each side separately on an
 asymmetric hull. A centreline request stays single. `--repeat n --step dx,dz` seats
 each copy on its own support (IDs `…-1`, `…-2`; at most 1,000 copies per request and
-1,000 equipment records per design). Connected fittings (railings, ropes, ladders
+1,000 equipment records per design). `--parent <id>` makes the new records ride a hull piece,
+fitting or gun ([Parents](#parents)); seating is unchanged (it seats on hull surfaces, so give a
+turret-roof rider its height with a `move` or `equipment` command), and a mirrored pair keeps the parent only
+when it stands on the centreline. Connected fittings (railings, ropes, ladders
 with a path) have no single seat; write their points with an `equipment` command. `place` does not set
 `magazineId` or `powerSourceId`; patch them afterwards in a version-1 design.
 
@@ -457,14 +525,16 @@ snap (0.75 × their larger dimension); a linked twin follows its partner. With `
 a record with nothing under it moves sideways to the closest support, 1 cm inside its
 edge. Under `--all`, equipment that may float is lifted out of a support that rose into
 it but left where it floats above one, and never slid sideways; name it with `--ids` to
-seat it. Under `--all`, a record without a seat is a warning and the rest are still
-proposed; when the candidate then stops at an error on a record the batch does not
+seat it. Under `--all`, a record with a `parent` is left alone: it rides its parent, and a
+reseated parent moves what it carries by its own delta (a `move` in the batch). Under
+`--all`, a record without a seat is a warning and the rest are still proposed; when the candidate then stops at an error on a record the batch does not
 touch, the batch is returned with `candidate.unverified` and a nonzero exit code.
 
 Limits: only the attachment point is seated. Whether the whole body fits (a gun base
 across a deck edge, a door taller than its wall, an engine wider than the hull) is
 decided by the candidate compile, whose diagnostics are returned in `candidate`.
-Batches contain only `equipment` and `equipment-patch` commands.
+Batches contain only `equipment` and `equipment-patch` commands, plus a `move` for the riders of a
+reseated parent.
 
 Read again after a conflict; do not blindly replace an expected revision.
 Replacing an existing file through `ship:import` requires
@@ -487,8 +557,9 @@ save, including a batch submitted before React's next render. Wait for
 `ship:place --table rows.json` seats every row in one native resolver call and one
 compile session instead of one process per fitting. A row carries the flags of a single
 placement — `part`, `x`, `z` and optional `id`, `y`, `on`, `bearing`, `mirror`, `repeat`,
-`step` — plus `extra`, an object merged into every record the row produces (gun battery
-and arcs, launcher settings, paint). `extra` may not set `id`, `partId`, `position` or
+`step`, `parent` (which may name a record an earlier row places) — plus `extra`, an
+object merged into every record the row produces (gun battery and arcs, launcher settings,
+paint). `extra` may not set `id`, `partId`, `position` or
 `bearingDeg`; the seat resolver owns those. The file is a bare array or
 `{"version": 1, "rows": [...]}`, at most 128 rows, and is checked whole before anything
 is placed.
@@ -989,8 +1060,9 @@ A fitting reports only its first fault. The phases run in order and a failed pha
 stops the ones after it:
 
 1. Source: counts over a limit (each with its count), invalid or duplicate IDs
-   (each named), then every bad fitting paint or barbette height, primitive,
-   surface assignment (with the reason), boundary and load.
+   (each named), then every bad fitting paint or barbette height, equipment
+   [parent](#parents), primitive, surface assignment (with the reason), boundary
+   and load.
 2. Hull pieces: every piece whose shape fails, then every detached piece
    (`relatedSourceIds` names a piece of the group it is not joined to).
 3. Boundaries that miss the interior, ballast and loads that do not fit.

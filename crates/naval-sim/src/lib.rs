@@ -16,6 +16,7 @@ mod construction_installation;
 mod construction_mesh;
 mod construction_orientation;
 pub mod construction_overlap;
+mod construction_parents;
 mod construction_paths;
 pub mod construction_placement;
 mod construction_propellers;

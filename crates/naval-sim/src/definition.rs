@@ -1508,6 +1508,8 @@ pub struct ConstructionEquipment {
     pub power_source_id: Option<String>,
     #[serde(rename = "scale", default, skip_serializing_if = "Option::is_none")]
     pub scale: Option<[f64; 3]>,
+    #[serde(rename = "parent", default, skip_serializing_if = "Option::is_none")]
+    pub parent: Option<String>,
     #[serde(rename = "gun")]
     pub gun: Option<ConstructionEquipmentGun>,
     #[serde(rename = "launcher")]
