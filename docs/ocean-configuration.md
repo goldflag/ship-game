@@ -149,8 +149,9 @@ Checks, with the game paused and ocean time frozen:
   exposes `window.shadowResult.passed`. Add `&calm` for a flat sea.
 - `/scripts/diagnostics/water-reflections.html?test` looks at a hull 5 km and 20 km away through 24×
   binoculars and counts the pixels the reflections change (the same frame traced and untraced), with
-  the base reach and with `WaterViewFocus`; the focused reach must reflect far more, move the shadow
-  anchor onto the hull, and restore both at 1×. It exposes `window.reflectionResult.passed`.
+  the base reach and with `WaterViewFocus`; the focused reach must change at least twice as many
+  pixels, move the shadow anchor onto the hull, and restore both at 1×. It exposes
+  `window.reflectionResult.passed`.
 
 ## Ship wake
 

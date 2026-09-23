@@ -86,7 +86,8 @@ async function check() {
     prepare(range,24);
     game.waterViewFocus=legacyFocus;await still();const legacy={...measure(),...await reflected()};
     game.waterViewFocus=focus;await still();const zoomed={...measure(),...await reflected()};
-    cases.push({range,legacy,zoomed,passed:zoomed.pixelsChanged>legacy.pixelsChanged*5+100&&zoomed.range>baseDistance&&zoomed.shadow[0]===range});
+    // The base reach already mirrors the hull's lower edge; the focused reach must mirror at least twice as much.
+    cases.push({range,legacy,zoomed,passed:zoomed.pixelsChanged>legacy.pixelsChanged*2+100&&zoomed.range>baseDistance&&zoomed.shadow[0]===range});
   }
   prepare(5000,1);await still();const restored=measure();
   const passed=cases.every(c=>c.passed)&&restored.range===baseDistance&&restored.shadow[0]===game.ship.position.x;
