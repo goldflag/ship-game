@@ -22,9 +22,26 @@ export class WakeStampCollector implements WakeStampTarget {
   }
 }
 
+/** Paints stamp collectors into a coverage atlas of `tiles` × `tiles` squares, `resolution`
+ * texels each, with collector `i` in tile (i % tiles, ⌊i / tiles⌋). Row 0 of the atlas is the
+ * tile row the ocean samples first. */
+export interface WakeFoamPainter {
+  readonly texture: THREE.Texture;
+  /** Prepare for this many stamps across every collector (growth stays supported). */
+  reserve(count: number): void;
+  update(collectors: readonly WakeStampCollector[]): void;
+  diagnostics(): Record<string, number>;
+  dispose(): void;
+}
+export type WakeFoamPainterFactory = (resolution: number, tiles: number) => WakeFoamPainter;
+
+/** The game's painter: every atlas is drawn on the GPU by `renderer`. */
+export const gpuWakeFoamPainter = (renderer: THREE.WebGPURenderer): WakeFoamPainterFactory =>
+  (resolution, tiles) => new WakeFoamGpu(renderer, resolution, tiles);
+
 /** Paint the same max-coverage ellipses into an atlas using native GPU blending.
  * It owns visual textures only; ship motion and wake history remain on the CPU. */
-export class WakeFoamGpu {
+export class WakeFoamGpu implements WakeFoamPainter {
   readonly target: THREE.RenderTarget;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -50,7 +67,7 @@ export class WakeFoamGpu {
     material.toneMapped = false; material.fog = false;
     const box = attribute<'vec4'>('wakeBox', 'vec4'), axes = attribute<'vec4'>('wakeAxes', 'vec4'), shape = attribute<'vec4'>('wakeShape', 'vec4');
     // WebGPU texture rows run down from the top. Put atlas row zero at NDC +Y
-    // so the water samples the same tile/coordinates as the CPU data texture.
+    // so the water samples the tile and coordinates the stamps were laid in.
     material.vertexNode = vec4(box.xy.mul(vec2(1, -1)).add(positionLocal.xy.mul(box.zw)), 0, 1);
     material.fragmentNode = Fn(() => {
       // Flip stamp coordinates too, retaining the quad's front-facing winding.
@@ -79,6 +96,8 @@ export class WakeFoamGpu {
     }
     this.mesh.geometry = geometry; previous.dispose();
   }
+
+  get texture(): THREE.Texture { return this.target.texture; }
 
   reserve(count: number): void { this.allocate(count); }
 

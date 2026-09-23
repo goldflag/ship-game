@@ -3,6 +3,8 @@ import { attribute } from 'three/tsl';
 
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 const RIGHT = new THREE.Vector3(1, 0, 0);
+/** Speed (m/s) at which a `streak` particle reaches its full smear. */
+const STREAK_SPEED = 20;
 const smooth = (n: number) => { const t = clamp(n); return t * t * (3 - 2 * t); };
 const hash = (x: number, y: number) => {
   const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
@@ -109,7 +111,8 @@ export interface EffectParticle {
   spin: number;
   stretch: number;
   fadeIn: number;
-  align: 'billboard' | 'velocity' | 'water';
+  /** `streak` smears like `velocity` in proportion to speed, so a drop rounds out at its apex. */
+  align: 'billboard' | 'velocity' | 'streak' | 'water';
   waterline: boolean;
   surfaceY: number;
   distance: number;
@@ -141,6 +144,7 @@ export class EffectParticlePool {
   private readonly projection = new THREE.Matrix4();
   private readonly bounds = new THREE.Sphere();
   private cursor = 0;
+  private emitted = 0;
 
   constructor(readonly capacity: number, map: THREE.DataTexture, private additive = false,
     volumeMaterial?: THREE.MeshBasicNodeMaterial, private cullFineWater = false, private cullOffscreen = false) {
@@ -195,16 +199,30 @@ export class EffectParticlePool {
       if (this.densityPhase < 1) return this.scratch ??= { ...this.particles[0], position: new THREE.Vector3(), velocity: new THREE.Vector3(), color: new THREE.Color() };
       this.densityPhase -= 1;
     }
-    const p = this.particles[this.cursor++ % this.capacity];
+    const p = this.claim();
     p.position.copy(position); p.velocity.set(0, 0, 0); p.color.setRGB(1, 1, 1);
     p.age = 0; p.life = 1; p.size = 1; p.growth = 0; p.opacity = 1;
     p.growthDecay = 0; p.diffusion = 0; p.heat = 0; p.cooling = 1; p.density = 4; p.dissipationTime = 0;
     p.volumeAspect = 1; p.volumeYaw = 0; p.volumeAxisY = 0;
-    p.seed = (this.cursor * .61803398875 % 1) * 100;
+    p.seed = (++this.emitted * .61803398875 % 1) * 100;
     p.drag = 0; p.gravity = 0; p.wind = 0; p.angle = 0; p.spin = 0;
     p.stretch = 1; p.fadeIn = 0; p.align = 'billboard'; p.waterline = false; p.surfaceY = 0;
     p.sourceId = sourceId;
     return p;
+  }
+
+  /** The next free slot in ring order. A full pool gives up the particle nearest the end of its
+   * life, so a burst of short gunfire never cuts a long-lived plume short. */
+  private claim(): EffectParticle {
+    let chosen = this.cursor % this.capacity, spent = -Infinity;
+    for (let probe = 0; probe < this.capacity; probe++) {
+      const index = (this.cursor + probe) % this.capacity, p = this.particles[index];
+      if (p.age >= p.life) { chosen = index; break; }
+      const fraction = p.age / p.life;
+      if (fraction > spent) { spent = fraction; chosen = index; }
+    }
+    this.cursor = chosen + 1;
+    return this.particles[chosen];
   }
 
   update(dt: number, camera: THREE.Camera, wind: THREE.Vector3, hiddenSourceId?: string): void {
@@ -304,10 +322,13 @@ export class EffectParticlePool {
         if (p.align === 'water') this.orientation.setFromAxisAngle(RIGHT, -Math.PI / 2);
         else {
           this.orientation.copy(camera.quaternion);
-          if (p.align === 'velocity') {
+          if (p.align === 'velocity' || p.align === 'streak') {
             this.direction.copy(p.velocity).applyQuaternion(this.cameraInverse);
             angle = Math.atan2(-this.direction.x, this.direction.y);
-            stretch *= Math.max(.35, Math.hypot(this.direction.x, this.direction.y) / Math.max(.01, p.velocity.length()));
+            const speed = Math.max(.01, p.velocity.length()), across = Math.hypot(this.direction.x, this.direction.y) / speed;
+            // An exposure smear grows with speed and foreshortens; the drop itself stays round.
+            if (p.align === 'streak') stretch = 1 + (stretch - 1) * Math.min(1, speed / STREAK_SPEED) * across;
+            else stretch *= Math.max(.35, across);
           }
         }
         this.orientation.multiply(this.turn.setFromAxisAngle(this.axis, angle));
@@ -344,7 +365,7 @@ export class EffectParticlePool {
   get count(): number { return this.active.length; }
   reset(): void {
     for (const p of this.particles) { p.age = 0; p.life = 0; }
-    this.active.length = 0; this.cursor = 0;
+    this.active.length = 0; this.cursor = 0; this.emitted = 0;
     this.mesh.geometry.instanceCount = 0; this.mesh.visible = false;
     this.alpha.array.fill(0); this.alpha.needsUpdate = true;
     this.mesh.instanceMatrix.array.fill(0); this.mesh.instanceMatrix.needsUpdate = true;

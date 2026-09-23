@@ -21,7 +21,7 @@ expression = """(async()=>{
     await new Promise(resolve=>setTimeout(resolve,200));
   if(!window.ready || window.errors.length) throw new Error(JSON.stringify(window.errors));
   if(game.definition.id!=='yamato' || !game.inPort) throw new Error('Open the Yamato harbor diagnostic');
-  const light=game.water.lighting.sunLight;
+  const light=game.environment.sunLight;
   if(!light.castShadow || !game.renderer.shadowMap.enabled) throw new Error('Shadows must remain enabled');
   game.host.style.width='1200px'; game.host.style.height='720px';
   game.settings.resolution=1/Math.min(devicePixelRatio,1.5); game.resize();
@@ -32,7 +32,7 @@ expression = """(async()=>{
     game.camera.lookAt(game.ship.position.x,3,0); game.camera.updateMatrixWorld();
     await new Promise(resolve=>setTimeout(resolve,700));
     const png=await window.captureHarbor();
-    return {png,quality:game.settings.quality,backend:game.water.backend,
+    return {png,quality:game.settings.quality,
       normalBias:light.shadow.normalBias,depthBias:light.shadow.bias,
       shadowMap:light.shadow.mapSize.toArray(),shipHash:game.definition.contentHash};
   } finally { game.rig.update=update; }

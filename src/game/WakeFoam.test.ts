@@ -47,7 +47,9 @@ test('impact foam reaches the ocean field while stopped, freezes on pause, and c
   foam.resetImpacts(); foam.update(state, .1);
   expect(pixels.every(value => value === 0)).toBe(true);
   foam.splash(120, -70, .38);
-  for (let i = 0; i < 660; i++) foam.update(state, 1 / 60);
+  for (let i = 0; i < 60 * 12; i++) foam.update(state, 1 / 60);
+  expect(pixels.some(value => value > 0)).toBe(true);
+  for (let i = 0; i < 60 * 13; i++) foam.update(state, 1 / 60);
   expect(pixels.every(value => value === 0)).toBe(true);
   foam.dispose();
 });

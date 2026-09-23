@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Camera, InstancedMesh, Matrix4, MeshBasicNodeMaterial, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { Camera, InstancedBufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicNodeMaterial, PerspectiveCamera, PointLight, Vector3 } from 'three/webgpu';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import submarine from '../../assets/ships/type-viic/blueprint.json';
@@ -112,25 +112,33 @@ test('light AA never schedules flak, and reset cancels a heavy burst in flight',
   } finally { effects.dispose(); }
 });
 
-test('burning-turret smoke drifts with wind, responds to changes, and freezes on pause', () => {
+test('burning-turret smoke climbs, drifts with wind, responds to changes, and freezes on pause', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
-  sim.player.damage.control.mounts[0].intensity = 1;
+  const fire = sim.player.damage.control.mounts[0]; fire.intensity = 1; fire.heat = 1;
   sim.tick = 15;
-  effects.update(sim, .4, camera);
-  expect(effects.diagnostics().smoke).toBe(1);
-  const mesh = effects.root.getObjectByName('Local fire smoke') as InstancedMesh;
-  const matrix = new Matrix4();
-  const position = () => { mesh.getMatrixAt(0, matrix); return new Vector3().setFromMatrixPosition(matrix); };
+  // The displayed fire eases up over a couple of seconds before its column is full.
+  for (let i = 0; i < 300; i++) effects.update(sim, 1 / 60, camera);
+  expect(effects.diagnostics().smoke).toBeGreaterThan(5);
+  // Follow the existing column only: no new puffs enter while the wind changes.
+  effects.setDensity(0);
+  const mesh = effects.root.getObjectByName('Ship fire smoke') as InstancedMesh<InstancedBufferGeometry>;
+  const mean = () => {
+    const center = mesh.geometry.getAttribute('fireCenter'), n = mesh.geometry.instanceCount, sum = new Vector3();
+    for (let i = 0; i < n; i++) sum.add(new Vector3(center.getX(i), center.getY(i), center.getZ(i)));
+    return sum.divideScalar(n);
+  };
   const beforeSimulation = JSON.stringify(sim);
   for (const [speed, direction] of [[10, 0], [10, Math.PI / 2], [20, Math.PI], [10, -Math.PI / 2], [0, 1]]) {
-    const before = position();
+    const before = mean();
     effects.setWind(speed, direction);
     effects.update(sim, 0, camera);
-    expect(position().distanceTo(before)).toBe(0);
+    expect(mean().distanceTo(before)).toBe(0);
     effects.update(sim, .1, camera);
-    const drift = position().sub(before);
-    expect(drift.x).toBeCloseTo(Math.cos(direction) * speed * .35 * .8 * .1, 4);
-    expect(drift.z).toBeCloseTo(Math.sin(direction) * speed * .35 * .8 * .1, 4);
+    const drift = mean().sub(before);
+    const along = drift.x * Math.cos(direction) + drift.z * Math.sin(direction);
+    const across = -drift.x * Math.sin(direction) + drift.z * Math.cos(direction);
+    // Wind carries a third of its drift at the fire and all of it higher up the column.
+    if (speed) { expect(along).toBeGreaterThan(speed * .35 * .35 * .1 * .9); expect(Math.abs(across)).toBeLessThan(along * .5); }
     expect(drift.y).toBeGreaterThan(0);
   }
   expect(JSON.stringify(sim)).toBe(beforeSimulation);
@@ -141,28 +149,30 @@ test('optics hide existing and new own-ship smoke while other smoke remains and 
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   const event: CombatEvent = { sequence: 1, tick: 0, kind: 'shot', position: [0, 10, 0], message: 'Test gun', shipId: 'player',
     shell: { id: 1, caliberM: .38, velocity: [820, 0, 0], type: 'AP' } };
+  // One heavy barrel: its fireball plus four cordite billows.
+  const blast = 5;
   sim.events.push(event);
   effects.update(sim, 0, camera);
-  expect(effects.diagnostics().smoke).toBe(3);
+  expect(effects.diagnostics().smoke).toBe(blast);
   effects.update(sim, .1, camera, sim.player.motion.id);
   expect(effects.diagnostics().smoke).toBe(0);
   sim.events.push({ ...event, sequence: 2 }, { ...event, sequence: 3, shipId: 'target' });
   effects.update(sim, .1, camera, sim.player.motion.id);
-  expect(effects.diagnostics().smoke).toBe(3);
+  expect(effects.diagnostics().smoke).toBe(blast);
   effects.update(sim, 0, camera);
-  expect(effects.diagnostics().smoke).toBe(9);
+  expect(effects.diagnostics().smoke).toBe(3 * blast);
   sim.events.push({ ...event, sequence: 4, kind: 'penetration', normal: [-1, 0, 0] },
     { ...event, sequence: 5, kind: 'module', detonation: true });
   effects.update(sim, 0, camera, sim.player.motion.id);
-  expect(effects.diagnostics().smoke).toBe(3); // Own impact and magazine smoke are hidden too.
-  effects.update(sim, 13, camera, sim.player.motion.id);
+  expect(effects.diagnostics().smoke).toBe(blast); // Own impact and magazine smoke are hidden too.
+  effects.update(sim, 120, camera, sim.player.motion.id);
   effects.update(sim, 0, camera);
   expect(effects.diagnostics().smoke).toBe(0);
   effects.reset();
   sim.reset();
   sim.events.push({ ...event, sequence: 6 });
   effects.update(sim, 0, camera);
-  expect(effects.diagnostics().smoke).toBe(3);
+  expect(effects.diagnostics().smoke).toBe(blast);
   effects.dispose();
 });
 
@@ -204,10 +214,11 @@ test('salvos are bounded, do not replay events, pause cleanly, and reset without
   expect(active.smoke + active.spray + active.flashes + active.foam).toBeLessThanOrEqual(active.particleCapacity);
   sim.events.length = 0; effects.reset(); effects.update(sim, 0, camera);
   expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, flakSmoke: 0, spray: 0, flashes: 0, foam: 0,
-    shellTrails: { histories: 0, segments: 0 }, particleCapacity: active.particleCapacity });
+    shellTrails: { histories: 0, segments: 0 }, blasts: { soot: 0, debris: 0, smoulders: 0, trails: 0 }, particleCapacity: active.particleCapacity });
   sim.events.push({ ...event, sequence: 150 }); effects.update(sim, 0, camera);
   expect(effects.diagnostics().flashes).toBeGreaterThan(0);
-  for (let i = 0; i < 13 * 60; i++) effects.update(sim, 1 / 60, camera);
+  // The cordite cloud lingers downwind for up to fifteen seconds, then clears.
+  for (let i = 0; i < 16 * 60; i++) effects.update(sim, 1 / 60, camera);
   expect(effects.diagnostics().smoke).toBe(0); expect(effects.diagnostics().flashes).toBe(0);
   effects.dispose();
 });
@@ -242,27 +253,85 @@ test('airborne water responds to environment light without re-emitting the splas
   effects.dispose();
 });
 
-test('large-gun fire remains in the gas at 0.35 seconds and cools completely into smoke', () => {
+test('large-gun fire flashes through the gas, cools into a cordite cloud that lingers, then clears', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.events.push({ sequence: 1, tick: 0, kind: 'shot', position: [0, 10, 0], message: 'Test gun', shipId: 'player',
     shell: { id: 1, caliberM: .38, velocity: [820, 0, 0], type: 'AP' } });
-  effects.update(sim, 0, camera); effects.update(sim, .35, camera);
+  effects.update(sim, 0, camera); effects.update(sim, .1, camera);
   const mesh = effects.root.getObjectByName('Propellant and impact volumes') as InstancedMesh;
   const state = mesh.geometry.getAttribute('effectVolume'), sphere = mesh.geometry.getAttribute('effectSphere');
-  expect(state.getZ(0)).toBeGreaterThan(.2);
-  expect(sphere.getW(0) * 2).toBeGreaterThan(24);
+  const each = <T>(read: (i: number) => T) => Array.from({ length: effects.diagnostics().smoke }, (_, i) => read(i));
+  expect(Math.max(...each(i => state.getZ(i)))).toBeGreaterThan(.2);
+  effects.update(sim, .25, camera);
+  expect(Math.max(...each(i => sphere.getW(i) * 2))).toBeGreaterThan(24);
   effects.update(sim, .65, camera);
-  for (let i = 0; i < effects.diagnostics().smoke; i++) expect(state.getZ(i)).toBe(0);
-  expect(effects.diagnostics().smoke).toBeGreaterThan(0);
+  expect(each(i => state.getZ(i)).every(heat => heat === 0)).toBe(true);
   effects.update(sim, 3, camera);
   const opacity = mesh.geometry.getAttribute('effectOpacity');
-  for (let i = 0; i < effects.diagnostics().smoke; i++) expect(opacity.getX(i)).toBeLessThan(.4);
-  effects.update(sim, 2, camera);
+  expect(effects.diagnostics().smoke).toBeGreaterThan(0);
+  expect(Math.max(...each(i => opacity.getX(i)))).toBeGreaterThan(.4);
+  effects.update(sim, 12, camera);
   expect(effects.diagnostics().smoke).toBe(0);
   effects.dispose();
 });
 
-test('water droplets stay round through their apex instead of rotating as long rods', () => {
+test('the barrels of one salvo merge into one blast per turret', () => {
+  const volumesFor = (events: Pick<CombatEvent, 'position' | 'shipId'>[]) => {
+    const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
+    events.forEach((event, i) => sim.events.push({ sequence: i + 1, tick: 3, kind: 'shot', message: 'A turret fired', ...event,
+      shell: { id: i + 1, caliberM: .38, velocity: [820, 0, 0], type: 'AP' } }));
+    effects.update(sim, 0, new Camera());
+    const count = effects.diagnostics().smoke; effects.dispose(); return count;
+  };
+  const barrel = (z: number, shipId = 'player') => ({ position: [0, 10, z] as [number, number, number], shipId });
+  const one = volumesFor([barrel(0)]), triple = volumesFor([barrel(-2), barrel(0), barrel(2)]);
+  expect(triple).toBeGreaterThan(one);
+  expect(triple).toBeLessThan(3 * one);
+  // Another turret, or the same bearing on another ship, is its own blast.
+  expect(volumesFor([barrel(-2), barrel(0), barrel(2), barrel(38), barrel(40), barrel(42)])).toBe(2 * triple);
+  expect(volumesFor([barrel(0), barrel(0, 'target')])).toBe(2 * one);
+});
+
+test('a penetration flashes locally, then smoulders from its hole as the hull moves on', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+  const hull = sim.player.motion;
+  sim.events.push({ sequence: 1, tick: 0, kind: 'penetration', position: [hull.x + 10, 5, hull.z], normal: [1, 0, 0], message: 'Hit',
+    shipId: hull.id, shell: { id: 1, caliberM: .38, velocity: [-700, -40, 0], type: 'AP' } });
+  effects.update(sim, 0, camera);
+  const light = effects.root.children.find((child): child is PointLight => child instanceof PointLight && child.intensity > 0)!;
+  expect(light.distance).toBeLessThanOrEqual(60);
+  expect(light.position.distanceTo(new Vector3(hull.x + 10, 5, hull.z))).toBeLessThan(4);
+  effects.update(sim, .5, camera);
+  expect(light.intensity).toBe(0);
+  expect(effects.diagnostics().blasts.smoulders).toBe(1);
+  hull.x += 200;
+  const soot = effects.root.getObjectByName('Smouldering and fragment smoke') as InstancedMesh, matrix = new Matrix4();
+  effects.update(sim, 1, camera);
+  const xs = Array.from({ length: effects.diagnostics().blasts.soot }, (_, i) => { soot.getMatrixAt(i, matrix); return matrix.elements[12]; });
+  expect(Math.max(...xs)).toBeGreaterThan(hull.x);
+  effects.update(sim, 60, camera);
+  expect(effects.diagnostics().blasts.smoulders).toBe(0);
+  effects.update(sim, 20, camera);
+  expect(effects.diagnostics().blasts).toEqual({ soot: 0, debris: 0, smoulders: 0, trails: 0 });
+  effects.dispose();
+});
+
+test('a magazine detonation raises a column and cap that hang, then clear', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+  sim.events.push({ sequence: 1, tick: 0, kind: 'module', position: [0, 5, 0], message: 'Magazine ignition', shipId: sim.player.motion.id, detonation: true });
+  effects.update(sim, 0, camera);
+  expect(effects.diagnostics().blasts.trails).toBeGreaterThan(0);
+  effects.update(sim, 30, camera);
+  const mesh = effects.root.getObjectByName('Propellant and impact volumes') as InstancedMesh, sphere = mesh.geometry.getAttribute('effectSphere');
+  const heights = Array.from({ length: effects.diagnostics().smoke }, (_, i) => sphere.getY(i));
+  expect(heights.length).toBeGreaterThan(20);
+  expect(Math.max(...heights)).toBeGreaterThan(200);
+  effects.update(sim, 100, camera);
+  expect(effects.diagnostics().smoke).toBe(0);
+  effects.dispose();
+});
+
+test('water droplets smear with their speed and never turn as long rods', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
     shell: { id: 1, caliberM: .38, velocity: [790, -85, 0], type: 'AP' } });
@@ -272,16 +341,54 @@ test('water droplets stay round through their apex instead of rotating as long r
   for (const dt of [.5, 1.5, 1.5]) {
     effects.update(sim, dt, camera);
     expect(effects.diagnostics().spray).toBeGreaterThan(0);
-    let visible = 0;
+    let visible = 0, smeared = 0;
     for (let i = 0; i < mesh.count; i++) {
       mesh.getMatrixAt(i, matrix);
       x.setFromMatrixColumn(matrix, 0); y.setFromMatrixColumn(matrix, 1);
       if (x.lengthSq() < .0001) continue;
-      expect(y.length() / x.length()).toBeCloseTo(1, 5); visible++;
+      const ratio = y.length() / x.length();
+      expect(ratio).toBeGreaterThan(1 - 1e-5); expect(ratio).toBeLessThan(6 + 1e-5);
+      visible++; if (ratio > 1.5) smeared++;
     }
-    expect(visible).toBeGreaterThan(0);
+    expect(visible).toBeGreaterThan(0); expect(smeared).toBeGreaterThan(0);
   }
   effects.dispose();
+});
+
+test('heavy splashes leave lit spray after their sheets fall; light guns leave none', () => {
+  for (const caliberM of [.38, .1]) {
+    const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+    sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
+      shell: { id: 1, caliberM, velocity: [790, -85, 0], type: 'AP' } });
+    const volumes = (effects.root.getObjectByName('Splash spray volumes') as InstancedMesh<InstancedBufferGeometry>).geometry;
+    const sheets = (effects.root.getObjectByName('Ballistic water sheets') as Mesh).geometry;
+    effects.update(sim, 0, camera);
+    let most = 0;
+    for (let i = 0; i < 9 * 20; i++) { effects.update(sim, 1 / 20, camera); most = Math.max(most, volumes.instanceCount); }
+    if (caliberM > .3) {
+      expect(sheets.drawRange.count).toBe(0);
+      expect(volumes.instanceCount).toBeGreaterThan(0);
+      // Paused spray holds its state; it clears well before the next salvo lands.
+      const paused = effects.diagnostics(); effects.update(sim, 0, camera); expect(effects.diagnostics()).toEqual(paused);
+      for (let i = 0; i < 12 * 20; i++) effects.update(sim, 1 / 20, camera);
+      expect(volumes.instanceCount).toBe(0);
+    } else expect(most).toBe(0);
+    effects.dispose();
+  }
+});
+
+test('streaked drops round out at their apex and when seen end-on', () => {
+  const map = effectTexture('droplet'), pool = new EffectParticlePool(3, map), camera = new Camera(), matrix = new Matrix4();
+  const shape = (index: number) => {
+    pool.mesh.getMatrixAt(index, matrix);
+    return new Vector3().setFromMatrixColumn(matrix, 1).length() / new Vector3().setFromMatrixColumn(matrix, 0).length();
+  };
+  for (const velocity of [[0, 30, 0], [0, -.4, 0], [0, 0, 30]]) {
+    const p = pool.emit(new Vector3(0, 10, -50)); p.align = 'streak'; p.stretch = 5; p.life = 10; p.velocity.fromArray(velocity);
+  }
+  pool.publish(camera);
+  expect(shape(0)).toBeCloseTo(5, 5); expect(shape(1)).toBeCloseTo(1.08, 5); expect(shape(2)).toBeCloseTo(1, 5);
+  pool.dispose(); map.dispose();
 });
 
 test('billboards reorient while paused and expired storage is reused', () => {

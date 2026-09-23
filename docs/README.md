@@ -27,7 +27,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Author aircraft | [Aircraft pipeline](aircraft-pipeline.md) | Original aircraft assets, recipes and export checks |
 | Change carrier operations | [Air operations](air-operations.md) | Versioned air-wing data and CPU aircraft state |
 | Change bot behavior | [Bot behavior](bot-behavior.md) | Seeded, renderer-free crew decisions |
-| Change ocean rendering | [Ocean configuration](ocean-configuration.md) | Visual ocean settings; CPU combat poses stay authoritative |
+| Change ocean rendering | [Ocean configuration](ocean-configuration.md), [the ocean's design](../src/game/ocean/README.md) | Visual ocean settings on the game's own WebGPU ocean; CPU combat poses stay authoritative |
 | Work on port or HUD UI | [Garage design](garage-mockups/README.md), [HUD design](hud-mockups/README.md), [shared controls](../src/ui/components/README.md) | Existing naval instrument styling and current runtime UI |
 | Add or change graphics settings | [Graphics settings study](graphics-settings/README.md) | Renderer knobs, their apply timing and the proposed live-apply Graphics tab |
 | Develop Rust multiplayer | [Setup, architecture and validation](rust-multiplayer-implementation.md), [crates guide](../crates/AGENTS.md) | Authoritative Rust simulation, generated wire types and server settings |

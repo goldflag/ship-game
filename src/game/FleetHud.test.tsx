@@ -13,7 +13,7 @@ import { Game } from './Game';
 test('scope rangefinding reports acquisition, tracked locks and held lost ranges with the current bindings', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
   const bindings = defaultKeybindings(); bindings.rangefind = ['KeyK', null]; bindings.rangeLock = ['KeyV', null];
-  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', binoculars: true, magnification: 1, pointerLocked: true, fps: 60, backend: 'test', trail: [],
+  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', binoculars: true, magnification: 1, pointerLocked: true, fps: 60, trail: [],
     rangefinder: { phase: 'measuring', progress: .5, locked: false, targetName: 'Enemy ship' } };
   const render = () => renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={bindings}/></ShipContext.Provider>);
   expect(render()).toContain('Ranging · 1.5 s'); expect(render()).toContain('fleet-rangefinder-area');
@@ -28,7 +28,7 @@ test('scope rangefinding reports acquisition, tracked locks and held lost ranges
 test('PvE helm restores regular ship instruments without granting them to follow or chart views', () => {
   const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
   const game = Object.assign(Object.create(Game.prototype), { simulation, selectedShipIds: [simulation.ship.id], controlGroups: new Map() }) as Game;
-  const data: Telemetry = { ship: simulation.ship, shipDefinition: definition, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -5000]), fleetCommandMode: true, controlledShipId: simulation.ship.id };
+  const data: Telemetry = { ship: simulation.ship, shipDefinition: definition, order: 1, camera: 'Chase', fps: 60, trail: [], combat: simulation.telemetry('main', [0, 0, -5000]), fleetCommandMode: true, controlledShipId: simulation.ship.id };
   const render = (state: Telemetry) => renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={state} desk={fleetDesk(game)} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
   const ordinary = render({ ...data, fleetCommandMode: false });
   const helm = render(data);
@@ -65,7 +65,7 @@ test('the compact shell cycle exposes the current load, next choice, stocks and 
   // The authoritative tick records the battery's selection; the readout renders it.
   (sim as unknown as { ammunitionSelection: Record<string, 'ap' | 'he'> }).ammunitionSelection.main = 'he';
   const combat = sim.telemetry('main', aim);
-  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
+  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, trail: [], combat };
   const bindings = defaultKeybindings(); bindings.shellType = ['KeyV', null];
   const render = () => renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={bindings}/></ShipContext.Provider>);
   const html = render();
@@ -97,7 +97,7 @@ test('the helm displays current/max HP and proportional hit feedback for large a
     const maxHp = sim.player.damage.maxIntegrity;
     sim.player.damage.integrity = maxHp * .6;
     const data: Telemetry = {
-      ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [],
+      ship: sim.ship, order: 1, camera: 'Chase', fps: 60, trail: [],
       combat: sim.telemetry('main', [0, 0, -5000]),
       playerDamage: { amount: maxHp * .2, fromHp: maxHp * .8, opacity: 1 },
     };
@@ -114,7 +114,7 @@ test('the helm displays current/max HP and proportional hit feedback for large a
 test('Fletcher exposes live depth charge supply and broadside torpedo help, while gun-only ships keep their controls', () => {
   for (const id of ['fletcher', 'bismarck']) {
     const definition = shipPreset(id), sim = new CombatSimulation(definition);
-    const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry(id === 'fletcher' ? 'depth-charge' : 'main', [1500, 0, 0]) };
+    const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, trail: [], combat: sim.telemetry(id === 'fletcher' ? 'depth-charge' : 'main', [1500, 0, 0]) };
     const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
     if (id === 'fletcher') {
       expect(html).not.toContain('class="fleet-shell-cycle"');
@@ -131,7 +131,7 @@ test('VIIC depth instruments show real orders, ballast and recovery instructions
   for (const id of ['type-viic', 'bismarck']) {
     const def = shipPreset(id), sim = new CombatSimulation(def);
     if (sim.player.submarine) { sim.player.submarine.targetDepthM = 50; sim.player.submarine.ballastM3 = 102; sim.ship.y = -50; }
-    const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('torpedo', [0, 0, -1500]) };
+    const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, trail: [], combat: sim.telemetry('torpedo', [0, 0, -1500]) };
     const html = renderToStaticMarkup(<ShipContext.Provider value={def}><FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
     if (id === 'type-viic') {
       expect(html).toContain('aria-label="Depth and ballast"'); expect(html).toContain('Ordered 50 m');
@@ -147,7 +147,7 @@ test('main battery loss leaves an armed ship in its fleet without an extra statu
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition, { friendlyBots: [definition], enemies: [definition] });
   definition.mounts.forEach((m, i) => { if (m.battery === 'main') sim.player.mounts[i].hp = 0; });
   updateCapability(sim.player, definition);
-  const data: Telemetry = { ship: sim.ship, order: 0, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('main', [0, 0, -5000]) };
+  const data: Telemetry = { ship: sim.ship, order: 0, camera: 'Chase', fps: 60, trail: [], combat: sim.telemetry('main', [0, 0, -5000]) };
   const html = renderToStaticMarkup(<ShipContext.Provider value={definition}>
     <FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/>
   </ShipContext.Provider>);
@@ -158,7 +158,7 @@ test('main battery loss leaves an armed ship in its fleet without an extra statu
 
 test('battle HUD omits the removed gunnery panel and keeps weapon controls', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
-  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('main', [0, 0, -5000]) };
+  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, trail: [], combat: sim.telemetry('main', [0, 0, -5000]) };
   for (const inspecting of [false, true]) {
     const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={{ ...data, inspecting }} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
     expect(html).not.toContain('GUNNERY');
@@ -182,7 +182,7 @@ test('battle reports distinguish weapons, incoming hits, duplicate ships, damage
     { id: 2, tick: 3720, sourceId: 'enemy-2', targetId: 'player', weapon: '150 mm HE · Secondary', damage: 21, hits: 2 },
     { id: 1, tick: 3600, sourceId: 'player', targetId: 'enemy-1', weapon: '380 mm AP · Main', damage: 364, hits: 8 },
   ];
-  const data: Telemetry = { ship: sim.ship, order: 0, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
+  const data: Telemetry = { ship: sim.ship, order: 0, camera: 'Chase', fps: 60, trail: [], combat };
   const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
   expect(html).toContain('Friendly fleet: 2 of 2 afloat, 1 damaged, 0 lost');
   expect(html).toContain('Enemy fleet: 2 of 2 afloat, 1 damaged, 0 lost');
@@ -210,7 +210,7 @@ test('weapon slots show separate types, custom shortcuts, and one selected group
     const groups = sim.telemetry('main', [1800, 0, 0]).weaponGroups;
     const selected = groups[0];
     const combat = sim.telemetry(selected.battery, [1800, 0, 0], selected.id);
-    const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
+    const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, trail: [], combat };
     const bindings = defaultKeybindings(); bindings.weaponGroup1 = ['KeyL', null];
     const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={bindings}/></ShipContext.Provider>);
     expect(html).toContain('aria-label="Weapons"');
@@ -235,7 +235,7 @@ test('spectator HUD uses the observed definition inside the player ship context'
   friend.damage.integrity = friend.damage.maxIntegrity / 2;
   friend.damage.control.mounts[0].intensity = 1;
   const data: Telemetry = { ship: friend.motion, shipDefinition: watched, spectatedShipId: friend.motion.id,
-    order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('main', [0, 0, 0], undefined, friend) };
+    order: 1, camera: 'Chase', fps: 60, trail: [], combat: sim.telemetry('main', [0, 0, 0], undefined, friend) };
   const html = renderToStaticMarkup(<ShipContext.Provider value={player}><FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
   expect(html).toContain(`<h1>${watched.name.toUpperCase()}</h1>`);
   expect(html).not.toContain(`<h1>${player.name.toUpperCase()}</h1>`);
@@ -300,7 +300,7 @@ test('damage control rides on the ship card and sets crew priority with one pres
   const quiet = renderToStaticMarkup(<FireControl combat={combat} desk={null}/>);
   expect(quiet).toContain('<strong>Damage control</strong><span>Automatic · balanced</span>');
   expect(quiet).not.toContain('fleet-fire-detail');
-  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
+  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, trail: [], combat };
   const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
   // It belongs to the ship, not to the battle corner.
   expect(html.indexOf('aria-label="Damage control"')).toBeGreaterThan(html.indexOf('aria-label="Ship condition and helm"'));

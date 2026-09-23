@@ -14,7 +14,6 @@ export interface PerformanceReadout {
   frameMs: number;
   width: number;
   height: number;
-  backend: string;
   detail?: { shipInstances: number; reducedInstances: number; particles: number; aircraft: number };
   /** Local battle worker cost; absent in port and networked battles. */
   simulation?: import('./session/BattleSession').SimulationLoad & { speed: number; achievedSpeed?: number };
@@ -59,7 +58,6 @@ export interface Telemetry {
   airMap?: import('../ui/airChart').ChartView;
   squadronMarkers?: (import('./session/airTelemetry').FlightSummary & { team: import('./session/elements').Team; ownerId: string; screen: { x: number; y: number } | null })[];
   fps: number;
-  backend: string;
   performance?: PerformanceReadout;
   trail: { x: number; z: number }[];
   combat?: CombatTelemetry;

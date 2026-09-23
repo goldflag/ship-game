@@ -383,8 +383,8 @@ impl crate::catalog::Catalog {
         }
         let sea = SeaState {
             // Hm0 = 4 sqrt(variance); our independent 0.7/0.3 sine components
-            // have variance amplitude_m^2 * (0.7^2 + 0.3^2) / 2.
-            // Never interpret the visual FFT multiplier as metres.
+            // have variance amplitude_m^2 * (0.7^2 + 0.3^2) / 2. The renderer
+            // draws the same significant height in metres.
             amplitude_m: height / (4.0 * (0.58_f64 / 2.0).sqrt()),
             wavelength_m: wavelength * 4.0,
             direction: number(&map["water"]["windDirection"])? * std::f64::consts::PI / 180.0,

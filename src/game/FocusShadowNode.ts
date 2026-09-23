@@ -109,6 +109,8 @@ export class FocusShadowNode extends ShadowBaseNode {
     this.near = new CascadeLight(sun.shadow.clone());
     this.wide = new CascadeLight(sun.shadow.clone());
     this.near.name = 'Near sun shadow'; this.wide.name = 'Wide sun shadow';
+    this.follow(this.wide.shadow, Infinity);
+    this.follow(this.near.shadow, NEAR_MAP_MAX);
     this.views = VIEW_SHADOW_BANDS.map((reach, index) => {
       const light = new CascadeLight(sun.shadow.clone());
       light.name = `View sun shadow ${index + 1}`;

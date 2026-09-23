@@ -7,7 +7,6 @@ type Builder = {
   getUniformFromNode(node: object, type: string, stage: string, name?: string | null): Uniform;
 };
 type Backend = {
-  isWebGPUBackend?: boolean;
   createNodeBuilder?: (object: { isInstancedMesh?: boolean }, renderer: unknown) => Builder;
 };
 const installed = new WeakSet<object>();
@@ -18,7 +17,7 @@ const installed = new WeakSet<object>();
  * binding indices, buffers, declarations and update ownership stay with Three. */
 export function installInstanceBufferNames(value: object): void {
   const backend = value as Backend;
-  if (REVISION !== '185' || !backend.isWebGPUBackend || !backend.createNodeBuilder || installed.has(value)) return;
+  if (REVISION !== '185' || !backend.createNodeBuilder || installed.has(value)) return;
   const create = backend.createNodeBuilder;
   backend.createNodeBuilder = function (object, renderer) {
     const builder = create.call(this, object, renderer);

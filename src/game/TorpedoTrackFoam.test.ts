@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { TorpedoTrackFoam } from './TorpedoTrackFoam';
 import { WAKE_EXTENT } from './WakeFoam';
+import { cpuWakeFoamPainter } from './testing/wakeFoam';
 
 const RESOLUTION = 512, SPEED = 24;
 const coverage = (foam: TorpedoTrackFoam, x: number, z: number) => {
@@ -21,7 +22,7 @@ const run = (foam: TorpedoTrackFoam, seconds: number, depth = 3, from = { x: 0, 
 };
 
 test('a torpedo track surfaces astern of the round and stays where it was laid', () => {
-  const foam = new TorpedoTrackFoam(RESOLUTION);
+  const foam = new TorpedoTrackFoam(RESOLUTION, cpuWakeFoamPainter);
   const state = run(foam, 10);
   // Exhaust from 3 m takes two seconds to rise: nothing shows over the round.
   expect(coverage(foam, 0, state.z)).toBe(0);
@@ -43,7 +44,7 @@ test('a torpedo track surfaces astern of the round and stays where it was laid',
 });
 
 test('airborne and deep rounds leave no track, and a pause or reset holds or clears it', () => {
-  const foam = new TorpedoTrackFoam(RESOLUTION);
+  const foam = new TorpedoTrackFoam(RESOLUTION, cpuWakeFoamPainter);
   for (const height of [3, -9]) {
     for (let i = 1; i <= 200; i++) foam.update([{ id: 1, position: [0, height, -i * SPEED * .05], velocity: [0, 0, -SPEED] }], .05, 0, 0);
     expect(foam.diagnostics().samples).toBe(0);
