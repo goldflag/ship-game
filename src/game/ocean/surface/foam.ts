@@ -10,15 +10,13 @@ type Vec3 = Node<'vec3'>;
 
 /** Metres across the wind per tile of the foam texture; along the wind it stretches with the crest foam's `windStretch`. */
 const FOAM_TILE = 40;
-/** Windrows are laid out at this share of the lace's scale across the wind, so their lines stay thin, and drawn out
- * this much further along it: lines of old foam run on for hundreds of metres. They gather in bands where the
- * circulation the wind drives converges: the texture's broad patches at two scales this many times the lace's, whose
- * ratio is irrational so the sum never repeats as a lattice seen from the air, drawn out along the wind. */
-const WINDROW_SCALE = .75, WINDROW_STRETCH = 3, WINDROW_BANDS = [8, 8 * Math.SQRT2 * 1.13] as const, WINDROW_BAND_STRETCH = 3;
+/** Windrows are laid out this many times larger than the lace across the wind (lines about 0.5 to 3 m wide, 15 to 40 m
+ * apart) and drawn out this much further along it: lines of old foam run on for tens of metres before they break.
+ * They gather in bands where the circulation the wind drives converges: the texture's broad patches at two scales
+ * this many times the lace's, whose ratio is irrational so the sum never repeats as a lattice seen from the air. */
+const WINDROW_SCALE = 5, WINDROW_STRETCH = 2, WINDROW_BANDS = [8, 8 * Math.SQRT2 * 1.13] as const, WINDROW_BAND_STRETCH = 3;
 /** How strongly the bands gather windrows: coverage runs from 1 − this to 1 + this times its mean. */
 const WINDROW_GATHER = .6;
-/** Wind (m/s) over which decaying whitecaps turn from lace into streaks drawn out along the wind (Beaufort 6 to 10). */
-const STREAKING_WIND_START = 11, STREAKING_WIND_FULL = 25;
 
 /** Texels per pixel over which a foam pattern gives way to its mean coverage: every mip level of the foam texture is
  * equalised, so thresholds keep their share until the levels are too small to hold a pattern (8 × 8 and below). */
@@ -33,24 +31,23 @@ const FOAM_WRAP = .5;
 const FOAM_SUN = .5;
 /** Depth of the billowing in fresh white water: its churn channel darkens it by up to this share. */
 const CHURN_DEPTH = .3;
-/** Foam amount below which a whitecap's remains are clear water, and above which foam is fresh: still breaking or
- * just broken and gathered on its crest, a white sheet. */
-const FOAM_GONE = .04, FOAM_FRESH = 1.1;
+/** Foam amount below which a whitecap's remains are clear water, and above which foam is fresh: breaking now and
+ * gathered on its converging crest (the amount is foam per area, up to about 3 on a fold), a white sheet. Foam that
+ * has spread off the crest, or broke a moment ago, is already thinning. */
+const FOAM_GONE = .04, FOAM_FRESH = 1.2;
 /** Range of the broad patches' sway on the foam amount: whitecaps differ in strength, and their outlines fray at
  * scales a distant pixel still resolves, not only in the fine lace. */
 const PATCH_SWAY = [.55, 1.45] as const;
 /** Edge half-width of whitecaps in levels of the equalised pattern: soft and ragged, never cut out. */
-const WHITECAP_EDGE = .22;
+const WHITECAP_EDGE = .3;
 /** Opacity of fresh white water, and of the thinnest film a whitecap leaves: old foam is lace the sea shows through. */
-const FRESH_OPACITY = .97, FILM_OPACITY = .45;
+const FRESH_OPACITY = .97, FILM_OPACITY = .35;
 /** Share of its patch even the freshest white water covers: aerated water keeps a few holes, never a painted sheet. */
 const FRESH_COVERAGE = .9;
-/** How much of a decaying whitecap's lace is drawn out along the wind (the lace read at the windrows' layout) at full
- * windiness. */
-const RESIDUE_STREAKS = .8;
-/** Bubble cloud: the aerated water under and just behind fresh foam brightens toward pale turquoise. Its strength,
- * the foam amounts where it starts and where it is dense, and the depth (m) of water it is seen through, which tints it. */
-const BUBBLE_STRENGTH = .7, BUBBLE_START = .15, BUBBLE_FULL = .9, BUBBLE_DEPTH = 2.5;
+/** Bubble cloud: the aerated water under, around and just behind whitecaps brightens toward pale turquoise. Its
+ * strength, the spread foam amounts where it starts and where it is dense, and the depth (m) of water it is seen
+ * through, which tints it. Its soft rise around each whitecap is what keeps a distant one from reading as a cut-out. */
+const BUBBLE_STRENGTH = .7, BUBBLE_START = .02, BUBBLE_FULL = .5, BUBBLE_DEPTH = 2.5;
 /** Share of the water's reflection that the bubbly surface over a fresh bubble cloud scatters away: aerated water
  * reads milky from any angle instead of mirroring the sky. */
 const AERATED_MATTE = .5;
@@ -71,16 +68,11 @@ function foamLayout(xz: Node<'vec2'>, wind: Float, stretch: Float, tile: number)
 }
 
 /** The foam texture read at grid point `xz`: at the lace's scale (with the share of its contrast filtering has averaged
- * away), at the windrows' finer and much longer one, and for the windrows' bands. `stretch` draws all out along the wind. */
+ * away), at the windrows' larger and longer one, and for the windrows' bands. `stretch` draws all out along the wind. */
 export function foamPatterns(map: Texture, xz: Node<'vec2'>, wind: Float, stretch: Float) {
   const uv = foamLayout(xz, wind, stretch, FOAM_TILE), rowsUv = foamLayout(xz, wind, stretch.mul(WINDROW_STRETCH), FOAM_TILE * WINDROW_SCALE);
   const [near, far] = WINDROW_BANDS.map(scale => texture(map, foamLayout(xz, wind, stretch.mul(WINDROW_BAND_STRETCH), FOAM_TILE * scale)).g);
   return { pattern: texture(map, uv), blur: foamBlur(uv), rows: texture(map, rowsUv), bands: near.add(far).mul(.5) };
-}
-
-/** How far the wind draws decaying whitecaps into streaks, 0–1, at `windSpeed` (m/s). */
-export function streaking(windSpeed: Float): Float {
-  return smoothstep(STREAKING_WIND_START, STREAKING_WIND_FULL, windSpeed);
 }
 
 /** Share of the foam texture's contrast that filtering has averaged away at `uv`: none while a pixel spans a few
@@ -113,17 +105,16 @@ export function foamFreshness(amount: Float): Float {
   return smoothstep(FOAM_GONE, FOAM_FRESH, amount);
 }
 
-/** Whitecaps from the wave field's foam `amount` (1 while breaking, e-folding after), the foam texture's `pattern`
- * (lace, patches, streaks, churn) and its lace drawn out along the wind (`drawn`). Fresh white water covers its patch
- * in a billowing, near-opaque sheet whose rim, where the amount falls off, frays into the lace; as it decays it keeps
- * fewer, thinner filaments, dragged into streaks as `windiness` rises, until clear water is left. */
-export function whitecapOpacity(amount: Float, pattern: Node<'vec4'>, drawn: Float, blur: Float, windiness: Float): Float {
+/** Whitecaps from the wave field's foam `amount` (foam per area: about 1 while breaking, more on a converging crest,
+ * e-folding after) and the foam texture's `pattern` (lace, patches, streaks, churn). Fresh white water on the crest is
+ * a billowing, near-opaque sheet whose rim, where the amount falls off, frays into the lace; the rest of the patch and
+ * the foam it leaves behind keep fewer, thinner and fainter filaments until clear water is left. */
+export function whitecapOpacity(amount: Float, pattern: Node<'vec4'>, blur: Float): Float {
   const fresh = foamFreshness(amount.mul(mix(PATCH_SWAY[0], PATCH_SWAY[1], pattern.g)));
   // Coverage falls slower than the amount: old foam lingers as sparse lace rather than fading as a whole.
   const coverage = fresh.sqrt().mul(FRESH_COVERAGE);
-  const structure = mix(pattern.r, drawn, windiness.mul(RESIDUE_STREAKS).mul(float(1).sub(fresh)));
   const density = mix(FILM_OPACITY, FRESH_OPACITY, fresh).mul(mix(float(1 - CHURN_DEPTH), float(1), mix(pattern.a, .5, blur)));
-  return foamShare(coverage, structure, blur, WHITECAP_EDGE).mul(density);
+  return foamShare(coverage, pattern.r, blur, WHITECAP_EDGE).mul(density);
 }
 
 /** Mean of the windrows' beading over the equalised lace: WINDROW_LACE plus the rest times E[smoothstep(a, b, U)]

@@ -18,7 +18,7 @@ import { buildSpectrum, FOLD_PERIOD } from '/src/game/ocean/waves/spectrum.ts';
 import { activeModes, referenceTexel } from '/src/game/ocean/waves/reference.ts';
 import { windSea } from '/src/maps/seaCalibration.ts';
 import { oceanMap } from '/src/maps/catalog.ts';
-import { foamPatterns, streaking, whitecapOpacity, windrowOpacity } from '/src/game/ocean/surface/foam.ts';
+import { foamPatterns, whitecapOpacity, windrowOpacity } from '/src/game/ocean/surface/foam.ts';
 import { foamTexture } from '/src/game/ocean/surface/foamTexture.ts';
 import { whitecapCoverage } from '/src/game/ocean/waves/whitecaps.ts';
 import { windrowFoam } from '/src/game/VisualEnvironment.ts';
@@ -290,7 +290,7 @@ async function coverageFrame() {
   const material = new THREE.NodeMaterial();
   const xz = screenCoordinate.mul(1024 / n), amount = field.surface(xz).foam;
   const { pattern, blur, rows, bands } = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1));
-  const whitecaps = whitecapOpacity(amount, pattern, rows.r, blur, streaking(float(params.windSpeed))).mul(foamLook.opacity);
+  const whitecaps = whitecapOpacity(amount, pattern, blur).mul(foamLook.opacity);
   const rowsFoam = windrowFoam(params.windSpeed);
   const windrows = windrowOpacity(float(rowsFoam.coverage), bands, rows.b, pattern.r, blur, foamMap.userData.streakMean).mul(rowsFoam.opacity);
   material.fragmentNode = vec4(amount, whitecaps, windrows, float(1).sub(float(1).sub(whitecaps.clamp(0, 1)).mul(float(1).sub(windrows.clamp(0, 1)))));

@@ -4,7 +4,7 @@ import { Fn, If, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, d
 import { EffectDepthTextureNode } from '../../EffectVolume';
 import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../screen/reflections';
-import { aeratedReflectance, aeration, bubbleCloud, foamOpacity, foamOver, foamPatterns, foamRadiance, streaking, whitecapOpacity, windrowOpacity } from './foam';
+import { aeratedReflectance, aeration, bubbleCloud, foamOpacity, foamOver, foamPatterns, foamRadiance, whitecapOpacity, windrowOpacity } from './foam';
 import { foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
 
@@ -226,8 +226,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     // Old foam gathers in the broad patches and lies in lines along the wind.
     const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), bands, rows.b, lace, blur, this.foamDetail.userData.streakMean)
       .mul(reference('opacity', 'float', foam.surface));
-    const whitecaps = whitecapOpacity(sample.foam, pattern, rows.r, blur, streaking(reference('windSpeed', 'float', waves.params)))
-      .mul(reference('opacity', 'float', foam.crest));
+    const whitecaps = whitecapOpacity(sample.foam, pattern, blur).mul(reference('opacity', 'float', foam.crest));
     // Churned water is soft-edged and puffy where the trail's energy thins, not cut into lace.
     const wakeFoam = foamOpacity(smoothstep(WAKE_START, WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur, WAKE_EDGE).mul(WAKE_OPACITY);
     // Where the water column behind the surface thins to nothing: a beach, or the line along a hull.

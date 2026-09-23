@@ -43,7 +43,7 @@ const GATE_NONE = -1, GATE_FULL = .75;
 const FOAM_JACOBIAN_MIN = .35, FOAM_JACOBIAN_MAX = 2.5;
 /** The bubble cloud reads the foam from a mip whose texels span at least this many metres: bubbles carried down under
  * a whitecap spread about as far again around it. */
-const BUBBLE_SPREAD = 3;
+const BUBBLE_SPREAD = 4;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
 const MIN_JACOBIAN = .1;
