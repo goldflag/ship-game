@@ -24,6 +24,7 @@ import { createSeaState, seaWaves, type SeaState } from './session/sea';
 import { hullFootprints } from './hullSea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
+import { ShadowCasterPass } from './ShadowCasterPass';
 import * as THREE from 'three/webgpu';
 import { pass, vec2 } from 'three/tsl';
 import { frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics } from './graphicsSettings';
@@ -269,6 +270,8 @@ export class Game {
   private ocean?: OceanApi;
   private sunLight?: THREE.DirectionalLight;
   private sunShadows?: FocusShadowNode;
+  /** Draws the sun's shadow maps without three's scene passes; `enabled` compares the two. */
+  shadowCasters?: ShadowCasterPass;
   private landscape?: THREE.Group;
   private sky?: SkyApi;
   /** Sun transmittance through the clouds, shared by the sun's shadow maps and the sea. */
@@ -453,6 +456,7 @@ export class Game {
     // resizing a map after its first render destroys a texture queued GPU work still reads.
     this.graphicsControl.applyShadows();
     this.sunShadows = new FocusShadowNode(this.sunLight);
+    this.sunShadows.casters = this.shadowCasters = new ShadowCasterPass(this.renderer);
     this.sunLight.shadow.shadowNode = this.sunShadows as never;
     this.assertActive();
     // Until the first scene applies its own: fog from 2.5 km, complete at 16 km, fading into the sky over 10 km.
@@ -1887,6 +1891,7 @@ export class Game {
     this.effectLighting.dispose();
     await this.ocean?.dispose();
     this.sunShadows?.dispose();
+    this.shadowCasters?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();
