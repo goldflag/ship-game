@@ -1,5 +1,6 @@
 import type { ConstructionHullStation } from '../../src/ships/blueprint/constructionTypes';
 import type { Vec3 } from '../../src/ships/blueprint/blueprintTypes';
+import { spanCut } from '../../src/ships/customHullSpans';
 import { hullStation, round, type MeshView, type Point2, type Station } from './slice';
 
 /** Fitting an adjustable custom hull to a measured reference: pick the stations that matter, resample each
@@ -177,43 +178,24 @@ export function loftHull(chosen: Station[], options: LoftOptions = {}): Omit<Lof
 /** World ring of a lofted station, using the same mapping the native compiler uses when rake and bulb are zero. */
 export const stationRing = (station: ConstructionHullStation, size: Vec3, position: Vec3): Vec3[] =>
   station.points.map((point) => [point.x * (size[0] / 2) + position[0], point.y * size[1] + position[1], (station.t - 0.5) * size[2] + position[2]] as Vec3);
-const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const triangleArea = (p: Vec3, q: Vec3, r: Vec3) => {
-  const n = cross(sub(q, p), sub(r, p));
-  return Math.hypot(n[0], n[1], n[2]) / 2;
-};
-const mean = (ring: Vec3[]): Vec3 => [0, 1, 2].map((i) => ring.reduce((sum, p) => sum + p[i], 0) / ring.length) as Vec3;
-
-/** The native star-shaped check, ported so a fit is rejected here with the failing span named rather than by
- * a compile that only says a hull folds. `construction_custom_hull.rs` remains the authority. */
+/** The native span check, ported so a fit is rejected here with the failing span named rather than by a compile that
+ * only says a hull folds. A span that is not star-shaped falls back to the native band cut, as the compiler does;
+ * only a span that neither cut accepts is reported. `construction_custom_hull.rs` remains the authority. */
 export function foldFailures(stations: ConstructionHullStation[], size: Vec3, position: Vec3): { span: number; message: string }[] {
   const rings = stations.map((station) => stationRing(station, size, position));
-  const n = stations[0].points.length;
-  const keel = (n - 1) / 2;
   const failures: { span: number; message: string }[] = [];
   for (let span = 0; span + 1 < rings.length; span++) {
-    const [a, b] = [rings[span], rings[span + 1]];
-    const [ca, cb] = [mean(a), mean(b)];
-    const centre = [0, 1, 2].map((i) => (ca[i] + cb[i]) / 2) as Vec3;
-    // The same four pieces per edge the native builder makes, including the two end caps it also tests.
-    const faces: [string, Vec3, Vec3, Vec3][] = [];
-    for (let edge = 0; edge < n; edge++) {
-      const k = (edge + 1) % n;
-      const label = `outline point ${edge}`;
-      if (edge >= keel && edge < n - 1) faces.push([label, a[edge], a[k], b[k]], [label, a[edge], b[k], b[edge]]);
-      else faces.push([label, a[edge], a[k], b[edge]], [label, a[k], b[k], b[edge]]);
-      faces.push([`bow cap at point ${edge}`, a[k], a[edge], ca], [`stern cap at point ${edge}`, b[edge], b[k], cb]);
-    }
-    for (const [label, p, q, r] of faces)
-      // Degenerate faces are skipped, as the native builder skips them before its own orientation test.
-      if (triangleArea(p, q, r) >= 1e-10 && dot(sub(p, centre), cross(sub(q, centre), sub(r, centre))) < -1e-7) {
-        failures.push({ span, message: `Sections "${stations[span].id}" and "${stations[span + 1].id}" fold through each other at the ${label}.` });
-        break;
-      }
+    const heights: [number[], number[]] = [stations[span].points.map((p) => p.y), stations[span + 1].points.map((p) => p.y)];
+    const cut = spanCut(rings[span], rings[span + 1], heights);
+    if (cut.cut === 'fold') failures.push({ span, message: `Sections "${stations[span].id}" and "${stations[span + 1].id}" fold through each other at the ${cut.label}.` });
   }
   return failures;
+}
+/** Spans the native builder will cut into horizontal bands rather than about one centre. */
+export function bandedSpans(stations: ConstructionHullStation[], size: Vec3, position: Vec3): string[] {
+  const rings = stations.map((station) => stationRing(station, size, position));
+  return rings.slice(0, -1).flatMap((ring, span) =>
+    spanCut(ring, rings[span + 1], [stations[span].points.map((p) => p.y), stations[span + 1].points.map((p) => p.y)]).cut === 'bands' ? [`${stations[span].id}–${stations[span + 1].id}`] : []);
 }
 
 /** Fit, then repair: a span the native check rejects is split by the measured station nearest its middle and

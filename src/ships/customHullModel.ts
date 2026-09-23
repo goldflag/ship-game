@@ -4,6 +4,7 @@ import { bilgeKeelError, bilgeKeelFaces, defaultBilgeKeels } from './constructio
 import { DEFAULT_HULL_PRESET, HULL_PRESETS } from './constructionHullPresets';
 import type { ConstructionBilgeKeels, ConstructionHullPaintBands, ConstructionPrimitive, ConstructionHullPoint, ConstructionHullStation, Vec3 } from './blueprint';
 import { contourAt, contourWeight, hullEdgeId, MAX_HULL_POINTS, MIN_HULL_POINTS, outlineTopologyError } from './customHullTopology';
+import { endCap, spanCut } from './customHullSpans';
 export type Point = ConstructionHullPoint;
 export type Station = ConstructionHullStation;
 export type Hull = {
@@ -235,10 +236,11 @@ export function customHullFaces(p: ConstructionPrimitive): { vertices: Vec3[]; g
     if (i >= (n - 1) / 2 && i < n - 1) faces.push({ vertices: [points[a], points[b], points[d]], group }, { vertices: [points[a], points[d], points[c]], group });
     else faces.push({ vertices: [points[a], points[b], points[c]], group }, { vertices: [points[b], points[d], points[c]], group });
   }
-  for (const ring of [0, count - 1]) {
-    const vertices = points.slice(ring * n, ring * n + n);
-    const center = vertices.reduce<Vec3>((sum, point) => sum.map((v, k) => v + point[k] / n) as Vec3, [0, 0, 0]);
-    for (let i = 0; i < n; i++) faces.push({ vertices: ring === 0 ? [vertices[(i + 1) % n], vertices[i], center] : [vertices[i], vertices[(i + 1) % n], center], group: ring === 0 ? 'bow' : 'stern' });
+  const stations = p.customHull!.stations, ring = (j: number) => points.slice(j * n, j * n + n);
+  for (const [j, span] of [[0, 0], [count - 1, count - 2]]) {
+    // An end span the native builder cuts into bands has banded caps; any other keeps the fan.
+    const banded = spanCut(ring(span), ring(span + 1), [stations[span].points.map(q => q.y), stations[span + 1].points.map(q => q.y)]).cut === 'bands';
+    for (const vertices of endCap(ring(j), j === 0, banded)) faces.push({ vertices, group: j === 0 ? 'bow' : 'stern' });
   }
   return faces;
 }

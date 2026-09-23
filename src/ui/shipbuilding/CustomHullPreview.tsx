@@ -4,7 +4,8 @@ import { constructionPaintColor } from '../../ships/constructionPaints';
 import { customHullBilgeKeelFaces, customHullPrimitive, outline, worldPoint, type Hull } from '../../ships/customHullModel';
 import { customHullPanels } from '../../ships/constructionPanels';
 import { constructionHullBasePaint } from '../../ships/constructionHullPaint';
-import type { ConstructionSource } from '../../ships/blueprint';
+import type { ConstructionSource, Vec3 } from '../../ships/blueprint';
+import { endCap, spanCut } from '../../ships/customHullSpans';
 
 /** Display-only faces for the section editor. `cut` keeps the sections from the bow to that
  * index and closes the hull there with a tinted cap, as the Section view's slice. */
@@ -52,10 +53,22 @@ export function hullGeometry(h: Hull, cut?: number, appearance?: ConstructionSou
     if (i >= (n - 1) / 2 && i < n - 1) { triangle(a, b, d, color, i); triangle(a, d, c, color, i); }
     else { triangle(a, b, c, color, i); triangle(b, d, c, color, i); }
   }
+  const vectors = (ring: number) => points.slice(ring * n, ring * n + n).map(p => p.toArray() as Vec3);
   for (const ring of [0, stations.length - 1]) {
+    const color = ring && cut !== undefined && cut < h.stations.length - 1 ? slice : panelColor(panels.length - (ring === 0 ? 2 : 1), side);
+    // A span the native builder cuts into horizontal bands closes with banded caps, not a fan about the mean.
+    // The Section view's slice is display only and keeps the fan.
+    const span = ring === 0 ? 0 : ring - 1, heights = (j: number) => rings[j].map(p => p.y);
+    if (stations.length > 1 && (ring === 0 || cut === undefined || cut >= h.stations.length - 1) && spanCut(vectors(span), vectors(span + 1), [heights(span), heights(span + 1)]).cut === 'bands') {
+      for (const face of endCap(vectors(ring), ring === 0, true)) {
+        const indices = face.map(p => { coordinates.push([stations[ring].t, p[1] / h.depth]); return points.push(new THREE.Vector3(...p)) - 1; });
+        triangle(indices[0], indices[1], indices[2], color);
+      }
+      continue;
+    }
     const center = new THREE.Vector3();
     for (let i = 0; i < n; i++) center.addScaledVector(points[ring * n + i], 1 / n);
-    const c = points.push(center) - 1, color = ring && cut !== undefined && cut < h.stations.length - 1 ? slice : panelColor(panels.length - (ring === 0 ? 2 : 1), side);
+    const c = points.push(center) - 1;
     coordinates.push([stations[ring].t, rings[ring].reduce((sum, p) => sum + p.y / n, 0)]);
     for (let i = 0; i < n; i++) {
       const a = ring * n + i, b = ring * n + (i + 1) % n;
