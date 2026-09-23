@@ -12,6 +12,7 @@
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
+import { galacticRotation } from '/src/game/sky/celestial/galactic.ts';
 
 const params = new URLSearchParams(location.search);
 const output = document.querySelector('output'), noop = () => {};
@@ -33,6 +34,13 @@ const rigUpdate = game.rig.update.bind(game.rig);
 const sunDirection = () => game.sky.sun.direction;
 const moonDirection = () => game.sky.moon.direction;
 const resetSkyHistory = () => game.sky.resetHistory();
+/** Toward the galactic centre in the game's sky (its star frame), or undefined under Sky Pro. */
+const galacticCentre = () => {
+  const rotation = game.sky.state?.uniforms.starRotation.value;
+  if (!rotation) return undefined;
+  const e = galacticRotation(rotation).elements;
+  return { x: e[0], y: e[3], z: e[6] };
+};
 
 /** Seconds of waves run up to a frozen time, so crest foam matches each scene's sea. */
 const FOAM_WARMUP = 10;
@@ -101,8 +109,27 @@ const scenes = {
   twilight: async () => { await battle({ hours: 18.35 }); gaze(BRIDGE, headingOf(sunDirection()), 5); },
   /** Night, facing the moon. */
   moon: async () => { await battle({ hours: 21.5 }); const moon = moonDirection(); gaze(BRIDGE, headingOf(moon), Math.max(4, elevationOf(moon) - 12), 60); },
+  /** The same low sun behind the player's tower, seen from abeam: shafts past the silhouette. */
+  shafts: async () => {
+    await battle({ hours: 17.6 });
+    const h = headingOf(sunDirection()), side = -16;
+    look([-Math.cos(h) * 170, 12, -Math.sin(h) * 170 + side], [Math.cos(h) * 600, 50, Math.sin(h) * 600 + side], 50);
+  },
   /** Night, looking up away from the moon: the stars. */
   stars: async () => { await battle({ hours: 0.5, cloud: 15 }); gaze(BRIDGE, headingOf(moonDirection()) + Math.PI, 40, 75); },
+  /** A dark night: a thin crescent has set and the Milky Way's core rises over the sea. */
+  crescent: async () => {
+    await battle({ hours: 21.5, cloud: 10 });
+    game.setDeveloperWeather({ ...game.environment.getOverrides(), moonPhase: .12 });
+    gaze(BRIDGE, headingOf(galacticCentre() ?? { x: .95, z: -.31 }), 22, 70);
+  },
+  /** Dusk: a thin crescent low over the afterglow of the set sun. */
+  dusk: async () => {
+    await battle({ hours: 18.4 });
+    game.setDeveloperWeather({ ...game.environment.getOverrides(), moonPhase: .08 });
+    const moon = moonDirection();
+    gaze(BRIDGE, headingOf(moon) - .2, Math.max(3, elevationOf(moon) - 2), 50);
+  },
   /** Straight up at midday cumulus. */
   zenith: async () => { await battle({ hours: 12.5, cloud: 50 }); look([0, 30, 0], [1, 10000, 0], 80); },
   clear: async () => { await battle({ hours: 11, weather: 'clear' }); look(...WIDE); },

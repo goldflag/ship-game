@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { Vector3 } from 'three/webgpu';
-import { anglesOf, CelestialModel, directionFromAngles, moonIllumination } from './celestialModel';
+import { anglesOf, CelestialModel, directionFromAngles, MOON_INCLINATION, moonIllumination } from './celestialModel';
 
 test('compass angles round-trip in the game convention', () => {
   expect(directionFromAngles(0, 0).distanceTo(new Vector3(0, 0, 1))).toBeLessThan(1e-12);
@@ -49,4 +49,19 @@ test('the star frame is a rotation whose pole is the celestial pole', () => {
   expect(new Vector3(e[2], e[5], e[8]).distanceTo(model.pole)).toBeLessThan(1e-10);
   const celestialPole = model.pole.clone().applyMatrix3(model.starRotation);
   expect(celestialPole.distanceTo(new Vector3(0, 0, 1))).toBeLessThan(1e-10);
+});
+
+test('the moon path is inclined to the sun arc: an evening crescent stands above the set sun, a full moon stays opposite', () => {
+  const model = new CelestialModel();
+  // Dusk (hour 18.4 in the game's day): the sun 7° under the western horizon, a 2.4-day crescent.
+  const sun = { elevation: 70 * Math.sin(12.4 * Math.PI / 12), azimuth: 18.4 * 15 };
+  model.set(sun.elevation, sun.azimuth, .08);
+  expect(model.sun.y).toBeLessThan(0);
+  expect(anglesOf(model.moon).elevation).toBeGreaterThan(5);
+  expect(model.moon.angleTo(model.sun)).toBeCloseTo(2 * Math.PI * .08, 9);
+  // The path crosses the sun's arc at the sun: the moon's offset from that arc is sin(elongation)·sin(inclination).
+  model.set(20, 200, .25);
+  expect(Math.asin(model.moon.dot(model.pole))).toBeCloseTo(MOON_INCLINATION, 9);
+  model.set(-40, 20, .5);
+  expect(model.moon.distanceTo(model.sun.clone().negate())).toBeLessThan(1e-9);
 });
