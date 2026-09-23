@@ -2,16 +2,19 @@ import { expect, test } from 'bun:test';
 import { loadShipPreset, shipPreset, shipPresets } from './presets';
 import { maximumRangeM, shipScores, shipSpec, shipStatistics } from './statistics';
 import { maxHullIntegrity } from './durability';
+import { gunBatteries } from './particulars';
 
 test('every preset prints a complete sheet whose figures come from the compiled definition', () => {
   for (const id of Object.keys(shipPresets)) {
     const def = shipPreset(id),
       sections = shipStatistics(def);
+    const batteries = gunBatteries(def);
     expect(sections.map((s) => s.id)).toEqual([
       'survivability',
       'armor',
       'main-battery',
-      ...(def.mounts.some((m) => m.battery === 'secondary') ? ['secondary-battery'] : []),
+      ...batteries.slice(1).filter((b) => b.role !== 'Light AA').map((b) => b.id),
+      ...(batteries.slice(1).some((b) => b.role === 'Light AA') ? ['light-aa'] : []),
       ...[...new Set(def.torpedoTubes?.map((t) => `torpedoes-${t.weapon.id}`))],
       ...[...new Set(def.depthChargeLaunchers?.map((l) => `depth-charges-${l.weapon.id}`))],
       'mobility',
@@ -32,12 +35,11 @@ test('every preset prints a complete sheet whose figures come from the compiled 
     expect(survivability.headline).toBe(maxHullIntegrity(def).toLocaleString('en-US'));
     expect(survivability.rows.find((r) => r.label === 'Compartments')!.value).toBe(String(def.compartments.length));
     const main = sections.find((s) => s.id === 'main-battery')!,
-      weapon = def.mounts.find((m) => m.battery === 'main')!.weapon;
+      heaviest = batteries[0].mountIndexes.map((i) => def.mounts[i]),
+      weapon = heaviest[0].weapon;
     expect(main.headline).toBe(String(Math.round(weapon.caliberM * 1000)));
-    if (new Set(def.mounts.filter((m) => m.battery === 'main').map((m) => m.weapon.barrelCount ?? 2)).size === 1) {
-      expect(main.rows.find((r) => r.label === 'Layout')!.value).toBe(
-        `${def.mounts.filter((m) => m.battery === 'main').length} × ${weapon.barrelCount ?? 2}`,
-      );
+    if (new Set(heaviest.map((m) => m.weapon.barrelCount)).size === 1 && new Set(heaviest.map((m) => m.partId)).size === 1) {
+      expect(main.rows.find((r) => r.label === 'Layout')!.value).toBe(`${heaviest.length} × ${weapon.barrelCount}`);
     }
     expect(sections.find((s) => s.id === 'model-basis')!.notes!.map((n) => n.text)).toEqual([
       def.accuracy.exterior,

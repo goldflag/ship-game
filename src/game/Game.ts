@@ -1694,9 +1694,10 @@ export class Game {
     const focus = this.cameraShipView?.motion;
     if (focus) this.rig.update(focus, focus.y, 0, true);
   }
-  setPortInspection(mode: InspectionMode, selectedId?: string): void {
+  /** Port model view; `selected` isolates one volume or a whole armor zone, equipment group or space. */
+  setPortInspection(mode: InspectionMode, selected?: string | readonly string[]): void {
     this.inspectionHover?.clear();
-    if (this.inPort) this.playerView?.setInspection(mode, selectedId);
+    if (this.inPort) this.playerView?.setInspection(mode, selected);
   }
   subscribeInspectionHover(listener: (hover: InspectionHoverInfo | null) => void): () => void {
     return this.inspectionHover.subscribe(listener);
@@ -1790,7 +1791,7 @@ export class Game {
       wakeFoam: this.shipWake?.diagnostics(),
       shipRigs: this.fleetViews.map(view => ({ shipId: view.actor.motion.id, ...view.rig.diagnostics() })),
       audio: this.audio?.diagnostics(),
-      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
+      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedIds.values().next().value, selectedVolumes: this.playerView?.inspection.selectedIds.size ?? 0, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       maxTorpedoMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.torpedoMuzzleErrors())),
       torpedoLaunchers: this.simulation.player.torpedoLaunchers,
