@@ -4,13 +4,16 @@ import type { OceanApi, OceanQuality, OceanSky, WakeSampler, WaveParameters } fr
 import { OCEAN_TIERS } from './quality';
 import { oceanFog } from './screen/fog';
 import { createUnderwaterPass, nearPlaneMayBeSubmerged } from './screen/underwater';
-import { createWaveField, createWaveHeightSampler } from './stubs/waves';
+import { createWaveField, createWaveHeightSampler } from './waves';
 import { createWakeField } from './wake';
 import { OceanGeometry } from './surface/OceanGeometry';
 import { OceanSurfaceMaterial } from './surface/OceanSurfaceMaterial';
 
 /** Wake heights are bounded to ±8 m; 10 cm more covers interpolation. */
 const WAKE_BOUND = 8.1;
+/** Crests above twice the significant height (8σ of a Gaussian sea) do not occur in practice; the
+ * wave field's strict bound (every component in phase) runs to about 20 × Hs. */
+const CREST_BOUND = 2;
 /** Draw order in the transparent queue: before every smoke, spray and overlay layer. */
 const SURFACE_ORDER = -30;
 
@@ -76,7 +79,8 @@ export class Ocean implements OceanApi {
     if (dt > 0) this.time += dt;
     this.geometry.update(this.camera);
     this.sky?.followCamera(this.camera);
-    this.cameraNearSurface = this.nearSurface.value = nearPlaneMayBeSubmerged(this.camera, this.waveField.maxHeight + WAKE_BOUND);
+    const crest = Math.min(this.waveField.maxHeight, CREST_BOUND * this.waves.significantHeight);
+    this.cameraNearSurface = this.nearSurface.value = nearPlaneMayBeSubmerged(this.camera, crest + WAKE_BOUND);
     this.waveField.update(this.renderer, this.time, dt);
     this.wake.step(this.renderer, dt);
     const environment = this.sky?.getEnvironmentTexture() ?? null;

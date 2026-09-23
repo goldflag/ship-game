@@ -32,7 +32,6 @@ roughness; McGuire & Mara, *Efficient GPU Screen-Space Ray Tracing* (2014).
 | `surface/` | Clipmap mesh and horizon ring, the surface material and its shading. |
 | `wake/` | Dispersive wake field, generators, wake foam. |
 | `screen/` | Scene fog node, screen-space reflections, underwater post-process and waterline. |
-| `stubs/` | A temporary Gerstner stand-in for the wave field until the FFT field lands. |
 
 ## Frame
 

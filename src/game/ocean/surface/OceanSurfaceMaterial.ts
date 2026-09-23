@@ -159,7 +159,8 @@ export class OceanSurfaceMaterial extends NodeMaterial {
       sceneColor: this.sceneColor, sceneDepth: this.sceneDepth, enabled: this.screenReflections,
       maxDistance: reference('maxDistance', 'float', reflections), steps: reflections.steps }) : undefined;
     const reflected = traced ? mix(sky, traced.color, traced.confidence) : sky;
-    const crest = positionWorld.y.div(max(waves.maxHeight, .1)).clamp(0, 1);
+    // How far up a wave this point sits: crests reach about Hs / 2, rare ones Hs.
+    const crest = positionWorld.y.div(reference('significantHeight', 'float', waves.params).max(.1)).clamp(0, 1);
     const direct = sunGlint(up, view, sunDirection, sunRadiance, sample.slopeVariance)
       .add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
     let above: Node<'vec3'> = mix(body, reflected, reflectance).add(direct.mul(lit));
