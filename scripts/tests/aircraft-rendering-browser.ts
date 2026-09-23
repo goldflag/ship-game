@@ -48,8 +48,9 @@ export async function checkAircraftRendering(verify = true) {
       for (const count of [0, 1, 6, 2, 0, 9]) {
         planes.forEach((plane, i) => { plane.phase = i < count ? 'outbound' : 'lost'; });
         view.update(sim, camera, true);
-        const models = view.root.children.filter(c => c.name.startsWith('Aircraft model ') && c.visible);
-        if (models.some(m => m.name !== `Aircraft model ${template.modelId}/${lod}`)) throw new Error('Fixture selected the wrong aircraft LOD');
+        // An airframe draws as instanced model batches plus its batched rigid parts.
+        const models = view.root.children.filter(c => /^Aircraft (model|parts) /.test(c.name) && c.visible);
+        if (models.some(m => !m.name.endsWith(` ${template.modelId}/${lod}`))) throw new Error('Fixture selected the wrong aircraft LOD');
         const contacts = view.root.getObjectByName('Distant aircraft silhouettes')!;
         const contactsVisible = contacts.visible;
         contacts.visible = false;
