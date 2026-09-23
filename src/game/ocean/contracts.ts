@@ -7,15 +7,17 @@ import type { Camera, Color, Node, Object3D, Texture, Vector3, WebGPURenderer } 
 /** Graphics → Ocean. Chosen when the port loads; changing it rebuilds the ocean. */
 export type OceanQuality = 'low' | 'medium' | 'high' | 'ultra';
 
-/** Sky Pro's provider, as the ocean consumes it. Sky Pro stays a vendored dependency; the
- * ocean only calls these members. `SkySystem.createSkyProvider()` returns a compatible object. */
+/** The sky's provider, as the ocean consumes it: `SkyApi.oceanSky` (`src/game/sky/contracts.ts`). The game's
+ * sky and the Sky Pro comparison both supply one; the ocean only calls these members. */
 export interface OceanSky {
   /** Prefiltered sky radiance (linear HDR) along a world direction. Sky Pro may ignore `roughness`;
    * the surface then does its own roughness filtering from `getEnvironmentTexture()`. */
   createReflectionSampler(): (direction: Node<'vec3'>, roughness?: Node<'float'>) => Node<'vec3'>;
   /** Sharp sky radiance (linear HDR, no sun disc) along a world direction, for distant fog. */
   createFogSampler(): (direction: Node<'vec3'>) => Node<'vec3'>;
-  /** Equirectangular environment bake; the same object until the bake is rebuilt. */
+  /** The environment bake, which `pmremTexture` and `scene.environment` read: an equirectangular image three
+   * prefilters itself (Sky Pro), or one already prefiltered in its PMREM (CubeUV) layout (the game's sky). The
+   * same object until the bake is rebuilt. */
   getEnvironmentTexture(): Texture;
   /** Backdrop meshes the sky draws; already in the scene. */
   getMeshes(): Object3D[];

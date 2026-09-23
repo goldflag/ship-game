@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sky review</title>
+<style>html,body{margin:0;background:#10232e}#scene{width:1600px;height:900px}canvas{display:block}output{position:fixed;top:8px;left:8px;color:white;background:#10232ecc;padding:8px;font:14px sans-serif}</style>
+<div id="scene"></div><output>Loading sky review…</output>
+<script type="module">
+// Development-only fixed scenes of the real game for reviewing the sky side by side.
+// `scripts/browser/sky-review.ts` drives it and saves one PNG per scene.
+// ?quality=low|medium|high|ultra (graphics preset), ?clouds=low|medium|high|ultra (cloud tier over the preset),
+// ?sky=game|skypro (the sky renderer, where the build has the switch), ?ship=<preset> for the player.
+import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+import { galacticRotation } from '/src/game/sky/celestial/galactic.ts';
+import { Vector3 } from 'three/webgpu';
+
+const params = new URLSearchParams(location.search);
+const output = document.querySelector('output'), noop = () => {};
+const errors = [];
+addEventListener('error', event => errors.push(event.message));
+addEventListener('unhandledrejection', event => errors.push(String(event.reason?.message ?? event.reason)));
+const quality = params.get('quality') ?? 'high';
+// One backing pixel per CSS pixel, so captures match on any display; `?pixels=device` keeps the game's own
+// pixel ratio (the device's, up to 1.5), as a Retina display renders it.
+const settings = { ...GRAPHICS_PRESETS[quality], renderScale: params.get('pixels') === 'device' ? 100 : 100 / Math.min(devicePixelRatio, 1.5) };
+if (params.get('clouds')) settings.clouds = params.get('clouds');
+if (params.get('sky')) settings.skyRenderer = params.get('sky');
+const game = new Game(document.querySelector('#scene'), settings, {
+  progress: text => { output.textContent = text; }, ready: noop, telemetry: noop, pause: noop, hud: noop, error: message => errors.push(message),
+}, shipPreset(params.get('ship') ?? 'bismarck'));
+game.scheduleFrame = noop;
+game.setInPort(true); game.start(); await game.initialization;
+const rigUpdate = game.rig.update.bind(game.rig);
+
+// Both renderers stand behind the same facade (src/game/sky/contracts.ts).
+const sunDirection = () => game.sky.sun.direction;
+const moonDirection = () => game.sky.moon.direction;
+const resetSkyHistory = () => game.sky.resetHistory();
+/** Toward the galactic centre in the game's sky (its star frame), or undefined under Sky Pro. */
+const galacticCentre = () => {
+  const rotation = game.sky.state?.uniforms.starRotation.value;
+  if (!rotation) return undefined;
+  const e = galacticRotation(rotation).elements;
+  return { x: e[0], y: e[3], z: e[6] };
+};
+
+/** Seconds of waves run up to a frozen time, so crest foam matches each scene's sea. */
+const FOAM_WARMUP = 10;
+const freeze = seconds => {
+  for (let t = seconds - FOAM_WARMUP; t < seconds; t += 1 / 30) game.ocean.waveField.update(game.renderer, t, 1 / 30);
+  game.ocean.time = seconds;
+};
+const frames = async count => { for (let i = 0; i < count; i++) { await new Promise(requestAnimationFrame); await game.frame(performance.now()); } };
+const settle = async (count = 48) => { resetSkyHistory(); await frames(count); };
+const look = (position, target, fov = 60, far) => {
+  game.rig.update = noop;
+  game.camera.position.set(...position); game.camera.lookAt(...target);
+  game.camera.fov = fov; if (far) game.camera.far = far;
+  game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
+};
+/** Look from `eye` along a compass heading (radians from +X toward +Z) at an elevation in degrees. */
+const gaze = (eye, heading, elevation, fov = 60) => {
+  const e = elevation * Math.PI / 180, d = 10000;
+  look(eye, [eye[0] + Math.cos(heading) * Math.cos(e) * d, eye[1] + Math.sin(e) * d, eye[2] + Math.sin(heading) * Math.cos(e) * d], fov);
+};
+const headingOf = direction => Math.atan2(direction.z, direction.x);
+const elevationOf = direction => Math.asin(Math.max(-1, Math.min(1, direction.y))) * 180 / Math.PI;
+const place = (view, pose) => { Object.assign(view.actor.motion, pose); view.snap(); };
+/** The game sky's weather part (src/game/sky/weather), for forced lightning; absent under Sky Pro. */
+const weatherPart = () => game.sky.parts?.weather;
+let battleKey, far;
+/** Enter (or stay in) a paused battle with these conditions; ships at fixed poses. */
+async function battle({ map = 'north-atlantic', hours = 12, wind = 9, cloud, weather = 'map', range = 5000 } = {}) {
+  const key = `${map}/${range}`;
+  if (key !== battleKey) {
+    game.rig.update = rigUpdate;
+    game.setInPort(true); game.setPaused(true);
+    await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: range, mapId: map, windSpeed: wind, timeHours: hours });
+    battleKey = key;
+    far = game.camera.far;
+  }
+  game.environment.setBattle({ weather, timeOfDay: 'map', conditions: { timeHours: hours, windSpeed: wind, ...(cloud === undefined ? {} : { cloudCover: cloud }) } });
+  game.setInPort(false); game.setPaused(true); game.rig.releasePointer();
+  game.environment.setScene(game.simulation.mapId, false);
+  // Frames stand still here, so a forced flash would never end on its own.
+  weatherPart()?.clearStrike();
+  game.camera.far = far;
+  place(game.playerView, { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 });
+  if (game.targetView) { place(game.targetView, { x: range, y: 0, z: 0, heading: Math.PI / 2, pitch: 0, roll: 0 }); game.targetView.root.visible = true; }
+  game.ship.position.copy(game.playerView.root.position);
+  freeze(60);
+  // The sky places the moon and bakes its reflections over a few frames.
+  await frames(4);
+}
+const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
+/** Draw the whole frame again. The scene pass renders once per node frame, which advances only on the browser's
+ * animation frames: without a new one, back-to-back renders redo the post passes alone and time no mesh. */
+const redraw = () => { game.renderer._nodes.nodeFrame.update(); game.pipeline.render(); };
+const ascending = values => [...values].sort((a, b) => a - b);
+/** The value `share` of the way up the sorted values. */
+const at = (values, share) => ascending(values)[Math.floor(values.length * share)];
+/** Mean without the lowest and highest tenth: wall-clock readings step in 0.1 ms, so a median would step too. */
+const trimmedMean = values => {
+  const kept = ascending(values).slice(Math.floor(values.length * .1), Math.ceil(values.length * .9));
+  return kept.reduce((sum, v) => sum + v, 0) / kept.length;
+};
+/** A bridge-height eye beside the player's ship. */
+const BRIDGE = [-60, 32, 90];
+/** The standard battle view: the ship in the foreground, the enemy and the sky beyond. */
+const WIDE = [[550, 200, 700], [-650, 75, -1000]];
+
+/** Each scene leaves the game paused with a fixed camera, sky and ocean time. */
+const scenes = {
+  port: async () => { game.rig.update = rigUpdate; game.setInPort(true); game.setPaused(true); battleKey = undefined; freeze(60); await frames(4); },
+  /** Midday cumulus seen across the sea, the sun behind the camera. */
+  noon: async () => { await battle({ hours: 12.5 }); gaze(BRIDGE, headingOf(sunDirection()) + Math.PI, 7); },
+  /** The standard gameplay composition in the afternoon. */
+  wide: async () => { await battle({ hours: 15 }); look(...WIDE); },
+  /** Facing a morning sun with cumulus around it. */
+  morningSun: async () => { await battle({ hours: 8.2 }); const sun = sunDirection(); gaze(BRIDGE, headingOf(sun), Math.max(0, elevationOf(sun) - 14), 70); },
+  /** A low sun on the horizon, facing it. */
+  sunset: async () => { await battle({ hours: 17.6 }); gaze(BRIDGE, headingOf(sunDirection()), 4); },
+  /** The same low sun behind the camera: the twilight side. */
+  sunsetAway: async () => { await battle({ hours: 17.6 }); gaze(BRIDGE, headingOf(sunDirection()) + Math.PI, 6); },
+  /** Civil twilight after sunset, facing the afterglow. */
+  twilight: async () => { await battle({ hours: 18.35 }); gaze(BRIDGE, headingOf(sunDirection()), 5); },
+  /** Night, facing the moon. */
+  moon: async () => { await battle({ hours: 21.5 }); const moon = moonDirection(); gaze(BRIDGE, headingOf(moon), Math.max(4, elevationOf(moon) - 12), 60); },
+  /** The same low sun behind the player's tower, seen from abeam: shafts past the silhouette. */
+  shafts: async () => {
+    await battle({ hours: 17.6 });
+    const h = headingOf(sunDirection()), side = -16;
+    look([-Math.cos(h) * 170, 12, -Math.sin(h) * 170 + side], [Math.cos(h) * 600, 50, Math.sin(h) * 600 + side], 50);
+  },
+  /** Night, looking up away from the moon: the stars. */
+  stars: async () => { await battle({ hours: 0.5, cloud: 15 }); gaze(BRIDGE, headingOf(moonDirection()) + Math.PI, 40, 75); },
+  /** A dark night: a thin crescent has set and the Milky Way's core rises over the sea. */
+  crescent: async () => {
+    await battle({ hours: 21.5, cloud: 10 });
+    game.setDeveloperWeather({ ...game.environment.getOverrides(), moonPhase: .12 });
+    gaze(BRIDGE, headingOf(galacticCentre() ?? { x: .95, z: -.31 }), 22, 70);
+  },
+  /** Dusk: a thin crescent low over the afterglow of the set sun, in a thin enough sky to show it. */
+  dusk: async () => {
+    await battle({ hours: 18.4, cloud: 20 });
+    game.setDeveloperWeather({ ...game.environment.getOverrides(), moonPhase: .08 });
+    const moon = moonDirection();
+    gaze(BRIDGE, headingOf(moon) - .12, Math.max(3, elevationOf(moon) - 2), 30);
+  },
+  /** Straight up at midday cumulus. */
+  zenith: async () => { await battle({ hours: 12.5, cloud: 50 }); look([0, 30, 0], [1, 10000, 0], 80); },
+  clear: async () => { await battle({ hours: 11, weather: 'clear' }); look(...WIDE); },
+  overcast: async () => { await battle({ hours: 12.5, weather: 'overcast' }); look(...WIDE); },
+  fog: async () => { await battle({ hours: 12.5, weather: 'fog' }); look(...WIDE); },
+  storm: async () => { await battle({ hours: 14, weather: 'storm-clouds', wind: 16 }); look(...WIDE); },
+  /** Binoculars on the enemy 20 km away: distant cloud banks over the horizon. */
+  binoculars: async () => { await battle({ hours: 10, range: 20000 }); look([0, 29, 0], [20000, 14, 0], zoom(24)); },
+  /** An aircraft's view from inside the cloud shell. */
+  air: async () => { await battle({ hours: 12.5 }); look([0, 2600, 2400], [0, 0, -1800], 52); },
+  /** The fleet chart from overhead, above the clouds. */
+  chart: async () => {
+    await battle({ hours: 12.5 });
+    const distance = 14000, tilt = 20 * Math.PI / 180;
+    look([0, distance * Math.cos(tilt), distance * Math.sin(tilt)], [0, 0, 0], 52, 1000000);
+  },
+  /** The chart tilted toward the horizon. */
+  chartTilted: async () => {
+    await battle({ hours: 12.5 });
+    const distance = 14000, tilt = 65 * Math.PI / 180;
+    look([0, distance * Math.cos(tilt), distance * Math.sin(tilt)], [0, 0, 0], 52, 1000000);
+  },
+  /** A daylight downpour from the bridge toward the enemy: streaks, splashes on the sea, the far hull veiled. */
+  rain: async () => { await battle({ hours: 13, weather: 'storm-clouds', wind: 16, range: 2500 }); gaze(BRIDGE, -.12, 1.5); },
+  /** Moonlit rain from the bridge, facing the moon through broken cloud: dark but for the drops it backlights. */
+  rainNight: async () => {
+    await battle({ hours: 21.5, cloud: 60, wind: 12 });
+    game.environment.setOverrides({ precipitation: 70 });
+    const moon = moonDirection(); gaze(BRIDGE, headingOf(moon), Math.max(4, elevationOf(moon) - 30), 70);
+  },
+  /** A night storm lit by a cloud-to-ground bolt 2.6 km off the bow, 6 ms into its first return stroke (seeded). */
+  lightning: async () => {
+    await battle({ hours: 23, weather: 'storm-clouds', wind: 16, range: 2500 });
+    gaze(BRIDGE, .05, 4);
+    weatherPart()?.forceStrike(new Vector3(2600, 0, 380), .006, 'ground', 7);
+  },
+  /** The same bolt by day, from the standard gameplay view. */
+  lightningDay: async () => {
+    await battle({ hours: 15, weather: 'storm-clouds', wind: 16 });
+    look(...WIDE);
+    weatherPart()?.forceStrike(new Vector3(-3200, 0, -5200), .006, 'ground', 7);
+  },
+};
+
+/** The weather's own cost in this scene, in milliseconds per frame. Its update is CPU only, so this is its meshes'
+ * share of the frame. A few hundredths of a millisecond drown in the noise of a shared GPU, so each of rain and
+ * splashes is drawn at none and at `copies` times its full capacity (the mesh drawn again by copies sharing its
+ * geometry and material) in alternate frames, and its cost here is the per-instance slope times the scene's count:
+ * from the median of the paired differences, their lower quartile, and the difference of the fastest frames.
+ * Frames are timed by GPU timestamps where the browser allows them (exact with --enable-webgpu-developer-features),
+ * else as serialised wall-clock frames. */
+async function benchmarkWeather(pairs = 160, copies = 8, clock = 'gpu') {
+  const part = weatherPart();
+  if (!part) return undefined;
+  const renderer = game.renderer, backend = renderer.backend, device = backend.device;
+  const sorted = values => [...values].sort((a, b) => a - b);
+  const timestamps = clock === 'gpu' && backend.hasFeature('timestamp-query');
+  const frame = async () => {
+    if (timestamps) { redraw(); return renderer.resolveTimestampsAsync('render'); }
+    await device.queue.onSubmittedWorkDone();
+    const start = performance.now(); redraw(); await device.queue.onSubmittedWorkDone();
+    return performance.now() - start;
+  };
+  const result = { clock: timestamps ? 'gpu' : 'wall', copies };
+  backend.trackTimestamp = timestamps;
+  try {
+    if (timestamps) await renderer.resolveTimestampsAsync('render');
+    for (const [name, field] of [['rain', part.rain], ['splashes', part.splashes]]) {
+      const count = field.count, visible = field.mesh.visible, full = [], none = [], differences = [];
+      if (!count) { result[name] = { count: 0, cost: 0 }; continue; }
+      const extra = Array.from({ length: copies - 1 }, () => {
+        const copy = field.mesh.clone();
+        copy.visible = false;
+        game.scene.add(copy);
+        return copy;
+      });
+      const show = on => { field.count = on ? field.capacity : 0; for (const mesh of [field.mesh, ...extra]) mesh.visible = on; };
+      try {
+        for (let i = 0; i < pairs; i++) {
+          show(true); const a = await frame();
+          show(false); const b = await frame();
+          full.push(a); none.push(b); differences.push(a - b);
+        }
+      } finally { extra.forEach(copy => copy.removeFromParent()); field.count = count; field.mesh.visible = visible; }
+      const drawn = field.capacity * copies, scale = count / drawn;
+      const median = sorted(differences)[differences.length >> 1], quartile = sorted(differences)[differences.length >> 2];
+      const fastest = sorted(full)[3] - sorted(none)[3];
+      result[name] = { count, drawn, cost: median * scale, quartile: quartile * scale, fastest: fastest * scale,
+        atDrawn: median, frame: sorted(none)[none.length >> 1] };
+    }
+  } finally { backend.trackTimestamp = false; }
+  result.total = (result.rain?.cost ?? 0) + (result.splashes?.cost ?? 0);
+  return result;
+}
+
+async function capture() {
+  await game.frame(performance.now());
+  await game.renderer.backend.device.queue.onSubmittedWorkDone();
+  return game.renderer.domElement.toDataURL('image/png');
+}
+/** Serialised CPU + GPU cost of whole frames: each frame waits for the GPU before the next. */
+async function measure(count = 120, stepping = true) {
+  const device = game.renderer.backend.device;
+  game.setPaused(!stepping);
+  const times = [];
+  try {
+    for (let i = 0; i < count + 10; i++) {
+      const start = performance.now();
+      await game.frame(game.lastTime + 1000 / 60);
+      await device.queue.onSubmittedWorkDone();
+      if (i >= 10) times.push(performance.now() - start);
+    }
+  } finally { game.setPaused(true); }
+  times.sort((a, b) => a - b);
+  const mean = times.reduce((sum, t) => sum + t, 0) / times.length;
+  return { mean, median: times[times.length >> 1], p90: times[Math.floor(times.length * .9)], max: times[times.length - 1],
+    calls: game.renderer.info.render.calls, triangles: game.renderer.info.render.triangles };
+}
+
+/** The whole sky's cost per frame: frames with the sky's update run and its meshes drawn, alternating with frames
+ * that have neither (which of a pair runs first swaps every pair: the first of two back-to-back frames is slower),
+ * every frame redrawing the scene pass. Each frame is serialised by waiting for the GPU and timed by wall clock, so
+ * a slow session shifts both kinds alike and the paired difference cancels it. `clock = 'gpu'` times them by GPU
+ * timestamps instead, which leaves the CPU out but counts a pass that waits on this frame's scene as busy for the
+ * whole wait (a pass sampling the scene read as 6 ms that cost nothing), so it overstates a sky with screen-space
+ * passes. Both kinds run the post passes (shafts, rain veil) and the sea's sky samplers; `wallFrames` counts
+ * those. `sky` is the trimmed mean of the paired differences, `fastest` the difference of the two kinds' 10th
+ * percentiles (other work only adds time, so a burst of it cannot spoil this), `frame` and `withSky` the trimmed
+ * mean frames. Milliseconds. */
+async function benchmarkSky(pairs = 200, clock = 'wall') {
+  const renderer = game.renderer, backend = renderer.backend, device = backend.device, sky = game.sky, meshes = sky.meshes();
+  const timestamps = clock === 'gpu' && backend.hasFeature('timestamp-query');
+  const gpu = async () => (await renderer.resolveTimestampsAsync('render') ?? 0) + (await renderer.resolveTimestampsAsync('compute') ?? 0);
+  const frame = async on => {
+    const visible = meshes.map(mesh => mesh.visible);
+    if (!on) meshes.forEach(mesh => { mesh.visible = false; });
+    try {
+      if (timestamps) { if (on) sky.update(1 / 60); redraw(); return gpu(); }
+      await device.queue.onSubmittedWorkDone();
+      const start = performance.now();
+      if (on) sky.update(1 / 60);
+      redraw();
+      await device.queue.onSubmittedWorkDone();
+      return performance.now() - start;
+    } finally { meshes.forEach((mesh, i) => { mesh.visible = visible[i]; }); }
+  };
+  backend.trackTimestamp = timestamps;
+  try {
+    if (timestamps) await gpu();
+    for (let i = 0; i < 10; i++) await frame(i % 2 === 0);
+    const on = [], off = [], differences = [];
+    for (let i = 0; i < pairs; i++) {
+      const first = i % 2 === 0, a = await frame(first), b = await frame(!first);
+      const [withSky, without] = first ? [a, b] : [b, a];
+      on.push(withSky); off.push(without); differences.push(withSky - without);
+    }
+    return { clock: timestamps ? 'gpu' : 'wall', sky: trimmedMean(differences), fastest: at(on, .1) - at(off, .1),
+      frame: trimmedMean(off), withSky: trimmedMean(on) };
+  } finally { backend.trackTimestamp = false; }
+}
+
+/** Where the sky's GPU time goes: each piece switched off in frames alternating with frames that keep it,
+ * by GPU timestamps: the offscreen passes (`update`), and each mesh the sky draws. Medians of the paired
+ * differences, milliseconds per frame. Timestamps overstate a piece whose pass waits on the scene (see
+ * `benchmarkSky`): read these as shares, and the totals from `benchmarkSky` and `wallFrames`. */
+async function benchmarkParts(pairs = 80) {
+  const renderer = game.renderer, backend = renderer.backend, sky = game.sky;
+  if (!backend.hasFeature('timestamp-query')) return undefined;
+  const gpu = async () => (await renderer.resolveTimestampsAsync('render') ?? 0) + (await renderer.resolveTimestampsAsync('compute') ?? 0);
+  const pieces = { update: null, ...Object.fromEntries(sky.meshes().map(mesh => [mesh.name || mesh.type, mesh])) };
+  const result = {};
+  backend.trackTimestamp = true;
+  try {
+    await gpu();
+    for (const [name, mesh] of Object.entries(pieces)) {
+      const differences = [];
+      // With the piece, or without it: a frame without a mesh drops it, and for the update the frame runs it twice.
+      const frame = async on => {
+        const visible = mesh?.visible;
+        sky.update(1 / 60);
+        if (!on) { if (mesh) mesh.visible = false; else sky.update(1 / 60); }
+        try { redraw(); } finally { if (mesh) mesh.visible = visible; }
+        return gpu();
+      };
+      // Alternate which frame of a pair runs first: the first of two back-to-back frames is systematically slower.
+      for (let i = 0; i < pairs; i++) {
+        const first = i % 2 === 0, a = await frame(first), b = await frame(!first);
+        differences.push(first ? a - b : b - a);
+      }
+      // The update is measured by running it once or twice per frame: a second run's cost.
+      const sorted = differences.sort((a, b) => a - b);
+      result[name] = mesh ? sorted[pairs >> 1] : -sorted[pairs >> 1];
+    }
+  } finally { backend.trackTimestamp = false; }
+  return result;
+}
+
+/** Whole frames as the game draws them (the sky's update and the full pipeline), each serialised by waiting for the
+ * GPU, by wall clock: what a frame costs with everything the sky touches, the sea's sky samplers and the post passes
+ * included. Sessions differ by up to half a millisecond, so compare skies over alternating sessions. Milliseconds. */
+async function wallFrames(frames = 300) {
+  const device = game.renderer.backend.device, times = [];
+  for (let i = 0; i < frames + 20; i++) {
+    await device.queue.onSubmittedWorkDone();
+    const start = performance.now();
+    game.sky.update(1 / 60); redraw();
+    await device.queue.onSubmittedWorkDone();
+    if (i >= 20) times.push(performance.now() - start);
+  }
+  return { trimmedMean: trimmedMean(times), fastest: at(times, .1), median: at(times, .5) };
+}
+
+window.skyReview = {
+  game, scenes: Object.keys(scenes), errors, benchmarkParts, wallFrames,
+  async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors] }; },
+  capture, measure, benchmarkWeather, benchmarkSky,
+};
+window.ready = true; output.textContent = '';
+</script>
+</html>

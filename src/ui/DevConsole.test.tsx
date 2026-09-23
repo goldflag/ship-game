@@ -5,7 +5,7 @@ import type { EnvironmentOverrides } from '../game/VisualEnvironment';
 
 const host = (overrides: EnvironmentOverrides): DevConsoleHost => ({
   developerWeather: () => ({ scene: 'battle', locked: false, overrides, seaWind: 22,
-    reading: { timeHours: 12, sunElevation: 70, cloudCover: 95, windSpeed: 22, windDirection: 35, visibilityKm: 48 } }),
+    reading: { timeHours: 12, sunElevation: 70, cloudCover: 95, windSpeed: 22, windDirection: 35, visibilityKm: 48, moonPhase: .5, precipitation: 60, lightning: 2 } }),
   setDeveloperWeather() {}, diagnostics: () => ({}), releasePointer() {}, capturePointer() {},
 });
 

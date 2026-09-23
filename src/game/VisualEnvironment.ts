@@ -1,11 +1,11 @@
 import { Color, HemisphereLight, MathUtils, Vector3, type DirectionalLight, type Object3D, type PerspectiveCamera } from 'three/webgpu';
 import type { OceanApi } from './ocean/contracts';
+import type { SkyApi, SkyScene } from './sky/contracts';
 import { windrowCoverage } from './ocean/waves/whitecaps';
-import type { SkySystem } from '../../vendor/threejs-sky-pro/build/index.js';
 import { DEFAULT_MAP, oceanMap, type OceanMapId } from '../maps/catalog';
 import { battleEnvironment, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
+import { battlePrecipitation } from '../maps/precipitation';
 
-const DAYLIGHT_COLOR = new Color(1, 1, 1);
 /** The harbor's standing wind. Its sea resolves through the same calibrated
  * curve as a battle's, so the console's reading is the sea on screen. */
 export const PORT_WIND = { speed: 9, direction: 35 };
@@ -20,11 +20,18 @@ export interface EnvironmentSinks {
 export interface BattleScene { timeOfDay: TimeOfDayId; weather: WeatherId; conditions: BattleConditions; }
 /** Developer console overrides on top of the current scene. Each field replaces
  * only what it names; a new scene clears them all. */
-export interface EnvironmentOverrides extends BattleConditions { windDirection?: number; visibilityKm?: number; }
+/** `precipitation` is a percentage, like `cloudCover`; `lightning` strikes per minute; `moonPhase` 0 new … 0.5 full. */
+export interface EnvironmentOverrides extends BattleConditions { windDirection?: number; visibilityKm?: number; moonPhase?: number; precipitation?: number; lightning?: number; }
 /** The weather on screen now, read back from the live sky and water. */
 export interface EnvironmentReading {
   timeHours?: number; sunElevation: number; cloudCover: number;
   windSpeed: number; windDirection: number; visibilityKm: number;
+  /** 0 new … 0.5 full. */
+  moonPhase: number;
+  /** Percent. */
+  precipitation: number;
+  /** Strikes per minute. */
+  lightning: number;
 }
 /** The developer console's view of a scene's weather. */
 export interface DeveloperWeather {
@@ -38,9 +45,8 @@ export interface DeveloperWeather {
 /** Share of each scene's authored forward sun haze that reaches the sky. At full
  * strength the aureole bleached a third of the sun-facing sky and its reflections. */
 const SUN_HAZE = .45;
-/** Sun and moon disc radius as `1 - cos(θ)`: a 1.4° disc, under three times life size.
- * Sky Pro's presets draw them at 3.2° and 3.6°. */
-const CELESTIAL_DISC = 7.5e-5;
+/** A full moon unless the developer console picks another phase: the brightest night. */
+const MOON_PHASE = .5;
 /** Opacity of a windrow's old foam: a thin film the sea shows through. */
 const WINDROW_OPACITY = .5;
 /** Windrows at `windSpeed` (m/s), with the map's whitecap `scale`: lines of old foam covering their share of the wind's
@@ -74,7 +80,7 @@ const FILL_DAYLIGHT = [1, 4] as const;
  * take them: the night sky, sea and smoke keep the raw moon. */
 const MESH_MOONLIGHT = 1.5, MESH_NIGHT_FILL = 1.6;
 
-/** Applies resolved battle conditions to the ocean and the licensed sky, and owns
+/** Applies resolved battle conditions to the ocean and the sky, and owns
  * every live override of those parameters: the port's daylight and standing wind, the air map's
  * far fog, underwater attenuation and the celestial light shared with the scene's
  * lights, the sea and smoke. CPU combat reads the same resolved conditions through the
@@ -85,7 +91,9 @@ export class VisualEnvironment {
   private ambient = .65;
   private ocean?: OceanApi;
   private sunLight?: DirectionalLight;
-  private sky?: SkySystem;
+  private sky?: SkyApi;
+  /** The description last handed to the sky, for diagnostics. */
+  private skyScene?: SkyScene;
   private mapId: OceanMapId = DEFAULT_MAP;
   private inPort = false;
   private battle: BattleScene = { timeOfDay: 'map', weather: 'map', conditions: {} };
@@ -93,8 +101,6 @@ export class VisualEnvironment {
   private chartFog = false;
   // Original swatches, restored exactly when the camera surfaces again.
   private surfaceAbsorption = new Color();
-  private celestialColor = new Color();
-  private readonly sunriseColor = new Color('#ffd1a0');
   private shadowFocus?: Vector3;
 
   constructor(private sinks: EnvironmentSinks) {}
@@ -106,14 +112,8 @@ export class VisualEnvironment {
     this.sunLight = sunLight;
     this.surfaceAbsorption.copy(ocean.colors.absorptionColor);
   }
-  /** Sky is attached after its preset; `update` shares its light every frame. */
-  attachSky(sky: SkySystem): void {
-    this.sky = sky;
-    // Lift the dark horizon band without retuning the authored sky palette.
-    sky.atmosphere.horizonCorrection.value = .8;
-    sky.sun.discSize.value = CELESTIAL_DISC;
-    sky.timeOfDay.moonAngularSize.value = CELESTIAL_DISC;
-  }
+  /** `update` advances the sky and shares its light every frame. */
+  attachSky(sky: SkyApi): void { this.sky = sky; }
   /** Conditions for the next launch; the port keeps its own daylight until the scene changes. */
   setBattle(battle: BattleScene): void { this.battle = { ...battle, conditions: { ...battle.conditions } }; }
   /** Apply the sea, sky, fog and wind for a map in port or at sea. A new scene drops developer overrides. */
@@ -131,10 +131,11 @@ export class VisualEnvironment {
   reading(): EnvironmentReading | undefined {
     if (!this.sky || !this.ocean) return undefined;
     const timeHours = this.overrides.timeHours ?? (this.inPort ? undefined : this.battle.conditions.timeHours);
-    return { timeHours, sunElevation: this.sky.sun.elevationDeg, cloudCover: this.sky.clouds.shape.coverage.value * 100,
+    return { timeHours, sunElevation: this.sky.sun.elevationDeg, cloudCover: this.sky.coverage * 100,
       windSpeed: this.ocean.waves.windSpeed,
       windDirection: MathUtils.euclideanModulo(this.ocean.waves.windDirection * 180 / Math.PI, 360),
-      visibilityKm: this.sceneFogEnd() / 1000 };
+      visibilityKm: this.sceneFogEnd() / 1000, moonPhase: this.sky.moon.phase,
+      precipitation: (this.skyScene?.weather.precipitation ?? 0) * 100, lightning: this.skyScene?.weather.lightning ?? 0 };
   }
   /** The air map raises the camera far above the authored fog; closing it restores the scene's fog. */
   setChartFog(enabled: boolean): void { this.chartFog = enabled; this.applyFog(); }
@@ -159,10 +160,12 @@ export class VisualEnvironment {
     return { waves: this.ocean ? { significantHeight: this.ocean.waves.significantHeight, windSpeed: this.ocean.waves.windSpeed,
         peakWavelength: this.ocean.waves.peakWavelength } : undefined,
       ...this.battle.conditions, timeOfDay: this.battle.timeOfDay, weather: this.battle.weather,
-      environment: this.sky ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
-        sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambient,
-        cloudCoverage: this.sky.clouds.shape.coverage.value, cloudWind: this.sky.clouds.wind.speed,
-        cloudAmbient: this.sky.clouds.lighting.ambientIntensity.value, fogEnd: this.ocean?.fog.end } : undefined };
+      environment: this.sky && this.skyScene ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
+        sunIntensity: this.skyScene.sun.intensity, ambient: this.ambient,
+        cloudCoverage: this.sky.coverage, cloudWind: this.skyScene.clouds.windSpeed,
+        cloudAmbient: this.skyScene.clouds.ambient, precipitation: this.skyScene.weather.precipitation,
+        lightning: this.skyScene.weather.lightning, moonPhase: this.skyScene.moon.phase, fogEnd: this.ocean?.fog.end,
+        sky: this.sky.diagnostics() } : undefined };
   }
 
   private resolved() {
@@ -173,7 +176,8 @@ export class VisualEnvironment {
     const conditions: BattleConditions = this.inPort ? { windSpeed: PORT_WIND.speed } : { ...this.battle.conditions };
     for (const key of ['timeHours', 'cloudCover', 'windSpeed'] as const) if (this.overrides[key] !== undefined) conditions[key] = this.overrides[key];
     return { map, environment: this.inPort ? battleEnvironment(map, 'map', 'map', conditions)
-      : battleEnvironment(map, this.battle.timeOfDay, this.battle.weather, conditions) };
+      : battleEnvironment(map, this.battle.timeOfDay, this.battle.weather, conditions),
+      rain: this.inPort ? { precipitation: 0, lightning: 0 } : battlePrecipitation(this.battle.weather, conditions) };
   }
   private get shelteredLight() { return this.inPort && this.overrides.timeHours === undefined; }
   private applySea(): void {
@@ -206,32 +210,30 @@ export class VisualEnvironment {
   private applyLighting(): void {
     const sky = this.sky;
     if (!sky) return;
-    const { environment } = this.resolved(), authored = environment.sky, port = this.shelteredLight;
+    const { map, environment, rain } = this.resolved(), authored = environment.sky, port = this.shelteredLight;
     const clouds = this.inPort && this.overrides.cloudCover === undefined;
-    const elevation = port ? 36 : authored.elevation, azimuth = port ? 58 : authored.azimuth;
-    // Freeze the celestial clock at an arc endpoint matching the authored angles.
-    // This keeps SunDriver's moon opposite the sun without advancing battle time.
-    sky.timeOfDay.applyParams({ autoAdvanceSecondsPerDay: 0, time: elevation < 0 ? 0 : .5,
-      latitude: 90 - Math.abs(elevation), azimuth: elevation < 0 ? azimuth : azimuth - 180 });
-    sky.sun.setFromAngles(elevation, azimuth);
-    sky.sun.peakIntensity = port ? 5.8 : authored.intensity;
-    sky.clouds.shape.altitude.value = this.inPort ? 1700 : authored.altitude;
-    sky.clouds.shape.thickness.value = this.inPort ? 2400 : authored.thickness;
-    sky.clouds.shape.coverage.value = clouds ? .38 : authored.coverage;
-    sky.clouds.shape.horizonCoverageAmount.value = clouds ? .06 : environment.horizonCoverage;
-    sky.clouds.wind.speed = environment.cloudWind;
-    sky.clouds.lighting.ambientIntensity.value = port ? 1.1 : environment.cloudAmbient;
-    sky.clouds.lighting.baseShadowStrength.value = port ? .2 : environment.cloudShadow;
+    const overrides = this.overrides;
+    // Clouds drift with the sea's wind: the ocean's direction runs from +X toward +Z, the sky's heading is a compass bearing.
+    const windDirection = overrides.windDirection ?? (this.inPort ? PORT_WIND.direction : map.water.windDirection);
+    // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
+    // forward sun haze restrained so it cannot wash out the sky and reflections.
+    this.skyScene = {
+      sun: { elevation: port ? 36 : authored.elevation, azimuth: port ? 58 : authored.azimuth, intensity: port ? 5.8 : authored.intensity },
+      moon: { phase: overrides.moonPhase ?? MOON_PHASE },
+      atmosphere: { rayleigh: port ? .42 : authored.rayleigh, turbidity: port ? 3.2 : authored.turbidity,
+        mie: port ? .25 : authored.mie * SUN_HAZE, mieG: port ? .6 : authored.mieG, multiple: port ? 1.4 : authored.multiple },
+      clouds: { coverage: clouds ? .38 : authored.coverage, altitude: this.inPort ? 1700 : authored.altitude,
+        thickness: this.inPort ? 2400 : authored.thickness, horizonCoverage: clouds ? .06 : environment.horizonCoverage,
+        ambient: port ? 1.1 : environment.cloudAmbient, baseShadow: port ? .2 : environment.cloudShadow,
+        windSpeed: environment.cloudWind, windHeading: MathUtils.euclideanModulo(90 - windDirection, 360) },
+      weather: { precipitation: overrides.precipitation !== undefined ? overrides.precipitation / 100 : rain.precipitation,
+        lightning: overrides.lightning ?? rain.lightning },
+      port: this.inPort,
+    };
+    sky.apply(this.skyScene);
     // Lift shaded hulls without raising sea/sky exposure.
     this.ambient = port ? 1.75 : authored.ambient;
     this.ambientLight.intensity = this.ambient;
-    // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
-    // forward sun haze restrained so it cannot wash out the sky and reflections.
-    sky.atmosphere.turbidity.value = port ? 3.2 : authored.turbidity;
-    sky.atmosphere.rayleigh.value = port ? .42 : authored.rayleigh;
-    sky.atmosphere.mieScatteringStrength.value = port ? .25 : authored.mie * SUN_HAZE;
-    sky.atmosphere.mieDirectionalG.value = port ? .6 : authored.mieG;
-    sky.atmosphere.skyMultipleScattering.value = port ? 1.4 : authored.multiple;
     this.applyFog();
   }
   private applyFog(): void {
@@ -255,40 +257,32 @@ export class VisualEnvironment {
     const end = this.inPort ? 5600 : this.resolved().environment.fog.end;
     return this.overrides.visibilityKm === undefined ? end : this.overrides.visibilityKm * 1000;
   }
-  /** Share the active celestial light: the low sun warms toward sunrise, the
-   * moon takes over once it outshines the sun, and both reach the sea, the scene
-   * light and its shadows, and smoke, including on paused frames. */
+  /** Share the sky's active celestial light: the sun, warmed by the air when low, or the moon
+   * once it outshines the sun. It reaches the sea, the scene light and its shadows, and smoke,
+   * including on paused frames. A lightning flash lifts the diffuse fill for its instant. */
   syncLighting(): void {
     const sky = this.sky;
     if (!sky) return;
-    const { sun, timeOfDay: moon } = sky;
-    const highSun = MathUtils.smoothstep(sun.elevationDeg, 0, 18);
-    const solar = sun.intensity.value * (.12 + .88 * highSun) * MathUtils.smoothstep(sun.elevationDeg, 0, 2);
-    const lunar = .65 * moon.moonIntensity.value * moon.moonPhaseIllumination.value
-      * MathUtils.smoothstep(moon.moonDirection.value.y, 0, Math.sin(Math.PI / 30));
-    const night = lunar > solar, intensity = night ? lunar : solar;
-    const direction = night ? moon.moonDirection.value : sun.direction.value;
-    if (night) this.celestialColor.copy(moon.moonColor.value);
-    else this.celestialColor.copy(this.sunriseColor).lerp(DAYLIGHT_COLOR, highSun).multiply(sun.color.value);
+    const { direction, color, intensity, night, flash } = sky.light;
     if (this.ocean) {
       // The sea shades with the raw celestial light; only the scene light meshes use is scaled.
       this.ocean.sun.direction.copy(direction);
       this.ocean.sun.intensity = intensity;
-      this.ocean.sun.color.copy(this.celestialColor);
+      this.ocean.sun.color.copy(color);
       const daylight = MathUtils.smoothstep(intensity, ...FILL_DAYLIGHT);
-      this.ambientLight.intensity = this.ambient * (night ? MESH_NIGHT_FILL : MathUtils.lerp(1, MESH_FILL, daylight));
+      this.ambientLight.intensity = this.ambient * (night ? MESH_NIGHT_FILL : MathUtils.lerp(1, MESH_FILL, daylight)) * (1 + flash);
       this.ocean.environmentIntensity = MathUtils.lerp(1, MESH_SKY, daylight);
     }
     const light = this.sunLight;
     if (light) {
       light.intensity = intensity * (night ? MESH_MOONLIGHT : MESH_SUNLIGHT);
-      light.color.copy(this.celestialColor);
+      light.color.copy(color);
       light.target.position.copy(this.inPort ? this.sinks.sunAnchor.position : this.shadowFocus ?? this.sinks.sunAnchor.position);
       light.position.copy(direction).multiplyScalar(this.inPort ? 800 : 500).add(light.target.position);
       light.target.updateMatrixWorld();
     }
     this.sinks.effects.setSun(direction, this.inPort ? 1 : Math.min(1, night
       ? .18 + this.ambient * .5 : this.ambient * .45 + intensity * .09));
-    this.sinks.effects.setIllumination(this.celestialColor, intensity, this.ambient);
+    this.sinks.effects.setIllumination(color, intensity, this.ambient * (1 + flash));
   }
 }

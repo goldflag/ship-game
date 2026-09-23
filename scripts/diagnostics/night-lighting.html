@@ -30,21 +30,21 @@ window.reviewLighting = async (hours, options = {}) => {
   game.camera.position.set(...(options.wide ? [550, 200, 700] : [300, 95, 350]));
   game.camera.lookAt(...(options.wide ? [-650, 75, -1000] : [0, 20, 0]));
   game.camera.fov = 60; game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
-  game.sky.pipeline.cloudTemporal.invalidateHistory();
+  game.sky.resetHistory();
   for (let i = 0; i < 40; i++) await game.frame(performance.now());
   const { sky, ocean } = game;
   // The ocean shades with the same celestial light the scene light carries.
   const light = ocean.sun, sceneLight = game.environment.sunLight;
-  // Private baker inspection is pinned to the retained Sky Pro 2.2.0 bundle.
-  const cloudFill = sky.pipeline._ambientSky.zenithRadiance.value.toArray();
-  const result = { hours, options, sun: sky.sun.intensity.value, elevation: sky.sun.elevationDeg,
+  // Sky Pro's lunar cloud fill (its private baker) is only readable with the Sky Pro renderer.
+  const cloudFill = sky.diagnostics().cloudFill;
+  const result = { hours, options, sun: sky.light.night ? 0 : sky.light.intensity, elevation: sky.sun.elevationDeg,
     waterLight: light.intensity, sceneLight: sceneLight.intensity,
     direction: light.direction.toArray(), ambient: game.environment.ambientLight.intensity,
     fog: ocean.fog.color.getHexString(), cloudFill, waterColor: ocean.colors.waterColor.toArray(),
     foam: ocean.foam.crest.color.toArray(), errors: [...errors] };
   const night = !options.port && (hours === 0 || hours === 24);
   result.passed = Math.abs(result.waterLight - result.sceneLight) < 1e-8
-    && (!night || (result.waterLight > .3 && cloudFill.every(x => x > .005) && result.fog === '182839'))
+    && (!night || (result.waterLight > .3 && (!cloudFill || cloudFill.every(x => x > .005)) && result.fog === '182839'))
     && errors.length === 0;
   output.textContent = `${hours}:00 · ${options.weather ?? 'map'} · ${result.passed ? 'PASS' : 'FAIL'}`;
   window.lightingResult = result;

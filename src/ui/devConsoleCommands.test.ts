@@ -14,15 +14,22 @@ test('a typed word and number pick settings and set their values', () => {
   expect(labels('storm 3')).toEqual([]);
   expect(labels('copy')).toEqual([['Copy scene diagnostics', undefined]]);
   expect(labels('bow')).toEqual([['Toggle bow waves', undefined]]);
+  expect(labels('rain 40%')).toEqual([['Rain', 40]]);
+  expect(labels('lightning 6/min')).toEqual([['Lightning', 6]]);
+  expect(labels('moon 0.25')).toEqual([['Moon phase', .25]]);
   expect(labels('slick')).toEqual([['Toggle realistic wakes', undefined]]);
-  for (const query of ['water pro', 'library', 'compare', 'renderer', 'switch ocean']) expect(labels(query)).toEqual([['Switch ocean renderer', undefined]]);
+  for (const query of ['water pro', 'switch ocean']) expect(labels(query)).toEqual([['Switch ocean renderer', undefined]]);
+  for (const query of ['sky renderer', 'skypro']) expect(labels(query)).toEqual([['Switch sky renderer', undefined]]);
+  // Both vendored libraries the game replaced answer to the comparison's words.
+  for (const query of ['library', 'compare', 'renderer']) expect(labels(query)).toEqual([['Switch ocean renderer', undefined], ['Switch sky renderer', undefined]]);
   expect(labels('realistic haze')).toEqual([['Toggle realistic haze', undefined]]);
-  expect(matchCommands('').length).toBe(21);
+  expect(matchCommands('').length).toBe(25);
 });
 
 test('online battles offer only the visual diagnostics', () => {
   expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined], ['Toggle bow waves', undefined], ['Toggle realistic sea state', undefined],
-    ['Toggle physical reflections', undefined], ['Toggle physical water colour', undefined], ['Toggle realistic wakes', undefined], ['Toggle realistic haze', undefined], ['Switch ocean renderer', undefined]]);
+    ['Toggle physical reflections', undefined], ['Toggle physical water colour', undefined], ['Toggle realistic wakes', undefined], ['Toggle realistic haze', undefined],
+    ['Switch ocean renderer', undefined], ['Switch sky renderer', undefined]]);
   expect(labels('wind 14', true)).toEqual([]);
 });
 
@@ -35,7 +42,7 @@ test('time and bearings wrap; other values clamp to their range', () => {
 });
 
 test('sheltered port light reads as a sun angle and scrubs from the matching hour', () => {
-  const reading = { sunElevation: 35, cloudCover: 38, windSpeed: 9, windDirection: 35, visibilityKm: 5.6 };
+  const reading = { sunElevation: 35, cloudCover: 38, windSpeed: 9, windDirection: 35, visibilityKm: 5.6, moonPhase: .5, precipitation: 0, lightning: 0 };
   expect(readingLabel('timeHours', reading)).toBe('sun 35°');
   expect(currentValue('timeHours', reading)).toBeCloseTo(8);
   expect(readingLabel('timeHours', { ...reading, timeHours: 18.5, sunElevation: -18 })).toBe('18:30 · sun -18°');

@@ -57,7 +57,7 @@ const freeze = async (seconds, { step = true } = {}) => {
 
 const frames = async count => { for (let i = 0; i < count; i++) { await new Promise(requestAnimationFrame); await game.frame(performance.now()); } };
 const settle = async (count = 40) => {
-  game.sky.pipeline.cloudTemporal.invalidateHistory();
+  game.sky.resetHistory();
   await frames(count);
 };
 const look = (position, target, fov = 60) => {
@@ -131,7 +131,7 @@ const scenes = {
   grazing: async () => { await battle(); look([0, 12, 160], [0, 6, -4000], 55); },
   sun: async () => {
     await battle({ hours: 16.5 });
-    const sun = game.sky.sun.direction.value, heading = Math.atan2(sun.z, sun.x);
+    const sun = game.sky.sun.direction, heading = Math.atan2(sun.z, sun.x);
     look([-Math.cos(heading) * 260, 28, -Math.sin(heading) * 260], [Math.cos(heading) * 3000, 0, Math.sin(heading) * 3000], 60);
   },
   storm: async () => { await battle({ wind: 25 }); look(...NEAR); },
@@ -202,7 +202,7 @@ const scenes = {
   /** The trail across the morning sun's glitter: the slick reads as a dark, smooth band through it. */
   wakeGlint: async () => {
     const ship = await sail({ seconds: 150, hours: 7.5 });
-    const sun = game.sky.sun.direction.value, flat = Math.hypot(sun.x, sun.z), toward = [sun.x / flat, sun.z / flat];
+    const sun = game.sky.sun.direction, flat = Math.hypot(sun.x, sun.z), toward = [sun.x / flat, sun.z / flat];
     // Stand off the trail's middle, away from the sun, as high as the sun so the glitter falls on the trail.
     const middle = astern(ship, 1000), off = 1000, height = off * sun.y / flat;
     look([middle[0] - toward[0] * off, height, middle[2] - toward[1] * off], [middle[0] + toward[0] * 250, 0, middle[2] + toward[1] * 250], 55);

@@ -1,12 +1,15 @@
 import { DataUtils, type RenderTarget, type WebGPURenderer } from 'three/webgpu';
 import type { Game } from '../../src/game/Game';
 import type { SkySystem } from '../../vendor/threejs-sky-pro/build/index.js';
+import type { SkyApi } from '../../src/game/sky/contracts';
 
-/** Run on the real, ready harness game. Read back the sky LUT so clouds, exposure
- * and screenshot compression cannot hide a regression in the horizon band. */
+/** Run on the real, ready harness game with the Sky Pro renderer (Graphics `skyRenderer: 'skypro'`).
+ * Read back Sky Pro's sky LUT so clouds, exposure and screenshot compression cannot hide a
+ * regression in the horizon band its local patch corrects. */
 export async function checkSkyHorizon(game: Game) {
-  const scene = game as unknown as { sky: SkySystem; renderer: WebGPURenderer; paused: boolean };
-  const sky = scene.sky, initial = sky.atmosphere.toParams(), paused = scene.paused;
+  const scene = game as unknown as { sky: SkyApi & { system?: SkySystem }; renderer: WebGPURenderer; paused: boolean };
+  if (scene.sky.renderer !== 'skypro' || !scene.sky.system) throw new Error('The horizon check reads Sky Pro: switch the sky renderer to Sky Pro first.');
+  const sky = scene.sky.system, initial = sky.atmosphere.toParams(), paused = scene.paused;
   const weather = game.developerWeather()!.overrides;
   const target = (sky.pipeline as unknown as { _skyViewLUT: { target: RenderTarget } })._skyViewLUT.target;
   const frames = async () => { for (let n = 0; n < 3; n++) await new Promise(requestAnimationFrame); };

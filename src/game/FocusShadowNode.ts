@@ -103,6 +103,9 @@ export class FocusShadowNode extends ShadowBaseNode {
   viewDepthBiasTexels = 2;
   /** Off, only the near and wide maps render: for comparisons and cost measurement. */
   viewShadows = true;
+  /** Sun transmittance through the clouds at a world position, multiplied into every map's
+   * visibility. Set before the first lit material compiles. */
+  cloud?: (position: Node<'vec3'>) => Node<'float'>;
 
   constructor(readonly sun: DirectionalLight) {
     super(sun);
@@ -221,7 +224,7 @@ export class FocusShadowNode extends ShadowBaseNode {
         If(weight.greaterThan(0), () => { value.assign(map); });
         result = result.add(value.mul(weight));
       });
-      return result;
+      return this.cloud ? result.mul(this.cloud(position)) : result;
     })();
   }
 
