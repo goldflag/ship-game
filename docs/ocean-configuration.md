@@ -66,7 +66,8 @@ simulation reads only `significantHeightM` and `peakWavelengthM` from the table.
 Its two sine components have weights 0.7/0.3, so their envelope amplitude is
 `Hs / (4 × sqrt((0.7² + 0.3²) / 2))`. The CPU retains its coarse four-times-peak-wavelength
 envelope and seeded phase; GPU waves never supply combat poses, collision or flooding samples.
-The two surfaces share height statistics, not exact phases or a hydrodynamic model.
+The two surfaces share height statistics, not exact phases or a hydrodynamic model; around the hulls
+the drawn sea takes combat's own (see [The sea around hulls](#the-sea-around-hulls)).
 
 ### Realistic sea state
 
@@ -113,6 +114,59 @@ hull motion and the port's `BerthMotion` read the table through `session/sea.ts`
 stay the table's. The realistic sea's heights are also easier to invert: `heightAt` (buoys, the torpedo
 overlay, the waterline) misses by 2 cm at the 90th percentile in the 25 m/s storm, where the table's
 folded crests cost 12 cm.
+
+### The sea around hulls
+
+Every hull rides combat's two sines while the ocean draws its own spectrum, so in a storm a hull could
+sit on a combat crest over a drawn trough with its bottom showing, or under a drawn crest; the realistic
+sea's 300 m swells lift or drop the drawn water along a whole hull at once. The game passes the drawn
+hulls, the combat sea's components (`seaWaves` in `session/sea.ts`) and the simulation's clock to
+`ocean.setHullSea` every frame, and near each hull the ocean blends its long waves into that sea
+(`src/game/ocean/waves/hullSea.ts`). Presentation only: combat, hitboxes and poses never read it.
+
+- **Clock.** The battle's `presentationTime`: the simulated time of the poses drawn this frame, between
+  the last two snapshots by the interpolation fraction, never the ocean's wave time. Paused and tactical-
+  paused frames hold it. In port it is `BerthMotion`'s clock, with still water while the hull is inspected.
+- **Hulls.** The nearest 16 to the camera (the wake field takes 8), each a centre line through its hull's
+  actual extents. Full coupling within max(0.3 L, 0.75 B, λ/4) of the centre line, none beyond max(L, λ)
+  further, λ being combat's longer wavelength (4 × the table's peak): the crest and trough beside the hull
+  are the ones it rides, and over a wavelength the blend tilts the water less than the waves themselves
+  do. Overlapping reaches join as 1 − Π(1 − wᵢ), smooth where a max would crease the lighting. With more
+  hulls than slots, those near the cut fade instead of popping as the camera moves.
+- **Contact.** A hull couples in full while its highest point (a submarine's periscope eye, a ship's deck
+  edge) stands above the still-water line, and not at all once it is deeper than combat's amplitude and a
+  metre more: a submarine at depth or a wreck going down leaves the drawn sea alone.
+- **Blend.** Height = drawn + α·long + β·combat, `long` the first cascade low-passed by its mip chain,
+  α = n(1 − w) − 1, β = n·w, n = 1/√((1 − w)² + w²): the two seas are uncorrelated, so a plain cross-fade
+  would calm the ring between them to 0.71 of the swell. Combat's heights are taken where each vertex
+  lands, so the drawn height equals `seaHeight` at the hull's own points; the long waves' horizontal
+  motion goes with their heights. Slopes, strain and the blend's gradient across both seas follow, and
+  `heightAt` (buoys, the waterline test, the torpedo overlay) too. Shorter waves, crest foam (bound to
+  the grid, so it stays on the shorter crests), the wake and bow waves ride on top.
+- **Split.** A box low-pass falls from 0.9 to 0.1 over a factor of five in wavelength, so no mip level
+  separates the long waves cleanly. When the spectrum rebuilds or combat's wavelength changes, the field
+  weighs, over the first cascade's spectrum binned to 64² cells (0.1–2 ms), the variance of drawn waves
+  longer than λ/2 a level would leave beside a hull (twice) against the shorter variance it would take.
+  The realistic storm loses its long peak whole beside a hull and keeps most of its 50–100 m waves; the
+  art-directed sea, peaking at a quarter of combat's wavelength, keeps its own waves and gains combat's
+  swell:
+
+| Low-pass box on High, Atlantic (m) | 9 m/s | 15 | 25 | 30 |
+| --- | --- | --- | --- | --- |
+| Realistic sea | 23 | 31 | 31 | 39 |
+| Art-directed sea | 32 | 54 | 64 | none |
+
+The coupling runs with the realistic sea state on or off: the art-directed sea holds almost nothing at
+combat's wavelengths, so without it a storm heaves a hull ±3–5 m against drawn water that does not
+move with it. On the GPU, heights read back around the hulls of a paused 25 m/s battle with the drawn
+waves flattened match `seaHeight` at the drawn poses' time to 0.01 mm.
+
+What remains is combat's own motion. The authority eases heave over 1.5 s (37° behind a 12.6 s swell),
+averages it over the waterplane and pitches a battleship about a third of the wave's chord slope, so in
+a 25–30 m/s storm a hull's still-water line sits 1.5–2 m rms from the water beside it amidships and up
+to 4–5 m at a battleship's ends (measured over two minutes of Bismarck and Fletcher; a hull following
+the sea without easing would leave 0.6–1.3 m, the sea's curvature along it). Drawn water there is still
+combat's truth: shells splash and openings flood against the same `seaHeight`.
 
 ## Water colour
 
