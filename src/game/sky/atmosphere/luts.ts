@@ -68,16 +68,18 @@ export const unitToTexel = (unit: Float, size: number): Float => unit.mul(size -
 const texelToUnit = (pixel: Float, size: number): Float => pixel.sub(.5).div(size - 1);
 
 export const rayleighPhase = (nu: Float): Float => nu.mul(nu).add(1).mul(3 / (16 * Math.PI));
+/** x^1.5 without a transcendental. */
+const threeHalves = (x: Float): Float => x.mul(sqrt(x));
 /** Cornette–Shanks: Henyey–Greenstein's forward lobe with Rayleigh's symmetric term, as aerosol scatters. */
 export function miePhase(nu: Float, g: Float): Float {
   const g2 = g.mul(g);
   return float(3 / (8 * Math.PI)).mul(float(1).sub(g2)).mul(nu.mul(nu).add(1))
-    .div(g2.add(2).mul(pow(g2.add(1).sub(g.mul(nu).mul(2)).max(1e-4), 1.5)));
+    .div(g2.add(2).mul(threeHalves(g2.add(1).sub(g.mul(nu).mul(2)).max(1e-4))));
 }
 /** `model.aureolePhase`: the authored lobe with a narrow forward core. */
 export function aureolePhase(nu: Float, g: Float): Float {
   const { core, coreG } = AUREOLE;
-  const peak = float((1 - coreG * coreG) / (4 * Math.PI)).div(pow(float(1 + coreG * coreG).sub(nu.mul(2 * coreG)).max(1e-4), 1.5));
+  const peak = float((1 - coreG * coreG) / (4 * Math.PI)).div(threeHalves(float(1 + coreG * coreG).sub(nu.mul(2 * coreG)).max(1e-4)));
   return miePhase(nu, g).mul(1 - core).add(peak.mul(core));
 }
 
