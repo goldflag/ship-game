@@ -69,24 +69,34 @@ export function jonswap(omega: number, peak: number, gamma: number): number {
   return GRAVITY * GRAVITY / omega ** 5 * Math.exp(-1.25 * (peak / omega) ** 4) * gamma ** r;
 }
 
-/** Energy per unit ω of the drawn sea: JONSWAP at `level` (its α), held at or below the saturation
- * range above the peak. The game's seas are steeper than real ones (Hs/λp up to 0.14 at 25 m/s,
- * where a fully developed sea has 0.03), so a JONSWAP normalised to their height would put α ≈ 0.2
- * into every short wave; saturation keeps that energy in the peak, where breaking would leave it. */
-export function seaSpectrum(omega: number, peak: number, gamma: number, level: number): number {
-  const free = level * jonswap(omega, peak, gamma);
+/** Donelan, Hamilton & Hui (1985) wind-sea energy per unit ω, without its level: Toba's ω⁻⁴ equilibrium range above
+ * the peak, with the peak's width fitted to the wave age U/cp (σ = 0.08·(1 + 4·(U/cp)⁻³), over their 0.83–5). */
+export function equilibrium(omega: number, peak: number, gamma: number, age: number): number {
+  if (!(omega > 0)) return 0;
+  const sigma = .08 * (1 + 4 / Math.min(5, Math.max(.83, age)) ** 3);
+  const r = Math.exp(-((omega - peak) ** 2) / (2 * sigma * sigma * peak * peak));
+  return GRAVITY * GRAVITY / (omega ** 4 * peak) * Math.exp(-((peak / omega) ** 4)) * gamma ** r;
+}
+
+/** Energy per unit ω of the drawn sea: JONSWAP at `level` (its α), or with a wave age `age` Donelan's equilibrium
+ * range, held at or below the saturation range above the peak. The game's calibrated seas are steeper than real
+ * ones (Hs/λp up to 0.14 at 25 m/s, where a fully developed sea has 0.03), so a JONSWAP normalised to their height
+ * would put α ≈ 0.2 into every short wave; saturation keeps that energy in the peak, where breaking would leave it.
+ * A real sea's equilibrium range meets the saturation range a few times above its peak (3.6 ωp at 9 m/s). */
+export function seaSpectrum(omega: number, peak: number, gamma: number, level: number, age?: number): number {
+  const free = level * (age === undefined ? jonswap(omega, peak, gamma) : equilibrium(omega, peak, gamma, age));
   const t = Math.min(1, Math.max(0, (omega / peak - SATURATION_ONSET) / (SATURATION_FULL - SATURATION_ONSET)));
   return free + (Math.min(free, SATURATION * GRAVITY ** 2 / omega ** 5) - free) * t * t * (3 - 2 * t);
 }
 
-/** The JONSWAP level α at which seaSpectrum holds `variance` (m²) in total. */
-export function spectrumLevel(peak: number, gamma: number, variance: number): number {
+/** The level α at which seaSpectrum holds `variance` (m²) in total. */
+export function spectrumLevel(peak: number, gamma: number, variance: number, age?: number): number {
   const total = (level: number) => {
     // ∫ over 0.3–30 ωp on a logarithmic grid: JONSWAP is negligible outside it.
     let sum = 0;
     for (let i = 0; i <= 600; i++) {
       const omega = peak * .3 * 100 ** (i / 600);
-      sum += seaSpectrum(omega, peak, gamma, level) * omega * (i === 0 || i === 600 ? .5 : 1);
+      sum += seaSpectrum(omega, peak, gamma, level, age) * omega * (i === 0 || i === 600 ? .5 : 1);
     }
     return sum * Math.log(100) / 600;
   };
@@ -146,7 +156,9 @@ export function buildSpectrum(cascades: readonly WaveCascadeInfo[], params: Wave
   const height = params.significantHeight, lambda = params.peakWavelength;
   const calm = !(height > 0) || !(lambda > 0) || !Number.isFinite(height) || !Number.isFinite(lambda);
   const peak = Math.sqrt(GRAVITY * 2 * Math.PI / lambda), gamma = Math.max(1, params.gamma);
-  const level = calm ? 0 : spectrumLevel(peak, gamma, (height / 4) ** 2);
+  // Wave age U/cp of the peak, where the sea follows Donelan's equilibrium range.
+  const age = params.equilibriumRange ? Math.max(0, params.windSpeed) * peak / GRAVITY : undefined;
+  const level = calm ? 0 : spectrumLevel(peak, gamma, (height / 4) ** 2, age);
   const cosWind = Math.cos(params.windDirection), sinWind = Math.sin(params.windDirection);
   let drawn = 0;
   const built = cascades.map((cascade, index) => {
@@ -165,7 +177,7 @@ export function buildSpectrum(cascades: readonly WaveCascadeInfo[], params: Wave
       const cosTheta = (kx * cosWind + kz * sinWind) / k;
       const toward = Math.sqrt(Math.max(0, (1 + cosTheta) / 2)) ** (2 * s), away = Math.sqrt(Math.max(0, (1 - cosTheta) / 2)) ** (2 * s);
       // Directional wavenumber spectrum S(k)·D(θ)/k with S(k) = E(ω)·dω/dk, times the cell area.
-      const density = seaSpectrum(omega, peak, gamma, level) * GRAVITY / (2 * omega) * spreadingNormalization(s) / k * dk * dk;
+      const density = seaSpectrum(omega, peak, gamma, level, age) * GRAVITY / (2 * omega) * spreadingNormalization(s) / k * dk * dk;
       const pair = density * (toward + away);
       if (!(pair > 0)) continue;
       // Each pair is one travelling wave: its direction is drawn in proportion to the energy each

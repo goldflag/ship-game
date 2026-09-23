@@ -4,9 +4,9 @@ import { windSea } from '../../../maps/seaCalibration';
 import type { WaveCascadeInfo, WaveParameters } from '../contracts';
 import { OCEAN_TIERS } from '../quality';
 import { activeModes, referenceTexel } from './reference';
-import { BREAKING_CHOPPINESS, MAX_TILE_GROWTH, PEAK_WAVELENGTHS_PER_TILE, drawnSea, seaStateCascades, windSeaFetch, windSeaGamma,
+import { BREAKING_CHOPPINESS, MAX_TILE_GROWTH, PEAK_WAVELENGTHS_PER_TILE, drawnSea, seaStateCascades, waveAge, windSeaFetch, windSeaGamma,
   windSeaPeakWavelength } from './seaState';
-import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands } from './spectrum';
+import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands, type CascadeSpectrum } from './spectrum';
 
 const sea = (overrides: Partial<WaveParameters> = {}): WaveParameters => ({
   significantHeight: 1.8, windSpeed: 9, windDirection: .6, peakWavelength: 32, choppiness: 1.1,
@@ -60,24 +60,29 @@ describe('realistic wind sea', () => {
     expect(storm.significantHeight / storm.peakWavelength).toBeGreaterThan(1 / 8);
   });
 
-  test('γ follows the fetch between Pierson–Moskowitz and the JONSWAP mean', () => {
+  test("γ and the spectrum's form follow the wave age (Donelan et al. 1985)", () => {
     for (const wind of WINDS) {
-      const { gamma } = drawnSea(table(wind), true);
-      expect(gamma).toBeGreaterThanOrEqual(1);
-      expect(gamma).toBeLessThanOrEqual(3.3);
+      const drawn = drawnSea(table(wind), true);
+      expect(drawn.gamma).toBeGreaterThanOrEqual(1.7);
+      expect(drawn.gamma).toBeLessThan(2.4);
+      expect(drawn.equilibriumRange).toBe(true);
     }
-    expect(drawnSea(table(9), true).gamma).toBeCloseTo(1.72, 1);
-    expect(drawnSea(table(25), true).gamma).toBeCloseTo(1.96, 1);
-    expect(windSeaGamma(0, 9, 2.6)).toBe(2.6);
+    // Fully developed at 9 m/s (U/cp 0.86); younger in the storm (U/cp 1.16).
+    expect(waveAge(drawnSea(table(9), true).peakWavelength, 9)).toBeCloseTo(.86, 2);
+    expect(drawnSea(table(9), true).gamma).toBeCloseTo(1.7, 6);
+    expect(drawnSea(table(25), true).gamma).toBeCloseTo(1.7 + 6 * Math.log10(waveAge(drawnSea(table(25), true).peakWavelength, 25)), 6);
+    expect(windSeaGamma(0)).toBe(1.7);
+    expect(windSeaGamma(9)).toBeCloseTo(1.7 + 6 * Math.log10(5), 12);
   });
 
-  test('off draws the given sea exactly; on changes only wavelength, γ and choppiness', () => {
+  test("off draws the given sea exactly; on changes only wavelength, γ, choppiness and the spectrum's form", () => {
     for (const wind of WINDS) {
       const given = table(wind), off = drawnSea(given, false), on = drawnSea(given, true);
       expect(off).toEqual(given);
       expect(off).not.toBe(given);
-      const { peakWavelength, gamma, choppiness, ...kept } = on;
+      const { peakWavelength, gamma, choppiness, equilibriumRange, ...kept } = on;
       const { peakWavelength: _l, gamma: _g, choppiness: _c, ...same } = given;
+      expect(equilibriumRange).toBe(true);
       expect(kept).toEqual(same);
       expect(choppiness).toBe(BREAKING_CHOPPINESS);
       expect(peakWavelength).toBeGreaterThan(0);
@@ -96,6 +101,61 @@ describe('realistic wind sea', () => {
     expect(Number.isFinite(windSeaPeakWavelength(1e-4, 1e-3))).toBe(true);
   });
 });
+
+/** In-place radix-2 inverse FFT (sign +i) of an n×n complex grid, rows then columns. */
+function inverseFft(re: Float64Array, im: Float64Array, n: number): void {
+  const line = (offset: number, stride: number) => {
+    for (let i = 1, j = 0; i < n; i++) {
+      let bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) {
+        const a = offset + i * stride, b = offset + j * stride;
+        [re[a], re[b]] = [re[b], re[a]]; [im[a], im[b]] = [im[b], im[a]];
+      }
+    }
+    for (let size = 2; size <= n; size <<= 1) for (let start = 0; start < n; start += size) for (let k = 0; k < size / 2; k++) {
+      const turn = 2 * Math.PI * k / size, c = Math.cos(turn), s = Math.sin(turn);
+      const a = offset + (start + k) * stride, b = offset + (start + k + size / 2) * stride;
+      const tr = re[b] * c - im[b] * s, ti = re[b] * s + im[b] * c;
+      re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+    }
+  };
+  for (let z = 0; z < n; z++) line(z * n, 1);
+  for (let x = 0; x < n; x++) line(x, n);
+}
+
+/** Shares of a 600 m square (at 1 m) where the summed cascades' Jacobian folds (J < 0) and where crests sharpen
+ * (J < 0.5), from each cascade's exact ∂Dx/∂x, ∂Dz/∂z and ∂Dx/∂z at time 0, interpolated like the GPU's texels. */
+function jacobianStats(cascades: readonly CascadeSpectrum[], choppiness: number) {
+  const grids = cascades.map(cascade => {
+    const { amplitudes: a, resolution: n, size } = cascade, dk = 2 * Math.PI / size;
+    return { n, size, fields: [0, 1, 2].map(field => {
+      const re = new Float64Array(n * n), im = new Float64Array(n * n);
+      for (let z = 0; z < n; z++) for (let x = 0; x < n; x++) {
+        const i = (z * n + x) * 4;
+        if (!a[i + 2]) continue;
+        const kx = (x < n / 2 ? x : x - n) * dk, kz = (z < n / 2 ? z : z - n) * dk, k = Math.hypot(kx, kz);
+        const factor = -choppiness * (field === 0 ? kx * kx : field === 1 ? kz * kz : kx * kz) / k;
+        re[z * n + x] = a[i] * factor; im[z * n + x] = a[i + 1] * factor;
+      }
+      inverseFft(re, im, n);
+      return re;
+    }) };
+  });
+  let folded = 0, sharp = 0, count = 0;
+  for (let z = 0; z < 600; z++) for (let x = 0; x < 600; x++) {
+    const strain = [0, 0, 0];
+    for (const { n, size, fields } of grids) {
+      const u = (x + .5) / size * n, v = (z + .5) / size * n, x0 = Math.floor(u), z0 = Math.floor(v), fx = u - x0, fz = v - z0;
+      const at = (i: number, j: number) => ((j % n + n) % n) * n + (i % n + n) % n;
+      fields.forEach((f, i) => { strain[i] += (f[at(x0, z0)] * (1 - fx) + f[at(x0 + 1, z0)] * fx) * (1 - fz) + (f[at(x0, z0 + 1)] * (1 - fx) + f[at(x0 + 1, z0 + 1)] * fx) * fz; });
+    }
+    const jacobian = (1 + strain[0]) * (1 + strain[1]) - strain[2] * strain[2];
+    count++; if (jacobian < 0) folded++; if (jacobian < .5) sharp++;
+  }
+  return { folded: folded / count, sharp: sharp / count };
+}
 
 describe('sea-state tiles', () => {
   test('the largest tile holds eight peak wavelengths, every tile grown by one factor within the cap', () => {
@@ -175,16 +235,17 @@ describe('sea-state tiles', () => {
   });
 
   test('the realistic sea sharpens crests without folding them', () => {
-    // Summed over the drawn waves, the horizontal compression ∂Dx/∂x + ∂Dz/∂z has standard deviation choppiness × RMS
-    // slope. The calibrated storm's steep peak puts a fold (compression below −1) within 1.6σ; the realistic sea
-    // keeps it beyond 2.5σ on every tier at every wind, however sharp the breaking choppiness makes its crests.
-    for (const tier of Object.values(OCEAN_TIERS)) for (const wind of [3, 6, 9, 15, 25, 30]) {
-      const { drawn, layout } = grown(tier.cascades, wind), spectrum = buildSpectrum(layout, drawn);
-      const slopes = spectrum.cascades.reduce((sum, c) => sum + c.slopeVariance, 0);
-      expect(drawn.choppiness * Math.sqrt(slopes)).toBeLessThan(1 / 2.5);
+    // The combined Jacobian of the horizontal displacement over a 600 m square, from every cascade's exact fields:
+    // the breaking choppiness sharpens a tenth of the surface's crests (J < 0.5) and folds them almost nowhere, where
+    // the calibrated storm folds 2% of its surface into loops.
+    const stats = (tier: readonly WaveCascadeInfo[], drawn: WaveParameters) => jacobianStats(buildSpectrum(tier, drawn).cascades, drawn.choppiness);
+    for (const wind of [9, 25]) {
+      const { drawn, layout } = grown(OCEAN_TIERS.high.cascades, wind), { folded, sharp } = stats(layout, drawn);
+      expect(folded).toBeLessThan(.002);
+      expect(sharp).toBeGreaterThan(.02);
     }
-    const storm = table(25), steep = buildSpectrum(OCEAN_TIERS.high.cascades, storm);
-    expect(storm.choppiness * Math.sqrt(steep.cascades.reduce((sum, c) => sum + c.slopeVariance, 0))).toBeGreaterThan(1 / 1.6);
+    const storm = stats(OCEAN_TIERS.high.cascades, table(25));
+    expect(storm.folded).toBeGreaterThan(.01);
   });
 
   test("a realistic peak leaves the saturation cap unreached and the rest of Cox–Munk's slopes to the tail", () => {

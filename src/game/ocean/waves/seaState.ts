@@ -1,8 +1,8 @@
-/** The realistic wind sea behind `OceanRealism.seaState`: the peak wavelength and peak enhancement a real wind sea
- * has at the calibrated significant height and wind, from the JONSWAP fetch-limited growth laws (Hasselmann et al.
- * 1973), crests that sharpen toward Stokes' breaking limit, and tiles large enough that the longest waves do not
- * repeat. The calibration table keeps its heights, which combat and hull motion share. Pure functions: the wave
- * field applies them when it rebuilds. */
+/** The realistic wind sea behind `OceanRealism.seaState`: the peak wavelength a real wind sea has at the calibrated
+ * significant height and wind, from the JONSWAP fetch-limited growth laws (Hasselmann et al. 1973); the measured
+ * wind-sea spectrum of Donelan, Hamilton & Hui (1985) at that wave age; crests that sharpen toward Stokes' breaking
+ * limit; and tiles large enough that the longest waves do not repeat. The calibration table keeps its heights, which
+ * combat and hull motion share. Pure functions: the wave field applies them when it rebuilds. */
 import type { WaveCascadeInfo, WaveParameters } from '../contracts';
 import { GRAVITY } from './spectrum';
 
@@ -36,21 +36,25 @@ export function windSeaPeakWavelength(height: number, windSpeed: number, fallbac
   return GRAVITY / (2 * Math.PI * frequency * frequency);
 }
 
-/** JONSWAP peak enhancement γ for a wind sea of this fetch (Mitsuyasu et al. 1980: γ = 7.0·χ^-0.143), between
- * Pierson–Moskowitz's 1 and JONSWAP's mean 3.3: about 1.7 fully developed, 2 in the 25 m/s storm. */
-export function windSeaGamma(height: number, windSpeed: number, fallback: number): number {
-  if (!(height > 0) || !(windSpeed > 0) || !Number.isFinite(height) || !Number.isFinite(windSpeed)) return fallback;
-  return Math.min(3.3, Math.max(1, 7 * windSeaFetch(height, windSpeed) ** -.143));
+/** Wave age U/cp: the wind over the peak's phase speed; about 0.83 fully developed, larger in a younger sea. */
+export function waveAge(peakWavelength: number, windSpeed: number): number {
+  const age = windSpeed / Math.sqrt(GRAVITY * peakWavelength / (2 * Math.PI));
+  return Number.isFinite(age) && age > 0 ? age : 0;
 }
 
-/** The sea the wave field draws: `params` itself, or with `seaState` on the wavelength and γ of a real wind sea at
- * the same height and wind, and crests sharpened toward the breaking limit. */
+/** Donelan, Hamilton & Hui's (1985) peak enhancement at a wave age: 1.7 for a fully developed sea (and the older seas
+ * of light airs), 1.7 + 6·log10(U/cp) for a younger one, fitted up to U/cp = 5. */
+export function windSeaGamma(age: number): number {
+  return 1.7 + 6 * Math.log10(Math.min(5, Math.max(1, age)));
+}
+
+/** The sea the wave field draws: `params` itself, or with `seaState` on the wavelength of a real wind sea at the same
+ * height and wind, Donelan's spectrum at its wave age, and crests sharpened toward the breaking limit. */
 export function drawnSea(params: WaveParameters, seaState: boolean): WaveParameters {
   if (!seaState) return { ...params };
-  const { significantHeight: height, windSpeed } = params;
-  return { ...params,
-    peakWavelength: windSeaPeakWavelength(height, windSpeed, params.peakWavelength) || params.peakWavelength,
-    gamma: windSeaGamma(height, windSpeed, params.gamma), choppiness: BREAKING_CHOPPINESS };
+  const peakWavelength = windSeaPeakWavelength(params.significantHeight, params.windSpeed, params.peakWavelength) || params.peakWavelength;
+  return { ...params, peakWavelength, gamma: windSeaGamma(waveAge(peakWavelength, params.windSpeed)),
+    choppiness: BREAKING_CHOPPINESS, equilibriumRange: true };
 }
 
 /** The tier's tiles grown by one factor until the largest holds PEAK_WAVELENGTHS_PER_TILE peak wavelengths (never

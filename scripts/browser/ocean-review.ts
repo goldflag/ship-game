@@ -1,4 +1,4 @@
-/** `bun scripts/browser/ocean-review.ts --tag <name> [--only near,wide] [--quality high] [--measure] [--param realism=off] [--url http://127.0.0.1:5210]`
+/** `bun scripts/browser/ocean-review.ts --tag <name> [--only near,wide] [--quality high] [--measure] [--param realism=off] [--param wind=15] [--url http://127.0.0.1:5210]`
  * Renders the fixed scenes of `scripts/diagnostics/ocean-review.html` in a headed Chromium and saves one PNG
  * per scene to `.build/ocean-review/<tag>/`, with `results.json` (errors, optional frame timings). */
 import type { Server } from 'node:http';

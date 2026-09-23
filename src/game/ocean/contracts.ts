@@ -42,6 +42,9 @@ export interface WaveParameters {
   directionalSharpness: number;
   /** Integer seed; any integer is safe. */
   seed: number;
+  /** Short waves follow Donelan et al.'s measured ω⁻⁴ equilibrium range, with its wave-age peak width, instead of
+   * JONSWAP's ω⁻⁵ (both held to the saturation range). The realistic sea state sets it; absent is JONSWAP. */
+  equilibriumRange?: boolean;
   dirty: boolean;
 }
 
