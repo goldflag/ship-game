@@ -4,9 +4,14 @@
  * simulation's clock, keeping the field's shorter waves, foam, wake and bow waves on top, and fades back to the field
  * further out. Presentation only: nothing here reaches combat.
  *
+ * Only the realistic sea state couples. The art-directed sea (the switch off) peaks at a quarter of combat's wavelength
+ * at the breaking limit, so the water beside a hull is ruled by waves no hull in combat follows: in a live 30 m/s battle
+ * blending combat's swell into it left the gap to a hull's still-water line at 3.7–3.9 m rms, where on the realistic sea
+ * it falls from 2.5–3.5 m to 1.4–2.0 m. That switch keeps the look it was tuned to, for comparison.
+ *
  * The pure functions below are what the nodes evaluate, for tests and CPU callers. */
 import { Vector2, Vector4, type Node } from 'three/webgpu';
-import { Fn, Loop, clamp, cos, dot, exp, float, inverseSqrt, sin, smoothstep, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
+import { Fn, Loop, clamp, cos, dot, exp, float, inverseSqrt, renderGroup, sin, smoothstep, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
 import type { HullFootprint, HullSeaWave } from '../contracts';
 import { GRAVITY } from './spectrum';
 
@@ -149,20 +154,22 @@ export function coupledHeight(field: number, lowpass: number, slots: readonly Hu
   return field + blend.lowpass * lowpass + blend.sea * hullSeaHeight(waves, time, x, z);
 }
 
-/** Uniforms and nodes of the coupling. The wave field owns one and applies it in displacement, surface and heightAt. */
+/** Uniforms and nodes of the coupling. The wave field owns one and applies it in displacement, surface and heightAt.
+ * Every value is the frame's, whatever draws it, so all live in the shared render group: `heightAt` reaches every hull
+ * paint through its wet band, and per-object uniforms would be checked again for each of thousands of ship draws. */
 export class HullSea {
   /** Mip level of the first cascade that holds the long waves the coupling replaces (the field sets it with `splitLevel`)
    * and whether any are replaced (0: the drawn waves all stay, the combat sea adds to them). */
-  readonly split = uniform(0);
-  readonly replace = uniform(1);
+  readonly split = uniform(0).setGroup(renderGroup);
+  readonly replace = uniform(1).setGroup(renderGroup);
   private readonly slotValues = Array.from({ length: HULL_SEA_SLOTS * 2 }, () => new Vector4());
   /** Per hull: (centre x, z, bow axis x, z), (half length, inner, outer, contact). */
-  private readonly slots = uniformArray<'vec4'>(this.slotValues, 'vec4');
-  private readonly count = uniform(0, 'int');
+  private readonly slots = uniformArray<'vec4'>(this.slotValues, 'vec4').setGroup(renderGroup);
+  private readonly count = uniform(0, 'int').setGroup(renderGroup);
   private readonly waveValues = Array.from({ length: HULL_SEA_WAVES }, () => new Vector4());
   /** Per component: (kx, kz, amplitude, phase about `origin`). */
-  private readonly waves = uniformArray<'vec4'>(this.waveValues, 'vec4');
-  private readonly origin = uniform(new Vector2());
+  private readonly waves = uniformArray<'vec4'>(this.waveValues, 'vec4').setGroup(renderGroup);
+  private readonly origin = uniform(new Vector2()).setGroup(renderGroup);
 
   /** Couple `hulls` (at most HULL_SEA_SLOTS) to the sea `waves` at `time`. No components or no hulls: no coupling. */
   set(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[], origin: { x: number; z: number }): void {

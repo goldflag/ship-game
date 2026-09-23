@@ -147,19 +147,25 @@ hulls, the combat sea's components (`seaWaves` in `session/sea.ts`) and the simu
   separates the long waves cleanly. When the spectrum rebuilds or combat's wavelength changes, the field
   weighs, over the first cascade's spectrum binned to 64² cells (0.1–2 ms), the variance of drawn waves
   longer than λ/2 a level would leave beside a hull (twice) against the shorter variance it would take.
-  The realistic storm loses its long peak whole beside a hull and keeps most of its 50–100 m waves; the
-  art-directed sea, peaking at a quarter of combat's wavelength, keeps its own waves and gains combat's
-  swell:
+  The storm loses its long peak whole beside a hull and keeps most of its 50–100 m waves (a sea whose
+  waves were all far shorter than combat's would lose none):
 
 | Low-pass box on High, Atlantic (m) | 9 m/s | 15 | 25 | 30 |
 | --- | --- | --- | --- | --- |
 | Realistic sea | 23 | 31 | 31 | 39 |
-| Art-directed sea | 32 | 54 | 64 | none |
 
-The coupling runs with the realistic sea state on or off: the art-directed sea holds almost nothing at
-combat's wavelengths, so without it a storm heaves a hull ±3–5 m against drawn water that does not
-move with it. On the GPU, heights read back around the hulls of a paused 25 m/s battle with the drawn
-waves flattened match `seaHeight` at the drawn poses' time to 0.01 mm.
+Only the realistic sea couples. With `ocean.realism.seaState` off the ocean draws the table's
+art-directed sea exactly as before, the look tuned to compare with the library it replaced. That sea
+peaks at a quarter of combat's wavelength and runs at the breaking limit, so the water beside a hull
+is ruled by waves no hull in combat follows, and blending in combat's swell does nothing for it: in a
+live 30 m/s battle (Bismarck and Fletcher, 100 s per case) the gap between the drawn water and a hull's
+still-water line stays 3.7–3.9 m rms with or without it, where on the realistic sea it falls from
+2.5–3.5 m to 1.4–2.0 m and water more than 4 m below the Fletcher's still-water line (its draft is
+4.2 m) from 20% of samples to 0.1%. On the GPU, heights read back around the hulls of a paused 25 m/s
+battle with the drawn waves flattened match `seaHeight` at the drawn poses' time to 0.01 mm. The hull
+waterline layers read the same water ([Hull waterline](#hull-waterline)): the wet band through
+`heightAt`, the contact foam at the water's drawn position, so paint, foam and sea all meet the pose
+combat gives the hull.
 
 What remains is combat's own motion. The authority eases heave over 1.5 s (37° behind a 12.6 s swell),
 averages it over the waterplane and pitches a battleship about a third of the wave's chord slope, so in
@@ -333,7 +339,7 @@ While the layer is on, trails stop painting their bow-shoulder stamps; the stern
 
 Two visual-only layers make hulls sit in the sea rather than on it. Neither reads or feeds the simulation.
 
-- **Wet band.** `src/game/HullWetBand.ts` darkens albedo by 45% and cuts roughness by 60% on every shared ship paint within a band just above the sea at that fragment, and everywhere below it. The sea height is read per fragment exactly as the surface draws it: `waveField.heightAt` (the FFT cascades, inverting the choppy sideways displacement) plus the wake field and the bow waves, so the band climbs the stem underway and follows each crest along the side. The band is 0.3–0.9 m at rest by hull length (the paint palette stores it as `shipSurface.w`, beside roughness, metalness and the surface-detail plating flag), plus 0.2 m per metre of significant wave height, capped at 1.6 m; noise breaks its upper edge into short tongues. Fragments above the tallest possible crest plus band, or below the deepest trough, skip the sea read. Premade and construction hulls share the palette, so both get it; ship views clone the paint, so the palette receives the band when it is created, and the sea attaches once the water exists, before the first compile. The band multiplies whatever colour and roughness surface detail gives a paint (the teak `colorNode`, plated or plain roughness), with one wrapper per base node, so equal paints still share a program.
+- **Wet band.** `src/game/HullWetBand.ts` darkens albedo by 45% and cuts roughness by 60% on every shared ship paint within a band just above the sea at that fragment, and everywhere below it. The sea height is read per fragment exactly as the surface draws it: `waveField.heightAt` (the FFT cascades, inverting the choppy sideways displacement, with [the sea around hulls](#the-sea-around-hulls) blended in) plus the wake field and the bow waves, so the band climbs the stem underway and follows each crest along the side. The band is 0.3–0.9 m at rest by hull length (the paint palette stores it as `shipSurface.w`, beside roughness, metalness and the surface-detail plating flag), plus 0.2 m per metre of significant wave height, capped at 1.6 m; noise breaks its upper edge into short tongues. Fragments above the tallest possible crest plus band, or below the deepest trough, skip the sea read. Premade and construction hulls share the palette, so both get it; ship views clone the paint, so the palette receives the band when it is created, and the sea attaches once the water exists, before the first compile. The band multiplies whatever colour and roughness surface detail gives a paint (the teak `colorNode`, plated or plain roughness), with one wrapper per base node, so equal paints still share a program.
 - **Contact foam.** `src/game/HullContactFoam.ts` joins the wake sampler's foam by maximum coverage: a narrow line of broken water outboard of each hull, faint at rest (0.12 foam energy plus 0.025 per metre of significant height), stronger underway (+0.3) and toward the stem (+0.4 over the forward 30%), capped at 0.55 (the surface draws wake energy solid from 0.6) and torn by world-anchored noise. Its hull shape is sliced from the drawn model itself (`hullWaterlineProfile.ts`): 32 stations by 7 levels from −6 m to +6 m about the design waterline, sliced once per hull while its model loads (tens to a couple of hundred milliseconds for a detailed model, which must not land in a battle frame). The water fragment transforms its displaced world position into the hull's drawn frame, heave, pitch and roll included, and reads the breadth at its own height, so the line stays on the hull in a heavy sea; empty stations past the ends read as inside the hull, so no foam trails off the stem or stern. Like the bow waves, a line narrower than three grazing-stretched pixels widens and fades rather than shimmering, and hulls where it would span under a twentieth of that are not slotted at all. The eight nearest surfaced hulls within 4 km are drawn. Everything per hull lives in one uniform buffer, so the surface gains no texture binding; every open-water pixel tests one bounding circle per slot. The surface's own depth-based shoreline foam also draws a faint line where a hull meets the water; the contact foam adds the speed, bow and sea-state shaping that depth alone cannot.
 
 `game.hullWetBand.enabled` (a uniform) and `game.shipWake.hullFoam.enabled` switch the layers for comparison; `game.shipWake.hullFoam.tuning` retunes the foam live. Neither adds a render pass.

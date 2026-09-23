@@ -360,23 +360,26 @@ export class GpuWaveField implements WaveField {
   }
 
   heightAt(xz: Node<'vec2'>): Float {
-    // Near hulls the long waves give way to the sea they ride; the blend is smooth over metres, so it is read once at xz.
+    // Near hulls the long waves give way to the sea they ride; the blend is smooth over metres, so it is read once at xz,
+    // and the long waves' sideways motion (smooth over tens of metres) at xz and again at the first step's grid point.
     const hulls = this.hullSea.blend(this.hullSea.weight(xz));
+    let long = this.longWaves('displacement', xz).xz.mul(hulls.lowpass);
     // Fixed-point inversion of the choppy map (the grid point whose displaced position is xz),
     // damped after the first step: undamped steps oscillate where storm crests fold.
-    const horizontal = (at: Node<'vec2'>) => this.tier.reduce<Node<'vec2'>>((sum, _, i) => sum.add(this.sample('displacement', at, i, float(0)).xz), vec2(0))
-      .add(this.longWaves('displacement', at).xz.mul(hulls.lowpass));
+    const horizontal = (at: Node<'vec2'>) => this.tier.reduce<Node<'vec2'>>((sum, _, i) => sum.add(this.sample('displacement', at, i, float(0)).xz), vec2(0)).add(long);
     let grid: Node<'vec2'> = xz;
     for (let step = 0; step < INVERSION_STEPS; step++) {
       const target = xz.sub(horizontal(grid));
       grid = step ? grid.add(target.sub(grid).mul(INVERSION_DAMPING)) : target;
+      if (!step) long = this.longWaves('displacement', grid).xz.mul(hulls.lowpass);
     }
     return this.tier.reduce<Float>((sum, _, i) => sum.add(this.sample('displacement', grid, i, float(0)).y), float(0))
       .add(this.longWaves('displacement', grid).y.mul(hulls.lowpass)).add(this.hullSea.height(xz).mul(hulls.sea));
   }
 
   couple(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[], origin: { x: number; z: number }): void {
-    this.hullSea.set(waves, time, hulls, origin);
+    // Only the realistic sea couples: the art-directed sea is drawn as given (hullSea.ts).
+    this.hullSea.set(waves, time, this.realism.seaState ? hulls : [], origin);
     this.combatWavelength = hullSeaWavelength(waves);
     this.chooseSplit();
   }

@@ -117,7 +117,8 @@ export interface WaveField {
    * foam persistence; 0 renders without advancing it. */
   update(renderer: WebGPURenderer, time: number, dt: number): void;
   /** Near `hulls`, blend the drawn long waves into the sea they ride: `waves` at `time`, the simulation's clock (not
-   * the field's). Presentation only. `origin`, a world point near the camera, keeps float32 phases small. */
+   * the field's). Only the realistic sea state couples; the art-directed sea is drawn as given. Presentation only.
+   * `origin`, a world point near the camera, keeps float32 phases small. */
   couple(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[], origin: { x: number; z: number }): void;
   dispose(): void;
 }
@@ -288,8 +289,8 @@ export interface OceanApi {
    * (`src/game/comparison`) returns a promise the frame awaits before it renders. */
   update(dt: number): void | Promise<void>;
   /** Draw the sea hulls ride around them: near each of `hulls` (the nearest sixteen) the long waves become `waves` at
-   * `time`, the simulation's clock, so a hull's waterline matches the water drawn beside it. Call before `update`;
-   * the last call holds on paused frames, and empty lists turn it off. */
+   * `time`, the simulation's clock, so a hull's waterline matches the water drawn beside it (with `realism.seaState`
+   * on). Call before `update`; the last call holds on paused frames, and empty lists turn it off. */
   setHullSea(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[]): void;
   setSky(sky: OceanSky | null): void;
   /** Replace the wake the surface reads (the game composes its own foam on top of `wake.sampler`). */

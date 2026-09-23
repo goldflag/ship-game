@@ -119,10 +119,13 @@ both seas; `heightAt` (buoys, the waterline, the torpedo overlay) follows. Short
 and bow waves ride on top. A box low-pass falls from 0.9 to 0.1 over a factor of five in wavelength, so no mip level
 splits cleanly: at each rebuild and combat wavelength the field weighs the long-wave variance (λ ≥ λc/2) a level
 leaves beside a hull, twice, against the shorter variance it takes, over the cascade's spectrum binned to 64² cells.
-The realistic storm splits at a 31–39 m box and loses its long peak whole; the art-directed sea, peaking at a quarter
-of the combat wavelength, keeps its waves and gains the combat swell. The coupling runs either way: without it a hull
-heaves ±3–5 m in a storm against drawn water that does not. Per vertex it costs a 16-hull loop, one texture read and
-two sines; per pixel the loop with its gradient, three reads and two sines. Combat eases heave over 1.5 s and
+The realistic storm splits at a 31–39 m box and loses its long peak whole. Only the realistic sea couples: with
+`realism.seaState` off the art-directed sea is drawn exactly as before, since its short steep waves rule the water
+beside a hull and combat's swell leaves that gap unchanged (3.9 m rms in a live 30 m/s battle, where the realistic
+sea's falls from 2.5–3.5 m to 1.4–2.0 m). The hull wet band reads `heightAt` and the contact foam the water's drawn
+position, so both follow. Per vertex it costs a 16-hull loop, one texture read and two sines; per pixel the loop with
+its gradient, three reads and two sines; `heightAt` (the wet band's per hull fragment) the loop, three reads and two
+sines. Combat eases heave over 1.5 s and
 averages it over the waterplane, so a storm still leaves a waterline 1.5–2 m rms from the water beside it: the
 authority's own motion, drawn as it is.
 
