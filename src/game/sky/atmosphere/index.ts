@@ -1,7 +1,7 @@
 import type { AtmospherePart, SkyPartContext } from '../contracts';
-import { createStubAtmosphere } from '../stubs/atmosphere';
+import { Atmosphere } from './Atmosphere';
 
-/** The atmosphere part. */
+/** The atmosphere part: Hillaire's scattering tables, sky radiance, aerial perspective, light at any altitude. */
 export function createAtmosphere(context: SkyPartContext): AtmospherePart | Promise<AtmospherePart> {
-  return createStubAtmosphere(context.uniforms);
+  return new Atmosphere(context.uniforms);
 }

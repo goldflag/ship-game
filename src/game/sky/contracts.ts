@@ -226,13 +226,18 @@ export interface AtmospherePart extends SkyPart {
    * reddens what lies beyond the air (sun disc, moon, stars). */
   transmittanceToSpace(direction: Node<'vec3'>, fromSea?: boolean): Node<'vec3'>;
   /** Share of the sun's and moon's light reaching a world position (altitude and Earth's shadow
-   * included), for lighting clouds and rain from within. */
+   * included), for lighting clouds and rain from within. The sun's share carries the sky's twilight
+   * exposure, as the dome does: 1 by day, rising above 1 as the sun sets, so sunset clouds glow
+   * against the lifted afterglow instead of reading as silhouettes. */
   sunTransmittance(position: Node<'vec3'>): Node<'vec3'>;
   moonTransmittance(position: Node<'vec3'>): Node<'vec3'>;
   /** Aerial perspective between the camera and the point `distance` metres along `direction`:
-   * what the air in between adds, and what it lets through. Works in any pass (screen or bake). */
-  aerial(direction: Node<'vec3'>, distance: Node<'float'>): { inscatter: Node<'vec3'>; transmittance: Node<'vec3'> };
-  /** Diffuse sky light at an altitude: arriving from above (sky) and from below (sea bounce). */
+   * what the air in between adds, and what it lets through. Works in any pass (screen or bake).
+   * With `fromSea` the ray starts at sea level under the camera instead: the environment bake's
+   * viewpoint, which the chart's camera 14 km up does not share. */
+  aerial(direction: Node<'vec3'>, distance: Node<'float'>, fromSea?: boolean): { inscatter: Node<'vec3'>; transmittance: Node<'vec3'> };
+  /** Diffuse sky light at an altitude: arriving from above (sky) and from below (sea bounce), each
+   * the mean radiance over its hemisphere (irradiance / π). */
   ambient(altitude: Node<'float'>): { above: Node<'vec3'>; below: Node<'vec3'> };
   /** CPU: sunlight and moonlight at sea level for the scene light, as colour × intensity
    * (the sea's units), and the zenith sky irradiance. Refreshed by `apply` and `update`. */
