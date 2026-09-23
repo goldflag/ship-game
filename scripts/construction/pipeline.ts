@@ -127,12 +127,14 @@ export async function constructionPipeline(
   };
   const checkModel = async () => {
     const manifest = await readManifest();
-    if (
-      manifest.format !== 'construction-v2' ||
-      manifest.inputs?.definition !== inputs.definition ||
-      manifest.inputs?.model !== inputs.model
-    )
-      throw new Error('Constructed ship is stale. Run bun run ship:build ' + id);
+    // Say which input moved: the compiled definition (the source or the compiler's output), or the model (its source,
+    // compiled surfaces or a model recipe such as src/game/constructionModel.ts and what it imports).
+    const moved = [
+      manifest.format !== 'construction-v2' && 'the build format',
+      manifest.inputs?.definition !== inputs.definition && 'the compiled definition',
+      manifest.inputs?.model !== inputs.model && 'the model inputs (source, compiled surfaces or model recipe)',
+    ].filter(Boolean);
+    if (moved.length) throw new Error(`Constructed ship is stale: ${moved.join(' and ')} changed. Run bun run ship:build ${id}`);
     const [model, def] = await Promise.all([readFile(paths.model), readFile(paths.definition)]);
     if (digest(model) !== manifest.modelHash || digest(def) !== manifest.definitionHash)
       throw new Error('Constructed ship output changed. Run bun run ship:build ' + id);
