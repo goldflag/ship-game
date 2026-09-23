@@ -151,13 +151,12 @@ window.review = {
     });
     encoder.configure({codec:'vp09.00.10.08',width:canvas.width,height:canvas.height,
       bitrate:6000000,framerate:fps,latencyMode:'quality'});
-    const updateWater = game.water.update.bind(game.water);
-    game.water.update = dt => { game.water.deterministic = true; return updateWater(dt); };
-    // These fixed, above-water views contain no navigation buoys. Their GPU
-    // readback can stall an unfocused preview; keep their hidden poses frozen
-    // during recording while the ocean, wake and combat continue normally.
-    const updateBuoyancy = game.water.buoyancy.update.bind(game.water.buoyancy);
-    game.water.buoyancy.update = async () => {};
+    // The ocean's clock advances only by each frame's explicit step, so the waves follow the
+    // encoded timestamps. These fixed, above-water views contain no navigation buoys. Their GPU
+    // height readback can stall an unfocused preview; keep their hidden poses frozen during
+    // recording while the ocean, wake and combat continue normally.
+    const heights = game.ocean.heights, requestHeights = heights.request;
+    heights.request = () => {};
     recording = true; game.setPaused(false);
     const started = performance.now(); game.lastTime = started;
     const yieldFrame = () => new Promise(resolve => {
@@ -203,8 +202,7 @@ window.review = {
       } catch(error) { window.reviewError = error.message; }
       finally {
         encoder.close(); recording = false; game.setPaused(true);
-        game.water.update = updateWater;
-        game.water.buoyancy.update = updateBuoyancy;
+        heights.request = requestHeights;
         game.lastTime = performance.now(); game.scheduleFrame = schedule; schedule();
       }
     };

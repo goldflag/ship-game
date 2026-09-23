@@ -82,7 +82,7 @@ window.review.run = async ({ seconds = 30, warmup = 5, camera = 'battle', profil
   let maxAircraft = 0, maxShells = 0, focusFrames = 0, hiddenFrames = 0, interrupted = false;
   const phases = {}, restores = [];
   if (profile) for (const [object, key, label] of [
-    [g.simulation, 'advance', 'simulation'], [g, 'readSightAim', 'sight'], [g.water, 'update', 'water'],
+    [g.simulation, 'advance', 'simulation'], [g, 'readSightAim', 'sight'], [g.ocean, 'update', 'ocean'],
     [g, 'renderFrame', 'mainRender'], [g.effects, 'update', 'effects'], [g.aircraftView, 'update', 'aircraft'],
     [g.fleetDraws, 'update', 'fleetDraws'], [g.shipLabels, 'update', 'labels'], [g.audio, 'update', 'audio'],
     [g.fleetViews[0].constructor.prototype, 'update', 'shipPoses'],

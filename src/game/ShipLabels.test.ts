@@ -6,11 +6,11 @@ import { projectShipLabel, ShipLabels } from './ShipLabels';
 import type { ShipView } from './ShipView';
 
 test.each([
-  { backend: 'WebGL', coordinateSystem: WebGLCoordinateSystem, reversedDepth: false },
-  { backend: 'WebGPU', coordinateSystem: WebGPUCoordinateSystem, reversedDepth: false },
-  { backend: 'WebGL', coordinateSystem: WebGLCoordinateSystem, reversedDepth: true },
-  { backend: 'WebGPU', coordinateSystem: WebGPUCoordinateSystem, reversedDepth: true },
-])('ship labels cull rear, offscreen and clipped ships ($backend, reversed depth: $reversedDepth)', ({ coordinateSystem, reversedDepth }) => {
+  // A camera no renderer has drawn yet keeps three's default clip space.
+  { camera: 'unrendered', coordinateSystem: WebGLCoordinateSystem, reversedDepth: false },
+  { camera: 'WebGPU', coordinateSystem: WebGPUCoordinateSystem, reversedDepth: false },
+  { camera: 'WebGPU', coordinateSystem: WebGPUCoordinateSystem, reversedDepth: true },
+])('ship labels cull rear, offscreen and clipped ships ($camera camera, reversed depth: $reversedDepth)', ({ coordinateSystem, reversedDepth }) => {
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   camera.coordinateSystem = coordinateSystem;
   // Match the camera state set by WebGPURenderer before updating labels.

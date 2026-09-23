@@ -58,14 +58,14 @@ export async function checkCombatSmokeDissipation(verify = true) {
         throw new Error(`Muzzle smoke holds too long or ends abruptly: ${JSON.stringify({ ...sample, peak, largestDrop })}`);
       }
     }
-    return { backend: 'webgpu', cases };
+    return { cases };
   } finally { target.dispose(); effects.dispose(); renderer.dispose(); }
 }
 
 /** GPU regression: one submission per volume batch, visible from outside and
  * inside, with real scene-depth clipping and no residual pixels after reset. */
-export async function checkCombatVolumeRendering(forceWebGL = false, reversedDepthBuffer = false, turbulent = true) {
-  const renderer = new THREE.WebGPURenderer({ forceWebGL, reversedDepthBuffer });
+export async function checkCombatVolumeRendering(reversedDepthBuffer = false, turbulent = true) {
+  const renderer = new THREE.WebGPURenderer({ reversedDepthBuffer });
   await renderer.init();
   configureRenderOrder(renderer);
   renderer.setSize(256, 256);
@@ -79,7 +79,7 @@ export async function checkCombatVolumeRendering(forceWebGL = false, reversedDep
   const pool = new EffectParticlePool(8, map, false, material);
   const blocker = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({ color: 0 }));
   blocker.position.set(0, 10, 20);
-  // Like Water Pro, the surface is transparent, writes depth and has an
+  // Like the ocean surface, the plane is transparent, writes depth and has an
   // explicit early priority. It must never erase gas in front of the horizon.
   const horizon = new THREE.Mesh(new THREE.PlaneGeometry(200, 100),
     new THREE.MeshBasicMaterial({ color: 0, transparent: true, depthWrite: true }));
@@ -152,7 +152,7 @@ export async function checkCombatVolumeRendering(forceWebGL = false, reversedDep
     if (restored.width !== frames[0].width || restored.height !== frames[0].height || restored.visiblePixels !== outsidePixels) {
       throw new Error(`Reused smoke retained its muzzle shape: ${JSON.stringify(restored)}`);
     }
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', reversedDepth: renderer.reversedDepthBuffer, effect: turbulent ? 'smoke' : 'water', frames };
+    return { reversedDepth: renderer.reversedDepthBuffer, effect: turbulent ? 'smoke' : 'water', frames };
   } finally {
     target.dispose(); pool.dispose(); map.dispose(); volume.dispose();
     blocker.geometry.dispose(); blocker.material.dispose(); renderer.dispose();
@@ -206,8 +206,8 @@ export async function checkCombatSmokeHorizon(review: {
 }
 
 /** Run through the dev server in a browser; verifies GPU pixels, not just CPU matrices. */
-export async function checkCombatEffects(forceWebGL = false) {
-  const renderer = new THREE.WebGPURenderer({ forceWebGL });
+export async function checkCombatEffects() {
+  const renderer = new THREE.WebGPURenderer();
   await renderer.init();
   renderer.setSize(512, 512);
   renderer.info.autoReset = false;
@@ -265,7 +265,7 @@ export async function checkCombatEffects(forceWebGL = false) {
     effects.reset(); renderer.render(scene, camera);
     const reset = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 512, 512);
     for (let i = 0; i < reset.length; i += 4) if (reset[i] > 0) throw new Error('Reset left tracer pixels');
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames, trailPixels, endOnBrightness };
+    return { frames, trailPixels, endOnBrightness };
   } finally {
     target.dispose();
     effects.dispose();

@@ -361,7 +361,7 @@
   position: absolute;
   left: 56px;
   bottom: 86px;
-  max-width: calc(100% - 500px);
+  max-width: calc(100% - 450px);
 }
 .port-identity-status {
   display: flex;
@@ -495,7 +495,7 @@
 }
 /* The next design waits beside the particulars column rather than under it. */
 .port-neighbour-next {
-  right: 416px;
+  right: 364px;
 }
 
 .port-fleet-line {
@@ -980,10 +980,10 @@
 @media (max-width: 1240px) {
   .port-identity {
     left: 32px;
-    max-width: calc(100% - 420px);
+    max-width: calc(100% - 390px);
   }
   .port-neighbour-next {
-    right: 366px;
+    right: 332px;
   }
   .port-loading {
     left: 32px;
@@ -1006,10 +1006,10 @@
     width: 200px;
   }
   .port-identity {
-    max-width: calc(100% - 380px);
+    max-width: calc(100% - 360px);
   }
   .port-neighbour-next {
-    right: 324px;
+    right: 308px;
   }
   .port-spec > div {
     padding: 0 14px;

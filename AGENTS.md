@@ -9,7 +9,8 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | --- | --- |
 | `crates/naval-sim` | The only simulation: battle tick, ships, weapons, damage, flooding, aviation, bots, PvE, the construction compiler. See [crates/AGENTS.md](crates/AGENTS.md) |
 | `crates/naval-protocol`, `naval-wasm`, `naval-server` | Wire types (exported to `src/multiplayer/generated`), the browser worker build, the multiplayer server |
-| `src/game` | Rendering and the `Game` facade: camera, ocean, ship views, effects, audio; `src/game/session` talks to the simulation |
+| `src/game` | Rendering and the `Game` facade: camera, ship views, effects, audio; `src/game/session` talks to the simulation. The game requires WebGPU (`src/game/webgpu.ts`) |
+| `src/game/ocean` | The game's own ocean behind the `Ocean` facade (`game.ocean`): waves, surface, wake field, fog, reflections, underwater view. See [its README](src/game/ocean/README.md) |
 | `src/ui` | React HUD, port (`Garage.tsx`), battle dialogs (`battle/`), fleet command (`fleet/`), shared controls (`components/`). See [src/ui/AGENTS.md](src/ui/AGENTS.md) |
 | `src/ui/shipbuilding` | The ship editor. See [its guide](src/ui/shipbuilding/AGENTS.md) |
 | `src/ships` | Blueprint and construction types, presets roster, design storage (IndexedDB and account cloud), local compile client |
@@ -17,6 +18,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | `services` | Accounts API, design storage, compile service (Bun, PostgreSQL) |
 | `scripts` | Pipelines (`ships`, `parts`, `aircraft`, `construction`), test runner and browser checks (`tests`), browser harness (`browser`), diagnostics pages. See [scripts/AGENTS.md](scripts/AGENTS.md) |
 | `assets` | Authoring inputs: blueprints, Blender recipes, parts. See [assets/AGENTS.md](assets/AGENTS.md) |
+| `vendor/threejs-sky-pro` | The licensed Sky Pro bundle (sky, clouds, atmosphere) and its [patch record](vendor/threejs-sky-pro/PATCHES.md). Never read or grep its compiled `build/index.js` |
 | `public/models`, `src/generated`, `src/multiplayer/generated` | Build outputs. Never edit by hand |
 
 ## Read by task
@@ -25,7 +27,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | --- | --- |
 | Ship editor UI | [src/ui/shipbuilding/AGENTS.md](src/ui/shipbuilding/AGENTS.md), then [its README](src/ui/shipbuilding/README.md); data model in [shipbuilding](docs/shipbuilding.md) |
 | HUD, port, battle dialogs, fleet command UI | [src/ui/AGENTS.md](src/ui/AGENTS.md), [DESIGN.md](DESIGN.md) quick reference, [shared controls](src/ui/components/README.md) |
-| Rendering, camera, `Game.ts` | [README architecture](README.md#architecture), [ocean guide](docs/ocean-configuration.md) |
+| Rendering, camera, `Game.ts` | [README architecture](README.md#architecture), [ocean guide](docs/ocean-configuration.md), [ocean design](src/game/ocean/README.md) |
 | Simulation, combat, bots, carrier operations | [crates/AGENTS.md](crates/AGENTS.md), then [air operations](docs/air-operations.md), [bot behavior](docs/bot-behavior.md) or [maneuvering](docs/maneuvering.md) |
 | A field crossing Rust and TypeScript (definitions, frames, commands) | The checklists in [crates/AGENTS.md](crates/AGENTS.md) |
 | Multiplayer server, accounts, deployment | [Rust multiplayer](docs/rust-multiplayer-implementation.md), [accounts](docs/accounts.md), [deployment](docs/deployment.md) |

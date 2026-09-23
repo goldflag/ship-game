@@ -8,13 +8,13 @@ import * as THREE from 'three/webgpu';
 import { WaterPlumes } from '/src/game/WaterPlumes.ts';
 import { effectTexture } from '/src/game/EffectParticles.ts';
 
-// Exercise the production material, sheet buffers and depth test on both
-// backends. This supplements the full ocean/game visual and performance review.
-async function check(forceWebGL, reversedDepthBuffer) {
-  const renderer = new THREE.WebGPURenderer({ forceWebGL, reversedDepthBuffer });
+// Exercise the production material, sheet buffers and depth test with either
+// depth convention. This supplements the full ocean/game visual and performance review.
+async function check(reversedDepthBuffer) {
+  const renderer = new THREE.WebGPURenderer({ reversedDepthBuffer });
   renderer.setSize(384, 384); await renderer.init();
   const errors = [];
-  renderer.backend.device?.addEventListener('uncapturederror', event => errors.push(event.error.message));
+  renderer.backend.device.addEventListener('uncapturederror', event => errors.push(event.error.message));
   const scene = new THREE.Scene(); scene.background = new THREE.Color('#19364a');
   const camera = new THREE.PerspectiveCamera(52, 1, .1, 10000);
   camera.position.set(0, 22, 95); camera.lookAt(0, 22, 0); camera.updateMatrixWorld();
@@ -56,7 +56,7 @@ async function check(forceWebGL, reversedDepthBuffer) {
     const saturated = await pixels(), saturatedSheets = plumes.count;
     plumes.reset(); plumes.publish(camera); const cleared = await pixels();
     emit(); plumes.advance(1.5); plumes.publish(camera); const restarted = await pixels();
-    const result = { backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL', requestedReversedDepth: reversedDepthBuffer,
+    const result = { requestedReversedDepth: reversedDepthBuffer,
       reversedDepth: renderer.reversedDepthBuffer, errors, singleSheets, saturatedSheets,
       visiblePixels: difference(empty, single), pausedPixels: difference(single, paused), occludedPixels: difference(wall, occluded),
       saturatedPixels: difference(empty, saturated), resetPixels: difference(empty, cleared), restartedPixels: difference(empty, restarted),
@@ -68,7 +68,7 @@ async function check(forceWebGL, reversedDepthBuffer) {
       const figure = document.createElement('figure'), caption = document.createElement('figcaption');
       const preview = document.createElement('canvas'); preview.width = preview.height = 384;
       preview.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(image), 384, 384), 0, 0);
-      caption.textContent = `${result.backend}, ${reversedDepthBuffer ? 'reversed' : 'normal'} depth: ${stage}`;
+      caption.textContent = `${reversedDepthBuffer ? 'Reversed' : 'Normal'} depth: ${stage}`;
       figure.append(caption, preview); document.body.append(figure);
     }
     return result;
@@ -76,8 +76,8 @@ async function check(forceWebGL, reversedDepthBuffer) {
 }
 window.waterRenderResults = [];
 try {
-  for (const webgl of [false, true]) for (const reversed of [false, true]) {
-    waterRenderResults.push(await check(webgl, reversed));
+  for (const reversed of [false, true]) {
+    waterRenderResults.push(await check(reversed));
     document.querySelector('#result').textContent = JSON.stringify(waterRenderResults, null, 2);
   }
 } catch (error) { window.waterRenderError = error.stack; }

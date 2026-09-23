@@ -77,7 +77,7 @@ async function sample(kind,seconds) {
     p.project(game.camera);
     if(depth<0 && Math.abs(p.x)<1 && Math.abs(p.y)<1) visibleTracers++;
   }
-  return {kind,seconds,backend:game.diagnostics().backend,tracers,visibleTracers,effects:game.effects.diagnostics()};
+  return {kind,seconds,tracers,visibleTracers,effects:game.effects.diagnostics()};
 }
 window.aaEffectsReview={game,sample};
 await sample('heavy',2.1);window.reviewReady=true;

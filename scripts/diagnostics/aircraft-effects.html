@@ -49,7 +49,7 @@ async function sample(kind,seconds) {
   }
   for(let i=0;i<3;i++){await new Promise(requestAnimationFrame);await game.frameTask;}
   game.pipeline.render();
-  return {kind,seconds,backend:game.diagnostics().backend,aircraft:game.aircraftView.diagnostics(),effects:game.effects.diagnostics(),plane:{position:p.position,phase:p.phase,wreck:p.wreck},events:sim.events.map(e=>({kind:e.kind,tick:e.tick,position:e.position}))};
+  return {kind,seconds,aircraft:game.aircraftView.diagnostics(),effects:game.effects.diagnostics(),plane:{position:p.position,phase:p.phase,wreck:p.wreck},events:sim.events.map(e=>({kind:e.kind,tick:e.tick,position:e.position}))};
 }
 window.aircraftEffectsReview={sample,game};window.reviewReady=true;
 await sample('crash',3);
