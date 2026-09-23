@@ -17,6 +17,7 @@ function fakeWater(lighting?: { sun: { direction: { value: Vector3 }; intensity:
     foam: { waves: { opacity: 0, color: new Color(), persistence: { crestStrength: 0, windwardStrength: 0, decayTime: 0, update(values: { crestStrength: number; windwardStrength: number; decayTime: number }) { Object.assign(this, values); } } }, surface: { color: new Color() }, shoreline: { color: new Color() } },
     fog: {} as { color?: string; fadeStart?: number; fadeEnd?: number; fadePower?: number; skyBlendDistance?: number },
     underwaterDistortion: { intensity: .02 },
+    environment: { intensity: 1 },
     lighting,
   };
 }
@@ -195,7 +196,12 @@ test('paused scene, water and smoke share moonlight and restore the current sun'
     environment.setScene('north-atlantic', false); driver.update(0);
     environment.syncLighting(); // Deliberately no water simulation step.
     expect(waterSun.intensity.value).toBeCloseTo(effects.direct);
-    expect(water.lighting!.sunLight.intensity).toBeCloseTo(effects.direct);
+    // Meshes take half the vendored shaders' sun, and a daylight share of the unoccluded fill.
+    expect(water.lighting!.sunLight.intensity).toBeCloseTo(effects.direct * .5);
+    const fill = environment.ambientLight.intensity / environment.diagnostics().environment!.ambient;
+    if (effects.direct >= 4) { expect(fill).toBeCloseTo(.3, 10); expect(water.environment.intensity).toBeCloseTo(.6, 10); }
+    if (effects.direct <= 1) { expect(fill).toBe(1); expect(water.environment.intensity).toBe(1); }
+    expect(fill).toBeGreaterThanOrEqual(.3 - 1e-9);
     expect(waterSun.direction.value.y).toBeGreaterThanOrEqual(0);
     if (hour === 0 || hour === 24) {
       expect(waterSun.intensity.value).toBeGreaterThan(.3);
@@ -220,7 +226,7 @@ test('distant shadow focus survives provider sync and restores the port and play
   environment.setShadowFocus(focus); environment.syncLighting(); environment.syncLighting();
   expect(water.lighting!.sunLight.target.position).toEqual(focus);
   environment.setScene('north-atlantic', true); environment.syncLighting();
-  expect(water.lighting!.sunLight.target.position).toEqual(new Vector3(-60, 3, 200));
+  expect(water.lighting!.sunLight.target.position).toEqual(anchor.position);
   environment.setShadowFocus(); environment.setScene('north-atlantic', false); environment.syncLighting();
   expect(water.lighting!.sunLight.target.position).toEqual(anchor.position);
 });
