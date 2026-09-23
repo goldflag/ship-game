@@ -199,6 +199,10 @@ export interface ConstructionEquipment {
   /** Per-axis scale of a design-local fitting instance (`design:` parts only), in its own local
    * axes about its datum, 0.05–20 each; mass follows the volume. Omission is full size. */
   scale?: Vec3;
+  /** A hull piece or another equipment row this row rides on: moving, turning, copying, mirroring or
+   * removing the parent carries it. A relationship for editing only; `position` and `bearingDeg`
+   * stay absolute and nothing physical reads it. Only equipment that may float takes a parent. */
+  parent?: string;
   /** Installation settings retain canonical part dimensions/capability. */
   gun?: {
     /** Added height above the deck attachment; position remains the turret datum. */
