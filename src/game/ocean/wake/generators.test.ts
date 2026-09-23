@@ -14,15 +14,19 @@ test('the first step after adding only records the position, then the swept path
   generators.add(hull, { depth: .3, radius: 8 });
   expect(frame(generators)[0]).toEqual([]);
   const emitted: WakeEmission[] = [];
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 150; i++) {
     hull.position.x = i * .5;
     emitted.push(...frame(generators)[0]);
   }
-  expect(emitted).toHaveLength(6);
+  expect(emitted).toHaveLength(150);
   emitted.forEach((e, i) => {
     expect(e.x0).toBeCloseTo(i * .5, 9); expect(e.x1).toBeCloseTo((i + 1) * .5, 9);
-    expect(e.depth).toBeCloseTo(.3, 9); expect(e.gate).toBe(1); expect(e.radius).toBe(8);
+    expect(e.gate).toBe(1); expect(e.radius).toBe(8);
+    if (i) expect(e.depth).toBeGreaterThan(emitted[i - 1].depth);
   });
+  // The depth presses in over about a second rather than in one step.
+  expect(emitted[0].depth).toBeLessThan(.3 * .05);
+  expect(emitted[149].depth).toBeCloseTo(.3, 2);
 });
 
 test('steps inside one frame split the frame move, and slow motion fades the depth', () => {
@@ -33,8 +37,8 @@ test('steps inside one frame split the frame move, and slow motion fades the dep
   const [first, second] = frame(generators, 2);
   expect(first[0]).toMatchObject({ x0: 0, z0: 0, x1: 0, z1: -1.5 });
   expect(second[0]).toMatchObject({ z0: -1.5, z1: -3 });
-  hull.position.z -= .001; // 3 cm/s
-  const [slow] = frame(generators);
+  let slow: WakeEmission[] = [];
+  for (let i = 0; i < 300; i++) { hull.position.z -= .001; slow = frame(generators)[0]; } // 3 cm/s
   expect(slow[0].depth).toBeGreaterThan(0);
   expect(slow[0].depth).toBeLessThan(.2 * .01);
   expect(frame(generators)[0]).toEqual([]);

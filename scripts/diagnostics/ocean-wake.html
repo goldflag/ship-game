@@ -30,18 +30,22 @@ const field = createWakeField(renderer, resolution);
 const ship = new THREE.Object3D();
 const bow = field.addGenerator(ship, { active: false, depth: .32, radius: BEAM * .28, offset: new THREE.Vector3(0, 0, -LENGTH * .448), teleportThreshold: 100 });
 const stern = field.addGenerator(ship, { active: false, depth: .18, radius: BEAM * .39, offset: new THREE.Vector3(0, 0, LENGTH * .448), teleportThreshold: 100 });
-const motion = { speed: 0, turn: 0, follow: true };
-/** One game frame: move the hull (bow toward local −Z), drive the generators like ShipWake, step the field. */
+const motion = { speed: 0, turn: 0 };
+/** Fields stepped each frame: the one under test follows the hull; a reference may stay put. */
+const fields = [{ field, bow, stern, follow: true }];
+/** One game frame: move the hull (bow toward local −Z), drive the generators like ShipWake, step the fields. */
 function frame(dt = DT) {
   ship.rotation.y += motion.turn * dt;
   ship.position.x -= Math.sin(ship.rotation.y) * motion.speed * dt;
   ship.position.z -= Math.cos(ship.rotation.y) * motion.speed * dt;
   const ratio = Math.min(Math.abs(motion.speed) / MAX_SPEED, 1);
-  field.updateGenerator(bow, { active: motion.speed > .1, depth: .32 * ratio * ratio });
-  field.updateGenerator(stern, { active: motion.speed > .1, depth: .18 * ratio * ratio });
-  field.foamStrength = 1.2 * ratio;
-  if (motion.follow) field.setCenter(ship.position.x, ship.position.z);
-  field.step(renderer, dt);
+  for (const entry of fields) {
+    entry.field.updateGenerator(entry.bow, { active: motion.speed > .1, depth: .32 * ratio * ratio });
+    entry.field.updateGenerator(entry.stern, { active: motion.speed > .1, depth: .18 * ratio * ratio });
+    entry.field.foamStrength = 1.2 * ratio;
+    if (entry.follow) entry.field.setCenter(ship.position.x, ship.position.z);
+    entry.field.step(renderer, dt);
+  }
 }
 const run = seconds => { for (let i = 0; i < Math.round(seconds / DT); i++) frame(); };
 const sternPoint = (behind = 0) => {
@@ -53,13 +57,19 @@ const sternPoint = (behind = 0) => {
 const PROBE = 512;
 const probeTarget = new THREE.RenderTarget(PROBE, PROBE, { type: THREE.FloatType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false });
 const probeCenter = uniform(new THREE.Vector2()), probeExtent = uniform(1);
-const probeMaterial = new THREE.MeshBasicNodeMaterial();
-probeMaterial.blending = THREE.NoBlending; probeMaterial.toneMapped = false;
-probeMaterial.fragmentNode = Fn(() => {
-  const p = screenCoordinate.xy.div(PROBE).sub(.5).mul(probeExtent).add(probeCenter), n = field.sampler.normal(p.x, p.y);
-  return vec4(field.sampler.height(p.x, p.y), field.sampler.foam(p.x, p.y), n.x, n.z);
-})();
-const probeQuad = new THREE.QuadMesh(probeMaterial);
+const probeQuads = new Map();
+function probeQuad(sampler) {
+  if (probeQuads.has(sampler)) return probeQuads.get(sampler);
+  const material = new THREE.MeshBasicNodeMaterial();
+  material.blending = THREE.NoBlending; material.toneMapped = false;
+  material.fragmentNode = Fn(() => {
+    const p = screenCoordinate.xy.div(PROBE).sub(.5).mul(probeExtent).add(probeCenter), n = sampler.normal(p.x, p.y);
+    return vec4(sampler.height(p.x, p.y), sampler.foam(p.x, p.y), n.x, n.z);
+  })();
+  const quad = new THREE.QuadMesh(material);
+  probeQuads.set(sampler, quad);
+  return quad;
+}
 /** Rows arrive in memory order; WebGL keeps logical row j at memory row N − 1 − j. */
 async function readRows(target, size) {
   const raw = await renderer.readRenderTargetPixelsAsync(target, 0, 0, size, size);
@@ -67,9 +77,9 @@ async function readRows(target, size) {
   for (let row = 0; row < size; row++) data.set(raw.subarray(row * size * 4, (row + 1) * size * 4), (backend === 'webgl' ? size - 1 - row : row) * size * 4);
   return data;
 }
-async function probe(cx, cz, extent) {
+async function probe(cx, cz, extent, sampler = field.sampler) {
   probeCenter.value.set(cx, cz); probeExtent.value = extent;
-  renderer.setRenderTarget(probeTarget); probeQuad.render(renderer); renderer.setRenderTarget(null);
+  renderer.setRenderTarget(probeTarget); probeQuad(sampler).render(renderer); renderer.setRenderTarget(null);
   const data = await readRows(probeTarget, PROBE);
   const index = (x, z) => {
     const i = Math.floor(((x - cx) / extent + .5) * PROBE), j = Math.floor(((z - cz) / extent + .5) * PROBE);
@@ -86,6 +96,13 @@ async function probe(cx, cz, extent) {
 }
 /** The simulation state itself (private), for exact comparisons. */
 const rawState = async () => Promise.all(field.state.map(target => readRows(target, resolution)));
+/** Full width at half maximum (m) of the foam across the track at a point behind the stern. */
+function foamWidth(sample, at) {
+  const across = { x: Math.cos(ship.rotation.y), z: -Math.sin(ship.rotation.y) }, profile = [];
+  for (let s = -150; s <= 150; s += .5) profile.push(sample.foam(at.x + across.x * s, at.z + across.z * s));
+  const peak = Math.max(...profile);
+  return profile.filter(value => value > peak / 2).length * .5;
+}
 const same = (a, b) => a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
 
 // Views: a shaded flat sea displaced by the wake, and a top-down false-colour map (height, foam).
@@ -98,13 +115,13 @@ const worldXZ = () => positionLocal.xz.add(seaCenter);
 seaMaterial.positionNode = Fn(() => { const w = worldXZ(); return positionLocal.add(vec3(0, field.sampler.height(w.x, w.y), 0)); })();
 seaMaterial.colorNode = Fn(() => {
   const w = worldXZ(), n = field.sampler.normal(w.x, w.y), view = normalize(cameraPosition.sub(positionWorld));
-  const sun = normalize(vec3(-.35, .45, -.8)), mirrored = reflect(view.negate(), n);
+  // No sun glint: on a flat sea it is one bright disc. The sky gradient shows the slopes instead.
+  const sun = normalize(vec3(.3, .5, .8)), mirrored = reflect(view.negate(), n);
   const fresnel = pow(float(1).sub(max(dot(n, view), 0)), 5).mul(.98).add(.02);
-  const sky = mix(vec3(.55, .66, .78), vec3(.2, .36, .6), smoothstep(0, .6, mirrored.y));
+  const sky = mix(vec3(.62, .72, .82), vec3(.12, .24, .45), smoothstep(0, .35, mirrored.y));
   const water = vec3(.012, .05, .085).mul(max(dot(n, sun), 0).mul(.6).add(.4));
-  const glint = pow(max(dot(mirrored, sun), 0), 600).mul(3);
   const foam = smoothstep(.05, .7, field.sampler.foam(w.x, w.y));
-  return vec4(mix(mix(water, sky, fresnel).add(glint), vec3(.85, .9, .92), foam), 1);
+  return vec4(mix(mix(water, sky, fresnel), vec3(.85, .9, .92), foam), 1);
 })();
 const sea = new THREE.Mesh(new THREE.PlaneGeometry(1536, 1536, 1024, 1024).rotateX(-Math.PI / 2), seaMaterial);
 sea.frustumCulled = false;
@@ -125,9 +142,10 @@ function render(view) {
   if (view === 'map') { mapCenter.value.set(cx + Math.sin(ship.rotation.y) * 350, cz + Math.cos(ship.rotation.y) * 350); mapQuad.render(renderer); return; }
   sea.position.set(Math.round(cx / 6) * 6, 0, Math.round(cz / 6) * 6); seaCenter.value.set(sea.position.x, sea.position.z);
   hull.position.set(cx, 3, cz); hull.rotation.y = ship.rotation.y;
+  // Behind and to starboard, looking up the wake at the hull, like the game's chase view.
   const back = new THREE.Vector3(Math.sin(ship.rotation.y), 0, Math.cos(ship.rotation.y));
-  camera.position.set(cx, 0, cz).addScaledVector(back, -260).add(new THREE.Vector3(-back.z * 330, 190, back.x * 330));
-  camera.lookAt(cx + back.x * 330, 0, cz + back.z * 330);
+  camera.position.set(cx, 0, cz).addScaledVector(back, 700).add(new THREE.Vector3(back.z * 260, 240, -back.x * 260));
+  camera.lookAt(cx + back.x * 180, 0, cz + back.z * 180);
   renderer.render(scene, camera);
 }
 async function capture(view) {
@@ -165,18 +183,31 @@ try {
   results.stationaryClean = rest.maxHeight === 0 && rest.maxFoam === 0;
 
   note('Straight at 15 m/s');
+  // A second field that never moves its centre: where both cover the sea they must agree, so
+  // scrolling keeps content fixed in the world.
+  const reference = createWakeField(renderer, resolution);
+  reference.setCenter(ship.position.x, ship.position.z - 250);
+  reference.reset();
+  fields.push({ field: reference, follow: false,
+    bow: reference.addGenerator(ship, { active: false, radius: BEAM * .28, offset: new THREE.Vector3(0, 0, -LENGTH * .448), teleportThreshold: 100 }),
+    stern: reference.addGenerator(ship, { active: false, radius: BEAM * .39, offset: new THREE.Vector3(0, 0, LENGTH * .448), teleportThreshold: 100 }) });
   motion.speed = MAX_SPEED;
   run(30);
-  const trailPoint = sternPoint(150), freshLine = sternPoint(150), olderLine = sternPoint(300);
+  const trailPoint = sternPoint(150);
   const straight = await probe(ship.position.x, ship.position.z + 300, 1000);
   results.trailFoam = straight.foam(trailPoint.x, trailPoint.z);
   results.visibleTrail = results.trailFoam > .35;
   const whole = await probe(ship.position.x, ship.position.z, 1536);
   results.maxHeight = whole.maxHeight;
   results.boundedHeight = whole.finite && whole.maxHeight < 7.99;
-  const width = line => { let w = 0; for (let x = -120; x <= 120; x += 1) if (straight.foam(line.x + x, line.z) > .2) w += 1; return w; };
-  results.freshWidth = width(freshLine); results.olderWidth = width(olderLine);
+  results.freshWidth = foamWidth(straight, sternPoint(150)); results.olderWidth = foamWidth(straight, sternPoint(300));
   results.wakeSpreads = results.olderWidth > results.freshWidth;
+  const fixed = await probe(ship.position.x, ship.position.z + 200, 500, reference.sampler), moving = await probe(ship.position.x, ship.position.z + 200, 500);
+  let difference = 0, signal = 0;
+  fixed.data.forEach((value, i) => { if (i % 4 === 0) { difference += (value - moving.data[i]) ** 2; signal += value * value; } });
+  results.scrollMismatch = Math.sqrt(difference / signal);
+  results.scrollKeepsContent = results.scrollMismatch < .1;
+  fields.pop(); reference.dispose();
   images.straight = await capture('sea'); images.straightMap = await capture('map');
 
   note('Paused');
@@ -215,7 +246,7 @@ try {
   results.teleportStreak = Math.max(across.maxFoam, across.maxHeight);
   results.teleportClean = across.maxFoam < .01 && across.maxHeight < .01;
 
-  results.passed = results.stationaryClean && results.visibleTrail && results.boundedHeight && results.wakeSpreads && results.pausePreservesWake
+  results.passed = results.stationaryClean && results.visibleTrail && results.boundedHeight && results.wakeSpreads && results.scrollKeepsContent && results.pausePreservesWake
     && results.turnRetainsTrail && results.stoppedWakeFades && results.resetClears && results.teleportClean;
 } catch (error) { results.passed = false; results.error = String(error?.stack ?? error); }
 note(JSON.stringify(results, null, 1));

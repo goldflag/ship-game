@@ -5,6 +5,9 @@ import type { WakeGeneratorOptions } from '../contracts';
 export const MAX_GENERATORS = 16;
 /** Swept speed (m/s) at which a generator reaches full amplitude; slower motion fades it to nothing. */
 const FULL_SPEED = 1;
+/** Time constant (s) of the emitted depth: a hull that appears, jumps or starts at speed presses the
+ * sea in over about a second instead of in one step, which would ring out as a steep, foaming circle. */
+const RESPONSE = .8;
 
 /** What one generator puts into one simulation step: the path swept since its previous step. */
 export interface WakeEmission {
@@ -25,6 +28,8 @@ interface Generator {
   current: { x: number; z: number } | null;
   /** Emission point at the last simulation step; null restarts the history. */
   last: { x: number; z: number } | null;
+  /** Emitted depth, easing toward depth × speed gate. */
+  level: number;
 }
 
 /** Tracks the objects that disturb the wake and turns their motion into per-step swept segments.
@@ -39,7 +44,7 @@ export class WakeGenerators {
     const id = this.nextId++;
     this.generators.set(id, {
       object, active: true, depth: .3, radius: 5, teleportThreshold: 50, offset: new Vector3(),
-      previous: null, current: null, last: null,
+      previous: null, current: null, last: null, level: 0,
     });
     this.update(id, options);
     return id;
@@ -62,7 +67,7 @@ export class WakeGenerators {
 
   /** Forget every position: the next step of each generator only records where it is. */
   restart(): void {
-    for (const generator of this.generators.values()) generator.previous = generator.current = generator.last = null;
+    for (const generator of this.generators.values()) { generator.previous = generator.current = generator.last = null; generator.level = 0; }
   }
 
   /** Sample every object once per advancing frame. A frame move longer than the teleport threshold
@@ -73,7 +78,7 @@ export class WakeGenerators {
       const from = generator.current;
       generator.previous = from; generator.current = point;
       if (from && Math.hypot(point.x - from.x, point.z - from.z) > generator.teleportThreshold) {
-        generator.previous = point; generator.last = null;
+        generator.previous = point; generator.last = null; generator.level = 0;
       }
     }
   }
@@ -88,12 +93,13 @@ export class WakeGenerators {
       const x = previous.x + (current.x - previous.x) * fraction, z = previous.z + (current.z - previous.z) * fraction;
       const last = generator.last;
       generator.last = { x, z };
-      if (!last || !generator.active) continue;
+      if (!last) continue;
       const distance = Math.hypot(x - last.x, z - last.z);
-      if (distance > generator.teleportThreshold) continue;
-      const s = Math.min(distance / seconds / FULL_SPEED, 1), gate = s * s * (3 - 2 * s);
+      if (distance > generator.teleportThreshold) { generator.level = 0; continue; }
+      const s = Math.min(distance / seconds / FULL_SPEED, 1), gate = generator.active ? s * s * (3 - 2 * s) : 0;
+      generator.level += (generator.depth * gate - generator.level) * (1 - Math.exp(-seconds / RESPONSE));
       if (gate <= 0) continue;
-      out.push({ x0: last.x, z0: last.z, x1: x, z1: z, radius: generator.radius, depth: generator.depth * gate, gate });
+      out.push({ x0: last.x, z0: last.z, x1: x, z1: z, radius: generator.radius, depth: generator.level, gate });
     }
   }
 }

@@ -21,7 +21,9 @@ const SPONGE_DAMPING = 1.5;
 /** Share of the field at each edge over which the sampler fades to calm. */
 const EDGE_FADE = .03;
 /** Turbulent spreading of wake foam (m²/s), so an old trail is wider than a fresh one. */
-const FOAM_SPREAD = 4;
+const FOAM_SPREAD = 3;
+/** Foam energy left along the hull path at full `foamStrength`: enough to stay visible for about one lifetime. */
+const HULL_FOAM = 1.5;
 /** Foam per second added where the steepness is twice the break threshold, before `foamStrength`. */
 const BREAK_RATE = 1;
 /** Footprints narrower than this many cells would alias on the grid. */
@@ -177,7 +179,7 @@ export class WakeField implements WakeFieldApi {
         head.addAssign(shape.y.mul(footprint));
         wash.assign(max(wash, shape.z.mul(footprint)));
       });
-      const hull = wash.mul(u.foamStrength);
+      const hull = wash.mul(u.foamStrength).mul(HULL_FOAM);
       const updated = vec4(height, h, max(foam.add(spread).mul(u.foamDecay).add(breaking), hull), head);
       return select(inside, updated, vec4(0, 0, hull, head));
     })()) });
