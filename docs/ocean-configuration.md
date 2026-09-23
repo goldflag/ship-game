@@ -60,7 +60,7 @@ Foam lives one period of the waves that broke (`lifetime`), spreading as it ages
 stretch and opacity 1. From 13 m/s part of that coverage lies in windrows, old foam gathered into
 broken lines along the wind (Beaufort 7, "foam begins to be blown in streaks", to 9, "dense
 streaks"): a quarter of it by 25 m/s and at most 4% of the sea (0.07% at 15 m/s, 0.7% at 18, 2.4% at
-21), at 0.32 opacity (`foam.surface`, whose `coverage` is the windrows' share of the sea).
+21), at 0.5 opacity (`foam.surface`, whose `coverage` is the windrows' share of the sea).
 
 Map multipliers are height 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 Indian; wavelength 1.0,
 0.8, 0.8 and 1.1; and the preset wind multiplier 1.0, 0.7, 0.65 and 1.1. Numeric wind bypasses the map

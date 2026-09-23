@@ -209,7 +209,7 @@ brightens the water body toward daylight scattered back by bubbles (30%) and tin
 (pale turquoise, up to 60% of the way; a whitecap's to 45% of a hull's propeller wash), and scatters
 half the reflection away. Windrows, old foam in lines along the wind, take a growing share of the
 wind's coverage from 13 m/s (Beaufort 7, "foam begins to be blown in streaks"; 9 "dense streaks") to a
-quarter of it by 25 m/s, at most 4% of the sea, at 0.32 opacity: soft bands about 1–5 m wide and 12–32 m
+quarter of it by 25 m/s, at most 4% of the sea, at 0.5 opacity: soft bands about 1–5 m wide and 12–32 m
 apart that meander, wiggle over 20 m of their length, swell and break 41 times a tile, gathered in
 stretches built from the patches at two scales an irrational ratio apart (which also shift the bands
 across the wind: no lattice from the air), beaded by the lace into strings of patches, and thickened

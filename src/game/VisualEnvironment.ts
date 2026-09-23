@@ -42,7 +42,7 @@ const SUN_HAZE = .45;
  * Sky Pro's presets draw them at 3.2° and 3.6°. */
 const CELESTIAL_DISC = 7.5e-5;
 /** Opacity of a windrow's old foam: a thin film the sea shows through. */
-const WINDROW_OPACITY = .32;
+const WINDROW_OPACITY = .5;
 /** Windrows at `windSpeed` (m/s), with the map's whitecap `scale`: lines of old foam covering their share of the wind's
  * whitecap coverage. */
 export function windrowFoam(windSpeed: number, scale = 1): { coverage: number; opacity: number } {
