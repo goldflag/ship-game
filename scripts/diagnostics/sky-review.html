@@ -162,12 +162,12 @@ const scenes = {
  * from the median of the paired differences, their lower quartile, and the difference of the fastest frames.
  * Frames are timed by GPU timestamps where the browser allows them (exact with --enable-webgpu-developer-features),
  * else as serialised wall-clock frames. */
-async function benchmarkWeather(pairs = 160, copies = 8) {
+async function benchmarkWeather(pairs = 160, copies = 8, clock = 'gpu') {
   const part = weatherPart();
   if (!part) return undefined;
   const renderer = game.renderer, backend = renderer.backend, device = backend.device;
   const sorted = values => [...values].sort((a, b) => a - b);
-  const timestamps = backend.hasFeature('timestamp-query');
+  const timestamps = clock === 'gpu' && backend.hasFeature('timestamp-query');
   const frame = async () => {
     if (timestamps) { redraw(); return renderer.resolveTimestampsAsync('render'); }
     await device.queue.onSubmittedWorkDone();

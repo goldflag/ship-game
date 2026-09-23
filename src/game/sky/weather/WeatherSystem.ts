@@ -48,7 +48,9 @@ export class WeatherSystem implements WeatherPart {
   private readonly bolt = new BoltMesh();
   private readonly scheduler = new LightningScheduler(1941);
   private readonly hazeStrength = uniform(0);
-  /** Height of the cloud base above the camera (m, 0 once above it): where the rain along an upward ray begins. */
+  /** Height of the camera above the sea and of the cloud base above the camera (m, 0 once above it): where the rain
+   * along a view ray ends. */
+  private readonly hazeHeight = uniform(1);
   private readonly hazeCeiling = uniform(0);
   /** Radiance of the rain-filled air along a view ray, which the haze pulls distance toward. */
   private readonly air: (ray: Node<'vec3'>) => Node<'vec3'>;
@@ -119,6 +121,7 @@ export class WeatherSystem implements WeatherPart {
     this.splashes.count = splash > 0 ? this.precipitation * this.tier.rainDrops * SPLASH_SHARE : 0;
     this.splashes.mesh.visible = this.splashes.count > 0 || warming;
     this.hazeStrength.value = rain;
+    this.hazeHeight.value = Math.max(.5, altitude);
     this.hazeCeiling.value = Math.max(0, this.clouds.altitude - altitude);
     this.bolt.mesh.visible = this.boltVisible || warming;
   }
@@ -141,7 +144,7 @@ export class WeatherSystem implements WeatherPart {
   clearStrike(): void { this.active = null; this.boltVisible = false; this.flashValue = 0; }
 
   postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'> {
-    return rainHaze(scenePass, color, { strength: this.hazeStrength, ceiling: this.hazeCeiling, air: this.air });
+    return rainHaze(scenePass, color, { strength: this.hazeStrength, height: this.hazeHeight, ceiling: this.hazeCeiling, air: this.air });
   }
 
   setQuality(quality: SkyQuality): void {
