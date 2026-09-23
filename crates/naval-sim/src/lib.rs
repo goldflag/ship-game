@@ -10,6 +10,7 @@ mod construction_compact;
 pub mod construction_custom_fittings;
 mod construction_custom_hull;
 mod construction_diagnostics;
+pub mod construction_fitting_mesh;
 pub mod construction_geometry;
 mod construction_installation;
 mod construction_mesh;
