@@ -1,11 +1,12 @@
 import { MathUtils, Matrix3, Vector2, Vector3, type Node, type PassNode, type TextureNode } from 'three/webgpu';
-import { Fn, If, dot, max, pow, smoothstep, uniform, vec3 } from 'three/tsl';
+import { Fn, If, dot, max, smoothstep, uniform, vec3 } from 'three/tsl';
 import type { CelestialPart, SkyFrame, SkyPartContext, SkyQuality, SkyUniforms } from '../contracts';
 import { moonIllumination } from '../celestialModel';
 import { SKY_TIERS } from '../quality';
 import { MOON_DISC, MOON_HALO, moonDisc, moonGlow, sunDisc, type MoonInputs } from './discs';
 import { galacticRotation } from './galactic';
 import { MilkyWay } from './milkyWay';
+import { LightShafts } from './shafts';
 import { StarField } from './starField';
 
 const DEGREES = Math.PI / 180;
@@ -22,6 +23,8 @@ const STARS_BELOW = 1;
 /** The camera's normal field of view (degrees), and the most binoculars brighten point sources: a star's light
  * lands on fewer pixels as the field narrows, so glasses show fainter stars than the naked eye. */
 const NORMAL_FIELD = 52, ZOOM_GAIN = 3;
+/** Camera height (m) below which the view is under water, where the sea draws its own light and no shafts fall. */
+const SUBMERGED = -1;
 /** Earth radius (m), for the horizon's dip below a high camera: stars below the sea horizon are never seen. */
 const EARTH_RADIUS = 6.36e6;
 /** Earthshine on the moon's night side, relative to its sunlit surface at a new moon, and its blue-grey tint. */
@@ -56,10 +59,14 @@ export class CelestialBodies implements CelestialPart {
     bakeSpread: uniform(.02), bakeLevel: uniform(0),
   };
   private readonly moon: MoonInputs;
+  private readonly lightShafts: LightShafts;
+  private readonly reversedDepth: boolean;
 
   constructor(context: SkyPartContext) {
     this.sky = context.uniforms;
+    this.reversedDepth = context.reversedDepth;
     this.stars = new StarField(SKY_TIERS[context.quality].stars);
+    this.lightShafts = new LightShafts(SKY_TIERS[context.quality].shaftSamples);
     const l = this.local;
     this.moon = { direction: this.sky.moonDirection, right: l.moonRight, up: l.moonUp, sun: l.moonSun, surface: l.moonSurface, phase: l.moonPhase,
       earthshine: l.earthshine, glow: l.moonGlow };
@@ -68,7 +75,8 @@ export class CelestialBodies implements CelestialPart {
 
   /** Radians a pixel spans along `direction`: the centre's, shrinking off axis as a pinhole view's pixels do. */
   private pixel(direction: Node<'vec3'>): Node<'float'> {
-    return this.local.pixelAngle.mul(pow(max(dot(direction, this.local.forward), .2), 1.5));
+    const facing = max(dot(direction, this.local.forward), .2);
+    return this.local.pixelAngle.mul(facing.mul(facing.sqrt()));
   }
 
   radiance(direction: Node<'vec3'>): Node<'vec3'> {
@@ -85,6 +93,12 @@ export class CelestialBodies implements CelestialPart {
     })();
   }
 
+  /** Scratch for benchmarking: the discs alone. */
+  moonOnly(direction: Node<'vec3'>): Node<'vec3'> {
+    const pixel = this.pixel(direction);
+    return sunDisc(direction, { direction: this.sky.sunDirection, irradiance: this.sky.sunIrradiance }, pixel).add(moonDisc(direction, this.moon, pixel));
+  }
+
   diffuseRadiance(direction: Node<'vec3'>): Node<'vec3'> {
     const l = this.local;
     return Fn(() => {
@@ -95,8 +109,8 @@ export class CelestialBodies implements CelestialPart {
     })();
   }
 
-  shafts(_scenePass: PassNode, color: Node<'vec4'>, _skyVisibility: TextureNode | null): Node<'vec4'> {
-    return color;
+  shafts(scenePass: PassNode, color: Node<'vec4'>, skyVisibility: TextureNode | null): Node<'vec4'> {
+    return this.lightShafts.compose(scenePass, skyVisibility, color, this.sky.lightColor, this.reversedDepth);
   }
 
   update(frame: SkyFrame): void {
@@ -118,6 +132,9 @@ export class CelestialBodies implements CelestialPart {
     l.starLimit.value = STAR_LIMIT.magnitude + STAR_LIMIT.perDegree * (STAR_LIMIT.at - sunElevation) - MOONLIGHT_WASHOUT.magnitudes * moonlight;
     l.milkyWay.value = MILKY_WAY_RADIANCE * (1 - MathUtils.smoothstep(sunElevation, ...MILKY_WAY_TWILIGHT)) * (1 - MOONLIGHT_WASHOUT.milkyWay * moonlight);
     this.updateMoon();
+    // The light the scene uses: the sun, or the moon once it outshines it. Submerged cameras see the sea's own light.
+    const light = sky.lightDirection.value, moon = sky.moonDirection.value;
+    this.lightShafts.update(camera, light, light.distanceToSquared(moon) < 1e-10 && light.distanceToSquared(sky.sunDirection.value) > 1e-10, camera.position.y < SUBMERGED);
   }
 
   /** The moon's disc frame and lighting from the shared sun, moon and star frame. */
@@ -150,6 +167,7 @@ export class CelestialBodies implements CelestialPart {
 
   setQuality(quality: SkyQuality): void {
     this.stars.setCount(SKY_TIERS[quality].stars);
+    this.lightShafts.setSamples(SKY_TIERS[quality].shaftSamples);
     this.setBake(quality);
   }
 

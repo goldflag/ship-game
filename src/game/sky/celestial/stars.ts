@@ -91,14 +91,18 @@ export function cubeFace(x: number, y: number, z: number): { face: number; u: nu
   return { face: z >= 0 ? 4 : 5, u: x / az, v: y / az };
 }
 
-/** Equal-angle warp of a gnomonic coordinate: cells of equal `s` span nearly equal angles. */
-export const warp = (u: number) => Math.atan(u) * 4 / Math.PI;
+/** A polynomial in place of the equal-angle warp atan(u)·4/π (within 0.002, and monotonic): cells of equal `s`
+ * span nearly equal angles, for a few multiplies instead of two arctangents per pixel. The shader uses the same. */
+export const WARP = [.31157, .08442] as const;
+export const warp = (u: number) => { const a = Math.abs(u); return u * (1 + (1 - a) * (WARP[0] + WARP[1] * a)); };
+/** ds/du of the warp. */
+export const warpSlope = (u: number) => { const a = Math.abs(u); return 1 + WARP[0] + 2 * (WARP[1] - WARP[0]) * a - 3 * WARP[1] * a * a; };
 
 /** Angle (radians) per unit of warped coordinate across the lines of constant `s` and `t` at (u, v): the
- * perpendicular widths of a cell, which shrink to 0.71 of the face centre's at the middle of an edge. */
+ * perpendicular widths of a cell, 1 / (s′(u)·√(C(1 + u²))) with C = 1 + u² + v², least at the middle of an edge. */
 function across(u: number, v: number): { s: number; t: number } {
   const c = 1 + u * u + v * v;
-  return { s: Math.PI / 4 * Math.sqrt((1 + u * u) / c), t: Math.PI / 4 * Math.sqrt((1 + v * v) / c) };
+  return { s: 1 / (warpSlope(u) * Math.sqrt(c * (1 + u * u))), t: 1 / (warpSlope(v) * Math.sqrt(c * (1 + v * v))) };
 }
 
 /** The cell of `grid` holding a direction, with the direction's clearance (radians) from that cell's edges. */

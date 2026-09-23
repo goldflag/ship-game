@@ -1,6 +1,6 @@
 import { ClampToEdgeWrapping, DataTexture, DataUtils, HalfFloatType, LinearFilter, NearestFilter, RGBAFormat, type Node, type TextureNode } from 'three/webgpu';
-import { Fn, If, abs, atan, exp, exp2, float, floor, fract, ivec2, max, min, mix, select, sin, smoothstep, texture, vec2, vec3 } from 'three/tsl';
-import { blackbodyColor, colorTemperature, COLOR_INDEX_RANGE, MAX_STARS, STAR_GRID, STAR_TEXTURE, starCatalog, starTexels, type Star } from './stars';
+import { Fn, If, abs, exp, exp2, float, floor, fract, ivec2, max, min, mix, select, sin, smoothstep, texture, vec2, vec3 } from 'three/tsl';
+import { blackbodyColor, colorTemperature, COLOR_INDEX_RANGE, MAX_STARS, STAR_GRID, STAR_TEXTURE, starCatalog, starTexels, WARP, type Star } from './stars';
 
 /** Peak radiance of a magnitude-0 star, and how much of the true brightness range the dome keeps: a factor of
  * 10^(0.4 · COMPRESSION) per magnitude instead of 2.512, so a 6.5 star still shows beside a −1.5 one without
@@ -71,9 +71,13 @@ export class StarField {
     this.map.needsUpdate = true;
   }
 
-  /** Radiance of the stars around one direction. */
+  /** Radiance of the stars around one direction. Every pixel pays for the cell lookup (a face, a warp and two
+   * texel loads); only pixels in an occupied cell go on to the star's image. */
   radiance(input: StarFieldInputs): Node<'vec3'> {
     const n = STAR_GRID.cells, map = texture(this.map), ramp = texture(this.ramp);
+    // The warp and its slope: `warp`, `warpSlope` in stars.ts.
+    const warp = (u: Node<'float'>) => { const a = abs(u); return u.mul(float(1).sub(a).mul(a.mul(WARP[1]).add(WARP[0])).add(1)); };
+    const slope = (u: Node<'float'>) => { const a = abs(u); return a.mul(2 * (WARP[1] - WARP[0])).sub(a.mul(a).mul(3 * WARP[1])).add(1 + WARP[0]); };
     return Fn(() => {
       const g = input.galactic, a = abs(g);
       // `cubeFace` in stars.ts, ties included.
@@ -83,33 +87,31 @@ export class StarField {
       const face = select(xMajor, select(g.x.greaterThanEqual(0), float(0), float(1)),
         select(yMajor, select(g.y.greaterThanEqual(0), float(2), float(3)), select(g.z.greaterThanEqual(0), float(4), float(5)))).toVar();
       const uv = select(xMajor, g.yz, select(yMajor, g.zx, g.xy)).div(major).toVar();
-      const grid = atan(uv).mul(4 / Math.PI).add(1).mul(n / 2).toVar();
-      // Squared angle of a small step (ds, dt) of cells, from the gnomonic metric with the equal-angle warp:
-      // (π/2n)² · AB/C² · (A ds² + B dt² − 2uv ds dt), A = 1 + u², B = 1 + v², C = 1 + u² + v².
-      const A = uv.x.mul(uv.x).add(1), B = uv.y.mul(uv.y).add(1), C = A.add(B).sub(1);
-      const metric = A.mul(B).div(C.mul(C)).mul((Math.PI / (2 * n)) ** 2).toVar();
-      const shear = uv.x.mul(uv.y).mul(2).toVar();
-      const window = float(STAR_GRID.margin * STAR_GRID.margin);
-      const air = smoothstep(0, .5, input.direction.y).oneMinus();
-      const twinkle = mix(float(TWINKLE_ZENITH), float(TWINKLE_HORIZON), air.mul(air)).toVar();
+      const grid = vec2(warp(uv.x), warp(uv.y)).add(1).mul(n / 2).toVar();
       const result = vec3(0).toVar();
       const star = (cell: Node<'vec2'>, local: Node<'vec2'>, row: number) => {
         const texel = direct(map.load(ivec2(vec2(face.mul(n + 1).add(cell.x), cell.y.add(row))))).toVar();
         // Magnitude 40 marks an empty cell; stars fainter than the limit fade out over half a magnitude.
         If(texel.z.lessThan(input.limit.add(.5)), () => {
-          const d = local.sub(texel.xy);
-          const angle2 = metric.mul(A.mul(d.x).mul(d.x).add(B.mul(d.y).mul(d.y)).sub(shear.mul(d.x).mul(d.y))).toVar();
-          If(angle2.lessThan(window), () => {
+          // Squared angle of the offset from the gnomonic metric: with (du, dv) = (ds/s′(u), dt/s′(v)),
+          // [(1 + v²) du² + (1 + u²) dv² − 2uv du dv] / C², C = 1 + u² + v².
+          const d = local.sub(texel.xy).mul(2 / n).div(vec2(slope(uv.x), slope(uv.y)));
+          const u2 = uv.x.mul(uv.x), v2 = uv.y.mul(uv.y), c = u2.add(v2).add(1);
+          const angle2 = v2.add(1).mul(d.x).mul(d.x).add(u2.add(1).mul(d.y).mul(d.y)).sub(uv.x.mul(uv.y).mul(d.x).mul(d.y).mul(2)).div(c.mul(c)).toVar();
+          If(angle2.lessThan(STAR_GRID.margin * STAR_GRID.margin), () => {
             const flux = exp2(texel.z.mul(-.4 * COMPRESSION * Math.log2(10))).mul(STAR_PEAK).mul(smoothstep(input.limit.add(.5), input.limit.sub(.5), texel.z));
             const spread = input.pixelAngle.mul(SPREAD_PX).mul(max(float(1), float(1.5).sub(texel.z).mul(BRIGHT_SPREAD).add(1)));
             // Truncated to zero at the margin, where the cell ends: a smooth quartic that leaves the core alone.
-            const fall = angle2.div(window);
+            const fall = angle2.div(STAR_GRID.margin * STAR_GRID.margin);
             const image = exp(angle2.div(spread.mul(spread).mul(-2))).mul(fall.mul(fall).oneMinus());
+            // Scintillation grows toward the horizon, where starlight crosses the most air.
+            const air = smoothstep(0, .5, input.direction.y).oneMinus();
             const seed = fract(texel.xy.mul(vec2(71.37, 23.91)).add(texel.yx.mul(vec2(3.17, 11.3))));
             const flicker = sin(input.time.mul(seed.x.mul(2.3).add(1.9).mul(2 * Math.PI)).add(seed.y.mul(40))).mul(.6)
               .add(sin(input.time.mul(seed.y.mul(2.9).add(3.1).mul(2 * Math.PI)).add(seed.x.mul(57))).mul(.4));
+            const twinkle = flicker.mul(mix(float(TWINKLE_ZENITH), float(TWINKLE_HORIZON), air.mul(air))).add(1).max(.15);
             const color = direct(ramp.sample(vec2(texel.w.sub(COLOR_INDEX_RANGE[0]).div(COLOR_INDEX_RANGE[1] - COLOR_INDEX_RANGE[0]), .5)).level(float(0))).rgb;
-            result.addAssign(color.mul(flux).mul(image).mul(max(float(.15), flicker.mul(twinkle).add(1))));
+            result.addAssign(color.mul(flux).mul(image).mul(twinkle));
           });
         });
       };
