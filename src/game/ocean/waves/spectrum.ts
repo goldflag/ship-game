@@ -1,8 +1,9 @@
 /** CPU wave spectrum. Each cascade is a periodic tile whose wavevector lattice k = 2π·n/L holds
- * seeded Gaussian amplitudes drawn from a JONSWAP spectrum (Hasselmann et al. 1973) whose short
- * waves are held to Phillips' saturation range, with frequency-dependent directional spreading
- * (Hasselmann et al. 1980), then scaled so the rendered surface has exactly the requested
- * significant height. Pure TypeScript: the GPU only evolves and transforms what this file builds. */
+ * seeded Gaussian amplitudes drawn from a JONSWAP spectrum (Hasselmann et al. 1973), or Donelan et
+ * al.'s (1985) for the realistic sea state, whose short waves are held to Phillips' saturation range,
+ * with frequency-dependent directional spreading (Hasselmann et al. 1980), then scaled so the rendered
+ * surface has exactly the requested significant height. Pure TypeScript: the GPU only evolves and
+ * transforms what this file builds. */
 import type { WaveCascadeInfo, WaveParameters } from '../contracts';
 
 export const GRAVITY = 9.81;
@@ -82,7 +83,7 @@ export function equilibrium(omega: number, peak: number, gamma: number, age: num
  * range, held at or below the saturation range above the peak. The game's calibrated seas are steeper than real
  * ones (Hs/λp up to 0.14 at 25 m/s, where a fully developed sea has 0.03), so a JONSWAP normalised to their height
  * would put α ≈ 0.2 into every short wave; saturation keeps that energy in the peak, where breaking would leave it.
- * A real sea's equilibrium range meets the saturation range a few times above its peak (3.6 ωp at 9 m/s). */
+ * A real sea's equilibrium range meets the saturation range 4–6 times above its peak. */
 export function seaSpectrum(omega: number, peak: number, gamma: number, level: number, age?: number): number {
   const free = level * (age === undefined ? jonswap(omega, peak, gamma) : equilibrium(omega, peak, gamma, age));
   const t = Math.min(1, Math.max(0, (omega / peak - SATURATION_ONSET) / (SATURATION_FULL - SATURATION_ONSET)));

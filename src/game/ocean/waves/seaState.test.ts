@@ -6,7 +6,7 @@ import { OCEAN_TIERS } from '../quality';
 import { activeModes, referenceTexel } from './reference';
 import { BREAKING_CHOPPINESS, MAX_TILE_GROWTH, PEAK_WAVELENGTHS_PER_TILE, drawnSea, seaStateCascades, waveAge, windSeaFetch, windSeaGamma,
   windSeaPeakWavelength } from './seaState';
-import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands, type CascadeSpectrum } from './spectrum';
+import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands, spectrumLevel, type CascadeSpectrum } from './spectrum';
 
 const sea = (overrides: Partial<WaveParameters> = {}): WaveParameters => ({
   significantHeight: 1.8, windSpeed: 9, windDirection: .6, peakWavelength: 32, choppiness: 1.1,
@@ -248,9 +248,15 @@ describe('sea-state tiles', () => {
     expect(storm.folded).toBeGreaterThan(.01);
   });
 
-  test("a realistic peak leaves the saturation cap unreached and the rest of Cox–Munk's slopes to the tail", () => {
-    // JONSWAP normalised to a real sea's height has α near Phillips' 0.0081, below the 0.02 cap: the short waves are
-    // JONSWAP's own, and the unresolved share of Cox–Munk's measured slopes roughens the surface.
+  test("the equilibrium range meets the saturation range a few times above the peak; the tail keeps the rest of Cox–Munk's slopes", () => {
+    // Donelan's ω⁻⁴ range normalised to a real sea's height runs into the 0.02·g²·ω⁻⁵ saturation range 4–6 ωp up; the
+    // drawn waves then stay below Cox–Munk's measured total, whose unresolved share roughens the surface.
+    for (const wind of [3, 6, 9, 15, 25, 30]) {
+      const { drawn } = grown(OCEAN_TIERS.high.cascades, wind), peak = Math.sqrt(GRAVITY * 2 * Math.PI / drawn.peakWavelength);
+      const level = spectrumLevel(peak, drawn.gamma, (drawn.significantHeight / 4) ** 2, waveAge(drawn.peakWavelength, wind));
+      expect(.02 / level).toBeGreaterThan(3);
+      expect(.02 / level).toBeLessThan(7);
+    }
     for (const wind of [6, 9, 15, 25, 30]) {
       const { drawn, layout } = grown(OCEAN_TIERS.high.cascades, wind), spectrum = buildSpectrum(layout, drawn);
       const drawnSlopes = spectrum.cascades.reduce((sum, c) => sum + c.slopeVariance, 0), total = .003 + .00512 * wind;
