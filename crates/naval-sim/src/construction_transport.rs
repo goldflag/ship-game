@@ -108,8 +108,12 @@ fn index_vertices(
         }
         Value::Object(fields) => {
             for (key, value) in fields {
-                // Every `vertices` field in ConstructionResult is a Vec<Vec3>,
-                // including authored geometry retained inside its definition.
+                // Every point-list `vertices` field in ConstructionResult is a Vec<Vec3>,
+                // including authored geometry retained inside its definition. A visual mesh
+                // fitting's `vertices` is its vertex count, a number, and stays as it is.
+                if key == "vertices" && value.is_number() {
+                    continue;
+                }
                 if key == "vertices" {
                     let points = value
                         .as_array_mut()
@@ -157,6 +161,9 @@ mod tests {
                 }
                 Value::Object(fields) => {
                     for (key, value) in fields {
+                        if key == "vertices" && value.is_number() {
+                            continue;
+                        }
                         if key == "vertices" {
                             for i in value.as_array_mut().unwrap() {
                                 *i = points[i.as_u64().unwrap() as usize].clone();
