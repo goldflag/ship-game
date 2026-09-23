@@ -1044,7 +1044,7 @@ export class Game {
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,
         !this.inPort && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && this.rig.magnification > 1.5));
       this.environment.update(this.camera, dt);
-      this.fleetVisibility.update(this.fleetViews, this.camera, this.sunLight!, this.inPort || warmingUp);
+      this.fleetVisibility.update(this.fleetViews, this.camera, this.sunShadows!, this.inPort || warmingUp, this.rig.magnification);
       this.fleetViews.forEach(view => { if (view.renderActive || view === this.playerView) view.updateArticulation(alpha); });
       const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim, realDt, this.playerView!);
