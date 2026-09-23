@@ -1,6 +1,6 @@
 import { DepthTexture, DoubleSide, NoBlending, NodeMaterial, type Color, type Node, type Texture } from 'three/webgpu';
-import { cameraFar, cameraNear, cameraPosition, cameraViewMatrix, dot, exp, float, frontFacing, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
-  pmremTexture, positionWorld, reference, reflect, refract, select, smoothstep, texture, uniform, varying, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
+import { cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
+  pmremTexture, positionWorld, reference, reflect, refract, select, sin, smoothstep, texture, uniform, varying, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
 import { EffectDepthTextureNode } from '../../EffectVolume';
 import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../stubs/screen';
@@ -137,8 +137,10 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const toCamera = cameraPosition.sub(positionWorld), distance = toCamera.length(), view = toCamera.div(distance);
     const wakeNormal = wake.normal(xz.x, xz.y);
     const up = surfaceNormal(sample.slope, wakeNormal);
-    const lit = shadow ?? float(1);
-    const sunDirection = uniform(sun.direction), sunRadiance = rgb(sun.color).mul(reference('intensity', 'float', sun));
+    const sunIntensity = reference('intensity', 'float', sun);
+    const sunDirection = uniform(sun.direction), sunRadiance = rgb(sun.color).mul(sunIntensity);
+    // Ship shadows on the sea fade with the celestial light that casts them: faint under the moon.
+    const lit = shadow ? mix(1, shadow, sunIntensity.div(2).clamp(0, 1)) : float(1);
     const pigment = rgb(colors.waterColor), absorption = rgb(colors.absorptionColor);
 
     // The opaque scene behind this pixel, and how much water lies between it and the surface.
@@ -161,7 +163,10 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     let above: Node<'vec3'> = mix(body, reflected, reflectance).add(direct.mul(lit));
 
     // Foam, from the widest and faintest to the brightest: surface pattern, crests, wakes, shorelines.
-    const bubbles = texture(this.foamDetail, xz.div(9)).r, patches = texture(this.foamDetail, xz.div(71)).g;
+    // Its texture is laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
+    const wind = reference('windDirection', 'float', waves.params), along = vec2(cos(wind), sin(wind));
+    const foamXz = vec2(dot(xz, along).div(reference('windStretch', 'float', foam.crest).mul(2).add(1)), dot(xz, vec2(along.y.negate(), along.x)));
+    const bubbles = texture(this.foamDetail, foamXz.div(9)).r, patches = texture(this.foamDetail, foamXz.div(71)).g;
     const foamLight = mix(SHADOWED_FOAM, 1, lit);
     const surfaceFoam = smoothstep(float(1).sub(reference('coverage', 'float', foam.surface)), 1, patches).mul(bubbles).mul(reference('opacity', 'float', foam.surface));
     const crestFoam = dissolve(sample.foam, bubbles).mul(reference('opacity', 'float', foam.crest));
