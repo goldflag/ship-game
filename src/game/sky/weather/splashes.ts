@@ -34,7 +34,6 @@ export class SplashField {
   readonly size = uniform(1);
   readonly directShare = uniform(1);
   readonly grey = uniform(0);
-  readonly flash = uniform(0);
   /** Per class: its clock in lifetimes (wrapped with the 60 s clock). */
   private readonly cycles = uniform(new Vector4());
   /** Region phase (x, z) in region units and the region centre relative to the camera (x, z). */
@@ -124,7 +123,7 @@ export class SplashField {
       age.assign(progress);
       fade.assign(float(1).sub(smoothstep(.36, .5, edge)).mul(float(1).sub(smoothstep(FAR[0], FAR[1], base.length()))).mul(this.opacity));
       // Rings mirror the sky at a grazing angle; crowns are white water lit by it and by any direct light.
-      const sky = skyAround(lighting, view, this.grey).mul(this.flash.add(1));
+      const sky = skyAround(lighting, view, this.grey).mul(lighting.flash.add(1));
       water.assign(sky.mul(RING_LIGHT));
       spray.assign(sky.mul(CROWN_LIGHT).add(lighting.lightColor.mul(this.directShare).mul(CROWN_GLINT)));
       return cameraProjectionMatrix.mul(vec4(cameraViewMatrix.mul(vec4(position, 0)).xyz, 1));
