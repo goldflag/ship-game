@@ -102,7 +102,6 @@ test('player-built hulls, blocks and painted design-local fittings are plate; ti
   const named = (name: string, userData: Record<string, unknown> = {}) => { const m = new THREE.MeshStandardMaterial(); m.name = name; m.userData = userData; return m; };
   expect(isPlatedPaint(named('construction.light-gray'))).toBe(true);
   expect(isPlatedPaint(named('custom-fitting.light-gray'))).toBe(true);
-  expect(isPlatedPaint(named('custom-fitting.light-gray.roof'))).toBe(true);
   expect(isPlatedPaint(named('custom-fitting.teak-natural'))).toBe(false);
   expect(isPlatedPaint(named('custom-fitting', { componentMaterialRole: 'canvas' }))).toBe(false);
   expect(isPlatedPaint(named('custom-fitting', { componentMaterialRole: 'naval' }))).toBe(true);

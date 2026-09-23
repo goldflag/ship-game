@@ -9,17 +9,8 @@ import { constructionTubeGeometry } from './constructionTubeGeometry';
 
 /** Faces meeting at more than this angle keep a hard edge on a visual mesh. */
 export const FITTING_MESH_CREASE_DEG = 35;
-/** Triangles facing within this cosine of straight up are roofs, as the hull's decks are. */
-const ROOF_NORMAL_Y = 0.7;
-/** A horizontal mesh triangle with the fitting's own geometry this close above it is an underside (a slab's
- * lower face, a closed box's floor), not a roof. */
-const ROOF_CLEARANCE_M = 1;
-/** Coat-key suffix of the roofs split from a coating that wears the installation or ship paint. */
-const ROOF = '\u0000roof';
 
 type Coat = { positions: number[]; normals: number[]; indices: number[] };
-/** The ship paint, and the colour roofs explicitly painted with it are drawn. */
-export type FittingRoof = { shipPaint: string; color: string };
 
 /** Crease-angle normals for one decoded mesh, as indexed runs per coating. A triangle corner averages the
  * area-weighted normals of the faces around its vertex that lie within the crease angle of its own face;
@@ -101,68 +92,6 @@ export function creasedFittingMesh(
   return coats;
 }
 
-/** Horizontal triangles of a mesh open to the sky: a vertical line up from each one's centroid meets none of
- * the mesh's own triangles within `ROOF_CLEARANCE_M`. Exported meshes do not keep a consistent winding, so a
- * triangle facing either way counts; a roof wound downward is still a roof and a slab's lower face is not. */
-export function exposedTops(mesh: DecodedFittingMesh): Uint8Array {
-  const { points: p, triangles: t } = mesh,
-    count = t.length / 3,
-    tops = new Uint8Array(count);
-  let x0 = Infinity,
-    z0 = Infinity,
-    x1 = -Infinity,
-    z1 = -Infinity;
-  for (let i = 0; i < p.length; i += 3) {
-    x0 = Math.min(x0, p[i]);
-    x1 = Math.max(x1, p[i]);
-    z0 = Math.min(z0, p[i + 2]);
-    z1 = Math.max(z1, p[i + 2]);
-  }
-  // Triangles binned by their plan bounds, about one per cell.
-  const n = Math.max(1, Math.min(128, Math.ceil(Math.sqrt(count)))),
-    sx = n / Math.max(x1 - x0, 1e-6),
-    sz = n / Math.max(z1 - z0, 1e-6);
-  const column = (x: number) => Math.min(n - 1, Math.max(0, Math.floor((x - x0) * sx))),
-    row = (z: number) => Math.min(n - 1, Math.max(0, Math.floor((z - z0) * sz)));
-  const cells: number[][] = Array.from({ length: n * n }, () => []);
-  const corners = (f: number) => [3 * t[3 * f], 3 * t[3 * f + 1], 3 * t[3 * f + 2]] as const;
-  for (let f = 0; f < count; f++) {
-    const [a, b, c] = corners(f);
-    for (let i = column(Math.min(p[a], p[b], p[c])); i <= column(Math.max(p[a], p[b], p[c])); i++)
-      for (let k = row(Math.min(p[a + 2], p[b + 2], p[c + 2])); k <= row(Math.max(p[a + 2], p[b + 2], p[c + 2])); k++)
-        cells[i * n + k].push(f);
-  }
-  // Height of triangle g over the plan point (x, z), when that point lies inside its plan.
-  const heightAt = (g: number, x: number, z: number) => {
-    const [a, b, c] = corners(g);
-    const d = (p[b + 2] - p[c + 2]) * (p[a] - p[c]) + (p[c] - p[b]) * (p[a + 2] - p[c + 2]);
-    if (Math.abs(d) < 1e-12) return undefined;
-    const u = ((p[b + 2] - p[c + 2]) * (x - p[c]) + (p[c] - p[b]) * (z - p[c + 2])) / d,
-      v = ((p[c + 2] - p[a + 2]) * (x - p[c]) + (p[a] - p[c]) * (z - p[c + 2])) / d;
-    return u < -1e-9 || v < -1e-9 || u + v > 1 + 1e-9 ? undefined : u * p[a + 1] + v * p[b + 1] + (1 - u - v) * p[c + 1];
-  };
-  for (let f = 0; f < count; f++) {
-    const [a, b, c] = corners(f);
-    const ux = p[b] - p[a],
-      uy = p[b + 1] - p[a + 1],
-      uz = p[b + 2] - p[a + 2];
-    const vx = p[c] - p[a],
-      vy = p[c + 1] - p[a + 1],
-      vz = p[c + 2] - p[a + 2];
-    const ny = uz * vx - ux * vz;
-    if (!(Math.abs(ny) > ROOF_NORMAL_Y * Math.hypot(uy * vz - uz * vy, ny, ux * vy - uy * vx))) continue;
-    const x = (p[a] + p[b] + p[c]) / 3,
-      y = (p[a + 1] + p[b + 1] + p[c + 1]) / 3,
-      z = (p[a + 2] + p[b + 2] + p[c + 2]) / 3;
-    const covered = cells[column(x) * n + row(z)].some((g) => {
-      const h = g === f ? undefined : heightAt(g, x, z);
-      return h !== undefined && h > y + 1e-3 && h < y + ROOF_CLEARANCE_M;
-    });
-    if (!covered) tops[f] = 1;
-  }
-  return tops;
-}
-
 /** Coating of each triangle of a mesh: its group's paint, or '' to follow the instance and ship paint. */
 function meshPaints(mesh: ConstructionFittingMesh): (triangle: number) => string {
   const groups = mesh.groups ?? [];
@@ -177,39 +106,29 @@ function meshPaints(mesh: ConstructionFittingMesh): (triangle: number) => string
  * blocks it was made from; visual meshes are drawn with crease-angle normals. Display only: mass,
  * support and fit belong to the native compiler. One indexed mesh per coating: shapes, tubes and mesh
  * groups without a `paint` follow the instance and ship paint (`paintConstructionFitting`), explicitly
- * painted ones keep their colour. Roofs of solids and meshes that follow the installation get their own
- * `roof`-role coating, which that paint recolours with its roof colour; roofs explicitly painted
- * `roof.shipPaint` are drawn `roof.color`. Tubes have no roofs. Build it once per definition and clone
- * it per instance: clones share the geometry. */
+ * painted ones keep their colour. Build it once per definition and clone it per instance: clones share
+ * the geometry. */
 export function createConstructionFittingModel(
   def: ConstructionFittingDefinition,
-  options: { ghost?: boolean; finish?: ConstructionSurfaceFinish; roof?: FittingRoof } = {},
+  options: { ghost?: boolean; finish?: ConstructionSurfaceFinish } = {},
 ): THREE.Group {
   const group = new THREE.Group();
   group.name = def.name;
   const coats = new Map<string, Coat>();
-  const roofed = (paint: string) => paint === '' || paint === options.roof?.shipPaint;
-  const add = (paint = '', geometry: THREE.BufferGeometry, matrix?: THREE.Matrix4, roofs = true) => {
+  const add = (paint: string | undefined, geometry: THREE.BufferGeometry, matrix?: THREE.Matrix4) => {
     const flat = geometry.index ? geometry.toNonIndexed() : geometry;
     if (!flat.getAttribute('normal')) flat.computeVertexNormals();
     if (matrix) flat.applyMatrix4(matrix);
+    let coat = coats.get(paint ?? '');
+    if (!coat) coats.set(paint ?? '', (coat = { positions: [], normals: [], indices: [] }));
     const position = flat.getAttribute('position').array,
-      normal = flat.getAttribute('normal').array;
-    for (let i = 0; i < position.length; i += 9) {
-      // Solids are drawn with outward lighting normals; their sum says which way a triangle faces.
-      const nx = normal[i] + normal[i + 3] + normal[i + 6],
-        ny = normal[i + 1] + normal[i + 4] + normal[i + 7],
-        nz = normal[i + 2] + normal[i + 5] + normal[i + 8];
-      const key = roofs && roofed(paint) && ny > ROOF_NORMAL_Y * Math.hypot(nx, ny, nz) ? paint + ROOF : paint;
-      let coat = coats.get(key);
-      if (!coat) coats.set(key, (coat = { positions: [], normals: [], indices: [] }));
-      const base = coat.positions.length / 3;
-      for (let k = i; k < i + 9; k++) {
-        coat.positions.push(position[k]);
-        coat.normals.push(normal[k]);
-      }
-      coat.indices.push(base, base + 1, base + 2);
+      normal = flat.getAttribute('normal').array,
+      base = coat.positions.length / 3;
+    for (let i = 0; i < position.length; i++) {
+      coat.positions.push(position[i]);
+      coat.normals.push(normal[i]);
     }
+    for (let i = 0; i < position.length / 3; i++) coat.indices.push(base + i);
     if (flat !== geometry) flat.dispose();
     geometry.dispose();
   };
@@ -232,26 +151,17 @@ export function createConstructionFittingModel(
   }
   for (const tube of def.tubes) {
     if (tube.points.length < 2 || !(tube.diameterM > 0) || tube.points.some((p) => p.some((n) => !Number.isFinite(n)))) continue;
-    add(tube.paint, constructionTubeGeometry([tube.points], tube.diameterM / 2, undefined, TUBE_SIDES), undefined, false);
+    add(tube.paint, constructionTubeGeometry([tube.points], tube.diameterM / 2, undefined, TUBE_SIDES));
   }
   for (const mesh of def.meshes ?? []) {
     try {
-      const decoded = decodeFittingMesh(mesh),
-        paintOf = meshPaints(mesh),
-        tops = exposedTops(decoded);
-      creasedFittingMesh(decoded, (t) => (tops[t] && roofed(paintOf(t)) ? paintOf(t) + ROOF : paintOf(t)), FITTING_MESH_CREASE_DEG, coats);
+      creasedFittingMesh(decodeFittingMesh(mesh), meshPaints(mesh), FITTING_MESH_CREASE_DEG, coats);
     } catch {
       // An undecodable mesh stays out of the drawing; the compiler names it.
     }
   }
-  const walls = componentMaterial('naval'),
-    roofs = componentMaterial('roof');
-  for (const [key, { positions, normals, indices }] of coats) {
+  for (const [paint, { positions, normals, indices }] of coats) {
     if (!indices.length) continue;
-    const roof = key.endsWith(ROOF),
-      paint = roof ? key.slice(0, -ROOF.length) : key,
-      surface = roof ? roofs : walls,
-      name = (paint ? '.' + paint : '') + (roof ? '.roof' : '');
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
@@ -260,11 +170,12 @@ export function createConstructionFittingModel(
     );
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
+    const surface = componentMaterial('naval');
     const material = new THREE.MeshStandardMaterial({
       color: options.ghost
         ? new THREE.Color('#e0c58d')
         : paint
-          ? new THREE.Color(roof ? options.roof!.color : constructionPaintColor(paint))
+          ? new THREE.Color(constructionPaintColor(paint))
           : new THREE.Color().setRGB(...(surface.color as [number, number, number])),
       roughness: paint ? constructionFinishRoughness(options.finish, surface.roughness) : surface.roughness,
       metalness: surface.metallic,
@@ -273,11 +184,11 @@ export function createConstructionFittingModel(
       depthWrite: !options.ghost,
       side: THREE.DoubleSide,
     });
-    material.name = 'custom-fitting' + name;
+    material.name = paint ? `custom-fitting.${paint}` : 'custom-fitting';
     // Only unpainted shapes follow the installation's coating.
     if (!paint) material.userData = surface.userData;
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.name = def.id + name;
+    mesh.name = paint ? `${def.id}.${paint}` : def.id;
     mesh.castShadow = mesh.receiveShadow = true;
     group.add(mesh);
   }

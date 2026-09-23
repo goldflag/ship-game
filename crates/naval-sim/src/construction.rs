@@ -754,16 +754,6 @@ fn validate(
             None,
         ));
     }
-    if c.roof_paint
-        .as_ref()
-        .is_some_and(|paint| paint.is_empty() || paint.len() > 64)
-    {
-        errors.push(error(
-            "roof-paint",
-            "Roof paint must be a nonempty name of at most 64 bytes",
-            None,
-        ));
-    }
     if c.wear
         .as_deref()
         .is_some_and(|w| !["fresh", "in-commission", "long-deployment", "battle-worn"].contains(&w))
@@ -3919,18 +3909,15 @@ mod tests {
         );
     }
     #[test]
-    fn ship_wear_and_roof_paint_are_visual_and_validated() {
+    fn ship_wear_is_visual_and_validated() {
         let (mut source, catalog) = fixture();
         let original = compile(&source, &catalog);
         assert!(!to_json(&source).unwrap().contains("\"wear\""));
-        assert!(!to_json(&source).unwrap().contains("\"roofPaint\""));
         for wear in ["fresh", "in-commission", "long-deployment", "battle-worn"] {
             source.construction.wear = Some(wear.into());
-            source.construction.roof_paint = Some("deck-gray".into());
             let saved: ConstructionSource =
                 serde_json::from_str(&to_json(&source).unwrap()).unwrap();
             assert_eq!(saved.construction.wear.as_deref(), Some(wear));
-            assert_eq!(saved.construction.roof_paint.as_deref(), Some("deck-gray"));
             let result = compile(&saved, &catalog);
             assert!(result.definition.is_some(), "{:?}", result.diagnostics);
             assert_ne!(result.content_hash, original.content_hash);
@@ -3944,16 +3931,13 @@ mod tests {
             );
         }
         source.construction.wear = Some("rusty".into());
-        source.construction.roof_paint = Some(String::new());
         let codes: Vec<_> = compile(&source, &catalog)
             .diagnostics
             .into_iter()
             .map(|d| d.code)
             .collect();
         assert!(codes.iter().any(|c| c == "ship-wear"), "{codes:?}");
-        assert!(codes.iter().any(|c| c == "roof-paint"), "{codes:?}");
         source.construction.wear = None;
-        source.construction.roof_paint = None;
         assert_eq!(
             compile(&source, &catalog).content_hash,
             original.content_hash
