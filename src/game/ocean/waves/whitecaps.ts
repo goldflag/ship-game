@@ -16,10 +16,10 @@ const MONAHAN_SCALE = 3.84e-6, MONAHAN_EXPONENT = 3.41;
 const ONSET_START = 3.5, ONSET_FULL = 5;
 /** Wind (m/s) over which old foam is blown into windrows, from Beaufort 7 ("foam blown in streaks along the wind")
  * to Beaufort 11, and the share of the whitecap coverage they then hold. */
-const WINDROW_START = 13, WINDROW_FULL = 30, WINDROW_SHARE = .4;
+const WINDROW_START = 13, WINDROW_FULL = 30, WINDROW_SHARE = .15;
 /** Forward shift of the breaking indicator from the crest (radians of wave phase): foam starts on the crest and
  * spills down the face ahead of it. */
-const FACE_SHIFT = .6;
+const FACE_SHIFT = .9;
 /** The waves that break, relative to the sea's mean wavelength: none longer than twice it (swell does not break),
  * fully from it down to a sixteenth, fading out below a thirty-second. Breaking area is spread over octaves of
  * shorter waves (Melville & Matusov 2002), so the band weights slope variance. */

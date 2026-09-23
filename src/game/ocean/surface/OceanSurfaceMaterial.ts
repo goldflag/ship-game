@@ -221,11 +221,11 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     // Foam, from the widest and faintest to the brightest: windrows, whitecaps and wakes, shorelines. The foam
     // texture is laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
     const stretch = reference('windStretch', 'float', foam.crest).mul(2).add(1);
-    const { pattern, blur, rows, rowsBlur } = foamPatterns(this.foamDetail, xz, reference('windDirection', 'float', waves.params), stretch);
+    const { pattern, blur, rows, rowsBlur, bands } = foamPatterns(this.foamDetail, xz, reference('windDirection', 'float', waves.params), stretch);
     const lace = pattern.r;
     // Old foam gathers in the broad patches and lies in lines along the wind.
-    const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), rows.g, rows.b, rows.r, rowsBlur).mul(reference('opacity', 'float', foam.surface));
-    const whitecaps = whitecapOpacity(sample.foam, pattern, blur, streaking(reference('windSpeed', 'float', waves.params)))
+    const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), bands, rows.b, lace, rowsBlur).mul(reference('opacity', 'float', foam.surface));
+    const whitecaps = whitecapOpacity(sample.foam, pattern, rows.r, blur, streaking(reference('windSpeed', 'float', waves.params)))
       .mul(reference('opacity', 'float', foam.crest));
     // Churned water is soft-edged and puffy where the trail's energy thins, not cut into lace.
     const wakeFoam = foamOpacity(smoothstep(WAKE_START, WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur, WAKE_EDGE).mul(WAKE_OPACITY);

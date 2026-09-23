@@ -253,7 +253,7 @@ async function foamCheck() {
     pausedUnchanged: before.every((v, i) => v === paused[i]), rebuiltWhilePausedUnchanged: before.every((v, i) => v === rebuilt[i]) };
 }
 
-/** Foam as the surface draws it over a 512 m square at 0.5 m per pixel, after `seconds` of field-only updates at wind
+/** Foam as the surface draws it over a 1,024 m square at 1 m per pixel, after `seconds` of field-only updates at wind
  * `sea`: the mean foam amount field.surface() returns, and the mean opacity of whitecaps, of windrows and of both
  * together, from the material's own foam functions (resolved: no pattern blur). `overrides` replaces sea parameters
  * (peakWavelength, gamma, choppiness) and `tileScale` grows every tile, to try other sea states. */
@@ -264,11 +264,11 @@ async function foamCoverage(sea, seconds = 15, overrides = {}, tileScale = 1) {
   for (let i = 0; i < seconds * 60; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
   const n = 1024, target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
   const material = new THREE.NodeMaterial();
-  const xz = screenCoordinate.mul(512 / n), amount = field.surface(xz).foam;
-  const { pattern, blur, rows, rowsBlur } = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1));
-  const whitecaps = whitecapOpacity(amount, pattern, blur, streaking(float(params.windSpeed))).mul(foamLook.opacity);
+  const xz = screenCoordinate.mul(1024 / n), amount = field.surface(xz).foam;
+  const { pattern, blur, rows, rowsBlur, bands } = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1));
+  const whitecaps = whitecapOpacity(amount, pattern, rows.r, blur, streaking(float(params.windSpeed))).mul(foamLook.opacity);
   const rowsFoam = windrowFoam(params.windSpeed);
-  const windrows = windrowOpacity(float(rowsFoam.coverage), rows.g, rows.b, rows.r, rowsBlur).mul(rowsFoam.opacity);
+  const windrows = windrowOpacity(float(rowsFoam.coverage), bands, rows.b, pattern.r, rowsBlur).mul(rowsFoam.opacity);
   material.fragmentNode = vec4(amount, whitecaps, windrows, float(1).sub(float(1).sub(whitecaps.clamp(0, 1)).mul(float(1).sub(windrows.clamp(0, 1)))));
   material.blending = THREE.NoBlending;
   renderer.setRenderTarget(target); new THREE.QuadMesh(material).render(renderer); renderer.setRenderTarget(null);

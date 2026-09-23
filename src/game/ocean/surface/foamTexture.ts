@@ -59,13 +59,15 @@ function lace(u: number, v: number): number {
   return sum;
 }
 
-/** Streak lines: this many rows per tile across the texture (v) at three spacings, each holding one line jittered
- * within its row; their half-widths in texels; how far (in rows) they meander; and how many times per tile each
- * breaks along its length (u). */
-const STREAK_ROWS = [5, 12, 29], STREAK_WIDTH_MIN = .6, STREAK_WIDTH_MAX = 1.8, STREAK_MEANDER = .6, STREAK_BREAKS = 3;
+/** Streak lines: this many rows per tile across the texture (v) at two spacings, each holding one line jittered
+ * within its row; their half-widths in texels; how far (in rows) they meander, so neighbours close up and part; and
+ * how many times per tile each breaks along its length (u). */
+const STREAK_ROWS = [5, 13], STREAK_WIDTH_MIN = .6, STREAK_WIDTH_MAX = 2.2, STREAK_MEANDER = .9, STREAK_BREAKS = 19;
 /** Share of a line's half-width over which its edge softens: flat-topped lines, so thresholding the channel for more
  * coverage adds lines, in order of their strength, rather than fattening every line. */
 const STREAK_SOFT = .45;
+/** Value of a line's own noise along it below which the line breaks, and the width of the fade into each gap. */
+const STREAK_GAP = .38, STREAK_GAP_EDGE = .22;
 
 /** One set of `rows` lines along u at (u, v): each row's line has its own place, width, strength and breaks. */
 function streakLines(u: number, v: number, rows: number, seed: number): number {
@@ -77,7 +79,7 @@ function streakLines(u: number, v: number, rows: number, seed: number): number {
     const width = (STREAK_WIDTH_MIN + (STREAK_WIDTH_MAX - STREAK_WIDTH_MIN) * hash(id, 1, seed)) * rows / FOAM_TEXELS;
     const strength = .25 + .75 * hash(id, 3, seed), along = value(u + hash(id, 2, seed), 0, STREAK_BREAKS, 1, seed * 131 + id);
     const profile = 1 - smooth((Math.abs(y - centre) / width - (1 - STREAK_SOFT)) / STREAK_SOFT);
-    line = Math.max(line, profile * strength * Math.min(1, 2 * along) ** 2);
+    line = Math.max(line, profile * strength * smooth((along - STREAK_GAP) / STREAK_GAP_EDGE));
   }
   return line;
 }
@@ -92,7 +94,7 @@ function smooth(t: number): number {
  * of it spreads as patchy film instead of in the order the texels happen to be stored. */
 const STREAK_FILM = .05;
 
-/** Streaks at (u, v): thin lines along u that meander and break, at three spacings; where two cross, the stronger. */
+/** Streaks at (u, v): thin lines along u that meander and break, at two spacings; where two cross, the stronger. */
 function streaks(u: number, v: number): number {
   const lines = STREAK_ROWS.reduce((most, rows, i) => Math.max(most, streakLines(u, v, rows, 23 + 10 * i)), 0);
   return Math.max(lines, STREAK_FILM * value(u, v, 6, 24, 61));
