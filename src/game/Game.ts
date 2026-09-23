@@ -25,9 +25,9 @@ import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
-import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
+import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
-import type { OceanRealism } from './ocean/contracts';
+import type { OceanApi, OceanRealism } from './ocean/contracts';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
@@ -252,7 +252,7 @@ export class Game {
   }
   get selectedFlightId(): string | undefined { return this.selectedFlightIds[0]; }
   set selectedFlightId(id: string | undefined) { this.flightSelection = id ? [id] : []; }
-  private ocean?: Ocean;
+  private ocean?: OceanApi;
   private sunLight?: THREE.DirectionalLight;
   private sunShadows?: FocusShadowNode;
   private landscape?: THREE.Group;
@@ -288,14 +288,14 @@ export class Game {
   private articulationResolver?: ArticulationResolver;
 
   private settings: GraphicsSettings;
-  /** Ocean tier and terrain density this scene was built with; every other row applies live. */
-  readonly launchedGraphics: { ocean: GraphicsSettings['ocean']; terrain: GraphicsSettings['terrain'] };
+  /** Ocean tier and renderer and terrain density this scene was built with; every other row applies live. */
+  readonly launchedGraphics: LaunchedGraphics;
   private frameIntervalMs = 0;
   private detailBudgetPx = 1.25;
 
   constructor(private host: HTMLElement, settings: GraphicsSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.settings = sanitizeGraphicsSettings(settings);
-    this.launchedGraphics = { ocean: this.settings.ocean, terrain: this.settings.terrain };
+    this.launchedGraphics = { ocean: this.settings.ocean, terrain: this.settings.terrain, oceanRenderer: this.settings.oceanRenderer };
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
     this.definition = definition;
@@ -372,7 +372,7 @@ export class Game {
   private async initialize(): Promise<void> {
     // Diagnostics may replace the settings object before start; accept any saved shape.
     this.settings = sanitizeGraphicsSettings(this.settings);
-    Object.assign(this.launchedGraphics, { ocean: this.settings.ocean, terrain: this.settings.terrain });
+    Object.assign(this.launchedGraphics, { ocean: this.settings.ocean, terrain: this.settings.terrain, oceanRenderer: this.settings.oceanRenderer });
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
     this.callbacks.progress('Starting graphics', 0.08);
@@ -415,7 +415,7 @@ export class Game {
     this.scene.add(this.environment.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
-    const ocean = this.ocean = await Ocean.create(this.renderer, this.scene, this.camera, { quality: this.settings.ocean, seed: 1941 });
+    const ocean = this.ocean = await this.createOcean();
     // Meshes are lit by a game-owned sun that carries the near and wide shadow maps from the
     // start, since three caches a light's shadow node on its first build; the sea shades from
     // the ocean's own sun uniforms. Its shadow offsets are the ones the scene's sun has always used.
@@ -514,6 +514,17 @@ export class Game {
     this.updateInputEligibility();
     this.lastTime = performance.now();
     this.scheduleFrame();
+  }
+
+  /** The game's ocean, or for comparison the vendored Water Pro library it replaced, behind the same facade
+   * (Graphics `oceanRenderer`, switched from the developer console). Only the comparison downloads the library. */
+  private async createOcean(): Promise<OceanApi> {
+    const quality = this.launchedGraphics.ocean;
+    if (this.launchedGraphics.oceanRenderer === 'waterpro') {
+      const { WaterProOcean } = await import('./comparison/WaterProOcean');
+      return WaterProOcean.create(this.renderer, this.scene, this.camera, { quality });
+    }
+    return Ocean.create(this.renderer, this.scene, this.camera, { quality, seed: 1941 });
   }
 
   private async warmupRendering(progress?: BattleProgress): Promise<void> {
@@ -1067,8 +1078,10 @@ export class Game {
       });
       this.scene.beginFrame();
       try {
-        // A paused frame (dt 0) renders the same waves, foam and wake again.
-        this.ocean!.update(dt);
+        // A paused frame (dt 0) renders the same waves, foam and wake again. The Water Pro comparison steps
+        // asynchronously and renders its capture passes before this frame may.
+        const stepping = this.ocean!.update(dt);
+        if (stepping) { await stepping; if (this.disposed) return; }
         this.renderFrame();
         updateWaterShadows(this.ocean!, this.sunShadows!.wide as unknown as THREE.DirectionalLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
@@ -1737,7 +1750,7 @@ export class Game {
   /** Development-only port inspection of the loaded model at catalog joint limits. */
   previewArticulation(pose: ArticulationPreview | null) { return this.articulation.preview(pose); }
   diagnostics() {
-    return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
+    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, oceanRenderer: this.launchedGraphics.oceanRenderer,
       ...this.environment.diagnostics(),
       islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
@@ -1828,7 +1841,7 @@ export class Game {
     if (this.landscape) disposeBattleLandscape(this.landscape);
     this.effects.dispose();
     this.funnelSmoke.dispose();
-    this.ocean?.dispose();
+    await this.ocean?.dispose();
     this.sunShadows?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();

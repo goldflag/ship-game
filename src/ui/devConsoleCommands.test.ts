@@ -15,12 +15,13 @@ test('a typed word and number pick settings and set their values', () => {
   expect(labels('copy')).toEqual([['Copy scene diagnostics', undefined]]);
   expect(labels('bow')).toEqual([['Toggle bow waves', undefined]]);
   expect(labels('slick')).toEqual([['Toggle realistic wakes', undefined]]);
-  expect(matchCommands('').length).toBe(19);
+  for (const query of ['water pro', 'library', 'compare', 'renderer', 'switch ocean']) expect(labels(query)).toEqual([['Switch ocean renderer', undefined]]);
+  expect(matchCommands('').length).toBe(20);
 });
 
 test('online battles offer only the visual diagnostics', () => {
   expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined], ['Toggle bow waves', undefined], ['Toggle realistic sea state', undefined],
-    ['Toggle physical reflections', undefined], ['Toggle physical water colour', undefined], ['Toggle realistic wakes', undefined]]);
+    ['Toggle physical reflections', undefined], ['Toggle physical water colour', undefined], ['Toggle realistic wakes', undefined], ['Switch ocean renderer', undefined]]);
   expect(labels('wind 14', true)).toEqual([]);
 });
 

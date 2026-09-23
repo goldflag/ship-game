@@ -1,6 +1,7 @@
-/** `bun scripts/browser/ocean-review.ts --tag <name> [--only near,wide] [--quality high] [--measure] [--param realism=off] [--url http://127.0.0.1:5210]`
+/** `bun scripts/browser/ocean-review.ts --tag <name> [--only near,wide] [--quality high] [--measure] [--param realism=off] [--param renderer=waterpro] [--url http://127.0.0.1:5210]`
  * Renders the fixed scenes of `scripts/diagnostics/ocean-review.html` in a headed Chromium and saves one PNG
- * per scene to `.build/ocean-review/<tag>/`, with `results.json` (errors, optional frame timings). */
+ * per scene to `.build/ocean-review/<tag>/`, with `results.json` (errors, optional frame timings).
+ * `renderer=waterpro` draws them with the vendored Water Pro library the game's ocean replaced. */
 import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';

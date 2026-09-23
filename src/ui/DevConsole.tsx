@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import type { DeveloperWeather, EnvironmentOverrides } from '../game/VisualEnvironment';
 import type { OceanRealism } from '../game/ocean/contracts';
+import type { OceanRenderer } from '../game/graphicsSettings';
 import { clampSetting, currentValue, isDeveloperConsoleKey, matchCommands, overrideCount, readingLabel, WEATHER_SETTINGS, type ConsoleMatch, type WeatherKey, type WeatherSetting } from './devConsoleCommands';
 import './DevConsole.css';
 
@@ -17,6 +18,11 @@ export interface DevConsoleHost {
   capturePointer(): void;
 }
 
+/** The ocean comparison the app owns: the renderer the graphics settings name, and a switch that saves the other
+ * and says when it applies (at once in port, which rebuilds; on return to port at sea). */
+export interface OceanRendererSwitch { current: OceanRenderer; toggle(): string }
+export const OCEAN_RENDERER_NAMES: Record<OceanRenderer, string> = { game: 'Game ocean', waterpro: 'Water Pro' };
+
 const ICONS: Record<WeatherKey, ReactNode> = {
   timeHours: <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="2.6"/><path d="M7 .8v1.8M7 11.4v1.8M.8 7h1.8M11.4 7h1.8M2.6 2.6l1.3 1.3M10.1 10.1l1.3 1.3M2.6 11.4l1.3-1.3M10.1 3.9l1.3-1.3"/></svg>,
   cloudCover: <svg viewBox="0 0 16 14" aria-hidden="true"><path d="M4.5 11.5h7.2a2.8 2.8 0 0 0 .3-5.6 4 4 0 0 0-7.6-.9A3.2 3.2 0 0 0 4.5 11.5z"/></svg>,
@@ -28,7 +34,7 @@ const SEARCH = <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7"
 
 /** Shift-D developer console: a command line over the scene for live weather
  * and diagnostics. Weather chips scrub by dragging; a new scene clears them. */
-export function DevConsole({ host }: { host: DevConsoleHost }) {
+export function DevConsole({ host, oceanRenderer }: { host: DevConsoleHost; oceanRenderer?: OceanRendererSwitch }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -79,6 +85,7 @@ export function DevConsole({ host }: { host: DevConsoleHost }) {
     } else if (command.kind === 'preset') apply({ ...overrides, ...command.overrides });
     else if (command.id === 'reset') apply({});
     else if (command.id === 'bowWaves') setNotice(host.toggleBowWaves?.() ? 'Bow waves on.' : 'Bow waves off.');
+    else if (command.id === 'oceanRenderer') setNotice(oceanRenderer?.toggle() ?? 'The ocean renderer cannot be switched here.');
     else if (command.id.startsWith('realism:')) {
       const feature = command.id.slice('realism:'.length) as keyof OceanRealism, name = command.label.replace(/^Toggle /, '');
       setNotice(`${name[0].toUpperCase()}${name.slice(1)} ${host.toggleOceanRealism?.(feature) ? 'on' : 'off'}.`);
@@ -125,7 +132,7 @@ export function DevConsole({ host }: { host: DevConsoleHost }) {
         onPointerEnter={() => setActive(index)} onPointerDown={event => { event.preventDefault(); run(match); }}>
         <span className="dev-console-group">{match.command.group}</span>
         <span className="dev-console-label">{match.command.label}</span>
-        <span className="dev-console-value">{resultValue(match, reading && weather)}</span>
+        <span className="dev-console-value">{resultValue(match, reading && weather, oceanRenderer?.current)}</span>
         {index === selected && <kbd>↵</kbd>}
       </li>)}
       {!matches.length && <li className="dev-console-empty">No setting or command matches “{query.trim()}”.</li>}
@@ -147,7 +154,9 @@ export function DevConsole({ host }: { host: DevConsoleHost }) {
   </section>;
 }
 
-function resultValue({ command, value }: ConsoleMatch, weather?: DeveloperWeather) {
+function resultValue({ command, value }: ConsoleMatch, weather?: DeveloperWeather, renderer?: OceanRenderer) {
+  if (command.kind === 'action' && command.id === 'oceanRenderer')
+    return renderer ? `${OCEAN_RENDERER_NAMES[renderer]} → ${OCEAN_RENDERER_NAMES[renderer === 'waterpro' ? 'game' : 'waterpro']}` : '';
   if (command.kind !== 'setting') return command.kind === 'preset' ? Object.entries(command.overrides)
     .map(([key, v]) => WEATHER_SETTINGS.find(s => s.key === key)!.format(v)).join(' · ') : '';
   const now = weather ? command.format(currentValue(command.key, weather.reading)) : '';

@@ -248,7 +248,9 @@ export interface OceanApi {
   readonly cameraNearSurface: boolean;
   /** Finest vertex spacing of the surface mesh in metres (the clipmap's innermost cells). */
   readonly meshSpacing: number;
-  update(dt: number): void;
+  /** Advance and prepare the sea for this frame. The game's ocean finishes synchronously; the Water Pro comparison
+   * (`src/game/comparison`) returns a promise the frame awaits before it renders. */
+  update(dt: number): void | Promise<void>;
   setSky(sky: OceanSky | null): void;
   /** Replace the wake the surface reads (the game composes its own foam on top of `wake.sampler`). */
   setWakeSampler(sampler: WakeSampler | null): void;
@@ -261,5 +263,6 @@ export interface OceanApi {
   /** Let an object ride the surface: y follows the height readback, eased over `smoothing` seconds. */
   addFloater(object: Object3D, options?: { smoothing?: number }): void;
   resize(width: number, height: number): void;
-  dispose(): void;
+  /** A promise when GPU readbacks must drain first (the Water Pro comparison). */
+  dispose(): void | Promise<void>;
 }

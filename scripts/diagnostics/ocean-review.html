@@ -7,7 +7,8 @@
 <script type="module">
 // Development-only fixed scenes of the real game for reviewing the ocean side by side.
 // `scripts/browser/ocean-review.ts` drives it and saves one PNG per scene.
-// ?quality=low|medium|high|ultra, ?ship=<preset> for the player.
+// ?quality=low|medium|high|ultra, ?ship=<preset> for the player, ?renderer=waterpro for the vendored Water Pro
+// library the game's ocean replaced (src/game/comparison), to compare the two.
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
@@ -18,7 +19,8 @@ const errors = [];
 addEventListener('error', event => errors.push(event.message));
 addEventListener('unhandledrejection', event => errors.push(String(event.reason?.message ?? event.reason)));
 const quality = params.get('quality') ?? 'high';
-const game = new Game(document.querySelector('#scene'), { ...GRAPHICS_PRESETS[quality], renderScale: 100 / Math.min(devicePixelRatio, 1.5) }, {
+const oceanRenderer = params.get('renderer') === 'waterpro' ? 'waterpro' : 'game';
+const game = new Game(document.querySelector('#scene'), { ...GRAPHICS_PRESETS[quality], renderScale: 100 / Math.min(devicePixelRatio, 1.5), oceanRenderer }, {
   progress: text => { output.textContent = text; }, ready: noop, telemetry: noop, pause: noop, hud: noop, error: message => errors.push(message),
 }, shipPreset(params.get('ship') ?? 'bismarck'));
 game.scheduleFrame = noop;
@@ -31,8 +33,15 @@ const rigUpdate = game.rig.update.bind(game.rig);
  * so without them a scene would show the previous sea's foam (it decays over 2.8 s). */
 const FOAM_WARMUP = 10;
 /** Every scene renders the same frozen wave time: a paused frame never advances it, and parameter
- * changes still apply on the next update. Crest foam first runs up to it for FOAM_WARMUP seconds. */
-const freeze = seconds => {
+ * changes still apply on the next update. Crest foam first runs up to it for FOAM_WARMUP seconds.
+ * Water Pro takes a changed sea only inside a simulation step: a scene change runs one, then returns to
+ * the frozen time, as the original Water Pro review captured it. */
+const freeze = async (seconds, { step = true } = {}) => {
+  if (oceanRenderer === 'waterpro') {
+    game.ocean.time = seconds;
+    if (step) { await game.ocean.update(1 / 60); game.ocean.time = seconds; }
+    return;
+  }
   for (let t = seconds - FOAM_WARMUP; t < seconds; t += 1 / 30) game.ocean.waveField.update(game.renderer, t, 1 / 30);
   game.ocean.time = seconds;
 };
@@ -64,14 +73,14 @@ async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12,
   place(game.playerView, { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 });
   if (game.targetView) { place(game.targetView, { x: range, y: 0, z: 0, heading: Math.PI / 2, pitch: 0, roll: 0 }); game.targetView.root.visible = true; }
   game.ship.position.copy(game.playerView.root.position);
-  freeze(60);
+  await freeze(60);
 }
 const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
 const NEAR = [[300, 95, 350], [0, 20, 0]], WIDE = [[550, 200, 700], [-650, 75, -1000]];
 
 /** Each scene leaves the game paused with a fixed camera and ocean time. */
 const scenes = {
-  port: async () => { game.rig.update = rigUpdate; game.setInPort(true); game.setPaused(true); battleKey = undefined; freeze(60); },
+  port: async () => { game.rig.update = rigUpdate; game.setInPort(true); game.setPaused(true); battleKey = undefined; await freeze(60, { step: false }); },
   near: async () => { await battle(); look(...NEAR); },
   wide: async () => { await battle(); look(...WIDE); },
   grazing: async () => { await battle(); look([0, 12, 160], [0, 6, -4000], 55); },

@@ -9,6 +9,8 @@ export type EffectsQuality = 'low' | 'medium' | 'high';
 export type Antialiasing = 'off' | 'fxaa' | 'smaa';
 export type Reflections = 'sky' | 'scene';
 export type PerformanceReadoutMode = 'hidden' | 'fps' | 'detailed';
+/** Which ocean draws the sea: the game's own, or the vendored Water Pro library it replaced, kept to compare them. */
+export type OceanRenderer = 'game' | 'waterpro';
 /** Frames per second; 0 follows the display refresh. */
 export type FrameLimit = 0 | 30 | 60 | 120;
 
@@ -29,6 +31,9 @@ export interface GraphicsSettings {
   terrain: TerrainQuality;
   effects: EffectsQuality;
   readout: PerformanceReadoutMode;
+  /** Developer comparison (the console's "Switch ocean renderer"), not a quality row: presets keep it and never
+   * match on it. Applies when the port next loads. */
+  oceanRenderer: OceanRenderer;
 }
 
 export const GRAPHICS_STORAGE_KEY = 'fleet-graphics-settings';
@@ -38,10 +43,10 @@ export const FRAME_LIMITS: readonly FrameLimit[] = [0, 120, 60, 30];
 
 /** High reproduces the ocean, sky, shadow and terrain choices of the former High tier exactly. */
 export const GRAPHICS_PRESETS: Readonly<Record<GraphicsPreset, Readonly<GraphicsSettings>>> = {
-  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
-  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
-  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
-  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
+  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps', oceanRenderer: 'game' },
+  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps', oceanRenderer: 'game' },
+  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps', oceanRenderer: 'game' },
+  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps', oceanRenderer: 'game' },
 };
 export const PRESET_ORDER: readonly GraphicsPreset[] = ['low', 'medium', 'high', 'ultra'];
 export const DEFAULT_GRAPHICS: Readonly<GraphicsSettings> = GRAPHICS_PRESETS.high;
@@ -73,6 +78,7 @@ export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
     terrain: oneOf(saved.terrain, ['medium', 'high'], base.terrain),
     effects: oneOf(saved.effects, ['low', 'medium', 'high'], base.effects),
     readout: oneOf(saved.readout, ['hidden', 'fps', 'detailed'], base.readout),
+    oceanRenderer: oneOf(saved.oceanRenderer, ['game', 'waterpro'], base.oceanRenderer),
   };
 }
 
@@ -83,7 +89,13 @@ export function loadGraphicsSettings(): GraphicsSettings {
   } catch { return { ...DEFAULT_GRAPHICS }; }
 }
 
-const SETTING_KEYS = Object.keys(DEFAULT_GRAPHICS) as (keyof GraphicsSettings)[];
+/** The quality rows presets set and match; the developer ocean comparison is not one of them. */
+const SETTING_KEYS = (Object.keys(DEFAULT_GRAPHICS) as (keyof GraphicsSettings)[]).filter(key => key !== 'oceanRenderer');
+
+/** A quality preset applied over the current settings, keeping the developer ocean comparison. */
+export function withPreset(current: Pick<GraphicsSettings, 'oceanRenderer'>, preset: GraphicsPreset): GraphicsSettings {
+  return { ...GRAPHICS_PRESETS[preset], oceanRenderer: current.oceanRenderer };
+}
 
 export function matchingPreset(settings: GraphicsSettings): GraphicsPreset | null {
   return PRESET_ORDER.find(name => SETTING_KEYS.every(key => GRAPHICS_PRESETS[name][key] === settings[key])) ?? null;
@@ -128,7 +140,10 @@ export function cloudTier(clouds: CloudQuality): { level: CloudQuality; envMapWi
 /** Milliseconds between rendered frames; 0 renders every display refresh. */
 export function frameIntervalMs(limit: FrameLimit): number { return limit ? 1000 / limit : 0; }
 
+/** The rows a scene is built with; changing one rebuilds the port. */
+export type LaunchedGraphics = Pick<GraphicsSettings, 'ocean' | 'terrain' | 'oceanRenderer'>;
+
 /** Whether the loaded scene already uses the rows that only apply at launch. */
-export function launchMatches(launched: Pick<GraphicsSettings, 'ocean' | 'terrain'>, current: GraphicsSettings): boolean {
-  return launched.ocean === current.ocean && launched.terrain === current.terrain;
+export function launchMatches(launched: LaunchedGraphics, current: GraphicsSettings): boolean {
+  return launched.ocean === current.ocean && launched.terrain === current.terrain && launched.oceanRenderer === current.oceanRenderer;
 }
