@@ -1,4 +1,4 @@
-import { Color, HemisphereLight, MathUtils, Vector3, type Object3D, type PerspectiveCamera } from 'three/webgpu';
+import { Color, HemisphereLight, MathUtils, Vector3, type DirectionalLight, type Object3D, type PerspectiveCamera } from 'three/webgpu';
 import type { WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 import type { SkySystem } from '../../vendor/threejs-sky-pro/build/index.js';
 import { DEFAULT_MAP, oceanMap, type OceanMapId } from '../maps/catalog';
@@ -63,6 +63,7 @@ export class VisualEnvironment {
   /** The scene's authored ambient before the mesh share; smoke and diagnostics read this. */
   private ambient = .65;
   private water?: WaterSystem;
+  private sunLight?: DirectionalLight;
   private sky?: SkySystem;
   private mapId: OceanMapId = DEFAULT_MAP;
   private inPort = false;
@@ -78,9 +79,11 @@ export class VisualEnvironment {
 
   constructor(private sinks: EnvironmentSinks) {}
 
-  /** Water is attached once its preset is loaded; the preset's swatches become the surface baseline. */
-  attachWater(water: WaterSystem): void {
+  /** Water is attached once its preset is loaded; the preset's swatches become the surface baseline.
+   * `sunLight` is the scene light meshes use; it defaults to Water Pro's own. */
+  attachWater(water: WaterSystem, sunLight?: DirectionalLight): void {
     this.water = water;
+    this.sunLight = sunLight;
     this.surfaceAbsorption.copy(water.color.absorptionColor);
     this.surfaceDistortion = water.underwaterDistortion.intensity;
   }
@@ -260,7 +263,7 @@ export class VisualEnvironment {
       lighting.sun.direction.value.copy(direction);
       lighting.sun.intensity.value = intensity;
       lighting.sun.color.copy(this.celestialColor);
-      const light = lighting.sunLight;
+      const light = this.sunLight ?? lighting.sunLight;
       light.intensity = intensity * MESH_SUNLIGHT;
       const daylight = MathUtils.smoothstep(intensity, ...FILL_DAYLIGHT);
       this.ambientLight.intensity = this.ambient * MathUtils.lerp(1, MESH_FILL, daylight);

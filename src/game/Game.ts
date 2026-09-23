@@ -22,6 +22,7 @@ import { WaterViewFocus } from './WaterViewFocus';
 import { BerthMotion } from './BerthMotion';
 import { createSeaState, type SeaState } from './session/sea';
 import { updateWaterShadows } from './WaterShadows';
+import { FocusShadowNode } from './FocusShadowNode';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
@@ -253,6 +254,8 @@ export class Game {
   get selectedFlightId(): string | undefined { return this.selectedFlightIds[0]; }
   set selectedFlightId(id: string | undefined) { this.flightSelection = id ? [id] : []; }
   private water?: WaterSystem;
+  private sunLight?: THREE.DirectionalLight;
+  private sunShadows?: FocusShadowNode;
   private landscape?: THREE.Group;
   private sky?: SkySystem;
   private shipWake?: ShipWake;
@@ -417,6 +420,19 @@ export class Game {
     // Keep the library's small, deterministic seed until its hash input is fixed.
     this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.ocean,
       { seed: 1, refractionEnabled: false, surfaceTransmissionEnabled: true });
+    // Water Pro builds its own sun light into lit shaders while it is created, and three
+    // caches a light's shadow node on first build. Meshes are lit by a game-owned sun that
+    // carries the near and wide shadow maps from the start; the sea shades from Water Pro's
+    // sun uniforms, not from that light.
+    const waterSun = this.water.lighting.sunLight;
+    this.scene.remove(waterSun);
+    this.sunLight = new THREE.DirectionalLight();
+    this.sunLight.name = 'Sun';
+    this.sunLight.castShadow = waterSun.castShadow;
+    this.sunLight.shadow.copy(waterSun.shadow);
+    this.sunShadows = new FocusShadowNode(this.sunLight);
+    this.sunLight.shadow.shadowNode = this.sunShadows as never;
+    this.scene.add(this.sunLight);
     this.visualWaveSampler = new VisualWaveSampler(this.water.buoyancy.getSampler());
     this.water.buoyancy.setSampler(this.visualWaveSampler);
     this.assertActive();
@@ -443,7 +459,7 @@ export class Game {
     this.water.waves.jonswapGamma.value = 2.2;
     this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
     this.torpedoPreview.setWater(this.water);
-    this.environment.attachWater(this.water);
+    this.environment.attachWater(this.water, this.sunLight);
     this.waterViewFocus = new WaterViewFocus(this.water.ssr);
 
     this.callbacks.progress('Lighting the sky', 0.59);
@@ -485,7 +501,7 @@ export class Game {
       moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
         .mul(max(0, moon.moonDirection.y))));
     this.water.setSky(skyProvider);
-    const sunlight = this.water.lighting.sunLight;
+    const sunlight = this.sunLight;
     this.fitSunShadow();
     this.graphicsControl.applyReflections();
     this.scene.add(sunlight.target);
@@ -859,11 +875,11 @@ export class Game {
    * battle's worth of vertex data. */
   private static readonly HULL_CACHE = 8;
 
-  /** Fit the one sun shadow map to what it must cover: the berthed hull in port, a
-   * fixed square around the shadow focus at sea. At 2048 px the battle's 760 m square
-   * is 0.37 m per texel, which smears a bridge's shadow; a 263 m hull fits in a third. */
+  /** Fit the wide sun shadow map to what it must cover: the berthed hull in port, a
+   * fixed square around the shadow focus at sea. The near map adds close-up detail
+   * wherever the camera looks; see FocusShadowNode. */
   private fitSunShadow(): void {
-    const sunlight = this.water?.lighting.sunLight;
+    const sunlight = this.sunLight;
     if (!sunlight) return;
     const half = this.inPort ? THREE.MathUtils.clamp(this.definition.hull.length / 2 + 30, 60, BATTLE_SHADOW_HALF) : BATTLE_SHADOW_HALF;
     const camera = sunlight.shadow.camera;
@@ -872,6 +888,14 @@ export class Game {
     camera.updateProjectionMatrix();
     // Recomputes the texel-proportional normal bias for the new extent.
     this.graphicsControl.applyShadows();
+  }
+
+  /** Centre the near shadow map where the camera is looking, at the distance of the
+   * subject the wide map follows, and size it to the frame visible there. */
+  private focusNearShadow(): void {
+    const sunlight = this.sunLight;
+    if (!sunlight || !this.sunShadows) return;
+    this.sunShadows.focusOn(this.camera, sunlight.target.position, sunlight.shadow.camera.right);
   }
 
   /** A derived hull template: fetched, painted and batched once, then reused. */
@@ -1021,7 +1045,7 @@ export class Game {
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,
         !this.inPort && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && this.rig.magnification > 1.5));
       this.environment.update(this.camera, dt);
-      this.fleetVisibility.update(this.fleetViews, this.camera, this.water!.lighting.sunLight, this.inPort || warmingUp);
+      this.fleetVisibility.update(this.fleetViews, this.camera, this.sunLight!, this.inPort || warmingUp);
       this.fleetViews.forEach(view => { if (view.renderActive || view === this.playerView) view.updateArticulation(alpha); });
       const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim, realDt, this.playerView!);
@@ -1057,6 +1081,7 @@ export class Game {
       else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
       this.fitSunShadow();
+      this.focusNearShadow();
       this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
@@ -1081,7 +1106,7 @@ export class Game {
         this.underwaterPassVisibility?.capture();
         if (this.disposed) return;
         this.renderFrame();
-        updateWaterShadows(this.scene, this.water!.lighting.sunLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
+        updateWaterShadows(this.scene, this.sunShadows!.wide as unknown as THREE.DirectionalLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();
@@ -1146,7 +1171,7 @@ export class Game {
       get frameIntervalMs() { return game.frameIntervalMs; }, set frameIntervalMs(value) { game.frameIntervalMs = value; },
       get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
       get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
-      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get water() { return game.water; }, get sky() { return game.sky; },
+      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get water() { return game.water; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; },
       get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
       get disposed() { return game.disposed; },
       requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),
@@ -1841,6 +1866,7 @@ export class Game {
     this.funnelSmoke.dispose();
     await this.visualWaveSampler?.drain();
     this.water?.dispose();
+    this.sunShadows?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();
