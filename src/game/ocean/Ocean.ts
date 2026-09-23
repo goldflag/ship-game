@@ -1,10 +1,11 @@
-import { Color, Vector3, WebGPUCoordinateSystem, type Camera, type Material, type Mesh, type Node, type Object3D, type PassNode, type Scene, type Texture, type WebGPURenderer } from 'three/webgpu';
+import { Color, Vector3, type Material, type Mesh, type Node, type Object3D, type PassNode, type PerspectiveCamera, type Scene, type Texture, type WebGPURenderer } from 'three/webgpu';
+import { uniform } from 'three/tsl';
 import type { OceanApi, OceanQuality, OceanSky, WakeSampler, WaveParameters } from './contracts';
 import { OCEAN_TIERS } from './quality';
 import { oceanFog } from './screen/fog';
-import { underwaterPost } from './stubs/screen';
-import { createWakeField } from './stubs/wake';
+import { createUnderwaterPass, nearPlaneMayBeSubmerged } from './screen/underwater';
 import { createWaveField, createWaveHeightSampler } from './stubs/waves';
+import { createWakeField } from './wake';
 import { OceanGeometry } from './surface/OceanGeometry';
 import { OceanSurfaceMaterial } from './surface/OceanSurfaceMaterial';
 
@@ -12,16 +13,6 @@ import { OceanSurfaceMaterial } from './surface/OceanSurfaceMaterial';
 const WAKE_BOUND = 8.1;
 /** Draw order in the transparent queue: before every smoke, spray and overlay layer. */
 const SURFACE_ORDER = -30;
-
-/** True when every corner of the camera's near plane is above `height`. */
-export function nearPlaneAbove(camera: Camera, height: number): boolean {
-  if (!Number.isFinite(height)) return false;
-  const corner = new Vector3();
-  const near = camera.reversedDepth ? 1 : camera.coordinateSystem === WebGPUCoordinateSystem ? 0 : -1;
-  let lowest = camera.matrixWorld.elements[13];
-  for (const x of [-1, 1]) for (const y of [-1, 1]) lowest = Math.min(lowest, corner.set(x, y, near).unproject(camera).y);
-  return lowest > height;
-}
 
 /** The game's ocean: wave field, wake, surface mesh and material, scene fog, sky environment
  * and floating objects behind one facade. Every parameter object is live: the game writes to
@@ -51,12 +42,15 @@ export class Ocean implements OceanApi {
   private readonly floaters: { object: Object3D; smoothing: number }[] = [];
   private readonly geometry: OceanGeometry;
   private readonly material: OceanSurfaceMaterial;
+  /** `cameraNearSurface` for the underwater pass's uniform branch. */
+  private readonly nearSurface = uniform(true);
+  private readonly underwater: (scenePass: PassNode, color: Node<'vec4'>) => Node<'vec4'>;
 
-  static async create(renderer: WebGPURenderer, scene: Scene, camera: Camera & { far: number }, { quality, seed }: { quality: OceanQuality; seed: number }): Promise<Ocean> {
+  static async create(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, { quality, seed }: { quality: OceanQuality; seed: number }): Promise<Ocean> {
     return new Ocean(renderer, scene, camera, quality, seed);
   }
 
-  private constructor(private readonly renderer: WebGPURenderer, private readonly scene: Scene, private readonly camera: Camera & { far: number },
+  private constructor(private readonly renderer: WebGPURenderer, private readonly scene: Scene, private readonly camera: PerspectiveCamera,
     readonly quality: OceanQuality, seed: number) {
     const tier = OCEAN_TIERS[quality];
     this.backend = (renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend ? 'webgpu' : 'webgl';
@@ -73,13 +67,16 @@ export class Ocean implements OceanApi {
     this.geometry.mesh.renderOrder = SURFACE_ORDER;
     scene.add(this.geometry.mesh);
     scene.fogNode = oceanFog(this.fog, null);
+    // The waterline follows the waves and the wake, as the surface mesh does.
+    this.underwater = createUnderwaterPass({ heightAt: xz => this.waveField.heightAt(xz).add(this.wake.sampler.height(xz.x, xz.y)),
+      colors: this.colors, sun: this.sun, cameraNearSurface: this.nearSurface });
   }
 
   update(dt: number): void {
     if (dt > 0) this.time += dt;
     this.geometry.update(this.camera);
     this.sky?.followCamera(this.camera);
-    this.cameraNearSurface = !nearPlaneAbove(this.camera, this.waveField.maxHeight + WAKE_BOUND);
+    this.cameraNearSurface = this.nearSurface.value = nearPlaneMayBeSubmerged(this.camera, this.waveField.maxHeight + WAKE_BOUND);
     this.waveField.update(this.renderer, this.time, dt);
     this.wake.step(this.renderer, dt);
     const environment = this.sky?.getEnvironmentTexture() ?? null;
@@ -117,7 +114,7 @@ export class Ocean implements OceanApi {
     this.material.bind(this.bindings());
   }
 
-  postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'> { return underwaterPost(this, scenePass, color); }
+  postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'> { return this.underwater(scenePass, color); }
 
   ensureHorizon(far: number): void { this.geometry.ensureHorizon(far); }
 

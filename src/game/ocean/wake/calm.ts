@@ -1,14 +1,14 @@
-/** TEMPORARY STUB, replaced by `wake/index.ts` at integration: a wake field that keeps the
- * `WakeFieldApi` bookkeeping (generators, centre, parameters) but never disturbs the water. */
+/** The wake on tiers without a wake simulation (Low): it keeps the `WakeFieldApi` bookkeeping
+ * (generators, centre, parameters) so the game drives it like any other, but never disturbs the water. */
 import type { Object3D } from 'three/webgpu';
 import { float, vec3 } from 'three/tsl';
-import type { CreateWakeField, WakeFieldApi, WakeGeneratorOptions } from '../contracts';
+import type { WakeFieldApi, WakeGeneratorOptions } from '../contracts';
 
-export const createWakeField: CreateWakeField = (_renderer, resolution) => {
+export function calmWake(): WakeFieldApi {
   const generators = new Map<number, { object: Object3D; options: WakeGeneratorOptions }>();
   let next = 0;
-  const field: WakeFieldApi = {
-    enabled: resolution > 0, resolution, worldSize: 1536, friction: .065, foamStrength: 1.2, foamBreakThreshold: .09, foamLifetime: 9,
+  return {
+    enabled: false, resolution: 0, worldSize: 1536, friction: .065, foamStrength: 1.2, foamBreakThreshold: .09, foamLifetime: 9,
     setCenter() {},
     addGenerator(object, options = {}) { generators.set(++next, { object, options: { ...options } }); return next; },
     updateGenerator(id, options) {
@@ -22,5 +22,4 @@ export const createWakeField: CreateWakeField = (_renderer, resolution) => {
     step() {},
     dispose() { generators.clear(); },
   };
-  return field;
-};
+}

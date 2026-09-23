@@ -1,9 +1,9 @@
 import { DepthTexture, DoubleSide, NoBlending, NodeMaterial, type Color, type Node, type Texture } from 'three/webgpu';
 import { cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
-  pmremTexture, positionWorld, reference, reflect, refract, select, sin, smoothstep, texture, uniform, varying, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
+  pmremTexture, positionView, positionWorld, reference, reflect, refract, select, sin, smoothstep, texture, uniform, varying, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
 import { EffectDepthTextureNode } from '../../EffectVolume';
 import type { OceanApi, WakeSampler, WaveField } from '../contracts';
-import { screenSpaceReflection } from '../stubs/screen';
+import { screenSpaceReflection } from '../screen/reflections';
 import { foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
 
@@ -110,7 +110,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
   private readonly sceneColor = viewportTexture();
   private readonly sceneDepth = nodeObject(new EffectDepthTextureNode(undefined, null, new DepthTexture(1, 1)));
   private readonly foamDetail = foamTexture();
-  private readonly screenReflections = uniform(0);
+  private readonly screenReflections = uniform(false);
 
   constructor(private readonly parameters: SurfaceParameters, bindings: SurfaceBindings) {
     super();
@@ -124,7 +124,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
   }
 
   /** Mirror the facade's live switches into uniforms; call once per frame. */
-  update(): void { this.screenReflections.value = this.parameters.reflections.screenSpace && this.parameters.reflections.steps > 0 ? 1 : 0; }
+  update(): void { this.screenReflections.value = this.parameters.reflections.screenSpace && this.parameters.reflections.steps > 0; }
 
   /** Rebuild the surface graph around new sky, wake or shadow bindings. */
   bind({ environment, wake, shadow }: SurfaceBindings): void {
@@ -153,10 +153,12 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     // Above: Fresnel between the reflected sky (or ships, where the screen trace finds them) and the water body.
     const reflectance = fresnel(dot(up, view));
     const mirrored = reflect(view.negate(), up);
-    const traced = screenSpaceReflection({ position: positionWorld, direction: mirrored,
-      sceneColor: uv => this.sceneColor.sample(uv).rgb, sceneDepth: uv => this.sceneDepth.sample(uv).r,
-      steps: reflections.steps, maxDistance: reference('maxDistance', 'float', reflections), enabled: this.screenReflections });
-    const reflected = mix(skyReflection(environment, mirrored, roughness(sample.slopeVariance)), traced.color, traced.confidence);
+    const sky = skyReflection(environment, mirrored, roughness(sample.slopeVariance));
+    // Ships and islands the mirrored ray meets on screen replace the sky (High and Ultra only).
+    const traced = reflections.steps > 0 ? screenSpaceReflection({ position: positionView, direction: cameraViewMatrix.mul(vec4(mirrored, 0)).xyz,
+      sceneColor: this.sceneColor, sceneDepth: this.sceneDepth, enabled: this.screenReflections,
+      maxDistance: reference('maxDistance', 'float', reflections), steps: reflections.steps }) : undefined;
+    const reflected = traced ? mix(sky, traced.color, traced.confidence) : sky;
     const crest = positionWorld.y.div(max(waves.maxHeight, .1)).clamp(0, 1);
     const direct = sunGlint(up, view, sunDirection, sunRadiance, sample.slopeVariance)
       .add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
@@ -184,8 +186,8 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const refracted = refract(view.negate(), down, WATER_IOR);
     const window = dot(refracted, refracted).greaterThan(1e-6);
     const leaving = fresnel(dot(refracted, up).max(0));
-    const sky = skyReflection(environment, refracted, float(0));
-    const below = select(window, mix(sky, pigment, leaving), pigment);
+    const skyAbove = skyReflection(environment, refracted, float(0));
+    const below = select(window, mix(skyAbove, pigment, leaving), pigment);
 
     this.fragmentNode = vec4(select(frontFacing, above, below), 1);
     this.needsUpdate = true;

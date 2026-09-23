@@ -22,7 +22,9 @@ export class ShipWake {
     // camera orbits and zooms; the tier's resolution sets the cells spent on it.
     wake.worldSize = 1536;
     wake.friction = 0.065;
-    wake.foamBreakThreshold = 0.09;
+    // Hull waves at full speed reach slopes of about 0.02 over the field's 12 m breaking baseline;
+    // this lets the bow and stern shoulders break without foaming the whole wedge.
+    wake.foamBreakThreshold = 0.015;
     wake.foamStrength = 1.2;
     wake.foamLifetime = 9;
     // Trail foam is the game's own and stays on when the tier runs no wake field.
