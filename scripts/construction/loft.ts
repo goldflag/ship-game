@@ -5,7 +5,9 @@ import { hullStation, round, type MeshView, type Point2, type Station } from './
 
 /** Fitting an adjustable custom hull to a measured reference: pick the stations that matter, resample each
  * outline, and reject a set that would fold before the native compiler sees it. Pure geometry — no files. */
-export const MAX_STATIONS = 24;
+/** The format allows 48 sections; a fit stops at 24 unless asked for more. */
+export const MAX_STATIONS = 48;
+export const DEFAULT_MAX_STATIONS = 24;
 export const MIN_STATIONS = 4;
 export const MIN_POINTS = 5;
 export const MAX_POINTS = 33;
@@ -131,7 +133,7 @@ function blendError(station: Station, low: Station, high: Station): number {
 }
 /** Greedy refinement: keep both ends, then repeatedly add the station the current set represents worst. */
 export function chooseStations(measured: Station[], options: LoftOptions = {}): { chosen: Station[]; indices: number[]; errorM: { max: number; mean: number; atZ: number } } {
-  const limit = Math.min(Math.max(options.maxStations ?? MAX_STATIONS, MIN_STATIONS), MAX_STATIONS);
+  const limit = Math.min(Math.max(options.maxStations ?? DEFAULT_MAX_STATIONS, MIN_STATIONS), MAX_STATIONS);
   if (measured.length < 2) throw new Error('The reference yielded fewer than two hull stations. Widen --box, add --parts hull, or cap the deck with --y.');
   const picked = new Set([0, measured.length - 1]);
   const worst = () => {
@@ -507,7 +509,7 @@ export function bandedSpans(stations: ConstructionHullStation[], size: Vec3, pos
 /** Fit, then repair: a span the native check rejects is split by the measured station nearest its middle and
  * the fit is redone, until nothing folds or the station budget runs out. Folds that survive are reported. */
 export function fitHull(measured: Station[], options: LoftOptions = {}): LoftFit & { folds: string[] } {
-  const limit = Math.min(Math.max(options.maxStations ?? MAX_STATIONS, MIN_STATIONS), MAX_STATIONS);
+  const limit = Math.min(Math.max(options.maxStations ?? DEFAULT_MAX_STATIONS, MIN_STATIONS), MAX_STATIONS);
   const first = chooseStations(measured, options);
   const picked = new Set(first.indices);
   let errorM = first.errorM;

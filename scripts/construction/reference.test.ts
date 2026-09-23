@@ -244,7 +244,7 @@ test('a lofted fit reproduces a prismatic hull, applies the tip rule and passes 
   expect(foldFailures(fit.stations, fit.size, fit.position)).toEqual([]);
   expect(fitHull(measured, { points: 11, maxStations: 24 }).folds).toEqual([]);
   expect(() => loftHull(chosen, { points: 10 })).toThrow(/odd whole number/);
-  expect(() => loftHull(chosen.slice(0, 2), {})).toThrow(/4–24 stations/);
+  expect(() => loftHull(chosen.slice(0, 2), {})).toThrow(/4–48 stations/);
 });
 
 test('the ported fold check names the span that folds, and arc-length resampling keeps the ends', () => {

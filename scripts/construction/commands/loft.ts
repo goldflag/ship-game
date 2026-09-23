@@ -3,7 +3,7 @@ import type { CliCommand } from '../command';
 /** Fit an adjustable custom hull to a cached reference and propose the `primitive-patch` that applies it. */
 export default {
   summary:
-    '--reference name [--primitive hull] [--points 17] [--max-stations 24] [--sample m] [--tolerance m] [--tip 0.2] [--parts hull] ' +
+    '--reference name [--primitive hull] [--points 17] [--max-stations 24 (up to 48)] [--sample m] [--tolerance m] [--tip 0.2] [--parts hull] ' +
     '[--box x0,y0,z0,x1,y1,z1] [--y max-deck-height] [--fin 1] [--crease 10] [--creases n] [--out batch.json] — fit the named hull ' +
     'piece to a cached reference mesh: greedy station choice, outlines sampled at the cut\'s own vertices with fins removed, flat ' +
     'bottoms kept, corner lines pinned to shared points and reported as creases, the native fold check run first; reports the ' +

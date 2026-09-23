@@ -7,7 +7,7 @@ import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
 import { mirroredWall } from './constructionWallFittings';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
-import { hullCreasesError, outlineTopologyError } from './customHullTopology';
+import { hullCreasesError, MAX_HULL_SECTIONS, MIN_HULL_SECTIONS, outlineTopologyError } from './customHullTopology';
 import type {
   ConstructionEquipment,
   ConstructionSource,
@@ -156,7 +156,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       number(hull.rake, 'Bow rake');
       number(hull.bulb, 'Bow bulb');
       const stations = rows(hull.stations, 'Hull sections');
-      if (stations.length < 4 || stations.length > 24) throw new Error('Custom hulls require 4–24 sections');
+      if (stations.length < MIN_HULL_SECTIONS || stations.length > MAX_HULL_SECTIONS) throw new Error(`Custom hulls require ${MIN_HULL_SECTIONS}–${MAX_HULL_SECTIONS} sections`);
       for (const station of stations) {
         string(station.id, 'Section ID');
         number(station.t, 'Section position');

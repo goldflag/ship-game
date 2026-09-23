@@ -240,13 +240,13 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         .as_ref()
         .ok_or("Custom hull sections are missing")?;
     if h.version != 1.
-        || !(4..=24).contains(&h.stations.len())
+        || !(4..=48).contains(&h.stations.len())
         || !h.rake.is_finite()
         || !(0.0..=1.5).contains(&h.rake)
         || !h.bulb.is_finite()
         || !(0.0..=1.0).contains(&h.bulb)
     {
-        return Err("Custom hulls need version 1, 4–24 sections and valid bow settings".into());
+        return Err("Custom hulls need version 1, 4–48 sections and valid bow settings".into());
     }
     if h.red_paint_y
         .is_some_and(|y| !y.is_finite() || y.abs() > 500.)
@@ -664,6 +664,22 @@ mod tests {
         for bad in [vec![0.], vec![4.], vec![1.5], vec![3., 1.], vec![f64::NAN]] {
             p.custom_hull.as_mut().unwrap().creases = Some(bad);
             assert!(build(&p).is_err());
+        }
+    }
+    #[test]
+    fn a_hull_takes_up_to_48_sections() {
+        for (count, ok) in [(48, true), (49, false)] {
+            let mut p = hull(false);
+            let h = p.custom_hull.as_mut().unwrap();
+            let template = h.stations[0].clone();
+            h.stations = (0..count)
+                .map(|i| ConstructionHullStation {
+                    id: format!("s{i}"),
+                    t: i as f64 / (count - 1) as f64,
+                    ..template.clone()
+                })
+                .collect();
+            assert_eq!(build(&p).is_ok(), ok);
         }
     }
     #[test]

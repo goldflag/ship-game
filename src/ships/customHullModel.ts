@@ -3,7 +3,7 @@ import { hullPaintBandsError } from './hullPaintBands';
 import { bilgeKeelError, bilgeKeelFaces, defaultBilgeKeels } from './constructionBilgeKeels';
 import { DEFAULT_HULL_PRESET, HULL_PRESETS } from './constructionHullPresets';
 import type { ConstructionBilgeKeels, ConstructionHullPaintBands, ConstructionPrimitive, ConstructionHullPoint, ConstructionHullStation, Vec3 } from './blueprint';
-import { contourAt, contourWeight, hullCreasesError, hullEdgeId, MAX_HULL_POINTS, MIN_HULL_POINTS, outlineTopologyError } from './customHullTopology';
+import { contourAt, contourWeight, hullCreasesError, hullEdgeId, MAX_HULL_POINTS, MAX_HULL_SECTIONS, MIN_HULL_POINTS, MIN_HULL_SECTIONS, outlineTopologyError } from './customHullTopology';
 import { endCap, spanCut } from './customHullSpans';
 export type Point = ConstructionHullPoint;
 export type Station = ConstructionHullStation;
@@ -54,7 +54,7 @@ export function sectionAt(h: Hull, t: number): Station {
 // Keep existing shaping sections when adding detail. When simplifying, remove
 // the section closest to the interpolated profile of its surviving neighbors.
 export function setSectionCount(h: Hull, count: number): void {
-  if (!Number.isInteger(count) || count < 4 || count > 24) throw new Error('Use a whole section count from 4 to 24.');
+  if (!Number.isInteger(count) || count < MIN_HULL_SECTIONS || count > MAX_HULL_SECTIONS) throw new Error(`Use a whole section count from ${MIN_HULL_SECTIONS} to ${MAX_HULL_SECTIONS}.`);
   while (h.stations.length < count) {
     let gap = 0;
     for (let i = 1; i < h.stations.length - 1; i++) {

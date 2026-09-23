@@ -2,6 +2,9 @@ import type { ConstructionHullPoint as Point, ConstructionHullStation as Station
 
 export const MIN_HULL_POINTS = 5;
 export const MAX_HULL_POINTS = 33;
+/** Sections per custom hull, the same limit the native compiler enforces. */
+export const MIN_HULL_SECTIONS = 4;
+export const MAX_HULL_SECTIONS = 48;
 export const contourAt = (points: Point[], index: number): number => points[index].contour ?? index * 8 / (points.length - 1);
 export function contourWeight(points: Point[], index: number, weights: number[]): number {
   const t = contourAt(points, index), low = Math.floor(t), high = Math.min(8, low + 1);

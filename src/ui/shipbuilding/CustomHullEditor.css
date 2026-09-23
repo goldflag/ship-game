@@ -802,7 +802,8 @@
   outline: none;
 }
 .hs-ruler-insert:hover,
-.hs-ruler-insert:focus-visible {
+.hs-ruler-insert:focus-visible,
+.hs-ruler-insert[data-crowded] {
   opacity: 1;
 }
 .hs-ruler-insert circle {

@@ -84,7 +84,7 @@ const station = object<ConstructionHullStation>('HullStation', { id: id('Stable 
 const paintBand = object<ConstructionHullPaintBand>(undefined, { id: id(), upperY: number('Upper edge, hull-local metres.'), paint: text() });
 const customHull = object<ConstructionCustomHull>('CustomHull', {
   version: { type: 'number', enum: [1] },
-  stations: list(station, '4–24 sections.'),
+  stations: list(station, '4–48 sections.'),
   rake: number('Bow rake, 0–1.5.'),
   bulb: number('Bow bulb, 0–1.'),
   redPaintY: optional(number('Legacy red lower-hull coating below this hull-local Y.')),
@@ -319,7 +319,7 @@ export const COMMANDS = {
   'primitive-patch': { doc: 'Merge fields into an existing hull piece.', fields: { id: id(), changes: PRIMITIVE_PATCH } },
   'hull-sections': {
     doc: 'Resize a custom hull to this many sections by interpolation or simplification.',
-    fields: { id: id(), count: { type: 'number', integer: true, minimum: 4, maximum: 24 } },
+    fields: { id: id(), count: { type: 'number', integer: true, minimum: 4, maximum: 48 } },
   },
   'hull-station': {
     doc: 'Edit one existing custom-hull section.',
