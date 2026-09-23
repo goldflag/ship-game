@@ -90,6 +90,12 @@ pub struct MountState {
     /// A brief manual trigger press survives until the next control decision.
     #[serde(skip)]
     pub(crate) surface_fire: bool,
+    /// The world direction of the line of fire the last surface decision laid
+    /// this gun on. Between decisions the mount keeps training and elevating
+    /// toward it every tick (`hold_mount_lay`), so the barrels hold their aim
+    /// while the hull rolls, pitches and turns.
+    #[serde(skip)]
+    pub(crate) lay: Option<Vec3>,
     /// The air track this mount is firing at and the ticks left before it looks
     /// for a nearer one. A cadence, never authority state: a restored battle
     /// simply searches on its first tick, and it must never reach a snapshot,
@@ -155,6 +161,7 @@ impl MountState {
             aim_cache: None,
             surface_elapsed: 0.0,
             surface_fire: false,
+            lay: None,
             lead_cache: None,
             aa_discipline: None,
             aa_track: None,
@@ -187,6 +194,7 @@ impl MountState {
             aim_cache: self.aim_cache.clone(),
             surface_elapsed: self.surface_elapsed,
             surface_fire: self.surface_fire,
+            lay: self.lay,
             aa_track: None,
             aa_select: None,
             blocked_cache: None,
@@ -562,6 +570,7 @@ pub(crate) fn update_mount_control_at(
         },
         |c| c.time,
     );
+    let mut laid = None;
     for _ in 0..if cache.is_some() { 1 } else { 3 } {
         let Some(aim) = aim else {
             break;
@@ -587,6 +596,7 @@ pub(crate) fn update_mount_control_at(
             break;
         };
         time = solution.time;
+        laid = Some(solution.direction);
         let direction = normalize(basis.world_to_local(add([p.x, p.y, p.z], solution.direction)));
         desired_train = wrap_angle(
             direction[0].atan2(-direction[2])
@@ -605,14 +615,118 @@ pub(crate) fn update_mount_control_at(
     } else {
         None
     };
+    s.lay = if reachable { laid } else { None };
+    let w = &m.weapon;
+    let ([lo, hi], mechanically_blocked) = slew_mount(
+        index,
+        m,
+        s,
+        d,
+        (desired_train, desired_elevation),
+        control_dt,
+        work,
+        obstructions,
+        mounted_states,
+    );
+    if mechanically_blocked {
+        return reject(s, MountStatus::Blocked);
+    }
+    let in_arc = desired_train >= lo - 1e-6
+        && desired_train <= hi + 1e-6
+        && desired_elevation >= radians(w.elevation_min_deg) - 1e-6
+        && desired_elevation <= radians(w.elevation_max_deg) + 1e-6;
+    if reachable && in_arc {
+        if (desired_train - s.train).abs() >= 0.0015
+            || (desired_elevation - s.elevation).abs() >= 0.0008
+        {
+            return reject(s, MountStatus::Turning);
+        }
+        if s.reload > 0.0 {
+            // Every movement still has its physical interlock. A gun
+            // training onto a reachable target checks its firing corridor
+            // when it finishes loading and could actually fire.
+            s.status = MountStatus::Reloading;
+            return true;
+        }
+    }
+    // A parent can move an obstruction even when this gun has not traversed.
+    // Use the detached mount's updated train when posing its own descendants.
+    let blocked = SCRATCH.with_borrow_mut(|scratch| {
+        let carried = &mut scratch.carried;
+        carried.clear();
+        carried.extend(obstructions.carried.iter().map(|(carrier, _)| {
+            mount_frame(d, *carrier, &|i| {
+                if d.mounts[i].id == m.id {
+                    s.train
+                } else {
+                    mounted_states[i].train
+                }
+            })
+        }));
+        if let Some(cache) = s.blocked_cache.as_ref().filter(|c| {
+            c.train == s.train
+                && c.elevation == s.elevation
+                && c.carrier == s.carrier
+                && c.carried == *carried
+        }) {
+            return cache.blocked;
+        }
+        let breech = add(mount_position(m, s), [0.0, w.pivot_height, 0.0]);
+        let blocked = (0..w.barrel_count as usize).any(|barrel| {
+            let muzzle = muzzle_local(m, s, barrel);
+            let direction = normalize(sub(muzzle, breech));
+            obstructions.intersects(
+                breech,
+                add(muzzle, scale(direction, d.hull.length)),
+                &m.id,
+                carried,
+            )
+        });
+        s.blocked_cache = Some(BlockedCache {
+            train: s.train,
+            elevation: s.elevation,
+            carrier: s.carrier,
+            carried: carried.clone(),
+            blocked,
+        });
+        blocked
+    });
+    if blocked {
+        return reject(s, MountStatus::Blocked);
+    }
+    if !reachable {
+        return reject(s, MountStatus::OutOfRange);
+    }
+    if !in_arc {
+        return reject(s, MountStatus::OutOfArc);
+    }
+    s.status = MountStatus::Ready;
+    true
+}
+
+/// Train and elevate toward `desired` (train, elevation) for `budget` seconds
+/// of gun work, through the mount's clearance. Returns the traverse limits and
+/// whether the ship's own structure or a neighbouring mount stopped the move.
+#[allow(clippy::too_many_arguments)]
+fn slew_mount(
+    index: usize,
+    m: &MountDefinition,
+    s: &mut MountState,
+    d: &ShipDefinition,
+    desired: (f64, f64),
+    budget: f64,
+    work: f64,
+    obstructions: &Obstructions,
+    mounted_states: &[MountState],
+) -> ([f64; 2], bool) {
     let w = &m.weapon;
     let [lo, hi] = m
         .traverse_limits_deg
         .unwrap_or([-w.traverse_deg, w.traverse_deg])
         .map(radians);
-    let train = clamp(desired_train, lo, hi);
+    let train = clamp(desired.0, lo, hi);
     let elevation = clamp(
-        desired_elevation,
+        desired.1,
         radians(w.elevation_min_deg),
         radians(w.elevation_max_deg),
     );
@@ -624,8 +738,8 @@ pub(crate) fn update_mount_control_at(
     } else {
         w.traverse_rate_deg
     };
-    let train_rate = radians(traverse_rate_deg) * control_dt * work;
-    let elevation_rate = radians(w.elevation_rate_deg) * control_dt * work;
+    let train_rate = radians(traverse_rate_deg) * budget * work;
+    let elevation_rate = radians(w.elevation_rate_deg) * budget * work;
     let requested_train = s.train + clamp(train - s.train, -train_rate, train_rate);
     let requested_elevation =
         s.elevation + clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
@@ -635,7 +749,7 @@ pub(crate) fn update_mount_control_at(
             // Physical movement needs actual independent neighbors. Legacy
             // callers without a complete pose array must fail closed.
             if mounted_states.len() != d.mounts.len() {
-                return reject(s, MountStatus::Blocked);
+                return ([lo, hi], true);
             }
             let accepted = SCRATCH.with_borrow_mut(|scratch| {
                 let requested = [requested_train, requested_elevation];
@@ -720,80 +834,64 @@ pub(crate) fn update_mount_control_at(
         }
         mechanically_blocked = !motion_clear;
     }
-    if mechanically_blocked {
-        return reject(s, MountStatus::Blocked);
+    ([lo, hi], mechanically_blocked)
+}
+
+/// Between surface decisions a laid gun keeps its line of fire. The world
+/// direction the last decision chose is re-expressed in the hull's current
+/// attitude every tick and the mount trains and elevates toward it at its own
+/// rate, through the same clearance, so the barrels stay on target while the
+/// hull rolls, pitches and turns. Reachability, status and firing remain the
+/// 10 Hz decision's; only a mechanical stop is reported here.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn hold_mount_lay(
+    index: usize,
+    m: &MountDefinition,
+    s: &mut MountState,
+    d: &ShipDefinition,
+    p: &ShipState,
+    basis: &Basis,
+    dt: f64,
+    power: f64,
+    obstructions: &Obstructions,
+    mounted_states: &[MountState],
+) {
+    let Some(direction) = s.lay else {
+        return;
+    };
+    if s.hp <= 0.0
+        || !matches!(
+            s.status,
+            MountStatus::Ready | MountStatus::Reloading | MountStatus::Turning
+        )
+    {
+        return;
     }
-    let in_arc = desired_train >= lo - 1e-6
-        && desired_train <= hi + 1e-6
-        && desired_elevation >= radians(w.elevation_min_deg) - 1e-6
-        && desired_elevation <= radians(w.elevation_max_deg) + 1e-6;
-    if reachable && in_arc {
-        if (desired_train - s.train).abs() >= 0.0015
-            || (desired_elevation - s.elevation).abs() >= 0.0008
-        {
-            return reject(s, MountStatus::Turning);
-        }
-        if s.reload > 0.0 {
-            // Every movement still has its physical interlock. A gun
-            // training onto a reachable target checks its firing corridor
-            // when it finishes loading and could actually fire.
-            s.status = MountStatus::Reloading;
-            return true;
-        }
-    }
-    // A parent can move an obstruction even when this gun has not traversed.
-    // Use the detached mount's updated train when posing its own descendants.
-    let blocked = SCRATCH.with_borrow_mut(|scratch| {
-        let carried = &mut scratch.carried;
-        carried.clear();
-        carried.extend(obstructions.carried.iter().map(|(carrier, _)| {
-            mount_frame(d, *carrier, &|i| {
-                if d.mounts[i].id == m.id {
-                    s.train
-                } else {
-                    mounted_states[i].train
-                }
-            })
-        }));
-        if let Some(cache) = s.blocked_cache.as_ref().filter(|c| {
-            c.train == s.train
-                && c.elevation == s.elevation
-                && c.carrier == s.carrier
-                && c.carried == *carried
-        }) {
-            return cache.blocked;
-        }
-        let breech = add(mount_position(m, s), [0.0, w.pivot_height, 0.0]);
-        let blocked = (0..w.barrel_count as usize).any(|barrel| {
-            let muzzle = muzzle_local(m, s, barrel);
-            let direction = normalize(sub(muzzle, breech));
-            obstructions.intersects(
-                breech,
-                add(muzzle, scale(direction, d.hull.length)),
-                &m.id,
-                carried,
-            )
-        });
-        s.blocked_cache = Some(BlockedCache {
-            train: s.train,
-            elevation: s.elevation,
-            carrier: s.carrier,
-            carried: carried.clone(),
-            blocked,
-        });
-        blocked
-    });
+    let local = normalize(basis.world_to_local(add([p.x, p.y, p.z], direction)));
+    let desired = (
+        wrap_angle(
+            local[0].atan2(-local[2])
+                - radians(m.bearing_deg)
+                - s.carrier.map_or(0.0, |c| c.heading),
+        ),
+        clamp(local[1], -1.0, 1.0).asin(),
+    );
+    let (_, blocked) = slew_mount(
+        index,
+        m,
+        s,
+        d,
+        desired,
+        dt,
+        gun_work_rate(power),
+        obstructions,
+        mounted_states,
+    );
+    // This tick's slew time is spent; the next decision must not move by it again.
+    s.surface_elapsed = 0.0;
     if blocked {
-        return reject(s, MountStatus::Blocked);
+        s.status = MountStatus::Blocked;
     }
-    if !reachable {
-        return reject(s, MountStatus::OutOfRange);
-    }
-    if !in_arc {
-        return reject(s, MountStatus::OutOfArc);
-    }
-    s.status = MountStatus::Ready;
-    true
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

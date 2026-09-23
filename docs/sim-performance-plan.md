@@ -99,9 +99,14 @@ Measurements, per-phase tables and rationale: [archived log](archive/sim-perform
 
 ## Runtime approximations
 
-Surface guns make aim, traverse and fire decisions every six battle ticks (100 ms).
-The traverse solver sweeps the entire requested move, including intermediate collision
-checks; it does not test just the destination. Active AA and surface weapons with a reload
+Surface guns make aim and fire decisions every six battle ticks (100 ms). Each decision
+lays the gun on a line of fire held in world space; on the ticks between, the mount keeps
+training and elevating toward it at its own rate through the same clearance, so the
+barrels hold their aim while the hull rolls and turns instead of riding the deck for
+100 ms and snapping back. Gunnery runs before the hull's attitude settles in a tick, so
+the lay trails the roll by one tick. The traverse solver sweeps the entire requested
+move, including intermediate collision checks; it does not test just the destination.
+Active AA and surface weapons with a reload
 shorter than 100 ms retain their per-tick controls. Reload, recoil, damage, ship motion,
 aircraft and projectiles still advance every tick. Time spent controlling a mount as AA
 is excluded from its next surface slew. A changed fire order takes effect at the next
