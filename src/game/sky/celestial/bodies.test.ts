@@ -4,7 +4,7 @@ import { CelestialModel, directionFromAngles } from '../celestialModel';
 import { horizonCut, milkyWayShare, moonLighting, moonlight, starLimit, viewScale, type MoonLighting } from './bodies';
 import { LightShafts } from './shafts';
 
-const lighting = (): MoonLighting => ({ right: new Vector3(), up: new Vector3(), sun: new Vector3(), surface: new Vector3(), earthshine: new Vector3() });
+const lighting = (): MoonLighting => ({ lit: 0, opposition: 0, right: new Vector3(), up: new Vector3(), sun: new Vector3(), surface: new Vector3(), earthshine: new Vector3() });
 
 test('stars come out through twilight, brightest first, and a full moon well up hides the faintest', () => {
   expect(starLimit(0, 0)).toBeLessThan(-1.46);

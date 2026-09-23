@@ -42,11 +42,15 @@ export function milkyWayShare(sunElevation: number, moonlight: number): number {
   return (1 - MathUtils.smoothstep(sunElevation, ...MILKY_WAY_TWILIGHT)) * (1 - MOONLIGHT_WASHOUT.milkyWay * moonlight);
 }
 
+export interface ViewScale { pixelAngle: number; starGain: number }
+
 /** Radians a pixel spans at the centre of a view `height` pixels tall, and the gain on point sources its zoom gives. */
-export function viewScale(fovDegrees: number, zoom: number, height: number): { pixelAngle: number; starGain: number } {
+export function viewScale(fovDegrees: number, zoom: number, height: number, target: ViewScale = { pixelAngle: 0, starGain: 1 }): ViewScale {
   const halfField = Math.atan(Math.tan(fovDegrees * DEGREES / 2) / zoom);
   const magnification = Math.tan(NORMAL_FIELD * DEGREES / 2) / Math.tan(halfField);
-  return { pixelAngle: 2 * Math.tan(halfField) / Math.max(height, 1), starGain: Math.min(Math.sqrt(Math.max(magnification, 1)), ZOOM_GAIN) };
+  target.pixelAngle = 2 * Math.tan(halfField) / Math.max(height, 1);
+  target.starGain = Math.min(Math.sqrt(Math.max(magnification, 1)), ZOOM_GAIN);
+  return target;
 }
 
 /** Lowest direction (its y) worth drawing stars in from a camera at `altitude` metres: the sea horizon dips below the
@@ -56,6 +60,9 @@ export function horizonCut(altitude: number): number {
 }
 
 export interface MoonLighting {
+  /** Lit share of the disc, and the lit face's brightness at this phase angle relative to full (the opposition surge). */
+  lit: number;
+  opposition: number;
   /** The disc's axes in world space: toward the viewer's right, and toward the celestial pole (lunar north). */
   readonly right: Vector3;
   readonly up: Vector3;
@@ -67,10 +74,8 @@ export interface MoonLighting {
 }
 
 /** The moon's disc frame and lighting from the sun, the moon, the celestial pole and the moonlight above the air
- * (`SkyUniforms.moonIrradiance`, lit share included). Returns the lit share, the surface brightness at this phase
- * angle relative to full (the opposition surge), and writes the rest into `target`. */
-export function moonLighting(sun: Vector3, moon: Vector3, pole: Vector3, phase: number, irradiance: Vector3, disc: number, target: MoonLighting):
-  { lit: number; opposition: number } {
+ * (`SkyUniforms.moonIrradiance`, lit share included), written into `target`. */
+export function moonLighting(sun: Vector3, moon: Vector3, pole: Vector3, phase: number, irradiance: Vector3, disc: number, target: MoonLighting): MoonLighting {
   const { right, up } = target;
   up.copy(pole).addScaledVector(moon, -moon.dot(pole));
   if (up.lengthSq() < 1e-8) up.set(0, 1, 0).addScaledVector(moon, -moon.y);
@@ -81,6 +86,7 @@ export function moonLighting(sun: Vector3, moon: Vector3, pole: Vector3, phase: 
   const lit = moonIllumination(phase), luminance = .2126 * irradiance.x + .7152 * irradiance.y + .0722 * irradiance.z;
   target.surface.copy(MOON_TINT).multiplyScalar(lit > 1e-4 ? luminance * disc / lit : 0);
   target.earthshine.copy(EARTHSHINE_TINT).multiplyScalar(EARTHSHINE * (1 - lit));
-  const opposition = ((1 - sun.dot(moon)) / 2) ** 1.5;
-  return { lit, opposition: PHASE_FLOOR + (1 - PHASE_FLOOR) * opposition };
+  target.lit = lit;
+  target.opposition = PHASE_FLOOR + (1 - PHASE_FLOOR) * ((1 - sun.dot(moon)) / 2) ** 1.5;
+  return target;
 }

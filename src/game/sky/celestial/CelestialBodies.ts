@@ -2,7 +2,7 @@ import { Matrix3, Vector2, Vector3, type Node, type PassNode, type TextureNode }
 import { Fn, If, dot, max, smoothstep, uniform } from 'three/tsl';
 import type { CelestialPart, SkyFrame, SkyPartContext, SkyQuality, SkyUniforms } from '../contracts';
 import { SKY_TIERS } from '../quality';
-import { horizonCut, milkyWayShare, moonLighting, moonlight, starLimit, viewScale, type MoonLighting } from './bodies';
+import { horizonCut, milkyWayShare, moonLighting, moonlight, starLimit, viewScale, type MoonLighting, type ViewScale } from './bodies';
 import { MOON_DISC, MOON_HALO, moonCover, moonDisc, moonGlow, sunDisc, type MoonInputs } from './discs';
 import { galacticRotation } from './galactic';
 import { MilkyWay } from './milkyWay';
@@ -44,6 +44,7 @@ export class CelestialBodies implements CelestialPart {
   };
   private readonly moon: MoonInputs;
   private readonly moonLighting: MoonLighting;
+  private readonly view: ViewScale = { pixelAngle: 0, starGain: 1 };
   private readonly lightShafts: LightShafts;
   private readonly reversedDepth: boolean;
 
@@ -55,7 +56,8 @@ export class CelestialBodies implements CelestialPart {
     const l = this.local;
     this.moon = { direction: this.sky.moonDirection, right: l.moonRight, up: l.moonUp, sun: l.moonSun, surface: l.moonSurface, phase: l.moonPhase,
       earthshine: l.earthshine, glow: l.moonGlow };
-    this.moonLighting = { right: l.moonRight.value, up: l.moonUp.value, sun: l.moonSun.value, surface: l.moonSurface.value, earthshine: l.earthshine.value };
+    this.moonLighting = { lit: 1, opposition: 1, right: l.moonRight.value, up: l.moonUp.value, sun: l.moonSun.value, surface: l.moonSurface.value,
+      earthshine: l.earthshine.value };
     this.setBake(context.quality);
   }
 
@@ -98,7 +100,7 @@ export class CelestialBodies implements CelestialPart {
     this.milkyWay.bake(renderer);
     // The view: its pixel size, zoom and forward direction.
     camera.getWorldDirection(l.forward.value);
-    const view = viewScale(camera.fov, camera.zoom, renderer.getDrawingBufferSize(this.size).y);
+    const view = viewScale(camera.fov, camera.zoom, renderer.getDrawingBufferSize(this.size).y, this.view);
     l.pixelAngle.value = view.pixelAngle;
     l.starGain.value = view.starGain;
     l.horizon.value = horizonCut(camera.position.y);
