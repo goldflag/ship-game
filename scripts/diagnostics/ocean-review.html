@@ -36,11 +36,14 @@ const FOAM_WARMUP = 10;
  * changes still apply on the next update. Crest foam first runs up to it for FOAM_WARMUP seconds.
  * Water Pro takes a changed sea and evaluates its waves only inside a simulation step: each battle scene
  * runs one from the frozen time and shows the waves 1/60 s after it, with the crest foam it already had
- * (no warm-up), as the original Water Pro captures did; the port keeps the waves its load left. */
+ * (no warm-up), as the original Water Pro captures did; the port keeps the waves its load left.
+ * ?foam=warm first runs FOAM_WARMUP seconds of Water Pro steps, so its whitecaps build as they do at sea. */
 const freeze = async (seconds, { step = true } = {}) => {
   if (oceanRenderer === 'waterpro') {
+    const warm = params.get('foam') === 'warm';
+    if (warm) { game.ocean.time = seconds - FOAM_WARMUP; for (let i = 0; i < FOAM_WARMUP * 30; i++) await game.ocean.update(1 / 30); }
     game.ocean.time = seconds;
-    if (step) { await game.ocean.update(1 / 60); game.ocean.time = seconds; }
+    if (step || warm) { await game.ocean.update(1 / 60); game.ocean.time = seconds; }
     return;
   }
   for (let t = seconds - FOAM_WARMUP; t < seconds; t += 1 / 30) game.ocean.waveField.update(game.renderer, t, 1 / 30);
