@@ -244,9 +244,14 @@ async function heights() {
     worstUnfolded: unfolded.reduce((a, b) => Math.max(a, b), 0), significantHeight: params.significantHeight, normalLengthError: normalWorst };
 }
 
-/** Foam persists and decays with dt and never changes on a paused (dt = 0) update. */
+/** Foam and bubbles persist and decay with dt and never change on a paused (dt = 0) update. */
 async function foamCheck() {
-  const layerFoam = async () => (await readLayer(0))[2].filter((_, i) => i % 4 === 1);
+  // Every layer's foam and bubble channels (extras .y and .w).
+  const layerFoam = async () => {
+    const all = [];
+    for (let c = 0; c < field.cascades.length; c++) all.push((await readLayer(c))[2].filter((_, i) => i % 4 === 1 || i % 4 === 3));
+    return Float32Array.from(all.flatMap(layer => Array.from(layer)));
+  };
   await frames(240);
   const before = await layerFoam();
   field.update(renderer, time, 0); await sync();
