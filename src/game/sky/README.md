@@ -84,15 +84,42 @@ a sphere of radius 6,360 km whose surface is the sea at y = 0 under the camera.
 
 ## Parts
 
-**Atmosphere** (`atmosphere/`). Hillaire 2020: transmittance LUT, multiple-scattering LUT and a
-camera-centred sky-view LUT (non-linear in latitude, finest at the horizon), rebuilt when the sun,
-parameters or camera altitude change. Rayleigh, Mie and ozone; the planet's shadow gives the
-Earth-shadow band and Belt of Venus at twilight. Aerial perspective works for any direction and
-distance (clouds and bakes), not only the frustum. The authored `rayleigh/turbidity/mie/mieG/
-multiple` (Sky Pro's scale) map onto our coefficients through documented gains, tuned by eye.
-Moonlight scatters through the same model at night, lifted for readability. The CPU keeps the
-sunlight and moonlight colour at sea level (for the scene light) and the zenith sky irradiance.
-Cinematic grading lives here too: the golden-hour sun and warm aureole, the blue hour's ozone blue.
+**Atmosphere** (`atmosphere/`). Hillaire 2020 over a 6,360 km planet with air to 6,460 km:
+Rayleigh, Mie (a grey maritime aerosol, 1.2 km scale height) and an ozone tent at 25 km, in km and per
+km (`model.ts` holds the profiles, the CPU side and the grade; `luts.ts` the passes; `Atmosphere.ts`
+the part). Tables, all fragment passes into small render targets:
+
+- optical depth to the top of the air (256 × 64, float32, Bruneton's parameterisation), so any
+  transmittance, including a segment's, is one or two reads;
+- multiple scattering (32 × 32), integrated one direction per texel of a 256² target and then summed,
+  which keeps the GPU full;
+- the sky view, an atlas of four 192 × 108 sections (sun and moon seen from the camera, then from sea
+  level for the bake), latitude squared toward the horizon and longitude toward the light. Each holds
+  Rayleigh with its phase plus all multiple scattering, and the aerosol's single scattering without its
+  phase: the aureole's lobe (the authored Cornette–Shanks lobe plus a narrow forward core) is applied
+  per pixel, so it stays crisp;
+- ambient light by altitude (64 texels to 16 km, above and below), for the clouds.
+
+The optical depth and multiple scattering rebuild when the air changes, the sky view and ambient when
+the sun or moon do, and the camera's sections when its altitude moves by 2% (5 m near the sea); a
+steady camera costs no passes. Aerial perspective is a closed form, not a table: transmittance from two
+optical-depth reads, in-scattering the sky's own radiance along the ray in the share of the ray's
+extinction before the point, so distant clouds converge on the horizon in its colour (`fromSea` gives
+the bake's viewpoint). Below the horizontal the dome holds the horizon's colour, which also meets the
+sea's far fog seamlessly from altitude. Night: the moon scatters through the same tables as a second
+light at `SKY_GRADE.moon` of its lifted irradiance, over a navy floor (airglow and starlight) that keeps
+the sky off black; the moonlit horizon sits near the battle night fog `#182839`. Twilight: the sky's
+exposure lifts as the sun sets (`TWILIGHT`, about ×3.5 at sunset to ×600 by −10°, applied also to
+`sunTransmittance` and the ambient light), so the afterglow, the Earth's shadow and Belt of Venus and
+the ozone blue hour stay visible; ozone's red absorption is raised toward a broadband red channel's so
+the blue hour is blue, not magenta. The grade (`SKY_GRADE`): a gain over physics, a chroma lift, a
+luminance shoulder that keeps the glare round a low sun under the display's bloom threshold (and golden
+rather than bleached through AgX), and half a display level of dither against 8-bit banding at night.
+Authored `rayleigh` scales the molecules by a root and the dome's chroma by another (the maps author it
+as how blue the sky is), `turbidity` sets the aerosol (thickening toward the fog preset), `mie` the
+aureole, `mieG` its lobe and `multiple` the multiple scattering. The CPU derives the scene light from
+the same optical depths: the physical colour of the sun at the sea, softened, on the high sun's tint, and
+never dimmer than the game's readability ramp; the moon as the stub had it; and the sky's irradiance.
 
 **Celestial** (`celestial/`). Sun disc with limb darkening; moon disc with a procedural albedo
 (maria, crater brightness), lit by the actual sun direction so its terminator matches the phase,
@@ -123,11 +150,15 @@ by wind and stretched by camera motion; splashes on the sea near the camera; lig
 light and a scene-wide flash; a thunder cue delayed by distance for the game's audio. Precipitation
 and lightning come from the weather preset (`assets/maps/battle-conditions.v1.json`).
 
-**Environment** (`environment/`). Equirectangular linear HDR bake from sea level under the camera
-of dome, celestial bodies and clouds (a short march), refreshed in slices over several frames; the
-PMREM follows by bumping `pmremVersion`. `scene.environment` is this texture (ships' image-based
-light) and the sea reflects it through `OceanSky.createReflectionSampler`. The far fog colour
-(`createFogSampler`) is the sky seen from the camera without discs, stars or clouds.
+**Environment** (`environment/`). Equirectangular linear HDR bake (RGBA16F, the tier's width) from sea
+level under the camera: the dome (sky, celestial bodies without the sun's disc and stars, cirrus) with the
+clouds' short march over it, the clouds skipped below the horizon. A sweep bakes the sky in four
+horizontal bands, one every fourth frame, the last also taking the cheap half below the horizon, and
+bumps `needsPMREMUpdate` once finished: three's PMREM (about 0.07 ms on the development machine)
+refilters once per 16 frames. A change of sun or light, or a jump of the origin by 2 km, re-bakes it
+whole at once. `scene.environment` is this texture (ships' image-based light) and the sea reflects it
+through PMREM. The far fog colour (`createFogSampler`) is the sky seen from the camera without discs,
+stars or clouds.
 
 ## Quality tiers
 
