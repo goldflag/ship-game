@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Camera, Group, InstancedMesh, Matrix4, Object3D, Vector3 } from 'three/webgpu';
+import { Camera, Group, InstancedMesh, Matrix4, Mesh, Object3D, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import { localToWorld } from './geometry';
@@ -12,8 +12,10 @@ const fixture = (id = 'bismarck') => {
   const definition = shipPreset(id), sim = new CombatSimulation(definition);
   return { sim, ship: { definition, actor: sim.player, motion: sim.player.motion } };
 };
+const billows = (smoke: ShipFunnelSmoke) => smoke.root.children.find(child => (child as InstancedMesh).isInstancedMesh) as InstancedMesh;
+const ribbon = (smoke: ShipFunnelSmoke) => smoke.root.children.find(child => (child as Mesh).isMesh && !(child as InstancedMesh).isInstancedMesh) as Mesh;
 const instances = (smoke: ShipFunnelSmoke) => {
-  const mesh = smoke.root.children[0] as InstancedMesh, matrix = new Matrix4();
+  const mesh = billows(smoke), matrix = new Matrix4();
   return Array.from({ length: smoke.diagnostics().particles }, (_, i) => {
     mesh.getMatrixAt(i, matrix);
     return new Vector3().setFromMatrixPosition(matrix);
@@ -96,9 +98,9 @@ test('exhaust follows a moving, heeled funnel; released smoke drifts independent
   ship.motion.x += 20;
   smoke.setWind(10, 0);
   smoke.update([ship], .1, camera);
-  // Wind plus small local turbulence, without inheriting the hull's 20 m move.
-  expect(instances(smoke)[0].x - first.x).toBeGreaterThan(.31);
-  expect(instances(smoke)[0].x - first.x).toBeLessThan(.39);
+  // Wind (0.35 m in 0.1 s) plus local turbulence, without inheriting the hull's 20 m move.
+  expect(instances(smoke)[0].x - first.x).toBeGreaterThan(.25);
+  expect(instances(smoke)[0].x - first.x).toBeLessThan(.45);
   expect(instances(smoke)[0].y).toBeGreaterThan(first.y);
   smoke.update([ship], 0, camera, ship.motion.id);
   expect(smoke.diagnostics().particles).toBe(0);
@@ -115,7 +117,8 @@ test('exhaust increases underway, emits from both funnels, and dies away after m
   const { ship } = fixture('fletcher'), smoke = new ShipFunnelSmoke(), camera = new Camera();
   for (let i = 0; i < 20; i++) smoke.update([ship], .1, camera);
   const idle = smoke.diagnostics().particles;
-  expect(idle).toBe(10);
+  // Two funnels at the idle rate (3.8 billows/s each) for two seconds.
+  expect(idle).toBe(14);
   smoke.reset(); ship.motion.speed = ship.definition.handling.forwardSpeed;
   for (let i = 0; i < 20; i++) smoke.update([ship], .1, camera);
   expect(smoke.diagnostics().particles).toBeGreaterThan(idle);
@@ -124,6 +127,10 @@ test('exhaust increases underway, emits from both funnels, and dies away after m
   for (const module of ship.actor.damage.modules) module.hp = 0;
   for (let i = 0; i < 130; i++) smoke.update([ship], .1, camera);
   expect(smoke.diagnostics().particles).toBe(0);
+  // The released trail outlives the billows, then drifts away and ends.
+  expect(smoke.diagnostics().trailSegments).toBeGreaterThan(0);
+  for (let i = 0; i < 900; i++) smoke.update([ship], .1, camera);
+  expect(smoke.diagnostics().trailSegments).toBe(0);
   const fresh = fixture().ship;
   fresh.motion.y = -40;
   for (let i = 0; i < 20; i++) smoke.update([fresh], .1, camera);
@@ -141,7 +148,8 @@ test('emission timing is stable across display rates and fleet storage remains b
     const count = smoke.diagnostics().particles;
     smoke.dispose(); return count;
   });
-  expect(counts).toEqual([5, 5, 5]);
+  expect(new Set(counts).size).toBe(1);
+  expect(counts[0]).toBe(7);
   const ships = Array.from({ length: 60 }, (_, i) => {
     const { ship } = fixture('fletcher');
     ship.motion.id = `ship-${i}`; ship.motion.speed = ship.definition.handling.forwardSpeed;
@@ -155,4 +163,54 @@ test('emission timing is stable across display rates and fleet storage remains b
   smoke.reset();
   expect(smoke.diagnostics().particles).toBe(0);
   smoke.dispose();
+});
+
+test('a released trail streams downwind behind a moving ship, lit and bounded to what the camera sees', () => {
+  const { ship } = fixture(), smoke = new ShipFunnelSmoke(), camera = new PerspectiveCamera(50, 16 / 9, .5, 60000);
+  smoke.setWind(8, Math.PI / 2); // Drift toward +Z.
+  ship.motion.speed = ship.definition.handling.forwardSpeed;
+  camera.position.set(-600, 120, 300); camera.lookAt(0, 30, 300); camera.updateMatrixWorld();
+  for (let i = 0; i < 600; i++) {
+    ship.motion.z -= ship.motion.speed * 1.5 / 60; // Heading 0: the bow runs toward −Z.
+    smoke.update([ship], 1 / 60, camera);
+  }
+  const mesh = ribbon(smoke), positions = mesh.geometry.getAttribute('position');
+  const count = mesh.geometry.drawRange.count;
+  expect(mesh.visible).toBe(true);
+  expect(count).toBeGreaterThan(30);
+  // The strip streams aft of the funnel (+Z).
+  const mouth = localToWorld(funnelOutlets(ship.definition)[0].position, ship.motion);
+  let aft = 0;
+  for (let i = 0; i < positions.count && i < 400; i++) aft = Math.max(aft, positions.getZ(i) - mouth[2]);
+  expect(aft).toBeGreaterThan(100);
+  // Turn the camera away: the trail keeps drifting but draws nothing.
+  camera.position.set(0, 30, 4000); camera.lookAt(0, 30, 9000); camera.updateMatrixWorld();
+  smoke.update([ship], 1 / 60, camera);
+  expect(smoke.diagnostics().trailSegments).toBe(0);
+  // Own optics hide the trail as well as the billows.
+  camera.position.set(-600, 120, 300); camera.lookAt(0, 30, 300); camera.updateMatrixWorld();
+  smoke.update([ship], 0, camera, ship.motion.id);
+  expect(smoke.diagnostics()).toMatchObject({ particles: 0, trailSegments: 0 });
+  smoke.dispose();
+});
+
+test('damaged boilers and working up darken the exhaust; a steady plant makes light haze', () => {
+  const albedo = (setup: (ship: ReturnType<typeof fixture>['ship']) => void, step?: (ship: ReturnType<typeof fixture>['ship'], i: number) => void) => {
+    const { ship } = fixture(), smoke = new ShipFunnelSmoke(), camera = new Camera();
+    setup(ship);
+    for (let i = 0; i < 40; i++) { step?.(ship, i); smoke.update([ship], .1, camera); }
+    const colors = billows(smoke).instanceColor!, n = smoke.diagnostics().particles;
+    let sum = 0;
+    for (let i = 0; i < n; i++) sum += colors.getX(i);
+    smoke.dispose();
+    return sum / n;
+  };
+  const steady = albedo(ship => { ship.motion.speed = ship.definition.handling.forwardSpeed * .5; });
+  const damaged = albedo(ship => {
+    ship.motion.speed = ship.definition.handling.forwardSpeed * .5;
+    ship.definition.modules.forEach((m, i) => { if (m.kind === 'engine' || m.role === 'boiler') ship.actor.damage.modules[i].hp *= .25; });
+  });
+  const workingUp = albedo(() => {}, (ship, i) => { ship.motion.speed = ship.definition.handling.forwardSpeed * i / 60; });
+  expect(damaged).toBeLessThan(steady * .5);
+  expect(workingUp).toBeLessThan(steady * .85);
 });
