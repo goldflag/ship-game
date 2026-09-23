@@ -121,6 +121,130 @@ export const scenes: Record<string, Scene> = {
     stage.weather({ timeHours: 18.4 }); await shoot('quarter ahead, dusk');
     stage.weather({ timeHours: 23 }); await shoot('quarter ahead, night');
   },
+  /** Fire: one burning main turret, close, then from a steep angle (flames must stay upright). */
+  async 'c-turret'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.burn(1, { mounts: [0], intensity: 1 });
+    stage.camera({ ship: 1, offset: [-45, 20, -100], look: [0, 14, -70], fov: 45 });
+    stage.advance(14); await shoot('14.0 s');
+    stage.advance(.15); await shoot('14.15 s');
+    stage.advance(.15); await shoot('14.30 s');
+    stage.camera({ ship: 1, offset: [-18, 70, -80], look: [0, 10, -70], fov: 45 }); await shoot('steep');
+    stage.camera({ ship: 1, offset: [-220, 40, -40], look: [0, 30, -70], fov: 40 }); await shoot('column');
+    stage.camera({ ship: 1, offset: [0, 18, -140], look: [0, 16, -70], fov: 45 }); await shoot('head on');
+  },
+  /** Fire: a compartment fire venting through the deck, seen from deck level. */
+  async 'c-deck'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const { rooms } = stage.burn(1, { rooms: 1, intensity: 1 });
+    stage.note('rooms', rooms);
+    stage.camera({ ship: 1, offset: [-30, 14, 40], look: [0, 14, 0], fov: 55 });
+    stage.advance(16); await shoot('deck level');
+    stage.camera({ ship: 1, offset: [-160, 45, 60], look: [0, 30, 0], fov: 45 }); await shoot('abeam');
+    stage.burn(1, { rooms, intensity: .45 }); stage.advance(8);
+    stage.camera({ ship: 1, offset: [-30, 14, 40], look: [0, 14, 0], fov: 55 }); await shoot('intensity .45');
+  },
+  /** Fire: a fire growing from a smoulder to full intensity. */
+  async 'c-grow'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.camera({ ship: 1, offset: [-200, 50, 140], look: [0, 25, -10], fov: 45 });
+    for (const [time, intensity] of [[0, .1], [4, .25], [8, .45], [12, .7], [16, 1], [22, 1]] as const) {
+      stage.burn(1, { rooms: 2, mounts: [3], intensity, trend: 'growing' });
+      stage.advance(time - stage.elapsed); await shoot(`${time} s · ${intensity}`);
+    }
+  },
+  /** Fire: an established fire being fought, then dying out (smoulder) and a flooded compartment (steam). */
+  async 'c-fought'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.camera({ ship: 1, offset: [-200, 50, 140], look: [0, 25, -10], fov: 45 });
+    stage.burn(1, { rooms: 2, mounts: [3], intensity: 1 });
+    stage.advance(20); await shoot('burning 20 s');
+    stage.burn(1, { rooms: 2, mounts: [3], intensity: .5, trend: 'contained', suppressed: true });
+    stage.advance(6); await shoot('fought +6 s');
+    stage.burn(1, { rooms: 2, mounts: [3], intensity: .2, trend: 'contained', suppressed: true });
+    stage.advance(6); await shoot('fought +12 s');
+    stage.burn(1, { rooms: 2, mounts: [3], intensity: 0, trend: 'cooling' });
+    stage.advance(3); await shoot('out +3 s');
+    stage.advance(12); await shoot('out +15 s');
+    stage.advance(30); await shoot('out +45 s');
+  },
+  async 'c-flood'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.camera({ ship: 1, offset: [-120, 35, 80], look: [0, 18, -10], fov: 45 });
+    const { rooms } = stage.burn(1, { rooms: 1, intensity: 1 });
+    stage.advance(16); await shoot('burning');
+    const actor = (stage.game as unknown as { fleetViews: { actor: { damage: { compartments: { waterM3: number }[] }; definition: { compartments: { capacityM3: number }[] } } }[] }).fleetViews[1].actor;
+    const before = rooms.map(i => actor.damage.compartments[i].waterM3);
+    rooms.forEach(i => { actor.damage.compartments[i].waterM3 = actor.definition.compartments[i].capacityM3 * .5; });
+    stage.burn(1, { rooms, intensity: 0, trend: 'out' });
+    for (const time of [.4, 1.2, 3, 7]) { stage.advance(16 + time - stage.elapsed); await shoot(`flooded +${time} s`); }
+    rooms.forEach((i, k) => { actor.damage.compartments[i].waterM3 = before[k]; });
+  },
+  /** Fire: the pall at range at dusk, and the same ship at night. */
+  async 'c-range'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 17.6 });
+    stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 });
+    stage.advance(40);
+    stage.camera({ ship: 1, offset: [-7000, 220, 3500], look: [0, 80, 0], fov: 8 }); await shoot('8 km dusk, fov 8');
+    stage.camera({ ship: 1, offset: [-7000, 220, 3500], look: [0, 80, 0], fov: 40 }); await shoot('8 km dusk, fov 40');
+    stage.camera({ ship: 1, offset: [-3000, 150, 1500], look: [0, 80, 0], fov: 20 }); await shoot('3.4 km dusk');
+    stage.weather({ timeHours: 23 });
+    stage.camera({ ship: 1, offset: [-200, 50, 140], look: [0, 25, -10], fov: 45 }); await shoot('night close');
+    stage.camera({ ship: 1, offset: [-1600, 120, 900], look: [0, 50, 0], fov: 25 }); await shoot('night 1.8 km');
+    stage.camera({ ship: 1, offset: [-45, 20, -100], look: [0, 14, -70], fov: 45 }); await shoot('night turret');
+  },
+  /** Fire: a strong crosswind bends the column; then the burning ship underway trails its smoke. */
+  async 'c-wind'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15, windSpeed: 16, windDirection: 90 });
+    stage.burn(1, { rooms: 3, mounts: [0], intensity: 1 });
+    stage.advance(30);
+    stage.camera({ ship: 1, offset: [-260, 60, 200], look: [0, 40, 40], fov: 50 }); await shoot('crosswind 16 m/s');
+    stage.reset(); stage.weather({ timeHours: 15, windSpeed: 6 });
+    stage.burn(1, { rooms: 3, mounts: [0], intensity: 1 });
+    stage.underway(1, .6);
+    stage.advance(35);
+    stage.camera({ ship: 1, offset: [-230, 60, 200], look: [0, 30, 60], fov: 50 }); await shoot('underway 60 %');
+    stage.camera({ ship: 1, offset: [-1200, 150, 300], look: [0, 50, 200], fov: 35 }); await shoot('underway, 1.2 km');
+  },
+  /** Fire fill: deterministic overdraw of the fire batches in the close, turret and 8 km views. */
+  async 'c-fill'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 });
+    stage.advance(40);
+    type Fires = { effects: { localFires: { diagnostics(): { fill: unknown; smoke: number; flames: number } } } };
+    const read = () => { const d = (stage.game as unknown as Fires).effects.localFires.diagnostics(); return { fill: d.fill, smoke: d.smoke, flames: d.flames }; };
+    for (const [label, camera] of [['close', { ship: 1, offset: [-200, 50, 140], look: [0, 12, -10], fov: 45 }],
+      ['turret', { ship: 1, offset: [-45, 20, -100], look: [0, 14, -70], fov: 45 }],
+      ['chase-like', { ship: 1, offset: [-90, 45, 230], look: [0, 20, -20], fov: 55 }],
+      ['8 km', { ship: 1, offset: [-7000, 220, 3500], look: [0, 80, 0], fov: 40 }]] as const) {
+      stage.camera(camera as Parameters<typeof stage.camera>[0]); await shoot(label); stage.note(label, read());
+    }
+  },
+  /** Fire cost: five fires, measured three ways in one session so contention cancels: everything,
+   * particles hidden (lights kept), and the whole fire root hidden (lights removed from shading). */
+  async 'c-cost'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 });
+    stage.advance(30);
+    type Node = { visible: boolean; children: Node[]; isLight?: boolean };
+    const root = (stage.game as unknown as { effects: { root: { getObjectByName(name: string): Node } } }).effects.root.getObjectByName('Localized ship fires')!;
+    const particles = root.children.filter(child => !child.isLight);
+    const phase = async (fire: boolean, lights: boolean) => {
+      root.visible = lights; particles.forEach(p => p.visible = fire);
+      return (await stage.measure(40)).gpuMs;
+    };
+    for (const [label, camera] of [['close', { ship: 1, offset: [-200, 50, 140], look: [0, 12, -10], fov: 45 }],
+      ['8 km', { ship: 1, offset: [-7000, 220, 3500], look: [0, 80, 0], fov: 40 }]] as const) {
+      stage.camera(camera as Parameters<typeof stage.camera>[0]);
+      const runs = [];
+      for (let i = 0; i < 2; i++) runs.push({ all: await phase(true, true), lightsOnly: await phase(false, true), none: await phase(false, false) });
+      stage.note(label, runs);
+    }
+    root.visible = true; particles.forEach(p => p.visible = true);
+    type Fires = { effects: { localFires: { diagnostics(): unknown } } };
+    stage.note('fires', (stage.game as unknown as Fires).effects.localFires.diagnostics());
+    await shoot('cost view');
+  },
   /** GPU cost of a busy moment: two broadsides in the air, hits, three fires and both ships underway. */
   async perf(stage, shoot) {
     stage.reset(); stage.weather({ timeHours: 15 });
