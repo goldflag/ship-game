@@ -11,7 +11,8 @@
  *
  * The pure functions below are what the nodes evaluate, for tests and CPU callers. */
 import { Vector2, Vector4, type Node } from 'three/webgpu';
-import { Fn, Loop, clamp, cos, dot, exp, float, inverseSqrt, renderGroup, sin, smoothstep, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
+import { Fn, Loop, clamp, cos, dot, exp, float, inverseSqrt, renderGroup, sin, smoothstep, uniform, vec2, vec3, vec4 } from 'three/tsl';
+import { PackedVec4Arrays } from '../../packedUniforms';
 import type { HullFootprint, HullSeaWave } from '../contracts';
 import { GRAVITY } from './spectrum';
 
@@ -22,6 +23,8 @@ type Vec2 = Node<'vec2'>;
 export const HULL_SEA_SLOTS = 16;
 /** Components of the combat sea (two long sines). */
 export const HULL_SEA_WAVES = 2;
+/** Sections of the packed hull and wave values. */
+const SLOTS = 0, WAVES = 1;
 /** Full coupling out to this share of the hull length from its centre line (bow wave and waterline included), and
  * at least this share of the longest wave: the crest and trough beside the hull are then the ones it rides. */
 export const HULL_REACH = .3, WAVE_REACH = .25;
@@ -162,13 +165,12 @@ export class HullSea {
    * and whether any are replaced (0: the drawn waves all stay, the combat sea adds to them). */
   readonly split = uniform(0).setGroup(renderGroup);
   readonly replace = uniform(1).setGroup(renderGroup);
-  private readonly slotValues = Array.from({ length: HULL_SEA_SLOTS * 2 }, () => new Vector4());
-  /** Per hull: (centre x, z, bow axis x, z), (half length, inner, outer, contact). */
-  private readonly slots = uniformArray<'vec4'>(this.slotValues, 'vec4').setGroup(renderGroup);
+  /** In one uniform buffer: per hull (centre x, z, bow axis x, z) and (half length, inner, outer, contact); per
+   * component (kx, kz, amplitude, phase about `origin`). */
+  private readonly values = new PackedVec4Arrays([HULL_SEA_SLOTS * 2, HULL_SEA_WAVES], renderGroup);
+  private readonly slotValues = this.values.sections[SLOTS];
+  private readonly waveValues = this.values.sections[WAVES];
   private readonly count = uniform(0, 'int').setGroup(renderGroup);
-  private readonly waveValues = Array.from({ length: HULL_SEA_WAVES }, () => new Vector4());
-  /** Per component: (kx, kz, amplitude, phase about `origin`). */
-  private readonly waves = uniformArray<'vec4'>(this.waveValues, 'vec4').setGroup(renderGroup);
   private readonly origin = uniform(new Vector2()).setGroup(renderGroup);
 
   /** Couple `hulls` (at most HULL_SEA_SLOTS) to the sea `waves` at `time`. No components or no hulls: no coupling. */
@@ -194,7 +196,7 @@ export class HullSea {
     return Fn(() => {
       const keep = float(1).toVar();
       Loop({ start: 0, end: this.count, type: 'int' }, ({ i }) => {
-        const a = this.slots.element(i.mul(2)), b = this.slots.element(i.mul(2).add(1));
+        const a = this.values.element(SLOTS, i.mul(2)), b = this.values.element(SLOTS, i.mul(2).add(1));
         const relative = xz.sub(a.xy), t = clamp(dot(relative, a.zw), b.x.negate(), b.x);
         const distance = relative.sub(a.zw.mul(t)).length();
         keep.mulAssign(float(1).sub(b.w.mul(float(1).sub(smoothstep(b.y, b.z, distance)))));
@@ -208,7 +210,7 @@ export class HullSea {
     return Fn(() => {
       const keep = float(1).toVar(), gradient = vec2(0).toVar();
       Loop({ start: 0, end: this.count, type: 'int' }, ({ i }) => {
-        const a = this.slots.element(i.mul(2)), b = this.slots.element(i.mul(2).add(1));
+        const a = this.values.element(SLOTS, i.mul(2)), b = this.values.element(SLOTS, i.mul(2).add(1));
         const relative = xz.sub(a.xy), t = clamp(dot(relative, a.zw), b.x.negate(), b.x);
         const offset = relative.sub(a.zw.mul(t)), distance = offset.length();
         const span = b.z.sub(b.y).max(1e-3), s = clamp(distance.sub(b.y).div(span), 0, 1);
@@ -234,7 +236,7 @@ export class HullSea {
     const relative = at.sub(this.origin);
     let height: Float = float(0);
     for (let j = 0; j < HULL_SEA_WAVES; j++) {
-      const wave = this.waves.element(j), k = wave.xy.length();
+      const wave = this.values.element(WAVES, j), k = wave.xy.length();
       const fade = spacing ? float(1).sub(smoothstep(Math.PI / 2, Math.PI, spacing.mul(k))) : float(1);
       height = height.add(wave.z.mul(fade).mul(sin(dot(wave.xy, relative).add(wave.w))));
     }
@@ -248,7 +250,7 @@ export class HullSea {
     const relative = at.sub(this.origin);
     let result: Node<'vec4'> = vec4(0);
     for (let j = 0; j < HULL_SEA_WAVES; j++) {
-      const wave = this.waves.element(j), k = wave.xy.length(), phase = dot(wave.xy, relative).add(wave.w);
+      const wave = this.values.element(WAVES, j), k = wave.xy.length(), phase = dot(wave.xy, relative).add(wave.w);
       const resolved = exp(footprint.mul(k).pow(2).div(-8));
       const swing = wave.z.mul(cos(phase)).mul(resolved), steepness = wave.z.mul(k);
       result = result.add(vec4(wave.z.mul(sin(phase)), wave.xy.mul(swing), steepness.mul(steepness).mul(.5).mul(float(1).sub(resolved.mul(resolved)))));

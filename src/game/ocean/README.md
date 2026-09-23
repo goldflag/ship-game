@@ -56,6 +56,12 @@ read the opaque scene through three's viewport colour/depth copies. There is no 
 render, no separate reflection G-buffer and no water-depth pass. `ocean.postProcess(scenePass,
 color)` adds the underwater view to the game's output chain.
 
+The surface's fragment shader also reads every wake sampler's inputs: trail foam, bow waves, hull contact
+foam and the sea around hulls. WebGPU binds at most 12 uniform buffers per shader stage by default, and
+three gives each uniform array its own buffer. Past that, pipeline creation fails and the sea stops
+drawing. A system the surface reads therefore packs its arrays into one buffer with `PackedVec4Arrays`
+(`src/game/packedUniforms.ts`).
+
 ## Features
 
 Everything below is what the game uses. Items marked *dropped* were disabled or unused in the
