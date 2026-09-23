@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile, rename, rm } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { runBlender } from '../build/blender';
 import { barrelIds } from '../../src/ships/blueprint';
 import { readLibrary, componentHash, recipeInputs } from './library';
 
@@ -36,11 +36,7 @@ for (const entry of entries) {
       const definition = { schemaVersion: 1, contentHash: hash, mounts: [{ id: 'component', name: part.name, partId: part.id, battery: 'main', weapon: part, position: [0, 0, 0], bearingDeg: 0, rangefinder: false }] };
       const definitionFile = join(stage, 'definition.json');
       await writeFile(definitionFile, JSON.stringify(definition));
-      const blender = process.env.BLENDER_BIN ?? (existsSync('/Applications/Blender.app/Contents/MacOS/Blender') ? '/Applications/Blender.app/Contents/MacOS/Blender' : 'blender');
-      const child = Bun.spawn([blender, '--background', '--factory-startup', '--python-exit-code', '1', '--python', join(root, 'scripts/parts/build.py')], { env: { ...process.env, SHIP_OUTPUT: stage, SHIP_DEFINITION: definitionFile }, stdout: 'pipe', stderr: 'pipe' });
-      const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-      await writeFile(join(stage, 'build.log'), stdout + stderr);
-      if (code) throw new Error(`Blender failed (${code}); see ${stage}/build.log`);
+      await runBlender(join(root, 'scripts/parts/build.py'), { SHIP_OUTPUT: stage, SHIP_DEFINITION: definitionFile }, { log: join(stage, 'build.log') });
       const latest = await readLibrary(root);
       const latestEntry = latest.library.components.find(e => e.partId === entry.partId)!;
       if (await componentHash(root, latest.library, latestEntry, latest.catalog.parts.find(p => p.id === entry.partId)!) !== hash) throw new Error('Inputs changed during build; retry');

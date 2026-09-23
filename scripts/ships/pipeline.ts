@@ -1,5 +1,4 @@
 import { mkdir, readFile, writeFile, copyFile, rename, readdir, rm } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { Matrix4, Quaternion, Vector3 } from 'three';
@@ -7,6 +6,7 @@ import { barrelOffset, barrelHeightOffset, barrelIds, compileShip, type ShipDefi
 import { gunTraverseAtFraction } from '../../src/ships/armament';
 import { fingerprints, geometryDefinition, fileHash, validFile } from './fingerprints';
 import { mountFrame } from '../../src/game/mountFrames';
+import { runBlender as runSharedBlender } from '../build/blender';
 
 const root = resolve(import.meta.dir, '../..');
 const started = performance.now();
@@ -310,41 +310,25 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
 async function runBlender(script: string, extraEnv: Record<string, string> = {}) {
   const begin = performance.now();
   const label = script.split('/').at(-1)!;
-  const executable =
-    process.env.BLENDER_BIN ??
-    (existsSync('/Applications/Blender.app/Contents/MacOS/Blender') ? '/Applications/Blender.app/Contents/MacOS/Blender' : 'blender');
   // Original authoring recipes cannot read the reference cache, raw game model formats or baseline scenes.
   // This audit supplements the full cache-unavailable rebuild; it does not inspect native Blender internals.
-  const expression = `import sys, os, json, runpy, time, importlib.util
+  const prelude = `import os, json, time
 print("SHIP_STARTUP_SECONDS",time.time()-float(os.environ["SHIP_PROCESS_START"]),flush=True)
-reads=set()
-def audit(event,args):
- if event=='socket.connect': raise RuntimeError('Network access is not an authoring dependency')
- if event=='open' and isinstance(args[0],(str,bytes)):
-  p=os.path.realpath(os.fsdecode(args[0]))
-  if p.endswith('.pyc') and '/__pycache__/' in p: p=importlib.util.source_from_cache(p)
-  if '/reference-cache' in p or p.endswith(('.model','.geometry')) or '/bismarck/baseline/' in p:
-   raise RuntimeError('Reference/baseline geometry is forbidden in original authoring: '+p)
-  if p.startswith(${JSON.stringify(root)}): reads.add(os.path.relpath(p,${JSON.stringify(root)}))
-sys.addaudithook(audit)
 profile=None
 if os.environ.get('SHIP_PROFILE')=='1':
  import cProfile
  profile=cProfile.Profile();profile.enable()
 script_start=time.perf_counter()
-runpy.run_path(${JSON.stringify(script)},run_name='__main__')
-if profile:
+`;
+  const epilogue = `if profile:
  profile.disable()
  profile.dump_stats(${JSON.stringify(join(stage, label + '.prof'))})
  texture_seconds=sum(entry.totaltime for entry in profile.getstats() if hasattr(entry.code,'co_name') and entry.code.co_name in {'apply_appearance','apply_decking','apply_paint','consolidate_finish_uvs'})
  with open(${JSON.stringify(join(stage, label + '.profile.json'))},'w') as f: json.dump({'scriptSeconds':time.perf_counter()-script_start,'textureSeconds':texture_seconds},f)
-with open(${JSON.stringify(join(stage, label + '.reads.json'))},'w') as f: json.dump(sorted(reads),f,indent=2)
 `;
-  const pythonArgs = ['--python-expr', expression];
-  const child = Bun.spawn([executable, '--background', '--factory-startup', '--python-exit-code', '1', ...pythonArgs], {
-    cwd: root,
-    env: {
-      ...process.env,
+  const { stdout, version } = await runSharedBlender(
+    script,
+    {
       SHIP_PROCESS_START: String(Date.now() / 1000),
       SHIP_OUTPUT: stage,
       SHIP_DEFINITION: join(
@@ -354,13 +338,9 @@ with open(${JSON.stringify(join(stage, label + '.reads.json'))},'w') as f: json.
       BISMARCK_SKIP_RENDER: '1',
       ...extraEnv,
     },
-    stdout: 'pipe',
-    stderr: 'pipe',
-  });
-  const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-  await writeFile(join(stage, label + '.log'), stdout + stderr);
-  if (code !== 0) throw new Error(`Blender failed (${code}):\n${(stdout + stderr).slice(-6000)}`);
-  timings.blenderVersion = stdout.match(/Blender ([\d.]+)/)?.[1] ?? 'unknown';
+    { cwd: root, audit: { root, readsFile: join(stage, label + '.reads.json') }, prelude, epilogue, log: join(stage, label + '.log') },
+  );
+  timings.blenderVersion = version;
   timings[label] = (performance.now() - begin) / 1000;
   timings[label + '.startup'] = Number(stdout.match(/SHIP_STARTUP_SECONDS ([\d.]+)/)?.[1] ?? 0);
   if (script === join(sourceDir, 'build.py')) {

@@ -2,7 +2,7 @@ import type { CliCommand } from '../command';
 
 export default {
   summary:
-    'mesh.obj|stl|ply|glb --id new-id [--label text] [--at x,y,z] [--scale n|sx,sy,sz] [--up y|z] [--bearing deg] ' +
+    'mesh.obj|stl|ply|glb --id new-id [--label text] [--at x,y,z] [--scale n|sx,sy,sz] [--up y|z|blender] [--bearing deg] ' +
     '[--group name] [--weld m] [--max-parts n] [--max-planes n] [--out batch.json] — import a closed triangle mesh ' +
     'as one compound-solid hull block: welds and checks it, decomposes it into convex parts, and proposes a ' +
     'revision-guarded batch validated by a native dry-run; never saves',
@@ -17,6 +17,7 @@ export default {
     const { compileConstruction } = await import('../compiler');
     const { applyConstructionBatch } = await import('../../../src/ships/constructionCommands');
     const { emit } = await import('../query');
+    const { fromBlender, degrees360 } = await import('../blenderFrame');
 
     const file = ctx.positionals[0];
     if (!file) throw new Error('Provide the mesh file to import (.obj, .stl, .ply or .glb).');
@@ -35,18 +36,21 @@ export default {
     const scale = (scaleValue?.length === 1 ? [scaleValue[0], scaleValue[0], scaleValue[0]] : scaleValue) ?? [1, 1, 1];
     if (scale.some((n) => n === 0)) throw new Error('--scale cannot be zero on any axis.');
     const up = ctx.option('--up') ?? 'y';
-    if (up !== 'y' && up !== 'z') throw new Error('--up expects y (ship convention) or z (most CAD exports).');
+    if (up !== 'y' && up !== 'z' && up !== 'blender')
+      throw new Error('--up expects y (ship convention), z (most CAD exports) or blender (this repository\'s Blender frame: +X bow, +Y port, +Z up).');
+    // Clockwise from the bow, as for equipment; a hull piece's rotationDeg turns the other way.
     const bearing = numbers('--bearing', [1])?.[0] ?? 0;
 
     const bytes = new Uint8Array(await readFile(resolve(file)));
     if (bytes.byteLength > 64 * 1024 * 1024) throw new Error('Mesh files are limited to 64 MB.');
     const parsed = parseMeshFile(basename(file), bytes);
-    // Z-up sources become Y-up by swapping the two axes and reversing the winding the swap flips.
-    const place = (v: readonly number[]): [number, number, number] =>
-      up === 'z' ? [v[0] * scale[0], v[2] * scale[2], v[1] * scale[1]] : [v[0] * scale[0], v[1] * scale[1], v[2] * scale[2]];
-    // A Z-up swap and each negative scale axis each reverse handedness; an odd number of them
-    // turns every triangle inside out, so the winding has to be reversed with them.
-    const mirrored = ((up === 'z' ? 1 : 0) + scale.filter((n) => n < 0).length) % 2 === 1;
+    // Each frame change is a rotation, so it keeps handedness and winding: a Z-up file turns +Z up
+    // to +Y and +Y to −Z (the glTF convention), and the Blender frame uses the shared conversion.
+    const rotate = (v: readonly number[]): [number, number, number] => (up === 'z' ? [v[0], v[2], -v[1]] : up === 'blender' ? fromBlender(v) : [v[0], v[1], v[2]]);
+    const place = (v: readonly number[]): [number, number, number] => rotate([v[0] * scale[0], v[1] * scale[1], v[2] * scale[2]]);
+    // Each negative scale axis reverses handedness; an odd number of them turns every triangle
+    // inside out, so the winding has to be reversed with them.
+    const mirrored = scale.filter((n) => n < 0).length % 2 === 1;
     const group = ctx.option('--group');
     const triangles = parsed.triangles.map((t) => ({
       a: place(t.a),
@@ -71,7 +75,7 @@ export default {
       // was in the file, so a re-import of the same mesh is reproducible.
       size: report.size,
       position: at,
-      rotationDeg: bearing,
+      rotationDeg: degrees360(-bearing),
       solid: report.solid,
     };
     const batch = {

@@ -26,7 +26,6 @@
   "scripts/multiplayer/session-smoke.ts",
   "scripts/multiplayer/test-accounts.ts",
   "scripts/parts/equipment.ts",
-  "scripts/parts/pipeline.ts",
   "scripts/parts/publish.ts",
   "scripts/tests/build-construction-review.ts",
   "scripts/tests/construction-model-native.ts",
