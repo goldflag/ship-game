@@ -349,10 +349,6 @@ export const COMMANDS = {
   skin: { doc: 'Set the default structural skin.', fields: { thicknessMm: number() } },
   finish: { doc: 'Set the ship-wide sheen; omission restores original finishes.', fields: { finish: optional(choice(FINISHES)) } },
   'ship-paint': { doc: 'Set the ship paint; omission restores naval gray.', fields: { paint: optional({ type: 'string', minLength: 1, maxLength: 64 }) } },
-  'roof-paint': {
-    doc: 'Set the paint of roofs, platforms and turret tops that wear the ship paint; omission draws a darker shade of it.',
-    fields: { paint: optional({ type: 'string', minLength: 1, maxLength: 64 }) },
-  },
   wear: { doc: 'Set how weathered the paint looks; visual only. Omission reads as in-commission.', fields: { wear: optional(choice(WEARS)) } },
   primitive: { doc: 'Add or replace a whole hull piece by ID.', fields: { value: PRIMITIVE } },
   'primitive-patch': { doc: 'Merge fields into an existing hull piece.', fields: { id: id(), changes: PRIMITIVE_PATCH } },

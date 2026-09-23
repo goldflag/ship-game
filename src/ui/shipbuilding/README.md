@@ -84,7 +84,7 @@ All placements below are in `Shipbuilder.tsx` and `Shipbuilder.css`.
 - **Palette dock** (`.sb-dock`, the full-width bottom bar):
   1. Tab row (`.sb-dock-tabs`): the seven tabs, with the hotkey legend (`.sb-keys`) at its right end.
   2. Shelf row (`.sb-shelves`): Hull type chips, fitting shelves plus nation filter, or the Paint
-     selectors (Ship paint, Roofs, Surface finish, Wear).
+     selectors (Ship paint, Surface finish, Wear).
   3. Card row (`.sb-hotbar`): every card of the layer, first nine keyed **1–9**, trailing `…`
      (**0**) opening the drawer (`.sb-drawer`) above the dock. Hull and fitting drawers have search;
      a fitting search reaches all three fitting tabs.
@@ -150,12 +150,9 @@ Layer notes:
   [construction authoring](../../../docs/construction-authoring.md#parents).
 - **Internals.** Entering it clears external selections. Deck, Bulkhead and Split add
   boundaries; Merge removes one; Module places a package on the first floor inside the hull.
-- **Paint.** Keeps a face selection. **Ship paint** is `construction.paint`; **Roofs** is
-  `construction.roofPaint` (**Darker shade** omits it); **Surface finish** is `construction.finish`;
-  **Wear** is `construction.wear`. Upward faces, fitting roofs and turret tops that wear the ship paint
-  take the roof colour in the editor, port and battle; other paints keep their colour. Wear is drawn
-  only by the game's renderer, so the editor shows clean paint. Changing the ship paint carries a
-  roof paint that matched it. The last paint applied to a fitting becomes the session default.
+- **Paint.** Keeps a face selection. **Ship paint** is `construction.paint`; **Surface finish** is
+  `construction.finish`; **Wear** is `construction.wear`. Wear is drawn only by the game's renderer,
+  so the editor shows clean paint. The last paint applied to a fitting becomes the session default.
 - **Armor.** A paint bucket with no selection: the active card is laid on clicked or swept faces.
   The Armor card carries the typed millimetre value; thicknesses in use follow as cards; Opening
   removes skin. Turret armor is read-only, drawn from the compiler's gunhouse mesh

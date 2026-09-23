@@ -7,7 +7,6 @@ import type { ConstructionCatalog } from '../../ships/blueprint';
 import { createStarterSource } from '../../ships/constructionStarter';
 import { EquipmentPreview } from './equipmentPreview';
 import { componentMaterial } from '../../ships/componentMaterials';
-import { roofShade } from '../../ships/constructionPaints';
 
 const catalog = catalogJson as ConstructionCatalog;
 function fixture() {
@@ -59,27 +58,6 @@ test('ship finish refreshes every fitting and restores original materials withou
     delete source.construction.finish; preview.update(source, catalog);
     expect(material('funnel')).toBe(original);
     expect(material('copy')).toBe(blue);
-    expect(loader).toHaveBeenCalledTimes(1);
-  } finally { preview.dispose(); loader.mockRestore(); }
-});
-
-test('authored roofs take the ship roof colour, or their own paint shade, and follow a roof paint change', async () => {
-  const { source, model } = fixture();
-  const roof = new THREE.MeshStandardMaterial(); roof.name = 'roof'; roof.userData = componentMaterial('roof').userData;
-  const mesh = model.children[0] as THREE.Mesh; mesh.material = [mesh.material as THREE.Material, roof];
-  source.construction.paint = 'light-gray';
-  source.construction.equipment.push({ ...source.construction.equipment[0], id: 'copy', paint: 'red-oxide' });
-  const loader = spyOn(models, 'loadShipModel').mockResolvedValue({ scene: model } as GLTF);
-  const preview = new EquipmentPreview(() => preview.update(source, catalog), () => {});
-  const colors = (id: string) => ((preview.group.getObjectByName(id)!.children[0].children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial[])
-    .map(material => '#' + material.color.getHexString());
-  try {
-    preview.update(source, catalog); await settled();
-    expect(colors('funnel')).toEqual(['#b5bfbc', roofShade('#b5bfbc')]);
-    expect(colors('copy')).toEqual(['#80483c', roofShade('#80483c')]);
-    source.construction.roofPaint = 'deck-gray'; preview.update(source, catalog);
-    expect(colors('funnel')).toEqual(['#b5bfbc', '#64716f']);
-    expect(colors('copy')).toEqual(['#80483c', roofShade('#80483c')]);
     expect(loader).toHaveBeenCalledTimes(1);
   } finally { preview.dispose(); loader.mockRestore(); }
 });

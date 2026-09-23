@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import * as THREE from 'three';
 import { paintConstructionFitting } from './constructionFittingPaint';
 import { componentMaterial } from '../ships/componentMaterials';
-import { constructionFittingPaint, constructionFittingRoofColor, constructionPaintColor, roofShade } from '../ships/constructionPaints';
+import { constructionFittingPaint } from '../ships/constructionPaints';
 import { createConstructionPathModel } from './constructionPathModel';
 import catalog from '../../public/models/components/catalog.json';
 import type { ConstructionEquipmentPart } from '../ships/blueprint';
@@ -124,27 +124,4 @@ test('fittings wear their own paint, then the ship paint; internal machinery kee
   expect(constructionFittingPaint(ship, {}, { placement: 'deck' })).toBe('sea-blue');
   expect(constructionFittingPaint(ship, {}, { placement: 'internal' })).toBeUndefined();
   expect(constructionFittingPaint(legacy, {}, { placement: 'deck' })).toBeUndefined();
-});
-
-test('authored roofs take the roof colour under a coating and keep their finish; walls take the coating', () => {
-  const model = new THREE.Group(), geometry = new THREE.BoxGeometry();
-  const materials = [...(['naval', 'roof', 'canvas'] as const).map(role => {
-    const spec = componentMaterial(role);
-    const material = new THREE.MeshStandardMaterial({ color: new THREE.Color().setRGB(...spec.color as [number, number, number]), roughness: spec.roughness });
-    material.name = role; material.userData = spec.userData; return material;
-  }), Object.assign(new THREE.MeshStandardMaterial(), { name: 'roof' })];
-  const mesh = new THREE.Mesh(geometry, materials); model.add(mesh);
-  const owned = paintConstructionFitting(model.clone(true), 'light-gray', true, undefined, undefined, '#445566');
-  const coated = (owned as THREE.MeshStandardMaterial[]).map(m => '#' + m.color.getHexString());
-  expect(coated).toEqual(['#b5bfbc', '#445566', '#445566']);
-  expect((owned[1] as THREE.MeshStandardMaterial).roughness).toBe(componentMaterial('roof').roughness);
-  // An uncoated fitting keeps its authored roofs whatever roof colour is offered.
-  expect(paintConstructionFitting(model, undefined, true, undefined, undefined, '#445566')).toEqual([]);
-  const ship = { construction: { paint: 'light-gray' } }, roofed = { construction: { paint: 'light-gray', roofPaint: 'deck-gray' } };
-  expect(constructionFittingRoofColor(ship, 'light-gray')).toBe(roofShade('#b5bfbc'));
-  expect(constructionFittingRoofColor(roofed, 'light-gray')).toBe(constructionPaintColor('deck-gray'));
-  expect(constructionFittingRoofColor(roofed, 'red-oxide')).toBe(roofShade(constructionPaintColor('red-oxide')));
-  expect(constructionFittingRoofColor({ construction: {} }, 'naval-gray')).toBe(roofShade(constructionPaintColor('naval-gray')));
-  expect(constructionFittingRoofColor(roofed, undefined)).toBeUndefined();
-  owned.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); geometry.dispose();
 });

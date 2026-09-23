@@ -1,11 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three';
 import catalog from '../../public/models/components/catalog.json';
-import type { ConstructionEquipmentPart, ConstructionFittingDefinition, ConstructionSurface, Vec3 } from '../ships/blueprint';
-import { componentMaterial } from '../ships/componentMaterials';
-import { encodeFittingMesh, type FittingMeshTriangle } from '../ships/constructionFittingMesh';
-import { createConstructionFittingModel, fittingModelTriangles, type FittingRoof } from './constructionFittingModel';
-import { paintConstructionFitting } from './constructionFittingPaint';
+import type { ConstructionEquipmentPart, ConstructionSurface, Vec3 } from '../ships/blueprint';
 import { createConstructionWallModel } from './constructionWallModel';
 import { constructionTubeGeometry } from './constructionTubeGeometry';
 import { disposeConstructionModel } from './constructionModel';
@@ -64,45 +60,4 @@ test('ladder attachment rings seat flush on sloping walls', async () => {
     expect(position.getZ(i)).toBeCloseTo(position.getY(i) * .2, 6);
   }
   disposeConstructionModel(model);
-});
-
-test('custom fittings draw roofs that follow the installation or wear the ship paint as their own coats', () => {
-  const quad = (soup: FittingMeshTriangle[], group: string | undefined, a: Vec3, b: Vec3, c: Vec3, d: Vec3) => soup.push({ a, b, c, group }, { a, b: c, c: d, group });
-  // A 10 cm slab exported with its top wound downward, a deck-gray roof and a bare roof that follows the installation.
-  const soup: FittingMeshTriangle[] = [];
-  quad(soup, 'slab', [0, 3.1, 0], [2, 3.1, 0], [2, 3.1, 2], [0, 3.1, 2]);
-  quad(soup, 'slab', [0, 3, 0], [2, 3, 0], [2, 3, 2], [0, 3, 2]);
-  quad(soup, 'slab', [0, 3, 0], [0, 3.1, 0], [2, 3.1, 0], [2, 3, 0]);
-  quad(soup, 'deck', [5, 3.1, 0], [5, 3.1, 2], [7, 3.1, 2], [7, 3.1, 0]);
-  quad(soup, undefined, [10, 4, 0], [10, 4, 2], [12, 4, 2], [12, 4, 0]);
-  const box = (id: string, x: number, paint?: string) => ({ id, kind: 'box' as const, size: [2, 1, 2] as Vec3, position: [x, .5, 0] as Vec3, rotationDeg: 0, ...(paint ? { paint } : {}) });
-  const def: ConstructionFittingDefinition = { id: 'fit', name: 'Fit', version: 2, attach: 'deck', massKg: 100,
-    solids: [box('house', 0), box('painted', 4, 'light-gray'), box('accent', 8, 'dark-gray')],
-    tubes: [{ id: 'rail', points: [[0, 2, 0], [4, 2, 0]], diameterM: .2 }],
-    meshes: [encodeFittingMesh('shell', soup, { slab: 'light-gray', deck: 'deck-gray' })] };
-  const drawn = (roof?: FittingRoof) => {
-    const model = createConstructionFittingModel(def, { roof });
-    const meshes = Object.fromEntries(model.children.map(node => [node.name, node as THREE.Mesh]));
-    return { model, meshes, triangles: Object.fromEntries(Object.entries(meshes).map(([name, mesh]) => [name, mesh.geometry.index!.count / 3])) };
-  };
-  const hex = (mesh: THREE.Mesh) => '#' + (mesh.material as THREE.MeshStandardMaterial).color.getHexString();
-  const plain = drawn(), roofed = drawn({ shipPaint: 'light-gray', color: '#123456' });
-  expect(fittingModelTriangles(roofed.model)).toBe(fittingModelTriangles(plain.model));
-  // Bare roofs split out either way: the box top and the bare mesh roof; tubes have none.
-  expect(plain.triangles['fit.roof']).toBe(4);
-  const bare = plain.meshes['fit.roof'].material as THREE.MeshStandardMaterial;
-  expect(bare.userData).toEqual(componentMaterial('roof').userData);
-  expect(bare.color.equals(new THREE.Color().setRGB(...componentMaterial('roof').color as [number, number, number]))).toBe(true);
-  // The ship-paint box top and the downward-wound slab top wear the roof colour; the slab's underside does not.
-  expect(plain.triangles['fit.light-gray.roof']).toBeUndefined();
-  expect(roofed.triangles['fit.light-gray.roof']).toBe(4);
-  expect(roofed.triangles['fit.light-gray']).toBe(plain.triangles['fit.light-gray'] - 4);
-  expect(hex(roofed.meshes['fit.light-gray.roof'])).toBe('#123456');
-  expect(roofed.triangles['fit.deck-gray']).toBe(2);
-  expect(roofed.triangles['fit.dark-gray']).toBe(12);
-  expect(Object.keys(roofed.triangles).sort()).toEqual(['fit', 'fit.dark-gray', 'fit.deck-gray', 'fit.light-gray', 'fit.light-gray.roof', 'fit.roof']);
-  paintConstructionFitting(roofed.model, 'sea-blue', false, undefined, undefined, '#654321');
-  expect(hex(roofed.meshes['fit.roof'])).toBe('#654321');
-  expect(hex(roofed.meshes.fit)).toBe('#405d70');
-  disposeConstructionModel(plain.model); disposeConstructionModel(roofed.model);
 });

@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
-import { PLATE, plateTexels, setShipSurfaceDetail, STREAK, streakTexels, TEAK, teakTexels } from './ShipSurfaceDetail';
+import { finishTexels, isPlatedPaint, PLATE, plateTexels, setShipSurfaceDetail, STREAK, streakTexels, TEAK, teakTexels } from './ShipSurfaceDetail';
 
 const channel = (pixels: Uint8Array, c: number) => pixels.filter((_, i) => i % 4 === c);
 const mean = (values: ArrayLike<number>) => Array.from(values).reduce((a, b) => a + b, 0) / values.length;
@@ -16,6 +16,31 @@ test('plating relief averages out, so distant paint keeps its authored shading',
   const row = (y: number) => mean(Array.from({ length: size }, (_, x) => Math.abs(pixels[(y * size + x) * 4 + 1] - 127.5)));
   const seamRow = Math.round(PLATE.strake / (PLATE.tile / size)), midRow = seamRow + Math.round(seamRow / 2);
   expect(Math.max(row(seamRow - 1), row(seamRow))).toBeGreaterThan(4 * row(midRow));
+});
+
+test('construction plating shares the premade tile seams, draws a line along each and a shade per plate, and tilts nothing far off', () => {
+  const size = PLATE.size, finish = finishTexels(size), plate = plateTexels(size);
+  expect(Math.abs(mean(channel(finish, 0)) - 127.5)).toBeLessThan(1);
+  expect(Math.abs(mean(channel(finish, 1)) - 127.5)).toBeLessThan(1);
+  expect(Math.abs(mean(channel(finish, 3)) - 127.5)).toBeLessThan(3);
+  const perStrake = Math.round(PLATE.strake / (PLATE.tile / size)), at = (pixels: Uint8Array, x: number, y: number, c: number) => pixels[(y * size + x) * 4 + c];
+  for (let strake = 0; strake < PLATE.tile / PLATE.strake; strake++) {
+    const seamRow = strake * perStrake, middle = seamRow + perStrake / 2;
+    // A strake seam is a line of grime along its whole length; mid-strake paint carries none except at the butts.
+    const line = mean(Array.from({ length: size }, (_, x) => at(finish, x, seamRow, 2)));
+    expect(line).toBeGreaterThan(80);
+    const butts = Array.from({ length: size }, (_, x) => x).filter(x => at(finish, x, middle, 2) > 60);
+    expect(butts.length).toBeGreaterThan(0);
+    expect(butts.length).toBeLessThan(size / 50);
+    // Each butt lies where the premade tile's weld groove flips its gradient along the strake.
+    for (const x of butts) {
+      const groove = [-3, -2, -1, 0, 1, 2, 3].map(d => Math.abs(at(plate, (x + d + size) % size, middle, 0) - 127.5));
+      expect(Math.max(...groove)).toBeGreaterThan(20);
+    }
+    // Plates either side of a butt take their own shade.
+    const shade = (x: number) => mean(Array.from({ length: 32 }, (_, k) => at(finish, (x + k) % size, middle - 20 + k, 3)));
+    expect(Math.abs(shade(butts[0] + 40) - shade((butts[0] - 72 + size) % size))).toBeGreaterThan(2);
+  }
 });
 
 test('runoff streaks hang from the edge, grow with wear and end before the tile foot; mottling averages out', () => {
@@ -71,6 +96,16 @@ test('ship palette classifies plated paint per vertex and teak per material, and
   expect(shared.normalNode).toBeNull(); expect(shared.colorNode).toBeNull(); expect(teak.colorNode).toBeNull(); expect(teak.normalNode).toBeNull();
   setShipSurfaceDetail(root, true);
   expect(shared.normalNode).not.toBeNull(); expect(shared.colorNode).not.toBeNull(); expect(teak.colorNode).not.toBeNull();
+});
+
+test('player-built hulls, blocks and painted design-local fittings are plate; timber and component finishes keep their class', () => {
+  const named = (name: string, userData: Record<string, unknown> = {}) => { const m = new THREE.MeshStandardMaterial(); m.name = name; m.userData = userData; return m; };
+  expect(isPlatedPaint(named('construction.light-gray'))).toBe(true);
+  expect(isPlatedPaint(named('custom-fitting.light-gray'))).toBe(true);
+  expect(isPlatedPaint(named('custom-fitting.teak-natural'))).toBe(false);
+  expect(isPlatedPaint(named('custom-fitting', { componentMaterialRole: 'canvas' }))).toBe(false);
+  expect(isPlatedPaint(named('custom-fitting', { componentMaterialRole: 'naval' }))).toBe(true);
+  expect(isPlatedPaint(named('custom-fittings-panel'))).toBe(false);
 });
 
 test('aircraft palettes stay without surface detail', () => {

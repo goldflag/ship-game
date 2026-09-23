@@ -15,6 +15,22 @@ async function timeline(stage: EffectsStage, shoot: Shoot, times: number[], pref
   }
 }
 
+/** The first funnel of ship 0: its mouth, the drift direction of its trail and its released samples. */
+function plume(stage: EffectsStage) {
+  type Sample = { position: { x: number; y: number; z: number }; width: number; age: number; along: number };
+  type Emitter = { trail: Sample[]; first: number; size: number; along: number };
+  const exhaust = (stage.game as unknown as { funnelSmoke: { emitters: Map<unknown, { funnels: Emitter[] }>;
+    root: { children: { layers: { set(layer: number): void } }[] }; diagnostics(): { outlets: { position: [number, number, number] }[] } } }).funnelSmoke;
+  const mouth = exhaust.diagnostics().outlets[0].position, emitter = [...exhaust.emitters.values()][0].funnels[0];
+  const oldest = emitter.trail[emitter.first].position;
+  /** The youngest sample at least `age` seconds old. */
+  const sample = (age: number) => {
+    for (let i = emitter.size - 1; i >= 0; i--) { const p = emitter.trail[(emitter.first + i) % emitter.trail.length]; if (p.age >= age) return p; }
+    return emitter.trail[emitter.first];
+  };
+  return { exhaust, mouth, sample, downwind: Math.atan2(oldest.z - mouth[2], oldest.x - mouth[0]) };
+}
+
 export const scenes: Record<string, Scene> = {
   /** Main-battery broadside from the firing ship's disengaged quarter. */
   async muzzle(stage, shoot) {
@@ -432,6 +448,46 @@ export const scenes: Record<string, Scene> = {
       stage.camera({ ship: 0, offset: [-260, 60, 260], look: [0, 30, 60], fov: 55 }); await shoot(`ribbon only, ${speed ? 'half ahead' : 'stopped'}`);
       exhaust.root.children[1].layers.set(0); await shoot(`with billows, ${speed ? 'half ahead' : 'stopped'}`);
     }
+  },
+  /** The camera inside and beside the plume, looking back at the funnel, as the port orbit does when
+   * the wind carries the exhaust over it. No sheets or streaks may cross the view. */
+  async 'b-inside'(stage, shoot) {
+    for (const speed of [0, .5]) {
+      stage.reset(); stage.weather({ timeHours: 15, windSpeed: 7, windDirection: 60 });
+      if (speed) stage.underway(0, speed);
+      stage.advance(60);
+      const { mouth, sample } = plume(stage);
+      for (const [age, lift, side] of [[8, 0, 0], [8, -.8, .6], [15, 0, 0], [15, 1.2, 0], [15, -1, 1.4], [30, 0, 0]] as const) {
+        const p = sample(age), dx = p.position.x - mouth[0], dz = p.position.z - mouth[2], run = Math.hypot(dx, dz) || 1;
+        // Across the plume (horizontal, square to its drift) and up, in plume widths.
+        stage.camera({ position: [p.position.x - dz / run * side * p.width, p.position.y + lift * p.width, p.position.z + dx / run * side * p.width],
+          target: [mouth[0], mouth[1] + 4, mouth[2]], fov: 55 });
+        await shoot(`${speed ? 'half ahead' : 'stopped'}, ${age} s downwind, ${lift} up, ${side} across (widths)`);
+      }
+    }
+  },
+  /** Downwind of a stopped ship, looking back at the funnel while the plume passes over, beside and under
+   * the camera: the strip must not twist into streaks. Then ten minutes of smoke at the berth, whose
+   * turbulence must not have squeezed into stripes. */
+  async 'b-downwind'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15, windSpeed: 7, windDirection: 60 });
+    stage.advance(60);
+    const { mouth, downwind, exhaust } = plume(stage);
+    const at = (bearing: number, range: number, height: number) => {
+      const a = downwind + bearing * Math.PI / 180;
+      stage.camera({ position: [mouth[0] + Math.cos(a) * range, height, mouth[2] + Math.sin(a) * range], target: [mouth[0], mouth[1] - 6, mouth[2]], fov: 55 });
+    };
+    for (const [bearing, range, height] of [[0, 120, 45], [10, 180, 40], [15, 120, 45], [30, 120, 60], [60, 150, 50], [-20, 150, 70], [-8, 60, 55], [5, 150, 25], [-12, 100, 30], [20, 70, 35]] as const) {
+      at(bearing, range, height); await shoot(`${bearing}° off downwind, ${range} m, ${height} m up`);
+    }
+    exhaust.root.children[1].layers.set(31);
+    at(10, 180, 40); await shoot('ribbon only, 10°');
+    at(30, 120, 60); await shoot('ribbon only, 30°');
+    exhaust.root.children[1].layers.set(0);
+    // The release distance a berth's worth of smoking would have accumulated.
+    for (const state of exhaust.emitters.values()) for (const e of state.funnels) { e.along += 2400; e.trail.forEach(p => { p.along += 2400; }); }
+    stage.camera({ ship: 0, offset: [-260, 60, 260], look: [0, 30, 60], fov: 55 }); await shoot('after 10 min at the berth');
+    at(30, 120, 60); await shoot('after 10 min, 30°');
   },
   /** Looking toward the sun through the plume: backlit edges should glow, the core stay dark. */
   async 'b-sun'(stage, shoot) {
