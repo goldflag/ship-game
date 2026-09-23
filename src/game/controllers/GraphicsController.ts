@@ -1,11 +1,12 @@
 import * as THREE from 'three/webgpu';
-import type { rtt } from 'three/tsl';
+import { mix, step, vec4, type pass } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { smaa } from 'three/addons/tsl/display/SMAANode.js';
 import type { SkySystem } from '../../../vendor/threejs-sky-pro/build/index.js';
 import type { OceanApi } from '../ocean/contracts';
 import type { AircraftView } from '../AircraftView';
 import type { CombatEffects } from '../CombatEffects';
+import type { DisplayTransform } from '../DisplayTransform';
 import {
   aircraftDetailScale,
   cloudTier,
@@ -17,6 +18,8 @@ import {
   type GraphicsSettings,
 } from '../graphicsSettings';
 import type { ShipFunnelSmoke } from '../ShipFunnelSmoke';
+import type { ShipOcclusion } from '../ShipOcclusion';
+import { MOTION_OUTPUT, TemporalAntialiasing } from '../TemporalAntialiasing';
 
 /** What applying graphics settings reads from and writes to `Game`, each member at the moment
  * of use. The settings, frame pacing, detail budget and display pipeline stay fields of `Game`:
@@ -27,12 +30,17 @@ export interface GraphicsContext {
   detailBudgetPx: number;
   pipeline: THREE.RenderPipeline | undefined;
   readonly renderer: THREE.WebGPURenderer;
-  /** The composited frame the display pass smooths; absent until start-up has built it. */
-  readonly finalFrame?: ReturnType<typeof rtt>;
+  /** Builds the composited frame the display pass smooths; absent until start-up has built it. */
+  readonly display?: DisplayTransform;
+  /** The scene pass behind the display frame; temporal AA adds its motion target and depth. */
+  readonly scenePass?: ReturnType<typeof pass>;
+  readonly camera: THREE.PerspectiveCamera;
   readonly ocean?: Pick<OceanApi, 'reflections'>;
   /** The scene's sun, whose shadow settings the near and wide maps follow; absent until start-up creates it. */
   readonly sunLight?: THREE.DirectionalLight;
   readonly sky?: SkySystem;
+  /** Ship-on-ship ambient occlusion; absent until start-up has created it. */
+  readonly occlusion?: Pick<ShipOcclusion, 'setLevel'>;
   readonly aircraftView: Pick<AircraftView, 'detailScale'>;
   readonly effects: Pick<CombatEffects, 'setDensity'>;
   readonly funnelSmoke: Pick<ShipFunnelSmoke, 'density'>;
@@ -48,6 +56,8 @@ export class GraphicsController {
   private cloudTask: Promise<void> = Promise.resolve();
   /** Once shadow shaders exist they stay compiled; Off only zeroes and pauses them. */
   private shadowsBuilt = false;
+  /** Built on first use and kept: its per-object history outlives a switch away and back. */
+  private temporal?: TemporalAntialiasing;
 
   constructor(private readonly context: GraphicsContext) {}
 
@@ -60,10 +70,17 @@ export class GraphicsController {
     context.frameIntervalMs = frameIntervalMs(settings.frameLimit);
     this.applyDetail();
     if (previous.renderScale !== settings.renderScale) context.requestResize();
-    if (previous.antialiasing !== settings.antialiasing && context.finalFrame) this.buildPipeline();
+    if ((previous.antialiasing !== settings.antialiasing || previous.bloom !== settings.bloom) && context.display) this.buildPipeline();
     if (previous.reflections !== settings.reflections) this.applyReflections();
     if (previous.shadows !== settings.shadows) this.applyShadows();
     if (previous.clouds !== settings.clouds) this.applyClouds();
+    if (previous.ambientOcclusion !== settings.ambientOcclusion) this.applyAmbientOcclusion();
+  }
+
+  /** Off removes the occlusion node from every ship material and skips its passes, so the
+   * frame is exactly the one without it; turning it on recompiles the ship materials once. */
+  applyAmbientOcclusion(): void {
+    this.context.occlusion?.setLevel(this.context.settings.ambientOcclusion);
   }
 
   applyDetail(): void {
@@ -76,16 +93,36 @@ export class GraphicsController {
     context.funnelSmoke.density = density;
   }
 
-  /** The display pass: the composited frame with the selected edge smoothing. */
+  /** The display pass: the composited frame, with or without bloom, and the selected edge smoothing. */
   buildPipeline(): void {
     const context = this.context,
-      { antialiasing } = context.settings;
+      { antialiasing, bloom } = context.settings;
     context.pipeline?.dispose();
-    const frame = context.finalFrame!;
-    const output = antialiasing === 'smaa' ? smaa(frame) : antialiasing === 'fxaa' ? fxaa(frame) : frame;
+    const frame = context.display!.build(bloom === 'on');
+    const scenePass = context.scenePass!;
+    let output;
+    if (antialiasing === 'taa') {
+      const temporal = (this.temporal ??= new TemporalAntialiasing(context.camera));
+      temporal.reset();
+      scenePass.setMRT(temporal.mrt);
+      const resolved = temporal.resolve(frame, scenePass.getTextureNode('depth'), scenePass.getTextureNode(MOTION_OUTPUT));
+      // The resolve keeps depth in alpha for the next frame, negative where a pixel took no
+      // history (the sea, tracers): those keep FXAA's spatial smoothing. The canvas is opaque.
+      output = vec4(mix(resolved.rgb, (fxaa(resolved) as unknown as THREE.Node<'vec4'>).rgb, step(resolved.a, 0)), 1);
+    } else {
+      this.temporal?.release();
+      removeSceneTarget(scenePass, MOTION_OUTPUT);
+      output = antialiasing === 'smaa' ? smaa(frame) : antialiasing === 'fxaa' ? fxaa(frame) : frame;
+    }
     const pipeline = (context.pipeline = new THREE.RenderPipeline(context.renderer, output));
     pipeline.outputColorTransform = false;
   }
+
+  /** Temporal AA takes no history while a layer without scene depth is composited. */
+  suspendTemporal(suspended: boolean): void { if (this.temporal) this.temporal.suspended = suspended; }
+
+  /** Frees what the display pass owns beyond the pipeline itself. */
+  dispose(): void { this.temporal?.release(); }
 
   /** Screen-space reflections switch live; the sky reflection stays on. */
   applyReflections(): void {
@@ -135,4 +172,16 @@ export class GraphicsController {
         if (!context.disposed) context.reportError(error instanceof Error ? error.message : String(error));
       });
   }
+}
+
+/** Drop an extra scene target, so that materials again write the colour target alone. */
+function removeSceneTarget(scenePass: ReturnType<typeof pass>, name: string): void {
+  scenePass.setMRT(null);
+  const internals = scenePass as unknown as { _textures: Record<string, THREE.Texture>; _textureNodes: Record<string, unknown>; _previousTextures: Record<string, THREE.Texture> };
+  const texture = internals._textures[name];
+  if (!texture) return;
+  const targets = scenePass.renderTarget.textures;
+  targets.splice(targets.indexOf(texture), 1);
+  delete internals._textures[name]; delete internals._textureNodes[name];
+  texture.dispose();
 }

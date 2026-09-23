@@ -33,7 +33,7 @@ Cost notes come from `docs/custom-battle-performance.md` and the subsystem code.
 | --- | --- | --- | --- | --- |
 | Render scale | 50–100% in 5% steps, showing the resulting framebuffer size | `Game.resize()` already threads pixel ratio into the renderer, the ocean, Sky Pro and overlays | Largest single lever: water shading, cloud march and FXAA are per-pixel | Live (debounced while dragging) |
 | Frame rate limit | Display refresh, 120, 60, 30 | `scheduleFrame()` skips `requestAnimationFrame` callbacks until the interval elapses; `frame()` already tolerates any `dt` up to 100 ms | Power and thermals rather than quality | Live |
-| Anti-aliasing | Off, FXAA (current), SMAA | `RenderPipeline(renderer, fxaa(finalFrame))` in `Game.initialize()`; three r185 ships `SMAANode` and `TRAANode` beside `FXAANode` | FXAA is one full-screen pass; SMAA adds two more. TRAA conflicts with Sky Pro's temporal cloud reconstruction and is not proposed | Live: rebuild the final pipeline node and run one warmup frame |
+| Anti-aliasing | Off, FXAA (current), SMAA, TAA (opt-in) | `GraphicsController.buildPipeline()` over the composited frame; TAA is `src/game/TemporalAntialiasing.ts`, a TRAA derivative that keeps the scene's 4× MSAA | FXAA is one full-screen pass; SMAA adds two more. TAA adds a motion target to the scene pass, one resolve pass and FXAA on pixels without history (the sea, tracers, disocclusions). Sky Pro's cloud reconstruction showed no visible conflict | Live: rebuild the final pipeline node; TAA also adds or removes the scene pass's motion target |
 | Upscaling | Off, FSR 1.0 | `FSR1Node` in three r185 could sharpen a reduced render scale to native size | Only worth it once render scale is live | Later |
 
 ### Sea and sky

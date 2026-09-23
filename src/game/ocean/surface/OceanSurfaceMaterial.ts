@@ -2,6 +2,7 @@ import { DepthTexture, DoubleSide, NoBlending, NodeMaterial, type Color, type No
 import { Fn, If, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, fwidth, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
   pmremTexture, positionView, positionWorld, reference, reflect, refract, select, sin, smoothstep, texture, uniform, varying, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
 import { EffectDepthTextureNode } from '../../EffectVolume';
+import { writeSceneTargets } from '../../TemporalAntialiasing';
 import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../screen/reflections';
 import { FOAM_TEXELS, foamTexture } from './foamTexture';
@@ -210,6 +211,10 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     this.depthWrite = true;
     this.side = DoubleSide;
     this.forceSinglePass = true;
+    // Temporal AA takes no history on the sea: its waves move through the world, so reprojecting
+    // them as static would smear their detail. Extra scene targets get no colour from it.
+    this.userData.temporalResponse = 1;
+    writeSceneTargets(this);
     this.bind(bindings);
   }
 
