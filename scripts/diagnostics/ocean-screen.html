@@ -8,8 +8,7 @@
 // Development-only fixed scenes for the ocean's screen-space passes (src/game/ocean/screen/):
 // box ships on a gently waving analytic sea with its own renderer and output chain, as the game
 // builds them (reversed float depth, MSAA scene pass, viewport copies of the opaque scene).
-// `scripts/browser/ocean-screen.ts` drives it. ?webgl for the fallback backend, ?calm for a mirror sea,
-// ?steps=16|32 for the tier's reflection budget, ?samples=0 for a single-sampled scene pass.
+// `scripts/browser/ocean-screen.ts` drives it. ?calm for a mirror sea, ?steps=16|32 for the tier's reflection budget.
 import * as THREE from 'three/webgpu';
 import { Fn, cameraPosition, cameraViewMatrix, cos, float, frontFacing, fwidth, max, mix, modelWorldMatrix, pass, positionLocal, positionView,
   positionWorld, positionWorldDirection, reflect, renderOutput, sin, smoothstep, uniform, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
@@ -19,7 +18,6 @@ import { screenSpaceReflection } from '/src/game/ocean/screen/reflections.ts';
 import { createUnderwaterPass, nearPlaneMayBeSubmerged } from '/src/game/ocean/screen/underwater.ts';
 
 const params = new URLSearchParams(location.search);
-if (params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter = async () => null;
 const output = document.querySelector('output'), errors = [];
 addEventListener('error', event => errors.push(event.message));
 addEventListener('unhandledrejection', event => errors.push(String(event.reason?.message ?? event.reason)));
@@ -29,6 +27,8 @@ const renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'h
 renderer.setPixelRatio(1); renderer.setSize(WIDTH, HEIGHT);
 document.querySelector('#scene').appendChild(renderer.domElement);
 await renderer.init();
+// The game requires WebGPU; never review a silent fallback to WebGL.
+if (!renderer.backend.isWebGPUBackend) throw new Error('Ocean screen review needs WebGPU.');
 configureRenderOrder(renderer);
 const camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, .5, 60000);
 const scene = new THREE.Scene();
@@ -139,9 +139,7 @@ water.forceSinglePass = true;
 const seaMesh = new THREE.Mesh(seaGeometry(), water); seaMesh.frustumCulled = false;
 scene.add(seaMesh);
 
-// ?samples=0 renders the scene pass single-sampled. three r185's WebGL backend gives a multisampled pass a
-// DEPTH_COMPONENT24 renderbuffer even for float depth, so its depth resolve and depth copies fail there.
-const scenePass = pass(scene, camera, params.has('samples') ? { samples: Number(params.get('samples')) } : {});
+const scenePass = pass(scene, camera);
 const cameraNearSurface = uniform(false);
 const underwater = createUnderwaterPass({ heightAt, colors, sun: oceanSun, cameraNearSurface });
 const composed = underwater(scenePass, scenePass.getTextureNode('output'));
@@ -188,7 +186,7 @@ function show(setup) {
 }
 
 /** Render on a fresh renderer frame (PassNode renders the scene once per frame) and read back in the same
- * task (WebGL may discard the canvas once the task ends). */
+ * task, before the canvas texture is presented. */
 async function capture() {
   await new Promise(requestAnimationFrame);
   pipeline.render();
@@ -231,10 +229,7 @@ async function reflectionDifference(threshold = 6) {
  * either way and of the CPU time spent submitting a frame; when submission is well below the frame time, the frame
  * time is the GPU's. */
 async function measure(toggle, batches = 40, perBatch = 8) {
-  const on = [], off = [], submit = [], device = renderer.backend.device, gl = renderer.backend.gl, pixel = new Uint8Array(4);
-  // WebGL's asynchronous readback polls a fence (timing the polling) and Chrome's finish() returns early;
-  // a one-pixel synchronous read of the presented frame waits for the GPU.
-  const settle = async () => device ? device.queue.onSubmittedWorkDone() : gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+  const on = [], off = [], submit = [], queue = renderer.backend.device.queue;
   try {
     for (let batch = -4; batch < batches * 2; batch++) {
       toggle.value = batch % 2 === 0;
@@ -242,7 +237,7 @@ async function measure(toggle, batches = 40, perBatch = 8) {
       const start = performance.now();
       for (let i = 0; i < perBatch; i++) { renderer._nodes.nodeFrame.update(); pipeline.render(); }
       const submitted = performance.now();
-      await settle();
+      await queue.onSubmittedWorkDone();
       if (batch < 0) continue;
       (toggle.value ? on : off).push((performance.now() - start) / perBatch); submit.push((submitted - start) / perBatch);
     }
@@ -253,7 +248,7 @@ async function measure(toggle, batches = 40, perBatch = 8) {
 
 window.oceanScreen = {
   renderer, scene, camera, seaMesh, reflections, cameraNearSurface, debugView, sea, errors, scenes: Object.keys(scenes),
-  backend: renderer.backend.isWebGPUBackend ? 'webgpu' : 'webgl', reversedDepth: renderer.reversedDepthBuffer,
+  reversedDepth: renderer.reversedDepthBuffer,
   scene(name) { show(scenes[name]); output.textContent = ''; return { name, nearSurface: cameraNearSurface.value, errors: [...errors] }; },
   capture, reflectionDifference, measure,
   /** Generated fragment code of the water material and of the output chain (the underwater pass). */

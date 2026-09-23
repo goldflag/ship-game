@@ -4,8 +4,8 @@ import { nearPlaneMayBeSubmerged } from './underwater';
 
 test('the underwater pass runs whenever the near plane may reach the highest wave', () => {
   const camera = new THREE.PerspectiveCamera(90, 1, 1, 1000);
-  for (const [coordinateSystem, reversedDepth] of [[THREE.WebGPUCoordinateSystem, false], [THREE.WebGPUCoordinateSystem, true], [THREE.WebGLCoordinateSystem, false]] as const) {
-    camera.coordinateSystem = coordinateSystem;
+  camera.coordinateSystem = THREE.WebGPUCoordinateSystem;
+  for (const reversedDepth of [false, true]) {
     Object.defineProperty(camera, 'reversedDepth', { configurable: true, value: reversedDepth });
     camera.updateProjectionMatrix();
     // The near plane's lower corners sit a metre below a level camera.

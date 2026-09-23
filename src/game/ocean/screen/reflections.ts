@@ -83,7 +83,7 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
       const end = origin.add(ray.mul(ray.z.greaterThan(1e-6).select(min(toNear, maxDistance), maxDistance))).toVar();
       const clipStart = cameraProjectionMatrix.mul(vec4(origin, 1)).toVar(), clipEnd = cameraProjectionMatrix.mul(vec4(end, 1)).toVar();
       const k0 = clipStart.w.reciprocal().toVar(), kEnd = clipEnd.w.reciprocal().toVar();
-      // Pixel coordinates with y down, matching three's screen UV on both backends.
+      // Pixel coordinates with y down, matching three's screen UV.
       const pixel = (clip: Node<'vec4'>, k: Node<'float'>) => vec2(clip.x.mul(k).mul(.5).add(.5), clip.y.mul(k).mul(-.5).add(.5)).mul(screenSize);
       const s0 = pixel(clipStart, k0).toVar(), sEnd = pixel(clipEnd, kEnd).toVar();
       // Clip to the viewport. The start is this fragment's own pixel, so per axis the exit fraction is how

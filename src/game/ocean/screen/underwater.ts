@@ -1,4 +1,4 @@
-import { Vector3, WebGPUCoordinateSystem, type Camera, type Node, type PassNode } from 'three/webgpu';
+import { Vector3, type Node, type PassNode, type PerspectiveCamera } from 'three/webgpu';
 import { Fn, If, exp, float, fwidth, max, min, mix, perspectiveDepthToViewZ, reference, screenSize, smoothstep, uniform, uv, vec2, vec3, vec4 } from 'three/tsl';
 import type { OceanSun, WaterColors } from '../contracts';
 import { screenRead } from './reflections';
@@ -103,13 +103,19 @@ export function createUnderwaterPass(input: UnderwaterInput): (scenePass: PassNo
   };
 }
 
-const corner = new Vector3();
+const eye = new Vector3(), forward = new Vector3(), corner = new Vector3();
 /** CPU side of the uniform branch: whether any near-plane corner (or the camera) may lie below `maxHeight`,
  * the highest the surface can reach this frame. False means the whole view starts above the water. */
-export function nearPlaneMayBeSubmerged(camera: Camera, maxHeight: number): boolean {
+export function nearPlaneMayBeSubmerged(camera: PerspectiveCamera, maxHeight: number): boolean {
   if (!Number.isFinite(maxHeight)) return true;
-  const nearDepth = camera.reversedDepth ? 1 : camera.coordinateSystem === WebGPUCoordinateSystem ? 0 : -1;
-  let lowest = camera.matrixWorld.elements[13];
-  for (const x of [-1, 1]) for (const y of [-1, 1]) lowest = Math.min(lowest, corner.set(x, y, nearDepth).unproject(camera).y);
+  const world = camera.matrixWorld.elements;
+  eye.set(world[12], world[13], world[14]);
+  forward.set(-world[8], -world[9], -world[10]).normalize();
+  let lowest = eye.y;
+  for (const x of [-1, 1]) for (const y of [-1, 1]) {
+    // As in the pass: any depth inside the frustum lies on the corner's ray, which then runs to the near plane.
+    corner.set(x, y, .5).unproject(camera).sub(eye);
+    lowest = Math.min(lowest, eye.y + corner.y * camera.near / corner.dot(forward));
+  }
   return lowest <= maxHeight;
 }

@@ -1,9 +1,9 @@
-/** `bun scripts/browser/ocean-screen.ts --tag <name> [--only chase,sub7] [--webgl] [--calm] [--steps 32] [--samples 0] [--measure] [--url http://127.0.0.1:5210]`
- * Renders the fixed scenes of `scripts/diagnostics/ocean-screen.html` in a headed Chromium and saves them to
+/** `bun scripts/browser/ocean-screen.ts --tag <name> [--only chase,sub7] [--calm] [--steps 32] [--measure] [--url http://127.0.0.1:5210]`
+ * Renders the fixed scenes of `scripts/diagnostics/ocean-screen.html` in a headed Chromium (WebGPU) and saves them to
  * `.build/ocean-screen/<tag>/`: above water the shaded frame, the frame without reflections and the reflection
- * confidence; under water the frame with and without the underwater pass. `results.json` records the backend,
- * reversed depth, changed/isolated reflection pixels, errors and, with --measure, frame times with each effect on and off;
- * `water.wgsl|glsl` and `output.wgsl|glsl` hold the generated fragment code. */
+ * confidence; under water the frame with and without the underwater pass. `results.json` records reversed depth,
+ * changed/isolated reflection pixels, errors and, with --measure, frame times with each effect on and off;
+ * `water.wgsl` and `output.wgsl` hold the generated fragment code. */
 import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -13,8 +13,8 @@ import { authoringServer, serverUrl } from '../construction/browser';
 import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
-  tag: { type: 'string', default: 'current' }, only: { type: 'string' }, steps: { type: 'string', default: '16' }, samples: { type: 'string' },
-  webgl: { type: 'boolean', default: false }, calm: { type: 'boolean', default: false }, measure: { type: 'boolean', default: false }, url: { type: 'string' },
+  tag: { type: 'string', default: 'current' }, only: { type: 'string' }, steps: { type: 'string', default: '16' },
+  calm: { type: 'boolean', default: false }, measure: { type: 'boolean', default: false }, url: { type: 'string' },
 } });
 const out = resolve(ROOT, '.build/ocean-screen', values.tag!);
 mkdirSync(out, { recursive: true });
@@ -30,10 +30,12 @@ try {
   page.setDefaultTimeout(600_000);
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => { if ((message.type() === 'error' || message.type() === 'warning') && !message.text().includes('favicon')) pageErrors.push(message.text()); });
-  const query = new URLSearchParams({ steps: values.steps!, ...(values.samples ? { samples: values.samples } : {}), ...(values.webgl ? { webgl: '1' } : {}), ...(values.calm ? { calm: '1' } : {}) });
+  const query = new URLSearchParams({ steps: values.steps!, ...(values.calm ? { calm: '1' } : {}) });
   await page.goto(`${url}/scripts/diagnostics/ocean-screen.html?${query}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready, undefined, { polling: 250 });
-  const info = await page.evaluate(() => { const s = (window as any).oceanScreen; return { backend: s.backend, reversedDepth: s.reversedDepth, scenes: s.scenes as string[] }; });
+  // A page error before it is ready (no WebGPU, a shader that fails to build) ends the run.
+  await Promise.race([page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready, undefined, { polling: 250 }),
+    new Promise((_, reject) => page.once('pageerror', reject))]);
+  const info = await page.evaluate(() => { const s = (window as any).oceanScreen; return { reversedDepth: s.reversedDepth, scenes: s.scenes as string[] }; });
   const wanted = values.only ? values.only.split(',') : info.scenes;
   const results: Record<string, unknown> = {};
   /** Frame cost with a uniform on and off (the page alternates it every batch). */
@@ -62,10 +64,9 @@ try {
     console.log(name, JSON.stringify(results[name]));
   }
   const shaders = await page.evaluate(() => (window as any).oceanScreen.shaders());
-  const extension = info.backend === 'webgpu' ? 'wgsl' : 'glsl';
-  writeFileSync(resolve(out, `water.${extension}`), shaders.water); writeFileSync(resolve(out, `output.${extension}`), shaders.output);
-  writeFileSync(resolve(out, 'results.json'), JSON.stringify({ ...info, steps: Number(values.steps), samples: values.samples, calm: values.calm, results, pageErrors }, null, 1));
-  console.log(JSON.stringify({ backend: info.backend, reversedDepth: info.reversedDepth }));
+  writeFileSync(resolve(out, 'water.wgsl'), shaders.water); writeFileSync(resolve(out, 'output.wgsl'), shaders.output);
+  writeFileSync(resolve(out, 'results.json'), JSON.stringify({ ...info, steps: Number(values.steps), calm: values.calm, results, pageErrors }, null, 1));
+  console.log(JSON.stringify({ reversedDepth: info.reversedDepth }));
   if (pageErrors.length) console.error(pageErrors.join('\n'));
 } finally {
   await browser?.close().catch(() => undefined);
