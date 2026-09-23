@@ -20,15 +20,17 @@ export const RAYLEIGH_HEIGHT = 8, MIE_HEIGHT = 1.2;
 export const OZONE_PEAK = 25, OZONE_HALF_WIDTH = 15;
 /** Molecular scattering of Earth's air at sea level (per km): Hillaire's values. */
 const EARTH_RAYLEIGH: Rgb = [5.802e-3, 13.558e-3, 33.1e-3];
-/** Ozone's peak absorption (per km). Its Chappuis band takes orange and green light, which keeps the
- * twilight zenith blue. Hillaire's monochromatic 680 nm value (0.65e-3) sits beyond the band's 600 nm
- * peak, so an RGB sky lets red through the ozone at dusk and turns the blue hour magenta; a red channel
- * that spans the band, as a camera's or the eye's does, absorbs about as much as green. */
+/** Ozone's peak absorption (per km): Hillaire's green and blue scaled by 1.6, red raised to 0.8 of green. Its Chappuis band takes orange and
+ * green light, which keeps the twilight zenith blue. His monochromatic 680 nm value sits beyond the band's
+ * 600 nm peak, so an RGB sky lets red through the ozone at dusk and turns the blue hour magenta; a red
+ * channel that spans the band, as a camera's or the eye's does, absorbs about as much as green. The extra
+ * ozone deepens the blue hour for the cinematic grade. */
 const OZONE_ABSORPTION: Rgb = [2.4e-3, 3e-3, .136e-3];
-/** Aerosol scattering at sea level per unit of turbidity above pure air (per km at 550 nm): Preetham's
- * turbidity is the total optical depth over the molecular one, and the authored skies' 1.5–6 span
- * clear maritime air (aerosol depth ≈ 0.03) to thick haze (≈ 0.33). */
-const AEROSOL_PER_TURBIDITY = .027;
+/** Aerosol scattering at sea level per unit of turbidity above pure air (per km at 550 nm), and the
+ * turbidity excess (T − 1) over which it doubles again. Preetham's turbidity is the total optical depth over
+ * the molecular one; the authored skies' 1.5–6 then span clear maritime air (aerosol depth 0.016, the
+ * Pacific) through a light haze (0.04, the North Atlantic) to the fog preset's thick haze (0.32). */
+const AEROSOL_PER_TURBIDITY = .027, AEROSOL_HAZE = 5;
 /** Ångström exponent. Grey: a wavelength-dependent haze tints the long horizon path brown, where sea
  * haze reads white to blue-grey. */
 const ANGSTROM = 0;
@@ -40,9 +42,12 @@ const WAVELENGTHS: Rgb = [680, 550, 440];
 export const SEA_ALBEDO = .06;
 
 /** Gains from the authored scene (Sky Pro's scales, tuned by eye on the game's maps) onto the model.
- * `rayleigh` .4 is Earth's molecular air; `mie` .25 is the physical aureole; `multiple` is a gain on
- * the multiple-scattering fill; `mieG` is used as authored (Cornette–Shanks asymmetry). */
-export const AUTHORED = { rayleighEarth: .4, mieUnit: .25, mieExponent: .7, mieGMax: .85 };
+ * `rayleigh` .4 is Earth's molecular air. The maps author it as how blue the sky is (.55 the Pacific's
+ * deep blue, .25 the Arctic's pale silver), where the physical coefficient alone mostly makes the sky
+ * darker, so it scales the molecules by a root (`rayleighDensity`) and the dome's chroma by another
+ * (`rayleighChroma`). `mie` .25 is the physical aureole; `multiple` is a gain on the multiple-scattering
+ * fill; `mieG` is used as authored (Cornette–Shanks asymmetry). */
+export const AUTHORED = { rayleighEarth: .4, rayleighDensity: .6, rayleighChroma: .5, mieUnit: .25, mieExponent: .7, mieGMax: .85 };
 
 /** What the air is made of for one scene, in the shaders' units. */
 export interface AirCoefficients {
@@ -59,12 +64,14 @@ export interface AirCoefficients {
   readonly mieGain: number;
   /** Gain on multiple scattering. */
   readonly multiple: number;
+  /** Multiplier on the dome's saturation grade: how blue the scene's sky is authored. */
+  readonly chroma: number;
 }
 
 /** Map a scene's authored atmosphere onto the model's coefficients. Each gain is monotonic in its input. */
 export function airCoefficients(atmosphere: SkyScene['atmosphere']): AirCoefficients {
-  const molecules = Math.max(0, atmosphere.rayleigh) / AUTHORED.rayleighEarth;
-  const aerosol = AEROSOL_PER_TURBIDITY * Math.max(0, atmosphere.turbidity - 1);
+  const blue = Math.max(0, atmosphere.rayleigh) / AUTHORED.rayleighEarth, molecules = blue ** AUTHORED.rayleighDensity;
+  const excess = Math.max(0, atmosphere.turbidity - 1), aerosol = AEROSOL_PER_TURBIDITY * excess * (1 + (excess / AEROSOL_HAZE) ** 2);
   const mieScattering = WAVELENGTHS.map(nm => aerosol * (nm / 550) ** -ANGSTROM) as Rgb;
   return {
     rayleigh: EARTH_RAYLEIGH.map(value => value * molecules) as Rgb,
@@ -74,6 +81,7 @@ export function airCoefficients(atmosphere: SkyScene['atmosphere']): AirCoeffici
     mieG: MathUtils.clamp(atmosphere.mieG, 0, AUTHORED.mieGMax),
     mieGain: (Math.max(0, atmosphere.mie) / AUTHORED.mieUnit) ** AUTHORED.mieExponent,
     multiple: Math.max(0, atmosphere.multiple),
+    chroma: blue ** AUTHORED.rayleighChroma,
   };
 }
 

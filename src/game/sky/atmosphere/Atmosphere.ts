@@ -34,7 +34,7 @@ export class Atmosphere implements AtmospherePart {
   readonly seaLevel = { sun: new Color(), moon: new Color(), sky: new Color() };
   readonly air: AirUniforms = {
     rayleigh: uniform(new Vector3()), mieScattering: uniform(new Vector3()), mieExtinction: uniform(new Vector3()), ozone: uniform(new Vector3()),
-    mieG: uniform(.6), mieGain: uniform(1), multiple: uniform(1),
+    mieG: uniform(.6), mieGain: uniform(1), multiple: uniform(1), saturation: uniform(SKY_GRADE.saturation),
   };
   /** The sky's exposure at dusk (`model.twilightLift`): multiplies everything the sun lights. */
   readonly sunLift = uniform(1);
@@ -67,7 +67,7 @@ export class Atmosphere implements AtmospherePart {
       this.coefficients = air;
       u.rayleigh.value.fromArray(air.rayleigh); u.mieScattering.value.fromArray(air.mieScattering);
       u.mieExtinction.value.fromArray(air.mieExtinction); u.ozone.value.fromArray(air.ozone);
-      u.mieG.value = air.mieG; u.mieGain.value = air.mieGain; u.multiple.value = air.multiple;
+      u.mieG.value = air.mieG; u.mieGain.value = air.mieGain; u.multiple.value = air.multiple; u.saturation.value = SKY_GRADE.saturation * air.chroma;
       this.dirty.air = true;
     }
     const sun = scene.sun.elevation, moon = Math.asin(MathUtils.clamp(this.uniforms.moonDirection.value.y, -1, 1)) * MathUtils.RAD2DEG;
@@ -201,7 +201,7 @@ export class Atmosphere implements AtmospherePart {
   private grade(scattered: Vec3, direction: Vec3): Vec3 {
     const exposed = scattered.mul(SKY_GRADE.gain), brightness = luminance(exposed).max(1e-6), { knee, ceiling } = SKY_GRADE.shoulder;
     const over = brightness.sub(knee).max(0), rolled = select(brightness.greaterThan(knee), over.div(over.div(ceiling - knee).add(1)).add(knee), brightness);
-    const graded = mix(vec3(brightness), exposed, SKY_GRADE.saturation).max(0).mul(rolled.div(brightness));
+    const graded = mix(vec3(brightness), exposed, this.air.saturation).max(0).mul(rolled.div(brightness));
     const [r, g, b] = SKY_GRADE.floor as Rgb, below = float(1).sub(direction.y.abs()), squared = below.mul(below);
     return graded.add(vec3(r, g, b).mul(squared.mul(squared).mul(SKY_GRADE.floorHorizon).add(1)));
   }

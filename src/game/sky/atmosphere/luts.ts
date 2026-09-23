@@ -57,6 +57,8 @@ export interface AirUniforms {
   readonly mieG: UniformNode<'float', number>;
   readonly mieGain: UniformNode<'float', number>;
   readonly multiple: UniformNode<'float', number>;
+  /** The dome's saturation grade for this scene (`SKY_GRADE.saturation × chroma`). */
+  readonly saturation: UniformNode<'float', number>;
 }
 
 /** A texture read without three's uv matrix uniform. */
