@@ -202,7 +202,9 @@ export class FireBatch {
     for (let slot = 0; slot < this.order.length; slot++) {
       const index = this.order[slot], p = this.particles[index], t = p.age / p.life, extent = this.extents[index];
       const fade = (p.fadeIn > 0 ? smooth(p.age / p.fadeIn) : 1) * (1 - smooth((t - .45) / .55))
-        * (p.thin > 0 ? Math.max(.35, Math.min(1, (p.size / extent) ** p.thin)) : 1);
+        * (p.thin > 0 ? Math.max(.35, Math.min(1, (p.size / extent) ** p.thin)) : 1)
+        // A puff around the camera would fill the screen with one flat layer: clear it as the lens enters.
+        * (this.mode === 'smoke' ? smooth((Math.sqrt(this.depth[index]) - extent * .7) / (extent * 1.6)) : 1);
       const m = slot * 16;
       let cx = p.position.x, cy = p.position.y, cz = p.position.z, sx: number, sy: number;
       if (this.mode === 'flame') {

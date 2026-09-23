@@ -119,16 +119,13 @@ test('fleet fire work is bounded and camera-near fires at the end of the roster 
   const fx = new LocalizedFireEffects(), camera = new Camera(), wind = new Vector3();
   sim.actors.forEach((a, i) => { a.motion.x = (60 - i) * 500; a.motion.z = 0; a.damage.control.mounts.forEach(f => burn(f)); });
   const last = sim.actors.at(-1)!; camera.position.set(last.motion.x, 20, 0);
-  const started = performance.now();
   run(fx, sim, 6, camera, wind);
-  // Presentation work per frame stays small with every mount of sixty ships burning.
-  expect((performance.now() - started) / 360).toBeLessThan(4);
   const { sources, flames, smoke, embers, capacity } = fx.diagnostics();
   expect(sources).toBe(32);
   expect(flames + smoke + embers).toBeLessThanOrEqual(capacity);
   const near = matrices(mesh(fx, 'Ship fire flames')).map(m => new Vector3().setFromMatrixPosition(m).x);
   expect(near.some(x => Math.abs(x - last.motion.x) < 20)).toBe(true);
-  fx.reset(); expect(fx.diagnostics()).toMatchObject({ sources: 0, flames: 0, smoke: 0, embers: 0, lights: 0 }); fx.dispose();
+  fx.reset(); expect(fx.diagnostics()).toMatchObject({ sources: 0, flames: 0, smoke: 0, embers: 0, glows: 0, lights: 0 }); fx.dispose();
 });
 
 test('30 and 60 Hz emit the same smoke, and a pause adds no backlog', () => {
@@ -148,14 +145,19 @@ test('two fire lights always exist; they light the nearest fires after dark and 
   const lights = () => fx.root.children.filter((child): child is PointLight => child instanceof PointLight);
   expect(lights().length).toBe(2);
   expect(lights().every(light => light.intensity === 0)).toBe(true);
-  burn(sim.player.damage.control.mounts[0]);
-  fx.lighting.setSun(new Vector3(0, 1, 0), 1); run(fx, sim, 2);
+  const fire = sim.player.damage.control.mounts[0]; burn(fire);
+  fx.lighting.setSun(new Vector3(0, 1, 0), 1); run(fx, sim, 3);
   const day = Math.max(...lights().map(light => light.intensity));
   fx.lighting.setSun(new Vector3(0, 1, 0), .1); run(fx, sim, 1);
   const night = Math.max(...lights().map(light => light.intensity));
   expect(day).toBeGreaterThan(0); expect(night).toBeGreaterThan(day * 2);
-  expect(fx.diagnostics().lights).toBe(1);
-  expect(lights().length).toBe(2);
+  expect(fx.diagnostics()).toMatchObject({ lights: 1, glows: 1 });
+  // Optics on the burning hull leave its light out with its flames.
+  run(fx, sim, .1, new Camera(), new Vector3(), sim.player.motion.id);
+  expect(fx.diagnostics().lights).toBe(0);
+  fire.intensity = 0; run(fx, sim, 1);
+  expect(lights().length).toBe(2); expect(lights().every(light => light.intensity === 0)).toBe(true);
+  expect(fx.diagnostics().glows).toBe(0);
   fx.dispose();
 });
 

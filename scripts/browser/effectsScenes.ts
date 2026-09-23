@@ -231,19 +231,46 @@ export const scenes: Record<string, Scene> = {
     const particles = root.children.filter(child => !child.isLight);
     const phase = async (fire: boolean, lights: boolean) => {
       root.visible = lights; particles.forEach(p => p.visible = fire);
-      return (await stage.measure(40)).gpuMs;
+      return (await stage.measure(6, 4)).gpuMs ?? NaN;
     };
+    const median = (values: number[]) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
     for (const [label, camera] of [['close', { ship: 1, offset: [-200, 50, 140], look: [0, 12, -10], fov: 45 }],
       ['8 km', { ship: 1, offset: [-7000, 220, 3500], look: [0, 80, 0], fov: 40 }]] as const) {
       stage.camera(camera as Parameters<typeof stage.camera>[0]);
-      const runs = [];
-      for (let i = 0; i < 2; i++) runs.push({ all: await phase(true, true), lightsOnly: await phase(false, true), none: await phase(false, false) });
-      stage.note(label, runs);
+      // Interleaved short rounds: slow load drift from other processes cancels between variants.
+      const all: number[] = [], lightsOnly: number[] = [], none: number[] = [];
+      for (let i = 0; i < 16; i++) {
+        const order = [[all, true, true], [lightsOnly, false, true], [none, false, false]] as const;
+        for (let k = 0; k < 3; k++) { const [list, fire, lights] = order[(i + k) % 3]; list.push(await phase(fire, lights)); }
+      }
+      const a = median(all), l = median(lightsOnly), n = median(none);
+      stage.note(label, { allMs: +a.toFixed(2), lightsOnlyMs: +l.toFixed(2), noneMs: +n.toFixed(2), particlesMs: +(a - l).toFixed(2), lightsMs: +(l - n).toFixed(2) });
     }
     root.visible = true; particles.forEach(p => p.visible = true);
     type Fires = { effects: { localFires: { diagnostics(): unknown } } };
     stage.note('fires', (stage.game as unknown as Fires).effects.localFires.diagnostics());
     await shoot('cost view');
+  },
+  /** Scene-light cost probe: two point lights in or out of the scene, interleaved (fire scene at the close view). */
+  async 'c-lightcost'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 });
+    stage.advance(20);
+    stage.camera({ ship: 1, offset: [-200, 50, 140], look: [0, 12, -10], fov: 45 });
+    const THREE = await import('three/webgpu');
+    type Root = { add(o: unknown): void };
+    const root = (stage.game as unknown as { effects: { root: Root } }).effects.root;
+    const lights = [new THREE.PointLight('#ff8a3c', 0, 110, 2), new THREE.PointLight('#ff8a3c', 0, 110, 2)];
+    lights.forEach(light => root.add(light));
+    const median = (values: number[]) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
+    const on: number[] = [], off: number[] = [];
+    for (let i = 0; i < 16; i++) for (const lit of i % 2 ? [true, false] : [false, true]) {
+      lights.forEach(light => light.visible = lit);
+      (lit ? on : off).push((await stage.measure(6, 10)).gpuMs ?? NaN);
+    }
+    lights.forEach(light => (light as unknown as { removeFromParent(): void }).removeFromParent());
+    stage.note('two point lights', { withMs: +median(on).toFixed(2), withoutMs: +median(off).toFixed(2), costMs: +(median(on) - median(off)).toFixed(2) });
+    await shoot('light probe');
   },
   /** GPU cost of a busy moment: two broadsides in the air, hits, three fires and both ships underway. */
   async perf(stage, shoot) {

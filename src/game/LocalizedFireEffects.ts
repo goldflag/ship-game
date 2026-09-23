@@ -14,6 +14,7 @@ import { EffectLighting } from './EffectLighting';
 export interface FireDisplayPose { actor: Combatant; motion: ShipState; }
 
 const MAX_SOURCES = 32;
+/** Fire lights, always in the scene so lit materials never recompile as fires start and go out. */
 const LIGHTS = 2;
 /** Seconds a put-out fire keeps smouldering wisps after its flames die. */
 const COOLING_SECONDS = 45;
@@ -48,10 +49,11 @@ const memory = (): FireMemory => ({ intensity: 0, heat: 0, heatRate: 0, burned: 
  *
  * Each burning gunhouse or vented compartment is a source: a stream of short-lived, upright flame
  * tongues spread over its roof or hatch, rising embers, and a buoyant column of dark, oily smoke that
- * widens, bends downwind and merges with the ship's other fires into one pall. The two most
- * relevant fires light the scene with flickering lights. A fire being fought turns its smoke
- * grey-white with steam, a fire that goes out smoulders for ~45 s, and flooding puts one out in a
- * burst of steam. Fleet-wide fixed batches; camera relevance picks the sources. */
+ * widens, bends downwind and merges with the ship's other fires into one pall. The two most relevant
+ * fires light the ship with flickering lights (always present, so nothing recompiles); every fire
+ * glows on the sea and on its smoke's underside. A fire being fought turns its smoke grey-white with steam, a
+ * fire that goes out smoulders for ~45 s, and flooding puts one out in a burst of steam.
+ * Fleet-wide fixed batches; camera relevance picks the sources. */
 export class LocalizedFireEffects {
   readonly root = new THREE.Group();
   private readonly noise = effectVolumeTexture();
@@ -60,6 +62,8 @@ export class LocalizedFireEffects {
   private readonly emberMap = effectTexture('glow');
   private readonly embers = new EffectParticlePool(EMBER_CAPACITY, this.emberMap, true, undefined, false, true);
   private readonly halos = new EffectParticlePool(MAX_SOURCES, this.emberMap, true, undefined, false, true);
+  /** A flickering glow laid on the sea and deck under each fire, which the lights do not reach. */
+  private readonly pools = new EffectParticlePool(MAX_SOURCES, this.emberMap, true, undefined, false, true);
   private readonly lights = Array.from({ length: LIGHTS }, () => new THREE.PointLight('#ff8a3c', 0, 110, 2));
   private memories = new WeakMap<Combatant, { rooms: (FireMemory | undefined)[]; mounts: (FireMemory | undefined)[] }>();
   private readonly pool: Source[] = Array.from({ length: MAX_SOURCES }, () => ({ world: new THREE.Vector3() }) as Source);
@@ -74,6 +78,7 @@ export class LocalizedFireEffects {
   private seed = 1;
   private sourceCount = 0;
   private litCount = 0;
+  private lightCount = 0;
 
   /** Scene light, wind and depth shared with the other effects; a standalone instance owns its own. */
   constructor(readonly lighting = new EffectLighting()) {
@@ -81,10 +86,14 @@ export class LocalizedFireEffects {
     this.root.name = 'Localized ship fires';
     this.flames.mesh.name = 'Ship fire flames'; this.smoke.mesh.name = 'Ship fire smoke';
     this.embers.mesh.name = 'Ship fire embers'; this.halos.mesh.name = 'Ship fire glow';
-    // Low additive lights over the sea survive the water's depth composite only with depth.
-    for (const pool of [this.embers, this.halos]) { pool.mesh.material.depthWrite = true; pool.mesh.material.alphaTest = .01; }
+    // Low additive sparks over the sea survive the water's depth composite only with depth. The
+    // broad glow must not write it: its soft disc would cut the smoke column behind it.
+    this.embers.mesh.material.depthWrite = true; this.embers.mesh.material.alphaTest = .01;
+    // Smoke first: flames and sparks write depth, and would punch holes in smoke drawn after them.
+    this.smoke.mesh.renderOrder = 0; this.pools.mesh.renderOrder = 1; this.halos.mesh.renderOrder = 1; this.flames.mesh.renderOrder = 2; this.embers.mesh.renderOrder = 3;
+    this.pools.mesh.name = 'Ship fire glow on the water';
     this.lights.forEach((light, i) => { light.name = `Ship fire light ${i + 1}`; this.root.add(light); });
-    this.root.add(this.smoke.mesh, this.halos.mesh, this.flames.mesh, this.embers.mesh);
+    this.root.add(this.smoke.mesh, this.pools.mesh, this.halos.mesh, this.flames.mesh, this.embers.mesh);
   }
 
   update(sim: BattleSession, dt: number, camera: THREE.Camera, wind: THREE.Vector3, hiddenSourceId?: string, poses?: readonly FireDisplayPose[]): void {
@@ -94,15 +103,8 @@ export class LocalizedFireEffects {
     this.collect(sim, dt, camera, poses);
     if (dt > 0) this.emit(dt, wind);
     this.illuminate(hiddenSourceId);
-    this.halos.reset();
-    for (const s of this.sources) if (s.burning && s.inView) {
-      this.position.copy(s.world); this.position.y += 1.5 + s.scale * 2 * s.intensity;
-      const halo = this.halos.emit(this.position, s.actor.motion.id);
-      halo.size = (7 + 9 * s.intensity) * s.scale * (s.fought ? .7 : 1);
-      halo.life = 1; halo.opacity = .16 + .2 * s.intensity; halo.color.setRGB(1, .42, .14);
-    }
     this.flames.publish(camera, hiddenSourceId); this.smoke.publish(camera, hiddenSourceId);
-    this.embers.publish(camera, hiddenSourceId); this.halos.publish(camera, hiddenSourceId);
+    this.embers.publish(camera, hiddenSourceId); this.halos.publish(camera, hiddenSourceId); this.pools.publish(camera, hiddenSourceId);
   }
 
   /** Read every hull's fires into memories and keep the most relevant sources, bounded. */
@@ -227,21 +229,23 @@ export class LocalizedFireEffects {
         m.flame += dt * (14 + 30 * I) * s.scale * room * (s.fought ? .5 : 1) * (1 - far * .7);
         for (; m.flame >= 1; m.flame--) {
           const f = this.flames.emit(this.spread(s, s.mount ? .9 : .6), id);
-          const height = (1.5 + 3.6 * I) * s.scale * (s.mount ? 1 : .75) * (s.fought ? .62 : s.growing ? 1.12 : 1) * (.7 + this.random() * .6);
-          f.size = height; f.aspect = .5 + this.random() * .15;
+          // Tall tongues over a low, broad body of flame that joins them at the roof.
+          const body = this.random() < .35, variety = .55 + this.random() * .9;
+          const height = (1.5 + 3.6 * I) * s.scale * (s.mount ? 1 : .75) * (s.fought ? .62 : s.growing ? 1.12 : 1) * variety * (body ? .6 : 1);
+          f.size = height; f.aspect = body ? 1 + this.random() * .4 : .55 + this.random() * .3;
           f.life = (.45 + this.random() * .45) * Math.sqrt(Math.max(.4, height / 4));
           f.rise = 2.4 + 3 * I; f.riseTime = 1.5; f.shear = .25; f.shearHeight = 10;
-          f.drift.copy(velocity).multiplyScalar(.94); f.glow = .95 + .25 * I; f.cool = f.life * 1.4;
+          f.drift.copy(velocity).multiplyScalar(.94); f.glow = .82 + .22 * I; f.cool = f.life * 1.3;
           f.opacity = .96; f.fadeIn = .06;
           f.age = -this.random() * dt; // Spread births through the frame.
         }
-        m.ember += dt * (5 + 12 * I) * s.scale * (s.fought ? .4 : 1) * (1 - far);
+        m.ember += dt * (3 + 8 * I) * s.scale * (s.fought ? .4 : 1) * (1 - far);
         for (; m.ember >= 1; m.ember--) {
           const e = this.embers.emit(this.spread(s, .8), id);
           e.velocity.set((this.random() - .5) * 4, 5 + this.random() * 9 * (.5 + I), (this.random() - .5) * 4).add(velocity);
-          e.size = .16 + this.random() * .2; e.stretch = 3; e.align = 'velocity';
-          e.life = .9 + this.random() * 1.8; e.gravity = -1.5; e.drag = .7; e.wind = 1;
-          e.opacity = .95; e.color.setRGB(1, .55 + this.random() * .25, .18).multiplyScalar(2.4);
+          e.size = .1 + this.random() * .14; e.stretch = 2.5; e.align = 'velocity';
+          e.life = .8 + this.random() * 1.6; e.gravity = -1.5; e.drag = .7; e.wind = 1;
+          e.opacity = .9; e.color.setRGB(1, .38 + this.random() * .2, .08).multiplyScalar(1.7);
         }
       }
       if (s.burning) {
@@ -295,39 +299,51 @@ export class LocalizedFireEffects {
     }
   }
 
-  /** The most relevant burning fires light the deck, the sea and their own smoke. Always two
-   * lights, dark when unused, so lit materials never recompile as fires start and go out. */
+  /** Each burning fire in view glows: a soft halo around its flames and a flickering pool of light
+   * on the sea beneath it; the two most relevant also light the ship. Faint in sunlight, most of the
+   * scene after dark. */
   private illuminate(hiddenSourceId?: string): void {
-    let lit = 0;
-    const night = .2 + .8 * (1 - THREE.MathUtils.smoothstep(this.lighting.daylight.value, .3, .9));
+    this.halos.reset(); this.pools.reset();
+    const dark = 1 - THREE.MathUtils.smoothstep(this.lighting.daylight.value, .3, .9);
+    let lit = 0, lights = 0;
     for (const s of this.sources) {
-      if (lit >= LIGHTS) break;
-      if (!s.burning || s.actor.motion.id === hiddenSourceId || s.distance > 1500) continue;
-      const light = this.lights[lit++], t = this.time + s.phase;
-      const flicker = .78 + .12 * Math.sin(t * 9.1) + .07 * Math.sin(t * 23.7 + 1.3) + .05 * Math.sin(t * 41.9 + 2.1);
-      light.position.copy(s.world); light.position.y += 2.5 + 2.5 * s.scale * s.intensity;
-      // Fire barely lights a sunlit deck; after dusk it is most of the light.
-      light.intensity = 1700 * night * s.scale * s.intensity * flicker * (s.fought ? .55 : 1);
-      light.distance = 70 + 60 * s.scale * s.intensity;
+      if (!s.burning || !s.inView) continue;
+      const t = this.time + s.phase, id = s.actor.motion.id, fought = s.fought ? .6 : 1;
+      const flicker = .8 + .1 * Math.sin(t * 9.1) + .06 * Math.sin(t * 23.7 + 1.3) + .04 * Math.sin(t * 41.9 + 2.1);
+      this.position.copy(s.world); this.position.y += 1.5 + s.scale * 2 * s.intensity;
+      const halo = this.halos.emit(this.position, id);
+      halo.size = (7 + 9 * s.intensity) * s.scale * fought; halo.life = 1;
+      halo.opacity = (.14 + .18 * s.intensity) * (1 + .6 * dark) * flicker; halo.color.setRGB(1, .42, .14);
+      this.position.copy(s.world); this.position.y += .25;
+      const pool = this.pools.emit(this.position, id);
+      pool.align = 'water'; pool.life = 1; pool.size = (22 + 26 * s.intensity) * s.scale * fought;
+      pool.opacity = (.02 + .22 * dark) * s.intensity * flicker; pool.color.setRGB(1, .45, .15);
+      lit++;
+      if (lights < LIGHTS && id !== hiddenSourceId && s.distance < 1500) {
+        const light = this.lights[lights++];
+        light.position.copy(s.world); light.position.y += 2.5 + 2.5 * s.scale * s.intensity;
+        light.intensity = 1700 * (.2 + .8 * dark) * s.scale * s.intensity * flicker * fought;
+        light.distance = 70 + 60 * s.scale * s.intensity;
+      }
     }
-    this.litCount = lit;
-    for (let i = lit; i < LIGHTS; i++) this.lights[i].intensity = 0;
+    this.litCount = lit; this.lightCount = lights;
+    for (let i = lights; i < LIGHTS; i++) this.lights[i].intensity = 0;
   }
 
   setDensity(density: number): void { this.flames.density = density; this.smoke.density = density; this.embers.density = density; }
   diagnostics() {
-    return { sources: this.sourceCount, flames: this.flames.count, smoke: this.smoke.count, embers: this.embers.count, lights: this.litCount,
+    return { sources: this.sourceCount, flames: this.flames.count, smoke: this.smoke.count, embers: this.embers.count, glows: this.litCount, lights: this.lightCount,
       fill: { smoke: +this.smoke.fill.toFixed(2), flames: +this.flames.fill.toFixed(2) },
-      capacity: FLAME_CAPACITY + SMOKE_CAPACITY + EMBER_CAPACITY + MAX_SOURCES };
+      capacity: FLAME_CAPACITY + SMOKE_CAPACITY + EMBER_CAPACITY + 2 * MAX_SOURCES };
   }
   reset(): void {
-    this.flames.reset(); this.smoke.reset(); this.embers.reset(); this.halos.reset();
+    this.flames.reset(); this.smoke.reset(); this.embers.reset(); this.halos.reset(); this.pools.reset();
     this.memories = new WeakMap();
-    this.sources.length = 0; this.time = 0; this.seed = 1; this.sourceCount = 0; this.litCount = 0;
+    this.sources.length = 0; this.time = 0; this.seed = 1; this.sourceCount = 0; this.litCount = 0; this.lightCount = 0;
     this.lights.forEach(light => light.intensity = 0);
   }
   dispose(): void {
-    this.root.removeFromParent(); this.flames.dispose(); this.smoke.dispose(); this.embers.dispose(); this.halos.dispose();
+    this.root.removeFromParent(); this.flames.dispose(); this.smoke.dispose(); this.embers.dispose(); this.halos.dispose(); this.pools.dispose();
     this.emberMap.dispose(); this.noise.dispose(); this.lights.forEach(light => light.dispose());
   }
 }
