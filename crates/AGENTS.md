@@ -14,10 +14,10 @@
   Bot decisions also live in `sensors.rs`, `gunnery.rs`, `battle.rs` (`operate_underwater`: the torpedo and
   depth-charge gates), `fleet_evasion.rs`, `depth_charges.rs`, `anti_aircraft.rs`, `navigation.rs` and
   `aviation/`: see [where bot decisions live](../docs/bot-behavior.md#where-bot-decisions-live).
-- cargo may not be on the agent shell's PATH: call `$HOME/.cargo/bin/cargo`, or use the bun scripts, which
-  find it (`scripts/multiplayer/toolchain.ts`). `bun run rust:test -- <test-file-stem> [filter]` runs one
-  integration test on the fast profile (seconds, not minutes); with no arguments it runs the workspace. More
-  in [README.md](README.md).
+- cargo may not be on the agent shell's PATH: run `export PATH="$HOME/.cargo/bin:$PATH"` or call
+  `$HOME/.cargo/bin/cargo`; the bun scripts find it themselves (`scripts/multiplayer/toolchain.ts`).
+  `bun run rust:test -- <test-file-stem> [filter]` runs one integration test on the fast profile (seconds, not
+  minutes); with no arguments it runs the workspace. More in [README.md](README.md).
 - Run `cargo fmt --all` before committing Rust changes; `bun run multiplayer:check` (and CI) runs
   `cargo fmt --all --check` and rejects unformatted code. Plain `rustfmt <file>` defaults to edition 2015,
   not the workspace's 2024, and fails on let-chains: pass `--edition 2024` or use `cargo fmt`.
@@ -34,14 +34,28 @@
 
 ## Native test prerequisites
 
-- 36 of the 64 `naval-sim` integration test files, several unit tests (`catalog.rs`, `impact.rs`, `aviation/`,
-  ...) and some `naval-protocol`, `naval-server` and `naval-wasm` tests read
-  `.build/naval-content/manifest.json` (ships, maps, rules, hydrostatics) and panic without it.
-  `bun run bootstrap` writes it, and so does `bun run multiplayer:content` on its own (about a second, no
-  `node_modules` needed). Rerun it after a ship, map or rules change.
+- Tests and examples read the content manifest (ships, maps, rules, hydrostatics) through
+  `naval_sim::catalog::installed_manifest()`, or share one parsed copy per process through
+  `Catalog::installed()`. Both look for `.build/naval-content/manifest.json` from the workspace root or a
+  crate directory and panic with the command to run when it is missing: `bun run bootstrap`, or
+  `bun run multiplayer:content` on its own (about a second, no `node_modules` needed). Rerun it after a ship,
+  map or rules change. A few `naval-protocol` and `naval-server` tests still read the file by path.
 - A cold `cargo test --release -p naval-sim` builds every test binary with thin LTO and one codegen unit, so
   it takes minutes (one session measured about eleven): run it in the background, or iterate with
   `bun run rust:test`, which uses the `test-fast` profile.
+
+## Script a battle without writing a test
+
+`crates/naval-wasm/examples/scenario.rs` runs one ship under a fixed helm and aim schedule against a static
+target and prints every tick as CSV (position, attitude, helm, and each mount's bearing, elevation and
+status):
+
+```sh
+cargo run --profile test-fast -p naval-wasm --example scenario -- <preset id | assets/ships/<id>/blueprint.json> [flags] > run.csv
+```
+
+The flags (duration, heading, wind and sea direction, target, helm and aim schedules, crew level, battery)
+and the column units are in the file's header.
 
 ## Run a construction design in a native test
 
@@ -50,10 +64,12 @@
 `trainable_torpedoes_use_one_absolute_rotation_for_sockets_damage_and_launch` in
 `tests/construction_acceptance.rs` builds a `Battle` directly, as below.
 
-- A repository ship's `assets/ships/<id>/blueprint.json` deserializes directly as a `ConstructionSource`;
-  the parts catalog is `public/models/components/catalog.json`, a `ConstructionCatalog`.
-- `Catalog::load(&manifest)?.with_constructions(&[source], &parts)?` compiles the design into a copy of the
-  content catalog. Then `catalog.compile(&id)` gives the `CompiledShip` that `Battle::new` needs.
+- A repository ship's `assets/ships/<id>/blueprint.json` deserializes directly as a `ConstructionSource`.
+  Its parts catalog, a `ConstructionCatalog`, is the revision it pins:
+  `public/models/components/catalogs/<construction.catalogRevision>/catalog.json`. The latest catalog is
+  `public/models/components/catalog.json`.
+- `Catalog::installed().with_constructions(&[source], &parts)?` compiles the design into a copy of the content
+  catalog. Then `catalog.compile(&id)` gives the `CompiledShip` that `Battle::new` needs.
 - The battle's `preset_id` is the compiled definition's id, not the source id: the compiler names it
   `local-<source id, up to 32 characters>-<first 16 hex digits of the content hash>`. Read it from
   `construction::compile(&source, &parts).definition` or find it in `catalog.definitions`.
