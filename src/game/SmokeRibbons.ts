@@ -33,6 +33,7 @@ export class SmokeRibbons {
   private readonly toCamera = new THREE.Vector3();
   private readonly side = new THREE.Vector3();
   private readonly fallback = new THREE.Vector3();
+  private readonly previousSide = new THREE.Vector3();
   private near = .1;
 
   constructor(lighting: EffectLighting, readonly capacity = 32768) {
@@ -81,8 +82,19 @@ export class SmokeRibbons {
       if (this.fallback.lengthSq() < 1e-6) this.fallback.set(1, 0, 0);
       this.fallback.normalize();
       if (sideLength > 1e-5) this.side.divideScalar(sideLength);
+      // Either side of a strip is as good as the other, but it must stay the same side along the
+      // strip. A plume swinging across the line of sight, or a fallback pointing against the true
+      // side (a plume rising away from the camera), would otherwise twist the strip into edge-on
+      // slivers that streak across the view like shafts of light.
+      if (i === 0) { if (this.side.dot(this.fallback) < 0) this.side.negate(); }
+      else {
+        if (this.side.dot(this.previousSide) < 0) this.side.negate();
+        if (this.fallback.dot(this.previousSide) < 0) this.fallback.negate();
+      }
       const endOn = 1 - THREE.MathUtils.smoothstep(sideLength, .08, .45);
-      this.side.lerp(this.fallback, endOn).normalize();
+      this.side.lerp(this.fallback, endOn);
+      if (this.side.lengthSq() < 1e-6) this.side.copy(i ? this.previousSide : this.fallback); else this.side.normalize();
+      this.previousSide.copy(this.side);
       const depth = this.toCamera.dot(this.cameraForward) * -distance;
       // A plume passing the lens or behind it would cover the screen; the sprites carry it there.
       const nearFade = THREE.MathUtils.smoothstep(distance, p.width * .7, p.width * 2.5) * (depth > this.near ? 1 : 0);

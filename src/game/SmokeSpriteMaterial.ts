@@ -138,6 +138,10 @@ export function applySmokeSprite(material: THREE.MeshBasicNodeMaterial, lighting
   return material;
 }
 
+/** Metres of plume per turn of the ribbon turbulence along its length: about the scale across a
+ * plume half a minute old. */
+const ALONG_SCALE_M = 45;
+
 /** Material for plume ribbons written by `SmokeRibbons`: a lit, turbulent tube cross-section.
  * `soft` fades the ribbon into opaque surfaces through the scene depth (see `applySmokeSprite`). */
 export function smokeRibbonMaterial(lighting: EffectLighting, noise = smokeNoiseTexture(), soft = false): THREE.MeshBasicNodeMaterial {
@@ -152,9 +156,11 @@ export function smokeRibbonMaterial(lighting: EffectLighting, noise = smokeNoise
   const tint = attribute<'vec4'>('plumeTint', 'vec4'); // albedo, opacity
   const spent = attribute<'float'>('plumeSpent', 'float'); // fraction of the sample's life
   const across = data.x, width = data.w.max(.5);
-  // Feature size follows the plume's width; coordinates are anchored to the released smoke.
+  // Coordinates are anchored to the released smoke. Across, feature size follows the plume's width.
+  // Along, it is fixed: the release distance grows for as long as the funnel smokes, and dividing it
+  // by a width that changes along the strip squeezed the turbulence into ever finer stripes.
   const scale = width.mul(1.1).add(10);
-  const coarse = vec2(across.mul(width).mul(.5), data.y).div(scale);
+  const coarse = vec2(across.mul(width).mul(.5).div(scale), data.y.div(ALONG_SCALE_M));
   const first = texture(noise, coarse.add(vec2(0, data.z.mul(-.004))));
   const fine = texture(noise, coarse.mul(2.7).add(vec2(data.z.mul(.011), data.z.mul(.007))));
   const turbulence = mix(float(.55), first.r.mul(.65).add(fine.g.mul(.35)), contrast);
