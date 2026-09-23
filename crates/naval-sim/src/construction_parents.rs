@@ -352,7 +352,6 @@ mod tests {
                     part("mast-part", "mast", "deck"),
                     part("engine-part", "engine", "internal"),
                 ],
-                ..Default::default()
             },
         )
     }
