@@ -55,7 +55,8 @@ try {
     const timing = values.measure && MEASURED.includes(name)
       ? { stepping: await page.evaluate(() => (window as any).skyReview.measure(120, true)), paused: await page.evaluate(() => (window as any).skyReview.measure(60, false)) }
       : undefined;
-    const bench = values.bench && MEASURED.includes(name) ? await page.evaluate(() => (window as any).skyReview.benchmarkSky()) : undefined;
+    const bench = values.bench && MEASURED.includes(name) ? { ...await page.evaluate(() => (window as any).skyReview.benchmarkSky()),
+      parts: await page.evaluate(() => (window as any).skyReview.benchmarkParts()) } : undefined;
     const weather = values.weather ? await page.evaluate(() => (window as any).skyReview.benchmarkWeather()) : undefined;
     results[name] = { ...info, seconds: (Date.now() - started) / 1000, ...(timing ? { timing } : {}), ...(bench ? { bench } : {}), ...(weather ? { weather } : {}) };
     console.log(name, JSON.stringify(results[name]));

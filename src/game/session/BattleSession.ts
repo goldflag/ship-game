@@ -16,6 +16,7 @@ import type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircr
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 import type { BattleOutcome } from './battleRules';
+import type { SeaState } from './sea';
 import type { FleetActor, Aircraft, Shell, Torpedo, DepthCharge, AirRelease, CombatEvent, ShellHistory, ShipState, HelmCommand } from './elements';
 import type { CombatIntent, CombatTelemetry } from './telemetry';
 import type { ShipReport } from '../../multiplayer/generated/ShipReport';
@@ -82,6 +83,10 @@ export interface BattleSession {
  readonly shellHistory: ShellHistory[];
  /** Fraction toward the next frame, for presentation between the last two poses. */
  readonly interpolationAlpha: number;
+ /** Simulated seconds of the poses drawn this frame (the sea's clock), between the last two frames. */
+ readonly presentationTime?: number;
+ /** The long-wave sea the authority's hulls ride, mirrored on the CPU. */
+ readonly sea?: SeaState;
  /** Consume the elapsed wall time: apply the pending frame (after `beforeStep`
  * captured the previous poses) and forward the helm and sight as intent. */
  advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void): void;

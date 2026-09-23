@@ -7,10 +7,14 @@
 <script type="module">
 // Development-only fixed scenes of the real game for reviewing the ocean side by side.
 // `scripts/browser/ocean-review.ts` drives it and saves one PNG per scene.
-// ?quality=low|medium|high|ultra, ?ship=<preset> for the player.
+// ?quality=low|medium|high|ultra, ?ship=<preset> for the player, ?wind=<m/s> for scenes without their own (9),
+// ?renderer=waterpro for the vendored Water Pro library the game's ocean replaced (src/game/comparison), to compare the two.
+// Placed hulls ride the combat sea as the authority poses them; ?ride=off sets them level on the still-water line, and
+// ?hullsea=off leaves the drawn sea unblended around them.
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
+import { seaHeight, seaResponse } from '/src/game/session/sea.ts';
 
 const params = new URLSearchParams(location.search);
 const output = document.querySelector('output'), noop = () => {};
@@ -18,19 +22,35 @@ const errors = [];
 addEventListener('error', event => errors.push(event.message));
 addEventListener('unhandledrejection', event => errors.push(String(event.reason?.message ?? event.reason)));
 const quality = params.get('quality') ?? 'high';
-const game = new Game(document.querySelector('#scene'), { ...GRAPHICS_PRESETS[quality], renderScale: 100 / Math.min(devicePixelRatio, 1.5) }, {
+const oceanRenderer = params.get('renderer') === 'waterpro' ? 'waterpro' : 'game';
+const game = new Game(document.querySelector('#scene'), { ...GRAPHICS_PRESETS[quality], renderScale: 100 / Math.min(devicePixelRatio, 1.5), oceanRenderer }, {
   progress: text => { output.textContent = text; }, ready: noop, telemetry: noop, pause: noop, hud: noop, error: message => errors.push(message),
 }, shipPreset(params.get('ship') ?? 'bismarck'));
 game.scheduleFrame = noop;
 game.setInPort(true); game.start(); await game.initialization;
+// ?realism=off shows the look first tuned to match the replaced library.
+if (params.get('realism') === 'off') for (const feature of Object.keys(game.ocean.realism)) game.ocean.realism[feature] = false;
+// ?hullsea=off draws the sea without blending it into the sea the hulls ride, the baseline to review that against.
+if (params.get('hullsea') === 'off') { game.ocean.setHullSea([], 0, []); game.ocean.setHullSea = noop; }
 const rigUpdate = game.rig.update.bind(game.rig);
 
 /** Seconds of waves run up to a frozen time: crest foam builds only while waves run and a paused frame keeps it,
  * so without them a scene would show the previous sea's foam (it decays over 2.8 s). */
 const FOAM_WARMUP = 10;
 /** Every scene renders the same frozen wave time: a paused frame never advances it, and parameter
- * changes still apply on the next update. Crest foam first runs up to it for FOAM_WARMUP seconds. */
-const freeze = seconds => {
+ * changes still apply on the next update. Crest foam first runs up to it for FOAM_WARMUP seconds.
+ * Water Pro takes a changed sea and evaluates its waves only inside a simulation step: each battle scene
+ * runs one from the frozen time and shows the waves 1/60 s after it, with the crest foam it already had
+ * (no warm-up), as the original Water Pro captures did; the port keeps the waves its load left.
+ * ?foam=warm first runs FOAM_WARMUP seconds of Water Pro steps, so its whitecaps build as they do at sea. */
+const freeze = async (seconds, { step = true } = {}) => {
+  if (oceanRenderer === 'waterpro') {
+    const warm = params.get('foam') === 'warm';
+    if (warm) { game.ocean.time = seconds - FOAM_WARMUP; for (let i = 0; i < FOAM_WARMUP * 30; i++) await game.ocean.update(1 / 30); }
+    game.ocean.time = seconds;
+    if (step || warm) { await game.ocean.update(1 / 60); game.ocean.time = seconds; }
+    return;
+  }
   for (let t = seconds - FOAM_WARMUP; t < seconds; t += 1 / 30) game.ocean.waveField.update(game.renderer, t, 1 / 30);
   game.ocean.time = seconds;
 };
@@ -45,31 +65,67 @@ const look = (position, target, fov = 60) => {
   game.camera.position.set(...position); game.camera.lookAt(...target);
   game.camera.fov = fov; game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
 };
-const place = (view, pose) => { Object.assign(view.actor.motion, pose); view.snap(); };
+/** The simulation's sea clock at the poses drawn (the battle is paused, so it holds). */
+const seaTime = () => game.simulation.presentationTime ?? game.simulation.tick / 60;
+/** Set a hull's pose; unless ?ride=off it rides the combat sea there as the authority's response poses it (heave, roll
+ * and pitch without its easing), fading with a submarine's depth (`pose.y` below 0) as the authority's does. */
+const place = (view, pose) => {
+  const sea = params.get('ride') === 'off' ? undefined : game.simulation.sea;
+  const fade = Math.exp(-Math.max(0, -pose.y) / 8), wave = sea ? seaResponse(sea, view.definition.hull, pose, seaTime()) : { heave: 0, roll: 0, pitch: 0 };
+  Object.assign(view.actor.motion, pose, { y: pose.y + wave.heave * fade, waveHeave: wave.heave * fade, roll: pose.roll + wave.roll * fade, pitch: pose.pitch + wave.pitch * fade });
+  view.snap();
+};
 let battleKey, wakeState;
 /** Enter (or stay in) a paused battle with these conditions; ships at fixed poses. */
-async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12, wind = 9, cloud, range = 5000 } = {}) {
+async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12, wind = Number(params.get('wind') ?? 9), cloud, range = 5000, enemy = 'bismarck' } = {}) {
   const key = `${map}/${player}/${range}`;
   if (key !== battleKey) {
     game.rig.update = rigUpdate;
     game.setInPort(true); game.setPaused(true);
-    await game.prepareBattle({ playerShipId: player, friendlyBots: [], enemies: ['bismarck'], spawnDistance: range, mapId: map, windSpeed: wind, timeHours: hours, ...(cloud === undefined ? {} : { cloudCover: cloud }) });
+    // The battle's seed sets the combat sea's phase; ?seed= (default fixed) makes every run ride the same sea.
+    const draw = crypto.getRandomValues.bind(crypto), seed = Number(params.get('seed') ?? 0x5eed);
+    crypto.getRandomValues = array => { if (array instanceof Uint32Array && array.length === 1) { array[0] = seed; return array; } return draw(array); };
+    try { await game.prepareBattle({ playerShipId: player, friendlyBots: [], enemies: [enemy], spawnDistance: range, mapId: map, windSpeed: wind, timeHours: hours, ...(cloud === undefined ? {} : { cloudCover: cloud }) }); }
+    finally { crypto.getRandomValues = draw; }
     battleKey = key;
   }
   game.environment.setBattle({ weather: 'map', timeOfDay: 'map', conditions: { timeHours: hours, windSpeed: wind, ...(cloud === undefined ? {} : { cloudCover: cloud }) } });
+  // A battle kept from an earlier scene rides this scene's wind too, as the drawn sea does.
+  game.simulation.setWind?.(wind);
   game.setInPort(false); game.setPaused(true); game.rig.releasePointer();
   game.environment.setScene(game.simulation.mapId, false);
   place(game.playerView, { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 });
   if (game.targetView) { place(game.targetView, { x: range, y: 0, z: 0, heading: Math.PI / 2, pitch: 0, roll: 0 }); game.targetView.root.visible = true; }
   game.ship.position.copy(game.playerView.root.position);
-  freeze(60);
+  await freeze(60);
 }
+/** From rest at the origin, sail the player north at `throttle` for `seconds`, putting the rudder over after `turnAt`
+ * seconds; the game is left paused with the trail laid. Returns the ship with `back`/`side` unit vectors along it. */
+async function sail({ player = 'bismarck', seconds = 90, throttle = 1, rudder = 0, turnAt = Infinity, hours = 12 } = {}) {
+  // A fresh battle each time: the simulation, not the view, owns the hull's pose and speed.
+  battleKey = undefined;
+  // A static enemy: no shell splashes or camera shake over the trail.
+  await battle({ player, range: 15000, hours, enemy: { shipId: 'bismarck', aiLevel: 'static' } });
+  game.rig.update = rigUpdate;
+  const sample = game.input.sample.bind(game.input);
+  let elapsed = 0;
+  game.input.sample = () => ({ ...sample(), throttle, rudder: elapsed >= turnAt ? rudder : 0 });
+  game.setPaused(false);
+  // Yield a task per frame so the simulation worker's replies land between frames.
+  try { for (; elapsed < seconds; elapsed += .1) { await new Promise(requestAnimationFrame); await game.frame(game.lastTime + 100); } }
+  finally { game.input.sample = sample; game.setPaused(true); }
+  const ship = game.simulation.ship;
+  wakeState = { x: ship.x, z: ship.z, heading: ship.heading, speed: ship.speed };
+  return { ...wakeState, back: [-Math.sin(ship.heading), Math.cos(ship.heading)], side: [Math.cos(ship.heading), Math.sin(ship.heading)] };
+}
+/** A point `aft` metres astern of the ship and `across` to starboard, at height `y`. */
+const astern = (ship, aft, across = 0, y = 0) => [ship.x + ship.back[0] * aft + ship.side[0] * across, y, ship.z + ship.back[1] * aft + ship.side[1] * across];
 const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
 const NEAR = [[300, 95, 350], [0, 20, 0]], WIDE = [[550, 200, 700], [-650, 75, -1000]];
 
 /** Each scene leaves the game paused with a fixed camera and ocean time. */
 const scenes = {
-  port: async () => { game.rig.update = rigUpdate; game.setInPort(true); game.setPaused(true); battleKey = undefined; freeze(60); },
+  port: async () => { game.rig.update = rigUpdate; game.setInPort(true); game.setPaused(true); battleKey = undefined; await freeze(60, { step: false }); },
   near: async () => { await battle(); look(...NEAR); },
   wide: async () => { await battle(); look(...WIDE); },
   grazing: async () => { await battle(); look([0, 12, 160], [0, 6, -4000], 55); },
@@ -80,6 +136,14 @@ const scenes = {
   },
   storm: async () => { await battle({ wind: 25 }); look(...NEAR); },
   calm: async () => { await battle({ wind: 3 }); look(...NEAR); },
+  // Whitecaps through the Beaufort scale at the near camera, and a storm's close up.
+  wind6: async () => { await battle({ wind: 6 }); look(...NEAR); },
+  wind12: async () => { await battle({ wind: 12 }); look(...NEAR); },
+  gale: async () => { await battle({ wind: 15 }); look(...NEAR); },
+  wind18: async () => { await battle({ wind: 18 }); look(...NEAR); },
+  wind30: async () => { await battle({ wind: 30 }); look(...NEAR); },
+  stormClose: async () => { await battle({ wind: 25 }); look([120, 40, 150], [0, 0, 0], 50); },
+  galeClose: async () => { await battle({ wind: 15 }); look([120, 40, 150], [0, 0, 0], 50); },
   dusk: async () => { await battle({ hours: 17.8 }); look(...WIDE); },
   night: async () => { await battle({ hours: 0 }); look(...NEAR); },
   islands: async () => {
@@ -87,9 +151,16 @@ const scenes = {
     const island = game.simulation.islands[0];
     look([island.x + island.rx * 1.25, Math.max(180, island.height * .32), island.z + island.rz * .65], [island.x, island.height * .28, island.z], 60);
   },
+  /** Low abeam along the player's waterline: where a hull shows its bottom over a trough or sinks under a crest. */
+  waterline: async () => { await battle(); look([170, 7, 30], [0, 1, -10], 45); },
+  /** The player's hull and the whole reach of the water coupled to it, fading out, from a few hundred metres up. */
+  ring: async () => { await battle(); look([520, 330, 620], [0, 0, -40], 60); },
   zoom5km: async () => { await battle({ range: 5000 }); look([0, 29, 0], [5000, 14, 0], zoom(24)); },
   zoom20km: async () => { await battle({ range: 20000 }); look([0, 29, 0], [20000, 14, 0], zoom(24)); },
   air: async () => { await battle(); look([0, 2600, 2400], [0, 0, -1800], 52); },
+  // Foam patterns must not repeat as a lattice at the air map's scale.
+  airGale: async () => { await battle({ wind: 15 }); look([0, 2600, 2400], [0, 0, -1800], 52); },
+  airStorm: async () => { await battle({ wind: 25 }); look([0, 2600, 2400], [0, 0, -1800], 52); },
   submerged: async ({ depth = 30, mode = 'Chase' } = {}) => {
     await battle({ player: 'type-viic' });
     game.rig.update = rigUpdate;
@@ -106,6 +177,7 @@ const scenes = {
   periscope: async () => scenes.submerged({ depth: 7, mode: 'Bridge' }),
   /** Ninety seconds at full ahead from rest, then a stern chase view of the trail. */
   wake: async () => {
+    battleKey = undefined;
     await battle({ range: 15000 });
     game.rig.update = rigUpdate;
     const sample = game.input.sample.bind(game.input);
@@ -118,6 +190,22 @@ const scenes = {
     wakeState = { x: ship.x, z: ship.z, heading: ship.heading, speed: ship.speed };
     const back = [-Math.sin(ship.heading), Math.cos(ship.heading)];
     look([ship.x + back[0] * 520 - back[1] * 220, 120, ship.z + back[1] * 520 + back[0] * 220], [ship.x + back[0] * 120, 0, ship.z + back[1] * 120], 55);
+  },
+  /** Three minutes at full ahead seen from 2 km up: the whole trail, from the churned water to the end of the slick. */
+  wakeAir: async () => { const ship = await sail({ seconds: 180 }); look(astern(ship, 700, 900, 2100), astern(ship, 1300, 0, 0), 55); },
+  /** The stern's churned water close up, from 60 m up and 330 m astern. */
+  wakeStern: async () => { const ship = await sail({ seconds: 90 }); look(astern(ship, 330, -90, 60), astern(ship, 60, 0, 0), 50); },
+  /** A minute straight, then a minute of full rudder: the trail curves with the turn. */
+  wakeTurn: async () => { const ship = await sail({ seconds: 120, rudder: 1, turnAt: 60 }); look(astern(ship, 150, -750, 650), astern(ship, 350, 150, 0), 55); },
+  /** A destroyer at full speed (about 35 kn): a narrower, livelier wake. */
+  wakeDestroyer: async () => { const ship = await sail({ player: 'fletcher', seconds: 90 }); look(astern(ship, 260, -110, 70), astern(ship, 40, 0, 0), 55); },
+  /** The trail across the morning sun's glitter: the slick reads as a dark, smooth band through it. */
+  wakeGlint: async () => {
+    const ship = await sail({ seconds: 150, hours: 7.5 });
+    const sun = game.sky.sun.direction, flat = Math.hypot(sun.x, sun.z), toward = [sun.x / flat, sun.z / flat];
+    // Stand off the trail's middle, away from the sun, as high as the sun so the glitter falls on the trail.
+    const middle = astern(ship, 1000), off = 1000, height = off * sun.y / flat;
+    look([middle[0] - toward[0] * off, height, middle[2] - toward[1] * off], [middle[0] + toward[0] * 250, 0, middle[2] + toward[1] * 250], 55);
   },
 };
 
@@ -144,9 +232,32 @@ async function measure(count = 120, stepping = true) {
   return { mean, median: times[times.length >> 1], p90: times[Math.floor(times.length * .9)], calls: game.renderer.info.render.calls, triangles: game.renderer.info.render.triangles };
 }
 
+/** GPU check of the sea hulls ride: with the drawn waves flattened, the heights read back around the player's hull
+ * are the combat sea wherever it is fully coupled, and nothing past the fade. Returns the points and both heights. */
+async function hullSeaProbe() {
+  const waves = game.ocean.waves, height = waves.significantHeight;
+  waves.significantHeight = 0; waves.dirty = true;
+  try {
+    await game.frame(performance.now());
+    const motion = game.playerView.motion, sea = game.simulation.sea, time = seaTime();
+    const ahead = [Math.sin(motion.heading), -Math.cos(motion.heading)], abeam = [Math.cos(motion.heading), Math.sin(motion.heading)];
+    const offsets = [[0, 0], [110, 0], [-110, 0], [0, 18], [0, -40], [150, 30], [0, 90], [0, 1200], [2000, 0]];
+    const points = offsets.map(([along, across]) => ({ along, across,
+      x: motion.x + ahead[0] * along + abeam[0] * across, z: motion.z + ahead[1] * along + abeam[1] * across }));
+    game.ocean.heights.setPositions(points); await game.ocean.heights.refresh();
+    return { time, points: points.map((p, i) => ({ ...p, drawn: game.ocean.heights.heights[i], sea: seaHeight(sea, p.x, p.z, time) })) };
+  } finally { waves.significantHeight = height; waves.dirty = true; await game.frame(performance.now()); }
+}
+
 window.oceanReview = {
-  game, scenes: Object.keys(scenes), errors,
-  async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors], ...(name === 'wake' ? { wakeState } : {}) }; },
+  game, scenes: Object.keys(scenes), errors, hullSeaProbe,
+  async scene(name) {
+    output.textContent = name; await scenes[name](); await settle(); output.textContent = '';
+    const motion = game.inPort ? undefined : game.playerView?.motion;
+    const hull = motion && { seaTime: +seaTime().toFixed(4), tick: game.simulation.tick, wind: game.simulation.sea?.windMps,
+      pose: Object.fromEntries(['x', 'y', 'z', 'heading', 'pitch', 'roll', 'waveHeave'].map(key => [key, +motion[key].toFixed(4)])) };
+    return { name, errors: [...errors], ...(hull ? { hull } : {}), ...(name.startsWith('wake') ? { wakeState } : {}) };
+  },
   capture, measure,
 };
 window.ready = true; output.textContent = '';

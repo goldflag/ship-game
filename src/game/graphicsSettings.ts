@@ -11,6 +11,8 @@ export type Bloom = 'off' | 'on';
 export type AmbientOcclusion = 'off' | 'low' | 'high';
 export type Reflections = 'sky' | 'scene';
 export type PerformanceReadoutMode = 'hidden' | 'fps' | 'detailed';
+/** Which ocean draws the sea: the game's own, or the vendored Water Pro library it replaced, kept to compare them. */
+export type OceanRenderer = 'game' | 'waterpro';
 /** Which sky draws the scene: the game's own, or the vendored Sky Pro library it replaced, kept to compare them. */
 export type SkyRenderer = 'game' | 'skypro';
 /** Frames per second; 0 follows the display refresh. */
@@ -37,8 +39,9 @@ export interface GraphicsSettings {
   terrain: TerrainQuality;
   effects: EffectsQuality;
   readout: PerformanceReadoutMode;
-  /** Developer comparison (the console's "Switch sky renderer"), not a quality row: presets keep it and never
-   * match on it. Applies when the port next loads. */
+  /** Developer comparisons (the console's "Switch ocean renderer" and "Switch sky renderer"), not quality rows:
+   * presets keep them and never match on them. Each applies when the port next loads. */
+  oceanRenderer: OceanRenderer;
   skyRenderer: SkyRenderer;
 }
 
@@ -48,16 +51,20 @@ export const RENDER_SCALE_STEP = 5;
 export const FRAME_LIMITS: readonly FrameLimit[] = [0, 120, 60, 30];
 
 /** High reproduces the ocean, sky, shadow and terrain choices of the former High tier exactly. */
-const QUALITY: Readonly<Record<GraphicsPreset, Omit<GraphicsSettings, 'skyRenderer'>>> = {
+/** The developer comparisons: rows that are not quality, which presets keep as they are. */
+type Comparisons = Pick<GraphicsSettings, 'oceanRenderer' | 'skyRenderer'>;
+const COMPARISONS: readonly (keyof GraphicsSettings)[] = ['oceanRenderer', 'skyRenderer'];
+const QUALITY: Readonly<Record<GraphicsPreset, Omit<GraphicsSettings, keyof Comparisons>>> = {
   low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', bloom: 'off', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', ambientOcclusion: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
   medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', bloom: 'on', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', ambientOcclusion: 'off', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
   high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', bloom: 'on', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', ambientOcclusion: 'low', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
   ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', bloom: 'on', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', ambientOcclusion: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
 };
-/** Presets set the quality rows only and draw the game's own sky. */
+/** Presets set the quality rows only and draw the game's own ocean and sky. */
+const GAME_RENDERERS: Comparisons = { oceanRenderer: 'game', skyRenderer: 'game' };
 export const GRAPHICS_PRESETS: Readonly<Record<GraphicsPreset, Readonly<GraphicsSettings>>> = {
-  low: { ...QUALITY.low, skyRenderer: 'game' }, medium: { ...QUALITY.medium, skyRenderer: 'game' },
-  high: { ...QUALITY.high, skyRenderer: 'game' }, ultra: { ...QUALITY.ultra, skyRenderer: 'game' },
+  low: { ...QUALITY.low, ...GAME_RENDERERS }, medium: { ...QUALITY.medium, ...GAME_RENDERERS },
+  high: { ...QUALITY.high, ...GAME_RENDERERS }, ultra: { ...QUALITY.ultra, ...GAME_RENDERERS },
 };
 export const PRESET_ORDER: readonly GraphicsPreset[] = ['low', 'medium', 'high', 'ultra'];
 export const DEFAULT_GRAPHICS: Readonly<GraphicsSettings> = GRAPHICS_PRESETS.high;
@@ -91,6 +98,7 @@ export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
     terrain: oneOf(saved.terrain, ['medium', 'high'], base.terrain),
     effects: oneOf(saved.effects, ['low', 'medium', 'high'], base.effects),
     readout: oneOf(saved.readout, ['hidden', 'fps', 'detailed'], base.readout),
+    oceanRenderer: oneOf(saved.oceanRenderer, ['game', 'waterpro'], base.oceanRenderer),
     skyRenderer: oneOf(saved.skyRenderer, ['game', 'skypro'], base.skyRenderer),
   };
   // Saves from before a row take it from the preset they otherwise sit closest to,
@@ -111,12 +119,12 @@ export function loadGraphicsSettings(): GraphicsSettings {
   } catch { return { ...DEFAULT_GRAPHICS }; }
 }
 
-/** The quality rows presets set and match; the developer sky comparison is not one of them. */
-const SETTING_KEYS = (Object.keys(DEFAULT_GRAPHICS) as (keyof GraphicsSettings)[]).filter(key => key !== 'skyRenderer');
+/** The quality rows presets set and match; the developer comparisons are not among them. */
+const SETTING_KEYS = (Object.keys(DEFAULT_GRAPHICS) as (keyof GraphicsSettings)[]).filter(key => !COMPARISONS.includes(key));
 
-/** A quality preset applied over the current settings, keeping the developer sky comparison. */
-export function withPreset(current: Pick<GraphicsSettings, 'skyRenderer'>, preset: GraphicsPreset): GraphicsSettings {
-  return { ...GRAPHICS_PRESETS[preset], skyRenderer: current.skyRenderer };
+/** A quality preset applied over the current settings, keeping the developer comparisons. */
+export function withPreset(current: Comparisons, preset: GraphicsPreset): GraphicsSettings {
+  return { ...GRAPHICS_PRESETS[preset], oceanRenderer: current.oceanRenderer, skyRenderer: current.skyRenderer };
 }
 
 export function matchingPreset(settings: GraphicsSettings): GraphicsPreset | null {
@@ -157,9 +165,10 @@ export function effectsDensity(effects: EffectsQuality): number {
 export function frameIntervalMs(limit: FrameLimit): number { return limit ? 1000 / limit : 0; }
 
 /** The rows a scene is built with; changing one rebuilds the port. */
-export type LaunchedGraphics = Pick<GraphicsSettings, 'ocean' | 'terrain' | 'skyRenderer'>;
+export type LaunchedGraphics = Pick<GraphicsSettings, 'ocean' | 'terrain' | 'oceanRenderer' | 'skyRenderer'>;
 
 /** Whether the loaded scene already uses the rows that only apply at launch. */
 export function launchMatches(launched: LaunchedGraphics, current: GraphicsSettings): boolean {
-  return launched.ocean === current.ocean && launched.terrain === current.terrain && launched.skyRenderer === current.skyRenderer;
+  return launched.ocean === current.ocean && launched.terrain === current.terrain
+    && launched.oceanRenderer === current.oceanRenderer && launched.skyRenderer === current.skyRenderer;
 }

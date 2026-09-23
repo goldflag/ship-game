@@ -1,6 +1,7 @@
 import { Color, HemisphereLight, MathUtils, Vector3, type DirectionalLight, type Object3D, type PerspectiveCamera } from 'three/webgpu';
 import type { OceanApi } from './ocean/contracts';
 import type { SkyApi, SkyScene } from './sky/contracts';
+import { windrowCoverage } from './ocean/waves/whitecaps';
 import { DEFAULT_MAP, oceanMap, type OceanMapId } from '../maps/catalog';
 import { battleEnvironment, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
 
@@ -45,8 +46,19 @@ export interface DeveloperWeather {
 const SUN_HAZE = .45;
 /** A full moon unless the developer console picks another phase: the brightest night. */
 const MOON_PHASE = .5;
-/** Streaks of residual foam the wind draws out: none up to a fresh breeze (m/s), this opacity by a storm. */
-const SURFACE_FOAM_WIND = [10, 25] as const, SURFACE_FOAM_OPACITY = .15;
+/** Opacity of a windrow's old foam: a thin film the sea shows through. */
+const WINDROW_OPACITY = .5;
+/** Windrows at `windSpeed` (m/s), with the map's whitecap `scale`: lines of old foam covering their share of the wind's
+ * whitecap coverage. */
+export function windrowFoam(windSpeed: number, scale = 1): { coverage: number; opacity: number } {
+  return { opacity: WINDROW_OPACITY, coverage: windrowCoverage(windSpeed, scale) };
+}
+/** e-folding lifetime of whitecap foam in periods of the breaking waves: 2.6 s for a 9 m/s sea's breakers, 5 s for a
+ * storm's big ones, within the few to ten seconds real stage-B foam takes to clear (Callaghan et al. 2012). */
+export const WHITECAP_LIFETIME = 1;
+/** The map foam value whose whitecaps cover what the wind calls for (the Atlantic's); other maps scale their coverage
+ * by their value over this one, so a calmer-looking sea has fewer whitecaps, not greyer ones. */
+const REFERENCE_FOAM = .45;
 /** Sky Pro's sky and the ocean are tuned by eye against the raw sun.
  * Three's lit meshes turn the same intensity into about twice the light a Cycles
  * render of the same GLB shows: 0.29-albedo Kure gray reached sRGB 200 in port.
@@ -182,12 +194,14 @@ export class VisualEnvironment {
     ocean.colors.transmissionColor.set(colors.transmissionColor).multiplyScalar(waterFill);
     ocean.colors.absorptionColor.set(colors.absorptionColor);
     this.surfaceAbsorption.copy(ocean.colors.absorptionColor);
+    // Foam is lit by the sky and the sun or moon like any white surface, so night needs no scaling of its tint.
     const { crest, surface, shoreline } = ocean.foam;
-    surface.color.setScalar(waterFill);
-    crest.color.setScalar(waterFill);
-    shoreline.color.set('#edf9fd').multiplyScalar(waterFill);
-    Object.assign(crest, { opacity: .8 * map.water.foam / .45, windStretch: .5, crestStrength: waves.crestFoam, windwardStrength: waves.windwardFoam, decayTime: 2.8 });
-    Object.assign(surface, { opacity: SURFACE_FOAM_OPACITY * MathUtils.smoothstep(waves.windSpeed, SURFACE_FOAM_WIND[0], SURFACE_FOAM_WIND[1]), coverage: .05 });
+    surface.color.setScalar(1);
+    crest.color.setScalar(1);
+    shoreline.color.set('#edf9fd');
+    // Whitecaps cover the share of the sea the wind calls for; the ocean places them from its own spectrum.
+    Object.assign(crest, { opacity: 1, windStretch: .5, coverageScale: map.water.foam / REFERENCE_FOAM, lifetime: WHITECAP_LIFETIME });
+    Object.assign(surface, windrowFoam(waves.windSpeed, crest.coverageScale));
     this.sinks.effects.setWind(ocean.waves.windSpeed, ocean.waves.windDirection);
     this.sinks.funnelSmoke.setWind(ocean.waves.windSpeed, ocean.waves.windDirection);
   }
@@ -233,6 +247,8 @@ export class VisualEnvironment {
     ocean.fog.end = this.chartFog ? 900000 : scene.end * scale;
     ocean.fog.power = this.inPort ? .85 : 1.4;
     ocean.fog.skyBlendDistance = scene.skyBlend * scale;
+    // The port's short, sheltered ramp is a showroom choice, not a visual range; battles may take real haze.
+    ocean.fog.aerial = !this.inPort;
   }
   /** The scene's fog end, ignoring the air map's temporary far fog. */
   private sceneFogEnd(): number {

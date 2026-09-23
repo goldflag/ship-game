@@ -312,12 +312,19 @@ export interface ConstructionLoad extends Volume {
   massKg: number;
 }
 export type ConstructionSurfaceFinish = 'matte' | 'satin' | 'semi-gloss' | 'gloss';
+/** How long the paint has been at sea: mottling, runoff streaks, the tide stain and funnel soot. */
+export type ConstructionWear = 'fresh' | 'in-commission' | 'long-deployment' | 'battle-worn';
 export interface ConstructionData {
   /** Ship-wide painted-surface sheen; omission preserves original material finishes. */
   finish?: ConstructionSurfaceFinish;
   /** Ship paint for unassigned faces, unpainted fittings and their barbettes; omission keeps
    * naval gray faces and original component finishes. */
   paint?: string;
+  /** Paint for horizontal steel that wears the ship paint: roofs, platforms and turret tops.
+   * Omission uses a darker shade of the ship paint. Visual only. */
+  roofPaint?: string;
+  /** Weathering drawn over every painted surface; omission reads as `in-commission`. Visual only. */
+  wear?: ConstructionWear;
   version: 1 | 2;
   catalogRevision: string;
   defaultThicknessMm: number;

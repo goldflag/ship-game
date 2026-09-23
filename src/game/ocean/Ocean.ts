@@ -1,6 +1,6 @@
 import { Color, Vector3, type Material, type Mesh, type Node, type Object3D, type PassNode, type PerspectiveCamera, type Scene, type Texture, type WebGPURenderer } from 'three/webgpu';
 import { uniform } from 'three/tsl';
-import type { OceanApi, OceanQuality, OceanSky, WakeSampler, WaveParameters } from './contracts';
+import type { HullFootprint, HullSeaWave, OceanApi, OceanQuality, OceanRealism, OceanSky, WakeSampler, WaveParameters } from './contracts';
 import { OCEAN_TIERS } from './quality';
 import { oceanFog } from './screen/fog';
 import { createUnderwaterPass, nearPlaneMayBeSubmerged } from './screen/underwater';
@@ -24,16 +24,18 @@ export class Ocean implements OceanApi {
   readonly waves: WaveParameters;
   readonly colors = { waterColor: new Color('#2d373c'), transmissionColor: new Color('#49575e'), absorptionColor: new Color('#945b57') };
   readonly foam = {
-    crest: { crestStrength: .8, windwardStrength: 1.2, decayTime: 2.8, color: new Color(1, 1, 1), opacity: .8, windStretch: .5 },
+    crest: { coverageScale: 1, lifetime: 1, color: new Color(1, 1, 1), opacity: .8, windStretch: .5 },
     surface: { color: new Color(1, 1, 1), opacity: .05, coverage: .18 },
     shoreline: { color: new Color('#edf9fd'), opacity: .8 },
   };
-  readonly fog = { color: new Color('#8b8f92'), start: 2500, end: 16000, power: 1.4, skyBlendDistance: 10000 };
+  readonly fog = { color: new Color('#8b8f92'), start: 2500, end: 16000, power: 1.4, skyBlendDistance: 10000, aerial: true };
   readonly sun = { direction: new Vector3(0, 1, 0), intensity: 1, color: new Color(1, 1, 1) };
   readonly reflections: { screenSpace: boolean; maxDistance: number; readonly steps: number };
   readonly wake;
   readonly waveField;
   readonly heights;
+  // Real haze is off by default: at the maps' authored visibility it hides a battleship at 20 km (see OceanRealism).
+  readonly realism: OceanRealism = { seaState: true, reflections: true, waterColor: true, wake: true, atmosphere: false };
   environmentIntensity = 1;
   time = 0;
   cameraNearSurface = true;
@@ -48,6 +50,8 @@ export class Ocean implements OceanApi {
   private readonly material: OceanSurfaceMaterial;
   /** `cameraNearSurface` for the underwater pass's uniform branch. */
   private readonly nearSurface = uniform(true);
+  /** Whether the fog follows real extinction this frame: the realism switch and the scene's permission. */
+  private readonly aerialHaze = uniform(true);
   private readonly underwater: (scenePass: PassNode, color: Node<'vec4'>) => Node<'vec4'>;
 
   static async create(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, { quality, seed }: { quality: OceanQuality; seed: number }): Promise<Ocean> {
@@ -61,15 +65,16 @@ export class Ocean implements OceanApi {
     // A screen-space ray may travel about a battleship's length and a half before it gives up;
     // WaterViewFocus stretches it for a hull seen through the lens.
     this.reflections = { screenSpace: tier.reflectionSteps > 0, maxDistance: 400, steps: tier.reflectionSteps };
-    this.waveField = createWaveField(renderer, tier.cascades, this.waves, this.foam.crest);
+    this.waveField = createWaveField(renderer, tier.cascades, this.waves, this.foam.crest, this.realism);
     this.heights = createWaveHeightSampler(renderer, this.waveField);
     this.wake = createWakeField(renderer, tier.wakeResolution);
     this.geometry = new OceanGeometry(tier.segments, camera.far);
-    this.material = new OceanSurfaceMaterial({ waves: this.waveField, geometry: this.geometry, colors: this.colors, foam: this.foam, sun: this.sun, reflections: this.reflections }, this.bindings());
+    this.material = new OceanSurfaceMaterial({ waves: this.waveField, geometry: this.geometry, colors: this.colors, foam: this.foam, sun: this.sun, reflections: this.reflections,
+      realism: this.realism }, this.bindings());
     this.geometry.mesh.material = this.material;
     this.geometry.mesh.renderOrder = SURFACE_ORDER;
     scene.add(this.geometry.mesh);
-    scene.fogNode = oceanFog(this.fog, null);
+    scene.fogNode = oceanFog(this.fog, null, this.aerialHaze);
     // The waterline follows the waves and the wake, as the surface mesh does.
     this.underwater = createUnderwaterPass({ heightAt: xz => this.waveField.heightAt(xz).add(this.wake.sampler.height(xz.x, xz.y)),
       colors: this.colors, sun: this.sun, cameraNearSurface: this.nearSurface });
@@ -79,6 +84,7 @@ export class Ocean implements OceanApi {
     if (dt > 0) this.time += dt;
     this.geometry.update(this.camera);
     this.sky?.followCamera(this.camera);
+    this.aerialHaze.value = this.realism.atmosphere && this.fog.aerial;
     const crest = Math.min(this.waveField.maxHeight, CREST_BOUND * this.waves.significantHeight);
     this.cameraNearSurface = this.nearSurface.value = nearPlaneMayBeSubmerged(this.camera, crest + WAKE_BOUND);
     this.waveField.update(this.renderer, this.time, dt);
@@ -103,6 +109,10 @@ export class Ocean implements OceanApi {
     });
   }
 
+  setHullSea(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[]): void {
+    this.waveField.couple(waves, time, hulls, { x: this.camera.position.x, z: this.camera.position.z });
+  }
+
   setSky(sky: OceanSky | null): void {
     this.sky = sky;
     // Sky backdrops are the fog's own colour source; fogging them would darken the horizon twice.
@@ -110,7 +120,7 @@ export class Ocean implements OceanApi {
       const materials = (mesh as Mesh).material;
       for (const material of Array.isArray(materials) ? materials : materials ? [materials] : []) (material as Material & { fog: boolean }).fog = false;
     }
-    this.scene.fogNode = oceanFog(this.fog, sky);
+    this.scene.fogNode = oceanFog(this.fog, sky, this.aerialHaze);
     this.environment = this.scene.environment = sky?.getEnvironmentTexture() ?? null;
     this.material.bind(this.bindings());
   }

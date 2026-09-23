@@ -17,12 +17,19 @@ test('a typed word and number pick settings and set their values', () => {
   expect(labels('rain 40%')).toEqual([['Rain', 40]]);
   expect(labels('lightning 6/min')).toEqual([['Lightning', 6]]);
   expect(labels('moon 0.25')).toEqual([['Moon phase', .25]]);
-  expect(labels('sky renderer')).toEqual([['Switch sky renderer', undefined]]);
-  expect(matchCommands('').length).toBe(19);
+  expect(labels('slick')).toEqual([['Toggle realistic wakes', undefined]]);
+  for (const query of ['water pro', 'switch ocean']) expect(labels(query)).toEqual([['Switch ocean renderer', undefined]]);
+  for (const query of ['sky renderer', 'skypro']) expect(labels(query)).toEqual([['Switch sky renderer', undefined]]);
+  // Both vendored libraries the game replaced answer to the comparison's words.
+  for (const query of ['library', 'compare', 'renderer']) expect(labels(query)).toEqual([['Switch ocean renderer', undefined], ['Switch sky renderer', undefined]]);
+  expect(labels('realistic haze')).toEqual([['Toggle realistic haze', undefined]]);
+  expect(matchCommands('').length).toBe(25);
 });
 
 test('online battles offer only the visual diagnostics', () => {
-  expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined], ['Toggle bow waves', undefined], ['Switch sky renderer', undefined]]);
+  expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined], ['Toggle bow waves', undefined], ['Toggle realistic sea state', undefined],
+    ['Toggle physical reflections', undefined], ['Toggle physical water colour', undefined], ['Toggle realistic wakes', undefined], ['Toggle realistic haze', undefined],
+    ['Switch ocean renderer', undefined], ['Switch sky renderer', undefined]]);
   expect(labels('wind 14', true)).toEqual([]);
 });
 

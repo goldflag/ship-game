@@ -1,12 +1,15 @@
 import { Vector4, type Camera, type Node, type PerspectiveCamera } from 'three/webgpu';
-import { Fn, If, Loop, atan, cameraPosition, exp, float, max, mx_noise_float, smoothstep, uniform, uniformArray, vec3, vec4 } from 'three/tsl';
+import { Fn, If, Loop, atan, cameraPosition, exp, float, max, mx_noise_float, smoothstep, uniform, vec3, vec4 } from 'three/tsl';
 import type { WakeShip } from './FleetWakeFoam';
+import { PackedVec4Arrays } from './packedUniforms';
 import { wakeHull } from './wakeHull';
 
 const GRAVITY = 9.81;
 const TAU = Math.PI * 2;
 /** Hulls drawn at once; the nearest to the camera keep their bow waves. */
 export const BOW_WAVE_SLOTS = 8;
+/** Sections of the per-slot values. */
+const POSE = 0, WAVE = 1, HULL = 2, BEND = 3;
 
 /** Live-tunable shape of the bow wave. Visual choices, not a hydrodynamic model. */
 export const BOW_WAVE_TUNING = {
@@ -77,18 +80,14 @@ type Stage = 'vertex' | 'fragment';
 export class BowWaves {
   readonly tuning: BowWaveTuning = { ...BOW_WAVE_TUNING };
   enabled = true;
-  private readonly poseValues = Array.from({ length: BOW_WAVE_SLOTS }, () => new Vector4());
-  private readonly waveValues = Array.from({ length: BOW_WAVE_SLOTS }, () => new Vector4());
-  private readonly hullValues = Array.from({ length: BOW_WAVE_SLOTS }, () => new Vector4());
-  /** Stem x/z, sin and cos of heading. */
-  private readonly poses = uniformArray<'vec4'>(this.poseValues, 'vec4');
-  /** k₀, Kelvin amplitude, crest height, crest decay length. */
-  private readonly waves = uniformArray<'vec4'>(this.waveValues, 'vec4');
-  /** Length, beam, source depth, speed share of full ahead. */
-  private readonly hulls = uniformArray<'vec4'>(this.hullValues, 'vec4');
-  private readonly bendValues = Array.from({ length: BOW_WAVE_SLOTS }, () => new Vector4());
-  /** Track curvature (1/m, positive turning to starboard): the V follows the wake's arc, not the bow's heading. */
-  private readonly bends = uniformArray<'vec4'>(this.bendValues, 'vec4');
+  /** Per slot, in one uniform buffer: pose (stem x/z, sin and cos of heading); wave (k₀, Kelvin amplitude, crest
+   * height, crest decay length); hull (length, beam, source depth, speed share of full ahead); bend (track curvature,
+   * 1/m, positive turning to starboard: the V follows the wake's arc, not the bow's heading). */
+  private readonly packed = new PackedVec4Arrays([BOW_WAVE_SLOTS, BOW_WAVE_SLOTS, BOW_WAVE_SLOTS, BOW_WAVE_SLOTS]);
+  private readonly poseValues = this.packed.sections[POSE];
+  private readonly waveValues = this.packed.sections[WAVE];
+  private readonly hullValues = this.packed.sections[HULL];
+  private readonly bendValues = this.packed.sections[BEND];
   private readonly count = uniform(0, 'int');
   private readonly time = uniform(0);
   /** Radians per drawing-buffer pixel, for the fragment's anti-aliasing. */
@@ -202,11 +201,11 @@ export class BowWaves {
         ? this.vertexSpacing.mul(range.add(128).div(128)).mul(tune.vertexFeature)
         : range.mul(this.pixelAngle).div(cameraPosition.y.abs().div(range).max(.04)).mul(5)).toVar();
       Loop({ start: 0, end: this.count, type: 'int' }, ({ i }) => {
-        const pose = this.poses.element(i), wave = this.waves.element(i), hull = this.hulls.element(i);
+        const pose = this.packed.element(POSE, i), wave = this.packed.element(WAVE, i), hull = this.packed.element(HULL, i);
         const dx = x.sub(pose.x), dz = z.sub(pose.y);
         // Ship frame: `a` metres astern of the stem, `y` to starboard.
         const a = dz.mul(pose.w).sub(dx.mul(pose.z)).toVar(), y = dx.mul(pose.w).add(dz.mul(pose.z)).toVar();
-        const length = hull.x, beam = hull.y, ay = y.abs().toVar(), side = y.sign(), bend = this.bends.element(i).x;
+        const length = hull.x, beam = hull.y, ay = y.abs().toVar(), side = y.sign(), bend = this.packed.element(BEND, i).x;
         If(a.greaterThan(length.mul(-.06)).and(a.lessThan(length.mul(tune.reach)))
           .and(ay.lessThan(a.max(0).mul(.37).add(beam.mul(1.5)).add(bend.abs().mul(a).mul(a).mul(.5)))), () => {
           const slopeA = float(0).toVar(), slopeY = float(0).toVar(), white = float(0).toVar();

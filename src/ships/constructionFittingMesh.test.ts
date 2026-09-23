@@ -238,7 +238,11 @@ test('a mesh fitting compiles as mass only and draws each definition once', asyn
   const fwd = model.getObjectByName('house-fwd')!,
     aft = model.getObjectByName('house-aft')!;
   const meshes = (node: THREE.Object3D) => node.children.filter((child): child is THREE.Mesh => child instanceof THREE.Mesh);
-  expect(meshes(fwd).map((mesh) => mesh.geometry)).toEqual(meshes(aft).map((mesh) => mesh.geometry));
+  // One drawing serves both; the scaled instance carries its own wear, measured in ship metres.
+  const drawn = (node: THREE.Object3D) => meshes(node).map((mesh) => Array.from(mesh.geometry.getAttribute('position').array));
+  const tallest = (node: THREE.Object3D) => Math.max(...meshes(node).flatMap((mesh) => Array.from(mesh.geometry.getAttribute('shipWear').array).filter((_, i) => i % 4 === 1 && _ < 64)));
+  expect(drawn(fwd)).toEqual(drawn(aft));
+  expect(tallest(aft) / tallest(fwd)).toBeCloseTo(1.2, 3);
   expect(fittingModelTriangles(fwd)).toBe(152);
   expect(aft.scale.toArray()).toEqual([0.6, 1.2, 0.6]);
   aft.updateMatrixWorld(true);

@@ -20,13 +20,15 @@ import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape
 import { VisualEnvironment, type DeveloperWeather, type EnvironmentOverrides } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
 import { BerthMotion } from './BerthMotion';
-import { createSeaState, type SeaState } from './session/sea';
+import { createSeaState, seaWaves, type SeaState } from './session/sea';
+import { hullFootprints } from './hullSea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
 import * as THREE from 'three/webgpu';
 import { pass, vec2 } from 'three/tsl';
 import { frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
+import type { OceanApi, OceanRealism } from './ocean/contracts';
 import { HullWetBand } from './HullWetBand';
 import { primeHullProfile } from './HullContactFoam';
 import { FrameScene } from './FrameScene';
@@ -262,7 +264,7 @@ export class Game {
   }
   get selectedFlightId(): string | undefined { return this.selectedFlightIds[0]; }
   set selectedFlightId(id: string | undefined) { this.flightSelection = id ? [id] : []; }
-  private ocean?: Ocean;
+  private ocean?: OceanApi;
   private sunLight?: THREE.DirectionalLight;
   private sunShadows?: FocusShadowNode;
   private landscape?: THREE.Group;
@@ -286,6 +288,8 @@ export class Game {
   private berthEmpty = false;
   private readonly berthMotion = new BerthMotion();
   private berthSea?: { wind: number; direction: number; state: SeaState };
+  /** The sea the berth hull rode this frame (still water while it is inspected), which the water around it shows. */
+  private berthRidden?: SeaState;
   private harbor?: HarborBackdrop;
   private raf = 0;
   private lastTime = 0;
@@ -300,14 +304,14 @@ export class Game {
   private articulationResolver?: ArticulationResolver;
 
   private settings: GraphicsSettings;
-  /** Ocean tier and terrain density this scene was built with; every other row applies live. */
+  /** Ocean tier, the ocean and sky renderers and terrain density this scene was built with; every other row applies live. */
   readonly launchedGraphics: LaunchedGraphics;
   private frameIntervalMs = 0;
   private detailBudgetPx = 1.25;
 
   constructor(private host: HTMLElement, settings: GraphicsSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.settings = sanitizeGraphicsSettings(settings);
-    this.launchedGraphics = { ocean: this.settings.ocean, terrain: this.settings.terrain, skyRenderer: this.settings.skyRenderer };
+    this.launchedGraphics = { ocean: this.settings.ocean, terrain: this.settings.terrain, oceanRenderer: this.settings.oceanRenderer, skyRenderer: this.settings.skyRenderer };
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
     this.definition = definition;
@@ -385,7 +389,8 @@ export class Game {
   private async initialize(): Promise<void> {
     // Diagnostics may replace the settings object before start; accept any saved shape.
     this.settings = sanitizeGraphicsSettings(this.settings);
-    Object.assign(this.launchedGraphics, { ocean: this.settings.ocean, terrain: this.settings.terrain, skyRenderer: this.settings.skyRenderer });
+    Object.assign(this.launchedGraphics, { ocean: this.settings.ocean, terrain: this.settings.terrain, oceanRenderer: this.settings.oceanRenderer,
+      skyRenderer: this.settings.skyRenderer });
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
     this.graphicsControl.applyAmbientOcclusion();
@@ -404,7 +409,9 @@ export class Game {
     // The port session compiles the hull in its worker while the model loads.
     // Through the same cache the fleets use, so the first sortie does not fetch and rebuild
     // the hull the player has been looking at in port.
-    const [simulation, model] = await Promise.all([this.portSession(this.definition), this.hull(this.definition).then(async model => { await prepareShipDetail(model); return model; })]);
+    // A saved design's hull is built from its frozen revision, as its port session is: a rebuilt port (a launch-time
+    // setting, the ocean renderer switch) starts with the design already berthed.
+    const [simulation, model] = await Promise.all([this.portSession(this.definition), this.hull(this.definition, localShip(this.definition.id)).then(async model => { await prepareShipDetail(model); return model; })]);
     if (this.disposed) { simulation.dispose(); this.assertActive(); }
     this.simulation = simulation;
     this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
@@ -429,7 +436,7 @@ export class Game {
     this.scene.add(this.environment.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
-    const ocean = this.ocean = await Ocean.create(this.renderer, this.scene, this.camera, { quality: this.settings.ocean, seed: 1941 });
+    const ocean = this.ocean = await this.createOcean();
     // Meshes are lit by a game-owned sun that carries the near and wide shadow maps from the
     // start, since three caches a light's shadow node on its first build; the sea shades from
     // the ocean's own sun uniforms. Its shadow offsets are the ones the scene's sun has always used.
@@ -508,9 +515,20 @@ export class Game {
     this.scheduleFrame();
   }
 
+  /** The game's ocean, or for comparison the vendored Water Pro library it replaced, behind the same facade
+   * (Graphics `oceanRenderer`, switched from the developer console). Only the comparison downloads the library. */
+  private async createOcean(): Promise<OceanApi> {
+    const quality = this.launchedGraphics.ocean;
+    if (this.launchedGraphics.oceanRenderer === 'waterpro') {
+      const { WaterProOcean } = await import('./comparison/WaterProOcean');
+      return WaterProOcean.create(this.renderer, this.scene, this.camera, { quality });
+    }
+    return Ocean.create(this.renderer, this.scene, this.camera, { quality, seed: 1941 });
+  }
+
   /** The game's sky, or for comparison the vendored Sky Pro library it replaced, behind the same facade
    * (Graphics `skyRenderer`, switched from the developer console). Only the comparison downloads the library. */
-  private async createSky(ocean: Ocean): Promise<SkyApi> {
+  private async createSky(ocean: OceanApi): Promise<SkyApi> {
     const quality = this.settings.clouds;
     if (this.launchedGraphics.skyRenderer === 'skypro') {
       const { SkyProSky } = await import('./comparison/SkyProSky');
@@ -725,11 +743,13 @@ export class Game {
    * views settle the hull, keeping plates and rooms steady under the cursor. */
   private updateBerthMotion(dt: number): void {
     const view = this.playerView, reading = this.inPort ? this.environment.reading() : undefined;
+    this.berthRidden = undefined;
     if (!view || !reading) { if (view?.seaOffset) { view.seaOffset = undefined; this.berthMotion.reset(); } return; }
     if (this.berthSea?.wind !== reading.windSpeed || this.berthSea.direction !== reading.windDirection)
       this.berthSea = { wind: reading.windSpeed, direction: reading.windDirection, state: { ...createSeaState(this.simulation.mapId, 'clear', this.simulation.seed, reading.windSpeed), direction: reading.windDirection * Math.PI / 180 } };
     const riding = view.inspection.mode === 'exterior' && !this.berthEmpty;
-    this.berthMotion.update(riding ? this.berthSea.state : { ...this.berthSea.state, amplitudeM: 0 }, view.definition.hull, view.actor.motion, dt);
+    this.berthRidden = riding ? this.berthSea.state : { ...this.berthSea.state, amplitudeM: 0 };
+    this.berthMotion.update(this.berthRidden, view.definition.hull, view.actor.motion, dt);
     view.seaOffset = this.berthMotion;
   }
 
@@ -1080,8 +1100,11 @@ export class Game {
       try {
         // Ship occlusion first: the ocean pass below draws ship materials too.
         this.occlusion.render(this.renderer, this.scene);
-        // A paused frame (dt 0) renders the same waves, foam and wake again.
-        this.ocean!.update(dt);
+        // A paused frame (dt 0) renders the same waves, foam and wake again. The Water Pro comparison steps
+        // asynchronously and renders its capture passes before this frame may.
+        this.coupleHullSea(emptyBerth);
+        const stepping = this.ocean!.update(dt);
+        if (stepping) { await stepping; if (this.disposed) return; }
         this.renderFrame();
         updateWaterShadows(this.ocean!, this.sunShadows!.wide as unknown as THREE.DirectionalLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows, this.cloudShadow);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
@@ -1221,6 +1244,13 @@ export class Game {
   releasePointer(): void { this.rig.releasePointer(); }
   /** Developer console: compare the analytic bow waves against the native wake field alone. */
   toggleBowWaves(): boolean { return this.shipWake?.toggleBowWaves() ?? false; }
+  /** Developer console: switch one ocean realism feature to compare it with the look tuned to the replaced library. */
+  toggleOceanRealism(feature: keyof OceanRealism): boolean {
+    const realism = this.ocean?.realism;
+    if (!realism) return false;
+    realism[feature] = !realism[feature];
+    return realism[feature];
+  }
   toggleTacticalPause(): void {
     if (this.inPort || this.simulation.networked || !this.fleetCommandMode || this.simulation.result !== 'active') return;
     this.tacticalPause = !this.tacticalPause;
@@ -1458,6 +1488,15 @@ export class Game {
   }
   /** Every hull on the water leaves a wake: the fleet's views and the reported
    * enemy exteriors. The camera's hull leads so the swell solver centres on it. */
+  /** Around every drawn hull the water shows the sea it rides: the battle's combat sea at the time its poses are drawn
+   * (paused and tactical-paused frames hold it), or the berth's in port. Presentation only. */
+  private coupleHullSea(emptyBerth: boolean): void {
+    const sea = this.inPort ? this.berthRidden : this.simulation.sea;
+    if (!sea || emptyBerth) { this.ocean!.setHullSea([], 0, []); return; }
+    const time = this.inPort ? this.berthMotion.seaTime : this.simulation.presentationTime ?? this.simulation.tick / 60;
+    const ships = this.inPort ? [this.playerView!] : this.wakeShips();
+    this.ocean!.setHullSea(seaWaves(sea), time, hullFootprints(ships, { x: this.camera.position.x, z: this.camera.position.z }, sea.amplitudeM));
+  }
   private wakeShips(): WakeShip[] {
     const focus = this.cameraShipView;
     return [focus, ...this.fleetViews.filter(view => view !== focus), ...this.observedShipViews?.wakeShips() ?? []];
@@ -1745,7 +1784,7 @@ export class Game {
   /** Development-only port inspection of the loaded model at catalog joint limits. */
   previewArticulation(pose: ArticulationPreview | null) { return this.articulation.preview(pose); }
   diagnostics() {
-    return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
+    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, oceanRenderer: this.launchedGraphics?.oceanRenderer,
       ...this.environment.diagnostics(),
       islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
@@ -1839,7 +1878,7 @@ export class Game {
     this.effects.dispose();
     this.funnelSmoke.dispose();
     this.effectLighting.dispose();
-    this.ocean?.dispose();
+    await this.ocean?.dispose();
     this.sunShadows?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();

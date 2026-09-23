@@ -658,20 +658,20 @@ function Harbor({ account, startup }: AppProps) {
     setSettingsOpen(false);
     setGeneration((value) => value + 1);
   };
-  // Developer console: compare the game's sky with the Sky Pro library it replaced. The port rebuilds at
+  // Developer console: compare the game's ocean or sky with the vendored library it replaced. The port rebuilds at
   // once; at sea the choice waits for the return to port, like the ocean tier.
-  const switchSkyRenderer = (): string => {
-    const current = graphicsRef.current;
-    const next: GraphicsSettings = { ...current, skyRenderer: current.skyRenderer === 'skypro' ? 'game' : 'skypro' };
+  const switchRenderer = (key: 'oceanRenderer' | 'skyRenderer'): string => {
+    const current = graphicsRef.current, sea = key === 'oceanRenderer', vendor = sea ? 'waterpro' : 'skypro';
+    const next = { ...current, [key]: current[key] === vendor ? 'game' : vendor } as GraphicsSettings;
     const kept = changeGraphics(next) ? '' : ' Browser storage is unavailable, so this lasts for the session.';
-    const name = next.skyRenderer === 'skypro' ? 'Sky Pro' : 'The game sky';
+    const name = next[key] === vendor ? (sea ? 'Water Pro' : 'Sky Pro') : sea ? 'The game ocean' : 'The game sky';
     const session = game.current;
-    if (session && launchMatches(session.launchedGraphics, next)) return `${name} stays in the sky.${kept}`;
+    if (session && launchMatches(session.launchedGraphics, next)) return `${name} stays ${sea ? 'on the sea' : 'in the sky'}.${kept}`;
     if (session && phase === 'garage' && !switchPending.current && !battleEntry.current?.pending) {
       setGeneration((value) => value + 1);
       return `${name} is loading.${kept}`;
     }
-    return `${name} draws the sky when you return to port.${kept}`;
+    return `${name} draws the ${sea ? 'sea' : 'sky'} when you return to port.${kept}`;
   };
 
   const changeBindings = (next: Keybindings): boolean => {
@@ -889,7 +889,8 @@ function Harbor({ account, startup }: AppProps) {
         )}
 
         {ready && !error && !builder && !battleLoading && !pveRestarting && game.current && (
-          <DevConsole host={game.current} skyRenderer={{ current: graphics.skyRenderer, toggle: switchSkyRenderer }} />
+          <DevConsole host={game.current} oceanRenderer={{ current: graphics.oceanRenderer, toggle: () => switchRenderer('oceanRenderer') }}
+            skyRenderer={{ current: graphics.skyRenderer, toggle: () => switchRenderer('skyRenderer') }} />
         )}
         {!ready && !error && !startup && <StartupScreen {...loading} />}
 

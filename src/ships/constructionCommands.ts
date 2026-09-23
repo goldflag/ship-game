@@ -47,6 +47,8 @@ export type ConstructionCommand =
   | { op: 'skin'; thicknessMm: number }
   | { op: 'finish'; finish?: ConstructionSource['construction']['finish'] }
   | { op: 'ship-paint'; paint?: string }
+  | { op: 'roof-paint'; paint?: string }
+  | { op: 'wear'; wear?: ConstructionSource['construction']['wear'] }
   | { op: 'primitive'; value: ConstructionPrimitive }
   | { op: 'primitive-patch'; id: string; changes: PrimitivePatch }
   | { op: 'hull-sections'; id: string; count: number }
@@ -152,6 +154,14 @@ function applyCommand(draft: ConstructionSource, command: ConstructionCommand, f
     case 'ship-paint':
       if (command.paint === undefined) delete data.paint;
       else data.paint = command.paint;
+      break;
+    case 'roof-paint':
+      if (command.paint === undefined) delete data.roofPaint;
+      else data.roofPaint = command.paint;
+      break;
+    case 'wear':
+      if (command.wear === undefined) delete data.wear;
+      else data.wear = command.wear;
       break;
     case 'skin':
       data.defaultThicknessMm = command.thicknessMm;
@@ -380,6 +390,8 @@ export function constructionDiffCommands(before: ConstructionSource, after: Cons
   if (after.name !== before.name) commands.push({ op: 'name', name: after.name });
   if (a.finish !== b.finish) commands.push({ op: 'finish', finish: a.finish });
   if (a.paint !== b.paint) commands.push({ op: 'ship-paint', paint: a.paint });
+  if (a.roofPaint !== b.roofPaint) commands.push({ op: 'roof-paint', paint: a.roofPaint });
+  if (a.wear !== b.wear) commands.push({ op: 'wear', wear: a.wear });
   if (a.defaultThicknessMm !== b.defaultThicknessMm) commands.push({ op: 'skin', thicknessMm: a.defaultThicknessMm });
   if (a.catalogRevision !== b.catalogRevision) commands.push({ op: 'catalog', revision: a.catalogRevision });
   const table = <T extends { id: string }>(rows: (value: T) => ConstructionCommand, was: T[], is: T[]) => {

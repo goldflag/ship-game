@@ -12,6 +12,8 @@ export class BerthMotion {
   heave = 0; roll = 0; pitch = 0;
   private rollRate = 0; private pitchRate = 0; private time = 0; private debt = 0;
   reset(): void { this.heave = this.roll = this.pitch = this.rollRate = this.pitchRate = this.debt = 0; }
+  /** The berth sea's clock: seconds of sea the hull has ridden. */
+  get seaTime(): number { return this.time; }
   update(sea: SeaState, hull: { length: number; beam: number; draft: number }, pose: { x: number; z: number; heading: number }, dt: number): void {
     this.debt = Math.min(.25, this.debt + dt);
     for (; this.debt >= STEP; this.debt -= STEP) {

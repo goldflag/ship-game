@@ -106,6 +106,8 @@ export abstract class SnapshotSession implements BattleSession {
   get ship() { return this.player.motion; }
   get aircraft() { return this.actors.flatMap(a => a.airWing?.planes ?? []); }
   get interpolationAlpha() { return Math.min(1, this.elapsed / this.interval); }
+  /** Simulated seconds of the poses presentation draws: between the last two frames, by `interpolationAlpha`. */
+  get presentationTime() { return this.tick / 60 - (1 - this.interpolationAlpha) * this.interval; }
   protected abstract send(shipId: string, command: Command): void;
   protected resetIntents(): void {
     this.selectionRequest = undefined; this.targetContactId = undefined; this.target = undefined;

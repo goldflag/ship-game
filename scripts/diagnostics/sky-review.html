@@ -289,8 +289,39 @@ async function benchmarkSky(pairs = 120, clock = 'gpu') {
   } finally { backend.trackTimestamp = false; }
 }
 
+/** Where the sky's GPU time goes: each piece switched off in frames alternating with frames that keep it,
+ * by GPU timestamps: the offscreen passes (`update`), and each mesh the sky draws. Medians of the paired
+ * differences, milliseconds per frame. */
+async function benchmarkParts(pairs = 80) {
+  const renderer = game.renderer, backend = renderer.backend, sky = game.sky;
+  if (!backend.hasFeature('timestamp-query')) return undefined;
+  const gpu = async () => (await renderer.resolveTimestampsAsync('render') ?? 0) + (await renderer.resolveTimestampsAsync('compute') ?? 0);
+  const pieces = { update: null, ...Object.fromEntries(sky.meshes().map(mesh => [mesh.name || mesh.type, mesh])) };
+  const result = {};
+  backend.trackTimestamp = true;
+  try {
+    await gpu();
+    for (const [name, mesh] of Object.entries(pieces)) {
+      const differences = [];
+      for (let i = 0; i < pairs; i++) {
+        sky.update(1 / 60); redraw(); const on = await gpu();
+        const visible = mesh?.visible;
+        // Without a mesh the frame drops it; for the update the frame runs it twice.
+        sky.update(1 / 60);
+        if (mesh) mesh.visible = false; else sky.update(1 / 60);
+        try { redraw(); } finally { if (mesh) mesh.visible = visible; }
+        differences.push(on - await gpu());
+      }
+      // The update is measured by running it once or twice per frame: a second run's cost.
+      const sorted = differences.sort((a, b) => a - b);
+      result[name] = mesh ? sorted[pairs >> 1] : -sorted[pairs >> 1];
+    }
+  } finally { backend.trackTimestamp = false; }
+  return result;
+}
+
 window.skyReview = {
-  game, scenes: Object.keys(scenes), errors,
+  game, scenes: Object.keys(scenes), errors, benchmarkParts,
   async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors] }; },
   capture, measure, benchmarkWeather, benchmarkSky,
 };

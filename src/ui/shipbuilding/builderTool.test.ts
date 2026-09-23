@@ -99,7 +99,33 @@ test('ship paint carries faces and fittings that wore the previous ship paint an
   expect(labels()).toEqual(['Set ship paint']);
   tool.undo(); expect(data()).toEqual(original);
 });
-const key = (key: string, over: Partial<BuilderKey> = {}): BuilderKey => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, repeat: false, preventDefault() {}, ...over });
+test('wear and roof paint change one revision each; the implicit default wear is no edit', async () => {
+  const { tool, data, labels } = await setup();
+  const original = structuredClone(data());
+  expect(tool.setWear('in-commission')).toBeUndefined();
+  expect(tool.setWear('rusted' as never)).toBeUndefined();
+  expect(tool.setWear('battle-worn')).toMatchObject({ accepted: true, changed: true });
+  expect(data()).toEqual({ ...original, wear: 'battle-worn' });
+  expect(tool.setWear('in-commission')).toMatchObject({ accepted: true, changed: true });
+  expect(data().wear).toBe('in-commission');
+  expect(tool.setRoofPaint('chrome')).toBeUndefined();
+  expect(tool.setRoofPaint('deck-gray')).toMatchObject({ accepted: true, changed: true });
+  expect(data().roofPaint).toBe('deck-gray');
+  expect(labels()).toEqual(['Set ship wear', 'Set ship wear', 'Set roof paint']);
+  tool.undo(); expect(data().roofPaint).toBeUndefined();
+  tool.setRoofPaint(); tool.setWear(); expect(data()).toEqual(original);
+});
+test('a roof paint chosen as the ship paint follows a ship paint change; another roof paint stays', async () => {
+  const { tool, data, labels } = await setup();
+  tool.setShipPaint('light-gray'); tool.setRoofPaint('light-gray');
+  expect(tool.setShipPaint('sea-blue')).toMatchObject({ accepted: true, changed: true });
+  expect(data()).toMatchObject({ paint: 'sea-blue', roofPaint: 'sea-blue' });
+  expect(labels().at(-1)).toBe('Set ship paint');
+  tool.undo(); expect(data()).toMatchObject({ paint: 'light-gray', roofPaint: 'light-gray' });
+  tool.setRoofPaint('deck-gray'); tool.setShipPaint('dark-gray');
+  expect(data()).toMatchObject({ paint: 'dark-gray', roofPaint: 'deck-gray' });
+});
+const key =(key: string, over: Partial<BuilderKey> = {}): BuilderKey => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, repeat: false, preventDefault() {}, ...over });
 const chrome = (): BuilderChrome & { log: string[] } => { const log: string[] = []; return { log, dismiss: () => { log.push('dismiss'); return false; }, toggleDrawer: () => log.push('drawer'), toggleWarnings: () => log.push('warnings'), slotChosen: () => log.push('slot') }; };
 
 test('block type filters keep palette keys and placement in sync across layers', async () => {

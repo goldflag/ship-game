@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import type { DeveloperWeather, EnvironmentOverrides } from '../game/VisualEnvironment';
-import type { SkyRenderer } from '../game/graphicsSettings';
+import type { OceanRealism } from '../game/ocean/contracts';
+import type { OceanRenderer, SkyRenderer } from '../game/graphicsSettings';
 import { clampSetting, currentValue, isDeveloperConsoleKey, matchCommands, overrideCount, readingLabel, WEATHER_SETTINGS, type ConsoleMatch, type WeatherKey, type WeatherSetting } from './devConsoleCommands';
 import './DevConsole.css';
 
@@ -11,9 +12,16 @@ export interface DevConsoleHost {
   diagnostics(): unknown;
   /** Returns whether the analytic bow waves are now drawn. */
   toggleBowWaves?(): boolean;
+  /** Returns whether the ocean realism feature is now on. */
+  toggleOceanRealism?(feature: keyof OceanRealism): boolean;
   releasePointer(): void;
   capturePointer(): void;
 }
+
+/** The ocean comparison the app owns: the renderer the graphics settings name, and a switch that saves the other
+ * and says when it applies (at once in port, which rebuilds; on return to port at sea). */
+export interface OceanRendererSwitch { current: OceanRenderer; toggle(): string }
+const OCEAN_RENDERER_NAMES: Record<OceanRenderer, string> = { game: 'Game ocean', waterpro: 'Water Pro' };
 
 const ICONS: Record<WeatherKey, ReactNode> = {
   timeHours: <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="2.6"/><path d="M7 .8v1.8M7 11.4v1.8M.8 7h1.8M11.4 7h1.8M2.6 2.6l1.3 1.3M10.1 10.1l1.3 1.3M2.6 11.4l1.3-1.3M10.1 3.9l1.3-1.3"/></svg>,
@@ -34,7 +42,7 @@ const SKY_RENDERER_NAMES: Record<SkyRenderer, string> = { game: 'Game sky', skyp
 
 /** Shift-D developer console: a command line over the scene for live weather
  * and diagnostics. Weather chips scrub by dragging; a new scene clears them. */
-export function DevConsole({ host, skyRenderer }: { host: DevConsoleHost; skyRenderer?: SkyRendererSwitch }) {
+export function DevConsole({ host, oceanRenderer, skyRenderer }: { host: DevConsoleHost; oceanRenderer?: OceanRendererSwitch; skyRenderer?: SkyRendererSwitch }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -85,7 +93,12 @@ export function DevConsole({ host, skyRenderer }: { host: DevConsoleHost; skyRen
     } else if (command.kind === 'preset') apply({ ...overrides, ...command.overrides });
     else if (command.id === 'reset') apply({});
     else if (command.id === 'bowWaves') setNotice(host.toggleBowWaves?.() ? 'Bow waves on.' : 'Bow waves off.');
+    else if (command.id === 'oceanRenderer') setNotice(oceanRenderer?.toggle() ?? 'The ocean renderer cannot be switched here.');
     else if (command.id === 'skyRenderer') setNotice(skyRenderer?.toggle() ?? 'The sky renderer cannot be switched here.');
+    else if (command.id.startsWith('realism:')) {
+      const feature = command.id.slice('realism:'.length) as keyof OceanRealism, name = command.label.replace(/^Toggle /, '');
+      setNotice(`${name[0].toUpperCase()}${name.slice(1)} ${host.toggleOceanRealism?.(feature) ? 'on' : 'off'}.`);
+    }
     else {
       const text = JSON.stringify(host.diagnostics(), null, 2);
       void navigator.clipboard?.writeText(text).then(() => setNotice('Scene diagnostics copied.'), () => setNotice('The clipboard is unavailable.'));
@@ -128,7 +141,7 @@ export function DevConsole({ host, skyRenderer }: { host: DevConsoleHost; skyRen
         onPointerEnter={() => setActive(index)} onPointerDown={event => { event.preventDefault(); run(match); }}>
         <span className="dev-console-group">{match.command.group}</span>
         <span className="dev-console-label">{match.command.label}</span>
-        <span className="dev-console-value">{resultValue(match, reading && weather, skyRenderer?.current)}</span>
+        <span className="dev-console-value">{resultValue(match, reading && weather, oceanRenderer?.current, skyRenderer?.current)}</span>
         {index === selected && <kbd>↵</kbd>}
       </li>)}
       {!matches.length && <li className="dev-console-empty">No setting or command matches “{query.trim()}”.</li>}
@@ -150,7 +163,9 @@ export function DevConsole({ host, skyRenderer }: { host: DevConsoleHost; skyRen
   </section>;
 }
 
-function resultValue({ command, value }: ConsoleMatch, weather?: DeveloperWeather, sky?: SkyRenderer) {
+function resultValue({ command, value }: ConsoleMatch, weather?: DeveloperWeather, renderer?: OceanRenderer, sky?: SkyRenderer) {
+  if (command.kind === 'action' && command.id === 'oceanRenderer')
+    return renderer ? `${OCEAN_RENDERER_NAMES[renderer]} → ${OCEAN_RENDERER_NAMES[renderer === 'waterpro' ? 'game' : 'waterpro']}` : '';
   if (command.kind === 'action' && command.id === 'skyRenderer')
     return sky ? `${SKY_RENDERER_NAMES[sky]} → ${SKY_RENDERER_NAMES[sky === 'skypro' ? 'game' : 'skypro']}` : '';
   if (command.kind !== 'setting') return command.kind === 'preset' ? Object.entries(command.overrides)
