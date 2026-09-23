@@ -27,6 +27,7 @@ import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
+import type { OceanRealism } from './ocean/contracts';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
@@ -1205,6 +1206,13 @@ export class Game {
   releasePointer(): void { this.rig.releasePointer(); }
   /** Developer console: compare the analytic bow waves against the native wake field alone. */
   toggleBowWaves(): boolean { return this.shipWake?.toggleBowWaves() ?? false; }
+  /** Developer console: switch one ocean realism feature to compare it with the look tuned to the replaced library. */
+  toggleOceanRealism(feature: keyof OceanRealism): boolean {
+    const realism = this.ocean?.realism;
+    if (!realism) return false;
+    realism[feature] = !realism[feature];
+    return realism[feature];
+  }
   toggleTacticalPause(): void {
     if (this.inPort || this.simulation.networked || !this.fleetCommandMode || this.simulation.result !== 'active') return;
     this.tacticalPause = !this.tacticalPause;

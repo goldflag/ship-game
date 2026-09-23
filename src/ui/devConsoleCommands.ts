@@ -1,5 +1,6 @@
 import { formatBattleTime } from '../maps/conditions';
 import type { EnvironmentOverrides, EnvironmentReading } from '../game/VisualEnvironment';
+import type { OceanRealism } from '../game/ocean/contracts';
 
 /** Shift-D opens the developer console in port and at sea. Other window key
  * handlers step aside for it so a selected flight's D never swallows it. */
@@ -15,7 +16,9 @@ export interface WeatherSetting {
   format(value: number): string;
 }
 export interface WeatherPreset { kind: 'preset'; id: string; group: 'Weather'; label: string; words: string[]; overrides: EnvironmentOverrides; }
-export interface ConsoleAction { kind: 'action'; id: 'reset' | 'diagnostics' | 'bowWaves'; group: 'Weather' | 'Diagnostics' | 'Water'; label: string; words: string[]; }
+/** A realism feature the console switches off and on, to compare it with the look first tuned to the replaced library. */
+export type RealismToggle = `realism:${keyof OceanRealism}`;
+export interface ConsoleAction { kind: 'action'; id: 'reset' | 'diagnostics' | 'bowWaves' | RealismToggle; group: 'Weather' | 'Diagnostics' | 'Water'; label: string; words: string[]; }
 export type ConsoleCommand = WeatherSetting | WeatherPreset | ConsoleAction;
 
 const trim = (value: number, digits = 1) => String(Number(value.toFixed(digits)));
@@ -39,6 +42,10 @@ export const CONSOLE_ACTIONS: ConsoleAction[] = [
   { kind: 'action', id: 'reset', group: 'Weather', label: 'Reset weather to the scene', words: ['reset', 'clear', 'scene', 'default'] },
   { kind: 'action', id: 'diagnostics', group: 'Diagnostics', label: 'Copy scene diagnostics', words: ['diagnostics', 'copy', 'debug', 'snapshot'] },
   { kind: 'action', id: 'bowWaves', group: 'Water', label: 'Toggle bow waves', words: ['bow', 'waves', 'wake', 'kelvin', 'toggle'] },
+  { kind: 'action', id: 'realism:seaState', group: 'Water', label: 'Toggle realistic sea state', words: ['realistic', 'realism', 'sea', 'state', 'steepness', 'toggle'] },
+  { kind: 'action', id: 'realism:reflections', group: 'Water', label: 'Toggle physical reflections', words: ['physical', 'realism', 'reflections', 'fresnel', 'glitter', 'toggle'] },
+  { kind: 'action', id: 'realism:waterColor', group: 'Water', label: 'Toggle physical water colour', words: ['physical', 'realism', 'water', 'colour', 'color', 'toggle'] },
+  { kind: 'action', id: 'realism:wake', group: 'Water', label: 'Toggle realistic wakes', words: ['realistic', 'realism', 'wakes', 'slick', 'toggle'] },
 ];
 export const CONSOLE_COMMANDS: ConsoleCommand[] = [...WEATHER_SETTINGS, ...WEATHER_PRESETS, ...CONSOLE_ACTIONS];
 

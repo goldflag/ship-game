@@ -1,6 +1,6 @@
 import { Color, Vector3, type Material, type Mesh, type Node, type Object3D, type PassNode, type PerspectiveCamera, type Scene, type Texture, type WebGPURenderer } from 'three/webgpu';
 import { uniform } from 'three/tsl';
-import type { OceanApi, OceanQuality, OceanSky, WakeSampler, WaveParameters } from './contracts';
+import type { OceanApi, OceanQuality, OceanRealism, OceanSky, WakeSampler, WaveParameters } from './contracts';
 import { OCEAN_TIERS } from './quality';
 import { oceanFog } from './screen/fog';
 import { createUnderwaterPass, nearPlaneMayBeSubmerged } from './screen/underwater';
@@ -34,6 +34,7 @@ export class Ocean implements OceanApi {
   readonly wake;
   readonly waveField;
   readonly heights;
+  readonly realism: OceanRealism = { seaState: true, reflections: true, waterColor: true, wake: true };
   environmentIntensity = 1;
   time = 0;
   cameraNearSurface = true;

@@ -23,6 +23,8 @@ const game = new Game(document.querySelector('#scene'), { ...GRAPHICS_PRESETS[qu
 }, shipPreset(params.get('ship') ?? 'bismarck'));
 game.scheduleFrame = noop;
 game.setInPort(true); game.start(); await game.initialization;
+// ?realism=off shows the look first tuned to match the replaced library.
+if (params.get('realism') === 'off') for (const feature of Object.keys(game.ocean.realism)) game.ocean.realism[feature] = false;
 const rigUpdate = game.rig.update.bind(game.rig);
 
 /** Seconds of waves run up to a frozen time: crest foam builds only while waves run and a paused frame keeps it,

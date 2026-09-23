@@ -1,4 +1,4 @@
-/** `bun scripts/browser/ocean-review.ts --tag <name> [--only near,wide] [--quality high] [--measure] [--url http://127.0.0.1:5210]`
+/** `bun scripts/browser/ocean-review.ts --tag <name> [--only near,wide] [--quality high] [--measure] [--param realism=off] [--url http://127.0.0.1:5210]`
  * Renders the fixed scenes of `scripts/diagnostics/ocean-review.html` in a headed Chromium and saves one PNG
  * per scene to `.build/ocean-review/<tag>/`, with `results.json` (errors, optional frame timings). */
 import type { Server } from 'node:http';
@@ -11,7 +11,7 @@ import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
   tag: { type: 'string', default: 'current' }, only: { type: 'string' }, quality: { type: 'string', default: 'high' },
-  measure: { type: 'boolean', default: false }, url: { type: 'string' },
+  measure: { type: 'boolean', default: false }, url: { type: 'string' }, param: { type: 'string', multiple: true, default: [] },
 } });
 const out = resolve(ROOT, '.build/ocean-review', values.tag!);
 mkdirSync(out, { recursive: true });
@@ -26,7 +26,7 @@ try {
   page.setDefaultTimeout(600_000);
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') pageErrors.push(message.text()); });
-  const query = new URLSearchParams({ quality: values.quality! });
+  const query = new URLSearchParams({ quality: values.quality!, ...Object.fromEntries(values.param!.map(entry => entry.split(/=(.*)/s).slice(0, 2))) });
   await page.goto(`${url}/scripts/diagnostics/ocean-review.html?${query}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready, undefined, { polling: 250 });
   const all = await page.evaluate(() => (window as unknown as { oceanReview: { scenes: string[] } }).oceanReview.scenes);

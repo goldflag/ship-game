@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import type { DeveloperWeather, EnvironmentOverrides } from '../game/VisualEnvironment';
+import type { OceanRealism } from '../game/ocean/contracts';
 import { clampSetting, currentValue, isDeveloperConsoleKey, matchCommands, overrideCount, readingLabel, WEATHER_SETTINGS, type ConsoleMatch, type WeatherKey, type WeatherSetting } from './devConsoleCommands';
 import './DevConsole.css';
 
@@ -10,6 +11,8 @@ export interface DevConsoleHost {
   diagnostics(): unknown;
   /** Returns whether the analytic bow waves are now drawn. */
   toggleBowWaves?(): boolean;
+  /** Returns whether the ocean realism feature is now on. */
+  toggleOceanRealism?(feature: keyof OceanRealism): boolean;
   releasePointer(): void;
   capturePointer(): void;
 }
@@ -76,6 +79,10 @@ export function DevConsole({ host }: { host: DevConsoleHost }) {
     } else if (command.kind === 'preset') apply({ ...overrides, ...command.overrides });
     else if (command.id === 'reset') apply({});
     else if (command.id === 'bowWaves') setNotice(host.toggleBowWaves?.() ? 'Bow waves on.' : 'Bow waves off.');
+    else if (command.id.startsWith('realism:')) {
+      const feature = command.id.slice('realism:'.length) as keyof OceanRealism, name = command.label.replace(/^Toggle /, '');
+      setNotice(`${name[0].toUpperCase()}${name.slice(1)} ${host.toggleOceanRealism?.(feature) ? 'on' : 'off'}.`);
+    }
     else {
       const text = JSON.stringify(host.diagnostics(), null, 2);
       void navigator.clipboard?.writeText(text).then(() => setNotice('Scene diagnostics copied.'), () => setNotice('The clipboard is unavailable.'));

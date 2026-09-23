@@ -127,6 +127,8 @@ export interface WakeSampler {
   normal(x: Node<'float'>, z: Node<'float'>): Node<'vec3'>;
   /** Foam energy ≥ 0, shaded like crest foam. */
   foam(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
+  /** Calm-slick strength 0–1 behind hulls, where turbulence has damped the short waves; absent reads as none. */
+  slick?(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
 }
 
 export interface WakeGeneratorOptions {
@@ -211,9 +213,23 @@ export interface CrestFoamParameters extends WaveFoamParameters {
 export interface SurfaceFoamParameters { readonly color: Color; opacity: number; /** Share of the sea covered, 0–1. */ coverage: number }
 export interface ShorelineFoamParameters { readonly color: Color; opacity: number }
 
+/** Realism features, each live and on by default. The developer console turns one off to compare it with the
+ * look first tuned to match the library this ocean replaced. */
+export interface OceanRealism {
+  /** Wavelengths follow a real wind sea's steepness; heights and combat keep the calibration table. */
+  seaState: boolean;
+  /** Reflections blur by every unresolved facet, with the rough-sea mean Fresnel and sub-pixel sun glitter. */
+  reflections: boolean;
+  /** The water body's colour comes from absorption and scattering lit by the sun and sky, not a fixed pigment. */
+  waterColor: boolean;
+  /** Hulls leave a continuous turbulent wake that fades into a calm slick. */
+  wake: boolean;
+}
+
 /** The facade the game holds (`Ocean.ts`). Game code touches the ocean only through this. */
 export interface OceanApi {
   readonly quality: OceanQuality;
+  readonly realism: OceanRealism;
   readonly waves: WaveParameters;
   readonly colors: WaterColors;
   readonly foam: { readonly crest: CrestFoamParameters; readonly surface: SurfaceFoamParameters; readonly shoreline: ShorelineFoamParameters };
