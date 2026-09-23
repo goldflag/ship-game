@@ -297,7 +297,7 @@ export class Game {
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
     this.definition = definition;
-    this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main';
+    this.battery = this.weaponGroups[0]?.battery ?? 'main';
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
     // Centimeter-scale fittings must remain distinct at 20 km, even with the
     // close near plane needed by bridge and shell-follow views. The scene pass
@@ -753,7 +753,7 @@ export class Game {
     this.playerDamageFeedback = new HullDamageFeedback(view.actor.damage.integrity);
     this.rig.setBridge(this.definition.viewpoints?.bridge); this.rig.setHullLength(this.definition.hull.length);
     this.inspecting = false; this.damageInspectionShipId = undefined; this.spectatedShipId = undefined; this.airOperationsOpen = false; this.selectedFlightId = undefined;
-    this.battery = this.definition.torpedoTubes?.length ? 'torpedo' : 'main';
+    this.battery = this.weaponGroups[0]?.battery ?? 'main';
     this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
     this.controlPriority = view.actor.damage.control.priority; this.controlFocus = view.actor.damage.control.focus ?? '';
     this.input.setOrder(1); this.input.setRudder(0);
@@ -826,7 +826,7 @@ export class Game {
       this.controlPriority = 'balanced'; this.controlFocus = '';
       this.lastShellPress = undefined;
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
-      this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false; this.damageInspectionShipId = undefined;
+      this.battery = this.weaponGroups[0]?.battery ?? 'main'; this.manualAim = true; this.inspecting = false; this.damageInspectionShipId = undefined;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
       this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.spectator.forgetHelm(); this.helmWheel = undefined; this.wheel.forgetOffer();
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
