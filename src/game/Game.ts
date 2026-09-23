@@ -66,7 +66,7 @@ import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import { EffectLighting } from './EffectLighting';
 import { configureRenderOrder } from './renderOrder';
-import { requireWebGPU, requireWebGPUBackend } from './webgpu';
+import { DEFAULT_SAMPLED_TEXTURES, requireWebGPU, requireWebGPUBackend, sampledTextureLimit, type RaisedLimits } from './webgpu';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
@@ -271,6 +271,8 @@ export class Game {
   private sky?: SkyApi;
   /** Sun transmittance through the clouds, shared by the sun's shadow maps and the sea. */
   private cloudShadow?: (position: THREE.Node<'vec3'>) => THREE.Node<'float'>;
+  /** The device limits three requests at `renderer.init()`, filled from the adapter just before (it keeps this object). */
+  private readonly deviceLimits: RaisedLimits = {};
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
   private scenePass?: ReturnType<typeof pass>;
@@ -320,7 +322,7 @@ export class Game {
     // Centimeter-scale fittings must remain distinct at 20 km, even with the
     // close near plane needed by bridge and shell-follow views. The scene pass
     // uses floating-point reversed depth; TSL's depth readers use the same mapping.
-    this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true });
+    this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true, requiredLimits: this.deviceLimits });
     this.renderer.toneMapping = DISPLAY_TONE_MAPPING;
     this.renderer.toneMappingExposure = 1;
     this.renderer.shadowMap.enabled = true;
@@ -396,8 +398,9 @@ export class Game {
     this.graphicsControl.applyAmbientOcclusion();
     this.callbacks.progress('Starting graphics', 0.08);
     this.resize();
-    // Constructing the renderer touched no GPU API; ask before three can fall back to WebGL2.
-    await requireWebGPU();
+    // Constructing the renderer touched no GPU API; ask before three can fall back to WebGL2, and
+    // raise the limits three's device request carries to what the adapter offers.
+    Object.assign(this.deviceLimits, await requireWebGPU());
     await this.renderer.init();
     requireWebGPUBackend(this.renderer);
     installFleetBatchInstancing(this.renderer.backend);
@@ -473,9 +476,11 @@ export class Game {
     this.environment.setScene(this.simulation.mapId, this.inPort);
     ocean.setSky(sky.oceanSky);
     // Clouds shade the sun on ships and islands through the sun's own shadow maps, and the sea
-    // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before.
+    // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before. A ship's
+    // paint already binds WebGPU's default 16 textures and samplers a stage, so on a device that
+    // grants no more the cloud shadow falls on the sea alone.
     if (sky.renderer === 'game') this.cloudShadow = position => sky.cloudShadow(position);
-    this.sunShadows.cloud = this.cloudShadow;
+    this.sunShadows.cloud = sampledTextureLimit(this.renderer) > DEFAULT_SAMPLED_TEXTURES ? this.cloudShadow : undefined;
     const sunlight = this.sunLight;
     this.fitSunShadow();
     this.graphicsControl.applyReflections();
