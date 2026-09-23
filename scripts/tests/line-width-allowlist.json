@@ -19,7 +19,6 @@
   "scripts/diagnostics/ship-runtime-sections.ts",
   "scripts/diagnostics/zoom-optics.tsx",
   "scripts/multiplayer/aircraft-deck-geometry.ts",
-  "scripts/multiplayer/build-wasm.ts",
   "scripts/multiplayer/content.ts",
   "scripts/multiplayer/generate-rust-definitions.ts",
   "scripts/multiplayer/headless-session.ts",

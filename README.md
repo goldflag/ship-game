@@ -13,7 +13,8 @@ bun run dev
 
 In a fresh worktree run `bun run bootstrap` first. The main checkout reserves `http://127.0.0.1:5173/`.
 Each linked worktree gets its own stable port in 5200-5899, derived from its path, and cannot select 5173
-even with `--port`. Every dev server prints its URL and records it in `.build/dev-server.json`.
+even with `--port`. Every dev server prints its URL and records it in `.build/dev-server.json`; `bun run dev` writes
+that file with `status: "preparing"` while it prepares the simulation, and with `status: "ready"` and the URL once it listens.
 
 ### 1v1 multiplayer
 
@@ -49,7 +50,8 @@ Set `BASE_PATH` to the mount point when building. Every asset URL resolves throu
 BASE_PATH=/naval/ bun run build   # serve dist/ at https://example.com/naval/
 ```
 
-`bun run build` runs every `ship:check` and `aircraft:check` first; they need neither Blender nor the LFS archive.
+`bun run build` runs every `ship:check` and `aircraft:check` first; they need neither Blender nor the LFS archive. A
+failing check does not stop the TypeScript check or the bundle: every step runs, and a summary names the failed ones.
 
 `bun run deploy:naval` builds for https://game.tomato.gg/naval/ and rsyncs `dist/` to the tanks-na host, where the tank game's Caddy serves it from `/root/tank-game/naval` (see the `@naval` block in Tomato-gg/tank-game's Caddyfile). Override the destination with `NAVAL_DEPLOY_TARGET=user@host:/path/`.
 

@@ -11,7 +11,8 @@ export function worktreePort(root: string): number {
 }
 
 /** Reserve the familiar game URL for the durable checkout, regardless of branch. Every dev server records
- * where it is listening in `.build/dev-server.json`, so scripts and agents read the URL instead of guessing. */
+ * where it is listening in `.build/dev-server.json`, so scripts and agents read the URL instead of guessing.
+ * `bun run dev` writes it first with `status: "preparing"` (scripts/build/dev.ts); wait for `status: "ready"`. */
 export function devPort(root: string): Plugin {
   let linkedWorktree = false;
   return {
@@ -37,7 +38,7 @@ export function devPort(root: string): Plugin {
         // Always the IPv4 loopback: `localhost` may resolve to ::1, where a 0.0.0.0 listener is absent.
         const url = `http://127.0.0.1:${address.port}${server.config.base}`;
         mkdirSync(dirname(file), { recursive: true });
-        writeFileSync(file, `${JSON.stringify({ url, port: address.port, pid: process.pid, harness: `${url}scripts/diagnostics/app.html` }, null, 2)}\n`);
+        writeFileSync(file, `${JSON.stringify({ status: 'ready', url, port: address.port, pid: process.pid, harness: `${url}scripts/diagnostics/app.html` }, null, 2)}\n`);
         server.config.logger.info(`  Dev server for this checkout: ${url} (recorded in .build/dev-server.json)`);
       });
       server.httpServer?.once('close', () => rmSync(file, { force: true }));
