@@ -16,8 +16,10 @@ Related guides:
 - Machinery auxiliaries, pumps and repair: [machinery services](construction-services.md).
 - Propeller and rudder forces: [maneuvering](maneuvering.md).
 
-Blender remains the authoring tool for reusable components only. Player designs never pass
-through Blender.
+Blender remains the authoring tool for reusable components. For a construction design it is at
+most an optional authoring front end ([Blender front end](construction-authoring.md#blender-front-end)):
+its only output is a revision-guarded batch, builds and compiles never run it, and the construction
+source stays the only durable record of a design.
 
 ## Ownership
 

@@ -1,6 +1,6 @@
 # Ship asset pipeline
 
-**Source of truth:** versioned `blueprint.json` + original component catalog. New ships use the [custom construction editor and Rust compiler](construction-authoring.md); Blender remains the permanent tool for reusable components. Existing legacy ships retain their original geometry recipes. These produce a compiled simulation definition and an articulated visual model. Historical presets and future player-built ships use this same contract.
+**Source of truth:** versioned `blueprint.json` + original component catalog. New ships use the [custom construction editor and Rust compiler](construction-authoring.md); Blender remains the permanent tool for reusable components and may serve as an optional [front end](construction-authoring.md#blender-front-end) for a construction ship, whose only output is a revision-guarded batch (builds never run it). Existing legacy ships retain their original geometry recipes. These produce a compiled simulation definition and an articulated visual model. Historical presets and future player-built ships use this same contract.
 
 Prefer an adjustable `custom-hull` for the main hull, using the shared section editor
 or agent commands. Use one per hull for multihulls. Reserve freeform pieces for

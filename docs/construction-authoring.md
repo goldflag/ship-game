@@ -1,9 +1,11 @@
 # Ship construction with agents
 
 Ship construction uses the custom editor and the shared Rust construction compiler.
-Blender remains the permanent authoring tool for original reusable components.
-Existing Blender-backed ships remain supported; migrating their hulls is separate work.
-Both routes use the versioned blueprint/definition family in `src/ships/blueprint.ts`.
+Blender may be used as an optional authoring front end for a construction ship: its only output is
+a revision-guarded batch ([Blender front end](#blender-front-end)). Builds never run Blender and
+`blueprint.json` stays the only durable source. Blender remains the permanent authoring tool for
+original reusable components. Existing Blender-backed ships remain supported; migrating their hulls
+is separate work. Both routes use the versioned blueprint/definition family in `src/ships/blueprint.ts`.
 
 ## The agent loop
 
@@ -16,6 +18,7 @@ bun run ship:apply my-ship batch.json
 bun run ship:inspect my-ship --brief              # every independent error, with gaps and seat positions
 bun run ship:mesh my-ship shape.obj --id hangar --at 0,6,-18  # a closed mesh as one compound-solid hull block
 bun run ship:view my-ship --focus gun-forward     # works on drafts that do not compile
+bun run ship:blender-import my-ship               # optional: edit in Blender, then ship:blender-export
 ```
 
 Read narrowly, edit through guarded batches, let the native compiler judge, then look. Misspelled
@@ -612,8 +615,9 @@ bun run ship:mesh my-ship .build/boat.stl --id boat --group boats --weld 0.002 -
 | `--id` | The new hull piece's ID; an existing ID is refused rather than overwritten |
 | `--at x,y,z` | Where the mesh's own centre lands, in ship metres. Geometry is never silently re-seated |
 | `--scale n` or `sx,sy,sz` | Applied before anything else; a negative axis mirrors and the winding is reversed with it |
-| `--up z` | Swap the source's Z-up frame into the ship's Y-up one, reversing the winding the swap flips |
-| `--bearing deg` | The block's `rotationDeg`, clockwise from the bow, applied by the compiler, not baked into the corners |
+| `--up z` | Rotate a Z-up file into the ship's Y-up frame: +Z becomes +Y and +Y becomes −Z (the glTF convention). A rotation, so winding is kept |
+| `--up blender` | The file is in this repository's Blender frame (+X bow, +Y port, +Z up); uses the shared conversion in `scripts/construction/blenderFrame.ts` |
+| `--bearing deg` | Clockwise from the bow, like equipment bearings; stored as the block's `rotationDeg` (counter-clockwise, so `rotationDeg = −bearing`), applied by the compiler, not baked into the corners |
 | `--label`, `--group` | The shape's name; `--group` overrides every polygon's surface group with one name |
 | `--weld m` | Corner welding grid, by default 1e-5 of the mesh's largest dimension |
 | `--max-parts`, `--max-planes` | 256 and 48. `--max-planes` is the real budget: the decomposition is exponential in the number of distinct face planes |
@@ -624,6 +628,130 @@ offending welded edges or triangle pairs; an inside-out mesh is reversed and the
 Boolean-union overlapping shells, close holes and decimate curved surfaces before importing.
 OBJ `usemtl`/`g` names and GLB material names become surface groups, which
 `ship:inspect --panels` lists and `surface-patch` arms through `panelId`.
+
+## Blender front end
+
+Blender is an optional place to shape a construction ship. It never becomes a source: the import
+writes a scratch scene under `.build/`, and the export reads the edited scene and proposes a
+revision-guarded batch for `ship:apply`, like `ship:place` and `ship:mesh`. Builds never run Blender
+and `blueprint.json` stays the only durable source; a person can keep editing the result in the editor.
+
+```sh
+bun run ship:blender-import my-ship                    # .build/construction-blender/my-ship/scene.blend (+ scene.json)
+# edit and save scene.blend in Blender (open it, or drive it through Blender MCP)
+bun run ship:blender-export my-ship .build/construction-blender/my-ship/scene.blend --out .build/blender.json
+bun run ship:apply my-ship .build/blender.json --dry-run --brief
+bun run ship:apply my-ship .build/blender.json
+bun run ship:blender-import my-ship --replace          # continue from the saved revision
+```
+
+Both commands run Blender headless (`scripts/build/blender.ts`: `BLENDER_BIN`, then the macOS
+application, then `blender` on PATH) under an audit hook that refuses network access, the reference
+cache, raw game model formats and every published model or glTF file, so reference geometry cannot
+enter a scene through the tools. Import refuses to overwrite an existing scene without `--replace`,
+because it may hold unexported work; `--out other.blend` writes elsewhere. Export only reads the file
+and `--out` refuses to overwrite a batch.
+
+| Frame | +X | +Y | +Z | Yaw |
+| --- | --- | --- | --- | --- |
+| Construction source | starboard | up | stern (bow is −Z) | `rotationDeg` counter-clockwise from above; equipment `bearingDeg` clockwise (0 bow, 90 starboard) |
+| Blender scene | bow | port | up | Z rotation, counter-clockwise from above |
+
+Metres in both; heights carry over unchanged, so construction Y = 0 is Blender Z = 0. Construction
+(x, y, z) is Blender (−z, −x, y); Blender (x, y, z) is construction (−y, z, −x). The map is a proper
+rotation, so winding and handedness survive it. A hull piece's `rotationDeg` is the Blender Z rotation
+unchanged; an equipment bearing is the negated Z rotation, so bearing 90 (starboard) is Z −90°.
+`scripts/construction/blenderFrame.ts` and its Python twin `blender/frame.py` are the only
+conversion; `blenderFrame.test.ts` checks them both ways and against each other.
+
+What the scene holds, by collection:
+
+| Collection | Objects | Export |
+| --- | --- | --- |
+| Reference | The custom hull and balconies as their compiled skin, locked and unselectable | Never. Hull sections change through `ship:loft` or `hull-station` |
+| Blocks | One mesh per hull piece, built from the source recipe (exact corners, compound-solid parts, the native shape library), placed at its `position` with its yaw; tilt is baked into the mesh | Changed pieces become hull pieces (below) |
+| Equipment | One empty per equipment row at its datum, turned to its bearing, with a locked wire box of the catalog bounds as a child | Rows: position from the location, bearing from the Z rotation |
+| Loads | Wire boxes | Loads: the box's bounds, `massKg` and `loadName` from properties |
+
+Materials are named by construction paint ID (`naval-gray`, `dark-gray`, …); the whole paint palette
+is kept in the file. Identity is in custom properties, never in object names, because Blender renames
+copies `name.001`: `constructionId`, `constructionRole` (`block`, `equipment`, `load`, `reference`,
+`proxy`), `constructionKind`, `partId` and `seat` on empties, `massKg` and `loadName` on loads, and the
+hashes `shapeHash` (geometry, materials, world transform, those properties) and `meshHash` (local
+geometry only), which the export recomputes with the same function (`blender/scene.py`).
+
+The export, object by object:
+
+- **Unchanged** (same `shapeHash`): skipped, so its record keeps whatever the editor or another agent
+  did since the import, and exporting twice changes nothing.
+- **A block moved or turned only** (same `meshHash`, a pure Z rotation, unit scale): `position` and
+  `rotationDeg` change; kind, shape, tilt and armor stay.
+- **A block reshaped**, scaled or tilted: eight vertices forming a hexahedron (one per octant around
+  their centre, six box faces as quads or triangle pairs) become an eight-corner `vertex` block;
+  anything else becomes a compound solid through the same decomposition as `ship:mesh`
+  (`--max-planes`, default 48; `--max-parts`, default 256). The object's Z rotation becomes the
+  piece's `rotationDeg`. A failure names the object and nothing is proposed. Ballast blocks can move
+  but not be reshaped.
+- **A new mesh** in Blocks (or with `constructionRole: block`) is a new hull piece whose ID comes from
+  the object name (`Searchlight platform` → `searchlight-platform`, made unique).
+- **A copy** of an imported object carries its `constructionId`; the object still named as imported
+  keeps the ID and each copy gets `<id>-copy`. A copied block that was only moved keeps the original's
+  kind and face assignments.
+- **A new empty** in Equipment needs a `partId` property, or an object name that is a part ID
+  (`generic-twin-bitts.001`); `design:` parts are custom fittings.
+- **Seating**: an empty whose `seat` property is true is seated by the native resolver (`ship:place`'s)
+  against the edited hull, nearest support along its attachment direction. The import sets it for
+  equipment that cannot [float](#floating-fittings); a fitting that may float keeps the empty's height.
+  Wall fittings keep their bearing.
+- **Paint**: a block whose majority material differs from the paint it was imported with is painted on
+  every face, keeping each face's armor; a new block is painted when its material is not the ship paint.
+  Several materials on a compound solid become surface groups with their own paint. A material that is
+  not a paint ID (`Material.001`) stops the export unless `--materials map.json` maps it
+  (`{"Material.001": "dark-gray"}`); `naval-gray.001` counts as `naval-gray`.
+- **Deleted**: an imported record whose object is gone is removed. Records added to the source after
+  the import were never in the scene and are kept, and a record removed from the source after the
+  import stays removed unless its object was changed in Blender.
+- Objects without a role outside those collections (cameras, lights, scratch meshes) are listed as
+  ignored.
+
+A worked example is `scripts/construction/blenderFrontEnd.test.ts`: a destroyer starter hull with a
+deckhouse, a bridge, a 5-inch gun and a stores load; in Blender the deckhouse moves 1 m aft, the bridge
+is duplicated forward, a box platform and an octagonal locker are added, and the gun turns to bearing
+30. The export (abridged):
+
+```json
+{
+ "changes": {
+  "unchanged": 2, "moved": ["deckhouse"],
+  "reshaped": [{"id": "searchlight-platform", "as": "eight-corner block"},
+               {"id": "ready-locker", "as": "compound solid", "parts": 1, "planes": 10}],
+  "added": [{"id": "bridge-copy", "object": "bridge.001", "role": "block"},
+            {"id": "searchlight-platform", "object": "Searchlight platform", "role": "block"},
+            {"id": "ready-locker", "object": "Ready locker", "role": "block"}],
+  "removed": [], "equipment": ["gun-a"], "loads": [],
+  "painted": [{"id": "searchlight-platform", "paint": "dark-gray"}],
+  "reassigned": [{"object": "bridge.001", "from": "bridge", "to": "bridge-copy"}]
+ },
+ "seating": [{"id": "gun-a", "status": "seated", "position": [0, 4.55, -25], "gapM": 0}],
+ "candidate": {"launchable": true, "diagnostics": [{"code": "unpowered", "severity": "warning"}]},
+ "batch": {"expectedRevision": "…", "expectedFileHash": "…", "label": "Blender export", "commands": [
+  {"op": "primitive", "value": {"id": "deckhouse", "kind": "box", "size": [4, 2.4, 10], "position": [0, 5.25, 7], "rotationDeg": 0}},
+  {"op": "primitive", "value": {"id": "bridge-copy", "kind": "vertex", "size": [3, 1.6, 4], "position": [0, 7.25, 9], "rotationDeg": 0}},
+  {"op": "primitive", "value": {"id": "searchlight-platform", "kind": "vertex", "size": [2, 1, 2], "position": [3.5, 4.55, 20], "rotationDeg": 0, "vertices": ["…"]}},
+  {"op": "primitive", "value": {"id": "ready-locker", "kind": "vertex", "size": [2, 2, 2], "position": [-3.5, 5.05, 20], "rotationDeg": 0, "solid": "…"}},
+  {"op": "equipment", "value": {"id": "gun-a", "partId": "us-5in38-mk30-mod0-single", "position": [0, 4.55, -25], "bearingDeg": 30}},
+  {"op": "surface", "value": {"primitiveId": "searchlight-platform", "face": "port", "thicknessMm": 0, "material": "steel", "paint": "dark-gray"}}
+ ]}
+}
+```
+
+Blender stores single-precision floats, so exported positions, sizes and corners are snapped to 10 µm
+and angles to 0.00001°: a block set on a deck in Blender touches it in the source. On the Scharnhorst
+(54 blocks, 214 equipment rows, 32 loads, 21 references) an import takes about 9 s and an export 2–6 s.
+
+Not yet exported: visual mesh fittings (step 2 of the ship authoring plan),
+hull sections through `ship:loft`, and equipment parents. Equipment empties are display boxes, not the
+part models; custom fitting shapes are not drawn.
 
 ## Custom fittings
 
@@ -870,7 +998,8 @@ bun run build
 The standard pipeline dispatches by the existing blueprint's construction source.
 Construction builds compile through Rust, verify exact retained component bytes,
 compose/export through Three.js, reload the candidate GLB and check articulation
-before publishing. No Blender process runs for ship construction.
+before publishing. Builds never run Blender for ship construction; a Blender scene is only an
+authoring front end whose edits reach the source as a batch.
 
 Outputs are `public/models/<id>.glb`, its compiled JSON and thumbnail, plus
 `generated/build.json`, `generated/thumbnail/render.json` and the five fixed views
