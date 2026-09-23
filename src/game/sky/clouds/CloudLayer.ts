@@ -115,6 +115,8 @@ export class CloudLayer implements CloudPart {
   private clearFor = NaN;
   private readonly cirrusTexture: DataTexture;
   private readonly cirrusStrength = uniform(0);
+  /** The scene's cirrus (`cirrusAmount`), drawn at tiers that draw cirrus. */
+  private cirrusAmount = 0;
   /** The clouds' drift heading as a unit XZ vector. */
   private readonly windAxis = uniform(new Vector2(0, 1));
   private readonly cirrusFn: (direction: Vec3, behind: Vec3) => Vec3;
@@ -230,7 +232,8 @@ export class CloudLayer implements CloudPart {
     this.u.ambient.value = clouds.ambient / AUTHORED_AMBIENT;
     this.u.baseShadow.value = Math.min(Math.max(clouds.baseShadow, 0), 1);
     this.u.precipitation.value = scene.weather.precipitation;
-    this.cirrusStrength.value = cirrusAmount(clouds.coverage, clouds.windHeading + scene.sun.azimuth);
+    this.cirrusAmount = cirrusAmount(clouds.coverage, clouds.windHeading + scene.sun.azimuth);
+    this.cirrusStrength.value = SKY_TIERS[this.quality].cloudCirrus ? this.cirrusAmount : 0;
     const heading = clouds.windHeading * Math.PI / 180;
     this.windAxis.value.set(Math.sin(heading), Math.cos(heading));
     this.hasHistory = false;
@@ -287,6 +290,7 @@ export class CloudLayer implements CloudPart {
     this.u.steps.value = tier.cloudSteps;
     this.u.bakeSteps.value = tier.environmentSteps;
     this.u.interleave.value = tier.cloudInterleave;
+    this.cirrusStrength.value = tier.cloudCirrus ? this.cirrusAmount : 0;
     if (this.u.shadowSize.value !== tier.cloudShadowSize) {
       this.shadowMap.dispose();
       this.shadowMap = this.makeShadowMap(tier.cloudShadowSize);

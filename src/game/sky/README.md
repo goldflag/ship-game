@@ -123,8 +123,9 @@ transmittance-weighted mean depth; past the farthest cloud marched, a horizon ba
 cover. The composite (order −29) sits at the far plane under the layer, where the depth test culls
 the sea and ships before shading, and tests each pixel at the clouds' own depth from inside or above
 the layer and in rain; it adds lightning's glow from `SkyUniforms.lightningPosition` (irradiance at
-1 km, softened by the cloud around the channel). Cirrus is a 2D layer at 9 km drawn in the dome. The
-cloud shadow map (40 km around the camera, laid out in the clouds' drifting frame so it follows the
+1 km, softened by the cloud around the channel). Cirrus is a 2D layer at 9 km drawn in the dome,
+lit from a 64² table of its light along each direction that the clouds' submission fills every frame
+(so the dome reads no atmosphere tables for it); Low draws none. The cloud shadow map (40 km around the camera, laid out in the clouds' drifting frame so it follows the
 wind exactly) is the sun's transmittance through the shell, read through a cubic B-spline by
 `cloudShadow` for ships, islands and the sea. Under storm cells, while the scene rains, the march
 first crosses the air below the base through slanted grey rain shafts. `look` and `erosion`
@@ -146,12 +147,12 @@ light) and the sea reflects it through `OceanSky.createReflectionSampler`. The f
 
 `quality.ts` owns the numbers; Graphics → Clouds picks the tier live.
 
-| Tier | Cloud buffer | Marched per update | Updated | Steps / light | Shadow map | Bake | Shafts | Rain drops |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Low | ⅓ res | 1 of 16 | every frame | 40 / 3 | 512² | 256 × 128, 12 steps | 16 | 3,000 |
-| Medium | ½ res | 1 of 16 | every frame | 64 / 4 | 1024² | 384 × 192, 16 steps | 24 | 8,000 |
-| High | ½ res | 1 of 4 | every frame | 80 / 4 | 1024² | 512 × 256, 24 steps | 32 | 16,000 |
-| Ultra | ½ res | 1 of 4 | every frame | 128 / 5 | 1024² | 768 × 384, 32 steps | 48 | 30,000 |
+| Tier | Cloud buffer | Marched per update | Updated | Steps / light | Shadow map | Cirrus | Bake | Shafts | Rain drops |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Low | ⅓ res | 1 of 16 | every frame | 40 / 3 | 512² | none | 256 × 128, 12 steps | 16 | 3,000 |
+| Medium | ½ res | 1 of 16 | every frame | 64 / 4 | 1024² | yes | 384 × 192, 16 steps | 24 | 8,000 |
+| High | ½ res | 1 of 4 | every frame | 80 / 4 | 1024² | yes | 512 × 256, 24 steps | 32 | 16,000 |
+| Ultra | ½ res | 1 of 4 | every frame | 128 / 5 | 1024² | yes | 768 × 384, 32 steps | 48 | 30,000 |
 
 ## Budget
 

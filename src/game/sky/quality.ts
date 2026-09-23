@@ -17,6 +17,8 @@ export interface SkyTier {
   /** Frames between cloud updates seen from under the layer (1: every frame); the composite turns the last
    * update to the current view in between. */
   readonly cloudUpdateInterval: number;
+  /** High cirrus in the dome. Off, the dome skips its two texture reads on every sky pixel. */
+  readonly cloudCirrus: boolean;
   /** Environment bake width (height is half); its cloud march steps. */
   readonly environmentWidth: number;
   readonly environmentSteps: number;
@@ -29,8 +31,12 @@ export interface SkyTier {
 }
 
 export const SKY_TIERS: Readonly<Record<SkyQuality, SkyTier>> = {
-  low: { cloudScale: 3, cloudInterleave: 4, cloudSteps: 40, cloudLightSteps: 3, cloudShadowSize: 512, cloudUpdateInterval: 1, environmentWidth: 256, environmentSteps: 12, shaftSamples: 16, rainDrops: 3000, stars: 3000 },
-  medium: { cloudScale: 2, cloudInterleave: 4, cloudSteps: 64, cloudLightSteps: 4, cloudShadowSize: 1024, cloudUpdateInterval: 1, environmentWidth: 384, environmentSteps: 16, shaftSamples: 24, rainDrops: 8000, stars: 6000 },
-  high: { cloudScale: 2, cloudInterleave: 2, cloudSteps: 80, cloudLightSteps: 4, cloudShadowSize: 1024, cloudUpdateInterval: 1, environmentWidth: 512, environmentSteps: 24, shaftSamples: 32, rainDrops: 16000, stars: 9000 },
-  ultra: { cloudScale: 2, cloudInterleave: 2, cloudSteps: 128, cloudLightSteps: 5, cloudShadowSize: 1024, cloudUpdateInterval: 1, environmentWidth: 768, environmentSteps: 32, shaftSamples: 48, rainDrops: 30000, stars: 9000 },
+  low: { cloudScale: 3, cloudInterleave: 4, cloudSteps: 40, cloudLightSteps: 3, cloudShadowSize: 512, cloudUpdateInterval: 1, cloudCirrus: false,
+    environmentWidth: 256, environmentSteps: 12, shaftSamples: 16, rainDrops: 3000, stars: 3000 },
+  medium: { cloudScale: 2, cloudInterleave: 4, cloudSteps: 64, cloudLightSteps: 4, cloudShadowSize: 1024, cloudUpdateInterval: 1, cloudCirrus: true,
+    environmentWidth: 384, environmentSteps: 16, shaftSamples: 24, rainDrops: 8000, stars: 6000 },
+  high: { cloudScale: 2, cloudInterleave: 2, cloudSteps: 80, cloudLightSteps: 4, cloudShadowSize: 1024, cloudUpdateInterval: 1, cloudCirrus: true,
+    environmentWidth: 512, environmentSteps: 24, shaftSamples: 32, rainDrops: 16000, stars: 9000 },
+  ultra: { cloudScale: 2, cloudInterleave: 2, cloudSteps: 128, cloudLightSteps: 5, cloudShadowSize: 1024, cloudUpdateInterval: 1, cloudCirrus: true,
+    environmentWidth: 768, environmentSteps: 32, shaftSamples: 48, rainDrops: 30000, stars: 9000 },
 };
