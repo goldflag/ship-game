@@ -32,7 +32,7 @@ const RESHAPE = .06, RISE = .35;
 const SWIRL = new Vector3(1.1, 1.7, -.8);
 /** Share of the base shape the low billow octaves erode away from the billows' centres, and share the
  * detail volume erodes from the edges: uniforms, so the shapes can be tuned live. */
-export const erosion = { shape: uniform(.7), detail: uniform(.7) };
+export const erosion = { shape: uniform(.7), detail: uniform(.7), sharpen: uniform(1.5) };
 /** A volume's features alias once a pixel's footprint (m) spans a couple of its texels: over these
  * footprints, in texels, the finer octaves fade to their mean, which keeps the cloud's size and drops only
  * what the pixel cannot resolve. */
@@ -182,7 +182,7 @@ export function createCloudField(sky: SkyUniforms, layer: LayerUniforms, maps: {
   /** Ragged, wispy bases (erode the billows' centres); cauliflower above them (erode between the billows). */
   const eroded = (s: CloudSample, billows: Float) => {
     const eroding = mix(billows, billows.oneMinus(), saturate(s.height.mul(5))).mul(erosion.detail);
-    return saturate(s.coarse.sub(eroding).div(eroding.oneMinus()));
+    return saturate(s.coarse.sub(eroding).div(eroding.oneMinus()).mul(erosion.sharpen));
   };
   const erode = (s: CloudSample, p: Vec3, footprint?: Float, branch = true): Float => {
     const detailed = () => {

@@ -26,8 +26,8 @@ export interface SkyTier {
 }
 
 export const SKY_TIERS: Readonly<Record<SkyQuality, SkyTier>> = {
-  low: { cloudScale: 4, cloudInterleave: 4, cloudSteps: 32, cloudLightSteps: 2, cloudShadowSize: 128, environmentWidth: 256, environmentSteps: 12, shaftSamples: 16, rainDrops: 3000, stars: 3000 },
-  medium: { cloudScale: 2, cloudInterleave: 4, cloudSteps: 48, cloudLightSteps: 3, cloudShadowSize: 256, environmentWidth: 384, environmentSteps: 16, shaftSamples: 24, rainDrops: 8000, stars: 6000 },
+  low: { cloudScale: 4, cloudInterleave: 4, cloudSteps: 32, cloudLightSteps: 2, cloudShadowSize: 256, environmentWidth: 256, environmentSteps: 12, shaftSamples: 16, rainDrops: 3000, stars: 3000 },
+  medium: { cloudScale: 2, cloudInterleave: 4, cloudSteps: 48, cloudLightSteps: 3, cloudShadowSize: 512, environmentWidth: 384, environmentSteps: 16, shaftSamples: 24, rainDrops: 8000, stars: 6000 },
   high: { cloudScale: 2, cloudInterleave: 4, cloudSteps: 64, cloudLightSteps: 4, cloudShadowSize: 512, environmentWidth: 512, environmentSteps: 24, shaftSamples: 32, rainDrops: 16000, stars: 9000 },
-  ultra: { cloudScale: 2, cloudInterleave: 2, cloudSteps: 96, cloudLightSteps: 5, cloudShadowSize: 512, environmentWidth: 768, environmentSteps: 32, shaftSamples: 48, rainDrops: 30000, stars: 9000 },
+  ultra: { cloudScale: 2, cloudInterleave: 2, cloudSteps: 96, cloudLightSteps: 5, cloudShadowSize: 1024, environmentWidth: 768, environmentSteps: 32, shaftSamples: 48, rainDrops: 30000, stars: 9000 },
 };
