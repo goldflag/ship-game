@@ -97,6 +97,21 @@ ship, friction, foam strength/threshold/lifetime, heights bounded to ±8 m, paus
 untouched, reset clears it. Tier resolutions: Low off, Medium 256², High 512², Ultra 1024².
 The game adds its own trail and torpedo foam through `ocean.setWakeSampler`.
 
+`wake/` solves ∂²h/∂t² + γ∂h/∂t = −g√(−∇²)(h + head) in fragment passes on float targets, one
+path for WebGPU and WebGL2. A single truncated iWave kernel of radius P under-reads |k| for waves
+longer than about P cells, so on a 1.5 m grid a ship's 150 m waves would turn slow and the Kelvin
+wedge would change with the tier; `kernel.ts` instead fits radius-3 kernels on a binomial
+reduce/collapse pyramid whose coarsest level is 32² on every tier, within 3% of deep-water |k| from
+6 cells to 576 m. Each generator is a moving pressure patch: `depth` is its head in metres (the
+depression it would settle into at rest), eased in over about a second and faded below 1 m/s;
+`radius` shapes a Gaussian footprint along the path swept each step. The Kelvin wedge, bow and
+stern systems come out of the dispersion; heights are a fraction of `depth` to about `depth`.
+`friction` is γ in 1/s. The field steps at a fixed 1/30 s and the sampler blends the last two steps
+(one step behind). Foam is set to 1.5 × `foamStrength` along the swept hull path, added where the
+slope over a 12 m baseline passes `foamBreakThreshold`, spreads at 3 m²/s and decays with
+`foamLifetime`. Scrolling moves content by whole cells; an edge sponge absorbs outgoing waves.
+A step renders 2 × levels + 2 passes (8, 10, 12 by tier), about 0.2–0.4 ms on WebGPU.
+
 **Underwater.** A submerged camera sees exponential absorption toward the pigment over the
 distance to the first surface; the waterline across the near plane is handled per pixel.
 Nothing runs for it when the camera is certainly above the waves (CPU bound).
@@ -118,7 +133,11 @@ caustics, the built-in sky, masking, multiplayer tick sync.
 
 ## Validation
 
-Unit tests (`bun test src/game/ocean`) cover the spectrum, bounds, seeds, quality tiers and
-geometry coverage. `/scripts/diagnostics/ocean-review.html` renders fixed scenes of the real game
+Unit tests (`bun test src/game/ocean`) cover the spectrum, bounds, seeds, quality tiers, geometry
+coverage, the wake's dispersion pyramid (including aliasing on a real grid) and its generators.
+`bun scripts/browser/ocean-wake.ts [--resolution 256|512|1024] [--webgl] [--measure]` runs
+`/scripts/diagnostics/ocean-wake.html` headed: a Bismarck-sized hull sails, turns, stops, resets and
+teleports, every check reads the public sampler back, and the captures, results and step cost land
+in `.build/ocean-wake/`. `/scripts/diagnostics/ocean-review.html` renders fixed scenes of the real game
 for side-by-side review; `.build/ocean-review/waterpro/` holds the Water Pro captures they are
 compared with.
