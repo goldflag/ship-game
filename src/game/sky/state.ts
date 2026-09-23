@@ -54,6 +54,13 @@ export class SkyState {
     this.wind.set(Math.sin(heading), 0, Math.cos(heading)).multiplyScalar(scene.clouds.windSpeed);
   }
 
+  /** Sky time and cloud drift as `time` seconds of the current wind from the start put them. */
+  seek(time: number): void {
+    this.time = time;
+    this.uniforms.time.value = time;
+    this.uniforms.windOffset.value.copy(this.wind).multiplyScalar(time);
+  }
+
   /** Advance sky time and the cloud drift; a paused frame (dt 0) moves nothing. */
   advance(dt: number, camera: Vector3): void {
     if (dt > 0) {

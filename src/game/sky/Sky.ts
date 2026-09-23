@@ -116,6 +116,12 @@ export class Sky implements SkyApi {
 
   resetHistory(): void { this.cut = true; }
 
+  hold(time?: number): void {
+    if (time !== undefined) this.state.seek(time);
+    this.parts.clouds.hold(time !== undefined);
+    this.cut = true;
+  }
+
   resize(width: number, height: number): void {
     const ratio = this.gpu.getPixelRatio(), w = Math.max(1, Math.round(width * ratio)), h = Math.max(1, Math.round(height * ratio));
     for (const part of Object.values(this.parts) as { resize?(w: number, h: number): void }[]) part.resize?.(w, h);

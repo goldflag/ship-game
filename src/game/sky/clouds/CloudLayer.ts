@@ -54,6 +54,9 @@ const TILE = 8;
 /** Coverage over which the layer comes to shade the air and sea under it, and the share of their light it takes
  * at full cover (`MarchContext.deckShade`). */
 const DECK_SHADE = [.55, 1, .6] as const;
+/** Updates a held sky (`hold`) marches a still view before it stops: past every tier's interleave cycle and the history's
+ * memory, so what it keeps is converged. */
+const HOLD_UPDATES = 48;
 /** Frames drawn with the per-pixel-depth composite first, so both composite pipelines compile at startup. */
 const WARMUP_FRAMES = 3;
 /** Sun elevation (degrees) below which the moon lights the clouds instead. */
@@ -188,6 +191,10 @@ export class CloudLayer implements CloudPart {
   private readonly previousViewProjection = new Matrix4();
   private readonly viewProjection = new Matrix4();
   private readonly previousWind = new Vector3();
+  /** Held (`hold`): updates marched since the view last changed, and that view. */
+  private held = false;
+  private heldUpdates = 0;
+  private readonly heldView = new Matrix4();
 
   constructor(renderer: WebGPURenderer, private readonly sky: SkyUniforms, atmosphere: AtmospherePart, quality: SkyQuality, reversedDepth: boolean) {
     this.quality = quality;
@@ -344,6 +351,13 @@ export class CloudLayer implements CloudPart {
     this.updateLight();
     camera.updateMatrixWorld();
     this.viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    // Held, every new view starts afresh (no history, no drift since the last march) and marches the same jitter
+    // sequence from its start, then stands still: what it keeps owes nothing to the frames before.
+    if (this.held && (frame.cut || !sameView(this.viewProjection, this.heldView))) {
+      this.heldView.copy(this.viewProjection); this.heldUpdates = this.updates = 0;
+      this.hasHistory = false; this.shadowStale = true; this.current = 0; this.previousWind.copy(this.sky.windOffset.value);
+    }
+    const converged = this.held && this.heldUpdates >= HOLD_UPDATES;
     // After a cut every pixel is marched for a couple of frames, so the new view starts clean at full
     // resolution rather than converging from an upsampled first frame over the whole interleave cycle.
     if (!this.hasHistory || frame.cut) this.catchUp = CATCH_UP_FRAMES;
@@ -364,7 +378,7 @@ export class CloudLayer implements CloudPart {
       }
       this.compiled = true;
     }
-    if (!this.active || !due) {
+    if (!this.active || !due || converged) {
       renderer.compute(this.tablesOnly);
       return;
     }
@@ -389,6 +403,7 @@ export class CloudLayer implements CloudPart {
     u.frame.value = this.updates % 1024;
     u.shadowSlice.value = this.updates % u.shadowSlices.value;
     this.updates++;
+    if (this.held) this.heldUpdates++;
     const shadows = u.shadowStrength.value > 0 ? (this.shadowStale || frame.cut ? 2 : 1) : 0;
     renderer.compute(this.submissions.get(this.marchKernels.get(tier.cloudLightSteps)!)![this.current][shadows]);
     if (shadows === 2) this.shadowStale = false;
@@ -403,6 +418,8 @@ export class CloudLayer implements CloudPart {
     this.previousViewProjection.copy(this.viewProjection);
     this.previousWind.copy(wind);
   }
+
+  hold(held: boolean): void { this.held = held; this.heldUpdates = this.updates = 0; }
 
   dispose(): void {
     for (const map of [this.march.color, this.march.depth, ...this.history.flatMap(h => [h.color, h.depth]), this.shadowMap, this.cirrusTable, this.lightTable]) {
@@ -685,4 +702,9 @@ function mapTexture(bytes: Uint8Array, size: number, name: string, mipmapped = f
 /** Creates the cloud part for the sky facade. */
 export function createCloudLayer(context: SkyPartContext, atmosphere: AtmospherePart): CloudLayer {
   return new CloudLayer(context.renderer, context.uniforms, atmosphere, context.quality, context.reversedDepth);
+}
+
+/** Two view-projections equal to float noise: a camera eased onto a fixed point still wobbles in its last bits. */
+function sameView(a: Matrix4, b: Matrix4): boolean {
+  return a.elements.every((value, i) => Math.abs(value - b.elements[i]) <= 1e-6 * (1 + Math.abs(value)));
 }

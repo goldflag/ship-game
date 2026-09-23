@@ -46,7 +46,8 @@ export interface HarnessReview {
   /** Hold every presentation clock at `time` seconds of sea (default 60) after replaying `history` seconds (default 30), so two
    * runs draw the same sea and pose (`Game.freezeScene`); `false` lets them run again. Place the camera first: smoke detail follows it. */
   freezeScene(options?: { time?: number; history?: number } | false): Promise<void>;
-  /** Resolve once no camera glide, zoom or orbit is easing (an optics glide takes about 0.42 s), then `frames` rendered frames later. */
+  /** Resolve once no camera glide, zoom or orbit is easing (an optics glide takes about 0.42 s), then `frames` rendered frames later
+   * (default 4, or enough for a held sky to converge on the view while the scene is frozen). */
   settle(options?: { frames?: number; timeoutMs?: number }): Promise<void>;
   /** Show or hide every page layer over the 3D view (instruments, port panels, labels) and the torpedo sheets drawn on the sea. */
   setHud(visible: boolean): void;
@@ -141,12 +142,17 @@ function placeCamera(pose?: CameraPose): CameraPin | undefined {
   return pin;
 }
 
+/** A held sky marches a still view for 48 updates and then stands (`CloudLayer`'s HOLD_UPDATES); a few more for margin. */
+const HELD_SKY_FRAMES = 56;
+let frozen = false;
 async function freezeScene(options: { time?: number; history?: number } | false = {}): Promise<void> {
+  frozen = options !== false;
   if (options === false) return game().freezeScene();
   await game().freezeScene(options.time ?? 60, options.history ?? 30);
+  for (let i = 0; i < HELD_SKY_FRAMES; i++) await game().nextFrame();
 }
 
-async function settle({ frames = 4, timeoutMs = 10_000 }: { frames?: number; timeoutMs?: number } = {}): Promise<void> {
+async function settle({ frames = frozen ? HELD_SKY_FRAMES : 4, timeoutMs = 10_000 }: { frames?: number; timeoutMs?: number } = {}): Promise<void> {
   for (const deadline = performance.now() + timeoutMs; !game().cameraSettled;) {
     if (performance.now() > deadline) throw new Error(`Harness: the camera was still moving after ${timeoutMs / 1000} s.`);
     await game().nextFrame();

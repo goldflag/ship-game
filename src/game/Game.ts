@@ -805,7 +805,7 @@ export class Game {
    * `history` seconds with every hull held where it stands, so two runs frozen at one time draw the same sea whatever each ran
    * before. Underway, the replay fades the wakes astern; `history` 0 keeps them, and the foam of whatever sea came before. */
   async freezeScene(time?: number, history = 30): Promise<void> {
-    if (time === undefined) { this.frozenTime = undefined; this.lastTime = performance.now(); return; }
+    if (time === undefined) { this.frozenTime = undefined; this.sky?.hold(); this.lastTime = performance.now(); return; }
     cancelAnimationFrame(this.raf);
     await this.frameTask;
     cancelAnimationFrame(this.raf);
@@ -825,9 +825,7 @@ export class Game {
         await ocean.update(step);
       }
       ocean.time = time;
-      // Cloud drift is integrated per frame; restart it from nothing so the sky stands where `time` puts it.
-      const wind = this.sky?.clouds.wind;
-      if (wind) { wind.offset.value.set(0, 0, 0); wind.evolutionOffset.value = 0; wind.advance(time); }
+      this.sky?.hold(time);
     } finally {
       this.lastTime = performance.now();
       this.scheduleFrame();

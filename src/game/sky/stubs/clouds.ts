@@ -18,6 +18,7 @@ export function createStubClouds(): CloudPart {
     composite,
     screenTransmittance: null,
     apply() {},
+    hold() {},
     cirrus: (_direction, behind) => behind,
     bake: () => vec4(0, 0, 0, 1),
     shadow: () => float(1),

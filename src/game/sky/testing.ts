@@ -39,6 +39,7 @@ export class RecordingSky implements SkyApi {
   cloudShadow(): Node<'float'> { return float(1); }
   meshes(): Object3D[] { return []; }
   resetHistory(): void {}
+  hold(time?: number): void { if (time !== undefined) this.state.seek(time); }
   resize(): void {}
   async setQuality(): Promise<void> {}
   diagnostics(): Record<string, unknown> { return {}; }
