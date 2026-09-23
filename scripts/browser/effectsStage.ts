@@ -109,6 +109,9 @@ export function installStage(game: Game) {
     frozen = true;
     // Direct flag, not setPaused: no pause menu, and incoming worker frames stop applying.
     g.paused = true;
+    // A paused Game still hands the worker's latest frame to the session on its next advance,
+    // which would snap staged poses, speeds and seeded fires back to the live battle.
+    (g.simulation as unknown as { advance: () => void }).advance = () => {};
     g.scheduleFrame = () => {};
     cancelAnimationFrame(g.raf);
     g.rig.update = () => {};
