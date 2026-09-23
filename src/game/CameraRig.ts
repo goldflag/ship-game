@@ -9,7 +9,8 @@ export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
 const MIN_MAGNIFICATION = 1, MAX_MAGNIFICATION = 32, DEFAULT_SCOPE_MAGNIFICATION = 2;
 const MAX_DOWNWARD_TILT = Math.PI / 2 - .015;
-const MIN_ORBIT_ELEVATION = .08;
+/** Lowest chase orbit (about 7°), where the camera rides while aiming toward the horizon. */
+const MIN_ORBIT_ELEVATION = .12;
 /** Torpedoes are laid on wedges drawn on the sea: the chase view climbs until the water fills the lower half of the frame. */
 const TORPEDO_ORBIT_ELEVATION = .38;
 const MAX_UPWARD_TILT = Math.PI / 6;
