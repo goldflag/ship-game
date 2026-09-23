@@ -9,15 +9,16 @@
 </style>
 <div id="scene"></div><output id="status">Preparing reflection review…</output>
 <script type="module">
-import * as THREE from 'three/webgpu';
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 
-// Real game renderer, model, water and post-processing, with a stationary target.
-// ?legacy=1 restores the old reflection range and player shadow anchor.
+// Real game renderer, model, ocean and post-processing, with a stationary target seen through the
+// binoculars. The ocean traces screen-space ship reflections inside its surface shading (High and
+// Ultra); WaterViewFocus stretches their reach to the hull under the lens and moves the sun's shadow
+// anchor onto it. A frame traced and the same frame untraced isolate what the reflections draw.
+// ?legacy=1 keeps the base reach and the player's shadow anchor, ?calm=1 flattens the sea,
+// ?range=, ?zoom= and ?quality= set the view, ?test=1 runs the check.
 const params = new URLSearchParams(location.search);
-// Exercise Three.js's real WebGL fallback with ?webgl=1.
-if(params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter=async()=>null;
 const status = document.querySelector('#status');
 const game = new Game(document.querySelector('#scene'), (GRAPHICS_PRESETS[params.get('quality')] ?? GRAPHICS_PRESETS.high), {
   progress:label=>status.textContent=label,ready:()=>{},telemetry:()=>{},pause:()=>{},hud:()=>{},
@@ -42,44 +43,58 @@ async function still() {
     game.renderer._nodes.nodeFrame.update();
     await game.frame(performance.now());
   }
-  // WebGL may discard the default framebuffer after an async frame finishes.
   // Present the prepared post-process textures and capture synchronously.
   game.pipeline.render();
   return game.renderer.domElement.toDataURL('image/png');
 }
+async function pixels() {
+  const image=new Image();image.src=await still();await image.decode();
+  const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+  const context=canvas.getContext('2d');context.drawImage(image,0,0);return context.getImageData(0,0,image.width,image.height).data;
+}
 
-const focus = game.waterViewFocus,baseDistance=game.water.ssr.maxDistance;
-if(params.has('legacy')) game.waterViewFocus={update:()=>undefined};
-if(params.has('calm')) {game.water.waves.amplitude.value=0;game.water.waves.dirty=true;}
-game.water.deterministic=true;game.water.syncToTick(3600);await game.water.update(1/60);
+const ocean=game.ocean,reflections=ocean.reflections,focus=game.waterViewFocus,baseDistance=reflections.maxDistance;
+/** The tier's base reach and the player's shadow anchor, as without the focus. */
+const legacyFocus={update:()=>{reflections.maxDistance=baseDistance;return undefined;}};
+if(params.has('legacy')) game.waterViewFocus=legacyFocus;
+if(params.has('calm')) {ocean.waves.significantHeight=0;ocean.waves.dirty=true;}
+// Paused frames never advance the ocean's clock, so every capture shows the same sea.
+ocean.time=60;
 prepare(Number(params.get('range')??5000),Number(params.get('zoom')??24));await still();status.hidden=true;
-async function measure() {
-  const target=game.water.renderPassManager.ssrPass.renderTarget;
-  const pixels=await game.renderer.readRenderTargetPixelsAsync(target,0,0,target.width,target.height);
-  let count=0,confidence=0;
-  for(let i=3;i<pixels.length;i+=4) {
-    const alpha=THREE.DataUtils.fromHalfFloat(pixels[i]);
-    if(alpha>.01) count++;
-    confidence+=alpha;
-  }
-  return {count,confidence,range:game.water.ssr.maxDistance,steps:game.water.ssr.stepCount,
-    shadow:game.water.lighting.sunLight.target.position.toArray(),backend:game.renderer.backend.constructor.name};
+
+function measure() {
+  return {range:reflections.maxDistance,steps:reflections.steps,shadow:game.environment.sunLight.target.position.toArray()};
+}
+/** Pixels the reflections change: the same frozen frame traced and untraced. */
+async function reflected() {
+  const enabled=reflections.screenSpace;
+  try {
+    reflections.screenSpace=true;const traced=await pixels();
+    reflections.screenSpace=false;const plain=await pixels();
+    let pixelsChanged=0,change=0;
+    for(let i=0;i<traced.length;i+=4) {
+      const delta=Math.abs(traced[i]-plain[i])+Math.abs(traced[i+1]-plain[i+1])+Math.abs(traced[i+2]-plain[i+2]);
+      if(delta>6){pixelsChanged++;change+=delta;}
+    }
+    return {pixelsChanged,change};
+  } finally {reflections.screenSpace=enabled;}
 }
 async function check() {
-  const cases=[],base=baseDistance;
+  if(!reflections.steps) return {passed:false,reason:'This ocean tier traces no ship reflections; use ?quality=high or ultra.'};
+  const cases=[];
   for(const range of [5000,20000]) {
     prepare(range,24);
-    game.waterViewFocus={update:()=>{game.water.ssr.maxDistance=base;return undefined;}};
-    await still();const legacy=await measure();
-    game.waterViewFocus=focus;await still();const zoomed=await measure();
-    cases.push({range,legacy,zoomed,passed:zoomed.confidence>legacy.confidence*5+100 && zoomed.shadow[0]===range});
+    game.waterViewFocus=legacyFocus;await still();const legacy={...measure(),...await reflected()};
+    game.waterViewFocus=focus;await still();const zoomed={...measure(),...await reflected()};
+    cases.push({range,legacy,zoomed,passed:zoomed.pixelsChanged>legacy.pixelsChanged*5+100&&zoomed.range>baseDistance&&zoomed.shadow[0]===range});
   }
-  prepare(5000,1);await still();const restored=await measure();
-  const passed=cases.every(c=>c.passed)&&restored.range===base&&restored.shadow[0]===game.ship.position.x;
+  prepare(5000,1);await still();const restored=measure();
+  const passed=cases.every(c=>c.passed)&&restored.range===baseDistance&&restored.shadow[0]===game.ship.position.x;
   prepare(Number(params.get('range')??5000),Number(params.get('zoom')??24));await still();
   return {passed,cases,restored};
 }
-window.reflectionReview={game,prepare,still,measure,focus,check};
-window.reflectionResult=await measure();
+window.reflectionReview={game,prepare,still,measure,reflected,focus,check};
+window.reflectionResult=measure();
 if(params.has('test')) window.reflectionResult=await check();
+window.reflectionDone=true;
 </script></html>
