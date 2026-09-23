@@ -132,6 +132,8 @@ const BATTLE_SHADOW_HALF = 380;
 const NO_SHIPS: ReadonlySet<string> = new Set();
 
 export class Game {
+  // Tests build a Game from its field initializers alone (testing/gameFixture.ts), so give state the frame loop reads an
+  // initializer here rather than an assignment in the constructor; anything built there, each test must pass in.
   definition: typeof selectedShip;
   private portDefinition = selectedShip;
   /** The port's session until the first sortie; set by `initialize`. */
