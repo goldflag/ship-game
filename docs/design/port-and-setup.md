@@ -69,6 +69,18 @@ viewport and does not intercept the pointer. Dragging, moving onto controls, pau
 armor mode clears the highlight. Hidden layers can be isolated from the list before hovering; hover
 never changes selection or combat.
 
+### Startup loader
+
+One loader runs from the static markup in `index.html` through the game's own startup
+(`StartupScreen.tsx`, `startup.css`; `AccountGate` keeps it mounted). It is Scharnhorst's
+outboard profile as a line drawing on the harbor navy: pencil at 16 % ivory, ink revealed
+from stern to bow by the `--p` progress property (registered with `@property` so it eases),
+and a brass pen line at the ink's edge whose glow breathes through long stages. One 14 px
+muted stage line sits below; there is no other text or decoration. A finished load holds
+"Ready to get underway" for 450 ms and fades out over 600 ms into the port; a load that
+ends in an error leaves at once. The line art (`src/ui/startup-scharnhorst.png`) is a mask
+traced from `bun run ship:view scharnhorst --view profile --mode ids`.
+
 ### Account access
 
 The account gate extends the harbor's navy surfaces, brass primary action, Barlow

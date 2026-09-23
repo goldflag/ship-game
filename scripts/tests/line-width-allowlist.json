@@ -130,7 +130,6 @@
   "src/ui/RangefinderReadout.tsx",
   "src/ui/Reconnaissance.tsx",
   "src/ui/SettingsDialog.css",
-  "src/ui/StartupScreen.tsx",
   "src/ui/TorpedoIndicators.css",
   "src/ui/airFormat.ts",
   "src/ui/airIntent.test.ts",

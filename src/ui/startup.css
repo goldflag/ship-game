@@ -1,11 +1,35 @@
-/* Available before the game bundle runs; shared by the HTML and React loaders. */
-.startup-screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 28px; box-sizing: border-box; background: #142d38; color: #edf1ec; font-family: 'Barlow', sans-serif; }
-.startup-content { width: min(420px, 100%); margin: auto; }
-.startup-content h1 { margin: 0 0 24px; font-size: clamp(26px, 5vw, 36px); font-weight: 500; line-height: 1.15; }
-.startup-status { margin: 0 0 12px; color: #e0c58d; font-size: 16px; line-height: 1.5; }
-.startup-note { margin: 20px 0 0; color: #bfced2; font-size: 14px; line-height: 1.6; }
-/* Progress track base lives here so the static HTML loader can draw it before styles.css arrives. */
+/* Available before the game bundle runs; shared by the HTML and React loaders.
+   The drawing is Scharnhorst's outboard profile: part edges traced from
+   `bun run ship:view scharnhorst --view profile --mode ids`, used as a mask so CSS picks the ink colour. */
+@property --p { syntax: '<number>'; inherits: true; initial-value: 0; }
+.startup-screen {
+  position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(24px, 5vh, 44px); overflow: hidden; padding: 28px 28px calc(28px + 6vh); box-sizing: border-box;
+  background: #142d38; color: #edf1ec; font-family: 'Barlow', sans-serif; transition: --p .6s ease;
+}
+.startup-drawing { position: relative; flex: none; width: min(1120px, 80vw, (100dvh - 180px) * 3.94); aspect-ratio: 2918 / 740; }
+.startup-drawing::before, .startup-drawing::after {
+  content: ''; position: absolute; inset: 0; background: #edf1ec;
+  -webkit-mask: url('./startup-scharnhorst.png') center / 100% 100% no-repeat; mask: url('./startup-scharnhorst.png') center / 100% 100% no-repeat;
+}
+/* Pencil underneath; ink follows progress from stern to bow. */
+.startup-drawing::before { opacity: .16; }
+.startup-drawing::after { clip-path: inset(-2px calc(100% - var(--p) * 100%) -2px 0); }
+/* The pen rides the ink's edge and lifts off as the drawing completes. Its glow keeps breathing
+   through the long waits between stages, so the screen never looks frozen. */
+.startup-pen {
+  position: absolute; top: -5%; bottom: -5%; left: calc(var(--p) * 100%); width: 1px; background: #e0c58d;
+  opacity: calc((1 - var(--p)) * 30); animation: startup-pen 1.4s ease-in-out infinite alternate;
+}
+@keyframes startup-pen { from { box-shadow: 0 0 3px #e0c58d33; } to { box-shadow: 0 0 12px 1px #e0c58dbb; } }
+.startup-status { margin: 0; color: #bfced2; font-size: 14px; line-height: 1.5; letter-spacing: .02em; text-align: center; }
+.startup-leaving { animation: startup-leave .6s ease-in forwards; pointer-events: none; }
+@keyframes startup-leave { to { opacity: 0; } }
+/* Progress track base for the battle loading screen. */
 .loading-progress { height: 2px; background: #d1e3e22b; }
 .loading-progress span { display: block; width: 100%; height: 100%; background: #e0c58d; transform-origin: left; transition: transform .6s ease; }
-.startup-content .loading-progress { height: 4px; }
-@media (prefers-reduced-motion: reduce) { .startup-content .loading-progress span { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .startup-screen { transition: none; }
+  .startup-pen { animation: none; box-shadow: 0 0 8px #e0c58d80; }
+  .startup-leaving { animation-duration: .01s; }
+}
