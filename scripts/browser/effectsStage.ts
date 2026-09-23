@@ -218,6 +218,17 @@ export function installStage(game: Game) {
     return target;
   }
 
+  /** A shell splash in the sea, `offset` metres from `targetIndex` in its local frame (default: 60 m off the side facing the player). */
+  function splash(targetIndex = 1, options: { caliberM?: number; offset?: Vec3 } = {}): Vec3 {
+    freeze();
+    const target = actor(targetIndex), side = facing(targetIndex);
+    const position = localToWorld(options.offset ?? [side * 60, 0, 20], target.motion);
+    position[1] = 0;
+    push({ kind: 'splash', shipId: target.motion.id, position,
+      shell: { id: ++shellId, caliberM: options.caliberM ?? .38, type: 'AP', velocity: [side * -300, -450, 0] } });
+    return position;
+  }
+
   /** Seed exterior fire state on a ship: vented compartments and/or mounts. */
   function burn(shipIndex = 1, options: BurnOptions = {}): { rooms: number[]; mounts: number[] } {
     freeze();
@@ -356,7 +367,7 @@ export function installStage(game: Game) {
   }
 
   return {
-    freeze, reset, aim, fire, hit, flak, burn, underway, camera: place, advance, render, capture, weather, facing, measure, effectsCost,
+    freeze, reset, aim, fire, hit, splash, flak, burn, underway, camera: place, advance, render, capture, weather, facing, measure, effectsCost,
     get elapsed() { return elapsed; },
     ships: () => views().map((v, i) => ({ index: i, id: v.actor.motion.id, preset: v.definition.id, team: v.actor.team,
       position: [v.actor.motion.x, v.actor.motion.z], heading: v.actor.motion.heading,

@@ -135,6 +135,13 @@ export const scenes: Record<string, Scene> = {
     stage.advance(.4); stage.hit(1, { kind: 'burst', along: .35, height: 6, caliberM: .15 });
     await timeline(stage, shoot, [.45, .55, .8, 1.3, 2.5, 4, 7, 10]);
   },
+  /** A near miss: a heavy shell splash beside the target, with its spray and mist. */
+  async splash(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.camera({ ship: 1, offset: [stage.facing() * 330, 30, 120], look: [stage.facing() * 60, 25, 20], fov: 45 });
+    stage.splash(1); stage.splash(1, { caliberM: .2, offset: [stage.facing() * 95, 0, -40] });
+    await timeline(stage, shoot, [.2, .6, 1.2, 2, 3.5, 6]);
+  },
   /** Magazine ignition: the largest single event in a battle. */
   async magazine(stage, shoot) {
     stage.reset(); stage.weather({ timeHours: 15 });
