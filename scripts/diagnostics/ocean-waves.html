@@ -257,25 +257,23 @@ async function foamCheck() {
     pausedUnchanged: before.every((v, i) => v === paused[i]), rebuiltWhilePausedUnchanged: before.every((v, i) => v === rebuilt[i]) };
 }
 
-/** CPU time of update() and GPU-inclusive time per update over batches. */
+/** CPU time of update() (batches without waiting) and GPU-inclusive wall time per update. Other
+ * GPU clients (other browsers) inflate the wall time; compare minima across repeated runs. */
 async function timing(updates = 120) {
-  const cpu = [], batches = [];
-  for (let batch = 0; batch < 6; batch++) {
+  const cpu = [], batches = [], batch = 20;
+  for (let run = 0; run < updates / batch; run++) {
     await sync();
     const start = performance.now();
-    for (let i = 0; i < updates / 6; i++) {
-      const t0 = performance.now();
-      time += 1 / 60; field.update(renderer, time, 1 / 60);
-      cpu.push(performance.now() - t0);
-    }
+    for (let i = 0; i < batch; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); }
+    cpu.push((performance.now() - start) / batch);
     await sync();
-    batches.push((performance.now() - start) / (updates / 6));
+    batches.push((performance.now() - start) / batch);
   }
   const before = renderer.info.render.calls;
   time += 1 / 60; field.update(renderer, time, 1 / 60);
   const passes = renderer.info.render.calls - before;
-  cpu.sort((a, b) => a - b); batches.sort((a, b) => a - b);
-  return { quality, backend, passes, cpuMedian: cpu[cpu.length >> 1], cpuP90: cpu[Math.floor(cpu.length * .9)], perUpdateMedian: batches[batches.length >> 1], batches };
+  const median = values => [...values].sort((a, b) => a - b)[values.length >> 1];
+  return { quality, backend, passes, cpuMedian: median(cpu), perUpdateMedian: median(batches), perUpdateMin: Math.min(...batches) };
 }
 
 window.oceanWaves = {
@@ -284,7 +282,7 @@ window.oceanWaves = {
   async view(name, sea = 'moderate', seconds = 6) {
     setSea(sea); VIEWS[name](); await frames(Math.round(seconds * 60)); return { name, sea, backend, errors: [...errors] };
   },
-  capture, validate, heights, foamCheck, timing, readLayer, get field() { return field; },
+  capture, validate, heights, foamCheck, timing, readLayer, renderer, get field() { return field; },
 };
 renderer.info.autoReset = false;
 setSea('moderate'); build(); VIEWS.near(); await frames(2);

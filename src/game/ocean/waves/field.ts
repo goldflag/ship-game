@@ -4,7 +4,7 @@
  * three's WebGL2 fallback: render-to-texture passes, float32 intermediates, no compute. */
 import { DataTexture, FloatType, HalfFloatType, LinearFilter, LinearMipmapLinearFilter, NearestFilter, NoBlending, NodeMaterial,
   QuadMesh, RGBAFormat, RenderTarget, RepeatWrapping, Vector2, type Node, type Texture, type WebGPURenderer } from 'three/webgpu';
-import { clamp, cos, exp, float, floor, fract, int, ivec2, log2, max, mrt, screenCoordinate, select, sin, smoothstep,
+import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max, min, mix, mrt, screenCoordinate, select, sin, smoothstep,
   texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
 import type { WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
@@ -14,11 +14,17 @@ type Vec4 = Node<'vec4'>;
 type Float = Node<'float'>;
 type Int = Node<'int'>;
 type TextureMap = ReturnType<typeof texture>;
+const floatUniform = () => uniform(0);
 
 /** Fields per cascade layer: displacement (Dx, Dy, Dz, ·), derivatives (∂y/∂x, ∂y/∂z, ∂Dx/∂x, ∂Dz/∂z)
  * and extras (∂Dx/∂z, foam, (∂y/∂x)² + (∂y/∂z)², ·). The squared slope is mip-filtered with the slope,
  * so E[s²] − E[s]² is the slope variance inside any pixel's filter footprint (LEAN mapping). */
 const FIELDS = ['displacement', 'derivatives', 'extras'] as const;
+/** Mip chains stop at this many texels per edge. WebGPU builds every level of every layer in its own
+ * render pass, and the tiny levels cost pass overhead only; waves finer than a coarsest texel fade
+ * into the slope variance instead (see surface()). */
+const COARSEST_TEXELS = 16;
+const ANISOTROPY = 16;
 /** Full crest-foam injection where a cascade's Jacobian falls to CREST_FULL, none above CREST_START. */
 const CREST_START = .7, CREST_FULL = .1;
 /** Windward injection on downwind faces steeper than FACE_START (slope), full at FACE_FULL. */
@@ -29,6 +35,10 @@ const MIN_JACOBIAN = .1;
 /** heightAt's inversion: at the calibrated 25 m/s storm a quarter of the surface nearly folds, and
  * six steps damped by 0.7 leave a 0.14 m 90th-percentile position residual (three plain steps: 1 m). */
 const INVERSION_STEPS = 6, INVERSION_DAMPING = .7;
+
+/** A texture read without three's uv matrix: a bare texture node's first `.sample()` or `.load()`
+ * otherwise gets its own matrix uniform, a per-draw update and a multiply. */
+const direct = (node: TextureMap): TextureMap => { node.updateMatrix = false; return node; };
 
 /** e^{iθ}-rotation of two packed complex numbers (xy, zw). */
 const rotate = (value: Vec4, c: Float, s: Float): Vec4 => value.mul(c).add(vec4(value.y.negate(), value.x, value.w.negate(), value.z).mul(s));
@@ -57,9 +67,9 @@ export class GpuWaveField implements WaveField {
   /** Spatial fields, one array layer per cascade; they alternate so foam reads last frame's. */
   private readonly fields: [RenderTarget, RenderTarget];
   private current = 0;
-  /** Whether each field target has been drawn: its first draw allocates the mip chain. */
-  private readonly allocated = [false, false];
   private built = false;
+  /** Index of the coarsest mip level. */
+  private readonly top: number;
   private readonly maps: Record<typeof FIELDS[number], TextureMap>;
   private readonly previousExtras: TextureMap;
   /** Horizontal passes, then all but the last vertical pass; pass t writes spectra[t % 2]. */
@@ -77,12 +87,16 @@ export class GpuWaveField implements WaveField {
   private readonly wind = uniform(new Vector2(1, 0));
   private readonly layer = uniform(0, 'int');
   private readonly tail = uniform(0);
+  /** Each cascade's whole slope variance, which becomes roughness where it cannot be filtered. */
+  private readonly slopes: ReturnType<typeof floatUniform>[];
   private lastPhase = -1;
 
   constructor(readonly cascades: readonly WaveCascadeInfo[], readonly params: WaveParameters, readonly foamParams: WaveFoamParameters) {
     const n = cascades[0]?.resolution ?? 0, count = cascades.length;
     if (!count || cascades.some(c => c.resolution !== n)) throw new Error('Wave cascades must share one resolution');
     this.size = n;
+    this.top = Math.max(0, Math.log2(n / COARSEST_TEXELS));
+    this.slopes = cascades.map(floatUniform);
     this.longest = cascadeBands(cascades).map((band, i) => i ? 2 * Math.PI / band.lo : cascades[0].size);
     this.spectrum = new DataTexture(new Float32Array(n * n * count * 4), n * count, n, RGBAFormat, FloatType);
     this.spectrum.minFilter = this.spectrum.magFilter = NearestFilter;
@@ -94,8 +108,9 @@ export class GpuWaveField implements WaveField {
     this.spectra = [atlas(), atlas()];
     const layers = () => {
       const target = new RenderTarget(n, n, { depth: count, count: FIELDS.length, type: HalfFloatType, format: RGBAFormat, depthBuffer: false,
-        minFilter: LinearMipmapLinearFilter, magFilter: LinearFilter, wrapS: RepeatWrapping, wrapT: RepeatWrapping, anisotropy: 16, generateMipmaps: true });
-      target.textures.forEach((t, i) => { t.name = FIELDS[i]; });
+        minFilter: LinearMipmapLinearFilter, magFilter: LinearFilter, wrapS: RepeatWrapping, wrapT: RepeatWrapping, anisotropy: ANISOTROPY, generateMipmaps: false });
+      // A render target's `mipmaps` only sets its level count; both backends skip uploads for it.
+      target.textures.forEach((t, i) => { t.name = FIELDS[i]; t.mipmaps = Array.from({ length: this.top + 1 }, () => ({ data: new Uint8Array(0), width: 0, height: 0 })); });
       return target;
     };
     this.fields = [layers(), layers()];
@@ -125,7 +140,7 @@ export class GpuWaveField implements WaveField {
    * (∂Dx/∂x, ∂Dz/∂z). Choppy displacement is +i·k̂·λ·H so crests sharpen as in Gerstner waves. */
   private evolve(spectrum: TextureMap, column: Int, row: Int, tile: Int, wavenumber: Float): [Vec4, Vec4] {
     const n = this.size, half = int(n / 2);
-    const a = spectrum.load(ivec2(tile.mul(n).add(column), row));
+    const a = direct(spectrum.load(ivec2(tile.mul(n).add(column), row)));
     // H = a·e^{−2πi·m·phase}; m·phase is split as 256·high + low so float32 keeps ~1e-5 of a turn.
     const high = floor(a.z.div(256)), low = a.z.sub(high.mul(256));
     const turn = fract(high.mul(fract(this.phase.mul(256))).add(low.mul(this.phase))).mul(2 * Math.PI);
@@ -150,7 +165,7 @@ export class GpuWaveField implements WaveField {
     const sums: [Vec4, Vec4] = [vec4(0), vec4(0)];
     for (let r = 0; r < radix; r++) {
       const index = first.add(r * n / radix);
-      const values = maps ? maps.map(map => map.load(horizontal ? ivec2(tile.mul(n).add(index), pixel.y) : ivec2(pixel.x, index)) as unknown as Vec4)
+      const values = maps ? maps.map(map => direct(map.load(horizontal ? ivec2(tile.mul(n).add(index), pixel.y) : ivec2(pixel.x, index))) as unknown as Vec4)
         : this.evolve(spectrum, index, pixel.y, tile, wavenumber);
       const turn = angle.mul(r), c = cos(turn), s = sin(turn);
       sums.forEach((sum, k) => { sums[k] = sum.add(rotate(values[k], c, s)); });
@@ -166,15 +181,15 @@ export class GpuWaveField implements WaveField {
     for (let r = 0; r < radix; r++) {
       const at = ivec2(this.layer.mul(n).add(pixel.x), first.add(r * n / radix));
       const turn = angle.mul(r), c = cos(turn), s = sin(turn);
-      ab = ab.add(rotate(maps[0].load(at) as unknown as Vec4, c, s));
-      cd = cd.add(rotate(maps[1].load(at) as unknown as Vec4, c, s));
+      ab = ab.add(rotate(direct(maps[0].load(at)) as unknown as Vec4, c, s));
+      cd = cd.add(rotate(direct(maps[1].load(at)) as unknown as Vec4, c, s));
     }
     const jacobian = cd.z.add(1).mul(cd.w.add(1)).sub(ab.w.mul(ab.w));
     const downwind = cd.x.mul(this.wind.x).add(cd.y.mul(this.wind.y));
     // Crest foam where this cascade's surface folds; windward foam on steep downwind faces.
     const injection = this.crest.mul(float(1).sub(smoothstep(CREST_FULL, CREST_START, jacobian)))
       .add(this.windward.mul(smoothstep(FACE_START, FACE_FULL, downwind.negate())));
-    const previous = this.layered(this.previousExtras.load(pixel), this.layer).y;
+    const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer).y;
     const foam = select(this.elapsed.greaterThan(0), max(previous.mul(exp(this.elapsed.negate().div(this.decay))), injection), previous);
     return mrt({
       displacement: vec4(ab.xyz, 0),
@@ -184,7 +199,7 @@ export class GpuWaveField implements WaveField {
   }
 
   private sample(field: typeof FIELDS[number], xz: Node<'vec2'>, cascade: number, level?: Float): Vec4 {
-    const node = this.layered(this.maps[field].sample(xz.div(this.cascades[cascade].size).add(.5 / this.size)), int(cascade));
+    const node = this.layered(direct(this.maps[field].sample(xz.div(this.cascades[cascade].size).add(.5 / this.size))), int(cascade));
     return (level ? node.level(level) : node) as unknown as Vec4;
   }
 
@@ -193,20 +208,27 @@ export class GpuWaveField implements WaveField {
       if (!spacing) return sum.add(this.sample('displacement', xz, i, float(0)).xyz);
       // The mip whose texel matches the vertex spacing; the cascade fades out between four and two
       // vertices per its longest wave, where the mesh can no longer carry any of it.
-      const level = clamp(log2(spacing.mul(this.size / cascade.size)), 0, Math.log2(this.size));
+      const level = clamp(log2(spacing.mul(this.size / cascade.size)), 0, this.top);
       const fade = float(1).sub(smoothstep(this.longest[i] / 4, this.longest[i] / 2, spacing));
       return sum.add(this.sample('displacement', xz, i, level).xyz.mul(fade));
     }, vec3(0));
   }
 
   surface(xz: Node<'vec2'>): WaveSurfaceSample {
+    // The pixel's footprint on the grid (m), as the anisotropic filter resolves it.
+    const across = dFdx(xz).length(), down = dFdy(xz).length();
+    const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
     let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), variance: Float = this.tail;
-    this.cascades.forEach((_, i) => {
+    this.cascades.forEach((cascade, i) => {
+      // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
+      // last level; its whole slope variance then roughens the surface instead.
+      const detail = float(1).sub(smoothstep(this.top - 1, this.top, log2(footprint.mul(this.size / cascade.size))));
       const derivatives = this.sample('derivatives', xz, i), extras = this.sample('extras', xz, i);
-      slope = slope.add(derivatives.xy);
-      strain = strain.add(vec3(derivatives.zw, extras.x));
+      slope = slope.add(derivatives.xy.mul(detail));
+      strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
       foam = foam.add(extras.y);
-      variance = variance.add(max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0));
+      const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
+      variance = variance.add(mix(this.slopes[i], filtered, detail));
     });
     // World slope of the displaced surface: the grid slope through the inverse transpose of the
     // horizontal map's Jacobian [[1 + ∂Dx/∂x, ∂Dx/∂z], [∂Dx/∂z, 1 + ∂Dz/∂z]].
@@ -235,6 +257,7 @@ export class GpuWaveField implements WaveField {
       const data = this.spectrum.image.data as Float32Array;
       spectrum.cascades.forEach((cascade, c) => {
         for (let z = 0; z < n; z++) data.set(cascade.amplitudes.subarray(z * n * 4, (z + 1) * n * 4), (z * count + c) * n * 4);
+        this.slopes[c].value = cascade.slopeVariance;
       });
       this.spectrum.needsUpdate = true;
       this.maxHeight = spectrum.maxHeight; this.maxHorizontalDisplacement = spectrum.maxHorizontalDisplacement;
@@ -257,15 +280,12 @@ export class GpuWaveField implements WaveField {
       const next = this.current ^ 1, output = this.fields[next];
       this.previousExtras.value = this.fields[this.current].textures[2];
       this.cascades.forEach((_, c) => {
-        // Mipmaps once per update, after the last layer: generation covers every layer. A target's
-        // first draw keeps them on so the texture is created with its chain. (Not initRenderTarget():
-        // on the WebGL fallback it caches a layer's framebuffer under another layer's key.)
-        for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1 || !this.allocated[next];
+        // Mipmaps once per update, after the last layer: generation covers every layer.
+        for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1;
         this.layer.value = c;
         renderer.setRenderTarget(output, c);
         this.finalPass.render(renderer);
       });
-      this.allocated[next] = true;
       this.current = next;
       FIELDS.forEach((field, i) => { this.maps[field].value = output.textures[i]; });
     } finally {

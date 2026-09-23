@@ -20,7 +20,9 @@ export class GpuWaveHeightSampler implements WaveHeightSampler {
 
   constructor(private readonly renderer: WebGPURenderer, field: WaveField) {
     this.points.minFilter = this.points.magFilter = NearestFilter;
-    const point = texture(this.points).load(ivec2(int(screenCoordinate.x), 0)).xy;
+    const read = texture(this.points).load(ivec2(int(screenCoordinate.x), 0));
+    read.updateMatrix = false; // no per-read uv matrix uniform (see field.ts)
+    const point = read.xy;
     const height = (dx: number, dz: number) => field.heightAt(point.add(vec2(dx, dz)));
     const normal = normalize(vec3(height(-NORMAL_STEP, 0).sub(height(NORMAL_STEP, 0)), 2 * NORMAL_STEP, height(0, -NORMAL_STEP).sub(height(0, NORMAL_STEP))));
     const material = new NodeMaterial();

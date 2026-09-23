@@ -25,6 +25,8 @@ export interface CascadeSpectrum extends WaveCascadeInfo, WaveBand {
   readonly amplitudes: Float32Array;
   /** Time-averaged height variance (m²) this cascade contributes. */
   readonly variance: number;
+  /** Its time-averaged slope variance (∂y/∂x)² + (∂y/∂z)². */
+  readonly slopeVariance: number;
 }
 
 export interface WaveSpectrum {
@@ -146,21 +148,21 @@ export function buildSpectrum(cascades: readonly WaveCascadeInfo[], params: Wave
       amplitudes[other] = re; amplitudes[other + 1] = -im; amplitudes[other + 2] = -m;
       total += 2 * (re * re + im * im);
     }
-    return { ...cascade, lo, hi, amplitudes, variance: 0 };
+    return { ...cascade, lo, hi, amplitudes, variance: 0, slopeVariance: 0 };
   });
   const scale = total > 0 ? height / (4 * Math.sqrt(total)) : 0;
   // Statistics come from the stored float32 amplitudes: the GPU transforms exactly these.
-  let sum = 0, slopeVariance = 0;
+  let sum = 0;
   for (const cascade of built) {
     const a = cascade.amplitudes, n = cascade.resolution, dk = 2 * Math.PI / cascade.size;
-    cascade.variance = 0;
     for (let i = 0; i < a.length; i += 4) if (a[i + 2]) {
       a[i] *= scale; a[i + 1] *= scale;
       const texel = i / 4, nx = texel % n, nz = (texel - nx) / n, energy = a[i] ** 2 + a[i + 1] ** 2;
       const k2 = ((nx < n / 2 ? nx : nx - n) ** 2 + (nz < n / 2 ? nz : nz - n) ** 2) * dk * dk;
-      sum += Math.sqrt(energy); cascade.variance += energy; slopeVariance += energy * k2;
+      sum += Math.sqrt(energy); cascade.variance += energy; cascade.slopeVariance += energy * k2;
     }
   }
+  const slopeVariance = built.reduce((total, cascade) => total + cascade.slopeVariance, 0);
   // Waves shorter than the finest tile still roughen the surface. Cox & Munk (1954) measured the
   // sea's total mean square slope as 0.003 + 0.00512·U; the tail supplies whatever the drawn waves
   // fall short of it, so the wind sets the roughness a tier cannot draw.
