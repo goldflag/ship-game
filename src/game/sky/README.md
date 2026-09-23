@@ -180,7 +180,7 @@ bearings (half cloud-to-ground, an occasional close one), with 2–4 return stro
 from the cloud base to the sea, the cloud light (`lightningPosition/Intensity`: irradiance
 `intensity × (1 km / r)²` in the sea's units, 40 at a stroke's peak) and the scene flash; a thunder
 cue delayed by distance for the game's procedural thunder (`GameAudio.thunder`). Precipitation and
-lightning come from the weather preset (`src/maps/conditions.ts`) and the developer console.
+lightning come from the weather preset (`src/maps/precipitation.ts`) and the developer console.
 
 **Environment** (`environment/`). Equirectangular linear HDR bake (RGBA16F, the tier's width) from sea
 level under the camera: the dome (sky, celestial bodies without the sun's disc and stars, cirrus) with the

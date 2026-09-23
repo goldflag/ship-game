@@ -4,6 +4,7 @@ import type { SkyApi, SkyScene } from './sky/contracts';
 import { windrowCoverage } from './ocean/waves/whitecaps';
 import { DEFAULT_MAP, oceanMap, type OceanMapId } from '../maps/catalog';
 import { battleEnvironment, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
+import { battlePrecipitation } from '../maps/precipitation';
 
 /** The harbor's standing wind. Its sea resolves through the same calibrated
  * curve as a battle's, so the console's reading is the sea on screen. */
@@ -175,7 +176,8 @@ export class VisualEnvironment {
     const conditions: BattleConditions = this.inPort ? { windSpeed: PORT_WIND.speed } : { ...this.battle.conditions };
     for (const key of ['timeHours', 'cloudCover', 'windSpeed'] as const) if (this.overrides[key] !== undefined) conditions[key] = this.overrides[key];
     return { map, environment: this.inPort ? battleEnvironment(map, 'map', 'map', conditions)
-      : battleEnvironment(map, this.battle.timeOfDay, this.battle.weather, conditions) };
+      : battleEnvironment(map, this.battle.timeOfDay, this.battle.weather, conditions),
+      rain: this.inPort ? { precipitation: 0, lightning: 0 } : battlePrecipitation(this.battle.weather, conditions) };
   }
   private get shelteredLight() { return this.inPort && this.overrides.timeHours === undefined; }
   private applySea(): void {
@@ -208,7 +210,7 @@ export class VisualEnvironment {
   private applyLighting(): void {
     const sky = this.sky;
     if (!sky) return;
-    const { map, environment } = this.resolved(), authored = environment.sky, port = this.shelteredLight;
+    const { map, environment, rain } = this.resolved(), authored = environment.sky, port = this.shelteredLight;
     const clouds = this.inPort && this.overrides.cloudCover === undefined;
     const overrides = this.overrides;
     // Clouds drift with the sea's wind: the ocean's direction runs from +X toward +Z, the sky's heading is a compass bearing.
@@ -224,8 +226,8 @@ export class VisualEnvironment {
         thickness: this.inPort ? 2400 : authored.thickness, horizonCoverage: clouds ? .06 : environment.horizonCoverage,
         ambient: port ? 1.1 : environment.cloudAmbient, baseShadow: port ? .2 : environment.cloudShadow,
         windSpeed: environment.cloudWind, windHeading: MathUtils.euclideanModulo(90 - windDirection, 360) },
-      weather: { precipitation: overrides.precipitation !== undefined ? overrides.precipitation / 100 : this.inPort ? 0 : environment.precipitation,
-        lightning: overrides.lightning ?? (this.inPort ? 0 : environment.lightning) },
+      weather: { precipitation: overrides.precipitation !== undefined ? overrides.precipitation / 100 : rain.precipitation,
+        lightning: overrides.lightning ?? rain.lightning },
       port: this.inPort,
     };
     sky.apply(this.skyScene);

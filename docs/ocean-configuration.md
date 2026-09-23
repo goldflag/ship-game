@@ -564,9 +564,10 @@ twilight/night fog tint. Omitted selections and **Map default** retain the map's
 Morning, Noon, Dusk and Night remain fixed during play; Clear, Partly cloudy, Overcast, Fog and Storm
 clouds control cloud coverage, altitude, fill, wind and distance haze. Storm clouds bring rain (0.9) and
 lightning (3 strikes a minute), Overcast a drizzle (0.15); a custom sky rains from 75% cover, harder as
-the wind rises to a gale, and thunders on a solid deck in a storm-force wind (`src/maps/conditions.ts`,
-a table rather than the conditions JSON, which the simulation content hashes). Rain and lightning are
-visual only, and so is visibility: none of it alters CPU bot acquisition or ballistics.
+the wind rises to a gale, and thunders on a solid deck in a storm-force wind (`src/maps/precipitation.ts`,
+a table rather than the conditions JSON, which the simulation content hashes, and outside
+`src/maps/conditions.ts`, which the construction ships' model fingerprints include). Rain and lightning
+are visual only, and so is visibility: none of it alters CPU bot acquisition or ballistics.
 
 `VisualEnvironment.setScene` applies the composed conditions as a renderer-independent `SkyScene`
 (sun angles and intensity, moon phase, the authored atmosphere, clouds, rain and lightning); the sky

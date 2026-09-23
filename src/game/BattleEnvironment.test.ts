@@ -3,6 +3,7 @@ import { Color, DirectionalLight, Group, Vector3 } from 'three/webgpu';
 import { RecordingSky } from './sky/testing';
 import { OCEAN_MAPS, oceanMap } from '../maps/catalog';
 import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
+import { battlePrecipitation } from '../maps/precipitation';
 import { PORT_WIND, VisualEnvironment } from './VisualEnvironment';
 import { validateBattleSetup } from './session/battleSetup';
 
@@ -129,8 +130,7 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     sky.update(600);
     expect(sky.sun.direction.distanceTo(direction)).toBeLessThan(1e-10);
     expect(sky.coverage).toBe(expected.sky.coverage);
-    expect(sky.scene.weather.precipitation).toBe(expected.precipitation);
-    expect(sky.scene.weather.lightning).toBe(expected.lightning);
+    expect(sky.scene.weather).toEqual(battlePrecipitation(weather.id));
     expect(ocean.fog.end).toBe(expected.fog.end);
     // The authored ambient reaches smoke whole; meshes take its daylight share (checked below).
     expect(environment.diagnostics().environment!.ambient).toBe(expected.sky.ambient);
