@@ -42,7 +42,9 @@ const BASE_TEXEL = BASE_TILE / BASE_VOLUME, DETAIL_TEXEL = DETAIL_TILE / DETAIL_
 const BILLOW_MEAN = .45;
 /** Horizontal distance (m) of the farthest cloud a march reaches, and the share of it from which cover fades
  * out: beyond ~100 km a cloud is a sliver on the horizon, more haze than cloud. */
-export const FARTHEST = 120_000, FADE_FROM = .6;
+export const FARTHEST = 120_000, FADE_FROM = .85;
+/** Most opacity the horizon's cloud bank reaches (a fully covered sky). */
+const BANK_OPACITY = .95;
 
 /** What every cloud pass reads besides the sky's shared uniforms: the scene's layer, live. */
 export interface LayerUniforms {
@@ -115,6 +117,8 @@ export interface CloudField {
   /** The weather map's cover at a point near `near` (no 3D noise; the cloud type and coverage are taken from
    * that sample): the cheap density a far light sample reads. */
   cover(p: Vec3, altitude: Float, near: CloudSample): Float;
+  /** Opacity of the cloud bank beyond the farthest cloud marched, seen past `p`: the sky's cover there. */
+  bank(p: Vec3): Float;
   /** The texture nodes it reads (diagnostics swap their textures). */
   readonly maps: { readonly weather: TextureNode; readonly base: TextureNode; readonly detail: TextureNode };
 }
@@ -192,5 +196,9 @@ export function createCloudField(sky: SkyUniforms, layer: LayerUniforms, maps: {
     If(footprint ? footprint.lessThan(DETAIL_TEXEL * RESOLVED[1]) : bool(true), () => { result.assign(detailed()); });
     return result;
   };
-  return { layer, altitude, weather, sample, erode, cover, maps: { weather: weatherMap, base: baseMap, detail: detailMap } };
+  const bank = (p: Vec3): Float => {
+    const coverage = liftedCoverage(nodes, layer.coverage, layer.horizon, length(p.xz.sub(camera.xz)));
+    return smoothstep(.05, .9, coverage).mul(BANK_OPACITY).mul(layer.enabled);
+  };
+  return { layer, altitude, weather, sample, erode, cover, bank, maps: { weather: weatherMap, base: baseMap, detail: detailMap } };
 }

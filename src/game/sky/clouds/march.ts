@@ -3,6 +3,7 @@ import { Break, Fn, If, Loop, dot, exp, exp2, float, fract, int, max, min, mix, 
 import type { AtmospherePart, SkyUniforms } from '../contracts';
 import type { CloudField, CloudSample } from './field';
 import { FARTHEST, shellSegment } from './field';
+import { marchRain, type RainOptions } from './rain';
 
 type Float = Node<'float'>;
 type Vec3 = Node<'vec3'>;
@@ -44,6 +45,8 @@ const LIGHT_FIRST = 25, LIGHT_GROWTH = 1.4, LIGHT_SPAN = .8;
 const COVER_DENSITY = .45, FAR_LIGHT = [600, 1500] as const;
 /** Metres short of the nearest cloud column a leap across clear air stops (the map is filtered). */
 const CLEAR_MARGIN = 250;
+/** Metres of layer beyond the farthest cloud marched over which the horizon bank reaches its full cover. */
+const HORIZON_BANK = 60_000;
 /** A ray whose transmittance falls below this stops: the rest is renormalised rather than marched. */
 const OPAQUE = .03;
 
@@ -148,6 +151,8 @@ export interface MarchOptions {
   readonly jitter: Float | number;
   /** Width (radians) of a pixel, for the detail erosion's footprint fade; bakes and shadows go without detail. */
   readonly pixelAngle?: Float;
+  /** Rain shafts below the base (the screen march). */
+  readonly rain?: RainOptions;
 }
 
 /** March a ray from `origin` (height `altitude` above the sea) along `direction` through the shell.
@@ -157,6 +162,8 @@ export interface MarchOptions {
 export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float, direction: Vec3, options: MarchOptions): MarchResult {
   const { field, sky, light } = context, layer = field.layer;
   const radiance = vec3(0).toVar(), transmittance = float(1).toVar(), depth = float(MAX_DISTANCE).toVar();
+  const weighted = float(0).toVar(), weight = float(0).toVar();
+  if (options.rain) marchRain(context, options.rain, origin, altitude, direction, asFloat(options.jitter), { radiance, transmittance, weighted, weight });
   const top = layer.base.add(layer.thickness);
   const { start, end } = shellSegment(altitude, direction.y, layer.base, top);
   const from = start.toVar(), to = min(end, MAX_DISTANCE).toVar();
@@ -173,7 +180,6 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
     // Never so fine that the budget could not cross the whole stretch at the empty stride.
     const shortest = max(span.div(asFloat(options.steps).mul(EMPTY_STRIDE)), MIN_STEP).toVar();
     const t = from.add(shortest.mul(EMPTY_STRIDE).mul(asFloat(options.jitter))).toVar();
-    const weighted = float(0).toVar(), weight = float(0).toVar();
     const inside = float(0).toVar(), misses = float(0).toVar();
     // Clear air is crossed by the weather map's distance to the nearest cloud column, turned into distance
     // along this ray by how fast it moves across the ground.
@@ -212,17 +218,27 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
         t.addAssign(select(inside.greaterThan(0), fine, leap));
       });
     });
-    // A ray stopped as nearly opaque: what lay behind the last step would have looked like what it met.
-    If(transmittance.lessThan(OPAQUE), () => {
-      radiance.divAssign(transmittance.oneMinus());
-      transmittance.assign(0);
+    // Past the farthest cloud marched the layer still runs on to the horizon: a ray that reached that limit
+    // meets more of it there, as a bank of cloud the haze swallows, in proportion to the sky's cover.
+    If(end.greaterThan(MAX_DISTANCE).and(t.greaterThanEqual(to)).and(transmittance.greaterThan(OPAQUE)), () => {
+      const bank = field.bank(origin.add(direction.mul(to))).mul(smoothstep(0, HORIZON_BANK, end.sub(MAX_DISTANCE)));
+      const colour = lightFar.mul(phases[OCTAVES - 1].mul(.5)).add(mix(below, above, .5).mul(context.ambient).mul(look.ambient));
+      const share = transmittance.mul(bank);
+      radiance.addAssign(colour.mul(share));
+      weighted.addAssign(to.mul(share)); weight.addAssign(share);
+      transmittance.mulAssign(bank.oneMinus());
     });
-    If(weight.greaterThan(1e-4), () => {
-      depth.assign(weighted.div(weight));
-      // Aerial perspective once, at the mean depth: the air between dims the cloud and adds its own glow.
-      const air = context.atmosphere.aerial(direction, depth);
-      radiance.assign(radiance.mul(air.transmittance).add(air.inscatter.mul(transmittance.oneMinus())));
-    });
+  });
+  // A ray stopped as nearly opaque: what lay behind the last step would have looked like what it met.
+  If(transmittance.lessThan(OPAQUE), () => {
+    radiance.divAssign(transmittance.oneMinus());
+    transmittance.assign(0);
+  });
+  If(weight.greaterThan(1e-4), () => {
+    depth.assign(weighted.div(weight));
+    // Aerial perspective once, at the mean depth: the air between dims the cloud and adds its own glow.
+    const air = context.atmosphere.aerial(direction, depth);
+    radiance.assign(radiance.mul(air.transmittance).add(air.inscatter.mul(transmittance.oneMinus())));
   });
   return { radiance, transmittance, depth };
 }

@@ -20,7 +20,11 @@ type Vec4 = Node<'vec4'>;
 type Cell = Node<'ivec2'>;
 
 /** Weight of a freshly marched sample against its pixel's reprojected history. */
-const FRESH = .3;
+const FRESH = .25;
+/** Distances (m) over which a far pixel's fresh sample is smoothed toward its neighbours'. */
+const FAR_SMOOTHING = [15_000, 60_000] as const;
+/** Frames after a cut that march every pixel, and the weight of their fresh samples. */
+const CATCH_UP_FRAMES = 2, CATCH_UP_FRESH = .6;
 /** Where a pixel met no cloud, history is reprojected as if this far away (m): the sky's own motion. */
 const CLEAR_DISTANCE = 30_000;
 /** Ground the cloud shadow map covers (m), around the camera. */
@@ -110,7 +114,7 @@ export class CloudLayer implements CloudPart {
     frame: uniform(0), offset: uniform(new Vector2(), 'ivec2'), interleave: uniform(2, 'int'),
     cloudSize: uniform(new Vector2(1, 1)), marchSize: uniform(new Vector2(1, 1)), cloudTiles: uniform(1, 'int'), marchTiles: uniform(1, 'int'),
     projectionInverse: uniform(new Matrix4()), cameraWorld: uniform(new Matrix4()), previousViewProjection: uniform(new Matrix4()),
-    windShift: uniform(new Vector3()), history: uniform(0), pixelAngle: uniform(.003),
+    windShift: uniform(new Vector3()), history: uniform(0), fresh: uniform(FRESH), pixelAngle: uniform(.003),
     shadowSize: uniform(256, 'int'), shadowSlice: uniform(0, 'int'), shadowStrength: uniform(0),
     ambient: uniform(1), baseShadow: uniform(.2), precipitation: uniform(0),
   };
@@ -140,6 +144,7 @@ export class CloudLayer implements CloudPart {
   private current = 0;
   private frameIndex = 0;
   private hasHistory = false;
+  private catchUp = 0;
   private shadowStale = true;
   private active = true;
   private readonly previousViewProjection = new Matrix4();
@@ -221,13 +226,17 @@ export class CloudLayer implements CloudPart {
     })();
   }
 
-  shadow(position: Vec3): Float {
+  shadow(position: Vec3): Float { return this.shadowAt(position, false); }
+
+  /** The cloud shadow at a world position; `explicit` reads level 0 (compute shaders have no derivatives). */
+  private shadowAt(position: Vec3, explicit: boolean): Float {
     const sun = this.sky.sunDirection, wind = this.sky.windOffset, camera = this.sky.cameraPosition;
     // Down the sun's rays to the sea, then into the clouds' drifting frame the map is laid out in.
     const ground = position.xz.sub(sun.xz.mul(position.y.div(max(sun.y, .02))));
     const edge = max(ground.x.sub(camera.x).abs(), ground.y.sub(camera.z).abs()).div(SHADOW_EXTENT / 2);
-    const read = direct(this.shadowRead.sample(ground.sub(wind.xz).div(SHADOW_EXTENT))).r;
-    return mix(float(1), read, this.u.shadowStrength.mul(smoothstep(1, 1 - SHADOW_EDGE, edge)).mul(this.layer.enabled));
+    const read = this.shadowRead.sample(ground.sub(wind.xz).div(SHADOW_EXTENT));
+    const value = direct(explicit ? read.level(float(0)) : read).r;
+    return mix(float(1), value, this.u.shadowStrength.mul(smoothstep(1, 1 - SHADOW_EDGE, edge)).mul(this.layer.enabled));
   }
 
   resize(width: number, height: number): void {
@@ -270,7 +279,13 @@ export class CloudLayer implements CloudPart {
     u.windShift.value.subVectors(wind, this.previousWind);
     u.previousViewProjection.value.copy(this.hasHistory ? this.previousViewProjection : this.viewProjection);
     u.history.value = this.hasHistory && !frame.cut ? 1 : 0;
-    const order = BLOCK_ORDER[tier.cloudInterleave] ?? BLOCK_ORDER[1];
+    // After a cut every pixel is marched for a couple of frames, so the new view starts clean at full
+    // resolution rather than converging from an upsampled first frame over the whole interleave cycle.
+    if (!this.hasHistory || frame.cut) this.catchUp = CATCH_UP_FRAMES;
+    this.interleave(this.catchUp > 0 ? 1 : tier.cloudInterleave);
+    u.fresh.value = this.catchUp > 0 ? CATCH_UP_FRESH : FRESH;
+    if (this.catchUp > 0) this.catchUp--;
+    const order = BLOCK_ORDER[u.interleave.value] ?? BLOCK_ORDER[1];
     const [ox, oy] = order[this.frameIndex % order.length];
     u.offset.value.set(ox, oy);
     u.frame.value = this.frameIndex % 1024;
@@ -336,25 +351,32 @@ export class CloudLayer implements CloudPart {
    * so the composite sits at the far plane and the depth test skips those pixels before shading them. From
    * inside or above the layer clouds can be in front, and each pixel is tested at the clouds' own depth. */
   private chooseComposite(camera: PerspectiveCamera): void {
-    const under = camera.position.y < this.layer.base.value - UNDER_MARGIN && this.frameIndex > WARMUP_FRAMES;
+    // Rain shafts hang in front of the sea and ships, so a raining sky always tests depth.
+    const under = camera.position.y < this.layer.base.value - UNDER_MARGIN && this.u.precipitation.value <= 0 && this.frameIndex > WARMUP_FRAMES;
     this.composite.material = under ? this.fastMaterial : this.depthMaterial;
   }
 
   private resizeTargets(): void {
     if (!this.width) return;
-    const tier = SKY_TIERS[this.quality], n = tier.cloudInterleave, u = this.u;
+    const tier = SKY_TIERS[this.quality], u = this.u;
     const cw = Math.max(1, Math.ceil(this.width / tier.cloudScale)), ch = Math.max(1, Math.ceil(this.height / tier.cloudScale));
-    const mw = Math.ceil(cw / n), mh = Math.ceil(ch / n);
     u.cloudSize.value.set(cw, ch);
-    u.marchSize.value.set(mw, mh);
-    const cloud = tiles(cw, ch), march = tiles(mw, mh);
+    const cloud = tiles(cw, ch);
     u.cloudTiles.value = cloud.x;
+    for (const kernel of this.resolveKernels) kernel.count = cloud.count;
+    // The march buffer holds a whole cloud buffer: catch-up frames march every pixel.
+    for (const map of [this.march.color, this.march.depth, ...this.history.flatMap(h => [h.color, h.depth])]) map.setSize(cw, ch, 1);
+    this.interleave(tier.cloudInterleave);
+    this.hasHistory = false;
+  }
+
+  /** March one pixel in every `n` × `n` block this frame. */
+  private interleave(n: number): void {
+    const u = this.u, size = u.cloudSize.value, mw = Math.ceil(size.x / n), mh = Math.ceil(size.y / n), march = tiles(mw, mh);
+    u.interleave.value = n;
+    u.marchSize.value.set(mw, mh);
     u.marchTiles.value = march.x;
     for (const kernel of this.marchKernels.values()) kernel.count = march.count;
-    for (const kernel of this.resolveKernels) kernel.count = cloud.count;
-    for (const map of [this.march.color, this.march.depth]) map.setSize(mw, mh, 1);
-    for (const map of this.history.flatMap(h => [h.color, h.depth])) map.setSize(cw, ch, 1);
-    this.hasHistory = false;
   }
 
   private makeShadowMap(size: number): StorageTexture {
@@ -383,7 +405,8 @@ export class CloudLayer implements CloudPart {
         const direction = this.ray(uv).toVar();
         const origin = this.sky.cameraPosition;
         const result = marchClouds(this.context, origin, origin.y, direction,
-          { steps: u.steps, lightSteps, jitter: gradientJitter(vec2(cell), u.frame), pixelAngle: u.pixelAngle });
+          { steps: u.steps, lightSteps, jitter: gradientJitter(vec2(cell), u.frame), pixelAngle: u.pixelAngle,
+            rain: { uniforms: { precipitation: u.precipitation, drift: this.windAxis }, detail: this.volumes[1].map, shadow: p => this.shadowAt(p, true) } });
         textureStore(this.march.color, uvec2(m), vec4(result.radiance, result.transmittance));
         textureStore(this.march.depth, uvec2(m), vec4(result.depth.div(1000), 0, 0, 1));
       });
@@ -400,16 +423,19 @@ export class CloudLayer implements CloudPart {
       const c = tiled(u.cloudTiles);
       If(within(c, u.cloudSize), () => {
         const n = u.interleave, last = ivec2(u.marchSize).sub(1);
-        const block = c.div(n), own = c.sub(block.mul(n));
-        const fresh = own.x.equal(u.offset.x).and(own.y.equal(u.offset.y));
+        const block = c.div(n), inBlock = c.sub(block.mul(n));
+        const fresh = inBlock.x.equal(u.offset.x).and(inBlock.y.equal(u.offset.y));
         const load = (map: TextureNode, at: Cell) => direct(map.load(cellMax(cellMin(at, last), ivec2(0, 0)))) as unknown as Vec4;
-        const centre = load(this.marchColor, block).toVar();
-        const lo = centre.toVar(), hi = centre.toVar();
+        const own = load(this.marchColor, block).toVar();
+        const lo = own.toVar(), hi = own.toVar(), sum = own.toVar();
         for (const [dx, dy] of [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
-          const v = load(this.marchColor, block.add(ivec2(dx, dy)));
-          lo.assign(min(lo, v)); hi.assign(max(hi, v));
+          const v = load(this.marchColor, block.add(ivec2(dx, dy))).toVar();
+          lo.assign(min(lo, v)); hi.assign(max(hi, v)); sum.addAssign(v);
         }
         const depthKm = load(this.marchDepth, block).x;
+        // Far clouds are marched in long, jittered steps: their fresh samples are smoothed with the neighbours
+        // (a pixel there spans more cloud than the jitter resolves); near ones keep their own detail.
+        const centre = mix(own, sum.div(9), smoothstep(FAR_SMOOTHING[0], FAR_SMOOTHING[1], depthKm.mul(1000))).toVar();
         const uv = vec2(c).add(.5).div(u.cloudSize);
         const distance = select(centre.w.lessThan(.999), depthKm.mul(1000), float(CLEAR_DISTANCE));
         const world = this.sky.cameraPosition.add(this.ray(uv).mul(distance)).sub(u.windShift);
@@ -421,8 +447,8 @@ export class CloudLayer implements CloudPart {
         If(valid, () => {
           const history = (direct(this.readColor[from].sample(previous).level(float(0))) as unknown as Vec4).clamp(lo, hi);
           const historyDepth = (direct(this.readDepth[from].sample(previous).level(float(0))) as unknown as Vec4).y;
-          color.assign(select(fresh, mix(history, centre, FRESH), history));
-          weightedDepth.assign(select(fresh, mix(historyDepth, depthKm.mul(centre.w.oneMinus()), FRESH), historyDepth));
+          color.assign(select(fresh, mix(history, centre, u.fresh), history));
+          weightedDepth.assign(select(fresh, mix(historyDepth, depthKm.mul(centre.w.oneMinus()), u.fresh), historyDepth));
         }).Else(() => {
           // No history: the fresh sample here, else the march buffer upsampled around this pixel.
           const at = vec2(c).sub(vec2(u.offset)).div(vec2(n, n)).add(.5).div(u.marchSize);
