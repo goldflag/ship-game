@@ -32,8 +32,10 @@ const RESHAPE = .06, RISE = .35;
 /** Edge detail swirls through the shapes at this speed (m/s), on top of the drift. */
 const SWIRL = new Vector3(1.1, 1.7, -.8);
 /** Share of the base shape the low billow octaves erode away from the billows' centres, and share the
- * detail volume erodes from the edges: uniforms, so the shapes can be tuned live. */
-export const erosion = { shape: uniform(.75), detail: uniform(.85), sharpen: uniform(3) };
+ * detail volume erodes from the edges: uniforms, so the shapes can be tuned live. Density rises from the
+ * eroded surface as the square of the margin, full once the margin reaches 1 / `sharpen`: a cloud's body is
+ * solid, while its rims and small lumps, whose margin stays small, are thin enough to show the sky through. */
+export const erosion = { shape: uniform(.75), detail: uniform(.85), sharpen: uniform(2) };
 /** A volume's features alias once a pixel's footprint (m) spans a couple of its texels: over these
  * footprints, in texels, the finer octaves fade to their mean, which keeps the cloud's size and drops only
  * what the pixel cannot resolve. */
@@ -201,7 +203,8 @@ export function createCloudField(sky: SkyUniforms, layer: LayerUniforms, maps: {
     const closing = smoothstep(1, 1.3, s.column).mul(DECK_EROSION);
     const eroding = mix(billows, billows.oneMinus(), saturate(s.height.mul(5))).mul(erosion.detail).mul(smoothstep(0, .08, s.height).mul(.3).add(.7))
       .mul(closing.oneMinus());
-    return saturate(s.coarse.sub(eroding).div(eroding.oneMinus()).mul(erosion.sharpen));
+    const margin = saturate(s.coarse.sub(eroding).div(eroding.oneMinus()).mul(erosion.sharpen));
+    return margin.mul(margin);
   };
   const erode = (s: CloudSample, p: Vec3, footprint?: Float, branch = true): Float => {
     const detailed = () => {
