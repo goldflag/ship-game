@@ -9,6 +9,8 @@ export interface UnderwaterInput {
   /** Surface height (m) at a world position, any stage: `WaveField.heightAt` plus the wake when it moves the surface. */
   readonly heightAt: (xz: Node<'vec2'>) => Node<'float'>;
   readonly colors: WaterColors;
+  /** Direction and colour shape the forward-scattered light; its brightness comes with the pigment, which the
+   * game already scales for night, so `intensity` is not read. */
   readonly sun: OceanSun;
   /** False when the near plane is certainly above the waves (`nearPlaneMayBeSubmerged`): the pass then does nothing. */
   readonly cameraNearSurface: Node<'bool'>;

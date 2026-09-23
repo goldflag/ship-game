@@ -14,7 +14,7 @@ export interface ScreenReflectionInput {
   /** The surface's viewport copy of the opaque scene depth, in the scene pass's own format
    * (float with reversed depth; see `EffectDepthTextureNode`). Read texel-exact. */
   readonly sceneDepth: TextureNode;
-  /** Live switch (Graphics → Reflections). False skips the march in a uniform branch. */
+  /** Live switch (Graphics → Reflections). False skips the march: every fragment takes the same early exit. */
   readonly enabled: Node<'bool'>;
   /** Longest ray in metres; live, since `WaterViewFocus` stretches it under binoculars. */
   readonly maxDistance: Node<'float'>;
@@ -53,10 +53,10 @@ export function screenRead(map: TextureNode, uv: Node<'vec2'>, level?: Node<'flo
  * GPU Screen-Space Ray Tracing", JCGT 2014). The ray is clipped to the near plane and then to the
  * viewport before its step budget is spread along it, so every step lands on screen however long
  * `maxDistance` is; depth is interpolated as 1/w, keeping the march perspective-correct; the step
- * that first passes behind the depth buffer is refined by bisection and accepted only within a
- * depth-proportional thickness, so rays passing behind a nearer object keep marching. Sky and
- * far-plane pixels never occlude. Rays that leave the screen, fall short or miss return
- * confidence 0 and the caller keeps its sky reflection.
+ * that first passes behind the depth buffer (or over an object's edge) is refined by bisection and
+ * accepted only within a depth-proportional thickness, so rays passing behind a nearer object keep
+ * marching. Sky and far-plane pixels never occlude. Rays that leave the screen, fall short or miss
+ * return confidence 0 and the caller keeps its sky reflection.
  *
  * Integration, inside the surface material's fragment `Fn` (steps 0 on Low and Medium: skip the call):
  * ```ts
