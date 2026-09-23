@@ -1,6 +1,10 @@
 import { Matrix3, Vector3 } from 'three/webgpu';
 
 const RADIANS = Math.PI / 180;
+/** Local sidereal angle the sky shows (radians): which stars stand overhead. Chosen for the night composition: the
+ * Milky Way rises from the sea on the north side of a midnight sky and its bright core stands low beside an
+ * evening full moon. */
+export const SIDEREAL = 55 * RADIANS;
 
 /** Unit vector for compass angles in degrees: elevation above the horizon, azimuth 0 toward +Z
  * and 90 toward +X (the game's compass: the sun rises at 90 and sets at 270). */
@@ -39,8 +43,8 @@ export class CelestialModel {
   readonly starRotation = new Matrix3();
   phase = .5;
   /** Local sidereal angle (radians) turning the stars about the pole: which part of the celestial
-   * sphere is overhead. The celestial bodies choose it; it has no bearing on the sun or moon. */
-  sidereal = 0;
+   * sphere is overhead. The celestial bodies choose it (`SIDEREAL`); it has no bearing on the sun or moon. */
+  sidereal = SIDEREAL;
   private readonly meridian = new Vector3();
   private readonly west = new Vector3();
 

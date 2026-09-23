@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sky celestial</title>
+<style>html,body{margin:0;background:#000}canvas{display:block}output{position:fixed;top:8px;left:8px;color:white;font:14px sans-serif}</style>
+<canvas id="view" width="1600" height="900"></canvas><output>Loading…</output>
+<script type="module">
+// Development-only: the celestial part up close, through the game's display grade (without bloom), against a dark
+// sky with no atmosphere. Top: the Milky Way band in galactic coordinates, longitude +180° at the left edge to −180°
+// at the right, latitude ±90° (equal area). Bottom: the moon through 30× glasses at four phases (a waxing crescent,
+// first quarter, full, last quarter), and the sun at 12×. `window.skyCelestial.capture()` returns a PNG.
+// ?milkyWay=<radiance of the band's brightest parts> ?phases=0.08,0.25,0.5,0.75
+import * as THREE from 'three/webgpu';
+import { Fn, float, luminance, max, mix, pow, uv, vec3, vec4 } from 'three/tsl';
+import { DISPLAY_LOOK } from '/src/game/DisplayTransform.ts';
+import { SkyState, DEFAULT_SKY_SCENE } from '/src/game/sky/state.ts';
+import { createDome } from '/src/game/sky/dome.ts';
+import { CelestialBodies } from '/src/game/sky/celestial/CelestialBodies.ts';
+import { MilkyWay } from '/src/game/sky/celestial/milkyWay.ts';
+
+const params = new URLSearchParams(location.search);
+const output = document.querySelector('output');
+const errors = [];
+addEventListener('error', event => errors.push(event.message));
+addEventListener('unhandledrejection', event => errors.push(String(event.reason?.message ?? event.reason)));
+const canvas = document.querySelector('#view');
+const renderer = new THREE.WebGPURenderer({ canvas, antialias: false, reversedDepthBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(1600, 900, false);
+renderer.toneMapping = THREE.AgXToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.autoClear = false;
+await renderer.init();
+
+/** `DisplayTransform`'s grade ahead of AgX. */
+const grade = radiance => {
+  const exposed = radiance.mul(DISPLAY_LOOK.exposure), lum = max(luminance(exposed), 1e-5);
+  return mix(vec3(lum), exposed, DISPLAY_LOOK.saturation).max(0).mul(pow(lum.div(.18), DISPLAY_LOOK.contrast - 1));
+};
+const NIGHT = vec3(.004, .007, .016);
+
+const state = new SkyState();
+const celestial = new CelestialBodies({ renderer, uniforms: state.uniforms, quality: 'high', reversedDepth: true });
+const scene = new THREE.Scene();
+const dome = createDome(direction => grade(NIGHT.add(celestial.radiance(direction))), true);
+dome.material.toneMapped = true;
+scene.add(dome);
+const camera = new THREE.PerspectiveCamera(52, 1, .5, 1000);
+
+// The band: galactic longitude across (from +180° at the left), sin(latitude) down.
+const milkyWay = new MilkyWay();
+const gain = float(Number(params.get('milkyWay') ?? .04));
+const band = new THREE.MeshBasicNodeMaterial();
+band.colorNode = Fn(() => {
+  const longitude = uv().x.oneMinus().sub(.5).mul(2 * Math.PI), sine = uv().y.mul(-2).add(1), ring = float(1).sub(sine.mul(sine)).max(0).sqrt();
+  return vec4(grade(NIGHT.add(milkyWay.sample(vec3(ring.mul(longitude.cos()), ring.mul(longitude.sin()), sine)).mul(gain))), 1);
+})();
+const bandQuad = new THREE.QuadMesh(band);
+
+const phases = (params.get('phases') ?? '.08,.25,.5,.75').split(',').map(Number);
+function panel(x, y, width, height) {
+  renderer.setViewport(x, y, width, height); renderer.setScissor(x, y, width, height); renderer.setScissorTest(true);
+}
+function lookAt(direction, magnification) {
+  camera.fov = 2 * Math.atan(Math.tan(26 * Math.PI / 180) / magnification) * 180 / Math.PI;
+  camera.aspect = 1; camera.position.set(0, 0, 0); camera.up.set(0, 1, 0);
+  camera.lookAt(direction.x, direction.y, direction.z); camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+}
+function draw() {
+  renderer.setClearColor(0x000000, 1);
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, 1600, 900); renderer.clear();
+  milkyWay.bake(renderer);
+  panel(0, 0, 1600, 450); bandQuad.render(renderer);
+  phases.forEach((phase, i) => {
+    state.apply({ ...DEFAULT_SKY_SCENE, sun: { elevation: -30, azimuth: 250, intensity: 5.8 }, moon: { phase } });
+    lookAt(state.model.moon, 30);
+    state.advance(0, camera.position);
+    celestial.update({ renderer, camera, dt: 0, cut: false });
+    panel(10 + i * 320, 470, 300, 300); renderer.render(scene, camera);
+  });
+  state.apply({ ...DEFAULT_SKY_SCENE, sun: { elevation: 40, azimuth: 200, intensity: 5.8 } });
+  lookAt(state.model.sun, 12);
+  state.advance(0, camera.position);
+  celestial.update({ renderer, camera, dt: 0, cut: false });
+  panel(1290, 470, 300, 300); renderer.render(scene, camera);
+  renderer.setScissorTest(false);
+}
+draw();
+await renderer.backend.device.queue.onSubmittedWorkDone();
+draw();
+
+window.skyCelestial = {
+  errors,
+  async capture() { draw(); await renderer.backend.device.queue.onSubmittedWorkDone(); return canvas.toDataURL('image/png'); },
+};
+window.ready = true; output.textContent = '';
+</script>
+</html>
