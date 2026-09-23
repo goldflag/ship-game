@@ -303,14 +303,18 @@ async function benchmarkParts(pairs = 80) {
     await gpu();
     for (const [name, mesh] of Object.entries(pieces)) {
       const differences = [];
-      for (let i = 0; i < pairs; i++) {
-        sky.update(1 / 60); redraw(); const on = await gpu();
+      // With the piece, or without it: a frame without a mesh drops it, and for the update the frame runs it twice.
+      const frame = async on => {
         const visible = mesh?.visible;
-        // Without a mesh the frame drops it; for the update the frame runs it twice.
         sky.update(1 / 60);
-        if (mesh) mesh.visible = false; else sky.update(1 / 60);
+        if (!on) { if (mesh) mesh.visible = false; else sky.update(1 / 60); }
         try { redraw(); } finally { if (mesh) mesh.visible = visible; }
-        differences.push(on - await gpu());
+        return gpu();
+      };
+      // Alternate which frame of a pair runs first: the first of two back-to-back frames is systematically slower.
+      for (let i = 0; i < pairs; i++) {
+        const first = i % 2 === 0, a = await frame(first), b = await frame(!first);
+        differences.push(first ? a - b : b - a);
       }
       // The update is measured by running it once or twice per frame: a second run's cost.
       const sorted = differences.sort((a, b) => a - b);
