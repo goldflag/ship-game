@@ -2,16 +2,26 @@
  * Each function runs as a `BuilderTool` member: the class binds it under the same name. */
 import { blockAngles, rotateBlock, withBlockAngles } from '../../../ships/constructionOrientation';
 import { seatWallFitting, turnedWallFitting } from '../../../ships/constructionWallFittings';
-import type { ConstructionEquipment } from '../../../ships/blueprint';
+import type { ConstructionEquipment, ConstructionPrimitive } from '../../../ships/blueprint';
+import { carriedPoses } from '../../../ships/constructionParents';
 import type { ConstructionCommand } from '../../../ships/constructionCommands';
 import type { ConstructionSubmission } from '../../../ships/constructionRevisionOwner';
 import { normalizedBearing } from '../editorNumbers';
 import type { BuilderTool } from '../builderTool';
 
+/** A hull block rewritten whole. What it carries (`parent`) follows a pure turn about the vertical; a block
+ * tipped about X or Z leaves its riders where they stand, since a bearing cannot follow a tilt. */
+function withRiders(tool: BuilderTool, before: ConstructionPrimitive, after: ConstructionPrimitive): ConstructionCommand[] {
+  const commands: ConstructionCommand[] = [{ op: 'primitive', value: after }];
+  if (JSON.stringify(before.tilt ?? null) !== JSON.stringify(after.tilt ?? null)) return commands;
+  const turn = -(after.rotationDeg - before.rotationDeg);
+  return [...commands, ...carriedPoses(tool.data, before.id, before.position, after.position, turn).map((value): ConstructionCommand => ({ op: 'equipment', value }))];
+}
+
 export function rotateSelectedBlock(this: BuilderTool, axis: number, degrees: number) {
   const p = this.rotationPrimitive;
   if (!p || this.locked || ![0, 1, 2].includes(axis) || !Number.isFinite(degrees) || Math.abs(degrees % 360) < 1e-8) return;
-  return this.edit('Rotate block', [{ op: 'primitive', value: rotateBlock(p, axis, degrees) }]);
+  return this.edit('Rotate block', withRiders(this, p, rotateBlock(p, axis, degrees)));
 }
 
 export function setBlockAngle(this: BuilderTool, axis: number, degrees: number) {
@@ -19,13 +29,13 @@ export function setBlockAngle(this: BuilderTool, axis: number, degrees: number) 
   if (!p || this.locked || ![0, 1, 2].includes(axis) || !Number.isFinite(degrees) || Math.abs(degrees) > 3600) return;
   const angles = blockAngles(p);
   angles[axis] = degrees;
-  return this.edit('Set block angle', [{ op: 'primitive', value: withBlockAngles(p, angles) }]);
+  return this.edit('Set block angle', withRiders(this, p, withBlockAngles(p, angles)));
 }
 
 export function resetBlockRotation(this: BuilderTool) {
   const p = this.rotationPrimitive;
   if (p && !this.locked && blockAngles(p).some((n) => n !== 0))
-    this.edit('Reset block orientation', [{ op: 'primitive', value: withBlockAngles(p, [0, 0, 0]) }]);
+    this.edit('Reset block orientation', withRiders(this, p, withBlockAngles(p, [0, 0, 0])));
 }
 
 export function rotate(this: BuilderTool, fine = false): ConstructionSubmission | undefined {
@@ -105,7 +115,7 @@ export function turn(this: BuilderTool, axis: number, degrees: number): Construc
   if (axis === 1 || !blocks.length) return axis === 1 ? this.rotate(degrees < 0) : undefined;
   return this.edit(
     blocks.length > 1 ? 'Rotate blocks' : 'Rotate block',
-    blocks.map((p) => ({ op: 'primitive', value: rotateBlock(p, axis, degrees) })),
+    blocks.flatMap((p) => withRiders(this, p, rotateBlock(p, axis, degrees))),
   );
 }
 

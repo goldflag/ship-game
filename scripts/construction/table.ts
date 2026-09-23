@@ -16,6 +16,8 @@ export interface PlacementRow {
   mirror?: boolean;
   repeat?: number;
   step?: [number, number];
+  /** A hull piece or equipment ID the row's records ride on, including one placed by an earlier row. */
+  parent?: string;
   /** Merged into every equipment record this row produces: gun battery and arcs, launcher settings, paint. */
   extra?: Record<string, unknown>;
 }
@@ -38,12 +40,13 @@ export function parsePlacementTable(document: unknown): PlacementRow[] {
   return rows.map((entry, index) => {
     const where = 'Row ' + index;
     if (!isObject(entry)) throw new Error(where + ' must be an object.');
-    const known = new Set(['id', 'part', 'x', 'z', 'bearing', 'y', 'on', 'mirror', 'repeat', 'step', 'extra']);
+    const known = new Set(['id', 'part', 'x', 'z', 'bearing', 'y', 'on', 'mirror', 'repeat', 'step', 'parent', 'extra']);
     const unknown = Object.keys(entry).filter((key) => !known.has(key));
     if (unknown.length) throw new Error(where + ' has unknown field ' + unknown.join(', ') + '. Accepted: ' + [...known].join(', ') + '.');
     if (typeof entry.part !== 'string' || !entry.part) throw new Error(where + ' needs a catalog part ID in `part`.');
     if (entry.id !== undefined && (typeof entry.id !== 'string' || !entry.id)) throw new Error(where + ' has a non-string `id`.');
     if (entry.on !== undefined && typeof entry.on !== 'string') throw new Error(where + ' has a non-string `on`.');
+    if (entry.parent !== undefined && (typeof entry.parent !== 'string' || !entry.parent)) throw new Error(where + ' has a non-string `parent`.');
     if (entry.mirror !== undefined && typeof entry.mirror !== 'boolean') throw new Error(where + ' has a non-boolean `mirror`.');
     if (entry.step !== undefined && (!Array.isArray(entry.step) || entry.step.length !== 2)) throw new Error(where + ' `step` is [dx, dz] in metres.');
     const extra = entry.extra;
@@ -60,6 +63,7 @@ export function parsePlacementTable(document: unknown): PlacementRow[] {
       ...(entry.bearing === undefined ? {} : { bearing: number(entry.bearing, where + ' `bearing`') }),
       ...(entry.y === undefined ? {} : { y: number(entry.y, where + ' `y`') }),
       ...(entry.on === undefined ? {} : { on: entry.on }),
+      ...(entry.parent === undefined ? {} : { parent: entry.parent as string }),
       ...(entry.mirror === undefined ? {} : { mirror: entry.mirror }),
       ...(entry.repeat === undefined ? {} : { repeat: number(entry.repeat, where + ' `repeat`') }),
       ...(entry.step === undefined ? {} : { step: [number(entry.step[0], where + ' `step[0]`'), number(entry.step[1], where + ' `step[1]`')] as [number, number] }),
@@ -94,6 +98,7 @@ export function planPlacementTable(source: ConstructionSource, catalog: Construc
         mirror: request.mirror,
         repeat: request.repeat,
         step: request.step,
+        parent: request.parent,
       });
       pending.push(...items.map((item) => item.equipment));
       return { row, request, items };

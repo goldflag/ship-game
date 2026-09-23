@@ -8,6 +8,7 @@ import type {
   ConstructionPrimitive,
   Vec3,
 } from './blueprint';
+import { decodeFittingMesh, FITTING_MESH_LIMITS, fittingMeshAreaMoments, fittingMeshBoxes } from './constructionFittingMesh';
 import { meshFaces } from './constructionMesh';
 import { primitivePoint } from './constructionOrientation';
 import { CONSTRUCTION_SHAPES } from './constructionShapes';
@@ -29,6 +30,7 @@ export const CUSTOM_FITTING_LIMITS = {
   triangles: 32_000,
   tubeLengthM: 100,
   localM: 100,
+  ...FITTING_MESH_LIMITS,
 } as const;
 /** Per-axis scale of a custom fitting instance, mirroring `INSTANCE_SCALE` in `construction_wall_fittings.rs`. */
 export const CUSTOM_FITTING_SCALE = { min: 0.05, max: 20 } as const;
@@ -124,24 +126,50 @@ class Bounds {
 
 /** One definition as a synthesized catalog deck fitting. Throws the first fault, worded as the native diagnostic is. */
 export function resolveCustomFitting(def: ConstructionFittingDefinition): ConstructionEquipmentPart {
-  if (def.version !== 1) throw new Error('has an unsupported version; this build reads version 1');
+  return resolvedCustomFitting(def).part;
+}
+/** A resolved definition with what the design budgets count. */
+export interface ResolvedCustomFitting {
+  part: ConstructionEquipmentPart;
+  /** Solid faces, tubes and mesh triangles: what one instance draws. Solid faces are counted from the display
+   * polygons, which can differ slightly from the native count of convex-cell faces. */
+  triangles: number;
+  meshTriangles: number;
+  meshBytes: number;
+}
+/** Mesh-bearing definitions by record: resolving decodes and splits every mesh, and source records are replaced,
+ * never edited in place. */
+const resolvedMeshParts = new WeakMap<ConstructionFittingDefinition, ResolvedCustomFitting>();
+export function resolvedCustomFitting(def: ConstructionFittingDefinition): ResolvedCustomFitting {
+  if (!def.meshes?.length) return resolveDefinition(def);
+  let hit = resolvedMeshParts.get(def);
+  if (!hit) resolvedMeshParts.set(def, (hit = resolveDefinition(def)));
+  return { ...hit, part: structuredClone(hit.part) };
+}
+function resolveDefinition(def: ConstructionFittingDefinition): ResolvedCustomFitting {
+  const meshes = def.meshes ?? [];
+  if (def.version !== 1 && def.version !== 2) throw new Error('has an unsupported version; this build reads versions 1 and 2');
+  if (def.version === 1 && (meshes.length || def.centerOfGravity !== undefined)) throw new Error('has meshes or a centerOfGravity, which need version 2; set "version": 2');
   if (typeof def.name !== 'string' || !def.name.length || def.name.length > 80) throw new Error('needs a name of 1–80 characters');
-  if (def.attach !== 'deck') throw new Error(`attaches to ${JSON.stringify(def.attach)}; version 1 supports "deck" only`);
+  if (def.attach !== 'deck') throw new Error(`attaches to ${JSON.stringify(def.attach)}; this build supports "deck" only`);
   const L = CUSTOM_FITTING_LIMITS;
   if (def.solids.length > L.solids || def.tubes.length > L.tubes)
     throw new Error(`has ${def.solids.length} solids and ${def.tubes.length} tubes; the limits are ${L.solids} solids and ${L.tubes} tubes`);
-  if (!def.solids.length && !def.tubes.length) throw new Error('needs at least one solid or tube');
+  if (meshes.length > L.meshes) throw new Error(`has ${meshes.length} meshes; the limit is ${L.meshes}`);
+  if (!def.solids.length && !def.tubes.length && !meshes.length) throw new Error('needs at least one solid, tube or mesh');
   const ids = new Set<string>();
-  for (const { id } of [...def.solids, ...def.tubes]) {
-    if (!ID.test(id)) throw new Error(`has a solid or tube ID ${JSON.stringify(id)} that is not 1–64 letters, digits, '-' or '_'`);
-    if (ids.has(id)) throw new Error(`repeats the solid or tube ID ${id}`);
+  for (const { id } of [...def.solids, ...def.tubes, ...meshes]) {
+    if (!ID.test(id)) throw new Error(`has a solid, tube or mesh ID ${JSON.stringify(id)} that is not 1–64 letters, digits, '-' or '_'`);
+    if (ids.has(id)) throw new Error(`repeats the solid, tube or mesh ID ${id}`);
     ids.add(id);
   }
+  if (meshes.length && def.massKg === undefined) throw new Error('has meshes, which have no volume to weigh; give it a massKg');
   const density = CUSTOM_FITTING_MATERIALS[def.material ?? 'steel'];
   if (!density) throw new Error(`has the unknown material ${JSON.stringify(def.material)}; use steel, aluminium, brass or wood`);
   const fill = def.fill ?? 1;
   if (!Number.isFinite(fill) || fill < 0.01 || fill > 1) throw new Error('needs a fill of 0.01–1');
-  let volume = 0;
+  let volume = 0,
+    triangles = 0;
   const first: Vec3 = [0, 0, 0];
   const all = new Bounds(),
     solidBoxes: Box[] = [],
@@ -153,6 +181,7 @@ export function resolveCustomFitting(def: ConstructionFittingDefinition): Constr
     const bounds = new Bounds();
     let solidVolume = 0;
     for (const face of fittingSolidFaces(solid)) {
+      triangles += Math.max(0, face.length - 2);
       face.forEach((point) => bounds.point(point));
       for (let i = 1; i < face.length - 1; i++) {
         const [a, b, c] = [face[0], face[i], face[i + 1]];
@@ -193,34 +222,84 @@ export function resolveCustomFitting(def: ConstructionFittingDefinition): Constr
     tubeBoxes.push(bounds.box());
     all.point(bounds.lo);
     all.point(bounds.hi);
+    triangles += (points.length - 1) * TUBE_SIDES * 2 + 2 * (TUBE_SIDES - 2);
   }
+  let meshTriangles = 0,
+    meshBytes = 0,
+    area = 0;
+  const areaFirst: Vec3 = [0, 0, 0],
+    meshBoxes: Box[] = [];
+  for (const mesh of meshes) {
+    const decoded = decodeFittingMesh(mesh, L.localM);
+    meshTriangles += decoded.triangles.length / 3;
+    meshBytes += mesh.data.length;
+    const moments = fittingMeshAreaMoments(decoded);
+    area += moments.area;
+    for (let k = 0; k < 3; k++) areaFirst[k] += moments.first[k];
+    for (const box of fittingMeshBoxes(decoded)) {
+      all.point(box.center.map((n, k) => n - box.size[k] / 2) as Vec3);
+      all.point(box.center.map((n, k) => n + box.size[k] / 2) as Vec3);
+      meshBoxes.push(box);
+    }
+  }
+  if (meshBytes > L.designMeshBytes) throw new Error(`carries ${meshBytes} encoded mesh bytes; a design holds at most ${L.designMeshBytes}`);
+  if (meshes.length && !(area > 1e-9)) throw new Error('has meshes with no surface area');
   const { center, size } = all.box();
   if (size.some((n) => n > L.localM)) throw new Error(`spans more than ${L.localM} m`);
-  if (all.lo[1] > 0.05) throw new Error(`starts ${all.lo[1].toFixed(3)} m above its datum; the lowest solid or tube must reach local y = 0, where the fitting seats on the deck`);
+  if (all.lo[1] > 0.05) throw new Error(`starts ${all.lo[1].toFixed(3)} m above its datum; the lowest solid, tube or mesh must reach local y = 0, where the fitting seats on the deck`);
   const massKg = def.massKg ?? volume * density * fill;
   if (!Number.isFinite(massKg) || massKg < 0.001 || massKg > 1_000_000) throw new Error(`weighs ${massKg.toFixed(4)} kg; the mass must be 0.001–1,000,000 kg`);
+  // Meshes have no volume: their area centroid stands for the whole definition.
+  let centerOfGravity: Vec3;
+  if (def.centerOfGravity !== undefined) {
+    const cg = def.centerOfGravity;
+    if (!Array.isArray(cg) || cg.length !== 3 || cg.some((n, k) => !Number.isFinite(n) || n < all.lo[k] - 0.01 || n > all.hi[k] + 0.01))
+      throw new Error("has a centerOfGravity outside its shapes' bounds");
+    centerOfGravity = [...cg];
+  } else centerOfGravity = (meshes.length ? areaFirst.map((n) => n * (1 / area)) : first.map((n) => n / volume)) as Vec3;
   const text = JSON.stringify(def);
   let hash = 2166136261;
   for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 16777619);
-  return {
+  const shapes = solidBoxes.length + meshBoxes.length;
+  const part: ConstructionEquipmentPart = {
     id: customFittingPartId(def.id),
     name: def.name,
     kind: 'deck-fitting',
     size,
     boundsCenter: center,
-    centerOfGravity: first.map((n) => n / volume) as Vec3,
+    centerOfGravity,
     massKg,
     placement: 'deck',
     fitting:
-      solidBoxes.length + segmentBoxes.length <= L.boxes
-        ? [...solidBoxes, ...segmentBoxes]
-        : solidBoxes.length + tubeBoxes.length <= L.boxes
-          ? [...solidBoxes, ...tubeBoxes]
-          : mergeFittingBoxes([...solidBoxes, ...tubeBoxes], L.boxes, [1, 2].reduce((best, k) => (size[k] > size[best] ? k : best), 0)),
+      shapes + segmentBoxes.length <= L.boxes
+        ? [...solidBoxes, ...meshBoxes, ...segmentBoxes]
+        : shapes + tubeBoxes.length <= L.boxes
+          ? [...solidBoxes, ...meshBoxes, ...tubeBoxes]
+          : mergeFittingBoxes([...solidBoxes, ...meshBoxes, ...tubeBoxes], L.boxes, [1, 2].reduce((best, k) => (size[k] > size[best] ? k : best), 0)),
     modelUrl: `/models/components/design-local/${def.id}`,
     // Display identity only (geometry caches); the native compiler hashes the definition itself.
     contentHash: `design-${(hash >>> 0).toString(16)}-${text.length}`,
   };
+  return { part, triangles: triangles + meshTriangles, meshTriangles, meshBytes };
+}
+
+/** What a design spends of the visual mesh budgets. Unresolvable definitions count nothing; the compiler names them. */
+export function customFittingBudgets(data: Pick<ConstructionData, 'fittings' | 'equipment'>) {
+  let meshTriangles = 0,
+    meshBytes = 0,
+    renderedTriangles = 0;
+  for (const def of customFittingDefinitions(data)) {
+    let resolved: ResolvedCustomFitting;
+    try {
+      resolved = resolvedCustomFitting(def);
+    } catch {
+      continue;
+    }
+    meshTriangles += resolved.meshTriangles;
+    meshBytes += resolved.meshBytes;
+    renderedTriangles += resolved.triangles * customFittingInstances(data, def.id).length;
+  }
+  return { meshTriangles, meshBytes, renderedTriangles };
 }
 /** The fault the native compiler will report for this definition, or undefined when it resolves. */
 export function customFittingFault(def: ConstructionFittingDefinition): string | undefined {
@@ -235,7 +314,7 @@ export function customFittingFault(def: ConstructionFittingDefinition): string |
 const definitionOfPart = new WeakMap<ConstructionEquipmentPart, ConstructionFittingDefinition>();
 /** The source definition behind a synthesized part of an effective catalog; undefined for published parts. */
 export const customFittingDefinitionOfPart = (part: ConstructionEquipmentPart | undefined) => (part ? definitionOfPart.get(part) : undefined);
-const resolved = new WeakMap<ConstructionCatalog, { key: string; catalog: ConstructionCatalog }>();
+const resolved = new WeakMap<ConstructionCatalog, { definitions: readonly ConstructionFittingDefinition[]; key: string; catalog: ConstructionCatalog }>();
 /** The catalog every part lookup of one design uses: the published parts plus that design's own
  * definitions. Identity is stable while the definitions are unchanged. Unresolvable definitions are
  * left out (their instances then read as missing parts); the compiler names the fault.
@@ -244,9 +323,11 @@ export function effectiveConstructionCatalog(data: Pick<ConstructionData, 'fitti
   const definitions = customFittingDefinitions(data);
   const published = catalog.equipment.some((part) => isCustomFittingPartId(part.id)) ? publishedConstructionCatalog(catalog) : catalog;
   if (!definitions.length) return published;
-  const key = JSON.stringify(definitions),
-    cached = resolved.get(published);
-  if (cached?.key === key) return cached.catalog;
+  const cached = resolved.get(published);
+  // The same table is the same catalog; a rebuilt table is compared by content (meshes make that text long).
+  if (cached?.definitions === definitions) return cached.catalog;
+  const key = JSON.stringify(definitions);
+  if (cached?.key === key) return (cached.definitions = definitions), cached.catalog;
   const seen = new Set<string>(),
     parts: ConstructionEquipmentPart[] = [];
   for (const def of definitions.slice(0, CUSTOM_FITTING_LIMITS.definitions)) {
@@ -262,7 +343,7 @@ export function effectiveConstructionCatalog(data: Pick<ConstructionData, 'fitti
   }
   const effective = { ...published, equipment: [...published.equipment, ...parts] };
   stripped.set(effective, published);
-  resolved.set(published, { key, catalog: effective });
+  resolved.set(published, { definitions, key, catalog: effective });
   return effective;
 }
 const stripped = new WeakMap<ConstructionCatalog, ConstructionCatalog>();

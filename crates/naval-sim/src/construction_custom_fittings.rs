@@ -3,8 +3,10 @@
 //! loading, placement) applies unchanged. Non-structural by construction: the solids never join
 //! the hull union, and a deck fitting has no module, obstruction, armor or hit geometry.
 //! `src/ships/constructionCustomFittings.ts` mirrors the resolver for the editor and tools.
-use crate::{construction_geometry as cg, definition::*, geometry::*};
-use std::collections::BTreeSet;
+use crate::{
+    construction_fitting_mesh as fm, construction_geometry as cg, definition::*, geometry::*,
+};
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const PART_PREFIX: &str = "design:";
 pub const MAX_DEFINITIONS: usize = 256;
@@ -116,15 +118,64 @@ fn merged(
 }
 
 pub fn part(def: &ConstructionFittingDefinition) -> Result<ConstructionEquipmentPart, String> {
-    if def.version != 1. {
-        return Err("has an unsupported version; this build reads version 1".into());
+    resolved(def).map(|r| r.part)
+}
+
+/// A resolved definition with what the design budgets count.
+#[derive(Clone)]
+pub(crate) struct Resolved {
+    pub part: ConstructionEquipmentPart,
+    /// Solid faces, tubes and mesh triangles: what one instance draws.
+    pub triangles: usize,
+    pub mesh_triangles: usize,
+    pub mesh_bytes: usize,
+}
+
+thread_local! {
+    /// Mesh-bearing definitions by content hash: a compile resolves each definition more than
+    /// once, and the editor recompiles unchanged definitions on every edit. Pure, so deterministic.
+    static RESOLVED: std::cell::RefCell<BTreeMap<String, Result<Resolved, String>>> =
+        const { std::cell::RefCell::new(BTreeMap::new()) };
+}
+
+pub(crate) fn resolved(def: &ConstructionFittingDefinition) -> Result<Resolved, String> {
+    let hash = crate::catalog::sha256(&serde_json::to_vec(def).unwrap_or_default());
+    if def.meshes.as_ref().is_none_or(Vec::is_empty) {
+        return resolve_definition(def, hash);
+    }
+    if let Some(hit) = RESOLVED.with(|memo| memo.borrow().get(&hash).cloned()) {
+        return hit;
+    }
+    let result = resolve_definition(def, hash.clone());
+    RESOLVED.with(|memo| {
+        let mut memo = memo.borrow_mut();
+        if memo.len() >= 64 {
+            memo.clear();
+        }
+        memo.insert(hash, result.clone());
+    });
+    result
+}
+
+fn resolve_definition(
+    def: &ConstructionFittingDefinition,
+    hash: String,
+) -> Result<Resolved, String> {
+    let meshes = def.meshes.as_deref().unwrap_or_default();
+    if def.version != 1. && def.version != 2. {
+        return Err("has an unsupported version; this build reads versions 1 and 2".into());
+    }
+    if def.version == 1. && (!meshes.is_empty() || def.center_of_gravity.is_some()) {
+        return Err(
+            "has meshes or a centerOfGravity, which need version 2; set \"version\": 2".into(),
+        );
     }
     if def.name.is_empty() || def.name.len() > 80 {
         return Err("needs a name of 1–80 bytes".into());
     }
     if def.attach != "deck" {
         return Err(format!(
-            "attaches to \"{}\"; version 1 supports \"deck\" only",
+            "attaches to \"{}\"; this build supports \"deck\" only",
             def.attach
         ));
     }
@@ -135,8 +186,15 @@ pub fn part(def: &ConstructionFittingDefinition) -> Result<ConstructionEquipment
             def.tubes.len()
         ));
     }
-    if def.solids.is_empty() && def.tubes.is_empty() {
-        return Err("needs at least one solid or tube".into());
+    if meshes.len() > fm::MAX_MESHES {
+        return Err(format!(
+            "has {} meshes; the limit is {}",
+            meshes.len(),
+            fm::MAX_MESHES
+        ));
+    }
+    if def.solids.is_empty() && def.tubes.is_empty() && meshes.is_empty() {
+        return Err("needs at least one solid, tube or mesh".into());
     }
     let mut ids = BTreeSet::new();
     for id in def
@@ -144,15 +202,19 @@ pub fn part(def: &ConstructionFittingDefinition) -> Result<ConstructionEquipment
         .iter()
         .map(|s| &s.id)
         .chain(def.tubes.iter().map(|t| &t.id))
+        .chain(meshes.iter().map(|m| &m.id))
     {
         if !crate::construction::valid_id(id) {
             return Err(format!(
-                "has a solid or tube ID \"{id}\" that is not 1–64 letters, digits, '-' or '_'"
+                "has a solid, tube or mesh ID \"{id}\" that is not 1–64 letters, digits, '-' or '_'"
             ));
         }
         if !ids.insert(id) {
-            return Err(format!("repeats the solid or tube ID {id}"));
+            return Err(format!("repeats the solid, tube or mesh ID {id}"));
         }
+    }
+    if !meshes.is_empty() && def.mass_kg.is_none() {
+        return Err("has meshes, which have no volume to weigh; give it a massKg".into());
     }
     let Some(density) = density(def.material.as_deref()) else {
         return Err(format!(
@@ -267,13 +329,38 @@ pub fn part(def: &ConstructionFittingDefinition) -> Result<ConstructionEquipment
             "needs about {triangles} triangles; the limit is {MAX_TRIANGLES}. Use fewer or simpler solids"
         ));
     }
+    let (mut mesh_triangles, mut mesh_bytes, mut area, mut area_first) = (0, 0, 0., [0.; 3]);
+    let mut mesh_boxes = vec![];
+    for m in meshes {
+        let decoded = fm::decode(m, MAX_LOCAL_M)?;
+        mesh_triangles += decoded.triangles.len();
+        mesh_bytes += m.data.len();
+        let (piece, first) = decoded.area_moments();
+        area += piece;
+        for k in 0..3 {
+            area_first[k] += first[k];
+        }
+        for b in fm::boxes(&decoded) {
+            grow(&mut lo, &mut hi, b.center, b.size);
+            mesh_boxes.push(b);
+        }
+    }
+    if mesh_bytes > fm::MAX_DESIGN_MESH_BYTES {
+        return Err(format!(
+            "carries {mesh_bytes} encoded mesh bytes; a design holds at most {}",
+            fm::MAX_DESIGN_MESH_BYTES
+        ));
+    }
+    if !meshes.is_empty() && (area.is_nan() || area <= 1e-9) {
+        return Err("has meshes with no surface area".into());
+    }
     let size = sub(hi, lo);
     if size.iter().any(|&n| n > MAX_LOCAL_M) {
         return Err(format!("spans more than {MAX_LOCAL_M} m"));
     }
     if lo[1] > 0.05 {
         return Err(format!(
-            "starts {:.3} m above its datum; the lowest solid or tube must reach local y = 0, where the fitting seats on the deck",
+            "starts {:.3} m above its datum; the lowest solid, tube or mesh must reach local y = 0, where the fitting seats on the deck",
             lo[1]
         ));
     }
@@ -283,30 +370,62 @@ pub fn part(def: &ConstructionFittingDefinition) -> Result<ConstructionEquipment
             "weighs {mass_kg:.4} kg; the mass must be 0.001–1,000,000 kg"
         ));
     }
-    // The compiler checks at most MAX_BOXES boxes per part: a box per solid and per tube
-    // segment when they fit, a box per whole tube next, and merged neighbours past that.
-    let fitting = if solid_boxes.len() + segment_boxes.len() <= MAX_BOXES {
-        solid_boxes.into_iter().chain(segment_boxes).collect()
-    } else if solid_boxes.len() + tube_boxes.len() <= MAX_BOXES {
-        solid_boxes.into_iter().chain(tube_boxes).collect()
+    // Meshes have no volume: their area centroid stands for the whole definition.
+    let center_of_gravity = match def.center_of_gravity {
+        Some(cg) => {
+            if (0..3).any(|k| !cg[k].is_finite() || cg[k] < lo[k] - 0.01 || cg[k] > hi[k] + 0.01) {
+                return Err("has a centerOfGravity outside its shapes' bounds".into());
+            }
+            cg
+        }
+        None if !meshes.is_empty() => scale(area_first, 1. / area),
+        None => moments.center(),
+    };
+    // The compiler checks at most MAX_BOXES boxes per part: a box per solid, a few per mesh and
+    // one per tube segment when they fit, a box per whole tube next, and merged neighbours past that.
+    let shapes = solid_boxes.len() + mesh_boxes.len();
+    let fitting = if shapes + segment_boxes.len() <= MAX_BOXES {
+        solid_boxes
+            .into_iter()
+            .chain(mesh_boxes)
+            .chain(segment_boxes)
+            .collect()
+    } else if shapes + tube_boxes.len() <= MAX_BOXES {
+        solid_boxes
+            .into_iter()
+            .chain(mesh_boxes)
+            .chain(tube_boxes)
+            .collect()
     } else {
         let axis = (1..3).fold(0, |best, k| if size[k] > size[best] { k } else { best });
-        merged(solid_boxes.into_iter().chain(tube_boxes).collect(), MAX_BOXES, axis)
+        merged(
+            solid_boxes
+                .into_iter()
+                .chain(mesh_boxes)
+                .chain(tube_boxes)
+                .collect(),
+            MAX_BOXES,
+            axis,
+        )
     };
-    let hash = crate::catalog::sha256(&serde_json::to_vec(def).unwrap_or_default());
-    Ok(ConstructionEquipmentPart {
-        id: format!("{PART_PREFIX}{}", def.id),
-        name: def.name.clone(),
-        kind: "deck-fitting".into(),
-        size,
-        bounds_center: scale(add(lo, hi), 0.5),
-        center_of_gravity: moments.center(),
-        mass_kg: Some(mass_kg),
-        placement: "deck".into(),
-        fitting: Some(fitting),
-        model_url: format!("/models/components/design-local/{}", def.id),
-        content_hash: hash,
-        ..Default::default()
+    Ok(Resolved {
+        part: ConstructionEquipmentPart {
+            id: format!("{PART_PREFIX}{}", def.id),
+            name: def.name.clone(),
+            kind: "deck-fitting".into(),
+            size,
+            bounds_center: scale(add(lo, hi), 0.5),
+            center_of_gravity,
+            mass_kg: Some(mass_kg),
+            placement: "deck".into(),
+            fitting: Some(fitting),
+            model_url: format!("/models/components/design-local/{}", def.id),
+            content_hash: hash,
+            ..Default::default()
+        },
+        triangles: triangles + mesh_triangles,
+        mesh_triangles,
+        mesh_bytes,
     })
 }
 
@@ -319,6 +438,9 @@ pub fn resolve(
     let mut errors = vec![];
     let mut parts = vec![];
     let mut seen = BTreeSet::new();
+    // Design budgets: each definition's meshes count once; drawing counts every instance.
+    let (mut mesh_triangles, mut mesh_bytes) = (0, 0);
+    let mut drawn = BTreeMap::new();
     for def in definitions {
         if errors.len() >= limit {
             break;
@@ -342,8 +464,38 @@ pub fn resolve(
                 None,
             ));
         } else {
-            match part(def) {
-                Ok(part) => parts.push(part),
+            match resolved(def) {
+                Ok(r) => {
+                    for (total, add, limit, noun) in [
+                        (
+                            &mut mesh_triangles,
+                            r.mesh_triangles,
+                            fm::MAX_DESIGN_MESH_TRIANGLES,
+                            "visual mesh triangles",
+                        ),
+                        (
+                            &mut mesh_bytes,
+                            r.mesh_bytes,
+                            fm::MAX_DESIGN_MESH_BYTES,
+                            "encoded mesh bytes",
+                        ),
+                    ] {
+                        if add > 0 && *total <= limit && *total + add > limit {
+                            errors.push(fault(
+                                format!(
+                                    "Custom fitting {} brings the design to {} {noun} ({add} of them its own); a design holds at most {limit}",
+                                    def.id,
+                                    *total + add
+                                ),
+                                &def.id,
+                                None,
+                            ));
+                        }
+                        *total += add;
+                    }
+                    drawn.insert(def.id.as_str(), (r.triangles, 0usize));
+                    parts.push(r.part)
+                }
                 Err(message) => errors.push(fault(
                     format!("Custom fitting {} {message}", def.id),
                     &def.id,
@@ -357,6 +509,9 @@ pub fn resolve(
             break;
         }
         let wanted = &e.part_id[PART_PREFIX.len()..];
+        if let Some((_, instances)) = drawn.get_mut(wanted) {
+            *instances += 1;
+        }
         if !definitions.iter().any(|d| d.id == wanted) {
             errors.push(fault(
                 format!(
@@ -381,6 +536,28 @@ pub fn resolve(
                 Some(wanted),
             ));
         }
+    }
+    let rendered: usize = drawn.values().map(|(t, n)| t * n).sum();
+    if rendered > fm::MAX_DESIGN_RENDERED_TRIANGLES && errors.len() < limit {
+        // Name the definition that draws the most, the one worth simplifying or fitting less often.
+        let (id, (triangles, instances)) = drawn
+            .iter()
+            .fold(
+                None,
+                |best: Option<(&&str, &(usize, usize))>, entry| match best {
+                    Some(b) if b.1.0 * b.1.1 >= entry.1.0 * entry.1.1 => Some(b),
+                    _ => Some(entry),
+                },
+            )
+            .unwrap();
+        errors.push(fault(
+            format!(
+                "Custom fittings draw {rendered} triangles in this design; the limit is {}. {id} draws the most: {instances} instances × {triangles} triangles",
+                fm::MAX_DESIGN_RENDERED_TRIANGLES
+            ),
+            id,
+            None,
+        ));
     }
     if errors.is_empty() {
         Ok(parts)
@@ -468,6 +645,7 @@ mod tests {
             material: None,
             fill: Some(0.5),
             mass_kg: None,
+            ..Default::default()
         }
     }
     fn instance(id: &str, position: Vec3) -> ConstructionEquipment {

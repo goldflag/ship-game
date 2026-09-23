@@ -7,8 +7,9 @@ import { loadShipModel } from './loadShipModel';
 import { createConstructionPathModel } from './constructionPathModel';
 import { createConstructionFittingModel } from './constructionFittingModel';
 import { customFittingOf, effectiveConstructionCatalog } from '../ships/constructionCustomFittings';
+import { carrierOf } from '../ships/constructionParents';
 import { createConstructionPropellerSupports } from './constructionPropellerModel';
-import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, ConstructionSurfaceFinish } from '../ships/blueprint';
+import type { ConstructionCatalog, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, ConstructionSurfaceFinish } from '../ships/blueprint';
 import { constructionVertexNormals, customHullSmoothingGroup, SMOOTH_HULL_SHAPES } from './constructionShading';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
 import { CONSTRUCTION_FINISH, constructionFittingPaint, constructionPaintColor, constructionFinishRoughness } from '../ships/constructionPaints';
@@ -111,18 +112,27 @@ export async function createConstructionModel(source: ConstructionSource, result
   group.userData.definitionHash = result.contentHash;
   group.userData.constructionRevision = source.revision;
   const templates = new Map<string, THREE.Group>();
+  const fittings = new Map<string, THREE.Group>();
   try {
+    let catalog: ConstructionCatalog | undefined;
     if (source.construction.equipment.length) {
-      const catalog = effectiveConstructionCatalog(source.construction, await loadConstructionCatalog(source.construction.catalogRevision)); abort(signal);
+      catalog = effectiveConstructionCatalog(source.construction, await loadConstructionCatalog(source.construction.catalogRevision)); abort(signal);
       for (const instance of source.construction.equipment) {
         abort(signal);
         const part = catalog.equipment.find(p => p.id === instance.partId);
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
         const custom = customFittingOf(source.construction, instance);
         if (custom) {
-          // Design-local fitting: drawn from the source definition, never a published GLB.
-          const model = createConstructionFittingModel(custom, { finish: source.construction.finish });
-          paintConstructionFitting(model, constructionFittingPaint(source, instance, part), false, source.construction.finish);
+          // Design-local fitting: drawn from the source definition, never a published GLB. Each definition and
+          // coating is built once; instances share its geometry and materials, so their draws can batch.
+          const paint = constructionFittingPaint(source, instance, part), key = `${custom.id}\u0000${paint ?? ''}`;
+          let template = fittings.get(key);
+          if (!template) {
+            template = createConstructionFittingModel(custom, { finish: source.construction.finish });
+            paintConstructionFitting(template, paint, false, source.construction.finish);
+            fittings.set(key, template);
+          }
+          const model = template.clone(true);
           model.name = instance.id;
           if (instance.scale) model.scale.fromArray(instance.scale);
           model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;
@@ -161,6 +171,19 @@ export async function createConstructionModel(source: ConstructionSource, result
       }
     }
     group.updateMatrixWorld(true);
+    // A carried fitting or gun trains with its carrier: move it under the carrier's yaw joint, which is
+    // at rest now, so it keeps its neutral pose and turns with that joint (and its batch, whose owner is
+    // the nearest moving ancestor). Nested carriers follow because each keeps its own subtree.
+    if (catalog && source.construction.equipment.some(e => e.parent !== undefined)) {
+      const yaws = new Map<string, THREE.Object3D>(), installed = new Map<string, THREE.Object3D>();
+      group.traverse(node => { if (typeof node.userData.nodeId === 'string' && node.userData.nodeId.endsWith('.yaw')) yaws.set(node.userData.nodeId, node); });
+      for (const node of group.children) if (typeof node.userData.sourceId === 'string') installed.set(node.userData.sourceId, node);
+      for (const instance of source.construction.equipment) {
+        const carrier = carrierOf(source.construction, catalog, instance.id), yaw = carrier && yaws.get(`${carrier}.yaw`);
+        const installation = installed.get(instance.id);
+        if (yaw && installation) yaw.attach(installation);
+      }
+    }
     const supports = createConstructionPropellerSupports(result.propellerSupports, source.construction.finish);
     for (const assembly of [...supports.children]) {
       const id = assembly.userData.assemblyId;

@@ -49,6 +49,8 @@ try { await openEditor(harness.page, 'Fletcher design'); await shot(harness.page
 finally { await harness.close(); }
 ```
 
+`launchHarness` also takes `args` (extra Chromium switches, such as `--disable-gpu-vsync --disable-frame-rate-limit` to time frames past the display refresh), and the returned `console` collects console errors and warnings from the first navigation on, including WGSL compile failures that never throw.
+
 What the driver already handles, so a script need not:
 
 - Headless Chromium reaches the port but its WebGPU frame loop stalls. The driver launches headed.

@@ -41,6 +41,8 @@ export class WakeFoam {
   private sampleDistance = 0;
   private elapsed = 0;
   private dirty = false;
+  /** Paint the young bow-shoulder crests. The analytic bow waves draw them instead when enabled. */
+  bowShoulders = true;
 
   constructor(private readonly resolution: number, private readonly hull: WakeHull = { length: 250, beam: 36, forwardSpeed: BISMARCK.forwardSpeed }, private readonly stampTarget?: WakeStampTarget) {
     this.pixels = new Uint8Array(resolution * resolution);
@@ -169,6 +171,7 @@ export class WakeFoam {
           rightX, rightZ, spread, length,
           sample.strength * fade * (shaft === 0 ? 1 : 0.84));
       }
+      if (!this.bowShoulders) continue;
       // Bow shoulders spread away from the historical course; only their
       // youngest crests carry white water. The native solver carries the swell.
       const shoulder = this.hull.beam * .194 + age * Math.abs(sample.speed) * 0.32;

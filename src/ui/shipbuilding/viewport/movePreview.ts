@@ -9,6 +9,7 @@ import type { BuilderPick, BuilderScene } from '../builderScene';
 import type { EquipmentPreview } from '../equipmentPreview';
 import { internalSelectionIds } from '../internalSelection';
 import { mirrorTwins } from '../mirrorEditing';
+import { carriedIds } from '../../../ships/constructionParents';
 import { primitiveGeometry, primitiveOutlineGeometry, primitiveRotation } from '../primitiveGeometry';
 import { BRASS, BRASS_LIGHT, MINT, release } from './resources';
 
@@ -126,6 +127,10 @@ export interface MovePreviewView {
 export function buildMovePreview(view: MovePreviewView, ids: string[], twins: string[] = []) {
   release(view.group);
   const { primitives, equipment, boundaries } = view.scene.source.construction;
+  // What the moved pieces carry (`parent`) travels with them; a twin's riders travel the reflected path.
+  const riders = carriedIds(view.scene.source.construction, ids);
+  ids = [...new Set([...ids, ...riders])];
+  twins = [...new Set([...twins, ...carriedIds(view.scene.source.construction, twins)])].filter((id) => !ids.includes(id));
   const partners = new Set<string>(twins);
   for (const item of equipment)
     if (ids.includes(item.id) && item.wall?.mirrorId && !ids.includes(item.wall.mirrorId)) partners.add(item.wall.mirrorId);

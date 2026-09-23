@@ -2,6 +2,7 @@ import type { ConstructionEquipment, ConstructionPrimitive, ConstructionSource, 
 import { applyConstructionBatch, type ConstructionCommand } from '../../ships/constructionCommands';
 import { mirroredEquipment, mirroredPrimitive } from '../../ships/constructionEditor';
 import { mirrorTwin, mirrorTwinEquipment } from './placement';
+import { carriedIds, carriedPoses } from '../../ships/constructionParents';
 
 /** Mirror editing: with Mirror on, an edit to a piece also reaches the piece that already mirrors it
  * across the centerline. Twins are found by geometry, as for mirrored armor and paint, so nothing
@@ -68,6 +69,10 @@ const commandIds = (command: ConstructionCommand): string[] => {
  * resized or reshaped piece gives its twin the mirrored result, and a removed piece takes its twin along. */
 export function withMirroredEdits(source: ConstructionSource, commands: ConstructionCommand[]): ConstructionCommand[] {
   const twins = mirrorTwins(source, new Set(commands.flatMap(commandIds)));
+  // Moved, turned and removed rows take what they carry (`parent`) along; a twin among those riders already follows the edit.
+  const carrying = new Set(commands.flatMap(c => (c.op === 'move' || c.op === 'rotate' || c.op === 'remove' ? c.ids : [])));
+  const riders = carriedIds(source.construction, carrying);
+  for (const [id, twinId] of twins) if (riders.has(twinId)) twins.delete(id);
   if (!twins.size) return commands;
   let next: ConstructionSource;
   // An invalid batch is left for the revision door to refuse with its own message.
@@ -85,6 +90,20 @@ export function withMirroredEdits(source: ConstructionSource, commands: Construc
     if (!item || !twin) continue;
     if (!now) removed.push(twinId);
     else if (JSON.stringify(now) !== JSON.stringify(item)) out.push({ op: 'equipment', value: twinEquipment(now, twin) });
+  }
+  // A twin reshaped by an upsert carries nothing by itself: its riders take the same rigid change of pose.
+  const upserted = new Set(out.flatMap(c => (c.op === 'primitive' || c.op === 'equipment' ? [c.value.id] : [])));
+  for (const [id, twinId] of twins) {
+    if (!carrying.has(id)) continue;
+    const command = out.find(c => (c.op === 'primitive' || c.op === 'equipment') && c.value.id === twinId);
+    if (!command || (command.op !== 'primitive' && command.op !== 'equipment')) continue;
+    const was = [...before.primitives, ...before.equipment].find(p => p.id === twinId)!;
+    const is = command.value;
+    const turn = 'bearingDeg' in is ? is.bearingDeg - (was as ConstructionEquipment).bearingDeg : -(is.rotationDeg - (was as ConstructionPrimitive).rotationDeg);
+    for (const value of carriedPoses(before, twinId, was.position, is.position, turn, new Set([...upserted, ...riders]))) {
+      out.push({ op: 'equipment', value });
+      upserted.add(value.id);
+    }
   }
   if (removed.length) out.push({ op: 'remove', ids: removed });
   return out;
