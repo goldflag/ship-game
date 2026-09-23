@@ -156,6 +156,20 @@ function fbm(octaves: readonly Lattice[], u: number, v: number, warp = 0): numbe
 }
 const octaves = (count: number, px: number, py: number, seed: number) => Array.from({ length: count }, (_, o) => lattice('gradient', px << o, py << o, seed + o));
 
+/** A tiling map blurred by a 3 × 3 tent (1-2-1 along each axis). */
+function tent(values: Float32Array, size: number): Float32Array {
+  const across = new Float32Array(values.length), out = new Float32Array(values.length);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const row = y * size;
+    across[row + x] = (values[row + (x + size - 1) % size] + 2 * values[row + x] + values[row + (x + 1) % size]) / 4;
+  }
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const up = ((y + size - 1) % size) * size, down = ((y + 1) % size) * size;
+    out[y * size + x] = (across[up + x] + 2 * across[y * size + x] + across[down + x]) / 4;
+  }
+  return out;
+}
+
 /** Replace every value by its rank (0–1), through a fine histogram: the result is uniformly distributed. */
 export function equalise(values: Float32Array): Float32Array {
   let lo = Infinity, hi = -Infinity;
@@ -251,7 +265,9 @@ export function cirrusMap(size = CIRRUS_SIZE, seed = 11): Uint8Array {
     veil[k] = fbm(veils, u, v);
     clusters[k] = fbm(groups, u, v);
   }
-  const f = equalise(fibres), c = equalise(clusters);
+  // The finest filaments are narrower than a texel: read only at texel centres they would come out as beads
+  // (bright where one crosses a centre, dim between), so they are spread over their neighbours first.
+  const f = equalise(tent(fibres, size)), c = equalise(clusters);
   // Filaments only where a patch of cirrus gathers them: a third of the sky, thickest at the patches' hearts.
   for (let k = 0; k < n; k++) f[k] = numbers.smoothstep(.55, .97, f[k]) * numbers.smoothstep(.62, .92, c[k]);
   return toBytes([f, equalise(veil), c, new Float32Array(n).fill(1)], size);

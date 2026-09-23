@@ -1,4 +1,4 @@
-import { CustomBlending, DataTexture, HalfFloatType, LinearFilter, Matrix4, Mesh, MeshBasicNodeMaterial, OneFactor, RepeatWrapping, RGBAFormat, SrcAlphaFactor,
+import { CustomBlending, DataTexture, HalfFloatType, LinearFilter, LinearMipmapLinearFilter, Matrix4, Mesh, MeshBasicNodeMaterial, OneFactor, RepeatWrapping, RGBAFormat, SrcAlphaFactor,
   StorageTexture, UnsignedByteType, Vector2, Vector3, ZeroFactor, type ComputeNode, type Node, type PerspectiveCamera, type StorageTextureNode, type TextureNode,
   type UniformNode, type WebGPURenderer } from 'three/webgpu';
 import { Discard, Fn, If, cameraFar, cameraNear, cameraViewMatrix, float, instanceIndex, int, ivec2, max, min, mix, round, screenUV, select, smoothstep,
@@ -7,7 +7,7 @@ import type { AtmospherePart, CloudPart, SkyFrame, SkyPartContext, SkyQuality, S
 import { CLOUD_ORDER, fullScreenTriangle, screenCorner, viewDirection } from '../dome';
 import { SKY_TIERS } from '../quality';
 import { writeSceneTargets } from '../../TemporalAntialiasing';
-import { createCirrus, cirrusAmount } from './cirrus';
+import { CIRRUS_TABLE, cirrusAmount, cirrusLight, cirrusTableDirection, createCirrus } from './cirrus';
 import { createCloudField, createLayerUniforms, type CloudField, type LayerUniforms } from './field';
 import { createCloudLight, gradientJitter, marchClouds, shadowTransmittance, type CloudLight, type MarchContext } from './march';
 import { cirrusMap, clearDistance, clearThreshold, weatherChannels, weatherMap, CIRRUS_SIZE, CLEAR_RANGE, WEATHER_SIZE } from './model';
@@ -118,6 +118,11 @@ export class CloudLayer implements CloudPart {
   /** The clouds' drift heading as a unit XZ vector. */
   private readonly windAxis = uniform(new Vector2(0, 1));
   private readonly cirrusFn: (direction: Vec3, behind: Vec3) => Vec3;
+  /** The cirrus lighting table (`cirrus.ts`), refreshed every frame. */
+  private readonly cirrusTable: StorageTexture;
+  private readonly cirrusKernel: ComputeNode;
+  /** The table alone, for frames without a cloud update. */
+  private readonly cirrusOnly: ComputeNode[];
   private readonly u = {
     steps: uniform(64, 'int'), bakeSteps: uniform(16, 'int'),
     frame: uniform(0), offset: uniform(new Vector2(), 'ivec2'), interleave: uniform(2, 'int'),
@@ -168,12 +173,15 @@ export class CloudLayer implements CloudPart {
     this.volumes = [baseVolume(renderer), detailVolume(renderer)];
     this.weatherChannels = weatherChannels();
     this.weather = mapTexture(weatherMap(this.weatherChannels, clearDistance(this.weatherChannels[0], 2)), WEATHER_SIZE, 'Cloud weather');
-    this.cirrusTexture = mapTexture(cirrusMap(), CIRRUS_SIZE, 'Cirrus');
+    this.cirrusTexture = mapTexture(cirrusMap(), CIRRUS_SIZE, 'Cirrus', true);
     this.layer = createLayerUniforms();
     this.light = createCloudLight();
     this.field = createCloudField(sky, this.layer, { weather: this.weather, base: this.volumes[0].map, detail: this.volumes[1].map });
     this.context = { sky, atmosphere, field: this.field, light: this.light, ambient: this.u.ambient, baseShadow: this.u.baseShadow };
-    this.cirrusFn = createCirrus(sky, atmosphere, this.light, this.cirrusTexture, this.cirrusStrength, this.windAxis);
+    this.cirrusTable = makeStorage(CIRRUS_TABLE, CIRRUS_TABLE);
+    this.cirrusFn = createCirrus(sky, this.cirrusTexture, texture(this.cirrusTable), this.cirrusStrength, this.windAxis);
+    this.cirrusKernel = this.buildCirrusTable(atmosphere);
+    this.cirrusOnly = [this.cirrusKernel];
     this.march = { color: makeStorage(1, 1), depth: makeStorage(1, 1) };
     this.history = [{ color: makeStorage(1, 1), depth: makeStorage(1, 1) }, { color: makeStorage(1, 1), depth: makeStorage(1, 1) }];
     this.shadowMap = this.makeShadowMap(SKY_TIERS[quality].cloudShadowSize);
@@ -192,7 +200,8 @@ export class CloudLayer implements CloudPart {
       if (this.marchKernels.has(tier.cloudLightSteps)) continue;
       const march = this.buildMarch(tier.cloudLightSteps);
       this.marchKernels.set(tier.cloudLightSteps, march);
-      this.submissions.set(march, this.resolveKernels.map(resolve => [[march, resolve], [march, resolve, this.shadowKernels.slice], [march, resolve, this.shadowKernels.full]]));
+      const shadow = this.shadowKernels, cirrus = this.cirrusKernel;
+      this.submissions.set(march, this.resolveKernels.map(resolve => [[march, resolve, cirrus], [march, resolve, shadow.slice, cirrus], [march, resolve, shadow.full, cirrus]]));
     }
     this.fastMaterial = this.buildComposite(reversedDepth, false);
     this.depthMaterial = this.buildComposite(reversedDepth, true);
@@ -319,7 +328,10 @@ export class CloudLayer implements CloudPart {
       }
       this.compiled = true;
     }
-    if (!this.active || !due) return;
+    if (!this.active || !due) {
+      renderer.compute(this.cirrusOnly);
+      return;
+    }
     this.sinceUpdate = 0;
     u.projectionInverse.value.copy(camera.projectionMatrixInverse);
     u.cameraWorld.value.copy(camera.matrixWorld);
@@ -356,8 +368,8 @@ export class CloudLayer implements CloudPart {
   }
 
   dispose(): void {
-    for (const map of [this.march.color, this.march.depth, ...this.history.flatMap(h => [h.color, h.depth]), this.shadowMap]) map.dispose();
-    for (const kernel of [...this.marchKernels.values(), ...this.resolveKernels, this.shadowKernels.slice, this.shadowKernels.full]) kernel.dispose();
+    for (const map of [this.march.color, this.march.depth, ...this.history.flatMap(h => [h.color, h.depth]), this.shadowMap, this.cirrusTable]) map.dispose();
+    for (const kernel of [...this.marchKernels.values(), ...this.resolveKernels, this.shadowKernels.slice, this.shadowKernels.full, this.cirrusKernel]) kernel.dispose();
     this.fastMaterial.dispose();
     this.depthMaterial.dispose();
     this.composite.geometry.dispose();
@@ -433,6 +445,15 @@ export class CloudLayer implements CloudPart {
   }
 
   /** One ray in every interleave block of the cloud buffer: its (radiance, transmittance) and (depth km). */
+  /** The cirrus lighting table: what the sheet sends toward the viewer along each direction above the horizon. */
+  private buildCirrusTable(atmosphere: AtmospherePart): ComputeNode {
+    return Fn(() => {
+      const i = int(instanceIndex), texel = ivec2(i.mod(CIRRUS_TABLE), i.div(CIRRUS_TABLE));
+      const direction = cirrusTableDirection(vec2(texel).add(.5).div(CIRRUS_TABLE));
+      textureStore(this.cirrusTable, uvec2(texel), vec4(cirrusLight(this.sky, atmosphere, this.light, direction), 1));
+    })().compute(CIRRUS_TABLE * CIRRUS_TABLE, [64]);
+  }
+
   private buildMarch(lightSteps: number): ComputeNode {
     const u = this.u;
     return Fn(() => {
@@ -574,12 +595,16 @@ export class CloudLayer implements CloudPart {
 const scratch = new Vector2();
 const smooth = (x: number, a: number, b: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
-function mapTexture(bytes: Uint8Array, size: number, name: string): DataTexture {
+/** A map built on the CPU. `mipmapped` for one the dome reads at grazing angles (the cirrus toward the horizon),
+ * which a single level would draw as beaded lines. */
+function mapTexture(bytes: Uint8Array, size: number, name: string, mipmapped = false): DataTexture {
   const map = new DataTexture(bytes, size, size, RGBAFormat, UnsignedByteType);
   map.name = name;
   map.wrapS = map.wrapT = RepeatWrapping;
-  map.minFilter = map.magFilter = LinearFilter;
-  map.generateMipmaps = false;
+  map.minFilter = mipmapped ? LinearMipmapLinearFilter : LinearFilter;
+  map.magFilter = LinearFilter;
+  map.generateMipmaps = mipmapped;
+  map.anisotropy = mipmapped ? 8 : 1;
   map.needsUpdate = true;
   return map;
 }
