@@ -5,7 +5,7 @@ import { EffectDepthTextureNode } from '../../EffectVolume';
 import { writeSceneTargets } from '../../TemporalAntialiasing';
 import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../screen/reflections';
-import { aeratedReflectance, aeration, bubbleCloud, foamOpacity, foamOver, foamPatterns, foamRadiance, whitecapOpacity, windrowOpacity } from './foam';
+import { aeratedReflectance, aeration, billows, bubbleCloud, churnedWater, foamFootprint, foamOpacity, foamOver, foamPatterns, foamRadiance, whitecapFoam, windrowOpacity } from './foam';
 import { foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
 import { TRACE_BELOW, footprintVariance, meanFresnel, reflectionLobe, skyLobe, sunGlitter, windVariances } from './physicalReflection';
@@ -22,17 +22,10 @@ const SHADOWED_PIGMENT = .45;
 const GLINT_VARIANCE = 1e-3;
 /** Share of the wave slope screen-space reflections follow: about the longest waves' share of it at moderate winds. */
 const TRACE_SLOPE = .3;
-/** Wake foam energy at which churned water starts to show, where it covers the sea completely, and how softly its
- * edge dissolves: the trail's own energy shapes its puffs and gaps. */
-const WAKE_START = .05, WAKE_FULL = .6, WAKE_EDGE = .8;
-/** Opacity of the densest churned water: a trail is aerated water the sea shows through, not a painted sheet. */
-const WAKE_OPACITY = .75;
-/** The realistic wake's churned water (a sampler with a slick): nearly opaque white water whose ragged edge the
- * sampler already tears, so the lace only frays what thins. */
-const CHURN_START = 0, CHURN_FULL = 1, CHURN_EDGE = .8, CHURN_OPACITY = .97;
-/** Bubble clouds under churned water: a diffuse layer of this albedo relative to foam, seen through this many metres
- * of water down and back up, which takes the red first: the turquoise under a warship's wake. */
-const BUBBLE_ALBEDO = .4, BUBBLE_PATH = 2;
+/** The wake without a slick (the look first tuned to the replaced library): foam energy at which its trail starts to
+ * show, where it covers the sea completely, how softly its edge dissolves, and the opacity of its densest water. The
+ * realistic wake's churned water is shaded as `foam.ts`'s dense white water. */
+const WAKE_START = .05, WAKE_FULL = .6, WAKE_EDGE = .8, WAKE_OPACITY = .75;
 /** Water column (m) over which shoreline foam fades out, and its soft edge: a thin line along a hull. */
 const SHORE_DEPTH = .8, SHORE_EDGE = .4;
 /** Camera depth (m) over which the surface seen from below dims by e. */
@@ -247,33 +240,32 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const glint = variances ? sunGlitter(up, view, sunDirection, sunRadiance, variances, downwind)
       : sunGlint(up, view, sunDirection, sunRadiance, sample.slopeVariance);
     const direct = glint.add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
-    // Foam is lit like any diffuse white surface, by the sky about its normal and the sun; the bubble cloud under
-    // fresh whitecaps scatters the same daylight back up through the water.
+    // Foam: the texture laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
+    const stretch = reference('windStretch', 'float', foam.crest).mul(2).add(1);
+    const patterns = foamPatterns(this.foamDetail, xz, reference('windDirection', 'float', waves.params), stretch, sunDirection);
+    const { pattern, blur, streaks, streaksBlur, lines, gather, churnSunward } = patterns, lace = pattern.r;
+    const whitecaps = whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, patterns, foamFootprint(xz));
+    // The realistic wake's churned water is the whitecaps' dense white water; without a slick the trail keeps the
+    // replaced library's soft, puffy foam.
+    const churned = wake.slick !== undefined ? churnedWater(wake.foam(xz.x, xz.y), pattern, blur) : undefined;
+    const wakeFoam = churned?.opacity ?? foamOpacity(smoothstep(WAKE_START, WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur, WAKE_EDGE).mul(WAKE_OPACITY);
+    // Foam is lit like any diffuse white surface, by the sky about its normal and the sun; the bubble clouds under
+    // breaking crests and churned water scatter the same daylight back up through the water. A pixel gone to the
+    // whitecaps' mean has their brightness in it already.
     const foamLight = foamRadiance(skyReflection(environment, up, float(1)), sunRadiance, up, sunDirection, lit);
-    const aerated = aeration(sample.bubbles);
+    const aerated = aeration(sample.bubbles.mul(float(1).sub(whitecaps.averaged)), wake.bubbles?.(xz.x, xz.y));
     const water = mix(bubbleCloud(body, aerated, foamLight, absorption), reflected, aeratedReflectance(reflectance, aerated));
     let above: Node<'vec3'> = water.add(direct.mul(lit));
 
-    // Foam, from the widest and faintest to the brightest: windrows, whitecaps and wakes, shorelines. The foam
-    // texture is laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
-    const stretch = reference('windStretch', 'float', foam.crest).mul(2).add(1);
-    const { pattern, blur, rows, bands } = foamPatterns(this.foamDetail, xz, reference('windDirection', 'float', waves.params), stretch);
-    const lace = pattern.r;
-    // Old foam gathers in the broad patches and lies in lines along the wind.
-    const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), bands, rows.b, lace, blur, this.foamDetail.userData.streakMean)
-      .mul(reference('opacity', 'float', foam.surface));
-    const whitecaps = whitecapOpacity(sample.foam, pattern, blur).mul(reference('opacity', 'float', foam.crest));
-    // Churned water is soft-edged and puffy where the trail's energy thins, not cut into lace.
-    const churned = wake.slick !== undefined;
-    const wakeFoam = foamOpacity(smoothstep(churned ? CHURN_START : WAKE_START, churned ? CHURN_FULL : WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur,
-      churned ? CHURN_EDGE : WAKE_EDGE).mul(churned ? CHURN_OPACITY : WAKE_OPACITY);
+    // From the widest and faintest to the brightest: windrows, whitecaps and churned water, shorelines.
+    const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), lines, this.foamDetail.userData.streakMean, gather, lace, streaks,
+      max(blur, streaksBlur), sample.jacobian).mul(reference('opacity', 'float', foam.surface));
+    const white = billows(pattern.a, churnSunward, pattern.r, max(whitecaps.dense, churned?.dense ?? float(0)), blur);
     // Where the water column behind the surface thins to nothing: a beach, or the line along a hull.
     const shoreFoam = foamOpacity(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), lace, blur, SHORE_EDGE).mul(reference('opacity', 'float', foam.shoreline));
-    // Bubble clouds just under churned water scatter daylight back up through it, in place of the water body.
-    if (wake.bubbles) above = above.add(rgb(foam.crest.color).mul(foamLight).mul(transmittance(absorption, float(BUBBLE_PATH))).mul(BUBBLE_ALBEDO).sub(body)
-      .mul(wake.bubbles(xz.x, xz.y).mul(float(1).sub(reflectance))));
     above = foamOver(above, water, foamLight.mul(rgb(foam.surface.color)), reflected, reflectance, windrows);
-    above = foamOver(above, water, foamLight.mul(rgb(foam.crest.color)), reflected, reflectance, max(whitecaps, wakeFoam));
+    above = foamOver(above, water, foamLight.mul(rgb(foam.crest.color)).mul(white), reflected, reflectance,
+      max(whitecaps.opacity.mul(reference('opacity', 'float', foam.crest)), wakeFoam));
     above = foamOver(above, water, foamLight.mul(rgb(foam.shoreline.color)), reflected, reflectance, shoreFoam);
 
     this.fragmentNode = Fn(() => {

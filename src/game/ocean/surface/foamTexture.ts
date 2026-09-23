@@ -2,6 +2,8 @@ import { DataTexture, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, RG
 
 /** Texels per edge. */
 export const FOAM_TEXELS = 256;
+/** Most taps the sampler averages along a grazing pixel's length. */
+export const FOAM_ANISOTROPY = 8;
 
 /** Integer hash to [0, 1): seeds and lattice indices only, no float inputs. */
 function hash(x: number, y: number, seed: number): number {
@@ -65,19 +67,17 @@ function lace(u: number, v: number): number {
   return sum;
 }
 
-/** Streak lines: this many rows per tile across the texture (v) at two spacings, each holding one line jittered
- * within its row; their half-widths in texels; how far (in rows) they meander over the tile, so neighbours close up
- * and part, and wiggle over a few metres of their length; and how many times per tile each breaks along its length
- * (u) and swells and narrows. */
-const STREAK_ROWS = [5, 13], STREAK_WIDTH_MIN = .6, STREAK_WIDTH_MAX = 2.2, STREAK_MEANDER = .9, STREAK_BREAKS = 19;
-const STREAK_WIGGLE = .22, STREAK_WIGGLES = 40, STREAK_SWELLS = 30;
-/** Share of a line's half-width over which its edge softens: flat-topped lines, so thresholding the channel for more
- * coverage adds lines, in order of their strength, rather than fattening every line. */
-const STREAK_SOFT = .45;
-/** Value of a line's own noise along it below which the line breaks, and the width of the fade into each gap. */
-const STREAK_GAP = .38, STREAK_GAP_EDGE = .22;
+/** Convergence bands: where the wind's circulation gathers old foam into lines along itself. This many rows per tile
+ * across the texture (v) at two spacings, each holding one band jittered within its row; their half-widths in
+ * texels (soft Gaussian profiles, so the lines of foam laid in them fray instead of ending at a hard edge); how far
+ * (in rows) they meander over the tile, so neighbours close up and part, and wiggle over a few metres of their length;
+ * and how many times per tile each breaks along its length (u) and swells and narrows. */
+const STREAK_ROWS = [5, 13], STREAK_WIDTH_MIN = 1.5, STREAK_WIDTH_MAX = 4, STREAK_MEANDER = 1.3, STREAK_BREAKS = 41;
+const STREAK_WIGGLE = .3, STREAK_WIGGLES = 70, STREAK_SWELLS = 53;
+/** Value of a band's own noise along it below which the band breaks, and the width of the fade into each gap. */
+const STREAK_GAP = .42, STREAK_GAP_EDGE = .25;
 
-/** One set of `rows` lines along u at (u, v): each row's line has its own place, width, strength and breaks. */
+/** One set of `rows` bands along u at (u, v): each row's band has its own place, width, strength and breaks. */
 function streakLines(u: number, v: number, rows: number, seed: number): number {
   const y = v * rows + STREAK_MEANDER * (value(u, v, 3, 5, seed + 7) - .5) + STREAK_WIGGLE * (value(u, v, STREAK_WIGGLES, rows, seed + 9) - .5);
   const row = Math.floor(y);
@@ -88,7 +88,7 @@ function streakLines(u: number, v: number, rows: number, seed: number): number {
     const swell = .4 + 1.2 * value(u + hash(id, 4, seed), 0, STREAK_SWELLS, 1, seed * 37 + id);
     const width = (STREAK_WIDTH_MIN + (STREAK_WIDTH_MAX - STREAK_WIDTH_MIN) * hash(id, 1, seed)) * swell * rows / FOAM_TEXELS;
     const strength = .25 + .75 * hash(id, 3, seed), along = value(u + hash(id, 2, seed), 0, STREAK_BREAKS, 1, seed * 131 + id);
-    const profile = 1 - smooth((Math.abs(y - centre) / width - (1 - STREAK_SOFT)) / STREAK_SOFT);
+    const profile = Math.exp(-(((y - centre) / width) ** 2));
     line = Math.max(line, profile * strength * smooth((along - STREAK_GAP) / STREAK_GAP_EDGE));
   }
   return line;
@@ -100,17 +100,26 @@ function smooth(t: number): number {
   return x * x * (3 - 2 * x);
 }
 
-/** Streaks at (u, v): thin lines along u that meander and break, at two spacings; where two cross, the stronger. */
+/** Convergence bands at (u, v): soft lines along u that meander and break, at two spacings; where two cross, the
+ * stronger. */
 function streaks(u: number, v: number): number {
   return STREAK_ROWS.reduce((most, rows, i) => Math.max(most, streakLines(u, v, rows, 23 + 10 * i)), 0);
 }
 
-/** Channel holding the streak mask, which keeps its values (the others are equalised). */
+/** Channel holding the band mask, which keeps its values (the others are equalised). */
 const STREAK_CHANNEL = 2;
+/** Levels this many texels on an edge or more are equalised; smaller ones only average. Equalised, a 4 × 4 level would
+ * spread its sixteen texels over the whole range and draw a full-contrast grid of the tile across the distant sea;
+ * those levels lie beyond `foam.ts`'s pattern blur, where the surface takes the coverage itself. */
+const EQUALIZED_TEXELS = 16;
 
-/** Turbulent white water: fine billows at two scales, for the body of a fresh whitecap. */
+/** Churned white water: clumps of foam heaped into rounded billows at three scales (domes over each cell of a jittered
+ * grid, 1 − F1), so the surface shades each billow on its sunward side and darkens in the creases between them. */
+const CHURN_CELLS = [23, 53, 127], CHURN_WEIGHTS = [.5, .32, .18];
+
+/** Churn at (u, v): heaped billows. */
 function churn(u: number, v: number): number {
-  return .6 * value(u, v, 24, 24, 51) + .4 * value(u, v, 57, 57, 53);
+  return CHURN_CELLS.reduce((sum, cells, i) => sum + CHURN_WEIGHTS[i] * (1 - Math.min(1, worley(u, v, cells, 51 + 2 * i)[0])), 0);
 }
 
 /** The periodic `size`² field averaged over 2 × 2 blocks. */
@@ -123,21 +132,22 @@ function halve(field: Float32Array, size: number): Float32Array {
   return out;
 }
 
-/** The four channels of one mip level as RGBA bytes: each equalised, but the streak mask as it is. */
-function levelPixels(fields: Float32Array[]): Uint8Array {
+/** The four channels of one mip level as RGBA bytes: each equalised on levels of EQUALIZED_TEXELS or more, but the band
+ * mask as it is. */
+function levelPixels(fields: Float32Array[], size: number): Uint8Array {
   const pixels = new Uint8Array(fields[0].length * 4);
-  fields.map((field, channel) => channel === STREAK_CHANNEL ? field : equalize(field))
+  fields.map((field, channel) => channel === STREAK_CHANNEL || size < EQUALIZED_TEXELS ? field : equalize(field))
     .forEach((field, channel) => field.forEach((level, i) => { pixels[i * 4 + channel] = Math.round(Math.min(1, Math.max(0, level)) * 255); }));
   return pixels;
 }
 
 /** The ocean's one foam texture, generated at startup and tiling in both axes. Red: lace, the structure of thinning
- * white water. Green: broad patches (fbm). Alpha: churn, the billowing texture of fresh white water. These three are
- * equalised, and each mip level averages the raw fields and is equalised again: an averaged pattern narrows toward its
- * mean, so thresholding the GPU's own mips for a coverage would thin foam with distance, where these keep the share at
- * every level. Blue: the streak mask, thin lines along the texture (u) that meander and break, like the foam the wind
- * draws out (the surface lays u along the wind); it is not thresholded but scaled, so its levels are plain averages
- * whose mean, `userData.streakMean`, holds at every distance. */
+ * white water. Green: broad patches (fbm). Alpha: churn, the heaped billows of fresh and churned white water. These three are
+ * equalised, and each mip level down to EQUALIZED_TEXELS averages the raw fields and is equalised again: an averaged
+ * pattern narrows toward its mean, so thresholding the GPU's own mips for a coverage would thin foam with distance,
+ * where these keep the share. Blue: the band mask, soft lines along the texture (u) that meander and break, where the
+ * wind gathers old foam into windrows (the surface lays u along the wind); it is not thresholded but scaled, so its
+ * levels are plain averages whose mean, `userData.streakMean`, holds at every distance. */
 export function foamTexture(): DataTexture {
   const n = FOAM_TEXELS;
   let fields: Float32Array[] = [new Float32Array(n * n), new Float32Array(n * n), new Float32Array(n * n), new Float32Array(n * n)];
@@ -150,18 +160,20 @@ export function foamTexture(): DataTexture {
   const streakMean = fields[STREAK_CHANNEL].reduce((sum, level) => sum + level, 0) / (n * n);
   const mipmaps = [];
   for (let size = n; ; size /= 2) {
-    mipmaps.push({ data: levelPixels(fields), width: size, height: size });
+    mipmaps.push({ data: levelPixels(fields, size), width: size, height: size });
     if (size === 1) break;
+    // Below the equalised levels the fields average the last equalised one, so they settle to its mean (½).
+    if (size === EQUALIZED_TEXELS) fields = fields.map((field, channel) => channel === STREAK_CHANNEL ? field : equalize(field));
     fields = fields.map(field => halve(field, size));
   }
   const map = new DataTexture(mipmaps[0].data, n, n, RGBAFormat);
   map.name = 'Ocean foam';
   map.wrapS = map.wrapT = RepeatWrapping;
   map.minFilter = LinearMipmapLinearFilter; map.magFilter = LinearFilter;
-  // Isotropic: anisotropic filtering averages several taps of a finer level, narrowing the pattern as a coarse mip
-  // would, and the surface thresholds this texture for exact coverages.
+  // Anisotropic, as `foam.ts`'s blur assumes: a grazing pixel samples the level its width needs and averages taps along
+  // its length. Isotropic, it took the level its length needs, whose equalised texels then thresholded into blocks.
   map.mipmaps = mipmaps; map.generateMipmaps = false;
-  map.anisotropy = 1;
+  map.anisotropy = FOAM_ANISOTROPY;
   map.userData.streakMean = streakMean;
   map.needsUpdate = true;
   return map;

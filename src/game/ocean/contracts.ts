@@ -61,9 +61,17 @@ export interface WaveSurfaceSample {
   slope: Node<'vec2'>;
   /** Jacobian determinant of the horizontal displacement (1 is undistorted, < 0 folds). */
   jacobian: Node<'float'>;
-  /** Whitecap foam per area of sea: 1 on a crest breaking now, e-folding over the lifetime once it has passed, and
-   * denser where the surface converges (up to about 3 on a fold). */
+  /** Whitecap foam per area of sea: 1 on a crest breaking now, spreading and e-folding over the lifetime once it has
+   * passed, and denser where the surface converges (up to about 3 on a fold). */
   foam: Node<'float'>;
+  /** The part of `foam` that broke in the last few seconds (half its lifetime), gathered the same way: a whitecap's core. */
+  fresh: Node<'float'>;
+  /** Whitecap foam averaged over the pixel's whole footprint (at least a few metres), without the gathering on crests:
+   * what a whitecap too small for its pixel contributes to it. */
+  foamMean: Node<'float'>;
+  /** The share of the sea whitecaps cover at this wind (their patches, windrows apart): the mean a pixel too coarse to
+   * draw any whitecap takes. */
+  whitecapShare: Node<'float'>;
   /** The bubble cloud breaking crests leave in the water under and around them, 0–1: shorter-lived than their foam and
    * spread over a few metres. */
   bubbles: Node<'float'>;
