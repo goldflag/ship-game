@@ -1,5 +1,5 @@
 /** `bun scripts/browser/ocean-waves.ts --tag <name> [--quality high] [--views near,wide] [--seas moderate,storm,15]
- *   [--show shaded|height|slope|foam|variance|jacobian] [--validate] [--timing] [--coverage]`
+ *   [--show shaded|height|slope|foam|variance|jacobian] [--validate] [--timing] [--coverage] [--sea-state off]`
  * Drives `scripts/diagnostics/ocean-waves.html` in a headed Chromium (headless stalls WebGPU): saves one PNG per
  * view and sea to `.build/ocean-waves/<tag>/`; --validate / --timing check every tier, --coverage measures crest foam
  * against Monahan's whitecap fraction from 6 to 30 m/s on --quality; all write `results.json`. */
@@ -15,6 +15,7 @@ const { values } = parseArgs({ options: {
   tag: { type: 'string', default: 'current' }, quality: { type: 'string', default: 'high' },
   views: { type: 'string', default: '' }, seas: { type: 'string', default: 'moderate' }, show: { type: 'string', default: 'shaded' },
   validate: { type: 'boolean', default: false }, timing: { type: 'boolean', default: false }, coverage: { type: 'boolean', default: false },
+  'sea-state': { type: 'string', default: 'on' },
   url: { type: 'string' },
 } });
 const out = resolve(ROOT, '.build/ocean-waves', values.tag!);
@@ -32,7 +33,7 @@ try {
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') pageErrors.push(message.text()); });
   // A blurred window pauses requestAnimationFrame-driven timing; the page renders on demand instead.
-  const query = new URLSearchParams({ quality: values.quality!, show: values.show! });
+  const query = new URLSearchParams({ quality: values.quality!, show: values.show!, seaState: values['sea-state']! });
   await page.goto(`${url}/scripts/diagnostics/ocean-waves.html?${query}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready, undefined, { polling: 250 });
   results.backend = await page.evaluate(() => (window as any).oceanWaves.backend);

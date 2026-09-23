@@ -4,5 +4,5 @@ import type { CreateWaveField, CreateWaveHeightSampler } from '../contracts';
 import { GpuWaveField } from './field';
 import { GpuWaveHeightSampler } from './sampler';
 
-export const createWaveField: CreateWaveField = (_renderer, cascades, params, foam) => new GpuWaveField(cascades, params, foam);
+export const createWaveField: CreateWaveField = (_renderer, cascades, params, foam, realism) => new GpuWaveField(cascades, params, foam, realism);
 export const createWaveHeightSampler: CreateWaveHeightSampler = (renderer, field) => new GpuWaveHeightSampler(renderer, field);

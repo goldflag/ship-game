@@ -7,7 +7,8 @@
 <script type="module">
 // Development-only check of the wave field alone (src/game/ocean/waves): a displaced, simply
 // shaded sea at the ocean-review cameras, plus GPU-vs-CPU validation and timings.
-// `scripts/browser/ocean-waves.ts` drives it. ?quality=low|medium|high|ultra.
+// `scripts/browser/ocean-waves.ts` drives it. ?quality=low|medium|high|ultra; ?seaState=off draws the calibration table's
+// wavelengths as given (the game's realism.seaState switch, on by default).
 import * as THREE from 'three/webgpu';
 import { attribute, cameraPosition, dot, exp, float, int, ivec2, max, mix, normalize, positionGeometry, positionWorld, pow, reflect,
   screenCoordinate, texture, uniform, varying, vec2, vec3, vec4 } from 'three/tsl';
@@ -37,6 +38,7 @@ const sync = () => renderer.backend.device.queue.onSubmittedWorkDone();
 const SEAS = { calm: 3, moderate: 9, storm: 25 };
 const params = { significantHeight: 0, windSpeed: 0, windDirection: .61, peakWavelength: 1, choppiness: 0, gamma: 2.6, directionalSharpness: .8, seed: 1, dirty: true };
 const foam = { crestStrength: 0, windwardStrength: 0, decayTime: 2.8 };
+const realism = { seaState: query.get('seaState') !== 'off' };
 function setSea(name) {
   const sea = windSea(oceanMap('north-atlantic'), SEAS[name] ?? Number(name));
   Object.assign(params, { significantHeight: sea.significantHeightM, windSpeed: sea.windSpeed, peakWavelength: sea.peakWavelength, choppiness: sea.choppiness, dirty: true });
@@ -77,7 +79,7 @@ const show = query.get('show') ?? 'shaded';
 function build() {
   field?.dispose(); sampler?.dispose();
   if (mesh) { scene.remove(mesh); mesh.material.dispose(); }
-  field = createWaveField(renderer, OCEAN_TIERS[quality].cascades, params, foam);
+  field = createWaveField(renderer, OCEAN_TIERS[quality].cascades, params, foam, realism);
   sampler = createWaveHeightSampler(renderer, field);
   const material = new THREE.MeshBasicNodeMaterial();
   const xz = positionGeometry.xz.add(center);
@@ -161,21 +163,26 @@ async function readLayer(cascade, level = 0) {
   return result;
 }
 
+/** Cascades holding less of the sea's variance than this are reported but not judged. */
+const NEGLIGIBLE_SHARE = 1e-6;
 /** GPU fields vs a direct CPU inverse DFT of the same amplitudes at the same folded time. */
 async function validate() {
   const report = { quality, backend, cascades: [] };
   const t = 1234.5678;
   params.dirty = true; field.update(renderer, t, 0); await sync();
   const phase = Math.fround((t % FOLD_PERIOD) / FOLD_PERIOD);
-  const spectrum = buildSpectrum(field.cascades, params);
+  // The field draws its own sea (realism applied) on its current tiles.
+  const sea = field.sea, spectrum = buildSpectrum(field.cascades, sea);
+  report.seaState = realism.seaState; report.peakWavelength = sea.peakWavelength; report.choppiness = sea.choppiness;
   let variance = 0;
+  const total = spectrum.cascades.reduce((sum, c) => sum + c.variance, 0);
   for (let c = 0; c < field.cascades.length; c++) {
     const [displacement, derivatives, extras] = await readLayer(c), cascade = spectrum.cascades[c], modes = activeModes(cascade);
     const n = cascade.resolution, names = ['dx', 'dy', 'dz', 'hx', 'hz', 'dxx', 'dzz', 'dxz'];
     const worst = Object.fromEntries(names.map(k => [k, 0])), scale = Object.fromEntries(names.map(k => [k, 0]));
     for (let i = 0; i < 160; i++) {
       const x = (i * 97 + 13) % n, z = (i * 61 + 7 * (i >> 3)) % n, at = (z * n + x) * 4;
-      const cpu = referenceTexel(cascade, modes, params.choppiness, phase, x, z);
+      const cpu = referenceTexel(cascade, modes, sea.choppiness, phase, x, z);
       const gpu = { dx: displacement[at], dy: displacement[at + 1], dz: displacement[at + 2], hx: derivatives[at], hz: derivatives[at + 1], dxx: derivatives[at + 2], dzz: derivatives[at + 3], dxz: extras[at] };
       for (const k of names) { worst[k] = Math.max(worst[k], Math.abs(gpu[k] - cpu[k])); scale[k] = Math.max(scale[k], Math.abs(cpu[k])); }
     }
@@ -191,10 +198,12 @@ async function validate() {
       for (let z = 0; z < block; z++) for (let x = 0; x < block; x++) mean += derivatives[((bz * block + z) * n + bx * block + x) * 4];
       mipError = Math.max(mipError, Math.abs(coarse[(bz * m + bx) * 4] - mean / (block * block)));
     }
-    report.cascades.push({ size: cascade.size, relativeError: Object.fromEntries(names.map(k => [k, scale[k] ? worst[k] / scale[k] : 0])), mipError: mipError / Math.sqrt(rms / (n * n)) });
+    report.cascades.push({ size: cascade.size, share: cascade.variance / total, relativeError: Object.fromEntries(names.map(k => [k, scale[k] ? worst[k] / scale[k] : 0])), mipError: mipError / Math.sqrt(rms / (n * n)) });
   }
   report.hm0 = 4 * Math.sqrt(variance); report.hm0Target = params.significantHeight;
-  report.maxRelativeError = Math.max(...report.cascades.flatMap(c => Object.values(c.relativeError)));
+  // A cascade far from the peak can hold next to nothing (a light air's 1 km tile: 1e-10 of the variance, amplitudes
+  // below half-float resolution), where a relative error measures only the storage of zero; it is reported, not judged.
+  report.maxRelativeError = Math.max(...report.cascades.filter(c => c.share >= NEGLIGIBLE_SHARE).flatMap(c => Object.values(c.relativeError)));
   return report;
 }
 
