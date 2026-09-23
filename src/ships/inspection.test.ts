@@ -43,7 +43,8 @@ test('inspection lists exactly the armor, mounts, modules and compartments used 
     const structureCount=def.structuralPlating?1+(def.structures?.length??0):0;
     const representedArmor = entries.flatMap(entry => entry.armorIds ?? []);
     expect(representedArmor.sort()).toEqual(def.armor.map(a => a.id).sort());
-    expect(entriesForMode(entries, 'armor').length).toBe((def.underwaterProtection?.zones.length ?? 0) + structureCount + entries.filter(e => e.armorIds).length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
+    const unplatedMounts = def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length;
+    expect(entriesForMode(entries, 'armor').length).toBe((def.underwaterProtection?.zones.length ?? 0) + structureCount + entries.filter(e => e.armorIds).length + unplatedMounts);
     expect(entriesForMode(entries, 'internals').length).toBe(def.modules.length + def.mounts.length);
     expect(entriesForMode(entries, 'exterior')).toEqual([]);
     if (def.armor.length) {

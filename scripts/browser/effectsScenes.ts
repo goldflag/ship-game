@@ -547,7 +547,8 @@ export const scenes: Record<string, Scene> = {
     const [ribbon, billows] = exhaust.root.children;
     const cases: Record<string, [boolean, boolean]> = { none: [false, false], ribbon: [true, false], billows: [false, true], both: [true, true] };
     // Interleave cases frame by frame; under GPU contention the low percentiles approximate the true cost.
-    const g = stage.game as unknown as { renderer: { backend: { trackTimestamp: boolean }; info: { autoReset: boolean; reset(): void }; resolveTimestampsAsync(kind: string): Promise<number | undefined>; _nodes: { nodeFrame: { update(): void } } }; renderFrame(): void };
+    const g = stage.game as unknown as { renderer: { backend: { trackTimestamp: boolean }; info: { autoReset: boolean; reset(): void };
+      resolveTimestampsAsync(kind: string): Promise<number | undefined>; _nodes: { nodeFrame: { update(): void } } }; renderFrame(): void };
     await stage.render();
     g.renderer.backend.trackTimestamp = true;
     const samples: Record<string, number[]> = {};
