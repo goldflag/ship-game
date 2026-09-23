@@ -42,11 +42,16 @@ export const RENDER_SCALE_STEP = 5;
 export const FRAME_LIMITS: readonly FrameLimit[] = [0, 120, 60, 30];
 
 /** High reproduces the ocean, sky, shadow and terrain choices of the former High tier exactly. */
+const QUALITY: Readonly<Record<GraphicsPreset, Omit<GraphicsSettings, 'oceanRenderer'>>> = {
+  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
+  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
+  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
+  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
+};
+/** Presets set the quality rows only and draw the game's own ocean. */
 export const GRAPHICS_PRESETS: Readonly<Record<GraphicsPreset, Readonly<GraphicsSettings>>> = {
-  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps', oceanRenderer: 'game' },
-  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps', oceanRenderer: 'game' },
-  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps', oceanRenderer: 'game' },
-  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps', oceanRenderer: 'game' },
+  low: { ...QUALITY.low, oceanRenderer: 'game' }, medium: { ...QUALITY.medium, oceanRenderer: 'game' },
+  high: { ...QUALITY.high, oceanRenderer: 'game' }, ultra: { ...QUALITY.ultra, oceanRenderer: 'game' },
 };
 export const PRESET_ORDER: readonly GraphicsPreset[] = ['low', 'medium', 'high', 'ultra'];
 export const DEFAULT_GRAPHICS: Readonly<GraphicsSettings> = GRAPHICS_PRESETS.high;

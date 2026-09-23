@@ -5,7 +5,8 @@ import type { SkyProvider } from '../../../vendor/threejs-water-pro/build/compon
 import type { IWaveSampler } from '../../../vendor/threejs-water-pro/build/simulation/waves/IWaveSampler';
 import type { WebGPUWaveSimulation } from '../../../vendor/threejs-water-pro/build/simulation/waves/webgpu/WebGPUWaveSimulation';
 import type { IWakeFieldSampler } from '../../../vendor/threejs-water-pro/build/simulation/waves/wake/IWakeFieldSampler';
-import type { CrestFoamParameters, OceanApi, OceanQuality, OceanRealism, OceanSky, WakeFieldApi, WakeGeneratorOptions, WakeSampler, WaveCascadeInfo, WaveField, WaveHeightSampler, WaveParameters, WaveSurfaceSample } from '../ocean/contracts';
+import type { CrestFoamParameters, OceanApi, OceanQuality, OceanRealism, OceanSky, WakeFieldApi, WakeGeneratorOptions, WakeSampler } from '../ocean/contracts';
+import type { WaveCascadeInfo, WaveField, WaveHeightSampler, WaveParameters, WaveSurfaceSample } from '../ocean/contracts';
 import { nearPlaneMayBeSubmerged } from '../ocean/screen/underwater';
 import { WATER_PRO_BREAK_SCALE, waterProAmplitude, waterProSurfaceFoam } from './waterProSea';
 
@@ -114,7 +115,8 @@ export class WaterProOcean implements OceanApi {
   get environmentIntensity(): number { return this.water.environment.intensity; }
   set environmentIntensity(value: number) { this.water.environment.intensity = value; }
 
-  /** Wave time in seconds. Setting it holds Water Pro on the nearest fixed step, where `update(0)` keeps it. */
+  /** Wave time in seconds. Setting it holds Water Pro on the nearest fixed step, where `update(0)` keeps it. The library
+   * evaluates its waves only inside a step, so the surface shows a new time after the next `update` with `dt` > 0. */
   get time(): number { return this.water.simulationTime; }
   set time(seconds: number) {
     this.water.deterministic = true;

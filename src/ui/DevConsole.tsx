@@ -21,7 +21,7 @@ export interface DevConsoleHost {
 /** The ocean comparison the app owns: the renderer the graphics settings name, and a switch that saves the other
  * and says when it applies (at once in port, which rebuilds; on return to port at sea). */
 export interface OceanRendererSwitch { current: OceanRenderer; toggle(): string }
-export const OCEAN_RENDERER_NAMES: Record<OceanRenderer, string> = { game: 'Game ocean', waterpro: 'Water Pro' };
+const OCEAN_RENDERER_NAMES: Record<OceanRenderer, string> = { game: 'Game ocean', waterpro: 'Water Pro' };
 
 const ICONS: Record<WeatherKey, ReactNode> = {
   timeHours: <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="2.6"/><path d="M7 .8v1.8M7 11.4v1.8M.8 7h1.8M11.4 7h1.8M2.6 2.6l1.3 1.3M10.1 10.1l1.3 1.3M2.6 11.4l1.3-1.3M10.1 3.9l1.3-1.3"/></svg>,

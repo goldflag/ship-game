@@ -34,8 +34,9 @@ const rigUpdate = game.rig.update.bind(game.rig);
 const FOAM_WARMUP = 10;
 /** Every scene renders the same frozen wave time: a paused frame never advances it, and parameter
  * changes still apply on the next update. Crest foam first runs up to it for FOAM_WARMUP seconds.
- * Water Pro takes a changed sea only inside a simulation step: a scene change runs one, then returns to
- * the frozen time, as the original Water Pro review captured it. */
+ * Water Pro takes a changed sea and evaluates its waves only inside a simulation step: each battle scene
+ * runs one from the frozen time and shows the waves 1/60 s after it, with the crest foam it already had
+ * (no warm-up), as the original Water Pro captures did; the port keeps the waves its load left. */
 const freeze = async (seconds, { step = true } = {}) => {
   if (oceanRenderer === 'waterpro') {
     game.ocean.time = seconds;
