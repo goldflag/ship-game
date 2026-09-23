@@ -64,7 +64,8 @@ export interface WaveSurfaceSample {
   /** Whitecap foam per area of sea: 1 on a crest breaking now, e-folding over the lifetime once it has passed, and
    * denser where the surface converges (up to about 3 on a fold). */
   foam: Node<'float'>;
-  /** The bubble cloud whitecaps leave in the water under and around them: their foam spread over a metre or two. */
+  /** The bubble cloud breaking crests leave in the water under and around them, 0–1: shorter-lived than their foam and
+   * spread over a few metres. */
   bubbles: Node<'float'>;
   /** Slope variance of the waves this pixel does not resolve; the surface turns it into roughness. */
   slopeVariance: Node<'float'>;

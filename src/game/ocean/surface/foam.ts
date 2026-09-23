@@ -10,11 +10,11 @@ type Vec3 = Node<'vec3'>;
 
 /** Metres across the wind per tile of the foam texture; along the wind it stretches with the crest foam's `windStretch`. */
 const FOAM_TILE = 40;
-/** Windrows are laid out this many times larger than the lace across the wind (lines about 0.5 to 3 m wide, 15 to 40 m
- * apart) and drawn out this much further along it: lines of old foam run on for tens of metres before they break.
+/** Windrows are laid out this many times larger than the lace across the wind (lines about 0.5 to 1.5 m wide, 8 to 20
+ * m apart) and drawn out this much further along it: lines of old foam run on for tens of metres before they break.
  * They gather in bands where the circulation the wind drives converges: the texture's broad patches at two scales
  * this many times the lace's, whose ratio is irrational so the sum never repeats as a lattice seen from the air. */
-const WINDROW_SCALE = 5, WINDROW_STRETCH = 2, WINDROW_BANDS = [8, 8 * Math.SQRT2 * 1.13] as const, WINDROW_BAND_STRETCH = 3;
+const WINDROW_SCALE = 2.5, WINDROW_STRETCH = 4, WINDROW_BANDS = [8, 8 * Math.SQRT2 * 1.13] as const, WINDROW_BAND_STRETCH = 3;
 /** How strongly the bands gather windrows: coverage runs from 1 − this to 1 + this times its mean. */
 const WINDROW_GATHER = .6;
 
@@ -44,17 +44,17 @@ const WHITECAP_EDGE = .3;
 const FRESH_OPACITY = .97, FILM_OPACITY = .35;
 /** Share of its patch even the freshest white water covers: aerated water keeps a few holes, never a painted sheet. */
 const FRESH_COVERAGE = .9;
-/** Bubble cloud: the aerated water under, around and just behind whitecaps brightens toward pale turquoise. Its
- * strength, the spread foam amounts where it starts and where it is dense, and the depth (m) of water it is seen
+/** Bubble cloud: the aerated water under, around and just behind breaking crests brightens toward pale turquoise. Its
+ * strength, the spread bubble amounts where it starts and where it is dense, and the depth (m) of water it is seen
  * through, which tints it. Its soft rise around each whitecap is what keeps a distant one from reading as a cut-out. */
-const BUBBLE_STRENGTH = .7, BUBBLE_START = .02, BUBBLE_FULL = .5, BUBBLE_DEPTH = 2.5;
+const BUBBLE_STRENGTH = .6, BUBBLE_START = .02, BUBBLE_FULL = .4, BUBBLE_DEPTH = 2.5;
 /** Share of the water's reflection that the bubbly surface over a fresh bubble cloud scatters away: aerated water
  * reads milky from any angle instead of mirroring the sky. */
 const AERATED_MATTE = .5;
 /** Share of daylight the bubble cloud scatters back up through the water above it. */
 const BUBBLE_ALBEDO = .3;
 /** Edge half-width of windrows, and the opacity left in a line's gaps between lace filaments. */
-const WINDROW_EDGE = .08, WINDROW_LACE = .15;
+const WINDROW_EDGE = .08, WINDROW_LACE = .05;
 /** Lace levels over which a windrow goes from its gaps to full lumps of foam. */
 const WINDROW_BEADS = [.35, .8] as const;
 /** Share of the water's Fresnel reflectance foam keeps: its bubbly top scatters most of the mirror image away. */
@@ -139,7 +139,7 @@ export function foamRadiance(sky: Vec3, sunRadiance: Vec3, normal: Vec3, sun: Ve
   return sky.add(sunRadiance.mul(facing).mul(lit).mul(FOAM_SUN / Math.PI)).mul(FOAM_ALBEDO);
 }
 
-/** How aerated the water is, 0–1, from the wave field's bubble cloud: fresh foam's bubbles, spread around it. */
+/** How aerated the water is, 0–1, from the wave field's bubble cloud: breaking crests' bubbles, spread around them. */
 export function aeration(bubbles: Float): Float {
   return smoothstep(BUBBLE_START, BUBBLE_FULL, bubbles);
 }

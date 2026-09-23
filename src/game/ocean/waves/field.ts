@@ -19,7 +19,7 @@ type TextureMap = ReturnType<typeof texture>;
 const floatUniform = () => uniform(0);
 
 /** Fields per cascade layer: displacement (Dx, Dy, Dz, ·), derivatives (∂y/∂x, ∂y/∂z, ∂Dx/∂x, ∂Dz/∂z)
- * and extras (∂Dx/∂z, foam, (∂y/∂x)² + (∂y/∂z)², ·). The squared slope is mip-filtered with the slope,
+ * and extras (∂Dx/∂z, foam, (∂y/∂x)² + (∂y/∂z)², bubbles). The squared slope is mip-filtered with the slope,
  * so E[s²] − E[s]² is the slope variance inside any pixel's filter footprint (LEAN mapping). */
 const FIELDS = ['displacement', 'derivatives', 'extras'] as const;
 /** Mip chains stop at this many texels per edge. WebGPU builds every level of every layer in its own
@@ -41,8 +41,11 @@ const GATE_NONE = -1, GATE_FULL = .75;
 /** The surface's areal compression J that foam density follows is held within these: a fold (J ≤ 0) gathers at
  * most 1 / FOAM_JACOBIAN_MIN, and a stretched back thins foam at most to 1 / FOAM_JACOBIAN_MAX. */
 const FOAM_JACOBIAN_MIN = .35, FOAM_JACOBIAN_MAX = 2.5;
-/** The bubble cloud reads the foam from a mip whose texels span at least this many metres: bubbles carried down under
- * a whitecap spread about as far again around it. */
+/** Bubbles a breaking crest carries down persist like its foam but for this share of the foam's lifetime: the cloud
+ * rises and dissolves within about a wave period, while the surface foam it leaves lingers. */
+const BUBBLE_LIFE = .5;
+/** The bubble cloud is read from a mip whose texels span at least this many metres: bubbles carried down under a
+ * whitecap spread about as far again around it. */
 const BUBBLE_SPREAD = 4;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
@@ -260,12 +263,12 @@ export class GpuWaveField implements WaveField {
     const indicator = compression.mul(this.breakingWeights.x).add(face.mul(this.breakingWeights.y));
     const ramp = float(BREAKING_RAMP / 2).div(this.breakingThreshold.max(1));
     const injection = smoothstep(this.breakingThreshold.sub(ramp), this.breakingThreshold.add(ramp), indicator);
-    const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer).y;
-    const foam = select(this.elapsed.greaterThan(0), max(previous.mul(exp(this.elapsed.negate().div(this.decay))), injection), previous);
+    const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer);
+    const persisted = (last: Float, lifetime: Float): Float => select(this.elapsed.greaterThan(0), max(last.mul(exp(this.elapsed.negate().div(lifetime))), injection), last);
     return mrt({
       displacement: vec4(ab.xyz, 0),
       derivatives: cd,
-      extras: vec4(ab.w, foam, cd.x.mul(cd.x).add(cd.y.mul(cd.y)), 0),
+      extras: vec4(ab.w, persisted(previous.y, this.decay), cd.x.mul(cd.x).add(cd.y.mul(cd.y)), persisted(previous.w, this.decay.mul(BUBBLE_LIFE))),
     });
   }
 
@@ -302,7 +305,7 @@ export class GpuWaveField implements WaveField {
       const crests = i ? smoothstep(GATE_NONE, GATE_FULL, strain.x.add(strain.y).mul(this.gates[i]).negate()) : float(1);
       foam = max(foam, extras.y.mul(detail).mul(crests));
       const spread = clamp(max(level, log2(this.texels[i].mul(BUBBLE_SPREAD))), 0, this.top);
-      bubbles = max(bubbles, this.sample('extras', xz, i, spread).y.mul(detail).mul(crests));
+      bubbles = max(bubbles, this.sample('extras', xz, i, spread).w.mul(detail).mul(crests));
       slope = slope.add(derivatives.xy.mul(detail));
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
       const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
