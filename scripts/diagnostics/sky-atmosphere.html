@@ -13,6 +13,8 @@ pre{margin:8px;white-space:pre-wrap}</style>
 // drives it. ?map=<id> (assets/maps/environments.v1.json), ?weather=<id> (battle-conditions), ?port=1 (the
 // harbor's sky), ?elevations=70,35,… (sun elevations, degrees), ?height=<camera metres>, ?sea=1 (the sea-level
 // view the environment bakes), ?phase=<moon phase>, ?centre=<degrees of azimuth from the sun at the tiles' middle>.
+// ?aerial=3,10,30,100&sun=<elevation>: instead of a sweep of suns, one sun and a tile per distance (km) showing a
+// white surface (radiance 1) that far along every direction, seen through the aerial perspective.
 import * as THREE from 'three/webgpu';
 import { Fn, dot, float, luminance, max, mix, pow, screenCoordinate, smoothstep, uniform, vec2, vec3, vec4, cos, sin } from 'three/tsl';
 import { SkyState, DEFAULT_SKY_SCENE } from '/src/game/sky/state.ts';
@@ -27,7 +29,9 @@ try {
 const TILE = { width: 800, height: 190 }, COLUMNS = 2;
 /** The panorama's vertical span (degrees): a little of the sea's side of the horizon up to the zenith. */
 const LOW = -6, HIGH = 90;
-const elevations = (params.get('elevations') ?? '70,35,15,7,3,0,-2,-4,-6.4,-9,-40,-70').split(',').map(Number);
+const distances = params.get('aerial')?.split(',').map(Number);
+const elevations = distances ? distances.map(() => Number(params.get('sun') ?? 20))
+  : (params.get('elevations') ?? '70,35,15,7,3,0,-2,-4,-6.4,-9,-40,-70').split(',').map(Number);
 const rows = Math.ceil(elevations.length / COLUMNS);
 const canvas = document.querySelector('#sky');
 const renderer = new THREE.WebGPURenderer({ canvas, antialias: false });
@@ -65,7 +69,8 @@ const direction = Fn(() => {
 const u = state.uniforms;
 const disc = (toward, radius) => smoothstep(float(1 - radius * 1.15), float(1 - radius * .85), dot(direction, toward));
 const bodies = u.sunIrradiance.mul(disc(u.sunDirection, 7.5e-5)).mul(6).add(u.moonIrradiance.mul(disc(u.moonDirection, 7.5e-5)).mul(12));
-const radiance = part.sky(direction, fromSea).add(part.transmittanceToSpace(direction, fromSea).mul(bodies));
+const distance = uniform(1000), aerial = distances ? part.aerial(direction, distance, fromSea) : undefined;
+const radiance = aerial ? aerial.inscatter.add(aerial.transmittance.mul(Number(params.get("white") ?? 1))) : part.sky(direction, fromSea).add(part.transmittanceToSpace(direction, fromSea).mul(bodies));
 // DisplayTransform's grade ahead of AgX (which the renderer applies with the sRGB output).
 const exposed = radiance.mul(DISPLAY_LOOK.exposure), lum = max(luminance(exposed), 1e-5);
 const graded = mix(vec3(lum), exposed, DISPLAY_LOOK.saturation).max(0).mul(pow(lum.div(.18), DISPLAY_LOOK.contrast - 1));
@@ -100,6 +105,7 @@ for (let i = 0; i < elevations.length; i++) {
   part.apply(scene);
   part.update({ renderer, camera, dt: 0, cut: false });
   sunAzimuth.value = Math.atan2(u.sunDirection.value.x, u.sunDirection.value.z) + Number(params.get('centre') ?? 0) * Math.PI / 180;
+  if (distances) distance.value = distances[i] * 1000;
   const x = column * TILE.width, y = row * TILE.height;
   origin.value.set(x, y);
   renderer.setRenderTarget(null);
@@ -120,7 +126,7 @@ for (let i = 0; i < elevations.length; i++) {
   lights.push({ sun: part.seaLevel.sun.toArray().map(v => +v.toFixed(3)), moon: part.seaLevel.moon.toArray().map(v => +v.toFixed(3)), sky: part.seaLevel.sky.toArray().map(v => +v.toFixed(3)) });
   const label = document.createElement('span');
   label.style.left = `${x + 4}px`; label.style.top = `${y + 4}px`;
-  label.textContent = `sun ${elevation}°`;
+  label.textContent = distances ? `sun ${elevation}°, white at ${distances[i]} km` : `sun ${elevation}°`;
   labels.append(label);
 }
 renderer.setRenderTarget(null);

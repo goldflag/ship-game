@@ -106,11 +106,15 @@ export class Atmosphere implements AtmospherePart {
     return this.lightAt(position, this.uniforms.moonDirection);
   }
 
-  /** Transmittance by optical depths from the table (Bruneton's two-lookup form: the ray from the far end on,
-   * subtracted from the ray from the near end; reversed for rays that meet the sea, whose reverse rises). The
-   * in-scattering is the sky's own along the direction, in the share of the whole ray's extinction that lies
-   * before the point: exact when the light scattered per unit optical depth is uniform along the ray, and it
-   * converges on the sky itself, so distant clouds melt into the horizon in its colour. */
+  /** Aerial perspective in closed form rather than a third table. Transmittance comes from optical depths in
+   * the table (Bruneton's two-lookup form: the ray from the far end on, subtracted from the ray from the near
+   * end; reversed for rays that meet the sea, whose reverse rises), so any distance works up to the sea or
+   * space. The in-scattering is the sky's own along the direction, in the share of the whole ray's extinction
+   * (green, the eye's channel) that lies before the point: exact when the light scattered per unit optical
+   * depth is uniform along the ray, and it converges on the sky itself, so distant clouds melt into the
+   * horizon in its colour. One share for all channels keeps near haze the sky's hue: per channel, the red
+   * channel's aerosol-heavy depth ends low and tinted the first kilometres orange. With `fromSea` the ray
+   * starts at the sea under the camera, as the environment bake sees it. */
   aerial(direction: Vec3, distance: Float, fromSea = false): { inscatter: Vec3; transmittance: Vec3 } {
     const tables = this.tables, r0 = this.radius(fromSea), mu0 = direction.y;
     const ground = distanceToGround(r0, mu0), hits = ground.greaterThan(0);
@@ -123,7 +127,7 @@ export class Atmosphere implements AtmospherePart {
     const groundMu = r0.mul(mu0).add(ground.max(0)).div(RB);
     const whole = exp(max(select(hits, opticalDepth(tables, float(RB), groundMu.negate()).sub(opticalDepth(tables, r0, mu0.negate())),
       opticalDepth(tables, r0, mu0)), vec3(0)).negate());
-    const share = float(1).sub(transmittance).div(max(float(1).sub(whole), vec3(1e-5))).clamp(0, 1);
+    const share = float(1).sub(transmittance.g).div(max(float(1).sub(whole.g), 1e-5)).clamp(0, 1);
     return { inscatter: this.radiance(direction, fromSea, false).mul(share), transmittance };
   }
 
