@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ocean wake</title>
+<style>html,body{margin:0;background:#10232e}canvas{display:block}output{position:fixed;top:8px;left:8px;color:white;background:#10232ecc;padding:8px;font:13px monospace;white-space:pre}</style>
+<output>Loading wake field…</output>
+<script type="module">
+// Development-only check of the ocean's wake field (src/game/ocean/wake) with its own renderer: a
+// Bismarck-sized hull sails at 15 m/s, turns and stops. `scripts/browser/ocean-wake.ts` drives it.
+// ?resolution=256|512|1024, ?webgl for the fallback backend, ?timing for GPU timestamps.
+// Every check reads the public sampler back through a probe pass, as the surface material would.
+import * as THREE from 'three/webgpu';
+import { Fn, cameraPosition, dot, float, max, mix, normalize, positionLocal, positionWorld, pow, reflect, screenCoordinate, screenSize, smoothstep, uniform,
+  vec2, vec3, vec4 } from 'three/tsl';
+import { createWakeField } from '/src/game/ocean/wake/index.ts';
+
+const params = new URLSearchParams(location.search);
+if (params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter = async () => null;
+const output = document.querySelector('output');
+const resolution = Number(params.get('resolution') ?? 512);
+const WIDTH = 1600, HEIGHT = 900, DT = 1 / 60, MAX_SPEED = 15, LENGTH = 250, BEAM = 36;
+const renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true, trackTimestamp: params.has('timing') });
+renderer.setPixelRatio(1); renderer.setSize(WIDTH, HEIGHT);
+document.body.prepend(renderer.domElement);
+await renderer.init();
+const backend = renderer.backend.isWebGPUBackend ? 'webgpu' : 'webgl';
+const field = createWakeField(renderer, resolution);
+
+// The hull: bow and stern generators placed and scaled the way ShipWake places them for Bismarck.
+const ship = new THREE.Object3D();
+const bow = field.addGenerator(ship, { active: false, depth: .32, radius: BEAM * .28, offset: new THREE.Vector3(0, 0, -LENGTH * .448), teleportThreshold: 100 });
+const stern = field.addGenerator(ship, { active: false, depth: .18, radius: BEAM * .39, offset: new THREE.Vector3(0, 0, LENGTH * .448), teleportThreshold: 100 });
+const motion = { speed: 0, turn: 0, follow: true };
+/** One game frame: move the hull (bow toward local −Z), drive the generators like ShipWake, step the field. */
+function frame(dt = DT) {
+  ship.rotation.y += motion.turn * dt;
+  ship.position.x -= Math.sin(ship.rotation.y) * motion.speed * dt;
+  ship.position.z -= Math.cos(ship.rotation.y) * motion.speed * dt;
+  const ratio = Math.min(Math.abs(motion.speed) / MAX_SPEED, 1);
+  field.updateGenerator(bow, { active: motion.speed > .1, depth: .32 * ratio * ratio });
+  field.updateGenerator(stern, { active: motion.speed > .1, depth: .18 * ratio * ratio });
+  field.foamStrength = 1.2 * ratio;
+  if (motion.follow) field.setCenter(ship.position.x, ship.position.z);
+  field.step(renderer, dt);
+}
+const run = seconds => { for (let i = 0; i < Math.round(seconds / DT); i++) frame(); };
+const sternPoint = (behind = 0) => {
+  const back = LENGTH * .448 + behind;
+  return { x: ship.position.x + Math.sin(ship.rotation.y) * back, z: ship.position.z + Math.cos(ship.rotation.y) * back };
+};
+
+// Probe: the sampler evaluated on a square of world points, read back as (height, foam, normal x, normal z).
+const PROBE = 512;
+const probeTarget = new THREE.RenderTarget(PROBE, PROBE, { type: THREE.FloatType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false });
+const probeCenter = uniform(new THREE.Vector2()), probeExtent = uniform(1);
+const probeMaterial = new THREE.MeshBasicNodeMaterial();
+probeMaterial.blending = THREE.NoBlending; probeMaterial.toneMapped = false;
+probeMaterial.fragmentNode = Fn(() => {
+  const p = screenCoordinate.xy.div(PROBE).sub(.5).mul(probeExtent).add(probeCenter), n = field.sampler.normal(p.x, p.y);
+  return vec4(field.sampler.height(p.x, p.y), field.sampler.foam(p.x, p.y), n.x, n.z);
+})();
+const probeQuad = new THREE.QuadMesh(probeMaterial);
+/** Rows arrive in memory order; WebGL keeps logical row j at memory row N − 1 − j. */
+async function readRows(target, size) {
+  const raw = await renderer.readRenderTargetPixelsAsync(target, 0, 0, size, size);
+  const data = new Float32Array(size * size * 4);
+  for (let row = 0; row < size; row++) data.set(raw.subarray(row * size * 4, (row + 1) * size * 4), (backend === 'webgl' ? size - 1 - row : row) * size * 4);
+  return data;
+}
+async function probe(cx, cz, extent) {
+  probeCenter.value.set(cx, cz); probeExtent.value = extent;
+  renderer.setRenderTarget(probeTarget); probeQuad.render(renderer); renderer.setRenderTarget(null);
+  const data = await readRows(probeTarget, PROBE);
+  const index = (x, z) => {
+    const i = Math.floor(((x - cx) / extent + .5) * PROBE), j = Math.floor(((z - cz) / extent + .5) * PROBE);
+    return i >= 0 && j >= 0 && i < PROBE && j < PROBE ? (j * PROBE + i) * 4 : -1;
+  };
+  let maxHeight = 0, totalFoam = 0, maxFoam = 0, finite = true;
+  for (let i = 0; i < data.length; i += 4) {
+    finite &&= Number.isFinite(data[i]) && Number.isFinite(data[i + 1]);
+    maxHeight = Math.max(maxHeight, Math.abs(data[i])); totalFoam += data[i + 1]; maxFoam = Math.max(maxFoam, data[i + 1]);
+  }
+  return { data, maxHeight, totalFoam, maxFoam, finite,
+    height: (x, z) => { const i = index(x, z); return i < 0 ? 0 : data[i]; },
+    foam: (x, z) => { const i = index(x, z); return i < 0 ? 0 : data[i + 1]; } };
+}
+/** The simulation state itself (private), for exact comparisons. */
+const rawState = async () => Promise.all(field.state.map(target => readRows(target, resolution)));
+const same = (a, b) => a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
+
+// Views: a shaded flat sea displaced by the wake, and a top-down false-colour map (height, foam).
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9fb8cc);
+const camera = new THREE.PerspectiveCamera(40, WIDTH / HEIGHT, 1, 20000);
+const seaCenter = uniform(new THREE.Vector2());
+const seaMaterial = new THREE.MeshBasicNodeMaterial();
+const worldXZ = () => positionLocal.xz.add(seaCenter);
+seaMaterial.positionNode = Fn(() => { const w = worldXZ(); return positionLocal.add(vec3(0, field.sampler.height(w.x, w.y), 0)); })();
+seaMaterial.colorNode = Fn(() => {
+  const w = worldXZ(), n = field.sampler.normal(w.x, w.y), view = normalize(cameraPosition.sub(positionWorld));
+  const sun = normalize(vec3(-.35, .45, -.8)), mirrored = reflect(view.negate(), n);
+  const fresnel = pow(float(1).sub(max(dot(n, view), 0)), 5).mul(.98).add(.02);
+  const sky = mix(vec3(.55, .66, .78), vec3(.2, .36, .6), smoothstep(0, .6, mirrored.y));
+  const water = vec3(.012, .05, .085).mul(max(dot(n, sun), 0).mul(.6).add(.4));
+  const glint = pow(max(dot(mirrored, sun), 0), 600).mul(3);
+  const foam = smoothstep(.05, .7, field.sampler.foam(w.x, w.y));
+  return vec4(mix(mix(water, sky, fresnel).add(glint), vec3(.85, .9, .92), foam), 1);
+})();
+const sea = new THREE.Mesh(new THREE.PlaneGeometry(1536, 1536, 1024, 1024).rotateX(-Math.PI / 2), seaMaterial);
+sea.frustumCulled = false;
+const hull = new THREE.Mesh(new THREE.BoxGeometry(BEAM * .9, 14, LENGTH), new THREE.MeshBasicNodeMaterial({ color: 0x3a4148 }));
+scene.add(sea, hull);
+const mapCenter = uniform(new THREE.Vector2()), mapExtent = uniform(1200), mapScale = uniform(Number(params.get('scale') ?? .25));
+const mapMaterial = new THREE.MeshBasicNodeMaterial();
+mapMaterial.fragmentNode = Fn(() => {
+  // +X to the right, +Z down the image.
+  const p = screenCoordinate.xy.sub(screenSize.mul(.5)).div(screenSize.y).mul(mapExtent).add(mapCenter);
+  const h = field.sampler.height(p.x, p.y).div(mapScale).clamp(-1, 1), foam = field.sampler.foam(p.x, p.y).clamp(0, 1.5).div(1.5);
+  const tint = mix(mix(vec3(.02, .03, .05), vec3(.1, .45, 1), h.negate().max(0)), vec3(1, .45, .08), h.max(0));
+  return vec4(mix(tint, vec3(.75, 1, .75), foam), 1);
+})();
+const mapQuad = new THREE.QuadMesh(mapMaterial);
+function render(view) {
+  const cx = ship.position.x, cz = ship.position.z;
+  if (view === 'map') { mapCenter.value.set(cx + Math.sin(ship.rotation.y) * 350, cz + Math.cos(ship.rotation.y) * 350); mapQuad.render(renderer); return; }
+  sea.position.set(Math.round(cx / 6) * 6, 0, Math.round(cz / 6) * 6); seaCenter.value.set(sea.position.x, sea.position.z);
+  hull.position.set(cx, 3, cz); hull.rotation.y = ship.rotation.y;
+  const back = new THREE.Vector3(Math.sin(ship.rotation.y), 0, Math.cos(ship.rotation.y));
+  camera.position.set(cx, 0, cz).addScaledVector(back, -260).add(new THREE.Vector3(-back.z * 330, 190, back.x * 330));
+  camera.lookAt(cx + back.x * 330, 0, cz + back.z * 330);
+  renderer.render(scene, camera);
+}
+async function capture(view) {
+  renderer.setRenderTarget(null); render(view);
+  if (backend === 'webgpu') await renderer.backend.device.queue.onSubmittedWorkDone();
+  return renderer.domElement.toDataURL('image/png');
+}
+
+/** Median GPU (or wall) milliseconds per simulation step, and the passes a step renders. */
+async function measure(steps = 60, repeats = 5) {
+  const samples = [], calls = [];
+  for (let r = 0; r < repeats; r++) {
+    if (renderer.backend.trackTimestamp) await renderer.resolveTimestampsAsync('render');
+    const before = renderer.info.render.calls, started = performance.now();
+    for (let i = 0; i < steps; i++) { motion.speed = MAX_SPEED; frame(1 / 30); }
+    calls.push((renderer.info.render.calls - before) / steps);
+    if (renderer.backend.trackTimestamp) {
+      const gpu = await renderer.resolveTimestampsAsync('render');
+      if (gpu) { samples.push(gpu / steps); continue; }
+    }
+    if (backend === 'webgpu') await renderer.backend.device.queue.onSubmittedWorkDone();
+    else await renderer.readRenderTargetPixelsAsync(probeTarget, 0, 0, 1, 1);
+    samples.push((performance.now() - started) / steps);
+  }
+  samples.sort((a, b) => a - b);
+  return { msPerStep: samples[Math.floor(samples.length / 2)], samples, passesPerStep: calls[0], clock: renderer.backend.trackTimestamp ? 'gpu' : 'wall' };
+}
+
+const results = { backend, resolution }, images = {};
+const note = text => { output.textContent = `${backend} ${resolution}²\n${text}`; };
+try {
+  note('At rest');
+  run(1);
+  const rest = await probe(ship.position.x, ship.position.z, 1536);
+  results.stationaryClean = rest.maxHeight === 0 && rest.maxFoam === 0;
+
+  note('Straight at 15 m/s');
+  motion.speed = MAX_SPEED;
+  run(30);
+  const trailPoint = sternPoint(150), freshLine = sternPoint(150), olderLine = sternPoint(300);
+  const straight = await probe(ship.position.x, ship.position.z + 300, 1000);
+  results.trailFoam = straight.foam(trailPoint.x, trailPoint.z);
+  results.visibleTrail = results.trailFoam > .35;
+  const whole = await probe(ship.position.x, ship.position.z, 1536);
+  results.maxHeight = whole.maxHeight;
+  results.boundedHeight = whole.finite && whole.maxHeight < 7.99;
+  const width = line => { let w = 0; for (let x = -120; x <= 120; x += 1) if (straight.foam(line.x + x, line.z) > .2) w += 1; return w; };
+  results.freshWidth = width(freshLine); results.olderWidth = width(olderLine);
+  results.wakeSpreads = results.olderWidth > results.freshWidth;
+  images.straight = await capture('sea'); images.straightMap = await capture('map');
+
+  note('Paused');
+  const pausedState = await rawState(), pausedProbe = await probe(ship.position.x, ship.position.z, 1536);
+  for (let i = 0; i < 8; i++) { field.step(renderer, 0); render('sea'); }
+  const afterState = await rawState(), afterProbe = await probe(ship.position.x, ship.position.z, 1536);
+  results.pausePreservesWake = pausedState.every((s, i) => same(s, afterState[i])) && same(pausedProbe.data, afterProbe.data);
+
+  note('Turning');
+  motion.turn = .02;
+  run(20);
+  results.turnHeading = ship.rotation.y;
+  results.oldTrackFoam = (await probe(trailPoint.x, trailPoint.z, 400)).foam(trailPoint.x, trailPoint.z);
+  results.turnRetainsTrail = results.turnHeading > .1 && results.oldTrackFoam > .005;
+  images.turning = await capture('sea'); images.turningMap = await capture('map');
+
+  note('Stopped');
+  const beforeStop = (await probe(ship.position.x, ship.position.z, 1536)).totalFoam;
+  motion.turn = 0; motion.speed = 0;
+  run(20);
+  results.foamAfterStop = (await probe(ship.position.x, ship.position.z, 1536)).totalFoam;
+  results.stoppedWakeFades = results.foamAfterStop < beforeStop * .5;
+  images.stopped = await capture('sea');
+
+  note('Reset');
+  field.reset();
+  const cleared = await probe(ship.position.x, ship.position.z, 1536), clearedState = await rawState();
+  results.resetClears = cleared.maxHeight === 0 && cleared.maxFoam === 0 && clearedState.every(s => s.every(v => v === 0));
+
+  note('Teleport');
+  motion.speed = MAX_SPEED; run(3);
+  const from = { ...ship.position };
+  ship.position.x += 600; run(3);
+  const middle = { x: from.x + 300, z: from.z };
+  const across = await probe(middle.x, middle.z, 200);
+  results.teleportStreak = Math.max(across.maxFoam, across.maxHeight);
+  results.teleportClean = across.maxFoam < .01 && across.maxHeight < .01;
+
+  results.passed = results.stationaryClean && results.visibleTrail && results.boundedHeight && results.wakeSpreads && results.pausePreservesWake
+    && results.turnRetainsTrail && results.stoppedWakeFades && results.resetClears && results.teleportClean;
+} catch (error) { results.passed = false; results.error = String(error?.stack ?? error); }
+note(JSON.stringify(results, null, 1));
+window.oceanWake = { results, images, measure, capture, probe, run, frame, field, motion, ship };
+</script>
+</html>
