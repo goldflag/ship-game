@@ -1146,7 +1146,7 @@ export class Game {
       get frameIntervalMs() { return game.frameIntervalMs; }, set frameIntervalMs(value) { game.frameIntervalMs = value; },
       get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
       get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
-      get renderer() { return game.renderer; }, get display() { return game.display; }, get ocean() { return game.ocean; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; }, get occlusion() { return game.occlusion; },
+      get renderer() { return game.renderer; }, get display() { return game.display; }, get scenePass() { return game.scenePass; }, get camera() { return game.camera; }, get ocean() { return game.ocean; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; }, get occlusion() { return game.occlusion; },
       get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
       get disposed() { return game.disposed; },
       requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),
@@ -1192,16 +1192,18 @@ export class Game {
   }
   private renderFrame(): void {
     const inspection = this.inPort ? this.playerView?.inspection : undefined;
-    if (!this.armorOverlay || inspection?.mode !== 'armor' || !inspection.root.visible) {
+    const armor = !!this.armorOverlay && inspection?.mode === 'armor' && inspection.root.visible;
+    this.graphicsControl.suspendTemporal(armor);
+    if (!armor) {
       if (this.armorOverlay) this.armorOverlay.enabled.value = 0;
       this.pipeline!.render();
       return;
     }
-    this.armorOverlay.render(this.renderer, this.camera, inspection.root);
+    this.armorOverlay!.render(this.renderer, this.camera, inspection!.root);
     // Keep the opaque armor out of the ocean/sky pass; composite it once afterward.
     inspection.root.visible = false;
     try { this.pipeline!.render(); }
-    finally { inspection.root.visible = true; }
+    finally { inspection!.root.visible = true; }
   }
   setPaused(paused: boolean): void {
     if (paused) { this.inspectionHover?.clear(); this.closeHelmWheel(); }
@@ -1824,6 +1826,7 @@ export class Game {
     this.observedShipViews?.dispose();
     this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); });
     this.pipeline?.dispose();
+    this.graphicsController?.dispose();
     this.display?.dispose();
     this.scenePass?.dispose();
     this.occlusion.dispose();

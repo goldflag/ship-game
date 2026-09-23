@@ -84,11 +84,12 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
           id: 'antialiasing',
           label: 'Anti-aliasing',
           cost: 1,
-          hint: 'Smooths rigging, rails and hull edges. SMAA is sharper and costs a little more.',
+          hint: 'Smooths rigging, rails and hull edges. SMAA is sharper and costs a little more. TAA steadies thin rigging and rails as the camera moves, a little softer.',
           options: [
             ['off', 'Off'],
             ['fxaa', 'FXAA'],
             ['smaa', 'SMAA'],
+            ['taa', 'TAA'],
           ],
         },
         {

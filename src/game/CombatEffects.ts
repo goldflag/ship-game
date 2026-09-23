@@ -8,6 +8,7 @@ import { FIXED_DT } from './session/motion';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import { effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
 import { EffectLighting } from './EffectLighting';
+import { rejectTemporalHistory } from './TemporalAntialiasing';
 import { WaterPlumes } from './WaterPlumes';
 import { shellGeometry } from '../../assets/effects/naval/shellGeometry';
 import { ShellTrails } from './ShellTrails';
@@ -133,6 +134,8 @@ export class CombatEffects {
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.depthChargeBodies]) {
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.frustumCulled = false; mesh.instanceMatrix.array.fill(0); this.root.add(mesh);
+      // Each instance moves on its own; temporal AA cannot follow it from the mesh.
+      rejectTemporalHistory(mesh);
     }
     this.lights.forEach(({ light }) => this.root.add(light));
   }
