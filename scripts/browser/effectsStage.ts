@@ -307,19 +307,23 @@ export function installStage(game: Game) {
     await render();
     const renderer = g.renderer as unknown as THREE.WebGPURenderer & { backend: { trackTimestamp: boolean } };
     if (!renderer.hasFeature('timestamp-query')) return null;
-    const root = (g.effects as unknown as { root: THREE.Object3D }).root, tracking = renderer.backend.trackTimestamp;
+    // Toggle the effect draws only: hiding lights would change the scene's light count and
+    // recompile every lit material, which costs far more than the effects themselves.
+    const meshes: THREE.Object3D[] = [], tracking = renderer.backend.trackTimestamp;
+    for (const root of [(g.effects as unknown as { root: THREE.Object3D }).root, (g.funnelSmoke as unknown as { root: THREE.Object3D }).root])
+      root.traverse(node => { if ((node as THREE.Mesh).isMesh && node.visible) meshes.push(node); });
     const times: [number[], number[]] = [[], []];
     renderer.backend.trackTimestamp = true;
     try {
       for (let i = -20; i < samples * 2; i++) {
         const shown = i % 2 === 0;
-        root.visible = shown;
+        meshes.forEach(mesh => { mesh.visible = shown; });
         g.renderer._nodes.nodeFrame.update();
         g.renderFrame();
         const time = await renderer.resolveTimestampsAsync(THREE.TimestampQuery.RENDER);
         if (i >= 0 && typeof time === 'number') times[shown ? 0 : 1].push(time);
       }
-    } finally { root.visible = true; renderer.backend.trackTimestamp = tracking; }
+    } finally { meshes.forEach(mesh => { mesh.visible = true; }); renderer.backend.trackTimestamp = tracking; }
     const median = (values: number[]) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
     const deltas = times[0].map((time, i) => time - (times[1][i] ?? time));
     return { withMs: median(times[0]), withoutMs: median(times[1]), deltaMs: median(deltas) };

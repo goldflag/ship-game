@@ -333,6 +333,35 @@ export const scenes: Record<string, Scene> = {
     stage.note('two point lights', { withMs: +median(on).toFixed(2), withoutMs: +median(off).toFixed(2), costMs: +(median(on) - median(off)).toFixed(2) });
     await shoot('light probe');
   },
+  /** GPU milliseconds of every effect draw (combat, fires, funnels), interleaving frames with the
+   * effect meshes shown and hidden in one session, so background load cancels out. */
+  async cost(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 });
+    stage.underway(0, 1); stage.underway(1, .6);
+    stage.camera({ ship: 0, offset: [-140, 55, 190], look: [60, 18, -20], fov: 50 });
+    stage.advance(25);
+    stage.note('fires and funnels', await stage.effectsCost());
+    stage.aim(0, 1, 4, 'main'); stage.aim(1, 0, 4, 'main');
+    stage.fire(0); stage.fire(1); stage.advance(.3);
+    for (let i = 0; i < 4; i++) { stage.hit(1, { kind: 'penetration', along: .2 + i * .2 }); stage.hit(0, { kind: 'burst', from: 1, along: .3 + i * .15, height: 8 }); }
+    stage.advance(.5);
+    stage.note('+ broadsides and hits', await stage.effectsCost());
+    stage.advance(3);
+    stage.note('+ 3 s later', await stage.effectsCost());
+    await shoot('cost');
+  },
+  /** GPU milliseconds of a burning ship's effect draws, close up and from the turret. */
+  async 'cost-fire'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 });
+    stage.advance(25);
+    stage.camera({ ship: 1, offset: [-200, 50, 140], look: [0, 12, -10], fov: 45 });
+    stage.note('fire close', await stage.effectsCost());
+    stage.camera({ ship: 1, offset: [-120, 30, -90], look: [0, 14, -60], fov: 45 });
+    stage.note('fire turret', await stage.effectsCost());
+    await shoot('fire turret');
+  },
   /** GPU cost of a busy moment: two broadsides in the air, hits, three fires and both ships underway. */
   async perf(stage, shoot) {
     stage.reset(); stage.weather({ timeHours: 15 });
