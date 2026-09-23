@@ -115,6 +115,13 @@ export class SkyProSky implements SkyApi {
   cloudShadow(): Node<'float'> { return float(1); }
   meshes(): Object3D[] { return this.system.backdropMeshes(); }
   resetHistory(): void { this.system.pipeline.cloudTemporal.invalidateHistory(); }
+  /** Sky Pro integrates its cloud drift per frame: restart it and drift to `time`. Its clouds keep marching. */
+  hold(time?: number): void {
+    if (time === undefined) return;
+    const wind = this.system.clouds.wind;
+    wind.offset.value.set(0, 0, 0); wind.evolutionOffset.value = 0; wind.advance(time);
+    this.resetHistory();
+  }
   resize(width: number, height: number): void { this.system.resize(width, height); }
 
   /** Cloud tiers change march budgets live; a coarser noise volume refills on the CPU once. */

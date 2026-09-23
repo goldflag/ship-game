@@ -179,6 +179,14 @@ export class CameraRig {
     this.actions.aimLock(held);
   }
   get magnification(): number { return Math.tan(NORMAL_FOV * Math.PI / 360) / Math.tan(this.camera.fov * Math.PI / 360); }
+  /** The view is still easing to where it was sent: an optics glide (about 0.42 s), a lens or zoom change, the torpedo lift or the port orbit. */
+  get transitioning(): boolean {
+    const floor = this.torpedoView && this.mode === 'Chase' ? TORPEDO_ORBIT_ELEVATION : MIN_ORBIT_ELEVATION;
+    return !!this.opticsTransition || Math.abs(this.magnification / (this.binoculars ? this.scopeMagnification : 1) - 1) > 1e-3
+      || Math.abs(this.displayedDistance / this.distance - 1) > 1e-3
+      || (!this.inPort && !this.inspecting && this.mode === 'Chase' && !this.binoculars && Math.abs(this.chaseFloor - floor) > 1e-3)
+      || ((this.inPort || this.inspecting) && this.camera.position.distanceTo(this.desired) > .05);
+  }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
 
   /** Raise the lowest chase orbit while the torpedo sight is up. */

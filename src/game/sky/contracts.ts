@@ -141,6 +141,10 @@ export interface SkyApi {
   meshes(): Object3D[];
   /** Drop temporal history, after a camera cut or a scene change a capture must not smear. */
   resetHistory(): void;
+  /** Development captures (`Game.freezeScene`): stand the sky at `time` seconds, its clouds drifted there from the start,
+   * and once the clouds have converged on a still view, stop marching them, so every later frame draws the same sky
+   * however long the page has run. A new view converges again. No time lets the sky run on. */
+  hold(time?: number): void;
   /** CSS pixels, as `renderer.setSize`; the pixel ratio is applied internally. */
   resize(width: number, height: number): void;
   setQuality(quality: SkyQuality): Promise<void>;
@@ -263,6 +267,8 @@ export interface CelestialPart extends SkyPart {
 /** Volumetric cloud layer, cirrus, cloud shadows and rain shafts. `clouds/`. */
 export interface CloudPart extends SkyPart {
   apply(scene: SkyScene): void;
+  /** See `SkyApi.hold`: restart the march's frame sequence, and stop marching once a still view has converged. */
+  hold(held: boolean): void;
   enabled: boolean;
   /** Full-screen composite drawn right after the sea in the transparent queue: premultiplied
    * cloud radiance over whatever is behind, depth-tested at the clouds' distance. */

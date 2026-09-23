@@ -13,6 +13,7 @@ import type { CombatEvent, FleetActor } from '../../src/game/session/elements';
 import { muzzleWorld, shotDirection } from '../../src/game/mountGeometry';
 import { localToWorld } from '../../src/game/geometry';
 import { SHIP_PACE } from '../../src/ships/mobility';
+import { BerthMotion } from '../../src/game/BerthMotion';
 import type { EnvironmentOverrides } from '../../src/game/VisualEnvironment';
 
 type Vec3 = [number, number, number];
@@ -73,7 +74,10 @@ export interface CameraOptions {
 
 export interface Frame { label: string; png: string }
 
-export function installStage(game: Game) {
+/** `seaTime`: the sea time `Game.freezeScene` holds (effects-review's `--sea-time`). Every hull then rides the combat sea to it
+ * as the port's berth does, and the sea around the hulls is drawn at it, so two reviews of a scene render the same frames
+ * whenever the battle happened to be frozen. */
+export function installStage(game: Game, { seaTime }: { seaTime?: number } = {}) {
   const g = game as unknown as GameInternals;
   const sim = () => g.simulation;
   const views = () => g.fleetViews;
@@ -116,6 +120,18 @@ export function installStage(game: Game) {
     g.scheduleFrame = () => {};
     cancelAnimationFrame(g.raf);
     g.rig.update = () => {};
+    const sea = sim().sea;
+    if (seaTime !== undefined && sea) {
+      Object.defineProperty(sim(), 'presentationTime', { configurable: true, get: () => seaTime });
+      for (const v of views()) {
+        if (v.definition.submarine) continue;
+        // Back onto the whole metre: waves drift a stopped hull a few millimetres, by however long the battle ran first.
+        v.actor.motion.x = Math.round(v.actor.motion.x); v.actor.motion.z = Math.round(v.actor.motion.z);
+        const ride = new BerthMotion();
+        ride.seek(seaTime, sea, v.definition.hull, v.actor.motion);
+        Object.assign(v.actor.motion, { y: ride.heave, roll: ride.roll, pitch: ride.pitch });
+      }
+    }
     for (const v of views()) {
       motions.set(v.actor, { ...v.actor.motion });
       controls.set(v.actor, JSON.stringify(v.actor.damage.control));
@@ -314,7 +330,8 @@ export function installStage(game: Game) {
 
   /** GPU cost of the combat effects in the current staged scene: frames alternate with `game.effects.root`
    * shown and hidden, so load from other GPU work on the machine cancels out of the difference. */
-  /** Interleaved GPU cost of effect meshes; `only` narrows it to meshes whose name contains that text. */
+  /** Interleaved GPU cost of effect meshes; `only` narrows it to meshes whose name contains that text. Timestamps overstate costs on
+   * Apple GPUs and `trackTimestamp` stalls the pipeline; `measureFrameCost` in `harness.ts` gives the figure a player feels. */
   async function effectsCost(samples = 60, only?: string): Promise<{ withMs: number; withoutMs: number; deltaMs: number } | null> {
     await render();
     const renderer = g.renderer as unknown as THREE.WebGPURenderer & { backend: { trackTimestamp: boolean } };
@@ -342,7 +359,8 @@ export function installStage(game: Game) {
   }
 
   /** Median GPU and CPU milliseconds of the render pipeline for the current staged scene (the ocean
-   * simulation is frozen and excluded), with WebGPU timestamps when the adapter offers them. */
+   * simulation is frozen and excluded), with WebGPU timestamps when the adapter offers them. Compare features with
+   * `measureFrameCost` in `harness.ts` instead: a single awaited frame's timestamp overstates it while the GPU clocks down. */
   async function measure(samples = 60, warmup = 30): Promise<{ gpuMs: number | null; cpuMs: number; drawCalls: number }> {
     await render();
     const renderer = g.renderer as unknown as THREE.WebGPURenderer & { backend: { trackTimestamp: boolean } };
@@ -367,8 +385,18 @@ export function installStage(game: Game) {
     return { gpuMs: median(gpu), cpuMs: median(cpu)!, drawCalls };
   }
 
+  /** Why the stage cannot stand in for the battle: fewer ship views than `expected`, or a hull without a model to draw. */
+  function problems(expected: number): string[] {
+    const found = views().map((v, i) => {
+      let meshes = 0;
+      v.root.traverse(node => { if ((node as THREE.Mesh).isMesh) meshes++; });
+      return meshes ? '' : `ship ${i} (${v.definition.id}) has no model`;
+    }).filter(Boolean);
+    return views().length < expected ? [`${views().length} of ${expected} ships have views`, ...found] : found;
+  }
+
   return {
-    freeze, reset, aim, fire, hit, splash, flak, burn, underway, camera: place, advance, render, capture, weather, facing, measure, effectsCost,
+    freeze, reset, aim, fire, problems, hit, splash, flak, burn, underway, camera: place, advance, render, capture, weather, facing, measure, effectsCost,
     get elapsed() { return elapsed; },
     ships: () => views().map((v, i) => ({ index: i, id: v.actor.motion.id, preset: v.definition.id, team: v.actor.team,
       position: [v.actor.motion.x, v.actor.motion.z], heading: v.actor.motion.heading,

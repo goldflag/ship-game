@@ -15,7 +15,7 @@
     "bootstrap": "bun scripts/build/bootstrap.ts",
     "check": "bun scripts/tests/check.ts",
     "harness:designs": "bun scripts/browser/designs.ts",
-    "ui:shot": "bun run multiplayer:prepare:dev && bun scripts/browser/shot.ts",
+    "ui:shot": "bun scripts/browser/shot.ts",
     "format": "prettier --write",
     "format:check": "prettier --check",
     "typecheck": "bun run multiplayer:prepare:dev && tsc --noEmit",

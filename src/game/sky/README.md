@@ -60,6 +60,11 @@ Model* (SIGGRAPH 2001); Tatarchuk, *Artist-Directable Real-Time Rain Rendering* 
    resolve, shadow map) → environment bake (amortised over frames);
 4. refreshes the celestial light the sea, scene light and effects share.
 
+A paused frame's clouds still change: each march jitters its rays by the frame. For captures that
+must match run to run, `hold(time)` (called by `Game.freezeScene`) stands sky time and the drift at
+`time`, restarts the march's frame sequence on every new view, and stops marching a still view after
+48 updates, so the sky it keeps does not depend on how long the page ran. `hold()` lets it run on.
+
 Then the scene renders in the game's single scene pass:
 
 - opaque geometry (ships, islands);

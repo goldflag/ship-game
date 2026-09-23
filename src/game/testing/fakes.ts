@@ -38,6 +38,7 @@ export function makeTestRig<Extra extends object = object>(overrides?: Partial<T
     pointerLocked: false,
     firing: false,
     magnification: 1,
+    transitioning: false,
     bearing: 0,
     rangeAim: undefined,
     freeCameraSpeed: 0,
