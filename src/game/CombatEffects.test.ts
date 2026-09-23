@@ -318,7 +318,7 @@ test('a magazine detonation raises a column and cap that hang, then clear', () =
   const heights = Array.from({ length: effects.diagnostics().smoke }, (_, i) => sphere.getY(i));
   expect(heights.length).toBeGreaterThan(20);
   expect(Math.max(...heights)).toBeGreaterThan(200);
-  effects.update(sim, 90, camera);
+  effects.update(sim, 100, camera);
   expect(effects.diagnostics().smoke).toBe(0);
   effects.dispose();
 });

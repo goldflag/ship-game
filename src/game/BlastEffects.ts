@@ -382,7 +382,7 @@ export class BlastEffects {
       p.position.addScaledVector(this.point, (4 + random() * 8) * s);
       p.velocity.copy(this.point).multiplyScalar((25 + random() * 45) * s); p.velocity.y += 22 * s;
       p.drag = 1.3; p.size = (18 + random() * 10) * s; p.growth = 50 * s; p.growthDecay = 1.1; p.diffusion = 1.2 * s;
-      p.heat = 1.4 + random() * .15; p.cooling = 1.6 + random() * 1.2; p.life = 50 + random() * 14; p.dissipationTime = 26;
+      p.heat = 1.4 + random() * .15; p.cooling = 1.6 + random() * 1.2; p.life = 60 + random() * 14; p.dissipationTime = 40;
       p.density = 2.7; p.gravity = -2.4; p.wind = .6; p.opacity = .97; p.color.copy(BLACK_SMOKE).multiplyScalar(.8 + random() * .3);
     }
     // Column: each billow decelerates at its own height under drag, stacking into a stem.
@@ -391,7 +391,7 @@ export class BlastEffects {
       p.position.x += (random() - .5) * 12 * s; p.position.z += (random() - .5) * 12 * s;
       p.velocity.set((random() - .5) * 6, rise, (random() - .5) * 6);
       p.drag = .36; p.size = (20 + random() * 8) * s; p.growth = (12 + i * 1.5) * s; p.growthDecay = .2; p.diffusion = .8 * s;
-      p.heat = .7 - i * .06; p.cooling = 3 + random() * 2; p.life = 70 + random() * 15; p.dissipationTime = 45;
+      p.heat = .7 - i * .06; p.cooling = 3 + random() * 2; p.life = 80 + random() * 15; p.dissipationTime = 70;
       p.density = 2.3; p.gravity = -.7; p.wind = .5 + i * .05; p.opacity = .95;
       p.color.copy(SOOT).multiplyScalar(.95 + i * .07);
       this.volumeAxis(p, UP, 1.35);
@@ -402,7 +402,7 @@ export class BlastEffects {
       const p = volumes.emit(base, source);
       p.velocity.set(0, (125 + random() * 15) * s, 0).addScaledVector(radial, (20 + random() * 12) * s);
       p.drag = .34; p.size = (34 + random() * 8) * s; p.growth = (26 + random() * 8) * s; p.growthDecay = .2; p.diffusion = 1 * s;
-      p.heat = .45; p.cooling = 4.5; p.life = 75 + random() * 15; p.dissipationTime = 50;
+      p.heat = .45; p.cooling = 4.5; p.life = 85 + random() * 15; p.dissipationTime = 75;
       p.density = 2; p.gravity = -.9; p.wind = .8; p.opacity = .94;
       p.color.set('#6a645c').multiplyScalar(.9 + random() * .15);
       this.volumeAxis(p, radial, 1.6);
