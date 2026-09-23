@@ -1,7 +1,8 @@
 /** `bun scripts/browser/sky-review.ts --tag <name> [--only noon,sunset] [--quality high] [--clouds medium] [--sky game|skypro]
  * [--measure] [--bench] [--weather] [--url http://127.0.0.1:5210]`
  * `--measure` times whole frames (noisy: the sky is a small part of them); `--bench` isolates the sky's own GPU cost
- * by GPU timestamps, frames with the whole sky alternating with frames without it (`benchmarkSky`)
+ * by GPU timestamps, frames with the whole sky alternating with frames without it (`benchmarkSky`); `--parts` adds each
+ * piece's share (`benchmarkParts`)
  * (offscreen passes plus its meshes' share of the frame) on the measured scenes; `--weather` isolates the rain,
  * splashes and bolt (their meshes' share of the frame) on every rendered scene.
  * Renders the fixed scenes of `scripts/diagnostics/sky-review.html` in a headed Chromium and saves one PNG
@@ -16,7 +17,7 @@ import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
   tag: { type: 'string', default: 'current' }, only: { type: 'string' }, quality: { type: 'string', default: 'high' },
-  clouds: { type: 'string' }, sky: { type: 'string' }, measure: { type: 'boolean', default: false }, bench: { type: 'boolean', default: false }, weather: { type: 'boolean', default: false },
+  clouds: { type: 'string' }, sky: { type: 'string' }, measure: { type: 'boolean', default: false }, bench: { type: 'boolean', default: false }, parts: { type: 'boolean', default: false }, weather: { type: 'boolean', default: false },
   url: { type: 'string' },
 } });
 /** Scenes whose frame cost is measured: open cumulus, a full deck, a storm and a narrow binocular view. */
@@ -55,8 +56,8 @@ try {
     const timing = values.measure && MEASURED.includes(name)
       ? { stepping: await page.evaluate(() => (window as any).skyReview.measure(120, true)), paused: await page.evaluate(() => (window as any).skyReview.measure(60, false)) }
       : undefined;
-    const bench = values.bench && MEASURED.includes(name) ? { ...await page.evaluate(() => (window as any).skyReview.benchmarkSky()),
-      parts: await page.evaluate(() => (window as any).skyReview.benchmarkParts()) } : undefined;
+    const bench = values.bench && MEASURED.includes(name) ? { ...await page.evaluate(() => (window as any).skyReview.benchmarkSky(200)),
+      ...(values.parts ? { parts: await page.evaluate(() => (window as any).skyReview.benchmarkParts()) } : {}) } : undefined;
     const weather = values.weather ? await page.evaluate(() => (window as any).skyReview.benchmarkWeather()) : undefined;
     results[name] = { ...info, seconds: (Date.now() - started) / 1000, ...(timing ? { timing } : {}), ...(bench ? { bench } : {}), ...(weather ? { weather } : {}) };
     console.log(name, JSON.stringify(results[name]));

@@ -283,9 +283,11 @@ async function benchmarkSky(pairs = 120, clock = 'gpu') {
     if (timestamps) await gpu();
     const on = [], off = [], differences = [];
     for (let i = 0; i < pairs; i++) { const a = await frame(true), b = await frame(false); on.push(a); off.push(b); differences.push(a - b); }
-    const sorted = values => [...values].sort((a, b) => a - b);
-    return { clock: timestamps ? 'gpu' : 'wall', sky: sorted(differences)[pairs >> 1], quartile: sorted(differences)[pairs >> 2],
-      frame: sorted(off)[pairs >> 1], withSky: sorted(on)[pairs >> 1] };
+    const sorted = values => [...values].sort((a, b) => a - b), at = (values, share) => sorted(values)[Math.floor(values.length * share)];
+    // Other work on the GPU only ever adds time, so the fastest frames of each kind differ by the sky alone: `fastest`,
+    // the difference of their 10th percentiles, holds when a burst of other work spoils the paired median.
+    return { clock: timestamps ? 'gpu' : 'wall', sky: at(differences, .5), quartile: at(differences, .25), fastest: at(on, .1) - at(off, .1),
+      frame: at(off, .5), withSky: at(on, .5) };
   } finally { backend.trackTimestamp = false; }
 }
 
