@@ -391,3 +391,18 @@ islands, 5 and 20 km zoom, air, submerged, periscope and a ninety-second wake) i
 baseline tag. Every page above freezes waves with `game.ocean.time = seconds`; a paused frame never
 advances it, and parameter changes still apply on the next update. Temporary captures belong in
 ignored `.build/`.
+
+## Comparing with Water Pro
+
+The vendored Water Pro 3.5.1 library the game's ocean replaced can still draw the sea, to compare the
+two in the real game. The developer console (Shift-D) command "Switch ocean renderer" flips the
+`oceanRenderer` graphics setting (`game` or `waterpro`, saved with the other rows but outside the
+quality presets): in port the scene rebuilds at once, at sea it applies on the return to port, like the
+ocean tier. `Game` then loads `src/game/comparison/WaterProOcean.ts`, and with it the library's
+bundle, as a separate chunk; the default game never downloads it. The adapter drives the library
+through its declarations as the game did before the replacement, with the same scene values from
+`VisualEnvironment`, translated where Water Pro measures them differently: the significant height
+becomes the per-map FFT gain the game once measured, and surface foam and the wake's breaking slope
+take the values the game gave the library. The realism switches do not apply to it.
+`bun scripts/browser/ocean-review.ts --tag <name> --param renderer=waterpro` renders the review
+scenes with it. The clean-room rule in the ocean README applies: never open the library's `index.js`.

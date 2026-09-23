@@ -287,7 +287,6 @@ export class WaterProOcean implements OceanApi {
   private createWaveField(): WaveField {
     const ocean = this, simulation = this.water.simulation;
     const displacement = (xz: Node<'vec2'>): Node<'vec3'> => {
-      if (!simulation.getCapabilities().hasStorageBuffers) return simulation.getDisplacementNodes().sampleDisplacement(xz.x, xz.y) as Node<'vec3'>;
       let sum: Node<'vec3'> = vec3(0);
       for (let i = 0; i < simulation.getCascadeCount(); i++) {
         const buffer = simulation.getDisplacementBuffer(i)!;

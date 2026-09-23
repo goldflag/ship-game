@@ -1,16 +1,21 @@
 # Ocean
 
 The game's own ocean renderer, limited to what the game uses. It replaced a vendored
-commercial ocean library, which is no longer in the tree. Sky Pro stays vendored; the ocean
-consumes its provider through `OceanSky` in `contracts.ts`. The game renders only through
-WebGPU (`src/game/webgpu.ts`); there is no WebGL path.
+commercial ocean library, Water Pro, which stays in `vendor/threejs-water-pro` only so the two
+can be compared in the real game: `src/game/comparison/WaterProOcean.ts` drives it behind
+`OceanApi`, loaded on demand when the developer console's "Switch ocean renderer" (the
+`oceanRenderer` graphics setting) selects it. Sky Pro stays vendored; the ocean consumes its
+provider through `OceanSky` in `contracts.ts`. The game renders only through WebGPU
+(`src/game/webgpu.ts`); there is no WebGL path.
 
 ## Clean-room rule
 
 The license of the ocean library this folder replaced forbids decompiling, deobfuscating or
-otherwise reverse engineering its compiled bundle, and that bundle remains in the repository's
-history. Nobody working on this folder opens, reads, greps, diffs or pattern-matches it in any
-past revision, or Sky Pro's vendored `index.js`, including through tools or subagents. Build
+otherwise reverse engineering its compiled bundle, which is vendored for the comparison and
+remains in the repository's history. Nobody opens, reads, greps, diffs or pattern-matches
+`vendor/threejs-water-pro/build/index.js` in any revision, or Sky Pro's vendored `index.js`,
+including through tools or subagents; the comparison adapter uses only the library's `.d.ts`
+declarations and the game's former integration code. Build
 from the game's own code, this document, three.js (`node_modules/three`),
 published literature and black-box observation of the running game (screenshots, frame times,
 values read through the public API the game already calls). The repository is public: code

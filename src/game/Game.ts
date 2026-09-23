@@ -1750,7 +1750,7 @@ export class Game {
   /** Development-only port inspection of the loaded model at catalog joint limits. */
   previewArticulation(pose: ArticulationPreview | null) { return this.articulation.preview(pose); }
   diagnostics() {
-    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, oceanRenderer: this.launchedGraphics.oceanRenderer,
+    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, oceanRenderer: this.launchedGraphics?.oceanRenderer,
       ...this.environment.diagnostics(),
       islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
