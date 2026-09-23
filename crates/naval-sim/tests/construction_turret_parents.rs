@@ -233,8 +233,7 @@ fn the_roof_gun_trains_with_its_turret() {
 fn the_roof_gun_fires_from_the_trained_turret() {
     let catalog = catalog();
     let def = compiled(&source(&catalog, Some("turret")), &catalog);
-    let content =
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
+    let content = Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap();
     let compiled = Arc::new(CompiledShip::new(Arc::new(def), None).unwrap());
     let def = &compiled.definition;
     let mut actor = Vessel::new("turret-parents", TeamId::A, compiled.clone());

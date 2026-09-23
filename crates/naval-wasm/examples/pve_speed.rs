@@ -130,7 +130,7 @@ fn main() {
             _ => 12,
         });
     assert!(batch >= 1 && 3600 % batch == 0, "batch must divide 3600");
-    let manifest = std::fs::read(".build/naval-content/manifest.json").expect("manifest");
+    let manifest = naval_sim::catalog::installed_manifest();
     let mut runtime = match scenario {
         "surface" | "carrier" => {
             let request = pve_request(scenario);

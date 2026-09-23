@@ -461,7 +461,10 @@ mod tests {
         let mut p = l_shape();
         p.solid.as_mut().unwrap().vertices[3][1] = 0.75;
         let error = fails(&p);
-        assert!(error.contains("vertex 3") && error.contains("±0.5"), "{error}");
+        assert!(
+            error.contains("vertex 3") && error.contains("±0.5"),
+            "{error}"
+        );
     }
 
     /// A square annulus: four strips around a 1 x 1 x 1 bore, so the block has a hole

@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(optional_fields)]
 pub struct HelmCommand {
+    /// -1..=1: full astern to full ahead.
     pub throttle: f64,
+    /// -1..=1: positive turns to starboard, raising the heading.
     pub rudder: f64,
     pub depth_m: Option<f64>,
     pub emergency_blow: Option<bool>,
@@ -18,9 +20,14 @@ pub struct ShipState {
     pub x: f64,
     pub y: f64,
     pub z: f64,
+    /// Radians about the bow axis; positive lifts the starboard side (a heel to port).
     pub roll: f64,
+    /// Radians; positive lifts the bow.
     pub pitch: f64,
+    /// Radians, clockwise seen from above: 0 steams toward -z, pi/2 toward +x.
     pub heading: f64,
+    /// Physical metres per second along the bow, negative astern. World motion is
+    /// `mobility::SHIP_PACE` times this.
     pub speed: f64,
     pub sway_speed: f64,
     pub rudder: f64,

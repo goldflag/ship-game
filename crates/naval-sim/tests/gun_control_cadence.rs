@@ -11,9 +11,7 @@ use naval_sim::{
 use std::{collections::BTreeMap, sync::Arc};
 
 fn battle() -> Battle {
-    let catalog = Arc::new(
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
-    );
+    let catalog = Catalog::installed();
     let compiled = BTreeMap::from([(
         "fletcher".into(),
         Arc::new(catalog.compile("fletcher").unwrap()),

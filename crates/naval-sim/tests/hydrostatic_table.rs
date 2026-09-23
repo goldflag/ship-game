@@ -5,7 +5,7 @@
 use naval_sim::{catalog::Catalog, geometry::Pose, hydrostatics::HullHydrostatics};
 
 fn catalog() -> Catalog {
-    Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap()
+    Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap()
 }
 /// Attitudes a fighting ship reaches: heel to a bad list, trim to a flooded end.
 const HEEL: [f64; 12] = [

@@ -552,11 +552,10 @@ fn trainable_torpedoes_use_one_absolute_rotation_for_sockets_damage_and_launch()
             vessel::Controller,
         };
         use std::{collections::BTreeMap, sync::Arc};
-        let local =
-            Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                .unwrap()
-                .with_constructions(&[source], &catalog)
-                .unwrap();
+        let local = Catalog::load(&naval_sim::catalog::installed_manifest())
+            .unwrap()
+            .with_constructions(&[source], &catalog)
+            .unwrap();
         let compiled = BTreeMap::from([
             (def.id.clone(), Arc::new(local.compile(&def.id).unwrap())),
             (
@@ -856,8 +855,7 @@ fn published_construction_uses_trusted_manifest_admission_without_admitting_loca
     let (source, parts) = fixture();
     let mut definition = compile(&source, &parts);
     let mut manifest: serde_json::Value =
-        serde_json::from_slice(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-            .unwrap();
+        serde_json::from_slice(&naval_sim::catalog::installed_manifest()).unwrap();
     let entry = |definition: &ShipDefinition| {
         let json = serde_json::to_string(definition).unwrap();
         serde_json::json!({"id": definition.id, "contentHash": definition.content_hash,

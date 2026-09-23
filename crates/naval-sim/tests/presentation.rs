@@ -77,9 +77,7 @@ fn check_detail(actors: &[Value], detail: &[&str], path: &str) {
 
 #[test]
 fn streamed_large_battle_preserves_every_presentation_field_and_authority_state() {
-    let catalog = Arc::new(
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
-    );
+    let catalog = Catalog::installed();
     let roster = [
         "bismarck",
         "yamato",
@@ -169,9 +167,7 @@ fn streamed_team_hulls_preserve_visibility_targets_damage_and_debrief() {
         rules::TeamId,
         snapshot::PresentationView,
     };
-    let catalog = Arc::new(
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
-    );
+    let catalog = Catalog::installed();
     let request: PveRequest = serde_json::from_value(json!({
         "version":1,"seed":17001,"mapId":"pacific-islands","weather":"clear","difficulty":"normal",
         "ships":[{"id":"own","presetId":"bismarck","groupId":"g"},

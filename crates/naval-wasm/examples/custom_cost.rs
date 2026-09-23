@@ -32,7 +32,7 @@ fn main() {
         .get(2)
         .and_then(|s| s.parse().ok())
         .unwrap_or(600);
-    let manifest = std::fs::read(".build/naval-content/manifest.json").expect("manifest");
+    let manifest = naval_sim::catalog::installed_manifest();
     let sources_json = sources.map(|p| std::fs::read_to_string(p).expect("sources"));
     let catalog_json = catalog.map(|p| std::fs::read_to_string(p).expect("catalog"));
     let local_ids: Vec<String> = match (&sources_json, &catalog_json) {

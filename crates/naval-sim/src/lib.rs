@@ -43,10 +43,10 @@ pub mod rules;
 pub mod ballistics;
 
 pub mod floodwater;
-mod volume_proxy;
 pub mod hull;
 pub mod hydro_table;
 pub mod hydrostatics;
+mod volume_proxy;
 
 pub mod environment;
 
@@ -59,8 +59,8 @@ pub mod contacts;
 pub mod damage;
 pub mod damage_control;
 pub mod depth_charges;
-pub mod flooding;
 mod flood_connections;
+pub mod flooding;
 pub mod hull_contact;
 pub mod impact;
 pub mod land;

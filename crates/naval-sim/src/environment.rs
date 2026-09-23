@@ -9,6 +9,12 @@ use serde::{Deserialize, Serialize};
 pub struct SeaState {
     pub amplitude_m: f64,
     pub wavelength_m: f64,
+    /// Radians: the waves run, and the wind and drift push, toward (cos d, sin d)
+    /// in x and z, so 0 runs toward +x and pi/2 toward +z. Not a heading's frame
+    /// (see `battle::Spawn::heading`): for a ship on heading h, d = h + pi/2 is a
+    /// head sea, d = h - pi/2 a following sea, d = h a beam sea from port and
+    /// d = h + pi one from starboard. Content gives it in degrees, as the map's
+    /// `water.windDirection`.
     pub direction: f64,
     pub wind_mps: f64,
     pub phase: f64,
@@ -318,6 +324,8 @@ impl crate::catalog::Catalog {
     }
     /// Resolve CPU conditions from the frozen deployment manifest. Online callers
     /// always supply the server's rolled preset; custom callers may override wind.
+    /// A bad selection is a `ContentError::Setup` naming the field, its value and
+    /// the allowed range; bad installed content is `Invalid`, naming the entry.
     pub fn resolve_environment(
         &self,
         map_id: &str,
@@ -328,92 +336,148 @@ impl crate::catalog::Catalog {
         wind: Option<f64>,
     ) -> Result<ResolvedEnvironment, crate::catalog::ContentError> {
         use crate::catalog::ContentError;
-        let invalid = || ContentError::Invalid("invalid environment content or selection".into());
-        if !(1..=30).contains(&team_size)
-            || !distance.is_finite()
-            || !(1000.0..=20000.0).contains(&distance)
-            || wind.is_some_and(|w| !w.is_finite() || !(0.0..=30.0).contains(&w))
-        {
-            return Err(invalid());
+        if !(1..=30).contains(&team_size) {
+            return Err(ContentError::Setup(format!(
+                "team size {team_size} outside 1..=30"
+            )));
+        }
+        if !(1000.0..=20000.0).contains(&distance) {
+            return Err(ContentError::Setup(format!(
+                "spawnDistance {distance} outside 1000..=20000 m"
+            )));
+        }
+        if let Some(w) = wind.filter(|w| !(0.0..=30.0).contains(w)) {
+            return Err(ContentError::Setup(format!(
+                "windSpeed {w} outside 0..=30 m/s"
+            )));
         }
         let map = self.maps["maps"]
             .as_array()
             .and_then(|maps| maps.iter().find(|m| m["id"] == map_id))
-            .ok_or_else(invalid)?;
+            .ok_or_else(|| {
+                ContentError::Setup(format!(
+                    "unknown mapId {map_id:?}; installed maps: {}",
+                    self.map_ids().unwrap_or_default().join(", ")
+                ))
+            })?;
         let forecast = self.conditions["weather"]
             .as_array()
             .and_then(|presets| presets.iter().find(|w| w["id"] == weather))
-            .ok_or_else(invalid)?;
-        let number = |value: &serde_json::Value| {
-            value.as_f64().filter(|n| n.is_finite()).ok_or_else(invalid)
+            .ok_or_else(|| {
+                ContentError::Setup(format!(
+                    "unknown weather {weather:?}; installed weather: {}",
+                    self.weather_ids().unwrap_or_default().join(", ")
+                ))
+            })?;
+        let invalid = |what: String| {
+            ContentError::Invalid(format!(
+                "environment for map {map_id:?}, weather {weather:?}: {what}"
+            ))
+        };
+        let number = |value: &serde_json::Value, path: &str| {
+            value
+                .as_f64()
+                .filter(|n| n.is_finite())
+                .ok_or_else(|| invalid(format!("{path} is {value}, not a finite number")))
         };
         let wind_mps = wind.unwrap_or(
-            number(&forecast["waves"]["windSpeed"])? * number(&map["water"]["windScale"])?,
+            number(&forecast["waves"]["windSpeed"], "waves.windSpeed")?
+                * number(&map["water"]["windScale"], "water.windScale")?,
         );
         let calibration = &self.conditions["seaCalibration"];
         if calibration["version"].as_u64() != Some(1) {
-            return Err(invalid());
+            return Err(invalid(format!(
+                "seaCalibration version is {}, not 1",
+                calibration["version"]
+            )));
         }
-        let samples = calibration["samples"].as_array().ok_or_else(invalid)?;
-        let last = samples.last().ok_or_else(invalid)?;
-        let speed = wind_mps.clamp(0.0, number(&last["windSpeed"])?);
+        let samples = calibration["samples"]
+            .as_array()
+            .filter(|samples| !samples.is_empty())
+            .ok_or_else(|| invalid("seaCalibration has no samples".into()))?;
+        let last = &samples[samples.len() - 1];
+        let speed = wind_mps.clamp(0.0, number(&last["windSpeed"], "sea sample windSpeed")?);
         let upper = samples
             .iter()
             .position(|s| s["windSpeed"].as_f64().is_some_and(|w| w >= speed))
-            .ok_or_else(invalid)?;
+            .ok_or_else(|| invalid(format!("no sea sample reaches wind {speed} m/s")))?;
         let a = &samples[upper.saturating_sub(1)];
         let b = &samples[upper];
-        let width = number(&b["windSpeed"])? - number(&a["windSpeed"])?;
+        let width = number(&b["windSpeed"], "sea sample windSpeed")?
+            - number(&a["windSpeed"], "sea sample windSpeed")?;
         let t = if upper == 0 {
             0.0
         } else if width > 0.0 {
-            (speed - number(&a["windSpeed"])?) / width
+            (speed - number(&a["windSpeed"], "sea sample windSpeed")?) / width
         } else {
-            return Err(invalid());
+            return Err(invalid(format!(
+                "sea samples {} and {upper} must ascend in windSpeed",
+                upper - 1
+            )));
         };
         let interpolate = |key: &str| -> Result<f64, ContentError> {
-            let x = number(&a[key])?;
-            Ok(x + (number(&b[key])? - x) * t)
+            let x = number(&a[key], key)?;
+            Ok(x + (number(&b[key], key)? - x) * t)
         };
-        let height = interpolate("significantHeightM")? * number(&map["water"]["amplitudeScale"])?;
-        let wavelength =
-            interpolate("peakWavelengthM")? * number(&map["water"]["wavelengthScale"])?;
+        let height = interpolate("significantHeightM")?
+            * number(&map["water"]["amplitudeScale"], "water.amplitudeScale")?;
+        let wavelength = interpolate("peakWavelengthM")?
+            * number(&map["water"]["wavelengthScale"], "water.wavelengthScale")?;
         if height < 0.0 || wavelength <= 0.0 || wind_mps < 0.0 {
-            return Err(invalid());
+            return Err(invalid(format!(
+                "resolved sea height {height} m, wavelength {wavelength} m and wind \
+                 {wind_mps} m/s: height and wind must be non-negative, wavelength positive"
+            )));
         }
+        let direction = number(&map["water"]["windDirection"], "water.windDirection")?;
         let sea = SeaState {
             // Hm0 = 4 sqrt(variance); our independent 0.7/0.3 sine components
             // have variance amplitude_m^2 * (0.7^2 + 0.3^2) / 2. The renderer
             // draws the same significant height in metres.
             amplitude_m: height / (4.0 * (0.58_f64 / 2.0).sqrt()),
             wavelength_m: wavelength * 4.0,
-            direction: number(&map["water"]["windDirection"])? * std::f64::consts::PI / 180.0,
+            direction: direction * std::f64::consts::PI / 180.0,
             wind_mps,
             phase: seed as f64 / 4294967295.0 * std::f64::consts::TAU,
         };
         let lane = 2100.0f64.max(((team_size - 1) as f64 / 2.0).ceil() * 650.0 + 1000.0);
-        let style = map["land"]["style"].as_str().ok_or_else(invalid)?;
+        let style = map["land"]["style"]
+            .as_str()
+            .ok_or_else(|| invalid("land.style is not a string".into()))?;
+        let recipes = map["land"]["islands"]
+            .as_array()
+            .ok_or_else(|| invalid("land.islands is not an array".into()))?;
         let mut islands = Vec::new();
-        for recipe in map["land"]["islands"].as_array().ok_or_else(invalid)? {
-            let rx = number(&recipe["rx"])?;
-            let rz = number(&recipe["rz"])?;
-            let seed = number(&recipe["seed"])?;
-            if rx <= 0.0
-                || rz <= 0.0
-                || !self
-                    .terrain
-                    .iter()
-                    .any(|f| f.seed == seed && f.style == style)
+        for recipe in recipes {
+            let id = recipe["id"]
+                .as_str()
+                .ok_or_else(|| invalid(format!("island id {} is not a string", recipe["id"])))?;
+            let rx = number(&recipe["rx"], "island rx")?;
+            let rz = number(&recipe["rz"], "island rz")?;
+            let seed = number(&recipe["seed"], "island seed")?;
+            if rx <= 0.0 || rz <= 0.0 {
+                return Err(invalid(format!(
+                    "island {id} radii rx {rx} m and rz {rz} m must be positive"
+                )));
+            }
+            if !self
+                .terrain
+                .iter()
+                .any(|f| f.seed == seed && f.style == style)
             {
-                return Err(invalid());
+                return Err(invalid(format!(
+                    "island {id} has no baked terrain for seed {seed}, style {style}; \
+                     rebuild content with bun scripts/multiplayer/content.ts"
+                )));
             }
             islands.push(Island {
-                id: recipe["id"].as_str().ok_or_else(invalid)?.into(),
-                x: number(&recipe["side"])? * (lane + rx * 1.25 + number(&recipe["offset"])?),
-                z: -distance / 2.0 + number(&recipe["along"])?,
+                id: id.into(),
+                x: number(&recipe["side"], "island side")?
+                    * (lane + rx * 1.25 + number(&recipe["offset"], "island offset")?),
+                z: -distance / 2.0 + number(&recipe["along"], "island along")?,
                 rx,
                 rz,
-                height: number(&recipe["height"])?,
+                height: number(&recipe["height"], "island height")?,
                 seed,
                 style: style.into(),
             });
@@ -428,10 +492,7 @@ mod sea_calibration_tests {
 
     #[test]
     fn wind_height_targets_and_interpolation_apply_to_every_map() {
-        let catalog = crate::catalog::Catalog::load(
-            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
-        )
-        .unwrap();
+        let catalog = crate::catalog::Catalog::installed();
         for map in catalog.maps["maps"].as_array().unwrap() {
             let id = map["id"].as_str().unwrap();
             let scale = map["water"]["amplitudeScale"].as_f64().unwrap();
@@ -481,6 +542,27 @@ mod sea_calibration_tests {
                 assert_eq!(legacy.wavelength_m, explicit.wavelength_m);
             }
         }
+    }
+
+    /// Broken installed content names the map, weather and entry it failed on.
+    #[test]
+    fn broken_environment_content_names_its_entry() {
+        let mut manifest: serde_json::Value =
+            serde_json::from_slice(&crate::catalog::installed_manifest()).unwrap();
+        let map = &mut manifest["maps"]["maps"][0];
+        let id = map["id"].as_str().unwrap().to_owned();
+        map["water"]["windScale"] = serde_json::json!("x");
+        let error = crate::catalog::Catalog::load(&serde_json::to_vec(&manifest).unwrap())
+            .err()
+            .expect("the manifest should be rejected")
+            .to_string();
+        assert_eq!(
+            error,
+            format!(
+                "Invalid content: environment for map {id:?}, weather \"map\": \
+                 water.windScale is \"x\", not a finite number"
+            )
+        );
     }
 
     #[test]

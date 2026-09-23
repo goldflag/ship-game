@@ -822,10 +822,7 @@ mod room_tests {
 
     #[test]
     fn cached_room_bounds_preserve_breach_assignment_at_faces_and_ties() {
-        let catalog = crate::catalog::Catalog::load(
-            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
-        )
-        .unwrap();
+        let catalog = crate::catalog::Catalog::load(&crate::catalog::installed_manifest()).unwrap();
         for id in ["valiant", "resolute"] {
             let def = &catalog.definitions[id];
             let index = crate::vessel::ShipIndex::new(def);

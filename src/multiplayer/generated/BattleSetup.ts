@@ -3,7 +3,16 @@ import type { AirRules } from "./AirRules";
 import type { MissionRules } from "./MissionRules";
 import type { ShipSetup } from "./ShipSetup";
 
-export type BattleSetup = { ships: Array<ShipSetup>, seed: number, mapId: string, weather: string, spawnDistance: number, windSpeed: number | null, missionRules?: MissionRules, 
+export type BattleSetup = { ships: Array<ShipSetup>, seed: number, mapId: string, weather: string, 
+/**
+ * Metres between the default spawn lines, 1000..=20000: team a at z = 0,
+ * team b at z = -spawnDistance, islands laid out around the midpoint.
+ */
+spawnDistance: number, 
+/**
+ * Metres per second, 0..=30; null takes the weather preset's wind.
+ */
+windSpeed: number | null, missionRules?: MissionRules, 
 /**
  * Omitted legacy setups explicitly resolve legacy-air-v1 from installed content.
  */

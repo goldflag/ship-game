@@ -7,7 +7,7 @@ use naval_sim::{
 use std::sync::{Arc, OnceLock};
 
 fn manifest() -> Vec<u8> {
-    std::fs::read("../../.build/naval-content/manifest.json").unwrap()
+    naval_sim::catalog::installed_manifest()
 }
 fn catalog() -> &'static Catalog {
     static CONTENT: OnceLock<Catalog> = OnceLock::new();

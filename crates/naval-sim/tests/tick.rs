@@ -19,10 +19,7 @@ type Content = (Arc<Catalog>, BTreeMap<String, Arc<CompiledShip>>);
 fn content() -> &'static Content {
     static CONTENT: OnceLock<Content> = OnceLock::new();
     CONTENT.get_or_init(|| {
-        let catalog = Arc::new(
-            Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                .unwrap(),
-        );
+        let catalog = Catalog::installed();
         let compiled = ["fletcher"]
             .into_iter()
             .map(|id| (id.to_owned(), Arc::new(catalog.compile(id).unwrap())))
@@ -262,4 +259,70 @@ fn a_new_wind_reshapes_the_sea_from_the_next_step() {
     battle.step(&BTreeMap::new());
     assert!(battle.set_wind(31.0, 0.0).is_err());
     assert!(battle.set_wind(10.0, f64::NAN).is_err());
+}
+
+/// A rejected setup names its field, value and allowed range: one message,
+/// "invalid environment content or selection", once hid a spawnDistance of 25000.
+#[test]
+fn a_rejected_setup_names_the_field_value_and_range() {
+    let (catalog, compiled) = content();
+    let rejection = |patch: serde_json::Value| {
+        let mut setup = serde_json::json!({
+            "ships": [
+                {"id":"own","presetId":"fletcher","team":"a","controller":"player","aiLevel":"normal","spawn":null},
+                {"id":"enemy","presetId":"fletcher","team":"b","controller":"bot","aiLevel":"static","spawn":null}
+            ],
+            "seed":1,"mapId":"north-atlantic","weather":"clear","spawnDistance":5000,"windSpeed":null
+        });
+        for (key, value) in patch.as_object().unwrap() {
+            setup[key] = value.clone();
+        }
+        let setup = serde_json::from_value(setup).unwrap();
+        Battle::new(catalog.clone(), compiled, setup)
+            .err()
+            .expect("the setup should be rejected")
+    };
+    let ship = |id: &str, preset: &str, team: &str, x: f64| {
+        serde_json::json!({"id":id,"presetId":preset,"team":team,"controller":"bot","aiLevel":"static",
+            "spawn":{"x":x,"z":0,"heading":0}})
+    };
+    assert_eq!(
+        rejection(serde_json::json!({"spawnDistance": 25000})),
+        "Invalid battle setup: spawnDistance 25000 outside 1000..=20000 m"
+    );
+    assert_eq!(
+        rejection(serde_json::json!({"windSpeed": 31})),
+        "Invalid battle setup: windSpeed 31 outside 0..=30 m/s"
+    );
+    let map = rejection(serde_json::json!({"mapId": "atlantis"}));
+    assert!(
+        map.starts_with(
+            "Invalid battle setup: unknown mapId \"atlantis\"; installed maps: north-atlantic"
+        ),
+        "{map}"
+    );
+    let weather = rejection(serde_json::json!({"weather": "hail"}));
+    assert!(
+        weather.contains("unknown weather \"hail\"; installed weather: map, clear"),
+        "{weather}"
+    );
+    assert_eq!(
+        rejection(serde_json::json!({"ships": [ship("own", "fletcher", "a", 0.)]})),
+        "Choose one to 30 ships per side; team a has 1, team b has 0"
+    );
+    assert_eq!(
+        rejection(serde_json::json!({"ships": [
+            ship("own", "fletcher", "a", 0.),
+            ship("enemy", "yamato", "b", 1000.)
+        ]})),
+        "Unknown ship preset \"yamato\" for ship \"enemy\"; compiled: fletcher"
+    );
+    assert_eq!(
+        rejection(serde_json::json!({"ships": [
+            ship("own", "fletcher", "a", 0.),
+            ship("enemy", "fletcher", "b", 200.)
+        ]})),
+        "Invalid fleet deployment: ship \"enemy\" at x 200, z 0 (heading 0 rad) is 200 m \
+         from ship \"own\"; keep ships 350 m apart"
+    );
 }

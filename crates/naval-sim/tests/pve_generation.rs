@@ -10,9 +10,7 @@ use std::{
 };
 fn catalog() -> &'static Catalog {
     static CONTENT: OnceLock<Catalog> = OnceLock::new();
-    CONTENT.get_or_init(|| {
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap()
-    })
+    CONTENT.get_or_init(|| Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap())
 }
 fn battle(plan: &PvePlan) -> naval_sim::battle::Battle {
     use std::{collections::BTreeMap, sync::Arc};

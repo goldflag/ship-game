@@ -12,12 +12,7 @@ use std::{
 };
 fn catalog() -> &'static Arc<Catalog> {
     static CATALOG: OnceLock<Arc<Catalog>> = OnceLock::new();
-    CATALOG.get_or_init(|| {
-        Arc::new(
-            Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                .unwrap(),
-        )
-    })
+    CATALOG.get_or_init(Catalog::installed)
 }
 struct Ride {
     roll_deg: f64,
