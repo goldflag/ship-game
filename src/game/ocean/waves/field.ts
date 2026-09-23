@@ -49,10 +49,27 @@ const TAIL_ROUGHNESS = .25;
 /** heightAt's inversion: at the calibrated 25 m/s storm a quarter of the surface nearly folds, and
  * six steps damped by 0.7 leave a 0.14 m 90th-percentile position residual (three plain steps: 1 m). */
 const INVERSION_STEPS = 6, INVERSION_DAMPING = .7;
+/** A wake's slick damps waves shorter than this (m): turbulence and the films it brings up still the capillary and
+ * short gravity waves, while the swell runs through. Each cascade loses its share of slope in them. */
+const SLICK_WAVELENGTH = 25;
+
+/** Share of each cascade's slope in waves shorter than SLICK_WAVELENGTH: the saturation range holds equal slope
+ * variance per octave, so it is the share of the band's octaves beyond the cut. */
+export function slickShares(cascades: readonly WaveCascadeInfo[]): number[] {
+  return cascadeBands(cascades).map((band, i) => {
+    const lo = i ? band.lo : 2 * Math.PI / cascades[0].size, cut = Math.max(lo, 2 * Math.PI / SLICK_WAVELENGTH);
+    return Math.max(0, Math.log(band.hi / cut) / Math.log(band.hi / lo));
+  });
+}
 
 /** A texture read without three's uv matrix: a bare texture node's first `.sample()` or `.load()`
  * otherwise gets its own matrix uniform, a per-draw update and a multiply. */
 const direct = (node: TextureMap): TextureMap => { node.updateMatrix = false; return node; };
+
+/** Scales a slope or slope variance by what a slick of strength `calm` leaves of waves holding `share` of it in the
+ * short waves it damps; without a slick the node is returned untouched. */
+type Stilled = <T extends Node<'float'> | Node<'vec2'>>(value: T, share: Float | number) => T;
+const slick = (calm?: Float): Stilled => (value, share) => (calm && share !== 0 ? value.mul(float(1).sub(calm.mul(share))) : value) as typeof value;
 
 /** e^{iθ}-rotation of two packed complex numbers (xy, zw). */
 const rotate = (value: Vec4, c: Float, s: Float): Vec4 => value.mul(c).add(vec4(value.y.negate(), value.x, value.w.negate(), value.z).mul(s));
@@ -123,6 +140,8 @@ export class GpuWaveField implements WaveField {
   private readonly tailFull = uniform(0);
   /** Each cascade's whole slope variance, which becomes roughness where it cannot be filtered. */
   private readonly slopes: ReturnType<typeof floatUniform>[];
+  /** What a slick damps of each cascade (`slickShares`); it follows the tiles. */
+  private readonly slickShares: ReturnType<typeof floatUniform>[];
   private lastPhase = -1;
 
   /** `tier` is the quality tier's layout; `realism.seaState` is read live, and flipping it rebuilds. */
@@ -136,6 +155,7 @@ export class GpuWaveField implements WaveField {
     this.tiles = tier.map(floatUniform);
     this.texels = tier.map(floatUniform);
     this.longestWaves = tier.map(floatUniform);
+    this.slickShares = tier.map(floatUniform);
     this.wavenumbers = uniformArray(tier.map(() => 0), 'float');
     this.seaState = realism.seaState;
     this.sea = drawnSea(params, this.seaState);
@@ -181,7 +201,9 @@ export class GpuWaveField implements WaveField {
     const bands = cascadeBands(cascades), count = cascades.length, finest = bands[count - 1];
     this.cascades = cascades;
     this.longest = bands.map((band, i) => i ? 2 * Math.PI / band.lo : cascades[0].size);
+    const shares = slickShares(cascades);
     cascades.forEach((cascade, i) => {
+      this.slickShares[i].value = shares[i];
       this.tiles[i].value = cascade.size;
       this.texels[i].value = this.size / cascade.size;
       this.longestWaves[i].value = this.longest[i];
@@ -278,11 +300,13 @@ export class GpuWaveField implements WaveField {
     }, vec3(0));
   }
 
-  surface(xz: Node<'vec2'>): WaveSurfaceSample {
+  surface(xz: Node<'vec2'>, calm?: Float): WaveSurfaceSample {
     // The pixel's footprint on the grid (m), as the anisotropic filter resolves it.
     const across = dFdx(xz).length(), down = dFdy(xz).length();
     const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
-    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), variance: Float = this.tail, unresolved: Float = this.tailFull;
+    const stilled = slick(calm);
+    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0);
+    let variance: Float = stilled(this.tail, 1), unresolved: Float = stilled(this.tailFull, 1);
     this.tier.forEach((_, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
       // last level (slopes, strain and foam alike, which would otherwise repeat with the tile); its
@@ -294,10 +318,10 @@ export class GpuWaveField implements WaveField {
       // finer tile's few whitecaps from repeating in a visible lattice.
       const crests = i ? smoothstep(CREST_MODULATION, -CREST_MODULATION, strain.x.add(strain.y)) : float(1);
       foam = foam.add(extras.y.mul(detail).mul(crests));
-      slope = slope.add(derivatives.xy.mul(detail));
+      slope = slope.add(stilled(derivatives.xy.mul(detail), this.slickShares[i]));
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
       const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
-      const cascadeVariance = mix(this.slopes[i], filtered, detail);
+      const cascadeVariance = stilled(mix(this.slopes[i], filtered, detail), this.slickShares[i]);
       variance = variance.add(cascadeVariance);
       unresolved = unresolved.add(cascadeVariance);
     });
@@ -306,7 +330,7 @@ export class GpuWaveField implements WaveField {
     const xx = strain.x.add(1), zz = strain.y.add(1), cross = strain.z;
     const jacobian = xx.mul(zz).sub(cross.mul(cross));
     const world = vec2(zz.mul(slope.x).sub(cross.mul(slope.y)), xx.mul(slope.y).sub(cross.mul(slope.x))).div(max(jacobian, MIN_JACOBIAN));
-    const ripples = this.ripples(xz, footprint);
+    const ripples = this.ripples(xz, footprint, stilled);
     return { slope: world.add(ripples.slope), jacobian, foam, slopeVariance: variance.add(ripples.variance), unresolvedVariance: unresolved.add(ripples.unresolved) };
   }
 
@@ -317,7 +341,7 @@ export class GpuWaveField implements WaveField {
    * change to the total: the share of the tail's roughness they draw as resolved slopes (the game's steep seas can
    * leave no tail; the ripples then only add detail). `unresolved` is the same change to `unresolvedVariance`, whose
    * tail is whole. A single cascade holds the peak, which is not self-similar. */
-  private ripples(xz: Node<'vec2'>, footprint: Float): { slope: Node<'vec2'>; variance: Float; unresolved: Float } {
+  private ripples(xz: Node<'vec2'>, footprint: Float, stilled: Stilled): { slope: Node<'vec2'>; variance: Float; unresolved: Float } {
     if (this.tier.length < 2) return { slope: vec2(0), variance: float(0), unresolved: float(0) };
     const finest = this.tier.length - 1, size = this.rippleTile;
     const level = log2(footprint.mul(this.rippleTexels)).max(0);
@@ -326,7 +350,11 @@ export class GpuWaveField implements WaveField {
     // Each mip level averages away about one octave of the band's slopes, which then stay roughness.
     const resolved = float(1).sub(level.div(this.top)).max(0);
     const drawn = resolved.mul(shown).negate();
-    return { slope: read.xy.mul(shown), variance: min(this.slopes[finest], this.tail).mul(drawn), unresolved: min(this.slopes[finest], this.tailFull).mul(drawn) };
+    return {
+      slope: stilled(read.xy.mul(shown), 1),
+      variance: stilled(min(this.slopes[finest], this.tail).mul(drawn), 1),
+      unresolved: stilled(min(this.slopes[finest], this.tailFull).mul(drawn), 1),
+    };
   }
 
   heightAt(xz: Node<'vec2'>): Float {

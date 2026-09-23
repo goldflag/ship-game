@@ -259,10 +259,11 @@ physics, costs and diagnostics are in the ocean README; `bun scripts/browser/oce
 
 **Trail foam** (`src/game/WakeFoam.ts`, `src/game/FleetWakeFoam.ts`): each ship records a position,
 heading, speed and birth time at most every **3 m** of hull-end travel, including the arc swept
-during turns, which keeps foam attached to the stern even when the ship's centre moves slowly. Three
-stern streams merge and widen with age, while bow-shoulder foam moves sideways from the recorded
-course. Old samples keep their original heading through turns. Coverage decays over **23 seconds**,
-with a smooth cutoff at **55 seconds**, and slow world-space turbulence breaks up the outline.
+during turns, which keeps foam attached to the stern even when the ship's centre moves slowly. With
+`ocean.realism.wake` off (the look first tuned to match the replaced ocean library), three stern
+streams merge and widen with age, while bow-shoulder foam moves sideways from the recorded course.
+Old samples keep their original heading through turns. Coverage decays over **23 seconds**, with a
+smooth cutoff at **55 seconds**, and slow world-space turbulence breaks up the outline.
 Emission follows motion, reverses its trailing end when sailing astern, fades to nothing 3 m below the
 surface and restarts after a move of over 100 m. Shell splashes and aircraft crashes add short-lived
 foam rings. For constructed ships, emitters use the compiled hull-volume bounds and their local
@@ -273,6 +274,54 @@ refreshed at most **20 times per second**, or 5 times when the hull is more than
 apparent distance. An **8 × 8 atlas** keeps one texture binding for up to 64 trails; a larger battle
 keeps the focus hull and the trails nearest to it. `WakeFoamGpu` paints the stamps into the atlas on
 the GPU with max blending; overlapping samples use maximum coverage rather than additive buildup.
+
+### Realistic wake
+
+`ocean.realism.wake` (on by default; the developer console's **Toggle realistic wakes**) draws what a
+warship at speed leaves instead of the translucent streams: churned white water behind the stern,
+bubble clouds under it and a slick that outlasts both. `ShipWake` binds its sampler on the switch
+(one recompile of the surface); off, the sampler, stamps and shading are the original ones exactly.
+
+- **Churned water.** Each trail sample lays a band about a beam wide at the stern (half-width
+  **0.45 beam**), widening by **0.13 beam × √(metres run since ÷ beam)**, as two half-band stamps whose
+  widths bulge and draw in by **±35%** along the track, a beam or two per lobe, so the outline is
+  ragged rather than a painted strip. Its turbulence goes as smooth(speed ÷ full speed)^**1.3**, so a
+  slow hull leaves little white water; a hard turn adds up to **60%** (turn rate × length ÷ speed), and
+  it decays with a **24 s** e-folding time, gone by 55 s. The surface covers the share of world-anchored
+  eddies (9 m down to 1.5 m) that the turbulence sets, up to **88%**: nearly all white behind the stern,
+  torn at its edge, breaking into patches as it decays. Where the eddies fall below a pixel it takes
+  their mean coverage, so a distant wake keeps its brightness instead of dissolving into speckle. A
+  2.5 m warp frays the outline. The field's hull foam, the analytic bow white water and torpedo tracks
+  share the surface's churned-water shading (up to 0.97 opaque instead of 0.75).
+- **Bubble clouds.** The same turbulence, torn a little further, puts bubble clouds under the churned
+  water, at most **60%** of the water body: turquoise, from the absorption colour over 2 m of water
+  down and back (see the ocean README).
+- **Slick.** Samples every **18 m** also paint a slick that lasts **4 minutes**: half-width
+  **0.55 beam**, widening by **0.2 beam × √(metres run ÷ beam)**, fading with an **80 s** e-folding
+  time. It stills **75%** of the waves shorter than 25 m and of the unresolved roughness, so the band
+  reads smoother than the sea around it, brighter or darker with what it mirrors; where it crosses the
+  centre of the sun's glitter it mirrors the sun in broken highlights (at 95% it made one blown-out
+  patch). A faint bubble residue (**8%**) keeps an old wake a shade lighter from the air. The slick follows turns, fades after a stop and is cleared with
+  the trail; a hull 3 m under water leaves none.
+
+The atlas is **RG8**: red holds each hull's foam, or its turbulence, on the 1,536 m square around it
+as before; green holds its slick on a **4,096 m** square (16 m cells at 256²) centred on the trail it
+holds, up to 42% of its edge from the hull, so a straight run keeps about 3.7 km. Each trail records
+the boxes its stamps painted in each channel: the sampler tests a tile's union box once, reads a channel
+only inside its own box and square, and skips every tile outside all trails, so the cost follows the
+trails' area. A sample lays two churn stamps plus a slick stamp every six, fewer than the original
+trail's three per sample. `game.shipWake.trailTuning.stamps` (applied as trails repaint) and
+`.shading` (next frame) retune it live.
+
+Measured on an Apple GPU at 1600 × 900 (High), switching the realism on and off in alternating blocks
+in one page (`.build` scratch drivers; the surface timed alone and whole frames, paired per round):
+
+- One hull, chase view: no measurable cost (the surface alone +0.1 ms, interquartile −0.4…0.4 ms;
+  whole frames within ±0.4 ms). `ShipWake.update` takes 0.08 ms of CPU in both modes.
+- Sixty hulls with their trails in view: the surface costs about 0.3 ms more GPU time on an idle
+  GPU, up to 1.6 ms (interquartile 0.4…4 ms) while other work shares it. `ShipWake.update` takes
+  0.2–0.3 ms in both modes. A trail lays 8–10% fewer stamps than the original one (Bismarck at full
+  speed: 719 against 782 per refresh). The atlas doubles to 8 MB (2 MB on Low).
 
 **Torpedo tracks** (`src/game/TorpedoTrackFoam.ts`): exhaust released at running depth rises at
 1.5 m/s, so a track begins astern of the round, stays where it was laid and outlives it (30 s).
@@ -287,16 +336,20 @@ Checks:
 - `/scripts/diagnostics/ship-wake.html` sails a real battle's Bismarck through `Game.frame` with a
   controlled clock and helm and reads the GPU trail atlas back: no foam at rest, visible foam 262 m
   astern at speed, a trail that widens with age, exact preservation through a paused camera orbit,
-  retention through a turn, fading after the engines stop and clearing in port.
-  `window.wakeDiagnostic.passed` must be true; `?quality=` selects the tier.
+  retention through a turn, fading after the engines stop and clearing in port. The realistic wake
+  also needs a slick that outlasts the churned water astern and stays after the stop; `?realism=off`
+  checks the original trail. `window.wakeDiagnostic.passed` must be true; `?quality=` selects the tier.
 - `/scripts/diagnostics/wake-foam-gpu.html` compares the GPU atlas with the CPU reference raster
-  (`src/game/testing/wakeFoam.ts`), both raw coverage and the world-space sampler the water uses,
-  through turns, pause, teleport, tile reassignment and reset. `window.result.passed` must be true;
-  comparing a manually flipped readback alone would miss an upside-down atlas.
+  (`src/game/testing/wakeFoam.ts`), both raw coverage (both channels) and the world-space sampler the
+  water uses, through turns, pause, teleport, tile reassignment and reset, for the original and the
+  realistic trail. `window.result.passed` must be true; comparing a manually flipped readback alone
+  would miss an upside-down atlas.
 - `/scripts/diagnostics/torpedo-trail.html` lays synthetic torpedo runs through the real track layer
   for review captures (`trailFixture(degrees, depth, seconds, turnAt, view)`).
 - Unit tests cover 60 independent trails, a stopped player, submerged ships, per-ship teleports, tile
-  reassignment, the generator limit, fleet replacement and port cleanup.
+  reassignment, the generator limit, fleet replacement and port cleanup, in both trails; the realistic
+  band's width, continuity and decay, the slick's reach and square-root widening, speed scaling, the
+  painted boxes the sampler relies on, and the live switch.
 
 ### Bow waves
 
@@ -468,7 +521,9 @@ continuous CPU height function, so very close grazing contacts remain approximat
 
 `bun scripts/browser/ocean-review.ts --tag <name>` renders the fixed scenes of
 `/scripts/diagnostics/ocean-review.html` (port, near, wide, grazing, sun, storm, calm, dusk, night,
-islands, 5 and 20 km zoom, air, submerged, periscope and a ninety-second wake) into
+islands, 5 and 20 km zoom, air, submerged, periscope, a ninety-second wake, and wakes seen from 2 km
+up after three minutes, close astern, through a turn, behind a destroyer and across the morning
+glitter: `wakeAir`, `wakeStern`, `wakeTurn`, `wakeDestroyer`, `wakeGlint`) into
 `.build/ocean-review/<name>/`; `--measure` adds serialised frame costs and `--param realism=off` renders
 the look tuned to the replaced library. Compare a change against a baseline tag. Other GPU work on the
 machine moves frame times by several milliseconds: compare shading costs by flipping

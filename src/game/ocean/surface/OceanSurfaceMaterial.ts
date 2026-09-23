@@ -42,6 +42,12 @@ const STREAK_EDGE = .1;
 const WAKE_START = .05, WAKE_FULL = .6, WAKE_EDGE = .8;
 /** Opacity of the densest churned water: a trail is aerated water the sea shows through, not a painted sheet. */
 const WAKE_OPACITY = .75;
+/** The realistic wake's churned water (a sampler with a slick): nearly opaque white water whose ragged edge the
+ * sampler already tears, so the lace only frays what thins. */
+const CHURN_START = 0, CHURN_FULL = 1, CHURN_EDGE = .8, CHURN_OPACITY = .97;
+/** Bubble clouds under churned water: a diffuse layer of this albedo relative to foam, seen through this many metres
+ * of water down and back up, which takes the red first: the turquoise under a warship's wake. */
+const BUBBLE_ALBEDO = .4, BUBBLE_PATH = 2;
 /** Water column (m) over which shoreline foam fades out, and its soft edge: a thin line along a hull. */
 const SHORE_DEPTH = .8, SHORE_EDGE = .4;
 /** Camera depth (m) over which the surface seen from below dims by e. */
@@ -235,7 +241,8 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     this.positionNode = vec3(grid.x.add(offset.x), offset.y.add(wake.height(grid.x, grid.y)), grid.y.add(offset.z));
 
     const xz = varying(grid, 'oceanGrid');
-    const sample = waves.surface(xz);
+    // A wake's slick stills the short waves: their slopes and the roughness they leave unresolved.
+    const sample = waves.surface(xz, wake.slick?.(xz.x, xz.y));
     const toCamera = cameraPosition.sub(positionWorld), distance = toCamera.length(), view = toCamera.div(distance);
     const wakeNormal = wake.normal(xz.x, xz.y);
     const up = surfaceNormal(sample.slope, wakeNormal);
@@ -293,10 +300,15 @@ export class OceanSurfaceMaterial extends NodeMaterial {
       .mul(reference('opacity', 'float', foam.surface));
     const crestFoam = crestFoamOpacity(sample.foam, lace, blur).mul(reference('opacity', 'float', foam.crest));
     // Churned water is soft-edged and puffy where the trail's energy thins, not cut into lace.
-    const wakeFoam = foamOpacity(smoothstep(WAKE_START, WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur, WAKE_EDGE).mul(WAKE_OPACITY);
+    const churned = wake.slick !== undefined;
+    const wakeFoam = foamOpacity(smoothstep(churned ? CHURN_START : WAKE_START, churned ? CHURN_FULL : WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur,
+      churned ? CHURN_EDGE : WAKE_EDGE).mul(churned ? CHURN_OPACITY : WAKE_OPACITY);
     // Where the water column behind the surface thins to nothing: a beach, or the line along a hull.
     const shoreFoam = foamOpacity(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), lace, blur, SHORE_EDGE).mul(reference('opacity', 'float', foam.shoreline));
     const crestColor = rgb(foam.crest.color).mul(foamLight);
+    // Bubble clouds just under churned water scatter daylight back up through it, in place of the water body.
+    if (wake.bubbles) above = above.add(crestColor.mul(transmittance(absorption, float(BUBBLE_PATH))).mul(BUBBLE_ALBEDO).sub(body)
+      .mul(wake.bubbles(xz.x, xz.y).mul(float(1).sub(reflectance))));
     above = mix(above, rgb(foam.surface.color).mul(foamLight), surfaceFoam.clamp(0, 1));
     above = mix(above, crestColor, max(crestFoam, wakeFoam).clamp(0, 1));
     above = mix(above, rgb(foam.shoreline.color).mul(foamLight), shoreFoam.clamp(0, 1));

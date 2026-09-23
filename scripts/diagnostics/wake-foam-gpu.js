@@ -7,49 +7,64 @@ import { FleetWakeFoam } from '/src/game/FleetWakeFoam.ts';
 import { cpuWakeFoamPainter } from '/src/game/testing/wakeFoam.ts';
 const renderer=new THREE.WebGPURenderer(); await renderer.init();
 document.body.append(renderer.domElement);
-const resolution=256,tiles=2,raster=new WakeFoamGpu(renderer,resolution,tiles);
-const collectors=Array.from({length:4},()=>new WakeStampCollector());
-const cpu=collectors.map(()=>new WakeFoam(resolution));
-const retained=collectors.map(c=>new WakeFoam(resolution,undefined,c));
-const states=collectors.map((_,i)=>({x:i*2100,z:0,heading:i*.7,speed:12}));
+const resolution=256,tiles=2;
 const checks=[];
 try {
-  for(let tick=0;tick<1200;tick++) {
-    for(let i=0;i<4;i++) {
-      const state=states[i];state.heading=Math.sin(tick*.007+i)*1.5;
-      state.x+=Math.sin(state.heading)*state.speed*.05;state.z-=Math.cos(state.heading)*state.speed*.05;
-      if(tick%41===0)for(const foam of [cpu[i],retained[i]])foam.splash(state.x+Math.sin(tick)*30,state.z+Math.cos(tick)*50,.38);
-      cpu[i].update(state,.05);retained[i].update(state,.05);
-    }
-    if(![0,1,100,500,1199].includes(tick))continue;
-    raster.update(collectors);
-    const pixels=await renderer.readRenderTargetPixelsAsync(raster.target,0,0,resolution*tiles,resolution*tiles);
-    let max=0,changed=0,overOne=0;
-    for(let i=0;i<4;i++)for(let y=0;y<resolution;y++)for(let x=0;x<resolution;x++) {
-      const actual=pixels[(Math.floor(i/tiles)*resolution+y)*resolution*tiles+(i%tiles)*resolution+x];
-      const expected=cpu[i].texture.image.data[y*resolution+x],difference=Math.abs(actual-expected);
-      max=Math.max(max,difference);changed+=difference>0;overOne+=difference>1;
-    }
-    checks.push({tick,max,changed,overOne,stamps:collectors.reduce((n,c)=>n+c.count,0)});
-  }
-  const fleet=await checkFleet(renderer);
+  // The trail first tuned to match the replaced library paints one channel; the realistic trail adds its slick.
+  for(const realistic of [false,true]) checks.push(...await checkRaster(realistic));
+  const fleet=[...await checkFleet(renderer,false),...await checkFleet(renderer,true)];
   window.result={passed:checks.every(c=>c.overOne===0)&&fleet.every(c=>c.overOne===0),checks,fleet};
 }catch(error){window.result={error:String(error),checks};throw error;}
-finally{raster.dispose();cpu.forEach(f=>f.dispose());retained.forEach(f=>f.dispose());renderer.dispose();}
+finally{renderer.dispose();}
 
-async function checkFleet(renderer) {
+/** Four trails through turns and splashes: the GPU atlas against each trail's CPU reference raster (red, and the
+ * slick in green when realistic). */
+async function checkRaster(realistic) {
+  const channels=realistic ? 2 : 1, raster=new WakeFoamGpu(renderer,resolution,tiles,channels);
+  const collectors=Array.from({length:4},()=>new WakeStampCollector());
+  const cpu=collectors.map(()=>new WakeFoam(resolution));
+  const retained=collectors.map(c=>new WakeFoam(resolution,undefined,c));
+  for(const foam of [...cpu,...retained]) foam.realistic=realistic;
+  const states=collectors.map((_,i)=>({x:i*2100,z:0,heading:i*.7,speed:12}));
+  const results=[];
+  try {
+    for(let tick=0;tick<1200;tick++) {
+      for(let i=0;i<4;i++) {
+        const state=states[i];state.heading=Math.sin(tick*.007+i)*1.5;
+        state.x+=Math.sin(state.heading)*state.speed*.05;state.z-=Math.cos(state.heading)*state.speed*.05;
+        if(tick%41===0)for(const foam of [cpu[i],retained[i]])foam.splash(state.x+Math.sin(tick)*30,state.z+Math.cos(tick)*50,.38);
+        cpu[i].update(state,.05);retained[i].update(state,.05);
+      }
+      if(![0,1,100,500,1199].includes(tick))continue;
+      raster.update(collectors);
+      const pixels=await renderer.readRenderTargetPixelsAsync(raster.target,0,0,resolution*tiles,resolution*tiles);
+      let max=0,changed=0,overOne=0;
+      for(let i=0;i<4;i++)for(let y=0;y<resolution;y++)for(let x=0;x<resolution;x++)for(let c=0;c<channels;c++) {
+        const actual=pixels[((Math.floor(i/tiles)*resolution+y)*resolution*tiles+(i%tiles)*resolution+x)*channels+c];
+        const expected=(c ? cpu[i].slickPixels : cpu[i].texture.image.data)[y*resolution+x],difference=Math.abs(actual-expected);
+        max=Math.max(max,difference);changed+=difference>0;overOne+=difference>1;
+      }
+      results.push({realistic,tick,max,changed,overOne,stamps:collectors.reduce((n,c)=>n+c.count,0)});
+    }
+    return results;
+  } finally {raster.dispose();cpu.forEach(f=>f.dispose());retained.forEach(f=>f.dispose());}
+}
+
+async function checkFleet(renderer,realistic) {
   const cpu=new FleetWakeFoam(256,cpuWakeFoamPainter),gpu=new FleetWakeFoam(256,gpuWakeFoamPainter(renderer)),camera=new THREE.PerspectiveCamera(52,1,.5,60000);
+  cpu.realistic=gpu.realistic=realistic;
   // Read through the same world-space sampler used by the water material. Raw
   // atlas readback alone can hide a vertically inverted render target.
   const center=uniform(new THREE.Vector2());
-  const sampleTarget=new THREE.RenderTarget(128,128,{format:THREE.RedFormat,depthBuffer:false});
+  const sampleTarget=new THREE.RenderTarget(128,128,{depthBuffer:false});
   const sampleCamera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
   const sampleScenes=[cpu,gpu].map(foam=>{
     const world=uv().sub(.5).mul(400).add(center);
     const material=new THREE.MeshBasicNodeMaterial({depthTest:false,depthWrite:false});
     material.toneMapped=false;
     material.vertexNode=vec4(positionLocal.xy,0,1);
-    material.fragmentNode=vec4(foam.sample(world.x,world.y),0,0,1);
+    const read=realistic ? foam.read(world.x,world.y) : undefined;
+    material.fragmentNode=realistic ? vec4(read.x,read.y,read.z,1) : vec4(foam.sample(world.x,world.y),0,0,1);
     const scene=new THREE.Scene();scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),material));return scene;
   });
   const ships=Array.from({length:30},(_,i)=>({root:new THREE.Group(),motion:{x:i*2000,y:0,z:0,heading:0,speed:i===0?0:12},
@@ -57,14 +72,14 @@ async function checkFleet(renderer) {
   const checks=[];camera.position.set(0,1000,6000);
   const inspect=async(label,active=ships)=>{
     const target=gpu.painter.target,size=target.width,res=256;
-    const pixels=await renderer.readRenderTargetPixelsAsync(target,0,0,size,size);
-    let max=0,overOne=0,ink=0;
-    for(let slot=0;slot<active.length;slot++)for(let y=0;y<res;y++)for(let x=0;x<res;x++){
-      const row=Math.floor(slot/8)*res+y,col=slot%8*res+x;
-      const actual=pixels[row*size+col],expected=cpu.texture.image.data[row*size+col];
-      const delta=Math.abs(actual-expected);max=Math.max(max,delta);overOne+=delta>1;ink+=actual>0;
+    const pixels=await renderer.readRenderTargetPixelsAsync(target,0,0,size,size),channels=pixels.length/(size*size);
+    let max=0,overOne=0,ink=0,slick=0;
+    for(let slot=0;slot<active.length;slot++)for(let y=0;y<res;y++)for(let x=0;x<res;x++)for(let c=0;c<channels;c++){
+      const row=Math.floor(slot/8)*res+y,col=slot%8*res+x,index=(row*size+col)*channels+c;
+      const actual=pixels[index],expected=cpu.texture.image.data[index];
+      const delta=Math.abs(actual-expected);max=Math.max(max,delta);overOne+=delta>1;if(c)slick+=actual>0;else ink+=actual>0;
     }
-    checks.push({label,max,overOne,ink});
+    checks.push({realistic,label,max,overOne,ink,slick});
     for(const ship of [active[1],active.at(-1)].filter(Boolean)) {
       center.value.set(ship.motion.x,ship.motion.z);
       const images=[];
@@ -76,7 +91,7 @@ async function checkFleet(renderer) {
       for(let i=0;i<images[0].length;i++) {
         const delta=Math.abs(images[0][i]-images[1][i]);max=Math.max(max,delta);overOne+=delta>1;ink+=images[0][i]>0;
       }
-      checks.push({label:`${label} world sampler`,max,overOne,ink});
+      checks.push({realistic,label:`${label} world sampler`,max,overOne,ink});
     }
   };
   const step=(dt,active=ships,events=[])=>{cpu.update(active,dt,events,camera);gpu.update(active,dt,events,camera);};
