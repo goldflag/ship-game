@@ -77,8 +77,9 @@ export interface WaveField {
   /** Vertex stage: world displacement (x, y, z) of the grid point `xz`. `spacing` is the local
    * vertex spacing in metres; waves it cannot represent are faded out instead of aliasing. */
   displacement(xz: Node<'vec2'>, spacing?: Node<'float'>): Node<'vec3'>;
-  /** Fragment stage: slope, jacobian, foam and unresolved variance at grid point `xz`. */
-  surface(xz: Node<'vec2'>): WaveSurfaceSample;
+  /** Fragment stage: slope, jacobian, foam and unresolved variance at grid point `xz`. `calm` (0–1) is the share of
+   * the short waves a wake's slick has damped: their slopes and the roughness they leave unresolved drop by it. */
+  surface(xz: Node<'vec2'>, calm?: Node<'float'>): WaveSurfaceSample;
   /** Any stage: surface height at a world position, inverting the choppy displacement with a
    * few fixed-point steps. Used by overlays laid on the sea and the waterline test. */
   heightAt(xz: Node<'vec2'>): Node<'float'>;
@@ -119,7 +120,8 @@ export interface WaveHeightSampler {
   dispose(): void;
 }
 
-/** The wake field as the surface material reads it. Outside the field every read is calm. */
+/** The wake field as the surface material reads it. Outside the field every read is calm. A sampler with a slick is
+ * the realistic wake (`OceanRealism.wake`): the surface shades its foam as dense churned water. */
 export interface WakeSampler {
   /** Vertical displacement in metres at a world position. */
   height(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
@@ -129,6 +131,9 @@ export interface WakeSampler {
   foam(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
   /** Calm-slick strength 0–1 behind hulls, where turbulence has damped the short waves; absent reads as none. */
   slick?(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
+  /** Density 0–1 of the bubble clouds just under churned water, which light the water body turquoise; absent reads
+   * as none. */
+  bubbles?(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
 }
 
 export interface WakeGeneratorOptions {

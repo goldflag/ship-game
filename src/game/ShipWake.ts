@@ -2,7 +2,7 @@ import { Vector2, Vector3, type Camera } from 'three/webgpu';
 import { max } from 'three/tsl';
 import { FleetWakeFoam, WAKE_ATLAS_CAPACITY, type WakeShip } from './FleetWakeFoam';
 import type { CombatEvent } from '../game/session/elements';
-import type { OceanApi, WakeFieldApi } from './ocean/contracts';
+import type { OceanApi, OceanRealism, WakeFieldApi, WakeSampler } from './ocean/contracts';
 import { wakeHull } from './wakeHull';
 import { TorpedoTrackFoam } from './TorpedoTrackFoam';
 import type { WakeFoamPainterFactory } from './WakeFoamGpu';
@@ -19,11 +19,15 @@ export class ShipWake {
   /** Analytic bow crest and Kelvin V, sharper than the wake field's cells. */
   readonly bowWaves = new BowWaves();
   private eventSequence = 0;
+  /** Whether the bound sampler is the realistic wake. */
+  private realistic?: boolean;
 
   /** `painter` draws the trail and torpedo foam: `gpuWakeFoamPainter(renderer)` in the game. `meshSpacing` is the
    * finest water-mesh vertex spacing, which limits the displaced bow wave's sharpness; `viewportHeight` is the
-   * drawing buffer's height in pixels, below which bow wave features fade. */
-  constructor(private readonly ocean: Pick<OceanApi, 'wake' | 'setWakeSampler'>, painter: WakeFoamPainterFactory,
+   * drawing buffer's height in pixels, below which bow wave features fade. The ocean's `realism.wake` switches the
+   * realistic trail (churned water, bubble clouds, slick) live; without it the trail keeps the look first tuned to
+   * match the replaced ocean library. */
+  constructor(private readonly ocean: Pick<OceanApi, 'wake' | 'setWakeSampler'> & { readonly realism?: Pick<OceanRealism, 'wake'> }, painter: WakeFoamPainterFactory,
     private readonly meshSpacing?: () => number, private readonly viewportHeight?: () => number) {
     const wake = this.wake = ocean.wake;
     // A 1.5 km field centred on the focus hull keeps a 250 m hull's whole trail while the
@@ -39,17 +43,29 @@ export class ShipWake {
     this.foam = new FleetWakeFoam(wake.resolution ? Math.min(wake.resolution, 256) : 128, painter);
     // A bubble track is a few metres wide: finer than any fleet wake cell.
     this.torpedoTracks = new TorpedoTrackFoam(1024, painter);
+    this.bindSampler();
+  }
+
+  /** Bind the surface's wake to the ocean's realism switch; a change recompiles the surface once. */
+  private bindSampler(): void {
+    const realistic = this.ocean.realism?.wake ?? false;
+    if (realistic === this.realistic) return;
+    this.realistic = this.foam.realistic = realistic;
     // The surface shades the wake's swell and the analytic bow waves with the ocean's own
     // lighting; the game adds its trail, torpedo and bow foam on top of the field's breaking foam.
-    const field = wake.sampler;
-    ocean.setWakeSampler({
+    const field = this.wake.sampler;
+    const trail: WakeSampler['foam'] = realistic ? (x, z) => this.foam.read(x, z).x : (x, z) => this.foam.sample(x, z);
+    this.ocean.setWakeSampler({
       height: (x, z) => field.height(x, z).add(this.bowWaves.height(x, z)),
       normal: (x, z) => this.bowWaves.normal(field.normal(x, z), x, z),
-      foam: (x, z) => max(max(max(field.foam(x, z), this.foam.sample(x, z)), this.torpedoTracks.sample(x, z)), this.bowWaves.foam(x, z)),
+      foam: (x, z) => max(max(max(field.foam(x, z), trail(x, z)), this.torpedoTracks.sample(x, z)), this.bowWaves.foam(x, z)),
+      // The realistic trail also lights the water under its churned band and stills the short waves along its slick.
+      ...(realistic ? { bubbles: (x, z) => this.foam.read(x, z).y, slick: (x, z) => this.foam.read(x, z).z } satisfies Partial<WakeSampler> : {}),
     });
   }
 
   update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[] = [], camera?: Camera, torpedoes: readonly Pick<Torpedo, 'id' | 'position' | 'velocity'>[] = []): void {
+    this.bindSampler();
     const freshEvents = events.filter(event => event.sequence > this.eventSequence);
     for (const event of freshEvents) this.eventSequence = Math.max(this.eventSequence, event.sequence);
     const focus = ships[0]?.motion;
