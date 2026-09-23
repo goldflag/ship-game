@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { Fn, attribute, cameraPosition, float, mix, positionWorld, smoothstep, texture3D, uv, vec3, vec4 } from 'three/tsl';
+import { Fn, attribute, cameraPosition, cameraProjectionMatrix, float, mix, positionWorld, screenSize, smoothstep, texture3D, uv, vec3, vec4 } from 'three/tsl';
 import type { EffectLighting } from './EffectLighting';
 
 /** Flame tongues for `FireBatch` in `flame` mode: an animated, tapering tongue whose temperature
@@ -42,15 +42,17 @@ export function fireFlameMaterial(noise: THREE.Data3DTexture): THREE.MeshBasicNo
 
 /** Smoke puffs for `FireBatch` in `smoke` mode, shaded as lumpy spheres in the scene's light.
  *
- * Coherent 3D noise gives each puff billowing relief (a sphere normal bent by the noise's
- * screen-space gradient), the sun or moon lights the facing side through `EffectLighting`, sky fill
- * reaches the shaded folds and backlit edges thin and brighten. Young puffs near the fire carry an
- * orange underglow on their downward faces. Edges fade into decks, hulls and the sea by depth. */
+ * Coherent 3D noise gives each puff billowing relief, the sun or moon lights the facing side through
+ * `EffectLighting`, sky fill reaches the shaded folds and backlit edges thin and brighten. Young puffs
+ * near the fire carry an orange underglow on their downward faces. Edges fade into decks, hulls and
+ * the sea by depth.
+ *
+ * Detail follows the puff's size on screen: a puff a few pixels across keeps only its broad shape
+ * and a soft, several-pixel edge, so distant columns read as continuous smoke instead of stipple.
+ * The noise volume has no mip levels, so this filtering is what keeps it from aliasing. */
 export function fireSmokeMaterial(noise: THREE.Data3DTexture, lighting: EffectLighting): THREE.MeshBasicNodeMaterial {
   const material = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
   material.forceSinglePass = true;
-  // Discard the empty corners and eroded gaps: they cost blending and nothing else.
-  material.alphaTest = .004;
   const volume = texture3D(noise);
   const center = attribute<'vec4'>('fireCenter', 'vec4'); // centre, radius
   const state = attribute<'vec4'>('fireState', 'vec4'); // seed, life fraction, underglow, opacity
@@ -58,29 +60,41 @@ export function fireSmokeMaterial(noise: THREE.Data3DTexture, lighting: EffectLi
   const radius = center.w.max(.01);
   const shaded = Fn(() => {
     const offset = positionWorld.sub(center.xyz).div(radius).toVar();
-    const r2 = offset.dot(offset).toVar();
+    const r = offset.length().toVar();
     const toEye = cameraPosition.sub(center.xyz).normalize().toVar();
     const sun = lighting.sunDirection;
+    // Radius in framebuffer pixels, including binocular magnification.
+    const pixels = screenSize.y.mul(.5).mul(cameraProjectionMatrix.mul(vec4(0, 1, 0, 0)).y).mul(radius)
+      .div(cameraPosition.sub(center.xyz).length().max(radius)).toVar();
+    // Fine erosion cells are about a sixth of the radius: full strength once they span ~10 px.
+    const detail = smoothstep(14, 70, pixels).toVar();
+    const broad = smoothstep(3, 18, pixels).toVar();
     // Billows roll slowly with the puff's own age, not wall time: a paused game holds still.
     const seed = vec3(state.x.mul(.137), state.x.mul(.071), state.x.mul(.043));
     const p = offset.add(seed).add(vec3(tint.w.mul(.011), tint.w.mul(-.017), tint.w.mul(.007))).toVar();
     const coarse = volume.sample(p.mul(.38)).level(float(0)).r.toVar();
-    const fine = volume.sample(p.mul(1.05).add(.31)).level(float(0)).g.toVar();
-    const n = coarse.mul(.62).add(fine.mul(.38)).toVar();
+    const fine = volume.sample(p.mul(.72).add(.31)).level(float(0)).g.toVar();
+    // Fine erosion only where it spans enough pixels to read as texture rather than grain; small
+    // puffs keep a gentler, broad lobe so the column silhouette stays one continuous body.
+    const n = coarse.sub(.5).mul(mix(float(.35), float(.62), broad)).add(fine.sub(.5).mul(detail.mul(.32))).toVar();
     // Older puffs erode into thinner, ragged wisps as they mix with air.
-    const shape = float(1).sub(r2.sqrt()).add(n.sub(.5).mul(1.05)).sub(state.y.mul(.2));
-    const density = smoothstep(0, .45, shape).toVar();
+    const shape = float(1).sub(r).add(n.mul(1.05)).sub(state.y.mul(.2));
+    // The edge ramp never narrows below about four pixels, and every puff reaches zero well inside
+    // its quad, so no square corner or isolated fleck can show.
+    const ramp = mix(float(.8), float(.45), detail).max(float(4).div(pixels.max(1)));
+    const density = smoothstep(0, ramp, shape).mul(float(1).sub(smoothstep(.72, .98, r))).toVar();
     // Self-shadow: billows that are denser a step toward the light shade this one. A value tap,
     // not a derivative, so the trilinear noise shades smoothly instead of in texel blocks.
     const toward = volume.sample(p.add(sun.mul(.42)).mul(.38)).level(float(0)).r;
-    const occluded = toward.sub(coarse).mul(2.4).add(float(1).sub(r2).max(0).mul(.25)).clamp(0, .8);
+    const r2 = r.mul(r);
+    const occluded = toward.sub(coarse).mul(mix(float(.8), float(2.4), broad)).add(float(1).sub(r2).max(0).mul(.25)).clamp(0, .8);
     const nz = float(1).sub(r2).max(0).sqrt();
     const normal = offset.add(toEye.mul(nz)).normalize().toVar();
     const wrap = normal.dot(sun).mul(.5).add(.5).clamp(0, 1).toVar();
     const thin = float(1).sub(density);
     const backlight = toEye.negate().dot(sun).clamp(0, 1).pow(6).mul(thin).mul(.9);
     const sky = normal.y.mul(.3).add(.7);
-    const relief = fine.mul(.35).add(.82);
+    const relief = mix(float(1), fine.mul(.35).add(.82), detail);
     const light = lighting.ambient.mul(sky).add(lighting.direct.mul(wrap.mul(wrap).mul(float(1).sub(occluded)).mul(.95).add(backlight))).mul(relief);
     const underside = normal.y.negate().mul(.5).add(.5).clamp(0, 1);
     const glow = vec3(1, .36, .08).mul(state.z).mul(underside.mul(underside).mul(.85).add(.15)).mul(density.mul(.5).add(.5));
