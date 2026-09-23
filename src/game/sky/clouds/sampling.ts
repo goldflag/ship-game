@@ -37,3 +37,13 @@ export function catmullRom(map: TextureNode, uv: Vec2, size: Vec2, explicit = fa
   }
   return sum.div(weights).clamp(lo, hi);
 }
+
+/** One bilinear read of `map` (`size` texels) at `uv` with the position inside the texel eased by a smoothstep, so the
+ * interpolation flattens at texel centres and steepens between them (Quilez's "improved texture interpolation"):
+ * nearly as crisp as `catmullRom` for a 2× upsample at a fifth of its reads, with no ringing to clamp. */
+export function sharpBilinear(map: TextureNode, uv: Vec2, size: Vec2): Vec4 {
+  const texel = uv.mul(size).sub(.5), cell = texel.floor(), f = texel.sub(cell);
+  const node = map.sample(cell.add(f.mul(f).mul(f.mul(-2).add(3))).add(.5).div(size));
+  node.updateMatrix = false;
+  return node as unknown as Vec4;
+}

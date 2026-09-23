@@ -12,7 +12,7 @@ import { FARTHEST, createCloudField, createLayerUniforms, type CloudField, type 
 import { afterglow, cloudLightAt, createCloudLight, gradientJitter, marchClouds, shadowTransmittance, type CloudLight, type MarchContext } from './march';
 import { cirrusMap, clearDistance, clearThreshold, weatherChannels, weatherMap, CIRRUS_SIZE, CLEAR_RANGE, PLANET_RADIUS, WEATHER_SIZE } from './model';
 import { baseVolume, detailVolume, type GeneratedVolume } from './noise';
-import { catmullRom } from './sampling';
+import { catmullRom, sharpBilinear } from './sampling';
 
 type Float = Node<'float'>;
 type Vec2 = Node<'vec2'>;
@@ -628,8 +628,8 @@ export class CloudLayer implements CloudPart {
     // clouds are far enough that turning the view is all that moved them.
     const direction = viewDirection(), clip = this.u.latestViewProjection.mul(vec4(direction, 0));
     const at = select(clip.w.greaterThan(1e-6), clip.xy.div(clip.w).mul(vec2(.5, -.5)).add(.5), screenUV).toVar();
-    // Bicubic up from the cloud buffer: a bilinear read would soften every cloud edge by a buffer pixel.
-    const color = catmullRom(this.latestColor, at, this.u.cloudSize);
+    // Up from the cloud buffer by an eased bilinear read: a plain one would soften every cloud edge by a buffer pixel.
+    const color = sharpBilinear(this.latestColor, at, this.u.cloudSize);
     if (depthTested) {
       const cover = color.w.oneMinus();
       const depthKm = (direct(this.latestDepth.sample(at)) as unknown as Vec4).y.div(max(cover, 1e-4));

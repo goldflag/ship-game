@@ -1,8 +1,11 @@
 import { LinearFilter, RepeatWrapping, Storage3DTexture, type Node, type WebGPURenderer } from 'three/webgpu';
-import { Fn, Loop, dot, float, floor, fract, hash, instanceIndex, int, max, min, mix, mod, normalize, sqrt, textureStore, uvec3, vec3, vec4 } from 'three/tsl';
+import { Fn, Loop, dot, float, floor, fract, hash, instanceIndex, int, max, min, mix, mod, normalize, select, sqrt, textureStore, uvec3, vec3, vec4 } from 'three/tsl';
 
 /** Texels per edge of the base shape volume and of the detail volume. */
 export const BASE_VOLUME = 128, DETAIL_VOLUME = 32;
+/** Base shape value above which its peaks round off toward 1, which they reach at the union's maximum (stretched
+ * to 1 / 0.9, see `baseVolume`): the knee is where a parabola from there meets the line at its slope. */
+const KNEE = 2 - 1 / .9;
 
 type Float = Node<'float'>;
 type Vec3 = Node<'vec3'>;
@@ -66,8 +69,13 @@ export function baseVolume(renderer: WebGPURenderer, size = BASE_VOLUME): Genera
   return volume(renderer, size, 'Cloud base shape', p => {
     const perlin = gradient(p, 4, 1).add(gradient(p, 8, 2).mul(.5)).add(gradient(p, 16, 3).mul(.25)).mul(.5).add(.5).clamp(0, 1);
     const cells = billow(p, 4, 4).mul(.625).add(billow(p, 8, 5).mul(.25)).add(billow(p, 16, 6).mul(.125));
-    // The union sits in 0.55–0.9 for nine points in ten; stretched to fill the byte.
-    const shape = cells.add(perlin.mul(cells.oneMinus())).sub(.5).div(.45).clamp(0, 1);
+    // The union sits in 0.55–0.9 for nine points in ten; stretched to fill the byte, its peaks rounded off above a
+    // knee rather than clipped: clipped, the peaks around the billows' feature points would be flat balls, which a
+    // column's top cuts into flat discs. The roll-off (a parabola) leaves the line at its slope and reaches 1 flat
+    // only at the union's maximum.
+    const stretched = cells.add(perlin.mul(cells.oneMinus())).sub(.5).div(.45).max(0);
+    const t = stretched.sub(KNEE).div(2 * (1 - KNEE)).min(1);
+    const shape = select(stretched.lessThan(KNEE), stretched, t.mul(t.oneMinus().add(1)).mul(1 - KNEE).add(KNEE));
     return vec4(shape, billow(p, 8, 7), billow(p, 16, 8), billow(p, 32, 9));
   });
 }
