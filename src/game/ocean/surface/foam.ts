@@ -1,8 +1,9 @@
 /** Foam shading for the ocean surface: whitecaps through their life, the churned water behind hulls, the bubble cloud
  * under both, wind-drawn windrows, and the light every kind of foam is lit by. The wave field decides where crests break
  * and how long ago (`WaveSurfaceSample.foam`: foam per area, about 1 while breaking and more on a converging crest,
- * e-folding after; `foamMean`, the same spread over the pixel; `bubbles`, the cloud they leave in the water); the
- * realistic wake's sampler decides where its churned water lies. This module decides what they look like.
+ * spreading and e-folding after; `fresh`, its part that broke in the last few seconds; `foamMean` and `bubbles`, both
+ * spread over the pixel); the realistic wake's sampler decides where its churned water lies. This module decides what
+ * they look like.
  *
  * Whitecaps are one substance through their life (Monahan & Mac Niocaill, *Oceanic Whitecaps*, 1986): a small, dense,
  * billowing core on the forward face while the crest breaks (stage A), and a larger patch of lacy, see-through foam
@@ -20,12 +21,12 @@ type Vec3 = Node<'vec3'>;
 /** Metres across the wind per tile of the foam texture; along the wind it stretches with the crest foam's `windStretch`. */
 const FOAM_TILE = 40;
 /** Old foam is the lace drawn out along the wind: read at this share of the lace's scale across the wind and this many
- * times longer along it (filaments about 1–5 m apart across the wind, running on for 5–40 m). Whitecaps' residue and
+ * times longer along it (filaments about 1–4 m apart across the wind, running on for 3–20 m). Whitecaps' residue and
  * windrows are made of it. */
 const STREAK_SCALE = .5, STREAK_STRETCH = 2.5;
-/** Windrows gather in bands where the circulation the wind drives converges: the texture's band mask and broad patches,
- * read this many times larger than the lace (and a second patch read at an irrational ratio of it, so their sum never
- * repeats as a lattice seen from the air), drawn out this much further along the wind. */
+/** Windrows gather in bands where the circulation the wind drives converges: the texture's band mask (bands 12–32 m
+ * apart) and broad patches, read this many times larger than the lace (and a second patch read at an irrational ratio of
+ * it, so their sum never repeats as a lattice seen from the air), drawn out this much further along the wind. */
 const BAND_SCALES = [4, 4 * Math.SQRT2 * 1.13] as const, BAND_STRETCH = 2;
 /** How strongly the patches gather windrows into some bands and thin them in others: coverage runs from 1 − this to
  * 1 + this times its mean. */
@@ -181,8 +182,7 @@ function swayed(amount: Float, pattern: Node<'vec4'>, blur: Float): Float {
   return amount.mul(mix(sway, float(1), blur));
 }
 
-/** How much of a whitecap's patch is there at swayed foam amount `amount`, 0–1: the soft rim fading into clear water. A
- * pixel counts toward the whitecaps' area (Monahan's W) where this is at least ½. */
+/** How much of a whitecap's patch is there at swayed foam amount `amount`, 0–1: the soft rim fading into clear water. */
 function whitecapPatch(amount: Float): Float {
   return smoothstep(PATCH_GONE, PATCH_FULL, amount);
 }
@@ -217,13 +217,11 @@ function denseOpacity(churn: Float, blur: Float): Float {
 
 /** A whitecap from the wave field's foam at this pixel: `amount` (drawn), `fresh` (its part that broke in the last few
  * seconds), `mean` and `meanFresh` (both spread over the pixel) and `share` (the wind's whitecap area), with the lace
- * layout's `pattern`, the
- * old foam's `streaks` and their blurs. Near, a small dense core where the crest breaks now and a larger lacy, streaked,
- * see-through patch around and behind it; a whitecap
- * smaller than its pixel (`footprint`, m) turns into its share of the pixel, and far off into the wind's mean. Returns
- * the opacity, how much of it is dense core (for the billows), and how far the pixel has gone to a mean: the means are
- * measured over whole whitecaps, the aerated water inside their outline included, so a caller adds no bubble cloud of
- * its own there. */
+ * layout's `pattern`, the old foam's `streaks` and their blurs. Near, a small dense core where the crest breaks now and
+ * a larger lacy, streaked, see-through patch around and behind it; a whitecap smaller than its pixel (`footprint`, m)
+ * turns into its share of the pixel, and far off into the wind's mean. Returns the opacity, how much of it is dense
+ * core (for the billows), and how far the pixel has gone to a mean: the means are measured over whole whitecaps, the
+ * aerated water inside their outline included, so a caller adds no bubble cloud of its own there. */
 export function whitecapFoam(amount: Float, fresh: Float, mean: Float, meanFresh: Float, share: Float, pattern: Node<'vec4'>, blur: Float, streaks: Float,
   streaksBlur: Float, footprint: Float) {
   const core = smoothstep(CORE_START, CORE_FULL, swayed(fresh, pattern, blur)), patch = whitecapPatch(swayed(amount, pattern, blur));

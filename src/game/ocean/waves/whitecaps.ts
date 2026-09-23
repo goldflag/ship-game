@@ -131,7 +131,7 @@ function forModes(cascade: WaveSpectrum['cascades'][number], visit: (energy: num
  * on the coarser cascades' compression lets it (field.ts). Dense whitecaps land on crests already white, so the depth
  * they reach falls behind the depth injected as D / (1 + SATURATION·D); the injection makes up for it. All measured on
  * the GPU with `bun scripts/browser/ocean-waves.ts --coverage`, on the calibrated and the realistic sea alike. */
-const PERSISTENCE = 19.5, GATED_SHOWING = .62, SATURATION = .5;
+const PERSISTENCE = 19.5, GATED_SHOWING = .55, SATURATION = .5;
 /** The most injection the saturation correction may call for, as a multiple of the depth wanted. */
 const MAX_BOOST = 4;
 
