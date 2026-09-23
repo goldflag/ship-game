@@ -5,6 +5,7 @@ import '@fontsource/barlow/latin-600.css';
 import '@fontsource/barlow-condensed/latin-500.css';
 import '@fontsource/barlow-condensed/latin-600.css';
 import './ui/styles.css';
+import './ui/startup.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 if (import.meta.env.DEV && new URLSearchParams(location.search).has('propellerPlayground')) {
