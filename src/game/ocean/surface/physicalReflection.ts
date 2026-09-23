@@ -6,9 +6,8 @@
  * Neyret & Holzschuch, "Real-time Realistic Ocean Lighting using Seamless Transitions from Geometry to BRDF" (2010):
  * the sky is mirrored through the facets the viewer actually sees (tilted toward a grazing viewer, weighted by their
  * Fresnel reflectance) and blurred by their spread, with the Fresnel reflectance averaged over them; the sun is
- * reflected by the same distribution as a
- * glitter BRDF with Smith masking; and screen-space rays follow the whole resolved slope, their image smeared along
- * the plane of incidence by the same spread. */
+ * reflected by the same distribution as a glitter BRDF with Smith masking; and screen-space rays follow the whole
+ * resolved slope, their image smeared along the plane of incidence by the same spread. */
 import type { Node, Texture } from 'three/webgpu';
 import { Fn, Loop, cos, cross, dFdx, dFdy, dot, exp, float, int, max, min, mix, normalize, pmremTexture, reflect, select, sin, smoothstep, vec2, vec3 } from 'three/tsl';
 
