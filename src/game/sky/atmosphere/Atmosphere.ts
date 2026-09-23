@@ -36,8 +36,11 @@ export class Atmosphere implements AtmospherePart {
     rayleigh: uniform(new Vector3()), mieScattering: uniform(new Vector3()), mieExtinction: uniform(new Vector3()), ozone: uniform(new Vector3()),
     mieG: uniform(.6), mieGain: uniform(1), multiple: uniform(1), saturation: uniform(SKY_GRADE.saturation),
   };
-  /** The sky's exposure at dusk (`model.twilightLift`): multiplies everything the sun lights. */
+  /** The sky's exposure at dusk (`model.twilightLift`): multiplies everything the sun lights. An exposure belongs
+   * to the viewer, so it follows the sun's elevation above the camera's own horizon: from the chart 14 km up the
+   * sun sets nearly 4° later, and the sky there is still lit while the sea below is in twilight. */
   readonly sunLift = uniform(1);
+  private sunElevation = 90;
   /** Camera altitude (km) the camera's sections were built for, its horizon angles and horizon zenith cosine. */
   readonly cameraHeight = uniform(.03);
   private readonly cameraHorizon = uniform(horizonOf(.03, new Vector2()));
@@ -71,7 +74,8 @@ export class Atmosphere implements AtmospherePart {
       this.dirty.air = true;
     }
     const sun = scene.sun.elevation, moon = Math.asin(MathUtils.clamp(this.uniforms.moonDirection.value.y, -1, 1)) * MathUtils.RAD2DEG;
-    this.sunLift.value = twilightLift(sun);
+    this.sunElevation = sun;
+    this.sunLift.value = this.lift();
     this.sunActive.value = sun > SUN_SETS ? 1 : 0;
     this.moonActive.value = moon > MOON_SETS && sun < MOON_OUTSHONE ? 1 : 0;
     this.dirty.lights = true;
@@ -86,6 +90,7 @@ export class Atmosphere implements AtmospherePart {
       this.cameraHeight.value = altitude;
       horizonOf(altitude, this.cameraHorizon.value);
       this.cameraHorizonCosine.value = this.horizonCosineOf(altitude);
+      this.sunLift.value = this.lift();
       this.dirty.camera = true;
     }
     const { dirty } = this;
@@ -153,6 +158,11 @@ export class Atmosphere implements AtmospherePart {
   /** Radius (km) of the viewpoint: the camera's, as its sections were built, or the sea's. */
   private radius(fromSea: boolean): Float {
     return fromSea ? float(RB + SEA_HEIGHT) : this.cameraHeight.add(RB);
+  }
+
+  /** The twilight lift for the sun's elevation above the camera's geometric horizon. */
+  private lift(): number {
+    return twilightLift(this.sunElevation + Math.asin(-this.horizonCosineOf(this.cameraHeight.value)) * MathUtils.RAD2DEG);
   }
 
   /** Zenith cosine of the geometric horizon from an altitude (km). */

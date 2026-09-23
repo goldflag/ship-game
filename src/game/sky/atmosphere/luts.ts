@@ -291,7 +291,12 @@ export class AtmosphereTables implements Tables {
         draw(this.skyViewTarget, this.passes.skyView);
         draw(this.ambientDirectionsTarget, this.passes.ambientDirections);
         draw(this.ambientTarget, this.passes.ambient);
-      } else if (what.camera) draw(this.skyViewTarget, this.passes.skyView, [0, 2 * SKY_VIEW_SIZE.y]);
+      } else if (what.camera) {
+        // The camera's sections, and the ambient light, which carries the camera's twilight exposure.
+        draw(this.skyViewTarget, this.passes.skyView, [0, 2 * SKY_VIEW_SIZE.y]);
+        draw(this.ambientDirectionsTarget, this.passes.ambientDirections);
+        draw(this.ambientTarget, this.passes.ambient);
+      }
     } finally {
       renderer.setRenderTarget(previous, face, level);
       renderer.setMRT(mrtState);
