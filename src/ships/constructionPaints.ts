@@ -31,8 +31,9 @@ export const CONSTRUCTION_PAINTS = [
 export const constructionPaintColor = (id: string) => CONSTRUCTION_PAINTS.find(p => p.id === id)?.color ?? '#7c8c91';
 /** Paint on faces without an assignment of their own; matches the compiler. */
 export const constructionShipPaint = (source: Painted): string => source.construction.paint ?? 'naval-gray';
-/** Linear reflectance kept by a roof-shade paint: horizontal steel reads about a quarter darker. */
-export const ROOF_SHADE = .62;
+/** Linear reflectance kept by a roof-shade paint: close to deck gray under a light-gray ship, since sunlit
+ * horizontal steel otherwise reads as bright as the walls. */
+export const ROOF_SHADE = .4;
 const linear = (c: number) => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4;
 const encoded = (c: number) => c <= .0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - .055;
 /** A paint colour (`#rrggbb`) darkened in linear light, as horizontal steel of that paint is drawn. */
