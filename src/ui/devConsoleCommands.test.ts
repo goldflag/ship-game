@@ -14,11 +14,15 @@ test('a typed word and number pick settings and set their values', () => {
   expect(labels('storm 3')).toEqual([]);
   expect(labels('copy')).toEqual([['Copy scene diagnostics', undefined]]);
   expect(labels('bow')).toEqual([['Toggle bow waves', undefined]]);
-  expect(matchCommands('').length).toBe(15);
+  expect(labels('rain 40%')).toEqual([['Rain', 40]]);
+  expect(labels('lightning 6/min')).toEqual([['Lightning', 6]]);
+  expect(labels('moon 0.25')).toEqual([['Moon phase', .25]]);
+  expect(labels('sky renderer')).toEqual([['Switch sky renderer', undefined]]);
+  expect(matchCommands('').length).toBe(19);
 });
 
 test('online battles offer only the visual diagnostics', () => {
-  expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined], ['Toggle bow waves', undefined]]);
+  expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined], ['Toggle bow waves', undefined], ['Switch sky renderer', undefined]]);
   expect(labels('wind 14', true)).toEqual([]);
 });
 
@@ -31,7 +35,7 @@ test('time and bearings wrap; other values clamp to their range', () => {
 });
 
 test('sheltered port light reads as a sun angle and scrubs from the matching hour', () => {
-  const reading = { sunElevation: 35, cloudCover: 38, windSpeed: 9, windDirection: 35, visibilityKm: 5.6 };
+  const reading = { sunElevation: 35, cloudCover: 38, windSpeed: 9, windDirection: 35, visibilityKm: 5.6, moonPhase: .5, precipitation: 0, lightning: 0 };
   expect(readingLabel('timeHours', reading)).toBe('sun 35°');
   expect(currentValue('timeHours', reading)).toBeCloseTo(8);
   expect(readingLabel('timeHours', { ...reading, timeHours: 18.5, sunElevation: -18 })).toBe('18:30 · sun -18°');

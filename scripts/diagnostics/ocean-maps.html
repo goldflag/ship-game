@@ -18,7 +18,7 @@ game.setInPort(true);game.start();await game.initialization;
 game.setPaused(true);
 const rigUpdate=game.rig.update.bind(game.rig);
 window.reviewMap=async(id,weather='map')=>{
- game.rig.update=rigUpdate;game.sky.clouds.enabled=true;
+ game.rig.update=rigUpdate;game.sky.cloudsEnabled=true;
  game.setInPort(true);game.setPaused(true);
  await game.prepareBattle({playerShipId:'bismarck',friendlyBots:[],enemies:['bismarck'],spawnDistance:5000,mapId:id,weather});
  game.setInPort(false);game.setPaused(true);game.rig.releasePointer();
@@ -32,7 +32,7 @@ window.reviewMap=async(id,weather='map')=>{
 };
 window.reviewLandform=async(index=0,overview=false)=>{
  const island=game.simulation.islands[index];
- game.sky.clouds.enabled=!overview;
+ game.sky.cloudsEnabled=!overview;
  if(overview){
   game.camera.position.set(island.x+island.rx*1.8,island.height*1.8+700,island.z+island.rz*1.6);
   game.camera.lookAt(island.x,island.height*.25,island.z);
@@ -41,9 +41,9 @@ window.reviewLandform=async(index=0,overview=false)=>{
   game.camera.lookAt(island.x,island.height*.28,island.z);
  }
  game.camera.updateMatrixWorld();
- game.sky.pipeline.cloudTemporal.invalidateHistory();
+ game.sky.resetHistory();
  for(let i=0;i<64;i++){await new Promise(requestAnimationFrame);await game.frame(performance.now());}
- return {island:island.id,clouds:game.sky.clouds.enabled,triangles:game.renderer.info.render.triangles,calls:game.renderer.info.render.calls,errors:window.errors};
+ return {island:island.id,clouds:game.sky.cloudsEnabled,triangles:game.renderer.info.render.triangles,calls:game.renderer.info.render.calls,errors:window.errors};
 };
 window.captureMap=async()=>{await new Promise(requestAnimationFrame);await game.frame(performance.now());await game.renderer.backend.device.queue.onSubmittedWorkDone();return game.renderer.domElement.toDataURL('image/png');};
 window.ready=true;output.textContent='Ready';

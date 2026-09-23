@@ -658,6 +658,21 @@ function Harbor({ account, startup }: AppProps) {
     setSettingsOpen(false);
     setGeneration((value) => value + 1);
   };
+  // Developer console: compare the game's sky with the Sky Pro library it replaced. The port rebuilds at
+  // once; at sea the choice waits for the return to port, like the ocean tier.
+  const switchSkyRenderer = (): string => {
+    const current = graphicsRef.current;
+    const next: GraphicsSettings = { ...current, skyRenderer: current.skyRenderer === 'skypro' ? 'game' : 'skypro' };
+    const kept = changeGraphics(next) ? '' : ' Browser storage is unavailable, so this lasts for the session.';
+    const name = next.skyRenderer === 'skypro' ? 'Sky Pro' : 'The game sky';
+    const session = game.current;
+    if (session && launchMatches(session.launchedGraphics, next)) return `${name} stays in the sky.${kept}`;
+    if (session && phase === 'garage' && !switchPending.current && !battleEntry.current?.pending) {
+      setGeneration((value) => value + 1);
+      return `${name} is loading.${kept}`;
+    }
+    return `${name} draws the sky when you return to port.${kept}`;
+  };
 
   const changeBindings = (next: Keybindings): boolean => {
     bindingsRef.current = next;
@@ -873,7 +888,9 @@ function Harbor({ account, startup }: AppProps) {
           />
         )}
 
-        {ready && !error && !builder && !battleLoading && !pveRestarting && game.current && <DevConsole host={game.current} />}
+        {ready && !error && !builder && !battleLoading && !pveRestarting && game.current && (
+          <DevConsole host={game.current} skyRenderer={{ current: graphics.skyRenderer, toggle: switchSkyRenderer }} />
+        )}
         {!ready && !error && !startup && <StartupScreen {...loading} />}
 
         {error && (

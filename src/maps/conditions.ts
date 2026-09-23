@@ -14,6 +14,12 @@ interface WeatherPreset {
   sunScale: number; ambientScale: number; cloudWind: number;
   waves: { windSpeed: number };
 }
+/** Rain (0–1) and lightning strikes per minute each weather brings. Visual only: combat, sensors and
+ * the simulation content never read them. */
+const PRECIPITATION: Readonly<Record<WeatherId, { precipitation: number; lightning: number }>> = {
+  map: { precipitation: 0, lightning: 0 }, clear: { precipitation: 0, lightning: 0 }, 'partly-cloudy': { precipitation: 0, lightning: 0 },
+  overcast: { precipitation: .15, lightning: 0 }, fog: { precipitation: 0, lightning: 0 }, 'storm-clouds': { precipitation: .9, lightning: 3 },
+};
 export const TIME_OF_DAY_PRESETS = source.times as TimePreset[];
 export const WEATHER_PRESETS = source.weather as WeatherPreset[];
 export const isTimeOfDayId = (id: unknown): id is TimeOfDayId => TIME_OF_DAY_PRESETS.some(preset => preset.id === id);
@@ -70,7 +76,12 @@ export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map',
   // Explicit wind bypasses the map wind multiplier. Presets and numeric wind
   // then use the same metric height curve.
   const waves = windSea(map, wind ?? forecast.waves.windSpeed * map.water.windScale);
-  return { sky, fog, cloudWind: wind === undefined ? forecast.cloudWind : wind * 4 / 3,
+  // A custom sky near full cover in a gale rains too, and a solid deck in a storm-force wind thunders.
+  const cover = conditions.cloudCover === undefined ? 0 : conditions.cloudCover / 100, gale = wind ?? 0;
+  const rain = PRECIPITATION[forecast.id];
+  const precipitation = Math.max(rain.precipitation, smooth(cover, .85, 1) * smooth(gale, 10, 18) * .9);
+  const lightning = Math.max(rain.lightning, smooth(cover, .9, 1) * smooth(gale, 14, 20) * 3);
+  return { sky, fog, cloudWind: wind === undefined ? forecast.cloudWind : wind * 4 / 3, precipitation, lightning,
     waves,
     waterLightScale: 0.24 + 0.76 * daylight,
     // Sky Pro already scales the incident radiance by the sun's current light.

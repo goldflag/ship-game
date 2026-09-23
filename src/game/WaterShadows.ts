@@ -1,19 +1,20 @@
-import type { DepthTexture, DirectionalLight } from 'three/webgpu';
+import type { DepthTexture, DirectionalLight, Node } from 'three/webgpu';
 import { Fn, If, float, lightShadowMatrix, mix, positionWorld, reference, texture, vec2, vec3 } from 'three/tsl';
 import type { OceanApi } from './ocean/contracts';
 import type { WaterShadowQuality } from './graphicsSettings';
 
-const bindings = new WeakMap<OceanApi, { depth: DepthTexture | null; quality: WaterShadowQuality }>();
+type CloudShadow = (position: Node<'vec3'>) => Node<'float'>;
+const bindings = new WeakMap<OceanApi, { depth: DepthTexture | null; quality: WaterShadowQuality; cloud?: CloudShadow }>();
 
-/** Bind the completed scene's shadow map for the next sea draw.
- * Only sample that map: opaque lighting owns its rendering and disposal. */
-export function updateWaterShadows(ocean: OceanApi, light: DirectionalLight, reversedDepth: boolean, quality: WaterShadowQuality): void {
+/** Bind the completed scene's shadow map for the next sea draw, and the clouds' shadow when the sky
+ * casts one. Only sample the map: opaque lighting owns its rendering and disposal. */
+export function updateWaterShadows(ocean: OceanApi, light: DirectionalLight, reversedDepth: boolean, quality: WaterShadowQuality, cloud?: CloudShadow): void {
   const depth = quality !== 'off' && light.castShadow && light.shadow.intensity > 0 ? light.shadow.map?.depthTexture ?? null : null;
   const previous = bindings.get(ocean);
   const effectiveQuality = depth ? quality : 'off';
-  if (previous?.depth === depth && previous.quality === effectiveQuality) return;
-  bindings.set(ocean, { depth, quality: effectiveQuality });
-  const node = depth ? Fn(() => {
+  if (previous?.depth === depth && previous.quality === effectiveQuality && previous.cloud === cloud) return;
+  bindings.set(ocean, { depth, quality: effectiveQuality, cloud });
+  const ships = depth ? Fn(() => {
     // The receiver offset follows the sea's mean normal, straight up.
     const offset = vec3(0, reference('normalBias', 'float', light.shadow), 0);
     const projected = lightShadowMatrix(light).mul(positionWorld.add(offset));
@@ -46,5 +47,6 @@ export function updateWaterShadows(ocean: OceanApi, light: DirectionalLight, rev
     });
     return result;
   })() : null;
-  ocean.setShadowNode(node);
+  const clouds = cloud?.(positionWorld as unknown as Node<'vec3'>) ?? null;
+  ocean.setShadowNode(ships && clouds ? ships.mul(clouds) : ships ?? clouds);
 }

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sky review</title>
+<style>html,body{margin:0;background:#10232e}#scene{width:1600px;height:900px}canvas{display:block}output{position:fixed;top:8px;left:8px;color:white;background:#10232ecc;padding:8px;font:14px sans-serif}</style>
+<div id="scene"></div><output>Loading sky review…</output>
+<script type="module">
+// Development-only fixed scenes of the real game for reviewing the sky side by side.
+// `scripts/browser/sky-review.ts` drives it and saves one PNG per scene.
+// ?quality=low|medium|high|ultra (graphics preset), ?clouds=low|medium|high|ultra (cloud tier over the preset),
+// ?sky=game|skypro (the sky renderer, where the build has the switch), ?ship=<preset> for the player.
+import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+
+const params = new URLSearchParams(location.search);
+const output = document.querySelector('output'), noop = () => {};
+const errors = [];
+addEventListener('error', event => errors.push(event.message));
+addEventListener('unhandledrejection', event => errors.push(String(event.reason?.message ?? event.reason)));
+const quality = params.get('quality') ?? 'high';
+const settings = { ...GRAPHICS_PRESETS[quality], renderScale: 100 / Math.min(devicePixelRatio, 1.5) };
+if (params.get('clouds')) settings.clouds = params.get('clouds');
+if (params.get('sky')) settings.skyRenderer = params.get('sky');
+const game = new Game(document.querySelector('#scene'), settings, {
+  progress: text => { output.textContent = text; }, ready: noop, telemetry: noop, pause: noop, hud: noop, error: message => errors.push(message),
+}, shipPreset(params.get('ship') ?? 'bismarck'));
+game.scheduleFrame = noop;
+game.setInPort(true); game.start(); await game.initialization;
+const rigUpdate = game.rig.update.bind(game.rig);
+
+// Both renderers stand behind the same facade (src/game/sky/contracts.ts).
+const sunDirection = () => game.sky.sun.direction;
+const moonDirection = () => game.sky.moon.direction;
+const resetSkyHistory = () => game.sky.resetHistory();
+
+/** Seconds of waves run up to a frozen time, so crest foam matches each scene's sea. */
+const FOAM_WARMUP = 10;
+const freeze = seconds => {
+  for (let t = seconds - FOAM_WARMUP; t < seconds; t += 1 / 30) game.ocean.waveField.update(game.renderer, t, 1 / 30);
+  game.ocean.time = seconds;
+};
+const frames = async count => { for (let i = 0; i < count; i++) { await new Promise(requestAnimationFrame); await game.frame(performance.now()); } };
+const settle = async (count = 48) => { resetSkyHistory(); await frames(count); };
+const look = (position, target, fov = 60, far) => {
+  game.rig.update = noop;
+  game.camera.position.set(...position); game.camera.lookAt(...target);
+  game.camera.fov = fov; if (far) game.camera.far = far;
+  game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
+};
+/** Look from `eye` along a compass heading (radians from +X toward +Z) at an elevation in degrees. */
+const gaze = (eye, heading, elevation, fov = 60) => {
+  const e = elevation * Math.PI / 180, d = 10000;
+  look(eye, [eye[0] + Math.cos(heading) * Math.cos(e) * d, eye[1] + Math.sin(e) * d, eye[2] + Math.sin(heading) * Math.cos(e) * d], fov);
+};
+const headingOf = direction => Math.atan2(direction.z, direction.x);
+const elevationOf = direction => Math.asin(Math.max(-1, Math.min(1, direction.y))) * 180 / Math.PI;
+const place = (view, pose) => { Object.assign(view.actor.motion, pose); view.snap(); };
+let battleKey, far;
+/** Enter (or stay in) a paused battle with these conditions; ships at fixed poses. */
+async function battle({ map = 'north-atlantic', hours = 12, wind = 9, cloud, weather = 'map', range = 5000 } = {}) {
+  const key = `${map}/${range}`;
+  if (key !== battleKey) {
+    game.rig.update = rigUpdate;
+    game.setInPort(true); game.setPaused(true);
+    await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: range, mapId: map, windSpeed: wind, timeHours: hours });
+    battleKey = key;
+    far = game.camera.far;
+  }
+  game.environment.setBattle({ weather, timeOfDay: 'map', conditions: { timeHours: hours, windSpeed: wind, ...(cloud === undefined ? {} : { cloudCover: cloud }) } });
+  game.setInPort(false); game.setPaused(true); game.rig.releasePointer();
+  game.environment.setScene(game.simulation.mapId, false);
+  game.camera.far = far;
+  place(game.playerView, { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 });
+  if (game.targetView) { place(game.targetView, { x: range, y: 0, z: 0, heading: Math.PI / 2, pitch: 0, roll: 0 }); game.targetView.root.visible = true; }
+  game.ship.position.copy(game.playerView.root.position);
+  freeze(60);
+  // The sky places the moon and bakes its reflections over a few frames.
+  await frames(4);
+}
+const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
+/** A bridge-height eye beside the player's ship. */
+const BRIDGE = [-60, 32, 90];
+/** The standard battle view: the ship in the foreground, the enemy and the sky beyond. */
+const WIDE = [[550, 200, 700], [-650, 75, -1000]];
+
+/** Each scene leaves the game paused with a fixed camera, sky and ocean time. */
+const scenes = {
+  port: async () => { game.rig.update = rigUpdate; game.setInPort(true); game.setPaused(true); battleKey = undefined; freeze(60); await frames(4); },
+  /** Midday cumulus seen across the sea, the sun behind the camera. */
+  noon: async () => { await battle({ hours: 12.5 }); gaze(BRIDGE, headingOf(sunDirection()) + Math.PI, 7); },
+  /** The standard gameplay composition in the afternoon. */
+  wide: async () => { await battle({ hours: 15 }); look(...WIDE); },
+  /** Facing a morning sun with cumulus around it. */
+  morningSun: async () => { await battle({ hours: 8.2 }); const sun = sunDirection(); gaze(BRIDGE, headingOf(sun), Math.max(0, elevationOf(sun) - 14), 70); },
+  /** A low sun on the horizon, facing it. */
+  sunset: async () => { await battle({ hours: 17.6 }); gaze(BRIDGE, headingOf(sunDirection()), 4); },
+  /** The same low sun behind the camera: the twilight side. */
+  sunsetAway: async () => { await battle({ hours: 17.6 }); gaze(BRIDGE, headingOf(sunDirection()) + Math.PI, 6); },
+  /** Civil twilight after sunset, facing the afterglow. */
+  twilight: async () => { await battle({ hours: 18.35 }); gaze(BRIDGE, headingOf(sunDirection()), 5); },
+  /** Night, facing the moon. */
+  moon: async () => { await battle({ hours: 21.5 }); const moon = moonDirection(); gaze(BRIDGE, headingOf(moon), Math.max(4, elevationOf(moon) - 12), 60); },
+  /** Night, looking up away from the moon: the stars. */
+  stars: async () => { await battle({ hours: 0.5, cloud: 15 }); gaze(BRIDGE, headingOf(moonDirection()) + Math.PI, 40, 75); },
+  /** Straight up at midday cumulus. */
+  zenith: async () => { await battle({ hours: 12.5, cloud: 50 }); look([0, 30, 0], [1, 10000, 0], 80); },
+  clear: async () => { await battle({ hours: 11, weather: 'clear' }); look(...WIDE); },
+  overcast: async () => { await battle({ hours: 12.5, weather: 'overcast' }); look(...WIDE); },
+  fog: async () => { await battle({ hours: 12.5, weather: 'fog' }); look(...WIDE); },
+  storm: async () => { await battle({ hours: 14, weather: 'storm-clouds', wind: 16 }); look(...WIDE); },
+  /** Binoculars on the enemy 20 km away: distant cloud banks over the horizon. */
+  binoculars: async () => { await battle({ hours: 10, range: 20000 }); look([0, 29, 0], [20000, 14, 0], zoom(24)); },
+  /** An aircraft's view from inside the cloud shell. */
+  air: async () => { await battle({ hours: 12.5 }); look([0, 2600, 2400], [0, 0, -1800], 52); },
+  /** The fleet chart from overhead, above the clouds. */
+  chart: async () => {
+    await battle({ hours: 12.5 });
+    const distance = 14000, tilt = 20 * Math.PI / 180;
+    look([0, distance * Math.cos(tilt), distance * Math.sin(tilt)], [0, 0, 0], 52, 1000000);
+  },
+  /** The chart tilted toward the horizon. */
+  chartTilted: async () => {
+    await battle({ hours: 12.5 });
+    const distance = 14000, tilt = 65 * Math.PI / 180;
+    look([0, distance * Math.cos(tilt), distance * Math.sin(tilt)], [0, 0, 0], 52, 1000000);
+  },
+};
+
+async function capture() {
+  await game.frame(performance.now());
+  await game.renderer.backend.device.queue.onSubmittedWorkDone();
+  return game.renderer.domElement.toDataURL('image/png');
+}
+/** Serialised CPU + GPU cost of whole frames: each frame waits for the GPU before the next. */
+async function measure(count = 120, stepping = true) {
+  const device = game.renderer.backend.device;
+  game.setPaused(!stepping);
+  const times = [];
+  try {
+    for (let i = 0; i < count + 10; i++) {
+      const start = performance.now();
+      await game.frame(game.lastTime + 1000 / 60);
+      await device.queue.onSubmittedWorkDone();
+      if (i >= 10) times.push(performance.now() - start);
+    }
+  } finally { game.setPaused(true); }
+  times.sort((a, b) => a - b);
+  const mean = times.reduce((sum, t) => sum + t, 0) / times.length;
+  return { mean, median: times[times.length >> 1], p90: times[Math.floor(times.length * .9)], max: times[times.length - 1],
+    calls: game.renderer.info.render.calls, triangles: game.renderer.info.render.triangles };
+}
+
+window.skyReview = {
+  game, scenes: Object.keys(scenes), errors,
+  async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors] }; },
+  capture, measure,
+};
+window.ready = true; output.textContent = '';
+</script>
+</html>

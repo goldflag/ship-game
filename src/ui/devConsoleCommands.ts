@@ -6,7 +6,7 @@ import type { EnvironmentOverrides, EnvironmentReading } from '../game/VisualEnv
 export const isDeveloperConsoleKey = (event: Pick<KeyboardEvent, 'code' | 'shiftKey' | 'ctrlKey' | 'metaKey' | 'altKey'>) =>
   event.code === 'KeyD' && event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey;
 
-export type WeatherKey = 'timeHours' | 'cloudCover' | 'windSpeed' | 'windDirection' | 'visibilityKm';
+export type WeatherKey = 'timeHours' | 'cloudCover' | 'windSpeed' | 'windDirection' | 'visibilityKm' | 'moonPhase' | 'precipitation' | 'lightning';
 export interface WeatherSetting {
   kind: 'setting'; key: WeatherKey; group: 'Weather'; label: string; words: string[];
   min: number; max: number; wrap?: boolean;
@@ -15,16 +15,24 @@ export interface WeatherSetting {
   format(value: number): string;
 }
 export interface WeatherPreset { kind: 'preset'; id: string; group: 'Weather'; label: string; words: string[]; overrides: EnvironmentOverrides; }
-export interface ConsoleAction { kind: 'action'; id: 'reset' | 'diagnostics' | 'bowWaves'; group: 'Weather' | 'Diagnostics' | 'Water'; label: string; words: string[]; }
+export interface ConsoleAction { kind: 'action'; id: 'reset' | 'diagnostics' | 'bowWaves' | 'skyRenderer'; group: 'Weather' | 'Diagnostics' | 'Water' | 'Sky'; label: string; words: string[]; }
 export type ConsoleCommand = WeatherSetting | WeatherPreset | ConsoleAction;
 
 const trim = (value: number, digits = 1) => String(Number(value.toFixed(digits)));
+const MOON_PHASES = ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'];
+/** The phase's name and the lit share of the disc. */
+export const formatMoonPhase = (phase: number) =>
+  `${MOON_PHASES[Math.round(phase * 8) % 8]} ${Math.round((1 - Math.cos(2 * Math.PI * phase)) * 50)}%`;
 export const WEATHER_SETTINGS: WeatherSetting[] = [
   { kind: 'setting', key: 'timeHours', group: 'Weather', label: 'Time of day', words: ['time', 'day', 'hour', 'clock', 'sun'], min: 0, max: 24, wrap: true, scrub: .04, format: formatBattleTime },
   { kind: 'setting', key: 'cloudCover', group: 'Weather', label: 'Cloud cover', words: ['cloud', 'clouds', 'cover', 'sky'], min: 0, max: 100, scrub: .25, format: value => `${Math.round(value)}%` },
   { kind: 'setting', key: 'windSpeed', group: 'Weather', label: 'Wind speed', words: ['wind', 'speed', 'sea', 'waves'], min: 0, max: 30, scrub: .05, format: value => `${trim(value)} m/s` },
   { kind: 'setting', key: 'windDirection', group: 'Weather', label: 'Wind from', words: ['wind', 'from', 'direction', 'bearing'], min: 0, max: 360, wrap: true, scrub: .5, format: value => `${String(Math.round(value) % 360).padStart(3, '0')}°` },
   { kind: 'setting', key: 'visibilityKm', group: 'Weather', label: 'Visibility', words: ['visibility', 'fog', 'haze', 'vis'], min: .5, max: 80, scrub: .1, format: value => `${trim(value)} km` },
+  { kind: 'setting', key: 'precipitation', group: 'Weather', label: 'Rain', words: ['rain', 'precipitation', 'shower', 'drizzle'],
+    min: 0, max: 100, scrub: .25, format: value => `${Math.round(value)}%` },
+  { kind: 'setting', key: 'lightning', group: 'Weather', label: 'Lightning', words: ['lightning', 'thunder', 'strikes', 'bolts'], min: 0, max: 30, scrub: .05, format: value => `${trim(value)}/min` },
+  { kind: 'setting', key: 'moonPhase', group: 'Weather', label: 'Moon phase', words: ['moon', 'phase', 'lunar'], min: 0, max: 1, wrap: true, scrub: .002, format: formatMoonPhase },
 ];
 export const WEATHER_PRESETS: WeatherPreset[] = [
   { id: 'dawn', label: 'Dawn', overrides: { timeHours: 6.4 } },
@@ -39,6 +47,7 @@ export const CONSOLE_ACTIONS: ConsoleAction[] = [
   { kind: 'action', id: 'reset', group: 'Weather', label: 'Reset weather to the scene', words: ['reset', 'clear', 'scene', 'default'] },
   { kind: 'action', id: 'diagnostics', group: 'Diagnostics', label: 'Copy scene diagnostics', words: ['diagnostics', 'copy', 'debug', 'snapshot'] },
   { kind: 'action', id: 'bowWaves', group: 'Water', label: 'Toggle bow waves', words: ['bow', 'waves', 'wake', 'kelvin', 'toggle'] },
+  { kind: 'action', id: 'skyRenderer', group: 'Sky', label: 'Switch sky renderer', words: ['sky', 'renderer', 'skypro', 'switch', 'compare'] },
 ];
 export const CONSOLE_COMMANDS: ConsoleCommand[] = [...WEATHER_SETTINGS, ...WEATHER_PRESETS, ...CONSOLE_ACTIONS];
 
@@ -50,7 +59,7 @@ export function clampSetting(setting: WeatherSetting, value: number): number {
 export function parseValue(key: WeatherKey, token: string): number | undefined {
   const clock = key === 'timeHours' ? /^(\d{1,2}):(\d{2})$/.exec(token) : null;
   if (clock) return Number(clock[1]) + Number(clock[2]) / 60;
-  const number = /^(-?\d+(?:\.\d+)?)(?:%|°|m\/s|km|h)?$/.exec(token);
+  const number = /^(-?\d+(?:\.\d+)?)(?:%|°|m\/s|km|h|\/min)?$/.exec(token);
   return number ? Number(number[1]) : undefined;
 }
 

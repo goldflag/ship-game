@@ -7,13 +7,13 @@ import './SettingsDialog.css';
 import { DEFAULT_AUDIO, type AudioSettings, type SoundId } from '../game/audio';
 import { DEFAULT_HUD, type HudSettings } from '../game/hudSettings';
 import {
-  GRAPHICS_PRESETS,
   PRESET_ORDER,
   launchMatches,
   matchingPreset,
   nearestPreset,
   RENDER_SCALE_MIN,
   RENDER_SCALE_STEP,
+  withPreset,
   type FrameLimit,
   type GraphicsPreset,
   type GraphicsSettings,
@@ -472,7 +472,7 @@ export function SettingsDialog({
                     <button
                       key={name}
                       aria-pressed={preset === name}
-                      onClick={() => changeGraphics({ ...GRAPHICS_PRESETS[name] }, `${PRESET_LABEL[name]} preset applied.`)}
+                      onClick={() => changeGraphics(withPreset(graphics, name), `${PRESET_LABEL[name]} preset applied.`)}
                     >
                       {PRESET_LABEL[name]}
                     </button>
@@ -781,7 +781,7 @@ export function SettingsDialog({
           <Button
             variant="secondary"
             disabled={preset === 'high'}
-            onClick={() => changeGraphics({ ...GRAPHICS_PRESETS.high }, 'Graphics reset to High.')}
+            onClick={() => changeGraphics(withPreset(graphics, 'high'), 'Graphics reset to High.')}
           >
             Reset graphics to High
           </Button>

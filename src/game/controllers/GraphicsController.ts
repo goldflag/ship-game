@@ -2,14 +2,13 @@ import * as THREE from 'three/webgpu';
 import { mix, step, vec4, type pass } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { smaa } from 'three/addons/tsl/display/SMAANode.js';
-import type { SkySystem } from '../../../vendor/threejs-sky-pro/build/index.js';
+import type { SkyApi } from '../sky/contracts';
 import type { OceanApi } from '../ocean/contracts';
 import type { AircraftView } from '../AircraftView';
 import type { CombatEffects } from '../CombatEffects';
 import type { DisplayTransform } from '../DisplayTransform';
 import {
   aircraftDetailScale,
-  cloudTier,
   effectsDensity,
   frameIntervalMs,
   sanitizeGraphicsSettings,
@@ -38,7 +37,7 @@ export interface GraphicsContext {
   readonly ocean?: Pick<OceanApi, 'reflections'>;
   /** The scene's sun, whose shadow settings the near and wide maps follow; absent until start-up creates it. */
   readonly sunLight?: THREE.DirectionalLight;
-  readonly sky?: SkySystem;
+  readonly sky?: Pick<SkyApi, 'setQuality'>;
   /** Ship-on-ship ambient occlusion; absent until start-up has created it. */
   readonly occlusion?: Pick<ShipOcclusion, 'setLevel'>;
   readonly aircraftView: Pick<AircraftView, 'detailScale'>;
@@ -153,21 +152,14 @@ export class GraphicsController {
     sunlight.shadow.needsUpdate = true;
   }
 
-  /** Cloud tiers change march budgets live; a coarser noise volume refills on the CPU once. */
+  /** Cloud tiers change the sky's march budgets, bakes and particle counts live. */
   applyClouds(): void {
     const context = this.context,
       sky = context.sky;
     if (!sky) return;
-    const tier = cloudTier(context.settings.clouds);
+    const quality = context.settings.clouds;
     this.cloudTask = this.cloudTask
-      .then(() =>
-        sky.setQualityLevel(tier.level, {
-          godRaysEnabled: false,
-          envMapWidth: tier.envMapWidth,
-          envMapHeight: tier.envMapWidth / 2,
-          envMapMarchSteps: tier.envMapMarchSteps,
-        }),
-      )
+      .then(() => sky.setQuality(quality))
       .catch((error) => {
         if (!context.disposed) context.reportError(error instanceof Error ? error.message : String(error));
       });

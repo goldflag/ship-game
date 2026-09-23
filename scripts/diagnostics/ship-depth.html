@@ -82,7 +82,7 @@ async function checkDepth() {
 }
 async function checkSkyOcclusion() {
   prepare();
-  const meshes=game.sky.backdropMeshes(),visibility=meshes.map(m=>m.visible);
+  const meshes=game.sky.meshes(),visibility=meshes.map(m=>m.visible);
   const point=new THREE.Vector3(5000,3,0).project(game.camera);
   async function pixels() {
     const image=new Image(); image.src=await still(); await image.decode();

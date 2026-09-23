@@ -24,8 +24,8 @@ import { createSeaState, type SeaState } from './session/sea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
 import * as THREE from 'three/webgpu';
-import { Fn, float, max, pass, vec2 } from 'three/tsl';
-import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
+import { pass, vec2 } from 'three/tsl';
+import { frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
 import { HullWetBand } from './HullWetBand';
 import { primeHullProfile } from './HullContactFoam';
@@ -39,7 +39,8 @@ import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { ShipOcclusion } from './ShipOcclusion';
 import { loadShipModel } from './loadShipModel';
-import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
+import { Sky } from './sky/Sky';
+import type { SkyApi } from './sky/contracts';
 import { RemoteBattleSession } from './session/RemoteBattleSession';
 import { LocalBattleSession } from './session/LocalBattleSession';
 import type { BattleSession, DeckServiceAction } from './session/BattleSession';
@@ -265,7 +266,9 @@ export class Game {
   private sunLight?: THREE.DirectionalLight;
   private sunShadows?: FocusShadowNode;
   private landscape?: THREE.Group;
-  private sky?: SkySystem;
+  private sky?: SkyApi;
+  /** Sun transmittance through the clouds, shared by the sun's shadow maps and the sea. */
+  private cloudShadow?: (position: THREE.Node<'vec3'>) => THREE.Node<'float'>;
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
   private scenePass?: ReturnType<typeof pass>;
@@ -298,13 +301,13 @@ export class Game {
 
   private settings: GraphicsSettings;
   /** Ocean tier and terrain density this scene was built with; every other row applies live. */
-  readonly launchedGraphics: { ocean: GraphicsSettings['ocean']; terrain: GraphicsSettings['terrain'] };
+  readonly launchedGraphics: LaunchedGraphics;
   private frameIntervalMs = 0;
   private detailBudgetPx = 1.25;
 
   constructor(private host: HTMLElement, settings: GraphicsSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.settings = sanitizeGraphicsSettings(settings);
-    this.launchedGraphics = { ocean: this.settings.ocean, terrain: this.settings.terrain };
+    this.launchedGraphics = { ocean: this.settings.ocean, terrain: this.settings.terrain, skyRenderer: this.settings.skyRenderer };
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
     this.definition = definition;
@@ -382,7 +385,7 @@ export class Game {
   private async initialize(): Promise<void> {
     // Diagnostics may replace the settings object before start; accept any saved shape.
     this.settings = sanitizeGraphicsSettings(this.settings);
-    Object.assign(this.launchedGraphics, { ocean: this.settings.ocean, terrain: this.settings.terrain });
+    Object.assign(this.launchedGraphics, { ocean: this.settings.ocean, terrain: this.settings.terrain, skyRenderer: this.settings.skyRenderer });
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
     this.graphicsControl.applyAmbientOcclusion();
@@ -454,44 +457,16 @@ export class Game {
     this.waterViewFocus = new WaterViewFocus(ocean.reflections);
 
     this.callbacks.progress('Lighting the sky', 0.59);
-    this.sky = await SkySystem.create({ renderer: this.renderer, camera: this.camera, scene: this.scene,
-      quality: this.settings.clouds, cloudRenderingMode: 'dynamic', godRays: false });
+    const sky = this.sky = await this.createSky(ocean);
     this.assertActive();
-    // Sky Pro's background shaders hard-code far depth as 1. Match the active
-    // backend's depth convention so cirrus cannot paint over opaque ships.
-    // Volumetric clouds already project their hit distance through the camera.
-    const skyDepth = float(this.renderer.reversedDepthBuffer ? 0 : 1);
-    this.sky.pipeline.sky.material.depthNode = skyDepth;
-    this.sky.pipeline.cirrus.material.depthNode = skyDepth;
-    await this.sky.applyPreset(SKY_PRESETS.partlyCloudy);
-    this.assertActive();
-    // Shared cloud shape; the visual environment supplies each scene's daylight.
-    // Keep exposure neutral so the hull retains its daylight contrast.
-    this.sky.godRays.enabled = false;
-    this.sky.clouds.shape.altitude.value = 1700;
-    this.sky.clouds.shape.thickness.value = 2400;
-    this.sky.clouds.shape.horizonCoverageAmount.value = 0.06;
-    // Cloud volumes use their own ambient fill, independently of scene lights.
-    // Soften the extra base darkening and lift the preset's near-black bounce.
-    this.sky.clouds.lighting.baseShadowStrength.value = 0.2;
-    this.sky.clouds.lighting.ambientIntensity.value = 1.1;
-    this.sky.clouds.lighting.groundBounceAlbedo.value.setRGB(0.09, 0.105, 0.12);
-    this.sky.clouds.wind.speed = 12;
-    this.sky.timeOfDay.moonPhase.value = .5;
-    this.sky.timeOfDay.moonAmbient.value = .07;
-    this.sky.timeOfDay.moonColor.value.set('#b4c9f0');
-    this.environment.attachSky(this.sky);
+    this.environment.attachSky(sky);
     // Water and sky both exist now; nothing renders before the warmup below.
     this.environment.setScene(this.simulation.mapId, this.inPort);
-    const bake = cloudTier(this.settings.clouds);
-    const skyProvider = this.sky.createSkyProvider({ envMap: { width: bake.envMapWidth, cloudMarchSteps: bake.envMapMarchSteps, skipFrames: 8 } });
-    const daylightFog = skyProvider.createFogSampler(), moon = this.sky.timeOfDay;
-    // Sky Pro's provider fog is sun-only. Preserve its moon ambient in Water
-    // Pro's far-distance blend so the night backdrop is not fogged to black.
-    skyProvider.createFogSampler = () => Fn(([direction]: [THREE.Node]) => daylightFog(direction).add(
-      moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
-        .mul(max(0, moon.moonDirection.y))));
-    ocean.setSky(skyProvider);
+    ocean.setSky(sky.oceanSky);
+    // Clouds shade the sun on ships and islands through the sun's own shadow maps, and the sea
+    // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before.
+    if (sky.renderer === 'game') this.cloudShadow = position => sky.cloudShadow(position);
+    this.sunShadows.cloud = this.cloudShadow;
     const sunlight = this.sunLight;
     this.fitSunShadow();
     this.graphicsControl.applyReflections();
@@ -516,13 +491,12 @@ export class Game {
     this.callbacks.progress('Preparing ocean effects and lighting', 0.82);
     this.scenePass = pass(this.scene, this.camera);
     const sceneColor = this.scenePass.getTextureNode('output');
-    // The ocean's scene.fogNode already fogs each material at its own distance.
-    // Sky's depth-based post fog sees the distant sea behind transparent smoke,
-    // erasing a horizontal band of nearby gas at the horizon's far-fade distance.
-    const radiance = ocean.postProcess(this.scenePass, sceneColor);
+    // The ocean's scene.fogNode already fogs each material at its own distance; the sky adds
+    // sun shafts and rain haze over the composed view, before the display grade.
+    const radiance = sky.postProcess(this.scenePass, ocean.postProcess(this.scenePass, sceneColor));
     // FXAA detects edges in display space, after tone mapping and sRGB conversion.
     this.armorOverlay = new ArmorOverlay();
-    this.display = new DisplayTransform({ radiance: radiance as THREE.Node<'vec4'>, scene: sceneColor, exposure: this.sky.atmosphere.exposure, overlay: this.armorOverlay });
+    this.display = new DisplayTransform({ radiance: radiance as THREE.Node<'vec4'>, scene: sceneColor, exposure: sky.exposure, overlay: this.armorOverlay });
     this.graphicsControl.buildPipeline();
     await this.warmupRendering();
     this.callbacks.progress('Ready to get underway', 1);
@@ -530,6 +504,18 @@ export class Game {
     this.updateInputEligibility();
     this.lastTime = performance.now();
     this.scheduleFrame();
+  }
+
+  /** The game's sky, or for comparison the vendored Sky Pro library it replaced, behind the same facade
+   * (Graphics `skyRenderer`, switched from the developer console). Only the comparison downloads the library. */
+  private async createSky(ocean: Ocean): Promise<SkyApi> {
+    const quality = this.settings.clouds;
+    if (this.launchedGraphics.skyRenderer === 'skypro') {
+      const { SkyProSky } = await import('./comparison/SkyProSky');
+      return SkyProSky.create(this.renderer, this.scene, this.camera, { quality });
+    }
+    // Splashes sit on the drawn waves; the wake's small heights are not worth a second lookup.
+    return Sky.create(this.renderer, this.scene, this.camera, { quality, weather: { seaHeight: (x, z) => ocean.waveField.heightAt(vec2(x, z)) } });
   }
 
   private async warmupRendering(progress?: BattleProgress): Promise<void> {
@@ -1093,7 +1079,7 @@ export class Game {
         // A paused frame (dt 0) renders the same waves, foam and wake again.
         this.ocean!.update(dt);
         this.renderFrame();
-        updateWaterShadows(this.ocean!, this.sunShadows!.wide as unknown as THREE.DirectionalLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
+        updateWaterShadows(this.ocean!, this.sunShadows!.wide as unknown as THREE.DirectionalLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows, this.cloudShadow);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();

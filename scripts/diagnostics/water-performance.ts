@@ -49,7 +49,7 @@ export async function compareWater(review: any, Baseline: typeof CombatEffects, 
       game.camera.lookAt(scenario.away ? 3000 : 330, 20, scenario.away ? 3000 : -35);
       game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
       for (const effects of Object.values(variants)) {
-        effects.reset(); effects.setWind(9, .7); effects.setSun(game.sky.sun.direction.value);
+        effects.reset(); effects.setWind(9, .7); effects.setSun(game.sky.sun.direction);
         for (let i = 0; i < scenario.impacts; i++) {
           effects.emit({ ...event, sequence: i + 1,
             position: [310 + (i % 4) * 14, event.position[1], -65 + Math.floor(i / 4) * 14] });
