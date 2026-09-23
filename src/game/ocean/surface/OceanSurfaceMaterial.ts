@@ -37,15 +37,17 @@ const CREST_EDGE = .15;
 const THIN_FOAM = .35;
 /** Edge half-width of wind streaks. */
 const STREAK_EDGE = .1;
-/** Wake foam energy at which churned water starts to show, where it is a solid sheet, and how softly its edge
- * dissolves: the trail's own energy shapes its puffs and gaps. */
-const WAKE_START = .05, WAKE_FULL = .7, WAKE_EDGE = .8;
+/** Wake foam energy at which churned water starts to show, where it covers the sea completely, and how softly its
+ * edge dissolves: the trail's own energy shapes its puffs and gaps. */
+const WAKE_START = .05, WAKE_FULL = .6, WAKE_EDGE = .8;
+/** Opacity of the densest churned water: a trail is aerated water the sea shows through, not a painted sheet. */
+const WAKE_OPACITY = .75;
 /** Water column (m) over which shoreline foam fades out, and its soft edge: a thin line along a hull. */
 const SHORE_DEPTH = .8, SHORE_EDGE = .4;
 /** Depth (m) over which unmodified sea water dims the surface seen from below. The game eases the view-ray
  * absorption for a submerged camera so hulls stay visible, which would leave the surface as bright from 50 m as
  * from 5 m; its daylight fades with the camera's depth instead. */
-const DAYLIGHT_DEPTH = 25;
+const DAYLIGHT_DEPTH = 60;
 
 /** What the surface reads live; every object is owned by the facade and mutated by the game. */
 export interface SurfaceParameters extends Pick<OceanApi, 'colors' | 'foam' | 'sun' | 'reflections'> {
@@ -228,7 +230,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
       .mul(reference('opacity', 'float', foam.surface));
     const crestFoam = crestFoamOpacity(sample.foam, lace, blur).mul(reference('opacity', 'float', foam.crest));
     // Churned water is soft-edged and puffy where the trail's energy thins, not cut into lace.
-    const wakeFoam = foamOpacity(smoothstep(WAKE_START, WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur, WAKE_EDGE);
+    const wakeFoam = foamOpacity(smoothstep(WAKE_START, WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur, WAKE_EDGE).mul(WAKE_OPACITY);
     // Where the water column behind the surface thins to nothing: a beach, or the line along a hull.
     const shoreFoam = foamOpacity(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), lace, blur, SHORE_EDGE).mul(reference('opacity', 'float', foam.shoreline));
     const crestColor = rgb(foam.crest.color).mul(foamLight);

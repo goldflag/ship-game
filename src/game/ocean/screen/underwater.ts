@@ -25,12 +25,12 @@ const SUNLIT = .45;
 /** Optical depth, in its most transparent channel, over which daylight in the sea takes the colour of what the
  * water absorbs least. Relative to that channel, so the game's submerged easing of the absorption (a uniform
  * scale) keeps the hue. */
-const TINT_DEPTH = 1;
+const TINT_DEPTH = .5;
 /** Daylight scattered along the underside of the surface, relative to the sky's mean radiance overhead: the sun
  * and the whole dome feed it through Snell's window. */
-const SIDE_LIGHT = 3;
+const SIDE_LIGHT = 2.5;
 /** Vertical direction components over which the seen light turns from the deep's upwelling to the side light. */
-const DEEP_VIEW = -.7, SIDE_VIEW = 0;
+const DEEP_VIEW = -1, SIDE_VIEW = 0;
 
 /** Radiance of the lit sea seen along `direction` from just below the surface: the pigment looking down into the
  * deep, brightening toward the horizontal into daylight scattered along the surface, which takes the tint of what
