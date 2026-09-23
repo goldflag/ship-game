@@ -44,6 +44,8 @@ export function screenCorner(depth: Node<'float'>): Node<'vec4'> {
 export function createDome(color: (direction: Node<'vec3'>) => Node<'vec3'>, reversedDepth: boolean): Mesh {
   const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: true, depthWrite: false });
   material.blending = NoBlending;
+  // Unlit: a basic material otherwise builds the scene's lights and environment into every sky pixel.
+  material.lights = false;
   material.name = 'Sky dome';
   material.fog = false;
   material.toneMapped = false;
