@@ -21,7 +21,8 @@ export class ShipInspection {
   readonly root = new THREE.Group();
   readonly entries: InspectionEntry[];
   mode: InspectionMode | 'all' | 'damage' = 'exterior';
-  selectedId?: string;
+  /** Isolated volumes: one plate or module, or a whole zone or group chosen in the port panel. */
+  selectedIds: ReadonlySet<string> = new Set();
   hoveredId?: string;
   private hoverColor = new THREE.Color('#ffffff');
   private armorShading = uniform(0);
@@ -111,20 +112,26 @@ export class ShipInspection {
       owner.add(mesh); this.armorBatches.push(mesh);
     }
   }
-  setMode(mode: InspectionMode | 'all' | 'damage', selectedId?: string): void {
+  /** The single isolated volume, when exactly one is isolated. */
+  get selectedId(): string | undefined {
+    return this.selectedIds.size === 1 ? this.selectedIds.values().next().value : undefined;
+  }
+  private get isolating(): boolean { return this.selectedIds.size > 0; }
+  setMode(mode: InspectionMode | 'all' | 'damage', selected?: string | readonly string[]): void {
     if (mode !== 'exterior') this.buildVolumes();
     if (mode === 'armor') this.buildArmorBatches();
     this.mode = mode;
-    this.selectedId = this.entries.some(e => e.id === selectedId && this.inMode(e, mode)) ? selectedId : undefined;
+    const wanted = new Set(typeof selected === 'string' ? [selected] : selected ?? []);
+    this.selectedIds = new Set(this.entries.filter(e => wanted.has(e.id) && this.inMode(e, mode)).map(e => e.id));
     this.root.visible = mode !== 'exterior';
     this.regionOutlines.forEach(r => r.mesh.visible = false);
     this.setHovered(undefined);
     const opaqueArmor = mode === 'armor';
     this.armorShading.value = opaqueArmor ? 1 : 0;
-    this.armorBatches.forEach(mesh => mesh.visible = opaqueArmor && !this.selectedId);
+    this.armorBatches.forEach(mesh => mesh.visible = opaqueArmor && !this.isolating);
     this.volumes.forEach(({ entry, fill, outline }) => {
       if (entry.kind !== 'armor') return;
-      fill.visible = !opaqueArmor || !!this.selectedId || !!entry.underwaterProtection;
+      fill.visible = !opaqueArmor || this.isolating || !!entry.underwaterProtection;
       outline.visible = false;
       if (fill.material.transparent === opaqueArmor) {
         fill.material.transparent = !opaqueArmor;
@@ -153,7 +160,7 @@ export class ShipInspection {
     // Compound residual spaces wrap the detailed room layout. Let the specific
     // rooms remain hoverable through that context; the residual
     // cells are still pickable alone, in empty areas, or after row isolation.
-    const nearest = this.mode === 'compartments' && !this.selectedId
+    const nearest = this.mode === 'compartments' && !this.isolating
       ? hits.find(hit => !entryOf(hit.object)?.cells) ?? hits[0] : hits[0];
     if (this.mode === 'armor' || !nearest) return entryOf(nearest?.object);
     return entryOf(nearest.object);
@@ -162,7 +169,7 @@ export class ShipInspection {
     if (id === this.hoveredId) return;
     this.paintBatchedArmor(this.hoveredId, false);
     const hoverable = this.mode === 'armor' || this.mode === 'internals' || this.mode === 'compartments';
-    this.hoveredId = hoverable && (!this.selectedId || this.selectedId === id) && this.entries.some(e => e.id === id && this.inMode(e)) ? id : undefined;
+    this.hoveredId = hoverable && id !== undefined && (!this.isolating || this.selectedIds.has(id)) && this.entries.some(e => e.id === id && this.inMode(e)) ? id : undefined;
     this.paintBatchedArmor(this.hoveredId, true);
     this.volumes.forEach(volume => this.paint(volume));
   }
@@ -176,7 +183,7 @@ export class ShipInspection {
   }
   /** Hover and selection styling shared by immediate hover changes and per-frame updates. */
   private paint({ entry, color, fill, outline }: (typeof this.volumes)[number]): void {
-    const hovered = entry.id === this.hoveredId, selected = entry.id === this.selectedId, dim = !!this.selectedId && !selected;
+    const hovered = entry.id === this.hoveredId, selected = this.selectedIds.has(entry.id), dim = this.isolating && !selected;
     if (entry.kind === 'armor') {
       outline.visible = hovered;
       outline.material.color.copy(this.hoverColor);
@@ -195,7 +202,7 @@ export class ShipInspection {
     const trains = actor.mounts.map(mount => mount.train);
     for (const { id, mesh } of this.regionOutlines) {
       const condition = regionCondition(actor, id);
-      mesh.visible = (this.mode === 'all' || this.mode === 'damage') && !this.selectedId && condition < .95;
+      mesh.visible = (this.mode === 'all' || this.mode === 'damage') && !this.isolating && condition < .95;
       mesh.material.color.set(condition < .05 ? '#aebabe' : '#dfbd83');
       mesh.material.opacity = condition < .05 ? .55 : .3;
     }
@@ -204,9 +211,9 @@ export class ShipInspection {
       let tone: DamageTone = 'healthy';
       fill.renderOrder = 100; outline.renderOrder = 102;
       if (water) water.renderOrder = this.mode === 'damage' ? 111 : 101;
+      const selected = this.selectedIds.has(entry.id);
       // Defense coverage is a gameplay envelope, not a plate that should hide armor.
-      group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId)
-        && (!entry.underwaterProtection || entry.id === this.selectedId);
+      group.visible = this.inMode(entry) && (!this.isolating || selected) && (!entry.underwaterProtection || selected);
       if (!group.visible) return;
       // Opaque armor colors change only on mode, selection or hover changes.
       if (this.mode !== 'armor') this.paint(volume);
@@ -245,7 +252,7 @@ export class ShipInspection {
         // available in the port's Flooding view and through selection.
         const fire = actor.damage.control.rooms[entry.compartmentIndex].intensity;
         if (fire > 0) { fill.material.color.set('#e69b57'); fill.material.opacity = .12; }
-        if ((this.mode === 'all' || this.mode === 'damage') && entry.id !== this.selectedId && fraction <= .0001 && fire <= 0 && actor.damage.compartments[entry.compartmentIndex].breachAreaM2 <= 0) group.visible = false;
+        if ((this.mode === 'all' || this.mode === 'damage') && !selected && fraction <= .0001 && fire <= 0 && actor.damage.compartments[entry.compartmentIndex].breachAreaM2 <= 0) group.visible = false;
         if (this.mode === 'damage') {
           tone = fire > 0 ? 'fire' : fraction > .0001 ? 'flooded' : actor.damage.compartments[entry.compartmentIndex].breachAreaM2 > 0 ? 'damaged' : 'healthy';
         }
@@ -253,7 +260,7 @@ export class ShipInspection {
         waterline!.value = this.definition.construction ? (actor.damage.compartments[entry.compartmentIndex] as { waterLevelY?: number }).waterLevelY ?? -1e6 : compartmentWaterLevel(actor, this.definition, entry.compartmentIndex);
       }
       if (this.mode === 'damage') {
-        const selected = entry.id === this.selectedId, affected = tone !== 'healthy';
+        const affected = tone !== 'healthy';
         fill.material.color.set(DAMAGE_COLORS[tone]);
         fill.material.opacity = entry.kind === 'compartment' ? selected ? .24 : .1 : selected || affected ? .6 : .08;
         // Healthy machinery supplies context; damage must remain visible through overlapping volumes.

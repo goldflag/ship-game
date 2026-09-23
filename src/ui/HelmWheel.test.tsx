@@ -21,7 +21,7 @@ function telemetry(over: Partial<Telemetry> = {}): Telemetry {
     contact({ id: 'friendly-4', shipId: 'king-george-v', name: 'King George V', x: 0, z: 5000, physicalLost: true, sunk: true, integrity: 0 }),
     contact({ id: 'enemy-1', shipId: 'mogami', name: 'Mogami', team: 'enemy', x: 3000, z: -8000 }),
   ];
-  return { ship: { ...simulation.ship, x: 0, z: 0 }, shipDefinition: definition, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat, controlledShipId: 'player', helmWheel: { reason: 'held' }, ...over };
+  return { ship: { ...simulation.ship, x: 0, z: 0 }, shipDefinition: definition, order: 1, camera: 'Chase', fps: 60, trail: [], combat, controlledShipId: 'player', helmWheel: { reason: 'held' }, ...over };
 }
 
 test('the wheel places every afloat friendly except the centre hull at true bearing, numbered clockwise from north', () => {

@@ -121,7 +121,7 @@ test('rangefinding uses a visible ship and feeds locked range into the real gun 
   } finally { rig.dispose(); simulation.dispose(); }
 });
 
-test('scoping over empty water follows a closer aim while retaining the fixed viewing angle', async () => {
+test('the scope eye holds its height while aiming from empty water onto a ship', async () => {
   const simulation = await presentationSession(false);
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
   const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement);
@@ -144,8 +144,7 @@ test('scoping over empty water follows a closer aim while retaining the fixed vi
       clientY: (Math.atan2(-delta.y, Math.hypot(delta.x, delta.z)) - descent) / sensitivity,
     }));
     window.dispatchEvent(new Event('pointerup')); settle();
-    expect(camera.position.y).toBeLessThan(height - 100);
-    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(2 * Math.PI / 180, 6);
+    expect(camera.position.y).toBeCloseTo(height, 6);
     const projected = aim.project(camera);
     expect(projected.x).toBeCloseTo(0, 6); expect(projected.y).toBeCloseTo(0, 6);
     expect(rig.binoculars).toBe(true); expect(rig.rangeAim).toBeUndefined();
@@ -159,14 +158,12 @@ test('switching guns and AP/HE leaves the scoped camera and aim unchanged', asyn
   const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
     battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false, ammunition: {},
   }) as Game;
-  const runtime = game as unknown as { updateGunScope(definition: typeof simulation.definition): void };
   const ship = simulation.ship;
   rig.aimAt([ship.x + 5000, .5, ship.z], ship);
   try {
     game.toggleBinoculars();
     for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60);
     const position = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
-    expect(-Math.asin(direction.y)).toBeCloseTo(2 * Math.PI / 180, 6);
     const groups = game.weaponGroups.filter(group => group.battery === 'main' || group.battery === 'secondary');
     expect(groups.length).toBeGreaterThan(1);
     for (const group of groups) {
@@ -174,7 +171,6 @@ test('switching guns and AP/HE leaves the scoped camera and aim unchanged', asyn
       for (const ammunition of weapon.he ? ['he', 'ap'] as const : ['ap'] as const) {
         game.selectWeaponGroup(group.id); game.selectAmmunition(ammunition);
         expect(game.selectedAmmunition).toBe(ammunition);
-        runtime.updateGunScope(simulation.definition);
         for (let i = 0; i < 60; i++) {
           rig.update(ship, ship.y, 1 / 60);
           expect(camera.position.distanceTo(position)).toBeLessThan(1e-6);
@@ -198,7 +194,7 @@ test('rangefinding admits only fresh enemy exteriors actually observed by the he
 });
 
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
-async function port(storageMatrices = false) {
+async function port() {
   const definition = shipPreset('bismarck');
   const simulation = await presentationSession();
   simulation.ship.x = 240;
@@ -223,7 +219,7 @@ async function port(storageMatrices = false) {
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false, frameWaiters: [], observedShipViews: new ObservedShipViews(),
     hulls: new Map(), palette: new ShipMaterialPalette(), occlusion: { adopt() {}, render() {} },
-    renderer: { backend: { isWebGPUBackend: storageMatrices }, domElement: { setAttribute() {} } },
+    renderer: { domElement: { setAttribute() {} } },
     environment: makeTestEnvironment(),
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };
@@ -392,9 +388,9 @@ test('a second request cannot replace an in-flight switch; disposed games never 
   } finally { loader.mockRestore(); rig.dispose(); }
 });
 
-test.each([false, true])('battle loading binds each mixed fleet hull and selected target to its own exported joints (storage matrices: %s)', async storageMatrices => {
-  const { game, scene, harbor, rig } = await port(storageMatrices);
-  const aircraftLoader = spyOn((game as unknown as { aircraftView: { load(modelIds: string[], storageMatrices?: boolean): Promise<void> } }).aircraftView, 'load');
+test('battle loading binds each mixed fleet hull and selected target to its own exported joints', async () => {
+  const { game, scene, harbor, rig } = await port();
+  const aircraftLoader = spyOn((game as unknown as { aircraftView: { load(modelIds: string[]): Promise<void> } }).aircraftView, 'load');
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '')));
   try {
     await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', { shipId: 'bismarck', aiLevel: 'hard' }],
@@ -402,7 +398,7 @@ test.each([false, true])('battle loading binds each mixed fleet hull and selecte
       spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(aircraftLoader).toHaveBeenCalledTimes(1);
-    expect(aircraftLoader).toHaveBeenCalledWith(shipPreset('enterprise-cv6').airWing!.squadrons.map(s => s.modelId), storageMatrices);
+    expect(aircraftLoader).toHaveBeenCalledWith(shipPreset('enterprise-cv6').airWing!.squadrons.map(s => s.modelId));
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
     expect(game.simulation.actors).toHaveLength(5);
@@ -591,7 +587,7 @@ test('a battle that opens on the fleet chart selects nothing; leaving a helm kee
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   try {
     game.enterFleetCommand(false);
@@ -613,7 +609,7 @@ test('a custom battle reads the fleet chart from its helm: nothing is released, 
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 1, rudder: .5 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
@@ -663,7 +659,7 @@ test('the helm wheel swaps hulls in a custom battle: held on its key, offered on
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} }, callbacks: { pause() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} }, callbacks: { pause() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
@@ -719,7 +715,7 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera, selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });

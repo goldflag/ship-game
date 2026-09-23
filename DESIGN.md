@@ -83,7 +83,8 @@ Full-screen ship and sea framed by compact edge-mounted naval instruments: ivory
 brass commands, mint readiness, fine borders. Rules agents break most:
 - **No cards.** Port and battle instruments are transparent (hairlines, text shadows, no panel or
   control fills, hover included). Fills belong only to dialogs, tooltips, the wing manifest and the
-  shipbuilder's neutral cards. Extend the existing instrument styling; keep ship, sea and sight clear.
+  shipbuilder's neutral cards; the port's particulars column rests on an edge shade, not a fill.
+  Extend the existing instrument styling; keep ship, sea and sight clear.
 - **New DOM HUD layers must join the `--hud-scale` rule** in `src/ui/styles.css`: `.hud-viewport,
   .ocean-viewport :is(.ship-label-layer, .hit-label-layer, .gun-aim-layer, .torpedo-aim-layer,
   .torpedo-marker-layer), .game-shell > .hit-direction-layer`. It declares `container: hud / size`, so

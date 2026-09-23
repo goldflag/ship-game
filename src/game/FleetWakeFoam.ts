@@ -1,8 +1,8 @@
-import { DataTexture, LinearFilter, RedFormat, Vector4, type Camera, type Node, type Object3D, type Texture, type WebGPURenderer } from 'three/webgpu';
+import { LinearFilter, Vector4, type Camera, type Node, type Object3D, type Texture } from 'three/webgpu';
 import { Fn, If, Loop, float, max, mx_noise_float, smoothstep, texture, uniform, uniformArray, vec2, vec3 } from 'three/tsl';
 import { WakeFoam, WAKE_EXTENT, wakeStampBudget } from './WakeFoam';
 import type { ShipDefinition } from '../ships/blueprint';
-import { WakeFoamGpu, WakeStampCollector } from './WakeFoamGpu';
+import { WakeStampCollector, type WakeFoamPainter, type WakeFoamPainterFactory } from './WakeFoamGpu';
 import { wakeHull } from './wakeHull';
 import type { ShipState, CombatEvent } from '../game/session/elements';
 
@@ -21,23 +21,21 @@ export const WAKE_ATLAS_CAPACITY = TILES * TILES;
  * opponents kilometres away retain the same trail detail as the player. */
 export class FleetWakeFoam {
   readonly texture: Texture;
-  private readonly entries = new Map<WakeShip['root'], { foam: WakeFoam; collector?: WakeStampCollector; slot: number; version: number }>();
+  private readonly entries = new Map<WakeShip['root'], { foam: WakeFoam; collector: WakeStampCollector; slot: number; version: number }>();
   private readonly centers = Array.from({ length: TILES * TILES }, () => new Vector4());
   private readonly bounds = uniformArray<'vec4'>(this.centers, 'vec4');
   private readonly count = uniform(0, 'int');
   private readonly time = uniform(0);
-  private readonly pixels: Uint8Array;
   private readonly field;
-  private readonly gpu?: WakeFoamGpu;
-  private gpuDirty = true;
+  private readonly painter: WakeFoamPainter;
+  private dirty = true;
   /** Whether trails still paint the bow-shoulder crests; off while the analytic bow waves draw them. */
   bowShoulders = true;
 
-  constructor(private readonly resolution: number, renderer?: WebGPURenderer) {
-    const size = resolution * TILES;
-    if ((renderer?.backend as { isWebGPUBackend?: boolean } | undefined)?.isWebGPUBackend) this.gpu = new WakeFoamGpu(renderer!, resolution, TILES);
-    this.pixels = new Uint8Array(this.gpu ? 0 : size * size);
-    this.texture = this.gpu?.target.texture ?? new DataTexture(this.pixels, size, size, RedFormat);
+  /** `painter` draws the atlas: `gpuWakeFoamPainter(renderer)` in the game. */
+  constructor(private readonly resolution: number, painter: WakeFoamPainterFactory) {
+    this.painter = painter(resolution, TILES);
+    this.texture = this.painter.texture;
     this.texture.minFilter = this.texture.magFilter = LinearFilter;
     this.texture.generateMipmaps = false;
     this.texture.needsUpdate = true;
@@ -53,7 +51,10 @@ export class FleetWakeFoam {
         If(uv.x.greaterThan(.025).and(uv.x.lessThan(.975)).and(uv.y.greaterThan(.025)).and(uv.y.lessThan(.975)), () => {
           const edge = smoothstep(.025, .05, uv.x).mul(float(1).sub(smoothstep(.95, .975, uv.x)))
             .mul(smoothstep(.025, .05, uv.y)).mul(float(1).sub(smoothstep(.95, .975, uv.y)));
-          energy.assign(max(energy, this.field.sample(uv.add(bounds.zw).div(TILES)).r.mul(edge)));
+          const tile = this.field.sample(uv.add(bounds.zw).div(TILES));
+          // The texture matrix is identity: skip its uniform and multiply on every read.
+          tile.updateMatrix = false;
+          energy.assign(max(energy, tile.r.mul(edge)));
         });
       });
       If(energy.greaterThan(.01), () => {
@@ -68,7 +69,7 @@ export class FleetWakeFoam {
   update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[], camera?: Camera): void {
     const roots = new Set(ships.map(ship => ship.root));
     for (const [root, entry] of this.entries) if (!roots.has(root)) {
-      entry.foam.dispose(); this.entries.delete(root); this.gpuDirty = true;
+      entry.foam.dispose(); this.entries.delete(root); this.dirty = true;
     }
     if (ships.length > WAKE_ATLAS_CAPACITY) throw new Error('Fleet exceeds wake atlas capacity');
     if (dt > 0) this.time.value += dt;
@@ -77,8 +78,8 @@ export class FleetWakeFoam {
       let entry = this.entries.get(ship.root);
       if (!entry) {
         const hull = wakeHull(ship.definition.hull);
-        const collector = this.gpu ? new WakeStampCollector() : undefined;
-        collector?.reserve(wakeStampBudget(Math.max(ship.definition.handling.forwardSpeed, ship.definition.handling.reverseSpeed)));
+        const collector = new WakeStampCollector();
+        collector.reserve(wakeStampBudget(Math.max(ship.definition.handling.forwardSpeed, ship.definition.handling.reverseSpeed)));
         entry = { foam: new WakeFoam(this.resolution, { ...hull, forwardSpeed: ship.definition.handling.forwardSpeed }, collector), collector, slot: -1, version: -1 };
         this.entries.set(ship.root, entry);
       }
@@ -95,35 +96,27 @@ export class FleetWakeFoam {
       entry.foam.update({ ...ship.motion, speed: ship.motion.speed * surface }, dt, apparentDistance > 2500 ? .2 : .05);
       const tx = slot % TILES, ty = Math.floor(slot / TILES);
       this.centers[slot].set(entry.foam.center.x, entry.foam.center.y, tx, ty);
+      // A trail's texture version moves whenever it rasterises new stamps.
       if (entry.slot === slot && entry.version === entry.foam.texture.version) return;
-      if (this.gpu) this.gpuDirty = true;
-      else {
-        const source = entry.foam.texture.image.data as Uint8Array;
-        for (let row = 0; row < this.resolution; row++) {
-          this.pixels.set(source.subarray(row * this.resolution, (row + 1) * this.resolution),
-            (ty * this.resolution + row) * this.resolution * TILES + tx * this.resolution);
-        }
-        this.texture.needsUpdate = true;
-      }
+      this.dirty = true;
       entry.slot = slot; entry.version = entry.foam.texture.version;
     });
-    if (this.gpu && this.gpuDirty) {
+    if (this.dirty) {
       // Reserve a full trail at each hull's maximum speed during loading. Growth
       // remains supported if a later scenario exceeds this preparation estimate.
-      this.gpu.reserve(ships.reduce((count, ship) => count + wakeStampBudget(Math.max(ship.definition.handling.forwardSpeed, ship.definition.handling.reverseSpeed)), 0));
-      this.gpu.update(ships.map(ship => this.entries.get(ship.root)!.collector!));
-      this.gpuDirty = false;
+      this.painter.reserve(ships.reduce((count, ship) => count + wakeStampBudget(Math.max(ship.definition.handling.forwardSpeed, ship.definition.handling.reverseSpeed)), 0));
+      this.painter.update(ships.map(ship => this.entries.get(ship.root)!.collector));
+      this.dirty = false;
     }
   }
 
-  diagnostics() { return { backend: this.gpu ? 'gpu' : 'cpu', ...this.gpu?.diagnostics() }; }
+  diagnostics() { return this.painter.diagnostics(); }
 
   resetImpacts(): void { this.entries.forEach(entry => entry.foam.resetImpacts()); }
   reset(): void {
     this.entries.forEach(entry => entry.foam.dispose()); this.entries.clear();
     this.count.value = 0; this.time.value = 0;
-    this.gpuDirty = true;
-    if (!this.gpu) { this.pixels.fill(0); this.texture.needsUpdate = true; }
+    this.dirty = true;
   }
-  dispose(): void { this.reset(); if (this.gpu) this.gpu.dispose(); else this.texture.dispose(); }
+  dispose(): void { this.reset(); this.painter.dispose(); }
 }

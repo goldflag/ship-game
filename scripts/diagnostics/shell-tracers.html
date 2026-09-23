@@ -1,12 +1,12 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Shell tracer review</title>
 <style>body{margin:0;background:#142a37;color:#e2ddd0;font:15px system-ui}canvas{display:block}#status{position:fixed;left:20px;top:16px;white-space:pre;background:#142a37bb;padding:12px}</style></head>
 <body><div id="status">Loading shell tracer review…</div><script type="module">
-// Development-only fixtures for the production trail material and both renderer backends.
+// Development-only fixtures for the production trail material on the game's WebGPU renderer.
 // review.render('wide' | 'zoom' | 'follow' | 'close') selects a fixed view.
 import * as THREE from 'three/webgpu';
 import { CombatEffects } from '/src/game/CombatEffects.ts';
 import { prepareInstanceUploads } from '/src/game/InstanceUploads.ts';
-const renderer = new THREE.WebGPURenderer({ antialias:true, forceWebGL:location.search.includes('webgl') });
+const renderer = new THREE.WebGPURenderer({ antialias:true });
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.setSize(1280,720); renderer.setPixelRatio(1); document.body.append(renderer.domElement); await renderer.init();
 const camera = new THREE.PerspectiveCamera(52,1280/720,.1,30000);
@@ -15,7 +15,7 @@ const effects = new CombatEffects(); effects.reset(); scene.add(effects.root);
 const trails = effects.shellTrails;
 scene.add(new THREE.HemisphereLight(0xe0efff,0x203640,1.2));
 const sun=new THREE.DirectionalLight(0xffe6c8,3);sun.position.set(1,3,2);scene.add(sun);
-if(renderer.backend.isWebGPUBackend) prepareInstanceUploads(effects.root);
+prepareInstanceUploads(effects.root);
 const shells = Array.from({length:8},(_,id)=>({id,ownerId:'player',caliberM:.38,age:0,position:[0,40,-id*9],velocity:[800,100,0]}));
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(50000,50000),new THREE.MeshBasicMaterial({color:'#16323d'}));
 ground.rotation.x = -Math.PI/2; scene.add(ground);
@@ -32,7 +32,7 @@ function setCamera(mode='wide') {
 async function render(mode='wide'){
  setCamera(mode);trails.update(shells,0,camera);effects.updateShells({shells},camera);
  renderer.render(scene,camera);
- document.querySelector('#status').textContent=mode+' · '+(renderer.backend.isWebGPUBackend?'WebGPU':'WebGL2')+'\n'+JSON.stringify(trails.diagnostics());
+ document.querySelector('#status').textContent=mode+'\n'+JSON.stringify(trails.diagnostics());
  return { ...trails.diagnostics(), calls:renderer.info.render.calls, triangles:renderer.info.render.triangles };
 }
 for(let frame=0;frame<=120;frame++){

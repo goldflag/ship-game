@@ -5,10 +5,10 @@ Design study for a configurable Graphics tab in the pause-menu settings dialog, 
 ## Implementation
 
 - `src/game/graphicsSettings.ts` owns the `GraphicsSettings` shape, the Low/Medium/High/Ultra presets, sanitizing, the `fleet-graphics-settings` storage key and a one-time migration of the legacy `bismarck-settings` tier and render scale. Diagnostics that still construct `Game` with `{ quality, resolution }` are migrated the same way.
-- `Game.applyGraphics()` diffs the changed rows and touches only their subsystems: pixel ratio and `resize()`, the frame interval honored by `scheduleFrame()`, the display pipeline (none, FXAA or three's SMAA node over the same composited frame), `water.ssr.enabled`, `sky.setQualityLevel()` with the game's smaller reflection bake budget and god rays kept off, the sun shadow map size and normal bias (or `castShadow` off), the meshopt pixel budget passed to `FleetShipDraws.update()`, the wingspan thresholds in `AircraftView`, and an emission density on every `EffectParticlePool` plus the funnel smoke rate.
+- `Game.applyGraphics()` diffs the changed rows and touches only their subsystems: pixel ratio and `resize()`, the frame interval honored by `scheduleFrame()`, the display pipeline (none, FXAA or three's SMAA node over the same composited frame), `ocean.reflections.screenSpace`, `sky.setQualityLevel()` with the game's smaller reflection bake budget and god rays kept off, the sun shadow map size and normal bias (or `castShadow` off), the meshopt pixel budget passed to `FleetShipDraws.update()`, the wingspan thresholds in `AircraftView`, and an emission density on every `EffectParticlePool` plus the funnel smoke rate.
 - The ocean tier and terrain density are read when the port loads (`Game.launchedGraphics` records them). In port the footer offers "Reload port to apply now"; after a battle, returning to port rebuilds the port automatically when either row changed.
-- Telemetry carries a `performance` readout (mode, FPS, frame time, framebuffer size, backend and, in Detailed mode, ship draw, particle and aircraft counts) rendered by `PerformanceCounter` in the HUD and the port and by the dialog's head strip.
-- Differences from the study: Clouds Ultra does not enable sun shafts, because the game keeps Sky Pro's god rays off for its exposure; the Combat effects row thins particle emission evenly through a fixed-stride sequence instead of per-effect counts, and leaves the impact-mark cap alone.
+- Telemetry carries a `performance` readout (mode, FPS, frame time, framebuffer size and, in Detailed mode, ship draw, particle and aircraft counts) rendered by `PerformanceCounter` in the HUD and the port and by the dialog's head strip.
+- Differences from the study: Clouds Ultra does not enable sun shafts, because the game keeps Sky Pro's god rays off for its exposure; the Combat effects row thins particle emission evenly through a fixed-stride sequence instead of per-effect counts, and leaves the impact-mark cap alone. Since the game became WebGPU-only, the readout no longer names the backend.
 
 Open [index.html](index.html) in a browser for the interactive prototype. It draws the proposed dialog over a captured port frame, with all four tabs laid out in the wide format. Hash states select review captures: `#port` (default), `#custom`, `#battle,pending`, `#low`, `#ultra`, `#menu`, `#hud`, `#keys`, `#sound`. The frame-rate readout in the prototype is an illustrative model of relative cost; the real dialog reads renderer telemetry.
 
@@ -18,7 +18,7 @@ Review captures: [Graphics in port, High preset](desktop.png), [in battle with a
 
 | Control | What it changes | Apply |
 | --- | --- | --- |
-| Ocean detail (Medium / High / Ultra) | Water Pro tier (surface segments 32/64/128, wave cascades 2/3/3, ripple grid 256/256/512, wake solver 256/512/1024, foam field 512/1024/2048, screen-space reflections off/on/on with 8/16/32 march steps), Sky Pro tier (Medium, or High at Ultra), sun shadow map 1024/2048/4096, harbor terrain 44/64 segments, harbor and island tree spacing, island terrain 320/512 segments | Recreates the whole `Game`, ending any battle |
+| Ocean detail (Medium / High / Ultra) | The vendored ocean library's tier (surface segments 32/64/128, wave cascades 2/3/3, ripple grid 256/256/512, wake solver 256/512/1024, foam field 512/1024/2048, screen-space reflections off/on/on with 8/16/32 march steps), Sky Pro tier (Medium, or High at Ultra), sun shadow map 1024/2048/4096, harbor terrain 44/64 segments, harbor and island tree spacing, island terrain 320/512 segments | Recreates the whole `Game`, ending any battle |
 | Render scale (65 / 80 / 100%) | `renderer.setPixelRatio(min(devicePixelRatio, 1.5) × scale)` | Same reload, although every consumer already handles `resize()` |
 
 One tier drives seven unrelated subsystems, and both controls end the battle to apply. The HUD, Sound and Keybindings tabs already apply immediately, so the Graphics tab is the odd one out.
@@ -31,7 +31,7 @@ Cost notes come from `docs/custom-battle-performance.md` and the subsystem code.
 
 | Setting | Options | Code | Cost | Apply |
 | --- | --- | --- | --- | --- |
-| Render scale | 50–100% in 5% steps, showing the resulting framebuffer size | `Game.resize()` already threads pixel ratio into the renderer, Water Pro, Sky Pro and overlays | Largest single lever: water shading, cloud march and FXAA are per-pixel | Live (debounced while dragging) |
+| Render scale | 50–100% in 5% steps, showing the resulting framebuffer size | `Game.resize()` already threads pixel ratio into the renderer, the ocean, Sky Pro and overlays | Largest single lever: water shading, cloud march and FXAA are per-pixel | Live (debounced while dragging) |
 | Frame rate limit | Display refresh, 120, 60, 30 | `scheduleFrame()` skips `requestAnimationFrame` callbacks until the interval elapses; `frame()` already tolerates any `dt` up to 100 ms | Power and thermals rather than quality | Live |
 | Anti-aliasing | Off, FXAA (current), SMAA | `RenderPipeline(renderer, fxaa(finalFrame))` in `Game.initialize()`; three r185 ships `SMAANode` and `TRAANode` beside `FXAANode` | FXAA is one full-screen pass; SMAA adds two more. TRAA conflicts with Sky Pro's temporal cloud reconstruction and is not proposed | Live: rebuild the final pipeline node and run one warmup frame |
 | Upscaling | Off, FSR 1.0 | `FSR1Node` in three r185 could sharpen a reduced render scale to native size | Only worth it once render scale is live | Later |
@@ -40,12 +40,12 @@ Cost notes come from `docs/custom-battle-performance.md` and the subsystem code.
 
 | Setting | Options | Code | Cost | Apply |
 | --- | --- | --- | --- | --- |
-| Ocean simulation | Low, Medium, High, Ultra | Water Pro `QUALITY_LEVELS`; `WaterSystem.setQualityLevel()` exists but rebuilds the wave simulation, material, clipmap and wake, so `ShipWake`, `UnderwaterPassVisibility` and the buoyancy sampler must rebind | Cascade FFTs, clipmap vertices and wake dispatches scale with the tier | Next launch first; live later once the rebind path is proven. Low is a new tier (one cascade, 16 segments) for integrated GPUs |
-| Water reflections | Sky only, Ships and sky | `water.ssr.enabled` is a live uniform; `stepCount` 16/32 follows the tier | Screen-space reflections march 16–32 steps per water pixel; the heaviest optional effect in a large fleet | Live |
+| Ocean simulation | Low, Medium, High, Ultra | The ocean's tiers (then the vendored library's quality levels, now `OCEAN_TIERS` in `src/game/ocean/quality.ts`); a tier change rebuilds the wave field, surface, clipmap and wake, so `ShipWake` and the buoy height sampler must rebind | Cascade FFTs, clipmap vertices and wake dispatches scale with the tier | Next launch first; live later once the rebind path is proven. Low is a new tier (one cascade, 16 segments) for integrated GPUs |
+| Water reflections | Sky only, Ships and sky | `ocean.reflections.screenSpace` is live; the tier fixes 16/32 ray steps | Screen-space reflections march 16–32 steps per water pixel; the heaviest optional effect in a large fleet | Live |
 | Clouds | Low, Medium, High, Ultra | `sky.setQualityLevel(level)`: history divisor 4/2/2/2, cloud shadow map 128–1024, environment bake 256–1024 px with 24–64 march steps. `cloudPass.sourceDiv` is also runtime-tunable | Volumetric cloud march is the other large per-pixel cost; the environment bake re-marches clouds every ninth frame | Live, with a short stall while weather and base-shape noise refill on the CPU (acceptable from a paused menu) |
 | Sun shafts | Off, On | Construct `SkySystem` with `godRays: true` and drive `sky.godRays.enabled` | 16–24 march steps per pixel toward the sun | Live; folded into Clouds Ultra in the proposal |
 | Shadows | Off, Low 1024, Medium 2048, High 4096 | `sunlight.shadow.mapSize`, `normalBias` (already proportional to texel size), `sunlight.castShadow`; dispose `shadow.map` to resize. `FleetVisibility` already checks `light.castShadow` | Every ship, harbor structure and tree draws again into the map; 4096² is costly on integrated GPUs | Live |
-| Wave spray | Off, On | `water.spray` (WebGPU only; 32k/64k particles at High/Ultra); the sailing build disables it deliberately | GPU compute plus overdraw | Live; not proposed for the first version |
+| Wave spray | Off, On | The vendored library's spray (32k/64k particles at High/Ultra), which the sailing build disabled; the game's own ocean has no spray | GPU compute plus overdraw | Live; not proposed for the first version |
 
 ### Detail and effects
 
@@ -96,7 +96,7 @@ Medium matches today's Medium (ocean medium, sky medium, 1024 shadows, reflectio
 ## Implementation notes
 
 - Add `src/game/graphicsSettings.ts` following `hudSettings.ts`: a `GraphicsSettings` interface with the eleven fields above, `sanitizeGraphicsSettings`, `loadGraphicsSettings` and `PRESETS`. Migrate the saved `bismarck-settings` object: `quality` selects the matching preset and `resolution` becomes `renderScale`.
-- Replace `GameSettings` with the new interface. `Game` keeps a `applyGraphics(next)` method that diffs against the current settings and touches only the changed subsystems: pixel ratio and `resize()`, frame interval, the final pipeline node, `water.ssr.enabled`, `sky.setQualityLevel`, the shadow map, the detail budgets and the effects multiplier. Ocean tier and terrain are stored and read at the next `Game` or battle construction.
+- Replace `GameSettings` with the new interface. `Game` keeps a `applyGraphics(next)` method that diffs against the current settings and touches only the changed subsystems: pixel ratio and `resize()`, frame interval, the final pipeline node, the screen-space reflection toggle, `sky.setQualityLevel`, the shadow map, the detail budgets and the effects multiplier. Ocean tier and terrain are stored and read at the next `Game` or battle construction.
 - `App.tsx` stops recreating `Game` on settings changes and calls `applyGraphics` instead; the settings effect keys on the ocean and terrain fields only, and only in port.
 - The dialog reads `fps` from telemetry and the render size and backend from the game, exactly as the port FPS counter does today.
 - Warm the new anti-aliasing pipeline with one frame under the paused menu before swapping, following `warmupRendering()`.

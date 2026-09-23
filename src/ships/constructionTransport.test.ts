@@ -4,6 +4,7 @@ import init, { ConstructionCompiler } from '../generated/naval-wasm/naval_wasm';
 import catalogJson from '../../public/models/components/catalog.json';
 import { createStarterSource } from './constructionStarter';
 import type { ConstructionCatalog, ConstructionResult } from './blueprint';
+import { encodeFittingMesh } from './constructionFittingMesh';
 
 beforeAll(async () => {
   await init({ module_or_path: await Bun.file(new URL('../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() });
@@ -122,6 +123,15 @@ test('native compact output decodes exactly like full JSON through edits and fai
   cases.push(structuredClone(source));
   source.revision = 'hull-edit';
   source.construction.primitives[0].size[2] += 0.01;
+  cases.push(structuredClone(source));
+  // A visual mesh fitting's `vertices` is a count, not a point list (the Scharnhorst's tower failed to load).
+  source.revision = 'mesh-fitting';
+  const corners: [number, number, number][] = [[-1, 0, -1], [1, 0, -1], [1, 0, 1], [-1, 0, 1], [0, 1.5, 0]];
+  const face = (a: number, b: number, c: number) => ({ a: corners[a], b: corners[b], c: corners[c], group: 'walls' });
+  const mesh = encodeFittingMesh('pyramid', [face(0, 2, 1), face(0, 3, 2), face(0, 1, 4), face(1, 2, 4), face(2, 3, 4), face(3, 0, 4)], { walls: 'light-gray' });
+  expect(typeof mesh.vertices).toBe('number');
+  source.construction.fittings = [{ id: 'fit-pyramid', name: 'Pyramid', version: 2, attach: 'deck', massKg: 500, solids: [], tubes: [], meshes: [mesh] }];
+  source.construction.equipment.push({ id: 'pyramid', partId: 'design:fit-pyramid', position: [0, 3, 0], bearingDeg: 0 });
   cases.push(structuredClone(source));
   source.revision = 'invalid';
   source.construction.defaultThicknessMm = -1;

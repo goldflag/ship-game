@@ -5,6 +5,7 @@ import { KNOTS_PER_MPS } from '../game/session/motion';
 import { ballisticStep } from '../game/ballistics';
 import { maxHullIntegrity } from './durability';
 import { GRAVITY } from '../game/mountGeometry';
+import { armorZones, calibreLabel, gunBatteries, type GunBattery } from './particulars';
 
 /** One figure on the port statistics sheet. `text` values are names, not measurements. */
 export interface StatRow {
@@ -17,6 +18,8 @@ export interface StatRow {
 export interface StatSection {
   id: string;
   title: string;
+  /** Calibre or other qualifier printed beside the title. */
+  subtitle?: string;
   headline: string;
   headlineUnit?: string;
   headlineHelp: string;
@@ -83,7 +86,13 @@ export function maximumRangeM(weapon: GunPart): number {
 const knots = (metersPerSecond: number) => metersPerSecond * KNOTS_PER_MPS;
 const format = (n: number, digits = 0) => n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const thickest = (def: ShipDefinition) => def.armor.reduce((best, a) => (a.thicknessMm > best.thicknessMm ? a : best), def.armor[0]);
-const mainMounts = (def: ShipDefinition) => def.mounts.filter((m) => m.battery === 'main');
+/** Menu summaries of historical ships carry the thickest plate instead of the plates themselves. */
+export function thickestArmorMm(def: ShipDefinition): number {
+  if (!('armor' in def)) return (def as { armorMaxMm?: number }).armorMaxMm ?? 0;
+  return def.armor.length ? thickest(def).thicknessMm : 0;
+}
+/** The heaviest calibre, however the design flags its batteries. */
+const mainMounts = (def: ShipDefinition) => (gunBatteries(def)[0]?.mountIndexes ?? []).map((i) => def.mounts[i]);
 const dualPurposeMounts = (def: ShipDefinition) => def.mounts.filter((m) => antiAircraftRange(m) > 0);
 
 /** One figure on the builder's plate under a ship's name in port. */
@@ -111,11 +120,47 @@ export function shipSpec(def: ShipDefinition): SpecFigure[] {
   ];
 }
 
+/** One of the eight particulars under the port ratings. */
+export interface Particular extends SpecFigure {
+  help: string;
+}
+/** Protection, guns and handling at a glance, read from the same definition as the sheet. */
+export function shipParticulars(def: ShipDefinition): Particular[] {
+  const zones = armorZones(def),
+    belt = zones.find((z) => z.id === 'belt'),
+    deck = zones.find((z) => z.id === 'deck');
+  const main = gunBatteries(def)[0],
+    mounts = main ? main.mountIndexes.map((i) => def.mounts[i]) : [];
+  const handling = effectiveHandling(def.handling, !!def.maneuvering);
+  const turning = handling.forwardSpeed > 0 && handling.maxYawRate > 0 ? (2 * handling.forwardSpeed) / handling.maxYawRate : 0;
+  const range = mounts.length ? Math.max(...mounts.map((m) => maximumRangeM(m.weapon))) : 0;
+  return [
+    { label: 'Hull integrity', value: format(maxHullIntegrity(def)), unit: 'HP', help: 'Gameplay hull durability. Reaching zero starts sinking; flooding and capsize can also sink the ship.' },
+    belt
+      ? { label: 'Main belt', value: format(belt.maxMm), unit: 'mm', help: `Heaviest side armor, ${format(belt.span[0])}–${format(belt.span[1])} m from the bow.` }
+      : { label: 'Main belt', value: 'None', help: 'No side armor of 50 mm or more.' },
+    deck
+      ? { label: 'Armored deck', value: format(deck.maxMm), unit: 'mm', help: 'Heaviest horizontal protection over the machinery and magazines.' }
+      : { label: 'Armored deck', value: 'None', help: 'No deck armor of 25 mm or more.' },
+    main
+      ? { label: 'Main battery', value: `${main.barrels} × ${format(main.calibreMm)}`, unit: 'mm', help: `${mounts.length} ${mounts.length === 1 ? 'mount' : 'mounts'} of ${mounts[0].weapon.name}.` }
+      : { label: 'Main battery', value: 'None', help: 'No guns are fitted.' },
+    range
+      ? { label: 'Gun range', value: format(range / 1000, 1), unit: 'km', help: 'Maximum flat-water range of the main battery with drag, over the permitted low arc.' }
+      : { label: 'Gun range', value: '—', help: 'No guns are fitted.' },
+    { label: 'Top speed', value: format(knots(handling.forwardSpeed), 1), unit: 'kn', help: 'Full ahead with undamaged machinery.' },
+    turning
+      ? { label: 'Turning circle', value: format(turning), unit: 'm', help: 'Reference diameter from design speed and the full-rudder turning rate.' }
+      : { label: 'Turning circle', value: '—', help: 'The ship has no way on: fit machinery to turn.' },
+    { label: 'Flooding reserve', value: format(def.compartments.reduce((n, c) => n + c.capacityM3, 0)), unit: 'm³', help: `Water the ${def.compartments.length} compartments can hold.` },
+  ];
+}
+
 /** Gameplay calibration only: each score reads the same simulation inputs the sheet prints. */
 export function shipScores(def: ShipDefinition): StatScore[] {
   const r = SCORE_REFERENCES,
     main = mainMounts(def);
-  const armorMm = def.armor.length ? thickest(def).thicknessMm : 0;
+  const armorMm = thickestArmorMm(def);
   const penetration = main.length ? Math.max(...main.map((m) => m.weapon.penetrationMm)) : 0;
   const planRoot = Math.sqrt(def.hull.length * def.hull.beam);
   const score = (value: number) => Math.round(clamp(value, 0, 100));
@@ -165,14 +210,13 @@ function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean, defini
     const [low, high] = gunTraverseLimitsDeg(mount);
     return `${low === -high ? `±${high}°` : `${low}° to ${high}°`} · ${mount.weapon.traverseRateDeg}°/s`;
   };
-  const traverseRows =
-    new Set(mounts.map(traverse)).size === 1
-      ? [{ label: 'Traverse', value: traverse(mounts[0]), help: 'Travel relative to the mount’s neutral bearing and training speed.' }]
-      : mounts.map((mount) => ({
-          label: `Traverse · ${mount.name}`,
-          value: traverse(mount),
-          help: 'Travel relative to this mount’s neutral bearing and training speed.',
-        }));
+  const travels = new Map<string, number>();
+  for (const mount of mounts) travels.set(traverse(mount), (travels.get(traverse(mount)) ?? 0) + 1);
+  const traverseRows = [...travels].map(([value, count]) => ({
+    label: travels.size === 1 ? 'Traverse' : `Traverse · ${count} ${count === 1 ? 'mount' : 'mounts'}`,
+    value,
+    help: 'Travel relative to the mount’s neutral bearing and training speed.',
+  }));
   return [
     ...(withName
       ? [{ label: weapon.name, value: layout, help: 'Mounts × barrels per mount.', text: true }]
@@ -242,8 +286,6 @@ function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean, defini
 
 /** Everything the sheet prints is read from the compiled definition combat uses. */
 export function shipStatistics(def: ShipDefinition): StatSection[] {
-  const main = mainMounts(def),
-    secondary = def.mounts.filter((m) => m.battery === 'secondary');
   const hp = maxHullIntegrity(def),
     h = def.hull,
     handling = effectiveHandling(def.handling, !!def.maneuvering);
@@ -299,28 +341,32 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
     ],
   };
   const plate = def.armor.length ? thickest(def) : undefined;
-  const maxNamed = (pattern: RegExp) => def.armor.filter((a) => pattern.test(a.name)).reduce((n, a) => Math.max(n, a.thicknessMm), 0);
-  const belt = maxNamed(/belt/i),
-    deck = maxNamed(/deck/i);
-  const mainIds = new Set(main.map((m) => m.id));
-  const gunhouse =
-    def.armor.filter((a) => a.plate?.mountId && mainIds.has(a.plate.mountId)).reduce((n, a) => Math.max(n, a.thicknessMm), 0) ||
-    (main[0]?.weapon.armorMm ?? 0);
+  const zones = armorZones(def),
+    zone = (id: string) => zones.find((z) => z.id === id);
+  const belt = zone('belt'),
+    deck = zone('deck'),
+    turrets = zone('turrets'),
+    conning = zone('conning');
+  const main = mainMounts(def);
+  const gunhouse = turrets?.maxMm ?? main[0]?.weapon.armorMm ?? 0;
   const materials = [...new Set(def.armor.map((a) => a.plate?.material).filter((m): m is NonNullable<typeof m> => !!m))];
   const basis = ['documented', 'plan-measured', 'estimated', 'inferred']
     .map((kind) => [kind, def.armor.filter((a) => a.provenance?.basis === kind).length] as const)
     .filter(([, n]) => n > 0);
+  const zoneOfThickest = plate && zones.find((z) => z.id !== 'underwater' && z.maxMm === plate.thicknessMm);
   const armor: StatSection = {
     id: 'armor',
     title: 'Armor',
-    headline: format(plate?.thicknessMm ?? 0),
-    headlineUnit: 'mm',
-    headlineHelp: plate ? `Thickest armor volume: ${plate.name}.` : 'No armor volumes are authored for this ship.',
+    headline: format(belt?.maxMm ?? plate?.thicknessMm ?? 0),
+    headlineUnit: belt ? 'mm belt' : 'mm',
+    headlineHelp: belt
+      ? 'Heaviest side armor. Zones are read from where each plate sits, not from its name.'
+      : plate
+        ? 'Thickest armor volume. This ship has no side armor of 50 mm or more.'
+        : 'No armor volumes are authored for this ship.',
     rows: [
-      ...(plate ? [{ label: 'Thickest plate', value: plate.name, help: 'The armor volume with the greatest thickness.', text: true }] : []),
-      { label: 'Armor volumes', value: format(def.armor.length), help: 'Plates and boxes that stop or slow shells before the interior.' },
-      ...(belt ? [{ label: 'Belt', value: format(belt), unit: 'mm', help: 'Thickest volume named as belt armor.' }] : []),
-      ...(deck ? [{ label: 'Deck', value: format(deck), unit: 'mm', help: 'Thickest volume named as deck armor.' }] : []),
+      ...(belt ? [{ label: 'Main belt', value: format(belt.maxMm), unit: 'mm', help: `Heaviest side armor, ${format(belt.span[0])}–${format(belt.span[1])} m from the bow.` }] : []),
+      ...(deck ? [{ label: 'Armored deck', value: format(deck.maxMm), unit: 'mm', help: 'Heaviest horizontal protection over the machinery and magazines.' }] : []),
       ...(main.length
         ? [
             {
@@ -331,6 +377,11 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
             },
           ]
         : []),
+      ...(conning ? [{ label: 'Conning tower', value: format(conning.maxMm), unit: 'mm', help: 'Thickest plate of the armored command position.' }] : []),
+      ...(plate && zoneOfThickest
+        ? [{ label: 'Thickest plate', value: `${format(plate.thicknessMm)} mm · ${zoneOfThickest.label}`, help: 'The armor volume with the greatest thickness, and its zone.', text: true }]
+        : []),
+      { label: 'Armor volumes', value: format(def.armor.length), help: 'Plates and boxes that stop or slow shells before the interior.' },
       ...(materials.length
         ? [
             {
@@ -353,43 +404,49 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
         : []),
     ],
   };
-  const mainBattery: StatSection | undefined = main.length
-    ? {
-        id: 'main-battery',
-        title: 'Main battery',
-        headline: format(Math.round(main[0].weapon.caliberM * 1000)),
-        headlineUnit: 'mm',
-        headlineHelp: `${main[0].weapon.name}. Caliber sets the shell and the gunhouse envelope.`,
-        rows: [
-          {
-            label: 'Gun',
-            value: [...new Set(main.map((m) => m.weapon.name))].join(' / '),
-            help: 'Weapons fitted to the main battery mounts.',
-            text: true,
-          },
-          ...batteryRows(main, false, def),
-        ],
-      }
-    : undefined;
-  const secondaryGroups = [...new Map(secondary.map((m) => [m.partId, secondary.filter((s) => s.partId === m.partId)])).values()];
-  const secondaryBattery: StatSection | undefined = secondary.length
-    ? {
-        id: 'secondary-battery',
-        title: 'Secondary battery',
-        headline: format(secondary.reduce((n, m) => n + barrels(m.weapon), 0)),
-        headlineUnit: 'barrels',
-        headlineHelp: 'Barrels across every secondary mount. Secondary batteries fire under their own control.',
-        rows: secondaryGroups.flatMap((group) =>
-          batteryRows(group, true, def).filter(
-            (row) =>
-              secondaryGroups.length === 1 ||
-              ['Reload', 'Damage per minute', 'Maximum range', 'Penetration', 'Motion clearance'].includes(row.label) ||
-              row.text,
-          ),
-        ),
-        collapsed: true,
-      }
-    : undefined;
+  const batteries = gunBatteries(def);
+  const batterySection = (battery: GunBattery, rank: number): StatSection => {
+    const mounts = battery.mountIndexes.map((i) => def.mounts[i]);
+    const parts = [...new Map(mounts.map((m) => [m.partId, mounts.filter((other) => other.partId === m.partId)])).values()];
+    return {
+      id: rank === 0 ? 'main-battery' : battery.id,
+      title: battery.role === 'Main battery' ? 'Main battery' : battery.role === 'Secondary' ? 'Secondary battery' : 'Dual-purpose battery',
+      subtitle: battery.label,
+      headline: rank === 0 ? format(battery.calibreMm) : format(battery.barrels),
+      headlineUnit: rank === 0 ? 'mm' : 'barrels',
+      headlineHelp:
+        rank === 0
+          ? `${mounts[0].weapon.name}. Caliber sets the shell and the gunhouse envelope.`
+          : `${battery.label} guns${battery.role === 'Dual-purpose' ? ', which also engage aircraft' : ''}. Every mount of this calibre, whatever battery the design assigns it to.`,
+      rows:
+        parts.length === 1
+          ? [{ label: 'Gun', value: mounts[0].weapon.name, help: 'Weapon fitted to these mounts.', text: true }, ...batteryRows(mounts, false, def)]
+          : parts.flatMap((group) =>
+              batteryRows(group, true, def).filter((row) => ['Reload', 'Damage per minute', 'Maximum range', 'Penetration', 'Motion clearance'].includes(row.label) || row.text),
+            ),
+      collapsed: rank > 0,
+    };
+  };
+  const heavy = batteries.filter((b, rank) => rank === 0 || b.role !== 'Light AA');
+  const light = batteries.filter((b, rank) => rank > 0 && b.role === 'Light AA');
+  const gunSections: StatSection[] = heavy.map((battery) => batterySection(battery, batteries.indexOf(battery)));
+  if (light.length)
+    gunSections.push({
+      id: 'light-aa',
+      title: 'Light AA',
+      subtitle: light.map((b) => b.label).join(' and '),
+      headline: format(light.reduce((n, b) => n + b.barrels, 0)),
+      headlineUnit: 'barrels',
+      headlineHelp: 'Automatic guns of 40 mm or less.',
+      rows: light.flatMap((battery) => {
+        const mounts = battery.mountIndexes.map((i) => def.mounts[i]);
+        const parts = [...new Map(mounts.map((m) => [m.partId, mounts.filter((other) => other.partId === m.partId)])).values()];
+        return parts.flatMap((group) =>
+          batteryRows(group, true, def).filter((row) => ['Reload', 'Damage per minute', 'Maximum range'].includes(row.label) || row.text),
+        );
+      }),
+      collapsed: true,
+    });
   const tubes = def.torpedoTubes ?? [];
   const torpedoGroups = [...new Map(tubes.map((t) => [t.partId, tubes.filter((other) => other.partId === t.partId)])).values()];
   const torpedoBatteries: StatSection[] = torpedoGroups.map((group) => {
@@ -639,8 +696,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
   return [
     survivability,
     armor,
-    ...(mainBattery ? [mainBattery] : []),
-    ...(secondaryBattery ? [secondaryBattery] : []),
+    ...gunSections,
     ...torpedoBatteries,
     ...depthChargeBatteries,
     mobility,

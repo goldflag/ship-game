@@ -13,8 +13,8 @@ const MIN_ORBIT_ELEVATION = .08;
 /** Torpedoes are laid on wedges drawn on the sea: the chase view climbs until the water fills the lower half of the frame. */
 const TORPEDO_ORBIT_ELEVATION = .38;
 const MAX_UPWARD_TILT = Math.PI / 6;
-/** A common viewing angle for every gun and shell, independent of ballistics. */
-const SCOPE_DESCENT = 2 * Math.PI / 180;
+/** Binoculars look from this far above the bridge, the same at every range, for a little more look-down on the sea. */
+const SCOPE_EYE_HEIGHT = 30;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
 const PORT_AIM_DROP = .148;
@@ -33,10 +33,6 @@ export class CameraRig {
   mode: CameraMode = 'Chase';
   binoculars = false;
   private scopeMagnification = DEFAULT_SCOPE_MAGNIFICATION;
-  private gunScope = false;
-  private scopeLift = 0;
-  private scopeAimHeight = .5;
-  private scopeAim?: Vec3;
   private lockedRangeM?: number;
   private torpedoView = false;
   private chaseFloor = MIN_ORBIT_ELEVATION;
@@ -130,24 +126,9 @@ export class CameraRig {
       } else {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
-        const transitioningAim = this.binoculars && !this.submarine && this.gunScope && this.opticsTransition?.aim;
-        if (transitioningAim) {
-          this.look.fromArray(transitioningAim).sub(this.camera.position);
-          this.azimuth = Math.atan2(this.look.x, -this.look.z);
-          this.elevation = Math.atan2(-this.look.y, Math.hypot(this.look.x, this.look.z));
-        }
         this.azimuth += dx * sensitivity;
         if (this.lockedRangeM === undefined) this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, MAX_DOWNWARD_TILT);
-        if (dx || dy) {
-          if (this.opticsTransition) {
-            // Aim from the eye the player can see while it climbs, not the final elevated eye.
-            const range = (this.camera.position.y - this.scopeAimHeight) / Math.tan(this.elevation);
-            this.opticsTransition.aim = transitioningAim && this.elevation > 0 && range > 0
-              ? [this.camera.position.x + Math.sin(this.azimuth) * range, this.scopeAimHeight,
-                this.camera.position.z - Math.cos(this.azimuth) * range] : undefined;
-          }
-          this.actions.aim();
-        }
+        if (dx || dy) { if (this.opticsTransition) this.opticsTransition.aim = undefined; this.actions.aim(); }
       }
       this.previous = { x: e.clientX, y: e.clientY };
     }, options);
@@ -188,8 +169,6 @@ export class CameraRig {
 
   setBridge(bridge: Vec3 = [0, 29, -31]): void { this.bridge = bridge; }
   setSubmarine(equipment?: SubmarineDefinition): void { this.submarine = equipment; }
-  /** Gun optics use a common angle; torpedoes and periscopes retain their own view. */
-  setGunScope(enabled: boolean): void { this.gunScope = enabled; }
 
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
   get firing(): boolean { return this.enabled && !this.shellView && !this.freeCamera && this.pointerLocked && this.mouseFire; }
@@ -317,8 +296,6 @@ export class CameraRig {
     }
   }
   aimAt(aim: Vec3, ship: ShipState): void {
-    this.scopeAim = aim;
-    this.scopeAimHeight = aim[1];
     this.azimuth = Math.atan2(aim[0] - ship.x, ship.z - aim[2]);
     this.update(ship, ship.y, 0, true);
     // Orbit height depends on pitch; solve position and sight together.
@@ -328,7 +305,6 @@ export class CameraRig {
       this.elevation = Math.atan2(-delta.y, Math.hypot(delta.x, delta.z));
       this.update(ship, ship.y, 0, true);
     }
-    this.scopeAim = undefined;
   }
   cycle(): void {
     this.setRangeLock();
@@ -398,37 +374,6 @@ export class CameraRig {
     if (ground === 0 && this.inPort) return;
     if (ground === 0 && this.submarine && !this.shellView && (this.mode !== 'Tactical' || this.inspecting)) return;
     position.y = Math.max(position.y, ground + CAMERA_CLEARANCE);
-  }
-  /** Lift around the point already under the sight. Reading range from the old
-   * elevated eye prevents camera height feeding back into range and drifting away. */
-  private updateScopeLift(dt: number, snap: boolean): void {
-    const lockedAim = this.rangeAim;
-    if (lockedAim) this.scopeAimHeight = lockedAim[1];
-    const fixedAim = lockedAim ?? this.scopeAim ?? this.opticsTransition?.aim;
-    const originHeight = this.desired.y + this.scopeLift;
-    const range = (originHeight - this.scopeAimHeight) / Math.tan(this.elevation);
-    // Looking above the horizon remains free; hold altitude until there is a sighting again.
-    if (!fixedAim && (this.elevation <= 0 || range <= 0)) {
-      if (!this.gunScope) this.scopeLift = snap || this.reducedMotion ? 0 : this.scopeLift * Math.exp(-7 * dt);
-      this.desired.y += this.scopeLift;
-      return;
-    }
-    const aim: Vec3 = fixedAim ?? [this.desired.x + Math.sin(this.azimuth) * range, this.scopeAimHeight,
-      this.desired.z - Math.cos(this.azimuth) * range];
-    const eyeRange = Math.hypot(aim[0] - this.desired.x, aim[2] - this.desired.z);
-    let lift = 0;
-    if (this.gunScope) {
-      this.look.copy(this.desired);
-      this.look.y = aim[1] + Math.min(30000, eyeRange) * Math.tan(SCOPE_DESCENT);
-      this.constrainCameraHeight(this.look);
-      lift = this.look.y - this.desired.y;
-    }
-    this.scopeLift = snap || this.reducedMotion ? lift : MathUtils.lerp(this.scopeLift, lift, 1 - Math.exp(-7 * dt));
-    if (!this.gunScope && Math.abs(this.scopeLift) < .001) this.scopeLift = 0;
-    this.desired.y += this.scopeLift;
-    this.constrainCameraHeight(this.desired);
-    if (!lockedAim) this.azimuth = Math.atan2(aim[0] - this.desired.x, this.desired.z - aim[2]);
-    this.elevation = Math.atan2(this.desired.y - aim[1], eyeRange);
   }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
     this.lastShip = ship;
@@ -507,12 +452,8 @@ export class CameraRig {
       if (this.binoculars || this.mode === 'Bridge') {
         const periscope = this.submarine && (this.binoculars || height < -.5);
         this.desired.set(...localToWorld(periscope ? this.submarine!.periscopeEye : this.bridge, { ...ship, y: height }));
-        if (this.binoculars && !periscope) this.desired.y += 8;
-        this.constrainCameraHeight(this.desired);
-        if (this.binoculars && !periscope && (this.gunScope || this.scopeLift !== 0)) this.updateScopeLift(dt, snap);
-        else this.scopeLift = 0;
+        if (this.binoculars && !periscope) this.desired.y += SCOPE_EYE_HEIGHT;
       } else {
-        this.scopeLift = 0;
         let distance = (this.mode === 'Tactical' ? Math.max(160 * this.hullScale, this.displayedDistance) : this.displayedDistance) * Math.max(1, 1.2 / this.camera.aspect);
         const floor = this.torpedoView && this.mode === 'Chase' ? TORPEDO_ORBIT_ELEVATION : MIN_ORBIT_ELEVATION;
         this.chaseFloor = snap || this.reducedMotion ? floor : MathUtils.lerp(this.chaseFloor, floor, 1 - Math.exp(-7 * dt));

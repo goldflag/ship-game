@@ -40,19 +40,16 @@ afterEach(() => globals.forEach((name, i) => {
   if (originals[i]) Object.defineProperty(globalThis, name, originals[i]!); else Reflect.deleteProperty(globalThis, name);
 }));
 
-/** Water Pro's live uniforms, without its GPU simulation. */
-function fakeWater() {
+/** The ocean's live parameters, without its GPU parts. */
+function fakeOcean() {
   return {
-    lighting: { sunLight: new DirectionalLight() },
-    underwaterDistortion: { intensity: .02 },
-    color: { absorptionColor: new Color(.296, .105, .095), waterColor: new Color(), transmissionColor: new Color(),
-      update(colors: { waterColor: string; transmissionColor: string; absorptionColor: string }) {
-        this.waterColor.set(colors.waterColor); this.transmissionColor.set(colors.transmissionColor); this.absorptionColor.set(colors.absorptionColor);
-      } },
-    waves: { amplitude: { value: 0 }, windSpeed: { value: 8 }, peakWavelength: { value: 0 }, choppiness: { value: 0 }, jonswapGamma: { value: 0 }, windDirection: { value: .5 }, dirty: false },
-    foam: { waves: { opacity: 0, color: new Color(), persistence: { crestStrength: 0, windwardStrength: 0, decayTime: 0, update(values: { crestStrength: number; windwardStrength: number; decayTime: number }) { Object.assign(this, values); } } }, surface: { color: new Color() }, shoreline: { color: new Color() } },
-    fog: {}, getGeometryConfig: () => ({ infinityRingExtent: 950000 }),
-    async update() {},
+    waves: { significantHeight: 0, windSpeed: 8, windDirection: .5, peakWavelength: 0, choppiness: 0, gamma: 0, directionalSharpness: .8, seed: 1, dirty: false },
+    colors: { waterColor: new Color(), transmissionColor: new Color(), absorptionColor: new Color(.296, .105, .095) },
+    foam: { crest: { crestStrength: 0, windwardStrength: 0, decayTime: 0, color: new Color(), opacity: 0, windStretch: 0 },
+      surface: { color: new Color(), opacity: 0, coverage: 0 }, shoreline: { color: new Color(), opacity: 0 } },
+    fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 },
+    sun: { direction: new Vector3(), intensity: 0, color: new Color() },
+    update() {}, setShadowNode() {}, ensureHorizon() {},
   };
 }
 
@@ -140,9 +137,9 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
   const updateCamera = rig.update.bind(rig);
   rig.update = (ship, ...args) => { focusPositions.push(ship.z); updateCamera(ship, ...args); };
   const helm = { throttle: 1, rudder: 0 };
-  const water = fakeWater();
+  const ocean = fakeOcean(), sunLight = new DirectionalLight();
   const environment = makeTestEnvironment();
-  environment.attachWater(water as never);
+  environment.attachOcean(ocean as never, sunLight);
   const battlefieldCamera = new BattlefieldCamera(camera);
   const input = makeTestInput({ sample: () => helm, flying: false, setFlying(value: boolean) { this.flying = value; },
     setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
@@ -160,14 +157,14 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     paused: false, inPort: false, inspecting: false, input,
     aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
-    effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), water, sunLight: water.lighting.sunLight, sunShadows: new FocusShadowNode(water.lighting.sunLight), environment,
+    effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), ocean, sunLight, sunShadows: new FocusShadowNode(sunLight), environment,
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     pipeline: { render() {} }, occlusion: { render() {} }, scheduleFrame() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
   }) as { frame(time: number, warmingUp?: boolean): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; toggleFreeCamera(): void; recenter(): void; shellFollow: ShellFollow;
     setAirOperationsOpen(open: boolean): void; followAircraft(id: string): void; returnToShip(): void; fire(): void; setPaused(paused: boolean): void;
     airOperationsOpen: boolean; manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };
-  return { game, simulation, playerView, targetView, camera, rig, helm, input, battlefieldCamera, water, environment, wakePositions, focusPositions, gunAimFrames };
+  return { game, simulation, playerView, targetView, camera, rig, helm, input, battlefieldCamera, ocean, environment, wakePositions, focusPositions, gunAimFrames };
 }
 const followedAircraft = (game: object) => Reflect.get(game, 'followedAircraftId') as string | undefined;
 const rigEnabled = (rig: CameraRig) => Reflect.get(rig, 'enabled') as boolean;
@@ -203,7 +200,7 @@ test('battle loading holds input and starts one loop only after graphics finish 
       let finish!: () => void, enabled = true, scheduled = 0;
       const graphics = new Promise<void>(resolve => { finish = resolve; });
       const game = Object.assign(Object.create(Game.prototype), {
-        simulation: { player: { damage: { sunk: false } } }, water: {}, inPort: false,
+        simulation: { player: { damage: { sunk: false } } }, ocean: {}, inPort: false,
         input: makeTestInput({ setEnabled(value: boolean) { enabled = value; } }),
         setInPort() {}, scheduleFrame() { scheduled++; },
         async warmupRendering() { await graphics; if (failure) throw new Error('Graphics failed'); },
@@ -227,8 +224,8 @@ test('battle loading holds input and starts one loop only after graphics finish 
 });
 
 test('map and port transitions restore their own absorption after underwater attenuation', async () => {
-  const { game, simulation, water, environment } = await frameHarness();
-  const { absorptionColor } = water.color;
+  const { game, simulation, ocean, environment } = await frameHarness();
+  const { absorptionColor } = ocean.colors;
   for (const map of OCEAN_MAPS) {
     Object.assign(simulation, { mapId: map.id });
     for (const inPort of [false, true]) {
@@ -239,16 +236,6 @@ test('map and port transitions restore their own absorption after underwater att
       await game.frame(16);
       expect(absorptionColor.toArray()).toEqual(expected.toArray());
     }
-  }
-});
-
-test('underwater distortion eases down with camera depth and restores without accumulating', async () => {
-  const { game, camera, rig, water } = await frameHarness();
-  rig.update = () => {};
-  for (const [height, scale] of [[12, 1], [0, 1], [-1, .575], [-2, .15], [-50, .15], [-150, .15], [-1, .575], [12, 1], [-50, .15], [12, 1]]) {
-    camera.position.y = height;
-    await game.frame(16);
-    expect(water.underwaterDistortion.intensity).toBeCloseTo(.02 * scale, 10);
   }
 });
 
@@ -310,9 +297,7 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   await game.frame(time += 1000 / 60);
   expect(rig.binoculars).toBe(true);
   expect(camera.fov).toBeCloseTo(fov, 10);
-  // The gunnery eye returns above our bridge; its altitude follows the shell's descent.
-  expect(Math.hypot(camera.position.x - playerView.root.position.x, camera.position.z - playerView.root.position.z)).toBeLessThan(100);
-  expect(camera.position.y).toBeGreaterThan(playerView.root.position.y);
+  expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);
   game.toggleShellFollow();
   game.setInPort(true);
   expect(game.shellFollow.phase).toBe('off');
@@ -400,14 +385,12 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
   let time = 0;
   for (const binoculars of [false, true, false]) {
     if (rig.binoculars !== binoculars) game.toggleBinoculars();
-    // Let both the optics glide and the elevated eye finish settling before measuring follow.
-    for (let frame = 0; frame < 360; frame++) await game.frame(time += 1000 / 144);
+    for (let frame = 0; frame < 180; frame++) await game.frame(time += 1000 / 144);
     await game.frame(time += 1000 / 144);
     const offset = camera.position.clone().sub(playerView.root.position);
     for (let frame = 0; frame < 30; frame++) {
       await game.frame(time += [1000 / 144, 1000 / 47, 1000 / 72, 43][frame % 4]);
-      // Allow sub-micrometre rounding in the sight's trigonometry.
-      expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-6);
+      expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-9);
       expect(playerView.root.visible).toBe(!binoculars);
       expect(game.currentAim.every(Number.isFinite)).toBe(true);
     }

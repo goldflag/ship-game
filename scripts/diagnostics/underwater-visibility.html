@@ -5,7 +5,10 @@
 <script type="module">
 // Dev-only GPU regression harness; not part of the production build.
 // Private Game fields are used only here to pin actual cameras/poses and pause
-// time. Production rendering still goes through Game.frame and Water Pro.
+// time. Production rendering still goes through Game.frame and the ocean's
+// underwater pass (src/game/ocean/screen/underwater.ts).
+// ?test runs the dives; ?legacy restores the surface absorption after each frame
+// (a negative control that must fail); ?quality=low|medium|high|ultra.
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
@@ -20,20 +23,17 @@ await game.initialization;
 if (!window.visibilityError) {
   game.setInPort(false);
   game.setPaused(true);
-  game.targetView.root.visible=false;
-  game.harbor.visible=false;
+  // The port session may have no target; the harbor is built only for some berths.
+  if(game.targetView) game.targetView.root.visible=false;
+  if(game.harbor) game.harbor.visible=false;
   game.rig.setSubmarine(game.definition.submarine);
   game.rig.recenter();
-  game.water.deterministic=true;
-  game.water.syncToTick(3600);
-  // The map change dirtied the spectrum. A paused update(0) only renders;
-  // initialize that spectrum once before freezing the comparison frames.
-  await game.water.update(1/60);
-  game.underwaterPassVisibility?.capture();
-  const absorption=game.water.color.absorptionColor.clone();
-  const distortion=game.water.underwaterDistortion.enabled;
+  // Paused frames never advance the ocean's clock; parameter changes still apply on the next update.
+  const ocean=game.ocean;
+  ocean.time=60;
+  const absorption=ocean.colors.absorptionColor.clone();
   window.visibilityGame=game;
-  window.captureVisibility=async({depth=50,scale=1,fog=true,warp=distortion,azimuth=.82,frame=true,ship=true,mode='Chase',legacy=query.has('legacy')}={})=>{
+  window.captureVisibility=async({depth=50,scale=1,azimuth=.82,frame=true,ship=true,mode='Chase',legacy=query.has('legacy')}={})=>{
     const motion=game.simulation.ship;
     Object.assign(motion,{x:0,y:-depth,z:0,heading:0,pitch:0,roll:0});
     game.playerView.snap();
@@ -44,23 +44,20 @@ if (!window.visibilityError) {
     game.rig.binoculars=false;
     game.rig.azimuth=azimuth;
     game.rig.update(motion,motion.y,0,true);
-    game.water.color.absorptionColor.copy(absorption).multiplyScalar(scale);
-    game.water.underwater.enabled=fog;
-    game.water.underwaterDistortion.enabled=warp;
+    ocean.colors.absorptionColor.copy(absorption).multiplyScalar(scale);
     if(frame) await game.frame(performance.now());
-    else { game.sky.update(0); await game.water.update(0); }
+    else { game.sky.update(0); ocean.update(0); }
     game.playerView.root.visible=ship;
     // Game.frame restores own-ship visibility; publish the diagnostic override
     // to the fleet's derived render batches before comparing visible/hidden hulls.
     game.fleetDraws?.update(game.camera, game.renderer.domElement.height);
     // Negative control restores the original coefficients after the real frame.
-    if(legacy) game.water.color.absorptionColor.copy(absorption);
+    if(legacy) ocean.colors.absorptionColor.copy(absorption);
     // Refresh scene depth/color after hiding the ship for the comparison frame.
-    await game.water.update(0);
     game.pipeline.render();
-    await game.renderer.backend.device?.queue.onSubmittedWorkDone();
+    await game.renderer.backend.device.queue.onSubmittedWorkDone();
     game.pipeline.render();
-    const result={depth,scale,fog,warp,azimuth,mode,legacy,camera:game.camera.position.toArray(),absorption:game.water.color.absorptionColor.toArray(),image:game.renderer.domElement.toDataURL('image/png')};
+    const result={depth,scale,azimuth,mode,legacy,camera:game.camera.position.toArray(),absorption:ocean.colors.absorptionColor.toArray(),image:game.renderer.domElement.toDataURL('image/png')};
     document.querySelector('#status').textContent=JSON.stringify({...result,image:undefined},null,2);
     return result;
   };

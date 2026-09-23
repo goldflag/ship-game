@@ -6,22 +6,26 @@ import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps
 import { PORT_WIND, VisualEnvironment } from './VisualEnvironment';
 import { validateBattleSetup } from './session/battleSetup';
 
-/** The Water Pro surface the environment writes to, reduced to its live uniforms. */
-function fakeWater(lighting?: { sun: { direction: { value: Vector3 }; intensity: { value: number }; color: Color }; sunLight: DirectionalLight }) {
+/** The ocean parameters the environment writes to. */
+function fakeOcean() {
   return {
-    waves: { amplitude: { value: 0 }, windSpeed: { value: 0 }, peakWavelength: { value: 0 }, choppiness: { value: 0 }, jonswapGamma: { value: 0 }, windDirection: { value: 0 }, dirty: false },
-    color: { absorptionColor: new Color(), waterColor: new Color(), transmissionColor: new Color(),
-      update(colors: { waterColor: string; transmissionColor: string; absorptionColor: string }) {
-        this.waterColor.set(colors.waterColor); this.transmissionColor.set(colors.transmissionColor); this.absorptionColor.set(colors.absorptionColor);
-      } },
-    foam: { waves: { opacity: 0, color: new Color(), persistence: { crestStrength: 0, windwardStrength: 0, decayTime: 0, update(values: { crestStrength: number; windwardStrength: number; decayTime: number }) { Object.assign(this, values); } } }, surface: { color: new Color() }, shoreline: { color: new Color() } },
-    fog: {} as { color?: string; fadeStart?: number; fadeEnd?: number; fadePower?: number; skyBlendDistance?: number },
-    underwaterDistortion: { intensity: .02 },
-    environment: { intensity: 1 },
-    lighting,
+    waves: { significantHeight: 0, windSpeed: 0, windDirection: 0, peakWavelength: 0, choppiness: 0, gamma: 0, directionalSharpness: .8, seed: 1, dirty: false },
+    colors: { waterColor: new Color(), transmissionColor: new Color(), absorptionColor: new Color() },
+    foam: { crest: { crestStrength: 0, windwardStrength: 0, decayTime: 0, color: new Color(), opacity: 0, windStretch: 0 },
+      surface: { color: new Color(), opacity: 0, coverage: 0 }, shoreline: { color: new Color(), opacity: 0 } },
+    fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 },
+    sun: { direction: new Vector3(), intensity: 0, color: new Color() },
+    environmentIntensity: 1,
   };
 }
 function windSink() { return { wind: [] as number[], setWind(speed: number, direction: number) { this.wind = [speed, direction]; } }; }
+/** The game hands the environment its scene sun; each test gets a fresh one. */
+function attachOcean(environment: VisualEnvironment, ocean: ReturnType<typeof fakeOcean>): DirectionalLight {
+  const sunLight = new DirectionalLight();
+  environment.attachOcean(ocean as never, sunLight);
+  return sunLight;
+}
+
 function lightSink() {
   return { direct: 0, ambient: 0, setWind() {}, setSun() {},
     setIllumination(_color: Color, intensity: number, ambient: number) { this.direct = intensity; this.ambient = ambient; } };
@@ -54,10 +58,10 @@ test('all battle conditions combine across maps without mutating their defaults'
 });
 
 test('weather drives live waves across maps, overrides obsolete settings, and restores the port\'s standing wind', () => {
-  const water = fakeWater();
+  const ocean = fakeOcean();
   const effects = { ...windSink(), setSun() {}, setIllumination() {} }, funnelSmoke = windSink();
   const environment = new VisualEnvironment({ effects, funnelSmoke, sunAnchor: new Group() });
-  environment.attachWater(water as never);
+  attachOcean(environment, ocean);
   let mapId = OCEAN_MAPS[0].id;
   for (const map of OCEAN_MAPS) {
     mapId = map.id;
@@ -66,43 +70,43 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
       environment.setBattle({ timeOfDay: 'map', weather, conditions: {} });
       environment.setScene(map.id, false);
       const expected = battleEnvironment(map, 'map', weather).waves;
-      expect(water.waves.amplitude.value).toBe(expected.amplitude);
-      expect(water.waves.windSpeed.value).toBe(expected.windSpeed);
-      expect(water.waves.peakWavelength.value).toBe(expected.peakWavelength);
+      expect(ocean.waves.significantHeight).toBe(expected.significantHeightM);
+      expect(ocean.waves.windSpeed).toBe(expected.windSpeed);
+      expect(ocean.waves.peakWavelength).toBe(expected.peakWavelength);
       expect(expected.significantHeightM).toBeGreaterThan(previous);
-      expect(water.waves.windDirection.value).toBe(map.water.windDirection * Math.PI / 180);
-      expect(effects.wind).toEqual([expected.windSpeed, water.waves.windDirection.value]);
+      expect(ocean.waves.windDirection).toBe(map.water.windDirection * Math.PI / 180);
+      expect(effects.wind).toEqual([expected.windSpeed, ocean.waves.windDirection]);
       expect(funnelSmoke.wind).toEqual(effects.wind);
-      expect(water.waves.dirty).toBe(true);
+      expect(ocean.waves.dirty).toBe(true);
       previous = expected.significantHeightM;
     }
     environment.setBattle({ timeOfDay: 'map', weather: 'fog', conditions: {} }); environment.setScene(map.id, false);
-    expect(water.waves.amplitude.value).toBe(battleEnvironment(map, 'map', 'clear').waves.amplitude);
+    expect(ocean.waves.significantHeight).toBe(battleEnvironment(map, 'map', 'clear').waves.significantHeightM);
   }
   environment.setBattle({ timeOfDay: 'map', weather: 'fog', conditions: { timeHours: 0 } }); environment.setScene(mapId, false);
-  const nightWater = water.color.waterColor.clone(), nightFoam = water.foam.waves.color.clone();
+  const nightWater = ocean.colors.waterColor.clone(), nightFoam = ocean.foam.crest.color.clone();
   environment.setScene(mapId, false);
-  expect(water.color.waterColor).toEqual(nightWater);
-  expect(water.foam.waves.color).toEqual(nightFoam);
+  expect(ocean.colors.waterColor).toEqual(nightWater);
+  expect(ocean.foam.crest.color).toEqual(nightFoam);
   environment.setBattle({ timeOfDay: 'map', weather: 'fog', conditions: { timeHours: 12 } }); environment.setScene(mapId, false);
   const dayPalette = oceanMap(mapId).water;
-  expect(water.color.waterColor).toEqual(new Color(dayPalette.waterColor));
-  expect(water.color.absorptionColor).toEqual(new Color(dayPalette.absorptionColor));
-  expect(water.foam.waves.color).toEqual(new Color(1, 1, 1));
+  expect(ocean.colors.waterColor).toEqual(new Color(dayPalette.waterColor));
+  expect(ocean.colors.absorptionColor).toEqual(new Color(dayPalette.absorptionColor));
+  expect(ocean.foam.crest.color).toEqual(new Color(1, 1, 1));
   environment.setBattle({ timeOfDay: 'map', weather: 'fog', conditions: { timeHours: 0 } }); environment.setScene(mapId, false);
   environment.setScene(mapId, true);
-  expect(water.color.waterColor).toEqual(new Color(oceanMap('north-atlantic').water.waterColor));
+  expect(ocean.colors.waterColor).toEqual(new Color(oceanMap('north-atlantic').water.waterColor));
   // The port's 9 m/s is the calibrated sea a battle resolves for that wind, on the berth's map.
   const port = battleEnvironment(oceanMap(mapId), 'map', 'map', { windSpeed: PORT_WIND.speed }).waves;
   expect(port.significantHeightM).toBeCloseTo(1.8 * oceanMap(mapId).water.amplitudeScale);
-  expect(water.waves.amplitude.value).toBe(port.amplitude);
-  expect(water.waves.windSpeed.value).toBe(9);
-  expect(water.waves.peakWavelength.value).toBe(port.peakWavelength);
-  expect(water.waves.choppiness.value).toBe(port.choppiness);
-  expect(water.waves.jonswapGamma.value).toBe(2.6);
-  expect(water.foam.waves.persistence.crestStrength).toBe(port.crestFoam);
-  expect(water.foam.waves.persistence.windwardStrength).toBe(port.windwardFoam);
-  expect(water.foam.waves.persistence.decayTime).toBe(2.8);
+  expect(ocean.waves.significantHeight).toBe(port.significantHeightM);
+  expect(ocean.waves.windSpeed).toBe(9);
+  expect(ocean.waves.peakWavelength).toBe(port.peakWavelength);
+  expect(ocean.waves.choppiness).toBe(port.choppiness);
+  expect(ocean.waves.gamma).toBe(2.6);
+  expect(ocean.foam.crest.crestStrength).toBe(port.crestFoam);
+  expect(ocean.foam.crest.windwardStrength).toBe(port.windwardFoam);
+  expect(ocean.foam.crest.decayTime).toBe(2.8);
   expect(effects.wind).toEqual([9, 35 * Math.PI / 180]);
   expect(funnelSmoke.wind).toEqual(effects.wind);
 });
@@ -110,14 +114,14 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
 test('night, fog and storm lighting reach the live uniforms; the sky stays fixed and port restores daylight', () => {
   const sky = { sun: new Sun(), timeOfDay: new TimeOfDay(), atmosphere: new Atmosphere(), clouds: new Clouds() };
   const driver = new SunDriver({ sun: sky.sun, timeOfDay: sky.timeOfDay });
-  const water = fakeWater(), effects = lightSink();
+  const ocean = fakeOcean(), effects = lightSink();
   const environment = new VisualEnvironment({ effects, funnelSmoke: windSink(), sunAnchor: new Group() });
-  environment.attachWater(water as never); environment.attachSky(sky as never);
+  attachOcean(environment, ocean); environment.attachSky(sky as never);
   for (const time of TIME_OF_DAY_PRESETS) for (const weather of WEATHER_PRESETS) {
     environment.setBattle({ timeOfDay: time.id, weather: weather.id, conditions: {} });
     environment.setScene('pacific-islands', false);
     driver.update(0);
-    // No water step occurs on a paused frame; the sky must still reach smoke.
+    // No ocean update occurs on a paused frame; the sky must still reach smoke.
     environment.syncLighting();
     const expected = battleEnvironment(oceanMap('pacific-islands'), time.id, weather.id);
     expect(sky.sun.elevationDeg).toBeCloseTo(expected.sky.elevation, 8);
@@ -126,14 +130,15 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     driver.update(600);
     expect(sky.sun.direction.value.distanceTo(direction)).toBeLessThan(1e-10);
     expect(sky.clouds.shape.coverage.value).toBe(expected.sky.coverage);
-    expect(water.fog.fadeEnd).toBe(expected.fog.end);
-    expect(environment.ambientLight.intensity).toBe(expected.sky.ambient);
+    expect(ocean.fog.end).toBe(expected.fog.end);
+    // The authored ambient reaches smoke whole; meshes take its daylight share (checked below).
+    expect(environment.diagnostics().environment!.ambient).toBe(expected.sky.ambient);
     expect(effects.ambient).toBe(expected.sky.ambient);
     if (time.id === 'night') {
       expect(sky.sun.intensity.value).toBe(0);
       expect(sky.timeOfDay.moonDirection.value.y).toBeGreaterThan(0);
       expect(environment.ambientLight.intensity).toBeLessThan(.5);
-      expect(water.fog.color).toBe('#182839');
+      expect(ocean.fog.color.getHexString()).toBe('182839');
       expect(effects.direct).toBeLessThan(1);
       expect(effects.direct).toBeGreaterThan(0);
     } else if (sky.sun.elevationDeg >= 18) expect(effects.direct).toBeCloseTo(sky.sun.intensity.value);
@@ -143,13 +148,13 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   expect(sky.sun.elevationDeg).toBeCloseTo(36);
   expect(sky.sun.azimuthDeg).toBeCloseTo(58);
   expect(sky.sun.peakIntensity).toBe(5.8);
-  expect(environment.ambientLight.intensity).toBe(1.75);
+  expect(environment.diagnostics().environment!.ambient).toBe(1.75);
   expect(sky.clouds.shape.coverage.value).toBe(.38);
   expect(sky.clouds.wind.speed).toBe(12);
   expect(sky.clouds.lighting.ambientIntensity.value).toBe(1.1);
   expect(sky.clouds.lighting.baseShadowStrength.value).toBe(.2);
-  expect(water.fog.color).toBe('#819aa5');
-  expect(water.fog.fadeEnd).toBe(5600);
+  expect(ocean.fog.color.getHexString()).toBe('819aa5');
+  expect(ocean.fog.end).toBe(5600);
 });
 
 test('continuous battle conditions keep clouds independent of CPU and visual wind', () => {
@@ -164,7 +169,7 @@ test('continuous battle conditions keep clouds independent of CPU and visual win
     const calmNight = battleEnvironment(map, 'map', 'map', { timeHours: 0, cloudCover: 100, windSpeed: 0 });
     expect(calmNight.sky.elevation).toBe(-70);
     expect(calmNight.sky.ambient).toBeLessThan(cloudy.sky.ambient);
-    expect(calmNight.waves.amplitude).toBe(0);
+    expect(calmNight.waves.significantHeightM).toBe(0);
     expect(calmNight.cloudWind).toBe(0);
     expect(battleEnvironment(map, 'map', 'map', { timeHours: 24 }).sky.elevation).toBeCloseTo(calmNight.sky.elevation);
   }
@@ -187,85 +192,84 @@ test('numeric night time uses night fog and dawn cloud fill is not dimmed twice'
 test('paused scene, water and smoke share moonlight and restore the current sun', () => {
   const sky = { sun: new Sun(), timeOfDay: new TimeOfDay(), atmosphere: new Atmosphere(), clouds: new Clouds() };
   const driver = new SunDriver({ sun: sky.sun, timeOfDay: sky.timeOfDay });
-  const waterSun = { direction: { value: new Vector3() }, intensity: { value: 5.8 }, color: new Color() };
-  const water = fakeWater({ sun: waterSun, sunLight: new DirectionalLight() }), effects = lightSink();
+  const ocean = fakeOcean(), effects = lightSink();
   const environment = new VisualEnvironment({ effects, funnelSmoke: windSink(), sunAnchor: new Group() });
-  environment.attachWater(water as never); environment.attachSky(sky as never);
+  const sunLight = attachOcean(environment, ocean); environment.attachSky(sky as never);
   for (const hour of [0, 5.5, 6, 7, 12, 24]) {
     environment.setBattle({ timeOfDay: 'map', weather: 'map', conditions: { timeHours: hour } });
     environment.setScene('north-atlantic', false); driver.update(0);
-    environment.syncLighting(); // Deliberately no water simulation step.
-    expect(waterSun.intensity.value).toBeCloseTo(effects.direct);
-    // Meshes take half the vendored shaders' sun, and a daylight share of the unoccluded fill.
-    expect(water.lighting!.sunLight.intensity).toBeCloseTo(effects.direct * .5);
+    environment.syncLighting(); // Deliberately no ocean update.
+    expect(ocean.sun.intensity).toBeCloseTo(effects.direct);
+    // Meshes take half the raw sun the sea shades with, and a daylight share of the unoccluded fill.
+    expect(sunLight.intensity).toBeCloseTo(effects.direct * .5);
     const fill = environment.ambientLight.intensity / environment.diagnostics().environment!.ambient;
-    if (effects.direct >= 4) { expect(fill).toBeCloseTo(.3, 10); expect(water.environment.intensity).toBeCloseTo(.6, 10); }
-    if (effects.direct <= 1) { expect(fill).toBe(1); expect(water.environment.intensity).toBe(1); }
+    if (effects.direct >= 4) { expect(fill).toBeCloseTo(.3, 10); expect(ocean.environmentIntensity).toBeCloseTo(.6, 10); }
+    if (effects.direct <= 1) { expect(fill).toBe(1); expect(ocean.environmentIntensity).toBe(1); }
     expect(fill).toBeGreaterThanOrEqual(.3 - 1e-9);
-    expect(waterSun.direction.value.y).toBeGreaterThanOrEqual(0);
+    expect(ocean.sun.direction.y).toBeGreaterThanOrEqual(0);
     if (hour === 0 || hour === 24) {
-      expect(waterSun.intensity.value).toBeGreaterThan(.3);
-      expect(waterSun.direction.value.distanceTo(sky.timeOfDay.moonDirection.value)).toBeLessThan(1e-8);
+      expect(ocean.sun.intensity).toBeGreaterThan(.3);
+      expect(ocean.sun.direction.distanceTo(sky.timeOfDay.moonDirection.value)).toBeLessThan(1e-8);
     }
     if (hour === 6) {
       expect(effects.direct).toBeLessThan(1);
-      expect(waterSun.color.r).toBeGreaterThan(waterSun.color.b);
+      expect(ocean.sun.color.r).toBeGreaterThan(ocean.sun.color.b);
     }
-    if (hour === 12) expect(waterSun.intensity.value).toBeCloseTo(sky.sun.intensity.value);
+    if (hour === 12) expect(ocean.sun.intensity).toBeCloseTo(sky.sun.intensity.value);
   }
 });
 
-test('distant shadow focus survives provider sync and restores the port and player anchors', () => {
+test('distant shadow focus persists across lighting syncs and restores the port and player anchors', () => {
   const sky = { sun: new Sun(), timeOfDay: new TimeOfDay(), atmosphere: new Atmosphere(), clouds: new Clouds() };
-  const water = fakeWater({ sun: { direction: { value: new Vector3() }, intensity: { value: 1 }, color: new Color() }, sunLight: new DirectionalLight() });
+  const ocean = fakeOcean();
   const anchor = new Group(); anchor.position.set(100, 3, 200);
   const environment = new VisualEnvironment({ effects: lightSink(), funnelSmoke: windSink(), sunAnchor: anchor });
-  environment.attachWater(water as never); environment.attachSky(sky as never);
+  const sunLight = attachOcean(environment, ocean); environment.attachSky(sky as never);
   environment.setScene('north-atlantic', false);
   const focus = new Vector3(20000, 0, 15000);
   environment.setShadowFocus(focus); environment.syncLighting(); environment.syncLighting();
-  expect(water.lighting!.sunLight.target.position).toEqual(focus);
+  expect(sunLight.target.position).toEqual(focus);
   environment.setScene('north-atlantic', true); environment.syncLighting();
-  expect(water.lighting!.sunLight.target.position).toEqual(anchor.position);
+  expect(sunLight.target.position).toEqual(anchor.position);
   environment.setShadowFocus(); environment.setScene('north-atlantic', false); environment.syncLighting();
-  expect(water.lighting!.sunLight.target.position).toEqual(anchor.position);
+  expect(sunLight.target.position).toEqual(anchor.position);
 });
 
 test('developer overrides replace only what they name, in port and at sea, until the next scene', () => {
   const sky = { sun: new Sun(), timeOfDay: new TimeOfDay(), atmosphere: new Atmosphere(), clouds: new Clouds() };
-  const water = fakeWater(), effects = { ...windSink(), setSun() {}, setIllumination() {} };
+  const ocean = fakeOcean(), effects = { ...windSink(), setSun() {}, setIllumination() {} };
   const environment = new VisualEnvironment({ effects, funnelSmoke: windSink(), sunAnchor: new Group() });
-  environment.attachWater(water as never); environment.attachSky(sky as never);
+  attachOcean(environment, ocean); environment.attachSky(sky as never);
   const map = oceanMap('north-atlantic');
 
   // Port: wind alone raises the sea; the sheltered light, clouds and fog stay.
   environment.setScene(map.id, true);
   const standing = battleEnvironment(map, 'map', 'map', { windSpeed: PORT_WIND.speed });
-  expect(water.waves.amplitude.value).toBe(standing.waves.amplitude);
+  expect(ocean.waves.significantHeight).toBe(standing.waves.significantHeightM);
   expect(sky.clouds.wind.speed).toBe(standing.cloudWind);
   // Naming the standing wind changes nothing: the reading already was the sea.
   environment.setOverrides({ windSpeed: PORT_WIND.speed });
-  expect(water.waves.amplitude.value).toBe(standing.waves.amplitude);
-  expect(water.waves.peakWavelength.value).toBe(standing.waves.peakWavelength);
+  expect(ocean.waves.significantHeight).toBe(standing.waves.significantHeightM);
+  expect(ocean.waves.peakWavelength).toBe(standing.waves.peakWavelength);
   environment.setOverrides({ windSpeed: 20 });
   const windy = battleEnvironment(map, 'map', 'map', { windSpeed: 20 }).waves;
-  expect(water.waves.amplitude.value).toBe(windy.amplitude);
-  expect(water.waves.windSpeed.value).toBe(20);
-  expect(water.waves.windDirection.value).toBe(35 * Math.PI / 180);
+  expect(ocean.waves.significantHeight).toBe(windy.significantHeightM);
+  expect(ocean.waves.windSpeed).toBe(20);
+  expect(ocean.waves.windDirection).toBe(35 * Math.PI / 180);
   expect(sky.sun.elevationDeg).toBeCloseTo(36);
   expect(sky.clouds.shape.coverage.value).toBe(.38);
   expect(sky.clouds.wind.speed).toBe(battleEnvironment(map, 'map', 'map', { windSpeed: 20 }).cloudWind);
-  expect(water.fog.fadeEnd).toBe(5600);
+  expect(ocean.fog.end).toBe(5600);
   expect(environment.reading()).toMatchObject({ timeHours: undefined, windSpeed: 20, windDirection: 35, visibilityKm: 5.6 });
 
   // Port: time, clouds, direction and visibility each reach their uniforms.
   environment.setOverrides({ timeHours: 18, cloudCover: 80, windDirection: 270, visibilityKm: 2.8 });
-  expect(water.waves.amplitude.value).toBe(standing.waves.amplitude);
+  expect(ocean.waves.significantHeight).toBe(standing.waves.significantHeightM);
   expect(sky.sun.elevationDeg).toBeCloseTo(battleEnvironment(map, 'map', 'map', { timeHours: 18 }).sky.elevation, 6);
   expect(sky.clouds.shape.coverage.value).toBe(.8);
-  expect(water.waves.windDirection.value).toBeCloseTo(270 * Math.PI / 180);
-  expect(water.fog.fadeEnd).toBeCloseTo(2800);
-  expect(water.fog.fadeStart).toBeCloseTo(325);
+  expect(ocean.waves.windDirection).toBeCloseTo(270 * Math.PI / 180);
+  expect(ocean.fog.end).toBeCloseTo(2800);
+  expect(ocean.fog.start).toBeCloseTo(325);
   expect(environment.reading()).toMatchObject({ timeHours: 18, cloudCover: 80, windDirection: 270 });
 
   // Battle: overrides sit on the chosen conditions, the air map's far fog
@@ -275,17 +279,17 @@ test('developer overrides replace only what they name, in port and at sea, until
   expect(environment.getOverrides()).toEqual({});
   environment.setOverrides({ cloudCover: 95, windSpeed: 22, visibilityKm: 12 });
   const storm = battleEnvironment(map, 'map', 'map', { timeHours: 12, cloudCover: 95, windSpeed: 22 });
-  expect(water.waves.amplitude.value).toBe(storm.waves.amplitude);
+  expect(ocean.waves.significantHeight).toBe(storm.waves.significantHeightM);
   expect(sky.clouds.shape.coverage.value).toBe(.95);
   expect(sky.sun.elevationDeg).toBeCloseTo(70);
-  expect(water.fog.fadeEnd).toBeCloseTo(12000);
-  environment.setChartFog(true); expect(water.fog.fadeEnd).toBe(900000);
-  environment.setChartFog(false); expect(water.fog.fadeEnd).toBeCloseTo(12000);
+  expect(ocean.fog.end).toBeCloseTo(12000);
+  environment.setChartFog(true); expect(ocean.fog.end).toBe(900000);
+  environment.setChartFog(false); expect(ocean.fog.end).toBeCloseTo(12000);
   environment.setOverrides({ cloudCover: 95, windSpeed: undefined });
   expect(environment.getOverrides()).toEqual({ cloudCover: 95 });
-  expect(water.waves.windSpeed.value).toBe(9);
+  expect(ocean.waves.windSpeed).toBe(9);
   environment.setScene(map.id, true);
   expect(environment.getOverrides()).toEqual({});
-  expect(water.waves.amplitude.value).toBe(standing.waves.amplitude);
+  expect(ocean.waves.significantHeight).toBe(standing.waves.significantHeightM);
   expect(sky.clouds.shape.coverage.value).toBe(.38);
 });

@@ -10,8 +10,7 @@ import './Garage.css';
 import { shipModel } from '../game/shipModel';
 import { useShip } from './ShipContext';
 import type { InspectionMode } from '../ships/inspection';
-import { ModelViewControls, PortInspection } from './PortInspection';
-import { ShipScores, ShipStatistics } from './ShipStatistics';
+import { PortPanel, type PortSelection } from './PortPanel';
 import { ShipClassIcon } from './ShipClassIcons';
 import { battleModeName, type BattleMode } from './battle/battleModes';
 import { localShips, shipTitle, subscribeLocalShips } from '../ships/localShips';
@@ -93,10 +92,6 @@ function StatusMark({ status }: { status: PortDesign['status'] }) {
 }
 
 type GarageState = {
-  inspection: InspectionMode;
-  selectedVolume?: string;
-  inspect: (mode: InspectionMode) => void;
-  selectVolume: (id?: string) => void;
   /** The Battle button: the sortie board, or the last mode when the player chose to skip it. */
   battle: () => void;
   /** The caret: always the sortie board. */
@@ -134,44 +129,6 @@ function SetSail({ state }: { state: GarageState }) {
         Last: <b>{battleModeName(state.lastMode)}</b>
       </small>
     </div>
-  );
-}
-
-/** Statistics sit compactly under the ship; the full sheet and the inspection lists take the tall right-hand surface. */
-function PortDetails({ state, sheetOpen, onSheet }: { state: GarageState; sheetOpen: boolean; onSheet(open: boolean): void }) {
-  const ship = useShip();
-  const compact = state.inspection === 'exterior' && !sheetOpen;
-  return (
-    <aside className={`garage-classic-details ${compact ? 'port-details-compact' : ''}`}>
-      <ModelViewControls mode={state.inspection} onChange={state.inspect} ready={state.ready} />
-      {state.inspection !== 'exterior' ? (
-        <PortInspection
-          key={`${ship.id}:${state.inspection}`}
-          definition={ship}
-          mode={state.inspection}
-          selectedId={state.selectedVolume}
-          onSelect={state.selectVolume}
-        />
-      ) : compact ? (
-        <>
-          <ShipScores definition={ship} />
-          <button className="port-sheet-toggle" onClick={() => onSheet(true)}>
-            Full statistics sheet
-            <PortIcon name="right" size={14} />
-          </button>
-        </>
-      ) : (
-        <>
-          <div className="garage-panel-title">
-            <h2>Statistics</h2>
-            <button className="port-sheet-toggle" onClick={() => onSheet(false)}>
-              Hide sheet
-            </button>
-          </div>
-          <ShipStatistics key={ship.id} definition={ship} />
-        </>
-      )}
-    </aside>
   );
 }
 
@@ -425,7 +382,7 @@ function EmptyPort({
 
 interface Props {
   /** The port scene: inspection views and the hover feed the tooltip follows. */
-  game: (InspectionHoverSource & { setPortInspection(mode: InspectionMode, selectedId?: string): void }) | null;
+  game: (InspectionHoverSource & { setPortInspection(mode: InspectionMode, selected?: readonly string[]): void }) | null;
   ready: boolean;
   switching: boolean;
   switchError: string;
@@ -475,25 +432,23 @@ export function Garage({
   const alongside = !!berthed || pinned;
 
   const [inspection, setInspection] = useState<InspectionMode>('exterior');
-  const [selectedVolume, setSelectedVolume] = useState<string>();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [selection, setSelection] = useState<PortSelection>();
   const [chestOpen, setChestOpen] = useState(false),
     [query, setQuery] = useState('');
   const search = useRef<HTMLInputElement>(null);
   const inspect = (mode: InspectionMode) => {
     setInspection(mode);
-    setSelectedVolume(undefined);
+    setSelection(undefined);
   };
   const usable = ready && !switching;
   useEffect(() => {
-    if (ready && alongside) game?.setPortInspection(inspection, selectedVolume);
-  }, [game, ready, alongside, inspection, selectedVolume]);
+    if (ready && alongside) game?.setPortInspection(inspection, selection?.ids);
+  }, [game, ready, alongside, inspection, selection]);
   useEffect(() => () => game?.setPortInspection('exterior'), [game]);
   // Another ship alongside starts from her exterior, as a fresh visit to the quay would.
   useEffect(() => {
     setInspection('exterior');
-    setSelectedVolume(undefined);
-    setSheetOpen(false);
+    setSelection(undefined);
   }, [selectedShip.id]);
 
   const berth = (design: PortDesign) => {
@@ -516,19 +471,17 @@ export function Garage({
 
   const previous = berthed && fleet.length > 1 ? fleet[(berthedIndex - 1 + fleet.length) % fleet.length] : undefined;
   const next = berthed && fleet.length > 1 ? fleet[(berthedIndex + 1) % fleet.length] : undefined;
-  const keys = useRef({ previous, next, chestOpen, berth });
-  keys.current = { previous, next, chestOpen, berth };
+  const keys = useRef({ previous, next, chestOpen, berth, selection });
+  keys.current = { previous, next, chestOpen, berth, selection };
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (document.querySelector('dialog[open]')) return;
-      const { previous, next, chestOpen, berth } = keys.current;
+      const { previous, next, chestOpen, berth, selection } = keys.current;
       if (event.key === 'Escape') {
+        // Back out one step: the chest, then an isolated volume, then the model view.
         if (chestOpen) setChestOpen(false);
-        else {
-          setInspection('exterior');
-          setSelectedVolume(undefined);
-          setSheetOpen(false);
-        }
+        else if (selection) setSelection(undefined);
+        else setInspection('exterior');
         return;
       }
       const typing = event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable]');
@@ -578,25 +531,18 @@ export function Garage({
   const edit = (design: PortDesign) => onEditDesign(design.id);
 
   const state: GarageState = {
-    inspection,
-    selectedVolume,
-    inspect,
-    selectVolume: setSelectedVolume,
     battle: onBattle,
     chooseBattle: onChooseBattle,
     lastMode,
     ready: usable,
   };
   const model = shipModel(selectedShip);
-  const inspecting = inspection !== 'exterior';
   const underway = !alongside && fleet.length > 0;
 
   return (
     <div className={`garage ${chestOpen ? 'port-chest-open' : ''} ${alongside ? '' : 'port-berth-empty'}`}>
       <div className="garage-scene-shade" />
-      <div
-        className={`garage-layout ${inspecting ? 'port-inspection-active' : sheetOpen ? 'port-sheet-active' : 'port-statistics-active'}`}
-      >
+      <div className="garage-layout">
         <header className="garage-classic-header">
           <button className="garage-account" title="Open the menu" aria-haspopup="dialog" disabled={!usable} onClick={onSettings}>
             <Icon name="compass" size={18} />
@@ -638,6 +584,7 @@ export function Garage({
         <div className="port-quay" inert={chestOpen}>
           {alongside && (
             <>
+              <div className="port-panel-shade" aria-hidden="true" />
               <section className="port-identity" aria-label={shipTitle(selectedShip)}>
                 <div className="port-identity-status">
                   {berthed ? (
@@ -677,7 +624,14 @@ export function Garage({
                   </div>
                 )}
               </section>
-              <PortDetails state={state} sheetOpen={sheetOpen} onSheet={setSheetOpen} />
+              <PortPanel
+                definition={selectedShip}
+                mode={inspection}
+                onMode={inspect}
+                ready={usable}
+                selection={selection}
+                onSelect={setSelection}
+              />
               {previous && (
                 <button
                   className="port-neighbour port-neighbour-previous"
