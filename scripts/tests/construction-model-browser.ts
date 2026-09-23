@@ -4,7 +4,7 @@ import { createConstructionModel, disposeConstructionModel } from '../../src/gam
 import { loadConstructionCatalog } from '../../src/ships/constructionEquipment';
 import type { ConstructionResult, ConstructionSource, Vec3 } from '../../src/ships/blueprint';
 import { barrelIds } from '../../src/ships/blueprint';
-import { installedSupportContacts } from './construction-model-support';
+import { installationNode, installedSupportContacts } from './construction-model-support';
 import type { Combatant } from '../../src/simulation/damage';
 import { createDamage } from '../../src/simulation/damage';
 import { createShipState } from '../../src/game/session/motion';
@@ -50,7 +50,7 @@ export async function constructionModelReview(kind: 'collection' | 'neighbors' |
   model.traverse(n => { if (n.userData.nodeId) { if (nodes.has(n.userData.nodeId)) throw new Error(`Duplicate installed node ${n.userData.nodeId}`); nodes.set(n.userData.nodeId, n); } });
   const render = async () => { view.updateRenderMatrices(); await renderer.renderAsync(scene, camera); };
   const focus = async (id?: string, angle: 'quarter' | 'side' | 'top' | 'under' = 'quarter', contextScale = 1) => {
-    const target = id ? model.children.find(n => n.name === id) : model;
+    const target = id ? installationNode(model, id) : model;
     if (!target) throw new Error(`Unknown installation ${id}`);
     view.updateRenderMatrices();
     const bounds = new THREE.Box3().setFromObject(target), center = bounds.getCenter(new THREE.Vector3());
