@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
+import { runBlender as runHeadlessBlender } from '../build/blender';
 import { validateAircraftCatalog, validateAircraftShape, type AircraftEntry } from './catalog';
 import { aircraftNodeIds, aircraftFoldIds, inspectAircraftLods } from './glb';
 import { GAMEPLAY_AIRCRAFT } from '../../src/ships/blueprint';
@@ -115,17 +116,11 @@ async function inspectProducts(entry: AircraftEntry, directory: string) {
 async function runBlender(entry: AircraftEntry) {
   const stage = stageDir(entry.id);
   await mkdir(stage, { recursive: true });
-  const executable = process.env.BLENDER_BIN ?? (existsSync('/Applications/Blender.app/Contents/MacOS/Blender') ? '/Applications/Blender.app/Contents/MacOS/Blender' : 'blender');
   console.log(`Building ${entry.id} with local Blender (${contentHash.slice(0, 12)})`);
-  const child = Bun.spawn([executable, '--background', '--factory-startup', '--python-exit-code', '1', '--python', recipePath], {
-    cwd: root, env: {
-      ...process.env, AIRCRAFT_ROOT: root, AIRCRAFT_ID: entry.id, AIRCRAFT_OUTPUT: stage,
-      AIRCRAFT_CONTENT_HASH: contentHash, AIRCRAFT_REVIEW: '1', AIRCRAFT_METHOD: 'local-blender',
-    }, stdout: 'pipe', stderr: 'pipe',
-  });
-  const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-  await writeFile(join(stage, 'build.log'), stdout + stderr);
-  if (code !== 0) throw new Error(`Blender failed for ${entry.id} (${code}):\n${(stdout + stderr).slice(-6000)}`);
+  await runHeadlessBlender(recipePath, {
+    AIRCRAFT_ROOT: root, AIRCRAFT_ID: entry.id, AIRCRAFT_OUTPUT: stage,
+    AIRCRAFT_CONTENT_HASH: contentHash, AIRCRAFT_REVIEW: '1', AIRCRAFT_METHOD: 'local-blender',
+  }, { cwd: root, log: join(stage, 'build.log') });
   await assertInputsCurrent();
   return stage;
 }
@@ -167,15 +162,9 @@ async function thumbnail(entry: AircraftEntry) {
   const recipe = join(sourceDir, 'thumbnail.py'), model = join(generatedDir(entry.id), 'model.glb');
   const stage = join(stageDir(entry.id), 'thumbnail');
   const expectedModel = hash(await readFile(model)), expectedRecipe = hash(await readFile(recipe));
-  const executable = process.env.BLENDER_BIN ?? (existsSync('/Applications/Blender.app/Contents/MacOS/Blender') ? '/Applications/Blender.app/Contents/MacOS/Blender' : 'blender');
   await mkdir(stage, { recursive: true });
   console.log(`Baking ${entry.id} squadron image with local Blender`);
-  const child = Bun.spawn([executable, '--background', '--factory-startup', '--python-exit-code', '1', '--python', recipe], {
-    cwd: root, env: { ...process.env, AIRCRAFT_ID: entry.id, AIRCRAFT_MODEL: model, AIRCRAFT_OUTPUT: stage }, stdout: 'pipe', stderr: 'pipe',
-  });
-  const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-  await writeFile(join(stage, 'build.log'), stdout + stderr);
-  if (code !== 0) throw new Error(`Thumbnail render failed for ${entry.id}:\n${(stdout + stderr).slice(-4000)}`);
+  await runHeadlessBlender(recipe, { AIRCRAFT_ID: entry.id, AIRCRAFT_MODEL: model, AIRCRAFT_OUTPUT: stage }, { cwd: root, log: join(stage, 'build.log') });
   const report = JSON.parse(await readFile(join(stage, 'render.json'), 'utf8'));
   if (report.modelHash !== expectedModel || report.recipeHash !== expectedRecipe || hash(await readFile(model)) !== expectedModel || hash(await readFile(recipe)) !== expectedRecipe) throw new Error('Aircraft or thumbnail recipe changed during rendering. Run aircraft:thumbnail again.');
   await assertInputsCurrent();
