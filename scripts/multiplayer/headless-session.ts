@@ -3,7 +3,7 @@
 import init, { LocalRuntime, PvePlanner } from '../../src/generated/naval-wasm/naval_wasm';
 import { SnapshotSession } from '../../src/game/session/SnapshotSession';
 import { decodeSnapshot } from '../../src/game/session/snapshotCodec';
-import { portSetup, runtimeSetup } from '../../src/game/session/LocalBattleSession';
+import { portSetup, runtimeSetup } from '../../src/game/session/battleSetup';
 import type { ShipDefinition } from '../../src/ships/blueprint';
 import type { LocalShipRevision } from '../../src/ships/localShips';
 import type { BattleSetup } from '../../src/game/session/battleSetup';

@@ -1,7 +1,7 @@
 // Worker-side cost of a two-ship custom battle: step / complete snapshot / decode / update per tick.
 import init, { LocalRuntime } from '../../src/generated/naval-wasm/naval_wasm';
 import { decodeSnapshot } from '../../src/game/session/snapshotCodec';
-import { runtimeSetup } from '../../src/game/session/LocalBattleSession';
+import { runtimeSetup } from '../../src/game/session/battleSetup';
 const wasm = Bun.argv[2] ?? 'src/generated/naval-wasm/naval_wasm_bg.wasm';
 const player = Bun.argv[3] ?? 'bismarck', enemy = Bun.argv[4] ?? 'bismarck';
 await init({ module_or_path: await Bun.file(wasm).arrayBuffer() });
