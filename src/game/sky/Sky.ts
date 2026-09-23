@@ -27,6 +27,7 @@ export class Sky implements SkyApi {
   private cut = true;
   private readonly lastPosition = new Vector3();
   private readonly lastForward = new Vector3();
+  private readonly forward = new Vector3();
   private readonly lastProjection = new Matrix4();
   private qualityLevel: SkyQuality;
 
@@ -85,7 +86,7 @@ export class Sky implements SkyApi {
   update(dt: number): void {
     const { state, camera, parts } = this, uniforms = state.uniforms;
     camera.updateMatrixWorld();
-    const forward = new Vector3(0, 0, -1).transformDirection(camera.matrixWorld);
+    const forward = this.forward.set(0, 0, -1).transformDirection(camera.matrixWorld);
     const cut = this.cut || camera.position.distanceTo(this.lastPosition) > CUT_DISTANCE || forward.angleTo(this.lastForward) > CUT_TURN
       || Math.abs(camera.projectionMatrix.elements[5] / this.lastProjection.elements[5] - 1) > .2;
     this.cut = false;
