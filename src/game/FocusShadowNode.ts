@@ -60,6 +60,8 @@ export class FocusShadowNode extends ShadowBaseNode {
     this.near = new CascadeLight(sun.shadow.clone());
     this.wide = new CascadeLight(sun.shadow.clone());
     this.near.name = 'Near sun shadow'; this.wide.name = 'Wide sun shadow';
+    this.follow(this.wide.shadow, Infinity);
+    this.follow(this.near.shadow, NEAR_MAP_MAX);
   }
 
   /** Centre the near map where `camera` looks, at the distance of `subject`, no wider than `maxRadius`. */

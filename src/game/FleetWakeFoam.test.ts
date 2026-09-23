@@ -4,10 +4,11 @@ import { PreparedPoseGroup } from './FrameScene';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import { DataTexture, PerspectiveCamera } from 'three/webgpu';
+import { cpuWakeFoamPainter } from './testing/wakeFoam';
 import type { Vec3 } from '../ships/blueprint';
 
 function cpuImage(foam: FleetWakeFoam) {
-  if (!(foam.texture instanceof DataTexture)) throw new Error('CPU wake fixture requires a data texture');
+  if (!(foam.texture instanceof DataTexture)) throw new Error('Wake fixtures paint with the CPU test painter');
   return foam.texture.image;
 }
 
@@ -27,7 +28,7 @@ function tileHasFoam(foam: FleetWakeFoam, slot: number): boolean {
 }
 
 test('all 60 ships have independent trails across a wide battlefield, even with the player stopped', () => {
-  const foam = new FleetWakeFoam(256);
+  const foam = new FleetWakeFoam(256, cpuWakeFoamPainter);
   const ships = Array.from({ length: 60 }, (_, i) => ship(i * 650, i === 0 ? 0 : 15));
   foam.update(ships, .1, []);
   for (let frame = 0; frame < 30; frame++) {
@@ -48,13 +49,14 @@ test('all 60 ships have independent trails across a wide battlefield, even with 
   foam.update([ships[2], ships[0]], .1, []);
   expect(tileHasFoam(foam, 0)).toBe(true);
   expect(tileHasFoam(foam, 1)).toBe(false);
-  foam.reset();
+  // A reset leaves nothing to paint on the next frame.
+  foam.reset(); foam.update([], .1, []);
   expect((cpuImage(foam).data as Uint8Array).some(value => value > 0)).toBe(false);
   foam.dispose();
 });
 
 test('stopped and submerged ships emit no new trail; existing foam fades away', () => {
-  const foam = new FleetWakeFoam(256), ships = [ship(0), ship(5000)];
+  const foam = new FleetWakeFoam(256, cpuWakeFoamPainter), ships = [ship(0), ship(5000)];
   ships[1].motion.y = -4;
   foam.update(ships, .1, []);
   for (let i = 0; i < 30; i++) {
@@ -79,7 +81,7 @@ test('an off-centre editor hull emits foam at its own stern, not the authoring o
       })) })),
     } } },
   };
-  const foam = new FleetWakeFoam(256);
+  const foam = new FleetWakeFoam(256, cpuWakeFoamPainter);
   foam.update([custom], .1, []);
   for (let i = 0; i < 20; i++) { custom.motion.z -= 1.5; foam.update([custom], .1, []); }
   const image = cpuImage(foam), pixels = image.data as Uint8Array;
@@ -92,7 +94,7 @@ test('an off-centre editor hull emits foam at its own stern, not the authoring o
 });
 
 test('distant wake refreshes retain the full curved trail and zoom restores nearby cadence', () => {
-  const detailed = new FleetWakeFoam(256), distant = new FleetWakeFoam(256);
+  const detailed = new FleetWakeFoam(256, cpuWakeFoamPainter), distant = new FleetWakeFoam(256, cpuWakeFoamPainter);
   const ships = [ship(0)], camera = new PerspectiveCamera(52, 1, .5, 60000);
   camera.position.set(0, 1000, 6000);
   let detailedUpdates = 0, distantUpdates = 0;

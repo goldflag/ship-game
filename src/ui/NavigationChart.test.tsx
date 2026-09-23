@@ -7,7 +7,7 @@ import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { Telemetry } from '../game/types';
 
 test('the helm minimap renders permitted report estimates and uncertainty without a hidden actor', () => {
-  const data: Telemetry = { ship: { ...createShipState(), x: 0, z: 0 }, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [] };
+  const data: Telemetry = { ship: { ...createShipState(), x: 0, z: 0 }, order: 1, camera: 'Chase', fps: 60, trail: [] };
   const report: ContactTrack = { id: 'opaque-report', kind: 'surface', affiliation: 'hostile', status: 'stale', firstObservedTick: 1, lastObservedTick: 60, measuredPosition: [800, 0, -400], estimatedPosition: [9000, 0, 9000], velocity: [0, 0, 0], uncertaintyM: 400, identificationConfidence: .2, classification: 'Surface contact', identifiedPresetId: undefined, sources: [] };
   const html = renderToStaticMarkup(<NavigationChart data={data} reports={[report]} onResize={() => {}} bindings={defaultKeybindings()}/>);
   expect(html).toContain('Surface contact · hostile · last-known · ±400 m');

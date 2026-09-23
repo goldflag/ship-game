@@ -16,15 +16,12 @@ export const MOTION_OUTPUT = 'motion';
  * instances move independently of the mesh, and bright tracers. */
 export function rejectTemporalHistory(object: THREE.Object3D): void { object.userData.temporalResponse = 1; }
 
-/** Least weight of the current frame on Water Pro's surface. Its waves move through the
- * world, so reprojecting them as static smears their detail; the sea keeps its MSAA frame. */
-export const WATER_RESPONSE = 1;
-
-/** Least weight of the current frame a surface asks for, 0 (full history) to 1 (none). */
-function temporalResponse(object: THREE.Object3D, material: THREE.Material): number {
-  const response = object.userData?.temporalResponse ?? material.userData?.temporalResponse;
-  if (typeof response === 'number') return response;
-  return 'waterPositionNode' in material ? WATER_RESPONSE : 0;
+/** Least weight of the current frame a surface asks for, 0 (full history) to 1 (none), set on
+ * the object or its material as `userData.temporalResponse`. The ocean surface asks for 1: its
+ * waves move through the world, so reprojecting them as static smears their detail. */
+function temporalResponse(object: THREE.Object3D | null, material: THREE.Material): number {
+  const response = object?.userData?.temporalResponse ?? material.userData?.temporalResponse;
+  return typeof response === 'number' ? response : 0;
 }
 
 const halton = (index: number, base: number) => {
@@ -177,7 +174,9 @@ export class TemporalAntialiasing {
   /** Release the resolve targets; per-batch pose textures go with their batches. */
   release(): void { this.resolveNode?.dispose(); this.resolveNode = undefined; }
 
-  /** Jitter the camera for the pipeline's renders and advance the view history. */
+  /** Jitter the camera for the pipeline's renders and advance the view history. Passes drawn
+   * before the pipeline, such as the ships' occlusion prepass, see the unjittered camera; the
+   * scene samples them at most half a pixel off, which the history averages out. */
   begin(width: number, height: number): void {
     const camera = this.camera;
     camera.updateMatrixWorld();
@@ -384,16 +383,23 @@ class TemporalResolveNode extends THREE.TempNode {
 
 /** A material that writes its own fragment output (`fragmentNode`) otherwise emits one
  * colour; a pass with extra targets then has no value for them and the pipeline fails.
- * This keeps its colour (fogged as before) and leaves every other target below it alone. */
+ * This keeps its colour (fogged as before). The motion target keeps what is below and adds
+ * the surface's temporal response; any other target is left alone. */
 export function writeSceneTargets<T extends THREE.NodeMaterial>(material: T): T {
   const setupOutput = material.setupOutput.bind(material);
   material.setupOutput = (builder: Builder, outputNode: Node<'vec4'>) => {
     const color = setupOutput(builder, outputNode);
-    const targets = builder.renderer.getMRT() as THREE.MRTNode | null;
+    const targets = builder.renderer.getMRT() as (THREE.MRTNode & { outputNodes: Record<string, unknown>; blendModes: Record<string, THREE.BlendMode> }) | null;
     if (!targets || !builder.renderer.getRenderTarget()) return color;
     const outputs: Record<string, Node<string>> = {};
-    for (const name of Object.keys((targets as unknown as { outputNodes: Record<string, unknown> }).outputNodes)) outputs[name] = name === 'output' ? color as Node<'vec4'> : vec4(0);
-    return mrt(outputs) as unknown as Node<'vec4'>;
+    for (const name of Object.keys(targets.outputNodes)) {
+      outputs[name] = name === 'output' ? color as Node<'vec4'>
+        : name === MOTION_OUTPUT ? vec4(0, 0, temporalResponse(builder.object as THREE.Object3D, material), 0) : vec4(0);
+    }
+    const written = mrt(outputs) as THREE.MRTNode & { blendModes: Record<string, THREE.BlendMode> };
+    // Keep the pass's blending per target: the motion target adds to what is below.
+    written.blendModes = { ...targets.blendModes };
+    return written as unknown as Node<'vec4'>;
   };
   return material;
 }

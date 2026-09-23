@@ -1,11 +1,12 @@
 import * as THREE from 'three/webgpu';
-import { mix, step, vec4, type pass, type rtt } from 'three/tsl';
+import { mix, step, vec4, type pass } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { smaa } from 'three/addons/tsl/display/SMAANode.js';
 import type { SkySystem } from '../../../vendor/threejs-sky-pro/build/index.js';
-import type { WaterSystem } from '../../../vendor/threejs-water-pro/build/index.js';
+import type { OceanApi } from '../ocean/contracts';
 import type { AircraftView } from '../AircraftView';
 import type { CombatEffects } from '../CombatEffects';
+import type { DisplayTransform } from '../DisplayTransform';
 import {
   aircraftDetailScale,
   cloudTier,
@@ -17,6 +18,7 @@ import {
   type GraphicsSettings,
 } from '../graphicsSettings';
 import type { ShipFunnelSmoke } from '../ShipFunnelSmoke';
+import type { ShipOcclusion } from '../ShipOcclusion';
 import { MOTION_OUTPUT, TemporalAntialiasing } from '../TemporalAntialiasing';
 
 /** What applying graphics settings reads from and writes to `Game`, each member at the moment
@@ -28,15 +30,17 @@ export interface GraphicsContext {
   detailBudgetPx: number;
   pipeline: THREE.RenderPipeline | undefined;
   readonly renderer: THREE.WebGPURenderer;
-  /** The composited frame the display pass smooths; absent until start-up has built it. */
-  readonly finalFrame?: ReturnType<typeof rtt>;
-  /** The scene pass behind `finalFrame`; temporal AA adds its motion target and depth. */
+  /** Builds the composited frame the display pass smooths; absent until start-up has built it. */
+  readonly display?: DisplayTransform;
+  /** The scene pass behind the display frame; temporal AA adds its motion target and depth. */
   readonly scenePass?: ReturnType<typeof pass>;
   readonly camera: THREE.PerspectiveCamera;
-  readonly water?: WaterSystem;
-  /** The scene's sun, whose shadow settings the near and wide maps follow. */
+  readonly ocean?: Pick<OceanApi, 'reflections'>;
+  /** The scene's sun, whose shadow settings the near and wide maps follow; absent until start-up creates it. */
   readonly sunLight?: THREE.DirectionalLight;
   readonly sky?: SkySystem;
+  /** Ship-on-ship ambient occlusion; absent until start-up has created it. */
+  readonly occlusion?: Pick<ShipOcclusion, 'setLevel'>;
   readonly aircraftView: Pick<AircraftView, 'detailScale'>;
   readonly effects: Pick<CombatEffects, 'setDensity'>;
   readonly funnelSmoke: Pick<ShipFunnelSmoke, 'density'>;
@@ -66,10 +70,17 @@ export class GraphicsController {
     context.frameIntervalMs = frameIntervalMs(settings.frameLimit);
     this.applyDetail();
     if (previous.renderScale !== settings.renderScale) context.requestResize();
-    if (previous.antialiasing !== settings.antialiasing && context.finalFrame) this.buildPipeline();
+    if ((previous.antialiasing !== settings.antialiasing || previous.bloom !== settings.bloom) && context.display) this.buildPipeline();
     if (previous.reflections !== settings.reflections) this.applyReflections();
     if (previous.shadows !== settings.shadows) this.applyShadows();
     if (previous.clouds !== settings.clouds) this.applyClouds();
+    if (previous.ambientOcclusion !== settings.ambientOcclusion) this.applyAmbientOcclusion();
+  }
+
+  /** Off removes the occlusion node from every ship material and skips its passes, so the
+   * frame is exactly the one without it; turning it on recompiles the ship materials once. */
+  applyAmbientOcclusion(): void {
+    this.context.occlusion?.setLevel(this.context.settings.ambientOcclusion);
   }
 
   applyDetail(): void {
@@ -82,12 +93,12 @@ export class GraphicsController {
     context.funnelSmoke.density = density;
   }
 
-  /** The display pass: the composited frame with the selected edge smoothing. */
+  /** The display pass: the composited frame, with or without bloom, and the selected edge smoothing. */
   buildPipeline(): void {
     const context = this.context,
-      { antialiasing } = context.settings;
+      { antialiasing, bloom } = context.settings;
     context.pipeline?.dispose();
-    const frame = context.finalFrame!;
+    const frame = context.display!.build(bloom === 'on');
     const scenePass = context.scenePass!;
     let output;
     if (antialiasing === 'taa') {
@@ -113,10 +124,10 @@ export class GraphicsController {
   /** Frees what the display pass owns beyond the pipeline itself. */
   dispose(): void { this.temporal?.release(); }
 
-  /** Screen-space reflections are a live uniform; the sky-only mirror stays on. */
+  /** Screen-space reflections switch live; the sky reflection stays on. */
   applyReflections(): void {
-    const { water, settings } = this.context;
-    if (water) water.ssr.enabled = settings.reflections === 'scene';
+    const { ocean, settings } = this.context;
+    if (ocean) ocean.reflections.screenSpace = settings.reflections === 'scene';
   }
 
   applyShadows(): void {

@@ -15,8 +15,8 @@ game.scheduleFrame=noop;
 game.start(); await game.initialization;
 game.setInPort(!params.has('atSea'));
 window.reviewRig = (focus='flag', wind=9, speed=0) => {
-  game.water.waves.windSpeed.value=wind;
-  game.water.waves.windDirection.value=.5;
+  // Flags and radars read the ocean's wind; the sea follows it on the next update.
+  Object.assign(game.ocean.waves,{windSpeed:wind,windDirection:.5,dirty:true});
   game.simulation.player.motion.speed=speed; game.playerView.snap();
   game.rig.update=noop;
   const view=game.playerView, rig=view.rig;

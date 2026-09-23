@@ -1,9 +1,12 @@
 import * as THREE from 'three/webgpu';
 import { attribute, materialMetalness, materialRoughness } from 'three/tsl';
+import { applyShipSurfaceDetail, isPlatedPaint, isPlateSized, shipSurfaceMode } from './ShipSurfaceDetail';
 
 /** Encode constant paint in derived vertex colors so otherwise identical PBR
  * materials can share draws, including across different ship definitions. */
 export class ShipMaterialPalette {
+  /** `surfaceDetail` adds metric plating, paint roughness and teak detail (ships, not aircraft). */
+  constructor(private readonly options: { surfaceDetail?: boolean } = {}) {}
   private readonly materials = new Map<string, THREE.MeshStandardNodeMaterial>();
   /** One serialization scratchpad for every material: three caches images and textures
    * inside it, so a texture is described once instead of once per material. */
@@ -26,6 +29,7 @@ export class ShipMaterialPalette {
   sharedMaterials(): Iterable<THREE.Material> { return this.materials.values(); }
 
   apply(root: THREE.Object3D): void {
+    if (this.options.surfaceDetail) root.updateMatrixWorld(true);
     const derived = new Map<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>();
     const retiredGeometry = new Set<THREE.BufferGeometry>(), retiredMaterials = new Set<THREE.Material>();
     root.traverse(object => {
@@ -35,30 +39,34 @@ export class ShipMaterialPalette {
         material.transparent || material.vertexColors || material.clippingPlanes || object.morphTargetInfluences?.length ||
         material.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile ||
         material.customProgramCacheKey !== THREE.Material.prototype.customProgramCacheKey) return;
-      const key = this.materialKey(material);
+      const mode = this.options.surfaceDetail ? shipSurfaceMode(material) : undefined;
+      const key = `${mode ?? ''}${this.materialKey(material)}`;
       let shared = this.materials.get(key);
       if (!shared) {
         shared = new THREE.MeshStandardNodeMaterial().copy(material as unknown as THREE.MeshStandardNodeMaterial);
         shared.color.setRGB(1, 1, 1); shared.vertexColors = true;
         shared.roughness = 1; shared.metalness = 1;
-        const surface = attribute<'vec2'>('shipSurface', 'vec2');
+        const surface = attribute<'vec3'>('shipSurface', 'vec3');
         shared.roughnessNode = materialRoughness.mul(surface.x);
         shared.metalnessNode = materialMetalness.mul(surface.y);
+        if (mode) applyShipSurfaceDetail(shared, mode);
         shared.name = 'Shared naval paint'; this.materials.set(key, shared);
       }
-      const source = object.geometry, colorKey = [...material.color.toArray(), material.roughness, material.metalness].join(',');
+      // Plated paint is a per-vertex class: materials that share one palette entry keep their own.
+      const plated = this.options.surfaceDetail && isPlatedPaint(material) && isPlateSized(object) ? 1 : 0;
+      const source = object.geometry, colorKey = [...material.color.toArray(), material.roughness, material.metalness, plated].join(',');
       let colors = derived.get(source);
       if (!colors) derived.set(source, colors = new Map());
       let geometry = colors.get(colorKey);
       if (!geometry) {
         const colored: THREE.BufferGeometry = source.clone();
         const color = new Float32Array(source.getAttribute('position').count * 3);
-        const surface = new Float32Array(source.getAttribute('position').count * 2);
+        const surface = new Float32Array(source.getAttribute('position').count * 3);
         const { r, g, b } = material.color;
         for (let i = 0; i < color.length; i += 3) { color[i] = r; color[i + 1] = g; color[i + 2] = b; }
-        for (let i = 0; i < surface.length; i += 2) { surface[i] = material.roughness; surface[i + 1] = material.metalness; }
+        for (let i = 0; i < surface.length; i += 3) { surface[i] = material.roughness; surface[i + 1] = material.metalness; surface[i + 2] = plated; }
         colored.setAttribute('color', new THREE.BufferAttribute(color, 3));
-        colored.setAttribute('shipSurface', new THREE.BufferAttribute(surface, 2));
+        colored.setAttribute('shipSurface', new THREE.BufferAttribute(surface, 3));
         colors.set(colorKey, colored); geometry = colored;
       }
       object.geometry = geometry; object.material = shared;

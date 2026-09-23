@@ -42,7 +42,6 @@
   "src/aircraft-review/style.css",
   "src/game/AirOperations.test.tsx",
   "src/game/AirOverlay.test.ts",
-  "src/game/BattleEnvironment.test.ts",
   "src/game/BattleLandscape.ts",
   "src/game/CombatEffects.ts",
   "src/game/FleetHud.test.tsx",

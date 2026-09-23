@@ -17,6 +17,17 @@ test('a material with its own fragment output fills every scene target of the pa
   expect(output.isMRTNode).toBe(true);
   expect(Object.keys(output.outputNodes).sort()).toEqual([MOTION_OUTPUT, 'output'].sort());
   expect(output.outputNodes.output).toBe(color);
+  // The motion target keeps the pass's additive blending, so what is below survives.
+  expect((output as unknown as { blendModes: object }).blendModes).toEqual((taa.mrt as unknown as { blendModes: object }).blendModes);
+});
+
+test('a surface that asks for no history writes that response into the motion target', () => {
+  const material = writeSceneTargets(new MeshBasicNodeMaterial());
+  material.userData.temporalResponse = 1;
+  const taa = new TemporalAntialiasing(new PerspectiveCamera());
+  const output = material.setupOutput(builder(taa.mrt), vec4(1)) as unknown as Outputs;
+  const motion = output.outputNodes[MOTION_OUTPUT] as unknown as { node: { value: { toArray(): number[] } } };
+  expect(motion.node.value.toArray()).toEqual([0, 0, 1, 0]);
 });
 
 test('the combat volumes keep their colour under temporal AA and moving instances take no history', () => {

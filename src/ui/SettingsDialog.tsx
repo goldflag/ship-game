@@ -92,6 +92,16 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
             ['taa', 'TAA'],
           ],
         },
+        {
+          id: 'bloom',
+          label: 'Bloom',
+          cost: 1,
+          hint: 'A faint glow around sun glints, muzzle flashes, fires and tracers.',
+          options: [
+            ['off', 'Off'],
+            ['on', 'On'],
+          ],
+        },
       ],
     },
   ],
@@ -159,6 +169,17 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
             ['medium', 'Medium'],
             ['high', 'High'],
             ['full', 'Full'],
+          ],
+        },
+        {
+          id: 'ambientOcclusion',
+          label: 'Ambient occlusion',
+          cost: 2,
+          hint: 'Shades sky light where turrets, mounts and superstructure meet. Sunlight is unchanged.',
+          options: [
+            ['off', 'Off'],
+            ['low', 'Low'],
+            ['high', 'High'],
           ],
         },
         {
@@ -487,7 +508,6 @@ export function SettingsDialog({
                     <>
                       <span className="detail">{performance.frameMs.toFixed(1)} ms</span>
                       <span className="detail">{renderSize}</span>
-                      <span className="detail">{performance.backend === 'webgl' ? 'WebGL' : 'WebGPU'}</span>
                     </>
                   )}
                 </div>

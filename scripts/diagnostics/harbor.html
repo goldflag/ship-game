@@ -20,15 +20,15 @@ const game=new Game(document.querySelector('#scene'),(GRAPHICS_PRESETS[quality] 
  telemetry:data=>{window.telemetry=data;},pause:()=>{},hud:()=>{},error:error=>{window.errors.push(error);status.textContent=error;}
 });
 window.game=game;game.setInPort(true);game.start();
-// Capture only after the serialized water + scene frame. Rendering the pipeline
-// independently can catch the water system in an intermediate depth/reflection pass.
+// Capture right after a whole game frame (ocean update, scene pass and post-processing),
+// while its drawing buffer is still the one the frame presented.
 const frame=game.frame.bind(game);
 let captureNext;
 game.frame=async(...args)=>{await frame(...args);if(captureNext){const resolve=captureNext;captureNext=null;resolve(game.renderer.domElement.toDataURL('image/png'));}};
 window.captureHarbor=()=>new Promise(resolve=>captureNext=resolve);
-window.inspect=()=>({ready:window.ready,errors:window.errors,backend:window.telemetry?.backend,fps:window.telemetry?.fps,
+window.inspect=()=>({ready:window.ready,errors:window.errors,fps:window.telemetry?.fps,
  trees:game.harbor?.userData.trees,buildings:game.harbor?.userData.buildings,rocks:game.harbor?.userData.rocks,
- camera:game.camera.position.toArray(),harborVisible:game.harbor?.visible,waveAmplitude:game.water?.waves.amplitude.value,
+ camera:game.camera.position.toArray(),harborVisible:game.harbor?.visible,significantHeight:game.ocean?.waves.significantHeight,
  renderer:game.renderer.info});
 window.view=(azimuth=1.08,elevation=.23,distance=325)=>{game.rig.azimuth=azimuth;game.rig.elevation=elevation;game.rig.distance=distance;};
 window.hideStatus=()=>status.style.display='none';
