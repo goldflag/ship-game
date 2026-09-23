@@ -46,7 +46,7 @@ Model* (SIGGRAPH 2001); Tatarchuk, *Artist-Directable Real-Time Rain Rendering* 
 | `celestial/` | Sun disc, moon and its phase, stars, Milky Way, sun and moon shafts. |
 | `clouds/` | Noise volumes, weather map, volumetric march, temporal reconstruction, composite, cirrus, cloud shadow map, rain shafts. |
 | `weather/` | Near rain, splashes, lightning (bolts, flicker, cloud light, scene flash), thunder cue. |
-| `environment/` | Equirectangular bake of dome and clouds, PMREM refresh, the ocean's `OceanSky` provider. |
+| `environment/` | Equirectangular bake of dome, clouds and sea, prefiltered into three's CubeUV layout; the ocean's `OceanSky` provider. |
 | `stubs/` | A minimal implementation of every part, used until the real one lands and by tests. |
 
 ## Frame
@@ -208,10 +208,37 @@ camera without discs, stars or clouds.
 
 ## Budget
 
-Sky Pro's cost per tier is the ceiling. Measure with `bun scripts/browser/sky-review.ts --measure`
-on the same scenes and tier with `--sky skypro` and `--sky game`, interleaved and repeated (the GPU
-is shared; single runs are noisy). Sky Pro baselines: `.build/sky-review/skypro-*` (captured
-2026-09-23 on the main checkout's hardware).
+Sky Pro's cost per tier is the ceiling. Measured 2026-09-23 on an Apple M5 Pro (headed Chromium, the
+High preset with each Clouds tier, 1600 × 900 at the game's 1.5 pixel ratio), milliseconds per frame,
+means over noon, sunset, overcast, storm and binoculars and two sessions per sky:
+
+| Clouds tier | Sky's own work: Sky Pro | Game sky | Whole frame: Sky Pro | Game sky |
+| --- | --- | --- | --- | --- |
+| Low | 0.19 | 0.22 | 6.94 | 6.77 |
+| Medium | 0.41 | 0.27 | 7.38 | 7.09 |
+| High | 0.77 | 0.28 | 7.81 | 7.02 |
+| Ultra | 0.84 | 0.29 | 7.72 | 7.05 |
+
+The game sky's figures include its cloud shadows, stars, shafts and weather, which Sky Pro never drew.
+To repeat, alternate the skies over at least two sessions each:
+
+    bun scripts/browser/sky-review.ts --tag <sky>-<tier> --sky game|skypro --clouds <tier> --scale 1.5 \
+      --only noon,sunset,overcast,storm,binoculars --bench --frames
+
+- `--bench` (`benchmarkSky`): the sky's own update and meshes, from frames with them alternating with
+  frames without, each serialised by waiting for the GPU and timed by wall clock. The pairing cancels
+  the drift between sessions. The post passes (shafts, rain veil) and the sea's sky lookups run in
+  both kinds of frame.
+- `--frames` (`wallFrames`): whole frames with everything, which vary by about half a millisecond
+  between sessions (the GPU is shared with the rest of the machine).
+- `--scale 1.5`: the pixel ratio the game renders at on a Retina display. At 1 the frame is partly
+  CPU-bound: the sky's compute, submitted early, runs while the CPU encodes the rest of the frame,
+  and wall-clock timing misses it.
+- GPU timestamps (`--clock gpu`, `--parts`) leave the CPU out, but on Apple GPUs a pass that waits on
+  the frame's scene reads as busy for the whole wait: the shafts, which sample the scene, read 6 ms
+  and cost nothing by wall clock. Use them for shares within one sky, not to compare skies. They
+  also agree on the direction (Sky Pro 0.50 / 1.18 / 1.77 / 1.85 ms per tier, the game sky 0.47 /
+  0.39 / 0.28 / 0.49).
 
 ## Verification
 
@@ -221,7 +248,7 @@ night with the Milky Way's core over the sea, a dusk crescent, zenith, clear, ov
 24× binoculars, aircraft in the cloud shell, overhead and tilted chart, a daylight downpour from the
 bridge, moonlit rain, and a seeded cloud-to-ground bolt by night and by day). `bun scripts/browser/
 sky-review.ts --tag <name> [--only a,b] [--quality high] [--clouds medium] [--sky game|skypro]
-[--measure] [--bench] [--weather]` saves PNGs and timings to `.build/sky-review/<tag>/`; `--weather`
+[--scale 1.5] [--frames] [--bench] [--weather]` saves PNGs and timings to `.build/sky-review/<tag>/`; `--weather`
 times the rain and splashes by GPU timestamps, each drawn at several times its capacity in frames
 alternating with none. Timing a mesh means drawing the scene pass again: it renders once per node
 frame, which only the browser's animation frames advance, so the page's `redraw()` advances it

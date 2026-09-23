@@ -1,5 +1,5 @@
 /** `bun scripts/browser/sky-review.ts --tag <name> [--only noon,sunset] [--quality high] [--clouds medium] [--sky game|skypro]
- * [--frames] [--bench [--clock gpu] [--parts]] [--measure] [--weather] [--url http://127.0.0.1:5210]`
+ * [--scale 1.5] [--frames] [--bench [--clock gpu] [--parts]] [--measure] [--weather] [--url http://127.0.0.1:5210]`
  * Renders the fixed scenes of `scripts/diagnostics/sky-review.html` in a headed Chromium and saves one PNG
  * per scene to `.build/sky-review/<tag>/`, with `results.json` (errors, optional timings). On the measured scenes:
  * `--frames` times whole rendered frames by wall clock (`wallFrames`: everything the sky touches, but sessions
@@ -7,7 +7,10 @@
  * own update and meshes, frames with them alternating with frames without (`benchmarkSky`, by wall clock, or by
  * GPU timestamps with `--clock gpu`), and `--parts` adds each piece's share by timestamps (`benchmarkParts`);
  * `--measure` times whole game frames with the simulation stepping. `--weather` isolates the rain, splashes and
- * bolt (their meshes' share of the frame) on every rendered scene. */
+ * bolt (their meshes' share of the frame) on every rendered scene. `--scale` is the device pixel ratio, rendered
+ * as the game would (up to 1.5; otherwise the page keeps one backing pixel per CSS pixel): at 1 the frame is partly
+ * CPU-bound, and GPU work submitted early in it overlaps the CPU encoding the rest, which wall-clock timing then
+ * misses; at 1.5, as on a Retina display, there is 2.25 times the GPU work. */
 import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -17,7 +20,7 @@ import { authoringServer, serverUrl } from '../construction/browser';
 import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
-  tag: { type: 'string', default: 'current' }, only: { type: 'string' }, quality: { type: 'string', default: 'high' },
+  tag: { type: 'string', default: 'current' }, only: { type: 'string' }, quality: { type: 'string', default: 'high' }, scale: { type: 'string', default: '1' },
   clouds: { type: 'string' }, sky: { type: 'string' }, frames: { type: 'boolean', default: false }, measure: { type: 'boolean', default: false },
   bench: { type: 'boolean', default: false }, clock: { type: 'string', default: 'wall' }, parts: { type: 'boolean', default: false },
   weather: { type: 'boolean', default: false },
@@ -36,7 +39,7 @@ try {
     // Exact GPU timestamps for the timestamp benchmarks; Chromium otherwise quantises them to 100 µs.
     ...(values.weather || values.parts || (values.bench && values.clock === 'gpu') ? ['--enable-webgpu-developer-features'] : [])],
     ...(process.env.HARNESS_CHROME ? { executablePath: process.env.HARNESS_CHROME } : {}) });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: Number(values.scale) });
   page.setDefaultTimeout(600_000);
   // Another window taking focus must not pause the game mid-measurement.
   await page.addInitScript(() => {
@@ -45,7 +48,8 @@ try {
   });
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') pageErrors.push(message.text()); });
-  const query = new URLSearchParams({ quality: values.quality!, ...(values.clouds ? { clouds: values.clouds } : {}), ...(values.sky ? { sky: values.sky } : {}) });
+  const query = new URLSearchParams({ quality: values.quality!, ...(values.clouds ? { clouds: values.clouds } : {}), ...(values.sky ? { sky: values.sky } : {}),
+    ...(values.scale !== '1' ? { pixels: 'device' } : {}) });
   await page.goto(`${url}/scripts/diagnostics/sky-review.html?${query}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready, undefined, { polling: 250 });
   const all = await page.evaluate(() => (window as unknown as { skyReview: { scenes: string[] } }).skyReview.scenes);

@@ -21,7 +21,9 @@ const errors = [];
 addEventListener('error', event => errors.push(event.message));
 addEventListener('unhandledrejection', event => errors.push(String(event.reason?.message ?? event.reason)));
 const quality = params.get('quality') ?? 'high';
-const settings = { ...GRAPHICS_PRESETS[quality], renderScale: 100 / Math.min(devicePixelRatio, 1.5) };
+// One backing pixel per CSS pixel, so captures match on any display; `?pixels=device` keeps the game's own
+// pixel ratio (the device's, up to 1.5), as a Retina display renders it.
+const settings = { ...GRAPHICS_PRESETS[quality], renderScale: params.get('pixels') === 'device' ? 100 : 100 / Math.min(devicePixelRatio, 1.5) };
 if (params.get('clouds')) settings.clouds = params.get('clouds');
 if (params.get('sky')) settings.skyRenderer = params.get('sky');
 const game = new Game(document.querySelector('#scene'), settings, {
@@ -144,7 +146,7 @@ const scenes = {
     await battle({ hours: 18.4, cloud: 20 });
     game.setDeveloperWeather({ ...game.environment.getOverrides(), moonPhase: .08 });
     const moon = moonDirection();
-    gaze(BRIDGE, headingOf(moon) - .2, Math.max(3, elevationOf(moon) - 2), 50);
+    gaze(BRIDGE, headingOf(moon) - .12, Math.max(3, elevationOf(moon) - 2), 30);
   },
   /** Straight up at midday cumulus. */
   zenith: async () => { await battle({ hours: 12.5, cloud: 50 }); look([0, 30, 0], [1, 10000, 0], 80); },

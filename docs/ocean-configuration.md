@@ -627,10 +627,11 @@ ignored `.build/`.
 shafts, stars, a crescent night, a dusk crescent, zenith, clear, overcast, fog, storm, binoculars, an
 aircraft in the cloud shell, the chart overhead and tilted, rain by day and night, lightning by night and
 day) into `.build/sky-review/<name>/`. `--sky skypro` renders them with the comparison, `--clouds <tier>`
-picks the tier, and `--bench` times the whole sky and each of its pieces by GPU timestamps
-(`benchmarkSky`, `benchmarkParts`): frames with the sky alternate with frames without it, each redrawing
-the scene pass, whose timings once hid under the CPU-bound frame. Every sky part keeps a focused page
-under `scripts/diagnostics/sky-*.html`.
+picks the tier, `--bench` times the sky's own update and meshes in frames alternating with frames
+without them, `--frames` times whole frames, and `--scale 1.5` renders at the game's Retina pixel ratio,
+where the frame is bound by the GPU rather than the CPU. The [sky's Budget](../src/game/sky/README.md#budget)
+has the per-tier comparison with Sky Pro and why it is timed by wall clock rather than GPU timestamps.
+Every sky part keeps a focused page under `scripts/diagnostics/sky-*.html`.
 
 ## Comparing with Sky Pro
 
