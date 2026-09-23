@@ -1,6 +1,7 @@
 /** `bun scripts/browser/sky-review.ts --tag <name> [--only noon,sunset] [--quality high] [--clouds medium] [--sky game|skypro]
  * [--measure] [--bench] [--weather] [--url http://127.0.0.1:5210]`
  * `--measure` times whole frames (noisy: the sky is a small part of them); `--bench` isolates the sky's own GPU cost
+ * by GPU timestamps, frames with the whole sky alternating with frames without it (`benchmarkSky`)
  * (offscreen passes plus its meshes' share of the frame) on the measured scenes; `--weather` isolates the rain,
  * splashes and bolt (their meshes' share of the frame) on every rendered scene.
  * Renders the fixed scenes of `scripts/diagnostics/sky-review.html` in a headed Chromium and saves one PNG
@@ -54,7 +55,7 @@ try {
     const timing = values.measure && MEASURED.includes(name)
       ? { stepping: await page.evaluate(() => (window as any).skyReview.measure(120, true)), paused: await page.evaluate(() => (window as any).skyReview.measure(60, false)) }
       : undefined;
-    const bench = values.bench && MEASURED.includes(name) ? await page.evaluate(() => (window as any).skyReview.benchmark()) : undefined;
+    const bench = values.bench && MEASURED.includes(name) ? await page.evaluate(() => (window as any).skyReview.benchmarkSky()) : undefined;
     const weather = values.weather ? await page.evaluate(() => (window as any).skyReview.benchmarkWeather()) : undefined;
     results[name] = { ...info, seconds: (Date.now() - started) / 1000, ...(timing ? { timing } : {}), ...(bench ? { bench } : {}), ...(weather ? { weather } : {}) };
     console.log(name, JSON.stringify(results[name]));

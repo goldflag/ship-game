@@ -257,31 +257,42 @@ async function measure(count = 120, stepping = true) {
     calls: game.renderer.info.render.calls, triangles: game.renderer.info.render.triangles };
 }
 
-/** The sky's own GPU cost, isolated from the rest of the frame: its offscreen passes (marches, reconstruction,
- * bakes) run `iterations` times back to back, and the whole frame drawn with and without the sky's meshes (dome,
- * cloud composite, rain), in alternating blocks. Medians of the blocks, milliseconds per frame. */
-async function benchmark(iterations = 60, blocks = 5) {
-  const device = game.renderer.backend.device, sky = game.sky, meshes = sky.meshes();
-  const drain = () => device.queue.onSubmittedWorkDone();
-  const time = async work => { await drain(); const start = performance.now(); for (let i = 0; i < iterations; i++) work(); await drain(); return (performance.now() - start) / iterations; };
-  const passes = [], frame = [], bare = [];
-  for (let block = 0; block < blocks; block++) {
-    passes.push(await time(() => sky.update(1 / 60)));
-    frame.push(await time(redraw));
+/** The whole sky's GPU cost per frame: frames with the sky's passes run and its meshes drawn, alternating with
+ * frames that have neither, each timed by GPU timestamps (render and compute) where the browser allows them, else
+ * as serialised wall-clock frames. Every frame redraws the scene pass. The cost is the median of the paired
+ * differences (and their lower quartile); `frame` is the median frame without the sky. */
+async function benchmarkSky(pairs = 120, clock = 'gpu') {
+  const renderer = game.renderer, backend = renderer.backend, device = backend.device, sky = game.sky, meshes = sky.meshes();
+  const timestamps = clock === 'gpu' && backend.hasFeature('timestamp-query');
+  const gpu = async () => (await renderer.resolveTimestampsAsync('render') ?? 0) + (await renderer.resolveTimestampsAsync('compute') ?? 0);
+  const frame = async on => {
     const visible = meshes.map(mesh => mesh.visible);
-    meshes.forEach(mesh => { mesh.visible = false; });
-    try { bare.push(await time(redraw)); }
-    finally { meshes.forEach((mesh, i) => { mesh.visible = visible[i]; }); }
-  }
-  const median = values => [...values].sort((a, b) => a - b)[values.length >> 1];
-  const result = { passes: median(passes), draw: median(frame) - median(bare), frame: median(frame), bare: median(bare) };
-  return { ...result, sky: result.passes + result.draw };
+    if (!on) meshes.forEach(mesh => { mesh.visible = false; });
+    try {
+      if (timestamps) { if (on) sky.update(1 / 60); redraw(); return gpu(); }
+      await device.queue.onSubmittedWorkDone();
+      const start = performance.now();
+      if (on) sky.update(1 / 60);
+      redraw();
+      await device.queue.onSubmittedWorkDone();
+      return performance.now() - start;
+    } finally { meshes.forEach((mesh, i) => { mesh.visible = visible[i]; }); }
+  };
+  backend.trackTimestamp = timestamps;
+  try {
+    if (timestamps) await gpu();
+    const on = [], off = [], differences = [];
+    for (let i = 0; i < pairs; i++) { const a = await frame(true), b = await frame(false); on.push(a); off.push(b); differences.push(a - b); }
+    const sorted = values => [...values].sort((a, b) => a - b);
+    return { clock: timestamps ? 'gpu' : 'wall', sky: sorted(differences)[pairs >> 1], quartile: sorted(differences)[pairs >> 2],
+      frame: sorted(off)[pairs >> 1], withSky: sorted(on)[pairs >> 1] };
+  } finally { backend.trackTimestamp = false; }
 }
 
 window.skyReview = {
   game, scenes: Object.keys(scenes), errors,
   async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors] }; },
-  capture, measure, benchmark, benchmarkWeather,
+  capture, measure, benchmarkWeather, benchmarkSky,
 };
 window.ready = true; output.textContent = '';
 </script>

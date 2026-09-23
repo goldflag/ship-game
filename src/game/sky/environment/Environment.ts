@@ -1,6 +1,6 @@
 import { HalfFloatType, LinearFilter, NoBlending, NodeMaterial, QuadMesh, RGBAFormat, RenderTarget, Vector2, Vector3, type Camera, type Texture,
   type WebGPURenderer } from 'three/webgpu';
-import { Fn, If, cos, float, pmremTexture, screenCoordinate, sin, uniform, vec3, vec4 } from 'three/tsl';
+import { Fn, If, cos, float, mix, pmremTexture, pow, screenCoordinate, sin, uniform, vec3, vec4 } from 'three/tsl';
 import type { OceanSky } from '../../ocean/contracts';
 import type { EnvironmentPart, EnvironmentSources, SkyFrame, SkyQuality, SkyUniforms } from '../contracts';
 import { SKY_TIERS } from '../quality';
@@ -10,10 +10,16 @@ import { SKY_TIERS } from '../quality';
  * shading until the clouds' march arrives, so a few bands a sweep beat one a frame. Clouds drift a fraction of
  * a degree a second: a quarter of a second between refreshes does not show. */
 const BANDS = 4, SWEEP_FRAMES = 16;
-/** Directions this far below the horizon (as a vertical component) see only the dome: the clouds' bake
- * starts here, a little under the horizon, where the most distant clouds sink. The sweep's bands split the
- * sky above it; the last band also takes everything below, the dome's cheap horizon colour. */
-const CLOUD_FLOOR = -.02;
+/** From sea level nothing of the cloud shell sinks below the horizon, so the bake's lower half is the sea
+ * itself (the sweep's bands split the sky above it; the last band also takes the sea). The sea's own surface
+ * never reads it (it mirrors rays about the horizon), but ships and islands take it as light from below: sky
+ * mirrored with water's Fresnel, bright at a glancing angle as the horizon is, dark looking straight down,
+ * over the dim glow of the water body. The horizon's colour all the way down lit every hull from below and
+ * flattened ships. */
+const CLOUD_FLOOR = 0;
+/** Water's reflectance looking straight down (refractive index 1.33), and the light its body returns, as a
+ * share of the sky's light from overhead: a dark blue-green. */
+const WATER_F0 = .02, WATER_BODY = vec3(.012, .03, .04);
 /** A sweep restarts at once, baking everything in one frame, after the sun or the sky's light changes or
  * the bake's origin jumps this far (m): a scene change or a teleport must not show a stale sky. */
 const JUMP = 2000;
@@ -52,9 +58,15 @@ export class Environment implements EnvironmentPart {
       const uv = screenCoordinate.div(this.size);
       const azimuth = uv.x.sub(.5).mul(2 * Math.PI), elevation = uv.y.sub(.5).mul(Math.PI);
       const direction = vec3(cos(elevation).mul(cos(azimuth)), sin(elevation), cos(elevation).mul(sin(azimuth))).toVar();
-      const clouds = vec4(0, 0, 0, 1).toVar();
-      If(direction.y.greaterThan(CLOUD_FLOOR), () => { clouds.assign(sources.clouds.bake(this.origin, direction)); });
-      return vec4(sources.dome(direction).mul(clouds.a).add(clouds.rgb), 1);
+      const color = vec3(0, 0, 0).toVar();
+      If(direction.y.greaterThanEqual(CLOUD_FLOOR), () => {
+        const clouds = sources.clouds.bake(this.origin, direction);
+        color.assign(sources.dome(direction).mul(clouds.a).add(clouds.rgb));
+      }).Else(() => {
+        const cosine = direction.y.negate(), fresnel = float(WATER_F0).add(pow(float(1).sub(cosine), 5).mul(1 - WATER_F0));
+        color.assign(mix(sources.dome(vec3(0, 1, 0)).mul(WATER_BODY), sources.dome(vec3(direction.x, cosine, direction.z)), fresnel));
+      });
+      return vec4(color, 1);
     })();
     this.quad = new QuadMesh(material);
     this.oceanSky = {
