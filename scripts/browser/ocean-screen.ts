@@ -1,7 +1,8 @@
-/** `bun scripts/browser/ocean-screen.ts --tag <name> [--only chase,zoom5km] [--webgl] [--calm] [--steps 32] [--samples 0] [--measure] [--url http://127.0.0.1:5210]`
- * Renders the fixed scenes of `scripts/diagnostics/ocean-screen.html` in a headed Chromium and saves, per scene,
- * the shaded frame, the frame without reflections and the reflection confidence to `.build/ocean-screen/<tag>/`,
- * with `results.json` (backend, reversed depth, changed/isolated reflection pixels, errors, optional frame timings). */
+/** `bun scripts/browser/ocean-screen.ts --tag <name> [--only chase,sub7] [--webgl] [--calm] [--steps 32] [--samples 0] [--measure] [--url http://127.0.0.1:5210]`
+ * Renders the fixed scenes of `scripts/diagnostics/ocean-screen.html` in a headed Chromium and saves them to
+ * `.build/ocean-screen/<tag>/`: above water the shaded frame, the frame without reflections and the reflection
+ * confidence; under water the frame with and without the underwater pass. `results.json` records the backend,
+ * reversed depth, changed/isolated reflection pixels, errors and, with --measure, frame times with each effect on and off. */
 import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -34,25 +35,37 @@ try {
   const info = await page.evaluate(() => { const s = (window as any).oceanScreen; return { backend: s.backend, reversedDepth: s.reversedDepth, scenes: s.scenes as string[] }; });
   const wanted = values.only ? values.only.split(',') : info.scenes;
   const results: Record<string, unknown> = {};
+  /** Frame cost with a uniform on and off, interleaved so drifting GPU load from other processes hits both alike. */
+  const timeToggle = (uniform: 'reflections.enabled' | 'cameraNearSurface') => page.evaluate(async key => {
+    const screen = (window as any).oceanScreen;
+    const target = key === 'cameraNearSurface' ? screen.cameraNearSurface : screen.reflections.enabled;
+    const on: { frame: number; submit: number }[] = [], off: typeof on = [];
+    for (let round = 0; round < 4; round++) {
+      target.value = true; on.push(await screen.measure());
+      target.value = false; off.push(await screen.measure());
+    }
+    target.value = true;
+    const median = (list: typeof on) => ({ frame: list.map(entry => entry.frame).sort((a, b) => a - b)[list.length >> 1], submit: list.map(entry => entry.submit).sort((a, b) => a - b)[list.length >> 1] });
+    return { on: median(on), off: median(off) };
+  }, uniform);
   for (const name of wanted) {
-    await page.evaluate(scene => (window as any).oceanScreen.scene(scene), name);
-    const difference = await page.evaluate(() => (window as any).oceanScreen.reflectionDifference());
-    save(name, difference.on); save(`${name}-off`, difference.off);
-    await page.evaluate(() => (window as any).oceanScreen.view(1));
-    save(`${name}-confidence`, await page.evaluate(() => (window as any).oceanScreen.capture()));
-    await page.evaluate(() => (window as any).oceanScreen.view(0));
-    // Interleave on and off so drifting GPU load from other processes hits both alike.
-    const timing = values.measure ? await page.evaluate(async () => {
-      const screen = (window as any).oceanScreen, on: { frame: number; submit: number }[] = [], off: typeof on = [];
-      for (let round = 0; round < 4; round++) {
-        screen.reflections.enabled.value = true; on.push(await screen.measure());
-        screen.reflections.enabled.value = false; off.push(await screen.measure());
-      }
-      screen.reflections.enabled.value = true;
-      const median = (list: typeof on) => ({ frame: list.map(entry => entry.frame).sort((a, b) => a - b)[list.length >> 1], submit: list.map(entry => entry.submit).sort((a, b) => a - b)[list.length >> 1] });
-      return { on: median(on), off: median(off) };
-    }) : undefined;
-    results[name] = { changed: difference.changed, isolated: difference.isolated, bounds: difference.bounds, ...(timing ? { timing } : {}) };
+    const { nearSurface } = await page.evaluate(scene => (window as any).oceanScreen.scene(scene), name);
+    if (nearSurface) {
+      // Underwater scenes: the frame with the pass and without it (as if the camera were certainly dry).
+      save(name, await page.evaluate(() => (window as any).oceanScreen.capture()));
+      await page.evaluate(() => { (window as any).oceanScreen.cameraNearSurface.value = false; });
+      save(`${name}-dry`, await page.evaluate(() => (window as any).oceanScreen.capture()));
+      await page.evaluate(() => { (window as any).oceanScreen.cameraNearSurface.value = true; });
+      results[name] = { nearSurface, ...(values.measure ? { timing: await timeToggle('cameraNearSurface') } : {}) };
+    } else {
+      const difference = await page.evaluate(() => (window as any).oceanScreen.reflectionDifference());
+      save(name, difference.on); save(`${name}-off`, difference.off);
+      await page.evaluate(() => (window as any).oceanScreen.view(1));
+      save(`${name}-confidence`, await page.evaluate(() => (window as any).oceanScreen.capture()));
+      await page.evaluate(() => (window as any).oceanScreen.view(0));
+      results[name] = { changed: difference.changed, isolated: difference.isolated, bounds: difference.bounds,
+        ...(values.measure ? { timing: await timeToggle('reflections.enabled') } : {}) };
+    }
     console.log(name, JSON.stringify(results[name]));
   }
   writeFileSync(resolve(out, 'results.json'), JSON.stringify({ ...info, steps: Number(values.steps), samples: values.samples, calm: values.calm, results, pageErrors }, null, 1));

@@ -11,11 +11,12 @@
 // `scripts/browser/ocean-screen.ts` drives it. ?webgl for the fallback backend, ?calm for a mirror sea,
 // ?steps=16|32 for the tier's reflection budget, ?samples=0 for a single-sampled scene pass.
 import * as THREE from 'three/webgpu';
-import { Fn, cameraPosition, cameraViewMatrix, cos, float, fwidth, max, mix, modelWorldMatrix, pass, positionLocal, positionView,
+import { Fn, cameraPosition, cameraViewMatrix, cos, float, frontFacing, fwidth, max, mix, modelWorldMatrix, pass, positionLocal, positionView,
   positionWorld, positionWorldDirection, reflect, renderOutput, sin, smoothstep, uniform, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
 import { EffectDepthTextureNode } from '/src/game/EffectVolume.ts';
 import { configureRenderOrder } from '/src/game/renderOrder.ts';
 import { screenSpaceReflection } from '/src/game/ocean/screen/reflections.ts';
+import { createUnderwaterPass, nearPlaneMayBeSubmerged } from '/src/game/ocean/screen/underwater.ts';
 
 const params = new URLSearchParams(location.search);
 if (params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter = async () => null;
@@ -67,7 +68,8 @@ ships.at5km.position.set(5000, 0, 0);
 ships.at20km.position.set(20000, 0, 0);
 const column = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 260, 24), paint(0xe07a1f)); column.position.set(0, 130, 0);
 const decoy = new THREE.Mesh(new THREE.BoxGeometry(160, 160, 160), new THREE.MeshBasicMaterial({ color: 0xff00ff }));
-scene.add(column, decoy);
+const submarine = new THREE.Mesh(new THREE.CapsuleGeometry(3.3, 60, 6, 24), paint(0x8f9aa0)); submarine.rotation.x = Math.PI / 2;
+scene.add(column, decoy, submarine);
 
 // Sea: a camera-centred polar grid (geometric ring spacing out to the far plane) displaced near the
 // camera by a few analytic waves; slopes fade where a pixel spans a quarter wave, so nothing aliases.
@@ -88,6 +90,7 @@ function seaGeometry(rings = 300, segments = 256, inner = .6, outer = 59000) {
   return geometry;
 }
 const WAVES = [[.35, 96, .42], [1.25, 57, .2], [-.6, 38, .1], [2.2, 23, .05]]; // heading (rad), wavelength (m), amplitude (m)
+const CREST = WAVES.reduce((sum, [, , amplitude]) => sum + amplitude, 0);
 const sea = uniform(params.has('calm') ? 0 : 1);
 const wave = (xz, [heading, length, amplitude]) => {
   const k = 2 * Math.PI / length, direction = vec2(Math.cos(heading), Math.sin(heading));
@@ -105,7 +108,12 @@ const reflections = { enabled: uniform(true), maxDistance: uniform(1000), steps:
 const debugView = uniform(0); // 0 shaded, 1 reflection confidence, 2 reflected scene colour
 const sceneColor = viewportTexture();
 const sceneDepth = new EffectDepthTextureNode(undefined, null, new THREE.DepthTexture(1, 1));
-const water = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: true });
+// The game's Atlantic swatches; the absorption eases to 5% once the camera is 2 m under, as VisualEnvironment does.
+const colors = { waterColor: new THREE.Color('#2d373c'), transmissionColor: new THREE.Color('#49575e'), absorptionColor: new THREE.Color('#945b57') };
+const surfaceAbsorption = colors.absorptionColor.clone();
+const oceanSun = { direction: sunDirection, intensity: 3.2, color: new THREE.Color(1, .96, .9) };
+const water = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: true, side: THREE.DoubleSide });
+water.forceSinglePass = true;
 {
   const world = modelWorldMatrix.mul(vec4(positionLocal, 1)).xz;
   const nearby = smoothstep(400, 1500, world.sub(cameraPosition.xz).length()).oneMinus();
@@ -121,7 +129,11 @@ const water = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: t
     const fresnel = float(.02).add(float(.98).mul(float(1).sub(max(view.negate().dot(normal), 1e-4)).pow(5)));
     const pigment = vec3(.02, .045, .06).mul(normal.dot(sun).max(0).mul(.6).add(.5));
     const shaded = mix(pigment, mix(sky(upward), ssr.color, ssr.confidence), fresnel);
-    return debugView.equal(1).select(vec3(ssr.confidence), debugView.equal(2).select(ssr.color.mul(ssr.confidence), shaded));
+    // From below: the sky through Snell's window, total internal reflection of the dim sea outside it.
+    const window = smoothstep(.6, .7, view.dot(normal));
+    const underside = mix(uniform(colors.waterColor).rgb.mul(.6), sky(view).mul(.8), window);
+    const above = debugView.equal(1).select(vec3(ssr.confidence), debugView.equal(2).select(ssr.color.mul(ssr.confidence), shaded));
+    return frontFacing.select(above, underside);
   })();
 }
 const seaMesh = new THREE.Mesh(seaGeometry(), water); seaMesh.frustumCulled = false;
@@ -130,7 +142,10 @@ scene.add(seaMesh);
 // ?samples=0 renders the scene pass single-sampled. three r185's WebGL backend gives a multisampled pass a
 // DEPTH_COMPONENT24 renderbuffer even for float depth, so its depth resolve and depth copies fail there.
 const scenePass = pass(scene, camera, params.has('samples') ? { samples: Number(params.get('samples')) } : {});
-const pipeline = new THREE.RenderPipeline(renderer, renderOutput(vec4(scenePass.getTextureNode('output').rgb, 1), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace));
+const cameraNearSurface = uniform(false);
+const underwater = createUnderwaterPass({ heightAt, colors, sun: oceanSun, cameraNearSurface });
+const composed = underwater(scenePass, scenePass.getTextureNode('output'));
+const pipeline = new THREE.RenderPipeline(renderer, renderOutput(vec4(composed.rgb, 1), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace));
 pipeline.outputColorTransform = false;
 
 const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
@@ -148,15 +163,28 @@ const scenes = {
   edge: { eye: [40, 60, 300], at: [40, -40, 0], fov: 50, range: 1000, show: ['near', 'column'], near: [330, 0, 60] },
   // Nothing on screen but sea and sky; a lit box behind the camera and a ship beside the frustum must not appear.
   behind: { eye: [0, 30, 0], at: [0, 10, -1000], fov: 50, range: 3000, show: ['near', 'decoy'], near: [900, 0, -300], decoy: [0, 90, 450] },
+  // Submerged chase views of a submarine-sized hull, and a camera whose near plane straddles the waves.
+  sub7: { eye: [-48, -4, 34], at: [0, -8, -6], fov: 60, range: 1000, show: ['submarine'], submarine: [0, -7, 0] },
+  sub50: { eye: [-48, -47, 34], at: [0, -51, -6], fov: 60, range: 1000, show: ['submarine'], submarine: [0, -50, 0] },
+  straddle: { eye: [-190, 'surface', 60], at: [0, -1, 0], fov: 60, roll: .08, range: 1000, show: ['near'] },
+  under: { eye: [-60, -12, 0], at: [60, 18, 0], fov: 70, range: 1000, show: ['near'], near: [60, 0, 0] },
 };
 function show(setup) {
-  for (const [name, object] of Object.entries({ ...ships, column, decoy })) object.visible = setup.show.includes(name);
+  for (const [name, object] of Object.entries({ ...ships, column, decoy, submarine })) object.visible = setup.show.includes(name);
   ships.near.position.set(...(setup.near ?? [0, 0, 0]));
   decoy.position.set(...(setup.decoy ?? [0, 90, 450]));
-  camera.position.set(...setup.eye); camera.lookAt(...setup.at);
+  submarine.position.set(...(setup.submarine ?? [0, -7, 0]));
+  const [x, y, z] = setup.eye;
+  // 'surface' puts the camera 10 cm above the analytic wave: the near plane (±29 cm) still crosses it, so the
+  // waterline runs through the frame, while the view past the grid's first ring stays clear of it.
+  camera.position.set(x, y === 'surface' ? WAVES.reduce((sum, [heading, length, amplitude]) =>
+    sum + amplitude * Math.sin((x * Math.cos(heading) + z * Math.sin(heading)) * 2 * Math.PI / length), 0) * sea.value + .1 : y, z);
+  camera.lookAt(...setup.at); camera.rotateZ(setup.roll ?? 0);
   camera.fov = setup.fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
   seaMesh.position.set(camera.position.x, 0, camera.position.z);
   reflections.maxDistance.value = setup.range;
+  cameraNearSurface.value = nearPlaneMayBeSubmerged(camera, CREST * sea.value);
+  colors.absorptionColor.copy(surfaceAbsorption).multiplyScalar(THREE.MathUtils.lerp(1, .05, THREE.MathUtils.smoothstep(-camera.position.y, 0, 2)));
 }
 
 /** Render on a fresh renderer frame (PassNode renders the scene once per frame) and read back in the same
@@ -217,9 +245,9 @@ async function measure(batches = 15, perBatch = 8) {
 }
 
 window.oceanScreen = {
-  renderer, camera, reflections, debugView, sea, errors, scenes: Object.keys(scenes),
+  renderer, scene, camera, seaMesh, reflections, cameraNearSurface, debugView, sea, errors, scenes: Object.keys(scenes),
   backend: renderer.backend.isWebGPUBackend ? 'webgpu' : 'webgl', reversedDepth: renderer.reversedDepthBuffer,
-  scene(name) { show(scenes[name]); output.textContent = ''; return { name, errors: [...errors] }; },
+  scene(name) { show(scenes[name]); output.textContent = ''; return { name, nearSurface: cameraNearSurface.value, errors: [...errors] }; },
   capture, reflectionDifference, measure,
   view(mode) { debugView.value = mode; },
 };

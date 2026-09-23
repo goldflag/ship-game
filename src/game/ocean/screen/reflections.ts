@@ -34,8 +34,9 @@ export interface ScreenReflection {
 const REFINEMENTS = 8;
 /** Crossings refined per ray at most; a ray skimming a receding surface stops searching after these. */
 const SEARCHES = 3;
-/** A refined hit may lie behind the scene by this share of its depth. Proportional, because both
- * the refined ray and float depth resolve metres at 20 km but centimetres alongside. */
+/** A refined hit may lie behind the scene by this share of its depth (plus the ray's own depth across
+ * the final bisection bracket). Proportional, because float depth resolves metres at 20 km but
+ * centimetres alongside. */
 const THICKNESS = .02;
 /** Screen-edge fade, as a share of the viewport. */
 const EDGE = .06;
@@ -95,8 +96,6 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
         const sky = scene.greaterThanEqual(farthest);
         return { along, scene, sky, behind: along.greaterThan(scene).and(sky.not()) };
       };
-      /** Behind the scene, but by less than a depth-proportional thickness. */
-      const touching = (sample: ReturnType<typeof probe>) => sample.behind.and(sample.along.sub(sample.scene).lessThan(sample.scene.mul(THICKNESS).max(.25)));
       // The last sample in front of the scene and the depth it saw there (the far plane over sky).
       const hit = float(-1).toVar(), front = bool(true).toVar(), lastFront = float(0).toVar(), frontScene = cameraFar.toVar();
       const searches = int(0).toVar();
@@ -115,7 +114,10 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
             const middle = low.add(high).mul(.5).toVar(), inner = probe(middle);
             If(inner.behind.or(edge.and(inner.along.greaterThan(frontScene))), () => { high.assign(middle); }).Else(() => { low.assign(middle); });
           });
-          If(touching(probe(high)), () => { hit.assign(high); Break(); });
+          // Accept a surface within the thickness plus the depth the ray itself covers across the final
+          // bracket, which bisection cannot resolve further; a nearer object's edge lies far outside both.
+          const refined = probe(high), span = refined.along.sub(probe(low).along);
+          If(refined.behind.and(refined.along.sub(refined.scene).lessThan(refined.scene.mul(THICKNESS).add(span))), () => { hit.assign(high); Break(); });
         });
         front.assign(sample.behind.not());
         If(front, () => { lastFront.assign(t); frontScene.assign(sample.sky.select(cameraFar, sample.scene)); });
