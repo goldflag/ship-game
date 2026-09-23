@@ -39,7 +39,7 @@ export interface WeatherOptions {
   sheltered?: () => boolean;
 }
 
-/** Rain near the camera, splashes on the sea, rain haze, lightning and the thunder cue. See `README.md`. */
+/** Rain near the camera, splashes on the sea, rain haze, lightning and the thunder cue. See `../README.md`. */
 export class WeatherSystem implements WeatherPart {
   readonly meshes: Object3D[];
   onThunder?: WeatherPart['onThunder'];
@@ -66,7 +66,7 @@ export class WeatherSystem implements WeatherPart {
   constructor(context: SkyPartContext, atmosphere: AtmospherePart, private readonly options: WeatherOptions = {}) {
     const { uniforms } = context;
     const ambient = atmosphere.ambient(uniforms.cameraPosition.y.max(0));
-    const lighting: RainLighting = { sky: direction => atmosphere.sky(direction), above: ambient.above, below: ambient.below,
+    const lighting: RainLighting = { sky: direction => atmosphere.sky(direction), below: ambient.below,
       lightDirection: uniforms.lightDirection, lightColor: uniforms.lightColor };
     const capacity = Math.max(...Object.values(SKY_TIERS).map(tier => tier.rainDrops));
     this.rain = new RainField(capacity, lighting);

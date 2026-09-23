@@ -1,6 +1,6 @@
 import { BufferAttribute, DoubleSide, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, NodeMaterial, NormalBlending, Vector2, Vector3, Vector4,
   type Node, type PerspectiveCamera } from 'three/webgpu';
-import { Fn, attribute, cameraProjectionMatrix, cameraViewMatrix, exp, float, hash, int, max, mix, normalize, positionGeometry, select, sin, smoothstep,
+import { Fn, attribute, cameraProjectionMatrix, cameraViewMatrix, exp, float, hash, int, max, normalize, positionGeometry, select, sin, smoothstep,
   sqrt, uniform, varyingProperty, vec2, vec3, vec4 } from 'three/tsl';
 import { seededRandom } from './lightning';
 import { skyAround, type RainLighting } from './rain';
@@ -99,8 +99,10 @@ export class SplashField {
     material.vertexNode = Fn(() => {
       const splash = attribute<'vec4'>('rainSplash', 'vec4');
       const k = int(splash.w), seed = splash.w.fract();
-      const cycle = element<'float'>(this.cycles, k).add(splash.z), life = cycle.floor(), progress = cycle.fract();
-      // Every life lands somewhere new: the wrapped seed moves by a hash of the life's number.
+      const cycle = element<'float'>(this.cycles, k).add(splash.z), progress = cycle.fract();
+      // Every life lands somewhere new: the wrapped seed moves by a hash of the life's number, counted within the
+      // clock's cycle so the splash in mid-life when the clock wraps keeps its place.
+      const life = cycle.floor().mod(element<'float'>(vec4(...PERIODS.map(period => CLOCK / period)), k));
       const key = life.mul(7919).add(seed.mul(65536).floor());
       const scatter = vec2(hash(key), hash(key.add(104729)));
       const q = splash.xy.add(scatter).add(this.region.xy).fract().sub(.5);

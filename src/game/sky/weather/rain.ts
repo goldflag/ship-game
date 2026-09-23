@@ -53,8 +53,7 @@ const SKY_ELEVATION = .15;
 export interface RainLighting {
   /** Sky radiance along a world direction (the atmosphere's dome, sun and moon discs excluded). */
   sky: (direction: Node<'vec3'>) => Node<'vec3'>;
-  /** Diffuse irradiance from above and from below at the camera's altitude (the atmosphere's `ambient`). */
-  above: Node<'vec3'>;
+  /** Diffuse irradiance from below at the camera's altitude: the sea's bounce (the atmosphere's `ambient`). */
   below: Node<'vec3'>;
   /** Toward the active celestial light, and its colour × intensity at the sea. */
   lightDirection: Node<'vec3'>;
@@ -169,7 +168,8 @@ export class RainField {
     }
     this.lastPosition.copy(position); this.hasPosition = true;
     this.cameraVelocity.value.copy(this.velocity);
-    // Zoomed optics look past the near drops (they are out of focus): every box moves out along the view.
+    // Zoomed optics look past the near drops (they are out of focus): every box moves out along the view, by the
+    // magnification over the game's normal 52° field.
     const magnification = Math.max(1, camera.projectionMatrix.elements[5] * Math.tan(26 * Math.PI / 180));
     this.forward.set(0, 0, -1).transformDirection(camera.matrixWorld);
     const wind = this.wind.value;
@@ -248,7 +248,7 @@ export class RainField {
       // A flat-topped line with antialiased edges and soft ends; its edges catch the sky.
       const offset = across.abs();
       const profile = float(1).sub(smoothstep(half.sub(MARGIN), half.add(MARGIN), offset));
-      const ends = smoothstep(half.negate(), half.mul(.5), along).mul(smoothstep(length.add(half), length.sub(half.mul(.5)), along));
+      const ends = smoothstep(half.negate(), half.mul(.5), along).mul(float(1).sub(smoothstep(length.sub(half.mul(.5)), length.add(half), along)));
       const edgeLight = offset.div(half.max(.5)).min(1);
       const radiance = mix(core, rim, edgeLight.mul(edgeLight)).add(glint);
       return vec4(radiance, alpha.mul(profile).mul(ends));
