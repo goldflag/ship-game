@@ -11,10 +11,7 @@ fn serve() {
     // One compiler per ship; its cache resets whenever the ship or catalog changes.
     let mut compilers: Vec<(String, naval_sim::construction::ConstructionCompiler)> = vec![];
     let text = |request: &serde_json::Value, key: &str| {
-        request
-            .get(key)
-            .and_then(|v| v.as_str())
-            .map(str::to_owned)
+        request.get(key).and_then(|v| v.as_str()).map(str::to_owned)
     };
     let stdout = std::io::stdout();
     for line in std::io::stdin().lock().lines() {
@@ -51,7 +48,9 @@ fn serve() {
         })();
         let mut out = stdout.lock();
         let written = match answer {
-            Ok((reused, json)) => writeln!(out, "{{\"ok\":true,\"reused\":{reused},\"result\":{json}}}"),
+            Ok((reused, json)) => {
+                writeln!(out, "{{\"ok\":true,\"reused\":{reused},\"result\":{json}}}")
+            }
             Err(error) => writeln!(
                 out,
                 "{}",

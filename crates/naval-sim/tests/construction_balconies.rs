@@ -197,12 +197,17 @@ fn a_platform_still_carries_the_piece_above_it() {
     let result = construction::compile(&source, &catalog);
     assert!(result.definition.is_some(), "{:?}", result.diagnostics);
     // Without the platform the second box is detached.
-    source.construction.primitives.retain(|p| p.kind != "balcony");
+    source
+        .construction
+        .primitives
+        .retain(|p| p.kind != "balcony");
     let result = construction::compile(&source, &catalog);
-    assert!(result
-        .diagnostics
-        .iter()
-        .any(|d| d.code == "attachment" && d.source_id.as_deref() == Some("hull-b")));
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .any(|d| d.code == "attachment" && d.source_id.as_deref() == Some("hull-b"))
+    );
 }
 
 #[test]

@@ -89,7 +89,8 @@ fn merged(
 ) -> Vec<ConstructionEquipmentPartFittingItem> {
     boxes.sort_by(|a, b| a.center[axis].total_cmp(&b.center[axis]));
     let volume = |s: Vec3| s[0] * s[1] * s[2];
-    let union = |a: &ConstructionEquipmentPartFittingItem, b: &ConstructionEquipmentPartFittingItem| {
+    let union = |a: &ConstructionEquipmentPartFittingItem,
+                 b: &ConstructionEquipmentPartFittingItem| {
         let lo: Vec3 = std::array::from_fn(|k| {
             (a.center[k] - a.size[k] / 2.).min(b.center[k] - b.size[k] / 2.)
         });
@@ -790,12 +791,22 @@ mod tests {
         assert!((load.mass_kg - 3. * unit.mass_kg.unwrap()).abs() < 1e-6);
         // The centre of gravity scales about the datum: 1.5 times as high above the deck.
         let expected = 2. + 1.5 * unit.center_of_gravity[1];
-        assert!((load.center[1] - expected).abs() < 1e-9, "{} vs {expected}", load.center[1]);
+        assert!(
+            (load.center[1] - expected).abs() < 1e-9,
+            "{} vs {expected}",
+            load.center[1]
+        );
         for bad in [[0.01, 1., 1.], [1., 25., 1.], [f64::NAN, 1., 1.]] {
             scaled.scale = Some(bad);
             source.construction.equipment = vec![scaled.clone()];
             let result = compile(&source, &catalog);
-            assert!(result.diagnostics.iter().any(|d| d.code == "equipment-scale"), "{bad:?}");
+            assert!(
+                result
+                    .diagnostics
+                    .iter()
+                    .any(|d| d.code == "equipment-scale"),
+                "{bad:?}"
+            );
         }
         let mut published = source.clone();
         let mut post = source.construction.equipment[0].clone();
@@ -813,10 +824,12 @@ mod tests {
             ..Default::default()
         });
         let result = compile(&published, &with_bitts);
-        assert!(result
-            .diagnostics
-            .iter()
-            .any(|d| d.code == "equipment-scale" && d.message.contains("custom fitting")));
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "equipment-scale" && d.message.contains("custom fitting"))
+        );
     }
 
     #[test]
@@ -834,7 +847,11 @@ mod tests {
             .find(|d| d.code == "equipment-attachment")
             .unwrap();
         assert_eq!(d.source_id.as_deref(), Some("bollard-1"));
-        assert!(d.message.contains("within 10 m of the hull"), "{}", d.message);
+        assert!(
+            d.message.contains("within 10 m of the hull"),
+            "{}",
+            d.message
+        );
     }
 
     #[test]
