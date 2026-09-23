@@ -50,7 +50,7 @@ function surfaceNormal(slope: Node<'vec2'>, wake: Node<'vec3'>): Node<'vec3'> {
 
 /** PMREM roughness for an unresolved slope variance σ²: the Beckmann width √(2σ²). Read as a GGX
  * roughness this blurs less than the matching lobe would, which keeps distant water as bright as the
- * horizon sky it mirrors (tuned against the Water Pro captures). */
+ * horizon sky it mirrors (tuned against captures of the renderer this ocean replaced). */
 function roughness(variance: Node<'float'>): Node<'float'> {
   return variance.mul(2).sqrt().clamp(0, 1);
 }

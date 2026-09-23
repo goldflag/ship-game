@@ -44,8 +44,7 @@ const MENISCUS_TINT = .85;
  * // update(): cameraNearSurface.value = nearPlaneMayBeSubmerged(camera, waveField.maxHeight + wakeBound);
  * postProcess(scenePass, color) { return underwater(scenePass, color); }
  * ```
- * Game.ts then puts `ocean.postProcess(this.scenePass, sceneColor)` where Water Pro's
- * `postProcessing.buildNode(scenePass, sceneColor)` was. */
+ * Game.ts puts `ocean.postProcess(this.scenePass, sceneColor)` at the head of its output chain. */
 export function createUnderwaterPass(input: UnderwaterInput): (scenePass: PassNode, color: Node<'vec4'>) => Node<'vec4'> {
   const { heightAt, colors, sun, cameraNearSurface } = input;
   const pigment = uniform(colors.waterColor).rgb, absorption = uniform(colors.absorptionColor).rgb, transmission = uniform(colors.transmissionColor).rgb;

@@ -1,15 +1,17 @@
 # Ocean
 
-The game's own ocean renderer. It replaces the vendored Water Pro 3.5.1 bundle with an
-implementation we own, limited to what the game uses. Sky Pro stays vendored; the ocean
-consumes its provider through `OceanSky` in `contracts.ts`.
+The game's own ocean renderer, limited to what the game uses. It replaced a vendored
+commercial ocean library, which is no longer in the tree. Sky Pro stays vendored; the ocean
+consumes its provider through `OceanSky` in `contracts.ts`. The game renders only through
+WebGPU (`src/game/webgpu.ts`); there is no WebGL path.
 
 ## Clean-room rule
 
-Water Pro's license forbids decompiling, deobfuscating or otherwise reverse engineering its
-compiled bundle. Nobody working on this folder opens, reads, greps, diffs or pattern-matches
-`vendor/threejs-water-pro/build/index.js` (or Sky Pro's `index.js`), including through tools
-or subagents. Build from the game's own code, this document, three.js (`node_modules/three`),
+The license of the ocean library this folder replaced forbids decompiling, deobfuscating or
+otherwise reverse engineering its compiled bundle, and that bundle remains in the repository's
+history. Nobody working on this folder opens, reads, greps, diffs or pattern-matches it in any
+past revision, or Sky Pro's vendored `index.js`, including through tools or subagents. Build
+from the game's own code, this document, three.js (`node_modules/three`),
 published literature and black-box observation of the running game (screenshots, frame times,
 values read through the public API the game already calls). The repository is public: code
 here must be original work. Do not copy preset constants out of the vendor package; tune our
@@ -102,7 +104,7 @@ untouched, reset clears it. Tier resolutions: Low off, Medium 256², High 512²,
 The game adds its own trail and torpedo foam through `ocean.setWakeSampler`.
 
 `wake/` solves ∂²h/∂t² + γ∂h/∂t = −g√(−∇²)(h + head) in fragment passes on float targets, one
-path for WebGPU and WebGL2. A single truncated iWave kernel of radius P under-reads |k| for waves
+path on WebGPU. A single truncated iWave kernel of radius P under-reads |k| for waves
 longer than about P cells, so on a 1.5 m grid a ship's 150 m waves would turn slow and the Kelvin
 wedge would change with the tier; `kernel.ts` instead fits radius-3 kernels on a binomial
 reduce/collapse pyramid whose coarsest level is 32² on every tier, within 3% of deep-water |k| from
@@ -142,9 +144,9 @@ coverage, the wake's dispersion pyramid (including aliasing on a real grid) and 
 `bun scripts/browser/ocean-waves.ts` runs `/scripts/diagnostics/ocean-waves.html` headed: it checks
 the wave field alone on WebGPU (GPU transform against a CPU inverse DFT, Hm0, mipmaps, `heightAt`,
 foam persistence and coverage, update timings per tier) and writes to `.build/ocean-waves/`.
-`bun scripts/browser/ocean-wake.ts [--resolution 256|512|1024] [--webgl] [--measure]` runs
+`bun scripts/browser/ocean-wake.ts [--resolution 256|512|1024] [--measure]` runs
 `/scripts/diagnostics/ocean-wake.html` headed: a Bismarck-sized hull sails, turns, stops, resets and
 teleports, every check reads the public sampler back, and the captures, results and step cost land
 in `.build/ocean-wake/`. `/scripts/diagnostics/ocean-review.html` renders fixed scenes of the real game
-for side-by-side review; `.build/ocean-review/waterpro/` holds the Water Pro captures they are
-compared with.
+for side-by-side review (`bun scripts/browser/ocean-review.ts --tag <name>` saves them to
+`.build/ocean-review/<name>/`); keep a baseline tag to compare a change against.
