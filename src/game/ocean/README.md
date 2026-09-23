@@ -53,8 +53,8 @@ color)` adds the underwater view to the game's output chain.
 
 ## Features
 
-Everything below is in use today and must survive the replacement. Items marked *dropped* were
-disabled or unused and are not rebuilt.
+Everything below is what the game uses. Items marked *dropped* were disabled or unused in the
+replaced library and were not rebuilt.
 
 **Waves.** JONSWAP spectrum with peak wavelength, wind speed, γ, wind direction and directional
 spreading; significant height is exact (normalise the realised spectrum so 4σ equals
