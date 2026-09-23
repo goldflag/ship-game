@@ -131,18 +131,32 @@ their own. Screen-space shafts (Mitchell 2007) from the sun, or the moon at nigh
 gaps and past silhouettes, at reduced resolution.
 
 **Clouds** (`clouds/`). A shell over the curved planet between the scene's base altitude and
-base + thickness. GPU-generated noise: a tiling Perlin–Worley base volume and a Worley detail
-volume, a 2D weather map (coverage, cloud type, precipitation) drifting with the wind and
-remapped by `coverage` with the horizon lift. Density erodes the base shape at the edges; cloud
-types run from flat stratus to towering cumulonimbus. Ray march at reduced resolution with
-blue-noise jitter and an interleaved pixel pattern, empty-space skipping and early exit; light
-march toward the sun (and moon) with Beer–powder, a dual-lobe phase function with a silver lining,
-multiple-scattering octaves, and sky-coloured ambient from above with sea bounce from below;
-lightning lights the interior from `SkyUniforms.lightningPosition`. Temporal reconstruction
-reprojects by the clouds' mean depth. The composite upsamples to full resolution. Cirrus is a
-2D layer high above, drawn in the dome. The cloud shadow map (top-down, around the camera) is the
-sun transmittance through the shell, sampled by `cloudShadow` for ships, islands, the sea and
-smoke. Under rain cells the march continues below the base through grey rain shafts.
+base + thickness. Noise: a tiling Perlin–Worley base volume (128³) and a Worley detail volume
+(32³), both filled by compute at startup, and a CPU-built weather map (36 km, drifting with the wind)
+of rank-equalised coverage and storm-cell potentials, type variation, and the clear-air distance for
+the scene's coverage. `model.ts` holds the renderer-free formulas (cover, cloud type from stratus to
+cumulonimbus, height profiles), which the shaders compile and the tests check. Each frame the clouds
+are one compute submission: a ray in every interleave block of a reduced-resolution buffer (IGN
+jitter, clear air crossed in leaps the weather map's distances allow, strides and a step back at
+cloud edges, early exit), the temporal reconstruction (every pixel reprojects its history by the
+nearest rays' depth and the wind's drift, then blends in this frame's four nearest rays weighted by
+distance: temporal upsampling, no block pattern), and a slice of the shadow map. A tier may update
+only every few frames (`cloudUpdateInterval`, 1 on every tier today): the composite turns the last
+update to the current view in between. After a cut every pixel is marched for two frames. Light: unrolled samples toward the sun (the moon at night)
+with the nearest reading the detail, two far samples reading only the weather cover, multiple-scattering
+octaves over a dual-lobe phase (silver linings), Beer–powder, and the atmosphere's ambient (sky above,
+sea below, darkened toward bases by `baseShadow`); aerial perspective once per ray at the
+transmittance-weighted mean depth; past the farthest cloud marched, a horizon bank in proportion to the
+cover. The composite (order −29) sits at the far plane under the layer, where the depth test culls
+the sea and ships before shading, and tests each pixel at the clouds' own depth from inside or above
+the layer and in rain; it adds lightning's glow from `SkyUniforms.lightningPosition` (irradiance at
+1 km, softened by the cloud around the channel). Cirrus is a 2D layer at 9 km drawn in the dome,
+lit from a 64² table of its light along each direction that the clouds' submission fills every frame
+(so the dome reads no atmosphere tables for it); Low draws none. The cloud shadow map (40 km around the camera, laid out in the clouds' drifting frame so it follows the
+wind exactly) is the sun's transmittance through the shell, read through a cubic B-spline by
+`cloudShadow` for ships, islands and the sea. Under storm cells, while the scene rains, the march
+first crosses the air below the base through slanted grey rain shafts. `look` and `erosion`
+(uniforms in `march.ts` and `field.ts`) grade the lighting and shapes live.
 
 **Weather** (`weather/`). Near-camera rain: instanced streaks in four nested boxes that wrap around
 the camera (few, large near drops and many thin far ones), slanted by the wind, streaked by the
@@ -170,12 +184,12 @@ stars or clouds.
 
 `quality.ts` owns the numbers; Graphics → Clouds picks the tier live.
 
-| Tier | Cloud buffer | Marched per frame | Steps / light | Shadow map | Bake | Shafts | Rain drops |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Low | ¼ res | 1 of 4 | 48 / 4 | 128² | 256 × 128, 12 steps | 16 | 3,000 |
-| Medium | ½ res | 1 of 4 | 64 / 5 | 256² | 384 × 192, 16 steps | 24 | 8,000 |
-| High | ½ res | 1 of 4 | 96 / 6 | 512² | 512 × 256, 24 steps | 32 | 12,000 |
-| Ultra | ½ res | 1 of 4 | 128 / 6 | 512² | 768 × 384, 32 steps | 48 | 20,000 |
+| Tier | Cloud buffer | Marched per update | Updated | Steps / light | Shadow map | Cirrus | Bake | Shafts | Rain drops |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Low | ⅓ res | 1 of 16 | every frame | 40 / 3 | 512² | none | 256 × 128, 12 steps | 16 | 3,000 |
+| Medium | ½ res | 1 of 16 | every frame | 64 / 4 | 1024² | yes | 384 × 192, 16 steps | 24 | 8,000 |
+| High | ½ res | 1 of 4 | every frame | 80 / 4 | 1024² | yes | 512 × 256, 24 steps | 32 | 12,000 |
+| Ultra | ½ res | 1 of 4 | every frame | 128 / 5 | 1024² | yes | 768 × 384, 32 steps | 48 | 20,000 |
 
 ## Budget
 
