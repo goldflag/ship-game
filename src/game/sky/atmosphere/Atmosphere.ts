@@ -1,5 +1,5 @@
 import { Color, MathUtils, Vector2, Vector3, type Node } from 'three/webgpu';
-import { Fn, If, dot, exp, float, fract, inverseSqrt, luminance, max, min, mix, screenCoordinate, select, smoothstep, sqrt, texture, uniform, vec2, vec3 } from 'three/tsl';
+import { Fn, If, dot, exp, float, luminance, max, min, mix, select, smoothstep, sqrt, texture, uniform, vec2, vec3 } from 'three/tsl';
 import type { AtmospherePart, SkyFrame, SkyScene, SkyUniforms } from '../contracts';
 import { AMBIENT_SIZE, AMBIENT_TOP, AtmosphereTables, SEA_HEIGHT, SECTIONS, SKY_VIEW_SCALE, atlasUv, aureolePhase, direct, distanceToGround,
   lightTransmittance, opticalDepth, skyViewLatitude, skyViewLongitude, unitToTexel, type AirUniforms, type Float, type Horizon, type Vec3 } from './luts';
@@ -12,9 +12,6 @@ const REBUILD_SHARE = .02, REBUILD_MINIMUM = .005;
 const HIGHEST_CAMERA = 90;
 /** Width of the horizon edge (as a zenith cosine) over which bodies beyond the air sink out of sight. */
 const HORIZON_EDGE = .0047;
-/** Dome dither: ±half an 8-bit level of a gamma-2.2 display is a relative ±(1.1/255)·radiance^(−1/2.2); the inverse
- * square root stands in for that power. */
-const DITHER = 2.2 / 255;
 /** The sun lights the sky until it is this far below the horizon (degrees), past the twilight lift's last pair;
  * the moon while above this elevation and the sun below the second: elsewhere each is under a thousandth of
  * the sky and the dome skips its tables. */
@@ -101,11 +98,10 @@ export class Atmosphere implements AtmospherePart {
 
   setQuality(): void {}
 
+  /** Any stage may call it: rain lights its drops from it in the vertex stage, so it carries no screen-space
+   * dither (the dome adds that, `dome.ts`). */
   sky(direction: Vec3, fromSea = false): Vec3 {
-    // Half a display level of static noise: the night's dark, smooth gradients band in 8 bits without it.
-    const radiance = this.radiance(direction, fromSea, true), level = luminance(radiance).max(1e-6);
-    const noise = fract(fract(screenCoordinate.x.mul(.06711056).add(screenCoordinate.y.mul(.00583715))).mul(52.9829189)).sub(.5);
-    return radiance.mul(noise.mul(inverseSqrt(level).mul(DITHER).min(.16)).add(1));
+    return this.radiance(direction, fromSea, true);
   }
 
   transmittanceToSpace(direction: Vec3, fromSea = false): Vec3 {

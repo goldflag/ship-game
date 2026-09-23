@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, Mesh, MeshBasicNodeMaterial, NoBlending, type Node } from 'three/webgpu';
-import { cameraProjectionMatrixInverse, cameraWorldMatrix, float, normalize, positionGeometry, varying, vec4 } from 'three/tsl';
+import { cameraProjectionMatrixInverse, cameraWorldMatrix, float, fract, inverseSqrt, luminance, normalize, positionGeometry, screenCoordinate, varying, vec4 } from 'three/tsl';
 
 /** Transparent queue positions, after the sea (−30, which writes depth) and before smoke and spray (≥ 0).
  * The dome draws only where nothing has: the sky left between the opaque scene and the sea, never the
@@ -22,6 +22,18 @@ export function viewDirection(): Node<'vec3'> {
   return normalize(varying(cameraWorldMatrix.mul(vec4(point.xyz.div(point.w), 0)).xyz, 'vSkyDirection'));
 }
 
+/** Dither of ±half an 8-bit level of a gamma-2.2 display: a relative ±(1.1/255)·radiance^(−1/2.2), the inverse
+ * square root standing in for that power. */
+const DITHER = 2.2 / 255;
+
+/** Half a display level of static noise over radiance: the night's dark, smooth gradients band in 8 bits
+ * without it. Fragment stage only (it reads the pixel's screen position). */
+export function dither(radiance: Node<'vec3'>): Node<'vec3'> {
+  const level = luminance(radiance).max(1e-6);
+  const noise = fract(fract(screenCoordinate.x.mul(.06711056).add(screenCoordinate.y.mul(.00583715))).mul(52.9829189)).sub(.5);
+  return radiance.mul(noise.mul(inverseSqrt(level).mul(DITHER).min(.16)).add(1));
+}
+
 /** Clip position of a full-screen triangle corner at a fixed NDC depth. */
 export function screenCorner(depth: Node<'float'>): Node<'vec4'> {
   return vec4(positionGeometry.xy, depth, 1);
@@ -36,7 +48,7 @@ export function createDome(color: (direction: Node<'vec3'>) => Node<'vec3'>, rev
   material.fog = false;
   material.toneMapped = false;
   material.vertexNode = screenCorner(float(reversedDepth ? 0 : 1));
-  material.colorNode = vec4(color(viewDirection()), 1);
+  material.colorNode = vec4(dither(color(viewDirection())), 1);
   const mesh = new Mesh(fullScreenTriangle(), material);
   mesh.name = 'Sky dome';
   mesh.frustumCulled = false;
