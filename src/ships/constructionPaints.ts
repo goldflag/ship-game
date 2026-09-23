@@ -43,6 +43,10 @@ export function roofShade(color: string): string {
 /** Colour of horizontal steel that wears the ship paint: the roof paint, else the ship paint's shade. */
 export const constructionRoofColor = (source: Painted): string =>
   source.construction.roofPaint ? constructionPaintColor(source.construction.roofPaint) : roofShade(constructionPaintColor(constructionShipPaint(source)));
+/** Colour of the authored roofs of a fitting coated `paint`: the ship's roof colour under the ship paint,
+ * else that paint's own shade. An uncoated fitting keeps its authored roofs. */
+export const constructionFittingRoofColor = (source: Painted, paint: string | undefined): string | undefined =>
+  paint === undefined ? undefined : paint === constructionShipPaint(source) ? constructionRoofColor(source) : roofShade(constructionPaintColor(paint));
 /** Weathering presets. `amount` drives every wear layer in the ship shader (0 draws none). */
 export const CONSTRUCTION_WEAR = [
   { id: 'fresh', name: 'Fresh from the yard', amount: .1 },

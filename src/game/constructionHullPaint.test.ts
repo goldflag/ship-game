@@ -3,8 +3,9 @@ import * as THREE from 'three/webgpu';
 import init, { compile_construction } from '../generated/naval-wasm/naval_wasm';
 import catalog from '../../public/models/components/catalog.json';
 import { createStarterSource } from '../ships/constructionStarter';
-import { createConstructionModel, disposeConstructionModel } from './constructionModel';
-import type { ConstructionCatalog, ConstructionResult } from '../ships/blueprint';
+import { createConstructionHull, createConstructionModel, disposeConstructionModel } from './constructionModel';
+import { constructionPaintColor, roofShade } from '../ships/constructionPaints';
+import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../ships/blueprint';
 
 beforeAll(async () => { await init({ module_or_path: await Bun.file(new URL('../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() }); });
 
@@ -79,4 +80,26 @@ test('native source retains multiple coatings and the game model clips every ban
     });
     expect(seen).toEqual(new Set(Object.keys(ranges)));
   } finally { disposeConstructionModel(model); }
+});
+
+test('decks wearing the ship paint take the roof colour; sides, teak and other paints keep theirs', () => {
+  const face = (id: string, paint: string, normal: Vec3): ConstructionSurface => ({ id, primitiveId: 'hull', face: id, paint, normal, open: false, areaM2: 1,
+    thicknessMm: 10, material: 'steel', vertices: normal[1] ? [[0, 1, 0], [0, 1, 1], [1, 1, 0]] : [[0, 0, 0], [0, 1, 0], [0, 0, 1]] });
+  const surfaces = [face('deck', 'light-gray', [0, 1, 0]), face('side', 'light-gray', [1, 0, 0]), face('teak', 'teak-natural', [0, 1, 0]), face('other', 'dark-gray', [0, 1, 0])];
+  const colors = (appearance?: Pick<ConstructionSource['construction'], 'paint' | 'roofPaint'>) => {
+    const data = appearance && { version: 2 as const, catalogRevision: 'test', defaultThicknessMm: 10, primitives: [], surfaces: [], equipment: [], boundaries: [], loads: [], ...appearance };
+    const hull = createConstructionHull(surfaces, [], undefined, data), found: Record<string, string> = {};
+    hull.traverse(node => { if (node instanceof THREE.Mesh) found[node.name] = '#' + (node.material as THREE.MeshStandardMaterial).color.getHexString(); });
+    disposeConstructionModel(hull);
+    return found;
+  };
+  const shaded = roofShade(constructionPaintColor('light-gray'));
+  expect(shaded).not.toBe(constructionPaintColor('light-gray'));
+  expect(colors({ paint: 'light-gray' })).toEqual({
+    'hull.light-gray:true': shaded, 'hull.light-gray:false': '#b5bfbc', 'hull.teak-natural:true': '#97856a', 'hull.dark-gray:true': '#43565f',
+  });
+  expect(colors({ paint: 'light-gray', roofPaint: 'deck-gray' })['hull.light-gray:true']).toBe('#64716f');
+  // Without a ship paint the ship paint is naval gray, so these light gray decks are an accent.
+  expect(colors()['hull.light-gray:true']).toBe('#b5bfbc');
+  expect(colors({ paint: 'dark-gray' })['hull.dark-gray:true']).toBe(roofShade('#43565f'));
 });

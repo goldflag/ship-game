@@ -12,6 +12,8 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   Player-built designs may explicitly choose a whole-ship Matte, Satin, Semi-gloss
   or Gloss coating in the Paint layer. This optional `construction.finish` setting
   changes painted-surface roughness without changing colors or historical defaults.
+  Their horizontal steel that wears the ship paint (upward hull faces, fitting roofs,
+  platforms and turret tops) is drawn a darker shade of it, or `construction.roofPaint`.
 - **Deliberate colors:** reuse a named paint when the intended paint is the same.
   Nationality alone does not force identical gray. Identify reference-specific
   interpretations explicitly; do not label estimated RGB values as measured
