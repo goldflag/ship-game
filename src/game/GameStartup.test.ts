@@ -21,7 +21,7 @@ function startup() {
   let finishGpu!: () => void, reading = false;
   const gpu = new Promise<void>(resolve => { finishGpu = resolve; });
   const game = Object.assign(Object.create(Game.prototype), {
-    scene, disposed: false, finalFrame: { renderTarget: target },
+    scene, disposed: false, display: { frame: { renderTarget: target } },
     playerView: { impactMarks: { createWarmupMesh: () => scar } },
     callbacks: { progress(_label: string, fraction: number) { progress.push(fraction); } },
     async frame(_time: number, warmingUp: boolean) {

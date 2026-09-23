@@ -4,7 +4,7 @@ import { vendorTextures } from './vendor-textures';
 
 test('vendor images become separate, byte-identical assets with relative runtime URLs', async () => {
   const bytes = Buffer.from([0, 1, 2, 253, 254, 255]);
-  const input = '/project/vendor/threejs-water-pro/build/index.js';
+  const input = '/project/vendor/threejs-sky-pro/build/index.js';
   const bundle = await rollup({
     input,
     plugins: [{
@@ -25,10 +25,10 @@ test('vendor images become separate, byte-identical assets with relative runtime
   } finally { await bundle.close(); }
 });
 
-test('unrelated application image literals are untouched', async () => {
+for (const input of ['/project/src/example.js', '/project/vendor/other-library/build/index.js']) test(`unrelated image literals are untouched (${input})`, async () => {
   const source = 'export default "data:image/png;base64,AAEC";';
   const bundle = await rollup({
-    input: '/project/src/example.js',
+    input,
     plugins: [{ name: 'fixture', resolveId: id => id, load: () => source }, vendorTextures() as Plugin],
   });
   try {

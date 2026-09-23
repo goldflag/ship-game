@@ -72,3 +72,30 @@ test('water shadows migrate old presets and stay independently configurable with
   expect(matchingPreset({ ...DEFAULT_GRAPHICS, waterShadows: 'medium' })).toBeNull();
   expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, waterShadows: 'invalid' }).waterShadows).toBe('high');
 });
+
+test('ambient occlusion migrates saves to their preset and falls back per row', () => {
+  expect(PRESET_ORDER.map(name => GRAPHICS_PRESETS[name].ambientOcclusion)).toEqual(['off', 'off', 'low', 'high']);
+  for (const name of PRESET_ORDER) {
+    const { ambientOcclusion: _ambientOcclusion, ...oldSave } = GRAPHICS_PRESETS[name];
+    expect(sanitizeGraphicsSettings(oldSave)).toEqual(GRAPHICS_PRESETS[name]);
+  }
+  // An old custom save follows the preset it sits closest to.
+  const { ambientOcclusion: _ambientOcclusion, ...customLow } = { ...GRAPHICS_PRESETS.low, renderScale: 100 };
+  expect(sanitizeGraphicsSettings(customLow).ambientOcclusion).toBe('off');
+  for (const level of ['off', 'low', 'high'] as const) expect(sanitizeGraphicsSettings({ ...GRAPHICS_PRESETS.low, ambientOcclusion: level }).ambientOcclusion).toBe(level);
+  expect(sanitizeGraphicsSettings({ ...GRAPHICS_PRESETS.low, ambientOcclusion: 'ultra' }).ambientOcclusion).toBe(DEFAULT_GRAPHICS.ambientOcclusion);
+  expect(matchingPreset({ ...DEFAULT_GRAPHICS, ambientOcclusion: 'off' })).toBeNull();
+});
+
+test('saves from before bloom take it from their nearest preset; bloom then stays independently configurable', () => {
+  expect(GRAPHICS_PRESETS.low.bloom).toBe('off');
+  for (const name of PRESET_ORDER) {
+    const { bloom, ...oldSave } = GRAPHICS_PRESETS[name];
+    expect(sanitizeGraphicsSettings(oldSave)).toEqual(GRAPHICS_PRESETS[name]);
+    expect(sanitizeGraphicsSettings({ ...oldSave, bloom: bloom === 'on' ? 'off' : 'on' }).bloom).not.toBe(bloom);
+  }
+  const { bloom: _, ...customLow } = { ...GRAPHICS_PRESETS.low, renderScale: 100 };
+  expect(sanitizeGraphicsSettings(customLow).bloom).toBe('off');
+  expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, bloom: 'bright' }).bloom).toBe('on');
+  expect(matchingPreset({ ...GRAPHICS_PRESETS.medium, bloom: 'off' })).toBeNull();
+});

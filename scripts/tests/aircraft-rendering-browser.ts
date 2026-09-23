@@ -5,8 +5,8 @@ import { shipPreset } from '../../src/ships/presets';
 
 /** Run through Vite in a browser. Count airframe pixels separately from payloads
  * after the GPU has already rendered a smaller flight. CPU counts miss this bug. */
-export async function checkAircraftRendering(forceWebGL = false, verify = true) {
-  const renderer = new THREE.WebGPURenderer({ forceWebGL });
+export async function checkAircraftRendering(verify = true) {
+  const renderer = new THREE.WebGPURenderer();
   await renderer.init();
   const size = 768, cells = 3, cellSize = size / cells;
   renderer.setSize(size, size); renderer.setClearColor(0, 0);
@@ -48,8 +48,9 @@ export async function checkAircraftRendering(forceWebGL = false, verify = true) 
       for (const count of [0, 1, 6, 2, 0, 9]) {
         planes.forEach((plane, i) => { plane.phase = i < count ? 'outbound' : 'lost'; });
         view.update(sim, camera, true);
-        const models = view.root.children.filter(c => c.name.startsWith('Aircraft model ') && c.visible);
-        if (models.some(m => m.name !== `Aircraft model ${template.modelId}/${lod}`)) throw new Error('Fixture selected the wrong aircraft LOD');
+        // An airframe draws as instanced model batches plus its batched rigid parts.
+        const models = view.root.children.filter(c => /^Aircraft (model|parts) /.test(c.name) && c.visible);
+        if (models.some(m => !m.name.endsWith(` ${template.modelId}/${lod}`))) throw new Error('Fixture selected the wrong aircraft LOD');
         const contacts = view.root.getObjectByName('Distant aircraft silhouettes')!;
         const contactsVisible = contacts.visible;
         contacts.visible = false;
@@ -74,6 +75,6 @@ export async function checkAircraftRendering(forceWebGL = false, verify = true) 
           || frame.contacts !== view.diagnostics().contacts)) throw new Error(`Aircraft visibility failed: ${JSON.stringify(frames)}`);
       }
     }
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
+    return { frames };
   } finally { target.dispose(); await view.dispose(); renderer.dispose(); }
 }

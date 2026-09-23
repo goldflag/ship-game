@@ -1,8 +1,8 @@
 import { selectedWeapon } from '../ships/weaponGroups';
 import { torpedoSpeed } from '../ships/mobility';
-import { BufferGeometry, DoubleSide, Float32BufferAttribute, Group, LineBasicNodeMaterial, LineSegments, Mesh, MeshBasicNodeMaterial, type Node, type Object3D } from 'three/webgpu';
-import { attribute, cameraPosition, float, int, mix, modelWorldMatrix, positionLocal, vec3, vec4 } from 'three/tsl';
-import type { WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
+import { BufferGeometry, DoubleSide, Float32BufferAttribute, Group, LineBasicNodeMaterial, LineSegments, Mesh, MeshBasicNodeMaterial, type Object3D } from 'three/webgpu';
+import { attribute, cameraPosition, float, modelWorldMatrix, positionLocal, vec3, vec4 } from 'three/tsl';
+import type { OceanApi } from './ocean/contracts';
 import type { Vec3 } from '../ships/blueprint';
 import { localToWorld, radians, wrapAngle } from './geometry';
 import { tubeLocalPosition, tubeSolution } from './torpedoAim';
@@ -124,30 +124,13 @@ export class TorpedoPreview {
     }
     return shape;
   }
-  setWater(water: WaterSystem): void {
-    const sim = water.simulation;
+  setOcean(ocean: Pick<OceanApi, 'waveField'>): void {
     // The shapes are laid out about their launcher and turned with it, so the
     // swell is sampled where each vertex lands in the world.
     const world = modelWorldMatrix.mul(vec4(positionLocal, 1));
-    let displacement: Node<'vec3'> = vec3(0);
-    if (sim.getCapabilities().hasStorageBuffers) {
-      // The WebGPU public displacement helper wraps an existing storage node
-      // as an attribute. Sample the public buffers directly instead.
-      for (let i = 0; i < sim.getCascadeCount(); i++) {
-        const buffer = sim.getDisplacementBuffer(i)!;
-        const resolution = sim.getResolution(i), scale = sim.getScale(i);
-        const x = world.x.add(displacement.x).div(scale).add(.5).mul(resolution);
-        const z = world.z.add(displacement.z).div(scale).add(.5).mul(resolution);
-        const ix = x.floor().toInt().mod(int(resolution)).add(int(resolution)).mod(int(resolution));
-        const iz = z.floor().toInt().mod(int(resolution)).add(int(resolution)).mod(int(resolution));
-        const nx = ix.add(1).mod(int(resolution)), nz = iz.add(1).mod(int(resolution));
-        const at = (a: Node<'int'>, b: Node<'int'>) => buffer.element(b.mul(int(resolution)).add(a)).xyz;
-        displacement = displacement.add(mix(mix(at(ix, iz), at(nx, iz), x.fract()), mix(at(ix, nz), at(nx, nz), x.fract()), z.fract()));
-      }
-    } else displacement = sim.getDisplacementNodes().sampleDisplacement(world.x, world.z) as Node<'vec3'>;
     // Chop finer than the sampled swell would bite holes in a sheet laid on the
     // surface. Rising a little with distance clears it and costs a few pixels.
-    const height = displacement.y.add(world.xz.sub(cameraPosition.xz).length().mul(.004).min(12).add(float(.35)));
+    const height = ocean.waveField.heightAt(world.xz).add(world.xz.sub(cameraPosition.xz).length().mul(.004).min(12).add(float(.35)));
     for (const material of [...Object.values(this.fills), ...Object.values(this.lines)]) material.positionNode = vec3(positionLocal.x, height, positionLocal.z);
   }
   private place(group: Group, origin: Vec3, course: number, half: number, run: number): void {

@@ -61,7 +61,7 @@ Game.prototype.frame = async function (time, warmingUp) {
       windows: Array.from({length: Math.ceil(seconds/10)}, (_,i)=>({start:i*10,...stats(review.rows.filter(r=>r.time>=i*10000 && r.time<(i+1)*10000))})),
       tick: this.simulation.tick, startedAt: begun, elapsed: time-begun, roster, seed: this.simulation.seed,
       settings: { quality: this.settings.quality, resolution: this.settings.resolution },
-      framebuffer: [this.renderer.domElement.width,this.renderer.domElement.height], backend: this.water.backend,
+      framebuffer: [this.renderer.domElement.width,this.renderer.domElement.height],
       diagnostics:this.diagnostics(), phases:review.phases, passes:renderProfile?.results,
       fleetBatches:this.fleetDraws?.diagnostics(),
       activeShipViews:this.fleetViews.filter(v=>v.renderActive).length,
@@ -91,7 +91,7 @@ const g = review.game;
 if (params.has('profile')) await wait(() => performance.now() - begun >= Number(params.get('profileAfter') ?? 0) * 1000);
 if (params.has('profile')) renderProfile = profileRenderPasses(g);
 if (params.has('profile')) for (const [object,key,label] of [
-  [g.simulation,'advance','session'],[g,'readSightAim','sight'],[g.water,'update','water'],[g,'renderFrame','render'],
+  [g.simulation,'advance','session'],[g,'readSightAim','sight'],[g.ocean,'update','ocean'],[g,'renderFrame','render'],
   [g.effects,'update','effects'],[g.aircraftView,'update','aircraft'],[g.fleetDraws,'update','fleetDraws'],
   [g.effects.smoke.constructor.prototype,'publish','particlePublish'],
   [g.effects.smoke.constructor.prototype,'advance','particleAdvance'],

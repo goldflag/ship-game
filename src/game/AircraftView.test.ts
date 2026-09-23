@@ -113,14 +113,14 @@ test('distant flying aircraft retain a silhouette across LODs, while deck, lost 
   } finally { await view.dispose(); loader.mockRestore(); }
 });
 
-test.each([false, true])('large carrier fleets retain every visible aircraft without oversized GPU uniform bindings (storage=%s)', async storageMatrices => {
+test('large carrier fleets retain every visible aircraft without oversized GPU uniform bindings', async () => {
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
     const scene = new Group(); scene.add(new Mesh(new BoxGeometry(), new MeshBasicMaterial()));
     return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
   });
   const view = new AircraftView();
   try {
-    await view.load(undefined, storageMatrices);
+    await view.load();
     const sim = new CombatSimulation(shipPreset('enterprise-cv6'), { friendlyBots: [], enemies: [shipPreset('bismarck')] });
     const template = sim.aircraft[0];
     // Cross the former fleet-wide limit and allocate a fourth GPU batch.
@@ -185,7 +185,7 @@ test('bombs retain their release attitude, interpolate ballistics and never draw
   } finally { effects.dispose(); await view.dispose(); }
 });
 
-test.each([false, true])('fold joints retain full-size geometry and independent per-plane poses across every LOD (storage=%s)', async storageMatrices => {
+test('fold joints retain full-size geometry and independent per-plane poses across every LOD', async () => {
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
     const scene = new Group(), wing = new Group();
     wing.userData = { nodeId: 'wing.fold.port', foldAxis: [0, 0, -1], foldAngleDegrees: 90 };
@@ -194,7 +194,7 @@ test.each([false, true])('fold joints retain full-size geometry and independent 
   });
   const view = new AircraftView();
   try {
-    await view.load(undefined, storageMatrices);
+    await view.load();
     const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
     const planes = sim.player.airWing!.planes;
     for (const plane of sim.aircraft) plane.phase = 'lost';

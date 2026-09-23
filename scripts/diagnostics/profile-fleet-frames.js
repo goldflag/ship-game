@@ -20,11 +20,12 @@ export async function profileFleetFrames(game, { frames = 90, advanceTo = 3600 }
   wrap(g,'readSightAim','game.readSightAim');
   wrap(g.fleetViews[0].impactMarks.constructor.prototype,'update','marks.update');
   wrap(g.fleetViews[0].root.constructor.prototype,'updateMatrixWorld','ships.matrices');
-  for (const key of ['_step','_renderPasses','update']) wrap(g.water,key,`water.${key}`);
-  wrap(g.water.oceanSim,'update','waves.update');
-  wrap(g.water.buoyancy,'update','buoyancy.update');
-  for(const [i,s] of g.water._subsystems.entries()) for(const key of ['step','renderPass']) wrap(s,key,`subsystem.${i}.${s.constructor.name}.${key}`);
-  for(const key of ['renderCapturePass','renderMaskPass','renderWaterDepthPass','renderSSRGBufferPass','renderSSRPass']) wrap(g.water.rendering,key,`capture.${key}`);
+  // The ocean's parts behind its facade: the surface itself draws inside the scene pass.
+  wrap(g.ocean,'update','ocean.update');
+  wrap(g.ocean.waveField,'update','ocean.waves.update');
+  wrap(g.ocean.wake,'step','ocean.wake.step');
+  wrap(g.ocean.heights,'request','ocean.heights.request');
+  wrap(g.shipWake,'update','shipWake.update');
   for(const key of ['render','compute','computeAsync']) wrap(r,key,`renderer.${key}`);
   wrap(g.scene,'updateMatrixWorld','scene.matrices');
   for(const key of ['update','capturePreviousPose']) wrap(g.fleetViews[0].constructor.prototype,key,`ships.${key}`);

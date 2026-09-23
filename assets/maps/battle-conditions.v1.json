@@ -3,23 +3,22 @@
   "seaCalibration": {
     "version": 1,
     "heightReference": "https://www.weather.gov/pqr/beaufort",
-    "renderer": "Water Pro 3.5.1; seed 1; gamma 2.6; spectral sharpness 0.8; High",
     "samples": [
-      {"windSpeed": 0, "significantHeightM": 0, "peakWavelengthM": 6.4, "fftAmplitude": {"north-atlantic": 0, "pacific-islands": 0, "arctic-passage": 0, "indian-volcanic-coast": 0}, "crestFoam": 0, "windwardFoam": 0},
-      {"windSpeed": 1, "significantHeightM": 0.05, "peakWavelengthM": 6.4, "fftAmplitude": {"north-atlantic": 0.29148864, "pacific-islands": 0.22002284, "arctic-passage": 0.20300851, "indian-volcanic-coast": 0.26660523}, "crestFoam": 0, "windwardFoam": 0},
-      {"windSpeed": 2, "significantHeightM": 0.1, "peakWavelengthM": 7.111111, "fftAmplitude": {"north-atlantic": 0.42636255, "pacific-islands": 0.32271877, "arctic-passage": 0.29736253, "indian-volcanic-coast": 0.39217551}, "crestFoam": 0, "windwardFoam": 0},
-      {"windSpeed": 3, "significantHeightM": 0.15, "peakWavelengthM": 10.666667, "fftAmplitude": {"north-atlantic": 0.40911611, "pacific-islands": 0.30090704, "arctic-passage": 0.28945637, "indian-volcanic-coast": 0.39263006}, "crestFoam": 0, "windwardFoam": 0},
-      {"windSpeed": 4, "significantHeightM": 0.4, "peakWavelengthM": 14.222222, "fftAmplitude": {"north-atlantic": 0.81075512, "pacific-islands": 0.6380829, "arctic-passage": 0.58172591, "indian-volcanic-coast": 0.785452}, "crestFoam": 1.167082, "windwardFoam": 0.742688},
-      {"windSpeed": 5, "significantHeightM": 0.6, "peakWavelengthM": 17.777778, "fftAmplitude": {"north-atlantic": 0.93131302, "pacific-islands": 0.74900941, "arctic-passage": 0.69141925, "indian-volcanic-coast": 0.90209195}, "crestFoam": 0.858154, "windwardFoam": 1.092196},
-      {"windSpeed": 6, "significantHeightM": 0.9, "peakWavelengthM": 21.333333, "fftAmplitude": {"north-atlantic": 1.11128202, "pacific-islands": 0.9024246, "arctic-passage": 0.83934197, "indian-volcanic-coast": 1.07312951}, "crestFoam": 0.822651, "windwardFoam": 1.196583},
-      {"windSpeed": 7, "significantHeightM": 1.2, "peakWavelengthM": 24.888889, "fftAmplitude": {"north-atlantic": 1.21015431, "pacific-islands": 0.99599095, "arctic-passage": 0.9267514, "indian-volcanic-coast": 1.17274109}, "crestFoam": 0.818926, "windwardFoam": 1.34006},
-      {"windSpeed": 9, "significantHeightM": 1.8, "peakWavelengthM": 32, "fftAmplitude": {"north-atlantic": 1.31107611, "pacific-islands": 1.07365788, "arctic-passage": 1.01263973, "indian-volcanic-coast": 1.27286961}, "crestFoam": 0.814133, "windwardFoam": 1.221199},
-      {"windSpeed": 12, "significantHeightM": 2.7, "peakWavelengthM": 42.666667, "fftAmplitude": {"north-atlantic": 1.41064147, "pacific-islands": 1.10985063, "arctic-passage": 1.04370709, "indian-volcanic-coast": 1.34355382}, "crestFoam": 0.891282, "windwardFoam": 1.01282},
-      {"windSpeed": 15, "significantHeightM": 4, "peakWavelengthM": 53.333333, "fftAmplitude": {"north-atlantic": 1.634888, "pacific-islands": 1.26563088, "arctic-passage": 1.17095463, "indian-volcanic-coast": 1.52815658}, "crestFoam": 0.956814, "windwardFoam": 0.543645},
-      {"windSpeed": 18, "significantHeightM": 5.5, "peakWavelengthM": 59.8528, "fftAmplitude": {"north-atlantic": 1.94311233, "pacific-islands": 1.48623689, "arctic-passage": 1.36359068, "indian-volcanic-coast": 1.79415519}, "crestFoam": 0.813789, "windwardFoam": 0.177554},
-      {"windSpeed": 21, "significantHeightM": 7, "peakWavelengthM": 60.151467, "fftAmplitude": {"north-atlantic": 2.38448052, "pacific-islands": 1.80660664, "arctic-passage": 1.65649717, "indian-volcanic-coast": 2.18286068}, "crestFoam": 0.528522, "windwardFoam": 0.117941},
-      {"windSpeed": 25, "significantHeightM": 8.8, "peakWavelengthM": 62.222222, "fftAmplitude": {"north-atlantic": 2.801379, "pacific-islands": 2.1098821, "arctic-passage": 1.92631635, "indian-volcanic-coast": 2.54693344}, "crestFoam": 0.408976, "windwardFoam": 0.098154},
-      {"windSpeed": 30, "significantHeightM": 11.3, "peakWavelengthM": 74.666667, "fftAmplitude": {"north-atlantic": 2.80003316, "pacific-islands": 2.20895935, "arctic-passage": 1.97040204, "indian-volcanic-coast": 2.62485206}, "crestFoam": 0.39145, "windwardFoam": 0.093948}
+      {"windSpeed": 0, "significantHeightM": 0, "peakWavelengthM": 6.4, "crestFoam": 0, "windwardFoam": 0},
+      {"windSpeed": 1, "significantHeightM": 0.05, "peakWavelengthM": 6.4, "crestFoam": 0, "windwardFoam": 0},
+      {"windSpeed": 2, "significantHeightM": 0.1, "peakWavelengthM": 7.111111, "crestFoam": 0, "windwardFoam": 0},
+      {"windSpeed": 3, "significantHeightM": 0.15, "peakWavelengthM": 10.666667, "crestFoam": 0, "windwardFoam": 0},
+      {"windSpeed": 4, "significantHeightM": 0.4, "peakWavelengthM": 14.222222, "crestFoam": 1.167082, "windwardFoam": 0.742688},
+      {"windSpeed": 5, "significantHeightM": 0.6, "peakWavelengthM": 17.777778, "crestFoam": 0.858154, "windwardFoam": 1.092196},
+      {"windSpeed": 6, "significantHeightM": 0.9, "peakWavelengthM": 21.333333, "crestFoam": 0.822651, "windwardFoam": 1.196583},
+      {"windSpeed": 7, "significantHeightM": 1.2, "peakWavelengthM": 24.888889, "crestFoam": 0.818926, "windwardFoam": 1.34006},
+      {"windSpeed": 9, "significantHeightM": 1.8, "peakWavelengthM": 32, "crestFoam": 0.814133, "windwardFoam": 1.221199},
+      {"windSpeed": 12, "significantHeightM": 2.7, "peakWavelengthM": 42.666667, "crestFoam": 0.891282, "windwardFoam": 1.01282},
+      {"windSpeed": 15, "significantHeightM": 4, "peakWavelengthM": 53.333333, "crestFoam": 0.956814, "windwardFoam": 0.543645},
+      {"windSpeed": 18, "significantHeightM": 5.5, "peakWavelengthM": 59.8528, "crestFoam": 0.813789, "windwardFoam": 0.177554},
+      {"windSpeed": 21, "significantHeightM": 7, "peakWavelengthM": 60.151467, "crestFoam": 0.528522, "windwardFoam": 0.117941},
+      {"windSpeed": 25, "significantHeightM": 8.8, "peakWavelengthM": 62.222222, "crestFoam": 0.408976, "windwardFoam": 0.098154},
+      {"windSpeed": 30, "significantHeightM": 11.3, "peakWavelengthM": 74.666667, "crestFoam": 0.39145, "windwardFoam": 0.093948}
     ]
   },
   "times": [

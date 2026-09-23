@@ -16,8 +16,6 @@ import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 // Real game renderer, model, water and post-processing, with a stationary target.
 // ?standard=1 preserves the old depth configuration for an A/B comparison.
 const params = new URLSearchParams(location.search);
-// Exercise Three.js's real WebGL fallback with ?webgl=1.
-if(params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter=async()=>null;
 const status = document.querySelector('#status');
 let ready;
 const loaded = new Promise(resolve => ready = resolve);
@@ -50,8 +48,8 @@ async function still() {
     game.renderer._nodes.nodeFrame.update();
     await game.frame(performance.now());
   }
-  // WebGL may discard the default framebuffer after an async frame finishes.
-  // Present the prepared post-process textures and capture synchronously.
+  // Present the prepared post-process textures and capture synchronously,
+  // before the browser presents (and may discard) the canvas texture.
   game.pipeline.render();
   return game.renderer.domElement.toDataURL('image/png');
 }

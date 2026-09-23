@@ -26,6 +26,6 @@ game.fleetViews.forEach(v=>v.snap());
 game.camera.position.set(340,240,520);game.camera.lookAt(180,80,0);game.camera.updateMatrixWorld();
 async function still(){for(let i=0;i<2;i++){game.renderer._nodes.nodeFrame.update();await game.frame(performance.now());}game.pipeline.render();return game.renderer.domElement.toDataURL('image/png');}
 window.airCombatReview={game,still,report:()=>({shots,ammoSpent:ammo-game.simulation.player.mounts.reduce((n,m)=>n+m.ammo,0),
-  maxMuzzleError:Math.max(...game.playerView.muzzleErrors()),rendered:game.aircraftView.diagnostics(),backend:game.diagnostics().backend})};
+  maxMuzzleError:Math.max(...game.playerView.muzzleErrors()),rendered:game.aircraftView.diagnostics()})};
 await still();status.textContent='AA review ready';window.reviewReady=true;
 </script></html>
