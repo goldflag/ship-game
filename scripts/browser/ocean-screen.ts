@@ -2,7 +2,8 @@
  * Renders the fixed scenes of `scripts/diagnostics/ocean-screen.html` in a headed Chromium and saves them to
  * `.build/ocean-screen/<tag>/`: above water the shaded frame, the frame without reflections and the reflection
  * confidence; under water the frame with and without the underwater pass. `results.json` records the backend,
- * reversed depth, changed/isolated reflection pixels, errors and, with --measure, frame times with each effect on and off. */
+ * reversed depth, changed/isolated reflection pixels, errors and, with --measure, frame times with each effect on and off;
+ * `water.wgsl|glsl` and `output.wgsl|glsl` hold the generated fragment code. */
 import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -68,6 +69,9 @@ try {
     }
     console.log(name, JSON.stringify(results[name]));
   }
+  const shaders = await page.evaluate(() => (window as any).oceanScreen.shaders());
+  const extension = info.backend === 'webgpu' ? 'wgsl' : 'glsl';
+  writeFileSync(resolve(out, `water.${extension}`), shaders.water); writeFileSync(resolve(out, `output.${extension}`), shaders.output);
   writeFileSync(resolve(out, 'results.json'), JSON.stringify({ ...info, steps: Number(values.steps), samples: values.samples, calm: values.calm, results, pageErrors }, null, 1));
   console.log(JSON.stringify({ backend: info.backend, reversedDepth: info.reversedDepth }));
   if (pageErrors.length) console.error(pageErrors.join('\n'));

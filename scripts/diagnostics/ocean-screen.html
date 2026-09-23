@@ -229,8 +229,10 @@ async function reflectionDifference(threshold = 6) {
  * up), waits for the GPU, and returns medians over batches of the time per frame and of the CPU time spent
  * submitting it; when submission is well below the frame time, the frame time is the GPU's. */
 async function measure(batches = 15, perBatch = 8) {
-  const frame = [], submit = [], device = renderer.backend.device;
-  const settle = () => device ? device.queue.onSubmittedWorkDone() : renderer.readRenderTargetPixelsAsync(scenePass.renderTarget, 0, 0, 1, 1);
+  const frame = [], submit = [], device = renderer.backend.device, gl = renderer.backend.gl, pixel = new Uint8Array(4);
+  // WebGL's asynchronous readback polls a fence (timing the polling) and Chrome's finish() returns early;
+  // a one-pixel synchronous read of the presented frame waits for the GPU.
+  const settle = async () => device ? device.queue.onSubmittedWorkDone() : gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
   for (let batch = -2; batch < batches; batch++) {
     await new Promise(requestAnimationFrame);
     const start = performance.now();
@@ -249,6 +251,15 @@ window.oceanScreen = {
   backend: renderer.backend.isWebGPUBackend ? 'webgpu' : 'webgl', reversedDepth: renderer.reversedDepthBuffer,
   scene(name) { show(scenes[name]); output.textContent = ''; return { name, nearSurface: cameraNearSurface.value, errors: [...errors] }; },
   capture, reflectionDifference, measure,
+  /** Generated fragment code of the water material and of the output chain (the underwater pass). */
+  async shaders() {
+    const quad = pipeline._quadMesh;
+    // The water compiles against the scene pass's own target (its multisampled depth copy), as it renders.
+    renderer.setRenderTarget(scenePass.renderTarget);
+    const water = (await renderer.debug.getShaderAsync(scene, camera, seaMesh)).fragmentShader;
+    renderer.setRenderTarget(null);
+    return { water, output: (await renderer.debug.getShaderAsync(quad, quad.camera, quad)).fragmentShader };
+  },
   view(mode) { debugView.value = mode; },
 };
 window.ready = true; output.textContent = '';

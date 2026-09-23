@@ -1,6 +1,7 @@
 import { Vector3, WebGPUCoordinateSystem, type Camera, type Node, type PassNode } from 'three/webgpu';
 import { Fn, If, exp, float, fwidth, max, min, mix, perspectiveDepthToViewZ, reference, screenSize, smoothstep, uniform, uv, vec2, vec3, vec4 } from 'three/tsl';
 import type { OceanSun, WaterColors } from '../contracts';
+import { screenRead } from './reflections';
 
 /** What the underwater view reads. Colours and sun are read live (by reference), so the game's
  * night scaling and its submerged absorption easing (`VisualEnvironment.update`) apply directly. */
@@ -72,7 +73,7 @@ export function createUnderwaterPass(input: UnderwaterInput): (scenePass: PassNo
           const texel = vec2(1).div(screenSize);
           const sceneDepth = scenePass.getTextureNode('depth');
           const farthest = [vec2(0, 0), vec2(1, 0), vec2(-1, 0), vec2(0, 1), vec2(0, -1)]
-            .map(offset => perspectiveDepthToViewZ(sceneDepth.sample(screen.add(offset.mul(texel))).r, near, far))
+            .map(offset => perspectiveDepthToViewZ(screenRead(sceneDepth, screen.add(offset.mul(texel))).r, near, far))
             .reduce((a, b) => min(a, b));
           const distance = farthest.div(viewRay.z).sub(toNear).max(0);
           const transmittance = exp(absorption.mul(distance).negate());

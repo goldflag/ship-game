@@ -41,6 +41,14 @@ const THICKNESS = .02;
 /** Screen-edge fade, as a share of the viewport. */
 const EDGE = .06;
 
+/** A screen-space read at `uv` (and `level`): never through the texture's UV transform, which three
+ * otherwise re-enables for reads from a node built without UVs, one matrix uniform per read. */
+export function screenRead(map: TextureNode, uv: Node<'vec2'>, level?: Node<'float'>): TextureNode {
+  const read = level ? map.sample(uv).level(level) : map.sample(uv);
+  read.updateMatrix = false;
+  return read;
+}
+
 /** Screen-space reflection of the opaque scene for one water fragment (McGuire & Mara, "Efficient
  * GPU Screen-Space Ray Tracing", JCGT 2014). The ray is clipped to the near plane and then to the
  * viewport before its step budget is spread along it, so every step lands on screen however long
@@ -88,10 +96,12 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
       const s1 = s0.add(delta.mul(exit)).toVar();
       const q0 = origin.mul(k0).toVar(), q1 = mix(q0, end.mul(kEnd), exit).toVar(), k1 = mix(k0, kEnd, exit).toVar();
       const farthest = cameraFar.mul(.999);
-      /** Ray and scene depth (metres in front of the camera) at screen fraction `t` of the clipped ray. */
+      /** The ray's depth (metres in front of the camera) at screen fraction `t` of the clipped ray. */
+      const alongAt = (t: Node<'float'>) => mix(q0.z, q1.z, t).div(mix(k0, k1, t)).negate();
+      /** Ray and scene depth at `t`. */
       const probe = (t: Node<'float'>) => {
-        const along = mix(q0.z, q1.z, t).div(mix(k0, k1, t)).negate().toVar();
-        const scene = perspectiveDepthToViewZ(sceneDepth.sample(mix(s0, s1, t).div(screenSize)).r, cameraNear, cameraFar).negate().toVar();
+        const along = alongAt(t).toVar();
+        const scene = perspectiveDepthToViewZ(screenRead(sceneDepth, mix(s0, s1, t).div(screenSize)).r, cameraNear, cameraFar).negate().toVar();
         // Sky and far-plane pixels never occlude, even behind the longest ray.
         const sky = scene.greaterThanEqual(farthest);
         return { along, scene, sky, behind: along.greaterThan(scene).and(sky.not()) };
@@ -116,7 +126,7 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
           });
           // Accept a surface within the thickness plus the depth the ray itself covers across the final
           // bracket, which bisection cannot resolve further; a nearer object's edge lies far outside both.
-          const refined = probe(high), span = refined.along.sub(probe(low).along);
+          const refined = probe(high), span = refined.along.sub(alongAt(low));
           If(refined.behind.and(refined.along.sub(refined.scene).lessThan(refined.scene.mul(THICKNESS).add(span))), () => { hit.assign(high); Break(); });
         });
         front.assign(sample.behind.not());
@@ -129,11 +139,11 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
         const range = smoothstep(.7, 1, point.distance(origin).div(maxDistance)).oneMinus();
         // Depth holds only camera-facing surfaces; rays coming back toward the camera would see their backs.
         const facing = smoothstep(0, .5, ray.z).oneMinus();
-        color.assign(sceneColor.sample(uv).level(float(0)).rgb);
+        color.assign(screenRead(sceneColor, uv, float(0)).rgb);
         confidence.assign(edges.mul(range).mul(facing));
       });
     });
     return vec4(color, confidence);
-  })();
+  })().toVar(); // One march however many times the caller reads color and confidence.
   return { color: result.rgb, confidence: result.a };
 }
