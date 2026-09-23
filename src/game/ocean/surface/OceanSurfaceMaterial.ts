@@ -1,5 +1,5 @@
 import { DepthTexture, DoubleSide, NoBlending, NodeMaterial, type Color, type Node, type Texture } from 'three/webgpu';
-import { Fn, If, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
+import { Fn, If, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, luminance, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
   pmremTexture, positionView, positionWorld, reference, reflect, refract, select, sin, smoothstep, texture, uniform, varying, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
 import { EffectDepthTextureNode } from '../../EffectVolume';
 import { writeSceneTargets } from '../../TemporalAntialiasing';
@@ -20,6 +20,10 @@ const SHADOWED_PIGMENT = .45;
 /** Slope variance of a glint: the sun disc's (2e-4 for the game's 1.4° disc) widened by facets just finer than a
  * pixel, which tilt within it. */
 const GLINT_VARIANCE = 1e-3;
+/** Physical sun glitter above this share of the sun's irradiance is compressed with a soft knee, so it tops out about
+ * twice as bright as sunlit foam. Below it the glitter keeps its physical radiance. In full, a low sun over a rough sea
+ * spreads a glow several times brighter than the sky that blooms over any ship in front of it. */
+const GLITTER_KNEE = .25;
 /** Share of the wave slope screen-space reflections follow: about the longest waves' share of it at moderate winds. */
 const TRACE_SLOPE = .3;
 /** The wake without a slick (the look first tuned to the replaced library): foam energy at which its trail starts to
@@ -95,6 +99,11 @@ function smithLambda(cosine: Node<'float'>, variance: Node<'float'>): Node<'floa
   const c = cosine.clamp(1e-4, 1);
   const a = c.div(variance.mul(2).sqrt().mul(float(1).sub(c.mul(c)).sqrt().max(1e-4)));
   return select(a.lessThan(1.6), float(1).sub(a.mul(1.259)).add(a.mul(a).mul(.396)).div(a.mul(3.535).add(a.mul(a).mul(2.181))), float(0));
+}
+
+/** `radiance` unchanged well below `knee` (in luminance) and approaching it above: radiance / (1 + luminance / knee). */
+function softKnee(radiance: Node<'vec3'>, knee: Node<'float'>): Node<'vec3'> {
+  return radiance.div(float(1).add(luminance(radiance).div(knee.max(1e-4))));
 }
 
 /** Sun (or moon) glints on the resolved facets: a Beckmann lobe of GLINT_VARIANCE, with Smith masking so a low
@@ -237,7 +246,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const reflected = traced ? mix(sky, traced.color, traced.confidence) : sky;
     // How far up a wave this point sits: crests reach about Hs / 2, rare ones Hs.
     const crest = positionWorld.y.div(reference('significantHeight', 'float', waves.params).max(.1)).clamp(0, 1);
-    const glint = variances ? sunGlitter(up, view, sunDirection, sunRadiance, variances, downwind)
+    const glint = variances ? softKnee(sunGlitter(up, view, sunDirection, sunRadiance, variances, downwind), sunIntensity.mul(GLITTER_KNEE))
       : sunGlint(up, view, sunDirection, sunRadiance, sample.slopeVariance);
     const direct = glint.add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
     // Foam: the texture laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
