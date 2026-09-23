@@ -49,7 +49,16 @@ const TAIL_ROUGHNESS = .25;
 const INVERSION_STEPS = 6, INVERSION_DAMPING = .7;
 /** A wake's slick damps waves shorter than this (m): turbulence and the films it brings up still the capillary and
  * short gravity waves, while the swell runs through. Each cascade loses its share of slope in them. */
-const SLICK_WAVELENGTH = 6;
+const SLICK_WAVELENGTH = 25;
+
+/** Share of each cascade's slope in waves shorter than SLICK_WAVELENGTH: the saturation range holds equal slope
+ * variance per octave, so it is the share of the band's octaves beyond the cut. */
+export function slickShares(cascades: readonly WaveCascadeInfo[]): number[] {
+  return cascadeBands(cascades).map((band, i) => {
+    const lo = i ? band.lo : 2 * Math.PI / cascades[0].size, cut = Math.max(lo, 2 * Math.PI / SLICK_WAVELENGTH);
+    return Math.max(0, Math.log(band.hi / cut) / Math.log(band.hi / lo));
+  });
+}
 
 /** A texture read without three's uv matrix: a bare texture node's first `.sample()` or `.load()`
  * otherwise gets its own matrix uniform, a per-draw update and a multiply. */
@@ -113,8 +122,7 @@ export class GpuWaveField implements WaveField {
   private readonly tail = uniform(0);
   /** Each cascade's whole slope variance, which becomes roughness where it cannot be filtered. */
   private readonly slopes: ReturnType<typeof floatUniform>[];
-  /** Share of each cascade's slope in waves shorter than SLICK_WAVELENGTH: the saturation range holds equal slope
-   * variance per octave, so it is the share of the band's octaves beyond the cut. */
+  /** What a slick damps of each cascade (`slickShares`). */
   private readonly slickShares: number[];
   private lastPhase = -1;
 
@@ -126,10 +134,7 @@ export class GpuWaveField implements WaveField {
     this.slopes = cascades.map(floatUniform);
     const bands = cascadeBands(cascades), finest = bands[count - 1];
     this.longest = bands.map((band, i) => i ? 2 * Math.PI / band.lo : cascades[0].size);
-    this.slickShares = bands.map((band, i) => {
-      const lo = i ? band.lo : 2 * Math.PI / cascades[0].size, cut = Math.max(lo, 2 * Math.PI / SLICK_WAVELENGTH);
-      return Math.max(0, Math.log(band.hi / cut) / Math.log(band.hi / lo));
-    });
+    this.slickShares = slickShares(cascades);
     // Read as many times finer as the finest band spans, the ripples continue it without overlap.
     this.rippleTile = count > 1 ? cascades[count - 1].size * finest.lo / finest.hi : 0;
     this.spectrum = new DataTexture(new Float32Array(n * n * count * 4), n * count, n, RGBAFormat, FloatType);

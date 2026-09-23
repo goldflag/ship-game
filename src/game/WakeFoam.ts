@@ -4,8 +4,9 @@ import { BISMARCK } from './session/motion';
 import type { ShipState } from '../game/session/elements';
 
 type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;
-/** `along` counts the trail samples laid before this one, so a feature can follow distance along the track. */
-type WakeSample = Motion & { born: number; strength: number; along: number };
+/** `along` counts the trail samples laid before this one, so a feature can follow distance along the track; `turn` is
+ * the hull's rate of turn when it was laid (rad/s). */
+type WakeSample = Motion & { born: number; strength: number; along: number; turn: number };
 type ImpactSample = { x: number; z: number; born: number; scale: number };
 type WakeHull = { length: number; beam: number; forwardSpeed: number; centerX?: number; centerZ?: number };
 export interface WakeStampTarget {
@@ -25,7 +26,7 @@ const LIFETIME = 55;
 const IMPACT_LIFETIME = 24;
 const SAMPLE_DISTANCE = 3;
 /** Every this many trail samples also records a slick sample. */
-const SLICK_EVERY = 4;
+const SLICK_EVERY = 6;
 const UPDATE_INTERVAL = 1 / 20;
 /** Preparation estimate only; unusual motion can still grow the retained buffers. */
 export const wakeStampBudget = (speed: number) => Math.ceil(LIFETIME * speed / SAMPLE_DISTANCE + 2) * 5 + 64;
@@ -43,11 +44,17 @@ export const WAKE_TUNING = {
   /** Widening of the band: its half-width grows by this share of beam × √(metres run since ÷ beam). */
   churnSpread: .13,
   /** e-folding time (s) of the churned water's turbulence, which the surface turns into foam and bubble clouds. */
-  churnLife: 20,
+  churnLife: 24,
   /** Turbulence against the share of full speed: raised to this power, so a slow hull leaves little white water. */
-  churnPower: 1.6,
+  churnPower: 1.3,
   /** Sideways wander of the band along the track (m per √s of age, at most a sixth of beam). */
   meander: .6,
+  /** How far each side of the band bulges and draws in along the track, as a share of its half-width: the lobes and
+   * bays of a turbulent wake's outline, about a beam or two long. */
+  lobes: .35,
+  /** Extra turbulence from a hard turn, where the hull slides through the water at an angle: up to this share more
+   * once the turn rate × length ÷ speed reaches 1. */
+  turnChurn: .6,
   /** Half-width of the slick behind the stern as a share of beam, and its widening per √(metres run ÷ beam). */
   slickWidth: .55,
   slickSpread: .2,
@@ -165,6 +172,7 @@ export class WakeFoam {
           speed,
           strength: smooth(Math.abs(speed) / this.hull.forwardSpeed) ** 0.65,
           along: this.sampleCount,
+          turn: Math.abs(headingDelta) / dt,
           born: this.time.value - dt * (1 - fraction),
         };
         this.samples.push(sample);
@@ -293,7 +301,9 @@ export class WakeFoam {
     const churnCell = MIN_CELLS * EXTENT / this.resolution, slickCell = MIN_CELLS * SLICK_EXTENT / this.resolution;
     for (const sample of this.samples) {
       const age = now - sample.born, ratio = Math.min(Math.abs(sample.speed) / this.hull.forwardSpeed, 1);
-      const strength = smooth(ratio) ** tuning.churnPower * Math.exp(-age / tuning.churnLife) * (1 - smooth((age - 40) / (LIFETIME - 40)));
+      const slide = Math.min(1, sample.turn * this.hull.length / Math.max(Math.abs(sample.speed), 1));
+      const churn = Math.min(1, smooth(ratio) ** tuning.churnPower * (1 + tuning.turnChurn * slide));
+      const strength = churn * Math.exp(-age / tuning.churnLife) * (1 - smooth((age - 40) / (LIFETIME - 40)));
       if (strength < .015) continue;
       const { x, z, forwardX, forwardZ } = this.trailing(sample), rightX = -forwardZ, rightZ = forwardX;
       const run = age * Math.abs(sample.speed), spread = Math.sqrt(run / beam);
@@ -301,7 +311,13 @@ export class WakeFoam {
       // The band wanders a little along the track as its eddies grow.
       const along = sample.along * SAMPLE_DISTANCE, wander = Math.sin(along / 37) * .6 + Math.sin(along / 83 + 1.7) * .4;
       const meander = wander * Math.min(tuning.meander * Math.sqrt(age), beam / 6);
-      this.stamp(x + rightX * meander, z + rightZ * meander, rightX, rightZ, width, Math.max(4, width * .35), strength);
+      const centerX = x + rightX * meander, centerZ = z + rightZ * meander, laps = along / beam;
+      // Each side is its own stamp, bulging and drawing in on its own, so the outline is ragged, not a string of beads.
+      for (const side of [-1, 1]) {
+        const phase = side > 0 ? 0 : 2.3, lobe = Math.sin(laps * 4.8 + phase) * .6 + Math.sin(laps * 2.1 + phase * 1.7) * .4;
+        const half = Math.max(width * .65 * (1 + tuning.lobes * lobe), churnCell);
+        this.stamp(centerX + rightX * side * width * .35, centerZ + rightZ * side * width * .35, rightX, rightZ, half, Math.max(4, width * .35), strength);
+      }
     }
     for (const sample of this.slickSamples) {
       const age = now - sample.born, ratio = Math.min(Math.abs(sample.speed) / this.hull.forwardSpeed, 1);

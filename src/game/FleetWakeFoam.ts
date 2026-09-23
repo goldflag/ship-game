@@ -1,5 +1,5 @@
 import { LinearFilter, Vector4, type Camera, type Node, type Object3D, type Texture } from 'three/webgpu';
-import { Fn, If, Loop, float, max, mx_noise_float, smoothstep, texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
+import { Fn, If, Loop, float, fwidth, max, mix, mx_noise_float, smoothstep, texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
 import { SLICK_EXTENT, WakeFoam, WAKE_EXTENT, WAKE_TUNING, wakeStampBudget } from './WakeFoam';
 import type { ShipDefinition } from '../ships/blueprint';
 import { WakeStampCollector, type WakeFoamPainter, type WakeFoamPainterFactory } from './WakeFoamGpu';
@@ -19,14 +19,27 @@ export const WAKE_ATLAS_CAPACITY = TILES * TILES;
 
 /** How the realistic wake's channels read on the water (`OceanRealism.wake`). Visual values; live. */
 export const WAKE_SHADING = {
-  /** Turbulence, torn by the eddies, at which churned water starts to foam and where the foam is solid. */
-  foamStart: .28, foamFull: .62,
-  /** How far the eddies tear the foam's edge, in turbulence: dense at the core, ragged where it thins. */
-  tear: .38,
+  /** Turbulence over which churned water goes from clear to its densest foam, and the share of the water that foam
+   * covers there: even behind the stern the boil shows green water between the white. */
+  foamStart: .05, foamFull: .75, foamCover: .88,
+  /** Softness of the foam's edge against the eddies it follows. */
+  tear: .1,
   /** Turbulence over which bubble clouds build under the water, and their densest share. */
-  bubbleStart: .015, bubbleFull: .45, bubbles: .85,
+  bubbleStart: .04, bubbleFull: .7, bubbles: .6,
+  /** How far the eddies ragged the bubble clouds' edge, in turbulence. */
+  bubbleTear: .18,
+  /** Metres the churned water's outline frays, and the wavenumber (rad/m) of that fraying. The trail's own stamps lay
+   * its lobes, in proportion to the hull. */
+  lobes: 2.5, lobeScale: .35,
+  /** Metres the eddies curl, their coarsest wavenumber (cycles/m) and the weight of their finest octave. */
+  swirl: 1.5, eddyScale: .11, eddyFine: .45,
   /** Slick paint at which the short waves are stilled completely, and how much of them a full slick stills. */
-  slickFull: .3, calm: .85,
+  slickFull: .15, calm: .95,
+  /** Bubble density left along the whole slick: the fine bubbles that linger for minutes keep an old wake a shade
+   * lighter than the sea around it, as seen from the air. */
+  residue: .08,
+  /** TEMPORARY: tint the slick as bubbles to see where it lies. */
+  debugSlick: 0,
 };
 type ShadingKey = keyof typeof WAKE_SHADING;
 const knob = (value: number) => uniform(value);
@@ -114,7 +127,11 @@ export class FleetWakeFoam {
     const edge = (uv: Node<'vec2'>) => smoothstep(.025, .05, uv.x).mul(float(1).sub(smoothstep(.95, .975, uv.x)))
       .mul(smoothstep(.025, .05, uv.y)).mul(float(1).sub(smoothstep(.95, .975, uv.y)));
     return Fn(() => {
-      const world = vec2(x, z), turbulence = float(0).toVar(), slick = float(0).toVar();
+      // The trail is read through a gentle warp, so its outline bulges into lobes and bays like a turbulent wake's
+      // instead of following the stamps' smooth edge. Cheap incommensurate sines: it runs for every pixel of sea.
+      const at = vec2(x, z), k = knob.lobeScale, sway2 = (p: Node<'vec2'>, f: Node<'float'>, phase: number) => p.x.mul(f).add(p.y.mul(f.mul(.61)).add(phase).sin().mul(1.7)).sin();
+      const world = at.add(vec2(sway2(at, k, 1.3).add(sway2(at.yx, k.mul(1.83), 4.1).mul(.5)), sway2(at.yx, k.mul(1.19), 2.9).add(sway2(at, k.mul(2.07), .7).mul(.5))).mul(knob.lobes));
+      const turbulence = float(0).toVar(), slick = float(0).toVar();
       Loop({ start: 0, end: this.count, type: 'int' }, ({ i }) => {
         const bounds = this.bounds.element(i), uv = world.sub(bounds.xy).div(WAKE_EXTENT).add(.5);
         If(inside(uv), () => {
@@ -130,17 +147,31 @@ export class FleetWakeFoam {
           slick.assign(max(slick, tile.g.mul(edge(slickUv))));
         });
       });
+      // Metres per pixel, taken here in uniform control flow: where the eddies fall below a pixel the foam takes their
+      // mean coverage instead of aliasing into speckle that averages away to grey.
+      const footprint = max(fwidth(at.x), fwidth(at.y));
       const foam = float(0).toVar(), bubbles = float(0).toVar();
       If(turbulence.greaterThan(.01), () => {
-        // World-anchored eddies from tens of metres down to a few, drifting slowly: they tear the churned water's
-        // edge and break its thinning remains into patches, while the dense core stays white.
-        const eddies = mx_noise_float(vec3(world.mul(.032), this.time.mul(.05))).mul(.5)
-          .add(mx_noise_float(vec3(world.mul(.085).add(17), this.time.mul(.09))).mul(.32))
-          .add(mx_noise_float(vec3(world.mul(.23).add(41), this.time.mul(.16))).mul(.18));
-        foam.assign(smoothstep(knob.foamStart, knob.foamFull, turbulence.add(eddies.mul(knob.tear))));
-        bubbles.assign(smoothstep(knob.bubbleStart, knob.bubbleFull, turbulence).mul(eddies.mul(.35).add(.8).clamp(0, 1)).mul(knob.bubbles));
+        // World-anchored eddies from twenty metres down to a few, evolving slowly. Foam covers
+        // the share of them the turbulence sets, so the churned water is nearly all white behind the stern, tears at
+        // its edge and breaks into patches as it decays, instead of fading as a sheet.
+        // The eddies are themselves warped by a larger swirl, so they curl like turbulence rather than blot.
+        // One evolution rate everywhere: a rate that varied with the turbulence would sweep the noise's time axis
+        // across every gradient of it and draw contour rings.
+        const boil = this.time;
+        const swirl = vec2(mx_noise_float(vec3(world.mul(.021), boil.mul(.03))), mx_noise_float(vec3(world.mul(.021).add(9), boil.mul(.03)))).mul(knob.swirl);
+        const curled = world.add(swirl), f = knob.eddyScale, fine = knob.eddyFine, coarse = float(1).sub(fine);
+        const eddies = mx_noise_float(vec3(curled.mul(f), boil.mul(.05))).mul(coarse.mul(.56))
+          .add(mx_noise_float(vec3(curled.mul(f.mul(2.4)).add(17), boil.mul(.09))).mul(coarse.mul(.44)))
+          .add(mx_noise_float(vec3(curled.mul(f.mul(6)).add(41), boil.mul(.16))).mul(fine));
+        const pattern = eddies.mul(1.3).add(.5).clamp(0, 1);
+        const cover = smoothstep(knob.foamStart, knob.foamFull, turbulence).mul(knob.foamCover), threshold = float(1).sub(cover);
+        const resolved = float(1).sub(smoothstep(.15, .6, footprint.mul(f)));
+        foam.assign(mix(smoothstep(0, 1, cover), smoothstep(threshold.sub(knob.tear), threshold.add(knob.tear), pattern), resolved));
+        bubbles.assign(smoothstep(knob.bubbleStart, knob.bubbleFull, turbulence.add(eddies.mul(knob.bubbleTear))).mul(pattern.mul(.4).add(.6)).mul(knob.bubbles));
       });
-      return vec4(foam, bubbles, smoothstep(0, knob.slickFull, slick).mul(knob.calm), 0);
+      const calm = smoothstep(0, knob.slickFull, slick);
+      return vec4(foam, max(max(bubbles, calm.mul(knob.residue)), slick.mul(knob.debugSlick)), calm.mul(knob.calm), 0);
     })();
   }
 

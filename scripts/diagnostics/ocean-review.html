@@ -50,12 +50,12 @@ const look = (position, target, fov = 60) => {
 const place = (view, pose) => { Object.assign(view.actor.motion, pose); view.snap(); };
 let battleKey, wakeState;
 /** Enter (or stay in) a paused battle with these conditions; ships at fixed poses. */
-async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12, wind = 9, cloud, range = 5000 } = {}) {
+async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12, wind = 9, cloud, range = 5000, enemy = 'bismarck' } = {}) {
   const key = `${map}/${player}/${range}`;
   if (key !== battleKey) {
     game.rig.update = rigUpdate;
     game.setInPort(true); game.setPaused(true);
-    await game.prepareBattle({ playerShipId: player, friendlyBots: [], enemies: ['bismarck'], spawnDistance: range, mapId: map, windSpeed: wind, timeHours: hours, ...(cloud === undefined ? {} : { cloudCover: cloud }) });
+    await game.prepareBattle({ playerShipId: player, friendlyBots: [], enemies: [enemy], spawnDistance: range, mapId: map, windSpeed: wind, timeHours: hours, ...(cloud === undefined ? {} : { cloudCover: cloud }) });
     battleKey = key;
   }
   game.environment.setBattle({ weather: 'map', timeOfDay: 'map', conditions: { timeHours: hours, windSpeed: wind, ...(cloud === undefined ? {} : { cloudCover: cloud }) } });
@@ -66,6 +66,27 @@ async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12,
   game.ship.position.copy(game.playerView.root.position);
   freeze(60);
 }
+/** From rest at the origin, sail the player north at `throttle` for `seconds`, putting the rudder over after `turnAt`
+ * seconds; the game is left paused with the trail laid. Returns the ship with `back`/`side` unit vectors along it. */
+async function sail({ player = 'bismarck', seconds = 90, throttle = 1, rudder = 0, turnAt = Infinity, hours = 12 } = {}) {
+  // A fresh battle each time: the simulation, not the view, owns the hull's pose and speed.
+  battleKey = undefined;
+  // A static enemy: no shell splashes or camera shake over the trail.
+  await battle({ player, range: 15000, hours, enemy: { shipId: 'bismarck', aiLevel: 'static' } });
+  game.rig.update = rigUpdate;
+  const sample = game.input.sample.bind(game.input);
+  let elapsed = 0;
+  game.input.sample = () => ({ ...sample(), throttle, rudder: elapsed >= turnAt ? rudder : 0 });
+  game.setPaused(false);
+  // Yield a task per frame so the simulation worker's replies land between frames.
+  try { for (; elapsed < seconds; elapsed += .1) { await new Promise(requestAnimationFrame); await game.frame(game.lastTime + 100); } }
+  finally { game.input.sample = sample; game.setPaused(true); }
+  const ship = game.simulation.ship;
+  wakeState = { x: ship.x, z: ship.z, heading: ship.heading, speed: ship.speed };
+  return { ...wakeState, back: [-Math.sin(ship.heading), Math.cos(ship.heading)], side: [Math.cos(ship.heading), Math.sin(ship.heading)] };
+}
+/** A point `aft` metres astern of the ship and `across` to starboard, at height `y`. */
+const astern = (ship, aft, across = 0, y = 0) => [ship.x + ship.back[0] * aft + ship.side[0] * across, y, ship.z + ship.back[1] * aft + ship.side[1] * across];
 const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
 const NEAR = [[300, 95, 350], [0, 20, 0]], WIDE = [[550, 200, 700], [-650, 75, -1000]];
 
@@ -108,6 +129,7 @@ const scenes = {
   periscope: async () => scenes.submerged({ depth: 7, mode: 'Bridge' }),
   /** Ninety seconds at full ahead from rest, then a stern chase view of the trail. */
   wake: async () => {
+    battleKey = undefined;
     await battle({ range: 15000 });
     game.rig.update = rigUpdate;
     const sample = game.input.sample.bind(game.input);
@@ -120,6 +142,22 @@ const scenes = {
     wakeState = { x: ship.x, z: ship.z, heading: ship.heading, speed: ship.speed };
     const back = [-Math.sin(ship.heading), Math.cos(ship.heading)];
     look([ship.x + back[0] * 520 - back[1] * 220, 120, ship.z + back[1] * 520 + back[0] * 220], [ship.x + back[0] * 120, 0, ship.z + back[1] * 120], 55);
+  },
+  /** Three minutes at full ahead seen from 2 km up: the whole trail, from the churned water to the end of the slick. */
+  wakeAir: async () => { const ship = await sail({ seconds: 180 }); look(astern(ship, 700, 900, 2100), astern(ship, 1300, 0, 0), 55); },
+  /** The stern's churned water close up, from 60 m up and 330 m astern. */
+  wakeStern: async () => { const ship = await sail({ seconds: 90 }); look(astern(ship, 330, -90, 60), astern(ship, 60, 0, 0), 50); },
+  /** A minute straight, then a minute of full rudder: the trail curves with the turn. */
+  wakeTurn: async () => { const ship = await sail({ seconds: 120, rudder: 1, turnAt: 60 }); look(astern(ship, 150, -750, 650), astern(ship, 350, 150, 0), 55); },
+  /** A destroyer at full speed (about 35 kn): a narrower, livelier wake. */
+  wakeDestroyer: async () => { const ship = await sail({ player: 'fletcher', seconds: 90 }); look(astern(ship, 260, -110, 70), astern(ship, 40, 0, 0), 55); },
+  /** The trail across the morning sun's glitter: the slick reads as a dark, smooth band through it. */
+  wakeGlint: async () => {
+    const ship = await sail({ seconds: 150, hours: 7.5 });
+    const sun = game.sky.sun.direction.value, flat = Math.hypot(sun.x, sun.z), toward = [sun.x / flat, sun.z / flat];
+    // Stand off the trail's middle, away from the sun, as high as the sun so the glitter falls on the trail.
+    const middle = astern(ship, 1000), off = 1000, height = off * sun.y / flat;
+    look([middle[0] - toward[0] * off, height, middle[2] - toward[1] * off], [middle[0] + toward[0] * 250, 0, middle[2] + toward[1] * 250], 55);
   },
 };
 
@@ -148,7 +186,7 @@ async function measure(count = 120, stepping = true) {
 
 window.oceanReview = {
   game, scenes: Object.keys(scenes), errors,
-  async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors], ...(name === 'wake' ? { wakeState } : {}) }; },
+  async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors], ...(name.startsWith('wake') ? { wakeState } : {}) }; },
   capture, measure,
 };
 window.ready = true; output.textContent = '';

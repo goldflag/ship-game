@@ -42,10 +42,10 @@ const WAKE_START = .05, WAKE_FULL = .6, WAKE_EDGE = .8;
 const WAKE_OPACITY = .75;
 /** The realistic wake's churned water (a sampler with a slick): nearly opaque white water whose ragged edge the
  * sampler already tears, so the lace only frays what thins. */
-const CHURN_START = 0, CHURN_FULL = .85, CHURN_EDGE = .3, CHURN_OPACITY = .97;
+const CHURN_START = 0, CHURN_FULL = 1, CHURN_EDGE = .8, CHURN_OPACITY = .97;
 /** Bubble clouds under churned water: a diffuse layer of this albedo relative to foam, seen through this many metres
  * of water down and back up, which takes the red first: the turquoise under a warship's wake. */
-const BUBBLE_ALBEDO = .45, BUBBLE_PATH = 3;
+const BUBBLE_ALBEDO = .4, BUBBLE_PATH = 2;
 /** Water column (m) over which shoreline foam fades out, and its soft edge: a thin line along a hull. */
 const SHORE_DEPTH = .8, SHORE_EDGE = .4;
 /** Camera depth (m) over which the surface seen from below dims by e. */
