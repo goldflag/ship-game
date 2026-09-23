@@ -247,17 +247,14 @@ async function foamCheck() {
     pausedUnchanged: before.every((v, i) => v === paused[i]), rebuiltWhilePausedUnchanged: before.every((v, i) => v === rebuilt[i]) };
 }
 
-/** Combined crest foam of every cascade at the finest mip over a 512 m square, after `seconds` of
- * field-only updates at wind `sea`: its mean and the share of the area above 0.5 and 1. */
+/** Crest foam as the surface reads it (field.surface) over a 512 m square at 0.5 m per pixel, after
+ * `seconds` of field-only updates at wind `sea`: its mean and the share of the area above 0.5 and 1. */
 async function foamCoverage(sea, seconds = 15) {
   setSea(sea);
   for (let i = 0; i < seconds * 60; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
-  const n = 256, target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
-  const material = new THREE.NodeMaterial(), xz = screenCoordinate.mul(512 / n);
-  material.fragmentNode = vec4(field.cascades.reduce((sum, cascade, i) => {
-    const read = texture(field.textures[2]).sample(xz.div(cascade.size).add(.5 / cascade.resolution)).level(0);
-    return sum.add((field.cascades.length > 1 ? read.depth(int(i)) : read).y);
-  }, float(0)), 0, 0, 1);
+  const n = 1024, target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
+  const material = new THREE.NodeMaterial();
+  material.fragmentNode = vec4(field.surface(screenCoordinate.mul(512 / n)).foam, 0, 0, 1);
   material.blending = THREE.NoBlending;
   renderer.setRenderTarget(target); new THREE.QuadMesh(material).render(renderer); renderer.setRenderTarget(null);
   const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, n, n);

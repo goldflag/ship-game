@@ -28,10 +28,16 @@ const ANISOTROPY = 16;
 /** Crest foam: none while a cascade's Jacobian stays above CREST_START, all of `crestStrength` once it
  * falls to CREST_FULL. A single choppy wave at Stokes' breaking steepness (ka ≈ 0.44) has J ≈ 0.5,
  * so injection sits around breaking crests. Windward foam: downwind faces steeper than FACE_START
- * (slope), full at FACE_FULL. With the game's calibrated gains the mean coverage follows Monahan &
- * O'Muircheartaigh's whitecap fraction (3.84e-6·U^3.41) within about 1.5× from 9 to 25 m/s. */
+ * (slope), full at FACE_FULL. With the game's calibrated gains, surface() averages 0.5% foam at
+ * 9 m/s, 3% at 15 and 13% at 25, against Monahan & O'Muircheartaigh's whitecap fraction
+ * (3.84e-6·U^3.41) of 0.7%, 3.9% and 22%. */
 const CREST_START = .6, CREST_FULL = .2;
 const FACE_START = .22, FACE_FULL = .5;
+/** Whitecaps form on waves near the spectral peak, not on ripples: a cascade injects foam in full once
+ * its longest waves reach a third of the peak wavelength, and none below an eighth. */
+const WHITECAP_SHORTEST = 1 / 8, WHITECAP_FULL = 1 / 3;
+/** Compression of the longer waves (∂Dx/∂x + ∂Dz/∂z) over which a finer cascade's foam fades in. */
+const CREST_MODULATION = .1;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
 const MIN_JACOBIAN = .1;
@@ -89,6 +95,8 @@ export class GpuWaveField implements WaveField {
   private readonly windward = uniform(0);
   private readonly wind = uniform(new Vector2(1, 0));
   private readonly layer = uniform(0, 'int');
+  /** Share of the foam injection the cascade in `layer` receives. */
+  private readonly whitecaps = uniform(0);
   private readonly tail = uniform(0);
   /** Each cascade's whole slope variance, which becomes roughness where it cannot be filtered. */
   private readonly slopes: ReturnType<typeof floatUniform>[];
@@ -191,7 +199,7 @@ export class GpuWaveField implements WaveField {
     const downwind = cd.x.mul(this.wind.x).add(cd.y.mul(this.wind.y));
     // Crest foam where this cascade's surface folds; windward foam on steep downwind faces.
     const injection = this.crest.mul(float(1).sub(smoothstep(CREST_FULL, CREST_START, jacobian)))
-      .add(this.windward.mul(smoothstep(FACE_START, FACE_FULL, downwind.negate())));
+      .add(this.windward.mul(smoothstep(FACE_START, FACE_FULL, downwind.negate()))).mul(this.whitecaps);
     const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer).y;
     const foam = select(this.elapsed.greaterThan(0), max(previous.mul(exp(this.elapsed.negate().div(this.decay))), injection), previous);
     return mrt({
@@ -224,12 +232,17 @@ export class GpuWaveField implements WaveField {
     let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), variance: Float = this.tail;
     this.cascades.forEach((cascade, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
-      // last level; its whole slope variance then roughens the surface instead.
+      // last level (slopes, strain and foam alike, which would otherwise repeat with the tile); its
+      // whole slope variance then roughens the surface instead.
       const detail = float(1).sub(smoothstep(this.top - 1, this.top, log2(footprint.mul(this.size / cascade.size))));
       const derivatives = this.sample('derivatives', xz, i), extras = this.sample('extras', xz, i);
+      // Short waves break on the crests of longer ones: finer cascades' foam follows the compression
+      // (∂Dx/∂x + ∂Dz/∂z < 0) of the coarser ones summed so far, whose longer tiles also keep a
+      // finer tile's few whitecaps from repeating in a visible lattice.
+      const crests = i ? smoothstep(CREST_MODULATION, -CREST_MODULATION, strain.x.add(strain.y)) : float(1);
+      foam = foam.add(extras.y.mul(detail).mul(crests));
       slope = slope.add(derivatives.xy.mul(detail));
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
-      foam = foam.add(extras.y);
       const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
       variance = variance.add(mix(this.slopes[i], filtered, detail));
     });
@@ -286,6 +299,8 @@ export class GpuWaveField implements WaveField {
         // Mipmaps once per update, after the last layer: generation covers every layer.
         for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1;
         this.layer.value = c;
+        const ratio = this.longest[c] / this.params.peakWavelength;
+        this.whitecaps.value = Math.min(1, Math.max(0, (ratio - WHITECAP_SHORTEST) / (WHITECAP_FULL - WHITECAP_SHORTEST)));
         renderer.setRenderTarget(output, c);
         this.finalPass.render(renderer);
       });
