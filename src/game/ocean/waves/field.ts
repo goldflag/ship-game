@@ -8,7 +8,7 @@ import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max
   texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
 import type { HullFootprint, HullSeaWave, OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
-import { HullSea } from './hullSea';
+import { HullSea, cascadeModes, hullSeaWavelength, splitLevel } from './hullSea';
 import { drawnSea, seaStateCascades } from './seaState';
 import { FOLD_PERIOD, buildSpectrum, cascadeBands } from './spectrum';
 
@@ -123,6 +123,10 @@ export class GpuWaveField implements WaveField {
   private lastPhase = -1;
   /** Near hulls the long waves give way to the sea the hulls ride (hullSea.ts). */
   private readonly hullSea = new HullSea();
+  /** The first cascade's spectrum as `splitLevel` weighs it, and the combat wavelength its split was last chosen for (NaN: choose again). */
+  private firstModes: Float32Array = new Float32Array(0);
+  private combatWavelength = 0;
+  private splitFor = NaN;
 
   /** `tier` is the quality tier's layout; `realism.seaState` is read live, and flipping it rebuilds. */
   constructor(private readonly tier: readonly WaveCascadeInfo[], readonly params: WaveParameters, readonly foamParams: WaveFoamParameters,
@@ -317,9 +321,8 @@ export class GpuWaveField implements WaveField {
   /** The first cascade low-passed to the hull sea's split, and never finer than the vertex `spacing` (or, given as a
    * mip level, the pixel's): the long waves hulls replace. */
   private longWaves(field: typeof FIELDS[number], xz: Node<'vec2'>, spacing?: Float, level?: Float): Vec4 {
-    const split = log2(this.hullSea.split.mul(this.texels[0]));
     const fine = level ?? (spacing ? this.mip(spacing, 0) : float(0));
-    const long = this.sample(field, xz, 0, clamp(max(fine, split), 0, this.top));
+    const long = this.sample(field, xz, 0, clamp(max(fine, this.hullSea.split), 0, this.top)).mul(this.hullSea.replace);
     return spacing ? long.mul(float(1).sub(smoothstep(this.longestWaves[0].mul(.25), this.longestWaves[0].mul(.5), spacing))) : long;
   }
 
@@ -374,6 +377,16 @@ export class GpuWaveField implements WaveField {
 
   couple(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[], origin: { x: number; z: number }): void {
     this.hullSea.set(waves, time, hulls, origin);
+    this.combatWavelength = hullSeaWavelength(waves);
+    this.chooseSplit();
+  }
+
+  /** Split the first cascade for the combat sea's wavelength, once per spectrum and wavelength. */
+  private chooseSplit(): void {
+    if (this.splitFor === this.combatWavelength || !(this.combatWavelength > 0) || !this.built) return;
+    const level = splitLevel(this.firstModes, this.cascades[0].size / this.size, this.top, this.combatWavelength);
+    this.hullSea.split.value = level ?? this.top; this.hullSea.replace.value = level === null ? 0 : 1;
+    this.splitFor = this.combatWavelength;
   }
 
   update(renderer: WebGPURenderer, time: number, dt: number): void {
@@ -395,6 +408,7 @@ export class GpuWaveField implements WaveField {
       this.choppiness.value = this.sea.choppiness;
       this.wind.value.set(Math.cos(this.sea.windDirection), Math.sin(this.sea.windDirection));
       this.params.dirty = false; this.built = rebuilt = true;
+      this.firstModes = cascadeModes(spectrum.cascades[0].amplitudes, n, this.cascades[0].size); this.splitFor = NaN; this.chooseSplit();
     }
     const phase = Math.fround((time % FOLD_PERIOD + FOLD_PERIOD) % FOLD_PERIOD / FOLD_PERIOD);
     // A paused frame with nothing changed keeps last frame's fields, foam included.

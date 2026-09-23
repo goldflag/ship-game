@@ -1,6 +1,6 @@
 /** The sea hulls ride, drawn where they ride it. Combat poses every hull on its own long-wave sea (a few long-crested
  * sines, renderer-free); the wave field draws an unrelated spectrum with the same height statistics. Near each hull
- * this blends the field's long waves (the first cascade low-passed at `split`) into the combat sea at the
+ * this blends the field's long waves (the first cascade low-passed by its mip chain) into the combat sea at the
  * simulation's clock, keeping the field's shorter waves, foam, wake and bow waves on top, and fades back to the field
  * further out. Presentation only: nothing here reaches combat.
  *
@@ -23,9 +23,15 @@ export const HULL_REACH = .3, WAVE_REACH = .25;
 /** The coupling fades over at least a hull length and the longest wavelength. The blend tilts the sea by the
  * difference between the two seas over the fade, so over a wavelength it tilts it no more than the waves themselves do. */
 export const FADE_HULLS = 1, FADE_WAVES = 1;
-/** The first cascade low-passed by a box this share of the longest combat wave wide is what the coupling replaces:
- * about 0.93 of the combat sea's own wavelengths and 0.6 of a third of them, while waves under a fifth of them stay. */
-export const SPLIT = .12;
+/** Drawn waves at least this share of the longest combat wave long count as long: they lift and drop the water around
+ * a hull on the combat sea's own scale (its shorter component is 0.57 of it), where shorter ones are chop the hull's
+ * length averages away. */
+export const LONG_WAVES = .5;
+/** Long waves left beside a hull count this many times the shorter waves taken from around it: the coupling exists for
+ * the hull's agreement, and the authority's own easing already leaves it 1.5–2 m rms in a storm. */
+export const SPLIT_LEAK_WEIGHT = 2;
+/** Split levels tried, in mip levels. */
+const SPLIT_STEP = .25;
 
 /** One hull's reach, packed as the nodes read it: centre, bow axis, half length, full and zero coupling radii from
  * the centre line, and contact (0 for a hull nothing of which reaches the surface). */
@@ -86,6 +92,57 @@ export function packHullSeaWave(wave: HullSeaWave, time: number, originX: number
   return [kx, kz, wave.amplitude, (phase % turn + turn) % turn];
 }
 
+/** Lattice cells per edge `cascadeModes` gathers a cascade's variance into: enough to place the split within a quarter
+ * level, few enough to weigh every level in a millisecond or two at any tier. */
+const MODE_BINS = 64;
+
+/** (kx, kz, variance) triples of a cascade's spectrum gathered onto at most MODE_BINS² cells (each at its
+ * variance-weighted wave vector): what `splitLevel` weighs. `amplitudes` is the cascade's packed spectrum (re, im,
+ * frequency multiple, ·) on an n×n lattice of a `size` m tile. */
+export function cascadeModes(amplitudes: Float32Array, n: number, size: number): Float32Array {
+  const bin = Math.max(1, Math.ceil(n / MODE_BINS)), cells = Math.ceil(n / bin), dk = 2 * Math.PI / size;
+  const sums = new Float64Array(cells * cells * 3);
+  for (let i = 0; i < amplitudes.length; i += 4) {
+    if (!amplitudes[i + 2]) continue;
+    const texel = i / 4, x = texel % n, z = (texel - x) / n, variance = amplitudes[i] ** 2 + amplitudes[i + 1] ** 2;
+    const nx = x < n / 2 ? x : x - n, nz = z < n / 2 ? z : z - n;
+    const cell = ((Math.floor((nz + n / 2) / bin)) * cells + Math.floor((nx + n / 2) / bin)) * 3;
+    sums[cell] += nx * dk * variance; sums[cell + 1] += nz * dk * variance; sums[cell + 2] += variance;
+  }
+  const modes: number[] = [];
+  for (let i = 0; i < sums.length; i += 3) if (sums[i + 2] > 0) modes.push(sums[i] / sums[i + 2], sums[i + 1] / sums[i + 2], sums[i + 2]);
+  return new Float32Array(modes);
+}
+
+/** Transfer of a mip box `width` metres wide, read bilinearly, at wave vector (kx, kz): per axis sinc³(k·width/2). */
+export function boxTransfer(kx: number, kz: number, width: number): number {
+  const sinc = (x: number) => Math.abs(x) < 1e-6 ? 1 : Math.sin(x) / x;
+  return (sinc(kx * width / 2) * sinc(kz * width / 2)) ** 3;
+}
+
+/** The mip level of the first cascade whose box low-pass best splits its waves into the long ones the coupling replaces
+ * and the rest, or null when leaving every drawn wave in place does better (a sea whose waves are all far shorter than
+ * the combat sea's). A box filter's response falls from 0.9 to 0.1 over a factor of about five in wavelength, so no
+ * level splits cleanly; this weighs the long-wave variance a level leaves beside the hull (SPLIT_LEAK_WEIGHT times)
+ * against the shorter variance it removes, over the cascade's own modes. `modes` holds (kx, kz, variance) triples,
+ * `texel` the cascade's texel in metres, `top` its coarsest mip level. */
+export function splitLevel(modes: Float32Array, texel: number, top: number, wavelength: number): number | null {
+  const long = 2 * Math.PI / (LONG_WAVES * wavelength);
+  let longVariance = 0;
+  for (let i = 0; i < modes.length; i += 3) if (Math.hypot(modes[i], modes[i + 1]) <= long) longVariance += modes[i + 2];
+  let best: number | null = null, cost = SPLIT_LEAK_WEIGHT * longVariance;
+  for (let level = 0; level <= top + 1e-9; level += SPLIT_STEP) {
+    const width = texel * 2 ** level;
+    let total = 0;
+    for (let i = 0; i < modes.length && total < cost; i += 3) {
+      const t = boxTransfer(modes[i], modes[i + 1], width);
+      total += Math.hypot(modes[i], modes[i + 1]) <= long ? SPLIT_LEAK_WEIGHT * modes[i + 2] * (1 - t) ** 2 : modes[i + 2] * t * t;
+    }
+    if (total < cost) { cost = total; best = level; }
+  }
+  return best;
+}
+
 /** The drawn height near hulls: `field` (all cascades) with its long waves `lowpass` blended into the combat sea. */
 export function coupledHeight(field: number, lowpass: number, slots: readonly HullSeaSlot[], waves: readonly HullSeaWave[], time: number, x: number, z: number): number {
   const blend = hullSeaBlend(hullSeaWeight(slots, x, z).weight);
@@ -94,8 +151,10 @@ export function coupledHeight(field: number, lowpass: number, slots: readonly Hu
 
 /** Uniforms and nodes of the coupling. The wave field owns one and applies it in displacement, surface and heightAt. */
 export class HullSea {
-  /** Box width (m) of the low-pass that splits the first cascade (read by the field as a mip level). */
+  /** Mip level of the first cascade that holds the long waves the coupling replaces (the field sets it with `splitLevel`)
+   * and whether any are replaced (0: the drawn waves all stay, the combat sea adds to them). */
   readonly split = uniform(0);
+  readonly replace = uniform(1);
   private readonly slotValues = Array.from({ length: HULL_SEA_SLOTS * 2 }, () => new Vector4());
   /** Per hull: (centre x, z, bow axis x, z), (half length, inner, outer, contact). */
   private readonly slots = uniformArray<'vec4'>(this.slotValues, 'vec4');
@@ -121,7 +180,6 @@ export class HullSea {
       this.slotValues[i * 2 + 1].set(slot.half, slot.inner, slot.outer, slot.contact);
     }
     this.count.value = count;
-    this.split.value = SPLIT * wavelength;
   }
 
   /** Coupling weight at a world position (any stage). */

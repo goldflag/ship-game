@@ -1,7 +1,10 @@
 import { expect, test } from 'bun:test';
 import type { HullFootprint, HullSeaWave } from '../contracts';
-import { FADE_HULLS, FADE_WAVES, HULL_REACH, WAVE_REACH, coupledHeight, hullSeaBlend, hullSeaHeight, hullSeaSlot, hullSeaWavelength, hullSeaWeight,
-  packHullSeaWave } from './hullSea';
+import { OCEAN_TIERS } from '../quality';
+import { FADE_HULLS, FADE_WAVES, HULL_REACH, WAVE_REACH, boxTransfer, cascadeModes, coupledHeight, hullSeaBlend, hullSeaHeight, hullSeaSlot, hullSeaWavelength,
+  hullSeaWeight, packHullSeaWave, splitLevel } from './hullSea';
+import { drawnSea, seaStateCascades } from './seaState';
+import { buildSpectrum } from './spectrum';
 
 const waves: HullSeaWave[] = [{ amplitude: 2.86, wavelength: 249, direction: .6, phase: 1.3 }, { amplitude: 1.23, wavelength: 142, direction: 1.4, phase: 3.3 }];
 const battleship: HullFootprint = { x: 120, z: -40, bearing: .3, length: 250, beam: 36, contact: 1 };
@@ -82,4 +85,34 @@ test('at the hull the drawn height is the combat sea plus the drawn waves shorte
   }
   const [x, z] = at(0, slot.outer + 10);
   expect(coupledHeight(-1.7, -1.5, [slot], waves, time, x, z)).toBe(-1.7);
+});
+
+test('the split takes the long waves when the drawn sea holds them, and leaves a sea of shorter waves whole', () => {
+  const k = (wavelength: number) => 2 * Math.PI / wavelength;
+  // Only waves longer than the combat sea's: the finest level takes them all.
+  expect(splitLevel(new Float32Array([k(400), 0, 1, 0, k(300), 2]), 4, 4, 250)).toBe(0);
+  // Only waves under a fifth of it: nothing is taken, the combat sea adds to them.
+  expect(splitLevel(new Float32Array([k(40), 0, 1, k(30), k(30), 1]), 4, 4, 250)).toBeNull();
+  // The drawn seas: a realistic storm's long peak is taken near the hull; the art-directed sea (its peak a quarter of
+  // the combat wavelength) loses almost none of its waves there.
+  const sea = (wind: number, realism: boolean) => {
+    const height = { 25: 8.8, 30: 11.3 }[wind]!, peak = { 25: 62.2, 30: 74.7 }[wind]!;
+    const drawn = drawnSea({ significantHeight: height, windSpeed: wind, windDirection: .6, peakWavelength: peak, choppiness: 1.55, gamma: 2.6, directionalSharpness: .8, seed: 7, dirty: true }, realism);
+    const cascades = realism ? seaStateCascades(OCEAN_TIERS.high.cascades, drawn.peakWavelength) : OCEAN_TIERS.high.cascades;
+    const first = buildSpectrum(cascades, drawn).cascades[0];
+    const modes = cascadeModes(first.amplitudes, first.resolution, first.size);
+    // Binning keeps the variance.
+    expect(modes.reduce((sum, value, i) => i % 3 === 2 ? sum + value : sum, 0)).toBeCloseTo(first.variance, 6);
+    return { level: splitLevel(modes, first.size / first.resolution, 4, 4 * peak), texel: first.size / first.resolution, peak: drawn.peakWavelength };
+  };
+  for (const wind of [25, 30]) {
+    const realistic = sea(wind, true), art = sea(wind, false);
+    expect(realistic.level).not.toBeNull();
+    const width = realistic.texel * 2 ** realistic.level!;
+    // The realistic peak is taken almost whole (≥ 0.9) ...
+    expect(boxTransfer(2 * Math.PI / realistic.peak, 0, width)).toBeGreaterThan(.9);
+    // ... and the art-directed peak all but kept.
+    const kept = art.level === null ? 0 : boxTransfer(2 * Math.PI / art.peak, 0, art.texel * 2 ** art.level);
+    expect(kept).toBeLessThan(.05);
+  }
 });
