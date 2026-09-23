@@ -28,6 +28,7 @@ async function single(ctx: CommandContext, current: CurrentSource, catalog: Cons
     mirror: ctx.has('--mirror'),
     repeat: numbers(ctx, '--repeat', 1)?.[0],
     step: numbers(ctx, '--step', 2) as [number, number] | undefined,
+    parent: ctx.option('--parent'),
   });
   const report = await resolvePlacement(ctx.root, current.source, items);
   const failed = report.diagnostics.some((d) => d.severity === 'error');
@@ -63,12 +64,12 @@ async function batch(ctx: CommandContext, current: CurrentSource, catalog: Const
 export default {
   summary:
     '--part catalog-id --at x,z [--y height | --on primitive-or-deck-id] [--bearing deg] [--id new-id] [--mirror] ' +
-    '[--repeat n --step dx,dz] | --table rows.json — seat new equipment on the native hull under (x,z): topmost ' +
+    '[--repeat n --step dx,dz] [--parent hull-or-equipment-id] | --table rows.json — seat new equipment on the native hull under (x,z): topmost ' +
     'support by default, the one nearest --y, or the named piece; wall fittings need --y and seat along the wall ' +
-    'normal; --table seats every row in one compile session, continues past a failed row, reports each row and ' +
+    'normal; --parent makes a floating-capable record ride that piece or fitting; --table seats every row in one compile session, continues past a failed row, reports each row and ' +
     'lists overlapping rows; [--label text] [--out batch.json] [--apply] — proposes a revision-guarded batch ' +
     'validated by a native dry-run and saves it only with --apply',
-  values: ['--part', '--at', '--y', '--on', '--bearing', '--id', '--repeat', '--step', '--out', '--table', '--label'],
+  values: ['--part', '--at', '--y', '--on', '--bearing', '--id', '--repeat', '--step', '--parent', '--out', '--table', '--label'],
   switches: ['--mirror', '--apply'],
   // --apply saves the proposed batch, so the MCP tool is announced as a repository write.
   writes: true,
@@ -76,7 +77,7 @@ export default {
     const { readSource, readCatalog } = await import('../files');
     const { emit } = await import('../query');
     const file = ctx.option('--table');
-    if (file && ['--part', '--at', '--y', '--on', '--bearing', '--id', '--repeat', '--step'].some((flag) => ctx.option(flag) !== undefined))
+    if (file && ['--part', '--at', '--y', '--on', '--bearing', '--id', '--repeat', '--step', '--parent'].some((flag) => ctx.option(flag) !== undefined))
       throw new Error('--table carries every row’s own fields; do not combine it with the single-placement flags.');
     if (file && ctx.has('--mirror')) throw new Error('--table carries `mirror` per row; do not pass --mirror.');
     const current = await readSource(ctx.root, ctx.id);

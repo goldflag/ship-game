@@ -172,6 +172,13 @@ export const EQUIPMENT = object<ConstructionEquipment>(
     magazineId: optional(id()),
     powerSourceId: optional(id('Explicit engine for a propeller; omission uses native assignment.')),
     scale: optional(vec3('Custom fitting instances only: per-axis scale about the datum, 0.05–20; mass follows the volume.')),
+    parent: optional(
+      id(
+        'A hull piece or equipment row this row rides on: move, rotate, copy and remove carry it with the parent. ' +
+          'Position and bearing stay absolute. Only equipment that may float (deck fittings, masts, light deck guns without a well) ' +
+          'takes one; parents are hull pieces, deck fittings, masts, funnels and directors, at most 8 deep.',
+      ),
+    ),
     gun: optional(
       object<NonNullable<ConstructionEquipment['gun']>>(undefined, {
         barbetteHeightM: optional(number('Turret rise. Use the `turret-rise` command: it moves position Y with the rise.')),
@@ -337,7 +344,10 @@ export const COMMANDS = {
     fields: { id: id(), heightM: { type: 'number', minimum: 0, maximum: 30 } },
   },
   copy: {
-    doc: 'Copy hull pieces, equipment and loads to new IDs. Default offset is 1 m to starboard; choose mirror or offset, not both.',
+    doc:
+      'Copy hull pieces, equipment and loads to new IDs. Default offset is 1 m to starboard; choose mirror or offset, not both. ' +
+      'A copied parent brings everything it carries, so list a copy for each of those rows too; copies ride the copied parent. ' +
+      'A row copied without its parent keeps that parent, except that a mirrored copy drops a parent off the centreline.',
     fields: {
       copies: { type: 'array', minItems: 1, items: { type: 'object', fields: { from: id(), to: id('New unique ID.') } } },
       mirror: optional(bool('Reflect across ship X=0.')),
@@ -347,11 +357,21 @@ export const COMMANDS = {
   boundary: { doc: 'Add or replace a boundary by ID.', fields: { value: BOUNDARY } },
   load: { doc: 'Add or replace a load by ID.', fields: { value: LOAD } },
   remove: {
-    doc: 'Remove records. The last hull piece is kept; a linked wall partner goes too. A custom fitting definition is refused while instances outside this command still use it.',
+    doc:
+      'Remove records. The last hull piece is kept; a linked wall partner goes too, and so does everything a removed piece or row ' +
+      'carries (`parent`). A custom fitting definition is refused while instances outside this command still use it.',
     fields: { ids: removable },
   },
-  move: { doc: 'Translate pieces, equipment, loads and boundary offsets.', fields: { ids, delta: vec3('[x, y, z] metres: +X starboard, +Y up, −Z bow.') } },
-  rotate: { doc: 'Yaw hull pieces and equipment about their own datums.', fields: { ids, degrees: number('Added to each `rotationDeg` and `bearingDeg`, then normalized to 0–360; wall fittings are skipped.') } },
+  move: {
+    doc: 'Translate pieces, equipment, loads and boundary offsets. Everything a moved piece or row carries (`parent`) moves by the same delta.',
+    fields: { ids, delta: vec3('[x, y, z] metres: +X starboard, +Y up, −Z bow.') },
+  },
+  rotate: {
+    doc:
+      'Yaw hull pieces and equipment about their own datums. Rows a turned piece or row carries (`parent`) swing about its datum ' +
+      'and keep their pose on it: a fitting’s riders turn by +degrees, a hull piece’s by −degrees, because `rotationDeg` is counter-clockwise.',
+    fields: { ids, degrees: number('Added to each `rotationDeg` and `bearingDeg`, then normalized to 0–360; wall fittings are skipped.') },
+  },
   surface: { doc: 'Assign a whole face record.', fields: { value: SURFACE } },
   'surface-patch': {
     doc: 'Change some values of faces; unassigned faces start from what they inherit.',

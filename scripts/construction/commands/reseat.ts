@@ -5,7 +5,8 @@ export default {
     '--ids a,b,c | --all [--slide] [--out batch.json] — after a hull edit, move existing equipment back onto its ' +
     'nearest support along its attachment direction (Y only for deck, internal and rudder parts; the wall normal ' +
     'for wall fittings); --slide also moves sideways onto the closest support when nothing lies under it; reports ' +
-    'old and new position, gap and support per ID; proposes a guarded batch validated by a native dry-run; never ' +
+    'old and new position, gap and support per ID; what a reseated record carries (`parent`) moves with it and ' +
+    '--all leaves parented records to their parent; proposes a guarded batch validated by a native dry-run; never ' +
     'saves',
   values: ['--ids', '--out'],
   switches: ['--all', '--slide'],
@@ -47,7 +48,7 @@ export default {
         }
       : report;
     emit(
-      await proposeBatch(ctx, current, 'Reseat equipment', reseatCommands(placements), blocking, {
+      await proposeBatch(ctx, current, 'Reseat equipment', reseatCommands(placements, undefined, source), blocking, {
         skipped,
         ...(!ctx.has('--slide') && report.placements.some((p) => p.status === 'unsupported' && !p.message?.includes('within'))
           ? {

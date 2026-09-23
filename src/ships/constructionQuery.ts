@@ -452,6 +452,15 @@ export function constructionSummary(
           ),
         ]),
     ),
+    // Parents (`parent`): child → the hull piece or equipment row that carries it.
+    ...(c.equipment.some((item) => item.parent !== undefined && wanted(partOf(catalog, item)?.kind ?? 'unknown'))
+      ? {
+          parentColumns: 'equipment id → the hull piece or equipment id it rides; move, rotate, copy and remove carry it',
+          parents: Object.fromEntries(
+            c.equipment.filter((item) => item.parent !== undefined && wanted(partOf(catalog, item)?.kind ?? 'unknown')).map((item) => [item.id, item.parent]),
+          ),
+        }
+      : {}),
     ...(definitions.length && wanted('custom-fitting')
       ? {
           customFittingColumns: ['id', 'name', 'solids', 'tubes', 'massKg (null: the definition does not resolve)', 'instances', 'partId'],
