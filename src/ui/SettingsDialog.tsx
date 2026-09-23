@@ -161,6 +161,17 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
           ],
         },
         {
+          id: 'ambientOcclusion',
+          label: 'Ambient occlusion',
+          cost: 2,
+          hint: 'Shades sky light where turrets, mounts and superstructure meet. Sunlight is unchanged.',
+          options: [
+            ['off', 'Off'],
+            ['low', 'Low'],
+            ['high', 'High'],
+          ],
+        },
+        {
           id: 'terrain',
           label: 'Terrain and vegetation',
           cost: 1,

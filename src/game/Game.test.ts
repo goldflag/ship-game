@@ -222,7 +222,7 @@ async function port(storageMatrices = false) {
     funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false, frameWaiters: [], observedShipViews: new ObservedShipViews(),
-    hulls: new Map(), palette: new ShipMaterialPalette(),
+    hulls: new Map(), palette: new ShipMaterialPalette(), occlusion: { adopt() {}, render() {} },
     renderer: { backend: { isWebGPUBackend: storageMatrices }, domElement: { setAttribute() {} } },
     environment: makeTestEnvironment(),
   }) as Game;

@@ -36,6 +36,7 @@ import { prepareInstanceUploads } from './InstanceUploads';
 import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
+import { ShipOcclusion } from './ShipOcclusion';
 import { loadShipModel } from './loadShipModel';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
@@ -158,6 +159,7 @@ export class Game {
   private readonly hulls = new Map<string, THREE.Group>();
   /** One palette for every hull kept, so paint still collapses across cached fleets. */
   private readonly palette = new ShipMaterialPalette();
+  private readonly occlusion: ShipOcclusion;
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
@@ -313,6 +315,7 @@ export class Game {
     // grazing wall stretches a texel across many pixels its edges stair-step. PCFSoft's
     // bilinear 3×3 gather is smooth at the same cost; water shadows keep their own filter.
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.occlusion = new ShipOcclusion(this.camera, this.renderer.reversedDepthBuffer);
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
@@ -376,6 +379,7 @@ export class Game {
     Object.assign(this.launchedGraphics, { ocean: this.settings.ocean, terrain: this.settings.terrain });
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
+    this.graphicsControl.applyAmbientOcclusion();
     this.callbacks.progress('Starting graphics', 0.08);
     this.resize();
     await this.renderer.init();
@@ -912,6 +916,7 @@ export class Game {
       throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
     }
     this.palette.apply(model);
+    this.occlusion.adopt(model);
     batchShipModel(model);
     this.hulls.set(key, model);
     return model;
@@ -1102,6 +1107,8 @@ export class Game {
       });
       this.scene.beginFrame();
       try {
+        // Ship occlusion first: the ocean captures below draw ship materials too.
+        this.occlusion.render(this.renderer, this.scene);
         await this.water!.update(dt);
         this.underwaterPassVisibility?.capture();
         if (this.disposed) return;
@@ -1171,7 +1178,7 @@ export class Game {
       get frameIntervalMs() { return game.frameIntervalMs; }, set frameIntervalMs(value) { game.frameIntervalMs = value; },
       get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
       get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
-      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get water() { return game.water; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; },
+      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get water() { return game.water; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; }, get occlusion() { return game.occlusion; },
       get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
       get disposed() { return game.disposed; },
       requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),
@@ -1858,6 +1865,7 @@ export class Game {
     this.pipeline?.dispose();
     this.finalFrame?.renderTarget?.dispose();
     this.scenePass?.dispose();
+    this.occlusion.dispose();
     this.armorOverlay?.dispose();
     this.shipWake?.dispose();
     await this.aircraftView.dispose();

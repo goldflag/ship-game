@@ -72,3 +72,17 @@ test('water shadows migrate old presets and stay independently configurable with
   expect(matchingPreset({ ...DEFAULT_GRAPHICS, waterShadows: 'medium' })).toBeNull();
   expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, waterShadows: 'invalid' }).waterShadows).toBe('high');
 });
+
+test('ambient occlusion migrates saves to their preset and falls back per row', () => {
+  expect(PRESET_ORDER.map(name => GRAPHICS_PRESETS[name].ambientOcclusion)).toEqual(['off', 'off', 'low', 'high']);
+  for (const name of PRESET_ORDER) {
+    const { ambientOcclusion: _ambientOcclusion, ...oldSave } = GRAPHICS_PRESETS[name];
+    expect(sanitizeGraphicsSettings(oldSave)).toEqual(GRAPHICS_PRESETS[name]);
+  }
+  // An old custom save follows the preset it sits closest to.
+  const { ambientOcclusion: _ambientOcclusion, ...customLow } = { ...GRAPHICS_PRESETS.low, renderScale: 100 };
+  expect(sanitizeGraphicsSettings(customLow).ambientOcclusion).toBe('off');
+  for (const level of ['off', 'low', 'high'] as const) expect(sanitizeGraphicsSettings({ ...GRAPHICS_PRESETS.low, ambientOcclusion: level }).ambientOcclusion).toBe(level);
+  expect(sanitizeGraphicsSettings({ ...GRAPHICS_PRESETS.low, ambientOcclusion: 'ultra' }).ambientOcclusion).toBe(DEFAULT_GRAPHICS.ambientOcclusion);
+  expect(matchingPreset({ ...DEFAULT_GRAPHICS, ambientOcclusion: 'off' })).toBeNull();
+});

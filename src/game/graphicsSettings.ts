@@ -7,6 +7,7 @@ export type ModelDetail = 'low' | 'medium' | 'high' | 'full';
 export type TerrainQuality = 'medium' | 'high';
 export type EffectsQuality = 'low' | 'medium' | 'high';
 export type Antialiasing = 'off' | 'fxaa' | 'smaa';
+export type AmbientOcclusion = 'off' | 'low' | 'high';
 export type Reflections = 'sky' | 'scene';
 export type PerformanceReadoutMode = 'hidden' | 'fps' | 'detailed';
 /** Frames per second; 0 follows the display refresh. */
@@ -22,6 +23,8 @@ export interface GraphicsSettings {
   reflections: Reflections;
   clouds: CloudQuality;
   shadows: ShadowQuality;
+  /** Ship-on-ship occlusion of sky and fill light; see ShipOcclusion. Applies live. */
+  ambientOcclusion: AmbientOcclusion;
   /** Filtering of ship shadows on the sea; requires scene shadows. Applies live. */
   waterShadows: WaterShadowQuality;
   modelDetail: ModelDetail;
@@ -38,10 +41,10 @@ export const FRAME_LIMITS: readonly FrameLimit[] = [0, 120, 60, 30];
 
 /** High reproduces the ocean, sky, shadow and terrain choices of the former High tier exactly. */
 export const GRAPHICS_PRESETS: Readonly<Record<GraphicsPreset, Readonly<GraphicsSettings>>> = {
-  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
-  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
-  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
-  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
+  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', ambientOcclusion: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
+  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', ambientOcclusion: 'off', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
+  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', ambientOcclusion: 'low', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
+  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', ambientOcclusion: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
 };
 export const PRESET_ORDER: readonly GraphicsPreset[] = ['low', 'medium', 'high', 'ultra'];
 export const DEFAULT_GRAPHICS: Readonly<GraphicsSettings> = GRAPHICS_PRESETS.high;
@@ -60,7 +63,7 @@ export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
   const base: GraphicsSettings = { ...DEFAULT_GRAPHICS };
   // Older saves inherit the water tier associated with their shadow budget.
   const inheritedWater = saved.shadows === 'off' ? 'off' : saved.shadows === 'low' ? 'low' : base.waterShadows;
-  return {
+  const settings: GraphicsSettings = {
     renderScale: sanitizeRenderScale(saved.renderScale, base.renderScale),
     frameLimit: FRAME_LIMITS.includes(saved.frameLimit as FrameLimit) ? saved.frameLimit as FrameLimit : base.frameLimit,
     antialiasing: oneOf(saved.antialiasing, ['off', 'fxaa', 'smaa'], base.antialiasing),
@@ -68,12 +71,17 @@ export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
     reflections: oneOf(saved.reflections, ['sky', 'scene'], base.reflections),
     clouds: oneOf(saved.clouds, ['low', 'medium', 'high', 'ultra'], base.clouds),
     shadows: oneOf(saved.shadows, ['off', 'low', 'medium', 'high'], base.shadows),
+    ambientOcclusion: oneOf(saved.ambientOcclusion, ['off', 'low', 'high'], base.ambientOcclusion),
     waterShadows: oneOf(saved.waterShadows, ['off', 'low', 'medium', 'high'], saved.waterShadows === undefined ? inheritedWater : base.waterShadows),
     modelDetail: oneOf(saved.modelDetail, ['low', 'medium', 'high', 'full'], base.modelDetail),
     terrain: oneOf(saved.terrain, ['medium', 'high'], base.terrain),
     effects: oneOf(saved.effects, ['low', 'medium', 'high'], base.effects),
     readout: oneOf(saved.readout, ['hidden', 'fps', 'detailed'], base.readout),
   };
+  // Saves from before the row take the occlusion of the preset they sit closest to,
+  // so a saved preset still reads as that preset.
+  if (saved.ambientOcclusion === undefined) settings.ambientOcclusion = GRAPHICS_PRESETS[nearestPreset({ ...settings, ambientOcclusion: 'unset' as AmbientOcclusion })].ambientOcclusion;
+  return settings;
 }
 
 export function loadGraphicsSettings(): GraphicsSettings {
