@@ -442,8 +442,10 @@ export class CloudLayer implements CloudPart {
         const uv = vec2(cell).add(.5).div(u.cloudSize);
         const direction = this.ray(uv).toVar();
         const origin = this.sky.cameraPosition;
+        // The jitter spreads over neighbouring rays of this update (the march texels), as interleaved gradient
+        // noise is made to; read at interleaved pixels it would stripe, most of all the rain's long steps.
         const result = marchClouds(this.context, origin, origin.y, direction,
-          { steps: u.steps, lightSteps, jitter: gradientJitter(vec2(cell), u.frame), pixelAngle: u.pixelAngle, stepScale: u.stepScale,
+          { steps: u.steps, lightSteps, jitter: gradientJitter(vec2(m), u.frame), pixelAngle: u.pixelAngle, stepScale: u.stepScale,
             rain: { uniforms: { precipitation: u.precipitation, drift: this.windAxis }, detail: this.volumes[1].map, shadow: p => this.shadowAt(p, true) } });
         textureStore(this.march.color, uvec2(m), vec4(result.radiance, result.transmittance));
         textureStore(this.march.depth, uvec2(m), vec4(result.depth.div(1000), 0, 0, 1));

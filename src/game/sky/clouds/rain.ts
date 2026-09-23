@@ -1,5 +1,5 @@
 import { Vector2, type Node, type Texture, type UniformNode } from 'three/webgpu';
-import { If, Loop, exp, float, int, max, min, mix, select, smoothstep, texture3D, vec3 } from 'three/tsl';
+import { Break, If, Loop, exp, float, int, max, min, mix, select, smoothstep, texture3D, vec3 } from 'three/tsl';
 import type { MarchContext } from './march';
 import { localCover, type Arithmetic } from './model';
 import { nodes } from './field';
@@ -15,8 +15,10 @@ export interface RainUniforms {
   readonly drift: UniformNode<'vec2', Vector2>;
 }
 
-/** Samples along a ray's stretch below the base. */
-const RAIN_STEPS = 10;
+/** Metres between samples along a ray's stretch below the base, and the fewest and most samples a ray takes.
+ * A sample in a downpour is nearly opaque, so where the first one lands decides the pixel: samples farther apart
+ * than the storm cells would scatter that between neighbouring pixels and frames, and the far shafts sparkle. */
+const RAIN_SPACING = 1_500, RAIN_STEPS = [6, 30] as const;
 /** Extinction (1/m) of the heaviest shaft: a downpour cuts visibility to a few kilometres. */
 const RAIN_EXTINCTION = .0022;
 /** Rain nearer than these distances (m) fades out: the weather part's streaks and haze own the near air. */
@@ -56,11 +58,12 @@ export function marchRain(context: MarchContext, options: RainOptions, origin: V
     const end = min(select(direction.y.greaterThan(0), toBase, toSea), RAIN_FAR).toVar();
     const start = float(RAIN_NEAR[0]);
     If(end.greaterThan(start), () => {
-      const step = end.sub(start).div(RAIN_STEPS).toVar();
+      const count = int(end.sub(start).div(RAIN_SPACING).ceil().clamp(RAIN_STEPS[0], RAIN_STEPS[1])).toVar();
+      const step = end.sub(start).div(float(count)).toVar();
       const ambient = context.atmosphere.ambient(layer.base.mul(.5));
       const fill = mix(ambient.below, ambient.above, .6).mul(context.ambient).toVar();
       const curtains = texture3D(options.detail);
-      Loop({ start: int(0), end: int(RAIN_STEPS), type: 'int' }, ({ i }) => {
+      Loop({ start: int(0), end: count, type: 'int' }, ({ i }) => {
         const t = start.add(step.mul(float(i).add(jitter))).toVar();
         const p = origin.add(direction.mul(t)).toVar();
         const fallen = layer.base.sub(p.y).max(0);
@@ -83,6 +86,8 @@ export function marchRain(context: MarchContext, options: RainOptions, origin: V
           state.weighted.addAssign(t.mul(share2)); state.weight.addAssign(share2);
           state.transmittance.mulAssign(absorbed.oneMinus());
         });
+        // Nothing behind a downpour shows: stop once the rain has taken nearly all the light.
+        If(state.transmittance.lessThan(.005), () => { Break(); });
       });
     });
   });
