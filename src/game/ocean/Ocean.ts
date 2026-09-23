@@ -126,7 +126,8 @@ export class Ocean implements OceanApi {
     this.heights.setPositions(this.floaters.map(({ object }) => ({ x: object.position.x, z: object.position.z })));
   }
 
-  resize(): void {}
+  /** Nothing to resize yet: three sizes the viewport copies from the drawing buffer. */
+  resize(_width: number, _height: number): void {}
 
   dispose(): void {
     this.geometry.mesh.removeFromParent();
