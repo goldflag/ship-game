@@ -258,8 +258,10 @@ export class GpuWaveField implements WaveField {
       ab = ab.add(rotate(direct(maps[0].load(at)) as unknown as Vec4, c, s));
       cd = cd.add(rotate(direct(maps[1].load(at)) as unknown as Vec4, c, s));
     }
-    // Crests break where they are compressed and steep on their forward face (see whitecaps.ts).
-    const compression = cd.z.add(cd.w).negate(), face = cd.x.mul(this.wind.x).add(cd.y.mul(this.wind.y)).negate();
+    // Crests break where they are compressed along the wind and steep on their forward face (see whitecaps.ts).
+    const wx = this.wind.x, wz = this.wind.y;
+    const compression = cd.z.mul(wx.mul(wx)).add(ab.w.mul(wx.mul(wz).mul(2))).add(cd.w.mul(wz.mul(wz))).negate();
+    const face = cd.x.mul(wx).add(cd.y.mul(wz)).negate();
     const indicator = compression.mul(this.breakingWeights.x).add(face.mul(this.breakingWeights.y));
     const ramp = float(BREAKING_RAMP / 2).div(this.breakingThreshold.max(1));
     const injection = smoothstep(this.breakingThreshold.sub(ramp), this.breakingThreshold.add(ramp), indicator);

@@ -66,9 +66,11 @@ function lace(u: number, v: number): number {
 }
 
 /** Streak lines: this many rows per tile across the texture (v) at two spacings, each holding one line jittered
- * within its row; their half-widths in texels; how far (in rows) they meander, so neighbours close up and part; and
- * how many times per tile each breaks along its length (u). */
+ * within its row; their half-widths in texels; how far (in rows) they meander over the tile, so neighbours close up
+ * and part, and wiggle over a few metres of their length; and how many times per tile each breaks along its length
+ * (u) and swells and narrows. */
 const STREAK_ROWS = [5, 13], STREAK_WIDTH_MIN = .6, STREAK_WIDTH_MAX = 2.2, STREAK_MEANDER = .9, STREAK_BREAKS = 19;
+const STREAK_WIGGLE = .22, STREAK_WIGGLES = 40, STREAK_SWELLS = 30;
 /** Share of a line's half-width over which its edge softens: flat-topped lines, so thresholding the channel for more
  * coverage adds lines, in order of their strength, rather than fattening every line. */
 const STREAK_SOFT = .45;
@@ -77,12 +79,14 @@ const STREAK_GAP = .38, STREAK_GAP_EDGE = .22;
 
 /** One set of `rows` lines along u at (u, v): each row's line has its own place, width, strength and breaks. */
 function streakLines(u: number, v: number, rows: number, seed: number): number {
-  const y = v * rows + STREAK_MEANDER * (value(u, v, 3, 5, seed + 7) - .5), row = Math.floor(y);
+  const y = v * rows + STREAK_MEANDER * (value(u, v, 3, 5, seed + 7) - .5) + STREAK_WIGGLE * (value(u, v, STREAK_WIGGLES, rows, seed + 9) - .5);
+  const row = Math.floor(y);
   let line = 0;
   for (let offset = -1; offset <= 1; offset++) {
     const cell = row + offset, id = ((cell % rows) + rows) % rows;
     const centre = cell + .2 + .6 * hash(id, 0, seed);
-    const width = (STREAK_WIDTH_MIN + (STREAK_WIDTH_MAX - STREAK_WIDTH_MIN) * hash(id, 1, seed)) * rows / FOAM_TEXELS;
+    const swell = .4 + 1.2 * value(u + hash(id, 4, seed), 0, STREAK_SWELLS, 1, seed * 37 + id);
+    const width = (STREAK_WIDTH_MIN + (STREAK_WIDTH_MAX - STREAK_WIDTH_MIN) * hash(id, 1, seed)) * swell * rows / FOAM_TEXELS;
     const strength = .25 + .75 * hash(id, 3, seed), along = value(u + hash(id, 2, seed), 0, STREAK_BREAKS, 1, seed * 131 + id);
     const profile = 1 - smooth((Math.abs(y - centre) / width - (1 - STREAK_SOFT)) / STREAK_SOFT);
     line = Math.max(line, profile * strength * smooth((along - STREAK_GAP) / STREAK_GAP_EDGE));

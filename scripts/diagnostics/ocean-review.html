@@ -102,6 +102,7 @@ const scenes = {
   wind18: async () => { await battle({ wind: 18 }); look(...NEAR); },
   wind30: async () => { await battle({ wind: 30 }); look(...NEAR); },
   stormClose: async () => { await battle({ wind: 25 }); look([120, 40, 150], [0, 0, 0], 50); },
+  galeClose: async () => { await battle({ wind: 15 }); look([120, 40, 150], [0, 0, 0], 50); },
   dusk: async () => { await battle({ hours: 17.8 }); look(...WIDE); },
   night: async () => { await battle({ hours: 0 }); look(...NEAR); },
   islands: async () => {

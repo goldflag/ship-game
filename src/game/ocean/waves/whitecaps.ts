@@ -1,12 +1,14 @@
 /** Whitecaps: how much of the sea the wind turns white, and where each cascade's crests break to make it so. Pure
  * TypeScript over the CPU spectrum; the wave field applies the result when it rebuilds.
  *
- * A crest breaks where it is both compressed (the choppy displacement's −∇·D, largest at the crest) and steep on its
- * forward face (the slope falling away downwind). Both are linear in the wave amplitudes, and for every travelling mode
- * they are a quarter period apart, so over the tile they are uncorrelated Gaussian fields whose variances the spectrum
- * gives exactly. Their normalised blend is a standard normal "breaking indicator" peaking on the forward face; a crest
- * breaks where it passes a quantile chosen for the coverage the wind calls for. The foam that covers the sea therefore
- * follows the wind, whatever the wavelengths, heights or choppiness of the waves that carry it. */
+ * A crest breaks where it is both compressed along the wind (the choppy displacement's −ŵ·∇(D·ŵ), largest at the
+ * crest) and steep on its forward face (the slope falling away downwind). Both are linear in the wave amplitudes, and
+ * for every travelling mode they are a quarter period apart, so over the tile they are uncorrelated Gaussian fields
+ * whose variances the spectrum gives exactly. Weighted by cos⁴θ and cos²θ of each wave's angle to the wind, they favour
+ * the waves the wind drives, whose crests run across it: the breaking zones stretch along the crests, as whitecaps do,
+ * instead of peaking in round blobs. Their normalised blend is a standard normal "breaking indicator" peaking on the
+ * forward face; a crest breaks where it passes a quantile chosen for the coverage the wind calls for. The foam that
+ * covers the sea therefore follows the wind, whatever the wavelengths, heights or choppiness of the waves that carry it. */
 import type { WaveSpectrum } from './spectrum';
 import { GRAVITY } from './spectrum';
 
@@ -66,8 +68,8 @@ export function normalTail(z: number): number {
   return z >= 0 ? tail : 1 - tail;
 }
 
-/** How one cascade breaks. `compression` and `face` weight its crest compression −(∂Dx/∂x + ∂Dz/∂z) and forward-face
- * slope −(∇h·ŵ) so that their sum is a standard normal indicator; crests break where it passes `threshold`. */
+/** How one cascade breaks. `compression` and `face` weight its crest compression along the wind −ŵ·∇(D·ŵ) and
+ * forward-face slope −(∇h·ŵ) so that their sum is a standard normal indicator; crests break where it passes `threshold`. */
 export interface CascadeBreaking {
   readonly compression: number;
   readonly face: number;
@@ -100,14 +102,15 @@ export function cascadeBreaking(spectrum: WaveSpectrum, wx: number, wz: number, 
   for (const cascade of spectrum.cascades) forModes(cascade, (e, kx, kz) => { energy += e; inverse += e / Math.hypot(kx, kz); });
   const mean = energy > 0 ? 2 * Math.PI * inverse / energy : 0;
   const stats = spectrum.cascades.map(cascade => {
-    let slope = 0, face = 0, weight = 0, weightedInverse = 0;
+    let squeeze = 0, face = 0, weight = 0, weightedInverse = 0;
     forModes(cascade, (e, kx, kz) => {
       const k2 = kx * kx + kz * kz, k = Math.sqrt(k2), along = kx * wx + kz * wz;
-      slope += e * k2; face += e * along * along;
+      // Along the wind, a mode compresses its crest by choppiness·(k·ŵ)²/k·a and tilts its face by (k·ŵ)·a.
+      squeeze += e * along ** 4 / k2; face += e * along * along;
       const w = e * k2 * breakingWindow(2 * Math.PI / k, mean);
       weight += w; weightedInverse += w / k;
     });
-    const compression = Math.max(0, choppiness) ** 2 * slope;
+    const compression = Math.max(0, choppiness) ** 2 * squeeze;
     // Weights so that (a·compression + b·face) ~ N(0, 1): cos and sin of the forward shift over each deviation.
     const a = compression > 0 ? Math.cos(FACE_SHIFT) / Math.sqrt(compression) : 0;
     const b = face > 0 ? (compression > 0 ? Math.sin(FACE_SHIFT) : 1) / Math.sqrt(face) : 0;
@@ -147,11 +150,24 @@ export function whitecapDepth(windSpeed: number, scale = 1): number {
   return depth / Math.max(1 / MAX_BOOST, 1 - SATURATION * depth);
 }
 
+/** The most of the sea a cascade may break over at an instant: its whole crest half. */
+const MAX_BREAKING = .5;
+
 /** Place each cascade's threshold so that it breaks over the fraction of the sea that covers its share of the
- * whitecaps' optical `depth`. Every cascade but the coarsest is gated (field.ts). */
+ * whitecaps' optical `depth`. Every cascade but the coarsest is gated (field.ts). A cascade that would have to break
+ * over more than MAX_BREAKING hands the depth it cannot carry to the others in proportion to their shares, so a sea
+ * whose breaking waves crowd into one cascade still reaches its coverage. */
 export function setBreakingThresholds(cascades: CascadeBreaking[], depth: number): void {
+  const capacity = cascades.map((_, i) => MAX_BREAKING * PERSISTENCE * (i ? GATED_SHOWING : 1));
+  const carried = cascades.map(cascade => cascade.share * depth);
+  for (let pass = 0; pass < cascades.length; pass++) {
+    const excess = carried.reduce((sum, d, i) => sum + Math.max(0, d - capacity[i]), 0);
+    const open = cascades.reduce((sum, cascade, i) => sum + (carried[i] < capacity[i] ? cascade.share : 0), 0);
+    if (!(excess > 0) || !(open > 0)) break;
+    carried.forEach((d, i) => { carried[i] = d >= capacity[i] ? capacity[i] : d + excess * cascades[i].share / open; });
+  }
   cascades.forEach((cascade, i) => {
-    const fraction = Math.min(.5, cascade.share * depth / (PERSISTENCE * (i ? GATED_SHOWING : 1)));
+    const fraction = Math.min(MAX_BREAKING, carried[i] / (PERSISTENCE * (i ? GATED_SHOWING : 1)));
     cascade.threshold = fraction > MIN_ACTIVE && (cascade.compression || cascade.face) ? -normalQuantile(fraction) : Infinity;
   });
 }
