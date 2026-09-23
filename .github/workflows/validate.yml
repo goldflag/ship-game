@@ -69,7 +69,8 @@ jobs:
         run: |
           cargo build --release --locked -p naval-server --bin naval-server
           cargo build --release --locked -p naval-sim --example compile_construction
-          POSTGRES_TEST_URL="$BATTLE_DATABASE_URL" cargo test --release -p naval-server ordered_postgres_flush_terminal_immutability_and_restart_abort -- --ignored
+          # The test refuses a URL without "_test" in it; this container's database is disposable, and the application name says so.
+          POSTGRES_TEST_URL="$BATTLE_DATABASE_URL?application_name=naval_ci_test" cargo test --release -p naval-server ordered_postgres_flush_terminal_immutability_and_restart_abort -- --ignored
           bun services/api/main.ts > /tmp/naval-api.log 2>&1 &
           naval_api_pid=$!
           bun services/compiler/worker.ts > /tmp/naval-compiler.log 2>&1 &
