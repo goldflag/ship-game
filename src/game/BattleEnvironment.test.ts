@@ -137,7 +137,9 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     if (time.id === 'night') {
       expect(sky.sun.intensity.value).toBe(0);
       expect(sky.timeOfDay.moonDirection.value.y).toBeGreaterThan(0);
-      expect(environment.ambientLight.intensity).toBeLessThan(.5);
+      // Night keeps a dim authored ambient; moonlit meshes take 1.6 times it so hulls stay readable.
+      expect(environment.diagnostics().environment!.ambient).toBeLessThan(.5);
+      expect(environment.ambientLight.intensity).toBeCloseTo(expected.sky.ambient * 1.6, 10);
       expect(ocean.fog.color.getHexString()).toBe('182839');
       expect(effects.direct).toBeLessThan(1);
       expect(effects.direct).toBeGreaterThan(0);
