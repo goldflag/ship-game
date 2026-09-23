@@ -37,7 +37,7 @@ export class Sky implements SkyApi {
     const atmosphere = await createAtmosphere(context);
     const celestial = await createCelestial(context);
     const clouds = await createClouds(context, atmosphere);
-    const weather = await createWeather(context, options.weather);
+    const weather = await createWeather(context, atmosphere, options.weather);
     const meshes: Object3D[] = [];
     // The bake sees the sky from sea level; its sun disc and stars stay out (the sea draws its own glints).
     const sources: EnvironmentSources = {

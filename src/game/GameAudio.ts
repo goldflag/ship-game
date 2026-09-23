@@ -3,8 +3,37 @@ import { selectedWeapon } from '../ships/weaponGroups';
 
 import type { Battery, Vec3 } from '../ships/blueprint';
 import { CombatAudioEvents, SOUND_IDS, sanitizeAudio, spatialMix, type AudioBus, type AudioSettings, type SoundId } from './audio';
+import { thunderSound } from './sky/weather/thunder';
 
-interface Voice { source: AudioBufferSourceNode; gain: GainNode; nodes: AudioNode[]; bus: AudioBus; }
+/** `thunder` voices never count against the combat cap, and at most `MAX_THUNDER` claps wait or roll at once. */
+interface Voice { source: AudioBufferSourceNode; gain: GainNode; nodes: AudioNode[]; bus: AudioBus; thunder?: boolean; }
+const MAX_THUNDER = 4;
+/** Seconds of looped rumble noise, and of the crack's burst. */
+const RUMBLE_NOISE = 4, CRACK_NOISE = .7;
+
+/** Procedural thunder noise, made once per audio context: a seamlessly looping brown-noise rumble and a crackle of
+ * sharp impulses over a decaying hiss for the crack. No recorded asset. */
+function thunderNoise(context: AudioContext): { rumble: AudioBuffer; crack: AudioBuffer } {
+  const rate = context.sampleRate, rumble = context.createBuffer(1, Math.round(rate * RUMBLE_NOISE), rate), low = rumble.getChannelData(0);
+  let walk = 0, sum = 0;
+  for (let i = 0; i < low.length; i++) { walk = (walk + (Math.random() * 2 - 1) * .02) / 1.02; low[i] = walk; sum += walk; }
+  // Remove the drift and the seam, so the loop neither thumps nor clicks.
+  const mean = sum / low.length, seam = low[low.length - 1] - low[0];
+  let peak = 1e-6;
+  for (let i = 0; i < low.length; i++) { low[i] -= mean + seam * (i / (low.length - 1) - .5); peak = Math.max(peak, Math.abs(low[i])); }
+  for (let i = 0; i < low.length; i++) low[i] /= peak;
+  const crack = context.createBuffer(1, Math.round(rate * CRACK_NOISE), rate), burst = crack.getChannelData(0);
+  // A hiss that dies in a quarter second, and 4 ms discharges that thin out behind the first report.
+  const fade = Math.exp(-1 / (rate * .004));
+  let spark = 1;
+  for (let i = 0; i < burst.length; i++) {
+    const t = i / rate;
+    if (Math.random() < 40 / rate * Math.exp(-t / .15)) spark = Math.max(spark, .5 + Math.random() * .5);
+    spark *= fade;
+    burst[i] = (Math.random() * 2 - 1) * (Math.exp(-t / .09) * .45 + spark);
+  }
+  return { rumble, crack };
+}
 
 /** Browser audio adapter; never writes to the CPU simulation. One owner per game session. */
 export class GameAudio {
@@ -27,6 +56,8 @@ export class GameAudio {
   private lastUi = -Infinity;
   private failed: SoundId[] = [];
   private played = 0;
+  private thunders = 0;
+  private noise?: ReturnType<typeof thunderNoise>;
   private settings: AudioSettings;
 
   constructor(settings: AudioSettings) {
@@ -143,8 +174,8 @@ export class GameAudio {
   private play(id: SoundId, bus: AudioBus, level: number, position?: Vec3, rate = 1): void {
     const context = this.context, buffer = this.buffers.get(id);
     if (!context || !buffer || !this.buses || this.disposed || context.state !== 'running' || document.hidden || this.settings.muted || this.settings.master === 0 || this.settings[bus] === 0) return;
-    // Bound salvos and repeat input without sacrificing menu feedback.
-    if ([...this.voices].filter(v => v.bus === bus).length >= (bus === 'interface' ? 4 : 20)) return;
+    // Bound salvos and repeat input without sacrificing menu feedback. Rolling thunder never crowds out the guns.
+    if ([...this.voices].filter(v => v.bus === bus && !v.thunder).length >= (bus === 'interface' ? 4 : 20)) return;
     const source = context.createBufferSource(), gain = context.createGain();
     source.buffer = buffer; source.playbackRate.value = rate;
     const nodes: AudioNode[] = [source, gain];
@@ -160,12 +191,56 @@ export class GameAudio {
     source.onended = () => { this.voices.delete(voice); nodes.forEach(node => node.disconnect()); };
     source.start(); this.played++;
   }
+  /** A thunderclap for a lightning strike, heard `delay` seconds from now: procedural noise on the effects bus, a
+   * crack for a near strike and a rumble whose length and muffling grow with `distance` (`thunderSound`). Nothing
+   * is scheduled while paused, muted or hidden, and pausing or leaving the scene cancels a clap still in flight,
+   * as it stops every effect. */
+  thunder({ distance, delay, loudness }: { distance: number; delay: number; loudness: number }): void {
+    const context = this.context, buses = this.buses;
+    if (!context || !buses || this.disposed || this.paused || context.state !== 'running' || document.hidden || this.settings.muted
+      || this.settings.master === 0 || this.settings.effects === 0 || !(loudness > .01)) return;
+    if ([...this.voices].filter(voice => voice.thunder).length >= MAX_THUNDER) return;
+    const noise = this.noise ??= thunderNoise(context), sound = thunderSound(distance, loudness, Math.random);
+    const start = context.currentTime + Math.max(0, delay), end = start + sound.attack + sound.rumble;
+    const pan = context.createStereoPanner();
+    pan.pan.value = sound.pan; pan.connect(buses.effects);
+    const voice = (source: AudioBufferSourceNode, gain: GainNode, nodes: AudioNode[]) => {
+      const entry: Voice = { source, gain, nodes: [source, ...nodes, gain], bus: 'effects', thunder: true };
+      this.voices.add(entry);
+      source.onended = () => { this.voices.delete(entry); entry.nodes.forEach(node => node.disconnect()); };
+    };
+    // The rumble: looped brown noise, muffled by distance, swelling through its rolls and dying away.
+    const rumble = context.createBufferSource(), lowpass = context.createBiquadFilter(), rumbleGain = context.createGain();
+    rumble.buffer = noise.rumble; rumble.loop = true;
+    lowpass.type = 'lowpass'; lowpass.frequency.value = sound.cutoff; lowpass.Q.value = .5;
+    const level = rumbleGain.gain;
+    level.setValueAtTime(0, start);
+    level.linearRampToValueAtTime(sound.level * (sound.rolls[0]?.level ?? 1), start + sound.attack);
+    for (const roll of sound.rolls) level.linearRampToValueAtTime(sound.level * roll.level, start + sound.attack + roll.time);
+    level.exponentialRampToValueAtTime(1e-4, end);
+    rumble.connect(lowpass); lowpass.connect(rumbleGain); rumbleGain.connect(pan);
+    // The rumble outlasts the crack, so it takes the shared panner down with it.
+    voice(rumble, rumbleGain, [lowpass, pan]);
+    rumble.start(start, Math.random() * RUMBLE_NOISE); rumble.stop(end + .05);
+    if (sound.crack > .01) {
+      // The crack: a bright burst of discharges ahead of the rumble.
+      const crack = context.createBufferSource(), highpass = context.createBiquadFilter(), crackGain = context.createGain();
+      crack.buffer = noise.crack;
+      highpass.type = 'highpass'; highpass.frequency.value = 450;
+      crackGain.gain.value = sound.crack;
+      crack.connect(highpass); highpass.connect(crackGain); crackGain.connect(pan);
+      voice(crack, crackGain, [highpass]);
+      crack.start(start);
+    }
+    this.thunders++;
+  }
+
   private stopEffects(): void {
     for (const voice of this.voices) if (voice.bus === 'effects') voice.source.stop();
   }
   diagnostics() {
     return { state: this.context?.state ?? 'locked', loaded: this.buffers.size, total: SOUND_IDS.length, failed: [...this.failed],
-      voices: this.voices.size, played: this.played, inPort: this.inPort, paused: this.paused, settings: { ...this.settings } };
+      voices: this.voices.size, played: this.played, thunders: this.thunders, inPort: this.inPort, paused: this.paused, settings: { ...this.settings } };
   }
   dispose(): void {
     this.disposed = true; this.abort.abort();

@@ -1,13 +1,10 @@
-import type { Node } from 'three/webgpu';
-import type { SkyPartContext, WeatherPart } from '../contracts';
-import { createStubWeather } from '../stubs/weather';
+import type { AtmospherePart, SkyPartContext, WeatherPart } from '../contracts';
+import { WeatherSystem, type WeatherOptions } from './WeatherSystem';
 
-export interface WeatherOptions {
-  /** Height of the drawn sea (waves and wake) at world XZ, for splashes that sit on the water. */
-  seaHeight?: (x: Node<'float'>, z: Node<'float'>) => Node<'float'>;
-}
+export type { WeatherOptions } from './WeatherSystem';
 
-/** Rain, splashes, lightning and thunder. */
-export function createWeather(_context: SkyPartContext, _options: WeatherOptions = {}): WeatherPart | Promise<WeatherPart> {
-  return createStubWeather();
+/** Rain, splashes, lightning and thunder. The atmosphere lights the rain: its diffuse sky light at the camera's
+ * altitude fills the drops and the rain-lit air. */
+export function createWeather(context: SkyPartContext, atmosphere: AtmospherePart, options: WeatherOptions = {}): WeatherPart {
+  return new WeatherSystem(context, atmosphere, options);
 }
