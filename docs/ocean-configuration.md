@@ -2,8 +2,9 @@
 
 The sea is the game's own WebGPU ocean in `src/game/ocean`. Its design, parts, quality tiers and
 validation are in [its README](../src/game/ocean/README.md); this page records the configuration the
-game gives it. Sky Pro 2.2.0 supplies the live sky, clouds and atmosphere, and the environment the
-water reflects.
+game gives it. The sky is the game's own too (`src/game/sky`, [its README](../src/game/sky/README.md)): it
+supplies the atmosphere, clouds, the celestial light the sea and ships share, and the environment the
+water reflects. The Sky Pro library it replaced remains as a comparison ([below](#comparing-with-sky-pro)).
 
 `Game.initialize` creates the ocean for the Graphics → Ocean tier (Low, Medium, High or Ultra; it
 applies when the port next loads) with wave seed 1941 (any integer is safe). From then on
@@ -235,9 +236,9 @@ two extra sky taps of an elongated lobe); the physical water colour costs under 
 
 `ocean.fog` becomes `scene.fogNode` for every fogged material, including transparent effects: a ramp
 from `start` to `end` raised to `power`, whose colour turns into the sky's own fog colour along the
-view ray over `skyBlendDistance`. Sky backdrops are not fogged. The final composition adds no Sky Pro
-`applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the
-horizon.
+view ray over `skyBlendDistance`. Sky backdrops are not fogged. The final composition adds no depth-based
+post fog: such a pass reads opaque depth behind transparent smoke and can erase it at the horizon (the
+sky's post chain adds only sun shafts and a rain veil).
 
 | Scene | Start | End | Power | Sky blend |
 | --- | --- | --- | --- | --- |
@@ -460,37 +461,45 @@ The numeric time slider blends the authored night, dawn/dusk and map fog colours
 Hemisphere fill retains 50% of the map/weather daylight setting at night and reaches full strength at
 18° elevation. This keeps ship details readable while preserving a darker sea and sky.
 
-`VisualEnvironment.syncLighting` supplies the same active celestial light to the ocean (`ocean.sun`:
-direction, intensity and colour), the scene's directional light and its shadows, and combat effects,
-including on paused frames. Moonlight fades near the horizon; the low sun receives a warmer tint and
-reduced direct intensity, reaching the full daylight at 18°.
+The sky computes the active celestial light (`sky.light`: direction, colour, intensity, whether it is
+the moon, and a lightning flash) from its own atmosphere: sunlight at sea level after the air it
+crosses, white at a high sun and golden near the horizon, never dimming faster than the game's earlier
+ramp, and the moon once it outshines the sun. `VisualEnvironment.syncLighting` shares it with the ocean
+(`ocean.sun`), the scene's directional light and its shadows, and combat effects, including on paused
+frames; a flash multiplies the hemisphere fill and smoke's ambient by `1 + flash`.
 
-Moon ambient is 0.07 with tint `#b4c9f0`. The water pigment and transmission use 24% of their
-original linear radiance at night, reaching 100% at 18°; foam takes the moon and the night sky's light. Absorption and wave energy are unchanged.
-Port restores its original colours, fill and direct light.
-
-Cloud ambient gain remains 1.1 × weather scale because Sky Pro already attenuates the incoming solar
-radiance. Its shared cloud baker and aerial haze include lunar diffuse light; its night composite
-preserves premultiplied colour when adjusting opacity. These
-[Sky Pro patches](../vendor/threejs-sky-pro/PATCHES.md) also reach the water's reflections. They add
-no render passes or cloud march samples. The settings are artistic gameplay lighting, not a
-geographic or calibrated astronomical model.
+The moon is full unless the developer console picks another phase (Shift-D, "moon 0.12"); the sky
+places it on the sun's arc 2π·phase behind the sun, with its path inclined 28° so an evening crescent
+stands over the afterglow. Moonlight above the air is 0.8 × the lit share of the disc in tint
+`#b4c9f0`, about a tenth of daylight: lifted far above nature so night hulls read. The water pigment
+and transmission use 24% of their original linear radiance at night, reaching 100% at 18°; foam takes
+the moon and the night sky's light. Absorption and wave energy are unchanged. Port restores its
+original colours, fill and direct light. The settings are artistic gameplay lighting, not a geographic
+or calibrated astronomical model.
 
 `/scripts/diagnostics/night-lighting.html` (`reviewLighting(hours, options)`) checks that the ocean
-and the scene light carry the same intensity, and that a battle night has the night fog colour and
-lunar cloud fill.
+and the scene light carry the same intensity and that a battle night has the night fog colour (with the
+Sky Pro comparison, also its lunar cloud fill).
 
 ## Sky and atmosphere
 
-Sky Pro's animated clouds and atmosphere are what the water reflects. Its environment bake follows
-Graphics → Clouds (for example 384 px wide with 16 cloud march steps at Medium) and refreshes every
-ninth frame. The game uses ACES tone mapping and neutral exposure, without bloom or film grain.
+[The sky's README](../src/game/sky/README.md) describes its parts: Hillaire's scattering tables with the
+planet's shadow for twilight, a limb-darkened sun, a phase-lit moon, a seeded star catalog and a
+procedural Milky Way, volumetric clouds with cirrus, cloud shadows and rain shafts, screen-space sun
+shafts, rain, splashes and lightning with procedural thunder. Graphics → Clouds picks its tier live.
+What the water reflects and every material is lit by is its environment bake: an equirectangular image
+from sea level under the camera (256, 384, 512 or 768 px wide by tier) of the sky and a short cloud
+march, refreshed in four bands over 16 frames with one PMREM refilter a sweep. Below the horizon it
+holds a sea (the sky mirrored with water's Fresnel over the dim water body), so hulls are not lit from
+below by the horizon's colour. The display grades with AgX (`DisplayTransform`); bloom, when on, gives
+the sun, moon and lightning their glow.
 
-The game requests reversed depth for centimetre-scale ship details at long battle ranges. Three.js
-gives the main scene pass a floating-point depth attachment, retaining the 0.5 m battle near plane and
-60 km far plane. Sky Pro 2.2.0's sky and cirrus background shaders need their constant far-depth value
-to match (0 for reversed depth); volumetric clouds already project their hit distance through the
-camera. The ocean and smoke use Three.js's depth conversion nodes, which account for reversed depth.
+The game requests reversed depth for centimetre-scale ship details at long battle ranges; the main scene
+pass keeps a floating-point depth attachment, the 0.5 m battle near plane and the 60 km far plane. The
+sky's dome is a full-screen backdrop at the far plane drawn right after the sea, so it shades only the
+sky left visible; the clouds' composite follows it, depth-tested at the clouds' own distance, so ships
+hide clouds and clouds hide the sea from the chart's height. The ocean and smoke use Three.js's depth
+conversion nodes, which account for reversed depth.
 
 ### Port light and horizon
 
@@ -500,13 +509,6 @@ Battle fog uses power **1.4** and the complete authored sky-colour blend distanc
 map/weather; port fog uses power **0.85** and a **2,600 m** blend. There is no custom horizon veil and
 no depth-based post fog.
 
-Sky Pro's atmospheric march uses a **0.8** correction toward midpoint attenuation near the daylight
-horizon, lifting the dark strip caused by its long sampling segments. The correction tapers to zero at
-**6°** view elevation and fades out between **18° and 6°** solar elevation. The upper sky, authored
-scattering colours, exposure, dusk and night keep their values. Reflections and far-fog sky colour
-share the correction; see the
-[Sky Pro patch record](../vendor/threejs-sky-pro/PATCHES.md#daylight-horizon-attenuation--september-20-2026)
-and the [GPU regression check](browser-verification.md#horizon-rendering-check).
 
 ### Daylight
 
@@ -514,13 +516,14 @@ The Atlantic's daytime setup uses sun elevation 48°, sun intensity 6.6, environ
 hemisphere fill 0.65 with a light tint; the other maps author their own sun, fill and sky. The HUD shade is confined to short edge regions (20% opacity at the top,
 44% at the bottom) and hides with the instruments.
 
-Sky Pro's cloud volumes use their own lighting; the scene's hemisphere light does not reach them. The
-cloud lighting uses base-shadow strength **0.20**, ambient intensity **1.10** and ground-bounce albedo
-**(0.09, 0.105, 0.12)** in linear RGB, an artistic fill for bright daylight cloud bases with a cool
-gray underside and brighter sunlit edges. The water reflects that lighting through the sky provider.
+The clouds light themselves from the atmosphere, not from the scene's hemisphere light: sunlight at
+their altitude, sky light from above and the sea's bounce from below, with the scene's cloud ambient
+(**1.10**, the weather's share) and base shadow (**0.20**, **0.55** in storms) grading the fill and the
+darker bases. The water reflects that lighting through the environment bake.
 
-The sky scattering is tuned away from a dark slate blue: less molecular blue scattering, broader
-aerosol scattering and more diffuse sky fill. These are visual settings, not a calibrated atmosphere.
+The authored scattering values below were tuned against Sky Pro; each sky maps them onto its own model
+(the game's sky through the documented gains in `src/game/sky/atmosphere/model.ts`), so they read as
+visual controls, not a calibrated atmosphere.
 
 | Sky parameter | Port | North Atlantic |
 | --- | --- | --- |
@@ -540,8 +543,8 @@ scene-specific sky parameters.
 
 Facing the sun at sea, the forward aureole once bleached about a third of the sky and the water
 beneath it. `VisualEnvironment` applies `SUN_HAZE` **0.45** to every map and weather preset's authored
-Mie strength, preserving their relative haze, and draws both discs at 1.4° (`CELESTIAL_DISC` 7.5e-5;
-the real discs are 0.53°). Raising `mieG` concentrated the same light into a hotter core, and a
+Mie strength, preserving their relative haze, and both skies draw the discs at 1.4° (1 − cos θ =
+7.5e-5; the real discs are 0.53°). Raising `mieG` concentrated the same light into a hotter core, and a
 disc-only brightness multiplier made no visible difference after ACES, so neither is used. The low
 sun remains the brightest case.
 
@@ -559,14 +562,18 @@ Storm clouds 16 m/s) and the calibrated sea turns wind into waves and foam. Pres
 weather over the map's sky and fog, then applies time-of-day sun angles, ambient scaling and
 twilight/night fog tint. Omitted selections and **Map default** retain the map's values. Dawn,
 Morning, Noon, Dusk and Night remain fixed during play; Clear, Partly cloudy, Overcast, Fog and Storm
-clouds control cloud coverage, altitude, fill, wind and distance haze. Storm clouds do not include
-precipitation or lightning, and visual visibility does not alter CPU bot acquisition or ballistics.
+clouds control cloud coverage, altitude, fill, wind and distance haze. Storm clouds bring rain (0.9) and
+lightning (3 strikes a minute), Overcast a drizzle (0.15); a custom sky rains from 75% cover, harder as
+the wind rises to a gale, and thunders on a solid deck in a storm-force wind (`src/maps/conditions.ts`,
+a table rather than the conditions JSON, which the simulation content hashes). Rain and lightning are
+visual only, and so is visibility: none of it alters CPU bot acquisition or ballistics.
 
-`VisualEnvironment.setScene` applies the composed conditions and freezes Sky Pro's celestial clock on
-an arc matching the authored sun direction, keeping the full moon opposite the sun. Night retains low
-ambient fill for readable silhouettes and uses a dark fog tint. The provider's sun-only fog sampler
-receives the same lunar ambient term as the sky dome, faded in with sky darkness, so the distant fog
-blend does not paint the night backdrop black. The shadow anchor follows the active sun or moon, with
+`VisualEnvironment.setScene` applies the composed conditions as a renderer-independent `SkyScene`
+(sun angles and intensity, moon phase, the authored atmosphere, clouds, rain and lightning); the sky
+places the sun exactly where the scene authored it, on an equinox arc whose pole makes that elevation, and
+the moon on the same arc. Night retains low ambient fill for readable silhouettes and uses a dark fog
+tint; the far fog turns into the sky's own moonlit colour, so the distant fog blend does not paint the
+night backdrop black. The shadow anchor follows the active sun or moon, with
 a restrained lunar directional fill at night. Returning to port restores cloud fill, horizon coverage,
 sun, atmospheric scattering and fog alongside the harbor's 9 m/s sea. Setup choices survive returns
 to port for the current page session. `Game.diagnostics()` exposes the selections and applied
@@ -612,6 +619,33 @@ machine moves frame times by several milliseconds: compare shading costs by flip
 `game.ocean.realism` between `oceanReview.measure()` calls in one page and reading low percentiles. Every page above freezes waves with `game.ocean.time = seconds`; a paused frame never
 advances it, and parameter changes still apply on the next update. Temporary captures belong in
 ignored `.build/`.
+
+## Reviewing the sky in the real game
+
+`bun scripts/browser/sky-review.ts --tag <name>` renders the fixed scenes of
+`/scripts/diagnostics/sky-review.html` (port, noon, wide, morning sun, sunset both ways, twilight, moon,
+shafts, stars, a crescent night, a dusk crescent, zenith, clear, overcast, fog, storm, binoculars, an
+aircraft in the cloud shell, the chart overhead and tilted, rain by day and night, lightning by night and
+day) into `.build/sky-review/<name>/`. `--sky skypro` renders them with the comparison, `--clouds <tier>`
+picks the tier, and `--bench` times the whole sky and each of its pieces by GPU timestamps
+(`benchmarkSky`, `benchmarkParts`): frames with the sky alternate with frames without it, each redrawing
+the scene pass, whose timings once hid under the CPU-bound frame. Every sky part keeps a focused page
+under `scripts/diagnostics/sky-*.html`.
+
+## Comparing with Sky Pro
+
+The vendored Sky Pro 2.2.0 library the game's sky replaced can still draw the sky. The developer console
+command "Switch sky renderer" flips the `skyRenderer` graphics setting (`game` or `skypro`, saved outside
+the quality presets like `oceanRenderer`); in port the scene rebuilds at once, at sea it applies on the
+return to port. `Game` then loads `src/game/comparison/SkyProSky.ts`, and with it the library's bundle,
+as a separate chunk. The adapter keeps every setting the game gave Sky Pro: the partly cloudy preset
+with the game's cloud lighting (base shadow 0.20, ambient 1.10, ground bounce (0.09, 0.105, 0.12)), the
+1.4° discs, its moon ambient 0.07, the local horizon patch at **0.8** (see the
+[Sky Pro patch record](../vendor/threejs-sky-pro/PATCHES.md) and the
+[GPU horizon check](browser-verification.md#horizon-rendering-check), which needs this renderer), the
+provider's moonlit fog term, and the sunrise-tinted scene light the game derived from its sun. It draws
+no rain, lightning, shafts or cloud shadows, as before; a Water Pro sea takes either sky. The sky's
+clean-room rule applies: never open the library's `index.js`.
 
 ## Comparing with Water Pro
 
