@@ -37,7 +37,7 @@ The port offers Statistics, Armor and Internals views for the berthed design. St
 
 Bot tactics, firing ranges and approximate armor/module damage are provisional gameplay tuning. Enterprise carries 48 aircraft, launches six-plane flights and supports four active flights through a linked Air operations chart and roster. Individual flight orders cover strikes, carrier defense, patrol, escort and recall. Twelve visible deck positions are separate from hangar inventory.
 
-New designs can start from a Patrol boat, Destroyer, Battleship or Barge shape, each stored as one editable custom hull, or from a centered 1 × 1 × 1 m block. The custom hull editor supports 4–24 symmetric sections and uses the existing source history, saving, armor, paint and native compilation. Custom carriers/submarines, multiplayer custom ships and conversion of custom hulls into independent freeform pieces remain outside the local shipbuilding MVP.
+New designs can start from a Patrol boat, Destroyer, Battleship or Barge shape, each stored as one editable custom hull, or from a centered 1 × 1 × 1 m block. The custom hull editor supports 4–48 symmetric sections and uses the existing source history, saving, armor, paint and native compilation. Custom carriers/submarines, multiplayer custom ships and conversion of custom hulls into independent freeform pieces remain outside the local shipbuilding MVP.
 
 ## Evidence on Hand
 `assets/ships/bismarck/baseline/Bismarck_1941.blend`, model README and dimensions; licensed Pro packages in Downloads. Model is 250.5 meters long, bow +X, waterline Z=0 in Blender.

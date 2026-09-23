@@ -4,6 +4,7 @@
     "src",
     "tools/construction",
     "scripts/construction",
+    "scripts/build/blender.ts",
     "scripts/browser",
     "scripts/diagnostics/app.tsx",
     "vite.config.ts"

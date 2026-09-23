@@ -27,8 +27,9 @@ import type {
   Vec3,
 } from '../../ships/blueprint';
 import { newConstructionId, surfaceSelectionKey } from '../../ships/constructionEditor';
-import { customFittingOf, isCustomFittingPartId } from '../../ships/constructionCustomFittings';
+import { CUSTOM_FITTING_SCALE, customFittingOf, isCustomFittingPartId } from '../../ships/constructionCustomFittings';
 import { CustomFittingFields } from './CustomFittingFields';
+import { carriedIds, mayFloat, parentCandidates } from '../../ships/constructionParents';
 import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
 import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
@@ -759,6 +760,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
             </button>
           )}
           {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}
+          {carriedIds(data, [primitive.id]).size > 0 && `carries ${carriedIds(data, [primitive.id]).size} · `}
           {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>X</kbd>
           <kbd>Z</kbd> tip · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy{twinNote}
         </>
@@ -774,6 +776,38 @@ export function Shipbuilder(props: ShipbuilderProps) {
       change(target);
       (mirrored ? tool.edit : run)(label, [{ op: 'equipment', value: target }]);
     };
+    // Parents: a fitting that may float can ride a hull piece, a fitting or a gun; the parent carries it, and a gun trains it.
+    const attachable = !!part && !item.wall && mayFloat(source, catalog, item, part);
+    const riders = carriedIds(data, [item.id]).size;
+    const parentOptions = attachable || item.parent ? parentCandidates(source, catalog, item) : [];
+    const attachment = (attachable || item.parent) && (
+      <label className="sb-engine-link">
+        Attached to{' '}
+        <select
+          className="sb-link"
+          aria-label="Attached to"
+          disabled={locked}
+          title="Moving, turning, copying or removing the parent carries this fitting. Its own position and bearing stay as they are. On a gun it also trains with the gun in battle."
+          value={item.parent ?? ''}
+          onChange={(event) =>
+            edit(event.target.value ? 'Attach fitting' : 'Detach fitting', (target) => {
+              if (event.target.value) target.parent = event.target.value;
+              else delete target.parent;
+            })
+          }
+        >
+          <option value="">Nothing · stands alone</option>
+          {item.parent && !parentOptions.some((option) => option.id === item.parent) && (
+            <option value={item.parent}>{item.parent}</option>
+          )}
+          {parentOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label} · {option.distanceM.toFixed(1)} m
+            </option>
+          ))}
+        </select>
+      </label>
+    );
     const engines = data.equipment.filter((entry) => partOf(entry)?.kind === 'engine');
     const assignedEngines = propellerEngines(source, compiledResult, item);
     const engineConnection = (
@@ -821,6 +855,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
               : (part?.name ?? item.partId)}
           </b>
           {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}
+          {riders > 0 && `carries ${riders} · `}
           {item.wall ? (
             `Hull aligned${item.wall.turnDeg ? ` · turned ${item.wall.turnDeg}°` : ''} · `
           ) : (
@@ -833,13 +868,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
                 step={0.1}
                 unit="°"
                 onChange={(value) =>
-                  edit(
-                    'Set bearing',
-                    (target) => {
-                      target.bearingDeg = normalizedBearing(value);
-                    },
-                    true,
-                  )
+                  riders
+                    ? // A parent turns what it carries about its datum.
+                      tool.edit('Set bearing', [{ op: 'rotate', ids: [item.id], degrees: normalizedBearing(value) - item.bearingDeg }])
+                    : edit(
+                        'Set bearing',
+                        (target) => {
+                          target.bearingDeg = normalizedBearing(value);
+                        },
+                        true,
+                      )
                 }
               />
             </>
@@ -848,6 +886,33 @@ export function Shipbuilder(props: ShipbuilderProps) {
             <>
               {' '}
               · <CustomFittingFields definition={customFittingOf(data, item)!} data={data} locked={locked} run={run} />
+              {' '}
+              ·{' '}
+              {(['X', 'Y', 'Z'] as const).map((axis, k) => (
+                <NumberField
+                  key={axis}
+                  label={`Scale ${axis}`}
+                  description={`Scale this instance along its own ${axis} axis about its datum; mass follows the volume`}
+                  disabled={locked}
+                  value={item.scale?.[k] ?? 1}
+                  min={CUSTOM_FITTING_SCALE.min}
+                  max={CUSTOM_FITTING_SCALE.max}
+                  step={0.05}
+                  unit="×"
+                  onChange={(value) =>
+                    edit(
+                      'Scale custom fitting',
+                      (target) => {
+                        const scale = [...(target.scale ?? [1, 1, 1])] as [number, number, number];
+                        scale[k] = value;
+                        if (scale.every((n) => n === 1)) delete target.scale;
+                        else target.scale = scale;
+                      },
+                      true,
+                    )
+                  }
+                />
+              ))}
             </>
           )}
           {item.wall && catalogPart && (
@@ -918,6 +983,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
           {data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}
           {part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}
           {part?.kind === 'propeller' && engineConnection}
+          {attachment}
           {item.wall ? (
             <>
               {' '}

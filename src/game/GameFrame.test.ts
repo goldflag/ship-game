@@ -1,6 +1,7 @@
+import { FocusShadowNode } from './FocusShadowNode';
 import { DEFAULT_GRAPHICS } from './graphicsSettings';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
-import { Color, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
+import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT, motionVelocity } from './session/motion';
@@ -136,9 +137,9 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
   const updateCamera = rig.update.bind(rig);
   rig.update = (ship, ...args) => { focusPositions.push(ship.z); updateCamera(ship, ...args); };
   const helm = { throttle: 1, rudder: 0 };
-  const ocean = fakeOcean();
+  const ocean = fakeOcean(), sunLight = new DirectionalLight();
   const environment = makeTestEnvironment();
-  environment.attachOcean(ocean as never);
+  environment.attachOcean(ocean as never, sunLight);
   const battlefieldCamera = new BattlefieldCamera(camera);
   const input = makeTestInput({ sample: () => helm, flying: false, setFlying(value: boolean) { this.flying = value; },
     setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
@@ -156,7 +157,7 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     paused: false, inPort: false, inspecting: false, input,
     aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
-    effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), ocean, environment,
+    effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), ocean, sunLight, sunShadows: new FocusShadowNode(sunLight), environment,
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
@@ -296,9 +297,7 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   await game.frame(time += 1000 / 60);
   expect(rig.binoculars).toBe(true);
   expect(camera.fov).toBeCloseTo(fov, 10);
-  // The gunnery eye returns above our bridge; its altitude follows the shell's descent.
-  expect(Math.hypot(camera.position.x - playerView.root.position.x, camera.position.z - playerView.root.position.z)).toBeLessThan(100);
-  expect(camera.position.y).toBeGreaterThan(playerView.root.position.y);
+  expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);
   game.toggleShellFollow();
   game.setInPort(true);
   expect(game.shellFollow.phase).toBe('off');
@@ -386,14 +385,12 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
   let time = 0;
   for (const binoculars of [false, true, false]) {
     if (rig.binoculars !== binoculars) game.toggleBinoculars();
-    // Let both the optics glide and the elevated eye finish settling before measuring follow.
-    for (let frame = 0; frame < 360; frame++) await game.frame(time += 1000 / 144);
+    for (let frame = 0; frame < 180; frame++) await game.frame(time += 1000 / 144);
     await game.frame(time += 1000 / 144);
     const offset = camera.position.clone().sub(playerView.root.position);
     for (let frame = 0; frame < 30; frame++) {
       await game.frame(time += [1000 / 144, 1000 / 47, 1000 / 72, 43][frame % 4]);
-      // Allow sub-micrometre rounding in the sight's trigonometry.
-      expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-6);
+      expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-9);
       expect(playerView.root.visible).toBe(!binoculars);
       expect(game.currentAim.every(Number.isFinite)).toBe(true);
     }

@@ -150,35 +150,6 @@
 .garage-set-sail:disabled {
   opacity: 0.7;
 }
-.garage-ship-stats > div {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-  margin-bottom: 15px;
-  font-size: 12px;
-}
-.garage-ship-stats > div > span {
-  color: #d1dddf;
-}
-.garage-ship-stats > div > strong {
-  font-weight: 500;
-}
-.garage-ship-stats i {
-  grid-column: 1/-1;
-  height: 3px;
-  background: #c2d5da2b;
-}
-.garage-ship-stats i > b {
-  display: block;
-  height: 100%;
-  background: #d4dec9;
-}
-.garage-panel-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-}
 /* Home port: the top bar, the ship's builder's plate at lower left, statistics at lower right and the fleet line beneath. */
 .garage-classic-header {
   position: absolute;
@@ -522,13 +493,9 @@
 .port-neighbour-previous {
   left: 22px;
 }
+/* The next design waits beside the particulars column rather than under it. */
 .port-neighbour-next {
-  right: 22px;
-}
-.port-inspection-active .port-neighbour,
-.port-sheet-active .port-neighbour,
-.port-inspection-active .port-fleet-line {
-  display: none;
+  right: 416px;
 }
 
 .port-fleet-line {
@@ -589,55 +556,6 @@
 }
 
 /* Statistics: five scores under the ship; the full sheet and the inspection lists take the tall surface at right. */
-.garage-classic-details {
-  position: absolute;
-  top: 106px;
-  right: 30px;
-  width: 262px;
-  max-height: calc(100% - 202px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: #afcadf55 transparent;
-  padding: 17px;
-  background: #102330d9;
-  border-top: 1px solid #d7e0cb53;
-  pointer-events: auto;
-}
-.garage-classic-details.port-details-compact {
-  top: auto;
-  right: 56px;
-  bottom: 86px;
-  width: 330px;
-  max-height: none;
-  overflow: visible;
-  padding: 0;
-  background: transparent;
-  border-top: 0;
-}
-.port-details-compact .port-model-views {
-  margin: 0 0 16px;
-}
-.port-details-compact .garage-ship-stats > div {
-  margin-bottom: 12px;
-}
-.garage .port-sheet-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--port-muted);
-  font-size: 12px;
-}
-.port-sheet-toggle:hover {
-  color: var(--port-text);
-}
-.garage-panel-title {
-  margin-bottom: 16px;
-}
 
 /* The plan chest: every saved design at once, over the dimmed quay. */
 .port-chest-open .garage-scene-shade {
@@ -1064,9 +982,8 @@
     left: 32px;
     max-width: calc(100% - 420px);
   }
-  .garage-classic-details.port-details-compact {
-    right: 32px;
-    width: 300px;
+  .port-neighbour-next {
+    right: 366px;
   }
   .port-loading {
     left: 32px;
@@ -1074,18 +991,6 @@
   .plan-chest {
     padding-left: 32px;
     padding-right: 32px;
-  }
-}
-@media (max-width: 1100px) {
-  .port-inspection-active .port-spec,
-  .port-inspection-active .port-actions,
-  .port-sheet-active .port-spec,
-  .port-sheet-active .port-actions {
-    display: none;
-  }
-  .port-inspection-active .port-identity,
-  .port-sheet-active .port-identity {
-    max-width: calc(100% - 360px);
   }
 }
 @media (max-width: 980px) {
@@ -1101,19 +1006,16 @@
     width: 200px;
   }
   .port-identity {
-    max-width: calc(100% - 300px);
+    max-width: calc(100% - 380px);
+  }
+  .port-neighbour-next {
+    right: 324px;
   }
   .port-spec > div {
     padding: 0 14px;
   }
   .port-spec dd {
     font-size: 19px;
-  }
-  .garage-classic-details.port-details-compact {
-    width: 230px;
-  }
-  .port-details-compact .garage-ship-stats {
-    display: none;
   }
   .port-empty-hulls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1123,8 +1025,7 @@
   }
 }
 @media (max-height: 760px) and (min-width: 601px) {
-  .port-identity,
-  .garage-classic-details.port-details-compact {
+  .port-identity {
     bottom: 72px;
   }
   .port-spec {
@@ -1136,15 +1037,8 @@
   .port-actions {
     margin-top: 12px;
   }
-  .port-details-compact .garage-ship-stats > div {
-    margin-bottom: 8px;
-  }
   .port-neighbour > span {
     height: 72px;
-  }
-  .garage-classic-details {
-    top: 90px;
-    max-height: calc(100% - 170px);
   }
   .port-empty-hulls {
     margin-top: 22px;
@@ -1191,11 +1085,15 @@
   .garage .port-new {
     display: none;
   }
+  /* The particulars column becomes a sheet along the bottom; the plate keeps its name and actions above it. */
   .port-identity {
     left: 18px;
     right: 18px;
-    bottom: 142px;
+    bottom: calc(min(44%, 400px) + 74px);
     max-width: none;
+  }
+  .port-identity .port-spec {
+    display: none;
   }
   .port-identity h1 {
     font-size: 34px;
@@ -1213,38 +1111,9 @@
   .port-actions {
     margin-top: 14px;
   }
-  .garage-classic-details.port-details-compact {
-    left: 18px;
-    right: 18px;
-    bottom: 64px;
-    width: auto;
-  }
-  .port-details-compact .port-model-views {
-    margin-bottom: 0;
-  }
-  .port-details-compact .port-sheet-toggle {
-    display: none;
-  }
-  .port-inspection-active .port-identity,
-  .port-sheet-active .port-identity {
-    display: none;
-  }
+  /* The plate sits above the particulars sheet here; the scrolling fleet line changes ships instead. */
   .port-neighbour {
-    top: 36%;
-    width: 40px;
-  }
-  .port-neighbour > span {
-    width: 36px;
-    height: 64px;
-  }
-  .port-neighbour > small {
     display: none;
-  }
-  .port-neighbour-previous {
-    left: 8px;
-  }
-  .port-neighbour-next {
-    right: 8px;
   }
   .port-fleet-line {
     justify-content: flex-start;
@@ -1341,200 +1210,8 @@
 }
 
 /* Statistics sheet: category scores, then collapsible sections led by one headline figure each. */
-.port-statistics {
-  display: flex;
-  flex-direction: column;
-}
-.port-statistics .garage-ship-stats {
-  margin-bottom: 6px;
-}
-.port-statistics .port-inspector-intro {
-  margin: 0 0 6px;
-}
-.port-stat-section {
-  border-top: 1px solid var(--port-line);
-}
-.port-stat-section > button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 44px;
-  padding: 8px 0;
-  text-align: left;
-  color: var(--port-text);
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-}
-.port-stat-section > button:hover {
-  background: #d0e4db12;
-}
-.port-stat-section > button > svg {
-  color: var(--port-muted);
-  transition: transform 0.15s;
-}
-.port-stat-section > button[aria-expanded='true'] > svg {
-  transform: rotate(90deg);
-}
-.port-stat-section > button > span {
-  flex: 1;
-  min-width: 0;
-  font:
-    500 13px/1.2 'Barlow Condensed',
-    sans-serif;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #d1dddf;
-}
-.port-stat-section > button > strong {
-  font:
-    500 21px/1 'Barlow Condensed',
-    sans-serif;
-  color: var(--port-accent);
-  white-space: nowrap;
-}
-.port-stat-section > button > strong > small {
-  margin-left: 4px;
-  font:
-    400 10px/1 'Barlow',
-    sans-serif;
-  color: var(--port-muted);
-}
-.port-stat-rows {
-  display: grid;
-  gap: 7px;
-  padding: 2px 0 14px 22px;
-}
-.port-stat-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 11px;
-  cursor: help;
-}
-.port-stat-row > span {
-  color: var(--port-muted);
-}
-.port-stat-row > strong {
-  font-weight: 500;
-  text-align: right;
-  white-space: nowrap;
-}
-.port-stat-row > strong > small {
-  margin-left: 3px;
-  font-size: 10px;
-  color: var(--port-muted);
-}
-.port-stat-row-text > strong {
-  font-weight: 400;
-  white-space: normal;
-  max-width: 62%;
-  overflow-wrap: anywhere;
-}
-.port-stat-note {
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--port-muted);
-}
-.port-stat-note > b {
-  font-weight: 500;
-  color: var(--port-text);
-}
 
 /* Model inspection shares the port's existing detail surface. */
-.port-model-views {
-  display: flex;
-  gap: 2px;
-  margin: -3px -4px 17px;
-  border-bottom: 1px solid #c9dce04a;
-}
-.port-model-views button {
-  flex: 1;
-  min-width: 0;
-  min-height: 40px;
-  padding: 8px 3px;
-  font-size: 11px !important;
-  color: #c8d8db;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-}
-.port-model-views button[aria-pressed='true'] {
-  color: var(--port-accent);
-  border-bottom-color: var(--port-accent);
-}
-.port-model-views button:hover:not(:disabled) {
-  background: #d0e4db12;
-}
-.port-model-views button:disabled {
-  opacity: 0.5;
-  cursor: wait;
-}
-.port-inspection-active .garage-classic-details {
-  width: 290px;
-  max-height: calc(100% - 160px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.port-inspection-active .port-model-views {
-  flex-shrink: 0;
-}
-.port-inspector {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-}
-.port-inspection-scroll {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  min-height: 0;
-  scrollbar-width: thin;
-}
-.port-inspector-heading {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.port-inspector-heading h2 {
-  margin: 0;
-}
-.port-inspector-heading > span {
-  color: #c8d8db;
-  font-size: 10px;
-}
-.port-inspector-intro,
-.port-inspection-note {
-  color: #c8d8db;
-  font-size: 11px;
-  line-height: 1.5;
-  margin: 10px 0 15px;
-}
-.port-armor-legend {
-  display: grid;
-  gap: 5px;
-  margin: 12px 0 16px;
-  color: var(--port-muted);
-  font-size: 10px;
-}
-.port-armor-legend-labels {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-.port-armor-legend-ramp {
-  height: 6px;
-  border-radius: 1px;
-}
-.port-armor-legend small {
-  font-size: inherit;
-  line-height: 1.5;
-}
 .port-inspection-tooltip {
   position: fixed;
   z-index: 5;
@@ -1588,168 +1265,4 @@
   font-size: 11px;
   line-height: 1.4;
 }
-.port-volume-list {
-  display: flex;
-  flex-direction: column;
-}
-.port-volume-list button {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  min-height: 48px;
-  padding: 8px 5px;
-  text-align: left;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid #c9dce027;
-  border-radius: 0;
-}
-.port-volume-list button:hover {
-  background: #d0e4db12;
-}
-.port-volume-list button[aria-pressed='true'] {
-  background: #e5bf801c;
-}
-.port-volume-group summary {
-  cursor: pointer;
-  padding: 12px 5px;
-  font-size: 12px;
-  border-bottom: 1px solid #c9dce027;
-}
-.port-volume-group[open] {
-  border-left: 1px solid #c9dce027;
-  padding-left: 8px;
-}
-.port-volume-list i {
-  width: 7px;
-  height: 7px;
-  flex-shrink: 0;
-  border-radius: 1px;
-}
-.port-volume-list span {
-  font-size: 12px;
-  line-height: 1.3;
-  flex: 1;
-}
-.port-volume-list small {
-  display: block;
-  font-size: 10px;
-  color: #c8d8db;
-  margin-top: 3px;
-}
-.port-volume-list strong {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--port-accent);
-  white-space: nowrap;
-}
-.port-volume-detail {
-  padding: 10px 5px 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 12px;
-  flex-shrink: 0;
-  border-top: 1px solid #c9dce04a;
-}
-.port-volume-detail > div {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.port-volume-detail span {
-  color: #c8d8db;
-  font-size: 11px;
-}
-.port-volume-detail button {
-  background: transparent;
-  border: 0;
-  color: var(--port-accent);
-  font-size: 11px !important;
-  min-height: 44px;
-  padding: 5px 0;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.port-inspection-note {
-  margin: 14px 5px 0;
-}
-@media (max-width: 850px) {
-  .port-inspection-active .garage-classic-details {
-    width: 265px;
-  }
-}
-@media (max-width: 600px) {
-  .port-sheet-active .garage-classic-details {
-    top: auto;
-    bottom: 54px;
-    left: 18px;
-    right: 18px;
-    width: auto;
-    max-height: 50%;
-    padding: 12px;
-  }
-  .port-stat-rows {
-    padding-left: 14px;
-  }
-  .port-model-views {
-    margin-bottom: 13px;
-  }
-  .port-model-views button {
-    min-height: 44px;
-    font-size: 10px !important;
-  }
-  .port-inspection-active .garage-classic-details {
-    top: auto;
-    bottom: 54px;
-    left: 18px;
-    right: 18px;
-    width: auto;
-    max-height: 295px;
-    padding: 12px;
-  }
-  .port-inspection-active .port-model-views {
-    margin-bottom: 10px;
-  }
-  .port-inspector-intro {
-    margin: 6px 0 9px;
-  }
-}
-@media (max-height: 640px) and (min-width: 601px) {
-  .port-inspection-active .garage-classic-details {
-    top: 115px;
-    max-height: calc(100% - 145px);
-    width: 265px;
-  }
-}
 
-.port-volume-search {
-  display: grid;
-  gap: 6px;
-  margin: 12px 0;
-  color: var(--port-muted);
-  font-size: 12px;
-}
-.port-volume-search input {
-  min-height: 42px;
-  min-width: 0;
-  padding: 8px 10px;
-  color: var(--port-text);
-  background: #172c38;
-  border: 1px solid var(--port-line);
-  border-radius: 2px;
-  font: inherit;
-}
-.port-volume-search input:focus-visible {
-  outline: 2px solid var(--port-accent);
-  outline-offset: 2px;
-}
-.port-volume-detail small {
-  display: block;
-  max-width: 34ch;
-  margin-top: 6px;
-  color: var(--port-muted);
-  line-height: 1.4;
-}

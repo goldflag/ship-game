@@ -55,12 +55,11 @@ are normalized to the saved design/revision UUIDs before compilation.
 
 The worker processes one job at a time, queues at most eight and permits one
 outstanding job per account. Its container has 512 MiB memory (no swap), 0.5 CPU,
-and 64 PIDs. A subprocess has a ten-second wall limit, 8 MiB stdout and 64 KiB
-stderr limits; failure kills and reaps it. A bounded cache keys source bytes,
-catalog digest and simulation/compiler build. Online limits are 512 primitives,
-32 equipment instances, 16 custom fitting definitions, 96 custom fitting instances (counted apart from
-equipment instances), 2,048 derived hull/compartment cells and 4,096 surface patches. These do not
-change editor or local battle limits. There is no new custom-carrier authoring
+and 64 PIDs. A subprocess has a ten-second wall limit, 64 MiB stdout and 64 KiB
+stderr limits; failure kills and reaps it. A bounded 96 MiB cache keys source bytes,
+catalog digest and simulation/compiler build. Online designs use the same limits as the editor and
+local battles: the native compiler enforces them, and the worker adds only the 64 MiB artifact bound
+(a realistic battleship compiles to about 28 MB). There is no new custom-carrier authoring
 or campaign support.
 
 Rust applies the existing eight-ship, two-carrier, 200,000-tonne fleet rules to

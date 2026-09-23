@@ -4,7 +4,9 @@ use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometr
 use std::collections::{BTreeMap, BTreeSet};
 pub const COMPILER: &str = "construction-polyhedra-8";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
-pub const MAX_CATALOG_BYTES: usize = 4_000_000;
+/// The online compile worker hands the published catalog file to the compiler unchanged, so this
+/// must hold every published revision with room to grow (`tests/construction_catalog_size.rs`).
+pub const MAX_CATALOG_BYTES: usize = 16_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
 pub const MAX_PRIMITIVES: usize = 10_000;
 pub const MAX_SURFACE_ASSIGNMENTS: usize = 65_536;
@@ -49,10 +51,33 @@ pub mod fit {
     pub const FITTED_BASE_M: f64 = 0.005;
     /// A working well whose top stops this far below a deck still crosses it.
     pub const DECK_CROSSING_M: f64 = 0.01;
+    /// A floating fitting's datum may stand this far outside the hull's bounding box.
+    /// It catches a typed position off the ship, not a fitting on a yard or boom.
+    pub const FLOAT_MARGIN_M: f64 = 10.;
     /// Outside volume a fit check ignores for a package of this occupied volume.
     pub fn outside_allowance_m3(occupied_m3: f64) -> f64 {
         OUTSIDE_FLOOR_M3.max(occupied_m3 * OUTSIDE_FRACTION)
     }
+}
+
+/// Non-structural deck equipment needs no hull under it: deck fittings (catalog and
+/// design-local), masts and light deck-mounted guns without a working well. They add mass
+/// only, or a ready-ammunition module at their datum, so nothing in the simulation depends
+/// on a support. Wall fittings, paths, guns with wells, launchers, directors, funnels and
+/// machinery keep their support rules.
+pub(crate) fn floats(
+    c: &ConstructionData,
+    catalog: &ConstructionCatalog,
+    e: &ConstructionEquipment,
+    p: &ConstructionEquipmentPart,
+) -> bool {
+    p.placement == "deck"
+        && e.wall.is_none()
+        && p.wall_mount.is_none()
+        && p.path.is_none()
+        && (p.kind == "deck-fitting"
+            || p.kind == "mast"
+            || crate::construction_installation::deck_mounted(c, catalog, p))
 }
 
 pub(crate) fn valid_id(s: &str) -> bool {
@@ -396,6 +421,8 @@ pub fn suggest(
                 launcher: None,
                 path: None,
                 power_source_id: None,
+                scale: None,
+                parent: None,
             };
             let mut candidate = result.clone();
             candidate.construction.equipment.push(e);
@@ -768,6 +795,9 @@ fn validate(
             errors.push(d);
         }
     }
+    // A parent is a source relationship; its faults are independent of every physical check.
+    let room = MAX_ERRORS.saturating_sub(errors.len());
+    errors.extend(crate::construction_parents::check(c, catalog, room));
     for p in &c.primitives {
         if errors.len() >= MAX_ERRORS {
             break;
@@ -1040,9 +1070,14 @@ fn build(
             }
         }
     }
+    // Balconies are decorative platforms and may float: an unreached balcony is never
+    // reported. Saved designs rely on a platform carrying the piece above it, so the walk
+    // still passes through balconies, starting from the first structural piece.
+    let structural_piece = |i: usize| primitives[i].kind != "balcony";
+    let first = (0..raw.len()).find(|&i| structural_piece(i)).unwrap_or(0);
     let mut reached = vec![false; raw.len()];
-    let mut queue = vec![0];
-    reached[0] = true;
+    let mut queue = vec![first];
+    reached[first] = true;
     while let Some(a) = queue.pop() {
         for &b in &neighbors[a] {
             if !reached[b]
@@ -1056,14 +1091,21 @@ fn build(
             }
         }
     }
-    // Every piece outside the first piece's connected group, up to the diagnostic cap.
+    // Every structural piece outside the first structural piece's group, up to the diagnostic cap.
     // The smaller side of the split is the one reported as detached.
-    let mut detached: Vec<_> = (0..raw.len()).filter(|&i| !reached[i]).collect();
+    let structural_count = (0..raw.len()).filter(|&i| structural_piece(i)).count();
+    let mut detached: Vec<_> = (0..raw.len())
+        .filter(|&i| structural_piece(i) && !reached[i])
+        .collect();
     if !detached.is_empty() {
-        if detached.len() * 2 > raw.len() {
-            detached = (0..raw.len()).filter(|&i| reached[i]).collect();
+        if detached.len() * 2 > structural_count {
+            detached = (0..raw.len())
+                .filter(|&i| structural_piece(i) && reached[i])
+                .collect();
         }
-        let anchor = (0..raw.len()).find(|i| !detached.contains(i)).unwrap_or(0);
+        let anchor = (0..raw.len())
+            .find(|&i| structural_piece(i) && !detached.contains(&i))
+            .unwrap_or(first);
         for &i in detached.iter().take(MAX_ERRORS) {
             let mut d = error(
                 "attachment",
@@ -2412,6 +2454,22 @@ fn equipment(
         .map(|(id, _)| id.as_str())
         .collect();
     // Fixed exterior fittings may still seat partly into the hull.
+    // The hull's bounding box, grown by the float margin: the one bound on floating fittings.
+    let (hull_low, hull_high) = hull.iter().chain(platforms).map(cg::bounds).fold(
+        ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]),
+        |(low, high), (center, size)| {
+            (
+                [0, 1, 2].map(|i| low[i].min(center[i] - size[i] / 2.)),
+                [0, 1, 2].map(|i| high[i].max(center[i] + size[i] / 2.)),
+            )
+        },
+    );
+    let near_hull = |point: Vec3| {
+        (0..3).all(|i| {
+            point[i] >= hull_low[i] - fit::FLOAT_MARGIN_M
+                && point[i] <= hull_high[i] + fit::FLOAT_MARGIN_M
+        })
+    };
     let relaxed_fit = |p: &ConstructionEquipmentPart| {
         p.placement == "deck"
             && p.path.is_none()
@@ -2432,6 +2490,9 @@ fn equipment(
             .find(|(other, _)| other == id)
             .map_or_else(|| id.to_owned(), |(_, p)| p.name.clone())
     };
+    // Rows a trainable gun carries, and the guns that carry them: a carried gun's mount names its
+    // carrier, and a gun never clashes with a gun that carries it or that it carries.
+    let carriers = crate::construction_parents::carriers(c, catalog);
     let weapon_ids: std::collections::BTreeSet<_> = installed_parts
         .iter()
         .filter(|(_, p)| matches!(p.kind.as_str(), "gun" | "torpedo-launcher"))
@@ -2759,7 +2820,9 @@ fn equipment(
             candidates.dedup();
             candidates.into_iter().find_map(|i| {
                 let (other, cell) = &all_envelopes[i];
-                if !colliding_ids.contains(other.as_str()) {
+                if !colliding_ids.contains(other.as_str())
+                    || crate::construction_parents::carried_pair(&carriers, &e.id, other)
+                {
                     return None;
                 }
                 // Fixed machinery retains its partial-overlap rule; weapons need clearance.
@@ -2944,6 +3007,7 @@ fn equipment(
             &hull_index
         };
         let attached = (p.kind == "engine" && p.placement == "internal")
+            || (floats(c, catalog, e, p) && near_hull(attachment))
             || support_index
                 .candidates_box(low, high)
                 .into_iter()
@@ -2961,8 +3025,9 @@ fn equipment(
                             <= fit::ATTACHMENT_M
                 });
         let attached = attached
-            && ((p.kind != "deck-fitting"
-                && !crate::construction_installation::deck_mounted(c, catalog, p))
+            && (floats(c, catalog, e, p)
+                || (p.kind != "deck-fitting"
+                    && !crate::construction_installation::deck_mounted(c, catalog, p))
                 || (relaxed_fit(p)
                     && hull.iter().any(|h| {
                         h.faces.iter().all(|f| {
@@ -2989,6 +3054,8 @@ fn equipment(
                 "equipment-attachment",
                 if p.kind == "propeller" {
                     "No hull connection for this propeller; move it closer to the stern or beneath the hull"
+                } else if floats(c, catalog, e, p) {
+                    "Floating equipment must stay within 10 m of the hull"
                 } else {
                     "Equipment attachment has no physical hull support within 10 cm"
                 },
@@ -3358,6 +3425,7 @@ fn equipment(
                 initial_elevation_deg: installation.initial_elevation_deg,
                 traverse_limits_deg: installation.traverse_limits_deg,
                 rangefinder: false,
+                parent_mount_id: carriers.get(&e.id).map(|guns| guns[0].clone()),
                 ..Default::default()
             });
             let stock = w.ammo_per_barrel * w.barrel_count;
@@ -3491,6 +3559,9 @@ fn equipment(
         }
         fitted.push((e, p));
     }
+    if !carriers.is_empty() {
+        def.mounts = parent_first(std::mem::take(&mut def.mounts));
+    }
     // Validate magazine stocks together, so repeated mounts cannot each consume the same capacity.
     for (e, p) in &fitted {
         if p.kind == "magazine" {
@@ -3598,6 +3669,33 @@ fn equipment(
         ..Default::default()
     });
     Ok(())
+}
+/// Mounts in source order, except that a carried mount follows its carrier: the runtime resolves
+/// carrier frames parent-first. A mount whose carrier was not built (the compile already has a fault
+/// for it) loses the link rather than breaking that order.
+fn parent_first(mounts: Vec<MountDefinition>) -> Vec<MountDefinition> {
+    let mut out: Vec<MountDefinition> = Vec::with_capacity(mounts.len());
+    let mut waiting: Vec<MountDefinition> = vec![];
+    let placed = |out: &[MountDefinition], m: &MountDefinition| {
+        m.parent_mount_id
+            .as_ref()
+            .is_none_or(|p| out.iter().any(|x| &x.id == p))
+    };
+    for m in mounts {
+        if !placed(&out, &m) {
+            waiting.push(m);
+            continue;
+        }
+        out.push(m);
+        while let Some(i) = waiting.iter().position(|w| placed(&out, w)) {
+            out.push(waiting.remove(i));
+        }
+    }
+    for mut orphan in waiting {
+        orphan.parent_mount_id = None;
+        out.push(orphan);
+    }
+    out
 }
 fn box_inertia(size: Vec3, kg: f64) -> Vec3 {
     std::array::from_fn(|i| kg * (size[(i + 1) % 3].powi(2) + size[(i + 2) % 3].powi(2)) / 12.)

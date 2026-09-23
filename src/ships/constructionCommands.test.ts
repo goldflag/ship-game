@@ -90,8 +90,8 @@ test('adjustable hull edits preserve section IDs, equipment and panel armor; mal
   expect(ids.every(id => expanded.construction.primitives[0].customHull!.stations.some(s => s.id === id))).toBe(true);
   expect(expanded.construction.surfaces).toEqual(s.construction.surfaces);
   const before = JSON.stringify(s);
-  expect(() => run([{ op: 'name', name: 'Bad' }, { op: 'hull-sections', id: 'hull', count: 25 }])).toThrow('4 to 24');
-  expect(() => run([{ op: 'primitive-patch', id: 'hull', changes: { customHull: { stations: [] } } }])).toThrow('4–24');
+  expect(() => run([{ op: 'name', name: 'Bad' }, { op: 'hull-sections', id: 'hull', count: 49 }])).toThrow('4 to 48');
+  expect(() => run([{ op: 'primitive-patch', id: 'hull', changes: { customHull: { stations: [] } } }])).toThrow('4–48');
   expect(() => run([{ op: 'primitive-patch', id: 'hull', changes: { customHull: { typo: 1 } } } as unknown as ConstructionCommand])).toThrow('Command 0 (primitive-patch): unknown field changes.customHull.typo');
   expect(JSON.stringify(s)).toBe(before);
 });
@@ -184,7 +184,7 @@ test('malformed commands are rejected before anything applies, naming the comman
     [{ op: 'name', name: 7 }, 'Command 1 (name): name must be a string, got 7', 'name'],
     [{ op: 'remove', ids: 'gun-forward' }, 'Command 1 (remove): ids must be an array, got "gun-forward"', 'ids'],
     [{ op: 'remove', ids: ['gun-forward', 4] }, 'Command 1 (remove): ids[1] must be a string, got 4', 'ids[1]'],
-    [{ op: 'hull-sections', id: 'hull', count: 8.5 }, 'Command 1 (hull-sections): count must be an integer from 4 to 24, got 8.5', 'count'],
+    [{ op: 'hull-sections', id: 'hull', count: 8.5 }, 'Command 1 (hull-sections): count must be an integer from 4 to 48, got 8.5', 'count'],
     [{ op: 'construction-version', version: 3 }, 'Command 1 (construction-version): version must be one of 1, 2, got 3', 'version'],
     [{ op: 'copy', copies: [] }, 'Command 1 (copy): copies must be an array of at least 1 item, got []', 'copies'],
     [{ op: 'copy', copies: [{ from: 'hull' }] }, 'Command 1 (copy): copies[0].to is required', 'copies[0].to'],

@@ -36,7 +36,9 @@ export async function runtimeAssets(root = process.cwd(), check = false) {
       if (check) { if (hash(await readFile(join(root, 'public', url))) !== hydro.sha256) throw new Error('Stale runtime hydrostatics: ' + id); }
       else await Bun.write(join(root, 'public', url), text);
     }
-    summaries[id] = { ...summary, hull, ...(construction ? { construction: { catalogRevision: construction.catalogRevision } } : {}), runtime: { url, sha256, hydro, sourceSha256: hash(source), bytes: bytes.length } };
+    // The port rates every design against the historical fleet without loading its plates.
+    const armorMaxMm = armor.reduce((n, a) => Math.max(n, a.thicknessMm), 0);
+    summaries[id] = { ...summary, hull, armorMaxMm, ...(construction ? { construction: { catalogRevision: construction.catalogRevision } } : {}), runtime: { url, sha256, hydro, sourceSha256: hash(source), bytes: bytes.length } };
     ships.push({ id, contentHash: definition.contentHash, sha256, encoding: 'nsd1-base64', json: Buffer.from(bytes).toString('base64') });
   }
   // Keep one generated record per ship so independent ship rebuilds merge on

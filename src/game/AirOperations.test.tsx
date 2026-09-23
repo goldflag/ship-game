@@ -14,7 +14,7 @@ import { makeTestEnvironment, makeTestInput, makeTestRig } from './testing/fakes
 import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { VisualEnvironment } from './VisualEnvironment';
-import { Color, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from 'three/webgpu';
+import { Color, DirectionalLight, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from 'three/webgpu';
 import { OceanGeometry } from './ocean/surface/OceanGeometry';
 import { battleEnvironment } from '../maps/conditions';
 import { oceanMap } from '../maps/catalog';
@@ -222,7 +222,7 @@ test('closing the carrier map restores the chosen weather visibility', () => {
     const camera = new PerspectiveCamera();
     const ocean = { fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 }, colors: { absorptionColor: new Color() }, ensureHorizon() {} };
     const environment = makeTestEnvironment();
-    environment.attachOcean(ocean as never);
+    environment.attachOcean(ocean as never, new DirectionalLight());
     environment.setBattle({ timeOfDay: 'night', weather, conditions: {} });
     environment.setChartFog(false);
     const authored = { ...ocean.fog, color: ocean.fog.color.getHexString() };

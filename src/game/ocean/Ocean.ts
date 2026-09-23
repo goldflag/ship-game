@@ -130,6 +130,8 @@ export class Ocean implements OceanApi {
 
   ensureHorizon(far: number): void { this.geometry.ensureHorizon(far); }
 
+  get meshSpacing(): number { return this.geometry.cell(0); }
+
   addFloater(object: Object3D, { smoothing = .6 }: { smoothing?: number } = {}): void {
     this.floaters.push({ object, smoothing });
     this.samplePoints.splice(0, this.samplePoints.length, ...this.floaters.map(({ object }) => ({ x: object.position.x, z: object.position.z })));

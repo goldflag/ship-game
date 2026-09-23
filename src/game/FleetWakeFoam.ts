@@ -29,6 +29,8 @@ export class FleetWakeFoam {
   private readonly field;
   private readonly painter: WakeFoamPainter;
   private dirty = true;
+  /** Whether trails still paint the bow-shoulder crests; off while the analytic bow waves draw them. */
+  bowShoulders = true;
 
   /** `painter` draws the atlas: `gpuWakeFoamPainter(renderer)` in the game. */
   constructor(private readonly resolution: number, painter: WakeFoamPainterFactory) {
@@ -81,6 +83,7 @@ export class FleetWakeFoam {
         entry = { foam: new WakeFoam(this.resolution, { ...hull, forwardSpeed: ship.definition.handling.forwardSpeed }, collector), collector, slot: -1, version: -1 };
         this.entries.set(ship.root, entry);
       }
+      entry.foam.bowShoulders = this.bowShoulders;
       for (const event of events) {
         if (event.kind === 'aircraft-crash') entry.foam.splash(event.position[0], event.position[2], .65);
         if (event.kind === 'splash') entry.foam.splash(event.position[0], event.position[2], event.shell?.caliberM ?? .38);

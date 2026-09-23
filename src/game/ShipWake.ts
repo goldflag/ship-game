@@ -7,6 +7,7 @@ import { wakeHull } from './wakeHull';
 import { TorpedoTrackFoam } from './TorpedoTrackFoam';
 import type { WakeFoamPainterFactory } from './WakeFoamGpu';
 import type { Torpedo } from './torpedoAim';
+import { BowWaves } from './BowWaves';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
 export class ShipWake {
@@ -15,10 +16,15 @@ export class ShipWake {
   private readonly generators = new Map<WakeShip['root'], { bow: number; stern: number }>();
   private readonly foam: FleetWakeFoam;
   private readonly torpedoTracks: TorpedoTrackFoam;
+  /** Analytic bow crest and Kelvin V, sharper than the wake field's cells. */
+  readonly bowWaves = new BowWaves();
   private eventSequence = 0;
 
-  /** `painter` draws the trail and torpedo foam: `gpuWakeFoamPainter(renderer)` in the game. */
-  constructor(private readonly ocean: Pick<OceanApi, 'wake' | 'setWakeSampler'>, painter: WakeFoamPainterFactory) {
+  /** `painter` draws the trail and torpedo foam: `gpuWakeFoamPainter(renderer)` in the game. `meshSpacing` is the
+   * finest water-mesh vertex spacing, which limits the displaced bow wave's sharpness; `viewportHeight` is the
+   * drawing buffer's height in pixels, below which bow wave features fade. */
+  constructor(private readonly ocean: Pick<OceanApi, 'wake' | 'setWakeSampler'>, painter: WakeFoamPainterFactory,
+    private readonly meshSpacing?: () => number, private readonly viewportHeight?: () => number) {
     const wake = this.wake = ocean.wake;
     // A 1.5 km field centred on the focus hull keeps a 250 m hull's whole trail while the
     // camera orbits and zooms; the tier's resolution sets the cells spent on it.
@@ -33,13 +39,13 @@ export class ShipWake {
     this.foam = new FleetWakeFoam(wake.resolution ? Math.min(wake.resolution, 256) : 128, painter);
     // A bubble track is a few metres wide: finer than any fleet wake cell.
     this.torpedoTracks = new TorpedoTrackFoam(1024, painter);
-    // The surface shades the wake's swell with the ocean's own lighting; the game adds its
-    // trail and torpedo foam on top of the field's breaking foam.
+    // The surface shades the wake's swell and the analytic bow waves with the ocean's own
+    // lighting; the game adds its trail, torpedo and bow foam on top of the field's breaking foam.
     const field = wake.sampler;
     ocean.setWakeSampler({
-      height: (x, z) => field.height(x, z),
-      normal: (x, z) => field.normal(x, z),
-      foam: (x, z) => max(max(field.foam(x, z), this.foam.sample(x, z)), this.torpedoTracks.sample(x, z)),
+      height: (x, z) => field.height(x, z).add(this.bowWaves.height(x, z)),
+      normal: (x, z) => this.bowWaves.normal(field.normal(x, z), x, z),
+      foam: (x, z) => max(max(max(field.foam(x, z), this.foam.sample(x, z)), this.torpedoTracks.sample(x, z)), this.bowWaves.foam(x, z)),
     });
   }
 
@@ -79,16 +85,23 @@ export class ShipWake {
       strength = Math.max(strength, ratio);
     }
     this.wake.foamStrength = 1.2 * strength;
+    // The analytic crest carries the bow's white water; the trail keeps only the stern streams.
+    this.foam.bowShoulders = !this.bowWaves.enabled;
     this.foam.update(ships, dt, freshEvents, camera);
     this.torpedoTracks.update(torpedoes, dt, this.center.x, this.center.y, camera);
+    if (this.meshSpacing) this.bowWaves.vertexSpacing.value = this.meshSpacing();
+    this.bowWaves.update(ships, dt, camera, this.viewportHeight?.());
   }
 
+  /** Developer switch for comparing the analytic bow waves with the wake field alone. */
+  toggleBowWaves(): boolean { this.bowWaves.enabled = !this.bowWaves.enabled; return this.bowWaves.enabled; }
+
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }
-  diagnostics() { return { ...this.foam.diagnostics(), torpedoTracks: this.torpedoTracks.diagnostics() }; }
+  diagnostics() { return { ...this.foam.diagnostics(), torpedoTracks: this.torpedoTracks.diagnostics(), bowWaves: this.bowWaves.diagnostics() }; }
 
   /** Clear every trail, including the field's displacement when returning to port. */
   reset(): void {
-    this.foam.reset(); this.torpedoTracks.reset();
+    this.foam.reset(); this.torpedoTracks.reset(); this.bowWaves.reset();
     this.eventSequence = 0;
     this.wake.reset();
   }

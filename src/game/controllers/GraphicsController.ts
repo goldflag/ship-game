@@ -30,8 +30,8 @@ export interface GraphicsContext {
   /** The composited frame the display pass smooths; absent until start-up has built it. */
   readonly finalFrame?: ReturnType<typeof rtt>;
   readonly ocean?: Pick<OceanApi, 'reflections'>;
-  /** The scene's sun light, whose shadow map the Shadows row sizes. */
-  readonly sunLight: THREE.DirectionalLight;
+  /** The scene's sun, whose shadow settings the near and wide maps follow; absent until start-up creates it. */
+  readonly sunLight?: THREE.DirectionalLight;
   readonly sky?: SkySystem;
   readonly aircraftView: Pick<AircraftView, 'detailScale'>;
   readonly effects: Pick<CombatEffects, 'setDensity'>;
@@ -46,6 +46,8 @@ export interface GraphicsContext {
  * appliers as each system comes up; `apply` re-runs only the rows that changed. */
 export class GraphicsController {
   private cloudTask: Promise<void> = Promise.resolve();
+  /** Once shadow shaders exist they stay compiled; Off only zeroes and pauses them. */
+  private shadowsBuilt = false;
 
   constructor(private readonly context: GraphicsContext) {}
 
@@ -93,11 +95,13 @@ export class GraphicsController {
 
   applyShadows(): void {
     const sunlight = this.context.sunLight;
+    if (!sunlight) return;
     const size = shadowMapSize(this.context.settings.shadows);
     // Retain an allocated map when switching Off: Three's cached capture
     // programs still reference it. Zero intensity removes shadows and stopping
     // updates removes caster passes, without disposing live shader resources.
-    sunlight.castShadow = size > 0 || !!sunlight.shadow.map;
+    if (size > 0) this.shadowsBuilt = true;
+    sunlight.castShadow = this.shadowsBuilt;
     sunlight.shadow.intensity = size > 0 ? 1 : 0;
     sunlight.shadow.autoUpdate = size > 0;
     if (!size) {

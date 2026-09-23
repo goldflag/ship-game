@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Color, Group, Vector3 } from 'three/webgpu';
+import { Color, DirectionalLight, Group, Vector3 } from 'three/webgpu';
 import { Atmosphere, Clouds, Sun, SunDriver, TimeOfDay } from '../../vendor/threejs-sky-pro/build/index.js';
 import { OCEAN_MAPS, oceanMap } from '../maps/catalog';
 import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
@@ -15,9 +15,17 @@ function fakeOcean() {
       surface: { color: new Color(), opacity: 0, coverage: 0 }, shoreline: { color: new Color(), opacity: 0 } },
     fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 },
     sun: { direction: new Vector3(), intensity: 0, color: new Color() },
+    environmentIntensity: 1,
   };
 }
 function windSink() { return { wind: [] as number[], setWind(speed: number, direction: number) { this.wind = [speed, direction]; } }; }
+/** The game hands the environment its scene sun; each test gets a fresh one. */
+function attachOcean(environment: VisualEnvironment, ocean: ReturnType<typeof fakeOcean>): DirectionalLight {
+  const sunLight = new DirectionalLight();
+  environment.attachOcean(ocean as never, sunLight);
+  return sunLight;
+}
+
 function lightSink() {
   return { direct: 0, ambient: 0, setWind() {}, setSun() {},
     setIllumination(_color: Color, intensity: number, ambient: number) { this.direct = intensity; this.ambient = ambient; } };
@@ -53,7 +61,7 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   const ocean = fakeOcean();
   const effects = { ...windSink(), setSun() {}, setIllumination() {} }, funnelSmoke = windSink();
   const environment = new VisualEnvironment({ effects, funnelSmoke, sunAnchor: new Group() });
-  environment.attachOcean(ocean as never);
+  attachOcean(environment, ocean);
   let mapId = OCEAN_MAPS[0].id;
   for (const map of OCEAN_MAPS) {
     mapId = map.id;
@@ -108,7 +116,7 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   const driver = new SunDriver({ sun: sky.sun, timeOfDay: sky.timeOfDay });
   const ocean = fakeOcean(), effects = lightSink();
   const environment = new VisualEnvironment({ effects, funnelSmoke: windSink(), sunAnchor: new Group() });
-  environment.attachOcean(ocean as never); environment.attachSky(sky as never);
+  attachOcean(environment, ocean); environment.attachSky(sky as never);
   for (const time of TIME_OF_DAY_PRESETS) for (const weather of WEATHER_PRESETS) {
     environment.setBattle({ timeOfDay: time.id, weather: weather.id, conditions: {} });
     environment.setScene('pacific-islands', false);
@@ -123,7 +131,8 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     expect(sky.sun.direction.value.distanceTo(direction)).toBeLessThan(1e-10);
     expect(sky.clouds.shape.coverage.value).toBe(expected.sky.coverage);
     expect(ocean.fog.end).toBe(expected.fog.end);
-    expect(environment.ambientLight.intensity).toBe(expected.sky.ambient);
+    // The authored ambient reaches smoke whole; meshes take its daylight share (checked below).
+    expect(environment.diagnostics().environment!.ambient).toBe(expected.sky.ambient);
     expect(effects.ambient).toBe(expected.sky.ambient);
     if (time.id === 'night') {
       expect(sky.sun.intensity.value).toBe(0);
@@ -139,7 +148,7 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   expect(sky.sun.elevationDeg).toBeCloseTo(36);
   expect(sky.sun.azimuthDeg).toBeCloseTo(58);
   expect(sky.sun.peakIntensity).toBe(5.8);
-  expect(environment.ambientLight.intensity).toBe(1.75);
+  expect(environment.diagnostics().environment!.ambient).toBe(1.75);
   expect(sky.clouds.shape.coverage.value).toBe(.38);
   expect(sky.clouds.wind.speed).toBe(12);
   expect(sky.clouds.lighting.ambientIntensity.value).toBe(1.1);
@@ -185,13 +194,18 @@ test('paused scene, water and smoke share moonlight and restore the current sun'
   const driver = new SunDriver({ sun: sky.sun, timeOfDay: sky.timeOfDay });
   const ocean = fakeOcean(), effects = lightSink();
   const environment = new VisualEnvironment({ effects, funnelSmoke: windSink(), sunAnchor: new Group() });
-  environment.attachOcean(ocean as never); environment.attachSky(sky as never);
+  const sunLight = attachOcean(environment, ocean); environment.attachSky(sky as never);
   for (const hour of [0, 5.5, 6, 7, 12, 24]) {
     environment.setBattle({ timeOfDay: 'map', weather: 'map', conditions: { timeHours: hour } });
     environment.setScene('north-atlantic', false); driver.update(0);
     environment.syncLighting(); // Deliberately no ocean update.
     expect(ocean.sun.intensity).toBeCloseTo(effects.direct);
-    expect(environment.sunLight.intensity).toBeCloseTo(effects.direct);
+    // Meshes take half the raw sun the sea shades with, and a daylight share of the unoccluded fill.
+    expect(sunLight.intensity).toBeCloseTo(effects.direct * .5);
+    const fill = environment.ambientLight.intensity / environment.diagnostics().environment!.ambient;
+    if (effects.direct >= 4) { expect(fill).toBeCloseTo(.3, 10); expect(ocean.environmentIntensity).toBeCloseTo(.6, 10); }
+    if (effects.direct <= 1) { expect(fill).toBe(1); expect(ocean.environmentIntensity).toBe(1); }
+    expect(fill).toBeGreaterThanOrEqual(.3 - 1e-9);
     expect(ocean.sun.direction.y).toBeGreaterThanOrEqual(0);
     if (hour === 0 || hour === 24) {
       expect(ocean.sun.intensity).toBeGreaterThan(.3);
@@ -210,22 +224,22 @@ test('distant shadow focus persists across lighting syncs and restores the port 
   const ocean = fakeOcean();
   const anchor = new Group(); anchor.position.set(100, 3, 200);
   const environment = new VisualEnvironment({ effects: lightSink(), funnelSmoke: windSink(), sunAnchor: anchor });
-  environment.attachOcean(ocean as never); environment.attachSky(sky as never);
+  const sunLight = attachOcean(environment, ocean); environment.attachSky(sky as never);
   environment.setScene('north-atlantic', false);
   const focus = new Vector3(20000, 0, 15000);
   environment.setShadowFocus(focus); environment.syncLighting(); environment.syncLighting();
-  expect(environment.sunLight.target.position).toEqual(focus);
+  expect(sunLight.target.position).toEqual(focus);
   environment.setScene('north-atlantic', true); environment.syncLighting();
-  expect(environment.sunLight.target.position).toEqual(new Vector3(-60, 3, 200));
+  expect(sunLight.target.position).toEqual(anchor.position);
   environment.setShadowFocus(); environment.setScene('north-atlantic', false); environment.syncLighting();
-  expect(environment.sunLight.target.position).toEqual(anchor.position);
+  expect(sunLight.target.position).toEqual(anchor.position);
 });
 
 test('developer overrides replace only what they name, in port and at sea, until the next scene', () => {
   const sky = { sun: new Sun(), timeOfDay: new TimeOfDay(), atmosphere: new Atmosphere(), clouds: new Clouds() };
   const ocean = fakeOcean(), effects = { ...windSink(), setSun() {}, setIllumination() {} };
   const environment = new VisualEnvironment({ effects, funnelSmoke: windSink(), sunAnchor: new Group() });
-  environment.attachOcean(ocean as never); environment.attachSky(sky as never);
+  attachOcean(environment, ocean); environment.attachSky(sky as never);
   const map = oceanMap('north-atlantic');
 
   // Port: wind alone raises the sea; the sheltered light, clouds and fog stay.

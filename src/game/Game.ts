@@ -22,6 +22,7 @@ import { WaterViewFocus } from './WaterViewFocus';
 import { BerthMotion } from './BerthMotion';
 import { createSeaState, type SeaState } from './session/sea';
 import { updateWaterShadows } from './WaterShadows';
+import { FocusShadowNode } from './FocusShadowNode';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
@@ -118,6 +119,8 @@ export function briefingControlGroups(briefing: { groups: readonly { id: string;
  * localhost and 14 s on a 50 Mbit line. The port keeps the ship, ocean and sky. Set this
  * back to true to restore the backdrop; nothing else needs changing. */
 const HARBOR_BACKDROP = false;
+/** Half-width of the sun shadow square at sea, in meters. */
+const BATTLE_SHADOW_HALF = 380;
 const NO_SHIPS: ReadonlySet<string> = new Set();
 
 export class Game {
@@ -249,6 +252,8 @@ export class Game {
   get selectedFlightId(): string | undefined { return this.selectedFlightIds[0]; }
   set selectedFlightId(id: string | undefined) { this.flightSelection = id ? [id] : []; }
   private ocean?: Ocean;
+  private sunLight?: THREE.DirectionalLight;
+  private sunShadows?: FocusShadowNode;
   private landscape?: THREE.Group;
   private sky?: SkySystem;
   private shipWake?: ShipWake;
@@ -293,7 +298,7 @@ export class Game {
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
     this.graphicsControl.applyDetail();
     this.definition = definition;
-    this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main';
+    this.battery = this.weaponGroups[0]?.battery ?? 'main';
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
     // Centimeter-scale fittings must remain distinct at 20 km, even with the
     // close near plane needed by bridge and shell-follow views. The scene pass
@@ -302,6 +307,10 @@ export class Game {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1;
     this.renderer.shadowMap.enabled = true;
+    // Three's default PCF takes five noise-rotated taps within about one texel, so where a
+    // grazing wall stretches a texel across many pixels its edges stair-step. PCFSoft's
+    // bilinear 3×3 gather is smooth at the same cost; water shadows keep their own filter.
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
@@ -406,6 +415,15 @@ export class Game {
 
     this.callbacks.progress('Building the Atlantic', 0.37);
     const ocean = this.ocean = await Ocean.create(this.renderer, this.scene, this.camera, { quality: this.settings.ocean, seed: 1941 });
+    // Meshes are lit by a game-owned sun that carries the near and wide shadow maps from the
+    // start, since three caches a light's shadow node on its first build; the sea shades from
+    // the ocean's own sun uniforms. Its shadow offsets are the ones the scene's sun has always used.
+    this.sunLight = new THREE.DirectionalLight();
+    this.sunLight.name = 'Sun';
+    Object.assign(this.sunLight.shadow, { bias: -.0005, radius: 1, blurSamples: 8 });
+    this.sunShadows = new FocusShadowNode(this.sunLight);
+    this.sunLight.shadow.shadowNode = this.sunShadows as never;
+    this.scene.add(this.sunLight);
     this.assertActive();
     // Until the first scene applies its own: fog from 2.5 km, complete at 16 km, fading into the sky over 10 km.
     Object.assign(ocean.fog, { start: 2500, end: 16000, power: 1.4, skyBlendDistance: 10000 });
@@ -414,10 +432,10 @@ export class Game {
     // A broader directional spectrum breaks up parallel ripples into the
     // small crossing waves of the supplied naval-game water references.
     ocean.waves.directionalSharpness = .8;
-    // Full sky illumination keeps the shaded hull readable in daylight.
+    // VisualEnvironment trims sky light on meshes with the sun; the sea's own reflection ignores it.
     ocean.environmentIntensity = 1;
     this.torpedoPreview.setOcean(ocean);
-    this.environment.attachOcean(ocean);
+    this.environment.attachOcean(ocean, this.sunLight);
     this.waterViewFocus = new WaterViewFocus(ocean.reflections);
 
     this.callbacks.progress('Lighting the sky', 0.59);
@@ -459,16 +477,14 @@ export class Game {
       moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
         .mul(max(0, moon.moonDirection.y))));
     ocean.setSky(skyProvider);
-    const sunlight = this.environment.sunLight;
-    Object.assign(sunlight.shadow.camera, { left: -380, right: 380, top: 380, bottom: -380, near: 1, far: 1800 });
-    sunlight.shadow.camera.updateProjectionMatrix();
-    this.graphicsControl.applyShadows();
+    const sunlight = this.sunLight;
+    this.fitSunShadow();
     this.graphicsControl.applyReflections();
-    this.scene.add(sunlight, sunlight.target);
+    this.scene.add(sunlight.target);
 
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
-    this.shipWake = new ShipWake(ocean, gpuWakeFoamPainter(this.renderer));
+    this.shipWake = new ShipWake(ocean, gpuWakeFoamPainter(this.renderer), () => ocean.meshSpacing, () => this.renderer.domElement.height);
     for (const buoy of BUOYS) this.addBuoy(buoy);
     if (HARBOR_BACKDROP) {
       this.callbacks.progress('Building the naval anchorage', 0.72);
@@ -722,7 +738,7 @@ export class Game {
     this.playerDamageFeedback = new HullDamageFeedback(view.actor.damage.integrity);
     this.rig.setBridge(this.definition.viewpoints?.bridge); this.rig.setHullLength(this.definition.hull.length);
     this.inspecting = false; this.damageInspectionShipId = undefined; this.spectatedShipId = undefined; this.airOperationsOpen = false; this.selectedFlightId = undefined;
-    this.battery = this.definition.torpedoTubes?.length ? 'torpedo' : 'main';
+    this.battery = this.weaponGroups[0]?.battery ?? 'main';
     this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
     this.controlPriority = view.actor.damage.control.priority; this.controlFocus = view.actor.damage.control.focus ?? '';
     this.input.setOrder(1); this.input.setRudder(0);
@@ -795,7 +811,7 @@ export class Game {
       this.controlPriority = 'balanced'; this.controlFocus = '';
       this.lastShellPress = undefined;
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
-      this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false; this.damageInspectionShipId = undefined;
+      this.battery = this.weaponGroups[0]?.battery ?? 'main'; this.manualAim = true; this.inspecting = false; this.damageInspectionShipId = undefined;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
       this.fleetCommandMode = false; this.helmChart = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.spectator.forgetHelm(); this.helmWheel = undefined; this.wheel.forgetOffer();
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
@@ -827,6 +843,29 @@ export class Game {
    * the same fleet plus the hulls it met, small enough that an idle port is not holding a
    * battle's worth of vertex data. */
   private static readonly HULL_CACHE = 8;
+
+  /** Fit the wide sun shadow map to what it must cover: the berthed hull in port, a
+   * fixed square around the shadow focus at sea. The near map adds close-up detail
+   * wherever the camera looks; see FocusShadowNode. */
+  private fitSunShadow(): void {
+    const sunlight = this.sunLight;
+    if (!sunlight) return;
+    const half = this.inPort ? THREE.MathUtils.clamp(this.definition.hull.length / 2 + 30, 60, BATTLE_SHADOW_HALF) : BATTLE_SHADOW_HALF;
+    const camera = sunlight.shadow.camera;
+    if (camera.right === half) return;
+    Object.assign(camera, { left: -half, right: half, top: half, bottom: -half, near: 1, far: 1800 });
+    camera.updateProjectionMatrix();
+    // Recomputes the texel-proportional normal bias for the new extent.
+    this.graphicsControl.applyShadows();
+  }
+
+  /** Centre the near shadow map where the camera is looking, at the distance of the
+   * subject the wide map follows, and size it to the frame visible there. */
+  private focusNearShadow(): void {
+    const sunlight = this.sunLight;
+    if (!sunlight || !this.sunShadows) return;
+    this.sunShadows.focusOn(this.camera, sunlight.target.position, sunlight.shadow.camera.right);
+  }
 
   /** A derived hull template: fetched, painted and batched once, then reused. */
   private async hull(definition: ShipDefinition, revision?: LocalShipRevision): Promise<THREE.Group> {
@@ -925,7 +964,6 @@ export class Game {
       const focusView = this.cameraShipView;
       const focus = focusView.motion;
       this.rig.setSubmarine(focusView.definition.submarine);
-      this.updateGunScope(focusView.definition);
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       // Whatever ends the flight (a follow, the chart, port), the helm keys return to the ship the same frame.
@@ -975,7 +1013,7 @@ export class Game {
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,
         !this.inPort && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && this.rig.magnification > 1.5));
       this.environment.update(this.camera, dt);
-      this.fleetVisibility.update(this.fleetViews, this.camera, this.environment.sunLight, this.inPort || warmingUp);
+      this.fleetVisibility.update(this.fleetViews, this.camera, this.sunLight!, this.inPort || warmingUp);
       this.fleetViews.forEach(view => { if (view.renderActive || view === this.playerView) view.updateArticulation(alpha); });
       const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim, realDt, this.playerView!);
@@ -1010,6 +1048,8 @@ export class Game {
       if (this.inPort) this.playerView!.root.visible = !emptyBerth;
       else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
+      this.fitSunShadow();
+      this.focusNearShadow();
       this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
       // The sea reads the opaque ships through the scene pass, so publish batch poses first.
       this.fleetDraws?.update(this.camera, this.renderer.domElement.height, this.detailBudgetPx);
@@ -1029,7 +1069,7 @@ export class Game {
         // A paused frame (dt 0) renders the same waves, foam and wake again.
         this.ocean!.update(dt);
         this.renderFrame();
-        updateWaterShadows(this.ocean!, this.environment.sunLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
+        updateWaterShadows(this.ocean!, this.sunShadows!.wide as unknown as THREE.DirectionalLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();
@@ -1094,8 +1134,7 @@ export class Game {
       get frameIntervalMs() { return game.frameIntervalMs; }, set frameIntervalMs(value) { game.frameIntervalMs = value; },
       get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
       get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
-      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get ocean() { return game.ocean; }, get sky() { return game.sky; },
-      get sunLight() { return game.environment.sunLight; },
+      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get ocean() { return game.ocean; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; },
       get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
       get disposed() { return game.disposed; },
       requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),
@@ -1164,6 +1203,8 @@ export class Game {
   capturePointer(): void { if (this.controls().capturePointer) this.rig.capturePointer(); }
   /** Hand the cursor to an overlay panel; `capturePointer` takes it back when the controls allow. */
   releasePointer(): void { this.rig.releasePointer(); }
+  /** Developer console: compare the analytic bow waves against the native wake field alone. */
+  toggleBowWaves(): boolean { return this.shipWake?.toggleBowWaves() ?? false; }
   toggleTacticalPause(): void {
     if (this.inPort || this.simulation.networked || !this.fleetCommandMode || this.simulation.result !== 'active') return;
     this.tacticalPause = !this.tacticalPause;
@@ -1464,11 +1505,6 @@ export class Game {
     if (!this.definition.submarine || this.simulation.player.damage.sunk) return;
     this.toggleBinoculars();
   }
-  private updateGunScope(definition: ShipDefinition): void {
-    const hasGun = definition.mounts.some(m => this.spectatedShipId ? m.battery === 'main'
-      : selectedWeapon(m.battery, m.weapon, this.battery, this.weaponGroupId));
-    this.rig.setGunScope(hasGun);
-  }
   /** Raise or lower the glasses on whichever hull carries the camera. A spectator following
    * a teammate has no sight to aim, so the lens opens along the bearing already being viewed. */
   toggleBinoculars(): void {
@@ -1489,7 +1525,6 @@ export class Game {
       // Continue along the viewing bearing, including deliberate stern aiming.
       if (ahead < definition.hull.length) aim = alongBearing();
     }
-    this.updateGunScope(definition);
     this.rig.toggleBinoculars(aim, ship);
   }
   private readSightAim(): Vec3 {
@@ -1615,9 +1650,10 @@ export class Game {
     const focus = this.cameraShipView?.motion;
     if (focus) this.rig.update(focus, focus.y, 0, true);
   }
-  setPortInspection(mode: InspectionMode, selectedId?: string): void {
+  /** Port model view; `selected` isolates one volume or a whole armor zone, equipment group or space. */
+  setPortInspection(mode: InspectionMode, selected?: string | readonly string[]): void {
     this.inspectionHover?.clear();
-    if (this.inPort) this.playerView?.setInspection(mode, selectedId);
+    if (this.inPort) this.playerView?.setInspection(mode, selected);
   }
   subscribeInspectionHover(listener: (hover: InspectionHoverInfo | null) => void): () => void {
     return this.inspectionHover.subscribe(listener);
@@ -1711,7 +1747,7 @@ export class Game {
       wakeFoam: this.shipWake?.diagnostics(),
       shipRigs: this.fleetViews.map(view => ({ shipId: view.actor.motion.id, ...view.rig.diagnostics() })),
       audio: this.audio?.diagnostics(),
-      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
+      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedIds.values().next().value, selectedVolumes: this.playerView?.inspection.selectedIds.size ?? 0, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       maxTorpedoMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.torpedoMuzzleErrors())),
       torpedoLaunchers: this.simulation.player.torpedoLaunchers,
@@ -1785,6 +1821,7 @@ export class Game {
     this.effects.dispose();
     this.funnelSmoke.dispose();
     this.ocean?.dispose();
+    this.sunShadows?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();

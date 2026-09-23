@@ -230,11 +230,13 @@ fn original_rear_attachment_datum_supports_side_fittings_and_rejects_wrong_orien
     s.construction.equipment.push(e);
     let d = compiled(&s, &c);
     assert!((contribution(&d, "door").center[0] - 5.1).abs() < 1e-8);
+    // Deck fittings need no support: turned away from the side or pulled clear of it,
+    // the door floats instead of failing.
     s.construction.equipment[0].bearing_deg = 0.;
-    rejected(&s, &c, "equipment-attachment");
+    compiled(&s, &c);
     s.construction.equipment[0].bearing_deg = 90.;
     s.construction.equipment[0].position[0] += 0.1;
-    rejected(&s, &c, "equipment-attachment");
+    compiled(&s, &c);
 }
 
 #[test]
@@ -328,8 +330,9 @@ fn rope_anchors_require_explicit_independently_supported_sockets() {
     let (source, catalog) = eye_fixture();
     s = source;
     c = catalog;
+    // The eye may float, but the rope's end no longer meets its socket.
     s.construction.equipment[1].position[1] += 0.5;
-    rejected(&s, &c, "equipment-attachment");
+    rejected(&s, &c, "equipment-path");
     let (source, catalog) = eye_fixture();
     s = source;
     c = catalog;
@@ -386,9 +389,10 @@ fn ropes_attach_to_real_mast_surfaces_and_clear_empty_envelope_space() {
         e.bearing_deg += 90.;
     }
     compiled(&turned, &c);
+    // Masts may float; the rope still meets the raised post.
     let mut floating = s.clone();
     floating.construction.equipment[1].position[1] += 0.5;
-    rejected(&floating, &c, "equipment-attachment");
+    compiled(&floating, &c);
     // Empty space inside the wide box cannot support a rope.
     let mut unsupported = s.clone();
     unsupported.construction.equipment[0]
@@ -967,7 +971,16 @@ fn fixed_fittings_allow_partial_overlap_but_not_burial_or_floating() {
     s.construction.equipment[0].position[1] = 1.05;
     rejected(&s, &c, "equipment-overlap");
     s.construction.equipment[0].position[1] = 3.;
+    compiled(&s, &c); // Floating above the deck is allowed.
+    // The bound is the whole hull's box (x -5..5 here) grown by the margin: 7 m off the port
+    // side is still over the ship's reach, 16 m is not.
+    s.construction.equipment[0].position = [-12., 2., 0.];
+    compiled(&s, &c);
+    s.construction.equipment[0].position = [-16., 2., 0.];
     rejected(&s, &c, "equipment-attachment");
+    s.construction.equipment[0].position = [0., 3., 0.];
+    s.construction.equipment[0].position[1] = 3. + 20. + construction::fit::FLOAT_MARGIN_M;
+    rejected(&s, &c, "equipment-attachment"); // Far off the ship is still a mistake.
 }
 
 #[test]

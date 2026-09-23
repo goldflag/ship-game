@@ -29,10 +29,9 @@ With no ready design the quay stands empty rather than showing a preset. A first
 down your first ship” over the sea with four generic hull cards drawn as deck plans, chips for the
 six historical hull shapes and a blank block, each opening the New design chooser on that hull; when
 only drafts exist the heading asks the player to finish one and links to the plan chest. Up to 980
-px the top-bar actions drop their labels and the compact scores give way to the tabs alone; at 600
-px and below the plate spans the width above a full-width tab row, the fleet line scrolls, the side
-arrows lose their names, and the plan chest becomes one column with its search field under the top
-bar.
+px the top-bar actions drop their labels; at 600 px and below the plate spans the width above the
+particulars sheet, the fleet line scrolls and replaces the side arrows, and the plan chest becomes
+one column with its search field under the top bar.
 
 ### Custom battle conditions
 
@@ -45,29 +44,62 @@ cover and wind independently adjustable.
 
 ### Port inspection
 
-Statistics, Armor, Internals and Flooding form a labeled four-button group. Statistics shows five
-0-100 category scores over collapsible sections, each led by one headline figure; every row explains
-its figure on hover. Fitted torpedoes lead with the tube count and identify trainable mounts and
-carried reloads; fitted depth charges lead with the charge stock and expose release stations,
-detonation depth and blast radius in the same row pattern. Armor lists hull and moving gunhouse
-protection; Internals lists damageable guns, machinery, magazines, steering, generators and fire
-control. Flooding separately exposes compartments so their outlines do not obscure equipment. Lists
-and overlays derive from the same compiled definition used by combat. Thickness is uniform within
-each armor volume; module HP and compartment capacity are provisional gameplay values.
+The particulars column (`PortPanel.tsx`) holds Overview, Armor, Equipment and Flooding tabs; the
+last three carry their counts. Overview rates the ship on five 0–100 scores, each track ticked with
+every historical warship (battleships, cruisers, destroyers and escorts from the roster) and read as
+a rank such as “5th of 14”; a score at 100 says capped. Historical scores come from the preset
+catalog's menu summaries (`armorMaxMm` stands in for the plates), so no definition loads for them.
+Eight particulars follow (hull integrity, main belt, armored deck, main battery, gun range, top
+speed, turning circle, flooding reserve), then the full sheet with one section open at a time. Guns
+are grouped by calibre, whatever battery a design assigns them: the heaviest calibre is the main
+battery, lighter guns are secondary or dual-purpose, and guns of 40 mm or less share one Light AA
+section. Fitted torpedoes lead with the tube count and identify trainable mounts and carried
+reloads; fitted depth charges lead with the charge stock and expose release stations, detonation
+depth and blast radius in the same row pattern. Hovering any figure writes its meaning into the
+explanation line at the foot of the column instead of a title tooltip.
 
-Selecting a row isolates its volume against the ghost exterior. The row combines a category swatch,
-name, type and thickness, HP or capacity; selection also exposes dimensions and Clear selection in a
-pinned footer. Selecting the same row again or clearing restores all volumes in that mode. Rows are
-at least 48 px high; mobile view controls and Clear selection provide at least 44 px height.
-Statistics restores the normal ship view, and Set sail remains available. Hovering a plate, module
-or compartment in the 3D view highlights it and shows a tooltip with its thickness, hit points or
-flooding capacity.
+Armor lists zones, not plates (`src/ships/particulars.ts`). On built ships a zone follows from
+structure: hull port and starboard faces are side armor, the hull top is deck, boundaries are
+bulkheads, `equipment:` plates are fitting shields and other blocks are superstructure. Historical
+ships name their plates, so belt, deck, barbette, conning tower and bulkhead come from the name. The
+heaviest side plating (80 % of the thickest, 50 mm or more) is the main belt, and the heaviest deck
+plating (25 mm or more) the armored deck. Zones run thickest first, each with a swatch on the port's
+fixed green-to-red scale, a count, materials and a thickness range; selecting one isolates all its
+plates and opens its thicknesses, each isolating its own plates. A search finds single plates by
+name. Equipment groups the main battery (lettered bow to stern when mounts share a name), magazines
+named for what they feed, machinery, electrical supply, fire control, steering, launchers and
+lighter guns by calibre; groups expand into items with their position from the bow. Flooding lists
+spaces bow to stern with span, contents and fixed pumps, folding spaces under 100 m³ into one row. A
+side profile, drawn from every plate projected onto the centreline, heads each list: coloured by
+thickness in Armor with the isolated zone bracketed, dots for equipment, boxes filled by capacity
+for spaces. Lists and overlays derive from the same compiled definition used by combat. Thickness is
+uniform within each armor volume; module HP and compartment capacity are provisional gameplay
+values.
+
+Selecting a row isolates its volumes against the ghost exterior (`Game.setPortInspection` takes a
+list of ids); “Showing only …” with Show all is pinned above the explanation line. Selecting the
+same row again, Show all or Esc restores all volumes in that mode; a second Esc returns to Overview.
+Group rows are at least 44 px high. Overview restores the normal ship view, and Set sail remains
+available. Hovering a plate, module or compartment in the 3D view highlights it and shows a tooltip
+with its thickness, hit points or flooding capacity.
 
 Hovering a visible armor plate lightens it, adds a white outline and opens a compact maritime
 tooltip with name, thickness, material, dimensions and recorded basis. The tooltip stays inside the
 viewport and does not intercept the pointer. Dragging, moving onto controls, pausing or leaving
 armor mode clears the highlight. Hidden layers can be isolated from the list before hovering; hover
 never changes selection or combat.
+
+### Startup loader
+
+One loader runs from the static markup in `index.html` through the game's own startup
+(`StartupScreen.tsx`, `startup.css`; `AccountGate` keeps it mounted). It is Scharnhorst's
+outboard profile as a line drawing on the harbor navy: pencil at 16 % ivory, ink revealed
+from stern to bow by the `--p` progress property (registered with `@property` so it eases),
+and a brass pen line at the ink's edge whose glow breathes through long stages. One 14 px
+muted stage line sits below; there is no other text or decoration. A finished load holds
+"Ready to get underway" for 450 ms and fades out over 600 ms into the port; a load that
+ends in an error leaves at once. The line art (`src/ui/startup-scharnhorst.png`) is a mask
+traced from `bun run ship:view scharnhorst --view profile --mode ids`.
 
 ### Account access
 

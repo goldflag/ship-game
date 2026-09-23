@@ -216,6 +216,17 @@ Checks:
 - Unit tests cover 60 independent trails, a stopped player, submerged ships, per-ship teleports, tile
   reassignment, the generator limit, fleet replacement and port cleanup.
 
+### Bow waves
+
+`src/game/BowWaves.ts` draws each moving hull's bow wave analytically in the hull's own frame and joins the same wake sampler: its height adds to the vertex displacement, its slope to the surface normal and its white water to the foam by maximum coverage. Crests therefore stay sharp at any range, which the wake field's 3 m cells cannot. The eight nearest moving, surfaced hulls to the camera are drawn; speed is the displayed speed smoothed over 2.5 s, submergence fades it out and going astern draws none.
+
+- **Stem crest.** A crest climbs the stem, peels away from a fine-entrance waterline at `crestAngle` (tan, 0.18) and has a trough inboard of it, over a broad rise around the stem. Its height is 0.3 × U²/2g, scaled by beam and capped at 4 m (about 2.8 m for Bismarck at 26.6 kn). White water covers the stem and rides just outboard of the crest, then trails aft and spreads, with broken water along the forward hull side.
+- **Kelvin V.** The closed-form stationary-phase solution for a point source carries a transverse and a divergent system inside the 19.47° cusp. It uses an Airy-style cusp limit and an e^(−kd) source depth of a quarter beam. Its slope is the wave vector, so normals need no finite differences. The amplitude (1.6 × U²/2g × √(beam/length)) is exaggerated so the V reads in a 9 m/s sea. In calm water the curved transverse crests and both arms show in the sky reflection. Divergent crests break into feathered dashes near the cusp. `kelvinSystems` is the CPU reference, tested against the brute-force Kelvin integral.
+- **Turns.** The V is laid along the arc the stem has run, using track curvature measured from each hull's heading change per metre, so it follows the curved stern trail instead of swinging with the bow. The crest and hull-side wash stay in the straight hull frame.
+- **Resolution.** Displaced features must span four water-mesh vertices (the clipmap rings double from 4 m on High), so they do not crawl as the hull crosses the grid. Normals and foam must span five pixels, stretched by the grazing angle, so distant crests fade rather than shimmer.
+
+While the layer is on, trails stop painting their bow-shoulder stamps; the stern streams are unchanged. The developer console's **Toggle bow waves** compares against the wake field alone, and `game.shipWake.bowWaves.tuning` retunes the shape live. Measured on the previous ocean with vsync off at 1728×1030 on an Apple GPU, switching the layer off and on every 0.6 s over 20 rounds, it added about 0.2 ms per frame with one hull in view and 0.8–1.2 ms with eight hulls whose wakes fill the view; cost grows with the water pixels inside wakes. The CPU update takes under 1 µs per frame. These are visual tuning values, not a hydrodynamic model.
+
 ## Wind
 
 Funnel exhaust, gun and impact smoke, burning-turret smoke and falling-aircraft trails use the

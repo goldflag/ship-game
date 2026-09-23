@@ -134,8 +134,20 @@ Layer notes:
   their own limit (ledger row **Custom fittings**, 1,000). The shelf strip and a selected instance
   show the definition's name (editable), mass, solid and tube counts, **Duplicate definition** and
   **Delete definition**, which is disabled while instances use it (`CustomFittingFields.tsx`).
-  Shapes are not editable in the editor yet; agents define them with the `fitting` command. See
+  A definition with visual meshes reads "mesh, N triangles"; the mesh is a unit (select, move,
+  rotate, scale, delete; no vertex editing), and each named mesh group has its own paint picker
+  (**instance paint** follows the instance and ship paint). The Armor view never shows armor on it.
+  Shapes are not editable in the editor yet; agents define them with the `fitting` command or
+  `ship:fitting-mesh`. See
   the [plan](../../../docs/custom-fittings-plan.md).
+- **Parents.** <a id="parents"></a>A selected fitting that may float (deck fittings, masts, light
+  deck guns without a well) shows **Attached to**: *Nothing* or one of the twenty nearest hull
+  pieces and fittings that can carry it (deck fittings, masts, funnels, directors; never itself or
+  what it carries). A parent's tag reads **carries N**. Moving, turning, copying, mirror-copying and
+  removing a parent carries its riders, in the handles' previews too; a removal's undo label and
+  notice count the attached fittings. Hull-block quarter turns and the Rotate toolbar carry riders
+  through a pure yaw only. The rules are in
+  [construction authoring](../../../docs/construction-authoring.md#parents).
 - **Internals.** Entering it clears external selections. Deck, Bulkhead and Split add
   boundaries; Merge removes one; Module places a package on the first floor inside the hull.
 - **Paint.** Keeps a face selection. **Ship paint** is `construction.paint`; **Surface finish**
@@ -191,7 +203,10 @@ Source formats for these are in [docs/shipbuilding.md](../../../docs/shipbuildin
   release. Orientation math is `src/ships/constructionOrientation.ts`.
 - **Custom hull sections**: select a custom hull and choose **Edit hull sections**.
   `CustomHullEditor.tsx` covers the builder with Orbit, Section, Plan and Profile views (keys 1–4),
-  a station ruler and its own snapping. **Apply hull** is one undoable source edit.
+  a station ruler and its own snapping. **Apply hull** is one undoable source edit. Up to 48 sections; where
+  the ruler is too crowded for an insert button between every pair, the gaps beside the selected section keep
+  one. **+ Pair**/**− Pair** re-space every outline; **Crease** marks the selected point (both sides) as a
+  lighting crease that also stays put when pairs are added or removed.
 - **Balcony outline**: **Edit balcony outline** opens `BalconyEditor.tsx`, a plan drawing with
   draggable points and per-edge Open / Railing / Triple railing / Solid wall.
 

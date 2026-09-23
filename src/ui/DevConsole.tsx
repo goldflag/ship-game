@@ -8,6 +8,8 @@ export interface DevConsoleHost {
   developerWeather(): DeveloperWeather | undefined;
   setDeveloperWeather(overrides: EnvironmentOverrides): void;
   diagnostics(): unknown;
+  /** Returns whether the analytic bow waves are now drawn. */
+  toggleBowWaves?(): boolean;
   releasePointer(): void;
   capturePointer(): void;
 }
@@ -73,6 +75,7 @@ export function DevConsole({ host }: { host: DevConsoleHost }) {
       apply({ ...overrides, [command.key]: value });
     } else if (command.kind === 'preset') apply({ ...overrides, ...command.overrides });
     else if (command.id === 'reset') apply({});
+    else if (command.id === 'bowWaves') setNotice(host.toggleBowWaves?.() ? 'Bow waves on.' : 'Bow waves off.');
     else {
       const text = JSON.stringify(host.diagnostics(), null, 2);
       void navigator.clipboard?.writeText(text).then(() => setNotice('Scene diagnostics copied.'), () => setNotice('The clipboard is unavailable.'));

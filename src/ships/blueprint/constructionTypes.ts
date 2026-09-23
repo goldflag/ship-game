@@ -152,6 +152,10 @@ export interface ConstructionCustomHull {
   redPaintY?: number;
   /** Height coatings; when present, supersedes the legacy redPaintY setting. */
   paintBands?: ConstructionHullPaintBands;
+  /** Crease lines: port-side outline positions on the 0–8 contour scale, strictly between the deck edge (0) and the
+   * keel (4), each at an outline point, mirrored to starboard. They split the side lighting there and stay put when
+   * the editor re-spaces an outline. Lighting only: the compiled hull is unaffected. */
+  creases?: number[];
   version: 1;
   stations: ConstructionHullStation[];
   rake: number;
@@ -196,6 +200,13 @@ export interface ConstructionEquipment {
   bearingDeg: number;
   magazineId?: string;
   powerSourceId?: string;
+  /** Per-axis scale of a design-local fitting instance (`design:` parts only), in its own local
+   * axes about its datum, 0.05–20 each; mass follows the volume. Omission is full size. */
+  scale?: Vec3;
+  /** A hull piece or another equipment row this row rides on: moving, turning, copying, mirroring or
+   * removing the parent carries it. A relationship for editing only; `position` and `bearingDeg`
+   * stay absolute and nothing physical reads it. Only equipment that may float takes a parent. */
+  parent?: string;
   /** Installation settings retain canonical part dimensions/capability. */
   gun?: {
     /** Added height above the deck attachment; position remains the turret datum. */
@@ -242,13 +253,38 @@ export interface ConstructionFittingTube {
   diameterM: number;
   paint?: string;
 }
+/** A run of consecutive triangles of a visual mesh with one coating. */
+export interface ConstructionFittingMeshGroup {
+  /** First triangle and triangle count; groups ascend and never overlap. */
+  start: number;
+  count: number;
+  /** The source material or group name, for the editor. */
+  name?: string;
+  /** Named coating; omission follows the instance paint, then the ship paint. */
+  paint?: string;
+}
+/** A visual triangle mesh of a design-local fitting, open or non-convex, in fitting-local metres.
+ * Visual plus mass only: never hull, armor, buoyancy, flooding, modules or hit geometry.
+ * `data` is base64 of zlib-deflated little-endian u16s: `vertices` × (x, y, z) quantized over
+ * `bounds` (0 is `min`, 65535 is `max`), then `triangles` × 3 vertex indices. */
+export interface ConstructionFittingMesh {
+  id: string;
+  encoding: 'deflate-q16-u16-v1';
+  data: string;
+  vertices: number;
+  triangles: number;
+  bounds: { min: Vec3; max: Vec3 };
+  /** Triangles outside every group follow the instance paint, then the ship paint. */
+  groups?: ConstructionFittingMeshGroup[];
+}
 /** Design-local fitting definition. Instances are ordinary equipment rows whose `partId` is
  * `design:<id>`; the datum is the local origin, seated on a deck like a catalog deck fitting.
  * Non-structural: mass, CG and inertia only. Shells, armor, modules and flooding ignore it. */
 export interface ConstructionFittingDefinition {
   id: string;
   name: string;
-  version: 1;
+  /** 2 is required by `meshes` and `centerOfGravity`, so compilers that predate them refuse the definition. */
+  version: 1 | 2;
   /** `wall` and `internal` are reserved; version 1 compiles deck fittings only. */
   attach: 'deck';
   solids: ConstructionFittingSolid[];
@@ -257,8 +293,13 @@ export interface ConstructionFittingDefinition {
   material?: 'steel' | 'aluminium' | 'brass' | 'wood';
   /** Solid fraction of the shape volume, 0.01–1; omission is 1. */
   fill?: number;
-  /** Explicit mass; overrides volume × density × fill. */
+  /** Explicit mass; overrides volume × density × fill. Required with `meshes`, which have no volume. */
   massKg?: number;
+  /** Visual meshes (version 2). */
+  meshes?: ConstructionFittingMesh[];
+  /** Explicit fitting-local centre of gravity (version 2); otherwise the volume centroid of the solids and
+   * tubes, or with meshes the area centroid of the mesh triangles. */
+  centerOfGravity?: Vec3;
 }
 export interface ConstructionBoundary {
   id: string;

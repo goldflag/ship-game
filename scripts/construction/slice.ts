@@ -370,11 +370,13 @@ export function hullStation(view: MeshView, z: number, options: { minRunLength?:
   const keelY = Math.min(...below.map((p) => p[1]));
   if (!(deck.y - keelY > 0.5)) return undefined;
   const samples = Math.min(Math.max(options.samples ?? 32, 5), 200);
-  const half: Point2[] = [];
-  for (let i = 0; i <= samples; i++) {
-    const y = deck.y - ((deck.y - keelY) * i) / samples;
-    half.push([round(Math.min(sectionHalfBreadth(segments, y), widest), 4), round(y, 4)]);
-  }
+  // Even heights, plus every height at which the cut has a vertex: the envelope is piecewise linear between those,
+  // so a knuckle, a chine or a belt step lands on a sample instead of being cut across.
+  const heights = [deck.y];
+  for (const y of [...Array.from({ length: samples - 1 }, (_, i) => deck.y - ((deck.y - keelY) * (i + 1)) / samples), ...below.map((p) => p[1])].sort((a, b) => b - a))
+    if (heights[heights.length - 1] - y > 1e-3 && y - keelY > 1e-3) heights.push(y);
+  heights.push(keelY);
+  const half: Point2[] = heights.map((y) => [round(Math.min(sectionHalfBreadth(segments, y), widest), 4), round(y, 4)]);
   // Trapezoidal integration of the sampled half-breadth, doubled for both sides.
   let area = 0;
   for (let i = 0; i + 1 < half.length; i++) area += (half[i][0] + half[i + 1][0]) * (half[i][1] - half[i + 1][1]);

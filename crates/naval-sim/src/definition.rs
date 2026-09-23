@@ -1340,6 +1340,8 @@ pub struct ConstructionCustomHull {
         skip_serializing_if = "Option::is_none"
     )]
     pub paint_bands: Option<ConstructionHullPaintBands>,
+    #[serde(rename = "creases", default, skip_serializing_if = "Option::is_none")]
+    pub creases: Option<Vec<f64>>,
     #[serde(rename = "version")]
     pub version: f64,
     #[serde(rename = "stations")]
@@ -1506,6 +1508,10 @@ pub struct ConstructionEquipment {
     pub magazine_id: Option<String>,
     #[serde(rename = "powerSourceId")]
     pub power_source_id: Option<String>,
+    #[serde(rename = "scale", default, skip_serializing_if = "Option::is_none")]
+    pub scale: Option<[f64; 3]>,
+    #[serde(rename = "parent", default, skip_serializing_if = "Option::is_none")]
+    pub parent: Option<String>,
     #[serde(rename = "gun")]
     pub gun: Option<ConstructionEquipmentGun>,
     #[serde(rename = "launcher")]
@@ -1577,6 +1583,44 @@ pub struct ConstructionFittingTube {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFittingMeshBounds {
+    #[serde(rename = "min")]
+    pub min: [f64; 3],
+    #[serde(rename = "max")]
+    pub max: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFittingMeshGroup {
+    #[serde(rename = "start")]
+    pub start: f64,
+    #[serde(rename = "count")]
+    pub count: f64,
+    #[serde(rename = "name", default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(rename = "paint", default, skip_serializing_if = "Option::is_none")]
+    pub paint: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFittingMesh {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "encoding")]
+    pub encoding: String,
+    #[serde(rename = "data")]
+    pub data: String,
+    #[serde(rename = "vertices")]
+    pub vertices: f64,
+    #[serde(rename = "triangles")]
+    pub triangles: f64,
+    #[serde(rename = "bounds")]
+    pub bounds: ConstructionFittingMeshBounds,
+    #[serde(rename = "groups", default, skip_serializing_if = "Option::is_none")]
+    pub groups: Option<Vec<ConstructionFittingMeshGroup>>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionFittingDefinition {
     #[serde(rename = "id")]
     pub id: String,
@@ -1596,6 +1640,14 @@ pub struct ConstructionFittingDefinition {
     pub fill: Option<f64>,
     #[serde(rename = "massKg", default, skip_serializing_if = "Option::is_none")]
     pub mass_kg: Option<f64>,
+    #[serde(rename = "meshes", default, skip_serializing_if = "Option::is_none")]
+    pub meshes: Option<Vec<ConstructionFittingMesh>>,
+    #[serde(
+        rename = "centerOfGravity",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub center_of_gravity: Option<[f64; 3]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

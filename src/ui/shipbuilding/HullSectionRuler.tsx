@@ -10,6 +10,7 @@ import {
   sectionMetres,
   type Hull,
 } from "../../ships/customHullModel";
+import { MAX_HULL_SECTIONS } from "../../ships/customHullTopology";
 import type { Blend } from "./customHullEditing";
 import type { HullDrag, HullDragMove } from "./CustomHullViewport";
 
@@ -291,13 +292,19 @@ export function HullSectionRuler({
         ))}
         {h.stations.slice(0, -1).map((s, i) => {
           const next = h.stations[i + 1];
-          if (h.stations.length >= 24 || (next.t - s.t) * span < 26)
+          // Crowded gaps (many sections) keep their add button beside a selected section only.
+          const crowded = (next.t - s.t) * span < 26;
+          if (
+            h.stations.length >= MAX_HULL_SECTIONS ||
+            (crowded && !selected.includes(s.id) && !selected.includes(next.id))
+          )
             return null;
           const x = X((s.t + next.t) / 2);
           return (
             <g
               key={s.id}
               className="hs-ruler-insert"
+              data-crowded={crowded || undefined}
               transform={`translate(${x} ${AXIS_Y})`}
               role="button"
               tabIndex={0}
@@ -310,8 +317,8 @@ export function HullSectionRuler({
                 }
               }}
             >
-              <circle r={7} />
-              <path d="M-3.5 0H3.5M0 -3.5V3.5" />
+              <circle r={crowded ? 5 : 7} />
+              <path d={crowded ? "M-2.5 0H2.5M0 -2.5V2.5" : "M-3.5 0H3.5M0 -3.5V3.5"} />
             </g>
           );
         })}

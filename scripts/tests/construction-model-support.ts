@@ -1,6 +1,15 @@
 import * as THREE from 'three/webgpu';
 import type { ConstructionCatalog, ConstructionSource } from '../../src/ships/blueprint';
 
+/** The installed group of one equipment row: a child of the model, or of the yaw joint of the gun that carries it. */
+export function installationNode(model: THREE.Object3D, id: string): THREE.Object3D | undefined {
+  const direct = model.children.find(n => n.name === id);
+  if (direct) return direct;
+  let found: THREE.Object3D | undefined;
+  model.traverse(n => { if (!found && n.name === id && n.userData.sourceId === id) found = n; });
+  return found;
+}
+
 /** Ray-test actual original sole vertices against rendered structural surfaces.
  * The small gap tolerance accounts for the inward shell skin and GLB rounding. */
 export function installedSupportContacts(model: THREE.Group, source: ConstructionSource, catalog: ConstructionCatalog) {
@@ -10,7 +19,7 @@ export function installedSupportContacts(model: THREE.Group, source: Constructio
     const part = catalog.equipment.find(p => p.id === instance.partId)!;
     const socket = part.sockets?.find(s => s.id === 'attachment');
     if (!socket) throw new Error(`Missing support metadata ${instance.id}`);
-    const installation = model.children.find(n => n.name === instance.id)!;
+    const installation = installationNode(model, instance.id)!;
     const seat = installation.localToWorld(new THREE.Vector3(...socket.position));
     const direction = new THREE.Vector3(...socket.direction).transformDirection(installation.matrixWorld);
     let candidates = 0, contactVertices = 0, minimumGapM = Infinity;

@@ -32,7 +32,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | A field crossing Rust and TypeScript (definitions, frames, commands) | The checklists in [crates/AGENTS.md](crates/AGENTS.md) |
 | Multiplayer server, accounts, deployment | [Rust multiplayer](docs/rust-multiplayer-implementation.md), [accounts](docs/accounts.md), [deployment](docs/deployment.md) |
 | See a UI or battle change in the real game | [Browser verification](docs/browser-verification.md): account-free harness, `bun run ui:shot`, saved custom designs |
-| Build or refit a construction ship as an agent | [Agent construction authoring](docs/construction-authoring.md): `ship:summary`, guarded `ship:apply` batches, `ship:place`, `ship:view`, or the `ship-construction` MCP server |
+| Build or refit a construction ship as an agent | [Agent construction authoring](docs/construction-authoring.md): `ship:summary`, guarded `ship:apply` batches, `ship:place`, `ship:view`, `ship:blender-import`/`ship:blender-export` (Blender as a front end that proposes batches), or the `ship-construction` MCP server |
 | New ship, ship model, parts, aircraft, paint | [assets/AGENTS.md](assets/AGENTS.md), then the [ship pipeline](docs/ship-pipeline.md) |
 | Merge, rebase or independent worktree | [Integration workflow](docs/integration-workflow.md) before starting |
 | Anything else | The [documentation map](docs/README.md). `docs/archive/` is history, not guidance |

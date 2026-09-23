@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Shell splash review</title>
+<style>html,body,#scene{margin:0;width:100%;height:100%;overflow:hidden}output{position:absolute;top:16px;left:16px;color:white;font:16px sans-serif;text-shadow:0 1px 2px #000}</style>
+<div id="scene"></div><output>Preparing splash review…</output>
+<script type="module">
+import { TimestampQuery } from 'three/webgpu';
+import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
+import { loadShipPresets, shipPreset } from '/src/ships/presets.ts';
+const noop = () => {}, status = document.querySelector('output');
+await loadShipPresets(['bismarck', 'admiral-hipper']);
+const game = new Game(document.querySelector('#scene'), GRAPHICS_PRESETS.medium,
+  { progress: noop, ready: noop, telemetry: noop, pause: noop, hud: noop, error: message => status.textContent = message }, shipPreset('bismarck'));
+game.scheduleFrame = noop;
+window.splashGame = game;
+game.start();
+await game.initialization;
+game.setInPort(true);
+await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['admiral-hipper'], spawnDistance: 1200 });
+game.setInPort(false); game.setPaused(true);
+game.simulation.actors.forEach(actor => { if (actor !== game.simulation.player) actor.controller = 'idle'; });
+game.fleetViews.forEach(view => view.snap());
+const target = game.simulation.actors.find(actor => actor !== game.simulation.player).motion;
+const own = game.simulation.player.motion;
+// Open water beside the player, clear of both hulls, for isolated near views.
+const open = { x: own.x + 700, z: own.z - 700 };
+window.splashPositions = { own: [own.x, own.z], target: [target.x, target.z], open: [open.x, open.z] };
+let sequence = 1e6, shellId = 1e6;
+// Splash events only: the renderer's own CombatEffects and wake foam consume them
+// as they would a simulation frame. No combat rule runs.
+const splashes = [];
+const sim = new Proxy(game.simulation, {
+  get(source, key) {
+    if (key === 'events') return splashes;
+    if (key === 'shells') return [];
+    const value = Reflect.get(source, key, source);
+    return typeof value === 'function' ? value.bind(source) : value;
+  },
+});
+const seeded = seed => () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+/** Views: near (400 m), close (150 m, toward the sun), lit (150 m, sun behind the camera), low (90 m, near the water),
+ * far (1.4 km), deck (own ship toward the target) and sight (12 km, binocular field of view). */
+window.splashFixture = async ({ seconds = 2, caliber = .38, descent = 18, view = 'near', salvo = 1, seed = 7, bearing = 0, time = false, smoke = false, weather } = {}) => {
+  game.effects.reset(); game.shipWake.reset(); splashes.length = 0;
+  const random = seeded(seed);
+  const center = view === 'deck' || view === 'sight' ? [target.x + 40, 0, target.z + 60] : [open.x, 0, open.z];
+  const speed = 480, heading = bearing * Math.PI / 180;
+  const pending = Array.from({ length: salvo }, (_, i) => {
+    const spread = salvo > 1 ? 140 : 0;
+    const x = center[0] + (random() - .5) * spread * 1.6, z = center[2] + (random() - .5) * spread;
+    const dip = (descent + (random() - .5) * 3) * Math.PI / 180;
+    return { at: salvo > 1 ? random() * .5 : 0, event: { tick: 0, kind: 'splash', position: [x, 0, z], message: '', shipId: 'review',
+      shell: { id: ++shellId, caliberM: caliber, type: 'ap',
+        velocity: [Math.cos(dip) * Math.cos(heading) * speed, -Math.sin(dip) * speed, Math.cos(dip) * Math.sin(heading) * speed] } } };
+  });
+  // Optional gun smoke alive at capture time, as in a real exchange of fire.
+  if (smoke) pending.push({ at: Math.max(0, seconds - 1.2), event: { tick: 0, kind: 'shot', position: [center[0] - 90, 12, center[2] + 30], message: '', shipId: 'review',
+    shell: { id: ++shellId, caliberM: caliber, type: 'ap', velocity: [480, 60, 0] } } });
+  pose(view, center);
+  // Developer weather overrides (timeHours, cloudCover, windSpeed…) reach the sky, sea and effect light.
+  game.setDeveloperWeather(weather ?? {}); game.environment.update(game.camera, 0);
+  for (let t = 0; t < seconds; t += 1 / 60) {
+    for (const item of pending) if (!item.fired && item.at <= t) { item.fired = true; splashes.push({ ...item.event, sequence: ++sequence }); }
+    game.effects.update(sim, 1 / 60, game.camera);
+    game.shipWake.update(game.fleetViews, 1 / 60, splashes, game.camera, []);
+  }
+  status.textContent = `${Math.round(caliber * 1000)} mm · ${descent}° · ${salvo} × · ${seconds.toFixed(1)} s · ${view}`;
+  const image = await window.captureSplash();
+  return time ? { image, ms: await window.timeSplashFrames(), effects: game.effects.diagnostics() } : image;
+};
+function pose(view, center) {
+  const camera = game.camera, player = game.simulation.player.motion;
+  camera.fov = 52;
+  if (view === 'near') { camera.position.set(center[0] - 60, 22, center[2] + 380); camera.lookAt(center[0], 26, center[2]); }
+  else if (view === 'close') { camera.position.set(center[0] - 30, 8, center[2] + 150); camera.lookAt(center[0], 24, center[2]); }
+  else if (view === 'lit') { camera.position.set(center[0] - 125, 10, center[2] - 88); camera.lookAt(center[0], 24, center[2]); }
+  else if (view === 'low') { camera.position.set(center[0] - 20, 4, center[2] + 90); camera.lookAt(center[0], 20, center[2]); }
+  else if (view === 'far') { camera.position.set(center[0] - 300, 60, center[2] + 1400); camera.lookAt(center[0], 20, center[2]); }
+  else if (view === 'deck') { camera.position.set(player.x - 60, 35, player.z - 120); camera.lookAt(center[0], 20, center[2]); }
+  else if (view === 'sight') {
+    camera.fov = 4.33;
+    camera.position.set(center[0] - 12000 * .4, 32, center[2] + 12000 * .92); camera.lookAt(center[0], 18, center[2]);
+  }
+  camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+}
+window.captureSplash = async (width = 1440, height = 900) => {
+  game.renderer.setSize(width, height); game.camera.aspect = width / height; game.camera.updateProjectionMatrix();
+  game.ocean.resize(width, height); game.sky.resize(width, height); game.resizePending = false;
+  // update(0) renders the ocean without stepping its waves, foam or wake.
+  game.sky.update(0); game.ocean.update(0);
+  game.renderer._nodes.nodeFrame.update();
+  game.pipeline.render();
+  if (game.renderer.backend.device) await game.renderer.backend.device.queue.onSubmittedWorkDone();
+  return game.renderer.domElement.toDataURL('image/png');
+};
+/** Median GPU milliseconds (WebGPU timestamps) of the render pipeline at the current effect state. */
+window.timeSplashFrames = async (frames = 40) => {
+  const renderer = game.renderer, timed = renderer.hasFeature('timestamp-query');
+  if (!timed) return null;
+  const tracking = renderer.backend.trackTimestamp, gpu = [];
+  renderer.backend.trackTimestamp = true;
+  try {
+    for (let i = frames > 1 ? -5 : 0; i < frames; i++) {
+      renderer._nodes.nodeFrame.update();
+      game.pipeline.render();
+      const time = await renderer.resolveTimestampsAsync(TimestampQuery.RENDER);
+      if (i >= 0 && typeof time === 'number') gpu.push(time);
+    }
+  } finally { renderer.backend.trackTimestamp = tracking; }
+  gpu.sort((a, b) => a - b);
+  return gpu[gpu.length >> 1];
+};
+window.splashReady = true;
+status.textContent = 'Splash review ready';
+</script></html>

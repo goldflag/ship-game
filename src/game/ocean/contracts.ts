@@ -230,6 +230,8 @@ export interface OceanApi {
   time: number;
   /** True when the camera's near plane may be below the surface this frame. */
   readonly cameraNearSurface: boolean;
+  /** Finest vertex spacing of the surface mesh in metres (the clipmap's innermost cells). */
+  readonly meshSpacing: number;
   update(dt: number): void;
   setSky(sky: OceanSky | null): void;
   /** Replace the wake the surface reads (the game composes its own foam on top of `wake.sampler`). */

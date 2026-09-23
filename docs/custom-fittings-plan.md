@@ -18,7 +18,7 @@ the fitting for free) and is built from the shape vocabulary the editor already 
 ## Owner's decisions
 
 1. Custom-fitting instances do not count against the 1,000 equipment instances. They have their
-   own limit: 1,000 per design, 96 online.
+   own limit: 1,000 per design, online as well as local.
 2. Format versioning was left to the implementation; see [Versioning](#versioning-and-deployment).
 3. Shells ignore custom fittings completely: no collision, hit volume, damage, armor or module.
 4. Tubes are part of version 1.
@@ -88,17 +88,26 @@ refused for online play with a clear message. Local play, saving and cloning are
 
 | Limit | Value |
 | --- | --- |
-| Definitions per design | 32 (16 online) |
-| Instances per design | 1,000 (96 online), separate from the 1,000 catalog instances (32 online) |
-| Solids / tubes per definition | 48 / 16 |
-| Triangles per definition (cell faces plus tubes) | 20,000 |
-| Tube | 2–64 points, segments ≥ 1 cm, ≤ 100 m, diameter 0.01–2 m |
+| Definitions per design | 256 |
+| Instances per design | 1,000, separate from the 1,000 catalog instances |
+| Solids / tubes per definition | 256 / 128 |
+| Triangles per definition (cell faces plus tubes) | 32,000 |
+| Tube | 2–256 points, segments ≥ 1 cm, ≤ 100 m, diameter 0.01–2 m |
 | Solid | the hull-piece checks: 0.01–500 m, closed topology, shaping ≤ 45% |
 | Local coordinates and overall span | within 100 m |
 | Mass | 0.001–1,000,000 kg |
+| Instance scale | 0.05–20 per axis, custom fitting instances only |
+| Collision boxes per definition | 64; larger fittings merge neighbouring boxes |
+| Visual meshes (version 2) | 16 per definition; 20,000 triangles and 65,535 vertices per mesh; 64 paint groups |
+| Unique mesh triangles per design | 100,000, each definition counted once |
+| Encoded mesh bytes per design | 1 MiB of base64 `data` |
+| Drawn triangles per design | 1,000,000: instances × definition triangles (meshes, solid faces, tubes) |
 
-Rust constants are in `construction_custom_fittings.rs`, mirrored by `CUSTOM_FITTING_LIMITS`.
-Online limits are in `services/compiler/limits.ts`.
+Rust constants are in `construction_custom_fittings.rs` and `construction_fitting_mesh.rs`, mirrored
+by `CUSTOM_FITTING_LIMITS` (which includes `FITTING_MESH_LIMITS` from `constructionFittingMesh.ts`).
+The mesh budgets were measured on the Scharnhorst with 100,000 triangles of a published ship model:
+see [visual mesh fittings](construction-authoring.md#visual-mesh-fittings).
+Online designs use the same limits (`services/compiler/limits.ts` checks only the source shape).
 
 ## Phase 1 (built)
 

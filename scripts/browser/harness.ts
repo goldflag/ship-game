@@ -24,8 +24,15 @@ export interface HarnessOptions {
   /** Reuse a running dev server (`http://127.0.0.1:5200`) instead of starting one on a free port. */
   url?: string;
   timeout?: number;
+  /** Extra Chromium switches, e.g. `--disable-frame-rate-limit` to time frames past the display refresh. */
+  args?: string[];
 }
-export interface Harness { page: Page; browser: Browser; url: string; errors: string[]; close(): Promise<void>; }
+export interface Harness {
+  page: Page; browser: Browser; url: string; errors: string[];
+  /** Console errors and warnings from the first navigation on, such as WGSL compile failures that never throw. */
+  console: string[];
+  close(): Promise<void>;
+}
 
 export async function launchHarness(options: HarnessOptions = {}): Promise<Harness> {
   const server = options.url ? undefined : await authoringServer(ROOT, 0, true);
@@ -33,17 +40,18 @@ export async function launchHarness(options: HarnessOptions = {}): Promise<Harne
   let browser: Browser | undefined;
   const close = async () => { await browser?.close().catch(() => undefined); (server?.httpServer as Server | null)?.closeAllConnections(); await server?.close(); };
   try {
-    browser = await chromium.launch({ headless: options.headless ?? false, args: ['--enable-unsafe-webgpu', '--window-position=0,0', `--window-size=${viewport.width},${viewport.height + 90}`],
+    browser = await chromium.launch({ headless: options.headless ?? false, args: ['--enable-unsafe-webgpu', '--window-position=0,0', `--window-size=${viewport.width},${viewport.height + 90}`, ...options.args ?? []],
       ...(process.env.HARNESS_CHROME ? { executablePath: process.env.HARNESS_CHROME } : {}) });
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(options.timeout ?? 240_000);
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+    const messages: string[] = []; page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') messages.push(`${message.type()}: ${message.text()}`); });
     const query = new URLSearchParams(Object.entries(options.params ?? {}).map(([key, value]) => [key, String(value)]));
     await page.goto(`${url}${HARNESS_PAGE}?${query}`, { waitUntil: 'domcontentloaded' });
     const wanted = 'battle' in (options.params ?? {}) ? 'inBattle' : 'ready';
     await page.waitForFunction(key => { const review = window.review; if (review?.errors.length) throw new Error(review.errors.join('\n')); return review?.[key as 'ready']; }, wanted, { polling: 250 })
       .catch(error => { throw new Error([error.message, ...errors].join('\n')); });
-    return { page, browser, url, errors, close };
+    return { page, browser, url, errors, console: messages, close };
   } catch (error) { await close(); throw error; }
 }
 

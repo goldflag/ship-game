@@ -114,8 +114,8 @@ export class ShipView {
     this.update();
   }
   inspect(enabled: boolean): void { this.setInspection(enabled ? 'all' : 'exterior'); }
-  setInspection(mode: InspectionMode | 'all' | 'damage', selectedId?: string): void {
-    this.inspection.setMode(mode, selectedId);
+  setInspection(mode: InspectionMode | 'all' | 'damage', selected?: string | readonly string[]): void {
+    this.inspection.setMode(mode, selected);
     const enabled = mode !== 'exterior';
     this.rig.root.visible = !enabled;
     this.impactMarks.setVisible(!enabled);

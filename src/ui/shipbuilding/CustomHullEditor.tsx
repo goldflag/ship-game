@@ -2,7 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   addHullPointPair,
   BLEND_REACH,
+  canCreaseHullPoint,
   canRemoveHullPointPair,
+  isHullCrease,
   clone,
   hullExtent,
   invalidReason,
@@ -10,6 +12,7 @@ import {
   makeHull,
   presets,
   removeHullPointPair,
+  toggleHullCrease,
   sectionAt,
   sectionMetres,
   setSectionCount,
@@ -19,7 +22,7 @@ import {
 } from "../../ships/customHullModel";
 import { editHullPaintBands, hullPaintBands, hullPaintHeightRange } from "../../ships/hullPaintBands";
 import { HullPaintControls } from "./HullPaintControls";
-import { MAX_HULL_POINTS } from "../../ships/customHullTopology";
+import { MAX_HULL_POINTS, MAX_HULL_SECTIONS, MIN_HULL_SECTIONS } from "../../ships/customHullTopology";
 import { defaultBilgeKeels } from "../../ships/constructionBilgeKeels";
 import type { ConstructionSource, Vec3 } from "../../ships/blueprint";
 import {
@@ -545,7 +548,7 @@ export default function CustomHullEditor({
   const reading = (key: ReadingKey, value: number) =>
     commit(applyReading(hull, selection, blend, primary, key, value));
   const insert = (index: number) => {
-    if (hull.stations.length >= 24) return;
+    if (hull.stations.length >= MAX_HULL_SECTIONS) return;
     const id = uid();
     edit(
       (draft) => {
@@ -582,7 +585,7 @@ export default function CustomHullEditor({
     );
   };
   const count = (next: number) => {
-    if (next < 4 || next > 24 || next === hull.stations.length) return;
+    if (next < MIN_HULL_SECTIONS || next > MAX_HULL_SECTIONS || next === hull.stations.length) return;
     const draft = clone(hull);
     setSectionCount(draft, next);
     const near = draft.stations.reduce((a, b) =>
@@ -829,7 +832,7 @@ export default function CustomHullEditor({
           <span className="hs-stepper">
             <button
               aria-label="Fewer sections"
-              disabled={hull.stations.length <= 4 || !!pending}
+              disabled={hull.stations.length <= MIN_HULL_SECTIONS || !!pending}
               onClick={() => count(hull.stations.length - 1)}
             >
               −
@@ -837,7 +840,7 @@ export default function CustomHullEditor({
             <b>{hull.stations.length}</b>
             <button
               aria-label="More sections"
-              disabled={hull.stations.length >= 24 || !!pending}
+              disabled={hull.stations.length >= MAX_HULL_SECTIONS || !!pending}
               onClick={() => count(hull.stations.length + 1)}
             >
               +
@@ -1015,6 +1018,19 @@ export default function CustomHullEditor({
             onClick={() => pair(false)}
           >
             − Pair
+          </button>
+          <button
+            className="hs-small"
+            aria-pressed={isHullCrease(hull, k0)}
+            title={
+              canCreaseHullPoint(primary.points, k0)
+                ? "A crease keeps the lighting sharp along this point on both sides, like a knuckle or chine, and holds the point in place when pairs are added or removed"
+                : "The deck edges and the keel are already sharp"
+            }
+            disabled={!canCreaseHullPoint(primary.points, k0) || !!pending}
+            onClick={() => edit((draft) => { toggleHullCrease(draft, k0); })}
+          >
+            Crease
           </button>
         </div>
         <button

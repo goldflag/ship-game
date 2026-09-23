@@ -121,7 +121,7 @@ test('rangefinding uses a visible ship and feeds locked range into the real gun 
   } finally { rig.dispose(); simulation.dispose(); }
 });
 
-test('scoping over empty water follows a closer aim while retaining the fixed viewing angle', async () => {
+test('the scope eye holds its height while aiming from empty water onto a ship', async () => {
   const simulation = await presentationSession(false);
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
   const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement);
@@ -144,8 +144,7 @@ test('scoping over empty water follows a closer aim while retaining the fixed vi
       clientY: (Math.atan2(-delta.y, Math.hypot(delta.x, delta.z)) - descent) / sensitivity,
     }));
     window.dispatchEvent(new Event('pointerup')); settle();
-    expect(camera.position.y).toBeLessThan(height - 100);
-    expect(-Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeCloseTo(2 * Math.PI / 180, 6);
+    expect(camera.position.y).toBeCloseTo(height, 6);
     const projected = aim.project(camera);
     expect(projected.x).toBeCloseTo(0, 6); expect(projected.y).toBeCloseTo(0, 6);
     expect(rig.binoculars).toBe(true); expect(rig.rangeAim).toBeUndefined();
@@ -159,14 +158,12 @@ test('switching guns and AP/HE leaves the scoped camera and aim unchanged', asyn
   const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
     battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false, ammunition: {},
   }) as Game;
-  const runtime = game as unknown as { updateGunScope(definition: typeof simulation.definition): void };
   const ship = simulation.ship;
   rig.aimAt([ship.x + 5000, .5, ship.z], ship);
   try {
     game.toggleBinoculars();
     for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60);
     const position = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
-    expect(-Math.asin(direction.y)).toBeCloseTo(2 * Math.PI / 180, 6);
     const groups = game.weaponGroups.filter(group => group.battery === 'main' || group.battery === 'secondary');
     expect(groups.length).toBeGreaterThan(1);
     for (const group of groups) {
@@ -174,7 +171,6 @@ test('switching guns and AP/HE leaves the scoped camera and aim unchanged', asyn
       for (const ammunition of weapon.he ? ['he', 'ap'] as const : ['ap'] as const) {
         game.selectWeaponGroup(group.id); game.selectAmmunition(ammunition);
         expect(game.selectedAmmunition).toBe(ammunition);
-        runtime.updateGunScope(simulation.definition);
         for (let i = 0; i < 60; i++) {
           rig.update(ship, ship.y, 1 / 60);
           expect(camera.position.distanceTo(position)).toBeLessThan(1e-6);

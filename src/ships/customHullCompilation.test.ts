@@ -3,7 +3,7 @@ import init, { compile_construction } from '../generated/naval-wasm/naval_wasm';
 import catalogJson from '../../public/models/components/catalog.json';
 import type { ConstructionCatalog, ConstructionResult } from './blueprint';
 import { createStarterSource } from './constructionStarter';
-import { addHullPointPair, customHullBilgeKeelFaces, customHullPrimitive, editableCustomHull, removeHullPointPair } from './customHullModel';
+import { addHullPointPair, customHullBilgeKeelFaces, customHullFaces, customHullPrimitive, editableCustomHull, removeHullPointPair } from './customHullModel';
 import { customHullPanels } from './constructionPanels';
 import { pendingHullSurfaces } from '../ui/shipbuilding/pendingHull';
 import { primitiveOutlineGeometry } from '../ui/shipbuilding/primitiveGeometry';
@@ -85,4 +85,39 @@ test('configured bilge keels follow a moved, tilted hull after outline edits', (
   const expected = customHullBilgeKeelFaces(hull).map(face => face.map(v => primitivePoint(p, v)));
   expect(result.bilgeKeelSurfaces!.length).toBe(expected.length);
   result.bilgeKeelSurfaces!.forEach((face, i) => face.vertices.forEach((v, j) => v.forEach((n, a) => expect(n).toBeCloseTo(expected[i][j][a], 8))));
+});
+
+test('a wine-glass bow compiles natively through the band cut, and the editor draws the same banded caps', () => {
+  const source = createStarterSource(catalogJson as ConstructionCatalog, 'patrol-hull'), p = source.construction.primitives[0];
+  // Flare over a narrow waist over a wider forefoot in every section: no single centre sees the whole span.
+  const half = [[1, .5], [.12, .25], [.8, -.2], [.8, -.5]];
+  for (const station of p.customHull!.stations) {
+    const n = station.points.length, keel = (n - 1) / 2;
+    station.points = station.points.map((point, i) => {
+      if (i === keel) return { ...point, x: 0, y: -.5 };
+      const j = Math.min(i, n - 1 - i), f = j / keel * (half.length - 1), k = Math.min(Math.floor(f), half.length - 2), t = f - k;
+      const [x, y] = [half[k][0] + (half[k + 1][0] - half[k][0]) * t, half[k][1] + (half[k + 1][1] - half[k][1]) * t];
+      return { ...point, x: i < keel ? -x : x, y };
+    });
+  }
+  p.customHull!.bulb = 0; p.customHull!.rake = 0;
+  const result: ConstructionResult = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalogJson)));
+  expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
+  const area = (vertices: number[][]) => {
+    let [x, y, z] = [0, 0, 0];
+    for (let i = 1; i + 1 < vertices.length; i++) {
+      const [a, b, c] = [vertices[0], vertices[i], vertices[i + 1]];
+      const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+      x += u[1] * v[2] - u[2] * v[1]; y += u[2] * v[0] - u[0] * v[2]; z += u[0] * v[1] - u[1] * v[0];
+    }
+    return Math.hypot(x, y, z) / 2;
+  };
+  // Banded caps: two triangles per band (none for the flat keel band), not the fan's one per outline edge.
+  expect(customHullFaces(p).filter(f => f.group === 'bow').length).toBe(p.customHull!.stations[0].points.length - 2);
+  for (const end of ['bow', 'stern']) {
+    const native = result.surfaces.filter(s => s.primitiveId === p.id && s.face === end).reduce((sum, s) => sum + s.areaM2, 0);
+    const drawn = customHullFaces(p).filter(f => f.group === end).reduce((sum, f) => sum + area(f.vertices), 0);
+    expect(native).toBeGreaterThan(0);
+    expect(drawn).toBeCloseTo(native, 3);
+  }
 });

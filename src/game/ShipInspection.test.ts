@@ -88,3 +88,24 @@ test('armor surfaces share draws while exact plate picking, isolation, colors an
   inspection.setMode('armor'); inspection.update(sim.player);
   expect(drawn().length).toBeLessThanOrEqual(definition.mounts.length + 1);
 });
+
+test('the port isolates a whole armor zone or equipment group at once', () => {
+  const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition), inspection = new ShipInspection(definition);
+  const visible = () => inspection.root.children.filter(group => group.visible && group.userData.inspectionId).map(group => group.userData.inspectionId as string).sort();
+  const belt = inspection.entries.filter(entry => /main belt/i.test(entry.name)).map(entry => entry.id);
+  expect(belt.length).toBeGreaterThan(1);
+  inspection.setMode('armor', belt); inspection.update(sim.player);
+  expect(visible()).toEqual([...belt].sort());
+  expect(inspection.selectedIds.size).toBe(belt.length);
+  expect(inspection.selectedId).toBeUndefined();
+  // Only isolated volumes answer the pointer, and ids from another view are ignored.
+  const other = inspection.entries.find(entry => entry.kind === 'armor' && !belt.includes(entry.id))!.id;
+  inspection.setHovered(other); expect(inspection.hoveredId).toBeUndefined();
+  inspection.setHovered(belt[0]); expect(inspection.hoveredId).toBe(belt[0]);
+  const magazines = inspection.entries.filter(entry => entry.kind === 'magazine').map(entry => entry.id);
+  inspection.setMode('internals', [...magazines, belt[0]]); inspection.update(sim.player);
+  expect(visible()).toEqual([...magazines].sort());
+  inspection.setMode('internals'); inspection.update(sim.player);
+  expect(inspection.selectedIds.size).toBe(0);
+  expect(visible().length).toBeGreaterThan(magazines.length);
+});

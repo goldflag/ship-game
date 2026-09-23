@@ -1,6 +1,49 @@
 //! Closed, scalable wall details and persisted bilateral editor relationships.
 use crate::{construction_geometry as cg, definition::*, geometry::*};
 
+/// Largest and smallest per-axis scale of a design-local fitting instance.
+pub const INSTANCE_SCALE: std::ops::RangeInclusive<f64> = 0.05..=20.;
+
+/// A design-local fitting instance scaled about its datum in its own axes: every box, socket and
+/// the centre of gravity scale with it, and mass follows the volume.
+fn scale_instance(
+    e: &ConstructionEquipment,
+    p: &mut ConstructionEquipmentPart,
+    scale: Vec3,
+) -> Result<(), ConstructionDiagnostic> {
+    let error = |message: &str| ConstructionDiagnostic {
+        severity: "error".into(),
+        code: "equipment-scale".into(),
+        message: message.into(),
+        source_id: Some(e.id.clone()),
+        ..Default::default()
+    };
+    if !crate::construction_custom_fittings::is_custom(&p.id) {
+        return Err(error(
+            "Scale applies only to custom fitting instances; catalog parts keep their size",
+        ));
+    }
+    if scale
+        .iter()
+        .any(|s| !s.is_finite() || !INSTANCE_SCALE.contains(s))
+    {
+        return Err(error("Scale must be 0.05–20 on each axis"));
+    }
+    let scaled = |v: Vec3| [v[0] * scale[0], v[1] * scale[1], v[2] * scale[2]];
+    p.size = scaled(p.size);
+    p.bounds_center = scaled(p.bounds_center);
+    p.center_of_gravity = scaled(p.center_of_gravity);
+    p.mass_kg = p.mass_kg.map(|m| m * scale[0] * scale[1] * scale[2]);
+    for s in p.sockets.iter_mut().flatten() {
+        s.position = scaled(s.position);
+    }
+    for b in p.fitting.iter_mut().flatten() {
+        b.center = scaled(b.center);
+        b.size = scaled(b.size);
+    }
+    Ok(())
+}
+
 pub(crate) fn installed(
     e: &ConstructionEquipment,
     part: &ConstructionEquipmentPart,
@@ -8,6 +51,9 @@ pub(crate) fn installed(
     surfaces: &[ConstructionSurface],
 ) -> Result<ConstructionEquipmentPart, ConstructionDiagnostic> {
     let mut p = part.clone();
+    if let Some(scale) = e.scale {
+        scale_instance(e, &mut p, scale)?;
+    }
     let Some(w) = &e.wall else {
         return Ok(p);
     };

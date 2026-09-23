@@ -7,7 +7,7 @@ import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
 import { mirroredWall } from './constructionWallFittings';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
-import { outlineTopologyError } from './customHullTopology';
+import { hullCreasesError, MAX_HULL_SECTIONS, MIN_HULL_SECTIONS, outlineTopologyError } from './customHullTopology';
 import type {
   ConstructionEquipment,
   ConstructionSource,
@@ -20,6 +20,7 @@ import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
 import { CONSTRUCTION_SHAPES, shapeMirror } from './constructionShapes';
 import { ConstructionStoreError, readConstructionSource, type ConstructionRevision, type ConstructionStore } from './constructionStore';
 import { loadConstructionCatalog, removeRetiredDeckFittings } from './constructionEquipment';
+import { CENTERLINE_M, carriedIds, carryRoots, parentPosition, turnedAbout } from './constructionParents';
 
 export const CONSTRUCTION_FACES = ['port', 'starboard', 'bottom', 'top', 'bow', 'stern', 'slope'] as const;
 export type ConstructionFace = ConstructionSurfaceAssignment['face'];
@@ -156,7 +157,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       number(hull.rake, 'Bow rake');
       number(hull.bulb, 'Bow bulb');
       const stations = rows(hull.stations, 'Hull sections');
-      if (stations.length < 4 || stations.length > 24) throw new Error('Custom hulls require 4–24 sections');
+      if (stations.length < MIN_HULL_SECTIONS || stations.length > MAX_HULL_SECTIONS) throw new Error(`Custom hulls require ${MIN_HULL_SECTIONS}–${MAX_HULL_SECTIONS} sections`);
       for (const station of stations) {
         string(station.id, 'Section ID');
         number(station.t, 'Section position');
@@ -169,6 +170,10 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       }
       const topology = outlineTopologyError(stations as unknown as import('./blueprint').ConstructionHullStation[]);
       if (topology) throw new Error(topology);
+      if (hull.creases !== undefined) {
+        const error = hullCreasesError(hull.creases, (stations[0] as unknown as import('./blueprint').ConstructionHullStation).points);
+        if (error) throw new Error(error);
+      }
     } else if (p.customHull !== undefined) throw new Error('Section data belongs to a custom hull');
     if (p.mesh !== undefined) {
       const mesh = object(p.mesh, 'Freeform topology');
@@ -287,7 +292,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
     for (const def of rows(data.fittings, 'Custom fittings')) {
       string(def.id, 'Custom fitting ID');
       string(def.name, 'Custom fitting name');
-      if (def.version !== 1) throw new Error('Unsupported custom fitting version');
+      if (def.version !== 1 && def.version !== 2) throw new Error('Unsupported custom fitting version');
       if (def.attach !== 'deck') throw new Error('Custom fittings attach to a deck');
       if (def.material !== undefined && !['steel', 'aluminium', 'brass', 'wood'].includes(def.material as string))
         throw new Error('Unsupported custom fitting material');
@@ -300,10 +305,24 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       for (const tube of rows(def.tubes, 'Custom fitting tubes')) {
         string(tube.id, 'Tube ID');
         number(tube.diameterM, 'Tube diameter');
-        if (!Array.isArray(tube.points) || tube.points.length < 2 || tube.points.length > 64) throw new Error('Tubes require 2–64 points');
+        if (!Array.isArray(tube.points) || tube.points.length < 2 || tube.points.length > 256) throw new Error('Tubes require 2–256 points');
         tube.points.forEach((point) => vector(point, 'Tube point'));
         if (tube.paint !== undefined) string(tube.paint, 'Tube paint');
       }
+      if (def.meshes !== undefined) {
+        if (def.version !== 2) throw new Error('Custom fitting meshes need version 2');
+        for (const mesh of rows(def.meshes, 'Custom fitting meshes')) {
+          string(mesh.id, 'Mesh ID');
+          if (mesh.encoding !== 'deflate-q16-u16-v1') throw new Error('Unsupported custom fitting mesh encoding');
+          if (typeof mesh.data !== 'string') throw new Error('Custom fitting mesh data must be text');
+          for (const key of ['vertices', 'triangles']) if (!Number.isInteger(mesh[key])) throw new Error(`Custom fitting mesh ${key} must be a whole number`);
+          const bounds = object(mesh.bounds, 'Mesh bounds');
+          vector(bounds.min, 'Mesh bounds');
+          vector(bounds.max, 'Mesh bounds');
+          if (mesh.groups !== undefined) for (const group of rows(mesh.groups, 'Mesh groups')) for (const key of ['start', 'count']) number(group[key], `Mesh group ${key}`);
+        }
+      }
+      if (def.centerOfGravity !== undefined) vector(def.centerOfGravity, 'Custom fitting centre of gravity');
     }
   }
   if (data.finish !== undefined && !isConstructionSurfaceFinish(data.finish)) throw new Error('Unsupported surface finish');
@@ -391,6 +410,12 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       if (path.railCount !== undefined && path.railCount !== 2 && path.railCount !== 3) throw new Error('Choose two or three rails');
     }
     for (const link of ['magazineId', 'powerSourceId']) if (part[link] !== undefined) string(part[link], link);
+    if (part.scale !== undefined) vector(part.scale, 'Equipment scale');
+    // Shape only: an unknown, looping or ineligible parent is a native `equipment-parent` diagnostic.
+    if (part.parent !== undefined) {
+      string(part.parent, 'Equipment parent');
+      if (!part.parent) throw new Error('Equipment parent must name a hull piece or equipment ID');
+    }
   }
   for (const wall of rows(data.boundaries, 'Boundaries')) {
     string(wall.id, 'Boundary ID');
@@ -461,14 +486,22 @@ export async function loadSavedConstructionWithCatalog(
   return { source, catalog, revision, head: { ...saved.head, revisionId: revision.id, updatedAt: revision.createdAt } };
 }
 
+/** Equipment a removal takes along: everything the removed pieces and rows carry, except what rides the kept hull block. */
+export function removalCarries(source: ConstructionSource, selected: ReadonlySet<string>): Set<string> {
+  const keep = source.construction.primitives.every((part) => selected.has(part.id)) ? source.construction.primitives[0]?.id : undefined;
+  return carriedIds(source.construction, [...selected].filter((id) => id !== keep));
+}
+
 export function removeConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>): void {
   // Bulk deletion leaves the oldest hull block and its face assignments intact.
-  const keep = source.construction.primitives.every((part) => selected.has(part.id)) ? source.construction.primitives[0]?.id : undefined;
+  const keep = source.construction.primitives.every((part) => selected.has(part.id)) ? source.construction.primitives[0]?.id : undefined,
+    carried = removalCarries(source, selected);
   source.construction.primitives = source.construction.primitives.filter((part) => !selected.has(part.id) || part.id === keep);
   source.construction.surfaces = source.construction.surfaces.filter(
     (surface) => !selected.has(surface.primitiveId) || surface.primitiveId === keep,
   );
-  const removed = new Set(selected);
+  // A removed parent takes everything it carries.
+  const removed = new Set([...selected, ...carried]);
   for (const part of source.construction.equipment) if (selected.has(part.id) && part.wall?.mirrorId) removed.add(part.wall.mirrorId);
   source.construction.equipment = source.construction.equipment.filter((part) => !removed.has(part.id));
   source.construction.boundaries = source.construction.boundaries.filter((wall) => !selected.has(wall.id));
@@ -477,6 +510,8 @@ export function removeConstructionSelection(source: ConstructionSource, selected
 }
 
 export function moveConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>, delta: Vec3): void {
+  // Everything a moved piece or row carries travels the same delta, once.
+  selected = new Set([...selected, ...carriedIds(source.construction, selected)]);
   for (const item of source.construction.primitives)
     if (selected.has(item.id)) item.position = item.position.map((v, axis) => v + delta[axis]) as Vec3;
   const moved = new Set<string>();
@@ -494,11 +529,33 @@ export function moveConstructionSelection(source: ConstructionSource, selected: 
     if (selected.has(load.id)) load.center = load.center.map((v, axis) => v + delta[axis]) as Vec3;
 }
 
+/** Each selected piece and fitting turns about its own datum; what it carries turns with it about that datum.
+ * `rotationDeg` is counter-clockwise and `bearingDeg` clockwise seen from above, so a hull piece's riders
+ * change bearing by −angle and a fitting's riders by +angle: they keep their pose on the parent. */
 export function rotateConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>, angle = 90): void {
-  for (const part of source.construction.primitives)
-    if (selected.has(part.id)) part.rotationDeg = normalizedBearing(part.rotationDeg + angle);
-  for (const part of source.construction.equipment)
-    if (selected.has(part.id) && !part.wall) part.bearingDeg = normalizedBearing(part.bearingDeg + angle);
+  const data = source.construction,
+    roots = new Set(carryRoots(data, selected));
+  const carried = new Set<string>();
+  for (const part of data.primitives)
+    if (selected.has(part.id)) {
+      part.rotationDeg = normalizedBearing(part.rotationDeg + angle);
+      turnRiders(part.id, part.position, -angle);
+    }
+  for (const part of data.equipment)
+    if (roots.has(part.id) && !part.wall && !carried.has(part.id)) {
+      part.bearingDeg = normalizedBearing(part.bearingDeg + angle);
+      turnRiders(part.id, part.position, angle);
+    }
+  function turnRiders(id: string, pivot: Vec3, bearing: number) {
+    const riders = carriedIds(data, [id]);
+    if (riders.size)
+      for (const rider of data.equipment)
+        if (riders.has(rider.id) && !carried.has(rider.id)) {
+          carried.add(rider.id);
+          rider.position = turnedAbout(rider.position, pivot, bearing);
+          if (!rider.wall) rider.bearingDeg = normalizedBearing(rider.bearingDeg + bearing);
+        }
+  }
 }
 
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
@@ -603,9 +660,20 @@ export function copyConstructionSelection(
   options: { mirror?: boolean; offset?: Vec3; ids?: ReadonlyMap<string, string> } = {},
 ): string[] {
   const data = source.construction;
+  // A copied parent brings everything it carries; the copies ride the copied parent.
+  selected = new Set([...selected, ...carriedIds(data, selected)]);
   const ids = new Map<string, string>();
   for (const item of [...data.primitives, ...data.equipment, ...data.loads])
     if (selected.has(item.id)) ids.set(item.id, options.ids?.get(item.id) ?? newConstructionId('part'));
+  /** A copy rides the copy of its parent. A child copied alone keeps its parent, unless it is mirrored
+   * away from a parent off the centreline: the reflected copy would not stand on that parent. */
+  const copiedParent = (parent: string): string | undefined => {
+    const copied = ids.get(parent);
+    if (copied) return copied;
+    if (!options.mirror) return parent;
+    const at = parentPosition(data, parent);
+    return at && Math.abs(at[0]) <= CENTERLINE_M ? parent : undefined;
+  };
   const position = (v: Vec3): Vec3 =>
     options.mirror ? [-v[0], v[1], v[2]] : (v.map((n, i) => n + (options.offset ?? [1, 0, 0])[i]) as Vec3);
   const originals = data.primitives.filter((p) => selected.has(p.id));
@@ -637,7 +705,12 @@ export function copyConstructionSelection(
         ...(part.wall ? { wall: { ...part.wall, mirrorId: undefined } } : {}),
         ...(part.magazineId ? { magazineId: ids.get(part.magazineId) ?? part.magazineId } : {}),
         ...(part.powerSourceId ? { powerSourceId: ids.get(part.powerSourceId) ?? part.powerSourceId } : {}),
-      })),
+        ...(part.parent ? { parent: copiedParent(part.parent) } : {}),
+      }))
+      .map((part) => {
+        if (part.parent === undefined) delete part.parent;
+        return part;
+      }),
   );
   data.loads.push(
     ...data.loads
