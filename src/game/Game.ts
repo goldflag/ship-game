@@ -430,9 +430,12 @@ export class Game {
     this.sunLight.name = 'Sun';
     this.sunLight.castShadow = waterSun.castShadow;
     this.sunLight.shadow.copy(waterSun.shadow);
+    this.scene.add(this.sunLight);
+    // Size the maps from the settings before the node clones them and anything renders:
+    // resizing a map after its first render destroys a texture queued GPU work still reads.
+    this.graphicsControl.applyShadows();
     this.sunShadows = new FocusShadowNode(this.sunLight);
     this.sunLight.shadow.shadowNode = this.sunShadows as never;
-    this.scene.add(this.sunLight);
     this.visualWaveSampler = new VisualWaveSampler(this.water.buoyancy.getSampler());
     this.water.buoyancy.setSampler(this.visualWaveSampler);
     this.assertActive();
