@@ -81,6 +81,29 @@ approved scheme intact. Existing camouflage recipes may remain until migrated;
 the surface recipe must not erase their patterns. Rebuild every declared consumer
 of a changed shared input; `ship:check all` identifies stale assets.
 
+## Runtime surface detail
+
+Close-range plate and plank detail is shared runtime shading, not baked into
+assets (`src/game/ShipSurfaceDetail.ts`, applied through the ship material palette).
+It works in each mesh's own geometry space, so it follows turrets and other
+moving parts, and it leaves colors and schemes unchanged:
+
+- **Plating:** 2 m strakes and 8 m staggered butts on vertical faces, as a welded
+  groove and slight frame dishing. Only broad plated paint gets it: `painted-steel`,
+  `painted-deck` and `underwater-coating` finishes (not `-edge` or `-fittings`
+  paints), construction paint, and the `naval`, `hullgray`, `roof` and
+  `underwater` component roles, on meshes with two sides of at least 2 m.
+- **Paint roughness:** ±8 % metric variation on the same surfaces; paint stays matte.
+- **Teak:** repeating teak that has no relief of its own (the exporter's baked
+  `Teak decking` and the construction timber finish) keeps its map's mean stain.
+  Its planks come from a shared 16 cm teak with 5.12 m staggered butts, pitch
+  caulking, grain and relief. Caulking contrast fades once a texel is well under a
+  pixel. Declared `decking` with its own relief and whole-deck images keep their
+  authored planks.
+
+Mipmaps average the relief away, so the effect fades with distance. Tune it in
+that module, not per ship.
+
 The runtime roster's ships consume this standard. Mogami established the accepted
 maintained finish; subsequent ships retain their own original schemes and deck
 coverings. This is a material-quality pass against existing briefs, not a new

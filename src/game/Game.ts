@@ -157,7 +157,7 @@ export class Game {
    * holds tens of megabytes of vertex data. The fleet at sea is always retained. */
   private readonly hulls = new Map<string, THREE.Group>();
   /** One palette for every hull kept, so paint still collapses across cached fleets. */
-  private readonly palette = new ShipMaterialPalette();
+  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true });
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
