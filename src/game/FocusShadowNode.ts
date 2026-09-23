@@ -117,6 +117,9 @@ export class FocusShadowNode extends ShadowBaseNode {
       light.shadow.needsUpdate = true;
       return { light, reach, on: uniform(0) as unknown as ViewCascade['on'], bounds: new Box3(), active: false, drawn: -1 };
     });
+    // Sized before the first draw, like the near and wide maps: shrinking a view map after it
+    // has drawn destroys a texture that queued work still reads.
+    for (const view of this.views) this.follow(view.light.shadow, sun.shadow.mapSize.x >= VIEW_MIN_SETTING ? VIEW_MAP_MAX : 1);
   }
 
   /** Centre the near map where `camera` looks, at the distance of `subject`, no wider than `maxRadius`. */
