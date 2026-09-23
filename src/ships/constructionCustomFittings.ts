@@ -18,18 +18,20 @@ import { shapedFaces } from './freeformShape';
  * `partId` is `design:<definition id>`. This module is the TypeScript resolver; it mirrors
  * `crates/naval-sim/src/construction_custom_fittings.rs`, which stays the authority on validity and loading. */
 export const CUSTOM_FITTING_PREFIX = 'design:';
-/** Mirrors the constants in `construction_custom_fittings.rs`. `onlineInstances`/`onlineDefinitions` mirror `services/compiler/worker.ts`. */
+/** Mirrors the constants in `construction_custom_fittings.rs`; online designs use the same limits. */
 export const CUSTOM_FITTING_LIMITS = {
-  definitions: 32,
-  solids: 48,
-  tubes: 16,
+  definitions: 256,
+  solids: 256,
+  tubes: 128,
+  tubePoints: 256,
+  boxes: 64,
   instances: 1_000,
-  triangles: 20_000,
+  triangles: 32_000,
   tubeLengthM: 100,
   localM: 100,
-  onlineDefinitions: 16,
-  onlineInstances: 96,
 } as const;
+/** Per-axis scale of a custom fitting instance, mirroring `INSTANCE_SCALE` in `construction_wall_fittings.rs`. */
+export const CUSTOM_FITTING_SCALE = { min: 0.05, max: 20 } as const;
 export const CUSTOM_FITTING_MATERIALS = { steel: 7850, aluminium: 2700, brass: 8500, wood: 700 } as const;
 export const CUSTOM_FITTING_EXCLUDED_KINDS = ['custom-hull', 'balcony', 'ballast'] as const;
 export const TUBE_SIDES = 12;
@@ -85,6 +87,27 @@ const finite = (v: unknown, limit: number): v is Vec3 => Array.isArray(v) && v.l
 const paintOk = (paint: unknown) => paint === undefined || (typeof paint === 'string' && paint.length > 0 && paint.length <= 64);
 const ID = /^[A-Za-z0-9_-]{1,64}$/;
 type Box = { center: Vec3; size: Vec3 };
+/** At most `limit` boxes. Sorted along `axis` (stable), the neighbouring pair whose union adds the least empty
+ * volume merges first, the earliest pair on ties. Mirrors `merged` in `construction_custom_fittings.rs` exactly. */
+export function mergeFittingBoxes(input: Box[], limit: number, axis: number): Box[] {
+  const boxes = [...input].sort((a, b) => a.center[axis] - b.center[axis]);
+  const volume = (s: Vec3) => s[0] * s[1] * s[2];
+  const union = (a: Box, b: Box): Box => {
+    const lo = [0, 1, 2].map((k) => Math.min(a.center[k] - a.size[k] / 2, b.center[k] - b.size[k] / 2));
+    const hi = [0, 1, 2].map((k) => Math.max(a.center[k] + a.size[k] / 2, b.center[k] + b.size[k] / 2));
+    return { center: [0, 1, 2].map((k) => (lo[k] + hi[k]) / 2) as Vec3, size: [0, 1, 2].map((k) => hi[k] - lo[k]) as Vec3 };
+  };
+  while (boxes.length > limit) {
+    let best = Infinity,
+      at = 0;
+    for (let i = 0; i < boxes.length - 1; i++) {
+      const added = volume(union(boxes[i], boxes[i + 1]).size) - volume(boxes[i].size) - volume(boxes[i + 1].size);
+      if (added < best) [best, at] = [added, i];
+    }
+    boxes.splice(at, 2, union(boxes[at], boxes[at + 1]));
+  }
+  return boxes;
+}
 class Bounds {
   lo: Vec3 = [Infinity, Infinity, Infinity];
   hi: Vec3 = [-Infinity, -Infinity, -Infinity];
@@ -147,8 +170,8 @@ export function resolveCustomFitting(def: ConstructionFittingDefinition): Constr
   }
   for (const tube of def.tubes) {
     const points = tube.points;
-    if (!Array.isArray(points) || points.length < 2 || points.length > 64 || points.some((p) => !finite(p, L.localM)) || !Number.isFinite(tube.diameterM) || tube.diameterM < 0.01 || tube.diameterM > 2 || !paintOk(tube.paint))
-      throw new Error(`tube ${tube.id} needs 2–64 finite points within ${L.localM} m, a diameter of 0.01–2 m and a paint name of at most 64 bytes`);
+    if (!Array.isArray(points) || points.length < 2 || points.length > L.tubePoints || points.some((p) => !finite(p, L.localM)) || !Number.isFinite(tube.diameterM) || tube.diameterM < 0.01 || tube.diameterM > 2 || !paintOk(tube.paint))
+      throw new Error(`tube ${tube.id} needs 2–${L.tubePoints} finite points within ${L.localM} m, a diameter of 0.01–2 m and a paint name of at most 64 bytes`);
     const lengths = points.slice(1).map((p, i) => Math.hypot(p[0] - points[i][0], p[1] - points[i][1], p[2] - points[i][2]));
     if (lengths.some((n) => n < 0.01) || lengths.reduce((a, b) => a + b, 0) > L.tubeLengthM)
       throw new Error(`tube ${tube.id} needs segments of at least 1 cm and a total length of at most ${L.tubeLengthM} m`);
@@ -188,7 +211,12 @@ export function resolveCustomFitting(def: ConstructionFittingDefinition): Constr
     centerOfGravity: first.map((n) => n / volume) as Vec3,
     massKg,
     placement: 'deck',
-    fitting: solidBoxes.length + segmentBoxes.length <= 64 ? [...solidBoxes, ...segmentBoxes] : [...solidBoxes, ...tubeBoxes],
+    fitting:
+      solidBoxes.length + segmentBoxes.length <= L.boxes
+        ? [...solidBoxes, ...segmentBoxes]
+        : solidBoxes.length + tubeBoxes.length <= L.boxes
+          ? [...solidBoxes, ...tubeBoxes]
+          : mergeFittingBoxes([...solidBoxes, ...tubeBoxes], L.boxes, [1, 2].reduce((best, k) => (size[k] > size[best] ? k : best), 0)),
     modelUrl: `/models/components/design-local/${def.id}`,
     // Display identity only (geometry caches); the native compiler hashes the definition itself.
     contentHash: `design-${(hash >>> 0).toString(16)}-${text.length}`,

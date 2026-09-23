@@ -428,7 +428,7 @@ Source bounds are constants in `construction.rs`, mirrored by `CONSTRUCTION_LIMI
 | Equipment instances | 1,000 (32 online) |
 | Loads | 128 |
 | Custom fitting definitions / instances | 32 / 1,000, counted apart from equipment instances |
-| Solids / tubes / triangles per custom fitting | 48 / 16 / 20,000 |
+| Solids / tubes / triangles per custom fitting | 256 / 128 / 32,000 |
 | Compound solid vertices / parts / polygons | 8,192 / 256 / 8,192, with 128 polygons per part |
 | Compound solid exterior patches | 32,768 per block |
 | Boundaries | 24 |

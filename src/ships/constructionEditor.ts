@@ -300,7 +300,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       for (const tube of rows(def.tubes, 'Custom fitting tubes')) {
         string(tube.id, 'Tube ID');
         number(tube.diameterM, 'Tube diameter');
-        if (!Array.isArray(tube.points) || tube.points.length < 2 || tube.points.length > 64) throw new Error('Tubes require 2–64 points');
+        if (!Array.isArray(tube.points) || tube.points.length < 2 || tube.points.length > 256) throw new Error('Tubes require 2–256 points');
         tube.points.forEach((point) => vector(point, 'Tube point'));
         if (tube.paint !== undefined) string(tube.paint, 'Tube paint');
       }
@@ -391,6 +391,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       if (path.railCount !== undefined && path.railCount !== 2 && path.railCount !== 3) throw new Error('Choose two or three rails');
     }
     for (const link of ['magazineId', 'powerSourceId']) if (part[link] !== undefined) string(part[link], link);
+    if (part.scale !== undefined) vector(part.scale, 'Equipment scale');
   }
   for (const wall of rows(data.boundaries, 'Boundaries')) {
     string(wall.id, 'Boundary ID');

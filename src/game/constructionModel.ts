@@ -124,6 +124,7 @@ export async function createConstructionModel(source: ConstructionSource, result
           const model = createConstructionFittingModel(custom, { finish: source.construction.finish });
           paintConstructionFitting(model, constructionFittingPaint(source, instance, part), false, source.construction.finish);
           model.name = instance.id;
+          if (instance.scale) model.scale.fromArray(instance.scale);
           model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;
           model.userData = { sourceId: instance.id, assemblyId: instance.id, equipmentKind: part.kind };
           model.traverse(node => { node.userData.sourceId = instance.id; node.userData.assemblyId = instance.id; node.userData.constructionEquipmentKind = part.kind; });

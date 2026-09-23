@@ -72,6 +72,27 @@ test('the TypeScript resolver matches the parts the native compiler synthesizes'
   expect(resolveCustomFitting({ ...bollard, massKg: 250 }).massKg).toBe(250);
 });
 
+test('a fitting past 64 boxes merges neighbours identically in both resolvers and still covers every shape', () => {
+  // 90 posts in an uneven 3 × 30 grid plus 6 rails: 96 shapes, so the boxes must merge.
+  const posts = Array.from({ length: 90 }, (_, n) => ({
+    id: `post-${n}`, kind: 'box' as const, size: [0.2, 0.4 + (n % 7) * 0.05, 0.2] as [number, number, number],
+    position: [(n % 3) * 0.9 - 0.9, 0.2 + (n % 7) * 0.025, Math.floor(n / 3) * 0.6 + (n % 5) * 0.03] as [number, number, number], rotationDeg: 0,
+  }));
+  const rails = Array.from({ length: 6 }, (_, n) => ({ id: `rail-${n}`, points: [[-1, 0.5 + n * 0.1, 0], [-1, 0.5 + n * 0.1, 17.4]] as [number, number, number][], diameterM: 0.04 }));
+  const fence: ConstructionFittingDefinition = { id: 'fit-fence', name: 'Long fence', version: 1, attach: 'deck', solids: posts, tubes: rails };
+  const mine = resolveCustomFitting(fence);
+  expect(mine.fitting).toHaveLength(CUSTOM_FITTING_LIMITS.boxes);
+  const native = JSON.parse(construction_custom_fitting_parts(JSON.stringify(source([fence])))) as { parts: ConstructionEquipmentPart[] };
+  const theirs = native.parts[0].fitting!;
+  expect(theirs).toHaveLength(mine.fitting!.length);
+  mine.fitting!.forEach((box, n) => { for (let k = 0; k < 3; k++) { expect(box.center[k]).toBeCloseTo(theirs[n].center[k], 6); expect(box.size[k]).toBeCloseTo(theirs[n].size[k], 6); } });
+  // Merging only grows boxes: every post still lies inside one of them.
+  for (const post of posts) {
+    const covered = mine.fitting!.some((box) => [0, 1, 2].every((k) => Math.abs(post.position[k] - box.center[k]) <= (box.size[k] - post.size[k]) / 2 + 1e-9));
+    expect(covered).toBe(true);
+  }
+});
+
 test('both resolvers refuse the same definitions and name the solid or tube', () => {
   const faults: [string, ConstructionFittingDefinition][] = [
     ['solid base is a ballast', { ...bollard, solids: [{ ...bollard.solids[1], id: 'base', kind: 'ballast' as never }] }],
@@ -159,7 +180,7 @@ test('summary, get, bounds and place read definitions and instances', () => {
   const summary = constructionSummary(s, catalog);
   expect(summary.limits.equipment).toEqual({ used: 0, limit: 1_000, free: 1_000 });
   expect(summary.limits.customFittingInstances).toEqual({ used: 1, limit: 1_000, free: 999 });
-  expect(summary.limits.customFittingDefinitions).toEqual({ used: 2, limit: 32, free: 30 });
+  expect(summary.limits.customFittingDefinitions).toEqual({ used: 2, limit: 256, free: 254 });
   expect(summary.customFittings).toEqual([
     ['fit-bollard', 'Twin bollard', 3, 1, Number(resolveCustomFitting(bollard).massKg!.toFixed(3)), 0, 'design:fit-bollard'],
     ['fit-davit', 'Davit', 5, 1, Number(resolveCustomFitting(davit).massKg!.toFixed(3)), 1, 'design:fit-davit'],
