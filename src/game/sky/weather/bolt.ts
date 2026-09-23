@@ -12,7 +12,7 @@ export const MAX_BOLT_SEGMENTS = 480;
 const MAX_SEGMENT = 40;
 /** Visible width of the main channel, its branches and their forks (m). The luminous channel is centimetres
  * across; these stand in for its glare, which is what a camera records. */
-const WIDTH = { main: 2, branch: 1.2, fork: .8 };
+const WIDTH = { main: 2.2, branch: 1.4, fork: .9 };
 
 export interface BoltChannel {
   /** Per segment: start x, y, z (m, relative to where the bolt meets the sea) and width (m). */
@@ -85,15 +85,15 @@ function emit(channel: BoltChannel, random: () => number, points: Point[], width
 export function buildBolt(channel: BoltChannel, random: () => number, top: Point, bottom: Point): void {
   channel.count = 0;
   const height = Math.max(1, top[1] - bottom[1]);
-  const main = refine(random, wander(random, top, bottom, Math.max(6, Math.min(24, Math.round(height / 80))), .7), 2, .22);
+  const main = refine(random, wander(random, top, bottom, Math.max(5, Math.min(20, Math.round(height / 100))), .9), 2, .22);
   emit(channel, random, main, WIDTH.main, 1, 1);
-  const branches = 3 + Math.floor(random() * 5);
+  const branches = 4 + Math.floor(random() * 6);
   for (let b = 0; b < branches; b++) {
     // Branches leave the upper part of the channel, where the stepped leader forked most.
     const root = main[Math.floor((.02 + random() * .6) * (main.length - 1))];
-    const drop = root[1] - bottom[1], length = drop * (.18 + random() * .35);
+    const drop = root[1] - bottom[1], length = drop * (.2 + random() * .4);
     if (length < 20) continue;
-    const heading = random() * 2 * Math.PI, spread = .6 + random() * .9, norm = Math.hypot(spread, 1);
+    const heading = random() * 2 * Math.PI, spread = .9 + random() * 1.6, norm = Math.hypot(spread, 1);
     const end: Point = [root[0] + Math.sin(heading) * spread / norm * length, Math.max(bottom[1] + .1 * height, root[1] - length / norm),
       root[2] + Math.cos(heading) * spread / norm * length];
     const branch = refine(random, wander(random, root, end, Math.max(3, Math.round(length / 45)), .6), 1, .2);

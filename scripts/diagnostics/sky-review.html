@@ -141,11 +141,11 @@ const scenes = {
     game.environment.setOverrides({ precipitation: 70 });
     const moon = moonDirection(); gaze(BRIDGE, headingOf(moon), Math.max(4, elevationOf(moon) - 30), 70);
   },
-  /** A night storm lit by a cloud-to-ground bolt 4 km off the bow, 6 ms into its first return stroke (seeded). */
+  /** A night storm lit by a cloud-to-ground bolt 2.6 km off the bow, 6 ms into its first return stroke (seeded). */
   lightning: async () => {
     await battle({ hours: 23, weather: 'storm-clouds', wind: 16, range: 2500 });
     gaze(BRIDGE, .05, 4);
-    weatherPart()?.forceStrike(new Vector3(4000, 0, 450), .006, 'ground', 7);
+    weatherPart()?.forceStrike(new Vector3(2600, 0, 380), .006, 'ground', 7);
   },
   /** The same bolt by day, from the standard gameplay view. */
   lightningDay: async () => {

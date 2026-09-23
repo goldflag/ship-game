@@ -117,11 +117,17 @@ reprojects by the clouds' mean depth. The composite upsamples to full resolution
 sun transmittance through the shell, sampled by `cloudShadow` for ships, islands, the sea and
 smoke. Under rain cells the march continues below the base through grey rain shafts.
 
-**Weather** (`weather/`). Near-camera rain streaks in a box that wraps around the camera, slanted
-by wind and stretched by camera motion; splashes on the sea near the camera; lightning strikes
-(Poisson, located under rain cells) with a branching bolt, return-stroke flicker, interior cloud
-light and a scene-wide flash; a thunder cue delayed by distance for the game's audio. Precipitation
-and lightning come from the weather preset (`assets/maps/battle-conditions.v1.json`).
+**Weather** (`weather/`). Near-camera rain: instanced streaks in four nested boxes that wrap around
+the camera (few, large near drops and many thin far ones), slanted by the wind, streaked by the
+camera's own motion over an exposure, lit by the sky around each drop (the atmosphere's `sky`) with
+forward glints of the celestial light and flares of lightning; splashes (rings and crowns) that ride
+the drawn sea; a rain veil over distance (`postProcess`, a uniform branch that costs nothing dry).
+Lightning is a seeded Poisson process at `weather.lightning` per minute, 2–25 km away at random
+bearings (half cloud-to-ground, an occasional close one), with 2–4 return strokes, a branching bolt
+from the cloud base to the sea, the cloud light (`lightningPosition/Intensity`: irradiance
+`intensity × (1 km / r)²` in the sea's units, 40 at a stroke's peak) and the scene flash; a thunder
+cue delayed by distance for the game's procedural thunder (`GameAudio.thunder`). Precipitation and
+lightning come from the weather preset (`src/maps/conditions.ts`) and the developer console.
 
 **Environment** (`environment/`). Equirectangular linear HDR bake from sea level under the camera
 of dome, celestial bodies and clouds (a short march), refreshed in slices over several frames; the
@@ -137,8 +143,8 @@ light) and the sea reflects it through `OceanSky.createReflectionSampler`. The f
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Low | ¼ res | 1 of 4 | 48 / 4 | 128² | 256 × 128, 12 steps | 16 | 3,000 |
 | Medium | ½ res | 1 of 4 | 64 / 5 | 256² | 384 × 192, 16 steps | 24 | 8,000 |
-| High | ½ res | 1 of 4 | 96 / 6 | 512² | 512 × 256, 24 steps | 32 | 16,000 |
-| Ultra | ½ res | 1 of 4 | 128 / 6 | 512² | 768 × 384, 32 steps | 48 | 30,000 |
+| High | ½ res | 1 of 4 | 96 / 6 | 512² | 512 × 256, 24 steps | 32 | 12,000 |
+| Ultra | ½ res | 1 of 4 | 128 / 6 | 512² | 768 × 384, 32 steps | 48 | 20,000 |
 
 ## Budget
 
