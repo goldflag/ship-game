@@ -7,6 +7,8 @@ import type {
   ConstructionCustomHull,
   ConstructionEquipment,
   ConstructionFittingDefinition,
+  ConstructionFittingMesh,
+  ConstructionFittingMeshGroup,
   ConstructionFittingSolid,
   ConstructionFittingTube,
   ConstructionFreeformFace,
@@ -244,18 +246,41 @@ const fittingTube = object<ConstructionFittingTube>(
   },
   'Round tube swept along a polyline: pipes, davit arms, stays, light masts.',
 );
+const fittingMeshGroup = object<ConstructionFittingMeshGroup>(undefined, {
+  start: index(),
+  count: { type: 'number', integer: true, minimum: 1 },
+  name: optional(text('The source material or group name.')),
+  paint: optional(text('Named coating; omission follows the instance paint, then the ship paint.')),
+});
+const fittingMesh = object<ConstructionFittingMesh>(
+  'FittingMesh',
+  {
+    id: id('Unique among the solids, tubes and meshes of this fitting.'),
+    encoding: choice(['deflate-q16-u16-v1']),
+    data: text(
+      'Base64 of zlib-deflated little-endian u16s: vertices × (x, y, z) quantized over `bounds`, then triangles × 3 vertex indices. Write it with `ship:fitting-mesh`.',
+    ),
+    vertices: { type: 'number', integer: true, minimum: 1, maximum: 65535 },
+    triangles: { type: 'number', integer: true, minimum: 1, doc: 'At most 20,000 per mesh and 100,000 per design.' },
+    bounds: object<ConstructionFittingMesh['bounds']>(undefined, { min: vec3(), max: vec3() }),
+    groups: optional(list(fittingMeshGroup, 'Ascending, non-overlapping triangle runs; at most 64.')),
+  },
+  'A visual triangle mesh, open or non-convex, in fitting-local metres: drawn and weighed, never hull, armor or hit geometry.',
+);
 export const FITTING = object<ConstructionFittingDefinition>(
   'Fitting',
   {
     id: id('Definition ID; instances are equipment with `partId: "design:<id>"`.'),
     name: { type: 'string', minLength: 1, maxLength: 80 },
-    version: { type: 'number', enum: [1] },
+    version: { type: 'number', enum: [1, 2], doc: '2 when the definition has `meshes` or `centerOfGravity`.' },
     attach: choice(['deck'], 'Seats on a deck at the local origin. `wall` and `internal` are reserved.'),
     solids: list(fittingSolid, 'At most 256.'),
     tubes: list(fittingTube, 'At most 128.'),
     material: optional(choice(['steel', 'aluminium', 'brass', 'wood'], 'Density basis; omission is steel.')),
     fill: optional(number('Solid fraction of the shape volume, 0.01–1; omission is 1.')),
-    massKg: optional(number('Explicit mass; overrides volume × density × fill.')),
+    massKg: optional(number('Explicit mass; overrides volume × density × fill. Required with meshes.')),
+    meshes: optional(list(fittingMesh, 'Visual meshes (version 2); at most 16.')),
+    centerOfGravity: optional(vec3('Explicit fitting-local centre of gravity (version 2).')),
   },
   'Design-local fitting definition: non-structural shapes that add mass only. Shells, armor, modules and flooding ignore it.',
 );

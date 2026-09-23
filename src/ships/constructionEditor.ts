@@ -287,7 +287,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
     for (const def of rows(data.fittings, 'Custom fittings')) {
       string(def.id, 'Custom fitting ID');
       string(def.name, 'Custom fitting name');
-      if (def.version !== 1) throw new Error('Unsupported custom fitting version');
+      if (def.version !== 1 && def.version !== 2) throw new Error('Unsupported custom fitting version');
       if (def.attach !== 'deck') throw new Error('Custom fittings attach to a deck');
       if (def.material !== undefined && !['steel', 'aluminium', 'brass', 'wood'].includes(def.material as string))
         throw new Error('Unsupported custom fitting material');
@@ -304,6 +304,20 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
         tube.points.forEach((point) => vector(point, 'Tube point'));
         if (tube.paint !== undefined) string(tube.paint, 'Tube paint');
       }
+      if (def.meshes !== undefined) {
+        if (def.version !== 2) throw new Error('Custom fitting meshes need version 2');
+        for (const mesh of rows(def.meshes, 'Custom fitting meshes')) {
+          string(mesh.id, 'Mesh ID');
+          if (mesh.encoding !== 'deflate-q16-u16-v1') throw new Error('Unsupported custom fitting mesh encoding');
+          if (typeof mesh.data !== 'string') throw new Error('Custom fitting mesh data must be text');
+          for (const key of ['vertices', 'triangles']) if (!Number.isInteger(mesh[key])) throw new Error(`Custom fitting mesh ${key} must be a whole number`);
+          const bounds = object(mesh.bounds, 'Mesh bounds');
+          vector(bounds.min, 'Mesh bounds');
+          vector(bounds.max, 'Mesh bounds');
+          if (mesh.groups !== undefined) for (const group of rows(mesh.groups, 'Mesh groups')) for (const key of ['start', 'count']) number(group[key], `Mesh group ${key}`);
+        }
+      }
+      if (def.centerOfGravity !== undefined) vector(def.centerOfGravity, 'Custom fitting centre of gravity');
     }
   }
   if (data.finish !== undefined && !isConstructionSurfaceFinish(data.finish)) throw new Error('Unsupported surface finish');
