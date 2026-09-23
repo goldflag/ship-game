@@ -1,4 +1,4 @@
-import { DataTexture, LinearFilter, RedFormat, Vector2, type Node } from 'three/webgpu';
+import { DataTexture, LinearFilter, RedFormat, Vector2, Vector4, type Node } from 'three/webgpu';
 import { Fn, If, float, mx_noise_float, smoothstep, texture, uniform, vec2, vec3 } from 'three/tsl';
 import { BISMARCK } from './session/motion';
 import type { ShipState } from '../game/session/elements';
@@ -68,6 +68,10 @@ export type WakeTuning = typeof WAKE_TUNING;
 export const SLICK_LIFETIME = 240;
 /** Narrowest footprint, in cells of its channel: narrower stamps would fall between texel centres. */
 const MIN_CELLS = 1.5;
+/** Furthest (m, on each axis) the slick's square may centre from the hull, which keeps the newest slick well inside. */
+const SLICK_REACH = .42 * SLICK_EXTENT;
+/** A box around nothing (finite: shaders compare it). */
+export const EMPTY = new Vector4(1e9, 1e9, -1e9, -1e9);
 
 /** World-space foam footprints, shaded on the displaced water itself.
  * Samples remember the heading at emission, so old water never turns with the hull.
@@ -85,6 +89,9 @@ export class WakeFoam {
   readonly slickPixels: Uint8Array;
   private readonly origin = uniform(new Vector2());
   private readonly slickOrigin = new Vector2();
+  /** What the last rasterisation painted in each channel: (minX, minZ, maxX, maxZ) in metres, padded by a texel for
+   * filtering; empty (min above max) when nothing was. The sampler reads a channel only inside its box. */
+  readonly painted = [EMPTY.clone(), EMPTY.clone()] as const;
   private readonly time = uniform(0);
   private readonly field;
   private readonly samples: WakeSample[] = [];
@@ -211,6 +218,7 @@ export class WakeFoam {
     this.pixels.fill(0);
     this.slickPixels.fill(0);
     this.stampTarget?.clear();
+    for (const box of this.painted) box.copy(EMPTY);
     this.texture.needsUpdate = true;
     this.dirty = false;
   }
@@ -222,6 +230,7 @@ export class WakeFoam {
     // A stamp target paints instead; the reference raster stays unused.
     if (!this.stampTarget) { this.pixels.fill(0); this.slickPixels.fill(0); }
     this.stampTarget?.begin(this.origin.value.x, this.origin.value.y, this.slickOrigin.x, this.slickOrigin.y);
+    for (const box of this.painted) box.copy(EMPTY);
     for (const impact of this.impacts) {
       const age = this.time.value - impact.born;
       // A shell's column leaves a broad slick of aerated water that spreads as the
@@ -279,11 +288,11 @@ export class WakeFoam {
     return { x: centerX - forwardX * aft, z: centerZ - forwardZ * aft, forwardX, forwardZ };
   }
 
-  /** Centre the slick's square on the trail it holds, not on the hull: a straight run then keeps twice the length. The
-   * hull stays inside with a margin, so the newest slick is never cut; the oldest falls off the far edge. Whole slick
-   * cells only, so repainting never shifts the slick against its texels. */
+  /** Centre the slick's square on the trail it holds, not on the hull: a straight run then keeps nearly twice the length.
+   * The hull stays inside with a margin, so the newest slick is never cut; the oldest falls off the far edge. Whole
+   * slick cells only, so repainting never shifts the slick against its texels. */
   private frameSlick(state: Motion): void {
-    const cell = SLICK_EXTENT / this.resolution, reach = SLICK_EXTENT * .42;
+    const cell = SLICK_EXTENT / this.resolution, reach = SLICK_REACH;
     let minX = state.x, maxX = state.x, minZ = state.z, maxZ = state.z;
     for (const sample of this.slickSamples) {
       if (Math.abs(sample.x - state.x) > reach * 2 || Math.abs(sample.z - state.z) > reach * 2) continue;
@@ -334,6 +343,11 @@ export class WakeFoam {
   private stamp(x: number, z: number, rightX: number, rightZ: number,
     width: number, length: number, strength: number, ring = false, channel: 0 | 1 = 0): void {
     if (strength < 0.015) return;
+    // The stamp's axis-aligned reach, as the raster measures it, plus a texel of its channel for filtering.
+    const pad = (channel ? SLICK_EXTENT : EXTENT) / this.resolution;
+    const reachX = Math.abs(rightX) * width + Math.abs(rightZ) * length + pad, reachZ = Math.abs(rightZ) * width + Math.abs(rightX) * length + pad;
+    const box = this.painted[channel];
+    box.set(Math.min(box.x, x - reachX), Math.min(box.y, z - reachZ), Math.max(box.z, x + reachX), Math.max(box.w, z + reachZ));
     if (this.stampTarget) { this.stampTarget.stamp(x, z, rightX, rightZ, width, length, strength, ring, channel); return; }
     if (channel) rasterizeStamp(this.slickPixels, this.resolution, this.slickOrigin.x, this.slickOrigin.y, x, z, rightX, rightZ, width, length, strength, ring, SLICK_EXTENT);
     else rasterizeStamp(this.pixels, this.resolution, this.origin.value.x, this.origin.value.y, x, z, rightX, rightZ, width, length, strength, ring);

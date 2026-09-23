@@ -193,6 +193,24 @@ test('realistic wake: the slick outlasts the churned water and widens with the s
   foam.dispose();
 });
 
+test('realistic wake: every texel a trail paints lies inside the box the sampler reads it through', () => {
+  const { foam, hull } = sail(15, 120), frame = foam.frame(hull.root)!, image = cpuImage(foam), size = image.width, res = size / 8;
+  const painted = foam['entries'].get(hull.root)!.foam.painted;
+  for (const channel of [0, 1] as const) {
+    const center = channel ? frame.slickCenter : frame.center, extent = channel ? SLICK_EXTENT : WAKE_EXTENT, box = painted[channel];
+    let inked = 0;
+    for (let iz = 0; iz < res; iz++) for (let ix = 0; ix < res; ix++) {
+      if (!(image.data as Uint8Array)[((Math.floor(frame.slot / 8) * res + iz) * size + frame.slot % 8 * res + ix) * CHANNELS + channel]) continue;
+      inked++;
+      const x = center.x + (ix + .5 - res / 2) * extent / res, z = center.y + (iz + .5 - res / 2) * extent / res;
+      expect(x).toBeGreaterThanOrEqual(box.x); expect(x).toBeLessThanOrEqual(box.z);
+      expect(z).toBeGreaterThanOrEqual(box.y); expect(z).toBeLessThanOrEqual(box.w);
+    }
+    expect(inked).toBeGreaterThan(100);
+  }
+  foam.dispose();
+});
+
 test('realistic wake: a slow hull leaves little white water, and the original trail no slick', () => {
   const fast = sail(15, 30), slow = sail(15 * .3, 30), original = sail(15, 30, false);
   expect(fast.at(40)).toBeGreaterThan(.7);
