@@ -6,8 +6,9 @@ import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
-import { briefingControlGroups, Game } from './Game';
+import { briefingControlGroups } from './Game';
 import { makeTestBattlefieldCamera, makeTestEnvironment, makeTestInput } from './testing/fakes';
+import { testGame } from './testing/gameFixture';
 import type { ClearancePose, ClearanceResult } from './articulationPreview';
 import { VisualEnvironment } from './VisualEnvironment';
 import { CameraRig } from './CameraRig';
@@ -96,9 +97,9 @@ test('rangefinding uses a visible ship and feeds locked range into the real gun 
   const target = simulation.target!;
   rig.toggleBinoculars([target.motion.x, .5, target.motion.z], simulation.ship);
   rig.update(simulation.ship, simulation.ship.y, 0, true);
-  const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
+  const game = testGame({ simulation, camera, rig, definition: simulation.definition,
     host: { clientWidth: 1440, clientHeight: 810 }, battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false,
-  }) as Game;
+  });
   const runtime = game as unknown as { updateRangefinding(dt: number): void; readSightAim(): [number, number, number]; rangefinder: import('./Rangefinder').Rangefinder; rangeTargets(): import('./rangefinderSight').RangeTarget[] };
   try {
     game.measureRange(); runtime.updateRangefinding(2.9); game.toggleRangeLock();
@@ -125,9 +126,9 @@ test('the scope eye holds its height while aiming from empty water onto a ship',
   const simulation = await presentationSession(false);
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
   const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement);
-  const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
+  const game = testGame({ simulation, camera, rig, definition: simulation.definition,
     host: { clientWidth: 1440, clientHeight: 810 }, battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false,
-  }) as Game;
+  });
   const ship = simulation.ship, target = simulation.target!.motion;
   const bearing = Math.atan2(target.x - ship.x, ship.z - target.z) + Math.PI / 2;
   const settle = () => { for (let i = 0; i < 180; i++) rig.update(ship, ship.y, 1 / 60); };
@@ -155,9 +156,9 @@ test('switching guns and AP/HE leaves the scoped camera and aim unchanged', asyn
   const simulation = await presentationSession(false);
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
-  const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
+  const game = testGame({ simulation, camera, rig, definition: simulation.definition,
     battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false, ammunition: {},
-  }) as Game;
+  });
   const ship = simulation.ship;
   rig.aimAt([ship.x + 5000, .5, ship.z], ship);
   try {
@@ -185,7 +186,7 @@ test('rangefinding admits only fresh enemy exteriors actually observed by the he
   const ship = { id: 'own', x: 0, y: 0, z: 0 };
   const report = { id: 'contact', presetId: 'bismarck', position: [0, 0, -15000], heading: 0, observedTick: 100, observers: ['own'], health: 1 };
   const simulation = { ship, actors: [], tick: 110, observedShips: [report], observationTracks: [] };
-  const game = Object.assign(Object.create(Game.prototype), { simulation, observedShipViews: { position: () => new Vector3(0, 0, -15000) } }) as Game;
+  const game = testGame({ simulation, observedShipViews: { position: () => new Vector3(0, 0, -15000) } });
   const targets = () => (game as unknown as { rangeTargets(): import('./rangefinderSight').RangeTarget[] }).rangeTargets();
   expect(targets().map(target => target.id)).toEqual(['contact']);
   report.observers = ['other-friendly']; expect(targets()).toEqual([]);
@@ -210,7 +211,7 @@ async function port() {
   rig.setInPort(true);
   canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -170 }));
   rig.update(simulation.ship, 0, 0, true);
-  const game = Object.assign(Object.create(Game.prototype), {
+  const game = testGame({
     definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], loadedModel: loaded, scene, harbor, camera, rig,
     currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(), controlGroups: new Map(), pveStartingGroups: new Map(),
     aircraftView: { root: new Group(), async load() {}, diagnostics() { return {}; } },
@@ -221,15 +222,15 @@ async function port() {
     hulls: new Map(), palette: new ShipMaterialPalette(), occlusion: { adopt() {}, render() {} },
     renderer: { domElement: { setAttribute() {} } },
     environment: makeTestEnvironment(),
-  }) as Game;
+  });
   return { game, scene, harbor, camera, rig, playerView };
 }
 
 test('shell commands affect only the active gun battery and reject unavailable rounds or inactive play', async () => {
   const definition = shipPreset('bismarck'), simulation = await presentationSession();
-  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, currentAim: [2000, 10, 0],
+  const game = testGame({ definition, simulation, currentAim: [2000, 10, 0],
     battery: 'main', ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
-    inPort: false, paused: false, airOperationsOpen: false }) as Game;
+    inPort: false, paused: false, airOperationsOpen: false });
   const main = game.weaponGroupId!;
   game.selectAmmunition('he'); expect(game.ammunition[main]).toBe('he'); expect(game.selectedAmmunition).toBe('he');
   game.battery = 'secondary'; const secondary = game.weaponGroupId!; game.selectAmmunition('he'); expect(game.ammunition[secondary]).toBe('he');
@@ -531,10 +532,10 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
   const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
   const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
   const fleetViews = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
-  const game = Object.assign(Object.create(Game.prototype), {
+  const game = testGame({
     definition, simulation, rig, fleetViews, playerView: fleetViews[0], targetView: fleetViews.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -5000], ammunition: {}, shellFollow: new ShellFollow(), input: makeTestInput({ order: 5, rudderOrder: 1 }), battlefieldCamera: makeTestBattlefieldCamera(),
-  }) as Game;
+  });
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   try {
     // A live helm ship may watch a teammate: the session can hand the helm over.
@@ -583,12 +584,12 @@ test('a battle that opens on the fleet chart selects nothing; leaving a helm kee
   const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
   const views = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
   const input = makeTestInput({ setEnabled(value: boolean) { this.isEnabled = value; } });
-  const game = Object.assign(Object.create(Game.prototype), {
+  const game = testGame({
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
     ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
-  }) as Game;
+  });
   try {
     game.enterFleetCommand(false);
     expect(game.fleetCommandMode).toBe(true);
@@ -605,12 +606,12 @@ test('a custom battle reads the fleet chart from its helm: nothing is released, 
   const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
   const views = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
   const input = makeTestInput({ helmHeld: false, setEnabled(value: boolean, held = false) { this.isEnabled = value; this.helmHeld = held; } });
-  const game = Object.assign(Object.create(Game.prototype), {
+  const game = testGame({
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
     ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
-  }) as Game;
+  });
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 1, rudder: .5 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
   try {
@@ -655,12 +656,12 @@ test('the helm wheel swaps hulls in a custom battle: held on its key, offered on
   const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
   const views = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
   const input = makeTestInput({ order: 1, rudderOrder: 0, setEnabled(value: boolean) { this.isEnabled = value; }, setOrder(value: number) { this.order = value; }, setRudder(value: number) { this.rudderOrder = value; } });
-  const game = Object.assign(Object.create(Game.prototype), {
+  const game = testGame({
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
     ocean: { ensureHorizon() {} }, environment: { setChartFog() {} }, callbacks: { pause() {} },
-  }) as Game;
+  });
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
   const held = spyOn(rig, 'setHeld');
@@ -711,12 +712,12 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
   let clears = 0;
   const input = makeTestInput({ order: 1, rudderOrder: 0, clear() { clears++; }, setEnabled(value: boolean) { this.isEnabled = value; this.clear(); }, setOrder(value: number) { this.order = value; }, setRudder(value: number) { this.rudderOrder = value; } });
   const battlefieldCamera = new BattlefieldCamera(camera);
-  const game = Object.assign(Object.create(Game.prototype), {
+  const game = testGame({
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera, selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
     ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
-  }) as Game;
+  });
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
   try {
@@ -762,8 +763,8 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
 
 test('direct slots select a single type, never cycle, and retain selection when guns are lost', async () => {
   const definition = shipPreset('bismarck'), simulation = await presentationSession();
-  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
-    ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  const game = testGame({ definition, simulation, battery: 'main',
+    ammunition: {}, inPort: false, paused: false, airOperationsOpen: false });
   const groups = game.weaponGroups;
   for (const [index, group] of groups.entries()) {
     game.selectWeaponSlot(index); expect(game.weaponGroupId).toBe(group.id);
@@ -783,9 +784,9 @@ test('direct slots select a single type, never cycle, and retain selection when 
 
 test('single shell presses queue, rapid pairs force that choice, and slow presses cancel it', async () => {
   const definition = shipPreset('bismarck'), simulation = await presentationSession();
-  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
+  const game = testGame({ definition, simulation, battery: 'main',
     ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
-    inPort: false, paused: false, airOperationsOpen: false }) as Game;
+    inPort: false, paused: false, airOperationsOpen: false });
   const main = game.weaponGroupId!;
   // The authority loads the round; the session carries the selection.
   game.cycleAmmunition(1000);
@@ -802,8 +803,8 @@ test('single shell presses queue, rapid pairs force that choice, and slow presse
 
 test('rapid shell presses in different secondary groups never force a neighboring group to reload', async () => {
   const definition = shipPreset('bismarck'), simulation = await presentationSession();
-  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
-    ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  const game = testGame({ definition, simulation, battery: 'main',
+    ammunition: {}, inPort: false, paused: false, airOperationsOpen: false });
   const groups = game.weaponGroups;
   game.selectWeaponSlot(1); game.cycleAmmunition(1000);
   game.selectWeaponSlot(2); game.cycleAmmunition(1100);

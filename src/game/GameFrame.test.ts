@@ -1,5 +1,4 @@
 import { FocusShadowNode } from './FocusShadowNode';
-import { DEFAULT_GRAPHICS } from './graphicsSettings';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
@@ -16,9 +15,8 @@ import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
 import { HUD_LAYER_FIELDS } from '../ui/hudLayers';
 import { makeTestEnvironment, makeTestInput } from './testing/fakes';
+import { testGame } from './testing/gameFixture';
 import { VisualEnvironment } from './VisualEnvironment';
-import { FrameScene } from './FrameScene';
-import { FleetVisibility } from './FleetVisibility';
 import { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { gunAimPoints, type GunAimPoint } from './gunAim';
@@ -144,24 +142,23 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
   const input = makeTestInput({ sample: () => helm, flying: false, setFlying(value: boolean) { this.flying = value; },
     setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
     setRudder: (rudder: number) => { helm.rudder = rudder; } });
-  const game = Object.assign(Object.create(Game.prototype), {
-    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
-    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
-    host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
+  // Game's own field initializers supply the rest (scene, ship anchor, shell follow, frame clocks, pause and port flags).
+  const game = testGame({
+    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig,
+    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, host: { clientWidth: 1440, clientHeight: 900 },
     // Every registered HUD layer is inert here; gunAim below records what the frame hands it.
     ...Object.fromEntries(HUD_LAYER_FIELDS.map(field => [field, { update() {}, setObserved() {}, resize() {} }])), torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
-    lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main', settings: DEFAULT_GRAPHICS,
-    ammunition: { main: 'ap', secondary: 'ap' },
-    paused: false, inPort: false, inspecting: false, input,
+    hudTime: Infinity, trail: [], battery: 'main', ammunition: { main: 'ap', secondary: 'ap' }, input,
     aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
-    effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), ocean, sunLight, sunShadows: new FocusShadowNode(sunLight), environment,
+    effects: { root: new Group(), update() {}, reset() {} }, ocean, sunLight, sunShadows: new FocusShadowNode(sunLight), environment,
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} }, hullWetBand: { update() {} },
-    pipeline: { render() {} }, occlusion: { render() {} }, scheduleFrame() {}, frameWaiters: [],
+    // No canvas to size.
+    pipeline: { render() {} }, occlusion: { render() {} }, scheduleFrame() {}, resizePending: false,
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
-  }) as { frame(time: number, warmingUp?: boolean): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; toggleFreeCamera(): void; recenter(): void; shellFollow: ShellFollow;
+  }) as unknown as { frame(time: number, warmingUp?: boolean): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; toggleFreeCamera(): void; recenter(): void; shellFollow: ShellFollow;
     setAirOperationsOpen(open: boolean): void; followAircraft(id: string): void; returnToShip(): void; fire(): void; setPaused(paused: boolean): void;
     airOperationsOpen: boolean; manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };
   return { game, simulation, playerView, targetView, camera, rig, helm, input, battlefieldCamera, ocean, environment, wakePositions, focusPositions, gunAimFrames };
@@ -199,12 +196,12 @@ test('battle loading holds input and starts one loop only after graphics finish 
     for (const failure of [false, true]) {
       let finish!: () => void, enabled = true, scheduled = 0;
       const graphics = new Promise<void>(resolve => { finish = resolve; });
-      const game = Object.assign(Object.create(Game.prototype), {
-        simulation: { player: { damage: { sunk: false } } }, ocean: {}, inPort: false,
+      const game = testGame({
+        simulation: { player: { damage: { sunk: false } } }, ocean: {},
         input: makeTestInput({ setEnabled(value: boolean) { enabled = value; } }),
         setInPort() {}, scheduleFrame() { scheduled++; },
         async warmupRendering() { await graphics; if (failure) throw new Error('Graphics failed'); },
-      }) as Game;
+      });
       const loading = game.beginBattle();
       await Promise.resolve();
       expect(enabled).toBe(false); expect(scheduled).toBe(0);
@@ -688,12 +685,12 @@ test('port ship switching retains the new hull flotation and only carries its be
   const session = { ship: { ...loaded } };
   const definition = { id: 'valiant', contentHash: 'new' };
   let replaced = false;
-  const game = Object.assign(Object.create(Game.prototype), {
+  const game = testGame({
     inPort: true, playerView: {}, definition: { id: 'bismarck' },
     simulation: { ship: previous },
     portSession: async () => session,
     replaceFleet: async (next: typeof session) => { expect(next).toBe(session); replaced = true; },
-  }) as Game;
+  });
   await game.switchShip(definition as Parameters<Game['switchShip']>[0]);
   expect(replaced).toBe(true);
   expect(session.ship).toEqual({ ...loaded, x: previous.x, z: previous.z, heading: previous.heading });

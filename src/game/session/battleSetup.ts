@@ -5,6 +5,10 @@ import { DEFAULT_MAP, mapIslands, islandRadius, type Island, isOceanMapId, type 
 import { isTimeOfDayId, isWeatherId, type BattleConditions, type TimeOfDayId, type WeatherId } from '../../maps/conditions';
 import { DEFAULT_AI_LEVEL, isShipAiLevel, type ShipAiLevel } from './aiLevels';
 import type { Team } from './elements';
+import type { ShipDefinition } from '../../ships/blueprint';
+import type { AirRules } from '../../multiplayer/generated/AirRules';
+import type { BattleSetup as RuntimeSetup } from '../../multiplayer/generated/BattleSetup';
+import pveAir from '../../../assets/gameplay/pve-air.v1.json';
 export type { Team } from './elements';
 export const BATTLE_SPAWN_DISTANCE = 5000;
 export const MIN_BATTLE_SPAWN_DISTANCE = 1000;
@@ -71,6 +75,26 @@ export function formationSpawns(friendly: number, enemy: number, distance: numbe
 }
 export function setupSpawns(setup: BattleSetup): SpawnPositions {
   return setup.spawns ?? formationSpawns(setup.friendlyBots.length + 1, setup.enemies.length, setup.spawnDistance, setup.formation);
+}
+/** The Rust battle's setup for a custom battle. Here rather than beside the session, so scripts and benchmarks can
+ * import it under node without loading ship presets. */
+export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
+  const spawns = setupSpawns(setup);
+  const ships: RuntimeSetup['ships'] = [{ id: 'player', presetId: setup.playerShipId, team: 'a', controller: 'player', aiLevel: 'normal', spawn: spawns.friendly[0] }];
+  for (const [team, entries, poses] of [['a', setup.friendlyBots, spawns.friendly.slice(1)], ['b', setup.enemies, spawns.enemy]] as const)
+    entries.forEach((entry, i) => { const bot = botSelection(entry); ships.push({ id: `${team === 'a' ? 'friendly' : 'enemy'}-${i + 1}`, presetId: bot.shipId, team, controller: 'bot', aiLevel: bot.aiLevel, spawn: poses[i] }); });
+  return { ships, seed, mapId: setup.mapId ?? DEFAULT_MAP, weather: setup.weather ?? 'map', spawnDistance: setup.spawnDistance, windSpeed: setup.windSpeed ?? null, ...(setup.missionRules ? { missionRules: setup.missionRules,
+    ...(setup.missionRules.airProfileId === pveAir.id ? { airRules: pveAir as AirRules } : {}),
+  } : {}) };
+}
+/** The port's fleet: the hull on show, alone. The battle wants a hull per side,
+ * so an idle copy stands where the old fixture's target stood, never shown,
+ * never stepped. Still water: the port has no weather. */
+export function portSetup(definition: ShipDefinition, seed: number): RuntimeSetup {
+  return { ships: [
+    { id: 'player', presetId: definition.id, team: 'a', controller: 'player', aiLevel: 'normal', spawn: { x: 0, z: 0, heading: 0 } },
+    { id: 'target', presetId: definition.id, team: 'b', controller: 'idle', aiLevel: 'static', spawn: { x: 650, z: -550, heading: 0 } },
+  ], seed, mapId: DEFAULT_MAP, weather: 'clear', spawnDistance: BATTLE_SPAWN_DISTANCE, windSpeed: 0 };
 }
 export function validateSpawns(spawns: SpawnPositions, friendly: number, enemy: number, islands: readonly Island[]): void {
   if (!Array.isArray(spawns?.friendly) || !Array.isArray(spawns?.enemy) || spawns.friendly.length !== friendly || spawns.enemy.length !== enemy)

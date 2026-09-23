@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { clampSetting, currentValue, isDeveloperConsoleKey, matchCommands, readingLabel, WEATHER_SETTINGS } from './devConsoleCommands';
+import { clampSetting, CONSOLE_COMMANDS, currentValue, isDeveloperConsoleKey, matchCommands, readingLabel, WEATHER_SETTINGS } from './devConsoleCommands';
 
 const labels = (query: string, locked = false) => matchCommands(query, locked).map(({ command, value }) => [command.label, value]);
 const setting = (key: string) => WEATHER_SETTINGS.find(s => s.key === key)!;
@@ -23,14 +23,16 @@ test('a typed word and number pick settings and set their values', () => {
   // Both vendored libraries the game replaced answer to the comparison's words.
   for (const query of ['library', 'compare', 'renderer']) expect(labels(query)).toEqual([['Switch ocean renderer', undefined], ['Switch sky renderer', undefined]]);
   expect(labels('realistic haze')).toEqual([['Toggle realistic haze', undefined]]);
-  expect(matchCommands('').length).toBe(25);
+  // An empty query lists every command in order, however many there are.
+  expect(matchCommands('').map(({ command }) => command)).toEqual(CONSOLE_COMMANDS);
 });
 
 test('online battles offer only the visual diagnostics', () => {
-  expect(labels('', true)).toEqual([['Copy scene diagnostics', undefined], ['Toggle bow waves', undefined], ['Toggle realistic sea state', undefined],
-    ['Toggle physical reflections', undefined], ['Toggle physical water colour', undefined], ['Toggle realistic wakes', undefined], ['Toggle realistic haze', undefined],
-    ['Switch ocean renderer', undefined], ['Switch sky renderer', undefined]]);
-  expect(labels('wind 14', true)).toEqual([]);
+  // The server owns the weather: no settings, presets or reset; the diagnostics and visual switches stay.
+  const online = matchCommands('', true).map(({ command }) => command);
+  expect(online.every(command => command.kind === 'action' && command.id !== 'reset')).toBe(true);
+  for (const label of ['Copy scene diagnostics', 'Toggle bow waves', 'Toggle realistic wakes', 'Switch ocean renderer', 'Switch sky renderer']) expect(labels(label, true)).toEqual([[label, undefined]]);
+  for (const query of ['wind 14', 'rain 40%', 'moon 0.25', 'storm', 'noon', 'reset']) expect(labels(query, true)).toEqual([]);
 });
 
 test('time and bearings wrap; other values clamp to their range', () => {

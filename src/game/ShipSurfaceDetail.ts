@@ -4,6 +4,7 @@ import {
   positionGeometry, positionView, pow, select, smoothstep, texture, uniform, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
+import { isConstructionPaint } from './constructionWear';
 
 /** Physically scaled surface detail for ship paint and teak, evaluated in each mesh's own
  * (pre-batching) geometry space, so it follows turrets and every other articulated owner.
@@ -43,8 +44,7 @@ export function isPlatedPaint(material: THREE.MeshStandardMaterial): boolean {
   const { surfaceFinish, componentMaterialRole } = material.userData;
   if (typeof surfaceFinish === 'string') return PLATED_FINISHES.has(surfaceFinish) && !FITTING_PAINT.test(String(material.userData.paintId ?? ''));
   if (typeof componentMaterialRole === 'string') return PLATED_ROLES.has(componentMaterialRole);
-  // A player-built ship's hull, blocks and painted design-local fittings name their paint.
-  return /^(construction|custom-fitting)\./.test(material.name) && !/teak|timber|wood/i.test(material.name);
+  return isConstructionPaint(material);
 }
 
 const scale = new THREE.Vector3(), extent = new THREE.Vector3();

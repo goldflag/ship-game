@@ -4,7 +4,7 @@ import catalogJson from '../../public/models/components/catalog.json';
 import type { ConstructionCatalog, ConstructionResult } from './blueprint';
 import { createStarterSource } from './constructionStarter';
 import { compiledLocalShip, freezeLocalFleet, registerLocalShip, removeLocalShip, resolveShip } from './localShips';
-import { runtimeSetup } from '../game/session/LocalBattleSession';
+import { runtimeSetup } from '../game/session/battleSetup';
 import type { Snapshot } from '../game/session/SnapshotSession';
 import { transferCustomShip, transferDuelShip } from '../ui/battle/fleetTransfer';
 import { carryToDuel } from '../ui/battle/battleModes';

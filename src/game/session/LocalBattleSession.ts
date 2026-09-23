@@ -3,7 +3,6 @@ import { LocalWorkerOperation } from './LocalWorkerOperation';
 import { SnapshotSession, type Snapshot } from './SnapshotSession';
 import type { BattleSetup as RuntimeSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
-import { DEFAULT_MAP } from '../../maps/catalog';
 import type { ShipDefinition } from '../../ships/blueprint';
 import type { LocalShipRevision } from '../../ships/localShips';
 import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
@@ -13,31 +12,11 @@ import type { WeatherId } from '../../maps/conditions';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
-import pveAir from '../../../assets/gameplay/pve-air.v1.json';
-import type { AirRules } from '../../multiplayer/generated/AirRules';
 import { localConstructionInput, type LocalConstructionInput, type LocalBattleOptions, type TrialAction } from './localConstruction';
 import type { HelmCommand } from '../../game/session/elements';
-import { BATTLE_SPAWN_DISTANCE, botSelection, setupSpawns, type BattleSetup } from './battleSetup';
+import { botSelection, portSetup, runtimeSetup, type BattleSetup } from './battleSetup';
 import type { CombatIntent } from './telemetry';
 import type { SimulationLoad } from './BattleSession';
-export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
-  const spawns = setupSpawns(setup);
-  const ships: RuntimeSetup['ships'] = [{ id: 'player', presetId: setup.playerShipId, team: 'a', controller: 'player', aiLevel: 'normal', spawn: spawns.friendly[0] }];
-  for (const [team, entries, poses] of [['a', setup.friendlyBots, spawns.friendly.slice(1)], ['b', setup.enemies, spawns.enemy]] as const)
-    entries.forEach((entry, i) => { const bot = botSelection(entry); ships.push({ id: `${team === 'a' ? 'friendly' : 'enemy'}-${i + 1}`, presetId: bot.shipId, team, controller: 'bot', aiLevel: bot.aiLevel, spawn: poses[i] }); });
-  return { ships, seed, mapId: setup.mapId ?? DEFAULT_MAP, weather: setup.weather ?? 'map', spawnDistance: setup.spawnDistance, windSpeed: setup.windSpeed ?? null, ...(setup.missionRules ? { missionRules: setup.missionRules,
-    ...(setup.missionRules.airProfileId === pveAir.id ? { airRules: pveAir as AirRules } : {}),
-  } : {}) };
-}
-/** The port's fleet: the hull on show, alone. The battle wants a hull per side,
- * so an idle copy stands where the old fixture's target stood, never shown,
- * never stepped. Still water: the port has no weather. */
-export function portSetup(definition: ShipDefinition, seed: number): RuntimeSetup {
-  return { ships: [
-    { id: 'player', presetId: definition.id, team: 'a', controller: 'player', aiLevel: 'normal', spawn: { x: 0, z: 0, heading: 0 } },
-    { id: 'target', presetId: definition.id, team: 'b', controller: 'idle', aiLevel: 'static', spawn: { x: 650, z: -550, heading: 0 } },
-  ], seed, mapId: DEFAULT_MAP, weather: 'clear', spawnDistance: BATTLE_SPAWN_DISTANCE, windSpeed: 0 };
-}
 /** Bounds on the scheduler: a batch never exceeds the worker's own limit, and
  * debt beyond a simulated second is unrecoverable rather than merely late. */
 const MAX_BATCH_TICKS = 24, DEBT_SECONDS = 1, MEASURE_SECONDS = 2;
