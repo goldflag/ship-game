@@ -255,6 +255,10 @@ shape and Clone carries definitions with the design.
   8,500, `wood` 700 kg/m³; `fill` 0.01–1, default 1), or `massKg` when given. Overlapping solids
   count their volume twice.
 - A solid or tube without `paint` follows the instance `paint`, then the ship paint.
+- Roofs are drawn darker, like the hull's decks: upward faces of solids, and upward mesh triangles
+  with no part of the mesh within 1 m above them, take the ship's roof colour (`roofPaint`, else a
+  shade of the ship paint) when they follow the ship paint or are painted it, and their own paint's
+  shade under another instance paint. Tubes and other explicitly painted faces keep their paint.
 - `meshes` (version 2) are visual triangle meshes, open or non-convex, for detail the shape
   vocabulary cannot express: `{ id, encoding: "deflate-q16-u16-v1", data, vertices, triangles,
   bounds: { min, max }, groups? }`. `data` is base64 of zlib-deflated little-endian u16s: the
