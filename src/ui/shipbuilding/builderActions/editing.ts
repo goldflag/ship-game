@@ -6,7 +6,8 @@ import { wallNormal, seatWallFitting } from '../../../ships/constructionWallFitt
 import { constructionSnapFeatures } from '../snapping';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../../ships/constructionArmament';
 import type { ConstructionPrimitive, Vec3 } from '../../../ships/blueprint';
-import { copyConstructionSelection, mirroredEquipment } from '../../../ships/constructionEditor';
+import { copyConstructionSelection, mirroredEquipment, removalCarries } from '../../../ships/constructionEditor';
+import { carriedIds } from '../../../ships/constructionParents';
 import { applyConstructionBatch, constructionDiffCommands, type ConstructionCommand } from '../../../ships/constructionCommands';
 import type { ConstructionSubmission } from '../../../ships/constructionRevisionOwner';
 import { offCenterline } from '../placement';
@@ -33,11 +34,19 @@ export function removePieces(this: BuilderTool, ids: ReadonlySet<string>, label 
   if (refused) return refused;
   ids = new Set([...ids, ...this.twinsOf(ids).values()]);
   const keep = this.data.primitives.every((part) => ids.has(part.id)) ? this.data.primitives[0]?.id : undefined;
-  const outcome = this.command(label, [{ op: 'remove', ids: [...ids] }]);
+  // A removed parent takes everything it carries; the undo label and notice say how much.
+  const riders = [...removalCarries(this.source, ids)].filter((id) => !ids.has(id));
+  const attached = riders.length === 1 ? '1 attached fitting' : `${riders.length} attached fittings`;
+  const outcome = this.command(riders.length ? `${label} with ${attached}` : label, [{ op: 'remove', ids: [...ids] }]);
+  const gone = new Set([...ids, ...riders]);
   this.update({
-    selected: new Set([...this.state.selected].filter((id) => !ids.has(id) || id === keep)),
+    selected: new Set([...this.state.selected].filter((id) => !gone.has(id) || id === keep)),
     surfaces: new Set([...this.state.surfaces].filter((key) => ![...ids].some((id) => id !== keep && key.startsWith(`${id}:`)))),
-    ...(keep ? { notice: 'Kept the last hull block. Add another block before removing it.' } : {}),
+    ...(keep
+      ? { notice: 'Kept the last hull block. Add another block before removing it.' }
+      : riders.length && outcome.accepted
+        ? { notice: `Removed ${attached} with ${ids.size === 1 ? 'its parent' : 'their parents'}. Undo restores them.` }
+        : {}),
   });
   return outcome;
 }
@@ -150,6 +159,8 @@ export function movePieces(this: BuilderTool, ids: string[], requested: Vec3, mi
   if (refused) return refused;
   const moving = new Set(ids),
     twins = new Set(mirror ? this.twinsOf(moving, this.state.selected).values() : []);
+  // What the moved pieces carry already travels with them; a twin among it would move twice.
+  for (const id of carriedIds(this.data, moving)) twins.delete(id);
   let delta = mirroredMoveConstraint(this.source, moving, twins)(requested);
   if (delta.some((value, axis) => Math.abs(value - requested[axis]) > 1e-7)) this.update({ notice: OVERLAP_NOTICE });
   const wall = this.data.equipment.find((e) => moving.has(e.id) && e.wall);

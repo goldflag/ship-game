@@ -23,6 +23,7 @@ const CHECKS: Check[] = [
   { name: 'mooring-surface-attachment', module: 'shipbuilder-mooring-browser.ts', check: 'checkMastRopeAttachment' },
   { name: 'invalid-part-feedback', module: 'shipbuilder-internals-browser.ts', check: 'checkInvalidPartFeedback' },
   { name: 'equipment-palette-images', module: 'shipbuilder-internals-browser.ts', check: 'checkEquipmentPaletteImages' },
+  { name: 'equipment-parents', module: 'shipbuilder-parents-browser.ts', check: 'checkEquipmentParents' },
 ];
 /** Checks already failing on master, by name; they are reported but do not fail the run. */
 const KNOWN_RED: { name: string; since: string; note?: string }[] = await Bun.file(join(import.meta.dir, 'known-browser-failures.json')).json();
