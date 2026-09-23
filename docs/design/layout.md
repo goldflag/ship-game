@@ -71,12 +71,12 @@ screen plane so the hull follows the pointer, with no reach limit and no floor a
 the harbor's land stays solid); scroll zooms between 20 m and 1,200 m per 250 m of hull, with the
 near plane shortening up close; and double-click or the recenter key restores the opening pan, orbit
 and zoom, which is the way back from anywhere; a bottom-weighted shade replaces the side vignette.
-At right, the particulars column (372 px, from under the top bar to the fleet line) never moves:
+At right, the particulars column (320 px, from under the top bar to the fleet line) never moves:
 Overview, Armor, Equipment and Flooding tabs over one scrolling body, with an isolation line and an
-explanation line pinned at its foot. It rests on a soft right-edge shade that fades in below the top
-bar, not on a card. Side arrows 48 × 96 px at the vertical middle name the previous and next ready
-design and ← / → do the same; the next-design arrow stands just left of the column. The fleet line
-along the bottom centers up to seven 96 px thumbnail renders around the berthed ship (brass
+explanation line pinned at its foot. It rests on a light right-edge shade that fades in below the
+top bar, not on a card. Side arrows 48 × 96 px at the vertical middle name the previous and next
+ready design and ← / → do the same; the next-design arrow stands just left of the column. The fleet
+line along the bottom centers up to seven 96 px thumbnail renders around the berthed ship (brass
 underline when selected, half opacity otherwise) between ← → keycaps, ending in an All N entry to
 the plan chest. Solid brass remains reserved for Battle.
 
@@ -94,7 +94,7 @@ upper-left name tag, a brass compass ring with 15° ticks and a bow-shaped handl
 selection, and a brass heading readout; the side rail repeats the ring as a 72 px heading dial.
 Selection scope (Group / Ship) is a segmented control with G and S keycaps.
 
-The column narrows to 330 px at 1,240 px and 290 px at 980 px, lifts clear of the fleet line below
+The column narrows to 296 px at 1,240 px and 272 px at 980 px, lifts clear of the fleet line below
 1,180 px and starts at 90 px on short screens; the builder's plate keeps to its left. Below 600 px
 it becomes a sheet along the bottom (at most 44 % of the height), the plate keeps its name and
 actions above it, and the explanation line is dropped. Narrow and short layouts rearrange
