@@ -8,6 +8,12 @@ test('invalid stored graphics recover to High and unknown rows fall back individ
   expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, clouds: 'ultra', frameLimit: 45 })).toEqual({ ...DEFAULT_GRAPHICS, clouds: 'ultra' });
 });
 
+test('temporal anti-aliasing is a saved choice that no preset selects', () => {
+  expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, antialiasing: 'taa' }).antialiasing).toBe('taa');
+  expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, antialiasing: 'msaa' }).antialiasing).toBe(DEFAULT_GRAPHICS.antialiasing);
+  for (const name of PRESET_ORDER) expect(GRAPHICS_PRESETS[name].antialiasing).not.toBe('taa');
+});
+
 test('render scale snaps to five percent steps between 50 and 100', () => {
   expect(sanitizeRenderScale(65)).toBe(65);
   expect(sanitizeRenderScale(67)).toBe(65);
