@@ -2,9 +2,9 @@ import { expect, test } from 'bun:test';
 import { rollup, type Plugin } from 'rollup';
 import { vendorTextures } from './vendor-textures';
 
-test('vendor images become separate, byte-identical assets with relative runtime URLs', async () => {
+for (const [library, name] of [['threejs-sky-pro', 'sky-texture'], ['threejs-water-pro', 'water-texture']]) test(`vendor images become separate, byte-identical assets with relative runtime URLs (${library})`, async () => {
   const bytes = Buffer.from([0, 1, 2, 253, 254, 255]);
-  const input = '/project/vendor/threejs-sky-pro/build/index.js';
+  const input = `/project/vendor/${library}/build/index.js`;
   const bundle = await rollup({
     input,
     plugins: [{
@@ -18,6 +18,7 @@ test('vendor images become separate, byte-identical assets with relative runtime
     const asset = output.find(item => item.type === 'asset');
     const code = output.find(item => item.type === 'chunk')!.code;
     expect(asset?.type).toBe('asset');
+    expect(asset!.fileName).toStartWith(`assets/${name}-`);
     expect(Buffer.from(asset!.source)).toEqual(bytes);
     expect(code).not.toContain('data:image');
     expect(code).toContain(asset!.fileName);
