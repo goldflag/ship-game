@@ -216,6 +216,8 @@ export function clearDistance(potential: Float32Array, threshold: number, size =
       relax(k, x, y, 1, 0, 1); relax(k, x, y, 0, 1, 1); relax(k, x, y, 1, 1, Math.SQRT2); relax(k, x, y, -1, 1, Math.SQRT2);
     }
   }
+  // The chamfer metric overstates true distance by up to 1 / cos 22.5°: scaled down, it never promises too much.
+  for (let k = 0; k < n; k++) if (d[k] < CLEAR_RANGE) d[k] *= Math.cos(Math.PI / 8);
   return d;
 }
 

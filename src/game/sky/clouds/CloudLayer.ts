@@ -51,11 +51,12 @@ const WARMUP_FRAMES = 3;
 /** Metres below the base under which the camera is "under the layer": clouds then lie behind everything. */
 const UNDER_MARGIN = 20;
 /** Lightning. `SkyUniforms.lightningIntensity` is the irradiance, in the sea's units, the channel casts 1 km
- * away (the sun's is about 6), falling off with the square of distance. A cloud glows with `LIGHTNING_GLOW` of
- * the irradiance reaching it, dimmed over `LIGHTNING_SPREAD` metres as the light diffuses through the cloud:
- * at 150, a cloud 5 km from the strike glows about 0.4 (bright at night, visible by day), one 2 km away about
- * 4, into the bloom. Closer than `LIGHTNING_NEAREST` counts as that close. */
-const LIGHTNING_GLOW = .25, LIGHTNING_SPREAD = 6_000, LIGHTNING_NEAREST = 300;
+ * away (the sun's is about 6), falling off with the square of distance, softened inside `LIGHTNING_CORE` metres
+ * (the cloud around the channel diffuses it rather than showing a point). A cloud glows with `LIGHTNING_GLOW` of
+ * the irradiance reaching it, dimmed over `LIGHTNING_SPREAD` metres as the light works through the cloud. At 150,
+ * a cloud 5 km from the strike glows about 0.35 (bright against a moonlit cloud's 0.1, visible against a sunlit
+ * one's 1), one 3 km away about 1.2, and one beside the channel about 6, a flash into the bloom. */
+const LIGHTNING_GLOW = .15, LIGHTNING_SPREAD = 6_000, LIGHTNING_CORE = 1_500;
 const LIGHTNING_TINT = [.8, .85, 1] as const;
 
 /** Visit order of the pixels of an n × n block, spread so consecutive frames march far-apart pixels. */
@@ -547,8 +548,8 @@ export class CloudLayer implements CloudPart {
         const cover = color.w.oneMinus();
         const depth = (direct(this.latestDepth.sample(at)) as unknown as Vec4).y.div(max(cover, 1e-4)).mul(1000);
         const toward = sky.cameraPosition.add(direction.mul(depth)).sub(sky.lightningPosition);
-        const distance = max(toward.length(), LIGHTNING_NEAREST);
-        const irradiance = sky.lightningIntensity.mul(float(1000).div(distance).pow(2));
+        const distance = toward.length();
+        const irradiance = sky.lightningIntensity.mul(1e6).div(distance.mul(distance).add(LIGHTNING_CORE * LIGHTNING_CORE));
         radiance.addAssign(vec3(LIGHTNING_TINT[0], LIGHTNING_TINT[1], LIGHTNING_TINT[2])
           .mul(irradiance.mul(LIGHTNING_GLOW).mul(distance.div(-LIGHTNING_SPREAD).exp()).mul(cover)));
       });
