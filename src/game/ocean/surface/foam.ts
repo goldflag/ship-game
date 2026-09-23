@@ -30,8 +30,9 @@ const BAND_SCALES = [4, 4 * Math.SQRT2 * 1.13] as const, BAND_STRETCH = 2;
 /** How strongly the patches gather windrows into some bands and thin them in others: coverage runs from 1 − this to
  * 1 + this times its mean. */
 const WINDROW_GATHER = .35;
-/** The most of its band a windrow covers, so even the densest line stays a string of beads and filaments. */
-const WINDROW_PEAK = .4;
+/** The most of its band a windrow covers, so even the densest line stays a string of beads and filaments, and how far
+ * its foam is drawn out along the wind: a little, so beads and patches, not threads. */
+const WINDROW_PEAK = .4, WINDROW_STREAKING = .3;
 /** Edge half-width of windrows and of whitecaps' residue, in levels of the equalised lace: soft, frayed filaments. */
 const WINDROW_EDGE = .35, RESIDUE_EDGE = .35;
 
@@ -52,20 +53,22 @@ const FOAM_SUN = .55;
 /** Share of the water's Fresnel reflectance foam keeps: its bubbly top scatters most of the mirror image away. */
 const FOAM_GLOSS = .5;
 
-/** Range of the broad patches' sway on the foam amount: whitecaps differ in strength, and their outlines fray at
- * scales a distant pixel still resolves, not only in the fine lace. */
-const PATCH_SWAY = [.6, 1.4] as const;
+/** Range of the broad patches' sway on the foam amount, and of the billows' (the churn channel, 0.3 to 2 m): whitecaps
+ * differ in strength, and their outlines fray at every scale down to the billows, so the wave field's texels (0.7 m and
+ * more) never show as the polygons their bilinear reconstruction draws. */
+const PATCH_SWAY = [.6, 1.4] as const, BILLOW_SWAY = [.55, 1.45] as const;
 /** Fresh foam (`WaveSurfaceSample.fresh`: what broke in the last few seconds, per area) over which a whitecap's core goes
  * from nothing to a full sheet: foam breaking now and gathered on its converging crest (up to about 3 on a fold). */
-const CORE_START = .6, CORE_FULL = 1.8;
+const CORE_START = .85, CORE_FULL = 1.3;
 /** Share of its patch a full core covers, and its edge half-width in the lace: aerated water keeps a few holes. */
 const CORE_COVER = .9, CORE_EDGE = .25;
-/** Foam amount below which a whitecap's patch is clear water, and above which it is fully there: the soft rim of the
- * patch. A pixel counts toward the whitecaps' area where the patch is at least half there (`whitecapPatch`). */
-const PATCH_GONE = .03, PATCH_FULL = .3;
+/** Foam amount below which a whitecap's patch is clear water, and above which it is fully there: the long, faint rim
+ * of old foam fading out around and behind it. A pixel counts toward the whitecaps' area (Monahan's W, measured on
+ * photographs by a brightness threshold that leaves the faintest foam out) above PATCH_COUNTED. */
+const PATCH_GONE = .01, PATCH_FULL = .3, PATCH_COUNTED = .17;
 /** Share of the patch the residue's filaments cover where it thins and where it is full, and their opacity likewise:
  * old foam is lace the sea shows through, fading with its patch instead of ending at a rim. */
-const RESIDUE_SPARSE = .3, RESIDUE_COVER = .55, RESIDUE_FAINT = .12, RESIDUE_DENSE = .48;
+const RESIDUE_SPARSE = .25, RESIDUE_COVER = .62, RESIDUE_FAINT = .12, RESIDUE_DENSE = .6;
 /** How far the thinnest residue's lace is drawn out along the wind (the old foam's streaks), from none in a full patch. */
 const RESIDUE_STREAKING = .4;
 /** Brightness of the residue's thinnest filaments relative to its densest (the lace's lowest and highest levels):
@@ -75,7 +78,7 @@ const RESIDUE_DIM = .7;
 /** Dense white water (whitecap cores and churned water): its opacity on its billows, and in the gaps between them,
  * where the churn channel is low, the opacity left, so the bubble-lit turquoise water shows through. Churn levels over
  * which a gap closes. */
-const DENSE_OPACITY = .97, THIN_OPACITY = .35, THIN_LOW = .08, THIN_HIGH = .42;
+const DENSE_OPACITY = .97, THIN_OPACITY = .55, THIN_LOW = .08, THIN_HIGH = .42;
 /** Billows in dense white water: brightness in the creases between them (the churn channel's lowest), rising to full
  * over these churn levels, and each billow lit on its sunward side by this much per unit of the channel's rise over
  * EMBOSS_METRES toward the sun. Sunlit foam sits on the tone curve's shoulder, so only deep creases read. */
@@ -171,9 +174,11 @@ export function foamShare(coverage: Float, pattern: Float, blur: Float, edge: nu
   return mix(smoothstep(threshold.sub(width), threshold.add(width), pattern), share, blur).mul(smoothstep(0, 1e-3, share));
 }
 
-/** The whitecap foam amount `amount` swayed by the broad patches `patches` (none where they are blurred away). */
-function swayed(amount: Float, patches: Float, blur: Float): Float {
-  return amount.mul(mix(mix(PATCH_SWAY[0], PATCH_SWAY[1], patches), 1, blur));
+/** The whitecap foam amount `amount` swayed by the broad patches and the billows of the foam texture's `pattern` (none
+ * where the pattern is blurred away). */
+function swayed(amount: Float, pattern: Node<'vec4'>, blur: Float): Float {
+  const sway = mix(PATCH_SWAY[0], PATCH_SWAY[1], pattern.g).mul(mix(BILLOW_SWAY[0], BILLOW_SWAY[1], pattern.a));
+  return amount.mul(mix(sway, float(1), blur));
 }
 
 /** How much of a whitecap's patch is there at swayed foam amount `amount`, 0–1: the soft rim fading into clear water. A
@@ -185,7 +190,7 @@ function whitecapPatch(amount: Float): Float {
 /** Whether the pixel lies in a whitecap's patch (1) or not (0), for foam `amount` and the lace layout's `pattern`: what
  * the whitecaps' area, Monahan's W, counts. */
 export function inWhitecap(amount: Float, pattern: Node<'vec4'>, blur: Float): Float {
-  return step(.5, whitecapPatch(swayed(amount, pattern.g, blur)));
+  return step(PATCH_COUNTED, swayed(amount, pattern, blur));
 }
 
 /** Mean opacity of whitecaps over a pixel too coarse to draw them: the drawn model's own mean (its lace's coverage times
@@ -221,7 +226,7 @@ function denseOpacity(churn: Float, blur: Float): Float {
  * its own there. */
 export function whitecapFoam(amount: Float, fresh: Float, mean: Float, meanFresh: Float, share: Float, pattern: Node<'vec4'>, blur: Float, streaks: Float,
   streaksBlur: Float, footprint: Float) {
-  const core = smoothstep(CORE_START, CORE_FULL, swayed(fresh, pattern.g, blur)), patch = whitecapPatch(swayed(amount, pattern.g, blur));
+  const core = smoothstep(CORE_START, CORE_FULL, swayed(fresh, pattern, blur)), patch = whitecapPatch(swayed(amount, pattern, blur));
   const coreOpacity = foamShare(core.mul(CORE_COVER), pattern.r, blur, CORE_EDGE).mul(mix(float(RESIDUE_DENSE), denseOpacity(pattern.a, blur), core));
   // The residue's lace leans toward the wind's streaks as the patch thins: fresh foam is lace, old foam drawn out.
   const lace = mix(pattern.r, streaks, float(1).sub(patch).mul(RESIDUE_STREAKING));
@@ -242,12 +247,13 @@ export function churnedWater(energy: Float, pattern: Node<'vec4'>, blur: Float) 
 
 /** Windrows: old foam the wind has gathered into lines along itself, covering `coverage` of the sea. The band mask
  * `lines` (mean `linesMean` at every distance) lays the lines and the patches `gather` crowd them into some stretches
- * of sea; within them the old foam's `streaks` (blur `blur`) break each line into beads and filaments of varying width,
- * thicker where the surface converges (`jacobian`), so they ride the waves. Far off they keep their mean. */
-export function windrowOpacity(coverage: Float, lines: Float, linesMean: number, gather: Float, streaks: Float, blur: Float, jacobian: Float): Float {
+ * of sea; within them the old foam (`lace`, partly drawn out along the wind as `streaks`; blur `blur`) breaks each line
+ * into beads and patches of varying width, thicker where the surface converges (`jacobian`), so they ride the waves.
+ * Far off they keep their mean. */
+export function windrowOpacity(coverage: Float, lines: Float, linesMean: number, gather: Float, lace: Float, streaks: Float, blur: Float, jacobian: Float): Float {
   const gathered = coverage.mul(gather.sub(.5).mul(2 * WINDROW_GATHER).add(1)).mul(lines).div(linesMean);
   const density = clamp(float(1).div(jacobian.max(.05)), GATHERED[0], GATHERED[1]).div(GATHERED_MEAN);
-  return foamShare(gathered.min(WINDROW_PEAK), streaks, blur, WINDROW_EDGE).mul(density);
+  return foamShare(gathered.min(WINDROW_PEAK), mix(lace, streaks, WINDROW_STREAKING), blur, WINDROW_EDGE).mul(density);
 }
 
 /** Mean brightness of dense white water over the equalised churn channel: CREASE_LIGHT plus the rest times

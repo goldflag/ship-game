@@ -259,8 +259,8 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     let above: Node<'vec3'> = water.add(direct.mul(lit));
 
     // From the widest and faintest to the brightest: windrows, whitecaps and churned water, shorelines.
-    const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), lines, this.foamDetail.userData.streakMean, gather, streaks, streaksBlur,
-      sample.jacobian).mul(reference('opacity', 'float', foam.surface));
+    const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), lines, this.foamDetail.userData.streakMean, gather, lace, streaks,
+      max(blur, streaksBlur), sample.jacobian).mul(reference('opacity', 'float', foam.surface));
     const white = billows(pattern.a, churnSunward, pattern.r, max(whitecaps.dense, churned?.dense ?? float(0)), blur);
     // Where the water column behind the surface thins to nothing: a beach, or the line along a hull.
     const shoreFoam = foamOpacity(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), lace, blur, SHORE_EDGE).mul(reference('opacity', 'float', foam.shoreline));

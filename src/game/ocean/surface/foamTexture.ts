@@ -115,7 +115,7 @@ const EQUALIZED_TEXELS = 16;
 
 /** Churned white water: clumps of foam heaped into rounded billows at three scales (domes over each cell of a jittered
  * grid, 1 − F1), so the surface shades each billow on its sunward side and darkens in the creases between them. */
-const CHURN_CELLS = [17, 41, 97], CHURN_WEIGHTS = [.5, .32, .18];
+const CHURN_CELLS = [23, 53, 127], CHURN_WEIGHTS = [.5, .32, .18];
 
 /** Churn at (u, v): heaped billows. */
 function churn(u: number, v: number): number {

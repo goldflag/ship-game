@@ -82,8 +82,8 @@ describe('whitecaps', () => {
     expect(calm.every(c => c.threshold === Infinity)).toBe(true);
     // A storm crowding its breakers into one cascade: that one breaks over half its crests at most, the other takes more.
     const crowded = cascades(.3, .7, 0), uncapped = cascades(.3, .7, 0);
-    setBreakingThresholds(crowded, 1.4);
-    setBreakingThresholds(uncapped, .5);
+    setBreakingThresholds(crowded, 20);
+    setBreakingThresholds(uncapped, 2);
     expect(crowded[1].threshold).toBeCloseTo(0, 9);
     expect(crowded[0].threshold).toBeLessThan(uncapped[0].threshold);
     // More wind, more breaking, at every cascade.

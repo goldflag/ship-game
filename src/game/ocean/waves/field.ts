@@ -10,7 +10,7 @@ import type { HullFootprint, HullSeaWave, OceanRealism, WaveCascadeInfo, WaveFie
 import { fftRadices } from './fft';
 import { HullSea, cascadeModes, hullSeaWavelength, splitLevel } from './hullSea';
 import { drawnSea, seaStateCascades } from './seaState';
-import { FOLD_PERIOD, buildSpectrum, cascadeBands } from './spectrum';
+import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands } from './spectrum';
 import { type CascadeBreaking, cascadeBreaking, setBreakingThresholds, whitecapArea, whitecapDepth } from './whitecaps';
 
 type Vec4 = Node<'vec4'>;
@@ -42,6 +42,12 @@ const GATE_NONE = -1, GATE_FULL = .75;
 /** The surface's areal compression J that foam density follows is held within these: a fold (J ≤ 0) gathers at
  * most 1 / FOAM_JACOBIAN_MIN, and a stretched back thins foam at most to 1 / FOAM_JACOBIAN_MAX. */
 const FOAM_JACOBIAN_MIN = .35, FOAM_JACOBIAN_MAX = 2.5;
+/** Turbulent spreading of whitecap foam and bubbles: a diffusivity of FOAM_SPREAD × λ·c for the breaking waves of
+ * wavelength λ and phase speed c (the breaker's own turbulence scales with it), along the wind, and ACROSS_SHARE of it
+ * across: over its life an ageing patch spreads by about a third of the breaking wavelength, whatever the sea, so it
+ * grows from the few metres of its crest into a larger, fainter patch drawn out downwind. The explicit step's gain per
+ * axis stays below SPREAD_LIMIT (stable under a quarter), whatever the texel and frame time. */
+const FOAM_SPREAD = .05, ACROSS_SHARE = .5, SPREAD_LIMIT = .24;
 /** Bubbles a breaking crest carries down persist like its foam but for this share of the foam's lifetime: the cloud
  * rises and dissolves within about a wave period, while the surface foam it leaves lingers. */
 const BUBBLE_LIFE = .5;
@@ -144,6 +150,8 @@ export class GpuWaveField implements WaveField {
   /** The cascade in `layer`: e-folding lifetime (s) of its foam, weights of its breaking indicator (compression,
    * forward face) and the indicator at which its crests break. */
   private readonly decay = uniform(1);
+  /** The cascade in `layer`: this update's spreading gain along each texel axis (see `spreadFoam`). */
+  private readonly spreading = uniform(new Vector2());
   private readonly breakingWeights = uniform(new Vector2());
   private readonly breakingThreshold = uniform(NEVER);
   private readonly tail = uniform(0);
@@ -302,12 +310,25 @@ export class GpuWaveField implements WaveField {
     const ramp = float(BREAKING_RAMP / 2).div(this.breakingThreshold.max(1));
     const injection = smoothstep(this.breakingThreshold.sub(ramp), this.breakingThreshold.add(ramp), indicator);
     const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer);
-    const persisted = (last: Float, lifetime: Float): Float => select(this.elapsed.greaterThan(0), max(last.mul(exp(this.elapsed.negate().div(lifetime))), injection), last);
+    const spread = this.spreadFoam(previous.yw, pixel);
+    const persisted = (last: Float, spreadLast: Float, lifetime: Float): Float =>
+      select(this.elapsed.greaterThan(0), max(spreadLast.mul(exp(this.elapsed.negate().div(lifetime))), injection), last);
     return mrt({
       displacement: vec4(ab.xyz, 0),
       derivatives: cd,
-      extras: vec4(ab.w, persisted(previous.y, this.decay), cd.x.mul(cd.x).add(cd.y.mul(cd.y)), persisted(previous.w, this.decay.mul(BUBBLE_LIFE))),
+      extras: vec4(ab.w, persisted(previous.y, spread.x, this.decay), cd.x.mul(cd.x).add(cd.y.mul(cd.y)), persisted(previous.w, spread.y, this.decay.mul(BUBBLE_LIFE))),
     });
+  }
+
+  /** Foam and bubbles (`centre`, last update's at texel `pixel` of the layer) after one step of spreading: turbulence and
+   * the drift of the surface layer carry them outward from where the crest broke, more along the wind than across it,
+   * so an ageing whitecap grows into a larger, fainter patch drawn out downwind (an explicit diffusion step, its gain
+   * per axis held below the scheme's stability limit). */
+  private spreadFoam(centre: Node<'vec2'>, pixel: Node<'ivec2'>): Node<'vec2'> {
+    const n = this.size, read = (dx: number, dz: number) => this.layered(direct(this.previousExtras.load(
+      ivec2(pixel.x.add(dx + n).mod(n), pixel.y.add(dz + n).mod(n)))), this.layer).yw as unknown as Node<'vec2'>;
+    const lap = (a: Node<'vec2'>, b: Node<'vec2'>) => a.add(b).sub(centre.mul(2));
+    return centre.add(lap(read(-1, 0), read(1, 0)).mul(this.spreading.x)).add(lap(read(0, -1), read(0, 1)).mul(this.spreading.y));
   }
 
   private sample(field: typeof FIELDS[number], xz: Node<'vec2'>, cascade: number, level?: Float): Vec4 {
@@ -510,7 +531,7 @@ export class GpuWaveField implements WaveField {
         // Mipmaps once per update, after the last layer: generation covers every layer.
         for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1;
         this.layer.value = c;
-        this.setBreaking(c);
+        this.setBreaking(c, dt);
         renderer.setRenderTarget(output, c);
         this.finalPass.render(renderer);
       });
@@ -535,11 +556,16 @@ export class GpuWaveField implements WaveField {
   }
 
   /** The resolve pass's foam uniforms for cascade `c`: its breaking indicator, threshold and foam lifetime. */
-  private setBreaking(c: number): void {
+  private setBreaking(c: number, dt: number): void {
     const breaking = this.breaking[c];
     this.breakingWeights.value.set(breaking.compression, breaking.face);
     this.breakingThreshold.value = Math.min(NEVER, breaking.threshold);
     this.decay.value = Math.max(1e-3, this.foamParams.lifetime * breaking.period);
+    // Spreading along the texel axes from the wind-aligned rates: D·dt/Δx², held below the explicit scheme's limit.
+    const texel = this.cascades[c].size / this.size, gain = Math.max(0, dt) / (texel * texel);
+    const wx = this.wind.value.x, wz = this.wind.value.y, period = breaking.period;
+    const wavelength = GRAVITY * period * period / (2 * Math.PI), along = period > 0 ? FOAM_SPREAD * wavelength * wavelength / period : 0, across = along * ACROSS_SHARE;
+    this.spreading.value.set(Math.min(SPREAD_LIMIT, gain * (along * wx * wx + across * wz * wz)), Math.min(SPREAD_LIMIT, gain * (along * wz * wz + across * wx * wx)));
   }
 
   dispose(): void {

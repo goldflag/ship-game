@@ -303,8 +303,9 @@ async function coverageFrame(x, z) {
     const { pattern, blur, streaks, streaksBlur, lines, gather } = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1), vec3(0, 1, 0));
     const whitecaps = whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, pattern, blur, streaks, streaksBlur, float(0));
     const rowsFoam = windrowFoam(params.windSpeed);
-    const rowsShare = windrowOpacity(float(rowsFoam.coverage), lines, foamMap.userData.streakMean, gather, streaks, float(1), sample.jacobian);
-    const rows = windrowOpacity(float(rowsFoam.coverage), lines, foamMap.userData.streakMean, gather, streaks, streaksBlur, sample.jacobian).mul(rowsFoam.opacity);
+    const rowsShare = windrowOpacity(float(rowsFoam.coverage), lines, foamMap.userData.streakMean, gather, pattern.r, streaks, float(1), sample.jacobian);
+    const rows = windrowOpacity(float(rowsFoam.coverage), lines, foamMap.userData.streakMean, gather, pattern.r, streaks, max(blur, streaksBlur), sample.jacobian)
+      .mul(rowsFoam.opacity);
     const patch = inWhitecap(sample.foam, pattern, blur);
     const opacity = float(1).sub(float(1).sub(whitecaps.opacity.clamp(0, 1)).mul(float(1).sub(rows.clamp(0, 1))));
     material.fragmentNode = pass
