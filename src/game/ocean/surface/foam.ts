@@ -37,8 +37,8 @@ const WINDROW_PEAK = .4, WINDROW_STREAKING = .3;
 /** Edge half-width of windrows and of whitecaps' residue, in levels of the equalised lace: soft, frayed filaments. */
 const WINDROW_EDGE = .35, RESIDUE_EDGE = .35;
 
-/** Texels per pixel (across a grazing pixel, or its length over the sampler's anisotropy) over which a foam pattern
- * gives way to its mean coverage: every mip level of the foam texture down to 16 × 16 is equalised, so thresholds keep
+/** Texels per pixel (across a pixel, its length over the sampler's anisotropy, or the side of the area it averages)
+ * over which a foam pattern gives way to its mean coverage: every mip level of the foam texture down to 16 × 16 is equalised, so thresholds keep
  * their share while a pixel spans a few texels, but a threshold on a level whose texels are wider than the pattern's
  * finest filaments draws blocks. */
 const FOAM_BLUR_START = 4, FOAM_BLUR_END = 24;
@@ -93,6 +93,13 @@ const CREASE_LIGHT = .82, CREASE_LOW = .3, CREASE_HIGH = .8, EMBOSS_GAIN = 1.5, 
  * whitecap goes from drawn to drawn on its spread foam with the coarse lace, and over which that gives way to the
  * wind's mean coverage: a whitecap smaller than a pixel reads as a faint brightening instead of a fleck. */
 const FLECK_START = 1.5, FLECK_END = 4, FAR_START = 8, FAR_END = 20;
+/** A whitecap's depth along the wind (m), about the cores' and fresh patches' size across their crests, and its length
+ * along them. */
+const WHITECAP_DEPTH = 3, WHITECAP_LENGTH = 8;
+/** On-screen length (px) over which a whitecap thinner than a pixel row gives way to the wind's mean. Drawn flat on the
+ * water, a whitecap seen through binoculars would be a line a hundred pixels long and one tall, where the real breaking
+ * face stands up as a short fleck. A chase view's distant whitecaps stay under the start. */
+const LINE_START = 20, LINE_END = 60;
 /** Gain on the cover of a thin patch of spread whitecaps (none on a full one), for what spreading takes from whitecaps
  * smaller than the spread, which holds the spread path's mean opacity within 15% of the drawn whitecaps' at 9–30 m/s;
  * and the whitecaps' mean opacity over their area far off (a quarter of the light with foam's 0.8 albedo, as
@@ -133,17 +140,25 @@ function sunward(sun: Vec3, wind: Float, stretch: Float, metres: number, tile: n
 }
 
 /** Share of the foam texture's contrast that filtering has averaged away at `uv`: none while a pixel spans a few
- * texels, all of it once a pixel averages dozens and the texture reads as its mean. */
+ * texels, all of it once a pixel averages dozens and the texture reads as its mean. The sampler resolves the pattern
+ * down to the pixel's length over its anisotropy, but it averages along that length: a pixel drawn out along a grazing
+ * view (binoculars look through strips a tenth of a metre wide and tens of metres long) averages as many of the
+ * pattern's features as fit in its area, at least one feature wide. A threshold on that flattened pattern draws hard
+ * lines across the view instead of lace. */
 export function foamBlur(uv: Vec2): Float {
-  const across = dFdx(uv).length(), down = dFdy(uv).length();
-  return smoothstep(FOAM_BLUR_START, FOAM_BLUR_END, max(min(across, down), max(across, down).div(FOAM_ANISOTROPY)).mul(FOAM_TEXELS));
+  const across = dFdx(uv).length().mul(FOAM_TEXELS), down = dFdy(uv).length().mul(FOAM_TEXELS);
+  const minor = min(across, down), major = max(across, down);
+  const resolved = max(minor, major.div(FOAM_ANISOTROPY)), averaged = max(minor, FOAM_BLUR_START).mul(major).sqrt();
+  return smoothstep(FOAM_BLUR_START, FOAM_BLUR_END, max(resolved, averaged));
 }
 
-/** The pixel's footprint on the sea at grid point `xz` (m): its size across the view, or a quarter of its length along
- * it, whichever is larger. Past a couple of metres a whitecap is thinner than the pixel's height on screen. */
-export function foamFootprint(xz: Vec2): Float {
+/** The pixel's footprint on the sea at grid point `xz` (m). `size` is its extent across the view or a quarter of its
+ * length along it, whichever is larger: past a couple of metres a whitecap is thinner than the pixel's height on screen.
+ * `along` is its whole length along the view, which grazing views and binoculars stretch to tens of metres, and
+ * `across` its width. */
+export function foamFootprint(xz: Vec2): { size: Float; along: Float; across: Float } {
   const across = dFdx(xz).length(), down = dFdy(xz).length();
-  return max(min(across, down), max(across, down).div(4));
+  return { size: max(min(across, down), max(across, down).div(4)), along: max(across, down), across: min(across, down) };
 }
 
 /** The foam texture read at grid point `xz`, `stretch` drawing it out along the wind `wind`: the lace layout's four
@@ -231,20 +246,29 @@ function denseOpacity(churn: Float, blur: Float): Float {
 /** A whitecap from the wave field's foam at this pixel: `amount` (drawn), `fresh` (its part that broke in the last few
  * seconds), `mean` and `meanFresh` (both spread over the pixel) and `share` (the wind's whitecap area), with the foam
  * texture's `patterns` (`foamPatterns`). Near, a small dense core where the crest breaks now and a larger lacy,
- * streaked, see-through patch around and behind it; a whitecap smaller than its pixel (`footprint`, m) turns into the
- * same drawn on its spread foam with the coarse lace, and far off into the wind's mean. Returns the opacity, how much of
- * it is dense core (for the billows), and how far the pixel has gone to a mean: the means are measured over whole
- * whitecaps, the aerated water inside their outline included, so a caller adds no bubble cloud of its own there. */
-export function whitecapFoam(amount: Float, fresh: Float, mean: Float, meanFresh: Float, share: Float, patterns: FoamPatterns, footprint: Float) {
+ * streaked, see-through patch around and behind it; a whitecap smaller than its pixel (`footprint.size`, m) turns into
+ * the same drawn on its spread foam with the coarse lace, and far off into the wind's mean. A pixel much longer along the
+ * view than a whitecap is deep (`footprint.along`) filters the whitecap's amounts down by the share of its length the
+ * whitecap covers: the drawn whitecap is thresholded on the undiluted amounts and scaled by that share, so a sliver of
+ * foam lights a sliver of the pixel instead of a hard line across a grazing view. Returns the opacity, how much of it is
+ * dense core (for the billows), and how far the pixel has gone to a mean: the means are measured over whole whitecaps,
+ * the aerated water inside their outline included, so a caller adds no bubble cloud of its own there. */
+export function whitecapFoam(amount: Float, fresh: Float, mean: Float, meanFresh: Float, share: Float, patterns: FoamPatterns,
+  footprint: { size: Float; along: Float; across: Float }) {
   const { pattern, blur, streaks, streaksBlur, coarse, coarseBlur } = patterns;
-  const core = smoothstep(CORE_START, CORE_FULL, swayed(fresh, pattern, blur)), patch = whitecapPatch(swayed(amount, pattern, blur));
+  const covered = min(float(1), float(WHITECAP_DEPTH).div(footprint.along.max(1e-3)));
+  const inPatch = amount.div(covered), inCore = fresh.div(covered);
+  const core = smoothstep(CORE_START, CORE_FULL, swayed(inCore, pattern, blur)), patch = whitecapPatch(swayed(inPatch, pattern, blur));
   const coreOpacity = foamShare(core.mul(CORE_COVER), pattern.r, blur, CORE_EDGE).mul(mix(float(RESIDUE_DENSE), denseOpacity(pattern.a, blur), core));
   // The residue's lace leans toward the wind's streaks as the patch thins: fresh foam is lace, old foam drawn out.
   const lace = mix(pattern.r, streaks, float(1).sub(patch).mul(RESIDUE_STREAKING));
   const residue = foamShare(mix(RESIDUE_SPARSE, RESIDUE_COVER, patch).mul(patch.sqrt()), lace, max(blur, streaksBlur), RESIDUE_EDGE)
     .mul(mix(RESIDUE_FAINT, RESIDUE_DENSE, patch));
-  const drawn = max(coreOpacity, residue);
-  const toMean = smoothstep(FLECK_START, FLECK_END, footprint), toFar = smoothstep(FAR_START, FAR_END, footprint);
+  const drawn = max(coreOpacity, residue).mul(covered);
+  // Thinner than a pixel row yet many pixels long (binoculars), a whitecap lying flat on the water can only draw a line.
+  const rows = float(WHITECAP_DEPTH).div(footprint.along.max(1e-4)), length = float(WHITECAP_LENGTH).div(footprint.across.max(1e-4));
+  const line = smoothstep(LINE_START, LINE_END, length).mul(float(1).sub(smoothstep(.5, 1.5, rows)));
+  const toMean = smoothstep(FLECK_START, FLECK_END, footprint.size), toFar = max(smoothstep(FAR_START, FAR_END, footprint.size), line);
   const far = share.mul(AREA_OPACITY);
   return { opacity: mix(mix(drawn, spreadWhitecaps(mean, meanFresh, coarse, coarseBlur), toMean), far, toFar), dense: core.mul(float(1).sub(toMean)), averaged: toMean };
 }

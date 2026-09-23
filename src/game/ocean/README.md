@@ -208,7 +208,15 @@ for what spreading takes from whitecaps smaller than the spread, a full patch's 
 breaker seen from the air is a marbled, streaked patch as bright as its drawn mean instead of a white
 disc. Further off (8–20 m) the pixel takes the wind's whitecap share at 0.26 opacity, a quarter of
 the light as Koepke measured of real whitecaps: distant whitecaps soften into the sea instead of
-staying flecks, and a mean already holds their aerated water, so no bubble cloud is added there. The bubble cloud
+staying flecks, and a mean already holds their aerated water, so no bubble cloud is added there.
+
+Grazing views and binoculars need two more corrections, because a pixel there can be a tenth of a metre wide and
+tens of metres deep. First, pattern blur counts the area the sampler averages, not only its resolved texel. The
+sampler averages the lace along the pixel's length, and a threshold on that flattened pattern draws hard lines
+across the view. Second, a drawn whitecap is thresholded on its amounts undiluted by the pixel's length (3 m of
+whitecap depth) and scaled by the share it covers. A whitecap lying flat on the water that would still draw a line
+over 20–60 pixels long and under a row tall goes to the wind's mean too; a real breaking face stands up as a short
+fleck, which flat foam cannot draw. The bubble cloud
 brightens the water body toward daylight scattered back by bubbles (30%) and tinted by 4.5 m of water
 (pale turquoise, up to 60% of the way; a whitecap's to 45% of a hull's propeller wash), and scatters
 half the reflection away. Windrows, old foam in lines along the wind, take a growing share of the
@@ -271,7 +279,10 @@ Munk's measured proportions (3.16e-3·U : 0.003 + 1.92e-3·U).
 - The sun (or moon) is reflected by the same anisotropic distribution plus its 1.4° disc's own
   spread (9.4e-6 per axis) as a Beckmann glitter BRDF with Smith masking: single resolved facets
   sparkle close up, farther pixels average them into a glitter path that widens with the wind and
-  toward the horizon, and from the air the glint is a broad patch.
+  toward the horizon, and from the air the glint is a broad patch. Above a quarter of the sun's
+  irradiance, about twice sunlit foam, the glitter is compressed with a soft knee (radiance /
+  (1 + luminance / knee)). In full, a low sun over a rough sea spreads a glow several times brighter than the
+  sky, which blooms over any ship in front of it.
 - Screen-space rays follow the whole resolved slope, one in-plane deviation below the lobe's centre
   (hulls stand above the water that mirrors them, so the lobe's lower part meets a hull its raised
   centre would miss); four taps read the image over the whole lobe along its projected smear

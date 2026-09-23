@@ -221,7 +221,8 @@ library; switched off, the surface is exactly that look. The physics and constan
   their Fresnel reflectance, with Bruneton et al.'s mean Fresnel: a 9 m/s sea mirrors about 37% of
   the sky some 18° up at the horizon instead of nearly all of the horizon, so the far sea is darker
   than the sky and the horizon crisp. Reflections smear toward the viewer and stay sharp sideways;
-  the sun makes a glitter path that widens with the wind and toward the horizon; ship reflections
+  the sun makes a glitter path that widens with the wind and toward the horizon, compressed above a
+  quarter of the sun's irradiance so a low sun doesn't blind the view; ship reflections
   follow the whole wave slope and blur by the same lobe, so light air leaves only a faint smear under
   a hull and a 9 m/s sea little beyond the waterline.
 

@@ -302,7 +302,7 @@ async function coverageFrame(x, z) {
     const xz = screenCoordinate.mul(512 / n).add(vec2(x, z)), sample = field.surface(xz);
     const patterns = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1), vec3(0, 1, 0));
     const { pattern, blur, streaks, streaksBlur, lines, gather, coarse } = patterns;
-    const whitecaps = whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, patterns, float(0));
+    const whitecaps = whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, patterns, { size: float(0), along: float(0), across: float(0) });
     const rowsFoam = windrowFoam(params.windSpeed);
     const rowsShare = windrowOpacity(float(rowsFoam.coverage), lines, foamMap.userData.streakMean, gather, pattern.r, streaks, float(1), sample.jacobian);
     const rows = windrowOpacity(float(rowsFoam.coverage), lines, foamMap.userData.streakMean, gather, pattern.r, streaks, max(blur, streaksBlur), sample.jacobian)
