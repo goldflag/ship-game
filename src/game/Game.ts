@@ -424,9 +424,12 @@ export class Game {
     this.sunLight = new THREE.DirectionalLight();
     this.sunLight.name = 'Sun';
     Object.assign(this.sunLight.shadow, { bias: -.0005, radius: 1, blurSamples: 8 });
+    this.scene.add(this.sunLight);
+    // Size the maps from the settings before the node clones them and anything renders:
+    // resizing a map after its first render destroys a texture queued GPU work still reads.
+    this.graphicsControl.applyShadows();
     this.sunShadows = new FocusShadowNode(this.sunLight);
     this.sunLight.shadow.shadowNode = this.sunShadows as never;
-    this.scene.add(this.sunLight);
     this.assertActive();
     // Until the first scene applies its own: fog from 2.5 km, complete at 16 km, fading into the sky over 10 km.
     Object.assign(ocean.fog, { start: 2500, end: 16000, power: 1.4, skyBlendDistance: 10000 });
