@@ -99,6 +99,8 @@ function moonAlbedo(p: Node<'vec2'>, pixels: Node<'float'>): Node<'vec3'> {
     const e = length(warped.sub(vec2(x, y)).div(vec2(rx, ry))).add(shore);
     dark.assign(max(dark, smoothstep(1.08, .74, e).mul(depth)));
   }
+  // Lava flows of different ages: the maria are not one flat shade.
+  dark.mulAssign(mx_noise_float(p.mul(6.1).add(11.7)).mul(.16).add(.92));
   // Mottling: lava flows of different ages inside the maria, rougher ground in the highlands.
   const mottle = mx_noise_float(p.mul(8.3).add(1.3)).mul(.09).mul(coarse).add(mx_noise_float(p.mul(21.5).add(8.2)).mul(.05).mul(detail));
   let albedo: Node<'float'> = float(1).sub(dark.mul(.44)).mul(mottle.add(1));
@@ -113,13 +115,16 @@ function moonAlbedo(p: Node<'vec2'>, pixels: Node<'float'>): Node<'vec3'> {
     return streak.mul(exp(d.div(-reach))).mul(smoothstep(.02, .07, d)).mul(strength);
   };
   albedo = albedo.add(rays(TYCHO, .55, .26, 1.7).mul(coarse.mul(.5).add(.5))).add(rays(COPERNICUS, .22, .14, 5.3).mul(coarse));
-  // Craters too small to name, seen through glasses: a bright rim around a darker floor.
-  const grid = p.mul(17), cell = floor(grid);
-  const hash = fract(sin(dot(cell, vec2(127.1, 311.7))).mul(43758.5453));
-  const centre = cell.add(fract(vec2(hash.mul(17.3), hash.mul(29.9))).mul(.5).add(.25));
-  const radius = hash.mul(.2).add(.12), r = length(grid.sub(centre)).div(radius);
-  const crater = exp(r.sub(1).mul(r.sub(1)).mul(-18)).mul(.16).sub(smoothstep(1, .3, r).mul(.06)).mul(smoothstep(.62, .8, hash)).mul(detail);
-  return mix(vec3(1, .98, .95), vec3(.93, .95, 1), dark).mul(albedo.add(crater));
+  // Craters too small to name, seen through glasses: the fresh ones' bright ejecta, of every size, at two scales.
+  const ejecta = (scale: number, share: number, seed: number) => {
+    const grid = p.mul(scale).add(seed), cell = floor(grid);
+    const hash = fract(sin(dot(cell, vec2(127.1, 311.7))).mul(43758.5453)), size = fract(hash.mul(13.7).add(.31));
+    const centre = cell.add(fract(vec2(hash.mul(17.3), hash.mul(29.9))).mul(.6).add(.2));
+    const r = length(grid.sub(centre)).div(size.mul(.25).add(.08));
+    return exp(r.mul(r).mul(-1.5)).mul(size.mul(.22).add(.08)).mul(smoothstep(1 - share, 1.02 - share, hash));
+  };
+  const craters = ejecta(21, .22, 0).add(ejecta(53, .15, 7.3)).mul(detail);
+  return mix(vec3(1, .98, .95), vec3(.93, .95, 1), dark).mul(albedo.add(craters));
 }
 
 export interface MoonInputs {
@@ -153,7 +158,7 @@ export function moonDisc(direction: Node<'vec3'>, moon: MoonInputs, pixel: Node<
       const z = sqrt(float(1).sub(dot(p, p)).max(0));
       const edge = smoothstep(pixel.mul(-EDGE_PX), pixel.mul(EDGE_PX), angle.sub(DISC_RADIUS).negate());
       // Mountains and crater walls catch the light past the terminator and shadow it before: a ragged edge.
-      const rough = mx_noise_float(p.mul(13.3).add(2.2)).mul(.035).add(mx_noise_float(p.mul(31.1)).mul(.015));
+      const rough = mx_noise_float(p.mul(9.3).add(2.2)).mul(.03).add(mx_noise_float(p.mul(23.1)).mul(.01));
       const lit = max(dot(vec3(p, z), moon.sun).add(rough), 0);
       // Lommel–Seeliger, cos i / (cos i + cos e), is 1/2 across a full moon; a little Lambert darkens the limb.
       const shade = lit.div(lit.add(z).add(1e-3)).mul(1.7).add(lit.mul(.15));

@@ -6,13 +6,14 @@ import { blackbodyColor, colorTemperature, COLOR_INDEX_RANGE, MAX_STARS, STAR_GR
  * 10^(0.4 · COMPRESSION) per magnitude instead of 2.512, so a 6.5 star still shows beside a −1.5 one without
  * the brightest blooming. */
 const STAR_PEAK = 1, COMPRESSION = .55;
-/** Point spread, in pixels (σ of a Gaussian); bright stars read a little larger. About 1.5 pixels across at
+/** Point spread, in pixels (σ of a Gaussian); bright stars read a little larger. About 1.9 pixels across at
  * half maximum: sharp, yet wide enough that its energy stays constant as it moves between pixels. */
-const SPREAD_PX = .62, BRIGHT_SPREAD = .35;
+const SPREAD_PX = .8, BRIGHT_SPREAD = .3;
 /** Scintillation: relative flicker overhead and at the horizon, where starlight crosses the most air. */
-const TWINKLE_ZENITH = .1, TWINKLE_HORIZON = .75;
-/** Stars' colour saturation over their blackbody tint: naked-eye star colours are faint, graded up a little. */
-const COLOR_SATURATION = 1.35;
+const TWINKLE_ZENITH = .1, TWINKLE_HORIZON = .6;
+/** Stars' colour saturation over their blackbody tint, graded up a little for the brightest. The eye sees little
+ * colour in dim light, so stars fainter than these magnitudes fade toward white. */
+const COLOR_SATURATION = 1.25, COLOR_FADE = [1.5, 5.5] as const;
 /** Colours sampled across B−V. */
 const RAMP_SIZE = 64;
 
@@ -110,7 +111,8 @@ export class StarField {
             const flicker = sin(input.time.mul(seed.x.mul(2.3).add(1.9).mul(2 * Math.PI)).add(seed.y.mul(40))).mul(.6)
               .add(sin(input.time.mul(seed.y.mul(2.9).add(3.1).mul(2 * Math.PI)).add(seed.x.mul(57))).mul(.4));
             const twinkle = flicker.mul(mix(float(TWINKLE_ZENITH), float(TWINKLE_HORIZON), air.mul(air))).add(1).max(.15);
-            const color = direct(ramp.sample(vec2(texel.w.sub(COLOR_INDEX_RANGE[0]).div(COLOR_INDEX_RANGE[1] - COLOR_INDEX_RANGE[0]), .5)).level(float(0))).rgb;
+            const tint = direct(ramp.sample(vec2(texel.w.sub(COLOR_INDEX_RANGE[0]).div(COLOR_INDEX_RANGE[1] - COLOR_INDEX_RANGE[0]), .5)).level(float(0))).rgb;
+            const color = mix(tint, vec3(1), smoothstep(COLOR_FADE[0], COLOR_FADE[1], texel.z).mul(.6));
             result.addAssign(color.mul(flux).mul(image).mul(twinkle));
           });
         });

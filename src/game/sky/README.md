@@ -149,9 +149,11 @@ is shared; single runs are noisy). Sky Pro baselines: `.build/sky-review/skypro-
 
 ## Verification
 
-`scripts/diagnostics/sky-review.html` renders 19 fixed scenes of the real game (port, noon, wide,
-morning sun, sunset both ways, twilight, moon, stars, zenith, clear, overcast, fog, storm, 24×
-binoculars, aircraft in the cloud shell, overhead and tilted chart). `bun scripts/browser/
+`scripts/diagnostics/sky-review.html` renders 21 fixed scenes of the real game (port, noon, wide,
+morning sun, sunset both ways, twilight, moon, a low sun behind the ship's tower, stars, a crescent
+night with the Milky Way's core over the sea, a dusk crescent, zenith, clear, overcast, fog, storm,
+24× binoculars, aircraft in the cloud shell, overhead and tilted chart). `bun scripts/browser/
 sky-review.ts --tag <name> [--only a,b] [--quality high] [--clouds medium] [--sky game|skypro]
 [--measure]` saves PNGs and timings to `.build/sky-review/<tag>/`. Every part also keeps a focused
-diagnostics page under `scripts/diagnostics/sky-*.html`.
+diagnostics page under `scripts/diagnostics/sky-*.html` (`sky-celestial.html`: the Milky Way band, the
+moon's phases through glasses and the sun).
