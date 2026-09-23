@@ -111,6 +111,8 @@ export class ShipWake {
 
   /** Developer switch for comparing the analytic bow waves with the wake field alone. */
   toggleBowWaves(): boolean { this.bowWaves.enabled = !this.bowWaves.enabled; return this.bowWaves.enabled; }
+  /** Live shape of the realistic trails (`stamps`, applied as they repaint) and how they read on the water (`shading`). */
+  get trailTuning() { return this.foam.tuning; }
 
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }
   diagnostics() { return { ...this.foam.diagnostics(), torpedoTracks: this.torpedoTracks.diagnostics(), bowWaves: this.bowWaves.diagnostics() }; }

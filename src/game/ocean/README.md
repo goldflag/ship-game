@@ -135,6 +135,18 @@ slope over a 12 m baseline passes `foamBreakThreshold`, spreads at 3 m²/s and d
 `foamLifetime`. Scrolling moves content by whole cells; an edge sponge absorbs outgoing waves.
 A step renders 2 × levels + 2 passes (8, 10, 12 by tier), about 0.2–0.4 ms on WebGPU.
 
+**Realistic wake** (`realism.wake`, on by default). The game's sampler adds `bubbles` and `slick`
+(`contracts.ts`); a sampler with a slick is the realistic wake. The surface then shades its foam as
+dense churned water (opacity 0.97 and a soft lace edge: the sampler tears the edge itself), lights the
+water body under it from bubble clouds (a diffuse layer of albedo 0.4 relative to foam seen through
+2 m of water down and back up, `transmittance(absorptionColor, 2)`: the turquoise under a wake), and
+reads the waves with `waves.surface(xz, slick)`. Every cascade then loses `calm` × its share of slope
+in waves shorter than 25 m (`slickShares`: the saturation range holds equal slope per octave), and the
+close-range ripples and unresolved tail lose `calm` of theirs, so reflections sharpen and the glitter
+changes where the short waves are stilled, while the swell runs through. Low's single tile keeps its
+long waves and loses about a quarter of its slope. Without a slick every read is the original graph.
+The game side (atlas channels, stamps, sampling cost) is in the configuration guide's "Ship wake".
+
 **Underwater.** A submerged camera sees exponential absorption toward the pigment over the
 distance to the first surface; the waterline across the near plane is handled per pixel.
 Nothing runs for it when the camera is certainly above the waves (CPU bound).
@@ -157,7 +169,8 @@ caustics, the built-in sky, masking, multiplayer tick sync.
 ## Validation
 
 Unit tests (`bun test src/game/ocean`) cover the spectrum, bounds, seeds, quality tiers, geometry
-coverage, the wake's dispersion pyramid (including aliasing on a real grid) and its generators.
+coverage, the wake's dispersion pyramid (including aliasing on a real grid), its generators and the
+share of each cascade a slick stills.
 `bun scripts/browser/ocean-waves.ts` runs `/scripts/diagnostics/ocean-waves.html` headed: it checks
 the wave field alone on WebGPU (GPU transform against a CPU inverse DFT, Hm0, mipmaps, `heightAt`,
 foam persistence and coverage, update timings per tier) and writes to `.build/ocean-waves/`.
