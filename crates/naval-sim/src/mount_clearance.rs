@@ -256,8 +256,9 @@ impl Chunk {
 struct Body {
     id: String,
     mount: Option<usize>,
-    // Only a barrel's own intended enclosure is exempt. Extra parented roof
-    // equipment retains collision, including against its parent's barrels.
+    // A barrel's own intended enclosure is exempt. Extra parented roof
+    // equipment retains collision against its carrier's gunhouse; on a
+    // constructed ship a carrier's barrels pass it (`carried_exempt`).
     enclosure: bool,
     bounds: Box3,
     tree: Chunk,
@@ -443,11 +444,18 @@ pub struct MountClearance {
     generation: u64,
     /// Per mount, every mount whose motion can close one of its checked gaps,
     /// itself included: those near enough for a gap within the sweep's search
-    /// distance, or every mount when any is carried by another.
+    /// distance. A mount's motion moves everything it carries, and a carried
+    /// mount's points stay within its lever of its root carrier's fixed axis, so
+    /// nearness compares whole carried trees about their root axes.
     relevant: Vec<Vec<usize>>,
-    /// Per mount, each mount that moves it (itself and its carriers) with the
-    /// farthest any of its points sits from that mount's axis.
+    /// Per mount, each mount that moves it (itself and its carriers) with a
+    /// bound on the farthest any of its points sits from that mount's axis: its
+    /// own radius plus every carrier link between them.
     levers: Vec<Vec<(usize, f64)>>,
+    /// Constructed ships: a carrier's barrels never collide with what it carries,
+    /// and a carried mount's barrels never with its carriers' barrels. A carried
+    /// mount's barrels still clear its carriers' gunhouses and everything else.
+    carried_exempt: bool,
     enabled: Vec<bool>,
     margin: f64,
     bodies: Vec<Body>,
@@ -602,37 +610,44 @@ impl MountClearance {
             }
             bodies.push(Body::new(body.id.clone(), mount, false, triangles));
         }
-        let nested = def.mounts.iter().any(|m| m.parent_mount_id.is_some());
-        let relevant = (0..def.mounts.len())
-            .map(|i| {
-                (0..def.mounts.len())
-                    .filter(|&j| {
-                        nested
-                            || i == j
-                            || length(sub(def.mounts[i].position, def.mounts[j].position))
-                                - radii[i]
-                                - radii[j]
-                                < profile.margin_m + 2.0
-                    })
-                    .collect()
-            })
-            .collect();
-        let levers = (0..def.mounts.len())
+        let levers: Vec<Vec<(usize, f64)>> = (0..def.mounts.len())
             .map(|i| {
                 let mut chain = vec![(i, radii[i])];
-                let mut at = i;
+                let (mut at, mut lever) = (i, radii[i]);
                 while let Some(parent) = def.mounts[at]
                     .parent_mount_id
                     .as_ref()
                     .and_then(|id| def.mounts[..at].iter().position(|m| &m.id == id))
                 {
-                    chain.push((
-                        parent,
-                        radii[i] + length(sub(def.mounts[i].position, def.mounts[parent].position)),
-                    ));
+                    lever += length(sub(def.mounts[at].position, def.mounts[parent].position));
+                    chain.push((parent, lever));
                     at = parent;
                 }
                 chain
+            })
+            .collect();
+        // Each mount's tree (itself and everything it carries) stays within this
+        // distance of its root carrier's fixed position, whatever the trains.
+        let mut tree = levers
+            .iter()
+            .map(|chain| chain.last().unwrap().1)
+            .collect::<Vec<_>>();
+        for chain in &levers {
+            let reach = chain.last().unwrap().1;
+            for &(carrier, _) in &chain[1..] {
+                tree[carrier] = tree[carrier].max(reach);
+            }
+        }
+        let root = |i: usize| def.mounts[levers[i].last().unwrap().0].position;
+        let relevant = (0..def.mounts.len())
+            .map(|i| {
+                (0..def.mounts.len())
+                    .filter(|&j| {
+                        i == j
+                            || length(sub(root(i), root(j))) - tree[i] - tree[j]
+                                < profile.margin_m + 2.0
+                    })
+                    .collect()
             })
             .collect();
         let containment = HullContainment::new(def, &mut bodies);
@@ -646,6 +661,7 @@ impl MountClearance {
         }
         Ok(Some(Self {
             coarse_barrels: false,
+            carried_exempt: def.hull.volume.is_some(),
             generation: GEOMETRIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             relevant,
             levers,
@@ -678,22 +694,22 @@ impl MountClearance {
     }
 
     /// Offline runtime projection: retain every body within a mount's existing
-    /// conservative sweep-radius bound. Nested installations keep all bodies.
-    /// This removes unreachable geometry; it never substitutes enclosing shells.
+    /// conservative sweep-radius bound, a carried mount's taken about its root
+    /// carrier's axis. This removes unreachable geometry; it never substitutes
+    /// enclosing shells.
     pub fn reachable_body_ids(&self, def: &ShipDefinition) -> std::collections::BTreeSet<String> {
-        let nested = def.mounts.iter().any(|m| m.parent_mount_id.is_some());
         self.bodies
             .iter()
             .filter(|body| {
-                nested
-                    || body.mount.is_some()
-                    || def.mounts.iter().enumerate().any(|(i, m)| {
+                body.mount.is_some()
+                    || self.levers.iter().any(|chain| {
+                        let (root, reach) = *chain.last().unwrap();
+                        let at = def.mounts[root].position;
                         let distance = length(std::array::from_fn(|a| {
-                            ((m.position[a] - body.bounds.center[a]).abs()
-                                - body.bounds.size[a] * 0.5)
+                            ((at[a] - body.bounds.center[a]).abs() - body.bounds.size[a] * 0.5)
                                 .max(0.)
                         }));
-                        distance <= self.radii[i] + self.margin + 1.
+                        distance <= reach + self.margin + 1.
                     })
             })
             .map(|b| b.id.clone())
@@ -716,10 +732,17 @@ impl MountClearance {
         self.enabled.get(index).copied().unwrap_or(false)
     }
 
+    /// Whether `carrier` carries `mount` and their collision is exempt.
+    fn carries(&self, carrier: usize, mount: usize) -> bool {
+        self.carried_exempt
+            && carrier != mount
+            && self.levers[mount].iter().any(|&(m, _)| m == carrier)
+    }
+
     /// A short sweep never searches beyond `margin + 2 m`. Mounts outside
     /// `relevant` cannot change that query, so their poses do not invalidate
-    /// its answer. Large diagnostic jumps retain the complete pose key; any
-    /// carried installation already has every mount in its relevant set.
+    /// its answer; a carrier is relevant wherever what it carries is. Large
+    /// diagnostic jumps retain the complete pose key.
     pub(crate) fn cache_key(
         &self,
         def: &ShipDefinition,
@@ -1249,7 +1272,9 @@ impl MountClearance {
                 let bounds = body
                     .mount
                     .map_or(body.bounds, |j| body.bounds.transformed(&mount(j).frame));
-                if body.enclosure && body.mount == Some(i) {
+                if (body.enclosure && body.mount == Some(i))
+                    || body.mount.is_some_and(|j| self.carries(i, j))
+                {
                     continue;
                 }
                 if !changed[i] && !body.mount.is_some_and(|j| changed[j]) {
@@ -1294,7 +1319,7 @@ impl MountClearance {
                 }
             }
             for j in i + 1..def.mounts.len() {
-                if !changed[i] && !changed[j] {
+                if (!changed[i] && !changed[j]) || self.carries(i, j) || self.carries(j, i) {
                     continue;
                 }
                 let other = mount(j);
