@@ -159,7 +159,7 @@ up to 60% of the way), and scatters half the reflection away: a soft veil around
 whitecap. Windrows, old foam in lines along the wind, take a growing share of the wind's coverage
 from 12 m/s (Beaufort 6; 7 is "foam begins to be blown in streaks", 9 "dense streaks") to a quarter
 of it by 24 m/s, at most 4% of the sea (counted by opacity; thinner lines saturate beyond it): a
-streak mask of lines 0.5–1.5 m wide and 8–20 m apart that meander, wiggle over 20 m of their length,
+streak mask of lines 0.5–2 m wide and 8–20 m apart that meander, wiggle over 20 m of their length,
 swell and break, gathered in bands built from the patches at two scales an irrational ratio apart,
 which also shift the lines across the wind (no lattice from the air), and beaded by the lace; the
 mask is scaled, not thresholded, so its mean holds at every distance. All foam is a diffuse scatterer (albedo 0.8): the

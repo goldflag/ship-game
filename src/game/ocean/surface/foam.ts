@@ -1,6 +1,7 @@
 /** Foam shading for the ocean surface: whitecaps through their life, the bubble cloud under them, wind-drawn
  * windrows, and the light every kind of foam is lit by. The wave field decides where crests break and how long ago
- * (`WaveSurfaceSample.foam`: 1 while breaking, e-folding after); this module decides what that looks like. */
+ * (`WaveSurfaceSample.foam`: foam per area, about 1 while breaking and more on a converging crest, e-folding after;
+ * `bubbles`: the cloud they leave in the water); this module decides what that looks like. */
 import type { Node, Texture } from 'three/webgpu';
 import { cos, dot, exp, float, fwidth, max, min, mix, sin, smoothstep, texture, vec2 } from 'three/tsl';
 import { FOAM_TEXELS } from './foamTexture';
@@ -10,7 +11,7 @@ type Vec3 = Node<'vec3'>;
 
 /** Metres across the wind per tile of the foam texture; along the wind it stretches with the crest foam's `windStretch`. */
 const FOAM_TILE = 40;
-/** Windrows are laid out this many times larger than the lace across the wind (lines about 0.5 to 1.5 m wide, 8 to 20
+/** Windrows are laid out this many times larger than the lace across the wind (lines about 0.5 to 2 m wide, 8 to 20
  * m apart) and drawn out this much further along it: lines of old foam run on for tens of metres before they break.
  * They gather in bands where the circulation the wind drives converges: the texture's broad patches at two scales
  * this many times the lace's, whose ratio is irrational so the sum never repeats as a lattice seen from the air. */
@@ -56,8 +57,8 @@ const BUBBLE_STRENGTH = .6, BUBBLE_START = .02, BUBBLE_FULL = .4, BUBBLE_DEPTH =
 const AERATED_MATTE = .5;
 /** Share of daylight the bubble cloud scatters back up through the water above it. */
 const BUBBLE_ALBEDO = .18;
-/** Edge half-width of windrows, and the opacity left in a line's gaps between lace filaments. */
-const WINDROW_EDGE = .08, WINDROW_LACE = .05;
+/** Opacity left in a windrow's gaps between lace filaments. */
+const WINDROW_LACE = .05;
 /** Lace levels over which a windrow goes from its gaps to full lumps of foam. */
 const WINDROW_BEADS = [.35, .8] as const;
 /** Share of the water's Fresnel reflectance foam keeps: its bubbly top scatters most of the mirror image away. */
