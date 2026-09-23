@@ -84,11 +84,22 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
           id: 'antialiasing',
           label: 'Anti-aliasing',
           cost: 1,
-          hint: 'Smooths rigging, rails and hull edges. SMAA is sharper and costs a little more.',
+          hint: 'Smooths rigging, rails and hull edges. SMAA is sharper and costs a little more. TAA steadies thin rigging and rails as the camera moves, a little softer.',
           options: [
             ['off', 'Off'],
             ['fxaa', 'FXAA'],
             ['smaa', 'SMAA'],
+            ['taa', 'TAA'],
+          ],
+        },
+        {
+          id: 'bloom',
+          label: 'Bloom',
+          cost: 1,
+          hint: 'A faint glow around sun glints, muzzle flashes, fires and tracers.',
+          options: [
+            ['off', 'Off'],
+            ['on', 'On'],
           ],
         },
       ],
@@ -158,6 +169,17 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
             ['medium', 'Medium'],
             ['high', 'High'],
             ['full', 'Full'],
+          ],
+        },
+        {
+          id: 'ambientOcclusion',
+          label: 'Ambient occlusion',
+          cost: 2,
+          hint: 'Shades sky light where turrets, mounts and superstructure meet. Sunlight is unchanged.',
+          options: [
+            ['off', 'Off'],
+            ['low', 'Low'],
+            ['high', 'High'],
           ],
         },
         {

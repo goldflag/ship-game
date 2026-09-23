@@ -29,6 +29,8 @@ export function decodeConstructionResult(json: string): ConstructionResult {
       } else if (object(value)) {
         for (const key of Object.keys(value)) {
           const child = value[key];
+          // A visual mesh fitting's `vertices` is its vertex count; every other `vertices` is an indexed point list.
+          if (key === 'vertices' && typeof child === 'number') continue;
           if (key === 'vertices') {
             if (!Array.isArray(child)) throw invalid();
             value[key] = child.map((i) => (vertices[index(i, vertices.length)] as Vec3).slice());

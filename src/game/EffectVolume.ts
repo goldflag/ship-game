@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu';
 import { Break, Fn, If, Loop, attribute, cameraFar, cameraNear, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cos, exp, float, mix,
   perspectiveDepthToViewZ, positionWorld, screenSize, sin, smoothstep,
   texture3D, vec3, vec4 } from 'three/tsl';
+import { writeSceneTargets } from './TemporalAntialiasing';
 
 /** The ocean renders several targets: float scene depth and integer auxiliary
  * depth. WebGPU requires each viewport copy to use its source target's format. */
@@ -51,17 +52,30 @@ export function effectVolumeTexture(): THREE.Data3DTexture {
   return map;
 }
 
+/** Scene light for gas. `flashes` are up to four transient point sources (xyz position,
+ * w power in the same units as the direct term × m²) that light nearby smoke from inside:
+ * a muzzle flash or detonation glowing through its own cloud, most visible at night. */
+export interface VolumeIllumination {
+  direct: THREE.Node<'vec3'>;
+  ambient: THREE.Node<'vec3'>;
+  flashes?: readonly THREE.Node<'vec4'>[];
+}
+
 /** Local raymarched gas, with eroded 3D density, two sunward shadow taps and
  * Beer–Lambert transmittance. Geometry only bounds the march; detail lives in 3D.
+ * Hot gas (the per-puff `heat`) is a soot-dark, emissive fire whose core stays hot
+ * longest and cools through yellow, orange and deep red into smoke.
  * This is a bounded visual approximation, not a fluid or combustion simulation. */
 export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'vec3'>,
   sceneDepth: THREE.Node<'float'>, steps = 12, turbulent = false,
-  illumination?: { direct: THREE.Node<'vec3'>; ambient: THREE.Node<'vec3'> }) {
+  illumination?: VolumeIllumination) {
   // Test the actual volume against opaque scene depth, not its bounding plane.
   const material = new THREE.MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
   // This is a single bounding plane, not a closed transparent shell. Rendering
   // separate back/front passes repeats submission without adding another surface.
   material.forceSinglePass = true;
+  // Its own fragment output: keep extra scene targets (temporal AA motion) intact.
+  writeSceneTargets(material);
   const volume = texture3D(map);
   material.fragmentNode = Fn(() => {
     const sphere = attribute<'vec4'>('effectSphere', 'vec4');
@@ -128,6 +142,15 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
     // Broad forward scattering gives backlit edges a gentle lift, without a
     // bright outline or another light march. Hoist it outside the density loop.
     const scattering = (turbulent ? float(.82).add(smoothstep(-.4, 1, ray.dot(sun)).mul(.45)) : float(1)).toVar();
+    // Transient flashes light the whole puff from nearby; one estimate per puff,
+    // not per sample, so four sources cost a few instructions outside the loop.
+    const flashLight = vec3(0).toVar();
+    for (const flash of illumination?.flashes ?? []) {
+      const offset = flash.xyz.sub(sphere.xyz);
+      flashLight.addAssign(vec3(1, .62, .3).mul(flash.w.div(offset.dot(offset).add(radius.mul(radius)).add(16))));
+    }
+    // A flash lifts nearby smoke to a few times full daylight at most, never to white.
+    flashLight.assign(flashLight.min(vec3(2, 1.25, .6)));
     const densityAt = (point: THREE.Node<'vec3'>, detailed = true) => {
       // Unequal shears bend different parts of the cloud in different directions.
       // Warp the envelope as well as the detail, so the silhouette rolls too.
@@ -172,12 +195,18 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
           .add(densityAt(point.add(localSun.mul(.58)), false).mul(.85));
         const sunlight = exp(lightDepth.mul(-2.1).mul(remaining)).toVar();
         // Sky fill remains in shaded folds. The exposed edges scatter more sunlight.
-        const lighting = ambient.add(direct.mul(sunlight).mul(scattering));
-        const heat = state.z.mul(smoothstep(.08, .75, density)).toVar();
-        const ember = mix(vec3(.9, .055, .004), vec3(5, .65, .022), heat);
-        const emission = ember.mul(heat.mul(heat)).add(vec3(9, 6, 1.5).mul(smoothstep(.86, 1, heat)));
+        const lighting = ambient.add(direct.mul(sunlight).mul(scattering)).add(flashLight);
+        // The dense core stays hot longest; thin outer folds have already
+        // cooled to smoke, so a cooling fireball glows from inside its soot.
+        const core = float(1).sub(smoothstep(.2, .95, point.length()).mul(.75));
+        const heat = state.z.mul(smoothstep(.08, .7, density)).mul(core).toVar();
+        const ember = mix(vec3(.45, .035, .004), vec3(2.6, .6, .06), smoothstep(.12, .55, heat));
+        const flame = mix(ember, vec3(4.2, 2, .5), smoothstep(.55, .95, heat));
+        const emission = flame.mul(heat.mul(heat)).add(vec3(4, 3, 1.4).mul(smoothstep(1.05, 1.35, heat)));
+        // Burning gas is dark soot lit by its own fire, not pale smoke tinted red.
+        const albedo = tint.rgb.mul(float(1).sub(heat.min(1).mul(.85)));
         const sampleAlpha = float(1).sub(exp(density.mul(state.w).mul(dilution).mul(stepLength).negate())).toVar();
-        radiance.addAssign(tint.rgb.mul(lighting).add(emission).mul(sampleAlpha).mul(transmittance));
+        radiance.addAssign(albedo.mul(lighting).add(emission).mul(sampleAlpha).mul(transmittance));
         transmittance.mulAssign(float(1).sub(sampleAlpha));
       });
     });
