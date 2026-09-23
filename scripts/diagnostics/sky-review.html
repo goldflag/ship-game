@@ -95,6 +95,14 @@ const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magni
 /** Draw the whole frame again. The scene pass renders once per node frame, which advances only on the browser's
  * animation frames: without a new one, back-to-back renders redo the post passes alone and time no mesh. */
 const redraw = () => { game.renderer._nodes.nodeFrame.update(); game.pipeline.render(); };
+const ascending = values => [...values].sort((a, b) => a - b);
+/** The value `share` of the way up the sorted values. */
+const at = (values, share) => ascending(values)[Math.floor(values.length * share)];
+/** Mean without the lowest and highest tenth: wall-clock readings step in 0.1 ms, so a median would step too. */
+const trimmedMean = values => {
+  const kept = ascending(values).slice(Math.floor(values.length * .1), Math.ceil(values.length * .9));
+  return kept.reduce((sum, v) => sum + v, 0) / kept.length;
+};
 /** A bridge-height eye beside the player's ship. */
 const BRIDGE = [-60, 32, 90];
 /** The standard battle view: the ship in the foreground, the enemy and the sky beyond. */
@@ -131,9 +139,9 @@ const scenes = {
     game.setDeveloperWeather({ ...game.environment.getOverrides(), moonPhase: .12 });
     gaze(BRIDGE, headingOf(galacticCentre() ?? { x: .95, z: -.31 }), 22, 70);
   },
-  /** Dusk: a thin crescent low over the afterglow of the set sun. */
+  /** Dusk: a thin crescent low over the afterglow of the set sun, in a thin enough sky to show it. */
   dusk: async () => {
-    await battle({ hours: 18.4 });
+    await battle({ hours: 18.4, cloud: 20 });
     game.setDeveloperWeather({ ...game.environment.getOverrides(), moonPhase: .08 });
     const moon = moonDirection();
     gaze(BRIDGE, headingOf(moon) - .2, Math.max(3, elevationOf(moon) - 2), 50);
@@ -257,11 +265,17 @@ async function measure(count = 120, stepping = true) {
     calls: game.renderer.info.render.calls, triangles: game.renderer.info.render.triangles };
 }
 
-/** The whole sky's GPU cost per frame: frames with the sky's passes run and its meshes drawn, alternating with
- * frames that have neither, each timed by GPU timestamps (render and compute) where the browser allows them, else
- * as serialised wall-clock frames. Every frame redraws the scene pass. The cost is the median of the paired
- * differences (and their lower quartile); `frame` is the median frame without the sky. */
-async function benchmarkSky(pairs = 120, clock = 'gpu') {
+/** The whole sky's cost per frame: frames with the sky's update run and its meshes drawn, alternating with frames
+ * that have neither (which of a pair runs first swaps every pair: the first of two back-to-back frames is slower),
+ * every frame redrawing the scene pass. Each frame is serialised by waiting for the GPU and timed by wall clock, so
+ * a slow session shifts both kinds alike and the paired difference cancels it. `clock = 'gpu'` times them by GPU
+ * timestamps instead, which leaves the CPU out but counts a pass that waits on this frame's scene as busy for the
+ * whole wait (a pass sampling the scene read as 6 ms that cost nothing), so it overstates a sky with screen-space
+ * passes. Both kinds run the post passes (shafts, rain veil) and the sea's sky samplers; `wallFrames` counts
+ * those. `sky` is the trimmed mean of the paired differences, `fastest` the difference of the two kinds' 10th
+ * percentiles (other work only adds time, so a burst of it cannot spoil this), `frame` and `withSky` the trimmed
+ * mean frames. Milliseconds. */
+async function benchmarkSky(pairs = 200, clock = 'wall') {
   const renderer = game.renderer, backend = renderer.backend, device = backend.device, sky = game.sky, meshes = sky.meshes();
   const timestamps = clock === 'gpu' && backend.hasFeature('timestamp-query');
   const gpu = async () => (await renderer.resolveTimestampsAsync('render') ?? 0) + (await renderer.resolveTimestampsAsync('compute') ?? 0);
@@ -281,19 +295,22 @@ async function benchmarkSky(pairs = 120, clock = 'gpu') {
   backend.trackTimestamp = timestamps;
   try {
     if (timestamps) await gpu();
+    for (let i = 0; i < 10; i++) await frame(i % 2 === 0);
     const on = [], off = [], differences = [];
-    for (let i = 0; i < pairs; i++) { const a = await frame(true), b = await frame(false); on.push(a); off.push(b); differences.push(a - b); }
-    const sorted = values => [...values].sort((a, b) => a - b), at = (values, share) => sorted(values)[Math.floor(values.length * share)];
-    // Other work on the GPU only ever adds time, so the fastest frames of each kind differ by the sky alone: `fastest`,
-    // the difference of their 10th percentiles, holds when a burst of other work spoils the paired median.
-    return { clock: timestamps ? 'gpu' : 'wall', sky: at(differences, .5), quartile: at(differences, .25), fastest: at(on, .1) - at(off, .1),
-      frame: at(off, .5), withSky: at(on, .5) };
+    for (let i = 0; i < pairs; i++) {
+      const first = i % 2 === 0, a = await frame(first), b = await frame(!first);
+      const [withSky, without] = first ? [a, b] : [b, a];
+      on.push(withSky); off.push(without); differences.push(withSky - without);
+    }
+    return { clock: timestamps ? 'gpu' : 'wall', sky: trimmedMean(differences), fastest: at(on, .1) - at(off, .1),
+      frame: trimmedMean(off), withSky: trimmedMean(on) };
   } finally { backend.trackTimestamp = false; }
 }
 
 /** Where the sky's GPU time goes: each piece switched off in frames alternating with frames that keep it,
  * by GPU timestamps: the offscreen passes (`update`), and each mesh the sky draws. Medians of the paired
- * differences, milliseconds per frame. */
+ * differences, milliseconds per frame. Timestamps overstate a piece whose pass waits on the scene (see
+ * `benchmarkSky`): read these as shares, and the totals from `benchmarkSky` and `wallFrames`. */
 async function benchmarkParts(pairs = 80) {
   const renderer = game.renderer, backend = renderer.backend, sky = game.sky;
   if (!backend.hasFeature('timestamp-query')) return undefined;
@@ -326,8 +343,23 @@ async function benchmarkParts(pairs = 80) {
   return result;
 }
 
+/** Whole frames as the game draws them (the sky's update and the full pipeline), each serialised by waiting for the
+ * GPU, by wall clock: what a frame costs with everything the sky touches, the sea's sky samplers and the post passes
+ * included. Sessions differ by up to half a millisecond, so compare skies over alternating sessions. Milliseconds. */
+async function wallFrames(frames = 300) {
+  const device = game.renderer.backend.device, times = [];
+  for (let i = 0; i < frames + 20; i++) {
+    await device.queue.onSubmittedWorkDone();
+    const start = performance.now();
+    game.sky.update(1 / 60); redraw();
+    await device.queue.onSubmittedWorkDone();
+    if (i >= 20) times.push(performance.now() - start);
+  }
+  return { trimmedMean: trimmedMean(times), fastest: at(times, .1), median: at(times, .5) };
+}
+
 window.skyReview = {
-  game, scenes: Object.keys(scenes), errors, benchmarkParts,
+  game, scenes: Object.keys(scenes), errors, benchmarkParts, wallFrames,
   async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors] }; },
   capture, measure, benchmarkWeather, benchmarkSky,
 };
