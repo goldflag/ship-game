@@ -17,7 +17,9 @@ import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 // Ultra); WaterViewFocus stretches their reach to the hull under the lens and moves the sun's shadow
 // anchor onto it. A frame traced and the same frame untraced isolate what the reflections draw.
 // ?legacy=1 keeps the base reach and the player's shadow anchor, ?calm=1 flattens the sea,
-// ?range=, ?zoom= and ?quality= set the view, ?test=1 runs the check.
+// ?range=, ?zoom= and ?quality= set the view, ?test=1 runs the check. The check measures the focus on the
+// near-mirror trace it was written for: physical reflections (?physical=1 keeps them) mirror a distant hull
+// only from water within a few hundred metres of it at 9 m/s, which the base reach already covers.
 const params = new URLSearchParams(location.search);
 const status = document.querySelector('#status');
 const game = new Game(document.querySelector('#scene'), (GRAPHICS_PRESETS[params.get('quality')] ?? GRAPHICS_PRESETS.high), {
@@ -26,6 +28,7 @@ const game = new Game(document.querySelector('#scene'), (GRAPHICS_PRESETS[params
 });
 game.scheduleFrame=()=>{};game.start(); await game.initialization;
 if(window.reviewError) throw new Error(window.reviewError);
+game.ocean.realism.reflections=params.has('physical');
 game.setInPort(false); game.setPaused(true);
 game.rig.update=()=>{}; game.rig.binoculars=true;
 function prepare(range=5000,magnification=24) {

@@ -105,9 +105,10 @@ library; switched off, the surface is exactly that look. The physics and constan
   follow the whole wave slope and blur by the same lobe, so light air leaves only a faint smear under
   a hull and a 9 m/s sea little beyond the waterline.
 
-Measured interleaved in one page (`measure()` between flips of the switches, while other GPU work
-ran) at 1600 × 900 on High, both switches cost about 0.5–0.9 ms per frame (10th percentile of
-serialised frame times: 12.7 → 13.6 ms near, 12.5 → 13.0 ms grazing).
+Measured at 1600 × 900 on High in one page, flipping the switches every 12 serialised frames (300
+frames each, trimmed means, while other GPU work ran): both on cost 0.47 ms near (9.48 → 9.95 ms),
+0.32 ms grazing and 0.12 ms wide. The reflections carry it (0.3–0.45 ms, about two thirds of it the
+two extra sky taps of an elongated lobe); the physical water colour costs under 0.1 ms.
 
 ## Fog
 
@@ -185,7 +186,9 @@ Checks, with the game paused and ocean time frozen:
   binoculars and counts the pixels the reflections change (the same frame traced and untraced), with
   the base reach and with `WaterViewFocus`; the focused reach must change at least twice as many
   pixels, move the shadow anchor onto the hull, and restore both at 1×. It exposes
-  `window.reflectionResult.passed`.
+  `window.reflectionResult.passed`. It measures the near-mirror trace with physical reflections
+  off: with them on (`&physical=1`), a 9 m/s sea mirrors a distant hull only from water within a
+  few hundred metres of it, which the base reach already covers.
 
 ## Ship wake
 
