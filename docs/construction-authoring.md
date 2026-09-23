@@ -104,20 +104,21 @@ machinery, rudders, propellers, wall fittings and paths keep their support rules
 
 An equipment row may name a `parent`: a hull piece or another equipment row it rides on. It keeps
 a searchlight on its mast's platform, or a float beside its deckhouse, as the parent is moved,
-turned, copied or removed. The row keeps its own absolute `position` and `bearingDeg`; the format
-has no relative coordinates, and the compiled ship is identical with or without the link.
+turned, copied or removed, and it keeps a light gun on a turret roof as the turret trains. The row
+keeps its own absolute `position` and `bearingDeg`; the format has no relative coordinates. Under
+a fixed parent the compiled ship is identical with or without the link.
 
 - Only equipment that may [float](#floating-fittings) takes a parent. A gun with a well, a
   launcher, a director, a funnel, machinery or a wall or path fitting is refused.
-- Parents are hull pieces and equipment that never trains: deck fittings (catalog and custom),
-  masts, funnels and directors. A trainable gun or torpedo launcher cannot carry equipment yet;
-  that is phase 2 of the ship authoring plan.
+- Parents are hull pieces, deck fittings (catalog and custom), masts, funnels, directors and guns.
+  A torpedo launcher cannot carry equipment yet.
 - Chains are allowed, at most 8 links from a row to its first hull piece or unparented row: a
   lamp on a searchlight platform on a mast is two.
 - An unknown parent, a row naming itself, a loop, a chain deeper than 8, an ID that names both a
-  hull piece and an equipment row, a row that cannot float and a parent that cannot carry are each
-  an `equipment-parent` error naming the row (`sourceId`) and its parent (`relatedSourceIds`).
-  They are source faults: they report with the other source checks and stop the compile there.
+  hull piece and an equipment row, a row that cannot float, a parent that cannot carry and a row
+  that cannot [train](#trainable-parents) are each an `equipment-parent` error naming the row
+  (`sourceId`) and its parent (`relatedSourceIds`). They are source faults: they report with the
+  other source checks and stop the compile there.
 
 The edits the editor and `ship:apply` share honour the link:
 
@@ -134,6 +135,33 @@ many attached fittings a removal took. Rewriting a record whole (`equipment`, `e
 `primitive`) never moves anything else, so a batch that must carry riders uses `move` or
 `rotate`. In the editor, the rotation toolbar and quarter turns of a hull block carry its riders
 through a pure yaw; a block tipped about X or Z leaves them where they stand.
+
+### Trainable parents
+
+A row with a gun anywhere up its chain is carried: it trains with the nearest such gun, its
+carrier. A 2 cm Flakvierling on a 15 cm turret roof, or a searchlight on a platform on that roof,
+turns with the turret in battle and in port. Its `position` and `bearingDeg` are its place at the
+neutral pose, with every gun trained to zero, and the editor draws it there.
+
+- Only deck fittings (catalog and custom) and light deck guns without a well or a raised barbette
+  may be carried; each row a gun carries, directly or through other rows, is checked. A mast is
+  refused because its gun-arc obstruction is fixed, and a raised barbette because it is fixed hull
+  material; neither could train.
+- A carried gun is a mount with `parentMountId` naming its carrier. The compiler lists mounts in
+  source order except that a carried mount follows its carrier, so a rider may come first in the
+  source. The runtime composes its frame from the carrier's train (as for Iowa's roof Bofors):
+  its muzzles, aim, fire, clearance, contacts and turret armor follow the turret.
+- A carried gun never clashes (`equipment-overlap`) with a gun that carries it, nor that gun with
+  it. It is still checked against everything else at the neutral pose, as a fixed gun is.
+- Gun clearance on a constructed ship: a carrier's barrels pass through what it carries, and a
+  carried gun's barrels pass its carriers' barrels. A carried gun's barrels still clear its
+  carrier's gunhouse (it cannot fire down through the roof it stands on) and everything else.
+  Keep a roof mount behind or above the turret's barrels, since nothing stops them meeting.
+- Mass, ready ammunition and the loading's centre of gravity stay at the neutral pose. The
+  carried gun's ready-ammunition module also stays there, a few metres at most from where the
+  turret takes it; this is the one piece of carried geometry that does not train.
+- The model draws each carried row under its carrier's yaw joint (`constructionModel.ts`), so it
+  batches and turns with it. `ship:render --pose` poses the carrier; the rows follow.
 
 ### Fit tolerances
 
@@ -481,8 +509,9 @@ through `wall.mirrorId` as the editor does) and reports the twin's own `residual
 twin more than 5 cm off its support is an error, so place each side separately on an
 asymmetric hull. A centreline request stays single. `--repeat n --step dx,dz` seats
 each copy on its own support (IDs `…-1`, `…-2`; at most 1,000 copies per request and
-1,000 equipment records per design). `--parent <id>` makes the new records ride a hull piece
-or fitting ([Parents](#parents)); seating is unchanged, and a mirrored pair keeps the parent only
+1,000 equipment records per design). `--parent <id>` makes the new records ride a hull piece,
+fitting or gun ([Parents](#parents)); seating is unchanged (it seats on hull surfaces, so give a
+turret-roof rider its height with a `move` or `equipment` command), and a mirrored pair keeps the parent only
 when it stands on the centreline. Connected fittings (railings, ropes, ladders
 with a path) have no single seat; write their points with an `equipment` command. `place` does not set
 `magazineId` or `powerSourceId`; patch them afterwards in a version-1 design.
