@@ -1,6 +1,6 @@
 import { Color, Vector3, type Material, type Mesh, type Node, type Object3D, type PassNode, type PerspectiveCamera, type Scene, type Texture, type WebGPURenderer } from 'three/webgpu';
 import { uniform } from 'three/tsl';
-import type { OceanApi, OceanQuality, OceanRealism, OceanSky, WakeSampler, WaveParameters } from './contracts';
+import type { HullFootprint, HullSeaWave, OceanApi, OceanQuality, OceanRealism, OceanSky, WakeSampler, WaveParameters } from './contracts';
 import { OCEAN_TIERS } from './quality';
 import { oceanFog } from './screen/fog';
 import { createUnderwaterPass, nearPlaneMayBeSubmerged } from './screen/underwater';
@@ -107,6 +107,10 @@ export class Ocean implements OceanApi {
       const height = this.heights.heights[i];
       if (Number.isFinite(height)) object.position.y += (height - object.position.y) * (1 - Math.exp(-dt / Math.max(smoothing, 1e-3)));
     });
+  }
+
+  setHullSea(waves: readonly HullSeaWave[], time: number, hulls: readonly HullFootprint[]): void {
+    this.waveField.couple(waves, time, hulls, { x: this.camera.position.x, z: this.camera.position.z });
   }
 
   setSky(sky: OceanSky | null): void {

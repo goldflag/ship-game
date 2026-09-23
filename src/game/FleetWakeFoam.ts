@@ -1,5 +1,6 @@
 import { LinearFilter, Vector4, type Camera, type Node, type Object3D, type Texture } from 'three/webgpu';
-import { Fn, If, Loop, float, fwidth, max, mix, mx_noise_float, smoothstep, texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
+import { Fn, If, Loop, float, fwidth, max, mix, mx_noise_float, smoothstep, texture, uniform, vec2, vec3, vec4 } from 'three/tsl';
+import { PackedVec4Arrays } from './packedUniforms';
 import { EMPTY, SLICK_EXTENT, WakeFoam, WAKE_EXTENT, WAKE_TUNING, wakeStampBudget } from './WakeFoam';
 import type { ShipDefinition } from '../ships/blueprint';
 import { WakeStampCollector, type WakeFoamPainter, type WakeFoamPainterFactory } from './WakeFoamGpu';
@@ -41,25 +42,23 @@ export const WAKE_SHADING = {
 };
 type ShadingKey = keyof typeof WAKE_SHADING;
 const knob = (value: number) => uniform(value);
+/** Sections of the per-tile rows. */
+const CENTER = 0, SLICK_CENTER = 1, FOAM_BOX = 2, SLICK_BOX = 3, BOX = 4;
 
 /** One texture binding for the fleet, with independent world-space tiles so
  * opponents kilometres away retain the same trail detail as the player. */
 export class FleetWakeFoam {
   readonly texture: Texture;
   private readonly entries = new Map<WakeShip['root'], { foam: WakeFoam; collector: WakeStampCollector; slot: number; version: number }>();
-  private readonly centers = Array.from({ length: TILES * TILES }, () => new Vector4());
-  private readonly bounds = uniformArray<'vec4'>(this.centers, 'vec4');
-  /** Each tile's slick square centre (x, z). */
-  private readonly slickCenters = Array.from({ length: TILES * TILES }, () => new Vector4());
-  private readonly slickBounds = uniformArray<'vec4'>(this.slickCenters, 'vec4');
-  /** Each tile's painted extent (minX, minZ, maxX, maxZ): of its churned water, of its slick, and of both. A tile is
-   * read only inside them, so the cost follows the trails' area rather than their squares'. */
-  private readonly foamBoxValues = Array.from({ length: TILES * TILES }, () => new Vector4());
-  private readonly slickBoxValues = Array.from({ length: TILES * TILES }, () => new Vector4());
-  private readonly boxValues = Array.from({ length: TILES * TILES }, () => new Vector4());
-  private readonly foamBoxes = uniformArray<'vec4'>(this.foamBoxValues, 'vec4');
-  private readonly slickBoxes = uniformArray<'vec4'>(this.slickBoxValues, 'vec4');
-  private readonly boxes = uniformArray<'vec4'>(this.boxValues, 'vec4');
+  /** Per tile, in one uniform buffer: its trail centre (x, z) and atlas tile; its slick square's centre (x, z); and its
+   * painted extent (minX, minZ, maxX, maxZ) of churned water, of slick, and of both. A tile is read only inside those,
+   * so the cost follows the trails' area rather than their squares'. */
+  private readonly rows = new PackedVec4Arrays(Array.from({ length: 5 }, () => TILES * TILES));
+  private readonly centers = this.rows.sections[CENTER];
+  private readonly slickCenters = this.rows.sections[SLICK_CENTER];
+  private readonly foamBoxValues = this.rows.sections[FOAM_BOX];
+  private readonly slickBoxValues = this.rows.sections[SLICK_BOX];
+  private readonly boxValues = this.rows.sections[BOX];
   /** Every tile's painted extent together: the sea outside it skips the tiles. */
   private readonly reach = uniform(new Vector4(1, 1, 0, 0));
   private readonly count = uniform(0, 'int');
@@ -89,7 +88,7 @@ export class FleetWakeFoam {
     return Fn(() => {
       const world = vec2(x, z), energy = float(0).toVar();
       Loop({ start: 0, end: this.count, type: 'int' }, ({ i }) => {
-        const bounds = this.bounds.element(i);
+        const bounds = this.rows.element(CENTER, i);
         const uv = world.sub(bounds.xy).div(WAKE_EXTENT).add(.5);
         If(uv.x.greaterThan(.025).and(uv.x.lessThan(.975)).and(uv.y.greaterThan(.025)).and(uv.y.lessThan(.975)), () => {
           const edge = smoothstep(.025, .05, uv.x).mul(float(1).sub(smoothstep(.95, .975, uv.x)))
@@ -152,16 +151,16 @@ export class FleetWakeFoam {
         Loop({ start: 0, end: this.count, type: 'int' }, ({ i }) => {
           // One test per tile for most of the sea; a channel is read only inside what its stamps painted, and inside
           // its square (the green channel is laid wider over the same tile).
-          If(within(world, this.boxes.element(i)), () => {
-            const bounds = this.bounds.element(i), slickUv = world.sub(this.slickBounds.element(i).xy).div(SLICK_EXTENT).add(.5);
-            If(within(world, this.slickBoxes.element(i)).and(inside(slickUv)), () => {
+          If(within(world, this.rows.element(BOX, i)), () => {
+            const bounds = this.rows.element(CENTER, i), slickUv = world.sub(this.rows.element(SLICK_CENTER, i).xy).div(SLICK_EXTENT).add(.5);
+            If(within(world, this.rows.element(SLICK_BOX, i)).and(inside(slickUv)), () => {
               const wide = this.field.sample(slickUv.add(bounds.zw).div(TILES));
               // The texture matrix is identity: skip its uniform and multiply on every read.
               wide.updateMatrix = false;
               slick.assign(max(slick, wide.g.mul(edge(slickUv))));
             });
             const uv = world.sub(bounds.xy).div(WAKE_EXTENT).add(.5);
-            If(within(world, this.foamBoxes.element(i)).and(inside(uv)), () => {
+            If(within(world, this.rows.element(FOAM_BOX, i)).and(inside(uv)), () => {
               const tile = this.field.sample(uv.add(bounds.zw).div(TILES));
               tile.updateMatrix = false;
               turbulence.assign(max(turbulence, tile.r.mul(edge(uv))));
