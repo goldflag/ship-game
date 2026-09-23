@@ -147,7 +147,8 @@ export class FleetWakeFoam {
         // The trail is read through a gentle warp, so its outline frays at a few metres instead of following the
         // stamps' smooth edge (the stamps themselves lay the larger lobes).
         const k = knob.lobeScale;
-        const world = at.add(vec2(sway(at, k, 1.3).add(sway(at.yx, k.mul(1.83), 4.1).mul(.5)), sway(at.yx, k.mul(1.19), 2.9).add(sway(at, k.mul(2.07), .7).mul(.5))).mul(knob.lobes));
+        // A variable, so the loop reads it instead of re-deriving the warp at every use in every iteration.
+        const world = at.add(vec2(sway(at, k, 1.3).add(sway(at.yx, k.mul(1.83), 4.1).mul(.5)), sway(at.yx, k.mul(1.19), 2.9).add(sway(at, k.mul(2.07), .7).mul(.5))).mul(knob.lobes)).toVar();
         Loop({ start: 0, end: this.count, type: 'int' }, ({ i }) => {
           // One test per tile for most of the sea; a channel is read only inside what its stamps painted, and inside
           // its square (the green channel is laid wider over the same tile).
