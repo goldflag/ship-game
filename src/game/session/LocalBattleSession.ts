@@ -78,7 +78,7 @@ export class LocalBattleSession extends SnapshotSession {
   }
   static async create(setup: BattleSetup, options: LocalBattleOptions = {}): Promise<LocalBattleSession> {
     await loadShipPresets([setup.playerShipId, ...setup.friendlyBots.map(b => botSelection(b).shipId), ...setup.enemies.map(b => botSelection(b).shipId)]);
-    const session = new LocalBattleSession(runtimeSetup(setup, crypto.getRandomValues(new Uint32Array(1))[0]), undefined, options);
+    const session = new LocalBattleSession(runtimeSetup(setup, setup.seed ?? crypto.getRandomValues(new Uint32Array(1))[0]), undefined, options);
     return session.initialize({ type: 'init', setup: session.setup, construction: localConstructionInput(options) });
   }
   /** The port as a real session: the same Rust authority compiles the hull, so

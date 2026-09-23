@@ -58,3 +58,13 @@ test('a berthed hull rides a 9 m/s sea gently, at any frame rate, and settles wh
   motion.reset();
   expect([motion.heave, motion.roll, motion.pitch]).toEqual([0, 0, 0]);
 });
+
+test('seeking holds the pose a fresh ride reaches at that sea time, whatever the hull rode before', () => {
+  const ridden = new BerthMotion();
+  for (let tick = 0; tick < 40 * 60; tick++) ridden.update(port, hull, berth, 1 / 60);
+  const sought = new BerthMotion();
+  for (let tick = 0; tick < 7 * 24; tick++) sought.update({ ...port, amplitudeM: port.amplitudeM * 2 }, hull, berth, 1 / 24);
+  sought.seek(40, port, hull, berth);
+  expect(sought.seaTime).toBe(40);
+  for (const key of ['heave', 'roll', 'pitch'] as const) expect(sought[key]).toBeCloseTo(ridden[key], 9);
+});

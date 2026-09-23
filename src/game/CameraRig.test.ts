@@ -833,3 +833,17 @@ test('the free camera flies from the current view on its own heading and returns
   expect(rig.bearing).toBe(bearing); expect(camera.position.distanceTo(home)).toBeLessThan(1e-9);
   Object.assign(document, { pointerLockElement: null }); rig.dispose();
 });
+
+test('the rig reports its optics glide and zoom easing until the view arrives', () => {
+  const { rig } = interactiveCamera();
+  const ship = createShipState();
+  rig.setInPort(false);
+  rig.update(ship, 0, 0, true);
+  expect(rig.transitioning).toBe(false);
+  rig.toggleBinoculars([1000, 0, -5000], ship);
+  rig.update(ship, 0, 1 / 60);
+  expect(rig.transitioning).toBe(true);
+  for (let i = 0; i < 120; i++) rig.update(ship, 0, 1 / 60);
+  expect(rig.transitioning).toBe(false);
+  rig.dispose();
+});

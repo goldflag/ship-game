@@ -25,6 +25,8 @@ export interface BattleSetup extends BattleConditions {
   playerShipId: string; friendlyBots: BotSelection[]; enemies: BotSelection[]; spawnDistance: number;
   formation?: SpawnFormation; spawns?: SpawnPositions;
   mapId?: OceanMapId; timeOfDay?: TimeOfDayId; weather?: WeatherId;
+  /** The battle's seed (its sea, among others); random when absent. Development captures fix it to compare runs. */
+  seed?: number;
 }
 /** The engine's hull keeps its bot; the published shape is the generated
  * `Vessel` and the session's `FleetActor` (see `src/game/session/elements.ts`). */

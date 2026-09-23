@@ -20,6 +20,7 @@ import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape
 import { VisualEnvironment, type DeveloperWeather, type EnvironmentOverrides } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
 import { BerthMotion } from './BerthMotion';
+import { localToWorld } from './geometry';
 import { createSeaState, seaWaves, type SeaState } from './session/sea';
 import { hullFootprints } from './hullSea';
 import { updateWaterShadows } from './WaterShadows';
@@ -107,6 +108,10 @@ export const BUOYS = [
 export type { ArticulationPreview };
 /** Battle preparation stages, reported as a label with a completion fraction in [0, 1). */
 export type BattleProgress = (label: string, fraction: number) => void;
+
+/** A development capture's camera in a hull's own frame about her waterline (metres: +X starboard, +Y up, −Z bow),
+ * held whatever the rig does; `shipId` defaults to the hull the camera rides. See `Game.placeCamera`. */
+export interface CameraPin { eye: Vec3; target: Vec3; fov?: number; shipId?: string }
 
 /** One task group as fleet command holds it: its ships, its name and how it sails. */
 export interface ControlGroup { name: string; shipIds: string[]; formation?: Formation }
@@ -289,6 +294,9 @@ export class Game {
   /** The port shows only the player's own designs; with none to show the quay stands empty. */
   private berthEmpty = false;
   private readonly berthMotion = new BerthMotion();
+  /** Development captures: a camera held on a hull, and the sea time every presentation clock is held at (`freezeScene`). */
+  private cameraPin?: CameraPin;
+  private frozenTime?: number;
   private berthSea?: { wind: number; direction: number; state: SeaState };
   /** The sea the berth hull rode this frame (still water while it is inspected), which the water around it shows. */
   private berthRidden?: SeaState;
@@ -754,7 +762,8 @@ export class Game {
       this.berthSea = { wind: reading.windSpeed, direction: reading.windDirection, state: { ...createSeaState(this.simulation.mapId, 'clear', this.simulation.seed, reading.windSpeed), direction: reading.windDirection * Math.PI / 180 } };
     const riding = view.inspection.mode === 'exterior' && !this.berthEmpty;
     this.berthRidden = riding ? this.berthSea.state : { ...this.berthSea.state, amplitudeM: 0 };
-    this.berthMotion.update(this.berthRidden, view.definition.hull, view.actor.motion, dt);
+    if (this.frozenTime === undefined) this.berthMotion.update(this.berthRidden, view.definition.hull, view.actor.motion, dt);
+    else if (this.berthMotion.seaTime !== this.frozenTime) this.berthMotion.seek(this.frozenTime, this.berthRidden, view.definition.hull, view.actor.motion);
     view.seaOffset = this.berthMotion;
   }
 
@@ -775,6 +784,54 @@ export class Game {
     this.controlPriority = view.actor.damage.control.priority; this.controlFocus = view.actor.damage.control.focus ?? '';
     this.input.setOrder(1); this.input.setRudder(0);
     this.trail = []; this.rig.exitBinoculars(); this.audio?.reset(this.simulation);
+  }
+
+  /** Development captures (the browser harness): hold the camera at `pin` in a hull's own frame whatever the rig does, or give it back. */
+  placeCamera(pin?: CameraPin): void { this.cameraPin = pin && { ...pin, eye: [...pin.eye], target: [...pin.target] }; }
+  private pinCamera({ eye, target, fov, shipId }: CameraPin): void {
+    const { x, z, heading } = (this.fleetViews.find(view => view.actor.motion.id === shipId) ?? this.cameraShipView).motion;
+    // About the waterline and heading only: the view holds still while the hull heaves, rolls and pitches in it.
+    const frame = { x, y: 0, z, heading, roll: 0, pitch: 0 };
+    this.camera.position.set(...localToWorld(eye, frame));
+    this.camera.lookAt(...localToWorld(target, frame));
+    if (fov) { this.camera.fov = fov; this.camera.updateProjectionMatrix(); }
+    this.camera.updateMatrixWorld();
+  }
+  /** What the camera shows is where it was sent: no optics glide, zoom, orbit or chart transition is still easing. */
+  get cameraSettled(): boolean { return !!this.cameraPin || (!this.rig.transitioning && !this.battlefieldCamera.transitioning); }
+
+  /** Development captures: hold every presentation clock at `time` seconds of sea (the berth's ride, the waves, clouds, funnel
+   * smoke, wake and a battle itself) until called without a time. The sea's foam and wake and the smoke are first replayed for
+   * `history` seconds with every hull held where it stands, so two runs frozen at one time draw the same sea whatever each ran
+   * before. Underway, the replay fades the wakes astern; `history` 0 keeps them, and the foam of whatever sea came before. */
+  async freezeScene(time?: number, history = 30): Promise<void> {
+    if (time === undefined) { this.frozenTime = undefined; this.lastTime = performance.now(); return; }
+    cancelAnimationFrame(this.raf);
+    await this.frameTask;
+    cancelAnimationFrame(this.raf);
+    this.assertActive();
+    this.frozenTime = time;
+    try {
+      // The berth rides to `time` first: smoke leaves the funnels where the hull stands then.
+      this.updateBerthMotion(0);
+      this.fleetViews.forEach(view => view.updateMotion(this.inPort ? 1 : this.simulation.interpolationAlpha));
+      const ocean = this.ocean!, step = 1 / 30, emptyBerth = this.inPort && this.berthEmpty;
+      const hulls = emptyBerth ? [] : this.inPort ? [this.playerView!] : this.fleetViews;
+      if (history > 0) this.funnelSmoke.reset();
+      ocean.time = time - history;
+      for (let steps = Math.round(history / step); steps > 0; steps--) {
+        this.funnelSmoke.update(hulls, step, this.camera);
+        this.shipWake?.update(emptyBerth ? [] : this.inPort ? hulls : this.wakeShips(), step, [], this.camera, []);
+        await ocean.update(step);
+      }
+      ocean.time = time;
+      // Cloud drift is integrated per frame; restart it from nothing so the sky stands where `time` puts it.
+      const wind = this.sky?.clouds.wind;
+      if (wind) { wind.offset.value.set(0, 0, 0); wind.evolutionOffset.value = 0; wind.advance(time); }
+    } finally {
+      this.lastTime = performance.now();
+      this.scheduleFrame();
+    }
   }
 
   /** Resolve once the next frame has been rendered, so a scene change is on screen. */
@@ -990,7 +1047,7 @@ export class Game {
     const realDt = warmingUp ? 1 / 60 : Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
     this.lastTime = time;
     const ended = this.simulation.isBattle && this.simulation.result !== 'active';
-    const dt = !ended && (this.paused || this.tacticalPause) ? 0 : realDt;
+    const dt = this.frozenTime !== undefined || (!ended && (this.paused || this.tacticalPause)) ? 0 : realDt;
     const presentationDt = dt * (ended ? 1 : this.simulation.simulationSpeed ?? 1);
     try {
       if (this.resizePending) this.resize();
@@ -1043,6 +1100,7 @@ export class Game {
         this.rig.setTorpedoView(this.battery === 'torpedo' && !this.definition.submarine && this.cameraShipView === this.playerView);
         // The port camera frames the berth, so it holds still while the hull heaves.
         this.rig.update(pose, pose.y - (this.cameraShipView.seaOffset?.heave ?? 0), realDt);
+        if (this.cameraPin) this.pinCamera(this.cameraPin);
       }
       this.battlefieldCamera.applyTransition(realDt);
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,

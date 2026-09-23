@@ -23,6 +23,17 @@ export function mainCheckout(root: string): string {
   return dirname(common);
 }
 export const designsCache = (root: string) => join(mainCheckout(root), '.build/harness/designs.json');
+/** The harness shows whatever revision was cached, however old: past this age launches say so. */
+export const STALE_DESIGNS_HOURS = 12;
+
+/** How old the shared cache is and which revision of each design it holds, or undefined when there is none. */
+export function designsCacheStatus(root: string): { file: string; ageHours: number; designs: { name: string; sourceId: string; revisionId: string; savedAt: number }[] } | undefined {
+  const file = designsCache(root);
+  if (!existsSync(file)) return undefined;
+  const cache = JSON.parse(readFileSync(file, 'utf8')) as HarnessDesigns;
+  return { file, ageHours: (Date.now() - cache.fetchedAt) / 3.6e6, designs: cache.designs.map(({ head, revision }) =>
+    ({ name: head.name, sourceId: revision.sourceId ?? head.sourceId ?? head.id, revisionId: revision.id, savedAt: revision.createdAt })) };
+}
 
 function credentials(root: string): { email: string; password: string } {
   const values: Record<string, string | undefined> = { NAVAL_TEST_EMAIL: process.env.NAVAL_TEST_EMAIL, NAVAL_TEST_PASSWORD: process.env.NAVAL_TEST_PASSWORD };
