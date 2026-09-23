@@ -130,12 +130,12 @@ function lightDepth(context: MarchContext, p: Vec3, near: CloudSample, steps: nu
     const q = p.add(normalize(light.direction.add(spread)).mul(along));
     const s = field.sample(q, field.altitude(q), footprint, false);
     // The nearest sample reads the detail too: lobes shadowing each other draw the creases of a cauliflower top.
-    const density = i === 0 && footprint ? field.erode(s, q, footprint, false) : s.coarse;
+    const density = i === 0 && footprint && !experiment.noLightDetail ? field.erode(s, q, footprint, false) : s.coarse;
     depth = depth.add(density.mul(along * LIGHT_SPAN));
   }
   // Beyond the near samples only the cloud's bulk matters: two reads of the weather map's cover, out to 1.6 km,
   // shade the far side of a big cumulus and the underside of a deck.
-  for (const along of FAR_LIGHT) {
+  for (const along of experiment.noFarLight ? [] : FAR_LIGHT) {
     const q = p.add(light.direction.mul(along));
     depth = depth.add(field.cover(q, field.altitude(q), near).clamp(0, 1).mul(COVER_DENSITY * along * .5));
   }
@@ -163,7 +163,7 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
   const { field, sky, light } = context, layer = field.layer;
   const radiance = vec3(0).toVar(), transmittance = float(1).toVar(), depth = float(MAX_DISTANCE).toVar();
   const weighted = float(0).toVar(), weight = float(0).toVar();
-  if (options.rain) marchRain(context, options.rain, origin, altitude, direction, asFloat(options.jitter), { radiance, transmittance, weighted, weight });
+  if (options.rain && !experiment.noRain) marchRain(context, options.rain, origin, altitude, direction, asFloat(options.jitter), { radiance, transmittance, weighted, weight });
   const top = layer.base.add(layer.thickness);
   const { start, end } = shellSegment(altitude, direction.y, layer.base, top);
   const from = start.toVar(), to = min(end, MAX_DISTANCE).toVar();
@@ -220,7 +220,7 @@ export function marchClouds(context: MarchContext, origin: Vec3, altitude: Float
     });
     // Past the farthest cloud marched the layer still runs on to the horizon: a ray that reached that limit
     // meets more of it there, as a bank of cloud the haze swallows, in proportion to the sky's cover.
-    If(end.greaterThan(MAX_DISTANCE).and(t.greaterThanEqual(to)).and(transmittance.greaterThan(OPAQUE)), () => {
+    if (!experiment.noBank) If(end.greaterThan(MAX_DISTANCE).and(t.greaterThanEqual(to)).and(transmittance.greaterThan(OPAQUE)), () => {
       const bank = field.bank(origin.add(direction.mul(to))).mul(smoothstep(0, HORIZON_BANK, end.sub(MAX_DISTANCE)));
       const colour = lightFar.mul(phases[OCTAVES - 1].mul(.5)).add(mix(below, above, .5).mul(context.ambient).mul(look.ambient));
       const share = transmittance.mul(bank);
@@ -262,3 +262,6 @@ export function shadowTransmittance(context: MarchContext, point: Vec3, sun: Vec
     return exp(depth.mul(step).mul(layer.extinction).negate());
   })();
 }
+
+/** Build-time switches for cost experiments (diagnostics; kernels built after a change pick it up). */
+export const experiment = { noLightDetail: false, noFarLight: false, noRain: false, noBank: false };

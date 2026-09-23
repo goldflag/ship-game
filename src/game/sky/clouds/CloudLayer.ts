@@ -34,7 +34,7 @@ const SHADOW_EXTENT = 40_000;
 const SHADOW_STEPS = 8;
 /** Texels of the shadow map refreshed each frame, in interleaved slices. The map is laid out in the clouds'
  * own drifting frame, so it follows the wind exactly and only the clouds' slow change of shape ages it. */
-const SHADOW_TEXELS_PER_FRAME = 8192;
+const SHADOW_TEXELS_PER_FRAME = 4096;
 /** Share of the sun a cloud's shadow still lets reach the sea: light scattered through it. */
 const SHADOW_FLOOR = .15;
 /** Share of the shadow map's half-width over which it fades to full sun at its edge. */
@@ -117,7 +117,7 @@ export class CloudLayer implements CloudPart {
     frame: uniform(0), offset: uniform(new Vector2(), 'ivec2'), interleave: uniform(2, 'int'),
     cloudSize: uniform(new Vector2(1, 1)), marchSize: uniform(new Vector2(1, 1)), cloudTiles: uniform(1, 'int'), marchTiles: uniform(1, 'int'),
     projectionInverse: uniform(new Matrix4()), cameraWorld: uniform(new Matrix4()), previousViewProjection: uniform(new Matrix4()),
-    windShift: uniform(new Vector3()), history: uniform(0), historyWeight: uniform(HISTORY_WEIGHT), pixelAngle: uniform(.003),
+    windShift: uniform(new Vector3()), history: uniform(0), latestViewProjection: uniform(new Matrix4()), historyWeight: uniform(HISTORY_WEIGHT), pixelAngle: uniform(.003),
     shadowSize: uniform(256, 'int'), shadowSlice: uniform(0, 'int'), shadowSlices: uniform(1, 'int'), shadowStrength: uniform(0),
     ambient: uniform(1), baseShadow: uniform(.2), precipitation: uniform(0),
   };
@@ -146,6 +146,9 @@ export class CloudLayer implements CloudPart {
   private height = 0;
   private current = 0;
   private frameIndex = 0;
+  /** Cloud updates run, and frames since the last. */
+  private updates = 0;
+  private sinceUpdate = 0;
   private hasHistory = false;
   private catchUp = 0;
   private shadowStale = true;
@@ -289,27 +292,15 @@ export class CloudLayer implements CloudPart {
     if (size.x !== this.width || size.y !== this.height) this.resize(size.x, size.y);
     this.updateLight();
     camera.updateMatrixWorld();
-    u.projectionInverse.value.copy(camera.projectionMatrixInverse);
-    u.cameraWorld.value.copy(camera.matrixWorld);
-    // Angle one cloud-buffer pixel spans: the detail fades where a pixel's footprint cannot resolve it.
-    u.pixelAngle.value = 2 * Math.tan(camera.getEffectiveFOV() * Math.PI / 360) / u.cloudSize.value.y;
     this.viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    const wind = this.sky.windOffset.value;
-    u.windShift.value.subVectors(wind, this.previousWind);
-    u.previousViewProjection.value.copy(this.hasHistory ? this.previousViewProjection : this.viewProjection);
-    u.history.value = this.hasHistory && !frame.cut ? 1 : 0;
     // After a cut every pixel is marched for a couple of frames, so the new view starts clean at full
     // resolution rather than converging from an upsampled first frame over the whole interleave cycle.
     if (!this.hasHistory || frame.cut) this.catchUp = CATCH_UP_FRAMES;
-    this.interleave(this.catchUp > 0 ? 1 : tier.cloudInterleave);
-    u.historyWeight.value = this.catchUp > 0 ? CATCH_UP_WEIGHT : HISTORY_WEIGHT;
-    if (this.catchUp > 0) this.catchUp--;
-    const order = BLOCK_ORDER[u.interleave.value] ?? BLOCK_ORDER[1];
-    const [ox, oy] = order[this.frameIndex % order.length];
-    u.offset.value.set(ox, oy);
-    u.frame.value = this.frameIndex % 1024;
-    u.shadowSlice.value = this.frameIndex % u.shadowSlices.value;
-    this.frameIndex++;
+    // Under the layer the clouds are kilometres away and a tier may update them every few frames: the
+    // composite turns the last update to the current view in between. Nearer (inside or above the layer)
+    // their parallax needs every frame.
+    const under = camera.position.y < this.layer.base.value - UNDER_MARGIN;
+    const due = this.catchUp > 0 || ++this.sinceUpdate >= (under ? tier.cloudUpdateInterval : 1);
     this.chooseComposite(camera);
     if (!this.compiled) {
       // Every tier's march compiles now, under the loading screen: a later tier change must not hitch.
@@ -321,18 +312,36 @@ export class CloudLayer implements CloudPart {
       }
       this.compiled = true;
     }
-    if (this.active) {
-      const shadows = u.shadowStrength.value > 0 ? (this.shadowStale || frame.cut ? 2 : 1) : 0;
-      renderer.compute(this.submissions.get(this.marchKernels.get(tier.cloudLightSteps)!)![this.current][shadows]);
-      if (shadows === 2) this.shadowStale = false;
-      // The reconstruction wrote the other history; everything downstream reads it from now on.
-      this.current = 1 - this.current;
-      const latest = this.history[this.current];
-      this.latestColor.value = latest.color;
-      this.latestDepth.value = latest.depth;
-      this.screenTransmittance.value = latest.depth;
-      this.hasHistory = true;
-    }
+    if (!this.active || !due) return;
+    this.sinceUpdate = 0;
+    u.projectionInverse.value.copy(camera.projectionMatrixInverse);
+    u.cameraWorld.value.copy(camera.matrixWorld);
+    // Angle one cloud-buffer pixel spans: the detail fades where a pixel's footprint cannot resolve it.
+    u.pixelAngle.value = 2 * Math.tan(camera.getEffectiveFOV() * Math.PI / 360) / u.cloudSize.value.y;
+    const wind = this.sky.windOffset.value;
+    u.windShift.value.subVectors(wind, this.previousWind);
+    u.previousViewProjection.value.copy(this.hasHistory ? this.previousViewProjection : this.viewProjection);
+    u.history.value = this.hasHistory && !frame.cut ? 1 : 0;
+    this.interleave(this.catchUp > 0 ? 1 : tier.cloudInterleave);
+    u.historyWeight.value = this.catchUp > 0 ? CATCH_UP_WEIGHT : HISTORY_WEIGHT;
+    if (this.catchUp > 0) this.catchUp--;
+    const order = BLOCK_ORDER[u.interleave.value] ?? BLOCK_ORDER[1];
+    const [ox, oy] = order[this.updates % order.length];
+    u.offset.value.set(ox, oy);
+    u.frame.value = this.updates % 1024;
+    u.shadowSlice.value = this.updates % u.shadowSlices.value;
+    this.updates++;
+    const shadows = u.shadowStrength.value > 0 ? (this.shadowStale || frame.cut ? 2 : 1) : 0;
+    renderer.compute(this.submissions.get(this.marchKernels.get(tier.cloudLightSteps)!)![this.current][shadows]);
+    if (shadows === 2) this.shadowStale = false;
+    // The reconstruction wrote the other history; everything downstream reads it from now on, in this view.
+    this.current = 1 - this.current;
+    const latest = this.history[this.current];
+    this.latestColor.value = latest.color;
+    this.latestDepth.value = latest.depth;
+    this.screenTransmittance.value = latest.depth;
+    u.latestViewProjection.value.copy(this.viewProjection);
+    this.hasHistory = true;
     this.previousViewProjection.copy(this.viewProjection);
     this.previousWind.copy(wind);
   }
@@ -371,7 +380,7 @@ export class CloudLayer implements CloudPart {
    * inside or above the layer clouds can be in front, and each pixel is tested at the clouds' own depth. */
   private chooseComposite(camera: PerspectiveCamera): void {
     // Rain shafts hang in front of the sea and ships, so a raining sky always tests depth.
-    const under = camera.position.y < this.layer.base.value - UNDER_MARGIN && this.u.precipitation.value <= 0 && this.frameIndex > WARMUP_FRAMES;
+    const under = camera.position.y < this.layer.base.value - UNDER_MARGIN && this.u.precipitation.value <= 0 && ++this.frameIndex > WARMUP_FRAMES;
     this.composite.material = under ? this.fastMaterial : this.depthMaterial;
   }
 
@@ -511,11 +520,15 @@ export class CloudLayer implements CloudPart {
     material.blending = CustomBlending;
     material.blendSrc = OneFactor; material.blendDst = SrcAlphaFactor;
     material.blendSrcAlpha = ZeroFactor; material.blendDstAlpha = OneFactor;
-    const color = direct(this.latestColor.sample(screenUV)) as unknown as Vec4;
+    // Where this pixel's direction lay in the view of the last update (a tier may update every few frames):
+    // clouds are far enough that turning the view is all that moved them.
+    const direction = viewDirection(), clip = this.u.latestViewProjection.mul(vec4(direction, 0));
+    const at = select(clip.w.greaterThan(1e-6), clip.xy.div(clip.w).mul(vec2(.5, -.5)).add(.5), screenUV).toVar();
+    const color = direct(this.latestColor.sample(at)) as unknown as Vec4;
     if (depthTested) {
       const cover = color.w.oneMinus();
-      const depthKm = (direct(this.latestDepth.sample(screenUV)) as unknown as Vec4).y.div(max(cover, 1e-4));
-      const forward = cameraViewMatrix.mul(vec4(viewDirection(), 0)).z;
+      const depthKm = (direct(this.latestDepth.sample(at)) as unknown as Vec4).y.div(max(cover, 1e-4));
+      const forward = cameraViewMatrix.mul(vec4(direction, 0)).z;
       const viewZ = depthKm.mul(1000).mul(forward);
       const projected = reversedDepth ? viewZToReversedPerspectiveDepth(viewZ, cameraNear, cameraFar) : viewZToPerspectiveDepth(viewZ, cameraNear, cameraFar);
       material.depthNode = reversedDepth ? max(projected, 1e-10) : min(projected, 1 - 1e-7);
@@ -532,8 +545,8 @@ export class CloudLayer implements CloudPart {
       // shows at once over the whole cloud instead of one pixel in sixteen a frame, and costs nothing else.
       If(sky.lightningIntensity.greaterThan(0), () => {
         const cover = color.w.oneMinus();
-        const depth = (direct(this.latestDepth.sample(screenUV)) as unknown as Vec4).y.div(max(cover, 1e-4)).mul(1000);
-        const toward = sky.cameraPosition.add(viewDirection().mul(depth)).sub(sky.lightningPosition);
+        const depth = (direct(this.latestDepth.sample(at)) as unknown as Vec4).y.div(max(cover, 1e-4)).mul(1000);
+        const toward = sky.cameraPosition.add(direction.mul(depth)).sub(sky.lightningPosition);
         const distance = max(toward.length(), LIGHTNING_NEAREST);
         const irradiance = sky.lightningIntensity.mul(float(1000).div(distance).pow(2));
         radiance.addAssign(vec3(LIGHTNING_TINT[0], LIGHTNING_TINT[1], LIGHTNING_TINT[2])
