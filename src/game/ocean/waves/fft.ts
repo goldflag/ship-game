@@ -13,10 +13,3 @@ export function fftRadices(n: number): number[] {
   const passes = Math.ceil(bits / 4);
   return Array.from({ length: passes }, (_, i) => 2 ** (Math.floor(bits / passes) + (i < bits % passes ? 1 : 0)));
 }
-
-/** Where output `j` of a pass reads: the first input index, the stride to the next, and the
- * twiddle angle step θ (input r is weighted by e^{i·r·θ}). */
-export function stockhamInputs(n: number, radix: number, span: number, j: number): { first: number; stride: number; angle: number } {
-  const block = radix * span;
-  return { first: Math.floor(j / block) * span + j % span, stride: n / radix, angle: 2 * Math.PI * (j % block) / block };
-}

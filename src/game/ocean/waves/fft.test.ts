@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { fftRadices, stockhamInputs } from './fft';
+import { fftRadices } from './fft';
 
 test('radices cover each size in the fewest passes', () => {
   expect(fftRadices(256)).toEqual([16, 16]);
@@ -18,7 +18,8 @@ test('the per-output Stockham passes equal an inverse DFT', () => {
     for (const radix of fftRadices(n)) {
       const y = { re: new Array<number>(n).fill(0), im: new Array<number>(n).fill(0) };
       for (let j = 0; j < n; j++) {
-        const { first, stride, angle } = stockhamInputs(n, radix, span, j);
+        // The per-output formula in fft.ts, as the GPU passes evaluate it.
+        const block = radix * span, first = Math.floor(j / block) * span + j % span, stride = n / radix, angle = 2 * Math.PI * (j % block) / block;
         for (let r = 0; r < radix; r++) {
           const c = Math.cos(r * angle), s = Math.sin(r * angle), a = x.re[first + r * stride], b = x.im[first + r * stride];
           y.re[j] += a * c - b * s; y.im[j] += a * s + b * c;
