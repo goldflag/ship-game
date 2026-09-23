@@ -429,7 +429,13 @@ export function constructionSummary(
       loads: used(c.loads.length, CONSTRUCTION_SOURCE_LIMITS.loads),
       ...(options.sourceBytes !== undefined ? { sourceBytes: used(options.sourceBytes, CONSTRUCTION_SOURCE_LIMITS.sourceBytes) } : {}),
     },
-    defaults: { thicknessMm: c.defaultThicknessMm, ...(c.paint ? { paint: c.paint } : {}), ...(c.finish ? { finish: c.finish } : {}) },
+    defaults: {
+      thicknessMm: c.defaultThicknessMm,
+      ...(c.paint ? { paint: c.paint } : {}),
+      ...(c.roofPaint ? { roofPaint: c.roofPaint } : {}),
+      ...(c.finish ? { finish: c.finish } : {}),
+      ...(c.wear ? { wear: c.wear } : {}),
+    },
     primitiveColumns: ['id', 'kind', 'position', 'size', 'rotationDeg or [pitch,yaw,roll]', 'surface assignments'],
     primitives: c.primitives
       .filter((p) => wanted(p.kind))
