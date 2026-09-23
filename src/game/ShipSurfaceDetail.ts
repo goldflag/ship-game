@@ -1,15 +1,15 @@
 import * as THREE from 'three/webgpu';
 import {
   Fn, If, abs, attribute, cross, dFdx, dFdy, dot, exp, faceDirection, float, materialColor, materialRoughness, max, mix, mx_noise_float, normalGeometry, normalView,
-  positionGeometry, positionView, pow, select, smoothstep, step, texture, uniform, vec2, vec3, vec4,
+  positionGeometry, positionView, pow, select, smoothstep, texture, uniform, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
 
 /** Physically scaled surface detail for ship paint and teak, evaluated in each mesh's own
  * (pre-batching) geometry space, so it follows turrets and every other articulated owner.
  *
- * Nothing here is baked into the ship assets. Two small repeating textures are generated
- * once and read through shared nodes:
+ * Nothing here is baked into the ship assets. Small repeating textures are generated once and
+ * read through shared nodes:
  * - plating: 2 m strakes, 8 m butts with staggered offsets, welded seams and slight
  *   dishing between frames as a height gradient, plus a low-frequency roughness field;
  * - teak: 16 cm planks with staggered 5 m butts, caulking, grain and relief.
@@ -18,11 +18,15 @@ import type { Node } from 'three/webgpu';
  * instanced and mirrored meshes alike. Mipmaps average the gradients towards zero, so
  * the detail recedes with distance and the approved scheme reads unchanged.
  *
- * Construction ships also wear their paint here, by the amounts and distances their assembly
- * measured per vertex (`shipWear`, see constructionWear): metric mottling from the plating
- * tile's alpha, runoff streaks from a third tile hanging below top edges, a tide stain at
- * the rest waterline and soot at funnel tops. Premade ships bake their finish and carry no
- * wear; their paint takes the same program and draws exactly as before. */
+ * Construction ships draw their plating from a finish tile on the same seams: weld beads between
+ * shrinkage hollows, a line of grime along every seam and each plate's own shade, roller strips
+ * and marks as painted, on decks and roofs too, so even a fresh ship reads as plated steel. They
+ * also wear their paint here, by the amounts and distances their assembly measured per vertex
+ * (`shipWear`, see constructionWear): metric mottling from the plating tile's alpha, runoff
+ * streaks from a third tile hanging below top edges and, shorter and closer set, below every
+ * strake seam, rust bleeding from the seams, a tide stain at the rest waterline and soot at
+ * funnel tops. Premade ships bake their finish and carry no wear; their paint takes the same
+ * program and draws exactly as before. */
 
 /** Paint classes that get plating. Canvas, glass, rope, dark recesses and metals do not. */
 const PLATED_FINISHES = new Set(['painted-steel', 'painted-deck', 'underwater-coating']);
@@ -39,7 +43,8 @@ export function isPlatedPaint(material: THREE.MeshStandardMaterial): boolean {
   const { surfaceFinish, componentMaterialRole } = material.userData;
   if (typeof surfaceFinish === 'string') return PLATED_FINISHES.has(surfaceFinish) && !FITTING_PAINT.test(String(material.userData.paintId ?? ''));
   if (typeof componentMaterialRole === 'string') return PLATED_ROLES.has(componentMaterialRole);
-  return material.name.startsWith('construction.');
+  // A player-built ship's hull, blocks and painted design-local fittings name their paint.
+  return /^(construction|custom-fitting)\./.test(material.name) && !/teak|timber|wood/i.test(material.name);
 }
 
 const scale = new THREE.Vector3(), extent = new THREE.Vector3();
@@ -90,6 +95,9 @@ function noiseTable(cells: number, seed: number): (u: number, v: number) => numb
     return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
   };
 }
+/** How far along the tile a strake's first butt sits, in whole frames. The plating and finish tiles share it, so
+ * their seams coincide. */
+const buttOffset = (row: number) => Math.round(hash(row, 3) * PLATE.butt / PLATE.frame) * PLATE.frame;
 /** Pitch caulking darkens the board colour by this fraction at full coverage. */
 const CAULK_DARKENING = .62;
 /** Mean board colour without caulking over mean with it: the pattern's mean while caulking fades. */
@@ -112,7 +120,7 @@ export function plateTexels(size: number = PLATE.size): Uint8Array {
   const pixels = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) {
     const v = (y + .5) * texel, row = Math.floor(v / strake), across = v - row * strake, rowSin = Math.sin(Math.PI * across / strake);
-    const offset = Math.round(hash(row, 3) * butt / frame) * frame, rim = Math.min(across, strake - across);
+    const offset = buttOffset(row), rim = Math.min(across, strake - across);
     const dish = Array.from({ length: plates }, (_, plate) => .002 + .003 * hash(row, plate, 7));
     const tint = Array.from({ length: plates }, (_, plate) => .22 * (hash(row, plate, 5) - .5));
     const tone = Array.from({ length: plates }, (_, plate) => .5 * (hash(row, plate, 19) - .5));
@@ -137,6 +145,94 @@ export function plateTexels(size: number = PLATE.size): Uint8Array {
       pixels[i] = encode((height[y * size + right] - height[y * size + left]) / (2 * texel), PLATE.gradientScale);
       pixels[i + 1] = encode((height[up + x] - height[down + x]) / (2 * texel), PLATE.gradientScale);
       pixels[i + 3] = encode(mottle[y * size + x] - mean, peak);
+    }
+  }
+  return pixels;
+}
+
+/** Construction plating as welded and painted, on the plating tile's own seams. Heights and widths in metres. */
+export const FINISH = {
+  gradientScale: .25,
+  /** A weld bead stands proud of the plate; the shrinkage of the weld pulls a shallow hollow either side of it. */
+  bead: .0018, beadWidth: .014, hollow: .003, hollowWidth: .09,
+  /** Plates dish between frames (hungry horse) by this range, deeper than the premade tile's. */
+  dish: [.003, .007],
+  /** Half-width of the line along a seam where paint pools and grime gathers. */
+  seamLine: .016,
+  /** Width of the painters' roller strips down a plate; the size across and along of the roller's own marks, and their
+   * share of the tone beside a plate's shade. */
+  strip: .6, mark: [.05, .5], markTone: .25,
+} as const;
+
+/** RGBA finish texels for construction ships on the plating tile's layout: R,G height gradient along u and v per
+ * metre, of weld beads between shrinkage hollows and plates dishing between frames; B seam line coverage; A paint
+ * tone as applied (0.5 neutral, peaks at 0 and 1): each plate's own shade, the roller strips down it, the roller's
+ * marks and faint cloudiness. */
+export function finishTexels(size: number = PLATE.size): Uint8Array {
+  const { tile, strake, butt, frame } = PLATE, texel = tile / size, plates = tile / butt, n = size * size;
+  const perStrake = Math.round(strake / texel), perButt = Math.round(butt / texel), at = (k: number) => (k + .5) * texel;
+  // Every seam falls on a texel boundary, so a texel lies a whole number of texels and a half from its nearest seam.
+  const reach = Math.min(perStrake >> 1, Math.ceil(4 * FINISH.hollowWidth / texel));
+  const profile = Float32Array.from({ length: reach }, (_, k) =>
+    FINISH.bead * Math.exp(-((at(k) / FINISH.beadWidth) ** 2)) - FINISH.hollow * Math.exp(-((at(k) / FINISH.hollowWidth) ** 2)));
+  const line = Float32Array.from({ length: reach }, (_, k) => Math.exp(-((at(k) / FINISH.seamLine) ** 2)));
+  const bay = Float32Array.from({ length: size }, (_, x) => Math.sin(Math.PI * (at(x) % frame) / frame));
+  // Slow fields on a quarter-resolution lattice, read bilinearly: cloudiness about 0.8 m across (even entries) and
+  // how much grime a seam holds (odd entries).
+  const low = size >> 2, cloud = noiseTable(20, 41), fleck = noiseTable(64, 43), slow = new Float32Array(low * low * 2);
+  for (let y = 0; y < low; y++) for (let x = 0; x < low; x++) {
+    const i = 2 * (y * low + x);
+    slow[i] = cloud(x / low, y / low) - .5; slow[i + 1] = .7 + .3 * fleck(x / low, y / low);
+  }
+  const lattice = (t: number) => { const l = (t - 1.5) / 4, c = Math.floor(l); return [((c % low) + low) % low, (c + 1) % low, l - c] as const; };
+  const column = Array.from({ length: size }, (_, x) => lattice(x));
+  const stripCells = Math.round(tile / FINISH.strip), strips = noiseTable(stripCells, 47);
+  // The roller's own marks: narrow runs of thicker and thinner paint, a few centimetres across and half a metre long,
+  // as value noise on a lattice that long and that narrow. Each row blends two lattice rows, then reads across them.
+  const across = Math.round(tile / FINISH.mark[0]), along = Math.round(tile / FINISH.mark[1]);
+  const markLattice = Float32Array.from({ length: across * along }, (_, k) => hash(k % across, Math.floor(k / across), 53) - .5);
+  const markCell = Int32Array.from({ length: size }, (_, x) => Math.floor(at(x) / tile * across));
+  const markFraction = Float32Array.from({ length: size }, (_, x) => smooth(at(x) / tile * across - markCell[x]));
+  const markRow = new Float32Array(across), marks = new Float32Array(size);
+  const height = new Float32Array(n), tone = new Float32Array(n), seams = new Float32Array(n), strip = new Float32Array(size);
+  for (let y = 0; y < size; y++) {
+    const row = Math.floor(y / perStrake), k = y - row * perStrake, rim = Math.min(k, perStrake - 1 - k);
+    const rowSin = Math.sin(Math.PI * at(k) / strake), offset = Math.round(buttOffset(row) / texel);
+    const dish = Array.from({ length: plates }, (_, plate) => FINISH.dish[0] + (FINISH.dish[1] - FINISH.dish[0]) * hash(row, plate, 31));
+    const shade = Array.from({ length: plates }, (_, plate) => hash(row, plate, 29) - .5);
+    // Roller strips run down each strake, so one row of them serves the whole strake.
+    if (k === 0) for (let x = 0; x < size; x++) strip[x] = .45 * (strips(at(x) / tile, row / stripCells) - .5);
+    const mv = at(y) / tile * along, m0 = Math.floor(mv), mf = smooth(mv - m0), l0 = (m0 % along) * across, l1 = ((m0 + 1) % along) * across;
+    for (let c = 0; c < across; c++) markRow[c] = markLattice[l0 + c] + (markLattice[l1 + c] - markLattice[l0 + c]) * mf;
+    for (let x = 0; x < size; x++) { const c = markCell[x]; marks[x] = FINISH.markTone * (markRow[c] + (markRow[(c + 1) % across] - markRow[c]) * markFraction[x]); }
+    const strakeSeam = rim < reach ? line[rim] : 0, [y0, y1, fy] = lattice(y), r0 = y0 * low, r1 = y1 * low;
+    let j = offset % perButt, plate = Math.floor(offset / perButt) % plates;
+    for (let x = 0; x < size; x++, j++) {
+      if (j === perButt) { j = 0; plate = (plate + 1) % plates; }
+      const gap = Math.min(j, perButt - 1 - j), nearest = Math.min(rim, gap), i = y * size + x, [x0, x1, fx] = column[x];
+      const a = 2 * (r0 + x0), b = 2 * (r0 + x1), c = 2 * (r1 + x0), d = 2 * (r1 + x1);
+      const wa = (1 - fx) * (1 - fy), wb = fx * (1 - fy), wc = (1 - fx) * fy, wd = fx * fy;
+      height[i] = (nearest < reach ? profile[nearest] : 0) - dish[plate] * bay[x] * rowSin;
+      // Grime lies unevenly along a seam; the strake seams, which water runs over, hold more of it than the butts.
+      const seam = Math.max(strakeSeam, gap < reach ? .75 * line[gap] : 0);
+      if (seam) seams[i] = seam * (slow[a + 1] * wa + slow[b + 1] * wb + slow[c + 1] * wc + slow[d + 1] * wd);
+      // The plate's own shade dominates its roller strips and cloudiness.
+      tone[i] = shade[plate] + strip[x] + marks[x] + .35 * (slow[a] * wa + slow[b] * wb + slow[c] * wc + slow[d] * wd);
+    }
+  }
+  let mean = 0, peak = 0;
+  for (let i = 0; i < n; i++) mean += tone[i];
+  mean /= n;
+  for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(tone[i] - mean));
+  const pixels = new Uint8Array(n * 4);
+  for (let y = 0; y < size; y++) {
+    const up = ((y + 1) % size) * size, down = ((y + size - 1) % size) * size;
+    for (let x = 0; x < size; x++) {
+      const right = (x + 1) % size, left = (x + size - 1) % size, i = y * size + x, o = i * 4;
+      pixels[o] = encode((height[y * size + right] - height[y * size + left]) / (2 * texel), FINISH.gradientScale);
+      pixels[o + 1] = encode((height[up + x] - height[down + x]) / (2 * texel), FINISH.gradientScale);
+      pixels[o + 2] = Math.round(255 * Math.min(1, seams[i]));
+      pixels[o + 3] = encode(tone[i] - mean, peak);
     }
   }
   return pixels;
@@ -259,6 +355,9 @@ export const surfaceRelief = uniform(1);
 export const surfaceWear = uniform(1);
 /** −1 draws each construction ship's own wear; 0 or more draws that amount on all of them instead (review). */
 export const wearOverride = uniform(-1);
+/** Construction ships' plating as welded and painted (seams, relief, each plate's shade), for review: 0 draws the
+ * premade tile's plating instead, 1 as designed. */
+export const plateFinish = uniform(1);
 
 /** Worn paint, per unit of wear amount where a pair gives [at none, added per unit]. Tints are linear colour
  * multipliers at full coverage. */
@@ -272,6 +371,23 @@ const WEAR = {
   tide: [.6, .58, .42], stain: .9,
   /** Soot reach below a funnel's top in metres, its darkness and colour. */
   sootReach: [1, 3], sootDarkness: [.5, .45], soot: [.09, .085, .08],
+} as const;
+
+/** Construction paint as applied, on every such ship however fresh; pairs give [fresh, added per unit of wear]. */
+const APPLIED = {
+  /** Peak tone swing across plates, roller strips and marks, and cloudiness. */
+  tone: .17,
+  /** Roughness swing with the tone: thicker, darker paint is a little glossier. */
+  sheen: .12,
+  /** Share of its tint a fully covered seam line takes: grime, turning to rust bled from the seam as the paint wears. */
+  seam: [.55, .3], seamGrime: [.3, .29, .28], seamRust: [.5, .3, .17], seamRough: .15,
+  /** Runoff from strake seams: its share of a top edge's, how many times shorter its streaks run and how much closer
+   * set, and how much wetter a seam runs than its wear (a preset's seams draw the next preset's density of streaks). */
+  seamRunoff: 1.2, seamRun: 2.5, seamSpacing: 3, seamWetter: 1.75,
+  /** Seams leak unevenly: the least a seam carries of the full runoff. */
+  leakMin: .7,
+  /** Grime gathered in a soft band below each strake seam: its darkness per unit of wear and its reach in metres. */
+  band: .25, bandReach: .25,
 } as const;
 
 type Nodes = { plateNormal: Node<'vec3'>; paintColor: Node<'vec3'>; paintRoughness: Node<'float'>; plainRoughness: Node<'float'>; teakNormal: Node<'vec3'>; teakRoughness: Node<'float'>; teakPattern: Node<'float'> };
@@ -293,63 +409,105 @@ function shipSurfaceNodes(): Nodes {
   const plate = dataTexture(plateTexels(), PLATE.size, PLATE.size, 'Ship plating detail');
   const teak = dataTexture(teakTexels(), TEAK.width, TEAK.length, 'Ship teak detail');
   const streaks = dataTexture(streakTexels(), STREAK.width, STREAK.height, 'Ship runoff streaks', THREE.ClampToEdgeWrapping);
+  const finish = dataTexture(finishTexels(), PLATE.size, PLATE.size, 'Construction plating finish');
   // Roughness, metalness, plated-paint flag; `w` is the wet band's rest height (HullWetBand).
   const surface = attribute<'vec4'>('shipSurface', 'vec4');
+  // Paint that wears (on construction ships) carries its wear amount; premade paint carries none.
+  const worn = attribute<'vec4'>('shipWear', 'vec4');
   const p = positionGeometry, n = normalGeometry.normalize();
   // Triplanar weights in geometry space: beam-facing sides, end bulkheads and decks.
   const w0 = pow(abs(n), vec3(4)), w = w0.div(w0.x.add(w0.y).add(w0.z));
   const side = texture(plate, p.zy.div(PLATE.tile)), end = texture(plate, p.xy.div(PLATE.tile)), top = texture(plate, p.zx.div(PLATE.tile));
-  const gradient = (s: Node<'vec4'>) => s.xy.mul(2).sub(1).mul(PLATE.gradientScale);
-  const gs = gradient(side), ge = gradient(end);
-  // Decks carry their own coverings, so plating relief stays on vertical faces.
-  const plating = vec3(ge.x.mul(w.z), gs.y.mul(w.x).add(ge.y.mul(w.z)), gs.x.mul(w.x)).mul(surface.z).mul(surfaceRelief);
+  const gradient = (s: Node<'vec4'>, scale: number) => s.xy.mul(2).sub(1).mul(scale);
+  const gs = gradient(side, PLATE.gradientScale), ge = gradient(end, PLATE.gradientScale);
+  const plating = Fn(() => {
+    // Premade decks carry their own coverings, so their plating relief stays on vertical faces.
+    const relief = vec3(ge.x.mul(w.z), gs.y.mul(w.x).add(ge.y.mul(w.z)), gs.x.mul(w.x)).toVar();
+    If(worn.x.greaterThan(1e-4).and(plateFinish.greaterThan(.5)), () => {
+      // Construction plating as welded, on decks and roofs too.
+      const fs = gradient(texture(finish, p.zy.div(PLATE.tile)), FINISH.gradientScale), fe = gradient(texture(finish, p.xy.div(PLATE.tile)), FINISH.gradientScale);
+      const ft = gradient(texture(finish, p.zx.div(PLATE.tile)), FINISH.gradientScale);
+      relief.assign(vec3(fe.x.mul(w.z).add(ft.y.mul(w.y)), fs.y.mul(w.x).add(fe.y.mul(w.z)), fs.x.mul(w.x).add(ft.x.mul(w.y))));
+    });
+    return relief.mul(surface.z).mul(surfaceRelief);
+  })();
   const roughness = side.z.mul(w.x).add(end.z.mul(w.z)).add(top.z.mul(w.y));
   const plainRoughness = materialRoughness.mul(surface.x);
   // ±8 % about the authored roughness; paint stays matte.
   const plateRoughness = plainRoughness.mul(roughness.sub(.5).mul(surface.z.mul(.16)).add(1));
 
-  // Worn paint: colour (rgb) and roughness (a) multipliers, exactly 1 where the paint wears none.
-  const worn = attribute<'vec4'>('shipWear', 'vec4');
+  // Construction paint: colour (rgb) and roughness (a) multipliers, exactly 1 on premade paint.
   const wearing = Fn(() => {
     const factor = vec4(1).toVar();
-    const amount = select(wearOverride.greaterThanEqual(0), wearOverride, worn.x).mul(step(1e-4, worn.x)).mul(surfaceWear).toVar();
-    If(amount.greaterThan(0), () => {
+    // Streak gradients come from the continuous position, taken here in uniform control flow.
+    const dx = dFdx(positionGeometry).toVar(), dy = dFdy(positionGeometry).toVar();
+    If(worn.x.greaterThan(1e-4), () => {
       // Fresh nodes throughout: one shared with the other outputs would be declared inside this branch.
       const q = positionGeometry, m = normalGeometry.normalize(), m4 = pow(abs(m), vec3(4)), tri = m4.div(m4.x.add(m4.y).add(m4.z));
-      const blotch = texture(plate, q.zy.div(PLATE.tile)).w.mul(tri.x).add(texture(plate, q.xy.div(PLATE.tile)).w.mul(tri.z))
-        .add(texture(plate, q.zx.div(PLATE.tile)).w.mul(tri.y)).mul(2).sub(1).toVar();
-      // Broad patches that never repeat keep the 16 m tile from showing along a hull.
-      const broad = mx_noise_float(q.div(7));
-      const color = vec3(amount.mul(WEAR.mottle).mul(blotch.mul(.75).add(broad.mul(.45))).add(1)).toVar(), rough = float(1).toVar();
-      const drop = worn.y;
-      If(drop.lessThan(STREAK.down), () => {
-        // Streaks hang from the top edge: along the length on beam-facing walls, across it on end walls. A slow
-        // stretch of the tile (±25 %) keeps a long hull side from repeating it every 16 m.
-        const ax = pow(abs(m.x), 4), az = pow(abs(m.z), 4), beam = ax.div(ax.add(az).add(1e-4)), v = drop.div(STREAK.down);
+      const amount = select(wearOverride.greaterThanEqual(0), wearOverride, worn.x).mul(surfaceWear).toVar();
+      const plated = attribute<'vec4'>('shipSurface', 'vec4').z.mul(plateFinish).toVar();
+      // Paint as applied, fresh or worn: each plate's own shade and roller strips, and the lines of its seams.
+      const applied = texture(finish, q.zy.div(PLATE.tile)).zw.mul(tri.x).add(texture(finish, q.xy.div(PLATE.tile)).zw.mul(tri.z))
+        .add(texture(finish, q.zx.div(PLATE.tile)).zw.mul(tri.y)).toVar();
+      const seam = applied.x.mul(plated), tone = applied.y.mul(2).sub(1).mul(plated);
+      const color = vec3(tone.mul(APPLIED.tone).add(1)).toVar(), rough = tone.mul(APPLIED.sheen).add(1).toVar();
+      If(amount.greaterThan(0), () => {
+        const blotch = texture(plate, q.zy.div(PLATE.tile)).w.mul(tri.x).add(texture(plate, q.xy.div(PLATE.tile)).w.mul(tri.z))
+          .add(texture(plate, q.zx.div(PLATE.tile)).w.mul(tri.y)).mul(2).sub(1).toVar();
+        // Broad patches that never repeat keep the 16 m tile from showing along a hull.
+        const broad = mx_noise_float(q.div(7));
+        color.mulAssign(amount.mul(WEAR.mottle).mul(blotch.mul(.75).add(broad.mul(.45))).add(1));
+        // Runoff hangs from edges: along the length on beam-facing walls, across it on end walls. A slow stretch of the
+        // tile (±25 %) keeps a long hull side from repeating it every 16 m.
+        const ax = pow(abs(m.x), 4), az = pow(abs(m.z), 4), beam = ax.div(ax.add(az).add(1e-4)), vertical = abs(m.y).lessThan(.62);
         const stretched = (h: Node<'float'>) => h.add(h.mul(.09).sin().mul(1.5)).add(h.mul(.23).add(1.3).sin().mul(.5)).div(STREAK.along);
-        const runoff = mix(texture(streaks, vec2(stretched(q.x), v)), texture(streaks, vec2(stretched(q.z), v)), beam);
         // Hat weights over the presets' channels, fading in from no wear.
-        const levels = float(1).sub(abs(vec4(...WEAR_LEVELS).sub(amount)).div(.3)).clamp(0, 1).mul(amount.mul(10).min(1));
-        const cover = dot(runoff, levels).mul(smoothstep(.62, .4, abs(m.y))).mul(amount.mul(WEAR.streak[1]).add(WEAR.streak[0]));
+        const weights = (wear: Node<'float'>) => float(1).sub(abs(vec4(...WEAR_LEVELS).sub(wear)).div(.3)).clamp(0, 1).mul(amount.mul(10).min(1));
+        const levels = weights(amount).toVar();
+        // The share of paint no runoff reaches.
+        const clear = float(1).toVar(), drop = worn.y, tide = worn.w;
+        If(vertical.and(drop.lessThan(STREAK.down)), () => {
+          const v = drop.div(STREAK.down);
+          clear.assign(dot(mix(texture(streaks, vec2(stretched(q.x), v)), texture(streaks, vec2(stretched(q.z), v)), beam), levels).oneMinus());
+        });
+        // Every strake seam below a wall's top edge and above the sea leaks a shorter, closer-set fringe of its own,
+        // some seams more than others.
+        const seamAbove = q.y.div(PLATE.strake).ceil(), seamDrop = seamAbove.mul(PLATE.strake).sub(q.y);
+        If(vertical.and(plated.greaterThan(0)).and(seamDrop.lessThan(drop.sub(.05))).and(tide.greaterThan(.3)), () => {
+          const leak = seamAbove.mul(12.9898).sin().mul(43758.5453).fract(), v = seamDrop.mul(APPLIED.seamRun / STREAK.down);
+          // Explicit gradients, since the seam index and its drop jump at every seam.
+          const along = APPLIED.seamSpacing / STREAK.along, down = -APPLIED.seamRun / STREAK.down;
+          const fringe = (h: Node<'float'>, hx: Node<'float'>, hy: Node<'float'>) => texture(streaks, vec2(stretched(h.add(leak.mul(STREAK.along))).mul(APPLIED.seamSpacing), v))
+            .grad(vec2(hx.mul(along), dx.y.mul(down)), vec2(hy.mul(along), dy.y.mul(down)));
+          const runoff = mix(fringe(q.x, dx.x, dy.x), fringe(q.z, dx.z, dy.z), beam);
+          const share = leak.mul(1 - APPLIED.leakMin).add(APPLIED.leakMin);
+          clear.mulAssign(dot(runoff, weights(amount.mul(APPLIED.seamWetter).min(1))).mul(share).mul(APPLIED.seamRunoff).min(1).oneMinus());
+          // Grime gathers in a soft band just below the seam.
+          clear.mulAssign(exp(seamDrop.div(-APPLIED.bandReach)).mul(amount.mul(APPLIED.band)).mul(share).oneMinus());
+        });
+        const cover = clear.oneMinus().mul(smoothstep(.62, .4, abs(m.y))).mul(amount.mul(WEAR.streak[1]).add(WEAR.streak[0]));
         color.mulAssign(mix(vec3(1), mix(vec3(...WEAR.grime), vec3(...WEAR.rust), smoothstep(.2, 1, amount)), cover));
         // Grime and rust dull the paint a little.
         rough.mulAssign(cover.mul(.2).add(1));
+        If(abs(tide).lessThan(2), () => {
+          // A narrow band just above the rest waterline, its edge wandering over a metre or so.
+          const edge = mx_noise_float(vec3(q.z.div(1.2), q.x.div(1.2), 0)).mul(.07).add(mx_noise_float(vec3(q.z.div(.35), q.x.div(.35), 3)).mul(.03));
+          const stain = exp(tide.sub(.08).sub(edge).div(amount.mul(.12).add(.2)).pow(2).negate());
+          color.mulAssign(mix(vec3(1), vec3(...WEAR.tide), stain.mul(amount.mul(WEAR.stain).min(WEAR.stain))));
+        });
+        const funnel = worn.z;
+        If(funnel.lessThan(6), () => {
+          // Matte soot over the top metre or few of a funnel, its lower edge ragged.
+          const reach = amount.mul(WEAR.sootReach[1]).add(WEAR.sootReach[0]);
+          const soot = float(1).sub(smoothstep(reach.mul(.15), reach, funnel.sub(blotch.mul(reach).mul(.2)))).mul(amount.mul(WEAR.sootDarkness[1]).add(WEAR.sootDarkness[0]));
+          color.mulAssign(mix(vec3(1), vec3(...WEAR.soot), soot));
+          rough.mulAssign(soot.mul(.5).add(1));
+        });
       });
-      const tide = worn.w;
-      If(abs(tide).lessThan(2), () => {
-        // A narrow band just above the rest waterline, its edge wandering over a metre or so.
-        const edge = mx_noise_float(vec3(q.z.div(1.2), q.x.div(1.2), 0)).mul(.07).add(mx_noise_float(vec3(q.z.div(.35), q.x.div(.35), 3)).mul(.03));
-        const stain = exp(tide.sub(.08).sub(edge).div(amount.mul(.12).add(.2)).pow(2).negate());
-        color.mulAssign(mix(vec3(1), vec3(...WEAR.tide), stain.mul(amount.mul(WEAR.stain).min(WEAR.stain))));
-      });
-      const funnel = worn.z;
-      If(funnel.lessThan(6), () => {
-        // Matte soot over the top metre or few of a funnel, its lower edge ragged.
-        const reach = amount.mul(WEAR.sootReach[1]).add(WEAR.sootReach[0]);
-        const soot = float(1).sub(smoothstep(reach.mul(.15), reach, funnel.sub(blotch.mul(reach).mul(.2)))).mul(amount.mul(WEAR.sootDarkness[1]).add(WEAR.sootDarkness[0]));
-        color.mulAssign(mix(vec3(1), vec3(...WEAR.soot), soot));
-        rough.mulAssign(soot.mul(.5).add(1));
-      });
+      // Grime gathers in the seams, and rust bleeds from them as the paint wears.
+      const seamTint = mix(vec3(...APPLIED.seamGrime), vec3(...APPLIED.seamRust), smoothstep(.3, 1, amount).mul(.8));
+      color.mulAssign(mix(vec3(1), seamTint, seam.mul(amount.mul(APPLIED.seam[1]).add(APPLIED.seam[0])).min(1)));
+      rough.mulAssign(seam.mul(APPLIED.seamRough).add(1));
       factor.assign(vec4(color, rough));
     });
     return factor;
