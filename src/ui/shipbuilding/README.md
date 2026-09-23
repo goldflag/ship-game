@@ -191,7 +191,10 @@ Source formats for these are in [docs/shipbuilding.md](../../../docs/shipbuildin
   release. Orientation math is `src/ships/constructionOrientation.ts`.
 - **Custom hull sections**: select a custom hull and choose **Edit hull sections**.
   `CustomHullEditor.tsx` covers the builder with Orbit, Section, Plan and Profile views (keys 1–4),
-  a station ruler and its own snapping. **Apply hull** is one undoable source edit.
+  a station ruler and its own snapping. **Apply hull** is one undoable source edit. Up to 48 sections; where
+  the ruler is too crowded for an insert button between every pair, the gaps beside the selected section keep
+  one. **+ Pair**/**− Pair** re-space every outline; **Crease** marks the selected point (both sides) as a
+  lighting crease that also stays put when pairs are added or removed.
 - **Balcony outline**: **Edit balcony outline** opens `BalconyEditor.tsx`, a plan drawing with
   draggable points and per-edge Open / Railing / Triple railing / Solid wall.
 

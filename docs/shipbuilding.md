@@ -165,13 +165,29 @@ the shipped surface always comes from the native compile.
 `kind: "custom-hull"` with `customHull.version: 1`; `size` is `[beam, depth, length]`.
 `construction_custom_hull.rs` enforces:
 
-- 4–24 stations with stable IDs and ordered `t`.
+- 4–48 stations with stable IDs and ordered `t`.
 - The same odd point count, 5–33, in every station. Left/right symmetry is implied.
 - Optional point `contour` positions on the original 0–8 outline scale, so inserting or removing
   point pairs preserves unchanged panel IDs. Nine-point hulls without `contour` need no migration.
 - `rake` 0–1.5 and `bulb` 0–1 bow parameters.
 
-Rust derives closed convex cells and attributed exterior panels with mirrored triangulation.
+- Optional `creases`: port contour positions strictly between the deck edge and the keel, each on an
+  outline point, mirrored to starboard. Lighting only (below).
+
+Rust derives closed convex cells and attributed exterior panels with mirrored triangulation. Each span
+between two sections is cut into tetrahedra about one centre when it is star-shaped about the midpoint of
+its ring means. When it is not (a wine-glass bow section: flare over a narrow waist over a wider forefoot),
+that span alone falls back to a band cut: mirrored outline points share a height, so the chords between
+them cut each section into symmetric trapezoids, and consecutive bands form slabs that are each star-shaped
+about their own centre (a thin keel sliver rides with the band above it). Exterior side triangles are the
+same either way; a banded end span splits its cap by band. A side whose height climbs back up has no band
+cut, and the span is rejected as folding. `src/ships/customHullSpans.ts` ports the decision for the loft's
+fold check and the editor's end caps; hulls that compiled before the fallback compile byte-identically.
+
+Side lighting is one smoothing group per side (deck, keel and end caps stay sharp) unless `creases` split
+it: each crease starts a new group, in the built model, the shape preview and the section editor. The
+editor's pair add/remove keeps creased points fixed and re-spaces the points between them, and its
+section editor has a Crease toggle on the selected outline point.
 Starting hulls come from `HULL_PRESETS` in `src/ships/constructionHullPresets.ts` (six ship-based,
 four generic); regenerate ship-based sections with `bun scripts/construction/hull-presets.ts`.
 

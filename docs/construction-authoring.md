@@ -145,10 +145,15 @@ Use `primitive-patch` for dimensions, rake, bulb and `customHull.paintBands` (or
 (hull-local metres; `null` disables the red coating). Use `hull-station` to change
 one existing section's `t` or outline (keep the hull's point count; to change the count, replace
 every section's `points` in one `primitive-patch` of `customHull.stations`), and `hull-sections` for the UI's
-4–24-section interpolation/simplification. Increasing count retains existing
+4–48-section interpolation/simplification. Increasing count retains existing
 sections. Changing section adjacency creates new panel IDs; old panel overrides
 remain stored and new panels inherit side defaults. Inspect panel IDs again before
 assigning armor. Equipment stays at its authored placement when the hull changes.
+
+`customHull.creases` lists crease lines as port contour positions (strictly between the deck edge 0 and the keel
+4, each on an outline point, ascending; mirrored to starboard). They split the side lighting there, as at a
+knuckle or hard chine, and the editor keeps a creased point in place when it re-spaces an outline. They do not
+change the compiled solid. `ship:loft` writes them for the corner lines it pins.
 
 ## Reading a design cheaply
 
@@ -277,7 +282,7 @@ JSON path within that command and the offending value or ID, with close matches:
 Command 3 (move): delta[1] must be a finite number, got null
 Command 0 (rotate): degrees is required
 Command 7 (remove): unknown source ID "gun-fwd"; closest: "gun-forward"
-Command 2 (primitive-patch): result is not a valid source: Custom hulls require 4–24 sections
+Command 2 (primitive-patch): result is not a valid source: Custom hulls require 4–48 sections
 Batch: label is required
 ```
 
@@ -294,7 +299,7 @@ Commands are:
 | `primitive`, `equipment`, `boundary`, `load` | `value` | Add or replace the complete source record by stable ID |
 | `primitive-patch`, `equipment-patch` | `id`, `changes` | Merge only supplied fields into an existing record; nested objects merge, arrays replace, `null` removes optional fields |
 | `fitting`, `fitting-patch` | `value`; `id`, `changes` | Add, replace or patch a design-local fitting definition ([Custom fittings](#custom-fittings)); `solids` and `tubes` replace whole |
-| `hull-sections` | `id`, `count` | Resize an adjustable hull's section list with the same 4–24-section interpolation/simplification as the UI |
+| `hull-sections` | `id`, `count` | Resize an adjustable hull's section list with the same 4–48-section interpolation/simplification as the UI |
 | `hull-station` | `id`, `stationId`, `changes: {t?, points?}` | Edit one existing section while retaining its ID and other sections |
 | `copy` | `copies: [{from,to}]`, optional `mirror` or `offset` | Copy hull pieces, equipment and loads using caller-supplied new IDs; preserve surfaces and remap copied magazine/engine links |
 | `remove` | `ids` | Remove selected records; retain the last hull piece. A custom fitting definition is refused while instances outside the command use it |

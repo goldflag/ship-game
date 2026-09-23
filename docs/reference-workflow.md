@@ -86,39 +86,72 @@ platform that has to be built first.
 ## 4. Fit a hull to it: `ship:loft`
 
 ```sh
-bun run ship:loft my-ship --reference pgsb507 --y 7 --max-stations 24 --points 17 --out .build/loft.json
+bun run ship:loft my-ship --reference pgsb507 --max-stations 48 --points 17 --out .build/loft.json
 ```
 
 It measures a station every `--sample` metres, greedily adds the station the current set represents worst until
-the worst half-breadth error is under `--tolerance` or `--max-stations` (≤ 24) is reached, resamples each
-outline by arc length to `--points` (odd, 5–33, the same count in every station, which the format requires),
-applies the tip rule — an end station narrower than a fifth of the maximum half-breadth becomes a true stem or
-transom point, and only an end station may — and then runs the native fold check **before** proposing
-anything.
+the worst half-breadth error is under `--tolerance` or `--max-stations` (default 24, at most 48) is reached, and
+then builds each section's outline:
 
-That check is a TypeScript port of the star-shaped test in `construction_custom_hull.rs`; the Rust builder
-remains the authority. It names the span and the piece, the same way the native message now does
-(`Sections "st0" and "st1" fold through each other at the bow cap at point 0`). If any span folds, no batch is
-written and the command exits non-zero. Otherwise it proposes a revision-guarded `primitive-patch` that sets
-the piece's `size`, `position` and `customHull.stations`; check it with `ship:apply … --dry-run` before
-applying, because only the native compiler decides fit, support and clearance.
+- **Sampled at the cut's own vertices.** A station is sampled at every height where the cut has a vertex as well as
+  evenly, so a knuckle, chine or belt step is a measured point rather than something the samples cut across.
+- **Fins removed.** A protrusion shorter than `--fin` metres of height (default 1) that sticks out more than 15 cm
+  beyond what the outline returns to above and below it — a bilge keel, a shaft bracket — is cut back to the hull.
+  A broad bulge such as a forefoot keeps its shape. `--fin 0` keeps everything.
+- **Flat bottoms stay flat.** The nearly level run at the keel (under 10° of rise) ends at a chine point, one point
+  above the keel, with the keel beside it on the centreline. The keel is no longer dragged to the centreline, which
+  turned a flat bottom and its bilge into a V.
+- **Corner lines are pinned.** Corners (a turn of at least `--crease` degrees, default 10, that turns as much at
+  half the chord length, so a smooth bilge is not a corner) are followed from station to station into lines along
+  the hull. The strongest `--creases` lines (default a quarter of the points on one side) get the same outline
+  index in every section: at the corner where a section has one, at the line's interpolated height where the line
+  runs past a section without a corner, and spaced like any other point where the line does not reach. Points
+  between pins are spaced by arc length.
+- **Resampled** to `--points` (odd, 5–33, the same count in every station, which the format requires), then the
+  tip rule: an end station narrower than `--tip` (a fifth of the maximum half-breadth by default) becomes a true
+  stem or transom point, and only an end station may.
+
+The output lists the pinned lines under `creases` (contour position, index, height, how many sections have the
+corner, whether it is sharp enough to be a lighting crease), writes the sharp ones into the batch as
+`customHull.creases`, and names the `bandedSpans` the native compiler will cut into horizontal bands. `accuracy`
+compares the fitted hull with every measured station, taking the hull between two sections as the straight blend
+of their outline points: the largest distance from a measured outline point to the fitted outline, the half-breadth
+error from 0.25 m above the keel up, deck and keel height error, and section-area error.
+
+Then it runs the native fold check **before** proposing anything: a TypeScript port of the span test in
+`construction_custom_hull.rs`, including the band-cut fallback (`src/ships/customHullSpans.ts`); the Rust builder
+remains the authority. A span neither cut accepts is named the same way the native message names it
+(`Sections "st0" and "st1" fold through each other at the bow cap at point 0`); the loft splits that span with the
+measured station nearest its middle and tries again, and if a fold survives no batch is written and the command
+exits non-zero. Otherwise it proposes a revision-guarded `primitive-patch` that sets the piece's `size`, `position`,
+`customHull.stations` and `customHull.creases`; check it with `ship:apply … --dry-run` before applying, because only
+the native compiler decides fit, support and clearance. The new stations have new IDs, so panel-level paint and armor
+on the old hull no longer apply, and fittings seated on the old hull may need `ship:reseat`.
 
 `--parts` defaults to `hull`, `--primitive` to `hull`, and `--box`/`--y` restrict the geometry the same way
 `ship:slice` does. Rake and bulb are left as they are: the fit assumes the native mapping with both at zero, so
 a non-zero bow setting will shift the fitted bow sections.
 
-### What it does not yet do well
+### What it does well, and what it does not yet
 
-**A real warship bow still defeats the fit.** On the Scharnhorst the parallel body fits well — 24 stations
-reproduce the measured half-breadths to within 0.18 m — but the forwardmost span folds at the port deck edge
-whatever the station density, point count or tip fraction, because the deep narrow forefoot and the sheer put
-the span's own centre in the plane of the deck-edge quad. The native compiler rejects the same span with the
-same words, so the gate is doing its job; the fit is what needs more work. Until then, treat `ship:loft` as a
-measuring and checking tool: read the named spans, restrict `--box` to the body that fits, and shape the ends
-by hand with `ship:apply`.
+**The Scharnhorst fits end to end.** `--max-stations 48 --points 17` against `pgsb507` fits the whole hull, stem to
+stern, with no hand-shaped ends and no fold: seven spans, mostly in the wine-glass bow, take the band cut, and the
+batch compiles. Against all 115 measured stations the outline is within 0.29 m (median) and 0.71 m (90th
+percentile) of the reference, and the section area within 0.5 % (median) and 1.7 % (90th percentile). The Atlantic
+bow's knuckle at about 1.4–1.9 m, which continues aft as the top of the belt, is pinned and written as a crease.
+
+**Seventeen points is the limit on detail.** Each pin spends one of the eight intervals per side, so a hull with
+many corners trades resolution between them; `--points 33` or fewer `--creases` shifts that balance.
+
+**Appendages below the waterline follow the reference.** Skegs, rudders and shaft bossings that the source groups
+with the hull are lofted as hull where they are too tall to be fins; the largest errors on the Scharnhorst (about
+2 m of outline offset) are at the skeg around z = 96. Restrict `--box` or `--parts` to leave them out.
+
+**The stem profile is not modelled.** Every point of an end station shares one z, so a raked or curved forefoot is
+approximated by the stations behind it; a per-point stem offset would fix it but touches every bow transform.
 
 Adjustable levers: `--sample` (candidate spacing), `--tolerance` (when the greedy stops), `--max-stations`,
-`--points`, `--tip` (the fraction of maximum half-breadth below which an end station collapses to a point).
+`--points`, `--tip`, `--fin`, `--crease`, `--creases`.
 
 ## Limits
 
