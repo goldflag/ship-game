@@ -5,9 +5,9 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 620px;
+  width: 520px;
   pointer-events: none;
-  background: linear-gradient(90deg, #08151e00 0%, #08151e8a 38%, #08151ec2 100%);
+  background: linear-gradient(90deg, #08151e00 0%, #08151e4d 40%, #08151e80 100%);
   -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent 70px, #000 124px);
   mask-image: linear-gradient(180deg, transparent 0, transparent 70px, #000 124px);
 }
@@ -16,7 +16,7 @@
   top: 100px;
   right: 30px;
   bottom: 34px;
-  width: 372px;
+  width: 320px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -34,15 +34,17 @@
   flex-shrink: 0;
   border-bottom: 1px solid #c9dce04a;
 }
+/* Tabs size to their labels so the counts fit in the narrow column. */
 .port-panel .port-panel-tabs button {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   min-height: 40px;
-  padding: 8px 3px;
+  padding: 8px 4px;
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
+  white-space: nowrap;
   margin-bottom: -1px;
   font-size: 12px;
   color: #c8d8db;
@@ -557,10 +559,10 @@
 @media (max-width: 1240px) {
   .port-panel {
     right: 24px;
-    width: 330px;
+    width: 296px;
   }
   .port-panel-shade {
-    width: 560px;
+    width: 480px;
   }
 }
 @media (max-width: 1180px) {
@@ -570,7 +572,7 @@
 }
 @media (max-width: 980px) {
   .port-panel {
-    width: 290px;
+    width: 272px;
   }
   .port-particulars dd {
     font-size: 19px;
