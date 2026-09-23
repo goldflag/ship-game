@@ -1,4 +1,4 @@
-/** `bun scripts/browser/ocean-waves.ts --tag <name> [--quality high] [--webgl] [--views near,wide] [--seas moderate,storm]
+/** `bun scripts/browser/ocean-waves.ts --tag <name> [--quality high] [--views near,wide] [--seas moderate,storm,15]
  *   [--show shaded|height|slope|foam|variance|jacobian] [--validate] [--timing]`
  * Drives `scripts/diagnostics/ocean-waves.html` in a headed Chromium (headless stalls WebGPU): saves one PNG per
  * view and sea to `.build/ocean-waves/<tag>/`, and with --validate / --timing checks every tier and writes `results.json`. */
@@ -11,7 +11,7 @@ import { authoringServer, serverUrl } from '../construction/browser';
 import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
-  tag: { type: 'string', default: 'current' }, quality: { type: 'string', default: 'high' }, webgl: { type: 'boolean', default: false },
+  tag: { type: 'string', default: 'current' }, quality: { type: 'string', default: 'high' },
   views: { type: 'string', default: '' }, seas: { type: 'string', default: 'moderate' }, show: { type: 'string', default: 'shaded' },
   validate: { type: 'boolean', default: false }, timing: { type: 'boolean', default: false }, url: { type: 'string' },
 } });
@@ -21,7 +21,7 @@ const server = values.url ? undefined : await authoringServer(ROOT, 0, true);
 const url = values.url ?? serverUrl(server!);
 let browser: Browser | undefined;
 const pageErrors: string[] = [];
-const results: Record<string, unknown> = { webgl: values.webgl };
+const results: Record<string, unknown> = {};
 try {
   browser = await chromium.launch({ headless: false, args: ['--enable-unsafe-webgpu', '--window-position=0,0', '--window-size=1600,990'],
     ...(process.env.HARNESS_CHROME ? { executablePath: process.env.HARNESS_CHROME } : {}) });
@@ -30,7 +30,7 @@ try {
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') pageErrors.push(message.text()); });
   // A blurred window pauses requestAnimationFrame-driven timing; the page renders on demand instead.
-  const query = new URLSearchParams({ quality: values.quality!, show: values.show!, ...(values.webgl ? { webgl: '1' } : {}) });
+  const query = new URLSearchParams({ quality: values.quality!, show: values.show! });
   await page.goto(`${url}/scripts/diagnostics/ocean-waves.html?${query}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready, undefined, { polling: 250 });
   results.backend = await page.evaluate(() => (window as any).oceanWaves.backend);

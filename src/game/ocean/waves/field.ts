@@ -1,7 +1,7 @@
 /** GPU half of the wave field: evolves the CPU spectrum to the current time, inverse-transforms
- * every cascade with Stockham fragment passes, persists crest foam, and serves the surface,
- * vertex and height nodes the other ocean parts sample. One code path runs on WebGPU and on
- * three's WebGL2 fallback: render-to-texture passes, float32 intermediates, no compute. */
+ * every cascade with Stockham fragment passes (float32 render targets, a handful of draws per
+ * update), persists crest foam, and serves the surface, vertex and height nodes the other ocean
+ * parts sample. */
 import { DataTexture, FloatType, HalfFloatType, LinearFilter, LinearMipmapLinearFilter, NearestFilter, NoBlending, NodeMaterial,
   QuadMesh, RGBAFormat, RenderTarget, RepeatWrapping, Vector2, type Node, type Texture, type WebGPURenderer } from 'three/webgpu';
 import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max, min, mix, mrt, screenCoordinate, select, sin, smoothstep,
@@ -25,10 +25,13 @@ const FIELDS = ['displacement', 'derivatives', 'extras'] as const;
  * into the slope variance instead (see surface()). */
 const COARSEST_TEXELS = 16;
 const ANISOTROPY = 16;
-/** Full crest-foam injection where a cascade's Jacobian falls to CREST_FULL, none above CREST_START. */
-const CREST_START = .7, CREST_FULL = .1;
-/** Windward injection on downwind faces steeper than FACE_START (slope), full at FACE_FULL. */
-const FACE_START = .2, FACE_FULL = .6;
+/** Crest foam: none while a cascade's Jacobian stays above CREST_START, all of `crestStrength` once it
+ * falls to CREST_FULL. A single choppy wave at Stokes' breaking steepness (ka ≈ 0.44) has J ≈ 0.5,
+ * so injection sits around breaking crests. Windward foam: downwind faces steeper than FACE_START
+ * (slope), full at FACE_FULL. With the game's calibrated gains the mean coverage follows Monahan &
+ * O'Muircheartaigh's whitecap fraction (3.84e-6·U^3.41) within about 1.5× from 9 to 25 m/s. */
+const CREST_START = .6, CREST_FULL = .2;
+const FACE_START = .22, FACE_FULL = .5;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
 const MIN_JACOBIAN = .1;

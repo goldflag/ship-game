@@ -1,8 +1,8 @@
 /** CPU wave spectrum. Each cascade is a periodic tile whose wavevector lattice k = 2π·n/L holds
- * seeded Gaussian amplitudes drawn from a JONSWAP spectrum (Hasselmann et al. 1973) with
- * frequency-dependent directional spreading (Hasselmann et al. 1980), then scaled so the rendered
- * surface has exactly the requested significant height. Pure TypeScript: the GPU only evolves
- * and transforms what this file builds. */
+ * seeded Gaussian amplitudes drawn from a JONSWAP spectrum (Hasselmann et al. 1973) whose short
+ * waves are held to Phillips' saturation range, with frequency-dependent directional spreading
+ * (Hasselmann et al. 1980), then scaled so the rendered surface has exactly the requested
+ * significant height. Pure TypeScript: the GPU only evolves and transforms what this file builds. */
 import type { WaveCascadeInfo, WaveParameters } from '../contracts';
 
 export const GRAVITY = 9.81;
@@ -11,6 +11,10 @@ export const GRAVITY = 9.81;
 export const FOLD_PERIOD = 4096;
 /** The finer cascade takes over a band once its lattice has this many modes across the cut radius. */
 const FINE_MODES_AT_CUT = 8;
+/** Phillips' (1958) saturation constant: breaking caps short waves at α·g²·ω⁻⁵ however high the sea. */
+const SATURATION = .0081;
+/** The cap blends in between these multiples of the peak frequency; the peak itself stays JONSWAP. */
+const SATURATION_ONSET = 1.5, SATURATION_FULL = 3;
 
 export interface WaveBand {
   /** Wavenumbers |k| (rad/m) this cascade holds: lo ≤ |k| < hi. */
@@ -60,6 +64,33 @@ export function jonswap(omega: number, peak: number, gamma: number): number {
   const sigma = omega <= peak ? .07 : .09;
   const r = Math.exp(-((omega - peak) ** 2) / (2 * sigma * sigma * peak * peak));
   return GRAVITY * GRAVITY / omega ** 5 * Math.exp(-1.25 * (peak / omega) ** 4) * gamma ** r;
+}
+
+/** Energy per unit ω of the drawn sea: JONSWAP at `level` (its α), held at or below the saturation
+ * range above the peak. The game's seas are steeper than real ones (Hs/λp up to 0.14 at 25 m/s,
+ * where a fully developed sea has 0.03), so a JONSWAP normalised to their height would put α ≈ 0.2
+ * into every short wave; saturation keeps that energy in the peak, where breaking would leave it. */
+export function seaSpectrum(omega: number, peak: number, gamma: number, level: number): number {
+  const free = level * jonswap(omega, peak, gamma);
+  const t = Math.min(1, Math.max(0, (omega / peak - SATURATION_ONSET) / (SATURATION_FULL - SATURATION_ONSET)));
+  return free + (Math.min(free, SATURATION * GRAVITY ** 2 / omega ** 5) - free) * t * t * (3 - 2 * t);
+}
+
+/** The JONSWAP level α at which seaSpectrum holds `variance` (m²) in total. */
+export function spectrumLevel(peak: number, gamma: number, variance: number): number {
+  const total = (level: number) => {
+    // ∫ over 0.3–30 ωp on a logarithmic grid: JONSWAP is negligible outside it.
+    let sum = 0;
+    for (let i = 0; i <= 600; i++) {
+      const omega = peak * .3 * 100 ** (i / 600);
+      sum += seaSpectrum(omega, peak, gamma, level) * omega * (i === 0 || i === 600 ? .5 : 1);
+    }
+    return sum * Math.log(100) / 600;
+  };
+  let low = 0, high = 1e-3;
+  while (total(high) < variance) high *= 2;
+  for (let i = 0; i < 60; i++) { const middle = (low + high) / 2; if (total(middle) < variance) low = middle; else high = middle; }
+  return (low + high) / 2;
 }
 
 /** Spreading exponent s of cos^{2s}(θ/2) (Hasselmann et al. 1980): narrowest near the peak, broader
@@ -112,6 +143,7 @@ export function buildSpectrum(cascades: readonly WaveCascadeInfo[], params: Wave
   const height = params.significantHeight, lambda = params.peakWavelength;
   const calm = !(height > 0) || !(lambda > 0) || !Number.isFinite(height) || !Number.isFinite(lambda);
   const peak = Math.sqrt(GRAVITY * 2 * Math.PI / lambda), gamma = Math.max(1, params.gamma);
+  const level = calm ? 0 : spectrumLevel(peak, gamma, (height / 4) ** 2);
   const cosWind = Math.cos(params.windDirection), sinWind = Math.sin(params.windDirection);
   let total = 0;
   const built = cascades.map((cascade, index) => {
@@ -130,7 +162,7 @@ export function buildSpectrum(cascades: readonly WaveCascadeInfo[], params: Wave
       const cosTheta = (kx * cosWind + kz * sinWind) / k;
       const toward = Math.sqrt(Math.max(0, (1 + cosTheta) / 2)) ** (2 * s), away = Math.sqrt(Math.max(0, (1 - cosTheta) / 2)) ** (2 * s);
       // Directional wavenumber spectrum S(k)·D(θ)/k with S(k) = E(ω)·dω/dk, times the cell area.
-      const density = jonswap(omega, peak, gamma) * GRAVITY / (2 * omega) * spreadingNormalization(s) / k * dk * dk;
+      const density = seaSpectrum(omega, peak, gamma, level) * GRAVITY / (2 * omega) * spreadingNormalization(s) / k * dk * dk;
       const pair = density * (toward + away);
       if (!(pair > 0)) continue;
       // Each pair is one travelling wave: its direction is drawn in proportion to the energy each

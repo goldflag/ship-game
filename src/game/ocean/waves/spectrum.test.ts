@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import type { WaveCascadeInfo, WaveParameters } from '../contracts';
 import { OCEAN_TIERS } from '../quality';
 import { activeModes, referenceTexel } from './reference';
-import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands, modeHash } from './spectrum';
+import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands, jonswap, modeHash, seaSpectrum, spectrumLevel } from './spectrum';
 
 const sea = (overrides: Partial<WaveParameters> = {}): WaveParameters => ({
   significantHeight: 1.8, windSpeed: 9, windDirection: .6, peakWavelength: 32, choppiness: 1.2,
@@ -95,6 +95,16 @@ describe('wave spectrum', () => {
       expect(spectrum.tailSlopeVariance).toBeLessThanOrEqual(.003 + .00512 * 9);
       if (height < .1) expect(spectrum.tailSlopeVariance).toBeGreaterThan(.01);
     }
+  });
+
+  test('steep seas hold their short waves at the saturation level', () => {
+    // The 25 m/s calibration (Hs 8.8 m at λp 62 m) is several times steeper than a developed sea:
+    // its drawn slopes stay near Cox–Munk's measured total instead of a JONSWAP scaled to its height.
+    const storm = buildSpectrum(OCEAN_TIERS.high.cascades, sea({ significantHeight: 8.8, peakWavelength: 62.2, windSpeed: 25 }));
+    expect(storm.cascades.reduce((sum, c) => sum + c.slopeVariance, 0)).toBeLessThan(1.5 * (.003 + .00512 * 25));
+    // A gentle sea is below saturation everywhere: the drawn spectrum is JONSWAP itself.
+    const peak = Math.sqrt(GRAVITY * 2 * Math.PI / 10.67), level = spectrumLevel(peak, 2.6, (.15 / 4) ** 2);
+    for (const ratio of [.8, 1, 2, 4, 8]) expect(seaSpectrum(ratio * peak, peak, 2.6, level) / jonswap(ratio * peak, peak, 2.6)).toBeCloseTo(level, 12);
   });
 
   test('bounds hold against an explicit inverse DFT', () => {
