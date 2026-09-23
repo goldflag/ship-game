@@ -55,7 +55,7 @@ const BUBBLE_STRENGTH = .6, BUBBLE_START = .02, BUBBLE_FULL = .4, BUBBLE_DEPTH =
  * reads milky from any angle instead of mirroring the sky. */
 const AERATED_MATTE = .5;
 /** Share of daylight the bubble cloud scatters back up through the water above it. */
-const BUBBLE_ALBEDO = .3;
+const BUBBLE_ALBEDO = .18;
 /** Edge half-width of windrows, and the opacity left in a line's gaps between lace filaments. */
 const WINDROW_EDGE = .08, WINDROW_LACE = .05;
 /** Lace levels over which a windrow goes from its gaps to full lumps of foam. */
