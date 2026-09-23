@@ -432,7 +432,6 @@ export function constructionSummary(
     defaults: {
       thicknessMm: c.defaultThicknessMm,
       ...(c.paint ? { paint: c.paint } : {}),
-      ...(c.roofPaint ? { roofPaint: c.roofPaint } : {}),
       ...(c.finish ? { finish: c.finish } : {}),
       ...(c.wear ? { wear: c.wear } : {}),
     },

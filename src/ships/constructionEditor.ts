@@ -328,8 +328,6 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   if (data.finish !== undefined && !isConstructionSurfaceFinish(data.finish)) throw new Error('Unsupported surface finish');
   if (data.paint !== undefined && (typeof data.paint !== 'string' || !data.paint.length || data.paint.length > 64))
     throw new Error('Ship paint must be a name of at most 64 characters');
-  if (data.roofPaint !== undefined && (typeof data.roofPaint !== 'string' || !data.roofPaint.length || data.roofPaint.length > 64))
-    throw new Error('Roof paint must be a name of at most 64 characters');
   if (data.wear !== undefined && !isConstructionWear(data.wear)) throw new Error('Unsupported ship wear');
   for (const surface of rows(data.surfaces, 'Surfaces')) {
     string(surface.primitiveId, 'Surface primitive');

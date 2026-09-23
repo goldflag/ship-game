@@ -63,22 +63,14 @@ export function setWear(this: BuilderTool, wear?: ConstructionSource['constructi
   return this.run('Set ship wear', [{ op: 'wear', wear }]);
 }
 
-/** Roof paint coats horizontal steel that wears the ship paint; omission draws the ship paint's darker shade. */
-export function setRoofPaint(this: BuilderTool, paint?: string): ConstructionSubmission | undefined {
-  if (paint && !CONSTRUCTION_PAINTS.some((entry) => entry.id === paint)) return undefined;
-  if (paint === this.data.roofPaint) return undefined;
-  return this.run('Set roof paint', [{ op: 'roof-paint', paint }]);
-}
-
-/** Ship paint coats every face and fitting without a colour of its own. Faces, fittings and a roof paint
- * wearing the previous ship paint follow the change; decks, boot topping and other accents stay. */
+/** Ship paint coats every face and fitting without a colour of its own. Faces and fittings wearing
+ * the previous ship paint follow the change; decks, boot topping and other accents stay. */
 export function setShipPaint(this: BuilderTool, paint?: string): ConstructionSubmission | undefined {
   if (paint && !CONSTRUCTION_PAINTS.some((entry) => entry.id === paint)) return undefined;
   const previous = constructionShipPaint(this.source),
     next = paint ?? 'naval-gray';
   if (paint === this.data.paint) return undefined;
   const commands: ConstructionCommand[] = [{ op: 'ship-paint', paint }];
-  if (previous !== next && this.data.roofPaint === previous) commands.push({ op: 'roof-paint', paint: next });
   if (previous !== next)
     for (const surface of this.data.surfaces)
       if (surface.paint === previous) commands.push({ op: 'surface', value: { ...surface, paint: next } });

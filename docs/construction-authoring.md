@@ -377,7 +377,6 @@ Commands are:
 | `name` | `name` | Rename the design |
 | `skin` | `thicknessMm` | Set default structural skin |
 | `ship-paint` | optional `paint` | Set the ship paint worn by faces without an assignment and by fittings (with their barbettes) without a `paint`; omission restores naval gray faces and original fitting finishes |
-| `roof-paint` | optional `paint` | Set the paint of upward faces, roofs, platforms and turret tops that wear the ship paint; other paints stay. Omission draws a darker shade of the ship paint |
 | `finish` | optional `finish` | Set the whole-ship sheen (`matte`, `satin`, `semi-gloss`, `gloss`) of painted surfaces; omission restores original finishes |
 | `wear` | optional `wear` | Set the weathering drawn in port and battle (`fresh`, `in-commission`, `long-deployment`, `battle-worn`); omission reads as `in-commission`. Visual only |
 | `primitive`, `equipment`, `boundary`, `load` | `value` | Add or replace the complete source record by stable ID |

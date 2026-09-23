@@ -320,9 +320,6 @@ export interface ConstructionData {
   /** Ship paint for unassigned faces, unpainted fittings and their barbettes; omission keeps
    * naval gray faces and original component finishes. */
   paint?: string;
-  /** Paint for horizontal steel that wears the ship paint: roofs, platforms and turret tops.
-   * Omission uses a darker shade of the ship paint. Visual only. */
-  roofPaint?: string;
   /** Weathering drawn over every painted surface; omission reads as `in-commission`. Visual only. */
   wear?: ConstructionWear;
   version: 1 | 2;

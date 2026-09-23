@@ -12,8 +12,6 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   Player-built designs may explicitly choose a whole-ship Matte, Satin, Semi-gloss
   or Gloss coating in the Paint layer. This optional `construction.finish` setting
   changes painted-surface roughness without changing colors or historical defaults.
-  Their horizontal steel that wears the ship paint (upward hull faces, fitting roofs,
-  platforms and turret tops) is drawn a darker shade of it, or `construction.roofPaint`.
 - **Player-built wear:** premade ships bake their maintained finish in Blender
   (`appearance/surface.py`). Player-built ships are assembled in the browser, so the
   game draws their finish and weathering at runtime instead. Every player-built ship,
