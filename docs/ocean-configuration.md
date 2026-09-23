@@ -51,11 +51,12 @@ whitecap fraction 3.84·10⁻⁶·U^3.41: none below 3.5 m/s, 0.17% at 6 m/s (sc
 at 9, 1.8% at 12, 3.9% at 15, 7.3% at 18, 22% at 25 and 42% at 30, scaled by the map's foam value /
 0.45 (1 in the Atlantic, 0.56 Pacific, 0.67 Arctic, 1.1 Indian). The ocean places whitecaps where its
 own spectrum's crests break to give that share (see the ocean README), so the coverage holds on the
-table's sea and on the realistic one alike; measured on High it is within a quarter of the curve from
-6 to 30 m/s, mostly within a tenth. Foam lives 0.55 periods of the waves that broke (`lifetime`) with
-a 0.5 wind stretch and opacity 1. From 13 m/s (Beaufort 7, "foam blown in streaks along the wind") a
-growing share of that coverage, 7% by 30 m/s, lies in windrows: lines 0.5–1.5 m wide at 0.85 opacity
-(`foam.surface`, whose `coverage` is set so that coverage × opacity is the windrows' share).
+table's sea and on the realistic one alike; measured on High it is within a tenth of the curve from
+6 to 30 m/s on the table's sea, and on the realistic one except its 25 m/s storm (19% of the sea). Foam lives 0.55 periods of the waves that broke (`lifetime`)
+with a 0.5 wind stretch and opacity 1. From 12 m/s part of that coverage lies in windrows, lines of
+old foam along the wind (Beaufort 7, "foam begins to be blown in streaks", to 9, "dense streaks"): a
+quarter of it by 24 m/s and at most 4% of the sea (0.16% at 15 m/s, 1% at 18, 2.7% at 21), at 0.85
+opacity (`foam.surface`, whose `coverage` is set so that coverage × opacity is the windrows' share).
 
 Map multipliers are height 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 Indian; wavelength 1.0,
 0.8, 0.8 and 1.1; and the preset wind multiplier 1.0, 0.7, 0.65 and 1.1. Numeric wind bypasses the map

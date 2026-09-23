@@ -102,28 +102,35 @@ on the tier's tiles, pixel for pixel as before. Combat, hull motion and `session
 table either way.
 
 **Whitecaps** (`waves/whitecaps.ts`, the resolve pass in `waves/field.ts`). A crest breaks where it
-is both compressed (the choppy displacement's −∇·D) and steep on its forward face (the slope falling
-away downwind). Both fields are linear in the wave amplitudes and a quarter period apart for every
-travelling mode, so over a tile they are uncorrelated Gaussians whose variances the CPU spectrum
-gives exactly; blended 0.9 rad onto the face and normalised, they make a standard-normal breaking
-indicator per cascade. The wind sets the share of the sea whitecaps cover (Monahan &
-O'Muircheartaigh, 3.84·10⁻⁶·U^3.41, none below 3.5 m/s); that coverage W becomes an optical depth
-−ln(1 − W) (patches land at random and overlap), each cascade takes the share of it its breaking
-waves carry (slope variance within 1/32 to 2 of the sea's mean wavelength, none shorter than 3 m),
-and its threshold is the normal quantile of that share over a measured persistence (2.3; a finer
-cascade shows 0.62 of its foam through its gate; dense seas saturate as D/(1 + 1.3·D)). Injection
-ramps from 0 to 1 over ±1/z of the indicator around the threshold z, so breakers reach full strength
-alike at every wind, and foam decays with e-folding time 0.55 wave periods of the waves that broke
-(about 1.4 s at 9 m/s, 3 s for a storm's big breakers). Because thresholds follow the spectrum's own
-statistics, coverage holds whatever the wavelengths, heights or choppiness: on High, visible
-coverage is 0.15/0.54/1.7/4.2/7.9/13/24/43% at 6/9/12/15/18/21/25/30 m/s on the table's sea and
-0.21/0.65/1.9/4.1/7.2/12/20/35% on the realistic one, against Monahan's 0.17/0.69/1.8/3.9/7.3/12/22/42%.
-The extras texture's fourth channel persists the bubble cloud the same way for half the foam's
-lifetime. `surface()` returns foam per area of sea (divided by the surface's compression J, held to
-0.35–2.5, so foam gathers on converging crests), and a finer cascade's foam shows where the coarser
-cascades' compression, in its own standard deviations, passes −1 (full from 0.75): short waves break
-on the crests of long ones, and the long tiles hide a finer tile's repeats. Paused frames leave both
-channels untouched.
+is both compressed along the wind (the choppy displacement's −ŵ·∇(D·ŵ)) and steep on its forward
+face (the slope falling away downwind). Both fields are linear in the wave amplitudes and a quarter
+period apart for every travelling mode, so over a tile they are uncorrelated Gaussians whose
+variances the CPU spectrum gives exactly (a unit test checks the blend's tile variance is 1 against
+the inverse DFT); weighted by cos⁴θ and cos²θ of each wave's angle to the wind, they favour the
+wind-driven waves whose crests run across it, so breaking zones stretch along the crests. Blended
+0.9 rad onto the face and normalised, they make a standard-normal breaking indicator per cascade.
+The wind sets the share of the sea whitecaps and windrows cover (Monahan & O'Muircheartaigh,
+3.84·10⁻⁶·U^3.41, none below 3.5 m/s, scaled by the map); the whitecaps' part, what must add to the
+windrows' coverage as the two overlap at random, becomes an optical depth −ln(1 − W) (patches land at
+random and overlap). Each cascade takes the share of it its breaking waves carry (slope variance
+within 1/32 to 2 of the sea's mean wavelength, none shorter than 3 m); its threshold is the normal
+quantile of that share over a measured persistence (2.3; a finer cascade shows 0.62 of its foam
+through its gate; dense seas saturate as D/(1 + 1.3·D)); a cascade asked to break over more than half
+its sea hands the rest to the others by share. Injection ramps from 0 to 1 over ±1/z of the
+indicator around the threshold z, so breakers reach full strength alike at every wind, and foam
+decays with e-folding time 0.55 periods of the waves that broke (about 1.4 s at 9 m/s, 3 s for a
+storm's big breakers). Because thresholds follow the spectrum's own statistics, coverage holds
+whatever the wavelengths, heights or choppiness: on High, whitecaps and windrows cover
+0.18/0.64/1.9/4.1/7.8/13/24/44% of the sea at 6/9/12/15/18/21/25/30 m/s on the table's sea and
+0.19/0.66/1.9/4.1/7.7/12/19/40% on the realistic one, against Monahan's
+0.17/0.69/1.8/3.9/7.3/12/22/42% (`ocean-waves.html`'s `foamCoverage`, a square kilometre at three
+instants, through the surface's own foam functions; light airs vary by a few hundredths of a
+percent between runs). The extras texture's fourth channel persists
+the bubble cloud the same way for half the foam's lifetime. `surface()` returns foam per area of sea
+(divided by the surface's compression J, held to 0.35–2.5, so foam gathers on converging crests),
+and a finer cascade's foam shows where the coarser cascades' compression, in its own standard
+deviations, passes −1 (full from 0.75): short waves break on the crests of long ones, and the long
+tiles hide a finer tile's repeats. Paused frames leave both channels untouched.
 
 **Mesh.** Camera-centred clipmap, 256 m base, 6 levels, snapped per level so vertices never swim,
 seam-free between levels; a flat horizon ring from the clipmap edge to 95% of `camera.far`,
@@ -147,13 +154,15 @@ sheet (0.97 opaque, 90% of its patch, darkened up to 30% by churn); below it a p
 of fewer, fainter filaments (to 0.35 opaque) until clear water is left under 0.04; the broad patches
 sway the amount ±45%, so whitecaps differ and their outlines fray at scales a distant pixel
 resolves. The bubble cloud (read from a mip whose texels span at least 4 m) brightens the water
-body toward daylight scattered back by bubbles and tinted by 2.5 m of water (pale turquoise, up to
-60%), and scatters half the reflection away: a soft veil around each fresh whitecap. Windrows,
-old foam in lines along the wind, hold a share of the wind's coverage from 13 m/s (Beaufort 7,
-"foam blown in streaks") to 30 m/s (7%, counted by opacity): a streak mask of meandering, breaking
-lines 0.5–1.5 m wide and 8–20 m apart, gathered in bands built from the patches at two scales an
-irrational ratio apart (no lattice from the air) and beaded by the lace; the mask is scaled, not
-thresholded, so its mean holds at every distance. All foam is a diffuse scatterer (albedo 0.8): the
+body toward daylight scattered back by bubbles (18%) and tinted by 2.5 m of water (pale turquoise,
+up to 60% of the way), and scatters half the reflection away: a soft veil around each fresh
+whitecap. Windrows, old foam in lines along the wind, take a growing share of the wind's coverage
+from 12 m/s (Beaufort 6; 7 is "foam begins to be blown in streaks", 9 "dense streaks") to a quarter
+of it by 24 m/s, at most 4% of the sea (counted by opacity; thinner lines saturate beyond it): a
+streak mask of lines 0.5–1.5 m wide and 8–20 m apart that meander, wiggle over 20 m of their length,
+swell and break, gathered in bands built from the patches at two scales an irrational ratio apart,
+which also shift the lines across the wind (no lattice from the air), and beaded by the lace; the
+mask is scaled, not thresholded, so its mean holds at every distance. All foam is a diffuse scatterer (albedo 0.8): the
 sky's radiance about its normal plus half the sun's irradiance over π (the share the game's lit
 meshes take), wrapped 0.5 past the terminator and cut by the sun's shadow, so it follows the sky and
 the moon at night without a tint. Its wet top keeps half the water's Fresnel reflection, and it is
