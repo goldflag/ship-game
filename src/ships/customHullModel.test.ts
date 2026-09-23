@@ -1,5 +1,8 @@
 import { expect, test } from 'bun:test';
-import { addHullPointPair, canCreaseHullPoint, canRemoveHullPointPair, clone, customHullFaces, customHullPrimitive, editableCustomHull, invalidReason, isHullCrease, lockSymmetry, makeHull, removeHullPointPair, resizeSection, setSectionCount, toggleHullCrease } from './customHullModel';
+import {
+  addHullPointPair, canCreaseHullPoint, canRemoveHullPointPair, clone, customHullFaces, customHullPrimitive, editableCustomHull, invalidReason, isHullCrease,
+  lockSymmetry, makeHull, removeHullPointPair, resizeSection, setSectionCount, toggleHullCrease,
+} from './customHullModel';
 import { contourAt, hullCreasesError, MAX_HULL_POINTS } from './customHullTopology';
 import { customHullSmoothingGroup } from '../game/constructionShading';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';

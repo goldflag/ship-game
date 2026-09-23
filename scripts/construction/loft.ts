@@ -475,7 +475,10 @@ export function fitAccuracy(fit: Pick<LoftFit, 'size' | 'position' | 'stations'>
   const worst = rows.reduce((best, row) => (row.errorM > best.errorM ? row : best), rows[0]);
   const worstArea = rows.filter((row) => row.areaM2 > 1).reduce((best, row) => (Math.abs(row.fittedAreaM2 - row.areaM2) / row.areaM2 > Math.abs(best.fittedAreaM2 - best.areaM2) / best.areaM2 ? row : best), rows[0]);
   return {
-    outlineOffsetM: { max: round(Math.max(...rows.map((row) => row.offsetM)), 3), mean: round(rows.reduce((sum, row) => sum + row.offsetM, 0) / rows.length, 3), atZ: rows.reduce((best, row) => (row.offsetM > best.offsetM ? row : best), rows[0]).z },
+    outlineOffsetM: {
+      max: round(Math.max(...rows.map((row) => row.offsetM)), 3), mean: round(rows.reduce((sum, row) => sum + row.offsetM, 0) / rows.length, 3),
+      atZ: rows.reduce((best, row) => (row.offsetM > best.offsetM ? row : best), rows[0]).z,
+    },
     halfBreadthErrorM: { max: round(Math.max(...errors), 3), mean: round(errors.reduce((a, b) => a + b, 0) / errors.length, 3), atZ: worst.z },
     deckKeelErrorM: { max: round(Math.max(...rows.map((row) => row.deckKeelErrorM)), 3), atZ: rows.reduce((best, row) => (row.deckKeelErrorM > best.deckKeelErrorM ? row : best), rows[0]).z },
     sectionAreaErrorPct: { max: round(Math.max(...areaErrors) * 100, 2), mean: round((areaErrors.reduce((a, b) => a + b, 0) / areaErrors.length) * 100, 2), atZ: worstArea.z },

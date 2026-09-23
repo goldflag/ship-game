@@ -45,7 +45,10 @@ export default {
     const batch = {
       version: 1, expectedRevision: current.source.revision, expectedFileHash: current.hash,
       label: 'Loft ' + primitiveId + ' to ' + name,
-      commands: [{ op: 'primitive-patch', id: primitiveId, changes: { size: fit.size, position: fit.position, customHull: { ...primitive.customHull, version: 1, stations: fit.stations, creases: fit.creases.length ? fit.creases : undefined } } }],
+      commands: [{
+        op: 'primitive-patch', id: primitiveId,
+        changes: { size: fit.size, position: fit.position, customHull: { ...primitive.customHull, version: 1, stations: fit.stations, creases: fit.creases.length ? fit.creases : undefined } },
+      }],
     };
     if (folds.length) process.exitCode = 1;
     else if (ctx.option('--out')) await writeFile(resolve(ctx.option('--out')!), JSON.stringify(batch, null, 2) + '\n', { flag: 'wx' });
