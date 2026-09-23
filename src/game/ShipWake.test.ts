@@ -64,3 +64,29 @@ test('fleet displacement respects the field capacity, hull size, depth, and repl
   expect(generators.size).toBe(0);
   expect(bound).toBeNull();
 });
+
+test('the ocean realism switch rebinds the realistic wake live, and off restores the original sampler', () => {
+  const field: WakeFieldApi = {
+    resolution: 256, enabled: true, worldSize: 0, friction: 0, foamStrength: 0, foamBreakThreshold: 0, foamLifetime: 0,
+    setCenter() {}, addGenerator: () => 1, removeGenerator: () => true, updateGenerator: () => true, reset() {},
+    sampler: { height: () => float(0), normal: () => vec3(0, 1, 0), foam: () => float(0) }, step() {}, dispose() {},
+  };
+  const realism = { wake: true };
+  const bindings: (WakeSampler | null)[] = [];
+  const wake = new ShipWake({ wake: field, realism, setWakeSampler(sampler) { bindings.push(sampler); } }, cpuWakeFoamPainter);
+  // Realistic by default: the surface also reads the bubble clouds and the slick.
+  expect(bindings).toHaveLength(1);
+  expect(bindings[0]?.slick).toBeFunction();
+  expect(bindings[0]?.bubbles).toBeFunction();
+  wake.update([], .1);
+  expect(bindings).toHaveLength(1);
+  realism.wake = false;
+  wake.update([], .1);
+  expect(bindings).toHaveLength(2);
+  expect(Object.keys(bindings[1]!).sort()).toEqual(['foam', 'height', 'normal']);
+  realism.wake = true;
+  wake.update([], 0);
+  expect(bindings).toHaveLength(3);
+  expect(bindings[2]?.slick).toBeFunction();
+  wake.dispose();
+});
