@@ -493,7 +493,11 @@ export class Game {
 
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
-    this.shipWake = new ShipWake(this.water.wake, this.ship, this.scene, this.renderer);
+    const water = this.water;
+    this.shipWake = new ShipWake(water.wake, this.ship, this.scene, this.renderer, () => {
+      const mesh = water.getGeometryConfig();
+      return mesh.baseSize / mesh.segments;
+    });
     for (const buoy of BUOYS) this.addBuoy(buoy);
     if (HARBOR_BACKDROP) {
       this.callbacks.progress('Building the naval anchorage', 0.72);
@@ -1211,6 +1215,8 @@ export class Game {
   capturePointer(): void { if (this.controls().capturePointer) this.rig.capturePointer(); }
   /** Hand the cursor to an overlay panel; `capturePointer` takes it back when the controls allow. */
   releasePointer(): void { this.rig.releasePointer(); }
+  /** Developer console: compare the analytic bow waves against the native wake field alone. */
+  toggleBowWaves(): boolean { return this.shipWake?.toggleBowWaves() ?? false; }
   toggleTacticalPause(): void {
     if (this.inPort || this.simulation.networked || !this.fleetCommandMode || this.simulation.result !== 'active') return;
     this.tacticalPause = !this.tacticalPause;
