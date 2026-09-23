@@ -196,6 +196,9 @@ export interface ConstructionEquipment {
   bearingDeg: number;
   magazineId?: string;
   powerSourceId?: string;
+  /** Per-axis scale of a design-local fitting instance (`design:` parts only), in its own local
+   * axes about its datum, 0.05–20 each; mass follows the volume. Omission is full size. */
+  scale?: Vec3;
   /** Installation settings retain canonical part dimensions/capability. */
   gun?: {
     /** Added height above the deck attachment; position remains the turret datum. */

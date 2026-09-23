@@ -22,6 +22,7 @@ const SERDE_DEFAULT_FIELDS: Record<string, string[]> = {
   ConstructionEquipmentPath: ['access'],
   ConstructionEquipmentPart: ['wallSizing', 'riggingSurface'],
   ConstructionEquipmentWall: ['turnDeg'],
+  ConstructionEquipment: ['scale'],
   ConstructionDiagnostic: ['relatedSourceIds', 'fit'],
   ConstructionDiagnosticFit: ['nearestSupportId', 'gapM', 'toleranceM', 'seatPosition', 'penetrationM'],
 };

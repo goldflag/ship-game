@@ -171,6 +171,7 @@ export const EQUIPMENT = object<ConstructionEquipment>(
     paint: optional(text('Named coating for this installation and its barbette.')),
     magazineId: optional(id()),
     powerSourceId: optional(id('Explicit engine for a propeller; omission uses native assignment.')),
+    scale: optional(vec3('Custom fitting instances only: per-axis scale about the datum, 0.05–20; mass follows the volume.')),
     gun: optional(
       object<NonNullable<ConstructionEquipment['gun']>>(undefined, {
         barbetteHeightM: optional(number('Turret rise. Use the `turret-rise` command: it moves position Y with the rise.')),
@@ -237,7 +238,7 @@ const fittingTube = object<ConstructionFittingTube>(
   'FittingTube',
   {
     id: id('Unique among the solids and tubes of this fitting.'),
-    points: list(vec3('Fitting-local metres.'), '2–64 connected points; segments of at least 1 cm, 100 m in total.'),
+    points: list(vec3('Fitting-local metres.'), '2–256 connected points; segments of at least 1 cm, 100 m in total.'),
     diameterM: number('0.01–2 m.'),
     paint: optional(text()),
   },
@@ -250,8 +251,8 @@ export const FITTING = object<ConstructionFittingDefinition>(
     name: { type: 'string', minLength: 1, maxLength: 80 },
     version: { type: 'number', enum: [1] },
     attach: choice(['deck'], 'Seats on a deck at the local origin. `wall` and `internal` are reserved.'),
-    solids: list(fittingSolid, 'At most 48.'),
-    tubes: list(fittingTube, 'At most 16.'),
+    solids: list(fittingSolid, 'At most 256.'),
+    tubes: list(fittingTube, 'At most 128.'),
     material: optional(choice(['steel', 'aluminium', 'brass', 'wood'], 'Density basis; omission is steel.')),
     fill: optional(number('Solid fraction of the shape volume, 0.01–1; omission is 1.')),
     massKg: optional(number('Explicit mass; overrides volume × density × fill.')),

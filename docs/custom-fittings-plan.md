@@ -88,14 +88,16 @@ refused for online play with a clear message. Local play, saving and cloning are
 
 | Limit | Value |
 | --- | --- |
-| Definitions per design | 32 |
+| Definitions per design | 256 |
 | Instances per design | 1,000, separate from the 1,000 catalog instances |
-| Solids / tubes per definition | 48 / 16 |
-| Triangles per definition (cell faces plus tubes) | 20,000 |
-| Tube | 2–64 points, segments ≥ 1 cm, ≤ 100 m, diameter 0.01–2 m |
+| Solids / tubes per definition | 256 / 128 |
+| Triangles per definition (cell faces plus tubes) | 32,000 |
+| Tube | 2–256 points, segments ≥ 1 cm, ≤ 100 m, diameter 0.01–2 m |
 | Solid | the hull-piece checks: 0.01–500 m, closed topology, shaping ≤ 45% |
 | Local coordinates and overall span | within 100 m |
 | Mass | 0.001–1,000,000 kg |
+| Instance scale | 0.05–20 per axis, custom fitting instances only |
+| Collision boxes per definition | 64; larger fittings merge neighbouring boxes |
 
 Rust constants are in `construction_custom_fittings.rs`, mirrored by `CUSTOM_FITTING_LIMITS`.
 Online designs use the same limits (`services/compiler/limits.ts` checks only the source shape).

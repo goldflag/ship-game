@@ -421,6 +421,7 @@ pub fn suggest(
                 launcher: None,
                 path: None,
                 power_source_id: None,
+                scale: None,
             };
             let mut candidate = result.clone();
             candidate.construction.equipment.push(e);

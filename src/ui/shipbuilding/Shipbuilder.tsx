@@ -27,7 +27,7 @@ import type {
   Vec3,
 } from '../../ships/blueprint';
 import { newConstructionId, surfaceSelectionKey } from '../../ships/constructionEditor';
-import { customFittingOf, isCustomFittingPartId } from '../../ships/constructionCustomFittings';
+import { CUSTOM_FITTING_SCALE, customFittingOf, isCustomFittingPartId } from '../../ships/constructionCustomFittings';
 import { CustomFittingFields } from './CustomFittingFields';
 import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
@@ -848,6 +848,33 @@ export function Shipbuilder(props: ShipbuilderProps) {
             <>
               {' '}
               · <CustomFittingFields definition={customFittingOf(data, item)!} data={data} locked={locked} run={run} />
+              {' '}
+              ·{' '}
+              {(['X', 'Y', 'Z'] as const).map((axis, k) => (
+                <NumberField
+                  key={axis}
+                  label={`Scale ${axis}`}
+                  description={`Scale this instance along its own ${axis} axis about its datum; mass follows the volume`}
+                  disabled={locked}
+                  value={item.scale?.[k] ?? 1}
+                  min={CUSTOM_FITTING_SCALE.min}
+                  max={CUSTOM_FITTING_SCALE.max}
+                  step={0.05}
+                  unit="×"
+                  onChange={(value) =>
+                    edit(
+                      'Scale custom fitting',
+                      (target) => {
+                        const scale = [...(target.scale ?? [1, 1, 1])] as [number, number, number];
+                        scale[k] = value;
+                        if (scale.every((n) => n === 1)) delete target.scale;
+                        else target.scale = scale;
+                      },
+                      true,
+                    )
+                  }
+                />
+              ))}
             </>
           )}
           {item.wall && catalogPart && (

@@ -697,10 +697,14 @@ bun run ship:place my-ship --part design:fit-bollard-a --at 4,10 --bearing 90 --
 bun run ship:place my-ship --part design:fit-davit --at 4.6,0 --bearing 90 --mirror --id davit --out .build/davits.json
 ```
 
-Limits: 32 definitions, 48 solids and 16 tubes each, about 20,000 triangles, tubes of 2–64 points
-up to 100 m and 0.01–2 m across. A `custom-fitting` diagnostic names the definition in `sourceId`
-and the solid, tube or instance in its message; a floating instance reports the usual
-`equipment-attachment` with `fit.gapM` and `fit.seatPosition`.
+Limits: 256 definitions, 256 solids and 128 tubes each, about 32,000 triangles, tubes of 2–256 points
+up to 100 m and 0.01–2 m across. The compiler checks at most 64 conservative boxes per definition:
+one per solid and tube segment when they fit, one per whole tube next, and past that neighbouring
+boxes merge along the fitting's longest axis. An instance may carry `scale: [x, y, z]` (0.05–20 per
+axis, custom fittings only): the shape scales about its datum in its own axes and mass follows the
+volume, so one definition covers every size of float or locker. A `custom-fitting` diagnostic names
+the definition in `sourceId` and the solid, tube or instance in its message; an instance more than
+10 m outside the hull's box reports `equipment-attachment`, and a bad scale `equipment-scale`.
 
 ## Visual review and trials
 

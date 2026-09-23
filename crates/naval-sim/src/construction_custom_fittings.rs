@@ -7,13 +7,16 @@ use crate::{construction_geometry as cg, definition::*, geometry::*};
 use std::collections::BTreeSet;
 
 pub const PART_PREFIX: &str = "design:";
-pub const MAX_DEFINITIONS: usize = 32;
-pub const MAX_SOLIDS: usize = 48;
-pub const MAX_TUBES: usize = 16;
+pub const MAX_DEFINITIONS: usize = 256;
+pub const MAX_SOLIDS: usize = 256;
+pub const MAX_TUBES: usize = 128;
+pub const MAX_TUBE_POINTS: usize = 256;
+/// The compiler checks at most this many conservative boxes per part; larger fittings merge.
+pub const MAX_BOXES: usize = 64;
 /// Design-local fitting instances per design, counted apart from catalog equipment rows.
 pub const MAX_INSTANCES: usize = 1_000;
 /// Convex-cell face triangles plus swept tube triangles, per definition.
-pub const MAX_TRIANGLES: usize = 20_000;
+pub const MAX_TRIANGLES: usize = 32_000;
 pub const MAX_TUBE_LENGTH_M: f64 = 100.;
 /// Fitting-local coordinates stay within this distance of the datum.
 pub const MAX_LOCAL_M: f64 = 100.;
@@ -74,6 +77,44 @@ fn grow(lo: &mut Vec3, hi: &mut Vec3, center: Vec3, size: Vec3) {
 
 /// One definition as a catalog deck fitting, or the first fault naming the definition
 /// and the offending solid or tube.
+/// At most `limit` boxes. Sorted along `axis` (stable), the neighbouring pair whose union adds
+/// the least empty volume merges first, the earliest pair on ties. Mirrored exactly by
+/// `mergeFittingBoxes` in `src/ships/constructionCustomFittings.ts`.
+fn merged(
+    mut boxes: Vec<ConstructionEquipmentPartFittingItem>,
+    limit: usize,
+    axis: usize,
+) -> Vec<ConstructionEquipmentPartFittingItem> {
+    boxes.sort_by(|a, b| a.center[axis].total_cmp(&b.center[axis]));
+    let volume = |s: Vec3| s[0] * s[1] * s[2];
+    let union = |a: &ConstructionEquipmentPartFittingItem, b: &ConstructionEquipmentPartFittingItem| {
+        let lo: Vec3 = std::array::from_fn(|k| {
+            (a.center[k] - a.size[k] / 2.).min(b.center[k] - b.size[k] / 2.)
+        });
+        let hi: Vec3 = std::array::from_fn(|k| {
+            (a.center[k] + a.size[k] / 2.).max(b.center[k] + b.size[k] / 2.)
+        });
+        ConstructionEquipmentPartFittingItem {
+            center: std::array::from_fn(|k| (lo[k] + hi[k]) / 2.),
+            size: std::array::from_fn(|k| hi[k] - lo[k]),
+        }
+    };
+    while boxes.len() > limit {
+        let mut best = (f64::INFINITY, 0);
+        for i in 0..boxes.len() - 1 {
+            let added = volume(union(&boxes[i], &boxes[i + 1]).size)
+                - volume(boxes[i].size)
+                - volume(boxes[i + 1].size);
+            if added < best.0 {
+                best = (added, i);
+            }
+        }
+        boxes[best.1] = union(&boxes[best.1], &boxes[best.1 + 1]);
+        boxes.remove(best.1 + 1);
+    }
+    boxes
+}
+
 pub fn part(def: &ConstructionFittingDefinition) -> Result<ConstructionEquipmentPart, String> {
     if def.version != 1. {
         return Err("has an unsupported version; this build reads version 1".into());
@@ -167,14 +208,14 @@ pub fn part(def: &ConstructionFittingDefinition) -> Result<ConstructionEquipment
         solid_boxes.push(ConstructionEquipmentPartFittingItem { center, size });
     }
     for t in &def.tubes {
-        if !(2..=64).contains(&t.points.len())
+        if !(2..=MAX_TUBE_POINTS).contains(&t.points.len())
             || t.points.iter().any(|&p| !local(p))
             || !t.diameter_m.is_finite()
             || !(0.01..=2.).contains(&t.diameter_m)
             || !paint_ok(&t.paint)
         {
             return Err(format!(
-                "tube {} needs 2–64 finite points within {MAX_LOCAL_M} m, a diameter of 0.01–2 m and a paint name of at most 64 bytes",
+                "tube {} needs 2–{MAX_TUBE_POINTS} finite points within {MAX_LOCAL_M} m, a diameter of 0.01–2 m and a paint name of at most 64 bytes",
                 t.id
             ));
         }
@@ -242,11 +283,15 @@ pub fn part(def: &ConstructionFittingDefinition) -> Result<ConstructionEquipment
             "weighs {mass_kg:.4} kg; the mass must be 0.001–1,000,000 kg"
         ));
     }
-    // The compiler accepts at most 64 boxes per part; 48 solids and 16 tubes always fit.
-    let fitting = if solid_boxes.len() + segment_boxes.len() <= 64 {
+    // The compiler checks at most MAX_BOXES boxes per part: a box per solid and per tube
+    // segment when they fit, a box per whole tube next, and merged neighbours past that.
+    let fitting = if solid_boxes.len() + segment_boxes.len() <= MAX_BOXES {
         solid_boxes.into_iter().chain(segment_boxes).collect()
-    } else {
+    } else if solid_boxes.len() + tube_boxes.len() <= MAX_BOXES {
         solid_boxes.into_iter().chain(tube_boxes).collect()
+    } else {
+        let axis = (1..3).fold(0, |best, k| if size[k] > size[best] { k } else { best });
+        merged(solid_boxes.into_iter().chain(tube_boxes).collect(), MAX_BOXES, axis)
     };
     let hash = crate::catalog::sha256(&serde_json::to_vec(def).unwrap_or_default());
     Ok(ConstructionEquipmentPart {
@@ -546,6 +591,54 @@ mod tests {
             .unwrap();
         assert!((load.center[0] - 2.).abs() < 1e-9 && load.center[1] > 2.);
         assert!(load.inertia_kg_m2.iter().all(|n| *n > 0.));
+    }
+
+    #[test]
+    fn a_scaled_instance_carries_mass_by_volume_and_catalog_parts_refuse_scale() {
+        let (mut source, catalog) = fixture();
+        let unit = part(&bollard()).unwrap();
+        let mut scaled = instance("bollard-1", [2., 2., -5.]);
+        scaled.scale = Some([2., 1.5, 1.]);
+        source.construction.equipment = vec![scaled.clone()];
+        let result = compile(&source, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        let load = result
+            .loading
+            .unwrap()
+            .contributions
+            .into_iter()
+            .find(|m| m.id == "bollard-1")
+            .unwrap();
+        assert!((load.mass_kg - 3. * unit.mass_kg.unwrap()).abs() < 1e-6);
+        // The centre of gravity scales about the datum: 1.5 times as high above the deck.
+        let expected = 2. + 1.5 * unit.center_of_gravity[1];
+        assert!((load.center[1] - expected).abs() < 1e-9, "{} vs {expected}", load.center[1]);
+        for bad in [[0.01, 1., 1.], [1., 25., 1.], [f64::NAN, 1., 1.]] {
+            scaled.scale = Some(bad);
+            source.construction.equipment = vec![scaled.clone()];
+            let result = compile(&source, &catalog);
+            assert!(result.diagnostics.iter().any(|d| d.code == "equipment-scale"), "{bad:?}");
+        }
+        let mut published = source.clone();
+        let mut post = source.construction.equipment[0].clone();
+        post.part_id = "generic-twin-bitts".into();
+        post.scale = Some([2., 2., 2.]);
+        published.construction.equipment = vec![post];
+        let mut with_bitts = catalog.clone();
+        with_bitts.equipment.push(ConstructionEquipmentPart {
+            id: "generic-twin-bitts".into(),
+            kind: "deck-fitting".into(),
+            placement: "deck".into(),
+            size: [1.6, 0.72, 0.74],
+            bounds_center: [0., 0.36, 0.],
+            mass_kg: Some(300.),
+            ..Default::default()
+        });
+        let result = compile(&published, &with_bitts);
+        assert!(result
+            .diagnostics
+            .iter()
+            .any(|d| d.code == "equipment-scale" && d.message.contains("custom fitting")));
     }
 
     #[test]
