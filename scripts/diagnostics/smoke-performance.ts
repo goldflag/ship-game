@@ -16,7 +16,7 @@ export async function compareSmokeGameFrames(review: any, Baseline: typeof Comba
   const events = game.simulation.events.filter((event: CombatEvent) => event.kind === 'shot');
   const sim = { events, shells: [], torpedoes: [], depthCharges: [], aircraft: [], actors: [], tick: 0 } as unknown as CombatSimulation;
   baseline.setSun(game.effects.sun.value);
-  baseline.setWind(game.water.waves.windSpeed.value, game.water.waves.windDirection.value);
+  baseline.setWind(game.ocean.waves.windSpeed, game.ocean.waves.windDirection);
   baseline.update(sim, 0, game.camera);
   baseline.update(sim, current.geometry.getAttribute('effectVolume').getX(0), game.camera);
   game.effects.root.add(old);
