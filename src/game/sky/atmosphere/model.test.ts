@@ -3,8 +3,8 @@ import { Color } from 'three/webgpu';
 import type { SkyScene } from '../contracts';
 import { DEFAULT_SKY_SCENE, SkyState } from '../state';
 import { Atmosphere } from './Atmosphere';
-import { ATMOSPHERE_TOP, MIE_HEIGHT, PLANET_RADIUS, RAYLEIGH_HEIGHT, SKY_GRADE, SUN_GRADE, airCoefficients, aureolePhase, opticalDepth, phaseTerms,
-  seaLevelLight, skyIrradiance, twilightLift, type Rgb } from './model';
+import { AERIAL, ATMOSPHERE_TOP, MIE_HEIGHT, PLANET_RADIUS, RAYLEIGH_HEIGHT, SKY_GRADE, SUN_GRADE, airCoefficients, aureolePhase, opticalDepth,
+  phaseTerms, seaLevelLight, skyIrradiance, twilightLift, type Rgb } from './model';
 
 const scene = (elevation: number, overrides: Partial<SkyScene['atmosphere']> = {}): SkyScene =>
   ({ ...structuredClone(DEFAULT_SKY_SCENE), sun: { elevation, azimuth: 270, intensity: 6 }, atmosphere: { ...DEFAULT_SKY_SCENE.atmosphere, ...overrides } });
@@ -69,6 +69,13 @@ test('the authored atmosphere maps monotonically onto the coefficients', () => {
   expect(increasing([1.5, 2.2, 3.2, 4.8, 6].map(turbidity => at({ turbidity }).mieExtinction[1]))).toBe(true);
   expect(increasing([.08, .2, .36].map(mie => at({ mie }).mieGain))).toBe(true);
   expect(increasing([.8, 1, 1.5].map(multiple => at({ multiple }).multiple))).toBe(true);
+  // Fair skies haze far clouds at the art-directed scale; the hazy presets (overcast 3.8, storm 5, fog 6) at the physical 1.
+  const scales = [1.5, 2.2, 2.8, 3.8, 5, 6].map(turbidity => at({ turbidity }).aerialScale);
+  expect(scales.every((scale, i) => i === 0 || scale >= scales[i - 1])).toBe(true);
+  expect(scales[0]).toBe(AERIAL.fair);
+  expect(scales[1]).toBe(AERIAL.fair);
+  expect(scales[4]).toBe(1);
+  expect(scales[5]).toBe(1);
   expect(at({ mieG: .72 }).mieG).toBe(.72);
   expect(at({ mieG: .99 }).mieG).toBeLessThan(.9);
   // Earth's air at the authored unit, and haze that grows with turbidity above pure air.

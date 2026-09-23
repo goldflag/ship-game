@@ -103,10 +103,13 @@ the part). Tables, all fragment passes into small render targets:
 The optical depth and multiple scattering rebuild when the air changes, the sky view and ambient when
 the sun or moon do, and the camera's sections when its altitude moves by 2% (5 m near the sea); a
 steady camera costs no passes. Aerial perspective is a closed form, not a table: transmittance from two
-optical-depth reads, in-scattering the sky's own radiance along the ray in the share of the ray's
-extinction before the point, so distant clouds converge on the horizon in its colour (`fromSea` gives
-the bake's viewpoint). Below the horizontal the dome holds the horizon's colour, which also meets the
-sea's far fog seamlessly from altitude. Night: the moon scatters through the same tables as a second
+optical-depth reads, in-scattering the sky's own radiance along the ray in each channel's share of the
+ray's extinction before the point, so distant clouds converge on the horizon in its colour and turn pale
+blue on the way (`fromSea` gives the bake's viewpoint). Beyond 15 km, fair skies count distance at a
+quarter (`AERIAL`, an art-directed scale that climbs back as the haze thickens: about 0.8 overcast, 1
+in storm and fog), so a cumulus bank 60–120 km off still shows as hazed shapes through binoculars while
+the dome keeps its golden-hour haze. Below the horizontal the dome holds the horizon's colour, which
+also meets the sea's far fog seamlessly from altitude. Night: the moon scatters through the same tables as a second
 light at `SKY_GRADE.moon` of its lifted irradiance, over a navy floor (airglow and starlight) that keeps
 the sky off black; the moonlit horizon sits near the battle night fog `#182839`. Twilight: the sky's
 exposure lifts as the sun sets (`TWILIGHT`, about ×3.5 at sunset to ×600 by −10°, applied also to

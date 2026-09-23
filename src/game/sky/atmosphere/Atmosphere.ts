@@ -4,7 +4,7 @@ import type { AtmospherePart, SkyFrame, SkyScene, SkyUniforms } from '../contrac
 import { AMBIENT_SIZE, AMBIENT_TOP, AtmosphereTables, SEA_HEIGHT, SECTIONS, SKY_VIEW_SCALE, aerosolPhase, atlasUv, direct, distanceToGround,
   lightTransmittance, opticalDepth, skyViewLatitude, skyViewLongitude, unitToTexel, viewOpticalDepth, viewPointTerms, type AirUniforms, type Float,
   type Horizon, type Vec3 } from './luts';
-import { PLANET_RADIUS, SKY_GRADE, airCoefficients, phaseTerms, seaLevelLight, skyIrradiance, twilightLift, type AirCoefficients, type Rgb } from './model';
+import { AERIAL, PLANET_RADIUS, SKY_GRADE, airCoefficients, phaseTerms, seaLevelLight, skyIrradiance, twilightLift, type AirCoefficients, type Rgb } from './model';
 
 const RB = PLANET_RADIUS;
 /** The camera's sections are rebuilt once its altitude moves by this share of itself, or 5 m near the sea. */
@@ -56,6 +56,8 @@ export class Atmosphere implements AtmospherePart {
   private readonly sunAxis = uniform(new Vector2(1, 0));
   private readonly moonAxis = uniform(new Vector2(1, 0));
   private moonShare = 1;
+  /** The scene's aerial distance scale beyond the knee (`model.AERIAL`). */
+  private readonly aerialScale = uniform(1);
   /** Camera altitude (km) the camera's sections were built for, its horizon angles and horizon zenith cosine,
    * and its optical-depth terms (`viewPointTerms`). */
   readonly cameraHeight = uniform(.03);
@@ -91,6 +93,7 @@ export class Atmosphere implements AtmospherePart {
       u.mieG.value = air.mieG; u.mieGain.value = air.mieGain; u.multiple.value = air.multiple; u.saturation.value = SKY_GRADE.saturation * air.chroma;
       const phase = phaseTerms(air.mieG, air.mieGain);
       u.phaseLobe.value.fromArray(phase.lobe); u.phaseCore.value.fromArray(phase.core);
+      this.aerialScale.value = air.aerialScale;
       this.dirty.air = true;
     }
     const sun = scene.sun.elevation, moon = Math.asin(MathUtils.clamp(this.uniforms.moonDirection.value.y, -1, 1)) * MathUtils.RAD2DEG;
@@ -147,16 +150,18 @@ export class Atmosphere implements AtmospherePart {
   /** Aerial perspective in closed form rather than a third table. Transmittance comes from optical depths in
    * the table (Bruneton's two-lookup form: the ray from the far end on, subtracted from the ray from the near
    * end; reversed for rays that meet the sea, whose reverse rises), so any distance works up to the sea or
-   * space. The in-scattering is the sky's own along the direction, in the share of the whole ray's extinction
-   * (green, the eye's channel) that lies before the point: exact when the light scattered per unit optical
-   * depth is uniform along the ray, and it converges on the sky itself, so distant clouds melt into the
-   * horizon in its colour. One share for all channels keeps near haze the sky's hue: per channel, the red
-   * channel's aerosol-heavy depth ends low and tinted the first kilometres orange. With `fromSea` the ray
-   * starts at the sea under the camera, as the environment bake sees it. */
+   * space. The in-scattering is the sky's own along the direction, in each channel's share of the whole ray's
+   * extinction that lies before the point: exact where the light scattered per unit optical depth is uniform
+   * along the ray, and it converges on the sky itself, so distant clouds melt into the horizon in its colour.
+   * Per channel, the blue the air scatters in replaces the blue it takes out: a far cloud turns pale blue, not
+   * grey. Distances past `AERIAL.knee` count at the scene's art-directed scale. With `fromSea` the ray starts at
+   * the sea under the camera, as the environment bake sees it. */
   aerial(direction: Vec3, distance: Float, fromSea = false): { inscatter: Vec3; transmittance: Vec3 } {
     const tables = this.tables, view = this.view(fromSea), r0 = view.x, mu0 = direction.y;
+    const kilometres = distance.div(1000).max(0);
+    const scaled = min(kilometres, AERIAL.knee).add(kilometres.sub(AERIAL.knee).max(0).mul(this.aerialScale));
     const ground = distanceToGround(r0, mu0), hits = ground.greaterThan(0);
-    const d = select(hits, min(distance.div(1000), ground), distance.div(1000)).max(0);
+    const d = select(hits, min(scaled, ground), scaled);
     const r1 = sqrt(r0.mul(r0).add(d.mul(d)).add(r0.mul(d).mul(mu0).mul(2))), mu1 = r0.mul(mu0).add(d).div(r1);
     const up = viewOpticalDepth(tables, view, mu0), down = viewOpticalDepth(tables, view, mu0.negate());
     const forward = up.sub(opticalDepth(tables, r1, mu1));
@@ -165,7 +170,7 @@ export class Atmosphere implements AtmospherePart {
     // The whole ray: to space, or to the sea (whose zenith cosine there follows from the ground distance).
     const groundMu = r0.mul(mu0).add(ground.max(0)).div(RB);
     const whole = exp(max(select(hits, opticalDepth(tables, float(RB), groundMu.negate()).sub(down), up), vec3(0)).negate());
-    const share = float(1).sub(transmittance.g).div(max(float(1).sub(whole.g), 1e-5)).clamp(0, 1);
+    const share = vec3(1).sub(transmittance).div(max(vec3(1).sub(whole), vec3(1e-5))).clamp(0, 1);
     return { inscatter: this.radiance(direction, fromSea, false).mul(share), transmittance };
   }
 
@@ -211,14 +216,21 @@ export class Atmosphere implements AtmospherePart {
     return lightTransmittance(this.tables, r, dot(point, light).div(r));
   }
 
-  /** The sky along a direction from the atlas: each lit body's tables, its aerosol lobe per pixel. A body too
-   * dim to show (the moon by day, the sun deep in the night) skips its reads on a uniform branch. */
-  private radiance(direction: Vec3, fromSea: boolean, aboveOnly: boolean): Vec3 {
-    const { sunDirection, moonDirection } = this.uniforms, sea = this.seaHorizon, camera = this.cameraHorizon;
+  /** The sky view's latitude of a direction for a viewpoint (see `luts.skyViewLatitude`). */
+  private latitude(direction: Vec3, fromSea: boolean, aboveOnly: boolean): Float {
+    const sea = this.seaHorizon, camera = this.cameraHorizon;
     const horizon: Horizon = fromSea ? { zenith: float(sea.x), nadir: float(sea.y), inverseZenith: float(sea.z), inverseNadir: float(sea.w) }
       : { zenith: camera.x, nadir: camera.y, inverseZenith: camera.z, inverseNadir: camera.w };
+    return skyViewLatitude(direction.y, horizon, aboveOnly);
+  }
+
+  /** The sky along a direction from the atlas: each lit body's tables, its aerosol lobe per pixel. A body too
+   * dim to show (the moon by day, the sun deep in the night) skips its reads on a uniform branch. `aboveOnly` holds
+   * directions below the horizontal at it (the dome). */
+  private radiance(direction: Vec3, fromSea: boolean, aboveOnly: boolean): Vec3 {
+    const { sunDirection, moonDirection } = this.uniforms;
     return Fn(() => {
-      const latitude = skyViewLatitude(direction.y, horizon, aboveOnly).toVar();
+      const latitude = this.latitude(direction, fromSea, aboveOnly).toVar();
       const read = (axis: Node<'vec2'>, section: number): Scatter => {
         const uv = atlasUv(skyViewLongitude(direction, axis), latitude, section);
         return { scatter: direct(texture(this.tables.scatter, uv)).rgb, mie: direct(texture(this.tables.mie, uv)).rgb };
