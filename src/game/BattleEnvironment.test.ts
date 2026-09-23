@@ -11,7 +11,7 @@ function fakeOcean() {
   return {
     waves: { significantHeight: 0, windSpeed: 0, windDirection: 0, peakWavelength: 0, choppiness: 0, gamma: 0, directionalSharpness: .8, seed: 1, dirty: false },
     colors: { waterColor: new Color(), transmissionColor: new Color(), absorptionColor: new Color() },
-    foam: { crest: { crestStrength: 0, windwardStrength: 0, decayTime: 0, color: new Color(), opacity: 0, windStretch: 0 },
+    foam: { crest: { coverageScale: 0, lifetime: 0, color: new Color(), opacity: 0, windStretch: 0 },
       surface: { color: new Color(), opacity: 0, coverage: 0 }, shoreline: { color: new Color(), opacity: 0 } },
     fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 },
     sun: { direction: new Vector3(), intensity: 0, color: new Color() },
@@ -104,9 +104,8 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   expect(ocean.waves.peakWavelength).toBe(port.peakWavelength);
   expect(ocean.waves.choppiness).toBe(port.choppiness);
   expect(ocean.waves.gamma).toBe(2.6);
-  expect(ocean.foam.crest.crestStrength).toBe(port.crestFoam);
-  expect(ocean.foam.crest.windwardStrength).toBe(port.windwardFoam);
-  expect(ocean.foam.crest.decayTime).toBe(2.8);
+  expect(ocean.foam.crest.coverageScale).toBe(1);
+  expect(ocean.foam.crest.lifetime).toBeGreaterThan(0);
   expect(effects.wind).toEqual([9, 35 * Math.PI / 180]);
   expect(funnelSmoke.wind).toEqual(effects.wind);
 });

@@ -45,7 +45,7 @@ function fakeOcean() {
   return {
     waves: { significantHeight: 0, windSpeed: 8, windDirection: .5, peakWavelength: 0, choppiness: 0, gamma: 0, directionalSharpness: .8, seed: 1, dirty: false },
     colors: { waterColor: new Color(), transmissionColor: new Color(), absorptionColor: new Color(.296, .105, .095) },
-    foam: { crest: { crestStrength: 0, windwardStrength: 0, decayTime: 0, color: new Color(), opacity: 0, windStretch: 0 },
+    foam: { crest: { coverageScale: 0, lifetime: 0, color: new Color(), opacity: 0, windStretch: 0 },
       surface: { color: new Color(), opacity: 0, coverage: 0 }, shoreline: { color: new Color(), opacity: 0 } },
     fog: { color: new Color(), start: 0, end: 0, power: 0, skyBlendDistance: 0 },
     sun: { direction: new Vector3(), intensity: 0, color: new Color() },

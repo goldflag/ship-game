@@ -11,22 +11,24 @@ function hash(x: number, y: number, seed: number): number {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
-/** Distance from (u, v) in [0, 1)² to the nearest feature point of a periodic `cells`² jittered grid, in cell units. */
-function worley(u: number, v: number, cells: number, seed: number): number {
+/** Distances from (u, v) in [0, 1)² to the nearest and second-nearest feature points of a periodic `cells`² jittered
+ * grid, in cell units. F2 − F1 is zero on the borders between cells. */
+function worley(u: number, v: number, cells: number, seed: number): [number, number] {
   const x = u * cells, y = v * cells, ix = Math.floor(x), iy = Math.floor(y);
-  let nearest = 2;
-  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-    const cx = ix + dx, cy = iy + dy, wx = (cx + cells) % cells, wy = (cy + cells) % cells;
-    nearest = Math.min(nearest, Math.hypot(cx + hash(wx, wy, seed) - x, cy + hash(wx, wy, seed + 1) - y));
+  let first = 9, second = 9;
+  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+    const cx = ix + dx, cy = iy + dy, wx = ((cx % cells) + cells) % cells, wy = ((cy % cells) + cells) % cells;
+    const d = Math.hypot(cx + hash(wx, wy, seed) - x, cy + hash(wx, wy, seed + 1) - y);
+    if (d < first) { second = first; first = d; } else if (d < second) second = d;
   }
-  return nearest;
+  return [first, second];
 }
 
 /** Smooth periodic value noise in [0, 1) on a `cellsU` × `cellsV` lattice. */
 function value(u: number, v: number, cellsU: number, cellsV: number, seed: number): number {
   const x = u * cellsU, y = v * cellsV, ix = Math.floor(x), iy = Math.floor(y);
   const fx = x - ix, fy = y - iy, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
-  const at = (i: number, j: number) => hash((i + cellsU) % cellsU, (j + cellsV) % cellsV, seed);
+  const at = (i: number, j: number) => hash(((i % cellsU) + cellsU) % cellsU, ((j % cellsV) + cellsV) % cellsV, seed);
   const top = at(ix, iy) + (at(ix + 1, iy) - at(ix, iy)) * sx, bottom = at(ix, iy + 1) + (at(ix + 1, iy + 1) - at(ix, iy + 1)) * sx;
   return top + (bottom - top) * sy;
 }
@@ -40,24 +42,81 @@ function equalize(field: Float32Array): Float32Array {
   return ranks;
 }
 
+/** Lace scales (cells per tile), their weights, and the width of their filaments in cell units: decaying foam is a
+ * network of white filaments around holes of every size, where bubbles have burst. */
+const LACE_CELLS = [5, 12, 29], LACE_WEIGHTS = [.45, .35, .2], LACE_WIDTH = .09;
+/** Share of a lace level from the holes' own rims (F1) rather than the filaments between them: filled foam between
+ * thin threads. */
+const LACE_FILL = .35;
+
+/** Lace at (u, v): bright on the borders between cells at three scales. */
+function lace(u: number, v: number): number {
+  let sum = 0;
+  LACE_CELLS.forEach((cells, i) => {
+    const [first, second] = worley(u, v, cells, 3 + 2 * i);
+    sum += LACE_WEIGHTS[i] * ((1 - LACE_FILL) * Math.exp(-(second - first) / LACE_WIDTH) + LACE_FILL * Math.min(1, first / .7));
+  });
+  return sum;
+}
+
+/** Streak lines: this many rows per tile across the texture (v) at three spacings, each holding one line jittered
+ * within its row; their half-widths in texels; how far (in rows) they meander; and how many times per tile each
+ * breaks along its length (u). */
+const STREAK_ROWS = [5, 12, 29], STREAK_WIDTH_MIN = .6, STREAK_WIDTH_MAX = 1.8, STREAK_MEANDER = .6, STREAK_BREAKS = 3;
+/** Share of a line's half-width over which its edge softens: flat-topped lines, so thresholding the channel for more
+ * coverage adds lines, in order of their strength, rather than fattening every line. */
+const STREAK_SOFT = .45;
+
+/** One set of `rows` lines along u at (u, v): each row's line has its own place, width, strength and breaks. */
+function streakLines(u: number, v: number, rows: number, seed: number): number {
+  const y = v * rows + STREAK_MEANDER * (value(u, v, 3, 5, seed + 7) - .5), row = Math.floor(y);
+  let line = 0;
+  for (let offset = -1; offset <= 1; offset++) {
+    const cell = row + offset, id = ((cell % rows) + rows) % rows;
+    const centre = cell + .2 + .6 * hash(id, 0, seed);
+    const width = (STREAK_WIDTH_MIN + (STREAK_WIDTH_MAX - STREAK_WIDTH_MIN) * hash(id, 1, seed)) * rows / FOAM_TEXELS;
+    const strength = .25 + .75 * hash(id, 3, seed), along = value(u + hash(id, 2, seed), 0, STREAK_BREAKS, 1, seed * 131 + id);
+    const profile = 1 - smooth((Math.abs(y - centre) / width - (1 - STREAK_SOFT)) / STREAK_SOFT);
+    line = Math.max(line, profile * strength * Math.min(1, 2 * along) ** 2);
+  }
+  return line;
+}
+
+/** 3t² − 2t³ on t clamped to [0, 1]. */
+function smooth(t: number): number {
+  const x = Math.min(1, Math.max(0, t));
+  return x * x * (3 - 2 * x);
+}
+
+/** Level of the faint film between streak lines, below every line's: once a coverage has taken every line, more
+ * of it spreads as patchy film instead of in the order the texels happen to be stored. */
+const STREAK_FILM = .05;
+
+/** Streaks at (u, v): thin lines along u that meander and break, at three spacings; where two cross, the stronger. */
+function streaks(u: number, v: number): number {
+  const lines = STREAK_ROWS.reduce((most, rows, i) => Math.max(most, streakLines(u, v, rows, 23 + 10 * i)), 0);
+  return Math.max(lines, STREAK_FILM * value(u, v, 6, 24, 61));
+}
+
+/** Turbulent white water: fine billows at two scales, for the body of a fresh whitecap. */
+function churn(u: number, v: number): number {
+  return .6 * value(u, v, 24, 24, 51) + .4 * value(u, v, 57, 57, 53);
+}
+
 /** The ocean's one foam texture, generated at startup and tiling in both axes. Every channel is equalised.
- * Red: lace, the structure of thinning white water, bright filaments around holes at three scales (Worley F1).
- * Green: broad patches (fbm). Blue: streaks, ridged noise eight times finer across the texture than along it
- * (u), so its highest levels are thin lines like the foam the wind draws out; the surface lays u along the wind. */
+ * Red: lace, the structure of thinning white water. Green: broad patches (fbm). Blue: streaks, thin lines along the
+ * texture (u) that meander, merge and break, like the foam the wind draws out; the surface lays u along the wind.
+ * Alpha: churn, the billowing texture of fresh white water. */
 export function foamTexture(): DataTexture {
-  const n = FOAM_TEXELS, lace = new Float32Array(n * n), patches = new Float32Array(n * n), streaks = new Float32Array(n * n);
+  const n = FOAM_TEXELS, fields = [new Float32Array(n * n), new Float32Array(n * n), new Float32Array(n * n), new Float32Array(n * n)];
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
     const u = (x + .5) / n, v = (y + .5) / n, i = y * n + x;
-    lace[i] = .5 * worley(u, v, 5, 3) + .3 * worley(u, v, 13, 7) + .2 * worley(u, v, 32, 9);
-    let broad = 0, ridges = 0, weight = .5;
-    for (let octave = 0; octave < 4; octave++, weight *= .5) {
-      broad += weight * value(u, v, 4 << octave, 4 << octave, 11 + octave);
-      if (octave < 3) ridges += [.5, .3, .2][octave] * (1 - Math.abs(2 * value(u, v, 2 << octave, 16 << octave, 23 + octave) - 1));
-    }
-    patches[i] = broad; streaks[i] = ridges;
+    let broad = 0, weight = .5;
+    for (let octave = 0; octave < 4; octave++, weight *= .5) broad += weight * value(u, v, 4 << octave, 4 << octave, 11 + octave);
+    fields[0][i] = lace(u, v); fields[1][i] = broad; fields[2][i] = streaks(u, v); fields[3][i] = churn(u, v);
   }
   const pixels = new Uint8Array(n * n * 4);
-  [equalize(lace), equalize(patches), equalize(streaks)].forEach((field, channel) => field.forEach((level, i) => { pixels[i * 4 + channel] = Math.round(level * 255); }));
+  fields.map(equalize).forEach((field, channel) => field.forEach((level, i) => { pixels[i * 4 + channel] = Math.round(level * 255); }));
   const map = new DataTexture(pixels, n, n, RGBAFormat);
   map.name = 'Ocean foam';
   map.wrapS = map.wrapT = RepeatWrapping;

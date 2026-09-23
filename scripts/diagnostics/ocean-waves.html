@@ -17,6 +17,10 @@ import { buildSpectrum, FOLD_PERIOD } from '/src/game/ocean/waves/spectrum.ts';
 import { activeModes, referenceTexel } from '/src/game/ocean/waves/reference.ts';
 import { windSea } from '/src/maps/seaCalibration.ts';
 import { oceanMap } from '/src/maps/catalog.ts';
+import { foamPatterns, streaking, whitecapOpacity, windrowOpacity } from '/src/game/ocean/surface/foam.ts';
+import { foamTexture } from '/src/game/ocean/surface/foamTexture.ts';
+import { whitecapCoverage } from '/src/game/ocean/waves/whitecaps.ts';
+import { windrowFoam } from '/src/game/VisualEnvironment.ts';
 
 const query = new URLSearchParams(location.search);
 const output = document.querySelector('output');
@@ -36,11 +40,13 @@ const sync = () => renderer.backend.device.queue.onSubmittedWorkDone();
 /** Named winds (m/s); any number also works. Seas and foam gains come from the game's calibration. */
 const SEAS = { calm: 3, moderate: 9, storm: 25 };
 const params = { significantHeight: 0, windSpeed: 0, windDirection: .61, peakWavelength: 1, choppiness: 0, gamma: 2.6, directionalSharpness: .8, seed: 1, dirty: true };
-const foam = { crestStrength: 0, windwardStrength: 0, decayTime: 2.8 };
+const foam = { coverageScale: 1, lifetime: .55 };
+/** The crest foam's look as the game sets it in the Atlantic (VisualEnvironment). */
+const foamLook = { opacity: .8, windStretch: .5 };
+const foamMap = foamTexture();
 function setSea(name) {
   const sea = windSea(oceanMap('north-atlantic'), SEAS[name] ?? Number(name));
   Object.assign(params, { significantHeight: sea.significantHeightM, windSpeed: sea.windSpeed, peakWavelength: sea.peakWavelength, choppiness: sea.choppiness, dirty: true });
-  Object.assign(foam, { crestStrength: sea.crestFoam, windwardStrength: sea.windwardFoam });
 }
 
 let quality = query.get('quality') ?? 'high', field, sampler, mesh;
@@ -74,10 +80,11 @@ const grid = polarGrid();
 const center = uniform(new THREE.Vector2());
 const show = query.get('show') ?? 'shaded';
 
-function build() {
+function build(tileScale = 1) {
   field?.dispose(); sampler?.dispose();
   if (mesh) { scene.remove(mesh); mesh.material.dispose(); }
-  field = createWaveField(renderer, OCEAN_TIERS[quality].cascades, params, foam);
+  field = createWaveField(renderer, OCEAN_TIERS[quality].cascades.map(c => ({ ...c, size: c.size * tileScale })), params, foam);
+  field.tileScale = tileScale;
   sampler = createWaveHeightSampler(renderer, field);
   const material = new THREE.MeshBasicNodeMaterial();
   const xz = positionGeometry.xz.add(center);
@@ -246,22 +253,31 @@ async function foamCheck() {
     pausedUnchanged: before.every((v, i) => v === paused[i]), rebuiltWhilePausedUnchanged: before.every((v, i) => v === rebuilt[i]) };
 }
 
-/** Crest foam as the surface reads it (field.surface) over a 512 m square at 0.5 m per pixel, after
- * `seconds` of field-only updates at wind `sea`: its mean and the share of the area above 0.5 and 1. */
-async function foamCoverage(sea, seconds = 15) {
+/** Foam as the surface draws it over a 512 m square at 0.5 m per pixel, after `seconds` of field-only updates at wind
+ * `sea`: the mean foam amount field.surface() returns, and the mean opacity of whitecaps, of windrows and of both
+ * together, from the material's own foam functions (resolved: no pattern blur). `overrides` replaces sea parameters
+ * (peakWavelength, gamma, choppiness) and `tileScale` grows every tile, to try other sea states. */
+async function foamCoverage(sea, seconds = 15, overrides = {}, tileScale = 1) {
   setSea(sea);
+  Object.assign(params, overrides, { dirty: true });
+  if (tileScale !== (field.tileScale ?? 1)) { build(tileScale); }
   for (let i = 0; i < seconds * 60; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
   const n = 1024, target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
   const material = new THREE.NodeMaterial();
-  material.fragmentNode = vec4(field.surface(screenCoordinate.mul(512 / n)).foam, 0, 0, 1);
+  const xz = screenCoordinate.mul(512 / n), amount = field.surface(xz).foam;
+  const { pattern, blur, rows, rowsBlur } = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1));
+  const whitecaps = whitecapOpacity(amount, pattern, blur, streaking(float(params.windSpeed))).mul(foamLook.opacity);
+  const rowsFoam = windrowFoam(params.windSpeed);
+  const windrows = windrowOpacity(float(rowsFoam.coverage), rows.g, rows.b, rows.r, rowsBlur).mul(rowsFoam.opacity);
+  material.fragmentNode = vec4(amount, whitecaps, windrows, float(1).sub(float(1).sub(whitecaps.clamp(0, 1)).mul(float(1).sub(windrows.clamp(0, 1)))));
   material.blending = THREE.NoBlending;
   renderer.setRenderTarget(target); new THREE.QuadMesh(material).render(renderer); renderer.setRenderTarget(null);
   const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, n, n);
-  let mean = 0, half = 0, full = 0;
-  for (let i = 0; i < n * n; i++) { const f = pixels[i * 4]; mean += f; if (f > .5) half++; if (f > 1) full++; }
+  const mean = [0, 0, 0, 0];
+  for (let i = 0; i < n * n; i++) for (let c = 0; c < 4; c++) mean[c] += pixels[i * 4 + c] / (n * n);
   target.dispose(); material.dispose();
-  return { wind: params.windSpeed, significantHeight: params.significantHeight, gains: [foam.crestStrength, foam.windwardStrength],
-    mean: mean / (n * n), above05: half / (n * n), above1: full / (n * n), monahan: 3.84e-6 * params.windSpeed ** 3.41 };
+  return { wind: params.windSpeed, significantHeight: params.significantHeight, peakWavelength: params.peakWavelength, choppiness: params.choppiness, tileScale,
+    amount: mean[0], whitecaps: mean[1], windrows: mean[2], total: mean[3], target: whitecapCoverage(params.windSpeed) };
 }
 
 /** CPU time of update() (batches without waiting) and GPU-inclusive wall time per update. Other
