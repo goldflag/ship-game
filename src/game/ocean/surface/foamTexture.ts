@@ -2,6 +2,8 @@ import { DataTexture, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, RG
 
 /** Texels per edge. */
 export const FOAM_TEXELS = 256;
+/** Most taps the sampler averages along a grazing pixel's length. */
+export const FOAM_ANISOTROPY = 8;
 
 /** Integer hash to [0, 1): seeds and lattice indices only, no float inputs. */
 function hash(x: number, y: number, seed: number): number {
@@ -70,10 +72,10 @@ function lace(u: number, v: number): number {
  * texels (soft Gaussian profiles, so the lines of foam laid in them fray instead of ending at a hard edge); how far
  * (in rows) they meander over the tile, so neighbours close up and part, and wiggle over a few metres of their length;
  * and how many times per tile each breaks along its length (u) and swells and narrows. */
-const STREAK_ROWS = [5, 13], STREAK_WIDTH_MIN = 1, STREAK_WIDTH_MAX = 3, STREAK_MEANDER = .9, STREAK_BREAKS = 19;
-const STREAK_WIGGLE = .22, STREAK_WIGGLES = 40, STREAK_SWELLS = 30;
+const STREAK_ROWS = [5, 13], STREAK_WIDTH_MIN = 1.5, STREAK_WIDTH_MAX = 4, STREAK_MEANDER = 1.3, STREAK_BREAKS = 41;
+const STREAK_WIGGLE = .3, STREAK_WIGGLES = 70, STREAK_SWELLS = 53;
 /** Value of a band's own noise along it below which the band breaks, and the width of the fade into each gap. */
-const STREAK_GAP = .38, STREAK_GAP_EDGE = .22;
+const STREAK_GAP = .42, STREAK_GAP_EDGE = .25;
 
 /** One set of `rows` bands along u at (u, v): each row's band has its own place, width, strength and breaks. */
 function streakLines(u: number, v: number, rows: number, seed: number): number {
@@ -111,9 +113,13 @@ const STREAK_CHANNEL = 2;
  * those levels lie beyond `foam.ts`'s pattern blur, where the surface takes the coverage itself. */
 const EQUALIZED_TEXELS = 16;
 
-/** Turbulent white water: fine billows at two scales, for the body of a fresh whitecap. */
+/** Churned white water: clumps of foam heaped into rounded billows at three scales (domes over each cell of a jittered
+ * grid, 1 − F1), so the surface shades each billow on its sunward side and darkens in the creases between them. */
+const CHURN_CELLS = [17, 41, 97], CHURN_WEIGHTS = [.5, .32, .18];
+
+/** Churn at (u, v): heaped billows. */
 function churn(u: number, v: number): number {
-  return .6 * value(u, v, 24, 24, 51) + .4 * value(u, v, 57, 57, 53);
+  return CHURN_CELLS.reduce((sum, cells, i) => sum + CHURN_WEIGHTS[i] * (1 - Math.min(1, worley(u, v, cells, 51 + 2 * i)[0])), 0);
 }
 
 /** The periodic `size`² field averaged over 2 × 2 blocks. */
@@ -136,7 +142,7 @@ function levelPixels(fields: Float32Array[], size: number): Uint8Array {
 }
 
 /** The ocean's one foam texture, generated at startup and tiling in both axes. Red: lace, the structure of thinning
- * white water. Green: broad patches (fbm). Alpha: churn, the billowing texture of fresh white water. These three are
+ * white water. Green: broad patches (fbm). Alpha: churn, the heaped billows of fresh and churned white water. These three are
  * equalised, and each mip level down to EQUALIZED_TEXELS averages the raw fields and is equalised again: an averaged
  * pattern narrows toward its mean, so thresholding the GPU's own mips for a coverage would thin foam with distance,
  * where these keep the share. Blue: the band mask, soft lines along the texture (u) that meander and break, where the
@@ -164,10 +170,10 @@ export function foamTexture(): DataTexture {
   map.name = 'Ocean foam';
   map.wrapS = map.wrapT = RepeatWrapping;
   map.minFilter = LinearMipmapLinearFilter; map.magFilter = LinearFilter;
-  // Isotropic: anisotropic filtering averages several taps of a finer level, narrowing the pattern as a coarse mip
-  // would, and the surface thresholds this texture for exact coverages.
+  // Anisotropic, as `foam.ts`'s blur assumes: a grazing pixel samples the level its width needs and averages taps along
+  // its length. Isotropic, it took the level its length needs, whose equalised texels then thresholded into blocks.
   map.mipmaps = mipmaps; map.generateMipmaps = false;
-  map.anisotropy = 1;
+  map.anisotropy = FOAM_ANISOTROPY;
   map.userData.streakMean = streakMean;
   map.needsUpdate = true;
   return map;

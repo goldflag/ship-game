@@ -245,7 +245,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const { pattern, blur, streaks, streaksBlur, lines, gather, churnSunward } = foamPatterns(this.foamDetail, xz, reference('windDirection', 'float', waves.params),
       stretch, sunDirection);
     const lace = pattern.r;
-    const whitecaps = whitecapFoam(sample.foam, sample.foamMean, sample.whitecapShare, pattern, blur, streaks, streaksBlur, foamFootprint(xz));
+    const whitecaps = whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, pattern, blur, streaks, streaksBlur, foamFootprint(xz));
     // The realistic wake's churned water is the whitecaps' dense white water; without a slick the trail keeps the
     // replaced library's soft, puffy foam.
     const churned = wake.slick !== undefined ? churnedWater(wake.foam(xz.x, xz.y), pattern, blur) : undefined;
@@ -254,14 +254,14 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     // breaking crests and churned water scatter the same daylight back up through the water. A pixel gone to the
     // whitecaps' mean has their brightness in it already.
     const foamLight = foamRadiance(skyReflection(environment, up, float(1)), sunRadiance, up, sunDirection, lit);
-    const aerated = aeration(sample.bubbles, wake.bubbles?.(xz.x, xz.y)).mul(float(1).sub(whitecaps.far));
+    const aerated = aeration(sample.bubbles.mul(float(1).sub(whitecaps.averaged)), wake.bubbles?.(xz.x, xz.y));
     const water = mix(bubbleCloud(body, aerated, foamLight, absorption), reflected, aeratedReflectance(reflectance, aerated));
     let above: Node<'vec3'> = water.add(direct.mul(lit));
 
     // From the widest and faintest to the brightest: windrows, whitecaps and churned water, shorelines.
     const windrows = windrowOpacity(reference('coverage', 'float', foam.surface), lines, this.foamDetail.userData.streakMean, gather, streaks, streaksBlur,
       sample.jacobian).mul(reference('opacity', 'float', foam.surface));
-    const white = billows(pattern.a, churnSunward, max(whitecaps.dense, churned?.dense ?? float(0)), blur);
+    const white = billows(pattern.a, churnSunward, pattern.r, max(whitecaps.dense, churned?.dense ?? float(0)), blur);
     // Where the water column behind the surface thins to nothing: a beach, or the line along a hull.
     const shoreFoam = foamOpacity(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), lace, blur, SHORE_EDGE).mul(reference('opacity', 'float', foam.shoreline));
     above = foamOver(above, water, foamLight.mul(rgb(foam.surface.color)), reflected, reflectance, windrows);

@@ -32,7 +32,7 @@ const ANISOTROPY = 16;
  * threshold z the wind's coverage sets; injection ramps from nothing to fresh foam (1) over BREAKING_RAMP / z of the
  * indicator, centred on the threshold, so a whitecap's rim is thinner than its core. A Gaussian field's peaks pass a
  * high threshold by about 1 / z, so the ramp keeps pace and breakers reach full strength alike at every wind. */
-const BREAKING_RAMP = 2;
+const BREAKING_RAMP = 3;
 /** A threshold uniform standing for "never breaks". */
 const NEVER = 1e4;
 /** Short waves break on the crests of longer ones: a finer cascade's foam shows in full where the coarser cascades'
@@ -45,10 +45,11 @@ const FOAM_JACOBIAN_MIN = .35, FOAM_JACOBIAN_MAX = 2.5;
 /** Bubbles a breaking crest carries down persist like its foam but for this share of the foam's lifetime: the cloud
  * rises and dissolves within about a wave period, while the surface foam it leaves lingers. */
 const BUBBLE_LIFE = .5;
-/** The bubble cloud, and the foam's mean, are read from a mip whose texels span the pixel's whole footprint and at least
- * this many metres: bubbles carried down under a whitecap spread about as far again around it, and a whitecap smaller
+/** The bubble cloud, and the foam's mean, are read over an ellipse this many metres along the crests (across the wind)
+ * and across them, or the pixel's whole footprint where that is larger: bubbles carried down under a breaking crest
+ * spread along it and a little ahead and behind, and a whitecap's foam is drawn out along its crest; a whitecap smaller
  * than its pixel reads as its share of the pixel instead of a fleck (see `foam.ts`). */
-const BUBBLE_SPREAD = 4;
+const CREST_SPREAD = 8, CROSS_SPREAD = 2.5;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
 const MIN_JACOBIAN = .1;
@@ -314,6 +315,14 @@ export class GpuWaveField implements WaveField {
     return (level ? node.level(level) : node) as unknown as Vec4;
   }
 
+  /** `field` averaged over the ellipse with axes `along` and `across` (world metres, as vectors) about `xz`: the
+   * anisotropic filter's own taps, at the cost of one read. */
+  private spread(field: typeof FIELDS[number], xz: Node<'vec2'>, cascade: number, along: Node<'vec2'>, across: Node<'vec2'>): Vec4 {
+    const tile = this.tiles[cascade];
+    const node = direct(this.maps[field].sample(xz.div(tile).add(.5 / this.size))).grad(along.div(tile), across.div(tile)) as TextureMap;
+    return this.layered(node, int(cascade)) as unknown as Vec4;
+  }
+
   /** Mip level whose texels match `metres` on cascade `i`'s tile (unclamped). */
   private mip(metres: Float, i: number): Float { return log2(metres.mul(this.texels[i])); }
 
@@ -333,10 +342,10 @@ export class GpuWaveField implements WaveField {
     // The pixel's footprint on the grid (m), as the anisotropic filter resolves it.
     const across = dFdx(xz).length(), down = dFdy(xz).length();
     const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
-    const wide = max(across, down);
+    const wide = max(across, down), crestward = vec2(this.wind.y.negate(), this.wind.x);
     const stilled = slick(calm);
     const hulls = this.hullSurface(xz, at, footprint);
-    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), foamMean: Float = float(0), bubbles: Float = float(0);
+    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), fresh: Float = float(0), foamMean: Float = float(0), bubbles: Float = float(0);
     let variance: Float = stilled(this.tail, 1), unresolved: Float = stilled(this.tailFull, 1);
     this.tier.forEach((_, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
@@ -349,9 +358,11 @@ export class GpuWaveField implements WaveField {
       // −(∂Dx/∂x + ∂Dz/∂z), gated in its own standard deviations).
       const crests = i ? smoothstep(GATE_NONE, GATE_FULL, strain.x.add(strain.y).mul(this.gates[i]).negate()) : float(1);
       foam = max(foam, extras.y.mul(detail).mul(crests));
-      // One read serves the bubble cloud and the foam's mean: isotropic, over the whole footprint and at least BUBBLE_SPREAD.
-      const spreadLevel = clamp(this.mip(max(wide, BUBBLE_SPREAD), i), 0, this.top);
-      const spread = this.sample('extras', xz, i, spreadLevel);
+      // The bubble channel decays twice as fast as the foam, so it is the share of the foam that broke in the last few
+      // seconds: the whitecap's dense core.
+      fresh = max(fresh, extras.w.mul(detail).mul(crests));
+      // One read serves the bubble cloud and the foam's mean, drawn out along the crests (see CREST_SPREAD).
+      const spread = this.spread('extras', xz, i, crestward.mul(max(wide, CREST_SPREAD)), this.wind.mul(max(wide, CROSS_SPREAD)));
       bubbles = max(bubbles, spread.w.mul(detail).mul(crests));
       foamMean = max(foamMean, spread.y.mul(detail).mul(crests));
       slope = slope.add(stilled(derivatives.xy.mul(detail), this.slickShares[i]));
@@ -371,9 +382,10 @@ export class GpuWaveField implements WaveField {
     const ripples = this.ripples(xz, footprint, stilled);
     // Foam rides the water: per area of sea it is as dense as the surface is compressed (1 / J), gathered on
     // converging crests and thinned where their backs stretch.
-    const density = foam.div(clamp(jacobian, FOAM_JACOBIAN_MIN, FOAM_JACOBIAN_MAX));
+    const gathered = float(1).div(clamp(jacobian, FOAM_JACOBIAN_MIN, FOAM_JACOBIAN_MAX));
+    const density = foam.mul(gathered);
     return {
-      slope: world.add(ripples.slope).add(hulls.world), jacobian, foam: density, foamMean, whitecapShare: this.whitecapShare, bubbles,
+      slope: world.add(ripples.slope).add(hulls.world), jacobian, foam: density, fresh: fresh.mul(gathered), foamMean, whitecapShare: this.whitecapShare, bubbles,
       slopeVariance: variance.add(ripples.variance).add(hulls.variance), unresolvedVariance: unresolved.add(ripples.unresolved).add(hulls.variance),
     };
   }

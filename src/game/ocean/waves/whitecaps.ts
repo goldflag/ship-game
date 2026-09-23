@@ -19,7 +19,7 @@ const ONSET_START = 3.5, ONSET_FULL = 5;
 /** Wind (m/s) over which old foam is blown into windrows, from Beaufort 6 to 9 (Beaufort 7: "foam begins to be blown
  * in streaks along the wind", 8: "well-marked streaks", 9: "dense streaks"), and the share of the whitecap coverage
  * they then hold. */
-const WINDROW_START = 12, WINDROW_FULL = 24, WINDROW_SHARE = .25;
+const WINDROW_START = 13, WINDROW_FULL = 25, WINDROW_SHARE = .25;
 /** The most of the sea windrows cover, about what their thin lines hold before they saturate; whitecaps take the rest. */
 const WINDROW_MOST = .04;
 /** Forward shift of the breaking indicator from the crest (radians of wave phase): foam starts on the crest and
@@ -131,7 +131,7 @@ function forModes(cascade: WaveSpectrum['cascades'][number], visit: (energy: num
  * on the coarser cascades' compression lets it (field.ts). Dense whitecaps land on crests already white, so the depth
  * they reach falls behind the depth injected as D / (1 + SATURATION·D); the injection makes up for it. All measured on
  * the GPU with `bun scripts/browser/ocean-waves.ts --coverage`, on the calibrated and the realistic sea alike. */
-const PERSISTENCE = 2.3, GATED_SHOWING = .62, SATURATION = 1.3;
+const PERSISTENCE = 17.3, GATED_SHOWING = .62, SATURATION = .65;
 /** The most injection the saturation correction may call for, as a multiple of the depth wanted. */
 const MAX_BOOST = 4;
 
