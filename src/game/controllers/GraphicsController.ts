@@ -1,11 +1,11 @@
 import * as THREE from 'three/webgpu';
-import type { rtt } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { smaa } from 'three/addons/tsl/display/SMAANode.js';
 import type { SkySystem } from '../../../vendor/threejs-sky-pro/build/index.js';
 import type { OceanApi } from '../ocean/contracts';
 import type { AircraftView } from '../AircraftView';
 import type { CombatEffects } from '../CombatEffects';
+import type { DisplayTransform } from '../DisplayTransform';
 import {
   aircraftDetailScale,
   cloudTier,
@@ -28,8 +28,8 @@ export interface GraphicsContext {
   detailBudgetPx: number;
   pipeline: THREE.RenderPipeline | undefined;
   readonly renderer: THREE.WebGPURenderer;
-  /** The composited frame the display pass smooths; absent until start-up has built it. */
-  readonly finalFrame?: ReturnType<typeof rtt>;
+  /** Builds the composited frame the display pass smooths; absent until start-up has built it. */
+  readonly display?: DisplayTransform;
   readonly ocean?: Pick<OceanApi, 'reflections'>;
   /** The scene's sun, whose shadow settings the near and wide maps follow; absent until start-up creates it. */
   readonly sunLight?: THREE.DirectionalLight;
@@ -63,7 +63,7 @@ export class GraphicsController {
     context.frameIntervalMs = frameIntervalMs(settings.frameLimit);
     this.applyDetail();
     if (previous.renderScale !== settings.renderScale) context.requestResize();
-    if (previous.antialiasing !== settings.antialiasing && context.finalFrame) this.buildPipeline();
+    if ((previous.antialiasing !== settings.antialiasing || previous.bloom !== settings.bloom) && context.display) this.buildPipeline();
     if (previous.reflections !== settings.reflections) this.applyReflections();
     if (previous.shadows !== settings.shadows) this.applyShadows();
     if (previous.clouds !== settings.clouds) this.applyClouds();
@@ -86,12 +86,12 @@ export class GraphicsController {
     context.funnelSmoke.density = density;
   }
 
-  /** The display pass: the composited frame with the selected edge smoothing. */
+  /** The display pass: the composited frame, with or without bloom, and the selected edge smoothing. */
   buildPipeline(): void {
     const context = this.context,
-      { antialiasing } = context.settings;
+      { antialiasing, bloom } = context.settings;
     context.pipeline?.dispose();
-    const frame = context.finalFrame!;
+    const frame = context.display!.build(bloom === 'on');
     const output = antialiasing === 'smaa' ? smaa(frame) : antialiasing === 'fxaa' ? fxaa(frame) : frame;
     const pipeline = (context.pipeline = new THREE.RenderPipeline(context.renderer, output));
     pipeline.outputColorTransform = false;

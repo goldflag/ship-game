@@ -86,3 +86,16 @@ test('ambient occlusion migrates saves to their preset and falls back per row', 
   expect(sanitizeGraphicsSettings({ ...GRAPHICS_PRESETS.low, ambientOcclusion: 'ultra' }).ambientOcclusion).toBe(DEFAULT_GRAPHICS.ambientOcclusion);
   expect(matchingPreset({ ...DEFAULT_GRAPHICS, ambientOcclusion: 'off' })).toBeNull();
 });
+
+test('saves from before bloom take it from their nearest preset; bloom then stays independently configurable', () => {
+  expect(GRAPHICS_PRESETS.low.bloom).toBe('off');
+  for (const name of PRESET_ORDER) {
+    const { bloom, ...oldSave } = GRAPHICS_PRESETS[name];
+    expect(sanitizeGraphicsSettings(oldSave)).toEqual(GRAPHICS_PRESETS[name]);
+    expect(sanitizeGraphicsSettings({ ...oldSave, bloom: bloom === 'on' ? 'off' : 'on' }).bloom).not.toBe(bloom);
+  }
+  const { bloom: _, ...customLow } = { ...GRAPHICS_PRESETS.low, renderScale: 100 };
+  expect(sanitizeGraphicsSettings(customLow).bloom).toBe('off');
+  expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, bloom: 'bright' }).bloom).toBe('on');
+  expect(matchingPreset({ ...GRAPHICS_PRESETS.medium, bloom: 'off' })).toBeNull();
+});

@@ -137,7 +137,9 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     if (time.id === 'night') {
       expect(sky.sun.intensity.value).toBe(0);
       expect(sky.timeOfDay.moonDirection.value.y).toBeGreaterThan(0);
-      expect(environment.ambientLight.intensity).toBeLessThan(.5);
+      // Night keeps a dim authored ambient; moonlit meshes take 1.6 times it so hulls stay readable.
+      expect(environment.diagnostics().environment!.ambient).toBeLessThan(.5);
+      expect(environment.ambientLight.intensity).toBeCloseTo(expected.sky.ambient * 1.6, 10);
       expect(ocean.fog.color.getHexString()).toBe('182839');
       expect(effects.direct).toBeLessThan(1);
       expect(effects.direct).toBeGreaterThan(0);
@@ -200,12 +202,19 @@ test('paused scene, water and smoke share moonlight and restore the current sun'
     environment.setScene('north-atlantic', false); driver.update(0);
     environment.syncLighting(); // Deliberately no ocean update.
     expect(ocean.sun.intensity).toBeCloseTo(effects.direct);
-    // Meshes take half the raw sun the sea shades with, and a daylight share of the unoccluded fill.
-    expect(sunLight.intensity).toBeCloseTo(effects.direct * .5);
+    // By day meshes take about half the raw sun the sea shades with and a daylight share of the
+    // unoccluded fill. Moonlit meshes take 1.5 times the moon and 1.6 times the fill; the sea keeps the raw moon.
+    const moonlit = ocean.sun.direction.equals(sky.timeOfDay.moonDirection.value);
+    if (hour === 0 || hour === 24 || hour === 12) expect(moonlit).toBe(hour !== 12);
+    expect(sunLight.intensity).toBeCloseTo(effects.direct * (moonlit ? 1.5 : .55));
     const fill = environment.ambientLight.intensity / environment.diagnostics().environment!.ambient;
-    if (effects.direct >= 4) { expect(fill).toBeCloseTo(.3, 10); expect(ocean.environmentIntensity).toBeCloseTo(.6, 10); }
-    if (effects.direct <= 1) { expect(fill).toBe(1); expect(ocean.environmentIntensity).toBe(1); }
-    expect(fill).toBeGreaterThanOrEqual(.3 - 1e-9);
+    if (moonlit) { expect(fill).toBeCloseTo(1.6, 10); expect(ocean.environmentIntensity).toBe(1); }
+    else {
+      if (effects.direct >= 4) { expect(fill).toBeCloseTo(.33, 10); expect(ocean.environmentIntensity).toBeCloseTo(.66, 10); }
+      if (effects.direct <= 1) { expect(fill).toBe(1); expect(ocean.environmentIntensity).toBe(1); }
+      expect(fill).toBeGreaterThanOrEqual(.33 - 1e-9);
+      expect(fill).toBeLessThanOrEqual(1);
+    }
     expect(ocean.sun.direction.y).toBeGreaterThanOrEqual(0);
     if (hour === 0 || hour === 24) {
       expect(ocean.sun.intensity).toBeGreaterThan(.3);

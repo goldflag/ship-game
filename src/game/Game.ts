@@ -24,7 +24,7 @@ import { createSeaState, type SeaState } from './session/sea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
 import * as THREE from 'three/webgpu';
-import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
+import { Fn, float, max, pass } from 'three/tsl';
 import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
 import { FrameScene } from './FrameScene';
@@ -45,6 +45,7 @@ import { ShipView } from './ShipView';
 import { ObservedShipViews } from './ObservedShipViews';
 import { FleetVisibility } from './FleetVisibility';
 import { ArmorOverlay } from './ArmorOverlay';
+import { DISPLAY_TONE_MAPPING, DisplayTransform } from './DisplayTransform';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels, type ObservedLabelReport } from './ShipLabels';
 import { HitLabels } from './HitLabels';
@@ -264,7 +265,7 @@ export class Game {
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
   private scenePass?: ReturnType<typeof pass>;
-  private finalFrame?: ReturnType<typeof rtt>;
+  private display?: DisplayTransform;
   private armorOverlay?: ArmorOverlay;
   private inspectionHover: InspectionHover;
   private abort = new AbortController();
@@ -309,7 +310,7 @@ export class Game {
     // close near plane needed by bridge and shell-follow views. The scene pass
     // uses floating-point reversed depth; TSL's depth readers use the same mapping.
     this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true });
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMapping = DISPLAY_TONE_MAPPING;
     this.renderer.toneMappingExposure = 1;
     this.renderer.shadowMap.enabled = true;
     // Three's default PCF takes five noise-rotated taps within about one texel, so where a
@@ -510,12 +511,10 @@ export class Game {
     // The ocean's scene.fogNode already fogs each material at its own distance.
     // Sky's depth-based post fog sees the distant sea behind transparent smoke,
     // erasing a horizontal band of nearby gas at the horizon's far-fade distance.
-    const output = ocean.postProcess(this.scenePass, sceneColor);
+    const radiance = ocean.postProcess(this.scenePass, sceneColor);
     // FXAA detects edges in display space, after tone mapping and sRGB conversion.
-    const sceneDisplay = renderOutput(vec4(output.rgb.mul(this.sky.atmosphere.exposure), output.a), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace);
     this.armorOverlay = new ArmorOverlay();
-    const armorDisplay = renderOutput(this.armorOverlay.color, THREE.NoToneMapping, THREE.SRGBColorSpace);
-    this.finalFrame = rtt(vec4(mix(sceneDisplay.rgb, armorDisplay.rgb, armorDisplay.a.mul(this.armorOverlay.enabled)), sceneDisplay.a));
+    this.display = new DisplayTransform({ radiance: radiance as THREE.Node<'vec4'>, scene: sceneColor, exposure: this.sky.atmosphere.exposure, overlay: this.armorOverlay });
     this.graphicsControl.buildPipeline();
     await this.warmupRendering();
     this.callbacks.progress('Ready to get underway', 1);
@@ -551,7 +550,7 @@ export class Game {
     await this.frame(performance.now(), true);
     // A submitted frame is not necessarily finished on the GPU. A tiny readback
     // drains the startup work.
-    await this.renderer.readRenderTargetPixelsAsync(this.finalFrame!.renderTarget!, 0, 0, 1, 1);
+    await this.renderer.readRenderTargetPixelsAsync(this.display!.frame!.renderTarget!, 0, 0, 1, 1);
     this.assertActive();
   }
 
@@ -1147,7 +1146,7 @@ export class Game {
       get frameIntervalMs() { return game.frameIntervalMs; }, set frameIntervalMs(value) { game.frameIntervalMs = value; },
       get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
       get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
-      get renderer() { return game.renderer; }, get finalFrame() { return game.finalFrame; }, get ocean() { return game.ocean; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; }, get occlusion() { return game.occlusion; },
+      get renderer() { return game.renderer; }, get display() { return game.display; }, get ocean() { return game.ocean; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; }, get occlusion() { return game.occlusion; },
       get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
       get disposed() { return game.disposed; },
       requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),
@@ -1825,7 +1824,7 @@ export class Game {
     this.observedShipViews?.dispose();
     this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); });
     this.pipeline?.dispose();
-    this.finalFrame?.renderTarget?.dispose();
+    this.display?.dispose();
     this.scenePass?.dispose();
     this.occlusion.dispose();
     this.armorOverlay?.dispose();
