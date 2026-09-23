@@ -2,7 +2,7 @@ import { Vector2, type Node, type Texture, type TextureNode, type UniformNode } 
 import { Fn, If, dot, float, min, smoothstep, texture, uniform, vec2, vec3 } from 'three/tsl';
 import type { AtmospherePart, SkyUniforms } from '../contracts';
 import { crossings } from './field';
-import { cloudLightAt, henyeyGreenstein, type CloudLight } from './march';
+import { afterglow, cloudLightAt, henyeyGreenstein, type CloudLight } from './march';
 import { CIRRUS_ALTITUDE, CIRRUS_TILE, numbers } from './model';
 
 type Vec2 = Node<'vec2'>;
@@ -52,7 +52,7 @@ export function cirrusTableDirection(uv: Vec2): Vec3 {
  * one texel of a small table instead of the atmosphere's tables per pixel (latency a heavy dome shader cannot hide). */
 export function cirrusLight(sky: SkyUniforms, atmosphere: AtmospherePart, light: CloudLight, direction: Vec3): Vec3 {
   const phase = henyeyGreenstein(dot(direction, light.direction), ICE_FORWARD).mul(.6).add(float(.4 / (4 * Math.PI)));
-  return cloudLightAt(sky, atmosphere, light, sheetPoint(sky, direction)).mul(phase.mul(CIRRUS_SCATTER))
+  return cloudLightAt(sky, atmosphere, light, sheetPoint(sky, direction)).add(afterglow(atmosphere, light)).mul(phase.mul(CIRRUS_SCATTER))
     .add(atmosphere.ambient(float(CIRRUS_ALTITUDE)).above.mul(CIRRUS_FILL));
 }
 

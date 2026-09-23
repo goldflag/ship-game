@@ -1,17 +1,18 @@
 import { CustomBlending, DataTexture, HalfFloatType, LinearFilter, LinearMipmapLinearFilter, Matrix4, Mesh, MeshBasicNodeMaterial, OneFactor, RepeatWrapping, RGBAFormat, SrcAlphaFactor,
   StorageTexture, UnsignedByteType, Vector2, Vector3, ZeroFactor, type ComputeNode, type Node, type PerspectiveCamera, type StorageTextureNode, type TextureNode,
   type UniformNode, type WebGPURenderer } from 'three/webgpu';
-import { Discard, Fn, If, cameraFar, cameraNear, cameraViewMatrix, float, instanceIndex, int, ivec2, max, min, mix, round, screenUV, select, smoothstep,
+import { Discard, Fn, If, cameraFar, cameraNear, cameraViewMatrix, dot, float, instanceIndex, int, ivec2, max, min, mix, round, screenUV, select, smoothstep,
   storageTexture, texture, textureStore, uniform, uvec2, vec2, vec3, vec4, viewZToPerspectiveDepth, viewZToReversedPerspectiveDepth } from 'three/tsl';
 import type { AtmospherePart, CloudPart, SkyFrame, SkyPartContext, SkyQuality, SkyScene, SkyUniforms } from '../contracts';
 import { CLOUD_ORDER, fullScreenTriangle, screenCorner, viewDirection } from '../dome';
 import { SKY_TIERS } from '../quality';
 import { writeSceneTargets } from '../../TemporalAntialiasing';
 import { CIRRUS_TABLE, cirrusAmount, cirrusLight, cirrusTableDirection, createCirrus } from './cirrus';
-import { createCloudField, createLayerUniforms, type CloudField, type LayerUniforms } from './field';
-import { createCloudLight, gradientJitter, marchClouds, shadowTransmittance, type CloudLight, type MarchContext } from './march';
-import { cirrusMap, clearDistance, clearThreshold, weatherChannels, weatherMap, CIRRUS_SIZE, CLEAR_RANGE, WEATHER_SIZE } from './model';
+import { FARTHEST, createCloudField, createLayerUniforms, type CloudField, type LayerUniforms } from './field';
+import { afterglow, cloudLightAt, createCloudLight, gradientJitter, marchClouds, shadowTransmittance, type CloudLight, type MarchContext } from './march';
+import { cirrusMap, clearDistance, clearThreshold, weatherChannels, weatherMap, CIRRUS_SIZE, CLEAR_RANGE, PLANET_RADIUS, WEATHER_SIZE } from './model';
 import { baseVolume, detailVolume, type GeneratedVolume } from './noise';
+import { catmullRom } from './sampling';
 
 type Float = Node<'float'>;
 type Vec2 = Node<'vec2'>;
@@ -20,8 +21,9 @@ type Vec4 = Node<'vec4'>;
 type Cell = Node<'ivec2'>;
 
 /** Weight of a pixel's reprojected history against a fresh ray marched right on it (1); rays marched a pixel or
- * more away weigh less, by a Gaussian of `SPLAT` cloud-buffer pixels. */
-const HISTORY_WEIGHT = 4, SPLAT = .7;
+ * more away weigh less, by a Gaussian of `SPLAT` cloud-buffer pixels while the view moves (they fill in what the
+ * history lacks) and of `SPLAT_STILL` while it holds still (the history is right, and wider it would blur). */
+const HISTORY_WEIGHT = 4, SPLAT = .7, SPLAT_STILL = .42;
 /** Frames after a cut that march every pixel, and their history weight. */
 const CATCH_UP_FRAMES = 2, CATCH_UP_WEIGHT = 1;
 /** Reprojection motion (cloud-buffer pixels per frame) over which history goes from unclamped to clamped. */
@@ -44,24 +46,36 @@ const SHADOW_EDGE = .15;
 const SHADOW_SUN = [.02, .12] as const;
 /** The authored `clouds.ambient` was tuned against another model: this is the value meaning a gain of 1. */
 const AUTHORED_AMBIENT = 1.1;
+/** Texels of the light table (`buildLightTable`) along the light's heading, across ±`FARTHEST`, and up through
+ * the layer. The planet's shadow edge spans about 60 km of the one and a kilometre of the other. */
+const LIGHT_ALONG = 64, LIGHT_UP = 32;
 /** Kernels run in 8 × 8 texel tiles, so neighbouring rays share a warp and the texture cache. */
 const TILE = 8;
+/** Coverage over which the layer comes to shade the air and sea under it, and the share of their light it takes
+ * at full cover (`MarchContext.deckShade`). */
+const DECK_SHADE = [.55, 1, .6] as const;
 /** Frames drawn with the per-pixel-depth composite first, so both composite pipelines compile at startup. */
 const WARMUP_FRAMES = 3;
 /** Sun elevation (degrees) below which the moon lights the clouds instead. */
 const NIGHT_BELOW = -10;
+/** Twilight (sun elevations in degrees): the afterglow lights the clouds from as the sun sets to fully a degree
+ * after, and fades before the moon takes over. The clouds' light direction follows the sun until its light leaves
+ * the layer's tops, then turns up to the glow's height over the horizon. */
+const GLOW_ON = [2, -1] as const, GLOW_OFF = [NIGHT_BELOW + 1.5, NIGHT_BELOW] as const, SWING = [-1.5, -4] as const, GLOW_ELEVATION = 5;
 /** Finest the march's distance-proportional steps get under magnification (a share of their normal length). */
 const ZOOMED_STEPS = .25;
 /** Metres below the base under which the camera is "under the layer": clouds then lie behind everything. */
 const UNDER_MARGIN = 20;
 /** Lightning, in the weather part's convention: `SkyUniforms.lightningIntensity` is the irradiance, in the sea's
  * units, the channel casts 1 km away (the sun's is about 6; a stroke peaks at 40), falling off with the square of
- * distance, here softened inside `LIGHTNING_CORE` metres (the cloud around the channel diffuses it rather than
- * showing a point). A cloud glows with `LIGHTNING_GLOW` of the irradiance reaching it, dimmed over
- * `LIGHTNING_SPREAD` metres as the light works through the cloud. At a peak of 40, a cloud 5 km from the strike
- * glows about 0.35 (bright against a moonlit cloud's 0.1, visible against a sunlit one's 1), one 3 km away about
- * 1.2, one beside the channel about 6, a flash into the bloom. */
-const LIGHTNING_GLOW = .55, LIGHTNING_SPREAD = 6_000, LIGHTNING_CORE = 1_500;
+ * distance, here softened inside `core` metres (the cloud around the channel diffuses it rather than
+ * showing a point). A cloud glows with `glow` of the irradiance reaching it, dimmed over `spread` metres as
+ * the light works through the cloud down to a `tail` of it that the deck carries on: the struck cell lights up,
+ * its neighbours less, the rest of the deck faintly, and every cloud lifts by `lift` of itself with the scene's
+ * flash (`SkyUniforms.flash`, a multiple of the ambient). At a peak of 40, cloud half a kilometre from the channel
+ * glows about 2.2 (a flash into the bloom), 1 km away 0.7, 2 km away 0.12, 3 km away 0.04, 5 km away 0.01 (a
+ * moonlit cloud is about 0.1). */
+export const lightning = { glow: uniform(.045), spread: uniform(1_000), core: uniform(600), tail: uniform(.15), lift: uniform(.6) };
 const LIGHTNING_TINT = [.8, .85, 1] as const;
 
 /** Visit order of the pixels of an n × n block, spread so consecutive frames march far-apart pixels. */
@@ -123,8 +137,13 @@ export class CloudLayer implements CloudPart {
   /** The cirrus lighting table (`cirrus.ts`), refreshed every frame. */
   private readonly cirrusTable: StorageTexture;
   private readonly cirrusKernel: ComputeNode;
-  /** The table alone, for frames without a cloud update. */
-  private readonly cirrusOnly: ComputeNode[];
+  /** The light's colour through the layer (`buildLightTable`), refreshed every frame. */
+  private readonly lightTable: StorageTexture;
+  private readonly lightKernel: ComputeNode;
+  /** The light's heading as a unit XZ vector (any unit vector while it stands overhead). */
+  private readonly lightHeading = uniform(new Vector2(1, 0));
+  /** The tables alone, for frames without a cloud update. */
+  private readonly tablesOnly: ComputeNode[];
   private readonly u = {
     steps: uniform(64, 'int'), bakeSteps: uniform(16, 'int'),
     frame: uniform(0), offset: uniform(new Vector2(), 'ivec2'), interleave: uniform(2, 'int'),
@@ -132,7 +151,7 @@ export class CloudLayer implements CloudPart {
     projectionInverse: uniform(new Matrix4()), cameraWorld: uniform(new Matrix4()), previousViewProjection: uniform(new Matrix4()),
     windShift: uniform(new Vector3()), history: uniform(0), latestViewProjection: uniform(new Matrix4()), stepScale: uniform(1), historyWeight: uniform(HISTORY_WEIGHT), pixelAngle: uniform(.003),
     shadowSize: uniform(256, 'int'), shadowSlice: uniform(0, 'int'), shadowSlices: uniform(1, 'int'), shadowStrength: uniform(0),
-    ambient: uniform(1), baseShadow: uniform(.2), precipitation: uniform(0),
+    ambient: uniform(1), baseShadow: uniform(.2), deckShade: uniform(1), under: uniform(1), precipitation: uniform(0),
   };
   private readonly march: Pair;
   private readonly history: [Pair, Pair];
@@ -179,11 +198,22 @@ export class CloudLayer implements CloudPart {
     this.layer = createLayerUniforms();
     this.light = createCloudLight();
     this.field = createCloudField(sky, this.layer, { weather: this.weather, base: this.volumes[0].map, detail: this.volumes[1].map });
-    this.context = { sky, atmosphere, field: this.field, light: this.light, ambient: this.u.ambient, baseShadow: this.u.baseShadow };
+    this.lightTable = makeStorage(LIGHT_ALONG, LIGHT_UP);
+    const lightRead = texture(this.lightTable);
+    this.context = {
+      sky, atmosphere, field: this.field, light: this.light, ambient: this.u.ambient, baseShadow: this.u.baseShadow, deckShade: this.u.deckShade,
+      lightAt: (p, height) => {
+        const along = dot(p.xz.sub(sky.cameraPosition.xz), this.lightHeading).div(2 * FARTHEST).add(.5);
+        const read = lightRead.sample(vec2(along, height.clamp(0, 1))).level(float(0));
+        read.updateMatrix = false;
+        return (read as unknown as Vec4).xyz;
+      },
+    };
     this.cirrusTable = makeStorage(CIRRUS_TABLE, CIRRUS_TABLE);
     this.cirrusFn = createCirrus(sky, this.cirrusTexture, texture(this.cirrusTable), this.cirrusStrength, this.windAxis);
     this.cirrusKernel = this.buildCirrusTable(atmosphere);
-    this.cirrusOnly = [this.cirrusKernel];
+    this.lightKernel = this.buildLightTable(atmosphere);
+    this.tablesOnly = [this.lightKernel, this.cirrusKernel];
     this.march = { color: makeStorage(1, 1), depth: makeStorage(1, 1) };
     this.history = [{ color: makeStorage(1, 1), depth: makeStorage(1, 1) }, { color: makeStorage(1, 1), depth: makeStorage(1, 1) }];
     this.shadowMap = this.makeShadowMap(SKY_TIERS[quality].cloudShadowSize);
@@ -202,8 +232,9 @@ export class CloudLayer implements CloudPart {
       if (this.marchKernels.has(tier.cloudLightSteps)) continue;
       const march = this.buildMarch(tier.cloudLightSteps);
       this.marchKernels.set(tier.cloudLightSteps, march);
-      const shadow = this.shadowKernels, cirrus = this.cirrusKernel;
-      this.submissions.set(march, this.resolveKernels.map(resolve => [[march, resolve, cirrus], [march, resolve, shadow.slice, cirrus], [march, resolve, shadow.full, cirrus]]));
+      const shadow = this.shadowKernels, cirrus = this.cirrusKernel, light = this.lightKernel;
+      this.submissions.set(march, this.resolveKernels.map(resolve =>
+        [[light, march, resolve, cirrus], [light, march, resolve, shadow.slice, cirrus], [light, march, resolve, shadow.full, cirrus]]));
     }
     this.fastMaterial = this.buildComposite(reversedDepth, false);
     this.depthMaterial = this.buildComposite(reversedDepth, true);
@@ -231,6 +262,7 @@ export class CloudLayer implements CloudPart {
     this.updateClearDistance(clearThreshold(layer.coverage.value, clouds.horizonCoverage));
     this.u.ambient.value = clouds.ambient / AUTHORED_AMBIENT;
     this.u.baseShadow.value = Math.min(Math.max(clouds.baseShadow, 0), 1);
+    this.u.deckShade.value = 1 - smooth(layer.coverage.value, DECK_SHADE[0], DECK_SHADE[1]) * DECK_SHADE[2];
     this.u.precipitation.value = scene.weather.precipitation;
     this.cirrusAmount = cirrusAmount(clouds.coverage, clouds.windHeading + scene.sun.azimuth);
     this.cirrusStrength.value = SKY_TIERS[this.quality].cloudCirrus ? this.cirrusAmount : 0;
@@ -245,7 +277,7 @@ export class CloudLayer implements CloudPart {
   bake(origin: Vec3, direction: Vec3): Vec4 {
     return Fn(() => {
       const result = marchClouds(this.context, origin, this.field.altitude(origin), direction,
-        { steps: this.u.bakeSteps, lightSteps: 0, jitter: .5, fromSea: true });
+        { steps: this.u.bakeSteps, lightSteps: 0, jitter: .5, fromSea: true, under: 1 });
       return vec4(result.radiance, result.transmittance);
     })();
   }
@@ -333,12 +365,13 @@ export class CloudLayer implements CloudPart {
       this.compiled = true;
     }
     if (!this.active || !due) {
-      renderer.compute(this.cirrusOnly);
+      renderer.compute(this.tablesOnly);
       return;
     }
     this.sinceUpdate = 0;
     u.projectionInverse.value.copy(camera.projectionMatrixInverse);
     u.cameraWorld.value.copy(camera.matrixWorld);
+    u.under.value = under ? 1 : 0;
     // Angle one cloud-buffer pixel spans: the detail fades where a pixel's footprint cannot resolve it.
     u.pixelAngle.value = 2 * Math.tan(camera.getEffectiveFOV() * Math.PI / 360) / u.cloudSize.value.y;
     // Magnified (binoculars), far clouds fill the view: their steps shrink with the view's angle.
@@ -372,8 +405,11 @@ export class CloudLayer implements CloudPart {
   }
 
   dispose(): void {
-    for (const map of [this.march.color, this.march.depth, ...this.history.flatMap(h => [h.color, h.depth]), this.shadowMap, this.cirrusTable]) map.dispose();
-    for (const kernel of [...this.marchKernels.values(), ...this.resolveKernels, this.shadowKernels.slice, this.shadowKernels.full, this.cirrusKernel]) kernel.dispose();
+    for (const map of [this.march.color, this.march.depth, ...this.history.flatMap(h => [h.color, h.depth]), this.shadowMap, this.cirrusTable, this.lightTable]) {
+      map.dispose();
+    }
+    for (const kernel of [...this.marchKernels.values(), ...this.resolveKernels, this.shadowKernels.slice, this.shadowKernels.full, this.cirrusKernel,
+      this.lightKernel]) kernel.dispose();
     this.fastMaterial.dispose();
     this.depthMaterial.dispose();
     this.composite.geometry.dispose();
@@ -396,8 +432,16 @@ export class CloudLayer implements CloudPart {
    * brightened sky while the planet's shadow climbs them; by the switch the sun's light on them is spent. */
   private updateLight(): void {
     const sun = this.sky.sunDirection.value, night = sun.y < Math.sin(NIGHT_BELOW * Math.PI / 180);
+    const elevation = Math.asin(Math.min(1, Math.max(-1, sun.y))) * 180 / Math.PI;
     this.light.night.value = night ? 1 : 0;
-    this.light.direction.value.copy(night ? this.sky.moonDirection.value : sun);
+    this.light.glow.value = night ? 0 : smooth(elevation, GLOW_ON[0], GLOW_ON[1]) * smooth(elevation, GLOW_OFF[1], GLOW_OFF[0]);
+    const direction = this.light.direction.value.copy(night ? this.sky.moonDirection.value : sun);
+    const level = Math.hypot(direction.x, direction.z);
+    if (level > 1e-4) this.lightHeading.value.set(direction.x / level, direction.z / level);
+    if (!night && elevation < SWING[0]) {
+      const lifted = (elevation + (GLOW_ELEVATION - elevation) * smooth(elevation, SWING[0], SWING[1])) * Math.PI / 180;
+      direction.set(this.lightHeading.value.x * Math.cos(lifted), Math.sin(lifted), this.lightHeading.value.y * Math.cos(lifted));
+    }
     this.u.shadowStrength.value = smooth(sun.y, SHADOW_SUN[0], SHADOW_SUN[1]);
   }
 
@@ -449,6 +493,25 @@ export class CloudLayer implements CloudPart {
   }
 
   /** One ray in every interleave block of the cloud buffer: its (radiance, transmittance) and (depth km). */
+  /** The light's colour through the layer (`MarchContext.lightAt`): a table over the distance along the light's
+   * heading from the camera (±`FARTHEST`) and the height through the layer. The light's transmittance, the
+   * planet's shadow included, depends on a point's altitude and on how far toward the light it lies (its zenith
+   * turns with the planet's curve), hardly at all on its offset across: one read replaces the atmosphere's
+   * tables at every lit sample, and at dusk the shadow's edge climbs through the layer as it does in the sky. */
+  private buildLightTable(atmosphere: AtmospherePart): ComputeNode {
+    return Fn(() => {
+      const i = int(instanceIndex), texel = ivec2(i.mod(LIGHT_ALONG), i.div(LIGHT_ALONG));
+      const along = float(texel.x).add(.5).div(LIGHT_ALONG).mul(2).sub(1).mul(FARTHEST);
+      const altitude = this.layer.base.add(float(texel.y).add(.5).div(LIGHT_UP).mul(this.layer.thickness));
+      // The world point at that altitude above the curved sea (the flat world's height drops with distance).
+      const r = altitude.add(PLANET_RADIUS), height = altitude.sub(along.mul(along).div(r.add(r.mul(r).sub(along.mul(along)).max(0).sqrt())));
+      const camera = this.sky.cameraPosition;
+      const point = vec3(camera.x.add(this.lightHeading.x.mul(along)), height, camera.z.add(this.lightHeading.y.mul(along)));
+      const light = cloudLightAt(this.sky, atmosphere, this.light, point).add(afterglow(atmosphere, this.light));
+      textureStore(this.lightTable, uvec2(texel), vec4(light, 1));
+    })().compute(LIGHT_ALONG * LIGHT_UP, [64]);
+  }
+
   /** The cirrus lighting table: what the sheet sends toward the viewer along each direction above the horizon. */
   private buildCirrusTable(atmosphere: AtmospherePart): ComputeNode {
     return Fn(() => {
@@ -470,7 +533,7 @@ export class CloudLayer implements CloudPart {
         // The jitter spreads over neighbouring rays of this update (the march texels), as interleaved gradient
         // noise is made to; read at interleaved pixels it would stripe, most of all the rain's long steps.
         const result = marchClouds(this.context, origin, origin.y, direction,
-          { steps: u.steps, lightSteps, jitter: gradientJitter(vec2(m), u.frame), pixelAngle: u.pixelAngle, stepScale: u.stepScale,
+          { steps: u.steps, lightSteps, jitter: gradientJitter(vec2(m), u.frame), pixelAngle: u.pixelAngle, stepScale: u.stepScale, under: u.under,
             rain: { uniforms: { precipitation: u.precipitation, drift: this.windAxis }, detail: this.volumes[1].map, shadow: p => this.shadowAt(p, true) } });
         textureStore(this.march.color, uvec2(m), vec4(result.radiance, result.transmittance));
         textureStore(this.march.depth, uvec2(m), vec4(result.depth.div(1000), 0, 0, 1));
@@ -493,12 +556,15 @@ export class CloudLayer implements CloudPart {
         // The four march texels around this pixel, and where in the cloud buffer each was marched.
         const place = vec2(c).sub(vec2(u.offset)).div(n), corner = ivec2(place.floor());
         const sum = vec4(0).toVar(), depthSum = float(0).toVar(), weights = float(0).toVar();
+        const still = vec4(0).toVar(), stillDepth = float(0).toVar(), stillWeights = float(0).toVar();
         const lo = vec4(1e9).toVar(), hi = vec4(-1e9).toVar(), nearest = float(1e9).toVar(), nearestDepth = float(0).toVar();
         for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
           const texel = corner.add(ivec2(dx, dy)), sample = load(this.marchColor, texel).toVar(), depth = load(this.marchDepth, texel).x;
           const offset = vec2(texel).mul(n).add(vec2(u.offset)).sub(vec2(c)), d2 = offset.dot(offset);
-          const w = d2.mul(-.5 / (SPLAT * SPLAT)).exp();
-          sum.addAssign(sample.mul(w)); depthSum.addAssign(depth.mul(sample.w.oneMinus()).mul(w)); weights.addAssign(w);
+          const w = d2.mul(-.5 / (SPLAT * SPLAT)).exp(), v = d2.mul(-.5 / (SPLAT_STILL * SPLAT_STILL)).exp();
+          const covered = depth.mul(sample.w.oneMinus());
+          sum.addAssign(sample.mul(w)); depthSum.addAssign(covered.mul(w)); weights.addAssign(w);
+          still.addAssign(sample.mul(v)); stillDepth.addAssign(covered.mul(v)); stillWeights.addAssign(v);
           lo.assign(min(lo, sample)); hi.assign(max(hi, sample));
           If(d2.lessThan(nearest), () => { nearest.assign(d2); nearestDepth.assign(select(sample.w.lessThan(.999), depth.mul(1000), float(CLEAR_DISTANCE))); });
         }
@@ -511,13 +577,14 @@ export class CloudLayer implements CloudPart {
         const color = vec4(0).toVar(), weightedDepth = float(0).toVar();
         If(valid, () => {
           // Clamp to the fresh rays around only as far as the view moved: on a still view the history is right.
-          const moved = previous.sub(uv).mul(u.cloudSize).length();
-          const reprojected = direct(this.readColor[from].sample(previous).level(float(0))) as unknown as Vec4;
-          const history = mix(reprojected, reprojected.clamp(lo, hi), smoothstep(CLAMP_MOTION[0], CLAMP_MOTION[1], moved));
+          const moved = previous.sub(uv).mul(u.cloudSize).length(), motion = smoothstep(CLAMP_MOTION[0], CLAMP_MOTION[1], moved);
+          // Bicubic: a bilinear read of the history, repeated every frame as the clouds drift, would blur them.
+          const reprojected = catmullRom(this.readColor[from], previous, u.cloudSize, true);
+          const history = mix(reprojected, reprojected.clamp(lo, hi), motion);
           const historyDepth = (direct(this.readDepth[from].sample(previous).level(float(0))) as unknown as Vec4).y;
-          const keep = u.historyWeight;
-          color.assign(history.mul(keep).add(sum).div(keep.add(weights)));
-          weightedDepth.assign(historyDepth.mul(keep).add(depthSum).div(keep.add(weights)));
+          const keep = u.historyWeight, fresh = mix(still, sum, motion), freshWeights = mix(stillWeights, weights, motion);
+          color.assign(history.mul(keep).add(fresh).div(keep.add(freshWeights)));
+          weightedDepth.assign(historyDepth.mul(keep).add(mix(stillDepth, depthSum, motion)).div(keep.add(freshWeights)));
         }).Else(() => {
           color.assign(sum.div(max(weights, 1e-4)));
           weightedDepth.assign(depthSum.div(max(weights, 1e-4)));
@@ -561,7 +628,8 @@ export class CloudLayer implements CloudPart {
     // clouds are far enough that turning the view is all that moved them.
     const direction = viewDirection(), clip = this.u.latestViewProjection.mul(vec4(direction, 0));
     const at = select(clip.w.greaterThan(1e-6), clip.xy.div(clip.w).mul(vec2(.5, -.5)).add(.5), screenUV).toVar();
-    const color = direct(this.latestColor.sample(at)) as unknown as Vec4;
+    // Bicubic up from the cloud buffer: a bilinear read would soften every cloud edge by a buffer pixel.
+    const color = catmullRom(this.latestColor, at, this.u.cloudSize);
     if (depthTested) {
       const cover = color.w.oneMinus();
       const depthKm = (direct(this.latestDepth.sample(at)) as unknown as Vec4).y.div(max(cover, 1e-4));
@@ -577,7 +645,8 @@ export class CloudLayer implements CloudPart {
     const sky = this.sky;
     material.fragmentNode = Fn(() => {
       If(color.w.greaterThan(.9995), () => { Discard(); });
-      const radiance = color.xyz.toVar();
+      // The scene's flash lifts every cloud a little; the channel lights its own cell (below).
+      const radiance = color.xyz.mul(sky.flash.mul(lightning.lift).add(1)).toVar();
       // Lightning lights the cloud the pixel shows, from inside: here rather than in the march, so a flash
       // shows at once over the whole cloud instead of one pixel in sixteen a frame, and costs nothing else.
       If(sky.lightningIntensity.greaterThan(0), () => {
@@ -585,9 +654,9 @@ export class CloudLayer implements CloudPart {
         const depth = (direct(this.latestDepth.sample(at)) as unknown as Vec4).y.div(max(cover, 1e-4)).mul(1000);
         const toward = sky.cameraPosition.add(direction.mul(depth)).sub(sky.lightningPosition);
         const distance = toward.length();
-        const irradiance = sky.lightningIntensity.mul(1e6).div(distance.mul(distance).add(LIGHTNING_CORE * LIGHTNING_CORE));
+        const irradiance = sky.lightningIntensity.mul(1e6).div(distance.mul(distance).add(lightning.core.mul(lightning.core)));
         radiance.addAssign(vec3(LIGHTNING_TINT[0], LIGHTNING_TINT[1], LIGHTNING_TINT[2])
-          .mul(irradiance.mul(LIGHTNING_GLOW).mul(distance.div(-LIGHTNING_SPREAD).exp()).mul(cover)));
+          .mul(irradiance.mul(lightning.glow).mul(distance.div(lightning.spread.negate()).exp().add(lightning.tail)).mul(cover)));
       });
       return vec4(radiance, color.w);
     })();

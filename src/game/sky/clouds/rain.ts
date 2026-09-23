@@ -18,18 +18,23 @@ export interface RainUniforms {
 /** Metres between samples along a ray's stretch below the base, and the fewest and most samples a ray takes.
  * A sample in a downpour is nearly opaque, so where the first one lands decides the pixel: samples farther apart
  * than the storm cells would scatter that between neighbouring pixels and frames, and the far shafts sparkle. */
-const RAIN_SPACING = 1_500, RAIN_STEPS = [6, 30] as const;
+const RAIN_SPACING = 700, RAIN_STEPS = [8, 36] as const;
 /** Extinction (1/m) of the heaviest shaft: a downpour cuts visibility to a few kilometres. */
 const RAIN_EXTINCTION = .0022;
 /** Rain nearer than these distances (m) fades out: the weather part's streaks and haze own the near air. */
 const RAIN_NEAR = [800, 2_500] as const;
-/** Farthest rain marched (m); beyond it the horizon haze has it. */
-const RAIN_FAR = 45_000;
+/** Rain thins out into the horizon haze over these distances (m) and is not marched beyond: past ~20 km a shaft
+ * is a veil the air has mostly swallowed, and marched to the base's grazing line it would stack into a dark band
+ * along the horizon. */
+const RAIN_FADE = [8_000, 22_000] as const, RAIN_FAR = RAIN_FADE[1];
 /** Metres the rain drifts downwind for every metre it falls: the shafts slant. */
 const RAIN_SLANT = .35;
 /** World metres one repeat of the curtains' streak texture spans across and along the fall, and the distances (m)
  * over which its streaks fade into an even shaft (farther, they would only sparkle). */
-const CURTAIN_ACROSS = 2_400, CURTAIN_ALONG = 9_000, CURTAIN_FADE = [8_000, 25_000] as const;
+const CURTAIN_ACROSS = 2_400, CURTAIN_ALONG = 9_000, CURTAIN_FADE = [4_000, 12_000] as const;
+/** Share of a shaft's light that is the sky beyond it, scattered forward through the falling water: large drops
+ * scatter mostly forward, so a shaft against a bright horizon reads light grey and one under a dark cell dark. */
+const RAIN_FORWARD = .3;
 /** How the scene's precipitation opens storm cells to rain: at full precipitation cells whose storm potential
  * passes the first value rain, at a drizzle only those past the second. */
 const CELL_OPEN = [.6, .92] as const;
@@ -61,7 +66,8 @@ export function marchRain(context: MarchContext, options: RainOptions, origin: V
       const count = int(end.sub(start).div(RAIN_SPACING).ceil().clamp(RAIN_STEPS[0], RAIN_STEPS[1])).toVar();
       const step = end.sub(start).div(float(count)).toVar();
       const ambient = context.atmosphere.ambient(layer.base.mul(.5));
-      const fill = mix(ambient.below, ambient.above, .6).mul(context.ambient).toVar();
+      const fill = mix(ambient.below, ambient.above, .6).mul(context.ambient).mul(context.deckShade).toVar();
+      const beyond = context.atmosphere.sky(direction).toVar();
       const curtains = texture3D(options.detail);
       Loop({ start: int(0), end: count, type: 'int' }, ({ i }) => {
         const t = start.add(step.mul(float(i).add(jitter))).toVar();
@@ -73,13 +79,14 @@ export function marchRain(context: MarchContext, options: RainOptions, origin: V
         const share = rainShare(nodes, w.x, w.z, layer.coverage, rain.precipitation);
         If(share.greaterThan(0), () => {
           const streaks = curtains.sample(vec3(source.x.div(CURTAIN_ACROSS), p.y.div(CURTAIN_ALONG), source.y.div(CURTAIN_ACROSS))).level(float(0)) as unknown as Node<'vec4'>;
-          const near = smoothstep(RAIN_NEAR[0], RAIN_NEAR[1], t);
+          const near = smoothstep(RAIN_NEAR[0], RAIN_NEAR[1], t).mul(smoothstep(RAIN_FADE[1], RAIN_FADE[0], t));
           const streaked = mix(streaks.x.mul(1.6).sub(.3).clamp(0, 1), float(.5), smoothstep(CURTAIN_FADE[0], CURTAIN_FADE[1], t));
           const density = share.mul(share).mul(streaked).mul(near).mul(rain.precipitation.mul(.6).add(.4));
           const extinction = density.mul(RAIN_EXTINCTION);
           // Lit mostly by the sky; the sun only where the clouds above let it through, dimmed by the cell's gloom.
           const sun = context.light.night.oneMinus().mul(shadow(p)).mul(.12);
-          const radiance = fill.add(sky.lightColor.mul(sun)).mul(.55);
+          // A lightning flash lights the falling water with the rest of the scene.
+          const radiance = mix(fill.add(sky.lightColor.mul(sun)).mul(.55), beyond, RAIN_FORWARD).mul(sky.flash.add(1));
           const absorbed = exp(extinction.mul(step).negate()).oneMinus();
           const share2 = state.transmittance.mul(absorbed);
           state.radiance.addAssign(radiance.mul(share2));

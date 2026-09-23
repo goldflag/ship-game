@@ -15,10 +15,12 @@ export const CIRRUS_TILE = 42_000;
 export const CIRRUS_SIZE = 256;
 
 /** Weather-map potentials are rank-equalised, so a coverage c leaves exactly the share c of the map above
- * 1 − c. The cover ramps in over this band around that threshold: below it clear, above it solid. */
+ * 1 − c. The cover ramps in over this band around that threshold: below it clear, above it solid. (Narrower, the
+ * edges would follow the map's texel grid in steps.) */
 export const COVER_BELOW = .04, COVER_ABOVE = .22;
-/** From this coverage the cover swells past 1, by up to the second share at full coverage. */
-const DECK_FILL = [.72, .45] as const;
+/** From this coverage the cover swells past 1, by up to the second share at full coverage: a closing sky fills
+ * into a deck with breaks rather than staying a field of separate clouds. */
+const DECK_FILL = [.6, .6] as const;
 /** Cloud types on a 0–1 axis: flat stratus, stratocumulus, cumulus, a thick nimbostratus deck, cumulonimbus. */
 export const TYPE = { stratus: 0, stratocumulus: .3, cumulus: .52, nimbostratus: .72, cumulonimbus: 1 } as const;
 /** How far the weather map's type noise moves a cloud off its sky's type: some cumulus tower, some stay shallow. */
@@ -28,7 +30,12 @@ const FLATTEN = [.55, .86] as const, DECK = [.87, .96] as const;
 /** Storm-cell potential (rank) over which a deck cell becomes a cumulonimbus; the anvil lowers it near the top. */
 const CELL = [.66, .84] as const, ANVIL_SPREAD = .3;
 /** Share of the shell a stratus fills, and the height fraction over which every base rounds in. */
-const STRATUS_TOP = .16, BASE_RISE = .07;
+const STRATUS_TOP = .16, BASE_RISE = .04;
+/** A storm deck's relief: with the weather map's type variation its base lifts by up to `DECK_LIFT` of the shell
+ * and its top sinks by up to `DECK_THIN` of itself (thinner parts are lighter from below), and its base rounds in
+ * over `DECK_RISE` times the usual height, so the shape noise hangs it in lumps and rolls: structure, not a flat
+ * grey sheet. */
+const DECK_LIFT = .03, DECK_THIN = .25, DECK_RISE = 4;
 
 /** Arithmetic both on numbers and on shader nodes, so a formula is written once. */
 export interface Arithmetic<T> {
@@ -80,6 +87,17 @@ export function cloudType<T>(m: Arithmetic<T>, coverage: T | number, variation: 
   return m.saturate(m.mix(own, TYPE.cumulonimbus, cell));
 }
 
+/** A storm deck's relief at a column (see `DECK_LIFT`): the height fraction its base lifts by, the share of its
+ * type's top it keeps, and how many times the usual height its base rounds in over. None below the deck's
+ * coverage. The variation channel is smooth, so the relief never steps. */
+export function deckRelief<T>(m: Arithmetic<T>, coverage: T | number, variation: T | number): { lift: T; crown: T; rise: T } {
+  const deck = m.smoothstep(DECK[0], DECK[1], coverage);
+  // A closing sky's base hangs in lumps (stratocumulus rolls, the underside of an overcast) before it is a storm deck.
+  const closing = m.smoothstep(FLATTEN[0], DECK[1], coverage);
+  return { lift: m.mul(deck, m.mul(variation, DECK_LIFT)), crown: m.sub(1, m.mul(deck, m.mul(m.sub(1, variation), DECK_THIN))),
+    rise: m.add(1, m.mul(closing, DECK_RISE - 1)) };
+}
+
 /** Top of a cloud type as a fraction of the shell: a stratus fills its lowest sixth, a cumulonimbus all of it. */
 export function cloudTop<T>(m: Arithmetic<T>, type: T | number): T {
   return m.mix(STRATUS_TOP, 1, m.mul(type, m.sub(2, type)));
@@ -87,14 +105,17 @@ export function cloudTop<T>(m: Arithmetic<T>, type: T | number): T {
 
 /** Density envelope (0–1) of a cloud type at a height fraction of the shell: a flat base rounding in over the
  * lowest few percent, then thinning toward the type's top. The coverage erosion turns the thinning into shape:
- * where the envelope is low only the strongest noise survives, so a cumulus narrows upward from its broad base
- * into a dome, a stratocumulus stays a flat slab, and a cumulonimbus holds its width to a flat anvil top. */
-export function heightProfile<T>(m: Arithmetic<T>, height: T | number, type: T | number): T {
-  const top = cloudTop(m, type);
+ * where the envelope is low only the strongest noise survives, so a cumulus holds its width to mid-height and
+ * domes above, a stratocumulus stays a flat slab, and a cumulonimbus holds its width to a flat anvil top. A
+ * storm deck's `lift` raises the base, its `crown` lowers the top and its `rise` rounds the base in over more height
+ * (`deckRelief`). */
+export function heightProfile<T>(m: Arithmetic<T>, height: T | number, type: T | number, lift: T | number = 0, crown: T | number = 1,
+  rise: T | number = 1): T {
+  const top = m.mul(cloudTop(m, type), crown);
   // Where the thinning starts, as a share of the top: early for cumulus, late for slabs and cumulonimbus.
   const slab = m.sub(1, m.smoothstep(TYPE.stratocumulus, TYPE.cumulus, type));
-  const fade = m.mix(m.mix(.12, .55, slab), .82, m.smoothstep(.8, 1, type));
-  const bottom = m.smoothstep(0, BASE_RISE, height);
+  const fade = m.mix(m.mix(.35, .6, slab), .82, m.smoothstep(.8, 1, type));
+  const bottom = m.smoothstep(lift, m.add(lift, m.mul(rise, BASE_RISE)), height);
   const upper = m.sub(1, m.smoothstep(m.mul(top, fade), top, height));
   return m.mul(bottom, m.mul(upper, m.sub(2, upper)));
 }

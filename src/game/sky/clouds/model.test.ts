@@ -91,9 +91,10 @@ describe('cloud types and height profiles', () => {
     expect(cloudTop(m, TYPE.cumulonimbus)).toBe(1);
   });
 
-  test('a cumulus narrows upward while a cumulonimbus holds its width to the anvil', () => {
+  test('a cumulus holds its width to mid-height and domes above, while a cumulonimbus holds it to the anvil', () => {
     const at = (type: number, share: number) => heightProfile(m, cloudTop(m, type) * share, type);
-    expect(at(TYPE.cumulus, .6)).toBeLessThan(.8);
+    expect(at(TYPE.cumulus, .4)).toBeGreaterThan(.95);
+    expect(at(TYPE.cumulus, .8)).toBeLessThan(.6);
     expect(at(TYPE.cumulonimbus, .6)).toBeGreaterThan(.99);
     expect(at(TYPE.cumulonimbus, .9)).toBeGreaterThan(at(TYPE.cumulus, .9));
   });
