@@ -1340,6 +1340,8 @@ pub struct ConstructionCustomHull {
         skip_serializing_if = "Option::is_none"
     )]
     pub paint_bands: Option<ConstructionHullPaintBands>,
+    #[serde(rename = "creases", default, skip_serializing_if = "Option::is_none")]
+    pub creases: Option<Vec<f64>>,
     #[serde(rename = "version")]
     pub version: f64,
     #[serde(rename = "stations")]

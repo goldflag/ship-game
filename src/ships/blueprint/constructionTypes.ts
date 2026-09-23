@@ -152,6 +152,10 @@ export interface ConstructionCustomHull {
   redPaintY?: number;
   /** Height coatings; when present, supersedes the legacy redPaintY setting. */
   paintBands?: ConstructionHullPaintBands;
+  /** Crease lines: port-side outline positions on the 0–8 contour scale, strictly between the deck edge (0) and the
+   * keel (4), each at an outline point, mirrored to starboard. They split the side lighting there and stay put when
+   * the editor re-spaces an outline. Lighting only: the compiled hull is unaffected. */
+  creases?: number[];
   version: 1;
   stations: ConstructionHullStation[];
   rake: number;

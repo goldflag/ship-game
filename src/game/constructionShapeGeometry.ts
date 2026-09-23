@@ -45,7 +45,7 @@ export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec
   }
   if (kind === 'custom-hull') {
     const p = { ...customHullPrimitive(makeHull()), size, ...(customHull ? { customHull } : {}) };
-    const faces = customHullFaces(p).map(f => ({ ...f, group: customHullSmoothingGroup(f.group), normal: new THREE.Vector3(...f.vertices[1]).sub(new THREE.Vector3(...f.vertices[0])).cross(new THREE.Vector3(...f.vertices[2]).sub(new THREE.Vector3(...f.vertices[0]))).normalize().toArray() as Vec3 }));
+    const faces = customHullFaces(p).map(f => ({ ...f, group: customHullSmoothingGroup(f.group, p.customHull?.creases), normal: new THREE.Vector3(...f.vertices[1]).sub(new THREE.Vector3(...f.vertices[0])).cross(new THREE.Vector3(...f.vertices[2]).sub(new THREE.Vector3(...f.vertices[0]))).normalize().toArray() as Vec3 }));
     const normalAt = constructionVertexNormals(faces, -1), positions: number[] = [], normals: number[] = [];
     for (const face of faces) for (const point of face.vertices) { positions.push(...point); normals.push(...normalAt(point, face.normal, face.group)); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3)); return g;

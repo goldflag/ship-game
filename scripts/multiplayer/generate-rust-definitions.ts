@@ -20,7 +20,7 @@ const SERDE_DEFAULT_FIELDS: Record<string, string[]> = {
   ConstructionFittingMeshGroup: ['name', 'paint'],
   ConstructionPrimitive: ['tilt', 'solid'],
   ConstructionSolidFace: ['group'],
-  ConstructionCustomHull: ['paintBands'],
+  ConstructionCustomHull: ['paintBands', 'creases'],
   ConstructionEquipmentPath: ['access'],
   ConstructionEquipmentPart: ['wallSizing', 'riggingSurface'],
   ConstructionEquipmentWall: ['turnDeg'],
