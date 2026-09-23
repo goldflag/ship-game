@@ -4,8 +4,9 @@
  * it (Cox & Munk 1954): the wave field's unresolved variance with all of Cox–Munk's tail, the slopes the pixel's own
  * footprint spans, split along and across the wind in Cox–Munk's proportions. From that distribution, after Bruneton,
  * Neyret & Holzschuch, "Real-time Realistic Ocean Lighting using Seamless Transitions from Geometry to BRDF" (2010):
- * the sky is mirrored through the facets the viewer actually sees (tilted toward a grazing viewer) and blurred by
- * their spread, with the Fresnel reflectance averaged over them; the sun is reflected by the same distribution as a
+ * the sky is mirrored through the facets the viewer actually sees (tilted toward a grazing viewer, weighted by their
+ * Fresnel reflectance) and blurred by their spread, with the Fresnel reflectance averaged over them; the sun is
+ * reflected by the same distribution as a
  * glitter BRDF with Smith masking; and screen-space rays follow the whole resolved slope, their image smeared along
  * the plane of incidence by the same spread. */
 import type { Node, Texture } from 'three/webgpu';
@@ -133,7 +134,8 @@ export function pmremRoughness(angle: Float): Float {
 
 /** The mirrored lobe of the unresolved facets around the resolved `normal`. */
 export interface ReflectionLobe {
-  /** The visible facets' mean normal: the resolved normal tilted toward the viewer. */
+  /** Mean normal of the facets that mirror light to the viewer (visible, weighted by their Fresnel reflectance): the
+   * resolved normal tilted toward the viewer. */
   readonly facet: Vec3;
   /** The mirrored ray off `facet`. */
   readonly direction: Vec3;
