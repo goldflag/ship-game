@@ -148,12 +148,17 @@ only every few frames (`cloudUpdateInterval`, 1 on every tier today): the compos
 update to the current view in between. After a cut every pixel is marched for two frames. Light: unrolled samples toward the sun (the moon at night)
 with the nearest reading the detail, two far samples reading only the weather cover, multiple-scattering
 octaves over a dual-lobe phase (silver linings), Beer–powder, and the atmosphere's ambient (sky above,
-sea below, darkened toward bases by `baseShadow`); aerial perspective once per ray at the
+sea below, darkened toward bases by `baseShadow`). The sun's light reaches the layer through a small table
+filled each frame that carries the planet's shadow, so after sunset the tops catch pink and orange while the
+shadow line climbs; below the horizon the afterglow lights the clouds from its side, and a twilight gain keeps
+clouds in shadow deep blue-grey rather than black. Aerial perspective once per ray at the
 transmittance-weighted mean depth; past the farthest cloud marched, a horizon bank in proportion to the
 cover. The composite (order −29) sits at the far plane under the layer, where the depth test culls
 the sea and ships before shading, and tests each pixel at the clouds' own depth from inside or above
 the layer and in rain; it adds lightning's glow from `SkyUniforms.lightningPosition` (irradiance at
-1 km, softened by the cloud around the channel). Cirrus is a 2D layer at 9 km drawn in the dome,
+1 km, softened by the cloud around the channel), confined to the struck cell (about 2.2 at 0.5 km from the
+channel, 0.7 at 1 km, 0.12 at 2 km), while the rest of the deck lifts by 0.6 × `SkyUniforms.flash`. Rain
+shafts fade out between 8 and 22 km, lit partly by the sky behind them. Cirrus is a 2D layer at 9 km drawn in the dome,
 lit from a 64² table of its light along each direction that the clouds' submission fills every frame
 (so the dome reads no atmosphere tables for it); Low draws none. The cloud shadow map (40 km around the camera, laid out in the clouds' drifting frame so it follows the
 wind exactly) is the sun's transmittance through the shell, read through a cubic B-spline by
@@ -162,10 +167,14 @@ first crosses the air below the base through slanted grey rain shafts. `look` an
 (uniforms in `march.ts` and `field.ts`) grade the lighting and shapes live.
 
 **Weather** (`weather/`). Near-camera rain: instanced streaks in four nested boxes that wrap around
-the camera (few, large near drops and many thin far ones), slanted by the wind, streaked by the
-camera's own motion over an exposure, lit by the sky around each drop (the atmosphere's `sky`) with
-forward glints of the celestial light and flares of lightning; splashes (rings and crowns) that ride
-the drawn sea; a rain veil over distance (`postProcess`, a uniform branch that costs nothing dry).
+the camera (few, large near drops and many thin far ones), each drop its own size, fall speed and
+brightness, slanted by the wind and streaked by the camera's own motion over an exposure. A drop shows a
+blurred view of what lies behind it (mostly sky at or above the horizon, mostly sea below it), with
+forward glints of the celestial light and flares toward a lightning strike; looking down along the fall
+and from a high camera the streaks fade and shorten, so rain seen from the chase camera is a faint grey
+haze, not a field of lines, and long streaks are held faint. Splashes (rings and crowns) ride the drawn
+sea; a rain veil over distance (`postProcess`, a uniform branch that costs nothing dry) glows toward a
+strike.
 Lightning is a seeded Poisson process at `weather.lightning` per minute, 2–25 km away at random
 bearings (half cloud-to-ground, an occasional close one), with 2–4 return strokes, a branching bolt
 from the cloud base to the sea, the cloud light (`lightningPosition/Intensity`: irradiance
