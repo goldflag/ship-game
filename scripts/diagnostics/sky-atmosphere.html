@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sky atmosphere</title>
+<style>html,body{margin:0;background:#0b0f14;color:#dde;font:12px ui-monospace,monospace}canvas{display:block}
+#labels{position:absolute;top:0;left:0;pointer-events:none}#labels span{position:absolute;padding:2px 5px;background:#0008}
+pre{margin:8px;white-space:pre-wrap}</style>
+<canvas id="sky"></canvas><div id="labels"></div><pre id="out">Loading…</pre>
+<script type="module">
+// Development-only view of the game's atmosphere part alone (no game, ocean or clouds): a panorama of the
+// sky for each of a sweep of sun elevations, graded as the display grades the game, with the sun and moon
+// as plain discs, and radiance readings at a few fixed directions. `scripts/browser/sky-atmosphere.ts`
+// drives it. ?map=<id> (assets/maps/environments.v1.json), ?weather=<id> (battle-conditions), ?port=1 (the
+// harbor's sky), ?elevations=70,35,… (sun elevations, degrees), ?height=<camera metres>, ?sea=1 (the sea-level
+// view the environment bakes), ?phase=<moon phase>, ?centre=<degrees of azimuth from the sun at the tiles' middle>.
+import * as THREE from 'three/webgpu';
+import { Fn, dot, float, luminance, max, mix, pow, screenCoordinate, smoothstep, uniform, vec2, vec3, vec4, cos, sin } from 'three/tsl';
+import { SkyState, DEFAULT_SKY_SCENE } from '/src/game/sky/state.ts';
+import { createAtmosphere } from '/src/game/sky/atmosphere/index.ts';
+import { DISPLAY_LOOK } from '/src/game/DisplayTransform.ts';
+import environments from '/assets/maps/environments.v1.json';
+import conditions from '/assets/maps/battle-conditions.v1.json';
+
+const params = new URLSearchParams(location.search);
+const out = document.querySelector('#out');
+try {
+const TILE = { width: 800, height: 190 }, COLUMNS = 2;
+/** The panorama's vertical span (degrees): a little of the sea's side of the horizon up to the zenith. */
+const LOW = -6, HIGH = 90;
+const elevations = (params.get('elevations') ?? '70,35,15,7,3,0,-2,-4,-6.4,-9,-40,-70').split(',').map(Number);
+const rows = Math.ceil(elevations.length / COLUMNS);
+const canvas = document.querySelector('#sky');
+const renderer = new THREE.WebGPURenderer({ canvas, antialias: false });
+renderer.setPixelRatio(1);
+renderer.setSize(TILE.width * COLUMNS, TILE.height * rows);
+renderer.toneMapping = THREE.AgXToneMapping;
+await renderer.init();
+
+// The scene description, as VisualEnvironment builds it for a battle on a map (or the harbor).
+const map = environments.maps.find(m => m.id === (params.get('map') ?? 'north-atlantic'));
+const weather = conditions.weather.find(w => w.id === (params.get('weather') ?? 'map'));
+const sky = { ...map.sky, ...weather.sky };
+const port = params.get('port') === '1';
+const base = structuredClone(DEFAULT_SKY_SCENE);
+const atmosphere = port ? base.atmosphere : { rayleigh: sky.rayleigh, turbidity: sky.turbidity, mie: sky.mie * .45, mieG: sky.mieG, multiple: sky.multiple };
+// ?rayleigh=, ?turbidity=, ?mie=, ?mieG=, ?multiple= override the scene's atmosphere.
+for (const key of Object.keys(atmosphere)) if (params.has(key)) atmosphere[key] = Number(params.get(key));
+const intensity = port ? 5.8 : sky.intensity * weather.sunScale;
+
+const state = new SkyState();
+const context = { renderer, uniforms: state.uniforms, quality: 'high', reversedDepth: renderer.reversedDepthBuffer };
+const part = await createAtmosphere(context);
+const camera = new THREE.PerspectiveCamera(60, 1, .5, 60000);
+const height = Number(params.get('height') ?? 30), fromSea = params.get('sea') === '1';
+camera.position.set(0, height, 0);
+
+// One tile: azimuth across (the sun in the middle), elevation up.
+const origin = uniform(new THREE.Vector2()), sunAzimuth = uniform(0);
+const direction = Fn(() => {
+  const local = screenCoordinate.sub(origin);
+  const azimuth = local.x.div(TILE.width).sub(.5).mul(2 * Math.PI).add(sunAzimuth);
+  const elevation = float(HIGH).sub(local.y.div(TILE.height).mul(HIGH - LOW)).mul(Math.PI / 180);
+  return vec3(sin(azimuth).mul(cos(elevation)), sin(elevation), cos(azimuth).mul(cos(elevation)));
+})().toVar();
+const u = state.uniforms;
+const disc = (toward, radius) => smoothstep(float(1 - radius * 1.15), float(1 - radius * .85), dot(direction, toward));
+const bodies = u.sunIrradiance.mul(disc(u.sunDirection, 7.5e-5)).mul(6).add(u.moonIrradiance.mul(disc(u.moonDirection, 7.5e-5)).mul(12));
+const radiance = part.sky(direction, fromSea).add(part.transmittanceToSpace(direction, fromSea).mul(bodies));
+// DisplayTransform's grade ahead of AgX (which the renderer applies with the sRGB output).
+const exposed = radiance.mul(DISPLAY_LOOK.exposure), lum = max(luminance(exposed), 1e-5);
+const graded = mix(vec3(lum), exposed, DISPLAY_LOOK.saturation).max(0).mul(pow(lum.div(.18), DISPLAY_LOOK.contrast - 1));
+const horizonLine = smoothstep(.0015, 0, direction.y.abs()).mul(.25);
+const material = new THREE.MeshBasicNodeMaterial();
+material.colorNode = vec4(graded.add(horizonLine.mul(float(1).sub(lum.min(1)))), 1);
+const quad = new THREE.QuadMesh(material);
+
+// Readings: radiance at fixed directions relative to the sun, one row per tile of a float target, read at the end
+// (the tiles draw in one task, so the canvas keeps them all).
+const PROBES = [['zenith', 90, 0], ['sun+5', null, 0], ['horizon sun', 1, 0], ['horizon side', 1, 90], ['horizon away', 1, 180], ['away 20', 20, 180], ['away 45', 45, 180], ['below', -5, 90]];
+// 16 texels a row: a readback row must be 256 bytes.
+const probeTarget = new THREE.RenderTarget(16, elevations.length, { type: THREE.FloatType });
+const probeDirections = PROBES.map(() => uniform(new THREE.Vector3(0, 1, 0)));
+const probeMaterial = new THREE.MeshBasicNodeMaterial();
+probeMaterial.colorNode = Fn(() => {
+  const index = screenCoordinate.x.floor();
+  let dir = probeDirections[0];
+  for (let i = 1; i < PROBES.length; i++) dir = index.equal(i).select(probeDirections[i], dir);
+  return vec4(part.sky(dir, fromSea), 1);
+})();
+const probeQuad = new THREE.QuadMesh(probeMaterial);
+const lights = [];
+
+const labels = document.querySelector('#labels');
+renderer.autoClear = false;
+for (let i = 0; i < elevations.length; i++) {
+  const elevation = elevations[i], column = i % COLUMNS, row = Math.floor(i / COLUMNS);
+  const scene = { ...base, sun: { elevation, azimuth: 270, intensity }, moon: { phase: Number(params.get('phase') ?? .5) }, atmosphere, port };
+  state.apply(scene);
+  state.advance(0, camera.position);
+  part.apply(scene);
+  part.update({ renderer, camera, dt: 0, cut: false });
+  sunAzimuth.value = Math.atan2(u.sunDirection.value.x, u.sunDirection.value.z) + Number(params.get('centre') ?? 0) * Math.PI / 180;
+  const x = column * TILE.width, y = row * TILE.height;
+  origin.value.set(x, y);
+  renderer.setRenderTarget(null);
+  renderer.setViewport(x, y, TILE.width, TILE.height);
+  renderer.setScissor(x, y, TILE.width, TILE.height);
+  renderer.setScissorTest(true);
+  quad.render(renderer);
+  renderer.setScissorTest(false);
+  // Probe directions for this sun.
+  const sun = u.sunDirection.value, azimuth = Math.atan2(sun.x, sun.z);
+  PROBES.forEach(([, elevationDeg, offset], p) => {
+    const e = (elevationDeg ?? Math.max(elevation, 0) + 5) * Math.PI / 180, a = azimuth + offset * Math.PI / 180;
+    probeDirections[p].value.set(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e));
+  });
+  probeTarget.viewport.set(0, i, PROBES.length, 1);
+  renderer.setRenderTarget(probeTarget);
+  probeQuad.render(renderer);
+  lights.push({ sun: part.seaLevel.sun.toArray().map(v => +v.toFixed(3)), moon: part.seaLevel.moon.toArray().map(v => +v.toFixed(3)), sky: part.seaLevel.sky.toArray().map(v => +v.toFixed(3)) });
+  const label = document.createElement('span');
+  label.style.left = `${x + 4}px`; label.style.top = `${y + 4}px`;
+  label.textContent = `sun ${elevation}°`;
+  labels.append(label);
+}
+renderer.setRenderTarget(null);
+await renderer.backend.device.queue.onSubmittedWorkDone();
+const pixels = await renderer.readRenderTargetPixelsAsync(probeTarget, 0, 0, 16, elevations.length);
+const readings = elevations.map((elevation, i) => ({ elevation, light: lights[i],
+  probes: Object.fromEntries(PROBES.map(([name], p) => [name, [0, 1, 2].map(c => +pixels[(i * 16 + p) * 4 + c].toPrecision(3))])) }));
+out.textContent = readings.map(r => `sun ${r.elevation}°  light ${JSON.stringify(r.light)}\n   ${Object.entries(r.probes).map(([k, v]) => `${k} ${v.join(' ')}`).join(' | ')}`).join('\n');
+window.readings = readings;
+window.capture = () => canvas.toDataURL('image/png');
+window.ready = true;
+} catch (error) { out.textContent = String(error?.stack ?? error); window.failed = String(error); }
+</script>
+</html>
