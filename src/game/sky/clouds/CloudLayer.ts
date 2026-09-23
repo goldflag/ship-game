@@ -48,6 +48,8 @@ const AUTHORED_AMBIENT = 1.1;
 const TILE = 8;
 /** Frames drawn with the per-pixel-depth composite first, so both composite pipelines compile at startup. */
 const WARMUP_FRAMES = 3;
+/** Finest the march's distance-proportional steps get under magnification (a share of their normal length). */
+const ZOOMED_STEPS = .25;
 /** Metres below the base under which the camera is "under the layer": clouds then lie behind everything. */
 const UNDER_MARGIN = 20;
 /** Lightning. `SkyUniforms.lightningIntensity` is the irradiance, in the sea's units, the channel casts 1 km
@@ -118,7 +120,7 @@ export class CloudLayer implements CloudPart {
     frame: uniform(0), offset: uniform(new Vector2(), 'ivec2'), interleave: uniform(2, 'int'),
     cloudSize: uniform(new Vector2(1, 1)), marchSize: uniform(new Vector2(1, 1)), cloudTiles: uniform(1, 'int'), marchTiles: uniform(1, 'int'),
     projectionInverse: uniform(new Matrix4()), cameraWorld: uniform(new Matrix4()), previousViewProjection: uniform(new Matrix4()),
-    windShift: uniform(new Vector3()), history: uniform(0), latestViewProjection: uniform(new Matrix4()), historyWeight: uniform(HISTORY_WEIGHT), pixelAngle: uniform(.003),
+    windShift: uniform(new Vector3()), history: uniform(0), latestViewProjection: uniform(new Matrix4()), stepScale: uniform(1), historyWeight: uniform(HISTORY_WEIGHT), pixelAngle: uniform(.003),
     shadowSize: uniform(256, 'int'), shadowSlice: uniform(0, 'int'), shadowSlices: uniform(1, 'int'), shadowStrength: uniform(0),
     ambient: uniform(1), baseShadow: uniform(.2), precipitation: uniform(0),
   };
@@ -319,6 +321,8 @@ export class CloudLayer implements CloudPart {
     u.cameraWorld.value.copy(camera.matrixWorld);
     // Angle one cloud-buffer pixel spans: the detail fades where a pixel's footprint cannot resolve it.
     u.pixelAngle.value = 2 * Math.tan(camera.getEffectiveFOV() * Math.PI / 360) / u.cloudSize.value.y;
+    // Magnified (binoculars), far clouds fill the view: their steps shrink with the view's angle.
+    u.stepScale.value = Math.min(1, Math.max(ZOOMED_STEPS, Math.tan(camera.getEffectiveFOV() * Math.PI / 360) / Math.tan(Math.PI / 6)));
     const wind = this.sky.windOffset.value;
     u.windShift.value.subVectors(wind, this.previousWind);
     u.previousViewProjection.value.copy(this.hasHistory ? this.previousViewProjection : this.viewProjection);
@@ -434,7 +438,7 @@ export class CloudLayer implements CloudPart {
         const direction = this.ray(uv).toVar();
         const origin = this.sky.cameraPosition;
         const result = marchClouds(this.context, origin, origin.y, direction,
-          { steps: u.steps, lightSteps, jitter: gradientJitter(vec2(cell), u.frame), pixelAngle: u.pixelAngle,
+          { steps: u.steps, lightSteps, jitter: gradientJitter(vec2(cell), u.frame), pixelAngle: u.pixelAngle, stepScale: u.stepScale,
             rain: { uniforms: { precipitation: u.precipitation, drift: this.windAxis }, detail: this.volumes[1].map, shadow: p => this.shadowAt(p, true) } });
         textureStore(this.march.color, uvec2(m), vec4(result.radiance, result.transmittance));
         textureStore(this.march.depth, uvec2(m), vec4(result.depth.div(1000), 0, 0, 1));
