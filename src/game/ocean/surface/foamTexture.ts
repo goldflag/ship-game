@@ -16,7 +16,7 @@ function hash(x: number, y: number, seed: number): number {
 function worley(u: number, v: number, cells: number, seed: number): [number, number] {
   const x = u * cells, y = v * cells, ix = Math.floor(x), iy = Math.floor(y);
   let first = 9, second = 9;
-  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
     const cx = ix + dx, cy = iy + dy, wx = ((cx % cells) + cells) % cells, wy = ((cy % cells) + cells) % cells;
     const d = Math.hypot(cx + hash(wx, wy, seed) - x, cy + hash(wx, wy, seed + 1) - y);
     if (d < first) { second = first; first = d; } else if (d < second) second = d;
@@ -49,11 +49,17 @@ const LACE_CELLS = [5, 12, 29], LACE_WEIGHTS = [.45, .35, .2], LACE_WIDTH = .09;
  * thin threads. */
 const LACE_FILL = .35;
 
-/** Lace at (u, v): bright on the borders between cells at three scales. */
+/** The lace's coordinates meander by up to this share of its coarsest cell, so its filaments wander and vary in width
+ * instead of drawing a cellular diagram. */
+const LACE_WARP = .5;
+
+/** Lace at (u, v): bright on the borders between cells at three scales, on warped coordinates. */
 function lace(u: number, v: number): number {
+  const warp = LACE_WARP / LACE_CELLS[0];
+  const wu = u + warp * (value(u, v, 7, 7, 71) - .5), wv = v + warp * (value(u, v, 7, 7, 73) - .5);
   let sum = 0;
   LACE_CELLS.forEach((cells, i) => {
-    const [first, second] = worley(u, v, cells, 3 + 2 * i);
+    const [first, second] = worley(wu, wv, cells, 3 + 2 * i);
     sum += LACE_WEIGHTS[i] * ((1 - LACE_FILL) * Math.exp(-(second - first) / LACE_WIDTH) + LACE_FILL * Math.min(1, first / .7));
   });
   return sum;
