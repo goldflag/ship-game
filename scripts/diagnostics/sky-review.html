@@ -151,10 +151,31 @@ async function measure(count = 120, stepping = true) {
     calls: game.renderer.info.render.calls, triangles: game.renderer.info.render.triangles };
 }
 
+/** The sky's own GPU cost, isolated from the rest of the frame: its offscreen passes (marches, reconstruction,
+ * bakes) run `iterations` times back to back, and the whole frame drawn with and without the sky's meshes (dome,
+ * cloud composite, rain), in alternating blocks. Medians of the blocks, milliseconds per frame. */
+async function benchmark(iterations = 60, blocks = 5) {
+  const device = game.renderer.backend.device, sky = game.sky, meshes = sky.meshes();
+  const drain = () => device.queue.onSubmittedWorkDone();
+  const time = async work => { await drain(); const start = performance.now(); for (let i = 0; i < iterations; i++) work(); await drain(); return (performance.now() - start) / iterations; };
+  const passes = [], frame = [], bare = [];
+  for (let block = 0; block < blocks; block++) {
+    passes.push(await time(() => sky.update(1 / 60)));
+    frame.push(await time(() => game.pipeline.render()));
+    const visible = meshes.map(mesh => mesh.visible);
+    meshes.forEach(mesh => { mesh.visible = false; });
+    try { bare.push(await time(() => game.pipeline.render())); }
+    finally { meshes.forEach((mesh, i) => { mesh.visible = visible[i]; }); }
+  }
+  const median = values => [...values].sort((a, b) => a - b)[values.length >> 1];
+  const result = { passes: median(passes), draw: median(frame) - median(bare), frame: median(frame), bare: median(bare) };
+  return { ...result, sky: result.passes + result.draw };
+}
+
 window.skyReview = {
   game, scenes: Object.keys(scenes), errors,
   async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors] }; },
-  capture, measure,
+  capture, measure, benchmark,
 };
 window.ready = true; output.textContent = '';
 </script>

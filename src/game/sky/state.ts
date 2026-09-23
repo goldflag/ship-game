@@ -74,5 +74,7 @@ export class SkyState {
     if (light.intensity > 0) light.color.copy(light.night ? moon : sun).multiplyScalar(1 / light.intensity);
     light.direction.copy(light.night ? this.model.moon : this.model.sun);
     light.flash = flash;
+    this.uniforms.lightDirection.value.copy(light.direction);
+    this.uniforms.lightColor.value.set(light.color.r, light.color.g, light.color.b).multiplyScalar(light.intensity);
   }
 }

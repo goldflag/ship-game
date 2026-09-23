@@ -174,6 +174,10 @@ export interface SkyUniforms {
   readonly time: UniformNode<'float', number>;
   /** Accumulated cloud-field drift (m) in world XZ, integrated from the scene's wind. */
   readonly windOffset: UniformNode<'vec3', Vector3>;
+  /** Toward the active celestial light (the sun by day, the moon once it outshines the sun), and that light's
+   * colour × intensity at the sea: the scene light's own values (`CelestialLight`), for shafts and rain. */
+  readonly lightDirection: UniformNode<'vec3', Vector3>;
+  readonly lightColor: UniformNode<'vec3', Vector3>;
   /** Lightning lighting the clouds: world position of the channel and its current radiant intensity (0 dark). */
   readonly lightningPosition: UniformNode<'vec3', Vector3>;
   readonly lightningIntensity: UniformNode<'float', number>;

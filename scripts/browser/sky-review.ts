@@ -1,5 +1,7 @@
 /** `bun scripts/browser/sky-review.ts --tag <name> [--only noon,sunset] [--quality high] [--clouds medium] [--sky game|skypro]
- * [--measure] [--url http://127.0.0.1:5210]`
+ * [--measure] [--bench] [--url http://127.0.0.1:5210]`
+ * `--measure` times whole frames (noisy: the sky is a small part of them); `--bench` isolates the sky's own GPU cost
+ * (offscreen passes plus its meshes' share of the frame) on the measured scenes.
  * Renders the fixed scenes of `scripts/diagnostics/sky-review.html` in a headed Chromium and saves one PNG
  * per scene to `.build/sky-review/<tag>/`, with `results.json` (errors, optional frame timings). */
 import type { Server } from 'node:http';
@@ -12,7 +14,7 @@ import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
   tag: { type: 'string', default: 'current' }, only: { type: 'string' }, quality: { type: 'string', default: 'high' },
-  clouds: { type: 'string' }, sky: { type: 'string' }, measure: { type: 'boolean', default: false }, url: { type: 'string' },
+  clouds: { type: 'string' }, sky: { type: 'string' }, measure: { type: 'boolean', default: false }, bench: { type: 'boolean', default: false }, url: { type: 'string' },
 } });
 /** Scenes whose frame cost is measured: open cumulus, a full deck, a storm and a narrow binocular view. */
 const MEASURED = ['noon', 'overcast', 'storm', 'binoculars', 'sunset'];
@@ -48,7 +50,8 @@ try {
     const timing = values.measure && MEASURED.includes(name)
       ? { stepping: await page.evaluate(() => (window as any).skyReview.measure(120, true)), paused: await page.evaluate(() => (window as any).skyReview.measure(60, false)) }
       : undefined;
-    results[name] = { ...info, seconds: (Date.now() - started) / 1000, ...(timing ? { timing } : {}) };
+    const bench = values.bench && MEASURED.includes(name) ? await page.evaluate(() => (window as any).skyReview.benchmark()) : undefined;
+    results[name] = { ...info, seconds: (Date.now() - started) / 1000, ...(timing ? { timing } : {}), ...(bench ? { bench } : {}) };
     console.log(name, JSON.stringify(results[name]));
   }
   writeFileSync(resolve(out, 'results.json'), JSON.stringify({ quality: values.quality, clouds: values.clouds, sky: values.sky, results, pageErrors }, null, 1));

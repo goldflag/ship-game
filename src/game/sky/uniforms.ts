@@ -14,6 +14,8 @@ export function createSkyUniforms(): SkyUniforms {
     cameraPosition: uniform(new Vector3()),
     time: uniform(0),
     windOffset: uniform(new Vector3()),
+    lightDirection: uniform(new Vector3(0, 1, 0)),
+    lightColor: uniform(new Vector3()),
     lightningPosition: uniform(new Vector3()),
     lightningIntensity: uniform(0),
   };
