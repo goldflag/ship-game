@@ -85,7 +85,7 @@ export class OceanGeometry {
   dispose(): void { this.mesh.geometry.dispose(); }
 
   /** Vertices around each horizon row: every other vertex of the outermost level's edge. */
-  private horizonVertices(): number { return this.segments; }
+  private horizonVertices(): number { return this.segments * 2; }
 
   private build(far: number): BufferGeometry {
     const positions: number[] = [], levels: number[] = [], index: number[] = [];
@@ -113,7 +113,7 @@ export class OceanGeometry {
     }
     // Horizon rows: the outer lattice (every other outermost vertex), squares doubling outward, then a circle.
     const edge = half * this.cell(CLIPMAP_LEVELS - 1), step = 2 * this.cell(CLIPMAP_LEVELS - 1);
-    const perSide = half / 2, count = this.horizonVertices();
+    const perSide = half, count = this.horizonVertices();
     const square: [number, number][] = [];
     for (let k = 0; k < count; k++) {
       const side = Math.floor(k / perSide), t = (k % perSide) * step - edge;

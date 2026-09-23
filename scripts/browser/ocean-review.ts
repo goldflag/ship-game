@@ -36,7 +36,9 @@ try {
     const started = Date.now();
     const info = await page.evaluate(scene => (window as any).oceanReview.scene(scene), name);
     const image: string = await page.evaluate(() => (window as any).oceanReview.capture());
-    writeFileSync(resolve(out, `${name}.png`), Buffer.from(image.split(',')[1], 'base64'));
+    // WebGL's drawing buffer reads back black once presented; photograph the composited canvas instead.
+    const png = values.webgl ? await page.screenshot({ clip: { x: 0, y: 0, width: 1600, height: 900 }, scale: 'css' }) : Buffer.from(image.split(',')[1], 'base64');
+    writeFileSync(resolve(out, `${name}.png`), png);
     const timing = values.measure && ['near', 'wide', 'grazing'].includes(name)
       ? { stepping: await page.evaluate(() => (window as any).oceanReview.measure(120, true)), paused: await page.evaluate(() => (window as any).oceanReview.measure(60, false)) }
       : undefined;

@@ -48,26 +48,36 @@ function surfaceNormal(slope: Node<'vec2'>, wake: Node<'vec3'>): Node<'vec3'> {
   return normalize(vec3(total.x.negate(), 1, total.y.negate()));
 }
 
-/** PMREM roughness for a Beckmann slope variance σ² (GGX α ≈ √2 σ, α = roughness²). */
+/** PMREM roughness for a Beckmann slope variance σ² (Beckmann α = √(2σ²) ≈ GGX α = roughness²). */
 function roughness(variance: Node<'float'>): Node<'float'> {
   return variance.mul(2).sqrt().sqrt().clamp(0, 1);
 }
 
-/** Sky radiance along the mirrored ray. Rays bent below the horizon by a steep facet see the horizon. */
-function skyReflection(environment: Texture | null, direction: Node<'vec3'>, variance: Node<'float'>): Node<'vec3'> {
+/** Sky radiance along the mirrored ray, blurred by the unresolved facets. Rays bent below the
+ * horizon by a steep facet see the horizon. */
+function skyReflection(environment: Texture | null, direction: Node<'vec3'>, rough: Node<'float'>): Node<'vec3'> {
   if (!environment) return vec3(0);
-  const upward = normalize(vec3(direction.x, direction.y.max(0), direction.z));
-  return pmremTexture(environment, upward, roughness(variance)).rgb;
+  return pmremTexture(environment, normalize(vec3(direction.x, direction.y.max(0), direction.z)), rough).rgb;
 }
 
-/** Sun (or moon) highlight: a Beckmann lobe widened by the unresolved slope variance. */
+/** Smith masking Λ of a Beckmann surface seen at `cosine` from its mean normal (Walter et al. 2007 fit). */
+function smithLambda(cosine: Node<'float'>, variance: Node<'float'>): Node<'float'> {
+  const c = cosine.clamp(1e-4, 1);
+  const a = c.div(variance.mul(2).sqrt().mul(float(1).sub(c.mul(c)).sqrt().max(1e-4)));
+  return select(a.lessThan(1.6), float(1).sub(a.mul(1.259)).add(a.mul(a).mul(.396)).div(a.mul(3.535).add(a.mul(a).mul(2.181))), float(0));
+}
+
+/** Sun (or moon) highlight: a Beckmann lobe widened by the unresolved slope variance, with Smith
+ * masking so the glitter path stays finite toward a low sun. */
 function sunGlint(normal: Node<'vec3'>, view: Node<'vec3'>, sun: Node<'vec3'>, radiance: Node<'vec3'>, variance: Node<'float'>): Node<'vec3'> {
+  const spread = variance.add(SUN_VARIANCE);
   const half = normalize(sun.add(view));
   const cosine = dot(normal, half).max(1e-4), cosine2 = cosine.mul(cosine);
-  const spread = variance.add(SUN_VARIANCE);
   const lobe = exp(float(1).sub(cosine2).div(cosine2.mul(spread).mul(2)).negate()).div(spread.mul(2 * Math.PI).mul(cosine2.mul(cosine2)));
-  const facing = smoothstep(0, .02, dot(normal, sun)).mul(smoothstep(-.02, .03, sun.y));
-  return radiance.mul(fresnel(dot(view, half)).mul(lobe).mul(facing).div(dot(normal, view).max(.08).mul(4)));
+  const toView = dot(normal, view).max(1e-4), toSun = dot(normal, sun);
+  const masking = float(1).div(float(1).add(smithLambda(toView, spread)).add(smithLambda(toSun, spread)));
+  const above = smoothstep(0, .02, toSun).mul(smoothstep(-.02, .03, sun.y));
+  return radiance.mul(fresnel(dot(view, half)).mul(lobe).mul(masking).mul(above).div(toView.mul(4)));
 }
 
 /** Light scattered through thin crests toward an observer looking into the sun. */
@@ -81,10 +91,11 @@ function transmittance(absorption: Node<'vec3'>, column: Node<'float'>): Node<'v
   return exp(absorption.mul(column).negate());
 }
 
-/** Share of a pixel covered by foam of strength `amount`, broken up by a bubble texture value. */
+/** Share of a pixel covered by foam of strength `amount`: weak foam is sparse, faint bubbles,
+ * strong foam a dense sheet, both broken up by the bubble texture value `detail`. */
 function dissolve(amount: Node<'float'>, detail: Node<'float'>): Node<'float'> {
   const coverage = amount.clamp(0, 1);
-  return smoothstep(float(1).sub(coverage), float(1.3).sub(coverage), detail);
+  return smoothstep(float(1).sub(coverage), float(1.6).sub(coverage), detail).mul(coverage);
 }
 
 /** The ocean surface, drawn first in the scene pass's transparent queue so three's viewport copies
@@ -134,12 +145,12 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const body = this.sceneColor.rgb.mul(through).add(pigment.mul(mix(SHADOWED_PIGMENT, 1, lit)).mul(float(1).sub(through)));
 
     // Above: Fresnel between the reflected sky (or ships, where the screen trace finds them) and the water body.
-    const cosine = dot(up, view).max(1e-4), reflectance = fresnel(cosine);
+    const reflectance = fresnel(dot(up, view));
     const mirrored = reflect(view.negate(), up);
     const traced = screenSpaceReflection({ position: positionWorld, direction: mirrored,
       sceneColor: uv => this.sceneColor.sample(uv).rgb, sceneDepth: uv => this.sceneDepth.sample(uv).r,
       steps: reflections.steps, maxDistance: reference('maxDistance', 'float', reflections), enabled: this.screenReflections });
-    const reflected = mix(skyReflection(environment, mirrored, sample.slopeVariance), traced.color, traced.confidence);
+    const reflected = mix(skyReflection(environment, mirrored, roughness(sample.slopeVariance)), traced.color, traced.confidence);
     const crest = positionWorld.y.div(max(waves.maxHeight, .1)).clamp(0, 1);
     const direct = sunGlint(up, view, sunDirection, sunRadiance, sample.slopeVariance)
       .add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));

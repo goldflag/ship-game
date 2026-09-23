@@ -58,8 +58,8 @@ class GerstnerField implements WaveField {
     });
     this.maxHeight = this.waves.reduce((sum, w) => sum + w.amplitude, 0);
     this.maxHorizontalDisplacement = this.waves.reduce((sum, w) => sum + w.chop * w.amplitude, 0);
-    // Cox–Munk mean square slope, less what the waves above carry, stands in for the capillary tail.
-    this.calmVariance.value = Math.max(.001, .003 + .00512 * this.params.windSpeed - this.waves.reduce((sum, w) => sum + (w.k * w.amplitude) ** 2 / 2, 0));
+    // The slope variance an FFT field leaves below its finest texel: a small, wind-driven capillary tail.
+    this.calmVariance.value = .002 + .0003 * this.params.windSpeed;
     this.params.dirty = false;
   }
 

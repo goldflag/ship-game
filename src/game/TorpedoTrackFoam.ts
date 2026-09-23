@@ -53,7 +53,10 @@ export class TorpedoTrackFoam {
     return Fn(() => {
       const energy = float(0).toVar();
       If(uv.x.greaterThan(0).and(uv.x.lessThan(1)).and(uv.y.greaterThan(0)).and(uv.y.lessThan(1)), () => {
-        const coverage = this.field.sample(uv).r;
+        const sampled = this.field.sample(uv);
+        // The texture matrix is identity: skip its uniform and multiply on every read.
+        sampled.updateMatrix = false;
+        const coverage = sampled.r;
         If(coverage.greaterThan(.01), () => {
           // Metre-scale clumps: a track is a string of bubble patches, not a painted line.
           const clumps = mx_noise_float(vec3(world.mul(.32), this.time.mul(.12)));

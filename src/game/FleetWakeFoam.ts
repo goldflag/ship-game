@@ -51,7 +51,10 @@ export class FleetWakeFoam {
         If(uv.x.greaterThan(.025).and(uv.x.lessThan(.975)).and(uv.y.greaterThan(.025)).and(uv.y.lessThan(.975)), () => {
           const edge = smoothstep(.025, .05, uv.x).mul(float(1).sub(smoothstep(.95, .975, uv.x)))
             .mul(smoothstep(.025, .05, uv.y)).mul(float(1).sub(smoothstep(.95, .975, uv.y)));
-          energy.assign(max(energy, this.field.sample(uv.add(bounds.zw).div(TILES)).r.mul(edge)));
+          const tile = this.field.sample(uv.add(bounds.zw).div(TILES));
+          // The texture matrix is identity: skip its uniform and multiply on every read.
+          tile.updateMatrix = false;
+          energy.assign(max(energy, tile.r.mul(edge)));
         });
       });
       If(energy.greaterThan(.01), () => {
