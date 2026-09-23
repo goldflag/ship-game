@@ -21,6 +21,8 @@ import type { Vec3 } from '../../ships/blueprint';
 import type { SeaState } from './sea';
 
 export type { Vessel } from '../../multiplayer/generated/Vessel';
+/** `speed`, `swaySpeed` and `yawRate` are physical: what the HUD shows and hydrodynamics use. The hull moves
+ * `SHIP_PACE` (src/ships/mobility.ts) times as far through the world; `motionVelocity` in ./motion gives that. */
 export type { ShipState } from '../../multiplayer/generated/ShipState';
 export type { HelmCommand } from '../../multiplayer/generated/HelmCommand';
 export type { MountStatus } from '../../multiplayer/generated/MountStatus';

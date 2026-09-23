@@ -1,14 +1,16 @@
 # Battle HUD: commands, aiming, helm, minimap, gunnery, depth and damage feedback
 
 Moved verbatim from [DESIGN.md](../../DESIGN.md) on 2026-09-19 (rewrapped, relative links adjusted).
-DESIGN.md keeps the tokens and rules; this file keeps the detail and rationale.
+DESIGN.md keeps the tokens and rules; this file keeps the detail and rationale. Checked against the
+code on 2026-09-23: the Gunnery overlay, the HUD pause button and the fixed weapon slots described
+here earlier are gone.
 
 ### Commands and navigation
 
 Set sail is a solid brass command. Secondary actions use transparent or maritime fills and fine
 borders. Selected model views use a brass underline; selected Fleet action battery controls use mint
-borders and keycaps. Engine orders, camera, chart range, pause, fullscreen and HUD visibility remain
-functional. The native pause dialog contains focus; hidden instruments are inert. Reduced-motion
+borders and keycaps. Engine orders, camera, chart range, fullscreen and HUD visibility remain
+functional; Esc pauses. The native pause dialog contains focus; hidden instruments are inert. Reduced-motion
 preference removes interface transitions and the port entrance animation.
 
 **The App Focus Rule.** At the owner's request, the shared app stylesheet suppresses CSS focus
@@ -19,8 +21,9 @@ retain their own styling.
 
 ### Sailing aim and binoculars
 
-Mouse movement aims through the centered sailing sight while the cursor is captured. Shift or right
-mouse toggles binocular view. The numbered horizontal aiming scale appears only in binocular view,
+Mouse movement aims through the centered sailing sight while the cursor is captured. A tapped Shift
+toggles binocular view. Holding right mouse locks the aim: the guns keep their point while the view
+looks elsewhere, and the sight reads AIM LOCKED. The numbered horizontal aiming scale appears only in binocular view,
 alongside range and magnification. Scrolling continuously adjusts 1×–32× binocular magnification;
 ordinary scrolling eases camera distance. Optics transitions preserve the aimed point over 0.42
 seconds and respect reduced motion. Surface binoculars look from a fixed 30 m above the bridge at
@@ -40,10 +43,10 @@ the sight to clear the compass. Optics remain usable from 1× through 32×.
 
 ### Ship condition and helm
 
-The lower-left group combines the ship silhouette and name, live current / maximum HP and its
+The lower-left group combines the ship name, live current / maximum HP and its
 proportional bar, a circular compass with ship heading, camera bearing and selected-battery gun
 marks, speed in knots, a vertical engine telegraph and the rudder indicator. HP represents gameplay
-hull durability; exhausting it starts sinking. Gunnery shows equipment condition separately, and
+hull durability; exhausting it starts sinking. The ship damage view (I) shows equipment condition separately, and
 flooding and stability can also sink a ship with HP remaining. The selected engine order has mint
 lettering and a pointer on a transparent surface; W/S step the order, Space stops, and A/D steer.
 Flooding appears with its measured volume when present. The compact rudder instrument is at most 180
@@ -56,8 +59,8 @@ allowed up to 220 px width.
 ### Navigation minimap
 
 The north-up chart follows the ship and shows its heading, camera view cone, course trail, trial
-target and marker buoys. NORTH UP is a static orientation label. The kilometer readout cycles the
-radius through 1, 2, 4 and 8 km, starting at 2 km. Separate −/+ buttons and keyboard shortcuts
+target and marker buoys. N, E and W letters mark the edge; "north up" is only in the accessible
+label. The kilometer readout cycles the radius through 1, 2, 4 and 8 km, starting at 8 km. Separate −/+ buttons and keyboard shortcuts
 adjust the five map sizes; endpoint buttons disable at the smallest and largest sizes. Range and
 physical map size remain independent.
 
@@ -68,14 +71,17 @@ tube or depth-charge station, with mount numbers, remaining seconds or a ready m
 pairs the battery name with a can-fire/total count and includes caliber or tube diameter for guns
 and torpedoes. Only eligible, loaded weapons count; unavailable mounts show a cross. Gun-aim circles
 distinguish Turning, Out of arc, Out of range and Blocked, and any visible seconds are labeled
-Reload. The circles and firing use the same eligibility state. The baseline five slots contain main
-AP, secondary AP, binoculars, gunnery and fire. Fitted torpedoes add a sixth slot between secondary
-AP and binoculars; fitted depth charges add a seventh after torpedoes. Both use the same mint
-selection state, keycap and live ammunition count. Ammunition illustrations, including the
+Reload. The circles and firing use the same eligibility state; Out of arc and Out of range share one
+colour and strike, so only the label tells them apart (see [gunnery](../gunnery.md#aim-circle-states)).
+The weapon row has one slot per fitted weapon group (`weaponGroups`): main guns, then secondaries
+from the largest calibre down, then torpedoes (TORPEDO) and depth charges (DEPTH); a carrier adds
+AIR WING outside fleet command. Guns of 80 mm or less get no slot when a larger gun is fitted. Every slot uses the same
+mint selection state, keycap and live ammunition count. Ammunition illustrations, including the
 depth-charge drum, are independently authored SVG assets; all ammunition totals come from live
-simulation telemetry. Keyboard 1/2 selects main or secondary AP, 3 selects fitted torpedoes and 4
-selects fitted depth charges. Q or left mouse fires the selected weapon group. The firing action is
-disabled when no selected weapons are ready.
+simulation telemetry. Keys 1–9 and 0 select the groups in row order, so Fletcher has guns on 1,
+torpedoes on 2 and depth charges on 3, and Type VIIC has its deck gun on 1 and torpedoes on 2. E
+toggles the selected group's AP/HE. Q or left mouse fires the selected weapon group; there is no
+fire button.
 
 For Type VIIC, selecting torpedoes shows five tube-readiness rings and the remaining ammunition from
 its initial 14 rounds; readiness also respects the submarine's current depth. A compact muted line
@@ -83,24 +89,21 @@ beneath the battery heading gives the bow/stern arcs, range and arming distance.
 sectors follow the water surface, with a gold arming arc and a straight-course line; a brighter
 narrow cone marks a ready launch. Hide this preview outside torpedo selection, during inspection or
 shell follow, on loss of the player ship, and with H. The port characteristics show five 533 mm
-tubes and 14 rounds. Gunnery labels its action Launch and explains that each press launches one
-eligible loaded tube, holding launches tubes in sequence, and Target waterline supplies lead for the
-selected target. Keep straight-course behavior explicit in that help. The target-condition readings
-include depth when available.
+tubes and 14 rounds. The help line ends "Lay the teal wedge on the pale one": the torpedo sight draws
+a pale lead wedge with a bar at the meeting distance, a dashed salvo outline while a launcher is
+still waiting, and a coral outline parked at the arc limit when the sight is out of arc.
 
 Fletcher's torpedo selection shows ten tube-readiness rings and its remaining stock from ten rounds.
 The same muted help line gives the trainable broadside sectors, range and arming distance; readiness
 distinguishes a loaded tube from one still turning toward aim. Depth-charge selection shows eight
-station-readiness rings and the remaining stock from 28 charges. Its fourth weapon button is labeled
-DEPTH with keycap 4; the firing action becomes Drop. The two-line help identifies stern racks and
-side throwers, the 10 m burst depth, and the need to make a close pass and keep moving clear.
-Gunnery labels ready stations “Ready to release,” omits the aim selector for this weapon, and
-explains one press versus a held pattern and possible damage to the player's ship and allies. Use
-the inherited maritime surfaces, mint readiness, brass gunnery command and Barlow instruments for
-these added states.
+station-readiness rings and the remaining stock from 28 charges. Its weapon button is labeled DEPTH
+with keycap 3. The two-line help identifies stern racks and side throwers, the 10 m burst depth, and
+the need to make a close pass and keep moving clear. A ready station's ring reads “Ready to release”
+in its tooltip. Use the inherited maritime surfaces, mint readiness and Barlow instruments for these
+added states.
 
-G opens gunnery and releases the cursor for aim selection, trial-target condition, flooding,
-inspection and reset. Keep inspection exit controls reachable when details collapse. Only
+The Gunnery overlay is gone; G is the rangefinder. Equipment, compartments and hull regions are in the
+ship damage view (I). Keep inspection exit controls reachable when details collapse. Only
 implemented combat features appear as live telemetry. Do not fill spare weapon slots with
 unsupported ammunition or consumables.
 
@@ -111,8 +114,9 @@ compact Barlow text carries the ordered depth, movement state, ballast percentag
 and vertical speed. Tabular numerals stabilize the changing readings. Mint identifies the depth
 meter, movement state and selected preset; a gold marker shows the ordered depth.
 
-Surface, Periscope and Dive 50 m form the preset row, followed by paired Rise 10 m / Dive 10 m
-adjustments. Emergency blow occupies its own full-width row with gold lettering. Selected commands
+Surface and Dive 50 m form the preset row, followed by paired Rise / Dive adjustments in 2 m steps
+(`DEPTH_STEP_M`). Emergency blow occupies its own full-width row with gold lettering, and a
+full-width Periscope view camera toggle sits below it. Selected commands
 expose their pressed state, unavailable adjustments disable at the order limits, and sinking
 disables depth commands. Keyboard hints follow the configured bindings. Depth-limit and weapon-depth
 warnings state the corrective action beside the controls.
@@ -163,7 +167,7 @@ during pause. The player's lower-left hull instrument uses the same gold segment
 damage notice above it, with no screen-covering tint. Feedback uses opacity only, without camera
 shake or movement.
 
-The compact Damage / Frags reading sits below the upper-right pause control, with a mint Armor
+The compact Damage / Frags reading sits below the upper-right FPS / SIM readout, with a mint Armor
 blocked total immediately below it. Armor blocked counts potential hostile shell HP prevented by
 armor stops, ricochets and rejected HE fragments, using the loaded ammunition’s damage value minus
 any hull damage the same shell ultimately causes, once per finished shell and defended ship. It
@@ -179,7 +183,7 @@ Ctrl/Shift/Esc hint strip are removed. T remains the configurable shell-follow s
 mode hides smoke emitted at the player's ship, including already active smoke, while it continues
 aging; other ships' smoke remains visible.
 
-Local structural damage appears in Gunnery's Damaged sections list and beside the affected shell
+Local structural damage appears under Hull & structure in the ship damage view (I) and beside the affected shell
 impact. Labels explain reduced hull damage and intact equipment reached through wreckage. Combat
 inspection adds amber outlines for damaged structural regions and grey outlines for depleted
 regions; orange compartment fill marks active fires. These overlays are separate from equipment
@@ -192,9 +196,9 @@ right and bottom-aligned, below the horizon where no ship tag projects; at width
 rises above the card instead. The panel has no fill, only hairline rules above and below, and sets
 crew priority with a four-way switch (Auto, Fires, Flooding, Repairs) whose selection is mint. Own
 damage control puts active fires first, showing the affected space,
-growing/contained/being-fought/cooling status, remaining fuel and threatened equipment. Each row
-offers Focus crews. Target fires have the same readings without crew commands. Electrical supply and
-fire-control availability appear beside existing condition readings. Keep these additions within the
+Growing / Steady / Being fought / Cooling / Burned out · cooling status, remaining fuel and threatened
+equipment. Each row offers Focus crews. Target fires have the same readings without crew commands.
+Keep these additions within the
 scrolling naval instrument; room smoke exits above the deck and stays bounded with the existing
 gunhouse fire effects.
 

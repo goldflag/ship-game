@@ -2,7 +2,13 @@ import * as THREE from 'three/webgpu';
 import { attribute, materialColor, materialMetalness, materialRoughness, vec4 } from 'three/tsl';
 import { applyShipSurfaceDetail, isPlatedPaint, isPlateSized, setShipSurfaceDetail, shipSurfaceMode } from './ShipSurfaceDetail';
 
-/** Per-vertex roughness, metalness, plated-paint flag and the hull's rest wet-band height in metres. */
+/** The `shipSurface` vertex attribute. `apply` below is its only writer; every channel is taken:
+ * - `x`: the source paint's roughness. Read here and by ShipSurfaceDetail (plate roughness).
+ * - `y`: the source paint's metalness. Read here.
+ * - `z`: plated paint, 1 or 0 (`isPlatedPaint` and `isPlateSized`, with surface detail on). Read by ShipSurfaceDetail
+ *   for plating relief, plate roughness and the construction finish's seams and plate shades.
+ * - `w`: the hull's rest wet-band height in metres (`wetBandHeight`). Read by HullWetBand.
+ * A new per-vertex value needs its own attribute, as `shipWear` (written by constructionWear) did. */
 const surface = attribute<'vec4'>('shipSurface', 'vec4');
 const roughness = materialRoughness.mul(surface.x), metalness = materialMetalness.mul(surface.y);
 /** Rest height of a hull's wet band above the sea, in metres, by hull length; the sea state adds to it. */

@@ -18,7 +18,14 @@ async function verifiedBytes(url: string, sha256: string): Promise<Uint8Array<Ar
 }
 const omitted = new Set(['armor', 'compartments', 'connections', 'mountClearance', 'construction', 'loading']);
 /** Lightweight menu metadata is available synchronously. Simulation-only access
- * before admission throws instead of quietly substituting incomplete geometry. */
+ * before admission throws instead of quietly substituting incomplete geometry.
+ *
+ * The result (what `shipPreset(id)` returns) is a proxy typed as a full ShipDefinition. Until `loadShipPreset(id)`
+ * resolves, it serves the summary in presetCatalog.json (written by scripts/ships/runtime-assets.ts): every field
+ * except those below, plus `armorMaxMm` and `runtime`. Reading `armor`, `compartments`, `connections`,
+ * `mountClearance` or `loading`, or `hull.volume` or `hull.sections`, throws; `construction` holds only
+ * `catalogRevision`. After loading, every read goes to the full definition. Outside a browser, presets.ts loads
+ * every preset when imported, so tests and CLI scripts that import it never see the summary. */
 export function preset(id: string): Definition {
   const summary = entries[id]; if (!summary) throw new Error('Missing preset metadata: ' + id + '. Run multiplayer:content.');
   const hull = new Proxy(summary.hull as object, { get(target, key) {

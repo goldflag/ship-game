@@ -65,5 +65,23 @@ Also check `framebuffer`, `hidden` (must be false) and `errors`.
   (uploads, particle preparation) is not an FPS gain until a paired run shows it.
 - Worker-only cost: `scripts/diagnostics/custom-battle-worker-bench.ts`, or the native harness in
   [simulation performance](sim-performance-plan.md).
+- Several agents share this machine, and another worktree's build, `cargo test` or browser run can take
+  most of its cores. On 2026-09-23 the load average sat between 13 and 20 on 18 cores, and one benchmark
+  ran about three times slower in its second round than in its first. Alternate A and B rounds (A, B, A, B, ...)
+  instead of running all of A and then all of B, and note `uptime` before and after.
+
+## Timing browser code outside the browser
+
+Bun runs JavaScriptCore; Chrome runs V8. Timing browser-side TypeScript (`src/game`, `src/ships`) under
+`bun` can mislead: one session measured 100–200 ms under Bun for code that took 40–65 ms under V8, and a
+`sightAim` / `inspectionEntries` micro-benchmark on 2026-09-23 ran 1.3–1.7 times slower under Bun. Time it
+under V8 instead, from a bundle:
+
+```sh
+bun build .build/<task>/bench.ts --target node --outfile .build/<task>/bench.mjs
+node .build/<task>/bench.mjs
+```
+
+Code that needs WebGPU, the DOM or the worker still has to be measured in the browser harness above.
 
 Dated measurements and experiments: [archived log](archive/custom-battle-performance-log.md).

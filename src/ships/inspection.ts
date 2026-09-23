@@ -20,6 +20,13 @@ export const ARMOR_SCALE_MM: number = ARMOR_COLOR_STOPS[ARMOR_COLOR_STOPS.length
 /** The thicknesses at the green and red ends of the armor colour ramp. */
 export interface ArmorScale { fromMm: number; toMm: number }
 export const FIXED_ARMOR_SCALE: ArmorScale = { fromMm: 0, toMm: ARMOR_SCALE_MM };
+/** `center` is in the hull frame, except for gunhouse plates (`plate.mountId` set, `mountIndex` found): their `center`
+ * and plate vertices are mount-local, with the origin at the mount and turned by its bearing and train (`mountFrame`).
+ * `anchor` is then the mount's hull-frame position, where the viewer puts that origin; `bearingDeg` is the mount's.
+ *
+ * Construction ships' armor names say where a plate came from: `<primitiveId>:<face>` for hull skin (the face can
+ * carry a `:<panel>` suffix), `equipment:<fittingId>:<face>:<n>` for a turret fitting's barbette, the bare
+ * boundary id for a deck or bulkhead, and `<mount name> · <face>` for gunhouse plates. */
 export interface InspectionEntry {
   id: string; name: string; kind: InspectionKind; center: Vec3; size: Vec3;
   underwaterProtection?: { damageReduction: number; breachReduction: number };

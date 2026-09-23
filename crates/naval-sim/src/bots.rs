@@ -1,3 +1,15 @@
+//! The seeded bot crew. `captain::BotCaptain::conn` picks one of two paths
+//! with `w.reports.is_some()`, which is true only in a PvE mission:
+//!
+//! - Custom and online battles are omniscient: `BotState::update`, `helm`
+//!   and `target` read every hull, `ammunition` the target class's armor,
+//!   and `damage_aware_aim_points` the target's hidden damage model.
+//! - PvE missions see reported contacts only: `BotState::update_contact`,
+//!   `helm_contact`, `Sensors::battery_target` for targets and the
+//!   classification rule in `gunnery.rs` for ammunition. Torpedo and aircraft
+//!   evasion (`fleet_evasion`) runs only on this path.
+//!
+//! Other bot decisions live outside this file; `docs/bot-behavior.md` maps them.
 use crate::mobility::torpedo_speed;
 use crate::{
     ballistics::travel_factor,
