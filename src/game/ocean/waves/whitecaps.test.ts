@@ -22,10 +22,11 @@ describe('whitecaps', () => {
       expect(whitecapCoverage(wind)).toBeGreaterThanOrEqual(previous);
       previous = whitecapCoverage(wind);
     }
-    // Windrows are part of the coverage: none below a near gale, a small share of it in a storm.
-    expect(windrowCoverage(12)).toBe(0);
-    expect(windrowCoverage(25)).toBeGreaterThan(0);
-    expect(windrowCoverage(30)).toBeLessThan(.1 * whitecapCoverage(30));
+    // Windrows are part of the coverage: none below a strong breeze, a growing share of it through a gale.
+    expect(windrowCoverage(11)).toBe(0);
+    expect(windrowCoverage(15)).toBeGreaterThan(0);
+    expect(windrowCoverage(21) / whitecapCoverage(21)).toBeGreaterThan(windrowCoverage(15) / whitecapCoverage(15));
+    expect(windrowCoverage(30)).toBeLessThan(.5 * whitecapCoverage(30));
   });
 
   test('the normal quantile matches tabulated values', () => {

@@ -17,6 +17,9 @@ const FOAM_TILE = 40;
 const WINDROW_SCALE = 2.5, WINDROW_STRETCH = 4, WINDROW_BANDS = [8, 8 * Math.SQRT2 * 1.13] as const, WINDROW_BAND_STRETCH = 3;
 /** How strongly the bands gather windrows: coverage runs from 1 − this to 1 + this times its mean. */
 const WINDROW_GATHER = .6;
+/** The bands also shift the windrow lines across the wind by up to half this share of their tile, so the lines never
+ * repeat with the tile's width (a stripe pattern seen from the air). */
+const WINDROW_WARP = .3;
 
 /** Texels per pixel over which a foam pattern gives way to its mean coverage: every mip level of the foam texture is
  * equalised, so thresholds keep their share until the levels are too small to hold a pattern (8 × 8 and below). */
@@ -70,9 +73,11 @@ function foamLayout(xz: Node<'vec2'>, wind: Float, stretch: Float, tile: number)
 /** The foam texture read at grid point `xz`: at the lace's scale (with the share of its contrast filtering has averaged
  * away), at the windrows' larger and longer one, and for the windrows' bands. `stretch` draws all out along the wind. */
 export function foamPatterns(map: Texture, xz: Node<'vec2'>, wind: Float, stretch: Float) {
-  const uv = foamLayout(xz, wind, stretch, FOAM_TILE), rowsUv = foamLayout(xz, wind, stretch.mul(WINDROW_STRETCH), FOAM_TILE * WINDROW_SCALE);
+  const uv = foamLayout(xz, wind, stretch, FOAM_TILE);
   const [near, far] = WINDROW_BANDS.map(scale => texture(map, foamLayout(xz, wind, stretch.mul(WINDROW_BAND_STRETCH), FOAM_TILE * scale)).g);
-  return { pattern: texture(map, uv), blur: foamBlur(uv), rows: texture(map, rowsUv), bands: near.add(far).mul(.5) };
+  const bands = near.add(far).mul(.5);
+  const rowsUv = foamLayout(xz, wind, stretch.mul(WINDROW_STRETCH), FOAM_TILE * WINDROW_SCALE).add(vec2(0, bands.sub(.5).mul(WINDROW_WARP)));
+  return { pattern: texture(map, uv), blur: foamBlur(uv), rows: texture(map, rowsUv), bands };
 }
 
 /** Share of the foam texture's contrast that filtering has averaged away at `uv`: none while a pixel spans a few
