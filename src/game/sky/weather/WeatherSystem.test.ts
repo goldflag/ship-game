@@ -33,10 +33,10 @@ test('dry weather draws nothing once its pipelines have compiled, and a downpour
   system.apply(scene(.9, 0));
   frame(1 / 60);
   expect(shown(system)).toEqual(['Rain splashes', 'Rain']);
-  expect(system.diagnostics().drops).toBe(Math.round(.9 * SKY_TIERS.medium.rainDrops));
+  expect(system.diagnostics().drops).toBe(Math.round(Math.sqrt(.9) * SKY_TIERS.medium.rainDrops));
   system.setQuality('ultra');
   frame(1 / 60);
-  expect(system.diagnostics().drops).toBe(Math.round(.9 * SKY_TIERS.ultra.rainDrops));
+  expect(system.diagnostics().drops).toBe(Math.round(Math.sqrt(.9) * SKY_TIERS.ultra.rainDrops));
 });
 
 test('no rain from the chart\'s height, under water or in a hull view', () => {

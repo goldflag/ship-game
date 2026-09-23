@@ -106,8 +106,11 @@ export class WeatherSystem implements WeatherPart {
     const warming = this.warmup > 0;
     if (warming) this.warmup--;
     this.rain.update(camera, dt, cut);
-    this.rain.opacity.value = aloft;
-    this.rain.count = rain > 0 ? this.precipitation * this.tier.rainDrops : 0;
+    // Light rain is many faint streaks rather than a few bold ones: the drawn count and each streak's opacity
+    // both follow the square root of the precipitation, so the rain's density (their product) follows it.
+    const share = Math.sqrt(this.precipitation);
+    this.rain.opacity.value = aloft * share;
+    this.rain.count = rain > 0 ? share * this.tier.rainDrops : 0;
     this.rain.mesh.visible = this.rain.count > 0 || warming;
     const magnification = camera.projectionMatrix.elements[5] * Math.tan(26 * Math.PI / 180);
     const splash = indoors || magnification > SPLASH_ZOOM ? 0 : rain * (1 - MathUtils.smoothstep(altitude, SPLASH_CEILING[0], SPLASH_CEILING[1]));
