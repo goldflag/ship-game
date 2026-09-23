@@ -1,6 +1,7 @@
-import { DataTexture, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, RGFormat } from 'three/webgpu';
+import { DataTexture, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, RGBAFormat } from 'three/webgpu';
 
-const SIZE = 256;
+/** Texels per edge. */
+export const FOAM_TEXELS = 256;
 
 /** Integer hash to [0, 1): seeds and lattice indices only, no float inputs. */
 function hash(x: number, y: number, seed: number): number {
@@ -21,33 +22,43 @@ function worley(u: number, v: number, cells: number, seed: number): number {
   return nearest;
 }
 
-/** Smooth periodic value noise in [0, 1). */
-function value(u: number, v: number, cells: number, seed: number): number {
-  const x = u * cells, y = v * cells, ix = Math.floor(x), iy = Math.floor(y);
+/** Smooth periodic value noise in [0, 1) on a `cellsU` × `cellsV` lattice. */
+function value(u: number, v: number, cellsU: number, cellsV: number, seed: number): number {
+  const x = u * cellsU, y = v * cellsV, ix = Math.floor(x), iy = Math.floor(y);
   const fx = x - ix, fy = y - iy, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
-  const at = (i: number, j: number) => hash((i + cells) % cells, (j + cells) % cells, seed);
+  const at = (i: number, j: number) => hash((i + cellsU) % cellsU, (j + cellsV) % cellsV, seed);
   const top = at(ix, iy) + (at(ix + 1, iy) - at(ix, iy)) * sx, bottom = at(ix, iy + 1) + (at(ix + 1, iy + 1) - at(ix, iy + 1)) * sx;
   return top + (bottom - top) * sy;
 }
 
-/** The ocean's one foam texture, generated at startup and tiling in both axes: red holds bubble
- * clusters (two Worley scales), green holds broad patches (fbm). Every foam kind reads it. */
+/** Replace every value by its rank, so the channel is uniform on [0, 1]: a threshold at 1 − c then keeps
+ * exactly a share c of the texture, which is what the surface's foam coverages mean. */
+function equalize(field: Float32Array): Float32Array {
+  const order = Array.from(field.keys()).sort((a, b) => field[a] - field[b]);
+  const ranks = new Float32Array(field.length);
+  order.forEach((index, rank) => { ranks[index] = (rank + .5) / field.length; });
+  return ranks;
+}
+
+/** The ocean's one foam texture, generated at startup and tiling in both axes. Every channel is equalised.
+ * Red: lace, the structure of thinning white water, bright filaments around holes at three scales (Worley F1).
+ * Green: broad patches (fbm). Blue: streaks, ridged noise eight times finer across the texture than along it
+ * (u), so its highest levels are thin lines like the foam the wind draws out; the surface lays u along the wind. */
 export function foamTexture(): DataTexture {
-  const bubbles = new Float32Array(SIZE * SIZE), patches = new Float32Array(SIZE * SIZE);
-  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
-    const u = (x + .5) / SIZE, v = (y + .5) / SIZE, i = y * SIZE + x;
-    bubbles[i] = 1 - .6 * worley(u, v, 9, 3) - .4 * worley(u, v, 23, 7);
-    let sum = 0, weight = .5;
-    for (let octave = 0; octave < 4; octave++, weight *= .5) sum += weight * value(u, v, 4 << octave, 11 + octave);
-    patches[i] = sum;
+  const n = FOAM_TEXELS, lace = new Float32Array(n * n), patches = new Float32Array(n * n), streaks = new Float32Array(n * n);
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const u = (x + .5) / n, v = (y + .5) / n, i = y * n + x;
+    lace[i] = .5 * worley(u, v, 5, 3) + .3 * worley(u, v, 13, 7) + .2 * worley(u, v, 32, 9);
+    let broad = 0, ridges = 0, weight = .5;
+    for (let octave = 0; octave < 4; octave++, weight *= .5) {
+      broad += weight * value(u, v, 4 << octave, 4 << octave, 11 + octave);
+      if (octave < 3) ridges += [.5, .3, .2][octave] * (1 - Math.abs(2 * value(u, v, 2 << octave, 16 << octave, 23 + octave) - 1));
+    }
+    patches[i] = broad; streaks[i] = ridges;
   }
-  const pixels = new Uint8Array(SIZE * SIZE * 2);
-  for (const [channel, field] of [bubbles, patches].entries()) {
-    let low = Infinity, high = -Infinity;
-    for (const n of field) { low = Math.min(low, n); high = Math.max(high, n); }
-    field.forEach((n, i) => { pixels[i * 2 + channel] = Math.round((n - low) / (high - low) * 255); });
-  }
-  const map = new DataTexture(pixels, SIZE, SIZE, RGFormat);
+  const pixels = new Uint8Array(n * n * 4);
+  [equalize(lace), equalize(patches), equalize(streaks)].forEach((field, channel) => field.forEach((level, i) => { pixels[i * 4 + channel] = Math.round(level * 255); }));
+  const map = new DataTexture(pixels, n, n, RGBAFormat);
   map.name = 'Ocean foam';
   map.wrapS = map.wrapT = RepeatWrapping;
   map.minFilter = LinearMipmapLinearFilter; map.magFilter = LinearFilter;

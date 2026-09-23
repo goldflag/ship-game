@@ -40,6 +40,8 @@ const SUN_HAZE = .45;
 /** Sun and moon disc radius as `1 - cos(θ)`: a 1.4° disc, under three times life size.
  * Sky Pro's presets draw them at 3.2° and 3.6°. */
 const CELESTIAL_DISC = 7.5e-5;
+/** Streaks of residual foam the wind draws out: none up to a fresh breeze (m/s), this opacity by a storm. */
+const SURFACE_FOAM_WIND = [10, 25] as const, SURFACE_FOAM_OPACITY = .3;
 
 /** Applies resolved battle conditions to the ocean and the licensed sky, and owns
  * every live override of those parameters: the port's daylight and standing wind, the air map's
@@ -164,7 +166,7 @@ export class VisualEnvironment {
     crest.color.setScalar(waterFill);
     shoreline.color.set('#edf9fd').multiplyScalar(waterFill);
     Object.assign(crest, { opacity: .8 * map.water.foam / .45, windStretch: .5, crestStrength: waves.crestFoam, windwardStrength: waves.windwardFoam, decayTime: 2.8 });
-    Object.assign(surface, { opacity: .08 * Math.max(0, Math.min(1, (waves.windSpeed - 3) / 12)), coverage: .18 });
+    Object.assign(surface, { opacity: SURFACE_FOAM_OPACITY * MathUtils.smoothstep(waves.windSpeed, SURFACE_FOAM_WIND[0], SURFACE_FOAM_WIND[1]), coverage: .05 });
     this.sinks.effects.setWind(ocean.waves.windSpeed, ocean.waves.windDirection);
     this.sinks.funnelSmoke.setWind(ocean.waves.windSpeed, ocean.waves.windDirection);
   }

@@ -25,9 +25,15 @@ game.scheduleFrame = noop;
 game.setInPort(true); game.start(); await game.initialization;
 const rigUpdate = game.rig.update.bind(game.rig);
 
+/** Seconds of waves run up to a frozen time: crest foam builds only while waves run and a paused frame keeps it,
+ * so without them a scene would show the previous sea's foam (it decays over 2.8 s). */
+const FOAM_WARMUP = 10;
 /** Every scene renders the same frozen wave time: a paused frame never advances it, and parameter
- * changes still apply on the next update. */
-const freeze = seconds => { game.ocean.time = seconds; };
+ * changes still apply on the next update. Crest foam first runs up to it for FOAM_WARMUP seconds. */
+const freeze = seconds => {
+  for (let t = seconds - FOAM_WARMUP; t < seconds; t += 1 / 30) game.ocean.waveField.update(game.renderer, t, 1 / 30);
+  game.ocean.time = seconds;
+};
 
 const frames = async count => { for (let i = 0; i < count; i++) { await new Promise(requestAnimationFrame); await game.frame(performance.now()); } };
 const settle = async (count = 40) => {

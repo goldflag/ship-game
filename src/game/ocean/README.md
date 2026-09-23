@@ -78,12 +78,18 @@ emitted radiance, pre-scaled by the game at night. Fresnel reflection of the sky
 roughness from unresolved slope variance and a tiny grazing guard (1e-4, not 0.05: distant slopes
 must keep distinct reflectance under 24× binoculars). Sun specular and glints, subsurface
 light through crests toward the sun, crest foam (Jacobian, persistence, windward streaks, wind
-stretch), low-opacity surface foam, shoreline foam where the water column is shallow (islands
-and hulls), and wake foam. Straight-through visibility of submerged geometry: the opaque scene
-at the same screen position, attenuated by `exp(-absorption × column)` and filled with the
-pigment. No refraction offset. An optional sun shadow node attenuates the lit terms; ambient
-pigment keeps 45% in full shadow; sky reflection is unshadowed. The underside, seen from a
-submerged camera, shows Snell's window and total internal reflection.
+stretch), wind streaks of surface foam, shoreline foam where the water column is shallow (islands
+and hulls), and wake foam. Every foam reads one generated texture whose channels are equalised
+(lace, patches, streaks), so thresholding a channel at 1 − coverage covers exactly that share:
+thinning foam keeps fewer filaments instead of turning grey, and where filtering has flattened
+the pattern the pixel takes the coverage itself. Straight-through visibility of submerged
+geometry: the opaque scene at the same screen position, attenuated by `exp(-absorption × column)`
+and filled with the pigment. No refraction offset. An optional sun shadow node attenuates the lit
+terms; ambient pigment keeps 45% in full shadow; sky reflection is unshadowed. The underside, seen
+from a submerged camera (and only computed for back faces), shows Snell's window and, outside it,
+total internal reflection of the lit sea: dark looking down into the deep, bright toward the
+horizontal where daylight (the sky's mean radiance, tinted by what the water absorbs least)
+scatters along the surface, dimmed by the water above the camera.
 
 **Reflections of ships.** Screen-space rays against the opaque depth, enabled on High and Ultra
 when Graphics → Reflections is Scene. Clip each ray to the viewport before spending the step
@@ -113,7 +119,7 @@ depression it would settle into at rest), eased in over about a second and faded
 `radius` shapes a Gaussian footprint along the path swept each step. The Kelvin wedge, bow and
 stern systems come out of the dispersion; heights are a fraction of `depth` to about `depth`.
 `friction` is γ in 1/s. The field steps at a fixed 1/30 s and the sampler blends the last two steps
-(one step behind). Foam is set to 1.5 × `foamStrength` along the swept hull path, added where the
+(one step behind). Foam is set to 0.3 × `foamStrength` along the swept hull path, added where the
 slope over a 12 m baseline passes `foamBreakThreshold`, spreads at 3 m²/s and decays with
 `foamLifetime`. Scrolling moves content by whole cells; an edge sponge absorbs outgoing waves.
 A step renders 2 × levels + 2 passes (8, 10, 12 by tier), about 0.2–0.4 ms on WebGPU.

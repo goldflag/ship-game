@@ -1,10 +1,11 @@
 import { DepthTexture, DoubleSide, NoBlending, NodeMaterial, type Color, type Node, type Texture } from 'three/webgpu';
-import { cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
+import { Fn, If, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, cos, dot, exp, float, frontFacing, fwidth, max, mix, nodeObject, normalize, perspectiveDepthToViewZ,
   pmremTexture, positionView, positionWorld, reference, reflect, refract, select, sin, smoothstep, texture, uniform, varying, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
 import { EffectDepthTextureNode } from '../../EffectVolume';
 import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../screen/reflections';
-import { foamTexture } from './foamTexture';
+import { waterLight } from '../screen/underwater';
+import { FOAM_TEXELS, foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
 
 /** Reflectance of water at normal incidence. */
@@ -17,8 +18,28 @@ const SHADOWED_PIGMENT = .45;
 const SHADOWED_FOAM = .6;
 /** Slope variance the sun disc adds to its highlight. */
 const SUN_VARIANCE = 2e-4;
-/** Water column (m) over which shoreline foam fades out. */
-const SHORE_DEPTH = 3.5;
+/** Metres across the wind per tile of the foam texture; along the wind it stretches with the crest foam's `windStretch`. */
+const FOAM_TILE = 40;
+/** Texels per pixel over which a foam pattern blurs into its mean. */
+const FOAM_BLUR_START = 4, FOAM_BLUR_END = 48;
+/** Crest foam (the wave field's persisted injection) that starts to show, and that covers its patch completely:
+ * the faint, spread-out remains of a whitecap stay clear water. */
+const CREST_START = .1, CREST_FULL = .7;
+/** Edge half-width of whitecaps in levels of the equalised lace: firm, not cut out. */
+const CREST_EDGE = .15;
+/** Opacity of the thinnest crest foam relative to a fresh whitecap: old foam is a translucent film. */
+const THIN_FOAM = .35;
+/** Edge half-width of wind streaks. */
+const STREAK_EDGE = .1;
+/** Wake foam energy at which churned water starts to show, where it is a solid sheet, and how softly its edge
+ * dissolves: the trail's own energy shapes its puffs and gaps. */
+const WAKE_START = .05, WAKE_FULL = .7, WAKE_EDGE = .8;
+/** Water column (m) over which shoreline foam fades out, and its soft edge: a thin line along a hull. */
+const SHORE_DEPTH = .8, SHORE_EDGE = .4;
+/** Depth (m) over which unmodified sea water dims the surface seen from below. The game eases the view-ray
+ * absorption for a submerged camera so hulls stay visible, which would leave the surface as bright from 50 m as
+ * from 5 m; its daylight fades with the camera's depth instead. */
+const DAYLIGHT_DEPTH = 25;
 
 /** What the surface reads live; every object is owned by the facade and mutated by the game. */
 export interface SurfaceParameters extends Pick<OceanApi, 'colors' | 'foam' | 'sun' | 'reflections'> {
@@ -95,11 +116,27 @@ function transmittance(absorption: Node<'vec3'>, column: Node<'float'>): Node<'v
   return exp(absorption.mul(column).negate());
 }
 
-/** Share of a pixel covered by foam of strength `amount`: weak foam is sparse, faint bubbles,
- * strong foam a dense sheet, both broken up by the bubble texture value `detail`. */
-function dissolve(amount: Node<'float'>, detail: Node<'float'>): Node<'float'> {
-  const coverage = amount.clamp(0, 1);
-  return smoothstep(float(1).sub(coverage), float(1.6).sub(coverage), detail).mul(coverage);
+/** Share of the foam texture's contrast that filtering has averaged away at `uv`: none while a pixel spans a few
+ * texels, all of it once a pixel averages dozens and the texture reads as its mean. */
+function foamBlur(uv: Node<'vec2'>): Node<'float'> {
+  return smoothstep(FOAM_BLUR_START, FOAM_BLUR_END, max(fwidth(uv.x), fwidth(uv.y)).mul(FOAM_TEXELS));
+}
+
+/** Opacity of foam covering a share `coverage` of the sea. The texture channel `pattern` is equalised, so
+ * thresholding it at 1 − coverage keeps exactly that share: a fresh sheet is solid white and thinning foam keeps only
+ * the pattern's brightest filaments, instead of turning grey. Where the pattern is blurred to its mean the pixel
+ * takes the coverage itself. */
+function foamOpacity(coverage: Node<'float'>, pattern: Node<'float'>, blur: Node<'float'>, edge: number): Node<'float'> {
+  // The threshold runs from just above the pattern's top to just below its bottom, so no coverage shows nothing.
+  const share = coverage.clamp(0, 1), threshold = mix(float(1 + edge), float(-edge), share);
+  return mix(smoothstep(threshold.sub(edge), threshold.add(edge), pattern), share, blur);
+}
+
+/** Whitecaps from the wave field's crest foam `amount`: fresh breaking crests are solid white, and as the foam
+ * decays it keeps fewer, fainter filaments of the lace until only clear water is left. */
+function crestFoamOpacity(amount: Node<'float'>, lace: Node<'float'>, blur: Node<'float'>): Node<'float'> {
+  const coverage = amount.sub(CREST_START).div(CREST_FULL - CREST_START).clamp(0, 1);
+  return foamOpacity(coverage, lace, blur, CREST_EDGE).mul(mix(THIN_FOAM, 1, coverage));
 }
 
 /** The ocean surface, drawn first in the scene pass's transparent queue so three's viewport copies
@@ -165,32 +202,43 @@ export class OceanSurfaceMaterial extends NodeMaterial {
       .add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
     let above: Node<'vec3'> = mix(body, reflected, reflectance).add(direct.mul(lit));
 
-    // Foam, from the widest and faintest to the brightest: surface pattern, crests, wakes, shorelines.
-    // Its texture is laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
+    // Foam, from the widest and faintest to the brightest: surface streaks, crests, wakes, shorelines. One read
+    // of the foam texture, laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
     const wind = reference('windDirection', 'float', waves.params), along = vec2(cos(wind), sin(wind));
     const foamXz = vec2(dot(xz, along).div(reference('windStretch', 'float', foam.crest).mul(2).add(1)), dot(xz, vec2(along.y.negate(), along.x)));
-    const bubbles = texture(this.foamDetail, foamXz.div(9)).r, patches = texture(this.foamDetail, foamXz.div(71)).g;
+    const foamUv = foamXz.div(FOAM_TILE);
+    const pattern = texture(this.foamDetail, foamUv), blur = foamBlur(foamUv), lace = pattern.r;
     const foamLight = mix(SHADOWED_FOAM, 1, lit);
-    const surfaceFoam = smoothstep(float(1).sub(reference('coverage', 'float', foam.surface)), 1, patches).mul(bubbles).mul(reference('opacity', 'float', foam.surface));
-    const crestFoam = dissolve(sample.foam, bubbles).mul(reference('opacity', 'float', foam.crest));
-    // Trails are churned white water: a dense sheet wherever their energy is up, lightly textured.
-    const wakeFoam = smoothstep(.1, .6, wake.foam(xz.x, xz.y)).mul(bubbles.mul(.35).add(.65));
-    const shoreFoam = dissolve(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), bubbles).mul(reference('opacity', 'float', foam.shoreline));
+    // Residual foam gathers in the patches (twice the mean coverage where they peak) and lies in wind streaks.
+    const surfaceFoam = foamOpacity(reference('coverage', 'float', foam.surface).mul(pattern.g.mul(2)), pattern.b, blur, STREAK_EDGE)
+      .mul(reference('opacity', 'float', foam.surface));
+    const crestFoam = crestFoamOpacity(sample.foam, lace, blur).mul(reference('opacity', 'float', foam.crest));
+    // Churned water is soft-edged and puffy where the trail's energy thins, not cut into lace.
+    const wakeFoam = foamOpacity(smoothstep(WAKE_START, WAKE_FULL, wake.foam(xz.x, xz.y)), lace, blur, WAKE_EDGE);
+    // Where the water column behind the surface thins to nothing: a beach, or the line along a hull.
+    const shoreFoam = foamOpacity(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), lace, blur, SHORE_EDGE).mul(reference('opacity', 'float', foam.shoreline));
     const crestColor = rgb(foam.crest.color).mul(foamLight);
     above = mix(above, rgb(foam.surface.color).mul(foamLight), surfaceFoam.clamp(0, 1));
     above = mix(above, crestColor, max(crestFoam, wakeFoam).clamp(0, 1));
     above = mix(above, rgb(foam.shoreline.color).mul(foamLight), shoreFoam.clamp(0, 1));
 
-    // Below: Snell's window shows the sky refracted through the surface; outside it the
-    // surface mirrors the water body by total internal reflection.
-    const down = up.negate();
-    const refracted = refract(view.negate(), down, WATER_IOR);
-    const window = dot(refracted, refracted).greaterThan(1e-6);
-    const leaving = fresnel(dot(refracted, up).max(0));
-    const skyAbove = skyReflection(environment, refracted, float(0));
-    const below = select(window, mix(skyAbove, pigment, leaving), pigment);
-
-    this.fragmentNode = vec4(select(frontFacing, above, below), 1);
+    this.fragmentNode = Fn(() => {
+      // Everything above is evaluated first, in uniform control flow: it takes screen-space derivatives.
+      const color = above.toVar();
+      // Below, only for back faces (a submerged camera): Snell's window shows the sky refracted through the
+      // surface; outside it the surface mirrors the lit sea by total internal reflection, and the waves show as
+      // their facets tilt the mirrored ray between the dark deep and the daylight scattered along the surface.
+      If(frontFacing.not(), () => {
+        const incident = view.negate(), down = up.negate();
+        const refracted = refract(incident, down, WATER_IOR).toVar(), mirror = reflect(incident, down);
+        // The sky's mean radiance overhead (the fully blurred bake), dimmed by the water above the camera.
+        const daylight = skyReflection(environment, vec3(0, 1, 0), float(1)).mul(exp(cameraPosition.y.min(0).div(DAYLIGHT_DEPTH)));
+        const sea = waterLight(pigment, absorption, daylight, mirror).toVar();
+        const window = mix(skyReflection(environment, refracted, float(0)), sea, fresnel(dot(refracted, up).max(0)));
+        color.assign(select(dot(refracted, refracted).greaterThan(1e-6), window, sea));
+      });
+      return vec4(color, 1);
+    })();
     this.needsUpdate = true;
   }
 

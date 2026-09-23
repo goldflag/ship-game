@@ -22,6 +22,23 @@ const REFRACTION = 1.333;
 const FORWARD = .55;
 /** Sunlight scattered forward, relative to the pigment (the backscatter seen looking down into the sea). */
 const SUNLIT = .45;
+/** Optical depth, in its most transparent channel, over which daylight in the sea takes the colour of what the
+ * water absorbs least. Relative to that channel, so the game's submerged easing of the absorption (a uniform
+ * scale) keeps the hue. */
+const TINT_DEPTH = 1;
+/** Daylight scattered along the underside of the surface, relative to the sky's mean radiance overhead: the sun
+ * and the whole dome feed it through Snell's window. */
+const SIDE_LIGHT = 3;
+/** Vertical direction components over which the seen light turns from the deep's upwelling to the side light. */
+const DEEP_VIEW = -.7, SIDE_VIEW = 0;
+
+/** Radiance of the lit sea seen along `direction` from just below the surface: the pigment looking down into the
+ * deep, brightening toward the horizontal into daylight scattered along the surface, which takes the tint of what
+ * the water absorbs least. `daylight` is the sky's mean radiance overhead, dark at night like the sky itself. */
+export function waterLight(pigment: Node<'vec3'>, absorption: Node<'vec3'>, daylight: Node<'vec3'>, direction: Node<'vec3'>): Node<'vec3'> {
+  const tint = exp(absorption.div(max(absorption.x, max(absorption.y, absorption.z)).max(1e-6)).mul(-TINT_DEPTH));
+  return mix(pigment, daylight.mul(tint).mul(SIDE_LIGHT), smoothstep(DEEP_VIEW, SIDE_VIEW, direction.y));
+}
 /** Waterline width in pixels, and how much the film of water on the lens takes the transmission tint. */
 const MENISCUS_WIDTH = 1.6;
 const MENISCUS_TINT = .85;

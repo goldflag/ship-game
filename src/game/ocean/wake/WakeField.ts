@@ -22,8 +22,9 @@ const SPONGE_DAMPING = 1.5;
 const EDGE_FADE = .03;
 /** Turbulent spreading of wake foam (m²/s), so an old trail is wider than a fresh one. */
 const FOAM_SPREAD = 3;
-/** Foam energy left along the hull path at full `foamStrength`: enough to stay visible for about one lifetime. */
-const HULL_FOAM = 1.5;
+/** Foam energy left along the hull path at full `foamStrength`: a faint wash along the hull only. The game draws its
+ * own trail, so the field's foam is mostly the breaking of the bow and stern shoulders. */
+const HULL_FOAM = .3;
 /** Foam per second added where the steepness is twice the break threshold, before `foamStrength`. */
 const BREAK_RATE = 1;
 /** Half the baseline (m) over which breaking steepness is measured, so a threshold means the same on every

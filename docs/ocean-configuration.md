@@ -45,9 +45,9 @@ back around the hull at four wave times and reports 4 × RMS beside the requeste
 
 Wind speed also changes foam: whitecaps start earlier, and the high-wind gains decrease to retain dark
 water between breakers. Crest foam decays over 2.8 s with opacity 0.8 × the map's foam value / 0.45
-(0.8 in the Atlantic) and a 0.5 wind stretch; surface foam reaches opacity 0.08 between 3 and 15 m/s
-over 18% of the sea. Foam is an artistic choice; the flatter high-wind coverage is not a calibrated
-whitecap-fraction model.
+(0.8 in the Atlantic) and a 0.5 wind stretch. Surface foam is wind streaks: none up to 10 m/s, rising
+to opacity 0.3 over 5% of the sea by 25 m/s. Foam is an artistic choice; the flatter high-wind coverage
+is not a calibrated whitecap-fraction model.
 
 Map multipliers are height 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 Indian; wavelength 1.0,
 0.8, 0.8 and 1.1; and the preset wind multiplier 1.0, 0.7, 0.65 and 1.1. Numeric wind bypasses the map
