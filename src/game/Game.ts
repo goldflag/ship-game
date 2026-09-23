@@ -24,9 +24,11 @@ import { createSeaState, type SeaState } from './session/sea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
 import * as THREE from 'three/webgpu';
-import { Fn, float, max, pass } from 'three/tsl';
+import { Fn, float, max, pass, vec2 } from 'three/tsl';
 import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
+import { HullWetBand } from './HullWetBand';
+import { primeHullProfile } from './HullContactFoam';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
@@ -157,8 +159,10 @@ export class Game {
    * same ones, so they are kept — in least-recently-used order and capped, because each one
    * holds tens of megabytes of vertex data. The fleet at sea is always retained. */
   private readonly hulls = new Map<string, THREE.Group>();
+  /** Hulls darken and gloss just above the sea they sit in: the FFT waves plus the wake and bow waves. */
+  private readonly hullWetBand = new HullWetBand();
   /** One palette for every hull kept, so paint still collapses across cached fleets. */
-  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true });
+  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true, weathering: this.hullWetBand });
   private readonly occlusion: ShipOcclusion;
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
@@ -496,6 +500,10 @@ export class Game {
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
     this.shipWake = new ShipWake(ocean, gpuWakeFoamPainter(this.renderer), () => ocean.meshSpacing, () => this.renderer.domElement.height);
+    // The wet band reads the sea exactly as the surface draws it: waves, wake field and bow waves.
+    // Hull paint compiles on first draw, after this.
+    const shipWake = this.shipWake;
+    this.hullWetBand.setSea((x, z) => ocean.waveField.heightAt(vec2(x, z)).add(shipWake.surfaceHeight(x, z)), () => shipWake.bowWaves.crestHeight());
     for (const buoy of BUOYS) this.addBuoy(buoy);
     if (HARBOR_BACKDROP) {
       this.callbacks.progress('Building the naval anchorage', 0.72);
@@ -892,6 +900,8 @@ export class Game {
     this.palette.apply(model);
     this.occlusion.adopt(model);
     batchShipModel(model);
+    // The hull's waterline for its contact foam, sliced while loading rather than in a battle frame.
+    primeHullProfile(definition, model);
     this.hulls.set(key, model);
     return model;
   }
@@ -1060,7 +1070,9 @@ export class Game {
       this.harbor?.update(dt, this.camera);
       this.fitSunShadow();
       this.focusNearShadow();
+      this.shipWake!.seaHeight = this.ocean!.waves.significantHeight;
       this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
+      this.hullWetBand.update(this.ocean!.waves.significantHeight);
       // The sea reads the opaque ships through the scene pass, so publish batch poses first.
       this.fleetDraws?.update(this.camera, this.renderer.domElement.height, this.detailBudgetPx);
       // Hidden hangar aircraft, LODs and dormant effects must compile against

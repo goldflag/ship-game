@@ -151,6 +151,13 @@ export class BowWaves {
     this.count.value = this.enabled ? candidates.length : 0;
   }
 
+  /** Tallest stem crest with the heap around it, in metres above the sea. */
+  crestHeight(): number {
+    let crest = 0;
+    for (let slot = 0; slot < this.count.value; slot++) crest = Math.max(crest, this.waveValues[slot].z * (1 + this.tuning.hump));
+    return crest;
+  }
+
   reset(): void { this.speeds.clear(); this.tracks.clear(); this.slots = []; this.count.value = 0; }
 
   /** Heading change per metre run, smoothed: a steady turn bends the wake onto its circle. */

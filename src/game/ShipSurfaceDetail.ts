@@ -204,7 +204,8 @@ function shipSurfaceNodes(): Nodes {
   if (nodes) return nodes;
   const plate = dataTexture(plateTexels(), PLATE.size, PLATE.size, 'Ship plating detail');
   const teak = dataTexture(teakTexels(), TEAK.width, TEAK.length, 'Ship teak detail');
-  const surface = attribute<'vec3'>('shipSurface', 'vec3');
+  // Roughness, metalness, plated-paint flag; `w` is the wet band's rest height (HullWetBand).
+  const surface = attribute<'vec4'>('shipSurface', 'vec4');
   const p = positionGeometry, n = normalGeometry.normalize();
   // Triplanar weights in geometry space: beam-facing sides, end bulkheads and decks.
   const w0 = pow(abs(n), vec3(4)), w = w0.div(w0.x.add(w0.y).add(w0.z));
@@ -252,15 +253,16 @@ export function applyShipSurfaceDetail(material: THREE.MeshStandardNodeMaterial,
   material.needsUpdate = true;
 }
 
-/** Switch surface detail on every palette material under `root` (review and measurement). */
-export function setShipSurfaceDetail(root: THREE.Object3D, on: boolean): void {
+/** Switch surface detail on every palette material under `root` (review and measurement). `refinish`
+ * re-applies what the palette layers over the detail, such as the wet band. */
+export function setShipSurfaceDetail(root: THREE.Object3D, on: boolean, refinish?: (material: THREE.MeshStandardNodeMaterial) => void): void {
   enabled = on;
   const seen = new Set<THREE.Material>();
   root.traverse(object => {
     const material = (object as THREE.Mesh).material;
     for (const m of Array.isArray(material) ? material : material ? [material] : []) {
       if (seen.has(m) || !(m instanceof THREE.MeshStandardNodeMaterial) || !m.userData.shipSurfaceMode) continue;
-      seen.add(m); applyShipSurfaceDetail(m, m.userData.shipSurfaceMode, on);
+      seen.add(m); applyShipSurfaceDetail(m, m.userData.shipSurfaceMode, on); refinish?.(m);
     }
   });
 }

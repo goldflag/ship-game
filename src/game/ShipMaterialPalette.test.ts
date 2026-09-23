@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
-import { ShipMaterialPalette } from './ShipMaterialPalette';
+import { float } from 'three/tsl';
+import { ShipMaterialPalette, wetBandHeight } from './ShipMaterialPalette';
 
 test('different linear paint colors share shading while preserving every vertex and texture', () => {
   const root = new THREE.Group(), geometry = new THREE.BoxGeometry();
@@ -45,4 +46,39 @@ test('texture pixels are never read while keying materials', () => {
   root.add(...[textured(), textured(), textured()].map(material => new THREE.Mesh(geometry, material)));
   palette.apply(root);
   expect(reads).toBe(0);
+});
+
+test('every paint carries its hull\'s wet-band height, and weathering layers over surface detail with one wrapper per base', () => {
+  const dry = float(.8), gloss = float(.5), palette = new ShipMaterialPalette({ surfaceDetail: true, weathering: { dry, gloss } });
+  const hull = (length: number, material: THREE.MeshStandardMaterial) => {
+    const root = new THREE.Group(), mesh = new THREE.Mesh(new THREE.BoxGeometry(10, 10, length), material);
+    root.add(mesh); palette.apply(root); return mesh;
+  };
+  const map = new THREE.Texture(); map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  const teak = (color = '#ffffff') => new THREE.MeshStandardMaterial({ name: 'Teak decking', map, color });
+  const destroyer = hull(110, new THREE.MeshStandardMaterial({ color: '#445566' })), battleship = hull(260, new THREE.MeshStandardMaterial({ color: '#665544' }));
+  const surface = destroyer.geometry.getAttribute('shipSurface');
+  expect(surface.itemSize).toBe(4);
+  expect(surface.getW(0)).toBeCloseTo(wetBandHeight(110));
+  expect(battleship.geometry.getAttribute('shipSurface').getW(0)).toBeCloseTo(wetBandHeight(260));
+  expect(wetBandHeight(260)).toBeGreaterThan(wetBandHeight(110));
+  expect(destroyer.material).toBe(battleship.material);
+  const paint = destroyer.material as unknown as THREE.MeshStandardNodeMaterial;
+  const planks = hull(200, teak()).material as unknown as THREE.MeshStandardNodeMaterial;
+  expect(planks).not.toBe(paint);
+  // Each wraps its own detail: paint its plated roughness, teak its planked colour and roughness.
+  expect(paint.colorNode).not.toBeNull(); expect(planks.colorNode).not.toBeNull(); expect(paint.normalNode).not.toBeNull();
+  expect(planks.colorNode).not.toBe(paint.colorNode); expect(planks.roughnessNode).not.toBe(paint.roughnessNode);
+  // Another teak hull, stained differently, shares the palette entry and its wrappers.
+  const other = hull(150, teak('#d0c0a0')).material as unknown as THREE.MeshStandardNodeMaterial;
+  expect(other.colorNode).toBe(planks.colorNode); expect(other.roughnessNode).toBe(planks.roughnessNode);
+  // Ship views clone the paint; switching surface detail keeps the band over the new nodes.
+  const clone = paint.clone(), root = new THREE.Group();
+  expect(clone.colorNode).toBe(paint.colorNode);
+  root.add(new THREE.Mesh(new THREE.BoxGeometry(), clone));
+  palette.setSurfaceDetail(root, false);
+  expect(clone.normalNode).toBeNull();
+  expect(clone.roughnessNode).not.toBe(paint.roughnessNode); expect(clone.colorNode).toBe(paint.colorNode);
+  palette.setSurfaceDetail(root, true);
+  expect(clone.roughnessNode).toBe(paint.roughnessNode);
 });
