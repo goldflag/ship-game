@@ -201,10 +201,14 @@ filaments thin and drawn out along the wind as it fades. Dense white water, whit
 realistic wake's churned water alike, is 97% opaque on its billows and opens to 8% in the gaps
 between them, where the bubble-lit water shows turquoise, and its billows darken to 82% in their
 creases and brighten on their sunward side (the churn channel a step toward the sun). Where a pixel
-is too coarse for a whitecap (1.5–4 m footprint) it takes the drawn model's own mean on the spread
-foam, and further (8–20 m) the wind's whitecap share at 0.26 opacity, a quarter of the light as
-Koepke measured of real whitecaps: distant whitecaps soften into the sea instead of staying flecks,
-and a mean already holds their aerated water, so no bubble cloud is added there. The bubble cloud
+is too coarse for a whitecap (1.5–4 m footprint) the same model is drawn on the spread foam with the
+lace and churn at four times their scale (the windrows' layout): its core covers the drawn core's own
+mean share (the 0.85–1.3 threshold averaged over the sway), and a thin patch's cover is raised 2.2×
+for what spreading takes from whitecaps smaller than the spread, a full patch's not at all, so a big
+breaker seen from the air is a marbled, streaked patch as bright as its drawn mean instead of a white
+disc. Further off (8–20 m) the pixel takes the wind's whitecap share at 0.26 opacity, a quarter of
+the light as Koepke measured of real whitecaps: distant whitecaps soften into the sea instead of
+staying flecks, and a mean already holds their aerated water, so no bubble cloud is added there. The bubble cloud
 brightens the water body toward daylight scattered back by bubbles (30%) and tinted by 4.5 m of water
 (pale turquoise, up to 60% of the way; a whitecap's to 45% of a hull's propeller wash), and scatters
 half the reflection away. Windrows, old foam in lines along the wind, take a growing share of the

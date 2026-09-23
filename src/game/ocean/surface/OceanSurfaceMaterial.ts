@@ -242,10 +242,9 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const direct = glint.add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
     // Foam: the texture laid in the wind's frame and drawn out along it by the crest foam's wind stretch.
     const stretch = reference('windStretch', 'float', foam.crest).mul(2).add(1);
-    const { pattern, blur, streaks, streaksBlur, lines, gather, churnSunward } = foamPatterns(this.foamDetail, xz, reference('windDirection', 'float', waves.params),
-      stretch, sunDirection);
-    const lace = pattern.r;
-    const whitecaps = whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, pattern, blur, streaks, streaksBlur, foamFootprint(xz));
+    const patterns = foamPatterns(this.foamDetail, xz, reference('windDirection', 'float', waves.params), stretch, sunDirection);
+    const { pattern, blur, streaks, streaksBlur, lines, gather, churnSunward } = patterns, lace = pattern.r;
+    const whitecaps = whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, patterns, foamFootprint(xz));
     // The realistic wake's churned water is the whitecaps' dense white water; without a slick the trail keeps the
     // replaced library's soft, puffy foam.
     const churned = wake.slick !== undefined ? churnedWater(wake.foam(xz.x, xz.y), pattern, blur) : undefined;

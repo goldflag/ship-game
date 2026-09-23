@@ -61,6 +61,10 @@ const PATCH_SWAY = [.6, 1.4] as const, BILLOW_SWAY = [.55, 1.45] as const;
 /** Fresh foam (`WaveSurfaceSample.fresh`: what broke in the last few seconds, per area) over which a whitecap's core goes
  * from nothing to a full sheet: foam breaking now and gathered on its converging crest (up to about 3 on a fold). */
 const CORE_START = .85, CORE_FULL = 1.3;
+/** Spread fresh foam (its logarithm) over which the share of a pixel whitecap cores cover rises: the drawn core's
+ * threshold averaged over the sway, which scales the amount by 0.33–2 (a smoothstep in the logarithm fits it within
+ * 0.02). */
+const CORE_MEAN_START = Math.log(.49), CORE_MEAN_FULL = Math.log(2.62);
 /** Share of its patch a full core covers, and its edge half-width in the lace: aerated water keeps a few holes. */
 const CORE_COVER = .9, CORE_EDGE = .25;
 /** Foam amount below which a whitecap's patch is clear water, and above which it is fully there: the long, faint rim
@@ -86,13 +90,14 @@ const DENSE_OPACITY = .97, THIN_OPACITY = .08, THIN_LOW = .16, THIN_HIGH = .3;
 const CREASE_LIGHT = .82, CREASE_LOW = .3, CREASE_HIGH = .8, EMBOSS_GAIN = 1.5, EMBOSS_METRES = .3;
 
 /** Footprint (m, the pixel's across-view size or a quarter of its along-view size, whichever is larger) over which a
- * whitecap goes from drawn to its share of the pixel, and over which that gives way to the wind's mean coverage: a
- * whitecap smaller than a pixel reads as a faint brightening instead of a fleck. */
+ * whitecap goes from drawn to drawn on its spread foam with the coarse lace, and over which that gives way to the
+ * wind's mean coverage: a whitecap smaller than a pixel reads as a faint brightening instead of a fleck. */
 const FLECK_START = 1.5, FLECK_END = 4, FAR_START = 8, FAR_END = 20;
-/** Gain of the whitecaps' spread mean path, and their mean opacity over their area (a quarter of the light with foam's
- * 0.8 albedo, as Koepke (1984) measured), both measured on the drawn whitecaps with `bun scripts/browser/ocean-waves.ts
- * --coverage`. */
-const MEAN_GAIN = 1.5, AREA_OPACITY = .26;
+/** Gain on the cover of a thin patch of spread whitecaps (none on a full one), for what spreading takes from whitecaps
+ * smaller than the spread, which holds the spread path's mean opacity within 15% of the drawn whitecaps' at 9–30 m/s;
+ * and the whitecaps' mean opacity over their area far off (a quarter of the light with foam's 0.8 albedo, as
+ * Koepke (1984) measured). Both measured with `bun scripts/browser/ocean-waves.ts --coverage`. */
+const MEAN_GAIN = 2.2, AREA_OPACITY = .26;
 /** Foam a stretched back thins and a converging crest gathers is held within these factors, and their mean over the
  * surface, which the windrows' share is divided by (measured). */
 const GATHERED = [.3, 2.2] as const, GATHERED_MEAN = 1.12;
@@ -147,14 +152,19 @@ export function foamFootprint(xz: Vec2): Float {
 export function foamPatterns(map: Texture, xz: Vec2, wind: Float, stretch: Float, sun: Vec3) {
   const uv = foamLayout(xz, wind, stretch, FOAM_TILE);
   const streakUv = foamLayout(xz, wind, stretch.mul(STREAK_STRETCH), FOAM_TILE * STREAK_SCALE);
-  const [nearBands, farBands] = BAND_SCALES.map(scale => texture(map, foamLayout(xz, wind, stretch.mul(BAND_STRETCH), FOAM_TILE * scale)));
+  const [nearUv, farUv] = BAND_SCALES.map(scale => foamLayout(xz, wind, stretch.mul(BAND_STRETCH), FOAM_TILE * scale));
+  const nearBands = texture(map, nearUv), farBands = texture(map, farUv);
   return {
     pattern: texture(map, uv), blur: foamBlur(uv),
     streaks: texture(map, streakUv).r, streaksBlur: foamBlur(streakUv),
     lines: nearBands.b, gather: nearBands.g.add(farBands.g).mul(.5),
+    // The windrows' layout is also the coarse lace and churn a whitecap averaged over its pixel is drawn with.
+    coarse: nearBands, coarseBlur: foamBlur(nearUv),
     churnSunward: texture(map, uv.add(sunward(sun, wind, stretch, EMBOSS_METRES, FOAM_TILE))).a,
   };
 }
+
+export type FoamPatterns = ReturnType<typeof foamPatterns>;
 
 /** Opacity of foam covering a share `coverage` of the sea. The texture channel `pattern` is equalised, so
  * thresholding it at 1 − coverage keeps exactly that share: a fresh sheet is solid white and thinning foam keeps only
@@ -193,16 +203,19 @@ export function inWhitecap(amount: Float, pattern: Node<'vec4'>, blur: Float): F
   return step(PATCH_COUNTED, swayed(amount, pattern, blur));
 }
 
-/** Mean opacity of whitecaps over a pixel too coarse to draw them: the drawn model's own mean (its lace's coverage times
- * its opacity, and its core's) evaluated on the foam spread over the pixel (`WaveSurfaceSample.foamMean`) and on the
- * fresh foam spread with it (`WaveSurfaceSample.bubbles`), times a gain for what averaging first does to the curves
- * (measured with `bun scripts/browser/ocean-waves.ts --coverage`). A large whitecap seen from afar is its lacy patch's
- * mean, not a white disc. */
-export function spreadWhitecaps(mean: Float, meanFresh: Float): Float {
+/** Whitecaps over a pixel too coarse to draw their lace: the drawn model on the foam spread over the pixel
+ * (`WaveSurfaceSample.foamMean`) and the fresh foam spread with it (`WaveSurfaceSample.bubbles`), with the lace and
+ * churn of the coarse layout (`coarse`, blur `blur`) at the scale the pixel still resolves. Its core covers the drawn
+ * core's own mean share, averaged over the sway; a thin patch covers its share times the gain spreading takes from a
+ * whitecap smaller than the spread (measured with `bun scripts/browser/ocean-waves.ts --coverage`), a full one none:
+ * a large whitecap seen from afar is a marbled patch as bright as its drawn mean, not a white disc. */
+export function spreadWhitecaps(mean: Float, meanFresh: Float, coarse: Node<'vec4'>, blur: Float): Float {
   const patch = whitecapPatch(mean);
-  const residue = mix(RESIDUE_SPARSE, RESIDUE_COVER, patch).mul(patch.sqrt()).mul(mix(RESIDUE_FAINT, RESIDUE_DENSE, patch));
-  const core = smoothstep(CORE_START, CORE_FULL, meanFresh).mul(CORE_COVER * DENSE_MEAN);
-  return max(residue, core).mul(MEAN_GAIN).min(1);
+  const cover = mix(RESIDUE_SPARSE, RESIDUE_COVER, patch).mul(patch.sqrt()).mul(mix(float(MEAN_GAIN), float(1), patch));
+  const residue = foamShare(cover, coarse.r, blur, RESIDUE_EDGE).mul(mix(RESIDUE_FAINT, RESIDUE_DENSE, patch));
+  const core = smoothstep(CORE_MEAN_START, CORE_MEAN_FULL, meanFresh.max(1e-4).log());
+  const coreOpacity = foamShare(core.mul(CORE_COVER), coarse.r, blur, CORE_EDGE).mul(mix(float(RESIDUE_DENSE), denseOpacity(coarse.a, blur), core));
+  return max(coreOpacity, residue);
 }
 
 /** Mean of dense white water's opacity over the equalised churn channel: THIN_OPACITY plus the rest times
@@ -216,14 +229,14 @@ function denseOpacity(churn: Float, blur: Float): Float {
 }
 
 /** A whitecap from the wave field's foam at this pixel: `amount` (drawn), `fresh` (its part that broke in the last few
- * seconds), `mean` and `meanFresh` (both spread over the pixel) and `share` (the wind's whitecap area), with the lace
- * layout's `pattern`, the old foam's `streaks` and their blurs. Near, a small dense core where the crest breaks now and
- * a larger lacy, streaked, see-through patch around and behind it; a whitecap smaller than its pixel (`footprint`, m)
- * turns into its share of the pixel, and far off into the wind's mean. Returns the opacity, how much of it is dense
- * core (for the billows), and how far the pixel has gone to a mean: the means are measured over whole whitecaps, the
- * aerated water inside their outline included, so a caller adds no bubble cloud of its own there. */
-export function whitecapFoam(amount: Float, fresh: Float, mean: Float, meanFresh: Float, share: Float, pattern: Node<'vec4'>, blur: Float, streaks: Float,
-  streaksBlur: Float, footprint: Float) {
+ * seconds), `mean` and `meanFresh` (both spread over the pixel) and `share` (the wind's whitecap area), with the foam
+ * texture's `patterns` (`foamPatterns`). Near, a small dense core where the crest breaks now and a larger lacy,
+ * streaked, see-through patch around and behind it; a whitecap smaller than its pixel (`footprint`, m) turns into the
+ * same drawn on its spread foam with the coarse lace, and far off into the wind's mean. Returns the opacity, how much of
+ * it is dense core (for the billows), and how far the pixel has gone to a mean: the means are measured over whole
+ * whitecaps, the aerated water inside their outline included, so a caller adds no bubble cloud of its own there. */
+export function whitecapFoam(amount: Float, fresh: Float, mean: Float, meanFresh: Float, share: Float, patterns: FoamPatterns, footprint: Float) {
+  const { pattern, blur, streaks, streaksBlur, coarse, coarseBlur } = patterns;
   const core = smoothstep(CORE_START, CORE_FULL, swayed(fresh, pattern, blur)), patch = whitecapPatch(swayed(amount, pattern, blur));
   const coreOpacity = foamShare(core.mul(CORE_COVER), pattern.r, blur, CORE_EDGE).mul(mix(float(RESIDUE_DENSE), denseOpacity(pattern.a, blur), core));
   // The residue's lace leans toward the wind's streaks as the patch thins: fresh foam is lace, old foam drawn out.
@@ -233,7 +246,7 @@ export function whitecapFoam(amount: Float, fresh: Float, mean: Float, meanFresh
   const drawn = max(coreOpacity, residue);
   const toMean = smoothstep(FLECK_START, FLECK_END, footprint), toFar = smoothstep(FAR_START, FAR_END, footprint);
   const far = share.mul(AREA_OPACITY);
-  return { opacity: mix(mix(drawn, spreadWhitecaps(mean, meanFresh), toMean), far, toFar), dense: core.mul(float(1).sub(toMean)), averaged: toMean };
+  return { opacity: mix(mix(drawn, spreadWhitecaps(mean, meanFresh, coarse, coarseBlur), toMean), far, toFar), dense: core.mul(float(1).sub(toMean)), averaged: toMean };
 }
 
 /** The realistic wake's churned water from its sampler's foam `energy`: the same dense, billowing white water as a
