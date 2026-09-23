@@ -3,7 +3,7 @@ import { isCustomFittingPartId } from '../../src/ships/constructionCustomFitting
 import { join, dirname } from 'node:path';
 import { barrelIds, type ConstructionSource, type ShipDefinition } from '../../src/ships/blueprint';
 import { digest, readSource, readCatalog } from './files';
-import { compileConstruction } from './compiler';
+import { compileForPublication } from './publicationCompiler';
 import { withConstructionBrowser } from './browser';
 import { constructionFingerprints } from './fingerprints';
 import { canonical, definitionData, hash, modelPayloadHash, publishedDefinition, sealModel } from './artifacts';
@@ -68,7 +68,7 @@ export async function constructionPipeline(
   action: string,
   id: string,
   force = false,
-  services = { compileConstruction, withConstructionBrowser },
+  services = { compileConstruction: compileForPublication, withConstructionBrowser },
 ) {
   const sourceFile = await readSource(root, id),
     { source } = sourceFile;
