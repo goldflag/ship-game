@@ -27,9 +27,7 @@ fn main() {
     let map_id = std::env::var("NAVAL_BENCH_MAP").unwrap_or("north-atlantic".into());
     let weather = std::env::var("NAVAL_BENCH_WEATHER").unwrap_or("overcast".into());
     let custom = std::env::var("NAVAL_BENCH_CUSTOM").is_ok();
-    let catalog = Arc::new(
-        Catalog::load(&std::fs::read(".build/naval-content/manifest.json").unwrap()).unwrap(),
-    );
+    let catalog = Arc::new(Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap());
     let base_ids = [
         "enterprise-cv6",
         "enterprise-cv6",

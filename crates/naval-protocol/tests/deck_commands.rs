@@ -47,8 +47,7 @@ fn deck_commands_validate_ids_and_cannot_bypass_flight_order_validation() {
 }
 #[test]
 fn owned_carriers_receive_deck_commands_without_taking_the_destroyer_helm() {
-    let mut catalog =
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
+    let mut catalog = Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap();
     // A trusted diagnostic profile exercises transport before the production
     // mission switches away from its explicit compatibility profile.
     let mut rules = AirRules::legacy();
