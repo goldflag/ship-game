@@ -324,13 +324,7 @@ export class GpuWaveField implements WaveField {
       this.tail.value = spectrum.tailSlopeVariance * TAIL_ROUGHNESS;
       this.choppiness.value = this.params.choppiness;
       this.wind.value.set(Math.cos(this.params.windDirection), Math.sin(this.params.windDirection));
-      this.breaking = cascadeBreaking(spectrum, this.params.windDirection, this.params.choppiness);
-      // Each finer cascade's gate reads the coarser cascades' compression, whose variance is choppiness² × their slope variance.
-      let coarser = 0;
-      spectrum.cascades.forEach((cascade, c) => {
-        this.gates[c].value = coarser > 0 ? 1 / Math.sqrt(coarser) : 0;
-        coarser += Math.max(0, this.params.choppiness) ** 2 * cascade.slopeVariance;
-      });
+      this.prepareWhitecaps(spectrum);
       this.params.dirty = false; this.built = rebuilt = true;
     }
     const phase = Math.fround((time % FOLD_PERIOD + FOLD_PERIOD) % FOLD_PERIOD / FOLD_PERIOD);
@@ -349,10 +343,7 @@ export class GpuWaveField implements WaveField {
         // Mipmaps once per update, after the last layer: generation covers every layer.
         for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1;
         this.layer.value = c;
-        const breaking = this.breaking[c];
-        this.breakingWeights.value.set(breaking.compression, breaking.face);
-        this.breakingThreshold.value = Math.min(NEVER, breaking.threshold);
-        this.decay.value = Math.max(1e-3, this.foamParams.lifetime * breaking.period);
+        this.setBreaking(c);
         renderer.setRenderTarget(output, c);
         this.finalPass.render(renderer);
       });
@@ -361,6 +352,27 @@ export class GpuWaveField implements WaveField {
     } finally {
       renderer.setRenderTarget(target, face, level); renderer.setMRT(mrtState);
     }
+  }
+
+  /** Whitecap statistics of a rebuilt spectrum, from the choppiness and wind the surface is drawn with: how each
+   * cascade breaks, and each finer cascade's gate on the coarser cascades' compression (variance: choppiness² × their
+   * slope variance). */
+  private prepareWhitecaps(spectrum: ReturnType<typeof buildSpectrum>): void {
+    const choppiness = Math.max(0, this.choppiness.value), wind = this.wind.value;
+    this.breaking = cascadeBreaking(spectrum, wind.x, wind.y, choppiness);
+    let coarser = 0;
+    spectrum.cascades.forEach((cascade, c) => {
+      this.gates[c].value = coarser > 0 ? 1 / Math.sqrt(coarser) : 0;
+      coarser += choppiness ** 2 * cascade.slopeVariance;
+    });
+  }
+
+  /** The resolve pass's foam uniforms for cascade `c`: its breaking indicator, threshold and foam lifetime. */
+  private setBreaking(c: number): void {
+    const breaking = this.breaking[c];
+    this.breakingWeights.value.set(breaking.compression, breaking.face);
+    this.breakingThreshold.value = Math.min(NEVER, breaking.threshold);
+    this.decay.value = Math.max(1e-3, this.foamParams.lifetime * breaking.period);
   }
 
   dispose(): void {

@@ -11,9 +11,12 @@ type Vec3 = Node<'vec3'>;
 /** Metres across the wind per tile of the foam texture; along the wind it stretches with the crest foam's `windStretch`. */
 const FOAM_TILE = 40;
 /** Windrows are laid out at this share of the lace's scale across the wind, so their lines stay thin, and drawn out
- * this much further along it: lines of old foam run on for hundreds of metres. They gather in bands laid out this many
- * times larger than the lace (the texture's broad patches), where the circulation the wind drives converges. */
-const WINDROW_SCALE = .75, WINDROW_STRETCH = 3, WINDROW_BANDS = 8, WINDROW_BAND_STRETCH = 3;
+ * this much further along it: lines of old foam run on for hundreds of metres. They gather in bands where the
+ * circulation the wind drives converges: the texture's broad patches at two scales this many times the lace's, whose
+ * ratio is irrational so the sum never repeats as a lattice seen from the air, drawn out along the wind. */
+const WINDROW_SCALE = .75, WINDROW_STRETCH = 3, WINDROW_BANDS = [8, 8 * Math.SQRT2 * 1.13] as const, WINDROW_BAND_STRETCH = 3;
+/** How strongly the bands gather windrows: coverage runs from 1 − this to 1 + this times its mean. */
+const WINDROW_GATHER = .6;
 /** Wind (m/s) over which decaying whitecaps turn from lace into streaks drawn out along the wind (Beaufort 6 to 10). */
 const STREAKING_WIND_START = 11, STREAKING_WIND_FULL = 25;
 
@@ -70,8 +73,8 @@ function foamLayout(xz: Node<'vec2'>, wind: Float, stretch: Float, tile: number)
  * with the share of its contrast that filtering has averaged away. `stretch` draws both out along the wind. */
 export function foamPatterns(map: Texture, xz: Node<'vec2'>, wind: Float, stretch: Float) {
   const uv = foamLayout(xz, wind, stretch, FOAM_TILE), rowsUv = foamLayout(xz, wind, stretch.mul(WINDROW_STRETCH), FOAM_TILE * WINDROW_SCALE);
-  const bandsUv = foamLayout(xz, wind, stretch.mul(WINDROW_BAND_STRETCH), FOAM_TILE * WINDROW_BANDS);
-  return { pattern: texture(map, uv), blur: foamBlur(uv), rows: texture(map, rowsUv), rowsBlur: foamBlur(rowsUv), bands: texture(map, bandsUv).g };
+  const [near, far] = WINDROW_BANDS.map(scale => texture(map, foamLayout(xz, wind, stretch.mul(WINDROW_BAND_STRETCH), FOAM_TILE * scale)).g);
+  return { pattern: texture(map, uv), blur: foamBlur(uv), rows: texture(map, rowsUv), rowsBlur: foamBlur(rowsUv), bands: near.add(far).mul(.5) };
 }
 
 /** How far the wind draws decaying whitecaps into streaks, 0–1, at `windSpeed` (m/s). */
@@ -123,10 +126,11 @@ export function whitecapOpacity(amount: Float, pattern: Node<'vec4'>, drawn: Flo
 }
 
 /** Windrows: old foam the wind has gathered into long thin lines along itself, covering `coverage` of the sea in the
- * `bands` (equalised patches, mean ½) that gather it, each line a string of lumps of the lace (read at its own scale). */
+ * `bands` (mean ½) that gather it, each line a string of lumps of the lace (read at its own scale). */
 export function windrowOpacity(coverage: Float, bands: Float, streaks: Float, lace: Float, blur: Float): Float {
   const beads = mix(float(WINDROW_LACE), float(1), smoothstep(WINDROW_BEADS[0], WINDROW_BEADS[1], lace));
-  return foamShare(coverage.mul(bands.mul(2)), streaks, blur, WINDROW_EDGE).mul(mix(beads, float(1), blur));
+  const gathered = coverage.mul(bands.sub(.5).mul(2 * WINDROW_GATHER).add(1));
+  return foamShare(gathered, streaks, blur, WINDROW_EDGE).mul(mix(beads, float(1), blur));
 }
 
 /** Radiance of a diffuse white scatterer facing `normal`: the sky dome's light about the normal (`sky`, its radiance

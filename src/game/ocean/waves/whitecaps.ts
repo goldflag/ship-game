@@ -91,10 +91,10 @@ function breakingWindow(wavelength: number, mean: number): number {
   return logRamp(ratio, BREAKING_SHORTEST, BREAKING_SHORT) * (1 - logRamp(ratio, BREAKING_LONG, BREAKING_LONGEST)) * logRamp(wavelength, RIPPLE_START, RIPPLE_END);
 }
 
-/** Each cascade's breaking statistics for a built spectrum: the indicator weights, its share of the breaking waves
- * and their period. Thresholds are left at Infinity; `setBreakingThresholds` places them for a coverage. */
-export function cascadeBreaking(spectrum: WaveSpectrum, windDirection: number, choppiness: number): CascadeBreaking[] {
-  const wx = Math.cos(windDirection), wz = Math.sin(windDirection);
+/** Each cascade's breaking statistics for a built spectrum drawn with `choppiness`, under a wind blowing toward the
+ * unit vector (wx, wz): the indicator weights, its share of the breaking waves and their period. Thresholds are left
+ * at Infinity; `setBreakingThresholds` places them for a coverage. */
+export function cascadeBreaking(spectrum: WaveSpectrum, wx: number, wz: number, choppiness: number): CascadeBreaking[] {
   // The sea's mean wavelength 2π·E[1/k] (energy-weighted): about 0.8–0.9 of the peak's for these spectra.
   let energy = 0, inverse = 0;
   for (const cascade of spectrum.cascades) forModes(cascade, (e, kx, kz) => { energy += e; inverse += e / Math.hypot(kx, kz); });
