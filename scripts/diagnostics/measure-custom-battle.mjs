@@ -10,8 +10,7 @@ try {
   const errors=[];page.on('pageerror',e=>{errors.push(String(e));console.log(String(e));});
   page.on('response',r=>{if(r.status()>=400) console.log(`${r.status()} ${r.url()}`);});
   page.on('console',m=>{if(m.type()==='error') {errors.push(m.text()); console.log(m.text().slice(0,300));}});
-  await page.addInitScript(forceWebGL=>{
-    if (forceWebGL) Object.defineProperty(navigator, 'gpu', { value: undefined });
+  await page.addInitScript(()=>{
     window.pipelineSamples=[]; window.workerSamples=[];
     window.gpuAdapters=[];
     if (window.GPUAdapter) {
@@ -39,7 +38,7 @@ try {
       }
       return post.call(this,message,...args);
     };
-  }, !!process.env.FORCE_WEBGL);
+  });
   const cdp=await page.context().newCDPSession(page);
   await page.goto(process.env.PERFORMANCE_URL??'http://localhost:5173/scripts/diagnostics/custom-battle-performance.html?seconds=60',{waitUntil:'domcontentloaded',timeout:120000});
   const statusTimer=setInterval(()=>{page.evaluate(()=>document.querySelector('.startup-status,.battle-loading-status')?.textContent ?? 'Loading battle graphics').then(console.log).catch(()=>{});},20000);
@@ -54,33 +53,25 @@ try {
     userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency,
     adapters: window.gpuAdapters,
   })) };
-  if (process.env.REFRACTION_PROFILE_AFTER) {
-    data.refraction = await page.evaluate(async () => {
-      const g = review.game, water = g.water;
-      if (water.backend !== 'webgpu') throw new Error('Refraction graph comparison requires WebGPU');
-      // Diagnostic-only graph switching. Production chooses this at creation;
-      // recompiling the full refraction graph can lose the WebGL context.
-      const setRefraction = enabled => {
-        water.fresnel.refractionEnabled = enabled;
-        water.waterMaterial.setupMaterial(); water.waterMaterial.needsUpdate = true;
-      };
-      const originalRefraction = water.refractionEnabled, originalDistortion = water.underwaterDistortion.enabled;
-      const rows = [];
+  if (process.env.REFLECTION_PROFILE_AFTER) {
+    data.reflections = await page.evaluate(async () => {
+      // Screen-space ship reflections are live on the ocean facade; the tier fixes their step budget.
+      const g = review.game, reflections = g.ocean.reflections;
+      if (!reflections.steps) return { unavailable: 'This ocean tier has no screen-space reflections' };
+      const original = reflections.screenSpace, rows = [];
       try {
         for (const enabled of [false, true, true, false]) {
-          setRefraction(enabled); water.underwaterDistortion.enabled = enabled;
+          reflections.screenSpace = enabled;
           for (let i = 0; i < 12; i++) await g.frame(performance.now());
           const start = performance.now();
           for (let i = 0; i < 90; i++) await g.frame(performance.now());
-          rows.push({ enabled, frameMs: (performance.now() - start) / 90,
-            underwater: water.underwater.enabled, ssr: water.ssr.enabled,
+          rows.push({ enabled, steps: reflections.steps, frameMs: (performance.now() - start) / 90,
             draws: g.renderer.info.render.drawCalls, triangles: g.renderer.info.render.triangles });
         }
-      } finally {
-        setRefraction(originalRefraction); water.underwaterDistortion.enabled = originalDistortion;
-      }
+      } finally { reflections.screenSpace = original; }
       return rows;
     });
+    console.log('Screen-space reflections', JSON.stringify(data.reflections));
   }
   if (process.env.SUBMISSION_PROFILE_AFTER) {
     data.submissions = await page.evaluate(async () => {

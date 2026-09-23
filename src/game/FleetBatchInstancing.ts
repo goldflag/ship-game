@@ -11,7 +11,7 @@ type RenderObject = { object: Object3D; material: Material & { wireframe?: boole
 type Sets = { attributes: Record<number, unknown>; bindingGroups: unknown[]; pipeline: unknown; index: unknown };
 type DrawArgs = [RenderObject, DrawInfo, unknown, object, object[], BufferAttribute[], unknown, Encoder, Sets];
 type Backend = {
-  isWebGPUBackend?: boolean; _draw?: (...args: DrawArgs) => void;
+  _draw?: (...args: DrawArgs) => void;
   get?(resource: object): { buffer?: object; group?: object };
   pipelineUtils?: { createBundleEncoder(context: object, label: string): Encoder & { finish(): object } };
 };
@@ -45,7 +45,7 @@ function sameRanges(state: FleetDrawState, length: number, ranges: Range[]): boo
  * Keep Three's pipeline/buffer binding path and all non-fleet draws intact. */
 export function installFleetBatchInstancing(value: object): void {
   const backend = value as Backend;
-  if (REVISION !== '185' || !backend.isWebGPUBackend || !backend._draw || installed.has(value)) return;
+  if (REVISION !== '185' || !backend._draw || installed.has(value)) return;
   const original = backend._draw;
   const bundles = new WeakMap<RenderObject, CachedBundle>();
   if (!bundleSettings.has(value)) setFleetBatchBundlesEnabled(value, true);

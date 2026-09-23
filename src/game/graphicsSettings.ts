@@ -17,7 +17,7 @@ export interface GraphicsSettings {
   renderScale: number;
   frameLimit: FrameLimit;
   antialiasing: Antialiasing;
-  /** Water Pro tier; applies when the port next loads. */
+  /** Ocean tier (see src/game/ocean/quality.ts); applies when the port next loads. */
   ocean: OceanQuality;
   reflections: Reflections;
   clouds: CloudQuality;

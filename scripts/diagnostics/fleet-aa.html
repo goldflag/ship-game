@@ -49,6 +49,6 @@ game.camera.position.set(110,80,130);game.camera.lookAt(0,12,10);game.camera.upd
 window.fleetAaReview={game,still,report:()=>({shipId:definition.id,contentHash:definition.contentHash,poses,shots,
   eligibleMounts:definition.mounts.filter(antiAircraftRange).length,firingMounts:[...fired],
   ammoSpent:ammo-game.simulation.player.mounts.reduce((n,m)=>n+m.ammo,0),
-  maxMuzzleError:Math.max(...game.playerView.muzzleErrors()),backend:game.diagnostics().backend})};
+  maxMuzzleError:Math.max(...game.playerView.muzzleErrors())})};
 await still();status.textContent=definition.name+' · AA review ready';window.reviewReady=true;
 </script></html>

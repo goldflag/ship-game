@@ -5,20 +5,13 @@
 <style>body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}#scene{width:1280px;height:720px}canvas{display:block}#status{position:fixed;left:16px;top:16px}</style>
 <div id="scene"></div><output id="status">Preparing shadow review…</output>
 <script type="module">
-import * as THREE from 'three/webgpu';
-import { WaterSurfaceMaterial } from '/vendor/threejs-water-pro/build/index.js';
+// The ocean surface receives the sun's shadow map through `ocean.setShadowNode` (WaterShadows.ts).
+// ?test runs the check; ?calm flattens the sea; ?quality=low|medium|high|ultra.
 import { Game } from '/src/game/Game.ts';
 import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { loadShipPresets } from '/src/ships/presetLoading.ts';
 await loadShipPresets(['bismarck']);
 const params=new URLSearchParams(location.search),status=document.querySelector('#status');
-if(params.has('webgl')&&navigator.gpu) navigator.gpu.requestAdapter=async()=>null;
-// Preserve the fallback drawing buffer for deterministic asynchronous readback
-// in a background review tab; production keeps the default discard behavior.
-if(params.has('webgl')){
-  const getContext=HTMLCanvasElement.prototype.getContext;
-  HTMLCanvasElement.prototype.getContext=function(kind,options){return getContext.call(this,kind,kind==='webgl2'?{...options,preserveDrawingBuffer:true}:options);};
-}
 const game=new Game(document.querySelector('#scene'),{...(GRAPHICS_PRESETS[params.get('quality')]??GRAPHICS_PRESETS.high),renderScale:100},{
   progress:label=>status.textContent=label,ready:()=>{},telemetry:()=>{},pause:()=>{},hud:()=>{},
   error:message=>{window.reviewError=message;status.textContent=message;},
@@ -29,20 +22,18 @@ game.setInPort(false);game.setPaused(true);game.rig.update=()=>{};game.battlefie
 game.targetView.root.visible=false;
 game.camera.position.set(260,200,270);game.camera.lookAt(0,0,0);
 game.camera.updateProjectionMatrix();game.camera.updateMatrixWorld();
-game.water.deterministic=true;game.water.syncToTick(3600);
-if(params.has('calm')){game.water.waves.amplitude.value=0;game.water.waves.dirty=true;}
-await game.water.update(1/60);
-const materials=new Set();
-game.scene.traverse(object=>{if(object instanceof THREE.Mesh) for(const m of Array.isArray(object.material)?object.material:[object.material]) if(m instanceof WaterSurfaceMaterial) materials.add(m);});
+// Paused frames never advance the ocean's clock, so every capture shows the same sea.
+const ocean=game.ocean;ocean.time=60;
+if(params.has('calm')){ocean.waves.significantHeight=0;ocean.waves.dirty=true;}
 await still();
-const nodes=new Map([...materials].map(m=>[m,m._sunShadowNode]));
-function surfaceShadows(enabled){for(const material of materials) material.setSunShadowNode(enabled?nodes.get(material):null);}
+// The receiver node the game bound for the current Graphics settings (the facade keeps it privately).
+const shadowNode=()=>ocean.shadow;
+const node=shadowNode();
+function surfaceShadows(enabled){ocean.setShadowNode(enabled?node:null);}
 async function still(){
   for(let i=0;i<2;i++){game.renderer._nodes.nodeFrame.update();await game.frame(performance.now());if(window.reviewError)throw new Error(window.reviewError);}
-  // The fallback's post-process framebuffer cannot be read in this review
-  // host. Its direct scene draw still exercises the real water and shadow map.
-  if(params.has('webgl')) game.renderer.render(game.scene,game.camera);
-  else game.pipeline.render();
+  // Present the prepared post-process textures and capture synchronously.
+  game.pipeline.render();
   return game.renderer.domElement.toDataURL('image/png');
 }
 async function pixels(){
@@ -65,7 +56,7 @@ async function check(){
   surfaceShadows(false);const restored=difference(before,await pixels());
   const original={...game.graphics},levels={};
   game.applyGraphics({...original,waterShadows:'off'});const unshadowed=await pixels();
-  const waterOff=[...materials].every(m=>m._sunShadowNode===null);
+  const waterOff=shadowNode()===null;
   for(const quality of ['low','medium','high']){
     game.applyGraphics({...original,waterShadows:quality});
     levels[quality]=difference(unshadowed,await pixels());
@@ -74,15 +65,15 @@ async function check(){
   const waterRestored=difference(unshadowed,await pixels());
   // Global Off overrides the receiver, while retaining its selected quality.
   game.applyGraphics({...original,shadows:'off',waterShadows:'medium'});await still();
-  const off=[...materials].every(m=>m._sunShadowNode===null)&&game.graphics.waterShadows==='medium';
+  const off=shadowNode()===null&&game.graphics.waterShadows==='medium';
   game.applyGraphics({...game.graphics,shadows:'low'});await still();
-  const enabled=[...materials].every(m=>m._sunShadowNode!==null);
+  const enabled=shadowNode()!==null;
   game.applyGraphics({...game.graphics,shadows:'high'});await still();
   game.applyGraphics(original);await still();
   return {passed:visible.darker>100&&visible.brighter<visible.darker*.01&&restored.darker<20&&restored.brighter<20
       &&waterOff&&Object.values(levels).every(v=>v.darker>100&&v.brighter<v.darker*.01)
-      &&waterRestored.darker<20&&waterRestored.brighter<20&&off&&enabled&&!window.reviewError,
-    visible,restored,levels,waterOff,waterRestored,off,enabled,backend:game.renderer.backend.constructor.name};
+      &&waterRestored.darker<20&&waterRestored.brighter<20&&off&&enabled&&node!==null&&!window.reviewError,
+    visible,restored,levels,waterOff,waterRestored,off,enabled,bound:node!==null};
 }
 window.shadowReview={game,still,surfaceShadows,pixels,difference,check};
 await still();status.hidden=true;

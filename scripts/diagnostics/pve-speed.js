@@ -58,7 +58,7 @@ Game.prototype.frame = async function (time, warmingUp) {
     review.result = { request, requestedSpeed: speed, elapsedSeconds: (time - begun) / 1000,
       achievedSpeed: (this.simulation.tick - firstTick) / 60 / ((time - begun) / 1000), windows: review.windows,
       quality: this.settings.quality, framebuffer: [this.renderer.domElement.width, this.renderer.domElement.height],
-      backend: this.water.backend, tick: this.simulation.tick, outcome: this.simulation.result, hidden: document.hidden };
+      tick: this.simulation.tick, outcome: this.simulation.result, hidden: document.hidden };
     this.paused = true;
   }
 };

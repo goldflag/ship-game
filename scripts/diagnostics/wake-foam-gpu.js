@@ -1,8 +1,10 @@
 import * as THREE from 'three/webgpu';
 import { positionLocal, uniform, uv, vec4 } from 'three/tsl';
 import { WakeFoam } from '/src/game/WakeFoam.ts';
-import { WakeFoamGpu, WakeStampCollector } from '/src/game/WakeFoamGpu.ts';
+import { WakeFoamGpu, WakeStampCollector, gpuWakeFoamPainter } from '/src/game/WakeFoamGpu.ts';
 import { FleetWakeFoam } from '/src/game/FleetWakeFoam.ts';
+// The game paints trail foam only on the GPU; the CPU painter is the reference raster.
+import { cpuWakeFoamPainter } from '/src/game/testing/wakeFoam.ts';
 const renderer=new THREE.WebGPURenderer(); await renderer.init();
 document.body.append(renderer.domElement);
 const resolution=256,tiles=2,raster=new WakeFoamGpu(renderer,resolution,tiles);
@@ -36,7 +38,7 @@ try {
 finally{raster.dispose();cpu.forEach(f=>f.dispose());retained.forEach(f=>f.dispose());renderer.dispose();}
 
 async function checkFleet(renderer) {
-  const cpu=new FleetWakeFoam(256),gpu=new FleetWakeFoam(256,renderer),camera=new THREE.PerspectiveCamera(52,1,.5,60000);
+  const cpu=new FleetWakeFoam(256,cpuWakeFoamPainter),gpu=new FleetWakeFoam(256,gpuWakeFoamPainter(renderer)),camera=new THREE.PerspectiveCamera(52,1,.5,60000);
   // Read through the same world-space sampler used by the water material. Raw
   // atlas readback alone can hide a vertically inverted render target.
   const center=uniform(new THREE.Vector2());
@@ -54,7 +56,7 @@ async function checkFleet(renderer) {
     definition:{hull:{length:250,beam:36},handling:{forwardSpeed:18,reverseSpeed:6}}}));
   const checks=[];camera.position.set(0,1000,6000);
   const inspect=async(label,active=ships)=>{
-    const target=gpu.gpu.target,size=target.width,res=256;
+    const target=gpu.painter.target,size=target.width,res=256;
     const pixels=await renderer.readRenderTargetPixelsAsync(target,0,0,size,size);
     let max=0,overOne=0,ink=0;
     for(let slot=0;slot<active.length;slot++)for(let y=0;y<res;y++)for(let x=0;x<res;x++){

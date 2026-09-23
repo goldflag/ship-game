@@ -46,9 +46,10 @@ window.trailFixture=async(degrees=45,depth=2,seconds=14,turnAt=9,view='high')=>{
 };
 window.captureTrail=async()=>{
   game.renderer.setSize(1440,900);game.camera.aspect=1440/900;game.camera.updateProjectionMatrix();
-  game.water.resize(1440,900);game.sky.resize(1440,900);game.resizePending=false;
-  game.water.deterministic=true;game.sky.update(0);await game.water.update(0);game.pipeline.render();
-  if(game.renderer.backend.device)await game.renderer.backend.device.queue.onSubmittedWorkDone();
+  game.ocean.resize(1440,900);game.sky.resize(1440,900);game.resizePending=false;
+  // A zero-step update renders the ocean without advancing waves, foam or wake.
+  game.sky.update(0);game.ocean.update(0);game.pipeline.render();
+  await game.renderer.backend.device.queue.onSubmittedWorkDone();
   return game.renderer.domElement.toDataURL('image/png');
 };
 await window.trailFixture();window.trailReady=true;
