@@ -163,7 +163,9 @@ lit from a 64² table of its light along each direction that the clouds' submiss
 (so the dome reads no atmosphere tables for it); Low draws none. The cloud shadow map (40 km around the camera, laid out in the clouds' drifting frame so it follows the
 wind exactly) is the sun's transmittance through the shell, read through a cubic B-spline by
 `cloudShadow` for ships, islands and the sea. Under storm cells, while the scene rains, the march
-first crosses the air below the base through slanted grey rain shafts. `look` and `erosion`
+first crosses the air below the base through slanted grey rain shafts. Density rises from a cloud's
+eroded surface as the square of the margin, full at half of it (`erosion.sharpen` 2): a cloud's body is
+solid, while its rims and small lumps are thin enough to show the sky through. `look` and `erosion`
 (uniforms in `march.ts` and `field.ts`) grade the lighting and shapes live.
 
 **Weather** (`weather/`). Near-camera rain: instanced streaks in four nested boxes that wrap around
