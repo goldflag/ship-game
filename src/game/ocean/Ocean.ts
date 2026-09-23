@@ -66,7 +66,8 @@ export class Ocean implements OceanApi {
     this.heights = createWaveHeightSampler(renderer, this.waveField);
     this.wake = createWakeField(renderer, tier.wakeResolution);
     this.geometry = new OceanGeometry(tier.segments, camera.far);
-    this.material = new OceanSurfaceMaterial({ waves: this.waveField, geometry: this.geometry, colors: this.colors, foam: this.foam, sun: this.sun, reflections: this.reflections }, this.bindings());
+    this.material = new OceanSurfaceMaterial({ waves: this.waveField, geometry: this.geometry, colors: this.colors, foam: this.foam, sun: this.sun, reflections: this.reflections,
+      realism: this.realism }, this.bindings());
     this.geometry.mesh.material = this.material;
     this.geometry.mesh.renderOrder = SURFACE_ORDER;
     scene.add(this.geometry.mesh);

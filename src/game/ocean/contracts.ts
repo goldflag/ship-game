@@ -62,6 +62,8 @@ export interface WaveSurfaceSample {
   foam: Node<'float'>;
   /** Slope variance of the waves this pixel does not resolve; the surface turns it into roughness. */
   slopeVariance: Node<'float'>;
+  /** The same with all of Cox–Munk's tail instead of the share that roughens `slopeVariance`: the physical reflections'. */
+  unresolvedVariance: Node<'float'>;
 }
 
 /** GPU wave field: a JONSWAP spectrum evolved and inverse-transformed every frame into
