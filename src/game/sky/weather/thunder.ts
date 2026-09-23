@@ -26,8 +26,8 @@ const RUMBLE = { near: 3.5, perKm: .5, longest: 14 };
 const CUTOFF = { far: 170, near: 2000, fade: 3000 };
 /** Distances (m) over which the crack fades out. */
 const CRACK = [800, 3000] as const;
-/** Rumble level relative to the loudness, and the crack's. */
-const RUMBLE_LEVEL = .9, CRACK_LEVEL = .7;
+/** Rumble level relative to the loudness, and the crack's: a strike under a kilometre off peaks about as loud as the ship's own main guns. */
+const RUMBLE_LEVEL = .65, CRACK_LEVEL = .55;
 
 export function thunderSound(distance: number, loudness: number, random: () => number): ThunderSound {
   const km = Math.max(0, distance) / 1000;
