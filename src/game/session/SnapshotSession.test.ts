@@ -392,3 +392,20 @@ test('simplified PvE carrier presentation uses unlimited slots and the admitted 
     expect(session.player.airWing!.planes.every(p => p.phase === 'queued')).toBe(true);
   } finally { session.dispose(); }
 });
+
+test('the presentation clock is the simulated time of the interpolated poses, and holds while nothing is consumed', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: ['fletcher'], spawnDistance: 5000, weather: 'map', windSpeed: 18 });
+  try {
+    const helm = { throttle: 1, rudder: 0 }, intent = { aim: [1500, 10, 0] as [number, number, number], battery: 'main' as const, fire: false };
+    for (let i = 0; i < 4; i++) session.advance(3 / 60, helm, intent);
+    // A frame of three ticks has just landed: the drawn pose is still the previous frame's.
+    expect(session.presentationTime).toBeCloseTo((session.tick - 3) / 60, 12);
+    (session as unknown as { consume(dt: number): void }).consume(1.5 / 60);
+    expect(session.interpolationAlpha).toBeCloseTo(.5, 12);
+    expect(session.presentationTime).toBeCloseTo((session.tick - 1.5) / 60, 12);
+    // Paused and tactical-paused frames consume nothing.
+    session.advance(0, helm, intent);
+    expect(session.presentationTime).toBeCloseTo((session.tick - 1.5) / 60, 12);
+    expect(session.sea.amplitudeM).toBeGreaterThan(0);
+  } finally { session.dispose(); }
+});

@@ -1473,9 +1473,10 @@ export class Game {
    * (paused and tactical-paused frames hold it), or the berth's in port. Presentation only. */
   private coupleHullSea(emptyBerth: boolean): void {
     const sea = this.inPort ? this.berthRidden : this.simulation.sea;
+    if (!sea || emptyBerth) { this.ocean!.setHullSea([], 0, []); return; }
     const time = this.inPort ? this.berthMotion.seaTime : this.simulation.presentationTime ?? this.simulation.tick / 60;
-    const ships = !sea || emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips();
-    this.ocean!.setHullSea(sea ? seaWaves(sea) : [], time, hullFootprints(ships, { x: this.camera.position.x, z: this.camera.position.z }, sea?.amplitudeM ?? 0));
+    const ships = this.inPort ? [this.playerView!] : this.wakeShips();
+    this.ocean!.setHullSea(seaWaves(sea), time, hullFootprints(ships, { x: this.camera.position.x, z: this.camera.position.z }, sea.amplitudeM));
   }
   private wakeShips(): WakeShip[] {
     const focus = this.cameraShipView;
