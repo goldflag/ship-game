@@ -28,13 +28,14 @@ export class Ocean implements OceanApi {
     surface: { color: new Color(1, 1, 1), opacity: .05, coverage: .18 },
     shoreline: { color: new Color('#edf9fd'), opacity: .8 },
   };
-  readonly fog = { color: new Color('#8b8f92'), start: 2500, end: 16000, power: 1.4, skyBlendDistance: 10000 };
+  readonly fog = { color: new Color('#8b8f92'), start: 2500, end: 16000, power: 1.4, skyBlendDistance: 10000, aerial: true };
   readonly sun = { direction: new Vector3(0, 1, 0), intensity: 1, color: new Color(1, 1, 1) };
   readonly reflections: { screenSpace: boolean; maxDistance: number; readonly steps: number };
   readonly wake;
   readonly waveField;
   readonly heights;
-  readonly realism: OceanRealism = { seaState: true, reflections: true, waterColor: true, wake: true };
+  // Real haze is off by default: at the maps' authored visibility it hides a battleship at 20 km (see OceanRealism).
+  readonly realism: OceanRealism = { seaState: true, reflections: true, waterColor: true, wake: true, atmosphere: false };
   environmentIntensity = 1;
   time = 0;
   cameraNearSurface = true;
@@ -49,6 +50,8 @@ export class Ocean implements OceanApi {
   private readonly material: OceanSurfaceMaterial;
   /** `cameraNearSurface` for the underwater pass's uniform branch. */
   private readonly nearSurface = uniform(true);
+  /** Whether the fog follows real extinction this frame: the realism switch and the scene's permission. */
+  private readonly aerialHaze = uniform(true);
   private readonly underwater: (scenePass: PassNode, color: Node<'vec4'>) => Node<'vec4'>;
 
   static async create(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, { quality, seed }: { quality: OceanQuality; seed: number }): Promise<Ocean> {
@@ -71,7 +74,7 @@ export class Ocean implements OceanApi {
     this.geometry.mesh.material = this.material;
     this.geometry.mesh.renderOrder = SURFACE_ORDER;
     scene.add(this.geometry.mesh);
-    scene.fogNode = oceanFog(this.fog, null);
+    scene.fogNode = oceanFog(this.fog, null, this.aerialHaze);
     // The waterline follows the waves and the wake, as the surface mesh does.
     this.underwater = createUnderwaterPass({ heightAt: xz => this.waveField.heightAt(xz).add(this.wake.sampler.height(xz.x, xz.y)),
       colors: this.colors, sun: this.sun, cameraNearSurface: this.nearSurface });
@@ -81,6 +84,7 @@ export class Ocean implements OceanApi {
     if (dt > 0) this.time += dt;
     this.geometry.update(this.camera);
     this.sky?.followCamera(this.camera);
+    this.aerialHaze.value = this.realism.atmosphere && this.fog.aerial;
     const crest = Math.min(this.waveField.maxHeight, CREST_BOUND * this.waves.significantHeight);
     this.cameraNearSurface = this.nearSurface.value = nearPlaneMayBeSubmerged(this.camera, crest + WAKE_BOUND);
     this.waveField.update(this.renderer, this.time, dt);
@@ -112,7 +116,7 @@ export class Ocean implements OceanApi {
       const materials = (mesh as Mesh).material;
       for (const material of Array.isArray(materials) ? materials : materials ? [materials] : []) (material as Material & { fog: boolean }).fog = false;
     }
-    this.scene.fogNode = oceanFog(this.fog, sky);
+    this.scene.fogNode = oceanFog(this.fog, sky, this.aerialHaze);
     this.environment = this.scene.environment = sky?.getEnvironmentTexture() ?? null;
     this.material.bind(this.bindings());
   }

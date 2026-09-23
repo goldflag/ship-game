@@ -46,6 +46,7 @@ export const CONSOLE_ACTIONS: ConsoleAction[] = [
   { kind: 'action', id: 'realism:reflections', group: 'Water', label: 'Toggle physical reflections', words: ['physical', 'realism', 'reflections', 'fresnel', 'glitter', 'toggle'] },
   { kind: 'action', id: 'realism:waterColor', group: 'Water', label: 'Toggle physical water colour', words: ['physical', 'realism', 'water', 'colour', 'color', 'toggle'] },
   { kind: 'action', id: 'realism:wake', group: 'Water', label: 'Toggle realistic wakes', words: ['realistic', 'realism', 'wakes', 'slick', 'toggle'] },
+  { kind: 'action', id: 'realism:atmosphere', group: 'Water', label: 'Toggle realistic haze', words: ['realistic', 'realism', 'haze', 'atmosphere', 'fog', 'toggle'] },
   // The vendored library the game's ocean replaced, kept to compare the two in the real game.
   { kind: 'action', id: 'oceanRenderer', group: 'Water', label: 'Switch ocean renderer', words: ['switch', 'ocean', 'renderer', 'water', 'pro', 'waterpro', 'library', 'compare', 'comparison', 'toggle'] },
 ];

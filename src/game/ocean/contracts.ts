@@ -204,6 +204,8 @@ export interface OceanFogParameters {
   power: number;
   /** Distance (m) over which the fog colour turns into the sky colour behind it. */
   skyBlendDistance: number;
+  /** Whether this scene's haze may follow real extinction when `OceanRealism.atmosphere` is on; false keeps the ramp. */
+  aerial: boolean;
 }
 
 /** Celestial light the ocean shades with. The game owns the values and the scene light. */
@@ -224,8 +226,8 @@ export interface CrestFoamParameters extends WaveFoamParameters {
 export interface SurfaceFoamParameters { readonly color: Color; opacity: number; /** Share of the sea covered, 0–1. */ coverage: number }
 export interface ShorelineFoamParameters { readonly color: Color; opacity: number }
 
-/** Realism features, each live and on by default. The developer console turns one off to compare it with the
- * look first tuned to match the library this ocean replaced. */
+/** Realism features, each live. All but `atmosphere` are on by default; the developer console switches one to
+ * compare it with the look first tuned to match the library this ocean replaced. */
 export interface OceanRealism {
   /** Wavelengths follow a real wind sea's steepness; heights and combat keep the calibration table. */
   seaState: boolean;
@@ -235,6 +237,11 @@ export interface OceanRealism {
   waterColor: boolean;
   /** Hulls leave a continuous turbulent wake that fades into a calm slick. */
   wake: boolean;
+  /** Distance haze thickens from the camera outward as real extinction does (Koschmieder: 2 % contrast left at the
+   * scene's visibility, `fog.end`), instead of the gameplay ramp that starts kilometres out. Scenes whose fog is
+   * art-directed (the port) opt out through `OceanFogParameters.aerial`. Off by default: the maps' visibilities
+   * were authored for the ramp, and read as real visual ranges they leave a battleship at 20 km at 20 % contrast. */
+  atmosphere: boolean;
 }
 
 /** The facade the game holds (`Ocean.ts`). Game code touches the ocean only through this. */

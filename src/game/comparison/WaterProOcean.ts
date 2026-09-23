@@ -25,7 +25,7 @@ import { WATER_PRO_BREAK_SCALE, waterProAmplitude, waterProSurfaceFoam } from '.
  * Water Pro is the look they compare against, and the library itself never reads them; a wake sampler's `slick`
  * has no counterpart; `waveField` offers heights and displacement only, since the library shades its own surface. */
 export class WaterProOcean implements OceanApi {
-  readonly realism: OceanRealism = { seaState: false, reflections: false, waterColor: false, wake: false };
+  readonly realism: OceanRealism = { seaState: false, reflections: false, waterColor: false, wake: false, atmosphere: false };
   readonly waves: WaveParameters = { significantHeight: 1.8, windSpeed: 9, windDirection: 35 * Math.PI / 180, peakWavelength: 32,
     choppiness: 1.2, gamma: 2.2, directionalSharpness: .8, seed: 1, dirty: true };
   readonly colors: OceanApi['colors'];
@@ -97,7 +97,7 @@ export class WaterProOcean implements OceanApi {
       color: foam.waves.color.clone(), opacity: foam.waves.opacity, windStretch: foam.waves.windStretch };
     this.foam = { crest, surface: { color: foam.surface.color.clone(), opacity: foam.surface.opacity, coverage: foam.surface.coverage },
       shoreline: { color: foam.shoreline.color.clone(), opacity: foam.shoreline.opacity } };
-    this.fog = { color: fog.color.clone(), start: fog.fadeStart, end: fog.fadeEnd, power: fog.fadePower, skyBlendDistance: fog.skyBlendDistance };
+    this.fog = { color: fog.color.clone(), start: fog.fadeStart, end: fog.fadeEnd, power: fog.fadePower, skyBlendDistance: fog.skyBlendDistance, aerial: false };
     this.sun = { direction: lighting.sun.direction.value.clone(), intensity: lighting.sun.intensity.value, color: lighting.sun.color.clone() };
     // Water Pro copies its sky provider's sun into these uniforms on every step; the game's celestial light wins.
     lighting.addSunSyncListener(() => this.applySun());

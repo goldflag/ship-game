@@ -226,6 +226,8 @@ export class VisualEnvironment {
     ocean.fog.end = this.chartFog ? 900000 : scene.end * scale;
     ocean.fog.power = this.inPort ? .85 : 1.4;
     ocean.fog.skyBlendDistance = scene.skyBlend * scale;
+    // The port's short, sheltered ramp is a showroom choice, not a visual range; battles may take real haze.
+    ocean.fog.aerial = !this.inPort;
   }
   /** The scene's fog end, ignoring the air map's temporary far fog. */
   private sceneFogEnd(): number {
