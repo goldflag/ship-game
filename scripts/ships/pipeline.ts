@@ -353,15 +353,26 @@ script_start=time.perf_counter()
 
 if (action === 'check') {
   const current = JSON.parse(await readFile(join(outputDir, `${shipId}.json`), 'utf8'));
-  if (JSON.stringify(current) !== JSON.stringify(published))
-    throw new Error('Compiled definition is stale. Run bun run ship:build ' + shipId);
   const manifest = JSON.parse(await readFile(join(sourceDir, 'generated/build.json'), 'utf8'));
+  // build.json keeps one hash per stage, not per input file, so staleness names the stage whose inputs changed.
+  const fields = Object.keys({ ...current, ...published }).filter(
+    (key) => key !== 'contentHash' && JSON.stringify(current[key]) !== JSON.stringify((published as Record<string, unknown>)[key]),
+  );
+  const why = fields.length
+    ? `definition fields changed: ${fields.join(', ')}`
+    : manifest.geometry !== inputs.geometry
+      ? 'geometry recipe inputs changed: build.py or a file listed in recipe-inputs.json'
+      : 'export recipe changed: scripts/ships/export.py or a module it imports';
   if (
+    JSON.stringify(current) !== JSON.stringify(published) ||
     manifest.contentHash !== contentHash ||
-    manifest.geometry !== inputs.geometry ||
-    !(await validFile(join(outputDir, `${shipId}.glb`), manifest.glbHash))
+    manifest.geometry !== inputs.geometry
   )
-    throw new Error(`Published model is stale or corrupt. Run bun run ship:build ${shipId}`);
+    throw new Error(`${fields.length ? 'Compiled definition' : 'Published model'} is stale (${why}). Run bun run ship:build ${shipId}`);
+  if (!(await validFile(join(outputDir, `${shipId}.glb`), manifest.glbHash)))
+    throw new Error(
+      `Published model is corrupt: public/models/${shipId}.glb does not match glbHash in build.json. Run bun run ship:build ${shipId}`,
+    );
   const report = inspectGlb(await readFile(join(outputDir, `${shipId}.glb`)), definition);
   await checkThumbnail();
   console.log(JSON.stringify(report, null, 2));

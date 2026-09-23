@@ -1,6 +1,7 @@
 import { availableParallelism } from 'node:os';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { requireBootstrapped } from '../build/ready';
 
 const roots = ['src', 'scripts'];
 const cwd = resolve(import.meta.dir, '../..');
@@ -49,6 +50,7 @@ export function testNamePatterns(prefixes: string[]): string[] {
  * fails without reaching its tests. `flaky` entries may pass without being reported as fixed. */
 export interface KnownFailure { file: string; test: string; since: string; note?: string; flaky?: boolean }
 export const KNOWN_FAILURES = resolve(import.meta.dir, 'known-failures.json');
+const LEDGER = 'scripts/tests/known-failures.json';
 export const readKnownFailures = (path = KNOWN_FAILURES): KnownFailure[] => JSON.parse(readFileSync(path, 'utf8'));
 
 /** Names from Bun's `(fail) suite > test [12.3ms]` lines. */
@@ -106,7 +108,10 @@ export async function runTestFiles(files: string[], concurrency: number, options
           failed.set(file, tests);
         }
         if (options.verbose) { process.stdout.write(stdout); process.stderr.write(stderr); }
-        else if (code !== 0 && !options.record && ![...failed.get(file)!].every(test => isKnown(file, test))) console.log(`\n${file}:\n${boundedOutput(stdout + stderr)}`);
+        else if (code !== 0 && !options.record && ![...failed.get(file)!].every(test => isKnown(file, test))) {
+          const listed = [...failed.get(file)!].filter(test => isKnown(file, test)).length;
+          console.log(`\n${file}${listed ? ` (${listed} of its failures are in the known-failures ledger)` : ''}:\n${boundedOutput(stdout + stderr)}`);
+        }
       }
     }));
   } finally {
@@ -119,15 +124,17 @@ export async function runTestFiles(files: string[], concurrency: number, options
     const today = new Date().toISOString().slice(0, 10);
     const entries = failures.map(failure => known.find(entry => entry.file === failure.file && entry.test === failure.test) ?? { ...failure, since: today });
     writeFileSync(KNOWN_FAILURES, `${JSON.stringify(entries, null, 2)}\n`);
-    console.log(`Recorded ${entries.length} known failures in scripts/tests/known-failures.json`);
+    console.log(`Recorded ${entries.length} known failures in ${LEDGER}`);
     return 0;
   }
-  const fresh = failures.filter(failure => !isKnown(failure.file, failure.test));
+  const fresh = failures.filter(failure => !isKnown(failure.file, failure.test)), red = failures.filter(failure => isKnown(failure.file, failure.test));
   const ran = new Set(files.map(file => file.replace(/^\.\//, '')));
   const fixed = known.filter(entry => !entry.flaky && ran.has(entry.file) && !failures.some(failure => failure.file === entry.file && (entry.test === '*' || failure.test === entry.test)));
-  if (fresh.length) console.log(`\nNew failures:\n${fresh.map(failure => `  ${failure.file} > ${failure.test}`).join('\n')}`);
-  if (fixed.length) console.log(`\nNo longer failing; remove from scripts/tests/known-failures.json:\n${fixed.map(entry => `  ${entry.file} > ${entry.test}`).join('\n')}`);
-  console.log(`\n${files.length} test files: ${fresh.length} new failures, ${failures.length - fresh.length} known (scripts/tests/known-failures.json); ${((performance.now() - start) / 1000).toFixed(0)} s (${concurrency} workers)`);
+  const list = (entries: { file: string; test: string }[]) => entries.map(entry => `  ${entry.file} > ${entry.test}`).join('\n');
+  if (red.length) console.log(`\nKnown failures, already red on master and listed in ${LEDGER} (not counted):\n${list(red)}`);
+  if (fresh.length) console.log(`\nNew failures, not in ${LEDGER}:\n${list(fresh)}`);
+  if (fixed.length) console.log(`\nNo longer failing; remove from ${LEDGER}:\n${list(fixed)}`);
+  console.log(`\n${files.length} test files: ${fresh.length} new failures, ${red.length} known (${LEDGER}); ${((performance.now() - start) / 1000).toFixed(0)} s (${concurrency} workers)`);
   return fresh.length ? 1 : 0;
 }
 
@@ -140,6 +147,8 @@ if (import.meta.main) {
     for (const entry of readKnownFailures()) console.log(`${entry.file} > ${entry.test}  (since ${entry.since}${entry.flaky ? ', flaky' : ''}${entry.note ? `; ${entry.note}` : ''})`);
     process.exit(0);
   }
+  // Tests load the prepared simulation; `bun run test` prepares it first, and a fresh worktree gets advice, not import errors.
+  requireBootstrapped(cwd, { wasm: true });
   if (passthrough.length) {
     const child = Bun.spawn([process.execPath, 'test', ...roots, ...passthrough], {
       cwd, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit',

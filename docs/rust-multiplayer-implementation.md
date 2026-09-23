@@ -36,7 +36,11 @@ cache. Development simulation throughput may be lower than release throughput.
 and `bun run multiplayer:check` retain the optimized release profile. Both
 profiles publish to `src/generated/naval-wasm`; each preparation regenerates
 bindings from its selected profile, so a production build replaces a prior
-development bundle. Use release builds for performance measurements.
+development bundle, and the next development preparation says when it replaces
+a release build. Use release builds for performance measurements, and build
+variants elsewhere with `bun scripts/multiplayer/build-wasm.ts --out-dir
+.build/<name>` (plus `--rustflags` or `--target-dir`; see
+[scripts/AGENTS.md](../scripts/AGENTS.md#runners)).
 
 Use Bun 1.3.3, the pinned Rust toolchain, its `wasm32-unknown-unknown` target and `wasm-bindgen-cli` matching Cargo.lock (0.2.128).
 
@@ -83,7 +87,7 @@ bun run multiplayer:capacity-smoke # dedicated server, cap 2, no other players
 bun run multiplayer:benchmark 1800
 ```
 
-`multiplayer:check` generates content, runs the full native suite in the optimized release profile and Clippy, builds WASM. Release-profile tests keep long carrier scenarios within the CI time budget without skipping coverage. Standalone Cargo tests require the generated manifest. Wire types, including the battle frame (`BattleFrame`, `SessionFrame`) and its update envelope (`FrameUpdate`), are exported with `bun run multiplayer:types` (`cargo run -p naval-protocol --bin export`; `.cargo/config.toml` sets `TS_RS_EXPORT_DIR`).
+`multiplayer:check` generates content, runs the full native suite in the optimized release profile and Clippy, builds WASM. Every step runs even after another fails, then a summary names the failed steps (logs in `.build/multiplayer-check/`). Release-profile tests keep long carrier scenarios within the CI time budget without skipping coverage. Standalone Cargo tests require the generated manifest. Wire types, including the battle frame (`BattleFrame`, `SessionFrame`) and its update envelope (`FrameUpdate`), are exported with `bun run multiplayer:types` (`cargo run -p naval-protocol --bin export`; `.cargo/config.toml` sets `TS_RS_EXPORT_DIR`).
 
 Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 28,800 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 133 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite, production build and release-server HTTP/WebSocket smoke. See the PR checks for remote execution status. The [implementation review disposition](archive/reviews/rust-multiplayer-review-disposition.md) records Fable’s findings and their fixes.
 
