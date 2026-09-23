@@ -63,9 +63,9 @@ Model* (SIGGRAPH 2001); Tatarchuk, *Artist-Directable Real-Time Rain Rendering* 
 Then the scene renders in the game's single scene pass:
 
 - opaque geometry (ships, islands);
-- **dome** (`dome.ts`): a full-screen backdrop at the far plane, drawn only where nothing opaque
-  is, last in the opaque queue;
-- the **sea** (first in the transparent queue, order −30);
+- the **sea** (first in the transparent queue, order −30; it writes depth);
+- **dome** (`dome.ts`, order −29.5): a full-screen backdrop at the far plane, drawn only where
+  nothing else has, so it shades just the visible sky (none of it from the chart's height);
 - the **cloud composite** (order −29): premultiplied cloud radiance, depth-tested at the clouds'
   own distance, so ships hide clouds, clouds hide the sea from above (chart, aircraft), and smoke,
   spray and rain blend over them;

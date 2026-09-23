@@ -1,10 +1,12 @@
-import { BufferAttribute, BufferGeometry, Mesh, MeshBasicNodeMaterial, type Node } from 'three/webgpu';
+import { BufferAttribute, BufferGeometry, Mesh, MeshBasicNodeMaterial, NoBlending, type Node } from 'three/webgpu';
 import { cameraProjectionMatrixInverse, cameraWorldMatrix, float, normalize, positionGeometry, varying, vec4 } from 'three/tsl';
 
-/** Opaque queue position of the dome: after every opaque object, so covered pixels skip it. */
-export const DOME_ORDER = 1000;
-/** Transparent queue position of the cloud composite: right after the sea (−30), before smoke and spray. */
-export const CLOUD_ORDER = -29;
+/** Transparent queue positions, after the sea (−30, which writes depth) and before smoke and spray (≥ 0).
+ * The dome draws only where nothing has: the sky left between the opaque scene and the sea, never the
+ * half of the screen the sea covers (nor any of it from the chart's height). The sea's screen-space
+ * reflections read the scene before either, and treat the empty far plane as sky, as before. The cloud
+ * composite then blends over the dome and the sea. */
+export const DOME_ORDER = -29.5, CLOUD_ORDER = -29;
 
 /** One triangle covering the viewport (clip-space corners (−1,−1), (3,−1), (−1,3)). */
 export function fullScreenTriangle(): BufferGeometry {
@@ -25,10 +27,11 @@ export function screenCorner(depth: Node<'float'>): Node<'vec4'> {
   return vec4(positionGeometry.xy, depth, 1);
 }
 
-/** The sky backdrop: `color(direction)` at the far plane behind everything opaque. Reversed depth
- * clears to 0, so the dome sits at 0 there and at 1 otherwise; it draws only where nothing did. */
+/** The sky backdrop: `color(direction)` at the far plane behind everything. Reversed depth clears to 0,
+ * so the dome sits at 0 there and at 1 otherwise; it draws only where nothing did. */
 export function createDome(color: (direction: Node<'vec3'>) => Node<'vec3'>, reversedDepth: boolean): Mesh {
-  const material = new MeshBasicNodeMaterial({ depthTest: true, depthWrite: false });
+  const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: true, depthWrite: false });
+  material.blending = NoBlending;
   material.name = 'Sky dome';
   material.fog = false;
   material.toneMapped = false;
