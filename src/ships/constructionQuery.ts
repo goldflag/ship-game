@@ -10,6 +10,7 @@ import type {
 import { CONSTRUCTION_LIMITS } from './constructionEditor';
 import {
   CUSTOM_FITTING_LIMITS,
+  customFittingBudgets,
   customFittingDefinitions,
   customFittingInstances,
   customFittingPartId,
@@ -416,6 +417,14 @@ export function constructionSummary(
       // Design-local fitting instances (`partId: "design:…"`) never count against `equipment`.
       customFittingInstances: used(counts.custom, CUSTOM_FITTING_LIMITS.instances),
       customFittingDefinitions: used(definitions.length, CUSTOM_FITTING_LIMITS.definitions),
+      // Visual mesh budgets, shown once a definition carries meshes.
+      ...(definitions.some((def) => def.meshes?.length)
+        ? (({ meshTriangles, meshBytes, renderedTriangles }) => ({
+            meshTriangles: used(meshTriangles, CUSTOM_FITTING_LIMITS.designMeshTriangles),
+            meshBytes: used(meshBytes, CUSTOM_FITTING_LIMITS.designMeshBytes),
+            renderedTriangles: used(renderedTriangles, CUSTOM_FITTING_LIMITS.renderedTriangles),
+          }))(customFittingBudgets(c))
+        : {}),
       boundaries: used(c.boundaries.length, CONSTRUCTION_SOURCE_LIMITS.boundaries),
       loads: used(c.loads.length, CONSTRUCTION_SOURCE_LIMITS.loads),
       ...(options.sourceBytes !== undefined ? { sourceBytes: used(options.sourceBytes, CONSTRUCTION_SOURCE_LIMITS.sourceBytes) } : {}),
@@ -463,7 +472,7 @@ export function constructionSummary(
       : {}),
     ...(definitions.length && wanted('custom-fitting')
       ? {
-          customFittingColumns: ['id', 'name', 'solids', 'tubes', 'massKg (null: the definition does not resolve)', 'instances', 'partId'],
+          customFittingColumns: ['id', 'name', 'solids', 'tubes', 'massKg (null: the definition does not resolve)', 'instances', 'partId', 'mesh triangles'],
           customFittings: definitions.map((def) => [
             def.id,
             def.name,
@@ -472,6 +481,7 @@ export function constructionSummary(
             resolvedMass(def),
             customFittingInstances(c, def.id).length,
             customFittingPartId(def.id),
+            (def.meshes ?? []).reduce((sum, mesh) => sum + mesh.triangles, 0),
           ]),
         }
       : {}),

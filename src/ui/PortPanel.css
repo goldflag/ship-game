@@ -1,0 +1,607 @@
+/* The port's right-hand column: one fixed place from the top bar to the fleet line. Transparent
+   instrument styling over a soft edge shade; hairlines separate rows, never cards. */
+.port-panel-shade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 620px;
+  pointer-events: none;
+  background: linear-gradient(90deg, #08151e00 0%, #08151e8a 38%, #08151ec2 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent 70px, #000 124px);
+  mask-image: linear-gradient(180deg, transparent 0, transparent 70px, #000 124px);
+}
+.port-panel {
+  position: absolute;
+  top: 100px;
+  right: 30px;
+  bottom: 34px;
+  width: 372px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 1.35;
+  pointer-events: auto;
+}
+.port-panel small {
+  font-size: inherit;
+}
+
+/* Tabs */
+.port-panel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid #c9dce04a;
+}
+.port-panel .port-panel-tabs button {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 3px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: -1px;
+  font-size: 12px;
+  color: #c8d8db;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+}
+.port-panel .port-panel-tabs button small {
+  font-size: 10.5px;
+  color: #8fa6ad;
+}
+.port-panel .port-panel-tabs button:hover:not(:disabled) {
+  background: #d0e4db12;
+}
+.port-panel .port-panel-tabs button[aria-pressed='true'] {
+  color: var(--port-accent);
+  border-bottom-color: var(--port-accent);
+}
+.port-panel .port-panel-tabs button[aria-pressed='true'] small {
+  color: #cfae76;
+}
+.port-panel .port-panel-tabs button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.port-panel-scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-right: -8px;
+  padding-right: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #afcadf55 transparent;
+}
+.port-panel .port-eyebrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 6px 0 0;
+  font: 500 10.5px/1.2 'Barlow', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #aebfc4;
+}
+.port-panel .port-eyebrow > span {
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #8fa6ad;
+}
+
+/* Ratings: a tick for every historical warship, a brass mark for this design. */
+.port-ratings {
+  display: grid;
+  gap: 11px;
+}
+.port-rating {
+  display: grid;
+  gap: 6px;
+  cursor: help;
+}
+.port-rating-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.port-rating-head > span {
+  flex: 1;
+  color: #d1dddf;
+}
+.port-rating-head > em {
+  font-size: 10.5px;
+  font-style: normal;
+  color: #8fa6ad;
+}
+.port-rating-head > em[data-capped='true'] {
+  color: var(--port-accent);
+}
+.port-rating-head > strong {
+  min-width: 26px;
+  font:
+    500 19px/1 'Barlow Condensed',
+    sans-serif;
+  text-align: right;
+}
+.port-rating-track {
+  position: relative;
+  height: 9px;
+}
+.port-rating-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 3px;
+  background: #c2d5da2b;
+}
+.port-rating-track > i {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  height: 3px;
+  background: #d4dec9;
+}
+.port-rating-track > s {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 9px;
+  background: #d6e4e680;
+  text-decoration: none;
+}
+/* A wider target than the 1 px tick, so each historical ship can be read on hover. */
+.port-rating-track > s::before {
+  content: '';
+  position: absolute;
+  inset: -3px -3px;
+}
+.port-rating-track > s:hover {
+  background: var(--port-accent);
+}
+.port-rating-track > u {
+  position: absolute;
+  top: -2px;
+  width: 3px;
+  height: 13px;
+  margin-left: -1.5px;
+  background: var(--port-accent);
+  box-shadow: 0 0 0 1px #0a1821a0;
+  pointer-events: none;
+}
+
+/* Particulars */
+.port-particulars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+  margin: 0;
+}
+.port-particulars > div {
+  padding: 8px 0 7px;
+  border-top: 1px solid #c2d5da29;
+  cursor: help;
+}
+.port-particulars dt {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9fb4ba;
+}
+.port-particulars dd {
+  margin: 4px 0 0;
+  font:
+    500 21px/1 'Barlow Condensed',
+    sans-serif;
+  white-space: nowrap;
+}
+.port-particulars dd > small,
+.port-sheet-section > button > strong > small,
+.port-sheet-rows strong > small,
+.port-group > button > strong > small,
+.port-space > strong > small {
+  margin-left: 3px;
+  font:
+    400 10px/1 'Barlow',
+    sans-serif;
+  color: #9fb4ba;
+}
+
+/* Full sheet: one section open at a time. */
+.port-sheet-section {
+  border-top: 1px solid #c2d5da29;
+}
+.port-panel .port-sheet-section > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 0;
+  text-align: left;
+  color: var(--port-text);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.port-panel .port-sheet-section > button:hover {
+  background: #d0e4db0f;
+}
+.port-sheet-section > button > svg {
+  color: #9fb4ba;
+  transform: rotate(-90deg);
+  transition: transform 0.15s;
+}
+.port-sheet-section > button[aria-expanded='true'] > svg {
+  transform: none;
+}
+.port-sheet-section > button > span {
+  flex: 1;
+  min-width: 0;
+  font:
+    500 13px/1.2 'Barlow Condensed',
+    sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #d1dddf;
+}
+.port-sheet-section > button > span > small {
+  margin-left: 7px;
+  font: 400 11px 'Barlow', sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #8fa6ad;
+}
+.port-sheet-section > button > strong {
+  font:
+    500 19px/1 'Barlow Condensed',
+    sans-serif;
+  color: var(--port-accent);
+  white-space: nowrap;
+}
+.port-sheet-rows {
+  display: grid;
+  gap: 1px;
+  padding: 0 0 12px 22px;
+}
+.port-sheet-rows > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  font-size: 11.5px;
+  cursor: help;
+}
+.port-sheet-rows > div:hover {
+  background: #d0e4db0c;
+}
+.port-sheet-rows span {
+  color: #b7c7cc;
+}
+.port-sheet-rows strong {
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+.port-sheet-rows .port-sheet-text strong {
+  font-weight: 400;
+  white-space: normal;
+  max-width: 64%;
+  overflow-wrap: anywhere;
+}
+.port-sheet-note {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #b7c7cc;
+}
+.port-sheet-note > b {
+  font-weight: 500;
+  color: var(--port-text);
+}
+
+/* Side profile */
+.port-profile {
+  display: grid;
+  flex-shrink: 0;
+  cursor: help;
+}
+.port-profile canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.port-profile-span {
+  position: relative;
+  padding-top: 11px;
+  font-size: 11px;
+  color: var(--port-accent);
+}
+.port-profile-span > i {
+  position: absolute;
+  top: 2px;
+  height: 5px;
+  border: 1px solid var(--port-accent);
+  border-top: 0;
+}
+.port-armor-scale {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px 0;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: #9fb4ba;
+  cursor: help;
+}
+.port-armor-scale > i {
+  grid-column: 1 / -1;
+  height: 5px;
+  border-radius: 1px;
+}
+.port-armor-scale > span:nth-child(3) {
+  text-align: center;
+}
+.port-armor-scale > span:last-child {
+  text-align: right;
+}
+.port-panel-search {
+  display: grid;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #9fb4ba;
+}
+.port-panel-search .ui-input {
+  min-height: 36px;
+  text-shadow: none;
+}
+
+/* Zones, groups and spaces */
+.port-groups {
+  display: grid;
+  align-content: start;
+}
+.port-groups > .port-eyebrow {
+  margin-bottom: 6px;
+}
+.port-panel .port-group > button,
+.port-panel .port-space {
+  display: grid;
+  grid-template-columns: 11px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 4px 7px 2px;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid #c2d5da21;
+  border-radius: 0;
+}
+.port-panel .port-group > button:hover,
+.port-panel .port-space:hover,
+.port-panel .port-item:hover {
+  background: #d0e4db12;
+}
+.port-panel .port-group > button[aria-pressed='true'],
+.port-panel .port-space[aria-pressed='true'],
+.port-panel .port-item[aria-pressed='true'] {
+  background: #e5bf801c;
+}
+.port-group > button > i,
+.port-space > i {
+  grid-row: 1 / span 2;
+  width: 10px;
+  height: 10px;
+  border-radius: 1px;
+}
+.port-space > i {
+  background: #7db4d2;
+}
+.port-group > button > b,
+.port-space > b {
+  font-size: 12.5px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.port-group > button[aria-pressed='true'] > b,
+.port-space[aria-pressed='true'] > b {
+  color: var(--port-accent);
+}
+.port-group > button > small,
+.port-space > small {
+  grid-column: 2;
+  font-size: 10.5px;
+  color: #8fa6ad;
+}
+.port-space-pump {
+  color: var(--port-ready);
+  white-space: nowrap;
+}
+.port-group > button > strong,
+.port-space > strong {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  font:
+    500 17px/1 'Barlow Condensed',
+    sans-serif;
+  color: var(--port-accent);
+  white-space: nowrap;
+  text-align: right;
+}
+.port-group[data-open='true'] {
+  padding-bottom: 6px;
+}
+.port-group-items {
+  display: grid;
+  padding: 2px 0 4px 21px;
+}
+.port-panel .port-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 4px 4px 2px;
+  text-align: left;
+  font-size: 11.5px;
+  color: #d1dddf;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.port-item > i {
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+}
+.port-item > span {
+  overflow-wrap: anywhere;
+}
+.port-item > span > small {
+  display: block;
+  margin-top: 1px;
+  font-size: 10.5px;
+  color: #8fa6ad;
+}
+.port-item > span:first-child {
+  grid-column: 1 / span 2;
+}
+.port-item > strong {
+  font-weight: 500;
+  color: #c8d8db;
+  white-space: nowrap;
+}
+.port-item[aria-pressed='true'] > span,
+.port-item[aria-pressed='true'] > strong {
+  color: var(--port-accent);
+}
+.port-panel .port-space-minor {
+  grid-template-columns: 14px minmax(0, 1fr);
+  min-height: 36px;
+}
+.port-space-minor > svg {
+  color: #9fb4ba;
+  transform: rotate(-90deg);
+}
+.port-space-minor[aria-expanded='true'] > svg {
+  transform: none;
+}
+.port-space-minor > small {
+  grid-column: 2;
+}
+.port-groups-more {
+  padding: 8px 0;
+  font-size: 11px;
+  color: #8fa6ad;
+}
+
+/* Isolation and explanation, pinned under the scrolling body. */
+.port-panel-isolated {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  padding-top: 8px;
+  border-top: 1px solid #e5bf8055;
+  font-size: 11.5px;
+  color: #c8d8db;
+}
+.port-panel-isolated b {
+  font-weight: 500;
+  color: var(--port-accent);
+}
+.port-panel .port-panel-isolated button {
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 0;
+  font-size: 11.5px;
+  color: var(--port-accent);
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.port-panel-help {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding-top: 8px;
+  border-top: 1px solid #c2d5da2e;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: #b7c7cc;
+}
+.port-panel-help > b {
+  font-weight: 500;
+  color: var(--port-text);
+}
+
+@media (max-width: 1240px) {
+  .port-panel {
+    right: 24px;
+    width: 330px;
+  }
+  .port-panel-shade {
+    width: 560px;
+  }
+}
+@media (max-width: 1180px) {
+  .port-panel {
+    bottom: 72px;
+  }
+}
+@media (max-width: 980px) {
+  .port-panel {
+    width: 290px;
+  }
+  .port-particulars dd {
+    font-size: 19px;
+  }
+}
+@media (max-height: 760px) and (min-width: 601px) {
+  .port-panel {
+    top: 90px;
+  }
+  .port-panel-help {
+    min-height: 0;
+  }
+}
+@media (max-width: 600px) {
+  .port-panel {
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: 62px;
+    width: auto;
+    height: min(44%, 400px);
+  }
+  .port-panel-shade {
+    width: 100%;
+    -webkit-mask-image: linear-gradient(180deg, transparent 38%, #000 58%);
+    mask-image: linear-gradient(180deg, transparent 38%, #000 58%);
+  }
+  .port-panel .port-panel-tabs button {
+    min-height: 44px;
+  }
+  .port-panel-help {
+    display: none;
+  }
+}

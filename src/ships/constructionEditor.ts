@@ -7,7 +7,7 @@ import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
 import { mirroredWall } from './constructionWallFittings';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
-import { outlineTopologyError } from './customHullTopology';
+import { hullCreasesError, MAX_HULL_SECTIONS, MIN_HULL_SECTIONS, outlineTopologyError } from './customHullTopology';
 import type {
   ConstructionEquipment,
   ConstructionSource,
@@ -157,7 +157,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       number(hull.rake, 'Bow rake');
       number(hull.bulb, 'Bow bulb');
       const stations = rows(hull.stations, 'Hull sections');
-      if (stations.length < 4 || stations.length > 24) throw new Error('Custom hulls require 4–24 sections');
+      if (stations.length < MIN_HULL_SECTIONS || stations.length > MAX_HULL_SECTIONS) throw new Error(`Custom hulls require ${MIN_HULL_SECTIONS}–${MAX_HULL_SECTIONS} sections`);
       for (const station of stations) {
         string(station.id, 'Section ID');
         number(station.t, 'Section position');
@@ -170,6 +170,10 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       }
       const topology = outlineTopologyError(stations as unknown as import('./blueprint').ConstructionHullStation[]);
       if (topology) throw new Error(topology);
+      if (hull.creases !== undefined) {
+        const error = hullCreasesError(hull.creases, (stations[0] as unknown as import('./blueprint').ConstructionHullStation).points);
+        if (error) throw new Error(error);
+      }
     } else if (p.customHull !== undefined) throw new Error('Section data belongs to a custom hull');
     if (p.mesh !== undefined) {
       const mesh = object(p.mesh, 'Freeform topology');
@@ -288,7 +292,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
     for (const def of rows(data.fittings, 'Custom fittings')) {
       string(def.id, 'Custom fitting ID');
       string(def.name, 'Custom fitting name');
-      if (def.version !== 1) throw new Error('Unsupported custom fitting version');
+      if (def.version !== 1 && def.version !== 2) throw new Error('Unsupported custom fitting version');
       if (def.attach !== 'deck') throw new Error('Custom fittings attach to a deck');
       if (def.material !== undefined && !['steel', 'aluminium', 'brass', 'wood'].includes(def.material as string))
         throw new Error('Unsupported custom fitting material');
@@ -305,6 +309,20 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
         tube.points.forEach((point) => vector(point, 'Tube point'));
         if (tube.paint !== undefined) string(tube.paint, 'Tube paint');
       }
+      if (def.meshes !== undefined) {
+        if (def.version !== 2) throw new Error('Custom fitting meshes need version 2');
+        for (const mesh of rows(def.meshes, 'Custom fitting meshes')) {
+          string(mesh.id, 'Mesh ID');
+          if (mesh.encoding !== 'deflate-q16-u16-v1') throw new Error('Unsupported custom fitting mesh encoding');
+          if (typeof mesh.data !== 'string') throw new Error('Custom fitting mesh data must be text');
+          for (const key of ['vertices', 'triangles']) if (!Number.isInteger(mesh[key])) throw new Error(`Custom fitting mesh ${key} must be a whole number`);
+          const bounds = object(mesh.bounds, 'Mesh bounds');
+          vector(bounds.min, 'Mesh bounds');
+          vector(bounds.max, 'Mesh bounds');
+          if (mesh.groups !== undefined) for (const group of rows(mesh.groups, 'Mesh groups')) for (const key of ['start', 'count']) number(group[key], `Mesh group ${key}`);
+        }
+      }
+      if (def.centerOfGravity !== undefined) vector(def.centerOfGravity, 'Custom fitting centre of gravity');
     }
   }
   if (data.finish !== undefined && !isConstructionSurfaceFinish(data.finish)) throw new Error('Unsupported surface finish');

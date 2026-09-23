@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Camera, InstancedBufferGeometry, InstancedMesh, Matrix4, MeshBasicNodeMaterial, PerspectiveCamera, PointLight, Vector3 } from 'three/webgpu';
+import { Camera, InstancedBufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicNodeMaterial, PerspectiveCamera, PointLight, Vector3 } from 'three/webgpu';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import submarine from '../../assets/ships/type-viic/blueprint.json';
@@ -331,7 +331,7 @@ test('a magazine detonation raises a column and cap that hang, then clear', () =
   effects.dispose();
 });
 
-test('water droplets stay round through their apex instead of rotating as long rods', () => {
+test('water droplets smear with their speed and never turn as long rods', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
     shell: { id: 1, caliberM: .38, velocity: [790, -85, 0], type: 'AP' } });
@@ -341,16 +341,54 @@ test('water droplets stay round through their apex instead of rotating as long r
   for (const dt of [.5, 1.5, 1.5]) {
     effects.update(sim, dt, camera);
     expect(effects.diagnostics().spray).toBeGreaterThan(0);
-    let visible = 0;
+    let visible = 0, smeared = 0;
     for (let i = 0; i < mesh.count; i++) {
       mesh.getMatrixAt(i, matrix);
       x.setFromMatrixColumn(matrix, 0); y.setFromMatrixColumn(matrix, 1);
       if (x.lengthSq() < .0001) continue;
-      expect(y.length() / x.length()).toBeCloseTo(1, 5); visible++;
+      const ratio = y.length() / x.length();
+      expect(ratio).toBeGreaterThan(1 - 1e-5); expect(ratio).toBeLessThan(6 + 1e-5);
+      visible++; if (ratio > 1.5) smeared++;
     }
-    expect(visible).toBeGreaterThan(0);
+    expect(visible).toBeGreaterThan(0); expect(smeared).toBeGreaterThan(0);
   }
   effects.dispose();
+});
+
+test('heavy splashes leave lit spray after their sheets fall; light guns leave none', () => {
+  for (const caliberM of [.38, .1]) {
+    const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+    sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
+      shell: { id: 1, caliberM, velocity: [790, -85, 0], type: 'AP' } });
+    const volumes = (effects.root.getObjectByName('Splash spray volumes') as InstancedMesh<InstancedBufferGeometry>).geometry;
+    const sheets = (effects.root.getObjectByName('Ballistic water sheets') as Mesh).geometry;
+    effects.update(sim, 0, camera);
+    let most = 0;
+    for (let i = 0; i < 9 * 20; i++) { effects.update(sim, 1 / 20, camera); most = Math.max(most, volumes.instanceCount); }
+    if (caliberM > .3) {
+      expect(sheets.drawRange.count).toBe(0);
+      expect(volumes.instanceCount).toBeGreaterThan(0);
+      // Paused spray holds its state; it clears well before the next salvo lands.
+      const paused = effects.diagnostics(); effects.update(sim, 0, camera); expect(effects.diagnostics()).toEqual(paused);
+      for (let i = 0; i < 12 * 20; i++) effects.update(sim, 1 / 20, camera);
+      expect(volumes.instanceCount).toBe(0);
+    } else expect(most).toBe(0);
+    effects.dispose();
+  }
+});
+
+test('streaked drops round out at their apex and when seen end-on', () => {
+  const map = effectTexture('droplet'), pool = new EffectParticlePool(3, map), camera = new Camera(), matrix = new Matrix4();
+  const shape = (index: number) => {
+    pool.mesh.getMatrixAt(index, matrix);
+    return new Vector3().setFromMatrixColumn(matrix, 1).length() / new Vector3().setFromMatrixColumn(matrix, 0).length();
+  };
+  for (const velocity of [[0, 30, 0], [0, -.4, 0], [0, 0, 30]]) {
+    const p = pool.emit(new Vector3(0, 10, -50)); p.align = 'streak'; p.stretch = 5; p.life = 10; p.velocity.fromArray(velocity);
+  }
+  pool.publish(camera);
+  expect(shape(0)).toBeCloseTo(5, 5); expect(shape(1)).toBeCloseTo(1.08, 5); expect(shape(2)).toBeCloseTo(1, 5);
+  pool.dispose(); map.dispose();
 });
 
 test('billboards reorient while paused and expired storage is reused', () => {

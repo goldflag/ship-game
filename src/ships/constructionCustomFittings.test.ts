@@ -99,8 +99,8 @@ test('both resolvers refuse the same definitions and name the solid or tube', ()
     ['tube bar needs', { ...bollard, tubes: [{ ...bollard.tubes[0], diameterM: 3 }] }],
     ['above its datum', { ...bollard, tubes: [], solids: bollard.solids.map((solid) => ({ ...solid, position: [solid.position[0], solid.position[1] + 1, solid.position[2]] as [number, number, number] })) }],
     ['"deck" only', { ...bollard, attach: 'wall' as never }],
-    ['at least one solid or tube', { ...bollard, solids: [], tubes: [] }],
-    ['repeats the solid or tube ID bar', { ...bollard, tubes: [bollard.tubes[0], bollard.tubes[0]] }],
+    ['at least one solid, tube or mesh', { ...bollard, solids: [], tubes: [] }],
+    ['repeats the solid, tube or mesh ID bar', { ...bollard, tubes: [bollard.tubes[0], bollard.tubes[0]] }],
   ];
   for (const [text, def] of faults) {
     expect(customFittingFault(def)).toContain(text);
@@ -166,7 +166,8 @@ test('custom instances have their own budget; decode checks the table', () => {
   expect(equipmentOverLimit(s.construction, Array(CUSTOM_FITTING_LIMITS.instances - 199).fill({ partId: 'design:fit-bollard' }), CONSTRUCTION_LIMITS.equipment)).toBe(true);
   expect(equipmentOverLimit(s.construction, Array(CONSTRUCTION_LIMITS.equipment + 1).fill({ partId: 'generic-bollard' }), CONSTRUCTION_LIMITS.equipment)).toBe(true);
   expect(decodeConstructionSource(s).construction.fittings).toHaveLength(2);
-  for (const broken of [{ ...bollard, version: 2 }, { ...bollard, attach: 'wall' }, { ...bollard, tubes: [{ id: 't', points: [[0, 0, 0]], diameterM: 0.1 }] }, { ...bollard, solids: [{ ...bollard.solids[1], kind: 'ballast' }] }])
+  const withMeshes = { ...bollard, meshes: [] };
+  for (const broken of [{ ...bollard, version: 3 }, withMeshes, { ...bollard, attach: 'wall' }, { ...bollard, tubes: [{ id: 't', points: [[0, 0, 0]], diameterM: 0.1 }] }, { ...bollard, solids: [{ ...bollard.solids[1], kind: 'ballast' }] }])
     expect(() => decodeConstructionSource({ ...s, construction: { ...s.construction, fittings: [broken] } })).toThrow();
   // 130 seated instances compile natively and stay outside the catalog equipment budget.
   const seated = structuredClone(s);
@@ -182,8 +183,8 @@ test('summary, get, bounds and place read definitions and instances', () => {
   expect(summary.limits.customFittingInstances).toEqual({ used: 1, limit: 1_000, free: 999 });
   expect(summary.limits.customFittingDefinitions).toEqual({ used: 2, limit: 256, free: 254 });
   expect(summary.customFittings).toEqual([
-    ['fit-bollard', 'Twin bollard', 3, 1, Number(resolveCustomFitting(bollard).massKg!.toFixed(3)), 0, 'design:fit-bollard'],
-    ['fit-davit', 'Davit', 5, 1, Number(resolveCustomFitting(davit).massKg!.toFixed(3)), 1, 'design:fit-davit'],
+    ['fit-bollard', 'Twin bollard', 3, 1, Number(resolveCustomFitting(bollard).massKg!.toFixed(3)), 0, 'design:fit-bollard', 0],
+    ['fit-davit', 'Davit', 5, 1, Number(resolveCustomFitting(davit).massKg!.toFixed(3)), 1, 'design:fit-davit', 0],
   ]);
   expect(summary.equipmentCounts).toEqual({ 'deck-fitting': 1 });
   expect(constructionGet(s, catalog, { ids: ['fit-davit'] }, { fields: ['name'] }).records).toEqual({ fittings: [{ id: 'fit-davit', name: 'Davit' }] });

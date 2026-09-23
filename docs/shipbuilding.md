@@ -16,8 +16,10 @@ Related guides:
 - Machinery auxiliaries, pumps and repair: [machinery services](construction-services.md).
 - Propeller and rudder forces: [maneuvering](maneuvering.md).
 
-Blender remains the authoring tool for reusable components only. Player designs never pass
-through Blender.
+Blender remains the authoring tool for reusable components. For a construction design it is at
+most an optional authoring front end ([Blender front end](construction-authoring.md#blender-front-end)):
+its only output is a revision-guarded batch, builds and compiles never run it, and the construction
+source stays the only durable record of a design.
 
 ## Ownership
 
@@ -165,13 +167,29 @@ the shipped surface always comes from the native compile.
 `kind: "custom-hull"` with `customHull.version: 1`; `size` is `[beam, depth, length]`.
 `construction_custom_hull.rs` enforces:
 
-- 4–24 stations with stable IDs and ordered `t`.
+- 4–48 stations with stable IDs and ordered `t`.
 - The same odd point count, 5–33, in every station. Left/right symmetry is implied.
 - Optional point `contour` positions on the original 0–8 outline scale, so inserting or removing
   point pairs preserves unchanged panel IDs. Nine-point hulls without `contour` need no migration.
 - `rake` 0–1.5 and `bulb` 0–1 bow parameters.
 
-Rust derives closed convex cells and attributed exterior panels with mirrored triangulation.
+- Optional `creases`: port contour positions strictly between the deck edge and the keel, each on an
+  outline point, mirrored to starboard. Lighting only (below).
+
+Rust derives closed convex cells and attributed exterior panels with mirrored triangulation. Each span
+between two sections is cut into tetrahedra about one centre when it is star-shaped about the midpoint of
+its ring means. When it is not (a wine-glass bow section: flare over a narrow waist over a wider forefoot),
+that span alone falls back to a band cut: mirrored outline points share a height, so the chords between
+them cut each section into symmetric trapezoids, and consecutive bands form slabs that are each star-shaped
+about their own centre (a thin keel sliver rides with the band above it). Exterior side triangles are the
+same either way; a banded end span splits its cap by band. A side whose height climbs back up has no band
+cut, and the span is rejected as folding. `src/ships/customHullSpans.ts` ports the decision for the loft's
+fold check and the editor's end caps; hulls that compiled before the fallback compile byte-identically.
+
+Side lighting is one smoothing group per side (deck, keel and end caps stay sharp) unless `creases` split
+it: each crease starts a new group, in the built model, the shape preview and the section editor. The
+editor's pair add/remove keeps creased points fixed and re-spaces the points between them, and its
+section editor has a Crease toggle on the selected outline point.
 Starting hulls come from `HULL_PRESETS` in `src/ships/constructionHullPresets.ts` (six ship-based,
 four generic); regenerate ship-based sections with `bun scripts/construction/hull-presets.ts`.
 
@@ -237,9 +255,19 @@ shape and Clone carries definitions with the design.
   8,500, `wood` 700 kg/m³; `fill` 0.01–1, default 1), or `massKg` when given. Overlapping solids
   count their volume twice.
 - A solid or tube without `paint` follows the instance `paint`, then the ship paint.
+- `meshes` (version 2) are visual triangle meshes, open or non-convex, for detail the shape
+  vocabulary cannot express: `{ id, encoding: "deflate-q16-u16-v1", data, vertices, triangles,
+  bounds: { min, max }, groups? }`. `data` is base64 of zlib-deflated little-endian u16s: the
+  vertices' x, y, z quantized over `bounds` (0 is `min`, 65535 is `max`), then three vertex indices
+  per triangle. `groups` are ascending runs `{ start, count, name?, paint? }` of triangles; each keeps
+  its own paint in the editor, and unpainted triangles follow the instance, then the ship paint.
+  A mesh-bearing definition must be `version: 2` (older compilers refuse it instead of ignoring the
+  meshes), needs `massKg`, and may set `centerOfGravity`; otherwise the centre of gravity is the
+  area centroid of the mesh triangles. `ship:fitting-mesh` writes them from OBJ, STL, PLY or GLB.
 
 `construction_custom_fittings.rs` resolves each definition into a synthesized deck-fitting part
-(bounds, centre of gravity, mass, one conservative box per solid and tube segment) and adds it to
+(bounds, centre of gravity, mass, one conservative box per solid and tube segment and up to eight per
+mesh, from three longest-axis splits of its triangles) and adds it to
 the catalog the compiler looks parts up in. The published catalog and the content hash input are
 unchanged, and a supplied `design:` catalog entry is discarded. A custom fitting therefore follows
 the deck-fitting rules: support within 5 cm of its datum (`equipment-attachment` with `fit.gapM`
@@ -433,8 +461,10 @@ Source bounds are constants in `construction.rs`, mirrored by `CONSTRUCTION_LIMI
 | Surface assignments | 65,536 |
 | Equipment instances | 1,000 (32 online) |
 | Loads | 128 |
-| Custom fitting definitions / instances | 32 / 1,000, counted apart from equipment instances |
-| Solids / tubes / triangles per custom fitting | 256 / 128 / 32,000 |
+| Custom fitting definitions / instances | 256 / 1,000, counted apart from equipment instances |
+| Solids / tubes / triangles per custom fitting | 256 / 128 / 32,000 (solid faces and tubes) |
+| Visual meshes | 16 per definition, 20,000 triangles and 65,535 vertices each |
+| Visual mesh budgets per design | 100,000 unique mesh triangles, 1 MiB encoded mesh data, 1,000,000 drawn custom fitting triangles |
 | Compound solid vertices / parts / polygons | 8,192 / 256 / 8,192, with 128 polygons per part |
 | Compound solid exterior patches | 32,768 per block |
 | Boundaries | 24 |

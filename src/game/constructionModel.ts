@@ -25,7 +25,8 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
   const barbetteNormalAt = constructionVertexNormals(surfaces.filter(s => !s.open && barbetteGroup(s)).map(s => ({ ...s, group: barbetteGroup(s)! })));
   const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
   const custom = new Set(primitives.filter(p => p.kind === 'custom-hull').map(p => p.id));
-  const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${customHullSmoothingGroup(surface.panelId)}` : surface.id;
+  const creases = new Map(primitives.filter(p => p.kind === 'custom-hull').map(p => [p.id, p.customHull?.creases]));
+  const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${customHullSmoothingGroup(surface.panelId, creases.get(surface.primitiveId))}` : surface.id;
   const customNormalAt = constructionVertexNormals(surfaces.filter(s => !s.open && custom.has(s.primitiveId)).map(s => ({ ...s, group: customGroup(s) })), -1);
   const textureSize = 128, pixels = new Uint8Array(textureSize * textureSize * 4);
   // Subtle repeatable coating grain. UVs remain in ship coordinates, so adjacent
@@ -112,6 +113,7 @@ export async function createConstructionModel(source: ConstructionSource, result
   group.userData.definitionHash = result.contentHash;
   group.userData.constructionRevision = source.revision;
   const templates = new Map<string, THREE.Group>();
+  const fittings = new Map<string, THREE.Group>();
   try {
     let catalog: ConstructionCatalog | undefined;
     if (source.construction.equipment.length) {
@@ -122,9 +124,16 @@ export async function createConstructionModel(source: ConstructionSource, result
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
         const custom = customFittingOf(source.construction, instance);
         if (custom) {
-          // Design-local fitting: drawn from the source definition, never a published GLB.
-          const model = createConstructionFittingModel(custom, { finish: source.construction.finish });
-          paintConstructionFitting(model, constructionFittingPaint(source, instance, part), false, source.construction.finish);
+          // Design-local fitting: drawn from the source definition, never a published GLB. Each definition and
+          // coating is built once; instances share its geometry and materials, so their draws can batch.
+          const paint = constructionFittingPaint(source, instance, part), key = `${custom.id}\u0000${paint ?? ''}`;
+          let template = fittings.get(key);
+          if (!template) {
+            template = createConstructionFittingModel(custom, { finish: source.construction.finish });
+            paintConstructionFitting(template, paint, false, source.construction.finish);
+            fittings.set(key, template);
+          }
+          const model = template.clone(true);
           model.name = instance.id;
           if (instance.scale) model.scale.fromArray(instance.scale);
           model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;

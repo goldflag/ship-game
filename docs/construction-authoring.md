@@ -1,9 +1,11 @@
 # Ship construction with agents
 
 Ship construction uses the custom editor and the shared Rust construction compiler.
-Blender remains the permanent authoring tool for original reusable components.
-Existing Blender-backed ships remain supported; migrating their hulls is separate work.
-Both routes use the versioned blueprint/definition family in `src/ships/blueprint.ts`.
+Blender may be used as an optional authoring front end for a construction ship: its only output is
+a revision-guarded batch ([Blender front end](#blender-front-end)). Builds never run Blender and
+`blueprint.json` stays the only durable source. Blender remains the permanent authoring tool for
+original reusable components. Existing Blender-backed ships remain supported; migrating their hulls
+is separate work. Both routes use the versioned blueprint/definition family in `src/ships/blueprint.ts`.
 
 ## The agent loop
 
@@ -15,7 +17,9 @@ bun run ship:apply my-ship batch.json --dry-run --brief
 bun run ship:apply my-ship batch.json
 bun run ship:inspect my-ship --brief              # every independent error, with gaps and seat positions
 bun run ship:mesh my-ship shape.obj --id hangar --at 0,6,-18  # a closed mesh as one compound-solid hull block
+bun run ship:fitting-mesh my-ship bridge.glb --id fit-bridge --mass 40000 --out bridge.json  # any mesh as visual detail
 bun run ship:view my-ship --focus gun-forward     # works on drafts that do not compile
+bun run ship:blender-import my-ship               # optional: edit in Blender, then ship:blender-export
 ```
 
 Read narrowly, edit through guarded batches, let the native compiler judge, then look. Misspelled
@@ -222,10 +226,15 @@ Use `primitive-patch` for dimensions, rake, bulb and `customHull.paintBands` (or
 (hull-local metres; `null` disables the red coating). Use `hull-station` to change
 one existing section's `t` or outline (keep the hull's point count; to change the count, replace
 every section's `points` in one `primitive-patch` of `customHull.stations`), and `hull-sections` for the UI's
-4–24-section interpolation/simplification. Increasing count retains existing
+4–48-section interpolation/simplification. Increasing count retains existing
 sections. Changing section adjacency creates new panel IDs; old panel overrides
 remain stored and new panels inherit side defaults. Inspect panel IDs again before
 assigning armor. Equipment stays at its authored placement when the hull changes.
+
+`customHull.creases` lists crease lines as port contour positions (strictly between the deck edge 0 and the keel
+4, each on an outline point, ascending; mirrored to starboard). They split the side lighting there, as at a
+knuckle or hard chine, and the editor keeps a creased point in place when it re-spaces an outline. They do not
+change the compiled solid. `ship:loft` writes them for the corner lines it pins.
 
 ## Reading a design cheaply
 
@@ -354,7 +363,7 @@ JSON path within that command and the offending value or ID, with close matches:
 Command 3 (move): delta[1] must be a finite number, got null
 Command 0 (rotate): degrees is required
 Command 7 (remove): unknown source ID "gun-fwd"; closest: "gun-forward"
-Command 2 (primitive-patch): result is not a valid source: Custom hulls require 4–24 sections
+Command 2 (primitive-patch): result is not a valid source: Custom hulls require 4–48 sections
 Batch: label is required
 ```
 
@@ -371,7 +380,7 @@ Commands are:
 | `primitive`, `equipment`, `boundary`, `load` | `value` | Add or replace the complete source record by stable ID |
 | `primitive-patch`, `equipment-patch` | `id`, `changes` | Merge only supplied fields into an existing record; nested objects merge, arrays replace, `null` removes optional fields |
 | `fitting`, `fitting-patch` | `value`; `id`, `changes` | Add, replace or patch a design-local fitting definition ([Custom fittings](#custom-fittings)); `solids` and `tubes` replace whole |
-| `hull-sections` | `id`, `count` | Resize an adjustable hull's section list with the same 4–24-section interpolation/simplification as the UI |
+| `hull-sections` | `id`, `count` | Resize an adjustable hull's section list with the same 4–48-section interpolation/simplification as the UI |
 | `hull-station` | `id`, `stationId`, `changes: {t?, points?}` | Edit one existing section while retaining its ID and other sections |
 | `copy` | `copies: [{from,to}]`, optional `mirror` or `offset` | Copy hull pieces, equipment and loads using caller-supplied new IDs; preserve surfaces and remap copied magazine/engine links and [parents](#parents). A copied parent needs a copy of each rider |
 | `remove` | `ids` | Remove selected records and everything they carry; retain the last hull piece. A custom fitting definition is refused while instances outside the command use it |
@@ -683,8 +692,9 @@ bun run ship:mesh my-ship .build/boat.stl --id boat --group boats --weld 0.002 -
 | `--id` | The new hull piece's ID; an existing ID is refused rather than overwritten |
 | `--at x,y,z` | Where the mesh's own centre lands, in ship metres. Geometry is never silently re-seated |
 | `--scale n` or `sx,sy,sz` | Applied before anything else; a negative axis mirrors and the winding is reversed with it |
-| `--up z` | Swap the source's Z-up frame into the ship's Y-up one, reversing the winding the swap flips |
-| `--bearing deg` | The block's `rotationDeg`, clockwise from the bow, applied by the compiler, not baked into the corners |
+| `--up z` | Rotate a Z-up file into the ship's Y-up frame: +Z becomes +Y and +Y becomes −Z (the glTF convention). A rotation, so winding is kept |
+| `--up blender` | The file is in this repository's Blender frame (+X bow, +Y port, +Z up); uses the shared conversion in `scripts/construction/blenderFrame.ts` |
+| `--bearing deg` | Clockwise from the bow, like equipment bearings; stored as the block's `rotationDeg` (counter-clockwise, so `rotationDeg = −bearing`), applied by the compiler, not baked into the corners |
 | `--label`, `--group` | The shape's name; `--group` overrides every polygon's surface group with one name |
 | `--weld m` | Corner welding grid, by default 1e-5 of the mesh's largest dimension |
 | `--max-parts`, `--max-planes` | 256 and 48. `--max-planes` is the real budget: the decomposition is exponential in the number of distinct face planes |
@@ -695,6 +705,130 @@ offending welded edges or triangle pairs; an inside-out mesh is reversed and the
 Boolean-union overlapping shells, close holes and decimate curved surfaces before importing.
 OBJ `usemtl`/`g` names and GLB material names become surface groups, which
 `ship:inspect --panels` lists and `surface-patch` arms through `panelId`.
+
+## Blender front end
+
+Blender is an optional place to shape a construction ship. It never becomes a source: the import
+writes a scratch scene under `.build/`, and the export reads the edited scene and proposes a
+revision-guarded batch for `ship:apply`, like `ship:place` and `ship:mesh`. Builds never run Blender
+and `blueprint.json` stays the only durable source; a person can keep editing the result in the editor.
+
+```sh
+bun run ship:blender-import my-ship                    # .build/construction-blender/my-ship/scene.blend (+ scene.json)
+# edit and save scene.blend in Blender (open it, or drive it through Blender MCP)
+bun run ship:blender-export my-ship .build/construction-blender/my-ship/scene.blend --out .build/blender.json
+bun run ship:apply my-ship .build/blender.json --dry-run --brief
+bun run ship:apply my-ship .build/blender.json
+bun run ship:blender-import my-ship --replace          # continue from the saved revision
+```
+
+Both commands run Blender headless (`scripts/build/blender.ts`: `BLENDER_BIN`, then the macOS
+application, then `blender` on PATH) under an audit hook that refuses network access, the reference
+cache, raw game model formats and every published model or glTF file, so reference geometry cannot
+enter a scene through the tools. Import refuses to overwrite an existing scene without `--replace`,
+because it may hold unexported work; `--out other.blend` writes elsewhere. Export only reads the file
+and `--out` refuses to overwrite a batch.
+
+| Frame | +X | +Y | +Z | Yaw |
+| --- | --- | --- | --- | --- |
+| Construction source | starboard | up | stern (bow is −Z) | `rotationDeg` counter-clockwise from above; equipment `bearingDeg` clockwise (0 bow, 90 starboard) |
+| Blender scene | bow | port | up | Z rotation, counter-clockwise from above |
+
+Metres in both; heights carry over unchanged, so construction Y = 0 is Blender Z = 0. Construction
+(x, y, z) is Blender (−z, −x, y); Blender (x, y, z) is construction (−y, z, −x). The map is a proper
+rotation, so winding and handedness survive it. A hull piece's `rotationDeg` is the Blender Z rotation
+unchanged; an equipment bearing is the negated Z rotation, so bearing 90 (starboard) is Z −90°.
+`scripts/construction/blenderFrame.ts` and its Python twin `blender/frame.py` are the only
+conversion; `blenderFrame.test.ts` checks them both ways and against each other.
+
+What the scene holds, by collection:
+
+| Collection | Objects | Export |
+| --- | --- | --- |
+| Reference | The custom hull and balconies as their compiled skin, locked and unselectable | Never. Hull sections change through `ship:loft` or `hull-station` |
+| Blocks | One mesh per hull piece, built from the source recipe (exact corners, compound-solid parts, the native shape library), placed at its `position` with its yaw; tilt is baked into the mesh | Changed pieces become hull pieces (below) |
+| Equipment | One empty per equipment row at its datum, turned to its bearing, with a locked wire box of the catalog bounds as a child | Rows: position from the location, bearing from the Z rotation |
+| Loads | Wire boxes | Loads: the box's bounds, `massKg` and `loadName` from properties |
+
+Materials are named by construction paint ID (`naval-gray`, `dark-gray`, …); the whole paint palette
+is kept in the file. Identity is in custom properties, never in object names, because Blender renames
+copies `name.001`: `constructionId`, `constructionRole` (`block`, `equipment`, `load`, `reference`,
+`proxy`), `constructionKind`, `partId` and `seat` on empties, `massKg` and `loadName` on loads, and the
+hashes `shapeHash` (geometry, materials, world transform, those properties) and `meshHash` (local
+geometry only), which the export recomputes with the same function (`blender/scene.py`).
+
+The export, object by object:
+
+- **Unchanged** (same `shapeHash`): skipped, so its record keeps whatever the editor or another agent
+  did since the import, and exporting twice changes nothing.
+- **A block moved or turned only** (same `meshHash`, a pure Z rotation, unit scale): `position` and
+  `rotationDeg` change; kind, shape, tilt and armor stay.
+- **A block reshaped**, scaled or tilted: eight vertices forming a hexahedron (one per octant around
+  their centre, six box faces as quads or triangle pairs) become an eight-corner `vertex` block;
+  anything else becomes a compound solid through the same decomposition as `ship:mesh`
+  (`--max-planes`, default 48; `--max-parts`, default 256). The object's Z rotation becomes the
+  piece's `rotationDeg`. A failure names the object and nothing is proposed. Ballast blocks can move
+  but not be reshaped.
+- **A new mesh** in Blocks (or with `constructionRole: block`) is a new hull piece whose ID comes from
+  the object name (`Searchlight platform` → `searchlight-platform`, made unique).
+- **A copy** of an imported object carries its `constructionId`; the object still named as imported
+  keeps the ID and each copy gets `<id>-copy`. A copied block that was only moved keeps the original's
+  kind and face assignments.
+- **A new empty** in Equipment needs a `partId` property, or an object name that is a part ID
+  (`generic-twin-bitts.001`); `design:` parts are custom fittings.
+- **Seating**: an empty whose `seat` property is true is seated by the native resolver (`ship:place`'s)
+  against the edited hull, nearest support along its attachment direction. The import sets it for
+  equipment that cannot [float](#floating-fittings); a fitting that may float keeps the empty's height.
+  Wall fittings keep their bearing.
+- **Paint**: a block whose majority material differs from the paint it was imported with is painted on
+  every face, keeping each face's armor; a new block is painted when its material is not the ship paint.
+  Several materials on a compound solid become surface groups with their own paint. A material that is
+  not a paint ID (`Material.001`) stops the export unless `--materials map.json` maps it
+  (`{"Material.001": "dark-gray"}`); `naval-gray.001` counts as `naval-gray`.
+- **Deleted**: an imported record whose object is gone is removed. Records added to the source after
+  the import were never in the scene and are kept, and a record removed from the source after the
+  import stays removed unless its object was changed in Blender.
+- Objects without a role outside those collections (cameras, lights, scratch meshes) are listed as
+  ignored.
+
+A worked example is `scripts/construction/blenderFrontEnd.test.ts`: a destroyer starter hull with a
+deckhouse, a bridge, a 5-inch gun and a stores load; in Blender the deckhouse moves 1 m aft, the bridge
+is duplicated forward, a box platform and an octagonal locker are added, and the gun turns to bearing
+30. The export (abridged):
+
+```json
+{
+ "changes": {
+  "unchanged": 2, "moved": ["deckhouse"],
+  "reshaped": [{"id": "searchlight-platform", "as": "eight-corner block"},
+               {"id": "ready-locker", "as": "compound solid", "parts": 1, "planes": 10}],
+  "added": [{"id": "bridge-copy", "object": "bridge.001", "role": "block"},
+            {"id": "searchlight-platform", "object": "Searchlight platform", "role": "block"},
+            {"id": "ready-locker", "object": "Ready locker", "role": "block"}],
+  "removed": [], "equipment": ["gun-a"], "loads": [],
+  "painted": [{"id": "searchlight-platform", "paint": "dark-gray"}],
+  "reassigned": [{"object": "bridge.001", "from": "bridge", "to": "bridge-copy"}]
+ },
+ "seating": [{"id": "gun-a", "status": "seated", "position": [0, 4.55, -25], "gapM": 0}],
+ "candidate": {"launchable": true, "diagnostics": [{"code": "unpowered", "severity": "warning"}]},
+ "batch": {"expectedRevision": "…", "expectedFileHash": "…", "label": "Blender export", "commands": [
+  {"op": "primitive", "value": {"id": "deckhouse", "kind": "box", "size": [4, 2.4, 10], "position": [0, 5.25, 7], "rotationDeg": 0}},
+  {"op": "primitive", "value": {"id": "bridge-copy", "kind": "vertex", "size": [3, 1.6, 4], "position": [0, 7.25, 9], "rotationDeg": 0}},
+  {"op": "primitive", "value": {"id": "searchlight-platform", "kind": "vertex", "size": [2, 1, 2], "position": [3.5, 4.55, 20], "rotationDeg": 0, "vertices": ["…"]}},
+  {"op": "primitive", "value": {"id": "ready-locker", "kind": "vertex", "size": [2, 2, 2], "position": [-3.5, 5.05, 20], "rotationDeg": 0, "solid": "…"}},
+  {"op": "equipment", "value": {"id": "gun-a", "partId": "us-5in38-mk30-mod0-single", "position": [0, 4.55, -25], "bearingDeg": 30}},
+  {"op": "surface", "value": {"primitiveId": "searchlight-platform", "face": "port", "thicknessMm": 0, "material": "steel", "paint": "dark-gray"}}
+ ]}
+}
+```
+
+Blender stores single-precision floats, so exported positions, sizes and corners are snapped to 10 µm
+and angles to 0.00001°: a block set on a deck in Blender touches it in the source. On the Scharnhorst
+(54 blocks, 214 equipment rows, 32 loads, 21 references) an import takes about 9 s and an export 2–6 s.
+
+Not yet exported: visual mesh fittings (step 2 of the ship authoring plan),
+hull sections through `ship:loft`, and equipment parents. Equipment empties are display boxes, not the
+part models; custom fitting shapes are not drawn.
 
 ## Custom fittings
 
@@ -713,8 +847,9 @@ armor, modules and flooding ignore it. The format is in
   count against the 1,000 equipment instances.
 - `remove` with a definition ID is refused while instances outside that command use it; the error
   names them.
-- `ship:summary` lists definitions as `[id, name, solids, tubes, massKg, instances, partId]` and
-  reports `customFittingInstances` and `customFittingDefinitions` headroom. `ship:get --ids
+- `ship:summary` lists definitions as `[id, name, solids, tubes, massKg, instances, partId, mesh
+  triangles]` and reports `customFittingInstances` and `customFittingDefinitions` headroom, plus
+  `meshTriangles`, `meshBytes` and `renderedTriangles` once a definition has meshes. `ship:get --ids
   <definition id>` or `--kind custom-fitting` returns definitions, and `ship:catalog <ship> --query
   design:` shows the resolved size and bounds centre.
 - `ship:view --focus <instance> --isolate` frames one instance.
@@ -776,6 +911,51 @@ axis, custom fittings only): the shape scales about its datum in its own axes an
 volume, so one definition covers every size of float or locker. A `custom-fitting` diagnostic names
 the definition in `sourceId` and the solid, tube or instance in its message; an instance more than
 10 m outside the hull's box reports `equipment-attachment`, and a bad scale `equipment-scale`.
+
+### Visual mesh fittings
+
+`ship:fitting-mesh` turns any OBJ, STL, PLY or GLB triangle mesh (open, non-convex, thin-walled,
+with holes) into a custom fitting definition whose shape is a visual mesh. It is detail, not
+structure: the mesh is drawn and weighed and nothing else. Shells, armor, buoyancy, flooding and
+the armor view ignore it, so put a few simple blocks underneath for the structure, armor and gun
+seats, and let the mesh carry the look. Like `ship:mesh` it never saves: it prints a
+revision-guarded batch (a `fitting` command, plus an `equipment` row with `--at`), `--out` refuses
+to overwrite, and a native dry-run compile gates it.
+
+```sh
+bun run ship:fitting-mesh my-ship .build/bridge.glb --id fit-bridge --name "Bridge detail" --mass 40000 --up z --out .build/bridge.json
+bun run ship:fitting-mesh my-ship .build/house.obj --id fit-house --mass 12000 --paint roof=deck-gray,glass=boot-top-black --at 0,-20 --bearing 180
+bun run ship:apply my-ship .build/bridge.json
+bun run ship:place my-ship --part design:fit-bridge --at 0,-32 --y 14 --out .build/bridge-seat.json
+```
+
+| Flag | Effect |
+| --- | --- |
+| `--id`, `--name` | The new definition; an existing ID is refused |
+| `--mass kg` | Required: a mesh has no volume to weigh. The centre of gravity is the area centroid of the triangles |
+| `--scale n` or `sx,sy,sz` | Applied first, positive only (a file in centimetres needs 0.01); turn with `--bearing`, never mirror |
+| `--up z` | Turns a Z-up file (Blender, most CAD) −90° about X into the ship's Y-up frame: a rotation, so nothing is mirrored |
+| `--paint group=paint,…` | Coatings for the file's `usemtl`/`g` or GLB material names; other groups follow the instance, then the ship paint |
+| `--at x,z [--y h \| --on id] [--bearing deg] [--instance id]` | Also seats one instance, exactly as `ship:place` would |
+| `--out file` | Writes the batch; the printed report then leaves the encoded payload out, which keeps MCP output short |
+
+The mesh is centred on its footprint with its lowest point on the datum (the report gives
+`sourceOrigin`), quantized to 16 bits over its own bounds, welded, and split into meshes of at
+most 20,000 triangles. There is no decimation: a mesh over budget is refused with the counts, so
+simplify it in a modelling tool first. Budgets, identical online and local:
+
+| Budget | Value |
+| --- | --- |
+| Triangles per mesh / meshes per definition | 20,000 / 16 |
+| Unique mesh triangles per design (each definition once) | 100,000 |
+| Encoded mesh bytes per design (base64 `data`) | 1 MiB, about 7–9 bytes per triangle |
+| Drawn triangles per design (instances × definition triangles, meshes, solids and tubes) | 1,000,000 |
+
+A definition with meshes is `version: 2`, needs `massKg` and may give `centerOfGravity`. An
+instance's `scale` multiplies the mass by the volume factor like any custom fitting. The
+compiler checks seat and burial against up to eight boxes per mesh (the triangles split three times
+along their longest axis), so an L- or U-shaped deckhouse does not claim its open notch. Mirrored
+copies are placed and turned, not reflected; model both sides in the file when they differ.
 
 ## Visual review and trials
 
@@ -941,7 +1121,8 @@ bun run build
 The standard pipeline dispatches by the existing blueprint's construction source.
 Construction builds compile through Rust, verify exact retained component bytes,
 compose/export through Three.js, reload the candidate GLB and check articulation
-before publishing. No Blender process runs for ship construction.
+before publishing. Builds never run Blender for ship construction; a Blender scene is only an
+authoring front end whose edits reach the source as a batch.
 
 Outputs are `public/models/<id>.glb`, its compiled JSON and thumbnail, plus
 `generated/build.json`, `generated/thumbnail/render.json` and the five fixed views

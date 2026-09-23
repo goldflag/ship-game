@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { attribute, smoothstep, texture, uniform, uv, vec4 } from 'three/tsl';
+import { attribute, cameraPosition, float, positionWorld, smoothstep, texture, uniform, uv, vec4 } from 'three/tsl';
 
 const SEGMENTS = 18;
 const VERTICES = (SEGMENTS + 1) * 2;
@@ -44,6 +44,7 @@ export class WaterPlumes {
   private readonly color: THREE.BufferAttribute;
   private readonly opacity: THREE.BufferAttribute;
   private readonly sun = new THREE.Vector3(-.55, .74, -.39).normalize();
+  private readonly sunDirection = uniform(this.sun.clone());
   private readonly illumination = uniform(1);
   private readonly center = new THREE.Vector3();
   private cursor = 0;
@@ -74,7 +75,10 @@ export class WaterPlumes {
     const water = texture(map, uv()), state = attribute<'vec2'>('waterOpacity', 'vec2');
     // Lengthwise filaments tear into holes as aerated sheets thin. Normal alpha
     // blending keeps the shaded water blue-gray instead of making it glow.
-    material.colorNode = vec4(attribute<'vec3'>('color', 'vec3').mul(water.rgb).mul(this.illumination), 1);
+    // Looking toward the sun, thin water passes light forward and its torn edges shine.
+    const backlight = positionWorld.sub(cameraPosition).normalize().dot(this.sunDirection).max(0).pow(6)
+      .mul(float(1).sub(water.a.mul(.6))).mul(.9);
+    material.colorNode = vec4(attribute<'vec3'>('color', 'vec3').mul(water.rgb).mul(backlight.add(1)).mul(this.illumination), 1);
     material.opacityNode = water.a.mul(state.x).mul(smoothstep(state.y.sub(.12), state.y.add(.12), water.r));
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.name = 'Ballistic water sheets';
@@ -116,7 +120,7 @@ export class WaterPlumes {
   }
 
   setSun(direction: THREE.Vector3, intensity = 1): void {
-    this.sun.copy(direction); this.illumination.value = intensity;
+    this.sun.copy(direction); this.sunDirection.value.copy(direction); this.illumination.value = intensity;
   }
 
   advance(dt: number): void {
@@ -152,7 +156,12 @@ export class WaterPlumes {
       const opening = 1 - Math.exp(-age * 38);
       const breakup = smooth(.65, 4.2 * Math.sqrt(sheet.scale), age);
       const fade = (1 - smooth(sheet.life * .55, sheet.life, age)) * opening;
-      const sunlight = .66 + .22 * this.sun.y + .12 * (cosine * this.sun.x + sine * this.sun.z);
+      // Aerated water is brilliant where its outer face turns to the sun and
+      // blue-gray in the column's own shadow; a high sun lights every side alike.
+      const horizontal = Math.hypot(this.sun.x, this.sun.z);
+      const facing = horizontal > 1e-4 ? (cosine * this.sun.x + sine * this.sun.z) / horizontal : 0;
+      const lit = .5 + .5 * facing * Math.min(1, horizontal * 1.5);
+      const sunlight = .5 + .2 * this.sun.y + .38 * lit, shade = .9 + .1 * lit;
       const bending = .45 + .35 * Math.min(age, 2);
       for (let row = 0; row <= SEGMENTS; row++) {
         const profile = ROWS[row], along = profile.along;
@@ -165,7 +174,7 @@ export class WaterPlumes {
         const alpha = fade * smooth(0, .65 * sheet.scale, height) * profile.alpha;
         // Dense lower water carries the sea's blue shadow; aerated tips scatter
         // more sky light. The shared sun follows time of day and battle weather.
-        const red = profile.red * sunlight, green = profile.green * sunlight, blue = profile.blue * sunlight;
+        const red = profile.red * sunlight * shade, green = profile.green * sunlight * (.5 + .5 * shade), blue = profile.blue * sunlight;
         for (let side = 0; side < 2; side++) {
           const vertex = index * VERTICES + row * 2 + side;
           const lateral = (side - .5) * width + bend;

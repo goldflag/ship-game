@@ -7,6 +7,8 @@ import type {
   ConstructionCustomHull,
   ConstructionEquipment,
   ConstructionFittingDefinition,
+  ConstructionFittingMesh,
+  ConstructionFittingMeshGroup,
   ConstructionFittingSolid,
   ConstructionFittingTube,
   ConstructionFreeformFace,
@@ -84,10 +86,11 @@ const station = object<ConstructionHullStation>('HullStation', { id: id('Stable 
 const paintBand = object<ConstructionHullPaintBand>(undefined, { id: id(), upperY: number('Upper edge, hull-local metres.'), paint: text() });
 const customHull = object<ConstructionCustomHull>('CustomHull', {
   version: { type: 'number', enum: [1] },
-  stations: list(station, '4–24 sections.'),
+  stations: list(station, '4–48 sections.'),
   rake: number('Bow rake, 0–1.5.'),
   bulb: number('Bow bulb, 0–1.'),
   redPaintY: optional(number('Legacy red lower-hull coating below this hull-local Y.')),
+  creases: optional(list(number(), 'Crease lines: port outline positions (0–8 contour scale) strictly between the deck edge and the keel, ascending, each on an outline point; mirrored to starboard. Lighting only.')),
   paintBands: optional(
     object<ConstructionHullPaintBands>(undefined, { version: { type: 'number', enum: [1] }, bands: list(paintBand, 'Bottom to top.') }),
   ),
@@ -251,18 +254,41 @@ const fittingTube = object<ConstructionFittingTube>(
   },
   'Round tube swept along a polyline: pipes, davit arms, stays, light masts.',
 );
+const fittingMeshGroup = object<ConstructionFittingMeshGroup>(undefined, {
+  start: index(),
+  count: { type: 'number', integer: true, minimum: 1 },
+  name: optional(text('The source material or group name.')),
+  paint: optional(text('Named coating; omission follows the instance paint, then the ship paint.')),
+});
+const fittingMesh = object<ConstructionFittingMesh>(
+  'FittingMesh',
+  {
+    id: id('Unique among the solids, tubes and meshes of this fitting.'),
+    encoding: choice(['deflate-q16-u16-v1']),
+    data: text(
+      'Base64 of zlib-deflated little-endian u16s: vertices × (x, y, z) quantized over `bounds`, then triangles × 3 vertex indices. Write it with `ship:fitting-mesh`.',
+    ),
+    vertices: { type: 'number', integer: true, minimum: 1, maximum: 65535 },
+    triangles: { type: 'number', integer: true, minimum: 1, doc: 'At most 20,000 per mesh and 100,000 per design.' },
+    bounds: object<ConstructionFittingMesh['bounds']>(undefined, { min: vec3(), max: vec3() }),
+    groups: optional(list(fittingMeshGroup, 'Ascending, non-overlapping triangle runs; at most 64.')),
+  },
+  'A visual triangle mesh, open or non-convex, in fitting-local metres: drawn and weighed, never hull, armor or hit geometry.',
+);
 export const FITTING = object<ConstructionFittingDefinition>(
   'Fitting',
   {
     id: id('Definition ID; instances are equipment with `partId: "design:<id>"`.'),
     name: { type: 'string', minLength: 1, maxLength: 80 },
-    version: { type: 'number', enum: [1] },
+    version: { type: 'number', enum: [1, 2], doc: '2 when the definition has `meshes` or `centerOfGravity`.' },
     attach: choice(['deck'], 'Seats on a deck at the local origin. `wall` and `internal` are reserved.'),
     solids: list(fittingSolid, 'At most 256.'),
     tubes: list(fittingTube, 'At most 128.'),
     material: optional(choice(['steel', 'aluminium', 'brass', 'wood'], 'Density basis; omission is steel.')),
     fill: optional(number('Solid fraction of the shape volume, 0.01–1; omission is 1.')),
-    massKg: optional(number('Explicit mass; overrides volume × density × fill.')),
+    massKg: optional(number('Explicit mass; overrides volume × density × fill. Required with meshes.')),
+    meshes: optional(list(fittingMesh, 'Visual meshes (version 2); at most 16.')),
+    centerOfGravity: optional(vec3('Explicit fitting-local centre of gravity (version 2).')),
   },
   'Design-local fitting definition: non-structural shapes that add mass only. Shells, armor, modules and flooding ignore it.',
 );
@@ -326,7 +352,7 @@ export const COMMANDS = {
   'primitive-patch': { doc: 'Merge fields into an existing hull piece.', fields: { id: id(), changes: PRIMITIVE_PATCH } },
   'hull-sections': {
     doc: 'Resize a custom hull to this many sections by interpolation or simplification.',
-    fields: { id: id(), count: { type: 'number', integer: true, minimum: 4, maximum: 24 } },
+    fields: { id: id(), count: { type: 'number', integer: true, minimum: 4, maximum: 48 } },
   },
   'hull-station': {
     doc: 'Edit one existing custom-hull section.',

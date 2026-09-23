@@ -310,9 +310,7 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   await game.frame(time += 1000 / 60);
   expect(rig.binoculars).toBe(true);
   expect(camera.fov).toBeCloseTo(fov, 10);
-  // The gunnery eye returns above our bridge; its altitude follows the shell's descent.
-  expect(Math.hypot(camera.position.x - playerView.root.position.x, camera.position.z - playerView.root.position.z)).toBeLessThan(100);
-  expect(camera.position.y).toBeGreaterThan(playerView.root.position.y);
+  expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);
   game.toggleShellFollow();
   game.setInPort(true);
   expect(game.shellFollow.phase).toBe('off');
@@ -400,14 +398,12 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
   let time = 0;
   for (const binoculars of [false, true, false]) {
     if (rig.binoculars !== binoculars) game.toggleBinoculars();
-    // Let both the optics glide and the elevated eye finish settling before measuring follow.
-    for (let frame = 0; frame < 360; frame++) await game.frame(time += 1000 / 144);
+    for (let frame = 0; frame < 180; frame++) await game.frame(time += 1000 / 144);
     await game.frame(time += 1000 / 144);
     const offset = camera.position.clone().sub(playerView.root.position);
     for (let frame = 0; frame < 30; frame++) {
       await game.frame(time += [1000 / 144, 1000 / 47, 1000 / 72, 43][frame % 4]);
-      // Allow sub-micrometre rounding in the sight's trigonometry.
-      expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-6);
+      expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-9);
       expect(playerView.root.visible).toBe(!binoculars);
       expect(game.currentAim.every(Number.isFinite)).toBe(true);
     }

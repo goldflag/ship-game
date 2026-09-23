@@ -6,7 +6,7 @@ import { assembleParts, decodeMesh, encodeMesh, listReferences, packReference, r
 import { parseGlb, parseObj } from './referenceFile';
 import { halfBreadthAt, hullStation, levelHistogram, meshView, nearestDeck, planPolygons, probeColumn, topLine, triangleCount, widthBands, type Point2 } from './slice';
 import { loadCommand } from './command';
-import { chooseStations, fitHull, foldFailures, loftHull, measureStations, resampleHalf } from './loft';
+import { chooseStations, fitAccuracy, fitHull, foldFailures, keelLine, loftHull, measureStations, outlineCorners, removeFins, resampleHalf, resamplePinned } from './loft';
 
 // Tiny synthetic fixtures only: the reference tooling is tested without touching the network or GameModels3D.
 const scratch = () => mkdtemp(join(tmpdir(), 'reference-'));
@@ -244,7 +244,7 @@ test('a lofted fit reproduces a prismatic hull, applies the tip rule and passes 
   expect(foldFailures(fit.stations, fit.size, fit.position)).toEqual([]);
   expect(fitHull(measured, { points: 11, maxStations: 24 }).folds).toEqual([]);
   expect(() => loftHull(chosen, { points: 10 })).toThrow(/odd whole number/);
-  expect(() => loftHull(chosen.slice(0, 2), {})).toThrow(/4–24 stations/);
+  expect(() => loftHull(chosen.slice(0, 2), {})).toThrow(/4–48 stations/);
 });
 
 test('the ported fold check names the span that folds, and arc-length resampling keeps the ends', () => {
@@ -269,4 +269,49 @@ test('the ported fold check names the span that folds, and arc-length resampling
   expect(failures[0].span).toBe(1);
   expect(failures[0].message).toContain('"st0.4" and "st0.7"');
   expect(failures[0].message).toMatch(/outline point|cap/);
+});
+
+test('a lofted fit keeps a flat bottom and pins the hard chine and knuckle as creases', () => {
+  const mesh = packReference({ parts: [hullPart()], hardpoints: [], omitted: [] }, meta('fixture'));
+  const measured = measureStations(meshView(mesh), mesh.meta.bounds, { sampleM: 5 });
+  // The cut's own vertex heights are sampled, so the knuckle at y = −2 is a measured point, not cut across.
+  expect(measured[3].half).toContainEqual([10, -2]);
+  const fit = fitHull(measured, { points: 11, maxStations: 24 });
+  expect(fit.folds).toEqual([]);
+  const knuckle = fit.pins.find((pin) => pin.kind === 'corner')!;
+  const chine = fit.pins.find((pin) => pin.kind === 'chine')!;
+  expect(knuckle).toMatchObject({ y: -2, crease: true });
+  expect(chine).toMatchObject({ index: 4, crease: true });
+  expect(fit.creases).toEqual([knuckle.contour, chine.contour]);
+  for (const station of fit.stations) {
+    const [x, y] = [station.points[knuckle.index].x * (fit.size[0] / 2), station.points[knuckle.index].y * fit.size[1] + fit.position[1]];
+    expect(x).toBeCloseTo(-10, 6);
+    expect(y).toBeCloseTo(-2, 6);
+    // The flat bottom stays flat: the chine sits at keel height, half the beam out.
+    expect(station.points[4].y).toBe(station.points[5].y);
+    expect(station.points[4].x * (fit.size[0] / 2)).toBeCloseTo(-5, 6);
+  }
+  const accuracy = fitAccuracy(fit, measured);
+  expect(accuracy.outlineOffsetM.max).toBeLessThan(0.01);
+  expect(accuracy.sectionAreaErrorPct.max).toBeLessThan(0.1);
+});
+
+test('loft outline helpers: keel line, pinned resampling, corners and fins', () => {
+  // A bottom with a few centimetres of rise is still flat; the keel is added on the centreline beside the chine.
+  expect(keelLine([[10, 5], [10, 0], [8, -4.95], [6, -4.98], [2, -5]])).toEqual({ line: [[10, 5], [10, 0], [8, -4.95], [0, -5]], chine: true });
+  expect(keelLine([[10, 5], [0, -5]])).toEqual({ line: [[10, 5], [0, -5]], chine: false });
+  // A pin lands exactly on its index; the points either side share out their own stretch.
+  const line: Point2[] = [[10, 5], [10, -3], [0, -5]];
+  const pinned = resamplePinned(line, [{ arc: 8, index: 3 }], 5);
+  expect(pinned[3]).toEqual([10, -3]);
+  expect(pinned[1][1]).toBeCloseTo(5 - 8 / 3, 9);
+  expect(pinned[4]).toEqual([0, -5]);
+  // A corner turns as much at half the reach; a smooth arc turns half as much and is not a corner.
+  expect(outlineCorners(line, 10, 1).map((c) => c.at)).toEqual([1]);
+  const arc: Point2[] = Array.from({ length: 41 }, (_, i) => [5 * Math.cos((i / 40) * Math.PI), 5 * Math.sin((i / 40) * Math.PI)]);
+  expect(outlineCorners(arc, 10, 1)).toEqual([]);
+  // A bilge keel is cut back to the hull; the deck edge and a broad bulge are not.
+  const finned: Point2[] = [[10, 5], [10, 0], [10, -2], [11, -2.2], [10, -2.4], [9, -4], [0, -5]];
+  expect(removeFins(finned, 1)[3]).toEqual([10, -2.2]);
+  expect(removeFins(finned, 1).filter((_, i) => i !== 3)).toEqual(finned.filter((_, i) => i !== 3));
 });

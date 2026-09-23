@@ -1,4 +1,5 @@
 import type { Vec3 } from '../ships/blueprint';
+import { hullSideSegment } from '../ships/customHullTopology';
 
 export const SMOOTH_HULL_SHAPES = new Set(['cylinder', 'half-cylinder', 'quarter-cylinder', 'quarter-cylinder-wall',
   'half-hemisphere', 'quarter-hemisphere', 'sphere', 'hemisphere', 'sphere-octant', 'hemisphere-shell', 'half-hemisphere-shell', 'quarter-hemisphere-shell',
@@ -7,11 +8,12 @@ export const SMOOTH_HULL_SHAPES = new Set(['cylinder', 'half-cylinder', 'quarter
 interface Face { vertices: readonly Vec3[]; normal: Vec3; group: string }
 
 /** Panel IDs own paint/armor assignments, not lighting seams. Join the curved
- * strips on each hull side, keeping the deck, keel and end caps sharp. */
-export function customHullSmoothingGroup(panel: string): string {
+ * strips on each hull side, keeping the deck, keel, end caps and any authored
+ * crease lines (`customHull.creases`) sharp. */
+export function customHullSmoothingGroup(panel: string, creases?: readonly number[]): string {
   const edge = panel.split('@')[0];
   const start = Number(edge.split('~')[0]);
-  return Number.isFinite(start) && start >= 0 && start < 8 ? (start < 4 ? 'port' : 'starboard') : edge;
+  return Number.isFinite(start) && start >= 0 && start < 8 ? hullSideSegment(start, creases) : edge;
 }
 const key = (point: Vec3, group: string) => `${group}:${point.map(v => Math.round(v * 1e6)).join(',')}`;
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];

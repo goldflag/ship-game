@@ -998,7 +998,6 @@ export class Game {
       const focusView = this.cameraShipView;
       const focus = focusView.motion;
       this.rig.setSubmarine(focusView.definition.submarine);
-      this.updateGunScope(focusView.definition);
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       // Whatever ends the flight (a follow, the chart, port), the helm keys return to the ship the same frame.
@@ -1546,11 +1545,6 @@ export class Game {
     if (!this.definition.submarine || this.simulation.player.damage.sunk) return;
     this.toggleBinoculars();
   }
-  private updateGunScope(definition: ShipDefinition): void {
-    const hasGun = definition.mounts.some(m => this.spectatedShipId ? m.battery === 'main'
-      : selectedWeapon(m.battery, m.weapon, this.battery, this.weaponGroupId));
-    this.rig.setGunScope(hasGun);
-  }
   /** Raise or lower the glasses on whichever hull carries the camera. A spectator following
    * a teammate has no sight to aim, so the lens opens along the bearing already being viewed. */
   toggleBinoculars(): void {
@@ -1571,7 +1565,6 @@ export class Game {
       // Continue along the viewing bearing, including deliberate stern aiming.
       if (ahead < definition.hull.length) aim = alongBearing();
     }
-    this.updateGunScope(definition);
     this.rig.toggleBinoculars(aim, ship);
   }
   private readSightAim(): Vec3 {
@@ -1697,9 +1690,10 @@ export class Game {
     const focus = this.cameraShipView?.motion;
     if (focus) this.rig.update(focus, focus.y, 0, true);
   }
-  setPortInspection(mode: InspectionMode, selectedId?: string): void {
+  /** Port model view; `selected` isolates one volume or a whole armor zone, equipment group or space. */
+  setPortInspection(mode: InspectionMode, selected?: string | readonly string[]): void {
     this.inspectionHover?.clear();
-    if (this.inPort) this.playerView?.setInspection(mode, selectedId);
+    if (this.inPort) this.playerView?.setInspection(mode, selected);
   }
   subscribeInspectionHover(listener: (hover: InspectionHoverInfo | null) => void): () => void {
     return this.inspectionHover.subscribe(listener);
@@ -1793,7 +1787,7 @@ export class Game {
       wakeFoam: this.shipWake?.diagnostics(),
       shipRigs: this.fleetViews.map(view => ({ shipId: view.actor.motion.id, ...view.rig.diagnostics() })),
       audio: this.audio?.diagnostics(),
-      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
+      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedIds.values().next().value, selectedVolumes: this.playerView?.inspection.selectedIds.size ?? 0, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       maxTorpedoMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.torpedoMuzzleErrors())),
       torpedoLaunchers: this.simulation.player.torpedoLaunchers,

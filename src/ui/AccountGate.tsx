@@ -20,13 +20,15 @@ export function AccountGate() {
   const syncing = !!session && !signedIn;
   if (!isPending && !syncing && !signedIn) return <SignIn unavailable={!!error && error.status!==401} retry={()=>void refetch()}/>;
   const report = startup?.user===user ? startup : undefined;
+  const checking = isPending || syncing;
   // Same tree shape while checking the session and while the game starts, so the loader element is reused.
+  // It stays mounted after `done` so it can fade into the port, then renders nothing.
   return <>
     <Suspense fallback={null}>{user && <Game key={user} account={{ name: session!.user.name, signOut }} startup={{
       progress:(label,progress)=>setStartup({user,label,progress,done:false}),
       done:()=>setStartup(current=>current?.user===user?{...current,done:true}:current),
     }}/>}</Suspense>
-    {(isPending || syncing || !report?.done) && <StartupScreen {...(isPending || syncing ? { label: 'Checking your account', progress: 0.02 } : report ?? STARTUP_INITIAL)}/>}
+    <StartupScreen {...(checking ? { label: 'Checking your account', progress: 0.02 } : report ?? STARTUP_INITIAL)} done={!checking && !!report?.done}/>
   </>;
 }
 function SignIn({unavailable,retry}:{unavailable:boolean;retry():void}) {
