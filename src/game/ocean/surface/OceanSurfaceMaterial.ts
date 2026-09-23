@@ -6,6 +6,8 @@ import type { OceanApi, WakeSampler, WaveField } from '../contracts';
 import { screenSpaceReflection } from '../screen/reflections';
 import { FOAM_TEXELS, foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
+import { TRACE_BELOW, footprintVariance, meanFresnel, reflectionLobe, skyLobe, sunGlitter, windVariances } from './physicalReflection';
+import { backscatter, columnTransmittance, skyIrradiance, subsurfaceReflectance, upwelling, waterBody } from './waterBody';
 
 /** Reflectance of water at normal incidence. */
 const WATER_F0 = .02;
@@ -56,7 +58,7 @@ const TINT_DEPTH = .5;
 const DEEP_VIEW = -1, SIDE_VIEW = 0;
 
 /** What the surface reads live; every object is owned by the facade and mutated by the game. */
-export interface SurfaceParameters extends Pick<OceanApi, 'colors' | 'foam' | 'sun' | 'reflections'> {
+export interface SurfaceParameters extends Pick<OceanApi, 'colors' | 'foam' | 'sun' | 'reflections' | 'realism'> {
   waves: WaveField;
   geometry: OceanGeometry;
 }
@@ -201,6 +203,9 @@ export class OceanSurfaceMaterial extends NodeMaterial {
   private readonly screenReflections = uniform(false);
   /** Whether the camera is under water: only then is every back face the sea's underside. */
   private readonly cameraSubmerged = uniform(false);
+  /** The bindings and realism switches the graph was last built with: flipping a switch rebuilds it. */
+  private bindings!: SurfaceBindings;
+  private built = { reflections: false, waterColor: false };
 
   constructor(private readonly parameters: SurfaceParameters, bindings: SurfaceBindings) {
     super();
@@ -217,11 +222,15 @@ export class OceanSurfaceMaterial extends NodeMaterial {
   update(cameraSubmerged: boolean): void {
     this.screenReflections.value = this.parameters.reflections.screenSpace && this.parameters.reflections.steps > 0;
     this.cameraSubmerged.value = cameraSubmerged;
+    const { reflections, waterColor } = this.parameters.realism;
+    if (reflections !== this.built.reflections || waterColor !== this.built.waterColor) this.bind(this.bindings);
   }
 
   /** Rebuild the surface graph around new sky, wake or shadow bindings. */
-  bind({ environment, wake, shadow }: SurfaceBindings): void {
-    const { waves, geometry, colors, foam, sun, reflections } = this.parameters;
+  bind(bindings: SurfaceBindings): void {
+    const { environment, wake, shadow } = this.bindings = bindings;
+    const { waves, geometry, colors, foam, sun, reflections, realism } = this.parameters;
+    const physical = this.built = { reflections: realism.reflections, waterColor: realism.waterColor };
     const grid = geometry.grid, offset = waves.displacement(grid, geometry.spacing);
     this.positionNode = vec3(grid.x.add(offset.x), offset.y.add(wake.height(grid.x, grid.y)), grid.y.add(offset.z));
 
@@ -240,22 +249,36 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const sceneViewZ = perspectiveDepthToViewZ(this.sceneDepth.r, cameraNear, cameraFar);
     const rayViewZ = cameraViewMatrix.mul(vec4(view.negate(), 0)).z;
     const column = sceneViewZ.div(rayViewZ.min(-1e-4)).sub(distance).max(0);
-    const through = transmittance(absorption, column);
-    const body = this.sceneColor.rgb.mul(through).add(pigment.mul(mix(SHADOWED_PIGMENT, 1, lit)).mul(float(1).sub(through)));
+    let body: Node<'vec3'>;
+    if (physical.waterColor) {
+      // Light scattered back out of the water, lit by the sun and sky that cross the surface (see waterBody.ts).
+      const scatter = backscatter();
+      const deep = upwelling(subsurfaceReflectance(absorption, scatter), sunDirection, sunRadiance, skyIrradiance(environment), lit);
+      body = waterBody(this.sceneColor.rgb, deep, columnTransmittance(absorption, scatter, column, view));
+    } else {
+      const through = transmittance(absorption, column);
+      body = this.sceneColor.rgb.mul(through).add(pigment.mul(mix(SHADOWED_PIGMENT, 1, lit)).mul(float(1).sub(through)));
+    }
 
     // Above: Fresnel between the reflected sky (or ships, where the screen trace finds them) and the water body.
-    const reflectance = fresnel(dot(up, view));
-    const mirrored = reflect(view.negate(), up);
-    const sky = skyReflection(environment, mirrored, roughness(sample.slopeVariance));
+    // Physical reflections mirror the facets the viewer sees through their spread (see physicalReflection.ts).
+    const heading = reference('windDirection', 'float', waves.params), downwind = vec2(cos(heading), sin(heading));
+    const variances = physical.reflections ? windVariances(sample.unresolvedVariance.add(footprintVariance(up)), reference('windSpeed', 'float', waves.params)) : undefined;
+    const lobe = variances ? reflectionLobe(view, up, variances, downwind) : undefined;
+    const reflectance = lobe ? meanFresnel(dot(up, view), lobe.sigmaView) : fresnel(dot(up, view));
+    const sky = lobe ? skyLobe(environment, lobe) : skyReflection(environment, reflect(view.negate(), up), roughness(sample.slopeVariance));
     // Ships and islands the mirrored ray meets on screen replace the sky (High and Ultra only).
-    const traced = reflections.steps > 0 ? screenSpaceReflection({ position: positionView, direction: cameraViewMatrix.mul(vec4(traceDirection(view, up), 0)).xyz,
+    const toView = (direction: Node<'vec3'>) => cameraViewMatrix.mul(vec4(direction, 0)).xyz;
+    const traced = reflections.steps > 0 ? screenSpaceReflection({ position: positionView, direction: toView(lobe ? lobe.traced : traceDirection(view, up)),
       sceneColor: this.sceneColor, sceneDepth: this.sceneDepth, enabled: this.screenReflections,
-      maxDistance: reference('maxDistance', 'float', reflections), steps: reflections.steps }) : undefined;
+      maxDistance: reference('maxDistance', 'float', reflections), steps: reflections.steps,
+      blur: lobe ? { up: toView(lobe.up), spread: lobe.inPlane, centre: TRACE_BELOW } : undefined }) : undefined;
     const reflected = traced ? mix(sky, traced.color, traced.confidence) : sky;
     // How far up a wave this point sits: crests reach about Hs / 2, rare ones Hs.
     const crest = positionWorld.y.div(reference('significantHeight', 'float', waves.params).max(.1)).clamp(0, 1);
-    const direct = sunGlint(up, view, sunDirection, sunRadiance, sample.slopeVariance)
-      .add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
+    const glint = variances ? sunGlitter(up, view, sunDirection, sunRadiance, variances, downwind)
+      : sunGlint(up, view, sunDirection, sunRadiance, sample.slopeVariance);
+    const direct = glint.add(crestTransmission(view, sunDirection, sunRadiance, rgb(colors.transmissionColor), crest));
     let above: Node<'vec3'> = mix(body, reflected, reflectance).add(direct.mul(lit));
 
     // Foam, from the widest and faintest to the brightest: surface streaks, crests, wakes, shorelines. One read

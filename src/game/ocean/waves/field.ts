@@ -43,7 +43,8 @@ const CREST_MODULATION = .1;
  * steep face instead of an inverted one. */
 const MIN_JACOBIAN = .1;
 /** Share of the tail (Cox–Munk's slope variance no cascade draws) that roughens the surface. In full it blurred a
- * light air's reflections of clouds into haze, where calm water mirrors them through the drawn waves' speckle. */
+ * light air's reflections of clouds into haze, where calm water mirrors them through the drawn waves' speckle. The
+ * physical reflections take the whole tail (`unresolvedVariance`) and blur it along the plane of incidence instead. */
 const TAIL_ROUGHNESS = .25;
 /** heightAt's inversion: at the calibrated 25 m/s storm a quarter of the surface nearly folds, and
  * six steps damped by 0.7 leave a 0.14 m 90th-percentile position residual (three plain steps: 1 m). */
@@ -118,6 +119,8 @@ export class GpuWaveField implements WaveField {
   /** Share of the foam injection the cascade in `layer` receives. */
   private readonly whitecaps = uniform(0);
   private readonly tail = uniform(0);
+  /** All of the tail, for `unresolvedVariance`. */
+  private readonly tailFull = uniform(0);
   /** Each cascade's whole slope variance, which becomes roughness where it cannot be filtered. */
   private readonly slopes: ReturnType<typeof floatUniform>[];
   private lastPhase = -1;
@@ -279,7 +282,7 @@ export class GpuWaveField implements WaveField {
     // The pixel's footprint on the grid (m), as the anisotropic filter resolves it.
     const across = dFdx(xz).length(), down = dFdy(xz).length();
     const footprint = max(min(across, down), max(across, down).div(ANISOTROPY));
-    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), variance: Float = this.tail;
+    let slope: Node<'vec2'> = vec2(0), strain: Node<'vec3'> = vec3(0), foam: Float = float(0), variance: Float = this.tail, unresolved: Float = this.tailFull;
     this.tier.forEach((_, i) => {
       // A cascade whose waves are finer than its coarsest texel under this pixel fades out over the
       // last level (slopes, strain and foam alike, which would otherwise repeat with the tile); its
@@ -294,7 +297,9 @@ export class GpuWaveField implements WaveField {
       slope = slope.add(derivatives.xy.mul(detail));
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
       const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
-      variance = variance.add(mix(this.slopes[i], filtered, detail));
+      const cascadeVariance = mix(this.slopes[i], filtered, detail);
+      variance = variance.add(cascadeVariance);
+      unresolved = unresolved.add(cascadeVariance);
     });
     // World slope of the displaced surface: the grid slope through the inverse transpose of the
     // horizontal map's Jacobian [[1 + ∂Dx/∂x, ∂Dx/∂z], [∂Dx/∂z, 1 + ∂Dz/∂z]].
@@ -302,7 +307,7 @@ export class GpuWaveField implements WaveField {
     const jacobian = xx.mul(zz).sub(cross.mul(cross));
     const world = vec2(zz.mul(slope.x).sub(cross.mul(slope.y)), xx.mul(slope.y).sub(cross.mul(slope.x))).div(max(jacobian, MIN_JACOBIAN));
     const ripples = this.ripples(xz, footprint);
-    return { slope: world.add(ripples.slope), jacobian, foam, slopeVariance: variance.add(ripples.variance) };
+    return { slope: world.add(ripples.slope), jacobian, foam, slopeVariance: variance.add(ripples.variance), unresolvedVariance: unresolved.add(ripples.unresolved) };
   }
 
   /** Waves shorter than the finest cascade, drawn close to the camera instead of only roughening the reflection.
@@ -310,16 +315,18 @@ export class GpuWaveField implements WaveField {
    * band spans are statistically the band below it (moving slower than their own dispersion would, which close up
    * passes). They show where the pixel resolves them and fade out as the finest cascade's do. `variance` is the
    * change to the total: the share of the tail's roughness they draw as resolved slopes (the game's steep seas can
-   * leave no tail; the ripples then only add detail). A single cascade holds the peak, which is not self-similar. */
-  private ripples(xz: Node<'vec2'>, footprint: Float): { slope: Node<'vec2'>; variance: Float } {
-    if (this.tier.length < 2) return { slope: vec2(0), variance: float(0) };
+   * leave no tail; the ripples then only add detail). `unresolved` is the same change to `unresolvedVariance`, whose
+   * tail is whole. A single cascade holds the peak, which is not self-similar. */
+  private ripples(xz: Node<'vec2'>, footprint: Float): { slope: Node<'vec2'>; variance: Float; unresolved: Float } {
+    if (this.tier.length < 2) return { slope: vec2(0), variance: float(0), unresolved: float(0) };
     const finest = this.tier.length - 1, size = this.rippleTile;
     const level = log2(footprint.mul(this.rippleTexels)).max(0);
     const shown = float(1).sub(smoothstep(this.top - 1, this.top, level));
     const read = this.layered(direct(this.maps.derivatives.sample(xz.div(size).add(.5 / this.size))), int(finest)) as unknown as Vec4;
     // Each mip level averages away about one octave of the band's slopes, which then stay roughness.
     const resolved = float(1).sub(level.div(this.top)).max(0);
-    return { slope: read.xy.mul(shown), variance: min(this.slopes[finest], this.tail).mul(resolved).mul(shown).negate() };
+    const drawn = resolved.mul(shown).negate();
+    return { slope: read.xy.mul(shown), variance: min(this.slopes[finest], this.tail).mul(drawn), unresolved: min(this.slopes[finest], this.tailFull).mul(drawn) };
   }
 
   heightAt(xz: Node<'vec2'>): Float {
@@ -350,6 +357,7 @@ export class GpuWaveField implements WaveField {
       this.spectrum.needsUpdate = true;
       this.maxHeight = spectrum.maxHeight; this.maxHorizontalDisplacement = spectrum.maxHorizontalDisplacement;
       this.tail.value = spectrum.tailSlopeVariance * TAIL_ROUGHNESS;
+      this.tailFull.value = spectrum.tailSlopeVariance;
       this.choppiness.value = this.sea.choppiness;
       this.wind.value.set(Math.cos(this.sea.windDirection), Math.sin(this.sea.windDirection));
       this.params.dirty = false; this.built = rebuilt = true;
