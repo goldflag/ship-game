@@ -57,6 +57,7 @@ import { torpedoAimState, type LeadContact } from './torpedoLead';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
+import { EffectLighting } from './EffectLighting';
 import { configureRenderOrder } from './renderOrder';
 import { requireWebGPU, requireWebGPUBackend } from './webgpu';
 import type { GameAudio } from './GameAudio';
@@ -167,8 +168,10 @@ export class Game {
   private hitDirections: HitDirectionIndicators;
   private hudScale = 1;
   private loadedModel?: THREE.Group;
-  private effects = new CombatEffects();
-  private funnelSmoke = new ShipFunnelSmoke();
+  /** Scene light, wind and depth shared by every effect material. */
+  private effectLighting = new EffectLighting();
+  private effects = new CombatEffects(this.effectLighting);
+  private funnelSmoke = new ShipFunnelSmoke(this.effectLighting);
   private environment = new VisualEnvironment({ effects: this.effects, funnelSmoke: this.funnelSmoke, sunAnchor: this.ship });
   private aircraftView = new AircraftView();
   controlPriority: ControlPriority = 'balanced';
@@ -1820,6 +1823,7 @@ export class Game {
     if (this.landscape) disposeBattleLandscape(this.landscape);
     this.effects.dispose();
     this.funnelSmoke.dispose();
+    this.effectLighting.dispose();
     this.ocean?.dispose();
     this.sunShadows?.dispose();
     this.sky?.dispose();
