@@ -78,11 +78,11 @@ const RESIDUE_DIM = .7;
 /** Dense white water (whitecap cores and churned water): its opacity on its billows, and in the gaps between them,
  * where the churn channel is low, the opacity left, so the bubble-lit turquoise water shows through. Churn levels over
  * which a gap closes. */
-const DENSE_OPACITY = .97, THIN_OPACITY = .55, THIN_LOW = .08, THIN_HIGH = .42;
+const DENSE_OPACITY = .97, THIN_OPACITY = .08, THIN_LOW = .16, THIN_HIGH = .3;
 /** Billows in dense white water: brightness in the creases between them (the churn channel's lowest), rising to full
  * over these churn levels, and each billow lit on its sunward side by this much per unit of the channel's rise over
  * EMBOSS_METRES toward the sun. Sunlit foam sits on the tone curve's shoulder, so only deep creases read. */
-const CREASE_LIGHT = .4, CREASE_LOW = .1, CREASE_HIGH = .7, EMBOSS_GAIN = 1.5, EMBOSS_METRES = .3;
+const CREASE_LIGHT = .82, CREASE_LOW = .3, CREASE_HIGH = .8, EMBOSS_GAIN = 1.5, EMBOSS_METRES = .3;
 
 /** Footprint (m, the pixel's across-view size or a quarter of its along-view size, whichever is larger) over which a
  * whitecap goes from drawn to its share of the pixel, and over which that gives way to the wind's mean coverage: a
@@ -107,7 +107,7 @@ const CHURN_START = 0, CHURN_FULL = 1, CHURN_EDGE = .3;
 const BUBBLE_START = .02, BUBBLE_FULL = .5, WHITECAP_BUBBLES = .45, WAKE_BUBBLES = .6, BUBBLE_STRENGTH = .6;
 /** Share of daylight a bubble cloud scatters back up, and the metres of water down to it and back, which take the red
  * first: the pale turquoise under a whitecap and a warship's wake. */
-const BUBBLE_ALBEDO = .28, BUBBLE_PATH = 2.2;
+const BUBBLE_ALBEDO = .3, BUBBLE_PATH = 4.5;
 /** Share of the water's reflection that the bubbly surface over an aerated cloud scatters away: aerated water reads
  * milky from any angle instead of mirroring the sky. */
 const AERATED_MATTE = .5;
