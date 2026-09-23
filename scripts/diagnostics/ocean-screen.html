@@ -225,25 +225,30 @@ async function reflectionDifference(threshold = 6) {
   }
   return { on, off, changed: count, isolated, bounds: count ? { left, right, top, bottom } : null };
 }
-/** Frame cost. Renders `perBatch` frames back to back (a fresh scene pass each, so the GPU stays busy and clocked
- * up), waits for the GPU, and returns medians over batches of the time per frame and of the CPU time spent
- * submitting it; when submission is well below the frame time, the frame time is the GPU's. */
-async function measure(batches = 15, perBatch = 8) {
-  const frame = [], submit = [], device = renderer.backend.device, gl = renderer.backend.gl, pixel = new Uint8Array(4);
+/** Frame cost of a uniform toggle on against off. Renders batches of `perBatch` frames back to back (a fresh
+ * scene pass each, so the GPU stays busy and clocked up), switching the toggle every batch so drifting load from
+ * other processes hits both alike, and waits for the GPU after each batch. Returns medians of the time per frame
+ * either way and of the CPU time spent submitting a frame; when submission is well below the frame time, the frame
+ * time is the GPU's. */
+async function measure(toggle, batches = 40, perBatch = 8) {
+  const on = [], off = [], submit = [], device = renderer.backend.device, gl = renderer.backend.gl, pixel = new Uint8Array(4);
   // WebGL's asynchronous readback polls a fence (timing the polling) and Chrome's finish() returns early;
   // a one-pixel synchronous read of the presented frame waits for the GPU.
   const settle = async () => device ? device.queue.onSubmittedWorkDone() : gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-  for (let batch = -2; batch < batches; batch++) {
-    await new Promise(requestAnimationFrame);
-    const start = performance.now();
-    for (let i = 0; i < perBatch; i++) { renderer._nodes.nodeFrame.update(); pipeline.render(); }
-    const submitted = performance.now();
-    await settle();
-    if (batch < 0) continue;
-    frame.push((performance.now() - start) / perBatch); submit.push((submitted - start) / perBatch);
-  }
+  try {
+    for (let batch = -4; batch < batches * 2; batch++) {
+      toggle.value = batch % 2 === 0;
+      await new Promise(requestAnimationFrame);
+      const start = performance.now();
+      for (let i = 0; i < perBatch; i++) { renderer._nodes.nodeFrame.update(); pipeline.render(); }
+      const submitted = performance.now();
+      await settle();
+      if (batch < 0) continue;
+      (toggle.value ? on : off).push((performance.now() - start) / perBatch); submit.push((submitted - start) / perBatch);
+    }
+  } finally { toggle.value = true; }
   const median = values => [...values].sort((x, y) => x - y)[values.length >> 1];
-  return { frame: median(frame), submit: median(submit) };
+  return { on: median(on), off: median(off), submit: median(submit) };
 }
 
 window.oceanScreen = {

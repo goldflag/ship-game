@@ -36,18 +36,10 @@ try {
   const info = await page.evaluate(() => { const s = (window as any).oceanScreen; return { backend: s.backend, reversedDepth: s.reversedDepth, scenes: s.scenes as string[] }; });
   const wanted = values.only ? values.only.split(',') : info.scenes;
   const results: Record<string, unknown> = {};
-  /** Frame cost with a uniform on and off, interleaved so drifting GPU load from other processes hits both alike. */
-  const timeToggle = (uniform: 'reflections.enabled' | 'cameraNearSurface') => page.evaluate(async key => {
+  /** Frame cost with a uniform on and off (the page alternates it every batch). */
+  const timeToggle = (uniform: 'reflections.enabled' | 'cameraNearSurface') => page.evaluate(key => {
     const screen = (window as any).oceanScreen;
-    const target = key === 'cameraNearSurface' ? screen.cameraNearSurface : screen.reflections.enabled;
-    const on: { frame: number; submit: number }[] = [], off: typeof on = [];
-    for (let round = 0; round < 4; round++) {
-      target.value = true; on.push(await screen.measure());
-      target.value = false; off.push(await screen.measure());
-    }
-    target.value = true;
-    const median = (list: typeof on) => ({ frame: list.map(entry => entry.frame).sort((a, b) => a - b)[list.length >> 1], submit: list.map(entry => entry.submit).sort((a, b) => a - b)[list.length >> 1] });
-    return { on: median(on), off: median(off) };
+    return screen.measure(key === 'cameraNearSurface' ? screen.cameraNearSurface : screen.reflections.enabled);
   }, uniform);
   for (const name of wanted) {
     const { nearSurface } = await page.evaluate(scene => (window as any).oceanScreen.scene(scene), name);
