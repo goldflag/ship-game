@@ -68,7 +68,7 @@ export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map',
   }
   const wind = conditions.windSpeed;
   // Explicit wind bypasses the map wind multiplier. Presets and numeric wind
-  // then use the same metric height curve and separately calibrated FFT gain.
+  // then use the same metric height curve.
   const waves = windSea(map, wind ?? forecast.waves.windSpeed * map.water.windScale);
   return { sky, fog, cloudWind: wind === undefined ? forecast.cloudWind : wind * 4 / 3,
     waves,

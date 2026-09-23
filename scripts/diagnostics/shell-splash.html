@@ -85,8 +85,9 @@ function pose(view, center) {
 }
 window.captureSplash = async (width = 1440, height = 900) => {
   game.renderer.setSize(width, height); game.camera.aspect = width / height; game.camera.updateProjectionMatrix();
-  game.water.resize(width, height); game.sky.resize(width, height); game.resizePending = false;
-  game.water.deterministic = true; game.sky.update(0); await game.water.update(0);
+  game.ocean.resize(width, height); game.sky.resize(width, height); game.resizePending = false;
+  // update(0) renders the ocean without stepping its waves, foam or wake.
+  game.sky.update(0); game.ocean.update(0);
   game.renderer._nodes.nodeFrame.update();
   game.pipeline.render();
   if (game.renderer.backend.device) await game.renderer.backend.device.queue.onSubmittedWorkDone();

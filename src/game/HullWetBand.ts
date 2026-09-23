@@ -1,35 +1,10 @@
-import { Mesh, type Node, type Object3D } from 'three/webgpu';
+import type { Node } from 'three/webgpu';
 import { Fn, If, attribute, float, mx_noise_float, positionWorld, smoothstep, uniform, vec3 } from 'three/tsl';
-import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 
-/** Fixed-point steps that undo the choppy sideways displacement; the vendor's buoys use three. */
-const SOLVE_STEPS = 2;
 type Height = (x: Node<'float'>, z: Node<'float'>) => Node<'float'>;
-type Displacement = { x: Node<'float'>; y: Node<'float'>; z: Node<'float'> };
-
-/** The FFT sea's height at a world position, as the water mesh draws it: its vertices move sideways
- * with the choppy displacement, so step back once by that offset before reading the height. */
-export function oceanHeight(water: WaterSystem, scene: Object3D): Height {
-  let surface: WaterSurfaceMaterial | undefined;
-  scene.traverse(object => {
-    if (!surface && object instanceof Mesh && object.material instanceof WaterSurfaceMaterial) surface = object.material;
-  });
-  const simulation = water.simulation, cascades = surface?.cascadeSampler;
-  const sample: (x: Node<'float'>, z: Node<'float'>) => Displacement = cascades
-    ? (() => {
-      const buffers = Array.from({ length: cascades.cascadeCount }, (_, i) => simulation.getDisplacementBuffer(i)!);
-      return (x, z) => cascades.sampleDisplacement(x, z, buffers as never).displacement as unknown as Displacement;
-    })()
-    : (x, z) => simulation.getDisplacementNodes().sampleDisplacement(x, z) as unknown as Displacement;
-  return (x, z) => {
-    let u = x, v = z;
-    for (let i = 0; i < SOLVE_STEPS; i++) { const offset = sample(u, v); u = x.sub(offset.x); v = z.sub(offset.z); }
-    return sample(u, v).y;
-  };
-}
 
 /** A darker, glossier band on every hull just above the moving sea surface, read per fragment
- * from the same wave, wake and bow-wave heights the water draws. Visual only. One node graph
+ * from the same wave, wake and bow-wave heights the ocean surface draws. Visual only. One node graph
  * serves every shared ship paint. */
 export class HullWetBand {
   /** 1 while the band draws; 0 leaves the paint exactly as authored. */
@@ -67,7 +42,7 @@ export class HullWetBand {
       const sea = this.sea ??= this.height(positionWorld.x, positionWorld.z);
       wet.assign(1);
       // The paint palette carries each hull's rest band height with its surface finish.
-      const band = attribute<'vec3'>('shipSurface', 'vec3').z.add(this.seaBand).clamp(.3, 1.6).toVar();
+      const band = attribute<'vec4'>('shipSurface', 'vec4').w.add(this.seaBand).clamp(.3, 1.6).toVar();
       If(p.y.greaterThan(this.lowest), () => {
         wet.assign(0);
         If(p.y.lessThan(this.highest.add(band)), () => {

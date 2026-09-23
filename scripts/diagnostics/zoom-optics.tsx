@@ -22,7 +22,7 @@ const game: any = new Game(host, GRAPHICS_PRESETS.medium, { progress: noop, read
 game.scheduleFrame = noop; game.setInPort(true); game.start();
 await game.initialization;
 await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 });
-game.setInPort(false); game.setPaused(true); game.water.deterministic = true;
+game.setInPort(false); game.setPaused(true);
 game.manualAim = false; game.aimModule = ''; game.battery = 'main';
 const sim = game.simulation;
 Object.assign(sim.ship, { x: 0, y: 0, z: 0, heading: 0 });
@@ -40,10 +40,11 @@ window.reviewView = async ({ width = innerWidth, height = innerHeight, scope = t
   game.currentAim = [0, .5, -5000];
   game.rig.update(game.playerView.motion, 0, 0, true);
   game.rig.aimAt(game.currentAim, game.playerView.motion);
-  game.water.syncToTick(3600); await game.water.update(1 / 60);
+  // Paused frames never advance the ocean's clock, so every view shows the same wave time.
+  game.ocean.time = 60;
   for (let i = 0; i < 8; i++) await game.frame(performance.now());
   const data = { ship: { ...sim.ship }, order: 1, camera: game.rig.mode, binoculars: scope, magnification: game.rig.magnification,
-    pointerLocked: true, fps: 60, backend: game.water.backend, trail: [], combat: sim.telemetry('main', game.currentAim) };
+    pointerLocked: true, fps: 60, trail: [], combat: sim.telemetry('main', game.currentAim) };
   root.render(<ShipContext.Provider value={definition}><main className="game-shell" style={{ '--hud-scale': hudScale } as React.CSSProperties}><BinocularOverlay data={data}/><div className="hud-viewport"><FleetHud data={data} game={game} visible={!hidden} bindings={defaultKeybindings()}/></div></main></ShipContext.Provider>);
   return { width, height, scope, hidden, hudScale, flightTimeSeconds: data.combat.flightTimeSeconds, error: window.reviewError };
 };

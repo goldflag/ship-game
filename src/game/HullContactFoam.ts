@@ -67,7 +67,7 @@ export class HullContactFoam {
   private readonly matrix = new Matrix4();
   private node?: { x: object; z: object; foam: Node<'float'> };
 
-  /** Foam coverage on the water at a world position. The water's own height comes from its fragment. */
+  /** Foam coverage on the water. `x`/`z` anchor the noise; the hull test reads the fragment's drawn position. */
   foam(x: Node<'float'>, z: Node<'float'>): Node<'float'> {
     if (this.node?.x === x && this.node.z === z) return this.node.foam;
     const foam = this.evaluate(x, z);
@@ -142,13 +142,14 @@ export class HullContactFoam {
   private evaluate(x: Node<'float'>, z: Node<'float'>): Node<'float'> {
     return Fn(() => {
       const foam = float(0).toVar();
-      const y = positionWorld.y, point = vec4(x, y, z, 1);
+      // The surface passes its undisplaced grid point; the hull meets the water where the surface is drawn.
+      const point = vec4(positionWorld, 1), wx = positionWorld.x, wz = positionWorld.z;
       const range = vec3(cameraPosition.x.sub(x), cameraPosition.y, cameraPosition.z.sub(z)).length().max(1);
       // Three pixels stretched by the grazing view: a line narrower than that fades instead of shimmering.
       const finest = range.mul(this.pixelAngle).div(cameraPosition.y.abs().div(range).max(.04)).mul(3).toVar();
       Loop({ start: 0, end: this.count, type: 'int' }, ({ i }) => {
         const base = i.mul(STRIDE).toVar(), bound = this.data.element(base);
-        const dx = x.sub(bound.x), dz = z.sub(bound.y);
+        const dx = wx.sub(bound.x), dz = wz.sub(bound.y);
         If(dx.mul(dx).add(dz.mul(dz)).lessThan(bound.z), () => {
           const shape = this.data.element(base.add(4)), drive = this.data.element(base.add(5));
           const lx = this.data.element(base.add(1)).dot(point).toVar();

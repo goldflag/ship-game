@@ -1,8 +1,9 @@
 import * as THREE from 'three/webgpu';
-import { attribute, materialColor, materialMetalness, materialRoughness } from 'three/tsl';
+import { attribute, materialColor, materialMetalness, materialRoughness, vec4 } from 'three/tsl';
+import { applyShipSurfaceDetail, isPlatedPaint, isPlateSized, setShipSurfaceDetail, shipSurfaceMode } from './ShipSurfaceDetail';
 
-/** Per-vertex roughness and metalness, and the hull's rest wet-band height in metres. */
-const surface = attribute<'vec3'>('shipSurface', 'vec3');
+/** Per-vertex roughness, metalness, plated-paint flag and the hull's rest wet-band height in metres. */
+const surface = attribute<'vec4'>('shipSurface', 'vec4');
 const roughness = materialRoughness.mul(surface.x), metalness = materialMetalness.mul(surface.y);
 /** Rest height of a hull's wet band above the sea, in metres, by hull length; the sea state adds to it. */
 export const wetBandHeight = (length: number) => Math.max(.3, Math.min(.9, .2 + .0025 * length));
@@ -12,9 +13,10 @@ export interface PaintWeathering { dry: THREE.Node<'float'>; gloss: THREE.Node<'
 /** Encode constant paint in derived vertex colors so otherwise identical PBR
  * materials can share draws, including across different ship definitions. */
 export class ShipMaterialPalette {
+  /** `surfaceDetail` adds metric plating, paint roughness and teak detail (ships, not aircraft);
+   * `weathering` darkens and glosses every paint, such as the wet band at the waterline. */
+  constructor(private readonly options: { surfaceDetail?: boolean; weathering?: PaintWeathering } = {}) {}
   private readonly materials = new Map<string, THREE.MeshStandardNodeMaterial>();
-  /** Shared by every material, so weathering adds no node graph per paint. */
-  private weathered?: { color: THREE.Node<'vec3'>; roughness: THREE.Node<'float'> };
   /** One serialization scratchpad for every material: three caches images and textures
    * inside it, so a texture is described once instead of once per material. */
   private readonly meta = { textures: {}, images: {}, geometries: {}, materials: {}, shapes: {}, skeletons: {}, animations: {}, nodes: {} } as Parameters<THREE.Material['toJSON']>[0] & { images: Record<string, { uuid: string; url: string }> };
@@ -35,18 +37,33 @@ export class ShipMaterialPalette {
    * keep its materials out of the disposal sweep or the next reuse hands back a dead one. */
   sharedMaterials(): Iterable<THREE.Material> { return this.materials.values(); }
 
-  /** Ship views clone the shared paint, so weathering is fixed before the first hull is painted. */
-  constructor(weathering?: PaintWeathering) {
-    if (weathering) this.weathered = { color: materialColor.mul(weathering.dry), roughness: roughness.mul(weathering.gloss) };
-  }
+  /** Switch surface detail under `root` and keep the weathering layered over it. */
+  setSurfaceDetail(root: THREE.Object3D, on: boolean): void { setShipSurfaceDetail(root, on, material => this.weather(material)); }
 
-  private finish(material: THREE.MeshStandardNodeMaterial): void {
-    material.colorNode = this.weathered?.color ?? null;
-    material.roughnessNode = this.weathered?.roughness ?? roughness;
-    material.metalnessNode = metalness;
+  /** Weathering composes over whatever colour and roughness the paint already has; wrappers are
+   * shared per base node, so equal paints still compile to one program. */
+  private readonly weatheredNodes = new Map<THREE.Node, THREE.Node>();
+  /** Wrapper → the node it weathers, so weathering a material twice never darkens it twice. */
+  private readonly weatheredBases = new Map<THREE.Node, THREE.Node>();
+  private weather(material: THREE.MeshStandardNodeMaterial): void {
+    const weathering = this.options.weathering;
+    if (!weathering) return;
+    const shared = <T extends THREE.Node>(base: THREE.Node, make: () => T): T => {
+      let node = this.weatheredNodes.get(base) as T | undefined;
+      if (!node) { this.weatheredNodes.set(base, node = make()); this.weatheredBases.set(node, base); }
+      return node;
+    };
+    const unwrap = (node: THREE.Node | null) => node && (this.weatheredBases.get(node) ?? node);
+    const color = unwrap(material.colorNode) ?? materialColor;
+    material.colorNode = color === materialColor
+      ? shared(materialColor, () => materialColor.mul(weathering.dry))
+      : shared(color, () => vec4((color as THREE.Node<'vec4'>).rgb.mul(weathering.dry), (color as THREE.Node<'vec4'>).a));
+    const rough = unwrap(material.roughnessNode) ?? roughness;
+    material.roughnessNode = shared(rough, () => (rough as THREE.Node<'float'>).mul(weathering.gloss));
   }
 
   apply(root: THREE.Object3D): void {
+    if (this.options.surfaceDetail) root.updateMatrixWorld(true);
     const size = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
     const band = wetBandHeight(Math.max(size.x, size.z) || 0);
     const derived = new Map<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>();
@@ -58,28 +75,34 @@ export class ShipMaterialPalette {
         material.transparent || material.vertexColors || material.clippingPlanes || object.morphTargetInfluences?.length ||
         material.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile ||
         material.customProgramCacheKey !== THREE.Material.prototype.customProgramCacheKey) return;
-      const key = this.materialKey(material);
+      const mode = this.options.surfaceDetail ? shipSurfaceMode(material) : undefined;
+      const key = `${mode ?? ''}${this.materialKey(material)}`;
       let shared = this.materials.get(key);
       if (!shared) {
         shared = new THREE.MeshStandardNodeMaterial().copy(material as unknown as THREE.MeshStandardNodeMaterial);
         shared.color.setRGB(1, 1, 1); shared.vertexColors = true;
         shared.roughness = 1; shared.metalness = 1;
-        this.finish(shared);
+        shared.roughnessNode = roughness;
+        shared.metalnessNode = metalness;
+        if (mode) applyShipSurfaceDetail(shared, mode);
+        this.weather(shared);
         shared.name = 'Shared naval paint'; this.materials.set(key, shared);
       }
-      const source = object.geometry, colorKey = [...material.color.toArray(), material.roughness, material.metalness].join(',');
+      // Plated paint is a per-vertex class: materials that share one palette entry keep their own.
+      const plated = this.options.surfaceDetail && isPlatedPaint(material) && isPlateSized(object) ? 1 : 0;
+      const source = object.geometry, colorKey = [...material.color.toArray(), material.roughness, material.metalness, plated].join(',');
       let colors = derived.get(source);
       if (!colors) derived.set(source, colors = new Map());
       let geometry = colors.get(colorKey);
       if (!geometry) {
         const colored: THREE.BufferGeometry = source.clone();
         const color = new Float32Array(source.getAttribute('position').count * 3);
-        const surface = new Float32Array(source.getAttribute('position').count * 3);
+        const surface = new Float32Array(source.getAttribute('position').count * 4);
         const { r, g, b } = material.color;
         for (let i = 0; i < color.length; i += 3) { color[i] = r; color[i + 1] = g; color[i + 2] = b; }
-        for (let i = 0; i < surface.length; i += 3) { surface[i] = material.roughness; surface[i + 1] = material.metalness; surface[i + 2] = band; }
+        for (let i = 0; i < surface.length; i += 4) { surface[i] = material.roughness; surface[i + 1] = material.metalness; surface[i + 2] = plated; surface[i + 3] = band; }
         colored.setAttribute('color', new THREE.BufferAttribute(color, 3));
-        colored.setAttribute('shipSurface', new THREE.BufferAttribute(surface, 3));
+        colored.setAttribute('shipSurface', new THREE.BufferAttribute(surface, 4));
         colors.set(colorKey, colored); geometry = colored;
       }
       object.geometry = geometry; object.material = shared;

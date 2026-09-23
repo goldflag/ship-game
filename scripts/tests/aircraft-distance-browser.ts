@@ -5,8 +5,8 @@ import { shipPreset } from '../../src/ships/presets';
 
 /** Compare the aircraft presentation with its actual lit airframe. Only a
  * faint subpixel contact may supplement geometry, within its projected span. */
-export async function checkAircraftDistanceRendering(forceWebGL = false, verify = true) {
-  const renderer = new THREE.WebGPURenderer({ forceWebGL });
+export async function checkAircraftDistanceRendering(verify = true) {
+  const renderer = new THREE.WebGPURenderer();
   await renderer.init();
   const size = 512;
   renderer.setSize(size, size); renderer.setClearColor(0, 0);
@@ -43,18 +43,11 @@ export async function checkAircraftDistanceRendering(forceWebGL = false, verify 
         camera.position.set(0, 300, distance); camera.lookAt(0, 300, 0);
         camera.zoom = zoom; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
         view.update(sim, camera, true);
-        if (!wingspan) {
-          const bounds = new THREE.Box3(), matrix = new THREE.Matrix4();
-          for (const object of view.root.children) if (object instanceof THREE.InstancedMesh && object.visible && object.name.startsWith('Aircraft model ')) {
-            object.getMatrixAt(0, matrix);
-            const box = new THREE.Box3().setFromBufferAttribute(object.geometry.getAttribute('position') as THREE.BufferAttribute);
-            bounds.union(box.applyMatrix4(matrix));
-          }
-          wingspan = bounds.max.x - bounds.min.x;
-        }
+        // The full-detail airframe's own bounds; its rigid parts draw from one batch, not per-mesh instances.
+        wingspan ||= (view as unknown as { models: Map<string, { wingspan: number }> }).models.get(`${plane.modelId}/0`)!.wingspan;
         const span = wingspan * camera.projectionMatrix.elements[5] * size / (2 * distance);
         const full = await render();
-        const supplements = view.root.children.filter(c => c.visible && !c.name.startsWith('Aircraft model '));
+        const supplements = view.root.children.filter(c => c.visible && !/^Aircraft (model|parts) /.test(c.name));
         supplements.forEach(c => { c.visible = false; });
         const model = await render();
         supplements.forEach(c => { c.visible = true; });
@@ -72,6 +65,6 @@ export async function checkAircraftDistanceRendering(forceWebGL = false, verify 
       }
       plane.phase = 'lost';
     }
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
+    return { frames };
   } finally { target.dispose(); await view.dispose(); renderer.dispose(); }
 }

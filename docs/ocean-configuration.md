@@ -1,6 +1,20 @@
 # Ocean configuration
 
-The water starts from Water Pro 3.5.1's `blackFlag` preset. Sky Pro 2.2.0 supplies the live sky and reflections using its `partlyCloudy` preset. Configuration is in `src/game/Game.ts`; the defaults below refer to the shipped Black Flag preset, not any particular state of the interactive demo.
+The sea is the game's own WebGPU ocean in `src/game/ocean`. Its design, parts, quality tiers and
+validation are in [its README](../src/game/ocean/README.md); this page records the configuration the
+game gives it. Sky Pro 2.2.0 supplies the live sky, clouds and atmosphere, and the environment the
+water reflects.
+
+`Game.initialize` creates the ocean for the Graphics → Ocean tier (Low, Medium, High or Ultra; it
+applies when the port next loads) with wave seed 1941 (any integer is safe). From then on
+`VisualEnvironment` (`src/game/VisualEnvironment.ts`) writes each scene's sea, colours, foam, fog and
+light into the facade's live parameter objects (`ocean.waves`, `ocean.colors`, `ocean.foam`,
+`ocean.fog`, `ocean.sun`), and the next frame renders them. The values are artistic gameplay choices
+unless a section says otherwise.
+
+The game renders only through WebGPU. `src/game/webgpu.ts` asks `navigator.gpu` for an adapter before
+the renderer initialises and refuses a renderer that three dropped to WebGL2, so a browser without
+WebGPU gets the start-up error screen instead of a black canvas.
 
 ## Calibrated wind sea
 
@@ -19,293 +33,370 @@ These are representative conditions, not a wave forecast: the model has no fetch
 wind-duration history, water-depth-dependent spectrum or independent incoming
 swell. The peak wavelengths and wave periods remain visual/gameplay choices.
 
-`src/maps/seaCalibration.ts` separates significant height in metres from the
-Water Pro FFT amplitude multiplier. The latter was fitted against native GPU
-height samples at two wave times, then checked at a third time and intermediate
-wind speeds. Gains are specific to Water Pro 3.5.1, seed 1, spectral sharpness 0.8,
-JONSWAP gamma 2.6 and the current cascade layout. The fit uses
-`Hm0 = 4 × standard deviation`, the [NOAA spectral-height definition](https://www.ndbc.noaa.gov/faq/wavecalc.shtml).
-Recalibrate after changing the spectrum, seed or cascade layout. Calibration adds
-no GPU readback or normalization work to the normal game loop.
+`src/maps/seaCalibration.ts` turns wind into significant height and peak wavelength in metres,
+choppiness (0.65, rising to 1.55 between 3 and 15 m/s) and the crest and windward foam gains.
+`VisualEnvironment` writes them to `ocean.waves` with JONSWAP γ 2.6; `Game` keeps directional
+sharpness at 0.8, whose broader spread breaks parallel ripples into small crossing waves. The ocean
+normalises its spectrum so that 4 × the standard deviation of the rendered surface equals
+`significantHeight` (Hm0, the [NOAA spectral-height definition](https://www.ndbc.noaa.gov/faq/wavecalc.shtml)),
+so no renderer-specific gain is fitted and the table needs no recalibration when the spectrum or its
+cascades change. `window.reviewWaves()` on `/scripts/diagnostics/helm-optics.html` reads GPU heights
+back around the hull at four wave times and reports 4 × RMS beside the requested height.
 
-The production check sampled 6,144 heights per case across 39 High-quality
-wind/map combinations, including intermediate winds: every measured height was
-within 2% of its target. Medium and Ultra also stayed within 1% at 6, 9, 25 and
-30 m/s in the Atlantic. Low retains its single cascade and omits short waves;
-its measured height was 13% below target at 6 m/s and 5% below at 9 m/s, then
-within 2% at 25 and 30 m/s. Keep that quality tradeoff explicit when comparing.
+Wind speed also changes foam: whitecaps start earlier, and the high-wind gains decrease to retain dark
+water between breakers. Crest foam decays over 2.8 s with opacity 0.8 × the map's foam value / 0.45
+(0.8 in the Atlantic) and a 0.5 wind stretch. Surface foam is wind streaks: none up to 10 m/s, rising
+to opacity 0.15 over 5% of the sea by 25 m/s. Foam is an artistic choice; the flatter high-wind coverage
+is not a calibrated whitecap-fraction model.
 
-The selected natural-ocean treatment uses broader waves at moderate winds,
-with a smaller wavelength multiplier at high winds. Wind
-speed changes the native foam injection gains as well as the waves. Whitecaps
-start earlier, while the high-wind gains decrease to retain dark water between
-breakers. The 2.8 s foam decay, 0.8 Atlantic wave-foam opacity, 0.08 maximum surface
-foam opacity and native bubble textures remain fixed. Foam is an artistic choice;
-the flatter high-wind coverage is not a calibrated whitecap-fraction model.
-
-Map height multipliers remain 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 Indian;
-each has its own measured FFT gain to account for its wavelength scale. Numeric
-wind bypasses the map wind multiplier; legacy presets first resolve that wind
-multiplier, then enter the same calibration curve. Cloud cover remains independent
-of wave energy. Port resolves its standing 9 m/s wind through the same curve on
-the berth's map (1.8 m significant height, 32 m peak wavelength), so the developer
-console's reading is the sea on screen; only its daylight, clouds and fog stay
-port-specific. The hull on show rides that sea through `BerthMotion`, a
-presentation-only copy of the authority's sea response; the port session is
-still never stepped.
+Map multipliers are height 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 Indian; wavelength 1.0,
+0.8, 0.8 and 1.1; and the preset wind multiplier 1.0, 0.7, 0.65 and 1.1. Numeric wind bypasses the map
+wind multiplier; legacy presets first resolve that wind multiplier, then enter the same calibration
+curve. Cloud cover remains independent of wave energy. Port resolves its standing 9 m/s wind (toward
+35°) through the same curve on the berth's map (1.8 m significant height, 32 m peak wavelength), so
+the developer console's reading is the sea on screen; only its daylight, clouds and fog stay
+port-specific. The hull on show rides that sea through `BerthMotion`, a presentation-only copy of the
+authority's sea response; the port session is still never stepped.
 
 CPU combat receives the same significant height through `src/game/session/sea.ts`
-and `crates/naval-sim/src/environment.rs`, using the shared content manifest.
+and `crates/naval-sim/src/environment.rs`, using the shared content manifest; the
+simulation reads only `significantHeightM` and `peakWavelengthM` from the table.
 Its two sine components have weights 0.7/0.3, so their envelope amplitude is
-`Hs / (4 × sqrt((0.7² + 0.3²) / 2))`. This replaces interpreting the FFT gain as
-metres. The CPU retains its coarse four-times-peak-wavelength envelope and seeded
-phase; GPU detail never supplies combat poses, collision or flooding samples.
+`Hs / (4 × sqrt((0.7² + 0.3²) / 2))`. The CPU retains its coarse four-times-peak-wavelength
+envelope and seeded phase; GPU waves never supply combat poses, collision or flooding samples.
 The two surfaces share height statistics, not exact phases or a hydrodynamic model.
 
-Run `bun run water:calibration` to open the development-only
-`/scripts/diagnostics/ocean-calibration.html` page. Wind spans the full 0–30 m/s
-battle range; the map selector exercises sheltered maps. **Measure height** samples
-6,144 points over three wave times with the actual Game/Water Pro pipeline. Use
-`?wind=9&map=north-atlantic&quality=high` to restore a case; `low`, `medium` and
-`ultra` are also available. The Bismarck hull stays fixed as a size reference.
-Playback renders once per frame; screenshots are explicit. Temporary evidence
-belongs in ignored `.build/`. To refit an anchor, measure it, multiply its FFT gain
-by `target / measured`, then repeat the measurement and check neighboring speeds.
+## Water colour
 
-## Water appearance and rendering
+The selected **A · Steel blue** palette uses `waterColor #2d373c` and `transmissionColor #49575e`
+across all four maps and the port, a muted, cool blue-gray. Absorption is map-specific (Atlantic
+`#945b57`, Pacific `#b67b45`, Arctic `#916d59`, Indian `#a97851`) and the port inherits the Atlantic
+swatches. The pigment and foam are emitted radiance: `VisualEnvironment` scales them for night (see
+below), always starting from the original map swatches. The sky's environment lights every material
+at intensity 1.
 
-The selected **A · Steel blue** palette uses `waterColor #2d373c` and
-`transmissionColor #49575e` across all four maps and the port. It replaces the
-more saturated naval blue with a muted, cool blue-gray. The map-specific absorption
-colors remain unchanged (Atlantic `#945b57`), as do sky, fog, reflections and
-exposure. The port inherits the Atlantic swatches through `VisualEnvironment`.
-The 1,024 m largest FFT tile, foam textures,
-Fresnel parameters and quality-tier cascade counts are unchanged. High remains
-the default, including its third ripple cascade and screen-space reflections.
-Calibration adds no geometry, render passes or particles; altered slopes can
-still change fragment-shader work.
+Reflectance keeps a 1e-4 grazing guard rather than 0.05, so distant wave slopes keep distinct
+reflectance under 24× binoculars instead of turning into one flat colour. Submerged hulls and terrain
+show straight through the surface: the opaque scene at the same screen position, attenuated by
+`exp(−absorption × column)` and filled with the pigment, with no refraction offset.
 
-Water fog fades from 2,500 to 16,000 m with a 10,000 m sky blend. The grid retains
-its 256 m base and six levels; the ocean floor is hidden at configured depth 200 m.
-Spray and underwater particles remain disabled. Air operations expands the existing
-flat horizon ring for the map camera; it reuses that mesh on subsequent visits.
+## Fog
 
-## Current port light and horizon
+`ocean.fog` becomes `scene.fogNode` for every fogged material, including transparent effects: a ramp
+from `start` to `end` raised to `power`, whose colour turns into the sky's own fog colour along the
+view ray over `skyBlendDistance`. Sky backdrops are not fogged. The final composition adds no Sky Pro
+`applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the
+horizon.
 
-Port sun peak intensity is **5.8** and hemisphere fill **1.75**, lifting shaded hulls and harbor buildings. Exposure remains **1**, with the existing sun angles and restrained forward scattering.
+| Scene | Start | End | Power | Sky blend |
+| --- | --- | --- | --- | --- |
+| Before the first scene applies (`Game.initialize`) | 2,500 m | 16,000 m | 1.4 | 10,000 m |
+| Battle: the map's fog, then the weather's (Atlantic 8,000–48,000 m, 28,000 m blend) | map | map | 1.4 | map |
+| Port | 650 m | 5,600 m | 0.85 | 2,600 m |
 
-The additional horizon softening introduced with the naval-blue palette has been reverted. Sky and water use their existing Sky Pro / Water Pro shading, with the sky preset's original cloud fade distances. Battle fog uses power **1.4** and the complete authored sky-color blend distance for the selected map/weather. Port fog retains power **0.85** and a **2,600 m** sky-color blend distance. The custom horizon veil, cool-color sampler overrides and water-surface haze blend are removed; no depth-based post-fog is added.
+The air map pushes fog out to 400–900 km while it is open, and the developer console's visibility
+override scales the whole ramp. Night, dawn and dusk tint the fog colour (see below).
 
-Sky Pro's atmospheric march now uses a **0.8** correction toward midpoint attenuation near the daylight horizon, lifting the dark strip caused by its long sampling segments. The correction tapers to zero at **6°** view elevation and fades out between **18° and 6°** solar elevation. The upper sky, authored scattering colors, exposure, dusk and night retain their existing values. Reflections and far-fog sky color share the correction; see the [Sky Pro patch record](../vendor/threejs-sky-pro/PATCHES.md#daylight-horizon-attenuation--september-20-2026) and [GPU regression check](browser-verification.md#horizon-rendering-check).
+## Submerged camera
 
-The ocean retains spectral sharpness 0.8. Battle waves now follow the calibrated wind curve above; port keeps the original restrained tuning. The following correction sections also record earlier iterations and their evidence.
+The maps' absorption removes over 99% of green/blue light along a 50 m underwater column, which would
+hide our own Type VIIC at chase distance. `VisualEnvironment.update` eases the absorption to 5% of the
+surface value over the first 2 m of camera submersion, a 20× longer visibility range that keeps the
+water colour and distant haze, and restores the exact surface swatch when the camera comes back up. It
+is a gameplay visibility adjustment, not measured Atlantic water clarity.
 
-The vendored Fresnel shader's grazing-angle guard is reduced from 0.05 to 0.0001. The old guard gave shallow wave slopes identical reflectance, turning distant water into a flat color that was conspicuous at 24×. The smaller positive guard preserves wave shading at naval sight angles; texture filtering already follows the camera projection. It adds no wave samples, mesh detail or render passes. Pixel filtering and weather haze still soften the far horizon. See the [vendor patch record](../vendor/threejs-water-pro/PATCHES.md).
+A submerged camera sees the ocean's underwater pass (`ocean.postProcess`): exponential absorption
+toward the pigment over the distance to the first surface, with the waterline across the near plane
+handled per pixel. Nothing runs for it when the camera is certainly above the waves. The surface seen
+from below shows the sky through Snell's window and, outside it, a lit ceiling: daylight from the sky
+scattered along the surface, tinted by the map's absorption and dimmed over 60 m of camera depth, so
+the waves stay visible from a submarine's depth.
 
-### Submerged camera visibility
-
-Black Flag's custom absorption coefficients remove over 99% of green/blue scene light along a 50 m underwater column, making the VIIC disappear at ordinary chase distances. `VisualEnvironment.update` (called from `Game.frame`) now scales those coefficients from their original values to 5% using a smooth transition as the camera moves from sea level to 2 m below it. This gives the underwater view 20 times the absorption distance while retaining the blue water color and distant haze. It is a gameplay visibility adjustment, not measured Atlantic water clarity.
-
-The game shows submerged hulls and terrain through the surface using an undistorted scene sample, attenuated by the water column depth. Surface refraction and animated underwater distortion remain disabled; submerged cameras retain their unwarped view and underwater fog. Straight-through visibility reuses the opaque scene capture and the surface fragment's depth, so it does not require the separate surface water-depth pass or transparent-effect capture. That depth pass still runs for underwater fog. Sky reflections, FFT cascades, foam and wakes retain their quality settings. See the [vendor patch](../vendor/threejs-water-pro/PATCHES.md#straight-through-surface-visibility). If a diagnostic re-enables distortion, its intensity still eases to 15% below the surface using the saved preset value.
-
-The original linear RGB coefficients are saved once after loading the preset. Each frame derives its values from that copy, so repeated dives cannot accumulate the adjustment. Surface, tactical and above-water periscope cameras restore the original coefficients. The change uses Water Pro's public color uniforms; simulation depth, waves and the vendored shader remain separate.
-
-The dev-only `/scripts/diagnostics/underwater-visibility.html?test` runs the actual `Game.frame` and GPU water pipeline at 7, 50 and 150 m. It compares visible-hull pixels with the same view without the hull, and checks surface/periscope restoration. `window.visibilityResult.passed` must be true. Add `&legacy` to restore the old coefficients as a negative control; its dive checks must fail.
-
-Custom battle uses independent time-of-day, cloud-cover and wind-speed sliders.
-Wind is in m/s and drives the calibrated sea above; cloud cover changes sky coverage
-without changing wave energy. Legacy presets retain their wind speeds (Clear/Fog
-5 m/s, Map default/Partly cloudy 9 m/s, Overcast 12 m/s, Storm clouds 16 m/s), then
-apply the map wind multiplier. Their old amplitude and wavelength entries have been
-replaced by the shared calibration. Scene transitions restore the complete battle
-or port spectrum and foam settings from that same calibration.
-
-Nearby ships receive bow and stern wake generators scaled to their hull; their configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
-
-Funnel exhaust, gun and impact smoke, burning-turret smoke and falling-aircraft trails use the ocean's wind direction and weather-adjusted speed. Direction is in radians from +X toward +Z; visual drift uses 35% of ocean wind speed with each particle's existing response factor. Returning to port restores the harbor's standing wind (speed 9 m/s, direction 35°). The renderer-free sea model also uses this weather wind to drive gradual ship leeway. CPU waves add hull motion and heading-dependent resistance; shell flight still omits aerodynamic wind drift. See [the runtime contract](ship-runtime-contract.md#blueprint-and-simulation-contract).
-
-The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphere. That changes what the water reflects even if its material settings stay the same. Cloud reflections are baked at width 384 with 16 cloud march steps and 8 skipped frames. The game uses ACES tone mapping and neutral exposure; it does not add the demo's optional bloom or film grain.
-
-Water Pro's `scene.fogNode` owns distance fog, including transparent effects and the ocean's sky-color blend. The final composition uses Water Pro's output directly, without Sky Pro's additional `applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the ocean horizon. Sky Pro still supplies the sky, clouds, lighting and reflections.
-
-The game requests reversed depth for centimeter-scale ship details at long battle ranges. Three.js gives the main scene pass a floating-point depth attachment, retaining the 0.5 m battle near plane and 60 km far plane. Sky Pro 2.2.0's sky and cirrus background shaders require their constant far-depth value to match the active backend (0 for reversed depth, 1 otherwise); volumetric clouds already project their hit distance through the camera. Water and smoke use Three.js's depth conversion nodes, which account for reversed depth.
+`/scripts/diagnostics/underwater-visibility.html?test` runs the actual `Game.frame` at 7, 50 and 150 m.
+It compares visible-hull pixels with the same view without the hull and checks surface and periscope
+restoration; `window.visibilityResult.passed` must be true. Add `&legacy` to restore the surface
+absorption after each frame as a negative control; its dive checks must fail.
 
 ## Zoomed ship reflections and shadows
 
-Above 1.5× magnification in battle, `WaterViewFocus` selects the visible hull nearest
-the center of the rendered view. Its range extends water reflection rays to twice
-the camera-to-hull distance, capped at the camera far plane. The existing sun/moon
-shadow map follows that hull with its original size and resolution. Returning to
-an ordinary view, the air map or port restores the normal reflection range and
-shadow anchor. Selection is independent of combat targeting and works while paused.
+Above 1.5× magnification in battle, `WaterViewFocus` selects the visible hull nearest the centre of
+the rendered view. It stretches `ocean.reflections.maxDistance` from its 400 m base to twice the
+camera-to-hull distance, capped at the camera far plane, and the sun/moon shadow map follows that
+hull with its usual size and resolution. Returning to an ordinary view, the air map or port restores
+the base reach and shadow anchor. Selection is independent of combat targeting and works while
+paused.
 
-High and Ultra retain screen-space ship reflections; Medium keeps them disabled.
-The water shader clips reflection rays to the viewport, refines geometry hits more
-precisely and uses full-float reflection depth to avoid distant speckling. Screen-space
-reflections still omit offscreen geometry and break up with wave slopes. This extends
-the reflected ship silhouette on water and the ship's own sun/moon shading.
+Graphics → Reflections **Ships and sky** turns on screen-space ship reflections where the tier traces
+them: High with 16 ray steps and Ultra with 32. Low and Medium reflect only the sky. Rays are clipped
+to the viewport, marched in reciprocal depth and refined with binary steps against full-float depth
+(see the ocean README), off a normal keeping 30% of the wave slope so a hull's image wavers rather than
+breaking into speckle. Screen-space reflections still omit offscreen geometry.
 
-The displaced water surface also receives ship shadows from that same directional
-shadow map. `WaterShadows` binds its depth texture after the scene renders
-and adds no shadow map or caster pass. Graphics → Water shadows applies live:
-Off removes water shadow sampling, Low uses one comparison, Medium uses four,
-and High uses the original nine-tap soft filter. Overall Low/Medium/High/Ultra
-presets choose Off/Low/High/High respectively; saved settings retain the choice.
-A shader branch skips those texture reads outside the shadow camera's bounds;
-each enabled quality only filters water inside those bounds.
-Shadows attenuate the lit water color, subsurface scattering, glints and foam while retaining ambient fill
-and sky reflections. They follow the active sun/moon and the existing local or
-zoomed hull anchor; ships outside that map's 760 m footprint do not cast water
-shadows. The Shadows setting controls map resolution for both hull and water shadows;
-its Off option overrides Water shadows without losing the selected water quality.
-Off stops shadow-map rendering and sets its intensity to zero; an already
-allocated map is retained so cached scene-capture programs can safely reuse it
-when shadows are enabled again.
+The displaced surface also receives ship shadows from the same directional shadow map.
+`src/game/WaterShadows.ts` builds a receiver node from the light's depth texture and binds it with
+`ocean.setShadowNode`; it adds no shadow map or caster pass. Graphics → Water shadows applies live: Off
+removes the sampling, Low uses one comparison, Medium four and High a nine-tap soft filter. The
+Low/Medium/High/Ultra presets choose Off/Low/High/High. A shader branch skips the texture reads
+outside the shadow camera's bounds. Shadows attenuate the lit terms (sun specular and glints,
+subsurface light and foam); the ambient pigment keeps 45% in full shadow and the sky reflection is
+unshadowed. They follow the active sun or moon and the local or zoomed hull anchor; ships outside the
+map's 760 m footprint cast no water shadows. The Shadows setting controls map resolution for both hull
+and water shadows; its Off option overrides Water shadows without losing the selected water quality.
+Off stops shadow-map rendering and sets its intensity to zero; an already allocated map is kept so
+cached programs can reuse it when shadows are enabled again.
 
-The dev fixture `/scripts/diagnostics/water-shadows.html?test` compares frozen
-frames with only water shadow reception disabled/enabled, checks restoration and
-all four live water quality levels and global Off/Low/High settings, and exposes `window.shadowResult.passed`. Add `&calm`
-for a flat sea or `&webgl` for the fallback backend. WebGL capture uses the
-direct scene draw because this review host returns an empty post-process
-framebuffer; that check covers water shading, not the final composition.
-Temporary captures belong in `.build/`.
+Checks, with the game paused and ocean time frozen:
 
-The development fixture `/scripts/diagnostics/water-reflections.html?test` compares
-the old range against zoomed coverage at 5 km and 20 km, then checks restoration.
-Use `&calm` for a mirror comparison or `&webgl` for the fallback renderer. It exposes
-`window.reflectionResult.passed` and `reflectionReview.still()` for inspected images.
-Temporary captures belong in `.build/`. See the [vendor patch](../vendor/threejs-water-pro/PATCHES.md#naval-range-ship-reflections).
+- `/scripts/diagnostics/water-shadows.html?test` compares frames with only water shadow reception
+  disabled and enabled, checks restoration, all four water shadow levels and global Off/Low/High, and
+  exposes `window.shadowResult.passed`. Add `&calm` for a flat sea.
+- `/scripts/diagnostics/water-reflections.html?test` looks at a hull 5 km and 20 km away through 24×
+  binoculars and counts the pixels the reflections change (the same frame traced and untraced), with
+  the base reach and with `WaterViewFocus`; the focused reach must change at least twice as many
+  pixels, move the shadow anchor onto the hull, and restore both at 1×. It exposes
+  `window.reflectionResult.passed`.
 
 ## Ship wake
 
-`src/game/ShipWake.ts` combines Water Pro's wave displacement with independent per-ship foam histories in `src/game/WakeFoam.ts`, packed into one shared texture by `src/game/FleetWakeFoam.ts`. Both are sampled by the actual water material, so foam follows the ocean's displacement, lighting and bubble texture. There is no floating decal or flat plane above the sea.
+Every hull on the water leaves a wake in two layers, both shaded by the ocean surface itself; there
+is no decal or flat plane above the sea. `src/game/ShipWake.ts` configures them and composes the
+surface's wake foam as the maximum of the field's breaking foam, the trail foam and torpedo tracks
+(`ocean.setWakeSampler`).
 
-The displacement field covers **1,536 × 1,536 m**, centered on the player through a dedicated downward-facing anchor camera. Moving the viewing camera cannot discard or reposition the existing trail. The selected quality's cell count stays unchanged (Medium 256², High 512², Ultra 1024²); the smaller extent improves spatial detail over the previous 2,048 m field without increasing the solve cost.
+**Wake field** (`ocean.wake`, `src/game/ocean/wake/`): a dispersive displacement field of
+**1,536 × 1,536 m** centred on the focus hull, so the camera can orbit and zoom without moving the
+trail. Cells per edge follow the tier: Low has no field, Medium 256², High 512², Ultra 1024². Its 16
+generators go to the nearest eight hulls within 900 m. Bow and stern generators sit at ±44.8% of hull
+length with radii of 28% and 39% of beam (about **10 m** and **14 m** for Bismarck) and full-speed
+depths of **0.32 m** and **0.18 m**, scaled by the square of the speed ratio; they switch off below
+0.1 m/s and fade as a submarine submerges. Friction is **0.065**, breaking foam starts at a slope of
+**0.015** over the field's 12 m baseline, foam strength is **1.2** × the fastest nearby hull's speed
+ratio and foam lives **9 s**. Moves over 100 m are teleports and restart a generator. The field's
+physics, costs and diagnostics are in the ocean README; `bun scripts/browser/ocean-wake.ts` runs
+`/scripts/diagnostics/ocean-wake.html`.
 
-The native solver supports **16 generators**, allocated to the nearest eight hulls in its local field. Bow/stern offsets are ±44.8% of hull length; radii are 28% and 39% of beam (about **10 m** and **14 m** for Bismarck), with full-speed displacement depths of **0.32 m** and **0.18 m**. Depth scales with squared speed, and the emitters switch off below 0.1 m/s. Friction is **0.065**, allowing the disturbance to spread outward; native foam strength is limited to **1.2** and the breaking threshold is **0.09**. The native foam uses `exp(-dt / 9)` decay. These are visual tuning values rather than a calibrated hydrodynamic model.
+**Trail foam** (`src/game/WakeFoam.ts`, `src/game/FleetWakeFoam.ts`): each ship records a position,
+heading, speed and birth time at most every **3 m** of hull-end travel, including the arc swept
+during turns, which keeps foam attached to the stern even when the ship's centre moves slowly. Three
+stern streams merge and widen with age, while bow-shoulder foam moves sideways from the recorded
+course. Old samples keep their original heading through turns. Coverage decays over **23 seconds**,
+with a smooth cutoff at **55 seconds**, and slow world-space turbulence breaks up the outline.
+Emission follows motion, reverses its trailing end when sailing astern, fades to nothing 3 m below the
+surface and restarts after a move of over 100 m. Shell splashes and aircraft crashes add short-lived
+foam rings. For constructed ships, emitters use the compiled hull-volume bounds and their local
+centre, so the authoring origin need not be amidships.
 
-Foam history records a position, heading, speed and birth time at most every **3 m** of hull-end travel, including the arc swept during turns. This keeps foam attached to the stern even when the ship's centre moves slowly. Three stern streams merge and widen with age, while bow-shoulder foam moves sideways from the recorded course. Old samples keep their original heading through turns. Coverage decays over **23 seconds**, with a smooth cutoff at **55 seconds**, and slow world-space turbulence breaks up the outline. The water material's foam texture dissolves the remaining patches. Emission follows motion and reverses its trailing end when sailing astern.
+Each ship has its own **1,536 m** foam field (the tier's wake resolution up to 256², 128² on Low),
+refreshed at most **20 times per second**, or 5 times when the hull is more than 2.5 km away in
+apparent distance. An **8 × 8 atlas** keeps one texture binding for up to 64 trails; a larger battle
+keeps the focus hull and the trails nearest to it. `WakeFoamGpu` paints the stamps into the atlas on
+the GPU with max blending; overlapping samples use maximum coverage rather than additive buildup.
 
-For constructed ships, both displacement and foam emitters use the actual compiled hull-volume bounds and their local centre. The authoring origin need not be amidships; symmetric broad bounds in the hull definition do not determine wake placement. Authored-station ships retain their centred length/beam offsets.
+**Torpedo tracks** (`src/game/TorpedoTrackFoam.ts`): exhaust released at running depth rises at
+1.5 m/s, so a track begins astern of the round, stays where it was laid and outlives it (30 s).
+Airborne rounds and rounds deeper than 8 m leave none. One 1,024² field follows the viewer, or under
+magnification the round nearest the line of sight.
 
-Each ship has its own **1,536 m** foam field at **256²**, updated at most **20 times per second**. An **8 × 8 atlas** keeps one GPU texture binding and supports the full 60-ship battle; distant ships retain local trail resolution independently of the player’s displacement field. The shader checks tile bounds before sampling and combines overlapping ship fields with maximum coverage. Hull length and beam determine the foam emission positions and initial width; speed is normalized to each ship’s handling definition. Submergence fades emission to zero at 3 m below the surfaced origin. Overlapping samples use maximum coverage rather than additive buildup. Distance-based samples and interpolated birth times keep density consistent across rendering frame rates. Stopping leaves existing foam to spread and fade; returning to port clears both foam and displacement.
+A paused frame renders without stepping: `ocean.update(0)` advances neither waves, foam nor wake, and
+the trail and track layers ignore a zero step. Returning to port clears the field, trails and tracks.
 
-The WebGPU raster stores atlas rows in the same order as the CPU data texture. The dev-only `/scripts/diagnostics/wake-foam-gpu.html` compares both raw coverage and the world-space sampler used by the water, including different atlas rows, turns, pause, teleport, tile reassignment and reset. Its `window.result.passed` must be true; comparing a manually flipped readback alone misses an upside-down atlas at rendering time.
+Checks:
+
+- `/scripts/diagnostics/ship-wake.html` sails a real battle's Bismarck through `Game.frame` with a
+  controlled clock and helm and reads the GPU trail atlas back: no foam at rest, visible foam 262 m
+  astern at speed, a trail that widens with age, exact preservation through a paused camera orbit,
+  retention through a turn, fading after the engines stop and clearing in port.
+  `window.wakeDiagnostic.passed` must be true; `?quality=` selects the tier.
+- `/scripts/diagnostics/wake-foam-gpu.html` compares the GPU atlas with the CPU reference raster
+  (`src/game/testing/wakeFoam.ts`), both raw coverage and the world-space sampler the water uses,
+  through turns, pause, teleport, tile reassignment and reset. `window.result.passed` must be true;
+  comparing a manually flipped readback alone would miss an upside-down atlas.
+- `/scripts/diagnostics/torpedo-trail.html` lays synthetic torpedo runs through the real track layer
+  for review captures (`trailFixture(degrees, depth, seconds, turnAt, view)`).
+- Unit tests cover 60 independent trails, a stopped player, submerged ships, per-ship teleports, tile
+  reassignment, the generator limit, fleet replacement and port cleanup.
 
 ### Bow waves
 
-`src/game/BowWaves.ts` draws each moving hull's bow wave analytically in the hull's own frame and joins the same wake sampler: its height adds to the vertex displacement, its slope to the surface normal and its white water to the foam by maximum coverage. Crests therefore stay sharp at any range, which the native field's 3 m cells cannot. The eight nearest moving, surfaced hulls to the camera are drawn; speed is the displayed speed smoothed over 2.5 s, submergence fades it out and going astern draws none.
+`src/game/BowWaves.ts` draws each moving hull's bow wave analytically in the hull's own frame and joins the same wake sampler: its height adds to the vertex displacement, its slope to the surface normal and its white water to the foam by maximum coverage. Crests therefore stay sharp at any range, which the wake field's 3 m cells cannot. The eight nearest moving, surfaced hulls to the camera are drawn; speed is the displayed speed smoothed over 2.5 s, submergence fades it out and going astern draws none.
 
 - **Stem crest.** A crest climbs the stem, peels away from a fine-entrance waterline at `crestAngle` (tan, 0.18) and has a trough inboard of it, over a broad rise around the stem. Its height is 0.3 × U²/2g, scaled by beam and capped at 4 m (about 2.8 m for Bismarck at 26.6 kn). White water covers the stem and rides just outboard of the crest, then trails aft and spreads, with broken water along the forward hull side.
 - **Kelvin V.** The closed-form stationary-phase solution for a point source carries a transverse and a divergent system inside the 19.47° cusp. It uses an Airy-style cusp limit and an e^(−kd) source depth of a quarter beam. Its slope is the wave vector, so normals need no finite differences. The amplitude (1.6 × U²/2g × √(beam/length)) is exaggerated so the V reads in a 9 m/s sea. In calm water the curved transverse crests and both arms show in the sky reflection. Divergent crests break into feathered dashes near the cusp. `kelvinSystems` is the CPU reference, tested against the brute-force Kelvin integral.
 - **Turns.** The V is laid along the arc the stem has run, using track curvature measured from each hull's heading change per metre, so it follows the curved stern trail instead of swinging with the bow. The crest and hull-side wash stay in the straight hull frame.
 - **Resolution.** Displaced features must span four water-mesh vertices (the clipmap rings double from 4 m on High), so they do not crawl as the hull crosses the grid. Normals and foam must span five pixels, stretched by the grazing angle, so distant crests fade rather than shimmer.
 
-While the layer is on, trails stop painting their bow-shoulder stamps; the stern streams are unchanged. The developer console's **Toggle bow waves** compares against the native field alone, and `game.shipWake.bowWaves.tuning` retunes the shape live. With vsync off at 1728×1030 on an Apple GPU, switching the layer off and on every 0.6 s over 20 rounds, it added about 0.2 ms per frame with one hull in view and 0.8–1.2 ms with eight hulls whose wakes fill the view. Cost grows with the water pixels inside wakes. The CPU update takes under 1 µs per frame, and the layer adds about 10 KB to the water's 107 KB fragment shader. These are visual tuning values, not a hydrodynamic model.
+While the layer is on, trails stop painting their bow-shoulder stamps; the stern streams are unchanged. The developer console's **Toggle bow waves** compares against the wake field alone, and `game.shipWake.bowWaves.tuning` retunes the shape live. Measured on the previous ocean with vsync off at 1728×1030 on an Apple GPU, switching the layer off and on every 0.6 s over 20 rounds, it added about 0.2 ms per frame with one hull in view and 0.8–1.2 ms with eight hulls whose wakes fill the view; cost grows with the water pixels inside wakes. The CPU update takes under 1 µs per frame. These are visual tuning values, not a hydrodynamic model.
 
 ### Hull waterline
 
 Two visual-only layers make hulls sit in the sea rather than on it. Neither reads or feeds the simulation.
 
-- **Wet band.** `src/game/HullWetBand.ts` darkens albedo by 45% and cuts roughness by 60% on every shared ship paint within a band just above the sea at that fragment, and everywhere below it. The sea height is read per fragment exactly as the water mesh draws it: the FFT cascades (two fixed-point steps undo the choppy sideways displacement) plus the native wake field and the bow waves, so the band climbs the stem underway and follows each crest along the side. The band is 0.3–0.9 m at rest by hull length (the paint palette stores it as the third `shipSurface` component), plus 0.2 m per metre of significant wave height, capped at 1.6 m; noise breaks its upper edge into short tongues. Fragments above the tallest possible crest plus band, or below the deepest trough, skip the sea read. Premade and construction hulls share the palette, so both get it; ship views clone the paint, so the palette receives the band when it is created, and the sea attaches once the water exists, before the first compile. One node graph serves every paint.
-- **Contact foam.** `src/game/HullContactFoam.ts` joins the wake sampler's foam by maximum coverage: a narrow line of broken water outboard of each hull, faint at rest (0.2 coverage plus 0.035 per metre of significant height), stronger underway (+0.4) and toward the stem (+0.55 over the forward 30%), capped at 0.8 and torn by world-anchored noise. Its hull shape is sliced from the drawn model itself (`hullWaterlineProfile.ts`): 32 stations by 7 levels from −6 m to +6 m about the design waterline, sliced once per hull while its model loads (tens to a couple of hundred milliseconds for a detailed model, which must not land in a battle frame). The water fragment transforms itself into the hull's drawn frame, heave, pitch and roll included, and reads the breadth at its own height, so the line stays on the hull in a heavy sea; empty stations past the ends read as inside the hull, so no foam trails off the stem or stern. Like the bow waves, a line narrower than three grazing-stretched pixels widens and fades rather than shimmering, and hulls where it would span under a twentieth of that are not slotted at all. The eight nearest surfaced hulls within 4 km are drawn. Everything per hull lives in one uniform buffer, since the water's fragment stage is already at WebGPU's 16 sampled-texture limit; every open-water pixel tests one bounding circle per slot.
+- **Wet band.** `src/game/HullWetBand.ts` darkens albedo by 45% and cuts roughness by 60% on every shared ship paint within a band just above the sea at that fragment, and everywhere below it. The sea height is read per fragment exactly as the surface draws it: `waveField.heightAt` (the FFT cascades, inverting the choppy sideways displacement) plus the wake field and the bow waves, so the band climbs the stem underway and follows each crest along the side. The band is 0.3–0.9 m at rest by hull length (the paint palette stores it as `shipSurface.w`, beside roughness, metalness and the surface-detail plating flag), plus 0.2 m per metre of significant wave height, capped at 1.6 m; noise breaks its upper edge into short tongues. Fragments above the tallest possible crest plus band, or below the deepest trough, skip the sea read. Premade and construction hulls share the palette, so both get it; ship views clone the paint, so the palette receives the band when it is created, and the sea attaches once the water exists, before the first compile. The band multiplies whatever colour and roughness surface detail gives a paint (the teak `colorNode`, plated or plain roughness), with one wrapper per base node, so equal paints still share a program.
+- **Contact foam.** `src/game/HullContactFoam.ts` joins the wake sampler's foam by maximum coverage: a narrow line of broken water outboard of each hull, faint at rest (0.2 coverage plus 0.035 per metre of significant height), stronger underway (+0.4) and toward the stem (+0.55 over the forward 30%), capped at 0.8 and torn by world-anchored noise. Its hull shape is sliced from the drawn model itself (`hullWaterlineProfile.ts`): 32 stations by 7 levels from −6 m to +6 m about the design waterline, sliced once per hull while its model loads (tens to a couple of hundred milliseconds for a detailed model, which must not land in a battle frame). The water fragment transforms its displaced world position into the hull's drawn frame, heave, pitch and roll included, and reads the breadth at its own height, so the line stays on the hull in a heavy sea; empty stations past the ends read as inside the hull, so no foam trails off the stem or stern. Like the bow waves, a line narrower than three grazing-stretched pixels widens and fades rather than shimmering, and hulls where it would span under a twentieth of that are not slotted at all. The eight nearest surfaced hulls within 4 km are drawn. Everything per hull lives in one uniform buffer, so the surface gains no texture binding; every open-water pixel tests one bounding circle per slot. The surface's own depth-based shoreline foam also draws a faint line where a hull meets the water; the contact foam adds the speed, bow and sea-state shaping that depth alone cannot.
 
 `game.hullWetBand.enabled` (a uniform) and `game.shipWake.hullFoam.enabled` switch the layers for comparison; `game.shipWake.hullFoam.tuning` retunes the foam live. Neither adds a render pass.
 
-Pausing switches the ocean to fixed-step mode with zero elapsed time, allowing rendering without stepping its wake integrators. This avoids Water Pro's host-clock `update(0)` continuing to extrapolate wake heights and decay foam while paused. Unpausing restores the host clock.
+## Wind
 
-The dev-only `/scripts/diagnostics/ship-wake.html` page runs the actual Game frame loop with controlled input and clock, then reads the native WebGPU wake buffers and foam coverage texture. It checks no wake at rest, foam 150 m behind the stern, widening with age, bounded displacement, retention through turns and camera orbit, exact field preservation while paused, fading after stopping, and clearing on return to port. Results are exposed as `window.wakeDiagnostic`; `?quality=medium` or `?quality=ultra` select the other field resolutions. Private buffer inspection is specific to Water Pro 3.5.1. Fleet regression tests additionally cover 60 independent trails, a stopped player, submerged ships, per-ship teleports, tile reassignment, the native generator limit, fleet replacement, and port cleanup.
+Funnel exhaust, gun and impact smoke, burning-turret smoke and falling-aircraft trails use the
+ocean's wind direction and speed; flags and radars read the same wind. Direction is in radians from
++X toward +Z; visual drift uses 35% of the wind speed with each particle's own response factor.
+Returning to port restores the harbor's standing wind (9 m/s toward 35°). The renderer-free sea model
+also uses this weather wind to drive gradual ship leeway. CPU waves add hull motion and
+heading-dependent resistance; shell flight still omits aerodynamic wind drift. See
+[the runtime contract](ship-runtime-contract.md#blueprint-and-simulation-contract).
 
 ## Night and sunrise lighting
 
-The numeric time slider now blends the authored night, dawn/dusk and map fog
-colors by solar elevation. The original implementation changed the sun position
-but retained the map's daytime fog. Hemisphere fill retains 50% of the map/weather
-daylight setting at night and reaches full strength at 18° elevation. This keeps
-ship details readable while preserving a darker sea and sky.
+The numeric time slider blends the authored night, dawn/dusk and map fog colours by solar elevation.
+Hemisphere fill retains 50% of the map/weather daylight setting at night and reaches full strength at
+18° elevation. This keeps ship details readable while preserving a darker sea and sky.
 
-`VisualEnvironment.syncLighting` (`src/game/VisualEnvironment.ts`) supplies the same active celestial light to Water Pro's
-shader uniforms, its scene directional light and combat effects. It runs after
-Sky Pro updates and after Water Pro resynchronizes its provider light, including
-paused frames. Moonlight fades near the horizon; the low sun receives a warmer
-tint and reduced direct intensity, reaching the original daylight at 18°.
+`VisualEnvironment.syncLighting` supplies the same active celestial light to the ocean (`ocean.sun`:
+direction, intensity and colour), the scene's directional light and its shadows, and combat effects,
+including on paused frames. Moonlight fades near the horizon; the low sun receives a warmer tint and
+reduced direct intensity, reaching the full daylight at 18°.
 
-Moon ambient is 0.07 with tint `#b4c9f0`. The custom water and foam colors use 24%
-of their original linear radiance at night, reaching 100% at 18°; each application
-starts from the original map/Black Flag swatches. Absorption and wave energy are
-unchanged. Port restores its original colors, fill and direct light.
+Moon ambient is 0.07 with tint `#b4c9f0`. The water pigment, transmission and foam use 24% of their
+original linear radiance at night, reaching 100% at 18°. Absorption and wave energy are unchanged.
+Port restores its original colours, fill and direct light.
 
-Cloud ambient gain remains 1.1 × weather scale because Sky Pro already attenuates
-the incoming solar radiance. Its shared cloud baker and aerial haze now include
-lunar diffuse light; its night composite preserves premultiplied color when
-adjusting opacity. These [vendor patches](../vendor/threejs-sky-pro/PATCHES.md)
-also apply to water reflections. They add no render passes or cloud march samples.
-The settings are artistic gameplay lighting, not a geographic or calibrated
-astronomical model.
+Cloud ambient gain remains 1.1 × weather scale because Sky Pro already attenuates the incoming solar
+radiance. Its shared cloud baker and aerial haze include lunar diffuse light; its night composite
+preserves premultiplied colour when adjusting opacity. These
+[Sky Pro patches](../vendor/threejs-sky-pro/PATCHES.md) also reach the water's reflections. They add
+no render passes or cloud march samples. The settings are artistic gameplay lighting, not a
+geographic or calibrated astronomical model.
 
-## Daylight correction
+`/scripts/diagnostics/night-lighting.html` (`reviewLighting(hours, options)`) checks that the ocean
+and the scene light carry the same intensity, and that a battle night has the night fog colour and
+lunar cloud fill.
 
-The first pass used sun elevation 28°, sun peak intensity 3.2, environment lighting 0.55, and hemisphere fill 0.4, plus a blue HUD gradient reaching 79% opacity at the bottom. Their combined effect was too dark for daytime.
+## Sky and atmosphere
 
-The corrected setup uses sun elevation 48°, sun intensity 6.6, environment lighting 1.0, hemisphere fill 0.65 with a lighter tint, and cloud-base shadow strength 0.60 instead of 0.88. The HUD shade is now confined to shorter edge regions (20% opacity at the top, 44% at the bottom), and hides with the instruments. Wave shape, foam, water colors, and fog remain as listed above.
+Sky Pro's animated clouds and atmosphere are what the water reflects. Its environment bake follows
+Graphics → Clouds (for example 384 px wide with 16 cloud march steps at Medium) and refreshes every
+ninth frame. The game uses ACES tone mapping and neutral exposure, without bloom or film grain.
 
-## Cloud fill correction
+The game requests reversed depth for centimetre-scale ship details at long battle ranges. Three.js
+gives the main scene pass a floating-point depth attachment, retaining the 0.5 m battle near plane and
+60 km far plane. Sky Pro 2.2.0's sky and cirrus background shaders need their constant far-depth value
+to match (0 for reversed depth); volumetric clouds already project their hit distance through the
+camera. The ocean and smoke use Three.js's depth conversion nodes, which account for reversed depth.
 
-The cloud undersides remained too dark after the first daylight pass. Sky Pro's cloud volumes use their own lighting calculation; increasing the scene's hemisphere light does not illuminate them. The inherited `partlyCloudy` preset supplies ambient intensity 0.7 and very dark ground-bounce albedo (approximately 0.0091, 0.0152, 0.0185 in linear RGB), while the game still applied base-shadow strength 0.60.
+### Port light and horizon
 
-The current cloud lighting uses base-shadow strength **0.20**, ambient intensity **1.10**, and ground-bounce albedo **(0.09, 0.105, 0.12)** in linear RGB. This is an artistic fill adjustment for brighter daylight cloud bases, not a measured ocean reflectance. It retains a cool gray underside and brighter sunlit edges. The water reflects the brighter cloud lighting through the existing SkyProvider. The change was checked in the WebGPU scene with the same camera, including the normal sailing view.
+Port sun peak intensity is **5.8** and hemisphere fill **1.75**, lifting shaded hulls and harbor
+buildings. Exposure remains **1**, with the existing sun angles and restrained forward scattering.
+Battle fog uses power **1.4** and the complete authored sky-colour blend distance for the selected
+map/weather; port fog uses power **0.85** and a **2,600 m** blend. There is no custom horizon veil and
+no depth-based post fog.
 
-## Softer daylight and scattered clouds
+Sky Pro's atmospheric march uses a **0.8** correction toward midpoint attenuation near the daylight
+horizon, lifting the dark strip caused by its long sampling segments. The correction tapers to zero at
+**6°** view elevation and fades out between **18° and 6°** solar elevation. The upper sky, authored
+scattering colours, exposure, dusk and night keep their values. Reflections and far-fog sky colour
+share the correction; see the
+[Sky Pro patch record](../vendor/threejs-sky-pro/PATCHES.md#daylight-horizon-attenuation--september-20-2026)
+and the [GPU regression check](browser-verification.md#horizon-rendering-check).
 
-The port sky still read as dark slate blue. The current tuning reduces molecular blue scattering, broadens aerosol scattering, and increases diffuse sky fill. Port sun intensity rises from 3.8 to 5; the sea keeps its 6.6 intensity. Exposure remains 1. These are visual settings, not a calibrated atmosphere.
+### Daylight
 
-| Sky parameter | Port before → after | Sea before → after |
+The Atlantic's daytime setup uses sun elevation 48°, sun intensity 6.6, environment lighting 1.0 and
+hemisphere fill 0.65 with a light tint; the other maps author their own sun, fill and sky. The HUD shade is confined to short edge regions (20% opacity at the top,
+44% at the bottom) and hides with the instruments.
+
+Sky Pro's cloud volumes use their own lighting; the scene's hemisphere light does not reach them. The
+cloud lighting uses base-shadow strength **0.20**, ambient intensity **1.10** and ground-bounce albedo
+**(0.09, 0.105, 0.12)** in linear RGB, an artistic fill for bright daylight cloud bases with a cool
+gray underside and brighter sunlit edges. The water reflects that lighting through the sky provider.
+
+The sky scattering is tuned away from a dark slate blue: less molecular blue scattering, broader
+aerosol scattering and more diffuse sky fill. These are visual settings, not a calibrated atmosphere.
+
+| Sky parameter | Port | North Atlantic |
 | --- | --- | --- |
-| Rayleigh | 0.9 → 0.42 | 0.41 → 0.38 |
-| Turbidity | 3.2 → 3.2 | 1 → 2.2 |
-| Mie scattering strength | 0.65 → 1.2 | 0.19 → 0.5 |
-| Mie directional G | 0.8 → 0.6 | 0.8 → 0.72 |
-| Sky multiple scattering | 0.66 → 1.4 | 0.66 → 1 |
-| Cloud coverage control | 0.48 → 0.38 | 0.64 → 0.40 |
+| Rayleigh | 0.42 | 0.38 |
+| Turbidity | 3.2 | 2.2 |
+| Mie scattering strength | 0.25 | map value × 0.45 (`SUN_HAZE`) |
+| Mie directional G | 0.6 | 0.72 |
+| Sky multiple scattering | 1.4 | 1 |
+| Cloud coverage control | 0.38 | 0.40 |
 
-Both scenes use cloud thickness 2,400 m (previously 3,200 m), altitude 1,700 m, and horizon coverage boost 0.06 (previously 0.12). Coverage is a nonlinear shape control, not a percentage of visible sky. Cloud fill, water material, sun direction, and harbor fog retain their existing settings. Scene transitions restore all scene-specific sky parameters.
+The port and the Atlantic use cloud thickness 2,400 m, altitude 1,700 m and horizon coverage boost
+0.06. Coverage
+is a nonlinear shape control, not a percentage of visible sky. Scene transitions restore all
+scene-specific sky parameters.
 
-## Sun glare and celestial disc size
+### Sun glare and celestial discs
 
-Facing the sun at sea, the forward aureole bleached about a third of the sky and the water beneath it, around a 3.2° sun disc (the moon was 3.6°). `VisualEnvironment` now applies `SUN_HAZE` **0.45** to every map and weather preset's authored `mie` strength, preserving their relative haze, and draws both discs at 1.4° (`CELESTIAL_DISC` 7.5e-5; the real discs are 0.53°). Sun intensity, exposure, `mieG`, turbidity, clouds, fog and the port's own 0.25 Mie strength are unchanged, and the down-sun view rendered identically in a fixed-camera comparison. Raising `mieG` concentrated the same light into a hotter core, and a disc-only brightness multiplier made no visible difference after ACES, so neither is used. The low sun remains the brightest case. This is artistic tuning, not a calibrated atmosphere.
+Facing the sun at sea, the forward aureole once bleached about a third of the sky and the water
+beneath it. `VisualEnvironment` applies `SUN_HAZE` **0.45** to every map and weather preset's authored
+Mie strength, preserving their relative haze, and draws both discs at 1.4° (`CELESTIAL_DISC` 7.5e-5;
+the real discs are 0.53°). Raising `mieG` concentrated the same light into a hotter core, and a
+disc-only brightness multiplier made no visible difference after ACES, so neither is used. The low
+sun remains the brightest case.
 
-## Port sun glare correction
-
-The broader aerosol scattering above made the sun-facing port view pale and washed out, including its water reflections. A fixed-camera comparison isolated the forward sun haze: reducing only port `mieScatteringStrength` from **1.2 to 0.25** restored visible clouds and water color. The sea remains at **0.5**. Sun intensity, exposure, diffuse sky fill, cloud settings, fog and water materials retain their previous values, keeping the shaded hull readable and the normal harbor view close to the accepted daylight direction.
-
-Review both sun-facing and normal-port directions when changing atmospheric scattering; the normal port camera faces away from the sun and missed this regression.
-
-## Repeating arc correction
-
-The initial game used the deterministic wave seed `1941`. Water Pro 3.5.1 constructs its random-hash input as `float(cellIndex) + randomSeed * 100000`. At approximately 194,100,000, float32 values are spaced 16 units apart. The 65,536 cells in a 256² cascade therefore collapse to only 4,097 distinct hash inputs. Neighboring Fourier components acquire identical random phases, creating organized bands and curved wave packets. The periodic FFT tiles repeat those packets across the ocean; zooming out exposes the pattern.
-
-This was reproduced at a fixed camera and ocean tick. Reading the actual GPU spectrum buffers found identical phases in about 93.7% of active neighboring coefficients across all three High-quality cascades. Changing only the seed to the library default `1` removed the sweeping arcs, with zero repeated neighboring phases in the same check. Wave shape controls, mesh detail, foam, wakes, lighting, and fog were held constant. The screenshot of the interactive demo does not establish its seed, but the supplied library defaults to `1`.
-
-The game now explicitly uses `1`. This is a workaround for the library's float hash-input construction; it does not patch the vendor bundle or eliminate the underlying FFT tile periodicity. Before adding arbitrary multiplayer match seeds, the library needs integer-safe seed mixing on both WebGPU and WebGL. A numeric match ID should not be passed directly into this version's seed option.
-
-The dev-only GPU regression harness is at `/scripts/diagnostics/ocean-spectrum.html` while `bun run dev` is running. It initializes the actual Game configuration, freezes the camera and ocean time, reads back the initial Fourier coefficients, and exposes `window.oceanDiagnostic.passed`. With the game seed it must pass; `?seed=1941` is the negative control and must fail. `?quality=medium` and `?quality=ultra` exercise the other supported cascade layouts. The diagnostic uses private buffer fields specific to Water Pro 3.5.1 and must be reviewed when upgrading that dependency. Vite's production build does not include this page.
-
-## Smaller wave scale
-
-The September 5 scale adjustment reduces Atlantic peak wavelength from 65 to 28 m, amplitude from 0.75 to 0.45, and choppiness from 1.05 to 0.8. Fair, Heavy, and port conditions receive the same artistic direction while retaining their relative intensity. Ship geometry, cameras, water colors and CPU combat are unchanged.
+In port, broad aerosol scattering made the sun-facing view pale and washed out, including its water
+reflections; a fixed-camera comparison isolated the forward haze, and port Mie strength **0.25**
+restores visible clouds and water colour. Review both sun-facing and normal-port directions when
+changing atmospheric scattering; the normal port camera faces away from the sun.
 
 ## World ocean maps
 
-Custom battle’s **Battle conditions** combines time-of-day and weather selections. Each weather preset also sets wave amplitude, wind speed and peak wavelength, replacing the separate Sea conditions control in battle setup and Settings. Original presets live in `assets/maps/battle-conditions.v1.json`; the renderer-free `src/maps/conditions.ts` resolver applies the map’s water multipliers to the weather’s waves and layers weather over its sky/fog, then applies time-of-day sun angles, ambient scaling and twilight/night fog tint. Omitted selections and **Map default** retain existing map values. These are fixed artistic lighting presets, not geographic solar calculations. Dawn, Morning, Noon, Dusk and Night remain fixed during play; Clear, Partly cloudy, Overcast, Fog and Storm clouds control cloud coverage, altitude, fill, wind and distance haze. Old saved sea preferences are ignored; graphics settings store only quality and render scale. Storm clouds do not include precipitation or lightning, and visual visibility does not alter CPU bot acquisition or ballistics.
+Custom battle's **Battle conditions** combines time of day, cloud cover and wind. Legacy weather
+presets set a wind speed (Clear and Fog 5 m/s, Map default and Partly cloudy 9 m/s, Overcast 12 m/s,
+Storm clouds 16 m/s) and the calibrated sea turns wind into waves and foam. Presets live in
+`assets/maps/battle-conditions.v1.json`; the renderer-free `src/maps/conditions.ts` resolver layers
+weather over the map's sky and fog, then applies time-of-day sun angles, ambient scaling and
+twilight/night fog tint. Omitted selections and **Map default** retain the map's values. Dawn,
+Morning, Noon, Dusk and Night remain fixed during play; Clear, Partly cloudy, Overcast, Fog and Storm
+clouds control cloud coverage, altitude, fill, wind and distance haze. Storm clouds do not include
+precipitation or lightning, and visual visibility does not alter CPU bot acquisition or ballistics.
 
-`VisualEnvironment.setScene` applies the composed uniforms and freezes Sky Pro’s celestial clock on an arc matching the authored sun direction, keeping the full moon opposite the sun. Night retains low ambient fill for readable silhouettes and uses a dark fog tint. The provider’s sun-only fog sampler receives the same lunar ambient term as the sky dome, faded in with sky darkness; this prevents the distant fog blend from painting the night backdrop black. The water light’s shadow anchor follows the active sun/moon direction, with a restrained lunar directional fill at night. Returning to port restores cloud fill, horizon coverage, sun, atmospheric scattering and fog alongside the harbor's 9 m/s sea. Setup choices survive returns to port for the current page session. `Game.diagnostics()` exposes the selections and applied lighting for in-game review.
+`VisualEnvironment.setScene` applies the composed conditions and freezes Sky Pro's celestial clock on
+an arc matching the authored sun direction, keeping the full moon opposite the sun. Night retains low
+ambient fill for readable silhouettes and uses a dark fog tint. The provider's sun-only fog sampler
+receives the same lunar ambient term as the sky dome, faded in with sky darkness, so the distant fog
+blend does not paint the night backdrop black. The shadow anchor follows the active sun or moon, with
+a restrained lunar directional fill at night. Returning to port restores cloud fill, horizon coverage,
+sun, atmospheric scattering and fog alongside the harbor's 9 m/s sea. Setup choices survive returns
+to port for the current page session. `Game.diagnostics()` exposes the selections and applied
+lighting.
 
-Versioned map definitions live in `assets/maps/environments.v1.json`, consumed through `src/maps/catalog.ts`. Select a map, time of day and weather in Custom battle. These selections survive repeated battles during the current page session.
+Versioned map definitions live in `assets/maps/environments.v1.json`, consumed through
+`src/maps/catalog.ts`. Each map supplies water, absorption and transmission colours, wave and wind
+multipliers, wave-foam opacity, sun elevation, azimuth and intensity, cloud coverage, altitude and
+thickness, atmospheric scattering and fog. Map selection does not rebuild the ocean; the port restores
+every overridden parameter on return. `/scripts/diagnostics/ocean-maps.html` (`reviewMap(id, weather)`,
+`reviewLandform(index, overview)`) captures each map in a paused battle.
 
-Each map supplies custom water/absorption/transmission colors, wave and wind multipliers, wave-foam opacity, sun elevation/azimuth/intensity, cloud coverage/altitude/thickness, atmospheric scattering and fog. Weather presets retain the small-wave direction and multiply each map's wave scales. The port restores all overridden shader parameters on return, including color, cloud height and foam. Quality tiers retain their normal cascade layouts; map selection does not rebuild the water system.
+The map scripts under `assets/maps/` rebuild an illustrated guide of the four settings from real
+captures into ignored `.build/reviews/maps/`. These are independently authored, region-inspired
+gameplay landscapes, not surveyed coastlines or calibrated regional weather.
 
-The map scripts under `assets/maps/` rebuild an illustrated guide of the four settings from real captures into ignored `.build/reviews/maps/`. These are independently authored, region-inspired gameplay landscapes, not surveyed coastlines or calibrated regional weather.
+Coastal maps widen a central clear lane according to the largest fleet, then place islands relative to
+the midpoint of the two spawn lines. The shared CPU island-height function drives the rendered mesh,
+chart outline, camera clearance, projectile contact and conservative hull clearance; the ocean draws
+shoreline foam where the water column is shallow. Bots blend an outward course near shores. Land
+contact removes inward ship motion without grounding damage; full bathymetry, tides, beaching, route
+planning and terrain blast propagation are outside this first map implementation. Shells can fly over
+high ground and stop on it; torpedoes stop at submerged coastal slopes. Ground impacts currently reuse
+the small hard-surface impact effect.
 
-Coastal maps widen a central clear lane according to the largest fleet, then place islands relative to the midpoint of the two spawn lines. The shared CPU island-height function drives the rendered mesh, chart outline, camera clearance, projectile contact and conservative hull clearance. Bots blend an outward course near shores. Land contact removes inward ship motion without grounding damage; full bathymetry, tides, beaching, route planning and terrain blast propagation are outside this first map implementation. Shells can fly over high ground and stop on it; torpedoes stop at submerged coastal slopes. Ground impacts currently reuse the small hard-surface impact effect.
+Original island recipes and capture scripts stay under `assets/maps/`. The renderer uses eroded
+heightfields with asymmetric ridges and connected drainage valleys, triplanar rock and vegetation
+textures, slope-dependent snow and rock, and clustered tree impostors. See the
+[terrain recipe and review notes](../assets/maps/terrain-notes.md). Terrain meshes are generated at
+launch and disposed when switching maps. The rendered land surface is a finite tessellation of the
+continuous CPU height function, so very close grazing contacts remain approximate.
 
-Original island recipes and capture scripts stay under `assets/maps/`. The renderer uses eroded heightfields with asymmetric ridges and connected drainage valleys, triplanar rock and vegetation textures, slope-dependent snow and rock, and clustered tree impostors. See the [terrain recipe and review notes](../assets/maps/terrain-notes.md). Terrain meshes are generated at launch and disposed when switching maps. The rendered land surface is a finite tessellation of the continuous CPU height function, so very close grazing contacts remain approximate. No ship model assets or CPU wave poses are changed.
+## Reviewing the ocean in the real game
+
+`bun scripts/browser/ocean-review.ts --tag <name>` renders the fixed scenes of
+`/scripts/diagnostics/ocean-review.html` (port, near, wide, grazing, sun, storm, calm, dusk, night,
+islands, 5 and 20 km zoom, air, submerged, periscope and a ninety-second wake) into
+`.build/ocean-review/<name>/`; `--measure` adds serialised frame costs. Compare a change against a
+baseline tag. Every page above freezes waves with `game.ocean.time = seconds`; a paused frame never
+advances it, and parameter changes still apply on the next update. Temporary captures belong in
+ignored `.build/`.

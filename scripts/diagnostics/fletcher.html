@@ -27,7 +27,7 @@ const definition=shipPreset('fletcher'), status=document.querySelector('#status'
 const hud=createRoot(document.querySelector('#hud')), bindings=defaultKeybindings();
 let ready, game; const loaded=new Promise(resolve=>ready=resolve);
 const audio = new GameAudio({muted:true,master:.65,effects:.8,interface:.65});
-const paint=()=>hud.render(React.createElement(ShipContext.Provider,{value:definition},React.createElement(FleetHud,{game,bindings,visible:true,data:{ship:game.simulation.ship,order:5,camera:'Chase',fps:60,backend:game.water?.backend??'webgpu',trail:[],pointerLocked:true,combat:game.simulation.telemetry(game.battery,game.currentAim)}})));
+const paint=()=>hud.render(React.createElement(ShipContext.Provider,{value:definition},React.createElement(FleetHud,{game,bindings,visible:true,data:{ship:game.simulation.ship,order:5,camera:'Chase',fps:60,trail:[],pointerLocked:true,combat:game.simulation.telemetry(game.battery,game.currentAim)}})));
 game=new Game(document.querySelector('#scene'),GRAPHICS_PRESETS.medium,{progress:label=>status.textContent=label,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>{window.reviewError=message;status.textContent=message;}},definition,audio);
 window.reviewGame=game;game.start();await loaded;
 try {

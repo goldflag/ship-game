@@ -194,7 +194,7 @@ test('rangefinding admits only fresh enemy exteriors actually observed by the he
 });
 
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
-async function port(storageMatrices = false) {
+async function port() {
   const definition = shipPreset('bismarck');
   const simulation = await presentationSession();
   simulation.ship.x = 240;
@@ -218,8 +218,8 @@ async function port(storageMatrices = false) {
     funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false, frameWaiters: [], observedShipViews: new ObservedShipViews(),
-    hulls: new Map(), palette: new ShipMaterialPalette(),
-    renderer: { backend: { isWebGPUBackend: storageMatrices }, domElement: { setAttribute() {} } },
+    hulls: new Map(), palette: new ShipMaterialPalette(), occlusion: { adopt() {}, render() {} },
+    renderer: { domElement: { setAttribute() {} } },
     environment: makeTestEnvironment(),
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };
@@ -388,9 +388,9 @@ test('a second request cannot replace an in-flight switch; disposed games never 
   } finally { loader.mockRestore(); rig.dispose(); }
 });
 
-test.each([false, true])('battle loading binds each mixed fleet hull and selected target to its own exported joints (storage matrices: %s)', async storageMatrices => {
-  const { game, scene, harbor, rig } = await port(storageMatrices);
-  const aircraftLoader = spyOn((game as unknown as { aircraftView: { load(modelIds: string[], storageMatrices?: boolean): Promise<void> } }).aircraftView, 'load');
+test('battle loading binds each mixed fleet hull and selected target to its own exported joints', async () => {
+  const { game, scene, harbor, rig } = await port();
+  const aircraftLoader = spyOn((game as unknown as { aircraftView: { load(modelIds: string[]): Promise<void> } }).aircraftView, 'load');
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '')));
   try {
     await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', { shipId: 'bismarck', aiLevel: 'hard' }],
@@ -398,7 +398,7 @@ test.each([false, true])('battle loading binds each mixed fleet hull and selecte
       spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(aircraftLoader).toHaveBeenCalledTimes(1);
-    expect(aircraftLoader).toHaveBeenCalledWith(shipPreset('enterprise-cv6').airWing!.squadrons.map(s => s.modelId), storageMatrices);
+    expect(aircraftLoader).toHaveBeenCalledWith(shipPreset('enterprise-cv6').airWing!.squadrons.map(s => s.modelId));
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
     expect(game.simulation.actors).toHaveLength(5);
@@ -587,7 +587,7 @@ test('a battle that opens on the fleet chart selects nothing; leaving a helm kee
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   try {
     game.enterFleetCommand(false);
@@ -609,7 +609,7 @@ test('a custom battle reads the fleet chart from its helm: nothing is released, 
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 1, rudder: .5 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
@@ -659,7 +659,7 @@ test('the helm wheel swaps hulls in a custom battle: held on its key, offered on
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} }, callbacks: { pause() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} }, callbacks: { pause() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
@@ -715,7 +715,7 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera, selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
+    ocean: { ensureHorizon() {} }, environment: { setChartFog() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
