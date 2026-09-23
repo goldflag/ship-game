@@ -14,12 +14,9 @@ const SOURCE_RADIUS = .09, EXTENT = 3;
 /** Shaft brightness per unit of light at the sea, at a low sun faced squarely. */
 const STRENGTH = .3;
 /** Share of that strength left with the sun high: shafts are the golden hour's, subtle at noon. */
-const HIGH_SUN = .3;
+const HIGH_SUN = .07;
 /** Sun elevations (radians, as the light's y) over which shafts lose that golden-hour strength. */
 const LOW_SUN = [Math.sin(8 * Math.PI / 180), Math.sin(40 * Math.PI / 180)] as const;
-/** Gain on moon shafts over sun shafts: moonlight is already some ten times dimmer at the sea, which keeps them faint
- * silver beside the atmosphere's own glow about the moon. */
-const MOON_BOOST = 1;
 /** Depth of lit air (m) over which scattered light builds up in front of a surface: 1 − e^(−distance / AIR). */
 const AIR = 3000;
 /** Gain below which the passes are skipped, and shaft light below which the composite skips the depth read. */
@@ -76,9 +73,10 @@ export class LightShafts {
     this.normalise.value = Math.log(farWeight) / (reach * (farWeight - 1));
   }
 
-  /** Place the light on screen and choose the gain. `direction` is toward the light (world, w = 0); `night` when
-   * the moon is the light. `submerged` cameras see none: the underwater view has its own light. */
-  update(camera: Camera, direction: Vector3, night: boolean, submerged: boolean): void {
+  /** Place the light on screen and choose the gain. `direction` is toward the light (world, w = 0): the sun, or the
+   * moon at night, whose light at the sea (the colour the composite takes) is some ten times dimmer and so makes faint
+   * silver shafts. `submerged` cameras see none: the underwater view has its own light. */
+  update(camera: Camera, direction: Vector3, submerged: boolean): void {
     let gain = 0;
     view.copy(direction).transformDirection(camera.matrixWorldInverse);
     if (view.z < 0 && direction.y > -.01 && !submerged) {
@@ -89,7 +87,7 @@ export class LightShafts {
       const beyond = Math.max(Math.abs(x) - 1, Math.abs(y) - 1, 0), disc = 2 * EXTENT * this.source.value;
       const facing = MathUtils.smoothstep(-view.z, .35, .9) * (1 - MathUtils.smoothstep(beyond, 0, disc));
       const low = HIGH_SUN + (1 - HIGH_SUN) * (1 - MathUtils.smoothstep(direction.y, ...LOW_SUN));
-      gain = this.strength * this.scale * facing * low * MathUtils.smoothstep(direction.y, -.01, .03) * (night ? MOON_BOOST : 1);
+      gain = this.strength * this.scale * facing * low * MathUtils.smoothstep(direction.y, -.01, .03);
     }
     this.gain.value = gain;
     this.active = gain > VISIBLE;
@@ -115,6 +113,8 @@ export class LightShafts {
       return result;
     })();
   }
+
+  dispose(): void { this.passes?.dispose(); }
 }
 
 /** Renders the mask and the radial blur before the output pass that samples it, once per frame; nothing at all
