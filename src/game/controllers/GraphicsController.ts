@@ -17,6 +17,7 @@ import {
   type GraphicsSettings,
 } from '../graphicsSettings';
 import type { ShipFunnelSmoke } from '../ShipFunnelSmoke';
+import type { ShipOcclusion } from '../ShipOcclusion';
 
 /** What applying graphics settings reads from and writes to `Game`, each member at the moment
  * of use. The settings, frame pacing, detail budget and display pipeline stay fields of `Game`:
@@ -33,6 +34,8 @@ export interface GraphicsContext {
   /** The scene's sun, whose shadow settings the near and wide maps follow; absent until start-up creates it. */
   readonly sunLight?: THREE.DirectionalLight;
   readonly sky?: SkySystem;
+  /** Ship-on-ship ambient occlusion; absent until start-up has created it. */
+  readonly occlusion?: Pick<ShipOcclusion, 'setLevel'>;
   readonly aircraftView: Pick<AircraftView, 'detailScale'>;
   readonly effects: Pick<CombatEffects, 'setDensity'>;
   readonly funnelSmoke: Pick<ShipFunnelSmoke, 'density'>;
@@ -64,6 +67,13 @@ export class GraphicsController {
     if (previous.reflections !== settings.reflections) this.applyReflections();
     if (previous.shadows !== settings.shadows) this.applyShadows();
     if (previous.clouds !== settings.clouds) this.applyClouds();
+    if (previous.ambientOcclusion !== settings.ambientOcclusion) this.applyAmbientOcclusion();
+  }
+
+  /** Off removes the occlusion node from every ship material and skips its passes, so the
+   * frame is exactly the one without it; turning it on recompiles the ship materials once. */
+  applyAmbientOcclusion(): void {
+    this.context.occlusion?.setLevel(this.context.settings.ambientOcclusion);
   }
 
   applyDetail(): void {
