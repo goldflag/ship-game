@@ -59,15 +59,6 @@ export function normalQuantile(p: number): number {
   return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
 }
 
-/** Standard normal upper tail Q(z) = P(Z > z) (Abramowitz & Stegun 26.2.17, absolute error below 7.5e-8). */
-export function normalTail(z: number): number {
-  if (z === Infinity) return 0;
-  if (z === -Infinity) return 1;
-  const t = 1 / (1 + .2316419 * Math.abs(z));
-  const tail = Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI) * t * (.31938153 + t * (-.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
-  return z >= 0 ? tail : 1 - tail;
-}
-
 /** How one cascade breaks. `compression` and `face` weight its crest compression along the wind −ŵ·∇(D·ŵ) and
  * forward-face slope −(∇h·ŵ) so that their sum is a standard normal indicator; crests break where it passes `threshold`. */
 export interface CascadeBreaking {
