@@ -2,8 +2,11 @@ import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../ships/blueprint';
 import { componentMaterial } from '../ships/componentMaterials';
+import { createConstructionFittingModel } from './constructionFittingModel';
 import { createConstructionHull } from './constructionModel';
-import { applyConstructionWear, WEAR_NONE } from './constructionWear';
+import { createConstructionPropellerSupports } from './constructionPropellerModel';
+import { applyConstructionWear, isConstructionPaint, wearsPaint, WEAR_NONE } from './constructionWear';
+import { isPlatedPaint } from './ShipSurfaceDetail';
 
 const surface = (id: string, primitiveId: string, face: string, vertices: Vec3[], normal: Vec3, paint = 'naval-gray', panelId?: string): ConstructionSurface =>
   ({ id, primitiveId, face, vertices, normal, paint, panelId, areaM2: 1, thicknessMm: 10, material: 'steel', open: false });
@@ -83,4 +86,29 @@ test('a vertex shared by a wall and a roof is split so each keeps its own drop',
   const drops = wearAt(root, [0, 2, 0]).map(w => w[1]).sort((a, b) => a - b);
   expect(drops).toEqual([0, WEAR_NONE]);
   for (const w of wearAt(root, [0, 0, 4])) expect(w[1]).toBeCloseTo(2, 5);
+});
+
+test('player-built paint both wears and draws plating, as the models name it; timber and bare steel do neither', () => {
+  // A hull side under a teak deck; a design-local fitting in the installation's coat, a coat of its own and teak; a shaft and its strut.
+  const hull = createConstructionHull([
+    surface('side', 'hull', 'port', [[-3, 0, -10], [-3, 6, -10], [-3, 6, 10], [-3, 0, 10]], [-1, 0, 0]),
+    surface('deck', 'hull', 'top', [[-3, 6, -10], [3, 6, -10], [3, 6, 10], [-3, 6, 10]], [0, 1, 0], 'teak-natural'),
+  ], [primitive('hull', 'box')]);
+  const box = (id: string, x: number, paint?: string) => ({ id, kind: 'box' as const, size: [2, 1, 2] as Vec3, position: [x, .5, 0] as Vec3, rotationDeg: 0, ...(paint ? { paint } : {}) });
+  const fitting = createConstructionFittingModel({ id: 'fit', name: 'Fit', version: 2, attach: 'deck', massKg: 100,
+    solids: [box('house', 0), box('painted', 4, 'light-gray'), box('planked', 8, 'teak-natural')], tubes: [] });
+  const member = (kind: 'shaft' | 'strut') => ({ kind, start: [0, -3, -40] as Vec3, end: [0, -2, -30] as Vec3, radiusM: .3 });
+  const supports = createConstructionPropellerSupports([{ equipmentId: 'screw', members: [member('shaft'), member('strut')] }]);
+  const classes: Record<string, boolean[]> = {};
+  for (const root of [hull, fitting, supports]) root.traverse(node => {
+    if (!(node instanceof THREE.Mesh)) return;
+    const material = node.material as THREE.MeshStandardMaterial;
+    classes[material.name] = [isConstructionPaint(material), wearsPaint(material), isPlatedPaint(material)];
+  });
+  expect(classes).toEqual({
+    'construction.naval-gray:false': [true, true, true], 'construction.teak-natural:true': [false, false, false],
+    // Unpainted shapes take the installation's coat as a catalog part would, through their component role.
+    'custom-fitting': [false, true, true], 'custom-fitting.light-gray': [true, true, true], 'custom-fitting.teak-natural': [false, false, false],
+    'construction.propeller.underwater-paint': [true, true, true], 'construction.propeller.shaft-steel': [false, false, false],
+  });
 });

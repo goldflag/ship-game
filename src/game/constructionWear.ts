@@ -21,14 +21,18 @@ const CREASE = .5;
 /** Welding tolerance for finding a fitting's neighbouring faces: a millimetre. */
 const WELD = 1000;
 
-const TIMBER = /teak|timber|wood/i;
+/** A player-built ship's own sandbox paint, as its model names it: `construction.<paint>…` on the hull, blocks and propeller
+ * supports (kept by the published GLBs of construction presets) and `custom-fitting.<paint>…` on painted design-local
+ * fittings; not timber or bare shaft steel. The one test for both its wear here and its plating (ShipSurfaceDetail). */
+export const isConstructionPaint = (material: THREE.MeshStandardMaterial): boolean => material.metalness <= .1 &&
+  /^(construction|custom-fitting)\./.test(material.name) && !('componentMaterialRole' in material.userData) && !/teak|timber|wood/i.test(material.name);
+
 /** Whether a surface is paint that weathers: not glass, timber, canvas, rope, metal or a fixed detail finish. */
 export function wearsPaint(material: THREE.Material | THREE.Material[]): boolean {
   if (Array.isArray(material) || !(material instanceof THREE.MeshStandardMaterial)) return false;
   if (material.transparent || material.opacity < 1 || material.metalness > .1 || material.userData.deckSubstrate === 'timber') return false;
-  // Hull plating and design-local fittings name their sandbox paint; catalog parts declare component roles.
-  if (/^(construction|custom-fitting)\b/.test(material.name) && !('componentMaterialRole' in material.userData)) return !TIMBER.test(material.name);
-  return followsComponentPaint(material.name, material.userData);
+  // Catalog parts and unpainted design-local fittings declare component roles.
+  return isConstructionPaint(material) || followsComponentPaint(material.name, material.userData);
 }
 
 /** A hull's deck edge height along its length: straight between knots, which fall on its stations. */
