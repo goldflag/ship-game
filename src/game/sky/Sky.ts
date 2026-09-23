@@ -12,6 +12,9 @@ import { createEnvironment } from './environment';
 
 /** A camera that moves farther than this in one frame (m) or turns more (radians) has cut. */
 const CUT_DISTANCE = 250, CUT_TURN = .5;
+/** A scene whose sun moves more than this (radians) or whose cloud cover changes more is a cut too:
+ * history lit by the old sun or shaped by the old cover would linger for a moment. */
+const CUT_SUN = 2 * Math.PI / 180, CUT_COVER = .05;
 
 interface Parts { atmosphere: AtmospherePart; celestial: CelestialPart; clouds: CloudPart; weather: WeatherPart; environment: EnvironmentPart }
 
@@ -70,7 +73,9 @@ export class Sky implements SkyApi {
   get oceanSky(): OceanSky { return this.parts.environment.oceanSky; }
 
   apply(scene: SkyScene): void {
+    const before = this.state.scene, sun = this.state.model.sun.clone();
     this.state.apply(scene);
+    if (this.state.model.sun.angleTo(sun) > CUT_SUN || Math.abs(scene.clouds.coverage - before.clouds.coverage) > CUT_COVER) this.cut = true;
     this.parts.atmosphere.apply(scene);
     this.parts.clouds.apply(scene);
     this.parts.weather.apply(scene);
