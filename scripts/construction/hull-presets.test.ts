@@ -13,10 +13,21 @@ test('the chooser provides two existing ship hulls per class and an available de
   expect(HULL_PRESETS.some(p => p.id === DEFAULT_HULL_PRESET)).toBe(true);
 });
 
+/** `actual` has `expected`'s shape and values, numbers within a relative 1e-9: the derivation's trigonometry differs in the
+ * last digit between platforms (macOS and Linux libm), so the published presets can't match it character for character. */
+function expectNearlyEqual(actual: unknown, expected: unknown, path = '$'): void {
+  if (typeof expected === 'number' && typeof actual === 'number') {
+    if (Math.abs(actual - expected) > 1e-9 * Math.max(1, Math.abs(expected))) expect(`${path} = ${actual}`).toBe(`${path} = ${expected}`);
+  } else if (expected && typeof expected === 'object' && actual && typeof actual === 'object') {
+    expect(Object.keys(actual)).toEqual(Object.keys(expected));
+    for (const key of Object.keys(expected)) expectNearlyEqual((actual as Record<string, unknown>)[key], (expected as Record<string, unknown>)[key], `${path}.${key}`);
+  } else expect(actual).toEqual(expected);
+}
+
 test.each(HULL_PRESETS.filter(p => p.shipId !== null))('$name retains its original ship dimensions, orientation and deck profile', async preset => {
   const blueprint = JSON.parse(await readFile(new URL(`../../assets/ships/${preset.shipId}/blueprint.json`, import.meta.url), 'utf8')) as { hull: Hull };
   const original = blueprint.hull, derived = deriveHullPreset(original, PRESET_OPTIONS[preset.shipId]);
-  expect(JSON.stringify({ length: preset.length, beam: preset.beam, depth: preset.depth, customHull: preset.customHull })).toBe(JSON.stringify(derived));
+  expectNearlyEqual({ length: preset.length, beam: preset.beam, depth: preset.depth, customHull: preset.customHull }, derived);
   const hull = makeHull(HULL_PRESETS.indexOf(preset));
   expect(invalidReason(hull)).toBeUndefined();
   expect([hull.length, hull.beam]).toEqual([original.length, original.beam]);
