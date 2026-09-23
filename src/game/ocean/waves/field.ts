@@ -28,8 +28,8 @@ const ANISOTROPY = 16;
 /** Crest foam: none while a cascade's Jacobian stays above CREST_START, all of `crestStrength` once it
  * falls to CREST_FULL. A single choppy wave at Stokes' breaking steepness (ka ≈ 0.44) has J ≈ 0.5,
  * so injection sits around breaking crests. Windward foam: downwind faces steeper than FACE_START
- * (slope), full at FACE_FULL. With the game's calibrated gains, surface() averages 0.5% foam at
- * 9 m/s, 3% at 15 and 13% at 25, against Monahan & O'Muircheartaigh's whitecap fraction
+ * (slope), full at FACE_FULL. With the game's calibrated gains, surface() averages 0.8% foam at
+ * 9 m/s, 4.4% at 15 and 14% at 25, against Monahan & O'Muircheartaigh's whitecap fraction
  * (3.84e-6·U^3.41) of 0.7%, 3.9% and 22%. */
 const CREST_START = .6, CREST_FULL = .2;
 const FACE_START = .22, FACE_FULL = .5;
@@ -41,6 +41,9 @@ const CREST_MODULATION = .1;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
 const MIN_JACOBIAN = .1;
+/** Share of the tail (Cox–Munk's slope variance no cascade draws) that roughens the surface. In full it blurred a
+ * light air's reflections of clouds into haze, where calm water mirrors them through the drawn waves' speckle. */
+const TAIL_ROUGHNESS = .25;
 /** heightAt's inversion: at the calibrated 25 m/s storm a quarter of the surface nearly folds, and
  * six steps damped by 0.7 leave a 0.14 m 90th-percentile position residual (three plain steps: 1 m). */
 const INVERSION_STEPS = 6, INVERSION_DAMPING = .7;
@@ -87,6 +90,8 @@ export class GpuWaveField implements WaveField {
   private readonly finalPass: QuadMesh;
   /** Longest wavelength each cascade holds (m). */
   private readonly longest: number[];
+  /** Tile (m) of the close-range ripples, or 0 where the finest cascade holds the spectral peak (a single cascade). */
+  private readonly rippleTile: number;
   private readonly phase = uniform(0);
   private readonly choppiness = uniform(0);
   private readonly elapsed = uniform(0);
@@ -108,7 +113,10 @@ export class GpuWaveField implements WaveField {
     this.size = n;
     this.top = Math.max(0, Math.log2(n / COARSEST_TEXELS));
     this.slopes = cascades.map(floatUniform);
-    this.longest = cascadeBands(cascades).map((band, i) => i ? 2 * Math.PI / band.lo : cascades[0].size);
+    const bands = cascadeBands(cascades), finest = bands[count - 1];
+    this.longest = bands.map((band, i) => i ? 2 * Math.PI / band.lo : cascades[0].size);
+    // Read as many times finer as the finest band spans, the ripples continue it without overlap.
+    this.rippleTile = count > 1 ? cascades[count - 1].size * finest.lo / finest.hi : 0;
     this.spectrum = new DataTexture(new Float32Array(n * n * count * 4), n * count, n, RGBAFormat, FloatType);
     this.spectrum.minFilter = this.spectrum.magFilter = NearestFilter;
     const atlas = () => {
@@ -256,7 +264,25 @@ export class GpuWaveField implements WaveField {
     const xx = strain.x.add(1), zz = strain.y.add(1), cross = strain.z;
     const jacobian = xx.mul(zz).sub(cross.mul(cross));
     const world = vec2(zz.mul(slope.x).sub(cross.mul(slope.y)), xx.mul(slope.y).sub(cross.mul(slope.x))).div(max(jacobian, MIN_JACOBIAN));
-    return { slope: world, jacobian, foam, slopeVariance: variance };
+    const ripples = this.ripples(xz, footprint);
+    return { slope: world.add(ripples.slope), jacobian, foam, slopeVariance: variance.add(ripples.variance) };
+  }
+
+  /** Waves shorter than the finest cascade, drawn close to the camera instead of only roughening the reflection.
+   * The saturation range is self-similar in slope, so the finest cascade's slopes read as many times finer as its
+   * band spans are statistically the band below it (moving slower than their own dispersion would, which close up
+   * passes). They show where the pixel resolves them and fade out as the finest cascade's do. `variance` is the
+   * change to the total: the share of the tail's roughness they draw as resolved slopes (the game's steep seas can
+   * leave no tail; the ripples then only add detail). A single cascade holds the peak, which is not self-similar. */
+  private ripples(xz: Node<'vec2'>, footprint: Float): { slope: Node<'vec2'>; variance: Float } {
+    if (!this.rippleTile) return { slope: vec2(0), variance: float(0) };
+    const finest = this.cascades.length - 1, size = this.rippleTile;
+    const level = log2(footprint.mul(this.size / size)).max(0);
+    const shown = float(1).sub(smoothstep(this.top - 1, this.top, level));
+    const read = this.layered(direct(this.maps.derivatives.sample(xz.div(size).add(.5 / this.size))), int(finest)) as unknown as Vec4;
+    // Each mip level averages away about one octave of the band's slopes, which then stay roughness.
+    const resolved = float(1).sub(level.div(this.top)).max(0);
+    return { slope: read.xy.mul(shown), variance: min(this.slopes[finest], this.tail).mul(resolved).mul(shown).negate() };
   }
 
   heightAt(xz: Node<'vec2'>): Float {
@@ -282,7 +308,7 @@ export class GpuWaveField implements WaveField {
       });
       this.spectrum.needsUpdate = true;
       this.maxHeight = spectrum.maxHeight; this.maxHorizontalDisplacement = spectrum.maxHorizontalDisplacement;
-      this.tail.value = spectrum.tailSlopeVariance;
+      this.tail.value = spectrum.tailSlopeVariance * TAIL_ROUGHNESS;
       this.choppiness.value = this.params.choppiness;
       this.wind.value.set(Math.cos(this.params.windDirection), Math.sin(this.params.windDirection));
       this.params.dirty = false; this.built = rebuilt = true;

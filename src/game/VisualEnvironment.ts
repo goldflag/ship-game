@@ -41,7 +41,7 @@ const SUN_HAZE = .45;
  * Sky Pro's presets draw them at 3.2° and 3.6°. */
 const CELESTIAL_DISC = 7.5e-5;
 /** Streaks of residual foam the wind draws out: none up to a fresh breeze (m/s), this opacity by a storm. */
-const SURFACE_FOAM_WIND = [10, 25] as const, SURFACE_FOAM_OPACITY = .3;
+const SURFACE_FOAM_WIND = [10, 25] as const, SURFACE_FOAM_OPACITY = .15;
 
 /** Applies resolved battle conditions to the ocean and the licensed sky, and owns
  * every live override of those parameters: the port's daylight and standing wind, the air map's

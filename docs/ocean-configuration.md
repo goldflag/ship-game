@@ -46,7 +46,7 @@ back around the hull at four wave times and reports 4 × RMS beside the requeste
 Wind speed also changes foam: whitecaps start earlier, and the high-wind gains decrease to retain dark
 water between breakers. Crest foam decays over 2.8 s with opacity 0.8 × the map's foam value / 0.45
 (0.8 in the Atlantic) and a 0.5 wind stretch. Surface foam is wind streaks: none up to 10 m/s, rising
-to opacity 0.3 over 5% of the sea by 25 m/s. Foam is an artistic choice; the flatter high-wind coverage
+to opacity 0.15 over 5% of the sea by 25 m/s. Foam is an artistic choice; the flatter high-wind coverage
 is not a calibrated whitecap-fraction model.
 
 Map multipliers are height 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 Indian; wavelength 1.0,
@@ -126,8 +126,8 @@ paused.
 Graphics → Reflections **Ships and sky** turns on screen-space ship reflections where the tier traces
 them: High with 16 ray steps and Ultra with 32. Low and Medium reflect only the sky. Rays are clipped
 to the viewport, marched in reciprocal depth and refined with binary steps against full-float depth
-(see the ocean README). Screen-space reflections still omit offscreen geometry and break up with wave
-slopes.
+(see the ocean README), off a normal keeping 30% of the wave slope so a hull's image wavers rather than
+breaking into speckle. Screen-space reflections still omit offscreen geometry.
 
 The displaced surface also receives ship shadows from the same directional shadow map.
 `src/game/WaterShadows.ts` builds a receiver node from the light's depth texture and binds it with

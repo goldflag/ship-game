@@ -62,11 +62,18 @@ spreading; significant height is exact (normalise the realised spectrum so 4σ e
 Integer-safe seeded randomness (no float hash inputs). Periodic cascades, largest tile 1,024 m,
 bands split so no wavelength is counted twice. Time folds modulo a period with every ω quantised
 to it, so float32 time stays precise. CPU bounds on height and horizontal displacement replace
-the old GPU readback of the spectrum. Short waves are held to Phillips' saturation range above the
-peak: the game's calibrated seas are far steeper than developed ones, and a JONSWAP normalised to
-their height would roughen every ripple. Crest foam persists per cascade in tile space; only
-cascades near the spectral peak inject it. Mip chains stop at 16×16 texels, and `surface()` fades
-a cascade whose waves are finer than that under the pixel into `slopeVariance`.
+the old GPU readback of the spectrum. Short waves are held to a saturation range (α·g²·ω⁻⁵) above
+the peak: the game's calibrated seas are far steeper than developed ones, and a JONSWAP normalised
+to their height would roughen every ripple. α = 0.02, a young sea's, is where the drawn slopes meet
+Cox–Munk's measured total from 9 to 18 m/s (Phillips' developed 0.0081 left two thirds of it).
+Crest foam persists per cascade in tile space; only cascades near the spectral peak inject it. Mip
+chains stop at 16×16 texels, and `surface()` fades a cascade whose waves are finer than that under
+the pixel into `slopeVariance`. Close to the camera `surface()` also draws the band below the finest
+cascade as ripples: its slopes read as many times finer as its band spans (16 on High, 32 on Ultra;
+the saturation range is self-similar in slope), shown where the pixel resolves them, with the
+variance they draw taken out of the tail's roughness. Low's single cascade holds the peak and draws
+none. A quarter of the tail (Cox–Munk's total less the drawn slopes) roughens the sky reflection:
+in full it hazed a light air's mirrored clouds.
 
 **Mesh.** Camera-centred clipmap, 256 m base, 6 levels, snapped per level so vertices never swim,
 seam-free between levels; a flat horizon ring from the clipmap edge to 95% of `camera.far`,
@@ -76,13 +83,16 @@ distance-appropriate mip. Low/Medium/High/Ultra segments 16/32/64/128.
 **Surface.** Opaque result, alpha 1. Custom colours (`WaterColors`): pigment and foam are
 emitted radiance, pre-scaled by the game at night. Fresnel reflection of the sky provider with
 roughness from unresolved slope variance and a tiny grazing guard (1e-4, not 0.05: distant slopes
-must keep distinct reflectance under 24× binoculars). Sun specular and glints, subsurface
+must keep distinct reflectance under 24× binoculars). Sun glints on the resolved facets (a lobe of
+slope variance 1e-3, weighted by the share of the slopes the pixel resolves: glitter close up, no
+bleached sheen far off), subsurface
 light through crests toward the sun, crest foam (Jacobian, persistence, windward streaks, wind
 stretch), wind streaks of surface foam, shoreline foam where the water column is shallow (islands
 and hulls), and wake foam. Every foam reads one generated texture whose channels are equalised
 (lace, patches, streaks), so thresholding a channel at 1 − coverage covers exactly that share:
 thinning foam keeps fewer filaments instead of turning grey, and where filtering has flattened
-the pattern the pixel takes the coverage itself. Straight-through visibility of submerged
+the pattern the pixel takes the coverage itself. Foam facing away from the sun keeps 60% of its
+light, so whitecaps take the shape of their wave. Straight-through visibility of submerged
 geometry: the opaque scene at the same screen position, attenuated by `exp(-absorption × column)`
 and filled with the pigment. No refraction offset. An optional sun shadow node attenuates the lit
 terms; ambient pigment keeps 45% in full shadow; sky reflection is unshadowed. The underside, seen
@@ -94,8 +104,9 @@ scatters along the surface, dimmed by the water above the camera.
 **Reflections of ships.** Screen-space rays against the opaque depth, enabled on High and Ultra
 when Graphics → Reflections is Scene. Clip each ray to the viewport before spending the step
 budget; march in reciprocal depth; refine hits with 8 binary steps; full-float depth; fade by
-confidence and screen edge. `maxDistance` is live: `WaterViewFocus` stretches it to twice the
-range of a hull seen through binoculars.
+confidence and screen edge. Rays leave a normal keeping 30% of the wave slope: one ray per pixel
+off the full slope breaks a hull's image into speckle. `maxDistance` is live: `WaterViewFocus`
+stretches it to twice the range of a hull seen through binoculars.
 
 **Fog.** `scene.fogNode` for every fogged material: ramp from `start` to `end` raised to `power`,
 colour blending from `color` to the sky's fog sampler along the view ray over

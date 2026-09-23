@@ -16,15 +16,21 @@ const WATER_IOR = 1.333;
 const SHADOWED_PIGMENT = .45;
 /** Foam kept in full sun shadow. */
 const SHADOWED_FOAM = .6;
-/** Slope variance the sun disc adds to its highlight. */
-const SUN_VARIANCE = 2e-4;
+/** Foam lit only by the sky, relative to foam facing the sun: whitecaps take the shape of the wave they ride
+ * instead of lying on it as flat white. */
+const FOAM_AMBIENT = .6;
+/** Slope variance of a glint: the sun disc's (2e-4 for the game's 1.4° disc) widened by facets just finer than a
+ * pixel, which tilt within it. */
+const GLINT_VARIANCE = 1e-3;
+/** Share of the wave slope screen-space reflections follow: about the longest waves' share of it at moderate winds. */
+const TRACE_SLOPE = .3;
 /** Metres across the wind per tile of the foam texture; along the wind it stretches with the crest foam's `windStretch`. */
 const FOAM_TILE = 40;
 /** Texels per pixel over which a foam pattern blurs into its mean. */
 const FOAM_BLUR_START = 4, FOAM_BLUR_END = 48;
 /** Crest foam (the wave field's persisted injection) that starts to show, and that covers its patch completely:
  * the faint, spread-out remains of a whitecap stay clear water. */
-const CREST_START = .1, CREST_FULL = .7;
+const CREST_START = .1, CREST_FULL = 1;
 /** Edge half-width of whitecaps in levels of the equalised lace: firm, not cut out. */
 const CREST_EDGE = .15;
 /** Opacity of the thinnest crest foam relative to a fresh whitecap: old foam is a translucent film. */
@@ -76,6 +82,13 @@ function roughness(variance: Node<'float'>): Node<'float'> {
   return variance.mul(2).sqrt().clamp(0, 1);
 }
 
+/** The mirrored ray the screen-space trace follows: off a normal keeping TRACE_SLOPE of the wave slope. One ray per
+ * pixel off the full slope scatters with the short waves into speckle, where a real reflection of a hull is blurred
+ * by them into a wavering image of the hull. */
+function traceDirection(view: Node<'vec3'>, normal: Node<'vec3'>): Node<'vec3'> {
+  return reflect(view.negate(), normalize(vec3(normal.x.mul(TRACE_SLOPE), normal.y, normal.z.mul(TRACE_SLOPE))));
+}
+
 /** Sky radiance along the mirrored ray, blurred by the unresolved facets. Rays bent below the
  * horizon by a steep facet see the horizon. */
 function skyReflection(environment: Texture | null, direction: Node<'vec3'>, rough: Node<'float'>): Node<'vec3'> {
@@ -90,12 +103,13 @@ function smithLambda(cosine: Node<'float'>, variance: Node<'float'>): Node<'floa
   return select(a.lessThan(1.6), float(1).sub(a.mul(1.259)).add(a.mul(a).mul(.396)).div(a.mul(3.535).add(a.mul(a).mul(2.181))), float(0));
 }
 
-/** Sun (or moon) glints on the resolved facets: a Beckmann lobe the size of the disc, with Smith
- * masking so a low sun stays finite. Facets too small to resolve scatter the disc as well, but the
- * environment bake already holds the disc and the sky reflection blurs it by the same variance, so
- * the glint keeps only the share of the light those facets leave in the mirror direction. */
+/** Sun (or moon) glints on the resolved facets: a Beckmann lobe of GLINT_VARIANCE, with Smith masking so a low
+ * sun stays finite. Where the pixel resolves the waves (close up, ripples included) the facets that tilt into the
+ * lobe glitter as many small points, as sunlit water does. Facets too small to resolve scatter the disc as well,
+ * but the glint keeps only the share of the light they leave in the mirror direction: spread over a smooth sheen
+ * the rest would bleach the whole glitter path. */
 function sunGlint(normal: Node<'vec3'>, view: Node<'vec3'>, sun: Node<'vec3'>, radiance: Node<'vec3'>, variance: Node<'float'>): Node<'vec3'> {
-  const spread = float(SUN_VARIANCE), resolved = spread.div(variance.add(SUN_VARIANCE));
+  const spread = float(GLINT_VARIANCE), resolved = spread.div(variance.add(GLINT_VARIANCE));
   const half = normalize(sun.add(view));
   const cosine = dot(normal, half).max(1e-4), cosine2 = cosine.mul(cosine);
   const lobe = exp(float(1).sub(cosine2).div(cosine2.mul(spread).mul(2)).negate()).div(spread.mul(2 * Math.PI).mul(cosine2.mul(cosine2)));
@@ -192,7 +206,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const mirrored = reflect(view.negate(), up);
     const sky = skyReflection(environment, mirrored, roughness(sample.slopeVariance));
     // Ships and islands the mirrored ray meets on screen replace the sky (High and Ultra only).
-    const traced = reflections.steps > 0 ? screenSpaceReflection({ position: positionView, direction: cameraViewMatrix.mul(vec4(mirrored, 0)).xyz,
+    const traced = reflections.steps > 0 ? screenSpaceReflection({ position: positionView, direction: cameraViewMatrix.mul(vec4(traceDirection(view, up), 0)).xyz,
       sceneColor: this.sceneColor, sceneDepth: this.sceneDepth, enabled: this.screenReflections,
       maxDistance: reference('maxDistance', 'float', reflections), steps: reflections.steps }) : undefined;
     const reflected = traced ? mix(sky, traced.color, traced.confidence) : sky;
@@ -208,7 +222,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const foamXz = vec2(dot(xz, along).div(reference('windStretch', 'float', foam.crest).mul(2).add(1)), dot(xz, vec2(along.y.negate(), along.x)));
     const foamUv = foamXz.div(FOAM_TILE);
     const pattern = texture(this.foamDetail, foamUv), blur = foamBlur(foamUv), lace = pattern.r;
-    const foamLight = mix(SHADOWED_FOAM, 1, lit);
+    const foamLight = mix(SHADOWED_FOAM, 1, lit).mul(mix(FOAM_AMBIENT, 1, dot(up, sunDirection).max(0)));
     // Residual foam gathers in the patches (twice the mean coverage where they peak) and lies in wind streaks.
     const surfaceFoam = foamOpacity(reference('coverage', 'float', foam.surface).mul(pattern.g.mul(2)), pattern.b, blur, STREAK_EDGE)
       .mul(reference('opacity', 'float', foam.surface));

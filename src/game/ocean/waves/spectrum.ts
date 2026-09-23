@@ -11,8 +11,10 @@ export const GRAVITY = 9.81;
 export const FOLD_PERIOD = 4096;
 /** The finer cascade takes over a band once its lattice has this many modes across the cut radius. */
 const FINE_MODES_AT_CUT = 8;
-/** Phillips' (1958) saturation constant: breaking caps short waves at α·g²·ω⁻⁵ however high the sea. */
-const SATURATION = .0081;
+/** Breaking caps short waves at α·g²·ω⁻⁵ however high the sea (Phillips 1958). This α, a young sea's (JONSWAP's
+ * at short fetch) rather than Phillips' developed 0.0081, is where the drawn slopes meet Cox–Munk's measured total
+ * from 9 to 18 m/s; at 0.0081 they held two thirds of it, and close-range ripples and a storm's chop went flat. */
+const SATURATION = .02;
 /** The cap blends in between these multiples of the peak frequency; the peak itself stays JONSWAP. */
 const SATURATION_ONSET = 1.5, SATURATION_FULL = 3;
 
