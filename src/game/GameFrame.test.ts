@@ -1,3 +1,4 @@
+import { FocusShadowNode } from './FocusShadowNode';
 import { DEFAULT_GRAPHICS } from './graphicsSettings';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
@@ -159,7 +160,7 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     paused: false, inPort: false, inspecting: false, input,
     aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
-    effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), water, environment,
+    effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), water, sunLight: water.lighting.sunLight, sunShadows: new FocusShadowNode(water.lighting.sunLight), environment,
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
