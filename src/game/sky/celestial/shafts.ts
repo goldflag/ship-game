@@ -17,8 +17,9 @@ const STRENGTH = .3;
 const HIGH_SUN = .3;
 /** Sun elevations (radians, as the light's y) over which shafts lose that golden-hour strength. */
 const LOW_SUN = [Math.sin(8 * Math.PI / 180), Math.sin(40 * Math.PI / 180)] as const;
-/** Moonlight is some ten times dimmer than the sun at the sea; its shafts get this much more gain to stay visible. */
-const MOON_BOOST = 2.5;
+/** Gain on moon shafts over sun shafts: moonlight is already some ten times dimmer at the sea, which keeps them faint
+ * silver beside the atmosphere's own glow about the moon. */
+const MOON_BOOST = 1;
 /** Depth of lit air (m) over which scattered light builds up in front of a surface: 1 − e^(−distance / AIR). */
 const AIR = 3000;
 /** Gain below which the passes are skipped, and shaft light below which the composite skips the depth read. */

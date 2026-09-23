@@ -3,7 +3,7 @@ import { Fn, If, dot, max, smoothstep, uniform, vec3 } from 'three/tsl';
 import type { CelestialPart, SkyFrame, SkyPartContext, SkyQuality, SkyUniforms } from '../contracts';
 import { moonIllumination } from '../celestialModel';
 import { SKY_TIERS } from '../quality';
-import { MOON_DISC, MOON_HALO, moonDisc, moonGlow, sunDisc, type MoonInputs } from './discs';
+import { MOON_DISC, MOON_HALO, moonCover, moonDisc, moonGlow, sunDisc, type MoonInputs } from './discs';
 import { galacticRotation } from './galactic';
 import { MilkyWay } from './milkyWay';
 import { LightShafts } from './shafts';
@@ -12,7 +12,7 @@ import { StarField } from './starField';
 const DEGREES = Math.PI / 180;
 /** Radiance of the Milky Way's brightest parts (its texture holds about 1 there) on a dark night: a little above
  * a moonless sky, so the band shows on a dark night and a full moon's brighter sky mostly swallows it. */
-const MILKY_WAY_RADIANCE = .05;
+const MILKY_WAY_RADIANCE = .04;
 /** Sun elevations (degrees) between which the Milky Way fades in: from nautical toward astronomical twilight. */
 const MILKY_WAY_TWILIGHT = [-16, -9] as const;
 /** Faintest magnitude seen with the sun at −2°, and the magnitudes gained per degree it sinks: Sirius first, the
@@ -82,21 +82,15 @@ export class CelestialBodies implements CelestialPart {
   radiance(direction: Node<'vec3'>): Node<'vec3'> {
     const l = this.local, pixel = this.pixel(direction);
     return Fn(() => {
-      const result = sunDisc(direction, { direction: this.sky.sunDirection, irradiance: this.sky.sunIrradiance }, pixel)
+      const result = sunDisc(direction, { direction: this.sky.sunDirection, irradiance: this.sky.sunIrradiance }, pixel, this.sky.moonDirection)
         .add(moonDisc(direction, this.moon, pixel)).toVar();
       If(l.night.greaterThan(0).and(direction.y.greaterThan(l.horizon)), () => {
         const galactic = l.galactic.mul(direction).toVar();
-        result.addAssign(this.stars.radiance({ galactic, direction, pixelAngle: pixel, limit: l.starLimit, gain: l.starGain, time: this.sky.time }));
-        result.addAssign(this.milkyWay.sample(galactic).mul(l.milkyWay));
+        const stars = this.stars.radiance({ galactic, direction, pixelAngle: pixel, limit: l.starLimit, gain: l.starGain, time: this.sky.time });
+        result.addAssign(stars.add(this.milkyWay.sample(galactic).mul(l.milkyWay)).mul(moonCover(direction, this.sky.moonDirection, pixel).oneMinus()));
       });
       return result;
     })();
-  }
-
-  /** Scratch for benchmarking: the discs alone. */
-  moonOnly(direction: Node<'vec3'>): Node<'vec3'> {
-    const pixel = this.pixel(direction);
-    return sunDisc(direction, { direction: this.sky.sunDirection, irradiance: this.sky.sunIrradiance }, pixel).add(moonDisc(direction, this.moon, pixel));
   }
 
   diffuseRadiance(direction: Node<'vec3'>): Node<'vec3'> {

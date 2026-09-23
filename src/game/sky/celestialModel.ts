@@ -5,6 +5,11 @@ const RADIANS = Math.PI / 180;
  * Milky Way rises from the sea on the north side of a midnight sky and its bright core stands low beside an
  * evening full moon. */
 export const SIDEREAL = 55 * RADIANS;
+/** Inclination of the moon's path to the sun's arc: the ecliptic's 23.4° to the equator plus the orbit's 5°. The path
+ * crosses the sun's arc at the sun and opposite it (a full moon stays exactly opposite), and the waxing half climbs
+ * toward the pole, so an evening crescent stands above the set sun as it does in a spring dusk instead of lying on
+ * the horizon beside it. Elongation, and so the lit share, still follow the phase exactly. */
+export const MOON_INCLINATION = 28 * RADIANS;
 
 /** Unit vector for compass angles in degrees: elevation above the horizon, azimuth 0 toward +Z
  * and 90 toward +X (the game's compass: the sun rises at 90 and sets at 270). */
@@ -28,7 +33,8 @@ export function moonIllumination(phase: number): number {
  * at the top of an equinox arc (or at its bottom, by night) whose pole stands 90° − |elevation| over
  * the horizon opposite it. That arc places the sun exactly where the scene asked, keeps a full moon
  * opposite it, and gives the stars a pole to wheel about. The moon rides the same arc, 2π·phase
- * behind the sun in hour angle: a waxing crescent follows the sun down in the evening.
+ * behind the sun in hour angle, tilted about the sun by `MOON_INCLINATION`: a waxing crescent follows
+ * the sun down in the evening, standing above it.
  *
  * Renderer-free: the CPU sky, the scene light and the tests share it. */
 export class CelestialModel {
@@ -47,6 +53,7 @@ export class CelestialModel {
   sidereal = SIDEREAL;
   private readonly meridian = new Vector3();
   private readonly west = new Vector3();
+  private readonly tilt = new Vector3();
 
   /** Place everything for a sun at `elevationDeg`/`azimuthDeg` and a moon phase. */
   set(elevationDeg: number, azimuthDeg: number, phase: number): this {
@@ -60,6 +67,10 @@ export class CelestialModel {
     const sunHour = night ? Math.PI : 0;
     this.onArc(sunHour, this.sun);
     this.onArc(sunHour - 2 * Math.PI * this.phase, this.moon);
+    // Tilt the moon's path about the sun: sun × moon points away from the pole for a waxing moon, so turn the other way.
+    const cos = Math.cos(MOON_INCLINATION), sin = Math.sin(MOON_INCLINATION), along = this.sun.dot(this.moon);
+    const across = this.tilt.crossVectors(this.sun, this.moon);
+    this.moon.multiplyScalar(cos).addScaledVector(across, -sin).addScaledVector(this.sun, along * (1 - cos)).normalize();
     this.updateStars();
     return this;
   }

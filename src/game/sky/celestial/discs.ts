@@ -60,8 +60,15 @@ export interface SunInputs {
   readonly irradiance: Node<'vec3'>;
 }
 
-/** Limb-darkened sun and its corona along `direction`; `pixel` is the radians one pixel spans there. */
-export function sunDisc(direction: Node<'vec3'>, sun: SunInputs, pixel: Node<'float'>): Node<'vec3'> {
+/** Share of the view along `direction` the moon's disc covers (1 inside, 0 outside, anti-aliased over a pixel): it hides
+ * the stars, the Milky Way and, at a new moon, the sun behind it. */
+export function moonCover(direction: Node<'vec3'>, moon: Node<'vec3'>, pixel: Node<'float'>): Node<'float'> {
+  const offset = direction.sub(moon);
+  return smoothstep(pixel.mul(-EDGE_PX), pixel.mul(EDGE_PX), sqrt(dot(offset, offset)).sub(DISC_RADIUS).negate());
+}
+
+/** Limb-darkened sun and its corona along `direction`, behind the moon; `pixel` is the radians one pixel spans there. */
+export function sunDisc(direction: Node<'vec3'>, sun: SunInputs, pixel: Node<'float'>, moon: Node<'vec3'>): Node<'vec3'> {
   const reach = DISC_RADIUS + CORONA_WIDTH * 9;
   return Fn(() => {
     const result = vec3(0).toVar();
@@ -73,7 +80,7 @@ export function sunDisc(direction: Node<'vec3'>, sun: SunInputs, pixel: Node<'fl
       const limb = vec3(1).sub(vec3(...SUN_LIMB).mul(float(1).sub(mu)));
       const edge = smoothstep(pixel.mul(-EDGE_PX), pixel.mul(EDGE_PX), angle.sub(DISC_RADIUS).negate());
       const corona = exp(max(angle.sub(DISC_RADIUS), 0).div(-CORONA_WIDTH)).mul(CORONA);
-      result.assign(sun.irradiance.mul(limb.mul(edge).add(corona).mul(SUN_DISC)));
+      result.assign(sun.irradiance.mul(limb.mul(edge).add(corona).mul(SUN_DISC)).mul(moonCover(direction, moon, pixel).oneMinus()));
     });
     return result;
   })();

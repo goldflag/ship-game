@@ -50,9 +50,9 @@ function milkyWay(g: Node<'vec3'>): Node<'vec3'> {
   const light = disc.mul(lumps).add(starClouds.mul(lumps.mul(.5).add(.6))).mul(fine).add(bulge.mul(lumps.mul(.25).add(.8))).mul(grain).add(thick);
   // Dust: warped noise for filaments, and lanes that wander about a centre line. Dust clouds are sheared along the
   // plane by the galaxy's rotation, so the noise is squeezed across it and its features stretch along the band.
-  const warped = g.add(mx_noise_vec3(g.mul(3.3)).mul(.1)).add(mx_noise_vec3(g.mul(9.1).add(3)).mul(.025));
-  const along = warped.mul(vec3(1, 1, 2.6));
-  const filaments = ridges(along.mul(10), 5).mul(.6).add(ridges(along.mul(21).add(1.9), 5).mul(.4));
+  const warped = g.add(mx_noise_vec3(g.mul(3.3)).mul(.065)).add(mx_noise_vec3(g.mul(9.1).add(3)).mul(.018));
+  const along = warped.mul(vec3(1, 1, 4));
+  const filaments = ridges(along.mul(10), 4).mul(.6).add(ridges(along.mul(21).add(1.9), 4).mul(.4));
   const mottled = smoothstep(-.2, .7, mx_fractal_noise_float(along.mul(7).add(2.7), 4, 2.1, .55));
   const lane = (centre: Node<'float'>, width: Node<'float'> | number, strength: Node<'float'>) => {
     const t = bDegrees.sub(centre).div(width);
@@ -72,7 +72,7 @@ function milkyWay(g: Node<'vec3'>): Node<'vec3'> {
     .add(blob(l, b, [3, 6.5], 2, 3.4, 58).mul(1.5)) // the Pipe and the dark clouds of Ophiuchus
     .add(blob(l, b, [-4, 16], 2.4, 2.4, 38).mul(1))
     .add(blob(l, b, [173, -15], 4.5, 1.8, -25).mul(.8)); // Taurus
-  const patches = mottled.mul(filaments).mul(1.2).mul(exp(height.div(7 * DEGREES).negate())).mul(toward.mul(.7).add(.3));
+  const patches = mottled.mul(filaments).mul(.9).mul(exp(height.div(7 * DEGREES).negate())).mul(toward.mul(.7).add(.3));
   const depth = lanes.add(clouds.mul(filaments.mul(.7).add(.5))).add(patches);
   const transmit = exp(vec3(1, 1.25, 1.6).mul(depth).negate());
   // Old stars warm the core; the arms are young and bluer.
