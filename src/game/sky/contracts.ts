@@ -178,6 +178,9 @@ export interface SkyUniforms {
    * colour × intensity at the sea: the scene light's own values (`CelestialLight`), for shafts and rain. */
   readonly lightDirection: UniformNode<'vec3', Vector3>;
   readonly lightColor: UniformNode<'vec3', Vector3>;
+  /** The scene-wide lightning flash this frame, as a multiple of the ambient (`CelestialLight.flash`, 0 = none):
+   * what lifts the hemisphere fill and smoke, for the clouds and rain to brighten with the rest of the scene. */
+  readonly flash: UniformNode<'float', number>;
   /** Lightning lighting the clouds: world position of the channel and its current radiant intensity (0 dark). */
   readonly lightningPosition: UniformNode<'vec3', Vector3>;
   readonly lightningIntensity: UniformNode<'float', number>;

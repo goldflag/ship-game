@@ -18,5 +18,6 @@ export function createSkyUniforms(): SkyUniforms {
     lightColor: uniform(new Vector3()),
     lightningPosition: uniform(new Vector3()),
     lightningIntensity: uniform(0),
+    flash: uniform(0),
   };
 }
