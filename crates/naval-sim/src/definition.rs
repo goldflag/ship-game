@@ -1656,6 +1656,10 @@ pub struct ConstructionData {
     pub finish: Option<String>,
     #[serde(rename = "paint", default, skip_serializing_if = "Option::is_none")]
     pub paint: Option<String>,
+    #[serde(rename = "roofPaint", default, skip_serializing_if = "Option::is_none")]
+    pub roof_paint: Option<String>,
+    #[serde(rename = "wear", default, skip_serializing_if = "Option::is_none")]
+    pub wear: Option<String>,
     #[serde(rename = "version")]
     pub version: f64,
     #[serde(rename = "catalogRevision")]

@@ -55,8 +55,9 @@ export class ShipMaterialPalette {
     };
     const unwrap = (node: THREE.Node | null) => node && (this.weatheredBases.get(node) ?? node);
     const color = unwrap(material.colorNode) ?? materialColor;
-    material.colorNode = color === materialColor
-      ? shared(materialColor, () => materialColor.mul(weathering.dry))
+    // Paint scales its whole colour, alpha included, as it always has; teak keeps its opaque planks.
+    material.colorNode = color === materialColor || material.userData.shipSurfaceMode !== 'teak'
+      ? shared(color, () => (color as THREE.Node<'vec4'>).mul(weathering.dry))
       : shared(color, () => vec4((color as THREE.Node<'vec4'>).rgb.mul(weathering.dry), (color as THREE.Node<'vec4'>).a));
     const rough = unwrap(material.roughnessNode) ?? roughness;
     material.roughnessNode = shared(rough, () => (rough as THREE.Node<'float'>).mul(weathering.gloss));
@@ -103,6 +104,9 @@ export class ShipMaterialPalette {
         for (let i = 0; i < surface.length; i += 4) { surface[i] = material.roughness; surface[i + 1] = material.metalness; surface[i + 2] = plated; surface[i + 3] = band; }
         colored.setAttribute('color', new THREE.BufferAttribute(color, 3));
         colored.setAttribute('shipSurface', new THREE.BufferAttribute(surface, 4));
+        // Construction ships measure their wear when assembled (constructionWear); every other paint wears none,
+        // with the same layout so its draws still batch and each paint keeps one program.
+        if (this.options.surfaceDetail && !colored.hasAttribute('shipWear')) colored.setAttribute('shipWear', new THREE.BufferAttribute(new Float32Array(surface.length), 4));
         colors.set(colorKey, colored); geometry = colored;
       }
       object.geometry = geometry; object.material = shared;

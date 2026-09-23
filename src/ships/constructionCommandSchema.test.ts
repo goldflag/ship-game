@@ -15,12 +15,13 @@ import {
   closestMatches,
   constructionBatchJsonSchema,
   validateCommandShape,
+  WEARS,
   type Field,
 } from './constructionCommandSchema';
 import { objectSpecDrift, readTypes, specDrift } from './constructionTypeReader';
 import { CONSTRUCTION_FACES } from './constructionEditor';
 import { CONSTRUCTION_SHAPE_NAMES } from './constructionShapes';
-import { CONSTRUCTION_SURFACE_FINISHES } from './constructionPaints';
+import { CONSTRUCTION_SURFACE_FINISHES, CONSTRUCTION_WEAR } from './constructionPaints';
 import { createStarterSource } from './constructionStarter';
 import type { ConstructionCatalog, ConstructionSource } from './blueprint';
 
@@ -53,6 +54,7 @@ test('record specs match the declared source types, including nested records, op
   expect(objectSpecDrift(SURFACE, types.fields('ConstructionSurfaceAssignment'))).toEqual([]);
   expect([...FACES]).toEqual([...CONSTRUCTION_FACES]);
   expect([...FINISHES]).toEqual(CONSTRUCTION_SURFACE_FINISHES.map((finish) => finish.id));
+  expect([...WEARS]).toEqual(CONSTRUCTION_WEAR.map((wear) => wear.id));
   expect([...PRIMITIVE_KINDS].sort() as string[]).toEqual(Object.keys(CONSTRUCTION_SHAPE_NAMES).sort());
 });
 

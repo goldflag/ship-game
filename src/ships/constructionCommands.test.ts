@@ -23,6 +23,20 @@ test('ship finish round-trips through source commands without changing geometry 
   expect(apply(painted, [{ op: 'ship-paint' }]).construction).toEqual(original.construction);
   expect(() => apply(original, [{ op: 'ship-paint', paint: '' }])).toThrow('Command 0 (ship-paint): paint must be a string of 1 to 64 characters, got ""');
 });
+test('ship wear and roof paint round-trip through source commands and the diff', () => {
+  const original = source();
+  const apply = (s: ConstructionSource, commands: ConstructionCommand[]) => applyConstructionBatch(s, { version: 1, expectedRevision: s.revision, label: 'Weather', commands });
+  const weathered = JSON.parse(JSON.stringify(apply(original, [{ op: 'wear', wear: 'battle-worn' }, { op: 'roof-paint', paint: 'deck-gray' }])));
+  expect(weathered.construction).toEqual({ ...original.construction, wear: 'battle-worn', roofPaint: 'deck-gray' });
+  expect(constructionDiffCommands(original, weathered)).toEqual([{ op: 'roof-paint', paint: 'deck-gray' }, { op: 'wear', wear: 'battle-worn' }]);
+  expect(constructionDiffCommands(weathered, original)).toEqual([{ op: 'roof-paint', paint: undefined }, { op: 'wear', wear: undefined }]);
+  expect(apply(weathered, constructionDiffCommands(weathered, original)).construction).toEqual(original.construction);
+  expect(apply(weathered, [{ op: 'wear' }, { op: 'roof-paint' }]).construction).toEqual(original.construction);
+  expect(() => apply(original, [{ op: 'wear', wear: 'rusted' } as unknown as ConstructionCommand]))
+    .toThrow('Command 0 (wear): wear must be one of "fresh", "in-commission", "long-deployment", "battle-worn", got "rusted"');
+  expect(() => apply(original, [{ op: 'roof-paint', paint: '' }])).toThrow('Command 0 (roof-paint): paint must be a string of 1 to 64 characters, got ""');
+  expect(original.construction.wear).toBeUndefined();
+});
 test('agent batch is atomic and rejects stale revisions and syntax failures', () => {
   const original = source(), before = JSON.stringify(original);
   const batch: ConstructionBatch = { version: 1, expectedRevision: 'one', label: 'Refit', commands: [{ op: 'name', name: 'Changed' }, { op: 'move', ids: ['absent'], delta: [1, 0, 0] }] };

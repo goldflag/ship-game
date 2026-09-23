@@ -78,7 +78,27 @@ test('every paint carries its hull\'s wet-band height, and weathering layers ove
   root.add(new THREE.Mesh(new THREE.BoxGeometry(), clone));
   palette.setSurfaceDetail(root, false);
   expect(clone.normalNode).toBeNull();
-  expect(clone.roughnessNode).not.toBe(paint.roughnessNode); expect(clone.colorNode).toBe(paint.colorNode);
+  // Without detail the paint wears nothing either: its colour is the plain weathered one.
+  expect(clone.roughnessNode).not.toBe(paint.roughnessNode); expect(clone.colorNode).not.toBe(paint.colorNode); expect(clone.colorNode).not.toBeNull();
   palette.setSurfaceDetail(root, true);
-  expect(clone.roughnessNode).toBe(paint.roughnessNode);
+  expect(clone.roughnessNode).toBe(paint.roughnessNode); expect(clone.colorNode).toBe(paint.colorNode);
+});
+
+test('premade paint wears nothing and shares its material and layout with construction paint', () => {
+  const palette = new ShipMaterialPalette({ surfaceDetail: true }), root = new THREE.Group();
+  const paint = () => new THREE.MeshStandardMaterial({ color: '#7c8c91', roughness: .78 });
+  const premade = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 40), paint()), built = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 40), paint());
+  const wear = new Float32Array(built.geometry.getAttribute('position').count * 4).fill(.4);
+  built.geometry.setAttribute('shipWear', new THREE.BufferAttribute(wear, 4));
+  root.add(premade, built); palette.apply(root);
+  expect(premade.material).toBe(built.material);
+  const zero = premade.geometry.getAttribute('shipWear');
+  expect(zero.itemSize).toBe(4); expect(Array.from(zero.array).every(value => value === 0)).toBe(true);
+  expect(Array.from(built.geometry.getAttribute('shipWear').array)).toEqual(Array.from(wear));
+  const layout = (mesh: THREE.Mesh) => Object.entries(mesh.geometry.attributes).map(([name, a]) => `${name}:${a.itemSize}`).sort();
+  expect(layout(premade)).toEqual(layout(built));
+  // Aircraft carry no surface detail, so no wear either.
+  const aircraft = new THREE.Group(), plane = new THREE.Mesh(new THREE.BoxGeometry(), paint());
+  aircraft.add(plane); new ShipMaterialPalette().apply(aircraft);
+  expect(plane.geometry.hasAttribute('shipWear')).toBe(false);
 });
