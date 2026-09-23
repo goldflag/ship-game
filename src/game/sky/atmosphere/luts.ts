@@ -123,7 +123,7 @@ function transmittanceUv(r: Float, mu: Float): Vec2 {
   return vec2(unitToTexel(xMu.clamp(0, 1), TRANSMITTANCE_SIZE.x), unitToTexel(rho.div(H).clamp(0, 1), TRANSMITTANCE_SIZE.y));
 }
 
-/** The four tables; built by `AtmosphereTables`, read by the part's samplers. */
+/** The tables the part's samplers read; `AtmosphereTables` builds them. */
 export interface Tables {
   readonly opticalDepth: Texture;
   readonly multiple: Texture;
@@ -231,8 +231,9 @@ export interface PassInputs {
   readonly cameraHeight: UniformNode<'float', number>;
   readonly sunDirection: Node<'vec3'>;
   readonly moonDirection: Node<'vec3'>;
-  /** Radiance of the sky as the ambient tables store it, along a world direction from altitude `h`: the
-   * part assembles the lights, gains and night floor (see `Atmosphere.radiance`). */
+  /** The sky's radiance along a world direction from both bodies' scattering (per unit irradiance), as the
+   * dome shows it: the part applies the lights, the aerosol lobe, the twilight lift, the grade and the night
+   * floor. The ambient table stores what it returns. */
   readonly compose: (sun: { scatter: Vec3; mie: Vec3 }, moon: { scatter: Vec3; mie: Vec3 }, direction: Vec3) => Vec3;
   /** Irradiance of the sun and moon at the sea for the ambient's sea bounce, each × its lift (world units). */
   readonly sunLight: Vec3;
