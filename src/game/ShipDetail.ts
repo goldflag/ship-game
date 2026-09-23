@@ -24,10 +24,12 @@ export async function prepareShipDetail(root: THREE.Object3D): Promise<void> {
     const indices = Uint32Array.from(geometry.index.array);
     const scale = MeshoptSimplifier.getScale(positions, 3);
     // Preserve normal/UV seams in the error metric as well as surface shape.
-    const attributes = ['normal', 'uv', 'color', 'shipSurface'].flatMap(name => geometry.hasAttribute(name) ? [geometry.getAttribute(name)] : []);
+    const attributes = ['normal', 'uv', 'color', 'shipSurface', 'shipWear'].flatMap(name => geometry.hasAttribute(name) ? [geometry.getAttribute(name)] : []);
     const stride = attributes.reduce((n, a) => n + a.itemSize, 0);
     const values = new Float32Array(position.count * stride);
-    const weights = attributes.flatMap(a => Array<number>(a.itemSize).fill(a === geometry.getAttribute('color') || a === geometry.getAttribute('shipSurface') ? 1 : .02));
+    // Wear distances are metres, linear across each wall, and jump only where the walls split.
+    const weight = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute) => a === geometry.getAttribute('color') || a === geometry.getAttribute('shipSurface') ? 1 : a === geometry.getAttribute('shipWear') ? .01 : .02;
+    const weights = attributes.flatMap(a => Array<number>(a.itemSize).fill(weight(a)));
     for (let vertex = 0; vertex < position.count; vertex++) {
       let offset = vertex * stride;
       for (const attribute of attributes) for (let component = 0; component < attribute.itemSize; component++) {

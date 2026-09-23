@@ -15,6 +15,7 @@ import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponent
 import {
   CONSTRUCTION_FINISH, constructionFittingPaint, constructionFittingRoofColor, constructionPaintColor, constructionFinishRoughness, constructionRoofColor, constructionShipPaint,
 } from '../ships/constructionPaints';
+import { applyConstructionWear } from './constructionWear';
 
 /** Render the native exterior exactly. Triangle attribution remains a reference
  * to source faces; triangulation and material batching never become source IDs. */
@@ -206,7 +207,7 @@ export async function createConstructionModel(source: ConstructionSource, result
     const unused = new Set<THREE.Material>();
     for (const template of templates.values()) template.traverse(node => { if (node instanceof THREE.Mesh) for (const material of Array.isArray(node.material) ? node.material : [node.material]) if (!used.has(material)) unused.add(material); });
     unused.forEach(material => material.dispose());
-    group.updateMatrixWorld(true); return group;
+    group.updateMatrixWorld(true); applyConstructionWear(group, source, result); return group;
   } catch (error) {
     // Include templates that failed before their first instance was installed.
     for (const template of templates.values()) group.add(template);

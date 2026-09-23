@@ -1,5 +1,8 @@
 import * as THREE from 'three/webgpu';
-import { abs, attribute, cross, dFdx, dFdy, dot, faceDirection, float, materialRoughness, max, mix, normalGeometry, normalView, positionGeometry, positionView, pow, smoothstep, texture, uniform, vec2, vec3, vec4 } from 'three/tsl';
+import {
+  Fn, If, abs, attribute, cross, dFdx, dFdy, dot, exp, faceDirection, float, materialColor, materialRoughness, max, mix, mx_noise_float, normalGeometry, normalView,
+  positionGeometry, positionView, pow, select, smoothstep, step, texture, uniform, vec2, vec3, vec4,
+} from 'three/tsl';
 import type { Node } from 'three/webgpu';
 
 /** Physically scaled surface detail for ship paint and teak, evaluated in each mesh's own
@@ -13,7 +16,13 @@ import type { Node } from 'three/webgpu';
  * Relief is applied as a surface gradient (Mikkelsen) from the per-pixel derivatives of
  * the geometry and view positions, so it needs no tangents and holds for batched,
  * instanced and mirrored meshes alike. Mipmaps average the gradients towards zero, so
- * the detail recedes with distance and the approved scheme reads unchanged. */
+ * the detail recedes with distance and the approved scheme reads unchanged.
+ *
+ * Construction ships also wear their paint here, by the amounts and distances their assembly
+ * measured per vertex (`shipWear`, see constructionWear): metric mottling from the plating
+ * tile's alpha, runoff streaks from a third tile hanging below top edges, a tide stain at
+ * the rest waterline and soot at funnel tops. Premade ships bake their finish and carry no
+ * wear; their paint takes the same program and draws exactly as before. */
 
 /** Paint classes that get plating. Canvas, glass, rope, dark recesses and metals do not. */
 const PLATED_FINISHES = new Set(['painted-steel', 'painted-deck', 'underwater-coating']);
@@ -54,6 +63,10 @@ export function shipSurfaceMode(material: THREE.MeshStandardMaterial): ShipSurfa
 
 // Plating tile: 16 m square, eight 2 m strakes, two 8 m plates per strake.
 export const PLATE = { tile: 16, size: 1024, strake: 2, butt: 8, frame: 1, gradientScale: .25 } as const;
+// Runoff tile: 16 m along a top edge by 16 m down from it, one channel per wear preset.
+export const STREAK = { along: 16, down: 16, width: 1024, height: 256 } as const;
+/** The construction wear presets' amounts, which the runoff tile's channels are drawn for. */
+export const WEAR_LEVELS = [.1, .4, .7, 1] as const;
 // Teak tile: 16 planks of 16 cm across, 20.48 m along with four 5.12 m butts per plank.
 export const TEAK = { across: 2.56, along: 20.48, width: 512, length: 2048, plank: .16, butt: 5.12, gradientScale: .5 } as const;
 
@@ -67,6 +80,16 @@ function tileNoise(u: number, v: number, cells: number, seed: number): number {
   const a = at(ix, iy), b = at(ix + 1, iy), c = at(ix, iy + 1), d = at(ix + 1, iy + 1);
   return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
 }
+/** `tileNoise` with its lattice tabulated once, for whole-tile fields. */
+function noiseTable(cells: number, seed: number): (u: number, v: number) => number {
+  const lattice = Float32Array.from({ length: cells * cells }, (_, k) => hash(k % cells, Math.floor(k / cells), seed));
+  return (u, v) => {
+    const x = u * cells, y = v * cells, ix = Math.floor(x), iy = Math.floor(y), fx = smooth(x - ix), fy = smooth(y - iy);
+    const i0 = ((ix % cells) + cells) % cells, j0 = ((iy % cells) + cells) % cells, i1 = (i0 + 1) % cells, j1 = (j0 + 1) % cells;
+    const a = lattice[j0 * cells + i0], b = lattice[j0 * cells + i1], c = lattice[j1 * cells + i0], d = lattice[j1 * cells + i1];
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+  };
+}
 /** Pitch caulking darkens the board colour by this fraction at full coverage. */
 const CAULK_DARKENING = .62;
 /** Mean board colour without caulking over mean with it: the pattern's mean while caulking fades. */
@@ -74,11 +97,13 @@ let teakAlbedoRatio = 1.03;
 const encode = (value: number, scale: number) => Math.max(0, Math.min(255, Math.round(127.5 + value / scale * 127.5)));
 
 /** RGBA plating texels: R,G height gradient along u (length or beam) and v (height), per
- * metre of surface; B roughness field (0.5 neutral). Rows, columns and plates are tabulated
- * so the per-texel work stays small. */
+ * metre of surface; B roughness field (0.5 neutral); A paint mottling for worn paint (0.5
+ * neutral, peaks at 0 and 1), as the premade finish's 1.3 m and 0.31 m blotches plus a slight
+ * tone per plate. Rows, columns and plates are tabulated so the per-texel work stays small. */
 export function plateTexels(size: number = PLATE.size): Uint8Array {
   const { tile, strake, butt, frame } = PLATE, texel = tile / size, plates = tile / butt;
   const height = new Float32Array(size * size), weld = .018, depth = .0045, reach = 3 * weld;
+  const mottle = new Float32Array(size * size), coarse = noiseTable(12, 21), fine = noiseTable(52, 23);
   const bay = new Float32Array(size);
   for (let x = 0; x < size; x++) bay[x] = Math.sin(Math.PI * (((x + .5) * texel) % frame) / frame);
   // Low-frequency roughness on a quarter-resolution lattice; it varies over metres.
@@ -90,24 +115,69 @@ export function plateTexels(size: number = PLATE.size): Uint8Array {
     const offset = Math.round(hash(row, 3) * butt / frame) * frame, rim = Math.min(across, strake - across);
     const dish = Array.from({ length: plates }, (_, plate) => .002 + .003 * hash(row, plate, 7));
     const tint = Array.from({ length: plates }, (_, plate) => .22 * (hash(row, plate, 5) - .5));
+    const tone = Array.from({ length: plates }, (_, plate) => .5 * (hash(row, plate, 19) - .5));
     for (let x = 0; x < size; x++) {
       const run = (x + .5) * texel + offset, plate = Math.floor(run / butt) % plates, along = run % butt;
-      const seam = Math.min(rim, along, butt - along);
+      const seam = Math.min(rim, along, butt - along), u = (x + .5) / size, w = (y + .5) / size;
+      mottle[y * size + x] = .65 * (2 * coarse(u, w) - 1) + .35 * (2 * fine(u, w) - 1) + tone[plate];
       // Welded butts and seams: a shallow groove about two centimetres either side;
       // plates dish slightly between transverse frames and strake edges.
       height[y * size + x] = (seam < reach ? -depth * Math.exp(-((seam / weld) ** 2)) : 0) - dish[plate] * bay[x] * rowSin;
       pixels[(y * size + x) * 4 + 2] = Math.max(0, Math.min(255, Math.round((.5 + .7 * (field[(y >> 2) * low + (x >> 2)] - .5) + tint[plate]) * 255)));
     }
   }
+  // Mottling averages out with distance: centre it, and scale its peaks to the encoding's.
+  let mean = 0, peak = 0;
+  for (const value of mottle) mean += value / mottle.length;
+  for (const value of mottle) peak = Math.max(peak, Math.abs(value - mean));
   for (let y = 0; y < size; y++) {
     const up = ((y + 1) % size) * size, down = ((y + size - 1) % size) * size;
     for (let x = 0; x < size; x++) {
       const right = (x + 1) % size, left = (x + size - 1) % size, i = (y * size + x) * 4;
       pixels[i] = encode((height[y * size + right] - height[y * size + left]) / (2 * texel), PLATE.gradientScale);
       pixels[i + 1] = encode((height[up + x] - height[down + x]) / (2 * texel), PLATE.gradientScale);
-      pixels[i + 3] = 255;
+      pixels[i + 3] = encode(mottle[y * size + x] - mean, peak);
     }
   }
+  return pixels;
+}
+
+/** Streaks per preset: the share of the tile's candidate streaks drawn (about 0.4, 1, 1.8 and 2.8 a metre) and
+ * the longest one's reach in metres. A few broad, faint washes of rain-carried grime run among the thin ones. */
+const RUNOFF = { candidates: 64, washes: 14, drawn: [.1, .26, .45, .7], reach: [.7, 2.2, 4.5, 8] } as const;
+/** RGBA runoff texels, `width` along a top edge by `height` down from it (row 0 at the edge): each channel
+ * the streak coverage at one of `WEAR_LEVELS`. A streak keeps its place, width and wander at every level;
+ * more of them appear, and each runs further, as the wear grows. Coverage fades before the tile's foot, so
+ * surfaces further down (and `WEAR_NONE`) clamp to none. */
+export function streakTexels(width: number = STREAK.width, height: number = STREAK.height): Uint8Array {
+  const { along, down } = STREAK, sx = along / width, sy = down / height, clear = RUNOFF.drawn.map(() => new Float32Array(width * height).fill(1));
+  // Streaks gather where the water drains: some stretches of an edge collect several, others none.
+  const gathering = noiseTable(5, 31);
+  for (let i = 0; i < RUNOFF.candidates + RUNOFF.washes; i++) {
+    const wash = i >= RUNOFF.candidates, at = hash(i, 1) * along, rank = hash(i, 2) * (.35 + 1.3 * gathering(at / along, 0));
+    const reach = wash ? .4 + .6 * hash(i, 3) : .2 + .8 * hash(i, 3) ** 1.5, strength = wash ? .12 + .2 * hash(i, 4) : .3 + .7 * hash(i, 4) ** 1.5;
+    // Mostly thin: 4 cm to about 25 cm, wandering a centimetre or two as it runs; washes 30 to 90 cm.
+    const breadth = wash ? .3 + .6 * hash(i, 5) : .04 + .21 * hash(i, 5) ** 2.5, wander = (wash ? 3 : 1) * (.004 + .014 * hash(i, 6));
+    const turn = 1.2 + 3 * hash(i, 7), phase = 2 * Math.PI * hash(i, 8);
+    RUNOFF.drawn.forEach((drawn, level) => {
+      if (rank >= drawn) return;
+      const length = RUNOFF.reach[level] * reach, rows = Math.min(height, Math.ceil(length / sy)), cover = clear[level];
+      for (let y = 0; y < rows; y++) {
+        const d = (y + .5) * sy, t = Math.min(1, d / length), half = breadth / 2 * (1 - .55 * t);
+        const centre = at + wander * Math.sin(turn * d + phase) + .5 * wander * Math.sin(2.9 * turn * d + 2 * phase);
+        // Full at the edge, thinning out over the last two thirds of its run, with a little unevenness.
+        const fade = strength * (1 - smooth(Math.max(0, (t - .3) / .7))) * (.75 + .25 * Math.sin(d * 5.3 + phase * 3));
+        for (let x = Math.floor((centre - half) / sx); x <= Math.ceil((centre + half) / sx); x++) {
+          const offset = ((x + .5) * sx - centre) / half;
+          if (Math.abs(offset) >= 1) continue;
+          const k = y * width + ((x % width) + width) % width;
+          cover[k] *= 1 - fade * (1 - offset * offset) ** 2;
+        }
+      }
+    });
+  }
+  const pixels = new Uint8Array(width * height * 4);
+  for (let k = 0; k < width * height; k++) for (let level = 0; level < 4; level++) pixels[k * 4 + level] = Math.round(255 * (1 - clear[level][k]));
   return pixels;
 }
 
@@ -175,9 +245,9 @@ export function teakTexels(width: number = TEAK.width, length: number = TEAK.len
   return pixels;
 }
 
-function dataTexture(pixels: Uint8Array, width: number, height: number, name: string): THREE.DataTexture {
+function dataTexture(pixels: Uint8Array, width: number, height: number, name: string, wrapT: THREE.Wrapping = THREE.RepeatWrapping): THREE.DataTexture {
   const map = new THREE.DataTexture(pixels, width, height);
-  map.name = name; map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  map.name = name; map.wrapS = THREE.RepeatWrapping; map.wrapT = wrapT;
   map.magFilter = THREE.LinearFilter; map.minFilter = THREE.LinearMipmapLinearFilter;
   map.generateMipmaps = true; map.anisotropy = 8; map.needsUpdate = true;
   return map;
@@ -185,8 +255,26 @@ function dataTexture(pixels: Uint8Array, width: number, height: number, name: st
 
 /** Relief strength, for review. */
 export const surfaceRelief = uniform(1);
+/** Wear on construction ships' paint, for review: 0 draws none, 1 as designed. */
+export const surfaceWear = uniform(1);
+/** −1 draws each construction ship's own wear; 0 or more draws that amount on all of them instead (review). */
+export const wearOverride = uniform(-1);
 
-type Nodes = { plateNormal: Node<'vec3'>; paintRoughness: Node<'float'>; plainRoughness: Node<'float'>; teakNormal: Node<'vec3'>; teakRoughness: Node<'float'>; teakPattern: Node<'float'> };
+/** Worn paint, per unit of wear amount where a pair gives [at none, added per unit]. Tints are linear colour
+ * multipliers at full coverage. */
+const WEAR = {
+  /** Peak tone swing of the mottling: ±11 % in commission (0.4), as the premade ships' maintained finish. */
+  mottle: .27,
+  /** Share of the streak tint a fully covered streak takes. */
+  streak: [.35, .45],
+  grime: [.5, .49, .47], rust: [.7, .45, .3],
+  /** Olive-brown scum at the waterline, and the share of it at the band's centre. */
+  tide: [.6, .58, .42], stain: .9,
+  /** Soot reach below a funnel's top in metres, its darkness and colour. */
+  sootReach: [1, 3], sootDarkness: [.5, .45], soot: [.09, .085, .08],
+} as const;
+
+type Nodes = { plateNormal: Node<'vec3'>; paintColor: Node<'vec3'>; paintRoughness: Node<'float'>; plainRoughness: Node<'float'>; teakNormal: Node<'vec3'>; teakRoughness: Node<'float'>; teakPattern: Node<'float'> };
 let nodes: Nodes | undefined;
 
 /** Surface relief from an object-space height gradient `gradient` (height per metre in
@@ -204,6 +292,7 @@ function shipSurfaceNodes(): Nodes {
   if (nodes) return nodes;
   const plate = dataTexture(plateTexels(), PLATE.size, PLATE.size, 'Ship plating detail');
   const teak = dataTexture(teakTexels(), TEAK.width, TEAK.length, 'Ship teak detail');
+  const streaks = dataTexture(streakTexels(), STREAK.width, STREAK.height, 'Ship runoff streaks', THREE.ClampToEdgeWrapping);
   // Roughness, metalness, plated-paint flag; `w` is the wet band's rest height (HullWetBand).
   const surface = attribute<'vec4'>('shipSurface', 'vec4');
   const p = positionGeometry, n = normalGeometry.normalize();
@@ -217,7 +306,57 @@ function shipSurfaceNodes(): Nodes {
   const roughness = side.z.mul(w.x).add(end.z.mul(w.z)).add(top.z.mul(w.y));
   const plainRoughness = materialRoughness.mul(surface.x);
   // ±8 % about the authored roughness; paint stays matte.
-  const paintRoughness = plainRoughness.mul(roughness.sub(.5).mul(surface.z.mul(.16)).add(1));
+  const plateRoughness = plainRoughness.mul(roughness.sub(.5).mul(surface.z.mul(.16)).add(1));
+
+  // Worn paint: colour (rgb) and roughness (a) multipliers, exactly 1 where the paint wears none.
+  const worn = attribute<'vec4'>('shipWear', 'vec4');
+  const wearing = Fn(() => {
+    const factor = vec4(1).toVar();
+    const amount = select(wearOverride.greaterThanEqual(0), wearOverride, worn.x).mul(step(1e-4, worn.x)).mul(surfaceWear).toVar();
+    If(amount.greaterThan(0), () => {
+      // Fresh nodes throughout: one shared with the other outputs would be declared inside this branch.
+      const q = positionGeometry, m = normalGeometry.normalize(), m4 = pow(abs(m), vec3(4)), tri = m4.div(m4.x.add(m4.y).add(m4.z));
+      const blotch = texture(plate, q.zy.div(PLATE.tile)).w.mul(tri.x).add(texture(plate, q.xy.div(PLATE.tile)).w.mul(tri.z))
+        .add(texture(plate, q.zx.div(PLATE.tile)).w.mul(tri.y)).mul(2).sub(1).toVar();
+      // Broad patches that never repeat keep the 16 m tile from showing along a hull.
+      const broad = mx_noise_float(q.div(7));
+      const color = vec3(amount.mul(WEAR.mottle).mul(blotch.mul(.75).add(broad.mul(.45))).add(1)).toVar(), rough = float(1).toVar();
+      const drop = worn.y;
+      If(drop.lessThan(STREAK.down), () => {
+        // Streaks hang from the top edge: along the length on beam-facing walls, across it on end walls. A slow
+        // stretch of the tile (±25 %) keeps a long hull side from repeating it every 16 m.
+        const ax = pow(abs(m.x), 4), az = pow(abs(m.z), 4), beam = ax.div(ax.add(az).add(1e-4)), v = drop.div(STREAK.down);
+        const stretched = (h: Node<'float'>) => h.add(h.mul(.09).sin().mul(1.5)).add(h.mul(.23).add(1.3).sin().mul(.5)).div(STREAK.along);
+        const runoff = mix(texture(streaks, vec2(stretched(q.x), v)), texture(streaks, vec2(stretched(q.z), v)), beam);
+        // Hat weights over the presets' channels, fading in from no wear.
+        const levels = float(1).sub(abs(vec4(...WEAR_LEVELS).sub(amount)).div(.3)).clamp(0, 1).mul(amount.mul(10).min(1));
+        const cover = dot(runoff, levels).mul(smoothstep(.62, .4, abs(m.y))).mul(amount.mul(WEAR.streak[1]).add(WEAR.streak[0]));
+        color.mulAssign(mix(vec3(1), mix(vec3(...WEAR.grime), vec3(...WEAR.rust), smoothstep(.2, 1, amount)), cover));
+        // Grime and rust dull the paint a little.
+        rough.mulAssign(cover.mul(.2).add(1));
+      });
+      const tide = worn.w;
+      If(abs(tide).lessThan(2), () => {
+        // A narrow band just above the rest waterline, its edge wandering over a metre or so.
+        const edge = mx_noise_float(vec3(q.z.div(1.2), q.x.div(1.2), 0)).mul(.07).add(mx_noise_float(vec3(q.z.div(.35), q.x.div(.35), 3)).mul(.03));
+        const stain = exp(tide.sub(.08).sub(edge).div(amount.mul(.12).add(.2)).pow(2).negate());
+        color.mulAssign(mix(vec3(1), vec3(...WEAR.tide), stain.mul(amount.mul(WEAR.stain).min(WEAR.stain))));
+      });
+      const funnel = worn.z;
+      If(funnel.lessThan(6), () => {
+        // Matte soot over the top metre or few of a funnel, its lower edge ragged.
+        const reach = amount.mul(WEAR.sootReach[1]).add(WEAR.sootReach[0]);
+        const soot = float(1).sub(smoothstep(reach.mul(.15), reach, funnel.sub(blotch.mul(reach).mul(.2)))).mul(amount.mul(WEAR.sootDarkness[1]).add(WEAR.sootDarkness[0]));
+        color.mulAssign(mix(vec3(1), vec3(...WEAR.soot), soot));
+        rough.mulAssign(soot.mul(.5).add(1));
+      });
+      factor.assign(vec4(color, rough));
+    });
+    return factor;
+  })();
+  // A mapped colour keeps its alpha: the three wear channels widen with an alpha of one.
+  const paintColor = materialColor.mul(wearing.rgb);
+  const paintRoughness = plateRoughness.mul(wearing.w);
 
   // Teak in ship plan: x across the beam, z along the length; planks run fore and aft.
   const t = texture(teak, vec2(p.x.div(TEAK.across), p.z.div(TEAK.along)));
@@ -230,7 +369,7 @@ function shipSurfaceNodes(): Nodes {
   const teakPattern = mix(float(1), t.x.mul(2).mul(caulk.oneMinus()).div(mean), up);
   const teakGradient = vec3(t.z.mul(2).sub(1), 0, t.w.mul(2).sub(1)).mul(TEAK.gradientScale).mul(up);
   const teakRoughness = plainRoughness.mul(t.y.mul(.1).add(t.x.sub(.5).mul(-.12)).mul(up).add(1));
-  return nodes = { plateNormal: perturbed(plating), paintRoughness, plainRoughness, teakNormal: perturbed(teakGradient), teakRoughness, teakPattern };
+  return nodes = { plateNormal: perturbed(plating), paintColor, paintRoughness, plainRoughness, teakNormal: perturbed(teakGradient), teakRoughness, teakPattern };
 }
 
 let enabled = true;
@@ -247,6 +386,7 @@ export function applyShipSurfaceDetail(material: THREE.MeshStandardNodeMaterial,
     material.normalNode = on ? shared.teakNormal : null;
     material.roughnessNode = on ? shared.teakRoughness : shared.plainRoughness;
   } else {
+    material.colorNode = on ? shared.paintColor : null;
     material.normalNode = on && !material.normalMap ? shared.plateNormal : null;
     material.roughnessNode = on ? shared.paintRoughness : shared.plainRoughness;
   }

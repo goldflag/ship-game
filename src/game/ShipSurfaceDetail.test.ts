@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
-import { PLATE, plateTexels, setShipSurfaceDetail, TEAK, teakTexels } from './ShipSurfaceDetail';
+import { PLATE, plateTexels, setShipSurfaceDetail, STREAK, streakTexels, TEAK, teakTexels } from './ShipSurfaceDetail';
 
 const channel = (pixels: Uint8Array, c: number) => pixels.filter((_, i) => i % 4 === c);
 const mean = (values: ArrayLike<number>) => Array.from(values).reduce((a, b) => a + b, 0) / values.length;
@@ -16,6 +16,18 @@ test('plating relief averages out, so distant paint keeps its authored shading',
   const row = (y: number) => mean(Array.from({ length: size }, (_, x) => Math.abs(pixels[(y * size + x) * 4 + 1] - 127.5)));
   const seamRow = Math.round(PLATE.strake / (PLATE.tile / size)), midRow = seamRow + Math.round(seamRow / 2);
   expect(Math.max(row(seamRow - 1), row(seamRow))).toBeGreaterThan(4 * row(midRow));
+});
+
+test('runoff streaks hang from the edge, grow with wear and end before the tile foot; mottling averages out', () => {
+  const pixels = streakTexels(), { width, height } = STREAK;
+  const row = (y: number, level: number) => mean(Array.from({ length: width }, (_, x) => pixels[(y * width + x) * 4 + level]));
+  const levels = [0, 1, 2, 3].map(level => mean(channel(pixels, level)));
+  for (let level = 1; level < 4; level++) expect(levels[level]).toBeGreaterThan(levels[level - 1]);
+  // Most coverage right under the edge; nothing left at the foot, where `WEAR_NONE` clamps.
+  for (let level = 0; level < 4; level++) { expect(row(0, level)).toBeGreaterThan(row(Math.round(height / 4), level)); expect(row(height - 1, level)).toBe(0); }
+  // A streak drawn at one wear is drawn at every greater wear.
+  for (let k = 0; k < width * height; k++) for (let level = 1; level < 4; level++) if (pixels[k * 4 + level - 1] > 128) expect(pixels[k * 4 + level]).toBeGreaterThan(0);
+  expect(Math.abs(mean(channel(plateTexels(), 3)) - 127.5)).toBeLessThan(1.5);
 });
 
 test('teak keeps the map mean tone, with caulked planks and staggered butts', () => {
@@ -54,10 +66,11 @@ test('ship palette classifies plated paint per vertex and teak per material, and
   expect(hull.material).toBe(canvas.material);
   const shared = hull.material as unknown as THREE.MeshStandardNodeMaterial, teak = deck.material as unknown as THREE.MeshStandardNodeMaterial;
   expect(shared.normalNode).not.toBeNull(); expect(teak.colorNode).not.toBeNull(); expect(teak.userData.shipSurfaceMode).toBe('teak');
+  // Without detail, paint draws no wear either: its colour is the plain material colour.
   setShipSurfaceDetail(root, false);
-  expect(shared.normalNode).toBeNull(); expect(teak.colorNode).toBeNull(); expect(teak.normalNode).toBeNull();
+  expect(shared.normalNode).toBeNull(); expect(shared.colorNode).toBeNull(); expect(teak.colorNode).toBeNull(); expect(teak.normalNode).toBeNull();
   setShipSurfaceDetail(root, true);
-  expect(shared.normalNode).not.toBeNull(); expect(teak.colorNode).not.toBeNull();
+  expect(shared.normalNode).not.toBeNull(); expect(shared.colorNode).not.toBeNull(); expect(teak.colorNode).not.toBeNull();
 });
 
 test('aircraft palettes stay without surface detail', () => {
