@@ -3,10 +3,11 @@ import { LocalizedFireEffects, type FireDisplayPose } from './LocalizedFireEffec
 import { ExpandableInstances } from './ExpandableInstances';
 import { localToWorld } from './geometry';
 import * as THREE from 'three/webgpu';
-import { attribute, color, mix, nodeObject, positionGeometry, uniform } from 'three/tsl';
+import { attribute, color, mix, positionGeometry } from 'three/tsl';
 import { FIXED_DT } from './session/motion';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
-import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
+import { effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
+import { EffectLighting } from './EffectLighting';
 import { WaterPlumes } from './WaterPlumes';
 import { shellGeometry } from '../../assets/effects/naval/shellGeometry';
 import { ShellTrails } from './ShellTrails';
@@ -46,24 +47,22 @@ export class CombatEffects {
   private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), shellGlow: effectTexture('glow'), foam: effectTexture('foam'), tracer: effectTexture('tracer'),
     droplet: effectTexture('droplet'), water: effectTexture('water') };
   private readonly volumeMap = effectVolumeTexture();
-  private readonly sun = uniform(new THREE.Vector3(-.55, .74, -.39).normalize());
-  private readonly smokeDirect = uniform(new THREE.Vector3(1.25, 1.19, 1.08));
-  private readonly smokeAmbient = uniform(new THREE.Vector3(.3, .35, .4));
-  private readonly volumeDepthTexture = new THREE.DepthTexture(1, 1);
-  private readonly volumeDepth = nodeObject(new EffectDepthTextureNode(undefined, null, this.volumeDepthTexture)).r;
-  private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 16, true,
-    { direct: this.smokeDirect, ambient: this.smokeAmbient }), false, true);
+  private readonly ownsLighting: boolean;
+  /** Scene light, wind and depth, shared with ship fires and funnel exhaust. */
+  readonly lighting: EffectLighting;
+  private readonly sun: EffectLighting['sunDirection'];
+  private readonly wind: THREE.Vector3;
+  private readonly smoke: EffectParticlePool;
   private readonly spouts = new WaterPlumes(384, this.maps.water);
   private readonly spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
   private readonly mist = new EffectParticlePool(192, this.maps.smoke, false, undefined, true);
   private readonly aircraftSmoke = new EffectParticlePool(768, this.maps.smoke, false, undefined, false, true);
-  private readonly flakSmoke = new EffectParticlePool(256, this.maps.smoke, false,
-    effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 10, true, { direct: this.smokeDirect, ambient: this.smokeAmbient }), false, true);
+  private readonly flakSmoke: EffectParticlePool;
   private readonly airbursts = new Map<number, CombatEvent>();
   private readonly aircraftTrails = new Map<string, { position: THREE.Vector3; age: number }>();
   private readonly fire = new EffectParticlePool(256, this.maps.flash, true, undefined, false, true);
   private readonly foam = new EffectParticlePool(96, this.maps.foam, false, undefined, false, true);
-  private readonly pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.spray, this.fire];
+  private readonly pools: EffectParticlePool[];
   private readonly projectiles = new ExpandableInstances(projectileGeometry(false, 256), projectileMaterial(), 256);
   private readonly detailedProjectiles = new ExpandableInstances(projectileGeometry(true, 16), this.projectiles.material, 16);
   private readonly shellTrails = new ShellTrails();
@@ -79,7 +78,6 @@ export class CombatEffects {
     new THREE.MeshBasicMaterial({ color: '#82948f' }), 128);
   private readonly depthChargeBodies = new ExpandableInstances(new THREE.CylinderGeometry(.5, .5, 1, 12), new THREE.MeshBasicMaterial({ color: '#7b8d88' }), 128);
   private readonly lights = Array.from({ length: 4 }, () => ({ light: new THREE.PointLight('#ffd29a', 0, 145, 2), age: 1, power: 0, duration: .2 }));
-  private readonly wind = new THREE.Vector3(2.4, 0, .9);
   private readonly position = new THREE.Vector3();
   private readonly direction = new THREE.Vector3();
   private readonly normal = new THREE.Vector3();
@@ -90,13 +88,21 @@ export class CombatEffects {
   private readonly cameraPosition = new THREE.Vector3();
   private readonly cameraRotation = new THREE.Quaternion();
   private sequence = 0;
-  private readonly localFires = new LocalizedFireEffects();
+  private readonly localFires: LocalizedFireEffects;
   private lightCursor = 0;
   private shellCount = 0;
   private torpedoCount = 0;
   private depthChargeCount = 0;
 
-  constructor() {
+  constructor(lighting?: EffectLighting) {
+    this.ownsLighting = !lighting;
+    this.lighting = lighting ?? new EffectLighting();
+    this.sun = this.lighting.sunDirection; this.wind = this.lighting.wind;
+    const volumes = { direct: this.lighting.direct, ambient: this.lighting.ambient };
+    this.smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.lighting.sceneDepth, 16, true, volumes), false, true);
+    this.flakSmoke = new EffectParticlePool(256, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.lighting.sceneDepth, 10, true, volumes), false, true);
+    this.pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.spray, this.fire];
+    this.localFires = new LocalizedFireEffects(this.lighting);
     this.root.name = 'Combat effects';
     this.root.add(this.localFires.root, this.shellTrails.mesh);
     this.projectiles.name = 'Shell bodies'; this.streaks.name = 'Shell streaks'; this.shellGlows.name = 'Shell glows';
@@ -120,18 +126,17 @@ export class CombatEffects {
 
   setWind(speed: number, direction: number): void {
     // Match the ocean/funnel convention: radians from +X toward +Z.
-    this.wind.set(Math.cos(direction), 0, Math.sin(direction)).multiplyScalar(speed * .35);
+    this.lighting.setWind(speed, direction);
   }
   setSun(direction: THREE.Vector3, intensity = 1): void {
-    this.sun.value.copy(direction); this.spouts.setSun(direction, intensity);
+    this.lighting.setSun(direction, intensity); this.spouts.setSun(direction, intensity);
     // Tint also reaches existing airborne water when the environment changes.
     this.spray.mesh.material.color.setScalar(intensity);
     this.mist.mesh.material.color.setScalar(intensity);
   }
   /** Match the scene's weather/daylight or moonlight; hot gas remains emissive. */
   setIllumination(color: THREE.Color, intensity: number, ambient: number): void {
-    this.smokeDirect.value.set(color.r, color.g, color.b).multiplyScalar(Math.max(0, intensity) * 1.25 / 5.8);
-    this.smokeAmbient.value.set(.3, .35, .4).multiplyScalar(Math.max(0, ambient) / 1.75);
+    this.lighting.setIllumination(color, intensity, ambient);
   }
 
   /** `opticsShipId` is the hull the lens sits on: its own smoke is left out so the
@@ -603,7 +608,7 @@ export class CombatEffects {
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.depthChargeBodies]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
     Object.values(this.maps).forEach(map => map.dispose());
     this.volumeMap.dispose();
-    this.volumeDepthTexture.dispose();
+    if (this.ownsLighting) this.lighting.dispose();
     this.lights.forEach(({ light }) => light.dispose());
   }
 }

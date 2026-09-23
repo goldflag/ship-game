@@ -5,6 +5,7 @@ import type { Vec3 } from '../ships/blueprint';
 import { localToWorld } from './geometry';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import type { Combatant, ShipState } from '../game/session/elements';
+import { EffectLighting } from './EffectLighting';
 
 interface FireSource { actor: Combatant; position: Vec3; local: Vec3; pose: ShipState; train: number; intensity: number; size: number; mount: boolean; score: number; phase: number; }
 export interface FireDisplayPose { actor: Combatant; motion: ShipState; }
@@ -24,7 +25,8 @@ export class LocalizedFireEffects {
   private time = 0;
   private sourceCount = 0;
 
-  constructor() {
+  /** Scene light, wind and depth shared with the other effects; a standalone instance owns its own. */
+  constructor(readonly lighting = new EffectLighting()) {
     this.root.name = 'Localized ship fires';
     this.flames.mesh.name = 'Attached fire tongues'; this.smoke.mesh.name = 'Local fire smoke';
     // Water's depth composite otherwise erases low flames against the sea.

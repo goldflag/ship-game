@@ -5,6 +5,7 @@ import { localToWorld } from './geometry';
 import { motionVelocity } from './session/motion';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import type { ShipView } from './ShipView';
+import { EffectLighting } from './EffectLighting';
 
 export interface FunnelOutlet { id: string; position: Vec3; width: number; length: number; bearingRad?: number; }
 
@@ -74,12 +75,14 @@ export class ShipFunnelSmoke {
   private readonly map = effectTexture('smoke');
   private readonly pool = new EffectParticlePool(6144, this.map, false, undefined, false, true);
   private readonly emitters = new Map<SmokeShip, { damage: SmokeShip['actor']['damage']; funnels: Emitter[] }>();
-  private readonly wind = new Vector3(1.5, 0, 1);
   private readonly position = new Vector3();
   private readonly origin = new Vector3();
   private seed = 1;
 
-  constructor() {
+  private readonly wind: Vector3;
+  /** Scene light, wind and depth shared with combat effects and ship fires. */
+  constructor(readonly lighting = new EffectLighting()) {
+    this.wind = lighting.wind;
     this.root.name = 'Ship funnel exhaust';
     this.pool.mesh.name = 'Drifting funnel smoke';
     this.root.add(this.pool.mesh);
@@ -87,9 +90,7 @@ export class ShipFunnelSmoke {
 
   /** Emission rate multiplier from the combat effects setting. */
   density = 1;
-  setWind(speed: number, direction: number): void {
-    this.wind.set(Math.cos(direction), 0, Math.sin(direction)).multiplyScalar(speed * .35);
-  }
+  setWind(speed: number, direction: number): void { this.lighting.setWind(speed, direction); }
 
   update(ships: readonly SmokeShip[], dt: number, camera: Camera, hiddenSourceId?: string): void {
     // Replacement damage state is the simulation's reset boundary. Discard the

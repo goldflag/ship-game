@@ -210,9 +210,10 @@ export function installStage(game: Game) {
     freeze();
     const a = actor(shipIndex), def = a.definition, intensity = options.intensity ?? 1;
     const vented = def.compartments.map((c, i) => c.fire?.ventPosition ? i : -1).filter(i => i >= 0);
-    const rooms = options.rooms === 'all' ? vented : typeof options.rooms === 'number'
-      ? vented.filter((_, i) => i % Math.max(1, Math.floor(vented.length / options.rooms!)) === 0).slice(0, options.rooms)
-      : options.rooms ?? [];
+    const wanted = options.rooms;
+    const rooms = wanted === 'all' ? vented : typeof wanted === 'number'
+      ? vented.filter((_, i) => i % Math.max(1, Math.floor(vented.length / wanted)) === 0).slice(0, wanted)
+      : wanted ?? [];
     const set = (fire: FleetActor['damage']['control']['rooms'][number]) => Object.assign(fire, {
       heat: intensity > 0 ? Math.max(1, intensity) : .4, intensity, fuel: 600, initialFuel: 600,
       trend: options.trend ?? (intensity > 0 ? 'growing' : 'cooling'), suppressed: options.suppressed ?? false });
@@ -284,15 +285,16 @@ export function installStage(game: Game) {
 
   /** Median GPU and CPU milliseconds of the render pipeline for the current staged scene (the ocean
    * simulation is frozen and excluded), with WebGPU timestamps when the adapter offers them. */
-  async function measure(samples = 40): Promise<{ gpuMs: number | null; cpuMs: number; drawCalls: number }> {
+  async function measure(samples = 60): Promise<{ gpuMs: number | null; cpuMs: number; drawCalls: number }> {
     await render();
-    const renderer = g.renderer as THREE.WebGPURenderer & { backend: { trackTimestamp: boolean } };
+    const renderer = g.renderer as unknown as THREE.WebGPURenderer & { backend: { trackTimestamp: boolean } };
     const timed = renderer.hasFeature('timestamp-query'), tracking = renderer.backend.trackTimestamp, autoReset = renderer.info.autoReset;
     const gpu: number[] = [], cpu: number[] = [];
     let drawCalls = 0;
     renderer.backend.trackTimestamp = timed; renderer.info.autoReset = false;
     try {
-      for (let i = -5; i < samples; i++) {
+      // GPU clocks ramp after the page's first frames; discard a generous warm-up.
+      for (let i = -30; i < samples; i++) {
         g.renderer._nodes.nodeFrame.update(); renderer.info.reset();
         const start = performance.now();
         g.renderFrame();

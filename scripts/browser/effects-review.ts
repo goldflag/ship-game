@@ -37,13 +37,17 @@ async function run(page: Page, names: string[], out: string, columns: number): P
   for (const name of names) {
     const started = Date.now();
     const result = await page.evaluate(async ({ name, columns }) => {
-      const [{ installStage, contactSheet }, { scenes }] = await Promise.all([import('/scripts/browser/effectsStage.ts'), import('/scripts/browser/effectsScenes.ts')]);
+      // Served by Vite inside the page, so edits apply without restarting the browser.
+      const [{ installStage, contactSheet }, { scenes }] = await Promise.all([
+        import(/* @vite-ignore */ String('/scripts/browser/effectsStage.ts')) as Promise<typeof import('./effectsStage')>,
+        import(/* @vite-ignore */ String('/scripts/browser/effectsScenes.ts')) as Promise<typeof import('./effectsScenes')>]);
       const w = window as unknown as { effectsStage?: ReturnType<typeof installStage> };
-      const stage = w.effectsStage?.game === window.review.game ? w.effectsStage : (w.effectsStage = installStage(window.review.game!));
+      let stage = w.effectsStage;
+      if (!stage || stage.game !== window.review.game) stage = w.effectsStage = installStage(window.review.game!);
       const scene = scenes[name];
       if (!scene) throw new Error(`Unknown scene "${name}". Scenes: ${Object.keys(scenes).join(', ')}`);
-      const frames: { label: string; png: string }[] = [];
-      await scene(stage, async label => { frames.push(await stage.capture(label)); });
+      const frames: { label: string; png: string }[] = [], staged = stage;
+      await scene(staged as Parameters<typeof scene>[0], async (label?: string) => { frames.push(await staged.capture(label)); });
       return { frames, sheet: await contactSheet(frames, columns), diagnostics: stage.diagnostics() } satisfies SceneResult;
     }, { name, columns });
     const directory = resolve(ROOT, out, name); mkdirSync(directory, { recursive: true });
