@@ -20,8 +20,9 @@ const WINDROW_GATHER = .6;
 /** Wind (m/s) over which decaying whitecaps turn from lace into streaks drawn out along the wind (Beaufort 6 to 10). */
 const STREAKING_WIND_START = 11, STREAKING_WIND_FULL = 25;
 
-/** Texels per pixel over which a foam pattern blurs into its mean. */
-const FOAM_BLUR_START = 4, FOAM_BLUR_END = 48;
+/** Texels per pixel over which a foam pattern gives way to its mean coverage: every mip level of the foam texture is
+ * equalised, so thresholds keep their share until the levels are too small to hold a pattern (8 × 8 and below). */
+const FOAM_BLUR_START = 24, FOAM_BLUR_END = 96;
 /** Share of light a bubble raft scatters back: fresh foam about 0.8, thinning films less (Whitlock et al. 1982). */
 const FOAM_ALBEDO = .8;
 /** Wrap of the sun's terminator on foam: light diffuses through the bubbles, so a face turned from the sun still
@@ -69,12 +70,12 @@ function foamLayout(xz: Node<'vec2'>, wind: Float, stretch: Float, tile: number)
   return vec2(dot(xz, along).div(stretch), dot(xz, vec2(along.y.negate(), along.x))).div(tile);
 }
 
-/** The foam texture read twice at grid point `xz`: at the lace's scale, and at the windrows' larger, longer one; each
- * with the share of its contrast that filtering has averaged away. `stretch` draws both out along the wind. */
+/** The foam texture read at grid point `xz`: at the lace's scale (with the share of its contrast filtering has averaged
+ * away), at the windrows' finer and much longer one, and for the windrows' bands. `stretch` draws all out along the wind. */
 export function foamPatterns(map: Texture, xz: Node<'vec2'>, wind: Float, stretch: Float) {
   const uv = foamLayout(xz, wind, stretch, FOAM_TILE), rowsUv = foamLayout(xz, wind, stretch.mul(WINDROW_STRETCH), FOAM_TILE * WINDROW_SCALE);
   const [near, far] = WINDROW_BANDS.map(scale => texture(map, foamLayout(xz, wind, stretch.mul(WINDROW_BAND_STRETCH), FOAM_TILE * scale)).g);
-  return { pattern: texture(map, uv), blur: foamBlur(uv), rows: texture(map, rowsUv), rowsBlur: foamBlur(rowsUv), bands: near.add(far).mul(.5) };
+  return { pattern: texture(map, uv), blur: foamBlur(uv), rows: texture(map, rowsUv), bands: near.add(far).mul(.5) };
 }
 
 /** How far the wind draws decaying whitecaps into streaks, 0–1, at `windSpeed` (m/s). */
@@ -125,12 +126,18 @@ export function whitecapOpacity(amount: Float, pattern: Node<'vec4'>, drawn: Flo
   return foamShare(coverage, structure, blur, WHITECAP_EDGE).mul(density);
 }
 
+/** Mean of the windrows' beading over the equalised lace: WINDROW_LACE plus the rest times E[smoothstep(a, b, U)]
+ * for U uniform on [0, 1], which is 1 − b + (b − a) / 2. */
+const BEADS_MEAN = WINDROW_LACE + (1 - WINDROW_LACE) * (1 - WINDROW_BEADS[1] + (WINDROW_BEADS[1] - WINDROW_BEADS[0]) / 2);
+
 /** Windrows: old foam the wind has gathered into long thin lines along itself, covering `coverage` of the sea in the
- * `bands` (mean ½) that gather it, each line a string of lumps of the lace (read at its own scale). */
-export function windrowOpacity(coverage: Float, bands: Float, streaks: Float, lace: Float, blur: Float): Float {
-  const beads = mix(float(WINDROW_LACE), float(1), smoothstep(WINDROW_BEADS[0], WINDROW_BEADS[1], lace));
+ * `bands` (mean ½) that gather it, each line a string of lumps of the lace (read at its own scale, `blur` averaged
+ * away far off). The streak mask (mean `streakMean` at every distance) is scaled rather than thresholded, so lines too
+ * fine for a pixel fade to their true share instead of vanishing. */
+export function windrowOpacity(coverage: Float, bands: Float, streaks: Float, lace: Float, blur: Float, streakMean: number): Float {
+  const beads = mix(mix(float(WINDROW_LACE), float(1), smoothstep(WINDROW_BEADS[0], WINDROW_BEADS[1], lace)), float(BEADS_MEAN), blur);
   const gathered = coverage.mul(bands.sub(.5).mul(2 * WINDROW_GATHER).add(1));
-  return foamShare(gathered, streaks, blur, WINDROW_EDGE).mul(mix(beads, float(1), blur));
+  return streaks.mul(gathered.div(streakMean * BEADS_MEAN)).min(1).mul(beads);
 }
 
 /** Radiance of a diffuse white scatterer facing `normal`: the sky dome's light about the normal (`sky`, its radiance

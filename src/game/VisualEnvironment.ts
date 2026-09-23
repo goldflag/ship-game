@@ -42,13 +42,16 @@ const SUN_HAZE = .45;
  * Sky Pro's presets draw them at 3.2° and 3.6°. */
 const CELESTIAL_DISC = 7.5e-5;
 /** Opacity of a windrow's line of old foam: a film the sea shows through. */
-const WINDROW_OPACITY = .4;
+const WINDROW_OPACITY = .6;
 /** Windrows at `windSpeed` (m/s): lines of old foam holding their share of the wind's whitecap coverage, counted by opacity. */
 export function windrowFoam(windSpeed: number): { coverage: number; opacity: number } {
   return { opacity: WINDROW_OPACITY, coverage: Math.min(1, windrowCoverage(windSpeed) / WINDROW_OPACITY) };
 }
 /** e-folding lifetime of whitecap foam in periods of the breaking waves: about 3 s for a 25 m/s storm's large breakers. */
 const WHITECAP_LIFETIME = .55;
+/** The map foam value whose whitecaps cover what the wind calls for (the Atlantic's); other maps scale their coverage
+ * by their value over this one, so a calmer-looking sea has fewer whitecaps, not greyer ones. */
+const REFERENCE_FOAM = .45;
 /** Sky Pro's sky and the ocean are tuned by eye against the raw sun.
  * Three's lit meshes turn the same intensity into about twice the light a Cycles
  * render of the same GLB shows: 0.29-albedo Kure gray reached sRGB 200 in port.
@@ -186,7 +189,7 @@ export class VisualEnvironment {
     crest.color.setScalar(1);
     shoreline.color.set('#edf9fd');
     // Whitecaps cover the share of the sea the wind calls for; the ocean places them from its own spectrum.
-    Object.assign(crest, { opacity: .8 * map.water.foam / .45, windStretch: .5, coverageScale: 1, lifetime: WHITECAP_LIFETIME });
+    Object.assign(crest, { opacity: 1, windStretch: .5, coverageScale: map.water.foam / REFERENCE_FOAM, lifetime: WHITECAP_LIFETIME });
     Object.assign(surface, windrowFoam(waves.windSpeed));
     this.sinks.effects.setWind(ocean.waves.windSpeed, ocean.waves.windDirection);
     this.sinks.funnelSmoke.setWind(ocean.waves.windSpeed, ocean.waves.windDirection);

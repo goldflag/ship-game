@@ -9,7 +9,7 @@ import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max
 import type { WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
 import { FOLD_PERIOD, buildSpectrum, cascadeBands } from './spectrum';
-import { type CascadeBreaking, activeBreaking, cascadeBreaking, setBreakingThresholds } from './whitecaps';
+import { type CascadeBreaking, cascadeBreaking, setBreakingThresholds, whitecapDepth } from './whitecaps';
 
 type Vec4 = Node<'vec4'>;
 type Float = Node<'float'>;
@@ -27,9 +27,10 @@ const FIELDS = ['displacement', 'derivatives', 'extras'] as const;
 const COARSEST_TEXELS = 16;
 const ANISOTROPY = 16;
 /** Crest foam (see whitecaps.ts): a cascade's crests break where its standard-normal breaking indicator passes the
- * threshold the wind's coverage sets; injection ramps from nothing to fresh foam (1) over this width of the indicator,
- * centred on the threshold, so a whitecap's rim is thinner than its core. */
-const BREAKING_RAMP = 1.2;
+ * threshold z the wind's coverage sets; injection ramps from nothing to fresh foam (1) over BREAKING_RAMP / z of the
+ * indicator, centred on the threshold, so a whitecap's rim is thinner than its core. A Gaussian field's peaks pass a
+ * high threshold by about 1 / z, so the ramp keeps pace and breakers reach full strength alike at every wind. */
+const BREAKING_RAMP = 2;
 /** A threshold uniform standing for "never breaks". */
 const NEVER = 1e4;
 /** Short waves break on the crests of longer ones: a finer cascade's foam shows in full where the coarser cascades'
@@ -220,7 +221,8 @@ export class GpuWaveField implements WaveField {
     // Crests break where they are compressed and steep on their forward face (see whitecaps.ts).
     const compression = cd.z.add(cd.w).negate(), face = cd.x.mul(this.wind.x).add(cd.y.mul(this.wind.y)).negate();
     const indicator = compression.mul(this.breakingWeights.x).add(face.mul(this.breakingWeights.y));
-    const injection = smoothstep(this.breakingThreshold.sub(BREAKING_RAMP / 2), this.breakingThreshold.add(BREAKING_RAMP / 2), indicator);
+    const ramp = float(BREAKING_RAMP / 2).div(this.breakingThreshold.max(1));
+    const injection = smoothstep(this.breakingThreshold.sub(ramp), this.breakingThreshold.add(ramp), indicator);
     const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer).y;
     const foam = select(this.elapsed.greaterThan(0), max(previous.mul(exp(this.elapsed.negate().div(this.decay))), injection), previous);
     return mrt({
@@ -332,7 +334,7 @@ export class GpuWaveField implements WaveField {
     if (!rebuilt && dt <= 0 && phase === this.lastPhase) return;
     this.lastPhase = phase; this.phase.value = phase;
     this.elapsed.value = Math.max(0, dt);
-    setBreakingThresholds(this.breaking, activeBreaking(this.params.windSpeed, this.foamParams.coverageScale));
+    setBreakingThresholds(this.breaking, whitecapDepth(this.params.windSpeed, this.foamParams.coverageScale));
     const target = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), level = renderer.getActiveMipmapLevel(), mrtState = renderer.getMRT();
     try {
       renderer.setMRT(null);

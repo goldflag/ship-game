@@ -90,41 +90,69 @@ function smooth(t: number): number {
   return x * x * (3 - 2 * x);
 }
 
-/** Level of the faint film between streak lines, below every line's: once a coverage has taken every line, more
- * of it spreads as patchy film instead of in the order the texels happen to be stored. */
-const STREAK_FILM = .05;
-
 /** Streaks at (u, v): thin lines along u that meander and break, at two spacings; where two cross, the stronger. */
 function streaks(u: number, v: number): number {
-  const lines = STREAK_ROWS.reduce((most, rows, i) => Math.max(most, streakLines(u, v, rows, 23 + 10 * i)), 0);
-  return Math.max(lines, STREAK_FILM * value(u, v, 6, 24, 61));
+  return STREAK_ROWS.reduce((most, rows, i) => Math.max(most, streakLines(u, v, rows, 23 + 10 * i)), 0);
 }
+
+/** Channel holding the streak mask, which keeps its values (the others are equalised). */
+const STREAK_CHANNEL = 2;
 
 /** Turbulent white water: fine billows at two scales, for the body of a fresh whitecap. */
 function churn(u: number, v: number): number {
   return .6 * value(u, v, 24, 24, 51) + .4 * value(u, v, 57, 57, 53);
 }
 
-/** The ocean's one foam texture, generated at startup and tiling in both axes. Every channel is equalised.
- * Red: lace, the structure of thinning white water. Green: broad patches (fbm). Blue: streaks, thin lines along the
- * texture (u) that meander, merge and break, like the foam the wind draws out; the surface lays u along the wind.
- * Alpha: churn, the billowing texture of fresh white water. */
+/** The periodic `size`² field averaged over 2 × 2 blocks. */
+function halve(field: Float32Array, size: number): Float32Array {
+  const half = size / 2, out = new Float32Array(half * half);
+  for (let y = 0; y < half; y++) for (let x = 0; x < half; x++) {
+    const i = 2 * y * size + 2 * x;
+    out[y * half + x] = (field[i] + field[i + 1] + field[i + size] + field[i + size + 1]) / 4;
+  }
+  return out;
+}
+
+/** The four channels of one mip level as RGBA bytes: each equalised, but the streak mask as it is. */
+function levelPixels(fields: Float32Array[]): Uint8Array {
+  const pixels = new Uint8Array(fields[0].length * 4);
+  fields.map((field, channel) => channel === STREAK_CHANNEL ? field : equalize(field))
+    .forEach((field, channel) => field.forEach((level, i) => { pixels[i * 4 + channel] = Math.round(Math.min(1, Math.max(0, level)) * 255); }));
+  return pixels;
+}
+
+/** The ocean's one foam texture, generated at startup and tiling in both axes. Red: lace, the structure of thinning
+ * white water. Green: broad patches (fbm). Alpha: churn, the billowing texture of fresh white water. These three are
+ * equalised, and each mip level averages the raw fields and is equalised again: an averaged pattern narrows toward its
+ * mean, so thresholding the GPU's own mips for a coverage would thin foam with distance, where these keep the share at
+ * every level. Blue: the streak mask, thin lines along the texture (u) that meander and break, like the foam the wind
+ * draws out (the surface lays u along the wind); it is not thresholded but scaled, so its levels are plain averages
+ * whose mean, `userData.streakMean`, holds at every distance. */
 export function foamTexture(): DataTexture {
-  const n = FOAM_TEXELS, fields = [new Float32Array(n * n), new Float32Array(n * n), new Float32Array(n * n), new Float32Array(n * n)];
+  const n = FOAM_TEXELS;
+  let fields: Float32Array[] = [new Float32Array(n * n), new Float32Array(n * n), new Float32Array(n * n), new Float32Array(n * n)];
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
     const u = (x + .5) / n, v = (y + .5) / n, i = y * n + x;
     let broad = 0, weight = .5;
     for (let octave = 0; octave < 4; octave++, weight *= .5) broad += weight * value(u, v, 4 << octave, 4 << octave, 11 + octave);
     fields[0][i] = lace(u, v); fields[1][i] = broad; fields[2][i] = streaks(u, v); fields[3][i] = churn(u, v);
   }
-  const pixels = new Uint8Array(n * n * 4);
-  fields.map(equalize).forEach((field, channel) => field.forEach((level, i) => { pixels[i * 4 + channel] = Math.round(level * 255); }));
-  const map = new DataTexture(pixels, n, n, RGBAFormat);
+  const streakMean = fields[STREAK_CHANNEL].reduce((sum, level) => sum + level, 0) / (n * n);
+  const mipmaps = [];
+  for (let size = n; ; size /= 2) {
+    mipmaps.push({ data: levelPixels(fields), width: size, height: size });
+    if (size === 1) break;
+    fields = fields.map(field => halve(field, size));
+  }
+  const map = new DataTexture(mipmaps[0].data, n, n, RGBAFormat);
   map.name = 'Ocean foam';
   map.wrapS = map.wrapT = RepeatWrapping;
   map.minFilter = LinearMipmapLinearFilter; map.magFilter = LinearFilter;
-  map.generateMipmaps = true;
-  map.anisotropy = 4;
+  // Isotropic: anisotropic filtering averages several taps of a finer level, narrowing the pattern as a coarse mip
+  // would, and the surface thresholds this texture for exact coverages.
+  map.mipmaps = mipmaps; map.generateMipmaps = false;
+  map.anisotropy = 1;
+  map.userData.streakMean = streakMean;
   map.needsUpdate = true;
   return map;
 }

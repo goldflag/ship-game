@@ -104,7 +104,7 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   expect(ocean.waves.peakWavelength).toBe(port.peakWavelength);
   expect(ocean.waves.choppiness).toBe(port.choppiness);
   expect(ocean.waves.gamma).toBe(2.6);
-  expect(ocean.foam.crest.coverageScale).toBe(1);
+  expect(ocean.foam.crest.coverageScale).toBeCloseTo(oceanMap(mapId).water.foam / .45);
   expect(ocean.foam.crest.lifetime).toBeGreaterThan(0);
   expect(effects.wind).toEqual([9, 35 * Math.PI / 180]);
   expect(funnelSmoke.wind).toEqual(effects.wind);

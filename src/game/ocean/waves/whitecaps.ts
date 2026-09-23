@@ -16,7 +16,7 @@ const MONAHAN_SCALE = 3.84e-6, MONAHAN_EXPONENT = 3.41;
 const ONSET_START = 3.5, ONSET_FULL = 5;
 /** Wind (m/s) over which old foam is blown into windrows, from Beaufort 7 ("foam blown in streaks along the wind")
  * to Beaufort 11, and the share of the whitecap coverage they then hold. */
-const WINDROW_START = 13, WINDROW_FULL = 30, WINDROW_SHARE = .15;
+const WINDROW_START = 13, WINDROW_FULL = 30, WINDROW_SHARE = .07;
 /** Forward shift of the breaking indicator from the crest (radians of wave phase): foam starts on the crest and
  * spills down the face ahead of it. */
 const FACE_SHIFT = .9;
@@ -128,20 +128,30 @@ function forModes(cascade: WaveSpectrum['cascades'][number], visit: (energy: num
   }
 }
 
-/** Whitecap coverage per unit of sea breaking at an instant: a crest's foam outlives its passing several times over.
- * Measured on the GPU with `bun scripts/browser/ocean-waves.ts --coverage`. */
-const PERSISTENCE = 3;
+/** Whitecap coverage per unit of sea breaking at an instant, while whitecaps are sparse: a crest's foam outlives its
+ * passing between two and three times over. A finer cascade shows only GATED_SHOWING of its foam, where its crest gate
+ * on the coarser cascades' compression lets it (field.ts). Dense whitecaps land on crests already white, so the depth
+ * they reach falls behind the depth injected as D / (1 + SATURATION·D); the injection makes up for it. All measured on
+ * the GPU with `bun scripts/browser/ocean-waves.ts --coverage`, on the calibrated and the realistic sea alike. */
+const PERSISTENCE = 2.55, GATED_SHOWING = .62, SATURATION = 1.3;
+/** The most injection the saturation correction may call for, as a multiple of the depth wanted. */
+const MAX_BOOST = 4;
 
-/** The fraction of the sea breaking at any instant for the whitecaps (less windrows) `windSpeed` calls for, times `scale`. */
-export function activeBreaking(windSpeed: number, scale = 1): number {
-  return (whitecapCoverage(windSpeed) - windrowCoverage(windSpeed)) * Math.max(0, scale) / PERSISTENCE;
+/** The whitecaps' optical depth to inject for `windSpeed`, times `scale`: −ln(1 − W) for the coverage W that
+ * whitecaps (less windrows) hold, raised against saturation. Patches land at random, so a cascade breaking over a
+ * fraction q of the sea covers 1 − e^(−K·q) of it (K its persistence) and independent cascades overlap
+ * multiplicatively; shares of this depth add. */
+export function whitecapDepth(windSpeed: number, scale = 1): number {
+  const coverage = Math.min(.95, (whitecapCoverage(windSpeed) - windrowCoverage(windSpeed)) * Math.max(0, scale));
+  const depth = -Math.log(1 - coverage);
+  return depth / Math.max(1 / MAX_BOOST, 1 - SATURATION * depth);
 }
 
-/** Place each cascade's threshold so that its crests break over the share of `active` (the fraction of the sea
- * breaking at any instant) it carries. */
-export function setBreakingThresholds(cascades: CascadeBreaking[], active: number): void {
-  for (const cascade of cascades) {
-    const fraction = Math.min(.5, cascade.share * active);
+/** Place each cascade's threshold so that it breaks over the fraction of the sea that covers its share of the
+ * whitecaps' optical `depth`. Every cascade but the coarsest is gated (field.ts). */
+export function setBreakingThresholds(cascades: CascadeBreaking[], depth: number): void {
+  cascades.forEach((cascade, i) => {
+    const fraction = Math.min(.5, cascade.share * depth / (PERSISTENCE * (i ? GATED_SHOWING : 1)));
     cascade.threshold = fraction > MIN_ACTIVE && (cascade.compression || cascade.face) ? -normalQuantile(fraction) : Infinity;
-  }
+  });
 }

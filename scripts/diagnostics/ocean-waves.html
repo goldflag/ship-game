@@ -42,7 +42,7 @@ const SEAS = { calm: 3, moderate: 9, storm: 25 };
 const params = { significantHeight: 0, windSpeed: 0, windDirection: .61, peakWavelength: 1, choppiness: 0, gamma: 2.6, directionalSharpness: .8, seed: 1, dirty: true };
 const foam = { coverageScale: 1, lifetime: .55 };
 /** The crest foam's look as the game sets it in the Atlantic (VisualEnvironment). */
-const foamLook = { opacity: .8, windStretch: .5 };
+const foamLook = { opacity: 1, windStretch: .5 };
 const foamMap = foamTexture();
 function setSea(name) {
   const sea = windSea(oceanMap('north-atlantic'), SEAS[name] ?? Number(name));
@@ -257,18 +257,35 @@ async function foamCheck() {
  * `sea`: the mean foam amount field.surface() returns, and the mean opacity of whitecaps, of windrows and of both
  * together, from the material's own foam functions (resolved: no pattern blur). `overrides` replaces sea parameters
  * (peakWavelength, gamma, choppiness) and `tileScale` grows every tile, to try other sea states. */
-async function foamCoverage(sea, seconds = 15, overrides = {}, tileScale = 1) {
+async function foamCoverage(sea, seconds = 15, overrides = {}, tileScale = 1, only, samples = 3) {
   setSea(sea);
   Object.assign(params, overrides, { dirty: true });
   if (tileScale !== (field.tileScale ?? 1)) { build(tileScale); }
+  time += 1 / 60; field.update(renderer, time, 1 / 60);
+  // `only`: let a single cascade break, to measure its share of the coverage.
+  if (only !== undefined) field.breaking.forEach((breaking, c) => { if (c !== only) breaking.share = 0; });
   for (let i = 0; i < seconds * 60; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
+  // Averaged over `samples` instants 4 s apart: a square kilometre holds only dozens of light-air whitecaps.
+  const mean = [0, 0, 0, 0];
+  for (let sample = 0; sample < samples; sample++) {
+    if (sample) for (let i = 0; i < 240; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
+    const frame = await coverageFrame();
+    frame.forEach((value, c) => { mean[c] += value / samples; });
+  }
+  return { wind: params.windSpeed, significantHeight: params.significantHeight, peakWavelength: params.peakWavelength, choppiness: params.choppiness, tileScale,
+    breaking: field.breaking.map(b => ({ share: b.share, threshold: b.threshold, period: b.period })),
+    amount: mean[0], whitecaps: mean[1], windrows: mean[2], total: mean[3], target: whitecapCoverage(params.windSpeed) };
+}
+
+/** Mean foam amount and whitecap, windrow and total opacity over the 1,024 m square now. */
+async function coverageFrame() {
   const n = 1024, target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
   const material = new THREE.NodeMaterial();
   const xz = screenCoordinate.mul(1024 / n), amount = field.surface(xz).foam;
-  const { pattern, blur, rows, rowsBlur, bands } = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1));
+  const { pattern, blur, rows, bands } = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1));
   const whitecaps = whitecapOpacity(amount, pattern, rows.r, blur, streaking(float(params.windSpeed))).mul(foamLook.opacity);
   const rowsFoam = windrowFoam(params.windSpeed);
-  const windrows = windrowOpacity(float(rowsFoam.coverage), bands, rows.b, pattern.r, rowsBlur).mul(rowsFoam.opacity);
+  const windrows = windrowOpacity(float(rowsFoam.coverage), bands, rows.b, pattern.r, blur, foamMap.userData.streakMean).mul(rowsFoam.opacity);
   material.fragmentNode = vec4(amount, whitecaps, windrows, float(1).sub(float(1).sub(whitecaps.clamp(0, 1)).mul(float(1).sub(windrows.clamp(0, 1)))));
   material.blending = THREE.NoBlending;
   renderer.setRenderTarget(target); new THREE.QuadMesh(material).render(renderer); renderer.setRenderTarget(null);
@@ -276,8 +293,7 @@ async function foamCoverage(sea, seconds = 15, overrides = {}, tileScale = 1) {
   const mean = [0, 0, 0, 0];
   for (let i = 0; i < n * n; i++) for (let c = 0; c < 4; c++) mean[c] += pixels[i * 4 + c] / (n * n);
   target.dispose(); material.dispose();
-  return { wind: params.windSpeed, significantHeight: params.significantHeight, peakWavelength: params.peakWavelength, choppiness: params.choppiness, tileScale,
-    amount: mean[0], whitecaps: mean[1], windrows: mean[2], total: mean[3], target: whitecapCoverage(params.windSpeed) };
+  return mean;
 }
 
 /** CPU time of update() (batches without waiting) and GPU-inclusive wall time per update. Other
