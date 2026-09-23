@@ -223,6 +223,17 @@ fitted models survive edits and invalid drafts. Compile completion does not refi
 The editor adopts the newest equipment catalog on open; see
 [equipment catalog](../../../docs/shipbuilding.md#equipment-catalog).
 
+## Rendering: WebGL here, WebGPU in the game
+
+The viewports (`BuilderViewport.tsx`, `CustomHullViewport.tsx`) draw with a plain `THREE.WebGLRenderer`,
+and the construction model keeps the `MeshStandardMaterial`s that `src/game/constructionModel.ts` builds.
+The port and battle render with WebGPU and replace those materials with TSL node materials:
+`ShipMaterialPalette` (shared paint, roughness and metalness through the `shipSurface` attribute),
+`ShipSurfaceDetail` (plating relief, teak, seams and wear from `shipWear`), `HullWetBand`, and ship
+ambient occlusion (`ShipOcclusion`). The editor runs none of them, which is why wear and plating detail
+show only in port and battle. Anything the editor must show has to be geometry, vertex data or a plain
+material property (colour, map, roughness, metalness); a TSL node alone will not appear here.
+
 ## React integration
 
 Import `Shipbuilder` from `./Shipbuilder`. Required props: `catalog` (from

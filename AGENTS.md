@@ -12,6 +12,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | `src/game` | Rendering and the `Game` facade: camera, ship views, effects, audio; `src/game/session` talks to the simulation. The game requires WebGPU (`src/game/webgpu.ts`) |
 | `src/game/ocean` | The game's own ocean behind the `Ocean` facade (`game.ocean`): waves, surface, wake field, fog, reflections, underwater view. See [its README](src/game/ocean/README.md) |
 | `src/game/sky` | The game's own sky behind the `SkyApi` facade (`game.sky`): atmosphere, sun, moon, stars, clouds, cloud shadows, shafts, rain and lightning, the sea's environment. See [its README](src/game/sky/README.md) |
+| `src/game/audio.ts`, `src/game/GameAudio.ts`, `assets/audio/naval` | Sound: cue ids, combat-event cues and saved volumes (`audio.ts`); the Web Audio player that reads CPU events and poses (`GameAudio.ts`). Originals, prompts (`recipe.json`) and processing notes are in [assets/audio/naval/README.md](assets/audio/naval/README.md); `bun run audio:build` (Python 3 with FFmpeg or `afconvert`) writes `public/audio/naval` |
 | `src/ui` | React HUD, port (`Garage.tsx`), battle dialogs (`battle/`), fleet command (`fleet/`), shared controls (`components/`). See [src/ui/AGENTS.md](src/ui/AGENTS.md) |
 | `src/ui/shipbuilding` | The ship editor. See [its guide](src/ui/shipbuilding/AGENTS.md) |
 | `src/ships` | Blueprint and construction types, presets roster, design storage (IndexedDB and account cloud), local compile client |
@@ -20,6 +21,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | `scripts` | Pipelines (`ships`, `parts`, `aircraft`, `construction`), test runner and browser checks (`tests`), browser harness (`browser`), diagnostics pages. See [scripts/AGENTS.md](scripts/AGENTS.md) |
 | `assets` | Authoring inputs: blueprints, Blender recipes, parts. See [assets/AGENTS.md](assets/AGENTS.md) |
 | `vendor/threejs-sky-pro` | The licensed Sky Pro bundle the game's sky replaced, kept only as a comparison behind Graphics `skyRenderer` (`src/game/comparison/SkyProSky.ts`), and its [patch record](vendor/threejs-sky-pro/PATCHES.md). Never read or grep its compiled `build/index.js` |
+| `vendor/threejs-water-pro` | The licensed Water Pro ocean the game's ocean replaced, kept only as a comparison behind Graphics `oceanRenderer` (`src/game/comparison/WaterProOcean.ts`). Never read or grep its compiled `build/index.js`, even though its [patch record](vendor/threejs-water-pro/PATCHES.md) describes old hand edits; use the `.d.ts` files. See [its README](vendor/threejs-water-pro/README.md) |
 | `public/models`, `src/generated`, `src/multiplayer/generated` | Build outputs. Never edit by hand |
 
 ## Read by task
@@ -30,6 +32,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | HUD, port, battle dialogs, fleet command UI | [src/ui/AGENTS.md](src/ui/AGENTS.md), [DESIGN.md](DESIGN.md) quick reference, [shared controls](src/ui/components/README.md) |
 | Rendering, camera, `Game.ts` | [README architecture](README.md#architecture), [ocean guide](docs/ocean-configuration.md), [ocean design](src/game/ocean/README.md), [sky design](src/game/sky/README.md) |
 | Simulation, combat, bots, carrier operations | [crates/AGENTS.md](crates/AGENTS.md), then [air operations](docs/air-operations.md), [bot behavior](docs/bot-behavior.md) or [maneuvering](docs/maneuvering.md) |
+| Aiming, gun laying, gun-aim circles | [Gunnery aim path](docs/gunnery.md): the sight, the input, the Rust mount and the drawn circle, with cadences and units |
 | A field crossing Rust and TypeScript (definitions, frames, commands) | The checklists in [crates/AGENTS.md](crates/AGENTS.md) |
 | Multiplayer server, accounts, deployment | [Rust multiplayer](docs/rust-multiplayer-implementation.md), [accounts](docs/accounts.md), [deployment](docs/deployment.md) |
 | See a UI or battle change in the real game | [Browser verification](docs/browser-verification.md): account-free harness, `bun run ui:shot`, saved custom designs |
@@ -67,6 +70,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 - `bun run test` and `bun run ship:browser:check` report only failures that are not in their [known-red ledgers](docs/browser-verification.md#known-red-tests-and-checks); do not re-prove a listed failure against master.
 - Iterate with `bun run check`; run relevant simulation tests and `bun run build` once before the PR. Model changes also require `ship:build`, fixed review views and articulation in-game. Rebuild affected assets after shared recipe changes; follow the pipeline's validation matrix.
 - Start independent tasks from current remote master in separate worktrees. Only one integrator may mutate the main checkout; check for already-integrated patches before replaying commits.
+- In a linked worktree, read [its git traps](docs/integration-workflow.md#in-a-worktree) first: `git switch -c <branch> origin/master`, never `git checkout master`, three-dot diffs, `git push -u origin HEAD`.
 - Run `bun run git:setup` from the durable main checkout once per clone for ID-aware catalog merging and remembered resolutions with manual staging.
 - Resolve authoring inputs first, run `bun run ship:check all`, and rebuild only stale outputs it identifies. Never automatically choose a binary side or rewrite hashes to bypass checks.
 - To sign in to the game's test account (for example, to open the owner's saved custom designs), read `NAVAL_TEST_EMAIL` and `NAVAL_TEST_PASSWORD` from the gitignored `.env.local` in the main checkout (`git worktree list | head -1`); copy it into a new worktree if needed. Never commit, print into docs, or paste these values into PRs or artifacts.

@@ -239,6 +239,8 @@ export interface Mount {
   fire?: FireProfile;
 }
 export interface Handling {
+  /** Top speed in calm water, m/s (physical). A seaway adds wave resistance, so in the port's 9 m/s wind or any
+   * battle sea above calm a ship plateaus below it. */
   forwardSpeed: number;
   reverseSpeed: number;
   acceleration: number;
@@ -387,7 +389,9 @@ export interface Armor extends Volume {
   thicknessMm: number;
   /** Exterior closed-box protection: both entry and exit can open the shell. */
   exterior?: boolean;
-  /** A convex, planar physical plate. Legacy volumes remain closed box shells. */
+  /** A convex, planar physical plate. Legacy volumes remain closed box shells. With `mountId` it is a gunhouse
+   * plate: `vertices` and this volume's `center` are mount-local (origin at the mount, turned by its bearing and
+   * train), not hull-frame. */
   plate?: { vertices: Vec3[]; material: 'KC' | 'Wh' | 'Ww' | 'steel' | 'teak'; mountId?: string; exterior?: boolean; surfaceId?: string };
   provenance?: { sourceId: string; basis: 'documented' | 'plan-measured' | 'estimated' | 'inferred'; note: string };
 }

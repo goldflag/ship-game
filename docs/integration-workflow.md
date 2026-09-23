@@ -32,6 +32,36 @@ checkout moves. To remove it, unset `merge.ship-catalog.driver` with
 Do not rebase a shared branch behind another active worker. Fetch again before
 integration and check whether the source commits have already landed.
 
+## In a worktree
+
+Linked worktrees share one repository: branches, `origin/*` and the stash are common to every
+checkout, and each branch should be checked out in only one of them. Checked on 2026-09-23 with
+Apple git 2.39.3 and bun 1.3.3.
+
+- **Start a branch with `git switch -c <branch> origin/master`.** Never `git checkout master`:
+  the main checkout holds `master`, so git refuses with `fatal: 'master' is already checked out`
+  and leaves you on your feature branch. One session hid that stderr, and its next
+  `git pull --ff-only origin master` fast-forwarded the feature branch instead of `master`.
+- **Never `git checkout -B <name>` a branch another worktree has checked out.** Git 2.39 does not
+  refuse: it silently resets that branch under the other worktree, whose commits are then reachable
+  only from the reflog and whose index shows their changes as staged.
+- **Diff with three dots: `git diff origin/master...HEAD`.** Another worktree's `git fetch` moves
+  `origin/master` under you; the two-dot form then shows everything that landed since you branched,
+  reversed, as if your branch deleted it. Three dots compare against the merge base.
+- **Push the branch you are on, whatever its name.** Orca can rename a worktree's branch after you
+  create it. Use `git push -u origin HEAD` and
+  `gh pr create --base master --head "$(git branch --show-current)"`.
+- **Bootstrap before type-checking.** Without `node_modules`, `bunx tsc` downloads and runs the
+  newest TypeScript (7.0.2 on 2026-09-23) instead of the pinned 5.8, so its errors are not the
+  project's. Run `bun run bootstrap` (it installs with `--frozen-lockfile`) and use
+  `bun run typecheck` or `bun run check`. If `bun.lock` ever shows as modified, restore it rather
+  than commit it.
+- **A conflict in `assets/ships/<id>/generated/build.json`: never hand-pick a hash.** Take either
+  side, run `bun run ship:build <id>`, then `bun run ship:check <id>`, and commit what the build
+  wrote.
+- **Never use bare `git stash`.** The stash is shared, so `git stash pop` can take another
+  session's entry. Prefer a temporary commit.
+
 ## During conflict resolution
 
 Resolve blueprints, catalog entries and recipes first. Keep each stable joint and

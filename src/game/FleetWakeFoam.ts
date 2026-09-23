@@ -11,6 +11,7 @@ import type { ShipState, CombatEvent } from '../game/session/elements';
  * view or a report-only exterior alike. The root identifies the trail between frames. */
 export interface WakeShip {
   root: Object3D;
+  /** `speed` is the physical (displayed) speed in m/s; the hull moves `SHIP_PACE` × that through the world. */
   motion: Pick<ShipState, 'x' | 'y' | 'z' | 'heading' | 'speed'>;
   definition: Pick<ShipDefinition, 'hull' | 'handling'>;
 }

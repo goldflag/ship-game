@@ -13,7 +13,9 @@ const LEAVE_MS = 600;
 
 /** The single loading screen for startup: Scharnhorst's profile inks in from stern to bow as the game loads.
  * Mirrors the static markup in index.html so the swap to React is invisible. After `done`, a finished load
- * holds its last stage and fades out; an unfinished one (the game reported an error) leaves at once. */
+ * holds its last stage and fades out; an unfinished one (the game reported an error) leaves at once.
+ * Change the markup here and in index.html together. scripts/diagnostics/measure-startup.mjs,
+ * measure-port-startup.mjs and measure-custom-battle.mjs read the `.startup-status` text. */
 export function StartupScreen({ label, progress, done = false }: StartupProgress & { done?: boolean }) {
   const [phase, setPhase] = useState<'shown' | 'leaving' | 'gone'>('shown');
   const finished = progress >= 1;
