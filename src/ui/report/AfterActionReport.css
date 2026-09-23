@@ -14,7 +14,8 @@
 .aar-head p { color:var(--aar-muted); }
 
 .aar-tabs { display:flex; justify-content:center; gap:28px; justify-self:center; border-bottom:1px solid #cfdfdf35; }
-.aar-tabs button { padding:0 0 10px; margin-bottom:-1px; background:none; border:0; border-bottom:2px solid transparent; color:var(--aar-muted); font:500 19px/1 'Barlow Condensed',sans-serif; letter-spacing:.03em; text-shadow:inherit; cursor:pointer; }
+.aar-tabs button { padding:0 0 10px; margin-bottom:-1px; background:none; border:0; border-bottom:2px solid transparent; color:var(--aar-muted);
+  font:500 19px/1 'Barlow Condensed',sans-serif; letter-spacing:.03em; text-shadow:inherit; cursor:pointer; }
 .aar-tabs button small { margin-left:8px; font:400 12px/1 'Barlow',sans-serif; letter-spacing:0; color:var(--aar-dim); }
 .aar-tabs button:hover { color:#edf1ec; }
 .aar-tabs button[aria-selected='true'] { color:#e0c58d; border-bottom-color:#e0c58d; }

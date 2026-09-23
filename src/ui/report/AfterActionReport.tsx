@@ -136,20 +136,22 @@ function ShipHits({ debrief, ship, onShip, loadModel }: { debrief: BattleDebrief
   const row = rows.find(candidate => candidate.n === selected) ?? worst;
   const blocked = rows.filter(candidate => candidate.tone === 'blocked').length;
   const step = (by: number) => row && setSelected(rows[(rows.indexOf(row) + by + rows.length) % rows.length].n);
+  const condition = ship.status === 'sunk' ? 'Sunk' : ship.status === 'incapacitated' ? 'Out of action' : `Afloat at ${Math.round(ship.integrity * 100)}%`;
   return <div className="aar-ship">
     <div className="aar-ship-head">
       <div>
         <Select aria-label="Ship" value={ship.id} onValueChange={onShip}>
           {debrief.ships.map(other => <SelectOption key={other.id} value={other.id}>{`${titles.get(other.id)}${other.isPlayer ? ' (you)' : other.team === 'enemy' ? ' · enemy' : ''}`}</SelectOption>)}
         </Select>
-        <p className="aar-num">{ship.status === 'sunk' ? 'Sunk' : ship.status === 'incapacitated' ? 'Out of action' : `Afloat at ${Math.round(ship.integrity * 100)}%`} · {rows.length.toLocaleString('en-US')} {rows.length === 1 ? 'hit' : 'hits'}
+        <p className="aar-num">{condition} · {rows.length.toLocaleString('en-US')} {rows.length === 1 ? 'hit' : 'hits'}
           {blocked > 0 && ` · ${blocked} stopped by armor`} · {whole(ship.report.damageTaken)} damage{ship.report.hitsOmitted > 0 && ` · ${ship.report.hitsOmitted} lesser hits not shown`}</p>
       </div>
       <ul className="aar-legend" aria-label="Hit marks">
         <li data-tone="penetrated">Penetrated</li><li data-tone="explosive">High explosive</li><li data-tone="torpedo">Torpedo</li><li data-tone="blocked">Stopped by armor</li><li>Larger mark, more damage</li>
       </ul>
     </div>
-    <HitModel load={() => ship.definition ? loadModel(ship) : Promise.reject(new Error('unavailable'))} rows={rows} selected={row?.n} onSelect={setSelected} label={`${titles.get(ship.id)}, hits received. Drag to turn the ship, scroll to zoom.`} />
+    <HitModel load={() => ship.definition ? loadModel(ship) : Promise.reject(new Error('unavailable'))} rows={rows} selected={row?.n} onSelect={setSelected}
+      label={`${titles.get(ship.id)}, hits received. Drag to turn the ship, scroll to zoom.`} />
     <p className="aar-hint">Drag to turn the ship · scroll to zoom</p>
     {row ? <article className="aar-hit" aria-live="polite">
       <div className="aar-hit-n"><strong className="aar-num">{row.n}</strong><span className="aar-num">{row.time}</span></div>

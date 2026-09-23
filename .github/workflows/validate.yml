@@ -5,7 +5,8 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Room for a cold Rust cache (first run, or a Cargo.lock or toolchain change), which rebuilds the release workspace from scratch.
+    timeout-minutes: 60
     services:
       postgres:
         image: postgres:17-bookworm
@@ -43,10 +44,15 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.3
-      - name: Install pinned Rust toolchain and WASM bindings
-        run: |
-          rustup show
-          cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      - name: Install pinned Rust toolchain
+        run: rustup show
+      # Caches target/ and ~/.cargo (including the wasm-bindgen binary below), keyed on the toolchain and Cargo.lock;
+      # saved even when a later step fails, so one red test doesn't leave the next run to rebuild the workspace cold.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Install WASM bindings
+        run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
       - run: bun install --frozen-lockfile
       - name: Initialize isolated account database
         run: |
@@ -54,6 +60,9 @@ jobs:
           bun run accounts:migrate
           bun run accounts:check
       - run: bun run multiplayer:check
+      # The native construction compiler the authoring and construction tests run, built here rather than inside a test's timeout.
+      - name: Build the native construction compiler
+        run: cargo build --locked --profile wasm-dev -p naval-sim --example compile_construction
       - run: bun run test
       - run: bun run build
       - name: Exercise the release server over HTTP and WebSockets

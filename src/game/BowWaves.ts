@@ -51,7 +51,8 @@ export const BOW_WAVE_TUNING = {
 };
 export type BowWaveTuning = typeof BOW_WAVE_TUNING;
 type ShaderKnob = 'crestAngle' | 'crestWidth' | 'hump' | 'transverse' | 'divergent' | 'reach' | 'foam' | 'foamLength' | 'foamSpread' | 'wash' | 'washWidth' | 'kelvinFoam' | 'kelvinSteep' | 'kelvinFoamLength' | 'breakup' | 'vertexFeature';
-const SHADER_KNOBS: ShaderKnob[] = ['crestAngle', 'crestWidth', 'hump', 'transverse', 'divergent', 'reach', 'foam', 'foamLength', 'foamSpread', 'wash', 'washWidth', 'kelvinFoam', 'kelvinSteep', 'kelvinFoamLength', 'breakup', 'vertexFeature'];
+const SHADER_KNOBS: ShaderKnob[] = ['crestAngle', 'crestWidth', 'hump', 'transverse', 'divergent', 'reach', 'foam', 'foamLength', 'foamSpread', 'wash', 'washWidth',
+  'kelvinFoam', 'kelvinSteep', 'kelvinFoamLength', 'breakup', 'vertexFeature'];
 
 /** One Kelvin wave system from a point source, by stationary phase. `a` metres astern, `y` abeam.
  * The slope is the wave vector: the phase is stationary in the propagation angle. */

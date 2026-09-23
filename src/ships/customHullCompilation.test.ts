@@ -42,7 +42,8 @@ test('minimum and maximum point counts produce valid native hulls', () => {
     expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
     expect(result.loading!.massKg).toBeGreaterThan(0);
   }
-});
+  // Two whole-ship native compiles: about 1.5 s alone, past Bun's 5 s default under parallel load.
+}, 20_000);
 
 
 test.each([...HULL_PRESETS])('$name bilge keels match native export, stay symmetric and leave physics unchanged', preset => {

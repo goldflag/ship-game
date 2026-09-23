@@ -201,6 +201,7 @@ pub(crate) struct FittedPath {
     pub mass: ConstructionMass,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn compile(
     e: &ConstructionEquipment,
     p: &ConstructionEquipmentPart,

@@ -55,10 +55,14 @@ export const FRAME_LIMITS: readonly FrameLimit[] = [0, 120, 60, 30];
 type Comparisons = Pick<GraphicsSettings, 'oceanRenderer' | 'skyRenderer'>;
 const COMPARISONS: readonly (keyof GraphicsSettings)[] = ['oceanRenderer', 'skyRenderer'];
 const QUALITY: Readonly<Record<GraphicsPreset, Omit<GraphicsSettings, keyof Comparisons>>> = {
-  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', bloom: 'off', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', ambientOcclusion: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
-  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', bloom: 'on', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', ambientOcclusion: 'off', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
-  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', bloom: 'on', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', ambientOcclusion: 'low', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
-  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', bloom: 'on', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', ambientOcclusion: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
+  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', bloom: 'off',
+         ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', ambientOcclusion: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
+  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', bloom: 'on',
+            ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', ambientOcclusion: 'off', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
+  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', bloom: 'on',
+          ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', ambientOcclusion: 'low', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
+  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', bloom: 'on',
+           ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', ambientOcclusion: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
 };
 /** Presets set the quality rows only and draw the game's own ocean and sky. */
 const GAME_RENDERERS: Comparisons = { oceanRenderer: 'game', skyRenderer: 'game' };

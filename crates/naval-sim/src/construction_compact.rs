@@ -329,9 +329,9 @@ mod tests {
     fn armor_preserves_openings_and_mount_ownership() {
         let mut armor: Vec<_> = (0..3)
             .flat_map(|x| {
-                (0..3).filter_map(move |y| {
-                    (x != 1 || y != 1).then(|| plate(&format!("{x}-{y}"), x as f64, y as f64))
-                })
+                (0..3)
+                    .filter(move |&y| x != 1 || y != 1)
+                    .map(move |y| plate(&format!("{x}-{y}"), x as f64, y as f64))
             })
             .collect();
         compact_armor(&mut armor);
@@ -490,9 +490,9 @@ mod tests {
         })));
         let cells: Vec<_> = (0..3)
             .flat_map(|x| {
-                (0..3).filter_map(move |z| {
-                    (x != 1 || z != 1).then(|| cg::box_cell([x as f64, 0., z as f64], [1., 1., 1.]))
-                })
+                (0..3)
+                    .filter(move |&z| x != 1 || z != 1)
+                    .map(move |z| cg::box_cell([x as f64, 0., z as f64], [1., 1., 1.]))
             })
             .collect();
         let bodies = exterior_clearance(&cells);
