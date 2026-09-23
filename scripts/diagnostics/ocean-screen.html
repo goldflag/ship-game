@@ -9,7 +9,7 @@
 // box ships on a gently waving analytic sea with its own renderer and output chain, as the game
 // builds them (reversed float depth, MSAA scene pass, viewport copies of the opaque scene).
 // `scripts/browser/ocean-screen.ts` drives it. ?webgl for the fallback backend, ?calm for a mirror sea,
-// ?steps=16|32 for the tier's reflection budget.
+// ?steps=16|32 for the tier's reflection budget, ?samples=0 for a single-sampled scene pass.
 import * as THREE from 'three/webgpu';
 import { Fn, cameraPosition, cameraViewMatrix, cos, float, fwidth, max, mix, modelWorldMatrix, pass, positionLocal, positionView,
   positionWorld, positionWorldDirection, reflect, renderOutput, sin, smoothstep, uniform, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
@@ -127,7 +127,9 @@ const water = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: t
 const seaMesh = new THREE.Mesh(seaGeometry(), water); seaMesh.frustumCulled = false;
 scene.add(seaMesh);
 
-const scenePass = pass(scene, camera);
+// ?samples=0 renders the scene pass single-sampled. three r185's WebGL backend gives a multisampled pass a
+// DEPTH_COMPONENT24 renderbuffer even for float depth, so its depth resolve and depth copies fail there.
+const scenePass = pass(scene, camera, params.has('samples') ? { samples: Number(params.get('samples')) } : {});
 const pipeline = new THREE.RenderPipeline(renderer, renderOutput(vec4(scenePass.getTextureNode('output').rgb, 1), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace));
 pipeline.outputColorTransform = false;
 
