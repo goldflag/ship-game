@@ -10,9 +10,9 @@ import { SKY_TIERS } from '../quality';
  * shading until the clouds' march arrives, so a few bands a sweep beat one a frame. Clouds drift a fraction of
  * a degree a second: a quarter of a second between refreshes does not show. */
 const BANDS = 4, SWEEP_FRAMES = 16;
-/** Directions this far below the horizon (as a vertical component) see only the dome: the sweep and the
- * clouds' bake start here, a little under the horizon, where the most distant clouds sink. Beneath it the
- * dome shows the horizon's colour, which changes only with the scene, so full bakes alone refresh it. */
+/** Directions this far below the horizon (as a vertical component) see only the dome: the clouds' bake
+ * starts here, a little under the horizon, where the most distant clouds sink. The sweep's bands split the
+ * sky above it; the last band also takes everything below, the dome's cheap horizon colour. */
 const CLOUD_FLOOR = -.02;
 /** A sweep restarts at once, baking everything in one frame, after the sun or the sky's light changes or
  * the bake's origin jumps this far (m): a scene change or a teleport must not show a stale sky. */
@@ -33,7 +33,7 @@ export class Environment implements EnvironmentPart {
   private readonly size = uniform(new Vector2(1, 1));
   /** Frame of the current sweep. */
   private frame = 0;
-  /** First texel row the sweep bakes (rows below it hold the dome under the horizon). */
+  /** First texel row the clouds reach: rows below it hold only the dome under the horizon. */
   private floorRow = 0;
   private full = true;
   private readonly bakedOrigin = new Vector3(Infinity, 0, 0);
@@ -91,9 +91,10 @@ export class Environment implements EnvironmentPart {
     const frame = this.frame, stride = SWEEP_FRAMES / BANDS;
     this.frame = (frame + 1) % SWEEP_FRAMES;
     if (frame % stride) return;
-    // Rows grow with elevation (v = 1 at the zenith): the sweep runs from the zenith down to the cloud floor.
+    // Rows grow with elevation (v = 1 at the zenith): the sweep runs from the zenith down to the cloud floor,
+    // and its last band on to the nadir.
     const band = frame / stride, height = this.target.height, span = height - this.floorRow;
-    this.bake(height - Math.round((band + 1) * span / BANDS), height - Math.round(band * span / BANDS));
+    this.bake(band === BANDS - 1 ? 0 : height - Math.round((band + 1) * span / BANDS), height - Math.round(band * span / BANDS));
     if (band === BANDS - 1) {
       this.bakedOrigin.copy(origin);
       this.refilter();
