@@ -91,6 +91,16 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
             ['smaa', 'SMAA'],
           ],
         },
+        {
+          id: 'bloom',
+          label: 'Bloom',
+          cost: 1,
+          hint: 'A faint glow around sun glints, muzzle flashes, fires and tracers.',
+          options: [
+            ['off', 'Off'],
+            ['on', 'On'],
+          ],
+        },
       ],
     },
   ],

@@ -196,12 +196,19 @@ test('paused scene, water and smoke share moonlight and restore the current sun'
     environment.setScene('north-atlantic', false); driver.update(0);
     environment.syncLighting(); // Deliberately no water simulation step.
     expect(waterSun.intensity.value).toBeCloseTo(effects.direct);
-    // Meshes take half the vendored shaders' sun, and a daylight share of the unoccluded fill.
-    expect(water.lighting!.sunLight.intensity).toBeCloseTo(effects.direct * .5);
+    // By day meshes take about half the vendored shaders' sun and a daylight share of the
+    // unoccluded fill. Moonlit meshes take 1.5 times the moon and 1.6 times the fill; the sea keeps the raw moon.
+    const moonlit = waterSun.direction.value.equals(sky.timeOfDay.moonDirection.value);
+    if (hour === 0 || hour === 24 || hour === 12) expect(moonlit).toBe(hour !== 12);
+    expect(water.lighting!.sunLight.intensity).toBeCloseTo(effects.direct * (moonlit ? 1.5 : .55));
     const fill = environment.ambientLight.intensity / environment.diagnostics().environment!.ambient;
-    if (effects.direct >= 4) { expect(fill).toBeCloseTo(.3, 10); expect(water.environment.intensity).toBeCloseTo(.6, 10); }
-    if (effects.direct <= 1) { expect(fill).toBe(1); expect(water.environment.intensity).toBe(1); }
-    expect(fill).toBeGreaterThanOrEqual(.3 - 1e-9);
+    if (moonlit) { expect(fill).toBeCloseTo(1.6, 10); expect(water.environment.intensity).toBe(1); }
+    else {
+      if (effects.direct >= 4) { expect(fill).toBeCloseTo(.33, 10); expect(water.environment.intensity).toBeCloseTo(.66, 10); }
+      if (effects.direct <= 1) { expect(fill).toBe(1); expect(water.environment.intensity).toBe(1); }
+      expect(fill).toBeGreaterThanOrEqual(.33 - 1e-9);
+      expect(fill).toBeLessThanOrEqual(1);
+    }
     expect(waterSun.direction.value.y).toBeGreaterThanOrEqual(0);
     if (hour === 0 || hour === 24) {
       expect(waterSun.intensity.value).toBeGreaterThan(.3);

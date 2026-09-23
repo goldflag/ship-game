@@ -43,15 +43,22 @@ const CELESTIAL_DISC = 7.5e-5;
 /** Sky Pro and Water Pro are vendored shaders tuned by eye against the raw sun.
  * Three's lit meshes turn the same intensity into about twice the light a Cycles
  * render of the same GLB shows: 0.29-albedo Kure gray reached sRGB 200 in port.
- * Only the scene's DirectionalLight is scaled; the sky, sea and smoke keep the raw sun. */
-const MESH_SUNLIGHT = .5;
+ * Only the scene's DirectionalLight is scaled; the sky, sea and smoke keep the raw sun.
+ * The daylight shares below are their ACES calibration divided by the display look's
+ * 0.9 exposure (`DISPLAY_LOOK`), so sunlit Kure gray still reads mid-gray, about sRGB 130. */
+const MESH_SUNLIGHT = .55;
 /** Share of the authored hemisphere fill, and of sky reflection, that reaches lit
  * meshes in full daylight. Neither is occluded, so at full strength shaded faces
  * read nearly as bright as sunlit ones. Without a strong sun the fill is all a
- * backlit or moonlit hull has, so the shares return to 1 as the sun fades. */
-const MESH_FILL = .3, MESH_SKY = .6;
+ * backlit hull has, so the shares return to 1 as the sun fades. */
+const MESH_FILL = .33, MESH_SKY = .66;
 /** Direct light at which the daylight shares start and complete. */
 const FILL_DAYLIGHT = [1, 4] as const;
+/** Moonlight on meshes, as a multiple of the moon the sea and sky see, and the night's
+ * multiple of the authored fill. At the sun's shares a moonlit hull read almost black
+ * against the sea; these lift decks and superstructure to a readable gray. Only meshes
+ * take them: the night sky, sea and smoke keep the raw moon. */
+const MESH_MOONLIGHT = 1.5, MESH_NIGHT_FILL = 1.6;
 
 /** Applies resolved battle conditions to the licensed water and sky, and owns
  * every live override of those uniforms: the port's daylight and standing wind, the air map's
@@ -264,9 +271,9 @@ export class VisualEnvironment {
       lighting.sun.intensity.value = intensity;
       lighting.sun.color.copy(this.celestialColor);
       const light = this.sunLight ?? lighting.sunLight;
-      light.intensity = intensity * MESH_SUNLIGHT;
+      light.intensity = intensity * (night ? MESH_MOONLIGHT : MESH_SUNLIGHT);
       const daylight = MathUtils.smoothstep(intensity, ...FILL_DAYLIGHT);
-      this.ambientLight.intensity = this.ambient * MathUtils.lerp(1, MESH_FILL, daylight);
+      this.ambientLight.intensity = this.ambient * (night ? MESH_NIGHT_FILL : MathUtils.lerp(1, MESH_FILL, daylight));
       this.water!.environment.intensity = MathUtils.lerp(1, MESH_SKY, daylight);
       light.color.copy(this.celestialColor);
       light.target.position.copy(this.inPort ? this.sinks.sunAnchor.position : this.shadowFocus ?? this.sinks.sunAnchor.position);

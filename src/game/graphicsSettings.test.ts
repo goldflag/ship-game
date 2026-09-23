@@ -72,3 +72,16 @@ test('water shadows migrate old presets and stay independently configurable with
   expect(matchingPreset({ ...DEFAULT_GRAPHICS, waterShadows: 'medium' })).toBeNull();
   expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, waterShadows: 'invalid' }).waterShadows).toBe('high');
 });
+
+test('saves from before bloom take it from their nearest preset; bloom then stays independently configurable', () => {
+  expect(GRAPHICS_PRESETS.low.bloom).toBe('off');
+  for (const name of PRESET_ORDER) {
+    const { bloom, ...oldSave } = GRAPHICS_PRESETS[name];
+    expect(sanitizeGraphicsSettings(oldSave)).toEqual(GRAPHICS_PRESETS[name]);
+    expect(sanitizeGraphicsSettings({ ...oldSave, bloom: bloom === 'on' ? 'off' : 'on' }).bloom).not.toBe(bloom);
+  }
+  const { bloom: _, ...customLow } = { ...GRAPHICS_PRESETS.low, renderScale: 100 };
+  expect(sanitizeGraphicsSettings(customLow).bloom).toBe('off');
+  expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, bloom: 'bright' }).bloom).toBe('on');
+  expect(matchingPreset({ ...GRAPHICS_PRESETS.medium, bloom: 'off' })).toBeNull();
+});
