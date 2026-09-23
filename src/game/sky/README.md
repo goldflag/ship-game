@@ -155,9 +155,14 @@ is shared; single runs are noisy). Sky Pro baselines: `.build/sky-review/skypro-
 
 ## Verification
 
-`scripts/diagnostics/sky-review.html` renders 19 fixed scenes of the real game (port, noon, wide,
+`scripts/diagnostics/sky-review.html` renders 22 fixed scenes of the real game (port, noon, wide,
 morning sun, sunset both ways, twilight, moon, stars, zenith, clear, overcast, fog, storm, 24×
-binoculars, aircraft in the cloud shell, overhead and tilted chart). `bun scripts/browser/
+binoculars, aircraft in the cloud shell, overhead and tilted chart, a daylight downpour from the
+bridge, moonlit rain, and a seeded cloud-to-ground bolt by night and by day). `bun scripts/browser/
 sky-review.ts --tag <name> [--only a,b] [--quality high] [--clouds medium] [--sky game|skypro]
-[--measure]` saves PNGs and timings to `.build/sky-review/<tag>/`. Every part also keeps a focused
-diagnostics page under `scripts/diagnostics/sky-*.html`.
+[--measure] [--bench] [--weather]` saves PNGs and timings to `.build/sky-review/<tag>/`; `--weather`
+times the rain and splashes by GPU timestamps, each drawn at several times its capacity in frames
+alternating with none. Timing a mesh means drawing the scene pass again: it renders once per node
+frame, which only the browser's animation frames advance, so the page's `redraw()` advances it
+before every timed frame. Every part also keeps a focused diagnostics page under
+`scripts/diagnostics/sky-*.html`.
