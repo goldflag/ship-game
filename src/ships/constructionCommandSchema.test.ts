@@ -116,6 +116,7 @@ test('the JSON Schema is derived from the same specs', () => {
     'Equipment',
     'EquipmentPatch',
     'Fitting',
+    'FittingMesh',
     'FittingPatch',
     'FittingSolid',
     'FittingTube',

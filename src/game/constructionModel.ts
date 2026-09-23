@@ -112,6 +112,7 @@ export async function createConstructionModel(source: ConstructionSource, result
   group.userData.definitionHash = result.contentHash;
   group.userData.constructionRevision = source.revision;
   const templates = new Map<string, THREE.Group>();
+  const fittings = new Map<string, THREE.Group>();
   try {
     let catalog: ConstructionCatalog | undefined;
     if (source.construction.equipment.length) {
@@ -122,9 +123,16 @@ export async function createConstructionModel(source: ConstructionSource, result
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
         const custom = customFittingOf(source.construction, instance);
         if (custom) {
-          // Design-local fitting: drawn from the source definition, never a published GLB.
-          const model = createConstructionFittingModel(custom, { finish: source.construction.finish });
-          paintConstructionFitting(model, constructionFittingPaint(source, instance, part), false, source.construction.finish);
+          // Design-local fitting: drawn from the source definition, never a published GLB. Each definition and
+          // coating is built once; instances share its geometry and materials, so their draws can batch.
+          const paint = constructionFittingPaint(source, instance, part), key = `${custom.id}\u0000${paint ?? ''}`;
+          let template = fittings.get(key);
+          if (!template) {
+            template = createConstructionFittingModel(custom, { finish: source.construction.finish });
+            paintConstructionFitting(template, paint, false, source.construction.finish);
+            fittings.set(key, template);
+          }
+          const model = template.clone(true);
           model.name = instance.id;
           if (instance.scale) model.scale.fromArray(instance.scale);
           model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;

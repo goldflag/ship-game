@@ -134,7 +134,11 @@ Layer notes:
   their own limit (ledger row **Custom fittings**, 1,000). The shelf strip and a selected instance
   show the definition's name (editable), mass, solid and tube counts, **Duplicate definition** and
   **Delete definition**, which is disabled while instances use it (`CustomFittingFields.tsx`).
-  Shapes are not editable in the editor yet; agents define them with the `fitting` command. See
+  A definition with visual meshes reads "mesh, N triangles"; the mesh is a unit (select, move,
+  rotate, scale, delete; no vertex editing), and each named mesh group has its own paint picker
+  (**instance paint** follows the instance and ship paint). The Armor view never shows armor on it.
+  Shapes are not editable in the editor yet; agents define them with the `fitting` command or
+  `ship:fitting-mesh`. See
   the [plan](../../../docs/custom-fittings-plan.md).
 - **Parents.** <a id="parents"></a>A selected fitting that may float (deck fittings, masts, light
   deck guns without a well) shows **Attached to**: *Nothing* or one of the twenty nearest hull

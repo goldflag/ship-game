@@ -98,8 +98,15 @@ refused for online play with a clear message. Local play, saving and cloning are
 | Mass | 0.001–1,000,000 kg |
 | Instance scale | 0.05–20 per axis, custom fitting instances only |
 | Collision boxes per definition | 64; larger fittings merge neighbouring boxes |
+| Visual meshes (version 2) | 16 per definition; 20,000 triangles and 65,535 vertices per mesh; 64 paint groups |
+| Unique mesh triangles per design | 100,000, each definition counted once |
+| Encoded mesh bytes per design | 1 MiB of base64 `data` |
+| Drawn triangles per design | 1,000,000: instances × definition triangles (meshes, solid faces, tubes) |
 
-Rust constants are in `construction_custom_fittings.rs`, mirrored by `CUSTOM_FITTING_LIMITS`.
+Rust constants are in `construction_custom_fittings.rs` and `construction_fitting_mesh.rs`, mirrored
+by `CUSTOM_FITTING_LIMITS` (which includes `FITTING_MESH_LIMITS` from `constructionFittingMesh.ts`).
+The mesh budgets were measured on the Scharnhorst with 100,000 triangles of a published ship model:
+see [visual mesh fittings](construction-authoring.md#visual-mesh-fittings).
 Online designs use the same limits (`services/compiler/limits.ts` checks only the source shape).
 
 ## Phase 1 (built)

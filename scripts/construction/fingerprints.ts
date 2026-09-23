@@ -4,9 +4,12 @@ import ts from 'typescript';
 import type { ConstructionResult, ConstructionSource } from '../../src/ships/blueprint';
 import { canonical, definitionData, hash } from './artifacts';
 
+/** Packages a recipe may import besides Three.js. Each one's pinned version joins the hash of the recipes that use it. */
+const EXTERNAL = ['fflate'];
 /** Follow value imports, including new transitive helpers; types/comments aren't inputs. */
 export async function recipeHash(root: string, entries: string[]) {
-  const files = new Map<string, string>();
+  const files = new Map<string, string>(),
+    externals = new Set<string>();
   const visit = async (path: string): Promise<void> => {
     if (files.has(path)) return;
     const text = await readFile(join(root, path), 'utf8');
@@ -26,8 +29,10 @@ export async function recipeHash(root: string, entries: string[]) {
     scan(tree);
     for (const specifier of imports) {
       if (!specifier.startsWith('.')) {
-        if (specifier !== 'three' && !specifier.startsWith('three/')) throw new Error('Declare external recipe dependency: ' + specifier);
-        continue; // Three.js is pinned below; new packages must declare an identity.
+        const external = EXTERNAL.find((name) => specifier === name || specifier.startsWith(name + '/'));
+        if (external) externals.add(external);
+        else if (specifier !== 'three' && !specifier.startsWith('three/')) throw new Error('Declare external recipe dependency: ' + specifier);
+        continue; // Three.js and EXTERNAL packages are pinned below; new packages must declare an identity.
       }
       const base = resolve(root, dirname(path), specifier);
       if (!base.startsWith(resolve(root) + '/')) throw new Error('Recipe import escapes repository: ' + path);
@@ -40,7 +45,10 @@ export async function recipeHash(root: string, entries: string[]) {
   };
   for (const entry of entries) await visit(entry);
   const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-  return hash([pkg.dependencies.three, [...files].sort(([a], [b]) => a.localeCompare(b, 'en'))]);
+  const sorted = [...files].sort(([a], [b]) => a.localeCompare(b, 'en'));
+  // Recipes without other packages keep the hash they had before EXTERNAL existed.
+  if (!externals.size) return hash([pkg.dependencies.three, sorted]);
+  return hash([pkg.dependencies.three, sorted, [...externals].sort().map((name) => [name, pkg.dependencies[name]])]);
 }
 export async function constructionFingerprints(root: string, source: ConstructionSource, result: ConstructionResult) {
   if (!result.definition) throw new Error('Missing construction definition');
