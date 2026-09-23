@@ -42,6 +42,8 @@ export class Ocean implements OceanApi {
   private wakeSampler: WakeSampler | null = null;
   private shadow: Node<'float'> | null = null;
   private readonly floaters: { object: Object3D; smoothing: number }[] = [];
+  /** Height readback points: each floater's, then the camera's while it is near the surface. */
+  private readonly samplePoints: { x: number; z: number }[] = [];
   private readonly geometry: OceanGeometry;
   private readonly material: OceanSurfaceMaterial;
   /** `cameraNearSurface` for the underwater pass's uniform branch. */
@@ -84,9 +86,17 @@ export class Ocean implements OceanApi {
     const environment = this.sky?.getEnvironmentTexture() ?? null;
     if (environment !== this.environment) { this.environment = this.scene.environment = environment; this.material.bind(this.bindings()); }
     this.scene.environmentIntensity = this.environmentIntensity;
-    this.material.update();
-    if (!this.floaters.length) return;
-    this.heights.request();
+    // While the near plane may reach the water, the readback also probes the surface above the camera,
+    // one frame late: whether the camera is under water decides which back faces are the sea's underside.
+    const probe = this.cameraNearSurface;
+    if (this.floaters.length || probe) {
+      this.samplePoints.length = this.floaters.length;
+      if (probe) this.samplePoints.push({ x: this.camera.position.x, z: this.camera.position.z });
+      this.heights.setPositions(this.samplePoints);
+      this.heights.request();
+    }
+    const surface = probe ? this.heights.heights[this.floaters.length] : NaN;
+    this.material.update(probe && this.camera.position.y < (Number.isFinite(surface) ? surface : 0));
     if (dt > 0) this.floaters.forEach(({ object, smoothing }, i) => {
       const height = this.heights.heights[i];
       if (Number.isFinite(height)) object.position.y += (height - object.position.y) * (1 - Math.exp(-dt / Math.max(smoothing, 1e-3)));
@@ -122,7 +132,7 @@ export class Ocean implements OceanApi {
 
   addFloater(object: Object3D, { smoothing = .6 }: { smoothing?: number } = {}): void {
     this.floaters.push({ object, smoothing });
-    this.heights.setPositions(this.floaters.map(({ object }) => ({ x: object.position.x, z: object.position.z })));
+    this.samplePoints.splice(0, this.samplePoints.length, ...this.floaters.map(({ object }) => ({ x: object.position.x, z: object.position.z })));
   }
 
   /** Nothing to resize yet: three sizes the viewport copies from the drawing buffer. */

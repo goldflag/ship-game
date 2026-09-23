@@ -17,6 +17,7 @@ export class GpuWaveHeightSampler implements WaveHeightSampler {
   private readonly quad: QuadMesh;
   private count = 0;
   private pending: Promise<void> | null = null;
+  private disposed = false;
 
   constructor(private readonly renderer: WebGPURenderer, field: WaveField) {
     this.points.minFilter = this.points.magFilter = NearestFilter;
@@ -54,6 +55,9 @@ export class GpuWaveHeightSampler implements WaveHeightSampler {
         this.heights[i] = values[i * 4];
         this.normals.set(values.subarray(i * 4 + 1, i * 4 + 4), i * 3);
       }
+    }).catch(error => {
+      // Disposing the renderer destroys the device under a read still in flight; presentation heights just go stale.
+      if (!this.disposed) console.warn('Wave height readback failed', error);
     }).finally(() => { this.pending = null; });
   }
 
@@ -64,6 +68,7 @@ export class GpuWaveHeightSampler implements WaveHeightSampler {
   }
 
   dispose(): void {
+    this.disposed = true;
     this.points.dispose(); this.target.dispose(); (this.quad.material as NodeMaterial).dispose();
   }
 }

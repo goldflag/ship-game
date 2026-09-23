@@ -199,6 +199,8 @@ export class OceanSurfaceMaterial extends NodeMaterial {
   private readonly sceneDepth = nodeObject(new EffectDepthTextureNode(undefined, null, new DepthTexture(1, 1)));
   private readonly foamDetail = foamTexture();
   private readonly screenReflections = uniform(false);
+  /** Whether the camera is under water: only then is every back face the sea's underside. */
+  private readonly cameraSubmerged = uniform(false);
 
   constructor(private readonly parameters: SurfaceParameters, bindings: SurfaceBindings) {
     super();
@@ -212,7 +214,10 @@ export class OceanSurfaceMaterial extends NodeMaterial {
   }
 
   /** Mirror the facade's live switches into uniforms; call once per frame. */
-  update(): void { this.screenReflections.value = this.parameters.reflections.screenSpace && this.parameters.reflections.steps > 0; }
+  update(cameraSubmerged: boolean): void {
+    this.screenReflections.value = this.parameters.reflections.screenSpace && this.parameters.reflections.steps > 0;
+    this.cameraSubmerged.value = cameraSubmerged;
+  }
 
   /** Rebuild the surface graph around new sky, wake or shadow bindings. */
   bind({ environment, wake, shadow }: SurfaceBindings): void {
@@ -275,9 +280,13 @@ export class OceanSurfaceMaterial extends NodeMaterial {
 
     this.fragmentNode = Fn(() => {
       // Everything above is evaluated first, in uniform control flow: it takes screen-space derivatives. Only back
-      // faces, seen from a submerged camera, pay for the underside.
+      // faces seen from under water pay for the underside. A camera above water sees back faces only where a storm
+      // crest folds over, and those keep the crest's shading and foam; a back face above the camera still counts,
+      // for the frame the camera probe lags and for a near plane that dips under the surface.
       const color = above.toVar();
-      If(frontFacing.not(), () => { color.assign(underside(environment, view, up, pigment, absorption)); });
+      If(frontFacing.not().and(this.cameraSubmerged.or(positionWorld.y.greaterThan(cameraPosition.y))), () => {
+        color.assign(underside(environment, view, up, pigment, absorption));
+      });
       return vec4(color, 1);
     })();
     this.needsUpdate = true;
