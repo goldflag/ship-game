@@ -7,6 +7,7 @@ import { wakeHull } from './wakeHull';
 import { TorpedoTrackFoam } from './TorpedoTrackFoam';
 import type { Torpedo } from './torpedoAim';
 import { BowWaves } from './BowWaves';
+import { HullContactFoam } from './HullContactFoam';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
 export class ShipWake {
@@ -16,6 +17,11 @@ export class ShipWake {
   private readonly torpedoTracks: TorpedoTrackFoam;
   /** Analytic bow crest and Kelvin V, sharper than the native field's cells. */
   readonly bowWaves = new BowWaves();
+  /** The foam line where each hull meets the water. */
+  readonly hullFoam = new HullContactFoam();
+  /** Significant wave height of the sea on show, in metres. */
+  seaHeight = 0;
+  private readonly native: ReturnType<WaterSystem['wake']['getSampler']>;
   private readonly materials = new Set<WaterSurfaceMaterial>();
   private eventSequence = 0;
 
@@ -37,14 +43,14 @@ export class ShipWake {
     this.foam = new FleetWakeFoam(Math.min(wake.resolution, 256), renderer);
     // A bubble track is a few metres wide: finer than any fleet wake cell.
     this.torpedoTracks = new TorpedoTrackFoam(renderer ? 1024 : 256, renderer);
-    const native = wake.getSampler();
+    const native = this.native = wake.getSampler();
     // The vendor declaration erases scalar node types at its public boundary.
     const sampler: ReturnType<WaterSystem['wake']['getSampler']> = {
       sample: (x, z) => ({ height: (native.sample(x, z).height as Node<'float'>).add(this.bowWaves.height(x as Node<'float'>, z as Node<'float'>)) }),
       sampleNormal: (x, z) => this.bowWaves.normal(native.sampleNormal(x, z) as Node<'vec3'>, x as Node<'float'>, z as Node<'float'>),
       sampleFoamEnergy: (x, z) => max(max(max(native.sampleFoamEnergy(x, z) as Node<'float'>,
         this.foam.sample(x as Node<'float'>, z as Node<'float'>)), this.torpedoTracks.sample(x as Node<'float'>, z as Node<'float'>)),
-        this.bowWaves.foam(x as Node<'float'>, z as Node<'float'>)),
+        max(this.bowWaves.foam(x as Node<'float'>, z as Node<'float'>), this.hullFoam.foam(x as Node<'float'>, z as Node<'float'>))),
     };
     // Use Water Pro's public material sampler hook: the wake shares the real
     // ocean's displacement, lighting, reflections and foam dissolve texture.
@@ -105,16 +111,23 @@ export class ShipWake {
     this.torpedoTracks.update(torpedoes, dt, this.anchor.position.x, this.anchor.position.z, camera);
     if (this.meshSpacing) this.bowWaves.vertexSpacing.value = this.meshSpacing();
     this.bowWaves.update(ships, dt, camera, this.renderer?.domElement.height);
+    this.hullFoam.seaHeight = this.seaHeight;
+    this.hullFoam.update(ships, dt, camera, this.renderer?.domElement.height);
+  }
+
+  /** Height the wake field and bow waves add to the sea at a world position, as the water draws it. */
+  surfaceHeight(x: Node<'float'>, z: Node<'float'>): Node<'float'> {
+    return (this.native.sample(x, z).height as Node<'float'>).add(this.bowWaves.height(x, z));
   }
 
   /** Developer switch for comparing the analytic bow waves with the native field alone. */
   toggleBowWaves(): boolean { this.bowWaves.enabled = !this.bowWaves.enabled; return this.bowWaves.enabled; }
 
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }
-  diagnostics() { return { ...this.foam.diagnostics(), torpedoTracks: this.torpedoTracks.diagnostics(), bowWaves: this.bowWaves.diagnostics() }; }
+  diagnostics() { return { ...this.foam.diagnostics(), torpedoTracks: this.torpedoTracks.diagnostics(), bowWaves: this.bowWaves.diagnostics(), hullFoam: this.hullFoam.diagnostics() }; }
 
   reset(): void {
-    this.foam.reset(); this.torpedoTracks.reset(); this.bowWaves.reset();
+    this.foam.reset(); this.torpedoTracks.reset(); this.bowWaves.reset(); this.hullFoam.reset();
     this.eventSequence = 0;
     // Clear native displacement too when returning to port, even if the
     // reset distance is below the solver's automatic teleport threshold.
@@ -133,6 +146,6 @@ export class ShipWake {
     }
     this.generators.clear();
     this.materials.forEach(material => material.setWakeFieldSampler(this.wake.getSampler()));
-    this.foam.dispose(); this.torpedoTracks.dispose();
+    this.foam.dispose(); this.torpedoTracks.dispose(); this.hullFoam.dispose();
   }
 }

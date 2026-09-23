@@ -27,6 +27,8 @@ import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { cloudTier, frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings } from './graphicsSettings';
 import { VisualWaveSampler } from './VisualWaveSampler';
+import { HullWetBand, oceanHeight } from './HullWetBand';
+import { primeHullProfile } from './HullContactFoam';
 import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
@@ -156,8 +158,10 @@ export class Game {
    * same ones, so they are kept — in least-recently-used order and capped, because each one
    * holds tens of megabytes of vertex data. The fleet at sea is always retained. */
   private readonly hulls = new Map<string, THREE.Group>();
+  /** Hulls darken and gloss just above the sea they sit in: the FFT waves plus the wake and bow waves. */
+  private readonly hullWetBand = new HullWetBand();
   /** One palette for every hull kept, so paint still collapses across cached fleets. */
-  private readonly palette = new ShipMaterialPalette();
+  private readonly palette = new ShipMaterialPalette(this.hullWetBand);
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
@@ -514,6 +518,9 @@ export class Game {
       const mesh = water.getGeometryConfig();
       return mesh.baseSize / mesh.segments;
     });
+    // The wet band reads the sea exactly as the water mesh draws it; hull paint compiles on first draw, after this.
+    const shipWake = this.shipWake, ocean = oceanHeight(water, this.scene);
+    this.hullWetBand.setSea((x, z) => ocean(x, z).add(shipWake.surfaceHeight(x, z)), () => shipWake.bowWaves.crestHeight());
     for (const buoy of BUOYS) this.addBuoy(buoy);
     if (HARBOR_BACKDROP) {
       this.callbacks.progress('Building the naval anchorage', 0.72);
@@ -913,6 +920,8 @@ export class Game {
     }
     this.palette.apply(model);
     batchShipModel(model);
+    // The hull's waterline for its contact foam, sliced while loading rather than in a battle frame.
+    primeHullProfile(definition, model);
     this.hulls.set(key, model);
     return model;
   }
@@ -1081,7 +1090,9 @@ export class Game {
       this.harbor?.update(dt, this.camera);
       this.fitSunShadow();
       this.focusNearShadow();
+      this.shipWake!.seaHeight = this.environment.seaHeight;
       this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
+      this.hullWetBand.update(this.environment.seaHeight);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused || this.tacticalPause;

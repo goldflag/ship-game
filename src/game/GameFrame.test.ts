@@ -161,7 +161,7 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
     effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), water, sunLight: water.lighting.sunLight, sunShadows: new FocusShadowNode(water.lighting.sunLight), environment,
-    shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+    shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} }, hullWetBand: { update() {} },
     pipeline: { render() {} }, scheduleFrame() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
   }) as { frame(time: number, warmingUp?: boolean): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; toggleFreeCamera(): void; recenter(): void; shellFollow: ShellFollow;

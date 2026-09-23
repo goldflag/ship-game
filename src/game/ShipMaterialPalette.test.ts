@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
-import { ShipMaterialPalette } from './ShipMaterialPalette';
+import { float } from 'three/tsl';
+import { ShipMaterialPalette, wetBandHeight } from './ShipMaterialPalette';
 
 test('different linear paint colors share shading while preserving every vertex and texture', () => {
   const root = new THREE.Group(), geometry = new THREE.BoxGeometry();
@@ -45,4 +46,21 @@ test('texture pixels are never read while keying materials', () => {
   root.add(...[textured(), textured(), textured()].map(material => new THREE.Mesh(geometry, material)));
   palette.apply(root);
   expect(reads).toBe(0);
+});
+
+test('every paint carries its hull\'s wet-band height and shares one weathering graph', () => {
+  const dry = float(.8), gloss = float(.5), palette = new ShipMaterialPalette({ dry, gloss });
+  const hull = (length: number, color: string) => {
+    const root = new THREE.Group(), mesh = new THREE.Mesh(new THREE.BoxGeometry(10, 10, length), new THREE.MeshStandardMaterial({ color }));
+    root.add(mesh); palette.apply(root); return mesh;
+  };
+  const destroyer = hull(110, '#445566'), battleship = hull(260, '#665544');
+  expect(destroyer.geometry.getAttribute('shipSurface').itemSize).toBe(3);
+  expect(destroyer.geometry.getAttribute('shipSurface').getZ(0)).toBeCloseTo(wetBandHeight(110));
+  expect(battleship.geometry.getAttribute('shipSurface').getZ(0)).toBeCloseTo(wetBandHeight(260));
+  expect(wetBandHeight(260)).toBeGreaterThan(wetBandHeight(110));
+  expect(destroyer.material).toBe(battleship.material);
+  const material = destroyer.material as unknown as THREE.MeshStandardNodeMaterial, clone = material.clone();
+  expect(material.colorNode).not.toBeNull();
+  expect(clone.colorNode).toBe(material.colorNode);
 });

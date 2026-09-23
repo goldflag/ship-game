@@ -72,6 +72,8 @@ export class VisualEnvironment {
   private chartFog = false;
   // Original swatches, restored exactly when the camera surfaces again.
   private surfaceAbsorption = new Color();
+  /** Significant wave height of the sea on show, in metres. */
+  seaHeight = 0;
   private surfaceDistortion = 0;
   private celestialColor = new Color();
   private readonly sunriseColor = new Color('#ffd1a0');
@@ -167,6 +169,7 @@ export class VisualEnvironment {
     const { map, environment: { waves, waterLightScale } } = this.resolved();
     // Metric wave heights are calibrated separately from the FFT gain.
     water.waves.amplitude.value = waves.amplitude;
+    this.seaHeight = waves.significantHeightM;
     water.waves.windSpeed.value = waves.windSpeed;
     water.waves.peakWavelength.value = waves.peakWavelength;
     water.waves.choppiness.value = waves.choppiness;
