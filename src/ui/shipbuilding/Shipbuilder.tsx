@@ -776,7 +776,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       change(target);
       (mirrored ? tool.edit : run)(label, [{ op: 'equipment', value: target }]);
     };
-    // Parents: a fitting that may float can ride a hull piece or a non-trainable fitting; the parent carries it.
+    // Parents: a fitting that may float can ride a hull piece, a fitting or a gun; the parent carries it, and a gun trains it.
     const attachable = !!part && !item.wall && mayFloat(source, catalog, item, part);
     const riders = carriedIds(data, [item.id]).size;
     const parentOptions = attachable || item.parent ? parentCandidates(source, catalog, item) : [];
@@ -787,7 +787,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
           className="sb-link"
           aria-label="Attached to"
           disabled={locked}
-          title="Moving, turning, copying or removing the parent carries this fitting. Its own position and bearing stay as they are."
+          title="Moving, turning, copying or removing the parent carries this fitting. Its own position and bearing stay as they are. On a gun it also trains with the gun in battle."
           value={item.parent ?? ''}
           onChange={(event) =>
             edit(event.target.value ? 'Attach fitting' : 'Detach fitting', (target) => {
