@@ -49,6 +49,14 @@ export const SEA_ALBEDO = .06;
  * fill; `mieG` is used as authored (Cornette–Shanks asymmetry). */
 export const AUTHORED = { rayleighEarth: .4, rayleighDensity: .6, rayleighChroma: .5, mieUnit: .25, mieExponent: .7, mieGMax: .85 };
 
+/** Aerial perspective's distance scale beyond a knee, an art-directed control (as production sky systems give
+ * one): the air the dome shows, whose haze makes the golden hour, would sink every cloud past 60 km into the
+ * horizon, where a fair-weather eye still picks out a distant cumulus bank as pale blue shapes. The first `knee`
+ * km are hazed as they are; beyond it, in fair weather (turbidity up to `from`), each kilometre counts as `fair`
+ * of one, so a cloud 100 km off is hazed as one 36 km off. The scale returns to the physical 1 by `to`, so
+ * overcast, storm and fog skies stay murky. */
+export const AERIAL = { knee: 15, fair: .25, from: 2.5, to: 4.5 };
+
 /** What the air is made of for one scene, in the shaders' units. */
 export interface AirCoefficients {
   /** Molecular scattering at sea level (per km). Molecules do not absorb. */
@@ -64,6 +72,8 @@ export interface AirCoefficients {
   readonly mieGain: number;
   /** Gain on multiple scattering. */
   readonly multiple: number;
+  /** Scale on the distances aerial perspective is taken over (`AERIAL`). */
+  readonly aerialScale: number;
   /** Multiplier on the dome's saturation grade: how blue the scene's sky is authored. */
   readonly chroma: number;
 }
@@ -81,6 +91,7 @@ export function airCoefficients(atmosphere: SkyScene['atmosphere']): AirCoeffici
     mieG: MathUtils.clamp(atmosphere.mieG, 0, AUTHORED.mieGMax),
     mieGain: (Math.max(0, atmosphere.mie) / AUTHORED.mieUnit) ** AUTHORED.mieExponent,
     multiple: Math.max(0, atmosphere.multiple),
+    aerialScale: MathUtils.lerp(AERIAL.fair, 1, MathUtils.smoothstep(atmosphere.turbidity, AERIAL.from, AERIAL.to)),
     chroma: blue ** AUTHORED.rayleighChroma,
   };
 }
@@ -176,6 +187,16 @@ export function nightFloor(y: number, out: Rgb): Rgb {
  * narrow forward core (Henyey–Greenstein), as real haze's diffraction peak concentrates it. The core keeps
  * a bright, tight aureole round the sun and moon while the wide lobe no longer bleaches the sky around them. */
 export const AUREOLE = { core: .35, coreG: .92 };
+
+/** The terms of `aureolePhase(ν, g) × gain` that depend on the scene alone, as the shaders take them
+ * (`luts.aerosolPhase`): `lobe.x·(1 + ν²)·(lobe.y − lobe.z·ν)^−1.5 + core.x·(core.y − core.z·ν)^−1.5`. */
+export function phaseTerms(g: number, gain: number): { lobe: Rgb; core: Rgb } {
+  const { core, coreG } = AUREOLE;
+  return {
+    lobe: [3 / (8 * Math.PI) * (1 - g * g) / (2 + g * g) * (1 - core) * gain, 1 + g * g, 2 * g],
+    core: [core * (1 - coreG * coreG) / (4 * Math.PI) * gain, 1 + coreG * coreG, 2 * coreG],
+  };
+}
 
 export const rayleighPhase = (nu: number) => 3 / (16 * Math.PI) * (1 + nu * nu);
 export const miePhase = (nu: number, g: number) => 3 / (8 * Math.PI) * (1 - g * g) * (1 + nu * nu) / ((2 + g * g) * Math.max(1e-4, 1 + g * g - 2 * g * nu) ** 1.5);

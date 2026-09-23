@@ -103,10 +103,13 @@ the part). Tables, all fragment passes into small render targets:
 The optical depth and multiple scattering rebuild when the air changes, the sky view and ambient when
 the sun or moon do, and the camera's sections when its altitude moves by 2% (5 m near the sea); a
 steady camera costs no passes. Aerial perspective is a closed form, not a table: transmittance from two
-optical-depth reads, in-scattering the sky's own radiance along the ray in the share of the ray's
-extinction before the point, so distant clouds converge on the horizon in its colour (`fromSea` gives
-the bake's viewpoint). Below the horizontal the dome holds the horizon's colour, which also meets the
-sea's far fog seamlessly from altitude. Night: the moon scatters through the same tables as a second
+optical-depth reads, in-scattering the sky's own radiance along the ray in each channel's share of the
+ray's extinction before the point, so distant clouds converge on the horizon in its colour and turn pale
+blue on the way (`fromSea` gives the bake's viewpoint). Beyond 15 km, fair skies count distance at a
+quarter (`AERIAL`, an art-directed scale that climbs back as the haze thickens: about 0.8 overcast, 1
+in storm and fog), so a cumulus bank 60–120 km off still shows as hazed shapes through binoculars while
+the dome keeps its golden-hour haze. Below the horizontal the dome holds the horizon's colour, which
+also meets the sea's far fog seamlessly from altitude. Night: the moon scatters through the same tables as a second
 light at `SKY_GRADE.moon` of its lifted irradiance, over a navy floor (airglow and starlight) that keeps
 the sky off black; the moonlit horizon sits near the battle night fog `#182839`. Twilight: the sky's
 exposure lifts as the sun sets (`TWILIGHT`, about ×3.5 at sunset to ×600 by −10°, applied also to
@@ -172,13 +175,16 @@ lightning come from the weather preset (`src/maps/conditions.ts`) and the develo
 
 **Environment** (`environment/`). Equirectangular linear HDR bake (RGBA16F, the tier's width) from sea
 level under the camera: the dome (sky, celestial bodies without the sun's disc and stars, cirrus) with the
-clouds' short march over it, the clouds skipped below the horizon. A sweep bakes the sky in four
-horizontal bands, one every fourth frame, the last also taking the cheap half below the horizon, and
-bumps `needsPMREMUpdate` once finished: three's PMREM (about 0.07 ms on the development machine)
-refilters once per 16 frames. A change of sun or light, or a jump of the origin by 2 km, re-bakes it
-whole at once. `scene.environment` is this texture (ships' image-based light) and the sea reflects it
-through PMREM. The far fog colour (`createFogSampler`) is the sky seen from the camera without discs,
-stars or clouds.
+clouds' short march over it above the horizon, and below it the sea as ships see it from above (the sky
+mirrored with water's Fresnel over the dark water body). A sweep bakes the sky in four horizontal bands,
+one every fourth frame, the last also taking the sea's half, then prefilters the bake into three's PMREM
+(CubeUV) layout itself, once per 16 frames. The prefilter keeps three's layout and Gaussian chain but not
+its GGX importance sampling (512 samples per texel at every level, about 7 ms of GPU per refilter on the
+development machine, a spike every sweep): about 0.6 ms, for reflections nobody can tell apart. A change
+of sun or light, or a jump of the origin by 2 km, re-bakes and prefilters it whole at once.
+`scene.environment` is the prefiltered texture (ships' image-based light) and the sea reflects it through
+`pmremTexture`, which reads it as it is. The far fog colour (`createFogSampler`) is the sky seen from the
+camera without discs, stars or clouds.
 
 ## Quality tiers
 

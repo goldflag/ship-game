@@ -295,9 +295,10 @@ export interface WeatherPart extends SkyPart {
 
 /** The environment the sea reflects and every material is lit by. `environment/`. */
 export interface EnvironmentPart extends SkyPart {
-  /** Equirectangular linear HDR radiance around a sea-level point under the camera: dome,
-   * celestial bodies and clouds. The same texture object until the tier changes its size;
-   * `pmremVersion` bumps after every refreshed bake. */
+  /** Linear HDR radiance around a sea-level point under the camera (dome, celestial bodies and
+   * clouds), already prefiltered in three's PMREM (CubeUV) layout, which `pmremTexture` and
+   * `scene.environment` read as they are. Refreshed in place; the same texture object until the
+   * tier changes its size. */
   readonly texture: Texture;
   readonly oceanSky: OceanSky;
   /** Re-centre on the camera's XZ. */
