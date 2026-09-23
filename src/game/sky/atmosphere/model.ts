@@ -177,6 +177,16 @@ export function nightFloor(y: number, out: Rgb): Rgb {
  * a bright, tight aureole round the sun and moon while the wide lobe no longer bleaches the sky around them. */
 export const AUREOLE = { core: .35, coreG: .92 };
 
+/** The terms of `aureolePhase(ν, g) × gain` that depend on the scene alone, as the shaders take them
+ * (`luts.aerosolPhase`): `lobe.x·(1 + ν²)·(lobe.y − lobe.z·ν)^−1.5 + core.x·(core.y − core.z·ν)^−1.5`. */
+export function phaseTerms(g: number, gain: number): { lobe: Rgb; core: Rgb } {
+  const { core, coreG } = AUREOLE;
+  return {
+    lobe: [3 / (8 * Math.PI) * (1 - g * g) / (2 + g * g) * (1 - core) * gain, 1 + g * g, 2 * g],
+    core: [core * (1 - coreG * coreG) / (4 * Math.PI) * gain, 1 + coreG * coreG, 2 * coreG],
+  };
+}
+
 export const rayleighPhase = (nu: number) => 3 / (16 * Math.PI) * (1 + nu * nu);
 export const miePhase = (nu: number, g: number) => 3 / (8 * Math.PI) * (1 - g * g) * (1 + nu * nu) / ((2 + g * g) * Math.max(1e-4, 1 + g * g - 2 * g * nu) ** 1.5);
 const henyeyGreenstein = (nu: number, g: number) => (1 - g * g) / (4 * Math.PI * Math.max(1e-4, 1 + g * g - 2 * g * nu) ** 1.5);

@@ -14,11 +14,11 @@
  *
  * Lengths are kilometres, directions unit vectors in a frame whose +Y is the local vertical at the
  * camera (the planet's centre lies straight below it). See `model.ts` for the profiles. */
-import { FloatType, HalfFloatType, LinearFilter, NoBlending, NodeMaterial, QuadMesh, RGBAFormat, RenderTarget, Vector2, Vector3,
-  type Node, type Texture, type UniformNode, type WebGPURenderer } from 'three/webgpu';
-import { Fn, If, Loop, abs, acos, cos, dot, exp, float, floor, int, ivec2, max, min, mrt, normalize, pow, screenCoordinate, select, sin, smoothstep,
-  sqrt, texture, vec2, vec3, vec4 } from 'three/tsl';
-import { ATMOSPHERE_TOP, AUREOLE, MIE_HEIGHT, OZONE_HALF_WIDTH, OZONE_PEAK, PLANET_RADIUS, RAYLEIGH_HEIGHT, SEA_ALBEDO } from './model';
+import { FloatType, HalfFloatType, LinearFilter, NoBlending, NodeMaterial, QuadMesh, RGBAFormat, RenderTarget, Vector2, Vector3, type Node,
+  type Texture, type UniformNode, type Vector4, type WebGPURenderer } from 'three/webgpu';
+import { Fn, If, Loop, abs, acos, cos, dot, exp, float, floor, int, inverseSqrt, ivec2, max, min, mrt, normalize, pow, screenCoordinate, select, sin,
+  smoothstep, sqrt, texture, vec2, vec3, vec4 } from 'three/tsl';
+import { ATMOSPHERE_TOP, MIE_HEIGHT, OZONE_HALF_WIDTH, OZONE_PEAK, PLANET_RADIUS, RAYLEIGH_HEIGHT, SEA_ALBEDO } from './model';
 
 export type Float = Node<'float'>;
 export type Vec2 = Node<'vec2'>;
@@ -59,6 +59,9 @@ export interface AirUniforms {
   readonly multiple: UniformNode<'float', number>;
   /** The dome's saturation grade for this scene (`SKY_GRADE.saturation × chroma`). */
   readonly saturation: UniformNode<'float', number>;
+  /** The aerosol phase's scene terms (`model.phaseTerms`), gain included: the authored lobe and the core. */
+  readonly phaseLobe: UniformNode<'vec3', Vector3>;
+  readonly phaseCore: UniformNode<'vec3', Vector3>;
 }
 
 /** A texture read without three's uv matrix uniform. */
@@ -70,19 +73,12 @@ export const unitToTexel = (unit: Float, size: number): Float => unit.mul(size -
 const texelToUnit = (pixel: Float, size: number): Float => pixel.sub(.5).div(size - 1);
 
 export const rayleighPhase = (nu: Float): Float => nu.mul(nu).add(1).mul(3 / (16 * Math.PI));
-/** x^1.5 without a transcendental. */
-const threeHalves = (x: Float): Float => x.mul(sqrt(x));
-/** Cornette–Shanks: Henyey–Greenstein's forward lobe with Rayleigh's symmetric term, as aerosol scatters. */
-export function miePhase(nu: Float, g: Float): Float {
-  const g2 = g.mul(g);
-  return float(3 / (8 * Math.PI)).mul(float(1).sub(g2)).mul(nu.mul(nu).add(1))
-    .div(g2.add(2).mul(threeHalves(g2.add(1).sub(g.mul(nu).mul(2)).max(1e-4))));
-}
-/** `model.aureolePhase`: the authored lobe with a narrow forward core. */
-export function aureolePhase(nu: Float, g: Float): Float {
-  const { core, coreG } = AUREOLE;
-  const peak = float((1 - coreG * coreG) / (4 * Math.PI)).div(threeHalves(float(1 + coreG * coreG).sub(nu.mul(2 * coreG)).max(1e-4)));
-  return miePhase(nu, g).mul(1 - core).add(peak.mul(core));
+/** The aerosol's phase times its gain (`model.aureolePhase × mieGain`), with every term that depends on the scene
+ * alone folded into two uniforms by the CPU (`model.phaseTerms`): `a·(1 + ν²)·(b − c·ν)^−1.5`, the authored
+ * Cornette–Shanks lobe, plus `a·(b − c·ν)^−1.5`, the narrow forward core. The powers are cubed inverse roots. */
+export function aerosolPhase(nu: Float, lobe: Vec3, core: Vec3): Float {
+  const x = inverseSqrt(lobe.y.sub(lobe.z.mul(nu)).max(1e-4)), y = inverseSqrt(core.y.sub(core.z.mul(nu)).max(1e-4));
+  return lobe.x.mul(nu.mul(nu).add(1)).mul(x.mul(x).mul(x)).add(core.x.mul(y.mul(y).mul(y)));
 }
 
 /** Scattering and extinction of the air at an altitude (km). */
@@ -123,6 +119,14 @@ function transmittanceUv(r: Float, mu: Float): Vec2 {
   return vec2(unitToTexel(xMu.clamp(0, 1), TRANSMITTANCE_SIZE.x), unitToTexel(rho.div(H).clamp(0, 1), TRANSMITTANCE_SIZE.y));
 }
 
+/** The terms of `transmittanceUv` that depend on the viewpoint alone, for a viewpoint every pixel shares (the
+ * camera, the sea under it): radius, least distance to the top, the inverse span of distances, and the table
+ * row. The CPU fills them (`viewPointTerms`), which leaves a pixel one root and a read. */
+export function viewPointTerms(altitude: number, out: Vector4): Vector4 {
+  const r = RB + Math.max(0, altitude), rho = Math.sqrt(Math.max(0, r * r - RB * RB)), dMin = RT - r, dMax = rho + H;
+  return out.set(r, dMin, 1 / Math.max(dMax - dMin, 1e-4), (Math.min(1, rho / H) * (TRANSMITTANCE_SIZE.y - 1) + .5) / TRANSMITTANCE_SIZE.y);
+}
+
 /** The tables the part's samplers read; `AtmosphereTables` builds them. */
 export interface Tables {
   readonly opticalDepth: Texture;
@@ -137,6 +141,12 @@ export interface Tables {
 export function opticalDepth(tables: Tables, r: Float, mu: Float): Vec3 {
   return direct(texture(tables.opticalDepth, transmittanceUv(r.clamp(RB, RT), mu))).rgb;
 }
+/** `opticalDepth` from a viewpoint whose terms the CPU filled (`viewPointTerms`). */
+export function viewOpticalDepth(tables: Tables, view: Node<'vec4'>, mu: Float): Vec3 {
+  const r = view.x, top = sqrt(max(r.mul(r).mul(mu.mul(mu).sub(1)).add(RT * RT), 0)).sub(r.mul(mu));
+  const u = unitToTexel(top.sub(view.y).mul(view.z).clamp(0, 1), TRANSMITTANCE_SIZE.x);
+  return direct(texture(tables.opticalDepth, vec2(u, view.w))).rgb;
+}
 /** Transmittance from radius `r` toward a light at zenith cosine `mu`, the planet's shadow included. */
 export function lightTransmittance(tables: Tables, r: Float, mu: Float): Vec3 {
   return exp(opticalDepth(tables, r, mu).negate()).mul(planetShadow(r, mu));
@@ -148,12 +158,13 @@ function multipleScattering(tables: Tables, h: Float, mu: Float): Vec3 {
   return direct(texture(tables.multiple, uv)).rgb;
 }
 
-/** What the sky-view atlas holds for a viewpoint: the horizon's zenith angle and the angle from nadir to it. */
-export interface Horizon { zenith: Float; nadir: Float }
+/** What the sky-view atlas holds for a viewpoint: the horizon's zenith angle and the angle from nadir to it,
+ * and their inverses. */
+export interface Horizon { zenith: Float; nadir: Float; inverseZenith: Float; inverseNadir: Float }
 /** Horizon angles for a viewpoint at altitude `h` (km). */
 export function horizonAngles(h: Float): Horizon {
-  const nadir = acos(sqrt(h.mul(h.add(2 * RB))).div(h.add(RB)).clamp(0, 1));
-  return { zenith: float(Math.PI).sub(nadir), nadir };
+  const nadir = acos(sqrt(h.mul(h.add(2 * RB))).div(h.add(RB)).clamp(0, 1)), zenith = float(Math.PI).sub(nadir);
+  return { zenith, nadir, inverseZenith: float(1).div(zenith), inverseNadir: float(1).div(nadir) };
 }
 /** The sky-view table's unit latitude for a view zenith cosine: squared toward the horizon on both sides,
  * so texels crowd where the sky changes fastest. `aboveOnly` holds directions under the horizontal at the
@@ -161,15 +172,15 @@ export function horizonAngles(h: Float): Horizon {
  * (which reads the sky at the horizontal) then meets the dome just above the sea's edge without a seam. */
 export function skyViewLatitude(mu: Float, horizon: Horizon, aboveOnly: boolean): Float {
   const theta = acos(mu.clamp(aboveOnly ? 0 : -1, 1));
-  const above = float(1).sub(sqrt(max(float(1).sub(theta.div(horizon.zenith)), 0))).mul(.5);
+  const above = float(1).sub(sqrt(max(float(1).sub(theta.mul(horizon.inverseZenith)), 0))).mul(.5);
   if (aboveOnly) return min(above, (SKY_VIEW_SIZE.y / 2 - 1) / (SKY_VIEW_SIZE.y - 1));
-  const below = sqrt(max(theta.sub(horizon.zenith).div(horizon.nadir), 0)).mul(.5).add(.5);
+  const below = sqrt(max(theta.sub(horizon.zenith).mul(horizon.inverseNadir), 0)).mul(.5).add(.5);
   return select(theta.lessThan(horizon.zenith), above, below);
 }
-/** The sky-view table's unit longitude: 0 toward the light, 1 away from it, finest toward it. */
-export function skyViewLongitude(direction: Vec3, light: Vec3): Float {
-  const across = direction.xz, toward = light.xz;
-  const cosine = dot(across, toward).div(max(across.length().mul(toward.length()), 1e-6)).clamp(-1, 1);
+/** The sky-view table's unit longitude: 0 toward the light, 1 away from it, finest toward it. `axis` is the unit
+ * horizontal direction toward the light (the CPU's: any unit vector for a light overhead). */
+export function skyViewLongitude(direction: Vec3, axis: Node<'vec2'>): Float {
+  const across = direction.xz, cosine = dot(across, axis).mul(inverseSqrt(dot(across, across).max(1e-12)));
   return sqrt(float(.5).sub(cosine.mul(.5)).max(0));
 }
 /** Atlas coordinates of a unit (longitude, latitude) in a section. */

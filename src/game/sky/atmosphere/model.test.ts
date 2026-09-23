@@ -3,8 +3,8 @@ import { Color } from 'three/webgpu';
 import type { SkyScene } from '../contracts';
 import { DEFAULT_SKY_SCENE, SkyState } from '../state';
 import { Atmosphere } from './Atmosphere';
-import { ATMOSPHERE_TOP, MIE_HEIGHT, PLANET_RADIUS, RAYLEIGH_HEIGHT, SKY_GRADE, SUN_GRADE, airCoefficients, opticalDepth, seaLevelLight, skyIrradiance,
-  twilightLift, type Rgb } from './model';
+import { ATMOSPHERE_TOP, MIE_HEIGHT, PLANET_RADIUS, RAYLEIGH_HEIGHT, SKY_GRADE, SUN_GRADE, airCoefficients, aureolePhase, opticalDepth, phaseTerms,
+  seaLevelLight, skyIrradiance, twilightLift, type Rgb } from './model';
 
 const scene = (elevation: number, overrides: Partial<SkyScene['atmosphere']> = {}): SkyScene =>
   ({ ...structuredClone(DEFAULT_SKY_SCENE), sun: { elevation, azimuth: 270, intensity: 6 }, atmosphere: { ...DEFAULT_SKY_SCENE.atmosphere, ...overrides } });
@@ -78,6 +78,16 @@ test('the authored atmosphere maps monotonically onto the coefficients', () => {
   const air = at({});
   expect(air.rayleigh[2] / air.rayleigh[0]).toBeGreaterThan(5);
   expect(air.mieExtinction[1]).toBeGreaterThan(air.mieScattering[1]);
+});
+
+test('the phase terms the shaders take reproduce the aerosol lobe and its gain', () => {
+  for (const [g, gain] of [[.55, .8], [.65, 1.3], [.72, 2]]) {
+    const { lobe, core } = phaseTerms(g, gain);
+    for (const nu of [-1, -.3, 0, .5, .9, .99, 1]) {
+      const folded = lobe[0] * (1 + nu * nu) * Math.max(1e-4, lobe[1] - lobe[2] * nu) ** -1.5 + core[0] * Math.max(1e-4, core[1] - core[2] * nu) ** -1.5;
+      expect(folded / (aureolePhase(nu, g) * gain)).toBeCloseTo(1, 9);
+    }
+  }
 });
 
 test('optical depth integrates the exponential profiles and grows toward the horizon', () => {
