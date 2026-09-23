@@ -1,11 +1,33 @@
-import { Box3, MathUtils, Matrix4, Object3D, ShadowBaseNode, Vector3, type DirectionalLight, type DirectionalLightShadow, type Node, type PerspectiveCamera, type Sphere } from 'three/webgpu';
-import { abs, distance, float, Fn, If, lightShadowMatrix, max, select, shadow, shadowPositionWorld, smoothstep, uniform, vec4 } from 'three/tsl';
+import {
+  Box3, MathUtils, Matrix4, Object3D, ShadowBaseNode, ShadowNode, Vector3,
+  type DepthTexture, type DirectionalLight, type DirectionalLightShadow, type Node, type PerspectiveCamera, type RenderTarget, type Sphere,
+} from 'three/webgpu';
+import { abs, distance, float, Fn, If, lightShadowMatrix, max, select, shadowPositionWorld, smoothstep, uniform, vec4 } from 'three/tsl';
+import type { ShadowCasterPass } from './ShadowCasterPass';
 
 /** A shadow-casting stand-in the renderer treats as a directional light. */
 class CascadeLight extends Object3D {
   readonly target = new Object3D();
   castShadow = true;
   constructor(public shadow: DirectionalLightShadow) { super(); }
+}
+
+/** One map. Its draw goes through the owner's caster pass when that can take it, else three's scene pass. */
+class CascadeShadowNode extends ShadowNode {
+  constructor(light: CascadeLight, private readonly owner: FocusShadowNode) { super(light as never, light.shadow); }
+
+  /** Three's `ShadowNode.renderShadow`, which its typings leave out. */
+  renderShadow(frame: { scene: Object3D | null; frameId: number }): void {
+    const { shadow, shadowMap, light } = this as unknown as { shadow: DirectionalLightShadow; light: CascadeLight;
+      shadowMap: RenderTarget & { depthTexture: DepthTexture; setSize(width: number, height: number, depth?: number): void } };
+    const casters = this.owner.casters;
+    if (casters?.enabled && frame.scene) {
+      shadow.updateMatrices(light as never);
+      shadowMap.setSize(shadow.mapSize.width, shadow.mapSize.height, shadowMap.depth);
+      if (casters.draw(frame.scene, shadow.camera, shadowMap, frame.frameId)) return;
+    }
+    (ShadowNode.prototype as unknown as { renderShadow(frame: object): void }).renderShadow.call(this, frame);
+  }
 }
 
 /** A map fitted each frame around the ships in view that the wide map misses, within
@@ -106,6 +128,8 @@ export class FocusShadowNode extends ShadowBaseNode {
   /** Sun transmittance through the clouds at a world position, multiplied into every map's
    * visibility. Set before the first lit material compiles. */
   cloud?: (position: Node<'vec3'>) => Node<'float'>;
+  /** Draws the maps' casters directly; unset, three renders every map as a scene pass. */
+  casters?: ShadowCasterPass;
 
   constructor(readonly sun: DirectionalLight) {
     super(sun);
@@ -192,7 +216,7 @@ export class FocusShadowNode extends ShadowBaseNode {
   setup(builder: Parameters<ShadowBaseNode['setupShadowPosition']>[0]) {
     // One shadow node per map, shared by every material: each node owns a render target
     // and renders it once per camera per frame, so per-material nodes would multiply both.
-    const cascade = (light: CascadeLight) => shadow(light as never, light.shadow) as unknown as Node<'vec4'>;
+    const cascade = (light: CascadeLight) => new CascadeShadowNode(light, this) as unknown as Node<'vec4'>;
     const near = this.nearNode ??= cascade(this.near), wide = this.wideNode ??= cascade(this.wide);
     const views = this.views.map(view => view.node ??= cascade(view.light));
     return Fn(() => {
