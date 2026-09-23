@@ -30,7 +30,6 @@ import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
 import { installInstanceBufferNames } from './InstanceBufferNames';
-import { installWebGLFloatDepth } from './WebGLFloatDepth';
 import { prepareInstanceUploads } from './InstanceUploads';
 import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
@@ -369,7 +368,6 @@ export class Game {
     await this.renderer.init();
     installFleetBatchInstancing(this.renderer.backend);
     installInstanceBufferNames(this.renderer.backend);
-    installWebGLFloatDepth(this.renderer.backend);
     if ((this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend) {
       for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
     }

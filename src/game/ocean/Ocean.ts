@@ -61,7 +61,9 @@ export class Ocean implements OceanApi {
     const tier = OCEAN_TIERS[quality];
     this.backend = (renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend ? 'webgpu' : 'webgl';
     this.waves = { significantHeight: 1.8, windSpeed: 9, windDirection: 35 * Math.PI / 180, peakWavelength: 32, choppiness: 1.2, gamma: 2.6, directionalSharpness: .8, seed, dirty: true };
-    this.reflections = { screenSpace: tier.reflectionSteps > 0, maxDistance: 150, steps: tier.reflectionSteps };
+    // A screen-space ray may travel about a battleship's length and a half before it gives up;
+    // WaterViewFocus stretches it for a hull seen through the lens.
+    this.reflections = { screenSpace: tier.reflectionSteps > 0, maxDistance: 400, steps: tier.reflectionSteps };
     this.waveField = createWaveField(renderer, tier.cascades, this.waves, this.foam.crest);
     this.heights = createWaveHeightSampler(renderer, this.waveField);
     this.wake = createWakeField(renderer, tier.wakeResolution);
@@ -72,8 +74,6 @@ export class Ocean implements OceanApi {
     scene.add(this.geometry.mesh);
     scene.fogNode = oceanFog(this.fog, null);
   }
-
-  get mesh(): Mesh { return this.geometry.mesh; }
 
   update(dt: number): void {
     if (dt > 0) this.time += dt;
@@ -117,7 +117,7 @@ export class Ocean implements OceanApi {
     this.material.bind(this.bindings());
   }
 
-  postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'> { return underwaterPost(scenePass, color); }
+  postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'> { return underwaterPost(this, scenePass, color); }
 
   ensureHorizon(far: number): void { this.geometry.ensureHorizon(far); }
 

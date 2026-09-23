@@ -48,9 +48,11 @@ function surfaceNormal(slope: Node<'vec2'>, wake: Node<'vec3'>): Node<'vec3'> {
   return normalize(vec3(total.x.negate(), 1, total.y.negate()));
 }
 
-/** PMREM roughness for a Beckmann slope variance σ² (Beckmann α = √(2σ²) ≈ GGX α = roughness²). */
+/** PMREM roughness for an unresolved slope variance σ²: the Beckmann width √(2σ²). Read as a GGX
+ * roughness this blurs less than the matching lobe would, which keeps distant water as bright as the
+ * horizon sky it mirrors (tuned against the Water Pro captures). */
 function roughness(variance: Node<'float'>): Node<'float'> {
-  return variance.mul(2).sqrt().sqrt().clamp(0, 1);
+  return variance.mul(2).sqrt().clamp(0, 1);
 }
 
 /** Sky radiance along the mirrored ray, blurred by the unresolved facets. Rays bent below the
@@ -67,17 +69,19 @@ function smithLambda(cosine: Node<'float'>, variance: Node<'float'>): Node<'floa
   return select(a.lessThan(1.6), float(1).sub(a.mul(1.259)).add(a.mul(a).mul(.396)).div(a.mul(3.535).add(a.mul(a).mul(2.181))), float(0));
 }
 
-/** Sun (or moon) highlight: a Beckmann lobe widened by the unresolved slope variance, with Smith
- * masking so the glitter path stays finite toward a low sun. */
+/** Sun (or moon) glints on the resolved facets: a Beckmann lobe the size of the disc, with Smith
+ * masking so a low sun stays finite. Facets too small to resolve scatter the disc as well, but the
+ * environment bake already holds the disc and the sky reflection blurs it by the same variance, so
+ * the glint keeps only the share of the light those facets leave in the mirror direction. */
 function sunGlint(normal: Node<'vec3'>, view: Node<'vec3'>, sun: Node<'vec3'>, radiance: Node<'vec3'>, variance: Node<'float'>): Node<'vec3'> {
-  const spread = variance.add(SUN_VARIANCE);
+  const spread = float(SUN_VARIANCE), resolved = spread.div(variance.add(SUN_VARIANCE));
   const half = normalize(sun.add(view));
   const cosine = dot(normal, half).max(1e-4), cosine2 = cosine.mul(cosine);
   const lobe = exp(float(1).sub(cosine2).div(cosine2.mul(spread).mul(2)).negate()).div(spread.mul(2 * Math.PI).mul(cosine2.mul(cosine2)));
   const toView = dot(normal, view).max(1e-4), toSun = dot(normal, sun);
   const masking = float(1).div(float(1).add(smithLambda(toView, spread)).add(smithLambda(toSun, spread)));
   const above = smoothstep(0, .02, toSun).mul(smoothstep(-.02, .03, sun.y));
-  return radiance.mul(fresnel(dot(view, half)).mul(lobe).mul(masking).mul(above).div(toView.mul(4)));
+  return radiance.mul(fresnel(dot(view, half)).mul(lobe).mul(masking).mul(above).mul(resolved).div(toView.mul(4)));
 }
 
 /** Light scattered through thin crests toward an observer looking into the sun. */
@@ -161,7 +165,8 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     const foamLight = mix(SHADOWED_FOAM, 1, lit);
     const surfaceFoam = smoothstep(float(1).sub(reference('coverage', 'float', foam.surface)), 1, patches).mul(bubbles).mul(reference('opacity', 'float', foam.surface));
     const crestFoam = dissolve(sample.foam, bubbles).mul(reference('opacity', 'float', foam.crest));
-    const wakeFoam = dissolve(wake.foam(xz.x, xz.y), bubbles);
+    // Trails are churned white water: a dense sheet wherever their energy is up, lightly textured.
+    const wakeFoam = smoothstep(.1, .6, wake.foam(xz.x, xz.y)).mul(bubbles.mul(.35).add(.65));
     const shoreFoam = dissolve(float(1).sub(smoothstep(0, SHORE_DEPTH, column)), bubbles).mul(reference('opacity', 'float', foam.shoreline));
     const crestColor = rgb(foam.crest.color).mul(foamLight);
     above = mix(above, rgb(foam.surface.color).mul(foamLight), surfaceFoam.clamp(0, 1));
