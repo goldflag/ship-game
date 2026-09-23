@@ -160,7 +160,7 @@ test('continuous battle conditions keep clouds independent of CPU and visual win
     const calmNight = battleEnvironment(map, 'map', 'map', { timeHours: 0, cloudCover: 100, windSpeed: 0 });
     expect(calmNight.sky.elevation).toBe(-70);
     expect(calmNight.sky.ambient).toBeLessThan(cloudy.sky.ambient);
-    expect(calmNight.waves.amplitude).toBe(0);
+    expect(calmNight.waves.significantHeightM).toBe(0);
     expect(calmNight.cloudWind).toBe(0);
     expect(battleEnvironment(map, 'map', 'map', { timeHours: 24 }).sky.elevation).toBeCloseTo(calmNight.sky.elevation);
   }
