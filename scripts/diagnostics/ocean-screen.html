@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ocean screen passes</title>
+<style>html,body{margin:0;background:#10232e}#scene{width:1600px;height:900px}canvas{display:block}output{position:fixed;top:8px;left:8px;color:white;background:#10232ecc;padding:8px;font:14px sans-serif}</style>
+<div id="scene"></div><output>Loading ocean screen passes…</output>
+<script type="module">
+// Development-only fixed scenes for the ocean's screen-space passes (src/game/ocean/screen/):
+// box ships on a gently waving analytic sea with its own renderer and output chain, as the game
+// builds them (reversed float depth, MSAA scene pass, viewport copies of the opaque scene).
+// `scripts/browser/ocean-screen.ts` drives it. ?webgl for the fallback backend, ?calm for a mirror sea,
+// ?steps=16|32 for the tier's reflection budget.
+import * as THREE from 'three/webgpu';
+import { Fn, cameraPosition, cameraViewMatrix, cos, float, fwidth, max, mix, modelWorldMatrix, pass, positionLocal, positionView,
+  positionWorld, positionWorldDirection, reflect, renderOutput, sin, smoothstep, uniform, vec2, vec3, vec4, viewportTexture } from 'three/tsl';
+import { EffectDepthTextureNode } from '/src/game/EffectVolume.ts';
+import { configureRenderOrder } from '/src/game/renderOrder.ts';
+import { screenSpaceReflection } from '/src/game/ocean/screen/reflections.ts';
+
+const params = new URLSearchParams(location.search);
+if (params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter = async () => null;
+const output = document.querySelector('output'), errors = [];
+addEventListener('error', event => errors.push(event.message));
+addEventListener('unhandledrejection', event => errors.push(String(event.reason?.message ?? event.reason)));
+const WIDTH = 1600, HEIGHT = 900;
+
+const renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(WIDTH, HEIGHT);
+document.querySelector('#scene').appendChild(renderer.domElement);
+await renderer.init();
+configureRenderOrder(renderer);
+const camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, .5, 60000);
+const scene = new THREE.Scene();
+
+// Sky: a haze-to-zenith gradient with a sun; the background never writes depth.
+const sunDirection = new THREE.Vector3(-.45, .38, -.8).normalize();
+const sun = uniform(sunDirection);
+const sky = Fn(([direction]) => {
+  const up = direction.y.max(0);
+  const gradient = mix(vec3(.58, .66, .74), vec3(.13, .26, .5), up.pow(.5));
+  const toward = direction.dot(sun).max(0);
+  return gradient.add(vec3(1, .92, .8).mul(toward.pow(900).mul(60).add(toward.pow(12).mul(.35))));
+});
+scene.backgroundNode = sky(positionWorldDirection);
+const light = new THREE.DirectionalLight(0xffffff, 3.2); light.position.copy(sunDirection).multiplyScalar(1000);
+scene.add(light, new THREE.HemisphereLight(0xa9bfd6, 0x24343d, 1.3));
+
+// Ships: box hulls and superstructures with distinct colours, so a reflection's source is legible.
+const paint = hex => new THREE.MeshStandardMaterial({ color: hex, roughness: .7 });
+function boxShip(name) {
+  const ship = new THREE.Group(); ship.name = name;
+  const part = (geometry, material, x, y, z) => { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(x, y, z); ship.add(mesh); };
+  part(new THREE.BoxGeometry(34, 16, 240), paint(0x5d646b), 0, 2, 0);           // hull, 6 m draught
+  part(new THREE.BoxGeometry(22, 12, 90), paint(0xc9ccc8), 0, 16, 5);            // superstructure
+  part(new THREE.BoxGeometry(12, 22, 14), paint(0xe2dfd4), 0, 33, 30);           // tower
+  part(new THREE.CylinderGeometry(6, 6, 16, 20), paint(0xb3322b), 0, 30, -10);   // funnel
+  part(new THREE.BoxGeometry(14, 7, 18), paint(0x39404a), 0, 13.5, 85);          // turrets
+  part(new THREE.BoxGeometry(14, 7, 18), paint(0x39404a), 0, 13.5, -80);
+  part(new THREE.CylinderGeometry(.7, .7, 34, 8), paint(0x1d1f22), 0, 61, 30);   // mast
+  part(new THREE.SphereGeometry(2.4, 16, 8), paint(0xf2c230), 0, 79, 30);        // masthead
+  scene.add(ship);
+  return ship;
+}
+const ships = { near: boxShip('near'), at5km: boxShip('5 km'), at20km: boxShip('20 km') };
+ships.near.position.set(0, 0, 0);
+ships.at5km.position.set(5000, 0, 0);
+ships.at20km.position.set(20000, 0, 0);
+const column = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 260, 24), paint(0xe07a1f)); column.position.set(0, 130, 0);
+const decoy = new THREE.Mesh(new THREE.BoxGeometry(160, 160, 160), new THREE.MeshBasicMaterial({ color: 0xff00ff }));
+scene.add(column, decoy);
+
+// Sea: a camera-centred polar grid (geometric ring spacing out to the far plane) displaced near the
+// camera by a few analytic waves; slopes fade where a pixel spans a quarter wave, so nothing aliases.
+function seaGeometry(rings = 300, segments = 256, inner = .6, outer = 59000) {
+  const growth = Math.pow(outer / inner, 1 / (rings - 1)), positions = [0, 0, 0], indices = [];
+  for (let ring = 0; ring < rings; ring++) {
+    const radius = inner * growth ** ring;
+    for (let s = 0; s < segments; s++) positions.push(radius * Math.cos(s / segments * Math.PI * 2), 0, radius * Math.sin(s / segments * Math.PI * 2));
+  }
+  for (let s = 0; s < segments; s++) indices.push(0, 1 + (s + 1) % segments, 1 + s);
+  for (let ring = 1; ring < rings; ring++) for (let s = 0; s < segments; s++) {
+    const a = 1 + (ring - 1) * segments + s, b = 1 + (ring - 1) * segments + (s + 1) % segments, c = a + segments, d = b + segments;
+    indices.push(a, b, d, a, d, c);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); geometry.setIndex(indices);
+  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), outer);
+  return geometry;
+}
+const WAVES = [[.35, 96, .42], [1.25, 57, .2], [-.6, 38, .1], [2.2, 23, .05]]; // heading (rad), wavelength (m), amplitude (m)
+const sea = uniform(params.has('calm') ? 0 : 1);
+const wave = (xz, [heading, length, amplitude]) => {
+  const k = 2 * Math.PI / length, direction = vec2(Math.cos(heading), Math.sin(heading));
+  const phase = xz.dot(direction).mul(k);
+  return { phase, height: sin(phase).mul(amplitude), slope: direction.mul(cos(phase).mul(amplitude * k)) };
+};
+/** Surface height at a world position, the stand-in for WaveField.heightAt. */
+const heightAt = xz => WAVES.reduce((sum, w) => sum.add(wave(xz, w).height), float(0)).mul(sea);
+const slopeAt = xz => WAVES.reduce((sum, w) => {
+  const { phase, slope } = wave(xz, w);
+  return sum.add(slope.mul(smoothstep(.25, .5, fwidth(phase).div(Math.PI * 2)).oneMinus()));
+}, vec2(0)).mul(sea);
+
+const reflections = { enabled: uniform(true), maxDistance: uniform(1000), steps: Number(params.get('steps') ?? 16) };
+const debugView = uniform(0); // 0 shaded, 1 reflection confidence, 2 reflected scene colour
+const sceneColor = viewportTexture();
+const sceneDepth = new EffectDepthTextureNode(undefined, null, new THREE.DepthTexture(1, 1));
+const water = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: true });
+{
+  const world = modelWorldMatrix.mul(vec4(positionLocal, 1)).xz;
+  const nearby = smoothstep(400, 1500, world.sub(cameraPosition.xz).length()).oneMinus();
+  water.positionNode = positionLocal.add(vec3(0, heightAt(world).mul(nearby), 0));
+  water.colorNode = Fn(() => {
+    const slope = slopeAt(positionWorld.xz);
+    const normal = vec3(slope.x.negate(), 1, slope.y.negate()).normalize().toVar();
+    const view = positionWorld.sub(cameraPosition).normalize().toVar();
+    const mirrored = reflect(view, normal).toVar();
+    const upward = vec3(mirrored.x, max(mirrored.y, 1e-4), mirrored.z).normalize().toVar();
+    const ssr = screenSpaceReflection({ position: positionView, direction: cameraViewMatrix.mul(vec4(mirrored, 0)).xyz,
+      sceneColor, sceneDepth, enabled: reflections.enabled, maxDistance: reflections.maxDistance, steps: reflections.steps });
+    const fresnel = float(.02).add(float(.98).mul(float(1).sub(max(view.negate().dot(normal), 1e-4)).pow(5)));
+    const pigment = vec3(.02, .045, .06).mul(normal.dot(sun).max(0).mul(.6).add(.5));
+    const shaded = mix(pigment, mix(sky(upward), ssr.color, ssr.confidence), fresnel);
+    return debugView.equal(1).select(vec3(ssr.confidence), debugView.equal(2).select(ssr.color.mul(ssr.confidence), shaded));
+  })();
+}
+const seaMesh = new THREE.Mesh(seaGeometry(), water); seaMesh.frustumCulled = false;
+scene.add(seaMesh);
+
+const scenePass = pass(scene, camera);
+const pipeline = new THREE.RenderPipeline(renderer, renderOutput(vec4(scenePass.getTextureNode('output').rgb, 1), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace));
+pipeline.outputColorTransform = false;
+
+const zoom = magnification => 2 * Math.atan(Math.tan(52 * Math.PI / 360) / magnification) * 180 / Math.PI;
+/** Each scene: camera, target, fov, reflection range (the game's WaterViewFocus doubles the target range), visible props. */
+const scenes = {
+  chase: { eye: [300, 95, 350], at: [0, 20, 0], fov: 60, range: 1000, show: ['near'] },
+  grazing: { eye: [0, 12, 300], at: [0, 6, -4000], fov: 55, range: 1000, show: ['near'] },
+  zoom5km: { eye: [0, 29, 0], at: [5000, 14, 0], fov: zoom(24), range: 10000, show: ['at5km'] },
+  zoom20km: { eye: [0, 29, 0], at: [20000, 14, 0], fov: zoom(24), range: 40000, show: ['at20km'] },
+  // The same zoomed views with the ordinary range: the rays end long before the hull.
+  zoom5kmShort: { eye: [0, 29, 0], at: [5000, 14, 0], fov: zoom(24), range: 1000, show: ['at5km'] },
+  zoom20kmShort: { eye: [0, 29, 0], at: [20000, 14, 0], fov: zoom(24), range: 1000, show: ['at20km'] },
+  // Looking down at a column cut by the top edge and a hull cut by the right edge: their reflections reach parts
+  // that are off screen, so they must fade out toward the edge instead of ending in a line.
+  edge: { eye: [40, 60, 300], at: [40, -40, 0], fov: 50, range: 1000, show: ['near', 'column'], near: [330, 0, 60] },
+  // Nothing on screen but sea and sky; a lit box behind the camera and a ship beside the frustum must not appear.
+  behind: { eye: [0, 30, 0], at: [0, 10, -1000], fov: 50, range: 3000, show: ['near', 'decoy'], near: [900, 0, -300], decoy: [0, 90, 450] },
+};
+function show(setup) {
+  for (const [name, object] of Object.entries({ ...ships, column, decoy })) object.visible = setup.show.includes(name);
+  ships.near.position.set(...(setup.near ?? [0, 0, 0]));
+  decoy.position.set(...(setup.decoy ?? [0, 90, 450]));
+  camera.position.set(...setup.eye); camera.lookAt(...setup.at);
+  camera.fov = setup.fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+  seaMesh.position.set(camera.position.x, 0, camera.position.z);
+  reflections.maxDistance.value = setup.range;
+}
+
+/** Render on a fresh renderer frame (PassNode renders the scene once per frame) and read back in the same
+ * task (WebGL may discard the canvas once the task ends). */
+async function capture() {
+  await new Promise(requestAnimationFrame);
+  pipeline.render();
+  return renderer.domElement.toDataURL('image/png');
+}
+const pixels = async url => {
+  const image = new Image(); image.src = url; await image.decode();
+  const canvas = new OffscreenCanvas(WIDTH, HEIGHT), context = canvas.getContext('2d');
+  context.drawImage(image, 0, 0);
+  return context.getImageData(0, 0, WIDTH, HEIGHT).data;
+};
+/** Where reflections change the frame: pixels whose colour moves by more than `threshold` (sum of RGB
+ * in 8-bit steps), their bounds, and speckle (changed pixels with at most one changed neighbour). */
+async function reflectionDifference(threshold = 6) {
+  reflections.enabled.value = true; const on = await capture();
+  reflections.enabled.value = false; const off = await capture();
+  reflections.enabled.value = true;
+  const [a, b] = await Promise.all([pixels(on), pixels(off)]);
+  const changed = new Uint8Array(WIDTH * HEIGHT);
+  let count = 0, left = WIDTH, right = -1, top = HEIGHT, bottom = -1;
+  for (let i = 0; i < WIDTH * HEIGHT; i++) {
+    if (Math.abs(a[i * 4] - b[i * 4]) + Math.abs(a[i * 4 + 1] - b[i * 4 + 1]) + Math.abs(a[i * 4 + 2] - b[i * 4 + 2]) <= threshold) continue;
+    changed[i] = 1; count++;
+    const x = i % WIDTH, y = (i - x) / WIDTH;
+    left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
+  }
+  let isolated = 0;
+  for (let y = 1; y < HEIGHT - 1; y++) for (let x = 1; x < WIDTH - 1; x++) {
+    const i = y * WIDTH + x;
+    if (!changed[i]) continue;
+    let neighbours = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) neighbours += dx || dy ? changed[i + dy * WIDTH + dx] : 0;
+    if (neighbours <= 1) isolated++;
+  }
+  return { on, off, changed: count, isolated, bounds: count ? { left, right, top, bottom } : null };
+}
+/** Frame cost. Renders `perBatch` frames back to back (a fresh scene pass each, so the GPU stays busy and clocked
+ * up), waits for the GPU, and returns medians over batches of the time per frame and of the CPU time spent
+ * submitting it; when submission is well below the frame time, the frame time is the GPU's. */
+async function measure(batches = 15, perBatch = 8) {
+  const frame = [], submit = [], device = renderer.backend.device;
+  const settle = () => device ? device.queue.onSubmittedWorkDone() : renderer.readRenderTargetPixelsAsync(scenePass.renderTarget, 0, 0, 1, 1);
+  for (let batch = -2; batch < batches; batch++) {
+    await new Promise(requestAnimationFrame);
+    const start = performance.now();
+    for (let i = 0; i < perBatch; i++) { renderer._nodes.nodeFrame.update(); pipeline.render(); }
+    const submitted = performance.now();
+    await settle();
+    if (batch < 0) continue;
+    frame.push((performance.now() - start) / perBatch); submit.push((submitted - start) / perBatch);
+  }
+  const median = values => [...values].sort((x, y) => x - y)[values.length >> 1];
+  return { frame: median(frame), submit: median(submit) };
+}
+
+window.oceanScreen = {
+  renderer, camera, reflections, debugView, sea, errors, scenes: Object.keys(scenes),
+  backend: renderer.backend.isWebGPUBackend ? 'webgpu' : 'webgl', reversedDepth: renderer.reversedDepthBuffer,
+  scene(name) { show(scenes[name]); output.textContent = ''; return { name, errors: [...errors] }; },
+  capture, reflectionDifference, measure,
+  view(mode) { debugView.value = mode; },
+};
+window.ready = true; output.textContent = '';
+</script>
+</html>
