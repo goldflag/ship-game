@@ -82,7 +82,11 @@ async function battle({ map = 'north-atlantic', player = 'bismarck', hours = 12,
   if (key !== battleKey) {
     game.rig.update = rigUpdate;
     game.setInPort(true); game.setPaused(true);
-    await game.prepareBattle({ playerShipId: player, friendlyBots: [], enemies: ['bismarck'], spawnDistance: range, mapId: map, windSpeed: wind, timeHours: hours, ...(cloud === undefined ? {} : { cloudCover: cloud }) });
+    // The battle's seed sets the combat sea's phase; ?seed= (default fixed) makes every run ride the same sea.
+    const draw = crypto.getRandomValues.bind(crypto), seed = Number(params.get('seed') ?? 0x5eed);
+    crypto.getRandomValues = array => { if (array instanceof Uint32Array && array.length === 1) { array[0] = seed; return array; } return draw(array); };
+    try { await game.prepareBattle({ playerShipId: player, friendlyBots: [], enemies: ['bismarck'], spawnDistance: range, mapId: map, windSpeed: wind, timeHours: hours, ...(cloud === undefined ? {} : { cloudCover: cloud }) }); }
+    finally { crypto.getRandomValues = draw; }
     battleKey = key;
   }
   game.environment.setBattle({ weather: 'map', timeOfDay: 'map', conditions: { timeHours: hours, windSpeed: wind, ...(cloud === undefined ? {} : { cloudCover: cloud }) } });
@@ -198,7 +202,13 @@ async function hullSeaProbe() {
 
 window.oceanReview = {
   game, scenes: Object.keys(scenes), errors, hullSeaProbe,
-  async scene(name) { output.textContent = name; await scenes[name](); await settle(); output.textContent = ''; return { name, errors: [...errors], ...(name === 'wake' ? { wakeState } : {}) }; },
+  async scene(name) {
+    output.textContent = name; await scenes[name](); await settle(); output.textContent = '';
+    const motion = game.inPort ? undefined : game.playerView?.motion;
+    const hull = motion && { seaTime: +seaTime().toFixed(4), tick: game.simulation.tick, wind: game.simulation.sea?.windMps,
+      pose: Object.fromEntries(['x', 'y', 'z', 'heading', 'pitch', 'roll', 'waveHeave'].map(key => [key, +motion[key].toFixed(4)])) };
+    return { name, errors: [...errors], ...(hull ? { hull } : {}), ...(name === 'wake' ? { wakeState } : {}) };
+  },
   capture, measure,
 };
 window.ready = true; output.textContent = '';

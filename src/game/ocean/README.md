@@ -35,15 +35,15 @@ roughness; McGuire & Mara, *Efficient GPU Screen-Space Ray Tracing* (2014).
 | `contracts.ts` | Interfaces between parts. Change a contract before changing both sides. |
 | `Ocean.ts` | The facade the game holds: creation, per-frame update, parameters, sky binding, post-process. |
 | `quality.ts` | The four tiers: cascades, mesh density, wake resolution, reflection budget. |
-| `waves/` | CPU spectrum (seeded, normalised to Hm0), GPU evolution + inverse FFT, foam persistence, height readback. |
+| `waves/` | CPU spectrum (seeded, normalised to Hm0), GPU evolution + inverse FFT, foam persistence, height readback, the sea around hulls. |
 | `surface/` | Clipmap mesh and horizon ring, the surface material and its shading. |
 | `wake/` | Dispersive wake field, generators, wake foam. |
 | `screen/` | Scene fog node, screen-space reflections, underwater post-process and waterline. |
 
 ## Frame
 
-`Game.frame` calls `ocean.update(dt)` once, after ship poses, wake generators and lighting are
-current, then renders. `update`:
+`Game.frame` calls `ocean.setHullSea(...)` and `ocean.update(dt)` once, after ship poses, wake generators
+and lighting are current, then renders. `update`:
 
 1. advances `ocean.time` by `dt` (never when `dt` is 0: a paused frame renders without stepping
    waves, foam or wake);
@@ -101,6 +101,30 @@ frame. The field reads the switch live and rebuilds when it flips, paused or not
 the sea as drawn (spectral reads such as the peak belong there, not on `params`). Off draws `params`
 on the tier's tiles, pixel for pixel as before. Combat, hull motion and `session/sea.ts` read the
 table either way.
+
+**Sea around hulls** (`waves/hullSea.ts`). Combat poses every hull on its own sea, two long-crested sines
+(`session/sea.ts`, the Rust `SeaState`); the field draws an unrelated spectrum of the same height, so a hull could
+ride a combat crest over a drawn trough, a whole hull at once in the realistic sea's 300 m storm swells.
+`setHullSea(waves, time, hulls)` blends the drawn long waves into the combat sea near the nearest 16 hulls, at the
+simulation's clock (the drawn poses' own time; the berth's in port), never the field's: height = field + α·long +
+β·combat, `long` the first cascade low-passed by its mip chain, α = n(1 − w) − 1 and β = n·w with n = 1/√((1 − w)² +
+w²), which keeps the variance of seas of equal height across the fade. w is 1 within max(0.3 L, 0.75 B, λ/4) of a
+hull's centre line and fades out over max(L, λ) more (λ the longest combat wave): the crest and trough beside the hull
+are the ones it rides, and over a wavelength the blend tilts the sea no more than the waves do. Hulls join as
+1 − Π(1 − wᵢ), smooth where reaches overlap; contact scales a hull (a submarine or wreck below every trough takes
+none). `displacement` evaluates the combat sea where the vertex lands and removes the long waves' horizontal motion
+with their heights; `surface` scales their slopes and strain before finer foam follows the first cascade's crests,
+then adds the combat slopes (filtered as the mip chain would, exp(−(k·footprint)²/8)) and the blend's gradient across
+both seas; `heightAt` (buoys, the waterline, the torpedo overlay) follows. Shorter waves, grid-bound crest foam, wake
+and bow waves ride on top. A box low-pass falls from 0.9 to 0.1 over a factor of five in wavelength, so no mip level
+splits cleanly: at each rebuild and combat wavelength the field weighs the long-wave variance (λ ≥ λc/2) a level
+leaves beside a hull, twice, against the shorter variance it takes, over the cascade's spectrum binned to 64² cells.
+The realistic storm splits at a 31–39 m box and loses its long peak whole; the art-directed sea, peaking at a quarter
+of the combat wavelength, keeps its waves and gains the combat swell. The coupling runs either way: without it a hull
+heaves ±3–5 m in a storm against drawn water that does not. Per vertex it costs a 16-hull loop, one texture read and
+two sines; per pixel the loop with its gradient, three reads and two sines. Combat eases heave over 1.5 s and
+averages it over the waterplane, so a storm still leaves a waterline 1.5–2 m rms from the water beside it: the
+authority's own motion, drawn as it is.
 
 **Mesh.** Camera-centred clipmap, 256 m base, 6 levels, snapped per level so vertices never swim,
 seam-free between levels; a flat horizon ring from the clipmap edge to 95% of `camera.far`,
@@ -200,4 +224,7 @@ teleports, every check reads the public sampler back, and the captures, results 
 in `.build/ocean-wake/`. `/scripts/diagnostics/ocean-review.html` renders fixed scenes of the real game
 for side-by-side review (`bun scripts/browser/ocean-review.ts --tag <name>` saves them to
 `.build/ocean-review/<name>/`; `--param wind=<m/s>` sets the wind of scenes without their own,
-`--param realism=off` the replaced library's look); keep a baseline tag to compare a change against.
+`--param realism=off` the replaced library's look, `--param hullsea=off` the sea without the hull coupling); keep a
+baseline tag to compare a change against. Its placed hulls ride the combat sea as the authority poses them, on a fixed
+battle seed; `oceanReview.hullSeaProbe()` flattens the drawn waves and reads heights back around the player's hull,
+which must equal combat's `seaHeight` within the full reach (0.1 mm on High at 30 m/s) and 0 past the fade.
