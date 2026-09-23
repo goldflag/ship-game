@@ -170,14 +170,19 @@ export class GpuWaveField implements WaveField {
   /** One radix pass over the atlas; without `inputs` it evolves the spectrum as its input. The
    * radix sum is unrolled: a straight-line shader whose output is the MRT itself. */
   private pass(inputs: Texture[] | null, radix: number, span: number, horizontal: boolean): QuadMesh {
-    const n = this.size, pixel = ivec2(screenCoordinate), maps = inputs?.map(t => texture(t));
+    const n = this.size, pixel = ivec2(screenCoordinate);
     const tile = pixel.x.div(n), { first, angle } = stockham(horizontal ? pixel.x.sub(tile.mul(n)) : pixel.y, radix, span);
-    const spectrum = texture(this.spectrum), wavenumber = uniformArray(this.cascades.map(c => 2 * Math.PI / c.size), 'float').element(tile) as unknown as Float;
+    let read: (index: Int) => Vec4[];
+    if (inputs) {
+      const maps = inputs.map(t => texture(t));
+      read = index => maps.map(map => direct(map.load(horizontal ? ivec2(tile.mul(n).add(index), pixel.y) : ivec2(pixel.x, index))) as unknown as Vec4);
+    } else {
+      const spectrum = texture(this.spectrum), wavenumber = uniformArray(this.cascades.map(c => 2 * Math.PI / c.size), 'float').element(tile) as unknown as Float;
+      read = index => this.evolve(spectrum, index, pixel.y, tile, wavenumber);
+    }
     const sums: [Vec4, Vec4] = [vec4(0), vec4(0)];
     for (let r = 0; r < radix; r++) {
-      const index = first.add(r * n / radix);
-      const values = maps ? maps.map(map => direct(map.load(horizontal ? ivec2(tile.mul(n).add(index), pixel.y) : ivec2(pixel.x, index))) as unknown as Vec4)
-        : this.evolve(spectrum, index, pixel.y, tile, wavenumber);
+      const values = read(first.add(r * n / radix));
       const turn = angle.mul(r), c = cos(turn), s = sin(turn);
       sums.forEach((sum, k) => { sums[k] = sum.add(rotate(values[k], c, s)); });
     }
@@ -197,7 +202,7 @@ export class GpuWaveField implements WaveField {
     }
     const jacobian = cd.z.add(1).mul(cd.w.add(1)).sub(ab.w.mul(ab.w));
     const downwind = cd.x.mul(this.wind.x).add(cd.y.mul(this.wind.y));
-    // Crest foam where this cascade's surface folds; windward foam on steep downwind faces.
+    // Crest foam where this cascade nears breaking; windward foam on steep downwind faces.
     const injection = this.crest.mul(float(1).sub(smoothstep(CREST_FULL, CREST_START, jacobian)))
       .add(this.windward.mul(smoothstep(FACE_START, FACE_FULL, downwind.negate()))).mul(this.whitecaps);
     const previous = this.layered(direct(this.previousExtras.load(pixel)), this.layer).y;

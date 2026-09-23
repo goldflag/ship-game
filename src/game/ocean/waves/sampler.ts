@@ -1,6 +1,6 @@
 /** Presentation-only height readback: one small GPU pass evaluates the wave field's `heightAt`
- * (and a normal from central differences) at up to 128 world points, read back asynchronously
- * on either backend. Combat never reads it. */
+ * (and a normal from central differences) at up to 128 world points, read back asynchronously.
+ * Combat never reads it. */
 import { DataTexture, FloatType, NearestFilter, NoBlending, NodeMaterial, QuadMesh, RGBAFormat, RenderTarget, type WebGPURenderer } from 'three/webgpu';
 import { int, ivec2, normalize, screenCoordinate, texture, vec2, vec3, vec4 } from 'three/tsl';
 import type { WaveField, WaveHeightSampler } from '../contracts';

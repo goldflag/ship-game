@@ -41,7 +41,6 @@ function setSea(name) {
   const sea = windSea(oceanMap('north-atlantic'), SEAS[name] ?? Number(name));
   Object.assign(params, { significantHeight: sea.significantHeightM, windSpeed: sea.windSpeed, peakWavelength: sea.peakWavelength, choppiness: sea.choppiness, dirty: true });
   Object.assign(foam, { crestStrength: sea.crestFoam, windwardStrength: sea.windwardFoam });
-  return sea;
 }
 
 let quality = query.get('quality') ?? 'high', field, sampler, mesh;

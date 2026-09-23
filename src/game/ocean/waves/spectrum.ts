@@ -39,7 +39,8 @@ export interface WaveSpectrum {
   readonly maxHeight: number;
   /** Strict bound on the horizontal displacement's length: choppiness · Σ|a|. */
   readonly maxHorizontalDisplacement: number;
-  /** Slope variance (dimensionless) of the waves shorter than the finest cascade resolves. */
+  /** Slope variance the drawn waves fall short of Cox–Munk's total at this wind: roughness from
+   * waves no cascade draws. */
   readonly tailSlopeVariance: number;
 }
 
@@ -145,7 +146,7 @@ export function buildSpectrum(cascades: readonly WaveCascadeInfo[], params: Wave
   const peak = Math.sqrt(GRAVITY * 2 * Math.PI / lambda), gamma = Math.max(1, params.gamma);
   const level = calm ? 0 : spectrumLevel(peak, gamma, (height / 4) ** 2);
   const cosWind = Math.cos(params.windDirection), sinWind = Math.sin(params.windDirection);
-  let total = 0;
+  let drawn = 0;
   const built = cascades.map((cascade, index) => {
     const { size, resolution: n } = cascade, { lo, hi } = bands[index];
     const amplitudes = new Float32Array(n * n * 4);
@@ -178,20 +179,20 @@ export function buildSpectrum(cascades: readonly WaveCascadeInfo[], params: Wave
       const [at, other] = forward ? [here, twin] : [twin, here];
       amplitudes[at] = re; amplitudes[at + 1] = im; amplitudes[at + 2] = m;
       amplitudes[other] = re; amplitudes[other + 1] = -im; amplitudes[other + 2] = -m;
-      total += 2 * (re * re + im * im);
+      drawn += 2 * (re * re + im * im);
     }
     return { ...cascade, lo, hi, amplitudes, variance: 0, slopeVariance: 0 };
   });
-  const scale = total > 0 ? height / (4 * Math.sqrt(total)) : 0;
+  const scale = drawn > 0 ? height / (4 * Math.sqrt(drawn)) : 0;
   // Statistics come from the stored float32 amplitudes: the GPU transforms exactly these.
-  let sum = 0;
+  let bound = 0;
   for (const cascade of built) {
     const a = cascade.amplitudes, n = cascade.resolution, dk = 2 * Math.PI / cascade.size;
     for (let i = 0; i < a.length; i += 4) if (a[i + 2]) {
       a[i] *= scale; a[i + 1] *= scale;
       const texel = i / 4, nx = texel % n, nz = (texel - nx) / n, energy = a[i] ** 2 + a[i + 1] ** 2;
       const k2 = ((nx < n / 2 ? nx : nx - n) ** 2 + (nz < n / 2 ? nz : nz - n) ** 2) * dk * dk;
-      sum += Math.sqrt(energy); cascade.variance += energy; cascade.slopeVariance += energy * k2;
+      bound += Math.sqrt(energy); cascade.variance += energy; cascade.slopeVariance += energy * k2;
     }
   }
   const slopeVariance = built.reduce((total, cascade) => total + cascade.slopeVariance, 0);
@@ -199,5 +200,5 @@ export function buildSpectrum(cascades: readonly WaveCascadeInfo[], params: Wave
   // sea's total mean square slope as 0.003 + 0.00512·U; the tail supplies whatever the drawn waves
   // fall short of it, so the wind sets the roughness a tier cannot draw.
   const tailSlopeVariance = calm ? 0 : Math.max(0, .003 + .00512 * Math.max(0, params.windSpeed) - slopeVariance);
-  return { cascades: built, maxHeight: sum, maxHorizontalDisplacement: Math.max(0, params.choppiness) * sum, tailSlopeVariance };
+  return { cascades: built, maxHeight: bound, maxHorizontalDisplacement: Math.max(0, params.choppiness) * bound, tailSlopeVariance };
 }

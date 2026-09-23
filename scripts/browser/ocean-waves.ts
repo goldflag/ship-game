@@ -1,7 +1,8 @@
 /** `bun scripts/browser/ocean-waves.ts --tag <name> [--quality high] [--views near,wide] [--seas moderate,storm,15]
- *   [--show shaded|height|slope|foam|variance|jacobian] [--validate] [--timing]`
+ *   [--show shaded|height|slope|foam|variance|jacobian] [--validate] [--timing] [--coverage]`
  * Drives `scripts/diagnostics/ocean-waves.html` in a headed Chromium (headless stalls WebGPU): saves one PNG per
- * view and sea to `.build/ocean-waves/<tag>/`, and with --validate / --timing checks every tier and writes `results.json`. */
+ * view and sea to `.build/ocean-waves/<tag>/`; --validate / --timing check every tier, --coverage measures crest foam
+ * against Monahan's whitecap fraction from 6 to 30 m/s on --quality; all write `results.json`. */
 import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -13,7 +14,8 @@ import { ROOT } from './harness';
 const { values } = parseArgs({ options: {
   tag: { type: 'string', default: 'current' }, quality: { type: 'string', default: 'high' },
   views: { type: 'string', default: '' }, seas: { type: 'string', default: 'moderate' }, show: { type: 'string', default: 'shaded' },
-  validate: { type: 'boolean', default: false }, timing: { type: 'boolean', default: false }, url: { type: 'string' },
+  validate: { type: 'boolean', default: false }, timing: { type: 'boolean', default: false }, coverage: { type: 'boolean', default: false },
+  url: { type: 'string' },
 } });
 const out = resolve(ROOT, '.build/ocean-waves', values.tag!);
 mkdirSync(out, { recursive: true });
@@ -59,6 +61,15 @@ try {
     }
     results[quality] = entry;
     console.log(quality, JSON.stringify(entry));
+  }
+  if (values.coverage) {
+    await page.evaluate(q => (window as any).oceanWaves.setQuality(q), values.quality);
+    results.coverage = [];
+    for (const wind of [6, 9, 12, 15, 18, 21, 25, 30]) {
+      const entry = await page.evaluate(w => (window as any).oceanWaves.foamCoverage(w), wind);
+      (results.coverage as unknown[]).push(entry);
+      console.log('coverage', JSON.stringify(entry));
+    }
   }
   results.pageErrors = pageErrors;
   writeFileSync(resolve(out, 'results.json'), JSON.stringify(results, null, 1));

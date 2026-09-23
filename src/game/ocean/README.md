@@ -61,7 +61,11 @@ spreading; significant height is exact (normalise the realised spectrum so 4σ e
 Integer-safe seeded randomness (no float hash inputs). Periodic cascades, largest tile 1,024 m,
 bands split so no wavelength is counted twice. Time folds modulo a period with every ω quantised
 to it, so float32 time stays precise. CPU bounds on height and horizontal displacement replace
-the old GPU readback of the spectrum.
+the old GPU readback of the spectrum. Short waves are held to Phillips' saturation range above the
+peak: the game's calibrated seas are far steeper than developed ones, and a JONSWAP normalised to
+their height would roughen every ripple. Crest foam persists per cascade in tile space; only
+cascades near the spectral peak inject it. Mip chains stop at 16×16 texels, and `surface()` fades
+a cascade whose waves are finer than that under the pixel into `slopeVariance`.
 
 **Mesh.** Camera-centred clipmap, 256 m base, 6 levels, snapped per level so vertices never swim,
 seam-free between levels; a flat horizon ring from the clipmap edge to 95% of `camera.far`,
@@ -136,6 +140,9 @@ caustics, the built-in sky, masking, multiplayer tick sync.
 
 Unit tests (`bun test src/game/ocean`) cover the spectrum, bounds, seeds, quality tiers, geometry
 coverage, the wake's dispersion pyramid (including aliasing on a real grid) and its generators.
+`bun scripts/browser/ocean-waves.ts` runs `/scripts/diagnostics/ocean-waves.html` headed: it checks
+the wave field alone on WebGPU (GPU transform against a CPU inverse DFT, Hm0, mipmaps, `heightAt`,
+foam persistence and coverage, update timings per tier) and writes to `.build/ocean-waves/`.
 `bun scripts/browser/ocean-wake.ts [--resolution 256|512|1024] [--webgl] [--measure]` runs
 `/scripts/diagnostics/ocean-wake.html` headed: a Bismarck-sized hull sails, turns, stops, resets and
 teleports, every check reads the public sampler back, and the captures, results and step cost land
