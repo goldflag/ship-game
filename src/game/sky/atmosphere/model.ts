@@ -163,7 +163,7 @@ export function twilightLift(sunElevationDeg: number): number {
  *   brighter it is at the horizon, so a moonless sky is dark navy, never black;
  * - `shoulder`: luminance above `knee` rolls off toward `ceiling`, so the glare around a low sun stays under
  *   the display's bloom threshold instead of hazing the ships seen against it. */
-export const SKY_GRADE = { gain: 1.6, saturation: 1.3, moon: .25, floor: [.006, .0105, .02] as Rgb, floorHorizon: .5, shoulder: { knee: .45, ceiling: .95 } };
+export const SKY_GRADE = { gain: 1.4, saturation: 1.35, moon: .25, floor: [.006, .0105, .02] as Rgb, floorHorizon: .5, shoulder: { knee: .45, ceiling: .95 } };
 
 /** Radiance of the night floor along a direction's vertical component. */
 export function nightFloor(y: number, out: Rgb): Rgb {
