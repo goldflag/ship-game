@@ -272,9 +272,10 @@ for s in definition['structures']:
                     box(s['id']+'.vent',(x,yy+side*.015,base+1.25),(.65,.14,.65),materials['edge'],bev=.025)
                     for j in range(6):box(s['id']+'.louver',(x,yy+side*.115,base+1.0+j*.09),(.56,.065,.035),materials['naval'],bev=.004)
                 if i%2==0:
-                    portlight(s['id']+'.porthole',(x+.95,yy,base+1.45),(0,side,0),.15)
-                    rod(s['id']+'.fire-main',(x-.55,yy+side*.06,base+.20),(x+1.9,yy+side*.06,base+.20),.025,materials['edge'])
-                    for dx in [-.4,1.7]:rod(s['id']+'.fire-main-clip',(x+dx,yy-side*.03,base+.20),(x+dx,yy+side*.06,base+.20),.026,materials['naval'])
+                    wy=lambda xx:side*(half_width(s['id'],xx)+.028)
+                    portlight(s['id']+'.porthole',(x+.95,wy(x+.95),base+1.45),(0,side,0),.15)
+                    rod(s['id']+'.fire-main',(x-.55,wy(x-.55)+side*.06,base+.20),(x+1.9,wy(x+1.9)+side*.06,base+.20),.025,materials['edge'])
+                    for dx in [-.4,1.7]:rod(s['id']+'.fire-main-clip',(x+dx,wy(x+dx)-side*.03,base+.20),(x+dx,wy(x+dx)+side*.06,base+.20),.026,materials['naval'])
             run=[(x,side*(half_width(s['id'],x)+.03),roof(s['id'],x)-.32) for x in [xmin+.8+(xmax-xmin-1.6)*t/8 for t in range(9)]]
             tube_path(s['id']+'.cable-run',run,.023,materials['edge'])
 
@@ -501,15 +502,15 @@ for launcher in definition['torpedoLaunchers']:
         cyl(name+'.trainer-cabin',(x-1.35,y,z+1.9),1.02,1.6,materials['naval'],vertices=40)
         cyl(name+'.trainer-roof',(x-1.35,y,z+2.74),1.05,.08,materials['roof'],vertices=40)
         for dy in [-.45,0,.45]:box(name+'.trainer-window',(x-.42,y+dy,z+2.35),(.05,.3,.22),materials['glass'],bev=.01)
-        tube_path(name+'.handwheel',[(x-.2,y+.75+.20*math.cos(i*math.tau/24),z+1.6+.20*math.sin(i*math.tau/24)) for i in range(24)],.025,materials['edge'],closed=True)
+        tube_path(name+'.handwheel',[(x-.47,y+.55+.20*math.cos(i*math.tau/24),z+1.6+.20*math.sin(i*math.tau/24)) for i in range(24)],.025,materials['edge'],closed=True)
     else:
         # The forward bank's open trainer's sight post above the centre tubes.
         cyl(name+'.trainer-cabin',(x-.95,y,z+1.3),.26,.7,materials['naval'],vertices=24)
         box(name+'.trainer-sight',(x-.95,y,z+1.78),(.45,.34,.26),materials['naval'],bev=.03)
         portlight(name+'.trainer-port',(x-.72,y,z+1.8),(1,0,0),.09)
         tube_path(name+'.handwheel',[(x-.6,y+.62+.20*math.cos(i*math.tau/24),z+1.45+.20*math.sin(i*math.tau/24)) for i in range(24)],.025,materials['edge'],closed=True)
-    for dx in [-2.0,3.2]:
-        for side in [-1,1]:rod(name+'.guard',(x+dx,y+side*1.82,z+.46),(x+dx,y+side*1.82,z+.94),.021,materials['edge'])
+    for dx in [-1.4,1.4]:
+        for side in [-1,1]:rod(name+'.guard',(x+dx,y+side*1.35,z+.40),(x+dx,y+side*1.35,z+.94),.021,materials['edge'])
     for piece in set(col.objects)-before:
         if piece.type=='MESH':attach(piece,pivot)
 
