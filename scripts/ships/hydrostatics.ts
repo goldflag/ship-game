@@ -4,6 +4,7 @@
 import { writeFile } from 'node:fs/promises';
 import { presetIds } from './runtime-assets';
 import { buildHydrostaticTable } from './hydrostaticTable';
+import { perRecordJson } from '../git/json-format';
 import type { ShipDefinition } from '../../src/ships/blueprint';
 // Maintenance must read published definitions directly: runtime admission rejects
 // the stale lookup that this command is responsible for rebuilding.
@@ -15,4 +16,5 @@ const ships = Object.fromEntries(definitions.filter(([, definition]) => definiti
   console.log(`${id}: ${((performance.now() - started) / 1000).toFixed(1)} s, ${(table.nodes.length / 1024).toFixed(0)} KiB`);
   return [id, { contentHash: (definition as { contentHash: string }).contentHash, ...table }];
 }));
-await writeFile('assets/gameplay/hydrostatics.v1.json', JSON.stringify({ version: 1, ships }) + '\n');
+// One ship per line, as in presetCatalog.json, so rebuilds of different ships merge.
+await writeFile('assets/gameplay/hydrostatics.v1.json', perRecordJson({ version: 1, ships }, ['ships']));

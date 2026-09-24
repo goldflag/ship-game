@@ -120,7 +120,7 @@ After the first successful build, add the ship's line to `src/ships/presets.ts` 
 
 - One agent builds the skeleton: hull lines, blueprint, first `build.py` and comparison tools. They share one frame and one set of measurements. A new ship is best done by that agent alone.
 - Region agents pay off only for detail passes on a large ship, and only after a foundation commit: one recipe module per region, a shared vocabulary module, and a written brief with an ownership table (files, structure IDs, mounts) and absolute tool paths. Use three or four; Iowa's six cost almost three times a single-agent build and finished no sooner.
-- Region modules run in the recipe's shared globals, so each wraps its work in a function. Merge blueprint edits by record ID (the `git:setup` merge driver covers `assets/parts/guns.json` only), and expect overlapping, coplanar blocks at region seams.
+- Region modules run in the recipe's shared globals, so each wraps its work in a function. The `git:setup` merge driver merges blueprint edits by record ID (mounts, structures, compartments); expect overlapping, coplanar blocks at region seams.
 - Each worktree agent spends 5–10 minutes bootstrapping. Tell agents to commit early and often, so work survives a rate limit or a stopped agent.
 - Finish with one agent auditing what no region owns: glazing, screws and rudders, rigging ends, underwater fittings and close views.
 - `ship:build` holds a per-ship lock, and parallel Blender builds contend for CPU and disk. Check free disk space before launching worktree agents.

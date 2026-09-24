@@ -3,19 +3,27 @@
 Run `bun run git:setup` once in the main checkout after cloning. It installs
 repository-local settings shared by linked worktrees:
 
-- `guns.json` merges by stable equipment ID. Independent additions and distinct
-  fields of an existing entry merge; conflicting field edits, edit/delete pairs,
-  incompatible additions and geometry-array changes remain conflicts.
+- Ship blueprints (`assets/ships/*/blueprint.json`), the parts catalogs (`guns.json`, `library.json`,
+  `construction.json`, `construction-library.json`) and the two generated ship tables
+  (`src/ships/presetCatalog.json`, `assets/gameplay/hydrostatics.v1.json`) merge by record. A list whose
+  entries all carry a unique `id` (or `partId`) merges entry by entry at any depth: mounts, structures,
+  compartments, catalog parts, library components. Independent additions, deletions of unchanged entries and
+  distinct fields of one entry combine, and a new entry lands beside the neighbour it had on its own side.
+  Conflicting field edits, edit/delete pairs, incompatible additions, changes on both sides to a list without
+  IDs (hull sections, vertices, positions) and two different reorderings remain conflicts, with base-aware
+  line markers. The driver rewrites a file in its own exact style (two-space JSON with Python or JavaScript
+  number lexemes and escaping, or the generated one-record-per-line layout); a file it cannot reproduce
+  byte-for-byte falls back to Git's line merge.
 - Git remembers reviewed resolutions (`rerere`), but does not stage them
   automatically. Inspect the diff and run the checks before staging a reused fix.
 - Conflict markers include the common base (`zdiff3`).
 
-The catalog driver never resolves model binaries or rewrites blueprint IDs.
-Without setup, Git falls back to normal text merging. Install from the durable
-main checkout: the driver config contains its absolute path so linked worktrees
-can use it while replaying commits predating the script. Rerun setup if that
-checkout moves. To remove it, unset `merge.ship-catalog.driver` with
-`git config --local --unset merge.ship-catalog.driver`.
+The driver never resolves model binaries, hashes or build outputs, and never rewrites blueprint IDs. A
+construction blueprint changed on both sides still conflicts at its `revision`. Without setup, Git falls back
+to normal text merging. Install from the durable main checkout: the driver config contains its absolute path
+so linked worktrees can use it while replaying commits predating the script, and every worktree runs the
+main checkout's copy, so keep that checkout current. Rerun setup if it moves. To remove it, unset
+`merge.ship-catalog.driver` with `git config --local --unset merge.ship-catalog.driver`.
 
 ## Before starting or integrating work
 
@@ -65,9 +73,10 @@ Apple git 2.39.3 and bun 1.3.3.
 ## During conflict resolution
 
 Resolve blueprints, catalog entries and recipes first. Keep each stable joint and
-socket ID. For `guns.json`, real conflicts are reported by catalog path; Git keeps
-all three versions in the index even when the worktree file has no text markers.
-Use `git show :1:assets/parts/guns.json` (base), `:2:` and `:3:` to review them.
+socket ID. For the record-merged files, the driver prints each real conflict's record path
+(`Conflicting edits at $.mounts[main-2].position`) and leaves line markers; when the lines themselves merge
+but the records conflict (two edits to one ID-less list), the file stays conflicted without markers. Git keeps
+all three versions in the index either way: `git show :1:<path>` (base), `:2:` and `:3:`.
 During a rebase, "ours" is the updated destination and "theirs" is the replayed
 commit—not necessarily the branch you originally authored.
 
@@ -98,9 +107,12 @@ changes. Commit refreshed assets; summarize validation in the task response or P
 ## Keeping additions local
 
 `src/ships/presets.ts` is the runtime roster and the source for `ship:check all`.
-Keep one `preset(id)` property per line. Regenerate derived runtime assets and
-`src/ships/presetCatalog.json` with `bun run multiplayer:content` after resolving
-the roster and published definitions; validate with `bun run ship:runtime:check`.
+Keep one `preset(id)` property per line. `src/ships/presetCatalog.json` and
+`assets/gameplay/hydrostatics.v1.json` hold one ship per line, each after its own key line, so rebuilds of
+different ships merge (Git needs an unchanged line between two changes), and the driver merges them by ship.
+A merged record is only as current as its ship's published definition: after resolving the roster and
+definitions, rerun `bun run ship:hydrostatics` and `bun run multiplayer:content` when either ship changed on
+both sides, and validate with `bun run ship:runtime:check`.
 Do not resolve generated metadata independently of those inputs.
 Do not add another ship list to `package.json`
 or a hard-coded preset count to the README. New per-ship documentation belongs
