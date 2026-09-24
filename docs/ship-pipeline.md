@@ -114,6 +114,11 @@ After the first successful build, add the ship's line to `src/ships/presets.ts` 
 - A GameModels3D reference is not centred on our midships (about 2.3 m on Iowa, 2.0 m on Alaska). `ship:overlay` measures the fore-and-aft offset (waterline half-breadths, then side and top silhouettes; within 3 cm of the hand-measured values) and prints it; pass it to any other comparison.
 - GameModels3D paints windows and doors into its textures. Compare against a textured render before removing detail that seems absent from the geometry; Iowa lost its bridge windows this way.
 
+**Attachment and clearance.** Run both after every geometry change; each exits 1 on a failure and writes its details to `.build/ships/<id>/`. They read the retained `generated/source.blend`, or the published GLB with `--glb` (construction ships always use the GLB).
+
+- `bun run ship:floating <id>` searches out from the hull through touching parts (intersecting, within 6 cm, or embedded) and lists every part or cluster it never reaches, by assembly. Merged rail and wire meshes count as attached but carry nothing (`--leaf`).
+- `bun run ship:sweep <id>` poses every mount through its installed traverse, elevation and recoil against the fixed ship and the other mounts at rest, then neighbouring mounts against each other, and replays each contact through the simulation's interlock resolver. A contact the interlocks stop first is covered; one the mount can reach fails. `--mounts main-*` narrows it while iterating; a whole ship takes a few minutes.
+
 **Review.** The overlay comparison found most proportion errors on Hood and Alaska. `bun run ship:overlay my-ship` renders the published GLB and the ship's suggested reference (cached with `ship:reference` if needed; `--reference` picks another) from the same orthographic camera, ours-only red and reference-only blue, as side, top, front, bridge and aft shots with IoU in `summary.json`, all under `.build/ships/<id>/overlay/`. `--box x0,y0,z0,x1,y1,z1` adds views clipped to a region, and `--camera` takes a `ui:shot` pose (`bowQuarter`, `az,el[,m]`). Add close views of the bridge glazing and of the underwater stern (screws, rudders, shafts) to the fixed views; distant views hide both.
 
 **Subagents.** Lessons from the Iowa, Yamato, Hood and Alaska builds of September 2026, which each took about two hours from request to PR:
@@ -134,7 +139,7 @@ All four checks in [ship model review](ship-model-review.md) are required for ne
 | Change | Required verification |
 | --- | --- |
 | Blueprint, simulation or equipment behavior | Relevant simulation tests, `bun run build`; rebuild affected models when definitions/hashes change; exercise changed behavior in-game |
-| Model geometry or articulation | `ship:build <id>`, `ship:review <id>`, `ship:check <id>`, all affected visual checks and in-game articulation; relevant simulation tests and `bun run build` |
+| Model geometry or articulation | `ship:build <id>`, `ship:review <id>`, `ship:check <id>`, `ship:floating <id>`, `ship:sweep <id>`, all affected visual checks and in-game articulation; relevant simulation tests and `bun run build` |
 | Shared catalog, compiler or geometry recipe | `ship:check all`; rebuild every affected/stale asset, then repeat relevant model/runtime checks |
 | Thumbnail presentation only | `ship:thumbnail <id>` for affected presets, inspect thumbnails, `ship:check all` and `bun run build` |
 | Reference research only | Present a new or materially changed reference set for approval; update concise accepted source links and lasting limitations in the ship README. Keep downloads and captures local. |
