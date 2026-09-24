@@ -95,18 +95,19 @@ b['structures'] = [
     structure('bridge', 'Continuous round-front bridge and chart house', core, 6.30, 9.10),
     structure('pilot-house', 'Round-front pilothouse under the open bridge', pilot_core, 9.10, 11.25),
     structure('forward-funnel', 'Raked forward funnel',
-              [(9.85+1.75*math.cos(i*math.tau/32), 1.45*math.sin(i*math.tau/32)) for i in range(32)], 5.90, 13.65),
+              [(9.78+1.75*math.cos(i*math.tau/32), 1.45*math.sin(i*math.tau/32)) for i in range(32)], 5.90, 13.55),
     structure('aft-funnel', 'Raked after funnel',
-              [(-4.19+1.75*math.cos(i*math.tau/32), 1.45*math.sin(i*math.tau/32)) for i in range(32)], 5.60, 12.55),
+              [(-4.22+1.75*math.cos(i*math.tau/32), 1.45*math.sin(i*math.tau/32)) for i in range(32)], 5.60, 12.76),
     structure('aft-deckhouse', 'After deckhouse / mounts 53 and 54', aft_house, 2.50, 5.07),
     structure('machinery-deckhouse', 'Boiler and torpedo deckhouse', chamfer(-2.5, 11.3, 3.1, .25), 2.90, 5.76),
     structure('torpedo-deckhouse', 'Narrow after torpedo-mount deckhouse', chamfer(-13.86, -2.5, 1.42, .15), 2.80, 5.38),
+    structure('uptake-casing', 'Fore funnel uptake casing', chamfer(11.3, 16.9, 1.46, .2), 3.50, 6.05),
     structure('aft-aa-house', 'Raised after AA support house', aa_house, 5.00, 7.05),
 ]
 # Funnel plating is generated from the same original loft as the visible jacket (build.py uses the
 # same rings and cap rise: keep FUNNEL_RINGS and FUNNEL_CAP in step there).
 FUNNEL_RINGS = [(0, 1.02), (.14, 1), (.79, .98), (1, .92)]
-FUNNEL_CAP = .60
+FUNNEL_CAP = {'forward-funnel': .72, 'aft-funnel': .55}
 for s in b['structures']:
     if 'funnel' not in s['id']:
         continue
@@ -121,7 +122,7 @@ for s in b['structures']:
             a = i*math.tau/n
             x = cx-.15*s['height']*t+rx*scale*math.cos(a)
             y = ry*scale*math.sin(a)
-            z = s['baseY']+s['height']*t+FUNNEL_CAP*math.cos(a)*t*t+.30*math.sin(a)**2*t**5
+            z = s['baseY']+s['height']*t+FUNNEL_CAP[s['id']]*math.cos(a)*t*t
             vertices.append([-y, z, -x])
     triangles = []
     for k in range(3):
@@ -152,7 +153,7 @@ for launcher in b['torpedoLaunchers']:
     launcher['position'] = [0, y, z]
     for tube in b['torpedoTubes']:
         if tube['launcherId'] == launcher['id']:
-            tube['position'][1] = round(y + .84, 4)
+            tube['position'][1] = round(y + .93, 4)
             tube['position'][2] = round(z - 4.65, 4)
 for mod in b['modules']:
     if mod['id'] == 'equipment-torpedo-forward':

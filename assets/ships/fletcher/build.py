@@ -292,7 +292,7 @@ for side in [-1,1]:
     # Navigation wings on the 02 deck, which also carries the mast behind the pilot house.
     wing=[(15.50,side*1.60),(15.50,side*3.20),(16.90,side*4.85),(22.60,side*4.85),(23.40,side*4.20),(23.55,side*2.40)]
     prism('bridge.navigation-wing',wing,pilot_base-.15,pilot_base)
-    bulwark('bridge.navigation-shield',wing[1:],pilot_base,1.10,closed=False)
+    bulwark('bridge.navigation-shield',wing[2:],pilot_base,1.10,closed=False)
     for x in [17.4,20.0,22.4]:
         mesh('bridge.navigation-knee',[(x,side*2.48,pilot_base),(x,side*4.8,pilot_base),(x,side*2.48,pilot_base-1.1)],[(0,1,2)],materials['naval'])
     stairs('bridge.access',(13.6,side*3.35,deckz(13.6)+.10),(17.1,side*3.35,roof('forward-deckhouse',17.1)))
@@ -314,7 +314,7 @@ visor=[(20.5+(x-20.5)*1.02,y*1.06) for x,y in upper]
 prism('bridge.visor',visor,pilot_top-.025,pilot_top+.10,materials['roof'])
 flying=[(20.5+(x-20.5)*1.03,y*1.31) for x,y in upper]
 prism('bridge.flying-deck',flying,pilot_top+.08,pilot_top+.18,materials['roof'])
-bulwark('bridge.flying-shield',flying,pilot_top+.18,.90)
+bulwark('bridge.flying-shield',flying,pilot_top+.18,.75)
 for side in [-1,1]:
     # Two round observation lobes at the front of the open bridge.
     observation=outline_oval(23.75,side*1.35,1.0,.95,36)
@@ -329,33 +329,37 @@ for side in [-1,1]:
     rod('bridge.signal-light',(x-.18,y,z+.56),(x+.22,y,z+.56),.24,materials['naval'],vertices=24)
     rod('bridge.signal-lens',(x+.221,y,z+.56),(x+.235,y,z+.56),.205,materials['glass'],vertices=24)
 
-# Mk 37 director: rounded base, original faceted enclosure, rangefinder and Mk 4 grid.
+# Mk 37 director on its fixed pedestal (reference: base ring 13.4 m, sloped front face, 3.9 m long).
+cyl('director.pedestal',(19.95,0,(pilot_top+.1+13.42)/2),1.52,13.42-pilot_top-.1,materials['naval'],vertices=48)
+for z in [pilot_top+.35,12.7,13.3]:cyl('director.band',(19.95,0,z),1.56,.075,materials['edge'],vertices=48)
 director_before=set(col.objects)
-cyl('director.pedestal',(19.91,0,10.92),1.24,2.04,materials['naval'],vertices=48)
-for z in [10.05,11.5,11.91]:cyl('director.band',(19.91,0,z),1.285,.075,materials['edge'],vertices=48)
-director_outline=outline_rect(18.06,21.41,-1.45,1.45,.40)
-prism('director.housing',director_outline,11.95,13.72)
-# Chamfered roof cap breaks the otherwise block-like outline.
-capverts=[(x,y,13.68) for x,y in director_outline]+[(19.71+(x-19.71)*.87,y*.88,14.03) for x,y in director_outline]
-mesh('director.shoulders',capverts,[(i,(i+1)%8,8+(i+1)%8,8+i) for i in range(8)]+[tuple(range(8,16))],materials['naval'])
-rod('director.rangefinder',(19.56,-2.18,12.98),(19.56,2.18,12.98),.24,materials['edge'],vertices=24)
+cyl('director.base-ring',(19.95,0,13.52),1.6,.2,materials['edge'],vertices=48)
+# Side profile (Blender x, z): vertical back, flat roof, sloped upper front; a small after box.
+prof=[(18.47,13.62),(21.31,13.62),(21.31,14.5),(20.22,15.51),(18.47,15.51)]
+vs=[(x,y*(1 if z<15.3 else .96),z) for y in [-1.6,1.6] for x,z in prof]
+n_=len(prof)
+fs=[tuple(range(n_))[::-1],tuple(range(n_,2*n_))]+[(i,(i+1)%n_,n_+(i+1)%n_,n_+i) for i in range(n_)]
+mesh('director.housing',vs,fs,materials['naval'])
+box('director.after-box',(18.2,0,14.68),(.56,2.0,1.15),materials['naval'],bev=.04)
+rod('director.rangefinder',(19.5,-2.39,14.94),(19.5,2.39,14.94),.2,materials['edge'],vertices=24)
 for side in [-1,1]:
-    box('director.optical-hood',(19.56,side*2.14,13.0),(.65,.45,.60),materials['naval'],bev=.13)
-    portlight('director.optical-lens',(19.9,side*2.14,13.01),(1,0,0),.15)
-    ladder('director.ladder',(17.86,side*1.5,pilot_top+.18),(17.86,side*1.5,13.55),.43)
-for y in [-.65,0,.65]:portlight('director.front-glass',(21.44,y,13.3),(1,0,0),.18)
-# Early-war director mattress antenna, with shallow curved face, not a modern dish.
-for side in [-1,1]:rod('director.radar-support',(19.36,side*.7,13.95),(19.76,side*.8,15.05),.055,materials['edge'])
-for z in [14.75,15.12,15.5,15.88]:
+    box('director.optical-hood',(19.5,side*2.2,14.94),(.62,.42,.55),materials['naval'],bev=.12)
+    portlight('director.optical-lens',(19.82,side*2.2,14.94),(1,0,0),.14)
+    box('director.rangefinder-shield',(19.5,side*1.63,14.85),(.5,.08,1.3),materials['canvas'],bev=.03)
+    ladder('director.ladder',(18.47+.05,side*.9,13.62),(18.47+.05,side*.9,15.45),.4)
+for y in [-.7,0,.7]:
+    portlight('director.front-glass',(20.8,y,15.0),Vector((1,0,1)).normalized(),.16)
+# Early-war Mk 4 mattress antenna above the roof, with a shallow curved face.
+for side in [-1,1]:rod('director.radar-support',(19.36,side*.7,15.5),(19.76,side*.8,16.35),.055,materials['edge'])
+for z in [16.05,16.42,16.8,17.18]:
     tube_path('director.radar-horizontal',[(20.21-.26*(y/1.65)**2,y,z) for y in [-1.65,-1.32,-.99,-.66,-.33,0,.33,.66,.99,1.32,1.65]],.021,materials['edge'],sides=6)
 for i in range(15):
     y=-1.65+i*3.3/14;x=20.21-.26*(y/1.65)**2
-    rod('director.radar-vertical',(x,y,14.75),(x,y,15.88),.019,materials['edge'],vertices=6)
-for side in [-1,1]:rod('director.radar-brace',(19.41,0,14.25),(19.94,side*1.65,15.88),.029,materials['edge'])
+    rod('director.radar-vertical',(x,y,16.05),(x,y,17.18),.019,materials['edge'],vertices=6)
+for side in [-1,1]:rod('director.radar-brace',(19.41,0,15.5),(19.94,side*1.65,17.18),.029,materials['edge'])
+radar_pivot('director-mk37.yaw',(19.95,0,13.42),set(col.objects)-director_before)
 
-for part in set(col.objects)-director_before:part.location.z+=1.38
-radar_pivot('director-mk37.yaw',(19.91,0,13.29),set(col.objects)-director_before)
-
+FUNNEL_CAP={'forward-funnel':.72,'aft-funnel':.55}  # keep in step with author-shape.py
 # Raked elliptical funnels with rolled, sloping open caps. Heights derive from the blueprint.
 for s in definition['structures']:
     if 'funnel' not in s['id']:continue
@@ -363,7 +367,7 @@ for s in definition['structures']:
     cx=sum(x for x,y in outline)/len(outline);ry=max(y for x,y in outline);rx=(max(x for x,y in outline)-min(x for x,y in outline))/2
     base=s['baseY'];height=s['height'];n=64
     def ring(t,scale=1,zoff=0):
-        return [(cx-.15*height*t+rx*scale*math.cos(i*math.tau/n),ry*scale*math.sin(i*math.tau/n),base+height*t+zoff+.60*math.cos(i*math.tau/n)*t*t+.30*math.sin(i*math.tau/n)**2*t**5) for i in range(n)]
+        return [(cx-.15*height*t+rx*scale*math.cos(i*math.tau/n),ry*scale*math.sin(i*math.tau/n),base+height*t+zoff+FUNNEL_CAP[name]*math.cos(i*math.tau/n)*t*t) for i in range(n)]
     rings=[ring(t,scale) for t,scale in [(0,1.02),(.14,1),(.79,.98),(1,.92)]]
     o=mesh(name+'.jacket',[v for row in rings for v in row],[(k*n+i,k*n+(i+1)%n,(k+1)*n+(i+1)%n,(k+1)*n+i) for k in range(3) for i in range(n)],materials['naval'],smooth=True)
     top=ring(1,.92);inside=ring(1,.82,-.08);deep=ring(.90,.82,-.12)
@@ -374,11 +378,12 @@ for s in definition['structures']:
         rod(name+'.cap-grille',(xx-rx*.77,y,zz-.85),(xx+rx*.77,y,zz+.85),.042,materials['edge'])
     # Steam pipes follow the casing's rake, with separate elbows and supports.
     for side in [-1,1]:
-        for offset in [-.50,.43]:
-            path=[(cx+offset,side*(ry+.18),base),(cx+offset-.15*(height-.1),side*(ry*.85+.16),base+height-.1),(cx+offset-.15*(height-.1)+.14,side*(ry*.85+.16),base+height+.27)]
-            tube_path(name+'.steam-pipe',path,.082,materials['edge'],sides=12)
+        for offset in [.45]:
+            x0=cx-rx*1.0-.04;top=base+height*.85
+            path=[(x0,side*offset,base),(x0-.15*height*.85,side*offset,top),(x0-.15*height*.85+.10,side*offset,top+.30),(x0-.15*height*.85+.42,side*offset,top+.42)]
+            tube_path(name+'.steam-pipe',path,.08,materials['edge'],sides=12)
             for t in [.2,.5,.8]:
-                p=Vector(path[0]).lerp(Vector(path[1]),t);rod(name+'.pipe-clip',p,(p.x,p.y-side*.22,p.z),.03,materials['naval'])
+                p=Vector(path[0]).lerp(Vector(path[1]),t);rod(name+'.pipe-clip',p,(p.x+.2,p.y,p.z),.03,materials['naval'])
         # Narrow maintenance walkway, external ladder, whistle and guardrail.
         x=cx-rx-.18
         ladder(name+'.access-ladder',(x,side*.65,base),(x-.15*height,side*.65,base+height-.25),.45)
@@ -394,17 +399,19 @@ for s in definition['structures']:
 sl=[(10.45,-2.45),(12.40,-2.45)]+[(12.40+1.05*math.cos(-math.pi/2+i*math.pi/12),-1.40+1.05*math.sin(-math.pi/2+i*math.pi/12)) for i in range(1,12)]
 sl=sl+[(12.9,0)]+[(x,-y) for x,y in reversed(sl)]
 prism('searchlight.platform',sl,9.45,9.59,materials['roof'])
-bulwark('searchlight.screen',[p for p in sl if p[0]>11.6],9.59,.95,closed=False)
+bulwark('searchlight.screen',[(10.9,-2.45)]+[p for p in sl if p[0]>10.9]+[(10.9,2.45)],9.59,.95,closed=False)
 for side in [-1,1]:
     for px,top in [(13.0,deckz(13.0)),(10.9,roof('machinery-deckhouse',10.9))]:
         rod('searchlight.post',(px,side*1.9,top),(px,side*1.9,9.46),.07,materials['edge'],vertices=10)
     rod('searchlight.brace',(13.0,side*1.9,deckz(13.0)+.3),(10.9,side*1.9,9.3),.035,materials['edge'],vertices=8)
-    x,y=12.35,side*1.45
-    cyl('searchlight.pedestal',(x,y,9.59+.35),.14,.7,materials['naval'],vertices=16)
-    rod('searchlight.yoke',(x,y-.42,10.25),(x,y+.42,10.25),.035,materials['edge'])
-    rod('searchlight.drum',(x-.42,y,10.45),(x+.38,y,10.45),.47,materials['naval'],vertices=28)
-    rod('searchlight.lens',(x+.381,y,10.45),(x+.40,y,10.45),.41,materials['glass'],vertices=28)
-    box('searchlight.vent',(x-.1,y,10.95),(.36,.3,.12),materials['edge'],bev=.02)
+    rod('searchlight.brace',(10.9,side*1.9,roof('machinery-deckhouse',10.9)+.2),(13.0,side*1.9,9.3),.035,materials['edge'],vertices=8)
+    rod('searchlight.brace',(13.0,side*1.9,7.4),(13.0,-side*1.9,9.3),.035,materials['edge'],vertices=8)
+    x,y=11.85,side*1.45
+    cyl('searchlight.pedestal',(x,y,9.59+.4),.15,.8,materials['naval'],vertices=16)
+    rod('searchlight.yoke',(x,y-.46,10.4),(x,y+.46,10.4),.035,materials['edge'])
+    rod('searchlight.drum',(x-.45,y,10.75),(x+.40,y,10.75),.5,materials['naval'],vertices=28)
+    rod('searchlight.lens',(x+.401,y,10.75),(x+.42,y,10.75),.44,materials['glass'],vertices=28)
+    box('searchlight.vent',(x-.1,y,11.3),(.38,.32,.12),materials['edge'],bev=.02)
 # Shelter on a platform ahead of the after funnel (reference z 1.3..2.9 at 9.25-9.9 m).
 prism('aft-funnel.platform',outline_rect(-2.95,-1.25,-1.25,1.25,.12),9.13,9.25,materials['roof'])
 box('aft-funnel.shelter',(-2.1,0,9.58),(1.6,1.3,.66),materials['naval'],bev=.05)
@@ -416,21 +423,22 @@ rails('aft-funnel.rail',[(-1.25,-1.2,9.25),(-1.25,1.2,9.25)],.8)
 MAST_BASE,MAST_TOP=Vector((15.86,0,5.5)),Vector((14.10,0,24.30))
 def mast_at(z):
     t=(z-MAST_BASE.z)/(MAST_TOP.z-MAST_BASE.z);return MAST_BASE.lerp(MAST_TOP,t)
-rod('mast.fore',MAST_BASE,MAST_TOP,.24,materials['naval'],r2=.09,vertices=24)
+rod('mast.fore',MAST_BASE,MAST_TOP,.28,materials['naval'],r2=.10,vertices=24)
 yard=mast_at(21.24)
 rod('mast.yard',(yard.x-.28,-3.30,21.24),(yard.x-.28,3.30,21.24),.07,materials['edge'])
 for side in [-1,1]:
-    rod('mast.yard-brace',mast_at(22.3),(yard.x-.28,side*3.30,21.24),.034,materials['edge'])
+    rod('mast.yard-lamp-post',(yard.x-.28,side*3.0,21.24),(yard.x-.28,side*3.0,22.15),.025,materials['edge'],vertices=6)
+    cyl('mast.yard-lamp',(yard.x-.28,side*3.0,22.2),.16,.05,materials['edge'],vertices=16)
     for y in [1.1,2.2,3.2]:
         tube_path('rigging.signal-halyard',[(yard.x-.28,side*y,21.24),(18.2,side*(2.4+y*.18),pilot_base+1.1)],.009,materials['rope'],sides=5)
     rod('rigging.fore-stay',mast_at(23.9),(30,side*2.65,roof('forward-deckhouse',30)),.014,materials['dark'],vertices=6)
     rod('rigging.aft-stay',mast_at(23.9),(-22.5,side*.35,15.4),.014,materials['dark'],vertices=6)
-ladder('mast.rungs',mast_at(9.3)+Vector((.18,0,0)),mast_at(24.0)+Vector((.18,0,0)),.38)
+ladder('mast.rungs',mast_at(9.3)-Vector((.32,0,0)),mast_at(24.0)-Vector((.22,0,0)),.38)
 # SC air-search bedspring at the masthead: a broad lower array under a narrower upper one.
 radar_before=set(col.objects)
 top=mast_at(24.3)
-rod('radar.sc-pedestal',top,(top.x,0,24.78),.13,materials['edge'],vertices=16)
-for (w,z0,z1) in [(1.93,24.78,25.86),(1.27,25.86,26.50)]:
+rod('radar.sc-pedestal',top,(top.x,0,24.72),.13,materials['edge'],vertices=16)
+for (w,z0,z1) in [(1.93,24.72,25.78),(1.27,25.78,26.43)]:
     for z in [z0,(z0+z1)/2,z1]:rod('radar.sc-horizontal',(top.x,-w,z),(top.x,w,z),.022,materials['edge'],vertices=6)
     nx=int(w*2/.43)+1
     for i in range(nx+1):
@@ -441,16 +449,21 @@ for side in [-1,1]:rod('radar.sc-strut',(top.x+.16,0,24.82),(top.x+.16,side*1.8,
 radar_pivot('radar-sc.yaw',(top.x,0,24.55),set(col.objects)-radar_before)
 # SG surface-search antenna on a bracket forward of the mast.
 sg=mast_at(22.5)
-prism('radar.sg-platform',outline_rect(sg.x,sg.x+1.35,-.45,.45,.1),22.70,22.80,materials['roof'])
+prism('radar.sg-platform',outline_rect(sg.x,sg.x+1.15,-.45,.45,.1),22.70,22.80,materials['roof'])
 rod('radar.sg-strut',mast_at(21.9),(sg.x+1.2,0,22.72),.04,materials['edge'])
-rod('radar.sg-pedestal',(15.28,0,22.80),(15.28,0,23.12),.09,materials['edge'],vertices=12)
-radar_pivot('radar-sg.yaw',(15.28,0,23.12),[box('radar.sg-head',(15.28,0,23.55),(.55,1.20,.80),materials['naval'],bev=.06),
-    box('radar.sg-feed',(15.28,0,23.12),(.34,.34,.26),materials['edge'],bev=.03)])
+rod('radar.sg-pedestal',(15.08,0,22.80),(15.08,0,23.22),.09,materials['edge'],vertices=12)
+radar_pivot('radar-sg.yaw',(15.08,0,23.22),[box('radar.sg-head',(15.08,0,23.65),(.62,1.26,.80),materials['naval'],bev=.06),
+    box('radar.sg-feed',(15.08,0,23.22),(.34,.34,.24),materials['edge'],bev=.03)])
 # After pole mast on the Bofors house front, with fore-and-aft crossbars and whip antennas.
 rod('mast.aft',(-22.5,0,roof('aft-deckhouse',-22.5)),(-22.5,0,15.9),.10,materials['edge'],r2=.05)
-for z in [12.1,13.0]:rod('mast.aft-yard',(-21.94,0,z),(-23.06,0,z),.035,materials['edge'])
-rod('mast.aft-yard',(-22.5,-.9,10.8),(-22.5,.9,10.8),.035,materials['edge'])
-for x in [-21.94,-23.06]:rod('mast.aft-whip',(x,0,11.8),(x,0,13.3),.02,materials['edge'],vertices=6)
+rod('mast.aft-yard',(-22.5,-1.67,15.5),(-22.5,1.67,15.5),.04,materials['edge'])
+for side in [-1,1]:
+    rod('mast.aft-tbs',(-22.5,side*1.5,15.5),(-22.5,side*1.72,16.12),.03,materials['edge'],vertices=6)
+    rod('mast.aft-tbs',(-22.5,side*1.2,15.5),(-22.5,side*1.5,15.05),.03,materials['edge'],vertices=6)
+cyl('mast.aft-star-hub',(-22.5,0,12.95),.2,.25,materials['edge'],vertices=12).rotation_euler.y=math.pi/2
+for i in range(8):
+    a_=i*math.tau/8;rod('mast.aft-star',(-22.5,0,12.95),(-22.5,1.15*math.cos(a_),12.95+1.15*math.sin(a_)),.018,materials['edge'],vertices=6)
+rod('mast.aft-yard',(-22.5,-.9,10.75),(-22.5,.9,10.75),.035,materials['edge'])
 for side in [-1,1]:
     rod('rigging.fore-aerial-outrigger',mast_at(23.4),mast_at(23.4)+Vector((0,side*.45,0)),.03,materials['edge'])
     rod('rigging.aft-aerial-outrigger',(-22.5,0,15.4),(-22.5,side*.4,15.4),.028,materials['edge'])
@@ -465,8 +478,10 @@ for launcher in definition['torpedoLaunchers']:
         t=i*math.tau/24;cyl(name+'.race-bolt',(x+1.29*math.cos(t),y+1.29*math.sin(t),z+.28),.035,.055,materials['wear'],vertices=6)
     pivot=empty(name+'.yaw',(x,y,z))
     before=set(col.objects)
-    prism(name+'.training-platform',outline_rect(x-2.7,x+3.9,y-1.86,y+1.86,.3),z+.28,z+.45,materials['roof'])
-    for dx in [-1.6,.65,2.9]:box(name+'.transverse-saddle',(x+dx,y,z+.64),(.23,3.32,.36),materials['edge'])
+    prism(name+'.training-platform',outline_rect(x-1.55,x+1.55,y-1.45,y+1.45,.3),z+.28,z+.42,materials['roof'])
+    for dx in [-1.2,.65,2.5]:box(name+'.transverse-saddle',(x+dx,y,z+.66),(.23,3.32,.30),materials['edge'])
+    for dx in [-1.2,2.5]:
+        for side in [-1,1]:rod(name+'.saddle-leg',(x+dx,y+side*1.2,z+.42),(x+(.3 if dx<0 else .9),y+side*.9,z+.3),.05,materials['edge'],vertices=8)
     for tube in [t for t in definition['torpedoTubes'] if t['launcherId']==name]:
         a,b,c=tube['position'];m=Vector((-c,-a,b));rear=m-Vector((8.0,0,0))
         rod(name+'.launch-tube',rear,m,.315,materials['naval'],vertices=32)
@@ -480,11 +495,18 @@ for launcher in definition['torpedoLaunchers']:
         rod(name+'.air-line',rear+Vector((.3,.29,.16)),m+Vector((-1,.29,.16)),.025,materials['edge'],vertices=8)
         for dx in [-2.3,-.8,.65,2.1,3.6]:box(name+'.tube-bracket',(x+dx,m.y,m.z+.34),(.12,.29,.09),materials['naval'],bev=.008)
         socket=empty(tube['id']+'.muzzle',m);attach(socket,pivot)
-    # A protected trainer's station above the rear centre tubes, with wheel and sight.
-    cyl(name+'.trainer-cabin',(x-.95,y,z+1.55),.55,1.2,materials['naval'],vertices=32)
-    cyl(name+'.trainer-roof',(x-.95,y,z+2.19),.58,.075,materials['roof'],vertices=32)
-    portlight(name+'.trainer-port',(x-.39,y,z+1.85),(1,0,0),.11)
-    tube_path(name+'.handwheel',[(x-.6,y+.62+.20*math.cos(i*math.tau/24),z+1.7+.20*math.sin(i*math.tau/24)) for i in range(24)],.025,materials['edge'],closed=True)
+    if name=='torpedo-aft':
+        # The after bank's enclosed round trainer's cab above its rear tubes (reference: 2.1 m across, to 8.4 m).
+        cyl(name+'.trainer-cabin',(x-1.35,y,z+1.9),1.02,1.6,materials['naval'],vertices=40)
+        cyl(name+'.trainer-roof',(x-1.35,y,z+2.74),1.05,.08,materials['roof'],vertices=40)
+        for dy in [-.45,0,.45]:box(name+'.trainer-window',(x-.42,y+dy,z+2.35),(.05,.3,.22),materials['glass'],bev=.01)
+        tube_path(name+'.handwheel',[(x-.2,y+.75+.20*math.cos(i*math.tau/24),z+1.6+.20*math.sin(i*math.tau/24)) for i in range(24)],.025,materials['edge'],closed=True)
+    else:
+        # The forward bank's open trainer's sight post above the centre tubes.
+        cyl(name+'.trainer-cabin',(x-.95,y,z+1.3),.26,.7,materials['naval'],vertices=24)
+        box(name+'.trainer-sight',(x-.95,y,z+1.78),(.45,.34,.26),materials['naval'],bev=.03)
+        portlight(name+'.trainer-port',(x-.72,y,z+1.8),(1,0,0),.09)
+        tube_path(name+'.handwheel',[(x-.6,y+.62+.20*math.cos(i*math.tau/24),z+1.45+.20*math.sin(i*math.tau/24)) for i in range(24)],.025,materials['edge'],closed=True)
     for dx in [-2.0,3.2]:
         for side in [-1,1]:rod(name+'.guard',(x+dx,y+side*1.82,z+.46),(x+dx,y+side*1.82,z+.94),.021,materials['edge'])
     for piece in set(col.objects)-before:
@@ -535,7 +557,7 @@ for launcher in definition['depthChargeLaunchers']:
 
 # Ship's boats are thin-walled, double-ended hulls with ribs, thwarts and davits.
 for side in [-1,1]:
-    cx,cy,z=12.5,side*4.42,6.72;L=7.25;B=1.90
+    cx,cy,z=13.0,side*4.42,6.72;L=7.7;B=1.95
     stations=[(-L/2,.02,.48),(-L*.4,.48,.15),(-L*.25,.83,-.2),(0,1,-.32),(L*.25,.83,-.12),(L*.4,.46,.18),(L/2,.02,.58)]
     vs=[]
     for x,w,k in stations:
@@ -572,7 +594,16 @@ for side in [-1,1]:
     # Deckhouse roof rails.
     rails('after.roof-rail',[(x,side*2.40,roof('aft-deckhouse',x)) for x in [-33.6,-29,-23.4,-18.0]],.86)
     # Waist bulwark below the boat and exposed deck pipework.
-    bulwark('deck.boat-bulwark',[(x,side*(deck_edge(x)-.08)) for x in [7.3,10.5,13.8,17.0]],deckz(12.0),1.05,closed=False)
+    # Waist bulwark along the deck edge, its top sweeping up to the 01 deck at the forward deckhouse.
+    xs_=[7.3+i*.5 for i in range(21)];o1_=roof('forward-deckhouse',17.3)
+    top_=lambda x:deckz(x)+1.05+max(0,(x-12.3)/5.0)**2*(o1_-deckz(17.3)-1.05)
+    vs_=[]
+    for x in xs_:
+        e=deck_edge(x)-.06;vs_ += [(x,side*e,deckz(x)-.02),(x,side*e,top_(x)),(x,side*(e-.06),top_(x)),(x,side*(e-.06),deckz(x)-.02)]
+    fs_=[(i*4+j,(i+1)*4+j,(i+1)*4+(j+1)%4,i*4+(j+1)%4) for i in range(len(xs_)-1) for j in range(4)]
+    fs_ += [(0,1,2,3),tuple((len(xs_)-1)*4+j for j in [3,2,1,0])]
+    mesh('deck.boat-bulwark',vs_,fs_,materials['naval'])
+    tube_path('deck.boat-bulwark-cap',[(x,side*(deck_edge(x)-.09),top_(x)+.02) for x in xs_],.035,materials['edge'])
     tube_path('deck.service-pipe',[(x,side*3.55,deckz(x)+.28) for x in range(-16,14,2)],.040,materials['edge'])
 # Torpedo-deck and after-deckhouse access ladders.
 stairs('deckhouse.stairs',(-16.7,0,deckz(-16.7)),(-14.0,0,roof('torpedo-deckhouse',-14.0)),.7)
