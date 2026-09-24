@@ -239,7 +239,7 @@ helpers=dict(mesh=mesh,cyl=cyl,rod=rod,box=box)
 for m in definition['mounts']:
  if m['battery']=='main':
   x=-m['position'][2];base=deckz(x)+.045;top=m['position'][1]
-  cyl(m['id']+'.deck-seat',(x,0,(base+top)/2),1.67,max(.02,top-base),materials['naval'],vertices=48)
+  cyl(m['id']+'.deck-seat',(x,0,(base+top)/2),1.33,max(.02,top-base),materials['naval'],vertices=48)
  create_mount(m,col,helpers,materials)
 # Triple torpedo launchers with split tube bodies, hatches and independently yawing sockets.
 exec(compile((Path(__file__).parent/'fittings.py').read_text(),'fubuki-fittings','exec'),globals())

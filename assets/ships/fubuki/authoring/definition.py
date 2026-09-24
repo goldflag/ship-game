@@ -76,4 +76,7 @@ for i,x,y,z in [(1,-50.9445,0,3.3675),(2,-55.3065,2.7705,3.381),(3,-55.3065,-2.7
  b['depthChargeLaunchers'].append({'id':id,'name':'Depth charge station '+str(i),'partId':'ijn-450-depth-charge-game','position':[-y,z,-x],'velocity':[0,3 if i==1 else 0,2],'ammo':4,'magazineId':'depth-charge-magazine','launcherModuleId':id+'-equipment'})
  b['modules'].append({'id':id+'-equipment','name':'Depth charge station '+str(i),'kind':'launcher','placement':'fixed','center':[-y,z+.3,-x],'size':[1.4 if i==1 else .8,1.4 if i==1 else .5,1.1],'hp':45,'protectionMm':3,'immersionToleranceM':.25})
 b['modules'].append({'id':'main-director','name':'Bridge optical director','kind':'fire-control','placement':'fixed','center':[0,14.0,-26.1],'size':[2.4,1.6,2.6],'hp':65,'protectionMm':6,'immersionToleranceM':.3,'servesMountIds':['main-forward','main-aft']})
+# The re-measured superstructure (structures.py) replaces the original blocks by ID.
+from structures import apply
+apply(b)
 (SHIP/'blueprint.json').write_text(json.dumps(b,indent=2)+'\n')
