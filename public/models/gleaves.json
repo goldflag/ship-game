@@ -43808,12 +43808,12 @@
       "center": [
         0,
         5.99,
-        -1.0099999999999998
+        -2.2
       ],
       "size": [
         3.35,
         1.96,
-        7.8
+        8.1
       ],
       "hp": 100,
       "protectionMm": 8,
@@ -43828,12 +43828,12 @@
       "center": [
         0,
         5.99,
-        12.79
+        11.6
       ],
       "size": [
         3.35,
         1.96,
-        7.8
+        8.1
       ],
       "hp": 100,
       "protectionMm": 8,
@@ -46494,7 +46494,7 @@
       "position": [
         1.33,
         5.84,
-        -4.7
+        -6.24
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46525,7 +46525,7 @@
       "position": [
         0.67,
         5.84,
-        -4.7
+        -6.24
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46556,7 +46556,7 @@
       "position": [
         0,
         5.84,
-        -4.7
+        -6.24
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46587,7 +46587,7 @@
       "position": [
         -0.67,
         5.84,
-        -4.7
+        -6.24
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46618,7 +46618,7 @@
       "position": [
         -1.33,
         5.84,
-        -4.7
+        -6.24
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46649,7 +46649,7 @@
       "position": [
         1.33,
         5.84,
-        9.1
+        7.56
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46680,7 +46680,7 @@
       "position": [
         0.67,
         5.84,
-        9.1
+        7.56
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46711,7 +46711,7 @@
       "position": [
         0,
         5.84,
-        9.1
+        7.56
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46742,7 +46742,7 @@
       "position": [
         -0.67,
         5.84,
-        9.1
+        7.56
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -46773,7 +46773,7 @@
       "position": [
         -1.33,
         5.84,
-        9.1
+        7.56
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -48367,5 +48367,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "05a5e0370215228ef33339cbd7d8e6d5ea7554ddad4c95604e7b5b43f2de3e25"
+  "contentHash": "e444ca05d42560392eaccf962ee26e6d360b72a5687b32b3712dbb5b98aac75a"
 }

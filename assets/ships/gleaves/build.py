@@ -717,39 +717,40 @@ for launcher in definition['torpedoLaunchers']:
         t=i*math.tau/28;cyl(name+'.ring-bolt',(x+1.19*math.cos(t),y+1.19*math.sin(t),z+.22),.027,.04,materials['wear'],vertices=6)
     pivot=empty(name+'.yaw',(x,y,z));before=set(col.objects)
     cyl(name+'.rotating-race',(x,y,z+.27),1.13,.17,materials['naval'],vertices=48)
-    for dx in [-2.75,-.6,1.65]:
+    for dx in [-2.75,-.5,1.8,3.8]:
         box(name+'.saddle-beam',(x+dx,y,z+.45),(.23,3.27,.30),materials['edge'])
         for yy in [-1.05,1.05]:rod(name+'.saddle-brace',(x,y+yy,z+.32),(x+dx,y+yy,z+.47),.064,materials['naval'])
     for tube in [t for t in definition['torpedoTubes'] if t['launcherId']==name]:
-        a,b,c=tube['position'];m=Vector((-c,-a,b));rear=m-Vector((6.50,0,0))
+        # pzsd108: 8.08 m tubes, breech ends 3.35 m abaft the training pivot.
+        a,b,c=tube['position'];m=Vector((-c,-a,b));rear=m-Vector((8.08,0,0))
+        tr=lambda dx:.304
         rod(name+'.tube',rear,m,.304,materials['naval'],vertices=32)
-        for dx in [.10,1.65,3.30,5.00,6.38]:
-            p=m-Vector((dx,0,0));rod(name+'.tube-band',p-Vector((.034,0,0)),p+Vector((.034,0,0)),.321,materials['edge'],vertices=24)
+        for dx in [.10,2.0,4.0,6.05,7.95]:
+            p=m-Vector((dx,0,0));rod(name+'.tube-band',p-Vector((.034,0,0)),p+Vector((.034,0,0)),tr(dx)+.017,materials['edge'],vertices=24)
         # Hinged circular covers, gasket, dogs, hinges and longitudinal air lines.
-        for end,direction in [(m,1),(rear,-1)]:
-            rod(name+'.end-ring',end-Vector((.018,0,0)),end+Vector((.035,0,0)),.322,materials['edge'],vertices=32)
-            rod(name+'.end-door',end+Vector((direction*.036,0,0)),end+Vector((direction*.054,0,0)),.286,materials['naval'],vertices=24)
+        for end,direction,er in [(m,1,.304),(rear,-1,.304)]:
+            rod(name+'.end-ring',end-Vector((.018,0,0)),end+Vector((.035,0,0)),er+.018,materials['edge'],vertices=32)
+            rod(name+'.end-door',end+Vector((direction*.036,0,0)),end+Vector((direction*.054,0,0)),er-.018,materials['naval'],vertices=24)
             for k in range(8):
-                t=k*math.tau/8;p=end+Vector((direction*.065,.29*math.cos(t),.29*math.sin(t)))
+                t=k*math.tau/8;p=end+Vector((direction*.065,(er-.014)*math.cos(t),(er-.014)*math.sin(t)))
                 box(name+'.cover-dog',p,(.043,.045,.07),materials['edge'],bev=.008)
             tube_path(name+'.cover-handle',[end+Vector((direction*.073,-.10,.13)),end+Vector((direction*.12,-.10,.13)),end+Vector((direction*.12,.10,.13)),end+Vector((direction*.073,.10,.13))],.016,materials['edge'])
         for yy,dz in [(.28,.13),(-.28,.13)]:rod(name+'.air-line',rear+Vector((.25,yy,dz)),m+Vector((-.25,yy,dz)),.022,materials['edge'],vertices=8)
-        for dx in [-2.8,-1.3,.2,1.7,2.8]:
+        for dx in [-2.9,-1.3,.3,1.9,3.5,4.4]:
             box(name+'.rail-shoe',(x+dx,m.y,m.z+.31),(.11,.31,.08),materials['naval'],bev=.007)
         rod(name+'.upper-rail',rear+Vector((.3,0,.36)),m+Vector((-.25,0,.36)),.029,materials['edge'])
         socket=empty(tube['id']+'.muzzle',m);attach(socket,pivot)
-    # The source has an open trainer forward and a taller enclosed trainer aft.
-    tx=x-2.35
+    # The source has an open trainer's post forward and a trainer's cab riding on
+    # the tubes aft (pzsd108: 2 m across, roof 7.86 m).
+    tx=x-(1.45 if name=='torpedo-aft' else 1.05)
     prism(name+'.trainer-platform',outline_rect(tx-.72,tx+.68,-.71,.71,.15),z+.39,z+.53,materials['roof'])
     for side in [-1,1]:rod(name+'.platform-support',(x-1.8,side*.62,z+.42),(tx+.58,side*.62,z+.44),.068,materials['edge'])
     if name=='torpedo-aft':
-        cyl(name+'.trainer-cabin',(tx,0,z+1.53),.64,2.0,materials['naval'],vertices=40)
-        cyl(name+'.trainer-roof',(tx,0,z+2.56),.67,.07,materials['roof'],vertices=40)
-        for side in [-1,1]:portlight(name+'.trainer-window',(tx,side*.647,z+2.13),(0,side,0),.13)
-        door(name+'.trainer-door',tx,-.642,z+.58,-1,w=.51,h=1.45)
+        cyl(name+'.trainer-cabin',(tx,0,z+2.02),1.0,1.62,materials['naval'],vertices=16)
+        cyl(name+'.trainer-roof',(tx,0,z+2.88),1.02,.10,materials['roof'],vertices=16,r2=.62)
+        for side in [-1,1]:portlight(name+'.trainer-window',(tx,side*.99,z+2.40),(0,side,0),.13)
+        door(name+'.trainer-door',tx-.05,-.985,z+1.28,-1,w=.51,h=1.30)
     else:
-        arc=[(tx+.66*math.cos(t*math.pi/24),.66*math.sin(t*math.pi/24)) for t in range(49)]
-        bulwark(name+'.trainer-screen',arc,z+.53,1.20,closed=False)
         cyl(name+'.sight-pedestal',(tx-.2,0,z+1.10),.105,1.15,materials['edge'],vertices=16)
         box(name+'.sight-head',(tx-.20,0,z+1.83),(.38,.21,.22),materials['naval'])
     ladder(name+'.trainer-ladder',(tx+.61,0,z+.04),(tx+.61,0,z+.53),.38)
