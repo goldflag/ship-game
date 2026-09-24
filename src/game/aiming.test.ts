@@ -6,6 +6,7 @@ import { createShipState } from './session/motion';
 import { localToWorld, normalize, sub } from './geometry';
 import type { Vec3 } from '../ships/blueprint';
 import { shipPreset } from '../ships/presets';
+import { firstStructuralHit, structuralHits, structuralSurfaces } from './hullStructure';
 
 test('the sight selects the first target armor surface before the sea behind it', () => {
   const pose = { ...createShipState('target'), x: 650, z: -550, heading: .7 };
@@ -37,6 +38,30 @@ test('fleet aim bounds preserve narrow-phase hits across rolled hulls, structure
       expect(sightAim(origin, direction, candidate)).toEqual(sightAim(origin, direction, reference));
     }
   }
+});
+
+test('the first structural hit is the sorted hit list\'s first, bit for bit, through corners and shared edges', () => {
+  let seed = 7, ties = 0, hits = 0;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  for (const id of ['bismarck', 'yamato', 'fletcher', 'enterprise-cv6', 'type-viic']) {
+    const definition = shipPreset(id), surfaces = structuralSurfaces(definition);
+    for (let i = 0; i < 300; i++) {
+      const surface = surfaces[Math.floor(random() * surfaces.length)];
+      const [a, b, c] = surface.triangles[Math.floor(random() * surface.triangles.length)].map(j => surface.vertices[j]);
+      // Aim at a corner, an edge or the face, where neighbouring triangles meet the ray at the same t.
+      const u = random(), w = i % 3 === 0 ? 0 : i % 3 === 1 ? 1 - u : random() * (1 - u);
+      const target = [0, 1, 2].map(k => a[k] + (b[k] - a[k]) * u + (c[k] - a[k]) * w) as Vec3;
+      const from: Vec3 = [target[0] + (random() - .5) * 4000, target[1] + random() * 90, target[2] + (random() - .5) * 4000];
+      const to: Vec3 = [from[0] + (target[0] - from[0]) * 3, from[1] + (target[1] - from[1]) * 3, from[2] + (target[2] - from[2]) * 3];
+      const all = structuralHits(from, to, definition), first = firstStructuralHit(from, to, definition);
+      if (all.length > 1 && all[1].t === all[0].t) ties++;
+      if (all.length) hits++;
+      expect(first && { t: first.t, point: first.point, surface: first.surface.id, triangle: first.triangle })
+        .toEqual(all[0] && { t: all[0].t, point: all[0].point, surface: all[0].surface.id, triangle: all[0].triangle });
+      if (first) expect(first.surface).toBe(all[0].surface);
+    }
+  }
+  expect(hits).toBeGreaterThan(1000); expect(ties).toBeGreaterThan(50);
 });
 
 test('a sea sight points at the CPU waterline and horizon aim stays finite and bounded', () => {
