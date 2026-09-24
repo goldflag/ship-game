@@ -1,29 +1,49 @@
 # HMS King George V — early 1941
 
-Early 1941 Home Fleet exterior, before December AA refit; 1940 standard mean-draft datum
+Early 1941 Home Fleet exterior, before December AA refit; hull and waterline measured from the GameModels3D reference
 
 Open `/?ship=king-george-v` or select this ship in port or Custom battle.
 
 `blueprint.json` and `build.py` are the durable inputs; reusable equipment comes from `assets/parts/`. Generated Blender scenes and runtime models are build outputs.
 
-The previous authoring workflow used [King George V on GameModels3D](https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107) for visual comparison. Recheck its configuration when changing geometry.
+Geometry reference: [King George V on GameModels3D](https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107) (`pbsb107`, hull `bsb016_king_george_v_1943`, GameModels3D only). It shows the 1943 fit; this ship keeps the early-1941 fit: four octuple pom-poms, UP launchers on B, Y and the quarterdeck, Type 279 at both mastheads, Type 284 on the forward director, a Walrus on the catapult. The 1943 model's Oerlikons, extra pom-poms and Type 271/273/281/282/285 radars are not modelled.
 
-Authored hull: 227.08 m long, 31.3944 m beam, 8.8392 m draft. These are model inputs, not a new historical-accuracy certification.
+Authored hull: 227.08 m long, 31.434 m beam, 10.557 m draft (flat keel 10.50 m) at the reference's waterline, 45,272 t. These are model inputs measured from that model, not a historical-accuracy certification; its waterline is deeper than the 1940 standard load (29 ft) and a little above the early-war deep load.
 
-- **Exterior:** Original early-1941 reconstruction informed by Vickers as-fitted plans and IWM photographs. Principal dimensions sourced; station offsets, minor fittings and paint reflectance interpreted.
+- **Exterior:** Hull lines, waterline, superstructure tiers, funnels, masts and mount datums measured from the reference; the early-1941 light AA, radar and aircraft kept from the original recipe informed by Vickers plans and IWM photographs.
 - **Internals:** Estimated machinery, magazines, partitions, flooding and stability for inspectable combat; not an as-built internal survey.
 - **Weapons:** Ten 14-inch and sixteen 5.25-inch guns. Source-based bore, layout, speed and train/elevation; ballistics and damage calibrated for gameplay. Pom-poms, UP and aircraft are visual only.
+
+## How it was made
+
+- `authoring/lines.json`: control-station offsets measured from the reference like a lines plan (hull centred on its overall length, reference z + 0.57 m). `author-hull.py` writes the blueprint `hull` from it, with mass from the displacement at that waterline.
+- `author-structures.py`: the superstructure block table (deck levels 7.35, 10.25 and 12.0 m, tower tiers, sponsons, director seats, funnel envelopes) and its obstruction proxies, read from reference plan cuts and roof heights.
+- `build.py`: the Blender recipe. Director, HACS, turret and 5.25-inch datums are the reference hardpoints; the pom-pom stations are the original recipe's (`equipment-evidence.json`).
+- After a hull change: `bun assets/ships/author-flood-spaces.ts king-george-v`, remove `stability` and run `bun assets/ships/author-stability.ts king-george-v`, then build. Do not rerun local damage; its committed bands were refitted to the new draft geometrically.
+- `author-blueprint.py` is the retired 1940-datum study; it refuses a full run (`--catalog-only` still updates the gun parts).
 
 ```sh
 bun run ship:compile king-george-v
 bun run ship:build king-george-v
 bun run ship:review king-george-v
 bun run ship:check king-george-v
+bun run ship:floating king-george-v
+bun run ship:sweep king-george-v
+bun run ship:overlay king-george-v --offset 0.57
 ```
+
+## Accepted approximations and open questions
+
+- The registered Mk VII gunhouses are 0.2 m lower than the reference's; A and Y sit so their roofs match, which leaves the gun axes 0.3 m high (B 0.2 m). The gun parts are shared with the construction catalog and are unchanged.
+- One centreline rudder as on the reference; both rudder assemblies pivot on its stock, each carrying half the blade.
+- The 5.25-inch sponsons lose the reference's long tails where a neighbouring mount trains over them, and the after deckhouse is notched to 8.35 m beside P4/S4.
+- Open: the early-1941 pom-pom stations (hangar roofs abreast the fore funnel, boat deck abreast the after funnel) and the boat stowage are kept from the recipe rather than the 1943 model; the searchlight positions follow the reference's platforms.
+- `ship:sweep` still finds A trained aft over B at 40° elevation (present before this pass); the ship has no interlock profile.
+- Handling calibration: the ship has no explicit propellers or rudders, so the simulation infers a centreline screw at 0.6 × draft and washes the steering-room rudder from it. The re-seat moved that screw down 1.0 m but the steering room 1.75 m, and the stronger wash made hard turns shed speed (`maneuvering_trial`: 90° in 26.0 s, 7.7 kn = 27% of top speed, 2.50°/s). The steering room sits 3.3 m above the inferred screw again, as before the pass: 90° in 37.9 s, 19.4 kn (69%), 1.48°/s against 37.3 s, 20.0 kn (71%), 1.51°/s on the old hull. Top speed stays 28.0 kn.
 
 Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
 
-Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md). `author-blueprint.py` resets subsequent blueprint edits and updates shared catalog entries; run it only for deliberate regeneration, then refit internals and regenerate flooding/stability. Normal builds do not need it.
+Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).
 
 Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
 `appearance.json` preserves this recipe’s colors, scheme and deck coverings. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.

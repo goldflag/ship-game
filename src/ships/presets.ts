@@ -4,13 +4,13 @@ export { loadShipPreset, loadShipPresets } from './presetLoading';
 
 /** Canonical roster; definitions are admitted on demand before simulation. */
 export const shipPresets = {
-  'kongo': preset('kongo'),
   "valiant": preset("valiant"),
   'resolute': preset('resolute'),
   'admiral-hipper': preset('admiral-hipper'),
   'cleveland': preset('cleveland'),
   'bismarck': preset('bismarck'),
   'yamato': preset('yamato'),
+  'kongo': preset('kongo'),
   'iowa': preset('iowa'),
   'alaska': preset('alaska'),
   'king-george-v': preset('king-george-v'),
