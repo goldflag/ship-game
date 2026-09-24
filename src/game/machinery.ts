@@ -103,8 +103,63 @@ export function mountSupport(actor: Combatant, def: ShipDefinition, mountId: str
 }
 export const directorDispersion = (fireControl: number): number => (1 - fireControl) * .0015;
 
+/** How engine health reads a module when neither the hull's volume nor a maneuvering model can put it out of the water:
+ * its slot and its room's index. */
+type PlannedModule = { module: Module; slot: number; room: number | undefined };
+type EnginePlan = { groups: { share: number; boilers: PlannedModule[]; drives: PlannedModule[]; shafts: PlannedModule[] }[] } | { modules: PlannedModule[] };
+const enginePlans = new WeakMap<ShipDefinition, EnginePlan | null>();
+/** A plan for `systemHealth(…, 'engine')` on hulls whose engine modules' condition can depend on their pose only through
+ * water in their room (or the sea, for an unroomed module with an immersion tolerance): null for the rest. */
+function enginePlan(def: ShipDefinition): EnginePlan | null {
+  let plan = enginePlans.get(def);
+  if (plan !== undefined) return plan;
+  plan = null;
+  if (!def.submarine && !def.propulsion?.sharedExhaust && !def.hull.volume && !def.maneuvering) {
+    const compiled = layout(def);
+    const planned = (module: Module): PlannedModule => ({ module, slot: compiled.modules.get(module.id)!.index,
+      room: module.compartmentId === undefined ? undefined : compiled.rooms.get(module.compartmentId)! });
+    const byId = (id: string) => planned(compiled.modules.get(id)!.module);
+    plan = def.propulsion ? { groups: def.propulsion.groups.map(g => ({ share: g.share, boilers: g.boilerIds.map(byId), drives: g.driveIds.map(byId), shafts: g.shaftIds.map(byId) })) }
+      : { modules: def.modules.filter(m => m.kind === 'engine').map(m => byId(m.id)) };
+  }
+  enginePlans.set(def, plan);
+  return plan;
+}
+/** `equipmentCondition(actor, def, module).availability` for a planned module, with the same reads and arithmetic; a module
+ * that the water around or inside it could flood is read by `equipmentCondition` itself. */
+function plannedAvailability(actor: Combatant, def: ShipDefinition, { module, slot, room }: PlannedModule): number {
+  const state = actor.damage.modules[slot];
+  const hp = (state?.id === module.id ? state : actor.damage.modules.find(s => s.id === module.id)!).hp;
+  if (hp <= 0) return 0;
+  if (module.immersionToleranceM !== undefined) {
+    if (room === undefined) return equipmentCondition(actor, def, module).availability;
+    const compartment = actor.damage.compartments[room], id = def.compartments[room].id;
+    if (!((compartment?.id === id ? compartment : actor.damage.compartments.find(c => c.id === id)!).waterM3 <= 0)) return equipmentCondition(actor, def, module).availability;
+  }
+  return hp / module.hp * 1;
+}
+
 export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engine' | 'steering'): number {
   if (actor.damage.sunk) return 0;
+  const plan = kind === 'engine' ? enginePlan(def) : null;
+  if (plan) {
+    // The general reading below, module for module and sum for sum.
+    if ('modules' in plan) {
+      if (!plan.modules.length) return 1;
+      let n = 0;
+      for (const m of plan.modules) n = n + plannedAvailability(actor, def, m);
+      return n / plan.modules.length;
+    }
+    let power = 0;
+    for (const group of plan.groups) {
+      let steam = 1, drive = Infinity, shaft = 1;
+      if (group.boilers.length) { let n = 0; for (const m of group.boilers) n = n + plannedAvailability(actor, def, m); steam = n / group.boilers.length; }
+      for (const m of group.drives) drive = Math.min(drive, plannedAvailability(actor, def, m));
+      if (group.shafts.length) { let n = 0; for (const m of group.shafts) n = n + plannedAvailability(actor, def, m); shaft = n / group.shafts.length; }
+      power = power + group.share * Math.min(steam, drive) * shaft;
+    }
+    return power;
+  }
   const compiled = layout(def);
   const available = (id: string) => equipmentCondition(actor, def, compiled.modules.get(id)!.module).availability;
   if (kind === 'engine' && def.submarine) {

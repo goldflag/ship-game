@@ -1,32 +1,8 @@
 import * as THREE from 'three/webgpu';
 import { attribute, dot, float, Fn, positionLocal, smoothstep, uv, vec2, vec4 } from 'three/tsl';
-import { SLICK_EXTENT, WAKE_EXTENT, type WakeStampTarget } from './WakeFoam';
+import { SLICK_EXTENT, WAKE_EXTENT, WakeStampCollector } from './WakeFoam';
 
-/** Retain the last rasterization for each tile, including its own refresh time. Each stamp keeps
- * (x, z, rightX, rightZ, width, length, strength, ring + 2 × channel). */
-export class WakeStampCollector implements WakeStampTarget {
-  values = new Float64Array(256 * 8);
-  count = 0;
-  centerX = 0; centerZ = 0;
-  /** Centre of the slick channel's wider square (SLICK_EXTENT), laid over the same tile. */
-  slickX = 0; slickZ = 0;
-  /** Moves with every change to the stamps or their frame, so a painter can keep what it made of an unchanged tile. */
-  version = 0;
-  begin(x: number, z: number, slickX = x, slickZ = z): void { this.centerX = x; this.centerZ = z; this.slickX = slickX; this.slickZ = slickZ; this.clear(); }
-  clear(): void { this.count = 0; this.version++; }
-  reserve(count: number): void {
-    if (count * 8 <= this.values.length) return;
-    const values = new Float64Array(Math.max(count * 8, this.values.length * 2));
-    values.set(this.values); this.values = values;
-  }
-  stamp(x: number, z: number, rightX: number, rightZ: number, width: number, length: number, strength: number, ring: boolean, channel: 0 | 1 = 0): void {
-    this.reserve(this.count + 1);
-    const offset = this.count++ * 8, values = this.values;
-    values[offset] = x; values[offset + 1] = z; values[offset + 2] = rightX; values[offset + 3] = rightZ;
-    values[offset + 4] = width; values[offset + 5] = length; values[offset + 6] = strength; values[offset + 7] = Number(ring) + 2 * channel;
-    this.version++;
-  }
-}
+export { WakeStampCollector };
 
 /** One collector's painted quads (box, axes, shape: twelve floats each) for a tile, as of its `version`, and where they
  * sit in the instance buffers. */

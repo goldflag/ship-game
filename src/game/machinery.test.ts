@@ -58,3 +58,40 @@ test('one damaged screw leaves its shared engine driving the healthy screw', () 
   delete def.propulsion!.sharedExhaust;
   expect(systemHealth(actor, def, 'engine')).toBeCloseTo(.5);
 });
+
+test('engine health reads exactly as module by module through damage, flooded rooms and a rolling sea', async () => {
+  const { CombatSimulation } = await import('../simulation/combat');
+  const { shipPreset } = await import('../ships/presets');
+  const { createSeaState } = await import('./session/sea');
+  const seeded = (seed: number) => { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296; };
+  /** The general reading: every module's `equipmentCondition`, combined as the propulsion groups (or the engines) combine. */
+  const reference = (actor: Combatant, def: ShipDefinition) => {
+    if (actor.damage.sunk) return 0;
+    const available = (id: string) => equipmentCondition(actor, def, [...def.modules].reverse().find(m => m.id === id)!).availability;
+    if (def.propulsion) return def.propulsion.groups.reduce((power, group) => {
+      const steam = group.boilerIds.length ? group.boilerIds.reduce((n, id) => n + available(id), 0) / group.boilerIds.length : 1;
+      const shaft = group.shaftIds.length ? group.shaftIds.reduce((n, id) => n + available(id), 0) / group.shaftIds.length : 1;
+      return power + group.share * Math.min(steam, Math.min(...group.driveIds.map(available))) * shaft;
+    }, 0);
+    const modules = def.modules.filter(m => m.kind === 'engine');
+    return modules.length ? modules.reduce((n, m) => n + available(m.id), 0) / modules.length : 1;
+  };
+  const random = seeded(3);
+  let compared = 0, flooded = 0;
+  for (const id of ['bismarck', 'yamato', 'king-george-v', 'baltimore', 'fletcher', 'flower-corvette', 'enterprise-cv6', 'shokaku']) {
+    const sim = new CombatSimulation(shipPreset(id)), actor = sim.player, def = actor.definition;
+    actor.sea = { state: createSeaState('north-atlantic', 'storm-clouds', 7, 16), time: 0 };
+    for (let round = 0; round < 60; round++) {
+      for (const [i, state] of actor.damage.modules.entries()) state.hp = random() < .3 ? def.modules[i].hp * Math.floor(random() * 4) / 3 : def.modules[i].hp;
+      for (const room of actor.damage.compartments) room.waterM3 = random() < .2 ? random() * 400 : 0;
+      Object.assign(actor.motion, { y: (random() - .7) * 12, roll: (random() - .5) * .4, pitch: (random() - .5) * .1, heading: random() * 6.3 });
+      actor.sea.time = random() * 100;
+      actor.damage.sunk = random() < .05;
+      const value = systemHealth(actor, def, 'engine');
+      expect(Object.is(value, reference(actor, def))).toBe(true);
+      compared++; flooded += Number(value < 1);
+    }
+  }
+  expect(compared).toBe(480);
+  expect(flooded).toBeGreaterThan(100);
+});

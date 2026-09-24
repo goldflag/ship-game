@@ -86,3 +86,37 @@ test('publication writes the poses three composes, back to front, and clears wha
     expect(Array.from(alphas.subarray(pool.count)).every(v => v === 0)).toBe(true);
   } finally { pool.dispose(); texture.dispose(); }
 });
+
+test('ageing and publication visit only the slots that may be live, and match a pass over every slot', () => {
+  const texture = effectTexture('droplet'), random = seeded(41);
+  // The reference marks every slot live before each pass, so it visits them all as the pool did before it kept the marks.
+  const pools = [new EffectParticlePool(300, texture, false, undefined, true, true), new EffectParticlePool(300, texture, false, undefined, true, true)];
+  const marks = (pool: EffectParticlePool) => (pool as unknown as { live: Int32Array }).live;
+  const everySlot = (pool: EffectParticlePool) => marks(pool).fill(-1, 0, 9).fill((1 << (300 - 288)) - 1, 9);
+  const camera = new PerspectiveCamera(50, 1.6, .5, 8000), wind = new Vector3(3, 0, -2);
+  let fewest = Infinity;
+  try {
+    for (let frame = 0; frame < 400; frame++) {
+      const dt = frame % 37 ? 1 / 60 : 0;
+      everySlot(pools[1]);
+      for (const pool of pools) pool.advance(dt, wind);
+      const values = Array.from({ length: frame % 50 ? 2 : 280 }, () => Array.from({ length: 9 }, random));
+      for (const pool of pools) for (const v of values) {
+        const p = pool.emit(new Vector3((v[0] - .5) * 200, v[1] * 30, (v[2] - .5) * 200), v[3] < .5 ? 'a' : undefined);
+        p.life = v[4] < .1 ? .05 : .3 + v[4] * .4; p.age = v[5] < .3 ? -v[5] : 0; p.size = .2 + v[6] * 3;
+        p.velocity.set((v[7] - .5) * 20, v[8] * 25, 0); p.gravity = 9.81; p.drag = v[8] < .5 ? 0 : .12; p.waterline = v[3] < .4; p.align = v[6] < .5 ? 'streak' : 'billboard';
+      }
+      camera.position.set(Math.sin(frame / 40) * 150, 20, 120); camera.lookAt(0, 5, 0); camera.updateMatrixWorld();
+      everySlot(pools[1]);
+      for (const pool of pools) pool.publish(camera, frame % 3 ? undefined : 'a');
+      const [a, b] = pools;
+      expect(a.count).toBe(b.count);
+      expect(Array.from(a.mesh.instanceMatrix.array)).toEqual(Array.from(b.mesh.instanceMatrix.array));
+      expect(Array.from(a.mesh.geometry.getAttribute('effectOpacity').array)).toEqual(Array.from(b.mesh.geometry.getAttribute('effectOpacity').array));
+      expect(Array.from(a.mesh.instanceColor!.array)).toEqual(Array.from(b.mesh.instanceColor!.array));
+      if (frame % 50 === 49) fewest = Math.min(fewest, Array.from(marks(a)).reduce((n, word) => n + [...Array(32).keys()].filter(i => word & (1 << i)).length, 0));
+    }
+    // Most slots are spent before each burst: the pool then marks far fewer than its capacity.
+    expect(fewest).toBeLessThan(100);
+  } finally { for (const pool of pools) pool.dispose(); texture.dispose(); }
+});

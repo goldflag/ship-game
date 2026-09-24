@@ -26,12 +26,32 @@ const BATCH_CAPACITY = 768;
 const FLYING = new Set(['takeoff', 'outbound', 'attack', 'returning', 'landing']);
 const UNARMED = new Set(['ready', 'queued', 'rearming', 'parking', 'rollout']);
 type AircraftBatch = THREE.InstancedMesh<THREE.InstancedBufferGeometry>;
-type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler };
+/** How a joint moves: `rest` is its authored rotation as a quaternion (what copying its authored Euler back sets), turned
+ * about `axis` by the control `kind` names, `scale` times its travel. */
+type JointKind = 'fixed' | 'fold' | 'propeller' | 'gear' | 'aileron' | 'elevator' | 'rudder' | 'hook' | 'brakes';
+type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler; rest: THREE.Quaternion; kind: JointKind; axis: THREE.Vector3; scale: number };
+const X_AXIS = new THREE.Vector3(1, 0, 0), Y_AXIS = new THREE.Vector3(0, 1, 0), Z_AXIS = new THREE.Vector3(0, 0, 1);
+/** A joint's motion, read once from its id and authored data. */
+function joint(object: THREE.Object3D, id: string): Joint {
+  const rotation = object.rotation.clone(), data = object.userData;
+  const moves = (kind: JointKind, axis: THREE.Vector3, scale: number) => ({ object, id, rotation, rest: new THREE.Quaternion().setFromEuler(rotation), kind, axis, scale });
+  if (id.startsWith('wing.fold.')) return moves('fold', new THREE.Vector3().fromArray(data.foldAxis), Number(data.foldAngleDegrees));
+  if (id === 'propeller.spin') return moves('propeller', Z_AXIS, 1);
+  if (id.startsWith('gear.') && !data.fixed && data.articulation !== 'fixed') return moves('gear', data.axis === 'spanwise' ? X_AXIS : Z_AXIS, 0);
+  if (id.startsWith('control.aileron.')) return moves('aileron', X_AXIS, id.endsWith('.port') ? 1 : -1);
+  if (id.startsWith('control.elevator.')) return moves('elevator', X_AXIS, 1);
+  if (id === 'control.rudder') return moves('rudder', Y_AXIS, 1);
+  if (id === 'arrestor.hook') return moves('hook', X_AXIS, 1);
+  if (id.startsWith('diveBrake.')) return moves('brakes', X_AXIS, Number(data.rotationMultiplier ?? 1));
+  return moves('fixed', X_AXIS, 0);
+}
 type Model = {
   root: THREE.Group;
   joints: Joint[];
   /** The outermost joints: all that moves. Every other node keeps the world matrix it was given at load. */
   movers: THREE.Object3D[];
+  /** The joint that carries the payload, if any. */
+  socket?: THREE.Object3D;
   meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[];
   parts: AircraftPartsBatch[];
   count: number;
@@ -83,7 +103,7 @@ export class AircraftView {
   private direction = new THREE.Vector3();
   private latest = new THREE.Vector3();
   private attitude = new THREE.Euler();
-  private foldAxis = new THREE.Vector3();
+  private turn = new THREE.Quaternion();
   private releaseRotation = new THREE.Quaternion();
   private nose = new THREE.Vector3(0, 0, -1);
   private payloads = new ExpandableInstances(this.payloadGeometry, this.payloadMaterial, 768);
@@ -150,7 +170,7 @@ export class AircraftView {
             const sources: THREE.Mesh[] = [];
             root.traverse((object) => {
               const nodeId = object.userData.nodeId as string | undefined;
-              if (nodeId) model.joints.push({ object, id: nodeId, rotation: object.rotation.clone() });
+              if (nodeId) model.joints.push(joint(object, nodeId));
               if (!(object as THREE.Mesh).isMesh) return;
               sources.push(object as THREE.Mesh);
             });
@@ -183,6 +203,9 @@ export class AircraftView {
               for (let parent = object.parent; parent; parent = parent.parent) if (moving.has(parent)) return false;
               return true;
             });
+            model.socket = model.joints.find((j) => j.id === 'socket.payload')?.object;
+            // Poses set the joints' quaternions, which is all their matrices read: their Euler angles need not follow.
+            for (const { object } of model.joints) object.quaternion._onChange(() => {});
             this.models.set(`${id}/${lod}`, model);
           }),
       ),
@@ -336,24 +359,21 @@ export class AircraftView {
     this.transform.compose(this.position, this.quaternion, this.unit);
     const controls = aircraftControls(plane, alpha),
       gear = 1 - controls.gear;
-    for (const { object, id, rotation } of model.joints) {
-      object.rotation.copy(rotation);
-      if (id.startsWith('wing.fold.'))
-        object.rotateOnAxis(
-          this.foldAxis.fromArray(object.userData.foldAxis),
-          (plane.wingFold * Number(object.userData.foldAngleDegrees) * Math.PI) / 180,
-        );
-      if (id === 'propeller.spin') object.rotateZ(controls.propeller);
-      if (id.startsWith('gear.') && !object.userData.fixed && object.userData.articulation !== 'fixed') {
-        const angle = gear * Math.PI * 0.43 * (id.endsWith('.port') ? 1 : -1) * (id.endsWith('.tail') ? 0.5 : 1);
-        if (object.userData.axis === 'spanwise') object.rotateX(angle);
-        else object.rotateZ(angle);
-      }
-      if (id.startsWith('control.aileron.')) object.rotateX(controls.aileron * (id.endsWith('.port') ? 1 : -1));
-      if (id.startsWith('control.elevator.')) object.rotateX(controls.elevator);
-      if (id === 'control.rudder') object.rotateY(controls.rudder);
-      if (id === 'arrestor.hook') object.rotateX(controls.hook * 0.65);
-      if (id.startsWith('diveBrake.')) object.rotateX(controls.brakes * 0.55 * Number(object.userData.rotationMultiplier ?? 1));
+    // Each joint's authored rotation, then its turn (Object3D.rotateOnAxis: the axis-angle quaternion multiplied on), with
+    // the angles the controls set, as before.
+    for (const { object, id, rest, kind, axis, scale } of model.joints) {
+      object.quaternion.copy(rest);
+      let angle: number;
+      if (kind === 'fold') angle = (plane.wingFold * scale * Math.PI) / 180;
+      else if (kind === 'propeller') angle = controls.propeller;
+      else if (kind === 'gear') angle = gear * Math.PI * 0.43 * (id.endsWith('.port') ? 1 : -1) * (id.endsWith('.tail') ? 0.5 : 1);
+      else if (kind === 'aileron') angle = controls.aileron * scale;
+      else if (kind === 'elevator') angle = controls.elevator;
+      else if (kind === 'rudder') angle = controls.rudder;
+      else if (kind === 'hook') angle = controls.hook * 0.65;
+      else if (kind === 'brakes') angle = controls.brakes * 0.55 * scale;
+      else continue;
+      object.quaternion.multiply(this.turn.setFromAxisAngle(axis, angle));
     }
     for (const mover of model.movers) mover.updateMatrixWorld(true);
     for (const { source, batches } of model.meshes)
@@ -363,7 +383,7 @@ export class AircraftView {
       );
     for (const parts of model.parts) parts.setPose(model.count, this.transform);
     if (payload && this.payloadCount < 768) {
-      const socket = model.joints.find((j) => j.id === 'socket.payload')?.object;
+      const socket = model.socket;
       this.matrix.copy(this.transform);
       if (socket) this.matrix.multiply(socket.matrixWorld);
       if (payload === 'bomb') {

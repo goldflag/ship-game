@@ -4,23 +4,69 @@ import { BISMARCK } from './session/motion';
 import type { ShipState } from '../game/session/elements';
 
 type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;
-/** `along` counts the trail samples laid before this one, so a feature can follow distance along the track; `turn` is
- * the hull's rate of turn when it was laid (rad/s). The rest never changes once laid, so it is worked out then: the
- * heading's unit vector, where the trailing hull end was (`trailX`, `trailZ`: the stern, or the bow when sailing astern),
- * the realistic band's wander and each side's lobe, and the band's and slick's strength at full share (`churn`, `slick`)
- * for the tuning they were last read with. */
-type WakeSample = Motion & { born: number; strength: number; along: number; turn: number;
-  forwardX: number; forwardZ: number; trailX: number; trailZ: number; wander: number; port: number; starboard: number;
-  churn: number; churnPower: number; turnChurn: number; slick: number; slickPower: number };
 type ImpactSample = { x: number; z: number; born: number; scale: number };
 type WakeHull = { length: number; beam: number; forwardSpeed: number; centerX?: number; centerZ?: number };
-export interface WakeStampTarget {
-  /** Start a rasterisation: channel 0 is laid on the WAKE_EXTENT square around (centerX, centerZ), channel 1 on the
-   * SLICK_EXTENT square around (slickX, slickZ). */
-  begin(centerX: number, centerZ: number, slickX?: number, slickZ?: number): void;
-  stamp(x: number, z: number, rightX: number, rightZ: number, width: number, length: number, strength: number, ring: boolean, channel?: 0 | 1): void;
-  clear(): void;
+
+/** A trail's stamps for one rasterisation, eight floats each: (x, z, rightX, rightZ, width, length, strength, ring + 2 ×
+ * channel). Channel 0 is laid on the WAKE_EXTENT square around (centerX, centerZ), channel 1 on the SLICK_EXTENT square
+ * around (slickX, slickZ). */
+export class WakeStampCollector {
+  values = new Float64Array(256 * 8);
+  count = 0;
+  centerX = 0; centerZ = 0;
+  /** Centre of the slick channel's wider square (SLICK_EXTENT), laid over the same tile. */
+  slickX = 0; slickZ = 0;
+  /** Moves with every change to the stamps or their frame, so a painter can keep what it made of an unchanged tile. */
+  version = 0;
+  begin(x: number, z: number, slickX = x, slickZ = z): void { this.centerX = x; this.centerZ = z; this.slickX = slickX; this.slickZ = slickZ; this.clear(); }
+  clear(): void { this.count = 0; this.version++; }
+  reserve(count: number): void {
+    if (count * 8 <= this.values.length) return;
+    const values = new Float64Array(Math.max(count * 8, this.values.length * 2));
+    values.set(this.values); this.values = values;
+  }
+  stamp(x: number, z: number, rightX: number, rightZ: number, width: number, length: number, strength: number, ring: boolean, channel: 0 | 1 = 0): void {
+    this.reserve(this.count + 1);
+    const offset = this.count++ * 8, values = this.values;
+    values[offset] = x; values[offset + 1] = z; values[offset + 2] = rightX; values[offset + 3] = rightZ;
+    values[offset + 4] = width; values[offset + 5] = length; values[offset + 6] = strength; values[offset + 7] = Number(ring) + 2 * channel;
+    this.version++;
+  }
 }
+
+/** Trail samples, oldest first from `first`, `stride` floats each in one array: a pass over a fleet's thousands of samples
+ * reads them in order instead of chasing an object, and a boxed number per field, for each. */
+class SampleQueue {
+  data: Float64Array;
+  first = 0;
+  count = 0;
+  /** The tuning the stored strengths at full share (`CHURN`, `SLICK`) were worked out with; NaN strengths are still to be. */
+  power = NaN;
+  turn = NaN;
+  constructor(readonly stride: number) { this.data = new Float64Array(256 * stride); }
+  /** Room for one more sample at the end: the offset of its floats. */
+  push(): number {
+    const stride = this.stride;
+    if ((this.first + this.count + 1) * stride > this.data.length) {
+      // Move the samples to the front, into a larger array once they fill half of this one.
+      const data = this.count * 2 * stride > this.data.length ? new Float64Array(this.data.length * 2) : this.data;
+      data.set(this.data.subarray(this.first * stride, (this.first + this.count) * stride));
+      this.data = data; this.first = 0;
+    }
+    return (this.first + this.count++) * stride;
+  }
+  shift(): void { this.first++; if (!--this.count) this.first = 0; }
+  clear(): void { this.first = this.count = 0; }
+}
+/** A trail sample's floats. `TURN` is the hull's rate of turn when it was laid (rad/s). The rest never changes once laid,
+ * so it is worked out then: the heading's unit vector, where the trailing hull end was (`TRAIL_X`, `TRAIL_Z`: the stern,
+ * or the bow when sailing astern), the realistic band's wander and each side's lobe (from the samples laid before it, so a
+ * feature follows distance along the track); `CHURN` is the band's strength at full share for the queue's tuning. The
+ * first ten are what the realistic band reads. */
+const BORN = 0, CHURN = 1, SPEED = 2, FORWARD_X = 3, FORWARD_Z = 4, TRAIL_X = 5, TRAIL_Z = 6, WANDER = 7, PORT = 8, STARBOARD = 9,
+  TURN = 10, X = 11, Z = 12, STRENGTH = 13, TRAIL_STRIDE = 14;
+/** A slick sample's floats, copied from every SLICK_EVERY-th trail sample's, with `SLICK`, its strength at full share. */
+const SLICK = 1, SLICK_X = 7, SLICK_Z = 8, SLICK_STRIDE = 9;
 
 export const WAKE_EXTENT = 1536;
 /** Edge (m) of the square each trail's slick is painted in: wide enough to hold minutes of a straight run, at a
@@ -99,9 +145,11 @@ export class WakeFoam {
   readonly painted = [EMPTY.clone(), EMPTY.clone()] as const;
   private readonly time = uniform(0);
   private readonly field;
-  private readonly samples: WakeSample[] = [];
-  private readonly slickSamples: WakeSample[] = [];
+  private readonly samples = new SampleQueue(TRAIL_STRIDE);
+  private readonly slickSamples = new SampleQueue(SLICK_STRIDE);
   private readonly impacts: ImpactSample[] = [];
+  /** Where the stamps go: the painter's collector, or without one the reference raster's own. */
+  private readonly stamps: WakeStampCollector;
   private previous?: Motion;
   /** Storage for `previous`: only the pose and speed are kept between updates. */
   private readonly last: Motion = { x: 0, z: 0, heading: 0, speed: 0 };
@@ -115,7 +163,10 @@ export class WakeFoam {
   /** Live shape of the realistic trail; shared by every trail of a fleet. */
   tuning: WakeTuning = WAKE_TUNING;
 
-  constructor(private readonly resolution: number, private readonly hull: WakeHull = { length: 250, beam: 36, forwardSpeed: BISMARCK.forwardSpeed }, private readonly stampTarget?: WakeStampTarget) {
+  /** With a `stampTarget` the stamps are only collected there, for a painter; without one they are also rasterised into
+   * `texture` (and `slickPixels`), the CPU reference. */
+  constructor(private readonly resolution: number, private readonly hull: WakeHull = { length: 250, beam: 36, forwardSpeed: BISMARCK.forwardSpeed }, private readonly stampTarget?: WakeStampCollector) {
+    this.stamps = stampTarget ?? new WakeStampCollector();
     this.pixels = new Uint8Array(resolution * resolution);
     this.slickPixels = new Uint8Array(resolution * resolution);
     this.texture = new DataTexture(this.pixels, resolution, resolution, RedFormat);
@@ -179,19 +230,14 @@ export class WakeFoam {
       for (let along = SAMPLE_DISTANCE - this.sampleDistance; along <= distance; along += SAMPLE_DISTANCE) {
         const fraction = along / distance;
         const speed = previous.speed + (state.speed - previous.speed) * fraction;
-        const sample = this.lay({
-          x: previous.x + (state.x - previous.x) * fraction,
-          z: previous.z + (state.z - previous.z) * fraction,
-          heading: previous.heading + headingDelta * fraction,
-          speed,
-          strength: smooth(Math.abs(speed) / this.hull.forwardSpeed) ** 0.65,
-          along: this.sampleCount,
-          turn: Math.abs(headingDelta) / dt,
-          born: this.time.value - dt * (1 - fraction),
-        });
-        this.samples.push(sample);
+        const o = this.lay(previous.x + (state.x - previous.x) * fraction, previous.z + (state.z - previous.z) * fraction, previous.heading + headingDelta * fraction,
+          speed, smooth(Math.abs(speed) / this.hull.forwardSpeed) ** 0.65, this.sampleCount, Math.abs(headingDelta) / dt, this.time.value - dt * (1 - fraction));
         // The slick keeps a sparser record for longer, whichever trail is drawn, so switching shows its whole length.
-        if (this.sampleCount++ % SLICK_EVERY === 0) this.slickSamples.push(sample);
+        if (this.sampleCount++ % SLICK_EVERY === 0) {
+          const from = this.samples.data, queue = this.slickSamples, s = queue.push(), to = queue.data;
+          to[s + BORN] = from[o + BORN]; to[s + SLICK] = NaN; to[s + SPEED] = from[o + SPEED]; to[s + FORWARD_X] = from[o + FORWARD_X]; to[s + FORWARD_Z] = from[o + FORWARD_Z];
+          to[s + TRAIL_X] = from[o + TRAIL_X]; to[s + TRAIL_Z] = from[o + TRAIL_Z]; to[s + SLICK_X] = from[o + X]; to[s + SLICK_Z] = from[o + Z];
+        }
         this.dirty = true;
       }
       this.sampleDistance = (this.sampleDistance + distance) % SAMPLE_DISTANCE;
@@ -199,29 +245,33 @@ export class WakeFoam {
     const last = this.last;
     last.x = state.x; last.z = state.z; last.heading = state.heading; last.speed = state.speed;
     this.previous = last;
-    while (this.samples.length && this.time.value - this.samples[0].born > LIFETIME) this.samples.shift();
-    while (this.slickSamples.length && this.time.value - this.slickSamples[0].born > SLICK_LIFETIME) this.slickSamples.shift();
+    const samples = this.samples, slickSamples = this.slickSamples, now = this.time.value;
+    while (samples.count && now - samples.data[samples.first * TRAIL_STRIDE + BORN] > LIFETIME) samples.shift();
+    while (slickSamples.count && now - slickSamples.data[slickSamples.first * SLICK_STRIDE + BORN] > SLICK_LIFETIME) slickSamples.shift();
     while (this.impacts.length && this.time.value - this.impacts[0].born > IMPACT_LIFETIME) this.impacts.shift();
-    const slick = this.churned && this.slickSamples.length > 0;
-    if (this.elapsed < updateInterval || (!this.samples.length && !this.impacts.length && !slick && !this.dirty)) return;
+    const slick = this.churned && slickSamples.count > 0;
+    if (this.elapsed < updateInterval || (!samples.count && !this.impacts.length && !slick && !this.dirty)) return;
     this.elapsed = Number.isFinite(this.elapsed) ? this.elapsed % updateInterval : 0;
     this.rasterize(state);
-    this.dirty = this.samples.length > 0 || this.impacts.length > 0 || slick;
+    this.dirty = samples.count > 0 || this.impacts.length > 0 || slick;
   }
 
-  /** A new sample with everything that stays fixed for its life worked out, by the same expressions its stamps used to
-   * repeat on every rasterisation. */
-  private lay(motion: Motion & { born: number; strength: number; along: number; turn: number }): WakeSample {
-    const hull = this.hull, forwardX = Math.sin(motion.heading), forwardZ = -Math.cos(motion.heading);
+  /** Lay a new sample with everything that stays fixed for its life worked out, by the same expressions its stamps used to
+   * repeat on every rasterisation (`count`: the samples laid before it). The offset of its floats. */
+  private lay(x: number, z: number, heading: number, speed: number, strength: number, count: number, turn: number, born: number): number {
+    const hull = this.hull, forwardX = Math.sin(heading), forwardZ = -Math.cos(heading);
     const rightX = -forwardZ, rightZ = forwardX;
-    const centerX = motion.x + rightX * (hull.centerX ?? 0) - forwardX * (hull.centerZ ?? 0);
-    const centerZ = motion.z + rightZ * (hull.centerX ?? 0) - forwardZ * (hull.centerZ ?? 0);
-    const aft = (motion.speed >= 0 ? 1 : -1) * hull.length * .468;
-    const along = motion.along * SAMPLE_DISTANCE, laps = along / hull.beam;
+    const centerX = x + rightX * (hull.centerX ?? 0) - forwardX * (hull.centerZ ?? 0);
+    const centerZ = z + rightZ * (hull.centerX ?? 0) - forwardZ * (hull.centerZ ?? 0);
+    const aft = (speed >= 0 ? 1 : -1) * hull.length * .468;
+    const along = count * SAMPLE_DISTANCE, laps = along / hull.beam;
     const lobe = (phase: number) => Math.sin(laps * 4.8 + phase) * .6 + Math.sin(laps * 2.1 + phase * 1.7) * .4;
-    return { ...motion, forwardX, forwardZ, trailX: centerX - forwardX * aft, trailZ: centerZ - forwardZ * aft,
-      wander: Math.sin(along / 37) * .6 + Math.sin(along / 83 + 1.7) * .4, port: lobe(2.3), starboard: lobe(0),
-      churn: 0, churnPower: NaN, turnChurn: NaN, slick: 0, slickPower: NaN };
+    const o = this.samples.push(), data = this.samples.data;
+    data[o + BORN] = born; data[o + CHURN] = NaN; data[o + SPEED] = speed; data[o + FORWARD_X] = forwardX; data[o + FORWARD_Z] = forwardZ;
+    data[o + TRAIL_X] = centerX - forwardX * aft; data[o + TRAIL_Z] = centerZ - forwardZ * aft;
+    data[o + WANDER] = Math.sin(along / 37) * .6 + Math.sin(along / 83 + 1.7) * .4; data[o + PORT] = lobe(2.3); data[o + STARBOARD] = lobe(0);
+    data[o + TURN] = turn; data[o + X] = x; data[o + Z] = z; data[o + STRENGTH] = strength;
+    return o;
   }
 
   splash(x: number, z: number, caliberM: number): void {
@@ -233,15 +283,15 @@ export class WakeFoam {
   resetImpacts(): void { this.impacts.length = 0; this.dirty = true; }
 
   reset(): void {
-    this.samples.length = 0;
-    this.slickSamples.length = 0;
+    this.samples.clear();
+    this.slickSamples.clear();
     this.impacts.length = 0;
     this.previous = undefined;
     this.sampleDistance = 0;
     this.sampleCount = 0;
     this.pixels.fill(0);
     this.slickPixels.fill(0);
-    this.stampTarget?.clear();
+    this.stamps.clear();
     for (const box of this.painted) box.copy(EMPTY);
     this.texture.needsUpdate = true;
     this.dirty = false;
@@ -251,9 +301,7 @@ export class WakeFoam {
     const cell = EXTENT / this.resolution;
     this.origin.value.set(Math.round(state.x / cell) * cell, Math.round(state.z / cell) * cell);
     if (this.churned) this.frameSlick(state); else this.slickOrigin.copy(this.origin.value);
-    // A stamp target paints instead; the reference raster stays unused.
-    if (!this.stampTarget) { this.pixels.fill(0); this.slickPixels.fill(0); }
-    this.stampTarget?.begin(this.origin.value.x, this.origin.value.y, this.slickOrigin.x, this.slickOrigin.y);
+    this.stamps.begin(this.origin.value.x, this.origin.value.y, this.slickOrigin.x, this.slickOrigin.y);
     for (const box of this.painted) box.copy(EMPTY);
     for (const impact of this.impacts) {
       const age = this.time.value - impact.born;
@@ -266,37 +314,52 @@ export class WakeFoam {
       this.stamp(impact.x, impact.z, 1, 0, radius, radius, strength * .9);
       this.stamp(impact.x, impact.z, 1, 0, radius * 1.5, radius * 1.5, strength * .7, true);
     }
-    if (this.churned) { this.churn(); this.texture.needsUpdate = true; return; }
-    for (const sample of this.samples) {
-      const age = this.time.value - sample.born;
-      const { forwardX, forwardZ } = sample;
-      const rightX = -forwardZ, rightZ = forwardX;
-      const centerX = sample.x + rightX * (this.hull.centerX ?? 0) - forwardX * (this.hull.centerZ ?? 0);
-      const centerZ = sample.z + rightZ * (this.hull.centerX ?? 0) - forwardZ * (this.hull.centerZ ?? 0);
-      const aft = (sample.speed >= 0 ? 1 : -1) * this.hull.length * .468;
-      const sternX = centerX - forwardX * aft, sternZ = centerZ - forwardZ * aft;
-      const fade = Math.exp(-age / 23) * (1 - smooth((age - 38) / 17));
-      const eddy = Math.sin(sample.born * 1.7 + age * 0.23) * Math.min(age * 0.22, 3.5);
-      const spread = this.hull.beam * .194 + Math.sqrt(age) * 2.5 + age * 0.24;
-      const length = 5 + Math.sqrt(age) * 1.25;
-      // The three propeller streams merge into one widening, aerated trail.
-      // Overlapping footprints use max coverage, so emission frequency never
-      // builds an opaque stripe. Older foam loses density as its area grows.
-      for (const shaft of [-1, 0, 1]) {
-        const offset = shaft * (this.hull.beam * .153 + Math.min(age * 0.16, 4)) + eddy;
-        this.stamp(sternX + rightX * offset, sternZ + rightZ * offset,
-          rightX, rightZ, spread, length,
-          sample.strength * fade * (shaft === 0 ? 1 : 0.84));
+    if (this.churned) this.churn();
+    else {
+      const data = this.samples.data, end = (this.samples.first + this.samples.count) * TRAIL_STRIDE;
+      for (let o = this.samples.first * TRAIL_STRIDE; o < end; o += TRAIL_STRIDE) {
+        const born = data[o + BORN], speed = data[o + SPEED], strength = data[o + STRENGTH], age = this.time.value - born;
+        const forwardX = data[o + FORWARD_X], forwardZ = data[o + FORWARD_Z];
+        const rightX = -forwardZ, rightZ = forwardX;
+        const centerX = data[o + X] + rightX * (this.hull.centerX ?? 0) - forwardX * (this.hull.centerZ ?? 0);
+        const centerZ = data[o + Z] + rightZ * (this.hull.centerX ?? 0) - forwardZ * (this.hull.centerZ ?? 0);
+        const aft = (speed >= 0 ? 1 : -1) * this.hull.length * .468;
+        const sternX = centerX - forwardX * aft, sternZ = centerZ - forwardZ * aft;
+        const fade = Math.exp(-age / 23) * (1 - smooth((age - 38) / 17));
+        const eddy = Math.sin(born * 1.7 + age * 0.23) * Math.min(age * 0.22, 3.5);
+        const spread = this.hull.beam * .194 + Math.sqrt(age) * 2.5 + age * 0.24;
+        const length = 5 + Math.sqrt(age) * 1.25;
+        // The three propeller streams merge into one widening, aerated trail.
+        // Overlapping footprints use max coverage, so emission frequency never
+        // builds an opaque stripe. Older foam loses density as its area grows.
+        for (const shaft of [-1, 0, 1]) {
+          const offset = shaft * (this.hull.beam * .153 + Math.min(age * 0.16, 4)) + eddy;
+          this.stamp(sternX + rightX * offset, sternZ + rightZ * offset,
+            rightX, rightZ, spread, length,
+            strength * fade * (shaft === 0 ? 1 : 0.84));
+        }
+        if (!this.bowShoulders) continue;
+        // Bow shoulders spread away from the historical course; only their
+        // youngest crests carry white water. The native solver carries the swell.
+        const shoulder = this.hull.beam * .194 + age * Math.abs(speed) * 0.32;
+        const bowX = centerX + forwardX * aft, bowZ = centerZ + forwardZ * aft;
+        const crest = strength * Math.exp(-age / 9) * 0.8;
+        for (const side of [-1, 1]) {
+          this.stamp(bowX + rightX * shoulder * side, bowZ + rightZ * shoulder * side,
+            rightX, rightZ, 4 + age * 0.35, length, crest);
+        }
       }
-      if (!this.bowShoulders) continue;
-      // Bow shoulders spread away from the historical course; only their
-      // youngest crests carry white water. The native solver carries the swell.
-      const shoulder = this.hull.beam * .194 + age * Math.abs(sample.speed) * 0.32;
-      const bowX = centerX + forwardX * aft, bowZ = centerZ + forwardZ * aft;
-      const crest = sample.strength * Math.exp(-age / 9) * 0.8;
-      for (const side of [-1, 1]) {
-        this.stamp(bowX + rightX * shoulder * side, bowZ + rightZ * shoulder * side,
-          rightX, rightZ, 4 + age * 0.35, length, crest);
+    }
+    // Without a painter's collector the stamps are rasterised here, into the CPU reference.
+    if (!this.stampTarget) {
+      this.pixels.fill(0); this.slickPixels.fill(0);
+      const values = this.stamps.values;
+      for (let i = 0; i < this.stamps.count * 8; i += 8) {
+        const slick = values[i + 7] > 1.5, ring = values[i + 7] - (slick ? 2 : 0) > .5;
+        if (slick) rasterizeStamp(this.slickPixels, this.resolution, this.slickOrigin.x, this.slickOrigin.y, values[i], values[i + 1], values[i + 2], values[i + 3],
+          values[i + 4], values[i + 5], values[i + 6], ring, SLICK_EXTENT);
+        else rasterizeStamp(this.pixels, this.resolution, this.origin.value.x, this.origin.value.y, values[i], values[i + 1], values[i + 2], values[i + 3],
+          values[i + 4], values[i + 5], values[i + 6], ring);
       }
     }
     this.texture.needsUpdate = true;
@@ -308,9 +371,11 @@ export class WakeFoam {
   private frameSlick(state: Motion): void {
     const cell = SLICK_EXTENT / this.resolution, reach = SLICK_REACH;
     let minX = state.x, maxX = state.x, minZ = state.z, maxZ = state.z;
-    for (const sample of this.slickSamples) {
-      if (Math.abs(sample.x - state.x) > reach * 2 || Math.abs(sample.z - state.z) > reach * 2) continue;
-      minX = Math.min(minX, sample.x); maxX = Math.max(maxX, sample.x); minZ = Math.min(minZ, sample.z); maxZ = Math.max(maxZ, sample.z);
+    const data = this.slickSamples.data, end = (this.slickSamples.first + this.slickSamples.count) * SLICK_STRIDE;
+    for (let o = this.slickSamples.first * SLICK_STRIDE; o < end; o += SLICK_STRIDE) {
+      const x = data[o + SLICK_X], z = data[o + SLICK_Z];
+      if (Math.abs(x - state.x) > reach * 2 || Math.abs(z - state.z) > reach * 2) continue;
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x); minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
     }
     const x = state.x + Math.max(-reach, Math.min(reach, (minX + maxX) / 2 - state.x));
     const z = state.z + Math.max(-reach, Math.min(reach, (minZ + maxZ) / 2 - state.z));
@@ -318,46 +383,73 @@ export class WakeFoam {
   }
 
   /** The realistic trail: one churned band per sample in channel 0 and, sparser, the slick in channel 1. Both widen
-   * with the square root of the distance run since the stern passed, as a turbulent wake spreads. */
+   * with the square root of the distance run since the stern passed, as a turbulent wake spreads. Every stamp is written
+   * as `stamp` writes it, and each channel's painted box grows by the same reaches, gathered here. */
   private churn(): void {
-    const tuning = this.tuning, beam = this.hull.beam, now = this.time.value;
+    const tuning = this.tuning, hull = this.hull, beam = hull.beam, now = this.time.value;
     const churnCell = MIN_CELLS * EXTENT / this.resolution, slickCell = MIN_CELLS * SLICK_EXTENT / this.resolution;
-    for (const sample of this.samples) {
-      const age = now - sample.born;
-      if (sample.churnPower !== tuning.churnPower || sample.turnChurn !== tuning.turnChurn) {
-        const ratio = Math.min(Math.abs(sample.speed) / this.hull.forwardSpeed, 1);
-        const slide = Math.min(1, sample.turn * this.hull.length / Math.max(Math.abs(sample.speed), 1));
-        sample.churn = Math.min(1, smooth(ratio) ** tuning.churnPower * (1 + tuning.turnChurn * slide));
-        sample.churnPower = tuning.churnPower; sample.turnChurn = tuning.turnChurn;
+    const samples = this.samples, slickSamples = this.slickSamples, stamps = this.stamps;
+    stamps.reserve(stamps.count + samples.count * 2 + slickSamples.count);
+    const values = stamps.values;
+    let n = stamps.count;
+    // A tuning change re-derives every sample's strength at full share; otherwise only the samples laid since are.
+    const retune = samples.power !== tuning.churnPower || samples.turn !== tuning.turnChurn;
+    samples.power = tuning.churnPower; samples.turn = tuning.turnChurn;
+    let data = samples.data, end = (samples.first + samples.count) * TRAIL_STRIDE, pad = EXTENT / this.resolution;
+    let box = this.painted[0], minX = box.x, minZ = box.y, maxX = box.z, maxZ = box.w;
+    for (let o = samples.first * TRAIL_STRIDE; o < end; o += TRAIL_STRIDE) {
+      const age = now - data[o + BORN], speed = data[o + SPEED];
+      let churn = data[o + CHURN];
+      if (retune || churn !== churn) {
+        const ratio = Math.min(Math.abs(speed) / hull.forwardSpeed, 1);
+        const slide = Math.min(1, data[o + TURN] * hull.length / Math.max(Math.abs(speed), 1));
+        churn = data[o + CHURN] = Math.min(1, smooth(ratio) ** tuning.churnPower * (1 + tuning.turnChurn * slide));
       }
-      const strength = sample.churn * Math.exp(-age / tuning.churnLife) * (1 - smooth((age - 40) / (LIFETIME - 40)));
+      const strength = churn * Math.exp(-age / tuning.churnLife) * (1 - smooth((age - 40) / (LIFETIME - 40)));
       if (strength < .015) continue;
-      const rightX = -sample.forwardZ, rightZ = sample.forwardX;
-      const run = age * Math.abs(sample.speed), spread = Math.sqrt(run / beam);
+      const rightX = -data[o + FORWARD_Z], rightZ = data[o + FORWARD_X];
+      const run = age * Math.abs(speed), spread = Math.sqrt(run / beam);
       const width = Math.max(beam * (tuning.churnWidth + tuning.churnSpread * spread), churnCell);
       // The band wanders a little along the track as its eddies grow.
-      const meander = sample.wander * Math.min(tuning.meander * Math.sqrt(age), beam / 6);
-      const centerX = sample.trailX + rightX * meander, centerZ = sample.trailZ + rightZ * meander;
+      const meander = data[o + WANDER] * Math.min(tuning.meander * Math.sqrt(age), beam / 6);
+      const centerX = data[o + TRAIL_X] + rightX * meander, centerZ = data[o + TRAIL_Z] + rightZ * meander;
+      const length = Math.max(4, width * .35), acrossX = Math.abs(rightX), acrossZ = Math.abs(rightZ);
       // Each side is its own stamp, bulging and drawing in on its own, so the outline is ragged, not a string of beads.
       for (let side = -1; side <= 1; side += 2) {
-        const half = Math.max(width * .65 * (1 + tuning.lobes * (side > 0 ? sample.starboard : sample.port)), churnCell);
-        this.stamp(centerX + rightX * side * width * .35, centerZ + rightZ * side * width * .35, rightX, rightZ, half, Math.max(4, width * .35), strength);
+        const half = Math.max(width * .65 * (1 + tuning.lobes * (side > 0 ? data[o + STARBOARD] : data[o + PORT])), churnCell);
+        const x = centerX + rightX * side * width * .35, z = centerZ + rightZ * side * width * .35;
+        const reachX = acrossX * half + acrossZ * length + pad, reachZ = acrossZ * half + acrossX * length + pad;
+        minX = Math.min(minX, x - reachX); minZ = Math.min(minZ, z - reachZ); maxX = Math.max(maxX, x + reachX); maxZ = Math.max(maxZ, z + reachZ);
+        const v = n++ * 8;
+        values[v] = x; values[v + 1] = z; values[v + 2] = rightX; values[v + 3] = rightZ;
+        values[v + 4] = half; values[v + 5] = length; values[v + 6] = strength; values[v + 7] = 0;
       }
     }
-    for (const sample of this.slickSamples) {
-      const age = now - sample.born;
-      if (sample.slickPower !== tuning.slickPower) {
-        sample.slick = smooth(Math.min(Math.abs(sample.speed) / this.hull.forwardSpeed, 1)) ** tuning.slickPower;
-        sample.slickPower = tuning.slickPower;
-      }
-      const strength = sample.slick * Math.exp(-age / tuning.slickLife) * (1 - smooth((age - SLICK_LIFETIME * .75) / (SLICK_LIFETIME * .25)));
+    box.set(minX, minZ, maxX, maxZ);
+    const reslick = slickSamples.power !== tuning.slickPower;
+    slickSamples.power = tuning.slickPower;
+    data = slickSamples.data; end = (slickSamples.first + slickSamples.count) * SLICK_STRIDE; pad = SLICK_EXTENT / this.resolution;
+    box = this.painted[1]; minX = box.x; minZ = box.y; maxX = box.z; maxZ = box.w;
+    for (let o = slickSamples.first * SLICK_STRIDE; o < end; o += SLICK_STRIDE) {
+      const age = now - data[o + BORN], speed = data[o + SPEED];
+      let slick = data[o + SLICK];
+      if (reslick || slick !== slick) slick = data[o + SLICK] = smooth(Math.min(Math.abs(speed) / hull.forwardSpeed, 1)) ** tuning.slickPower;
+      const strength = slick * Math.exp(-age / tuning.slickLife) * (1 - smooth((age - SLICK_LIFETIME * .75) / (SLICK_LIFETIME * .25)));
       if (strength < .015) continue;
-      const x = sample.trailX, z = sample.trailZ, rightX = -sample.forwardZ, rightZ = sample.forwardX;
-      const run = age * Math.abs(sample.speed), spread = Math.sqrt(run / beam);
+      const x = data[o + TRAIL_X], z = data[o + TRAIL_Z], rightX = -data[o + FORWARD_Z], rightZ = data[o + FORWARD_X];
+      const run = age * Math.abs(speed), spread = Math.sqrt(run / beam);
       const width = Math.max(beam * (tuning.slickWidth + tuning.slickSpread * spread), slickCell);
       // Long enough along the track to join the next sample SLICK_EVERY × SAMPLE_DISTANCE on.
-      this.stamp(x, z, rightX, rightZ, width, Math.max(SLICK_EVERY * SAMPLE_DISTANCE, width * .5), strength, false, 1);
+      const length = Math.max(SLICK_EVERY * SAMPLE_DISTANCE, width * .5);
+      const reachX = Math.abs(rightX) * width + Math.abs(rightZ) * length + pad, reachZ = Math.abs(rightZ) * width + Math.abs(rightX) * length + pad;
+      minX = Math.min(minX, x - reachX); minZ = Math.min(minZ, z - reachZ); maxX = Math.max(maxX, x + reachX); maxZ = Math.max(maxZ, z + reachZ);
+      const v = n++ * 8;
+      values[v] = x; values[v + 1] = z; values[v + 2] = rightX; values[v + 3] = rightZ;
+      values[v + 4] = width; values[v + 5] = length; values[v + 6] = strength; values[v + 7] = 2;
     }
+    box.set(minX, minZ, maxX, maxZ);
+    // The collector's version moves once per stamp, as `stamp` moves it.
+    stamps.version += n - stamps.count; stamps.count = n;
   }
 
   private stamp(x: number, z: number, rightX: number, rightZ: number,
@@ -368,9 +460,7 @@ export class WakeFoam {
     const reachX = Math.abs(rightX) * width + Math.abs(rightZ) * length + pad, reachZ = Math.abs(rightZ) * width + Math.abs(rightX) * length + pad;
     const box = this.painted[channel];
     box.set(Math.min(box.x, x - reachX), Math.min(box.y, z - reachZ), Math.max(box.z, x + reachX), Math.max(box.w, z + reachZ));
-    if (this.stampTarget) { this.stampTarget.stamp(x, z, rightX, rightZ, width, length, strength, ring, channel); return; }
-    if (channel) rasterizeStamp(this.slickPixels, this.resolution, this.slickOrigin.x, this.slickOrigin.y, x, z, rightX, rightZ, width, length, strength, ring, SLICK_EXTENT);
-    else rasterizeStamp(this.pixels, this.resolution, this.origin.value.x, this.origin.value.y, x, z, rightX, rightZ, width, length, strength, ring);
+    this.stamps.stamp(x, z, rightX, rightZ, width, length, strength, ring, channel);
   }
 
   dispose(): void { this.texture.dispose(); }
