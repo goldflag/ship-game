@@ -153,11 +153,12 @@ console.log(`\n${sweep.mounts.length} mounts, ${sweep.mounts.reduce((n, m) => n 
 for (const r of rows.sort((x, y) => Number(y.reachable > 0) - Number(x.reachable > 0) || x.mount.localeCompare(y.mount))) {
   const status = !resolve ? 'CONTACT  ' : r.reachable ? 'REACHABLE' : 'stopped  ';
   const where = r.kind === 'mount' ? `against ${r.against} (posed independently)` : `touches ${r.against}`;
-  const example = r.kind === 'mount'
+  // Only reachable rows carry an example pose.
+  const example = () => r.kind === 'mount'
     ? `${r.mount} ${r.example!.slice(0, 3).join('/')} with ${r.against} ${r.example!.slice(3).join('/')}`
     : `train ${r.example![0]}°, elevation ${r.example![1]}°, recoil ${r.example![2]}`;
   const detail = r.reachable
-    ? `${r.reachable}/${r.poses} contact poses reachable, e.g. ${example}`
+    ? `${r.reachable}/${r.poses} contact poses reachable, e.g. ${example()}`
     : `interlock stops first${r.stopsAt ? ` (at ${r.stopsAt})` : ''}`;
   console.log(`${status} ${r.mount} ${where}; train ${r.train}°, elevation ${r.elevation}°; ${detail}`);
 }
