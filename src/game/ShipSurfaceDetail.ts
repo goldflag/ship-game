@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import {
-  Fn, If, abs, attribute, cross, dFdx, dFdy, dot, exp, faceDirection, float, materialColor, materialRoughness, max, mix, mx_noise_float, normalGeometry, normalView,
+  Fn, If, abs, attribute, cross, dFdx, dFdy, dot, exp, faceDirection, float, int, materialColor, materialRoughness, max, mix, mx_noise_float, normalGeometry, normalView,
   positionGeometry, positionView, pow, select, smoothstep, texture, uniform, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
@@ -337,12 +337,32 @@ export function teakTexels(width: number = TEAK.width, length: number = TEAK.len
   return pixels;
 }
 
-function dataTexture(pixels: Uint8Array, width: number, height: number, name: string, wrapT: THREE.Wrapping = THREE.RepeatWrapping): THREE.DataTexture {
-  const map = new THREE.DataTexture(pixels, width, height);
-  map.name = name; map.wrapS = THREE.RepeatWrapping; map.wrapT = wrapT;
+function dataTexture<T extends THREE.DataTexture | THREE.DataArrayTexture>(map: T, name: string): T {
+  map.name = name; map.wrapS = THREE.RepeatWrapping; map.wrapT = THREE.RepeatWrapping;
   map.magFilter = THREE.LinearFilter; map.minFilter = THREE.LinearMipmapLinearFilter;
   map.generateMipmaps = true; map.anisotropy = 8; map.needsUpdate = true;
   return map;
+}
+
+/** The plating, finish and runoff tiles as the layers of one array texture, so the paint binds one sampler for all three:
+ * Apple GPUs allow 16 samplers a shader stage, and the paint's lighting, shadows, fog and wet band take the rest. */
+export const DETAIL = { plate: 0, finish: 1, streaks: 2, layers: 3 } as const;
+/** The runoff tile fills a quarter of its layer's height, so the tile's `v` reads the layer at a quarter of it. */
+export const STREAK_V = STREAK.height / PLATE.size;
+/** RGBA texels of the detail layers, `PLATE.size` square each. The runoff tile keeps its own resolution: it fills the
+ * layer's height four times, every other copy upside down, so its wrap mirrors at the edge and at the foot as a clamped
+ * tile would, at every mip level, and the layer still repeats along the edge. */
+export function detailTexels(size: number = PLATE.size): Uint8Array {
+  const layer = size * size * 4, pixels = new Uint8Array(layer * DETAIL.layers);
+  pixels.set(plateTexels(size), DETAIL.plate * layer);
+  pixels.set(finishTexels(size), DETAIL.finish * layer);
+  const rows = STREAK.height * size / PLATE.size, row = STREAK.width * 4, streaks = streakTexels(size, rows), base = DETAIL.streaks * layer;
+  if (STREAK.width !== PLATE.size || size % (2 * rows)) throw new Error('The runoff tile must share the plating tile’s width and divide its height evenly.');
+  for (let y = 0; y < size; y++) {
+    const period = y % (2 * rows), source = period < rows ? period : 2 * rows - 1 - period;
+    pixels.set(streaks.subarray(source * row, (source + 1) * row), base + y * row);
+  }
+  return pixels;
 }
 
 /** Relief strength, for review. */
@@ -406,10 +426,11 @@ function perturbed(gradient: Node<'vec3'>): Node<'vec3'> {
 /** Created once; every palette material shares these nodes. */
 function shipSurfaceNodes(): Nodes {
   if (nodes) return nodes;
-  const plate = dataTexture(plateTexels(), PLATE.size, PLATE.size, 'Ship plating detail');
-  const teak = dataTexture(teakTexels(), TEAK.width, TEAK.length, 'Ship teak detail');
-  const streaks = dataTexture(streakTexels(), STREAK.width, STREAK.height, 'Ship runoff streaks', THREE.ClampToEdgeWrapping);
-  const finish = dataTexture(finishTexels(), PLATE.size, PLATE.size, 'Construction plating finish');
+  const detail = dataTexture(new THREE.DataArrayTexture(detailTexels(), PLATE.size, PLATE.size, DETAIL.layers), 'Ship surface detail');
+  const teak = dataTexture(new THREE.DataTexture(teakTexels(), TEAK.width, TEAK.length), 'Ship teak detail');
+  const plate = (uv: Node<'vec2'>) => texture(detail, uv).depth(int(DETAIL.plate)), finish = (uv: Node<'vec2'>) => texture(detail, uv).depth(int(DETAIL.finish));
+  /** Runoff at `v` down its 16 m tile, 0 at the edge. */
+  const streaks = (u: Node<'float'>, v: Node<'float'>) => texture(detail, vec2(u, v.mul(STREAK_V))).depth(int(DETAIL.streaks));
   // Roughness, metalness, plated-paint flag; `w` is the wet band's rest height (HullWetBand).
   const surface = attribute<'vec4'>('shipSurface', 'vec4');
   // Paint that wears carries its ship's wear amount; paint of a ship with none, and paint that does not wear, carry none.
@@ -417,7 +438,7 @@ function shipSurfaceNodes(): Nodes {
   const p = positionGeometry, n = normalGeometry.normalize();
   // Triplanar weights in geometry space: beam-facing sides, end bulkheads and decks.
   const w0 = pow(abs(n), vec3(4)), w = w0.div(w0.x.add(w0.y).add(w0.z));
-  const side = texture(plate, p.zy.div(PLATE.tile)), end = texture(plate, p.xy.div(PLATE.tile)), top = texture(plate, p.zx.div(PLATE.tile));
+  const side = plate(p.zy.div(PLATE.tile)), end = plate(p.xy.div(PLATE.tile)), top = plate(p.zx.div(PLATE.tile));
   const gradient = (s: Node<'vec4'>, scale: number) => s.xy.mul(2).sub(1).mul(scale);
   const gs = gradient(side, PLATE.gradientScale), ge = gradient(end, PLATE.gradientScale);
   const plating = Fn(() => {
@@ -425,8 +446,8 @@ function shipSurfaceNodes(): Nodes {
     const relief = vec3(ge.x.mul(w.z), gs.y.mul(w.x).add(ge.y.mul(w.z)), gs.x.mul(w.x)).toVar();
     If(worn.x.mul(surfaceWear).greaterThan(1e-4).and(plateFinish.greaterThan(.5)), () => {
       // Plating as welded, on decks and roofs too.
-      const fs = gradient(texture(finish, p.zy.div(PLATE.tile)), FINISH.gradientScale), fe = gradient(texture(finish, p.xy.div(PLATE.tile)), FINISH.gradientScale);
-      const ft = gradient(texture(finish, p.zx.div(PLATE.tile)), FINISH.gradientScale);
+      const fs = gradient(finish(p.zy.div(PLATE.tile)), FINISH.gradientScale), fe = gradient(finish(p.xy.div(PLATE.tile)), FINISH.gradientScale);
+      const ft = gradient(finish(p.zx.div(PLATE.tile)), FINISH.gradientScale);
       relief.assign(vec3(fe.x.mul(w.z).add(ft.y.mul(w.y)), fs.y.mul(w.x).add(fe.y.mul(w.z)), fs.x.mul(w.x).add(ft.x.mul(w.y))));
     });
     return relief.mul(surface.z).mul(surfaceRelief);
@@ -447,13 +468,13 @@ function shipSurfaceNodes(): Nodes {
       const amount = select(wearOverride.greaterThanEqual(0), wearOverride, worn.x).mul(surfaceWear).toVar();
       const plated = attribute<'vec4'>('shipSurface', 'vec4').z.mul(plateFinish).toVar();
       // Paint as applied, fresh or worn: each plate's own shade and roller strips, and the lines of its seams.
-      const applied = texture(finish, q.zy.div(PLATE.tile)).zw.mul(tri.x).add(texture(finish, q.xy.div(PLATE.tile)).zw.mul(tri.z))
-        .add(texture(finish, q.zx.div(PLATE.tile)).zw.mul(tri.y)).toVar();
+      const applied = finish(q.zy.div(PLATE.tile)).zw.mul(tri.x).add(finish(q.xy.div(PLATE.tile)).zw.mul(tri.z))
+        .add(finish(q.zx.div(PLATE.tile)).zw.mul(tri.y)).toVar();
       const seam = applied.x.mul(plated), tone = applied.y.mul(2).sub(1).mul(plated);
       const color = vec3(tone.mul(APPLIED.tone).add(1)).toVar(), rough = tone.mul(APPLIED.sheen).add(1).toVar();
       If(amount.greaterThan(0), () => {
-        const blotch = texture(plate, q.zy.div(PLATE.tile)).w.mul(tri.x).add(texture(plate, q.xy.div(PLATE.tile)).w.mul(tri.z))
-          .add(texture(plate, q.zx.div(PLATE.tile)).w.mul(tri.y)).mul(2).sub(1).toVar();
+        const blotch = plate(q.zy.div(PLATE.tile)).w.mul(tri.x).add(plate(q.xy.div(PLATE.tile)).w.mul(tri.z))
+          .add(plate(q.zx.div(PLATE.tile)).w.mul(tri.y)).mul(2).sub(1).toVar();
         // Broad patches that never repeat keep the 16 m tile from showing along a hull.
         const broad = mx_noise_float(q.div(7));
         color.mulAssign(amount.mul(WEAR.mottle).mul(blotch.mul(.75).add(broad.mul(.45))).add(1));
@@ -468,7 +489,7 @@ function shipSurfaceNodes(): Nodes {
         const clear = float(1).toVar(), drop = worn.y, tide = worn.w;
         If(vertical.and(drop.lessThan(STREAK.down)), () => {
           const v = drop.div(STREAK.down);
-          clear.assign(dot(mix(texture(streaks, vec2(stretched(q.x), v)), texture(streaks, vec2(stretched(q.z), v)), beam), levels).oneMinus());
+          clear.assign(dot(mix(streaks(stretched(q.x), v), streaks(stretched(q.z), v), beam), levels).oneMinus());
         });
         // Every strake seam below a wall's top edge and above the sea leaks a shorter, closer-set fringe of its own,
         // some seams more than others.
@@ -476,8 +497,8 @@ function shipSurfaceNodes(): Nodes {
         If(vertical.and(plated.greaterThan(0)).and(seamDrop.lessThan(drop.sub(.05))).and(tide.greaterThan(.3)), () => {
           const leak = seamAbove.mul(12.9898).sin().mul(43758.5453).fract(), v = seamDrop.mul(APPLIED.seamRun / STREAK.down);
           // Explicit gradients, since the seam index and its drop jump at every seam.
-          const along = APPLIED.seamSpacing / STREAK.along, down = -APPLIED.seamRun / STREAK.down;
-          const fringe = (h: Node<'float'>, hx: Node<'float'>, hy: Node<'float'>) => texture(streaks, vec2(stretched(h.add(leak.mul(STREAK.along))).mul(APPLIED.seamSpacing), v))
+          const along = APPLIED.seamSpacing / STREAK.along, down = -APPLIED.seamRun / STREAK.down * STREAK_V;
+          const fringe = (h: Node<'float'>, hx: Node<'float'>, hy: Node<'float'>) => streaks(stretched(h.add(leak.mul(STREAK.along))).mul(APPLIED.seamSpacing), v)
             .grad(vec2(hx.mul(along), dx.y.mul(down)), vec2(hy.mul(along), dy.y.mul(down)));
           const runoff = mix(fringe(q.x, dx.x, dy.x), fringe(q.z, dx.z, dy.z), beam);
           const share = leak.mul(1 - APPLIED.leakMin).add(APPLIED.leakMin);
