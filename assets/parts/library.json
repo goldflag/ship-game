@@ -674,6 +674,20 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "ijn-carrier-type96-open": {
+      "path": "assets/parts/ijn-carrier-guns/type96_triple.py",
+      "function": "create_open",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-carrier-type96-shielded": {
+      "path": "assets/parts/ijn-carrier-guns/type96_triple.py",
+      "function": "create_shielded",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -906,16 +920,16 @@
       "nation": "Japan",
       "family": "Type 96 25 mm",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "ijn-aa"
+      "limitations": "Original reconstruction of the open Type 96 triple measured against GameModels3D pjsa108 (jga173); the trunnion datum is derived from the reference barrels baked at 30 degrees; each gun keeps its own cradle, case chute and grips; the long port elevating link is omitted and the chutes and rear grips are shortened to clear the deck at full elevation; seats, sight and hand wheel are simplified; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-carrier-type96-open"
     },
     {
       "partId": "type96-25-triple-shielded",
       "nation": "Japan",
       "family": "Type 96 25 mm",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "ijn-aa"
+      "limitations": "Original reconstruction of the carrier smoke-shield Type 96 triple measured against GameModels3D pjsa108 (jga004); the twelve-sided drum is fixed and the shield trains on it; the guns inside reuse the open triple's gun with a simplified hidden cradle; the notch floor under the slots is lowered 0.11 m so the flash hiders clear it at -10 degrees; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-carrier-type96-shielded"
     },
     {
       "partId": "type3-127-typec-twin",

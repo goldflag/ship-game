@@ -13,17 +13,19 @@ for shield in [False,True]:
          if shield else dict(barbetteRadius=1.47,gunhouseSize=[4.6,4.2,3.2],pivotHeight=2.11,trunnionForward=-.231,muzzleForward=4.107,barrelSpacing=.682)),
       caliberM=.127,traverseDeg=70,traverseRateDeg=7,elevationMinDeg=-7,elevationMaxDeg=85,elevationRateDeg=12,
       reloadSeconds=5,muzzleSpeed=720,projectileMassKg=23.45,penetrationMm=55,damage=15,recoilM=.45,ammoPerBarrel=300,armorMm=5,barrelCount=2,
-      mountingStyle='open-pedestal',barrelBaseRadius=.145,
+      mountingStyle='open-pedestal',barrelBaseRadius=.12 if shield else .18,
       he=dict(explosiveKg=1.778,fragmentPenetrationMm=21,damage=24,stockFraction=1,basis='Type 0 HE nominal projectile and filling; blast damage is gameplay calibration.'),
       ballistics=dict(dragPerSecond=.06072,dispersionRad=.0012,muzzleSpeedSigmaFraction=.003,penetrationReferenceSpeedMps=416.9,
         basis='S05: Type 89 A1 720 m/s, 7 deg/s train, 12 deg/s elevation, 0.45 m recoil. Published 70-degree amidships half-arc; per-station mechanical stops remain unresolved. Effective ballistics and stocks are game estimates.')))
 for shield in [False,True]:
     id='type96-25-triple-shielded' if shield else 'type96-25-triple'
     parts.append(dict(id=id,name='25 mm Type 96 triple'+(' smoke shield' if shield else ''),kind='gun',massKg=2800 if shield else 1800,
-      barbetteRadius=1.1,gunhouseSize=[2.4,2.6,1.9],pivotHeight=1.35,trunnionForward=.12,muzzleForward=1.58,
-      barrelSpacing=.43,caliberM=.025,traverseDeg=90,traverseRateDeg=18,elevationMinDeg=-10,elevationMaxDeg=85,elevationRateDeg=12,
+      # Datums measured on GameModels3D pjsa108: jga004 (smoke shield) and jga173 (open); see type96_triple.py.
+      **(dict(barbetteRadius=1.7,gunhouseSize=[3.6,3.6,2.22],pivotHeight=1.23,trunnionForward=.02,muzzleForward=1.83,barrelSpacing=.3)
+         if shield else dict(barbetteRadius=.6,gunhouseSize=[2.3,2.1,1.85],pivotHeight=.915,trunnionForward=-.13,muzzleForward=1.68,barrelSpacing=.28)),
+      caliberM=.025,traverseDeg=90,traverseRateDeg=18,elevationMinDeg=-10,elevationMaxDeg=85,elevationRateDeg=12,
       reloadSeconds=.55,muzzleSpeed=900,projectileMassKg=.25,penetrationMm=18,damage=2.5,recoilM=.075,ammoPerBarrel=1500,armorMm=3,barrelCount=3,
-      mountingStyle='open-quad',barrelBaseRadius=.041,
+      mountingStyle='open-quad',barrelBaseRadius=.048,
       he=dict(explosiveKg=.015,fragmentPenetrationMm=5,damage=3,stockFraction=1,basis='Type 96 HE filling; average firing cadence includes frequent 15-round magazine changes. Blast is provisional.'),
       ballistics=dict(dragPerSecond=.27,dispersionRad=.002,muzzleSpeedSigmaFraction=.005,penetrationReferenceSpeedMps=530,
         basis='S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation.')))
