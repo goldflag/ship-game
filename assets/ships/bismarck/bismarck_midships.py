@@ -309,7 +309,7 @@ def boat(name,x,y,z,length,breadth,cabin=False,yaw=0,keel=None,support_surface=N
    box(name+' windscreen',(cabx+cablength*.505+.027,y+sign*breadth*.16,cabbase+.49),(.020,breadth*.23,.35),materials['glass'],detailcol)
   hatch(name+' cabin hatch',cabx-length*.10,y,cabbase+cabheight+.17,.78,.62)
   for t in [-.43,.35]:
-   for sign in [-1,1]:rod(name+' cleat',(x+length*t-.14,y+sign*breadth*.21,z+depth+.20),(x+length*t+.14,y+sign*breadth*.21,z+depth+.20),.024,materials['edge'],detailcol,vertices=8)
+   for sign in [-1,1]:rod(name+' cleat',(x+length*t-.14,y+sign*breadth*.21,z+depth+.068),(x+length*t+.14,y+sign*breadth*.21,z+depth+.068),.024,materials['edge'],detailcol,vertices=8)
  else:
   for t in [-.29,-.12,.06,.23,.34]:
    half,sheer=shape(t);xx=x+length*t;seat=z+depth*.82+sheer
@@ -379,11 +379,11 @@ def crane(sign):
  # and a wide spreader near the top that takes the topping lift.
  foot,head=Vector((1.7,0,2.75)),Vector((16.3,0,16.05))
  def leg(t,side):
-  p=foot+(head-foot)*t;spread=1.62*(1-t)+.26*t;return L(p.x,.2*(1-t)+.05*t+side*spread,p.z)
+  p=foot+(head-foot)*t;spread=1.5*(1-t)+.26*t;return L(p.x,.05+side*spread,p.z)
  for side in [-1,1]:
-  for a,b,w,h in [(0,.52,.42,.7),(.5,1,.32,.52)]:
+  for a,b,w,h in [(0,.52,.36,.62),(.5,1,.3,.5)]:
    beam('Aircraft crane jib box girder',leg(a,side),leg(b,side),w,h,materials['naval'])
-  rod('Aircraft crane jib hinge pin',tuple(L(foot.x,.2+side*1.3,foot.z)),tuple(L(foot.x,.2+side*1.95,foot.z)),.14,materials['edge'],detailcol,vertices=8)
+  rod('Aircraft crane jib hinge pin',tuple(L(foot.x,.05+side*1.25,foot.z)),tuple(L(foot.x,.05+side*1.95,foot.z)),.14,materials['edge'],detailcol,vertices=8)
  for t in [.22,.46,.66]:beam('Aircraft crane jib diaphragm',leg(t,-1),leg(t,1),.3,.42,materials['naval'])
  t=.79;a,b=leg(t,-1),leg(t,1);c=(a+b)/2;dv=(b-a).normalized()
  rod('Aircraft crane jib spreader',tuple(c-dv*.95),tuple(c+dv*.95),.1,materials['edge'],detailcol,vertices=8)
@@ -440,12 +440,21 @@ def catapult():
    for x in [xa-.15,xb+.15]:
     rod('Catapult support pillar',(x,s(y+lean),deckz(x)),(x,s(y),zb),.085,materials['naval'],detailcol,vertices=8)
 # ---------------------------------------------------------------- AA foundations
-own_foundations.update({'starboard-aa-20-3','port-aa-20-3'})
+AA_105=[f'{side}-aa-105-{i}' for side in ('starboard','port') for i in range(1,5)]
+own_foundations.update({'starboard-aa-20-3','port-aa-20-3',*AA_105})
 def aa_seats():
- # The funnel-gallery 20 mm guns stand on low pedestals bolted to the gallery deck.
+ # Static seats stop 5 mm below each mount's training ring, so nothing fixed rides against the rotating parts.
  for m in DEF['mounts']:
+  x,y,z=B(*m['position'])
   if m['id'] in ('starboard-aa-20-3','port-aa-20-3'):
-   x,y,z=B(*m['position']);cyl(m['id']+' gallery seat',(x,y,(GALLERY+z)/2+.005),.5,z-GALLERY+.01,materials['edge'],detailcol,16)
+   # The funnel-gallery 20 mm guns stand on low pedestals bolted to the gallery deck.
+   cyl(m['id']+' gallery seat',(x,y,(GALLERY+z-.005)/2),.5,z-.005-GALLERY,materials['edge'],detailcol,16)
+  elif m['id'] in AA_105:
+   # The twin 105 mm mounts sit on the 01 deck on a thin bolted base plate with a raised roller-path rim.
+   deck=8.3;cyl(m['id']+' base plate',(x,y,(deck+z-.005)/2),1.9,z-.005-deck,materials['roof'],detailcol,32)
+   ring(m['id']+' base plate rim',(x,y,z-.03),(0,0,1),1.86,.025,materials['edge'],32)
+   for i in range(12):
+    a=math.tau*(i+.5)/12;cyl(m['id']+' hold-down bolt',(x+1.72*math.cos(a),y+1.72*math.sin(a),z-.028),.045,.04,materials['edge'],detailcol,6)
 def build():
  # Region entry point, after the forward region.
  funnel_casing();funnel_gallery();funnel_searchlights();hangars();boats();cranes();catapult()
