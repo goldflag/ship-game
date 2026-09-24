@@ -312,11 +312,19 @@ for side in [-1,1]:
     for x in [17.4,18.6,19.8,21.0]:portlight('bridge.side-window',(x,side*2.52,10.72),(0,side,0),.17)
     portlight('bridge.lower-port',(20.0,side*2.52,8.0),(0,side,0),.19)
 upper=[(-z,-x) for x,z in pilot['footprint']]
-visor=[(20.5+(x-20.5)*1.02,y*1.06) for x,y in upper]
-prism('bridge.visor',visor,pilot_top-.025,pilot_top+.10,materials['roof'])
-flying=[(20.5+(x-20.5)*1.03,y*1.31) for x,y in upper]
-prism('bridge.flying-deck',flying,pilot_top+.08,pilot_top+.18,materials['roof'])
-bulwark('bridge.flying-shield',flying,pilot_top+.18,.75)
+# A broad weather lip round the pilot-house roof; the open bridge's screen stands flush with the
+# pilot-house walls above it (reference: lip 3.27 m off the centreline at 11.2 m, screen 2.5 m).
+visor=[(20.5+(x-20.5)*1.03,y*1.31) for x,y in upper]
+lipverts=[(x,y,pilot_top-.06) for x,y in upper]+[(x,y,pilot_top+.04) for x,y in visor]
+nl=len(upper)
+mesh('bridge.visor',lipverts,[(i,(i+1)%nl,nl+(i+1)%nl,nl+i) for i in range(nl)]+[tuple(range(nl,2*nl))],materials['roof'])
+flying=[(20.5+(x-20.5)*1.005,y*1.01) for x,y in upper]
+prism('bridge.flying-deck',flying,pilot_top-.02,pilot_top+.08,materials['roof'])
+# The screen follows the pilot house round the front and steps out to 3.2 m for the after lookout wings.
+front_=sorted([p for p in flying if p[0]>20.0 and p[1]<0],key=lambda p:p[0])+sorted([p for p in flying if p[0]>20.0 and p[1]>=0],key=lambda p:-p[0])
+screen=[(17.4,-3.2),(19.6,-3.2),(20.0,-2.5)]+front_+[(20.0,2.5),(19.6,3.2),(17.4,3.2)]
+prism('bridge.lookout-deck',outline_rect(17.4,19.8,-3.2,3.2,.2),pilot_top-.02,pilot_top+.08,materials['roof'])
+bulwark('bridge.flying-shield',screen,pilot_top+.08,1.0,closed=False)
 for side in [-1,1]:
     # Two round observation lobes at the front of the open bridge.
     observation=outline_oval(23.75,side*1.35,1.0,.95,36)
@@ -370,11 +378,12 @@ for s in definition['structures']:
     base=s['baseY'];height=s['height'];n=64
     def ring(t,scale=1,zoff=0):
         return [(cx-.15*height*t+rx*scale*math.cos(i*math.tau/n),ry*scale*math.sin(i*math.tau/n),base+height*t+zoff+FUNNEL_CAP[name]*math.cos(i*math.tau/n)*t*t) for i in range(n)]
-    rings=[ring(t,scale) for t,scale in [(0,1.02),(.14,1),(.79,.98),(1,.92)]]
-    o=mesh(name+'.jacket',[v for row in rings for v in row],[(k*n+i,k*n+(i+1)%n,(k+1)*n+(i+1)%n,(k+1)*n+i) for k in range(3) for i in range(n)],materials['naval'],smooth=True)
-    top=ring(1,.92);inside=ring(1,.82,-.08);deep=ring(.90,.82,-.12)
+    RINGS=[(0,1.02),(.14,1),(.80,.98),(.92,.92),(1,.78)]  # keep in step with author-shape.py
+    rings=[ring(t,scale) for t,scale in RINGS]
+    o=mesh(name+'.jacket',[v for row in rings for v in row],[(k*n+i,k*n+(i+1)%n,(k+1)*n+(i+1)%n,(k+1)*n+i) for k in range(len(RINGS)-1) for i in range(n)],materials['naval'],smooth=True)
+    top=ring(1,.78);inside=ring(1,.68,-.08);deep=ring(.90,.70,-.12)
     mesh(name+'.cap-interior',top+inside+deep,[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)]+[(n+i,n+(i+1)%n,2*n+(i+1)%n,2*n+i) for i in range(n)]+[tuple(range(n*2,n*3))],materials['dark'],smooth=True)
-    for t,sc in [(.13,1.005),(.79,.99),(1,.935)]:tube_path(name+'.rolled-band',ring(t,sc),.065 if t!=.13 else .05,materials['edge'],closed=True)
+    for t,sc in [(.13,1.005),(.80,.99),(1,.795)]:tube_path(name+'.rolled-band',ring(t,sc),.065 if t!=.13 else .05,materials['edge'],closed=True)
     for y in [-.85,0,.85]:
         xx=cx-.15*height;zz=base+height-.12
         rod(name+'.cap-grille',(xx-rx*.77,y,zz-.85),(xx+rx*.77,y,zz+.85),.042,materials['edge'])

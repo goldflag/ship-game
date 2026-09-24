@@ -32,7 +32,7 @@ h['halfBreadths'] = [[s['station'], round(max(w for w, _ in s['points']), 4)] fo
 h['deckHeights'] = [[s['station'], s['points'][-1][1]] for s in h['sections']]
 h['keelHeights'] = [[s['station'], s['points'][0][1]] for s in h['sections']]
 h['beam'] = round(2 * max(w for _, w in h['halfBreadths']), 2)
-h['draft'] = round(-min(k for _, k in h['keelHeights']), 2)
+h['draft'] = math.ceil(-min(k for _, k in h['keelHeights'])*100)/100  # validation: no section below -draft
 h['depth'] = round(max(d for _, d in h['deckHeights']) - min(k for _, k in h['keelHeights']), 2)
 
 
@@ -87,7 +87,7 @@ def runtime(points):
 fwd_house = runtime([(1.70, -33.41), (2.19, -33.0), (2.54, -32.5), (2.75, -32.0), (3.00, -31.5), (3.15, -31.0),
                      (3.27, -30.0), (3.42, -28.0), (3.51, -25.0), (3.66, -22.0), (3.83, -20.0), (3.93, -17.30)])
 aft_house = runtime([(2.20, 17.30), (2.50, 17.60), (2.50, 34.0), (2.10, 35.2), (1.45, 35.9)])
-aa_house = runtime([(2.07, 22.98), (2.46, 23.40), (2.46, 26.0), (2.09, 26.5), (1.86, 27.0), (1.58, 27.5), (1.00, 28.0), (.60, 28.29)])
+aa_house = runtime([(2.07, 22.98), (2.46, 23.40), (2.46, 25.83)] + [(round(2.46*math.cos(i*math.pi/16), 4), round(25.83+2.46*math.sin(i*math.pi/16), 4)) for i in range(1, 8)])
 core = round_front(17.34, 21.87, 2.5, 2.5)
 pilot_core = round_front(16.66, 21.87, 2.5, 2.49)
 b['structures'] = [
@@ -106,7 +106,7 @@ b['structures'] = [
 ]
 # Funnel plating is generated from the same original loft as the visible jacket (build.py uses the
 # same rings and cap rise: keep FUNNEL_RINGS and FUNNEL_CAP in step there).
-FUNNEL_RINGS = [(0, 1.02), (.14, 1), (.79, .98), (1, .92)]
+FUNNEL_RINGS = [(0, 1.02), (.14, 1), (.80, .98), (.92, .92), (1, .78)]
 FUNNEL_CAP = {'forward-funnel': .72, 'aft-funnel': .55}
 for s in b['structures']:
     if 'funnel' not in s['id']:
@@ -125,12 +125,13 @@ for s in b['structures']:
             z = s['baseY']+s['height']*t+FUNNEL_CAP[s['id']]*math.cos(a)*t*t
             vertices.append([-y, z, -x])
     triangles = []
-    for k in range(3):
+    for k in range(len(FUNNEL_RINGS)-1):
         for i in range(n):
             a = k*n+i; c = k*n+(i+1)%n
             triangles.extend([[a, c, c+n], [a, c+n, a+n]])
     for i in range(1, n-1):
-        triangles.extend([[0, i+1, i], [3*n, 3*n+i, 3*n+i+1]])
+        last = (len(FUNNEL_RINGS)-1)*n
+        triangles.extend([[0, i+1, i], [last, last+i, last+i+1]])
     s['surface'] = {'vertices': vertices, 'triangles': triangles}
 
 # Mounts on the GameModels3D hardpoints (ship:hardpoints pasd021; our z = reference z + 0.466). The
