@@ -108,6 +108,30 @@ impl Session {
             notices: Default::default(),
         })
     }
+    /// Local development direction (`LocalRuntime::direct`, never the network protocol): apply
+    /// `command` to `ship_id` as the ship's owner, under the same validation as that owner's own
+    /// commands. It takes no place in the owner's sequence, so the owner's own commands still count.
+    pub fn direct(&mut self, ship_id: &str, command: Command) -> Result<(), CommandError> {
+        let owner = self
+            .control
+            .ships
+            .get(ship_id)
+            .ok_or(CommandError::Ownership)?
+            .owner;
+        let player = &self.control.players[owner];
+        let (sequence, connection_epoch) = (player.sequence, player.epoch);
+        let result = self.apply(
+            owner,
+            CommandEnvelope {
+                sequence: sequence + 1,
+                connection_epoch,
+                ship_id: ship_id.into(),
+                command,
+            },
+        );
+        self.control.players[owner].sequence = sequence;
+        result
+    }
     pub fn apply(&mut self, sender: usize, c: CommandEnvelope) -> Result<(), CommandError> {
         if self.battle.outcome.is_some() {
             return Err(CommandError::Lost);

@@ -16,6 +16,7 @@
     "check": "bun scripts/tests/check.ts",
     "harness:designs": "bun scripts/browser/designs.ts",
     "ui:shot": "bun scripts/browser/shot.ts",
+    "film": "bun scripts/browser/film.ts",
     "format": "prettier --write",
     "format:check": "prettier --check",
     "typecheck": "bun run multiplayer:prepare:dev && tsc --noEmit",
