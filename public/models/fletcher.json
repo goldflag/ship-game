@@ -21060,7 +21060,7 @@
       "battery": "secondary",
       "position": [
         -3.072,
-        6.663,
+        6.72,
         -25.524
       ],
       "bearingDeg": -90,
@@ -21126,7 +21126,7 @@
       "battery": "secondary",
       "position": [
         3.072,
-        6.663,
+        6.72,
         -25.524
       ],
       "bearingDeg": 90,
@@ -53745,7 +53745,7 @@
         -34
       ],
       "size": [
-        5.120000000000001,
+        5.12,
         2.8,
         12
       ],
@@ -53813,7 +53813,7 @@
         25
       ],
       "size": [
-        5.920000000000001,
+        5.92,
         3.2,
         8.8
       ],
@@ -53830,7 +53830,7 @@
         38
       ],
       "size": [
-        4.800000000000001,
+        4.8,
         2.5,
         8
       ],
@@ -53849,7 +53849,7 @@
       "size": [
         3.6,
         1.9,
-        5.6000000000000005
+        5.6
       ],
       "hp": 80,
       "compartmentId": "steering-room-space"
@@ -62300,5 +62300,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "af9001a83ee064e02725b722fd11388c3916a039615c41600e8536e79b269c2f"
+  "contentHash": "fdac0c2efc8f63b0d0a4e46f0a0a7cc8b49cc137723c0459d619d18ad0141b98"
 }

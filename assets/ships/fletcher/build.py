@@ -282,12 +282,12 @@ for s in definition['structures']:
 # Broad stepped navigation wings and an overhanging flying bridge establish its
 # mass; their decks and openings are independently authored from raster review.
 pilot=structures['pilot-house'];pilot_base=pilot['baseY'];pilot_top=pilot_base+pilot['height']
-o1=roof('forward-deckhouse',25.65)
+o1=next(m for m in definition['mounts'] if m['id']=='oerlikon-2')['position'][1]-.01
 for side in [-1,1]:
     # 20 mm tubs on the 01 level, overhanging the forward deckhouse on knees (reference 01 tubs).
     wing=outline_oval(25.65,side*3.60,2.35,1.55,40)
     prism('bridge.aa-wing',wing,o1-.14,o1)
-    bulwark('bridge.aa-shield',[(25.65+2.35*math.cos(i*math.pi/20-math.pi/2*1.25),side*(3.60+1.55*math.sin(i*math.pi/20-math.pi/2*1.25))) for i in range(26)],o1,1.12,closed=False)
+    bulwark('bridge.aa-shield',[(25.65+2.35*math.cos(i*math.pi/20-math.pi/2*1.25),side*(3.60+1.55*math.sin(i*math.pi/20-math.pi/2*1.25))) for i in range(26)],o1,.78,closed=False)
     for x in [24.1,25.65,27.2]:
         mesh('bridge.wing-knee',[(x,side*3.35,o1-.1),(x,side*4.9,o1-.1),(x,side*3.35,o1-1.5)],[(0,1,2)],materials['naval'])
     # Navigation wings on the 02 deck, which also carries the mast behind the pilot house.
@@ -516,10 +516,10 @@ for launcher in definition['torpedoLaunchers']:
 # High 'sky top' aft twin 40 mm position, supported over the after deckhouse.
 aa=next(m for m in definition['mounts'] if m['id']=='bofors-aft');aa_x=-aa['position'][2];aa_z=aa['position'][1]
 platform=[(-22.90,-2.30),(-22.90,2.30)]+[(aa_x+2.30*math.cos(math.pi/2-i*math.pi/24),2.30*math.sin(math.pi/2-i*math.pi/24)) for i in range(25)]
-prism('aa-platform.deck',platform,aa_z-.12,aa_z+.02,materials['roof']);bulwark('aa-platform.shield',platform[1:]+platform[:1],aa_z+.02,.95,closed=False)
+prism('aa-platform.deck',platform,aa_z-.12,aa_z+.02,materials['roof']);bulwark('aa-platform.shield',platform[1:]+platform[:1],aa_z+.02,.50,closed=False)
 ladder('aa-platform.ladder',(-22.82,-1.2,roof('aft-deckhouse',-22.82)),(-22.82,-1.2,aa_z),.55)
 for side in [-1,1]:
-    locker('aa-platform.ready-locker',(-29.8,side*1.55,roof('aft-deckhouse',-29.8)+.36),(1.6,.65,.70))
+    locker('aa-platform.ready-locker',(-24.6,side*3.05,deckz(-24.6)+.36),(1.6,.65,.70))
 # The four waist Oerlikons occupy real cut-outs alongside the machinery house.
 for mount in [m for m in definition['mounts'] if m['id'].startswith('oerlikon') and m['id'] not in ['oerlikon-1','oerlikon-2']]:
     a,z,c=mount['position'];x,y=-c,-a;side=1 if y>0 else -1
@@ -592,8 +592,6 @@ def raft(name,x,y,z,side=1,L=2.7,H=1.25):
 for side in [-1,1]:
     for x in [21.0]:raft('lifesaving.forward-floats',x,side*(half_width('forward-deckhouse',x)+.2),5.05,side)
     for x in [-21.0,-32]:raft('lifesaving.after-floats',x,side*(half_width('aft-deckhouse',x)+.2),4.10,side)
-    # Deckhouse roof rails.
-    rails('after.roof-rail',[(x,side*2.40,roof('aft-deckhouse',x)) for x in [-33.6,-29,-23.4,-18.0]],.86)
     # Waist bulwark below the boat and exposed deck pipework.
     # Waist bulwark along the deck edge, its top sweeping up to the 01 deck at the forward deckhouse.
     xs_=[7.3+i*.5 for i in range(21)];o1_=roof('forward-deckhouse',17.3)
@@ -608,7 +606,7 @@ for side in [-1,1]:
     tube_path('deck.service-pipe',[(x,side*3.55,deckz(x)+.28) for x in range(-16,14,2)],.040,materials['edge'])
 # Torpedo-deck and after-deckhouse access ladders.
 stairs('deckhouse.stairs',(-16.7,0,deckz(-16.7)),(-14.0,0,roof('torpedo-deckhouse',-14.0)),.7)
-stairs('after.stairs',(-38.6,0,deckz(-38.6)),(-35.95,0,roof('aft-deckhouse',-35.95)),.7)
+for side in [-1,1]:ladder('after.ladder',(-35.98,side*.75,deckz(-35.98)),(-35.98,side*.75,roof('aft-deckhouse',-35.98)),.5)
 
 # Ventilators, hatches, capstans, chocks, winches and cable reels, placed with working alleys.
 for side in [-1,1]:

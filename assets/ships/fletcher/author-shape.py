@@ -139,7 +139,8 @@ HARDPOINT = {
     'gun-1': (0, 5.385, -38.497), 'gun-2': (0, 7.289, -31.328), 'gun-3': (0, 5.42, 19.12),
     'gun-4': (0, 5.42, 31.786), 'gun-5': (0, 3.027, 39.52), 'bofors-aft': (0, 7.041, 26.587),
     # 20 mm: the bridge pair on the reference's 01-level tubs, the waist pairs on its main-deck positions.
-    'oerlikon-1': (-3.072, 6.663, -25.524), 'oerlikon-2': (3.072, 6.663, -25.524),
+    # (the bridge pair 6 cm above the hardpoint: our 01 roof follows the sheer to 6.70 m there)
+    'oerlikon-1': (-3.072, 6.72, -25.524), 'oerlikon-2': (3.072, 6.72, -25.524),
     'oerlikon-3': (-4.357, 2.829, 11.646), 'oerlikon-4': (4.358, 2.829, 11.646),
     'oerlikon-5': (-4.357, 2.774, 14.085), 'oerlikon-6': (4.358, 2.774, 14.085),
 }
@@ -181,17 +182,6 @@ for mod in b['modules']:
     if mod['id'] == 'equipment-mk37-director':
         mod['center'] = [0, 14.45, -19.91]
 b['viewpoints']['bridge'] = [0, 12.62, -22.4]
-# Keep the steering and after-magazine envelopes within the raised afterbody.
-for c in b['compartments']:
-    if c['id'] == 'steering-room-space':
-        c['center'][1] = 1.0; c['size'][1] = 2.6; c['capacityM3'] = 58
-    if c['id'] == 'aft-magazine-space':
-        c['center'][1] = 0; c['size'][1] = 3.8
-for m in b['modules']:
-    if m['id'] == 'steering-room':
-        m['center'][1] = 1.0; m['size'][1] = 1.9
-    if m['id'] == 'aft-magazine':
-        m['center'][1] = 0; m['size'][1] = 2.5
 
 
 def hull_contains(x, y, z):
@@ -227,7 +217,31 @@ def outside_corners(center, size):
                for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1))
 
 
-for room in [r for r in b['compartments'] + b['modules'] if r['center'][1] < 2.5 and not r['id'].startswith(('reserve-cell-', 'flood-'))]:
+# Revision 4 room envelopes (below the main deck); re-seated from these each run, so the step is idempotent.
+ROOM_BASE = {
+    'forepeak-space': ([0, -0.6, -49], [3, 5, 10], 105),
+    'forward-magazine-space': ([0, -0.6, -34], [6.4, 5, 15], 336),
+    'boiler-forward-space': ([0, -0.6, -16], [8, 5, 13], 364),
+    'engine-forward-space': ([0, -0.6, -2], [8, 5, 13], 364),
+    'boiler-aft-space': ([0, -0.6, 12], [8, 5, 13], 364),
+    'engine-aft-space': ([0, -0.6, 25], [7.4, 5, 11], 285),
+    'aft-magazine-space': ([0, 0, 38], [6, 3.8, 10], 210),
+    'steering-room-space': ([0, 1, 48], [4.5, 2.6, 7], 58),
+    'forward-magazine': ([0, -0.6, -34], [5.12, 3.2, 12], None),
+    'boiler-forward': ([0, -0.6, -16], [6.4, 3.2, 10.4], None),
+    'engine-forward': ([0, -0.6, -2], [6.4, 3.2, 10.4], None),
+    'boiler-aft': ([0, -0.6, 12], [6.4, 3.2, 10.4], None),
+    'engine-aft': ([0, -0.6, 25], [5.92, 3.2, 8.8], None),
+    'aft-magazine': ([0, 0, 38], [4.8, 2.5, 8], None),
+    'steering-room': ([0, 1, 48], [3.6, 1.9, 5.6], None),
+    'support-generator-1': ([2.4, -1.85, -12.1], [1.2, 1, 1.2], None),
+    'support-generator-2': ([2.22, -1.85, 28.3], [1.2, 1, 1.2], None),
+}
+for room in [r for r in b['compartments'] + b['modules'] if r['id'] in ROOM_BASE]:
+    base_c, base_sz, base_cap = ROOM_BASE[room['id']]
+    room['center'], room['size'] = list(base_c), list(base_sz)
+    if base_cap is not None:
+        room['capacityM3'] = base_cap
     c, sz = room['center'], room['size']
     y0, w0, l0 = sz[1], sz[0], sz[2]
     while outside_corners(c, sz) and sz[1] > y0 - .4:
