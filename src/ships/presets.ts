@@ -11,6 +11,7 @@ export const shipPresets = {
   'bismarck': preset('bismarck'),
   'yamato': preset('yamato'),
   'iowa': preset('iowa'),
+  'alaska': preset('alaska'),
   'king-george-v': preset('king-george-v'),
   'hood': preset('hood'),
   'baltimore': preset('baltimore'),
