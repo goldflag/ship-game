@@ -25,7 +25,7 @@ import { createSeaState, seaWaves, type SeaState } from './session/sea';
 import { hullFootprints } from './hullSea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
-import { ShadowCasterPass } from './ShadowCasterPass';
+import { DepthCasterPass, OVERRIDE_DEPTH, ShadowCasterPass } from './ShadowCasterPass';
 import * as THREE from 'three/webgpu';
 import { pass, vec2 } from 'three/tsl';
 import { frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics } from './graphicsSettings';
@@ -345,6 +345,7 @@ export class Game {
     // bilinear 3×3 gather is smooth at the same cost; water shadows keep their own filter.
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.occlusion = new ShipOcclusion(this.camera, this.renderer.reversedDepthBuffer);
+    this.occlusion.casters = new DepthCasterPass(this.renderer, 'Ship occlusion', OVERRIDE_DEPTH);
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);

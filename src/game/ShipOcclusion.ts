@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import * as TSL from 'three/tsl';
 import type { AmbientOcclusion } from './graphicsSettings';
+import type { DepthCasterPass, DepthTarget } from './ShadowCasterPass';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type N = any; // TSL graphs: three's typings do not follow these chains.
@@ -22,7 +23,8 @@ const drawingSize = new THREE.Vector2();
 /* Ambient occlusion between a ship's own parts, applied to indirect light only.
  *
  * Each frame, before the ocean captures and the scene pass, the ships alone (their
- * occlusion layer) are drawn depth-only at half resolution. A horizon-based pass (GTAO,
+ * occlusion layer) are drawn depth-only at half resolution, straight from three's buffers
+ * (`casters`) rather than through three's render of the scene. A horizon-based pass (GTAO,
  * as in three's GTAONode) turns that depth into occlusion, and a depth-aware 5×5 blur
  * removes its rotation noise. Every ship material samples the result at its screen
  * position through `aoNode`, which three's lighting multiplies into the indirect
@@ -70,6 +72,10 @@ export class ShipOcclusion {
   private readonly receivers = new Set<THREE.MeshStandardNodeMaterial>();
   private state?: ReturnType<typeof THREE.RendererUtils.resetRendererState>;
   private level: AmbientOcclusion = 'off';
+  /** Draws the prepass from three's own buffers (built with `OVERRIDE_DEPTH`); unset, or until it can, three
+   * renders the prepass as a scene pass. */
+  casters?: DepthCasterPass;
+  private frames = 0;
 
   constructor(private readonly camera: THREE.PerspectiveCamera, reversedDepth: boolean) {
     this.projection = uniform(camera.projectionMatrix);
@@ -249,7 +255,7 @@ export class ShipOcclusion {
       camera.layers.set(SHIP_OCCLUSION_LAYER);
       scene.overrideMaterial = this.depthMaterial;
       renderer.setRenderTarget(this.depthTarget);
-      renderer.render(scene, camera);
+      if (!this.drawDepth(scene, camera)) renderer.render(scene, camera);
       camera.layers.mask = mask;
       scene.overrideMaterial = null;
       renderer.setClearColor(0xffffff, 1);
@@ -268,7 +274,17 @@ export class ShipOcclusion {
     }
   }
 
+  /** The prepass through `casters`. As three's render would, it first brings the scene's and the camera's world
+   * matrices up to date: this is the frame's first render, and the passes after it reuse the scene's. */
+  private drawDepth(scene: THREE.Scene, camera: THREE.PerspectiveCamera): boolean {
+    if (!this.casters?.enabled) return false;
+    if (scene.matrixWorldAutoUpdate) scene.updateMatrixWorld();
+    if (camera.parent === null && camera.matrixWorldAutoUpdate) camera.updateMatrixWorld();
+    return this.casters.draw(scene, camera, this.depthTarget as DepthTarget, ++this.frames);
+  }
+
   dispose(): void {
+    this.casters?.dispose();
     for (const target of [this.depthTarget, this.rawTarget, this.acrossTarget, this.blurTarget]) target.dispose();
     for (const material of [this.depthMaterial, this.aoMaterial, this.acrossMaterial, this.blurMaterial]) material.dispose();
     this.depthTarget.depthTexture?.dispose();
