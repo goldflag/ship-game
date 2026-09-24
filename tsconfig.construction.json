@@ -5,6 +5,7 @@
     "tools/construction",
     "scripts/construction",
     "scripts/build/blender.ts",
+    "scripts/ships/overlay.ts",
     "scripts/browser",
     "scripts/diagnostics/app.tsx",
     "vite.config.ts"
