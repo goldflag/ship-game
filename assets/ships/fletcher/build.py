@@ -436,17 +436,17 @@ rails('aft-funnel.rail',[(-1.25,-1.2,9.25),(-1.25,1.2,9.25)],.8)
 MAST_BASE,MAST_TOP=Vector((15.86,0,5.5)),Vector((14.10,0,24.30))
 def mast_at(z):
     t=(z-MAST_BASE.z)/(MAST_TOP.z-MAST_BASE.z);return MAST_BASE.lerp(MAST_TOP,t)
-rod('mast.fore',MAST_BASE,MAST_TOP,.28,materials['naval'],r2=.10,vertices=24)
+rod('mast.fore',MAST_BASE,MAST_TOP,.30,materials['naval'],r2=.14,vertices=24)
 yard=mast_at(21.24)
-rod('mast.yard',(yard.x-.28,-3.30,21.24),(yard.x-.28,3.30,21.24),.07,materials['edge'])
+rod('mast.yard',(yard.x-.2,-3.30,21.24),(yard.x-.2,3.30,21.24),.07,materials['edge'])
 for side in [-1,1]:
-    rod('mast.yard-lamp-post',(yard.x-.28,side*3.0,21.24),(yard.x-.28,side*3.0,22.15),.025,materials['edge'],vertices=6)
-    cyl('mast.yard-lamp',(yard.x-.28,side*3.0,22.2),.16,.05,materials['edge'],vertices=16)
+    rod('mast.yard-lamp-post',(yard.x-.2,side*3.0,21.24),(yard.x-.2,side*3.0,22.15),.025,materials['edge'],vertices=6)
+    cyl('mast.yard-lamp',(yard.x-.2,side*3.0,22.2),.16,.05,materials['edge'],vertices=16)
     for y in [1.1,2.2,3.2]:
-        tube_path('rigging.signal-halyard',[(yard.x-.28,side*y,21.24),(18.2,side*(2.4+y*.18),pilot_base+1.1)],.009,materials['rope'],sides=5)
+        tube_path('rigging.signal-halyard',[(yard.x-.2,side*y,21.24),(18.2,side*(2.4+y*.18),pilot_base+1.1)],.009,materials['rope'],sides=5)
     rod('rigging.fore-stay',mast_at(23.9),(23.35,side*4.1,pilot_base+1.05),.014,materials['dark'],vertices=6)
     rod('rigging.aft-stay',mast_at(23.9),(-22.5,side*.35,15.4),.014,materials['dark'],vertices=6)
-ladder('mast.rungs',mast_at(9.3)-Vector((.32,0,0)),mast_at(24.0)-Vector((.22,0,0)),.38)
+ladder('mast.rungs',mast_at(9.3)+Vector((.40,0,0)),mast_at(24.0)+Vector((.24,0,0)),.38)
 # SC air-search bedspring at the masthead: a broad lower array under a narrower upper one.
 radar_before=set(col.objects)
 top=mast_at(24.3)
