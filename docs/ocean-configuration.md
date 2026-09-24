@@ -51,10 +51,10 @@ Wind speed sets the share of the sea whitecaps cover, from Monahan & O'Muirchear
 whitecap fraction 3.84·10⁻⁶·U^3.41: none below 3.5 m/s, 0.17% at 6 m/s (scattered white horses), 0.7%
 at 9, 1.8% at 12, 3.9% at 15, 7.3% at 18, 22% at 25 and 42% at 30, scaled by the map's foam value /
 0.45 (1 in the Atlantic, 0.56 Pacific, 0.67 Arctic, 1.1 Indian). The ocean places whitecaps where its
-own spectrum's crests break to give that share of area (see the ocean README), so the coverage holds on
-the table's sea and on the realistic one alike: measured on High it is within about a tenth of the
-curve from 15 to 30 m/s and a fifth from 9 to 12 m/s on either (a light air's few whitecaps are noisy:
-0.11–0.14% at 6 m/s). A whitecap is a small dense core
+own spectrum's crests break to give that share of area, in breaking groups that never repeat so the
+tiles' whitecaps draw no lattice (see the ocean README), so the coverage holds on the table's sea and on
+the realistic one alike: measured on High it is within about a tenth of the curve from 12 to 30 m/s on
+either and a fifth to a quarter at 9 m/s (a light air's few whitecaps are noisy: 0.10–0.13% at 6 m/s). A whitecap is a small dense core
 on its breaking crest and a larger patch of lacy old foam it leaves; averaged over their area they
 reflect about a quarter of the light, so the share of the sea they whiten is well below their area.
 Foam lives one period of the waves that broke (`lifetime`), spreading as it ages, with a 0.5 wind
