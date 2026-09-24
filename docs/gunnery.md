@@ -89,6 +89,39 @@ and more traverse at least 7°/s). Mount clearance can stop the move. The status
 | `out-of-arc` | The arc needs a train or an elevation outside the mount's limits |
 | `ready` | On the solution, loaded, clear |
 
+### Rest and idle secondaries
+
+Where a gun points when nothing is aimed. One rule covers every preset and player design, from data
+each mount already has (`crates/naval-sim/src/mount_rest.rs`):
+
+- A **side secondary** rests trained toward the nearer end of the ship: the bow when it sits at or
+  forward of the hull's longitudinal middle (the middle of the collision outline's z extent), the
+  stern abaft it. A side secondary is a `secondary`-battery mount over 80 mm (lighter guns are light
+  AA, the same line as `anti_aircraft::surface_allowed`), on the hull (no `parentMountId`) and more
+  than 0.5 m off the centreline.
+- The rest is a train relative to `bearingDeg`, clamped to the installed limits (`traverseLimitsDeg`,
+  else ± the installed half-sector); `bearingDeg` stays the arc centre. King George V's 5.25-inch
+  turrets (±80° about the beam) rest 10° off the bow or stern. Mounts already authored facing their
+  end (the wing 5-inch of Alaska and Cleveland, Hipper's 10.5 cm) rest at neutral.
+- `CompiledShip::new` solves each rest once, training the mount from neutral toward it after the
+  mounts before it took theirs: through the swept-body resolver or installation envelope where the
+  mount has one, otherwise stopping before its barrels (breech to muzzle) first enter the hull, an
+  authored obstruction or another gunhouse. Baltimore's forward wing mounts stop at 141° off the bow,
+  short of the after pair's gunhouses.
+- `Vessel::new` starts every spawn, trial reset and the port (whose session is never stepped) at the
+  rests, so nothing slews on the first frame.
+- In battle, a side secondary with no aim (no target within its gun range, no contact for a PvE
+  secondary battery, no aircraft for AA) holds for `IDLE_REST_SECONDS` (5 s), then trains back to its
+  rest train and spawn elevation at its normal traverse and elevation rates. Any surface or air aim
+  resets the count. Its status is what any aimless mount reports: `out-of-range`, or `blocked` when
+  the bore line crosses the ship, as it often does when trained along her.
+- Main battery, light AA, carried and centreline mounts rest at neutral and still hold their last
+  aim when idle. The player's own ship lays every surface mount on the sight (step 4), so its
+  secondaries leave their rests as soon as input arrives.
+
+A bot's secondaries therefore open an engagement from their rests: a slow narrow-arc mount such as
+King George V's (10°/s) needs about 8 s to reach the beam.
+
 ### 6. Roll
 
 Every tick, `update_stability` integrates roll and pitch rates from the hydrostatic righting arms

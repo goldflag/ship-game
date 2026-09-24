@@ -37,6 +37,7 @@ pub mod mobility;
 pub mod motion;
 pub mod mount_clearance;
 pub mod mount_frames;
+pub mod mount_rest;
 pub mod navigation;
 pub mod rules;
 

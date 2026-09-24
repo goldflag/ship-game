@@ -231,6 +231,7 @@ pub(crate) fn operate_cadenced(
             state.surface_fire = false;
             // AA owns the mount now; an old surface lay must not pull it back.
             state.lay = None;
+            state.unaimed = 0.;
             if state.reload > previous_reload {
                 actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
             }
@@ -265,6 +266,7 @@ pub(crate) fn operate_cadenced(
                 &mut state,
                 def,
                 &actor.motion,
+                None,
                 None,
                 ctx.dt,
                 control_dt,
@@ -335,6 +337,18 @@ pub(crate) fn operate_cadenced(
             }
             fire = policy.guns && in_range && lane && bot.is_some_and(|b| b.ready(Some(m)));
         }
+        // A side secondary that has had no aim for a while trains back to rest.
+        let rest = match compiled.rest_trains[i] {
+            Some(train) if aim.is_none() => {
+                state.unaimed += control_dt;
+                (state.unaimed >= crate::mount_rest::IDLE_REST_SECONDS)
+                    .then(|| [train, crate::mount_rest::rest_elevation(m)])
+            }
+            _ => {
+                state.unaimed = 0.;
+                None
+            }
+        };
         let aligned = update_mount_control_at(
             i,
             m,
@@ -342,6 +356,7 @@ pub(crate) fn operate_cadenced(
             def,
             &actor.motion,
             aim,
+            rest,
             ctx.dt,
             control_dt,
             velocity,

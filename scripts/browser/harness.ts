@@ -250,12 +250,13 @@ export async function shot(page: Page, path: string): Promise<string> {
 /** Seeded designs with their battle ids, as the page reports them. */
 export const designs = (page: Page) => page.evaluate(() => window.review.designs);
 
-/** Berth a saved design in port by name. */
+/** Berth a saved design, or a preset by its fleet-line name ("HMS King George V"), in port. */
 export async function berth(page: Page, name: string): Promise<void> {
   const tab = page.locator(`nav[aria-label="Fleet line"] button[aria-label="${name}"]`);
   if (await tab.count()) await tab.first().click();
   else { await page.getByRole('button', { name: 'Open all designs' }).click(); await page.getByRole('button', { name: `View ${name} in port` }).click(); }
-  await page.locator(`section.port-identity[aria-label="${name}"]`).waitFor();
+  // Historical presets are titled in capitals (`shipTitle`), so match the berthed name without case.
+  await page.locator(`section.port-identity[aria-label="${name}" i]`).waitFor();
 }
 
 /** Open a saved design in the ship editor and wait for its viewport. */
