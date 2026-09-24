@@ -36,8 +36,9 @@ Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](..
 Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
 `appearance.json` preserves this recipe’s colors, scheme and deck coverings. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.
 The teak weather deck keeps its whole-deck image for the Baltic recognition markings,
-which now paints only the deck's stain, the scheme's `teak` swatch: the mean tone of the
-boards and caulking the image used to paint, so the deck keeps its pre-standard tone and
-saturation. The game draws 0.16 m planks with 3.4 m staggered butts and 8 mm caulking
+which now paints only the deck's stain, the scheme's `teak` swatch. That swatch is `#9c8769`:
+the old planking's mean lightness (boards and caulking, `#a68551`) desaturated to the fleet's
+teak at the owner's request, 2026-09-24. The deck now reads at Lab chroma 15.5, L 56 close up,
+beside Hood 13.6, King George V 13.2 and the Scharnhorst design 13.7; it was 29. The game draws 0.16 m planks with 3.4 m staggered butts and 8 mm caulking
 over it (`decking`), the plank sizes the image used to paint. The boats' timber is
 declared fittings. This is not a new historical-accuracy claim.
