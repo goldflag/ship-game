@@ -16,6 +16,11 @@ def P(x, y, z):
     return (-(z - ZC), -x, y)
 
 
+def R(x, y, z):
+    """Runtime point (x starboard, y up, z aft) -> authoring frame."""
+    return (-z, -x, y)
+
+
 def build_fittings(D, helpers, materials, collections, support, deckz, width):
     mesh, cyl, rod, box = (helpers[k] for k in ['mesh', 'cyl', 'rod', 'box'])
     H = D['hull']
@@ -141,55 +146,79 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         if z - floor > .02:
             part('cyl', assembly, col, 'foundation', (x, y, (floor + z) / 2), radius, z - floor + .02, 'naval', vertices=28)
 
+    def prism(name, assembly, outline, z0, z1, material='naval', top_outline=None, c=None):
+        """A closed prism (optionally tapering to top_outline) from authoring (x, y) outlines."""
+        top_outline = top_outline or outline
+        n = len(outline)
+        vv = [(a, b, z0) for a, b in outline] + [(a, b, z1) for a, b in top_outline]
+        ff = [tuple(reversed(range(n))), tuple(range(n, 2 * n))] + [(i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)]
+        return tag(mesh(name, vv, ff, material, c or col), assembly)
+
     def mk38(id, ref, aft):
+        """Mk 38 main-battery director (reference: a low hexagonal house 0.8 m tall with a nose that
+        leans back, 8.7 m rangefinder arms as deep boxes, two trestles and the Mk 8 antenna aft)."""
         before = names()
         x, y, z = P(*ref)
         s = -1 if aft else 1
+
+        def L(a, b):     # local forward / starboard offsets -> authoring x, y
+            return (x + s * a, y - s * b)
+
         pedestal(id, (x, y, z), None, 1.25, col)
-        moving = []
-        moving.append(part('cyl', id, col, 'training base', (x, y, z + .18), 1.35, .36, 'edge', vertices=32))
-        hull_pts = [(-1.55, -1.45), (1.2, -1.45), (1.65, -.95), (1.65, .95), (1.2, 1.45), (-1.55, 1.45)]
-        vv = [(x + s * a, y + b, z + .36 + hz) for hz in (0, 1.5) for a, b in hull_pts]
-        n = len(hull_pts)
-        ff = [tuple(reversed(range(n))), tuple(range(n, 2 * n))] + [(i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)]
-        moving.append(tag(mesh(id + '.armoured hood', vv, ff, 'naval', col), id))
-        moving.append(part('box', id, col, 'hood roof', (x, y, z + 1.9), (3.1, 2.8, .08), 'roof'))
-        half = 4.3
-        moving.append(part('rod', id, col, 'rangefinder', (x - s * .25, y - half, z + 1.25), (x - s * .25, y + half, z + 1.25), .21, 'naval', vertices=16))
+        moving = [part('cyl', id, col, 'training base', (x, y, z + .03), 1.35, .06, 'edge', vertices=32)]
+        low = [(-1.49, -.4), (-.92, -1.73), (.6, -1.73), (1.5, 0), (.6, 1.73), (-.92, 1.73), (-1.49, .4)]
+        high = [(a if a < .6 else .6 + (a - .6) * .6, b) for a, b in low]
+        high[3] = (1.15, 0)
+        moving.append(prism(id + '.house', id, [L(a, b) for a, b in low], z + .06, z + .88, top_outline=[L(a, b) for a, b in high]))
+        moving.append(prism(id + '.roof', id, [L(a * .97, b * .97) for a, b in high], z + .88, z + .92, 'roof'))
         for side in (-1, 1):
-            moving.append(part('box', id, col, 'rangefinder hood', (x - s * .25, y + side * half, z + 1.25), (.62, .5, .62), 'naval'))
-            moving.append(part('box', id, col, 'rangefinder window', (x + s * .06, y + side * half, z + 1.26), (.03, .34, .2), 'glass'))
-        for dy in (-.7, 0, .7):
-            moving.append(part('box', id, col, 'sight port', (x + s * 1.66, y + dy, z + 1.25), (.04, .36, .26), 'glass'))
-        # Mk 8 fire-control radar antenna carried on the hood roof.
-        moving += grid(id + '.mk8 antenna', (x - s * .6, y, z + 2.55), 3.2, .95, col, 'x', 4, 14, assembly=id)
-        for dy in (-.9, .9):
-            moving.append(part('rod', id, col, 'antenna standard', (x - s * .6, y + dy, z + 1.94), (x - s * .6, y + dy, z + 2.1), .05, 'naval', vertices=8))
-        radar_pivot(id + '.yaw', (x, y, z + .18), [o for o in objects_since(before) if o in moving])
+            arm = [L(.32, side * 1.7), L(.32, side * 4.35), L(-.32, side * 4.35), L(-.32, side * 1.7)]
+            moving.append(prism(id + '.rangefinder arm', id, arm, z + .06, z + .86))
+            moving.append(part('box', id, col, 'rangefinder window', (*L(.335, side * 4.05), z + .52), (.03, .34, .22), 'glass'))
+            # Trestle carrying the Mk 8 antenna.
+            for da in (-.45, .55):
+                moving.append(part('rod', id, col, 'trestle leg', (*L(da, side * 1.9), z + .9), (*L(.05, side * 1.9), z + 2.25), .06, 'naval', vertices=6))
+            moving.append(part('box', id, col, 'trestle head', (*L(.05, side * 1.9), z + 2.3), (.34, .3, .26), 'naval'))
+        for b in (-.55, 0, .55):
+            moving.append(part('box', id, col, 'sight port', (*L(1.36, b), z + .55), (.04, .36, .22), 'glass'))
+        # Mk 8 antenna: a broad, shallow lattice aft on the roof, carried on posts.
+        ax_, ay_ = L(-.96, 0)
+        moving += grid(id + '.mk8 antenna', (ax_, ay_, z + 1.66), 5.2, .6, col, 'x', 2, 16, assembly=id)
+        for b in (-1.6, 0, 1.6):
+            moving.append(part('rod', id, col, 'antenna post', (*L(-.96, b), z + .92), (*L(-.96, b), z + 1.36), .05, 'naval', vertices=6))
+        radar_pivot(id + '.yaw', (x, y, z + .03), [o for o in objects_since(before) if o in moving])
 
     def mk37(id, ref, aft):
+        """Mk 37 secondary director (reference: a 2 m house with a vertical front that rakes back over
+        its top metre, sides tapering inward, the rangefinder aft of centre with bulbous end hoods, an
+        access trunk on the back and three antenna shields on the roof's after edge)."""
         before = names()
         x, y, z = P(*ref)
         s = -1 if aft else 1
+
+        def L(a, b):
+            return (x + s * a, y - s * b)
+
         pedestal(id, (x, y, z), None, 1.55, col)
-        moving = [part('cyl', id, col, 'training base', (x, y, z + .2), 1.6, .4, 'edge', vertices=32)]
-        pts = [(-1.85, -1.6), (1.55, -1.6), (1.95, -1.2), (1.95, 1.2), (1.55, 1.6), (-1.85, 1.6)]
-        vv = [(x + s * a, y + b * (1 if hz == 0 else .96), z + .4 + hz) for hz in (0, 1.75) for a, b in pts]
-        n = len(pts)
-        ff = [tuple(reversed(range(n))), tuple(range(n, 2 * n))] + [(i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)]
-        moving.append(tag(mesh(id + '.gun director house', vv, ff, 'naval', col), id))
-        moving.append(part('box', id, col, 'roof', (x, y, z + 2.19), (3.8, 3.1, .07), 'roof'))
-        moving.append(part('rod', id, col, 'rangefinder', (x - s * .4, y - 2.35, z + 1.55), (x - s * .4, y + 2.35, z + 1.55), .19, 'naval', vertices=16))
+        moving = [part('cyl', id, col, 'training base', (x, y, z + .075), 1.6, .15, 'edge', vertices=32)]
+        base = [(-1.45, -1.62), (1.45, -1.62), (1.45, 1.62), (-1.45, 1.62)]
+        mid = [(-1.45, -1.54), (1.45, -1.54), (1.45, 1.54), (-1.45, 1.54)]
+        top = [(-1.45, -1.3), (.35, -1.3), (.35, 1.3), (-1.45, 1.3)]
+        moving.append(prism(id + '.house', id, [L(*p) for p in base], z + .15, z + 1.2, top_outline=[L(*p) for p in mid]))
+        moving.append(prism(id + '.house top', id, [L(*p) for p in mid], z + 1.2, z + 2.2, top_outline=[L(*p) for p in top]))
+        moving.append(prism(id + '.roof', id, [L(a * .98, b * .98) for a, b in top], z + 2.2, z + 2.24, 'roof'))
+        moving.append(part('rod', id, col, 'rangefinder', (*L(-.45, -2.37), z + 1.5), (*L(-.45, 2.37), z + 1.5), .19, 'naval', vertices=14))
         for side in (-1, 1):
-            moving.append(part('box', id, col, 'rangefinder hood', (x - s * .4, y + side * 2.35, z + 1.55), (.55, .42, .55), 'naval'))
-        for dy in (-1.0, 0, 1.0):
-            moving.append(part('box', id, col, 'sight hood', (x + s * 1.25, y + dy, z + 2.35), (.5, .38, .32), 'naval'))
-        # Mk 12 / Mk 22 antenna pair on outriggers above the house.
-        moving += grid(id + '.mk12 antenna', (x - s * .2, y, z + 3.2), 2.9, 1.3, col, 'x', 5, 12, assembly=id)
-        moving += grid(id + '.mk22 antenna', (x - s * .2, y + 1.85, z + 3.25), .55, 1.6, col, 'x', 6, 2, assembly=id)
-        for dy in (-1.2, 1.2):
-            moving.append(part('rod', id, col, 'antenna bracket', (x - s * .2, y + dy, z + 2.22), (x - s * .2, y + dy, z + 2.55), .06, 'naval', vertices=8))
-        radar_pivot(id + '.yaw', (x, y, z + .2), [o for o in objects_since(before) if o in moving])
+            moving.append(part('rod', id, col, 'rangefinder hood', (*L(-.45, side * 1.62), z + 1.5), (*L(-.45, side * 2.15), z + 1.5), .5, 'naval', r2=.42, vertices=14))
+            moving.append(part('box', id, col, 'rangefinder window', (*L(-.12, side * 2.37), z + 1.52), (.03, .22, .2), 'glass'))
+        moving.append(prism(id + '.access trunk', id, [L(-1.45, -.9), L(-1.45, .9), L(-1.95, .9), L(-1.95, -.9)], z + .7, z + 1.9))
+        for b in (-.6, 0, .6):
+            moving.append(part('box', id, col, 'sight port', (*L(1.465, b), z + 1.02), (.04, .34, .24), 'glass'))
+            moving.append(part('box', id, col, 'antenna shield', (*L(-1.2, b), z + 2.44), (.3, .4, .4), 'naval'))
+            moving.append(part('rod', id, col, 'antenna shield cap', (*L(-1.2, b - .2), z + 2.64), (*L(-1.2, b + .2), z + 2.64), .15, 'naval', vertices=8))
+        for a, b, h in ((1.0, -1.1, .9), (-.9, 1.1, .7)):
+            moving.append(part('rod', id, col, 'whip', (*L(a, b), z + 2.24), (*L(a + .35, b - .2), z + 2.24 + h), .02, 'edge', vertices=5))
+        radar_pivot(id + '.yaw', (x, y, z + .075), [o for o in objects_since(before) if o in moving])
 
     mk38('mk38-forward', (0, 32.24, -7.707), False)
     mk38('mk38-after', (0, 20.393, 33.164), True)
@@ -227,35 +256,61 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
                      (x - fx * .36 - fy * s * .2, y - fy * .36 + fx * s * .2, z + .92), .03, 'edge', vertices=6)
 
     # ------------------------------------------------------------ masts and radars
-    # Foremast: a pole stepped on the after end of the 22 m tower platform, braced
-    # to the tower, with the SK platform and an offset topmast carrying the SG.
+    # Foremast (reference cuts): a pole stepped on the 22 m deck abaft the tower at z 1.66, braced to
+    # the 24 m roof by two struts, a teardrop SK platform at 36 m with a short yard, a small fan platform
+    # at 34 m, and a topmast at z 4.1 carrying the SG in a guard cage. The long signal yard projects from
+    # the director deck at z -5.8.
     name = 'foremast'
-    foot = P(0, 21.99, -.34)
-    head = P(0, 35.9, -.34)
-    part('rod', name, col, 'pole', foot, head, .34, 'naval', r2=.24, vertices=16)
+    mz = 1.655
+    part('rod', name, col, 'pole', R(0, 21.99, mz), R(0, 35.9, mz), .34, 'naval', r2=.24, vertices=16)
     for sx in (-1, 1):
-        part('rod', name, col, 'tower strut', P(sx * 1.25, 24.1, -3.9), P(0, 31.5, -.36), .13, 'naval', vertices=10)
-    part('rod', name, col, 'signal yard', P(-4.8, 33.2, -.1), P(4.8, 33.2, -.1), .09, 'naval', r2=.06, vertices=10)
+        part('rod', name, col, 'tower strut', R(sx * 1.0, 24.15, -1.65), R(sx * .2, 32.9, 1.42), .13, 'naval', vertices=10)
+    # SK platform: round forward end (r 1.25 about z 0.75) tapering aft to the topmast.
+    outline = [R(1.25 * math.sin(math.radians(a)), 0, .75 - 1.25 * math.cos(math.radians(a))) for a in range(-110, 111, 20)]
+    outline = [(p_[0], p_[1]) for p_ in outline] + [R(0, 0, 5.3)[:2]]
+    prism(name + '.sk platform', name, outline, 35.86, 35.96, 'roof')
+    for a, b_ in zip(outline, outline[1:] + outline[:1]):
+        W.add('mast-rails', col, (a[0], a[1], 35.96), (a[0], a[1], 36.9), .024)
+        for h in (36.43, 36.9):
+            W.add('mast-rails', col, (a[0], a[1], h), (b_[0], b_[1], h), .018)
     for sx in (-1, 1):
-        part('rod', name, col, 'yard brace', P(0, 34.7, -.3), P(sx * 4.6, 33.2, -.1), .03, 'edge', vertices=6)
-    plat_x = (P(0, 35.87, -1.13)[0] + P(0, 35.87, 2.4)[0]) / 2
-    part('box', name, col, 'radar platform', (plat_x, 0, 35.87), (4.2, 3.0, .12), 'roof')
-    pts = [(plat_x - 2.1, -1.5), (plat_x + 2.1, -1.5), (plat_x + 2.1, 1.5), (plat_x - 2.1, 1.5)]
-    for a, b in zip(pts, pts[1:] + pts[:1]):
-        part('rod', name, col, 'platform rail', (a[0], a[1], 36.85), (b[0], b[1], 36.85), .025, 'edge', vertices=5)
-    for p in pts:
-        part('rod', name, col, 'rail stanchion', (p[0], p[1], 35.93), (p[0], p[1], 36.85), .025, 'edge', vertices=5)
+        part('rod', name, col, 'platform knee', R(sx * .25, 34.4, mz), R(sx * 1.1, 35.85, .6), .06, 'naval', vertices=6)
+        part('rod', name, col, 'platform knee', R(sx * .2, 34.6, mz + .2), R(sx * .5, 35.85, 3.6), .05, 'naval', vertices=6)
+    part('rod', name, col, 'sk yard', R(-3.2, 35.78, .1), R(3.2, 35.78, .1), .05, 'naval', vertices=6)
     for sx in (-1, 1):
-        part('rod', name, col, 'platform knee', P(sx * 1.2, 35.8, -.34), P(0, 34.3, -.34), .07, 'naval', vertices=8)
-    part('rod', name, col, 'topmast', P(0, 35.93, 2.1), P(0, 41.84, 2.1), .13, 'naval', r2=.08, vertices=10)
-    part('rod', name, col, 'topmast stay', P(0, 35.93, -.34), P(0, 39.2, 2.1), .04, 'edge', vertices=6)
+        part('rod', name, col, 'yard antenna', R(sx * 3.1, 35.3, .1), R(sx * 3.1, 36.3, .1), .03, 'edge', vertices=5)
+        part('rod', name, col, 'yard brace', R(sx * .2, 35.2, mz - .2), R(sx * 2.2, 35.76, .1), .025, 'edge', vertices=5)
+    # Fan platform at 34 m abaft the pole.
+    fan = [R(-.9, 0, 3.17), R(-.95, 0, 1.4), R(-.3, 0, 1.0), R(.3, 0, 1.0), R(.95, 0, 1.4), R(.9, 0, 3.17)]
+    prism(name + '.fan platform', name, [p_[:2] for p_ in fan], 33.94, 34.02, 'roof')
+    for a, b_ in zip(fan, fan[1:]):
+        W.add('mast-rails', col, (a[0], a[1], 34.02), (a[0], a[1], 34.9), .022)
+        W.add('mast-rails', col, (a[0], a[1], 34.9), (b_[0], b_[1], 34.9), .018)
+    part('rod', name, col, 'fan knee', R(0, 33.2, mz + .25), R(0, 33.94, 2.9), .05, 'naval', vertices=6)
+    # Topmast through the platform's after point, with the SG's guard cage.
+    part('rod', name, col, 'topmast', R(0, 34.6, 4.1), R(0, 41.84, 4.1), .13, 'naval', r2=.08, vertices=10)
+    part('rod', name, col, 'topmast heel', R(0, 34.6, 4.1), R(0, 34.2, mz + .25), .08, 'naval', vertices=6)
+    for i in range(6):
+        a0, a1 = math.tau * i / 6, math.tau * (i + 1) / 6
+        c0, c1 = R(.55 * math.cos(a0), 41.55, 4.1 + .55 * math.sin(a0)), R(.55 * math.cos(a1), 41.55, 4.1 + .55 * math.sin(a1))
+        part('rod', name, col, 'cage leg', R(0, 40.8, 4.1), c0, .025, 'edge', vertices=5)
+        part('rod', name, col, 'cage ring', c0, c1, .025, 'edge', vertices=5)
+    # Signal yard off the director deck (reference HP_flag points at +-8.9 and +-6.8).
+    part('rod', name, col, 'signal yard', R(-9.1, 28.55, -5.77), R(9.1, 28.55, -5.77), .09, 'naval', r2=.07, vertices=8)
+    for sx in (-1, 1):
+        part('rod', name, col, 'signal yard brace', R(sx * 1.84, 26.6, -5.77), R(sx * 4.6, 28.5, -5.77), .06, 'naval', vertices=6)
+        for hx in (6.8, 8.9):
+            part('rod', name, col, 'halyard block', R(sx * hx, 28.42, -5.77), R(sx * hx, 28.2, -5.77), .04, 'edge', vertices=5)
     before = names()
     sx, sy, sz = P(0, 36.05, -1.13)
-    part('cyl', 'radar-sk', col, 'pedestal', (sx, sy, 36.19), .32, .52, 'naval', vertices=16)
-    grid('radar-sk.antenna', (sx + .12, sy, 39.1), 5.1, 5.2, col, 'x', 10, 12, assembly='radar-sk')
+    part('box', 'radar-sk', col, 'pedestal', (sx - .1, sy, 36.66), (.92, .9, 1.3), 'naval')
+    part('box', 'radar-sk', col, 'pedestal cap', (sx - .1, sy, 37.36), (1.05, 1.0, .12), 'edge')
+    # The SK's mesh screen reads nearly solid: a thin backing plate inside the frame grid.
+    part('box', 'radar-sk', col, 'screen', (sx + .84, sy, 39.2), (.03, 5.0, 5.1), 'edge')
+    grid('radar-sk.antenna', (sx + .87, sy, 39.2), 5.1, 5.2, col, 'x', 6, 8, assembly='radar-sk')
     for dy in (-1.6, 1.6):
-        part('rod', 'radar-sk', col, 'back brace', (sx - .7, sy, 37.3), (sx + .1, sy + dy, 38.2), .05, 'naval', vertices=8)
-    part('rod', 'radar-sk', col, 'mast', (sx - .7, sy, 36.4), (sx - .7, sy, 40.2), .09, 'naval', vertices=10)
+        part('rod', 'radar-sk', col, 'back brace', (sx - .1, sy, 37.4), (sx + .82, sy + dy, 38.4), .05, 'naval', vertices=8)
+        part('rod', 'radar-sk', col, 'back brace', (sx - .1, sy, 37.4), (sx + .82, sy + dy, 40.2), .04, 'naval', vertices=6)
     radar_pivot('radar-sk.yaw', (sx, sy, 36.45), objects_since(before))
     before = names()
     gx, gy, gz = P(0, 41.82, 2.1)
@@ -263,10 +318,6 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     part('box', 'radar-sg-forward', col, 'reflector', (gx + .15, gy, gz + .75), (.14, 1.28, .95), 'edge')
     part('rod', 'radar-sg-forward', col, 'feed arm', (gx + .15, gy, gz + .3), (gx + .55, gy, gz + .75), .03, 'naval', vertices=6)
     radar_pivot('radar-sg-forward.yaw', (gx, gy, gz + .12), objects_since(before))
-
-    def R(x, y, z):
-        """Runtime point (x starboard, y up, z aft) -> authoring frame."""
-        return (-z, -x, y)
 
     def web(name, assembly, zy, thick, holes=(), knobs=(), c=None):
         """A centreline plate web in the runtime z-y plane, with lightening holes and bolted bosses."""
@@ -281,7 +332,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
 
     # After pole on the funnel's forward web, carrying the second SG (reference centreline cut).
     name = 'after-pole'
-    web(name, name, [(13.75, 20.2), (13.3, 20.25), (10.4, 26.2), (10.4, 26.72), (11.45, 26.72), (13.75, 24.4)], .3,
+    web(name, name, [(13.75, 20.2), (13.45, 20.3), (10.55, 26.1), (10.3, 26.45), (10.3, 26.72), (11.45, 26.72), (13.75, 24.4)], .3,
         holes=[(11.47, 25.48, .13), (12.02, 24.65, .22), (12.43, 23.65, .15), (13.3, 22.86, .2), (13.37, 21.65, .17)])
     px_, _, _ = R(0, 0, 10.93)
     part('cyl', name, col, 'platform', (px_, 0, 26.8), 1.05, .16, 'roof', vertices=20)
@@ -317,11 +368,11 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         part('rod', name, col, 'yard end', R(s * 6.0, 28.52, 24.53), R(s * 6.3, 28.52, 24.53), .05, 'naval', vertices=6)
         part('rod', name, col, 'yard lift', R(0, 28.62, 24.53), R(s * 5.6, 28.55, 24.53), .02, 'edge', vertices=5)
         part('rod', name, col, 'yard brace', R(s * .3, 27.6, 24.4), R(s * 2.6, 28.47, 24.5), .045, 'naval', vertices=6)
-    pipe = [R(0, 11.6, 22.58), R(0, 19.6, 22.58), R(0, 20.35, 22.75), R(0, 26.8, 25.05)]
+    pipe = [R(0, 11.6, 22.42), R(0, 19.4, 22.42), R(0, 20.2, 22.62), R(0, 27.0, 25.2)]
     for a, b_ in zip(pipe, pipe[1:]):
-        part('rod', name, col, 'exhaust pipe', a, b_, .22, 'naval', vertices=10)
+        part('rod', name, col, 'exhaust pipe', a, b_, .27, 'naval', vertices=10)
     for y_ in (13.2, 15.4, 17.6):
-        part('rod', name, col, 'pipe clip', R(0, y_, 22.58), R(0, y_, 21.98), .04, 'edge', vertices=5)
+        part('rod', name, col, 'pipe clip', R(0, y_, 22.42), R(0, y_, 21.98), .04, 'edge', vertices=5)
 
     # ------------------------------------------------------------ funnel fittings
     fcol = collections['Superstructure']
@@ -329,10 +380,6 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     top = f['baseY'] + f['height']
     ring = [(-z, -x) for x, z in f['footprint']]
     cx = sum(p[0] for p in ring) / len(ring)
-    for zz, r in [(top - .08, .09), (top - 3.2, .05), (top - 9.5, .05)]:
-        for a, b in zip(ring, ring[1:] + ring[:1]):
-            s = 1 + r * .6
-            tag(rod('funnel.band', (cx + (a[0] - cx) * s, a[1] * s, zz), (cx + (b[0] - cx) * s, b[1] * s, zz), r, 'edge', fcol, vertices=6), 'funnel')
     tag(mesh('funnel.exhaust opening', [(cx + (p[0] - cx) * .97, p[1] * .97, top - .03) for p in ring], [tuple(range(len(ring)))], 'dark', fcol), 'funnel')
     half = max(abs(p[1]) for p in ring)
     spine = (max(p[0] for p in ring) - half, min(p[0] for p in ring) + half)   # authoring x of the two end centres
@@ -350,8 +397,8 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     tag(mesh('funnel.rain lip', vv, ff, 'naval', fcol), 'funnel')
     for i in range(0, n, 2):
         a, b_ = outward(ring[i], .36), outward(ring[(i + 2) % n], .36)
-        W.add('funnel-rails', fcol, (a[0], a[1], top), (a[0], a[1], top + 1.0), .024)
-        for h in (.5, 1.0):
+        W.add('funnel-rails', fcol, (a[0], a[1], top), (a[0], a[1], top + .9), .024)
+        for h in (.45, .9):
             W.add('funnel-rails', fcol, (a[0], a[1], top + h), (b_[0], b_[1], top + h), .018)
     # Cap housing inside the rim: a raked stadium (x +-2.2, z 14.8-21.4) whose top climbs forward
     # from 25.45 to 26.8 m, with the four boiler uptakes standing proud of it.
@@ -581,8 +628,24 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             # Solid bulwarks and a hanging fascia around the bridge and director decks;
             # the director deck's walkway aft to the foremast keeps open rails.
             if bridge and min(a[0], b[0]) > P(0, 0, -3.9)[0]:
-                wall(st['id'] + '.bulwark', a, b, top, 1.15, st['id'])
-                wall(st['id'] + '.fascia', a, b, st['baseY'] - .75, .75, st['id'], .05)
+                # Reference: 1.45-1.5 m plated bulwarks, externally stiffened, the open bridge's forward
+                # run glazed along its upper half; no fascia below the deck edge.
+                open_bridge = abs(top - 21.99) < .1
+                wall(st['id'] + '.bulwark', a, b, top, 1.45 if open_bridge else 1.5, st['id'])
+                d = Vector((b[0] - a[0], b[1] - a[1], 0))
+                if d.length > .4:
+                    t = d.normalized()
+                    n_out = Vector((t.y, -t.x, 0))
+                    mid = Vector(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 0))
+                    if n_out.dot(mid - Vector((sum(p[0] for p in outline(st)) / len(outline(st)), sum(p[1] for p in outline(st)) / len(outline(st)), 0))) < 0:
+                        n_out = -n_out
+                    ribs = max(1, int(d.length / 1.1))
+                    for k in range(ribs + 1):
+                        q = Vector(a[:2] + (0,)) + d * (k / ribs) + n_out * .06
+                        tag(box(st['id'] + '.bulwark stiffener', (q.x, q.y, top + .7), (.07, .07, 1.3), 'naval', scol), st['id'])
+                    if open_bridge and mid.x > P(0, 0, -8.6)[0]:
+                        g = tag(box(st['id'] + '.windscreen', (mid.x + n_out.x * .035, mid.y + n_out.y * .035, top + 1.12), (d.length * .92, .02, .42), 'glass', scol), st['id'])
+                        g.rotation_euler.z = math.atan2(d.y, d.x)
                 continue
             n = max(1, math.ceil(math.dist(a, b) / 1.8))
             for i in range(n + 1):
@@ -649,6 +712,8 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             c = Vector((sum(v[0] for v in poly) / len(poly), sum(v[1] for v in poly) / len(poly), 0))
             q = q + (c - q).normalized() * .15
             floor = support.below(q.x, q.y, 24.0)
+            if 24.07 - floor > 3:      # the walkway aft to the foremast rides on the pole, not on posts
+                continue
             tag(rod('bridge-roof.post', (q.x, q.y, floor), (q.x, q.y, 24.07), .07, 'naval', scol, vertices=8), 'bridge-roof')
 
     # ------------------------------------------------------------ rails along the deck edge
