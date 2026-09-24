@@ -214,9 +214,21 @@ def create_superstructure(d, col, helpers, materials, deck):
         fit.stairs('Gallery access',(-11.0,sign*4.0,7.33),(-7.8,sign*4.0,9.89),.63)
     plate('Funnel gallery aft crosswalk',[(-8.0,-5.7),(-8.0,5.7),(-6.5,5.7),(-6.5,-5.7)],9.78,.11)
     # Aft director: low cabin, paired window bands and a compact raised hood.
-    owner='aft-director';x=-18.68
-    box('After navigation windows',(x+2.9,0,10.95),(.05,4.4,.55),'glass')
-    cyl('After director lower ring',(x,0,11.7),1.38,.45)
-    cyl('After director body',(x,0,12.78),1.36,1.70)
-    cyl('After director rounded cap',(x,0,13.85),1.35,.44,'roof',r2=1.05)
-    for y in (-.72,0,.72):box('After director window',(x+1.24,y,13.05),(.07,.42,.40),'glass')
+    owner='aft-director';x=-18.66
+    # The director stands on its raised seat (12.4 m) at the fore end of the octagonal platform.
+    box('After control windows',(-14.55,0,10.45),(.05,1.9,.5),'glass')
+    for sy in (-1,1):box('After control side windows',(-16.3,sy*1.575,10.45),(2.2,.05,.45),'glass')
+    cyl('After director lower ring',(x,0,12.55),1.40,.30)
+    cyl('After director body',(x,0,13.37),1.38,1.34)
+    cyl('After director rounded cap',(x,0,14.25),1.37,.42,'roof',r2=1.05)
+    for y in (-.72,0,.72):box('After director window',(x+1.26,y,13.55),(.07,.42,.40),'glass')
+    owner='aft-director-deck'
+    s=next(s for s in d['structures'] if s['id']=='aft-director-deck');pts=[(-z,-x) for x,z in s['footprint']]
+    wing=[p for p in pts if p[0]<-17.6];wing.sort(key=lambda p:math.atan2(p[1],-(p[0]+20.2)))
+    for a,b in zip(wing,wing[1:]):
+        o=box('Aft director platform bulwark',((a[0]+b[0])/2,(a[1]+b[1])/2,11.46+.31),(math.dist(a,b),.055,.62));o.rotation_euler.z=math.atan2(b[1]-a[1],b[0]-a[0])
+    for sy in (-1,1):
+        a=(-17.65,sy*3.1);b=(-17.55,sy*1.66)
+        o=box('Aft director platform bulwark',((a[0]+b[0])/2,(a[1]+b[1])/2,11.46+.31),(math.dist(a,b),.055,.62));o.rotation_euler.z=math.atan2(b[1]-a[1],b[0]-a[0])
+    for sy in (-1,1):
+        for xx in (-18.2,-21.0):rod('Aft platform bracket',(xx,sy*1.5,9.6),(xx,sy*3.9,11.2),.09,'naval')
