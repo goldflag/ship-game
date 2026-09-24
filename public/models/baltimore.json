@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "baltimore",
   "name": "USS Baltimore",
-  "configuration": "CA-68 · October 1943 exterior · 24 ft 2 in limiting keel-draft datum; dimensional reconstruction under review",
+  "configuration": "CA-68 · October 1943 exterior · hull, superstructure and mount seats measured on GameModels3D pasc108",
   "coordinates": "meters-y-up-bow-negative-z",
   "modelUrl": "/models/baltimore.glb",
   "hull": {
@@ -61576,7 +61576,7 @@
     }
   ],
   "accuracy": {
-    "exterior": "LOA, beam, waterline length and limiting keel draft are documented in NAVSHIPS 250-010. Top envelope and longitudinal stations are measured from the Navy camouflage drawing. Underwater sections and smaller fittings remain interpreted. See reports/discrepancies.md.",
+    "exterior": "Hull lines (151 control stations), deckhouse tiers, funnels, masts, director and mount stations measured from the approved GameModels3D pasc108 A_Hull model; geometry authored independently. Fidelity to that model, not an independent historical survey. The preset keeps its October 1943 radar and equipment fit.",
     "internals": "Physical protection surfaces and contained provisional room envelopes. Thickness families, boundaries, capacities, flooding and ballistics remain estimates; see fidelity-01 evidence.",
     "weapons": "Original catalog-based 8-inch triple / 5-inch twin components; primary turret section OP1112 p517. Secondary shield details and AA fittings remain under review. The twelve quad 40 mm Bofors mounts now use shared aiming, finite ammunition and damage alongside the six twin 5-inch DP mounts. AA rates and arcs are gameplay approximations; the single 20 mm fittings remain visual."
   },
@@ -63366,5 +63366,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "3e0a1a42669d52e802d6b4f980ce2422897038a15c28c19dae8e8b78ede7cb72"
+  "contentHash": "7e518a1cf5646260a26622cd454157f927020f9ccab3fc96afd0d0f8f431b944"
 }

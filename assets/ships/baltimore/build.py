@@ -1,8 +1,8 @@
-"""Original USS Baltimore reconstruction, October 1943 fit.
+"""Original USS Baltimore reconstruction, October 1943 fit, on hull lines, deckhouses and mount stations measured
+from the approved GameModels3D pasc108 model (see authoring/ and the README). No reference mesh or texture is read.
 
 Blueprint meters: +Y up, -Z bow. Authoring meters: +X bow, +Y port, +Z up.
-The shared exporter owns the sole basis conversion. Archival reference art is
-never used as a texture. See references/measurements.json for evidence limits.
+The shared exporter owns the sole basis conversion.
 """
 import bpy
 import math
@@ -196,6 +196,24 @@ for casing,xs,z in [('forward-funnel-casing',[.6,1.9,3.2,4.5],13.9),('after-funn
  for a,b in zip(outline[::2],outline[2::2]+outline[:1]):
   for h in [.55,1.0]:rod('Casing handrail',(*a,top+h),(*b,top+h),.024,'edge',vertices=5)
   rod('Casing stanchion',(*a,top),(*a,top+1.0),.024,'edge',vertices=5)
+# Guard rails round the open 01 roofs, left off where a 5-inch sponson's gunhouse sweeps the edge and where the
+# next house stands on the edge.
+SWEPT=[Vector((-m['position'][2],-m['position'][0],0)) for m in D['mounts'] if m['battery'] in ('main','secondary') and not m['partId'].startswith('us-40mm')]
+def roof_rail(id,keep,clear=3.9):
+ global ASSEMBLY
+ ASSEMBLY=id;s=S[id];top=s['baseY']+s['height'];pts=s['footprint']
+ swept=lambda p:any((Vector((p.x,p.y,0))-c).length<clear for c in SWEPT)
+ for (x0,z0),(x1,z1) in zip(pts,pts[1:]+pts[:1]):
+  if not keep(x0,z0,x1,z1):continue
+  a=Vector((-z0,-x0,top));b=Vector((-z1,-x1,top));n=max(1,math.ceil((b-a).length/1.6))
+  for i in range(n):
+   p,q=a.lerp(b,i/n),a.lerp(b,(i+1)/n)
+   if swept(p) or swept(q):continue
+   for r in [p,q]:rod('Roof rail stanchion',r,r+Vector((0,0,1.0)),.024,'edge',vertices=5)
+   for h in [.5,1.0]:rod('Roof guard rail',p+Vector((0,0,h)),q+Vector((0,0,h)),.02,'edge',vertices=5)
+roof_rail('forward-deckhouse',lambda x0,z0,x1,z1:min(abs(x0),abs(x1))>=3.3 and max(abs(x0),abs(x1))<=7.2 and not (abs(x0)>=7.0 and abs(x1)>=7.0))
+roof_rail('after-funnel-base',lambda x0,z0,x1,z1:min(abs(x0),abs(x1))>=4.5)
+roof_rail('aft-deckhouse-front',lambda x0,z0,x1,z1:min(abs(x0),abs(x1))>=4.0 and abs(z0-z1)>1)
 ASSEMBLY='conning-tower'
 for sign in [-1,1]:
  for x in [22.2,23.4,24.3]:box('Conning tower vision slit',(x,sign*wall(x,12.1,sign),12.1),(.5,.06,.14),'dark')

@@ -222,6 +222,10 @@ b['obstructions'] = [
     {'id': 'aft-house', 'center': [0, 11.6, 30.5], 'size': [5.8, 10.8, 16.8]},
 ]
 b['viewpoints']['bridge'] = [0, 19.3, -24.2]
+b['configuration'] = 'CA-68 · October 1943 exterior · hull, superstructure and mount seats measured on GameModels3D pasc108'
+b['accuracy']['exterior'] = ('Hull lines (151 control stations), deckhouse tiers, funnels, masts, director and mount stations '
+    'measured from the approved GameModels3D pasc108 A_Hull model; geometry authored independently. Fidelity to that '
+    'model, not an independent historical survey. The preset keeps its October 1943 radar and equipment fit.')
 # Installation interlocks (the Alaska and Enterprise encoding): barrels of the 8-inch and 5-inch mounts stop at
 # the deckhouses they can reach and at the obstruction boxes; superfiring neighbours stop at each other.
 # Recipe-only fittings the barrels can reach are kept out of their arcs instead.
