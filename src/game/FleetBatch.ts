@@ -6,13 +6,13 @@ export type FleetDrawState = {
 };
 type CullState = FleetDrawState & {
   _instanceInfo: { visible: boolean; active: boolean; geometryIndex: number }[];
-  _geometryInfo: { start: number; count: number }[];
+  _geometryInfo: { start: number; count: number; boundingSphere: THREE.Sphere | null }[];
   _matricesTexture: THREE.DataTexture;
   _visibilityChanged: boolean;
 };
 type Group = { count: number; ids: number[] };
 
-const viewProjection = new THREE.Matrix4(), frustum = new THREE.Frustum(), pose = new THREE.Matrix4(), sphere = new THREE.Sphere();
+const viewProjection = new THREE.Matrix4(), frustum = new THREE.Frustum(), sphere = new THREE.Sphere();
 
 /** Water's opaque capture and the main draw often use the same camera in
  * succession. Reuse that draw list within the completed fleet pose. A shadow
@@ -88,14 +88,19 @@ export class FleetBatch extends THREE.BatchedMesh {
     this.bounds = bounds; this.boundsGeometry = geometries;
   }
 
-  /** The instance's world bounds exactly as three's per-object culling derives them from the matrix texture. */
+  /** The instance's world bounds exactly as three's per-object culling derives them from the matrix texture:
+   * `getMatrixAt`, then `Sphere.applyMatrix4` (`Vector3.applyMatrix4` and `getMaxScaleOnAxis`), operation for operation. */
   private bound(instanceId: number): void {
-    const geometryId = (this as unknown as CullState)._instanceInfo[instanceId].geometryIndex;
-    this.getMatrixAt(instanceId, pose);
-    this.getBoundingSphereAt(geometryId, sphere)!.applyMatrix4(pose);
+    const state = this as unknown as CullState, geometryId = state._instanceInfo[instanceId].geometryIndex;
+    const local = state._geometryInfo[geometryId].boundingSphere ?? this.getBoundingSphereAt(geometryId, sphere)!;
+    const e = state._matricesTexture.image.data as Float32Array, m = instanceId * 16, x = local.center.x, y = local.center.y, z = local.center.z;
+    const e0 = e[m], e1 = e[m + 1], e2 = e[m + 2], e3 = e[m + 3], e4 = e[m + 4], e5 = e[m + 5], e6 = e[m + 6], e7 = e[m + 7];
+    const e8 = e[m + 8], e9 = e[m + 9], e10 = e[m + 10], e11 = e[m + 11], e12 = e[m + 12], e13 = e[m + 13], e14 = e[m + 14], e15 = e[m + 15];
+    const w = 1 / (e3 * x + e7 * y + e11 * z + e15);
     this.reserve(instanceId);
     const bounds = this.bounds, o = instanceId * 4;
-    bounds[o] = sphere.center.x; bounds[o + 1] = sphere.center.y; bounds[o + 2] = sphere.center.z; bounds[o + 3] = sphere.radius;
+    bounds[o] = (e0 * x + e4 * y + e8 * z + e12) * w; bounds[o + 1] = (e1 * x + e5 * y + e9 * z + e13) * w; bounds[o + 2] = (e2 * x + e6 * y + e10 * z + e14) * w;
+    bounds[o + 3] = local.radius * Math.sqrt(Math.max(e0 * e0 + e1 * e1 + e2 * e2, e4 * e4 + e5 * e5 + e6 * e6, e8 * e8 + e9 * e9 + e10 * e10));
     this.boundsGeometry[instanceId] = geometryId;
   }
 

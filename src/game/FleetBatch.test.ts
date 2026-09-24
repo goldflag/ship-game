@@ -70,3 +70,24 @@ test('kept bounds cull and group exactly as three does each pass, through poses,
   expect(drawn).toBeGreaterThan(1000);
   batch.dispose(); material.dispose(); geometries.forEach(g => g.dispose());
 });
+
+test('kept bounds are three\'s Sphere.applyMatrix4 of each instance\'s texture matrix, bit for bit', () => {
+  let seed = 3;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  const geometries = [new THREE.BoxGeometry(2, 1, 4), new THREE.SphereGeometry(1.5, 8, 6), new THREE.TorusGeometry(2, .3, 5, 9)];
+  const batch = new FleetBatch(40, 3000, 9000, new THREE.MeshStandardMaterial()), ids = geometries.map(g => batch.addGeometry(g));
+  const matrix = new THREE.Matrix4(), expected = new THREE.Sphere(), internals = batch as unknown as { bounds: Float64Array; boundsGeometry: Int32Array };
+  batch.sortObjects = false;
+  for (let i = 0; i < 40; i++) batch.addInstance(ids[i % ids.length]);
+  // The first cull adopts the texture; from then on every write refreshes its instance's bounds.
+  batch.onBeforeRender(undefined as never, new THREE.Scene(), new THREE.PerspectiveCamera(), batch.geometry, batch.material as THREE.Material, null as never);
+  for (let step = 0; step < 400; step++) {
+    const instance = Math.floor(random() * 40);
+    matrix.compose(new THREE.Vector3((random() - .5) * 9000, random() * 30, (random() - .5) * 9000),
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(random() * 6, random() * 6, random() * 6)), new THREE.Vector3(.3 + random() * 3, .3 + random() * 3, .3 + random() * 3));
+    batch.setMatrixAt(instance, matrix);
+    batch.getBoundingSphereAt(batch.getGeometryIdAt(instance), expected)!.applyMatrix4(batch.getMatrixAt(instance, new THREE.Matrix4()));
+    expect(Array.from(internals.bounds.subarray(instance * 4, instance * 4 + 4))).toEqual([expected.center.x, expected.center.y, expected.center.z, expected.radius]);
+    expect(internals.boundsGeometry[instance]).toBe(batch.getGeometryIdAt(instance));
+  }
+});
