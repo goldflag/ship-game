@@ -225,18 +225,6 @@ for mount in D['mounts']:
         create_gun_mount(mount, COL, helpers, materials, deckz)
     else:
         create_shared_mount(mount, COL, helpers, materials)
-    if mount['partId'] == 'qf-4-mkxix-twin':
-        # Low splinter tub on the shelter deck, open toward the ship's centreline.
-        r = 3.25; sign = 1 if y > 0 else -1 if y < 0 else 0
-        centre = math.atan2(sign, 0) if sign else math.pi
-        arc = [centre + math.radians(a) for a in range(-115, 116, 10)]
-        pts = [(x + r * math.cos(a), y + r * math.sin(a)) for a in arc]
-        for (ax, ay), (bx, by) in zip(pts, pts[1:]):
-            ob = box('4-inch splinter shield', ((ax + bx) / 2, (ay + by) / 2, z + .55), (math.hypot(bx - ax, by - ay) + .02, .06, 1.1), 'naval')
-            ob.rotation_euler.z = math.atan2(by - ay, bx - ax)
-        tube('4-inch shield capping', [(px, py, z + 1.1) for px, py in pts], .035, 'edge', 6)
-        for a in arc[::4]:
-            rod('4-inch shield stay', (x + r * math.cos(a), y + r * math.sin(a), z + 1.0), (x + (r - .7) * math.cos(a), y + (r - .7) * math.sin(a), z + .02), .03, 'naval', vertices=6)
 
 # ------------------------------------------------------------------ superstructure
 COL = collections['Superstructure']
@@ -424,6 +412,37 @@ def half_width(outline, x):
     ys = [ay + (by - ay) * (x - ax) / (bx - ax) for (ax, ay), (bx, by) in zip(outline, outline[1:] + outline[:1]) if (ax - x) * (bx - x) <= 0 and ax != bx]
     return max(abs(y) for y in ys) if ys else 0
 
+
+# 4-inch splinter screens: plated bulwarks along the shelter-deck edge abreast each wing mount
+# (reference extents fore and aft of the mount), and round the after end for the centreline mount.
+ASSEMBLY = 'secondary-screens'
+# The reference screens stand 1.4 m; ours stop at 1.0 m so a 4-inch barrel depressed to -10 degrees
+# clears them at every bearing.
+SCREEN_TOP = 10.2
+for m in D['mounts']:
+    if m['partId'] != 'qf-4-mkxix-twin': continue
+    mx, my, mz = blender(m['position'])
+    if abs(my) > .1:
+        sign = 1 if my > 0 else -1
+        decks = [[(-z, -x) for x, z in S[sid]['footprint']] for sid in ['shelter-deck-forward', 'shelter-deck-well-roof', 'shelter-deck-midships', 'shelter-deck-aft']]
+        edge = lambda bx: max(half_width(o, bx) for o in decks)
+        lo, hi = (-5.8, 4.0) if mx < -40 else (-5.5, 5.8) if mx < -20 else (-4.1, 3.5)
+        stations = sorted({round(mx + lo + k * .5, 3) for k in range(int((hi - lo) / .5) + 1)} | {round(px, 3) for o in decks for px, py in o if mx + lo < px < mx + hi})
+        pts = [(bx, sign * edge(bx)) for bx in stations if edge(bx) > 1]
+        # The forward and after screens end where the deck edge turns inboard.
+        pts = [p for p in pts if abs(p[1]) > abs(my) + .6]
+        if len(pts) > 1:
+            bulwark('4-inch splinter screen', pts, 9.2, SCREEN_TOP)
+            for bx, by in pts[1:-1:3]:
+                mesh('Screen stay', [(bx, by, SCREEN_TOP - .1), (bx, by, 9.2), (bx, by * (1 - .6 / abs(by)), 9.2)], [(0, 1, 2), (2, 1, 0)], 'naval')
+    else:
+        o = [(-z, -x) for x, z in S['shelter-deck-aft']['footprint']]
+        stern = min(px for px, py in o)
+        stations = [round(-59.0 - k * .4, 3) for k in range(int((-59.0 - stern) / .4) + 1)]
+        half = [(bx, half_width(o, bx)) for bx in stations if half_width(o, bx) > .5]
+        port = [(bx, hw) for bx, hw in half]; star = [(bx, -hw) for bx, hw in reversed(half)]
+        pts = [(-57.0, 2.5)] + port + [(stern, 1.45), (stern, -1.45)] + star + [(-57.0, -2.5)]
+        bulwark('4-inch splinter screen', pts, 9.2, SCREEN_TOP)
 
 # The well under the shelter deck: pillars, deck beams from the casings to the deck edge, and the
 # plated bulwark along the upper deck.
