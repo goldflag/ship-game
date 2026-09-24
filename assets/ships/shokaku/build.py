@@ -354,7 +354,7 @@ for mount in D['mounts']:
     if heavy and x>0:
         # Forward 12.7 cm pairs: rectangular platforms with chamfered outboard
         # corners, a 1 m splinter bulwark and knee brackets (pjsa108).
-        inner=hangar_side(x,sign)-.05;outer=abs(y)+1.55;L2=3.0
+        inner=hangar_side(x,sign)-.05;outer=abs(y)+2.45;L2=3.0
         pts=[(x-L2,inner),(x+L2,inner),(x+L2,outer-1.1),(x+L2-1.1,outer),(x-L2+1.1,outer),(x-L2,outer-1.1)]
         poly(mount['id']+' sponson platform',[(px,sign*py) for px,py in pts],z-.25,z,M['naval'],col)
         rim=pts[1:]+[pts[0]]
@@ -370,9 +370,11 @@ for mount in D['mounts']:
         # After 12.7 cm mounts: round tubs on a tapered pedestal web that fairs
         # into the hull side, with two diagonal struts (pjsa108).
         R=3.15;wall=hangar_side(x,sign) or 13.0
-        cyl(mount['id']+' sponson floor',(x,y,z-.13),R,.26,M['naval'],col,32)
+        # The gas-shielded gunhouse skirt reaches just below its datum: keep 5 cm clear.
+        drop=.05 if 'mod2' in mount['partId'] else 0
+        cyl(mount['id']+' sponson floor',(x,y,z-.13-drop),R,.26,M['naval'],col,32)
         tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.75,col)
-        box(mount['id']+' tub neck',(x,sign*(wall+abs(y))/2,z-.13),(R*1.4,abs(y)-wall+.05,.26),M['naval'],col)
+        box(mount['id']+' tub neck',(x,sign*(wall+abs(y))/2,z-.16),(R*1.4,abs(y)-wall+.05,.24),M['naval'],col)
         foot=3.6;hb=loft_breadth(H,x,foot)
         top=[(x-2.0,sign*(wall-.04)),(x+2.0,sign*(wall-.04)),(x+1.5,sign*(abs(y)+.4*R)),(x-1.5,sign*(abs(y)+.4*R))]
         bottom=[(x-.75,sign*(hb-.04)),(x+.75,sign*(hb-.04)),(x+.45,sign*(hb+.35)),(x-.45,sign*(hb+.35))]
@@ -384,10 +386,11 @@ for mount in D['mounts']:
     else:
         # 25 mm triples at the flight-deck edge: tub, gallery bridge to the hangar
         # side and knee brackets on the flush wall.
-        R=1.95 if 'shielded' in mount['partId'] else 1.7;wall=max(12.9,hangar_side(x,sign) or 13.0)
-        cyl(mount['id']+' sponson floor',(x,y,z-.13),R,.26,M['naval'],col,24)
-        tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.9,col,24)
-        box(mount['id']+' gallery bridge',(x,sign*(wall+abs(y))/2,z-.14),(R*1.5,abs(y)-wall+.05,.28),M['naval'],col)
+        R=1.95 if 'shielded' in mount['partId'] else 1.7;wall=hangar_side(x,sign) or 13.0
+        drop=.05 if 'shielded' in mount['partId'] else 0
+        cyl(mount['id']+' sponson floor',(x,y,z-.13-drop),R,.26,M['naval'],col,24)
+        tub_wall(mount['id']+' splinter tub',x,y,R,z-drop,z+.45,col,24)
+        box(mount['id']+' gallery bridge',(x,sign*(wall+abs(y))/2,z-.14-drop),(R*1.5,abs(y)-wall+.05,.28),M['naval'],col)
         for dx in [-R*.6,R*.6]:fit.knee(mount['id']+' gallery web',x+dx,sign*wall,sign*(abs(y)+R*.6),z-.27,1.8)
     guns.create_mount(mount,COL['Armament'],helpers,M)
 
@@ -395,10 +398,11 @@ fit.col=COL['Island']
 # Distinct solid wing bulwarks and the upper windbreak replace uniform rail decks.
 for id in ['bridge-walkway','navigation-wings','compass-platform','bridge-roof']:
     s_=S[id];pts=[(-z,-x) for x,z in s_['footprint']];z=s_['baseY']+s_['height']
-    if id in ['bridge-walkway','navigation-wings']:
-        railing(pts+pts[:1],z,id,COL['Island'],.95 if id=='bridge-walkway' else 1.12)
+    if id=='bridge-walkway':
+        railing(pts+pts[:1],z,id,COL['Island'],.95)
     else:
-        height=1.23 if id=='bridge-roof' else 1.02
+        # pjsa108: solid splinter bulwarks on the wings, compass platform and roof.
+        height=1.23 if id=='bridge-roof' else 1.1 if id=='navigation-wings' else 1.02
         for a,b in zip(pts,pts[1:]+pts[:1]):
             delta=Vector((b[0]-a[0],b[1]-a[1],0));normal=Vector((delta.y,-delta.x,0)).normalized()*.045
             points=[a,b,(b[0]-normal.x,b[1]-normal.y),(a[0]-normal.x,a[1]-normal.y)]
@@ -470,6 +474,48 @@ for module in D['modules']:
     rod('Type 94 optical baseline',(x,y-2.25,z+.23),(x,y+2.25,z+.23),.12,M['naval'],COL['Island'],vertices=16)
     for yy in [y-2.2,y+2.2]:box('Director prism hood',(x,yy,z+.23),(.48,.26,.34),M['naval'],COL['Island'])
 
+# Island lookouts and signalling (pjsa108 positions): binoculars on pedestals
+# inside the bulwarks, signal lamps, a searchlight sponson forward of the island
+# and deck-edge lights along the flight deck.
+def binocular(name,x,y,z,yaw,col):
+    rod(name+' pedestal',(x,y,z),(x,y,z+.95),.06,M['naval'],col,vertices=8)
+    o=box(name+' yoke',(x,y,z+1.02),(.16,.3,.14),M['naval'],col);o.rotation_euler.z=yaw
+    d=Vector((math.cos(yaw),math.sin(yaw),0));side=Vector((-d.y,d.x,0))*.09
+    for k in [-1,1]:
+        c=Vector((x,y,z+1.1))+side*k
+        rod(name+' barrel',c-d*.24,c+d*.26,.055,M['edge'],col,vertices=8)
+roof=S['bridge-roof']['baseY']+S['bridge-roof']['height']
+for bx,by in [(40.51,-11.64),(43.94,-11.85),(40.52,-14.96),(38.7,-11.64),(44.49,-13.28),(42.34,-14.96),(42.35,-11.64),(43.94,-14.74),(38.68,-14.96)]:
+    ctr=Vector((42,-13.35));yaw=math.atan2(by-ctr.y,bx-ctr.x)
+    binocular('Bridge roof binocular',bx,by,roof,yaw,COL['Island'])
+compass=S['compass-platform']['baseY']+S['compass-platform']['height']
+wings=S['navigation-wings']['baseY']+S['navigation-wings']['height']
+walk=S['bridge-walkway']['baseY']+S['bridge-walkway']['height']
+for bx,by,bz in [(33.76,-12.37,compass),(34.76,-14.66,compass),(32.31,-11.78,wings),(32.46,-14.68,wings),(47.7,-12.1,walk),(47.7,-14.5,walk)]:
+    binocular('Island lookout binocular',bx,by,bz,0 if bx>40 else math.pi,COL['Island'])
+for bx,by,bz in [(44.23,-15.7,wings),(35.94,-11.91,roof)]:
+    rod('Signal lamp post',(bx,by,bz),(bx,by,bz+.9),.05,M['naval'],COL['Island'],vertices=8)
+    cyl('Signal lamp housing',(bx,by,bz+1.12),.2,.42,M['naval'],COL['Island'],12)
+    rod('Signal lamp lens',(bx,by+(-.2 if by<-13.35 else .2),bz+1.14),(bx,by+(-.24 if by<-13.35 else .24),bz+1.14),.14,M['glass'],COL['Island'],vertices=12)
+SX,SY,SZ=51.49,-16.99,12.55
+cyl('Searchlight sponson',(SX,SY,SZ-.1),1.15,.2,M['naval'],COL['Island'],20)
+tub_wall('Searchlight sponson bulwark',SX,SY,1.15,SZ,SZ+.9,COL['Island'],20,arc=(math.pi*.1,math.pi*1.9))
+box('Searchlight sponson bridge',(SX,(SY-12.98)/2,SZ-.1),(1.6,abs(SY+12.98),.2),M['naval'],COL['Island'])
+for dx in [-.6,.6]:fit.knee('Searchlight sponson knee',SX+dx,-12.98,SY+.4,SZ-.2,1.3)
+cyl('Searchlight pedestal',(SX,SY,SZ+.35),.22,.7,M['naval'],COL['Island'],12)
+o=rod('Searchlight drum',(SX,SY+.35,SZ+1.05),(SX,SY-.45,SZ+1.05),.42,M['naval'],COL['Island'],vertices=16)
+rod('Searchlight lens',(SX,SY-.45,SZ+1.05),(SX,SY-.48,SZ+1.05),.36,M['glass'],COL['Island'],vertices=16)
+for dx in [-.44,.44]:rod('Searchlight trunnion arm',(SX+dx,SY,SZ+.7),(SX+dx,SY,SZ+1.05),.04,M['edge'],COL['Island'],vertices=6)
+def deck_edge(x):
+    hits=[]
+    for (a,b),(c,d) in zip(outline,outline[1:]+outline[:1]):
+        if min(a,c)<=x<=max(a,c) and a!=c:hits.append(b+(d-b)*(x-a)/(c-a))
+    return min(hits),max(hits)
+for zr in [-97.4,-81.82,-64.11,-40.92,-18.8,-2.46,13.69,26.48,41.09,53.45,68.18,81.1,92.77,105.85]:
+    x=-(zr+.749);lo,hi=deck_edge(x)
+    for yy in [lo+.25,hi-.25]:
+        if -60<x<-20 and yy<0:continue
+        cyl('Deck-edge light',(x,yy,FD+.05),.09,.1,M['glass'],COL['Flight deck'],8)
 MX,MY=27.3,-13.35
 for dx,dy in [(-1.3,-1.1),(-1.3,1.1),(1.3,0)]:rod('Tripod mast leg',(MX+dx,MY+dy,FD),(MX,MY,25.7),.15,M['naval'],COL['Island'],r2=.09)
 rod('Mast topmast',(MX,MY,25.3),(MX,MY,33.9),.09,M['naval'],COL['Island'],r2=.035)
@@ -526,7 +572,9 @@ for sign in [-1,1]:
     rod('Anchor crown',(x-1.4,y,7.1),(x-.4,y,7.1),.13,M['edge'],COL['Fittings'])
     for dx in [-1.35,-.5]:box('Anchor fluke',(x+dx,y,7.35),(.38,.19,.5),M['edge'],COL['Fittings'])
     fit.col=COL['Fittings']
-    for x,length,y,base in [(-110,11.2,sign*4.5,deck(-110)),(-109,11.2,sign*5.1,9.57),(58,9.0,sign*10.7,deck(58))]:
+    # The forward pair stowed on the old open ledge beside an inset hangar; the flush
+    # hangar side (pjsa108) leaves no such ledge, so only the stern boats remain.
+    for x,length,y,base in [(-110,11.2,sign*4.5,deck(-110)),(-109,11.2,sign*5.1,9.57)]:
         # The original boat's own cradle has a 0.16 m under-keel foot.
         z=base+.16;fit.boat('Ship boat',x,y,z,length,2.0,length>10)
         for fx in [-.27,.26]:
