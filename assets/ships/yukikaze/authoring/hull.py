@@ -18,7 +18,7 @@ L = lines['length']; LEVELS = lines['levels']; HALF = L / 2
 def js(o):
     if isinstance(o, dict): return {k: js(v) for k, v in o.items()}
     if isinstance(o, list): return [js(v) for v in o]
-    if isinstance(o, float): return int(o) if o.is_integer() else round(o, 4)
+    if isinstance(o, float): return int(o) if o.is_integer() else o
     return o
 
 
