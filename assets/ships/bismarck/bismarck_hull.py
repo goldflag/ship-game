@@ -1,8 +1,8 @@
 """Hull loft, deck fittings, mooring and anchor gear, scuttles, rails, staffs and underwater appendages.
 
-Positions of the forecastle and quarterdeck gear, the outer shaft bossings, A-brackets, screws and twin rudders
-follow the approved GameModels3D pgsb708 A_Hull at a common scale (reference z + 1.985 = runtime z, y + 0.85);
-the shapes are original constructions.
+The forecastle and quarterdeck gear, scuttle rows, shaft bossings, A-brackets, screws, twin rudders and bilge keels
+are placed from the approved GameModels3D pgsb708 A_Hull at a common scale (reference z + 1.985 = runtime z,
+y + 0.85); every shape here is an original construction.
 """
 from bismarck_kit import *
 def loft():
@@ -19,179 +19,223 @@ def loft():
   if p.material_index==3:p.use_smooth=False
  bm=bmesh.new();bm.from_mesh(ob.data);bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=.000001);bmesh.ops.dissolve_degenerate(bm,edges=list(bm.edges),dist=.000001);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(ob.data);bm.free();ob.data.update()
 def edge(x):
- # Half-breadth of the weather deck edge (the widest point of a flared section is the deck edge;
- # amidships the slight tumblehome keeps the deck edge inside the waterline beam).
+ # Half-breadth of the weather deck edge.
  return side_width(x,deckz(x)-.02)
 def hull_bottom(x,y):
- # Lowest hull height at half-breadth y (the loft surface under a point off the centreline).
+ # Hull surface height under half-breadth y (the lowest loft crossing at that breadth).
  p=section_at(x)
  for (wa,za),(wb,zb) in zip(p,p[1:]):
   if min(wa,wb)<=abs(y)<=max(wa,wb) and abs(wb-wa)>1e-6:return za+(zb-za)*(abs(y)-wa)/(wb-wa)
  return p[0][1]
+def side_normal(x,z,sign):
+ # Outward normal of the loft side at (x, z) on one side, from finite differences of the half-breadth.
+ dx=(side_width(x+.25,z)-side_width(x-.25,z))/.5;dz=(side_width(x,z+.2)-side_width(x,z-.2))/.4
+ return Vector((-dx,sign,-dz)).normalized()
+def recalc(ob):
+ bm=bmesh.new();bm.from_mesh(ob.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(ob.data);bm.free();return ob
 def staffs():
  # Stern ensign staff and the jackstaff on the stem head.
  for x,top in [(-123,15.5),(123.9,11.5)]:rod('Ensign or jack staff',(x,0,deckz(x)),(x-.3,0,top),.08,materials['edge'],detailcol,.025,10)
-def chain(name,pts,pitch=.5,length=.56,wide=.34,tube=.055):
- # Stud-link cable as one mesh: flat oval links alternating edge-up and flat along a polyline.
- vs=[];fs=[];k=0
- path=[Vector(p) for p in pts]
+def chain(name,pts,pitch=.5,length=.58,wide=.36,tube=.055):
+ # Stud-link cable as one mesh: stadium-shaped links alternating flat and edge-up along a polyline.
+ vs=[];fs=[];k=0;path=[Vector(p) for p in pts];half=length/2-wide/2
  for a,b in zip(path,path[1:]):
   d=b-a;count=max(1,round(d.length/pitch));axis=d.normalized();side=axis.cross(Vector((0,0,1)))
   if side.length<.1:side=Vector((0,1,0))
   side.normalize();up=side.cross(axis).normalized()
   for i in range(count):
-   c=a+d*((i+.5)/count);u=up if k%2 else side;k+=1
-   ring=[c+axis*(length/2-wide/2+wide/2*math.cos(t))*(1 if math.cos(t)>=0 else 1)+u*(wide/2*math.sin(t)) if abs(math.cos(t))<1e-9 else c+axis*((length/2-wide/2)*(1 if math.cos(t)>0 else -1)+wide/2*math.cos(t))+u*(wide/2*math.sin(t)) for t in [j*math.tau/8 for j in range(8)]]
+   c=a+d*((i+.5)/count);u=up if k%2 else side;k+=1;normal=axis.cross(u)
+   ring=[]
+   for j in range(8):
+    t=j*math.tau/8;ct=math.cos(t)
+    ring.append(c+axis*((math.copysign(half,ct) if abs(ct)>1e-6 else 0)+wide/2*ct)+u*(wide/2*math.sin(t)))
    base=len(vs)
    for j,p in enumerate(ring):
-    tangent=(ring[(j+1)%8]-ring[j-1]).normalized();nrm=tangent.cross(axis.cross(u) if True else u).normalized()
-    out=(p-c).normalized();v2=tangent.cross(out).normalized()
-    for q in range(4):
-     ang=q*math.tau/4;vs.append(tuple(p+tube*(out*math.cos(ang)+v2*math.sin(ang))))
+    tangent=(ring[(j+1)%8]-ring[j-1]).normalized();out=tangent.cross(normal).normalized()
+    if out.dot(p-c)<0:out=-out
+    for q in range(4):vs.append(tuple(p+tube*(out*math.cos(q*math.tau/4)+normal*math.sin(q*math.tau/4))))
    for j in range(8):
     for q in range(4):
      a0=base+j*4+q;a1=base+j*4+(q+1)%4;b0=base+((j+1)%8)*4+q;b1=base+((j+1)%8)*4+(q+1)%4
      fs.append((a0,a1,b1,b0))
- return mesh(name,vs,fs,materials['dark'],detailcol,True)
-def stockless_anchor(name,crown,shank_to,spread,scale=1.0):
- # Original stockless (Hall-pattern) anchor: tapered shank, cast crown with pivoting arms and broad flukes.
- # crown: head of the crown; shank_to: where the shank enters the hawse pipe; spread: unit vector across the arms.
- c=Vector(crown);t=Vector(shank_to);ax=(t-c).normalized();sp=Vector(spread).normalized();fl=ax.cross(sp).normalized()
- s=scale
- rod(name+' shank',c+ax*.25*s,t,.15*s,materials['edge'],detailcol,.12*s,10)
- rod(name+' shackle',t-ax*.05,t+ax*.35*s,.09*s,materials['edge'],detailcol,vertices=8)
- box_c=c-ax*.05*s;ob=box(name+' crown',tuple(box_c),(.55*s,1.35*s,.42*s),materials['edge'],detailcol)
- ob.rotation_euler=Matrix((ax,sp,fl)).transposed().to_euler()
+ return recalc(mesh(name,vs,fs,materials['dark'],detailcol,True))
+def stockless_anchor(name,crown,shank_to,spread,s=1.0,span=1.2):
+ # Original stockless anchor: tapered shank, cast crown, arms swept back beside the shank and broad flukes.
+ # crown: crown centre; shank_to: shank end (stopper or hawse); spread: direction across the arms.
+ c=Vector(crown);t=Vector(shank_to);ax=(t-c).normalized();sp=Vector(spread);sp=(sp-ax*sp.dot(ax)).normalized();fl=ax.cross(sp).normalized()
+ rod(name+' shank',c+ax*.2*s,t,.16*s,materials['edge'],detailcol,.12*s,10)
+ rod(name+' shackle',t-ax*.1*s,t+ax*.3*s,.10*s,materials['edge'],detailcol,vertices=8)
+ ob=box(name+' crown',tuple(c),(.62*s,1.25*s,.44*s),materials['edge'],detailcol);ob.rotation_euler=Matrix((ax,sp,fl)).transposed().to_euler()
  for sg in [-1,1]:
-  root=c+sp*sg*.55*s;tip=root-ax*1.05*s+sp*sg*.15*s+fl*.25*s
-  rod(name+' arm',root,tip,.17*s,materials['edge'],detailcol,.11*s,8)
-  # Broad fluke: a thick tapered plate at the arm end, facing the stowage bolster.
-  p0=tip;p1=tip-ax*.7*s+sp*sg*.12*s
-  vs=[tuple(p+sp*w*s+fl*h*s) for p in [p0,p1] for w,h in [(-.26,-.08),(.26,-.08),(.26,.08),(-.26,.08)]]
-  mesh(name+' fluke',[vs[0],vs[1],vs[2],vs[3],vs[4],vs[5],vs[6],vs[7]],[(0,1,2,3),(7,6,5,4),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],materials['edge'],detailcol)
- rod(name+' tripping palms',c-ax*.25*s-sp*.62*s,c-ax*.25*s+sp*.62*s,.10*s,materials['edge'],detailcol,vertices=8)
+  root=c+sp*sg*.45*s;tip=c+ax*1.05*s+sp*sg*span*.85
+  rod(name+' arm',root,tip,.16*s,materials['edge'],detailcol,.12*s,8)
+  # Broad fluke: a tapered cast plate from the arm end back toward the shank.
+  a,b=tip,tip+ax*.62*s
+  vs=[tuple(p+sp*w*s+fl*h*s) for p,wd in [(a,.27),(b,.17)] for w,h in [(-wd,-.07),(wd,-.07),(wd,.07),(-wd,.07)]]
+  mesh(name+' fluke',vs,[(0,1,2,3),(7,6,5,4),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],materials['edge'],detailcol)
+ rod(name+' tripping palms',c-ax*.22*s-sp*.52*s,c-ax*.22*s+sp*.52*s,.10*s,materials['edge'],detailcol,vertices=8)
 def windlass_capstan(name,x,y):
- # Cable capstan of the anchor windlass: bedplate, whelped barrel, head with eight bar sockets.
+ # Cable capstan of the anchor windlass: bedplate, whelped barrel and a spoked head.
  z=deckz(x)
- cyl(name+' bedplate',(x,y,z+.07),1.10,.14,materials['naval'],detailcol,24)
+ cyl(name+' bedplate',(x,y,z+.07),1.08,.14,materials['naval'],detailcol,24)
  cyl(name+' whelped barrel',(x,y,z+.48),.74,.70,materials['edge'],detailcol,16)
  for i in range(8):
   a=i*math.tau/8;box(name+' whelp',(x+.74*math.cos(a),y+.74*math.sin(a),z+.48),(.16,.16,.64),materials['edge'],detailcol).rotation_euler.z=a
- cyl(name+' head',(x,y,z+.93),1.02,.20,materials['edge'],detailcol,24)
- cyl(name+' head cap',(x,y,z+1.07),.62,.10,materials['light'],detailcol,20)
+ cyl(name+' head',(x,y,z+.93),.98,.20,materials['edge'],detailcol,24)
  for i in range(8):
-  a=i*math.tau/8+math.tau/16;rod(name+' bar socket',(x+.55*math.cos(a),y+.55*math.sin(a),z+1.04),(x+.98*math.cos(a),y+.98*math.sin(a),z+1.04),.05,materials['dark'],detailcol,vertices=5)
-def bitts(name,x,y,z,along=True,gap=.84):
+  a=i*math.tau/8;rod(name+' head spoke',(x,y,z+1.045),(x+.9*math.cos(a),y+.9*math.sin(a),z+1.045),.035,materials['dark'],detailcol,vertices=4)
+ cyl(name+' boss',(x,y,z+1.07),.16,.08,materials['light'],detailcol,10)
+def bitt_drum(name,x,y,width):
+ # Paired squat bitts on one base with a small drum between them.
+ z=deckz(x)
+ box(name+' base',(x,y,z+.09),(2.6,width,.18),materials['naval'],detailcol)
+ for dx in [-.73,.73]:
+  cyl(name+' post',(x+dx,y,z+.5),.44,.64,materials['edge'],detailcol,8)
+  cyl(name+' post cap',(x+dx,y,z+.84),.49,.06,materials['naval'],detailcol,8)
+ cyl(name+' drum',(x,y,z+.48),.34,.6,materials['edge'],detailcol,12)
+ for i in range(6):a=i*math.pi/6;rod(name+' drum vane',(x-.33*math.cos(a),y-.33*math.sin(a),z+.79),(x+.33*math.cos(a),y+.33*math.sin(a),z+.79),.02,materials['dark'],detailcol,vertices=4)
+def bitts(name,x,y,gap=1.4):
  # Double mooring bitts on a welded sole plate.
- d=Vector((gap/2,0,0)) if along else Vector((0,gap/2,0));c=Vector((x,y,z))
- box(name+' sole',(x,y,z+.06),(1.35,.58,.12) if along else (.58,1.35,.12),materials['edge'],detailcol)
- for sg in [-1,1]:
-  p=c+d*sg;cyl(name+' post',(p.x,p.y,z+.40),.18,.66,materials['edge'],detailcol,12);cyl(name+' head',(p.x,p.y,z+.75),.24,.12,materials['naval'],detailcol,12)
-def fairlead(name,x,sign):
- # Rolled oval fairlead in the deck edge, on a short foundation.
- yy=sign*(edge(x)-.30);z=deckz(x)
- box(name+' foundation',(x,yy,z+.06),(.9,.46,.12),materials['edge'],detailcol)
- for dx in [-.26,.26]:cyl(name+' roller',(x+dx,yy,z+.33),.12,.42,materials['edge'],detailcol,10)
+ z=deckz(x);box(name+' sole',(x,y,z+.05),(gap+.6,.5,.1),materials['edge'],detailcol)
+ for dx in [-gap/2,gap/2]:cyl(name+' post',(x+dx,y,z+.38),.2,.66,materials['edge'],detailcol,10);cyl(name+' head',(x+dx,y,z+.74),.26,.1,materials['naval'],detailcol,10)
+def chock(name,x,y):
+ # Closed mooring chock at the deck edge: sole, two cheeks and a top bar.
+ z=deckz(x)
+ box(name+' sole',(x,y,z+.06),(1.58,.6,.12),materials['edge'],detailcol)
+ for dx in [-.64,.64]:box(name+' cheek',(x+dx,y,z+.3),(.3,.6,.48),materials['naval'],detailcol)
+ box(name+' top bar',(x,y,z+.5),(1.58,.5,.08),materials['edge'],detailcol)
+def hoop(name,x,y):
+ # Upright fairlead hoop near the deck edge.
+ z=deckz(x);box(name+' foot',(x,y,z+.05),(.72,.24,.1),materials['edge'],detailcol)
+ for dx in [-.26,.26]:rod(name+' upright',(x+dx,y,z+.08),(x+dx,y,z+1.2),.05,materials['edge'],detailcol,vertices=6)
+ rod(name+' head',(x-.3,y,z+1.2),(x+.3,y,z+1.2),.05,materials['edge'],detailcol,vertices=6)
+def locker(name,x,y):
+ # Hinged deck locker.
+ z=deckz(x);box(name,(x,y,z+.28),(.8,.72,.56),materials['naval'],detailcol);box(name+' lid',(x,y,z+.585),(.86,.78,.05),materials['roof'],detailcol)
+ for dx in [-.22,.22]:rod(name+' hinge',(x+dx-.07,y-.36,z+.57),(x+dx+.07,y-.36,z+.57),.03,materials['edge'],detailcol,vertices=6)
+def bolster(name,sign,x0=110.05,x1=113.35):
+ # Bulged anchor bolster at the deck edge: the hull side swells out under the stowed bower anchor.
+ mid=(x0+x1)/2;half=(x1-x0)/2;rings=[];vs=[]
+ for i in range(11):
+  x=x0+(x1-x0)*i/10;e=math.sqrt(max(0,1-((x-mid)/half)**2));top=deckz(x)+.05;zb=top-.3-2.2*e
+  ring=[(x,sign*(side_width(x,zb)-.06),zb)]
+  for k in range(1,6):
+   z=zb+(top-zb)*k/5;ring.append((x,sign*(side_width(x,min(z,top-.1))+.62*e*math.sin(math.pi/2*k/5)),z))
+  ring+=[(x,sign*(edge(x)-1.9*e-.05),top),(x,sign*(edge(x)-1.9*e-.05),top-.3)]
+  rings.append(len(vs));vs.extend(ring)
+ n=8;fs=[tuple(range(n)),tuple(range(rings[-1],rings[-1]+n))]
+ for r0,r1 in zip(rings,rings[1:]):fs.extend((r0+j,r0+(j+1)%n,r1+(j+1)%n,r1+j) for j in range(n))
+ ob=recalc(mesh(name,vs,fs,materials['hullgray'],hullcol,True))
+ # The top is a flat steel seat; keep the side smooth.
+ return ob
 def deck_fittings(aa_support):
- # Forecastle: two windlass capstans with their engine house, cable stoppers, deck pipes and the chains led
- # forward to the hawses; bower anchors stowed high in the hawse bolsters at the deck edge; the centreline stem
- # anchor; the low V breakwater ahead of Anton. Quarterdeck: stern capstans, bitts, fairleads, stern anchor.
+ # Forecastle: windlass capstans, stopper chains and cable stoppers, cables led forward to the bower anchors that
+ # lie fore-and-aft on bulged bolsters at the deck edge; the stem anchor at the stem head; bitts, chocks, hoops and
+ # the low V breakwater ahead of Anton. Quarterdeck: bitts with drums, chocks, hatches, companion hoods, lockers
+ # and the port stern anchor.
  for sign in [-1,1]:
-  windlass_capstan('Anchor windlass capstan',88.7,sign*2.5)
-  x=92.7;z=deckz(x);box('Cable stopper and chain pipe',(x,sign*2.45,z+.17),(1.15,.58,.34),materials['naval'],detailcol)
-  for dx in [-.27,.27]:cyl('Chain pipe opening',(x+dx,sign*2.45,z+.345),.17,.02,materials['dark'],detailcol,10)
-  # Deck end of the hawse pipe, where the cable leaves the deck for the bolster.
-  x=108.7;z=deckz(x);cyl('Hawse deck pipe',(x,sign*3.1,z+.12),.50,.24,materials['edge'],detailcol,16);cyl('Hawse deck pipe opening',(x,sign*3.1,z+.245),.33,.02,materials['dark'],detailcol,12)
-  chain('Anchor cable',[(89.9,sign*2.62,deckz(89.9)+.08),(98.0,sign*2.85,deckz(98)+.08),(108.3,sign*3.08,deckz(108.3)+.08)])
-  chain('Anchor cable',[(89.3,sign*1.95,deckz(89.3)+.08),(92.2,sign*2.30,deckz(92.2)+.08)])
-  # Bower anchor stowed with its crown in the bolster pocket at the deck edge and the shank in the hawse.
-  xc=111.4;zc=deckz(xc)-.25;yc=sign*(edge(xc)-.55)
-  stockless_anchor('Bower anchor',(xc,yc,zc),(109.1,sign*3.18,deckz(109.1)+.22),(.25,sign*.4,-.88),1.0)
-  # Heavy rolled bolster lip around the hawse pocket.
-  pts=[(x,sign*(edge(x)+.02),deckz(x)+.04) for x in [109.4+i*.45 for i in range(8)]]
-  polyline('Hawse bolster lip',pts,.11,materials['naval'],detailcol,False,8)
-  # Mooring bitts and deck-edge fairleads.
-  for x,y in [(91.9,7.4),(102.6,5.5),(-91.8,7.25),(-108.2,1.55),(-100.9,2.9),(-90.0,2.6),(-118.5,3.4)]:
-   bitts('Double mooring bitt',x,sign*min(y,edge(x)-1.0),deckz(x)+.005)
-  for x in [93.8,104.4,-89.3,-101.3,-116.0]:fairlead('Deck edge fairlead',x,sign)
-  # Stern capstans on their machinery bases.
-  x=-96.9;z=deckz(x);box('Stern capstan base',(x,sign*2.4,z+.14),(1.6,1.3,.28),materials['naval'],detailcol)
-  cyl('Stern capstan barrel',(x,sign*2.4,z+.55),.46,.56,materials['edge'],detailcol,16);cyl('Stern capstan head',(x,sign*2.4,z+.88),.66,.14,materials['edge'],detailcol,20)
-  # Deck edge rails interpolate the blueprint sheer at every original station.
-  pts=[(x,sign*(edge(x)-.22),deckz(x)+.035) for x in [-122.5+i*2 for i in range(123)] if edge(x)>.5]
-  rail('Weather deck safety rail',pts,.98,2.0,False)
+  windlass_capstan('Anchor windlass capstan',88.7,sign*2.6)
+  x=92.75;z=deckz(x);box('Cable stopper',(x,sign*2.28,z+.17),(1.2,.52,.34),materials['naval'],detailcol)
+  for dx in [-.3,.3]:rod('Cable stopper jaw',(x+dx,sign*2.28,z+.34),(x+dx+.12,sign*2.28,z+.52),.06,materials['edge'],detailcol,vertices=6)
+  chain('Anchor cable',[(89.2,sign*1.98,deckz(89.2)+.12),(92.1,sign*2.28,deckz(92.1)+.12)])
+  chain('Anchor cable',[(89.4,sign*3.3,deckz(89.4)+.12),(107.9,sign*3.3,deckz(107.9)+.12),(108.8,sign*3.12,deckz(108.8)+.14)])
+  # Bower anchor on its bolster: shank aft to its stopper, crown forward, flukes flat on the seat.
+  bolster('Anchor bolster',sign)
+  box('Bower anchor stopper',(109.0,sign*3.12,deckz(109.0)+.18),(.5,.62,.36),materials['naval'],detailcol)
+  stockless_anchor('Bower anchor',(112.3,sign*3.12,deckz(112.3)+.3),(109.1,sign*3.12,deckz(109.1)+.3),(0,1,0),1.0,1.25)
+  bitts('Double mooring bitt',91.9,sign*7.45)
+  chock('Deck edge chock',102.55,sign*min(5.45,edge(102.55)-.4))
+  for x in [105.5,107.63]:hoop('Fairlead hoop',x,sign*(edge(x)-.45))
+  # Quarterdeck.
+  bitt_drum('Stern bitt',-96.85,sign*2.4,.95)
+  chock('Deck edge chock',-101.2,sign*min(8.77,edge(-101.2)-.4))
+  for x,y in [(-108.7,1.55),(-107.8,1.55),(-92.4,7.15),(-91.45,7.15),(-100.75,2.85),(-91.35,2.6)]:locker('Deck locker',x,sign*y)
+  # Deck edge rails interpolate the blueprint sheer; the anchor bolsters interrupt them.
+  xs=[-122.5+i*2 for i in range(123)]
+  for part in [[x for x in xs if x<109.4],[x for x in xs if x>113.6]]:
+   pts=[(x,sign*(edge(x)-.22),deckz(x)+.035) for x in part if edge(x)>.5]
+   if len(pts)>1:rail('Weather deck safety rail',pts,.98,2.0,False)
   # Subtle rubbing strip, much thinner than the silhouette-defining hull.
-  pts=[(x,sign*(side_width(x,deckz(x)-.32)+.024),deckz(x)-.32) for x in range(-120,123,2) if not 109<x<113]
-  polyline('Sheer strake edge',[p for p in pts if p[0]<109],.028,materials['edge'],vertices=5)
-  polyline('Sheer strake edge',[p for p in pts if p[0]>113],.028,materials['edge'],vertices=5)
- # Windlass engine house between the capstans, with its circular ventilation grating.
- x=90.6;z=deckz(x);box('Windlass engine house',(x,0,z+.34),(2.5,1.75,.68),materials['naval'],detailcol)
- cyl('Windlass house grating',(x,0,z+.70),.62,.06,materials['edge'],detailcol,20)
- for i in range(6):a=i*math.pi/6;rod('Grating bar',(x-.58*math.cos(a),-.58*math.sin(a),z+.74),(x+.58*math.cos(a),.58*math.sin(a),z+.74),.018,materials['dark'],detailcol,vertices=4)
- # Centreline stem anchor in its stem hawse, with a short cable to its stopper.
- x=121.35;box('Stem anchor stopper',(x,0,deckz(x)+.14),(.8,.55,.28),materials['naval'],detailcol)
- chain('Anchor cable',[(121.8,0,deckz(121.8)+.07),(123.0,0,deckz(123.0)+.07)],.42,.44,.27,.045)
- stockless_anchor('Stem anchor',(124.35,0,deckz(124.35)-.55),(123.2,0,deckz(123.2)+.15),(0,1,0),.72)
- # Low V breakwater ahead of Anton, with knees on its after face.
- bw=[(78.6,9.1),(84.25,1.8),(84.25,-1.8),(78.6,-9.1)];h=.75;vs=[];fs=[]
- samples=[]
+  for part in [range(-120,110,2),range(114,123,2)]:
+   pts=[(x,sign*(side_width(x,deckz(x)-.32)+.024),deckz(x)-.32) for x in part]
+   polyline('Sheer strake edge',pts,.028,materials['edge'],vertices=5)
+ # Centreline double bitt with its drum on the forecastle, and the two centreline vents.
+ bitt_drum('Forecastle bitt',90.6,0,1.7)
+ for x in [108.55,109.85]:
+  z=deckz(x);cyl('Mushroom vent stem',(x,0,z+.3),.16,.6,materials['naval'],detailcol,12);cyl('Mushroom vent hood',(x,0,z+.64),.3,.2,materials['naval'],detailcol,16)
+ # Stem anchor hangs in the stem head with its arms across the stem; short cable to its stopper on deck.
+ x=121.4;box('Stem anchor stopper',(x,0,deckz(x)+.15),(.8,.6,.3),materials['naval'],detailcol)
+ chain('Anchor cable',[(121.9,0,deckz(121.9)+.12),(123.3,0,deckz(123.3)+.12)],.42,.46,.29,.045)
+ stockless_anchor('Stem anchor',(124.45,0,7.35),(122.95,0,deckz(122.95)-.25),(0,1,0),.95,1.35)
+ # Low V breakwater ahead of Anton with a level top and knees on its after face.
+ bw=[(77.9,9.9),(84.25,1.8),(84.25,-1.8),(77.9,-9.9)];top=7.38;samples=[]
  for (xa,ya),(xb,yb) in zip(bw,bw[1:]):
   n=max(1,math.ceil(math.hypot(xb-xa,yb-ya)/1.0))
   for i in range(n):samples.append((xa+(xb-xa)*i/n,ya+(yb-ya)*i/n))
- samples.append(bw[-1])
- for x,y in samples:vs.extend([(x,y,deckz(x)-.05),(x,y,deckz(x)+h)])
+ samples.append(bw[-1]);vs=[];fs=[]
+ for x,y in samples:vs.extend([(x,y,deckz(x)-.05),(x,y,top)])
  for i in range(len(samples)-1):fs.append((2*i,2*i+2,2*i+3,2*i+1))
  ob=mesh('Breakwater plate',vs,fs,materials['naval'],supercol);mod=ob.modifiers.new('Plate thickness','SOLIDIFY');mod.thickness=.05
- polyline('Breakwater top rim',[(x,y,deckz(x)+h) for x,y in samples],.035,materials['edge'],detailcol,False,5)
- for (x,y),(x2,y2) in zip(samples,samples[1:]):
-  mx,my=(x+x2)/2,(y+y2)/2;d=Vector((x2-x,y2-y,0)).normalized();back=Vector((-d.y,d.x,0))
+ polyline('Breakwater top rim',[(x,y,top) for x,y in samples],.035,materials['edge'],detailcol,False,5)
+ for (x,y),(x2,y2) in zip(samples[::2],samples[2::2]):
+  d=Vector((x2-x,y2-y,0)).normalized();back=Vector((-d.y,d.x,0))
   if back.x>0:back=-back
-  z=deckz(mx);mesh('Breakwater knee',[(mx,my,z),(mx,my,z+h*.85),(mx+back.x*.55,my+back.y*.55,z)],[(0,1,2)],materials['naval'],detailcol).modifiers.new('Plate','SOLIDIFY').thickness=.03
- # Stern anchor stowed in its hawse on the port quarter, cable led forward to a stopper.
- x=-115.6;box('Stern anchor stopper',(x,.5,deckz(x)+.14),(.8,.55,.28),materials['naval'],detailcol)
- chain('Anchor cable',[(-116.0,.55,deckz(-116)+.07),(-120.6,1.7,deckz(-120.6)+.07)],.42,.44,.27,.045)
- stockless_anchor('Stern anchor',(-122.9,edge(-122.9)-.2,deckz(-122.9)-.75),(-121.0,1.85,deckz(-121.0)+.15),(.35,.2,-.9),.62)
- # Scuttles: two rows along the loft; the upper row runs the length of the forecastle and quarterdeck sides.
- for sign in [-1,1]:
-  for x in range(-107,112,3):
-   for z in [2.7,4.63]:
-    if abs(x)<85 and z<3.0:continue
-    if 106<x<114:continue
-    if edge(x)<2:continue
-    yy=sign*(side_width(x,z)+.034);porthole('Hull round scuttle',(x,yy,z),(0,sign,0),.145)
- for x,y in [(114,-1.2),(98,0),(-101.5,1.3),(-101.5,-1.3),(-115,0),(57,8),(57,-8),(-64,8),(-64,-8),(1,14),(1,-14),(-47,12),(-47,-12)]:
-  if deckz(x)>aa_support.below(x,y,deckz(x)+1.2)+.02:continue
+  z=deckz(x);ob=mesh('Breakwater knee',[(x,y,z),(x,y,top-.08),(x+back.x*.6,y+back.y*.6,z)],[(0,1,2)],materials['naval'],detailcol);ob.modifiers.new('Plate','SOLIDIFY').thickness=.03
+ # Port stern anchor hangs in its quarter hawse; its cable runs forward to a stopper.
+ x=-115.65;box('Stern anchor stopper',(x,.68,deckz(x)+.16),(1.6,.95,.32),materials['naval'],detailcol)
+ box('Stern hawse deck plate',(-121.8,1.75,deckz(-121.8)+.03),(1.3,.9,.06),materials['edge'],detailcol)
+ chain('Anchor cable',[(-121.4,1.72,deckz(-121.4)+.12),(-116.5,.7,deckz(-116.5)+.12)],.42,.46,.29,.045)
+ zc=4.75;xc=-122.55;yc=side_width(xc,zc)+.28;ze=6.5;xe=-124.0;ye=side_width(xe,ze)-.05
+ ax=Vector((xe-xc,ye-yc,ze-zc)).normalized();sp=ax.cross(Vector((0,1,0)))
+ stockless_anchor('Stern anchor',(xc,yc,zc),(xe,ye,ze),tuple(sp),.8,.95)
+ # Quarterdeck hatches and companion hoods.
+ for x,y,sx,sy in [(-103.15,.45,1.5,1.25),(-102.9,-1.15,1.2,1.25),(114.05,-1.1,1.1,.9)]:hatch('Weather deck hatch',x,y,deckz(x)+.005,sx,sy)
+ for x,y,sx,sy in [(-101.65,1.05,1.1,1.5),(-101.05,-1.12,1.45,1.85)]:
+  z=deckz(x);extrude('Companion hood',rounded_rect(x,y,sx,sy,.3,3),z,.62,materials['naval'],detailcol,.03)
+  extrude('Companion hood roof',rounded_rect(x,y,sx+.06,sy+.06,.32,3),z+.62,.05,materials['roof'],detailcol)
+ # Hatches beside the superstructure stay where the main deck is open.
+ for x,y in [(57,8),(57,-8),(-64,8),(-64,-8),(1,14),(1,-14),(-47,12),(-47,-12)]:
+  if aa_support.below(x,y,deckz(x)+3)>deckz(x)+.1:continue
   hatch('Weather deck hatch',x,y,deckz(x)+.005,1.35,.95)
+ # Hose reels on the open main deck at the ends of the superstructure.
+ for x,y in [(51.6,6.6),(52.2,-6.3),(-59.5,8.6),(-59.5,-8.6),(-63.3,5.3),(-63.3,-5.3)]:
+  z=deckz(x)
+  if aa_support.below(x,y,z+3)>z+.1:continue
+  z+=.55
+  rod('Hose reel axle',(x,y-.55,z),(x,y+.55,z),.11,materials['edge'],detailcol,vertices=12)
+  for yy in [-.38,.38]:rod('Hose reel flange',(x,y+yy-.035,z),(x,y+yy+.035,z),.53,materials['edge'],detailcol,vertices=24)
+  rod('Hose drum',(x,y-.34,z),(x,y+.34,z),.37,materials['rope'],detailcol,vertices=24)
+  for yy in [-.45,.45]:box('Reel support',(x,y+yy,z-.30),(.18,.12,.55),materials['naval'],detailcol)
+ # Scuttles where the approved reference paints them: two rows in the forecastle side and two in the
+ # quarterdeck side; the armoured belt amidships has none.
+ rows=[[(84.3+(106.22-84.3)*i/8,1.97+1.05*i/8) for i in range(9)],[(86.43+(106.38-86.43)*i/7,4.81+.79*i/7) for i in range(8)],
+       [(-95.2,4.37),(-96.6,4.36),(-98.03,4.35),(-99.47,4.37),(-100.73,4.4),(-102.07,4.48),(-103.39,4.55),(-105.07,4.53),(-106.1,4.55),(-108.51,4.61),
+        (-110.51,4.64),(-111.48,4.65),(-112.99,4.69),(-114.13,4.75),(-115.89,4.82),(-117.09,4.82),(-118.76,4.88),(-120.04,4.97),(-121.97,4.99)],
+       [(-95.12,2.04),(-97.77,2.07),(-100.52,2.16),(-103.13,2.19),(-104.46,2.25),(-106.52,2.24),(-107.56,2.28),(-109.28,2.32),(-110.32,2.36),
+        (-112.84,2.4),(-114.19,2.45),(-115.8,2.48),(-117.38,2.5),(-119.01,2.51),(-120.6,2.6)]]
  for sign in [-1,1]:
-  for x,y in [(109.3,.6),(-96.0,8.9),(48,7.8),(61,7.8),(-52,7.8),(-87,7.8)]:
-   y=sign*min(y,edge(x)-1.2);z=deckz(x)
-   if y*sign<.3 and sign<0:continue
-   cyl('Mushroom vent stem',(x,y,z+.32),.18,.64,materials['naval'],detailcol,16)
-   cyl('Mushroom vent hood',(x,y,z+.69),.34,.22,materials['naval'],detailcol,20)
-  for x,y in [(51.6,6.6),(-97,5)]:
-   y*=sign;z=deckz(x)+.55
-   rod('Hose reel axle',(x,y-.55,z),(x,y+.55,z),.11,materials['edge'],detailcol,vertices=12)
-   for yy in [-.38,.38]:rod('Hose reel flange',(x,y+yy-.035,z),(x,y+yy+.035,z),.53,materials['edge'],detailcol,vertices=24)
-   rod('Hose drum',(x,y-.34,z),(x,y+.34,z),.37,materials['rope'],detailcol,vertices=24)
-   for yy in [-.45,.45]:box('Reel support',(x,y+yy,z-.30),(.18,.12,.55),materials['naval'],detailcol)
+  for row in rows:
+   for x,z in row:
+    n=side_normal(x,z,sign);yy=sign*side_width(x,z)
+    porthole('Hull round scuttle',Vector((x,yy,z))+n*.034,n,.145)
 def underwater():
  # Original three-bladed screws: broad paddle outlines, reduced rake, helical pitch and thick roots into rounded
- # bosses. Shaft lines, bossings, A-brackets and the twin rudders follow the approved pgsb708 A_Hull.
+ # bosses. Shaft lines, bossings, A-brackets, twin rudders and bilge keels follow the approved pgsb708 A_Hull.
  # These visual shafts do not move the blueprint's machinery or combat sockets.
  def screw_boss(x,y,z):
   rows=[(1.16,.30),(.83,.59),(.34,.73),(-.34,.72),(-.85,.61),(-1.18,.39),(-1.34,.08)]
   vs=[(x+dx,y+r*math.cos(math.tau*i/24),z+r*math.sin(math.tau*i/24)) for dx,r in rows for i in range(24)]
   fs=[tuple(reversed(range(24))),tuple(range((len(rows)-1)*24,len(rows)*24))]
   fs.extend((j*24+i,j*24+(i+1)%24,(j+1)*24+(i+1)%24,(j+1)*24+i) for j in range(len(rows)-1) for i in range(24))
-  return mesh('Propeller boss',vs,[tuple(reversed(f)) for f in fs],materials['bronze'],undercol,True)
+  return recalc(mesh('Propeller boss',vs,fs,materials['bronze'],undercol,True))
  def strut(name,a,b,chord=.72):
   # Closed foil strut: a wide axial chord and a narrow rounded trailing edge.
   a,b=Vector(a),Vector(b);radial=(b-a).normalized();side=radial.cross(Vector((1,0,0))).normalized()
   profile=[(-.52,0),(-.36,.10),(.16,.12),(.48,.04),(.54,0),(.48,-.04),(.16,-.12),(-.36,-.10)]
   vs=[p+Vector((u*chord,0,0))+side*v for p in [a,b] for u,v in profile];n=len(profile)
   fs=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
-  return mesh(name,vs,[tuple(reversed(f)) for f in fs],materials['oxide'],undercol,True)
- def screw(xhub,y,z,radius=2.2):
+  return recalc(mesh(name,vs,fs,materials['oxide'],undercol,True))
+ def screw(xhub,y,z,radius=2.15):
   screw_boss(xhub,y,z);k=radius/2.4
   for angle in [math.pi/2,math.pi/2+math.tau/3,math.pi/2+2*math.tau/3]:
    # Radial radius, tangential sweep, half chord. Sparse original controls are
@@ -218,47 +262,44 @@ def underwater():
       ids=(face*n+j*cols+i,face*n+j*cols+i+1,face*n+(j+1)*cols+i+1,face*n+(j+1)*cols+i);fs.append(ids if face else tuple(reversed(ids)))
    boundary=list(range(cols))+[j*cols+cols-1 for j in range(1,len(rows))]+list(range(n-2,n-cols-1,-1))+[j*cols for j in reversed(range(1,len(rows)-1))]
    fs.extend((a,b,b+n,a+n) for a,b in zip(boundary,boundary[1:]+boundary[:1]))
-   blade=mesh('Twisted screw blade',vs,fs,materials['bronze'],undercol,True)
-   bm=bmesh.new();bm.from_mesh(blade.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(blade.data);bm.free()
+   recalc(mesh('Twisted screw blade',vs,fs,materials['bronze'],undercol,True))
  for sign in [-1,1]:
-  # Long streamlined bossing around each wing shaft, from where it leaves the bottom to the exposed shaft.
-  table=[(-67.4,6.28,.05,-7.72),(-70.6,6.64,1.60,-7.82),(-73.6,6.35,2.02,-7.82),(-76.5,6.10,2.09,-7.72),(-79.5,5.90,2.02,-7.59),
-         (-82.5,5.70,1.69,-7.44),(-85.5,5.68,1.31,-7.22),(-88.5,5.66,.97,-6.98),(-91.5,5.62,.75,-6.70),(-93.4,5.45,.42,-6.02),(-94.5,5.00,.05,-4.4)]
+  # Long streamlined bossing around each wing shaft: wide where it leaves the bottom, tapering to the shaft.
+  table=[(-67.4,6.28,.08,-7.72),(-70.6,6.64,1.60,-7.82),(-73.6,6.35,2.02,-7.82),(-76.5,6.10,2.09,-7.72),(-79.5,5.90,2.02,-7.59),
+         (-82.5,5.70,1.69,-7.44),(-85.5,5.68,1.31,-7.22),(-88.5,5.70,.97,-6.98),(-91.5,5.82,.72,-6.86),(-93.6,5.95,.5,-6.84),(-95.1,6.0,.3,-6.76)]
   vs=[];rings=[]
   for x,yc,a,zb in table:
    top=hull_bottom(x,yc)+.35;zc=(top+zb)/2;b=max(.05,(top-zb)/2)
    rings.append(len(vs))
    for i in range(12):
     t=i*math.tau/12;vs.append((x,sign*(yc+a*math.cos(t)),zc+b*math.sin(t)))
-  fs=[tuple(range(12))[::-1 if sign>0 else 1],tuple(range(rings[-1],rings[-1]+12))[::1 if sign>0 else -1]]
+  fs=[tuple(range(12)),tuple(range(rings[-1],rings[-1]+12))]
   for r0,r1 in zip(rings,rings[1:]):fs.extend((r0+i,r0+(i+1)%12,r1+(i+1)%12,r1+i) for i in range(12))
-  ob=mesh('Shaft bossing',vs,fs,materials['oxide'],undercol,True)
-  bm=bmesh.new();bm.from_mesh(ob.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(ob.data);bm.free()
-  # Exposed wing shaft, A-bracket barrel with its two foil arms (one to the bottom, one to the skeg), screw.
+  recalc(mesh('Shaft bossing',vs,fs,materials['oxide'],undercol,True))
+  # Exposed wing shaft, A-bracket barrel with a vertical arm to the bottom and a raking arm to the skeg, screw.
   y=sign*6.0
-  rod('Propeller shaft',(-90.5,sign*5.95,-6.30),(-99.0,y,-6.49),.33,materials['edge'],undercol,vertices=16)
+  rod('Propeller shaft',(-94.6,y,-6.46),(-99.2,y,-6.49),.33,materials['edge'],undercol,vertices=16)
   rod('Shaft A-bracket barrel',(-95.45,y,-6.46),(-98.6,y,-6.48),.72,materials['oxide'],undercol,.62,20)
-  strut('Shaft A-bracket arm',(-97.0,sign*6.1,-6.1),(-97.0,sign*6.1,hull_bottom(-97.0,6.1)+.2),1.55)
-  zf=-4.85;strut('Shaft A-bracket arm',(-97.0,sign*5.45,-6.3),(-97.0,sign*(side_width(-97.0,zf)-.05),zf),1.35)
-  screw(-100.0,y,-6.49)
-  # Twin parallel rudders abreast of the centre screw's race.
+  strut('Shaft A-bracket arm',(-97.0,sign*6.1,-6.1),(-97.0,sign*6.1,hull_bottom(-97.0,6.1)+.25),1.55)
+  zf=-4.85;strut('Shaft A-bracket arm',(-97.0,sign*5.45,-6.3),(-97.0,sign*(side_width(-97.0,zf)-.1),zf),1.35)
+  screw(-100.05,y,-6.49)
+  # Twin balanced rudders abreast of the centre screw's race.
   yr=sign*2.47
-  pts=[(-114.65,yr),(-112.6,yr-.36),(-110.3,yr-.50),(-108.8,yr-.36),(-108.2,yr),(-108.8,yr+.36),(-110.3,yr+.50),(-112.6,yr+.36)]
+  pts=[(-114.65,yr),(-112.6,yr-.42),(-110.3,yr-.6),(-108.8,yr-.42),(-108.2,yr),(-108.8,yr+.42),(-110.3,yr+.6),(-112.6,yr+.42)]
   top=max(hull_bottom(x,2.47) for x in [-108.4,-111,-114.4])+.25
   extrude('Twin balanced rudder',pts,-6.95,top+6.95,materials['oxide'],undercol,.06)
   cyl('Rudder head bearing',(-110.3,yr,hull_bottom(-110.3,2.47)+.02),.55,.35,materials['oxide'],undercol,16)
-  # Bilge keels along the midship bilge only (x -27 to +26).
+  # Bilge keels along the midship bilge only.
   stations=[-27.3,-21.3,-15.4,-9.5,-3.6,2.3,8.2,14.1,20.0,25.9];vs=[]
   zc=[-7.06,-7.81,-8.26,-8.40,-8.35,-8.53,-8.31,-8.14,-7.68,-6.33];depth=[.05,.62,.95,1.05,1.08,1.08,1.05,.95,.6,.05]
   for x,z,dp in zip(stations,zc,depth):
    zr=z+.45*dp;w=side_width(x,zr)-.03;d=Vector((.72,-.69))*dp
    vs.extend([(x,sign*w,zr+.04),(x,sign*(w+d.x),zr+d.y+.02),(x,sign*(w+d.x),zr+d.y-.02),(x,sign*w,zr-.04)])
   fs=[(i*4+j,i*4+(j+1)%4,(i+1)*4+(j+1)%4,(i+1)*4+j) for i in range(len(stations)-1) for j in range(4)]+[(3,2,1,0),tuple(range((len(stations)-1)*4,len(stations)*4))]
-  ob=mesh('Bilge keel',vs,fs,materials['oxide'],undercol)
-  bm=bmesh.new();bm.from_mesh(ob.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(ob.data);bm.free()
- # Centre shaft leaves the skeg's shaft tube; its screw turns just ahead of the twin rudders.
- rod('Propeller shaft',(-105.4,0,-6.95),(-106.0,0,-6.95),.36,materials['edge'],undercol,vertices=16)
- screw(-107.2,0,-6.95)
+  recalc(mesh('Bilge keel',vs,fs,materials['oxide'],undercol))
+ # The centre shaft leaves the skeg's shaft tube; its screw turns just ahead of the twin rudders.
+ rod('Propeller shaft',(-105.3,0,-7.25),(-106.4,0,-7.25),.36,materials['edge'],undercol,vertices=16)
+ screw(-107.1,0,-7.25,2.0)
 def build():
  # Region entry point, after the superstructure regions; the loft itself runs first of all (loft()).
  staffs()
