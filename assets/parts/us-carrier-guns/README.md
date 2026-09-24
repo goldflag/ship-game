@@ -37,7 +37,8 @@ The quad keeps its previous values. These are provisional game calibration; only
 - **Mk 24:** the slide stops 1.5 m aft of the trunnion; the reference reaches 2.1 m. That longer rear would pass through the
   stand and deck at high elevation. The reference's sight bar, telescopes and crew stations are simplified, and the
   training gear teeth, cables, bolts and small fittings are omitted.
-- **Quad:** the cooling hoses are split into a fixed part and a stub that moves with each barrel, where the reference has one
+- **Quad:** the Mk 2's common slide is split into four sections that meet at 2 mm joints, one on each gun's elevation
+  joint and seated in that gun's receiver, because the catalog gives every barrel its own joint. The cooling hoses are split into a fixed part and a stub that moves with each barrel, where the reference has one
   flexible hose. The seat shells are boxes rather than bells, and the feed-clip detail is reduced.
 - **20 mm:** the reference's low strip joining the two shield wings is left open so the recoil casing clears at -10°. The
   canvas case bag is omitted because it would swing into the column above about 45°.
