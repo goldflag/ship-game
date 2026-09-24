@@ -78,8 +78,10 @@ export class HitLabels {
       label.style.opacity = String(cue.opacity);
     }
     // Measure after updating every label: a zero-damage armor stop is only one row high.
+    // A label off screen is hidden, measures nothing and is not placed, so reading it would only force a layout.
     const measured = placements.map(p => {
       let size = this.dimensions.get(p.label);
+      if (!size && !p.point) size = { width: 0, height: 0 };
       if (!size) {
         size = { width: p.label.offsetWidth, height: p.label.offsetHeight };
         if (size.width && size.height) this.dimensions.set(p.label, size);

@@ -32,6 +32,17 @@ interface FleetHudProps {
   bindings: Keybindings;
 }
 
+/** The dial's fixed ten-degree ticks, built once rather than on every telemetry render. */
+const BEARING_TICKS = Array.from({ length: 36 }, (_, i) => (
+  <path
+    key={i}
+    d={i % 3 === 0 ? 'M100 8v7' : 'M100 8v3'}
+    stroke="currentColor"
+    strokeOpacity=".5"
+    transform={`rotate(${i * 10} 100 100)`}
+  />
+));
+
 function ShipBearing({ data }: { data: Telemetry }) {
   const selectedShip = useShip();
   const degrees = (data.ship.heading * 180) / Math.PI;
@@ -46,15 +57,7 @@ function ShipBearing({ data }: { data: Telemetry }) {
       <svg viewBox="0 0 200 200" fill="none" aria-hidden="true">
         <circle cx="100" cy="100" r="92" stroke="currentColor" strokeOpacity=".65" />
         <circle cx="100" cy="100" r="87" stroke="currentColor" strokeOpacity=".2" />
-        {Array.from({ length: 36 }, (_, i) => (
-          <path
-            key={i}
-            d={i % 3 === 0 ? 'M100 8v7' : 'M100 8v3'}
-            stroke="currentColor"
-            strokeOpacity=".5"
-            transform={`rotate(${i * 10} 100 100)`}
-          />
-        ))}
+        {BEARING_TICKS}
         <g transform={`rotate(${((data.viewBearing ?? data.ship.heading) * 180) / Math.PI} 100 100)`}>
           <path d="M100 100 66 15Q100 2 134 15Z" fill="currentColor" fillOpacity=".045" />
           <path d="M100 100V10" stroke="var(--fleet-active)" strokeOpacity=".55" strokeDasharray="3 4" />
