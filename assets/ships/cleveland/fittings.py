@@ -13,7 +13,7 @@ BULWARKS={
     'forward-bridge-lower-platform':(1.3,lambda a,b:True),
     'forward-bridge-middle-platform':(1.2,lambda a,b:max(a[0],b[0])>9.7 and min(a[0],b[0])<22.4),
     'forward-bridge-upper-platform':(1.1,lambda a,b:max(a[0],b[0])>12.6),
-    'pilot-house-platform':(1.1,lambda a,b:min(a[0],b[0])<18.4),
+    'pilot-house-platform':(1.1,lambda a,b:max(a[0],b[0])<16.7),
     'after-bridge-upper-platform':(1.2,lambda a,b:min(a[0],b[0])<-13.9),
     'after-mast-house-platform':('rail',None),
 }
@@ -61,31 +61,41 @@ def build_fittings(D,helpers,materials,col,deck_height):
         xx=x-.35*(1-abs(h-2.25)/1.175)
         beam(name+'.dipole',(xx,-1.3455,z+h),(xx,1.3455,z+h),.017)
     beam(name+'.cross arm',(x+.30,-.72,z+2.25),(x+.30,.72,z+2.25),.022)
-    # Mk.34 rangefinder director heads and cylindrical support trunks.
-    for ident,x,z in [('forward',16.51,21.27),('after',-16.01,19.94)]:
-        name='mk34-'+ident
-        tag(cyl(name+'.bearing',(x,0,z+.15),1.22,.30,naval,col,32),name)
-        tag(cyl(name+'.head',(x-.1,0,z+.91),1.45,1.52,naval,col,16),name)
-        tag(box(name+'.roof',(x-.1,0,z+1.70),(2.6,2.45,.18),roof,col),name)
-        beam(name+'.rangefinder',(x, -2.92,z+1.18),(x,2.92,z+1.18),.22)
+    # Mk.34 directors, shaped as the reference: a 2.6 m box head on a collared trunk, a raised hood, the
+    # rangefinder ears at mid-height. The forward one trains forward, the after one aft.
+    for ident,x,z,sign in [('forward',16.51,21.27,1),('after',-16.01,19.94,-1)]:
+        name='mk34-'+ident;hx=x-sign*.37
+        tag(cyl(name+'.bearing',(x,0,z+.12),1.52,.24,naval,col,32),name)
+        tag(box(name+'.head',(hx,0,z+.79),(2.6,2.5,1.2),naval,col),name)
+        vv=[(hx+sign*a,b,z+c) for a,b,c in [(-.45,-.8,1.39),(-.45,.8,1.39),(.75,.8,1.39),(.75,-.8,1.39),(.35,.8,1.86),(.35,-.8,1.86)]]
+        tag(mesh(name+'.hood',vv,[(3,2,1,0),(0,1,4,5),(2,3,5,4),(1,2,4),(3,0,5)],naval,col),name)
+        tag(cyl(name+'.top drum',(hx-sign*.55,0,z+1.47),.95,.16,naval,col,20),name)
+        beam(name+'.rangefinder',(hx+sign*.1,-2.92,z+.91),(hx+sign*.1,2.92,z+.91),.22)
         for y in [-2.75,2.75]:
-            tag(box(name+'.optic',(x+.13,y,z+1.19),(.55,.34,.48),naval,col),name)
-            tag(box(name+'.glass',(x+.415,y,z+1.19),(.025,.24,.31),dark,col),name)
-        F.ladder(name+'.access',(x-1.55,0,z-2),(x-1.55,0,z+1.7),.5)
-    # Mk.37 enclosed directors, with sloped front and sight apertures.
+            tag(box(name+'.optic',(hx+sign*.23,y,z+.92),(.55,.34,.48),naval,col),name)
+            tag(box(name+'.glass',(hx+sign*.515,y,z+.92),(.025,.24,.31),dark,col),name)
+        F.ladder(name+'.access',(x-sign*1.55,.3,z-2),(x-sign*1.55,.3,z+.3),.5)
+    # Mk.37 enclosed directors as the reference: a roller base, a house with a vertical face and a sloped
+    # upper front, the rangefinder ears aft of centre and an equipment box behind.
     for ident,x,z,bearing in [('forward',23.55,17.25,0),('after',-23.32,15.48,180)]:
         name='mk37-'+ident;sign=1 if bearing==0 else -1
-        tag(cyl(name+'.bearing',(x,0,z+.2),1.55,.4,naval,col,24),name)
-        vv=[(x+sign*a,b,z+c) for a,b,c in [(-1.65,-1.7,.35),(-1.65,1.7,.35),(1.8,1.7,.35),(1.8,-1.7,.35),(-1.65,-1.6,2.3),(-1.65,1.6,2.3),(.7,1.6,2.45),(.7,-1.6,2.45)]]
-        tag(mesh(name+'.house',vv,[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],naval,col),name)
-        beam(name+'.rangefinder',(x,-2.39,z+1.1),(x,2.39,z+1.1),.19)
-        for y in [-1.0,0,1.0]:
-            tag(box(name+'.sight',(x+sign*1.17,y,z+1.83),(.3,.38,.3),dark,col),name)
+        tag(cyl(name+'.bearing',(x,0,z+.13),1.6,.26,naval,col,32),name)
+        prof=[(-1.43,.28),(1.49,.28),(1.49,1.18),(.32,2.22),(-1.43,2.22)]
+        vv=[(x+sign*a,y,z+c) for y in [-1.65,1.65] for a,c in prof]
+        ff=[(0,1,2,3,4),(9,8,7,6,5)]+[(i,(i+1)%5,(i+1)%5+5,i+5) for i in range(5)]
+        ob=tag(mesh(name+'.house',vv,ff,naval,col),name)
+        tag(box(name+'.equipment box',(x-sign*1.68,0,z+1.35),(.5,2.4,1.2),naval,col),name)
+        beam(name+'.rangefinder',(x-sign*.39,-2.39,z+1.55),(x-sign*.39,2.39,z+1.55),.19)
+        for y in [-1.3,1.3]:
+            tag(box(name+'.hood',(x-sign*1.2,y,z+2.34),(.35,.35,.25),dark,col),name)
+        tag(box(name+'.hood',(x+sign*.45,0,z+2.3),(.4,.5,.2),dark,col),name)
     # Rectangular SK antenna, open lattice and rear structural braces.
     x,z=11.55,28.07;name='radar-sk'
     tag(cyl(name+'.pedestal',(x,0,z+.3),.40,.6,naval,col,20),name)
     tag(box(name+'.base housing',(x-.58,0,z+.6),(.85,2.4,1.2),naval,col),name)
     for y in [-2.55,2.55]:beam(name+'.frame',(x,y,z+.6),(x,y,z+5.8),.055)
+    # The reflector screen reads nearly solid at any distance, as the reference's.
+    tag(box(name+'.screen',(x-.03,0,z+3.2),(.02,5.1,5.2),dark,col),name)
     for h in [0.6+i*.43 for i in range(13)]:beam(name+'.horizontal',(x,-2.55,z+h),(x,2.55,z+h),.023)
     for y in [-2.55+i*.425 for i in range(13)]:beam(name+'.vertical',(x,y,z+.6),(x,y,z+5.8),.023)
     for h in [.6,3.2,5.8]:
@@ -270,7 +280,8 @@ def build_fittings(D,helpers,materials,col,deck_height):
             # End each diagonal at the closest point on the actual supporting
             # cabin, so changes to cabin width cannot leave a hanging bracket.
             midx,midy=(a[0]+b[0])/2,(a[1]+b[1])/2
-            # No knees where a gun trains under the platform.
+            # No knees where a gun trains under the platform, nor where the edge carries no bulwark.
+            if height!='rail' and not keep(a,b):continue
             if length>1 and not any(math.hypot(midx+m['position'][2],midy+m['position'][0])<3.8 and m['position'][1]<z for m in D['mounts'] if m['id'].startswith(('secondary','main'))):
                 cabin=next(s for s in D['structures'] if s['id']==name.removesuffix('-platform'))
                 wall=[(-zz,-xx) for xx,zz in cabin['footprint']]

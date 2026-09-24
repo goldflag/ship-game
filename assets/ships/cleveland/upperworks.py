@@ -286,8 +286,11 @@ def build_upperworks(D, helpers, materials, col, F):
         name = 'searchlight-24in-' + ('starboard' if s_ > 0 else 'port')
         lx, lz = s_ * 3.93, -13.25
         tag(cyl(name + '.pedestal', B((lx, 15.35, lz)), .55, .6, naval, col, 16), name)
-        tube(name + '.yoke', (lx - .38, 15.7, lz), (lx + .38, 15.7, lz), .05, n=6)
-        for dx in [-.38, .38]:
-            tube(name + '.yoke', (lx + dx, 15.7, lz), (lx + dx, 16.55, lz), .04, n=6)
-        tube(name + '.drum', (lx, 16.55, lz + .4), (lx, 16.55, lz - .45), .34, n=14)
-        tag(cyl(name + '.lens', B((lx, 16.55, lz - .47)), .3, .03, materials['glass'], col, 14), name).rotation_euler = (0, math.pi / 2, 0)
+        tube(name + '.column', (lx, 15.6, lz), (lx, 16.3, lz), .14, n=10)
+        tube(name + '.yoke', (lx - .48, 16.3, lz), (lx + .48, 16.3, lz), .05, n=6)
+        for dx in [-.48, .48]:
+            tube(name + '.yoke', (lx + dx, 16.3, lz), (lx + dx, 17.0, lz), .04, n=6)
+        tube(name + '.drum', (lx, 17.0, lz + .5), (lx, 17.0, lz - .55), .42, n=14)
+        tag(cyl(name + '.lens', B((lx, 17.0, lz - .57)), .37, .03, materials['glass'], col, 14), name).rotation_euler = (0, math.pi / 2, 0)
+        tube(name + '.vent', (lx, 17.42, lz), (lx, 17.58, lz), .12, n=8)
+
