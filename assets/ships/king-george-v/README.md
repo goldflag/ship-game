@@ -39,6 +39,7 @@ bun run ship:overlay king-george-v --offset 0.57
 - The 5.25-inch sponsons lose the reference's long tails where a neighbouring mount trains over them, and the after deckhouse is notched to 8.35 m beside P4/S4.
 - Open: the early-1941 pom-pom stations (hangar roofs abreast the fore funnel, boat deck abreast the after funnel) and the boat stowage are kept from the recipe rather than the 1943 model; the searchlight positions follow the reference's platforms.
 - `ship:sweep` still finds A trained aft over B at 40° elevation (present before this pass); the ship has no interlock profile.
+- Handling calibration: the ship has no explicit propellers or rudders, so the simulation infers a centreline screw at 0.6 × draft and washes the steering-room rudder from it. The re-seat moved that screw down 1.0 m but the steering room 1.75 m, and the stronger wash made hard turns shed speed (`maneuvering_trial`: 90° in 26.0 s, 7.7 kn = 27% of top speed, 2.50°/s). The steering room sits 3.3 m above the inferred screw again, as before the pass: 90° in 37.9 s, 19.4 kn (69%), 1.48°/s against 37.3 s, 20.0 kn (71%), 1.51°/s on the old hull. Top speed stays 28.0 kn.
 
 Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
 
