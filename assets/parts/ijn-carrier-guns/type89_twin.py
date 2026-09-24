@@ -338,10 +338,15 @@ def create_open(mount, col, helpers, materials):
     k.block('pointer.data-receiver', (.15, 2.04, 1.58), (.25, .04, .26), 'dark')
     for x in (-.9, .4):
         k.bar('pointer.handhold', (x, 2.13, 1.3), (x, 2.13, 2.2), .02)
+    # Climbing rungs up the hood's outer wall to its roof.
+    for z in (1.10, 1.40, 1.70, 2.00, 2.30, 2.60):
+        k.rail('pointer.wall-rung', [(-.97, 2.10, z), (-.97, 2.14, z), (-.75, 2.14, z), (-.75, 2.10, z)], .014)
 
     # Fuze setter (starboard front) with drawer fronts, handles and setting cranks on top.
-    cab = [(-.19, .19), (.84, .19), (.84, 1.55), (.70, 1.72), (.50, 1.79), (-.19, 1.79)]
+    cab = [(-.19, .19), (.84, .19), (.84, 1.50), (.76, 1.67), (.62, 1.76), (.45, 1.79), (-.02, 1.79), (-.14, 1.74), (-.19, 1.65)]
     k.prism('fuze-setter.cabinet', cab, -2.04, -.87, 'y', 'naval')
+    for z in (.65, 1.09):
+        k.rail('fuze-setter.band', [(.86, -.88, z), (.86, -2.06, z), (-.19, -2.06, z)], .016)
     for z in (.30, .55, .81, 1.05, 1.32):
         k.block('fuze-setter.drawer', (.855, -1.455, z), (.03, 1.05, .02), 'painted-edge')
         k.block('fuze-setter.pull', (.865, -1.465, z + .09), (.03, .25, .025), 'painted-edge')
@@ -381,6 +386,7 @@ def create_open(mount, col, helpers, materials):
         k.block('fuze-drum.bracket', (-1.26, sign * 1.02, 1.93), (.22, .22, .10), 'naval')
         k.block('fuze-drum.outer-plate', (-1.53, sign * 1.48, 2.07), (.56, .03, .62), 'naval')
         k.block('fuze-drum.handle', (-1.22, sign * 1.29, 2.50), (.14, .10, .10), 'edge')
+        k.bar('fuze-drum.strut', (-.95, sign * 1.05, .08), (-1.45, sign * 1.47, 1.80), .025, 'naval')
         for x in (-2.19, -1.78):
             k.block('rammer-housing', (x, sign * .545, 1.91), (.20, .27, .36), 'naval')
         k.block('loading-tray', (-1.94, sign * .41, 2.07), (.84, .30, .06), 'painted-edge')
