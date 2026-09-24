@@ -1,8 +1,8 @@
 /** Original revision-2 load and residual-space calibration; no historical loading claim. */
 import { readFile, writeFile } from 'node:fs/promises';
 import { compileShip, type ShipBlueprint, type Vec3, type Compartment } from '../../src/ships/blueprint';
-import { hullContains } from '../../src/simulation/hull';
-import { hydrostatics, initialMetacenter } from '../../src/simulation/hydrostatics';
+import { hullContains } from '../../src/ships/hull';
+import { hydrostatics, initialMetacenter } from './authoring-hydrostatics';
 const catalog = JSON.parse(await readFile(new URL('../parts/guns.json', import.meta.url), 'utf8'));
 type Cell = { center: Vec3; size: Vec3 };
 function mergeCells(input: Cell[]): Cell[] {

@@ -47,7 +47,7 @@ test('construction smoke uses installed exhaust sockets and cancels the ship wor
 });
 
 test('all registered funnel mouths are found without smoking from bases, caps or the submarine', () => {
-  const counts: Record<string, number> = { resolute: 0, 'admiral-hipper': 1, bismarck: 1, yamato: 1, iowa: 2, 'king-george-v': 2, baltimore: 2, mogami: 2, 'enterprise-cv6': 1, 'type-viic': 0,
+  const counts: Record<string, number> = { resolute: 0, 'admiral-hipper': 1, bismarck: 1, yamato: 1, iowa: 2, 'king-george-v': 2, hood: 2, baltimore: 2, mogami: 2, 'enterprise-cv6': 1, 'type-viic': 0,
     'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, gleaves: 2, shokaku: 2, yukikaze: 2, fubuki: 2, cleveland: 2 };
   for (const id of Object.keys(shipPresets)) {
     const outlets = funnelOutlets(shipPreset(id));
