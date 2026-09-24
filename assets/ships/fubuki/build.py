@@ -146,7 +146,12 @@ def platform(name,outline,z,supports,shield=True):
 platform('bridge-aa',[(29.3,-1.95),(32.7,-1.95),(33.3,-1.35),(33.3,1.35),(32.7,1.95),(29.3,1.95)],8.331,[(30.9,0,deckz(30.9))])
 platform('mid-aa',outline_rect(-21.116,-17.041,-3.9,3.9,1.1),6.861,[(-19.1,-1.25,3.39),(-19.1,1.25,3.39)])
 # The 13 mm platform is D-shaped, rounded forward, and sits on the AA tower.
-platform('13mm-aa',[(1.3,-2.3),(3.3,-2.3),(3.9,-1.9),(4.3,-1.0),(4.3,1.0),(3.9,1.9),(3.3,2.3),(1.3,2.3)],8.139,[],False)
+platform('13mm-aa',[(1.3,-2.3),(3.3,-2.3),(3.9,-1.9),(4.3,-1.0),(4.3,1.0),(3.9,1.9),(3.3,2.3),(1.3,2.3)],8.139,[],True)
+# Frame at the after end of the 13 mm platform: posts from the casing roof with a cross bar.
+for side in [-1,1]:
+ rod('13mm-aa.frame-post',(.35,side*1.55,6.18),(.35,side*1.55,8.05),.07,materials['naval'],vertices=10)
+ rod('13mm-aa.frame-arm',(.35,side*1.55,8.0),(1.32,side*1.55,8.0),.06,materials['naval'],vertices=10)
+rod('13mm-aa.frame-bar',(.35,-1.55,8.05),(.35,1.55,8.05),.06,materials['naval'],vertices=10)
 # After AA platforms as measured: the upper one plated on its step, the lower tub on the deckhouse roof.
 platform('aft-aa-upper',outline_rect(-33.7,-29.55,-2.5,2.5,.35),6.1575,[],True)
 bulwark('aft-aa-lower',[(-33.4,-2.17),(-35.94,-2.5),(-36.39,-2.7),(-37.7,-1.6),(-37.7,1.6),(-36.39,2.7),(-35.94,2.5),(-33.4,2.17)],5.538,.67,closed=False)
@@ -206,6 +211,11 @@ for name,x,cy,z,rad in [('fore-cowl',13.6,2.4,3.36,.92),('aft-cowl',2.75,1.65,4.
   pts += [(x-1.1+1.1*math.cos(a),y,z+rise-1.1+1.1*math.sin(a)) for a in [i*math.pi/2/16 for i in range(1,17)]]
   tube_path(name+'.intake',pts,rad,materials['naval'],sides=32)
   rod(name+'.mouth',pts[-1],(x-1.16,y,z+rise),rad*.90,materials['dark'],vertices=32)
+  # Bell mouth: an open flare, 1.3 times the trunk, facing aft.
+  N=32;m0=Vector(pts[-1]);ring=lambda c,r:[(c.x,c.y+r*math.cos(j*math.tau/N),c.z+r*math.sin(j*math.tau/N)) for j in range(N)]
+  bell=mesh(name+'.bell',ring(m0,rad*1.0)+ring(m0-Vector((.18,0,0)),rad*1.18)+ring(m0-Vector((.32,0,0)),rad*1.32),
+            [(k*N+j,k*N+(j+1)%N,(k+1)*N+(j+1)%N,(k+1)*N+j) for k in range(2) for j in range(N)],materials['naval'],smooth=True)
+  sol=bell.modifiers.new('Bell plate','SOLIDIFY');sol.thickness=.04
   if name=='fore-cowl':
    # The trunk runs aft at deck level into the torpedo deck, with a rounded top.
    box(name+'.trunk',(x-1.55,y,4.2),(3.1,1.8,1.7),materials['naval'],bev=.45)
