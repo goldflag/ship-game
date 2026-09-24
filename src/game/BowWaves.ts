@@ -2,6 +2,7 @@ import { Vector4, type Camera, type Node, type PerspectiveCamera } from 'three/w
 import { Fn, If, Loop, atan, cameraPosition, exp, float, max, mx_noise_float, smoothstep, uniform, vec3, vec4 } from 'three/tsl';
 import type { WakeShip } from './FleetWakeFoam';
 import { PackedVec4Arrays } from './packedUniforms';
+import { perRender } from './renderUniforms';
 import { wakeHull } from './wakeHull';
 
 const GRAVITY = 9.81;
@@ -71,7 +72,7 @@ export function kelvinSystems(a: number, y: number, k0: number, depth: number): 
 }
 
 const smooth = (value: number) => { const t = Math.max(0, Math.min(value, 1)); return t * t * (3 - 2 * t); };
-const knob = (value: number) => uniform(value);
+const knob = (value: number) => perRender(uniform(value));
 
 type Stage = 'vertex' | 'fragment';
 
@@ -84,17 +85,17 @@ export class BowWaves {
   /** Per slot, in one uniform buffer: pose (stem x/z, sin and cos of heading); wave (k₀, Kelvin amplitude, crest
    * height, crest decay length); hull (length, beam, source depth, speed share of full ahead); bend (track curvature,
    * 1/m, positive turning to starboard: the V follows the wake's arc, not the bow's heading). */
-  private readonly packed = new PackedVec4Arrays([BOW_WAVE_SLOTS, BOW_WAVE_SLOTS, BOW_WAVE_SLOTS, BOW_WAVE_SLOTS]);
+  private readonly packed = new PackedVec4Arrays([BOW_WAVE_SLOTS, BOW_WAVE_SLOTS, BOW_WAVE_SLOTS, BOW_WAVE_SLOTS], undefined, perRender);
   private readonly poseValues = this.packed.sections[POSE];
   private readonly waveValues = this.packed.sections[WAVE];
   private readonly hullValues = this.packed.sections[HULL];
   private readonly bendValues = this.packed.sections[BEND];
-  private readonly count = uniform(0, 'int');
-  private readonly time = uniform(0);
+  private readonly count = perRender(uniform(0, 'int'));
+  private readonly time = perRender(uniform(0));
   /** Radians per drawing-buffer pixel, for the fragment's anti-aliasing. */
-  private readonly pixelAngle = uniform(.001);
+  private readonly pixelAngle = perRender(uniform(.001));
   /** Finest water-mesh vertex spacing; each clipmap ring doubles it. */
-  readonly vertexSpacing = uniform(4);
+  readonly vertexSpacing = perRender(uniform(4));
   private readonly knobs = Object.fromEntries(SHADER_KNOBS.map(key => [key, knob(BOW_WAVE_TUNING[key])])) as Record<ShaderKnob, ReturnType<typeof knob>>;
   private readonly speeds = new Map<WakeShip['root'], number>();
   private readonly tracks = new Map<WakeShip['root'], { x: number; z: number; heading: number; curvature: number }>();

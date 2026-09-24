@@ -4,6 +4,7 @@ import { Fn, Loop, clamp, dot, exp, float, floor, fract, ivec2, max, min, mix, n
   vec2, vec3, vec4 } from 'three/tsl';
 import type { WakeFieldApi, WakeGeneratorOptions, WakeSampler } from '../contracts';
 import { dispersionPyramid, type KernelTap } from './kernel';
+import { perRender } from '../../renderUniforms';
 import { MAX_GENERATORS, WakeGenerators, type WakeEmission } from './generators';
 
 /** Fixed simulation step (s). Frames accumulate time and run whole steps; the sampler blends the last two. */
@@ -108,10 +109,10 @@ export class WakeField implements WakeFieldApi {
   private readonly cell = { x: 0, z: 0 };
   private readonly savedClear = new Color();
   private readonly uniforms = {
-    cellSize: uniform(1), worldSize: uniform(1), shift: uniform(new Vector2(), 'ivec2'),
+    cellSize: uniform(1), worldSize: perRender(uniform(1)), shift: uniform(new Vector2(), 'ivec2'),
     acceleration: uniform(0), damping: uniform(0), foamDecay: uniform(1), foamDiffusion: uniform(0), foamStrength: uniform(0), foamThreshold: uniform(1),
-    minRadius: uniform(1), breakCells: uniform(1, 'int'), count: uniform(0, 'int'), fraction: uniform(1), gain: uniform(1),
-    origin: uniform(new Vector2()), previousOrigin: uniform(new Vector2()),
+    minRadius: uniform(1), breakCells: uniform(1, 'int'), count: uniform(0, 'int'), fraction: perRender(uniform(1)), gain: perRender(uniform(1)),
+    origin: perRender(uniform(new Vector2())), previousOrigin: perRender(uniform(new Vector2())),
   };
   /** Per generator and step: swept segment (x0, z0, x1, z1) relative to the field centre, and (radius, depth, gate, 0). */
   private readonly segments = Array.from({ length: MAX_GENERATORS }, () => new Vector4());

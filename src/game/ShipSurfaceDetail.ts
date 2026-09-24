@@ -5,6 +5,7 @@ import {
 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
 import { isConstructionPaint } from './constructionWear';
+import { perRender } from './renderUniforms';
 
 /** Physically scaled surface detail for ship paint and teak, evaluated in each mesh's own
  * (pre-batching) geometry space, so it follows turrets and every other articulated owner.
@@ -350,14 +351,14 @@ function dataTexture(pixels: Uint8Array, width: number, height: number, name: st
 }
 
 /** Relief strength, for review. */
-export const surfaceRelief = uniform(1);
+export const surfaceRelief = perRender(uniform(1));
 /** Wear on construction ships' paint, for review: 0 draws none, 1 as designed. */
-export const surfaceWear = uniform(1);
+export const surfaceWear = perRender(uniform(1));
 /** −1 draws each construction ship's own wear; 0 or more draws that amount on all of them instead (review). */
-export const wearOverride = uniform(-1);
+export const wearOverride = perRender(uniform(-1));
 /** Construction ships' plating as welded and painted (seams, relief, each plate's shade), for review: 0 draws the
  * premade tile's plating instead, 1 as designed. */
-export const plateFinish = uniform(1);
+export const plateFinish = perRender(uniform(1));
 
 /** Worn paint, per unit of wear amount where a pair gives [at none, added per unit]. Tints are linear colour
  * multipliers at full coverage. */

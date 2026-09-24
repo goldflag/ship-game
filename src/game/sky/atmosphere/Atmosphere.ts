@@ -1,6 +1,7 @@
 import { Color, MathUtils, Vector2, Vector3, Vector4, type Node } from 'three/webgpu';
 import { Fn, If, dot, exp, float, luminance, max, min, mix, select, smoothstep, sqrt, texture, uniform, vec2, vec3, vec4 } from 'three/tsl';
 import type { AtmospherePart, SkyFrame, SkyScene, SkyUniforms } from '../contracts';
+import { perRender } from '../../renderUniforms';
 import { AMBIENT_SIZE, AMBIENT_TOP, AtmosphereTables, SEA_HEIGHT, SECTIONS, SKY_VIEW_SCALE, aerosolPhase, atlasUv, direct, distanceToGround,
   lightTransmittance, opticalDepth, skyViewLatitude, skyViewLongitude, unitToTexel, viewOpticalDepth, viewPointTerms, type AirUniforms, type Float,
   type Horizon, type Vec3 } from './luts';
@@ -41,8 +42,8 @@ export class Atmosphere implements AtmospherePart {
   readonly seaLevel = { sun: new Color(), moon: new Color(), sky: new Color() };
   readonly air: AirUniforms = {
     rayleigh: uniform(new Vector3()), mieScattering: uniform(new Vector3()), mieExtinction: uniform(new Vector3()), ozone: uniform(new Vector3()),
-    mieG: uniform(.6), mieGain: uniform(1), multiple: uniform(1), saturation: uniform(SKY_GRADE.saturation),
-    phaseLobe: uniform(new Vector3()), phaseCore: uniform(new Vector3()),
+    mieG: uniform(.6), mieGain: uniform(1), multiple: uniform(1), saturation: perRender(uniform(SKY_GRADE.saturation)),
+    phaseLobe: perRender(uniform(new Vector3())), phaseCore: perRender(uniform(new Vector3())),
   };
   /** The sky's exposure at dusk (`model.twilightLift`): multiplies everything the sun lights. An exposure belongs
    * to the viewer, so it follows the sun's elevation above the camera's own horizon: from the chart 14 km up the
@@ -51,24 +52,24 @@ export class Atmosphere implements AtmospherePart {
   private sunElevation = 90;
   /** Each body's light in the dome per unit of its table: irradiance, lift, share and the grade's gain; 0 while it
    * cannot show. And each body's unit horizontal direction. */
-  private readonly sunScale = uniform(new Vector3());
-  private readonly moonScale = uniform(new Vector3());
-  private readonly sunAxis = uniform(new Vector2(1, 0));
-  private readonly moonAxis = uniform(new Vector2(1, 0));
+  private readonly sunScale = perRender(uniform(new Vector3()));
+  private readonly moonScale = perRender(uniform(new Vector3()));
+  private readonly sunAxis = perRender(uniform(new Vector2(1, 0)));
+  private readonly moonAxis = perRender(uniform(new Vector2(1, 0)));
   private moonShare = 1;
   /** The scene's aerial distance scale beyond the knee (`model.AERIAL`). */
   private readonly aerialScale = uniform(1);
   /** Camera altitude (km) the camera's sections were built for, its horizon angles and horizon zenith cosine,
    * and its optical-depth terms (`viewPointTerms`). */
   readonly cameraHeight = uniform(.03);
-  private readonly cameraHorizon = uniform(horizonOf(.03, new Vector4()));
+  private readonly cameraHorizon = perRender(uniform(horizonOf(.03, new Vector4())));
   private readonly cameraHorizonCosine = uniform(0);
   private readonly cameraView = uniform(viewPointTerms(.03, new Vector4()));
   private readonly seaHorizon = horizonOf(SEA_HEIGHT, new Vector4());
   private readonly seaView = viewPointTerms(SEA_HEIGHT, new Vector4());
   /** 1 while the sun (or moon) lights the sky enough to read its tables. */
-  private readonly sunActive = uniform(1);
-  private readonly moonActive = uniform(1);
+  private readonly sunActive = perRender(uniform(1));
+  private readonly moonActive = perRender(uniform(1));
   readonly tables: AtmosphereTables;
   private coefficients?: AirCoefficients;
   private readonly dirty = { air: true, lights: true, camera: true };

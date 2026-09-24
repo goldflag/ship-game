@@ -6,6 +6,7 @@ import {
   abs, add, distance, float, fract, Fn, If, ivec2, lightShadowMatrix, max, mix, reference, renderGroup, select, shadowPositionWorld, smoothstep, texture, uniform, vec2, vec4,
 } from 'three/tsl';
 import type { ShadowCasterPass } from './ShadowCasterPass';
+import { perRender } from './renderUniforms';
 
 type FilterInputs = { depthTexture: DepthTexture; shadowCoord: Node<'vec3'>; depthLayer: Node<'int'> };
 type ShadowFilter = (inputs: FilterInputs) => Node<'float'>;
@@ -147,8 +148,8 @@ export class FocusShadowNode extends ShadowBaseNode {
   readonly near: CascadeLight;
   readonly wide: CascadeLight;
   readonly views: readonly ViewCascade[];
-  private readonly focus = uniform(new Vector3());
-  private readonly reach = uniform(NEAR_SHADOW_MIN);
+  private readonly focus = perRender(uniform(new Vector3()));
+  private readonly reach = perRender(uniform(NEAR_SHADOW_MIN));
   private radius = 0;
   private drawCount = 0;
   private nearNode?: Node<'vec4'>;
@@ -181,7 +182,7 @@ export class FocusShadowNode extends ShadowBaseNode {
       const light = new CascadeLight(sun.shadow.clone());
       light.name = `View sun shadow ${index + 1}`;
       light.shadow.needsUpdate = true;
-      return { light, reach, on: uniform(0) as unknown as ViewCascade['on'], bounds: new Box3(), active: false, drawn: -1 };
+      return { light, reach, on: perRender(uniform(0)) as unknown as ViewCascade['on'], bounds: new Box3(), active: false, drawn: -1 };
     });
     // Sized before the first draw, like the near and wide maps: shrinking a view map after it
     // has drawn destroys a texture that queued work still reads.

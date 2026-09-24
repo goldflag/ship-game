@@ -11,8 +11,9 @@ export class PackedVec4Arrays {
   readonly sections: readonly Vector4[][];
   private readonly offsets: number[] = [];
 
-  /** `group` is the uniform group the buffer updates with (three's object group when omitted). */
-  constructor(lengths: readonly number[], group?: UniformGroupNode) {
+  /** `group` is the uniform group the buffer updates with (three's object group when omitted); `place`, when given, places the
+   * buffer's node instead (`perRender`). */
+  constructor(lengths: readonly number[], group?: UniformGroupNode, place?: <T>(node: T) => T) {
     const values: Vector4[] = [];
     this.sections = lengths.map(length => {
       this.offsets.push(values.length);
@@ -22,6 +23,7 @@ export class PackedVec4Arrays {
     });
     this.node = uniformArray<'vec4'>(values, 'vec4');
     if (group) this.node.setGroup(group);
+    if (place) place(this.node);
   }
 
   /** Section `section`'s element at `index`. */
