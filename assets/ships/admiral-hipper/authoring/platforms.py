@@ -22,6 +22,9 @@ PLATFORMS=[
  ('navigation-gallery',[(27,-4.7),(36,-4.74),(37.8,-5.66),(40.5,-5.66),(42,-4.4),(43.9,-3),(44.8,-1.8),(44.8,1.8),(43.9,3),(42,4.4),(40.5,5.66),(37.8,5.66),(36,4.74),(27,4.7)],11.7,.84),
  ('funnel-searchlight-gallery',FUNNEL_GALLERY,16.2,.86),
  ('aft-director-gallery',AFT_GALLERY,11.8,.84),
+ # The mainmast's searchlight tub, measured on the reference: a bulwarked floor at
+ # 15.42 m round the mast between the bipod legs.
+ ('mainmast-light-gallery',[(-15.6,0.0),(-15.678,0.776),(-15.908,1.5),(-16.274,2.121),(-16.75,2.598),(-17.305,2.898),(-17.9,3.0),(-18.495,2.898),(-19.05,2.598),(-19.526,2.121),(-19.892,1.5),(-20.122,0.776),(-20.2,0.0),(-20.122,-0.776),(-19.892,-1.5),(-19.526,-2.121),(-19.05,-2.598),(-18.495,-2.898),(-17.9,-3.0),(-17.305,-2.898),(-16.75,-2.598),(-16.274,-2.121),(-15.908,-1.5),(-15.678,-0.776)],15.42,.9),
 ]
 for side in [-1,1]:
  PLATFORMS.append(('middle-105-edge-'+('port' if side==1 else 'starboard'),[(x,side*y) for x,y in [(-12.55,10.20),(-12.55,10.38),(-11.3,11.10),(-9.7,11.14),(-8.3,10.40),(-8.3,10.20)]],4.71,0))
@@ -39,7 +42,7 @@ def install(blueprint):
   if not h:continue
   # Curved bulwarks are open annular strips, not filled cylinders. Keeping each
   # strip together also bounds the number of CPU clearance structures.
-  if id.startswith('platform-aa-') or id in ['tower-top-gallery','funnel-searchlight-gallery','aft-director-gallery']:
+  if id.startswith('platform-aa-') or id in ['tower-top-gallery','funnel-searchlight-gallery','aft-director-gallery','mainmast-light-gallery']:
    cx=sum(x for x,y in pts)/len(pts);cy=sum(y for x,y in pts)/len(pts)
    half=len(pts)//2
    arcs=[pts[:half+1],pts[half:]+pts[:1]]

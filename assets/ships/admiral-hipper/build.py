@@ -138,6 +138,7 @@ platform('navigation-gallery',[(27,-4.7),(35,-5.85),(41.8,-5.35),(43.9,-3.6),(45
 # Funnel ring platform and inclined open cap. The smoke opening is a real hole.
 pts=[(9+5.5*math.cos(i*math.tau/36),4.2*math.sin(i*math.tau/36)) for i in range(36)]
 platform('funnel-searchlight-gallery',pts,16.2,14.6,.86,'roof')
+platform('mainmast-light-gallery',None,15.42,13.4,.9,'roof',anchor=(-17.4,-16.3,.35))
 OWNER='funnel-cap';n=48;verts=[]
 # The cap stands inside the jacket's rim: 9.3 m by 3.9 m at its foot, raked so
 # its crown rises about 0.41 m per metre towards the bow.
@@ -154,10 +155,9 @@ for xx in [7.0,8.2,9.4,10.6,11.8,13.0]:
 for yy in [-.55,.55]:rod('Funnel grate rail',(6.55,yy,21.85+.41*(6.55-10.05)),(13.55,yy,21.85+.41*(13.55-10.05)),.035,'edge')
 # Original searchlights: fork bearings and drum backs meet their platform bases.
 OWNER='searchlights'
-for x,y,z in [(9.3,-3.9,16.22),(9.3,3.9,16.22),(-17.4,-1.7,15.6),(-17.4,1.7,15.6)]:
+for x,y,z in [(9.3,-3.9,16.22),(9.3,3.9,16.22),(-17.4,-1.7,15.44),(-17.4,1.7,15.44)]:
  sign=1 if y>0 else -1
  if x<0:
-  ellipse('Mainmast light landing',x,y,z-.18,1.1,1.0,.18,'roof')
   for xx in [x-.6,x+.6]:rod('Mainmast landing brace',(-15.85,sign*.1,13.4),(xx,y,z-.18),.08)
  light_start=set(scene.objects)
  cyl('Searchlight sole',(x,y,z+.08),.45,.16,'edge')
@@ -375,6 +375,12 @@ for yy in [-4.45,4.45]:
  rails('Hangar roof safety rail',[(-6.8,yy,12.1),(5.4,yy,12.1)],.74)
 for side in [-1,1]:
  for xx in [3.0,-1.5]:f.vent('Hangar side louvre',xx,side*6.31,8.35,2.7,.85)
+# After target designators: pedestal columns carrying a sighting head.
+OWNER='aft-designators'
+for x,y,z in [(-38.67,0,11.97),(-34.55,-3.13,11.8),(-34.55,3.13,11.8)]:
+ cyl('Designator base',(x,y,z+.06),.35,.12,'edge');cyl('Designator column',(x,y,z+.55),.16,.9)
+ box('Designator sighting head',(x,y,z+1.12),(.62,.48,.38))
+ for yy in [y-.14,y+.14]:rod('Designator binocular',(x-.1,yy,z+1.36),(x+.42,yy,z+1.36),.07,'edge')
 # Correctly seated small optical finders, exposed binocular stations and sights.
 COL=C['Superstructure'];OWNER='bridge-fittings'
 cyl('Finder pedestal',(28.6,0,15.55),.45,2.7)
