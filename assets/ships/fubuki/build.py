@@ -66,7 +66,7 @@ for sign in [-1,1]:
  singles=lambda x:sign>0 and -6.2<x<-1.2
  for a,b in zip(pts,pts[1:]):
   low=any(36<p[0]<48 or singles(p[0]) for p in [a,b])
-  rails('rails.perimeter',[a,b],.13 if low else .85,spacing=2.0)
+  rails('rails.perimeter',[a,b],.13 if low else 1.0,spacing=2.0)
  for run in [[p for p in pts if p[0]>=-1.2 or sign<0],[p for p in pts if p[0]<=-6.2]] if sign>0 else [pts]:
   if len(run)>1:tube_path('hull.deck-edge',run,.034,materials['edge'],sides=6)
  for x in list(range(23,53,3))+list(range(-53,-38,3)):
