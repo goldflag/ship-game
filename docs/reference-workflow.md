@@ -40,7 +40,9 @@ the cache a readable name.
 paints rather than models are visible: `--shots side,top,front,stern` (orthographic; side and top with the bow on
 the right) and one `--camera preset|az,el[,m]` or `--eye x,y,z --target x,y,z` shot with `--fov` or `--ortho`, in the
 same frame and camera conventions as `ship:overlay` and `ui:shot`. `--paint`, `--parts` and `--offset z|x,y,z` pick the
-paint scheme, the groups and a shift into your ship's frame; images land in `.build/references/<name>/renders/`.
+paint scheme, the groups and a shift into your ship's frame; images land in `.build/references/<name>/renders/`. `ship:overlay`
+measures that fore-and-aft shift between a reference and your ship (Iowa: 2.287 m) and prints it in its `summary.json`;
+pass it as `--offset` to render the reference in your ship's frame.
 
 Parts are grouped coarsely from the source path (`hull`, `gun-main`, `director`, `torpedo`, `misc`, …) so a
 measurement can keep the hull and drop deck clutter with `--parts hull`.
