@@ -13,7 +13,8 @@ export class ShipRenderProxy {
   private readonly copies: Copy[] = [];
   private surfaceCount = 0;
   private readonly marks = new Map<THREE.Mesh, Copy>();
-  private readonly modelVisible: boolean;
+  /** The model's own visibility, which the flat copies take over from it. */
+  readonly modelVisible: boolean;
   private readonly markBounds = new THREE.Sphere();
   private readonly markCenter = new THREE.Vector3();
 

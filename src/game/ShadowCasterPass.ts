@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu';
+import { subtreePruning, type SubtreePruning } from './SubtreeLayers';
 
 /** Draws the sun's shadow casters into a map with WebGPU directly. Three renders each map as a
  * whole scene pass: it walks every object (the fleet's batched originals stay in the graph, only
@@ -76,13 +77,15 @@ export interface ShadowCasters {
 }
 
 /** The shadow casters three's pass would visit for `layers`: visible subtrees, objects on those
- * layers with `castShadow`, sorted by how this pass can draw them. */
-export function collectShadowCasters(scene: THREE.Object3D, layers: number, out: ShadowCasters = { batches: [], meshes: [], others: [] }): ShadowCasters {
+ * layers with `castShadow`, sorted by how this pass can draw them. `pruning` skips subtrees holding
+ * nothing on those layers, as it does for three's own projection. */
+export function collectShadowCasters(scene: THREE.Object3D, layers: number, out: ShadowCasters = { batches: [], meshes: [], others: [] },
+  pruning?: Pick<SubtreePruning, 'skips'>): ShadowCasters {
   out.batches.length = out.meshes.length = out.others.length = 0;
   const stack: THREE.Object3D[] = [scene];
   while (stack.length) {
     const object = stack.pop()!;
-    if (!object.visible) continue;
+    if (!object.visible || pruning?.skips(object, layers)) continue;
     if (object.layers.mask & layers) {
       // Three picks LOD levels and clipping per camera, which this pass does not.
       if (((object as THREE.LOD).isLOD && (object as THREE.LOD).autoUpdate) || ((object as { isClippingGroup?: boolean; enabled?: boolean }).isClippingGroup && (object as { enabled?: boolean }).enabled)) out.others.push(object);
@@ -349,7 +352,10 @@ export class ShadowCasterPass {
   private readonly reached: THREE.Object3D[] = [];
   private proxy?: THREE.Scene;
 
-  constructor(private readonly renderer: THREE.WebGPURenderer) {}
+  /** The renderer's subtree skipping, which the caster walk shares. */
+  private readonly pruning: SubtreePruning;
+
+  constructor(private readonly renderer: THREE.WebGPURenderer) { this.pruning = subtreePruning(renderer); }
 
   /** Draw `target`'s map from `camera` (its matrices already updated). False leaves it to three. */
   draw(scene: THREE.Object3D, camera: THREE.OrthographicCamera, target: ShadowMapTarget, frameId: number): boolean {
@@ -361,7 +367,7 @@ export class ShadowCasterPass {
     const texture = renderer.backend.get(target.depthTexture).texture;
     if (!texture || texture.width !== target.width || texture.height !== target.height || texture.depthOrArrayLayers !== 1 || texture.sampleCount !== 1) return this.defer();
     if (frameId !== this.collectedFrame || camera.layers.mask !== this.collectedLayers) {
-      collectShadowCasters(scene, camera.layers.mask, this.casters);
+      collectShadowCasters(scene, camera.layers.mask, this.casters, this.pruning);
       this.frame.prepare(this.casters);
       for (const released of this.frame.released.splice(0)) released.buffer?.destroy();
       this.collectedFrame = frameId; this.collectedLayers = camera.layers.mask; this.uploaded = false;
