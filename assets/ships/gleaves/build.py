@@ -263,7 +263,16 @@ for s in definition['structures']:
 # seated on the lower roof through fixed foundations.
 aft_machinery=structures['machinery-aft-casing']
 machinery_aft_top=aft_machinery['baseY']+aft_machinery['height']
-prism('machinery.aft-funnel-foundation',outline_oval(-5.6,0,1.40,1.13),machinery_aft_top,5.01)
+machinery_roof=structures['machinery-deckhouse']['baseY']+structures['machinery-deckhouse']['height']
+# The forward bank's training ring stands on a short foundation above the casing roof.
+cyl('machinery.forward-torpedo-foundation',(1.51,0,(machinery_roof+5.01)/2),1.04,5.01-machinery_roof,materials['naval'],vertices=48)
+# The forecastle deck continues aft over the break as a plated walkway around the
+# forward end of the machinery trunk (pzsd108 at 4.7 m).
+walk=[(2.12,-14.15),(2.87,-14.15),(3.29,-14.57),(3.29,-14.81),(3.93,-15.85),(4.40,-16.0),(4.72,-16.28)]
+walk=walk+[(-x,z) for x,z in reversed(walk)]
+prism('forecastle.break-walkway',[(-z,-x) for x,z in walk],machinery_roof-.08,machinery_roof+.02)
+rails('forecastle.break-walkway-rail',[(-z,-x,machinery_roof+.02) for x,z in walk[1:6]],.9,spacing=1.2)
+rails('forecastle.break-walkway-rail',[(-z,x,machinery_roof+.02) for x,z in walk[1:6]],.9,spacing=1.2)
 cyl('machinery.aft-torpedo-foundation',(-12.29,0,(machinery_aft_top+5.01)/2),1.04,5.01-machinery_aft_top,materials['naval'],vertices=48)
 # The after gun deck overhangs a narrower casing. Its lobes support both twins;
 # it is not a pair of small isolated tubs on a full-width rectangular house.
@@ -316,7 +325,7 @@ for side in [-1,1]:
     aa=outline_oval(23.85,side*2.76,1.5,1.2,40)
     prism('forward-aa.platform',aa,7.23,7.36)
     bulwark('forward-aa.screen',aa,7.36,.75)
-    for xx in [22.8,24.8]:rod('forward-aa.support',(xx,side*2.8,5.3),(xx,side*2.8,7.24),.12,materials['naval'])
+    for xx in [22.8,24.8]:rod('forward-aa.support',(xx,side*2.8,deckz(xx)+.02),(xx,side*2.8,7.24),.12,materials['naval'])
 # The pilothouse's rounded ends and window seats use the same blueprint outline.
 pilot_outline=[(-z,-x) for x,z in structures['pilot-house']['footprint']]
 prism('bridge.pilot-floor',pilot_outline,10.275,10.377)
@@ -528,16 +537,22 @@ box('director.rear-cabinet',(dcx-1.67,0,dbase+1.189),(.542,.608,1.102),materials
 # Slim round-section, raked funnels are a defining feature of this configuration.
 for s in definition['structures']:
     if 'funnel' not in s['id']:continue
+    # pzsd108: round 1.19 m shells raked aft 0.12 m/m on a flared plinth, the
+    # black-banded cap cut square to the funnel axis.
     name=s['id'];cx=-sum(p[1] for p in s['footprint'])/len(s['footprint']);base=s['baseY'];height=s['height'];n=48
-    def ring(t,r=1):return [(cx-height*.12*t+1.36*r*math.cos(i*math.tau/n),1.1*r*math.sin(i*math.tau/n),base+height*t+.23*math.cos(i*math.tau/n)*t) for i in range(n)]
-    rings=[ring(t,r) for t,r in [(0,1.36),(.12,1.03),(.90,1),(1,1.05)]]
-    casing=mesh(name+'.casing',sum(rings,[]),[(k*n+j,k*n+(j+1)%n,(k+1)*n+(j+1)%n,(k+1)*n+j) for k in range(3) for j in range(n)],materials['naval'],smooth=True)
+    def ring(t,rx,ry=None):
+        ry=rx if ry is None else ry
+        return [(cx-height*.12*t+rx*math.cos(i*math.tau/n),ry*math.sin(i*math.tau/n),base+height*t+.15*rx*math.cos(i*math.tau/n)*t) for i in range(n)]
+    t0=.62/height
+    rings=[ring(0,1.80,1.42),ring(t0,1.80,1.42),ring(t0+.012,1.21),ring(.905,1.19),ring(1,1.215)]
+    casing=mesh(name+'.casing',sum(rings,[]),[(k*n+j,k*n+(j+1)%n,(k+1)*n+(j+1)%n,(k+1)*n+j) for k in range(4) for j in range(n)],materials['naval'],smooth=True)
     casing.data.materials.append(materials['dark'])
     for face in casing.data.polygons:
-        if face.index>=2*n:face.material_index=1
-    mesh(name+'.inner-liner',ring(1,1.05)+ring(1,.91)+ring(.87,.91),[(j,(j+1)%n,n+(j+1)%n,n+j) for j in range(n)]+[(n+j,n+(j+1)%n,2*n+(j+1)%n,2*n+j) for j in range(n)]+[tuple(range(2*n,3*n))],materials['dark'],smooth=True)
-    for t in [.12,.5,.94,1]:tube_path(name+'.band',ring(t,1.015 if t<1 else 1.06),.039,materials['edge'],closed=True)
-    ladder(name+'.ladder',(cx+1.40,0,base+.8),(cx-height*.12+1.44,0,base+height+.1),.42)
+        if face.index>=3*n:face.material_index=1
+    mesh(name+'.plinth-top',ring(t0,1.80,1.42),[tuple(range(n))],materials['naval'])
+    mesh(name+'.inner-liner',ring(1,1.215)+ring(1,1.09)+ring(.93,1.09),[(j,(j+1)%n,n+(j+1)%n,n+j) for j in range(n)]+[(n+j,n+(j+1)%n,2*n+(j+1)%n,2*n+j) for j in range(n)]+[tuple(range(2*n,3*n))],materials['dark'],smooth=True)
+    for t in [t0+.02,.5,.905,1]:tube_path(name+'.band',ring(t,1.205 if t<1 else 1.235),.039,materials['edge'],closed=True)
+    ladder(name+'.ladder',(cx-.62*.12+1.23,0,base+.62+.05),(cx-height*.12+1.26,0,base+height+.1),.42)
 # Raked foremast, braced maintenance platforms and the approved SC2/SG fit.
 # Dimensions are independently reconstructed against the pzsd108 A-model views.
 rod('mast.fore',(14.75,0,2.48),(12.12,0,25.347),.22,materials['naval'],r2=.09,vertices=20)
@@ -549,7 +564,7 @@ for side in [-1,1]:
     box('bridge.shroud-outrigger',(18.095,side*2.64,12.70),(.43,.43,.045),materials['naval'],bev=.007)
     rod('bridge.shroud-outrigger-knee',(18.10,side*2.44,12.37),anchor,.025,materials['edge'],vertices=8)
     rod('rigging.forward-shroud',(12.24,side*.27,22.79),anchor,.010,materials['dark'],vertices=6)
-    aft_anchor=Vector((-4.3,side*2.55,5.01))
+    aft_anchor=Vector((-4.3,side*2.45,machinery_roof+.03))
     box('rigging.aft-shroud-foot',aft_anchor,(.20,.18,.06),materials['edge'],bev=.008)
     rod('rigging.aft-shroud',(12.28,side*.08,22.79),aft_anchor,.010,materials['dark'],vertices=6)
     for lower_y,upper_y in [(1.80,.52),(2.17,1.0),(2.55,1.75),(2.92,2.48),(3.20,3.18)]:
@@ -868,16 +883,16 @@ for side in [-1,1]:
         # Source grab rails stop below the upper landing (4.713 m), leaving
         # the torpedo bank clear. Full-height generic stair rails are too tall.
         stairs('machinery.aft-stairs',(-14.30,-1.705,2.24),(-12.20,-1.705,machinery_aft_top),.65,rail_range=(.252,.828),rail_height=.338)
-    stairs('bridge.stairs',(13.5,side*2.18,5.08),(16.0,side*2.18,7.37),.54)
+    stairs('bridge.stairs',(13.8,side*1.85,machinery_roof),(16.3,side*1.85,7.37),.54)
     ladder('after.house-ladder',(-34.95,side*.55,2.24),(-34.95,side*.55,aft_top),.48)
     for z in [2.45,3.35,4.35]:
         for dy in [-.24,.24]:
             rod('after.house-ladder.standoff',(-34.95,side*.55+dy,z),(-34.87,side*.55+dy,z),.026,materials['edge'],vertices=8)
-    for x,y,z in [(26.8,3.015,5.18),(19.4,3.015,5.10),(-29.0,2.389,2.29),(-24.5,2.389,2.29),(-10.0,1.605,2.29),(4.0,3.035,2.34)]:
+    for x,y,z in [(26.8,3.045,5.0),(19.4,3.045,4.92),(-29.0,2.389,2.29),(-24.5,2.389,2.29),(-10.0,1.605,2.29),(4.0,2.615,2.30)]:
         door('access.door',x,side*y,z,side)
-    for x in [-12,-9,-2,2,5,10]:portlight('machinery.portlight',(x,side*(1.606 if x<-4.53 else 3.036),4.42),(0,side,0),.13)
+    for x in [-12,-9,-2,2,5,10]:portlight('machinery.portlight',(x,side*(1.606 if x<-4.53 else 1.636 if x>7.4 else 2.616),4.3),(0,side,0),.13)
     for x in [-30,-27,-24]:portlight('after.portlight',(x,side*2.389,3.94),(0,side,0),.13)
-    for x in [18,21,25,28]:portlight('forehouse.portlight',(x,side*3.025,7.10),(0,side,0),.14)
+    for x in [18,21,25,28]:portlight('forehouse.portlight',(x,side*3.055,7.10),(0,side,0),.14)
     # Hoses and extinguishers fastened to bulkheads.
     for x,y,z in [(25.0,3.04,6.12),(-29.5,2.40,3.25),(-10.5,1.62,3.25)]:
         y*=side
@@ -906,11 +921,11 @@ for side in [-1,1]:
         rod('reel.cable',(x-.35,y,z),(x+.35,y,z),.21,materials['rope'],vertices=24)
         for dx in [-.36,.36]:rod('reel.flange',(x+dx-.02,y,z),(x+dx+.02,y,z),.29,materials['edge'],vertices=24)
     for x in [-7.4,7.0]:
-        y=side*(1.61 if x<-4.53 else 3.04)
+        y=side*(1.61 if x<-4.53 else 2.62)
         box('ventilation.intake',(x,y,3.55),(1.15,.09,1.52),materials['edge'])
         for i in range(12):box('ventilation.louver',(x,y+side*.06,2.9+i*.115),(1.05,.12,.039),materials['naval'],bev=.004)
     for x in [-3.5,11.3]:
-        y=side*2.10;z=5.01
+        y=side*(2.10 if x<0 else 1.0);z=machinery_roof
         cyl('ventilation.neck',(x,y,z+.32),.21,.64,materials['naval'],vertices=20)
         tube_path('ventilation.cowl',[(x,y,z+.55),(x-.15,y,z+.75),(x-.42,y,z+.72)],.22,materials['naval'],sides=14)
         rod('ventilation.opening',(x-.42,y,z+.72),(x-.44,y,z+.72),.18,materials['dark'],vertices=20)
