@@ -69,42 +69,69 @@ for sign in [-1,1]:
  for x in list(range(23,53,3))+list(range(-53,-38,3)):
   portlight('hull.portlight',(x,sign*shell_width(x,deckz(x)-.68),deckz(x)-.68),(0,sign,0),.105)
  for x in range(25,51,4):portlight('hull.lower-portlight',(x,sign*shell_width(x,2.5),2.5),(0,sign,0),.105)
-# Definition-owned superstructure, tapered and rounded at its recognisable forward face.
+# Definition-owned superstructure. A structure with a surface is drawn from it; the others are prisms.
+def structure_outline(id):
+ return [(-z,-x) for x,z in next(s for s in definition['structures'] if s['id']==id)['footprint']]
+def wall_point(id,x,side):
+ """Point and outward normal on the structure wall at forward position x on one side."""
+ outline=structure_outline(id);best=None
+ for (x0,y0),(x1,y1) in zip(outline,outline[1:]+outline[:1]):
+  if min(x0,x1)<=x<=max(x0,x1) and abs(x1-x0)>1e-8:
+   y=y0+(y1-y0)*(x-x0)/(x1-x0)
+   if side*y>0 and (best is None or abs(y)>abs(best[0])):best=(y,Vector((y1-y0,-(x1-x0),0)).normalized())
+ y,n=best
+ if n.y*side<0:n=-n
+ return y,n
+def structure_width(id,x):return abs(wall_point(id,x,1)[0])
+def windows(id,outline,z0,z1,skip_aft=None):
+ # Window panes follow each actual wall segment, with visible mullions and sill.
+ for a,b in zip(outline,outline[1:]+outline[:1]):
+  va,vb=Vector(a),Vector(b);length=(vb-va).length
+  if skip_aft is not None and max(va.x,vb.x)<skip_aft:continue
+  steps=max(1,round(length/.53));normal=Vector(((vb-va).y,-(vb-va).x)).normalized()
+  for j in range(steps):
+   aa=va.lerp(vb,(j+.08)/steps)+normal*.016;bb=va.lerp(vb,(j+.92)/steps)+normal*.016
+   mesh(id+'.window',[(aa.x,aa.y,z0),(bb.x,bb.y,z0),(bb.x,bb.y,z1),(aa.x,aa.y,z1)],[(0,1,2,3)],materials['glass'])
+   rod(id+'.mullion',(aa.x,aa.y,z0-.03),(aa.x,aa.y,z1+.04),.024,materials['naval'],vertices=6)
+  tube_path(id+'.sill',[(va.x,va.y,z0-.05),(vb.x,vb.y,z0-.05)],.04,materials['naval'])
 for s in definition['structures']:
  if 'funnel' in s['id']:continue
  outline=[(-z,-x) for x,z in s['footprint']];base=s['baseY'];top=base+s['height']
- obj=prism(s['id']+'.walls',outline,base,top)
+ if s['id']=='bridge-upper':
+  # Open upper bridge: plated deck inside plated bulwarks.
+  prism(s['id']+'.deck',outline,base-.12,base+.02)
+  bulwark(s['id'],outline,base+.02,top-base-.02,thick=.06)
+  continue
+ if 'surface' in s:
+  surface=s['surface'];vs=[(-z,-x,y) for x,y,z in surface['vertices']]
+  obj=mesh(s['id']+'.walls',vs,surface['triangles'],materials['naval'])
+ else:
+  obj=prism(s['id']+'.walls',outline,12.8 if s['id']=='bridge-compass' else base,top)
  tube_path(s['id']+'.roof-edge',[(x,y,top+.025) for x,y in outline],.04,materials['edge'],closed=True)
- if s['id'] in ['wheelhouse','bridge-upper']:
-  # Window panes follow each actual wall segment, with visible mullions and sill.
-  for a,b in zip(outline,outline[1:]+outline[:1]):
-   va,vb=Vector(a),Vector(b);length=(vb-va).length;steps=max(1,round(length/.53));normal=Vector(((vb-va).y,-(vb-va).x)).normalized()
-   for j in range(steps):
-    aa=va.lerp(vb,(j+.08)/steps)+normal*.016;bb=va.lerp(vb,(j+.92)/steps)+normal*.016
-    mesh(s['id']+'.window',[(aa.x,aa.y,top-.87),(bb.x,bb.y,top-.87),(bb.x,bb.y,top-.16),(aa.x,aa.y,top-.16)],[(0,1,2,3)],materials['glass'])
-    rod(s['id']+'.mullion',(aa.x,aa.y,top-.9),(aa.x,aa.y,top-.12),.024,materials['naval'],vertices=6)
-   tube_path(s['id']+'.sill',[(va.x,va.y,top-.92),(vb.x,vb.y,top-.92)],.04,materials['naval'])
+ if s['id']=='wheelhouse':windows(s['id'],outline,top-.87,top-.16,skip_aft=-24.2)
+ elif s['id']=='bridge-compass':windows(s['id'],outline,13.66,14.1,skip_aft=-25.3)
  elif s['id']=='bridge-lower':
   for side in [-1,1]:
-   for x in [24,26.1,28]:
+   for x in [23.4,25.2,27.0,28.6]:
     for z in [6.2,8.0]:
-     w=2.1 if x<=27.3 else 2.1*math.sqrt(max(0,1-((x-27.3)/2.05)**2))
-     normal=Vector((max(0,x-27.3)/2.05**2,side*w/2.1**2,0)).normalized()
-     portlight('bridge.portlight',(x,side*w,z),normal,.16)
- else:
+     y,n=wall_point('bridge-lower',x,side);portlight('bridge.portlight',(x,y,z),n,.16)
+ elif s['id']!='fore-uptake':
   x0=min(x for x,y in outline);x1=max(x for x,y in outline);w=max(abs(y) for x,y in outline)
   for side in [-1,1]:
    if top-base>1.3:door(s['id']+'.door',(x0+x1)/2,side*(w+.015),base+.1,side,h=min(1.65,top-base-.18))
-# Bridge overhang knees follow the actual curved walls at both ends.
-def structure_width(id,x):
- outline=[(-z,-a) for a,z in next(s for s in definition['structures'] if s['id']==id)['footprint']]
- return max(abs(y0+(y1-y0)*(x-x0)/(x1-x0)) for (x0,y0),(x1,y1) in zip(outline,outline[1:]+outline[:1]) if min(x0,x1)<=x<=max(x0,x1) and abs(x1-x0)>1e-8)
-
 for side in [-1,1]:
- for x in [24.8,27.2,28.6]:rod('bridge.wing-knee',(x,side*(structure_width('bridge-lower',x)-.025),8.6),(x,side*(structure_width('wheelhouse',x)-.025),10.03),.075,materials['naval'])
- ladder('bridge.after-ladder',(22.4,side*1.55,5.6),(22.4,side*1.55,12.7),.42)
- # Running lights attached to wheelhouse wings.
- box('bridge.navigation-light',(27.8,side*3.16,10.35),(.22,.17,.3),materials['edge'])
+ # Knees under the wheelhouse wings, from the lower bridge wall to the wing floor.
+ for x in [25.85,26.95]:
+  y,n=wall_point('bridge-lower',x,side);rod('bridge.wing-knee',(x,y-side*.02,9.1),(x,side*(structure_width('wheelhouse',x)-.1),10.04),.07,materials['naval'])
+ ladder('bridge.after-ladder',(21.95,side*.55,5.42),(21.95,side*.55,12.75),.42)
+ # Running lights on the forward wheelhouse facets.
+ y,n=wall_point('wheelhouse',27.8,side)
+ box('bridge.navigation-light',(27.8,y+side*.1,10.45),(.5,.2,.32),materials['edge'])
+ # Signal lamp platforms beside the compass house.
+ prism('bridge.signal-platform',[(24.2,side*1.19),(25.5,side*1.19),(25.5,side*2.6),(24.2,side*2.6)],13.0,13.08)
+ for x in [24.35,25.4]:rod('bridge.signal-bracket',(x,side*1.19,12.78),(x,side*2.45,13.0),.035,materials['naval'])
+ cyl('bridge.signal-lamp',(24.45,side*1.9,13.39),.2,.62,materials['naval'],vertices=16)
+ rod('bridge.signal-lens',(24.65,side*1.9,13.5),(24.67,side*1.9,13.5),.15,materials['glass'],vertices=16)
 # Supported open AA platforms.
 def platform(name,outline,z,supports,shield=True):
  prism(name+'.deck',outline,z-.14,z)
@@ -113,7 +140,7 @@ def platform(name,outline,z,supports,shield=True):
   for side in [-1,1]:rod(name+'.knee',(x,y, z-.95),(x,y+side*.75,z-.12),.055,materials['naval'])
  if shield:bulwark(name,outline,z,.73,thick=.055)
  else:rails(name+'.rails',[(x,y,z) for x,y in outline],.85,closed=True)
-platform('bridge-aa',[(29.4,-1.7),(32.0,-1.7),(32.8,-.9),(32.8,.9),(32,1.7),(29.4,1.7)],8.331,[(31,0,deckz(31))])
+platform('bridge-aa',[(29.3,-1.95),(32.7,-1.95),(33.3,-1.35),(33.3,1.35),(32.7,1.95),(29.3,1.95)],8.331,[(30.9,0,deckz(30.9))])
 platform('mid-aa',outline_rect(-21.116,-17.041,-3.978,3.978,.5),6.861,[(-19.1,-2.6,3.39),(-19.1,2.6,3.39)])
 platform('13mm-aa',outline_rect(1.4,4.2,-2.25,2.25,.3),8.139,[(2.7,-1.2,3.43),(2.7,1.2,3.43)],False)
 bulwark('aft-aa-upper',outline_rect(-33.5,-29,-1.93,1.13,.3),6.1575,.69)
@@ -122,27 +149,39 @@ for name,x,z in [('bridge-aa',31,8.33),('13mm-aa',2.7,8.139)]:ladder(name+'.acce
 # Midships access is at the port rim, outside the gun and torpedo envelopes.
 for dx in [-.25,.25]:rod('mid-aa.access-rail',(-19.1+dx,3.92,3.4),(-19.1+dx,3.92,7.50),.026,materials['edge'])
 for i in range(13):rod('mid-aa.access-rung',(-19.35,3.92,3.4+i*.288),(-18.85,3.92,3.4+i*.288),.023,materials['naval'])
-# Funnel jackets, bands, sloping open mouths, caps and external steam pipes.
+# Funnel jackets from the measured rings: bands, black cap band, open mouths, cap grating and steam pipes.
 for s in [s for s in definition['structures'] if 'funnel' in s['id']]:
- name=s['id'];surface=s['surface'];vs=[(-z,-x,y) for x,y,z in surface['vertices']];N=40
+ name=s['id'];surface=s['surface'];vs=[(-z,-x,y) for x,y,z in surface['vertices']];N=40;R=len(vs)//N
  obj=mesh(name+'.jacket',vs,surface['triangles'],materials['naval'],smooth=True)
  obj.data.materials.append(materials['dark'])
  for face in obj.data.polygons:
-  if min(vs[i][2] for i in face.vertices)>s['baseY']+s['height']-2:face.material_index=1
+  if min(face.vertices)>=(R-2)*N:face.material_index=1
  mod=obj.modifiers.new('Uptake jacket thickness','SOLIDIFY');mod.thickness=.05
- for k in [1,2,3]:tube_path(name+'.seam',vs[k*N:(k+1)*N],.023,materials['edge'],sides=8,closed=True)
+ for k in range(1,R-1):tube_path(name+'.seam',vs[k*N:(k+1)*N],.023,materials['edge'],sides=8,closed=True)
  rim=[Vector(p) for p in vs[-N:]];center=sum(rim,Vector())/N
- throat=[center+(p-center)*.92-Vector((0,0,.68)) for p in rim]
+ band=[Vector(p) for p in vs[-2*N:-N]]
+ # Cap: a slightly proud black band with a rolled lip at the rim.
+ tube_path(name+'.cap-lip',[center+(p-center)*1.015 for p in rim],.04,materials['dark'],sides=8,closed=True)
+ tube_path(name+'.cap-foot',band,.03,materials['dark'],sides=8,closed=True)
+ throat=[center+(p-center)*.93-Vector((0,0,.55)) for p in rim]
  mesh(name+'.dark-throat',throat,[tuple(range(N))],materials['dark'])
- for offset in [-.65,0,.65]:
-  # Arched cap ribs sit on the actual rim at both ends.
-  a=rim[int((.25+offset*.12)*N)%N];b=rim[int((.75-offset*.12)*N)%N]
-  tube_path(name+'.cap-rib',[a.lerp(b,j/16)+Vector((0,0,.25*math.sin(j*math.pi/16))) for j in range(17)],.022,materials['edge'])
- for k in [0,20]:
-  bottom=Vector(vs[k]);top=Vector(vs[-N+k]);delta=(top-center).normalized()*.11
-  pipe=[bottom+delta,top+delta+Vector((0,0,.4))]
-  tube_path(name+'.steam-pipe',pipe,.075,materials['naval'],sides=12)
-  for t in [.2,.55,.85]:rod(name+'.pipe-bracket',bottom.lerp(top,t),bottom.lerp(top,t)+delta,.027,materials['edge'])
+ # Domed grating over the mouth: radial and ring bars.
+ up=(center-sum(band,Vector())/N).normalized()
+ apex=center+up*.35
+ dome=lambda p,f:p.lerp(apex,f)+up*(.2*math.sin(f*math.pi/2))
+ for k in range(0,N,5):tube_path(name+'.grating',[dome(rim[k],j/6) for j in range(7)],.018,materials['dark'],sides=5)
+ for f in [.35,.7]:tube_path(name+'.grating-ring',[dome(p,f) for p in rim],.016,materials['dark'],sides=5,closed=True)
+ # Steam pipes up the after quarters, clear of the jacket, on brackets.
+ for k in [13,27]:
+  bottom=Vector(vs[N+k]);top=Vector(vs[-N+k]);ofs=(Vector((top.x,top.y,0))-Vector((center.x,center.y,0))).normalized()*.16
+  tube_path(name+'.steam-pipe',[bottom+ofs,top+ofs+Vector((0,0,.45))],.07,materials['naval'],sides=12)
+  for t in [.2,.5,.8]:rod(name+'.pipe-bracket',bottom.lerp(top,t),bottom.lerp(top,t)+ofs,.025,materials['edge'])
+ # Climbing rungs up the starboard side.
+ bottom=Vector(vs[N+10]);top=Vector(vs[-2*N+10])
+ ofs=(Vector((bottom.x,bottom.y,0))-Vector((center.x,center.y,0))).normalized();along=Vector((ofs.y,-ofs.x,0))
+ for j in range(int((top-bottom).length/.4)):
+  p=bottom.lerp(top,j*.4/(top-bottom).length)
+  tube_path(name+'.rung',[p-along*.2-ofs*.02,p-along*.2+ofs*.13,p+along*.2+ofs*.13,p+along*.2-ofs*.02],.016,materials['edge'])
 # Paired broad aft-side intake trunks with curved elbows and open forward mouths.
 # Their feet meet the main deck beside each funnel jacket.
 for name,x,cy,z,rad in [('fore-cowl',12.7,2.58,3.48,.55),('aft-cowl',2.15,1.65,5.04,.48),('search-cowl',-6.35,0,3.41,.56)]:

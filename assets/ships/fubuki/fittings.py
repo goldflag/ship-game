@@ -103,8 +103,8 @@ for name,x,z in [('bridge-rangefinder',23.727,13.512),('mid-rangefinder',-19.077
   rod(name+'.lens',(x+.18,side*1.0,z+1.42),(x+.19,side*1.0,z+1.42),.08,materials['glass'],vertices=16)
 # The upper circular bridge enclosure is the director housing. Its aft optics
 # are seated on a separate ledge at the approved rangefinder datum.
-prism('bridge-rangefinder.ledge',outline_rect(22.7,24.2,-.6,.6,.1),12.70,13.512)
-rod('main-director.roof-vent',(26.091,0,13.98),(26.091,0,14.22),.12,materials['naval'],vertices=20)
+prism('bridge-rangefinder.ledge',outline_rect(23.2,24.25,-.5,.5,.1),12.74,13.512)
+rod('main-director.roof-vent',(26.091,0,14.25),(26.091,0,14.45),.12,materials['naval'],vertices=20)
 # Searchlight shelf aft of the second uptake.
 platform('searchlight',outline_rect(-7.8,-5.5,-1.2,1.2,.3),7.92,[(-6.7,0,3.4)],False)
 cyl('searchlight.pedestal',(-6.7,0,8.28),.23,.72,materials['naval'],vertices=24)
