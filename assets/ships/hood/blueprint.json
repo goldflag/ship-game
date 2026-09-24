@@ -62206,19 +62206,6 @@
       ]
     },
     {
-      "id": "bridge-middle-aft",
-      "center": [
-        0.0,
-        17.575,
-        -28.225
-      ],
-      "size": [
-        4.36,
-        2.05,
-        2.55
-      ]
-    },
-    {
       "id": "bridge-middle",
       "center": [
         0.0,
@@ -63917,31 +63904,6 @@
       ],
       "baseY": 16.4,
       "height": 0.15,
-      "material": "naval"
-    },
-    {
-      "id": "bridge-middle-aft",
-      "name": "Admiral bridge after house",
-      "footprint": [
-        [
-          -2.38,
-          -29.6
-        ],
-        [
-          2.38,
-          -29.6
-        ],
-        [
-          2.38,
-          -26.85
-        ],
-        [
-          -2.38,
-          -26.85
-        ]
-      ],
-      "baseY": 16.55,
-      "height": 2.05,
       "material": "naval"
     },
     {

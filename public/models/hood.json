@@ -131730,19 +131730,6 @@
       ]
     },
     {
-      "id": "bridge-middle-aft",
-      "center": [
-        0,
-        17.575,
-        -28.225
-      ],
-      "size": [
-        4.36,
-        2.05,
-        2.55
-      ]
-    },
-    {
       "id": "bridge-middle",
       "center": [
         0,
@@ -133441,31 +133428,6 @@
       ],
       "baseY": 16.4,
       "height": 0.15,
-      "material": "naval"
-    },
-    {
-      "id": "bridge-middle-aft",
-      "name": "Admiral bridge after house",
-      "footprint": [
-        [
-          -2.38,
-          -29.6
-        ],
-        [
-          2.38,
-          -29.6
-        ],
-        [
-          2.38,
-          -26.85
-        ],
-        [
-          -2.38,
-          -26.85
-        ]
-      ],
-      "baseY": 16.55,
-      "height": 2.05,
       "material": "naval"
     },
     {
@@ -136888,5 +136850,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "d9de4da6f7bee2d48a5ade94b3f7ec2803bdc80c9d285327d6dca15f27511af6"
+  "contentHash": "3ff4b7784bc23c86c28d71e225c88123f3fa979f026d37b6253663d00642aedb"
 }
