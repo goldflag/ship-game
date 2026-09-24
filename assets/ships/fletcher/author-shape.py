@@ -1,9 +1,9 @@
-"""Original revision-4 shape parameters, applied to the version-1 blueprint.
+"""Revision 5 shape: hull lines, structures, mounts and rooms, applied to the version-1 blueprint.
 
-Run from any directory before ship:compile. This authoring helper reads only our
-blueprint. The sparse design controls below were chosen by visual review of the
-credited orthographic rasters; they are not extracted game vertices or offsets.
-The blueprint remains the canonical, editable input to the shared pipeline.
+Run from any directory before ship:compile, then regenerate flood spaces and stability (README).
+The hull sections come from authoring/lines.json, measured from GameModels3D pasd021 (numbers
+only); structures and mount positions are traced from the same reference. The blueprint remains
+the canonical, editable input to the shared pipeline.
 """
 from pathlib import Path
 import json
@@ -264,6 +264,6 @@ for s in b['structures']:
         hi = [max(p[0] for p in s['footprint']), s['baseY']+s['height'], max(p[1] for p in s['footprint'])]
     b['obstructions'].append({'id': s['id'], 'center': [(a+c)/2 for a, c in zip(lo, hi)],
                               'size': [c-a for a, c in zip(lo, hi)]})
-b['accuracy']['exterior'] = 'Original round-bridge Fletcher reconstruction. The hull and superstructure corrections are retained; revision 4 adds original Mk30 gunhouse facets and handed screw lofts. Navy general arrangements and matching reference rasters guide the reconstruction; exact offsets, propeller pitch distribution, load datum and outfit remain interpreted.'
+b['accuracy']['exterior'] = 'Round-bridge Fletcher, revision 5: hull lines, superstructure, mounts and underwater appendages re-measured from GameModels3D pasd021 (fidelity to that model). The preset keeps its early fit; refit AA, directors and antennas on the reference are left out.'
 path.write_text(json.dumps(b, indent=2)+'\n')
 print('Revision 5 blueprint:', len(h['sections']), 'measured hull stations; stable weapon IDs preserved')

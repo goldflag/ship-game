@@ -29698,7 +29698,7 @@
     }
   ],
   "accuracy": {
-    "exterior": "Original round-bridge Fletcher reconstruction. The hull and superstructure corrections are retained; revision 4 adds original Mk30 gunhouse facets and handed screw lofts. Navy general arrangements and matching reference rasters guide the reconstruction; exact offsets, propeller pitch distribution, load datum and outfit remain interpreted.",
+    "exterior": "Round-bridge Fletcher, revision 5: hull lines, superstructure, mounts and underwater appendages re-measured from GameModels3D pasd021 (fidelity to that model). The preset keeps its early fit; refit AA, directors and antennas on the reference are left out.",
     "internals": "Provisional machinery, magazines, ready-service and flooding envelopes; not surveyed watertight subdivisions.",
     "weapons": "Five articulated 127 mm guns; two trainable quintuple Mk 15 mounts with ten total rounds; two racks and six K-guns with 28 charges. Shallow 10 m blast, damage, reloads and arcs are gameplay tuning."
   },

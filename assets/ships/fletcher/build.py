@@ -1,9 +1,9 @@
-"""Fletcher revision 4: original reference-led, blueprint-driven ship authoring.
+"""Fletcher revision 5: blueprint-driven ship authoring against GameModels3D pasd021.
 
-Axes are metres, +X bow, +Y port, +Z up, waterline Z=0. The July 1942
-Bureau of Ships photographs and ONI recognition drawings were interpreted by
-hand. GameModels3D is a raster comparison only; this recipe reads no reference
-images, external meshes, attachment transforms or textures. See reports/components.md.
+Axes are metres, +X bow, +Y port, +Z up, waterline Z=0. Dimensions and positions were
+measured from the reference in the ignored .build tree (our z = reference z + 0.466 m) and
+written here and in author-shape.py as numbers; this recipe reads no reference meshes,
+textures or images at build time.
 """
 import bpy, bmesh, json, math, os, sys
 from pathlib import Path
@@ -941,12 +941,12 @@ for o in col.objects:
 for o in col.objects:
     if o.type=='MESH':
         bm=bmesh.new();bm.from_mesh(o.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free()
-scene['definitionHash']=definition['contentHash'];scene['authoringRevision']=3
-scene['referenceBoundary']='Original blueprint / catalog / recipe only; reference rasters used for human review.'
+scene['definitionHash']=definition['contentHash'];scene['authoringRevision']=5
+scene['referenceBoundary']='Blueprint / catalog / recipe only; GameModels3D pasd021 measured in .build, never read at build time.'
 from blender_rig import create_flagstaffs
 create_flagstaffs(definition)
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
 from surface import apply_appearance
 apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))
-print('FLETCHER REVISION 3',len(col.objects),'original objects',flush=True)
+print('FLETCHER REVISION 5',len(col.objects),'original objects',flush=True)
