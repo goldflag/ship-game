@@ -95987,12 +95987,12 @@
       "center": [
         11.524999999999999,
         6.17145,
-        23.549999999999997
+        23.35
       ],
       "size": [
         7.449999999999999,
         2.3571,
-        7.299999999999999
+        6.9
       ]
     },
     {
@@ -96000,12 +96000,12 @@
       "center": [
         -11.524999999999999,
         6.17145,
-        23.549999999999997
+        23.35
       ],
       "size": [
         7.449999999999999,
         2.3571,
-        7.299999999999999
+        6.9
       ]
     },
     {
@@ -96782,11 +96782,11 @@
           37.6
         ],
         [
-          -8.6,
+          -8.35,
           37.2
         ],
         [
-          -8.6,
+          -8.35,
           31
         ],
         [
@@ -96806,11 +96806,11 @@
           31
         ],
         [
-          8.6,
+          8.35,
           31
         ],
         [
-          8.6,
+          8.35,
           37.2
         ],
         [
@@ -96855,16 +96855,16 @@
           24
         ],
         [
-          14.5,
-          26.4
+          14.3,
+          26.2
         ],
         [
-          12.3,
-          27.4
+          12,
+          27
         ],
         [
           7.6,
-          27.4
+          27
         ]
       ],
       "baseY": 4.9929,
@@ -96877,15 +96877,15 @@
       "footprint": [
         [
           -7.6,
-          27.4
+          27
         ],
         [
-          -12.3,
-          27.4
+          -12,
+          27
         ],
         [
-          -14.5,
-          26.4
+          -14.3,
+          26.2
         ],
         [
           -15.45,
@@ -99059,5 +99059,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "3251f87705bdaacc84b98c262db2808f88aeb58d4caeae5aa3877a5826bb6c7b"
+  "contentHash": "43232ebeda939a726169891da16e048aa5d146de1e504e5e76044c2c2c64d03d"
 }

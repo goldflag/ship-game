@@ -583,9 +583,9 @@ for x in [CAT-.6,CAT+.6]:
   y=-15.6+k*1.56;rod('Catapult diagonal',(x,y,DECK+.45),(x,y+1.56,DECK+1.2),.045,'naval',vertices=6)
 box('Catapult launch carriage',(CAT,0,DECK+1.42),(2.2,2.8,.3),'edge')
 for side in [-1,1]:
- ASSEMBLY='crane-'+('port' if side==1 else 'starboard');x=-22.1;y=side*8.1;z=BLOCK+.75;before=set(scene.objects)
+ ASSEMBLY='crane-'+('port' if side==1 else 'starboard');x=-22.1;y=side*7.9;z=BLOCK+.75;before=set(scene.objects)
  # Round sponson at the forward corner of the boat deck carries each crane.
- cyl('Crane sponson',(x,y,BLOCK-.2),1.55,.4,'roof',vertices=28)
+ cyl('Crane sponson',(x,y,BLOCK-.2),1.2,.4,'roof',vertices=28)
  rod('Crane sponson bracket',(x,side*7.65,BLOCK-.4),(x,side*7.65,BLOCK-2.2),.12,'naval',vertices=8)
  cyl('Aircraft crane pedestal',(x,y,(BLOCK+z)/2),.66,z-BLOCK,'naval',vertices=20)
  boomA=Vector((x,y,z+1.75));boomB=Vector((-2.0,side*9.0,z+2.25))
@@ -598,7 +598,7 @@ for side in [-1,1]:
  rod('Crane hoist',boomB,boomB+Vector((0,0,-1.2)),.02,'edge',vertices=5)
  box('Crane operator house',(x-.75,y,z+.05),(2.0,1.65,2.0),'naval')
  box('Crane cabin window',(x+.26,y,z+.40),(.02,1.24,.58),'glass')
- cyl('Crane geared turntable',(x,y,z-.3),1.25,.3,'edge',vertices=28)
+ cyl('Crane geared turntable',(x,y,z-.3),1.05,.3,'edge',vertices=28)
  rod('Crane hoist drum',(x-1.8,y-.58,z+.35),(x-1.8,y+.58,z+.35),.42,'edge',vertices=20)
  rod('Crane supporting stay',(x-1.8,y,z+3.4),boomB,.045,'edge',vertices=6)
  rod('Crane back stay',(x-1.8,y,z+3.4),(x-2.4,y,z-.15),.09,'naval',vertices=8)
