@@ -213,6 +213,15 @@ export class FocusShadowNode extends ShadowBaseNode {
   /** The view maps now covering ships, for consumers that must follow every map in use. */
   get activeViews(): CascadeLight[] { return this.views.filter(view => view.active).map(view => view.light); }
 
+  /** How much of the shadow at world `position` the near map gives, 0–1: all of it inside the near sphere, fading to
+   * the wide map toward its edge. The sea blends its two maps by the same weight as the ships' materials. */
+  nearShare(position: Node<'vec3'>): Node<'float'> { return this.nearFade(position).oneMinus(); }
+
+  /** The wide map's share where only the near and wide maps apply: 0 inside the near sphere, 1 past its edge. */
+  private nearFade(position: Node<'vec3'>): Node<'float'> {
+    return smoothstep(this.reach.mul(BLEND_START), this.reach.mul(BLEND_END), distance(position, this.focus));
+  }
+
   setup(builder: Parameters<ShadowBaseNode['setupShadowPosition']>[0]) {
     // One shadow node per map, shared by every material: each node owns a render target
     // and renders it once per camera per frame, so per-material nodes would multiply both.
@@ -232,7 +241,7 @@ export class FocusShadowNode extends ShadowBaseNode {
         return smoothstep(EDGE_START, EDGE_END, edge).oneMinus().mul(depth);
       };
       // Weights of each map in order of preference; what no map covers is lit.
-      const nearBlend = smoothstep(this.reach.mul(BLEND_START), this.reach.mul(BLEND_END), distance(position, this.focus));
+      const nearBlend = this.nearFade(position);
       const weights: Node<'float'>[] = [nearBlend.oneMinus()];
       let rest: Node<'float'> = nearBlend;
       for (const [light, on] of [[this.wide, float(1)], ...this.views.map(view => [view.light, view.on] as const)] as const) {

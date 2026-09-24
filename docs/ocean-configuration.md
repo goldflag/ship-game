@@ -286,15 +286,25 @@ breaking into speckle. With physical reflections on, rays follow the whole slope
 smeared along the plane of incidence by the unresolved facets instead. Screen-space reflections still
 omit offscreen geometry.
 
-The displaced surface also receives ship shadows from the same directional shadow map.
-`src/game/WaterShadows.ts` builds a receiver node from the light's depth texture and binds it with
-`ocean.setShadowNode`; it adds no shadow map or caster pass. Graphics → Water shadows applies live: Off
-removes the sampling, Low uses one comparison, Medium four and High a nine-tap soft filter. The
-Low/Medium/High/Ultra presets choose Off/Low/High/High. A shader branch skips the texture reads
-outside the shadow camera's bounds. Shadows attenuate the lit terms (sun specular and glints,
+The displaced surface also receives ship shadows from the ships' own sun shadow maps
+(`FocusShadowNode.ts`). `src/game/WaterShadows.ts` builds a receiver node and binds it with
+`ocean.setShadowNode`; it adds no shadow map or caster pass. Where the camera-fitted near map covers the
+water it reads that map, with its centimetre texels in close-ups, and fades to the wide map at the near
+sphere's edge by the same weight the ships' materials use (`FocusShadowNode.nearShare`), so a ship's
+shadow is as sharp on the water beside her as on her deck. Each pixel reads one map except in that fade
+band. Graphics → Water shadows applies live: Off removes the sampling (and the darker water beside hulls,
+see the ocean README), Low reads one bilinear comparison per map, Medium filters the near map as the
+ships' paint does (three's PCFSoft: four gathered comparisons over a bilinear-weighted 3×3 texels) and
+reads the wide one once, and High filters both, which costs four gathers where the old High took nine
+comparisons. The Low/Medium/High/Ultra presets choose Off/Low/High/High. The near map adds one depth
+texture and comparison sampler to the sea's fragment stage, which binds 15 of Apple's 16 samplers on
+High in port. A shader branch skips each map's reads outside its bounds. Shadows attenuate the lit terms (sun specular and glints,
 subsurface light and foam); the ambient pigment keeps 45% in full shadow (with physical water colour,
-shadowed water keeps the skylight's share of its upwelling) and the sky reflection is unshadowed. They follow the active sun or moon and the local or zoomed hull anchor; ships outside the
-map's 760 m footprint cast no water shadows. The Shadows setting controls map resolution for both hull
+shadowed water keeps the skylight's share of its upwelling) and the sky reflection is unshadowed. They
+follow the active sun or moon and the local or zoomed hull anchor; ships outside the wide map's 760 m
+footprint cast no water shadows (the view maps that shade distant ships stay off the sea, a sampler
+short of the limit). `waterShadowMaps.near = false` (exported from `WaterShadows.ts`) keeps the sea on
+the wide map alone, for comparisons. The Shadows setting controls map resolution for both hull
 and water shadows; its Off option overrides Water shadows without losing the selected water quality.
 Off stops shadow-map rendering and sets its intensity to zero; an already allocated map is kept so
 cached programs can reuse it when shadows are enabled again.

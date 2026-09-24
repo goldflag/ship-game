@@ -522,6 +522,7 @@ export class Game {
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
     this.shipWake = new ShipWake(ocean, gpuWakeFoamPainter(this.renderer), () => ocean.meshSpacing, () => this.renderer.domElement.height);
+    this.graphicsControl.applyWaterShadows();
     // The wet band reads the sea exactly as the surface draws it: waves, wake field and bow waves.
     // Hull paint compiles on first draw, after this.
     const shipWake = this.shipWake;
@@ -1277,7 +1278,7 @@ export class Game {
         const stepping = this.ocean!.update(dt);
         if (stepping) { await stepping; if (this.disposed) return; }
         this.renderFrame();
-        updateWaterShadows(this.ocean!, this.sunShadows!.wide as unknown as THREE.DirectionalLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows, this.cloudShadow);
+        updateWaterShadows(this.ocean!, this.sunShadows!, this.renderer.reversedDepthBuffer, this.settings.waterShadows, this.cloudShadow);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();
@@ -1343,6 +1344,7 @@ export class Game {
       get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
       get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
       get renderer() { return game.renderer; }, get display() { return game.display; }, get scenePass() { return game.scenePass; }, get camera() { return game.camera; }, get ocean() { return game.ocean; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; }, get occlusion() { return game.occlusion; },
+      get shipWake() { return game.shipWake; },
       get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
       get disposed() { return game.disposed; },
       requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),

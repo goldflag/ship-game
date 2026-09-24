@@ -18,6 +18,7 @@ import {
 } from '../graphicsSettings';
 import type { ShipFunnelSmoke } from '../ShipFunnelSmoke';
 import type { ShipOcclusion } from '../ShipOcclusion';
+import type { ShipWake } from '../ShipWake';
 import { MOTION_OUTPUT, TemporalAntialiasing } from '../TemporalAntialiasing';
 
 /** What applying graphics settings reads from and writes to `Game`, each member at the moment
@@ -40,6 +41,8 @@ export interface GraphicsContext {
   readonly sky?: Pick<SkyApi, 'setQuality'>;
   /** Ship-on-ship ambient occlusion; absent until start-up has created it. */
   readonly occlusion?: Pick<ShipOcclusion, 'setLevel'>;
+  /** The sea's wake and hull contact; absent until start-up has created it. */
+  readonly shipWake?: Pick<ShipWake, 'shelter'>;
   readonly aircraftView: Pick<AircraftView, 'detailScale'>;
   readonly effects: Pick<CombatEffects, 'setDensity'>;
   readonly funnelSmoke: Pick<ShipFunnelSmoke, 'density'>;
@@ -74,6 +77,14 @@ export class GraphicsController {
     if (previous.shadows !== settings.shadows) this.applyShadows();
     if (previous.clouds !== settings.clouds) this.applyClouds();
     if (previous.ambientOcclusion !== settings.ambientOcclusion) this.applyAmbientOcclusion();
+    if (previous.waterShadows !== settings.waterShadows) this.applyWaterShadows();
+  }
+
+  /** The sea reads its shadow maps each frame (`updateWaterShadows`); the darker water beside hulls, where their sides
+   * hide the sky, rides the same row: Off drops it from the sea's shader. */
+  applyWaterShadows(): void {
+    const wake = this.context.shipWake;
+    if (wake) wake.shelter = this.context.settings.waterShadows !== 'off';
   }
 
   /** Off removes the occlusion node from every ship material and skips its passes, so the
