@@ -48,7 +48,8 @@ test('construction smoke uses installed exhaust sockets and cancels the ship wor
 
 test('all registered funnel mouths are found without smoking from bases, caps or the submarine', () => {
   const counts: Record<string, number> = { resolute: 0, 'admiral-hipper': 1, bismarck: 1, yamato: 1, iowa: 2, 'king-george-v': 2, hood: 2, baltimore: 2, mogami: 2, 'enterprise-cv6': 1, 'type-viic': 0,
-    'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, gleaves: 2, shokaku: 2, yukikaze: 2, fubuki: 2, cleveland: 2, alaska: 1 };
+    'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, gleaves: 2, shokaku: 2, yukikaze: 2, fubuki: 2, cleveland: 2, alaska: 1,
+    kongo: 2 };
   for (const id of Object.keys(shipPresets)) {
     const outlets = funnelOutlets(shipPreset(id));
     if (shipPreset(id).construction) { expect(outlets).toEqual([]); continue; }
@@ -63,8 +64,8 @@ test('all registered funnel mouths are found without smoking from bases, caps or
   expect(funnelOutlets(shipPreset('enterprise-cv6'))[0].position[0]).toBeCloseTo(11.049, 2);
   // The curved outlet sits aft of the uptake's base, and below its highest lip.
   expect(funnelOutlets(shipPreset('yamato'))[0].position[2]).toBeCloseTo(23.3, 2);
-  // The refined Bismarck rim averages 24.30 m, below its raised forward lip.
-  expect(funnelOutlets(shipPreset('bismarck'))[0].position[1]).toBeCloseTo(24.45, 2);
+  // The Bismarck cap's raked mouth (23.43 m aft to 25.0 m forward) averages 24.09 m, below its raised forward lip.
+  expect(funnelOutlets(shipPreset('bismarck'))[0].position[1]).toBeCloseTo(24.24, 2);
   expect(funnelOutlets(shipPreset('fletcher'))[0].position[2]).toBeCloseTo(-9.2146, 2);
   expect(funnelOutlets(shipPreset('yukikaze')).map(o => o.position[1])).toEqual([11.42, 9.98]);
   // Explicit outlet datums also work with stable IDs that lack the old suffix.
@@ -75,7 +76,7 @@ test('side-discharging carrier exhaust uses the authored mouths below the jacket
   const def = shipPreset('shokaku');
   const outlets = funnelOutlets(def);
   expect(outlets).toHaveLength(2);
-  expect(outlets.map(o => o.position)).toEqual([[19.6, 12.8, -10], [19.6, 12.8, 2]]);
+  expect(outlets.map(o => o.position)).toEqual([[19.45, 11.2, -5.6], [19.45, 11.2, 6.4]]);
   for (const outlet of outlets) {
     const jacket = def.structures!.find(s => s.id === outlet.id)!;
     expect(outlet.position[1]).toBeLessThan(jacket.baseY + jacket.height);

@@ -22,7 +22,7 @@ describe('the fleet line', () => {
     const groups = portFleet(snapshot(openProfile()), [design('a', 'Baltimore design'), design('b', 'Draft hull', false)]);
     expect(ids(groups)).toEqual([
       ['usa', ['gleaves', 'fletcher', 'cleveland', 'baltimore', 'alaska', 'iowa', 'enterprise-cv6']],
-      ['japan', ['fubuki', 'yukikaze', 'mogami', 'yamato', 'shokaku']],
+      ['japan', ['fubuki', 'yukikaze', 'mogami', 'kongo', 'yamato', 'shokaku']],
       ['germany', ['admiral-hipper', 'bismarck', 'type-viic']],
       ['uk', ['hood', 'king-george-v', 'flower-corvette']],
       ['designs', ['local-a']],
