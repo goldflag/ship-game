@@ -4,7 +4,7 @@ import { carryToCustom, carryToDuel, carryToPve, fleetForCarry, isBattleMode } f
 import type { BattleSetup } from '../../game/session/battleSetup';
 
 const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: ['fletcher', { shipId: 'cleveland', aiLevel: 'easy' }], enemies: ['yamato'], spawnDistance: 5000 };
-const request = (): PveRequest => ({ version: 1, seed: 1, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal', groups: [{ id: 'front', name: 'Group 1', station: 'front' }], ships: [] });
+const request = (): PveRequest => ({ version: 1, seed: 1, mapId: 'iron-bottom-sound', weather: 'clear', difficulty: 'normal', groups: [{ id: 'front', name: 'Group 1', station: 'front' }], ships: [] });
 const budget = { maxShips: 3, maxAircraft: 100, maxDisplacementKg: 200000000 };
 
 test('the commanded ship leads the fleet that carries between modes', () => {

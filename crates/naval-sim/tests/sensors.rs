@@ -1,10 +1,23 @@
 use naval_sim::{
-    environment::{Island, TerrainField},
     rules::{TICK_RATE, TeamId},
     sensors::{
         self, ContactKind, Sensors, TrackStatus, VisualConditions, VisualEntity, VisualRules,
     },
+    terrain::{Heightfield, Terrain},
 };
+/// A round hill `peak` metres high and `radius` metres across the waterline at
+/// world (x, z), on a sea floor that shoals toward it like the baked charts.
+fn hill(x: f64, z: f64, radius: f64, peak: f64) -> Terrain {
+    let field = Heightfield::from_fn(401, 401, 20.0, [-4000.0, -4000.0], 0.25, |cx, cz| {
+        let r = cx.hypot(cz);
+        if r < radius {
+            1.0 + (peak - 1.0) * (1.0 - (r / radius).powi(2))
+        } else {
+            -(2.5 + 0.12 * (r - radius)).min(160.0)
+        }
+    });
+    Terrain::placed(std::sync::Arc::new(field), [x, z])
+}
 fn entity(id: &str, team: TeamId, kind: ContactKind, x: f64, altitude: f64) -> VisualEntity {
     VisualEntity {
         id: id.into(),
@@ -46,8 +59,7 @@ fn close_contacts_are_immediately_identified_and_keep_the_same_contact_id() {
     sensors.update(
         0,
         &[observer.clone(), target.clone()],
-        &[],
-        &[],
+        &Terrain::open_sea(),
         clear(),
         &rules,
     );
@@ -65,8 +77,7 @@ fn close_contacts_are_immediately_identified_and_keep_the_same_contact_id() {
         sensors.update(
             second * TICK_RATE,
             &[observer.clone(), target.clone()],
-            &[],
-            &[],
+            &Terrain::open_sea(),
             clear(),
             &rules,
         );
@@ -87,12 +98,12 @@ fn marginal_reports_are_immediate_and_cadence_is_not_render_frame_dependent() {
     let mut a = Sensors::default();
     let mut b = Sensors::default();
     let world = [observer, target];
-    a.update(0, &world, &[], &[], clear(), &rules);
+    a.update(0, &world, &Terrain::open_sea(), clear(), &rules);
     assert_eq!(a.contacts(TeamId::A).len(), 1);
     for tick in 0..=15 * TICK_RATE {
-        a.update(tick, &world, &[], &[], clear(), &rules);
+        a.update(tick, &world, &Terrain::open_sea(), clear(), &rules);
         if tick.is_multiple_of(TICK_RATE) {
-            b.update(tick, &world, &[], &[], clear(), &rules);
+            b.update(tick, &world, &Terrain::open_sea(), clear(), &rules);
         }
     }
     assert_eq!(a.contacts(TeamId::A).len(), 1);
@@ -110,8 +121,20 @@ fn a_lost_report_uses_only_measured_motion_even_after_the_reporter_is_destroyed(
         target.eye[0] += 12.0;
         target.feature[0] += 12.0;
         let world = [observer.clone(), target.clone()];
-        a.update(second * TICK_RATE, &world, &[], &[], clear(), &rules);
-        b.update(second * TICK_RATE, &world, &[], &[], clear(), &rules);
+        a.update(
+            second * TICK_RATE,
+            &world,
+            &Terrain::open_sea(),
+            clear(),
+            &rules,
+        );
+        b.update(
+            second * TICK_RATE,
+            &world,
+            &Terrain::open_sea(),
+            clear(),
+            &rules,
+        );
     }
     let observed = a.contacts(TeamId::A)[0].clone();
     for second in 11..=100 {
@@ -124,12 +147,17 @@ fn a_lost_report_uses_only_measured_motion_even_after_the_reporter_is_destroyed(
         a.update(
             second * TICK_RATE,
             std::slice::from_ref(&target),
-            &[],
-            &[],
+            &Terrain::open_sea(),
             clear(),
             &rules,
         );
-        b.update(second * TICK_RATE, &[hidden], &[], &[], clear(), &rules);
+        b.update(
+            second * TICK_RATE,
+            &[hidden],
+            &Terrain::open_sea(),
+            clear(),
+            &rules,
+        );
         assert_eq!(a.contacts(TeamId::A), b.contacts(TeamId::A));
     }
     let stale = a.contacts(TeamId::A)[0].clone();
@@ -140,8 +168,7 @@ fn a_lost_report_uses_only_measured_motion_even_after_the_reporter_is_destroyed(
     a.update(
         101 * TICK_RATE,
         &[observer, target],
-        &[],
-        &[],
+        &Terrain::open_sea(),
         clear(),
         &rules,
     );
@@ -171,35 +198,36 @@ fn low_aircraft_have_shorter_signatures_and_high_search_has_a_longer_horizon() {
 }
 #[test]
 fn baked_terrain_blocks_lookouts_but_a_high_aircraft_can_see_over_it() {
-    let island = Island {
-        id: "ridge".into(),
-        x: 0.0,
-        z: 0.0,
-        rx: 500.0,
-        rz: 500.0,
-        height: 180.0,
-        seed: 1.0,
-        style: "tropical".into(),
-    };
-    let field = TerrainField {
-        seed: 1.0,
-        style: "tropical".into(),
-        samples: vec![1.0; 257 * 257],
-    };
+    let ridge = hill(0.0, 0.0, 500.0, 180.0);
     let from = [-2000.0, 20.0, 0.0];
     let to = [2000.0, 25.0, 0.0];
-    assert!(!sensors::line_visible(
-        from,
-        to,
-        std::slice::from_ref(&island),
-        std::slice::from_ref(&field)
-    ));
-    assert!(sensors::line_visible(
-        [-2000.0, 1500.0, 0.0],
-        to,
-        &[island],
-        &[field]
-    ));
+    assert!(!ridge.line_visible(from, to));
+    assert!(ridge.line_visible([-2000.0, 1500.0, 0.0], to));
+    // A line that passes the hill to one side stays open, and open sea hides nothing.
+    assert!(ridge.line_visible([-2000.0, 20.0, 900.0], [2000.0, 25.0, 900.0]));
+    assert!(Terrain::open_sea().line_visible(from, to));
+    // The same hill hides a lookout's contact inside the sensor update.
+    let mut sensors = Sensors::default();
+    let rules = VisualRules::default();
+    let observer = entity("own", TeamId::A, ContactKind::Surface, -2000.0, 0.0);
+    let target = entity("enemy", TeamId::B, ContactKind::Surface, 2000.0, 0.0);
+    sensors.update(
+        0,
+        &[observer.clone(), target.clone()],
+        &ridge,
+        clear(),
+        &rules,
+    );
+    assert!(sensors.contacts(TeamId::A).is_empty());
+    let mut open = Sensors::default();
+    open.update(
+        0,
+        &[observer, target],
+        &Terrain::open_sea(),
+        clear(),
+        &rules,
+    );
+    assert_eq!(open.contacts(TeamId::A).len(), 1);
 }
 
 #[test]
@@ -208,7 +236,13 @@ fn binary_spotting_identifies_even_a_marginal_contact_on_the_first_check() {
     let rules = VisualRules::default();
     let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
     let target = entity("enemy", TeamId::B, ContactKind::Surface, 10800.0, 0.0);
-    sensors.update(0, &[observer, target.clone()], &[], &[], clear(), &rules);
+    sensors.update(
+        0,
+        &[observer, target.clone()],
+        &Terrain::open_sea(),
+        clear(),
+        &rules,
+    );
     let contacts = sensors.contacts(TeamId::A);
     assert_eq!(
         contacts.len(),
@@ -243,8 +277,7 @@ fn current_contacts_follow_a_straight_course_without_rounding_jumps() {
         sensors.update(
             sample * rules.cadence_ticks,
             &[observer.clone(), target.clone()],
-            &[],
-            &[],
+            &Terrain::open_sea(),
             clear(),
             &rules,
         );
@@ -303,8 +336,7 @@ fn forward_screen_is_visible_alongside_a_rear_battleship() {
     sensors.update(
         0,
         &[own, destroyer, capital],
-        &[],
-        &[],
+        &Terrain::open_sea(),
         clear(),
         &VisualRules::default(),
     );
@@ -328,7 +360,7 @@ fn formation_visibility_is_shared_by_observers_and_recomputed_when_planes_separa
         1000.0,
     );
     let mut world = [a, b, target, neighbor];
-    sensors.update(0, &world, &[], &[], clear(), &rules);
+    sensors.update(0, &world, &Terrain::open_sea(), clear(), &rules);
     let contact = sensors
         .contacts(TeamId::A)
         .into_iter()
@@ -338,7 +370,13 @@ fn formation_visibility_is_shared_by_observers_and_recomputed_when_planes_separa
     world[3].position[0] += 2000.0;
     world[3].eye[0] += 2000.0;
     world[3].feature[0] += 2000.0;
-    sensors.update(rules.cadence_ticks, &world, &[], &[], clear(), &rules);
+    sensors.update(
+        rules.cadence_ticks,
+        &world,
+        &Terrain::open_sea(),
+        clear(),
+        &rules,
+    );
     let contact = sensors.contact(TeamId::A, &contact.id).unwrap();
     assert_eq!(
         contact.last_observed_tick, 0,

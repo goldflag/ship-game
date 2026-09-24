@@ -1,4 +1,4 @@
-import { seaResponse, type SeaState } from './session/sea';
+import { seaResponse, type SeaState } from './session/seaSurface';
 
 const STEP = 1 / 60;
 /** Presentation-only motion for the hull on show. The port session is never

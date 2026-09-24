@@ -27,6 +27,7 @@ import catalogJson from '../../public/models/components/catalog.json';
 import type { ConstructionCatalog, ConstructionResult } from '../ships/blueprint';
 import { createStarterSource } from '../ships/constructionStarter';
 import { registerLocalShip, removeLocalShip } from '../ships/localShips';
+import { installMapTerrain } from '../maps/testing';
 
 // Camera controls now also listen for pointer-lock and focus changes.
 const browserNames = ['window', 'document'] as const;
@@ -390,23 +391,27 @@ test('a second request cannot replace an in-flight switch; disposed games never 
 });
 
 test('battle loading binds each mixed fleet hull and selected target to its own exported joints', async () => {
+  const field = await installMapTerrain('iron-bottom-sound');
   const { game, scene, harbor, rig } = await port();
   const aircraftLoader = spyOn((game as unknown as { aircraftView: { load(modelIds: string[]): Promise<void> } }).aircraftView, 'load');
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '')));
   try {
     await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', { shipId: 'bismarck', aiLevel: 'hard' }],
       enemies: [{ shipId: 'yamato', aiLevel: 'static' }, { shipId: 'enterprise-cv6', aiLevel: 'moving' }],
-      spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
+      spawnDistance: 7500, mapId: 'iron-bottom-sound', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(aircraftLoader).toHaveBeenCalledTimes(1);
     expect(aircraftLoader).toHaveBeenCalledWith(shipPreset('enterprise-cv6').airWing!.squadrons.map(s => s.modelId));
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
     expect(game.simulation.actors).toHaveLength(5);
-    expect(game.diagnostics().mapId).toBe('pacific-islands');
+    expect(game.diagnostics().mapId).toBe('iron-bottom-sound');
     expect(game.diagnostics().timeOfDay).toBe('night');
     expect(game.diagnostics().weather).toBe('fog');
-    expect(game.simulation.islands).toHaveLength(3);
+    // The chart lies between the default spawn lines, and the land is the surveyed field itself.
+    expect(game.simulation.terrain.field).toBe(field);
+    expect(game.simulation.terrain.offset).toEqual([0, -3750]);
+    expect(game.diagnostics().terrain).toMatchObject({ id: 'iron-bottom-sound', offset: [0, -3750], charted: true, bounds: [-48000, -48000, 48000, 48000] });
     expect(game.simulation.target!.motion.z - game.simulation.ship.z).toBe(-7500);
     expect(game.simulation.ship.heading).toBe(0);
     expect(game.simulation.target!.motion.heading).toBe(Math.PI);
@@ -424,6 +429,7 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
 });
 
 test('battle preparation reports each loading stage in order for the loading screen', async () => {
+  await installMapTerrain('iron-bottom-sound');
   const { game, rig } = await port();
   let active = 0, peak = 0;
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
@@ -433,8 +439,8 @@ test('battle preparation reports each loading stage in order for the loading scr
   });
   const stages: [string, number][] = [];
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands' }, (label, fraction) => stages.push([label, fraction]));
-    expect(stages[0][0]).toBe('Charting Pacific Islands');
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'iron-bottom-sound' }, (label, fraction) => stages.push([label, fraction]));
+    expect(stages[0][0]).toBe('Charting Iron Bottom Sound');
     expect(stages.map(([, fraction]) => fraction)).toEqual([...stages.map(([, fraction]) => fraction)].sort((a, b) => a - b));
     expect(stages.every(([, fraction]) => fraction >= 0 && fraction < 1)).toBe(true);
     expect(stages.map(([label]) => label)).toContain('Spotting the air wing');

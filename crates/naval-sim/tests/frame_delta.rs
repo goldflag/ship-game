@@ -135,7 +135,7 @@ fn team_patches_rebuild_the_decoded_frame_including_contacts_and_events() {
     use naval_sim::pve::{PvePlan, PveRequest};
     let catalog = catalog();
     let request: PveRequest = serde_json::from_value(json!({
-        "version": 1, "seed": 17001, "mapId": "pacific-islands", "weather": "clear",
+        "version": 1, "seed": 17001, "mapId": "iron-bottom-sound", "weather": "clear",
         "difficulty": "normal",
         "ships": [{"id": "own", "presetId": "bismarck", "groupId": "g"},
             {"id": "carrier", "presetId": "enterprise-cv6", "groupId": "g"},

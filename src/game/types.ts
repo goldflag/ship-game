@@ -1,4 +1,5 @@
-import type { Island, OceanMapId } from '../maps/catalog';
+import type { OceanMapId } from '../maps/catalog';
+import type { PlacedTerrain } from '../maps/heightfield';
 import type { CameraMode } from './CameraRig';
 import type { ShellFollow } from './ShellFollow';
 import type { HullDamageCue } from './HullDamageFeedback';
@@ -21,7 +22,8 @@ export interface PerformanceReadout {
 export interface HelmWheelState { reason: 'held' | 'sunk'; highlightId?: string }
 export interface Telemetry {
   mapId?: OceanMapId;
-  islands?: Island[];
+  /** The battle's land, which the navigation chart draws; absent or without a field for open sea. */
+  terrain?: PlacedTerrain;
   ship: ShipState;
   shipDefinition?: import('../ships/blueprint').ShipDefinition;
   order: number;

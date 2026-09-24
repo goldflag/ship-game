@@ -823,14 +823,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* The action and its date may take two lines; a clipped date would lose the year. */
 .map-tile small {
-  display: block;
+  display: -webkit-box;
   padding: 0 7px 5px;
   color: var(--battle-muted);
   font-size: 10px;
-  white-space: nowrap;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 .map-tile:hover,
 .map-tile.is-selected {
@@ -1302,10 +1304,32 @@
   stroke: #7c9ba4;
   stroke-opacity: 0.16;
 }
-.chart-land {
+.deploy-chart .chart-land {
   fill: #344d4c;
-  stroke: #84928a;
+  stroke: #9aaba2;
   stroke-width: 1;
+}
+/* Relief as a naval chart shades it: each band above 100, 300, 600 and 1,000 m a step lighter, with a fine contour. */
+.deploy-chart .chart-relief {
+  stroke: #84928a;
+  stroke-opacity: 0.4;
+  stroke-width: 0.6;
+}
+.deploy-chart .chart-relief-100 {
+  fill: #3b5452;
+}
+.deploy-chart .chart-relief-300 {
+  fill: #435c58;
+}
+.deploy-chart .chart-relief-600 {
+  fill: #4c655f;
+}
+.deploy-chart .chart-relief-1000 {
+  fill: #566e66;
+}
+.chart-north path {
+  fill: var(--battle-brass);
+  fill-opacity: 0.8;
 }
 .chart-edge {
   stroke: var(--battle-mint);

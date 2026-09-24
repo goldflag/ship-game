@@ -89,7 +89,7 @@ export class RangefindingController {
     if (!this.canRange || this.context.ordersBlocked) return;
     const { simulation, camera, host, rig } = this.context;
     const targets = this.targets();
-    this.rangefinder.start(pickRangeTarget(targets, camera, simulation.ship, host.clientWidth, host.clientHeight, simulation.islands));
+    this.rangefinder.start(pickRangeTarget(targets, camera, simulation.ship, host.clientWidth, host.clientHeight, simulation.terrain));
     rig.setRangeLock();
     this.context.takeManualAim();
   }
@@ -117,7 +117,7 @@ export class RangefindingController {
       const observation = target && observeRangeTarget(target, camera, simulation.ship, host.clientWidth, host.clientHeight);
       this.rangefinder.update(
         seconds,
-        observation && target && rangeTargetVisible(target, camera.position.toArray(), targets, simulation.islands)
+        observation && target && rangeTargetVisible(target, camera.position.toArray(), targets, simulation.terrain)
           ? observation
           : undefined,
       );

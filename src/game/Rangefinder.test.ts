@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { PerspectiveCamera } from 'three/webgpu';
 import { Rangefinder } from './Rangefinder';
 import { observeRangeTarget, pickRangeTarget, rangeTargetVisible, type RangeTarget } from './rangefinderSight';
-import type { Island } from '../maps/catalog';
+import { Heightfield } from '../maps/heightfield';
 
 const observation = { id: 'enemy', name: 'Enemy', rangeM: 18000, nearSight: true };
 
@@ -45,18 +45,22 @@ function scope() {
 }
 test('a near miss at 18 km acquires the ship without requiring an exact surface pixel', () => {
   const camera = scope(); camera.lookAt(0, 150, -18000); camera.updateMatrixWorld();
-  const result = pickRangeTarget([target], camera, { x: 0, z: 0 }, 1440, 810, []);
+  const result = pickRangeTarget([target], camera, { x: 0, z: 0 }, 1440, 810);
   expect(result?.id).toBe('far'); expect(result!.sightDistance).toBeGreaterThan(0); expect(result?.rangeM).toBe(18000);
   camera.lookAt(0, 2000, -18000); camera.updateMatrixWorld();
-  expect(pickRangeTarget([target], camera, { x: 0, z: 0 }, 1440, 810, [])).toBeUndefined();
+  expect(pickRangeTarget([target], camera, { x: 0, z: 0 }, 1440, 810)).toBeUndefined();
 });
 
-test('nearer ships win overlapping sights; hulls, islands, submerged and behind-camera targets cannot be ranged through', () => {
+test('nearer ships win overlapping sights; hulls, land, submerged and behind-camera targets cannot be ranged through', () => {
   const camera = scope(), near: RangeTarget = { ...target, id: 'near', position: [0, 0, -9000], height: 80 };
-  expect(pickRangeTarget([target, near], camera, { x: 0, z: 0 }, 1440, 810, [])?.id).toBe('near');
-  expect(rangeTargetVisible(target, camera.position.toArray(), [target, near], [])).toBe(false);
-  const island: Island = { id: 'blocking', side: 0, along: 0, offset: 0, x: 0, z: -9000, rx: 2000, rz: 2000, height: 200, seed: 1, style: 'rock' };
-  expect(rangeTargetVisible(target, camera.position.toArray(), [target], [island])).toBe(false);
+  expect(pickRangeTarget([target, near], camera, { x: 0, z: 0 }, 1440, 810)?.id).toBe('near');
+  expect(rangeTargetVisible(target, camera.position.toArray(), [target, near])).toBe(false);
+  // A 200 m ridge 2 km deep across the sight line, charted 1 km further off than the battle places it.
+  const ridge = new Heightfield(41, 21, 100, -2000, -9000, .25, new Int16Array(41 * 21).fill(800));
+  expect(rangeTargetVisible(target, camera.position.toArray(), [target], { field: ridge, offset: [0, -1000] })).toBe(false);
+  // Sea around the sight line and land far to the side leave it clear.
+  expect(rangeTargetVisible(target, camera.position.toArray(), [target], { field: ridge, offset: [8000, 0] })).toBe(true);
+  expect(pickRangeTarget([target], camera, { x: 0, z: 0 }, 1440, 810, { field: ridge, offset: [0, -1000] })).toBeUndefined();
   expect(observeRangeTarget({ ...target, position: [0, -100, -18000] }, camera, { x: 0, z: 0 }, 1440, 810)).toBeUndefined();
   expect(observeRangeTarget({ ...target, position: [0, 0, 18000] }, camera, { x: 0, z: 0 }, 1440, 810)).toBeUndefined();
 });

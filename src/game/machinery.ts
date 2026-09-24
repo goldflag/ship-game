@@ -1,5 +1,5 @@
 import { equipmentCenter } from './equipmentPose';
-import { seaHeight } from './session/sea';
+import { seaHeight } from './session/seaSurface';
 import { hullDepth } from './session/motion';
 import { localToWorld } from './geometry';
 import type { Module, ShipDefinition } from '../ships/blueprint';

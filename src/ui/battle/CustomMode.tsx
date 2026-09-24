@@ -226,13 +226,15 @@ export function CustomLanes({ setup, onChange, transfer, onTransfer, onError, di
   );
 }
 
+/** A map's default wind is the weather's wind scaled by the map, so it can carry float noise (0.65 × 9). */
+const roundWind = (speed: number) => Math.round(speed * 10) / 10;
 /** Waters, conditions and the opening deployment. */
 export function CustomRail({ setup, onChange, disabled }: { setup: BattleSetup; onChange(setup: BattleSetup): void; disabled?: boolean }) {
   const map = oceanMap(setup.mapId ?? DEFAULT_MAP),
     environment = battleEnvironment(map, setup.timeOfDay, setup.weather, setup);
   const timeHours = setup.timeHours ?? 12,
     cloudCover = setup.cloudCover ?? Math.round(environment.sky.coverage * 100),
-    windSpeed = setup.windSpeed ?? environment.waves.windSpeed;
+    windSpeed = setup.windSpeed ?? roundWind(environment.waves.windSpeed);
   return (
     <>
       <RailBlock title="Waters" aside={map.region}>
@@ -330,7 +332,7 @@ export function customBrief(setup: BattleSetup): string[] {
   const map = oceanMap(setup.mapId ?? DEFAULT_MAP),
     environment = battleEnvironment(map, setup.timeOfDay, setup.weather, setup);
   const cloud = setup.cloudCover ?? Math.round(environment.sky.coverage * 100),
-    wind = setup.windSpeed ?? environment.waves.windSpeed;
+    wind = setup.windSpeed ?? roundWind(environment.waves.windSpeed);
   return [
     map.name,
     `${formatBattleTime(setup.timeHours ?? 12)} · ${cloud}% clouds · ${wind} m/s wind`,

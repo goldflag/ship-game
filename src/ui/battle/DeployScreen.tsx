@@ -4,6 +4,7 @@ import { Button, Input, Select, SelectOption } from '../components';
 import { FORMATIONS, type Formation } from '../formationStations';
 import { placeFormation } from '../deploymentGestures';
 import { NationFlag } from './NationFlag';
+import { chartUp, trueBearing } from '../../maps/catalog';
 import { ShipThumbnail } from './ShipCard';
 import { DEPLOYMENT_DRAG, DeploymentChart, selectedUnits, type ChartScope, type ChartSelection } from './DeploymentChart';
 import {
@@ -60,19 +61,20 @@ const UndoIcon = () => (
     <path d="M9 14 4 9l5-5M4 9h9a6 6 0 0 1 0 12h-3" />
   </svg>
 );
-/** Heading dial: the same tick ring as the chart, at rail size. */
-export function HeadingDial({ heading, size = 72 }: { heading: number; size?: number }) {
+/** Heading dial: the same tick ring as the chart, at rail size. The heavy ticks mark true north, east, south and
+ * west, which lie `bearing` degrees counter-clockwise of the chart's own. */
+export function HeadingDial({ heading, bearing = 0, size = 72 }: { heading: number; bearing?: number; size?: number }) {
   const c = size / 2,
     r = c - 9;
   return (
     <svg className="deploy-dial" viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
       <circle cx={c} cy={c} r={r} />
-      {Array.from({ length: 12 }, (_, i) => i * 30).map((angle) => {
+      {Array.from({ length: 12 }, (_, i) => i * 30 - bearing).map((angle, i) => {
         const rad = (angle * Math.PI) / 180,
-          major = angle % 90 === 0;
+          major = i % 3 === 0;
         return (
           <line
-            key={angle}
+            key={i}
             className={major ? 'major' : ''}
             x1={c + Math.sin(rad) * r}
             y1={c - Math.cos(rad) * r}
@@ -88,6 +90,12 @@ export function HeadingDial({ heading, size = 72 }: { heading: number; size?: nu
       <circle className="deploy-dial-center" cx={c} cy={c} r="2" />
     </svg>
   );
+}
+
+/** A chart offset as true kilometres east and south, on a chart whose top bears `bearing`. */
+function trueOffsetKm(x: number, z: number, bearing: number): { east: number; south: number } {
+  const turn = (bearing * Math.PI) / 180;
+  return { east: (x * Math.cos(turn) - z * Math.sin(turn)) / 1000, south: (z * Math.cos(turn) + x * Math.sin(turn)) / 1000 };
 }
 
 /** Place the fleet: group and ship list on the left, the chart beside it. */
@@ -116,7 +124,9 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
     }
   };
   const center = active.length ? unitsCenter(active) : undefined,
-    heading = active[0]?.spawn.heading ?? 0;
+    heading = active[0]?.spawn.heading ?? 0,
+    bearing = deployment.bearing;
+  const offset = center && trueOffsetKm(center.x, center.z, bearing);
   const turn = (angle: number) => {
     if (center)
       change(
@@ -164,7 +174,7 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
       <aside className="deploy-side" aria-label="Deployment">
         <header className="deploy-head">
           <h3>Place the fleet</h3>
-          <span>North up</span>
+          <span>{chartUp(bearing)}</span>
         </header>
         <div className="deploy-scope" role="group" aria-label="Selection scope">
           <div className="battle-segmented">
@@ -206,7 +216,7 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
                   <span>
                     {members.length} {members.length === 1 ? 'ship' : 'ships'}
                   </span>
-                  <em>{formatHeading(members[0].spawn.heading)}</em>
+                  <em>{formatHeading(members[0].spawn.heading, bearing)}</em>
                 </button>
                 <ul>
                   {members.map((unit) => {
@@ -261,7 +271,7 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
             </div>
           )}
           <div className="deploy-heading">
-            <HeadingDial heading={heading} />
+            <HeadingDial heading={heading} bearing={bearing} />
             <div className="rail-field">
               <label htmlFor="deploy-heading">Heading{active.length > 1 ? ' · lead ship' : ''}</label>
               <div className="rail-row">
@@ -271,10 +281,10 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
                   min="0"
                   max="359"
                   step="5"
-                  value={headingDegrees(heading)}
+                  value={Math.round(trueBearing(headingDegrees(heading), bearing)) % 360}
                   disabled={disabled || !active.length}
                   onChange={(event) => {
-                    if (event.target.value !== '') turn((Number(event.target.value) * Math.PI) / 180 - heading);
+                    if (event.target.value !== '') turn(((Number(event.target.value) - bearing) * Math.PI) / 180 - heading);
                   }}
                 />
                 <Button
@@ -321,10 +331,8 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
             {tools}
           </div>
           <p className="deploy-help">
-            {center
-              ? `${active.length} selected · ${(center.x / 1000).toFixed(1)} km E, ${(center.z / 1000).toFixed(1)} km S`
-              : 'Nothing selected'}{' '}
-            · arrows move 500 m, Shift 100 m · <kbd>Q</kbd> <kbd>E</kbd> rotate 15°
+            {offset ? `${active.length} selected · ${offset.east.toFixed(1)} km E, ${offset.south.toFixed(1)} km S` : 'Nothing selected'} ·
+            arrows move 500 m, Shift 100 m · <kbd>Q</kbd> <kbd>E</kbd> rotate 15°
           </p>
         </div>
       </aside>
@@ -349,7 +357,7 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
           {deployment.friendlyMinZ !== undefined && <span className="sector">Friendly sector</span>}
         </div>
         <p className={`deploy-status ${deployment.error ? 'is-error' : ''}`} role="status">
-          {deployment.error || 'Placement clear.'}
+          {deployment.error || (deployment.terrain ? 'Placement clear.' : 'Charting the coast…')}
           <span>
             Scroll to zoom · drag water to pan · click water to deselect · <kbd>Home</kbd> shows everything
           </span>

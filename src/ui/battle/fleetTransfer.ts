@@ -1,9 +1,9 @@
-import { mapIslands } from '../../maps/catalog';
+import { OPEN_SEA } from '../../maps/heightfield';
 import { shipPreset, shipPresets } from '../../ships/presets';
 import { isHistoricalShip, localShip, localShips, resolveShip, shipTitle } from '../../ships/localShips';
 import { fleetBudget } from '../../game/session/battleRules';
 import type { FleetTransfer } from '../pveFleetEditing';
-import { customIslands } from './deploymentModel';
+import { customTerrain } from './deploymentModel';
 import { accessRefusal, openFleet, type FleetRule } from './fleetAccess';
 import type { Team } from '../../game/session/elements';
 import { botSelection, MAX_TEAM_SHIPS, setupSpawns, validateSpawns, type BattleSetup, type BotSelection } from '../../game/session/battleSetup';
@@ -26,7 +26,8 @@ function addCustomBot(setup: BattleSetup, team: Team, selection: BotSelection): 
   if (!setup.spawns) return next;
   const poses = { friendly: [...setup.spawns.friendly], enemy: [...setup.spawns.enemy] };
   const base = setupSpawns({ ...next, spawns: undefined })[team].at(-1)!;
-  const land = mapIslands(setup.mapId ?? 'north-atlantic', setup.spawnDistance, Math.max(next.friendlyBots.length + 1, next.enemies.length));
+  // Before the coast is charted the berth only keeps clear of other ships; the deployment chart judges the land.
+  const land = customTerrain(next) ?? OPEN_SEA;
   for (let i = 0; i < 60; i++) {
     poses[team] = [...setup.spawns[team], { ...base, z: base.z + i * 650 * (team === 'friendly' ? 1 : -1) }];
     try { validateSpawns(poses, next.friendlyBots.length + 1, next.enemies.length, land); break; } catch { /* Try the next open berth. */ }
@@ -72,10 +73,6 @@ export function transferCustomShip(setup: BattleSetup, transfer: FleetTransfer, 
   if (customTeamFull(setup, target)) return { setup, error: `The ${target} team is full (${MAX_TEAM_SHIPS} ships).` };
   return { setup: addCustomBot(removed, target, bot) };
 }
-export const customPlacementError = (setup: BattleSetup): string => {
-  try { validateSpawns(setupSpawns(setup), setup.friendlyBots.length + 1, setup.enemies.length, customIslands(setup)); return ''; }
-  catch (error) { return (error as Error).message; }
-};
 
 const definitions = new Map(Object.keys(shipPresets).map(id => [id, shipPreset(id)]));
 export const duelUnitId = (index: number) => `fleet:${index}`;

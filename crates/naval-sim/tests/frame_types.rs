@@ -388,7 +388,7 @@ fn team_frames_and_debriefs_carry_exactly_the_declared_element_shapes() {
     let d = declarations();
     let catalog = catalog();
     let request: PveRequest = serde_json::from_value(json!({
-        "version": 1, "seed": 17001, "mapId": "pacific-islands", "weather": "clear",
+        "version": 1, "seed": 17001, "mapId": "iron-bottom-sound", "weather": "clear",
         "difficulty": "normal",
         "ships": [{"id": "own", "presetId": "bismarck", "groupId": "g"},
             {"id": "carrier", "presetId": "enterprise-cv6", "groupId": "g"},

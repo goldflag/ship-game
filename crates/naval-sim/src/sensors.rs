@@ -3,7 +3,6 @@
 use crate::{
     aviation::Aviation,
     catalog::Catalog,
-    environment::{Island, TerrainField},
     rules::{TICK_RATE, TeamId},
     vessel::Vessel,
 };
@@ -126,8 +125,7 @@ impl ContactTrack {
 pub struct Knowledge<'a> {
     pub sensors: &'a Sensors,
     pub tick: u64,
-    pub islands: &'a [Island],
-    pub terrain: &'a [TerrainField],
+    pub terrain: &'a crate::terrain::Terrain,
 }
 /// This is authority-only input, not a serialized presentation actor.
 #[derive(Clone, Debug)]
@@ -368,8 +366,7 @@ impl Sensors {
         &mut self,
         tick: u64,
         entities: &[VisualEntity],
-        islands: &[Island],
-        terrain: &[TerrainField],
+        terrain: &crate::terrain::Terrain,
         conditions: VisualConditions,
         rules: &VisualRules,
     ) {
@@ -381,7 +378,7 @@ impl Sensors {
         }
         self.last_tick = Some(tick);
         self.coverage
-            .update(tick, entities, islands, terrain, conditions, rules);
+            .update(tick, entities, terrain, conditions, rules);
         // Bounded spatial candidate search; UI flight/group identities never enter
         // the visual signature. Nearby physical aircraft supply aggregate evidence.
         let mut cells: BTreeMap<(i32, i32), Vec<&VisualEntity>> = BTreeMap::new();
@@ -439,9 +436,8 @@ impl Sensors {
                             if let Some(strength) = observation_strength(
                                 observer, target, formation, tracked, conditions, rules,
                             )
-                            .filter(|_| {
-                                line_visible(observer.eye, target.feature, islands, terrain)
-                            }) {
+                            .filter(|_| terrain.line_visible(observer.eye, target.feature))
+                            {
                                 reports
                                     .entry(target.id.clone())
                                     .or_insert_with(|| ((*target).clone(), vec![]))
@@ -524,7 +520,7 @@ impl Sensors {
                                     .iter()
                                     .find(|entity| entity.id == source.observer_id)
                                     .is_some_and(|observer| {
-                                        line_visible(observer.eye, point, islands, terrain)
+                                        terrain.line_visible(observer.eye, point)
                                     })
                             })
                         })
@@ -623,57 +619,6 @@ pub fn observation_strength(
         return None;
     }
     Some(1.0)
-}
-/// Sample the same baked CPU terrain used by grounding. Island intersection
-/// narrows the samples; aircraft may see over ridges if their actual ray clears.
-pub fn line_visible(
-    from: [f64; 3],
-    to: [f64; 3],
-    islands: &[Island],
-    terrain: &[TerrainField],
-) -> bool {
-    let distance = horizontal(from, to);
-    for island in islands {
-        let rx = island.rx * 1.22;
-        let rz = island.rz * 1.22;
-        let dx = (to[0] - from[0]) / rx;
-        let dz = (to[2] - from[2]) / rz;
-        let ox = (from[0] - island.x) / rx;
-        let oz = (from[2] - island.z) / rz;
-        let a = dx * dx + dz * dz;
-        if a <= f64::EPSILON {
-            continue;
-        }
-        let b = 2.0 * (ox * dx + oz * dz);
-        let c = ox * ox + oz * oz - 1.0;
-        let discriminant = b * b - 4.0 * a * c;
-        if discriminant < 0.0 {
-            continue;
-        }
-        let start = ((-b - discriminant.sqrt()) / (2.0 * a)).max(0.0);
-        let end = ((-b + discriminant.sqrt()) / (2.0 * a)).min(1.0);
-        if start > end {
-            continue;
-        }
-        let Some(field) = terrain
-            .iter()
-            .find(|f| f.seed == island.seed && f.style == island.style)
-        else {
-            return false;
-        };
-        let steps = (((end - start) * distance / 20.0).ceil() as usize).max(1);
-        for step in 0..=steps {
-            let t = start + (end - start) * step as f64 / steps as f64;
-            let x = from[0] + (to[0] - from[0]) * t;
-            let z = from[2] + (to[2] - from[2]) * t;
-            let y = from[1] + (to[1] - from[1]) * t
-                - distance * distance * t * (1.0 - t) / (2.0 * 6_371_000.0);
-            if island.height_at(field, x, z) > y {
-                return false;
-            }
-        }
-    }
-    true
 }
 pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
     let mut entities: Vec<_> = actors

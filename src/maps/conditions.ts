@@ -36,7 +36,9 @@ const blendFog = (from: string, to: string, weight: number) => {
     + ((b >> shift) & 255) * weight).toString(16).padStart(2, '0')).join('');
 };
 
-/** Resolve shared wind/sea conditions alongside visual sky and fog. */
+/** Resolve shared wind/sea conditions alongside visual sky and fog. Map, preset and clock sun azimuths are true
+ * directions in the sky's convention (azimuth 180 − B for a compass bearing B); the result is in the map's chart
+ * frame, turned by its bearing, so the sun stands where it would over the real place. Wind stays in the chart frame. */
 export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map', weather: WeatherId = 'map', conditions: BattleConditions = {}) {
   const time = TIME_OF_DAY_PRESETS.find(preset => preset.id === timeOfDay);
   const forecast = WEATHER_PRESETS.find(preset => preset.id === weather);
@@ -58,6 +60,8 @@ export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map',
     fog.color = sky.elevation < 5 ? blendFog(nightFog, twilightFog, smooth(sky.elevation, -6, 5))
       : blendFog(twilightFog, fog.color, smooth(sky.elevation, 5, 18));
   }
+  // The chart's top bears `map.bearing`: a true direction lies that much further round in the chart frame.
+  sky.azimuth = (((sky.azimuth + map.bearing) % 360) + 360) % 360;
   const daylight = smooth(sky.elevation, -6, 18);
   // Retain enough diffuse fill to read a hull at night; direct light and the
   // sky still supply the much stronger day/night contrast.

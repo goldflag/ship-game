@@ -3,8 +3,11 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { BattleDialog } from './BattleDialog';
 import { ShipCatalogCard, ShipChip } from './ShipCard';
 import { DeployScreen } from './DeployScreen';
-import { customDeployment, type Deployment } from './deploymentModel';
+import { customDeployment, customTerrain, type Deployment } from './deploymentModel';
 import type { BattleSetup } from '../../game/session/battleSetup';
+import { OPEN_SEA } from '../../maps/heightfield';
+import { OCEAN_MAPS, placedMapTerrain, type OceanMapId } from '../../maps/catalog';
+import { installMapTerrain } from '../../maps/testing';
 import { emptyProfile } from '../../progression/rules';
 import type { ProgressStore } from '../../progression/store';
 import { ProgressProvider } from '../useProgress';
@@ -37,12 +40,50 @@ test('every mode renders inside one board with mode tabs, the shared catalog and
   expect(pve).toContain('Loading mission content'); expect(pve).toContain('Mission seed'); expect(pve).toContain('Difficulty'); expect(pve).not.toContain('Enemy team');
 });
 
+test('the waters are the open Atlantic and four battle sites, each tile naming its action and date', () => {
+  const custom = render('custom');
+  for (const name of ['North Atlantic', 'Iron Bottom Sound', 'Vestfjord', 'Sunda Strait', 'Strait of Dover']) expect(custom).toContain(`<span>${name}</span>`);
+  expect(custom).toContain('<small>Atlantic Ocean</small>');
+  expect(custom).toContain('<small>Savo Island, 9 August 1942</small>');
+  expect(custom).toContain('<small>Action off Lofoten, 9 April 1940</small>');
+  expect(custom).toContain('<small>Battle of Sunda Strait, 28 February – 1 March 1942</small>');
+  expect(custom).toContain('<small>Channel Dash, 12 February 1942</small>');
+  // The whole record, every action in these waters, is in the tile's title.
+  expect(custom).toContain('title="Savo Island, 9 August 1942 · Naval Battle of Guadalcanal, 13–15 November 1942. ');
+});
+
+test('Start battle waits while the coast is charted, then opens on a placement clear of it', async () => {
+  const deploy = (mapId: OceanMapId) => renderToStaticMarkup(<BattleDialog initialMode="custom" initialStep="deploy" initialShipId="bismarck" loading={false} onClose={() => {}} setup={{ ...setup, mapId }} onSetupChange={() => {}} onLaunchCustom={() => {}} customError="" onLaunchPve={async () => {}} onOnlineBattle={async () => {}}/>);
+  const start = (html: string) => html.match(/<button[^>]*>Start battle/)![0];
+  // The chart reads what the page has loaded, which one test process shares across files: find waters not yet charted.
+  const uncharted = OCEAN_MAPS.find((map) => map.land.terrain && !placedMapTerrain(map.id, [0, 0]));
+  if (uncharted) {
+    const pending = deploy(uncharted.id);
+    expect(pending).toContain('Charting the coast…');
+    expect(pending).toContain(`${String(uncharted.bearing).padStart(3, '0')}° up`);
+    expect(start(pending)).toContain('disabled=""');
+  }
+  // The deploy screen itself says so for any uncharted placement.
+  const waiting = renderToStaticMarkup(<DeployScreen deployment={customDeployment({ ...setup, mapId: 'strait-of-dover' }, undefined)} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x"/>);
+  expect(waiting).toContain('Charting the coast…');
+  expect(waiting).toContain('045° up');
+  expect(waiting).not.toContain('chart-coast');
+  await installMapTerrain('strait-of-dover');
+  const charted = deploy('strait-of-dover');
+  expect(charted).toContain('Placement clear.');
+  expect(charted).toContain('class="chart-land"');
+  expect(start(charted)).not.toContain('disabled=""');
+  const sound: BattleSetup = { ...setup, mapId: 'strait-of-dover' };
+  expect(customDeployment(sound, customTerrain(sound)).terrain?.offset).toEqual([0, -2500]);
+});
+
 test('the deploy screen lists formations with a scope toggle, heading dial and the chart', () => {
-  const html = renderToStaticMarkup(<DeployScreen deployment={customDeployment(setup)} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x"/>);
+  const html = renderToStaticMarkup(<DeployScreen deployment={customDeployment(setup, OPEN_SEA)} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x"/>);
   expect(html).toContain('Group <kbd>G</kbd>'); expect(html).toContain('Ship <kbd>S</kbd>');
   expect(html).toContain('Friendly formation'); expect(html).toContain('Enemy formation'); expect(html).toContain('Bismarck · You');
   expect(html).toContain('deploy-dial'); expect(html).toContain('chart-frame'); expect(html).toContain('chart-tag'); expect(html).toContain('chart-ring'); expect(html).toContain('chart-handle');
   expect(html).toContain('FRIENDLY FORMATION · 2 SHIPS'); expect(html).toContain('Placement clear.'); expect(html).toContain('Reset positions');
+  expect(html).toContain('North up');
 });
 
 test('the PvE deploy panel offers a cruising formation for the selected group; custom battles keep their spawn presets', () => {
@@ -50,7 +91,7 @@ test('the PvE deploy panel offers a cruising formation for the selected group; c
     units: [{ id: 'bb', presetId: 'bismarck', name: 'Bismarck', side: 'friendly', groupId: 'front', spawn: { x: 0, z: 12000, heading: 0 } },
       { id: 'dd', presetId: 'fletcher', name: 'Fletcher', side: 'friendly', groupId: 'front', spawn: { x: 900, z: 12000, heading: 0 } }],
     groups: [{ id: 'front', name: 'Group 1', side: 'friendly', formation: 'screen' }],
-    islands: [], bounds: { kind: 'circle', radius: 25000 }, friendlyMinZ: 7000, focus: { x: 0, z: 0 }, labels: {}, error: '',
+    terrain: OPEN_SEA, bearing: 0, bounds: { kind: 'circle', radius: 25000 }, friendlyMinZ: 7000, focus: { x: 0, z: 0 }, labels: {}, error: '',
   };
   const pve = renderToStaticMarkup(<DeployScreen deployment={deployment} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x" onFormation={() => {}}/>);
   expect(pve).toContain('Cruising formation');
@@ -59,7 +100,7 @@ test('the PvE deploy panel offers a cruising formation for the selected group; c
   expect(pve).toContain('destroyers on an outer ring'); // The hint follows the group's own choice.
   expect(pve).toContain('GROUP 1 · 2 SHIPS · SCREEN');
   // Custom battles have no task groups, so the panel keeps only the line/column/wedge spawn preset.
-  const custom = renderToStaticMarkup(<DeployScreen deployment={customDeployment(setup)} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x"/>);
+  const custom = renderToStaticMarkup(<DeployScreen deployment={customDeployment(setup, OPEN_SEA)} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x"/>);
   expect(custom).not.toContain('Cruising formation');
   expect(custom).toContain('FRIENDLY FORMATION · 2 SHIPS<');
 });

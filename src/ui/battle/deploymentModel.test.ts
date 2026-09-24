@@ -7,13 +7,16 @@ import {
   arrangeClearFormation,
   arrangeFormation,
   customDeployment,
+  customTerrain,
   fitRadius,
   formatHeading,
   initialPvePlacements,
   pveDeployment,
 } from './deploymentModel';
 import { roleInterval, SCREEN_OUTER_RADIUS_M } from '../formationStations';
-import { moveFormation } from '../pveSetup';
+import { missionTerrain, moveFormation, placementError } from '../pveSetup';
+import { OPEN_SEA, terrainLandWithin } from '../../maps/heightfield';
+import { installMapTerrain } from '../../maps/testing';
 import { MIN_SHIP_SEPARATION_M } from '../../game/session/battleSetup';
 import type { BattleSetup } from '../../game/session/battleSetup';
 
@@ -26,7 +29,7 @@ const setup: BattleSetup = {
 };
 
 test('custom battles put both formations on the chart and round edits back into spawns', () => {
-  const deployment = customDeployment(setup);
+  const deployment = customDeployment(setup, OPEN_SEA);
   expect(deployment.units.map((unit) => unit.id)).toEqual(['friendly:0', 'friendly:1', 'enemy:0', 'enemy:1']);
   expect(deployment.units[0].name).toBe('Bismarck · You');
   expect(deployment.units[2].side).toBe('enemy');
@@ -39,21 +42,42 @@ test('custom battles put both formations on the chart and round edits back into 
   expect(next.spawns!.enemy[0].x % 10).toBe(0);
   expect(next.spawns!.enemy[0].heading).toBeCloseTo(Math.PI * 1.5);
   expect(
-    customDeployment({
-      ...setup,
-      spawns: {
-        friendly: [
-          { x: 0, z: 0, heading: 0 },
-          { x: 100, z: 0, heading: 0 },
-        ],
-        enemy: next.spawns!.enemy,
+    customDeployment(
+      {
+        ...setup,
+        spawns: {
+          friendly: [
+            { x: 0, z: 0, heading: 0 },
+            { x: 100, z: 0, heading: 0 },
+          ],
+          enemy: next.spawns!.enemy,
+        },
       },
-    }).error,
+      OPEN_SEA,
+    ).error,
   ).toContain('350 m');
   expect(fitRadius(deployment)).toBeGreaterThan(6000);
 });
 
-test('PvE deployment mirrors placements and reports sector violations', () => {
+test('custom placement waits for the coast to be charted, then keeps every ship clear of it', async () => {
+  const sound: BattleSetup = { ...setup, mapId: 'iron-bottom-sound' };
+  // Uncharted: nothing is judged against open sea, and the chart says it is still waiting.
+  const pending = customDeployment(sound, undefined);
+  expect(pending.terrain).toBeUndefined();
+  expect(pending.error).toBe('');
+  expect(pending.bearing).toBe(315);
+  const field = await installMapTerrain('iron-bottom-sound');
+  const charted = customDeployment(sound, customTerrain(sound));
+  expect(charted.terrain).toEqual({ field, offset: [0, -3000] });
+  expect(charted.error).toBe('');
+  // Savo Island stands 9.4 km across and 19.2 km up the chart, which this battle lays 3 km north.
+  const beached = applyCustomDeployment(sound, charted.units.map((unit) => (unit.id === 'enemy:0' ? { ...unit, spawn: { ...unit.spawn, x: 9400, z: -22200 } } : unit)));
+  expect(customDeployment(beached, customTerrain(beached)).error).toBe('Move the ship farther from land.');
+  expect(customDeployment(beached, undefined).error).toBe('');
+});
+
+test('PvE deployment mirrors placements and reports sector violations', async () => {
+  await installMapTerrain('iron-bottom-sound');
   const briefing = {
     generationVersion: 1,
     setup: {
@@ -61,7 +85,7 @@ test('PvE deployment mirrors placements and reports sector violations', () => {
         { id: 'dd', presetId: 'fletcher', team: 'a', controller: 'bot', aiLevel: 'normal', spawn: { x: 0, z: 8000, heading: 0 } },
         { id: 'cv', presetId: 'enterprise-cv6', team: 'a', controller: 'bot', aiLevel: 'normal', spawn: { x: 0, z: 16000, heading: 0 } },
       ],
-      mapId: 'pacific-islands',
+      mapId: 'iron-bottom-sound',
       weather: 'clear',
       seed: 1,
       spawnDistance: 16000,
@@ -82,23 +106,38 @@ test('PvE deployment mirrors placements and reports sector violations', () => {
     deploymentMinZ: 7000,
   } as PveBriefing;
   const placements = briefing.setup.ships.map((ship) => ({ id: ship.id, spawn: ship.spawn! }));
-  const deployment = pveDeployment(briefing, placements);
+  const terrain = missionTerrain(briefing);
+  expect(terrain?.offset).toEqual([0, 0]);
+  const deployment = pveDeployment(briefing, placements, terrain);
+  expect(deployment.terrain).toBe(terrain);
+  expect(deployment.bearing).toBe(315);
   expect(deployment.groups.map((group) => group.name)).toEqual(['Screen', 'Carriers']);
   expect(deployment.units.map((unit) => unit.groupId)).toEqual(['front', 'rear']);
   expect(deployment.bounds).toEqual({ kind: 'circle', radius: mission.area.radiusM });
   expect(deployment.friendlyMinZ).toBe(7000);
   expect(deployment.error).toBe('');
-  const outside = pveDeployment(briefing, [{ id: 'dd', spawn: { x: 0, z: 2000, heading: 0 } }, placements[1]]);
+  const outside = pveDeployment(briefing, [{ id: 'dd', spawn: { x: 0, z: 2000, heading: 0 } }, placements[1]], terrain);
   expect(outside.error).toContain('friendly sector');
   expect(applyPveDeployment(deployment.units)).toEqual(placements);
+  // The first land in the friendly sector along the lane's flank: legal until the coast is charted, then refused.
+  let coast: { x: number; z: number } | undefined;
+  for (let x = 0; !coast && x > -20000; x -= 100) if (terrainLandWithin(terrain, x, 12000, 300)) coast = { x, z: 12000 };
+  expect(coast).toBeDefined();
+  const ashore = [{ id: 'dd', spawn: { ...coast!, heading: 0 } }, placements[1]];
+  expect(placementError(briefing, ashore, terrain)).toBe('Fletcher: leave clearance from the coast.');
+  expect(placementError(briefing, ashore, undefined)).toBe('');
+  expect(pveDeployment(briefing, ashore, undefined).terrain).toBeUndefined();
+  // Headings read true: the chart's top bears 315°.
   expect(formatHeading(Math.PI / 2)).toBe('090°');
   expect(formatHeading(-Math.PI / 4)).toBe('315°');
+  expect(formatHeading(Math.PI / 2, 315)).toBe('045°');
+  expect(formatHeading(0, 75)).toBe('075°');
 });
 
 test('a formation preset stations a group around its guide and leaves every other group alone', () => {
   const briefing = {
     generationVersion: 1,
-    setup: { ships: [], mapId: 'pacific-islands', weather: 'clear', seed: 1, spawnDistance: 16000, windSpeed: null, missionRules: mission },
+    setup: { ships: [], mapId: 'iron-bottom-sound', weather: 'clear', seed: 1, spawnDistance: 16000, windSpeed: null, missionRules: mission },
     groups: [{ id: 'front', name: 'Screen', station: 'front' }],
     assignments: [{ id: 'dd', presetId: 'fletcher', groupId: 'front' }],
     totals: { displacementKg: 1, ships: 1, aircraft: 0 },
@@ -153,7 +192,7 @@ test('a formation preset stations a group around its guide and leaves every othe
   expect(arrangeFormation([units[3]], 'rear', 'screen')).toEqual([units[3]]); // A single ship is already in formation.
 
   // The chart reports the chosen formation, and an arrangement that breaks the rules still shows the usual error.
-  expect(pveDeployment(briefing, [{ id: 'dd', spawn: { x: 0, z: 12000, heading: 0 } }], { front: 'screen' }).groups).toEqual([
+  expect(pveDeployment(briefing, [{ id: 'dd', spawn: { x: 0, z: 12000, heading: 0 } }], OPEN_SEA, { front: 'screen' }).groups).toEqual([
     { id: 'front', name: 'Screen', side: 'friendly', formation: 'screen' },
   ]);
 });
@@ -190,7 +229,7 @@ test('choosing a formation slides the group astern rather than stationing it on 
   expect(cleared.find((entry) => entry.id === 'bb')!.spawn.x).toBeCloseTo(0);
 });
 
-test('the first chart puts each group on its formation stations around the centre the worker chose', () => {
+test('the first chart puts each group on its formation stations around the centre the worker chose', async () => {
   // The worker packs a group two abreast whatever formation it will sail; the chart must not show that.
   const ship = (id: string, presetId: string, x: number, z: number) => ({
     id,
@@ -211,7 +250,7 @@ test('the first chart puts each group on its formation stations around the centr
         ship('cl', 'cleveland', 400, 16500),
         ship('lone', 'fletcher', 0, 12000),
       ],
-      mapId: 'pacific-islands',
+      mapId: 'iron-bottom-sound',
       weather: 'clear',
       seed: 1,
       spawnDistance: 16000,
@@ -235,7 +274,10 @@ test('the first chart puts each group on its formation stations around the centr
     eligiblePresets: [],
     deploymentMinZ: 7000,
   } as unknown as PveBriefing;
-  const placements = initialPvePlacements(briefing);
+  // Iron Bottom Sound's real coast stays clear of every station here.
+  await installMapTerrain('iron-bottom-sound');
+  const terrain = missionTerrain(briefing);
+  const placements = initialPvePlacements(briefing, terrain);
   const at = (id: string) => placements.find((p) => p.id === id)!.spawn;
   // Column: one file astern of the guide, heavies first, at the guide's interval, centred where the pair block was.
   const d = roleInterval('battleship');
@@ -250,10 +292,11 @@ test('the first chart puts each group on its formation stations around the centr
   expect(at('cl').z).toBeCloseTo(at('cv').z);
   expect(Math.abs(at('cl').x - at('cv').x)).toBeCloseTo(roleInterval('carrier'));
   expect(at('lone')).toEqual({ x: 0, z: 12000, heading: 0 });
-  expect(pveDeployment(briefing, placements).error).toBe('');
+  expect(pveDeployment(briefing, placements, terrain).error).toBe('');
   // The player's later pick wins over the briefing, and a group whose stations would leave the
-  // battle area keeps the worker's layout instead of starting with a placement error.
-  const rearColumn = initialPvePlacements(briefing, { rear: 'column' });
+  // battle area keeps the worker's layout instead of starting with a placement error. The rim
+  // cases are sailed on open water: Guadalcanal reaches this mission's southern boundary.
+  const rearColumn = initialPvePlacements(briefing, terrain, { rear: 'column' });
   expect(rearColumn.find((p) => p.id === 'cl')!.spawn.x).toBeCloseTo(0);
   expect(rearColumn.find((p) => p.id === 'cl')!.spawn.z - rearColumn.find((p) => p.id === 'cv')!.spawn.z).toBeCloseTo(
     roleInterval('carrier'),
@@ -268,9 +311,10 @@ test('the first chart puts each group on its formation stations around the centr
     pveDeployment(
       edge,
       edge.setup.ships.map((s) => ({ id: s.id, spawn: s.spawn! })),
+      OPEN_SEA,
     ).error,
   ).toBe('');
-  expect(initialPvePlacements(edge).map((p) => p.spawn)).toEqual([
+  expect(initialPvePlacements(edge, OPEN_SEA).map((p) => p.spawn)).toEqual([
     { x: -400, z: edgeZ, heading: 0 },
     { x: 400, z: edgeZ, heading: 0 },
   ]);
@@ -298,10 +342,11 @@ test('the first chart puts each group on its formation stations around the centr
     pveDeployment(
       coast,
       coast.setup.ships.map((s) => ({ id: s.id, spawn: s.spawn! })),
+      terrain,
     ).error,
   ).toBe('');
-  const slid = initialPvePlacements(coast);
-  expect(pveDeployment(coast, slid).error).toBe('');
+  const slid = initialPvePlacements(coast, terrain);
+  expect(pveDeployment(coast, slid, terrain).error).toBe('');
   expect(new Set(slid.map((p) => Math.round(p.spawn.x))).size).toBe(1); // One file.
   expect(Math.min(...slid.map((p) => p.spawn.z))).toBeGreaterThanOrEqual(south); // Slid astern until the head is back in the sector.
   expect(Math.min(...slid.map((p) => p.spawn.z))).toBeLessThan(south + 1000);

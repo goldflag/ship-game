@@ -9,7 +9,7 @@ test('PvE loading uses only its friendly briefing and never displays the previou
     generationVersion: 1,
     setup: {
       ships: [{ id: 'dd', presetId: 'fletcher', team: 'a', controller: 'bot', aiLevel: 'normal', spawn: { x: 0, z: 8000, heading: 0 } }],
-      mapId: 'pacific-islands',
+      mapId: 'iron-bottom-sound',
       weather: 'clear',
       seed: 1,
       spawnDistance: 16000,
@@ -38,4 +38,17 @@ test('PvE loading uses only its friendly briefing and never displays the previou
   expect(html).not.toContain('Custom battle');
   expect(html).not.toContain('>You<');
   expect(html).toContain('25 km radius');
+  expect(html).toContain('IRON BOTTOM SOUND');
+  expect(html).toContain('<p class="battle-loading-battle">Savo Island, 9 August 1942 · Naval Battle of Guadalcanal, 13–15 November 1942</p>');
+});
+
+test('open water names its ocean where a battle site names its actions', () => {
+  const html = renderToStaticMarkup(
+    <BattleLoadingScreen
+      setup={{ playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'], mapId: 'north-atlantic', spawnDistance: 5000 }}
+      state={{ label: 'Charting North Atlantic', progress: 0.04, leaving: false }}
+      onLeft={() => {}}
+    />,
+  );
+  expect(html).toContain('<p class="battle-loading-battle">Atlantic Ocean</p>');
 });

@@ -2,12 +2,12 @@
 //! Combat is omitted here so navigation failures cannot be masked by a sunk ship.
 use naval_sim::{
     definition::ShipDefinition,
-    environment::Island,
     formations::{StationClass, formation_stations},
     geometry::wrap_angle,
     motion::step_ship,
     navigation::{self, Formation, Movement, NavigationState, NavigationStatus, Trails},
     rules::{DT, TeamId},
+    terrain::{Heightfield, Terrain},
     vessel::{CompiledShip, Vessel},
 };
 use std::{
@@ -46,24 +46,24 @@ fn record(ships: &[Vessel], trails: &mut Trails) {
         trail.steady_axis(a.motion.heading, DT);
     }
 }
-fn step(ships: &mut Vec<Vessel>, orders: &[Movement], islands: &[Island], tick: u64) {
-    step_tracked(ships, orders, islands, tick, &mut Trails::new());
+fn step(ships: &mut Vec<Vessel>, orders: &[Movement], terrain: &Terrain, tick: u64) {
+    step_tracked(ships, orders, terrain, tick, &mut Trails::new());
 }
 fn step_tracked(
     ships: &mut Vec<Vessel>,
     orders: &[Movement],
-    islands: &[Island],
+    terrain: &Terrain,
     tick: u64,
     trails: &mut Trails,
 ) {
-    step_fleet(ships, orders, islands, tick, trails, false)
+    step_fleet(ships, orders, terrain, tick, trails, false)
 }
 /// `reserve` reproduces what Battle does for a fleet: the guide's speed comes
 /// from the damage-aware formation report rather than a fixed ceiling.
 fn step_fleet(
     ships: &mut Vec<Vessel>,
     orders: &[Movement],
-    islands: &[Island],
+    terrain: &Terrain,
     tick: u64,
     trails: &mut Trails,
     reserve: bool,
@@ -95,7 +95,7 @@ fn step_fleet(
             .navigation
             .take()
             .unwrap_or_else(|| NavigationState::new(order.clone()));
-        let c = navigation::command(&a, ships, islands, order, &mut state, tick, limit, trails);
+        let c = navigation::command(&a, ships, terrain, order, &mut state, tick, limit, trails);
         a.navigation = Some(state);
         commands.push(c);
         ships.insert(i, a);
@@ -120,7 +120,7 @@ fn completes_a_route_with_a_turn_and_stops_at_the_last_waypoint() {
     let mut ships = vec![ship("dd", "fletcher", 0.0, 0.0)];
     let orders = vec![route(vec![[0.0, -1800.0], [1800.0, -1800.0]])];
     for tick in 0..60 * 600 {
-        step(&mut ships, &orders, &[], tick);
+        step(&mut ships, &orders, &Terrain::open_sea(), tick);
     }
     let a = &ships[0];
     assert!(
@@ -158,7 +158,7 @@ fn escort_catches_a_moving_leader_and_holds_locally_after_its_loss() {
     let mut trails = Trails::new();
     let mut overtook_leader_speed = false;
     for tick in 0..60 * 600 {
-        step_tracked(&mut ships, &orders, &[], tick, &mut trails);
+        step_tracked(&mut ships, &orders, &Terrain::open_sea(), tick, &mut trails);
         overtook_leader_speed |= ships[1].motion.speed > ships[0].motion.speed + 1.0;
     }
     assert!(overtook_leader_speed, "escort needs catch-up speed");
@@ -176,7 +176,13 @@ fn escort_catches_a_moving_leader_and_holds_locally_after_its_loss() {
         ships[0].motion_mass.mass,
     );
     for tick in 60 * 600..60 * 900 {
-        step_tracked(&mut ships, &orders[1..], &[], tick, &mut trails);
+        step_tracked(
+            &mut ships,
+            &orders[1..],
+            &Terrain::open_sea(),
+            tick,
+            &mut trails,
+        );
     }
     assert_eq!(
         ships[0].navigation.as_ref().unwrap().status,
@@ -189,28 +195,39 @@ fn escort_catches_a_moving_leader_and_holds_locally_after_its_loss() {
     );
 }
 
-fn island(id: &str, x: f64, z: f64) -> Island {
-    Island {
-        id: id.into(),
-        x,
-        z,
-        rx: 650.0,
-        rz: 1000.0,
-        height: 100.0,
-        seed: 1.0,
-        style: "tropical".into(),
-    }
+/// Elliptical islands, centre and radii, baked into one 20 m chart over the
+/// test area: 100 m high inside the rim, on a sea floor that shoals toward each
+/// coast as the real charts do.
+fn islands(list: &[([f64; 2], [f64; 2])]) -> Terrain {
+    let list = list.to_vec();
+    let field = Heightfield::from_fn(401, 401, 20.0, [-4000.0, -4000.0], 0.25, move |x, z| {
+        list.iter()
+            .map(|&([cx, cz], [rx, rz])| {
+                let r = ((x - cx) / rx).hypot((z - cz) / rz);
+                if r < 1.0 {
+                    1.0 + 99.0 * (1.0 - r * r)
+                } else {
+                    -(2.5 + 0.12 * (r - 1.0) * rx.min(rz)).min(160.0)
+                }
+            })
+            .fold(f64::NEG_INFINITY, f64::max)
+    });
+    Terrain::placed(Arc::new(field), [0.0, 0.0])
+}
+/// The 650 by 1000 m island these checks steer around, at (x, z).
+fn island(x: f64, z: f64) -> ([f64; 2], [f64; 2]) {
+    ([x, z], [650.0, 1000.0])
 }
 
 #[test]
 fn routes_around_an_island_and_reports_an_unreachable_destination() {
     let mut ships = vec![ship("dd", "fletcher", 0.0, 2200.0)];
-    let islands = vec![island("island", 0.0, 0.0)];
+    let terrain = islands(&[island(0.0, 0.0)]);
     let orders = vec![route(vec![[0.0, -2400.0]])];
     for tick in 0..60 * 900 {
-        step(&mut ships, &orders, &islands, tick);
+        step(&mut ships, &orders, &terrain, tick);
         assert!(
-            islands[0].radius(ships[0].motion.x, ships[0].motion.z) > 1.1,
+            !terrain.land_within(ships[0].motion.x, ships[0].motion.z, 100.0),
             "grounding at tick {tick}"
         );
     }
@@ -221,7 +238,7 @@ fn routes_around_an_island_and_reports_an_unreachable_destination() {
         ships[0].motion.z
     );
     let bad = vec![route(vec![[0.0, 0.0]])];
-    step(&mut ships, &bad, &islands, 60 * 900);
+    step(&mut ships, &bad, &terrain, 60 * 900);
     assert_eq!(
         ships[0].navigation.as_ref().unwrap().status,
         NavigationStatus::Blocked
@@ -248,19 +265,17 @@ fn carrier_screen_traverses_a_passage_and_reforms_after_a_turn() {
             slot: 0,
         });
     }
-    let islands = vec![island("west", -1800.0, 0.0), island("east", 1800.0, 0.0)];
+    let terrain = islands(&[island(-1800.0, 0.0), island(1800.0, 0.0)]);
     let mut minimum_gap = f64::INFINITY;
     let mut trails = Trails::new();
     for tick in 0..60 * 1100 {
-        step_tracked(&mut ships, &orders, &islands, tick, &mut trails);
+        step_tracked(&mut ships, &orders, &terrain, tick, &mut trails);
         for (i, a) in ships.iter().enumerate() {
-            for island in &islands {
-                assert!(
-                    island.radius(a.motion.x, a.motion.z) > 1.05,
-                    "{} grounded at tick {tick}",
-                    a.motion.id
-                );
-            }
+            assert!(
+                !terrain.land_within(a.motion.x, a.motion.z, 60.0),
+                "{} grounded at tick {tick}",
+                a.motion.id
+            );
             for b in ships.iter().skip(i + 1) {
                 minimum_gap = minimum_gap.min(gap(a, [b.motion.x, b.motion.z]));
             }
@@ -372,7 +387,7 @@ fn damaged_straggler_requires_an_explicit_decision_and_slowing_restores_formatio
                 commands.push(navigation::command(
                     &a,
                     &ships,
-                    &[],
+                    &Terrain::open_sea(),
                     &order.movement,
                     &mut state,
                     tick,
@@ -424,7 +439,7 @@ fn unobserved_nearby_enemy_motion_cannot_change_route_avoidance() {
     let before = navigation::command_observed(
         &a,
         &[hidden],
-        &[],
+        &Terrain::open_sea(),
         &order,
         &mut state,
         0,
@@ -436,7 +451,7 @@ fn unobserved_nearby_enemy_motion_cannot_change_route_avoidance() {
     let after = navigation::command_observed(
         &a,
         &[],
-        &[],
+        &Terrain::open_sea(),
         &order,
         &mut state,
         0,
@@ -506,17 +521,26 @@ fn torpedo_wake_acquisition_requires_local_weather_range_and_clear_terrain() {
         weapon: Default::default(),
     };
     assert_eq!(
-        fleet_evasion::visible_wakes(&a, std::slice::from_ref(&torpedo), &[], &[], 10000.0).len(),
+        fleet_evasion::visible_wakes(
+            &a,
+            std::slice::from_ref(&torpedo),
+            &Terrain::open_sea(),
+            10000.0
+        )
+        .len(),
         1
     );
     assert!(
-        fleet_evasion::visible_wakes(&a, std::slice::from_ref(&torpedo), &[], &[], 500.0)
-            .is_empty()
+        fleet_evasion::visible_wakes(
+            &a,
+            std::slice::from_ref(&torpedo),
+            &Terrain::open_sea(),
+            500.0
+        )
+        .is_empty()
     );
-    let mut obstruction = island("screen", 0.0, -500.0);
-    obstruction.rx = 100.0;
-    obstruction.rz = 100.0;
-    assert!(fleet_evasion::visible_wakes(&a, &[torpedo], &[obstruction], &[], 10000.0).is_empty());
+    let obstruction = islands(&[([0.0, -500.0], [100.0, 100.0])]);
+    assert!(fleet_evasion::visible_wakes(&a, &[torpedo], &obstruction, 10000.0).is_empty());
 }
 
 #[test]
@@ -585,8 +609,16 @@ fn a_visible_torpedo_dodge_opens_real_clearance_then_resumes_the_order() {
         let mut minimum = f64::INFINITY;
         for tick in 0..60 * 45 {
             let position = [0.0, -2.0, -800.0 + 25.0 * tick as f64 * DT];
-            let normal =
-                navigation::command(&a, &[], &[], &order, &mut state, tick, 12.0, &Trails::new());
+            let normal = navigation::command(
+                &a,
+                &[],
+                &Terrain::open_sea(),
+                &order,
+                &mut state,
+                tick,
+                12.0,
+                &Trails::new(),
+            );
             let command = if evade {
                 fleet_evasion::command(
                     &a,
@@ -618,15 +650,27 @@ fn a_visible_torpedo_dodge_opens_real_clearance_then_resumes_the_order() {
     );
 }
 
+/// The planning margin navigation keeps from land for a hull, and the physical
+/// clearance inside it that no leg may give up.
+fn margins(a: &Vessel) -> (f64, f64) {
+    let half = a.definition().hull.length * 0.5;
+    (half + navigation::SHORE_BUFFER_M, half)
+}
+
 #[test]
 fn ship_in_shore_safety_margin_can_sail_out_to_open_water() {
-    let mut ships = vec![ship("dd", "fletcher", 950.0, 0.0)];
+    let mut ships = vec![ship("dd", "fletcher", 800.0, 0.0)];
     ships[0].motion.heading = std::f64::consts::FRAC_PI_2;
-    let islands = vec![island("island", 0.0, 0.0)];
+    let terrain = islands(&[island(0.0, 0.0)]);
     let orders = vec![route(vec![[3000.0, 0.0]])];
-    assert!(islands[0].radius(950.0, 0.0) > 1.2, "ship starts in water");
+    let (margin, hull) = margins(&ships[0]);
+    let start = terrain.clearance(800.0, 0.0);
+    assert!(
+        start > hull && start < margin,
+        "ship starts inside the planning buffer: {start}"
+    );
     for tick in 0..60 * 600 {
-        step(&mut ships, &orders, &islands, tick);
+        step(&mut ships, &orders, &terrain, tick);
     }
     assert!(
         gap(&ships[0], [3000.0, 0.0]) < 150.0,
@@ -639,18 +683,16 @@ fn ship_in_shore_safety_margin_can_sail_out_to_open_water() {
 
 #[test]
 fn shore_margin_recovery_takes_a_detour_instead_of_crossing_land() {
-    let mut ships = vec![ship("dd", "fletcher", 950.0, 0.0)];
+    let mut ships = vec![ship("dd", "fletcher", 800.0, 0.0)];
     ships[0].motion.heading = std::f64::consts::FRAC_PI_2;
-    let islands = vec![island("island", 0.0, 0.0)];
+    let terrain = islands(&[island(0.0, 0.0)]);
     let orders = vec![route(vec![[-3000.0, 0.0]])];
-    let half_length = ships[0].definition().hull.length * 0.5;
+    let (_, hull) = margins(&ships[0]);
     for tick in 0..60 * 1200 {
-        step(&mut ships, &orders, &islands, tick);
+        step(&mut ships, &orders, &terrain, tick);
         let a = &ships[0];
         assert!(
-            (a.motion.x / (650.0 * 1.22 + half_length))
-                .hypot(a.motion.z / (1000.0 * 1.22 + half_length))
-                > 1.0,
+            !terrain.land_within(a.motion.x, a.motion.z, hull),
             "recovery must preserve hull clearance at tick {tick}"
         );
     }
@@ -662,15 +704,18 @@ fn shore_margin_recovery_takes_a_detour_instead_of_crossing_land() {
 
 #[test]
 fn shore_margin_recovery_never_relaxes_the_hull_or_destination_clearance() {
-    let islands = vec![island("island", 0.0, 0.0)];
-    for (from, to) in [(820.0, [3000.0, 0.0]), (950.0, [970.0, 300.0])] {
+    let terrain = islands(&[island(0.0, 0.0)]);
+    // Already inside the physical clearance; then a destination inside the margin.
+    for (from, to) in [(690.0, [3000.0, 0.0]), (800.0, [760.0, 200.0])] {
         let a = ship("dd", "fletcher", from, 0.0);
+        let (margin, hull) = margins(&a);
+        assert!(terrain.clearance(from, 0.0) < hull || terrain.clearance(to[0], to[1]) < margin);
         let order = route(vec![to]);
         let mut state = NavigationState::new(order.clone());
         let command = navigation::command(
             &a,
             &[],
-            &islands,
+            &terrain,
             &order,
             &mut state,
             0,
@@ -725,7 +770,7 @@ fn a_column_turns_in_succession_and_keeps_its_line_and_intervals() {
     let mut trails = Trails::new();
     let mut track = vec![];
     for tick in 0..60 * 1200 {
-        step_tracked(&mut ships, &orders, &[], tick, &mut trails);
+        step_tracked(&mut ships, &orders, &Terrain::open_sea(), tick, &mut trails);
         let head = [ships[0].motion.x, ships[0].motion.z];
         if track.last().is_none_or(|p| gap(&ships[0], *p) > 10.0) {
             track.push(head);
@@ -799,7 +844,7 @@ fn a_double_column_rides_the_guides_wake_in_both_columns() {
     let mut track = vec![];
     let mut minimum_gap = f64::INFINITY;
     for tick in 0..60 * 1500 {
-        step_tracked(&mut ships, &orders, &[], tick, &mut trails);
+        step_tracked(&mut ships, &orders, &Terrain::open_sea(), tick, &mut trails);
         if track.last().is_none_or(|p| gap(&ships[0], *p) > 10.0) {
             track.push([ships[0].motion.x, ships[0].motion.z]);
         }
@@ -902,7 +947,14 @@ fn a_screen_turns_together_on_its_axis_and_reforms_without_impossible_speed() {
     let settle = 60 * 300;
     let run = 60 * 1500;
     for tick in 0..run {
-        step_fleet(&mut ships, &orders, &[], tick, &mut trails, true);
+        step_fleet(
+            &mut ships,
+            &orders,
+            &Terrain::open_sea(),
+            tick,
+            &mut trails,
+            true,
+        );
         if steadied == 0
             && wrap_angle(ships[0].motion.heading - std::f64::consts::FRAC_PI_2).abs() < 0.02
         {

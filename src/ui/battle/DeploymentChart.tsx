@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type DragEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
-import { coastOutline } from '../../maps/catalog';
+import { northFromUp } from '../../maps/catalog';
+import { ChartLand } from '../ChartLand';
 import { resolveShip } from '../../ships/localShips';
 import { MIN_SHIP_SEPARATION_M } from '../../game/session/battleSetup';
 import { dragFormation, placeFormation, rotateFormation, zoomDeployment, type DeploymentPoint } from '../deploymentGestures';
@@ -45,7 +46,8 @@ export function selectedUnits(deployment: Deployment, selection: ChartSelection)
   return deployment.units.filter((unit) => (selection.kind === 'ship' ? unit.id === selection.id : unit.groupId === selection.id));
 }
 
-/** North-up chart. Frames and tags move a group, ship markers move one ship, the compass ring turns the selection. */
+/** The battle's chart in its own frame, up being the map's bearing: the rose and the compass ring point to true
+ * north and headings read true. Frames and tags move a group, ship markers move one ship, the compass ring turns the selection. */
 export function DeploymentChart({
   deployment,
   fit,
@@ -252,7 +254,13 @@ export function DeploymentChart({
   };
 
   const bounds = deployment.bounds,
-    radius = bounds.kind === 'circle' ? bounds.radius : bounds.half;
+    radius = bounds.kind === 'circle' ? bounds.radius : bounds.half,
+    bearing = deployment.bearing;
+  /** A point `distance` from the origin toward true bearing `angle` (degrees), in the chart's frame. */
+  const toward = (angle: number, distance: number) => {
+    const turn = ((angle - bearing) * Math.PI) / 180;
+    return { x: Math.sin(turn) * distance, z: -Math.cos(turn) * distance };
+  };
   const gridStep = fit > 12000 ? 5000 : 1000;
   const gridLines: number[] = [];
   for (let n = Math.floor(Math.max(view.x, -radius) / gridStep) * gridStep; n <= Math.min(view.x + view.w, radius); n += gridStep)
@@ -282,7 +290,7 @@ export function DeploymentChart({
       viewBox={`${view.x} ${view.z} ${view.w} ${view.h}`}
       tabIndex={0}
       role="application"
-      aria-label="Deployment chart. Drag a frame or its tag to move a group; drag a ship to move that ship. Drag the ring, the heading knob or the heading readout to rotate. Arrows move 500 metres, Shift 100 metres. Q and E rotate 15 degrees. G and S change the selection scope. Scroll to zoom, drag water to pan, click open water to deselect, Home shows the full chart, Escape cancels a drag or clears the selection."
+      aria-label={`Deployment chart, ${northFromUp(bearing)}. Drag a frame or its tag to move a group; drag a ship to move that ship. Drag the ring, the heading knob or the heading readout to rotate. Arrows move 500 metres, Shift 100 metres. Q and E rotate 15 degrees. G and S change the selection scope. Scroll to zoom, drag water to pan, click open water to deselect, Home shows the full chart, Escape cancels a drag or clears the selection.`}
       onPointerDown={(event) => startGesture(event, 'pan')}
       onPointerMove={(event) => {
         const current = gesture.current;
@@ -350,15 +358,7 @@ export function DeploymentChart({
           className="chart-grid"
           d={[...gridLines.map((n) => `M ${n} ${-radius} V ${radius}`), ...gridRows.map((n) => `M ${-radius} ${n} H ${radius}`)].join(' ')}
         />
-        {deployment.islands.map((island) => (
-          <polygon
-            key={island.id}
-            className="chart-land"
-            points={coastOutline(island, 64)
-              .map((p) => p.join(','))
-              .join(' ')}
-          />
-        ))}
+        <ChartLand terrain={deployment.terrain} />
         {deployment.friendlyMinZ !== undefined && <path className="chart-edge" d={`M ${-radius} ${deployment.friendlyMinZ} H ${radius}`} />}
         {deployment.labels.north && (
           <text x="0" y={-radius * 0.56} className="chart-label" fontSize={px(11)}>
@@ -374,15 +374,23 @@ export function DeploymentChart({
       {bounds.kind === 'circle' && (
         <>
           <circle r={bounds.radius} className="chart-boundary" />
-          <text x="0" y={-bounds.radius - px(12)} className="chart-rose" fontSize={px(13)}>
+          <text
+            x={toward(0, bounds.radius + px(14)).x}
+            y={toward(0, bounds.radius + px(14)).z + px(4.5)}
+            className="chart-rose"
+            fontSize={px(13)}
+          >
             N
           </text>
         </>
       )}
       {bounds.kind === 'square' && (
-        <text x={view.x + px(14)} y={view.z + px(20)} className="chart-rose" fontSize={px(13)} textAnchor="start">
-          N ↑
-        </text>
+        <g className="chart-north" transform={`translate(${view.x + px(34)} ${view.z + px(38)})`}>
+          <path d="M0 -10 4 3 0 0 -4 3Z" transform={`rotate(${-bearing}) scale(${px(1)})`} />
+          <text x={toward(0, px(19)).x} y={toward(0, px(19)).z + px(4.5)} className="chart-rose" fontSize={px(13)}>
+            N
+          </text>
+        </g>
       )}
       {/* A moving ship stops at the rim of a standing ship's berth, so the rims are what the
           player is aiming between while a drag is live. */}
@@ -411,7 +419,7 @@ export function DeploymentChart({
           {Array.from({ length: 24 }, (_, i) => i * 15).map((angle) => {
             const major = angle % 90 === 0,
               length = px(major ? 9 : angle % 45 === 0 ? 7 : 4),
-              rad = (angle * Math.PI) / 180;
+              rad = ((angle - bearing) * Math.PI) / 180;
             return (
               <line
                 key={angle}
@@ -431,7 +439,7 @@ export function DeploymentChart({
               ['W', 270],
             ] as const
           ).map(([letter, angle]) => {
-            const rad = (angle * Math.PI) / 180,
+            const rad = ((angle - bearing) * Math.PI) / 180,
               d = ring.r + px(19);
             return (
               <text key={letter} className="chart-rose" x={Math.sin(rad) * d} y={-Math.cos(rad) * d + px(4)} fontSize={px(9)} opacity=".7">
@@ -461,14 +469,14 @@ export function DeploymentChart({
             role="button"
             tabIndex={disabled ? -1 : 0}
             aria-disabled={disabled}
-            aria-label={`Heading ${formatHeading(ring.heading)}. Drag to rotate the selection.`}
+            aria-label={`Heading ${formatHeading(ring.heading, bearing)}. Drag to rotate the selection.`}
             onPointerDown={pressRotate}
             onClick={(event) => event.stopPropagation()}
           >
             <rect className="chart-readout-hit" x={-px(26)} y={-px(13)} width={px(52)} height={px(26)} />
             <rect x={-px(19)} y={-px(9)} width={px(38)} height={px(18)} rx={px(2)} />
             <text y={px(4.5)} fontSize={px(11)}>
-              {formatHeading(ring.heading)}
+              {formatHeading(ring.heading, bearing)}
             </text>
           </g>
         </g>
@@ -552,7 +560,7 @@ export function DeploymentChart({
               }
             }}
           >
-            <title>{`${unit.name} · ${shipClass} · ${resolveShip(unit.presetId).hull.length.toFixed(0)} m · ${formatHeading(unit.spawn.heading)}`}</title>
+            <title>{`${unit.name} · ${shipClass} · ${resolveShip(unit.presetId).hull.length.toFixed(0)} m · ${formatHeading(unit.spawn.heading, bearing)}`}</title>
             <circle r={px(13)} className="chart-ship-hit" />
             <g transform={`rotate(${headingDegrees(unit.spawn.heading)}) scale(${px(0.95)})`}>
               <path className="chart-hull" d={glyph.hull} />

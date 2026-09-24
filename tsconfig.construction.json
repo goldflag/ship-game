@@ -8,6 +8,7 @@
     "scripts/ships/overlay.ts",
     "scripts/browser",
     "scripts/diagnostics/app.tsx",
+    "scripts/diagnostics/terrain-review.ts",
     "vite.config.ts"
   ]
 }

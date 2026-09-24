@@ -15,7 +15,8 @@ import type { FleetNotice } from '../../multiplayer/generated/FleetNotice';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../../ships/blueprint';
 import { shipPreset, shipPresets } from '../../ships/presets';
-import { mapIslands, type OceanMapId } from '../../maps/catalog';
+import { battleTerrainOffset, placedMapTerrain, type OceanMapId } from '../../maps/catalog';
+import type { PlacedTerrain } from '../../maps/heightfield';
 import type { WeatherId } from '../../maps/conditions';
 import { physicalLoss, type BattleOutcome } from './battleRules';
 import { presentationAim, presentationTelemetry } from './telemetry';
@@ -61,7 +62,17 @@ export abstract class SnapshotSession implements BattleSession {
   aircraftLosses = { own: 0, enemy: 0 };
   private lastLossSequence = -1; private lastFrameTick = -1;
   ammunitionSelection: Record<string, Ammunition> = {};
-  readonly mapId: OceanMapId; readonly islands; readonly seed; readonly spawnDistance;
+  readonly mapId: OceanMapId; readonly seed; readonly spawnDistance;
+  /** Where this battle lays the map's chart: between the default spawn lines, or on the mission area. */
+  readonly terrainOffset: readonly [number, number];
+  private placedTerrain?: PlacedTerrain; private pendingTerrain?: PlacedTerrain;
+  /** The map's land in this battle's world. Until the heightfield has loaded (`Game` charts the map before a
+   * battle) it reads open sea; the loaded chart takes its place on the next read. */
+  get terrain(): PlacedTerrain {
+    if (this.placedTerrain) return this.placedTerrain;
+    const placed = placedMapTerrain(this.mapId, this.terrainOffset);
+    return placed ? this.placedTerrain = placed : this.pendingTerrain ??= { offset: this.terrainOffset };
+  }
   /** The sea the authority rides. A local developer wind change replaces it mid-battle. */
   sea: SeaState;
   /** The sea resolved at launch, which a restart returns to. */
@@ -98,8 +109,7 @@ export abstract class SnapshotSession implements BattleSession {
     private readonly localDefinitions: ReadonlyMap<string, ShipDefinition> = new Map(), port = false) {
     this.isBattle = !port;
     this.mapId = setup.mapId as OceanMapId; this.seed = setup.seed; this.spawnDistance = setup.spawnDistance;
-    this.islands = setup.missionRules ? mapIslands(this.mapId, 16000, setup.missionRules.budget.maxShips).map(island => ({ ...island, z: island.z + 8000 }))
-      : mapIslands(this.mapId, setup.spawnDistance, Math.max(...(['a', 'b'] as const).map(t => setup.ships.filter(s => s.team === t).length)));
+    this.terrainOffset = battleTerrainOffset(setup);
     this.sea = this.launchSea = createSeaState(this.mapId, setup.weather as WeatherId, setup.seed, setup.windSpeed ?? undefined);
   }
   get definition() { return this.player.definition; }

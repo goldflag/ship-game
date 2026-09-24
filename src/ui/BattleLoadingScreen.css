@@ -6,6 +6,8 @@
 .battle-loading-content { width: min(720px, 100%); margin: auto; text-align: center; }
 .battle-loading-kicker { margin: 0 0 14px; font-size: 11px; letter-spacing: .2em; color: var(--accent); text-transform: uppercase; }
 .battle-loading-content > h1 { font: 500 clamp(56px, 8vw, 96px)/1 'Barlow Condensed', sans-serif; letter-spacing: .065em; margin: 0; }
+/* The action fought in these waters, with its dates; open sea names its region. */
+.battle-loading-battle { margin: 12px auto 0; max-width: 640px; font: 500 15px/1.35 'Barlow Condensed', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-wrap: balance; }
 .battle-loading-content .loading-subtitle { font-size: 15px; line-height: 1.55; margin: 16px auto 34px; max-width: 520px; }
 .battle-loading-fleets { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: start; text-align: left; margin-bottom: 36px; }
 .battle-loading-fleets h2 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font: 500 17px/1.2 'Barlow Condensed', sans-serif; letter-spacing: .08em; text-transform: uppercase; }

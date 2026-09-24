@@ -77,3 +77,14 @@ test('the wheel renders the fleet with hull, speed and range, highlights the pic
   expect(following).toContain('Following · captain in command');
   expect(render(telemetry({ helmWheel: undefined }))).toBe('');
 });
+
+test('on a turned chart the wheel keeps the chart\'s layout while its rose and bearings read true', () => {
+  // Vestfjord's chart is up 075°: the destroyer dead ahead on the chart bears a true 075°.
+  const html = renderToStaticMarkup(<HelmWheel data={telemetry({ mapId: 'vestfjord' })} desk={{} as never} bindings={defaultKeybindings()}/>);
+  expect(html).toContain('Take the helm of Fletcher · 100 percent hull · 2.0 km bearing 075 · key 1');
+  expect(html).toContain('1.6 km bearing 165');
+  const n = html.match(/<text class="helm-wheel-cardinal" x="([-\d.e]+)" y="([-\d.e]+)" text-anchor="middle">N<\/text>/)!.slice(1).map(Number);
+  const turn = (-90 - 75) * Math.PI / 180, r = 282 + 18 + 12;
+  expect(n[0]).toBeCloseTo(WHEEL_SIZE / 2 + Math.cos(turn) * r, 6);
+  expect(n[1]).toBeCloseTo(WHEEL_SIZE / 2 + Math.sin(turn) * r + 4, 6);
+});

@@ -15,11 +15,20 @@ import { availableShipIds, isHistoricalShip, localShips, resolveShip, shipTitle,
 import { useSyncExternalStore } from 'react';
 import { Button } from '../components';
 import { Icon } from '../Icons';
-import { aircraftCount, unitName } from '../pveSetup';
+import { aircraftCount, missionTerrain, unitName } from '../pveSetup';
 import { BATTLE_MODES, carryToCustom, carryToDuel, carryToPve, fleetForCarry, saveBattleMode, type BattleMode } from './battleModes';
 import { CustomLanes, CustomRail, customBrief, FormationSelect } from './CustomMode';
 import { DeployScreen } from './DeployScreen';
-import { applyCustomDeployment, applyPveDeployment, customDeployment, initialPvePlacements, pveDeployment } from './deploymentModel';
+import {
+  applyCustomDeployment,
+  applyPveDeployment,
+  customDeployment,
+  initialPvePlacements,
+  pveDeployment,
+  type Deployment,
+} from './deploymentModel';
+import { useChartTerrain } from './useChartTerrain';
+import { DEFAULT_MAP, MISSION_TERRAIN_OFFSET, customTerrainOffset, isOceanMapId, loadMapTerrain, oceanMap } from '../../maps/catalog';
 import { DuelLanes, DuelRail, duelBrief } from './DuelMode';
 import { customTransferShip, duelBudget, parseCustomUnit, type FleetTransfer } from './fleetTransfer';
 import { missionSeed, PveLanes, PveRail, pveBrief, pveInvalid, pveRefused } from './PveMode';
@@ -68,7 +77,7 @@ const titleOf = (id: string) => {
 const defaultRequest = (): PveRequest => ({
   version: 1,
   seed: missionSeed(),
-  mapId: 'pacific-islands',
+  mapId: 'iron-bottom-sound',
   weather: 'partly-cloudy',
   difficulty: 'normal',
   groups: [
@@ -128,6 +137,15 @@ export function BattleDialog({
   const connection = useRef<MatchConnection | undefined>(undefined);
   const transferred = useRef(false);
   const active = useRef(true);
+  // The waters on the chart: choosing them starts charting the coast, which placement waits for.
+  const pveMap = isOceanMapId(request.mapId) ? request.mapId : DEFAULT_MAP;
+  const chartMap = mode === 'pve' ? pveMap : mode === 'custom' ? (setup.mapId ?? DEFAULT_MAP) : DEFAULT_MAP;
+  const chart = useChartTerrain(chartMap, mode === 'pve' ? MISSION_TERRAIN_OFFSET : customTerrainOffset(setup.spawnDistance));
+  /** A chart whose coast could not load says so instead of waiting. */
+  const charted = (deployment: Deployment): Deployment =>
+    !deployment.terrain && chart.error
+      ? { ...deployment, error: `The ${oceanMap(chartMap).name} chart did not load. Go back to the fleet and deploy again to retry.` }
+      : deployment;
 
   useEffect(() => {
     active.current = true;
@@ -250,8 +268,21 @@ export function BattleDialog({
     setMessage({ text: '', error: false });
     const abort = new AbortController();
     controller.current = abort;
+    // The first chart slides formations clear of the coast, so chart it while the mission is planned.
+    const charting = loadMapTerrain(pveMap);
+    charting.catch(() => {});
     try {
       const prepared = await PveDraft.create(request, abort.signal);
+      if (abort.signal.aborted) {
+        prepared.dispose();
+        return;
+      }
+      try {
+        await charting;
+      } catch (error) {
+        prepared.dispose();
+        throw error;
+      }
       if (abort.signal.aborted) {
         prepared.dispose();
         return;
@@ -260,7 +291,7 @@ export function BattleDialog({
       setDraft(prepared);
       const seeded = Object.fromEntries(prepared.briefing.groups.map((group) => [group.id, group.formation ?? ('column' as Formation)]));
       setFormations(seeded);
-      setPlacements(initialPvePlacements(prepared.briefing, seeded));
+      setPlacements(initialPvePlacements(prepared.briefing, missionTerrain(prepared.briefing), seeded));
       setStep('deploy');
     } catch (error) {
       if (!abort.signal.aborted) notice(error instanceof Error ? error.message : String(error));
@@ -387,7 +418,11 @@ export function BattleDialog({
             )
           : ''
         : 'the ship';
-  const customPlacement = mode === 'custom' && step === 'deploy' ? customDeployment(setup) : undefined;
+  const customPlacement = mode === 'custom' && step === 'deploy' ? charted(customDeployment(setup, chart.terrain)) : undefined;
+  const pvePlacement =
+    mode === 'pve' && step === 'deploy' && draft
+      ? charted(pveDeployment(draft.briefing, placements, chart.terrain, formations))
+      : undefined;
   const customOpen = ownFleetOpen(customOwnFleet(setup), rule),
     duelOpen = ownFleetOpen(fleet, rule);
   const pveInvalidText = mode === 'pve' ? pveInvalid(request, options) : '';
@@ -400,10 +435,11 @@ export function BattleDialog({
             disabled: !setup.enemies.length || !customOpen,
             run: () => {
               setTransfer(undefined);
+              chart.retry();
               setStep('deploy');
             },
           }
-        : { label: 'Start battle', disabled: !!customPlacement?.error || loading || !customOpen, run: onLaunchCustom };
+        : { label: 'Start battle', disabled: !customPlacement?.terrain || !!customPlacement.error || loading || !customOpen, run: onLaunchCustom };
     if (mode === 'pve')
       return step === 'fleet'
         ? {
@@ -411,12 +447,13 @@ export function BattleDialog({
             disabled: !options || pveBusy || !!pveInvalidText || pveRefused(request, rule),
             run: () => {
               setTransfer(undefined);
+              chart.retry();
               void preparePve();
             },
           }
         : {
             label: pveBusy ? 'Preparing…' : 'Start battle',
-            disabled: pveBusy || !draft || !!pveDeployment(draft.briefing, placements).error || pveRefused(request, rule),
+            disabled: pveBusy || !pvePlacement?.terrain || !!pvePlacement.error || pveRefused(request, rule),
             run: () => void launchPve(),
           };
     return { label: 'Find opponent', disabled: duelBusy || !!duelBudget(fleet).error || !duelOpen, run: () => void join('queue') };
@@ -513,14 +550,14 @@ export function BattleDialog({
           tools={<FormationSelect setup={setup} onChange={onSetupChange} compact />}
         />
       )}
-      {step === 'deploy' && mode === 'pve' && draft && (
+      {step === 'deploy' && mode === 'pve' && draft && pvePlacement && (
         <DeployScreen
           key={draft.briefing.setup.seed}
-          deployment={pveDeployment(draft.briefing, placements, formations)}
+          deployment={pvePlacement}
           disabled={pveBusy}
           fitKey={String(draft.briefing.setup.seed)}
           onChange={(units) => setPlacements(applyPveDeployment(units))}
-          onReset={() => setPlacements(initialPvePlacements(draft.briefing, formations))}
+          onReset={() => setPlacements(initialPvePlacements(draft.briefing, chart.terrain, formations))}
           onFormation={chooseFormation}
         />
       )}

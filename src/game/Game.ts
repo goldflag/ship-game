@@ -15,8 +15,9 @@ import { AirMapController } from './controllers/AirMapController';
 import { reportName } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
-import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
-import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
+import { oceanMap, DEFAULT_MAP, customTerrainOffset, loadMapTerrain, mapTerrainId, placedMapTerrain, type OceanMapId } from '../maps/catalog';
+import { OPEN_SEA, terrainHeight, type PlacedTerrain } from '../maps/heightfield';
+import { createBattleLandscape, type BattleLandscapeView } from './BattleLandscape';
 import { VisualEnvironment, type DeveloperWeather, type EnvironmentOverrides } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
 import { BerthMotion } from './BerthMotion';
@@ -28,7 +29,7 @@ import { FocusShadowNode } from './FocusShadowNode';
 import { ShadowCasterPass } from './ShadowCasterPass';
 import * as THREE from 'three/webgpu';
 import { pass, vec2 } from 'three/tsl';
-import { frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics } from './graphicsSettings';
+import { frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics, type TerrainQuality } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
 import type { OceanApi, OceanRealism } from './ocean/contracts';
 import { HullWetBand } from './HullWetBand';
@@ -279,7 +280,9 @@ export class Game {
   private sunShadows?: FocusShadowNode;
   /** Draws the sun's shadow maps without three's scene passes; `enabled` compares the two. */
   shadowCasters?: ShadowCasterPass;
-  private landscape?: THREE.Group;
+  /** The battle's land and what it was built from; rebuilt when the map, its placement or the terrain density changes. */
+  private landscape?: BattleLandscapeView;
+  private landscapeSource?: { mapId: OceanMapId; terrain: PlacedTerrain; quality: TerrainQuality };
   private sky?: SkyApi;
   /** Sun transmittance through the clouds, shared by the sun's shadow maps and the sea. */
   private cloudShadow?: (position: THREE.Node<'vec3'>) => THREE.Node<'float'>;
@@ -628,12 +631,16 @@ export class Game {
   /** Load and validate the complete fleet before replacing the current port scene. */
   async prepareBattle(setup: BattleSetup, progress?: BattleProgress, trial = false): Promise<void> {
     if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Battle setup requires an idle, loaded port.');
-    validateBattleSetup(setup, availableShipIds());
-    const revisions = freezeLocalFleet([setup.playerShipId, ...setup.friendlyBots.map(bot => typeof bot === 'string' ? bot : bot.shipId), ...setup.enemies.map(bot => typeof bot === 'string' ? bot : bot.shipId)]);
-    if (isHistoricalShip(this.definition.id)) this.portDefinition = this.definition;
+    const map = oceanMap(setup.mapId ?? DEFAULT_MAP);
     this.switchingShip = true;
     try {
-      progress?.(`Charting ${oceanMap(setup.mapId ?? DEFAULT_MAP).name}`, 0.04);
+      // The land must be charted before the setup's spawns can be checked against it.
+      progress?.(`Charting ${map.name}`, 0.04);
+      await loadMapTerrain(map.id);
+      this.assertActive();
+      validateBattleSetup(setup, availableShipIds(), placedMapTerrain(map.id, customTerrainOffset(setup.spawnDistance))!);
+      const revisions = freezeLocalFleet([setup.playerShipId, ...setup.friendlyBots.map(bot => typeof bot === 'string' ? bot : bot.shipId), ...setup.enemies.map(bot => typeof bot === 'string' ? bot : bot.shipId)]);
+      if (isHistoricalShip(this.definition.id)) this.portDefinition = this.definition;
       const definition = resolveShip(setup.playerShipId);
       const simulation = await LocalBattleSession.create(setup, { revisions, trial });
       simulation.onFailure = message => this.callbacks.error(message);
@@ -649,6 +656,8 @@ export class Game {
     this.switchingShip = true;
     try {
       progress?.('Preparing mission waters', .04);
+      // The deployment chart charted these waters already; a failed load surfaces here rather than as open sea.
+      await loadMapTerrain(draft.briefing.setup.mapId as OceanMapId);
       const simulation = await draft.deploy(placements);
       simulation.onFailure = message => this.callbacks.error(message);
       await this.replaceFleet(simulation, shipPreset(simulation.definition.id), progress);
@@ -693,6 +702,10 @@ export class Game {
     if (this.disposed || !this.inPort || this.switchingShip) throw new Error('Return to port before joining.');
     this.switchingShip = true;
     try {
+      // The server chose the map; its chart has usually loaded while both fleets were matched.
+      progress?.(`Charting ${oceanMap(session.mapId).name}`, 0.04);
+      await loadMapTerrain(session.mapId);
+      this.assertActive();
       await this.replaceFleet(session, session.definition as IdentifiedShip, progress);
       this.environment.setBattle({ timeOfDay: session.metadata.environment.timeOfDay, weather: session.metadata.environment.weather, conditions: {} });
     } finally { this.switchingShip = false; }
@@ -1149,6 +1162,11 @@ export class Game {
       if (this.inPort) this.playerView!.root.visible = !emptyBerth;
       else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
+      if (!this.inPort) {
+        // A chart that finished loading after the battle began takes the open sea's place.
+        if (this.landscapeSource?.terrain !== (this.simulation.terrain ?? OPEN_SEA)) this.refreshLandscape();
+        this.landscape?.update(this.camera);
+      }
       this.fitSunShadow();
       this.focusNearShadow();
       this.shipWake!.seaHeight = this.ocean!.waves.significantHeight;
@@ -1220,7 +1238,7 @@ export class Game {
           freeCamera: this.rig.freeCamera, freeCameraSpeed: this.rig.freeCameraSpeed, aimLocked: this.aimLocked,
           playerDamage,
           shipDamageOpen: this.shipDamageOpen, inspectedPartId: this.shipDamageOpen ? this.cameraShipView.inspection.selectedId : undefined,
-          mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), performance: this.performanceReadout(), trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
+          mapId: this.simulation.mapId, terrain: this.simulation.terrain, fps: Math.round(this.fps), performance: this.performanceReadout(), trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
       }
       if (!warmingUp) this.scheduleFrame();
@@ -1708,8 +1726,8 @@ export class Game {
     this.battlefieldCamera.cancelTransition();
     this.battlefieldCamera.exit();
     this.rig.setInPort(inPort);
-    if (!inPort) this.refreshLandscape();
-    if (this.landscape) this.landscape.visible = !inPort;
+    // A battle's land lives as long as its battle; the port has its own harbor.
+    if (inPort) this.disposeLandscape(); else this.refreshLandscape();
     if (this.harbor) this.harbor.visible = inPort;
     this.fleetViews.forEach(view => { view.root.visible = view === this.playerView || !inPort; view.inspect(false); });
     this.inspecting = false; this.damageInspectionShipId = undefined; this.targetView?.inspect(false); this.playerView?.inspect(false);
@@ -1860,7 +1878,7 @@ export class Game {
   diagnostics() {
     return { mapId: this.simulation.mapId ?? DEFAULT_MAP, oceanRenderer: this.launchedGraphics?.oceanRenderer,
       ...this.environment.diagnostics(),
-      islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash,
+      terrain: this.terrainDiagnostics(), shipId: this.definition.id, contentHash: this.definition.contentHash,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
         shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId, followedShellId: this.shellFollow.shellId,
         freeCamera: this.rig.freeCamera, aimLocked: this.aimLocked,
@@ -1900,17 +1918,31 @@ export class Game {
     point.project(this.camera);
     return { x: (point.x + 1) * 50, y: (1 - point.y) * 50, visible: ahead && Math.abs(point.x) < .94 && Math.abs(point.y) < .85 };
   }
+  /** Build the battle's land for its map and placement, and hand the camera the same surface to keep clear of. */
   private refreshLandscape(): void {
-    const mapId = this.simulation.mapId ?? DEFAULT_MAP;
-    const islands = this.simulation.islands ?? [];
-    const key = JSON.stringify([mapId, islands]);
-    if (this.landscape?.userData.mapKey === key) return;
-    if (this.landscape) { disposeBattleLandscape(this.landscape); this.landscape = undefined; }
-    if (islands.length) {
-      this.landscape = createBattleLandscape(oceanMap(mapId), islands, this.settings.terrain);
-      this.landscape.userData.mapKey = key; this.scene.add(this.landscape);
+    const mapId = this.simulation.mapId ?? DEFAULT_MAP, terrain = this.simulation.terrain ?? OPEN_SEA, quality = this.settings.terrain;
+    const built = this.landscapeSource;
+    if (!built || built.mapId !== mapId || built.quality !== quality || built.terrain.field !== terrain.field
+      || built.terrain.offset[0] !== terrain.offset[0] || built.terrain.offset[1] !== terrain.offset[1]) {
+      this.disposeLandscape();
+      if (terrain.field) {
+        this.landscape = createBattleLandscape(oceanMap(mapId), terrain, quality);
+        this.scene.add(this.landscape.root);
+      }
     }
-    this.rig.setBattleTerrain((x, z) => landHeight(islands, x, z));
+    this.landscapeSource = { mapId, terrain, quality };
+    this.rig.setBattleTerrain((x, z) => terrainHeight(terrain, x, z));
+  }
+  private disposeLandscape(): void {
+    this.landscape?.root.removeFromParent();
+    this.landscape?.dispose();
+    this.landscape = this.landscapeSource = undefined;
+    this.rig?.setBattleTerrain(() => 0);
+  }
+  /** What the battle's land is, without its samples. */
+  private terrainDiagnostics() {
+    const terrain = this.simulation.terrain ?? OPEN_SEA, id = mapTerrainId(this.simulation.mapId ?? DEFAULT_MAP);
+    return { id, offset: [...terrain.offset], charted: !id || !!terrain.field, bounds: terrain.field?.bounds(), rendered: !!this.landscape };
   }
   cycleCamera(): void { if (this.airOperationsOpen) { this.setAirOperationsOpen(false); return; } const aircraft = !!this.followedAircraftId; this.endFollow(); if (!aircraft) this.rig.cycle(); }
   recenter(): void { if (this.airOperationsOpen) { this.centerAirMap(); return; } this.endFollow(); this.rig.recenter(); }
@@ -1948,7 +1980,7 @@ export class Game {
     this.armorOverlay?.dispose();
     this.shipWake?.dispose();
     await this.aircraftView.dispose();
-    if (this.landscape) disposeBattleLandscape(this.landscape);
+    this.disposeLandscape();
     this.effects.dispose();
     this.funnelSmoke.dispose();
     this.effectLighting.dispose();

@@ -9,8 +9,9 @@ import { loadLabel, type AirStrike } from './airIntent';
 import { duration } from './airFormat';
 import { resolveShip } from '../ships/localShips';
 
-export const bearingLabel = (dx: number, dz: number) =>
-  `${String(Math.round(((((Math.atan2(dx, -dz) * 180) / Math.PI) % 360) + 360) % 360) % 360).padStart(3, '0')}°`;
+/** The true bearing of a chart offset, on a chart whose top bears `chartBearing` (the map's). */
+export const bearingLabel = (dx: number, dz: number, chartBearing = 0) =>
+  `${String(Math.round(((((Math.atan2(dx, -dz) * 180) / Math.PI + chartBearing) % 360) + 360) % 360) % 360).padStart(3, '0')}°`;
 export const rangeLabel = (dx: number, dz: number) => `${(Math.hypot(dx, dz) / 1000).toFixed(1)} km`;
 const tonnes = (kg: number) => `${Math.round(kg / 1000).toLocaleString()} t`;
 
@@ -23,6 +24,7 @@ export function EnemyFleet({
   strikes = [],
   tick,
   origin,
+  chartBearing = 0,
   selectedId,
   onSelect,
   nameOf,
@@ -33,6 +35,8 @@ export function EnemyFleet({
   strikes?: readonly AirStrike[];
   tick: number;
   origin: { x: number; z: number };
+  /** The map's bearing: reported bearings read true. */
+  chartBearing?: number;
   selectedId?: string;
   onSelect(track: ContactTrack): void;
   nameOf(track: ContactTrack): string;
@@ -95,7 +99,7 @@ export function EnemyFleet({
             </span>
             <span className="fleet-card-value">
               {rangeLabel(position[0] - origin.x, position[2] - origin.z)}
-              <small>{bearingLabel(position[0] - origin.x, position[2] - origin.z)}</small>
+              <small>{bearingLabel(position[0] - origin.x, position[2] - origin.z, chartBearing)}</small>
             </span>
           </button>
         );
@@ -112,7 +116,7 @@ export function EnemyFleet({
         const first = tracks.find((t) => t.id === cluster.trackIds[0])!;
         const selected = cluster.trackIds.includes(selectedId ?? '');
         const strike = strikes.find((s) => s.cluster.id === cluster.id);
-        const bearing = `${rangeLabel(cluster.position[0] - origin.x, cluster.position[2] - origin.z)} ${bearingLabel(cluster.position[0] - origin.x, cluster.position[2] - origin.z)}`;
+        const bearing = `${rangeLabel(cluster.position[0] - origin.x, cluster.position[2] - origin.z)} ${bearingLabel(cluster.position[0] - origin.x, cluster.position[2] - origin.z, chartBearing)}`;
         return (
           <button
             key={cluster.id}
@@ -205,6 +209,7 @@ export interface EnemyRosterShip {
 export function EnemyRoster({
   ships,
   origin,
+  chartBearing = 0,
   selectedId,
   onSelect,
   comparison,
@@ -212,6 +217,8 @@ export function EnemyRoster({
 }: {
   ships: readonly EnemyRosterShip[];
   origin: { x: number; z: number };
+  /** The map's bearing: bearings read true. */
+  chartBearing?: number;
   selectedId?: string;
   onSelect(id: string): void;
   comparison: BattleComparison;
@@ -256,7 +263,7 @@ export function EnemyRoster({
             <span className="fleet-card-value">
               {Math.round(ship.integrity * 100)}%
               <small>
-                {rangeLabel(ship.x - origin.x, ship.z - origin.z)} · {bearingLabel(ship.x - origin.x, ship.z - origin.z)}
+                {rangeLabel(ship.x - origin.x, ship.z - origin.z)} · {bearingLabel(ship.x - origin.x, ship.z - origin.z, chartBearing)}
               </small>
             </span>
           </button>

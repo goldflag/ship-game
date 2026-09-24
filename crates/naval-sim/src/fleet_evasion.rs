@@ -1,12 +1,12 @@
 //! Short captain corrections from reported aircraft motion and locally visible
 //! torpedo wakes. Neither targeting intent nor hidden payload state is consulted.
 use crate::{
-    environment::{Island, TerrainField},
     geometry::wrap_angle,
     motion::HelmCommand,
     navigation::{NavigationState, NavigationStatus},
     rules::TICK_RATE,
-    sensors::{Affiliation, ContactKind, ContactTrack, line_visible},
+    sensors::{Affiliation, ContactKind, ContactTrack},
+    terrain::Terrain,
     torpedoes::Torpedo,
     vessel::Vessel,
 };
@@ -28,8 +28,7 @@ pub struct ObservedThreat {
 pub fn visible_wakes(
     actor: &Vessel,
     torpedoes: &[Torpedo],
-    islands: &[Island],
-    terrain: &[TerrainField],
+    terrain: &Terrain,
     visibility_m: f64,
 ) -> Vec<ObservedThreat> {
     let eye = [actor.motion.x, actor.motion.y + 8.0, actor.motion.z];
@@ -39,7 +38,7 @@ pub fn visible_wakes(
             t.owner_id != actor.motion.id
                 && (t.position[0] - eye[0]).hypot(t.position[2] - eye[2])
                     <= visibility_m.min(1500.0)
-                && line_visible(eye, [t.position[0], 0.05, t.position[2]], islands, terrain)
+                && terrain.line_visible(eye, [t.position[0], 0.05, t.position[2]])
         })
         .map(|t| ObservedThreat {
             position: t.position,

@@ -7,6 +7,7 @@ import { type CSSProperties } from 'react';
 import type { Ammunition } from '../ships/blueprint';
 import { ammunitionName, torpedoArcLabel } from '../ships/armament';
 import type { Telemetry } from '../game/types';
+import { DEFAULT_MAP, oceanMap, trueBearing } from '../maps/catalog';
 import { ENGINE_LABELS, KNOTS_PER_MPS } from '../game/session/motion';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
@@ -32,9 +33,12 @@ interface FleetHudProps {
   bindings: Keybindings;
 }
 
+/** A chart-frame angle (radians) as the true bearing a compass reads on this battle's map. */
+const compassDegrees = (data: Telemetry, radians: number) => trueBearing((radians * 180) / Math.PI, oceanMap(data.mapId ?? DEFAULT_MAP).bearing);
+
 function ShipBearing({ data }: { data: Telemetry }) {
   const selectedShip = useShip();
-  const degrees = (data.ship.heading * 180) / Math.PI;
+  const degrees = compassDegrees(data, data.ship.heading);
   const mounts =
     data.combat?.battery === 'depth-charge'
       ? (selectedShip.depthChargeLaunchers ?? [])
@@ -55,7 +59,7 @@ function ShipBearing({ data }: { data: Telemetry }) {
             transform={`rotate(${i * 10} 100 100)`}
           />
         ))}
-        <g transform={`rotate(${((data.viewBearing ?? data.ship.heading) * 180) / Math.PI} 100 100)`}>
+        <g transform={`rotate(${compassDegrees(data, data.viewBearing ?? data.ship.heading)} 100 100)`}>
           <path d="M100 100 66 15Q100 2 134 15Z" fill="currentColor" fillOpacity=".045" />
           <path d="M100 100V10" stroke="var(--fleet-active)" strokeOpacity=".55" strokeDasharray="3 4" />
           <circle cx="100" cy="13" r="3" fill="var(--fleet-active)" />
@@ -343,7 +347,7 @@ export function FleetHud(props: FleetHudProps) {
 
 function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
   const selectedShip = useShip();
-  const degrees = (((data.viewBearing ?? data.ship.heading) * 180) / Math.PI + 360) % 360;
+  const degrees = compassDegrees(data, data.viewBearing ?? data.ship.heading);
   const speed = Math.abs(data.ship.speed * KNOTS_PER_MPS).toFixed(1);
   const rudder = Math.round(data.ship.rudder * 35);
   const integrity = Math.max(0, Math.min(1, data.combat?.playerIntegrity ?? 1));

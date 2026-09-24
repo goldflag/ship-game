@@ -128,7 +128,7 @@ impl Session {
                 _ => &[],
             };
             if points.iter().any(|&p| {
-                !naval_sim::navigation::destination_is_clear(actor, p, &self.battle.islands)
+                !naval_sim::navigation::destination_is_clear(actor, p, &self.battle.terrain)
                     || self
                         .battle
                         .mission_rules

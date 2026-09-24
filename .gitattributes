@@ -45,3 +45,6 @@ assets/ships/*/generated/** linguist-generated
 assets/gameplay/hydrostatics.v1.json linguist-generated -diff
 vendor/*/build/** linguist-vendored -diff
 docs/**/*.html linguist-generated -diff
+
+# Baked battle terrain (scripts/maps/bake-terrain.py): compressed heightfields, never hand-edited.
+public/maps/terrain/*.ntf binary

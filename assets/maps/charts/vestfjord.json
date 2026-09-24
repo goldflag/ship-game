@@ -1,0 +1,17 @@
+{
+  "id": "vestfjord",
+  "center": {
+    "lat": 68.2267,
+    "lon": 15.5332
+  },
+  "bearing": 75,
+  "sizeKm": [
+    96,
+    96
+  ],
+  "cellM": 40,
+  "zoom": 11,
+  "supersample": 2,
+  "edgeFalloffKm": 6,
+  "framing": "Inner Vestfjord between Lofoten/Hinnoya and Hamaroy, up-fjord toward Ofotfjord and Narvik."
+}

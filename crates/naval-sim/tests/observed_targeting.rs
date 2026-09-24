@@ -1,3 +1,4 @@
+use naval_sim::terrain::Terrain;
 use naval_sim::{
     battle::{Battle, BattleSetup},
     catalog::Catalog,
@@ -250,8 +251,7 @@ fn visible_reports_publish_sampled_health_without_private_damage_or_changing_leg
         battle.sensors.update(
             0,
             &entities,
-            &battle.islands,
-            &battle.catalog.terrain,
+            &battle.terrain,
             naval_sim::sensors::VisualConditions::resolve(
                 &battle.catalog,
                 "north-atlantic",
@@ -303,8 +303,7 @@ fn visible_reports_publish_sampled_health_without_private_damage_or_changing_leg
     a.sensors.update(
         60,
         &entities,
-        &a.islands,
-        &a.catalog.terrain,
+        &a.terrain,
         naval_sim::sensors::VisualConditions::resolve(&a.catalog, "north-atlantic", "clear"),
         &naval_sim::sensors::VisualRules::default(),
     );
@@ -360,8 +359,7 @@ fn aircraft_loss_report(witnessed: bool) {
     battle.sensors.update(
         0,
         &sensors::entities(&battle.actors, &battle.aviation),
-        &[],
-        &[],
+        &Terrain::open_sea(),
         conditions,
         &rules,
     );
@@ -404,8 +402,7 @@ fn aircraft_loss_report(witnessed: bool) {
     battle.sensors.update(
         300 * TICK_RATE,
         &sensors::entities(&battle.actors, &battle.aviation),
-        &[],
-        &[],
+        &Terrain::open_sea(),
         conditions,
         &rules,
     );

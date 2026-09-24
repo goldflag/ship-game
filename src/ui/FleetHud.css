@@ -844,6 +844,23 @@
   stroke: #bedadc40;
   stroke-width: 0.7;
 }
+/* The coast and relief bands: paths in chart metres scaled onto the chart, so strokes keep their screen width. */
+.navigation-chart .chart-coast path {
+  vector-effect: non-scaling-stroke;
+}
+.navigation-chart .chart-land {
+  fill: #65786a;
+  fill-opacity: 0.65;
+  stroke: #b3c5af;
+  stroke-width: 0.8;
+}
+.navigation-chart .chart-relief {
+  fill: #b3c5af;
+  fill-opacity: 0.1;
+  stroke: #b3c5af;
+  stroke-opacity: 0.22;
+  stroke-width: 0.5;
+}
 .chart-trail {
   fill: none;
   stroke: var(--fleet-active);

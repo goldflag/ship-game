@@ -2,44 +2,47 @@
   "version": 1,
   "maps": [
     {
-      "id": "north-atlantic", "name": "North Atlantic", "region": "Atlantic Ocean", "description": "Muted steel-blue open water beneath broken cloud. Long, clear firing lanes.",
+      "id": "north-atlantic", "name": "North Atlantic", "region": "Atlantic Ocean", "bearing": 0, "description": "Muted steel-blue open water beneath broken cloud. Long, clear firing lanes.",
       "water": { "waterColor": "#2d373c", "transmissionColor": "#49575e", "absorptionColor": "#945b57", "amplitudeScale": 1, "windScale": 1, "wavelengthScale": 1, "windDirection": 35, "foam": 0.45 },
       "sky": { "elevation": 48, "azimuth": 235, "intensity": 6.6, "coverage": 0.40, "altitude": 1700, "thickness": 2400, "turbidity": 2.2, "rayleigh": 0.38, "mie": 0.5, "mieG": 0.72, "multiple": 1, "ambient": 0.65 },
       "fog": { "color": "#8b8f92", "start": 8000, "end": 48000, "skyBlend": 28000 },
-      "land": { "style": "rock", "shore": "#a39b86", "low": "#657151", "high": "#7d8281", "islands": [] }
+      "land": { "style": "rock", "shore": "#a39b86", "low": "#657151", "high": "#7d8281", "terrain": null }
     },
     {
-      "id": "pacific-islands", "name": "Pacific Islands", "region": "South Pacific Ocean", "description": "Muted steel-blue water, green island ridges and white beaches under a high sun.",
-      "water": { "waterColor": "#2d373c", "transmissionColor": "#49575e", "absorptionColor": "#b67b45", "amplitudeScale": 0.65, "windScale": 0.7, "wavelengthScale": 0.8, "windDirection": 80, "foam": 0.25 },
-      "sky": { "elevation": 67, "azimuth": 135, "intensity": 6.5, "coverage": 0.24, "altitude": 2100, "thickness": 1500, "turbidity": 1.5, "rayleigh": 0.55, "mie": 0.18, "mieG": 0.65, "multiple": 1.15, "ambient": 0.85 },
+      "id": "iron-bottom-sound", "name": "Iron Bottom Sound", "region": "Guadalcanal, Solomon Islands", "bearing": 315,
+      "battle": "Savo Island, 9 August 1942 · Naval Battle of Guadalcanal, 13–15 November 1942",
+      "description": "The sound between Guadalcanal, Savo Island and the Florida Islands, named for the ships its 1942 night actions sank. Jungle ridges line one flank; Savo guards the far entrance.",
+      "water": { "waterColor": "#2d373c", "transmissionColor": "#49575e", "absorptionColor": "#b67b45", "amplitudeScale": 0.65, "windScale": 0.7, "wavelengthScale": 0.8, "windDirection": 270, "foam": 0.25 },
+      "sky": { "elevation": 58, "azimuth": 80, "intensity": 6.5, "coverage": 0.26, "altitude": 2100, "thickness": 1500, "turbidity": 1.6, "rayleigh": 0.55, "mie": 0.2, "mieG": 0.65, "multiple": 1.15, "ambient": 0.85 },
       "fog": { "color": "#8fc4cf", "start": 10000, "end": 55000, "skyBlend": 32000 },
-      "land": { "style": "tropical", "shore": "#e0d5ae", "low": "#3b7046", "high": "#526446", "islands": [
-        { "id": "western-ridge", "side": -1, "offset": 0, "along": -700, "rx": 1700, "rz": 3100, "height": 660, "seed": 11 },
-        { "id": "eastern-isle", "side": 1, "offset": 700, "along": 1800, "rx": 1300, "rz": 1750, "height": 390, "seed": 26 },
-        { "id": "northern-isle", "side": 1, "offset": 1800, "along": -4700, "rx": 1800, "rz": 2300, "height": 780, "seed": 38 }
-      ] }
+      "land": { "style": "tropical", "shore": "#6e685c", "low": "#33472c", "high": "#6f5b48", "terrain": "iron-bottom-sound" }
     },
     {
-      "id": "arctic-passage", "name": "Arctic Passage", "region": "Arctic Ocean", "description": "Cold steel-blue water and snow-covered headlands under low, silver daylight.",
-      "water": { "waterColor": "#2d373c", "transmissionColor": "#49575e", "absorptionColor": "#916d59", "amplitudeScale": 0.6, "windScale": 0.65, "wavelengthScale": 0.8, "windDirection": 165, "foam": 0.3 },
-      "sky": { "elevation": 18, "azimuth": 205, "intensity": 4.8, "coverage": 0.56, "altitude": 1100, "thickness": 2800, "turbidity": 2.8, "rayleigh": 0.25, "mie": 0.38, "mieG": 0.55, "multiple": 1.5, "ambient": 1 },
+      "id": "vestfjord", "name": "Vestfjord", "region": "Narvik approaches, Norway", "bearing": 75,
+      "battle": "Action off Lofoten, 9 April 1940 · Battles of Narvik, 10 and 13 April 1940",
+      "description": "The wide approach to Narvik between the Lofoten wall and the mainland. British flotillas steamed up this fjord through snow squalls in April 1940.",
+      "water": { "waterColor": "#2d373c", "transmissionColor": "#49575e", "absorptionColor": "#916d59", "amplitudeScale": 0.6, "windScale": 0.65, "wavelengthScale": 0.8, "windDirection": 240, "foam": 0.3 },
+      "sky": { "elevation": 20, "azimuth": 340, "intensity": 4.8, "coverage": 0.56, "altitude": 1100, "thickness": 2800, "turbidity": 2.8, "rayleigh": 0.25, "mie": 0.38, "mieG": 0.55, "multiple": 1.5, "ambient": 1 },
       "fog": { "color": "#afc4ca", "start": 7000, "end": 45000, "skyBlend": 26000 },
-      "land": { "style": "snow", "shore": "#82989e", "low": "#c2d8db", "high": "#edf1ec", "islands": [
-        { "id": "west-headland", "side": -1, "offset": 0, "along": -1700, "rx": 2100, "rz": 4200, "height": 1050, "seed": 41 },
-        { "id": "east-headland", "side": 1, "offset": 300, "along": -500, "rx": 1900, "rz": 3200, "height": 850, "seed": 52 },
-        { "id": "outer-skerry", "side": 1, "offset": -100, "along": 4000, "rx": 450, "rz": 700, "height": 95, "seed": 63 }
-      ] }
+      "land": { "style": "snow", "shore": "#3b3935", "low": "#3f3a34", "high": "#5b5d5c", "terrain": "vestfjord" }
     },
     {
-      "id": "indian-volcanic-coast", "name": "Volcanic Coast", "region": "Indian Ocean", "description": "Muted steel-blue water below dark volcanic ridges, with warm late-afternoon haze.",
-      "water": { "waterColor": "#2d373c", "transmissionColor": "#49575e", "absorptionColor": "#a97851", "amplitudeScale": 1.05, "windScale": 1.1, "wavelengthScale": 1.1, "windDirection": 260, "foam": 0.5 },
-      "sky": { "elevation": 26, "azimuth": 285, "intensity": 5.8, "coverage": 0.30, "altitude": 2400, "thickness": 1900, "turbidity": 4.8, "rayleigh": 0.36, "mie": 0.48, "mieG": 0.65, "multiple": 1.25, "ambient": 0.8 },
+      "id": "sunda-strait", "name": "Sunda Strait", "region": "Java and Sumatra, Netherlands East Indies", "bearing": 295,
+      "battle": "Battle of Sunda Strait, 28 February – 1 March 1942",
+      "description": "The north-east entrance of the strait off Java's St. Nicholas Point, where USS Houston and HMAS Perth met the Japanese invasion fleet. Volcanic highlands rise behind the coast.",
+      "water": { "waterColor": "#2d373c", "transmissionColor": "#49575e", "absorptionColor": "#a97851", "amplitudeScale": 0.8, "windScale": 0.9, "wavelengthScale": 0.9, "windDirection": 105, "foam": 0.35 },
+      "sky": { "elevation": 26, "azimuth": 275, "intensity": 5.8, "coverage": 0.30, "altitude": 2400, "thickness": 1900, "turbidity": 4.8, "rayleigh": 0.36, "mie": 0.48, "mieG": 0.65, "multiple": 1.25, "ambient": 0.8 },
       "fog": { "color": "#b3a895", "start": 7500, "end": 46000, "skyBlend": 28000 },
-      "land": { "style": "volcanic", "shore": "#4f5554", "low": "#495648", "high": "#615951", "islands": [
-        { "id": "main-volcano", "side": -1, "offset": 300, "along": -1500, "rx": 2500, "rz": 3600, "height": 1500, "seed": 74 },
-        { "id": "basalt-isle", "side": -1, "offset": -200, "along": 4300, "rx": 750, "rz": 1200, "height": 270, "seed": 85 },
-        { "id": "distant-ridge", "side": 1, "offset": 3000, "along": -5000, "rx": 2400, "rz": 2700, "height": 1100, "seed": 96 }
-      ] }
+      "land": { "style": "volcanic", "shore": "#4b4843", "low": "#3b5230", "high": "#5d564c", "terrain": "sunda-strait" }
+    },
+    {
+      "id": "strait-of-dover", "name": "Strait of Dover", "region": "English Channel", "bearing": 45,
+      "battle": "Channel Dash, 12 February 1942",
+      "description": "The narrows between the chalk cliffs of Kent and Cap Gris-Nez, where Scharnhorst, Gneisenau and Prinz Eugen forced the Channel in daylight in February 1942.",
+      "water": { "waterColor": "#2d373c", "transmissionColor": "#49575e", "absorptionColor": "#8a6a55", "amplitudeScale": 0.9, "windScale": 1, "wavelengthScale": 0.85, "windDirection": 270, "foam": 0.4 },
+      "sky": { "elevation": 22, "azimuth": 0, "intensity": 5.4, "coverage": 0.62, "altitude": 1200, "thickness": 2600, "turbidity": 3.4, "rayleigh": 0.32, "mie": 0.5, "mieG": 0.7, "multiple": 1.3, "ambient": 0.8 },
+      "fog": { "color": "#9aa4a8", "start": 6500, "end": 40000, "skyBlend": 24000 },
+      "land": { "style": "chalk", "shore": "#7f786c", "low": "#6d7a4b", "high": "#d6d2c4", "terrain": "strait-of-dover" }
     }
   ]
 }

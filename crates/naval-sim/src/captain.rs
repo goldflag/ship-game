@@ -23,11 +23,12 @@
 use crate::{
     battle::Orders,
     bots::{self, AiLevel, BotState},
-    environment::{Island, TerrainField, avoid_land},
+    environment::avoid_land,
     geometry::{clamp, wrap_angle},
     motion::HelmCommand,
     navigation::{self, Movement, NavigationState, Trails},
     sensors::{ContactTrack, Sensors},
+    terrain::Terrain,
     torpedoes::Torpedo,
     vessel::{Controller, Vessel},
 };
@@ -58,8 +59,8 @@ pub struct Watch<'a> {
     pub orders: &'a BTreeMap<String, Orders>,
     /// `Some` in a mission battle, `None` in a legacy one.
     pub reports: Option<Reports<'a>>,
-    pub islands: &'a [Island],
-    pub terrain: &'a [TerrainField],
+    /// The map's terrain in the battle's world.
+    pub terrain: &'a Terrain,
     pub trails: &'a Trails,
     pub torpedoes: &'a [Torpedo],
     pub tick: u64,
@@ -193,7 +194,7 @@ impl Captain for BotCaptain {
                 .expect("every battle hull carries its crew memory");
             if w.reports.is_some() {
                 bot.update_contact(actor, def, contact, w.time);
-                command = bots::helm_contact(bot, actor, contact, w.fleet);
+                command = bots::helm_contact(bot, actor, contact, w.fleet, w.terrain);
             } else {
                 bot.update(
                     actor,
@@ -201,10 +202,16 @@ impl Captain for BotCaptain {
                     target_index.map(|j| (&w.fleet[j].state, w.fleet[j].definition())),
                     w.time,
                 );
-                command = bots::helm(bot, actor, target_index.map(|j| &w.fleet[j]), w.fleet);
+                command = bots::helm(
+                    bot,
+                    actor,
+                    target_index.map(|j| &w.fleet[j]),
+                    w.fleet,
+                    w.terrain,
+                );
             }
             if bot.ai_level != AiLevel::Static {
-                command = avoid_land(&actor.motion, command, w.islands)
+                command = avoid_land(actor, command, w.terrain)
             }
             target = Target::Engage(
                 contact
@@ -255,7 +262,7 @@ impl Captain for BotCaptain {
                         let distance = (x - motion.x).hypot(z - motion.z);
                         let angle = wrap_angle((x - motion.x).atan2(motion.z - z) - motion.heading);
                         command = avoid_land(
-                            &actor.motion,
+                            actor,
                             HelmCommand {
                                 throttle: if distance < 80.0 {
                                     0.0
@@ -265,7 +272,7 @@ impl Captain for BotCaptain {
                                 rudder: clamp(angle * 2.0, -1.0, 1.0),
                                 ..Default::default()
                             },
-                            w.islands,
+                            w.terrain,
                         )
                     }
                     Movement::Route { .. }
@@ -305,7 +312,7 @@ impl Captain for BotCaptain {
                         command = navigation::command_observed(
                             actor,
                             w.fleet,
-                            w.islands,
+                            w.terrain,
                             &o.movement,
                             &mut state,
                             w.tick,
@@ -339,13 +346,8 @@ impl Captain for BotCaptain {
             let mut state = crew.navigation.take().unwrap_or_else(|| {
                 NavigationState::new(standing.map_or(Movement::Autonomous, |o| o.movement.clone()))
             });
-            let wakes = crate::fleet_evasion::visible_wakes(
-                actor,
-                w.torpedoes,
-                w.islands,
-                w.terrain,
-                r.visibility_m,
-            );
+            let wakes =
+                crate::fleet_evasion::visible_wakes(actor, w.torpedoes, w.terrain, r.visibility_m);
             command = crate::fleet_evasion::command(
                 actor, r.contacts, &wakes, w.tick, &mut state, command,
             );

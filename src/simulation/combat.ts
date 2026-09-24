@@ -8,7 +8,8 @@ import { afloatKg, matchDisplacementKg, physicalLoss, type BattleOutcome } from 
 import { selectedWeapon } from '../ships/weaponGroups';
 import { commandSquadron, createAirWing, launchSquadron, orderFlight, recallAircraft, type AirRelease, type AirOrder } from './aircraft';
 import { DEFAULT_AI_LEVEL, type ShipAiLevel } from '../game/session/aiLevels';
-import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
+import { DEFAULT_MAP, customTerrainOffset, placedMapTerrain, type OceanMapId } from '../maps/catalog';
+import { OPEN_SEA, type PlacedTerrain } from '../maps/heightfield';
 import type { FleetActor as SessionActor, Shell as SessionShell, Torpedo as SessionTorpedo, DepthCharge as SessionDepthCharge, AirRelease as SessionAirRelease } from '../game/session/elements';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { BattleResult } from '../game/session/BattleSession';
@@ -30,7 +31,8 @@ export class CombatSimulation {
   readonly isBattle: boolean;
   readonly spawnDistance: number;
   readonly mapId: OceanMapId;
-  readonly islands: Island[];
+  /** The land it checks spawns against: whatever chart has loaded, or open sea. */
+  readonly terrain: PlacedTerrain;
   readonly seed: number;
   readonly sea: SeaState;
   result: BattleResult = 'active';
@@ -72,14 +74,14 @@ export class CombatSimulation {
     this.isBattle = !!fleet;
     this.spawnDistance = fleet?.spawnDistance ?? BATTLE_SPAWN_DISTANCE;
     this.mapId = fleet?.mapId ?? DEFAULT_MAP;
-    this.islands = mapIslands(this.mapId, this.spawnDistance, Math.max(1 + (fleet?.friendlyBots.length ?? 0), fleet?.enemies.length ?? 1));
+    this.terrain = placedMapTerrain(this.mapId, customTerrainOffset(this.spawnDistance)) ?? OPEN_SEA;
     this.seed = seed;
     this.sea = createSeaState(this.mapId, fleet?.weather, seed, fleet?.windSpeed);
     if (!Number.isInteger(this.seed) || this.seed < 0 || this.seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer.');
     validateSpawnDistance(this.spawnDistance);
     if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error(`Choose one to ${MAX_TEAM_SHIPS} ships per team.`);
     if (fleet?.spawns) {
-      validateSpawns(fleet.spawns, fleet.friendlyBots.length + 1, fleet.enemies.length, this.islands);
+      validateSpawns(fleet.spawns, fleet.friendlyBots.length + 1, fleet.enemies.length, this.terrain);
       this.initialSpawns = structuredClone(fleet.spawns);
     }
     this.player = this.createActor('player', definition, 'friendly', 'player');

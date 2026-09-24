@@ -1,5 +1,6 @@
 //! Order-level regression tests: real inventory/admission/deck cycle, with
 //! controlled airborne starting positions to isolate relief and coordination.
+use naval_sim::terrain::Terrain;
 use naval_sim::{
     aviation::{ActiveFlights, AirContext, AirOrder, Aircraft, Aviation, EndurancePolicy},
     catalog::Catalog,
@@ -934,8 +935,7 @@ fn returning_package_aircraft_evade_observed_fighters_before_following_the_exit_
         reports.update(
             tick,
             &sensors::entities(&actors, &air),
-            &[],
-            &[],
+            &Terrain::open_sea(),
             conditions,
             &VisualRules::default(),
         );
@@ -947,8 +947,7 @@ fn returning_package_aircraft_evade_observed_fighters_before_following_the_exit_
                 knowledge: Some(Knowledge {
                     sensors,
                     tick: 360,
-                    islands: &[],
-                    terrain: &[],
+                    terrain: &naval_sim::terrain::OPEN_SEA,
                 }),
                 actors: &actors,
                 shells: &mut vec![],

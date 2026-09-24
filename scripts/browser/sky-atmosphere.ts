@@ -1,4 +1,4 @@
-/** `bun scripts/browser/sky-atmosphere.ts --tag <name> [--query map=pacific-islands&weather=clear] [--url http://127.0.0.1:5210]`
+/** `bun scripts/browser/sky-atmosphere.ts --tag <name> [--query map=iron-bottom-sound&weather=clear] [--url http://127.0.0.1:5210]`
  * Renders `scripts/diagnostics/sky-atmosphere.html` (the atmosphere part alone: a panorama per sun elevation,
  * graded as the game displays it) in a headed Chromium and saves `.build/sky-atmosphere/<tag>.png` with the
  * page's radiance readings in `<tag>.json`. */
