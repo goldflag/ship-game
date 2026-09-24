@@ -54449,44 +54449,206 @@
       "material": "naval"
     },
     {
+      "id": "torpedo-lockers-starboard",
+      "name": "Torpedo reload lockers starboard",
+      "footprint": [
+        [
+          2.45,
+          -19.81
+        ],
+        [
+          3.37,
+          -19.69
+        ],
+        [
+          3.47,
+          -19.59
+        ],
+        [
+          3.43,
+          -17.11
+        ],
+        [
+          2.87,
+          -13.47
+        ],
+        [
+          2.63,
+          -13.19
+        ],
+        [
+          2.55,
+          -12.63
+        ],
+        [
+          2.45,
+          -12.53
+        ],
+        [
+          1.89,
+          -12.45
+        ],
+        [
+          1.79,
+          -12.55
+        ],
+        [
+          1.75,
+          -13.47
+        ],
+        [
+          1.79,
+          -19.39
+        ],
+        [
+          2.29,
+          -19.49
+        ]
+      ],
+      "baseY": 2.77,
+      "height": 1.03,
+      "material": "naval"
+    },
+    {
+      "id": "torpedo-lockers-port",
+      "name": "Torpedo reload lockers port",
+      "footprint": [
+        [
+          -2.29,
+          -19.49
+        ],
+        [
+          -1.79,
+          -19.39
+        ],
+        [
+          -1.75,
+          -13.47
+        ],
+        [
+          -1.79,
+          -12.55
+        ],
+        [
+          -1.89,
+          -12.45
+        ],
+        [
+          -2.45,
+          -12.53
+        ],
+        [
+          -2.55,
+          -12.63
+        ],
+        [
+          -2.63,
+          -13.19
+        ],
+        [
+          -2.87,
+          -13.47
+        ],
+        [
+          -3.43,
+          -17.11
+        ],
+        [
+          -3.47,
+          -19.59
+        ],
+        [
+          -3.37,
+          -19.69
+        ],
+        [
+          -2.45,
+          -19.81
+        ]
+      ],
+      "baseY": 2.77,
+      "height": 1.03,
+      "material": "naval"
+    },
+    {
       "id": "forward-uptake",
       "name": "Forward Uptake",
       "footprint": [
         [
-          2,
-          -11
+          0,
+          -19.75
+        ],
+        [
+          1.33,
+          -19.75
         ],
         [
           2.45,
-          -11.45
+          -19.8
         ],
         [
-          2.45,
-          -17.65
+          3.45,
+          -19.65
         ],
         [
-          2,
-          -18.1
+          3.72,
+          -18.7
         ],
         [
-          -2,
-          -18.1
+          2.47,
+          -10.6
+        ],
+        [
+          2.75,
+          -10.15
+        ],
+        [
+          2.5,
+          -9.9
+        ],
+        [
+          1,
+          -10.1
+        ],
+        [
+          0,
+          -10.2
+        ],
+        [
+          -1,
+          -10.1
+        ],
+        [
+          -2.5,
+          -9.9
+        ],
+        [
+          -2.75,
+          -10.15
+        ],
+        [
+          -2.47,
+          -10.6
+        ],
+        [
+          -3.72,
+          -18.7
+        ],
+        [
+          -3.45,
+          -19.65
         ],
         [
           -2.45,
-          -17.65
+          -19.8
         ],
         [
-          -2.45,
-          -11.45
-        ],
-        [
-          -2,
-          -11
+          -1.33,
+          -19.75
         ]
       ],
-      "baseY": 2.77,
-      "height": 1.1,
+      "baseY": 3.8,
+      "height": 1.15,
       "material": "naval"
     },
     {
@@ -65047,19 +65209,11 @@
         ],
         [
           2.48,
-          -10.3
-        ],
-        [
-          1.95,
-          -12.5
-        ],
-        [
-          -1.95,
-          -12.5
+          -10
         ],
         [
           -2.48,
-          -10.3
+          -10
         ],
         [
           -2.55,
@@ -67233,5 +67387,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "fbb86703ee8fcfbb73067ee2d99a05c2f0b98c676369b4009ba53c89a50766e4"
+  "contentHash": "5b7339a8cfa36b920589364d6f001963ed3630a16825cfffbeb0c1b2c50a02a9"
 }

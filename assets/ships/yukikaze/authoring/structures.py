@@ -118,6 +118,20 @@ structures['forward-funnel'] = dict(shape('forward-funnel', 'Forward Funnel', [[
                                           3.85, 12.05, surface=fore), exhaust={'position': [0, 11.27, -13.75], 'width': 2.4, 'length': 2.9})
 structures['after-funnel'] = dict(shape('after-funnel', 'After Funnel', [[-1.1, 3.25], [-1.1, .1], [1.1, .1], [1.1, 3.25]],
                                         5.64, 10.67, surface=after), exhaust={'position': [0, 10.3, 1.9], 'width': 2.3, 'length': 2.6})
+# Fore funnel casing: the uptake and the torpedo reload lockers either side of it form one housing,
+# 3.7 m either side at its forward end and 2.5 m at its after end, 4.95 m high.
+# Below 3.8 m only the two locker blocks stand on the deck, with an open passage between them.
+structures['forward-uptake'] = shape('forward-uptake', 'Forward Uptake', mirror([(0, -19.75), (1.33, -19.75), (2.45, -19.8), (3.45, -19.65),
+    (3.72, -18.7), (2.47, -10.6), (2.75, -10.15), (2.5, -9.9), (1.0, -10.1), (0, -10.2)]), 3.8, 4.95)
+locker = [(2.45, -19.81), (3.37, -19.69), (3.47, -19.59), (3.43, -17.11), (2.87, -13.47), (2.63, -13.19), (2.55, -12.63), (2.45, -12.53),
+          (1.89, -12.45), (1.79, -12.55), (1.75, -13.47), (1.79, -19.39), (2.29, -19.49)]
+for side, sign in [('starboard', 1), ('port', -1)]:
+    ring = [[round(sign * x, 4), z] for x, z in locker]
+    if sign < 0: ring.reverse()
+    structures['torpedo-lockers-' + side] = shape('torpedo-lockers-' + side, 'Torpedo reload lockers ' + side, ring, 2.77, 3.8)
+# The raised torpedo working deck now ends against the casing's after face.
+structures['torpedo-working-deck'] = shape('torpedo-working-deck', 'Raised torpedo working deck', [[1.05, 4.3], [2.52, .1], [2.55, -3.6], [2.78, -5.8],
+    [2.55, -7.4], [2.48, -10.0], [-2.48, -10.0], [-2.55, -7.4], [-2.78, -5.8], [-2.55, -3.6], [-2.52, .1], [-1.05, 4.3]], 2.76, 3.697)
 # After deckhouse: a low forward part (4.2 m) round the mainmast and the full-height after part
 # (5.05 m) carrying No. 2 mount, 3.16 m either side and rounded aft.
 structures['after-deckhouse-forward'] = shape('after-deckhouse-forward', 'After Deckhouse Forward',
@@ -135,7 +149,7 @@ for i, s in enumerate(bp['structures']):
         bp['structures'][i] = {**{k: new[k] for k in ['id', 'name']}, **{k: v for k, v in new.items() if k not in ('id', 'name')}, **keep}
         seen.add(s['id'])
 # New records go in after the record they extend.
-for sid, after_id in [('after-deckhouse-forward', 'after-deckhouse')]:
+for sid, after_id in [('after-deckhouse-forward', 'after-deckhouse'), ('torpedo-lockers-starboard', 'forward-uptake'), ('torpedo-lockers-port', 'forward-uptake')]:
     if sid not in seen:
         k = next(i for i, s in enumerate(bp['structures']) if s['id'] == after_id)
         bp['structures'].insert(k, structures[sid]); seen.add(sid)

@@ -58,19 +58,21 @@ def refined_funnels():
         if label=='forward':
             # Port steam pipe's run up the funnel side, turning in to the whistle frame on the centreline.
             y=1.56
-            tube_path('forward-funnel.steam-riser',[(14.0,y,9.6),(14.0,y,11.9),(14.0,y-.2,12.09),(14.0,.25,12.09),(14.0,.05,12.09)],.12,materials['naval'],sides=12)
+            rod('forward-funnel.steam-riser',(14.0,y,9.6),(14.0,y,12.45),.12,materials['naval'],vertices=12)
+            rod('forward-funnel.riser-mouth',(14.0,y,12.43),(14.0,y,12.47),.09,materials['dark'],vertices=12)
+            rod('forward-funnel.outlet-stem',(14.0,0,10.9),(14.0,0,12.25),.09,materials['naval'],vertices=12)
             for z in [10.3,11.3]:rod('forward-funnel.riser-bracket',(14.0,y,z),(14.0,1.0,z),.04,materials['edge'])
-            for x,z0 in [(13.45,11.35),(14.55,11.75)]:
+            for x,z0 in [(13.6,11.4),(14.4,11.7)]:
                 rod('forward-funnel.steam-outlet',(x,0,z0),(x,0,12.47),.11,materials['naval'],vertices=16)
                 rod('forward-funnel.outlet-mouth',(x,0,12.45),(x,0,12.49),.08,materials['dark'],vertices=16)
-            rod('forward-funnel.outlet-crosspipe',(13.45,0,12.09),(14.55,0,12.09),.09,materials['naval'],vertices=16)
+            rod('forward-funnel.outlet-crosspipe',(13.6,0,12.25),(14.4,0,12.25),.09,materials['naval'],vertices=16)
             # Flared skirt round the funnel foot: an oval shelf reaching 1.8 m aft of the barrel.
             def oval(cz,a,b,z,n=48):return [(cz+a*math.cos(t),b*math.sin(t),z) for t in [i*math.tau/n for i in range(n)]]
-            rings=[oval(13.85,2.02,1.13,5.72),oval(12.93,2.78,1.58,6.05),oval(12.93,2.78,1.58,6.3),oval(13.84,1.98,1.11,6.62)]
+            rings=[oval(13.5,2.3,1.35,4.95),oval(12.93,2.78,1.58,5.75),oval(12.93,2.78,1.58,5.95),oval(13.84,1.98,1.11,6.55)]
             n=48;vs=[p for r in rings for p in r]
             fs=[(k*n+j,k*n+(j+1)%n,(k+1)*n+(j+1)%n,(k+1)*n+j) for k in range(3) for j in range(n)]
             mesh('forward-funnel.skirt',vs,fs,materials['naval'],smooth=True)
-            tube_path('forward-funnel.skirt-edge',oval(12.93,2.8,1.6,6.3),.035,materials['edge'],closed=True)
+            tube_path('forward-funnel.skirt-edge',oval(12.93,2.8,1.6,5.95),.035,materials['edge'],closed=True)
         # Fine external braces seat directly on the lower casing and jacket.
         for sign in [-1,1]:
             for x in [cx-rx,cx+rx]:rod(label+'-funnel.guy',(x,sign*ry*.72,base-.035),(cx+rake+sign*.45,sign*ry*.96,top-1.2),.008,materials['edge'],vertices=5)

@@ -219,7 +219,7 @@ for s in definition['structures']:
  outline=[(-z,-x) for x,z in s['footprint']]
  prism(s['id']+'.walls',outline,s['baseY'],s['baseY']+s['height'])
  tube_path(s['id']+'.edge',[(x,y,s['baseY']+s['height']+.02) for x,y in outline],.045,materials['edge'],closed=True)
- if s['id'] not in ['director-house','wheelhouse','bridge-lower','bridge-middle','bridge-after']:
+ if s['id'] not in ['director-house','wheelhouse','bridge-lower','bridge-middle','bridge-after','forward-uptake'] and not s['id'].startswith('torpedo-lockers'):
   w=max(abs(y) for x,y in outline);xmin=min(x for x,y in outline);xmax=max(x for x,y in outline)
   for sign in [-1,1]:
    for x in [xmin+.9+i*2.5 for i in range(max(1,int((xmax-xmin-1)/2.5)))]:
@@ -309,9 +309,10 @@ hood=[(21.39+1.12*math.cos(math.pi*i/14),4.35+1.47*math.sin(math.pi*i/14)) for i
 vs=[(x,y,z) for y in [-1.73,1.73] for x,z in hood];n=len(hood)
 mesh('bridge.intake-hood',vs,[(i,i+1,n+i+1,n+i) for i in range(n-1)]+[tuple(range(n)),tuple(reversed(range(n,2*n))),(0,n,2*n-1,n-1)],materials['naval'],smooth=True)
 for sign in [-1,1]:
- # Torpedo reload housings seated along the central working deck.
- prism('torpedo-reload.housing',outline_rect(8.0,16.8,sign*2.3-.45,sign*2.3+.45,.18),2.80,3.65)
- for x in [8.5,11,14,16]:box('torpedo-reload.stiffener',(x,sign*2.3,3.67),(.045,.9,.055),materials['edge'],bev=.004)
+ # Torpedo reload lockers built into the fore funnel casing: planked lids with stiffeners on top.
+ for x in [11.6,13.4,15.2,17.0,18.8]:
+  box('torpedo-reload.stiffener',(x,sign*(2.3+.55*(x-11.6)/7.2),4.97),(.06,1.3+1.1*(x-11.6)/7.2,.05),materials['edge'],bev=.004)
+ box('torpedo-reload.lid-seam',(15.2,sign*1.72,4.97),(7.8,.05,.05),materials['edge'],bev=.004)
  # Bilge keels as measured on the approved model: a tapering fin about 0.85 m deep at the turn of
  # the bilge, from 16.7 m forward to 21.9 m aft of midships; its root embeds in the shell.
  xs=[16.7,15.9,15]+[12-3*i for i in range(11)]+[-20.2,-21.1,-21.87]
@@ -401,9 +402,10 @@ for l in definition['depthChargeLaunchers']:
  if name!='depth-charge-7':
   for sign in [-1,1]:
    rod(name+'.track',(x-.45,y+sign*.26,deckz(x)+.16),(x+.5,y+sign*.26,deckz(x)+.16),.05,materials['edge'])
-   for xx in [x-.35,x+.35]:rod(name+'.foot',(xx,y+sign*.26,deckz(x)),(xx,y+sign*.26,z),.035,materials['naval'])
-  rod(name+'.charge',(x,y-.34,z+.19),(x,y+.34,z+.19),.22,materials['naval'],vertices=24)
-  for sign in [-1,1]:rod(name+'.drum-band',(x,y+sign*.25-.02,z+.19),(x,y+sign*.25+.02,z+.19),.24,materials['edge'],vertices=24)
+   for xx in [x-.35,x+.35]:rod(name+'.foot',(xx,y+sign*.26,deckz(x)),(xx,y+sign*.26,deckz(x)+.16),.035,materials['naval'])
+  zc=deckz(x)+.27
+  rod(name+'.charge',(x,y-.34,zc),(x,y+.34,zc),.22,materials['naval'],vertices=24)
+  for sign in [-1,1]:rod(name+'.drum-band',(x,y+sign*.25-.02,zc),(x,y+sign*.25+.02,zc),.24,materials['edge'],vertices=24)
  else:
   cyl(name+'.pedestal',(x,y,3.15),.28,.75,materials['naval'],vertices=24)
   rod(name+'.cross-projector',(x,-.7,3.65),(x,.7,3.65),.14,materials['edge'],vertices=24)
@@ -445,8 +447,8 @@ for sign in [-1,1]:
  rod('propulsion.bossing',(-34.2,y,shaft_y(-34.2)),(-39.5,y,shaft_y(-39.5)),.46,materials['hullgray'],r2=.21,vertices=20)
  rod('propulsion.strut-barrel',(-47.4,y,shaft_y(-47.4)),(-49.9,y,shaft_y(-49.9)),.31,materials['naval'],r2=.27,vertices=20)
  bx=-48.55;by=shaft_y(bx)
- strut('propulsion.strut',(bx,y,by),(bx,sign*3.28,-.45),1.0,.15,materials['naval'])
- strut('propulsion.strut',(bx,y,by),(bx,sign*.98,-1.05),1.0,.15,materials['naval'])
+ strut('propulsion.strut',(bx,y,by),(bx,sign*3.28,-.45),.72,.14,materials['naval'])
+ strut('propulsion.strut',(bx,y,by),(bx,sign*.98,-1.05),.72,.14,materials['naval'])
  hz=shaft_y(-50.3)
  rod('propulsion.hub',(-49.9,y,hz),(-51.62,y,hz),.30,materials['bronze'],r2=.07,vertices=24)
  for j in range(3):
