@@ -138,3 +138,16 @@ def shaped_gallery(id,name,solid=True):
   for hrail in ([s['height']] if solid else [.58,1.05]):rod(name+' rim',(*a,z+hrail),(*b,z+hrail),.027,edge,SUPER,vertices=6)
 
 fm=dict(**materials,glass=glass)
+
+
+def ha_director(xx,yy,zz,support,compact=False):
+ # Type 95 (compact) and machine-gun control stations share one hooded form.
+ floor=support.below(xx,yy,zz)
+ if zz-floor>.02:cyl('HA director foundation',(xx,yy,(floor+zz)/2),.65,zz-floor+.02,naval,SUPER,24)
+ width=2.169 if compact else 2.217
+ height=1.284 if compact else 1.918
+ shoulder=.35 if compact else .60
+ cyl('HA director pedestal',(xx,yy,zz+(shoulder+.04)/2),.48,shoulder+.04,naval,SUPER,24)
+ rounded('HA director hood',xx,yy,zz+shoulder,2.262 if compact else 2.206,width,height-shoulder,naval,SUPER,cut=.42)
+ box('HA director optical window',(xx+1.11,yy,zz+height-.49),(.06,.85,.26),glass,SUPER)
+ box('HA director window brow',(xx+1.15,yy,zz+height-.30),(.20,1.03,.08),edge,SUPER)

@@ -143,6 +143,10 @@ def build():
    rod('Type 22 horn aperture',radar_pt(front+.002,h),radar_pt(front+.008,h),r_mouth*.89,dark,MAST,vertices=20)
    rod('Type 22 horn saddle',radar_pt(0,h-.08),radar_pt(back+.17,h),.035,edge,MAST,vertices=8)
   radar_pivot('radar-22-'+('port' if side==1 else 'starboard')+'.yaw',(-1.322,side*5.424,31.53),set(bpy.context.scene.objects)-radar_before)
+ director_support=SupportSurface([*HULL.objects,*SUPER.objects])
+ for side in (-1,1):
+  for xx,yy,zz in [(1.71,4.46,22.81),(4.54,1.63,26.13),(-8.14,5.62,17.87),(-11.25,6.03,18.72)]:
+   ha_director(xx,side*yy,zz,director_support,zz==26.13)
  fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),fm,SUPER)
  for side in [-1,1]:
   fit.stairs('Lower bridge stair',(-8.5,side*4.8,18.7),(-5.5,side*4.8,22.25))

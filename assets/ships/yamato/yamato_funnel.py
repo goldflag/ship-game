@@ -58,6 +58,7 @@ def build():
    prism('Searchlight gallery deck',outline,zz,zz+.18,roof,SUPER)
    perimeter_band('Searchlight gallery bulwark',outline,zz+.18,.7,naval,SUPER)
    light('150 cm searchlight',xx,cy,zz+.18,side*90)
+ for side in (-1,1):ha_director(-38.85,side*6.24,15.07,searchlight_support)
  # Tripod mainmast and open radar aerials. Sizes are interpreted from elevations.
  for a in [(-28,-3.8,16),(-28,3.8,16),(-35,0,14)]:rod('Tripod mast leg',a,(-37,0,39.6),.24,edge,MAST,r2=.13,vertices=12)
  rod('Mainmast yard',(-34.5,-12,33),(-34.5,12,33),.12,edge,MAST,vertices=10)

@@ -7,20 +7,6 @@ def base():
 
 
 def build():
- director_support=SupportSurface([*HULL.objects,*SUPER.objects])
- for side in (-1,1):
-  for xx,yy,zz in [(1.71,4.46,22.81),(4.54,1.63,26.13),(-38.85,6.24,15.07),(-8.14,5.62,17.87),(-11.25,6.03,18.72)]:
-   floor=director_support.below(xx,side*yy,zz)
-   if zz-floor>.02:cyl('HA director foundation',(xx,side*yy,(floor+zz)/2),.65,zz-floor+.02,naval,SUPER,24)
-   compact=zz==26.13
-   width=2.169 if compact else 2.217
-   height=1.284 if compact else 1.918
-   shoulder=.35 if compact else .60
-   cyl('HA director pedestal',(xx,side*yy,zz+(shoulder+.04)/2),.48,shoulder+.04,naval,SUPER,24)
-   rounded('HA director hood',xx,side*yy,zz+shoulder,2.262 if compact else 2.206,width,height-shoulder,naval,SUPER,cut=.42)
-   box('HA director optical window',(xx+1.11,side*yy,zz+height-.49),(.06,.85,.26),glass,SUPER)
-   box('HA director window brow',(xx+1.15,side*yy,zz+height-.30),(.20,1.03,.08),edge,SUPER)
-
  # Heavy AA uses blueprint joints; 25 mm fittings retain visual assembly ownership.
  # Counts, detailed positions and performance remain under review.
  def blast_shield(name,x,y,z,length,width,height,bearing):
