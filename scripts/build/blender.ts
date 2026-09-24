@@ -59,12 +59,14 @@ const py = (value: string) => JSON.stringify(value);
 export function blenderAuditHook(audit: BlenderAudit): string {
   const substrings = ['/reference-cache', '/bismarck/baseline/', ...(audit.forbid === 'published' ? [audit.root + '/public/models/'] : [])];
   const suffixes = ['.model', '.geometry', ...(audit.forbid === 'published' ? ['.glb', '.gltf'] : [])];
-  return `import sys, os, json, runpy, importlib.util
+  return `import sys, os, re, json, runpy, importlib.util
 _blender_reads=set()
 def _blender_audit(event,args):
  if event=='socket.connect': raise RuntimeError('Network access is not an authoring dependency')
  if event=='open' and isinstance(args[0],(str,bytes)):
   p=os.path.realpath(os.fsdecode(args[0]))
+  # Python writes fresh bytecode through a temporary name.pyc.<digits> before renaming it.
+  if '/__pycache__/' in p: p=re.sub(r'\\.pyc\\.\\d+$','.pyc',p)
   if p.endswith('.pyc') and '/__pycache__/' in p: p=importlib.util.source_from_cache(p)
   if any(s in p for s in ${JSON.stringify(substrings)}) or p.endswith(tuple(${JSON.stringify(suffixes)})):
    raise RuntimeError('Reference/baseline geometry is forbidden in original authoring: '+p)

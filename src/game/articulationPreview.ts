@@ -21,7 +21,9 @@ export class ArticulationResolver {
     const id = ++this.nextId;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      this.worker.postMessage({ id, definition, current, requested });
+      // Presets are Proxies (presetLoading.ts), which structured clone rejects; a spread of the
+      // admitted definition is a plain object over its real fields.
+      this.worker.postMessage({ id, definition: { ...definition }, current, requested });
     });
   }
   dispose(error = new Error('Articulation preview closed')) {

@@ -38,11 +38,11 @@ for mount in definition['mounts']:
     check(mount['id']+'.optical-base', (hoods[0].matrix_world.translation-hoods[1].matrix_world.translation).length, 15, 'O-45(N) printed p.17; hood centres represent optical stations')
 
 for side, sign in [('port',1),('starboard',-1)]:
-    for suffix, lateral in [('outer',8.2),('inner',4.8)]:
+    for suffix, lateral, height in [('outer',10.94,-7.31),('inner',3.85,-7.39)]:
         assembly=f'propeller-{side}-{suffix}'
         blades=[o for o in bpy.context.scene.objects if o.get('assemblyId')==assembly and o.type=='MESH']
         assert len(blades)==3, (assembly,len(blades))
-        radius=max(((p.y-sign*lateral)**2+(p.z+7.8)**2)**.5 for blade in blades for p in [blade.matrix_world @ v.co for v in blade.data.vertices])
+        radius=max(((p.y-sign*lateral)**2+(p.z-height)**2)**.5 for blade in blades for p in [blade.matrix_world @ v.co for v in blade.data.vertices])
         check(assembly+'.diameter', radius*2, 5, 'Kure Museum screw/rudder detail page; nominal blade surface before cast thickness')
 
 reflectors = sorted((o for o in bpy.context.scene.objects if '150 cm reflector' in o.name), key=lambda o:o.name)
