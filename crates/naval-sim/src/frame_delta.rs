@@ -22,6 +22,12 @@
 //! later null reports the key as removed. Neither transport nor the receiver
 //! strips nulls again. The one exception, [`KEEP_NULL`], is declared next to the
 //! field that needs it.
+//!
+//! The custom-battle worker's stream can travel in a binary form of the same
+//! patch ([`FrameDelta::binary`]): numbers as their eight bytes, keys as numbers
+//! from a table the stream builds as it goes, and text in one small JSON array
+//! at the end. It never crosses a network, so it is free to change with the
+//! client that reads it (`src/game/session/frameDelta.ts`).
 use serde::{
     Deserialize, Serialize, Serializer,
     ser::{
@@ -30,7 +36,7 @@ use serde::{
     },
 };
 use serde_json::Value;
-use std::fmt::Write as _;
+use std::{collections::HashMap, io::Write as _};
 use ts_rs::TS;
 
 /// The one field where an explicit null is an operating policy ("unlimited")
@@ -132,9 +138,18 @@ enum Node {
     Float(f64),
     Text(Box<str>),
     Array(Vec<Node>),
-    Object(Vec<(Name, Node)>),
+    Object(Vec<Entry>),
     /// Pre-rendered JSON for shapes compared whole rather than walked.
     Raw(Box<str>),
+}
+
+/// An object field. `key` is the name's number in a binary stream's key table,
+/// given when the field first enters the shadow; a text stream leaves it 0.
+#[derive(Clone)]
+struct Entry {
+    name: Name,
+    key: u32,
+    value: Node,
 }
 
 impl Node {
@@ -155,45 +170,149 @@ impl Node {
         matches!(self, Self::Array(_) | Self::Object(_))
             || matches!(self, Self::Raw(text) if text.starts_with(['{', '[']))
     }
-    fn write(&self, out: &mut String) {
+    fn write(&self, out: &mut Vec<u8>) {
         match self {
-            Self::Null => out.push_str("null"),
-            Self::Bool(value) => out.push_str(if *value { "true" } else { "false" }),
+            Self::Null => out.extend_from_slice(b"null"),
+            Self::Bool(value) => out.extend_from_slice(if *value { b"true" } else { b"false" }),
             Self::Int(value) => {
                 let _ = write!(out, "{value}");
             }
             Self::Float(value) => write_f64(out, *value),
             Self::Text(value) => write_text(out, value),
             Self::Array(items) => {
-                out.push('[');
+                out.push(b'[');
                 for (index, item) in items.iter().enumerate() {
                     if index > 0 {
-                        out.push(',');
+                        out.push(b',');
                     }
                     item.write(out);
                 }
-                out.push(']');
+                out.push(b']');
             }
             Self::Object(entries) => {
-                out.push('{');
-                for (index, (name, value)) in entries.iter().enumerate() {
+                out.push(b'{');
+                for (index, entry) in entries.iter().enumerate() {
                     if index > 0 {
-                        out.push(',');
+                        out.push(b',');
                     }
-                    write_key(out, name.as_str());
-                    out.push(':');
-                    value.write(out);
+                    write_key(out, entry.name.as_str());
+                    out.push(b':');
+                    entry.value.write(out);
                 }
-                out.push('}');
+                out.push(b'}');
             }
-            Self::Raw(text) => out.push_str(text),
+            Self::Raw(text) => out.extend_from_slice(text.as_bytes()),
+        }
+    }
+    /// The binary form of [`Self::write`]: text and pre-rendered JSON go to the
+    /// update's table and travel as their place in it.
+    fn write_binary(&self, out: &mut Vec<u8>, table: &mut Table) {
+        match self {
+            Self::Null => out.push(tag::NULL),
+            Self::Bool(value) => out.push(if *value { tag::TRUE } else { tag::FALSE }),
+            // The number the client would parse from the decimal text: both round to nearest, ties to even.
+            Self::Int(value) => push_number(out, *value as f64),
+            Self::Float(value) => push_number(out, *value),
+            Self::Text(value) => {
+                out.push(tag::TEXT);
+                push_leb(out, table.push(|text| write_text(text, value)));
+            }
+            Self::Array(items) => {
+                out.push(tag::ARRAY);
+                push_leb(out, items.len());
+                for item in items {
+                    item.write_binary(out, table);
+                }
+            }
+            Self::Object(entries) => {
+                out.push(tag::OBJECT);
+                push_leb(out, entries.len());
+                for entry in entries {
+                    push_leb(out, entry.key as usize);
+                    entry.value.write_binary(out, table);
+                }
+            }
+            Self::Raw(text) => {
+                out.push(tag::JSON);
+                push_leb(
+                    out,
+                    table.push(|out| out.extend_from_slice(text.as_bytes())),
+                );
+            }
         }
     }
     fn field(&self, key: &str) -> Option<&Node> {
         match self {
-            Self::Object(entries) => entries.iter().find(|(name, _)| name.is(key)).map(|e| &e.1),
+            Self::Object(entries) => entries
+                .iter()
+                .find(|entry| entry.name.is(key))
+                .map(|entry| &entry.value),
             _ => None,
         }
+    }
+}
+
+/// The binary grammar's tags. A patch is the text grammar's, spelled in bytes:
+/// numbers are little-endian `f64`s, counts, indexes and keys unsigned LEB128.
+/// A value is `NULL`, `FALSE`, `TRUE`, `NUMBER` and its eight bytes, `TEXT` or
+/// `JSON` and a place in the update's table, `ARRAY` with a count of values, or
+/// `OBJECT` with a count of key and value pairs. A patch is a value, which
+/// replaces, or `PATCH_OBJECT`, `(key + 1, patch)`… `END`, then the count and
+/// keys of the fields removed; `PATCH_ARRAY`, `(index + 1, patch)`… `END`; or
+/// `PATCH_KEYED`, the count and `[index, previous index, count]` runs of
+/// survivors, the new length, then `(index + 1, patch)`… `END`.
+mod tag {
+    pub const END: u8 = 0;
+    pub const NULL: u8 = 1;
+    pub const FALSE: u8 = 2;
+    pub const TRUE: u8 = 3;
+    pub const NUMBER: u8 = 4;
+    pub const TEXT: u8 = 5;
+    pub const JSON: u8 = 6;
+    pub const ARRAY: u8 = 7;
+    pub const OBJECT: u8 = 8;
+    pub const PATCH_OBJECT: u8 = 9;
+    pub const PATCH_ARRAY: u8 = 10;
+    pub const PATCH_KEYED: u8 = 11;
+}
+/// The bytes ahead of a binary update's patch (see [`FrameDelta::update_binary`]).
+const BINARY_HEADER: usize = 28;
+
+/// What a binary update carries besides its bytes: the text and pre-rendered
+/// values it refers to, and the keys it numbered, which end it as one JSON
+/// array (values first, then the new keys in number order).
+#[derive(Default)]
+struct Table {
+    values: Vec<u8>,
+    count: usize,
+    /// The stream's key numbers, kept until its baseline is dropped.
+    keys: HashMap<Box<str>, u32>,
+    fresh: Vec<u8>,
+    fresh_count: usize,
+}
+impl Table {
+    /// Append one JSON element and return its place.
+    fn push(&mut self, write: impl FnOnce(&mut Vec<u8>)) -> usize {
+        if self.count > 0 {
+            self.values.push(b',');
+        }
+        write(&mut self.values);
+        self.count += 1;
+        self.count - 1
+    }
+    /// The number of a key, numbering it for the client if it is new.
+    fn key(&mut self, name: &str) -> u32 {
+        if let Some(&key) = self.keys.get(name) {
+            return key;
+        }
+        let key = self.keys.len() as u32;
+        self.keys.insert(name.into(), key);
+        if self.fresh_count > 0 {
+            self.fresh.push(b',');
+        }
+        write_text(&mut self.fresh, name);
+        self.fresh_count += 1;
+        key
     }
 }
 
@@ -201,30 +320,40 @@ impl Node {
 /// container headers wait in `pending`; the first leaf that moves flushes the
 /// ancestors that lead to it, and a subtree that turns out to be unchanged winds
 /// the buffers back. Nothing speculative reaches `out`, so the fields that did
-/// not move cost no formatting at all.
+/// not move cost no formatting at all. The grammar's tokens are written here, as
+/// text or, for a binary stream (`table`), as bytes.
 #[derive(Default)]
 struct Ctx {
-    out: String,
-    pending: String,
+    out: Vec<u8>,
+    pending: Vec<u8>,
     flushed: usize,
+    table: Option<Box<Table>>,
 }
 #[derive(Clone, Copy)]
 struct Mark {
     out: usize,
     pending: usize,
     flushed: usize,
+    values: usize,
+    count: usize,
 }
 impl Ctx {
     fn mark(&self) -> Mark {
+        let (values, count) = self
+            .table
+            .as_ref()
+            .map_or((0, 0), |table| (table.values.len(), table.count));
         Mark {
             out: self.out.len(),
             pending: self.pending.len(),
             flushed: self.flushed,
+            values,
+            count,
         }
     }
     fn flush(&mut self) {
         if self.flushed < self.pending.len() {
-            self.out.push_str(&self.pending[self.flushed..]);
+            self.out.extend_from_slice(&self.pending[self.flushed..]);
             self.flushed = self.pending.len();
         }
     }
@@ -232,6 +361,148 @@ impl Ctx {
         self.out.truncate(mark.out);
         self.pending.truncate(mark.pending);
         self.flushed = mark.flushed;
+        if let Some(table) = &mut self.table {
+            table.values.truncate(mark.values);
+            table.count = mark.count;
+        }
+    }
+    /// The number a new shadow field's name travels as.
+    fn key(&mut self, name: &Name) -> u32 {
+        self.table
+            .as_mut()
+            .map_or(0, |table| table.key(name.as_str()))
+    }
+    /// A replacement: scalars are their own patch; a replaced object or array
+    /// is wrapped in text, because an unwrapped object would read as a patch.
+    fn replacement(&mut self, node: &Node) {
+        match &mut self.table {
+            Some(table) => node.write_binary(&mut self.out, table),
+            None if node.container() => {
+                self.out.extend_from_slice(b"{\"value\":");
+                node.write(&mut self.out);
+                self.out.push(b'}');
+            }
+            None => node.write(&mut self.out),
+        }
+    }
+    fn open_object(&mut self) {
+        match self.table {
+            Some(_) => self.pending.push(tag::PATCH_OBJECT),
+            None => self.pending.extend_from_slice(b"{\"object\":{"),
+        }
+    }
+    fn object_field(&mut self, first: bool, entry: &Entry) {
+        match self.table {
+            Some(_) => push_leb(&mut self.pending, entry.key as usize + 1),
+            None => {
+                if !first {
+                    self.pending.push(b',');
+                }
+                write_key(&mut self.pending, entry.name.as_str());
+                self.pending.push(b':');
+            }
+        }
+    }
+    fn close_object(&mut self, removed: &[Entry]) {
+        if self.table.is_some() {
+            self.out.push(tag::END);
+            push_leb(&mut self.out, removed.len());
+            for entry in removed {
+                push_leb(&mut self.out, entry.key as usize);
+            }
+            return;
+        }
+        self.out.push(b'}');
+        if !removed.is_empty() {
+            self.out.extend_from_slice(b",\"removed\":[");
+            for (index, entry) in removed.iter().enumerate() {
+                if index > 0 {
+                    self.out.push(b',');
+                }
+                write_key(&mut self.out, entry.name.as_str());
+            }
+            self.out.push(b']');
+        }
+        self.out.push(b'}');
+    }
+    fn open_array(&mut self, keyed: bool) {
+        match self.table {
+            Some(_) if keyed => self.pending.push(tag::PATCH_KEYED),
+            Some(_) => self.pending.push(tag::PATCH_ARRAY),
+            None => self.pending.extend_from_slice(b"{\"array\":["),
+        }
+    }
+    fn array_element(&mut self, first: bool, index: usize) {
+        match self.table {
+            Some(_) => push_leb(&mut self.pending, index + 1),
+            None => {
+                if !first {
+                    self.pending.push(b',');
+                }
+                self.pending.push(b'[');
+                push_index(&mut self.pending, index);
+                self.pending.push(b',');
+            }
+        }
+    }
+    fn close_element(&mut self) {
+        if self.table.is_none() {
+            self.out.push(b']');
+        }
+    }
+    fn close_array(&mut self) {
+        match self.table {
+            Some(_) => self.out.push(tag::END),
+            None => self.out.extend_from_slice(b"]}"),
+        }
+    }
+    /// Where the header an array or object pushed at `mark` sits in `out` once
+    /// flushed: nothing reaches `out` between the mark and the first flush,
+    /// which writes the pending headers from `mark.flushed` on.
+    fn header(mark: Mark) -> usize {
+        mark.out + mark.pending - mark.flushed
+    }
+    /// A keyed collection whose survivors all stayed where they were: an
+    /// ordinary array patch.
+    fn close_keyed_in_place(&mut self, mark: Mark) {
+        if self.table.is_some() {
+            self.out[Self::header(mark)] = tag::PATCH_ARRAY;
+        }
+        self.close_array();
+    }
+    /// A keyed collection whose elements moved or went: the runs of survivors
+    /// and the new length. Text lists them after the patches; binary puts them
+    /// ahead of the patches, which the client applies to the array they build.
+    fn close_keyed(&mut self, mark: Mark, runs: &[[usize; 3]], length: usize) {
+        if self.table.is_some() {
+            self.out.push(tag::END);
+            let mut header = Vec::with_capacity(4 + runs.len() * 6);
+            push_leb(&mut header, runs.len());
+            for value in runs.iter().flatten() {
+                push_leb(&mut header, *value);
+            }
+            push_leb(&mut header, length);
+            let at = Self::header(mark) + 1;
+            self.out.splice(at..at, header);
+            return;
+        }
+        self.out.extend_from_slice(b"],\"from\":[");
+        for (index, run) in runs.iter().enumerate() {
+            if index > 0 {
+                self.out.push(b',');
+            }
+            self.out.push(b'[');
+            for (part, value) in run.iter().enumerate() {
+                if part > 0 {
+                    self.out.push(b',');
+                }
+                push_index(&mut self.out, *value);
+            }
+            self.out.push(b']');
+        }
+        self.out.extend_from_slice(b"],\"length\":");
+        push_index(&mut self.out, length);
+        self.out.push(b'}');
     }
 }
 
@@ -245,6 +516,19 @@ pub struct FrameDelta {
 }
 
 impl FrameDelta {
+    /// An encoder for the binary form of the stream ([`Self::update_binary`]).
+    pub fn binary() -> Self {
+        Self {
+            ctx: Ctx {
+                table: Some(Box::default()),
+                ..Ctx::default()
+            },
+            ..Self::default()
+        }
+    }
+    pub fn is_binary(&self) -> bool {
+        self.ctx.table.is_some()
+    }
     /// The tick the client is holding, so a stream that lost a reply is caught
     /// rather than silently applied to the wrong baseline.
     pub fn baseline_tick(&self) -> Option<u64> {
@@ -261,8 +545,12 @@ impl FrameDelta {
         self.shadow = Node::Null;
     }
     /// The patch text for the frame just encoded; empty when nothing moved.
+    /// A binary encoder's patch is not text and reads as empty.
     pub fn patch(&self) -> &str {
-        &self.ctx.out
+        if self.is_binary() {
+            return "";
+        }
+        std::str::from_utf8(&self.ctx.out).unwrap_or_default()
     }
     /// Encode `frame` against the baseline, reporting whether anything moved.
     /// The patch stays in this buffer, reused frame after frame.
@@ -274,6 +562,16 @@ impl FrameDelta {
     fn walk<T: Serialize + ?Sized>(&mut self, frame: &T) -> Result<bool, Error> {
         self.ctx.pending.clear();
         self.ctx.flushed = 0;
+        if let Some(table) = &mut self.ctx.table {
+            // A client holding no frame holds no key table either.
+            if matches!(self.shadow, Node::Null) {
+                table.keys.clear();
+            }
+            table.values.clear();
+            table.count = 0;
+            table.fresh.clear();
+            table.fresh_count = 0;
+        }
         let outcome = frame.serialize(Diff {
             shadow: &mut self.shadow,
             ctx: &mut self.ctx,
@@ -297,22 +595,67 @@ impl FrameDelta {
     /// nothing moved. This is the text both transports send. The buffer is
     /// reused frame after frame.
     pub fn update<T: Serialize + ?Sized>(&mut self, tick: u64, frame: &T) -> Result<&str, Error> {
+        if self.is_binary() {
+            return Err(Error::custom("A binary frame stream has no text update"));
+        }
         let out = &mut self.ctx.out;
         out.clear();
-        out.push_str("{\"baseTick\":");
+        out.extend_from_slice(b"{\"baseTick\":");
         match self.baseline_tick() {
             Some(base) => push_index(&mut self.ctx.out, base as usize),
-            None => self.ctx.out.push_str("null"),
+            None => self.ctx.out.extend_from_slice(b"null"),
         }
-        self.ctx.out.push_str(",\"tick\":");
+        self.ctx.out.extend_from_slice(b",\"tick\":");
         push_index(&mut self.ctx.out, tick as usize);
         let envelope = self.ctx.out.len();
-        self.ctx.out.push_str(",\"delta\":");
+        self.ctx.out.extend_from_slice(b",\"delta\":");
         if !self.walk(frame)? {
             self.ctx.out.truncate(envelope);
         }
-        self.ctx.out.push('}');
-        Ok(&self.ctx.out)
+        self.ctx.out.push(b'}');
+        std::str::from_utf8(&self.ctx.out).map_err(Error::custom)
+    }
+    /// The same update in the binary form ([`tag`]): a header of the tick and
+    /// the tick of the reference (-1 for none) as `f64`s, then as `u32`s the
+    /// table's offset, the keys the client must already hold (0 restarts its
+    /// key table) and the new keys at the table's end; then the patch, `END`
+    /// when nothing moved; then the table. The buffer is reused frame after frame.
+    pub fn update_binary<T: Serialize + ?Sized>(
+        &mut self,
+        tick: u64,
+        frame: &T,
+    ) -> Result<&[u8], Error> {
+        if !self.is_binary() {
+            return Err(Error::custom("A text frame stream has no binary update"));
+        }
+        let base = self.baseline_tick().map_or(-1., |base| base as f64);
+        self.ctx.out.clear();
+        self.ctx.out.extend_from_slice(&(tick as f64).to_le_bytes());
+        self.ctx.out.extend_from_slice(&base.to_le_bytes());
+        self.ctx.out.extend_from_slice(&[0; BINARY_HEADER - 16]);
+        if !self.walk(frame)? {
+            self.ctx.out.push(tag::END);
+        }
+        let (out, Some(table)) = (&mut self.ctx.out, &self.ctx.table) else {
+            return Err(Error::custom("A binary frame stream lost its table"));
+        };
+        let words = [
+            out.len(),
+            table.keys.len() - table.fresh_count,
+            table.fresh_count,
+        ];
+        for (index, word) in words.into_iter().enumerate() {
+            let word = u32::try_from(word).map_err(Error::custom)?;
+            out[16 + index * 4..20 + index * 4].copy_from_slice(&word.to_le_bytes());
+        }
+        out.push(b'[');
+        out.extend_from_slice(&table.values);
+        if table.count > 0 && table.fresh_count > 0 {
+            out.push(b',');
+        }
+        out.extend_from_slice(&table.fresh);
+        out.push(b']');
+        Ok(out)
     }
     /// A fresh encoder holding this one's baseline: the match server forks its
     /// immutable baseline for every publication, so each update is a patch
@@ -332,44 +675,44 @@ impl FrameDelta {
     pub fn complete<T: Serialize + ?Sized>(frame: &T) -> Result<String, Error> {
         let mut delta = FrameDelta::default();
         delta.encode(frame)?;
-        let mut out = String::with_capacity(delta.ctx.out.len());
+        let mut out = Vec::with_capacity(delta.ctx.out.len());
         delta.shadow.write(&mut out);
-        Ok(out)
+        String::from_utf8(out).map_err(Error::custom)
     }
 }
 
 /// serde_json's own number formatting, so the client parses exactly the text the
 /// complete projection would have produced. Non-finite floats are null there too.
-fn write_f64(out: &mut String, value: f64) {
+fn write_f64(out: &mut Vec<u8>, value: f64) {
     match serde_json::Number::from_f64(value) {
         Some(number) => {
             let _ = write!(out, "{number}");
         }
-        None => out.push_str("null"),
+        None => out.extend_from_slice(b"null"),
     }
 }
 
-fn write_text(out: &mut String, text: &str) {
+fn write_text(out: &mut Vec<u8>, text: &str) {
     match serde_json::to_string(text) {
-        Ok(escaped) => out.push_str(&escaped),
-        Err(_) => out.push_str("\"\""),
+        Ok(escaped) => out.extend_from_slice(escaped.as_bytes()),
+        Err(_) => out.extend_from_slice(b"\"\""),
     }
 }
 
-fn write_key(out: &mut String, key: &str) {
+fn write_key(out: &mut Vec<u8>, key: &str) {
     if key
         .bytes()
         .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
     {
-        out.push('"');
-        out.push_str(key);
-        out.push('"');
+        out.push(b'"');
+        out.extend_from_slice(key.as_bytes());
+        out.push(b'"');
     } else {
         write_text(out, key);
     }
 }
 
-fn push_index(out: &mut String, value: usize) {
+fn push_index(out: &mut Vec<u8>, value: usize) {
     let mut digits = [0u8; 20];
     let mut at = digits.len();
     let mut left = value;
@@ -381,19 +724,21 @@ fn push_index(out: &mut String, value: usize) {
             break;
         }
     }
-    out.push_str(std::str::from_utf8(&digits[at..]).unwrap_or("0"));
+    out.extend_from_slice(&digits[at..]);
 }
 
-/// Scalars are their own patch; a replaced object or array is wrapped, because
-/// an unwrapped object would be read as a nested patch.
-fn write_replacement(out: &mut String, node: &Node) {
-    if node.container() {
-        out.push_str("{\"value\":");
-        node.write(out);
-        out.push('}');
-    } else {
-        node.write(out);
+/// A count, index or key in the binary grammar: unsigned LEB128.
+fn push_leb(out: &mut Vec<u8>, mut value: usize) {
+    while value >= 0x80 {
+        out.push(value as u8 | 0x80);
+        value >>= 7;
     }
+    out.push(value as u8);
+}
+
+fn push_number(out: &mut Vec<u8>, value: f64) {
+    out.push(tag::NUMBER);
+    out.extend_from_slice(&value.to_le_bytes());
 }
 
 /// Strip what the client's decoder strips, for the values compared whole.
@@ -428,7 +773,7 @@ impl Diff<'_> {
             return Ok(Outcome::Unchanged);
         }
         self.ctx.flush();
-        write_replacement(&mut self.ctx.out, &node);
+        self.ctx.replacement(&node);
         *self.shadow = node;
         Ok(Outcome::Changed)
     }
@@ -630,7 +975,7 @@ struct DiffObject<'a> {
     first: bool,
     pending_key: Option<Name>,
     /// Fields that turned null this frame. The client still has their keys.
-    dropped: Vec<Name>,
+    dropped: Vec<Entry>,
 }
 
 impl<'a> DiffObject<'a> {
@@ -640,7 +985,7 @@ impl<'a> DiffObject<'a> {
             *diff.shadow = Node::Object(Vec::new());
         }
         let mark = diff.ctx.mark();
-        diff.ctx.pending.push_str("{\"object\":{");
+        diff.ctx.open_object();
         Self {
             shadow: diff.shadow,
             ctx: diff.ctx,
@@ -656,11 +1001,6 @@ impl<'a> DiffObject<'a> {
     fn field<T: Serialize + ?Sized>(&mut self, name: Name, value: &T) -> Result<(), Error> {
         let in_object = name.as_str() != KEEP_NULL;
         let mark = self.ctx.mark();
-        if !self.first {
-            self.ctx.pending.push(',');
-        }
-        write_key(&mut self.ctx.pending, name.as_str());
-        self.ctx.pending.push(':');
         let at = self.cursor;
         let Node::Object(entries) = &mut *self.shadow else {
             return Err(Error::custom("Frame shadow lost its object"));
@@ -670,20 +1010,29 @@ impl<'a> DiffObject<'a> {
         // reappears out of order rotates back into place; a new one is inserted
         // where it was emitted, which keeps the shadow's order the frame's.
         let mut fresh = false;
-        if !(at < entries.len() && entries[at].0.is(name.as_str())) {
+        if !(at < entries.len() && entries[at].name.is(name.as_str())) {
             match entries
                 .get(at + 1..)
-                .and_then(|rest| rest.iter().position(|(key, _)| key.is(name.as_str())))
+                .and_then(|rest| rest.iter().position(|entry| entry.name.is(name.as_str())))
             {
                 Some(offset) => entries[at..=at + 1 + offset].rotate_right(1),
                 None => {
-                    entries.insert(at, (name, Node::Null));
+                    let key = self.ctx.key(&name);
+                    entries.insert(
+                        at,
+                        Entry {
+                            name,
+                            key,
+                            value: Node::Null,
+                        },
+                    );
                     fresh = true;
                 }
             }
         }
+        self.ctx.object_field(self.first, &entries[at]);
         let outcome = value.serialize(Diff {
-            shadow: &mut entries[at].1,
+            shadow: &mut entries[at].value,
             ctx: self.ctx,
             in_object,
             keyed: false,
@@ -703,11 +1052,11 @@ impl<'a> DiffObject<'a> {
                 let Node::Object(entries) = &mut *self.shadow else {
                     return Err(Error::custom("Frame shadow lost its object"));
                 };
-                let (name, _) = entries.remove(at);
+                let entry = entries.remove(at);
                 // A field the client already has needs an explicit removal; one
                 // that was never sent simply stays absent.
                 if !fresh {
-                    self.dropped.push(name);
+                    self.dropped.push(entry);
                 }
             }
         }
@@ -720,11 +1069,11 @@ impl<'a> DiffObject<'a> {
         let Node::Object(entries) = &mut *self.shadow else {
             return Err(Error::custom("Frame shadow lost its object"));
         };
-        removed.extend(entries.split_off(at).into_iter().map(|(name, _)| name));
+        removed.extend(entries.split_off(at));
         if self.replace {
             self.ctx.restore(self.mark);
             self.ctx.flush();
-            write_replacement(&mut self.ctx.out, self.shadow);
+            self.ctx.replacement(self.shadow);
             return Ok(Outcome::Changed);
         }
         if !self.changed && removed.is_empty() {
@@ -733,18 +1082,7 @@ impl<'a> DiffObject<'a> {
         }
         // Removals alone still need the header no field flushed.
         self.ctx.flush();
-        self.ctx.out.push('}');
-        if !removed.is_empty() {
-            self.ctx.out.push_str(",\"removed\":[");
-            for (index, name) in removed.iter().enumerate() {
-                if index > 0 {
-                    self.ctx.out.push(',');
-                }
-                write_key(&mut self.ctx.out, name.as_str());
-            }
-            self.ctx.out.push(']');
-        }
-        self.ctx.out.push('}');
+        self.ctx.close_object(&removed);
         Ok(Outcome::Changed)
     }
 }
@@ -773,7 +1111,7 @@ struct Keyed {
 /// The key a [`keyed`] element leads with, as the shadow holds it.
 fn key_of(node: &Node) -> Option<&Node> {
     match node {
-        Node::Object(entries) => entries.first().map(|(_, value)| value).filter(|value| {
+        Node::Object(entries) => entries.first().map(|entry| &entry.value).filter(|value| {
             matches!(
                 value,
                 Node::Int(_) | Node::Float(_) | Node::Text(_) | Node::Bool(_)
@@ -803,7 +1141,7 @@ impl<'a> DiffSeq<'a> {
             runs: Vec::new(),
         });
         let mark = diff.ctx.mark();
-        diff.ctx.pending.push_str("{\"array\":[");
+        diff.ctx.open_array(keyed.is_some());
         Self {
             shadow: diff.shadow,
             ctx: diff.ctx,
@@ -827,12 +1165,7 @@ impl<'a> DiffSeq<'a> {
             return self.keyed_element(value);
         }
         let mark = self.ctx.mark();
-        if !self.first {
-            self.ctx.pending.push(',');
-        }
-        self.ctx.pending.push('[');
-        push_index(&mut self.ctx.pending, self.index);
-        self.ctx.pending.push(',');
+        self.ctx.array_element(self.first, self.index);
         let at = self.index;
         let Node::Array(items) = &mut *self.shadow else {
             return Err(Error::custom("Frame shadow lost its array"));
@@ -848,7 +1181,7 @@ impl<'a> DiffSeq<'a> {
         })?;
         match outcome {
             Outcome::Changed => {
-                self.ctx.out.push(']');
+                self.ctx.close_element();
                 self.first = false;
                 self.changed = true;
             }
@@ -885,12 +1218,7 @@ impl<'a> DiffSeq<'a> {
             }
         }
         let mark = self.ctx.mark();
-        if !self.first {
-            self.ctx.pending.push(',');
-        }
-        self.ctx.pending.push('[');
-        push_index(&mut self.ctx.pending, self.index);
-        self.ctx.pending.push(',');
+        self.ctx.array_element(self.first, self.index);
         let outcome = value.serialize(Diff {
             shadow: &mut node,
             ctx: self.ctx,
@@ -898,11 +1226,12 @@ impl<'a> DiffSeq<'a> {
             keyed: false,
         })?;
         if outcome == Outcome::Changed {
-            self.ctx.out.push(']');
+            self.ctx.close_element();
         } else if claim.is_none() {
             // A new null element matches its empty shadow, but the client has no slot for it yet.
             self.ctx.flush();
-            self.ctx.out.push_str("null]");
+            self.ctx.replacement(&Node::Null);
+            self.ctx.close_element();
         } else {
             self.ctx.restore(mark);
         }
@@ -922,7 +1251,7 @@ impl<'a> DiffSeq<'a> {
             // Nothing survived: the array whole is shorter than its elements one by one.
             self.ctx.restore(self.mark);
             self.ctx.flush();
-            write_replacement(&mut self.ctx.out, self.shadow);
+            self.ctx.replacement(self.shadow);
             return Ok(Outcome::Changed);
         }
         if in_place {
@@ -930,28 +1259,12 @@ impl<'a> DiffSeq<'a> {
                 self.ctx.restore(self.mark);
                 return Ok(Outcome::Unchanged);
             }
-            self.ctx.out.push_str("]}");
+            self.ctx.close_keyed_in_place(self.mark);
             return Ok(Outcome::Changed);
         }
         // Elements moved or went: the header travels even when no element changed.
         self.ctx.flush();
-        self.ctx.out.push_str("],\"from\":[");
-        for (index, run) in keyed.runs.iter().enumerate() {
-            if index > 0 {
-                self.ctx.out.push(',');
-            }
-            self.ctx.out.push('[');
-            for (part, value) in run.iter().enumerate() {
-                if part > 0 {
-                    self.ctx.out.push(',');
-                }
-                push_index(&mut self.ctx.out, *value);
-            }
-            self.ctx.out.push(']');
-        }
-        self.ctx.out.push_str("],\"length\":");
-        push_index(&mut self.ctx.out, length);
-        self.ctx.out.push('}');
+        self.ctx.close_keyed(self.mark, &keyed.runs, length);
         Ok(Outcome::Changed)
     }
     fn finish(mut self) -> Result<Outcome, Error> {
@@ -966,16 +1279,14 @@ impl<'a> DiffSeq<'a> {
             // differ replaces such arrays too.
             self.ctx.restore(self.mark);
             self.ctx.flush();
-            self.ctx.out.push_str("{\"value\":");
-            self.shadow.write(&mut self.ctx.out);
-            self.ctx.out.push('}');
+            self.ctx.replacement(self.shadow);
             return Ok(Outcome::Changed);
         }
         if !self.changed {
             self.ctx.restore(self.mark);
             return Ok(Outcome::Unchanged);
         }
-        self.ctx.out.push_str("]}");
+        self.ctx.close_array();
         Ok(Outcome::Changed)
     }
 }
@@ -1282,6 +1593,152 @@ pub fn apply(previous: &mut Value, patch: &Value) {
     }
 }
 
+/// The client's binary reader (`BinaryFrameReader` in `frameDelta.ts`), for
+/// tests and native harnesses: the stream's key table and the frame it holds.
+/// Every number arrives as the `f64` the client holds.
+#[derive(Default)]
+pub struct BinaryClient {
+    keys: Vec<String>,
+    pub frame: Value,
+}
+impl BinaryClient {
+    /// Apply one [`FrameDelta::update_binary`] update, returning its tick and
+    /// the reference's tick, if any.
+    pub fn apply(&mut self, bytes: &[u8]) -> (f64, Option<f64>) {
+        let word =
+            |at: usize| u32::from_le_bytes(bytes[at..at + 4].try_into().expect("header")) as usize;
+        let float = |at: usize| f64::from_le_bytes(bytes[at..at + 8].try_into().expect("header"));
+        let (offset, known, fresh) = (word(16), word(20), word(24));
+        let mut table: Vec<Value> = serde_json::from_slice(&bytes[offset..]).expect("table");
+        if known == 0 {
+            self.keys.clear();
+        }
+        assert_eq!(self.keys.len(), known, "key table out of step");
+        let keys = table.split_off(table.len() - fresh);
+        self.keys.extend(
+            keys.into_iter()
+                .map(|key| key.as_str().expect("key").to_owned()),
+        );
+        let mut reader = Reader {
+            bytes: &bytes[..offset],
+            at: BINARY_HEADER,
+            keys: &self.keys,
+            table: &table,
+        };
+        if bytes[BINARY_HEADER] != tag::END {
+            reader.patch(&mut self.frame);
+        }
+        assert_eq!(
+            reader.at + usize::from(bytes[BINARY_HEADER] == tag::END),
+            offset
+        );
+        (float(0), Some(float(8)).filter(|base| *base >= 0.))
+    }
+}
+struct Reader<'a> {
+    bytes: &'a [u8],
+    at: usize,
+    keys: &'a [String],
+    table: &'a [Value],
+}
+impl Reader<'_> {
+    fn byte(&mut self) -> u8 {
+        self.at += 1;
+        self.bytes[self.at - 1]
+    }
+    fn leb(&mut self) -> usize {
+        let (mut value, mut shift) = (0, 0);
+        loop {
+            let byte = self.byte();
+            value |= usize::from(byte & 0x7f) << shift;
+            if byte < 0x80 {
+                return value;
+            }
+            shift += 7;
+        }
+    }
+    fn key(&mut self) -> String {
+        let key = self.leb();
+        self.keys[key].clone()
+    }
+    fn value(&mut self, tag: u8) -> Value {
+        match tag {
+            tag::NULL => Value::Null,
+            tag::FALSE => Value::Bool(false),
+            tag::TRUE => Value::Bool(true),
+            tag::NUMBER => {
+                self.at += 8;
+                let bytes = self.bytes[self.at - 8..self.at].try_into().expect("number");
+                Value::from(f64::from_le_bytes(bytes))
+            }
+            tag::TEXT | tag::JSON => self.table[self.leb()].clone(),
+            tag::ARRAY => {
+                let count = self.leb();
+                (0..count)
+                    .map(|_| {
+                        let tag = self.byte();
+                        self.value(tag)
+                    })
+                    .collect()
+            }
+            tag::OBJECT => {
+                let count = self.leb();
+                let mut fields = serde_json::Map::new();
+                for _ in 0..count {
+                    let key = self.key();
+                    let tag = self.byte();
+                    fields.insert(key, self.value(tag));
+                }
+                Value::Object(fields)
+            }
+            other => panic!("tag {other} is not a value"),
+        }
+    }
+    fn patch(&mut self, previous: &mut Value) {
+        match self.byte() {
+            tag::PATCH_OBJECT => {
+                let fields = previous.as_object_mut().expect("object baseline");
+                loop {
+                    let key = self.leb();
+                    if key == 0 {
+                        break;
+                    }
+                    let slot = fields
+                        .entry(self.keys[key - 1].clone())
+                        .or_insert(Value::Null);
+                    self.patch(slot);
+                }
+                for _ in 0..self.leb() {
+                    let key = self.key();
+                    fields.remove(&key);
+                }
+            }
+            kind @ (tag::PATCH_ARRAY | tag::PATCH_KEYED) => {
+                if kind == tag::PATCH_KEYED {
+                    let old = std::mem::take(previous.as_array_mut().expect("array baseline"));
+                    let runs: Vec<[usize; 3]> = (0..self.leb())
+                        .map(|_| [self.leb(), self.leb(), self.leb()])
+                        .collect();
+                    let mut items = vec![Value::Null; self.leb()];
+                    for [at, from, count] in runs {
+                        items[at..at + count].clone_from_slice(&old[from..from + count]);
+                    }
+                    *previous = Value::Array(items);
+                }
+                let items = previous.as_array_mut().expect("array baseline");
+                loop {
+                    let index = self.leb();
+                    if index == 0 {
+                        break;
+                    }
+                    self.patch(&mut items[index - 1]);
+                }
+            }
+            kind => *previous = self.value(kind),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1289,22 +1746,52 @@ mod tests {
 
     impl FrameDelta {
         fn shadow_value(&self) -> Value {
-            let mut text = String::new();
+            let mut text = Vec::new();
             self.shadow.write(&mut text);
-            serde_json::from_str(&text).expect("shadow json")
+            serde_json::from_slice(&text).expect("shadow json")
+        }
+    }
+
+    /// Every number as the `f64` a JavaScript client holds.
+    fn as_client(value: &Value) -> Value {
+        match value {
+            Value::Number(number) => Value::from(number.as_f64().expect("finite")),
+            Value::Array(items) => items.iter().map(as_client).collect(),
+            Value::Object(fields) => Value::Object(
+                fields
+                    .iter()
+                    .map(|(key, value)| (key.clone(), as_client(value)))
+                    .collect(),
+            ),
+            other => other.clone(),
         }
     }
 
     /// Drive the encoder from plain values so the shapes that matter (a field
     /// turning null, an array changing length, a key disappearing or coming
     /// back out of order, a leaf changing type) are covered without a battle.
+    /// The binary form of the same stream rebuilds the same frames.
     fn roundtrip<T: Serialize>(frames: &[T]) -> Vec<Option<Value>> {
         let mut delta = FrameDelta::default();
+        let mut binary = FrameDelta::binary();
+        let mut binary_client = BinaryClient::default();
         let mut client: Option<Value> = None;
         let mut patches = Vec::new();
         for frame in frames {
             let mut expected = serde_json::to_value(frame).expect("frame json");
             normalize(&mut expected);
+            let bytes = binary.update_binary(1, frame).expect("binary update");
+            binary_client.apply(bytes);
+            assert_eq!(
+                binary_client.frame,
+                as_client(&expected),
+                "binary frame {expected}"
+            );
+            assert_eq!(
+                binary.shadow_value(),
+                expected,
+                "binary shadow tracks the client"
+            );
             let changed = delta.encode(frame).expect("encode");
             let patch: Option<Value> =
                 changed.then(|| serde_json::from_str(delta.patch()).expect("patch json"));
@@ -1522,6 +2009,41 @@ mod tests {
         assert_eq!(delta.patch(), "{\"object\":{\"x\":-0.0}}");
         delta.reset();
         assert!(!delta.has_baseline());
+    }
+
+    /// A binary stream numbers each key once, tells the client how many it must
+    /// already hold, and starts its key table again with its baseline.
+    #[test]
+    fn a_binary_stream_numbers_keys_once_and_restarts_them_with_its_baseline() {
+        let mut delta = FrameDelta::binary();
+        let mut client = BinaryClient::default();
+        let keys = |bytes: &[u8]| {
+            let word = |at: usize| u32::from_le_bytes(bytes[at..at + 4].try_into().unwrap());
+            (word(20), word(24))
+        };
+        let frame = |tick: u64, x: f64| json!({"tick": tick, "planes": [{"id": "p", "x": x}]});
+        let first = delta.update_binary(1, &frame(1, 1.5)).unwrap().to_vec();
+        assert_eq!(keys(&first), (0, 4));
+        assert_eq!(client.apply(&first), (1., None));
+        let second = delta.update_binary(2, &frame(2, -0.0)).unwrap().to_vec();
+        assert_eq!(keys(&second), (4, 0));
+        assert_eq!(client.apply(&second), (2., Some(1.)));
+        let x = &client.frame["planes"][0]["x"];
+        assert!(x.as_f64().unwrap() == 0. && x.as_f64().unwrap().is_sign_negative());
+        // Nothing moved: the header, END and an empty table.
+        let same = delta.update_binary(2, &frame(2, -0.0)).unwrap().to_vec();
+        assert_eq!(same.len(), BINARY_HEADER + 3);
+        assert_eq!(client.apply(&same), (2., Some(2.)));
+        delta.reset();
+        let whole = delta
+            .update_binary(3, &json!({"tick": 3, "z": "text"}))
+            .unwrap()
+            .to_vec();
+        assert_eq!(keys(&whole), (0, 2));
+        assert_eq!(client.apply(&whole), (3., None));
+        assert_eq!(client.frame, json!({"tick": 3.0, "z": "text"}));
+        assert!(delta.update(4, &json!({})).is_err());
+        assert!(FrameDelta::default().update_binary(4, &json!({})).is_err());
     }
 
     #[test]

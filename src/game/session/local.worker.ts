@@ -8,6 +8,7 @@ import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { LocalConstructionInput, TrialAction } from './localConstruction';
 import { loadConstructionCatalog } from '../../ships/constructionEquipment';
+import { binaryUpdateTicks } from './frameDelta';
 let runtime: LocalRuntime | undefined;
 let wasmMemory: WebAssembly.Memory | undefined;
 let planner: PvePlanner | undefined;
@@ -79,8 +80,14 @@ async function loadContent(ids?: string[]): Promise<Uint8Array> {
 // LocalWorkerOperation correlates setup replies by this order and retires the
 // worker if a reply is abandoned; never publish unsolicited setup replies.
 let chain = Promise.resolve();
+/** The session asks for the text form of the stream to compare (`LocalBattleSession.binaryStream`). */
+let textStream = false;
 /** The envelope `FrameDelta::update` writes by hand ahead of the patch: `{"baseTick":<n|null>,"tick":<n>`. */
 const FRAME_ENVELOPE = /^\{"baseTick":(null|\d+),"tick":(\d+)[,}]/;
+function textUpdateTicks(json: string): { baseTick: number | null; tick: number } {
+  const envelope = FRAME_ENVELOPE.exec(json);
+  return { baseTick: envelope && envelope[1] !== 'null' ? Number(envelope[1]) : null, tick: envelope ? Number(envelope[2]) : NaN };
+}
 self.onmessage = (
   event: MessageEvent<
     | { type: 'options' }
@@ -91,7 +98,7 @@ self.onmessage = (
     | { type: 'restart' }
     | { type: 'trial-reset' }
     | { type: 'trial-action'; action: TrialAction }
-    | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[]; wind?: { speed: number; direction: number } }
+    | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[]; wind?: { speed: number; direction: number }; text?: boolean }
   >,
 ) => {
   chain = chain.then(async () => {
@@ -170,19 +177,20 @@ self.onmessage = (
         const ids = message.detailShipIds ?? [];
         if (!Array.isArray(ids) || ids.length > 4 || ids.some((id) => typeof id !== 'string')) throw new Error('Invalid snapshot detail.');
         detail = ids;
+        textStream = message.text === true;
         // Keep the runtime's bounded fixed-step API; high speed batches never
         // alter timestep or block the rendering/input thread.
         for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
       }
-      // Rust walks the frame once and writes only what moved. The update travels
-      // as that text: the session parses it once, where parsing here would add a
-      // structured clone of the parsed tree to both threads. Only the envelope
-      // Rust writes ahead of the patch is read here.
+      // Rust walks the frame once and writes only what moved, in the binary form
+      // of the patch: its buffer is transferred, not copied, and the session
+      // applies it as it reads it, with no JSON text to parse on either thread.
+      // Only the header's ticks are read here. The text form, for comparison, is
+      // relayed unparsed; either switch starts the stream again, whole.
       const stepped = performance.now();
-      const json = runtime!.snapshot_delta(detail);
+      const update = textStream ? runtime!.snapshot_delta(detail) : runtime!.snapshot_delta_binary(detail);
       const serialized = profile ? performance.now() : 0;
-      const envelope = FRAME_ENVELOPE.exec(json);
-      const tick = envelope ? Number(envelope[2]) : NaN;
+      const { baseTick, tick } = typeof update === 'string' ? textUpdateTicks(update) : binaryUpdateTicks(update);
       const decoded = performance.now();
       if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid battle snapshot.');
       const timing = profile
@@ -193,21 +201,24 @@ self.onmessage = (
             serialize: serialized - stepped,
             decode: decoded - serialized,
             delta: 0,
-            bytes: json.length,
+            bytes: typeof update === 'string' ? update.length : update.byteLength,
             wasmMemoryBytes: wasmMemory?.buffer.byteLength,
           }
         : undefined;
       // Always-on worker cost for the in-game simulation readout.
       const cost =
         message.type === 'advance' ? { ticks: message.ticks, stepMs: stepped - started, snapshotMs: decoded - stepped } : undefined;
-      self.postMessage({
-        type: 'snapshot',
-        cost,
-        reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && envelope![1] === 'null'),
-        trialAction: message.type === 'trial-action',
-        update: json,
-        timing,
-      });
+      self.postMessage(
+        {
+          type: 'snapshot',
+          cost,
+          reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && baseTick === null),
+          trialAction: message.type === 'trial-action',
+          update,
+          timing,
+        },
+        typeof update === 'string' ? [] : [update.buffer as ArrayBuffer],
+      );
     } catch (error) {
       self.postMessage({ type: event.data.type === 'trial-action' ? 'trial-error' : 'error', message: String(error) });
     }

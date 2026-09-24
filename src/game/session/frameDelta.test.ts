@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { applyFramePatch, decodeFrameUpdate, type FrameUpdate } from './frameDelta';
+import { applyFramePatch, BinaryFrameReader, binaryUpdateTicks, decodeFrameUpdate, type FrameUpdate } from './frameDelta';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
 import { SnapshotSession, type Snapshot } from './SnapshotSession';
 import { decodeSnapshot } from './snapshotCodec';
@@ -100,6 +100,48 @@ test('Rust-encoded updates rebuild the complete frame, its identities and its ev
     }
     expect(patchBytes).toBeLessThan(fullBytes * .2);
   } finally { source.dispose(); }
+}, 60000);
+
+/** The same frame through two decoders: equal leaves (`Object.is`), the same key
+ * order, and the same subtrees kept from each one's previous frame. */
+function sameDecode(a: unknown, aPrevious: unknown, b: unknown, bPrevious: unknown, path = 'frame'): string | undefined {
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return Object.is(a, b) ? undefined : `${path}: ${String(a)} vs ${String(b)}`;
+  if ((a === aPrevious) !== (b === bPrevious)) return `${path}: kept by one decoder only`;
+  if (a === aPrevious) return;
+  const keys = Object.keys(a);
+  if (Array.isArray(a) !== Array.isArray(b) || keys.join() !== Object.keys(b).join()) return `${path}: shape`;
+  for (const key of keys) {
+    const child = (value: unknown) => value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined;
+    const found = sameDecode(child(a), child(aPrevious), child(b), child(bPrevious), `${path}.${key}`);
+    if (found) return found;
+  }
+}
+
+test('the worker\'s binary stream rebuilds the text stream\'s frames, identities, key order and key table included', async () => {
+  // Twin sessions from one seed publish the same frames, one stream in each form.
+  const setup = { playerShipId: 'bismarck', friendlyBots: ['enterprise-cv6', 'fletcher'], enemies: ['enterprise-cv6', 'baltimore'], spawnDistance: 5000 };
+  const [text, binary] = await Promise.all([HeadlessSession.create(setup), HeadlessSession.create(setup)]);
+  const reader = new BinaryFrameReader();
+  let fromText: Snapshot | undefined, fromBinary: Snapshot | undefined, textBytes = 0, binaryBytes = 0;
+  try {
+    for (let step = 0; step < 160; step++) {
+      const detail = step % 60 < 20 ? ['player'] : step % 60 < 40 ? ['player', 'enemy-1'] : [];
+      const json = text.runtime.snapshot_delta(detail), bytes = binary.runtime.snapshot_delta_binary(detail);
+      const ticks = binaryUpdateTicks(bytes), update = JSON.parse(json) as FrameUpdate;
+      expect(ticks).toEqual({ baseTick: update.baseTick, tick: update.tick });
+      const nextText = decodeFrameUpdate(fromText, update), nextBinary = reader.decode(fromBinary, bytes);
+      freezeFrame(nextText); freezeFrame(nextBinary);
+      expect(sameDecode(nextText, fromText, nextBinary, fromBinary)).toBeUndefined();
+      expect(nextBinary).toEqual(decodeSnapshot(binary.runtime.detailed_snapshot(detail)));
+      fromText = nextText; fromBinary = nextBinary; textBytes += json.length; binaryBytes += bytes.byteLength;
+      for (const session of [text, binary]) session.advance(.1, { throttle: .5, rudder: .25 }, { aim: [0, 0, -5000], battery: 'main', fire: true });
+    }
+    expect(binaryBytes).toBeLessThan(textBytes * .5);
+    // An update against another reference, or a key table the reader is not holding, is a transport fault.
+    const next = binary.runtime.snapshot_delta_binary([]);
+    expect(() => new BinaryFrameReader().decode(fromBinary, next)).toThrow('key table');
+    expect(() => reader.decode(undefined, next)).toThrow('baseline');
+  } finally { text.dispose(); binary.dispose(); }
 }, 60000);
 
 test('a carrier frame keeps its declared shape: the deck limit is the one null that travels', async () => {

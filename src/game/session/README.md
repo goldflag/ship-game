@@ -48,17 +48,41 @@ element is matched to its previous self by the unique field it leads with, the
 patch carries runs of survivors to copy (`from`) and the new `length`, and only
 arrivals and changes travel. Patched by index, one arrival shifted every later
 element and a length change resent the whole collection; in the 30-ship custom
-battle keying halves the mean update, from 363 to 188 KB. The worker relays the
-update as the text Rust wrote and the session parses it once: parsing on the
-worker and structured-cloning the tree cost the main thread more than the parse.
+battle keying halves the mean update, from 363 to 188 KB.
+
+The local worker's stream travels in a binary form of the same patch
+(`FrameDelta::binary`, `LocalRuntime.snapshot_delta_binary`; the grammar is on
+`FrameDelta::update_binary`): numbers as their eight bytes, keys as numbers from
+a table the stream builds as it goes, and text in one small JSON array at the
+end. The worker transfers the buffer rather than copying it, and
+`BinaryFrameReader` applies the patch as it reads it, with `applyFramePatch`'s
+copied paths, kept identities and key order, so the main thread neither parses
+JSON text nor builds a patch tree to walk. In the 30-ship custom battle the mean
+update falls from 184 KB of text to 62 KB, and in alternating blocks of one live
+battle the worker message handler falls from 1.48 to 0.51 ms per update, with
+main-thread GC from 0.37 to 0.28 ms a frame; updates arrive at about one a
+frame. `LocalBattleSession.binaryStream = false` asks for the text form, for
+comparison; a change of form starts the stream again, whole. The text form
+stays the match server's wire format. A reader holds its stream's key table: an
+update names the keys the reader must already hold, zero whenever the stream
+starts again (init, deploy, restart, trial reset or action), and one against
+another table is a transport fault like one against another reference.
+
+Patching the received frame in place instead would save the copies too, but
+presentation holds the applied frame's objects: hull mounts are the frame's own
+array, an aircraft's previous position is the previous frame's array, and the
+shell, torpedo and event lists are the frame's. `beforeStep` captures poses from
+them before the next frame is applied, so every changed path is copied.
+
 `detailShipIds` narrowing works unchanged: the fields it adds
 and removes travel as ordinary additions and removals. `frameDelta.test.ts`
 applies real Rust updates through a carrier battle whose detail list changes
 mid-stream and compares each rebuilt frame against the complete Rust snapshot,
 including combat events and renderer identity updates, and reads one update
-through both the worker's reference and an immutable baseline;
-`crates/naval-sim/tests/frame_delta.rs` does the same natively for the
-full-knowledge and team frames.
+through both the worker's reference and an immutable baseline; it also reads
+twin sessions' text and binary streams side by side, frame for frame, leaves,
+key order and kept subtrees included. `crates/naval-sim/tests/frame_delta.rs`
+does the same natively for the full-knowledge and team frames, in both forms.
 
 `MatchConnection` handles admission, per-tab reconnect tokens, socket replacement, bounded decompression and match metadata. `RemoteBattleSession` publishes addressed commands and interpolates snapshots while the server owns time; every binary frame is a `FrameUpdate` against the metadata's baseline. The load-ready message is sent after model loading and initial scene rendering, not when the socket connects.
 
