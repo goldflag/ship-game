@@ -355,26 +355,30 @@ test('water droplets smear with their speed and never turn as long rods', () => 
   effects.dispose();
 });
 
-test('heavy splashes leave lit spray after their sheets fall; light guns leave none', () => {
+test('heavy splashes leave a dome of lit spray after their jets fall, which clears before the next salvo', () => {
+  const spray: Record<number, { most: number; afterJets: number }> = {};
   for (const caliberM of [.38, .1]) {
     const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
     sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
       shell: { id: 1, caliberM, velocity: [790, -85, 0], type: 'AP' } });
-    const volumes = (effects.root.getObjectByName('Splash spray volumes') as InstancedMesh<InstancedBufferGeometry>).geometry;
-    const sheets = (effects.root.getObjectByName('Ballistic water sheets') as Mesh).geometry;
+    const billows = (effects.root.getObjectByName('Splash spray billows') as InstancedMesh<InstancedBufferGeometry>).geometry;
+    const jets = (effects.root.getObjectByName('Splash water jets') as Mesh).geometry;
     effects.update(sim, 0, camera);
     let most = 0;
-    for (let i = 0; i < 9 * 20; i++) { effects.update(sim, 1 / 20, camera); most = Math.max(most, volumes.instanceCount); }
+    for (let i = 0; i < 8 * 20; i++) { effects.update(sim, 1 / 20, camera); most = Math.max(most, billows.instanceCount); }
+    expect(jets.drawRange.count).toBe(0);
+    spray[caliberM] = { most, afterJets: billows.instanceCount };
     if (caliberM > .3) {
-      expect(sheets.drawRange.count).toBe(0);
-      expect(volumes.instanceCount).toBeGreaterThan(0);
       // Paused spray holds its state; it clears well before the next salvo lands.
       const paused = effects.diagnostics(); effects.update(sim, 0, camera); expect(effects.diagnostics()).toEqual(paused);
       for (let i = 0; i < 12 * 20; i++) effects.update(sim, 1 / 20, camera);
-      expect(volumes.instanceCount).toBe(0);
-    } else expect(most).toBe(0);
+      expect(billows.instanceCount).toBe(0);
+    }
     effects.dispose();
   }
+  expect(spray[.38].afterJets).toBeGreaterThan(0);
+  expect(spray[.38].most).toBeGreaterThan(spray[.1].most);
+  expect(spray[.38].afterJets).toBeGreaterThan(spray[.1].afterJets);
 });
 
 test('streaked drops round out at their apex and when seen end-on', () => {
