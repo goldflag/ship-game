@@ -741,6 +741,41 @@ for sign in [-1,1]:
     for dy in [-.78,.78]:rod('Warping head',(wx,wy+dy-.1,wz+.62),(wx,wy+dy+.1,wz+.62),.32,M['edge'],COL['Fittings'],vertices=14)
     rope_reel('Stern rope reel',-126.4,sign*1.25,deck(-126.4),COL['Fittings'])
     rope_reel('Quarterdeck rope reel',-115.0,sign*2.0,deck(-115.0),COL['Fittings'])
+# Small fittings at the reference's level (pjsa108 positions where it has them):
+# forecastle reels, fairleads and roller fairleads, fire-hose racks and life buoys
+# on the hangar front, life buoys on the after bulkhead, gallery lockers, wall hose
+# reels and deck winches along the hangar sides.
+def hose_rack(name,x,y,z,facing,col):
+    """Wall-mounted fire-hose reel; facing is the outward unit vector (dx,dy)."""
+    fx,fy=facing
+    box(name+' back plate',(x+fx*.03,y+fy*.03,z),(.9 if fy else .06,.06 if fy else .9,1.1),M['naval'],col)
+    c=(x+fx*.28,y+fy*.28,z+.05)
+    rod(name+' reel',(c[0]-fx*.14,c[1]-fy*.14,c[2]),(c[0]+fx*.14,c[1]+fy*.14,c[2]),.34,M['canvas'],col,vertices=16)
+    rod(name+' reel axle',(x+fx*.06,y+fy*.06,c[2]),(c[0]+fx*.16,c[1]+fy*.16,c[2]),.05,M['edge'],col,vertices=8)
+    rod(name+' nozzle',(c[0],c[1],c[2]-.34),(c[0],c[1],c[2]-.62),.035,M['bronze'],col,vertices=8)
+fc=COL['Fittings'];fit.col=fc
+for sign in [-1,1]:
+    for bx,by in [(102.9,6.5),(100.4,8.1)]:rope_reel('Forecastle rope reel',bx,sign*by,deck(bx),fc)
+    for bx,by in [(105.1,9.3)]:
+        zz=deck(bx);box('Forecastle fairlead base',(bx,sign*by,zz+.08),(1.0,.5,.16),M['naval'],fc)
+        for dx in [-.25,.25]:cyl('Fairlead roller',(bx+dx,sign*by,zz+.34),.13,.36,M['edge'],fc,12)
+    bx=126.2;zz=deck(bx);box('Roller fairlead base',(bx,sign*4.4,zz+.1),(.7,.6,.2),M['naval'],fc)
+    rod('Roller fairlead roller',(bx,sign*4.4-.25,zz+.36),(bx,sign*4.4+.25,zz+.36),.12,M['edge'],fc,vertices=12)
+    for bx2,by2 in [(109.6,8.5)]:
+        zz=deck(bx2);box('Bollard bed',(bx2,sign*by2,zz+.09),(1.0,.7,.18),M['naval'],fc)
+        for dx in [-.28,.28]:cyl('Mooring bollard',(bx2+dx,sign*by2,zz+.36),.17,.54,M['edge'],fc,16)
+    # hangar front wall (z = -99.3) and its chamfers
+    hose_rack('Hangar front fire-hose rack',99.25,sign*4.0,11.6,(1,0),fc)
+    # after bulkhead life buoys and buoy boxes on the quarterdeck
+    box('Life-buoy locker',(-119.8,sign*7.3,deck(-119.8)+.4),(.7,.5,.8),M['naval'],fc)
+for sign,xs,wx in [(1,[-45,-27,-8,8,24,40],[24.9,38.8]),(-1,[-70,-45,-25,20,28],[36.4])]:
+    for bx in xs:
+        box('Gallery ready locker',(bx,sign*13.3,10.4),(.9,.5,.8),M['naval'],COL['Hangars'])
+        box('Gallery locker lid',(bx,sign*13.3,10.82),(.96,.56,.04),M['roof'],COL['Hangars'])
+        hose_rack('Hangar side fire-hose rack',bx+1.4,sign*13.0,11.2,(0,sign),COL['Hangars'])
+    for bx in wx:
+        box('Gallery deck winch',(bx,sign*13.8,10.35),(1.0,.7,.7),M['naval'],COL['Hangars'])
+        rod('Gallery winch drum',(bx-.7,sign*13.8,10.5),(bx+.7,sign*13.8,10.5),.2,M['edge'],COL['Hangars'],vertices=12)
 for sign in [-1,1]:
     for kind,x,y in [('inner',-106,3.6),('outer',-96,7.0)]:
         y*=sign;z=-6.2
