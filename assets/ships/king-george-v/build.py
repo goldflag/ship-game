@@ -721,9 +721,10 @@ for side in [-1,1]:
 # Upper-side scuttles follow the authored section shape. These small fittings
 # add scale without changing the measured or simulated hull envelope.
 ASSEMBLY='hull-scuttles'
-for x in list(range(-100,-66,3))+list(range(61,101,3)):
+# One row of scuttles about a metre under the deck edge, as painted on the reference.
+for x in list(range(-102,-66,4))+list(range(62,102,4)):
  for side in [-1,1]:
-  for z in [DECK-3.24,DECK-1.59]:
+  for z in [deckz(x)-1.05]:
    y=side*(sidewidth(x,z)+.018)
    rod('Hull scuttle rim',(x,y,z),(x,y+side*.045,z),.155,'edge',vertices=12)
    rod('Hull scuttle glass',(x,y+side*.047,z),(x,y+side*.055,z),.108,'dark',vertices=12)
@@ -800,7 +801,7 @@ for x in [-71,-50,-18,-5,31,40,60,72]:
 # Subtle sheer strakes and plate seams follow the actual authored side surface.
 ASSEMBLY='hull-plating'
 for side in [-1,1]:
- for zz in [DECK-5.69,DECK-2.12]:
+ for zz in [DECK-2.12]:
   for x in range(-98,106,2):
    a=(x,side*(sidewidth(x,zz)+.024),zz);b=(x+2,side*(sidewidth(x+2,zz)+.024),zz)
    mesh('Hull strake lip',[a,b,(b[0],b[1]+side*.045,zz+.06),(a[0],a[1]+side*.045,zz+.06)],[(0,1,2,3)],'naval')
