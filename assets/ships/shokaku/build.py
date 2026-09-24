@@ -282,6 +282,7 @@ box('Funnel gallery deck',((-12.5+12.5)/2,(GY0+GY1)/2,GZ-.07),(25.0,abs(GY1-GY0)
 railing([(-12.5,GY1+.02),(12.5,GY1+.02)],GZ,'Funnel gallery',COL['Island'],.95)
 for bx in range(-12,13,3):fit.col=COL['Island'];fit.knee('Funnel gallery knee',bx+.5,GY0,GY1+.2,GZ-.14,1.2)
 fit.col=COL['Island'];fit.ladder('Funnel gallery ladder',(12.0,-13.35,GZ),(12.0,-13.35,10.0),.5)
+fit.col=COL['Hangars']
 for x in [103,109,114]:
     top=FD-.34;bottom=deck(x)
     for sign in [-1,1]:
