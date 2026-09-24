@@ -154,9 +154,9 @@ def access_gap(points,x_limit,y_min,y_max,closed=False):
     if piece:pieces.append(piece)
     return pieces
 
-def ladder(name,a,b,w=.55):
+def ladder(name,a,b,w=.55,ext=.65):
     a,b=Vector(a),Vector(b);n=max(2,math.ceil((b-a).length/.29))
-    for side in [-1,1]:rod(name+'.rail',a+Vector((0,side*w/2,0)),b+Vector((0,side*w/2,0))+(b-a).normalized()*.65,.026,materials['edge'],vertices=8)
+    for side in [-1,1]:rod(name+'.rail',a+Vector((0,side*w/2,0)),b+Vector((0,side*w/2,0))+(b-a).normalized()*ext,.026,materials['edge'],vertices=8)
     for i in range(n+1):
         p=a.lerp(b,i/n);rod(name+'.rung',p+Vector((0,-w/2,0)),p+Vector((0,w/2,0)),.023,materials['naval'],vertices=8)
 
@@ -308,7 +308,8 @@ for side in [-1,1]:
     # pzsd108: the outboard half of each lookout platform stands on a plated
     # locker house rising from the gun deck.
     box('after.lookout-house',(-17.9,side*1.96,(aft_top+5.76)/2),(1.6,.82,5.76-aft_top),materials['naval'],bev=.03)
-    rails('after.deck-rail',[(-34.86,side*1.08,aft_top),(-31.32,side*3.12,aft_top),(-27.5,side*3.12,aft_top)],.86)
+    # No deck-edge rail round gun 3: its gunhouse overhangs the 3.12 m deck edge
+    # when trained abeam and its barrels depress across the corners.
 # Rounded bridge wings: deck plates with substantial knees, open inboard access.
 wing_edge=[(13.85,3.987),(13.893,4.193),(14.004,4.348),(14.188,4.431),(14.405,4.452),(14.44,4.437),(15.5,4.354),(17.744,4.242),(18.8,4.153),(19.3,4.09),(19.72,3.885),(20.5,3.39),(21.13,2.687)]
 for side in [-1,1]:
@@ -917,7 +918,7 @@ for side in [-1,1]:
         # Source grab rails stop below the upper landing (4.713 m), leaving
         # the torpedo bank clear. Full-height generic stair rails are too tall.
         stairs('machinery.aft-stairs',(-14.30,-1.705,2.24),(-12.20,-1.705,machinery_aft_top),.65,rail_range=(.252,.828),rail_height=.338)
-    ladder('after.house-ladder',(-34.95,side*.55,2.24),(-34.95,side*.55,aft_top),.48)
+    ladder('after.house-ladder',(-34.95,side*.55,2.24),(-34.95,side*.55,aft_top),.48,ext=.2)
     for z in [2.45,3.35,4.35]:
         for dy in [-.24,.24]:
             rod('after.house-ladder.standoff',(-34.95,side*.55+dy,z),(-34.87,side*.55+dy,z),.026,materials['edge'],vertices=8)
@@ -1058,7 +1059,16 @@ for side in [-1,1]:
 # Permanent rail attachments and waterway along the deck edge.
 for side in [-1,1]:
     pts=[(s-half,side*max(.02,w-.14),deckz(s-half)+.06) for s,w in h['halfBreadths'] if .9<s<h['length']-.9]
-    rails('rails.perimeter',pts,.85,spacing=2.2)
+    # Openings in the deck-edge rail where gun 1 and gun 4 depress abeam and the
+    # after single Oerlikons train aft; the waterway stays continuous.
+    gaps=[(37.0,40.8),(-17.0,-13.8),(-39.8,-37.4)]
+    run=[]
+    for q in pts:
+        if any(lo<=q[0]<=hi for lo,hi in gaps):
+            if len(run)>1:rails('rails.perimeter',run,.85,spacing=2.2)
+            run=[]
+        else:run.append(q)
+    if len(run)>1:rails('rails.perimeter',run,.85,spacing=2.2)
     tube_path('hull.waterway',[(x,y,z-.02) for x,y,z in pts],.043,materials['edge'],sides=8)
 bm=bmesh.new();bm.from_mesh(hull.data)
 for height in [-.20,.12]:
