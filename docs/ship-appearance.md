@@ -145,7 +145,10 @@ moving parts, and it leaves colors and schemes unchanged:
 Mipmaps average the relief away, so the effect fades with distance. Tune it in
 that module, not per ship.
 
-The runtime roster's ships consume this standard. Mogami established the accepted
-maintained finish; subsequent ships retain their own original schemes and deck
-coverings. This is a material-quality pass against existing briefs, not a new
-historical-accuracy claim or acceptance of documented geometry limitations.
+The runtime roster's ships, premade and player-built, consume this one standard and
+retain their own original schemes and deck coverings. Plated paint bakes no mottling:
+an A/B on Hood showed the baked ±11 % adding only 0.2 points of broad variation over
+the runtime In commission mottle, which already matches the Scharnhorst design (about
+3 % fine and 4 % broad luminance variation on a hull side). This is a
+material-quality pass against existing briefs, not a new historical-accuracy claim
+or acceptance of documented geometry limitations.
