@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "files": [
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json",
+    "assets/ships/hood/appearance.json",
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/rn-15in-guns/bl_15_twin.py",
+    "assets/parts/rn-destroyer-guns/qf_4in_mkxix.py",
+    "assets/parts/gun_bloomers.py",
+    "assets/parts/construction-library.json",
+    "assets/parts/construction.json",
+    "assets/parts/construction/geometry.py",
+    "assets/parts/historic-funnels/geometry.py"
+  ]
+}

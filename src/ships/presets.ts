@@ -12,6 +12,7 @@ export const shipPresets = {
   'yamato': preset('yamato'),
   'iowa': preset('iowa'),
   'king-george-v': preset('king-george-v'),
+  'hood': preset('hood'),
   'baltimore': preset('baltimore'),
   'mogami': preset('mogami'),
   'enterprise-cv6': preset('enterprise-cv6'),
