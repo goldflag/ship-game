@@ -18,10 +18,6 @@ def linear(value):
     return np.where(value <= 0.04045, value / 12.92, ((value + 0.055) / 1.055) ** 2.4)
 
 
-def encoded(value):
-    value = np.clip(value, 0, 1)
-    return np.where(value <= 0.0031308, value * 12.92, 1.055 * value ** (1 / 2.4) - 0.055)
-
 
 def inside(x, y, polygon):
     """Vectorized even/odd polygon fill in the declared metric coordinate plane."""
@@ -94,12 +90,10 @@ def deck_image(spec, colors):
     deck = spec['deck']
     width, height = 4096, 1024
     x, y = grid(deck['bounds'], width, height)
-    # The game draws the planks, caulking and grain (appearance.json decking). The deck keeps
-    # the boards' mean stain, from light to dark teak in equal measure, and its markings.
-    shade = np.linspace(0, 1, 256)[:, None]
-    boards = linear(colors['teakDark'] + shade * (colors['teakLight'] - colors['teakDark'])).mean(0)
+    # The game draws the planks, caulking and grain (appearance.json decking) at the deck's
+    # own mean tone, the stain; the image carries that stain and the markings.
     pixels = np.empty((height, width, 3), dtype=np.float32)
-    pixels[:] = encoded(boards)
+    pixels[:] = colors['teak']
     for mark in deck['recognitionMarkings']:
         u, v = x - mark['centerX'], y
         field = np.broadcast_to(np.abs(u) <= mark['bandLength'] / 2, pixels.shape[:2])

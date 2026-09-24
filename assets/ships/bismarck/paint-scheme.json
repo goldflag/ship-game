@@ -16,8 +16,7 @@
     "black": "#292b2d",
     "white": "#e7e7e3",
     "red": "#ae171b",
-    "teakLight": "#ba975f",
-    "teakDark": "#9d7b48"
+    "teak": "#a68551"
   },
   "side": {
     "bounds": [-126, 126, -2, 50],

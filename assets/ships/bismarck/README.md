@@ -36,7 +36,8 @@ Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](..
 Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
 `appearance.json` preserves this recipe’s colors, scheme and deck coverings. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.
 The teak weather deck keeps its whole-deck image for the Baltic recognition markings,
-which now paints only their mean board stain (`paint.py`, from the scheme's light and
-dark teak); the game draws 0.16 m planks with 3.4 m staggered butts and 8 mm caulking
+which now paints only the deck's stain, the scheme's `teak` swatch: the mean tone of the
+boards and caulking the image used to paint, so the deck keeps its pre-standard tone and
+saturation. The game draws 0.16 m planks with 3.4 m staggered butts and 8 mm caulking
 over it (`decking`), the plank sizes the image used to paint. The boats' timber is
 declared fittings. This is not a new historical-accuracy claim.
