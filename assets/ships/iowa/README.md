@@ -52,6 +52,36 @@ which lists Iowa's wooden decking, including five-inch boards. These text record
 support substrate/coating distinctions; no additional external visual reference
 or refit has been substituted for the approved model.
 
+## Superstructure and light AA (2026 realism pass)
+
+The deckhouse levels, bridge, fore tower, funnel AA block, after superstructure and
+every light AA installation were re-measured from sections of the same approved
+configuration (`bun run ship:reference pasb018`; the reference hull is centred 2.29 m
+forward of ours). Measured decks: main 5.95 m, 01 8.45 m, 02 11.05 m, 03 12.95 m
+(bridge) and 13.85 m (funnel block). Blueprint `structures` follow those outlines, so
+hit surfaces and gun obstruction moved with them. The recipe is split by region:
+`details.py` holds the shared fitting vocabulary (splinter plating, galleries, tubs,
+rails, Mk.51/Mk.57 directors), and `forward.py`, `tower.py`, `midships.py`, `aft.py`,
+`house.py` (01/02 levels) and `hull.py` (hull and weather decks) build their areas.
+A region builds each AA mount's tub, gallery or shield and lists it in `AA_INSTALLED`;
+`aa.py` details the gun mechanisms. Mk.51/Mk.57 directors, the SK-2, SG and Mk.27
+radars and the periscopes are visual fittings; the SK-2 turns on `radar-search.yaw`. Bridge glazing
+follows the windows the approved model paints in its textures (navigation bridge band,
+the level above, the cheeks below), since its walls carry no window geometry. The four
+screws are built-up bronze blades with pitch, skew and rounded tips: 4-bladed 5.5 m
+outboard, 5-bladed 5.2 m inboard, at the reference's diameters and positions.
+
+Accepted approximations: the reference walls carry no door or scuttle geometry, so a
+sparse set is interpreted. The forward 5-inch notch in the 03 house is widened to the
+gunhouses' swept plan, and rails inside 5-inch sweeps are omitted, because the
+reference clips there. The stern weather deck sits up to about 1 m below the reference
+aft of z ≈ 110 and the bow is pointier in plan; the hull lines were not changed. The
+after funnel is about 1 m shorter aft than the reference's. The SK-2 is a solid ribbed
+dish, the SG is simplified, and the Mk.37/Mk.38 heads keep the shared director shapes
+(curved screens rather than Mk.12/22 antennas; no Mk.13 A-frame). A clearance sweep
+of every mount through train, elevation and recoil is clear except a pre-existing
+overlap: turret 1's barrels meet turret 2's at 120–150° train and 20–45° elevation.
+
 The main battery uses the registered `us-16in50-mk7-iowa` original builder,
 including its deforming bloomers, with the ship's existing mount IDs, positions
 and fixed barbettes. Ship paint and fitted neighboring AA remain installation

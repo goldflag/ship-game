@@ -15,7 +15,8 @@ ssh "$target" "mkdir -p '$remote'"
 rsync -azR Cargo.toml Cargo.lock rust-toolchain.toml package.json bun.lock crates \
   assets/gameplay assets/parts/construction/hull_shapes.rs public/models/components/catalogs \
   .build/naval-content/manifest.json compose.yml .dockerignore deploy services dist \
-  src/generated/naval-version.json "$target:$remote/"
+  src/generated/naval-version.json src/progression/techTree.ts src/progression/rules.ts src/progression/xp.ts \
+  "$target:$remote/"
 # Compose defaults to reading stdin. Execute a complete file so it cannot consume
 # later deployment commands from the SSH script stream.
 ssh "$target" "umask 077; cat > '$remote/deploy.sh' && bash '$remote/deploy.sh' '$release' </dev/null" <<'REMOTE'

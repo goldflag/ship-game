@@ -5,7 +5,7 @@ Signup asks for display name, email and a password of at least 8 characters and
 signs in immediately. This release does not send verification or password-reset
 mail. Passwords are managed by Better Auth, not by gameplay code.
 
-Bun/Hono owns `/api/auth/*` and `/api/ships/*`. Rust owns matchmaking, WebSockets
+Bun/Hono owns `/api/auth/*`, `/api/ships/*` and `/api/progress/*`. Rust owns matchmaking, WebSockets
 and authoritative simulation. Caddy blocks `/internal/*`; Rust calls Bun over the
 private network with a service secret. Each admission, cancellation, content
 fetch and socket upgrade reads the database-backed session with cookie caching
@@ -16,9 +16,9 @@ frozen final-result reconnection, and one account cannot queue or play twice.
 
 ## Source storage and recovery
 
-PostgreSQL schemas `auth`, `ships` and `results` separate the data. The migration
-role owns schema changes. API credentials have access only to auth and ship
-records; battle credentials have access only to results. PostgreSQL never
+PostgreSQL schemas `auth`, `ships`, `progress` and `results` separate the data. The migration
+role owns schema changes. API credentials have access only to auth, ship and
+research records; battle credentials have access only to results. PostgreSQL never
 publishes a host port. `services/db/migrations` contains versioned, checksummed
 migrations; do not edit applied migrations in later releases.
 
@@ -44,6 +44,48 @@ Browser construction workers cache compiled output across reloads, keyed by the
 compiler build and complete source/catalog bytes. The disposable cache retains up
 to eight results of at most 32 MiB each; unavailable storage falls back to compilation.
 Saved sources still come from the account store, and online admission still compiles server-side.
+
+## Research progress
+
+`progress.profiles` holds one JSON profile per account (unspent XP per nation, free XP,
+unlocked nodes, lifetime XP). `progress.awards` is the append-only record of paid battles,
+keyed by account and battle UUID. Both cascade when the account is deleted. The API role
+reads, inserts and updates profiles, and only reads and inserts awards. The rules are the
+pure shared modules `src/progression/techTree.ts`, `rules.ts` and `xp.ts`, which the API
+image copies. Stored profiles are always read through `sanitizeProfile`.
+
+| Route | Body | Response |
+| --- | --- | --- |
+| `GET /api/progress` | | `{profile}`; no row reads as the empty profile and writes nothing |
+| `POST /api/progress/unlocks` | `{nodeId}` | `{profile, spent}` |
+| `POST /api/progress/awards` | `{id, summary}` (`id` a UUID) | `{profile, award}` |
+| `POST /api/progress/dev` | `{xp?, unlockAll?, reset?}` | `{profile}` |
+
+The routes share the ship routes' session, `x-account-id` binding and write-origin checks,
+with a 64 KiB body limit. Errors are `{code, error}`: 400 `invalid` for a malformed body or
+summary; 409 with the rule's code (`insufficient-xp`, `prerequisite`, `owned`, `placeholder`,
+`unknown-node`) for a refused unlock; 409 `conflict` for a reused battle id; 403 `forbidden`
+for developer grants. Each change runs in one transaction under a per-account advisory lock.
+
+The API validates the summary with `validateSummary` and computes the award with `awardFor`;
+an award sent by the client is ignored. A battle id pays once per account. The digest covers
+the validated summary, so a retry with the same summary returns the recorded award and the
+current profile without paying again, and the same id with a different summary is a 409.
+Retries return the recorded award, not a recomputation under later tuning.
+
+The summary is client-reported: custom and PvE battles run in the browser. The API bounds it
+(30 ships a side, 34 minutes, 120,000 t a ship, 5,000 XP a battle) but cannot tell that the
+battle happened, and does not limit how many battles an account reports. A modified client
+can claim XP. Treat XP as progression only, never as a competitive or purchasable currency,
+until results come from an authoritative simulation.
+
+Developer grants are refused unless `PROGRESS_DEV_ACCOUNTS` lists the account: comma-separated
+user ids or emails, case-insensitive. `*` allows every account and is for a local API only; the
+API logs a warning when it is set. `reset` replaces the profile with the empty one and keeps the
+award records, so a reported battle never pays twice. Otherwise `xp` (0–1,000,000) goes to every
+nation and the free pool, and `unlockAll` opens every modelled ship. Vite proxies
+`/api/progress` with the other accounts routes, to production by default; the client treats a
+404 as progress unavailable and keeps every ship open.
 
 ## Online construction
 
@@ -80,7 +122,7 @@ Install PostgreSQL 17, create the runtime/migration roles using
 `MIGRATION_DATABASE_URL`. `compose.yml` provisions these roles on a new database
 volume. Use separate randomly generated credentials (URL-safe hex is convenient).
 Set `API_DATABASE_URL`, `BATTLE_DATABASE_URL`, `BETTER_AUTH_SECRET`, `SERVICE_SECRET`,
-`ACCOUNTS_URL` and `AUTH_ORIGIN`. Set `AUTH_ORIGIN=http://localhost:5173` for local
+`ACCOUNTS_URL` and `AUTH_ORIGIN` (and `PROGRESS_DEV_ACCOUNTS=*` for developer XP grants). Set `AUTH_ORIGIN=http://localhost:5173` for local
 development. A loopback auth origin also trusts HTTP(S) origins on `localhost`,
 `127.0.0.1` and `[::1]` at other ports, so the same API supports Vite worktrees.
 Leave `NAVAL_ORIGIN` unset locally: Rust checks that Origin matches Host through

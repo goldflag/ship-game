@@ -1,6 +1,10 @@
 import { savedReference } from '../ships/constructionCloud';
 import { BattleEndNotice } from './BattleEndNotice';
 import { AfterActionReport, type ReportAction } from './report/AfterActionReport';
+import { useBattleAward } from './report/battleAward';
+import { battleSummary, passiveOpposition, stableBattleId, startBattle, type BattleStart } from '../progression/battleSummary';
+import { useProgressStore } from './useProgress';
+import { customOwnFleet, fleetRule, ownFleetOpen } from './battle/fleetAccess';
 import type { PveRequest } from '../multiplayer/generated/PveRequest';
 import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
 import type { PveDraft } from '../game/session/PveDraft';
@@ -8,7 +12,10 @@ import type { Placement } from '../multiplayer/generated/Placement';
 import { battleExitLabel } from '../game/session/BattleSession';
 import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
 import { Button } from './components';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { currentAccount } from '../accounts/session';
+import { createAccountProgressStore, createHarnessProgressStore } from '../progression/store';
+import { ProgressProvider } from './useProgress';
 import { Game } from '../game/Game';
 import { WEBGPU_REQUIRED } from '../game/webgpu';
 import { createShipState } from '../game/session/motion';
@@ -21,7 +28,9 @@ import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
 import type { AccountSession } from './AccountGate';
 import { STARTUP_INITIAL, StartupScreen, type StartupReporter } from './StartupScreen';
-import { selectedShip as initialShip, loadShipPresets } from '../ships/presets';
+import { selectedShip as linkedShip, loadShipPresets, shipPreset } from '../ships/presets';
+import { openingPreset, rememberedBerth } from './portFleet';
+import { presetPlace } from '../progression/techTree';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { BattleDialog } from './battle/BattleDialog';
@@ -59,8 +68,11 @@ import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../game/session/battleS
 import { NewDesignDialog } from './shipbuilding/NewDesignDialog';
 import type { HullPresetChoice } from '../ships/constructionHullPresets';
 
-/** The port berths only the player's designs. A `?ship=` link keeps a historical preset alongside for review and diagnostics. */
+/** The port berths the tree ships the player owns and their designs. A `?ship=` link keeps any preset alongside for review and
+ * diagnostics: a locked tree ship as a preview with its unlock, an enemy-only one (fictional ships, merchants) as before. */
 const PINNED_SHIP = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('ship');
+/** The harbor loads the linked preset, else the tree ship last berthed in this browser, else a starter (`portFleet.ts`). */
+const initialShip = PINNED_SHIP ? linkedShip : shipPreset(openingPreset());
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, trail: [] };
 
@@ -69,6 +81,13 @@ export function App(props: AppProps) {
   const admissionReporter = useRef(props.startup);
   admissionReporter.current = props.startup;
   const [attempt, setAttempt] = useState(0);
+  // Signed-in players keep research progress on the accounts API; the account-free harness has every ship open.
+  // AccountGate keys App by user, so one store serves this mount.
+  const progress = useMemo(() => {
+    const account = props.account ? currentAccount() : undefined;
+    return account ? createAccountProgressStore(account) : createHarnessProgressStore();
+  }, []);
+  useEffect(() => { void progress.refresh(); }, [progress]);
   const [admission, setAdmission] = useState<'loading' | 'ready' | 'failed'>('loading');
   useEffect(() => {
     let active = true;
@@ -89,7 +108,7 @@ export function App(props: AppProps) {
       active = false;
     };
   }, [attempt]);
-  if (admission === 'ready') return <Harbor {...props} />;
+  if (admission === 'ready') return <ProgressProvider store={progress}><Harbor {...props} /></ProgressProvider>;
   if (admission === 'loading') return props.startup ? null : <StartupScreen label="Loading ship" progress={STARTUP_INITIAL.progress} />;
   return (
     <main className="account-screen">
@@ -160,6 +179,9 @@ function Harbor({ account, startup }: AppProps) {
   const [battleLoading, setBattleLoading] = useState<BattleLoadingState | null>(null);
   const [battleError, setBattleError] = useState('');
   const battleEntry = useRef<BattleEntry | null>(null);
+  // Research XP: each battle start (and PvE restart) draws the id its award is claimed under, with what the award needs from the start.
+  const battleStart = useRef<BattleStart | undefined>(undefined);
+  const research = useProgressStore();
   const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
   const [builder, setBuilder] = useState<{ catalog: ConstructionCatalog; source?: ConstructionSource; repositoryId?: string } | null>(null);
   const repositoryId = useRef<string | undefined>(undefined);
@@ -259,8 +281,13 @@ function Harbor({ account, startup }: AppProps) {
     game.current?.setHudScale(hudScale);
   }, [hudScale]);
 
-  // Until one of the player's own designs is alongside, the quay stands empty rather than showing a preset.
-  const berthEmpty = !PINNED_SHIP && !isLocalShipId(selectedShip.id);
+  // A player who last berthed one of their designs reopens on her: the quay stands empty while she compiles instead of
+  // showing the opening preset first. Enemy-only presets never berth without a `?ship=` link.
+  const [openingDesign, setOpeningDesign] = useState(() => {
+    const memory = PINNED_SHIP ? undefined : rememberedBerth();
+    return memory?.kind === 'design' ? memory.sourceId : undefined;
+  });
+  const berthEmpty = !!openingDesign || (!PINNED_SHIP && !isLocalShipId(selectedShip.id) && !presetPlace(selectedShip.id));
   useEffect(() => {
     game.current?.setPortBerthEmpty(berthEmpty);
   }, [berthEmpty, generation]);
@@ -338,12 +365,19 @@ function Harbor({ account, startup }: AppProps) {
     const session = game.current;
     const entry = battleEntry.current;
     if (!ready || !session || !entry || switchPending.current || entry.pending) return;
+    // Never sail a ship research has not opened (or an enemy-only one) in the player's fleet; setup explains which.
+    if (!ownFleetOpen(customOwnFleet(battleSetup), fleetRule(research.snapshot()))) {
+      setBattleError('Your fleet includes ships you have not unlocked. Choose unlocked ships for your side.');
+      setBattleOpen(true);
+      return;
+    }
     setBattleError('');
     setBattleLoading({ label: 'Preparing the fleets', progress: 0, leaving: false });
     try {
       await entry.run(
         (progress) => session.prepareBattle(battleSetup, progress),
         () => {
+          battleStart.current = startBattle('custom', battleSetup);
           const definition = resolveShip(battleSetup.playerShipId);
           selectedRef.current = definition;
           setSelectedShip(definition);
@@ -374,6 +408,7 @@ function Harbor({ account, startup }: AppProps) {
     await entry.run(
       (progress) => session.preparePveBattle(draft, placements, progress),
       () => {
+        battleStart.current = startBattle('pve');
         selectedRef.current = session.definition;
         setSelectedShip(session.definition);
         setBattleOpen(false);
@@ -498,6 +533,7 @@ function Harbor({ account, startup }: AppProps) {
     await entry.run(
       (progress) => session.prepareBattle(setup, progress, true),
       () => {
+        battleStart.current = undefined; // Sea trials earn nothing.
         builderSource.current = revision.source;
         setBuilder(null);
         setTrial(true);
@@ -522,6 +558,8 @@ function Harbor({ account, startup }: AppProps) {
     setPveRestarting(true);
     try {
       await session.restartPveBattle();
+      // The restarted mission is a new battle with its own award; a failed restart keeps the old claim.
+      battleStart.current = startBattle('pve');
     } finally {
       setPveRestarting(false);
     }
@@ -553,6 +591,7 @@ function Harbor({ account, startup }: AppProps) {
       await entry.run(
         (progress) => current.prepareOnlineBattle(remote, progress),
         () => {
+          battleStart.current = startBattle('duel', undefined, stableBattleId(`duel:${remote.metadata.matchId}:${remote.ownTeam}`));
           selectedRef.current = current.definition;
           setSelectedShip(current.definition);
           setBattleOpen(false);
@@ -727,6 +766,10 @@ function Harbor({ account, startup }: AppProps) {
   // An interrupted or abandoned battle has nothing to report; it keeps the short notice and its countdown.
   const ended = battleOver ? game.current?.simulation : undefined;
   const report = ended && !['infrastructure', 'abandoned'].includes(data.combat?.outcome?.reason ?? '') ? ended.debrief : undefined;
+  // Research XP: the claim reports the settled debrief once under this battle's id, or at once when the end screen goes.
+  const xpSummary = battleStart.current && battleSummary(battleStart.current, battleOver, data.combat?.outcome, report);
+  const xp = useBattleAward(research, battleStart.current?.id, xpSummary,
+    xpSummary && passiveOpposition(xpSummary) ? 'Targets that neither move nor shoot earn no XP.' : undefined);
   const reportActions: ReportAction[] = ended?.networked
     ? [{ label: battleExitLabel(ended), run: returnToPort }]
     : [
@@ -763,6 +806,8 @@ function Harbor({ account, startup }: AppProps) {
         {phase === 'garage' && ready && !error && !battleOpen && !builder && (
           <Garage
             pinned={PINNED_SHIP}
+            opening={openingDesign}
+            onOpened={() => setOpeningDesign(undefined)}
             switching={switching || builderOpening}
             switchError={switchError}
             onSelectShip={switchShip}
@@ -869,6 +914,7 @@ function Harbor({ account, startup }: AppProps) {
             actions={reportActions}
             loadModel={(ship) => game.current!.reviewModel(ship.definition!)}
             releasePointer={() => game.current?.releasePointer()}
+            xp={xp}
           />
         ) : (
           <BattleEndNotice
@@ -876,6 +922,7 @@ function Harbor({ account, startup }: AppProps) {
             result={battleOver}
             outcome={data.combat?.outcome}
             onExit={() => void returnToPort()}
+            xp={xp}
           />
         ))}
         {battleLoading && ready && !error && (

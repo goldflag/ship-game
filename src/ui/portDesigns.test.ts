@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import type { ConstructionDesignHead } from '../ships/constructionStore';
 import type { LocalShipRevision } from '../ships/localShips';
-import { editedLabel, filterDesigns, fleetLineWindow, portDesigns, sortDesigns } from './portDesigns';
+import { editedLabel, filterDesigns, portDesigns, sortDesigns } from './portDesigns';
 
 const head = (id: string, name: string, updatedAt: number, extra: Partial<ConstructionDesignHead> = {}): ConstructionDesignHead =>
   ({ id, name, updatedAt, revisionId: `${id}-r1`, schemaVersion: 1, catalogRevision: 'c', ...extra });
@@ -27,14 +27,6 @@ test('sorting and filtering leave drafts reachable', () => {
   expect(filterDesigns(designs, 'ready', '').map(d => d.name)).toEqual(['Resolute', 'Valiant']);
   expect(filterDesigns(designs, 'drafts', '').map(d => d.name)).toEqual(['Barge design']);
   expect(filterDesigns(designs, 'all', ' val ').map(d => d.name)).toEqual(['Valiant']);
-});
-
-test('a long fleet line shows seven neighbours around the berthed ship', () => {
-  const line = Array.from({ length: 20 }, (_, i) => i);
-  expect(fleetLineWindow(line.slice(0, 5), 2)).toEqual([0, 1, 2, 3, 4]);
-  expect(fleetLineWindow(line, 0)).toEqual([0, 1, 2, 3, 4, 5, 6]);
-  expect(fleetLineWindow(line, 10)).toEqual([7, 8, 9, 10, 11, 12, 13]);
-  expect(fleetLineWindow(line, 19)).toEqual([13, 14, 15, 16, 17, 18, 19]);
 });
 
 test('edit times read as a person would say them', () => {

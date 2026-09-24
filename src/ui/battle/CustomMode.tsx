@@ -6,7 +6,8 @@ import { Select, SelectOption } from '../components';
 import { Icon } from '../Icons';
 import { MapTiles, RailBlock, RailSlider } from './BattleRail';
 import { FleetLane } from './FleetLane';
-import { customTeamFull, customUnitId, removeCustomBot, transferCustomShip, type FleetTransfer } from './fleetTransfer';
+import { customTeamFull, customTransferShip, customUnitId, parseCustomUnit, removeCustomBot, transferCustomShip, type FleetTransfer } from './fleetTransfer';
+import { openFleet, type FleetAccess, type FleetRule } from './fleetAccess';
 import { ShipChip } from './ShipCard';
 import type { Team } from '../../game/session/elements';
 import {
@@ -27,12 +28,14 @@ interface LanesProps {
   onTransfer(transfer?: FleetTransfer): void;
   onError(message: string): void;
   disabled?: boolean;
+  /** Which ships the command berth and the friendly lane take; the enemy lane takes any. */
+  rule?: FleetRule;
 }
 /** Friendly and enemy lanes. The friendly lane's first berth is the ship you command. */
-export function CustomLanes({ setup, onChange, transfer, onTransfer, onError, disabled }: LanesProps) {
+export function CustomLanes({ setup, onChange, transfer, onTransfer, onError, disabled, rule = openFleet }: LanesProps) {
   const place = (target: Team | 'player') => {
     if (!transfer) return;
-    const result = transferCustomShip(setup, transfer, target);
+    const result = transferCustomShip(setup, transfer, target, rule);
     if (result.error) onError(result.error);
     else onChange(result.setup);
     onTransfer(undefined);
@@ -56,12 +59,14 @@ export function CustomLanes({ setup, onChange, transfer, onTransfer, onError, di
     setup[teamKey(team)].map((entry, index) => {
       const { shipId, aiLevel } = botSelection(entry),
         id = customUnitId(team, index + (team === 'friendly' ? 1 : 0));
+      const access: FleetAccess = team === 'friendly' ? rule(shipId) : 'open';
       const who = `${teamLabel(team).toLocaleLowerCase()} bot ${index + 1}`,
         level = SHIP_AI_LEVELS.find((item) => item.id === aiLevel)!;
       return (
         <ShipChip
           key={id}
           presetId={shipId}
+          restriction={access === 'open' ? undefined : access}
           picked={transfer?.kind === 'unit' && transfer.id === id}
           disabled={disabled}
           draggable
@@ -133,6 +138,10 @@ export function CustomLanes({ setup, onChange, transfer, onTransfer, onError, di
     );
   };
   const active = !!transfer;
+  // The player's own berths refuse a ship research has not opened; a friendly bot may still move within its lane.
+  const carried = transfer && customTransferShip(setup, transfer);
+  const ownOpen = !carried || rule(carried) === 'open' || (transfer?.kind === 'unit' && parseCustomUnit(transfer.id)?.team === 'friendly');
+  const commandAccess = rule(setup.playerShipId);
   return (
     <div className="battle-lanes" aria-label="Fleets">
       <FleetLane
@@ -141,7 +150,7 @@ export function CustomLanes({ setup, onChange, transfer, onTransfer, onError, di
         title="Friendly"
         count={count('friendly')}
         extra={allBots('friendly')}
-        active={active && !customTeamFull(setup, 'friendly')}
+        active={active && ownOpen && !customTeamFull(setup, 'friendly')}
         disabled={disabled}
         onPlace={() => place('friendly')}
         hint={
@@ -159,9 +168,10 @@ export function CustomLanes({ setup, onChange, transfer, onTransfer, onError, di
           <ShipChip
             presetId={setup.playerShipId}
             commanded
-            className={`command-berth ${active ? 'is-accepting' : ''}`}
-            pickLabel={active ? `Take command of ${transfer.id}` : 'Your ship'}
-            onPick={active ? () => place('player') : undefined}
+            restriction={commandAccess === 'open' ? undefined : commandAccess}
+            className={`command-berth ${active && ownOpen ? 'is-accepting' : ''}`}
+            pickLabel={active && ownOpen ? `Take command of ${transfer.id}` : 'Your ship'}
+            onPick={active && ownOpen ? () => place('player') : undefined}
             onDragStart={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -175,7 +185,7 @@ export function CustomLanes({ setup, onChange, transfer, onTransfer, onError, di
               className="command-berth-drop"
               aria-hidden="true"
               onDragOver={(event) => {
-                if (active && !disabled) {
+                if (active && ownOpen && !disabled) {
                   event.preventDefault();
                   event.stopPropagation();
                   event.dataTransfer.dropEffect = 'move';

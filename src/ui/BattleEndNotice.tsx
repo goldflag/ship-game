@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BattleResult } from '../game/session/BattleSession';
 import type { BattleOutcome } from '../game/session/battleRules';
+import type { XpReadout } from './report/battleAward';
+import { XpAward } from './report/XpAward';
 import './BattleEndNotice.css';
 
 export const BATTLE_EXIT_DELAY_MS = 15_000;
@@ -13,7 +15,7 @@ export function scheduleBattleExit(onSeconds: (seconds: number) => void, onExit:
   return () => { clearInterval(interval); clearTimeout(timeout); };
 }
 
-export function BattleEndNotice({ result, outcome, onExit }: { result: BattleResult; outcome?: BattleOutcome; onExit(): void }) {
+export function BattleEndNotice({ result, outcome, onExit, xp }: { result: BattleResult; outcome?: BattleOutcome; onExit(): void; xp?: XpReadout }) {
   const [seconds, setSeconds] = useState(15);
   const exit = useRef(onExit);
   exit.current = onExit;
@@ -21,6 +23,7 @@ export function BattleEndNotice({ result, outcome, onExit }: { result: BattleRes
   const title = outcome?.reason === 'infrastructure' ? 'Battle interrupted' : outcome?.reason === 'abandoned' ? 'Battle abandoned' : `Battle over · ${result === 'victory' ? 'Victory' : result === 'defeat' ? 'Defeat' : 'Draw'}`;
   return <section className="battle-end-notice" aria-label="Battle complete">
     <h2 role="status">{title}</h2>
+    {xp && <XpAward xp={xp} />}
     <p>Returning to port in <strong>{seconds}s</strong></p>
   </section>;
 }

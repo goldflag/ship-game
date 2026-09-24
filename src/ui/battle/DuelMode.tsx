@@ -7,14 +7,17 @@ import { MapTiles, RailBlock, RailLock } from './BattleRail';
 import { BudgetStrip, FleetLane } from './FleetLane';
 import { duelBudget, duelUnitId, transferDuelShip, type FleetTransfer } from './fleetTransfer';
 import { Berth, ShipChip, tonnes } from './ShipCard';
+import { openFleet, type FleetRule } from './fleetAccess';
 
-interface LanesProps { fleet: string[]; onChange(fleet: string[]): void; transfer?: FleetTransfer; onTransfer(transfer?: FleetTransfer): void; onError(message: string): void; disabled?: boolean; }
+interface LanesProps { fleet: string[]; onChange(fleet: string[]): void; transfer?: FleetTransfer; onTransfer(transfer?: FleetTransfer): void; onError(message: string): void; disabled?: boolean;
+  /** Every berth is the player's own: only ships research has opened take one. */
+  rule?: FleetRule; }
 /** One fleet lane with every berth visible; the first berth is the initial command ship. */
-export function DuelLanes({ fleet, onChange, transfer, onTransfer, onError, disabled }: LanesProps) {
+export function DuelLanes({ fleet, onChange, transfer, onTransfer, onError, disabled, rule = openFleet }: LanesProps) {
   const budget = duelBudget(fleet);
   const place = (target: 'fleet' | 'command') => {
     if (!transfer) return;
-    const result = transferDuelShip(fleet, transfer, target);
+    const result = transferDuelShip(fleet, transfer, target, rule);
     if (result.error) onError(result.error); else onChange(result.fleet);
     onTransfer(undefined);
   };
@@ -23,7 +26,7 @@ export function DuelLanes({ fleet, onChange, transfer, onTransfer, onError, disa
     if (disabled) { event.preventDefault(); return; }
     event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', id); onTransfer({ kind: 'unit', id });
   };
-  const active = !!transfer, full = fleet.length >= BATTLE_RULES.maxVessels;
+  const active = !!transfer && !(transfer.kind === 'catalog' && rule(transfer.id) !== 'open'), full = fleet.length >= BATTLE_RULES.maxVessels;
   return <>
     <BudgetStrip label="Fleet allowances" items={[
       { label: 'Tonnage', reading: `${tonnes(budget.displacementKg)} / ${tonnes(BATTLE_RULES.maxFleetKg)} t`, used: budget.displacementKg, max: BATTLE_RULES.maxFleetKg },
@@ -37,7 +40,8 @@ export function DuelLanes({ fleet, onChange, transfer, onTransfer, onError, disa
         <ul className="fleet-lane-chips">
           {fleet.map((id, index) => {
             const unitId = duelUnitId(index), picked = transfer?.kind === 'unit' && transfer.id === unitId, first = index === 0;
-            return <ShipChip key={unitId} presetId={id} commanded={first} picked={picked} disabled={disabled} className={first ? `command-berth ${active ? 'is-accepting' : ''}` : ''} draggable={!first} onDragStart={event => dragUnit(event, unitId)} onDragEnd={() => onTransfer(undefined)}
+            const access = rule(id);
+            return <ShipChip key={unitId} presetId={id} restriction={access === 'open' ? undefined : access} commanded={first} picked={picked} disabled={disabled} className={first ? `command-berth ${active ? 'is-accepting' : ''}` : ''} draggable={!first} onDragStart={event => dragUnit(event, unitId)} onDragEnd={() => onTransfer(undefined)}
               pickLabel={first ? (active ? `Make ${transfer.id} the command ship` : 'Your initial command ship') : `Move vessel ${index + 1} to the command berth`}
               onPick={first ? (active ? () => place('command') : undefined) : () => onTransfer(picked ? undefined : { kind: 'unit', id: unitId })}
               removeLabel={`Remove vessel ${index + 1}`} onRemove={fleet.length > 1 || !first ? () => onChange(fleet.filter((_, i) => i !== index)) : undefined}>

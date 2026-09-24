@@ -25,6 +25,10 @@
 !src/
 !src/generated/
 !src/generated/naval-version.json
+!src/progression/
+!src/progression/techTree.ts
+!src/progression/rules.ts
+!src/progression/xp.ts
 !public/
 !public/models/
 !public/models/components/

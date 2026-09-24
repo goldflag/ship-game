@@ -1,6 +1,6 @@
 import { Color, HemisphereLight, MathUtils, Vector3, type DirectionalLight, type Object3D, type PerspectiveCamera } from 'three/webgpu';
 import type { OceanApi } from './ocean/contracts';
-import type { SkyApi, SkyScene } from './sky/contracts';
+import type { CelestialLight, SkyApi, SkyScene } from './sky/contracts';
 import { windrowCoverage } from './ocean/waves/whitecaps';
 import { DEFAULT_MAP, oceanMap, type OceanMapId } from '../maps/catalog';
 import { battleEnvironment, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
@@ -80,13 +80,33 @@ const FILL_DAYLIGHT = [1, 4] as const;
  * take them: the night sky, sea and smoke keep the raw moon. */
 const MESH_MOONLIGHT = 1.5, MESH_NIGHT_FILL = 1.6;
 
+/** Shares of the active celestial light that reach lit meshes (see the constants above): the scene
+ * DirectionalLight's multiple of the light's intensity, the hemisphere fill's multiple of the scene's
+ * authored ambient, and the sky reflection's intensity. The sea and sky keep the raw light. */
+export function meshLightShares(light: Pick<CelestialLight, 'intensity' | 'night'>): { sun: number; fill: number; sky: number } {
+  const daylight = MathUtils.smoothstep(light.intensity, ...FILL_DAYLIGHT);
+  return { sun: light.night ? MESH_MOONLIGHT : MESH_SUNLIGHT, fill: light.night ? MESH_NIGHT_FILL : MathUtils.lerp(1, MESH_FILL, daylight),
+    sky: MathUtils.lerp(1, MESH_SKY, daylight) };
+}
+
+/** The harbor's sheltered daylight, wherever the developer console overrides nothing: the sun, air and
+ * cloud deck the port shows, and its ambient fill. The model viewer lights its models with the same. */
+export const PORT_LIGHT = {
+  sun: { elevation: 36, azimuth: 58, intensity: 5.8 },
+  atmosphere: { rayleigh: .42, turbidity: 3.2, mie: .25, mieG: .6, multiple: 1.4 },
+  clouds: { coverage: .38, altitude: 1700, thickness: 2400, horizonCoverage: .06, ambient: 1.1, baseShadow: .2 },
+  ambient: 1.75,
+} as const;
+/** Sky and ground colours of the hemisphere fill every lit mesh takes. */
+export const MESH_FILL_COLORS = { sky: '#dcebf2', ground: '#65757e' } as const;
+
 /** Applies resolved battle conditions to the ocean and the sky, and owns
  * every live override of those parameters: the port's daylight and standing wind, the air map's
  * far fog, underwater attenuation and the celestial light shared with the scene's
  * lights, the sea and smoke. CPU combat reads the same resolved conditions through the
  * renderer-free conditions module; nothing here can move a hull. */
 export class VisualEnvironment {
-  readonly ambientLight = new HemisphereLight('#dcebf2', '#65757e', .65);
+  readonly ambientLight = new HemisphereLight(MESH_FILL_COLORS.sky, MESH_FILL_COLORS.ground, .65);
   /** The scene's authored ambient before the mesh share; smoke and diagnostics read this. */
   private ambient = .65;
   private ocean?: OceanApi;
@@ -218,13 +238,13 @@ export class VisualEnvironment {
     // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
     // forward sun haze restrained so it cannot wash out the sky and reflections.
     this.skyScene = {
-      sun: { elevation: port ? 36 : authored.elevation, azimuth: port ? 58 : authored.azimuth, intensity: port ? 5.8 : authored.intensity },
+      sun: port ? { ...PORT_LIGHT.sun } : { elevation: authored.elevation, azimuth: authored.azimuth, intensity: authored.intensity },
       moon: { phase: overrides.moonPhase ?? MOON_PHASE },
-      atmosphere: { rayleigh: port ? .42 : authored.rayleigh, turbidity: port ? 3.2 : authored.turbidity,
-        mie: port ? .25 : authored.mie * SUN_HAZE, mieG: port ? .6 : authored.mieG, multiple: port ? 1.4 : authored.multiple },
-      clouds: { coverage: clouds ? .38 : authored.coverage, altitude: this.inPort ? 1700 : authored.altitude,
-        thickness: this.inPort ? 2400 : authored.thickness, horizonCoverage: clouds ? .06 : environment.horizonCoverage,
-        ambient: port ? 1.1 : environment.cloudAmbient, baseShadow: port ? .2 : environment.cloudShadow,
+      atmosphere: port ? { ...PORT_LIGHT.atmosphere } : { rayleigh: authored.rayleigh, turbidity: authored.turbidity,
+        mie: authored.mie * SUN_HAZE, mieG: authored.mieG, multiple: authored.multiple },
+      clouds: { coverage: clouds ? PORT_LIGHT.clouds.coverage : authored.coverage, altitude: this.inPort ? PORT_LIGHT.clouds.altitude : authored.altitude,
+        thickness: this.inPort ? PORT_LIGHT.clouds.thickness : authored.thickness, horizonCoverage: clouds ? PORT_LIGHT.clouds.horizonCoverage : environment.horizonCoverage,
+        ambient: port ? PORT_LIGHT.clouds.ambient : environment.cloudAmbient, baseShadow: port ? PORT_LIGHT.clouds.baseShadow : environment.cloudShadow,
         windSpeed: environment.cloudWind, windHeading: MathUtils.euclideanModulo(90 - windDirection, 360) },
       weather: { precipitation: overrides.precipitation !== undefined ? overrides.precipitation / 100 : rain.precipitation,
         lightning: overrides.lightning ?? rain.lightning },
@@ -232,7 +252,7 @@ export class VisualEnvironment {
     };
     sky.apply(this.skyScene);
     // Lift shaded hulls without raising sea/sky exposure.
-    this.ambient = port ? 1.75 : authored.ambient;
+    this.ambient = port ? PORT_LIGHT.ambient : authored.ambient;
     this.ambientLight.intensity = this.ambient;
     this.applyFog();
   }
@@ -263,19 +283,18 @@ export class VisualEnvironment {
   syncLighting(): void {
     const sky = this.sky;
     if (!sky) return;
-    const { direction, color, intensity, night, flash } = sky.light;
+    const { direction, color, intensity, night, flash } = sky.light, shares = meshLightShares(sky.light);
     if (this.ocean) {
       // The sea shades with the raw celestial light; only the scene light meshes use is scaled.
       this.ocean.sun.direction.copy(direction);
       this.ocean.sun.intensity = intensity;
       this.ocean.sun.color.copy(color);
-      const daylight = MathUtils.smoothstep(intensity, ...FILL_DAYLIGHT);
-      this.ambientLight.intensity = this.ambient * (night ? MESH_NIGHT_FILL : MathUtils.lerp(1, MESH_FILL, daylight)) * (1 + flash);
-      this.ocean.environmentIntensity = MathUtils.lerp(1, MESH_SKY, daylight);
+      this.ambientLight.intensity = this.ambient * shares.fill * (1 + flash);
+      this.ocean.environmentIntensity = shares.sky;
     }
     const light = this.sunLight;
     if (light) {
-      light.intensity = intensity * (night ? MESH_MOONLIGHT : MESH_SUNLIGHT);
+      light.intensity = intensity * shares.sun;
       light.color.copy(color);
       light.target.position.copy(this.inPort ? this.sinks.sunAnchor.position : this.shadowFocus ?? this.sinks.sunAnchor.position);
       light.position.copy(direction).multiplyScalar(this.inPort ? 800 : 500).add(light.target.position);

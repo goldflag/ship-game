@@ -4,8 +4,9 @@ import { timingSafeEqual } from 'node:crypto';
 import type { Auth } from './auth';
 import { ApiError, ShipStorage } from './storage';
 import { allowsOrigin } from './origins';
-export function createApp(auth: Auth, storage: ShipStorage, secret: string, origin: string, compilerURL: string) {
-  const app = new Hono<{ Variables: { account: string } }>();
+import { ProgressStorage, readAward, readGrant, readUnlock } from './progress';
+export function createApp(auth: Auth, storage: ShipStorage, secret: string, origin: string, compilerURL: string, progress: ProgressStorage) {
+  const app = new Hono<{ Variables: { account: string; email: string } }>();
   app.use('*', async (c,next) => { c.header('Cache-Control','no-store'); await next(); });
   app.use('*', bodyLimit({maxSize:17*1024*1024,onError:c=>c.json({code:'quota',error:'Source exceeds 16 MiB'},413)}));
   app.onError((error,c) => {
@@ -27,12 +28,14 @@ export function createApp(auth: Auth, storage: ShipStorage, secret: string, orig
     // Bind long-lived browser adapters to the account that created their draft.
     const expected = c.req.header('x-account-id');
     if (expected && expected !== session.user.id) return c.json({code:'unauthorized',error:'The account changed. This draft belongs to the previous account.'},401);
-    c.set('account',session.user.id); await next();
+    c.set('account',session.user.id); c.set('email',session.user.email); await next();
   };
-  app.use('/api/ships/*',async (c,next) => {
-    if (c.req.method !== 'GET' && !allowsOrigin(origin,c.req.header('origin'))) return c.json({error:'Origin not allowed'},403);
+  const signedIn = async (c: any,next: () => Promise<void>) => {
+    if (c.req.method !== 'GET' && !allowsOrigin(origin,c.req.header('origin'))) return c.json({code:'forbidden',error:'Origin not allowed'},403);
     return account(c,next);
-  });
+  };
+  app.use('/api/ships/*',signedIn);
+  app.use('/api/progress/*',bodyLimit({maxSize:64*1024,onError:c=>c.json({code:'invalid',error:'Progress request is too large'},413)}),signedIn);
   app.use('/internal/*',account);
   app.get('/internal/session',c=>c.json({accountId:c.get('account')}));
   app.get('/api/ships', async c=>c.json(await storage.list(c.get('account'))));
@@ -43,6 +46,16 @@ export function createApp(auth: Auth, storage: ShipStorage, secret: string, orig
     return c.json(await storage.save(c.get('account'),c.req.header('idempotency-key') ?? '',input));
   });
   app.delete('/api/ships/:id',async c=>{ await storage.remove(c.get('account'),c.req.param('id'),c.req.header('if-match') ?? ''); return c.body(null,204); });
+  // Research progress. Malformed JSON reads as an invalid body (400), not an outage.
+  const body = (c: any) => c.req.json().catch(() => undefined);
+  app.get('/api/progress',async c=>c.json({profile:await progress.load(c.get('account'))}));
+  app.post('/api/progress/unlocks',async c=>c.json(await progress.unlock(c.get('account'),readUnlock(await body(c)))));
+  // The award is always computed here from the validated summary; a client-supplied award is ignored.
+  app.post('/api/progress/awards',async c=>c.json(await progress.award(c.get('account'),readAward(await body(c)))));
+  app.post('/api/progress/dev',async c=>{
+    if (!progress.allowsDev(c.get('account'),c.get('email'))) throw new ApiError(403,'forbidden','Developer grants are not enabled for this account. List its id or email in PROGRESS_DEV_ACCOUNTS on the accounts API.');
+    return c.json({profile:await progress.grant(c.get('account'),readGrant(await body(c)))});
+  });
   const preparing = new Set<string>();
   app.post('/internal/prepare',async c=>{
     const owner = c.get('account'), {fleet} = await c.req.json();

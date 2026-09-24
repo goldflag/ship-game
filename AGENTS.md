@@ -15,6 +15,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | `src/game/audio.ts`, `src/game/GameAudio.ts`, `assets/audio/naval` | Sound: cue ids, combat-event cues and saved volumes (`audio.ts`); the Web Audio player that reads CPU events and poses (`GameAudio.ts`). Originals, prompts (`recipe.json`) and processing notes are in [assets/audio/naval/README.md](assets/audio/naval/README.md); `bun run audio:build` (Python 3 with FFmpeg or `afconvert`) writes `public/audio/naval` |
 | `src/ui` | React HUD, port (`Garage.tsx`), battle dialogs (`battle/`), fleet command (`fleet/`), shared controls (`components/`). See [src/ui/AGENTS.md](src/ui/AGENTS.md) |
 | `src/ui/shipbuilding` | The ship editor. See [its guide](src/ui/shipbuilding/AGENTS.md) |
+| `src/progression` | Research trees, unlock rules and battle XP (three files shared with the accounts API) and the browser progress store. See [research progression](docs/progression.md) |
 | `src/ships` | Blueprint and construction types, presets roster, design storage (IndexedDB and account cloud), local compile client |
 | `src/simulation` | Retired TypeScript simulation kept only as test fixtures. Do not extend it; gameplay lives in `crates/naval-sim` |
 | `services` | Accounts API, design storage, compile service (Bun, PostgreSQL) |
@@ -33,6 +34,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | Rendering, camera, `Game.ts` | [README architecture](README.md#architecture), [ocean guide](docs/ocean-configuration.md), [ocean design](src/game/ocean/README.md), [sky design](src/game/sky/README.md) |
 | Simulation, combat, bots, carrier operations | [crates/AGENTS.md](crates/AGENTS.md), then [air operations](docs/air-operations.md), [bot behavior](docs/bot-behavior.md) or [maneuvering](docs/maneuvering.md) |
 | Aiming, gun laying, gun-aim circles | [Gunnery aim path](docs/gunnery.md): the sight, the input, the Rust mount and the drawn circle, with cadences and units |
+| Research trees, XP, unlocks, locked ships | [Research progression](docs/progression.md) |
 | A field crossing Rust and TypeScript (definitions, frames, commands) | The checklists in [crates/AGENTS.md](crates/AGENTS.md) |
 | Multiplayer server, accounts, deployment | [Rust multiplayer](docs/rust-multiplayer-implementation.md), [accounts](docs/accounts.md), [deployment](docs/deployment.md) |
 | See a UI or battle change in the real game | [Browser verification](docs/browser-verification.md): account-free harness, `bun run ui:shot`, saved custom designs |

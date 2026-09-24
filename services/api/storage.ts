@@ -4,7 +4,7 @@ import type { ConstructionRevision, SaveConstructionSource } from '../../src/shi
 export class ApiError extends Error { constructor(readonly status: number, readonly code: string, message: string) { super(message); } }
 export const MAX_SOURCE_BYTES = 16 * 1024 * 1024;
 export const digest = (text: string) => createHash('sha256').update(text).digest('hex');
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const key = /^[a-zA-Z0-9_.-]{1,160}$/;
 export function validateSave(input: SaveConstructionSource) {
   if (!input || !key.test(input.designId) || typeof input.name !== 'string' || !input.name.trim() || input.name.length > 160
@@ -21,13 +21,15 @@ export function validateSave(input: SaveConstructionSource) {
 const revision = (r: any): ConstructionRevision => ({ formatVersion: 1, id: r.id, designId: r.design_id, sourceId: r.source_id,
   parentId: r.parent_id, createdAt: Number(r.created_at), schemaVersion: r.schema_version, catalogRevision: r.catalog_revision, sourceJson: r.source_json });
 const head = (r: any) => ({ id: r.id, sourceId:r.source_id, name: r.name, revisionId: r.revision_id, updatedAt: Number(r.updated_at), schemaVersion: r.schema_version, catalogRevision: r.catalog_revision });
+/** Runs work in one transaction holding an advisory lock on `key`, so one account's writes serialize. */
+export async function lockedTransaction<T>(pool: Pool, key: string, work: (db: PoolClient) => Promise<T>) {
+  const db = await pool.connect();
+  try { await db.query('BEGIN'); await db.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [key]); const value = await work(db); await db.query('COMMIT'); return value; }
+  catch (error) { await db.query('ROLLBACK'); throw error; } finally { db.release(); }
+}
 export class ShipStorage {
   constructor(readonly db: Pool, readonly maxDesigns = 100, readonly maxBytes = 100 * 1024 * 1024) {}
-  private async transaction<T>(owner: string, work: (db: PoolClient) => Promise<T>) {
-    const db = await this.db.connect();
-    try { await db.query('BEGIN'); await db.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [owner]); const value = await work(db); await db.query('COMMIT'); return value; }
-    catch (error) { await db.query('ROLLBACK'); throw error; } finally { db.release(); }
-  }
+  private transaction<T>(owner: string, work: (db: PoolClient) => Promise<T>) { return lockedTransaction(this.db, owner, work); }
   async list(owner: string) { return (await this.db.query('SELECT d.*,r.source_id,r.schema_version,r.catalog_revision FROM ships.designs d JOIN ships.revisions r ON r.id=d.revision_id WHERE d.owner_id=$1 ORDER BY d.updated_at DESC', [owner])).rows.map(head); }
   async load(owner: string, id: string) {
     const result = await this.db.query('SELECT d.*,r.source_id,r.schema_version,r.catalog_revision FROM ships.designs d JOIN ships.revisions r ON r.id=d.revision_id WHERE d.owner_id=$1 AND (d.id::text=$2 OR d.client_key=$2)', [owner, id]);

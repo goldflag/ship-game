@@ -6,21 +6,23 @@ The older static `/naval/` deployment on tanks-na is independent.
 
 ## Runtime and compatibility
 
-Caddy routes `/api/auth/*` and `/api/ships/*` to Bun/Hono, and multiplayer routes
-to Rust. `/internal/*` is never proxied. PostgreSQL 17 has a dedicated persistent
+Caddy routes `/api/auth/*`, `/api/ships/*` and `/api/progress/*` to Bun/Hono, and
+multiplayer routes to Rust. `/internal/*` is never proxied. PostgreSQL 17 has a dedicated persistent
 `ships_postgres` volume and no host port. The compiler is a private, isolated
 container with 512 MiB memory, 0.5 CPU, one subprocess and bounded admission.
 See [accounts](accounts.md) for storage, ownership and protocol contracts.
 
 The web container alone joins `matcha-watch_private`. Rust trusts only its fixed
 private proxy address. Keep both edge and web Caddy Cloudflare trust lists in
-sync. Health checks remain public; auth, ship and match content responses are
+sync. Health checks remain public; auth, ship, research and match content responses are
 not cacheable. Two simultaneous matches remain the maximum admission cap.
 
 All web, Bun, compiler and Rust images must use the same release and retained
 catalogs. Migrations run as `ships_migration`; neither runtime role can modify
-schemas. The API role cannot read results and the battle role cannot read auth
-or private ship libraries. Auth and service secrets must remain stable across
+schemas. The API role cannot read results and the battle role cannot read auth,
+private ship libraries or research progress. The API image copies `services/` and the three
+shared research rule files in `src/progression/` (`techTree.ts`, `rules.ts`, `xp.ts`); keep
+`.dockerignore` and the deploy script's file list in step with its imports. Auth and service secrets must remain stable across
 container replacements.
 
 ## Deployment settings
@@ -29,7 +31,8 @@ container replacements.
 `BATTLE_DB_PASSWORD`, `MIGRATION_DB_PASSWORD`, `BETTER_AUTH_SECRET` and
 `SERVICE_SECRET`. Generate independent URL-safe random secrets (at least 32
 characters); never commit them. Optional settings include `SHIP_DOMAIN`, storage
-quotas, edge network and trusted edge proxy CIDR. Database role creation happens
+quotas, edge network, trusted edge proxy CIDR and `PROGRESS_DEV_ACCOUNTS` (user ids or
+emails allowed developer XP grants; empty by default, never `*` in production). Database role creation happens
 only on a new volume; changing an environment password does not rotate an
 existing database role.
 
@@ -41,8 +44,8 @@ bun run deploy:hermes
 
 The script builds one compatible release, drains Rust with its 35-minute shutdown grace, recreates the private
 network while preserving volumes, then starts PostgreSQL and migrations. It takes a PostgreSQL `pg_dump -Fc` before starting the new services.
-After activation, verify signup/login, ship saving, multiplayer smoke tests and
-account/design/result survival through a restart. Update the external edge
+After activation, verify signup/login, ship saving, research progress, multiplayer smoke tests and
+account/design/progress/result survival through a restart. Update the external edge
 Caddy configuration only when installing a new domain, preserving existing sites.
 
 ## Recovery and rollback

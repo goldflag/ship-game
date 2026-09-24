@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type DragEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { PveDraft, type PveOptions } from '../../game/session/PveDraft';
 import {
   MatchConnection,
@@ -11,7 +11,7 @@ import type { Formation } from '../../multiplayer/generated/Formation';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import { shipPresets } from '../../ships/presets';
-import { availableShipIds, isHistoricalShip, localShips, resolveShip, subscribeLocalShips } from '../../ships/localShips';
+import { availableShipIds, isHistoricalShip, localShips, resolveShip, shipTitle, subscribeLocalShips } from '../../ships/localShips';
 import { useSyncExternalStore } from 'react';
 import { Button } from '../components';
 import { Icon } from '../Icons';
@@ -21,8 +21,21 @@ import { CustomLanes, CustomRail, customBrief, FormationSelect } from './CustomM
 import { DeployScreen } from './DeployScreen';
 import { applyCustomDeployment, applyPveDeployment, customDeployment, initialPvePlacements, pveDeployment } from './deploymentModel';
 import { DuelLanes, DuelRail, duelBrief } from './DuelMode';
-import { duelBudget, type FleetTransfer } from './fleetTransfer';
-import { missionSeed, PveLanes, PveRail, pveBrief, pveInvalid } from './PveMode';
+import { customTransferShip, duelBudget, parseCustomUnit, type FleetTransfer } from './fleetTransfer';
+import { missionSeed, PveLanes, PveRail, pveBrief, pveInvalid, pveRefused } from './PveMode';
+import { useProgress } from '../useProgress';
+import {
+  ACCESS_LABEL,
+  accessRefusal,
+  commandFallback,
+  customOwnFleet,
+  fleetRule,
+  openCustomFleet,
+  openDuelFleet,
+  openPveFleet,
+  ownFleetOpen,
+  removalNotice,
+} from './fleetAccess';
 import { ShipCatalog } from './ShipCatalog';
 import './BattleDialog.css';
 import type { BattleSetup } from '../../game/session/battleSetup';
@@ -43,6 +56,13 @@ interface Props {
   onOnlineBattle(session: RemoteBattleSession): Promise<void>;
 }
 const ALL_SHIPS = Object.keys(shipPresets);
+const titleOf = (id: string) => {
+  try {
+    return shipTitle(resolveShip(id));
+  } catch {
+    return id;
+  }
+};
 /** `PveDraft.setFormation` arrives with the sim's formation work; until it lands this is a
  * no-op and the group still starts in column. Drop the cast once the method is on the class. */
 const defaultRequest = (): PveRequest => ({
@@ -74,6 +94,9 @@ export function BattleDialog({
   onOnlineBattle,
 }: Props) {
   useSyncExternalStore(subscribeLocalShips, localShips, localShips);
+  // Research decides which historical classes may sail in the player's own fleet; enemy lanes take any ship.
+  const { snapshot: progress } = useProgress();
+  const rule = useMemo(() => fleetRule(progress), [progress]);
   const dialog = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<BattleMode>(initialMode);
   const [step, setStep] = useState<'fleet' | 'deploy'>(initialStep);
@@ -134,14 +157,11 @@ export function BattleDialog({
         setOptions(value);
         setRequest((current) => {
           if (current.ships.length) return current;
-          const carried = carryToPve(current, pendingCarry.current ?? [], value.eligiblePresets, value.rules.budget, newId);
+          const eligible = value.eligiblePresets.filter((id) => rule(id) === 'open');
+          const carried = carryToPve(current, pendingCarry.current ?? [], eligible, value.rules.budget, newId);
           pendingCarry.current = undefined;
           if (carried.ships.length) return carried;
-          const id = value.eligiblePresets.includes(initialShipId)
-            ? initialShipId
-            : isHistoricalShip(initialShipId)
-              ? value.eligiblePresets[0]
-              : undefined;
+          const id = eligible.includes(initialShipId) ? initialShipId : isHistoricalShip(initialShipId) ? eligible[0] : undefined;
           return id
             ? {
                 ...current,
@@ -181,9 +201,31 @@ export function BattleDialog({
     }));
     draftRef.current?.setFormation(groupId, formation);
   };
+  // Ships that may not sail in the player's fleet leave it: a roster remembered from before research loaded, or one
+  // research has since closed. A command berth left without a ship takes the port's ship or another open one.
+  useEffect(() => {
+    const fallback = () => commandFallback(rule, [initialShipId], ALL_SHIPS);
+    if (mode === 'custom') {
+      const fixed = openCustomFleet(setup, rule, fallback);
+      if (fixed.setup === setup) return;
+      onSetupChange(fixed.setup);
+      notice(removalNotice(fixed.removed, titleOf, fixed.setup.playerShipId !== setup.playerShipId ? fixed.setup.playerShipId : undefined), false);
+    } else if (mode === 'pve') {
+      const fixed = openPveFleet(request, rule);
+      if (fixed.request === request) return;
+      changeRequest(fixed.request);
+      notice(removalNotice(fixed.removed, titleOf), false);
+    } else {
+      const fixed = openDuelFleet(fleet, rule, fallback);
+      if (fixed.fleet === fleet) return;
+      setFleet(fixed.fleet);
+      notice(removalNotice(fixed.removed, titleOf, fixed.fleet[0] !== undefined && fixed.fleet[0] !== fleet[0] ? fixed.fleet[0] : undefined), false);
+    }
+  }, [rule, mode, setup, request, fleet]);
   const switchMode = (next: BattleMode) => {
     if (next === mode || pveBusy || duelBusy) return;
-    const ids = fleetForCarry(mode, { setup, request: options ? request : pveRequest, duel: fleet });
+    // Only ships that may sail in the player's own fleet carry over.
+    const ids = fleetForCarry(mode, { setup, request: options ? request : pveRequest, duel: fleet }).filter((id) => rule(id) === 'open');
     if (next === 'custom') onSetupChange(carryToCustom(setup, ids));
     else if (next === 'duel') setFleet((current) => carryToDuel(current, initialShipId, ids));
     else if (options) {
@@ -199,7 +241,7 @@ export function BattleDialog({
     });
   };
   const preparePve = async () => {
-    if (pveBusy || !options) return;
+    if (pveBusy || !options || pveRefused(request, rule)) return;
     if (draft) {
       setStep('deploy');
       return;
@@ -258,6 +300,10 @@ export function BattleDialog({
   };
   const join = async (joinMode?: JoinMode) => {
     if (duelBusy) return;
+    if (joinMode && !ownFleetOpen(fleet, rule)) {
+      notice('Every ship in your fleet must be unlocked in the tech tree.');
+      return;
+    }
     setDuelBusy(true);
     setStatus({ message: 'Connecting…' });
     setMessage({ text: '', error: false });
@@ -316,6 +362,9 @@ export function BattleDialog({
     setMessage({ text: '', error: false });
   };
   const unavailable = (id: string): string => {
+    // Fleet command and 1v1 fleets are all the player's own; custom battles still take these ships as enemies.
+    const access = rule(id);
+    if (mode !== 'custom' && access !== 'open') return ACCESS_LABEL[access];
     if (mode === 'pve') {
       if (!options) return '';
       return pveInvalid(
@@ -339,6 +388,8 @@ export function BattleDialog({
           : ''
         : 'the ship';
   const customPlacement = mode === 'custom' && step === 'deploy' ? customDeployment(setup) : undefined;
+  const customOpen = ownFleetOpen(customOwnFleet(setup), rule),
+    duelOpen = ownFleetOpen(fleet, rule);
   const pveInvalidText = mode === 'pve' ? pveInvalid(request, options) : '';
   const brief = mode === 'custom' ? customBrief(setup) : mode === 'pve' ? pveBrief(request) : duelBrief(fleet);
   const primary = (() => {
@@ -346,18 +397,18 @@ export function BattleDialog({
       return step === 'fleet'
         ? {
             label: 'Deploy fleet',
-            disabled: !setup.enemies.length,
+            disabled: !setup.enemies.length || !customOpen,
             run: () => {
               setTransfer(undefined);
               setStep('deploy');
             },
           }
-        : { label: 'Start battle', disabled: !!customPlacement?.error || loading, run: onLaunchCustom };
+        : { label: 'Start battle', disabled: !!customPlacement?.error || loading || !customOpen, run: onLaunchCustom };
     if (mode === 'pve')
       return step === 'fleet'
         ? {
             label: pveBusy ? 'Preparing…' : 'Deploy fleet',
-            disabled: !options || pveBusy || !!pveInvalidText,
+            disabled: !options || pveBusy || !!pveInvalidText || pveRefused(request, rule),
             run: () => {
               setTransfer(undefined);
               void preparePve();
@@ -365,10 +416,10 @@ export function BattleDialog({
           }
         : {
             label: pveBusy ? 'Preparing…' : 'Start battle',
-            disabled: pveBusy || !draft || !!pveDeployment(draft.briefing, placements).error,
+            disabled: pveBusy || !draft || !!pveDeployment(draft.briefing, placements).error || pveRefused(request, rule),
             run: () => void launchPve(),
           };
-    return { label: 'Find opponent', disabled: duelBusy || !!duelBudget(fleet).error, run: () => void join('queue') };
+    return { label: 'Find opponent', disabled: duelBusy || !!duelBudget(fleet).error || !duelOpen, run: () => void join('queue') };
   })();
   const canResume = (() => {
     try {
@@ -377,6 +428,19 @@ export function BattleDialog({
       return false;
     }
   })();
+  // A picked ship the player's own berths refuse: say where it can go instead.
+  const carried = !transfer ? undefined : mode === 'custom' ? customTransferShip(setup, transfer) : transfer.kind === 'catalog' ? transfer.id : undefined;
+  const carriedAccess = carried && !(mode === 'custom' && transfer?.kind === 'unit' && parseCustomUnit(transfer.id)?.team === 'friendly') ? rule(carried) : 'open';
+  const transferText =
+    carriedAccess === 'open' || !carried
+      ? `Choose a lane for ${transferName}.`
+      : `${accessRefusal(carriedAccess, titleOf(carried))}${mode === 'custom' ? ' Place it in the enemy lane.' : ''}`;
+  const ownFleetText =
+    mode === 'custom' && rule(setup.playerShipId) !== 'open'
+      ? `${accessRefusal(rule(setup.playerShipId), titleOf(setup.playerShipId))} Choose an unlocked ship for the command berth.`
+      : (mode === 'custom' && !customOpen) || (mode === 'pve' && pveRefused(request, rule)) || (mode === 'duel' && !duelOpen)
+        ? 'Remove the ships marked for the tech tree or the enemy from your fleet.'
+        : '';
   const statusText =
     message.text ||
     customError ||
@@ -385,12 +449,14 @@ export function BattleDialog({
         ? 'Preparing your mission…'
         : status.message
       : transfer
-        ? `Choose a lane for ${transferName}.`
-        : mode === 'pve' && optionsError
-          ? optionsError
-          : mode === 'pve' && !isHistoricalShip(initialShipId)
-            ? 'Campaign missions require historical ships.'
-            : '');
+        ? transferText
+        : ownFleetText
+          ? ownFleetText
+          : mode === 'pve' && optionsError
+            ? optionsError
+            : mode === 'pve' && !isHistoricalShip(initialShipId)
+              ? 'Campaign missions require historical ships.'
+              : '');
   const statusError = message.error || !!customError || (!!optionsError && !message.text && !busy);
 
   return (
@@ -473,6 +539,7 @@ export function BattleDialog({
             commanded={mode === 'custom' ? setup.playerShipId : undefined}
             disabled={catalogDisabled}
             unavailable={unavailable}
+            access={rule}
             onPick={pick}
             onDragStart={startCatalogDrag}
             onDragEnd={() => setTransfer(undefined)}
@@ -489,6 +556,7 @@ export function BattleDialog({
                 onTransfer={setTransfer}
                 onError={notice}
                 disabled={busy}
+                rule={rule}
               />
             )}
             {mode === 'pve' &&
@@ -502,6 +570,7 @@ export function BattleDialog({
                   onError={notice}
                   nextId={newId}
                   disabled={busy}
+                  rule={rule}
                 />
               ) : (
                 <div className="battle-preparing" role="status">
@@ -516,7 +585,7 @@ export function BattleDialog({
                 </div>
               ))}
             {mode === 'duel' && (
-              <DuelLanes fleet={fleet} onChange={setFleet} transfer={transfer} onTransfer={setTransfer} onError={notice} disabled={busy} />
+              <DuelLanes fleet={fleet} onChange={setFleet} transfer={transfer} onTransfer={setTransfer} onError={notice} disabled={busy} rule={rule} />
             )}
           </div>
           <aside className="battle-rail" aria-label="Battle settings">
@@ -532,7 +601,7 @@ export function BattleDialog({
                 onJoin={(joinMode) => void join(joinMode)}
                 onResume={canResume ? () => void join() : undefined}
                 onCancel={cancelJoin}
-                disabled={loading}
+                disabled={loading || !duelOpen}
               />
             )}
           </aside>

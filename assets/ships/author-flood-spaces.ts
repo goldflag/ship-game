@@ -7,8 +7,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { compileShip, type Compartment, type ShipBlueprint, type Vec3 } from '../../src/ships/blueprint';
-import { hullContains } from '../../src/simulation/hull';
-import { plateHit } from '../../src/simulation/protection';
+import { hullContains } from '../../src/ships/hull';
+import { plateHit } from '../../src/game/armorPlates';
 
 const shipId = process.argv[2];
 if (!/^[a-z][a-z0-9-]+$/.test(shipId ?? '')) throw new Error('Supply a ship ID');

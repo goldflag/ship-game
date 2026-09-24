@@ -42,13 +42,6 @@ export function filterDesigns(designs: readonly PortDesign[], filter: PortFilter
   return designs.filter(design => (filter === 'all' || (filter === 'ready') === (design.status === 'ready')) && (!needle || design.name.toLowerCase().includes(needle)));
 }
 
-/** At most `size` neighbours around the berthed ship, so a long fleet line stays one row. */
-export function fleetLineWindow<T>(items: readonly T[], selected: number, size = 7): T[] {
-  if (items.length <= size) return [...items];
-  const start = Math.max(0, Math.min(items.length - size, selected - Math.floor(size / 2)));
-  return items.slice(start, start + size);
-}
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export function editedLabel(updatedAt: number, now = Date.now()): string {
   if (!Number.isFinite(updatedAt) || updatedAt >= Number.MAX_SAFE_INTEGER) return 'Edited just now';
@@ -63,8 +56,3 @@ export function editedLabel(updatedAt: number, now = Date.now()): string {
   const date = new Date(updatedAt);
   return `Edited ${date.getDate()} ${MONTHS[date.getMonth()]}${days > 300 ? ` ${date.getFullYear()}` : ''}`;
 }
-
-const REMEMBERED = 'port.design';
-/** The design last berthed in this browser, so the port reopens on it. */
-export function rememberedDesign(): string | null { try { return localStorage.getItem(REMEMBERED); } catch { return null; } }
-export function rememberDesign(sourceId: string): void { try { localStorage.setItem(REMEMBERED, sourceId); } catch { /* Private windows keep the default. */ } }

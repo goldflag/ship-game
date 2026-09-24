@@ -5,13 +5,16 @@ import { Input } from '../components';
 import { ShipClassIcon } from '../ShipClassIcons';
 import { NationFlag, nationLabel } from './NationFlag';
 import { ShipCatalogCard } from './ShipCard';
+import type { FleetRule } from './fleetAccess';
 
 interface Props {
   ships: readonly string[]; hint: string; picked?: string; commanded?: string; disabled?: boolean;
   unavailable(id: string): string; onPick(id: string): void; onDragStart(id: string, event: DragEvent<HTMLElement>): void; onDragEnd(): void;
+  /** Marks ships the player's own fleet may not take (locked or enemy-only). */
+  access?: FleetRule;
 }
 /** Shared catalog column: search, class and nation chips, one draggable card per hull. */
-export function ShipCatalog({ ships, hint, picked, commanded, disabled, unavailable, onPick, onDragStart, onDragEnd }: Props) {
+export function ShipCatalog({ ships, hint, picked, commanded, disabled, unavailable, onPick, onDragStart, onDragEnd, access }: Props) {
   const [query, setQuery] = useState(''), [classFilter, setClassFilter] = useState<'All' | ShipClass>('All'), [nation, setNation] = useState('All');
   const nations = Array.from(new Set(ships.map(id => shipIdentity(id).nation).filter(Boolean))).sort();
   const terms = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
@@ -30,8 +33,9 @@ export function ShipCatalog({ ships, hint, picked, commanded, disabled, unavaila
       {nations.map(entry => <button type="button" key={entry} aria-pressed={nation === entry} aria-label={entry} onClick={() => setNation(entry)}><NationFlag nation={entry}/>{nationLabel(entry)}</button>)}
     </div>
     <ul id="battle-catalog-results" className="catalog-list">
-      {shown.map(id => <ShipCatalogCard key={id} presetId={id} picked={picked === id} commanded={commanded === id} disabled={disabled} unavailable={disabled ? '' : unavailable(id)}
-        onPick={() => onPick(id)} draggable onDragStart={event => onDragStart(id, event)} onDragEnd={onDragEnd}/>)}
+      {shown.map(id => { const standing = access?.(id) ?? 'open';
+        return <ShipCatalogCard key={id} presetId={id} picked={picked === id} commanded={commanded === id} disabled={disabled} unavailable={disabled ? '' : unavailable(id)}
+          restriction={standing === 'open' ? undefined : standing} onPick={() => onPick(id)} draggable onDragStart={event => onDragStart(id, event)} onDragEnd={onDragEnd}/>; })}
       {!shown.length && <li className="catalog-empty">No ships match. Clear the search or the filters.</li>}
     </ul>
   </section>;

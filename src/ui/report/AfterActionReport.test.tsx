@@ -34,6 +34,16 @@ test('the report opens on the results: outcome, both fleets, the tab that holds 
   expect(html).toMatch(/primary-button[^>]*>Battle again<small>Same fleets<\/small>/);
 });
 
+test('the report heads its results with the research XP the battle earned', () => {
+  const award = { total: 376, nations: { usa: 338 }, free: 38, breakdown: { sinking: 0, damage: 190, time: 80, odds: 1.5, outcome: 1.5 } };
+  const html = renderToStaticMarkup(<AfterActionReport {...props} xp={{ state: { status: 'awarded', award }, retry() {} }} />);
+  expect(html).toMatch(/elapsed<\/p><p class="xp-award" data-state="awarded" role="status">/);
+  expect(html).toContain('+376 XP');
+  expect(html).toContain('United States 338 · Free 38');
+  expect(renderToStaticMarkup(<AfterActionReport {...props} xp={{ state: { status: 'saving' }, retry() {} }} />)).toContain('Saving XP…');
+  expect(renderToStaticMarkup(<AfterActionReport {...props} />)).not.toContain('xp-award');
+});
+
 test('hits start on the battered side and hide behind the hull they struck', () => {
   const rows = hitRows(debrief, 'p');
   expect(batteredSide(rows)).toBe(1);

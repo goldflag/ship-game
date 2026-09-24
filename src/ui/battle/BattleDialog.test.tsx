@@ -5,6 +5,12 @@ import { ShipCatalogCard, ShipChip } from './ShipCard';
 import { DeployScreen } from './DeployScreen';
 import { customDeployment, type Deployment } from './deploymentModel';
 import type { BattleSetup } from '../../game/session/battleSetup';
+import { emptyProfile } from '../../progression/rules';
+import type { ProgressStore } from '../../progression/store';
+import { ProgressProvider } from '../useProgress';
+import { ShipCatalog } from './ShipCatalog';
+import { CustomLanes } from './CustomMode';
+import { fleetRule } from './fleetAccess';
 
 const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: [{ shipId: 'fletcher', aiLevel: 'hard' }], enemies: ['mogami'], spawnDistance: 5000, mapId: 'north-atlantic', timeHours: 14.5, cloudCover: 40, windSpeed: 8 };
 const render = (mode: 'custom' | 'pve' | 'duel') => renderToStaticMarkup(<BattleDialog initialMode={mode} initialShipId="bismarck" loading={false} onClose={() => {}} setup={setup} onSetupChange={() => {}} onLaunchCustom={() => {}} customError="" onLaunchPve={async () => {}} onOnlineBattle={async () => {}}/>);
@@ -56,4 +62,30 @@ test('the PvE deploy panel offers a cruising formation for the selected group; c
   const custom = renderToStaticMarkup(<DeployScreen deployment={customDeployment(setup)} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x"/>);
   expect(custom).not.toContain('Cruising formation');
   expect(custom).toContain('FRIENDLY FORMATION · 2 SHIPS<');
+});
+
+test('a new player sees which ships research still locks and which sail only with the enemy', () => {
+  const snapshot = { status: 'ready' as const, profile: emptyProfile(), source: 'harness' as const };
+  const store = { snapshot: () => snapshot, subscribe: () => () => {} } as unknown as ProgressStore;
+  const rule = fleetRule(snapshot);
+  // Custom battles keep every card usable: the enemy lane takes any ship.
+  const catalog = renderToStaticMarkup(<ShipCatalog ships={['gleaves', 'fletcher', 'valiant']} hint="" unavailable={() => ''} access={rule} onPick={() => {}} onDragStart={() => {}} onDragEnd={() => {}}/>);
+  const cards = catalog.split('<li class="ship-card').slice(1);
+  expect(cards[0]).not.toContain('ship-restriction');
+  expect(cards[1]).toContain('is-restricted'); expect(cards[1]).toContain('lock-glyph'); expect(cards[1]).toContain('Unlock in the tech tree'); expect(cards[1]).not.toContain('disabled=""');
+  expect(cards[2]).toContain('Enemy only'); expect(cards[2]).not.toContain('lock-glyph');
+  // A locked ship picked from the catalog lights the enemy lane only.
+  const lanes = renderToStaticMarkup(<CustomLanes setup={{ ...setup, playerShipId: 'gleaves', friendlyBots: [] }} onChange={() => {}} transfer={{ kind: 'catalog', id: 'fletcher' }} onTransfer={() => {}} onError={() => {}} rule={rule}/>);
+  expect(lanes).toMatch(/class="fleet-lane friendly[^"]*"/); expect(lanes).not.toMatch(/class="fleet-lane friendly[^"]*is-accepting/);
+  expect(lanes).toMatch(/class="fleet-lane enemy[^"]*is-accepting/); expect(lanes).not.toMatch(/command-berth is-accepting/);
+  const open = renderToStaticMarkup(<CustomLanes setup={{ ...setup, playerShipId: 'gleaves', friendlyBots: [] }} onChange={() => {}} transfer={{ kind: 'catalog', id: 'cleveland' }} onTransfer={() => {}} onError={() => {}} rule={rule}/>);
+  expect(open).toMatch(/class="fleet-lane friendly[^"]*is-accepting/); expect(open).toMatch(/command-berth is-accepting/);
+  // A 1v1 fleet is all the player's own, so its catalog disables them.
+  const duel = renderToStaticMarkup(<ProgressProvider store={store}><BattleDialog initialMode="duel" initialShipId="gleaves" loading={false} onClose={() => {}} setup={setup} onSetupChange={() => {}} onLaunchCustom={() => {}} customError="" onLaunchPve={async () => {}} onOnlineBattle={async () => {}}/></ProgressProvider>);
+  const fletcher = duel.split('<li class="ship-card').find(card => card.includes('Choose Fletcher,'))!;
+  expect(fletcher).toContain('is-unavailable'); expect(fletcher).toContain('Unlock in the tech tree'); expect(fletcher).toContain('disabled=""');
+  // The remembered custom roster commands a locked Bismarck until the dialog replaces it: the launch waits.
+  const custom = renderToStaticMarkup(<ProgressProvider store={store}><BattleDialog initialMode="custom" initialShipId="gleaves" loading={false} onClose={() => {}} setup={setup} onSetupChange={() => {}} onLaunchCustom={() => {}} customError="" onLaunchPve={async () => {}} onOnlineBattle={async () => {}}/></ProgressProvider>);
+  expect(custom).toContain('Choose an unlocked ship for the command berth.');
+  expect(custom).toMatch(/<button[^>]*disabled=""[^>]*>Deploy fleet/);
 });
