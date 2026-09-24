@@ -6,6 +6,7 @@ import { compileShip, type ShipDefinition } from '../ships/blueprint';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { rasterEnsign } from '../../assets/parts/ensigns';
+import { jointTurns } from './jointTurns';
 
 function fixture() {
   const node = new THREE.Group(), child = new THREE.Mesh(new THREE.BoxGeometry(4, 1, .2));
@@ -90,4 +91,40 @@ test('US ensign has 48 distinct stars and thirteen fly stripes', () => {
     }
   }
   expect(stars).toBe(48);
+});
+
+test('a shared frustum, lazy wind frames and direct radar turns fold and turn exactly as each rig did on its own', () => {
+  let seed = 23;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  const direct = [fixture(), fixture()], reference = [fixture(), fixture()];
+  const camera = new THREE.PerspectiveCamera(52, 1.6, .5, 60000);
+  const state = ({ rig, node }: ReturnType<typeof fixture>) => {
+    const q = node.quaternion as unknown as { _x: number; _y: number; _z: number; _w: number }, e = node.rotation as unknown as { _x: number; _y: number; _z: number };
+    return [q._x, q._y, q._z, q._w, e._x, e._y, e._z, rig.radars[0].angle, ...rig.flags.flatMap(f => [f.mesh.visible, (f.mesh.geometry.attributes.position as THREE.BufferAttribute).version, ...f.cloth.positions])];
+  };
+  let folded = 0, held = 0, last = 0;
+  for (let step = 0; step < 400; step++) {
+    // Two hulls a frame under one camera; the camera moves, zooms or stays between frames.
+    if (random() < .7) { camera.position.set((random() - .5) * 400, 5 + random() * 60, (random() - .5) * 400); camera.lookAt((random() - .5) * 60, 8, (random() - .5) * 60); }
+    if (random() < .2) { camera.fov = 5 + random() * 60; camera.updateProjectionMatrix(); }
+    camera.updateMatrixWorld();
+    const dt = random() < .1 ? 0 : random() * .05, wind = random() * 20, direction = random() * 6, sunk = step > 350;
+    for (let k = 0; k < 2; k++) {
+      const heading = random() * 6, speed = random() * 15, x = (random() - .5) * 100, y = random() < .05 ? -30 : 0, view = random() < .1 ? undefined : camera;
+      for (const [set, shared] of [[direct, true], [reference, false]] as const) {
+        const { rig, hull, motion } = set[k];
+        hull.position.set(x, y, k * 80); hull.rotation.set(0, -heading, .05); Object.assign(motion, { heading, speed, yawRate: .01 });
+        ShipRigView.shareFrustum = shared; jointTurns.direct = shared;
+        try { rig.update(dt, wind, direction, hull, motion, sunk, view); } finally { ShipRigView.shareFrustum = true; jointTurns.direct = true; }
+      }
+      const a = state(direct[k]), b = state(reference[k]);
+      expect(a.every((value, i) => Object.is(value, b[i]))).toBe(true);
+    }
+    const version = (direct[0].rig.flags[0].mesh.geometry.attributes.position as THREE.BufferAttribute).version;
+    if (version > last) folded++; else held++;
+    last = version;
+  }
+  // Not vacuous: the first flag folded in some frames and held (offscreen, subpixel, paused) in others.
+  expect(folded).toBeGreaterThan(50); expect(held).toBeGreaterThan(50);
+  for (const { rig } of [...direct, ...reference]) rig.dispose();
 });

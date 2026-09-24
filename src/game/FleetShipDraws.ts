@@ -19,6 +19,7 @@ type Member = { mesh: THREE.Mesh; layers: number; slot: number; pose: number };
  * is the subtree's visibility version they were settled against. */
 type Ship = { view: ShipView; poses: ShipPoseMatrices; subtree: Subtree; proxy?: ShipRenderProxy; members: Member[]; slots: number; active: boolean; batched: boolean; armor: boolean; layersChanged: boolean;
   pivots: Float64Array; depths: Float64Array; bounded: boolean; spread: number; stretch: number; hidden: boolean; steady: boolean; visibility: number };
+type BatchState = { _instanceInfo: { visible: boolean }[] };
 /** `pose`: a single surface's own pose (-1 for a joined assembly), `ownerPose` a moving owner's. */
 type Source = Omit<RenderAssembly, 'members'> & { ship: Ship; view: ShipView; members: Member[]; layers: number; instance?: number; levels?: { id: number; error: number }[]; level: number; armorContext?: THREE.Mesh;
   pose: number; ownerPose: number };
@@ -146,6 +147,7 @@ export class FleetShipDraws {
     }
     for (const { mesh, sources, ranges, anchors, reaches, radii, settled } of this.batches) {
       mesh.invalidateDrawList();
+      const infos = (mesh as unknown as BatchState)._instanceInfo;
       let count = 0;
       for (const { ship, start, end } of ranges) {
         if (!ship.active) {
@@ -153,14 +155,14 @@ export class FleetShipDraws {
           if (!ship.hidden) for (let k = start; k < end; k++) { const source = sources[k]; if (source.armorContext) source.armorContext.visible = false; mesh.setVisibleAt(source.instance!, false); }
           continue;
         }
-        const batched = ship.batched, armor = ship.armor, read = ship.subtree.own, poses = ship.poses;
+        const batched = ship.batched, armor = ship.armor, read = ship.subtree.own, chain = ship.subtree.visible, poses = ship.poses;
         const steady = ship.steady, depths = ship.depths, spread = ship.spread, stretch = ship.stretch;
         for (let k = start; k < end; k++) {
           if (steady && settled[k] === 1 && boundedSubpixel(radii[k], depths[anchors[k]] - spread * reaches[k], stretch, projection, perspective)) { this.subpixelInstances++; continue; }
           const source = sources[k], members = source.members, anchor = anchors[k];
           if (source.armorContext) source.armorContext.visible = false;
           let together = batched || armor;
-          for (let i = 0; together && i < members.length; i++) together = this.surfaceVisible(ship, members[i]);
+          for (let i = 0; together && i < members.length; i++) { const member = members[i]; together = member.slot >= 0 ? chain[member.slot] === 1 : this.surfaceVisible(ship, member); }
           // A hidden component or another inspection mode falls back to original surfaces.
           for (const member of members) {
             const layers = together ? 0 : member.layers;
@@ -200,8 +202,9 @@ export class FleetShipDraws {
             }
           }
           if (level !== source.level) { mesh.setGeometryIdAt(source.instance!, source.levels![level].id); source.level = level; }
-          mesh.setVisibleAt(source.instance!, visible && batched);
-          if (visible && batched) { mesh.setMatrixAt(source.instance!, matrixWorld); count++; if (level > 0) this.reducedInstances++; }
+          // An unchanged instance would leave setVisibleAt nothing to do.
+          if (infos[source.instance!].visible !== (visible && batched)) mesh.setVisibleAt(source.instance!, visible && batched);
+          if (visible && batched) { mesh.writePose(source.instance!, matrixWorld.elements); count++; if (level > 0) this.reducedInstances++; }
           if (visible && armor) {
             // Reuse prepared buffers; the exact inspection plates and pick meshes
             // remain separate. Do not expand this context back into authoring parts.
@@ -212,6 +215,7 @@ export class FleetShipDraws {
           }
         }
       }
+      mesh.commitPoses();
       mesh.visible = count > 0; this.visibleInstances += count;
     }
     for (const ship of this.ships) ship.hidden = !ship.active;

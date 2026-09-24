@@ -148,3 +148,57 @@ test('a cull that keeps the same parts in view leaves the uploaded instance ids 
   try { expect(draw()).toBe(first + 2); } finally { FleetBatch.keepIds = true; }
   batch.dispose(); geometry.dispose(); material.dispose();
 });
+
+test('direct pose writes leave the matrix texture, kept bounds and culls as setMatrixAt does, marking the texture once a commit', () => {
+  let seed = 13;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  const geometries = [new THREE.BoxGeometry(2, 1, 4), new THREE.SphereGeometry(1.5, 8, 6), new THREE.TorusGeometry(2, .3, 5, 9)], material = new THREE.MeshStandardMaterial();
+  type Internals = { _matricesTexture: THREE.DataTexture; bounds: Float64Array; boundsGeometry: Int32Array; _multiDrawCount: number; _indirectTexture: THREE.DataTexture };
+  const make = () => {
+    const batch = new FleetBatch(50, 4000, 12000, material), ids = geometries.map(g => batch.addGeometry(g));
+    batch.sortObjects = false;
+    for (let i = 0; i < 50; i++) batch.addInstance(ids[i % ids.length]);
+    return batch;
+  };
+  const direct = make(), reference = make(), camera = new THREE.PerspectiveCamera(50, 1.5, .5, 3000);
+  const internals = (batch: FleetBatch) => batch as unknown as Internals;
+  const draw = (batch: FleetBatch) => {
+    batch.invalidateDrawList();
+    batch.onBeforeRender(undefined as never, new THREE.Scene(), camera, batch.geometry, material, null as never);
+    const n = internals(batch)._multiDrawCount;
+    return Array.from(internals(batch)._indirectTexture.image.data as Uint32Array).slice(0, n);
+  };
+  const matrix = new THREE.Matrix4(), unknown = new THREE.Matrix4();
+  let marked = 0;
+  for (let step = 0; step < 300; step++) {
+    const before = internals(direct)._matricesTexture.version, writes = Math.floor(random() * 8);
+    for (let k = 0; k < writes; k++) {
+      const instance = Math.floor(random() * 50);
+      matrix.compose(new THREE.Vector3((random() - .5) * 2000, random() * 30, (random() - .5) * 2000),
+        new THREE.Quaternion().setFromEuler(new THREE.Euler(random() * 6, random() * 6, random() * 6)), new THREE.Vector3().setScalar(.3 + random() * 3));
+      direct.writePose(instance, matrix.elements); reference.setMatrixAt(instance, matrix);
+    }
+    // A write neither batch saw voids their kept bounds alike; a detail change moves the instance's geometry.
+    if (step % 17 === 16) for (const batch of [direct, reference]) { unknown.makeTranslation(step, 0, 0).toArray(internals(batch)._matricesTexture.image.data as Float32Array, 16); internals(batch)._matricesTexture.needsUpdate = true; }
+    if (step % 11 === 10) for (const batch of [direct, reference]) batch.setGeometryIdAt(3, step % 3);
+    direct.commitPoses();
+    const version = internals(direct)._matricesTexture.version;
+    if (writes) { expect(version).toBeGreaterThan(before); marked++; } else if (step % 17 !== 16) expect(version).toBe(before);
+    for (const batch of [direct, reference]) batch.partBoundsAt(0);
+    const a = internals(direct), b = internals(reference);
+    expect(Array.from(a._matricesTexture.image.data as Float32Array)).toEqual(Array.from(b._matricesTexture.image.data as Float32Array));
+    expect(Array.from(a.boundsGeometry)).toEqual(Array.from(b.boundsGeometry));
+    for (let i = 0; i < 50; i++) if (a.boundsGeometry[i] >= 0) expect(Array.from(a.bounds.subarray(i * 4, i * 4 + 4))).toEqual(Array.from(b.bounds.subarray(i * 4, i * 4 + 4)));
+    camera.position.set((random() - .5) * 600, 50 + random() * 300, (random() - .5) * 600); camera.lookAt((random() - .5) * 200, 0, (random() - .5) * 200); camera.updateMatrixWorld();
+    expect(draw(direct)).toEqual(draw(reference));
+  }
+  expect(marked).toBeGreaterThan(200);
+  // Off, the same call goes through three's setMatrixAt.
+  FleetBatch.directPoses = false;
+  try {
+    const version = internals(direct)._matricesTexture.version;
+    direct.writePose(1, matrix.elements); direct.writePose(2, matrix.elements);
+    expect(internals(direct)._matricesTexture.version).toBe(version + 2);
+  } finally { FleetBatch.directPoses = true; }
+  direct.dispose(); reference.dispose(); material.dispose(); geometries.forEach(g => g.dispose());
+});
