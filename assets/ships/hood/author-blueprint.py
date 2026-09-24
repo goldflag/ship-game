@@ -221,7 +221,17 @@ structure('midships-deckhouse', 'Midships deckhouse', [[-5.1, -14.5], [5.1, -14.
 structure('midships-deckhouse-upper', 'Midships deckhouse, upper tier', [[-5.1, -14.5], [5.1, -14.5], [5.1, -7.8], [-5.1, -7.8]], 10.97, 12.93)
 structure('searchlight-tower', 'Midships searchlight tower', rect(-1.35, 1.35, -13.7, -9.7), 12.93, 15.99)
 structure('after-funnel', 'After funnel', ellipse(-2.82, 2.9, 3.9, 32), 10.97, 23.32)
-structure('after-control-tower', 'After control position', [[-2.8, 34.3], [2.8, 34.3], [4.0, 35.6], [3.2, 38.5], [2.4, 42.0], [1.2, 44.6], [-1.2, 44.6], [-2.4, 42.0], [-3.2, 38.5], [-4.0, 35.6]], 9.2, 16.25)
+# After control position: a full-width lower block to 13.3 m, a narrower upper house, and the screened
+# roof carrying the HACS, searchlights and pom-pom director; searchlight lobes off the lower block.
+structure('after-control-tower', 'After control position', sym([(0, 34.25), (1.3, 34.25), (1.3, 34.9), (2.8, 34.9), (2.95, 35.48), (3.8, 35.48), (4.05, 35.7), (4.12, 37.5), (4.12, 37.95),
+                                                                 (3.78, 38.8), (3.78, 39.45), (3.45, 40.1), (3.35, 41.2), (2.43, 41.25), (1.7, 44.08), (0, 44.08)]), 9.2, 13.3)
+structure('after-control-tower-upper', 'After control position, upper house', sym([(0, 35.4), (2.85, 35.38), (3.23, 35.7), (3.68, 36.35), (3.68, 36.8), (3.4, 37.33), (1.7, 37.5), (1.7, 41.25),
+                                                                                    (1.88, 41.25), (0.93, 43.55), (0.15, 44.08), (0, 44.08)]), 13.3, 16.1)
+structure('after-control-tower-roof', 'After control position roof', sym([(0, 35.1), (1.55, 35.5), (2.5, 35.02), (3.2, 35.17), (3.98, 35.9), (4.12, 36.6), (4.03, 37.15), (3.73, 37.6), (3.18, 37.95),
+                                                                          (2.5, 39.48), (0, 43.6)]), 16.1, 16.25)
+for side, sign in [('port', -1), ('starboard', 1)]:
+    structure('searchlight-lobe-' + side, side.title() + ' after searchlight platform',
+              [[sign * x, z] for x, z in [(2.8, 34.9), (3.2, 34.0), (4.4, 33.6), (5.3, 33.5), (6.4, 33.9), (7.0, 35.0), (6.5, 36.1), (5.3, 36.6), (4.12, 37.5), (4.05, 35.7), (3.8, 35.48), (2.95, 35.48)]], 13.15, 13.3)
 structure('after-deckhouse', 'After deckhouse', [[-2.8, 49.0], [2.8, 49.0], [2.8, 53.2], [-2.8, 53.2]], 9.2, 11.79)
 structure('after-deckhouse-roof', 'After gun platform', [[-4.7, 45.8], [4.7, 45.8], [4.8, 51.5], [3.6, 53.9], [0, 54.3], [-3.6, 53.9], [-4.8, 51.5]], 11.79, 11.91, 'roof')
 
