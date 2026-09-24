@@ -90,4 +90,35 @@ test('kept bounds are three\'s Sphere.applyMatrix4 of each instance\'s texture m
     expect(Array.from(internals.bounds.subarray(instance * 4, instance * 4 + 4))).toEqual([expected.center.x, expected.center.y, expected.center.z, expected.radius]);
     expect(internals.boundsGeometry[instance]).toBe(batch.getGeometryIdAt(instance));
   }
+  batch.dispose(); geometries.forEach(g => g.dispose());
+});
+
+test('the layout version moves with what draws and with which geometry, and kept bounds are three\'s', () => {
+  const geometries = [new THREE.BoxGeometry(2, 1, 4), new THREE.SphereGeometry(1.5, 8, 6)], material = new THREE.MeshStandardMaterial();
+  const batch = new FleetBatch(4, 400, 1200, material), [box, ball] = geometries.map(g => batch.addGeometry(g));
+  const a = batch.addInstance(box), b = batch.addInstance(ball);
+  let version = batch.layoutVersion;
+  const moved = (change: () => unknown) => { change(); const bumped = batch.layoutVersion !== version; version = batch.layoutVersion; return bumped; };
+  expect(moved(() => batch.setMatrixAt(a, new THREE.Matrix4().makeTranslation(1, 2, 3)))).toBe(false);
+  expect(moved(() => batch.setVisibleAt(a, true))).toBe(false);
+  expect(moved(() => batch.setVisibleAt(a, false))).toBe(true);
+  expect(moved(() => batch.setGeometryIdAt(b, ball))).toBe(false);
+  expect(moved(() => batch.setGeometryIdAt(b, box))).toBe(true);
+  expect(moved(() => batch.addInstance(ball))).toBe(true);
+  expect(moved(() => batch.deleteInstance(a))).toBe(true);
+  expect(moved(() => batch.setGeometryAt(ball, new THREE.SphereGeometry(1, 6, 4)))).toBe(true);
+  // Bounds kept from each pose, or brought up to date after a write the batch did not see, equal Sphere.applyMatrix4's.
+  let seed = 3;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  const matrix = new THREE.Matrix4(), sphere = new THREE.Sphere(), poses = (batch as unknown as { _matricesTexture: THREE.DataTexture })._matricesTexture;
+  for (let step = 0; step < 50; step++) {
+    matrix.compose(new THREE.Vector3(random() * 100, random() * 10, random() * 100), new THREE.Quaternion().setFromEuler(new THREE.Euler(random() * 6, random() * 6, random() * 6)),
+      new THREE.Vector3().setScalar(.5 + random()));
+    if (step % 5 === 4) { matrix.toArray(poses.image.data as Float32Array, b * 16); poses.needsUpdate = true; }
+    else batch.setMatrixAt(b, matrix);
+    batch.getMatrixAt(b, matrix);
+    batch.getBoundingSphereAt(batch.getGeometryIdAt(b), sphere)!.applyMatrix4(matrix);
+    expect(Array.from(batch.partBoundsAt(b).subarray(b * 4, b * 4 + 4))).toEqual([sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius]);
+  }
+  batch.dispose(); material.dispose(); geometries.forEach(g => g.dispose());
 });
