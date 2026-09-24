@@ -175,7 +175,7 @@ for side in [-1,1]:
   rod('boat.cradle-beam',(x,cy-.7,z-.32),(x,cy+.7,z-.32),.075,materials['edge'])
  for xx in [-1.55,1.55]:
   x=cx+xx
-  tube_path('boat.davit',[(x,side*4.22,deckz(x)),(x,side*4.22,7.9),(x,side*4.05,8.3),(x,side*3.7,8.42),(x,cy,8.36)],.07,materials['naval'],sides=12)
+  tube_path('boat.davit',[(x,side*4.46,deckz(x)-.15),(x,side*4.46,7.9),(x,side*4.25,8.32),(x,side*3.8,8.44),(x,cy,8.36)],.07,materials['naval'],sides=12)
   rod('boat.fall',(x,cy,8.36),(x,cy,z+.9),.015,materials['rope'])
   for sign in [-1,1]:rod('boat.sling',(x,cy,z+.9),(x,cy+sign*.8,z+.7),.015,materials['rope'])
 # Stern depth-charge thrower and four separate release cradles.
@@ -203,7 +203,7 @@ for side in [-1,1]:
  rod('propulsion.hub',(-52.62,X(2.14),-2.355),(-53.5,X(2.14),-2.355),.3,materials['bronze'],vertices=24)
  rod('propulsion.cone',(-53.5,X(2.14),-2.355),(-54.4,X(2.14),-2.355),.3,materials['bronze'],r2=.05,vertices=24)
  for j in range(3):
-  theta=j*math.tau/3;vs=[]
+  theta=math.pi/2+j*math.tau/3;vs=[]
   for r,hw,sweep in [(.28,.2,0),(.7,.42,.13),(1.15,.46,.24),(1.42,.26,.35),(1.5,.03,.39)]:
    for u in [-1,1]:
     a=theta+sweep+u*hw/max(r,.28);vs.append((-53.1+u*hw*.5,X(2.14)+side*r*math.cos(a),-2.355+r*math.sin(a)))

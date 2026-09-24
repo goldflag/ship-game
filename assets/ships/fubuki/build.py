@@ -229,9 +229,9 @@ for side in [-1,1]:
 # Bilge keels at the turn of the bilge from z -10 to 23.5, 0.7 m deep at 45 deg, tapered ends.
 for sign in [-1,1]:
  vs=[]
- for x,spread in [(-23.5,0),(-21.5,.55),(8,.55),(10,0)]:
-  z=-1.75;y=sign*(shell_width(x,z)-.025)
-  vs += [(x,y,z),(x,y+sign*spread,z-.5)]
+ for x,spread in [(-23.5,0),(-21.5,.6),(8,.6),(10,0)]:
+  z=-1.9;y=sign*(shell_width(x,z)-.025)
+  vs += [(x,y,z),(x,y+sign*spread,z-.45)]
  ob=mesh('hull.bilge-keel',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(3)],materials['underwater'])
  mod=ob.modifiers.new('Bilge keel plate','SOLIDIFY');mod.thickness=.045
 # Gun installations: the shared builder owns mechanisms; the ship owns the seating.
