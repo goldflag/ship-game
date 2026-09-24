@@ -2,6 +2,7 @@
   "version": 1,
   "id": "yukikaze-maintained-v1",
   "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": {
       "paint": "yukikaze-authored-naval",
@@ -30,8 +31,7 @@
     },
     "underwater": {
       "paint": "yukikaze-authored-underwater",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "deck": {
       "paint": "yukikaze-authored-deck",
@@ -39,23 +39,12 @@
     },
     "wood": {
       "paint": "yukikaze-authored-wood",
-      "finish": "wood"
+      "finish": "wood",
+      "fittings": true
     },
     "linoleum": {
       "paint": "yukikaze-authored-linoleum",
       "finish": "linoleum"
     }
-  },
-  "hull": {
-    "bounds": [
-      -59.25,
-      59.25,
-      -4.76,
-      8.05
-    ],
-    "pixelsPerMeter": 16,
-    "waterline": 0,
-    "stainStrength": 0.16,
-    "runoffStrength": 0.16
   }
 }

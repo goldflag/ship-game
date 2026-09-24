@@ -323,7 +323,7 @@ script_start=time.perf_counter()
   const epilogue = `if profile:
  profile.disable()
  profile.dump_stats(${JSON.stringify(join(stage, label + '.prof'))})
- texture_seconds=sum(entry.totaltime for entry in profile.getstats() if hasattr(entry.code,'co_name') and entry.code.co_name in {'apply_appearance','apply_decking','apply_paint','consolidate_finish_uvs'})
+ texture_seconds=sum(entry.totaltime for entry in profile.getstats() if hasattr(entry.code,'co_name') and entry.code.co_name in {'apply_appearance','apply_paint','consolidate_finish_uvs'})
  with open(${JSON.stringify(join(stage, label + '.profile.json'))},'w') as f: json.dump({'scriptSeconds':time.perf_counter()-script_start,'textureSeconds':texture_seconds},f)
 `;
   const { stdout, version } = await runSharedBlender(

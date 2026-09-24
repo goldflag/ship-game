@@ -2,6 +2,7 @@
   "version": 1,
   "id": "cleveland-hull-a-maintained-v1",
   "basis": "Preserve the approved Hull A gray-blue upperworks and dark painted decks. Shared maintained finish on opaque fittings; the original two-sided hull image and its UVs remain authored in build.py. No new historical paint or deck-covering claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": {
       "paint": "cleveland-authored-gray-blue",

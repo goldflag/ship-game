@@ -18,6 +18,11 @@ def linear(value):
     return np.where(value <= 0.04045, value / 12.92, ((value + 0.055) / 1.055) ** 2.4)
 
 
+def encoded(value):
+    value = np.clip(value, 0, 1)
+    return np.where(value <= 0.0031308, value * 12.92, 1.055 * value ** (1 / 2.4) - 0.055)
+
+
 def inside(x, y, polygon):
     """Vectorized even/odd polygon fill in the declared metric coordinate plane."""
     result = np.zeros(np.broadcast_shapes(x.shape, y.shape), dtype=bool)
@@ -89,22 +94,12 @@ def deck_image(spec, colors):
     deck = spec['deck']
     width, height = 4096, 1024
     x, y = grid(deck['bounds'], width, height)
-    # Independent staggered teak boards; fine caulking uses pixel coverage so it
-    # remains visible without moire or a second material layer over the deck.
-    row = np.floor(y / deck['plankWidth'])
-    along = x + np.mod(row, 2) * deck['plankLength'] / 2
-    column = np.floor(along / deck['plankLength'])
-    shade = np.mod(np.sin(row * 127.1 + column * 311.7) * 43758.5453, 1)
-    grain = np.sin(x * 19 + y * 191) * 0.007 + np.sin(x * 3.1 - y * 327) * 0.008
-    pixels = colors['teakDark'] + shade[:, :, None] * (colors['teakLight'] - colors['teakDark'])
-    pixels += grain[:, :, None]
-    for position, period, pixel_size in (
-        (y, deck['plankWidth'], (deck['bounds'][3] - deck['bounds'][2]) / height),
-        (along, deck['plankLength'], (deck['bounds'][1] - deck['bounds'][0]) / width),
-    ):
-        distance = np.abs(np.mod(position + period / 2, period) - period / 2)
-        coverage = np.clip((deck['seamWidth'] / 2 + pixel_size / 2 - distance) / pixel_size, 0, 1)
-        pixels = pixels * (1 - coverage[:, :, None]) + colors['caulking'] * coverage[:, :, None]
+    # The game draws the planks, caulking and grain (appearance.json decking). The deck keeps
+    # the boards' mean stain, from light to dark teak in equal measure, and its markings.
+    shade = np.linspace(0, 1, 256)[:, None]
+    boards = linear(colors['teakDark'] + shade * (colors['teakLight'] - colors['teakDark'])).mean(0)
+    pixels = np.empty((height, width, 3), dtype=np.float32)
+    pixels[:] = encoded(boards)
     for mark in deck['recognitionMarkings']:
         u, v = x - mark['centerX'], y
         field = np.broadcast_to(np.abs(u) <= mark['bandLength'] / 2, pixels.shape[:2])

@@ -2,6 +2,7 @@
   "version": 1,
   "id": "iowa-maintained-v1",
   "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": {
       "paint": "iowa-authored-naval",
@@ -17,18 +18,15 @@
     },
     "hullgray": {
       "paint": "iowa-authored-hullgray",
-      "finish": "painted-steel",
-      "projection": "hull"
+      "finish": "painted-steel"
     },
     "antifouling": {
       "paint": "iowa-authored-antifouling",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "boot": {
       "paint": "iowa-authored-boot",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "armor_roof": {
       "paint": "iowa-authored-armor_roof",
@@ -36,34 +34,13 @@
     },
     "wood_deck": {
       "paint": "iowa-authored-wood_deck",
-      "finish": "wood",
-      "existing": "image",
-      "imageLayout": {
-        "bounds": [
-          0,
-          12.192,
-          0,
-          1.524
-        ]
-      }
+      "finish": "wood"
     }
-  },
-  "hull": {
-    "bounds": [
-      -135.2,
-      135.2,
-      -10.32,
-      11.87
-    ],
-    "pixelsPerMeter": 15.147928994082841,
-    "waterline": 0,
-    "stainStrength": 0.16,
-    "runoffStrength": 0.16
   },
   "decking": {
     "wood_deck": {
-      "plankLength": 3.048,
       "plankWidth": 0.127,
+      "plankLength": 3.048,
       "seamWidth": 0.003,
       "coating": "blue-gray"
     }

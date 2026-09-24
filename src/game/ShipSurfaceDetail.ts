@@ -59,7 +59,7 @@ export function deckPlanks(material: THREE.Material): DeckPlanks {
  * the mean of a repeating map, or the colour of a whole-deck image, which keeps the markings and boundaries it paints. A
  * timber surface with a normal map of its own keeps its authored planks. */
 export function shipSurfaceMode(material: THREE.MeshStandardMaterial): ShipSurfaceMode {
-  return material.userData.deckSubstrate === 'timber' && !material.normalMap ? 'teak' : 'surface';
+  return material.userData.deckSubstrate === 'timber' && !material.normalMap && !material.userData.deckModeled ? 'teak' : 'surface';
 }
 
 // Plating tile: 16 m square, eight 2 m strakes, two 8 m plates per strake.

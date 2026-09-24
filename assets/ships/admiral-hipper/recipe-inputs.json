@@ -7,7 +7,6 @@
     "assets/parts/library.py",
     "assets/ships/admiral-hipper/appearance.json",
     "assets/ships/admiral-hipper/authoring/platforms.py",
-    "assets/ships/appearance/decking.py",
     "assets/ships/appearance/finishes.json",
     "assets/ships/appearance/surface.py",
     "assets/parts/gun_bloomers.py"

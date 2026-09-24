@@ -5,7 +5,6 @@
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json",
     "assets/ships/baltimore/appearance.json",
-    "assets/ships/appearance/decking.py",
     "assets/parts/library.py",
     "assets/parts/library.json",
     "assets/parts/us-main-guns/geometry.py",

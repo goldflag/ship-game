@@ -17,8 +17,7 @@
     "white": "#e7e7e3",
     "red": "#ae171b",
     "teakLight": "#ba975f",
-    "teakDark": "#9d7b48",
-    "caulking": "#695337"
+    "teakDark": "#9d7b48"
   },
   "side": {
     "bounds": [-126, 126, -2, 50],
@@ -51,9 +50,6 @@
   },
   "deck": {
     "bounds": [-126, 126, -18.5, 18.5],
-    "plankLength": 3.4,
-    "plankWidth": 0.16,
-    "seamWidth": 0.008,
     "recognitionMarkings": [
       {"id": "stern", "centerX": -110.0, "bandLength": 12.2, "discDiameter": 10.2, "symbolSize": 7.1},
       {"id": "bow", "centerX": 102.0, "bandLength": 12.2, "discDiameter": 10.2, "symbolSize": 7.1}

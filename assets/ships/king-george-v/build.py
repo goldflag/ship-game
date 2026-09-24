@@ -32,11 +32,8 @@ for key,color in colors.items():
  m=bpy.data.materials.new('KGV '+key);m.diffuse_color=color;m.use_nodes=True
  p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Base Color'].default_value=color;p.inputs['Roughness'].default_value=.76;p.inputs['Metallic'].default_value=.08
  materials[key]=m
-teak=materials['deck'];teak.name='Teak decking · KGV original'
-nodes=teak.node_tree.nodes;links=teak.node_tree.links;brick=nodes.new('ShaderNodeTexBrick');coord=nodes.new('ShaderNodeNewGeometry')
-brick.inputs['Color1'].default_value=(.35,.27,.16,1);brick.inputs['Color2'].default_value=(.47,.37,.23,1);brick.inputs['Mortar'].default_value=(.13,.12,.10,1)
-brick.inputs['Scale'].default_value=1;brick.inputs['Mortar Size'].default_value=.003;brick.inputs['Brick Width'].default_value=3.4;brick.inputs['Row Height'].default_value=.16
-brick.offset=.5;brick.offset_frequency=2;links.new(coord.outputs['Position'],brick.inputs['Vector']);links.new(brick.outputs['Color'],nodes.get('Principled BSDF').inputs['Base Color'])
+# Teak weather decks: appearance.json names their stain and plank sizes; the game draws the planks.
+materials['deck'].name='KGV teak deck'
 def mesh(name,vertices,faces,material=None,col=None,smooth=False):
  data=bpy.data.meshes.new(name);data.from_pydata(vertices,[],faces);data.update()
  ob=bpy.data.objects.new(name,data);(col or COL).objects.link(ob);ob['assemblyId']=ASSEMBLY

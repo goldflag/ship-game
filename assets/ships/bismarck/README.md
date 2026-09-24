@@ -34,6 +34,9 @@ Keep the current fixed views in `generated/review/`. Ship report/reference archi
 Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md). Preserve the original `baseline/` unchanged. The separate paint recipe and `paint-scheme.json` are registered original inputs.
 
 Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
-`appearance.json` preserves this recipe’s colors, scheme and deck coverings while
-adding the shared matte materials and restrained original surface wear. Existing
-markings and plank detail remain intact; this is not a new historical-accuracy claim.
+`appearance.json` preserves this recipe’s colors, scheme and deck coverings. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.
+The teak weather deck keeps its whole-deck image for the Baltic recognition markings,
+which now paints only their mean board stain (`paint.py`, from the scheme's light and
+dark teak); the game draws 0.16 m planks with 3.4 m staggered butts and 8 mm caulking
+over it (`decking`), the plank sizes the image used to paint. The boats' timber is
+declared fittings. This is not a new historical-accuracy claim.

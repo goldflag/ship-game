@@ -64,14 +64,26 @@ describe('published fleet appearance', () => {
             .toBe(gltf.accessors[primitive.attributes.POSITION].count);
         }
       }
+      // One wear standard: the preset the game weathers the ship by, and no baked hull runoff or tide stain.
+      expect(gltf.scenes[gltf.scene ?? 0].extras.appearanceWear).toBe(spec.wear ?? 'in-commission');
+      expect(spec.hull).toBeUndefined();
+      // One deck standard: every timber role is a declared weather deck the game planks, or declared fittings.
+      for (const [role, binding] of Object.entries<any>(spec.materials)) {
+        if (binding.finish === 'wood') expect([role, role in (spec.decking ?? {})]).toEqual([role, !binding.fittings]);
+        expect(binding.projection).toBeUndefined();
+      }
       for (const role of Object.keys(spec.decking ?? {})) {
+        const deck = spec.decking[role];
         const deckMaterials = gltf.materials.filter((m: any) => m.extras?.paintId === spec.materials[role].paint);
         expect(deckMaterials.length).toBeGreaterThan(0);
         for (const material of deckMaterials) {
           expect(material.extras.deckSubstrate).toBe('timber');
           expect(material.extras.surfaceFinish).toBe('wood');
-          expect(material.normalTexture).toBeDefined();
-          expect(material.extras.deckCoating).toBe(spec.decking[role].coating);
+          // The game draws the planks: no baked plank relief.
+          expect(material.normalTexture).toBeUndefined();
+          expect(material.extras.deckCoating).toBe(deck.coating);
+          expect([material.extras.deckPlankWidth, material.extras.deckPlankLength, material.extras.deckSeamWidth]).toEqual([deck.plankWidth, deck.plankLength, deck.seamWidth]);
+          expect(material.extras.deckModeled ?? false).toBe(deck.modeled ?? false);
         }
         const steelRoofs = gltf.materials.filter((m: any) => m.extras?.paintId === spec.materials.roof.paint);
         for (const material of steelRoofs) {

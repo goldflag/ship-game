@@ -2,6 +2,7 @@
   "version": 1,
   "id": "liberty-collier-maintained-v1",
   "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": {
       "paint": "convoy-authored-naval",
@@ -17,13 +18,11 @@
     },
     "hullgray": {
       "paint": "convoy-authored-hullgray",
-      "finish": "painted-steel",
-      "projection": "hull"
+      "finish": "painted-steel"
     },
     "underwater": {
       "paint": "convoy-authored-underwater",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "deck": {
       "paint": "convoy-authored-deck",
@@ -31,7 +30,8 @@
     },
     "wood": {
       "paint": "convoy-authored-wood",
-      "finish": "wood"
+      "finish": "wood",
+      "fittings": true
     },
     "hatch": {
       "paint": "convoy-authored-hatch",
@@ -49,17 +49,5 @@
       "paint": "convoy-authored-white",
       "finish": "painted-steel"
     }
-  },
-  "hull": {
-    "bounds": [
-      -67.6148,
-      67.6148,
-      -9.7196,
-      7.56
-    ],
-    "pixelsPerMeter": 16,
-    "waterline": 0,
-    "stainStrength": 0.16,
-    "runoffStrength": 0.16
   }
 }
