@@ -61,11 +61,14 @@ for lo,hi in [(20.35,49.2),(-48.5,-28),(4.5,17.7),(-9.7,1.5)]:
 # Lifelines and hull-side apertures, with the foregun sweep lowered.
 for sign in [-1,1]:
  pts=[(s-half,sign*max(.02,w-.08),deckz(s-half)+.065) for s,w in deck_edge if .6<s<h['length']-.6]
- # Lifelines fold down across the foregun training sweep, as in the reference.
+ # Lifelines fold down across the foregun training sweep, as in the reference, and beside the two port
+ # 13 mm singles, which stand at the deck edge and train over it.
+ singles=lambda x:sign>0 and -6.2<x<-1.2
  for a,b in zip(pts,pts[1:]):
-  low=any(36<p[0]<48 for p in [a,b])
+  low=any(36<p[0]<48 or singles(p[0]) for p in [a,b])
   rails('rails.perimeter',[a,b],.13 if low else .85,spacing=2.0)
- tube_path('hull.deck-edge',pts,.034,materials['edge'],sides=6)
+ for run in [[p for p in pts if p[0]>=-1.2 or sign<0],[p for p in pts if p[0]<=-6.2]] if sign>0 else [pts]:
+  if len(run)>1:tube_path('hull.deck-edge',run,.034,materials['edge'],sides=6)
  for x in list(range(23,53,3))+list(range(-53,-38,3)):
   portlight('hull.portlight',(x,sign*shell_width(x,deckz(x)-.68),deckz(x)-.68),(0,sign,0),.105)
  for x in range(25,51,4):portlight('hull.lower-portlight',(x,sign*shell_width(x,2.5),2.5),(0,sign,0),.105)

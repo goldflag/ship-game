@@ -149,7 +149,9 @@ STRUCTURES = [
     prism('radio-house', 'Radio house', [(0, 10.39), (.7, 10.39), (.9, 10.2), (.9, 9.48), (.6, 9.0), (0, 8.8)], 6.55, 8.75),
     funnel('after-funnel', 'After Funnel', 6.0, 13.2, 12.7),
     # After deckhouse, its sides carrying the reload lockers (traced at 4.2 and 5.3 m); tapered after end.
-    prism('after-deckhouse', 'After deckhouse', [(0, 38.25), (1.6, 38.25), (1.85, 38.05), (3.1, 36.5), (3.1, 28.95),
+    # Its tapered after end stops 0.65 m short of the reference's (37.6 m, not 38.25 m) so the after gun's barrels
+    # clear it at full train (150 deg) and depression.
+    prism('after-deckhouse', 'After deckhouse', [(0, 37.6), (1.6, 37.6), (1.9, 37.4), (3.1, 36.0), (3.1, 28.95),
                                                  (2.75, 28.75), (0, 28.75)], 3.36, 5.54),
     # Step under the upper after AA platform (traced at 5.9 m); the plated platform above is 2.5 m either side.
     prism('aft-aa-upper-step', 'After AA step', [(0, 32.7), (1.4, 32.7), (1.7, 32.2), (1.7, 29.9), (0, 29.9)], 5.54, 6.02),
