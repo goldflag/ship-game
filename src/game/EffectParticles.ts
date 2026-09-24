@@ -183,6 +183,7 @@ export class EffectParticlePool {
     // Keep shader capacity fixed; geometry.instanceCount controls the live draw.
     this.mesh.instanceMatrix.array.fill(0);
     this.mesh.frustumCulled = false;
+    this.live = new Int32Array(Math.ceil(capacity / 32));
     this.particles = Array.from({ length: capacity }, () => ({ position: new THREE.Vector3(), velocity: new THREE.Vector3(),
       color: new THREE.Color(), age: 0, life: 0, size: 1, growth: 0, growthDecay: 0, diffusion: 0,
       heat: 0, cooling: 1, density: 4, dissipationTime: 0, volumeAspect: 1, volumeYaw: 0, volumeAxisY: 0,
@@ -204,6 +205,10 @@ export class EffectParticlePool {
   /** The slot claimed last. Its caller sets it up after `emit` returns (every emitter finishes one particle before it emits
    * the next), so its key is refreshed on the next claim. */
   private claimed = -1;
+  /** One bit per slot that may hold a live particle: set when the slot is claimed, cleared once `advance` finds its particle
+   * spent (age >= life), which only a new claim undoes. Both passes visit the set bits in slot order, as they visited every
+   * slot, and skip the rest, which the full scan skipped too. */
+  private readonly live: Int32Array;
 
   emit(position: THREE.Vector3, sourceId?: string): EffectParticle {
     if (this.density < 1) {
@@ -242,6 +247,7 @@ export class EffectParticlePool {
     if (!free && probes < capacity) chosen = this.search();
     this.cursor = chosen + 1;
     this.claimed = chosen;
+    this.live[chosen >> 5] |= 1 << (chosen & 31);
     return particles[chosen];
   }
 
@@ -310,15 +316,24 @@ export class EffectParticlePool {
   /** Age existing particles before new events are emitted. */
   advance(dt: number, wind: THREE.Vector3): void {
     this.claimsValid = false;
-    for (const p of this.particles) {
-      if (p.age >= p.life) continue;
+    const particles = this.particles, live = this.live;
+    // Most particles of a pool share their drag and the frame's step: their decay is worked out once.
+    let memoDrag = NaN, memoStep = NaN, decay = 1, travel = 0;
+    for (let word = 0; word < live.length; word++) for (let bits = live[word]; bits;) {
+      const bit = bits & -bits, p = particles[(word << 5) + 31 - Math.clz32(bit)];
+      bits ^= bit;
+      if (p.age >= p.life) { live[word] &= ~bit; continue; }
       const previousAge = p.age;
       p.age += dt;
-      if (p.age < 0 || p.age >= p.life) continue;
+      if (p.age < 0) continue;
+      if (p.age >= p.life) { live[word] &= ~bit; continue; }
       const step = Math.min(dt, p.age); // A delayed spray starts partway through the frame.
       if (step > 0) {
-        const decay = Math.exp(-p.drag * step);
-        const travel = p.drag > .0001 ? (1 - decay) / p.drag : step;
+        if (p.drag !== memoDrag || step !== memoStep) {
+          memoDrag = p.drag; memoStep = step;
+          decay = Math.exp(-p.drag * step);
+          travel = p.drag > .0001 ? (1 - decay) / p.drag : step;
+        }
         // Integrate gravity with drag analytically, so spray apex/fall is frame-rate independent.
         const terminal = p.drag > .0001 ? p.gravity / p.drag : 0;
         p.position.x += p.velocity.x * travel + wind.x * p.wind * step;
@@ -328,7 +343,7 @@ export class EffectParticlePool {
         p.velocity.x *= decay; p.velocity.z *= decay;
         p.velocity.y = p.drag > .0001 ? (p.velocity.y + terminal) * decay - terminal : p.velocity.y - p.gravity * step;
         p.angle += p.spin * step;
-        if (p.waterline && p.position.y < p.surfaceY + .2 && previousAge >= 0) { p.age = p.life; continue; }
+        if (p.waterline && p.position.y < p.surfaceY + .2 && previousAge >= 0) { p.age = p.life; live[word] &= ~bit; continue; }
       }
     }
   }
@@ -355,9 +370,10 @@ export class EffectParticlePool {
     const view = camera.matrixWorldInverse.elements, projection = camera.projectionMatrix.elements;
     // Most particles share a stretch, and so the Math.hypot of their bounding sphere.
     let boundStretch = NaN, boundScale = NaN, finite = true;
-    const keys = sortKeys(this.capacity);
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
+    const keys = sortKeys(this.capacity), live = this.live;
+    for (let word = 0; word < live.length; word++) for (let bits = live[word]; bits;) {
+      const bit = bits & -bits, p = particles[(word << 5) + 31 - Math.clz32(bit)];
+      bits ^= bit;
       if (p.age < 0 || p.age >= p.life) continue;
       // Hidden smoke still ages and drifts, so leaving optics restores its current state.
       if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
@@ -486,7 +502,7 @@ export class EffectParticlePool {
   get count(): number { return this.active.length; }
   reset(): void {
     for (const p of this.particles) { p.age = 0; p.life = 0; }
-    this.active.length = 0; this.cursor = 0; this.emitted = 0; this.filled = 0; this.claimsValid = false; this.claimed = -1;
+    this.active.length = 0; this.cursor = 0; this.emitted = 0; this.filled = 0; this.claimsValid = false; this.claimed = -1; this.live.fill(0);
     this.mesh.geometry.instanceCount = 0; this.mesh.visible = false;
     this.alpha.array.fill(0); this.alpha.needsUpdate = true;
     this.mesh.instanceMatrix.array.fill(0); this.mesh.instanceMatrix.needsUpdate = true;

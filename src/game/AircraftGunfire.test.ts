@@ -211,3 +211,44 @@ test('mission restart clears tracer history even when the snapshot actor retains
     expect(at(gunfire.root.getObjectByName('Aircraft tracer cores') as InstancedMesh).position.x).toBeGreaterThan(900);
   } finally { gunfire.dispose(); }
 });
+
+test('bursts culled whole by their bounds leave every tracer and flash as testing each shot does', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), fires = [new AircraftGunfire(true), new AircraftGunfire(true)];
+  fires[1].bounds = false;
+  // Tests of shots and bounds: bursts wholly outside the view spare their shots' tests.
+  const tests = [0, 0];
+  fires.forEach((gunfire, i) => { const inView = (gunfire as unknown as { inView: (...a: number[]) => boolean }).inView;
+    Object.assign(gunfire, { inView(this: AircraftGunfire, ...a: number[]) { tests[i]++; return inView.apply(this, a); } }); });
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  let state = 11;
+  const random = () => (state = (Math.imul(state, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const arrays = (gunfire: AircraftGunfire) => {
+    const out: number[] = [];
+    gunfire.root.traverse(o => { const mesh = o as InstancedMesh; if (mesh.isInstancedMesh) out.push(...mesh.instanceMatrix.array, ...(mesh.geometry.getAttribute('tracerOpacity').array as Float32Array)); });
+    return out;
+  };
+  let drawn = 0, sequence = 0;
+  try {
+    for (let tick = 1; tick < 900; tick++) {
+      sim.events.length = 0;
+      for (let i = 0; i < 6; i++) {
+        const x = (random() - .5) * 8000, z = (random() - .5) * 8000, aa = random() < .6, heavy = aa && random() < .3;
+        const target: [number, number, number] = [x + (random() - .5) * 3000, 200 + random() * 1500, z + (random() - .5) * 3000];
+        sim.events.push({ sequence: ++sequence, tick, kind: 'aircraft-fire', position: [x, aa ? 20 : 400, z], shipId: 'player', message: 'fire',
+          aircraft: { id: `plane-${i}`, target, ...(aa ? { tracerSpeed: 700 + random() * 300, caliberM: heavy ? .105 : .025, dragPerSecond: random() * .1,
+            ...(heavy ? { airburst: { flightTime: 2 + random() * 3, caliberM: .105 } } : {}) }
+            : { velocity: [(random() - .5) * 150, 0, (random() - .5) * 150], attitude: { heading: random() * 6.3, pitch: .1, bank: 0 }, dragPerSecond: .04 }) } });
+      }
+      sim.tick = tick;
+      camera.position.set((random() - .5) * 2000, 30 + random() * 600, (random() - .5) * 2000);
+      camera.lookAt((random() - .5) * 9000, random() * 800, (random() - .5) * 9000);
+      camera.zoom = random() < .2 ? 8 : 1; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
+      for (const gunfire of fires) gunfire.update(sim, camera);
+      expect(fires[0].diagnostics()).toBe(fires[1].diagnostics());
+      if (tick % 10 === 0) expect(arrays(fires[0])).toEqual(arrays(fires[1]));
+      drawn += fires[0].diagnostics();
+    }
+    expect(drawn).toBeGreaterThan(1000);
+    expect(tests[0]).toBeLessThan(tests[1] * .95);
+  } finally { for (const gunfire of fires) gunfire.dispose(); }
+});

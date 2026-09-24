@@ -3,7 +3,7 @@ import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
 import type { Vec3 } from '../ships/blueprint';
 import { FIXED_DT } from './session/motion';
-import { ballisticStepInto } from './ballistics';
+import { GRAVITY, ballisticStepInto, travelFactor } from './ballistics';
 import { SHELL_PACE } from '../ships/mobility';
 import { effectTexture } from './EffectParticles';
 import { ExpandableInstances } from './ExpandableInstances';
@@ -27,7 +27,32 @@ interface TracerBurst {
   caliberScale: number;
   exposure: number;
   shots: { delay: number; origin: Vec3; velocity: Vec3 }[];
+  /** A sphere (x, y, z, radius) holding every muzzle flash and tracer sphere the burst's culling tests over its whole life. */
+  bound: [number, number, number, number];
 }
+/** A sphere around everything the culling tests for a burst whose shots fly `seconds` of shell time: each shot lies on
+ * origin + velocity × travelFactor + (0, -drop, 0), with the travel factor at most the time and the drop at most a vacuum's,
+ * so inside the box that segment sweeps down; the tracer's own sphere (its length, at most the fastest a shell can fly
+ * over one exposure, and twice its widest width) and the muzzle flash's (half a metre, a few metres out) are added, with a
+ * metre to spare for rounding. */
+export function burstBound(shots: readonly { origin: Vec3; velocity: Vec3 }[], seconds: number, drag: number, pace: number, exposure: number, widthScale: number): [number, number, number, number] {
+  // A negative drag would drop a shell further than a vacuum does: no bound then.
+  if (!(drag >= 0)) return [0, 0, 0, Infinity];
+  const fall = GRAVITY * seconds * seconds / 2;
+  let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity, fastest = 0;
+  for (const { origin, velocity } of shots) {
+    const travel = Math.max(0, travelFactor(seconds, drag)), speed = Math.hypot(velocity[0], velocity[1], velocity[2]);
+    const endX = origin[0] + velocity[0] * travel, endY = origin[1] + velocity[1] * travel, endZ = origin[2] + velocity[2] * travel;
+    minX = Math.min(minX, origin[0], endX); maxX = Math.max(maxX, origin[0], endX);
+    minY = Math.min(minY, origin[1] - fall, endY - fall); maxY = Math.max(maxY, origin[1], endY);
+    minZ = Math.min(minZ, origin[2], endZ); maxZ = Math.max(maxZ, origin[2], endZ);
+    fastest = Math.max(fastest, speed);
+  }
+  const tracer = (fastest + GRAVITY * seconds) * pace * exposure + 2 * 2.4 * widthScale, muzzle = .5 + fastest * .08 * .038;
+  const radius = Math.hypot(maxX - minX, maxY - minY, maxZ - minZ) / 2 + Math.max(tracer, muzzle) + 1;
+  return [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2, radius * (1 + 1e-9)];
+}
+
 /** Short moving exposures of a burst; event snapshots keep shots independent of later target motion. */
 export class AircraftGunfire {
   readonly root = new THREE.Group();
@@ -46,9 +71,13 @@ export class AircraftGunfire {
   private readonly velocity = new THREE.Vector3();
   private readonly basis = new THREE.Matrix4();
   private readonly frustum = new THREE.Frustum();
+  /** The frustum's planes as (normal, constant) quadruples, read without a Plane and Vector3 per test. */
+  private readonly planes = new Float64Array(24);
   private readonly projection = new THREE.Matrix4();
   private readonly step = new Float64Array(6);
   private count = 0;
+  /** Cull whole bursts by their bounds before their shots' own tests (off: every shot is tested, with the same result). */
+  bounds = true;
   private readonly active = new Map<number, TracerBurst>();
   private sequence = 0;
   private damage?: BattleSession['player']['damage'];
@@ -95,17 +124,17 @@ export class AircraftGunfire {
       }
       shots.push({ delay, origin: this.origin.toArray(), velocity: this.velocity.toArray() });
     }
-    return { sequence: event.sequence, tick: event.tick, aa, airburst: !!data.airburst, life, drag: data.dragPerSecond ?? 0, pace, caliberScale,
-      exposure: aa ? .022 * THREE.MathUtils.clamp(caliberScale, .55, 1.2) : .022, shots };
+    const exposure = aa ? .022 * THREE.MathUtils.clamp(caliberScale, .55, 1.2) : .022;
+    return { sequence: event.sequence, tick: event.tick, aa, airburst: !!data.airburst, life, drag: data.dragPerSecond ?? 0, pace, caliberScale, exposure, shots,
+      bound: burstBound(shots, life * pace, data.dragPerSecond ?? 0, pace, exposure, caliberScale * (aa ? .95 : 1)) };
   }
-  /** Whether a sphere is at least partly inside the culling frustum: Frustum.intersectsSphere without the Sphere. */
+  /** Whether a sphere is at least partly inside the culling frustum: Frustum.intersectsSphere without the Sphere, each
+   * plane's distance summed as Plane.distanceToPoint sums it. */
   private inView(x: number, y: number, z: number, radius: number): boolean {
-    const planes = this.frustum.planes, reach = -radius;
-    for (let i = 0; i < 6; i++) {
-      const { normal, constant } = planes[i];
-      if (normal.x * x + normal.y * y + normal.z * z + constant < reach) return false;
-    }
-    return true;
+    const p = this.planes, reach = -radius;
+    return !(p[0] * x + p[1] * y + p[2] * z + p[3] < reach || p[4] * x + p[5] * y + p[6] * z + p[7] < reach
+      || p[8] * x + p[9] * y + p[10] * z + p[11] < reach || p[12] * x + p[13] * y + p[14] * z + p[15] < reach
+      || p[16] * x + p[17] * y + p[18] * z + p[19] < reach || p[20] * x + p[21] * y + p[22] * z + p[23] < reach);
   }
   /** One billboard or ribbon: its pose composed straight into the batch, and its opacity. */
   private place(mesh: ExpandableInstances<THREE.PlaneGeometry, THREE.MeshBasicNodeMaterial>, index: number, px: number, py: number, pz: number,
@@ -119,7 +148,13 @@ export class AircraftGunfire {
   update(sim: BattleSession, camera: THREE.Camera) {
     let count = 0, flashes = 0;
     const cull = this.cullOffscreen && (camera as THREE.PerspectiveCamera).isPerspectiveCamera;
-    if (cull) this.frustum.setFromProjectionMatrix(this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
+    if (cull) {
+      this.frustum.setFromProjectionMatrix(this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
+      for (let i = 0; i < 6; i++) {
+        const { normal, constant } = this.frustum.planes[i];
+        this.planes[i * 4] = normal.x; this.planes[i * 4 + 1] = normal.y; this.planes[i * 4 + 2] = normal.z; this.planes[i * 4 + 3] = constant;
+      }
+    }
     const now = (sim.tick - 1 + sim.interpolationAlpha) * FIXED_DT;
     // Reset replaces damage state even when a new battle catches up to the same tick.
     if (this.damage !== sim.player.damage) { this.active.clear(); this.sequence = 0; this.damage = sim.player.damage; }
@@ -136,6 +171,8 @@ export class AircraftGunfire {
       const { aa, life, caliberScale, exposure } = burst;
       if (age > life + (aa ? 0 : .208)) { this.active.delete(burst.sequence); continue; }
       if (age < 0) continue;
+      // A burst wholly outside the view places nothing: every test below would cull each of its shots.
+      if (cull && this.bounds && !this.inView(burst.bound[0], burst.bound[1], burst.bound[2], burst.bound[3])) continue;
       for (const launch of burst.shots) {
         const flight = age - launch.delay;
         if (flight < 0 || flight > life) continue;

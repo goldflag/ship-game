@@ -5,6 +5,9 @@ import { prepareInstanceUploads } from './InstanceUploads';
  * Separate the live draw count from WebGPU's fixed shader matrix capacity. */
 export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE.Material> extends THREE.InstancedMesh<G, M> {
   private overflow: THREE.InstancedMesh[] = [];
+  /** Every instance at or past this index has zero matrices: `page` notes each slot a caller may write, and `publish` clears
+   * only what lies between the live count and it, instead of every page's whole tail each frame. */
+  private reach = 0;
   constructor(geometry: G, material: M, readonly pageSize = 256) {
     super(geometry, material, pageSize);
     // Preserve the public geometry type and authored attributes, but separate
@@ -16,6 +19,7 @@ export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE
   }
   /** The mesh that draws instance `index` at slot `index % pageSize`: this one, or an overflow page made on demand. */
   page(index: number): THREE.InstancedMesh {
+    if (index >= this.reach) this.reach = index + 1;
     const page = Math.floor(index / this.pageSize);
     while (this.overflow.length < page) {
       const geometry = this.geometry.clone();
@@ -40,11 +44,13 @@ export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE
     this.page(index).geometry.getAttribute(name).setX(index % this.pageSize, value);
   }
   publish(count: number) {
-    [this, ...this.overflow].forEach((mesh, page) => {
-      const live = Math.max(0, Math.min(this.pageSize, count - page * this.pageSize));
+    const size = this.pageSize, reach = this.reach;
+    for (let page = 0; page <= this.overflow.length; page++) {
+      const mesh: THREE.InstancedMesh = page ? this.overflow[page - 1] : this, start = page * size;
+      const live = Math.max(0, Math.min(size, count - start)), written = Math.min(size, reach - start);
       Object.assign(mesh.geometry, { isInstancedBufferGeometry: true, instanceCount: live });
       mesh.visible = live > 0;
-      mesh.instanceMatrix.array.fill(0, Math.max(0, count - page * this.pageSize) * 16);
+      if (written > live) mesh.instanceMatrix.array.fill(0, live * 16, written * 16);
       // Loading can temporarily draw an empty page to warm its shader. Publish
       // the cleared matrices too, so that pass cannot reuse a prior battle pose.
       mesh.instanceMatrix.needsUpdate = true;
@@ -55,7 +61,8 @@ export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE
           attr.clearUpdateRanges(); attr.addUpdateRange(0, live * attr.itemSize); attr.needsUpdate = true;
         }
       }
-    });
+    }
+    this.reach = Math.min(reach, count);
   }
   override dispose() {
     for (const mesh of this.overflow) { mesh.removeFromParent(); mesh.dispose(); mesh.geometry.dispose(); }

@@ -5,8 +5,9 @@ import { WakeStampCollector, type WakeFoamPainter, type WakeFoamPainterFactory }
 import type { Torpedo } from './torpedoAim';
 
 type TrackTorpedo = Pick<Torpedo, 'id' | 'position' | 'velocity'>;
-/** `laid` is the field time the frame that laid the sample began at: samples run in the order laid. */
-type TrackSample = { x: number; z: number; rightX: number; rightZ: number; surfaced: number; strength: number; phase: number; laid: number };
+/** A sample's eight floats in `TorpedoTrackFoam.data`: where it lies, its track's side, when it surfaced, its strength, its
+ * drift phase, and `LAID`, the field time the frame that laid it began at (samples run in the order laid). */
+const X = 0, Z = 1, RIGHT_X = 2, RIGHT_Z = 3, SURFACED = 4, STRENGTH = 5, PHASE = 6, LAID = 7, STRIDE = 8;
 
 const SAMPLE_DISTANCE = 4;
 const LIFETIME = 30;
@@ -34,9 +35,15 @@ export class TorpedoTrackFoam {
   private readonly running = new Map<number, { x: number; z: number; carry: number }>();
   private readonly present = new Set<number>();
   private readonly forward = new Vector3();
-  private samples: TrackSample[] = [];
+  /** The samples, oldest first, from `first`: STRIDE floats each in one array, which a pass over tens of thousands of
+   * them reads in order instead of chasing an object per sample. */
+  private data = new Float64Array(1024 * STRIDE);
+  private first = 0;
+  private count = 0;
   private elapsed = 0;
   private painted = false;
+  /** The painter last drew an empty field: drawing another changes nothing it holds, so it is skipped. */
+  private blank = false;
 
   /** `painter` draws the field: `gpuWakeFoamPainter(renderer)` in the game. */
   constructor(private readonly resolution: number, painter: WakeFoamPainterFactory) {
@@ -93,31 +100,46 @@ export class TorpedoTrackFoam {
       const rise = Math.max(RISE_FLOOR, -y / RISE_SPEED);
       for (let along = SAMPLE_DISTANCE - previous.carry; along <= distance; along += SAMPLE_DISTANCE) {
         const fraction = along / distance, born = now - dt * (1 - fraction);
-        this.samples.push({
-          x: previous.x + (x - previous.x) * fraction, z: previous.z + (z - previous.z) * fraction,
-          rightX: -forwardZ, rightZ: forwardX, surfaced: born + rise, strength, phase: t.id * 2.3 + born * 1.7, laid,
-        });
+        const o = this.push();
+        const data = this.data;
+        data[o + X] = previous.x + (x - previous.x) * fraction; data[o + Z] = previous.z + (z - previous.z) * fraction;
+        data[o + RIGHT_X] = -forwardZ; data[o + RIGHT_Z] = forwardX; data[o + SURFACED] = born + rise; data[o + STRENGTH] = strength;
+        data[o + PHASE] = t.id * 2.3 + born * 1.7; data[o + LAID] = laid;
       }
       previous.carry = (previous.carry + distance) % SAMPLE_DISTANCE;
       previous.x = x; previous.z = z;
     }
-    if (this.samples.length && now - this.samples[0].surfaced > LIFETIME) this.expire(now);
-    if (this.elapsed < UPDATE_INTERVAL || (!this.samples.length && !this.painted)) return;
+    if (this.count && now - this.data[this.first * STRIDE + SURFACED] > LIFETIME) this.expire(now);
+    if (this.elapsed < UPDATE_INTERVAL || (!this.count && !this.painted)) return;
     this.elapsed %= UPDATE_INTERVAL;
     this.anchor(torpedoes, focusX, focusZ, camera);
     this.rasterize(now);
+  }
+
+  /** Room for one more sample at the end: the offset of its floats. */
+  private push(): number {
+    if ((this.first + this.count + 1) * STRIDE > this.data.length) {
+      // Move the samples to the front, into a larger array once they fill half of this one.
+      const data = this.count * 2 * STRIDE > this.data.length ? new Float64Array(this.data.length * 2) : this.data;
+      data.set(this.data.subarray(this.first * STRIDE, (this.first + this.count) * STRIDE));
+      this.data = data; this.first = 0;
+    }
+    return (this.first + this.count++) * STRIDE;
   }
 
   /** Drop every sample that surfaced more than LIFETIME ago, keeping the rest in order. A sample surfaces at least
    * RISE_FLOOR after the frame that laid it began, so only the leading run laid more than LIFETIME - RISE_FLOOR ago (with
    * a margin) can have expired: its survivors move to the end of that run and the run's head is cut. */
   private expire(now: number): void {
-    const samples = this.samples, horizon = now - LIFETIME + RISE_FLOOR - .1;
-    let end = 0;
-    while (end < samples.length && samples[end].laid < horizon) end++;
+    const data = this.data, first = this.first, last = first + this.count, horizon = now - LIFETIME + RISE_FLOOR - .1;
+    let end = first;
+    while (end < last && data[end * STRIDE + LAID] < horizon) end++;
     let cut = end;
-    for (let i = end - 1; i >= 0; i--) if (now - samples[i].surfaced <= LIFETIME) samples[--cut] = samples[i];
-    if (cut) samples.splice(0, cut);
+    for (let i = end - 1; i >= first; i--) if (now - data[i * STRIDE + SURFACED] <= LIFETIME) {
+      if (--cut !== i) data.copyWithin(cut * STRIDE, i * STRIDE, i * STRIDE + STRIDE);
+    }
+    this.count -= cut - first; this.first = cut;
+    if (!this.count) this.first = 0;
   }
 
   /** Centre the field where tracks can be resolved: around the viewer, or around
@@ -143,32 +165,34 @@ export class TorpedoTrackFoam {
     const { x: originX, y: originZ } = this.origin.value, reach = WAKE_EXTENT / 2;
     this.collector.begin(originX, originZ);
     let count = 0;
-    for (const sample of this.samples) {
-      const age = now - sample.surfaced;
-      if (age < 0 || Math.abs(sample.x - originX) > reach || Math.abs(sample.z - originZ) > reach) continue;
+    const data = this.data, end = (this.first + this.count) * STRIDE;
+    for (let o = this.first * STRIDE; o < end; o += STRIDE) {
+      const age = now - data[o + SURFACED];
+      if (age < 0 || Math.abs(data[o + X] - originX) > reach || Math.abs(data[o + Z] - originZ) > reach) continue;
       // Bubbles break the surface over a second or so, then the patch spreads,
       // thins and drifts a little off the line it was laid on.
-      const strength = sample.strength * smooth(age / 2.5) * Math.exp(-age / 14) * (1 - smooth((age - 20) / 10)) * .88;
+      const strength = data[o + STRENGTH] * smooth(age / 2.5) * Math.exp(-age / 14) * (1 - smooth((age - 20) / 10)) * .88;
       if (strength < .015) continue;
-      const drift = Math.sin(sample.phase + age * .21) * Math.min(age * .09, 1.3);
-      const x = sample.x + sample.rightX * drift, z = sample.z + sample.rightZ * drift;
+      const rightX = data[o + RIGHT_X], rightZ = data[o + RIGHT_Z];
+      const drift = Math.sin(data[o + PHASE] + age * .21) * Math.min(age * .09, 1.3);
+      const x = data[o + X] + rightX * drift, z = data[o + Z] + rightZ * drift;
       const width = 1.3 + Math.sqrt(age) * .75, length = SAMPLE_DISTANCE * 1.6;
-      this.collector.stamp(x, z, sample.rightX, sample.rightZ, width, length, strength, false);
+      this.collector.stamp(x, z, rightX, rightZ, width, length, strength, false);
       count++;
     }
-    this.painter.update([this.collector]);
-    this.painted = count > 0;
+    if (count || !this.blank) this.painter.update([this.collector]);
+    this.painted = count > 0; this.blank = !count;
   }
 
-  diagnostics() { return { samples: this.samples.length, running: this.running.size, painted: this.painted }; }
+  diagnostics() { return { samples: this.count, running: this.running.size, painted: this.painted }; }
 
   reset(): void {
-    this.samples = []; this.running.clear(); this.elapsed = 0;
+    this.first = this.count = 0; this.running.clear(); this.elapsed = 0;
     if (this.painted) {
-      this.collector.clear(); this.painter.update([this.collector]);
+      this.collector.clear(); this.painter.update([this.collector]); this.blank = true;
     }
     this.painted = false;
   }
 
-  dispose(): void { this.samples = []; this.running.clear(); this.painter.dispose(); }
+  dispose(): void { this.first = this.count = 0; this.running.clear(); this.painter.dispose(); }
 }

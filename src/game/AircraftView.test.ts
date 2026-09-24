@@ -8,6 +8,7 @@ import { aircraftGroundPose } from './aircraftGroundPose';
 import { aircraftContactAppearance } from './AircraftContacts';
 import { localToWorld, rotate } from './geometry';
 import { aircraftDeckSpot } from './airWing';
+import { aircraftControls } from './aircraftPose';
 
 const drawCount = (mesh: InstancedMesh) => (mesh.geometry as InstancedBufferGeometry).instanceCount;
 
@@ -339,5 +340,59 @@ test('a pose recomputes only the joints: every part lands where updating the who
     for (const model of (view as unknown as { models: Map<string, { root: Group; movers: Group[] }> }).models.values()) model.movers = [model.root];
     view.update(sim, camera, true);
     expect(poses()).toEqual(moving);
+  } finally { await view.dispose(); loader.mockRestore(); }
+});
+
+test('every joint kind takes the pose turning its authored Euler angles would give it, plane after plane', async () => {
+  const joints: [string, Record<string, unknown>][] = [['wing.fold.port', { foldAxis: [.2, 0, -1], foldAngleDegrees: 87 }], ['propeller.spin', {}],
+    ['gear.main.port', { axis: 'spanwise' }], ['gear.main.starboard', {}], ['gear.tail', {}], ['gear.main.fixed', { fixed: true }],
+    ['control.aileron.port', {}], ['control.aileron.starboard', {}], ['control.elevator.port', {}], ['control.rudder', {}], ['arrestor.hook', {}],
+    ['diveBrake.port', { rotationMultiplier: -1.5 }], ['diveBrake.starboard', {}], ['socket.payload', {}]];
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
+    const scene = new Group();
+    joints.forEach(([nodeId, data], i) => {
+      const node = new Group(); node.userData = { nodeId, ...data };
+      node.position.set(i, i % 3, -i); node.rotation.set(.1 * i, -.07 * i, .3 - .05 * i, i % 2 ? 'XYZ' : 'YXZ');
+      node.add(new Mesh(new BoxGeometry(1, .2, .5), new MeshBasicMaterial())); scene.add(node);
+    });
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await view.load(['a6m2-zero']);
+    const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
+    for (const plane of sim.aircraft) plane.phase = 'lost';
+    const plane = sim.player.airWing!.planes[0];
+    Object.assign(plane, { modelId: 'a6m2-zero', phase: 'outbound', position: [0, 300, 0], previousPosition: [0, 300, 0] });
+    const camera = new PerspectiveCamera(50, 1, .5, 20000);
+    camera.position.set(0, 305, 40); camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
+    const scratch = new Group(), axis = new Vector3();
+    type Joints = { count: number; joints: { object: Group; id: string; rotation: Euler }[] };
+    for (let round = 0; round < 12; round++) {
+      plane.wingFold = round / 11; plane.previousControls = plane.controls;
+      plane.controls = { gear: (round % 4) / 3, hook: round % 2, brakes: round / 12, aileron: .3 - round * .05, elevator: round * .02 - .1, rudder: .1 - round * .01, propeller: round * 2.7 };
+      view.update(sim, camera, true);
+      expect(view.diagnostics().instances).toBe(1);
+      const controls = aircraftControls(plane, sim.interpolationAlpha), gear = 1 - controls.gear;
+      const drawn = [...(view as unknown as { models: Map<string, Joints> }).models.values()].find(m => m.count)!;
+      expect(drawn.joints.length).toBe(joints.length);
+      for (const { object, id, rotation } of drawn.joints) {
+        // The Object3D calls the pose was made with before: copy the authored Euler angles back, then turn.
+        scratch.rotation.copy(rotation);
+        const data = object.userData;
+        if (id.startsWith('wing.fold.')) scratch.rotateOnAxis(axis.fromArray(data.foldAxis), (plane.wingFold * Number(data.foldAngleDegrees) * Math.PI) / 180);
+        if (id === 'propeller.spin') scratch.rotateZ(controls.propeller);
+        if (id.startsWith('gear.') && !data.fixed && data.articulation !== 'fixed') {
+          const angle = gear * Math.PI * 0.43 * (id.endsWith('.port') ? 1 : -1) * (id.endsWith('.tail') ? 0.5 : 1);
+          if (data.axis === 'spanwise') scratch.rotateX(angle); else scratch.rotateZ(angle);
+        }
+        if (id.startsWith('control.aileron.')) scratch.rotateX(controls.aileron * (id.endsWith('.port') ? 1 : -1));
+        if (id.startsWith('control.elevator.')) scratch.rotateX(controls.elevator);
+        if (id === 'control.rudder') scratch.rotateY(controls.rudder);
+        if (id === 'arrestor.hook') scratch.rotateX(controls.hook * 0.65);
+        if (id.startsWith('diveBrake.')) scratch.rotateX(controls.brakes * 0.55 * Number(data.rotationMultiplier ?? 1));
+        expect(object.quaternion.toArray()).toEqual(scratch.quaternion.toArray());
+      }
+    }
   } finally { await view.dispose(); loader.mockRestore(); }
 });

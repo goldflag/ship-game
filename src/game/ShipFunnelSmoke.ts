@@ -240,7 +240,18 @@ export class ShipFunnelSmoke {
 
   private advanceTrail(emitter: Emitter, step: number): void {
     if (step <= 0) return;
-    for (let i = 0; i < emitter.size; i++) this.integrate(emitter.trail[(emitter.first + i) % TRAIL_POINTS], step);
+    // `integrate` for every sample, with the step's decay worked out once: the same expressions on the same inputs.
+    const decay = Math.exp(-DRAG * step), travel = (1 - decay) / DRAG, terminal = -BUOYANCY / DRAG;
+    const windX = this.wind.x * step, windZ = this.wind.z * step, rise = terminal * step, trail = emitter.trail;
+    for (let i = 0, index = emitter.first; i < emitter.size; i++, index = index + 1 === TRAIL_POINTS ? 0 : index + 1) {
+      const { position, velocity } = trail[index];
+      position.x += velocity.x * travel + windX;
+      position.z += velocity.z * travel + windZ;
+      position.y += (velocity.y + terminal) * travel - rise;
+      velocity.x *= decay; velocity.z *= decay;
+      velocity.y = (velocity.y + terminal) * decay - terminal;
+      trail[index].age += step;
+    }
     while (emitter.size && emitter.trail[emitter.first].age >= emitter.trail[emitter.first].life) {
       emitter.first = (emitter.first + 1) % TRAIL_POINTS; emitter.size--;
     }

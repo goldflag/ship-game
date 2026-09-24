@@ -1,6 +1,5 @@
 import { expect, test } from 'bun:test';
-import { WAKE_TUNING, WakeFoam } from './WakeFoam';
-import { WakeStampCollector } from './WakeFoamGpu';
+import { WAKE_TUNING, WakeFoam, WakeStampCollector } from './WakeFoam';
 
 for (const speed of [3, -3]) test(`wake stays at the trailing hull end during a tight turn at ${speed} m/s`, () => {
   const hull = { length: 120, beam: 12, forwardSpeed: 15 };
@@ -70,4 +69,27 @@ test('the realistic trail reads its live tuning: a change repaints every sample 
   }
   expect(late.count).toBeGreaterThan(100);
   expect(Array.from(late.values.subarray(0, late.count * 8))).toEqual(Array.from(early.values.subarray(0, early.count * 8)));
+});
+
+test('trail samples keep their order and values as their store compacts and grows', () => {
+  const hull = { length: 150, beam: 20, forwardSpeed: 16, centerX: .2, centerZ: 1.5 };
+  const collectors = [new WakeStampCollector(), new WakeStampCollector()];
+  const foams = collectors.map(stamps => new WakeFoam(256, hull, stamps));
+  // The second trail starts with room for four samples of each kind, so it moves and doubles its store again and again.
+  type Queue = { data: Float64Array; stride: number };
+  for (const key of ['samples', 'slickSamples']) { const queue = (foams[1] as unknown as Record<string, Queue>)[key]; queue.data = new Float64Array(queue.stride * 4); }
+  const state = { x: 0, z: 0, heading: 1, speed: 14 };
+  for (const [frame, realistic] of Array.from({ length: 5000 }, (_, i) => [i, i % 1800 < 1200] as const)) {
+    for (const foam of foams) foam.realistic = realistic;
+    state.heading += frame % 700 < 200 ? .004 : 0; state.speed = frame % 2400 < 2000 ? 14 : 2;
+    state.x += Math.sin(state.heading) * state.speed / 60; state.z -= Math.cos(state.heading) * state.speed / 60;
+    if (frame % 400 === 0) for (const foam of foams) foam.splash(state.x + 40, state.z, .3);
+    for (const foam of foams) foam.update({ ...state }, 1 / 60);
+    const [a, b] = collectors;
+    expect(b.count).toBe(a.count);
+    expect(Array.from(b.values.subarray(0, b.count * 8))).toEqual(Array.from(a.values.subarray(0, a.count * 8)));
+    expect([...foams[1].painted[0].toArray(), ...foams[1].painted[1].toArray()]).toEqual([...foams[0].painted[0].toArray(), ...foams[0].painted[1].toArray()]);
+  }
+  expect(collectors[0].count).toBeGreaterThan(300);
+  expect((foams[1] as unknown as { samples: Queue }).samples.data.length).toBeGreaterThan(4 * 14 * 64);
 });
