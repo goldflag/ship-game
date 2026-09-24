@@ -12,7 +12,7 @@ import math
 path = Path(__file__).with_name('blueprint.json')
 b = json.loads(path.read_text())
 h = b['hull']
-b['configuration'] = 'Early round-bridge Fletcher; original reconstruction, revision 4 with corrected hull, superstructure, Mk30 gunhouses and propellers'
+b['configuration'] = 'Early round-bridge Fletcher; revision 5, hull, superstructure and fittings re-measured from GameModels3D pasd021'
 
 
 def linear(table, s):
@@ -22,56 +22,44 @@ def linear(table, s):
     return table[0][1] if s < table[0][0] else table[-1][1]
 
 
-def fair(table, s):
-    """Monotone Hermite fairing between original design stations."""
-    def slope(j):
-        if j == 0:
-            return (table[1][1]-table[0][1])/(table[1][0]-table[0][0])
-        if j == len(table)-1:
-            return (table[-1][1]-table[-2][1])/(table[-1][0]-table[-2][0])
-        l = (table[j][1]-table[j-1][1])/(table[j][0]-table[j-1][0])
-        r = (table[j+1][1]-table[j][1])/(table[j+1][0]-table[j][0])
-        return 0 if l*r <= 0 else 2*l*r/(l+r)
-    for i, ((a, u), (c, v)) in enumerate(zip(table, table[1:])):
-        if a <= s <= c:
-            q = (s-a)/(c-a)
-            return ((2*q**3-3*q*q+1)*u + (q**3-2*q*q+q)*(c-a)*slope(i)
-                    + (-2*q**3+3*q*q)*v + (q**3-q*q)*(c-a)*slope(i+1))
-    return table[0][1] if s < table[0][0] else table[-1][1]
+# Revision 5 hull: the canoe body measured from GameModels3D pasd021 (A_Hull) at 142 stations,
+# fine at the raked stem and the round counter (authoring/lines.json; our z = reference z + 0.466 m).
+# The skeg, sonar dome, rudder, shaft bossings, brackets and bilge keels are drawn by build.py.
+lines = json.loads(Path(__file__).with_name('authoring').joinpath('lines.json').read_text())
+assert abs(lines['length'] - h['length']) < 1e-9
+h['sections'] = [{'station': s['station'], 'points': s['points']} for s in lines['sections']]
+h['halfBreadths'] = [[s['station'], round(max(w for w, _ in s['points']), 4)] for s in h['sections']]
+h['deckHeights'] = [[s['station'], s['points'][-1][1]] for s in h['sections']]
+h['keelHeights'] = [[s['station'], s['points'][0][1]] for s in h['sections']]
+h['beam'] = round(2 * max(w for _, w in h['halfBreadths']), 2)
+h['draft'] = round(-min(k for _, k in h['keelHeights']), 2)
+h['depth'] = round(max(d for _, d in h['deckHeights']) - min(k for _, k in h['keelHeights']), 2)
 
 
-# Stern station = 0, bow = 114.7 m. A broad transom, full forebody and nearly
-# straight raked stem replace revision 2's canoe-shaped ends.
-breadths = [(0, 2.35), (.5, 2.85), (1.5, 3.75), (3.5, 4.22), (8, 4.65),
-            (18, 5.25), (30, 5.72), (42, 6.03), (50, 6.05), (59, 5.99),
-            (70, 5.72), (80, 5.34), (90, 4.80), (100, 3.82), (105, 3.08),
-            (109, 2.32), (112, 1.49), (113.5, .83), (114.3, .34), (114.7, .012)]
-decks = [(0, 2.72), (25, 2.72), (42, 2.78), (58, 3.05), (70, 3.48),
-         (80, 4.00), (90, 4.65), (100, 5.37), (108, 5.84), (114.7, 6.12)]
-keels = [(0, 2.46), (.35, 1.5), (1.1, -.55), (2, -.66), (7, -.92),
-         (14, -1.55), (22, -2.62), (32, -3.70), (40, -4.2), (102, -4.2),
-         (110.5, -4.05), (112.25, -3.95), (112.7, -3.40),
-         (113.0, -1.95), (113.4, .05), (114, 3.1), (114.7, 6.10)]
-stations = sorted(set([float(i) for i in range(115)] +
-                      [s for table in [breadths, decks, keels] for s, _ in table]))
-h['halfBreadths'] = [[s, round(fair(breadths, s), 5)] for s in stations]
-h['deckHeights'] = [[s, round(fair(decks, s), 5)] for s in stations]
-h['keelHeights'] = [[s, round(linear(keels, s), 5)] for s in stations]
-h['depth'] = 10.32
-h['sections'] = []
-# The section blends a flat floor / rounded bilge amidships into a fine V entry.
-# Upper topsides gain flare forward; the keel stays deep almost to the stem.
-section_levels = [0, .012, .045, .105, .20, .34, .51, .73, 1]
-mid = [0, .28, .53, .76, .90, .975, 1, 1, 1]
-fore = [0, .045, .12, .24, .39, .54, .69, .84, 1]
-for s, w in h['halfBreadths']:
-    k = linear(keels, s)
-    d = fair(decks, s)
-    transition = max(0, min(1, (s-74)/36))
-    transition = transition*transition*(3-2*transition)
-    points = [[round(w*(a+(c-a)*transition), 5), round(k+(d-k)*f, 5)]
-              for f, a, c in zip(section_levels, mid, fore)]
-    h['sections'].append({'station': s, 'points': points})
+def section_width(pts, y):
+    """Outermost half-breadth of one section at height y (0 outside its height range)."""
+    w = 0.0
+    for (w0, y0), (w1, y1) in zip(pts, pts[1:]):
+        if y0 <= y <= y1:
+            w = max(w, max(w0, w1) if y1 - y0 < 1e-9 else w0 + (w1 - w0) * (y - y0) / (y1 - y0))
+    return w
+
+
+def section_area(pts, y_lo, y_hi, dy=.02):
+    y = max(y_lo, pts[0][1]); area = 0.0
+    while y < min(y_hi, pts[-1][1]):
+        area += 2 * section_width(pts, y + dy / 2) * dy; y += dy
+    return area
+
+
+# Waterplane and reserve buoyancy of the measured body, by trapezoids over the stations.
+secs = h['sections']
+wp = sum((b['station'] - a['station']) * (section_width(a['points'], 0) + section_width(b['points'], 0))
+         for a, b in zip(secs, secs[1:]))
+h['waterplaneAreaM2'] = round(wp)
+h['reserveBuoyancyM3'] = 1350  # gameplay value; the stability model supersedes it
+decks = [(s, d) for s, d in h['deckHeights']]
+fair = linear
 
 
 def chamfer(x0, x1, w, c=.4):
@@ -180,4 +168,4 @@ for s in b['structures']:
                               'size': [c-a for a, c in zip(lo, hi)]})
 b['accuracy']['exterior'] = 'Original round-bridge Fletcher reconstruction. The hull and superstructure corrections are retained; revision 4 adds original Mk30 gunhouse facets and handed screw lofts. Navy general arrangements and matching reference rasters guide the reconstruction; exact offsets, propeller pitch distribution, load datum and outfit remain interpreted.'
 path.write_text(json.dumps(b, indent=2)+'\n')
-print('Revision 4 blueprint:', len(stations), 'original hull stations; stable weapon IDs preserved')
+print('Revision 5 blueprint:', len(h['sections']), 'measured hull stations; stable weapon IDs preserved')

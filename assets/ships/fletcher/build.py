@@ -214,21 +214,24 @@ for i in range(len(h['sections'])-1):
     faces += [(i*n+j,i*n+(j+1)%n,(i+1)*n+(j+1)%n,(i+1)*n+j) for j in range(n)]
 faces += [tuple(reversed(range(n))),tuple((len(h['sections'])-1)*n+j for j in range(n))]
 hull=mesh('hull.envelope',verts,faces,materials['hullgray'],smooth=True);hull['nodeId']='hull.surface'
-# A cambered steel deck, separate from the hull's closed CPU surface.
+# A cambered steel deck, separate from the hull's closed CPU surface, meeting the
+# shell at each section's deck edge.
+edge_table=[(sec['station'],sec['points'][-1][0]) for sec in h['sections']]
+deck_edge=lambda x:interp(edge_table,x+half)
 verts=[]
-for s,w in h['halfBreadths']:
-    x=s-half;z=deckz(x)+.018
-    verts += [(x,-w,z),(x,0,z+.07),(x,w,z)]
-mesh('deck.main',verts,[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(len(h['halfBreadths'])-1) for j in range(2)],materials['deck'])
+for sec in h['sections']:
+    x=sec['station']-half;w=sec['points'][-1][0];z=sec['points'][-1][1]+.018
+    verts += [(x,-w,z),(x,0,z+.07*min(1,w/3)),(x,w,z)]
+mesh('deck.main',verts,[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(len(h['sections'])-1) for j in range(2)],materials['deck'])
 # Low sheer strake, weld seams and a narrow waterways gutter.
 for side in [-1,1]:
-    edge=[(s-half,side*max(.005,w-.065),deckz(s-half)+.06) for s,w in h['halfBreadths'] if .5<s<114.3]
+    edge=[(sec['station']-half,side*max(.005,sec['points'][-1][0]-.065),sec['points'][-1][1]+.06) for sec in h['sections'][::2] if .5<sec['station']<114.3]
     tube_path('hull.sheer-strake',edge,.052,materials['edge'],sides=8)
     for z in [.55,1.8]:
-        seam=[(s-half,side*(hull_breadth_at(s-half,z)+.006),z) for s,w in h['halfBreadths'] if 5<s<103]
+        seam=[(s-half,side*(hull_breadth_at(s-half,z)+.006),z) for s in range(6,103,2)]
         # Flush plate seams are fine; no oversized decorative armor belts.
         tube_path('hull.plate-seam',seam,.009,materials['wear'],sides=5)
-    railpts=[(s-half,side*max(.05,w-.16),deckz(s-half)+.05) for s,w in h['halfBreadths'] if 2<s<113.7]
+    railpts=[(sec['station']-half,side*max(.05,sec['points'][-1][0]-.16),sec['points'][-1][1]+.05) for sec in h['sections'][::2] if 2<sec['station']<113.7]
     rails('rails.perimeter',railpts)
 
 # Structural footprints remain the same source for visible deckhouses and CPU hits.
