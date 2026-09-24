@@ -5,13 +5,16 @@ import { WakeStampCollector, type WakeFoamPainter, type WakeFoamPainterFactory }
 import type { Torpedo } from './torpedoAim';
 
 type TrackTorpedo = Pick<Torpedo, 'id' | 'position' | 'velocity'>;
-type TrackSample = { x: number; z: number; rightX: number; rightZ: number; surfaced: number; strength: number; phase: number };
+/** `laid` is the field time the frame that laid the sample began at: samples run in the order laid. */
+type TrackSample = { x: number; z: number; rightX: number; rightZ: number; surfaced: number; strength: number; phase: number; laid: number };
 
 const SAMPLE_DISTANCE = 4;
 const LIFETIME = 30;
 const UPDATE_INTERVAL = 1 / 20;
 /** Exhaust rises as a loose plume, faster than a lone bubble. */
 const RISE_SPEED = 1.5;
+/** Seconds the shallowest exhaust still takes to surface. */
+const RISE_FLOOR = .6;
 const smooth = (value: number) => {
   const t = Math.max(0, Math.min(value, 1));
   return t * t * (3 - 2 * t);
@@ -29,6 +32,7 @@ export class TorpedoTrackFoam {
   private readonly painter: WakeFoamPainter;
   private readonly collector = new WakeStampCollector();
   private readonly running = new Map<number, { x: number; z: number; carry: number }>();
+  private readonly present = new Set<number>();
   private readonly forward = new Vector3();
   private samples: TrackSample[] = [];
   private elapsed = 0;
@@ -71,9 +75,12 @@ export class TorpedoTrackFoam {
 
   update(torpedoes: readonly TrackTorpedo[], dt: number, focusX: number, focusZ: number, camera?: Camera): void {
     if (dt <= 0) return;
+    const laid = this.time.value;
     this.time.value += dt; this.elapsed += dt;
-    const now = this.time.value;
-    for (const id of this.running.keys()) if (!torpedoes.some(t => t.id === id)) this.running.delete(id);
+    const now = this.time.value, present = this.present;
+    present.clear();
+    for (const t of torpedoes) present.add(t.id);
+    for (const id of this.running.keys()) if (!present.has(id)) this.running.delete(id);
     for (const t of torpedoes) {
       const [x, y, z] = t.position, previous = this.running.get(t.id);
       if (!previous) { this.running.set(t.id, { x, z, carry: 0 }); continue; }
@@ -83,22 +90,34 @@ export class TorpedoTrackFoam {
       if (distance > 200 || strength <= 0) { previous.x = x; previous.z = z; previous.carry = 0; continue; }
       if (distance < .0001) continue;
       const forwardX = (x - previous.x) / distance, forwardZ = (z - previous.z) / distance;
-      const rise = Math.max(.6, -y / RISE_SPEED);
+      const rise = Math.max(RISE_FLOOR, -y / RISE_SPEED);
       for (let along = SAMPLE_DISTANCE - previous.carry; along <= distance; along += SAMPLE_DISTANCE) {
         const fraction = along / distance, born = now - dt * (1 - fraction);
         this.samples.push({
           x: previous.x + (x - previous.x) * fraction, z: previous.z + (z - previous.z) * fraction,
-          rightX: -forwardZ, rightZ: forwardX, surfaced: born + rise, strength, phase: t.id * 2.3 + born * 1.7,
+          rightX: -forwardZ, rightZ: forwardX, surfaced: born + rise, strength, phase: t.id * 2.3 + born * 1.7, laid,
         });
       }
       previous.carry = (previous.carry + distance) % SAMPLE_DISTANCE;
       previous.x = x; previous.z = z;
     }
-    if (this.samples.length && now - this.samples[0].surfaced > LIFETIME) this.samples = this.samples.filter(s => now - s.surfaced <= LIFETIME);
+    if (this.samples.length && now - this.samples[0].surfaced > LIFETIME) this.expire(now);
     if (this.elapsed < UPDATE_INTERVAL || (!this.samples.length && !this.painted)) return;
     this.elapsed %= UPDATE_INTERVAL;
     this.anchor(torpedoes, focusX, focusZ, camera);
     this.rasterize(now);
+  }
+
+  /** Drop every sample that surfaced more than LIFETIME ago, keeping the rest in order. A sample surfaces at least
+   * RISE_FLOOR after the frame that laid it began, so only the leading run laid more than LIFETIME - RISE_FLOOR ago (with
+   * a margin) can have expired: its survivors move to the end of that run and the run's head is cut. */
+  private expire(now: number): void {
+    const samples = this.samples, horizon = now - LIFETIME + RISE_FLOOR - .1;
+    let end = 0;
+    while (end < samples.length && samples[end].laid < horizon) end++;
+    let cut = end;
+    for (let i = end - 1; i >= 0; i--) if (now - samples[i].surfaced <= LIFETIME) samples[--cut] = samples[i];
+    if (cut) samples.splice(0, cut);
   }
 
   /** Centre the field where tracks can be resolved: around the viewer, or around

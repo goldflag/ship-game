@@ -3,10 +3,11 @@ import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
 import type { Vec3 } from '../ships/blueprint';
 import { FIXED_DT } from './session/motion';
-import { ballisticStep } from './ballistics';
+import { ballisticStepInto } from './ballistics';
 import { SHELL_PACE } from '../ships/mobility';
 import { effectTexture } from './EffectParticles';
 import { ExpandableInstances } from './ExpandableInstances';
+import { writeInstancePose } from './instancePose';
 import type { CombatEvent } from '../game/session/elements';
 
 const CAPACITY = 512;
@@ -14,6 +15,8 @@ const UP = new THREE.Vector3(0, 1, 0);
 const RIGHT = new THREE.Vector3(1, 0, 0);
 const AA_SIDES = [0], FIGHTER_SIDES = [-1, 1];
 interface TracerBurst {
+  /** The firing event's sequence, which keys the burst. */
+  sequence: number;
   tick: number;
   aa: boolean;
   airburst: boolean;
@@ -34,22 +37,17 @@ export class AircraftGunfire {
   private readonly cores = this.batch('Aircraft tracer cores', this.tracerMap, '#fff1c9', 4);
   private readonly tips = this.batch('Aircraft tracer tips', this.flashMap, '#ffd79a', 3);
   private readonly muzzles = this.batch('Aircraft gun flashes', this.flashMap, '#ffe2aa', 3);
-  private readonly position = new THREE.Vector3();
   private readonly orientation = new THREE.Quaternion();
-  private readonly scale = new THREE.Vector3();
-  private readonly matrix = new THREE.Matrix4();
   private readonly pose = new THREE.Quaternion();
   private readonly attitude = new THREE.Euler();
   private readonly eventOrigin = new THREE.Vector3();
   private readonly origin = new THREE.Vector3();
   private readonly direction = new THREE.Vector3();
   private readonly velocity = new THREE.Vector3();
-  private readonly normal = new THREE.Vector3();
-  private readonly across = new THREE.Vector3();
   private readonly basis = new THREE.Matrix4();
   private readonly frustum = new THREE.Frustum();
   private readonly projection = new THREE.Matrix4();
-  private readonly bounds = new THREE.Sphere();
+  private readonly step = new Float64Array(6);
   private count = 0;
   private readonly active = new Map<number, TracerBurst>();
   private sequence = 0;
@@ -68,10 +66,6 @@ export class AircraftGunfire {
     mesh.name = name; mesh.frustumCulled = false;
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.instanceMatrix.array.fill(0);
     return mesh;
-  }
-  private write(mesh: ExpandableInstances<THREE.PlaneGeometry, THREE.MeshBasicNodeMaterial>, index: number, opacity: number) {
-    mesh.setMatrixAt(index, this.matrix.compose(this.position, this.orientation, this.scale));
-    mesh.setScalarAttributeAt('tracerOpacity', index, opacity);
   }
   private prepare(event: CombatEvent): TracerBurst {
     const data = event.aircraft!, attitude = data.attitude;
@@ -101,9 +95,27 @@ export class AircraftGunfire {
       }
       shots.push({ delay, origin: this.origin.toArray(), velocity: this.velocity.toArray() });
     }
-    return { tick: event.tick, aa, airburst: !!data.airburst, life, drag: data.dragPerSecond ?? 0, pace, caliberScale,
+    return { sequence: event.sequence, tick: event.tick, aa, airburst: !!data.airburst, life, drag: data.dragPerSecond ?? 0, pace, caliberScale,
       exposure: aa ? .022 * THREE.MathUtils.clamp(caliberScale, .55, 1.2) : .022, shots };
   }
+  /** Whether a sphere is at least partly inside the culling frustum: Frustum.intersectsSphere without the Sphere. */
+  private inView(x: number, y: number, z: number, radius: number): boolean {
+    const planes = this.frustum.planes, reach = -radius;
+    for (let i = 0; i < 6; i++) {
+      const { normal, constant } = planes[i];
+      if (normal.x * x + normal.y * y + normal.z * z + constant < reach) return false;
+    }
+    return true;
+  }
+  /** One billboard or ribbon: its pose composed straight into the batch, and its opacity. */
+  private place(mesh: ExpandableInstances<THREE.PlaneGeometry, THREE.MeshBasicNodeMaterial>, index: number, px: number, py: number, pz: number,
+    x: number, y: number, z: number, w: number, sx: number, sy: number, sz: number, opacity: number) {
+    const page = mesh.page(index), slot = index % CAPACITY;
+    writeInstancePose(page.instanceMatrix.array as Float32Array, slot * 16, px, py, pz, x, y, z, w, sx, sy, sz);
+    (page.geometry.attributes.tracerOpacity.array as Float32Array)[slot] = opacity;
+  }
+  /** Tracer poses use three's vector arithmetic written out in place (normalize, cross, the ballistic step), operation for
+   * operation, so every float matches the Vector3/Matrix4 path without its per-shot objects. */
   update(sim: BattleSession, camera: THREE.Camera) {
     let count = 0, flashes = 0;
     const cull = this.cullOffscreen && (camera as THREE.PerspectiveCamera).isPerspectiveCamera;
@@ -116,44 +128,60 @@ export class AircraftGunfire {
       this.sequence = event.sequence;
       if (event.kind === 'aircraft-fire' && event.aircraft?.target) this.active.set(event.sequence, this.prepare(event));
     }
-    for (const [id, burst] of this.active) {
+    const view = camera.matrixWorldInverse.elements, projection = camera.projectionMatrix.elements, perspective = projection[11] === -1;
+    const rotation = camera.quaternion, qx = rotation.x, qy = rotation.y, qz = rotation.z, qw = rotation.w;
+    const eye = camera.position, step = this.step, basis = this.basis, orientation = this.orientation;
+    for (const burst of this.active.values()) {
       const age = now - burst.tick * FIXED_DT;
       const { aa, life, caliberScale, exposure } = burst;
-      if (age > life + (aa ? 0 : .208)) { this.active.delete(id); continue; }
+      if (age > life + (aa ? 0 : .208)) { this.active.delete(burst.sequence); continue; }
       if (age < 0) continue;
       for (const launch of burst.shots) {
         const flight = age - launch.delay;
         if (flight < 0 || flight > life) continue;
         if (flight < .038) {
-          this.position.fromArray(launch.origin).addScaledVector(this.velocity.fromArray(launch.velocity), flight * .08);
-          this.orientation.copy(camera.quaternion); this.scale.setScalar(.7);
-          if (!cull || this.frustum.intersectsSphere(this.bounds.set(this.position, .5))) this.write(this.muzzles, flashes++, 1 - flight / .038);
+          const origin = launch.origin, velocity = launch.velocity, s = flight * .08;
+          const x = origin[0] + velocity[0] * s, y = origin[1] + velocity[1] * s, z = origin[2] + velocity[2] * s;
+          if (!cull || this.inView(x, y, z, .5)) this.place(this.muzzles, flashes++, x, y, z, qx, qy, qz, qw, .7, .7, .7, 1 - flight / .038);
         }
-        const shot = ballisticStep(launch.origin, launch.velocity, flight * burst.pace, burst.drag);
-        this.position.fromArray(shot.position);
-        this.velocity.fromArray(shot.velocity);
-        if (this.position.y < 0) continue;
+        ballisticStepInto(step, launch.origin, launch.velocity, flight * burst.pace, burst.drag);
+        let px = step[0], py = step[1], pz = step[2], vx = step[3], vy = step[4], vz = step[5];
+        if (py < 0) continue;
         const opacity = burst.airburst ? 1 : THREE.MathUtils.smoothstep(life - flight, 0, aa ? .65 : .12);
-        this.normal.copy(this.position).applyMatrix4(camera.matrixWorldInverse);
-        const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
-        const viewHeight = 2 * depth / camera.projectionMatrix.elements[5];
+        // The view-space depth, as Vector3.applyMatrix4 computes it.
+        const w = 1 / (view[3] * px + view[7] * py + view[11] * pz + view[15]);
+        const depth = perspective ? Math.max(.1, -((view[2] * px + view[6] * py + view[10] * pz + view[14]) * w)) : 1;
+        const viewHeight = 2 * depth / projection[5];
         const width = Math.max(.12, Math.min(2.4, viewHeight * .0012)) * caliberScale * (aa ? .95 : 1);
-        const length = this.velocity.length() * burst.pace * Math.min(exposure, flight);
+        const speed = Math.sqrt(vx * vx + vy * vy + vz * vz), length = speed * burst.pace * Math.min(exposure, flight);
         // The sphere around the tip encloses the entire trailing ribbon and
         // its billboard tip. Keep the event alive so camera re-entry samples
         // the current trajectory, even after the history ring evicts the shot.
-        if (cull && !this.frustum.intersectsSphere(this.bounds.set(this.position, length + width * 2))) continue;
-        this.orientation.copy(camera.quaternion); this.scale.setScalar(width * (aa ? 1.5 : 2.2));
-        this.write(this.tips, count, opacity * (aa ? .35 : .65));
-        this.velocity.normalize(); this.position.addScaledVector(this.velocity, -length / 2);
-        this.normal.subVectors(camera.position, this.position).normalize();
-        this.across.crossVectors(this.velocity, this.normal);
-        if (this.across.lengthSq() < 1e-8) this.across.crossVectors(this.velocity, Math.abs(this.velocity.y) < .9 ? UP : RIGHT);
-        this.across.normalize(); this.normal.crossVectors(this.across, this.velocity).normalize();
-        this.basis.makeBasis(this.across, this.velocity, this.normal);
-        this.orientation.setFromRotationMatrix(this.basis);
-        this.scale.set(width * (aa ? 2.3 : 2.6), length, 1); this.write(this.ribbons, count, opacity * (aa ? .55 : .65));
-        this.scale.x = width * (aa ? .85 : .65); this.write(this.cores, count++, opacity);
+        if (cull && !this.inView(px, py, pz, length + width * 2)) continue;
+        const tip = width * (aa ? 1.5 : 2.2);
+        this.place(this.tips, count, px, py, pz, qx, qy, qz, qw, tip, tip, tip, opacity * (aa ? .35 : .65));
+        // The ribbon's axis: the flight direction, the midpoint half a length back, and the side facing the camera.
+        const unit = 1 / (speed || 1), back = -length / 2;
+        vx *= unit; vy *= unit; vz *= unit;
+        px += vx * back; py += vy * back; pz += vz * back;
+        let nx = eye.x - px, ny = eye.y - py, nz = eye.z - pz;
+        const toEye = 1 / (Math.sqrt(nx * nx + ny * ny + nz * nz) || 1);
+        nx *= toEye; ny *= toEye; nz *= toEye;
+        let ax = vy * nz - vz * ny, ay = vz * nx - vx * nz, az = vx * ny - vy * nx;
+        if (ax * ax + ay * ay + az * az < 1e-8) {
+          const side = Math.abs(vy) < .9 ? UP : RIGHT;
+          ax = vy * side.z - vz * side.y; ay = vz * side.x - vx * side.z; az = vx * side.y - vy * side.x;
+        }
+        const across = 1 / (Math.sqrt(ax * ax + ay * ay + az * az) || 1);
+        ax *= across; ay *= across; az *= across;
+        nx = ay * vz - az * vy; ny = az * vx - ax * vz; nz = ax * vy - ay * vx;
+        const facing = 1 / (Math.sqrt(nx * nx + ny * ny + nz * nz) || 1);
+        nx *= facing; ny *= facing; nz *= facing;
+        // Matrix4.makeBasis(across, velocity, normal), then its rotation.
+        orientation.setFromRotationMatrix(basis.set(ax, vx, nx, 0, ay, vy, ny, 0, az, vz, nz, 0, 0, 0, 0, 1));
+        const { x, y, z, w: ow } = orientation;
+        this.place(this.ribbons, count, px, py, pz, x, y, z, ow, width * (aa ? 2.3 : 2.6), length, 1, opacity * (aa ? .55 : .65));
+        this.place(this.cores, count++, px, py, pz, x, y, z, ow, width * (aa ? .85 : .65), length, 1, opacity);
       }
     }
     this.count = count;

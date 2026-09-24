@@ -10,8 +10,10 @@ export class WakeStampCollector implements WakeStampTarget {
   centerX = 0; centerZ = 0;
   /** Centre of the slick channel's wider square (SLICK_EXTENT), laid over the same tile. */
   slickX = 0; slickZ = 0;
+  /** Moves with every change to the stamps or their frame, so a painter can keep what it made of an unchanged tile. */
+  version = 0;
   begin(x: number, z: number, slickX = x, slickZ = z): void { this.centerX = x; this.centerZ = z; this.slickX = slickX; this.slickZ = slickZ; this.clear(); }
-  clear(): void { this.count = 0; }
+  clear(): void { this.count = 0; this.version++; }
   reserve(count: number): void {
     if (count * 8 <= this.values.length) return;
     const values = new Float64Array(Math.max(count * 8, this.values.length * 2));
@@ -22,8 +24,13 @@ export class WakeStampCollector implements WakeStampTarget {
     const offset = this.count++ * 8, values = this.values;
     values[offset] = x; values[offset + 1] = z; values[offset + 2] = rightX; values[offset + 3] = rightZ;
     values[offset + 4] = width; values[offset + 5] = length; values[offset + 6] = strength; values[offset + 7] = Number(ring) + 2 * channel;
+    this.version++;
   }
 }
+
+/** One collector's painted quads (box, axes, shape: twelve floats each) for a tile, as of its `version`, and where they
+ * sit in the instance buffers. */
+interface WakeBlock { version: number; slot: number; count: number; start: number; data: Float32Array; seen: number }
 
 /** Where a collector's channel lies in world space: its centre and the edge (m) of the square a tile covers. Channel
  * 0 (red) is the trail foam's WAKE_EXTENT square; channel 1 (green) the slick's SLICK_EXTENT square. */
@@ -63,6 +70,9 @@ export class WakeFoamGpu implements WakeFoamPainter {
   private boxes!: THREE.InstancedBufferAttribute;
   private axes!: THREE.InstancedBufferAttribute;
   private shapes!: THREE.InstancedBufferAttribute;
+  /** Each collector's quads, reused while it and its tile are unchanged; buffers they already fill are left alone. */
+  private readonly blocks = new Map<WakeStampCollector, WakeBlock>();
+  private updates = 0;
 
   constructor(private readonly renderer: THREE.WebGPURenderer, private readonly resolution: number, private readonly tiles = 8, readonly channels: 1 | 2 = 1) {
     const size = resolution * tiles;
@@ -106,44 +116,48 @@ export class WakeFoamGpu implements WakeFoamPainter {
       geometry.setAttribute(name, this[field]);
     }
     this.mesh.geometry = geometry; previous.dispose();
+    // New buffers hold nothing yet.
+    for (const block of this.blocks.values()) block.start = -1;
   }
 
   get texture(): THREE.Texture { return this.target.texture; }
 
   reserve(count: number): void { this.allocate(count); }
 
+  /** Lay the collectors' quads end to end in slot order. A collector unchanged since the last update keeps its quads, and
+   * where they already sit at the same place in the buffers nothing is written or uploaded again. */
   update(collectors: readonly WakeStampCollector[]): void {
     this.allocate(collectors.reduce((n, tile) => n + tile.count, 0));
-    const size = this.resolution * this.tiles;
-    let count = 0;
+    const boxes = this.boxes.array as Float32Array, axes = this.axes.array as Float32Array, shapes = this.shapes.array as Float32Array;
+    const seen = ++this.updates;
+    let count = 0, from = Infinity, to = 0;
     collectors.forEach((tile, slot) => {
-      const ox = slot % this.tiles * this.resolution, oy = Math.floor(slot / this.tiles) * this.resolution;
-      const frames = [stampFrame(tile, 0), stampFrame(tile, 1)];
-      for (let i = 0; i < tile.count * 8; i += 8) {
-        const values = tile.values, x = values[i], z = values[i + 1], rightX = values[i + 2], rightZ = values[i + 3];
-        const width = values[i + 4], length = values[i + 5], strength = values[i + 6], ring = values[i + 7];
-        const frame = frames[ring > 1.5 ? 1 : 0], scale = this.resolution / frame.extent;
-        const cx = (x - frame.x) * scale + this.resolution / 2 - .5;
-        const cz = (z - frame.z) * scale + this.resolution / 2 - .5;
-        const rx = (Math.abs(rightX) * width + Math.abs(rightZ) * length) * scale;
-        const rz = (Math.abs(rightZ) * width + Math.abs(rightX) * length) * scale;
-        const minX = Math.max(0, Math.floor(cx - rx)), maxX = Math.min(this.resolution - 1, Math.ceil(cx + rx));
-        const minZ = Math.max(0, Math.floor(cz - rz)), maxZ = Math.min(this.resolution - 1, Math.ceil(cz + rz));
-        if (minX > maxX || minZ > maxZ) continue;
-        const centerX = (minX + maxX) / 2, centerZ = (minZ + maxZ) / 2;
-        const dx = (centerX - cx) / scale, dz = (centerZ - cz) / scale;
-        const halfX = (maxX - minX + 1) / 2, halfZ = (maxZ - minZ + 1) / 2;
-        this.boxes.setXYZW(count, (ox + centerX + .5) / size * 2 - 1, (oy + centerZ + .5) / size * 2 - 1, halfX / size * 2, halfZ / size * 2);
-        this.axes.setXYZW(count, halfX / scale * rightX / width, halfZ / scale * rightZ / width, -halfX / scale * rightZ / length, halfZ / scale * rightX / length);
-        this.shapes.setXYZW(count, (dx * rightX + dz * rightZ) / width, (-dx * rightZ + dz * rightX) / length, strength, ring);
-        count++;
+      let block = this.blocks.get(tile);
+      if (!block || block.version !== tile.version || block.slot !== slot) {
+        block = this.paint(tile, slot, block);
+        this.blocks.set(tile, block);
       }
+      block.seen = seen;
+      if (block.start !== count) {
+        const data = block.data, n = block.count;
+        for (let i = 0, j = count * 4; i < n; i++, j += 4) {
+          const k = i * 12;
+          boxes[j] = data[k]; boxes[j + 1] = data[k + 1]; boxes[j + 2] = data[k + 2]; boxes[j + 3] = data[k + 3];
+          axes[j] = data[k + 4]; axes[j + 1] = data[k + 5]; axes[j + 2] = data[k + 6]; axes[j + 3] = data[k + 7];
+          shapes[j] = data[k + 8]; shapes[j + 1] = data[k + 9]; shapes[j + 2] = data[k + 10]; shapes[j + 3] = data[k + 11];
+        }
+        block.start = count;
+        if (n) { from = Math.min(from, count); to = count + n; }
+      }
+      count += block.count;
     });
+    // A collector that left the list has lost its place in the buffers.
+    for (const [tile, block] of this.blocks) if (block.seen !== seen) this.blocks.delete(tile);
     this.mesh.geometry.instanceCount = count;
     this.count = count; this.draws++;
     for (const attribute of [this.boxes, this.axes, this.shapes]) {
       attribute.clearUpdateRanges();
-      if (count) { attribute.addUpdateRange(0, count * 4); attribute.needsUpdate = true; }
+      if (to > from) { attribute.addUpdateRange(from * 4, (to - from) * 4); attribute.needsUpdate = true; }
     }
     const renderer = this.renderer, target = renderer.getRenderTarget(), clear = renderer.autoClear;
     const alpha = renderer.getClearAlpha(); renderer.getClearColor(this.savedColor);
@@ -151,6 +165,36 @@ export class WakeFoamGpu implements WakeFoamPainter {
       renderer.autoClear = true; renderer.setClearColor(0, 0); renderer.setRenderTarget(this.target);
       renderer.render(this.scene, this.camera);
     } finally { renderer.setRenderTarget(target); renderer.autoClear = clear; renderer.setClearColor(this.savedColor, alpha); }
+  }
+
+  /** One collector's quads for its tile, rounded to the buffers' floats exactly as writing them there would. */
+  private paint(tile: WakeStampCollector, slot: number, reuse?: WakeBlock): WakeBlock {
+    const size = this.resolution * this.tiles, values = tile.values;
+    const ox = slot % this.tiles * this.resolution, oy = Math.floor(slot / this.tiles) * this.resolution;
+    const frames = [stampFrame(tile, 0), stampFrame(tile, 1)];
+    let data = reuse?.data;
+    if (!data || data.length < tile.count * 12) data = new Float32Array(Math.max(tile.count * 12, (data?.length ?? 0) * 2, 12 * 64));
+    let count = 0;
+    for (let i = 0; i < tile.count * 8; i += 8) {
+      const x = values[i], z = values[i + 1], rightX = values[i + 2], rightZ = values[i + 3];
+      const width = values[i + 4], length = values[i + 5], strength = values[i + 6], ring = values[i + 7];
+      const frame = frames[ring > 1.5 ? 1 : 0], scale = this.resolution / frame.extent;
+      const cx = (x - frame.x) * scale + this.resolution / 2 - .5;
+      const cz = (z - frame.z) * scale + this.resolution / 2 - .5;
+      const rx = (Math.abs(rightX) * width + Math.abs(rightZ) * length) * scale;
+      const rz = (Math.abs(rightZ) * width + Math.abs(rightX) * length) * scale;
+      const minX = Math.max(0, Math.floor(cx - rx)), maxX = Math.min(this.resolution - 1, Math.ceil(cx + rx));
+      const minZ = Math.max(0, Math.floor(cz - rz)), maxZ = Math.min(this.resolution - 1, Math.ceil(cz + rz));
+      if (minX > maxX || minZ > maxZ) continue;
+      const centerX = (minX + maxX) / 2, centerZ = (minZ + maxZ) / 2;
+      const dx = (centerX - cx) / scale, dz = (centerZ - cz) / scale;
+      const halfX = (maxX - minX + 1) / 2, halfZ = (maxZ - minZ + 1) / 2, k = count++ * 12;
+      data[k] = (ox + centerX + .5) / size * 2 - 1; data[k + 1] = (oy + centerZ + .5) / size * 2 - 1; data[k + 2] = halfX / size * 2; data[k + 3] = halfZ / size * 2;
+      data[k + 4] = halfX / scale * rightX / width; data[k + 5] = halfZ / scale * rightZ / width;
+      data[k + 6] = -halfX / scale * rightZ / length; data[k + 7] = halfZ / scale * rightX / length;
+      data[k + 8] = (dx * rightX + dz * rightZ) / width; data[k + 9] = (-dx * rightZ + dz * rightX) / length; data[k + 10] = strength; data[k + 11] = ring;
+    }
+    return { version: tile.version, slot, count, start: -1, data, seen: 0 };
   }
 
   diagnostics() { return { capacity: this.capacity, allocations: this.allocations, draws: this.draws, stamps: this.count }; }

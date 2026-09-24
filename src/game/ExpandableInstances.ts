@@ -5,7 +5,7 @@ import { prepareInstanceUploads } from './InstanceUploads';
  * Separate the live draw count from WebGPU's fixed shader matrix capacity. */
 export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE.Material> extends THREE.InstancedMesh<G, M> {
   private overflow: THREE.InstancedMesh[] = [];
-  constructor(geometry: G, material: M, private pageSize = 256) {
+  constructor(geometry: G, material: M, readonly pageSize = 256) {
     super(geometry, material, pageSize);
     // Preserve the public geometry type and authored attributes, but separate
     // live draw count from Three's fixed shader matrix capacity.
@@ -14,7 +14,8 @@ export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE
     this.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.instanceMatrix.array.fill(0);
   }
-  private page(index: number): THREE.InstancedMesh {
+  /** The mesh that draws instance `index` at slot `index % pageSize`: this one, or an overflow page made on demand. */
+  page(index: number): THREE.InstancedMesh {
     const page = Math.floor(index / this.pageSize);
     while (this.overflow.length < page) {
       const geometry = this.geometry.clone();
