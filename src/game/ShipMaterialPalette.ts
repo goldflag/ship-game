@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { attribute, materialColor, materialMetalness, materialRoughness, vec4 } from 'three/tsl';
-import { applyShipSurfaceDetail, isPlatedPaint, isPlateSized, setShipSurfaceDetail, shipSurfaceMode } from './ShipSurfaceDetail';
+import { applyShipSurfaceDetail, deckPlanks, isPlatedPaint, isPlateSized, setShipSurfaceDetail, shipSurfaceMode } from './ShipSurfaceDetail';
 
 /** The `shipSurface` vertex attribute. `apply` below is its only writer; every channel is taken:
  * - `x`: the source paint's roughness. Read here and by ShipSurfaceDetail (plate roughness).
@@ -83,7 +83,9 @@ export class ShipMaterialPalette {
         material.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile ||
         material.customProgramCacheKey !== THREE.Material.prototype.customProgramCacheKey) return;
       const mode = this.options.surfaceDetail ? shipSurfaceMode(material) : undefined;
-      const key = `${mode ?? ''}${this.materialKey(material)}`;
+      // Decks of different plank sizes draw different planks (userData stays out of the material key).
+      const planks = mode === 'teak' ? Object.values(deckPlanks(material)).join(':') : '';
+      const key = `${mode ?? ''}${planks}${this.materialKey(material)}`;
       let shared = this.materials.get(key);
       if (!shared) {
         shared = new THREE.MeshStandardNodeMaterial().copy(material as unknown as THREE.MeshStandardNodeMaterial);

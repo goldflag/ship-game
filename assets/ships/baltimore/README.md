@@ -32,4 +32,6 @@ material. Elevated steel platforms and roofs remain separate. Teak decking for
 the CA-68 class is documented by Bureau of Ships materials engineer J. G.
 Kuenzel in [Wood Requirements for Shipbuilding (1950), Table 2](https://doi.org/10.1093/jof/48.4.245).
 The existing roof-paint swatch supplies the deck coating; the exact shade,
-covering margins and repeating plank dimensions remain interpretations.
+covering margins and repeating plank dimensions remain interpretations. The game
+draws its 0.127 m planks, 3.048 m butts and 3 mm seams (`decking`, blue-gray), as
+on Iowa. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.

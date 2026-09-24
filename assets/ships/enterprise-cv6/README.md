@@ -27,6 +27,7 @@ Keep the current fixed views in `generated/review/`. Ship report/reference archi
 Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).
 
 Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
-`appearance.json` preserves this recipe’s colors, scheme and deck coverings while
-adding the shared matte materials and restrained original surface wear. Existing
-markings and plank detail remain intact; this is not a new historical-accuracy claim.
+`appearance.json` preserves this recipe’s colors, scheme and deck coverings. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.
+The flight deck's blue-stained planks are modeled geometry (0.144 m boards at 0.149 m
+pitch, 6 to 10 m long, nine stains over the slab); `decking` declares them
+`modeled`, so the game adds no planks. This is not a new historical-accuracy claim.

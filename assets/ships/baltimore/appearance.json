@@ -2,6 +2,7 @@
   "version": 1,
   "id": "baltimore-maintained-v1",
   "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": {
       "paint": "baltimore-authored-naval",
@@ -17,49 +18,25 @@
     },
     "hullgray": {
       "paint": "baltimore-authored-hullgray",
-      "finish": "painted-steel",
-      "projection": "hull"
+      "finish": "painted-steel"
     },
     "antifouling": {
       "paint": "baltimore-authored-antifouling",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "boot": {
       "paint": "baltimore-authored-boot",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "wood_deck": {
       "paint": "baltimore-authored-wood_deck",
-      "finish": "wood",
-      "existing": "image",
-      "imageLayout": {
-        "bounds": [
-          0,
-          12.192,
-          0,
-          1.524
-        ]
-      }
+      "finish": "wood"
     }
-  },
-  "hull": {
-    "bounds": [
-      -102.6287,
-      102.6287,
-      -8.366,
-      11.96
-    ],
-    "pixelsPerMeter": 16,
-    "waterline": 0,
-    "stainStrength": 0.16,
-    "runoffStrength": 0.16
   },
   "decking": {
     "wood_deck": {
-      "plankLength": 3.048,
       "plankWidth": 0.127,
+      "plankLength": 3.048,
       "seamWidth": 0.003,
       "coating": "blue-gray"
     }

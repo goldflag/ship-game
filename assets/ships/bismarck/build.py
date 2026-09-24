@@ -26,13 +26,8 @@ hullcol=group('01 Hull and deck');supercol=group('02 Superstructure');gunscol=gr
 def material(name,color,metal=.12,rough=.62):
  m=bpy.data.materials.new(name);m.diffuse_color=(*color,1);m.use_nodes=True;p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Base Color'].default_value=(*color,1);p.inputs['Roughness'].default_value=rough;p.inputs['Metallic'].default_value=metal;return m
 materials={k:material(k,c) for k,c in {'naval':(.28,.325,.345),'roof':(.10,.135,.155),'edge':(.205,.25,.275),'hullgray':(.22,.28,.315),'canvas':(.48,.445,.355),'dark':(.018,.027,.034),'deck':(.49,.36,.205),'oxide':(.245,.052,.031),'boot':(.025,.035,.043),'glass':(.025,.067,.091),'bronze':(.43,.26,.075),'light':(.51,.56,.57),'wood':(.27,.14,.055),'rope':(.32,.27,.18)}.items()}
-# Original procedural teak. The common exporter bakes it to a repeating supported
-# image. It replaces thousands of rod seams and has no external texture input.
-teak=materials['deck'];teak.name='Teak decking · original 1941-02'
-nodes=teak.node_tree.nodes;links=teak.node_tree.links;brick=nodes.new('ShaderNodeTexBrick');coord=nodes.new('ShaderNodeNewGeometry')
-brick.inputs['Color1'].default_value=(.37,.255,.13,1);brick.inputs['Color2'].default_value=(.56,.43,.265,1);brick.inputs['Mortar'].default_value=(.13,.10,.062,1)
-brick.inputs['Scale'].default_value=1;brick.inputs['Mortar Size'].default_value=.004;brick.inputs['Brick Width'].default_value=3.4;brick.inputs['Row Height'].default_value=.16
-brick.offset=.5;brick.offset_frequency=2;links.new(coord.outputs['Position'],brick.inputs['Vector']);links.new(brick.outputs['Color'],nodes.get('Principled BSDF').inputs['Base Color'])
+# Teak weather deck: paint.py paints its stain and recognition markings; appearance.json names its
+# plank sizes and the game draws the planks.
 def mesh(name,verts,faces,mat,col,smooth=False):
  data=bpy.data.meshes.new(name);data.from_pydata(verts,[],faces);data.update();ob=bpy.data.objects.new(name,data);col.objects.link(ob)
  if mat:data.materials.append(mat)

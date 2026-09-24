@@ -2,6 +2,14 @@
   "version": 1,
   "id": "king-george-v-maintained-v1",
   "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "wear": "in-commission",
+  "palette": {
+    "king-george-v-authored-deck": [
+      0.385,
+      0.301,
+      0.186
+    ]
+  },
   "materials": {
     "naval": {
       "paint": "king-george-v-authored-naval",
@@ -17,35 +25,27 @@
     },
     "hullgray": {
       "paint": "king-george-v-authored-hullgray",
-      "finish": "painted-steel",
-      "projection": "hull"
+      "finish": "painted-steel"
     },
     "antifouling": {
       "paint": "king-george-v-authored-antifouling",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "boot": {
       "paint": "king-george-v-authored-boot",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "deck": {
       "paint": "king-george-v-authored-deck",
-      "finish": "wood",
-      "existing": "procedural"
+      "finish": "wood"
     }
   },
-  "hull": {
-    "bounds": [
-      -113.54,
-      113.54,
-      -9.8392,
-      10.4
-    ],
-    "pixelsPerMeter": 16,
-    "waterline": 0,
-    "stainStrength": 0.16,
-    "runoffStrength": 0.16
+  "decking": {
+    "deck": {
+      "plankWidth": 0.16,
+      "plankLength": 3.4,
+      "seamWidth": 0.003,
+      "coating": "bare"
+    }
   }
 }

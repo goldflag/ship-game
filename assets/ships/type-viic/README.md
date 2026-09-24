@@ -31,4 +31,5 @@ grain, staggered plank joints and slight relief, correcting its previous
 painted-steel finish. Its original gray-green swatch and modeled drainage slots
 remain. Torpedo covers, loading hatches and steel platforms retain separate
 materials. Plank dimensions and coating reflectance remain interpretations of
-the existing U-570 reconstruction.
+the existing U-570 reconstruction: the game draws 0.12 m planks, 3.048 m butts and
+3 mm seams (`decking`). The bridge lining's timber is declared fittings. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.

@@ -12,19 +12,22 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   Player-built designs may explicitly choose a whole-ship Matte, Satin, Semi-gloss
   or Gloss coating in the Paint layer. This optional `construction.finish` setting
   changes painted-surface roughness without changing colors or historical defaults.
-- **Player-built wear:** premade ships bake their maintained finish in Blender
-  (`appearance/surface.py`). Player-built ships are assembled in the browser, so the
-  game draws their finish and weathering at runtime instead. Every player-built ship,
-  fresh ones included, shows its plating: a line along each welded seam, each plate's
-  own shade, and the roller strips and marks of the paint, on hull sides, blocks,
-  roofs and painted design-local fittings at least 2 m across. `construction.wear`
-  (Fresh, In commission, Long deployment, Battle-worn; In commission when absent)
-  sets paint mottling, runoff streaks hanging from deck edges and wall tops, shorter
-  streaks and a grime band below each strake seam, rust bleeding from the seams, the
-  tide stain at the waterline and funnel soot. `constructionWear.ts` measures each
-  vertex's edge and funnel distances while the model is assembled;
-  `ShipSurfaceDetail.ts` draws them. In commission mottles as much as the premade
-  finish. The editor viewport draws clean paint.
+- **One wear standard:** premade and player-built ships wear their paint the same way,
+  and the game draws it at runtime for both. Every ship, fresh ones included, shows its
+  plating: a line along each welded seam, each plate's own shade, and the roller strips
+  and marks of the paint, on hull sides, deckhouses, roofs, painted-steel decks and
+  painted fittings at least 2 m across. A wear preset (Fresh, In commission, Long
+  deployment, Battle-worn; In commission when absent) sets paint mottling, runoff
+  streaks hanging from deck edges and wall tops, shorter streaks and a grime band below
+  each strake seam, rust bleeding from the seams, the tide stain at the waterline and
+  funnel soot. A player-built ship names it in `construction.wear`, a premade ship in
+  its `appearance.json` `wear`. Painted steel weathers (the `painted-steel`,
+  `painted-deck` and `underwater-coating` finishes and the plated component roles);
+  glass, timber, linoleum, canvas, metal and fitting paints (`-edge`, `-fittings`,
+  `-canvas`, `-raft`, `-light`) do not. `constructionWear.ts` measures each vertex's
+  edge, funnel and waterline distances once, while a design is assembled or when a
+  premade model loads (13 to 38 ms a class); `ShipSurfaceDetail.ts` draws them. Blender
+  bakes none of this. The editor viewport draws clean paint.
 - **Deliberate colors:** reuse a named paint when the intended paint is the same.
   Nationality alone does not force identical gray. Identify reference-specific
   interpretations explicitly; do not label estimated RGB values as measured
@@ -40,6 +43,10 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   longitudinal grain and staggered plank joints. Do not reuse a turret-roof or
   hull-side material for them. Check the authored surface assignment as well as
   the material name; preserving a legacy assignment does not establish accuracy.
+- **One deck standard:** every timber weather deck, premade or player-built, is planked
+  by the game's shared teak at its own declared plank size, under its own stain or
+  coating. Timber goes only on weather decks; roofs, gun platforms and painted-steel
+  decks stay steel.
 - **Well-maintained default:** use low-contrast fading, fine surface variation,
   restrained runoff and a narrow waterline stain. Strong rust, exposed chips,
   missing paint and battle damage need a separate supported treatment. Avoid
@@ -72,21 +79,40 @@ existing swatch when appropriate. The convoy variants share the named paints
 from their common original recipe, and carrier plank tones retain their authored
 variation within one named deck stain.
 
+`wear` names the ship's wear preset (`fresh`, `in-commission`, `long-deployment`,
+`battle-worn`; `in-commission` when absent). The model carries it as the
+`appearanceWear` scene extra, and the game weathers the ship by it. Blender bakes no
+weathering: plated finishes get a shared 8 m tile of fine paint grain only, because
+the game draws their mottling, runoff, tide stain, soot and plating. Paints that do
+not weather (linoleum, timber fittings) keep the baked maintained finish, ±8 to 11 %
+metric mottling. There is no whole-hull texture and no `hull` block.
+
 Plain paints share neutral surface textures and use standard glTF color factors
 for their swatches. Existing original image schemes retain their texture UVs,
-boundaries and markings while receiving gentle metric fading. Declare their
-metric image bounds and any atlas tiles/gutters in `imageLayout`; never guess an
-existing UV layout. Exporter-supported procedural teak keeps its original plank
-nodes and receives the shared wood finish before the existing export bake.
+boundaries and markings unchanged when the game weathers them (plated finishes and
+decks), and receive gentle metric fading otherwise. Declare their metric image
+bounds and any atlas tiles/gutters in `imageLayout`; never guess an existing UV
+layout.
 
-For a timber surface missing plank detail, `appearance/decking.py` creates
-original repeating plank color and normal maps. The `decking` entry declares
-plank width/length, seam width and coating independently of its color swatch.
-The material carries `deckSubstrate=timber` and a separate `deckCoating` in glTF.
-Only declared timber surfaces receive this treatment; steel roofs, gun platforms
-and hatch covers retain their own roles. Exact covering boundaries and plank
-dimensions require configuration-specific evidence; record interpretations in
-the ship README.
+Every binding with the `wood` finish is either a timber weather deck declared in
+`decking` or marked `"fittings": true` (boats, oars, gratings, cradles, linings);
+`surface.py` refuses anything else. A `decking` entry declares plank width, plank
+length between butts, seam width and the coating (`bare`, `blue-gray`…); the
+binding's paint is its named stain. The material carries `deckSubstrate=timber`,
+`deckCoating`, `deckPlankWidth`, `deckPlankLength` and `deckSeamWidth` in glTF, and
+the game planks it with the shared runtime teak at that size under that stain. A
+whole-deck image (Bismarck's recognition markings) stays the stain and keeps what
+it paints; the planks are drawn over it. `"modeled": true` marks decks whose planks
+are modeled geometry, each board its own quad over a slab (the carriers' flight
+decks); the game adds no planks there. Recipes author no plank textures or
+procedural plank nodes, and no material name starts with `Teak decking`:
+`scripts/ships/export.py` still bakes such a material's procedural teak, a retired
+path kept because every published part's hash includes the exporter, so removing
+it needs a planned `part:publish` of every part.
+Only declared timber surfaces receive this treatment; steel
+roofs, gun platforms and hatch covers retain their own roles. Exact covering
+boundaries and plank dimensions require configuration-specific evidence; record
+interpretations in the ship README.
 
 Declare the appearance configuration, shared recipe and finishes in the ship's
 `recipe-inputs.json`. Keep geometry, stable assembly/joint/socket IDs and the
@@ -96,28 +122,33 @@ of a changed shared input; `ship:check all` identifies stale assets.
 
 ## Runtime surface detail
 
-Close-range plate and plank detail is shared runtime shading, not baked into
+Close-range plate, paint and plank detail is shared runtime shading, not baked into
 assets (`src/game/ShipSurfaceDetail.ts`, applied through the ship material palette).
 It works in each mesh's own geometry space, so it follows turrets and other
 moving parts, and it leaves colors and schemes unchanged:
 
-- **Plating:** 2 m strakes and 8 m staggered butts on vertical faces, as a welded
-  groove and slight frame dishing. Only broad plated paint gets it: `painted-steel`,
-  `painted-deck` and `underwater-coating` finishes (not `-edge` or `-fittings`
-  paints), construction paint, and the `naval`, `hullgray`, `roof` and
-  `underwater` component roles, on meshes with two sides of at least 2 m.
+- **Plating:** 2 m strakes and 8 m staggered butts, as weld beads between shrinkage
+  hollows, a grime line along each seam, each plate's shade and the paint's roller
+  strips and marks, on sides, decks and roofs. Only broad plated paint gets it:
+  `painted-steel`, `painted-deck` and `underwater-coating` finishes (not fitting
+  paints), construction paint, and the `naval`, `hullgray`, `roof` and `underwater`
+  component roles, on meshes with two sides of at least 2 m.
 - **Paint roughness:** ±8 % metric variation on the same surfaces; paint stays matte.
-- **Teak:** repeating teak that has no relief of its own (the exporter's baked
-  `Teak decking` and the construction timber finish) keeps its map's mean stain.
-  Its planks come from a shared 16 cm teak with 5.12 m staggered butts, pitch
-  caulking, grain and relief. Caulking contrast fades once a texel is well under a
-  pixel. Declared `decking` with its own relief and whole-deck images keep their
-  authored planks.
+- **Wear:** as the ship's wear preset sets it (see the rules above).
+- **Teak:** every declared timber deck without relief of its own. Its stain is the
+  mean of a repeating map, the colour of a whole-deck image, or the paint colour. Its
+  planks come from a shared teak tile (16 cm planks, 5.12 m staggered butts, pitch
+  caulking, grain and relief) stretched to the deck's plank width and length, with
+  its caulking darkened for wider or narrower seams (half to one and a half times the
+  tile's 4 mm). Caulking contrast fades once a texel is well under a pixel.
 
 Mipmaps average the relief away, so the effect fades with distance. Tune it in
 that module, not per ship.
 
-The runtime roster's ships consume this standard. Mogami established the accepted
-maintained finish; subsequent ships retain their own original schemes and deck
-coverings. This is a material-quality pass against existing briefs, not a new
-historical-accuracy claim or acceptance of documented geometry limitations.
+The runtime roster's ships, premade and player-built, consume this one standard and
+retain their own original schemes and deck coverings. Plated paint bakes no mottling:
+an A/B on Hood showed the baked ±11 % adding only 0.2 points of broad variation over
+the runtime In commission mottle, which already matches the Scharnhorst design (about
+3 % fine and 4 % broad luminance variation on a hull side). This is a
+material-quality pass against existing briefs, not a new historical-accuracy claim
+or acceptance of documented geometry limitations.

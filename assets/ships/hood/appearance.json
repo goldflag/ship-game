@@ -2,6 +2,7 @@
   "version": 1,
   "id": "hood-1941-v1",
   "basis": "Approved 'GameModels3D pbsb507 1941' scheme: one blue-grey over hull and upperworks, darker grey steel roofs, black mast tops, red-oxide bottom and teak weather decks. Swatches are linear-RGB interpretations of the reference's paint under the fleet's lighting, not measured historical paint.",
+  "wear": "in-commission",
   "palette": {
     "hood-1941-reference-blue-grey": [
       0.112,
@@ -37,6 +38,11 @@
       0.025,
       0.028,
       0.03
+    ],
+    "hood-authored-teak": [
+      0.248,
+      0.181,
+      0.112
     ]
   },
   "materials": {
@@ -58,35 +64,27 @@
     },
     "hullgray": {
       "paint": "hood-1941-reference-hull-blue-grey",
-      "finish": "painted-steel",
-      "projection": "hull"
+      "finish": "painted-steel"
     },
     "antifouling": {
       "paint": "hood-1941-reference-red-oxide",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "boot": {
       "paint": "hood-1941-reference-boot-top",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "deck": {
       "paint": "hood-authored-teak",
-      "finish": "wood",
-      "existing": "procedural"
+      "finish": "wood"
     }
   },
-  "hull": {
-    "bounds": [
-      -131.1,
-      131.1,
-      -10.2,
-      8.1
-    ],
-    "pixelsPerMeter": 15,
-    "waterline": 0,
-    "stainStrength": 0.14,
-    "runoffStrength": 0.14
+  "decking": {
+    "deck": {
+      "plankWidth": 0.16,
+      "plankLength": 3.4,
+      "seamWidth": 0.003,
+      "coating": "bare"
+    }
   }
 }

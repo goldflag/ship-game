@@ -41,8 +41,9 @@ The main weather deck uses a separate timber material with longitudinal grain,
 staggered joints and slight caulking relief. Steel superstructure decks and gun
 platforms keep the original roof finish. The approved source's blue-gray coating
 is retained: timber does not imply bare tan wood. The former 0.38 m raised seam
-rods are replaced by a plank texture using 0.127 m board width; repeating lengths
-and exact covering margins remain interpreted.
+rods are replaced by planks the game draws (`decking`): 0.127 m boards, 3.048 m
+butts and 3 mm seams under the blue-gray coating; lengths and exact covering margins
+remain interpreted. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.
 
 For the user's deck-material correction, textual corroboration comes from the
 [Navy's spring-1943 Iowa caption](https://www.history.navy.mil/our-collections/photography/numerical-list-of-images/nhhc-series/nh-series/80-G-K-06000/80-G-K-6116.html)

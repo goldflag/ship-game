@@ -2,21 +2,15 @@
   "version": 1,
   "id": "alaska-plain-grey-v1",
   "basis": "Approved GameModels3D pasc510 no-camouflage scheme: haze-grey hull and upperworks, deck-blue painted steel decks and roofs, red-oxide bottom, no boot topping or hull markings. Swatches are linear-RGB interpretations of the source texture under the shared maintained finish; no historical paint-chip claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": { "paint": "alaska-reference-haze-gray", "finish": "painted-steel" },
-    "hullgray": { "paint": "alaska-reference-haze-gray", "finish": "painted-steel", "projection": "hull" },
-    "antifouling": { "paint": "alaska-reference-red-oxide", "finish": "underwater-coating", "projection": "hull" },
+    "hullgray": { "paint": "alaska-reference-haze-gray", "finish": "painted-steel" },
+    "antifouling": { "paint": "alaska-reference-red-oxide", "finish": "underwater-coating" },
     "deck": { "paint": "alaska-reference-deck-blue", "finish": "painted-deck" },
     "roof": { "paint": "alaska-reference-deck-blue", "finish": "painted-deck" },
     "edge": { "paint": "alaska-authored-dark-fittings", "finish": "painted-steel" },
     "painted-edge": { "paint": "alaska-authored-mid-fittings", "finish": "painted-steel" },
     "canvas": { "paint": "alaska-authored-canvas", "finish": "painted-steel" }
-  },
-  "hull": {
-    "bounds": [-123.353, 123.353, -9.851, 8.8],
-    "pixelsPerMeter": 16,
-    "waterline": 0,
-    "stainStrength": 0.14,
-    "runoffStrength": 0.14
   }
 }

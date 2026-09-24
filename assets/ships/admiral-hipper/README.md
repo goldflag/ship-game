@@ -8,6 +8,8 @@ Priority: closely match the hull outline from above and the superstructure, incl
 
 Approved limitation: the source lacks its left-hand propeller asset; construct an original approximation guided by the visible opposite-hand propeller. Source loading/waterline is unverified. Gameplay values and internal arrangement absent from the visual source use explicitly provisional game conventions.
 
+Finish: It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain. The bare timber weather deck and the timber tops of the 10.5 cm and director platforms, as the recipe authors them, are planked by the game at 0.16 m with 3.4 m butts and 3 mm seams (`decking`); the plank sizes are interpretations.
+
 ## Status
 
 The playable preset uses the approved A/AB exterior fit, eight 203 mm guns, the matching secondary/AA variants and four triple torpedo launchers. Original authoring inputs provide the hull, superstructure, physical equipment supports, articulated assemblies and provisional damage/flooding layout.

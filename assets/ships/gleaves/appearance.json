@@ -2,6 +2,7 @@
   "version": 1,
   "id": "hsienyang-gamemodels3d-maintained-v1",
   "basis": "Preserve the approved GameModels3D-only source scheme, original paint colors, markings, image boundaries and deck coverings. Shared maintained finish; no new historical color claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": {
       "paint": "hsienyang-authored-naval",
@@ -54,6 +55,7 @@
     "wood": {
       "paint": "hsienyang-authored-wood",
       "finish": "wood",
+      "fittings": true,
       "existing": "image",
       "imageLayout": {
         "bounds": [0, 5.7, 0, 5.7]

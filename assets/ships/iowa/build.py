@@ -288,7 +288,5 @@ scene['definitionHash']=D['contentHash']
 scene['authoringNote']='Original Iowa A geometry; accepted source limitations are in the ship README.'
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
 from surface import apply_appearance
-from decking import apply_decking
-apply_decking(scene,materials,Path(__file__).with_name('appearance.json'))
 apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))

@@ -40,8 +40,10 @@ export const CONSTRUCTION_WEAR = [
 ] as const;
 export const DEFAULT_CONSTRUCTION_WEAR: ConstructionWear = 'in-commission';
 export const isConstructionWear = (value: unknown): value is ConstructionWear => CONSTRUCTION_WEAR.some(wear => wear.id === value);
-export const constructionWearAmount = (source: Painted): number =>
-  CONSTRUCTION_WEAR.find(wear => wear.id === (source.construction.wear ?? DEFAULT_CONSTRUCTION_WEAR))!.amount;
+/** A wear preset's amount; In commission when absent. Premade ships name theirs in their appearance (`appearanceWear` on the model). */
+export const wearAmount = (wear: unknown): number =>
+  CONSTRUCTION_WEAR.find(preset => preset.id === (isConstructionWear(wear) ? wear : DEFAULT_CONSTRUCTION_WEAR))!.amount;
+export const constructionWearAmount = (source: Painted): number => wearAmount(source.construction.wear);
 /** An installation's own paint, else the ship paint; internal machinery keeps its original finish. */
 export const constructionFittingPaint = (source: Painted, item: { paint?: string }, part?: { placement: string }): string | undefined =>
   item.paint ?? (part?.placement === 'internal' ? undefined : source.construction.paint);

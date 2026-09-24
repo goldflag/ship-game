@@ -45,11 +45,8 @@ edge=mat('Painted fittings',(.31,.335,.345));hullgray=mat('Hull gray',(.235,.27,
 canvas=mat('Gun blast bags',(.61,.60,.53),0,.88);dark=mat('Recesses and funnel interior',(.017,.023,.029),0,.8)
 red=mat('Antifouling red oxide',(.29,.065,.045),.04,.78);bronze=mat('Propeller bronze',(.40,.29,.13),.72,.35)
 glass=mat('Bridge glazing',(.028,.059,.073),.36,.2);wire=mat('Rigging steel',(.07,.085,.09),.2,.65)
-teak=mat('Teak decking - original procedural planks',(.47,.40,.25),0,.8)
-n=teak.node_tree.nodes;l=teak.node_tree.links;geo=n.new('ShaderNodeNewGeometry');mapping=n.new('ShaderNodeVectorMath');mapping.operation='MULTIPLY';mapping.inputs[1].default_value=(.2,6.25,1)
-l.new(geo.outputs['Position'],mapping.inputs[0]);brick=n.new('ShaderNodeTexBrick');brick.inputs['Scale'].default_value=1;brick.inputs['Brick Width'].default_value=1;brick.inputs['Row Height'].default_value=1
-brick.inputs['Mortar Size'].default_value=.011;brick.inputs['Color1'].default_value=(.46,.395,.25,1);brick.inputs['Color2'].default_value=(.54,.475,.315,1);brick.inputs['Mortar'].default_value=(.27,.245,.18,1)
-l.new(mapping.outputs['Vector'],brick.inputs['Vector']);l.new(brick.outputs['Color'],n['Principled BSDF'].inputs['Base Color'])
+# Teak weather decks: appearance.json names their stain and plank sizes; the game draws the planks.
+teak=mat('Yamato teak deck',(.47,.40,.25),0,.8)
 
 def mesh(name,verts,faces,material,col,smooth=False):
  data=bpy.data.meshes.new(name);data.from_pydata(verts,[],faces);data.update();o=bpy.data.objects.new(name,data);col.objects.link(o)

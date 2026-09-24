@@ -2,6 +2,7 @@
   "version": 1,
   "id": "bismarck-maintained-v1",
   "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": {
       "paint": "bismarck-authored-naval",
@@ -17,18 +18,15 @@
     },
     "hullgray": {
       "paint": "bismarck-authored-hullgray",
-      "finish": "painted-steel",
-      "projection": "hull"
+      "finish": "painted-steel"
     },
     "oxide": {
       "paint": "bismarck-authored-oxide",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "boot": {
       "paint": "bismarck-authored-boot",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "light": {
       "paint": "bismarck-authored-light",
@@ -36,7 +34,8 @@
     },
     "wood": {
       "paint": "bismarck-authored-wood",
-      "finish": "wood"
+      "finish": "wood",
+      "fittings": true
     },
     "baltic-hullgray": {
       "paint": "bismarck-authored-baltic-hullgray",
@@ -112,16 +111,12 @@
       }
     }
   },
-  "hull": {
-    "bounds": [
-      -125.25,
-      125.25,
-      -10.33,
-      11.3
-    ],
-    "pixelsPerMeter": 8,
-    "waterline": 0,
-    "stainStrength": 0.16,
-    "runoffStrength": 0.16
+  "decking": {
+    "deck": {
+      "plankWidth": 0.16,
+      "plankLength": 3.4,
+      "seamWidth": 0.008,
+      "coating": "bare"
+    }
   }
 }

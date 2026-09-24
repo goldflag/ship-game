@@ -474,7 +474,5 @@ for launcher in D.get('torpedoLaunchers',[]):
 sys.path.insert(0,str(ROOT/'assets/ships/appearance'))
 from surface import apply_appearance
 apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))
-from decking import apply_decking
-apply_decking(scene,M,Path(__file__).with_name('appearance.json'))
 scene['definitionHash']=D['contentHash']
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))

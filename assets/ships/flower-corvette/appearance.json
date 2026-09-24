@@ -2,6 +2,7 @@
   "version": 1,
   "id": "flower-corvette-maintained-v1",
   "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "wear": "in-commission",
   "materials": {
     "naval": {
       "paint": "flower-corvette-authored-naval",
@@ -17,13 +18,11 @@
     },
     "hullgray": {
       "paint": "flower-corvette-authored-hullgray",
-      "finish": "painted-steel",
-      "projection": "hull"
+      "finish": "painted-steel"
     },
     "underwater": {
       "paint": "flower-corvette-authored-underwater",
-      "finish": "underwater-coating",
-      "projection": "hull"
+      "finish": "underwater-coating"
     },
     "deck": {
       "paint": "flower-corvette-authored-deck",
@@ -31,7 +30,8 @@
     },
     "wood": {
       "paint": "flower-corvette-authored-wood",
-      "finish": "wood"
+      "finish": "wood",
+      "fittings": true
     },
     "hatch": {
       "paint": "flower-corvette-authored-hatch",
@@ -49,17 +49,5 @@
       "paint": "flower-corvette-authored-white",
       "finish": "painted-steel"
     }
-  },
-  "hull": {
-    "bounds": [
-      -31.242,
-      31.242,
-      -4.5052,
-      6.88
-    ],
-    "pixelsPerMeter": 16,
-    "waterline": 0,
-    "stainStrength": 0.16,
-    "runoffStrength": 0.16
   }
 }

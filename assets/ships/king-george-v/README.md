@@ -26,6 +26,7 @@ Keep the current fixed views in `generated/review/`. Ship report/reference archi
 Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md). `author-blueprint.py` resets subsequent blueprint edits and updates shared catalog entries; run it only for deliberate regeneration, then refit internals and regenerate flooding/stability. Normal builds do not need it.
 
 Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
-`appearance.json` preserves this recipe’s colors, scheme and deck coverings while
-adding the shared matte materials and restrained original surface wear. Existing
-markings and plank detail remain intact; this is not a new historical-accuracy claim.
+`appearance.json` preserves this recipe’s colors, scheme and deck coverings. It wears In commission, drawn by the game like every ship's (plating, mottling, runoff, tide stain, funnel soot); Blender bakes only fine paint grain.
+The bare teak weather decks keep the retired brick-node teak's stain (its baked mean,
+`king-george-v-authored-deck`) and its 0.16 m planks with 3.4 m butts and 3 mm seams,
+now drawn by the game. This is not a new historical-accuracy claim.

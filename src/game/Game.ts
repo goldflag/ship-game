@@ -75,6 +75,8 @@ import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, loadShipPresets } from '../ships/presets';
 import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
 import { createConstructionModel } from './constructionModel';
+import { applyPremadeWear } from './constructionWear';
+import { wearAmount } from '../ships/constructionPaints';
 import type { TrialAction } from './session/localConstruction';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
@@ -973,6 +975,8 @@ export class Game {
       disposeObjects(model);
       throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
     }
+    // A premade ship weathers as a player-built one does, by the wear its appearance names; a design measured its own.
+    if (!revision) applyPremadeWear(model, wearAmount(model.userData.appearanceWear));
     this.palette.apply(model);
     this.occlusion.adopt(model);
     batchShipModel(model);

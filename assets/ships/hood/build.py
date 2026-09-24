@@ -46,11 +46,8 @@ for key, color in colors.items():
     p.inputs['Roughness'].default_value = .76; p.inputs['Metallic'].default_value = .08
     materials[key] = m
 materials['painted-edge'] = materials['edge']; materials['underwater'] = materials['antifouling']
-teak = materials['deck']; teak.name = 'Teak decking · Hood original'
-nodes = teak.node_tree.nodes; links = teak.node_tree.links; brick = nodes.new('ShaderNodeTexBrick'); coord = nodes.new('ShaderNodeNewGeometry')
-brick.inputs['Color1'].default_value = (.23, .165, .10, 1); brick.inputs['Color2'].default_value = (.30, .22, .135, 1); brick.inputs['Mortar'].default_value = (.08, .07, .06, 1)
-brick.inputs['Scale'].default_value = 1; brick.inputs['Mortar Size'].default_value = .003; brick.inputs['Brick Width'].default_value = 3.4; brick.inputs['Row Height'].default_value = .16
-brick.offset = .5; brick.offset_frequency = 2; links.new(coord.outputs['Position'], brick.inputs['Vector']); links.new(brick.outputs['Color'], nodes.get('Principled BSDF').inputs['Base Color'])
+# Teak weather decks: appearance.json names their stain and plank sizes; the game draws the planks.
+materials['deck'].name = 'Hood teak deck'
 
 
 def mesh(name, vertices, faces, material=None, col=None, smooth=False):
