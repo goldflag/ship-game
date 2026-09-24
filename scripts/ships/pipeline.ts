@@ -375,7 +375,16 @@ if (action === 'check') {
     );
   const report = inspectGlb(await readFile(join(outputDir, `${shipId}.glb`)), definition);
   await checkThumbnail();
-  console.log(JSON.stringify(report, null, 2));
+  // A warning, not a failure: several shipped presets predate the check. Fix a new one by trimming a footprint.
+  const { coplanarStructureOverlaps } = await import('./structureOverlap');
+  const structureOverlaps = coplanarStructureOverlaps(blueprint.structures ?? []);
+  for (const overlap of structureOverlaps)
+    console.error(
+      `warning: ${shipId}: structures ${overlap.structures.join(' and ')} share an exposed top at y ${overlap.top} ` +
+        `over ${overlap.areaM2} m² (near x,z ${overlap.at.join(', ')}): z-fighting wherever the recipe draws these blocks, ` +
+        'and doubled plating for hits',
+    );
+  console.log(JSON.stringify(structureOverlaps.length ? { ...report, structureOverlaps } : report, null, 2));
 } else {
   await mkdir(resolve(stage, '..'), { recursive: true });
   const lock = stage + '.lock';
