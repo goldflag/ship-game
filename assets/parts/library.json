@@ -674,6 +674,13 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "us-carrier-11in-quad": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_quad",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -730,8 +737,8 @@
       "nation": "United States",
       "family": "1.1-inch/75 quadruple mount",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "open-naval"
+      "limitations": "Original recipe measured against GameModels3D AGA013 1in Mk2 Mod2 (Pensacola pasc106, approved supplement for Enterprise) only. Standalone and installation review pending.",
+      "builder": "us-carrier-11in-quad"
     },
     {
       "partId": "oerlikon-20mm-single",

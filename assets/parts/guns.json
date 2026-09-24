@@ -4552,7 +4552,7 @@
     },
     {
       "kind": "gun",
-      "barrelSpacing": 0.3,
+      "barrelSpacing": 0.242,
       "traverseDeg": 160,
       "traverseRateDeg": 15,
       "elevationMinDeg": -10,
@@ -4568,16 +4568,16 @@
       "massKg": 4763,
       "barrelCount": 4,
       "mountingStyle": "open-quad",
-      "barbetteRadius": 1.3,
+      "barbetteRadius": 0.61,
       "gunhouseSize": [
-        2.45,
-        2.6,
-        1.9
+        2.4,
+        3.4,
+        1.95
       ],
-      "pivotHeight": 1.27,
-      "trunnionForward": 0.2,
-      "muzzleForward": 1.97,
-      "barrelBaseRadius": 0.062,
+      "pivotHeight": 1.45,
+      "trunnionForward": -0.188,
+      "muzzleForward": 1.75,
+      "barrelBaseRadius": 0.048,
       "caliberM": 0.02794,
       "reloadSeconds": 0.5,
       "muzzleSpeed": 823,

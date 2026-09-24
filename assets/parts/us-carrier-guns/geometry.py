@@ -397,7 +397,93 @@ def create_five_inch(mount, col, helpers, materials):
 # 1.1-inch/75 Mk 2 Mod 2 quadruple mount
 # ---------------------------------------------------------------------------------------------
 def create_quad(mount, col, helpers, materials):
-    raise NotImplementedError
+    """1.1-inch/75 Mk 2 Mod 2: fixed training ring; a rotating base with the training and
+    elevating motor housings; two leaning carriage legs joined by a gear beam and carrying the
+    trunnion bosses; pointer's and trainer's seats, foot rests and handwheels on outriggers;
+    cooling-water hoses; and the elevating cradle with four guns (receivers, clip hoppers,
+    water jackets, barrels, flash hiders) and the transverse open-sight bar."""
+    k = _Kit(mount, col, helpers, materials)
+    s = k.spec
+    T, P = s['trunnionForward'], s['pivotHeight']
+    N, E, PE, D = 'naval', 'edge', 'painted-edge', 'dark'
+    ring = lambda r, z, n=16: [(r * math.cos(math.tau * i / n), r * math.sin(math.tau * i / n), z) for i in range(n)]
+
+    # Fixed training ring.
+    k.loft('training-ring', [ring(.61, 0), ring(.61, .09)], E, k.base)
+    # Rotating base plate and the motor housings either side.
+    base = [(.73, -.72), (.73, .77), (-.55, .77), (-.82, .10), (-.82, -.10), (-.65, -.50), (-.65, -.72)]
+    k.prism('base', base, .09, .30, 'z', N)
+    k.box('base.port-housing', (.20, .935, .345), (.60, .33, .51), N)
+    k.cylinder('base.port-motor', (-.30, .93, .25), .13, .40, 'x', N, n=8)
+    k.cylinder('base.port-motor-cap', (-.52, .93, .25), .09, .04, 'x', E, n=8)
+    k.box('base.starboard-housing', (-.10, -.935, .37), (.60, .43, .56), N)
+    k.box('base.starboard-head', (-.10, -.97, .74), (.34, .34, .22), N)
+    k.box('base.starboard-gearcase', (.40, -.90, .22), (.40, .20, .26), N)
+    k.cylinder('base.starboard-motor', (-.70, -.72, .22), .10, .12, 'y', N, n=8)
+    # Carriage legs (leaning aft to the trunnions) and the gear beam that joins them.
+    leg = [(.30, .30), (.62, .30), (.52, .72), (.30, 1.10), (.10, 1.38), (-.08, 1.56), (-.26, 1.56), (-.30, 1.40),
+           (-.20, 1.30), (.05, 1.02), (.25, .70), (.30, .55)]
+    for sy in (-1, 1):
+        k.prism('carriage.leg', leg, sy * .68, sy * .80, 'y', N)
+        k.cylinder('carriage.trunnion-boss', (T, sy * .81, P), .085, .06, 'y', E, n=10)
+        k.box('carriage.gearbox', (.15, sy * 1.00, 1.14), (.30, .16, .28), N)
+    k.box('carriage.beam', (.21, 0, 1.13), (.22, 1.84, .26), N)
+    # Front plate between the legs: lower rail, inner cheeks and the arched opening under the beam.
+    k.prism('carriage.front-rail', [(.38, .30), (.62, .30), (.56, .55), (.44, .55)], -.70, .70, 'y', N)
+    for sy in (-1, 1):
+        k.prism('carriage.inner-cheek', [(.30, .30), (.62, .30), (.52, .72), (.36, .98), (.12, 1.00), (.25, .70), (.30, .55)],
+                sy * .56, sy * .68, 'y', N)
+        k.prism('carriage.arch', [(sy * .68, .98), (sy * .68, 1.00), (sy * .30, 1.00), (sy * .45, .93)], .10, .32, 'x', N)
+    # Pointer's (port) and trainer's (starboard) stations on outriggers from the housings.
+    for sy in (-1, 1):
+        k.rod('station.outrigger', (.10, sy * .90, .58), (-.05, sy * 1.42, .92), .035, N, n=6)
+        k.rod('station.seat-post', (-.05, sy * 1.42, .49), (-.05, sy * 1.42, .95), .03, N, n=6)
+        k.box('station.seat', (.02, sy * 1.46, .97), (.36, .42, .05), PE, rot=(0, -5, 0))
+        k.box('station.seat-back', (-.20, sy * 1.46, 1.14), (.05, .40, .40), PE, rot=(0, -20, 0))
+        k.box('station.footrest', (.33, sy * 1.40, .49), (.22, .44, .03), PE)
+        k.rod('station.footrest-arm', (.30, sy * .70, .29), (.30, sy * 1.40, .475), .025, N, n=4)
+        k.rod('station.handwheel-shaft', (.28, sy * 1.08, 1.15), (.28, sy * 1.36, 1.15), .025, E, n=6)
+        k.ring('station.handwheel', (.28, sy * 1.37, 1.15), .15, .016, 'y', PE, n=12, spokes=3)
+        k.rod('station.handle', (.28 + .15, sy * 1.37, 1.15), (.28 + .15, sy * 1.45, 1.15), .015, E, n=4)
+    # Cooling-water hoses looping up from the base toward the gun jackets.
+    for y in (-.30, .05):
+        k.path('hose', [(.55, y, .30), (.58, y, .52), (.66, y, .74), (.80, y, .88), (.90, y, 1.00), (.91, y, 1.12)], .03, D, n=5)
+
+    # Elevating mass (the reference is baked at 31 degrees; its measurements are given in cradle frames).
+    L = s['muzzleForward'] - T
+    sides = list(k.sides.items())
+    cradle_side, (cradle_y, cradle, _) = sides[0]
+    # Shared cradle (carried on the first elevation joint; the others elevate in lockstep).
+    plate = [(-.66, -.10), (.30, -.10), (.42, 0.0), (.42, .18), (-.10, .24), (-.66, .20)]
+    for sy in (-1, 1):
+        k.prism('cradle.side', plate, sy * .56 - cradle_y, sy * .64 - cradle_y, 'y', N, cradle)
+        k.cylinder('cradle.trunnion', (0, sy * .6575 - cradle_y, 0), .06, .035, 'y', E, cradle, n=8)
+        k.rod('cradle.sight-post', (.18, sy * .60 - cradle_y, .18), (.18, sy * .60 - cradle_y, .30), .02, PE, cradle, n=4)
+        # Hooked arm from the bar end to the open ring sight beside each seat.
+        a = [(.18, sy * 1.35, .30), (.10, sy * 1.43, .26), (.12, sy * 1.43, .10), (.30, sy * 1.42, -.02), (.42, sy * 1.40, -.03)]
+        k.path('cradle.sight-hook', [(x, y - cradle_y, z) for x, y, z in a], .012, PE, cradle, n=4)
+        k.ring('cradle.ring-sight', (.42, sy * 1.40 - cradle_y, .015), .045, .007, 'x', PE, cradle, n=8, spokes=2)
+    # Cradle floor 5 mm under the receivers (all four elevate together); one lug ties it to the
+    # joint-carrying gun so the cradle is one connected assembly.
+    k.box('cradle.floor', (-.19, -cradle_y, -.085), (.94, 1.12, .03), N, cradle)
+    k.box('cradle.floor-lug', (-.30, 0, -.0675), (.24, .10, .015), E, cradle)
+    k.rod('cradle.sight-bar', (.18, -1.35 - cradle_y, .30), (.18, 1.35 - cradle_y, .30), .022, PE, cradle, n=6)
+    # Starboard fuze/sight box on an arm over the leg, and the port layer's arm.
+    k.box('cradle.starboard-box', (-.02, -.915 - cradle_y, .30), (.40, .11, .40), N, cradle)
+    k.box('cradle.starboard-arm', (-.02, -.75 - cradle_y, .40), (.14, .30, .06), N, cradle)
+    k.rod('cradle.port-arm', (-.07, .60 - cradle_y, .25), (-.07, 1.20 - cradle_y, .25), .03, PE, cradle, n=6)
+    # Four guns: receiver and clip hopper on the cradle joint, jacket and barrel on recoil.
+    for side, (lateral, elevation, recoil) in sides:
+        k.box('gun.receiver', (-.25, 0, .015), (1.40, .12, .16), N, elevation)
+        k.box('gun.hopper', (-.63, 0, .24), (.62, .15, .29), N, elevation)
+        k.box('gun.clip', (-.58, 0, .415), (.38, .09, .06), 'bronze' if 'bronze' in k.m else E, elevation)
+        k.box('gun.feed-guide', (-.28, 0, .15), (.06, .13, .10), E, elevation)
+        k.lathe('gun.jacket', [(.44, .048), (1.60, .048), (1.62, .030)], N, recoil, n=8, smooth=False)
+        k.lathe('gun.barrel', [(1.62, .028), (L - .10, .028), (L - .10, .036), (L, .036)], E, recoil, n=8)
+        k.cylinder('gun.bore', (L - .005, 0, 0), .014, .012, 'x', D, recoil, n=6)
+        if side in ('left', 'right'):
+            k.path('gun.hose-stub', [(1.00, 0, -.04), (1.03, 0, -.14), (1.10, 0, -.22)], .028, D, recoil, n=5)
+    return k.yaw
 
 
 # ---------------------------------------------------------------------------------------------
@@ -415,9 +501,9 @@ def _posed(T, P, deg):
 
 def create_oerlikon(mount, col, helpers, materials):
     """20 mm Oerlikon Mk 4: octagonal foot and tapered column (fixed), a training carriage of
-    two cheek plates with trunnion bosses and the notched splinter shield on two arms (trains),
+    two cheek plates with trunnion bosses and the raked two-wing splinter shield on arms (trains),
     and the gun (elevates): receiver, recoil-spring casing, barrel with flash hider, drum
-    magazine, sight bar with ring sight, shoulder rests and a canvas case bag."""
+    magazine, sight bar with ring sight and shoulder rests."""
     k = _Kit(mount, col, helpers, materials)
     s = k.spec
     T, P = s['trunnionForward'], s['pivotHeight']
