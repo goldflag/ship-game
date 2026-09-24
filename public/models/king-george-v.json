@@ -95974,12 +95974,12 @@
       "center": [
         0,
         7.621449999999999,
-        35.5
+        35.75
       ],
       "size": [
         17.6,
         5.2571,
-        31.4
+        31.9
       ]
     },
     {
@@ -96013,12 +96013,12 @@
       "center": [
         0,
         12.425,
-        43.9
+        44.3
       ],
       "size": [
         7.5,
         4.35,
-        4.8000000000000025
+        3.6
       ]
     },
     {
@@ -96770,8 +96770,8 @@
       "name": "After deckhouse and boat deck",
       "footprint": [
         [
-          -2.4,
-          51.4
+          -2.2,
+          51.9
         ],
         [
           -9,
@@ -96822,8 +96822,8 @@
           44
         ],
         [
-          2.4,
-          51.4
+          2.2,
+          51.9
         ]
       ],
       "baseY": 4.9929,
@@ -96918,35 +96918,35 @@
       "footprint": [
         [
           -3.3,
-          46.5
+          46.3
         ],
         [
           -3.95,
-          46
+          45.8
         ],
         [
           -3.95,
-          41.9
+          42.8
         ],
         [
           -3.3,
-          41.3
+          42.3
         ],
         [
           3.3,
-          41.3
+          42.3
         ],
         [
           3.95,
-          41.9
+          42.8
         ],
         [
           3.95,
-          46
+          45.8
         ],
         [
           3.3,
-          46.5
+          46.3
         ]
       ],
       "baseY": 10.25,
@@ -99059,5 +99059,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "07f6f35089206ab0cce5ba962c6591e2768be668874bde79dc6268e8e48dd7d5"
+  "contentHash": "6807134b5dc1d147bdf90a5fd8aa28bdb26344f26fc32e23263cfcd23ad08def"
 }

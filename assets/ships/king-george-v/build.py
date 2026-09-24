@@ -352,7 +352,7 @@ for mount in D['mounts']:
 COL=collections['Superstructure']
 # Deck levels measured from the GameModels3D reference (author-structures.py holds the block table).
 BLOCK=10.25;HANGAR=12.0;SHELTER=7.35
-PARAPETS=['tower-base','tower-lower-bridge','tower-upper-bridge']
+PARAPETS=['tower-base','tower-lower-bridge','tower-upper-bridge','after-tower-top']
 PLAIN=['hacs-forward-tower','hacs-tower-step','compass-platform','director-aft-base','director-forward-base','director-aft-seat','after-tower-top','bridge-top','foremast-house']
 for structure in D['structures']:
  ASSEMBLY=structure['id'];outline=[(-z,-x) for x,z in structure['footprint']];z=structure['baseY'];top=z+structure['height']
@@ -512,7 +512,8 @@ director('dct-after',DCT_AFT[0],0,DCT_AFT[1],True)
 for id,x,y,z in [('hacs-p-forward',13.21,4.004,25.605),('hacs-s-forward',13.21,-4.004,25.605),('hacs-p-after',-43.32,3.879,14.781),('hacs-s-after',-43.32,-3.879,14.781)]:director(id,x,y,z)
 ASSEMBLY='hacs-platforms'
 gallery('Forward HACS platform',octagon(13.2,0,3.4,10.6,.7),25.45,.48,False)
-gallery('Aft HACS platform',octagon(-43.3,0,4.2,10.6,.7),14.62,.52,False)
+gallery('Aft HACS platform',octagon(-43.4,0,3.0,10.6,.6),14.62,.52,False)
+for y in [-1.0,1.0]:rod('After tower overhang strut',(-46.25,y,13.6),(-47.4,y,14.58),.09,'naval',vertices=8)
 # 1941 Type 284 mattress on the 14-inch DCT; no late Type 271 lantern.
 ASSEMBLY='radar-284';before=set(scene.objects);dx,dz=DCT_FWD
 for side in [-1,1]:
@@ -574,10 +575,10 @@ COL=collections['Aircraft handling'];ASSEMBLY='catapult'
 # Transverse double-ended catapult across the waist at the reference's station; open working deck around it.
 CAT=-11.3
 for x in [CAT-.6,CAT+.6]:
- rod('Catapult rail',(x,-15.4,DECK+1.2),(x,15.4,DECK+1.2),.11,'edge',vertices=8)
- rod('Catapult lower rail',(x,-15.0,DECK+.45),(x,15.0,DECK+.45),.09,'naval',vertices=8)
+ rod('Catapult rail',(x,-16.0,DECK+1.2),(x,16.0,DECK+1.2),.11,'edge',vertices=8)
+ rod('Catapult lower rail',(x,-15.6,DECK+.45),(x,15.6,DECK+.45),.09,'naval',vertices=8)
  for k in range(20):
-  y=-15+k*1.5;rod('Catapult diagonal',(x,y,DECK+.45),(x,y+1.5,DECK+1.2),.045,'naval',vertices=6)
+  y=-15.6+k*1.56;rod('Catapult diagonal',(x,y,DECK+.45),(x,y+1.56,DECK+1.2),.045,'naval',vertices=6)
 box('Catapult launch carriage',(CAT,0,DECK+1.42),(2.2,2.8,.3),'edge')
 for side in [-1,1]:
  ASSEMBLY='crane-'+('port' if side==1 else 'starboard');x=-22.1;y=side*8.1;z=BLOCK+.75;before=set(scene.objects)

@@ -66,10 +66,10 @@ STRUCTURES = [
     ('hacs-tower-step', 'HACS tower forward step', half([(2.1, -14.4), (2.1, -16.1), (1.3, -16.3), (1.3, -17.5)]), 21.9, 23.0, 'naval'),
     # After deckhouse: main deck to the boat deck, pointed aft end.
     # Notched to 8.6 m where the P4/S4 gunhouses swing inboard.
-    ('after-shelter', 'After deckhouse and boat deck', half([(2.4, 51.4), (9.0, 44.0), (9.0, 37.6), (8.6, 37.2), (8.6, 31.0), (7.6, 31.0), (7.6, 19.6)]), DECK, BLOCK, 'naval'),
+    ('after-shelter', 'After deckhouse and boat deck', half([(2.2, 51.9), (9.0, 44.0), (9.0, 37.6), (8.6, 37.2), (8.6, 31.0), (7.6, 31.0), (7.6, 19.6)]), DECK, BLOCK, 'naval'),
     ('sponson-starboard-3', 'S3 5.25-inch sponson', side([(7.6, 27.4), (12.3, 27.4), (14.5, 26.4), (15.45, 24.0), (15.1, 21.7), (13.5, 20.2), (10.5, 19.7), (7.6, 19.9)], 1), DECK, SHELTER, 'naval'),
     ('sponson-port-3', 'P3 5.25-inch sponson', side([(7.6, 19.9), (10.5, 19.7), (13.5, 20.2), (15.1, 21.7), (15.45, 24.0), (14.5, 26.4), (12.3, 27.4), (7.6, 27.4)], -1), DECK, SHELTER, 'naval'),
-    ('director-aft-base', 'After control tower', half([(3.3, 46.5), (3.95, 46.0), (3.95, 41.9), (3.3, 41.3)]), BLOCK, 14.6, 'naval'),
+    ('director-aft-base', 'After control tower', half([(3.3, 46.3), (3.95, 45.8), (3.95, 42.8), (3.3, 42.3)]), BLOCK, 14.6, 'naval'),
     ('after-tower-top', 'After tower close-range director seat', half([(1.3, 47.5), (1.3, 43.9)]), 14.6, 17.0, 'naval'),
     ('director-aft-seat', 'After 14-inch director seating', octagon(0, 50.13, 3.4, 3.4, .7), BLOCK, 12.28, 'naval'),
     # Funnel envelopes for hits; build.py draws the stacks from its own funnel table.
