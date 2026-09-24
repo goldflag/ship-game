@@ -241,6 +241,10 @@ pub struct CompiledShip {
     pub shell_size: Vec3,
     pub shell_radius: f64,
     pub obstructions: Obstructions,
+    /// Per mount, the train an idle side secondary rests at
+    /// (`mount_rest::rest_trains`); `None` rests at neutral. Spawns, resets and
+    /// the port start there.
+    pub rest_trains: Vec<Option<f64>>,
     pub weapon_group_ids: Vec<String>,
     /// Every mount of every opponent read this each tick by scanning the armor.
     pub exterior_protection_mm: f64,
@@ -313,6 +317,13 @@ impl CompiledShip {
                 }
             }
         }
+        let collision_profile = crate::collisions::profile(&d.hull);
+        let obstructions = Obstructions::new(d);
+        let rest_trains = crate::mount_rest::rest_trains(
+            d,
+            crate::mount_rest::midship_z(&collision_profile),
+            &obstructions,
+        );
         Ok(Self {
             maneuvering: crate::maneuvering::Maneuvering::new(d),
             initial_pose,
@@ -326,10 +337,11 @@ impl CompiledShip {
             },
             deck_surface,
             torpedo_hull: crate::torpedoes::torpedo_hull(d)?,
-            collision_profile: crate::collisions::profile(&d.hull),
+            collision_profile,
             contacts: ContactGeometry::new(d)?,
             hydro,
-            obstructions: Obstructions::new(d),
+            obstructions,
+            rest_trains,
             weapon_group_ids: d.mounts.iter().map(crate::gunnery::group_id).collect(),
             exterior_protection_mm: crate::bots::exterior_protection_mm(d),
             definition,
@@ -368,6 +380,20 @@ pub struct Vessel {
 impl Vessel {
     pub fn new(id: impl Into<String>, team: TeamId, compiled: Arc<CompiledShip>) -> Self {
         let mut state = Combatant::new(id, &compiled.definition);
+        if compiled.rest_trains.iter().any(Option::is_some) {
+            for (mount, rest) in state.mounts.iter_mut().zip(&compiled.rest_trains) {
+                if let Some(train) = rest {
+                    mount.train = *train;
+                }
+            }
+            for i in 0..state.mounts.len() {
+                crate::mount_frames::update_mount_carrier(
+                    &compiled.definition,
+                    i,
+                    &mut state.mounts,
+                );
+            }
+        }
         state.motion.y = compiled.initial_pose.y;
         state.motion.roll = compiled.initial_pose.roll;
         state.motion.pitch = compiled.initial_pose.pitch;

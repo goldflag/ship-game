@@ -96,6 +96,10 @@ pub struct MountState {
     /// while the hull rolls, pitches and turns.
     #[serde(skip)]
     pub(crate) lay: Option<Vec3>,
+    /// Seconds a mount with a rest train has gone without a surface or air
+    /// aim; past `mount_rest::IDLE_REST_SECONDS` it trains back to its rest.
+    #[serde(skip)]
+    pub(crate) unaimed: f64,
     /// The air track this mount is firing at and the ticks left before it looks
     /// for a nearer one. A cadence, never authority state: a restored battle
     /// simply searches on its first tick, and it must never reach a snapshot,
@@ -146,7 +150,7 @@ impl MountState {
             carrier: None,
             id: m.id.clone(),
             train: 0.0,
-            elevation: radians(m.initial_elevation_deg.unwrap_or(1.0)),
+            elevation: crate::mount_rest::rest_elevation(m),
             reload: 0.0,
             ammo: m.weapon.ammo_per_barrel * count,
             he_ammo: (m.weapon.ammo_per_barrel
@@ -162,6 +166,7 @@ impl MountState {
             surface_elapsed: 0.0,
             surface_fire: false,
             lay: None,
+            unaimed: 0.0,
             lead_cache: None,
             aa_discipline: None,
             aa_track: None,
@@ -195,6 +200,7 @@ impl MountState {
             surface_elapsed: self.surface_elapsed,
             surface_fire: self.surface_fire,
             lay: self.lay,
+            unaimed: self.unaimed,
             aa_track: None,
             aa_select: None,
             blocked_cache: None,
@@ -423,6 +429,30 @@ impl Obstructions {
                 .expect("validated original mount clearance geometry"),
         }
     }
+    /// Whether a barrel of mount `index`, breech to muzzle, runs through the
+    /// hull, an authored obstruction or another mount's gunhouse at `s`'s pose,
+    /// with every other mount posed as in `states`.
+    pub fn barrels_fouled(
+        &self,
+        d: &ShipDefinition,
+        index: usize,
+        s: &MountState,
+        states: &[MountState],
+    ) -> bool {
+        let m = &d.mounts[index];
+        let carried: Vec<Pose> = self
+            .carried
+            .iter()
+            .map(|(carrier, _)| {
+                mount_frame(d, *carrier, &|i| {
+                    if i == index { s.train } else { states[i].train }
+                })
+            })
+            .collect();
+        let breech = add(mount_position(m, s), [0.0, m.weapon.pivot_height, 0.0]);
+        (0..m.weapon.barrel_count as usize)
+            .any(|barrel| self.intersects(breech, muzzle_local(m, s, barrel), &m.id, &carried))
+    }
     fn intersects(&self, from: Vec3, to: Vec3, mount_id: &str, poses: &[Pose]) -> bool {
         if self.hull.as_ref().is_some_and(|h| h.blocks(from, to)) {
             return true;
@@ -497,6 +527,7 @@ pub fn update_mount_at(
         d,
         p,
         aim,
+        None,
         dt,
         dt,
         inherited,
@@ -520,6 +551,8 @@ pub(crate) fn advance_mount_clock(s: &mut MountState, dt: f64, power: f64) {
     s.recoil = (s.recoil - dt / 1.4).max(0.0);
 }
 
+/// Lays mount `index` on `aim`. Without an aim it holds its pose, or, given
+/// `rest` (train, elevation), trains back toward it at its normal rates.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn update_mount_control_at(
     index: usize,
@@ -528,6 +561,7 @@ pub(crate) fn update_mount_control_at(
     d: &ShipDefinition,
     p: &ShipState,
     aim: Option<Vec3>,
+    rest: Option<[f64; 2]>,
     dt: f64,
     control_dt: f64,
     inherited: Vec3,
@@ -559,8 +593,11 @@ pub(crate) fn update_mount_control_at(
         .aim_cache
         .as_ref()
         .filter(|c| aim.is_some_and(|a| length(sub(a, c.point)) < 10.0));
-    let (mut desired_train, mut desired_elevation) =
-        cache.map_or((s.train, s.elevation), |c| (c.train, c.elevation));
+    let hold = match rest {
+        Some([train, elevation]) if aim.is_none() => (train, elevation),
+        _ => (s.train, s.elevation),
+    };
+    let (mut desired_train, mut desired_elevation) = cache.map_or(hold, |c| (c.train, c.elevation));
     let mut reachable = aim.is_some();
     let mut time = cache.map_or_else(
         || {
