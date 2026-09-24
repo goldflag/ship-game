@@ -223,14 +223,14 @@ for x,base in [(23.7,27.5),(-31.6,14.2)]:
 # mainmast is a tall pole braced by a bipod standing on the hangar's after section,
 # with a platform, a yard below the crosstree height and a short upper yard.
 COL=C['Masts'];OWNER='masts'
-rod('Foremast lower',(19.45,0,14.2),(19.45,0,34.7),.24,'naval',r2=.12)
-rod('Foremast top',(19.45,0,34.7),(19.4,0,40.0),.12,'edge',r2=.04)
+rod('Foremast lower',(19.45,0,14.2),(19.45,0,26.5),.45,'naval',r2=.40)
+rod('Foremast top',(19.45,0,26.5),(19.4,0,40.0),.22,'edge',r2=.05)
 for sy in [-1,1]:
  rod('Foremast yard',(19.45,0,24.95),(18.15,sy*7.9,24.95),.075,'edge',r2=.04)
  rod('Yard brace',(19.45,0,27.8),(18.15,sy*7.9,24.95),.019,'edge',vertices=5)
 rod('Foremast crosstree',(19.42,-2.0,36.6),(19.42,2.0,36.6),.05,'edge',r2=.035)
-rod('Mainmast lower',(-15.8,0,7.2),(-16.0,0,31),.30,'naval',r2=.12)
-rod('Mainmast upper',(-16.0,0,31),(-16.1,0,47.6),.12,'edge',r2=.027)
+rod('Mainmast lower',(-15.8,0,7.2),(-16.0,0,27.5),.55,'naval',r2=.45)
+rod('Mainmast upper',(-16.0,0,27.5),(-16.1,0,47.6),.20,'edge',r2=.06)
 for sy in [-1,1]:rod('Mainmast bipod leg',(-15.45,sy*3.9,9.6),(-15.9,sy*.18,23.5),.17,'naval',r2=.10)
 ellipse('Mainmast platform',-16.4,0,25.5,1.05,3.45,.12,'roof',n=28)
 rails('Mainmast platform rail',[(-16.4+1.05*math.cos(i*math.tau/14),3.45*math.sin(i*math.tau/14),25.62) for i in range(14)],.9,True,spacing=1.4)
@@ -375,6 +375,14 @@ for yy in [-4.45,4.45]:
  rails('Hangar roof safety rail',[(-6.8,yy,12.1),(5.4,yy,12.1)],.74)
 for side in [-1,1]:
  for xx in [3.0,-1.5]:f.vent('Hangar side louvre',xx,side*6.31,8.35,2.7,.85)
+# Carley float stacks where the reference stows them: on the tower platform, the
+# hangar's after section and the after lookout block.
+OWNER='life-rafts'
+for x,y,z in [(18.9,-1.9,14.22),(18.9,1.9,14.22),(-14.2,0,9.6),(-18.55,-1.2,12.0),(-18.55,1.2,12.0),(-23.9,0,12.0)]:
+ pts=[(x+sx*(.925-.3)+.3*math.cos(math.radians(a)),y+sy*(.925-.3)+.3*math.sin(math.radians(a))) for sx,sy,start in [(1,1,0),(-1,1,90),(-1,-1,180),(1,-1,270)] for a in [start+i*30 for i in range(4)]]
+ for k in range(4):
+  prism('Carley float',pts,z+k*.36,z+k*.36+.30,'naval')
+  prism('Carley float grating',[(x+(px-x)*.7,y+(py-y)*.7) for px,py in pts],z+k*.36+.06,z+k*.36+.36,'wood')
 # After target designators: pedestal columns carrying a sighting head.
 OWNER='aft-designators'
 for x,y,z in [(-38.67,0,11.97),(-34.55,-3.13,11.8),(-34.55,3.13,11.8)]:

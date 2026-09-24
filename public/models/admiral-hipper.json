@@ -25442,19 +25442,19 @@
       "footprint": [
         [
           -1.8,
-          21
+          18.9
         ],
         [
           -2.05,
-          21.067
+          18.967
         ],
         [
           -2.233,
-          21.25
+          19.15
         ],
         [
           -2.3,
-          21.5
+          19.4
         ],
         [
           -2.3,
@@ -25490,19 +25490,19 @@
         ],
         [
           2.3,
-          21.5
+          19.4
         ],
         [
           2.233,
-          21.25
+          19.15
         ],
         [
           2.05,
-          21.067
+          18.967
         ],
         [
           1.8,
-          21
+          18.9
         ]
       ],
       "baseY": 9.72,
@@ -42776,5 +42776,5 @@
     "basis": "Provisional game calibration shared across presets: three abstract teams, six-second setup, finite normalized fuel and spares. Repairs stop at 60% and cannot revive destroyed equipment. Small-hole shoring and portable pumps require accessible spaces. Flash-path attenuation is estimated; no individual crew, ventilation or electrical network."
   },
   "compilerVersion": 1,
-  "contentHash": "b63b9e3b7c0ede95eea606c747ff7217adc9303de146bf681ca17efa4cb017be"
+  "contentHash": "11e4ba82e427b005dae3e0a2aedd63b5816b1135ee7730b13d1104482f18fe08"
 }
