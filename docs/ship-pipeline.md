@@ -88,7 +88,7 @@ A premade ship built as a Blender recipe (Bismarck, Yamato, Iowa, King George V,
 | `author-blueprint.py` | Writes `blueprint.json` from measured tables: hull stations, structures, mounts, armour |
 | `build.py`, plus region modules on a large ship | The Blender geometry recipe |
 | `appearance.json` | Material roles bound to named paints and finishes ([ship appearance](ship-appearance.md)) |
-| `recipe-inputs.json` | Every shared recipe file the build reads, as `assets/` paths only |
+| `recipe-inputs.json` | Every shared recipe file the build reads, as `assets/` paths only, and the [catalog entries](ship-build-reference.md#shared-recipe-inputs) it reads under `records` |
 | `README.md` | The approved brief, the build route and accepted approximations |
 
 After the first successful build, add the ship's line to `src/ships/presets.ts` by hand (`ship:register` rejects a Blender-recipe blueprint) and its funnel count to the table in `src/game/ShipFunnelSmoke.test.ts`.
@@ -110,7 +110,7 @@ After the first successful build, add the ship's line to `src/ships/presets.ts` 
 - `ship:check` warns when two `structures` share a top plane that nothing above covers: the renderer z-fights there wherever the recipe draws the blocks, and hits pay two coincident plates. Trim one footprint, or end one block where the other begins. Admiral Hipper, Cleveland, Bismarck, Yamato, Alaska, King George V, Mogami and Enterprise predate the check.
 - `surface.py` refuses a hull texture wider than 4096 px. Lower the hull binding's `pixelsPerMeter` for a long hull (Hood uses 15).
 - A recipe can call the registered builders in `construction-library.json`: load `construction/geometry.py` as `sys.modules['geometry']` first and strip each object's `nodeId`. Library builders under `scripts/` cannot be declared in `recipe-inputs.json`; call `blender_components.create_gun_mount` instead.
-- `assets/parts/library.json` is fingerprinted per fitted part, but `construction-library.json` and `construction.json` are hashed whole. A recipe that declares them goes stale whenever any part is published; `ship:check all` lists it.
+- Declare `construction-library.json` and `construction.json` under `records` with the builder and part IDs the recipe uses, and read them through `catalog_records.catalog()` (Hood's `registered()` does). Listed under `files` they are hashed whole, and the ship goes stale whenever any part is published. `assets/parts/library.json` is already fingerprinted per fitted part.
 - A GameModels3D reference is not centred on our midships (about 2.3 m on Iowa, 2.0 m on Alaska). `ship:overlay` measures the fore-and-aft offset (waterline half-breadths, then side and top silhouettes; within 3 cm of the hand-measured values) and prints it; pass it to any other comparison.
 - GameModels3D paints windows and doors into its textures. Compare against a textured render before removing detail that seems absent from the geometry; Iowa lost its bridge windows this way.
 

@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'scripts/ships'))
 sys.path.insert(0, str(ROOT / 'assets/parts'))
 from library import create_mount as create_shared_mount
+from catalog_records import catalog
 from blender_components import create_gun_mount
 from blender_rig import radar_pivot, create_flagstaffs
 OUT = Path(os.environ['SHIP_OUTPUT'])
@@ -166,15 +167,14 @@ def blender(p):
 def registered(builder, part_id, loc, yaw=0.0, assembly=None, col=None, scale=1.0):
     """Install a registered original construction component at a Blender location."""
     global ASSEMBLY
-    reg = json.loads((ROOT / 'assets/parts/construction-library.json').read_text())
+    reg = catalog('assets/parts/construction-library.json')
     entry = reg['builders'][builder]
     if 'geometry' not in sys.modules:
         spec = importlib.util.spec_from_file_location('geometry', ROOT / 'assets/parts/construction/geometry.py')
         base = importlib.util.module_from_spec(spec); sys.modules['geometry'] = base; spec.loader.exec_module(base)
     spec = importlib.util.spec_from_file_location('hood_component_' + builder.replace('-', '_'), ROOT / entry['path'])
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
-    catalog = json.loads((ROOT / 'assets/parts/construction.json').read_text())
-    part = next((p for p in catalog['equipment'] if p['id'] == part_id), {'id': part_id})
+    part = next(p for p in catalog('assets/parts/construction.json')['equipment'] if p['id'] == part_id)
     before = set(scene.objects)
     helpers = dict(mesh=mesh, cyl=cyl, rod=rod, box=box)
     root = getattr(module, entry['function'])(part, col or COL, helpers, materials)
