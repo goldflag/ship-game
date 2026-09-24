@@ -698,6 +698,91 @@ export const scenes: Record<string, Scene> = {
     stage.note('counts', exhaust.diagnostics());
     stage.camera({ ship: 0, offset: [-160, 60, 220], look: [60, 22, -20], fov: 50 }); await shoot('chase in the fleet');
   },
+  /** Scorch: fires soot and char the paint as they burn, and it stays after they are out; `scorch.enabled` off is master. */
+  async 's-fire'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 13 });
+    const scorch = (stage.game as unknown as { scorch: { enabled: boolean } }).scorch, side = stage.facing();
+    const close = { ship: 1, offset: [side * 150, 38, 95] as [number, number, number], look: [0, 12, -15] as [number, number, number], fov: 45 };
+    stage.camera(close); await shoot('before');
+    const { rooms, mounts } = scorchFires(stage);
+    stage.burn(1, { rooms, mounts, intensity: 1 });
+    stage.advance(30); await shoot('burning 30 s');
+    stage.advance(60); await shoot('burning 90 s');
+    stage.burn(1, { rooms, mounts, intensity: 0, trend: 'cooling' });
+    stage.advance(60); await shoot('out 60 s');
+    scorch.enabled = false; await shoot('out 60 s, no scorch'); scorch.enabled = true;
+    stage.camera({ ship: 1, offset: [side * 60, 26, -30], look: [0, 16, -62], fov: 50 }); await shoot('turret close');
+    stage.camera({ ship: 1, offset: [side * 1100, 110, 800], look: [0, 18, 0], fov: 18 }); await shoot('1.4 km');
+    stage.camera({ ship: 1, offset: [side * 2500, 150, 1400], look: [0, 18, 0], fov: 9 }); await shoot('2.9 km');
+  },
+  /** Scorch at night: the embers of a fire still burning and the charred seats after it. */
+  async 's-fire-night'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 23 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 150, 38, 95], look: [0, 12, -15], fov: 45 });
+    const { rooms, mounts } = scorchFires(stage);
+    stage.burn(1, { rooms, mounts, intensity: 1 });
+    stage.advance(90); await shoot('burning 90 s');
+    stage.burn(1, { rooms, mounts, intensity: 0, trend: 'cooling' });
+    stage.advance(8); await shoot('out 8 s');
+    stage.advance(50); await shoot('out 58 s');
+    stage.camera({ ship: 1, offset: [side * 1100, 110, 800], look: [0, 18, 0], fov: 18 }); await shoot('1.4 km');
+  },
+  /** Scorch: strikes of several calibres, HE and AP, along the engaged side and superstructure. */
+  async 's-hits'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 13 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 230, 35, 10], look: [0, 8, 0], fov: 50 });
+    await shoot('before');
+    // Calibres from 10.5 cm to 38 cm, on grey paint rather than the black camouflage bands.
+    const strikes: [HitKind, number, number, number][] = [['burst', .38, .52, 12], ['burst', .15, .45, 8], ['burst', .15, .47, 9], ['burst', .105, .58, 14],
+      ['penetration', .38, .66, 4], ['penetration', .2, .42, 3.5], ['burst', .38, .3, 4], ['stopped', .38, .5, 2.5], ['ricochet', .38, .78, 5]];
+    for (const [kind, caliberM, along, height] of strikes) { stage.hit(1, { kind, caliberM, along, height }); stage.advance(.5); }
+    stage.advance(20); await shoot('after 9 strikes');
+    const scorch = (stage.game as unknown as { scorch: { enabled: boolean } }).scorch;
+    scorch.enabled = false; await shoot('after 9 strikes, no scorch'); scorch.enabled = true;
+    // Along 0.3 is 50 m aft of amidships on Bismarck; along 0.45 to 0.52, 12 m aft to 5 m forward.
+    const hullStrike = { ship: 1, offset: [side * 34, 8, 60] as [number, number, number], look: [side * 15, 4, 48] as [number, number, number], fov: 50 };
+    stage.camera(hullStrike); await shoot('38 cm HE on the belt');
+    stage.camera({ ship: 1, offset: [side * 45, 16, 22], look: [side * 5, 9, 4], fov: 50 }); await shoot('15 and 38 cm HE on the superstructure');
+    stage.weather({ timeHours: 23 }); stage.camera(hullStrike); await shoot('belt, night');
+  },
+  /** Burn-out: a ship that burned for a while is lost and sinks; her paint burns out as she goes. The cameras stay level
+   * above the sea while she settles. */
+  async 's-burnout'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 13 });
+    const side = stage.facing();
+    const close = { ship: 1, level: true, offset: [side * 170, 40, 110] as [number, number, number], look: [0, 10, -15] as [number, number, number], fov: 45 };
+    const near = { ship: 1, level: true, offset: [side * 70, 20, 10] as [number, number, number], look: [0, 10, -25] as [number, number, number], fov: 50 };
+    const km1 = { ship: 1, level: true, offset: [side * 1100, 110, 800] as [number, number, number], look: [0, 8, 0] as [number, number, number], fov: 18 };
+    const km3 = { ship: 1, level: true, offset: [side * 2500, 150, 1400] as [number, number, number], look: [0, 8, 0] as [number, number, number], fov: 9 };
+    stage.camera(close);
+    const { rooms, mounts } = scorchFires(stage);
+    stage.burn(1, { rooms: typeof rooms === 'number' ? Math.min(3, rooms) : rooms.slice(0, 3), mounts: mounts.slice(0, 1), intensity: 1 });
+    for (const [kind, along, height] of [['burst', .55, 12], ['burst', .35, 6], ['penetration', .62, 4]] as [HitKind, number, number][]) { stage.hit(1, { kind, along, height }); stage.advance(.4); }
+    stage.advance(40); await shoot('burning 40 s');
+    stage.sink(1, { cause: 'hull-failure', listDeg: 7 });
+    stage.advance(5); await shoot('lost 5 s');
+    stage.advance(7); await shoot('lost 12 s');
+    stage.camera(near); await shoot('lost 12 s, close');
+    stage.camera(km1); await shoot('lost 12 s, 1.4 km');
+    stage.camera(km3); await shoot('lost 12 s, 2.9 km');
+    stage.weather({ timeHours: 23 });
+    stage.camera(close); await shoot('lost 12 s, night');
+    stage.camera(km1); await shoot('night, 1.4 km');
+    stage.weather({ timeHours: 13 }); stage.camera(close);
+    stage.advance(10); await shoot('lost 22 s');
+    stage.advance(10); await shoot('lost 32 s');
+  },
 };
+type HitKind = 'penetration' | 'ricochet' | 'stopped' | 'burst';
+
+/** The target's fires for the scorch scenes: on Bismarck her starboard boiler, turbine and fuel-bunker vents, the aft
+ * auxiliary room and turrets Anton and Dora; on any other ship four vents spread along her and her first and last mounts. */
+function scorchFires(stage: EffectsStage): { rooms: number[] | number; mounts: number[] } {
+  const target = stage.ships()[1];
+  if (target.preset === 'bismarck') return { rooms: [2, 7, 31, 37], mounts: [0, 3] };
+  return { rooms: Math.min(4, target.vents), mounts: [...new Set([0, target.mounts - 1])].filter(i => i >= 0 && i < target.mounts) };
+}
 
 export type { Frame };

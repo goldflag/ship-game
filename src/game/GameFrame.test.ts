@@ -154,7 +154,7 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
     effects: { root: new Group(), update() {}, reset() {} }, ocean, sunLight, sunShadows: new FocusShadowNode(sunLight), environment,
-    shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} }, hullWetBand: { update() {} },
+    shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     // No canvas to size.
     pipeline: { render() {} }, occlusion: { render() {} }, scheduleFrame() {}, resizePending: false,
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },

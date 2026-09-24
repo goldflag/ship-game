@@ -14,6 +14,7 @@ import { projectShipLabel } from './ShipLabels';
 import { AirMapController } from './controllers/AirMapController';
 import { reportName } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
+import { aircraftAttitude } from './aircraftPose';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, customTerrainOffset, loadMapTerrain, mapTerrainId, placedMapTerrain, type OceanMapId } from '../maps/catalog';
 import { OPEN_SEA, terrainHeight, type PlacedTerrain } from '../maps/heightfield';
@@ -22,7 +23,7 @@ import { VisualEnvironment, type DeveloperWeather, type EnvironmentOverrides } f
 import { WaterViewFocus } from './WaterViewFocus';
 import { BerthMotion } from './BerthMotion';
 import { localToWorld } from './geometry';
-import { createSeaState, seaWaves, type SeaState } from './session/sea';
+import { createSeaState, seaHeight, seaWaves, type SeaState } from './session/sea';
 import { hullFootprints } from './hullSea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
@@ -32,7 +33,6 @@ import { pass, vec2 } from 'three/tsl';
 import { frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics, type TerrainQuality } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
 import type { OceanApi, OceanRealism } from './ocean/contracts';
-import { HullWetBand } from './HullWetBand';
 import { primeHullProfile } from './HullContactFoam';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
@@ -43,6 +43,8 @@ import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { ShipOcclusion } from './ShipOcclusion';
+import { ShipWeather } from './ShipWeather';
+import { ShipScorch } from './ShipScorch';
 import { loadShipModel } from './loadShipModel';
 import { Sky } from './sky/Sky';
 import type { SkyApi } from './sky/contracts';
@@ -69,7 +71,7 @@ import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import { EffectLighting } from './EffectLighting';
 import { configureRenderOrder } from './renderOrder';
-import { DEFAULT_SAMPLED_TEXTURES, requireWebGPU, requireWebGPUBackend, sampledTextureLimit, type RaisedLimits } from './webgpu';
+import { requireWebGPU, requireWebGPUBackend, type RaisedLimits } from './webgpu';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
@@ -116,6 +118,12 @@ export type BattleProgress = (label: string, fraction: number) => void;
 /** A development capture's camera in a hull's own frame about her waterline (metres: +X starboard, +Y up, −Z bow),
  * held whatever the rig does; `shipId` defaults to the hull the camera rides. See `Game.placeCamera`. */
 export interface CameraPin { eye: Vec3; target: Vec3; fov?: number; shipId?: string }
+/** A development capture's camera placed every frame in world space after the rig (`Game.directCamera`). `alpha` is the frame's
+ * interpolation between the last two simulation frames, the fraction the ships and aircraft are drawn at; `dt` its seconds. */
+export type CameraDirector = (camera: THREE.PerspectiveCamera, frame: { alpha: number; dt: number }) => void;
+/** Where a ship or aircraft is drawn this frame (`Game.subjectPose`): world metres, radians (heading clockwise from −Z), and a
+ * unit `forward` along the hull's heading or the aircraft's nose. */
+export interface SubjectPose { position: Vec3; heading: number; pitch: number; roll: number; forward: Vec3; speed: number }
 
 /** One task group as fleet command holds it: its ships, its name and how it sails. */
 export interface ControlGroup { name: string; shipIds: string[]; formation?: Formation }
@@ -173,10 +181,14 @@ export class Game {
    * same ones, so they are kept — in least-recently-used order and capped, because each one
    * holds tens of megabytes of vertex data. The fleet at sea is always retained. */
   private readonly hulls = new Map<string, THREE.Group>();
-  /** Hulls darken and gloss just above the sea they sit in: the FFT waves plus the wake and bow waves. */
-  private readonly hullWetBand = new HullWetBand();
+  /** Hulls darken and gloss just above the sea they sit in (the FFT waves plus the wake and bow waves), over bows driven
+   * into a seaway, and wherever rain falls on them. */
+  private readonly shipWeather = new ShipWeather();
+  /** Soot, char and burn-out that fires and strikes leave on the paint, cleared with the battle. */
+  private readonly scorch = new ShipScorch();
   /** One palette for every hull kept, so paint still collapses across cached fleets. */
-  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true, weathering: this.hullWetBand });
+  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true,
+    weathering: { dry: this.shipWeather.dry, gloss: this.shipWeather.gloss, timber: this.shipWeather.timber, scorch: this.scorch } });
   private readonly occlusion: ShipOcclusion;
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
@@ -306,6 +318,9 @@ export class Game {
   private readonly berthMotion = new BerthMotion();
   /** Development captures: a camera held on a hull, and the sea time every presentation clock is held at (`freezeScene`). */
   private cameraPin?: CameraPin;
+  private cameraDirector?: CameraDirector;
+  /** Frames run only through `stepFrame`, each a fixed interval of battle time, not on the display's refresh. */
+  private manualClock = false;
   private frozenTime?: number;
   private berthSea?: { wind: number; direction: number; state: SeaState };
   /** The sea the berth hull rode this frame (still water while it is inspected), which the water around it shows. */
@@ -454,7 +469,7 @@ export class Game {
     }
     this.assertActive();
     this.scene.add(...this.fleetViews.map(view => view.root), this.observedShipViews.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
-    this.scene.add(this.environment.ambientLight);
+    this.scene.add(this.environment.ambientLight, this.environment.boltLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
     const ocean = this.ocean = await this.createOcean();
@@ -493,13 +508,12 @@ export class Game {
     this.environment.attachSky(sky);
     // Water and sky both exist now; nothing renders before the warmup below.
     this.environment.setScene(this.simulation.mapId, this.inPort);
+    this.shipWeather.settle();
     ocean.setSky(sky.oceanSky);
     // Clouds shade the sun on ships and islands through the sun's own shadow maps, and the sea
-    // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before. A ship's
-    // paint already binds WebGPU's default 16 textures and samplers a stage, so on a device that
-    // grants no more the cloud shadow falls on the sea alone.
+    // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before.
     if (sky.renderer === 'game') this.cloudShadow = position => sky.cloudShadow(position);
-    this.sunShadows.cloud = sampledTextureLimit(this.renderer) > DEFAULT_SAMPLED_TEXTURES ? this.cloudShadow : undefined;
+    this.sunShadows.cloud = this.cloudShadow;
     const sunlight = this.sunLight;
     this.fitSunShadow();
     this.graphicsControl.applyReflections();
@@ -508,10 +522,11 @@ export class Game {
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
     this.shipWake = new ShipWake(ocean, gpuWakeFoamPainter(this.renderer), () => ocean.meshSpacing, () => this.renderer.domElement.height);
+    this.graphicsControl.applyWaterShadows();
     // The wet band reads the sea exactly as the surface draws it: waves, wake field and bow waves.
     // Hull paint compiles on first draw, after this.
     const shipWake = this.shipWake;
-    this.hullWetBand.setSea((x, z) => ocean.waveField.heightAt(vec2(x, z)).add(shipWake.surfaceHeight(x, z)), () => shipWake.bowWaves.crestHeight());
+    this.shipWeather.band.setSea((x, z) => ocean.waveField.heightAt(vec2(x, z)).add(shipWake.surfaceHeight(x, z)), () => shipWake.bowWaves.crestHeight());
     for (const buoy of BUOYS) this.addBuoy(buoy);
     if (HARBOR_BACKDROP) {
       this.callbacks.progress('Building the naval anchorage', 0.72);
@@ -680,7 +695,7 @@ export class Game {
       this.endFollow(); this.spectatedShipId = undefined; this.selectedShipIds = [];
       this.selectedFlightId = undefined; this.selectFlights([]); this.spectator.forgetHelm();
       this.inspectionHover?.clear(); this.inspecting = false; this.damageInspectionShipId = undefined;
-      this.fleetViews.forEach(view => { view.inspect(false); view.impactMarks.clear(); view.snap(); });
+      this.fleetViews.forEach(view => { view.inspect(false); view.impactMarks.clear(); view.snap(); }); this.scorch.clear();
       this.syncControlledShip(); this.observedShipViews?.clear(); this.aircraftView.reset();
       this.playerDamageFeedback = new HullDamageFeedback(session.player.damage.integrity);
       this.effects.reset(); this.funnelSmoke.reset(); this.shipWake?.reset(); this.audio?.reset(session);
@@ -724,7 +739,7 @@ export class Game {
     try {
       await this.frameTask; cancelAnimationFrame(this.raf);
       await session.resetTrial(); this.assertActive(); this.battleRevision++; this.environment.setOverrides({});
-      this.fleetViews.forEach(view => { view.impactMarks.clear(); view.snap(); });
+      this.fleetViews.forEach(view => { view.impactMarks.clear(); view.snap(); }); this.scorch.clear();
       this.syncControlledShip(); this.effects.reset(); this.funnelSmoke.reset(); this.shipWake?.reset(); this.audio?.reset(session);
       this.playerDamageFeedback = new HullDamageFeedback(session.player.damage.integrity); this.trail = []; this.lastTrailTick = 0;
       await this.frame(performance.now(), true);
@@ -818,8 +833,60 @@ export class Game {
     if (fov) { this.camera.fov = fov; this.camera.updateProjectionMatrix(); }
     this.camera.updateMatrixWorld();
   }
+  /** Development captures (the film driver): place the camera every frame in world space, after the rig, whatever the rig does;
+   * no director gives it back. The director sets the lens too; the projection is updated after it runs. */
+  directCamera(director?: CameraDirector): void { this.cameraDirector = director; }
+  /** Development captures: `true` stops the display-driven frame loop, so frames run only through `stepFrame`; `false` resumes it. */
+  async setManualClock(manual: boolean): Promise<void> {
+    if (manual === this.manualClock) return;
+    this.manualClock = manual;
+    cancelAnimationFrame(this.raf);
+    await this.frameTask;
+    cancelAnimationFrame(this.raf);
+    this.lastTime = performance.now();
+    if (!manual) this.scheduleFrame();
+  }
+  /** Development captures under the manual clock: draw the next frame `dt` seconds of battle (at most 0.1) after the last, once the
+   * simulation has answered every batch posted so far. Stepped this way a battle presents every tick in order however long a frame
+   * takes; a frame of 0 s only applies the pending batch. */
+  async stepFrame(dt = 1 / 60): Promise<void> {
+    if (!this.manualClock) throw new Error('Game.stepFrame runs only under the manual clock.');
+    if (!(dt >= 0 && dt <= .1)) throw new Error(`Game.stepFrame takes 0 to 0.1 s; got ${dt}.`);
+    await this.frameTask;
+    await this.simulation.batchSettled?.();
+    this.assertActive();
+    this.frameTask = this.frame(this.lastTime + dt * 1000, false, dt);
+    await this.frameTask;
+  }
+  /** Development captures: resolves once the GPU has finished every frame submitted so far, so a capture reads the last one. */
+  async gpuIdle(): Promise<void> {
+    await (this.renderer.backend as unknown as { device?: { queue: { onSubmittedWorkDone(): Promise<void> } } }).device?.queue.onSubmittedWorkDone();
+  }
+  /** Development captures: where the ship or aircraft `id` is drawn this frame, interpolated as the renderer draws it. */
+  subjectPose(id: string): SubjectPose | undefined {
+    const view = this.fleetViews.find(entry => entry.actor.motion.id === id);
+    if (view) {
+      const { heading, pitch, roll, speed } = view.motion, { x, y, z } = view.root.position;
+      return { position: [x, y, z], heading, pitch, roll, speed, forward: [Math.sin(heading), 0, -Math.cos(heading)] };
+    }
+    const plane = this.simulation.aircraft.find(entry => entry.id === id), alpha = this.simulation.interpolationAlpha;
+    const carrier = plane && this.fleetViews.find(entry => entry.actor.motion.id === plane.ownerId);
+    const owner = plane && this.simulation.actors.find(actor => actor.motion.id === plane.ownerId);
+    const seen = plane && carrier && owner && aircraftFollowView(plane, owner, carrier.motion, alpha);
+    if (!plane || !seen) return;
+    const forward = seen.velocity, speed = Math.hypot(...plane.velocity);
+    // On deck the nose follows taxi turns and the deck's slope; the flight attitude is for the air.
+    if (onFlightDeck(plane)) return { position: seen.position, heading: Math.atan2(forward[0], -forward[2]), pitch: 0, roll: 0, forward, speed };
+    const { heading, pitch, bank } = aircraftAttitude(plane, alpha);
+    return { position: seen.position, heading, pitch, roll: bank, forward, speed };
+  }
+  /** Development captures: the long-wave sea's height at `x, z` this frame, the swell a camera near the water must clear. */
+  seaSurface(x: number, z: number): number {
+    const sea = this.simulation.sea;
+    return sea ? seaHeight(sea, x, z, this.simulation.presentationTime ?? this.simulation.tick / 60) : 0;
+  }
   /** What the camera shows is where it was sent: no optics glide, zoom, orbit or chart transition is still easing. */
-  get cameraSettled(): boolean { return !!this.cameraPin || (!this.rig.transitioning && !this.battlefieldCamera.transitioning); }
+  get cameraSettled(): boolean { return !!this.cameraPin || !!this.cameraDirector || (!this.rig.transitioning && !this.battlefieldCamera.transitioning); }
 
   /** Development captures: hold every presentation clock at `time` seconds of sea (the berth's ride, the waves, clouds, funnel
    * smoke, wake and a battle itself) until called without a time. The sea's foam and wake and the smoke are first replayed for
@@ -847,6 +914,8 @@ export class Game {
       }
       ocean.time = time;
       this.sky?.hold(time);
+      // As if the weather had held for the replay: wet through in rain, dry after none.
+      this.shipWeather.settle();
     } finally {
       this.lastTime = performance.now();
       this.scheduleFrame();
@@ -901,6 +970,7 @@ export class Game {
       const previous = [...this.fleetModels, ...this.fleetViews.map(view => view.root)];
       this.fleetDraws?.dispose();
       this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); view.root.removeFromParent(); });
+      this.scorch.clear();
       this.scene.add(...views.map(view => view.root), this.aircraftView.root);
       this.simulation.dispose?.();
       this.definition = definition; this.simulation = simulation;
@@ -1039,6 +1109,9 @@ export class Game {
     })();
   }
 
+  private readonly buoys: THREE.Object3D[] = [];
+  /** Development captures: the channel buoys off the berth, which a film at sea hides. */
+  setBuoysVisible(visible: boolean): void { this.buoys.forEach(buoy => { buoy.visible = visible; }); }
   private addBuoy(buoy: typeof BUOYS[number]): void {
     const group = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({ visible: false }));
     const paint = new THREE.MeshStandardMaterial({ color: buoy.color, roughness: 0.65 });
@@ -1050,12 +1123,13 @@ export class Game {
     cap.position.y = 8.8;
     group.add(base, stem, cap);
     group.position.set(buoy.x, 0, buoy.z);
+    this.buoys.push(group);
     this.scene.add(group);
     this.ocean!.addFloater(group, { smoothing: 0.6 });
   }
 
   private scheduleFrame(): void {
-    if (this.disposed) return;
+    if (this.disposed || this.manualClock) return;
     this.raf = requestAnimationFrame(time => {
       // A frame rate limit skips whole display refreshes; the next frame's dt covers the gap.
       if (this.frameIntervalMs && time - this.lastTime < this.frameIntervalMs - 2) { this.scheduleFrame(); return; }
@@ -1063,9 +1137,10 @@ export class Game {
     });
   }
 
-  private async frame(time: number, warmingUp = false): Promise<void> {
+  /** `stepDt` (the manual clock) is the frame's exact battle seconds, 0 included: a frame that only applies a pending batch. */
+  private async frame(time: number, warmingUp = false, stepDt?: number): Promise<void> {
     if (this.disposed) return;
-    const realDt = warmingUp ? 1 / 60 : Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
+    const realDt = warmingUp ? 1 / 60 : stepDt ?? Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
     this.lastTime = time;
     const ended = this.simulation.isBattle && this.simulation.result !== 'active';
     const dt = this.frozenTime !== undefined || (!ended && (this.paused || this.tacticalPause)) ? 0 : realDt;
@@ -1121,7 +1196,10 @@ export class Game {
         this.rig.setTorpedoView(this.battery === 'torpedo' && !this.definition.submarine && this.cameraShipView === this.playerView);
         // The port camera frames the berth, so it holds still while the hull heaves.
         this.rig.update(pose, pose.y - (this.cameraShipView.seaOffset?.heave ?? 0), realDt);
-        if (this.cameraPin) this.pinCamera(this.cameraPin);
+        if (this.cameraDirector) {
+          this.cameraDirector(this.camera, { alpha, dt: realDt });
+          this.camera.updateProjectionMatrix(); this.camera.updateMatrixWorld();
+        } else if (this.cameraPin) this.pinCamera(this.cameraPin);
       }
       this.battlefieldCamera.applyTransition(realDt);
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,
@@ -1144,6 +1222,9 @@ export class Game {
           view.root, view.motion, view.actor.damage.sunk, this.camera, !this.inPort);
         view.updateRenderMatrices();
       });
+      // Fire damage reads the matrices just prepared; the port shows a ship as she was built.
+      if (this.inPort) this.scorch.clear();
+      else this.scorch.update(this.fleetViews, this.simulation.events, presentationDt, this.camera, this.effectLighting.wind);
       const emptyBerth = this.inPort && this.berthEmpty;
       this.aircraftView.update(this.simulation, this.camera, !emptyBerth && !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])), this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
       // Labels use the aircraft poses just drawn this frame, including observed smoothing.
@@ -1171,7 +1252,9 @@ export class Game {
       this.focusNearShadow();
       this.shipWake!.seaHeight = this.ocean!.waves.significantHeight;
       this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
-      this.hullWetBand.update(this.ocean!.waves.significantHeight);
+      this.shipWeather.band.update(this.ocean!.waves.significantHeight);
+      this.shipWeather.update(dt, { precipitation: this.environment.precipitation, seaHeight: this.ocean!.waves.significantHeight,
+        waveDirection: this.ocean!.waves.windDirection, ships: emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), camera: this.camera });
       // The sea reads the opaque ships through the scene pass, so publish batch poses first.
       this.fleetDraws?.update(this.camera, this.renderer.domElement.height, this.detailBudgetPx);
       // Hidden hangar aircraft, LODs and dormant effects must compile against
@@ -1195,7 +1278,7 @@ export class Game {
         const stepping = this.ocean!.update(dt);
         if (stepping) { await stepping; if (this.disposed) return; }
         this.renderFrame();
-        updateWaterShadows(this.ocean!, this.sunShadows!.wide as unknown as THREE.DirectionalLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows, this.cloudShadow);
+        updateWaterShadows(this.ocean!, this.sunShadows!, this.renderer.reversedDepthBuffer, this.settings.waterShadows, this.cloudShadow);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();
@@ -1214,7 +1297,7 @@ export class Game {
         this.playerDamageFeedback = new HullDamageFeedback(damageSubject.damage.integrity);
       }
       const playerDamage = this.playerDamageFeedback.update(damageSubject.damage.integrity, combatTime);
-      this.fps += (1 / realDt - this.fps) * 0.04;
+      if (realDt > 0) this.fps += (1 / realDt - this.fps) * 0.04;
       if (state.tick - this.lastTrailTick >= 120) {
         this.trail.push({ x: state.x, z: state.z });
         if (this.trail.length > 240) this.trail.shift();
@@ -1261,6 +1344,7 @@ export class Game {
       get detailBudgetPx() { return game.detailBudgetPx; }, set detailBudgetPx(value) { game.detailBudgetPx = value; },
       get pipeline() { return game.pipeline; }, set pipeline(value) { game.pipeline = value; },
       get renderer() { return game.renderer; }, get display() { return game.display; }, get scenePass() { return game.scenePass; }, get camera() { return game.camera; }, get ocean() { return game.ocean; }, get sunLight() { return game.sunLight; }, get sky() { return game.sky; }, get occlusion() { return game.occlusion; },
+      get shipWake() { return game.shipWake; },
       get aircraftView() { return game.aircraftView; }, get effects() { return game.effects; }, get funnelSmoke() { return game.funnelSmoke; },
       get disposed() { return game.disposed; },
       requestResize() { game.resizePending = true; }, reportError: message => game.callbacks.error(message),
@@ -1735,6 +1819,7 @@ export class Game {
     this.manualAim = true;
     this.airOperationsOpen = false; this.selectedFlightId = undefined;
     this.environment.setScene(this.simulation.mapId, inPort);
+    this.shipWeather.settle();
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
       this.controlPriority = 'balanced'; this.controlFocus = '';
@@ -1892,6 +1977,7 @@ export class Game {
       effects: this.effects.diagnostics(),
       funnelSmoke: this.funnelSmoke.diagnostics(),
       wakeFoam: this.shipWake?.diagnostics(),
+      shipWeather: this.shipWeather.diagnostics(),
       shipRigs: this.fleetViews.map(view => ({ shipId: view.actor.motion.id, ...view.rig.diagnostics() })),
       audio: this.audio?.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedIds.values().next().value, selectedVolumes: this.playerView?.inspection.selectedIds.size ?? 0, hoveredVolume: this.playerView?.inspection.hoveredId,
@@ -1904,7 +1990,8 @@ export class Game {
         construction: actor.definition.construction ? { massKg: actor.definition.hull.massKg, loading: actor.definition.loading,
           compartments: structuredClone(actor.damage.compartments), modules: structuredClone(actor.damage.modules), stability: { ...actor.damage.stability }, mounts: structuredClone(actor.mounts) } : undefined })),
       renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,
-        impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls })),
+        impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls, scorchSpots: this.scorch.spots(view).length, burnout: this.scorch.burnout(view) })),
+      scorch: this.scorch.diagnostics(),
       renderedAircraft: this.aircraftView.diagnostics(),
       aircraft: this.simulation.aircraft.map(p => ({ ...p, position: [...p.position] })),
       airReleases: this.simulation.airReleases.map(p => ({ ...p })),
@@ -1977,6 +2064,7 @@ export class Game {
     this.display?.dispose();
     this.scenePass?.dispose();
     this.occlusion.dispose();
+    this.scorch.dispose();
     this.armorOverlay?.dispose();
     this.shipWake?.dispose();
     await this.aircraftView.dispose();

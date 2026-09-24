@@ -13,7 +13,8 @@ import '@fontsource/barlow/latin-600.css';
 import '@fontsource/barlow-condensed/latin-500.css';
 import '@fontsource/barlow-condensed/latin-600.css';
 import '../../src/ui/styles.css';
-import { Game, type CameraPin } from '../../src/game/Game';
+import { Game, type CameraDirector, type CameraPin } from '../../src/game/Game';
+import type { Command } from '../../src/multiplayer/generated/Command';
 import { formationSpawns, type BattleSetup, type BotSelection } from '../../src/game/session/battleSetup';
 import { isShipAiLevel } from '../../src/game/session/aiLevels';
 import type { GameCallbacks } from '../../src/game/types';
@@ -22,6 +23,7 @@ import { restoreLocalShips } from '../../src/ships/constructionLibrary';
 import { localShips } from '../../src/ships/localShips';
 import { shipPresets } from '../../src/ships/presets';
 import { SORTIE_BOARD_STORAGE_KEY } from '../../src/ui/battle/battleModes';
+import { GRAPHICS_PRESETS, GRAPHICS_STORAGE_KEY, type GraphicsPreset } from '../../src/game/graphicsSettings';
 import { App } from '../../src/ui/App';
 import type { HarnessDesigns } from '../browser/designs';
 import { cameraPin, type CameraPose } from '../browser/cameraPoses';
@@ -51,12 +53,21 @@ export interface HarnessReview {
   settle(options?: { frames?: number; timeoutMs?: number }): Promise<void>;
   /** Show or hide every page layer over the 3D view (instruments, port panels, labels) and the torpedo sheets drawn on the sea. */
   setHud(visible: boolean): void;
+  /** The frame clock. `manual(true)` stops the display-driven loop, so frames advance only through `step`, each `dt` seconds of battle
+   * (default 1/60) once the simulation has answered the batch before it (`Game.stepFrame`); `manual(false)` hands frames back to the display. */
+  clock: { manual(on: boolean): Promise<void>; step(frames?: number, dt?: number): Promise<void> };
+  /** Place the camera every frame in world space after the rig (`Game.directCamera`); no director gives it back to the rig. */
+  directCamera(director?: CameraDirector): void;
+  /** Order any ship on either side as its owner would (`LocalBattleSession.direct`): a route, a hold, a focus, an air or deck order,
+   * applied when the battle reaches `tick` (default the next batch). Answers collect in `game.simulation.directReplies`. */
+  command(shipId: string, command: Command, tick?: number): void;
 }
 declare global { interface Window { review: HarnessReview } }
 
 const params = new URLSearchParams(location.search);
 const review: HarnessReview = window.review = { ready: false, inBattle: false, errors: [], designs: [], stage: 'loading', three: THREE, tsl: TSL,
-  placeCamera, freezeScene, settle, setHud };
+  placeCamera, freezeScene, settle, setHud, clock: { manual: on => game().setManualClock(on), step },
+  directCamera: director => game().directCamera(director), command };
 window.addEventListener('error', event => review.errors.push(event.message));
 window.addEventListener('unhandledrejection', event => review.errors.push(String(event.reason?.message ?? event.reason)));
 
@@ -76,6 +87,12 @@ if (params.get('pointerlock') !== 'real') {
   document.exitPointerLock = () => change(null);
 }
 if (params.get('sortie') !== 'board') try { localStorage.setItem(SORTIE_BOARD_STORAGE_KEY, 'skip'); } catch { /* private window */ }
+// `graphics=low|medium|high|ultra`: launch on that preset, since the ocean tier and the renderers are fixed at launch.
+const preset = params.get('graphics');
+if (preset) {
+  if (!Object.hasOwn(GRAPHICS_PRESETS, preset)) throw new Error(`Harness: graphics is one of ${Object.keys(GRAPHICS_PRESETS).join(', ')}; got "${preset}".`);
+  try { localStorage.setItem(GRAPHICS_STORAGE_KEY, JSON.stringify(GRAPHICS_PRESETS[preset as GraphicsPreset])); } catch { /* private window */ }
+}
 
 /** `designs=all` (default), `none`, `keep` (leave the local library alone) or a comma list of names/ids. */
 async function seedDesigns() {
@@ -160,6 +177,16 @@ async function settle({ frames = frozen ? HELD_SKY_FRAMES : 4, timeoutMs = 10_00
   for (let i = 0; i < frames; i++) await game().nextFrame();
 }
 
+async function step(frames = 1, dt = 1 / 60): Promise<void> {
+  for (let i = 0; i < frames; i++) await game().stepFrame(dt);
+}
+
+function command(shipId: string, order: Command, tick?: number): void {
+  const simulation = game().simulation;
+  if (!simulation.direct) throw new Error('Harness: only a local battle takes directed orders.');
+  simulation.direct(shipId, order, tick);
+}
+
 // The torpedo sheets and aim lines are drawn in the scene and follow the instrument switch App writes on the viewport,
 // so while the HUD is hidden that attribute is held at false; App's own value comes back with the HUD.
 let hudStyle: HTMLStyleElement | undefined, hudHold: MutationObserver | undefined, appShipLabels: string | undefined;
@@ -207,6 +234,8 @@ Game.prototype.prepareBattle = function (this: Game, setup, progress, trial) {
 };
 Game.prototype.beginBattle = async function (this: Game, progress) {
   await begin.call(this, tracked(progress));
+  // Held from the first battle frame, so a scripted battle starts at the same tick every run.
+  if (params.get('clock') === 'manual') await this.setManualClock(true);
   if (params.has('battle')) try { selectBattery(); } catch (error) { review.errors.push((error as Error).message); }
   if (params.get('hud') === 'off') setHud(false);
   review.stage = 'in battle'; review.inBattle = true;

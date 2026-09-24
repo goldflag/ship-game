@@ -3,7 +3,7 @@ import { CustomBlending, DataTexture, HalfFloatType, LinearFilter, LinearMipmapL
   type UniformNode, type WebGPURenderer } from 'three/webgpu';
 import { Discard, Fn, If, cameraFar, cameraNear, cameraViewMatrix, dot, float, instanceIndex, int, ivec2, max, min, mix, round, screenUV, select, smoothstep,
   storageTexture, texture, textureStore, uniform, uvec2, vec2, vec3, vec4, viewZToPerspectiveDepth, viewZToReversedPerspectiveDepth } from 'three/tsl';
-import type { AtmospherePart, CloudPart, SkyFrame, SkyPartContext, SkyQuality, SkyScene, SkyUniforms } from '../contracts';
+import { CLOUD_SHADOW_FLOOR, type AtmospherePart, type CloudPart, type SkyFrame, type SkyPartContext, type SkyQuality, type SkyScene, type SkyUniforms } from '../contracts';
 import { CLOUD_ORDER, fullScreenTriangle, screenCorner, viewDirection } from '../dome';
 import { SKY_TIERS } from '../quality';
 import { writeSceneTargets } from '../../TemporalAntialiasing';
@@ -37,8 +37,6 @@ const SHADOW_STEPS = 8;
 /** Texels of the shadow map refreshed each frame, in interleaved slices. The map is laid out in the clouds'
  * own drifting frame, so it follows the wind exactly and only the clouds' slow change of shape ages it. */
 const SHADOW_TEXELS_PER_FRAME = 4096;
-/** Share of the sun a cloud's shadow still lets reach the sea: light scattered through it. */
-const SHADOW_FLOOR = .15;
 /** Share of the shadow map's half-width over which it fades to full sun at its edge. */
 const SHADOW_EDGE = .15;
 /** Sun heights (the sine of its elevation) over which cloud shadows fade in after sunrise: a sun on the
@@ -301,7 +299,7 @@ export class CloudLayer implements CloudPart {
     // The scene reads a cubic B-spline (four bilinear reads): the map's texels are 80–160 m, and a bilinear
     // read draws their grid into a shadow's edge. Compute passes (the rain) make do with one read.
     const value = explicit ? direct(this.shadowRead.sample(uv).level(float(0))).r : this.smoothShadow(uv);
-    const shade = mix(float(SHADOW_FLOOR), float(1), value);
+    const shade = mix(float(CLOUD_SHADOW_FLOOR), float(1), value);
     return mix(float(1), shade, this.u.shadowStrength.mul(smoothstep(1, 1 - SHADOW_EDGE, edge)).mul(this.layer.enabled));
   }
 

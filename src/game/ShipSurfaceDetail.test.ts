@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
-import { deckPlanks, finishTexels, isPlatedPaint, PLATE, plateTexels, setShipSurfaceDetail, STREAK, streakTexels, TEAK, teakTexels } from './ShipSurfaceDetail';
+import { deckPlanks, DETAIL, detailTexels, finishTexels, isPlatedPaint, PLATE, plateTexels, setShipSurfaceDetail, STREAK, STREAK_V, streakTexels, TEAK, teakTexels } from './ShipSurfaceDetail';
 
 const channel = (pixels: Uint8Array, c: number) => pixels.filter((_, i) => i % 4 === c);
 const mean = (values: ArrayLike<number>) => Array.from(values).reduce((a, b) => a + b, 0) / values.length;
@@ -53,6 +53,20 @@ test('runoff streaks hang from the edge, grow with wear and end before the tile 
   // A streak drawn at one wear is drawn at every greater wear.
   for (let k = 0; k < width * height; k++) for (let level = 1; level < 4; level++) if (pixels[k * 4 + level - 1] > 128) expect(pixels[k * 4 + level]).toBeGreaterThan(0);
   expect(Math.abs(mean(channel(plateTexels(), 3)) - 127.5)).toBeLessThan(1.5);
+});
+
+test('the plating, finish and runoff tiles share one array texture; the runoff layer mirrors as a clamped tile', () => {
+  const size = PLATE.size, layer = size * size * 4, pixels = detailTexels(size), streaks = streakTexels(), row = STREAK.width * 4;
+  expect(pixels.length).toBe(layer * DETAIL.layers);
+  expect(pixels.subarray(DETAIL.plate * layer, (DETAIL.plate + 1) * layer)).toEqual(plateTexels(size));
+  expect(pixels.subarray(DETAIL.finish * layer, (DETAIL.finish + 1) * layer)).toEqual(finishTexels(size));
+  // The tile's own rows at the layer's top quarter, read at `STREAK_V`; the next copy runs upside down, so the rows either
+  // side of each wrap are equal and a filter or mip across it sees what a clamped tile shows.
+  const at = (y: number) => pixels.subarray(DETAIL.streaks * layer + y * row, DETAIL.streaks * layer + (y + 1) * row);
+  expect(STREAK_V * size).toBe(STREAK.height);
+  for (const y of [0, 1, STREAK.height - 1]) expect(at(y)).toEqual(streaks.subarray(y * row, (y + 1) * row));
+  expect(at(size - 1)).toEqual(at(0));
+  expect(at(STREAK.height)).toEqual(at(STREAK.height - 1));
 });
 
 test('teak keeps the map mean tone, with caulked planks and staggered butts', () => {

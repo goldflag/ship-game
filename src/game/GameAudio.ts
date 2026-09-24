@@ -6,7 +6,7 @@ import { CombatAudioEvents, SOUND_IDS, sanitizeAudio, spatialMix, type AudioBus,
 import { thunderSound } from './sky/weather/thunder';
 
 /** `thunder` voices never count against the combat cap, and at most `MAX_THUNDER` claps wait or roll at once. */
-interface Voice { source: AudioBufferSourceNode; gain: GainNode; nodes: AudioNode[]; bus: AudioBus; thunder?: boolean; }
+interface Voice { source: AudioBufferSourceNode; gain: GainNode; nodes: AudioNode[]; bus: AudioBus; thunder?: boolean; released?: boolean; }
 const MAX_THUNDER = 4;
 /** Seconds of looped rumble noise, and of the crack's burst. */
 const RUMBLE_NOISE = 4, CRACK_NOISE = .7;
@@ -175,7 +175,17 @@ export class GameAudio {
     const context = this.context, buffer = this.buffers.get(id);
     if (!context || !buffer || !this.buses || this.disposed || context.state !== 'running' || document.hidden || this.settings.muted || this.settings.master === 0 || this.settings[bus] === 0) return;
     // Bound salvos and repeat input without sacrificing menu feedback. Rolling thunder never crowds out the guns.
-    if ([...this.voices].filter(v => v.bus === bus && !v.thunder).length >= (bus === 'interface' ? 4 : 20)) return;
+    // Menu repeats past the cap are dropped; in combat the oldest tail fades out so the newest report is heard.
+    const busy = [...this.voices].filter(v => v.bus === bus && !v.thunder && !v.released);
+    if (busy.length >= (bus === 'interface' ? 4 : 20)) {
+      if (bus === 'interface') return;
+      const oldest = busy[0], now = context.currentTime;
+      oldest.released = true;
+      oldest.gain.gain.cancelScheduledValues(now);
+      oldest.gain.gain.setValueAtTime(oldest.gain.gain.value, now);
+      oldest.gain.gain.linearRampToValueAtTime(0, now + .08);
+      oldest.source.stop(now + .09);
+    }
     const source = context.createBufferSource(), gain = context.createGain();
     source.buffer = buffer; source.playbackRate.value = rate;
     const nodes: AudioNode[] = [source, gain];

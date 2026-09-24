@@ -6,16 +6,16 @@ import type { AmbientOcclusion } from './graphicsSettings';
 type N = any; // TSL graphs: three's typings do not follow these chains.
 const {
   Fn, If, Loop, PI, abs, acos, add, clamp, cos, cross, div, dot, float, getScreenPosition, getViewPosition, int, materialAO,
-  max, mix, mul, normalize, pow, screenUV, sin, smoothstep, texture, uniform, uv, vec2, vec3, vec4,
+  max, min, mix, mul, normalize, pow, screenUV, sin, smoothstep, texture, uniform, uv, vec2, vec3, vec4,
 } = TSL as unknown as Record<string, N>;
 
 /** Ship surfaces that occlude one another. Ships enable it beside the default layer, so
  * the main view is unaffected; only the occlusion prepass renders this layer alone. */
 export const SHIP_OCCLUSION_LAYER = 20;
 
-/** Horizon steps each way along each of three slices: 18 or 36 depth taps per pixel,
- * three's GTAONode budget for 8 and 16 samples. */
-const STEPS: Record<Exclude<AmbientOcclusion, 'off'>, number> = { low: 3, high: 6 };
+/** Horizon steps each way along each of three slices: 24 or 48 depth taps per pixel. Both tiers search the same radius;
+ * High samples it twice as densely. */
+const STEPS: Record<Exclude<AmbientOcclusion, 'off'>, number> = { low: 4, high: 8 };
 
 const drawingSize = new THREE.Vector2();
 
@@ -35,15 +35,19 @@ const drawingSize = new THREE.Vector2();
  * with textureSize(), which is invalid WGSL for the scene pass's 4× multisampled
  * depth, and it assumes far depth is 1 where the reversed buffer stores 0. */
 export class ShipOcclusion {
-  /** Search radius in world meters: a turret barbette or an AA tub, not a whole deckhouse. */
-  readonly radius = uniform(3.5);
+  /** Search radius in world meters: the gap between two deckhouses, the depth under a platform or bridge wing, the foot of
+   * a tower, whose sky the fill would otherwise take as open. The steps crowd toward the pixel (`distanceExponent`), so
+   * the nearest still fall within half a meter and draw a barbette's or an AA tub's crease as the former 3.5 m did. */
+  readonly radius = uniform(8);
   /** Depth window, in meters, beyond which a sample stops counting as an occluder. Thin
    * shield walls and railings in front of a deck would otherwise shade it like a wall. */
-  readonly thickness = uniform(3);
-  readonly distanceExponent = uniform(1.4);
+  readonly thickness = uniform(5);
+  readonly distanceExponent = uniform(2);
+  /** How far a step's horizon counts less the further out it lies: at 1, from all of it near the pixel to half at the
+   * radius, by the step's share of the steps, so both tiers weigh an occluder at the same distance alike. */
   readonly distanceFallOff = uniform(1);
   /** Exponent on the occlusion term. */
-  readonly scale = uniform(1.3);
+  readonly scale = uniform(1.45);
   /** View distance (m) over which the effect fades: past it a ship covers too few pixels
    * for meter-scale occlusion and fog dominates its colour. */
   readonly fadeStart = uniform(900);
@@ -138,7 +142,7 @@ export class ShipOcclusion {
 
         Loop({ end: steps, type: 'int', name: 'j', condition: '<' }, ({ j }: { j: N }) => {
           const offset = sampleDir.mul(this.radius).mul(jitter).mul(pow(div(float(j).add(1), float(steps)), this.distanceExponent));
-          const falloff = mix(1, float(2).div(float(j).add(2)), this.distanceFallOff);
+          const falloff = mix(1, min(1, float(2).div(float(j).add(1).div(float(steps)).mul(3).add(1))), this.distanceFallOff);
           for (const [sign, side] of [[1, 'x'], [-1, 'y']] as const) {
             const screen = getScreenPosition(position.add(offset.mul(sign)), this.projection).toVar();
             const sampleDepth = depthAt(screen);
