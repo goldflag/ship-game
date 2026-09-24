@@ -66,7 +66,7 @@ test('all registered funnel mouths are found without smoking from bases, caps or
   expect(funnelOutlets(shipPreset('yamato'))[0].position[2]).toBeCloseTo(23.3, 2);
   // The Bismarck cap's raked mouth (23.43 m aft to 25.0 m forward) averages 24.09 m, below its raised forward lip.
   expect(funnelOutlets(shipPreset('bismarck'))[0].position[1]).toBeCloseTo(24.24, 2);
-  expect(funnelOutlets(shipPreset('fletcher'))[0].position[2]).toBeCloseTo(-9.2146, 2);
+  expect(funnelOutlets(shipPreset('fletcher'))[0].position[2]).toBeCloseTo(-8.6325, 2);
   expect(funnelOutlets(shipPreset('yukikaze')).map(o => o.position[1])).toEqual([11.27, 10.3]);
   // Explicit outlet datums also work with stable IDs that lack the old suffix.
   expect(funnelOutlets(shipPreset('iowa')).map(o => o.position)).toEqual([[0, 28.35, 4.46], [0, 27.75, 29.16]]);
