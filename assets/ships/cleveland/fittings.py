@@ -11,7 +11,7 @@ TUB_RADIUS={'aa-7':2.6,'aa-8':2.6,'aa-11':2.72,'aa-12':2.72,'aa-13':2.72,'aa-14'
 # 'rail' is an open guard rail.
 BULWARKS={
     'forward-bridge-lower-platform':(1.3,lambda a,b:True),
-    'forward-bridge-middle-platform':(1.2,lambda a,b:max(a[0],b[0])>9.7),
+    'forward-bridge-middle-platform':(1.2,lambda a,b:max(a[0],b[0])>9.7 and min(a[0],b[0])<22.4),
     'forward-bridge-upper-platform':(1.1,lambda a,b:max(a[0],b[0])>12.6),
     'pilot-house-platform':(1.1,lambda a,b:min(a[0],b[0])<18.4),
     'after-bridge-upper-platform':(1.2,lambda a,b:min(a[0],b[0])<-13.9),
