@@ -480,6 +480,12 @@ COL = collections['Funnels']
 for sid in ['forward-funnel', 'after-funnel']:
     s = S[sid]; zc = sum(p[1] for p in s['footprint']) / len(s['footprint'])
     registered('hood-forward-funnel', 'hood-forward-funnel', (-zc, 0, s['baseY']), 0, sid, COL)
+    # Domed cap grille over each funnel (reference), ship-local on top of the shared funnel.
+    ASSEMBLY = sid; top = s['baseY'] + s['height'] - .02; rx, rz = 2.72, 3.72
+    for u in [-.66, -.33, 0, .33, .66]:
+        w = math.sqrt(1 - u * u); pts = [(-(zc + u * rz), rx * w * math.cos(t), top + .75 * w * math.sin(t)) for t in [math.pi * k / 10 for k in range(11)]]
+        tube('Funnel cap grille bar', pts, .035, 'black', 6)
+    tube('Funnel cap grille spine', [(-(zc + rz * math.cos(t)), 0, top + .75 * math.sin(t)) for t in [math.pi * k / 12 for k in range(13)]], .04, 'black', 6)
 
 # ------------------------------------------------------------------ foremast, spotting top and director
 COL = collections['Masts and directors']; ASSEMBLY = 'foremast'
@@ -607,6 +613,12 @@ def director(id, x, y, z, kind):
 for id, (x, y, z), kind in [('hacs-p', (29.7, 7.6, 14.36), 'hacs'), ('hacs-s', (29.7, -7.6, 14.36), 'hacs'), ('hacs-aft', (-39.5, 0, 18.3), 'hacs'),
                             ('pom-pom-director-p', (30.4, 4.4, 19.8), 'pp'), ('pom-pom-director-s', (30.4, -4.4, 19.8), 'pp'), ('pom-pom-director-aft', (-42.8, 0, 16.25), 'pp')]:
     director(id, x, y, z, kind)
+ASSEMBLY = 'searchlight-tower-fittings'
+cyl('Searchlight tower lookout', (12.0, -.13, 17.16), .66, 2.34, 'naval', vertices=16)
+cyl('Lookout roof', (12.0, -.13, 18.36), .7, .06, 'roof', vertices=16)
+rod('Lookout lamp post', (12.0, -.13, 18.39), (12.0, -.13, 18.65), .05, 'black', vertices=6)
+ASSEMBLY = 'boat-deck-casing'
+prism('Skylight casing', [(-17.2, 1.05), (-19.4, 1.38), (-21.5, 1.38), (-21.5, -1.38), (-19.4, -1.38), (-17.2, -1.05)], 9.2, 2.0, 'naval', top_material='roof')
 ASSEMBLY = 'hacs-aft-pedestal'
 cyl('After HACS pedestal', (-39.55, 0, 17.27), 1.2, 2.05, 'naval', vertices=24, r2=.55)
 for side in [-1, 1]:
@@ -702,16 +714,17 @@ def up_projector(id, x, y, z, bearing, parent=None):
     ASSEMBLY = id; before = set(scene.objects)
     cyl('UP training base', (0, 0, .12), .75, .24, 'edge', vertices=24)
     cyl('UP pedestal', (0, 0, .55), .38, .7, 'naval', vertices=16)
+    # Reference pbsb507: a 2.2 m box of 4 x 5 tubes laid at 45 degrees, its centre 2.1 m above the deck.
     for side in [-1, 1]:
-        box('UP trunnion bracket', (0, side * 1.0, 1.05), (.5, .1, .7), 'naval')
-    body = box('UP projector box', (.05, 0, 1.55), (1.45, 1.9, 1.5), 'naval'); body.rotation_euler.y = math.radians(-35)
-    for i in range(4):
-        for j in range(5):
+        box('UP trunnion bracket', (0, side * .61, 1.3), (.5, .1, 1.4), 'naval')
+    body = box('UP projector box', (.05, 0, 2.1), (2.2, 1.1, 1.35), 'naval'); body.rotation_euler.y = math.radians(-45)
+    for i in range(5):
+        for j in range(4):
             ob = rod('UP barrel mouth', (0, 0, 0), (0, 0, .03), .1, 'dark', vertices=10)
-            local = Matrix.Translation((.05, 0, 1.55)) @ Matrix.Rotation(math.radians(-35), 4, 'Y') @ Matrix.Translation((.735, -.72 + j * .36, -.54 + i * .36)) @ Matrix.Rotation(math.pi / 2, 4, 'Y')
+            local = Matrix.Translation((.05, 0, 2.1)) @ Matrix.Rotation(math.radians(-45), 4, 'Y') @ Matrix.Translation((1.1, -.45 + j * .3, -.54 + i * .27)) @ Matrix.Rotation(math.pi / 2, 4, 'Y')
             ob.matrix_world = local
     box('UP loading platform', (-.9, 0, .32), (.9, 1.8, .08), 'roof')
-    for side in [-1, 1]: rod('UP handwheel', (-.4, side * .98, .9), (-.4, side * 1.12, .9), .2, 'edge', vertices=16)
+    for side in [-1, 1]: rod('UP handwheel', (-.4, side * .66, 1.0), (-.4, side * .8, 1.0), .2, 'edge', vertices=16)
     node = pivot(id + '.yaw', (0, 0, 0)); attach_world(set(scene.objects) - before - {node}, node)
     node.location = (x, y, z); node.rotation_euler.z = -math.radians(bearing)
     if parent: attach_world([node], parent)
