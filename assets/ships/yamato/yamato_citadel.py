@@ -112,61 +112,29 @@ def single25(id,P):
 
 def build():
  aa_support=SupportSurface([*HULL.objects,*SUPER.objects,*FUNNEL.objects,*GUNS.objects])
- # Twelve Type 89 twins at the reference hardpoints. Outer mod A mounts are
- # hooded on round towers flush with the shelter deck; the inner open mounts
- # stand in walled tubs on cones or columns.
+ # Twelve Type 89 twins at the pjsb018 hardpoints through their registered
+ # builders (the mount datum is the hardpoint). Outer mod A mounts stand on
+ # round towers flush with the shelter deck; the inner open mounts stand in
+ # walled tubs on cones or columns.
  def aa127(mount,shield):
-  id=mount['id'];w=mount['weapon'];px,pz,py=mount['position'];x,y,z=-py,-px,pz
-  before=set(scene.objects)
-  if shield:
-   deck=SHELTER-z
-   cyl(id+' turntable',(0,0,deck+.1),3.0,.2,roof,AA,32)
-   base=[(1.45,-2.2),(1.45,2.2),(.6,2.95),(-.9,3.0),(-1.9,2.35),(-2.9,1.4),(-3.35,.8),(-3.35,-.8),(-2.9,-1.4),(-1.9,-2.35),(-.9,-3.0),(.6,-2.95)]
-   top=[(1.4,-1.7),(1.4,1.7),(.5,2.05),(-.9,2.1),(-1.8,1.5),(-2.5,.8),(-2.75,.45),(-2.75,-.45),(-2.5,-.8),(-1.8,-1.5),(-.9,-2.1),(.5,-2.05)]
-   roofh=[3.35,3.35,3.8,3.9,3.45,2.95,2.75,2.75,2.95,3.45,3.9,3.8]
-   # A convex middle ring rounds the hood between its low walls and the roof.
-   mid=[(a+(c-a)*.4,b+(d-b)*.4) for (a,b),(c,d) in zip(base,top)]
-   hood(id+' rounded blast shield',LOCAL,[(base,deck+.2),(base,deck+.95),(mid,[deck+.95+(h-deck-.95)*.75 for h in roofh]),(top,roofh)],naval,AA)
-   obox(id+' gun slot',LOCAL,1.46,0,(deck+.5+3.3)/2,.04,1.9,3.3-deck-.5,dark,AA)
-   for b in (-.95,0,.95):
-    pts=[(1.47,3.3),(.6,3.78),(-.4,3.96),(-1.2,3.93)]
-    for (a0,h0),(a1,h1) in zip(pts,pts[1:]):rod(id+' slot band',(a0,b,h0),(a1,b,h1),.07,edge,AA,vertices=6)
-   # Guard rail round the open front of the turntable; it trains with the hood.
-   arc=[(2.9*math.cos(math.radians(t)),2.9*math.sin(math.radians(t))) for t in range(-72,73,24)]
-   for p,q in zip(arc,arc[1:]):rod(id+' turntable rail',(*p,deck+1.15),(*q,deck+1.15),.03,edge,AA,vertices=6)
-   posts(id+' turntable stanchion',arc[::2],deck+.2,deck+1.15,edge,AA)
-  else:
-   floor=.14
-   cyl(id+' pedestal',(0,0,floor+.55),.55,1.1,naval,AA,12)
-   cyl(id+' base ring',(0,0,floor+.15),1.0,.3,roof,AA,16)
-   obox(id+' carriage',LOCAL,0,0,1.55+floor,1.8,2.0,.6,naval,AA)
-   rod(id+' trunnion axle',(w['trunnionForward'],-1.3,w['pivotHeight']),(w['trunnionForward'],1.3,w['pivotHeight']),.21,edge,AA,vertices=12)
-   plate=[(-1.1,1.2),(1.0,1.2),(1.0,2.5),(.5,3.0),(-.4,3.15),(-1.1,2.7)]
-   for b in (-1.3,1.3):
-    v=[(a,b+s,h) for s in (-.06,.06) for a,h in plate];n=len(plate)
-    outward(mesh(id+' trunnion shield',v,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],naval,AA))
-   obox(id+' fuze setter',LOCAL,-.7,1.95,floor+.75,1.0,.7,1.3,naval,AA)
-  frame=set(scene.objects)-before;barrels=[]
-  direction=Vector((math.cos(math.radians(1)),0,math.sin(math.radians(1))))
-  for b in (w['barrelSpacing']/2,-w['barrelSpacing']/2):
-   start=Vector((w['trunnionForward'],b,w['pivotHeight']));tip=start+direction*(w['muzzleForward']-w['trunnionForward'])
-   group=[rod(id+' 127 mm barrel',start,tip,.13,edge,AA,r2=.1,vertices=12)]
-   if not shield:group.append(rod(id+' breech',start-direction*1.4,start+direction*.2,.26,naval,AA,vertices=10))
-   barrels.append(group)
-  articulate_aa(mount,AA,frame,barrels)
+  id=mount['id'];px,pz,py=mount['position'];x,y,z=-py,-px,pz
+  create_shared_mount(mount,AA,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials)
   # Fixed supports stay outside the gun hierarchy.
   if shield:
-   # The tower rim stands 4 cm proud of the shelter deck it merges with.
-   floor=aa_support.below(x,y,SHELTER-1);top=SHELTER+.04
+   # The tower rim stands 4 cm proud of the hardpoint, seating the turntable.
+   floor=aa_support.below(x,y,z-1);top=z+.04
    tower=cyl('Raised HA sponson',(x,y,(floor+top)/2),3.33,top-floor,naval,SUPER,32)
    tower['assemblyId']=id
   else:
-   floor=z+.14;foot=aa_support.below(x,y,floor-.3);R=3.08;h=floor-foot
+   # Tub floor under the mount's deck ring; the wall stays below the barrels
+   # at full depression.
+   floor=z-.05;foot=aa_support.below(x,y,floor-.3);R=3.08;h=floor-foot
    prof=[(.45,foot),(.85,floor-1.0)] if h>1.5 else [(.9,foot),(.9,floor-.9)] if h>.9 else [(1.65,foot)]
-   tub=lathe('Open HA mount tub',prof+[(R,floor-.06),(R+.05,floor+1.45),(R-.01,floor+1.45),(R-.01,floor)],x,y,naval,AA,32)
+   tub=lathe('Open HA mount tub',prof+[(R,floor-.06),(R+.05,floor+1.3),(R-.01,floor+1.3),(R-.01,floor)],x,y,naval,AA,32)
    tub['assemblyId']=id
  for mount in D['mounts']:
-  if mount['partId']=='type89-127-yamato-twin':aa127(mount,int(mount['id'].rsplit('-',1)[1])<=3)
+  if mount['partId'] in ('type89-127-yamato-twin','type89-127-yamato-open-twin'):
+   aa127(mount,mount['partId']=='type89-127-yamato-twin')
 
  # Every 25 mm mount of the 1945 fit at the pjsb018 hardpoints (port values,
  # mirrored). Closed mounts ride drums; open mounts stand in tubs.
