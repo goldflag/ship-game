@@ -3,7 +3,8 @@
 - Read the quick reference at the top of [DESIGN.md](../../DESIGN.md) before styling. Extend the naval instrument
   styling, keep the ship and sea visible, and use the controls in [components/](components/README.md) before
   writing a new button, select or dialog.
-- Files: `App.tsx` owns phases (port, battle, editor) and the `Game` instance. `Garage.tsx` is the port. `battle/`
+- Files: `App.tsx` owns phases (port, battle, editor) and the `Game` instance. `Garage.tsx` is the port and `TechTree.tsx` its research tree; ownership comes from `useProgress()` and
+  `canCommandPreset` ([research progression](../../docs/progression.md)). `battle/`
   is the battle board (custom battle, fleet command, 1v1). `report/` is the after-action report a decided battle ends on. `FleetHud.tsx`, `FleetCommand.tsx` and `fleet/` are the
   in-battle fleet UI. `AirOperations.tsx`, `FlightLine.tsx` and `CarrierDeck.tsx` are carrier UI. Battle key
   bindings live in `src/game/keybindings.ts` (`INPUT_ACTIONS`), not in components.

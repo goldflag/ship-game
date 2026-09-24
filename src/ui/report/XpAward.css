@@ -1,0 +1,10 @@
+/* Research XP line under an end screen's title: a labelled number, mint for what was earned. Selectors carry the
+   block class so the host screen's `p` and `strong` rules do not restyle it. */
+.xp-award { display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:4px 10px; min-height:26px;
+  color:#bacbd0; font-variant-numeric:tabular-nums; pointer-events:auto; }
+.xp-award .xp-label { font:600 11px/1 'Barlow',sans-serif; letter-spacing:.14em; text-transform:uppercase; color:#9fb3b9; }
+.xp-award .xp-total { font:600 24px/1 'Barlow Condensed',sans-serif; letter-spacing:.03em; color:#86e4c5; }
+.xp-award .xp-split { font:400 13px/1.35 'Barlow',sans-serif; color:#bacbd0; }
+.xp-award[data-state='pending'] .xp-split { color:#9fb3b9; }
+.xp-award .xp-error { font:400 13px/1.35 'Barlow',sans-serif; color:#ffb5a6; }
+.xp-award .xp-retry { align-self:center; width:auto; min-height:26px; padding:2px 12px; font-size:12px; }

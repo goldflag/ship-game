@@ -1,5 +1,5 @@
-// Home port: the player's own designs. One ship lies alongside under its builder's plate;
-// the plan chest holds the whole library. Historical ships are offered in Battle setup.
+// Home port: the ships the player owns lie alongside one at a time, grouped by nation, then their own designs.
+// The tech tree unlocks historical ships with XP; the plan chest holds the whole design library.
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useConstructionThumbnail } from './useConstructionThumbnail';
 import { InspectionTooltip, type InspectionHoverSource } from './InspectionTooltip';
@@ -19,21 +19,16 @@ import { CloneDesignButton, DeleteDesignButton } from './DeleteDesignButton';
 import { cloneConstructionDesign, openConstructionStore } from '../ships/constructionStore';
 import { restoreLocalShips } from '../ships/constructionLibrary';
 import { shipScores, shipSpec, type StatScoreId } from '../ships/statistics';
-import { HULL_PRESETS, type HullPresetChoice } from '../ships/constructionHullPresets';
-import { HullPresetPlan } from './shipbuilding/NewDesignDialog';
-import {
-  PORT_STATUS_LABEL,
-  editedLabel,
-  filterDesigns,
-  fleetLineWindow,
-  portDesigns,
-  rememberDesign,
-  rememberedDesign,
-  sortDesigns,
-  type PortDesign,
-  type PortFilter,
-  type PortSort,
-} from './portDesigns';
+import type { HullPresetChoice } from '../ships/constructionHullPresets';
+import { PORT_STATUS_LABEL, editedLabel, filterDesigns, portDesigns, sortDesigns, type PortDesign, type PortFilter, type PortSort } from './portDesigns';
+import { fallbackBerth, portFleet, rememberBerth, type FleetEntry } from './portFleet';
+import { PortIcon } from './PortIcon';
+import { TechTree, formatXp, nodeType, research, useUnlock, type Research } from './TechTree';
+import { useProgress } from './useProgress';
+import { canCommandPreset, type ProgressSnapshot } from '../progression/store';
+import { TECH_TREE, presetNation, presetPlace, type TechNation } from '../progression/techTree';
+import { NationFlag } from './battle/NationFlag';
+import { ShipThumbnail } from './battle/ShipCard';
 
 const SCORE_SHORT: Record<StatScoreId, string> = {
   survivability: 'Surv',
@@ -42,37 +37,6 @@ const SCORE_SHORT: Record<StatScoreId, string> = {
   maneuverability: 'Man',
   concealment: 'Con',
 };
-
-function PortIcon({ name, size = 16 }: { name: 'pencil' | 'grid' | 'search' | 'back' | 'left' | 'right'; size?: number }) {
-  const paths = {
-    pencil: <path d="M4 20h4L19 9l-4-4L4 16ZM13 7l4 4" />,
-    grid: <path d="M4 4h7v7H4ZM13 4h7v7h-7ZM4 13h7v7H4ZM13 13h7v7h-7Z" />,
-    search: (
-      <>
-        <circle cx="11" cy="11" r="6" />
-        <path d="m20 20-4.5-4.5" />
-      </>
-    ),
-    back: <path d="M20 12H4m6-6-6 6 6 6" />,
-    left: <path d="m15 6-6 6 6 6" />,
-    right: <path d="m9 6 6 6-6 6" />,
-  };
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {paths[name]}
-    </svg>
-  );
-}
 
 function DesignThumbnail({ design }: { design: PortDesign }) {
   const thumbnail = useConstructionThumbnail(design.ship);
@@ -98,8 +62,124 @@ type GarageState = {
   chooseBattle: () => void;
   lastMode: BattleMode;
   ready: boolean;
+  /** A locked tree ship alongside for inspection: the command unlocks her instead of sailing. */
+  locked?: Research;
+  /** Progress has loaded, so XP can be spent. */
+  unlockable: boolean;
+  unlock(nodeId: string): Promise<void>;
 };
+
+/** Where an unlock's XP comes from, in the few words the top bar has room for. */
+const shortSpend = ({ spend, nation }: Research) =>
+  [spend.nation && `${formatXp(spend.nation)} ${nation.short} XP`, spend.free && `${formatXp(spend.free)} free XP`].filter(Boolean).join(' + ');
+
+/** BATTLE's place while a locked ship is alongside: the unlock, with the reason when it cannot be had yet. */
+function UnlockCommand({ view, ready, unlockable, onUnlock }: { view: Research; ready: boolean; unlockable: boolean; onUnlock(nodeId: string): Promise<void> }) {
+  const unlock = useUnlock(view.node.id, onUnlock);
+  const can = unlockable && view.state === 'available';
+  const reason = unlock.error
+    ? unlock.error
+    : unlock.confirming
+      ? `Spends ${shortSpend(view)} for good · Esc cancels`
+      : view.state === 'available'
+        ? `Paid from ${shortSpend(view)}`
+        : view.state === 'short'
+          ? `${view.status} · earn it in battle`
+          : view.state === 'blocked'
+            ? view.detail.replace(/\.$/, '')
+            : 'Research progress is offline';
+  return (
+    <div
+      className="garage-battle"
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && unlock.confirming) {
+          event.stopPropagation();
+          unlock.cancel();
+        }
+      }}
+    >
+      <div className="garage-battle-split">
+        <button
+          className="garage-set-sail garage-unlock"
+          data-confirming={unlock.confirming}
+          data-held={!can}
+          aria-describedby="garage-unlock-reason"
+          disabled={!ready || !can || unlock.busy}
+          onClick={unlock.confirming ? () => void unlock.confirm() : unlock.offer}
+        >
+          <PortIcon name={can ? 'tree' : 'lock'} size={20} />
+          <strong>{unlock.busy ? 'UNLOCKING…' : unlock.confirming ? 'CONFIRM UNLOCK' : `UNLOCK · ${formatXp(view.node.cost)} XP`}</strong>
+        </button>
+        {unlock.confirming && (
+          <button className="garage-battle-caret" aria-label="Cancel the unlock" title="Cancel" disabled={unlock.busy} onClick={unlock.cancel}>
+            <Icon name="close" size={16} />
+          </button>
+        )}
+      </div>
+      <small className="garage-battle-last" id="garage-unlock-reason" data-state={unlock.error ? 'error' : view.state} role={unlock.error ? 'alert' : undefined}>
+        {reason}
+      </small>
+    </div>
+  );
+}
+
+/** The tech tree command, with the berthed ship's nation XP and the free XP; every nation on hover or focus. */
+function ResearchButton({ snapshot, nation, open, onOpen }: { snapshot: ProgressSnapshot; nation?: TechNation; open: boolean; onOpen(): void }) {
+  const { profile, status } = snapshot;
+  return (
+    <div className="port-research">
+      <button className="port-quiet port-research-open" aria-haspopup="dialog" aria-expanded={open} aria-describedby="port-xp-ledger" onClick={onOpen}>
+        <PortIcon name="tree" size={18} />
+        <span className="port-research-text">
+          <span>Tech tree</span>
+          <small>
+            {status !== 'ready' ? (
+              status === 'loading' ? (
+                'Loading XP…'
+              ) : (
+                'XP offline'
+              )
+            ) : (
+              <>
+                {nation && (
+                  <>
+                    <NationFlag nation={nation.name} width={13} />
+                    <b>{formatXp(profile.xp[nation.id])}</b>
+                    <i aria-hidden="true">·</i>
+                  </>
+                )}
+                <b>{formatXp(profile.freeXp)}</b> free
+              </>
+            )}
+          </small>
+        </span>
+      </button>
+      <div className="port-xp-ledger" id="port-xp-ledger" role="tooltip">
+        <strong>Research XP</strong>
+        <dl>
+          {TECH_TREE.map((entry) => (
+            <div key={entry.id} data-current={entry.id === nation?.id}>
+              <dt>
+                <NationFlag nation={entry.name} width={14} />
+                {entry.name}
+              </dt>
+              <dd>{formatXp(profile.xp[entry.id])}</dd>
+            </div>
+          ))}
+          <div className="port-xp-free">
+            <dt>Free XP, any nation</dt>
+            <dd>{formatXp(profile.freeXp)}</dd>
+          </div>
+        </dl>
+        <small>Battles earn XP for the nations you field; a tenth, and all that player designs earn, is free XP.</small>
+      </div>
+    </div>
+  );
+}
+
 function SetSail({ state }: { state: GarageState }) {
+  if (state.locked)
+    return <UnlockCommand key={state.locked.node.id} view={state.locked} ready={state.ready} unlockable={state.unlockable} onUnlock={state.unlock} />;
   return (
     <div className="garage-battle">
       <div className="garage-battle-split">
@@ -322,63 +402,11 @@ function PlanChest({
   );
 }
 
-/** The quay stands empty until the player has a ship that can berth. */
-function EmptyPort({
-  drafts,
-  ready,
-  onBuild,
-  onChest,
-}: {
-  drafts: number;
-  ready: boolean;
-  onBuild(choice?: HullPresetChoice): void;
-  onChest(): void;
-}) {
-  const generic = HULL_PRESETS.filter((preset) => preset.category === 'Generic'),
-    historical = HULL_PRESETS.filter((preset) => preset.category !== 'Generic');
-  return (
-    <section className="port-empty" aria-label="Start a design">
-      <p className="port-empty-kicker">{drafts ? 'No ships ready for sea' : 'No ships in port'}</p>
-      <h1>{drafts ? 'Finish a draft, or lay down a new ship' : 'Lay down your first ship'}</h1>
-      <p>
-        {drafts ? (
-          <>
-            Your {drafts === 1 ? 'draft needs' : `${drafts} drafts need`} finishing in the shipbuilder before {drafts === 1 ? 'it' : 'they'}{' '}
-            can berth here.{' '}
-            <button className="port-link" onClick={onChest}>
-              Open all designs
-            </button>
-          </>
-        ) : (
-          'Pick a hull to start from. Every section, fitting and plate stays editable in the shipbuilder.'
-        )}
-      </p>
-      <div className="port-empty-hulls">
-        {generic.map((preset) => (
-          <button key={preset.id} disabled={!ready} onClick={() => onBuild(preset.id)}>
-            <HullPresetPlan preset={preset} />
-            <strong>{preset.name}</strong>
-            <span>
-              {Number(preset.length.toFixed(1))} × {Number(preset.beam.toFixed(1))} m · {preset.note.replace(/^Generic · /, '')}
-            </span>
-          </button>
-        ))}
-      </div>
-      <div className="port-empty-more">
-        <span>Or a historical hull shape</span>
-        {historical.map((preset) => (
-          <button key={preset.id} className="port-chip" disabled={!ready} onClick={() => onBuild(preset.id)}>
-            {preset.name}
-          </button>
-        ))}
-        <i aria-hidden="true" />
-        <button className="port-chip" disabled={!ready} onClick={() => onBuild('blank')}>
-          Blank 1 m block
-        </button>
-      </div>
-    </section>
-  );
-}
+
+/** How a fleet entry is named on the quay: historical names in capitals, designs as typed. */
+const entryTitle = (entry: FleetEntry) => shipTitle({ id: entry.shipId, name: entry.name });
+
+type Overlay = 'chest' | 'tree';
 
 interface Props {
   /** The port scene: inspection views and the hover feed the tooltip follows. */
@@ -398,8 +426,12 @@ interface Props {
   lastMode: BattleMode;
   onSettings: () => void;
   accountName?: string;
-  /** A `?ship=` link keeps a historical preset alongside for review; the port otherwise berths only the player's designs. */
+  /** A `?ship=` link keeps its preset alongside for review, whether or not the player owns her, and enemy-only presets too. */
   pinned: boolean;
+  /** The design this browser last berthed, still compiling: the quay waits for her instead of showing the opening preset. */
+  opening?: string;
+  /** The opening design is alongside, or gone: the quay may show whatever is berthed. */
+  onOpened?: () => void;
 }
 
 export function Garage({
@@ -420,22 +452,36 @@ export function Garage({
   switchError,
   onSelectShip,
   pinned,
+  opening,
+  onOpened,
 }: Props) {
   const selectedShip = useShip();
-  const local = useSyncExternalStore(subscribeLocalShips, localShips);
+  const { store, snapshot } = useProgress();
+  const local = useSyncExternalStore(subscribeLocalShips, localShips, localShips);
   const library = usePortDesigns();
   const loading = library.loading || libraryLoading;
   const designs = useMemo(() => portDesigns(library.designs, local, loading), [library.designs, local, loading]);
-  const fleet = useMemo(() => designs.filter((design) => design.ship), [designs]);
-  const berthedIndex = fleet.findIndex((design) => design.ship!.definition.id === selectedShip.id);
-  const berthed = berthedIndex >= 0 ? fleet[berthedIndex] : undefined;
-  const alongside = !!berthed || pinned;
+
+  // A locked tree ship stays alongside only when the player chose her from the tree, or a `?ship=` link named her.
+  const [previewId, setPreviewId] = useState<string>();
+  const place = presetPlace(selectedShip.id);
+  const lockedHere = !!place && !canCommandPreset(snapshot, selectedShip.id);
+  const previewing = lockedHere && (pinned || previewId === selectedShip.id);
+  const groups = useMemo(() => portFleet(snapshot, designs, previewing ? selectedShip.id : undefined), [snapshot, designs, previewing, selectedShip.id]);
+  const order = useMemo(() => groups.flatMap((group) => group.entries), [groups]);
+  const berthedIndex = order.findIndex((entry) => entry.shipId === selectedShip.id);
+  const berthed = berthedIndex >= 0 ? order[berthedIndex] : undefined;
+  const berthedDesign = berthed?.kind === 'design' ? berthed.design : undefined;
+  const alongside = !opening && (!!berthed || pinned);
+  const locked = previewing ? research(snapshot, selectedShip.id) : undefined;
 
   const [inspection, setInspection] = useState<InspectionMode>('exterior');
   const [selection, setSelection] = useState<PortSelection>();
-  const [chestOpen, setChestOpen] = useState(false),
+  const [overlay, setOverlay] = useState<Overlay>(),
     [query, setQuery] = useState('');
+  const chestOpen = overlay === 'chest';
   const search = useRef<HTMLInputElement>(null);
+  const line = useRef<HTMLDivElement>(null);
   const inspect = (mode: InspectionMode) => {
     setInspection(mode);
     setSelection(undefined);
@@ -451,41 +497,62 @@ export function Garage({
     setSelection(undefined);
   }, [selectedShip.id]);
 
-  const berth = (design: PortDesign) => {
-    setChestOpen(false);
-    if (!design.ship) return;
-    rememberDesign(design.ship.source.id);
-    if (design.ship.definition.id === selectedShip.id) inspect('exterior');
-    else onSelectShip(design.ship.definition.id);
+  const berth = (entry: FleetEntry) => {
+    setOverlay(undefined);
+    if (entry.shipId === selectedShip.id) inspect('exterior');
+    else onSelectShip(entry.shipId);
   };
-  // With nothing of the player's alongside, berth the design they last looked at, else their newest.
-  useEffect(() => {
-    if (pinned || berthed || !usable) return;
-    const remembered = rememberedDesign();
-    const target = fleet.find((design) => design.ship!.source.id === remembered) ?? (loading ? undefined : fleet[0]);
-    if (target) onSelectShip(target.ship!.definition.id);
-  }, [pinned, berthed, usable, fleet, loading]);
-  useEffect(() => {
-    if (berthed) rememberDesign(berthed.ship!.source.id);
-  }, [berthed?.ship?.source.id]);
+  /** From the tree: any modelled ship, owned or not, comes alongside. */
+  const viewPreset = (presetId: string) => {
+    setOverlay(undefined);
+    setPreviewId(canCommandPreset(snapshot, presetId) ? undefined : presetId);
+    if (presetId === selectedShip.id) inspect('exterior');
+    else onSelectShip(presetId);
+  };
 
-  const previous = berthed && fleet.length > 1 ? fleet[(berthedIndex - 1 + fleet.length) % fleet.length] : undefined;
-  const next = berthed && fleet.length > 1 ? fleet[(berthedIndex + 1) % fleet.length] : undefined;
-  const keys = useRef({ previous, next, chestOpen, berth, selection });
-  keys.current = { previous, next, chestOpen, berth, selection };
+  // The design last berthed here comes alongside once she has compiled; if she is gone, the opening preset stays.
+  const openingTried = useRef(false);
+  useEffect(() => {
+    if (!opening || !usable) return;
+    const design = order.find((entry) => entry.kind === 'design' && entry.design.ship!.source.id === opening);
+    if (design && design.shipId !== selectedShip.id && !openingTried.current) {
+      openingTried.current = true;
+      onSelectShip(design.shipId);
+    } else if (design || !loading || switchError) onOpened?.();
+  }, [opening, usable, order, loading, selectedShip.id, switchError]);
+  // A ship that is not the player's (locked once progress loads, or a deleted design) gives way to one that is.
+  useEffect(() => {
+    if (pinned || opening || !usable || berthed || previewing || switchError) return;
+    const target = fallbackBerth(order);
+    if (target && target.shipId !== selectedShip.id) onSelectShip(target.shipId);
+  }, [pinned, opening, usable, berthed, previewing, order, selectedShip.id, switchError]);
+  useEffect(() => {
+    if (berthed && !opening) rememberBerth(berthed);
+  }, [berthed?.key, opening]);
+  // The fleet line scrolls the ship alongside into view.
+  useEffect(() => {
+    const scroller = line.current,
+      item = scroller?.querySelector<HTMLElement>('button[aria-pressed="true"]');
+    if (scroller && item) scroller.scrollTo({ left: item.offsetLeft - (scroller.clientWidth - item.offsetWidth) / 2, behavior: 'smooth' });
+  }, [berthed?.key, order.length]);
+
+  const previous = berthed && order.length > 1 ? order[(berthedIndex - 1 + order.length) % order.length] : undefined;
+  const next = berthed && order.length > 1 ? order[(berthedIndex + 1) % order.length] : undefined;
+  const keys = useRef({ previous, next, overlay, berth, selection });
+  keys.current = { previous, next, overlay, berth, selection };
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (document.querySelector('dialog[open]')) return;
-      const { previous, next, chestOpen, berth, selection } = keys.current;
+      const { previous, next, overlay, berth, selection } = keys.current;
       if (event.key === 'Escape') {
-        // Back out one step: the chest, then an isolated volume, then the model view.
-        if (chestOpen) setChestOpen(false);
+        // Back out one step: the chest or the tree, then an isolated volume, then the model view.
+        if (overlay) setOverlay(undefined);
         else if (selection) setSelection(undefined);
         else setInspection('exterior');
         return;
       }
       const typing = event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable]');
-      if (typing || chestOpen || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (typing || overlay || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key === 'ArrowLeft' && previous) berth(previous);
       if (event.key === 'ArrowRight' && next) berth(next);
     };
@@ -512,35 +579,38 @@ export function Garage({
   };
   /** The clone joins the library as its own design, then comes alongside once she has compiled. */
   const clone = async (design: PortDesign) => {
-    const store = await openConstructionStore();
+    const constructions = await openConstructionStore();
     let cloneId: string;
     try {
-      cloneId = (await cloneConstructionDesign(store, design.head!.id)).sourceId;
+      cloneId = (await cloneConstructionDesign(constructions, design.head!.id)).sourceId;
     } finally {
-      store.close();
+      constructions.close();
     }
     library.refresh();
     await restoreLocalShips();
     const ship = localShips().find((ship) => ship.source.id === cloneId);
     if (ship) {
-      setChestOpen(false);
-      rememberDesign(cloneId);
+      setOverlay(undefined);
       onSelectShip(ship.definition.id);
     }
   };
   const edit = (design: PortDesign) => onEditDesign(design.id);
+  const unlock = (nodeId: string) => store.unlock(nodeId);
 
   const state: GarageState = {
     battle: onBattle,
     chooseBattle: onChooseBattle,
     lastMode,
     ready: usable,
+    locked,
+    unlockable: snapshot.status === 'ready',
+    unlock,
   };
   const model = shipModel(selectedShip);
-  const underway = !alongside && fleet.length > 0;
+  const berthedNation = presetNation(selectedShip.id);
 
   return (
-    <div className={`garage ${chestOpen ? 'port-chest-open' : ''} ${alongside ? '' : 'port-berth-empty'}`}>
+    <div className={`garage ${overlay ? 'port-overlay-open' : ''} ${chestOpen ? 'port-chest-open' : ''} ${alongside ? '' : 'port-berth-empty'}`}>
       <div className="garage-scene-shade" />
       <div className="garage-layout">
         <header className="garage-classic-header">
@@ -551,6 +621,12 @@ export function Garage({
           <PerformanceCounter className="garage-preview-meta" fps={fps} performance={performance} />
           <div className="garage-classic-deploy">
             <SetSail state={state} />
+            <ResearchButton
+              snapshot={snapshot}
+              nation={berthedNation ? TECH_TREE.find((nation) => nation.id === berthedNation) : undefined}
+              open={overlay === 'tree'}
+              onOpen={() => setOverlay(overlay === 'tree' ? undefined : 'tree')}
+            />
           </div>
           <div className="port-header-actions">
             {chestOpen ? (
@@ -571,7 +647,7 @@ export function Garage({
                   <Icon name="plus" size={16} />
                   <span>New design</span>
                 </button>
-                <button className="port-quiet" aria-haspopup="dialog" onClick={() => setChestOpen(true)}>
+                <button className="port-quiet" aria-haspopup="dialog" onClick={() => setOverlay('chest')}>
                   <PortIcon name="grid" />
                   <span>All designs</span>
                   <b>{designs.length}</b>
@@ -581,16 +657,30 @@ export function Garage({
           </div>
         </header>
 
-        <div className="port-quay" inert={chestOpen}>
+        <div className="port-quay" inert={!!overlay}>
           {alongside && (
             <>
               <div className="port-panel-shade" aria-hidden="true" />
               <section className="port-identity" aria-label={shipTitle(selectedShip)}>
                 <div className="port-identity-status">
-                  {berthed ? (
+                  {berthedDesign ? (
                     <>
                       <StatusMark status="ready" />
-                      {berthed.head && <span>{editedLabel(berthed.updatedAt)}</span>}
+                      {berthedDesign.head && <span>{editedLabel(berthedDesign.updatedAt)}</span>}
+                    </>
+                  ) : place ? (
+                    <>
+                      {locked && (
+                        <span className="port-locked-mark">
+                          <PortIcon name="lock" size={13} />
+                          Locked
+                        </span>
+                      )}
+                      <span className="port-identity-type">{nodeType(place.node)}</span>
+                      <span className="port-identity-nation">
+                        <NationFlag nation={place.nation.name} width={16} />
+                        {place.nation.name} · {place.node.year}
+                      </span>
                     </>
                   ) : (
                     <>
@@ -611,16 +701,28 @@ export function Garage({
                     </div>
                   ))}
                 </dl>
-                {berthed && (
+                {berthedDesign && (
                   <div className="port-actions">
-                    <button className="port-command" disabled={!usable} onClick={() => edit(berthed)}>
+                    <button className="port-command" disabled={!usable} onClick={() => edit(berthedDesign)}>
                       <PortIcon name="pencil" size={17} />
                       <strong>EDIT DESIGN</strong>
                     </button>
-                    {berthed.head && <CloneDesignButton name={berthed.name} disabled={!usable} onClone={() => clone(berthed)} />}
-                    {berthed.head && (
-                      <DeleteDesignButton key={berthed.id} name={berthed.name} disabled={!usable} onDelete={() => remove(berthed)} />
+                    {berthedDesign.head && <CloneDesignButton name={berthedDesign.name} disabled={!usable} onClone={() => clone(berthedDesign)} />}
+                    {berthedDesign.head && (
+                      <DeleteDesignButton key={berthedDesign.id} name={berthedDesign.name} disabled={!usable} onDelete={() => remove(berthedDesign)} />
                     )}
+                  </div>
+                )}
+                {locked && (
+                  <div className="port-locked" data-state={locked.state}>
+                    <p>
+                      <b>{formatXp(locked.node.cost)} XP</b>
+                      <span>{locked.state === 'available' ? 'Ready to unlock. ' : ''}{locked.detail}</span>
+                    </p>
+                    <button className="port-quiet" onClick={() => setOverlay('tree')}>
+                      <PortIcon name="tree" size={16} />
+                      See her line in the tech tree
+                    </button>
                   </div>
                 )}
               </section>
@@ -636,34 +738,26 @@ export function Garage({
                 <button
                   className="port-neighbour port-neighbour-previous"
                   disabled={!usable}
-                  aria-label={`Previous design: ${previous.name}`}
+                  aria-label={`Previous ship: ${previous.name}`}
                   onClick={() => berth(previous)}
                 >
                   <span>
                     <PortIcon name="left" size={22} />
                   </span>
-                  <small>{previous.name}</small>
+                  <small>{entryTitle(previous)}</small>
                 </button>
               )}
               {next && (
-                <button
-                  className="port-neighbour port-neighbour-next"
-                  disabled={!usable}
-                  aria-label={`Next design: ${next.name}`}
-                  onClick={() => berth(next)}
-                >
+                <button className="port-neighbour port-neighbour-next" disabled={!usable} aria-label={`Next ship: ${next.name}`} onClick={() => berth(next)}>
                   <span>
                     <PortIcon name="right" size={22} />
                   </span>
-                  <small>{next.name}</small>
+                  <small>{entryTitle(next)}</small>
                 </button>
               )}
             </>
           )}
-          {!alongside && !underway && !loading && !switching && (
-            <EmptyPort drafts={designs.length} ready={usable} onBuild={onBuild} onChest={() => setChestOpen(true)} />
-          )}
-          {!alongside && (loading || underway) && !switching && (
+          {!alongside && !switching && (loading || opening) && (
             <p className="port-loading" role="status">
               Loading your designs…
             </p>
@@ -677,49 +771,86 @@ export function Garage({
             </p>
           )}
 
-          {fleet.length > 0 && (
-            <nav className="port-fleet-line" aria-label="Fleet line">
-              {fleet.length > 1 && <kbd aria-hidden="true">←</kbd>}
-              {fleetLineWindow(fleet, Math.max(0, berthedIndex)).map((design) => (
-                <button
-                  key={design.id}
-                  disabled={!usable}
-                  title={design.name}
-                  aria-label={design.name}
-                  aria-pressed={design === berthed}
-                  onClick={() => berth(design)}
-                >
-                  <DesignThumbnail design={design} />
-                </button>
+          <nav className="port-fleet-line" aria-label="Fleet line">
+            {order.length > 1 && <kbd aria-hidden="true">←</kbd>}
+            <div className="port-fleet-scroll" ref={line} onWheel={(event) => {
+              // A vertical wheel walks the line sideways; the camera keeps the wheel everywhere else.
+              if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) event.currentTarget.scrollLeft += event.deltaY;
+            }}>
+              {groups.map((group) => (
+                <div key={group.id} className="port-fleet-group" role="group" aria-label={group.label} data-group={group.id}>
+                  <span className="port-fleet-label" aria-hidden="true">
+                    {group.nation && <NationFlag nation={group.nation.name} width={13} />}
+                    {group.label}
+                  </span>
+                  <div className="port-fleet-ships">
+                    {group.entries.map((entry) => {
+                      const lockedEntry = entry.kind === 'preset' && !!entry.locked;
+                      return (
+                        <button
+                          key={entry.key}
+                          disabled={!usable}
+                          data-locked={lockedEntry || undefined}
+                          title={entry.kind === 'preset' ? `${entryTitle(entry)} · ${nodeType(entry.node)}${lockedEntry ? ' · locked' : ''}` : entry.name}
+                          aria-label={lockedEntry ? `${entry.name}, locked` : entry.name}
+                          aria-pressed={entry === berthed}
+                          onClick={() => berth(entry)}
+                        >
+                          {entry.kind === 'preset' ? <ShipThumbnail presetId={entry.shipId} width={88} /> : <DesignThumbnail design={entry.design} />}
+                          {lockedEntry && <PortIcon name="lock" size={11} />}
+                        </button>
+                      );
+                    })}
+                    {group.id === 'designs' && (
+                      <>
+                        <button className="port-quiet port-fleet-new" disabled={!usable} aria-label="New design" title="New design" onClick={() => onBuild()}>
+                          <Icon name="plus" size={15} />
+                        </button>
+                        <button className="port-quiet port-fleet-all" aria-haspopup="dialog" aria-label="Open all designs" onClick={() => setOverlay('chest')}>
+                          <PortIcon name="grid" size={15} />
+                          All {designs.length}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
               ))}
-              {fleet.length > 1 && <kbd aria-hidden="true">→</kbd>}
-              <i aria-hidden="true" />
-              <button
-                className="port-quiet port-fleet-all"
-                aria-haspopup="dialog"
-                aria-label="Open all designs"
-                onClick={() => setChestOpen(true)}
-              >
-                <PortIcon name="grid" size={15} />
-                All {designs.length}
-              </button>
-            </nav>
-          )}
+            </div>
+            {order.length > 1 && <kbd aria-hidden="true">→</kbd>}
+          </nav>
         </div>
 
         {chestOpen && (
           <PlanChest
             designs={designs}
-            berthedId={berthed?.ship!.definition.id}
+            berthedId={berthedDesign?.ship!.definition.id}
             berthedName={alongside ? shipTitle(selectedShip) : undefined}
             ready={usable}
             query={query}
-            onClose={() => setChestOpen(false)}
-            onView={berth}
+            onClose={() => setOverlay(undefined)}
+            onView={(design) => {
+              const entry = order.find((item) => item.kind === 'design' && item.design.id === design.id);
+              if (entry) berth(entry);
+              else setOverlay(undefined);
+            }}
             onEdit={edit}
             onBuild={() => onBuild()}
             onClone={clone}
             onDelete={remove}
+          />
+        )}
+        {overlay === 'tree' && (
+          <TechTree
+            snapshot={snapshot}
+            berthedId={alongside ? selectedShip.id : undefined}
+            berthedName={alongside ? shipTitle(selectedShip) : undefined}
+            initialNation={berthedNation ?? 'usa'}
+            initialNode={place?.node.id}
+            ready={usable}
+            onClose={() => setOverlay(undefined)}
+            onView={viewPreset}
+            onUnlock={unlock}
+            onRetry={() => void store.refresh()}
           />
         )}
       </div>

@@ -1,0 +1,514 @@
+/* The tech tree: a full-screen overlay over the dimmed quay, like the plan chest. One column per line, nodes
+   running down it oldest first, joined by hairline connectors. Plates are outlined, never filled cards. */
+.tech-tree {
+  position: absolute;
+  inset: 0;
+  padding: 90px 44px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  pointer-events: auto;
+  text-shadow: none;
+}
+.tech-tree-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+}
+.tech-tree-bar h1 {
+  font:
+    500 38px/1 'Barlow Condensed',
+    sans-serif;
+  letter-spacing: 0.02em;
+}
+.tech-tree-nations {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #c9dce04a;
+}
+.garage .tech-tree-nations > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 16px;
+  margin-bottom: -1px;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: #c8d8db;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.tech-tree-nations > button:hover {
+  background: #d0e4db12;
+}
+.tech-tree-nations > button[aria-selected='true'] {
+  color: var(--port-text);
+  border-bottom-color: var(--port-accent);
+}
+.tech-tree-nations .nation-flag {
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px #0006;
+}
+.tech-tree-nations b {
+  font:
+    500 17px/1 'Barlow Condensed',
+    sans-serif;
+  color: var(--port-accent);
+}
+.tech-tree-nations b > small {
+  margin-left: 3px;
+  font:
+    400 10px/1 'Barlow',
+    sans-serif;
+  color: var(--port-muted);
+}
+.tech-tree-free {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+.tech-tree-free > span {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--port-muted);
+}
+.tech-tree-free > b {
+  font:
+    500 24px/1 'Barlow Condensed',
+    sans-serif;
+  color: var(--port-accent);
+}
+.tech-tree-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #e8c56c;
+}
+.tech-tree-notice .port-link {
+  margin-left: 4px;
+}
+
+.tech-tree-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #afcadf55 transparent;
+  /* Room for the selection line docked at the foot. */
+  padding: 2px 2px 128px;
+}
+.tech-tree-lines {
+  display: grid;
+  grid-template-columns: repeat(var(--lines), minmax(236px, 300px));
+  justify-content: center;
+  gap: 26px;
+}
+.tech-line h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-bottom: 9px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #c9dce04a;
+  font:
+    500 11px/1 'Barlow',
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--port-muted);
+}
+.tech-line h2 > svg {
+  color: var(--port-ready);
+  opacity: 0.8;
+}
+.tech-line ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.tech-line li {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+/* The connector between one class and the next: mint along owned ships, brass to the next one, dashed through
+   classes that are not in the game yet. */
+.tech-link {
+  align-self: center;
+  width: 0;
+  height: 16px;
+  border-left: 1px solid #afcadf40;
+}
+.tech-link[data-state='owned'] {
+  border-left: 2px solid #94d9bf99;
+}
+.tech-link[data-state='next'] {
+  border-left: 2px solid #e5bf8099;
+}
+.tech-link[data-state='unbuilt'] {
+  border-left: 1px dashed #afcadf40;
+}
+
+.tech-node {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 10px;
+  border: 1px solid #afcadf31;
+  border-radius: 2px;
+  background: #0d21304d;
+  color: var(--port-text);
+  text-align: left;
+}
+button.tech-node:hover {
+  background: #243e4c80;
+  border-color: #cbdedc72;
+}
+.tech-node-thumb {
+  display: grid;
+  place-items: center;
+  height: 40px;
+}
+.garage .tech-node-thumb .ship-thumbnail {
+  width: 96px;
+  height: auto;
+  max-height: 40px;
+}
+.tech-node-thumb > svg {
+  color: #afcadf;
+  opacity: 0.3;
+}
+.tech-node-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tech-node-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tech-node-title > strong {
+  overflow: clip;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font:
+    500 17px/1.1 'Barlow Condensed',
+    sans-serif;
+  letter-spacing: 0.03em;
+}
+.tech-node-title > small {
+  font-size: 11px;
+  color: var(--port-muted);
+}
+.tech-node-type {
+  overflow: clip;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #93a9b1;
+}
+.tech-node-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--port-muted);
+  white-space: nowrap;
+}
+.tech-node-state > b {
+  font:
+    500 14px/1 'Barlow Condensed',
+    sans-serif;
+  color: var(--port-text);
+}
+.tech-node-state > span {
+  overflow: clip;
+  text-overflow: ellipsis;
+}
+.tech-node-berthed {
+  position: absolute;
+  top: -7px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 5px;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--port-ready);
+  background: #0c1b26;
+}
+
+/* States: mint owned, brass ready to unlock, gold short of XP, dim behind a prerequisite, dashed placeholders. */
+.tech-node[data-state='owned'],
+.tech-node[data-state='open'] {
+  border-color: #94d9bf4d;
+}
+.tech-node[data-state='owned'] .tech-node-state {
+  color: var(--port-ready);
+}
+.tech-node[data-state='available'] {
+  border-color: #e5bf8080;
+}
+.tech-node[data-state='available'] .tech-node-state,
+.tech-node[data-state='available'] .tech-node-state > b {
+  color: var(--port-accent);
+}
+.tech-node[data-state='short'] .tech-node-state > span {
+  color: #e8c56c;
+}
+.tech-node[data-state='blocked'] .tech-node-thumb,
+.tech-node[data-state='short'] .tech-node-thumb {
+  opacity: 0.6;
+}
+.tech-node[data-state='blocked'] .tech-node-title,
+.tech-node[data-state='blocked'] .tech-node-state > b {
+  color: #c3d0d3;
+}
+.tech-node[data-state='placeholder'] {
+  border-style: dashed;
+  border-color: #afcadf3d;
+  background: transparent;
+}
+.tech-node[data-state='placeholder'] .tech-node-title > strong {
+  color: #b7c7ccb3;
+}
+.tech-node[data-state='placeholder'] .tech-node-state,
+.tech-node[data-state='placeholder'] .tech-node-state > b {
+  color: #93a9b1;
+  font-weight: 400;
+}
+.garage .tech-node[aria-pressed='true'] {
+  border-color: var(--port-accent);
+  background: #e5bf8017;
+  box-shadow: inset 0 0 0 1px #e5bf8055;
+}
+
+/* The selected ship: docked at the foot with her cost, where it is paid from, and the commands. */
+.tech-tree-selection {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 112px;
+  box-sizing: border-box;
+  padding: 26px 44px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px 22px;
+  background: linear-gradient(#0c1b2600, #0c1b26f2 34%);
+}
+.tech-selection-thumb {
+  flex-shrink: 0;
+  width: 168px;
+  display: grid;
+  place-items: center;
+}
+.garage .tech-selection-thumb .ship-thumbnail {
+  width: 168px;
+  height: auto;
+}
+.tech-selection-name {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.tech-selection-name > strong {
+  font:
+    600 30px/1 'Barlow Condensed',
+    sans-serif;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.tech-selection-name > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--port-muted);
+  white-space: nowrap;
+}
+.tech-selection-detail {
+  flex: 1;
+  min-width: 200px;
+  max-width: 460px;
+  padding-left: 22px;
+  border-left: 1px solid var(--port-line);
+  font-size: 13px;
+  line-height: 1.45;
+  color: #d0dcd9;
+}
+.tech-selection-detail[data-state='owned'] {
+  color: var(--port-ready);
+}
+.tech-selection-detail[data-state='short'],
+.tech-selection-detail[data-state='open'] {
+  color: #e8c56c;
+}
+.tech-selection-error {
+  display: block;
+  margin-top: 4px;
+  color: #ffb5a6;
+}
+.tech-selection-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tech-selection-actions .port-quiet,
+.tech-selection-actions .port-command {
+  min-height: 44px;
+}
+.garage .tech-unlock:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  color: #b7c7cc99;
+  border-color: #afcadf40;
+  background: transparent;
+}
+.garage .tech-confirm {
+  background: var(--port-accent);
+  color: #152831;
+}
+.garage .tech-confirm:hover:not(:disabled) {
+  background: #f4d199;
+}
+.tech-selection-hint {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--port-muted);
+}
+.tech-selection-hint kbd {
+  min-width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  margin-left: 10px;
+  padding: 0 5px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #afcadf31;
+  border-radius: 2px;
+  font:
+    400 11px 'Barlow',
+    sans-serif;
+}
+
+@media (max-width: 1240px) {
+  .tech-tree,
+  .tech-tree-selection {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+/* Narrow windows stack each plate, thumbnail over text, so five lines still fit side by side. */
+@media (max-width: 1180px) {
+  .tech-tree-lines {
+    grid-template-columns: repeat(var(--lines), minmax(148px, 240px));
+    gap: 14px;
+  }
+  .tech-node {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .tech-node-thumb {
+    height: 34px;
+  }
+  .garage .tech-node-thumb .ship-thumbnail {
+    width: 112px;
+    max-height: 34px;
+  }
+  .tech-tree-bar h1 {
+    font-size: 30px;
+  }
+  .tech-selection-thumb {
+    display: none;
+  }
+}
+@media (max-width: 980px) {
+  .garage .tech-tree-nations > button {
+    padding: 0 11px;
+  }
+  .tech-tree-nations > button > span {
+    display: none;
+  }
+  .tech-selection-name > strong {
+    font-size: 24px;
+  }
+}
+@media (max-height: 760px) and (min-width: 601px) {
+  .tech-tree {
+    padding-top: 76px;
+    gap: 12px;
+  }
+  .tech-link {
+    height: 10px;
+  }
+  .tech-tree-selection {
+    min-height: 92px;
+    padding-top: 20px;
+    padding-bottom: 14px;
+  }
+}
+@media (max-width: 600px) {
+  .tech-tree {
+    padding: 74px 16px 0;
+    gap: 12px;
+  }
+  .tech-tree-bar h1 {
+    font-size: 26px;
+  }
+  .tech-tree-free {
+    margin-left: 0;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .tech-tree-lines {
+    justify-content: start;
+  }
+  .tech-tree-selection {
+    padding: 18px 16px 14px;
+    flex-wrap: wrap;
+  }
+  .tech-selection-detail {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+    padding-left: 0;
+    border-left: 0;
+  }
+  .tech-selection-actions {
+    margin-left: 0;
+  }
+}

@@ -5,6 +5,8 @@ import type { BattleOutcome } from '../../game/session/battleRules';
 import { Button, Select, SelectOption } from '../components';
 import { battleTime, damageRace, fleetRows, hitRows, plainName, shipTitles, whole, type FleetRow, type HitRow } from './afterAction';
 import { HitModel } from './HitModel';
+import type { XpReadout } from './battleAward';
+import { XpAward } from './XpAward';
 import './AfterActionReport.css';
 
 export interface ReportAction { label: string; hint?: string; run(): Promise<void> | void }
@@ -19,6 +21,8 @@ interface Props {
   loadModel(ship: DebriefShip): Promise<Object3D>;
   /** Give the cursor back without the pause menu an unexpected unlock opens. */
   releasePointer(): void;
+  /** The battle's research XP; absent when it earns none. */
+  xp?: XpReadout;
 }
 
 /** Shells still in flight when the battle is decided keep landing, so the debrief changes for a
@@ -34,7 +38,7 @@ const reasonText = (result: Props['result'], outcome: BattleOutcome) => outcome.
   : outcome.reason === 'forfeit' ? (result === 'victory' ? 'The enemy struck their colors' : 'Your fleet struck its colors')
   : result === 'victory' ? 'The enemy fleet can no longer fight' : result === 'defeat' ? 'Your fleet can no longer fight' : 'Neither fleet can fight on';
 
-export function AfterActionReport({ mode, result, outcome, debrief: latest, actions, loadModel, releasePointer }: Props) {
+export function AfterActionReport({ mode, result, outcome, debrief: latest, actions, loadModel, releasePointer, xp }: Props) {
   const debrief = useSettled(latest);
   const [tab, setTab] = useState<'results' | 'ship'>('results');
   const [busy, setBusy] = useState(''), [error, setError] = useState('');
@@ -56,6 +60,7 @@ export function AfterActionReport({ mode, result, outcome, debrief: latest, acti
       <span className="aar-eyebrow">{mode} · Battle complete</span>
       <h1>{result === 'victory' ? 'Victory' : result === 'defeat' ? 'Defeat' : 'Draw'}</h1>
       <p>{reasonText(result, outcome)} · <span className="aar-num">{battleTime(outcome.finalTick)}</span> elapsed</p>
+      {xp && <XpAward xp={xp} />}
     </header>
     <div className="aar-tabs" role="tablist" aria-label="Report">
       <button type="button" role="tab" id="aar-tab-results" aria-selected={tab === 'results'} aria-controls="aar-panel" onClick={() => setTab('results')}>Battle results</button>

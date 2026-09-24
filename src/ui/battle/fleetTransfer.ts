@@ -1,13 +1,15 @@
 import { mapIslands } from '../../maps/catalog';
 import { shipPreset, shipPresets } from '../../ships/presets';
-import { isHistoricalShip, localShip, localShips } from '../../ships/localShips';
+import { isHistoricalShip, localShip, localShips, resolveShip, shipTitle } from '../../ships/localShips';
 import { fleetBudget } from '../../game/session/battleRules';
 import type { FleetTransfer } from '../pveFleetEditing';
 import { customIslands } from './deploymentModel';
+import { accessRefusal, openFleet, type FleetRule } from './fleetAccess';
 import type { Team } from '../../game/session/elements';
 import { botSelection, MAX_TEAM_SHIPS, setupSpawns, validateSpawns, type BattleSetup, type BotSelection } from '../../game/session/battleSetup';
 
 export type { FleetTransfer };
+const shipTitleOf = (id: string) => { try { return shipTitle(resolveShip(id)); } catch { return 'That ship'; } };
 export type CustomTarget = Team | 'player';
 const teamKey = (team: Team) => team === 'friendly' ? 'friendlyBots' : 'enemies';
 /** Roster ids on the chart and in the lanes share one form: `friendly:2` is the second friendly bot (slot 0 is the player). */
@@ -36,8 +38,23 @@ export function removeCustomBot(setup: BattleSetup, team: Team, index: number): 
   return { ...setup, [key]: setup[key].filter((_, i) => i !== index),
     spawns: setup.spawns ? { ...setup.spawns, [team]: setup.spawns[team].filter((_, i) => i !== slot) } : undefined };
 }
-/** Catalog drops add a bot or take command; moving a bot keeps its AI level. The commanded ship never becomes a bot by dragging. */
-export function transferCustomShip(setup: BattleSetup, transfer: FleetTransfer, target: CustomTarget): { setup: BattleSetup; error?: string } {
+/** The ship a custom transfer carries: the catalog id, or the bot's ship. */
+export function customTransferShip(setup: BattleSetup, transfer: FleetTransfer): string | undefined {
+  if (transfer.kind === 'catalog') return transfer.id;
+  const unit = parseCustomUnit(transfer.id);
+  if (!unit) return undefined;
+  if (unit.team === 'friendly' && unit.slot === 0) return setup.playerShipId;
+  const selection = setup[teamKey(unit.team)][unit.slot - (unit.team === 'friendly' ? 1 : 0)];
+  return selection === undefined ? undefined : botSelection(selection).shipId;
+}
+/** Catalog drops add a bot or take command; moving a bot keeps its AI level. The commanded ship never becomes a bot by dragging.
+ * The command berth and the friendly lane take only ships `rule` opens to the player's fleet; the enemy lane takes any. */
+export function transferCustomShip(setup: BattleSetup, transfer: FleetTransfer, target: CustomTarget, rule: FleetRule = openFleet): { setup: BattleSetup; error?: string } {
+  if (target !== 'enemy') {
+    const shipId = customTransferShip(setup, transfer), access = shipId ? rule(shipId) : 'open';
+    if (shipId && access !== 'open' && !(transfer.kind === 'unit' && parseCustomUnit(transfer.id)?.team === 'friendly' && target === 'friendly'))
+      return { setup, error: accessRefusal(access, shipTitleOf(shipId)) };
+  }
   if (transfer.kind === 'catalog') {
     if (!isHistoricalShip(transfer.id) && !localShip(transfer.id)) return { setup, error: 'That ship is unavailable. Open the saved design and compile it again.' };
     if (target === 'player') return { setup: setup.playerShipId === transfer.id ? setup : { ...setup, playerShipId: transfer.id } };
@@ -64,10 +81,11 @@ const definitions = new Map(Object.keys(shipPresets).map(id => [id, shipPreset(i
 export const duelUnitId = (index: number) => `fleet:${index}`;
 export const parseDuelUnit = (id: string) => { const match = id.match(/^fleet:(\d+)$/); return match ? Number(match[1]) : undefined; };
 export const duelBudget = (fleet: readonly string[]) => fleetBudget(fleet, new Map([...definitions, ...localShips().map(s=>[s.definition.id,s.definition] as const)]));
-/** The first berth is the initial command ship; dropping onto it moves that ship to the front. */
-export function transferDuelShip(fleet: string[], transfer: FleetTransfer, target: 'fleet' | 'command'): { fleet: string[]; error?: string } {
+/** The first berth is the initial command ship; dropping onto it moves that ship to the front. Every berth is the player's own. */
+export function transferDuelShip(fleet: string[], transfer: FleetTransfer, target: 'fleet' | 'command', rule: FleetRule = openFleet): { fleet: string[]; error?: string } {
   if (transfer.kind === 'catalog') {
     if (!definitions.has(transfer.id) && !localShip(transfer.id)) return { fleet, error: 'That ship is unavailable.' };
+    if (rule(transfer.id) !== 'open') return { fleet, error: accessRefusal(rule(transfer.id), shipTitleOf(transfer.id)) };
     const next = target === 'command' ? [transfer.id, ...fleet] : [...fleet, transfer.id];
     const error = duelBudget(next).error;
     return error ? { fleet, error } : { fleet: next };

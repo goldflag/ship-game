@@ -12,6 +12,7 @@ import { transferFleetShip, type FleetTransfer } from '../pveFleetEditing';
 import { MapTiles, RailBlock } from './BattleRail';
 import { BudgetStrip, FleetLane } from './FleetLane';
 import { ShipChip, tonnes } from './ShipCard';
+import { accessRefusal, openFleet, type FleetRule } from './fleetAccess';
 
 export const MAX_TASK_GROUPS = 9;
 export const missionSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
@@ -26,14 +27,23 @@ interface LanesProps {
   onError(message: string): void;
   nextId(): string;
   disabled?: boolean;
+  /** Every task group is the player's own: only ships research has opened join one. */
+  rule?: FleetRule;
 }
 /** Task-group lanes with the fleet allowance above them. */
-export function PveLanes({ request, options, onChange, transfer, onTransfer, onError, nextId, disabled }: LanesProps) {
+export function PveLanes({ request, options, onChange, transfer, onTransfer, onError, nextId, disabled, rule = openFleet }: LanesProps) {
   const budget = options.rules.budget,
     totals = fleetTotals(request.ships);
+  const refused = transfer?.kind === 'catalog' && rule(transfer.id) !== 'open';
+  const eligible = options.eligiblePresets.filter((id) => rule(id) === 'open');
   const place = (groupId: string) => {
     if (!transfer) return;
-    const result = transferFleetShip(request, transfer, groupId, nextId(), options.eligiblePresets, budget);
+    if (refused) {
+      onError(accessRefusal(rule(transfer.id), pveShipName(transfer.id)));
+      onTransfer(undefined);
+      return;
+    }
+    const result = transferFleetShip(request, transfer, groupId, nextId(), eligible, budget);
     if (result.error) onError(result.error);
     else onChange(result.request);
     onTransfer(undefined);
@@ -42,7 +52,12 @@ export function PveLanes({ request, options, onChange, transfer, onTransfer, onE
     if (!transfer || request.groups.length >= MAX_TASK_GROUPS) return;
     const id = `group-${nextId()}`,
       next = { ...request, groups: [...request.groups, { id, name: nextGroupName(request), station: 'front' as GroupStation }] };
-    const result = transferFleetShip(next, transfer, id, nextId(), options.eligiblePresets, budget);
+    if (refused) {
+      onError(accessRefusal(rule(transfer.id), pveShipName(transfer.id)));
+      onTransfer(undefined);
+      return;
+    }
+    const result = transferFleetShip(next, transfer, id, nextId(), eligible, budget);
     if (result.error) onError(result.error);
     else onChange(result.request);
     onTransfer(undefined);
@@ -57,7 +72,7 @@ export function PveLanes({ request, options, onChange, transfer, onTransfer, onE
     event.dataTransfer.setData('text/plain', id);
     onTransfer({ kind: 'unit', id });
   };
-  const active = !!transfer;
+  const active = !!transfer && !refused;
   return (
     <>
       <BudgetStrip
@@ -146,11 +161,13 @@ export function PveLanes({ request, options, onChange, transfer, onTransfer, onE
               <ul className="fleet-lane-chips">
                 {members.map((unit) => {
                   const name = unitName(unit, request.ships),
-                    picked = transfer?.kind === 'unit' && transfer.id === unit.id;
+                    picked = transfer?.kind === 'unit' && transfer.id === unit.id,
+                    access = rule(unit.presetId);
                   return (
                     <ShipChip
                       key={unit.id}
                       presetId={unit.presetId}
+                      restriction={access === 'open' ? undefined : access}
                       name={name}
                       picked={picked}
                       disabled={disabled}
@@ -263,3 +280,5 @@ export function pveBrief(request: PveRequest): string[] {
   ];
 }
 export const pveShipName = (id: string) => shipPreset(id).name;
+/** Ships in the request that may not sail in the player's fleet. */
+export const pveRefused = (request: PveRequest, rule: FleetRule) => request.ships.some((ship) => rule(ship.presetId) !== 'open');

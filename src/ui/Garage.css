@@ -150,6 +150,157 @@
 .garage-set-sail:disabled {
   opacity: 0.7;
 }
+/* BATTLE's place while a locked ship is alongside: the unlock. Held (short of XP, or behind a prerequisite), it
+   stands outlined with its reason beneath; confirming, the caret becomes Cancel. */
+.garage .garage-unlock {
+  justify-content: center;
+  gap: 12px;
+}
+.garage .garage-unlock[data-held='true'] {
+  background: #0d213099;
+  color: #e5bf80c7;
+  box-shadow: inset 0 0 0 1px #e5bf8070;
+  opacity: 1;
+  cursor: not-allowed;
+}
+.garage .garage-unlock[data-confirming='true'] {
+  background: #f4d199;
+}
+.garage-battle-last[data-state='short'] {
+  color: #e8c56c;
+}
+.garage-battle-last[data-state='error'] {
+  color: #ffb5a6;
+}
+.garage-battle-last[data-state='available'] {
+  color: #d0dcd9;
+}
+
+/* The tech tree command beside BATTLE, with the XP it can spend; the ledger of every nation opens on hover or focus. */
+.port-research {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 14px);
+  pointer-events: auto;
+}
+.garage .port-quiet.port-research-open {
+  min-height: 44px;
+  gap: 10px;
+  padding: 0 14px 0 11px;
+  border-color: #e5bf8080;
+}
+.garage .port-quiet.port-research-open:hover:not(:disabled),
+.garage .port-quiet.port-research-open[aria-expanded='true'] {
+  background: #243e4ceb;
+  border-color: var(--port-accent);
+}
+.port-research-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.port-research-text > span {
+  font:
+    600 15px/1 'Barlow Condensed',
+    sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--port-accent);
+}
+.port-research-text > small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--port-muted);
+}
+.port-research-text b {
+  font-weight: 500;
+  color: var(--port-text);
+}
+.port-research-text i {
+  font-style: normal;
+  opacity: 0.6;
+}
+.port-research-text .nation-flag,
+.port-xp-ledger .nation-flag {
+  box-shadow: 0 0 0 1px #0006;
+}
+.port-xp-ledger {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 3;
+  width: 250px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  background: #10232e;
+  border: 1px solid var(--port-line);
+  border-radius: 2px;
+  box-shadow: 0 10px 28px #0610184d;
+  font-size: 12px;
+  text-shadow: none;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.12s,
+    visibility 0.12s;
+}
+.port-research:hover .port-xp-ledger,
+.port-research:focus-within .port-xp-ledger {
+  visibility: visible;
+  opacity: 1;
+}
+.port-xp-ledger > strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--port-muted);
+}
+.port-xp-ledger dl {
+  margin: 0;
+  display: grid;
+  gap: 7px;
+}
+.port-xp-ledger dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.port-xp-ledger dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c8d8db;
+}
+.port-xp-ledger [data-current='true'] dt {
+  color: var(--port-text);
+}
+.port-xp-ledger dd {
+  margin: 0;
+  font:
+    500 16px/1 'Barlow Condensed',
+    sans-serif;
+  color: var(--port-accent);
+}
+.port-xp-ledger .port-xp-free {
+  padding-top: 8px;
+  border-top: 1px solid var(--port-line);
+}
+.port-xp-ledger > small {
+  display: block;
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--port-muted);
+}
 /* Home port: the top bar, the ship's builder's plate at lower left, statistics at lower right and the fleet line beneath. */
 .garage-classic-header {
   position: absolute;
@@ -354,13 +505,13 @@
   position: absolute;
   inset: 0;
 }
-.port-chest-open .port-quay {
+.port-overlay-open .port-quay {
   visibility: hidden;
 }
 .port-identity {
   position: absolute;
   left: 56px;
-  bottom: 86px;
+  bottom: 94px;
   max-width: calc(100% - 450px);
 }
 .port-identity-status {
@@ -447,6 +598,54 @@
   border: 1px solid var(--port-line);
   border-radius: 2px;
 }
+.port-identity-nation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.port-identity-nation .nation-flag {
+  box-shadow: 0 0 0 1px #0006;
+}
+.port-locked-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--port-accent);
+}
+/* A locked ship's plate: what she costs and what stands in the way, and her line in the tree. */
+.port-locked {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 18px;
+  text-shadow: none;
+  pointer-events: auto;
+}
+.port-locked > p {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  color: #d0dcd9;
+  text-shadow: 0 2px 5px #061522b3;
+}
+.port-locked > p > b {
+  font:
+    500 26px/1 'Barlow Condensed',
+    sans-serif;
+  color: var(--port-accent);
+  white-space: nowrap;
+}
+.port-locked[data-state='short'] > p > span {
+  color: #e8c56c;
+}
+.garage .port-locked .port-quiet {
+  min-height: 40px;
+}
 .port-loading {
   position: absolute;
   left: 56px;
@@ -483,12 +682,13 @@
   border-color: #cbdedc72;
 }
 .port-neighbour > small {
+  width: 96px;
   font:
     500 14px/1.15 'Barlow Condensed',
     sans-serif;
   color: var(--port-muted);
   text-align: center;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .port-neighbour-previous {
   left: 22px;
@@ -498,22 +698,77 @@
   right: 364px;
 }
 
+/* The fleet line: owned tree ships under small nation headings, then the player's designs. It stays clear of
+   the particulars column and scrolls sideways when the fleet outgrows it. */
 .port-fleet-line {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 16px;
+  left: 24px;
+  right: 372px;
+  bottom: 12px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
+  align-items: flex-end;
+  gap: 8px;
   text-shadow: none;
 }
-.port-fleet-line > button:not(.port-quiet) {
+.port-fleet-line > kbd {
   flex-shrink: 0;
-  width: 96px;
-  height: 40px;
-  padding: 0 0 6px;
+  margin-bottom: 11px;
+}
+.port-fleet-scroll {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: safe center;
+  padding: 0 22px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  pointer-events: auto;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%);
+}
+.port-fleet-group {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 14px;
+  border-left: 1px solid #afcadf2e;
+}
+.port-fleet-group:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.port-fleet-group:last-child {
+  padding-right: 0;
+}
+.port-fleet-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 4px;
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--port-muted);
+  white-space: nowrap;
+}
+.port-fleet-label .nation-flag {
+  box-shadow: 0 0 0 1px #0006;
+}
+.port-fleet-ships {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.port-fleet-ships > button:not(.port-quiet) {
+  position: relative;
+  flex-shrink: 0;
+  width: 88px;
+  height: 38px;
+  padding: 0 0 5px;
   display: grid;
   place-items: center;
   background: transparent;
@@ -522,12 +777,27 @@
   border-radius: 0;
   opacity: 0.5;
 }
-.port-fleet-line > button:not(.port-quiet):hover:not(:disabled) {
+.port-fleet-ships > button:not(.port-quiet):hover:not(:disabled) {
   opacity: 0.85;
 }
-.port-fleet-line > button[aria-pressed='true'] {
+.port-fleet-ships > button[aria-pressed='true'] {
   border-bottom-color: var(--port-accent);
   opacity: 1;
+}
+/* A locked ship alongside for inspection keeps her place in her nation, dashed and marked. */
+.port-fleet-ships > button[data-locked] {
+  border-bottom-style: dashed;
+}
+.port-fleet-ships > button[data-locked] > svg {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  color: var(--port-accent);
+}
+.garage .port-fleet-ships .ship-thumbnail {
+  width: 88px;
+  height: auto;
+  max-height: 30px;
 }
 .port-fleet-line kbd,
 .plan-chest-hint kbd {
@@ -544,21 +814,25 @@
     sans-serif;
   color: var(--port-muted);
 }
-.port-fleet-line > i {
-  width: 1px;
-  height: 22px;
-  margin: 0 4px;
-  background: #afcadf4a;
-}
+.garage .port-fleet-new,
 .garage .port-fleet-all {
-  min-height: 40px;
+  min-height: 34px;
   font-size: 12px;
+}
+.garage .port-fleet-new {
+  justify-content: center;
+  width: 34px;
+  padding: 0;
+  margin-left: 4px;
+  border-color: #e5bf8066;
+  background: transparent;
+  color: var(--port-accent);
 }
 
 /* Statistics: five scores under the ship; the full sheet and the inspection lists take the tall surface at right. */
 
-/* The plan chest: every saved design at once, over the dimmed quay. */
-.port-chest-open .garage-scene-shade {
+/* The plan chest and the tech tree: full-screen overlays over the dimmed quay. */
+.port-overlay-open .garage-scene-shade {
   background: #0c1b26d9;
   -webkit-backdrop-filter: blur(12px) saturate(0.8);
   backdrop-filter: blur(12px) saturate(0.8);
@@ -844,102 +1118,6 @@
   color: var(--port-muted);
 }
 
-/* An empty quay: the first ship, or drafts that cannot berth yet. */
-.port-empty {
-  position: absolute;
-  left: clamp(24px, 7vw, 120px);
-  right: clamp(24px, 7vw, 120px);
-  top: 50%;
-  transform: translateY(-52%);
-  max-width: 1300px;
-  pointer-events: auto;
-}
-.port-empty-kicker {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--port-muted);
-}
-.port-empty h1 {
-  margin-top: 12px;
-  font:
-    500 clamp(34px, 4.4vw, 64px)/1 'Barlow Condensed',
-    sans-serif;
-  letter-spacing: 0.01em;
-}
-.port-empty > p:not(.port-empty-kicker) {
-  margin-top: 16px;
-  max-width: 560px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: #d0dcd9;
-}
-.port-empty-hulls {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 36px;
-  text-shadow: none;
-}
-.port-empty-hulls > button {
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  border: 1px solid #afcadf31;
-  border-radius: 2px;
-  background: #0d2130de;
-  color: var(--port-text);
-}
-.port-empty-hulls > button:hover:not(:disabled) {
-  background: #243e4ceb;
-  border-color: #cbdedc72;
-}
-.port-empty-hulls svg {
-  display: block;
-  width: 100%;
-  height: 84px;
-}
-.port-empty-hulls polygon {
-  fill: #94d9bf20;
-  stroke: var(--port-ready);
-  stroke-width: 1.5;
-}
-.port-empty-hulls line {
-  stroke: #bcc3c770;
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
-}
-.port-empty-hulls strong {
-  margin-top: 12px;
-  font:
-    500 23px/1.1 'Barlow Condensed',
-    sans-serif;
-}
-.port-empty-hulls span {
-  margin-top: 5px;
-  font-size: 12px;
-  color: #93a9b1;
-}
-.port-empty-more {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 22px;
-}
-.port-empty-more > span {
-  margin-right: 6px;
-  font-size: 12px;
-  color: var(--port-muted);
-}
-.port-empty-more > i {
-  width: 1px;
-  height: 18px;
-  margin: 0 6px;
-  background: #afcadf4a;
-}
-
 .garage-loading {
   position: absolute;
   left: 50%;
@@ -985,6 +1163,9 @@
   .port-neighbour-next {
     right: 332px;
   }
+  .port-fleet-line {
+    right: 340px;
+  }
   .port-loading {
     left: 32px;
   }
@@ -993,7 +1174,12 @@
     padding-right: 32px;
   }
 }
-@media (max-width: 980px) {
+/* The particulars column stops above the fleet line here, so the line takes the full width. The top bar's
+   actions drop their labels to leave the tech tree command room beside BATTLE. */
+@media (max-width: 1180px) {
+  .port-fleet-line {
+    right: 24px;
+  }
   .port-header-actions > .port-quiet > span {
     display: none;
   }
@@ -1001,6 +1187,11 @@
     min-width: 40px;
     justify-content: center;
     padding: 0 10px;
+  }
+}
+@media (max-width: 980px) {
+  .port-research-text > span {
+    display: none;
   }
   .port-search {
     width: 200px;
@@ -1017,16 +1208,10 @@
   .port-spec dd {
     font-size: 19px;
   }
-  .port-empty-hulls {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .port-empty-hulls svg {
-    height: 60px;
-  }
 }
 @media (max-height: 760px) and (min-width: 601px) {
   .port-identity {
-    bottom: 72px;
+    bottom: 82px;
   }
   .port-spec {
     margin-top: 10px;
@@ -1039,12 +1224,6 @@
   }
   .port-neighbour > span {
     height: 72px;
-  }
-  .port-empty-hulls {
-    margin-top: 22px;
-  }
-  .port-empty-hulls svg {
-    height: 56px;
   }
   .plan-chest {
     padding-top: 76px;
@@ -1116,20 +1295,23 @@
     display: none;
   }
   .port-fleet-line {
-    justify-content: flex-start;
-    gap: 8px;
-    bottom: 10px;
-    padding: 0 18px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    pointer-events: auto;
+    left: 0;
+    right: 0;
+    bottom: 8px;
   }
-  .port-fleet-line kbd,
-  .port-fleet-line > i {
+  .port-fleet-line kbd {
     display: none;
   }
-  .port-fleet-line > button:not(.port-quiet) {
+  .port-fleet-scroll {
+    justify-content: flex-start;
+    padding: 0 18px;
+  }
+  .port-fleet-ships > button:not(.port-quiet),
+  .garage .port-fleet-ships .ship-thumbnail {
     width: 64px;
+  }
+  .port-research-text > span {
+    display: none;
   }
   .port-loading {
     left: 18px;
@@ -1165,17 +1347,6 @@
   }
   .chest-card.chest-new {
     min-height: 120px;
-  }
-  .port-empty {
-    top: 76px;
-    bottom: 0;
-    transform: none;
-    overflow-y: auto;
-    padding-bottom: 24px;
-  }
-  .port-empty-hulls {
-    gap: 10px;
-    margin-top: 20px;
   }
   .garage-loading {
     min-width: 0;

@@ -5,14 +5,25 @@ DESIGN.md keeps the tokens and rules; this file keeps the detail and rationale.
 
 ### Port design controls
 
-Historical presets do not berth in port; they remain in Battle setup and as hull shapes in the New
-design chooser, and a `?ship=` link keeps one alongside for review without edit controls. The port
-reopens on the design last viewed in this browser, else the most recently edited ready design. Each
-saved source shows Ready for sea (mint), Preparing preview or Draft (gold), or Needs recovery
-(salmon), always with its label. Delete opens the shared inline confirmation naming the design and
-its retained revisions, on a maritime surface beside Edit design; the editor’s Designs menu uses the
+The port berths the historical ships the player owns and their ready designs (`portFleet.ts`). The
+fictional presets and the merchants are enemy-only and never join the fleet; a `?ship=` link still
+keeps any preset alongside for review, a locked tree ship as a preview with its unlock. The port
+reopens on the ship last berthed in this browser (a tree ship loads at once; a design leaves the quay
+empty while it compiles), else Cleveland, a starter every player owns. A berthed ship that is not the
+player's once progress loads, and was not chosen for preview, gives way to one that is. Each saved
+source shows Ready for sea (mint), Preparing preview or Draft (gold), or Needs recovery (salmon),
+always with its label. Delete opens the shared inline confirmation naming the design and its
+retained revisions, on a maritime surface beside Edit design; the editor’s Designs menu uses the
 same control. Confirmation removes the design from storage and the local fleet; deleting the open
-design starts a new one-block design.
+design berths the port's opening ship.
+
+The identity block names a tree ship's type, class when the modelled ship is not the leader, flag,
+nation and year over her name; designs keep their status and edit time. The fleet line along the
+foot groups owned ships under small uppercase nation labels with flags (United States, Japan,
+Germany, United Kingdom; within a nation line by line, oldest first), hairlines between groups, then
+Your designs with its thumbnails, a brass-outlined + (New design) and All N. It stays clear of the
+particulars column, fades at its ends and scrolls sideways, a vertical wheel included, keeping the
+berthed ship in view; the side arrows and ← → step through the same order.
 
 All designs opens the plan chest over the quay, which dims and blurs behind it while the top bar and
 Battle stay in place and the search field takes the right end of the bar. A back button named after
@@ -25,13 +36,37 @@ Alongside now tag. Hover or keyboard focus swaps the footer for View in port (ou
 and Delete; drafts lead with Edit design and fade their render. Esc or the back button returns to
 the quay.
 
-With no ready design the quay stands empty rather than showing a preset. A first visit reads “Lay
-down your first ship” over the sea with four generic hull cards drawn as deck plans, chips for the
-six historical hull shapes and a blank block, each opening the New design chooser on that hull; when
-only drafts exist the heading asks the player to finish one and links to the plan chest. Up to 980
-px the top-bar actions drop their labels; at 600 px and below the plate spans the width above the
-particulars sheet, the fleet line scrolls and replaces the side arrows, and the plan chest becomes
-one column with its search field under the top bar.
+There is no empty first-run quay: every player owns starters. Up to 1180 px the top-bar actions drop
+their labels and the fleet line takes the full width under the particulars column; up to 980 px the
+tech tree command keeps only its icon and XP; at 600 px and below the plate spans the width above
+the particulars sheet, the fleet line replaces the side arrows, and the plan chest becomes one
+column with its search field under the top bar.
+
+### Tech tree
+
+Tech tree sits beside Battle: a brass-outlined command on the dark quiet fill (brass on the bright
+sky needs it) whose second line reads the berthed ship's nation XP with its flag and the free XP.
+Hover or focus opens a tooltip ledger of every nation and the free pool. It opens a full-screen
+overlay over the dimmed quay, like the plan chest: a back button named after the berthed ship, the
+heading, one tab per nation with its flag and XP (arrow keys move between them), and Free XP at the
+right. One column per line (Destroyers, Cruisers, Battleships, Carriers, plus Submarines for Germany
+and Escorts for the United Kingdom) runs its classes down oldest first, joined by short connectors:
+mint between owned ships, brass from an owned ship to the next, dashed through classes not in the
+game yet. Each outlined plate shows the preset thumbnail, the name in capitals, the year, type (and
+class) and a state line: a mint check and Owned or Starter; cost and Ready to unlock in brass (brass
+border); cost and the shortfall in gold; a lock with After NAME behind a prerequisite; or, dashed with
+a faint class silhouette and no thumbnail, Not in the game yet. Placeholders cannot be selected.
+Selecting a modelled plate docks her at the foot with where the XP would come from (nation XP first,
+then free XP), View in port and Unlock · cost; Unlock asks again as Confirm · cost before spending.
+Arrow keys walk the plates; Esc or the back button returns to the quay. Without progress (loading, or
+the API unavailable) a gold notice says so, every ship stays open and Unlock is disabled.
+
+A locked ship viewed in port can be orbited and inspected like any other. Her identity block adds a
+brass LOCKED mark, her cost in large brass figures with the reason (ready, the shortfall, or the
+prerequisite) and a link to her line in the tree, and she keeps her place, dashed and marked, in her
+nation's group on the fleet line. Battle becomes UNLOCK · cost: brass when she can be had, with the
+spend beneath; outlined and disabled with the reason when she cannot; pressed once it becomes
+CONFIRM UNLOCK with a cancel in the caret's place (Esc also cancels). Once unlocked, Battle returns.
 
 ### Custom battle conditions
 
