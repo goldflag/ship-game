@@ -268,11 +268,9 @@
       ]
     },
     "ijn-yamato-secondary": {
-      "path": "assets/parts/ijn-main-guns/geometry.py",
+      "path": "assets/parts/ijn-main-guns/type3_155_triple.py",
       "function": "create_yamato_secondary",
       "inputs": [
-        "assets/parts/aa_articulation.py",
-        "assets/parts/gun_bloomers.py",
         "scripts/ships/blender_barrels.py"
       ]
     },
