@@ -36,6 +36,7 @@
     "ship:thumbnail": "bun scripts/ships/pipeline.ts thumbnail",
     "ship:new": "bun scripts/construction/cli.ts new",
     "ship:hydrostatics": "bun scripts/ships/hydrostatics.ts",
+    "ship:overlay": "bun scripts/ships/overlay.ts",
     "git:setup": "bun scripts/git/setup.ts",
     "test:workflow": "bun test scripts/git scripts/ships",
     "multiplayer:definitions": "bun scripts/multiplayer/generate-rust-definitions.ts",
