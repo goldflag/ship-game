@@ -4608,18 +4608,18 @@
       "name": "46 cm Type 94 triple",
       "kind": "gun",
       "size": [
-        15.801,
-        4.744,
-        30.907
+        15.841,
+        4.891,
+        31.2059
       ],
       "boundsCenter": [
         0,
-        4.522,
-        -5.703
+        4.595,
+        -3.9131
       ],
       "centerOfGravity": [
         0,
-        2.86,
+        2.66,
         0
       ],
       "placement": "deck",
@@ -4646,18 +4646,18 @@
       "name": "15.5 cm Type 3 triple",
       "kind": "gun",
       "size": [
-        8.003,
-        4.437,
-        12.806
+        8.941,
+        3.647,
+        14.1423
       ],
       "boundsCenter": [
         0,
-        2.217,
-        -3.2017
+        1.823,
+        -1.9761
       ],
       "centerOfGravity": [
         0,
-        1.203,
+        0.839,
         0
       ],
       "placement": "deck",
