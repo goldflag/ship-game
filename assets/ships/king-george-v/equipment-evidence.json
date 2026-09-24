@@ -12,8 +12,8 @@
         "rmg-j9645-original"
       ],
       "position": [
-        -6.6,
-        11.2729,
+        -7.0,
+        12.0,
         -4
       ],
       "limitations": "Existing original-recipe visual position. Exact station identification, coordinate measurement and Mk VI mechanism dimensions require review before functional registration."
@@ -27,8 +27,8 @@
         "rmg-j9645-original"
       ],
       "position": [
-        6.6,
-        11.2729,
+        7.0,
+        12.0,
         -4
       ],
       "limitations": "Existing original-recipe visual position. Exact station identification, coordinate measurement and Mk VI mechanism dimensions require review before functional registration."
@@ -42,9 +42,9 @@
         "rmg-j9645-original"
       ],
       "position": [
-        -6.6,
-        11.2729,
-        24.2
+        -5.2,
+        10.25,
+        26.2
       ],
       "limitations": "Existing original-recipe visual position. Exact station identification, coordinate measurement and Mk VI mechanism dimensions require review before functional registration."
     },
@@ -57,9 +57,9 @@
         "rmg-j9645-original"
       ],
       "position": [
-        6.6,
-        11.2729,
-        24.2
+        5.2,
+        10.25,
+        26.2
       ],
       "limitations": "Existing original-recipe visual position. Exact station identification, coordinate measurement and Mk VI mechanism dimensions require review before functional registration."
     }

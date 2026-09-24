@@ -19120,7 +19120,7 @@
   "armor": [
     {
       "id": "belt-port-0-0-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -10.65212519863108,
         -0.04520000000000168,
@@ -19166,7 +19166,7 @@
     },
     {
       "id": "belt-port-0-0-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -10.1623093705941,
         -3.5952000000000015,
@@ -19212,7 +19212,7 @@
     },
     {
       "id": "belt-port-0-0-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -9.400057391807902,
         -4.895200000000001,
@@ -19258,7 +19258,7 @@
     },
     {
       "id": "belt-port-0-1-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -11.21748121098522,
         -0.04520000000000168,
@@ -19304,7 +19304,7 @@
     },
     {
       "id": "belt-port-0-1-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -10.792527118177153,
         -3.5952000000000015,
@@ -19350,7 +19350,7 @@
     },
     {
       "id": "belt-port-0-1-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -10.086767336127814,
         -4.895200000000001,
@@ -19396,7 +19396,7 @@
     },
     {
       "id": "belt-port-0-2-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -11.73996852041874,
         -0.04520000000000168,
@@ -19442,7 +19442,7 @@
     },
     {
       "id": "belt-port-0-2-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -11.375290375657846,
         -3.5952000000000015,
@@ -19488,7 +19488,7 @@
     },
     {
       "id": "belt-port-0-2-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -10.72492393014068,
         -4.895200000000001,
@@ -19534,7 +19534,7 @@
     },
     {
       "id": "belt-port-0-3-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -12.27642198639037,
         -0.04520000000000168,
@@ -19580,7 +19580,7 @@
     },
     {
       "id": "belt-port-0-3-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -11.938309302287642,
         -3.5952000000000015,
@@ -19626,7 +19626,7 @@
     },
     {
       "id": "belt-port-0-3-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -11.383383705764079,
         -4.895200000000001,
@@ -19672,7 +19672,7 @@
     },
     {
       "id": "belt-port-0-4-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -12.729899246838407,
         -0.04520000000000168,
@@ -19718,7 +19718,7 @@
     },
     {
       "id": "belt-port-0-4-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -12.446193543233441,
         -3.5952000000000015,
@@ -19764,7 +19764,7 @@
     },
     {
       "id": "belt-port-0-4-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -11.969377195245587,
         -4.895200000000001,
@@ -19810,7 +19810,7 @@
     },
     {
       "id": "belt-port-0-5-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -13.121568424315189,
         -0.04520000000000168,
@@ -19856,7 +19856,7 @@
     },
     {
       "id": "belt-port-0-5-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -12.909160105287562,
         -3.5952000000000015,
@@ -19902,7 +19902,7 @@
     },
     {
       "id": "belt-port-0-5-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -12.473624677341428,
         -4.895200000000001,
@@ -19948,7 +19948,7 @@
     },
     {
       "id": "belt-port-0-6-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -13.533044565854594,
         -0.04520000000000168,
@@ -19994,7 +19994,7 @@
     },
     {
       "id": "belt-port-0-6-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -13.350889560657553,
         -3.5952000000000015,
@@ -20040,7 +20040,7 @@
     },
     {
       "id": "belt-port-0-6-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -12.988884669941845,
         -4.895200000000001,
@@ -20086,7 +20086,7 @@
     },
     {
       "id": "belt-port-0-7-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -13.89935700397799,
         -0.04520000000000168,
@@ -20132,7 +20132,7 @@
     },
     {
       "id": "belt-port-0-7-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -13.736163452243433,
         -3.5952000000000015,
@@ -20178,7 +20178,7 @@
     },
     {
       "id": "belt-port-0-7-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -13.442242546685502,
         -4.895200000000001,
@@ -20224,7 +20224,7 @@
     },
     {
       "id": "belt-starboard-0-0-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         10.65212519863108,
         -0.04520000000000168,
@@ -20270,7 +20270,7 @@
     },
     {
       "id": "belt-starboard-0-0-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         10.1623093705941,
         -3.5952000000000015,
@@ -20316,7 +20316,7 @@
     },
     {
       "id": "belt-starboard-0-0-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         9.400057391807902,
         -4.895200000000001,
@@ -20362,7 +20362,7 @@
     },
     {
       "id": "belt-starboard-0-1-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         11.21748121098522,
         -0.04520000000000168,
@@ -20408,7 +20408,7 @@
     },
     {
       "id": "belt-starboard-0-1-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         10.792527118177153,
         -3.5952000000000015,
@@ -20454,7 +20454,7 @@
     },
     {
       "id": "belt-starboard-0-1-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         10.086767336127814,
         -4.895200000000001,
@@ -20500,7 +20500,7 @@
     },
     {
       "id": "belt-starboard-0-2-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         11.73996852041874,
         -0.04520000000000168,
@@ -20546,7 +20546,7 @@
     },
     {
       "id": "belt-starboard-0-2-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         11.375290375657846,
         -3.5952000000000015,
@@ -20592,7 +20592,7 @@
     },
     {
       "id": "belt-starboard-0-2-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         10.72492393014068,
         -4.895200000000001,
@@ -20638,7 +20638,7 @@
     },
     {
       "id": "belt-starboard-0-3-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         12.27642198639037,
         -0.04520000000000168,
@@ -20684,7 +20684,7 @@
     },
     {
       "id": "belt-starboard-0-3-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         11.938309302287642,
         -3.5952000000000015,
@@ -20730,7 +20730,7 @@
     },
     {
       "id": "belt-starboard-0-3-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         11.383383705764079,
         -4.895200000000001,
@@ -20776,7 +20776,7 @@
     },
     {
       "id": "belt-starboard-0-4-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         12.729899246838407,
         -0.04520000000000168,
@@ -20822,7 +20822,7 @@
     },
     {
       "id": "belt-starboard-0-4-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         12.446193543233441,
         -3.5952000000000015,
@@ -20868,7 +20868,7 @@
     },
     {
       "id": "belt-starboard-0-4-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         11.969377195245587,
         -4.895200000000001,
@@ -20914,7 +20914,7 @@
     },
     {
       "id": "belt-starboard-0-5-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         13.121568424315189,
         -0.04520000000000168,
@@ -20960,7 +20960,7 @@
     },
     {
       "id": "belt-starboard-0-5-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         12.909160105287562,
         -3.5952000000000015,
@@ -21006,7 +21006,7 @@
     },
     {
       "id": "belt-starboard-0-5-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         12.473624677341428,
         -4.895200000000001,
@@ -21052,7 +21052,7 @@
     },
     {
       "id": "belt-starboard-0-6-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         13.533044565854594,
         -0.04520000000000168,
@@ -21098,7 +21098,7 @@
     },
     {
       "id": "belt-starboard-0-6-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         13.350889560657553,
         -3.5952000000000015,
@@ -21144,7 +21144,7 @@
     },
     {
       "id": "belt-starboard-0-6-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         12.988884669941845,
         -4.895200000000001,
@@ -21190,7 +21190,7 @@
     },
     {
       "id": "belt-starboard-0-7-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         13.89935700397799,
         -0.04520000000000168,
@@ -21236,7 +21236,7 @@
     },
     {
       "id": "belt-starboard-0-7-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         13.736163452243433,
         -3.5952000000000015,
@@ -21282,7 +21282,7 @@
     },
     {
       "id": "belt-starboard-0-7-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         13.442242546685502,
         -4.895200000000001,
@@ -21696,7 +21696,7 @@
     },
     {
       "id": "belt-port-1-0-upper",
-      "name": "Port machinery belt · upper",
+      "name": "Port machinery belt \u00b7 upper",
       "center": [
         -14.37419602585165,
         -0.04520000000000168,
@@ -21742,7 +21742,7 @@
     },
     {
       "id": "belt-port-1-0-taper",
-      "name": "Port machinery belt · taper",
+      "name": "Port machinery belt \u00b7 taper",
       "center": [
         -14.29830316535244,
         -3.5952000000000015,
@@ -21788,7 +21788,7 @@
     },
     {
       "id": "belt-port-1-0-lower",
-      "name": "Port machinery belt · lower",
+      "name": "Port machinery belt \u00b7 lower",
       "center": [
         -14.096983620731624,
         -4.895200000000001,
@@ -21834,7 +21834,7 @@
     },
     {
       "id": "belt-port-1-1-upper",
-      "name": "Port machinery belt · upper",
+      "name": "Port machinery belt \u00b7 upper",
       "center": [
         -14.851050834286493,
         -0.04520000000000168,
@@ -21880,7 +21880,7 @@
     },
     {
       "id": "belt-port-1-1-taper",
-      "name": "Port machinery belt · taper",
+      "name": "Port machinery belt \u00b7 taper",
       "center": [
         -14.944736518542282,
         -3.5952000000000015,
@@ -21926,7 +21926,7 @@
     },
     {
       "id": "belt-port-1-1-lower",
-      "name": "Port machinery belt · lower",
+      "name": "Port machinery belt \u00b7 lower",
       "center": [
         -14.85434891767474,
         -4.895200000000001,
@@ -21972,7 +21972,7 @@
     },
     {
       "id": "belt-port-1-2-upper",
-      "name": "Port machinery belt · upper",
+      "name": "Port machinery belt \u00b7 upper",
       "center": [
         -15.1058818268138,
         -0.04520000000000168,
@@ -22018,7 +22018,7 @@
     },
     {
       "id": "belt-port-1-2-taper",
-      "name": "Port machinery belt · taper",
+      "name": "Port machinery belt \u00b7 taper",
       "center": [
         -15.345577738583552,
         -3.5952000000000015,
@@ -22064,7 +22064,7 @@
     },
     {
       "id": "belt-port-1-2-lower",
-      "name": "Port machinery belt · lower",
+      "name": "Port machinery belt \u00b7 lower",
       "center": [
         -15.314101899070202,
         -4.895200000000001,
@@ -22110,7 +22110,7 @@
     },
     {
       "id": "belt-port-1-3-upper",
-      "name": "Port machinery belt · upper",
+      "name": "Port machinery belt \u00b7 upper",
       "center": [
         -15.245220054091886,
         -0.04520000000000168,
@@ -22156,7 +22156,7 @@
     },
     {
       "id": "belt-port-1-3-taper",
-      "name": "Port machinery belt · taper",
+      "name": "Port machinery belt \u00b7 taper",
       "center": [
         -15.55497945955442,
         -3.5952000000000015,
@@ -22202,7 +22202,7 @@
     },
     {
       "id": "belt-port-1-3-lower",
-      "name": "Port machinery belt · lower",
+      "name": "Port machinery belt \u00b7 lower",
       "center": [
         -15.54871887207171,
         -4.895200000000001,
@@ -22248,7 +22248,7 @@
     },
     {
       "id": "belt-port-1-4-upper",
-      "name": "Port machinery belt · upper",
+      "name": "Port machinery belt \u00b7 upper",
       "center": [
         -15.313249743036462,
         -0.04520000000000168,
@@ -22294,7 +22294,7 @@
     },
     {
       "id": "belt-port-1-4-taper",
-      "name": "Port machinery belt · taper",
+      "name": "Port machinery belt \u00b7 taper",
       "center": [
         -15.643487361768726,
         -3.5952000000000015,
@@ -22340,7 +22340,7 @@
     },
     {
       "id": "belt-port-1-4-lower",
-      "name": "Port machinery belt · lower",
+      "name": "Port machinery belt \u00b7 lower",
       "center": [
         -15.641975835240444,
         -4.895200000000001,
@@ -22386,7 +22386,7 @@
     },
     {
       "id": "belt-port-1-5-upper",
-      "name": "Port machinery belt · upper",
+      "name": "Port machinery belt \u00b7 upper",
       "center": [
         -15.323200502041727,
         -0.04520000000000168,
@@ -22432,7 +22432,7 @@
     },
     {
       "id": "belt-port-1-5-taper",
-      "name": "Port machinery belt · taper",
+      "name": "Port machinery belt \u00b7 taper",
       "center": [
         -15.639273258219474,
         -3.5952000000000015,
@@ -22478,7 +22478,7 @@
     },
     {
       "id": "belt-port-1-5-lower",
-      "name": "Port machinery belt · lower",
+      "name": "Port machinery belt \u00b7 lower",
       "center": [
         -15.635522273427807,
         -4.895200000000001,
@@ -22524,7 +22524,7 @@
     },
     {
       "id": "belt-port-1-6-upper",
-      "name": "Port machinery belt · upper",
+      "name": "Port machinery belt \u00b7 upper",
       "center": [
         -15.231176115774081,
         -0.04520000000000168,
@@ -22570,7 +22570,7 @@
     },
     {
       "id": "belt-port-1-6-taper",
-      "name": "Port machinery belt · taper",
+      "name": "Port machinery belt \u00b7 taper",
       "center": [
         -15.498104161121882,
         -3.5952000000000015,
@@ -22616,7 +22616,7 @@
     },
     {
       "id": "belt-port-1-6-lower",
-      "name": "Port machinery belt · lower",
+      "name": "Port machinery belt \u00b7 lower",
       "center": [
         -15.46831413973635,
         -4.895200000000001,
@@ -22662,7 +22662,7 @@
     },
     {
       "id": "belt-port-1-7-upper",
-      "name": "Port machinery belt · upper",
+      "name": "Port machinery belt \u00b7 upper",
       "center": [
         -14.934300204889382,
         -0.04520000000000168,
@@ -22708,7 +22708,7 @@
     },
     {
       "id": "belt-port-1-7-taper",
-      "name": "Port machinery belt · taper",
+      "name": "Port machinery belt \u00b7 taper",
       "center": [
         -15.138977724868804,
         -3.5952000000000015,
@@ -22754,7 +22754,7 @@
     },
     {
       "id": "belt-port-1-7-lower",
-      "name": "Port machinery belt · lower",
+      "name": "Port machinery belt \u00b7 lower",
       "center": [
         -15.05589216420427,
         -4.895200000000001,
@@ -22800,7 +22800,7 @@
     },
     {
       "id": "belt-starboard-1-0-upper",
-      "name": "Starboard machinery belt · upper",
+      "name": "Starboard machinery belt \u00b7 upper",
       "center": [
         14.37419602585165,
         -0.04520000000000168,
@@ -22846,7 +22846,7 @@
     },
     {
       "id": "belt-starboard-1-0-taper",
-      "name": "Starboard machinery belt · taper",
+      "name": "Starboard machinery belt \u00b7 taper",
       "center": [
         14.29830316535244,
         -3.5952000000000015,
@@ -22892,7 +22892,7 @@
     },
     {
       "id": "belt-starboard-1-0-lower",
-      "name": "Starboard machinery belt · lower",
+      "name": "Starboard machinery belt \u00b7 lower",
       "center": [
         14.096983620731624,
         -4.895200000000001,
@@ -22938,7 +22938,7 @@
     },
     {
       "id": "belt-starboard-1-1-upper",
-      "name": "Starboard machinery belt · upper",
+      "name": "Starboard machinery belt \u00b7 upper",
       "center": [
         14.851050834286493,
         -0.04520000000000168,
@@ -22984,7 +22984,7 @@
     },
     {
       "id": "belt-starboard-1-1-taper",
-      "name": "Starboard machinery belt · taper",
+      "name": "Starboard machinery belt \u00b7 taper",
       "center": [
         14.944736518542282,
         -3.5952000000000015,
@@ -23030,7 +23030,7 @@
     },
     {
       "id": "belt-starboard-1-1-lower",
-      "name": "Starboard machinery belt · lower",
+      "name": "Starboard machinery belt \u00b7 lower",
       "center": [
         14.85434891767474,
         -4.895200000000001,
@@ -23076,7 +23076,7 @@
     },
     {
       "id": "belt-starboard-1-2-upper",
-      "name": "Starboard machinery belt · upper",
+      "name": "Starboard machinery belt \u00b7 upper",
       "center": [
         15.1058818268138,
         -0.04520000000000168,
@@ -23122,7 +23122,7 @@
     },
     {
       "id": "belt-starboard-1-2-taper",
-      "name": "Starboard machinery belt · taper",
+      "name": "Starboard machinery belt \u00b7 taper",
       "center": [
         15.345577738583552,
         -3.5952000000000015,
@@ -23168,7 +23168,7 @@
     },
     {
       "id": "belt-starboard-1-2-lower",
-      "name": "Starboard machinery belt · lower",
+      "name": "Starboard machinery belt \u00b7 lower",
       "center": [
         15.314101899070202,
         -4.895200000000001,
@@ -23214,7 +23214,7 @@
     },
     {
       "id": "belt-starboard-1-3-upper",
-      "name": "Starboard machinery belt · upper",
+      "name": "Starboard machinery belt \u00b7 upper",
       "center": [
         15.245220054091886,
         -0.04520000000000168,
@@ -23260,7 +23260,7 @@
     },
     {
       "id": "belt-starboard-1-3-taper",
-      "name": "Starboard machinery belt · taper",
+      "name": "Starboard machinery belt \u00b7 taper",
       "center": [
         15.55497945955442,
         -3.5952000000000015,
@@ -23306,7 +23306,7 @@
     },
     {
       "id": "belt-starboard-1-3-lower",
-      "name": "Starboard machinery belt · lower",
+      "name": "Starboard machinery belt \u00b7 lower",
       "center": [
         15.54871887207171,
         -4.895200000000001,
@@ -23352,7 +23352,7 @@
     },
     {
       "id": "belt-starboard-1-4-upper",
-      "name": "Starboard machinery belt · upper",
+      "name": "Starboard machinery belt \u00b7 upper",
       "center": [
         15.313249743036462,
         -0.04520000000000168,
@@ -23398,7 +23398,7 @@
     },
     {
       "id": "belt-starboard-1-4-taper",
-      "name": "Starboard machinery belt · taper",
+      "name": "Starboard machinery belt \u00b7 taper",
       "center": [
         15.643487361768726,
         -3.5952000000000015,
@@ -23444,7 +23444,7 @@
     },
     {
       "id": "belt-starboard-1-4-lower",
-      "name": "Starboard machinery belt · lower",
+      "name": "Starboard machinery belt \u00b7 lower",
       "center": [
         15.641975835240444,
         -4.895200000000001,
@@ -23490,7 +23490,7 @@
     },
     {
       "id": "belt-starboard-1-5-upper",
-      "name": "Starboard machinery belt · upper",
+      "name": "Starboard machinery belt \u00b7 upper",
       "center": [
         15.323200502041727,
         -0.04520000000000168,
@@ -23536,7 +23536,7 @@
     },
     {
       "id": "belt-starboard-1-5-taper",
-      "name": "Starboard machinery belt · taper",
+      "name": "Starboard machinery belt \u00b7 taper",
       "center": [
         15.639273258219474,
         -3.5952000000000015,
@@ -23582,7 +23582,7 @@
     },
     {
       "id": "belt-starboard-1-5-lower",
-      "name": "Starboard machinery belt · lower",
+      "name": "Starboard machinery belt \u00b7 lower",
       "center": [
         15.635522273427807,
         -4.895200000000001,
@@ -23628,7 +23628,7 @@
     },
     {
       "id": "belt-starboard-1-6-upper",
-      "name": "Starboard machinery belt · upper",
+      "name": "Starboard machinery belt \u00b7 upper",
       "center": [
         15.231176115774081,
         -0.04520000000000168,
@@ -23674,7 +23674,7 @@
     },
     {
       "id": "belt-starboard-1-6-taper",
-      "name": "Starboard machinery belt · taper",
+      "name": "Starboard machinery belt \u00b7 taper",
       "center": [
         15.498104161121882,
         -3.5952000000000015,
@@ -23720,7 +23720,7 @@
     },
     {
       "id": "belt-starboard-1-6-lower",
-      "name": "Starboard machinery belt · lower",
+      "name": "Starboard machinery belt \u00b7 lower",
       "center": [
         15.46831413973635,
         -4.895200000000001,
@@ -23766,7 +23766,7 @@
     },
     {
       "id": "belt-starboard-1-7-upper",
-      "name": "Starboard machinery belt · upper",
+      "name": "Starboard machinery belt \u00b7 upper",
       "center": [
         14.934300204889382,
         -0.04520000000000168,
@@ -23812,7 +23812,7 @@
     },
     {
       "id": "belt-starboard-1-7-taper",
-      "name": "Starboard machinery belt · taper",
+      "name": "Starboard machinery belt \u00b7 taper",
       "center": [
         15.138977724868804,
         -3.5952000000000015,
@@ -23858,7 +23858,7 @@
     },
     {
       "id": "belt-starboard-1-7-lower",
-      "name": "Starboard machinery belt · lower",
+      "name": "Starboard machinery belt \u00b7 lower",
       "center": [
         15.05589216420427,
         -4.895200000000001,
@@ -24272,7 +24272,7 @@
     },
     {
       "id": "belt-port-2-0-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -14.569292121901643,
         -0.04520000000000168,
@@ -24318,7 +24318,7 @@
     },
     {
       "id": "belt-port-2-0-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -14.686745259857737,
         -3.5952000000000015,
@@ -24364,7 +24364,7 @@
     },
     {
       "id": "belt-port-2-0-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -14.557948298773727,
         -4.895200000000001,
@@ -24410,7 +24410,7 @@
     },
     {
       "id": "belt-port-2-1-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -14.25956458431389,
         -0.04520000000000168,
@@ -24456,7 +24456,7 @@
     },
     {
       "id": "belt-port-2-1-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -14.25302180755511,
         -3.5952000000000015,
@@ -24502,7 +24502,7 @@
     },
     {
       "id": "belt-port-2-1-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -14.095342976449057,
         -4.895200000000001,
@@ -24548,7 +24548,7 @@
     },
     {
       "id": "belt-port-2-2-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -13.834859853850212,
         -0.04520000000000168,
@@ -24594,7 +24594,7 @@
     },
     {
       "id": "belt-port-2-2-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -13.736702925522811,
         -3.5952000000000015,
@@ -24640,7 +24640,7 @@
     },
     {
       "id": "belt-port-2-2-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -13.555871668044944,
         -4.895200000000001,
@@ -24686,7 +24686,7 @@
     },
     {
       "id": "belt-port-2-3-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -13.222886154965497,
         -0.04520000000000168,
@@ -24732,7 +24732,7 @@
     },
     {
       "id": "belt-port-2-3-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -13.084623778078239,
         -3.5952000000000015,
@@ -24778,7 +24778,7 @@
     },
     {
       "id": "belt-port-2-3-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -12.879507100660351,
         -4.895200000000001,
@@ -24824,7 +24824,7 @@
     },
     {
       "id": "belt-port-2-4-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -12.530961644618774,
         -0.04520000000000168,
@@ -24870,7 +24870,7 @@
     },
     {
       "id": "belt-port-2-4-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -12.356504135785624,
         -3.5952000000000015,
@@ -24916,7 +24916,7 @@
     },
     {
       "id": "belt-port-2-4-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -12.106444277624597,
         -4.895200000000001,
@@ -24962,7 +24962,7 @@
     },
     {
       "id": "belt-port-2-5-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -11.788628031527626,
         -0.04520000000000168,
@@ -25008,7 +25008,7 @@
     },
     {
       "id": "belt-port-2-5-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -11.570091852450279,
         -3.5952000000000015,
@@ -25054,7 +25054,7 @@
     },
     {
       "id": "belt-port-2-5-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -11.263909185489638,
         -4.895200000000001,
@@ -25100,7 +25100,7 @@
     },
     {
       "id": "belt-port-2-6-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -10.965223383211068,
         -0.04520000000000168,
@@ -25146,7 +25146,7 @@
     },
     {
       "id": "belt-port-2-6-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -10.71705448318226,
         -3.5952000000000015,
@@ -25192,7 +25192,7 @@
     },
     {
       "id": "belt-port-2-6-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -10.37340970970411,
         -4.895200000000001,
@@ -25238,7 +25238,7 @@
     },
     {
       "id": "belt-port-2-7-upper",
-      "name": "Port magazine belt · upper",
+      "name": "Port magazine belt \u00b7 upper",
       "center": [
         -10.062979523235468,
         -0.04520000000000168,
@@ -25284,7 +25284,7 @@
     },
     {
       "id": "belt-port-2-7-taper",
-      "name": "Port magazine belt · taper",
+      "name": "Port magazine belt \u00b7 taper",
       "center": [
         -9.816073414175769,
         -3.5952000000000015,
@@ -25330,7 +25330,7 @@
     },
     {
       "id": "belt-port-2-7-lower",
-      "name": "Port magazine belt · lower",
+      "name": "Port magazine belt \u00b7 lower",
       "center": [
         -9.445621935696341,
         -4.895200000000001,
@@ -25376,7 +25376,7 @@
     },
     {
       "id": "belt-starboard-2-0-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         14.569292121901643,
         -0.04520000000000168,
@@ -25422,7 +25422,7 @@
     },
     {
       "id": "belt-starboard-2-0-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         14.686745259857737,
         -3.5952000000000015,
@@ -25468,7 +25468,7 @@
     },
     {
       "id": "belt-starboard-2-0-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         14.557948298773727,
         -4.895200000000001,
@@ -25514,7 +25514,7 @@
     },
     {
       "id": "belt-starboard-2-1-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         14.25956458431389,
         -0.04520000000000168,
@@ -25560,7 +25560,7 @@
     },
     {
       "id": "belt-starboard-2-1-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         14.25302180755511,
         -3.5952000000000015,
@@ -25606,7 +25606,7 @@
     },
     {
       "id": "belt-starboard-2-1-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         14.095342976449057,
         -4.895200000000001,
@@ -25652,7 +25652,7 @@
     },
     {
       "id": "belt-starboard-2-2-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         13.834859853850212,
         -0.04520000000000168,
@@ -25698,7 +25698,7 @@
     },
     {
       "id": "belt-starboard-2-2-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         13.736702925522811,
         -3.5952000000000015,
@@ -25744,7 +25744,7 @@
     },
     {
       "id": "belt-starboard-2-2-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         13.555871668044944,
         -4.895200000000001,
@@ -25790,7 +25790,7 @@
     },
     {
       "id": "belt-starboard-2-3-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         13.222886154965497,
         -0.04520000000000168,
@@ -25836,7 +25836,7 @@
     },
     {
       "id": "belt-starboard-2-3-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         13.084623778078239,
         -3.5952000000000015,
@@ -25882,7 +25882,7 @@
     },
     {
       "id": "belt-starboard-2-3-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         12.879507100660351,
         -4.895200000000001,
@@ -25928,7 +25928,7 @@
     },
     {
       "id": "belt-starboard-2-4-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         12.530961644618774,
         -0.04520000000000168,
@@ -25974,7 +25974,7 @@
     },
     {
       "id": "belt-starboard-2-4-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         12.356504135785624,
         -3.5952000000000015,
@@ -26020,7 +26020,7 @@
     },
     {
       "id": "belt-starboard-2-4-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         12.106444277624597,
         -4.895200000000001,
@@ -26066,7 +26066,7 @@
     },
     {
       "id": "belt-starboard-2-5-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         11.788628031527626,
         -0.04520000000000168,
@@ -26112,7 +26112,7 @@
     },
     {
       "id": "belt-starboard-2-5-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         11.570091852450279,
         -3.5952000000000015,
@@ -26158,7 +26158,7 @@
     },
     {
       "id": "belt-starboard-2-5-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         11.263909185489638,
         -4.895200000000001,
@@ -26204,7 +26204,7 @@
     },
     {
       "id": "belt-starboard-2-6-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         10.965223383211068,
         -0.04520000000000168,
@@ -26250,7 +26250,7 @@
     },
     {
       "id": "belt-starboard-2-6-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         10.71705448318226,
         -3.5952000000000015,
@@ -26296,7 +26296,7 @@
     },
     {
       "id": "belt-starboard-2-6-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         10.37340970970411,
         -4.895200000000001,
@@ -26342,7 +26342,7 @@
     },
     {
       "id": "belt-starboard-2-7-upper",
-      "name": "Starboard magazine belt · upper",
+      "name": "Starboard magazine belt \u00b7 upper",
       "center": [
         10.062979523235468,
         -0.04520000000000168,
@@ -26388,7 +26388,7 @@
     },
     {
       "id": "belt-starboard-2-7-taper",
-      "name": "Starboard magazine belt · taper",
+      "name": "Starboard magazine belt \u00b7 taper",
       "center": [
         9.816073414175769,
         -3.5952000000000015,
@@ -26434,7 +26434,7 @@
     },
     {
       "id": "belt-starboard-2-7-lower",
-      "name": "Starboard magazine belt · lower",
+      "name": "Starboard magazine belt \u00b7 lower",
       "center": [
         9.445621935696341,
         -4.895200000000001,
@@ -26940,7 +26940,7 @@
     },
     {
       "id": "steering-armored-deck",
-      "name": "After steering protection · estimated deck",
+      "name": "After steering protection \u00b7 estimated deck",
       "center": [
         0,
         -0.6452000000000013,
@@ -26986,7 +26986,7 @@
     },
     {
       "id": "forward-protected-deck",
-      "name": "Forward protective deck · estimated",
+      "name": "Forward protective deck \u00b7 estimated",
       "center": [
         0,
         -0.6452000000000013,
@@ -30970,7 +30970,7 @@
     },
     {
       "id": "flood-strip-port-0-1",
-      "name": "Port outer space 1.2 · estimated",
+      "name": "Port outer space 1.2 \u00b7 estimated",
       "center": [
         -0.23712090390920637,
         -1.5,
@@ -30986,7 +30986,7 @@
     },
     {
       "id": "flood-strip-starboard-0-1",
-      "name": "Starboard outer space 1.2 · estimated",
+      "name": "Starboard outer space 1.2 \u00b7 estimated",
       "center": [
         0.23712090390920637,
         -1.5,
@@ -31002,7 +31002,7 @@
     },
     {
       "id": "flood-strip-port-0-2",
-      "name": "Port outer space 1.3 · estimated",
+      "name": "Port outer space 1.3 \u00b7 estimated",
       "center": [
         -0.27574963924288753,
         1.5,
@@ -31018,7 +31018,7 @@
     },
     {
       "id": "flood-strip-starboard-0-2",
-      "name": "Starboard outer space 1.3 · estimated",
+      "name": "Starboard outer space 1.3 \u00b7 estimated",
       "center": [
         0.27574963924288753,
         1.5,
@@ -31034,7 +31034,7 @@
     },
     {
       "id": "flood-strip-port-1-0",
-      "name": "Port outer space 2.1 · estimated",
+      "name": "Port outer space 2.1 \u00b7 estimated",
       "center": [
         -6.721602669224142,
         -4.5,
@@ -31050,7 +31050,7 @@
     },
     {
       "id": "flood-strip-starboard-1-0",
-      "name": "Starboard outer space 2.1 · estimated",
+      "name": "Starboard outer space 2.1 \u00b7 estimated",
       "center": [
         6.721602669224142,
         -4.5,
@@ -31066,7 +31066,7 @@
     },
     {
       "id": "flood-strip-port-1-1",
-      "name": "Port outer space 2.2 · estimated",
+      "name": "Port outer space 2.2 \u00b7 estimated",
       "center": [
         -7.158214314922691,
         -1.5,
@@ -31082,7 +31082,7 @@
     },
     {
       "id": "flood-strip-starboard-1-1",
-      "name": "Starboard outer space 2.2 · estimated",
+      "name": "Starboard outer space 2.2 \u00b7 estimated",
       "center": [
         7.158214314922691,
         -1.5,
@@ -31098,7 +31098,7 @@
     },
     {
       "id": "flood-strip-port-1-2",
-      "name": "Port outer space 2.3 · estimated",
+      "name": "Port outer space 2.3 \u00b7 estimated",
       "center": [
         -7.5903749124407796,
         1.5,
@@ -31114,7 +31114,7 @@
     },
     {
       "id": "flood-strip-starboard-1-2",
-      "name": "Starboard outer space 2.3 · estimated",
+      "name": "Starboard outer space 2.3 \u00b7 estimated",
       "center": [
         7.5903749124407796,
         1.5,
@@ -31130,7 +31130,7 @@
     },
     {
       "id": "flood-strip-port-2-0",
-      "name": "Port outer space 3.1 · estimated",
+      "name": "Port outer space 3.1 \u00b7 estimated",
       "center": [
         -13.315347005933521,
         -4.5,
@@ -31146,7 +31146,7 @@
     },
     {
       "id": "flood-strip-starboard-2-0",
-      "name": "Starboard outer space 3.1 · estimated",
+      "name": "Starboard outer space 3.1 \u00b7 estimated",
       "center": [
         13.315347005933521,
         -4.5,
@@ -31162,7 +31162,7 @@
     },
     {
       "id": "flood-strip-port-2-1",
-      "name": "Port outer space 3.2 · estimated",
+      "name": "Port outer space 3.2 \u00b7 estimated",
       "center": [
         -13.443411692559717,
         -1.5,
@@ -31178,7 +31178,7 @@
     },
     {
       "id": "flood-strip-starboard-2-1",
-      "name": "Starboard outer space 3.2 · estimated",
+      "name": "Starboard outer space 3.2 \u00b7 estimated",
       "center": [
         13.443411692559717,
         -1.5,
@@ -31194,7 +31194,7 @@
     },
     {
       "id": "flood-strip-port-2-2",
-      "name": "Port outer space 3.3 · estimated",
+      "name": "Port outer space 3.3 \u00b7 estimated",
       "center": [
         -13.455670765638354,
         1.5,
@@ -31210,7 +31210,7 @@
     },
     {
       "id": "flood-strip-starboard-2-2",
-      "name": "Starboard outer space 3.3 · estimated",
+      "name": "Starboard outer space 3.3 \u00b7 estimated",
       "center": [
         13.455670765638354,
         1.5,
@@ -31226,7 +31226,7 @@
     },
     {
       "id": "flood-strip-port-3-0",
-      "name": "Port outer space 4.1 · estimated",
+      "name": "Port outer space 4.1 \u00b7 estimated",
       "center": [
         -12.52406334260106,
         -4.5,
@@ -31242,7 +31242,7 @@
     },
     {
       "id": "flood-strip-starboard-3-0",
-      "name": "Starboard outer space 4.1 · estimated",
+      "name": "Starboard outer space 4.1 \u00b7 estimated",
       "center": [
         12.52406334260106,
         -4.5,
@@ -31258,7 +31258,7 @@
     },
     {
       "id": "flood-strip-port-3-1",
-      "name": "Port outer space 4.2 · estimated",
+      "name": "Port outer space 4.2 \u00b7 estimated",
       "center": [
         -12.865340436756611,
         -1.5,
@@ -31274,7 +31274,7 @@
     },
     {
       "id": "flood-strip-starboard-3-1",
-      "name": "Starboard outer space 4.2 · estimated",
+      "name": "Starboard outer space 4.2 \u00b7 estimated",
       "center": [
         12.865340436756611,
         -1.5,
@@ -31290,7 +31290,7 @@
     },
     {
       "id": "flood-strip-port-3-2",
-      "name": "Port outer space 4.3 · estimated",
+      "name": "Port outer space 4.3 \u00b7 estimated",
       "center": [
         -12.865749848186972,
         1.5,
@@ -31306,7 +31306,7 @@
     },
     {
       "id": "flood-strip-starboard-3-2",
-      "name": "Starboard outer space 4.3 · estimated",
+      "name": "Starboard outer space 4.3 \u00b7 estimated",
       "center": [
         12.865749848186972,
         1.5,
@@ -31322,7 +31322,7 @@
     },
     {
       "id": "flood-strip-port-4-1",
-      "name": "Port outer space 5.2 · estimated",
+      "name": "Port outer space 5.2 \u00b7 estimated",
       "center": [
         -5.286728411063552,
         -1.5,
@@ -31338,7 +31338,7 @@
     },
     {
       "id": "flood-strip-starboard-4-1",
-      "name": "Starboard outer space 5.2 · estimated",
+      "name": "Starboard outer space 5.2 \u00b7 estimated",
       "center": [
         5.286728411063552,
         -1.5,
@@ -31354,7 +31354,7 @@
     },
     {
       "id": "flood-strip-port-4-2",
-      "name": "Port outer space 5.3 · estimated",
+      "name": "Port outer space 5.3 \u00b7 estimated",
       "center": [
         -6.563374882996082,
         1.5,
@@ -31370,7 +31370,7 @@
     },
     {
       "id": "flood-strip-starboard-4-2",
-      "name": "Starboard outer space 5.3 · estimated",
+      "name": "Starboard outer space 5.3 \u00b7 estimated",
       "center": [
         6.563374882996082,
         1.5,
@@ -31386,7 +31386,7 @@
     },
     {
       "id": "flood-strip-port-5-2",
-      "name": "Port outer space 6.3 · estimated",
+      "name": "Port outer space 6.3 \u00b7 estimated",
       "center": [
         -1.0290598631799217,
         1.5,
@@ -31402,7 +31402,7 @@
     },
     {
       "id": "flood-strip-starboard-5-2",
-      "name": "Starboard outer space 6.3 · estimated",
+      "name": "Starboard outer space 6.3 \u00b7 estimated",
       "center": [
         1.0290598631799217,
         1.5,
@@ -31418,7 +31418,7 @@
     },
     {
       "id": "flood-end-bow-0",
-      "name": "Bow end space 1 · estimated",
+      "name": "Bow end space 1 \u00b7 estimated",
       "center": [
         0,
         -5.25,
@@ -31434,7 +31434,7 @@
     },
     {
       "id": "flood-end-bow-1",
-      "name": "Bow end space 2 · estimated",
+      "name": "Bow end space 2 \u00b7 estimated",
       "center": [
         0,
         -3.75,
@@ -31450,7 +31450,7 @@
     },
     {
       "id": "flood-end-stern-0",
-      "name": "Stern end space 1 · estimated",
+      "name": "Stern end space 1 \u00b7 estimated",
       "center": [
         0,
         -5.25,
@@ -31466,7 +31466,7 @@
     },
     {
       "id": "flood-end-stern-1",
-      "name": "Stern end space 2 · estimated",
+      "name": "Stern end space 2 \u00b7 estimated",
       "center": [
         0,
         -3.75,
@@ -31482,7 +31482,7 @@
     },
     {
       "id": "flood-end-stern-2",
-      "name": "Stern end space 3 · estimated",
+      "name": "Stern end space 3 \u00b7 estimated",
       "center": [
         0,
         -2.25,
@@ -31498,7 +31498,7 @@
     },
     {
       "id": "flood-end-stern-3",
-      "name": "Stern end space 4 · estimated",
+      "name": "Stern end space 4 \u00b7 estimated",
       "center": [
         0,
         -0.75,
@@ -31514,7 +31514,7 @@
     },
     {
       "id": "flood-end-stern-4",
-      "name": "Stern end space 5 · estimated",
+      "name": "Stern end space 5 \u00b7 estimated",
       "center": [
         0,
         0.75,
@@ -31530,7 +31530,7 @@
     },
     {
       "id": "flood-end-stern-5",
-      "name": "Stern end space 6 · estimated",
+      "name": "Stern end space 6 \u00b7 estimated",
       "center": [
         0,
         2.25,
@@ -31546,7 +31546,7 @@
     },
     {
       "id": "reserve-cell-0-0-0",
-      "name": "Port reserve space 1 · estimated",
+      "name": "Port reserve space 1 \u00b7 estimated",
       "center": [
         -5.40271875,
         -1.9385000000000003,
@@ -33856,7 +33856,7 @@
     },
     {
       "id": "reserve-cell-0-1-0",
-      "name": "Starboard reserve space 1 · estimated",
+      "name": "Starboard reserve space 1 \u00b7 estimated",
       "center": [
         5.40271875,
         -1.9385000000000003,
@@ -36166,7 +36166,7 @@
     },
     {
       "id": "reserve-cell-1-0-0",
-      "name": "Port reserve space 2 · estimated",
+      "name": "Port reserve space 2 \u00b7 estimated",
       "center": [
         -7.3673437525,
         -2.6567083350000003,
@@ -38020,7 +38020,7 @@
     },
     {
       "id": "reserve-cell-1-1-0",
-      "name": "Starboard reserve space 2 · estimated",
+      "name": "Starboard reserve space 2 \u00b7 estimated",
       "center": [
         7.3673437525,
         -2.6567083350000003,
@@ -39874,7 +39874,7 @@
     },
     {
       "id": "reserve-cell-2-0-0",
-      "name": "Port reserve space 3 · estimated",
+      "name": "Port reserve space 3 \u00b7 estimated",
       "center": [
         -7.3673437525,
         -2.6567083350000003,
@@ -42040,7 +42040,7 @@
     },
     {
       "id": "reserve-cell-2-1-0",
-      "name": "Starboard reserve space 3 · estimated",
+      "name": "Starboard reserve space 3 \u00b7 estimated",
       "center": [
         7.3673437525,
         -2.6567083350000003,
@@ -44206,7 +44206,7 @@
     },
     {
       "id": "reserve-cell-3-0-0",
-      "name": "Port reserve space 4 · estimated",
+      "name": "Port reserve space 4 \u00b7 estimated",
       "center": [
         -6.38503125,
         -2.297604165,
@@ -47524,7 +47524,7 @@
     },
     {
       "id": "reserve-cell-3-1-0",
-      "name": "Starboard reserve space 4 · estimated",
+      "name": "Starboard reserve space 4 \u00b7 estimated",
       "center": [
         6.38503125,
         -2.297604165,
@@ -51329,8 +51329,8 @@
       "placement": "fixed",
       "center": [
         0,
-        22.9429,
-        -22.3
+        24.87,
+        -20.71
       ],
       "size": [
         3.7,
@@ -51353,8 +51353,8 @@
       "placement": "fixed",
       "center": [
         0,
-        14.692899999999998,
-        45
+        13.879999999999997,
+        50.13
       ],
       "size": [
         3.7,
@@ -51376,9 +51376,9 @@
       "kind": "fire-control",
       "placement": "fixed",
       "center": [
-        -2.35,
-        27.7929,
-        -15.1
+        -4.004,
+        27.205000000000002,
+        -13.21
       ],
       "size": [
         2.2,
@@ -51401,9 +51401,9 @@
       "kind": "fire-control",
       "placement": "fixed",
       "center": [
-        2.35,
-        27.7929,
-        -15.1
+        4.004,
+        27.205000000000002,
+        -13.21
       ],
       "size": [
         2.2,
@@ -51426,9 +51426,9 @@
       "kind": "fire-control",
       "placement": "fixed",
       "center": [
-        -3.2,
-        15.7929,
-        40
+        -3.879,
+        16.381,
+        43.32
       ],
       "size": [
         2.2,
@@ -51451,9 +51451,9 @@
       "kind": "fire-control",
       "placement": "fixed",
       "center": [
-        3.2,
-        15.7929,
-        40
+        3.879,
+        16.381,
+        43.32
       ],
       "size": [
         2.2,
@@ -53952,644 +53952,865 @@
     {
       "id": "forward-shelter",
       "center": [
-        0,
-        6.517899999999998,
-        -14
+        0.0,
+        7.621449999999999,
+        -11.85
       ],
       "size": [
-        15.999999999999998,
-        3.05,
-        35.6
+        17.200000000000003,
+        5.2571,
+        29.900000000000002
+      ]
+    },
+    {
+      "id": "sponson-starboard-2",
+      "center": [
+        12.149999999999999,
+        6.17145,
+        -0.7749999999999999
+      ],
+      "size": [
+        6.5,
+        2.3571,
+        7.65
+      ]
+    },
+    {
+      "id": "sponson-port-2",
+      "center": [
+        -12.149999999999999,
+        6.17145,
+        -0.7749999999999999
+      ],
+      "size": [
+        6.5,
+        2.3571,
+        7.65
       ]
     },
     {
       "id": "hangar-port",
       "center": [
-        -4.449999999999999,
-        9.5929,
-        -2
+        -4.8,
+        11.125,
+        -3.7500000000000004
       ],
       "size": [
-        7.099999999999999,
-        3.1,
-        11.6
+        7.800000000000001,
+        1.75,
+        13.700000000000001
       ]
     },
     {
       "id": "hangar-starboard",
       "center": [
-        4.449999999999999,
-        9.5929,
-        -2
+        4.8,
+        11.125,
+        -3.7500000000000004
       ],
       "size": [
-        7.099999999999999,
-        3.1,
-        11.6
+        7.800000000000001,
+        1.75,
+        13.700000000000001
       ]
     },
     {
-      "id": "after-shelter",
+      "id": "searchlight-house",
       "center": [
-        0,
-        6.517899999999998,
-        32
+        0.0,
+        14.5,
+        2.5999999999999996
       ],
       "size": [
-        16.200000000000003,
-        3.05,
-        27.6
+        6.6,
+        5.0,
+        2.0
       ]
     },
     {
-      "id": "boat-deck",
+      "id": "foremast-house",
       "center": [
-        0,
-        11.052899999999998,
-        32
+        0.0,
+        15.0,
+        -5.75
       ],
       "size": [
-        16.6,
-        0.18,
-        27.6
-      ]
-    },
-    {
-      "id": "boat-deck-trunk",
-      "center": [
-        0,
-        9.5029,
-        35
-      ],
-      "size": [
-        7.6,
-        2.92,
-        12.6
+        4.8,
+        6.0,
+        2.5000000000000004
       ]
     },
     {
       "id": "tower-base",
       "center": [
-        0,
-        9.567899999999998,
-        -20.6
+        0.0,
+        10.625,
+        -18.95
       ],
       "size": [
-        15.6,
-        3.05,
-        12.799999999999999
+        16.8,
+        0.75,
+        15.700000000000001
       ]
     },
     {
       "id": "tower-middle",
       "center": [
-        0,
-        12.617899999999999,
-        -18.1
+        0.0,
+        12.625,
+        -19.05
       ],
       "size": [
-        15.2,
-        3.05,
-        17.8
+        9.799999999999999,
+        3.25,
+        15.5
       ]
     },
     {
       "id": "tower-lower-bridge",
       "center": [
-        0,
-        17.1179,
-        -23
+        0.0,
+        14.9,
+        -19.05
       ],
       "size": [
-        8.1,
-        5.95,
-        9.999999999999998
+        13.6,
+        1.3,
+        15.5
       ]
     },
     {
       "id": "tower-admirals",
       "center": [
-        0,
-        18.642899999999997,
-        -27.5
+        0.0,
+        16.85,
+        -19.5
       ],
       "size": [
-        9.799999999999999,
-        2.9,
-        6.6
+        7.3999999999999995,
+        2.6,
+        14.6
       ]
     },
     {
       "id": "tower-upper-bridge",
       "center": [
-        0,
-        21.017899999999997,
-        -28.6
+        0.0,
+        19.45,
+        -20.0
       ],
       "size": [
-        6.8,
-        1.85,
-        4.999999999999998
+        8.0,
+        2.6,
+        17.0
+      ]
+    },
+    {
+      "id": "bridge-top",
+      "center": [
+        0.0,
+        21.325,
+        -15.55
+      ],
+      "size": [
+        7.6,
+        1.15,
+        9.1
       ]
     },
     {
       "id": "compass-shelter",
       "center": [
-        0,
-        22.382899999999996,
-        -28.1
+        0.0,
+        21.625,
+        -24.450000000000003
       ],
       "size": [
         6.3999999999999995,
-        0.8,
-        4.499999999999998
+        1.75,
+        7.9
       ]
     },
     {
       "id": "director-forward-base",
       "center": [
-        0,
-        20.717899999999997,
-        -22.3
+        0.0,
+        22.585,
+        -20.7
       ],
       "size": [
-        4.1,
-        1.25,
-        4.1
+        2.6,
+        1.37,
+        2.6
       ]
     },
     {
       "id": "hacs-forward-tower",
       "center": [
-        0,
-        20.1429,
-        -15.1
+        0.0,
+        23.674999999999997,
+        -14.0
       ],
       "size": [
-        2.6,
-        12,
-        2.400000000000001
+        6.8,
+        3.55,
+        3.800000000000001
+      ]
+    },
+    {
+      "id": "after-shelter",
+      "center": [
+        0.0,
+        7.621449999999999,
+        35.5
+      ],
+      "size": [
+        17.6,
+        5.2571,
+        31.4
+      ]
+    },
+    {
+      "id": "sponson-starboard-3",
+      "center": [
+        11.524999999999999,
+        6.17145,
+        23.549999999999997
+      ],
+      "size": [
+        7.449999999999999,
+        2.3571,
+        7.299999999999999
+      ]
+    },
+    {
+      "id": "sponson-port-3",
+      "center": [
+        -11.524999999999999,
+        6.17145,
+        23.549999999999997
+      ],
+      "size": [
+        7.449999999999999,
+        2.3571,
+        7.299999999999999
       ]
     },
     {
       "id": "director-aft-base",
       "center": [
-        0,
-        10.567899999999998,
-        45
+        0.0,
+        12.425,
+        43.9
       ],
       "size": [
-        3.6999999999999997,
-        5.05,
-        3.6
+        7.5,
+        4.35,
+        4.8000000000000025
+      ]
+    },
+    {
+      "id": "after-tower-top",
+      "center": [
+        0.0,
+        15.8,
+        45.7
+      ],
+      "size": [
+        2.2,
+        2.4,
+        3.2000000000000015
+      ]
+    },
+    {
+      "id": "director-aft-seat",
+      "center": [
+        0.0,
+        11.265,
+        50.129999999999995
+      ],
+      "size": [
+        3.0,
+        2.03,
+        2.9999999999999987
       ]
     },
     {
       "id": "forward-funnel",
       "center": [
-        0,
-        16.7929,
-        -0.8000000000000003
+        0.0,
+        18.15,
+        -0.5800000000000001
       ],
       "size": [
-        5.1,
-        12.4,
-        6.56
+        3.5,
+        12.3,
+        5.6499999999999995
       ]
     },
     {
       "id": "after-funnel",
       "center": [
-        0,
-        16.7929,
-        23.4
+        0.0,
+        17.275,
+        23.86
       ],
       "size": [
-        5.1,
-        12.4,
-        6.5600000000000005
+        2.7,
+        14.05,
+        6.33
       ]
     }
   ],
   "structures": [
     {
       "id": "forward-shelter",
-      "name": "Forward shelter deck",
+      "name": "Forward superstructure block",
       "footprint": [
         [
-          3.7,
-          -32
+          -8.8,
+          3.3
         ],
         [
-          8.2,
-          -26
+          -8.8,
+          -20.5
         ],
         [
-          8.2,
-          4
+          -2.0,
+          -27.0
         ],
         [
-          -8.2,
-          4
+          2.0,
+          -27.0
         ],
         [
-          -8.2,
-          -26
+          8.8,
+          -20.5
         ],
         [
-          -3.7,
-          -32
+          8.8,
+          3.3
         ]
       ],
-      "baseY": 4.992899999999998,
-      "height": 3.05,
+      "baseY": 4.9929,
+      "height": 5.2571,
+      "material": "naval"
+    },
+    {
+      "id": "sponson-starboard-2",
+      "name": "S2 5.25-inch sponson",
+      "footprint": [
+        [
+          8.7,
+          -4.8
+        ],
+        [
+          12.9,
+          -4.8
+        ],
+        [
+          14.8,
+          -3.8
+        ],
+        [
+          15.6,
+          -1.8
+        ],
+        [
+          15.4,
+          1.0
+        ],
+        [
+          13.6,
+          2.7
+        ],
+        [
+          11.0,
+          3.25
+        ],
+        [
+          8.7,
+          3.2
+        ]
+      ],
+      "baseY": 4.9929,
+      "height": 2.3571,
+      "material": "naval"
+    },
+    {
+      "id": "sponson-port-2",
+      "name": "P2 5.25-inch sponson",
+      "footprint": [
+        [
+          -8.7,
+          3.2
+        ],
+        [
+          -11.0,
+          3.25
+        ],
+        [
+          -13.6,
+          2.7
+        ],
+        [
+          -15.4,
+          1.0
+        ],
+        [
+          -15.6,
+          -1.8
+        ],
+        [
+          -14.8,
+          -3.8
+        ],
+        [
+          -12.9,
+          -4.8
+        ],
+        [
+          -8.7,
+          -4.8
+        ]
+      ],
+      "baseY": 4.9929,
+      "height": 2.3571,
       "material": "naval"
     },
     {
       "id": "hangar-port",
-      "name": "Port aircraft hangar",
+      "name": "Port aircraft hangar roof block",
       "footprint": [
         [
           -0.7,
-          4
+          3.3
         ],
         [
-          -8.2,
-          4
+          -8.9,
+          3.3
         ],
         [
-          -8.2,
-          -8
+          -8.9,
+          -10.8
         ],
         [
           -0.7,
-          -8
+          -10.8
         ]
       ],
-      "baseY": 8.0429,
-      "height": 3.1,
+      "baseY": 10.25,
+      "height": 1.75,
       "material": "naval"
     },
     {
       "id": "hangar-starboard",
-      "name": "Starboard aircraft hangar",
+      "name": "Starboard aircraft hangar roof block",
       "footprint": [
         [
-          8.2,
-          4
+          0.7,
+          -10.8
+        ],
+        [
+          8.9,
+          -10.8
+        ],
+        [
+          8.9,
+          3.3
         ],
         [
           0.7,
-          4
-        ],
-        [
-          0.7,
-          -8
-        ],
-        [
-          8.2,
-          -8
+          3.3
         ]
       ],
-      "baseY": 8.0429,
-      "height": 3.1,
+      "baseY": 10.25,
+      "height": 1.75,
       "material": "naval"
     },
     {
-      "id": "after-shelter",
-      "name": "After shelter deck",
+      "id": "searchlight-house",
+      "name": "Fore funnel searchlight house",
       "footprint": [
         [
-          1.8,
-          46
+          -3.5,
+          3.8
         ],
         [
-          8.3,
-          37
+          -3.5,
+          1.4
         ],
         [
-          8.3,
-          18
+          3.5,
+          1.4
         ],
         [
-          -8.3,
-          18
-        ],
-        [
-          -8.3,
-          37
-        ],
-        [
-          -1.8,
-          46
+          3.5,
+          3.8
         ]
       ],
-      "baseY": 4.992899999999998,
-      "height": 3.05,
+      "baseY": 12.0,
+      "height": 5.0,
       "material": "naval"
     },
     {
-      "id": "boat-deck",
-      "name": "After boat deck",
+      "id": "foremast-house",
+      "name": "Foremast house",
       "footprint": [
         [
-          1.8,
-          46
+          -2.6,
+          -4.3
         ],
         [
-          8.5,
-          37
+          -2.6,
+          -7.2
         ],
         [
-          8.5,
-          18
+          2.6,
+          -7.2
         ],
         [
-          -8.5,
-          18
-        ],
-        [
-          -8.5,
-          37
-        ],
-        [
-          -1.8,
-          46
+          2.6,
+          -4.3
         ]
       ],
-      "baseY": 10.962899999999998,
-      "height": 0.18,
-      "material": "roof"
-    },
-    {
-      "id": "boat-deck-trunk",
-      "name": "After boat deck supporting trunk",
-      "footprint": [
-        [
-          2.5,
-          41.5
-        ],
-        [
-          4,
-          40
-        ],
-        [
-          4,
-          30
-        ],
-        [
-          2.5,
-          28.5
-        ],
-        [
-          -2.5,
-          28.5
-        ],
-        [
-          -4,
-          30
-        ],
-        [
-          -4,
-          40
-        ],
-        [
-          -2.5,
-          41.5
-        ]
-      ],
-      "baseY": 8.0429,
-      "height": 2.92,
+      "baseY": 12.0,
+      "height": 6.0,
       "material": "naval"
     },
     {
       "id": "tower-base",
-      "name": "Forward tower lower platform",
+      "name": "Forward tower platform deck",
       "footprint": [
         [
-          3.7,
-          -27.2
+          -8.6,
+          -10.9
         ],
         [
-          8,
-          -24.2
+          -8.6,
+          -20.5
         ],
         [
-          8,
-          -14
+          -2.0,
+          -27.0
         ],
         [
-          -8,
-          -14
+          2.0,
+          -27.0
         ],
         [
-          -8,
-          -24.2
+          8.6,
+          -20.5
         ],
         [
-          -3.7,
-          -27.2
+          8.6,
+          -10.9
         ]
       ],
-      "baseY": 8.0429,
-      "height": 3.05,
+      "baseY": 10.25,
+      "height": 0.75,
       "material": "naval"
     },
     {
       "id": "tower-middle",
-      "name": "Forward tower signal deck",
+      "name": "Forward tower lower levels",
       "footprint": [
         [
-          3.7,
-          -27.2
+          -5.1,
+          -11.1
         ],
         [
-          7.8,
-          -24.6
+          -5.1,
+          -24.0
         ],
         [
-          7.8,
-          -15.6
+          -2.0,
+          -27.0
         ],
         [
-          3.9,
-          -9
+          2.0,
+          -27.0
         ],
         [
-          -3.9,
-          -9
+          5.1,
+          -24.0
         ],
         [
-          -7.8,
-          -15.6
-        ],
-        [
-          -7.8,
-          -24.6
-        ],
-        [
-          -3.7,
-          -27.2
+          5.1,
+          -11.1
         ]
       ],
-      "baseY": 11.092899999999997,
-      "height": 3.05,
+      "baseY": 11.0,
+      "height": 3.25,
       "material": "naval"
     },
     {
       "id": "tower-lower-bridge",
-      "name": "Lower bridge trunk",
+      "name": "Lower bridge and wings",
       "footprint": [
         [
-          3.4,
-          -17.8
+          -5.1,
+          -11.1
         ],
         [
-          4.25,
-          -18.650000000000002
+          -5.1,
+          -16.6
         ],
         [
-          4.25,
-          -27.349999999999998
+          -7.0,
+          -17.9
         ],
         [
-          3.4,
-          -28.2
+          -7.0,
+          -22.4
         ],
         [
-          -3.4,
-          -28.2
+          -2.1,
+          -27.0
         ],
         [
-          -4.25,
-          -27.349999999999998
+          2.1,
+          -27.0
         ],
         [
-          -4.25,
-          -18.650000000000002
+          7.0,
+          -22.4
         ],
         [
-          -3.4,
-          -17.8
+          7.0,
+          -17.9
+        ],
+        [
+          5.1,
+          -16.6
+        ],
+        [
+          5.1,
+          -11.1
         ]
       ],
-      "baseY": 14.142899999999997,
-      "height": 5.95,
+      "baseY": 14.25,
+      "height": 1.3,
       "material": "naval"
     },
     {
       "id": "tower-admirals",
-      "name": "Admiral bridge projecting cabin",
+      "name": "Admiral bridge core",
       "footprint": [
         [
-          5.1,
-          -24
+          -2.1,
+          -12.0
         ],
         [
-          5.1,
-          -27
+          -2.1,
+          -23.3
         ],
         [
-          2.8,
-          -31
+          -3.9,
+          -23.7
+        ],
+        [
+          -3.9,
+          -26.4
         ],
         [
           -2.8,
-          -31
+          -27.0
         ],
         [
-          -5.1,
-          -27
+          2.8,
+          -27.0
         ],
         [
-          -5.1,
-          -24
+          3.9,
+          -26.4
+        ],
+        [
+          3.9,
+          -23.7
+        ],
+        [
+          2.1,
+          -23.3
+        ],
+        [
+          2.1,
+          -12.0
         ]
       ],
-      "baseY": 17.192899999999998,
-      "height": 2.9,
+      "baseY": 15.55,
+      "height": 2.6,
       "material": "naval"
     },
     {
       "id": "tower-upper-bridge",
-      "name": "Navigation bridge glazed cabin",
+      "name": "Navigating bridge level",
       "footprint": [
         [
-          3.05,
-          -25.900000000000002
+          -3.8,
+          -11.3
         ],
         [
-          3.6,
-          -26.450000000000003
+          -3.8,
+          -12.0
         ],
         [
-          3.6,
-          -30.75
+          -3.3,
+          -12.2
         ],
         [
-          3.05,
-          -31.3
+          -3.3,
+          -16.0
         ],
         [
-          -3.05,
-          -31.3
+          -4.2,
+          -16.2
         ],
         [
-          -3.6,
-          -30.75
+          -4.2,
+          -24.8
         ],
         [
-          -3.6,
-          -26.450000000000003
+          -2.7,
+          -26.0
         ],
         [
-          -3.05,
-          -25.900000000000002
+          -2.1,
+          -28.7
+        ],
+        [
+          2.1,
+          -28.7
+        ],
+        [
+          2.7,
+          -26.0
+        ],
+        [
+          4.2,
+          -24.8
+        ],
+        [
+          4.2,
+          -16.2
+        ],
+        [
+          3.3,
+          -16.0
+        ],
+        [
+          3.3,
+          -12.2
+        ],
+        [
+          3.8,
+          -12.0
+        ],
+        [
+          3.8,
+          -11.3
         ]
       ],
-      "baseY": 20.092899999999997,
-      "height": 1.85,
+      "baseY": 18.15,
+      "height": 2.6,
+      "material": "naval"
+    },
+    {
+      "id": "bridge-top",
+      "name": "Bridge top and director seating deck",
+      "footprint": [
+        [
+          -4.0,
+          -10.8
+        ],
+        [
+          -4.0,
+          -12.0
+        ],
+        [
+          -3.3,
+          -12.2
+        ],
+        [
+          -3.3,
+          -15.8
+        ],
+        [
+          -3.9,
+          -16.2
+        ],
+        [
+          -3.9,
+          -20.3
+        ],
+        [
+          3.9,
+          -20.3
+        ],
+        [
+          3.9,
+          -16.2
+        ],
+        [
+          3.3,
+          -15.8
+        ],
+        [
+          3.3,
+          -12.2
+        ],
+        [
+          4.0,
+          -12.0
+        ],
+        [
+          4.0,
+          -10.8
+        ]
+      ],
+      "baseY": 20.75,
+      "height": 1.15,
       "material": "naval"
     },
     {
       "id": "compass-shelter",
-      "name": "Compass bridge glazed shelter",
+      "name": "Compass platform glazed shelter",
       "footprint": [
         [
-          2.9,
-          -25.650000000000002
-        ],
-        [
-          3.4,
-          -26.150000000000002
-        ],
-        [
-          3.4,
-          -30.05
-        ],
-        [
-          2.9,
-          -30.55
-        ],
-        [
-          -2.9,
-          -30.55
+          -3.4,
+          -20.3
         ],
         [
           -3.4,
-          -30.05
+          -26.0
         ],
         [
-          -3.4,
-          -26.150000000000002
+          -2.4,
+          -26.3
         ],
         [
-          -2.9,
-          -25.650000000000002
+          -2.4,
+          -28.6
+        ],
+        [
+          2.4,
+          -28.6
+        ],
+        [
+          2.4,
+          -26.3
+        ],
+        [
+          3.4,
+          -26.0
+        ],
+        [
+          3.4,
+          -20.3
         ]
       ],
-      "baseY": 21.982899999999997,
-      "height": 0.8,
+      "baseY": 20.75,
+      "height": 1.75,
       "material": "naval"
     },
     {
@@ -54597,460 +54818,529 @@
       "name": "Forward 14-inch director seating",
       "footprint": [
         [
-          1.6,
-          -20.05
+          0.9,
+          -19.2
         ],
         [
-          2.25,
-          -20.7
+          -0.9,
+          -19.2
         ],
         [
-          2.25,
-          -23.900000000000002
+          -1.5,
+          -19.8
         ],
         [
-          1.6,
-          -24.55
+          -1.5,
+          -21.6
         ],
         [
-          -1.6,
-          -24.55
+          -0.9,
+          -22.2
         ],
         [
-          -2.25,
-          -23.900000000000002
+          0.9,
+          -22.2
         ],
         [
-          -2.25,
-          -20.7
+          1.5,
+          -21.6
         ],
         [
-          -1.6,
-          -20.05
+          1.5,
+          -19.8
         ]
       ],
-      "baseY": 20.092899999999997,
-      "height": 1.25,
+      "baseY": 21.9,
+      "height": 1.37,
       "material": "naval"
     },
     {
       "id": "hacs-forward-tower",
-      "name": "Forward HACS support",
+      "name": "Forward HACS director tower",
       "footprint": [
         [
-          1.1,
-          -13.7
+          -3.6,
+          -11.9
         ],
         [
-          1.5,
-          -14.1
+          -3.6,
+          -14.4
         ],
         [
-          1.5,
+          -2.1,
+          -14.6
+        ],
+        [
+          -2.1,
           -16.1
         ],
         [
-          1.1,
-          -16.5
-        ],
-        [
-          -1.1,
-          -16.5
-        ],
-        [
-          -1.5,
+          2.1,
           -16.1
         ],
         [
-          -1.5,
-          -14.1
+          2.1,
+          -14.6
         ],
         [
-          -1.1,
-          -13.7
+          3.6,
+          -14.4
+        ],
+        [
+          3.6,
+          -11.9
         ]
       ],
-      "baseY": 14.142899999999997,
-      "height": 12,
+      "baseY": 21.9,
+      "height": 3.55,
+      "material": "naval"
+    },
+    {
+      "id": "after-shelter",
+      "name": "After deckhouse and boat deck",
+      "footprint": [
+        [
+          -2.4,
+          51.4
+        ],
+        [
+          -9.0,
+          44.0
+        ],
+        [
+          -9.0,
+          37.6
+        ],
+        [
+          -8.6,
+          37.2
+        ],
+        [
+          -8.6,
+          31.0
+        ],
+        [
+          -7.6,
+          31.0
+        ],
+        [
+          -7.6,
+          19.6
+        ],
+        [
+          7.6,
+          19.6
+        ],
+        [
+          7.6,
+          31.0
+        ],
+        [
+          8.6,
+          31.0
+        ],
+        [
+          8.6,
+          37.2
+        ],
+        [
+          9.0,
+          37.6
+        ],
+        [
+          9.0,
+          44.0
+        ],
+        [
+          2.4,
+          51.4
+        ]
+      ],
+      "baseY": 4.9929,
+      "height": 5.2571,
+      "material": "naval"
+    },
+    {
+      "id": "sponson-starboard-3",
+      "name": "S3 5.25-inch sponson",
+      "footprint": [
+        [
+          7.6,
+          19.9
+        ],
+        [
+          10.5,
+          19.7
+        ],
+        [
+          13.5,
+          20.2
+        ],
+        [
+          15.1,
+          21.7
+        ],
+        [
+          15.45,
+          24.0
+        ],
+        [
+          14.5,
+          26.4
+        ],
+        [
+          12.3,
+          27.4
+        ],
+        [
+          7.6,
+          27.4
+        ]
+      ],
+      "baseY": 4.9929,
+      "height": 2.3571,
+      "material": "naval"
+    },
+    {
+      "id": "sponson-port-3",
+      "name": "P3 5.25-inch sponson",
+      "footprint": [
+        [
+          -7.6,
+          27.4
+        ],
+        [
+          -12.3,
+          27.4
+        ],
+        [
+          -14.5,
+          26.4
+        ],
+        [
+          -15.45,
+          24.0
+        ],
+        [
+          -15.1,
+          21.7
+        ],
+        [
+          -13.5,
+          20.2
+        ],
+        [
+          -10.5,
+          19.7
+        ],
+        [
+          -7.6,
+          19.9
+        ]
+      ],
+      "baseY": 4.9929,
+      "height": 2.3571,
       "material": "naval"
     },
     {
       "id": "director-aft-base",
-      "name": "After main director tower",
+      "name": "After control tower",
       "footprint": [
         [
-          1.4999999999999998,
-          47
+          -3.3,
+          46.5
         ],
         [
-          2.05,
-          46.45
+          -3.95,
+          46.0
         ],
         [
-          2.05,
-          43.55
+          -3.95,
+          41.9
         ],
         [
-          1.4999999999999998,
-          43
+          -3.3,
+          41.3
         ],
         [
-          -1.4999999999999998,
-          43
+          3.3,
+          41.3
         ],
         [
-          -2.05,
-          43.55
+          3.95,
+          41.9
         ],
         [
-          -2.05,
-          46.45
+          3.95,
+          46.0
         ],
         [
-          -1.4999999999999998,
-          47
+          3.3,
+          46.5
         ]
       ],
-      "baseY": 8.0429,
-      "height": 5.05,
+      "baseY": 10.25,
+      "height": 4.35,
+      "material": "naval"
+    },
+    {
+      "id": "after-tower-top",
+      "name": "After tower close-range director seat",
+      "footprint": [
+        [
+          -1.3,
+          47.5
+        ],
+        [
+          -1.3,
+          43.9
+        ],
+        [
+          1.3,
+          43.9
+        ],
+        [
+          1.3,
+          47.5
+        ]
+      ],
+      "baseY": 14.6,
+      "height": 2.4,
+      "material": "naval"
+    },
+    {
+      "id": "director-aft-seat",
+      "name": "After 14-inch director seating",
+      "footprint": [
+        [
+          1.0,
+          51.83
+        ],
+        [
+          -1.0,
+          51.83
+        ],
+        [
+          -1.7,
+          51.13
+        ],
+        [
+          -1.7,
+          49.13
+        ],
+        [
+          -1.0,
+          48.43
+        ],
+        [
+          1.0,
+          48.43
+        ],
+        [
+          1.7,
+          49.13
+        ],
+        [
+          1.7,
+          51.13
+        ]
+      ],
+      "baseY": 10.25,
+      "height": 2.03,
       "material": "naval"
     },
     {
       "id": "forward-funnel",
-      "name": "Forward Funnel",
+      "name": "Forward funnel",
       "footprint": [
         [
-          0,
-          -4.28
+          1.95,
+          0.495
         ],
         [
-          -0.4301947788606349,
-          -4.237155425271079
+          1.8546,
+          1.0976
         ],
         [
-          -0.8497967345311054,
-          -4.109676676707134
+          1.5776,
+          1.6412
         ],
         [
-          -1.2484738742837538,
-          -3.9007027041755205
+          1.1462,
+          2.0726
         ],
         [
-          -1.616409443804301,
-          -3.6153791404248175
+          0.6026,
+          2.3496
         ],
         [
-          -1.9445436482630054,
-          -3.260731598529185
+          0.0,
+          2.445
         ],
         [
-          -2.2247967345311057,
-          -2.8454926779778065
+          -0.6026,
+          2.3496
         ],
         [
-          -2.4502679415180117,
-          -2.3798869390936233
+          -1.1462,
+          2.0726
         ],
         [
-          -2.615405419811672,
-          -1.8753791404248172
+          -1.5776,
+          1.6412
         ],
         [
-          -2.7161429366366288,
-          -1.3443919383400038
+          -1.8546,
+          1.0976
         ],
         [
-          -2.75,
-          -0.8000000000000003
+          -1.95,
+          0.495
         ],
         [
-          -2.7161429366366288,
-          -0.2556080616599976
+          -1.95,
+          -1.655
         ],
         [
-          -2.6154054198116725,
-          0.2753791404248167
+          -1.8546,
+          -2.2576
         ],
         [
-          -2.4502679415180117,
-          0.7798869390936227
+          -1.5776,
+          -2.8012
         ],
         [
-          -2.2247967345311057,
-          1.2454926779778062
+          -1.1462,
+          -3.2326
         ],
         [
-          -1.9445436482630059,
-          1.6607315985291853
+          -0.6026,
+          -3.5096
         ],
         [
-          -1.6164094438043015,
-          2.015379140424817
+          -0.0,
+          -3.605
         ],
         [
-          -1.2484738742837538,
-          2.30070270417552
+          0.6026,
+          -3.5096
         ],
         [
-          -0.8497967345311056,
-          2.5096766767071346
+          1.1462,
+          -3.2326
         ],
         [
-          -0.4301947788606352,
-          2.6371554252710787
+          1.5776,
+          -2.8012
         ],
         [
-          -3.3677786976552215e-16,
-          2.6799999999999997
+          1.8546,
+          -2.2576
         ],
         [
-          0.4301947788606345,
-          2.6371554252710796
-        ],
-        [
-          0.8497967345311039,
-          2.5096766767071346
-        ],
-        [
-          1.2484738742837533,
-          2.30070270417552
-        ],
-        [
-          1.6164094438043008,
-          2.015379140424817
-        ],
-        [
-          1.9445436482630054,
-          1.6607315985291857
-        ],
-        [
-          2.2247967345311053,
-          1.245492677977807
-        ],
-        [
-          2.4502679415180113,
-          0.7798869390936234
-        ],
-        [
-          2.615405419811672,
-          0.27537914042481737
-        ],
-        [
-          2.7161429366366288,
-          -0.25560806165999606
-        ],
-        [
-          2.75,
-          -0.7999999999999994
-        ],
-        [
-          2.7161429366366288,
-          -1.344391938340003
-        ],
-        [
-          2.6154054198116725,
-          -1.8753791404248163
-        ],
-        [
-          2.4502679415180117,
-          -2.3798869390936224
-        ],
-        [
-          2.2247967345311057,
-          -2.8454926779778056
-        ],
-        [
-          1.944543648263006,
-          -3.260731598529185
-        ],
-        [
-          1.6164094438043017,
-          -3.6153791404248166
-        ],
-        [
-          1.2484738742837542,
-          -3.9007027041755196
-        ],
-        [
-          0.8497967345311062,
-          -4.109676676707134
-        ],
-        [
-          0.43019477886063556,
-          -4.237155425271079
+          1.95,
+          -1.655
         ]
       ],
-      "baseY": 10.592899999999997,
-      "height": 12.4,
+      "baseY": 12.0,
+      "height": 12.3,
       "material": "naval"
     },
     {
       "id": "after-funnel",
-      "name": "After Funnel",
+      "name": "After funnel",
       "footprint": [
         [
-          0,
-          19.919999999999998
+          1.55,
+          25.675
         ],
         [
-          -0.4301947788606349,
-          19.96284457472892
+          1.4741,
+          26.154
         ],
         [
-          -0.8497967345311054,
-          20.090323323292864
+          1.254,
+          26.5861
         ],
         [
-          -1.2484738742837538,
-          20.299297295824477
+          0.9111,
+          26.929
         ],
         [
-          -1.616409443804301,
-          20.584620859575182
+          0.479,
+          27.1491
         ],
         [
-          -1.9445436482630054,
-          20.939268401470812
+          0.0,
+          27.225
         ],
         [
-          -2.2247967345311057,
-          21.354507322022194
+          -0.479,
+          27.1491
         ],
         [
-          -2.4502679415180117,
-          21.820113060906376
+          -0.9111,
+          26.929
         ],
         [
-          -2.615405419811672,
-          22.32462085957518
+          -1.254,
+          26.5861
         ],
         [
-          -2.7161429366366288,
-          22.855608061659996
+          -1.4741,
+          26.154
         ],
         [
-          -2.75,
-          23.4
+          -1.55,
+          25.675
         ],
         [
-          -2.7161429366366288,
-          23.94439193834
+          -1.55,
+          22.045
         ],
         [
-          -2.6154054198116725,
-          24.475379140424817
+          -1.4741,
+          21.566
         ],
         [
-          -2.4502679415180117,
-          24.97988693909362
+          -1.254,
+          21.1339
         ],
         [
-          -2.2247967345311057,
-          25.445492677977803
+          -0.9111,
+          20.791
         ],
         [
-          -1.9445436482630059,
-          25.860731598529185
+          -0.479,
+          20.5709
         ],
         [
-          -1.6164094438043015,
-          26.215379140424815
+          -0.0,
+          20.495
         ],
         [
-          -1.2484738742837538,
-          26.500702704175517
+          0.479,
+          20.5709
         ],
         [
-          -0.8497967345311056,
-          26.709676676707133
+          0.9111,
+          20.791
         ],
         [
-          -0.4301947788606352,
-          26.837155425271078
+          1.254,
+          21.1339
         ],
         [
-          -3.3677786976552215e-16,
-          26.88
+          1.4741,
+          21.566
         ],
         [
-          0.4301947788606345,
-          26.837155425271078
-        ],
-        [
-          0.8497967345311039,
-          26.709676676707133
-        ],
-        [
-          1.2484738742837533,
-          26.50070270417552
-        ],
-        [
-          1.6164094438043008,
-          26.215379140424815
-        ],
-        [
-          1.9445436482630054,
-          25.860731598529185
-        ],
-        [
-          2.2247967345311053,
-          25.445492677977807
-        ],
-        [
-          2.4502679415180113,
-          24.97988693909362
-        ],
-        [
-          2.615405419811672,
-          24.475379140424817
-        ],
-        [
-          2.7161429366366288,
-          23.944391938340004
-        ],
-        [
-          2.75,
-          23.4
-        ],
-        [
-          2.7161429366366288,
-          22.855608061659996
-        ],
-        [
-          2.6154054198116725,
-          22.324620859575184
-        ],
-        [
-          2.4502679415180117,
-          21.820113060906376
-        ],
-        [
-          2.2247967345311057,
-          21.354507322022194
-        ],
-        [
-          1.944543648263006,
-          20.939268401470812
-        ],
-        [
-          1.6164094438043017,
-          20.584620859575182
-        ],
-        [
-          1.2484738742837542,
-          20.29929729582448
-        ],
-        [
-          0.8497967345311062,
-          20.090323323292864
-        ],
-        [
-          0.43019477886063556,
-          19.96284457472892
+          1.55,
+          22.045
         ]
       ],
-      "baseY": 10.592899999999997,
-      "height": 12.4,
+      "baseY": 10.25,
+      "height": 14.05,
       "material": "naval"
     }
   ],
@@ -55859,7 +56149,7 @@
     "regions": [
       {
         "id": "underwater-port-1",
-        "name": "Underwater hull · port · bow",
+        "name": "Underwater hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -55875,7 +56165,7 @@
       },
       {
         "id": "underwater-port-2",
-        "name": "Underwater hull · port · forward",
+        "name": "Underwater hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -55891,7 +56181,7 @@
       },
       {
         "id": "underwater-port-3",
-        "name": "Underwater hull · port · forward amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -55907,7 +56197,7 @@
       },
       {
         "id": "underwater-port-4",
-        "name": "Underwater hull · port · amidships forward",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -55923,7 +56213,7 @@
       },
       {
         "id": "underwater-port-5",
-        "name": "Underwater hull · port · amidships aft",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -55939,7 +56229,7 @@
       },
       {
         "id": "underwater-port-6",
-        "name": "Underwater hull · port · aft amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -55955,7 +56245,7 @@
       },
       {
         "id": "underwater-port-7",
-        "name": "Underwater hull · port · aft",
+        "name": "Underwater hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -55971,7 +56261,7 @@
       },
       {
         "id": "underwater-port-8",
-        "name": "Underwater hull · port · stern",
+        "name": "Underwater hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -55987,7 +56277,7 @@
       },
       {
         "id": "underwater-starboard-1",
-        "name": "Underwater hull · starboard · bow",
+        "name": "Underwater hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -56003,7 +56293,7 @@
       },
       {
         "id": "underwater-starboard-2",
-        "name": "Underwater hull · starboard · forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -56019,7 +56309,7 @@
       },
       {
         "id": "underwater-starboard-3",
-        "name": "Underwater hull · starboard · forward amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -56035,7 +56325,7 @@
       },
       {
         "id": "underwater-starboard-4",
-        "name": "Underwater hull · starboard · amidships forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -56051,7 +56341,7 @@
       },
       {
         "id": "underwater-starboard-5",
-        "name": "Underwater hull · starboard · amidships aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -56067,7 +56357,7 @@
       },
       {
         "id": "underwater-starboard-6",
-        "name": "Underwater hull · starboard · aft amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -56083,7 +56373,7 @@
       },
       {
         "id": "underwater-starboard-7",
-        "name": "Underwater hull · starboard · aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -56099,7 +56389,7 @@
       },
       {
         "id": "underwater-starboard-8",
-        "name": "Underwater hull · starboard · stern",
+        "name": "Underwater hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -56115,7 +56405,7 @@
       },
       {
         "id": "upper-hull-port-1",
-        "name": "Upper hull · port · bow",
+        "name": "Upper hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56131,7 +56421,7 @@
       },
       {
         "id": "upper-hull-port-2",
-        "name": "Upper hull · port · forward",
+        "name": "Upper hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56147,7 +56437,7 @@
       },
       {
         "id": "upper-hull-port-3",
-        "name": "Upper hull · port · forward amidships",
+        "name": "Upper hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56163,7 +56453,7 @@
       },
       {
         "id": "upper-hull-port-4",
-        "name": "Upper hull · port · amidships forward",
+        "name": "Upper hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56179,7 +56469,7 @@
       },
       {
         "id": "upper-hull-port-5",
-        "name": "Upper hull · port · amidships aft",
+        "name": "Upper hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56195,7 +56485,7 @@
       },
       {
         "id": "upper-hull-port-6",
-        "name": "Upper hull · port · aft amidships",
+        "name": "Upper hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56211,7 +56501,7 @@
       },
       {
         "id": "upper-hull-port-7",
-        "name": "Upper hull · port · aft",
+        "name": "Upper hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56227,7 +56517,7 @@
       },
       {
         "id": "upper-hull-port-8",
-        "name": "Upper hull · port · stern",
+        "name": "Upper hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56243,7 +56533,7 @@
       },
       {
         "id": "upper-hull-starboard-1",
-        "name": "Upper hull · starboard · bow",
+        "name": "Upper hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56259,7 +56549,7 @@
       },
       {
         "id": "upper-hull-starboard-2",
-        "name": "Upper hull · starboard · forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56275,7 +56565,7 @@
       },
       {
         "id": "upper-hull-starboard-3",
-        "name": "Upper hull · starboard · forward amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56291,7 +56581,7 @@
       },
       {
         "id": "upper-hull-starboard-4",
-        "name": "Upper hull · starboard · amidships forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56307,7 +56597,7 @@
       },
       {
         "id": "upper-hull-starboard-5",
-        "name": "Upper hull · starboard · amidships aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56323,7 +56613,7 @@
       },
       {
         "id": "upper-hull-starboard-6",
-        "name": "Upper hull · starboard · aft amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56339,7 +56629,7 @@
       },
       {
         "id": "upper-hull-starboard-7",
-        "name": "Upper hull · starboard · aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56355,7 +56645,7 @@
       },
       {
         "id": "upper-hull-starboard-8",
-        "name": "Upper hull · starboard · stern",
+        "name": "Upper hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -56371,7 +56661,7 @@
       },
       {
         "id": "upperworks-port-1",
-        "name": "Upperworks · port · bow",
+        "name": "Upperworks \u00b7 port \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56387,7 +56677,7 @@
       },
       {
         "id": "upperworks-port-2",
-        "name": "Upperworks · port · forward",
+        "name": "Upperworks \u00b7 port \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56403,7 +56693,7 @@
       },
       {
         "id": "upperworks-port-3",
-        "name": "Upperworks · port · forward amidships",
+        "name": "Upperworks \u00b7 port \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56419,7 +56709,7 @@
       },
       {
         "id": "upperworks-port-4",
-        "name": "Upperworks · port · amidships forward",
+        "name": "Upperworks \u00b7 port \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56435,7 +56725,7 @@
       },
       {
         "id": "upperworks-port-5",
-        "name": "Upperworks · port · amidships aft",
+        "name": "Upperworks \u00b7 port \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56451,7 +56741,7 @@
       },
       {
         "id": "upperworks-port-6",
-        "name": "Upperworks · port · aft amidships",
+        "name": "Upperworks \u00b7 port \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56467,7 +56757,7 @@
       },
       {
         "id": "upperworks-port-7",
-        "name": "Upperworks · port · aft",
+        "name": "Upperworks \u00b7 port \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56483,7 +56773,7 @@
       },
       {
         "id": "upperworks-port-8",
-        "name": "Upperworks · port · stern",
+        "name": "Upperworks \u00b7 port \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56499,7 +56789,7 @@
       },
       {
         "id": "upperworks-starboard-1",
-        "name": "Upperworks · starboard · bow",
+        "name": "Upperworks \u00b7 starboard \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56515,7 +56805,7 @@
       },
       {
         "id": "upperworks-starboard-2",
-        "name": "Upperworks · starboard · forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56531,7 +56821,7 @@
       },
       {
         "id": "upperworks-starboard-3",
-        "name": "Upperworks · starboard · forward amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56547,7 +56837,7 @@
       },
       {
         "id": "upperworks-starboard-4",
-        "name": "Upperworks · starboard · amidships forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56563,7 +56853,7 @@
       },
       {
         "id": "upperworks-starboard-5",
-        "name": "Upperworks · starboard · amidships aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56579,7 +56869,7 @@
       },
       {
         "id": "upperworks-starboard-6",
-        "name": "Upperworks · starboard · aft amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56595,7 +56885,7 @@
       },
       {
         "id": "upperworks-starboard-7",
-        "name": "Upperworks · starboard · aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -56611,7 +56901,7 @@
       },
       {
         "id": "upperworks-starboard-8",
-        "name": "Upperworks · starboard · stern",
+        "name": "Upperworks \u00b7 starboard \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
