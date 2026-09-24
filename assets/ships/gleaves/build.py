@@ -779,7 +779,10 @@ for launcher in definition['depthChargeLaunchers']:
             yy=y+side*.41
             box(name+'.angle-track',(x+2.40,yy,z-.24),(5.15,.07,.16),materials['edge'],bev=.008)
             rod(name+'.upper-guard',(x-.13,yy,z+.30),(x+4.94,yy,z+.30),.029,materials['naval'])
-            for dx in [.3,1.75,3.2,4.7]:rod(name+'.leg',(x+dx,yy,deckz(x+dx)),(x+dx,yy,z+.31),.032,materials['edge'])
+            # pzsd108: the rack frames stand 1.65 m above the deck with a top rail.
+            for dx in [.3,1.75,3.2,4.7]:rod(name+'.leg',(x+dx,yy,deckz(x+dx)),(x+dx,yy,4.02),.032,materials['edge'])
+            rod(name+'.top-rail',(x+.3,yy,4.0),(x+4.7,yy,4.0),.029,materials['naval'])
+        for dx in [.3,1.75,3.2,4.7]:rod(name+'.frame-head',(x+dx,y-.41,4.0),(x+dx,y+.41,4.0),.029,materials['edge'])
         for i in range(8):charge(name,(x+.15+i*.61,y,z+.035))
         for i in range(23):rod(name+'.roller',(x+i*.22,y-.39,z-.21),(x+i*.22,y+.39,z-.21),.038,materials['wear'],vertices=10)
         box(name+'.stop-gate',(x-.12,y,z+.12),(.045,.83,.09),materials['naval'])
