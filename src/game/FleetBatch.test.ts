@@ -202,3 +202,38 @@ test('direct pose writes leave the matrix texture, kept bounds and culls as setM
   } finally { FleetBatch.directPoses = true; }
   direct.dispose(); reference.dispose(); material.dispose(); geometries.forEach(g => g.dispose());
 });
+
+test('kept bounds read each geometry\'s sphere from one array, exactly as three\'s geometry info holds it, through replaced geometry', () => {
+  let seed = 23;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  const geometries = [new THREE.BoxGeometry(2, 1, 4), new THREE.SphereGeometry(1.5, 8, 6), new THREE.TorusGeometry(2, .3, 5, 9)], material = new THREE.MeshStandardMaterial();
+  type Internals = { bounds: Float64Array; boundsGeometry: Int32Array; spheres: Float64Array };
+  const make = () => {
+    const batch = new FleetBatch(30, 6000, 18000, material), ids = geometries.map(g => batch.addGeometry(g));
+    for (let i = 0; i < 30; i++) batch.addInstance(ids[i % ids.length]);
+    return batch;
+  };
+  // The same writes to two batches, one kept through the sphere array and one through three's objects.
+  const batches = [make(), make()], matrix = new THREE.Matrix4(), expected = new THREE.Sphere();
+  const run = (k: number, write: (batch: FleetBatch) => void) => { FleetBatch.flatSpheres = k === 0; try { write(batches[k]); } finally { FleetBatch.flatSpheres = true; } };
+  for (let step = 0; step < 300; step++) {
+    const instance = Math.floor(random() * 30), change = random();
+    matrix.compose(new THREE.Vector3((random() - .5) * 900, random() * 30, (random() - .5) * 900),
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(random() * 6, random() * 6, random() * 6)), new THREE.Vector3(.3 + random() * 3, .3 + random() * 3, .3 + random() * 3));
+    const geometry = change < .05 ? new THREE.TorusGeometry(1 + random() * 3, .3, 5, 9) : undefined, id = Math.floor(random() * 3);
+    for (const k of [0, 1]) run(k, batch => {
+      if (geometry) batch.setGeometryAt(2, geometry);
+      else if (change < .15) batch.setGeometryIdAt(instance, id);
+      batch.writePose(instance, matrix.elements); batch.commitPoses();
+      batch.partBoundsAt(instance);
+    });
+    const [flat, objects] = batches.map(b => b as unknown as Internals);
+    expect(Array.from(flat.bounds.subarray(instance * 4, instance * 4 + 4))).toEqual(Array.from(objects.bounds.subarray(instance * 4, instance * 4 + 4)));
+    batches[0].getBoundingSphereAt(batches[0].getGeometryIdAt(instance), expected)!.applyMatrix4(batches[0].getMatrixAt(instance, new THREE.Matrix4()));
+    expect(Array.from(flat.bounds.subarray(instance * 4, instance * 4 + 4))).toEqual([expected.center.x, expected.center.y, expected.center.z, expected.radius]);
+  }
+  // The array took the replaced torus's sphere, not the first one's.
+  const torus = batches[0].getBoundingSphereAt(2, expected)!;
+  expect(Array.from((batches[0] as unknown as Internals).spheres.subarray(8, 12))).toEqual([torus.center.x, torus.center.y, torus.center.z, torus.radius]);
+  batches.forEach(b => b.dispose()); material.dispose(); geometries.forEach(g => g.dispose());
+});
