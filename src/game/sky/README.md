@@ -17,7 +17,8 @@ more GPU time than Sky Pro's same tier on the same scene (see [Budget](#budget))
 Sky Pro's license (`vendor/threejs-sky-pro/LICENSE.md` §3.6) forbids decompiling, deobfuscating or
 otherwise reverse engineering its compiled bundle, and the repository is public. Nobody working on
 this folder opens, reads, greps, diffs or pattern-matches `vendor/threejs-sky-pro/build/index.js`
-(or the removed Water Pro bundle in any past revision), including through tools or subagents. Its
+(nor Water Pro's `vendor/threejs-water-pro/build/index.js`, still vendored for the ocean comparison under the same
+terms), including through tools or subagents. Its
 `.d.ts` declarations and `PATCHES.md` describe only the public API the comparison adapter calls.
 Build from the game's own code, this document, three.js (`node_modules/three`), published literature
 and black-box observation of the running game (captures, frame times). Code here must be original

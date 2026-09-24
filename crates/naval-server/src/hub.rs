@@ -543,10 +543,7 @@ impl Drop for TicketSocket {
 mod tests {
     use super::*;
     fn fixture() -> Arc<Hub> {
-        let catalog = Arc::new(
-            Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                .unwrap(),
-        );
+        let catalog = Arc::new(Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap());
         let compiled = Arc::new(BTreeMap::from([(
             "fletcher".into(),
             Arc::new(catalog.compile("fletcher").unwrap()),

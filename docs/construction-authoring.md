@@ -1129,8 +1129,13 @@ authoring front end whose edits reach the source as a batch.
 Outputs are `public/models/<id>.glb`, its compiled JSON and thumbnail, plus
 `generated/build.json`, `generated/thumbnail/render.json` and the five fixed views
 in `generated/review/`. The `construction-v2` build manifest separates compiled
-definition, model recipe/input and presentation fingerprints. Every check runs
-the native compiler; compiler source changes only invalidate an asset when its
+definition, model recipe/input and presentation fingerprints. Builds and checks
+compile through the simulation's WASM build (`scripts/construction/publicationCompiler.ts`),
+not the native binary: native builds round differently on an arm64 Mac and on
+x86_64 Linux (last digits, and occasionally whether a sliver room survives), so a
+ship published on one never checked on the other. WASM floating point is the same
+everywhere, and dev and release WASM builds agree. Authoring commands keep the faster
+native compiler. Compiler source changes only invalidate an asset when its
 consumed output changes. Model and presentation recipes follow transitive value
 imports, ignoring comments and erased TypeScript types. Missing imports fail closed.
 
