@@ -207,10 +207,8 @@ def bridge_details():
   box('Signal bridge locker',(12.9,sign*3.15,21.02),(2.3,.46,.74),materials['naval'],detailcol)
   for xx in [12.2,12.9,13.6]:box('Signal locker panel',(xx,sign*3.40,21.02),(.57,.035,.56),materials['edge'],detailcol)
   for name,a,b,inner in [
-   ('Platform access',(46.7,9.2,5.75),(43.8,9.2,8.4),8.1),
    ('Forward exterior stair',(41.2,7.9,8.4),(36.0,7.9,13.1),7.45),
    ('Navigation bridge stair',(29.8,7.1,13.1),(27.4,7.1,15.4),5.85),
-   ('Lower tower gun gallery stair',(24.3,4.65,15.4),(22.0,4.65,17.68),3.85),
    ('Signal bridge access',(12.3,3.1,17.68),(15.6,3.1,20.65),2.6),
    ('Searchlight gallery stair',(12.5,3.2,20.65),(17.2,3.2,24.65),2.9),
    ]:
@@ -349,7 +347,19 @@ def tower_fittings():
   rod('Fog horn hanger',(18.4,sign*4.06,23.83),(18.4,sign*4.06,24.37),.03,materials['edge'],detailcol,vertices=4)
   # Handrails round the exposed after part of the bridge deck, junction boxes and indicators inside
   # the foretop bulwark.
-  rail('Bridge deck rail',[(17.35,sign*4.1,15.155),(17.35,sign*6.75,15.155),(22.1,sign*6.75,15.155),(26.15,sign*5.8,15.155)],.9,1.5,False,col=supercol)
+  rail('Bridge deck rail',[(17.35,sign*4.1,15.155),(17.35,sign*6.75,15.155),(22.1,sign*6.75,15.155),(26.15,sign*5.8,15.155)],.8,1.5,False,col=supercol)
+  # Vertical ladders where pgsb708 has them: up the 01 deckhouse side clear of the forward 20 mm, and up the
+  # tower base front from the bridge deck to the gun gallery (the former inclined flights crossed the guns).
+  wall,n=house_side(plan('superstructure-platform'),46.6,sign)
+  ladder('Platform access ladder',(46.6,wall+sign*.33,5.72),(46.6,wall+sign*.28,8.95),.5)
+  for zz in [6.3,7.4,8.2]:rod('Platform access ladder foot',(46.6-.25,wall+sign*.28,zz),(46.6-.25,wall,zz),.03,materials['edge'],detailcol,vertices=4)
+  ladder('Tower base front ladder',(21.72,sign*2.9,15.15),(21.72,sign*2.9,18.25),.45)
+  for zz in [15.6,16.7,17.6]:rod('Tower base ladder foot',(21.72,sign*2.9,zz),(21.44,sign*2.9,zz),.03,materials['edge'],detailcol,vertices=4)
+  # Four deep window bays across the tower base front, above the bridge deck (pgsb708 plan at 16.4 m).
+  for y0,y1 in [(2.2,3.05),(.8,1.6)]:
+   yc=sign*(y0+y1)/2
+   box('Tower base window bay',(21.47,yc,16.2),(.04,y1-y0,1.1),materials['dark'],detailcol)
+   polyline('Tower base window bay frame',[(21.5,sign*y0,15.65),(21.5,sign*y1,15.65),(21.5,sign*y1,16.75),(21.5,sign*y0,16.75)],.035,materials['edge'],closed=True,vertices=4)
   box('Foretop junction box',(12.52,sign*4.69,27.81),(.51,.22,.65),materials['naval'],detailcol)
   box('Foretop indicator',(14.43,sign*4.28,28.07),(.28,.28,.34),materials['naval'],detailcol)
   # Ready-use lockers from the approved stations.
