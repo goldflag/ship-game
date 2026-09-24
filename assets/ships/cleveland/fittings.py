@@ -126,15 +126,19 @@ def build_fittings(D,helpers,materials,col,deck_height):
     # Deck-edge stanchions and three continuous rails follow the authored sheer.
     stations=D['hull']['sections']
     points=[(s['station']-D['hull']['length']/2,s['points'][-1][0],s['points'][-1][1]) for s in stations]
+    def edge_at(x):
+        for a,b in zip(points,points[1:]):
+            if a[0]<=x<=b[0]:
+                t=(x-a[0])/(b[0]-a[0]);return a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t
+        return points[-1][1],points[-1][2]
+    # Stanchions every 2.5 m from the fantail bulwark (x -83.6) to the stem head.
+    xs=[-83.6+2.5*i for i in range(int((90+83.6)/2.5)+1)]
     for sign in [-1,1]:
         edge=[]
-        for a,b in zip(points,points[1:]):
-            n=max(1,math.ceil((b[0]-a[0])/2.5))
-            for i in range(n):
-                t=i/n;x=a[0]+(b[0]-a[0])*t;y=sign*max(0,a[1]+(b[1]-a[1])*t-.15);z=a[2]+(b[2]-a[2])*t
-                if abs(x)>90:continue
-                edge.append((x,y,z))
-                beam('deck-rail.stanchion',(x,y,z),(x,y,z+.96),.026)
+        for x in xs:
+            w,z=edge_at(x);y=sign*max(0,w-.15)
+            edge.append((x,y,z))
+            beam('deck-rail.stanchion',(x,y,z),(x,y,z+.96),.026)
         for a,b in zip(edge,edge[1:]):
             for h in [.32,.64,.96]:beam('deck-rail.wire',(a[0],a[1],a[2]+h),(b[0],b[1],b[2]+h),.016)
     # Deckhouse openings and attached doors; no texture planes hovering off the hull.
@@ -218,39 +222,9 @@ def build_fittings(D,helpers,materials,col,deck_height):
         beam(name+'.root closure',(a[0],width/2,a[2]),(a[0],0,a[2]+.65),.055)
     beam(name+'.hoist wire',tip,(tip[0],0,9.6),.025,dark)
     F.ring(name+'.hook',(tip[0],0,9.45),.18,.055,'y',segments=12)
-    # Long tapered bilge fins follow the corrected shell rather than floating
-    # beside a fixed-width proxy. Their roots penetrate the skin by two centimetres.
-    for sign in [-1,1]:
-        name='bilge-keel-'+('port' if sign>0 else 'starboard');vv=[]
-        for x,z,span in [(-34,-5.05,.04),(-25,-5.20,.85),(-10,-5.55,1.0),(5,-5.45,1.0),(20,-4.80,.85),(31,-4.40,.04)]:
-            width=loft_breadth(D['hull'],x,z)-.02
-            vv.extend([(x,sign*width,z+.03),(x,sign*(width+span),z-.35+.03),(x,sign*(width+span),z-.35-.03),(x,sign*width,z-.03)])
-        ff=[(3,2,1,0),(20,21,22,23)]
-        for i in range(5):
-            for j in range(4):ff.append((i*4+j,i*4+(j+1)%4,(i+1)*4+(j+1)%4,(i+1)*4+j))
-        tag(mesh(name,vv,ff,materials['antifouling'],col),name)
-    # Four original screws and their shaft runs; locations measured from Hull A fittings.
-    for i,(x,y,z,scale) in enumerate([(-58.7805,6.3705,-5.019,.8747),(-75.9075,3.1365,-5.445,.809),(-75.9075,-3.1365,-5.445,.809),(-58.7805,-6.3705,-5.007,.875)]):
-        name=f'propeller-{i+1}';sign=1 if y>0 else -1
-        root=(-36,sign*5,-4) if abs(y)>4 else (-55,sign*2.2,-4.7)
-        beam(name+'.shaft',root,(x,y,z),.17)
-        beam(name+'.shaft bracket',(x+3,y,z+.10),(x+3,y*.72,z+2),.18)
-        beam(name+'.hub',(x,y,z),(x-1.9*scale,y,z),.30,materials['bronze'])
-        radius=1.78*scale
-        for blade in range(4):
-            angle=blade*math.tau/4;vv=[]
-            outline=[(.25,-.12),(.70,-.48),(1.30,-.42),(1.0,.20),(.50,.28)]
-            for dx in [-.035,.035]:
-                for radial,tangent in outline:
-                    radial=radial/1.3*radius;tangent=tangent/1.3*radius*sign
-                    vv.append((x-.65*scale+tangent*.55+dx,y+radial*math.cos(angle)-tangent*math.sin(angle),z+radial*math.sin(angle)+tangent*math.cos(angle)))
-            ff=[(4,3,2,1,0),(5,6,7,8,9)]+[(j,(j+1)%5,(j+1)%5+5,j+5) for j in range(5)]
-            tag(mesh(name+'.blade',vv,ff,materials['bronze'],col,True),name)
-    # Centerline rudder blade and stock are joined to the counter stern.
-    beam('rudder.stock',(-82,0,-1),(-82,0,-6.6),.20)
-    outline=[(-79.8,-2.7),(-85.9,-3.1),(-85.5,-7.1),(-81.2,-7.3)]
-    vv=[(x,y,z) for y in [-.16,.16] for x,z in outline]
-    tag(mesh('rudder.blade',vv,[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],naval,col),'rudder')
+    # Skeg, rudder, bilge keels, shafts, screws, propeller guards and the fantail bulwark.
+    from underwater import build_underwater
+    build_underwater(D,helpers,materials,col)
 
     # Projecting bridge platforms carry thin splinter bulwarks, with cabins set inboard.
     for structure in D['structures']:
