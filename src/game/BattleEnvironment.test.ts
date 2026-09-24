@@ -7,7 +7,7 @@ import { installMapTerrain } from '../maps/testing';
 import { directionFromAngles } from './sky/celestialModel';
 import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
 import { battlePrecipitation } from '../maps/precipitation';
-import { PORT_WIND, VisualEnvironment } from './VisualEnvironment';
+import { BOLT_CEILING, PORT_WIND, VisualEnvironment } from './VisualEnvironment';
 import { validateBattleSetup } from './session/battleSetup';
 
 /** The ocean parameters the environment writes to. */
@@ -338,4 +338,26 @@ test('developer overrides replace only what they name, in port and at sea, until
   expect(environment.getOverrides()).toEqual({});
   expect(ocean.waves.significantHeight).toBe(standing.waves.significantHeightM);
   expect(sky.coverage).toBe(.38);
+});
+
+test('lightning lights meshes from the stroke at their share of direct light, never brighter on them than its ceiling', () => {
+  const sky = new RecordingSky();
+  const environment = new VisualEnvironment({ effects: lightSink(), funnelSmoke: windSink(), sunAnchor: new Group() });
+  attachOcean(environment, fakeOcean()); environment.attachSky(sky);
+  environment.setScene('north-atlantic', false); environment.syncLighting();
+  expect(environment.boltLight.intensity).toBe(0);
+  expect(environment.boltLight.castShadow).toBe(false);
+  // A stroke 8 km away: irradiance intensity × (1 km / r)², as the sun's share (0.55) reaches meshes.
+  sky.light.bolt.position.set(8000, 400, 0); sky.light.bolt.intensity = 20;
+  environment.syncLighting();
+  expect(environment.boltLight.position.toArray()).toEqual([8000, 400, 0]);
+  const at = (light: number, r: number) => light / r ** 2, r = new Vector3(8000, 400, 0).length();
+  expect(at(environment.boltLight.intensity, r)).toBeCloseTo(20 * (1000 / r) ** 2 * .55, 8);
+  expect(at(environment.boltLight.intensity, r)).toBeLessThan(BOLT_CEILING);
+  // A few hundred metres off it would outshine the sun for its instant; it stops at the ceiling.
+  sky.light.bolt.position.set(300, 200, 0);
+  environment.syncLighting();
+  expect(at(environment.boltLight.intensity, new Vector3(300, 200, 0).length())).toBeCloseTo(BOLT_CEILING, 8);
+  sky.light.bolt.intensity = 0; environment.syncLighting();
+  expect(environment.boltLight.intensity).toBe(0);
 });

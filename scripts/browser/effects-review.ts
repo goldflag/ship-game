@@ -4,6 +4,8 @@
  * one PNG per frame plus a labelled contact sheet per scene. `--list` names the scenes. The sea is held at
  * `--sea-time` seconds (default 60, `live` to leave it) after a 30 s replay, so master and a branch draw the same water.
  *
+ * `--url <dev server>` reuses a running dev server instead of starting one; `--allow-gpu-errors` reports WebGPU errors without failing.
+ *
  * `--serve <port>` keeps the browser and battle open between runs:
  *   curl -s 'localhost:<port>/run?scene=muzzle&out=.build/effects/try1'   render against the current source
  *   curl -s localhost:<port>/reload   load the page afresh and wait for its battle
@@ -20,7 +22,7 @@ const { values } = parseArgs({ options: {
   battle: { type: 'string', default: 'bismarck;;bismarck:static' }, range: { type: 'string', default: '1500' }, bearing: { type: 'string', default: '90' },
   viewport: { type: 'string', default: '1280x720' }, columns: { type: 'string', default: '3' }, serve: { type: 'string' }, list: { type: 'boolean', default: false },
   param: { type: 'string', multiple: true, default: [] }, 'sea-time': { type: 'string', default: '60' }, 'no-hmr': { type: 'boolean', default: false },
-  idle: { type: 'string', default: '60' },
+  idle: { type: 'string', default: '60' }, url: { type: 'string' }, 'allow-gpu-errors': { type: 'boolean', default: false },
 } });
 
 const [width, height] = values.viewport!.split('x').map(Number);
@@ -84,6 +86,7 @@ if (values.list) {
 
 // Several reviews may share one desktop; an occluded window must not have its frame loop throttled.
 await withHarness({ params, viewport: { width, height }, hmr: !values['no-hmr'], deadline: values.serve ? Infinity : 1800,
+  url: values.url?.replace(/\/$/, ''), allowGpuErrors: values['allow-gpu-errors'],
   args: ['--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'] }, async harness => {
   const columns = Number(values.columns);
   if (!values.serve) await run(harness, values.scene!.split(','), values.out!, columns);

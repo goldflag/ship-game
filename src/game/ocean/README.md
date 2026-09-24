@@ -33,6 +33,7 @@ roughness; McGuire & Mara, *Efficient GPU Screen-Space Ray Tracing* (2014).
 | Path | Owns |
 | --- | --- |
 | `contracts.ts` | Interfaces between parts. Change a contract before changing both sides. |
+| `noise.ts` | Value noise laid on the world that never repeats: what varies the tiled waves and foam from one copy to the next. |
 | `Ocean.ts` | The facade the game holds: creation, per-frame update, parameters, sky binding, post-process. |
 | `quality.ts` | The four tiers: cascades, mesh density, wake resolution, reflection budget. |
 | `waves/` | CPU spectrum (seeded, normalised to Hm0), GPU evolution + inverse FFT, foam persistence, height readback, the sea around hulls. |
@@ -57,7 +58,7 @@ render, no separate reflection G-buffer and no water-depth pass. `ocean.postProc
 color)` adds the underwater view to the game's output chain.
 
 The surface's fragment shader also reads every wake sampler's inputs: trail foam, bow waves, hull contact
-foam and the sea around hulls. WebGPU binds at most 12 uniform buffers per shader stage by default, and
+foam and shelter, and the sea around hulls. WebGPU binds at most 12 uniform buffers per shader stage by default, and
 three gives each uniform array its own buffer. Past that, pipeline creation fails and the sea stops
 drawing. A system the surface reads therefore packs its arrays into one buffer with `PackedVec4Arrays`
 (`src/game/packedUniforms.ts`).
@@ -118,8 +119,8 @@ wind-driven waves whose crests run across it, so breaking zones stretch along th
 0.9 rad onto the face and normalised, they make a standard-normal breaking indicator per cascade.
 The wind sets the share of the sea whitecaps and windrows cover (Monahan & O'Muircheartaigh,
 3.84·10⁻⁶·U^3.41, none below 3.5 m/s, scaled by the map); the whitecaps' part, what must add to the
-windrows' coverage as the two overlap at random, becomes an optical depth −ln(1 − W) (patches land at
-random and overlap). Each cascade takes the share of it its breaking waves carry (slope variance
+windrows' coverage as the two overlap at random, becomes an optical depth −ln(1 − W/g) (patches land at
+random and overlap) for the share g of the sea the breaking groups cover (below). Each cascade takes the share of it its breaking waves carry (slope variance
 within 1/32 to 2 of the sea's mean wavelength, none shorter than 3 m); its threshold is the normal
 quantile of that share over a measured persistence (19.5 area per unit breaking: the patches grow as
 they age; a finer cascade shows 0.62 of its foam through its gate; dense seas saturate as
@@ -132,8 +133,8 @@ breaking waves (at most 3 m²/s) along the wind and half that across, so a break
 its crest into a larger, fainter one drawn out downwind. Because thresholds follow the spectrum's
 own statistics, coverage holds whatever the wavelengths, heights or choppiness: on High the area
 whitecaps and windrows cover (a pixel counts where its foam passes the faint rim, as a photograph's
-brightness threshold would) is 0.14/0.63/1.6/4.0/7.9/14/24/45% of the sea at 6/9/12/15/18/21/25/30 m/s on the table's
-sea and 0.11/0.59/1.5/4.2/7.9/12/22/41% on the realistic one, against Monahan's 0.17/0.69/1.8/3.9/7.3/12/22/42%
+brightness threshold would) is 0.10/0.49/1.9/3.7/7.4/13/25/46% of the sea at 6/9/12/15/18/21/25/30 m/s on the table's
+sea and 0.13/0.71/1.8/4.1/6.8/12/23/44% on the realistic one, against Monahan's 0.17/0.69/1.8/3.9/7.3/12/22/42%
 (`ocean-waves.html`'s `foamCoverage`, a square kilometre at twelve instants, through the surface's own
 foam functions; a light air's few whitecaps vary by a fifth or more between runs). The extras texture's fourth channel persists
 the bubble cloud the same way for half the foam's lifetime: it is also the foam that broke in the
@@ -142,8 +143,27 @@ last few seconds (`fresh`), a whitecap's core. `surface()` returns foam and fres
 their mean over an ellipse 8 m along the crests and 2.5 m across or the pixel's footprint (`foamMean`,
 `bubbles`: one anisotropic read), and the wind's whitecap share (`whitecapShare`). A finer cascade's
 foam shows where the coarser cascades' compression, in its own standard deviations, passes −1 (full
-from 0.75): short waves break on the crests of long ones, and the long tiles hide a finer tile's
-repeats. Paused frames leave both channels untouched.
+from 0.75): short waves break on the crests of long ones. Paused frames leave both channels untouched.
+
+**Breaking groups** (`waves/groups.ts`). A tile repeats every 181 m (206–521 m in a realistic gale or
+storm), and so did every breaker in it: from the chase camera zoomed out, the same whitecaps stood
+on a grid. Real breaking comes in wave groups whose highest crests break as they pass through them, and
+it varies from place to place, so a field laid on the world that never repeats decides which of a
+tile's breakers show where. It is value noise on an integer hash (`noise.ts`) in cells 2.5 breaking
+wavelengths along the wind and 4 across it (at most 0.3 of the tile, so one tile apart the cells share
+no corner and the copies break independently), drifting downwind at the breaking waves' group
+velocity, over every cascade with its own seed. It covers a share g of the sea, 0.35 in anything up to
+a near gale, then as much as keeps the whitecaps below 0.3 of it (0.64 at 25 m/s, at most 0.8), with a
+soft edge ±0.06 about the noise's quantile, whose table the unit test checks. Each copy of a tile shows
+about g of its breakers, so the lattice's contrast falls to about g; the tile breaks 1/g as often to
+hold the wind's coverage, its depth set for the whitecaps inside the groups. The field is read where
+and when each patch was born: foam and bubbles decay from the same injection at different rates, so
+−τ·ln(bubbles/foam) is the patch's age and a whitecap keeps its group for life, never fading as the
+groups move on. The correlation between the foam at a point and one tile away (`ocean-waves.ts
+--lattice`, as a zoomed-out view draws it) fell from 0.15–0.19 to 0.04–0.10 for the second tile at 9–30
+m/s (0.35–0.38 to 0.10 up close at 9 m/s) and from 0.33–0.38 to 0.07–0.12 for the first up to a gale;
+a storm's first tile keeps most of its trace (0.23 against 0.30 at 25 m/s, 0.29 against 0.33 at 30),
+where the groups widen and the finer cascades' foam still follows its crests.
 
 **Sea around hulls** (`waves/hullSea.ts`). Combat poses every hull on its own sea, two long-crested sines
 (`session/sea.ts`, the Rust `SeaState`); the field draws an unrelated spectrum of the same height, so a hull could
@@ -223,20 +243,57 @@ half the reflection away. Windrows, old foam in lines along the wind, take a gro
 wind's coverage from 13 m/s (Beaufort 7, "foam begins to be blown in streaks"; 9 "dense streaks") to a
 quarter of it by 25 m/s, at most 4% of the sea, at 0.5 opacity: soft bands about 1–5 m wide and 12–32 m
 apart that meander, wiggle over 20 m of their length, swell and break 41 times a tile, gathered in
-stretches built from the patches at two scales an irrational ratio apart (which also shift the bands
-across the wind: no lattice from the air), beaded by the lace into strings of patches, and thickened
-where the surface converges (0.3–2.2×), so they ride the waves. All foam is a diffuse scatterer
+stretches built from the patches at two scales an irrational ratio apart, beaded by the lace into
+strings of patches, and thickened where the surface converges (0.3–2.2×), so they ride the waves. The
+bands' tile repeats every 160 m across the wind, so the world's noise shifts their layout by up to
+80 m across the wind and 100 m along it over 600 m cells: they meander a few degrees off the wind and
+never fall in the same place twice, where they drew corduroy over the far sea. Bands and patches give
+way to their means where the pixel averages them, as the lace does: past the sampler's anisotropy a
+grazing pixel read them unfiltered and drew their tile as a grid toward the horizon. All foam is a diffuse scatterer
 (albedo 0.8): the sky's radiance about its normal plus 0.55 of the sun's irradiance over π (the share
 the game's lit meshes take under AgX), wrapped 0.5 past the terminator and cut by the sun's shadow,
 so it follows the sky and the moon at night without a tint. Its wet top keeps half the water's Fresnel
 reflection, and it is never darker than the water it covers without glints. Straight-through visibility of submerged
 geometry: the opaque scene at the same screen position, attenuated by `exp(-absorption × column)`
 and filled with the pigment. No refraction offset. An optional sun shadow node attenuates the lit
-terms; ambient pigment keeps 45% in full shadow; sky reflection is unshadowed. The underside, seen
+terms; ambient pigment keeps 45% in full shadow; sky reflection is unshadowed. The game's node
+(`src/game/WaterShadows.ts`) reads the camera-fitted near map where it covers the water and the wide
+map beyond, blended by the ships' own weight and filtered as their paint is, so a ship's shadow is as
+sharp on the water beside her as on her deck (see the configuration guide). The underside, seen
 from a submerged camera (and only computed for back faces), shows Snell's window and, outside it,
 total internal reflection of the lit sea: dark looking down into the deep, bright toward the
 horizontal where daylight (the sky's mean radiance, tinted by what the water absorbs least)
 scatters along the surface, dimmed by the water above the camera.
+
+**The sea beside hulls** (`surface/shelter.ts`, the game's `HullContactFoam.shelter`; optional
+`WakeSampler.shelter`). A hull's side stands over the water beside it. It hides part of the sky that lights
+the water, and where the mirrored ray meets it the water reflects the side instead of the sky. Photographs show
+the result as a darker band of water hugging a hull, darkest in her lee. The sampler takes each side as a
+vertical wall on the hull's sliced waterline. The wall runs from stem to stern and is as tall as the side's height
+above the water. That height is sliced per station from the drawn model, as the highest point within 80% of the
+station's half-breadth, with a median of three stations so a lone yard or bridge wing does not stand in for the
+side. The sampler returns:
+- the wall's view factor from the water, the share of the sky's diffuse light it hides. A horizontal element
+  beside a vertical rectangle gives (atan X − atan(X/√(1+Y²))/√(1+Y²))/2π per end, X the end's distance along
+  the side and Y the wall's height, both over the distance out. That is half the sky beside an endless tall
+  wall, 14% one height off and 2.6% three heights off;
+- the share of the mirrored lobe (its centre and in-plane spread with physical reflections, the mirror ray and
+  twice the RMS slope without) that reaches the wall's plane below its top and between its ends;
+- that side's outward normal.
+
+The surface replaces the hidden sky with the light the side scatters: grey paint (albedo 0.3) lit by half the
+sky and by the sun where the side faces it, at the 0.55 share lit meshes take. That light feeds the water
+body's upwelling (or the pigment's sky share without physical colour) and the foam's skylight. The mirrored sky
+moves toward the side's radiance by the mirrored share and is never brightened. The side in her own shade
+returns about a sixth of the sky, so the band is darkest in the lee. A sunlit side barely changes the water.
+Where screen-space reflections find the side on screen, their image replaces the estimate, because only the
+sky term changes. Both terms fade out between three and five side heights from the hull, and with the camera's
+range over the last quarter of the foam's 4 km reach, so neither draws a line in open water. The profile is
+sliced once per hull from the full model, not per level of detail, so a LOD switch changes nothing. The term
+shares the hull contact foam's slots, 8 nearest hulls in the same packed uniform buffer, so it adds no texture
+or buffer. Per sea pixel it adds a loop over those slots that tests a bounding circle. Only water within the
+tallest side's reach does the rest: about a dozen uniform reads, six arctangents and a square root. The Water
+shadows row's Off drops the term from the shader (`ShipWake.shelter`), so the Low preset pays nothing.
 
 **Reflections of ships.** Screen-space rays against the opaque depth, enabled on High and Ultra
 when Graphics → Reflections is Scene. Clip each ray to the viewport before spending the step
@@ -245,7 +302,16 @@ confidence and screen edge. Rays leave a normal keeping 30% of the wave slope: o
 off the full slope breaks a hull's image into speckle. `maxDistance` is live: `WaterViewFocus`
 stretches it to twice the range of a hull seen through binoculars. With physical reflections the
 ray follows the whole resolved slope instead, and the image is filtered rather than the surface
-flattened (see *Physical shading*).
+flattened (see *Physical shading*). A ray a steep facet sends below the horizon strikes the sea again
+within a wave or so, at incidence grazing enough that the water mirrors it back up: it is traced
+mirrored about the mean surface (the sky lookup keeps its horizon), so the water beside a hull shows
+the hull instead of the bright horizon. The copies hold only the opaque scene: the dome draws after the
+sea, so the colour copy is empty (black) wherever sky will be, and a hull's submerged part is there
+although no ray leaving the water upward can reach it. Each read of the image (the hit, or each tap of
+a smeared one) counts only where the depth copy holds a surface above the ray's water point (fading
+over 0.5 m below it); the rest of the image is sky, and that share of the confidence goes back to the
+sky reflection. Reading the empty copy drew a black, speckled smear under distant hulls, whose smear
+reaches well above their superstructure.
 
 **Physical shading.** Two of `ocean.realism`'s switches change the surface's shading; each is live
 (flipping it rebuilds the surface graph, so the look tuned to the replaced library is exactly the
@@ -282,7 +348,12 @@ Munk's measured proportions (3.16e-3·U : 0.003 + 1.92e-3·U).
   toward the horizon, and from the air the glint is a broad patch. Above a quarter of the sun's
   irradiance, about twice sunlit foam, the glitter is compressed with a soft knee (radiance /
   (1 + luminance / knee)). In full, a low sun over a rough sea spreads a glow several times brighter than the
-  sky, which blooms over any ship in front of it.
+  sky, which blooms over any ship in front of it. The glitter (and the light through crests) takes the
+  sun's beam, not all the light the shadow node lets through: a cloud's shadow keeps a floor of 15% for
+  light scattered through the deck (`CLOUD_SHADOW_FLOOR`), which comes from the whole cloud and is already
+  in the sky the sea mirrors, so the glint takes only the shadow's part above it, and a ship's shadow
+  stops it outright, under the moon too. Lit by that floor, an overcast's facets turned to the hidden sun
+  drew a brown-olive crackle near the camera.
 - Screen-space rays follow the whole resolved slope, one in-plane deviation below the lobe's centre
   (hulls stand above the water that mirrors them, so the lobe's lower part meets a hull its raised
   centre would miss); four taps read the image over the whole lobe along its projected smear
@@ -372,13 +443,14 @@ Tiles are 1,024 / 181 / 31 m (Low takes the first, Medium two). A realistic sea 
 ## Validation
 
 Unit tests (`bun test src/game/ocean`) cover the spectrum, bounds, seeds, quality tiers, geometry
-coverage, the wake's dispersion pyramid (including aliasing on a real grid), its generators and the
-share of each cascade a slick stills.
+coverage, the wake's dispersion pyramid (including aliasing on a real grid), its generators, the
+share of each cascade a slick stills and the breaking groups' share and independence.
 `bun scripts/browser/ocean-waves.ts` runs `/scripts/diagnostics/ocean-waves.html` headed: it checks
 the wave field alone on WebGPU (GPU transform against a CPU inverse DFT, Hm0, mipmaps, `heightAt`,
 foam persistence and whitecap coverage by wind through the surface's own foam functions, update
 timings per tier) and writes to `.build/ocean-waves/`;
-`--sea-state off` checks the table's sea as given. Cascades holding under a millionth of the variance
+`--sea-state off` checks the table's sea as given; `--lattice` measures how strongly whitecaps repeat with each
+cascade's tile (`foamLattice`, `--winds` picks the winds). Cascades holding under a millionth of the variance
 (a light air's 1 km tile) are reported but not judged: their amplitudes are below half-float
 resolution.
 `bun scripts/browser/ocean-wake.ts [--resolution 256|512|1024] [--measure]` runs
@@ -386,7 +458,8 @@ resolution.
 teleports, every check reads the public sampler back, and the captures, results and step cost land
 in `.build/ocean-wake/`. `/scripts/diagnostics/ocean-review.html` renders fixed scenes of the real game
 for side-by-side review (`bun scripts/browser/ocean-review.ts --tag <name>` saves them to
-`.build/ocean-review/<name>/`; `--param wind=<m/s>` sets the wind of scenes without their own,
+`.build/ocean-review/<name>/`; `far`, `farGale`, `farStorm` and `farHigh` are the chase camera zoomed out to its
+1.4 km limit, where a lattice shows first; `--param wind=<m/s>` sets the wind of scenes without their own,
 `--param realism=off` the replaced library's look, `--param hullsea=off` the sea without the hull coupling); keep a
 baseline tag to compare a change against. Its placed hulls ride the combat sea as the authority poses them, on a fixed
 battle seed; `oceanReview.hullSeaProbe()` flattens the drawn waves and reads heights back around the player's hull,
