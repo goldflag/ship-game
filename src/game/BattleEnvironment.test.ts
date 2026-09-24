@@ -232,19 +232,17 @@ test('paused scene, water and smoke share moonlight and restore the current sun'
     environment.setScene('north-atlantic', false); sky.update(0);
     environment.syncLighting(); // Deliberately no ocean update.
     expect(ocean.sun.intensity).toBeCloseTo(effects.direct);
-    // By day meshes take about half the raw sun the sea shades with and a daylight share of the
-    // unoccluded fill. Moonlit meshes take 1.5 times the moon and 1.6 times the fill; the sea keeps the raw moon.
+    // By day meshes take the raw sun and sky reflection the sea takes, and the hemisphere fill only as the sun fades. Moonlit
+    // meshes take 1.5 times the moon and 1.6 times the fill; the sea keeps the raw moon.
     const moonlit = ocean.sun.direction.equals(sky.moon.direction);
     if (hour === 0 || hour === 24 || hour === 12) expect(moonlit).toBe(hour !== 12);
-    expect(sunLight.intensity).toBeCloseTo(effects.direct * (moonlit ? 1.5 : .55));
+    expect(sunLight.intensity).toBeCloseTo(effects.direct * (moonlit ? 1.5 : 1));
     const fill = environment.ambientLight.intensity / environment.diagnostics().environment!.ambient;
-    if (moonlit) { expect(fill).toBeCloseTo(1.6, 10); expect(ocean.environmentIntensity).toBe(1); }
-    else {
-      if (effects.direct >= 4) { expect(fill).toBeCloseTo(.33, 10); expect(ocean.environmentIntensity).toBeCloseTo(.66, 10); }
-      if (effects.direct <= 1) { expect(fill).toBe(1); expect(ocean.environmentIntensity).toBe(1); }
-      expect(fill).toBeGreaterThanOrEqual(.33 - 1e-9);
-      expect(fill).toBeLessThanOrEqual(1);
-    }
+    expect(ocean.environmentIntensity).toBe(1);
+    if (moonlit) expect(fill).toBeCloseTo(1.6, 10);
+    else if (effects.direct >= 4) expect(fill).toBeCloseTo(0, 10);
+    else if (effects.direct <= 1) expect(fill).toBe(1);
+    else { expect(fill).toBeGreaterThan(0); expect(fill).toBeLessThan(1); }
     expect(ocean.sun.direction.y).toBeGreaterThanOrEqual(0);
     if (hour === 0 || hour === 24) {
       expect(ocean.sun.intensity).toBeGreaterThan(.3);
@@ -340,19 +338,19 @@ test('developer overrides replace only what they name, in port and at sea, until
   expect(sky.coverage).toBe(.38);
 });
 
-test('lightning lights meshes from the stroke at their share of direct light, never brighter on them than its ceiling', () => {
+test('lightning lights meshes from the stroke, never brighter on them than its ceiling', () => {
   const sky = new RecordingSky();
   const environment = new VisualEnvironment({ effects: lightSink(), funnelSmoke: windSink(), sunAnchor: new Group() });
   attachOcean(environment, fakeOcean()); environment.attachSky(sky);
   environment.setScene('north-atlantic', false); environment.syncLighting();
   expect(environment.boltLight.intensity).toBe(0);
   expect(environment.boltLight.castShadow).toBe(false);
-  // A stroke 8 km away: irradiance intensity × (1 km / r)², as the sun's share (0.55) reaches meshes.
+  // A stroke 8 km away: irradiance intensity × (1 km / r)² on meshes, which take the whole of it as they take the sun's.
   sky.light.bolt.position.set(8000, 400, 0); sky.light.bolt.intensity = 20;
   environment.syncLighting();
   expect(environment.boltLight.position.toArray()).toEqual([8000, 400, 0]);
   const at = (light: number, r: number) => light / r ** 2, r = new Vector3(8000, 400, 0).length();
-  expect(at(environment.boltLight.intensity, r)).toBeCloseTo(20 * (1000 / r) ** 2 * .55, 8);
+  expect(at(environment.boltLight.intensity, r)).toBeCloseTo(20 * (1000 / r) ** 2, 8);
   expect(at(environment.boltLight.intensity, r)).toBeLessThan(BOLT_CEILING);
   // A few hundred metres off it would outshine the sun for its instant; it stops at the ceiling.
   sky.light.bolt.position.set(300, 200, 0);

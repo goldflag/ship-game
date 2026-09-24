@@ -53,8 +53,8 @@ const FOAM_ALBEDO = .8;
 /** Wrap of the sun's terminator on foam: light diffuses through the bubbles, so a face turned from the sun still
  * glows faintly instead of cutting off at the terminator. */
 const FOAM_WRAP = .5;
-/** Share of the sun's irradiance foam takes, the same share the game's lit meshes take (VisualEnvironment's
- * MESH_SUNLIGHT): whitecaps stay as bright as a white hull beside them, below the tone curve's shoulder. */
+/** Share of the sun's irradiance foam takes, the share lit meshes once took: whitecaps stay below the tone curve's
+ * shoulder. Lit meshes now take the whole sun, so a white hull reads brighter than the whitecaps beside it. */
 const FOAM_SUN = .55;
 /** Share of the water's Fresnel reflectance foam keeps: its bubbly top scatters most of the mirror image away. */
 const FOAM_GLOSS = .5;
