@@ -279,8 +279,9 @@ def create_open(mount, col, helpers, materials):
         # Elevating arc and its pinion box on the inner face of each leg.
         k.arc('elevating-arc', tf, ph, .52, .60, -105, -45, sign * .66, sign * .61, 'edge', steps=5)
     # V web between the cheeks, open over the middle so the breeches drop at high elevation.
-    web0 = [(-.60, .78), (-.62, 1.52), (-.46, 1.10), (.46, 1.10), (.62, 1.52), (.60, .78)]
-    web1 = [(-.58, .78), (-.60, 1.16), (-.44, .98), (.44, .98), (.60, 1.16), (.58, .78)]
+    # Its shoulders climb the cheeks outboard of the cradles (|y| > 0.60), as on the reference.
+    web0 = [(-.60, .78), (-.68, 1.90), (-.61, 1.90), (-.585, 1.40), (-.46, 1.10), (.46, 1.10), (.585, 1.40), (.61, 1.90), (.68, 1.90), (.60, .78)]
+    web1 = [(-.58, .78), (-.62, 1.22), (-.60, 1.22), (-.58, 1.16), (-.44, .98), (.44, .98), (.58, 1.16), (.60, 1.22), (.62, 1.22), (.58, .78)]
     k.loft('carriage.web', [[(.30, y, z) for y, z in web0], [(.84, y, z) for y, z in web1]], 'naval')
     for y in (-.62, .62):
         k.bar('carriage.web-tie', (.80, y, 1.10), (.80, y, 1.24), .03, 'naval', n=4)
@@ -306,6 +307,10 @@ def create_open(mount, col, helpers, materials):
     for x, z in ((.62, 2.47), (.42, 2.72), (.18, 2.93), (-.08, 3.055), (-.33, 3.09), (-.60, 3.025), (-.86, 2.89)):
         k.block('pointer.hood-handhold', (x, .90, z + .04), (.05, .26, .10), 'painted-edge')
     k.block('pointer.platform', (-.12, 1.425, .905), (1.84, 1.36, .05))
+    # Rear plates of the hood with the crew doorway between them.
+    k.block('pointer.rear-plate', (-1.025, 1.80, 1.815), (.03, .60, 1.77))
+    k.block('pointer.rear-plate', (-1.025, .86, 1.815), (.03, .28, 1.77))
+    k.block('pointer.rear-plate', (-1.025, 1.25, 2.50), (.03, .50, .40))
     k.prism('pointer.front-plate', [(.77, .12), (1.35, .12), (2.08, .62), (2.08, .93), (.77, .93)], .54, .58, 'x', 'naval')
     # Closed front of the pointer's hood with the sight window.
     for y0, y1, z0, z1 in ((.72, 2.10, .93, 1.84), (.72, 1.08, 1.84, 2.20), (1.56, 2.10, 1.84, 2.20)):
@@ -350,6 +355,13 @@ def create_open(mount, col, helpers, materials):
     k.block('trainer.seat-back', (-.60, -1.30, 1.66), (.03, .26, .28), 'edge')
     k.bar('trainer.seat-post', (-.45, -1.30, 1.09), (-.45, -1.30, 1.48), .03, 'edge')
     k.wheel('trainer.handwheel', (-.10, -1.08, 1.62), .14, 'x')
+    # Trainer's sight on a bracket from the fuze setter's top.
+    k.bar('trainer.sight-post', (.05, -1.45, 1.78), (.05, -1.45, 2.50), .03, 'naval')
+    k.bar('trainer.sight-arm', (.05, -1.47, 2.50), (.05, -.80, 2.50), .03, 'naval')
+    k.bar('trainer.sight-strut', (.05, -1.30, 1.78), (.05, -.95, 2.49), .02, 'naval')
+    k.bar('trainer.telescope', (-.20, -.80, 2.56), (.30, -.80, 2.56), .05, 'edge', n=8)
+    k.bar('trainer.telescope-lens', (.30, -.80, 2.56), (.32, -.80, 2.56), .04, 'glass', n=8)
+    k.block('trainer.telescope-mount', (.05, -.80, 2.52), (.10, .08, .06), 'edge')
     k.bar('trainer.handwheel-shaft', (-.10, -1.08, 1.62), (-.10, -.93, 1.62), .02, 'edge')
     k.block('trainer.gearbox', (-.10, -.88, 1.50), (.20, .14, .34), 'edge')
     for x in (-.60, -.22):
@@ -396,9 +408,9 @@ def create_open(mount, col, helpers, materials):
         k.block('buffer.bracket', (.55, inward * .08, -.21), (.14, .10, .14), 'naval', elevation)
         for off in (-.19, .19):
             k.lathe('recuperator', [(-.50, .105), (1.28, .105), (1.30, .12), (1.36, .12), (1.38, .105), (1.52, .04)],
-                    'naval', elevation, n=8, y=off, z=.255, smooth=False)
+                    'naval', elevation, n=6, y=off, z=.255, smooth=False)
             for x in (.63, 1.38):
-                k.lathe('recuperator.band', [(x - .025, .118), (x + .025, .118)], 'painted-edge', elevation, n=8,
+                k.lathe('recuperator.band', [(x - .025, .125), (x + .025, .125)], 'painted-edge', elevation, n=6,
                         y=off, z=.255, smooth=False)
         k.block('recuperator.saddle', (.10, 0, .17), (.30, .50, .08), 'naval', elevation)
         # Breech guard: side plates and top plate round the recoiling breech, open behind.
