@@ -71,7 +71,9 @@ export class ShipOcclusion {
   private state?: ReturnType<typeof THREE.RendererUtils.resetRendererState>;
   private level: AmbientOcclusion = 'off';
 
-  constructor(private readonly camera: THREE.PerspectiveCamera, reversedDepth: boolean) {
+  /** A perspective camera, as the game's, or an orthographic one (the model viewer's), whose view rays are parallel. */
+  constructor(private readonly camera: THREE.PerspectiveCamera | THREE.OrthographicCamera, reversedDepth: boolean) {
+    const orthographic = (camera as THREE.OrthographicCamera).isOrthographicCamera === true;
     this.projection = uniform(camera.projectionMatrix);
     this.projectionInverse = uniform(camera.projectionMatrixInverse);
     this.depthTarget.texture.name = 'Ship occlusion depth';
@@ -89,8 +91,9 @@ export class ShipOcclusion {
     const depth = this.depthTarget.depthTexture!;
     const depthAt = (at: N): N => texture(depth, clamp(at, vec2(0), vec2(1))).r;
     const viewAt = (at: N, d: N): N => getViewPosition(at, d, this.projectionInverse);
-    // Perspective depth to view z without the full inverse: z = -P[3][2] / (d + P[2][2]).
-    const viewZ = (d: N): N => this.depthToZ.y.negate().div(d.add(this.depthToZ.x));
+    // Depth to view z without the full inverse: z = -P[3][2] / (d + P[2][2]) in perspective,
+    // z = (d - P[3][2]) / P[2][2] in an orthographic projection.
+    const viewZ = (d: N): N => orthographic ? d.sub(this.depthToZ.y).div(this.depthToZ.x) : this.depthToZ.y.negate().div(d.add(this.depthToZ.x));
     const isEmpty = (d: N): N => reversedDepth ? d.lessThanEqual(0) : d.greaterThanEqual(1);
     const noise = texture(magicSquareNoise());
 
@@ -115,7 +118,7 @@ export class ShipOcclusion {
       const tangent = vec3(random.xy, 0).normalize();
       const bitangent = vec3(tangent.y.negate(), tangent.x, 0);
       const directions = int(3), steps = int(this.steps).toVar();
-      const viewDir = normalize(position.negate()).toVar();
+      const viewDir = (orthographic ? vec3(0, 0, 1) : normalize(position.negate())).toVar();
       const ao = float(0).toVar();
 
       Loop({ start: int(0), end: directions, type: 'int', condition: '<' }, ({ i }: { i: N }) => {
@@ -226,10 +229,15 @@ export class ShipOcclusion {
     return width * height * (4 + 1 + 2 + 2 + 2);
   }
 
-  /** Draw the ships' depth and their occlusion for this frame's camera. */
-  render(renderer: THREE.Renderer, scene: THREE.Scene): void {
+  /** Forget receiving materials that are about to be disposed. */
+  release(materials: Iterable<THREE.Material>): void {
+    for (const material of materials) this.receivers.delete(material as THREE.MeshStandardNodeMaterial);
+  }
+
+  /** Draw the ships' depth and their occlusion for this frame's camera, at half of `size`
+   * (drawing-buffer pixels of the target the scene renders into; the canvas by default). */
+  render(renderer: THREE.Renderer, scene: THREE.Scene, size = renderer.getDrawingBufferSize(drawingSize)): void {
     if (this.level === 'off') return;
-    const size = renderer.getDrawingBufferSize(drawingSize);
     const width = Math.max(1, Math.round(size.width / 2)), height = Math.max(1, Math.round(size.height / 2));
     if (this.depthTarget.width !== width || this.depthTarget.height !== height) {
       for (const target of [this.depthTarget, this.rawTarget, this.acrossTarget, this.blurTarget]) target.setSize(width, height);

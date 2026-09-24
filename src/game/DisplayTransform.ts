@@ -33,7 +33,7 @@ export interface DisplaySources {
 }
 
 /** `DISPLAY_LOOK` applied to linear radiance. */
-function grade(radiance: THREE.Node<'vec3'>, exposure: THREE.Node<'float'>): THREE.Node<'vec3'> {
+export function displayGrade(radiance: THREE.Node<'vec3'>, exposure: THREE.Node<'float'>): THREE.Node<'vec3'> {
   const exposed = radiance.mul(exposure.mul(DISPLAY_LOOK.exposure));
   const lum = max(luminance(exposed), 1e-5);
   return mix(vec3(lum), exposed, DISPLAY_LOOK.saturation).max(0).mul(pow(lum.div(MIDDLE_GRAY), DISPLAY_LOOK.contrast - 1));
@@ -52,9 +52,9 @@ export class DisplayTransform {
   build(withBloom: boolean): ReturnType<typeof rtt> {
     this.dispose();
     const { radiance, scene, exposure, overlay } = this.sources;
-    let color = grade(radiance.rgb, exposure);
+    let color = displayGrade(radiance.rgb, exposure);
     if (withBloom) {
-      this.glow = bloom(vec4(grade(scene.rgb, exposure), 1), BLOOM.strength, BLOOM.radius, BLOOM.threshold);
+      this.glow = bloom(vec4(displayGrade(scene.rgb, exposure), 1), BLOOM.strength, BLOOM.radius, BLOOM.threshold);
       this.glow.smoothWidth.value = BLOOM.knee;
       color = color.add(this.glow.rgb);
     }

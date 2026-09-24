@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Viewer, zeroPose, type Pose } from './viewer';
+import { DEFAULT_SUN_BEARING, Viewer, zeroPose, type Lighting, type Pose, type Projection } from './viewer';
 import { isHullConfiguration, defaultComponents, suggestedVehicles, vehicleId, type ReferencePack } from './reference';
 import { isSideView, views, type ComparisonMode, type ViewName } from './comparison';
 import type { ComponentItem } from '../../scripts/parts/library';
@@ -18,6 +18,8 @@ function App() {
   const [lod, setLod] = useState(0);
   const [installation, setInstallation] = useState('recipe');
   const [native, setNative] = useState(true);
+  const [lighting, setLighting] = useState<Lighting>('game'), [sunBearing, setSunBearing] = useState(DEFAULT_SUN_BEARING);
+  const [projection, setProjection] = useState<Projection>('orthographic');
   const [jointPose, setJointPose] = useState({ yaw: 0, elevation: 1, recoil: 0 });
   const [ships, setShips] = useState<Ship[]>([]), [shipId, setShipId] = useState(new URLSearchParams(location.search).get('ship') ?? 'bismarck');
   const [input, setInput] = useState(initialPart ? '' : initialAircraft ? suggestedAircraft[aircraftId]?.id ?? '' : suggestedVehicles[shipId] ?? ''), [pack, setPack] = useState<ReferencePack | null>(null);
@@ -56,7 +58,7 @@ function App() {
     setJointPose({ yaw: 0, elevation: 1, recoil: 0 });
     if (!url) { setModelBusy(false); setDimensions(null); return; }
     const options = kind === 'component' && part ? { assemblyId: standalone ? 'component' : installed!.mountId, weapon: part.weapon, installed: !standalone } : undefined;
-    v.loadShip(url, options, kind === 'ship' ? 10 : 1).then(loaded => { if (!cancelled && loaded) { setModelReady(true); setDimensions(kind === 'component' ? v.componentPose(0, 1, 0) : v.dimensions()); setModelBusy(false); } }).catch(e => { if (!cancelled) { setError(`Model could not load: ${e.message}`); setModelBusy(false); } });
+    v.loadShip(url, options, kind === 'ship' ? 10 : 1, kind !== 'aircraft').then(loaded => { if (!cancelled && loaded) { setModelReady(true); setDimensions(kind === 'component' ? v.componentPose(0, 1, 0) : v.dimensions()); setModelBusy(false); } }).catch(e => { if (!cancelled) { setError(`Model could not load: ${e.message}`); setModelBusy(false); } });
     const params = new URLSearchParams(); params.set(kind === 'ship' ? 'ship' : kind === 'aircraft' ? 'aircraft' : 'part', kind === 'ship' ? shipId : kind === 'aircraft' ? aircraftId : partId); history.replaceState(null, '', `?${params}`);
     return () => { cancelled = true; };
   }, [selected, kind, part, standalone, installed, shipId, partId, plane, aircraftId, lod]);
@@ -69,6 +71,9 @@ function App() {
   useEffect(() => { if (viewer.current) { const bounds = viewer.current.pose(pose); if (modelReady) setDimensions(bounds); } }, [pose, modelReady]);
   useEffect(() => { viewer.current?.style({ ours, reference, oursOpacity: ourOpacity, referenceOpacity: refOpacity, wireframe, xray, native }); }, [ours, reference, ourOpacity, refOpacity, wireframe, xray, native]);
   useEffect(() => { viewer.current?.comparison(mode); }, [mode]);
+  useEffect(() => { viewer.current?.setLighting(lighting).catch(e => setError(`Lighting could not change: ${String(e)}`)); }, [lighting]);
+  useEffect(() => { viewer.current?.setSunBearing(sunBearing); }, [sunBearing]);
+  useEffect(() => { viewer.current?.setProjection(projection); }, [projection]);
   function clearComparison() {
     request.current?.abort(); request.current = null; setBusy(false); setError(''); setNotice(''); viewer.current?.clearReference(); setPack(null); setReferenceName(''); setPose(zeroPose); setPaint('default');
   }
@@ -118,6 +123,7 @@ function App() {
           <div className="viewport" ref={canvas} title={`Drag to orbit · right-drag to pan · scroll to zoom · arrows pan · +/− zoom · Home fits · ${gridNote}`}/>
           <div className="hud hud-top-left">
             <nav className="segmented" aria-label="Camera views">{views.map(v => <button key={v.name} aria-pressed={camera === v.name} onClick={() => { setCamera(v.name); viewer.current?.view(v.name); }}>{v.label}</button>)}</nav>
+            <div className="segmented" role="group" aria-label="Projection">{([['orthographic', 'Isometric', 'Orthographic: one metric scale at every depth, for comparing sizes'], ['perspective', 'Perspective', 'A camera view: near parts larger, far parts smaller']] as const).map(([p, label, hint]) => <button key={p} aria-pressed={projection === p} title={hint} onClick={() => setProjection(p)}>{label}</button>)}</div>
             {mode === 'overlay' && <div className="legend"><span className="our-key">Our model</span><span className="ref-key">Reference {referenceName ? '' : '· not loaded'}</span></div>}
           </div>
           <div className="hud hud-top-right">
@@ -174,7 +180,10 @@ function App() {
             <p className="subtle">Source textures load when Original materials is on. Parts without a texture set stay tinted.</p>
             {pack.kind !== 'aircraft' && <details><summary>Hull and equipment configuration</summary><label htmlFor="hull">Hull</label><select id="hull" value={hull} onChange={e => { setHull(e.target.value); setComponents(defaultComponents(pack.scheme, e.target.value)); }}>{Object.keys(pack.scheme).filter(k => isHullConfiguration(k)).map(k => <option key={k}>{k}</option>)}</select><div className="equipment">{Object.keys(pack.scheme).filter(k => !isHullConfiguration(k)).map(k => <label key={k}><input type="checkbox" checked={components.includes(k)} onChange={e => setComponents(c => e.target.checked ? [...c, k] : c.filter(x => x !== k))}/>{k}</label>)}</div></details>}</>}
         </section>}
-        <section><h2>Display</h2><label className="check"><input type="checkbox" checked={native} onChange={e => setNative(e.target.checked)}/>Original materials</label><label className="check our-key"><input type="checkbox" checked={ours} onChange={e => setOurs(e.target.checked)}/>Our model <output>{Math.round(ourOpacity * 100)}%</output></label><input aria-label="Our model opacity" type="range" min="0" max="1" step="0.01" value={ourOpacity} onChange={e => setOurOpacity(+e.target.value)}/>{mode !== 'inspect' && <><label className="check ref-key"><input type="checkbox" checked={reference} onChange={e => setReference(e.target.checked)}/>Reference <output>{Math.round(refOpacity * 100)}%</output></label><input aria-label="Reference opacity" type="range" min="0" max="1" step="0.01" value={refOpacity} onChange={e => setRefOpacity(+e.target.value)}/></>}<div className="checks"><label><input type="checkbox" checked={wireframe} onChange={e => setWireframe(e.target.checked)}/>Wireframe</label><label><input type="checkbox" checked={xray} onChange={e => setXray(e.target.checked)}/>X-ray</label></div></section>
+        <section><h2>Display</h2><div className="segmented lighting" role="group" aria-label="Lighting">{(['game', 'studio'] as const).map(l => <button key={l} aria-pressed={lighting === l} onClick={() => setLighting(l)}>{l === 'game' ? 'Game lighting' : 'Studio lighting'}</button>)}</div>
+          {lighting === 'game' && <label>Sun bearing<output className="joint-value">{sunBearing}°</output><input aria-label="Sun bearing from the bow" type="range" min="0" max="359" step="1" value={sunBearing} onChange={e => setSunBearing(+e.target.value)}/></label>}
+          <p className="subtle">{lighting === 'game' ? "The port's sky, sun shadows, paint detail, occlusion and display grade, as in the game. Bearing 0° puts the sun ahead, 90° to starboard." : 'Even light for judging shape.'}</p>
+          <label className="check"><input type="checkbox" checked={native} onChange={e => setNative(e.target.checked)}/>Original materials</label><label className="check our-key"><input type="checkbox" checked={ours} onChange={e => setOurs(e.target.checked)}/>Our model <output>{Math.round(ourOpacity * 100)}%</output></label><input aria-label="Our model opacity" type="range" min="0" max="1" step="0.01" value={ourOpacity} onChange={e => setOurOpacity(+e.target.value)}/>{mode !== 'inspect' && <><label className="check ref-key"><input type="checkbox" checked={reference} onChange={e => setReference(e.target.checked)}/>Reference <output>{Math.round(refOpacity * 100)}%</output></label><input aria-label="Reference opacity" type="range" min="0" max="1" step="0.01" value={refOpacity} onChange={e => setRefOpacity(+e.target.value)}/></>}<div className="checks"><label><input type="checkbox" checked={wireframe} onChange={e => setWireframe(e.target.checked)}/>Wireframe</label><label><input type="checkbox" checked={xray} onChange={e => setXray(e.target.checked)}/>X-ray</label></div></section>
         {mode !== 'inspect' && <section><h2>Reference alignment</h2><fieldset disabled={!referenceName}><div className="fields">{([['x', 'X · starboard (m)'], ['y', 'Y · height (m)'], ['z', 'Z · aft (m)'], ['yaw', 'Yaw (°)'], ['pitch', 'Pitch (°)'], ['roll', 'Roll (°)'], ['scale', 'Uniform scale']] as [keyof Pose, string][]).map(([key, label]) => <label key={key}>{label}<input type="number" step={key === 'scale' ? '.01' : '.1'} min={key === 'scale' ? '.0001' : undefined} value={pose[key]} onChange={e => updatePose(key, e.target.value)}/></label>)}</div><div className="actions"><button onClick={() => setPose(p => viewer.current!.center(p))}>Center X/Z</button><button onClick={() => setPose({ ...zeroPose, scale: pack ? 15 : 1 })}>Reset</button></div><button className="wide" disabled={!pack} onClick={save}>Save alignment for this pair</button></fieldset><p className="subtle">Centering preserves vertical position. Use uniform scale only; matching length alone can hide a proportion error.</p></section>}
         <section><h2>Visible model bounds</h2><table><thead><tr><th scope="col">Metres</th><th scope="col" className="our-key">Ours</th><th scope="col" className="ref-key">Reference</th></tr></thead><tbody>{(['length', 'beam', 'height'] as const).map(k => <tr key={k}><th scope="row">{kind === 'aircraft' && k === 'beam' ? 'wingspan' : k}</th><td>{(modelReady ? dimensions : null)?.ours[k].toFixed(2) ?? '—'}</td><td>{(modelReady ? dimensions : null)?.reference?.[k].toFixed(2) ?? '—'}</td></tr>)}</tbody></table><p className="subtle">Whole-model axis-aligned bounds, including fittings. {gridNote}. This is a visual comparison, not a historical accuracy score.</p></section>
       </aside>
