@@ -47,9 +47,11 @@ def local(obj,parent,assembly=None):
 
 def tube_path(name,points,r,mat,sides=8,closed=False):
     pts=[Vector(p) for p in points];verts=[];n=len(pts)
+    tangents=[(pts[(i+1)%n]-pts[(i-1)%n] if closed else pts[min(i+1,n-1)]-pts[max(i-1,0)]).normalized() for i in range(n)]
+    # Rotation-minimising frames: each ring turns from the previous one, so bends do not twist the tube.
+    q=tangents[0].to_track_quat('Z','Y')
     for i,p in enumerate(pts):
-        delta=pts[(i+1)%n]-pts[(i-1)%n] if closed else pts[min(i+1,n-1)]-pts[max(i-1,0)]
-        q=delta.to_track_quat('Z','Y')
+        if i:q=tangents[i-1].rotation_difference(tangents[i])@q
         verts += [p+q@Vector((r*math.cos(j*math.tau/sides),r*math.sin(j*math.tau/sides),0)) for j in range(sides)]
     faces=[]
     for i in range(n if closed else n-1):
