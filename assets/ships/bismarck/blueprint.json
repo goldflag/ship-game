@@ -64433,24 +64433,24 @@
       "name": "Single aircraft hangar port",
       "footprint": [
         [
-          -3.25,
-          -0.1
+          -2.76,
+          0.58
         ],
         [
-          -3.25,
-          -11.9
+          -2.76,
+          -10.88
         ],
         [
-          -7.85,
-          -11.9
+          -7.95,
+          -10.88
         ],
         [
-          -7.85,
-          -0.1
+          -7.95,
+          0.58
         ]
       ],
       "baseY": 8.3,
-      "height": 3.8,
+      "height": 3.9,
       "material": "naval"
     },
     {
@@ -64458,24 +64458,24 @@
       "name": "Single aircraft hangar starboard",
       "footprint": [
         [
-          3.25,
-          -0.1
+          2.76,
+          0.58
         ],
         [
-          3.25,
-          -11.9
+          2.76,
+          -10.88
         ],
         [
-          7.85,
-          -11.9
+          7.95,
+          -10.88
         ],
         [
-          7.85,
-          -0.1
+          7.95,
+          0.58
         ]
       ],
       "baseY": 8.3,
-      "height": 3.8,
+      "height": 3.9,
       "material": "naval"
     },
     {
@@ -76072,52 +76072,52 @@
     },
     {
       "id": "forward-port-gig-shelf",
-      "name": "Port lower gig shelf",
+      "name": "Port admiral gig skid platform",
       "footprint": [
         [
-          -7.75,
-          -0.3
+          -7.95,
+          -4.45
         ],
         [
-          -7.75,
-          -12.8
+          -7.95,
+          -10.75
         ],
         [
-          -10.9,
-          -12.8
+          -10.95,
+          -10.75
         ],
         [
-          -10.9,
-          -0.3
+          -10.95,
+          -4.45
         ]
       ],
-      "baseY": 8.3,
-      "height": 2.3,
+      "baseY": 10.4,
+      "height": 0.35,
       "material": "naval"
     },
     {
       "id": "forward-starboard-gig-shelf",
-      "name": "Starboard lower gig shelf",
+      "name": "Starboard admiral gig skid platform",
       "footprint": [
         [
-          7.75,
-          -0.3
+          7.95,
+          -4.45
         ],
         [
-          7.75,
-          -12.8
+          7.95,
+          -10.75
         ],
         [
-          10.9,
-          -12.8
+          10.95,
+          -10.75
         ],
         [
-          10.9,
-          -0.3
+          10.95,
+          -4.45
         ]
       ],
-      "baseY": 8.3,
-      "height": 2.3,
+      "baseY": 10.4,
+      "height": 0.35,
       "material": "naval"
     },
     {
