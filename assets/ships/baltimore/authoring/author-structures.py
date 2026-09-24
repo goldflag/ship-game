@@ -91,7 +91,7 @@ S.append(block('forward-upper-deck', 'Forward 02 deckhouse', mirror([
 # The bridge rises in galleries: each level's deck overhangs the house below it and carries a splinter
 # bulwark (drawn by the recipe); the houses stand inside them.
 S.append(block('bridge-03-deck', 'Bridge 03 gallery deck', mirror([
-    (0, -27.08), (0.35, -27.08), (1.05, -26.78), (4.9, -24.03), (4.9, -23.23), (4.55, -22.88), (3.75, -22.68),
+    (0, -26.5), (0.35, -26.5), (1.05, -26.25), (4.9, -24.03), (4.9, -23.23), (4.55, -22.88), (3.75, -22.68),
     (3.5, -22.43), (3.5, -10.88)]), 12.62, 12.70, 'roof'))
 S.append(block('bridge-lower', 'Bridge 03 house', mirror([
     (0, -24.58), (0.15, -24.58), (1.35, -24.18), (2.1, -23.43), (2.6, -22.33), (2.7, -11.13), (2.45, -10.88)]), 12.70, 15.02))
@@ -153,11 +153,11 @@ HP = {  # mount id: (x, y, z_ref, bearing)
     'secondary-54': (-7.668, 8.805, 30.12, 270), 'secondary-55': (7.667, 8.805, 30.12, 90),
     'secondary-56': (0, 9.077, 43.363, 180),
     'bofors-01': (0, 7.179, -74.285, 0),
-    'bofors-02': (-5.808, 6.219, -37.756, 300), 'bofors-03': (5.808, 6.219, -37.756, 60),
+    'bofors-02': (-5.808, 6.30, -37.756, 300), 'bofors-03': (5.808, 6.30, -37.756, 60),
     'bofors-04': (-7.551, 11.364, -6.316, 270), 'bofors-05': (7.551, 11.364, -6.316, 90),
     'bofors-06': (-6.829, 11.364, 6.033, 270), 'bofors-07': (6.829, 11.364, 6.033, 90),
     'bofors-08': (-7.992, 11.364, 18.086, 270), 'bofors-09': (7.992, 11.364, 18.086, 90),
-    'bofors-10': (-7.218, 6.239, 38.414, 240), 'bofors-11': (7.218, 6.239, 38.414, 120),
+    'bofors-10': (-7.218, 6.30, 38.414, 240), 'bofors-11': (7.218, 6.30, 38.414, 120),
     'bofors-12': (-1.285, 7.614, 101.003, 180),
 }
 # The reference hardpoint is the foot of each gunhouse. Our catalog gunhouses start 0.05 m (8-inch) and
@@ -208,6 +208,20 @@ b['obstructions'] = [
     {'id': 'aft-house', 'center': [0, 11.6, 30.5], 'size': [5.8, 10.8, 16.8]},
 ]
 b['viewpoints']['bridge'] = [0, 19.3, -24.2]
+# Installation interlocks (the Alaska and Enterprise encoding): barrels of the 8-inch and 5-inch mounts stop at
+# the deckhouses they can reach and at the obstruction boxes; superfiring neighbours stop at each other.
+# Recipe-only fittings the barrels can reach are kept out of their arcs instead.
+b['mountClearance'] = {
+    'version': 1, 'marginM': .03,
+    'basis': 'Provisional CPU motion interlocks for the three 8-inch turrets and six twin 5-inch mounts: barrels use the catalog base radius against the measured deckhouses, galleries and obstruction boxes they can reach, and the superfiring pairs interlock with each other. Game clearance envelopes, not verified historical mechanical stops.',
+    'mounts': [{'mountId': id, 'barrelRadiusM': .3, 'body': {'center': [0, 1.69, 1.28], 'size': [8.48, 3.3, 9.62]}} for id in ['main-1', 'main-2', 'main-3']]
+              + [{'mountId': f'secondary-5{i}', 'barrelRadiusM': .195} for i in range(1, 7)],
+    'structures': [{'structureId': id, 'topExtensionM': {'bridge-03-deck': 1.25, 'bridge-04-deck': 1.45, 'aft-platform': 1.0, 'aft-deckhouse-tail': 1.0}.get(id, 0)} for id in [
+        'forward-deckhouse', 'conning-tower', 'forward-upper-deck', 'bridge-03-deck', 'bridge-lower', 'bridge-04-deck',
+        'forward-funnel-casing', 'after-funnel-base', 'after-funnel-casing', 'aft-deckhouse-front', 'aft-deckhouse',
+        'aft-deckhouse-tail', 'aft-platform', 'aft-5in-deckhouse', 'after-5in-pedestal-port', 'after-5in-pedestal-starboard']],
+    'neighbors': [['main-1', 'main-2'], ['main-2', 'secondary-51'], ['main-3', 'secondary-56']],
+}
 # The ensign staff stands on the stern 40 mm sponson's after rim.
 b['rig']['ensigns'][0]['position'] = [0, 10.9, 103.5]
 b['structures'] = S

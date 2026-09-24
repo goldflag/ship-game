@@ -18493,7 +18493,7 @@
       "battery": "secondary",
       "position": [
         -5.808,
-        6.219,
+        6.3,
         -37.54
       ],
       "bearingDeg": 300,
@@ -18511,7 +18511,7 @@
       "battery": "secondary",
       "position": [
         5.808,
-        6.219,
+        6.3,
         -37.54
       ],
       "bearingDeg": 60,
@@ -18637,7 +18637,7 @@
       "battery": "secondary",
       "position": [
         -7.218,
-        6.239,
+        6.3,
         38.63
       ],
       "bearingDeg": 240,
@@ -18655,7 +18655,7 @@
       "battery": "secondary",
       "position": [
         7.218,
-        6.239,
+        6.3,
         38.63
       ],
       "bearingDeg": 120,
@@ -18988,15 +18988,15 @@
       "footprint": [
         [
           0,
-          -27.08
+          -26.5
         ],
         [
           0.35,
-          -27.08
+          -26.5
         ],
         [
           1.05,
-          -26.78
+          -26.25
         ],
         [
           4.9,
@@ -19048,11 +19048,11 @@
         ],
         [
           -1.05,
-          -26.78
+          -26.25
         ],
         [
           -0.35,
-          -27.08
+          -26.5
         ]
       ],
       "baseY": 12.62,
@@ -22715,7 +22715,7 @@
         ]
       ],
       "baseY": 6.26,
-      "height": 0.899,
+      "height": 0.98,
       "material": "naval"
     },
     {
@@ -22820,7 +22820,7 @@
         ]
       ],
       "baseY": 6.26,
-      "height": 0.899,
+      "height": 0.98,
       "material": "naval"
     },
     {
@@ -23993,7 +23993,7 @@
         ]
       ],
       "baseY": 6.26,
-      "height": 0.919,
+      "height": 0.98,
       "material": "naval"
     },
     {
@@ -24098,7 +24098,7 @@
         ]
       ],
       "baseY": 6.26,
-      "height": 0.919,
+      "height": 0.98,
       "material": "naval"
     }
   ],
@@ -47719,5 +47719,164 @@
     "buoyancyScale": 1.0829540828615714,
     "shellThicknessMm": 12,
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+  },
+  "mountClearance": {
+    "version": 1,
+    "marginM": 0.03,
+    "basis": "Provisional CPU motion interlocks for the three 8-inch turrets and six twin 5-inch mounts: barrels use the catalog base radius against the measured deckhouses, galleries and obstruction boxes they can reach, and the superfiring pairs interlock with each other. Game clearance envelopes, not verified historical mechanical stops.",
+    "mounts": [
+      {
+        "mountId": "main-1",
+        "barrelRadiusM": 0.3,
+        "body": {
+          "center": [
+            0,
+            1.69,
+            1.28
+          ],
+          "size": [
+            8.48,
+            3.3,
+            9.62
+          ]
+        }
+      },
+      {
+        "mountId": "main-2",
+        "barrelRadiusM": 0.3,
+        "body": {
+          "center": [
+            0,
+            1.69,
+            1.28
+          ],
+          "size": [
+            8.48,
+            3.3,
+            9.62
+          ]
+        }
+      },
+      {
+        "mountId": "main-3",
+        "barrelRadiusM": 0.3,
+        "body": {
+          "center": [
+            0,
+            1.69,
+            1.28
+          ],
+          "size": [
+            8.48,
+            3.3,
+            9.62
+          ]
+        }
+      },
+      {
+        "mountId": "secondary-51",
+        "barrelRadiusM": 0.195
+      },
+      {
+        "mountId": "secondary-52",
+        "barrelRadiusM": 0.195
+      },
+      {
+        "mountId": "secondary-53",
+        "barrelRadiusM": 0.195
+      },
+      {
+        "mountId": "secondary-54",
+        "barrelRadiusM": 0.195
+      },
+      {
+        "mountId": "secondary-55",
+        "barrelRadiusM": 0.195
+      },
+      {
+        "mountId": "secondary-56",
+        "barrelRadiusM": 0.195
+      }
+    ],
+    "structures": [
+      {
+        "structureId": "forward-deckhouse",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "conning-tower",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "forward-upper-deck",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-03-deck",
+        "topExtensionM": 1.25
+      },
+      {
+        "structureId": "bridge-lower",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-04-deck",
+        "topExtensionM": 1.45
+      },
+      {
+        "structureId": "forward-funnel-casing",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "after-funnel-base",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "after-funnel-casing",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "aft-deckhouse-front",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "aft-deckhouse",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "aft-deckhouse-tail",
+        "topExtensionM": 1
+      },
+      {
+        "structureId": "aft-platform",
+        "topExtensionM": 1
+      },
+      {
+        "structureId": "aft-5in-deckhouse",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "after-5in-pedestal-port",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "after-5in-pedestal-starboard",
+        "topExtensionM": 0
+      }
+    ],
+    "neighbors": [
+      [
+        "main-1",
+        "main-2"
+      ],
+      [
+        "main-2",
+        "secondary-51"
+      ],
+      [
+        "main-3",
+        "secondary-56"
+      ]
+    ]
   }
 }

@@ -255,6 +255,7 @@ for side in [-1,1]:rod('foremast leg',(fx0+2.2,side*2.0,15.10),(fx0-.3,0,fz0+6.5
 box('Foremast platform',(5.8,0,33.1),(5.4,3.0,.12),'roof')
 for a,b in [((3.1,-1.5),(8.5,-1.5)),((8.5,-1.5),(8.5,1.5)),((8.5,1.5),(3.1,1.5)),((3.1,1.5),(3.1,-1.5))]:
  for h in [.5,1.0]:rod('Foremast platform rail',(*a,33.16+h),(*b,33.16+h),.022,'edge',vertices=5)
+ for t in [0,.5]:p=Vector(a).lerp(Vector(b),t);rod('Foremast platform stanchion',(p.x,p.y,33.1),(p.x,p.y,34.18),.025,'edge',vertices=5)
 for x in [3.3,8.3]:
  for y in [-1.4,1.4]:rod('Foremast platform bracket',(x,y,33.05),(fx1+(x-fx1)*.25,0,31.6),.05,'naval',vertices=6)
 rod('foremast topmast',(4.2,0,33.1),(4.2,0,39.0),.14,'naval',r2=.07,vertices=12)
@@ -276,6 +277,7 @@ for side in [-1,1]:rod('mainmast leg',(-20.0,side*2.6,8.70),(mx0-.2,0,mz0+13.5),
 box('Mainmast platform',(-23.2,0,29.2),(6.6,3.0,.12),'roof')
 for a,b in [((-19.9,-1.5),(-26.5,-1.5)),((-26.5,-1.5),(-26.5,1.5)),((-26.5,1.5),(-19.9,1.5)),((-19.9,1.5),(-19.9,-1.5))]:
  for h in [.5,1.0]:rod('Mainmast platform rail',(*a,29.26+h),(*b,29.26+h),.022,'edge',vertices=5)
+ for t in [0,.5]:p=Vector(a).lerp(Vector(b),t);rod('Mainmast platform stanchion',(p.x,p.y,29.2),(p.x,p.y,30.28),.025,'edge',vertices=5)
 for x in [-20.2,-26.2]:
  for y in [-1.4,1.4]:rod('Mainmast platform bracket',(x,y,29.15),(mx1+(x-mx1)*.25,0,27.6),.05,'naval',vertices=6)
 rod('mainmast topmast',(-21.2,0,29.2),(-21.2,0,35.8),.13,'naval',r2=.06,vertices=12)
@@ -538,8 +540,12 @@ COL=collections['Superstructure'];ASSEMBLY='superstructure-service-fittings'
 fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,COL)
 for sign in [-1,1]:
  # Stairs from the main deck to the 01 level, and from the 01 level to the 02 house side.
- fit.stairs('External access stair',(8.3,sign*3.3,DECK),(11.6,sign*3.3,8.70),.72)
- fit.stairs('External access stair',(-26.9,sign*3.55,DECK),(-23.7,sign*3.55,8.70),.72)
+ for a,b in [((8.3,sign*3.3,DECK),(11.6,sign*3.3,8.70)),((-26.9,sign*3.55,DECK),(-23.7,sign*3.55,8.70))]:
+  fit.stairs('External access stair',a,b,.72)
+  # Handrail stanchions at both ends of each stringer.
+  a,b=Vector(a),Vector(b);d=b-a;side=Vector((-d.y,d.x,0)).normalized()*.36
+  for p in [a,b]:
+   for s_ in [-1,1]:rod('External access stair stanchion',p+side*s_,p+side*s_+Vector((0,0,.9)),.028,'edge',vertices=6)
  fit.ladder('Aft director tower ladder',(-28.22,sign*1.55,15.0),(-28.22,sign*1.55,19.1),.5)
  fit.ladder('Forward director pedestal ladder',(13.18,sign*1.55,19.5),(13.18,sign*1.55,23.72),.5)
  fit.ladder('Bridge house ladder',(12.3,sign*2.72,12.70),(12.3,sign*2.72,15.1),.5)
@@ -552,7 +558,8 @@ for sign in [-1,1]:
    if y*sign>2.9:fit.knee('Gallery underside knee',x,sign*min(2.2,abs(y)*.6),y,s['baseY'],1.0)
 COL=collections['Deck fittings'];ASSEMBLY='forecastle-and-mooring-machinery';fit.col=COL
 for sign in [-1,1]:
- for x in [59,68,-62,-74,-91]:fit.reel('Mooring rope reel',x,sign*max(1.0,width(x)-2.1),deckz(x)+.005,.43,1.05)
+ # Clear of the forward turret's depressed barrels.
+ for x in [76.5,-62,-74,-91]:fit.reel('Mooring rope reel',x,sign*max(1.0,width(x)-2.1),deckz(x)+.005,.43,1.05)
  for x in [67,-64]:
   y=sign*3.6;z=deckz(x)
   box('Companionway coaming',(x,y,z+.38),(1.7,.94,.76),'naval')
