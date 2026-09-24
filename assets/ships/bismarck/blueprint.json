@@ -72114,9 +72114,9 @@
     }
   ],
   "accuracy": {
-    "exterior": "Independent 1941-04: revised secondary gunhouses, separated navigation/conning bridge and scalloped tower galleries. Principal dimensions documented; local shapes and fittings remain image estimates.",
-    "internals": "Plate thicknesses and machinery sequence evidence-based; room boundaries and hull-conforming plate envelopes approximate. Standard-draft datum, not battle displacement.",
-    "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model. AA: eight twin 105 mm, eight twin 37 mm and twelve single 20 mm mounts use original visual placements and provisional CPU fire control. Two upper quad 20 mm fittings remain decorative."
+    "exterior": "Independent 2026-09 refit to the GameModels3D pgsb708 A fit: reference hull lines with bulbous forefoot, octagonal tower and foretop, oval funnel, box-girder cranes, transverse catapult, mainmast and aft searchlight tower on the reference axis. Principal dimensions documented; local shapes and fittings remain visual estimates of that model.",
+    "internals": "Plate thicknesses and machinery sequence evidence-based; armour, end rooms and flood spaces refit to the 2026 hull lines; room boundaries and hull-conforming plate envelopes approximate. Standard-draft datum, not battle displacement.",
+    "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model. 150 mm turrets and AA mounts (eight twin 105 mm, eight twin 37 mm, twelve single 20 mm) on the reference hardpoints with provisional CPU fire control. Two upper quad 20 mm fittings remain decorative."
   },
   "structures": [
     {

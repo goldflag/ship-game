@@ -383,7 +383,7 @@ def tower_fittings():
   # Four deep window bays across the tower base front, above the bridge deck (pgsb708 plan at 16.4 m).
   for y0,y1 in [(2.2,3.05),(.8,1.6)]:
    yc=sign*(y0+y1)/2
-   box('Tower base window bay',(21.47,yc,16.2),(.04,y1-y0,1.1),materials['dark'],detailcol)
+   box('Tower base window bay',(21.47,yc,16.2),(.04,y1-y0,1.1),materials['glass'],detailcol)
    polyline('Tower base window bay frame',[(21.5,sign*y0,15.65),(21.5,sign*y1,15.65),(21.5,sign*y1,16.75),(21.5,sign*y0,16.75)],.035,materials['edge'],closed=True,vertices=4)
   box('Foretop junction box',(12.52,sign*4.69,27.81),(.51,.22,.65),materials['naval'],detailcol)
   box('Foretop indicator',(14.43,sign*4.28,28.07),(.28,.28,.34),materials['naval'],detailcol)
@@ -506,8 +506,8 @@ def sl8_director(name,x,y):
  mesh(name+' shutter slot',[(x+(rim+.012)*math.cos(math.radians(v)),y+(rim+.012)*math.sin(math.radians(v)),zz) for zz in [16.55,16.8] for v in range(-36,37,12)],
   [(i,i+1,i+8,i+7) for i in range(6)],materials['dark'],detailcol)
  ring(name+' rangefinder port rim',(x,y+sign*(rim+.02),16.9),(0,sign,0),.22,.03,materials['edge'],10)
- rod(name+' optical port',(x,y+sign*(rim-.05),16.9),(x,y+sign*(rim+.06),16.9),.2,materials['dark'],detailcol,vertices=12)
- rod(name+' optical port (inboard)',(x,y-sign*(rim-.05),16.9),(x,y-sign*(rim+.06),16.9),.2,materials['dark'],detailcol,vertices=12)
+ rod(name+' optical port',(x,y+sign*(rim-.05),16.9),(x,y+sign*(rim+.06),16.9),.2,materials['glass'],detailcol,vertices=12)
+ rod(name+' optical port (inboard)',(x,y-sign*(rim-.05),16.9),(x,y-sign*(rim+.06),16.9),.2,materials['glass'],detailcol,vertices=12)
  ladder(name+' pedestal ladder',(x-1.72,y,13.1),(x-1.72,y,15.9),.42)
 def aa_directors():
  for sign in [-1,1]:sl8_director('Forward SL-8 AA director',15.08,sign*6.77)

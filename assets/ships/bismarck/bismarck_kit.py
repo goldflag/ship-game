@@ -92,12 +92,12 @@ def ring(name,center,normal,radius,tube=.035,mat=None,n=20):
  polyline(name,pts,tube,mat or materials['edge'],closed=True,vertices=5)
 def porthole(name,center,normal,r=.17):
  # A scuttle in about 70 triangles (there are several hundred): a flanged collar set into the plating,
- # dark glazing in a ten-sided disc and a short eyebrow that still throws a legible shadow.
+ # glass in a ten-sided disc and a short eyebrow that still throws a legible shadow.
  c=Vector(center);n=Vector(normal).normalized();u=n.cross(Vector((0,0,1)))
  if u.length<.1:u=n.cross(Vector((0,1,0)))
  u.normalize();v=n.cross(u)
  rod(name+' collar',c-n*.06,c+n*.03,r+.04,materials['naval'],detailcol,vertices=10)
- mesh(name+' dark glazing',[tuple(c+n*.034+r*(u*math.cos(math.tau*i/10)+v*math.sin(math.tau*i/10))) for i in range(10)],[tuple(range(10))],materials['dark'],detailcol)
+ mesh(name+' glazing',[tuple(c+n*.034+r*(u*math.cos(math.tau*i/10)+v*math.sin(math.tau*i/10))) for i in range(10)],[tuple(range(10))],materials['glass'],detailcol)
  up=Vector((0,0,1)) if abs(n.z)<.7 else v
  side=n.cross(up).normalized();pts=[c+n*.035+side*(r*1.15*math.cos(a))+up*(r*1.15*math.sin(a)) for a in [math.pi*.2+i*math.pi*.6/3 for i in range(4)]]
  polyline(name+' eyebrow',pts,.028,materials['naval'],vertices=4)

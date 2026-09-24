@@ -18,7 +18,7 @@ def batteries():
   for zz in [.42+i*.26 for i in range(7)]:mounted(rod('Secondary rear ladder rung',(-3.94+.08*(zz-.3)/1.9, -1.25,zz),(-3.94+.08*(zz-.3)/1.9,-.73,zz),.022,materials['edge'],gunscol,vertices=6))
   for sign in [-1,1]:
    mounted(box('Secondary covered sight',(-.25,sign*2.32,1.52),(.63,.12,.32),materials['naval'],gunscol))
-   mounted(box('Secondary sight glass',(.075,sign*2.32,1.52),(.026,.085,.14),materials['dark'],gunscol))
+   mounted(box('Secondary sight glass',(.075,sign*2.32,1.52),(.026,.085,.14),materials['glass'],gunscol))
    for xx in [-2.7,-.6,1.2]:
     yy=sign*(2.15+(xx+3.9)*.4/5.9)
     mounted(box('Secondary drain',(xx,yy,.39),(.22,.05,.065),materials['dark'],gunscol))
