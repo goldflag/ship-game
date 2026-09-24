@@ -166,13 +166,20 @@ for id, name, (y, z), bearing, rangefinder in MAIN:
                             bearingDeg=bearing, rangefinder=rangefinder, magazineId='magazine-forward' if z < 0 else f'magazine-{id[-1]}', fire=FIRE_MAIN))
 # Fourteen 15.2 cm casemates on the upper-deck ledge (reference HP_JGS rows; source bearings are the fore/aft rest).
 # bearingDeg is the arc centre; traverseDeg narrows the catalog half-sector to the embrasure.
-CASEMATES = [(9.498, -45.951, 55, 55), (10.405, -33.618, 80, 70), (11.091, -18.313, 85, 70), (11.4, -5.118, 95, 70),
-             (11.312, 8.334, 100, 70), (10.866, 19.898, 115, 65), (9.404, 28.89, 125, 55)]
+# The last pair is the port gun's travel relative to its arc centre (compass sense; the starboard twin mirrors it)
+# over which the barrel beyond the drum clears the loft's embrasure at every elevation, computed from the hull
+# sections; the drums themselves turn half inside the embrasure, as the reference's do.
+CASEMATES = [(9.498, -45.951, 55, 55, (-55, 55)), (10.405, -33.618, 80, 70, (-70, 55)), (11.091, -18.313, 85, 70, (-70, 62)),
+             (11.4, -5.118, 95, 70, (-64, 68)), (11.312, 8.334, 100, 70, (-57, 70)), (10.866, 19.898, 115, 65, (-65, 63)),
+             (9.404, 28.89, 125, 55, (-55, 55))]
 for side, sign in [('p', -1), ('s', 1)]:
-    for i, (x, z, centre, half) in enumerate(CASEMATES, 1):
-        b['mounts'].append(dict(id=f'casemate-{side}{i}', name=f'{"Port" if sign < 0 else "Starboard"} casemate {i} 15.2 cm', partId='type41-152-kongo-casemate',
-                                battery='secondary', position=[round(sign * x, 3), 4.704, rz(z)], bearingDeg=sign * centre, traverseDeg=half, rangefinder=False,
-                                magazineId='secondary-magazine-forward' if z < -10 else 'secondary-magazine-after', fire=FIRE_LIGHT))
+    for i, (x, z, centre, half, (lo, hi)) in enumerate(CASEMATES, 1):
+        mount = dict(id=f'casemate-{side}{i}', name=f'{"Port" if sign < 0 else "Starboard"} casemate {i} 15.2 cm', partId='type41-152-kongo-casemate',
+                     battery='secondary', position=[round(sign * x, 3), 4.704, rz(z)], bearingDeg=sign * centre, traverseDeg=half, rangefinder=False,
+                     magazineId='secondary-magazine-forward' if z < -10 else 'secondary-magazine-after', fire=FIRE_LIGHT)
+        if (lo, hi) != (-half, half):
+            mount['traverseLimitsDeg'] = [lo, hi] if sign < 0 else [-hi, -lo]
+        b['mounts'].append(mount)
 HA = [('ha-1', -9.987, 7.409, -27.414, -90), ('ha-2', 9.981, 7.409, -27.414, 90), ('ha-3', -6.367, 8.792, -2.234, -90), ('ha-4', 6.368, 8.792, -2.234, 90)]
 for id, x, y, z, bearing in HA:
     b['mounts'].append(dict(id=id, name=f'12.7 cm HA mount {id[-1]}', partId='type89-127-yamato-open-twin', battery='secondary', position=[x, y, rz(z)],
@@ -194,18 +201,69 @@ if opts.structures:
 else:
     structures = previous['structures']
 # Recorded corrections to the measured prisms, one per line: None drops a prism, a dict overrides fields.
-# The pagoda-top yard is an open railed frame in the reference, not a solid slab; the others are
-# duplicates inside the forward funnel or wholly inside deckhouse-041 with the same roof plane.
+# The pagoda-top yard is an open railed frame in the reference, not a solid slab; 022/023 are fragments of the
+# open sky-control screen the recipe draws; 012-015 are one forward lookout platform measured as four 0.1 m
+# plates; 041 is the compass bridge's floor inside its bulwark; the rest are duplicates inside the forward funnel
+# or wholly inside deckhouse-041 with the same roof plane.
 STRUCTURE_EDITS = {
     'deckhouse-019': None,
     'deckhouse-020': None,
+    'deckhouse-022': None,
+    'deckhouse-023': None,
+    'deckhouse-041': {'name': 'Pagoda platform 22.3-22.4 m', 'height': 0.12},
     'deckhouse-042': None,
     'deckhouse-043': None,
     'deckhouse-052': None,
     'platform-098': None,
     'platform-099': None,
+    'platform-012': None,
+    'platform-013': {'name': 'Pagoda platform 20.3-20.7 m', 'baseY': 20.3, 'height': 0.4},
+    'platform-014': None,
+    'platform-015': None,
 }
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
+
+
+def regularize(poly, tol=.12, snap=math.tan(math.radians(6))):
+    """Straighten a raster-traced outline: Douglas-Peucker at tol, then near-axis edges snapped square."""
+    def rdp(pts):
+        if len(pts) < 3:
+            return pts
+        (ax, az), (bx, bz) = pts[0], pts[-1]
+        dx, dz = bx - ax, bz - az
+        L = math.hypot(dx, dz) or 1e-9
+        d = [abs((px - ax) * dz - (pz - az) * dx) / L for px, pz in pts[1:-1]]
+        k = max(range(len(d)), key=d.__getitem__)
+        if d[k] <= tol:
+            return [pts[0], pts[-1]]
+        return rdp(pts[:k + 2])[:-1] + rdp(pts[k + 1:])
+    far = max(range(len(poly)), key=lambda i: math.hypot(poly[i][0] - poly[0][0], poly[i][1] - poly[0][1]))
+    ring = rdp(poly[:far + 1])[:-1] + rdp(poly[far:] + poly[:1])[:-1]
+    if len(ring) < 3:
+        return poly
+    pts = [list(p) for p in ring]
+    for _ in range(2):
+        for i in range(len(pts)):
+            a, b = pts[i], pts[(i + 1) % len(pts)]
+            dx, dz = b[0] - a[0], b[1] - a[1]
+            if abs(dx) <= snap * abs(dz):
+                a[0] = b[0] = (a[0] + b[0]) / 2
+            elif abs(dz) <= snap * abs(dx):
+                a[1] = b[1] = (a[1] + b[1]) / 2
+    out = []
+    for p in pts:
+        p = [round(p[0], 3), round(p[1], 3)]
+        if not out or math.hypot(p[0] - out[-1][0], p[1] - out[-1][1]) > .02:
+            out.append(p)
+    area = sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(out, out[1:] + out[:1])) / 2
+    before = sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(poly, poly[1:] + poly[:1])) / 2
+    # Keep the traced outline if straightening collapsed or reversed it.
+    return out if len(out) >= 3 and area * before > 0 and abs(area) > .8 * abs(before) else poly
+
+
+if opts.structures:
+    # Fresh measurements only: the kept blueprint outlines are already regular.
+    structures = [s if s.get('exhaust') else dict(s, footprint=regularize(s['footprint'])) for s in structures]
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks. Each outline is
@@ -230,6 +288,14 @@ for s in structures:
         b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
                                       size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
 
+# Stowed boats: reference boat bounds (x, y, z ranges), so barrels stop at and cannot fire through them.
+BOATS = [('motor-boat', (3.66, 6.7), (8.8, 13.0), (-20.6, -5.04)), ('launch', (7.66, 11.02), (6.74, 10.15), (-17.66, -5.09)),
+         ('cutter-midships', (8.36, 10.87), (6.77, 8.38), (3.39, 12.69)), ('cutter-aft', (8.06, 10.97), (4.52, 6.13), (41.8, 51.1))]
+for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
+    for side, sign in [('port', -1), ('starboard', 1)]:
+        b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
+                                      size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
+
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes: main barrels (with the full recoil stroke) and gunhouses may not enter the
 # prisms they can reach, and the superfiring forward pair may not cross. Game clearance, not
@@ -237,12 +303,15 @@ for s in structures:
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
 clear_mounts, reach = [], {}
 for m in b['mounts']:
-    if m['battery'] != 'main' and not m['id'].startswith('ha-'):
+    if m['battery'] != 'main' and not m['id'].startswith('ha-') and m['id'] not in ('casemate-p1', 'casemate-s1'):
         continue
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
     if m['battery'] == 'main':
-        entry['body'] = dict(center=[0, 4.7, 1.27], size=[10.6 if m['rangefinder'] else 9.0, 2.6, 11.56])
+        # Gunhouse from its 3.4 m working floor to the roof, or to the roof guard rails (6.6 m) on the
+        # turrets a superfiring neighbour passes over.
+        top = 6.6 if m['id'] == 'main-1' else 6.0
+        entry['body'] = dict(center=[0, round((3.4 + top) / 2, 3), 1.27], size=[10.6 if m['rangefinder'] else 9.0, round(top - 3.4, 3), 11.56])
     clear_mounts.append(entry)
     reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
 nearby = []
@@ -260,7 +329,7 @@ for st in structures:
 nearby = [sid for _, sid in sorted(nearby)[:128]]
 b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 12.7 cm mounts against the measured superstructure prisms they can reach, including the full recoil stroke, and between the superfiring forward turrets. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
-                           neighbors=[['main-1', 'main-2']])
+                           neighbors=[['main-1', 'main-2'], ['main-1', 'casemate-p1'], ['main-1', 'casemate-s1']])
 
 # ---------------------------------------------------------------- rooms, machinery, directors
 def room(id, name, center, size, kind=None, role=None, hp=150, fire=None):

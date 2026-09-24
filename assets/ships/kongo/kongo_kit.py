@@ -181,7 +181,10 @@ class Kit:
         x, y, z = -mount['position'][2], -mount['position'][0], mount['position'][1]
         col = self.cols['Light AA'] if kind.startswith(('type96', 'type93')) else self.cols['Main and secondary batteries']
         r, height = (3.05, 1.3) if kind.startswith('type89') else (1.75, 1.2) if kind.startswith('type96') else (1.25, 1.1)
-        if z - floor > .2:
+        if .01 < z - floor <= .2:
+            # A shallow step: the tub floor itself fills down to the platform.
+            self.cylz(mount['id'], col, 'tub floor', (x, y, floor), r, z - floor, 'roof', vertices=36)
+        elif z - floor > .2:
             self.cylz(mount['id'], col, 'tub floor', (x, y, z - .16), r, .16, 'roof', vertices=36)
             drop = z - .16 - floor
             if drop > 2.6:
@@ -250,3 +253,155 @@ class Kit:
         for s in (-1, 1):
             self.part('box', id, col, 'hood', tuple(c + Vector((px, py, 0)) * s * width / 2), (.45, .45, .5), 'naval')
         self.part('box', id, col, 'operator shield', tuple(c - Vector((fx, fy, 0)) * .45 + Vector((0, 0, -.1))), (.8, .9, .9), 'naval')
+
+    # ------------------------------------------------------------ measured windows, roof rails and knees
+    def windows(self, assembly, col, rows, zone=None):
+        """Dark glass panes and rimmed portholes from a measured table (runtime frame rows:
+        kind, x, y, z, width, height, normal x, normal z), merged into two meshes per assembly."""
+        panes, rims = ([], []), ([], [])
+
+        def quad(buf, c, u, w, h, d):
+            vv, ff = buf
+            k = len(vv)
+            for a, b in [(-1, -1), (1, -1), (1, 1), (-1, 1)]:
+                p = c + u * (a * w / 2) + Vector((0, 0, b * h / 2)) + d
+                vv.append(tuple(p))
+            ff.append((k, k + 1, k + 2, k + 3))
+
+        def disc(buf, c, u, n, r, sides=12):
+            vv, ff = buf
+            k = len(vv)
+            vv.append(tuple(c))
+            for i in range(sides):
+                a = math.tau * i / sides
+                vv.append(tuple(c + u * (r * math.cos(a)) + Vector((0, 0, r * math.sin(a)))))
+            ff += [(k, k + 1 + i, k + 1 + (i + 1) % sides) for i in range(sides)]
+
+        for kind, x, y, z, w, h, nx, nz in rows:
+            if zone and not zone(x, y, z):
+                continue
+            c = Vector((-z, -x, y))
+            n = Vector((-nz, -nx, 0))          # outward normal, authoring frame
+            u = Vector((0, 0, 1)).cross(n).normalized()
+            if kind == 'port':
+                r = min(w, h) / 2
+                disc(rims, c + n * .012, u, n, r + .06, 14)
+                disc(panes, c + n * .02, u, n, r * .92, 12)
+            else:
+                quad(rims, c, u, w + .08, h + .08, n * .012)
+                quad(panes, c, u, w, h, n * .02)
+        for (vv, ff), material, label in [(rims, 'painted-edge', 'window frames'), (panes, 'glass', 'window glass')]:
+            if ff:
+                self.tag(self.mesh(assembly + '.' + label, vv, ff, material, col), assembly)
+
+    @staticmethod
+    def _inside(poly, x, z):
+        c = False
+        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+            if (az > z) != (bz > z) and x < (bx - ax) * (z - az) / (bz - az) + ax:
+                c = not c
+        return c
+
+    @staticmethod
+    def _nearest(poly, x, z):
+        """Nearest point on a polygon outline and its distance (plan, runtime x/z)."""
+        best = (1e9, x, z)
+        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+            dx, dz = bx - ax, bz - az
+            t = max(0, min(1, ((x - ax) * dx + (z - az) * dz) / max(1e-12, dx * dx + dz * dz)))
+            px, pz = ax + t * dx, az + t * dz
+            d = math.hypot(x - px, z - pz)
+            if d < best[0]:
+                best = (d, px, pz)
+        return best
+
+    def _samples(self, poly, step):
+        """Points round a closed outline every ~step metres, with the inward normal at each."""
+        area = sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(poly, poly[1:] + poly[:1]))
+        turn = 1 if area > 0 else -1
+        out = []
+        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+            L = math.hypot(bx - ax, bz - az)
+            if L < 1e-6:
+                continue
+            nx, nz = -(bz - az) / L * turn, (bx - ax) / L * turn
+            n = max(1, int(L / step))
+            for i in range(n):
+                t = i / n
+                out.append((ax + (bx - ax) * t, az + (bz - az) * t, nx, nz, i == 0))
+        return out
+
+    @staticmethod
+    def _corners(pts, degrees=8):
+        """Keep a polyline's ends and the points where it turns."""
+        if len(pts) < 3:
+            return pts
+        out = [pts[0]]
+        for a, b, c in zip(pts, pts[1:], pts[2:]):
+            u = (b[0] - a[0], b[1] - a[1]); v = (c[0] - b[0], c[1] - b[1])
+            lu, lv = math.hypot(*u), math.hypot(*v)
+            if lu < 1e-9 or lv < 1e-9:
+                continue
+            if (u[0] * v[0] + u[1] * v[1]) / (lu * lv) < math.cos(math.radians(degrees)):
+                out.append(b)
+        out.append(pts[-1])
+        return out
+
+    def roof_rails(self, assembly, col, structures, zone, height=1.0, inset=.08, clearance=.3):
+        """Rails round every exposed roof edge of the structures inside a zone (zone(x, y, z), runtime frame)."""
+        for s in structures:
+            poly = [tuple(p) for p in s['footprint']]
+            xs = [p[0] for p in poly]
+            zs = [p[1] for p in poly]
+            top = s['baseY'] + s['height']
+            if not zone((min(xs) + max(xs)) / 2, top, (min(zs) + max(zs)) / 2):
+                continue
+            above = [[tuple(p) for p in o['footprint']] for o in structures if o is not s and top - .06 <= o['baseY'] <= top + .35]
+            samples = self._samples(poly, .25)
+            flags = [not any(self._inside(a, x, z) or self._nearest(a, x, z)[0] < clearance for a in above) for x, z, _, _, _ in samples]
+            if not samples:
+                continue
+            if all(flags):
+                pts = self._corners([(x + nx * inset, z + nz * inset) for x, z, nx, nz, _ in samples])
+                self.rail(assembly, col, [(-z_, -x_) for x_, z_ in pts], top, height, 1.4, closed=True)
+                continue
+            # Start at an exposed sample that follows a covered one so runs do not wrap.
+            k0 = next(i for i in range(len(flags)) if flags[i] and not flags[i - 1]) if any(flags) else 0
+            run = []
+            for j in range(len(samples) + 1):
+                i = (k0 + j) % len(samples)
+                if j < len(samples) and flags[i]:
+                    x, z, nx, nz, _ = samples[i]
+                    run.append((x + nx * inset, z + nz * inset))
+                    continue
+                if len(run) > 2:
+                    self.rail(assembly, col, [(-z_, -x_) for x_, z_ in self._corners(run)], top, height, 1.4)
+                run = []
+
+    def overhang_knees(self, assembly, col, structures, zone, spacing=2.0, min_overhang=.5):
+        """Triangular knee brackets under the overhanging edges of structures inside a zone."""
+        for s in structures:
+            poly = [tuple(p) for p in s['footprint']]
+            xs = [p[0] for p in poly]
+            zs = [p[1] for p in poly]
+            if not zone((min(xs) + max(xs)) / 2, s['baseY'], (min(zs) + max(zs)) / 2) or s['baseY'] < 7.2:
+                continue
+            below = [[tuple(p) for p in o['footprint']] for o in structures if o is not s and abs(o['baseY'] + o['height'] - s['baseY']) < .06]
+            if not below:
+                continue
+            for x, z, nx, nz, corner in self._samples(poly, spacing):
+                if any(self._inside(b, x, z) for b in below):
+                    continue
+                d, fx, fz = min(self._nearest(b, x, z) for b in below)
+                if d < min_overhang or d > 2.2:
+                    continue
+                a = Vector((-z, -x, s['baseY'] - .01))
+                b = Vector((-fz, -fx, s['baseY'] - .01))
+                c = Vector((-fz, -fx, s['baseY'] - min(.6, d * .7)))
+                side = (a - b).cross(Vector((0, 0, 1)))
+                if side.length < 1e-6:
+                    continue
+                side = side.normalized() * .03
+                vv = [tuple(p + side * sgn) for sgn in (-1, 1) for p in (a, b, c)]
+                ff = [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)]
+                self.tag(self.mesh(assembly + '.knee', vv, ff, 'naval', col), assembly)

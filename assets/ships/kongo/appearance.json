@@ -12,7 +12,8 @@
     "kongo-reference-black": [0.012, 0.012, 0.013],
     "kongo-authored-dark-fittings": [0.038, 0.038, 0.040],
     "kongo-authored-mid-fittings": [0.082, 0.085, 0.097],
-    "kongo-authored-canvas": [0.55, 0.53, 0.44]
+    "kongo-authored-canvas": [0.55, 0.53, 0.44],
+    "kongo-authored-fitting-wood": [0.19, 0.13, 0.075]
   },
   "materials": {
     "naval": { "paint": "kongo-reference-grey", "finish": "painted-steel" },
@@ -25,7 +26,7 @@
     "edge": { "paint": "kongo-authored-dark-fittings", "finish": "painted-steel" },
     "painted-edge": { "paint": "kongo-authored-mid-fittings", "finish": "painted-steel" },
     "canvas": { "paint": "kongo-authored-canvas", "finish": "painted-steel" },
-    "wood": { "paint": "kongo-reference-wood", "finish": "wood", "fittings": true }
+    "wood": { "paint": "kongo-authored-fitting-wood", "finish": "wood", "fittings": true }
   },
   "decking": {
     "deck": { "plankWidth": 0.15, "plankLength": 6.0, "seamWidth": 0.004, "coating": "bare" }

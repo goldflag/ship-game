@@ -72,6 +72,8 @@ def build(D, kit):
                 pa, pb = a['points'][-1], b['points'][-1]
                 return pa[0] + (pb[0] - pa[0]) * t, pa[1] + (pb[1] - pa[1]) * t
         return secs[-1]['points'][-1]
+    # Casemate drums turn in the forecastle embrasures below the deck edge: no rail over them.
+    drums = [(-m['position'][2], -m['position'][0]) for m in D['mounts'] if m['partId'].endswith('casemate')]
     for side in (-1, 1):
         pts = []
         for i in range(0, 441):
@@ -80,7 +82,8 @@ def build(D, kit):
             pts.append((st - L / 2, side * max(0, w - .08), h))
         run = []
         for p, q in zip(pts, pts[1:]):
-            if abs(p[2] - q[2]) > .35 or abs(p[1] - q[1]) > .8:
+            near_drum = any(math.hypot(p[0] - dx, p[1] - dy) < 1.7 or math.hypot(q[0] - dx, q[1] - dy) < 1.7 for dx, dy in drums)
+            if abs(p[2] - q[2]) > .35 or abs(p[1] - q[1]) > .8 or near_drum:
                 if len(run) > 1:
                     kit.rail('deck-rails', deck, [(a, b) for a, b, _ in run], sum(c for _, _, c in run) / len(run), 1.0, 1.6)
                 run = []

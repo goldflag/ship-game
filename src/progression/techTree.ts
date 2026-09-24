@@ -106,7 +106,7 @@ export const TECH_TREE: readonly TechNation[] = [
         ['jp-agano', 'Agano', 'Light cruiser', 1942, 3000],
       ]),
       line('battleships', 'Battleships', [
-        ['jp-kongo', 'Kongō', 'Fast battleship', 1913, 3500],
+        ship('kongo', 'Kongō', 'Kongō', 'Fast battleship', 1913, 3500),
         ['jp-fuso', 'Fusō', 'Battleship', 1915, 3500],
         ['jp-ise', 'Ise', 'Battleship', 1917, 3500],
         ['jp-nagato', 'Nagato', 'Battleship', 1920, 3500],
