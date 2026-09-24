@@ -68,12 +68,16 @@ FUNNEL_X=10.96
 structures=[
  shape('forward-shelter','Forward shelter deck',[(5.55,-5.5),(19,-5.5),(20,-5.4),(21,-5.06),(25,-5.06),(26,-6.5),(27,-6.9),(42,-6.9),(48,-4.3),(54,-3.6),(55,-2.4),(55,2.4),(54,3.6),(48,4.3),(42,6.9),(27,6.9),(26,6.5),(25,5.06),(21,5.06),(20,5.4),(19,5.5),(5.55,5.5)],4.65,7.12),
  shape('forward-battery-house','Forward battery deckhouse',[(21.3,-4.48),(32.5,-4.48),(34.5,-3.4),(36.5,-3.4),(37.8,-4.43),(40.5,-4.43),(42,-4.03),(43,-3.34),(44.45,-2.3),(44.45,2.3),(43,3.34),(42,4.03),(40.5,4.43),(37.8,4.43),(36.5,3.4),(34.5,3.4),(32.5,4.48),(21.3,4.48)],7.12,9.42),
- shape('bridge-lower','Lower bridge and navigation deck',[(27,-4.65),(32.5,-4.65),(34.5,-3.59),(36.5,-3.59),(37.8,-4.43),(40.5,-4.43),(42,-4.03),(43,-3.34),(44.45,-2.3),(44.45,2.3),(43,3.34),(42,4.03),(40.5,4.43),(37.8,4.43),(36.5,3.59),(34.5,3.59),(32.5,4.65),(27,4.65)],9.42,12.1),
- shape('conning-tower','Armored conning position',rr(36.4,0,6.4,5.6,2),7.12,12.85),
- shape('bridge-navigation','Navigation bridge',[(29,-3.5),(33.4,-3.5),(34.3,-2.8),(34.3,2.8),(33.4,3.5),(29,3.5)],12.5,14.5),
- shape('tower-base','Forward tower lower shaft',rr(24.8,0,6.7,5.5,.65),9.42,17.0),
- shape('tower-wheelhouse','Tower enclosed wheelhouse',[(21.8,-3),(25.5,-3),(27.4,-2.4),(27.8,-1.3),(27.8,1.3),(27.4,2.4),(25.5,3),(21.8,3)],17,19.25),
- shape('tower-upper-shaft','Forward tower upper shaft',rr(24.0,0,4.7,3.6,.4),19.25,25.2),
+ shape('bridge-lower','Lower bridge and navigation deck',[(27,-4.65),(32.5,-4.65),(34.5,-3.59),(36.5,-3.59),(37.8,-4.43),(40.5,-4.43),(42,-4.03),(43,-3.34),(44.45,-2.3),(44.45,2.3),(43,3.34),(42,4.03),(40.5,4.43),(37.8,4.43),(36.5,3.59),(34.5,3.59),(32.5,4.65),(27,4.65)],9.42,11.64),
+ # The conning position rises through the bridge deck (11.7 m) to 13.8 m, with the
+ # navigating position's roof and rangefinder above its after part, as measured.
+ shape('conning-tower','Armored conning position',rr(38.6,0,8.6,4.4,1.2),7.12,13.8),
+ shape('bridge-navigation','Navigating position',rr(36.95,0,5.3,4.4,.8),13.8,14.4),
+ # Forward tower, measured on the reference: a broad base to the 14.2 m platform,
+ # a slender core through the admiral's bridge house to the top gallery.
+ shape('tower-base','Forward tower lower shaft',rr(25.35,0,6.3,7.2,.6),9.42,14.12),
+ shape('tower-wheelhouse',"Admiral's bridge house",[(18.5,0),(18.7,-1.5),(19.3,-2.5),(20.0,-2.95),(25.5,-2.95),(27.4,-2.4),(27.8,-1.3),(27.8,1.3),(27.4,2.4),(25.5,2.95),(20.0,2.95),(19.3,2.5),(18.7,1.5)],17.9,19.6),
+ shape('tower-upper-shaft','Forward tower core',rr(23.6,0,5.64,3.4,1.0),9.3,25.2),
  shape('tower-director-base','Main director base',[(21.25, 0), (21.45, -0.2), (24.2, -2.6), (24.7, -2.73), (25.05, -2.68), (25.5, -2.38), (25.7, -1.75), (25.82, -0.9), (25.84, 0), (25.82, 0.9), (25.7, 1.75), (25.5, 2.38), (25.05, 2.68), (24.7, 2.73), (24.2, 2.6), (21.45, 0.2)],25.2,27.12),
  shape('funnel-base','Funnel lower uptake',rr(FUNNEL_X,0,9.32,4.56,2.2,8),4.6,16.3),
  loft('funnel-collar','Funnel base collar',[(rr(FUNNEL_X-.15,0,10.9,5.3,2.55,8),9.3),(rr(FUNNEL_X-.15,0,10.3,5.0,2.4,8),10.6),(rr(FUNNEL_X,0,9.32,4.56,2.2,8),12.3)]),
