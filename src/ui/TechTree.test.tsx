@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { emptyProfile, openProfile, type ProgressProfile } from '../progression/rules';
 import type { ProgressSnapshot } from '../progression/store';
-import { nodePlace, type NationId } from '../progression/techTree';
+import { nodePlace, techNation, type NationId } from '../progression/techTree';
 import { describeResearch, research, TechTree } from './TechTree';
 
 const noop = () => {};
@@ -51,7 +51,7 @@ describe('the tech tree', () => {
     // Modelled nodes show their preset's thumbnail and can be chosen; placeholders are plain outlines.
     expect(html).toContain('models/fletcher-thumbnail.png');
     expect(html).not.toContain('models/us-clemson');
-    expect(html.match(/<button class="tech-node"/g)).toHaveLength(6);
+    expect(html.match(/<button class="tech-node"/g)).toHaveLength(techNation('usa').lines.flatMap(line => line.nodes).filter(node => node.presetId).length);
     // Connectors: mint along owned ships, brass from an owned ship to the next, dashed through placeholders.
     expect(html).toContain('class="tech-link" data-state="next"');
     expect(html).toContain('class="tech-link" data-state="unbuilt"');

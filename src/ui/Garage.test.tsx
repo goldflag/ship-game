@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createHarnessProgressStore } from '../progression/store';
+import { modelledNodes } from '../progression/techTree';
 import { shipPreset } from '../ships/presets';
 import { Garage } from './Garage';
 import { ShipContext } from './ShipContext';
@@ -76,7 +77,7 @@ test('a locked ship alongside for review says what she costs, and BATTLE becomes
 
 test('the harness owns every tree ship; enemy-only presets never join the fleet line', () => {
   const html = render('bismarck', false);
-  expect(groups(html).flatMap(([, ships]) => ships as string[])).toHaveLength(16);
+  expect(groups(html).flatMap(([, ships]) => ships as string[])).toHaveLength(modelledNodes().length);
   expect(html).not.toMatch(/aria-label="(Valiant|Resolute|Liberty)/);
   expect(html).toContain('<strong>BATTLE</strong>');
 });

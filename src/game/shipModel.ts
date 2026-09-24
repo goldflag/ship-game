@@ -14,6 +14,8 @@ const identities: Record<string, { type: string; nation: string }> = {
   bismarck: { type: 'Battleship', nation: 'Germany' },
   yamato: { type: 'Battleship', nation: 'Japan' },
   iowa: { type: 'Battleship', nation: 'United States' },
+  alaska: { type: 'Large cruiser', nation: 'United States' },
+  hood: { type: 'Battlecruiser', nation: 'United Kingdom' },
   'king-george-v': { type: 'Battleship', nation: 'United Kingdom' },
   cleveland: { type: 'Light cruiser', nation: 'United States' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },
@@ -35,7 +37,7 @@ export type ShipClass = typeof SHIP_CLASSES[number];
 export function shipClass(id: string): ShipClass {
   const type = shipIdentity(id).type;
   if (type === 'Aircraft carrier') return 'Carrier';
-  if (type === 'Battleship') return 'Battleship';
+  if (type === 'Battleship' || type === 'Battlecruiser') return 'Battleship';
   if (/cruiser/i.test(type)) return 'Cruiser';
   if (type === 'Destroyer') return 'Destroyer';
   if (type === 'Submarine') return 'Submarine';

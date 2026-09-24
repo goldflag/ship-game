@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { emptyProfile, openProfile, type ProgressProfile } from '../progression/rules';
 import type { ProgressSnapshot } from '../progression/store';
+import { modelledNodes } from '../progression/techTree';
 import type { LocalShipRevision } from '../ships/localShips';
 import type { PortDesign } from './portDesigns';
 import { fallbackBerth, openingPreset, portFleet, STARTER_BERTH } from './portFleet';
@@ -20,10 +21,10 @@ describe('the fleet line', () => {
   test('groups owned tree ships by nation in tree order, line by line and oldest first, then ready designs', () => {
     const groups = portFleet(snapshot(openProfile()), [design('a', 'Baltimore design'), design('b', 'Draft hull', false)]);
     expect(ids(groups)).toEqual([
-      ['usa', ['gleaves', 'fletcher', 'cleveland', 'baltimore', 'iowa', 'enterprise-cv6']],
+      ['usa', ['gleaves', 'fletcher', 'cleveland', 'baltimore', 'alaska', 'iowa', 'enterprise-cv6']],
       ['japan', ['fubuki', 'yukikaze', 'mogami', 'yamato', 'shokaku']],
       ['germany', ['admiral-hipper', 'bismarck', 'type-viic']],
-      ['uk', ['king-george-v', 'flower-corvette']],
+      ['uk', ['hood', 'king-george-v', 'flower-corvette']],
       ['designs', ['local-a']],
     ]);
     expect(groups.map((group) => group.label)).toEqual(['United States', 'Japan', 'Germany', 'United Kingdom', 'Your designs']);
@@ -51,7 +52,7 @@ describe('the fleet line', () => {
 
   test('until progress loads, or when it cannot, every tree ship stays in the fleet', () => {
     for (const status of ['loading', 'unavailable'] as const)
-      expect(portFleet(snapshot(emptyProfile(), status), []).flatMap((group) => group.entries)).toHaveLength(16);
+      expect(portFleet(snapshot(emptyProfile(), status), []).flatMap((group) => group.entries)).toHaveLength(modelledNodes().length);
   });
 });
 

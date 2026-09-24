@@ -66,7 +66,7 @@ export const TECH_TREE: readonly TechNation[] = [
         ['us-atlanta', 'Atlanta', 'Light cruiser', 1941, 2200],
         ship('cleveland', 'Cleveland', 'Cleveland', 'Light cruiser', 1942, 0, true),
         ship('baltimore', 'Baltimore', 'Baltimore', 'Heavy cruiser', 1943, 3000),
-        ['us-alaska', 'Alaska', 'Large cruiser', 1944, 3000],
+        ship('alaska', 'Alaska', 'Alaska', 'Large cruiser', 1944, 3000),
       ]),
       line('battleships', 'Battleships', [
         ['us-nevada', 'Nevada', 'Battleship', 1916, 3500],
@@ -166,7 +166,7 @@ export const TECH_TREE: readonly TechNation[] = [
       ]),
       line('battleships', 'Battleships', [
         ['uk-queen-elizabeth', 'Queen Elizabeth', 'Battleship', 1915, 3500],
-        ['uk-hood', 'Hood', 'Battlecruiser', 1920, 3500],
+        ship('hood', 'Hood', 'Admiral', 'Battlecruiser', 1920, 3500),
         ['uk-nelson', 'Nelson', 'Battleship', 1927, 5000],
         ship('king-george-v', 'King George V', 'King George V', 'Battleship', 1940, 6500),
       ]),
