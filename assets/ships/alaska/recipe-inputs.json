@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/us-battleship-guns/alaska_triple.py",
+    "assets/parts/us-5in38-mk32-mod12/geometry.py",
+    "assets/parts/us-bofors-quad/geometry.py",
+    "assets/parts/us-iowa-mounts/geometry.py",
+    "assets/parts/aa_articulation.py",
+    "assets/parts/gun_bloomers.py",
+    "assets/ships/alaska/fittings.py",
+    "assets/ships/alaska/appearance.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json"
+  ]
+}
