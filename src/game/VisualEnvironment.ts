@@ -1,4 +1,4 @@
-import { Color, HemisphereLight, MathUtils, Vector3, type DirectionalLight, type Object3D, type PerspectiveCamera } from 'three/webgpu';
+import { Color, HemisphereLight, MathUtils, PointLight, Vector3, type DirectionalLight, type Object3D, type PerspectiveCamera } from 'three/webgpu';
 import type { OceanApi } from './ocean/contracts';
 import type { CelestialLight, SkyApi, SkyScene } from './sky/contracts';
 import { windrowCoverage } from './ocean/waves/whitecaps';
@@ -80,6 +80,13 @@ const FILL_DAYLIGHT = [1, 4] as const;
  * take them: the night sky, sea and smoke keep the raw moon. */
 const MESH_MOONLIGHT = 1.5, MESH_NIGHT_FILL = 1.6;
 
+/** Lightning's colour on lit meshes: the blue-white of a return stroke, as the rain veil glows toward it. */
+const BOLT_TINT = new Color(.8, .87, 1);
+/** Most irradiance lightning may lay on the meshes around the camera: about a third of the noon sun's on them. A stroke within a
+ * couple of kilometres is brighter for its instant, but the sea and the air around the ships do not flash with them, and a
+ * hull lit like day on a dark sea reads as a searchlight. */
+export const BOLT_CEILING = 1;
+
 /** Shares of the active celestial light that reach lit meshes (see the constants above): the scene
  * DirectionalLight's multiple of the light's intensity, the hemisphere fill's multiple of the scene's
  * authored ambient, and the sky reflection's intensity. The sea and sky keep the raw light. */
@@ -107,6 +114,9 @@ export const MESH_FILL_COLORS = { sky: '#dcebf2', ground: '#65757e' } as const;
  * renderer-free conditions module; nothing here can move a hull. */
 export class VisualEnvironment {
   readonly ambientLight = new HemisphereLight(MESH_FILL_COLORS.sky, MESH_FILL_COLORS.ground, .65);
+  /** Lightning's direct light on lit meshes (`CelestialLight.bolt`): a point at the stroke, falling off with the square of the
+   * distance, without shadows. Always in the scene, dark between flashes, so nothing recompiles as a storm begins. */
+  readonly boltLight = new PointLight(BOLT_TINT, 0, 0, 2);
   /** The scene's authored ambient before the mesh share; smoke and diagnostics read this. */
   private ambient = .65;
   private ocean?: OceanApi;
@@ -122,8 +132,13 @@ export class VisualEnvironment {
   // Original swatches, restored exactly when the camera surfaces again.
   private surfaceAbsorption = new Color();
   private shadowFocus?: Vector3;
+  /** Where lightning's light is measured against its ceiling: the camera, as of the last update. */
+  private readonly viewpoint = new Vector3();
 
-  constructor(private sinks: EnvironmentSinks) {}
+  constructor(private sinks: EnvironmentSinks) { this.boltLight.name = 'Lightning'; }
+
+  /** Rain on the scene now, 0 dry … 1 a downpour: the sky's, developer overrides included. */
+  get precipitation(): number { return this.skyScene?.weather.precipitation ?? 0; }
 
   /** The ocean's absorption becomes the surface baseline the underwater easing returns to.
    * `sunLight` is the scene light meshes use; the ocean shades from its own sun uniforms. */
@@ -166,6 +181,7 @@ export class VisualEnvironment {
   }
   /** Per frame, before the ocean updates: advance the sky, share its light, and attenuate for a submerged camera. */
   update(camera: PerspectiveCamera, dt: number): void {
+    this.viewpoint.copy(camera.position);
     this.sky?.update(dt);
     this.syncLighting();
     if (!this.ocean) return;
@@ -279,11 +295,15 @@ export class VisualEnvironment {
   }
   /** Share the sky's active celestial light: the sun, warmed by the air when low, or the moon
    * once it outshines the sun. It reaches the sea, the scene light and its shadows, and smoke,
-   * including on paused frames. A lightning flash lifts the diffuse fill for its instant. */
+   * including on paused frames. A lightning flash lifts the diffuse fill for its instant and lights meshes from the stroke. */
   syncLighting(): void {
     const sky = this.sky;
     if (!sky) return;
-    const { direction, color, intensity, night, flash } = sky.light, shares = meshLightShares(sky.light);
+    const { direction, color, intensity, night, flash, bolt } = sky.light, shares = meshLightShares(sky.light);
+    // Irradiance `intensity × (1 km / r)²`: a point of that many candela, at the meshes' share of direct light like the sun's.
+    const candela = bolt.intensity * 1e6 * MESH_SUNLIGHT, near = bolt.position.distanceToSquared(this.viewpoint);
+    this.boltLight.position.copy(bolt.position);
+    this.boltLight.intensity = Math.min(candela, BOLT_CEILING * Math.max(near, 1));
     if (this.ocean) {
       // The sea shades with the raw celestial light; only the scene light meshes use is scaled.
       this.ocean.sun.direction.copy(direction);

@@ -80,7 +80,7 @@ export class Sky implements SkyApi {
     this.parts.atmosphere.apply(scene);
     this.parts.clouds.apply(scene);
     this.parts.weather.apply(scene);
-    this.state.chooseLight(this.parts.atmosphere.seaLevel, this.parts.weather.flash);
+    this.state.chooseLight(this.parts.atmosphere.seaLevel, this.parts.weather.flash, this.parts.weather.boltLight);
   }
 
   update(dt: number): void {
@@ -102,7 +102,7 @@ export class Sky implements SkyApi {
     parts.clouds.update(frame);
     parts.environment.followCamera(camera);
     parts.environment.update(frame);
-    state.chooseLight(parts.atmosphere.seaLevel, parts.weather.flash);
+    state.chooseLight(parts.atmosphere.seaLevel, parts.weather.flash, parts.weather.boltLight);
   }
 
   postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'> {
@@ -137,7 +137,8 @@ export class Sky implements SkyApi {
   diagnostics(): Record<string, unknown> {
     const { light } = this.state;
     return { renderer: this.renderer, quality: this.qualityLevel, scene: this.state.scene, sun: this.sun, moon: this.moon,
-      light: { direction: light.direction.toArray(), color: light.color.toArray(), intensity: light.intensity, night: light.night, flash: light.flash } };
+      light: { direction: light.direction.toArray(), color: light.color.toArray(), intensity: light.intensity, night: light.night, flash: light.flash,
+        bolt: { position: light.bolt.position.toArray(), intensity: light.bolt.intensity } } };
   }
 
   dispose(): void {

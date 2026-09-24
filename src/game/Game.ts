@@ -33,7 +33,6 @@ import { pass, vec2 } from 'three/tsl';
 import { frameIntervalMs, sanitizeGraphicsSettings, type GraphicsSettings, type LaunchedGraphics, type TerrainQuality } from './graphicsSettings';
 import { Ocean } from './ocean/Ocean';
 import type { OceanApi, OceanRealism } from './ocean/contracts';
-import { HullWetBand } from './HullWetBand';
 import { primeHullProfile } from './HullContactFoam';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
@@ -44,6 +43,7 @@ import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { ShipOcclusion } from './ShipOcclusion';
+import { ShipWeather } from './ShipWeather';
 import { loadShipModel } from './loadShipModel';
 import { Sky } from './sky/Sky';
 import type { SkyApi } from './sky/contracts';
@@ -180,10 +180,11 @@ export class Game {
    * same ones, so they are kept — in least-recently-used order and capped, because each one
    * holds tens of megabytes of vertex data. The fleet at sea is always retained. */
   private readonly hulls = new Map<string, THREE.Group>();
-  /** Hulls darken and gloss just above the sea they sit in: the FFT waves plus the wake and bow waves. */
-  private readonly hullWetBand = new HullWetBand();
+  /** Hulls darken and gloss just above the sea they sit in (the FFT waves plus the wake and bow waves), over bows driven
+   * into a seaway, and wherever rain falls on them. */
+  private readonly shipWeather = new ShipWeather();
   /** One palette for every hull kept, so paint still collapses across cached fleets. */
-  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true, weathering: this.hullWetBand });
+  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true, weathering: this.shipWeather });
   private readonly occlusion: ShipOcclusion;
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
@@ -464,7 +465,7 @@ export class Game {
     }
     this.assertActive();
     this.scene.add(...this.fleetViews.map(view => view.root), this.observedShipViews.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
-    this.scene.add(this.environment.ambientLight);
+    this.scene.add(this.environment.ambientLight, this.environment.boltLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
     const ocean = this.ocean = await this.createOcean();
@@ -503,6 +504,7 @@ export class Game {
     this.environment.attachSky(sky);
     // Water and sky both exist now; nothing renders before the warmup below.
     this.environment.setScene(this.simulation.mapId, this.inPort);
+    this.shipWeather.settle();
     ocean.setSky(sky.oceanSky);
     // Clouds shade the sun on ships and islands through the sun's own shadow maps, and the sea
     // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before.
@@ -519,7 +521,7 @@ export class Game {
     // The wet band reads the sea exactly as the surface draws it: waves, wake field and bow waves.
     // Hull paint compiles on first draw, after this.
     const shipWake = this.shipWake;
-    this.hullWetBand.setSea((x, z) => ocean.waveField.heightAt(vec2(x, z)).add(shipWake.surfaceHeight(x, z)), () => shipWake.bowWaves.crestHeight());
+    this.shipWeather.band.setSea((x, z) => ocean.waveField.heightAt(vec2(x, z)).add(shipWake.surfaceHeight(x, z)), () => shipWake.bowWaves.crestHeight());
     for (const buoy of BUOYS) this.addBuoy(buoy);
     if (HARBOR_BACKDROP) {
       this.callbacks.progress('Building the naval anchorage', 0.72);
@@ -907,6 +909,8 @@ export class Game {
       }
       ocean.time = time;
       this.sky?.hold(time);
+      // As if the weather had held for the replay: wet through in rain, dry after none.
+      this.shipWeather.settle();
     } finally {
       this.lastTime = performance.now();
       this.scheduleFrame();
@@ -1239,7 +1243,9 @@ export class Game {
       this.focusNearShadow();
       this.shipWake!.seaHeight = this.ocean!.waves.significantHeight;
       this.shipWake!.update(emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera, this.inPort ? [] : this.simulation.torpedoes);
-      this.hullWetBand.update(this.ocean!.waves.significantHeight);
+      this.shipWeather.band.update(this.ocean!.waves.significantHeight);
+      this.shipWeather.update(dt, { precipitation: this.environment.precipitation, seaHeight: this.ocean!.waves.significantHeight,
+        waveDirection: this.ocean!.waves.windDirection, ships: emptyBerth ? [] : this.inPort ? [this.playerView!] : this.wakeShips(), camera: this.camera });
       // The sea reads the opaque ships through the scene pass, so publish batch poses first.
       this.fleetDraws?.update(this.camera, this.renderer.domElement.height, this.detailBudgetPx);
       // Hidden hangar aircraft, LODs and dormant effects must compile against
@@ -1803,6 +1809,7 @@ export class Game {
     this.manualAim = true;
     this.airOperationsOpen = false; this.selectedFlightId = undefined;
     this.environment.setScene(this.simulation.mapId, inPort);
+    this.shipWeather.settle();
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
       this.controlPriority = 'balanced'; this.controlFocus = '';
@@ -1960,6 +1967,7 @@ export class Game {
       effects: this.effects.diagnostics(),
       funnelSmoke: this.funnelSmoke.diagnostics(),
       wakeFoam: this.shipWake?.diagnostics(),
+      shipWeather: this.shipWeather.diagnostics(),
       shipRigs: this.fleetViews.map(view => ({ shipId: view.actor.motion.id, ...view.rig.diagnostics() })),
       audio: this.audio?.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedIds.values().next().value, selectedVolumes: this.playerView?.inspection.selectedIds.size ?? 0, hoveredVolume: this.playerView?.inspection.hoveredId,

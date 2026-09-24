@@ -365,6 +365,17 @@ export function detailTexels(size: number = PLATE.size): Uint8Array {
   return pixels;
 }
 
+let detailLayers: THREE.DataArrayTexture | undefined;
+/** The detail layers' texture, made once for every paint. */
+function detailTexture(): THREE.DataArrayTexture {
+  return detailLayers ??= dataTexture(new THREE.DataArrayTexture(detailTexels(), PLATE.size, PLATE.size, DETAIL.layers), 'Ship surface detail');
+}
+/** The runoff tile's four wear channels at `u` along its top edge and `v` (0 … 1) down it, from the paint's own detail texture, so a
+ * read adds no sampler: the paint's wear hangs its streaks from it, and rain (ShipWeather) streams down walls along the same paths. */
+export function runoffStreaks(u: Node<'float'>, v: Node<'float'>): Node<'vec4'> {
+  return texture(detailTexture(), vec2(u, v.mul(STREAK_V))).depth(int(DETAIL.streaks));
+}
+
 /** Relief strength, for review. */
 export const surfaceRelief = uniform(1);
 /** Paint wear and the plating finish, for review and frame-cost measurement: 0 draws neither (each ship's plain paint and the
@@ -426,7 +437,7 @@ function perturbed(gradient: Node<'vec3'>): Node<'vec3'> {
 /** Created once; every palette material shares these nodes. */
 function shipSurfaceNodes(): Nodes {
   if (nodes) return nodes;
-  const detail = dataTexture(new THREE.DataArrayTexture(detailTexels(), PLATE.size, PLATE.size, DETAIL.layers), 'Ship surface detail');
+  const detail = detailTexture();
   const teak = dataTexture(new THREE.DataTexture(teakTexels(), TEAK.width, TEAK.length), 'Ship teak detail');
   const plate = (uv: Node<'vec2'>) => texture(detail, uv).depth(int(DETAIL.plate)), finish = (uv: Node<'vec2'>) => texture(detail, uv).depth(int(DETAIL.finish));
   /** Runoff at `v` down its 16 m tile, 0 at the edge. */

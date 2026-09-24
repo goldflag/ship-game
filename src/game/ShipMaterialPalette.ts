@@ -13,8 +13,11 @@ const surface = attribute<'vec4'>('shipSurface', 'vec4');
 const roughness = materialRoughness.mul(surface.x), metalness = materialMetalness.mul(surface.y);
 /** Rest height of a hull's wet band above the sea, in metres, by hull length; the sea state adds to it. */
 export const wetBandHeight = (length: number) => Math.max(.3, Math.min(.9, .2 + .0025 * length));
-/** Visual-only multipliers every shared paint receives, such as the wet band at the waterline. */
-export interface PaintWeathering { dry: THREE.Node<'float'>; gloss: THREE.Node<'float'> }
+/** Albedo (`dry`) and roughness (`gloss`) multipliers weathering lays over a paint. */
+export interface WetResponse { dry: THREE.Node<'float'>; gloss: THREE.Node<'float'> }
+/** Visual-only multipliers every shared paint receives, such as the wet band at the waterline and rain (ShipWeather).
+ * `timber`, where given, is timber decking's own response: porous wood darkens more when wet than paint does. */
+export interface PaintWeathering extends WetResponse { timber?: WetResponse }
 
 /** Glazing: window and porthole glass and the lenses of directors, rangefinders and searchlights. Recipes and the catalog
  * model it as opaque paint, a dark tint and mostly a matte finish (premade `… glass` and `Bridge glazing` materials, the
@@ -42,7 +45,7 @@ function finishOf(material: THREE.MeshStandardMaterial): { color: THREE.Color; r
  * materials can share draws, including across different ship definitions. */
 export class ShipMaterialPalette {
   /** `surfaceDetail` adds metric plating, paint roughness and teak detail (ships, not aircraft);
-   * `weathering` darkens and glosses every paint, such as the wet band at the waterline. */
+   * `weathering` darkens and glosses every paint, such as the wet band at the waterline and rain. */
   constructor(private readonly options: { surfaceDetail?: boolean; weathering?: PaintWeathering } = {}) {}
   private readonly materials = new Map<string, THREE.MeshStandardNodeMaterial>();
   /** One serialization scratchpad for every material: three caches images and textures
@@ -69,26 +72,29 @@ export class ShipMaterialPalette {
   setSurfaceDetail(root: THREE.Object3D, on: boolean): void { setShipSurfaceDetail(root, on, material => this.weather(material)); }
 
   /** Weathering composes over whatever colour and roughness the paint already has; wrappers are
-   * shared per base node, so equal paints still compile to one program. */
-  private readonly weatheredNodes = new Map<THREE.Node, THREE.Node>();
+   * shared per response and base node, so equal paints still compile to one program. */
+  private readonly weatheredNodes = new Map<WetResponse, Map<THREE.Node, THREE.Node>>();
   /** Wrapper → the node it weathers, so weathering a material twice never darkens it twice. */
   private readonly weatheredBases = new Map<THREE.Node, THREE.Node>();
   private weather(material: THREE.MeshStandardNodeMaterial): void {
     const weathering = this.options.weathering;
     if (!weathering) return;
+    const teak = material.userData.shipSurfaceMode === 'teak', response = teak && weathering.timber || weathering;
     const shared = <T extends THREE.Node>(base: THREE.Node, make: () => T): T => {
-      let node = this.weatheredNodes.get(base) as T | undefined;
-      if (!node) { this.weatheredNodes.set(base, node = make()); this.weatheredBases.set(node, base); }
+      let nodes = this.weatheredNodes.get(response);
+      if (!nodes) this.weatheredNodes.set(response, nodes = new Map());
+      let node = nodes.get(base) as T | undefined;
+      if (!node) { nodes.set(base, node = make()); this.weatheredBases.set(node, base); }
       return node;
     };
     const unwrap = (node: THREE.Node | null) => node && (this.weatheredBases.get(node) ?? node);
     const color = unwrap(material.colorNode) ?? materialColor;
     // Paint scales its whole colour, alpha included, as it always has; teak keeps its opaque planks.
-    material.colorNode = color === materialColor || material.userData.shipSurfaceMode !== 'teak'
-      ? shared(color, () => (color as THREE.Node<'vec4'>).mul(weathering.dry))
-      : shared(color, () => vec4((color as THREE.Node<'vec4'>).rgb.mul(weathering.dry), (color as THREE.Node<'vec4'>).a));
+    material.colorNode = color === materialColor || !teak
+      ? shared(color, () => (color as THREE.Node<'vec4'>).mul(response.dry))
+      : shared(color, () => vec4((color as THREE.Node<'vec4'>).rgb.mul(response.dry), (color as THREE.Node<'vec4'>).a));
     const rough = unwrap(material.roughnessNode) ?? roughness;
-    material.roughnessNode = shared(rough, () => (rough as THREE.Node<'float'>).mul(weathering.gloss));
+    material.roughnessNode = shared(rough, () => (rough as THREE.Node<'float'>).mul(response.gloss));
   }
 
   apply(root: THREE.Object3D): void {
