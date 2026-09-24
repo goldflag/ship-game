@@ -237,7 +237,7 @@ b['mountClearance'] = {
     'neighbors': [['main-1', 'main-2'], ['main-2', 'secondary-51'], ['main-3', 'secondary-56']],
 }
 # The ensign staff stands on the stern 40 mm sponson's after rim.
-b['rig']['ensigns'][0]['position'] = [0, 10.9, 103.5]
+b['rig']['ensigns'][0]['position'] = [0, 10.9, 103.3]
 b['structures'] = S
 
 

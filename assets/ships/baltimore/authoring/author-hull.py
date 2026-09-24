@@ -19,7 +19,9 @@ L = lines['length']; LOW, HIGH, H0 = lines['LOW'], lines['HIGH'], lines['H0']
 def levels(keel, deck):
     # Twenty levels from the keel to just above the belt's upper edge, six from there to the deck edge, so the
     # belt step and the forward flare keep their own points at every station.
-    h0 = H0 if keel < H0 - 1 else keel + (deck - keel) * .75
+    # Near the stem and transom the keel rises past the belt: keep the twenty low levels in the bottom 0.35 m
+    # so every section spends its levels alike and the loft does not twist between rows.
+    h0 = H0 if keel < H0 - .35 else keel + min(.35, (deck - keel) * .5)
     return [keel + (h0 - keel) * u for u in LOW] + [h0 + (deck - h0) * u for u in HIGH]
 
 

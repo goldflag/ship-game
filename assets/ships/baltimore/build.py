@@ -423,7 +423,8 @@ for side in [-1,1]:
  # The forecastle bulwark: the shell plating continues above the deck from the stem to abreast the anchors.
  ASSEMBLY='hull'
  xs=[STEM_BULWARK+(L/2-STEM_BULWARK)*i/60 for i in range(61)]
- top=lambda x:interp([(STEM_BULWARK,deckz(STEM_BULWARK)),(STEM_BULWARK+.8,deckz(STEM_BULWARK+.8)+1.15),(91.7,deckz(91.7)+1.15),(92.2,9.63),(99.1,9.6),(L/2,9.92)],x)
+ # Its top runs about 1.1 m above the deck and sweeps up to the stem head at 9.9 m.
+ top=lambda x:deckz(x)+interp([(STEM_BULWARK,0),(STEM_BULWARK+2.5,1.1),(92.0,1.15),(99.1,1.3),(L/2,9.92-deckz(L/2))],x)
  ring=[]
  for x in xs:
   w=width(x);d=deckz(x)-.05;t=top(x);o=w+.22*(t-d);k=min(1,max(0,(L/2-x)/.6))
@@ -467,9 +468,15 @@ for side in [-1,1]:
  cyl('Anchor capstan',(x,y,z+.4),.5,.8,'edge',vertices=24)
  cyl('Capstan head',(x,y,z+.85),.58,.12,'naval',vertices=24)
  fit.chain('Bower chain',(x+.6,y,z+.18),(91.3,side*(width(91.3)-.35),deckz(91.3)+.18),.34)
- hx=92.1;hy=side*(loft_breadth(H,hx,deckz(hx)-.8)+.1)
- for dx in [-.55,.55]:rod('Anchor fluke',(hx+dx,hy,deckz(hx)-.3),(hx-.4,hy,deckz(hx)-1.4),.095,'edge')
- rod('Anchor shank',(hx,hy,deckz(hx)-.2),(hx-.9,hy,deckz(hx)-1.2),.12,'edge')
+ # Stockless bower anchor housed in its hawse at the flare: shank, crown and two flukes, and the hawse lip.
+ hx=92.1;d=deckz(hx);hy=side*(loft_breadth(H,hx,d-.9)+.12)
+ rod('Hawse pipe lip',(hx+.35,hy-side*.08,d-.25),(hx+.35,hy+side*.02,d-.25),.32,'edge',vertices=16)
+ rod('Anchor shank',(hx+.35,hy,d-.25),(hx-.55,hy,d-1.9),.11,'edge',vertices=8)
+ box('Anchor crown',(hx-.6,hy,d-2.0),(.5,.3,.3),'edge')
+ for dx in [-1,1]:
+  mesh('Anchor fluke',[(hx-.6+dx*.2,hy-side*.1,d-2.05),(hx-.6+dx*.95,hy-side*.1,d-1.55),(hx-.6+dx*.6,hy-side*.1,d-1.25),
+   (hx-.6+dx*.2,hy+side*.12,d-2.05),(hx-.6+dx*.95,hy+side*.12,d-1.55),(hx-.6+dx*.6,hy+side*.12,d-1.25)],
+   [(0,1,2),(5,4,3),(0,3,4,1),(1,4,5,2),(2,5,3,0)],'edge')
 for x in [68,-64]:
  ASSEMBLY='breakwaters'
  for side in [-1,1]:
