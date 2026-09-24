@@ -397,11 +397,7 @@ scuttles.emit()
 for sign in [-1,1]:
  y=sign*3.5;z=interpolate(H['deckHeights'],112+H['length']/2)
  cyl('Anchor capstan',(111,y,z+.42),.46,.84,M['edge'],COL['Deck equipment'],24)
- rod('Anchor cable',(111,y,z+.14),(120,sign*1.1,z+.14),.08,M['edge'],COL['Deck equipment'])
- x=115;yy=sign*5.1;zz=8.1
- rod('Anchor hawse collar',(x,sign*(loft_width(x,zz)-.04),zz),(x,yy,zz),.18,M['naval'],COL['Deck equipment'])
- rod('Anchor shank',(x,yy,zz),(x-1.25,yy,zz-1.5),.11,M['edge'],COL['Deck equipment'])
- rod('Anchor stock',(x-1,yy-.7,zz-1.15),(x-1,yy+.7,zz-1.15),.09,M['edge'],COL['Deck equipment'])
+ rod('Anchor cable',(111,y,z+.14),(116,sign*(loft_width(116,9.3)-.3),z+.14),.08,M['edge'],COL['Deck equipment'])
 # Four shafts, four three-bladed screws, A brackets, bilge keels and one rudder.
 for side,sign in [('port',1),('starboard',-1)]:
  # Longitudinal centers measured from the CV-5 1940 outboard profile frame grid.
@@ -465,6 +461,7 @@ for x,z in [(frame(71.5),PILOT_ROOF),(frame(110.7),ROOF)]:
  for sign in [-1,1]:
   box('Director optical hood',(x+.3,IY+sign*1.0,z+1.25),(.65,.40,.50),M['naval'],COL['Island'])
   box('Director sight aperture',(x+.64,IY+sign*1.0,z+1.25),(.02,.24,.28),M['glass'],COL['Island'])
+exec((Path(__file__).parent/'island.py').read_text(),globals())
 fit.col=COL['Hangar and galleries']
 for sign in [-1,1]:
  # Deep deck-end supports are open structural framing. Keep visible air below.
@@ -504,6 +501,7 @@ for id in ['elevator-forward','elevator-middle','elevator-aft']:
   for i in range(3):
    x=a[0]+(b[0]-a[0])*(i+.5)/3;y=a[1]+(b[1]-a[1])*(i+.5)/3
    box('Elevator guide shoe',(x,y,FLIGHT-.35),(.16,.18,.5),M['edge'],COL['Deck equipment'])
+exec((Path(__file__).parent/'fittings.py').read_text(),globals())
 # Non-rendering gameplay volumes remain in the retained source, never the GLB.
 for kind in ['armor','modules','compartments','obstructions']:
  for v in D[kind]:

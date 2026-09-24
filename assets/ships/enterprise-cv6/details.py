@@ -244,17 +244,21 @@ def signal_lamp(k, x, y, z, yaw=0.0):
     k.box((x, y, z + .8), (.18, .3, .1), yaw, 'edge')
 
 
-def anchor(k, x, y, z, yaw=0.0, lean=0.0):
-    """Stockless (Navy type) anchor hanging from its hawse pipe: shank, crown and two flukes."""
-    c, s = math.cos(yaw), math.sin(yaw)
-    def P(u, v, w): return (x + c * u - s * v, y + s * u + c * v, z + w)
-    k.rod(P(0, 0, 0), P(0, 0, -1.9), .1, 'edge', 6)
-    k.rod(P(0, 0, .05), P(0, 0, -.1), .17, 'edge', 6)
-    k.box(P(0, 0, -2.0), (.5, 1.1, .3), yaw, 'edge')
-    for v in [-1, 1]:
-        k.add([P(-.2, v * .35, -2.1), P(.2, v * .35, -2.1), P(.28, v * .55, -1.1), P(-.28, v * .55, -1.1),
-               P(-.14, v * .5, -2.1), P(.14, v * .5, -2.1), P(.2, v * .66, -1.15), P(-.2, v * .66, -1.15)],
-              [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], 'edge')
+def anchor(k, top, bottom, tangent):
+    """Stockless (Navy type) anchor lying against the flared bow: shank from the hawse (`top`) down
+    to the crown (`bottom`), flukes spread along the hull `tangent` and turned up against the shell."""
+    top, bottom, t = Vector(top), Vector(bottom), Vector(tangent).normalized()
+    ax = (top - bottom).normalized(); n = t.cross(ax).normalized()
+    k.rod(tuple(top), tuple(bottom + ax * .2), .1, 'edge', 6)
+    k.rod(tuple(top + ax * .05), tuple(top - ax * .12), .17, 'edge', 6)
+    c = bottom
+    vs = [c + t * u + n * v + ax * w for u, v, w in [(-.55, -.15, -.12), (.55, -.15, -.12), (.55, .15, -.12), (-.55, .15, -.12),
+                                                     (-.55, -.15, .18), (.55, -.15, .18), (.55, .15, .18), (-.55, .15, .18)]]
+    k.add(vs, [(0, 3, 2, 1), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7), (4, 5, 6, 7)], 'edge')
+    for sg in [-1, 1]:
+        q = [c + t * sg * u + n * v + ax * w for u, v, w in
+             [(.3, -.13, -.1), (.52, -.13, -.1), (.66, -.1, 1.0), (.42, -.1, 1.0), (.3, .13, -.1), (.52, .13, -.1), (.66, .06, 1.0), (.42, .06, 1.0)]]
+        k.add(q, [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], 'edge')
 
 
 def reel(k, x, y, z, radius=.42, length=1.2):
