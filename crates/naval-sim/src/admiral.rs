@@ -197,8 +197,8 @@ fn withdraw(leader: &Vessel, battle: &Battle, threat: [f64; 3]) -> Movement {
             };
         }
     }
-    // Try several retreat bearings around authored land, not an invisible enemy
-    // route. Navigation still owns the full island detour and collision checks.
+    // Try several retreat bearings clear of the coast, not an invisible enemy
+    // route. Navigation still owns the full detour around land and collision checks.
     for angle in [0.0_f64, 0.6, -0.6, 1.2, -1.2] {
         let (sin, cos) = angle.sin_cos();
         let p = inside(
@@ -208,7 +208,7 @@ fn withdraw(leader: &Vessel, battle: &Battle, threat: [f64; 3]) -> Movement {
             ],
             battle,
         );
-        if crate::navigation::destination_is_clear(leader, p, &battle.islands) {
+        if crate::navigation::destination_is_clear(leader, p, &battle.terrain) {
             return Movement::Route {
                 waypoints: vec![p],
                 speed_mps: crate::navigation::maximum_speed(leader) * 0.85,

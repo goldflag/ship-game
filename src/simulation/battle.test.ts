@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from './combat';
 import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
+import { OPEN_SEA } from '../maps/heightfield';
 import { localToWorld } from '../game/geometry';
 import { antiAircraftRange } from '../ships/armament';
 
@@ -65,22 +66,22 @@ test('custom distances deploy and reset every ship facing the opposing formation
 test('fleet validation rejects empty enemies, unavailable presets and overfull teams', () => {
   const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'], spawnDistance: BATTLE_SPAWN_DISTANCE };
   const ids = Object.keys(shipPresets);
-  expect(() => validateBattleSetup(setup, ids)).not.toThrow();
-  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(29).fill('bismarck'), enemies: Array(30).fill('yamato') }, ids)).not.toThrow();
-  expect(() => validateBattleSetup({ ...setup, enemies: [] }, ids)).toThrow('at least one enemy');
-  expect(() => validateBattleSetup({ ...setup, playerShipId: 'missing' }, ids)).toThrow('unavailable');
-  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(30).fill('bismarck') }, ids)).toThrow('up to 30');
-  expect(() => validateBattleSetup({ ...setup, enemies: Array(31).fill('bismarck') }, ids)).toThrow('up to 30');
+  expect(() => validateBattleSetup(setup, ids, OPEN_SEA)).not.toThrow();
+  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(29).fill('bismarck'), enemies: Array(30).fill('yamato') }, ids, OPEN_SEA)).not.toThrow();
+  expect(() => validateBattleSetup({ ...setup, enemies: [] }, ids, OPEN_SEA)).toThrow('at least one enemy');
+  expect(() => validateBattleSetup({ ...setup, playerShipId: 'missing' }, ids, OPEN_SEA)).toThrow('unavailable');
+  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(30).fill('bismarck') }, ids, OPEN_SEA)).toThrow('up to 30');
+  expect(() => validateBattleSetup({ ...setup, enemies: Array(31).fill('bismarck') }, ids, OPEN_SEA)).toThrow('up to 30');
 });
 
 test('spawn distance accepts its limits and rejects invalid values at setup and simulation boundaries', () => {
   const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'], spawnDistance: BATTLE_SPAWN_DISTANCE };
   const ids = Object.keys(shipPresets);
   for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, 7500, MAX_BATTLE_SPAWN_DISTANCE]) {
-    expect(() => validateBattleSetup({ ...setup, spawnDistance }, ids)).not.toThrow();
+    expect(() => validateBattleSetup({ ...setup, spawnDistance }, ids, OPEN_SEA)).not.toThrow();
   }
   for (const spawnDistance of [NaN, Infinity, -Infinity, 0, -1000, MIN_BATTLE_SPAWN_DISTANCE - 1, MAX_BATTLE_SPAWN_DISTANCE + 1]) {
-    expect(() => validateBattleSetup({ ...setup, spawnDistance }, ids)).toThrow('spawn distance');
+    expect(() => validateBattleSetup({ ...setup, spawnDistance }, ids, OPEN_SEA)).toThrow('spawn distance');
     expect(() => new CombatSimulation(shipPreset('bismarck'), {
       friendlyBots: [], enemies: [shipPreset('yamato')], spawnDistance,
     })).toThrow('spawn distance');

@@ -5,6 +5,8 @@ import { createShipState } from '../game/session/motion';
 import { defaultKeybindings } from '../game/keybindings';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { Telemetry } from '../game/types';
+import { chartContours } from '../maps/chartContours';
+import { installMapTerrain } from '../maps/testing';
 
 test('the helm minimap renders permitted report estimates and uncertainty without a hidden actor', () => {
   const data: Telemetry = { ship: { ...createShipState(), x: 0, z: 0 }, order: 1, camera: 'Chase', fps: 60, trail: [] };
@@ -18,4 +20,24 @@ test('the helm minimap renders permitted report estimates and uncertainty withou
   const aircraft = renderToStaticMarkup(<NavigationChart data={data} reports={[{ ...report, kind: 'aircraft' }]} onResize={() => {}} bindings={defaultKeybindings()}/>);
   expect(aircraft).toContain('M-3 0h6M0-3v6');
   expect(aircraft).not.toContain('stroke-dasharray="2 2"');
+});
+
+test('the minimap draws the placed coast around the ship and turns its rose to true north', async () => {
+  const field = await installMapTerrain('iron-bottom-sound');
+  const data: Telemetry = { ship: { ...createShipState(), x: 1200, z: -3000 }, order: 1, camera: 'Chase', fps: 60, trail: [], mapId: 'iron-bottom-sound', terrain: { field, offset: [0, -2500] } };
+  const html = renderToStaticMarkup(<NavigationChart data={data} onResize={() => {}} bindings={defaultKeybindings()}/>);
+  // 8 km radius on a 100-unit chart radius: chart metres scale by 1/80 about the ship.
+  expect(html).toContain(`transform="translate(${110 + (0 - 1200) / 80} ${110 + (-2500 + 3000) / 80}) scale(0.0125)"`);
+  expect(html).toContain(`d="${chartContours(field)[0].path}"`);
+  expect(html).toContain('Navigation chart, north 45° right of up, 8 kilometer radius.');
+  // Up is a true 315°, so north stands 45° clockwise of the top and west 45° anticlockwise.
+  const letter = (name: string) => html.match(new RegExp(`<text x="([-\\d.e]+)" y="([-\\d.e]+)" text-anchor="middle">${name}</text>`))!.slice(1).map(Number);
+  const [nx, ny] = letter('N'), [wx, wy] = letter('W');
+  expect(nx).toBeCloseTo(110 + Math.sin(Math.PI / 4) * 97, 6); expect(ny).toBeCloseTo(113 - Math.cos(Math.PI / 4) * 97, 6);
+  expect(wx).toBeCloseTo(110 - Math.sin(Math.PI / 4) * 97, 6); expect(wy).toBeCloseTo(113 - Math.cos(Math.PI / 4) * 97, 6);
+  // Open sea keeps the plain north-up chart.
+  const open = renderToStaticMarkup(<NavigationChart data={{ ...data, mapId: 'north-atlantic', terrain: undefined }} onResize={() => {}} bindings={defaultKeybindings()}/>);
+  expect(open).toContain('Navigation chart, north up,');
+  expect(open).toContain('<text x="110" y="16" text-anchor="middle">N</text>');
+  expect(open).not.toContain('chart-coast');
 });

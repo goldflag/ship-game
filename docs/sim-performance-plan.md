@@ -20,8 +20,11 @@ natively, without WASM or rendering.
 
 ```sh
 cargo run --release -p naval-wasm --example pve_speed -- [scenario] [seconds] [batch] \
-  [--dump PATH] [--no-snapshot] [--full-snapshot]
+  [--dump PATH] [--no-snapshot] [--full-snapshot] [--map ID]
 ```
+
+`--map` picks the battle's map: `iron-bottom-sound` (the default) and the other real charts carry
+terrain, `north-atlantic` is open sea.
 
 Scenarios: `surface` and `carrier` (fleet command, 12-tick batches), `custom` (the 15-ship-per-side
 roster in [custom battle performance](custom-battle-performance.md), publication every tick) and

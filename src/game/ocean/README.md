@@ -186,7 +186,7 @@ must keep distinct reflectance under 24× binoculars). Sun glints on the resolve
 slope variance 1e-3, weighted by the share of the slopes the pixel resolves: glitter close up, no
 bleached sheen far off), subsurface
 light through crests toward the sun, whitecaps, windrows, shoreline foam where the water column is
-shallow (islands and hulls), and wake foam. Foam shading lives in `surface/foam.ts`. Every foam reads
+shallow (coasts and hulls), and wake foam. Foam shading lives in `surface/foam.ts`. Every foam reads
 one generated texture (`surface/foamTexture.ts`): lace (warped Worley filaments around holes),
 patches (fbm) and churn (heaped billows, Worley domes at three scales) are equalised, and every mip
 level down to 16×16 is averaged from the raw fields and equalised again, so thresholding a channel at

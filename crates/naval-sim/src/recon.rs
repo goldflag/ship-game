@@ -2,12 +2,9 @@
 //! at its center and corners for a reference surface vessel, never a flight trail
 //! or a promise that every possible target in that water would be detected.
 use crate::{
-    environment::{Island, TerrainField},
     rules::{TICK_RATE, TeamId},
-    sensors::{
-        ContactKind, VisualConditions, VisualEntity, VisualRules, line_visible,
-        observation_strength,
-    },
+    sensors::{ContactKind, VisualConditions, VisualEntity, VisualRules, observation_strength},
+    terrain::Terrain,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -90,8 +87,7 @@ impl CoverageGrid {
         &mut self,
         tick: u64,
         entities: &[VisualEntity],
-        islands: &[Island],
-        terrain: &[TerrainField],
+        terrain: &Terrain,
         conditions: VisualConditions,
         rules: &VisualRules,
     ) {
@@ -192,7 +188,7 @@ impl CoverageGrid {
                             };
                             if !observation_strength(observer, &target, 1, false, conditions, rules)
                                 .is_some_and(|strength| strength >= 0.25)
-                                || !line_visible(observer.eye, target.feature, islands, terrain)
+                                || !terrain.line_visible(observer.eye, target.feature)
                             {
                                 covered = false;
                                 break;

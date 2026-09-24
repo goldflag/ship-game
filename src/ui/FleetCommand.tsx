@@ -27,6 +27,7 @@ import { loadLabel } from './airIntent';
 import { AmmoBelt, InboundBadge, OrdnanceMark } from './AirArmamentMarks';
 import { SHIP_GLYPHS, shipClassFromReport, shipClassOf } from './shipGlyphs';
 import { EnemyFleet, EnemyRoster, bearingLabel, rangeLabel } from './EnemyFleet';
+import { DEFAULT_MAP, oceanMap } from '../maps/catalog';
 import { OwnFleetCard } from './OwnFleet';
 import { FlightLine } from './FlightLine';
 import { OrderWheel, type WheelItem } from './OrderWheel';
@@ -674,6 +675,8 @@ export function FleetCommand({
   }
 
   const origin = view.origin;
+  /** The map's bearing: contact bearings read true. */
+  const chartBearing = oceanMap(data.mapId ?? DEFAULT_MAP).bearing;
   const lineOpen = airOpen && wings.length > 0;
   /** The hull the player still steers while reading the chart from the helm. */
   const ownHelm = visiting && !combat.playerSunk ? ships.find((s) => s.id === data.controlledShipId && !s.physicalLost) : undefined;
@@ -1603,13 +1606,13 @@ export function FleetCommand({
                 <p>
                   {selectedReport.affiliation === 'hostile' ? 'Hostile' : 'Affiliation unknown'} ·{' '}
                   {reportState(selectedReport, tick).replaceAll('-', ' ')} ·{' '}
-                  {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)} ·{' '}
+                  {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z, chartBearing)} ·{' '}
                   {rangeLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)}
                   {selectedReport.visibleCondition?.sinking ? '' : ` · ±${reportUncertainty(selectedReport)}`}
                 </p>
               ) : (
                 <p>
-                  Hostile · {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)} ·{' '}
+                  Hostile · {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z, chartBearing)} ·{' '}
                   {rangeLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)}
                 </p>
               )}
@@ -1829,6 +1832,7 @@ export function FleetCommand({
               engagedBy: Object.values(orders).filter((o) => o?.targetId === c.id).length,
             }))}
           origin={origin}
+          chartBearing={chartBearing}
           selectedId={contactId}
           onSelect={(id) => targetShip({ id, team: 'enemy' }, false, false)}
           comparison={view.comparison}
@@ -1841,6 +1845,7 @@ export function FleetCommand({
           strikes={strikes}
           tick={tick}
           origin={origin}
+          chartBearing={chartBearing}
           selectedId={contactId}
           onSelect={selectReport}
           nameOf={reportName}

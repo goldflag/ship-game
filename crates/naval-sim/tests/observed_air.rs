@@ -81,8 +81,7 @@ fn observe(b: &mut Battle, include_air: bool) {
         b.sensors.update(
             b.tick,
             &entities,
-            &b.islands,
-            &[],
+            &b.terrain,
             sensors::VisualConditions::resolve(&content().0, "north-atlantic", "clear"),
             &sensors::VisualRules::default(),
         );
@@ -94,8 +93,7 @@ fn step_air(b: &mut Battle, reports: &Sensors, tick: u64, steps: usize) {
             knowledge: Some(Knowledge {
                 sensors: reports,
                 tick: tick + i as u64,
-                islands: &b.islands,
-                terrain: &[],
+                terrain: &b.terrain,
             }),
             actors: &b.actors,
             shells: &mut b.shells,

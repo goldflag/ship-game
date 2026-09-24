@@ -37,12 +37,7 @@ impl Battle {
                 };
                 let horizon = 3570.0 * (observer.eye[1].max(0.0).sqrt() + point[1].max(0.0).sqrt());
                 distance <= reach.min(conditions.visibility_m).min(horizon)
-                    && crate::sensors::line_visible(
-                        observer.eye,
-                        point,
-                        &self.islands,
-                        &self.catalog.terrain,
-                    )
+                    && self.terrain.line_visible(observer.eye, point)
             })
     }
     pub(crate) fn public_entity_id(&self, id: &str, team: TeamId) -> Option<String> {

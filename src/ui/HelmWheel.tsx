@@ -5,6 +5,7 @@ import { bindingLabel, type Keybindings } from '../game/keybindings';
 import { resolveShip, shipTitle } from '../ships/localShips';
 import { KNOTS_PER_MPS } from '../game/session/motion';
 import { SHIP_GLYPHS, shipClassOf } from './shipGlyphs';
+import { DEFAULT_MAP, oceanMap, trueBearing } from '../maps/catalog';
 import './HelmWheel.css';
 
 /** The wheel is drawn in a 640 px square; nodes sit on a log range scale so a
@@ -128,12 +129,14 @@ export function HelmWheel({ data, desk, bindings }: { data: Telemetry; desk: Fle
   const centreName = data.shipDefinition ? shipTitle(data.shipDefinition) : data.ship.id.toUpperCase();
   const holdKey = bindingLabel(bindings, 'helmWheel');
   const rings = WHEEL_RINGS_KM.filter(km => km <= maxKm);
+  // The wheel lies like the chart, up being the map's bearing; its rose points to true north.
+  const chartBearing = oceanMap(data.mapId ?? DEFAULT_MAP).bearing;
   const ray = pointer && nearestNode(nodes, pointer.x, pointer.y) ? pointer : null;
   return <div ref={rootRef} className={`helm-wheel ${sunk ? 'helm-wheel-sunk' : ''}`} role="dialog" aria-label="Choose a ship to command" aria-modal="false">
     <svg viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`} aria-hidden="true">
       <circle cx={WHEEL_SIZE / 2} cy={WHEEL_SIZE / 2} r={RIM_RADIUS + 18} className="helm-wheel-glass"/>
       {rings.map(km => <g key={km}><circle cx={WHEEL_SIZE / 2} cy={WHEEL_SIZE / 2} r={rangeRadius(km, maxKm)} className="helm-wheel-ring"/><text x={WHEEL_SIZE / 2 + 4} y={WHEEL_SIZE / 2 - rangeRadius(km, maxKm) + 11}>{km} km</text></g>)}
-      {['N', 'E', 'S', 'W'].map((c, i) => { const a = (i * 90 - 90) * Math.PI / 180, r = RIM_RADIUS + 18; return <g key={c}>
+      {['N', 'E', 'S', 'W'].map((c, i) => { const a = (i * 90 - 90 - chartBearing) * Math.PI / 180, r = RIM_RADIUS + 18; return <g key={c}>
         <path d={`M${WHEEL_SIZE / 2 + Math.cos(a) * HUB_RADIUS} ${WHEEL_SIZE / 2 + Math.sin(a) * HUB_RADIUS}L${WHEEL_SIZE / 2 + Math.cos(a) * r} ${WHEEL_SIZE / 2 + Math.sin(a) * r}`} className="helm-wheel-spoke"/>
         <text className="helm-wheel-cardinal" x={WHEEL_SIZE / 2 + Math.cos(a) * (r + 12)} y={WHEEL_SIZE / 2 + Math.sin(a) * (r + 12) + 4} textAnchor="middle">{c}</text></g>; })}
       {ray && <path d={`M${WHEEL_SIZE / 2} ${WHEEL_SIZE / 2}L${ray.x} ${ray.y}`} className="helm-wheel-ray"/>}
@@ -147,7 +150,7 @@ export function HelmWheel({ data, desk, bindings }: { data: Telemetry; desk: Fle
       const hp = Math.round(node.integrity * 100);
       const on = node.id === highlight;
       return <button key={node.id} type="button" className={`helm-wheel-node ${on ? 'on' : ''} ${node.integrity < .45 ? 'critical' : node.integrity < .75 ? 'worn' : ''}`} style={{ left: `${node.x / WHEEL_SIZE * 100}%`, top: `${node.y / WHEEL_SIZE * 100}%` }}
-        aria-label={`Take the helm of ${node.name} · ${hp} percent hull · ${node.km.toFixed(1)} km bearing ${String(Math.round(node.bearing)).padStart(3, '0')} · key ${node.key}`} aria-pressed={on}
+        aria-label={`Take the helm of ${node.name} · ${hp} percent hull · ${node.km.toFixed(1)} km bearing ${String(Math.round(trueBearing(node.bearing, chartBearing)) % 360).padStart(3, '0')} · key ${node.key}`} aria-pressed={on}
         onPointerEnter={() => desk.issue({ kind: 'highlight-helm', id: node.id })} onClick={event => { event.preventDefault(); desk.issue({ kind: 'take-helm', id: node.id }); }}>
         <svg viewBox="-13 -13 26 26" aria-hidden="true"><path d={glyph.hull} className="hull"/><path d={glyph.mark} className="mark"/></svg>
         <b>{node.name}<kbd>{node.key}</kbd></b>

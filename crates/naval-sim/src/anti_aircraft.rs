@@ -381,9 +381,7 @@ pub fn update_observed_at(
             } else {
                 aim
             };
-            let clear = knowledge.is_none_or(|k| {
-                crate::sensors::line_visible(position, actual.position, k.islands, k.terrain)
-            });
+            let clear = knowledge.is_none_or(|k| k.terrain.line_visible(position, actual.position));
             if clear
                 && nearer_distance(
                     sub(endpoint, hit_position),

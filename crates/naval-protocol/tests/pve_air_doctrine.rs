@@ -305,7 +305,7 @@ fn enemy_air_wing_strikes_in_sized_waves_and_never_orbits_a_dead_report() {
         Some("normal") => AiLevel::Normal,
         _ => AiLevel::Hard,
     };
-    let map = env("DOCTRINE_MAP").unwrap_or_else(|| "pacific-islands".into());
+    let map = env("DOCTRINE_MAP").unwrap_or_else(|| "iron-bottom-sound".into());
     let weather = env("DOCTRINE_WEATHER").unwrap_or_else(|| "clear".into());
     let doctrine = AirDoctrine::for_level(level).unwrap();
     let m = run(seed, level, &map, &weather, minutes);

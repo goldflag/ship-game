@@ -2,7 +2,8 @@ import type { DeckAction } from '../../multiplayer/generated/DeckAction';
 import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
 export type DeckServiceAction = Exclude<DeckAction, 'launch'>;
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../../ships/blueprint';
-import type { Island, OceanMapId } from '../../maps/catalog';
+import type { OceanMapId } from '../../maps/catalog';
+import type { PlacedTerrain } from '../../maps/heightfield';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
 import type { FleetNotice } from '../../multiplayer/generated/FleetNotice';
@@ -67,7 +68,8 @@ export interface BattleSession {
  /** False for the port, where nothing is stepped or scored. */
  readonly isBattle: boolean;
  readonly mapId: OceanMapId;
- readonly islands: Island[];
+ /** The map's land placed in this battle's world; open sea until its heightfield has loaded (`Game` loads it first). */
+ readonly terrain: PlacedTerrain;
  readonly seed: number;
  readonly tick: number;
  readonly result: BattleResult;

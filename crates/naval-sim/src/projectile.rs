@@ -3,13 +3,13 @@ use crate::{
     burst::burst_shell,
     contacts::{ShipContact, ship_contacts},
     definition::Vec3,
-    environment::{Island, TerrainField, first_land_hit},
     geometry::*,
     hull::hull_contains,
     impact::{DamageEvent, ShellEffect, resolve_ship_contact},
     machinery::equipment_pose,
     mount_frames::mount_frame,
     shell::Shell,
+    terrain::Terrain,
     vessel::Vessel,
 };
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
@@ -45,8 +45,7 @@ pub fn advance_projectile(
     shell: &mut Shell,
     actors: &mut [Vessel],
     dt: f64,
-    islands: &[Island],
-    fields: &[TerrainField],
+    terrain: &Terrain,
     surface_at: &impl Fn(f64, f64) -> f64,
 ) -> (Option<ProjectileEnd>, Vec<DamageEvent>) {
     let mut remaining = dt;
@@ -185,7 +184,7 @@ pub fn advance_projectile(
                 nearest = Some((i, hit));
             }
         }
-        if let Some((t, point)) = first_land_hit(islands, fields, from, end)
+        if let Some((t, point)) = terrain.first_hit(from, end)
             && nearest.as_ref().is_none_or(|(_, h)| t < h.t)
         {
             shell.position = point;

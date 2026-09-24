@@ -1,19 +1,21 @@
 import type { ReactNode } from 'react';
 import { assetUrl } from '../../assetUrl';
-import { OCEAN_MAPS, type OceanMapId } from '../../maps/catalog';
+import { OCEAN_MAPS, mapAction, type OceanMapId } from '../../maps/catalog';
 import { Input } from '../components';
 import { Icon } from '../Icons';
 
 export function RailBlock({ title, aside, children, className = '' }: { title: ReactNode; aside?: ReactNode; children: ReactNode; className?: string }) {
   return <section className={`rail-block ${className}`}><h3>{title}{aside && <small>{aside}</small>}</h3>{children}</section>;
 }
-/** Map tiles: the same waters picker for every mode that chooses its own map. */
+/** Map tiles: the same waters picker for every mode that chooses its own map. A battle map names the action fought
+ * there and its date; open sea names its region. The full record is in the tile's title. */
 export function MapTiles({ value, onChange, disabled, locked, name }: { value?: string; onChange?(id: OceanMapId): void; disabled?: boolean; locked?: boolean; name: string }) {
   return <div className={`map-tiles ${locked ? 'is-locked' : ''}`} role={locked ? undefined : 'radiogroup'} aria-label="Battle waters">
-    {OCEAN_MAPS.map(map => <label key={map.id} className={`map-tile ${!locked && value === map.id ? 'is-selected' : ''}`} title={map.description}>
+    {OCEAN_MAPS.map(map => <label key={map.id} className={`map-tile ${!locked && value === map.id ? 'is-selected' : ''}`} title={map.battle ? `${map.battle}. ${map.description}` : map.description}>
       {!locked && <Input type="radio" name={name} value={map.id} checked={value === map.id} disabled={disabled} onChange={() => onChange?.(map.id)}/>}
-      <img src={assetUrl(`maps/${map.id}.webp`)} alt="" width="320" height="180" loading="lazy"/>
-      <span>{map.name}</span><small>{map.region}</small>
+      {/* A map whose capture has not been published yet shows the tile's own ground, not a broken image. */}
+      <img src={assetUrl(`maps/${map.id}.webp`)} alt="" width="320" height="180" loading="lazy" onError={event => { event.currentTarget.style.visibility = 'hidden'; }}/>
+      <span>{map.name}</span><small>{mapAction(map) ?? map.region}</small>
     </label>)}
   </div>;
 }

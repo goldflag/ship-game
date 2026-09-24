@@ -6,7 +6,9 @@
   `maneuvering.rs` and `mobility.rs` move ships; `weapons.rs`, `gunnery.rs`, `shell.rs`, `impact.rs`,
   `damage.rs`, `flooding.rs` and `floodwater.rs` are combat; `aviation/` is carrier operations; `bots.rs`,
   `captain.rs`, `admiral.rs` and `pve.rs` are AI; `construction*.rs` compile player designs;
-  `frame_delta.rs`, `snapshot.rs` and `team_view.rs` are what clients see.
+  `frame_delta.rs`, `snapshot.rs` and `team_view.rs` are what clients see. `terrain.rs` is the map's real-world
+  chart (`Battle::terrain`): height, clearance, escape direction, routes, shell/torpedo rays and sight lines; land
+  avoidance is `environment::avoid_land`, grounding `land.rs`.
 - Bots take one of two paths, chosen in `captain.rs` by `w.reports.is_some()`, which is true only in a PvE
   mission. Custom and online bots are omniscient (`BotState::update`, `bots::helm`, `bots::target`,
   `bots::ammunition`); PvE bots see reported contacts only (`BotState::update_contact`, `bots::helm_contact`,

@@ -68,7 +68,7 @@ class TestWorker {
   terminate() { if (this.terminated) return; this.terminated = true; this.runtime?.free(); this.planner?.free(); }
 }
 async function fixture(withAircraft = false, durationSeconds?: number) {
-  const planner = new PvePlanner(manifest, JSON.stringify({ version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal', ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }, ...(withAircraft ? [{ id: 'carrier', presetId: 'enterprise-cv6', groupId: 'g' }] : [])], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] }));
+  const planner = new PvePlanner(manifest, JSON.stringify({ version: 1, seed: 17001, mapId: 'iron-bottom-sound', weather: 'clear', difficulty: 'normal', ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }, ...(withAircraft ? [{ id: 'carrier', presetId: 'enterprise-cv6', groupId: 'g' }] : [])], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] }));
   const briefing = JSON.parse(planner.briefing()) as PveBriefing;
   if (durationSeconds !== undefined) briefing.setup.ships.push({ ...briefing.setup.ships[0], id: 'enemy', team: 'b', spawn: { x: 0, z: -8000, heading: 0 } });
   const placements = briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn! }));
@@ -269,7 +269,7 @@ test('validation timeout retires the retained draft and a fresh preparation can 
   const original = globalThis.Worker;
   const workers: TestWorker[] = [];
   globalThis.Worker = class extends TestWorker { constructor() { super(); workers.push(this); } } as unknown as typeof Worker;
-  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal',
+  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'iron-bottom-sound', weather: 'clear', difficulty: 'normal',
     ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] };
   let draft: PveDraft | undefined;
   let session: LocalBattleSession | undefined;
@@ -312,7 +312,7 @@ test('initialization errors and deadlines retire their worker and allow a fresh 
   const original = globalThis.Worker;
   const workers: TestWorker[] = [];
   globalThis.Worker = class extends TestWorker { constructor() { super(); workers.push(this); } } as unknown as typeof Worker;
-  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal',
+  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'iron-bottom-sound', weather: 'clear', difficulty: 'normal',
     ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] };
   let draft: PveDraft | undefined;
   let session: LocalBattleSession | undefined;
@@ -357,7 +357,7 @@ test('disposing during validation rejects the pending request and never reuses i
   const original = globalThis.Worker;
   const workers: TestWorker[] = [];
   globalThis.Worker = class extends TestWorker { constructor() { super(); workers.push(this); } } as unknown as typeof Worker;
-  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal',
+  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'iron-bottom-sound', weather: 'clear', difficulty: 'normal',
     ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] };
   let draft: PveDraft | undefined;
   let session: LocalBattleSession | undefined;

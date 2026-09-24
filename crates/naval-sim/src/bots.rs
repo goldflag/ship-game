@@ -18,6 +18,7 @@ use crate::{
     geometry::*,
     motion::{HelmCommand, ShipState},
     rules::DT,
+    terrain::Terrain,
     torpedoes::torpedo_intercept,
     vessel::{Fleet, Vessel},
     weapons::{Ammunition, MountState, muzzle_center_world, solve_ballistic},
@@ -128,6 +129,19 @@ pub struct BotState {
     pub opening_fire_at: Option<f64>,
     pub track: Option<TargetTrack>,
     pub guns: BTreeMap<String, GunOrder>,
+    /// A route around the coast toward the target, planned when the crew's own
+    /// manoeuvre runs into land (`clear_of_land`), with the goal it was planned
+    /// for and when it may be planned again. Rebuilt from the terrain on demand.
+    #[serde(skip)]
+    land_route: Vec<[f64; 2]>,
+    #[serde(skip)]
+    land_goal: Option<[f64; 2]>,
+    #[serde(skip)]
+    land_replan_at: f64,
+    /// Until when the crew may not mirror its manoeuvre again for land: flipping
+    /// back and forth between two blocked sides holds a ship in a bay.
+    #[serde(skip)]
+    land_flip_until: f64,
 }
 impl BotState {
     fn random(&mut self) -> f64 {
@@ -168,6 +182,10 @@ impl BotState {
             opening_fire_at: None,
             track: None,
             guns: BTreeMap::new(),
+            land_route: Vec::new(),
+            land_goal: None,
+            land_replan_at: 0.0,
+            land_flip_until: 0.0,
         };
         b.reaction_seconds = b.between([0.9, 1.8]) * skill(ai_level).reaction;
         let caliber = def
@@ -281,7 +299,9 @@ impl BotState {
         if time >= self.maneuver_at {
             self.course_offset = self.between([-0.22, 0.22]);
             self.cruise_throttle = self.between([0.5, 0.8]);
-            if time > 0.0 && self.random() < 0.18 {
+            // The draw is taken either way, so the crew's generator runs as it
+            // always has; the flip waits while land has chosen the side.
+            if time > 0.0 && self.random() < 0.18 && time >= self.land_flip_until {
                 self.side *= -1.0;
             }
             self.maneuver_at = time + self.between(skill.maneuver);
@@ -366,7 +386,9 @@ impl BotState {
         if time >= self.maneuver_at {
             self.course_offset = self.between([-0.22, 0.22]);
             self.cruise_throttle = self.between([0.5, 0.8]);
-            if time > 0.0 && self.random() < 0.18 {
+            // The draw is taken either way, so the crew's generator runs as it
+            // always has; the flip waits while land has chosen the side.
+            if time > 0.0 && self.random() < 0.18 && time >= self.land_flip_until {
                 self.side *= -1.0;
             }
             self.maneuver_at = time + self.between(skill.maneuver);
@@ -559,11 +581,90 @@ fn avoid_known_ships(actor: &Vessel, heading: f64, actors: &[Vessel], own_only: 
     }
     x.atan2(-z)
 }
+/// How far beyond half its hull length a crew keeps its own manoeuvre from land:
+/// more than the arena's land rule (`environment::LAND_CAUTION_M`), so a bot
+/// turns away on its own before the rule has to turn it.
+const BOT_LAND_MARGIN_M: f64 = 150.0;
+/// Keep a crew's chosen heading off the coast. When the next stretch of it (1.5
+/// km, or 90 s of travel) runs within half the hull length plus
+/// `BOT_LAND_MARGIN_M` of land, the crew mirrors its manoeuvre (circling its
+/// target the other way round) if that way is clear and it has not mirrored for
+/// land in the last minute, else steers for the furthest clear waypoint of a
+/// route around the land toward `goal`, and otherwise leaves the arena's land
+/// rule to turn the hull. Over open sea, or with the way clear, the heading is
+/// unchanged.
+fn clear_of_land(
+    bot: &mut BotState,
+    actor: &Vessel,
+    heading: f64,
+    mirrored: f64,
+    goal: [f64; 2],
+    terrain: &Terrain,
+) -> f64 {
+    if !terrain.has_land() {
+        return heading;
+    }
+    let m = &actor.motion;
+    let at = [m.x, m.z];
+    let margin = actor.definition().hull.length / 2.0 + BOT_LAND_MARGIN_M;
+    let reach = 1500.0f64.max(m.speed.abs() * crate::mobility::SHIP_PACE * 90.0);
+    let clear = |h: f64| {
+        terrain.segment_clear(
+            at,
+            [at[0] + h.sin() * reach, at[1] - h.cos() * reach],
+            margin,
+        )
+    };
+    if clear(heading) {
+        return heading;
+    }
+    // Mirror once; blocked again within a minute, route round the land instead.
+    if mirrored != heading && bot.time >= bot.land_flip_until && clear(mirrored) {
+        bot.side = -bot.side;
+        bot.land_flip_until = bot.time + 60.0;
+        return mirrored;
+    }
+    // Keep a route until its next leg is blocked or the target has moved 2 km:
+    // re-planning on a timer flips between near-equal detours and circles the
+    // ship. A failed plan waits 10 s, so an unreachable target costs one search.
+    let stale = bot
+        .land_goal
+        .is_none_or(|g| (g[0] - goal[0]).hypot(g[1] - goal[1]) > 2000.0);
+    let blocked = bot
+        .land_route
+        .first()
+        .is_none_or(|p| !terrain.segment_clear(at, *p, margin / 2.0));
+    if (stale || blocked) && bot.time >= bot.land_replan_at {
+        bot.land_route = terrain.plan_path(at, goal, margin).unwrap_or_default();
+        bot.land_goal = Some(goal);
+        bot.land_replan_at = bot.time + 10.0;
+    }
+    // Steer for the furthest waypoint a clear straight leg reaches, so a passed
+    // or abeam waypoint never holds the ship in its turning circle.
+    let mut next = 0;
+    while next + 1 < bot.land_route.len()
+        && terrain.segment_clear(at, bot.land_route[next + 1], margin)
+    {
+        next += 1;
+    }
+    bot.land_route.drain(..next);
+    // The last waypoint is where the target was: near it, drop the route so the
+    // next plan aims where the target is now instead of orbiting the old spot.
+    if bot.land_route.len() == 1
+        && (bot.land_route[0][0] - at[0]).hypot(bot.land_route[0][1] - at[1]) < 500.0
+    {
+        bot.land_route.clear();
+    }
+    bot.land_route
+        .first()
+        .map_or(heading, |p| (p[0] - at[0]).atan2(at[1] - p[1]))
+}
 pub(crate) fn helm(
     bot: &mut BotState,
     actor: &Vessel,
     target: Option<&Vessel>,
     actors: &[Vessel],
+    terrain: &Terrain,
 ) -> HelmCommand {
     if actor.damage.sunk || bot.ai_level == AiLevel::Static {
         return HelmCommand::default();
@@ -615,7 +716,9 @@ pub(crate) fn helm(
         })
         .map(|(_, t)| t)
         .collect();
-    if !tubes.is_empty() && !evading && def.torpedo_launchers.as_ref().is_none_or(Vec::is_empty) {
+    let torpedo_run =
+        !tubes.is_empty() && !evading && def.torpedo_launchers.as_ref().is_none_or(Vec::is_empty);
+    if torpedo_run {
         let tube = tubes
             .iter()
             .min_by(|a, b| {
@@ -632,6 +735,20 @@ pub(crate) fn helm(
         }) - radians(tube.bearing_deg);
     }
     heading = avoid_ships(actor, heading, actors);
+    if terrain.has_land() {
+        // The mirrored manoeuvre circles the target the other way; a torpedo run has none.
+        let mirrored = if torpedo_run {
+            heading
+        } else {
+            avoid_ships(
+                actor,
+                bearing - bot.side * (angle + bot.course_offset),
+                actors,
+            )
+        };
+        let goal = [target.motion.x, target.motion.z];
+        heading = clear_of_land(bot, actor, heading, mirrored, goal, terrain);
+    }
     let torpedo_range = tubes.iter().map(|t| t.weapon.range_m).fold(0.0, f64::max);
     let dive = !tubes.is_empty()
         && range
@@ -665,10 +782,11 @@ pub(crate) fn helm(
     }
 }
 pub(crate) fn helm_contact(
-    bot: &BotState,
+    bot: &mut BotState,
     actor: &Vessel,
     contact: Option<&crate::sensors::ContactTrack>,
     actors: &[Vessel],
+    terrain: &Terrain,
 ) -> HelmCommand {
     if bot.ai_level.passive() || actor.physical_loss().is_some() {
         return HelmCommand::default();
@@ -693,12 +811,12 @@ pub(crate) fn helm_contact(
     } else {
         0.5
     };
-    let heading = avoid_known_ships(
-        actor,
-        bearing + bot.side * (angle * std::f64::consts::PI + bot.course_offset),
-        actors,
-        true,
-    );
+    let turn = angle * std::f64::consts::PI + bot.course_offset;
+    let mut heading = avoid_known_ships(actor, bearing + bot.side * turn, actors, true);
+    if terrain.has_land() {
+        let mirrored = avoid_known_ships(actor, bearing - bot.side * turn, actors, true);
+        heading = clear_of_land(bot, actor, heading, mirrored, [point[0], point[2]], terrain);
+    }
     HelmCommand {
         throttle: if evading {
             0.85

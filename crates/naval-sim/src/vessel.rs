@@ -248,6 +248,13 @@ pub struct CompiledShip {
     pub weapon_group_ids: Vec<String>,
     /// Every mount of every opponent read this each tick by scanning the armor.
     pub exterior_protection_mm: f64,
+    /// Ship-local hull points that can touch the ground (`land::resolve_land_contact`):
+    /// three across each keel station of an authored hull, or every vertex of a
+    /// downward-facing surface of a constructed one.
+    pub ground_points: Vec<Vec3>,
+    /// Their local bounding box, `[low, high]`: a hull whose transformed box
+    /// clears the highest ground under it cannot be aground.
+    pub ground_box: [Vec3; 2],
 }
 impl CompiledShip {
     /// `hydrostatics` is the class's published lookup. Without it the hull
@@ -317,6 +324,16 @@ impl CompiledShip {
                 }
             }
         }
+        let ground_points = crate::land::ground_points(&d.hull);
+        let ground_box = ground_points.iter().fold(
+            [[f64::INFINITY; 3], [f64::NEG_INFINITY; 3]],
+            |[low, high], p| {
+                [
+                    std::array::from_fn(|i| low[i].min(p[i])),
+                    std::array::from_fn(|i| high[i].max(p[i])),
+                ]
+            },
+        );
         let collision_profile = crate::collisions::profile(&d.hull);
         let obstructions = Obstructions::new(d);
         let rest_trains = crate::mount_rest::rest_trains(
@@ -348,6 +365,8 @@ impl CompiledShip {
             shell_center,
             shell_size,
             shell_radius,
+            ground_points,
+            ground_box,
         })
     }
 }

@@ -1,5 +1,6 @@
-import { coastOutline } from '../maps/catalog';
+import { DEFAULT_MAP, northFromUp, oceanMap } from '../maps/catalog';
 import { useId, useState } from 'react';
+import { ChartLand } from './ChartLand';
 import { BUOYS } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { Icon } from './Icons';
@@ -26,12 +27,23 @@ export function NavigationChart({
   const radius = CHART_RANGES[zoom];
   const scale = 100 / radius;
   const point = (x: number, z: number) => `${110 + (x - data.ship.x) * scale},${110 + (z - data.ship.z) * scale}`;
+  // The chart keeps the battle's frame (up is the map's bearing); the rose points to true north.
+  const bearing = oceanMap(data.mapId ?? DEFAULT_MAP).bearing;
+  const terrain = data.terrain;
+  const rose = (letter: string, angle: number) => {
+    const turn = ((angle - bearing) * Math.PI) / 180;
+    return (
+      <text key={letter} x={110 + Math.sin(turn) * 97} y={113 - Math.cos(turn) * 97} textAnchor="middle">
+        {letter}
+      </text>
+    );
+  };
   return (
     <div className="navigation-chart">
       <svg
         viewBox="0 0 220 220"
         role="img"
-        aria-label={`Navigation chart, north up, ${radius / 1000} kilometer radius. Your ship, friendly and enemy fleets, course trail and marker buoys.`}
+        aria-label={`Navigation chart, ${northFromUp(bearing)}, ${radius / 1000} kilometer radius. Your ship, friendly and enemy fleets, course trail, marker buoys and the coast.`}
       >
         <defs>
           <clipPath id={clipId}>
@@ -44,20 +56,13 @@ export function NavigationChart({
           <circle cx="110" cy="110" r="100" />
         </g>
         <g clipPath={`url(#${clipId})`}>
-          {data.islands?.map((island) => (
-            <polygon
-              key={island.id}
-              points={coastOutline(island)
-                .map(([x, z]) => point(x, z))
-                .join(' ')}
-              fill="#65786a"
-              fillOpacity=".65"
-              stroke="#b3c5af"
-              strokeWidth=".8"
-            >
-              <title>Coastline</title>
-            </polygon>
-          ))}
+          <ChartLand
+            terrain={terrain}
+            transform={
+              terrain &&
+              `translate(${110 + (terrain.offset[0] - data.ship.x) * scale} ${110 + (terrain.offset[1] - data.ship.z) * scale}) scale(${scale})`
+            }
+          />
           <path
             d="M110 110 57 8Q110-10 163 8Z"
             className="chart-view-cone"
@@ -132,15 +137,9 @@ export function NavigationChart({
           strokeWidth=".8"
           transform={`rotate(${(data.ship.heading * 180) / Math.PI} 110 110)`}
         />
-        <text x="110" y="16" textAnchor="middle">
-          N
-        </text>
-        <text x="209" y="114" textAnchor="middle">
-          E
-        </text>
-        <text x="11" y="114" textAnchor="middle">
-          W
-        </text>
+        {rose('N', 0)}
+        {rose('E', 90)}
+        {rose('W', 270)}
       </svg>
       <button
         className="chart-range-button"

@@ -3,7 +3,7 @@ import type { PveRequest } from '../multiplayer/generated/PveRequest';
 import { transferFleetShip } from './pveFleetEditing';
 
 const budget = { maxShips: 15, maxAircraft: 100, maxDisplacementKg: 200000000 };
-const initial = (): PveRequest => ({ version: 1, seed: 123, mapId: 'pacific-islands', weather: 'partly-cloudy', difficulty: 'normal', groups: [{ id: 'front', name: 'Group 1', station: 'front' }, { id: 'rear', name: 'Group 2', station: 'rear' }], ships: [{ id: 'unit-1', presetId: 'fletcher', groupId: 'front' }] });
+const initial = (): PveRequest => ({ version: 1, seed: 123, mapId: 'iron-bottom-sound', weather: 'partly-cloudy', difficulty: 'normal', groups: [{ id: 'front', name: 'Group 1', station: 'front' }, { id: 'rear', name: 'Group 2', station: 'rear' }], ships: [{ id: 'unit-1', presetId: 'fletcher', groupId: 'front' }] });
 
 test('moving a ship between groups preserves its identity and the frozen mission choices', () => {
   const request = initial(), before = structuredClone(request);

@@ -50,6 +50,7 @@ pub mod hydrostatics;
 mod volume_proxy;
 
 pub mod environment;
+pub mod terrain;
 
 pub mod aviation;
 pub mod bots;

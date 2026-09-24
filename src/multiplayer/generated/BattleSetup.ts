@@ -6,7 +6,7 @@ import type { ShipSetup } from "./ShipSetup";
 export type BattleSetup = { ships: Array<ShipSetup>, seed: number, mapId: string, weather: string, 
 /**
  * Metres between the default spawn lines, 1000..=20000: team a at z = 0,
- * team b at z = -spawnDistance, islands laid out around the midpoint.
+ * team b at z = -spawnDistance, the map's chart centred on the midpoint.
  */
 spawnDistance: number, 
 /**

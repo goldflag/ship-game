@@ -1,7 +1,9 @@
 use crate::{
-    definition::{Hull, Vec3},
+    definition::Hull,
     geometry::{Pose, clamp, local_to_world, wrap_angle},
     motion::{HelmCommand, SeaHandling, ShipState},
+    terrain::Terrain,
+    vessel::Vessel,
 };
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -160,172 +162,114 @@ impl SeaState {
         }
     }
 }
-#[derive(Clone, Debug, Deserialize)]
-pub struct TerrainField {
-    pub seed: f64,
-    pub style: String,
-    pub samples: Vec<f32>,
-}
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Island {
-    pub id: String,
-    pub x: f64,
-    pub z: f64,
-    pub rx: f64,
-    pub rz: f64,
-    pub height: f64,
-    pub seed: f64,
-    pub style: String,
-}
-pub fn island_rim(a: f64, s: f64) -> f64 {
-    0.86 + 0.14 * (a * 3.0 + s).sin()
-        + 0.075 * (a * 7.0 - s).sin()
-        + 0.045 * (a * 13.0 + s * 0.7).sin()
-        + 0.018 * (a * 29.0 - s * 0.3).sin()
-}
-pub fn smooth(a: f64, b: f64, x: f64) -> f64 {
-    let t = clamp((x - a) / (b - a), 0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
-}
-pub fn terrain_noise(x: f64, z: f64) -> f64 {
-    let (ix, iz) = (x.floor(), z.floor());
-    let (fx, fz) = (x - ix, z - iz);
-    let u = fx * fx * fx * (fx * (fx * 6.0 - 15.0) + 10.0);
-    let v = fz * fz * fz * (fz * (fz * 6.0 - 15.0) + 10.0);
-    let hash = |a: f64, b: f64| {
-        let n = (a as i32 as u32)
-            .wrapping_mul(374761393)
-            .wrapping_add((b as i32 as u32).wrapping_mul(668265263));
-        let n = (n ^ (n >> 13)).wrapping_mul(1274126177);
-        (n ^ (n >> 16)) as f64 / 4294967295.0
+/// How close, beyond half its hull length, a ship lets the coast come before its
+/// helm turns away. Navigation plans with the wider `SHORE_BUFFER_M`, so a planned
+/// route never trips it; bots, direct moves and drifting ships do.
+pub const LAND_CAUTION_M: f64 = 100.0;
+
+/// The arena's land rule, applied after every helm decision: keep the look-ahead
+/// and the hull off the coast. When the next stretch of the ship's heading (650 m,
+/// or 50 s of travel) or the ship itself comes within half its hull length plus
+/// [`LAND_CAUTION_M`] of land, the helm steers along the shore on the side the bow
+/// already favours, leaning offshore along the escape direction the closer the
+/// coast is, and straight out when the hull itself is inside that reserve. A bow
+/// already on the shore (the hull within 20 m beyond its half length) backs off
+/// first, swinging toward open water. A ship holding still well off the coast is
+/// left alone. Over open sea it never acts.
+pub fn avoid_land(a: &Vessel, command: HelmCommand, terrain: &Terrain) -> HelmCommand {
+    if !terrain.has_land() {
+        return command;
+    }
+    let p = &a.motion;
+    let reserve = a.definition().hull.length / 2.0 + LAND_CAUTION_M;
+    let (sin, cos) = p.heading.sin_cos();
+    let own = terrain.clearance(p.x, p.z);
+    let holding = command.throttle <= 0.0 && p.speed.abs() < 0.5;
+    let look = 650.0f64.max(p.speed.abs() * crate::mobility::SHIP_PACE * 50.0);
+    let ahead = [p.x + sin * look, p.z - cos * look];
+    let closing = !holding && !terrain.segment_clear([p.x, p.z], ahead, reserve);
+    if !closing && own >= reserve {
+        return command;
+    }
+    // The coast to turn from: under the hull when the hull is inside the reserve,
+    // otherwise the first stretch of the look-ahead that is.
+    let probe = if own < reserve {
+        [p.x, p.z]
+    } else {
+        (1..=8)
+            .map(|k| {
+                let reach = look * k as f64 / 8.0;
+                [p.x + sin * reach, p.z - cos * reach]
+            })
+            .find(|q| terrain.clearance(q[0], q[1]) < reserve)
+            .unwrap_or(ahead)
     };
-    let (a, b, c, d) = (
-        hash(ix, iz),
-        hash(ix + 1.0, iz),
-        hash(ix, iz + 1.0),
-        hash(ix + 1.0, iz + 1.0),
-    );
-    (a + (b - a) * u) * (1.0 - v) + (c + (d - c) * u) * v
-}
-impl Island {
-    pub fn radius(&self, x: f64, z: f64) -> f64 {
-        let (dx, dz) = ((x - self.x) / self.rx, (z - self.z) / self.rz);
-        dx.hypot(dz) / island_rim(dz.atan2(dx), self.seed)
-    }
-    pub fn height_at(&self, field: &TerrainField, world_x: f64, world_z: f64) -> f64 {
-        let (x, z) = ((world_x - self.x) / self.rx, (world_z - self.z) / self.rz);
-        let r = x.hypot(z) / island_rim(z.atan2(x), self.seed);
-        if r >= 1.0 {
-            return ((1.0 - r) * 500.0).max(-45.0);
-        }
-        let (gx, gz) = (
-            clamp((x / 1.22 + 1.0) * 0.5 * 256.0, 0.0, 255.999),
-            clamp((z / 1.22 + 1.0) * 0.5 * 256.0, 0.0, 255.999),
-        );
-        let (ix, iz) = (gx.floor() as usize, gz.floor() as usize);
-        let (u, v) = (gx - ix as f64, gz - iz as f64);
-        let a = iz * 257 + ix;
-        let f = &field.samples;
-        let h = (f[a] as f64 * (1.0 - u) + f[a + 1] as f64 * u) * (1.0 - v)
-            + (f[a + 257] as f64 * (1.0 - u) + f[a + 258] as f64 * u) * v;
-        let inland = (1.0 - r) * self.rx.min(self.rz);
-        let exposure = terrain_noise(x * 3.0 + self.seed, z * 3.0);
-        let slope = if self.style == "tropical" {
-            0.1 + 0.5 * smooth(0.4, 0.75, exposure)
+    let away = terrain.escape(probe[0], probe[1]);
+    let bow = [sin, -cos];
+    let bearing = |v: [f64; 2]| v[0].atan2(-v[1]);
+    // Which way to turn when the coast is nearly dead ahead: the way the hull is
+    // already swinging, else the way its captain asked, else to starboard. Chosen
+    // afresh each tick without it, the side flips and the rudder cancels itself.
+    let swing = if p.yaw_rate.abs() > 0.01 {
+        p.yaw_rate.signum()
+    } else if command.rudder != 0.0 {
+        command.rudder.signum()
+    } else {
+        1.0
+    };
+    let tangent = [-away[1], away[0]];
+    let favour = bow[0] * tangent[0] + bow[1] * tangent[1];
+    let along = if favour.abs() >= 0.3 {
+        if favour > 0.0 {
+            tangent
         } else {
-            0.07 + 0.62 * smooth(0.3, 0.8, exposure)
-        };
-        let raw = h * self.height;
-        let beach = raw * (1.0 - (-inland * slope / raw.max(1.0)).exp());
-        (raw + (beach - raw) * (1.0 - smooth(60.0, 500.0, inland))) * smooth(0.0, 4.0, inland)
-    }
-}
-pub fn avoid_land(p: &ShipState, command: HelmCommand, islands: &[Island]) -> HelmCommand {
-    for island in islands {
-        let look = 650.0f64.max(p.speed.abs() * crate::mobility::SHIP_PACE * 50.0);
-        let x = p.x + p.heading.sin() * look;
-        let z = p.z - p.heading.cos() * look;
-        if island.radius(x, z) > 1.3 && island.radius(p.x, p.z) > 1.2 {
-            continue;
+            [-tangent[0], -tangent[1]]
         }
-        let away = (p.x - island.x).atan2(island.z - p.z);
-        let rudder = clamp(wrap_angle(away - p.heading) * 2.0, -1.0, 1.0);
+    } else if wrap_angle(bearing(tangent) - p.heading).signum() == swing {
+        tangent
+    } else {
+        [-tangent[0], -tangent[1]]
+    };
+    let depth = ((reserve - terrain.clearance(probe[0], probe[1])) / reserve).clamp(0.0, 1.0);
+    let lean = if own < reserve {
+        4.0
+    } else {
+        0.5 + 1.5 * depth
+    };
+    let desired = [along[0] + away[0] * lean, along[1] + away[1] * lean];
+    let mut error = wrap_angle(bearing(desired) - p.heading);
+    if error.abs() > 2.6 {
+        // A near reversal keeps the current swing rather than dithering at 180°.
+        error = error.abs() * swing;
+    }
+    let opening = bow[0] * away[0] + bow[1] * away[1];
+    let half = reserve - LAND_CAUTION_M;
+    // Bow on the shore: back off, swinging the bow toward open water (the rudder
+    // acts the other way astern), until the hull has room to turn.
+    if opening < -0.2 && (own < half + 20.0 || (p.speed < -0.2 && own < half + 60.0)) {
         return HelmCommand {
-            throttle: 0.4,
-            rudder: if rudder.abs() < 0.05 { 1.0 } else { rudder },
+            throttle: -0.6,
+            rudder: -clamp(error * 2.0, -1.0, 1.0),
             ..command
         };
     }
-    command
-}
-pub fn first_land_hit(
-    islands: &[Island],
-    fields: &[TerrainField],
-    from: Vec3,
-    to: Vec3,
-) -> Option<(f64, Vec3)> {
-    let near: Vec<_> = islands
-        .iter()
-        .filter(|i| {
-            from[0].min(to[0]) <= i.x + i.rx * 1.2
-                && from[0].max(to[0]) >= i.x - i.rx * 1.2
-                && from[2].min(to[2]) <= i.z + i.rz * 1.2
-                && from[2].max(to[2]) >= i.z - i.rz * 1.2
-        })
-        .collect();
-    if near.is_empty() {
-        return None;
+    HelmCommand {
+        throttle: if opening < 0.3 {
+            0.4
+        } else {
+            command.throttle.max(0.4)
+        },
+        rudder: clamp(error * 2.0, -1.0, 1.0),
+        ..command
     }
-    let point = |t: f64| {
-        [
-            from[0] + (to[0] - from[0]) * t,
-            from[1] + (to[1] - from[1]) * t,
-            from[2] + (to[2] - from[2]) * t,
-        ]
-    };
-    let solid = |p: Vec3| {
-        let height = near.iter().fold(-45.0f64, |h, i| {
-            h.max(
-                i.height_at(
-                    fields
-                        .iter()
-                        .find(|f| f.seed == i.seed && f.style == i.style)
-                        .expect("validated terrain field"),
-                    p[0],
-                    p[2],
-                ),
-            )
-        });
-        p[1] <= height
-    };
-    let steps = ((to[0] - from[0]).hypot(to[2] - from[2]) / 20.0)
-        .ceil()
-        .max(1.0) as usize;
-    if solid(from) {
-        return Some((0.0, from));
-    }
-    for i in 1..=steps {
-        if solid(point(i as f64 / steps as f64)) {
-            let (mut a, mut b) = ((i - 1) as f64 / steps as f64, i as f64 / steps as f64);
-            for _ in 0..16 {
-                let mid = (a + b) / 2.0;
-                if solid(point(mid)) {
-                    b = mid;
-                } else {
-                    a = mid;
-                }
-            }
-            return Some((b, point(b)));
-        }
-    }
-    None
 }
 
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
+/// A battle's conditions: the calibrated sea, and the map's terrain placed in the
+/// battle's world (open sea when the map has none).
+#[derive(Clone, Debug)]
 pub struct ResolvedEnvironment {
     pub sea: SeaState,
-    pub islands: Vec<Island>,
+    pub terrain: Terrain,
 }
 impl crate::catalog::Catalog {
     /// Mission geography is centered on the visible circle and depends on the
@@ -340,9 +284,7 @@ impl crate::catalog::Catalog {
     ) -> Result<ResolvedEnvironment, crate::catalog::ContentError> {
         let mut environment =
             self.resolve_environment(map_id, weather, seed, rules.budget.max_ships, 16000.0, wind)?;
-        for island in &mut environment.islands {
-            island.z += 8000.0;
-        }
+        environment.terrain.offset = [0.0, 0.0];
         Ok(environment)
     }
     /// Resolve CPU conditions from the frozen deployment manifest. Online callers
@@ -374,6 +316,59 @@ impl crate::catalog::Catalog {
                 "windSpeed {w} outside 0..=30 m/s"
             )));
         }
+        let sea = self.resolve_sea(map_id, weather, seed, wind)?;
+        // Custom and online battles centre the chart between the default spawn lines.
+        let terrain = match self.map_terrain(map_id)? {
+            None => Terrain::open_sea(),
+            Some(id) => Terrain::placed(
+                self.terrain.get(id).cloned().ok_or_else(|| {
+                    let loaded: Vec<_> = self.terrain.keys().cloned().collect();
+                    ContentError::Setup(format!(
+                        "map {map_id:?} needs terrain {id:?}, which this content does not carry \
+                         (loaded terrain: {})",
+                        if loaded.is_empty() {
+                            "none".into()
+                        } else {
+                            loaded.join(", ")
+                        }
+                    ))
+                })?,
+                [0.0, -distance / 2.0],
+            ),
+        };
+        Ok(ResolvedEnvironment { sea, terrain })
+    }
+    /// The terrain id a map's `land.terrain` names; None for open sea. A value that is
+    /// neither a non-empty string nor null is invalid content.
+    pub fn map_terrain(&self, map_id: &str) -> Result<Option<&str>, crate::catalog::ContentError> {
+        use crate::catalog::ContentError;
+        let map = self.maps["maps"]
+            .as_array()
+            .and_then(|maps| maps.iter().find(|m| m["id"] == map_id))
+            .ok_or_else(|| {
+                ContentError::Setup(format!(
+                    "unknown mapId {map_id:?}; installed maps: {}",
+                    self.map_ids().unwrap_or_default().join(", ")
+                ))
+            })?;
+        match &map["land"]["terrain"] {
+            serde_json::Value::Null => Ok(None),
+            serde_json::Value::String(id) if !id.is_empty() => Ok(Some(id.as_str())),
+            other => Err(ContentError::Invalid(format!(
+                "environment for map {map_id:?}: land.terrain is {other}, not a terrain id or null"
+            ))),
+        }
+    }
+    /// The calibrated CPU sea for a map, weather and wind. `wind` overrides the
+    /// forecast; the caller validates its range.
+    pub fn resolve_sea(
+        &self,
+        map_id: &str,
+        weather: &str,
+        seed: u32,
+        wind: Option<f64>,
+    ) -> Result<SeaState, crate::catalog::ContentError> {
+        use crate::catalog::ContentError;
         let map = self.maps["maps"]
             .as_array()
             .and_then(|maps| maps.iter().find(|m| m["id"] == map_id))
@@ -453,7 +448,7 @@ impl crate::catalog::Catalog {
             )));
         }
         let direction = number(&map["water"]["windDirection"], "water.windDirection")?;
-        let sea = SeaState {
+        Ok(SeaState {
             // Hm0 = 4 sqrt(variance); our independent 0.7/0.3 sine components
             // have variance amplitude_m^2 * (0.7^2 + 0.3^2) / 2. The renderer
             // draws the same significant height in metres.
@@ -462,50 +457,7 @@ impl crate::catalog::Catalog {
             direction: direction * std::f64::consts::PI / 180.0,
             wind_mps,
             phase: seed as f64 / 4294967295.0 * std::f64::consts::TAU,
-        };
-        let lane = 2100.0f64.max(((team_size - 1) as f64 / 2.0).ceil() * 650.0 + 1000.0);
-        let style = map["land"]["style"]
-            .as_str()
-            .ok_or_else(|| invalid("land.style is not a string".into()))?;
-        let recipes = map["land"]["islands"]
-            .as_array()
-            .ok_or_else(|| invalid("land.islands is not an array".into()))?;
-        let mut islands = Vec::new();
-        for recipe in recipes {
-            let id = recipe["id"]
-                .as_str()
-                .ok_or_else(|| invalid(format!("island id {} is not a string", recipe["id"])))?;
-            let rx = number(&recipe["rx"], "island rx")?;
-            let rz = number(&recipe["rz"], "island rz")?;
-            let seed = number(&recipe["seed"], "island seed")?;
-            if rx <= 0.0 || rz <= 0.0 {
-                return Err(invalid(format!(
-                    "island {id} radii rx {rx} m and rz {rz} m must be positive"
-                )));
-            }
-            if !self
-                .terrain
-                .iter()
-                .any(|f| f.seed == seed && f.style == style)
-            {
-                return Err(invalid(format!(
-                    "island {id} has no baked terrain for seed {seed}, style {style}; \
-                     rebuild content with bun scripts/multiplayer/content.ts"
-                )));
-            }
-            islands.push(Island {
-                id: id.into(),
-                x: number(&recipe["side"], "island side")?
-                    * (lane + rx * 1.25 + number(&recipe["offset"], "island offset")?),
-                z: -distance / 2.0 + number(&recipe["along"], "island along")?,
-                rx,
-                rz,
-                height: number(&recipe["height"], "island height")?,
-                seed,
-                style: style.into(),
-            });
-        }
-        Ok(ResolvedEnvironment { sea, islands })
+        })
     }
 }
 

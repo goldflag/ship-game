@@ -1,7 +1,8 @@
 import { MIN_SHIP_SEPARATION_M } from '../game/session/battleSetup';
 import { shipPreset } from '../ships/presets';
 import { resolveShip } from '../ships/localShips';
-import { islandRadius, mapIslands, type OceanMapId } from '../maps/catalog';
+import { DEPLOYMENT_CLEARANCE_M, MISSION_TERRAIN_OFFSET, isOceanMapId, placedMapTerrain } from '../maps/catalog';
+import { terrainLandWithin, type PlacedTerrain } from '../maps/heightfield';
 import type { FleetShip } from '../multiplayer/generated/FleetShip';
 import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
 import type { Placement } from '../multiplayer/generated/Placement';
@@ -21,17 +22,20 @@ export function unitName(ship: FleetShip, ships: FleetShip[]): string {
   const same = ships.filter(s => s.presetId === ship.presetId);
   return `${shipPreset(ship.presetId).name}${same.length > 1 ? ` ${same.findIndex(s => s.id === ship.id) + 1}` : ''}`;
 }
-export const deploymentIslands = (briefing: PveBriefing) => mapIslands(briefing.setup.mapId as OceanMapId, 16000, briefing.setup.missionRules!.budget.maxShips).map(i => ({ ...i, z: i.z + 8000 }));
-/** Immediate chart feedback; the worker validates the complete placement before launch. */
-export function placementError(briefing: PveBriefing, placements: Placement[]): string {
-  const islands = deploymentIslands(briefing), radius = briefing.setup.missionRules!.area.radiusM;
+/** The mission's land, charted on the mission area; undefined while its heightfield loads. */
+export const missionTerrain = (briefing: PveBriefing): PlacedTerrain | undefined =>
+  isOceanMapId(briefing.setup.mapId) ? placedMapTerrain(briefing.setup.mapId, MISSION_TERRAIN_OFFSET) : undefined;
+/** Immediate chart feedback; the worker validates the complete placement before launch. Without `terrain` (the coast
+ * is still being charted) every rule but the land clearance is checked. */
+export function placementError(briefing: PveBriefing, placements: Placement[], terrain: PlacedTerrain | undefined): string {
+  const radius = briefing.setup.missionRules!.area.radiusM;
   for (const [index, placement] of placements.entries()) {
     const unit = briefing.assignments.find(s => s.id === placement.id)!;
     const { x, z, heading } = placement.spawn, name = unitName(unit, briefing.assignments);
     if (![x, z, heading].every(Number.isFinite)) return `${name}: enter a valid position and heading.`;
     if (z < briefing.deploymentMinZ) return `${name}: deploy in the shaded friendly sector.`;
     if (Math.hypot(x, z) > radius - shipPreset(unit.presetId).hull.length / 2) return `${name}: keep the hull inside the battle boundary.`;
-    if (islands.some(i => islandRadius({ ...i, rx: i.rx + 250, rz: i.rz + 250 }, x, z) <= 1.05)) return `${name}: leave clearance from the coast.`;
+    if (terrainLandWithin(terrain, x, z, DEPLOYMENT_CLEARANCE_M)) return `${name}: leave clearance from the coast.`;
     if (placements.slice(0, index).some(p => Math.hypot(p.spawn.x - x, p.spawn.z - z) < MIN_SHIP_SEPARATION_M)) return `${name}: leave at least ${MIN_SHIP_SEPARATION_M} m between ships.`;
   }
   return '';

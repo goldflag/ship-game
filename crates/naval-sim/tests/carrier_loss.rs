@@ -1,3 +1,4 @@
+use naval_sim::terrain::Terrain;
 use naval_sim::{
     aviation::{
         ActiveFlights, AirContext, AirOrder, AirRules, Aviation, CarrierRecovery, DeckAction,
@@ -64,8 +65,7 @@ fn step_with_dt(
             knowledge: Some(Knowledge {
                 sensors: reports,
                 tick,
-                islands: &[],
-                terrain: &[],
+                terrain: &naval_sim::terrain::OPEN_SEA,
             }),
             actors,
             shells: &mut vec![],
@@ -124,8 +124,7 @@ fn observe(actors: &[Vessel], air: &Aviation, reports: &mut Sensors) {
         reports.update(
             tick,
             &sensors::entities(actors, air),
-            &[],
-            &[],
+            &Terrain::open_sea(),
             sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
             &sensors::VisualRules::default(),
         );
@@ -450,8 +449,7 @@ fn a_homeless_strike_releases_its_bombs_then_withdraws_without_fabricated_kills(
             reports.update(
                 tick,
                 &sensors::entities(&actors, &air),
-                &[],
-                &[],
+                &Terrain::open_sea(),
                 sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
                 &sensors::VisualRules::default(),
             );

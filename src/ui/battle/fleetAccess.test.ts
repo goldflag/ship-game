@@ -65,7 +65,7 @@ describe('who may sail in the player\'s fleet', () => {
   });
 
   test('fleet command groups and 1v1 berths drop what they may not bring', () => {
-    const request: PveRequest = { version: 1, seed: 1, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal', groups: [{ id: 'front', name: 'Group 1', station: 'front' }],
+    const request: PveRequest = { version: 1, seed: 1, mapId: 'iron-bottom-sound', weather: 'clear', difficulty: 'normal', groups: [{ id: 'front', name: 'Group 1', station: 'front' }],
       ships: [{ id: 'u1', presetId: 'fubuki', groupId: 'front' }, { id: 'u2', presetId: 'yamato', groupId: 'front' }] };
     const pve = openPveFleet(request, fresh);
     expect(pve.request.ships.map(ship => ship.presetId)).toEqual(['fubuki']);

@@ -1,7 +1,8 @@
 /** Custom-battle setup as the port composes it: the fleet each side brings,
  * where they spawn and the AI level of every bot. Validated here before a
  * session is asked for; the Rust battle validates it again on admission. */
-import { DEFAULT_MAP, mapIslands, islandRadius, type Island, isOceanMapId, type OceanMapId } from '../../maps/catalog';
+import { DEFAULT_MAP, DEPLOYMENT_CLEARANCE_M, isOceanMapId, type OceanMapId } from '../../maps/catalog';
+import { terrainLandWithin, type PlacedTerrain } from '../../maps/heightfield';
 import { isTimeOfDayId, isWeatherId, type BattleConditions, type TimeOfDayId, type WeatherId } from '../../maps/conditions';
 import { DEFAULT_AI_LEVEL, isShipAiLevel, type ShipAiLevel } from './aiLevels';
 import type { Team } from './elements';
@@ -33,8 +34,10 @@ export interface BattleSetup extends BattleConditions {
   seed?: number;
 }
 /** The engine's hull keeps its bot; the published shape is the generated
- * `Vessel` and the session's `FleetActor` (see `src/game/session/elements.ts`). */
-export function validateBattleSetup(setup: BattleSetup, availableIds: readonly string[]): void {
+ * `Vessel` and the session's `FleetActor` (see `src/game/session/elements.ts`).
+ * `terrain` is the map's land placed for this setup (`placedMapTerrain` with
+ * `customTerrainOffset`): chart it before validating. */
+export function validateBattleSetup(setup: BattleSetup, availableIds: readonly string[], terrain: PlacedTerrain): void {
   if (!setup || !Array.isArray(setup.friendlyBots) || !Array.isArray(setup.enemies)) throw new Error('Choose ships for both fleets.');
   if (setup.friendlyBots.length >= MAX_TEAM_SHIPS || setup.enemies.length > MAX_TEAM_SHIPS) throw new Error(`Each team can have up to ${MAX_TEAM_SHIPS} ships.`);
   if (!setup.enemies.length) throw new Error('Add at least one enemy ship.');
@@ -49,7 +52,7 @@ export function validateBattleSetup(setup: BattleSetup, availableIds: readonly s
     if (value !== undefined && (!Number.isFinite(value) || value < 0 || value > max)) throw new Error(`Choose a ${label} between 0 and ${max}.`);
   }
   validateSpawnDistance(setup.spawnDistance);
-  validateSpawns(setupSpawns(setup), setup.friendlyBots.length + 1, setup.enemies.length, mapIslands(setup.mapId ?? DEFAULT_MAP, setup.spawnDistance, Math.max(setup.friendlyBots.length + 1, setup.enemies.length)));
+  validateSpawns(setupSpawns(setup), setup.friendlyBots.length + 1, setup.enemies.length, terrain);
 }
 
 export function validateSpawnDistance(distance: number): void {
@@ -98,16 +101,15 @@ export function portSetup(definition: ShipDefinition, seed: number): RuntimeSetu
     { id: 'target', presetId: definition.id, team: 'b', controller: 'idle', aiLevel: 'static', spawn: { x: 650, z: -550, heading: 0 } },
   ], seed, mapId: DEFAULT_MAP, weather: 'clear', spawnDistance: BATTLE_SPAWN_DISTANCE, windSpeed: 0 };
 }
-export function validateSpawns(spawns: SpawnPositions, friendly: number, enemy: number, islands: readonly Island[]): void {
+/** Every ship on the chart, apart, and clear of land by `DEPLOYMENT_CLEARANCE_M` (the Rust battle's own check). */
+export function validateSpawns(spawns: SpawnPositions, friendly: number, enemy: number, terrain: PlacedTerrain): void {
   if (!Array.isArray(spawns?.friendly) || !Array.isArray(spawns?.enemy) || spawns.friendly.length !== friendly || spawns.enemy.length !== enemy)
     throw new Error('Place every ship on the deployment chart.');
   const poses = [...spawns.friendly, ...spawns.enemy];
   for (const [i, pose] of poses.entries()) {
     if (!pose || ![pose.x, pose.z, pose.heading].every(Number.isFinite) || Math.abs(pose.x) > 40000 || Math.abs(pose.z) > 40000)
       throw new Error('Keep ship positions within 40 km of the origin.');
-    // Expand the coastline by a hull clearance, using the same rim as the map.
-    if (islands.some(island => islandRadius({ ...island, rx: island.rx + 250, rz: island.rz + 250 }, pose.x, pose.z) <= 1.05))
-      throw new Error('Move the ship farther from land.');
+    if (terrainLandWithin(terrain, pose.x, pose.z, DEPLOYMENT_CLEARANCE_M)) throw new Error('Move the ship farther from land.');
     if (poses.slice(0, i).some(other => Math.hypot(other.x - pose.x, other.z - pose.z) < MIN_SHIP_SEPARATION_M))
       throw new Error(`Leave at least ${MIN_SHIP_SEPARATION_M} m between ships.`);
   }

@@ -1,0 +1,17 @@
+{
+  "id": "strait-of-dover",
+  "center": {
+    "lat": 50.946,
+    "lon": 1.5856
+  },
+  "bearing": 45,
+  "sizeKm": [
+    96,
+    96
+  ],
+  "cellM": 40,
+  "zoom": 12,
+  "supersample": 2,
+  "edgeFalloffKm": 6,
+  "framing": "Mid-strait off Cap Gris-Nez; Dover and the English cliffs to the left, the French coast to the right, the North Sea at the top."
+}

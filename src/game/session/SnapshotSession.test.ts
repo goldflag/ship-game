@@ -11,6 +11,8 @@ import { airWingTelemetry } from './airTelemetry';
 import type { AirOrder } from '../../multiplayer/generated/AirOrder';
 import { muzzleWorld } from '../mountGeometry';
 import { squadronFlights } from '../airWing';
+import { placedMapTerrain } from '../../maps/catalog';
+import { installMapTerrain } from '../../maps/testing';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
 
 test('armor score and event ownership reach telemetry through snapshots and clear on battle reset', async () => {
@@ -408,4 +410,23 @@ test('the presentation clock is the simulated time of the interpolated poses, an
     expect(session.presentationTime).toBeCloseTo((session.tick - 1.5) / 60, 12);
     expect(session.sea.amplitudeM).toBeGreaterThan(0);
   } finally { session.dispose(); }
+});
+
+test('a session lays its map\'s chart between the spawn lines, or on the mission area, once the chart has loaded', async () => {
+  const custom = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: ['fletcher'], spawnDistance: 8000, mapId: 'iron-bottom-sound' });
+  try {
+    expect(custom.terrainOffset).toEqual([0, -4000]);
+    // Loaded fields are shared by a test process: only an uncharted map can show the open-sea stand-in.
+    if (!placedMapTerrain('iron-bottom-sound', [0, 0])) expect(custom.terrain).toEqual({ offset: [0, -4000] });
+    const field = await installMapTerrain('iron-bottom-sound');
+    expect(custom.terrain).toEqual({ field, offset: [0, -4000] });
+    // One object for the battle, so the renderer rebuilds its land only when the chart or its placement changes.
+    expect(custom.terrain).toBe(custom.terrain);
+  } finally { custom.dispose(); }
+  const mission = await HeadlessSession.createPve({ version: 1, seed: 17001, mapId: 'iron-bottom-sound', weather: 'clear', difficulty: 'normal',
+    ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] });
+  try {
+    expect(mission.terrainOffset).toEqual([0, 0]);
+    expect(mission.terrain.field).toBe(placedMapTerrain('iron-bottom-sound', [0, 0])!.field);
+  } finally { mission.dispose(); }
 });

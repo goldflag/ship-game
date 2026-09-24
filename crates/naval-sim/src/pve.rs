@@ -5,11 +5,11 @@ use crate::{
     bots::AiLevel,
     catalog::{Catalog, ContentIdentity},
     definition::ShipDefinition,
-    environment::Island,
     formations::{StationClass, formation_stations},
     mission::{FleetTotals, MissionRules},
     navigation::Formation,
     rules::{TeamId, mix32},
+    terrain::{DEPLOYMENT_CLEARANCE_M, Terrain},
     vessel::Controller,
 };
 use serde::{Deserialize, Serialize};
@@ -230,7 +230,7 @@ impl PvePlan {
         let mut ships = place_groups(
             catalog,
             &rules,
-            &environment.islands,
+            &environment.terrain,
             &request.ships,
             &request.groups,
             TeamId::A,
@@ -240,7 +240,7 @@ impl PvePlan {
         let opponents = place_groups(
             catalog,
             &rules,
-            &environment.islands,
+            &environment.terrain,
             &enemy_units,
             &enemy_groups,
             TeamId::B,
@@ -325,7 +325,7 @@ impl PvePlan {
                     placement,
                     &catalog.definitions[&ship.preset_id],
                     rules,
-                    &environment.islands,
+                    &environment.terrain,
                     &accepted,
                 )
             {
@@ -526,11 +526,13 @@ fn enemy_groups(
     groups[0].formation = Some(front_formation(front, &mut random));
     (units, groups)
 }
+/// Friendly water for a ship: inside the mission area with its hull, 350 m from
+/// every ship already placed, and no land sample within `DEPLOYMENT_CLEARANCE_M`.
 fn valid_position(
     p: &Spawn,
     def: &ShipDefinition,
     rules: &MissionRules,
-    islands: &[Island],
+    terrain: &Terrain,
     occupied: &[Spawn],
 ) -> bool {
     [p.x, p.z, p.heading].iter().all(|n| n.is_finite())
@@ -538,12 +540,26 @@ fn valid_position(
         && occupied
             .iter()
             .all(|o| (o.x - p.x).hypot(o.z - p.z) >= 350.0)
-        && islands.iter().all(|i| {
-            let mut expanded = i.clone();
-            expanded.rx += 250.0;
-            expanded.rz += 250.0;
-            expanded.radius(p.x, p.z) > 1.05
+        && !terrain.land_within(p.x, p.z, DEPLOYMENT_CLEARANCE_M)
+}
+/// Whether a spot lies in its group's deployment band: at least 7 km toward the
+/// team's own side, and 14 km for a rear group.
+fn in_band(p: &Spawn, sign: f64, station: GroupStation) -> bool {
+    let depth = p.z * sign;
+    depth >= 7000.0 && (station == GroupStation::Front || depth >= 14000.0)
+}
+/// Offsets from a desired point, nearest first: rings every `step` metres out to
+/// `reach`, each ring starting on the bearing `toward` and alternating either side.
+fn rings(step: f64, reach: f64, toward: f64) -> impl Iterator<Item = [f64; 2]> {
+    (1..=(reach / step) as usize).flat_map(move |ring| {
+        let radius = ring as f64 * step;
+        let count = ((std::f64::consts::TAU * radius / step).round() as usize).max(8);
+        (0..count).map(move |k| {
+            let side = if k % 2 == 1 { 1.0 } else { -1.0 };
+            let angle = toward + side * k.div_ceil(2) as f64 * std::f64::consts::TAU / count as f64;
+            [radius * angle.cos(), radius * angle.sin()]
         })
+    })
 }
 /// The order a task group forms up in, guide first: a flight deck leads, then
 /// the heaviest hull, and ties break on ship id. `admiral::members` sorts
@@ -563,7 +579,7 @@ pub(crate) fn member_order(
 fn place_groups(
     catalog: &Catalog,
     rules: &MissionRules,
-    islands: &[Island],
+    terrain: &Terrain,
     units: &[FleetShip],
     groups: &[TaskGroup],
     team: TeamId,
@@ -617,31 +633,72 @@ fn place_groups(
                 14200.0
             } - ahead,
         );
-        for unit in members {
-            let def = &catalog.definitions[&unit.preset_id];
+        let heading = if team == TeamId::A { 0.0 } else { PI };
+        // Both fleets steam at each other down the z axis, so the station's
+        // [starboard, aft] frame rotates onto the world by the team's sign.
+        let spot = |center: [f64; 2], unit: &FleetShip| {
             let offset = stations
                 .iter()
                 .find(|s| s.id == unit.id)
                 .map_or([0.0, 0.0], |s| s.offset);
-            // Both fleets steam at each other down the z axis, so the station's
-            // [starboard, aft] frame rotates onto the world by the team's sign.
-            let desired = Spawn {
-                x: center_x + offset[0] * sign,
-                z: (center_z + offset[1]) * sign,
-                heading: if team == TeamId::A { 0.0 } else { PI },
+            Spawn {
+                x: center[0] + offset[0] * sign,
+                z: (center[1] + offset[1]) * sign,
+                heading,
+            }
+        };
+        // When land lies under a station, slide the whole group to the nearest
+        // water that holds its shape before any single ship leaves its station.
+        let ashore = |p: &Spawn| terrain.land_within(p.x, p.z, DEPLOYMENT_CLEARANCE_M);
+        let fits = |center: [f64; 2]| {
+            members.iter().all(|unit| {
+                let p = spot(center, unit);
+                let def = &catalog.definitions[&unit.preset_id];
+                in_band(&p, sign, GroupStation::Front)
+                    && rules.area.contains([p.x, p.z], def.hull.length / 2.0)
+                    && !ashore(&p)
+            })
+        };
+        let mut center = [center_x, center_z];
+        if members.iter().any(|unit| ashore(&spot(center, unit))) {
+            let toward = if center_x > 0.0 { PI } else { 0.0 };
+            let rear_line = 14200.0 - ahead;
+            if let Some(shift) = rings(500.0, 8000.0, toward).find(|[dx, dz]| {
+                let moved = [center_x + dx, center_z + dz];
+                (group.station == GroupStation::Front || moved[1] >= rear_line) && fits(moved)
+            }) {
+                center = [center_x + shift[0], center_z + shift[1]];
+            }
+        }
+        for unit in members {
+            let def = &catalog.definitions[&unit.preset_id];
+            let desired = spot(center, unit);
+            let legal = |p: &Spawn| {
+                in_band(p, sign, group.station) && valid_position(p, def, rules, terrain, &occupied)
             };
-            let placement = if valid_position(&desired, def, rules, islands, &occupied) {
+            let placement = if valid_position(&desired, def, rules, terrain, &occupied) {
                 Some(desired)
             } else {
-                // Bounded packing search, stable within this deployment stream.
-                (0..576)
-                    .map(|i| Spawn {
-                        x: (i % 24) as f64 * 750.0 - 8625.0,
-                        z: (7000.0 + (i / 24) as f64 * 650.0) * sign,
-                        heading: desired.heading,
+                // Bounded searches, stable within this deployment stream: the
+                // nearest legal water around the station, then a packing grid
+                // across the whole deployment band.
+                let toward = if desired.x > 0.0 { PI } else { 0.0 };
+                rings(350.0, 6000.0, toward)
+                    .map(|[dx, dz]| Spawn {
+                        x: desired.x + dx,
+                        z: desired.z + dz,
+                        heading,
                     })
-                    .filter(|p| group.station == GroupStation::Front || p.z.abs() >= 14000.0)
-                    .find(|p| valid_position(p, def, rules, islands, &occupied))
+                    .find(|p| legal(p))
+                    .or_else(|| {
+                        (0..40 * 36)
+                            .map(|i| Spawn {
+                                x: (i % 40) as f64 * 750.0 - 14625.0,
+                                z: (7000.0 + (i / 40) as f64 * 450.0) * sign,
+                                heading,
+                            })
+                            .find(|p| legal(p))
+                    })
             }
             .ok_or("No legal water remains for this task group on the selected map")?;
             occupied.push(placement.clone());
