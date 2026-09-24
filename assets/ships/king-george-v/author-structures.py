@@ -57,11 +57,13 @@ STRUCTURES = [
     ('tower-middle', 'Forward tower lower levels', half([(5.1, -11.1), (5.1, -24.0), (2.0, -27.0)]), 11.0, 14.25, 'naval'),
     ('tower-lower-bridge', 'Lower bridge and wings', half([(5.1, -11.1), (5.1, -16.6), (7.0, -17.9), (7.0, -22.4), (2.1, -27.0)]), 14.25, 15.55, 'naval'),
     ('tower-admirals', 'Admiral bridge core', half([(2.1, -12.0), (2.1, -23.3), (3.9, -23.7), (3.9, -26.4), (2.8, -27.0)]), 15.55, 18.15, 'naval'),
-    ('tower-upper-bridge', 'Navigating bridge level', half([(3.8, -11.3), (3.8, -12.0), (3.3, -12.2), (3.3, -16.0), (4.2, -16.2), (4.2, -24.8), (2.7, -26.0), (2.1, -28.7)]), 18.15, 20.75, 'naval'),
-    ('bridge-top', 'Bridge top and director seating deck', half([(4.0, -10.8), (4.0, -12.0), (3.3, -12.2), (3.3, -15.8), (3.9, -16.2), (3.9, -20.3)]), 20.75, 21.9, 'naval'),
-    ('compass-shelter', 'Compass platform glazed shelter', half([(3.4, -20.3), (3.4, -26.0), (2.4, -26.3), (2.4, -28.6)]), 20.75, 22.5, 'naval'),
+    ('tower-upper-bridge', 'Navigating bridge level', half([(3.8, -11.3), (3.8, -12.0), (3.3, -12.2), (3.3, -16.0), (4.2, -16.2), (4.2, -24.8), (2.7, -26.0), (2.1, -28.1)]), 18.15, 20.75, 'naval'),
+    ('bridge-top', 'Bridge top and director seating deck', half([(3.8, -10.8), (3.8, -12.0), (3.3, -12.2), (3.3, -15.8), (3.6, -16.2), (3.6, -20.3)]), 20.75, 21.9, 'naval'),
+    ('compass-shelter', 'Navigating bridge glazed shelter', half([(3.4, -20.3), (3.4, -26.0), (2.4, -26.3), (2.4, -28.0)]), 20.75, 22.3, 'naval'),
+    ('compass-platform', 'Compass platform', half([(2.0, -22.9), (2.0, -27.5), (1.4, -27.9)]), 22.3, 23.4, 'naval'),
     ('director-forward-base', 'Forward 14-inch director seating', octagon(0, -20.7, 3.0, 3.0, .6), 21.9, 23.27, 'naval'),
-    ('hacs-forward-tower', 'Forward HACS director tower', half([(3.6, -11.9), (3.6, -14.4), (2.1, -14.6), (2.1, -16.1)]), 21.9, 25.45, 'naval'),
+    ('hacs-forward-tower', 'Forward HACS director tower', half([(3.6, -11.9), (3.6, -14.4)]), 21.9, 25.45, 'naval'),
+    ('hacs-tower-step', 'HACS tower forward step', half([(2.1, -14.4), (2.1, -16.1), (1.3, -16.3), (1.3, -17.5)]), 21.9, 23.0, 'naval'),
     # After deckhouse: main deck to the boat deck, pointed aft end.
     # Notched to 8.6 m where the P4/S4 gunhouses swing inboard.
     ('after-shelter', 'After deckhouse and boat deck', half([(2.4, 51.4), (9.0, 44.0), (9.0, 37.6), (8.6, 37.2), (8.6, 31.0), (7.6, 31.0), (7.6, 19.6)]), DECK, BLOCK, 'naval'),
@@ -71,8 +73,8 @@ STRUCTURES = [
     ('after-tower-top', 'After tower close-range director seat', half([(1.3, 47.5), (1.3, 43.9)]), 14.6, 17.0, 'naval'),
     ('director-aft-seat', 'After 14-inch director seating', octagon(0, 50.13, 3.4, 3.4, .7), BLOCK, 12.28, 'naval'),
     # Funnel envelopes for hits; build.py draws the stacks from its own funnel table.
-    ('forward-funnel', 'Forward funnel', stadium(-0.58, 6.05, 3.9), HANGAR, 24.3, 'naval'),
-    ('after-funnel', 'After funnel', stadium(23.86, 6.73, 3.1), BLOCK, 24.3, 'naval'),
+    ('forward-funnel', 'Forward funnel', stadium(-0.58, 6.05, 3.9), HANGAR, 23.7, 'naval'),
+    ('after-funnel', 'After funnel', stadium(23.86, 6.73, 3.1), BLOCK, 23.7, 'naval'),
 ]
 
 

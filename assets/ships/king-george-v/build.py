@@ -176,10 +176,10 @@ def life_raft(name,x,y,z,vertical=False):
  if vertical:node.rotation_euler.x=math.pi/2
  for ob in set(scene.objects)-before-{node}:ob.parent=node
 
-def gallery(name,outline,z,wall=.95):
+def gallery(name,outline,z,wall=.95,brackets=True):
  prism(name+' deck',outline,z,.13,'roof');perimeter_wall(name+' bulwark',outline,z+.13,wall,.055)
  for x,y in outline:
-  if abs(y)>4:mesh(name+' support bracket',[(x,y,z),(x,y*.73,z),(x,y*.73,z-1.1)],[(0,1,2)],'naval')
+  if brackets and abs(y)>4:mesh(name+' support bracket',[(x,y,z),(x,y*.73,z),(x,y*.73,z-1.1)],[(0,1,2)],'naval')
 
 def gun_rod(name,a,b,r,material='edge',col=None,r2=None,vertices=10):
  # British gun slides were exposed; the generic helper's canvas bag is a
@@ -353,7 +353,7 @@ COL=collections['Superstructure']
 # Deck levels measured from the GameModels3D reference (author-structures.py holds the block table).
 BLOCK=10.25;HANGAR=12.0;SHELTER=7.35
 PARAPETS=['tower-base','tower-lower-bridge','tower-upper-bridge']
-PLAIN=['hacs-forward-tower','director-aft-base','director-forward-base','director-aft-seat','after-tower-top','bridge-top','foremast-house']
+PLAIN=['hacs-forward-tower','hacs-tower-step','compass-platform','director-aft-base','director-forward-base','director-aft-seat','after-tower-top','bridge-top','foremast-house']
 for structure in D['structures']:
  ASSEMBLY=structure['id'];outline=[(-z,-x) for x,z in structure['footprint']];z=structure['baseY'];top=z+structure['height']
  if 'funnel' in structure['id']:continue
@@ -423,6 +423,8 @@ for side in [-1,1]:
   box('Bridge signal equipment',(x,side*y,z+.3),(.46,.26,.6),'naval')
  for k in range(5):box('Signal flag locker',(18.4+k*.3,side*7.6,11.07+.32),(.27,.58,.55),'canvas')
 ladder('HACS tower external ladder',(11.85,0,21.97),(11.85,0,25.5),w=.52)
+# Signal platform round the foremast, abaft the tower.
+gallery('Foremast platform',octagon(9.85,0,4.3,8.0,.8),16.45,.9)
 
 # Open aft-facing hangar mouths in the after face of the forward block, either side of the uptakes.
 ASSEMBLY='hangar-doors'
@@ -437,7 +439,7 @@ for side in [-1,1]:
 # Funnel jackets with open rim, internal uptake and arched cap grating: straight-sided stacks with
 # round ends, as the reference's; the after funnel keeps a wider casing to the searchlight level.
 COL=collections['Superstructure']
-FUNNELS=[('forward-funnel',.58,6.05,3.9,HANGAR,24.3,None),('after-funnel',-23.86,6.73,3.1,BLOCK,24.3,(17.0,7.0,4.2))]
+FUNNELS=[('forward-funnel',.58,6.05,3.9,HANGAR,23.7,None),('after-funnel',-23.86,6.73,3.1,BLOCK,23.7,(17.0,6.85,4.2))]
 def stadium_ring(x,L,W,z,n=20):
  r=W/2;a=L/2-r
  fore=[(x+a+r*math.cos(t),r*math.sin(t),z) for t in [-math.pi/2+math.pi*i/n for i in range(n+1)]]
@@ -491,16 +493,16 @@ def director(id,x,y,z,main=False):
   ladder('DCT access',(x-1.81,y,z+.35),(x-1.81,y,z+3.28),w=.51)
  else:
   # HACS Mk IV rotating high-angle director, curved rear and sloping nose.
-  prism('HACS cabinet',octagon(x,y,2.7,2.2,.40),z+.45,1.45)
+  prism('HACS cabinet',octagon(x,y,2.7,2.2,.40),z+.45,1.85)
   for side in [-1,1]:
-   rod('HACS optical tube',(x-.25,y+side*.95,z+1.70),(x-.25,y+side*2.0,z+1.70),.17,'naval',vertices=16)
-   box('HACS rangefinder hood',(x-.25,y+side*2.05,z+1.70),(.72,.45,.65),'naval')
+   rod('HACS optical tube',(x-.25,y+side*.95,z+2.0),(x-.25,y+side*2.25,z+2.0),.19,'naval',vertices=16)
+   box('HACS rangefinder hood',(x-.25,y+side*2.3,z+2.0),(.8,.5,.75),'naval')
   # Curved director hood, built with an original bent plate cross section.
-  arch=[(-1.27,1.30),(-1.17,2.09),(-.70,2.57),(.20,2.71),(.85,2.42),(1.31,1.69)]
+  arch=[(-1.27,1.70),(-1.17,2.55),(-.70,3.10),(.20,3.30),(.85,2.95),(1.31,2.10)]
   vv=[(x+dx,y+side*1.04,z+zz) for side in [-1,1] for dx,zz in arch]
   mesh('HACS curved roof',vv,[(i,i+1,i+7,i+6) for i in range(5)],'naval')
-  box('HACS sight aperture',(x+1.33,y,z+1.73),(.025,1.48,.48),'dark')
-  for side in [-1,1]:rod('HACS roof rib',(x-.98,y+side*.70,z+2.30),(x+.75,y+side*.70,z+2.48),.045,'edge',vertices=6)
+  box('HACS sight aperture',(x+1.33,y,z+2.05),(.025,1.48,.48),'dark')
+  for side in [-1,1]:rod('HACS roof rib',(x-.98,y+side*.70,z+2.80),(x+.75,y+side*.70,z+3.02),.045,'edge',vertices=6)
  node=pivot(id+'.yaw',(x,y,z));attach_world(set(scene.objects)-before-{node},node)
  return node
 # Director datums at the reference hardpoints (forward and after DCT, two HACS each side of each tower).
@@ -509,8 +511,8 @@ director('dct-forward',DCT_FWD[0],0,DCT_FWD[1],True)
 director('dct-after',DCT_AFT[0],0,DCT_AFT[1],True)
 for id,x,y,z in [('hacs-p-forward',13.21,4.004,25.605),('hacs-s-forward',13.21,-4.004,25.605),('hacs-p-after',-43.32,3.879,14.781),('hacs-s-after',-43.32,-3.879,14.781)]:director(id,x,y,z)
 ASSEMBLY='hacs-platforms'
-gallery('Forward HACS platform',octagon(13.2,0,3.4,11.4,.7),25.45,.48)
-gallery('Aft HACS platform',octagon(-43.3,0,4.2,10.6,.7),14.62,.52)
+gallery('Forward HACS platform',octagon(13.2,0,3.4,10.6,.7),25.45,.48,False)
+gallery('Aft HACS platform',octagon(-43.3,0,4.2,10.6,.7),14.62,.52,False)
 # 1941 Type 284 mattress on the 14-inch DCT; no late Type 271 lantern.
 ASSEMBLY='radar-284';before=set(scene.objects);dx,dz=DCT_FWD
 for side in [-1,1]:
@@ -523,26 +525,25 @@ node=pivot('radar-284.yaw',(dx,0,dz+2.85));attach_world(set(scene.objects)-befor
 attach_world([node],bpy.data.objects['dct-forward.yaw'])
 # Tripod masts from the reference: the foremast's legs splay aft to the hangar roofs and carry a
 # starfish at 30.5 m; the mainmast's legs splay forward to the boat deck. Type 279 at both mastheads.
-MASTS=[dict(name='foremast',x=8.8,foot=BLOCK,plat=(30.5,8.1,5.2,6.2),top=40.84,tx=6.9,legs=((4.2,3.9,HANGAR),(8.45,.42,28.2)),yards=[(38.1,4.4),(31.8,6.0)],shroud=(2.8,7.5,HANGAR)),
-       dict(name='mainmast',x=-43.3,foot=14.62,plat=(26.0,-43.2,2.4,3.0),top=34.89,tx=-43.85,legs=((-39.1,3.8,BLOCK),(-42.85,.5,25.6)),yards=[(33.9,4.2),(29.4,3.4)],shroud=(-49.0,4.2,BLOCK))]
+MASTS=[dict(name='foremast',x=8.8,foot=BLOCK,plat=(30.5,8.1,5.2,6.2),top=40.84,tx=7.42,legs=((4.2,3.9,HANGAR),(8.45,.42,28.2)),yards=[(39.1,3.1),(33.1,6.0)],shroud=(2.8,7.5,HANGAR)),
+       dict(name='mainmast',x=-43.3,foot=14.62,plat=(27.0,-43.2,2.4,3.0),top=34.89,tx=-43.85,legs=((-39.1,3.8,BLOCK),(-42.85,.5,25.6)),yards=[(33.9,4.2),(29.4,3.4)],shroud=(-49.0,4.2,BLOCK))]
 MASTHEAD={}
 for M in MASTS:
  name=M['name'];ASSEMBLY=name;x=M['x'];top=M['top'];tx=M['tx'];pz,px,pl,pw=M['plat']
  rod(name+' lower pole',(x,0,M['foot']),(x,0,pz),.30,'naval',r2=.24,vertices=16)
- rod(name+' topmast',(x,0,pz),(tx,0,top+1.2),.20,'naval',r2=.07,vertices=12)
+ # The topmast steps aft at the starfish and stands vertical to the masthead.
+ rod(name+' topmast',(tx,0,pz-.4),(tx,0,top+1.2),.20,'naval',r2=.07,vertices=12)
+ if abs(tx-x)>.3:rod(name+' topmast heel',(x,0,pz-.4),(tx,0,pz-.4),.2,'naval',vertices=10)
  (fx,fy,fz),(hx,hy,hz)=M['legs']
  for side in [-1,1]:
   rod(name+' tripod',(fx,side*fy,fz),(hx,side*hy,hz),.22,'naval',r2=.14,vertices=12)
-  for k in range(1,5):
-   t=k/5;zz=fz+(hz-fz)*t;dy=fy+(hy-fy)*t;xx=fx+(hx-fx)*t
-   rod('Tripod cross tie',(xx,-dy,zz),(xx,dy,zz),.055,'naval',vertices=8)
  plat=octagon(px,0,pl,pw,.6)
  gallery(name+' lookout platform',plat,pz,.0)
  rail('Mast platform guard',[(a,b,pz+.13) for a,b in plat+[plat[0]]],.90)
  for side in [-1,1]:rod('Mast platform support',(px,side*pw*.4,pz),(x,side*.25,pz-1.75),.075,'naval',vertices=8)
  ladder('Mast vertical ladder',(x+.36,0,M['foot']+.1),(x+.36,0,pz-.05),w=.47)
  for zz,span in M['yards']:
-  yx=x+(tx-x)*(zz-pz)/(top+1.2-pz) if zz>pz else x
+  yx=tx if zz>pz else x
   rod('Tapered signal yard',(yx,-span,zz),(yx,span,zz),.062,'naval',vertices=10)
   for side in [-1,1]:
    rod('Yard lift',(yx,side*span,zz),(yx,0,zz+2.0),.018,'edge',vertices=5)
@@ -555,7 +556,7 @@ for M in MASTS:
  radar_pivot('radar-279-'+name+'.yaw',(tx,0,top),set(scene.objects)-before)
  sx,sy,sz=M['shroud']
  for side in [-1,1]:rod('Mast standing rigging',(px,side*.7,pz+.5),(sx,side*sy,sz+.05),.013,'edge',vertices=5)
- zz,span=M['yards'][0];MASTHEAD[name]=(x+(tx-x)*(zz-pz)/(top+1.2-pz),zz)
+ zz,span=M['yards'][0];MASTHEAD[name]=(tx,zz)
 ASSEMBLY='wireless-aerials'
 (fx,fz),(mx,mz)=MASTHEAD['foremast'],MASTHEAD['mainmast']
 for y in [-.36,.36]:rod('Between-mast wireless aerial',(fx,y,fz),(mx,y,mz),.010,'edge',vertices=5)
@@ -633,7 +634,7 @@ def boat(name,x,y,z,length=9,width=2.7,motor=False):
  else:
   for side in [-1,1]:rod('Stowed boat oar',(x-length*.38,y+side*.36,z+.65*k),(x+length*.35,y+side*.36,z+.65*k),.032,'deck',vertices=6)
 # Boats on the boat deck in two columns each side, clear of the after pom-poms and the mainmast legs.
-for i,(x,y,l,w) in enumerate([(-36.6,7.3,11.2,2.8),(-36.6,-7.3,11.2,2.8),(-33.35,3.9,9.3,2.6),(-33.35,-3.9,9.3,2.6),(-32.6,0,6.8,2.0)]):boat('boat-'+str(i+1),x,y,BLOCK+.43,l,w,i<2)
+for i,(x,y,l,w) in enumerate([(-36.6,7.3,11.2,2.8),(-36.6,-7.3,11.2,2.8),(-33.35,3.9,9.3,2.6),(-33.35,-3.9,9.3,2.6),(-32.6,0,6.8,2.0)]):boat('boat-'+str(i+1),x,y,BLOCK+.43,l,w,i<4)
 # Boat-deck edge rails, Carley floats and access on the after deckhouse.
 ASSEMBLY='boat-deck-support'
 for side in [-1,1]:
@@ -839,7 +840,7 @@ for side in [-1,1]:
  for a,b in zip(pts,pts[1:]):mesh('Bilge keel fin',[a,b,(b[0],b[1]+side*.5,b[2]-.5),(a[0],a[1]+side*.5,a[2]-.5)],[(0,1,2,3)],'antifouling')
 
 COL=collections['Sensors and masts'];ASSEMBLY='landmarks'
-for id,pos in [('funnel-cap',(.58,0,24.3)),('foremast-top',(MASTHEAD['foremast'][0],0,42.04)),('mainmast-top',(-43.85,0,36.09)),('fore-director',(DCT_FWD[0],0,DCT_FWD[1])),('bridge-front',(28.6,0,22.5))]:pivot('landmark.'+id,pos)
+for id,pos in [('funnel-cap',(.58,0,24.3)),('foremast-top',(7.42,0,42.04)),('mainmast-top',(-43.85,0,36.09)),('fore-director',(DCT_FWD[0],0,DCT_FWD[1])),('bridge-front',(28.6,0,22.5))]:pivot('landmark.'+id,pos)
 
 COL=collections['Simulation volumes']
 for group in ['armor','modules','compartments','obstructions']:
