@@ -77,25 +77,36 @@ def structure(id, name, outline, base, top):
             'baseY': base, 'height': round(top-base, 5), 'material': 'naval'}
 
 
-core = round_front(15.7, 21.05, 3.55, 2.65)
-pilot_core = round_front(15.7, 21.05, 3.55, 2.72)
+def runtime(points):
+    """(runtime x, runtime z) half-outline, starboard, bow to stern -> mirrored Blender outline."""
+    half = [(-z, -x) for x, z in points]
+    return half + [(xb, -yb) for xb, yb in reversed(half)]
+
+
+# Revision 5 superstructure, traced from GameModels3D pasd021 plan cuts (our frame, z = reference z + 0.466).
+fwd_house = runtime([(1.70, -33.41), (2.19, -33.0), (2.54, -32.5), (2.75, -32.0), (3.00, -31.5), (3.15, -31.0),
+                     (3.27, -30.0), (3.42, -28.0), (3.51, -25.0), (3.66, -22.0), (3.83, -20.0), (3.93, -17.30)])
+aft_house = runtime([(2.20, 17.30), (2.50, 17.60), (2.50, 34.0), (2.10, 35.2), (1.45, 35.9)])
+aa_house = runtime([(2.07, 22.98), (2.46, 23.40), (2.46, 26.0), (2.09, 26.5), (1.86, 27.0), (1.58, 27.5), (1.00, 28.0), (.60, 28.29)])
+core = round_front(17.34, 21.87, 2.5, 2.5)
+pilot_core = round_front(16.66, 21.87, 2.5, 2.49)
 b['structures'] = [
-    structure('forward-deckhouse', 'Forward deckhouse / raised Mount 52 deck',
-              round_front(12.6, 31.55, 2.35, 3.32), 3.18, 7.05),
-    structure('bridge', 'Continuous round-front bridge and chart house', core, 7.05, 9.28),
-    structure('pilot-house', 'Round-front pilothouse with projecting navigation wings', pilot_core, 9.28, 11.10),
+    structure('forward-deckhouse', 'Forward deckhouse / raised Mount 52 deck', fwd_house, 3.18, 6.82),
+    structure('bridge', 'Continuous round-front bridge and chart house', core, 6.30, 9.10),
+    structure('pilot-house', 'Round-front pilothouse under the open bridge', pilot_core, 9.10, 11.25),
     structure('forward-funnel', 'Raked forward funnel',
-              [(10.40+1.83*math.cos(i*math.tau/32), 1.48*math.sin(i*math.tau/32)) for i in range(32)], 5.65, 13.55),
+              [(9.85+1.75*math.cos(i*math.tau/32), 1.45*math.sin(i*math.tau/32)) for i in range(32)], 5.90, 13.65),
     structure('aft-funnel', 'Raked after funnel',
-              [(-4.10+1.83*math.cos(i*math.tau/32), 1.48*math.sin(i*math.tau/32)) for i in range(32)], 5.65, 12.70),
-    structure('aft-deckhouse', 'After deckhouse / mounts 53 and 54',
-              chamfer(-35.1, -16.2, 3.25, .8), 2.76, 5.70),
-    structure('machinery-deckhouse', 'Boiler and torpedo deckhouse',
-              chamfer(-17.6, 12.8, 3.2, .25), 2.90, 5.65),
-    structure('aft-aa-house', 'Raised after AA support house',
-              chamfer(-28.0, -23.6, 1.85, .45), 5.70, 7.68),
+              [(-4.19+1.75*math.cos(i*math.tau/32), 1.45*math.sin(i*math.tau/32)) for i in range(32)], 5.60, 12.55),
+    structure('aft-deckhouse', 'After deckhouse / mounts 53 and 54', aft_house, 2.50, 5.07),
+    structure('machinery-deckhouse', 'Boiler and torpedo deckhouse', chamfer(-2.5, 11.3, 3.1, .25), 2.90, 5.76),
+    structure('torpedo-deckhouse', 'Narrow after torpedo-mount deckhouse', chamfer(-13.86, -2.5, 1.42, .15), 2.80, 5.38),
+    structure('aft-aa-house', 'Raised after AA support house', aa_house, 5.00, 7.05),
 ]
-# Funnel plating is generated from the same original loft as the visible jacket.
+# Funnel plating is generated from the same original loft as the visible jacket (build.py uses the
+# same rings and cap rise: keep FUNNEL_RINGS and FUNNEL_CAP in step there).
+FUNNEL_RINGS = [(0, 1.02), (.14, 1), (.79, .98), (1, .92)]
+FUNNEL_CAP = .60
 for s in b['structures']:
     if 'funnel' not in s['id']:
         continue
@@ -105,12 +116,12 @@ for s in b['structures']:
     ry = max(y for _, y in outline)
     vertices = []
     n = 32
-    for t, scale in [(0, 1.03), (.14, 1), (.79, .94), (1, .82)]:
+    for t, scale in FUNNEL_RINGS:
         for i in range(n):
             a = i*math.tau/n
             x = cx-.15*s['height']*t+rx*scale*math.cos(a)
             y = ry*scale*math.sin(a)
-            z = s['baseY']+s['height']*t+.90*math.cos(a)*t*t+.30*math.sin(a)**2*t**5
+            z = s['baseY']+s['height']*t+FUNNEL_CAP*math.cos(a)*t*t+.30*math.sin(a)**2*t**5
             vertices.append([-y, z, -x])
     triangles = []
     for k in range(3):
@@ -121,28 +132,53 @@ for s in b['structures']:
         triangles.extend([[0, i+1, i], [3*n, 3*n+i, 3*n+i+1]])
     s['surface'] = {'vertices': vertices, 'triangles': triangles}
 
+# Mounts on the GameModels3D hardpoints (ship:hardpoints pasd021; our z = reference z + 0.466). The
+# hardpoint height is the mount's base plane: the barbette ring or pad it stands on.
+HARDPOINT = {
+    'gun-1': (0, 5.385, -38.497), 'gun-2': (0, 7.289, -31.328), 'gun-3': (0, 5.42, 19.12),
+    'gun-4': (0, 5.42, 31.786), 'gun-5': (0, 3.027, 39.52), 'bofors-aft': (0, 7.041, 26.587),
+    # 20 mm: the bridge pair on the reference's 01-level tubs, the waist pairs on its main-deck positions.
+    'oerlikon-1': (-3.072, 6.663, -25.524), 'oerlikon-2': (3.072, 6.663, -25.524),
+    'oerlikon-3': (-4.357, 2.829, 11.646), 'oerlikon-4': (4.358, 2.829, 11.646),
+    'oerlikon-5': (-4.357, 2.774, 14.085), 'oerlikon-6': (4.358, 2.774, 14.085),
+}
 for m in b['mounts']:
-    id = m['id']
-    # Mk 30's training axis lies forward of its enclosure centre. Original
-    # blueprint positions, estimated from matching whole-ship raster views.
-    gun_x = {'gun-1':39.0, 'gun-2':31.7, 'gun-3':-19.6, 'gun-4':-31.8, 'gun-5':-40.3}
-    if id in gun_x: m['position'][2] = -gun_x[id]
-    if id == 'gun-1':
-        m['position'][1] = round(fair(decks, -m['position'][2]+h['length']/2)+.07, 5)
-    if id == 'gun-2':
-        m['position'][1] = 6.70
-    if id in ['oerlikon-1', 'oerlikon-2']:
-        m['position'][0] = math.copysign(3.65, m['position'][0])
-        m['position'][1] = 7.12
-    if id == 'bofors-aft':
-        m['position'][1] = 7.70
-    if id in ['oerlikon-3', 'oerlikon-4', 'oerlikon-5', 'oerlikon-6']:
-        m['position'][1] = round(fair(decks, -m['position'][2]+h['length']/2)+.12, 5)
+    if m['id'] in HARDPOINT:
+        m['position'] = [round(v, 4) for v in HARDPOINT[m['id']]]
+# Quintuple banks: pivot on the reference hardpoints; tube muzzles 4.65 m ahead of the pivot.
+BANKS = {'torpedo-forward': (5.811, -2.015), 'torpedo-aft': (5.523, 11.161)}
 for launcher in b['torpedoLaunchers']:
-    launcher['position'][1] = 5.68
+    y, z = BANKS[launcher['id']]
+    launcher['position'] = [0, y, z]
     for tube in b['torpedoTubes']:
         if tube['launcherId'] == launcher['id']:
-            tube['position'][1] = 6.52
+            tube['position'][1] = round(y + .84, 4)
+            tube['position'][2] = round(z - 4.65, 4)
+for mod in b['modules']:
+    if mod['id'] == 'equipment-torpedo-forward':
+        mod['center'] = [0, round(5.811 + .95, 3), round(-2.015 - .5, 3)]
+    if mod['id'] == 'equipment-torpedo-aft':
+        mod['center'] = [0, round(5.523 + .95, 3), round(11.161 - .5, 3)]
+# Depth charges: K-guns on the reference's two pairs (z 25.9, 29.3) and a third pair 3.5 m aft; the
+# stern racks on the reference's racks, releasing over the counter.
+DC = {'dc-thrower-port-1': (-4.47, 25.866), 'dc-thrower-starboard-1': (4.47, 25.866),
+      'dc-thrower-port-2': (-4.39, 29.336), 'dc-thrower-starboard-2': (4.39, 29.336),
+      'dc-thrower-port-3': (-4.25, 32.8), 'dc-thrower-starboard-3': (4.25, 32.8),
+      'dc-rack-port': (-2.23, 57.2), 'dc-rack-starboard': (2.23, 57.2)}
+for launcher in b['depthChargeLaunchers']:
+    x, z = DC[launcher['id']]
+    launcher['position'][0] = x; launcher['position'][2] = z
+    if 'rack' in launcher['id']:
+        launcher['position'][1] = 3.25
+    for mod in b['modules']:
+        if mod['id'] == launcher['launcherModuleId']:
+            mod['center'][0] = x
+            mod['center'][2] = round(z - 2.6, 3) if 'rack' in launcher['id'] else z
+            if 'rack' in launcher['id']:
+                mod['center'][1] = 3.3
+for mod in b['modules']:
+    if mod['id'] == 'equipment-mk37-director':
+        mod['center'] = [0, 14.45, -19.91]
 b['viewpoints']['bridge'] = [0, 12.62, -22.4]
 # Keep the steering and after-magazine envelopes within the raised afterbody.
 for c in b['compartments']:
