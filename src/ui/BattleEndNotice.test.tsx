@@ -12,6 +12,15 @@ test('battle end notice explains the result and automatic departure', () => {
   }
 });
 
+test('battle end notice carries the XP line, and a failed save stays quiet with Retry', () => {
+  const award = { total: 52, nations: { japan: 47 }, free: 5, breakdown: { sinking: 0, damage: 0, time: 35, odds: 1, outcome: 1.5 } };
+  const html = renderToStaticMarkup(<BattleEndNotice result="victory" onExit={() => {}} xp={{ state: { status: 'awarded', award }, retry() {} }}/>);
+  expect(html).toContain('+52 XP'); expect(html).toContain('Japan 47 · Free 5');
+  const failed = renderToStaticMarkup(<BattleEndNotice result="defeat" onExit={() => {}} xp={{ state: { status: 'failed', error: 'Offline.' }, retry() {} }}/>);
+  expect(failed).toContain('XP not saved. Offline.'); expect(failed).toContain('Retry'); expect(failed).toContain('Returning to port in');
+  expect(renderToStaticMarkup(<BattleEndNotice result="draw" outcome={{ winnerTeamId: null, reason: 'abandoned', finalTick: 1, afloatKg: [1, 1] }} onExit={() => {}}/>)).not.toContain('XP');
+});
+
 test('departure uses a real-time deadline and cleanup cancels both timers', () => {
   const original = { now: Date.now, timeout: globalThis.setTimeout, interval: globalThis.setInterval, clearTimeout: globalThis.clearTimeout, clearInterval: globalThis.clearInterval };
   let now = 1000, seconds = 15, exits = 0, delay = 0;

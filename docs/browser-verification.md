@@ -47,6 +47,7 @@ Every capture waits for the camera to arrive first: an optics glide takes about 
 | `map`, `time`, `weather`, `hours`, `cloud`, `wind`, `formation` | Passed to `BattleSetup` |
 | `seed` | The battle's seed, and so its combat sea; random when absent. `ui:shot` and the effects review fix it at 1941 |
 | `battery` | The weapon group the battle opens on: `main`, `secondary`, `torpedo`… |
+| `progress=fresh` | Research progress from a local profile that starts with only each nation's starters and persists in this browser (`naval-progress-harness-v1`), so locked ships, Unlock and XP awards can be exercised. Without it every tree ship is owned. The developer console's `xp 5000`, `unlock all` and `progress reset` edit it |
 | `hud=off` | Hide everything over the 3D view once the port or battle is ready. A script that still clicks the UI calls `review.setHud(false)` afterwards instead |
 | `focus=real`, `pointerlock=real`, `sortie=board` | Turn off the defaults: blur and visibility changes are swallowed so a background window does not pause the game, pointer lock is faked so battle input arms under automation, and the sortie board is skipped |
 
