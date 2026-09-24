@@ -179,6 +179,13 @@ for s in [s for s in definition['structures'] if 'funnel' in s['id']]:
   bottom=Vector(vs[N+k]);top=Vector(vs[-N+k]);ofs=(Vector((top.x,top.y,0))-Vector((center.x,center.y,0))).normalized()*.16
   tube_path(name+'.steam-pipe',[bottom+ofs,top+ofs+Vector((0,0,.45))],.07,materials['naval'],sides=12)
   for t in [.2,.5,.8]:rod(name+'.pipe-bracket',bottom.lerp(top,t),bottom.lerp(top,t)+ofs,.025,materials['edge'])
+ if name=='forward-funnel':
+  # Siren frame on the port side of the cap, fore-and-aft, braced to the jacket.
+  for x in [12.95,14.1]:
+   rod(name+'.siren-post',(x,1.3,12.55),(x,1.3,14.0),.05,materials['edge'],vertices=8)
+   rod(name+'.siren-bracket',(x,1.3,12.6),(x,.6,12.6),.035,materials['edge'],vertices=8)
+   rod(name+'.siren',(x-.18,1.3,13.95),(x+.18,1.3,13.95),.09,materials['naval'],vertices=12)
+  rod(name+'.siren-bar',(12.95,1.3,13.45),(14.1,1.3,13.45),.04,materials['edge'],vertices=8)
  # Climbing rungs up the starboard side.
  bottom=Vector(vs[N+10]);top=Vector(vs[-2*N+10])
  ofs=(Vector((bottom.x,bottom.y,0))-Vector((center.x,center.y,0))).normalized();along=Vector((ofs.y,-ofs.x,0))
@@ -187,11 +194,11 @@ for s in [s for s in definition['structures'] if 'funnel' in s['id']]:
   tube_path(name+'.rung',[p-along*.2-ofs*.02,p-along*.2+ofs*.13,p+along*.2+ofs*.13,p+along*.2-ofs*.02],.016,materials['edge'])
 # Paired broad aft-side intake trunks with curved elbows and open forward mouths.
 # Their feet meet the main deck beside each funnel jacket.
-# Fore cowls: big trunks beside the fore funnel with bell mouths facing aft (top 8.4 m); after pair in the
+# Fore cowls: big trunks beside the fore funnel with bell mouths facing aft (top 8.5 m); after pair in the
 # after face of the 13 mm tower.
 for name,x,cy,z,rad in [('fore-cowl',13.6,2.4,3.36,.92),('aft-cowl',2.75,1.65,4.95,.48)]:
  for sign in ([-1,1] if cy else [1]):
-  y=sign*cy;rise=5.0 if name=='fore-cowl' else 2.60
+  y=sign*cy;rise=4.25 if name=='fore-cowl' else 2.60
   pts=[(x,y,z),(x,y,z+rise-1.1)]
   pts += [(x-1.1+1.1*math.cos(a),y,z+rise-1.1+1.1*math.sin(a)) for a in [i*math.pi/2/16 for i in range(1,17)]]
   tube_path(name+'.intake',pts,rad,materials['naval'],sides=32)
@@ -202,13 +209,16 @@ for name,x,cy,z,rad in [('fore-cowl',13.6,2.4,3.36,.92),('aft-cowl',2.75,1.65,4.
   for dz in [.35,1.55]:
    tube_path(name+'.seam',[(x+rad*math.cos(a),y+rad*math.sin(a),z+dz) for a in [i*math.tau/32 for i in range(32)]],.022,materials['edge'],closed=True)
   for dz in [.55,1.0,1.45,1.9]:
-   tube_path(name+'.rung',[(x+rad-.03,y-.25,z+dz),(x+rad+.15,y-.25,z+dz),(x+rad+.15,y+.25,z+dz),(x+rad-.03,y+.25,z+dz)],.022,materials['naval'])
+   tube_path(name+'.rung',[(x+rad-.1,y-.25,z+dz),(x+rad+.15,y-.25,z+dz),(x+rad+.15,y+.25,z+dz),(x+rad-.1,y+.25,z+dz)],.022,materials['naval'])
+# The forecastle's side wings run 0.7 m aft of its break bulkhead, outboard of 3 m.
+for side in [-1,1]:
+ prism('forecastle.wing',[(20.6,side*3.0),(19.87,side*3.0),(19.87,side*(width(19.87)-.02)),(20.6,side*(width(20.6)-.02))][::side],3.36,5.4)
 # Bilge keels at the turn of the bilge from z -10 to 23.5, 0.7 m deep at 45 deg, tapered ends.
 for sign in [-1,1]:
  vs=[]
- for x,spread in [(-23.5,0),(-21.5,.5),(8,.5),(10,0)]:
-  z=-1.85;y=sign*(shell_width(x,z)-.025)
-  vs += [(x,y,z),(x,y+sign*spread,z-.45)]
+ for x,spread in [(-23.5,0),(-21.5,.55),(8,.55),(10,0)]:
+  z=-1.75;y=sign*(shell_width(x,z)-.025)
+  vs += [(x,y,z),(x,y+sign*spread,z-.5)]
  ob=mesh('hull.bilge-keel',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(3)],materials['underwater'])
  mod=ob.modifiers.new('Bilge keel plate','SOLIDIFY');mod.thickness=.045
 # Gun installations: the shared builder owns mechanisms; the ship owns the seating.

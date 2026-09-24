@@ -70,8 +70,8 @@ for side in [-1,1]:
 # Torpedo reload cranes at the deck edge abreast the midships AA platform: pedestals with jibs reaching outboard.
 for x in [-20.7]:
  for sign in [-1,1]:
-  cyl('reload-derrick.pedestal',(x,sign*4.85,(deckz(x)+4.7)/2),.2,4.7-deckz(x),materials['naval'],vertices=16)
-  tube_path('reload-derrick.arm',[(x,sign*4.85,4.6),(x,sign*4.85,5.1),(x,sign*5.2,5.9),(x,sign*5.6,6.35)],.07,materials['naval'],sides=12)
+  cyl('reload-derrick.pedestal',(x,sign*4.72,(deckz(x)+4.7)/2),.2,4.7-deckz(x),materials['naval'],vertices=16)
+  tube_path('reload-derrick.arm',[(x,sign*4.72,4.6),(x,sign*4.72,5.1),(x,sign*5.2,5.9),(x,sign*5.6,6.35)],.07,materials['naval'],sides=12)
   rod('reload-derrick.fall',(x,sign*5.6,6.3),(x,sign*5.6,5.3),.015,materials['rope'])
   box('reload-derrick.hook',(x,sign*5.6,5.25),(.12,.08,.14),materials['edge'],bev=.01)
 # Foremast, as measured on the reference: a pole raked 6 deg aft from the forecastle deck, two after legs spread
@@ -95,7 +95,7 @@ prism('foremast.lookout-deck',outline_rect(18.95,22.3,-.9,.9,.15),10.05,10.19)
 rails('foremast.lookout-rails',[(18.95,-.9,10.19),(22.1,-.9,10.19)],.85)
 rails('foremast.lookout-rails',[(18.95,.9,10.19),(22.1,.9,10.19)],.85)
 rails('foremast.lookout-rails',[(18.95,-.9,10.19),(18.95,.9,10.19)],.85)
-cyl('foremast.binocular-pedestal',(19.65,0,10.19+.55),.12,1.1,materials['naval'],vertices=16)
+cyl('foremast.binocular-pedestal',(19.65,0,10.19+.65),.12,1.3,materials['naval'],vertices=16)
 rod('foremast.binocular',(19.35,0,11.62),(20.15,0,11.62),.09,materials['dark'],vertices=12)
 for side in [-1,1]:rod('foremast.lookout-bracket',(19.05,side*.9,10.1),leg(side,.38),.05,materials['naval'],vertices=10)
 # Lamp platform between the legs at 13.55 m, on the pole and a tie to the legs.
@@ -121,8 +121,11 @@ aft_x=lambda z:-29.16-.129*(z-5.54)
 AFT_TOP=18.11
 rod('aftmast.pole',(aft_x(5.54),0,5.54),(aft_x(AFT_TOP),0,AFT_TOP),.09,materials['edge'],r2=.05,vertices=16)
 for z in [8.5,10.0,11.5,13.0,14.5,16.0]:
- tube_path('aftmast.step-iron',[(aft_x(z)+.07,-.18,z),(aft_x(z)+.2,-.18,z),(aft_x(z)+.2,.18,z),(aft_x(z)+.07,.18,z)],.02,materials['edge'])
+ tube_path('aftmast.step-iron',[(aft_x(z)+.01,-.05,z),(aft_x(z)+.2,-.16,z),(aft_x(z)+.2,.16,z),(aft_x(z)+.01,.05,z)],.02,materials['edge'])
 rod('aftmast.gaff',(aft_x(15.3),0,15.3),(-31.22,0,14.02),.04,materials['edge'],vertices=10)
+# Spreaders at the mastheads carry the aerial and the stays.
+rod('foremast.spreader',(pole_x(23.9),-.32,23.9),(pole_x(23.9),.32,23.9),.03,materials['edge'],vertices=8)
+rod('aftmast.spreader',(aft_x(17.8),-.32,17.8),(aft_x(17.8),.32,17.8),.03,materials['edge'],vertices=8)
 for side in [-1,1]:
  rod('rigging.aerial',(pole_x(23.9),side*.25,23.9),(aft_x(17.8),side*.25,17.8),.01,materials['dark'],vertices=5)
  # Jackstaff at the stem head; raked ensign staff at the stern with its own stay.
@@ -133,7 +136,7 @@ for side in [-1,1]:
  rod('rigging.shroud',(aft_x(16.5),0,16.5),(-20.2,side*.9,6.86),.008,materials['dark'],vertices=5)
 # Optical instruments on real pedestals, including the midships torpedo rangefinder.
 for name,x,z in [('bridge-rangefinder',23.727,13.512),('mid-rangefinder',-19.077,6.9135)]:
- cyl(name+'.column',(x,0,z+.58),.17,1.16,materials['naval'],vertices=24)
+ cyl(name+'.column',(x,0,z+.65),.17,1.3,materials['naval'],vertices=24)
  rod(name+'.bar',(x,-1.08,z+1.42),(x,1.08,z+1.42),.16,materials['naval'],vertices=24)
  for side in [-1,1]:
   box(name+'.end-hood',(x,side*1.0,z+1.42),(.35,.28,.35),materials['naval'])
@@ -164,7 +167,7 @@ for side in [-1,1]:
  o=mesh('boat.shell',vs,[(i*5+j,(i+1)*5+j,(i+1)*5+j+1,i*5+j+1) for i in range(6) for j in range(4)],materials['wood'],smooth=True)
  mod=o.modifiers.new('Boat shell thickness','SOLIDIFY');mod.thickness=.04
  for sign in [-1,1]:tube_path('boat.gunwale',[(cx+xx,cy+sign*w*.96,z+.70) for xx,w,k in stations],.05,materials['naval'])
- for xx in [-1.9,-.9,.25,1.35,2.25]:box('boat.thwart',(cx+xx,cy,z+.37),(.29,1.5,.06),materials['wood'])
+ for xx,w in [(-1.9,1.4),(-.9,1.6),(.25,1.72),(1.35,1.6),(2.25,1.25)]:box('boat.thwart',(cx+xx,cy,z+.37),(.29,w,.06),materials['wood'])
  box('boat.floor',(cx,cy,z-.13),(4.2,.7,.06),materials['wood'])
  for xx in [-1.9,1.9]:
   x=cx+xx
@@ -172,7 +175,7 @@ for side in [-1,1]:
   rod('boat.cradle-beam',(x,cy-.7,z-.32),(x,cy+.7,z-.32),.075,materials['edge'])
  for xx in [-1.55,1.55]:
   x=cx+xx
-  tube_path('boat.davit',[(x,side*4.35,deckz(x)),(x,side*4.35,7.9),(x,side*4.15,8.3),(x,side*3.75,8.42),(x,cy,8.36)],.07,materials['naval'],sides=12)
+  tube_path('boat.davit',[(x,side*4.22,deckz(x)),(x,side*4.22,7.9),(x,side*4.05,8.3),(x,side*3.7,8.42),(x,cy,8.36)],.07,materials['naval'],sides=12)
   rod('boat.fall',(x,cy,8.36),(x,cy,z+.9),.015,materials['rope'])
   for sign in [-1,1]:rod('boat.sling',(x,cy,z+.9),(x,cy+sign*.8,z+.7),.015,materials['rope'])
 # Stern depth-charge thrower and four separate release cradles.
@@ -200,10 +203,10 @@ for side in [-1,1]:
  rod('propulsion.hub',(-52.62,X(2.14),-2.355),(-53.5,X(2.14),-2.355),.3,materials['bronze'],vertices=24)
  rod('propulsion.cone',(-53.5,X(2.14),-2.355),(-54.4,X(2.14),-2.355),.3,materials['bronze'],r2=.05,vertices=24)
  for j in range(3):
-  theta=j*math.tau/3+.35;vs=[]
+  theta=j*math.tau/3;vs=[]
   for r,hw,sweep in [(.28,.2,0),(.7,.42,.13),(1.15,.46,.24),(1.42,.26,.35),(1.5,.03,.39)]:
    for u in [-1,1]:
-    a=theta+side*(sweep+u*hw/max(r,.28));vs.append((-53.1+side*u*hw*.5,X(2.14)+r*math.cos(a),-2.355+r*math.sin(a)))
+    a=theta+sweep+u*hw/max(r,.28);vs.append((-53.1+u*hw*.5,X(2.14)+side*r*math.cos(a),-2.355+r*math.sin(a)))
   o=mesh('propulsion.blade',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(4)],materials['bronze'],smooth=True);mod=o.modifiers.new('Cast blade thickness','SOLIDIFY');mod.thickness=.05
  # Rudder plate: leading edge at z 55.1, trailing edge 57.8, from the counter to 2.8 m down, canted 15 deg.
  outline=[(-55.1,-.15),(-57.8,-.08),(-57.85,-2.55),(-57.5,-2.85),(-55.4,-2.8),(-55.1,-2.5)]
@@ -213,8 +216,9 @@ for side in [-1,1]:
  rod('rudder.stock',(-55.8,cant(-.3),-.3),(-55.8,cant(-.3),1.0),.13,materials['edge'])
 # Anchors, capstans and shipboard fittings; each piece has a modeled deck attachment.
 for side in [-1,1]:
- for x in [-56,-49,45.3435,53,56]:
-  y=side*(2.853 if x==45.3435 else width(x)*.68);z=deckz(x)
+ # Bollards and fairleads at the reference positions (forecastle and quarterdeck).
+ for x,w in [(40.1,3.23),(45.3435,2.853),(52.6,1.7),(-44.3,4.12),(-50.1,3.7)]:
+  y=side*w;z=deckz(x)
   box('mooring.base',(x,y,z+.09),(.9,.40,.18),materials['edge'])
   for dx in [-.27,.27]:
    cyl('mooring.bitt',(x+dx,y,z+.36),.10,.52,materials['naval'],vertices=16)
@@ -225,12 +229,13 @@ for side in [-1,1]:
  for sign in [-1,1]:
   rod('anchor.arm',(x-.55,y,z-.8),(x-.7,y+sign*.4,z-.85),.08,materials['edge'])
   rod('anchor.fluke',(x-.7,y+sign*.4,z-.85),(x-.2,y+sign*.4,z-.5),.10,materials['edge'],r2=.02)
+ # Cable from the windlass over the stopper plates to the hawse pipes.
  for i in range(36):
-  x=50+i*.13;y=side*(.4+.09*(x-50));z=deckz(x)+.02
+  x=47.9+i*.205;y=side*(.25+.4*(x-47.9)/7.35);z=deckz(x)+.02
   tube_path('anchor.chain',[(x+.07*math.cos(j*math.tau/12),y+.039*math.sin(j*math.tau/12),z) for j in range(12)],.018,materials['edge'],sides=5,closed=True)
-for x in [-50,50]:
+for x in [-50,47.5]:
  z=deckz(x);cyl('mooring.capstan',(x,0,z+.28),.42,.56,materials['naval'],vertices=24);cyl('mooring.capstan-top',(x,0,z+.6),.47,.09,materials['edge'],vertices=24)
-for x in [-52,-47,-39,36,52]:
+for x in [-52,-47,-39,36,43.5]:
  z=deckz(x);box('deck.hatch',(x,.5,z+.17),(1.0,.75,.22),materials['naval'])
  for y in [.22,.78]:
   tube_path('deck.hatch-grab',[(x-.18,y,z+.29),(x-.18,y,z+.39),(x+.18,y,z+.39),(x+.18,y,z+.29)],.02,materials['edge'])
