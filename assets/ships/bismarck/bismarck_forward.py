@@ -322,8 +322,33 @@ def house_windows():
  pts=ccw(plan('bridge-wheelhouse'))
  for yy in [0,1.66,-1.66,3.22,-3.22,4.72,-4.72]:
   x,n=front_face(pts,yy);window('Wheelhouse window',(x,yy,14.725),n,.5,.25)
+def forward_deck():
+ # The forward 37 mm platform on the 01 deck: a splinter bulwark from the battery deck's angled face round the
+ # deck edge and across the front of each gun, and two low stowage boxes angled forward (pgsb708 plan at 8.9 m).
+ ring=plan('superstructure-platform')
+ for sign in [-1,1]:
+  run=[(37.6,5.8)]
+  for xx in [38.6,40.6,42.2]:
+   yy,_=house_side(ring,xx,sign);run.append((xx,abs(yy)-.06))
+  run+=[(43.4,6.2),(43.4,2.8),(42.1,2.7)]
+  pts=[(x,sign*y) for x,y in run]
+  if sign>0:pts=pts[::-1]
+  band('Forward 37 mm splinter bulwark',pts,8.3,9.25,.05,False,(.08,.06),col=detailcol)
+  # Stays only where the guns' footboards never sweep: the after corner and the inboard end of the front plate.
+  rod('Forward 37 mm bulwark stay',(38.3,sign*6.78,9.05),(38.95,sign*6.4,8.32),.03,materials['edge'],detailcol,vertices=4)
+  rod('Forward 37 mm bulwark stay',(43.33,sign*3.2,9.05),(42.7,sign*3.2,8.32),.03,materials['edge'],detailcol,vertices=4)
+  # Handrail along the 01 deck edge from the gun platform forward towards Bruno.
+  edge=[(xx,house_side(ring,xx,sign)[0]-sign*.08,8.305) for xx in [43.5,44.5,45.5,46.4]]
+  rail('Forward 01 deck edge rail',edge,.9,1.4,False,col=detailcol)
+  a,b=Vector((44.9,sign*1.2,0)),Vector((48.0,sign*5.2,0));mid=(a+b)/2;ang=math.atan2(b.y-a.y,b.x-a.x)
+  box('Forward deck stowage box',(mid.x,mid.y,8.66),((b-a).length,.45,.4),materials['naval'],detailcol).rotation_euler.z=ang
+  for t in [.12,.5,.88]:
+   q=a+(b-a)*t
+   for off in [-.16,.16]:
+    n=Vector((-math.sin(ang),math.cos(ang),0))*off
+    rod('Forward deck stowage box leg',(q.x+n.x,q.y+n.y,8.3),(q.x+n.x,q.y+n.y,8.47),.03,materials['edge'],detailcol,vertices=4)
 def tower_fittings():
- core_details();house_windows()
+ core_details();house_windows();forward_deck()
  for sign in [-1,1]:
   # Instruments at the reference stations (pgsb708 misc fittings), each on its own deck.
   pelorus('Signal deck pelorus',17.0,sign*3.94,20.66)
