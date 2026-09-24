@@ -269,7 +269,7 @@ rod('Foremast gaff',tuple(B(0,22.4,-16.76)),tuple(B(0,28.9,-13.7)),.075,'naval',
 # Side rangefinders stand on columns from the raised deck.
 OWNER='bridge-fittings'
 for sy in (-1,1):
- cyl('Rangefinder column',(14.85,sy*5.16,(7.30+11.95)/2),.55,11.95-7.30,'naval')
+ cyl('Rangefinder column',(14.85,sy*5.16,(7.30+12.10)/2),.55,12.10-7.30,'naval')
  for zz in (8.2,9.2,10.2,11.2):rod('Column ladder rung',(14.85+.56,sy*5.16-.2,zz),(14.85+.56,sy*5.16+.2,zz),.02,'edge',vertices=6)
 rod('Stern signal staff',(-99.7,0,deck(-99.7)),(-100.25,0,12.0),.055,'naval')
 # Ropes and aerials have supported endpoints.
@@ -314,9 +314,12 @@ for x in (83,88):
   cyl('Anchor capstan',(x,y,z+.45),.53,.9);cyl('Capstan crown',(x,y,z+.94),.64,.12,'edge')
 for sy in (-1,1):
  detail().chain('Anchor cable',(89,sy*1.4,deck(89)+.09),(96,sy*1.45,deck(96)+.06),.30)
- x=94;y=sy*width(x)
- rod('Anchor shank',(x,y*.99,deck(x)-1),(x-1.25,y,deck(x)-2.3),.12,'edge')
- rod('Anchor crown',(x-1.25,y,deck(x)-2.3),(x-1.25,sy*(abs(y)+.2),deck(x)-1.5),.13,'edge')
+ # Stocked anchors housed against the flared bow at the reference's hawse (z -93.2, 3.9-5.5 m).
+ x0,z0,x1,z1=93.9,5.5,92.6,4.0
+ y0=sy*(loft_breadth(H,x0,z0)+.10);y1=sy*(loft_breadth(H,x1,z1)+.14)
+ rod('Anchor shank',(x0,y0,z0),(x1,y1,z1),.12,'edge')
+ rod('Anchor crown',(x1+.45,sy*(abs(y1)-.02),z1-.35),(x1-.45,sy*(abs(y1)+.05),z1+.35),.13,'edge')
+ rod('Hawse pipe lip',(x0+.1,sy*(loft_breadth(H,x0+.1,z0+.25)+.02),z0+.25),(x0+.1,sy*(loft_breadth(H,x0+.1,z0+.25)+.14),z0+.25),.28,'edge',vertices=16)
  for x in (-76,78):detail().reel('Cable reel',x,sy*2.6,deck(x),.43,1.05)
  for x in range(-92,94,4):
   w=loft_breadth(H,x,3.3)
@@ -329,7 +332,7 @@ rod('Chrysanthemum backing',(x-.10,0,z),(x+.02,0,z),.37,'bronze',vertices=32)
 for i in range(16):
  a=i*math.tau/16;rod('Chrysanthemum petal',(x+.035,.075*math.cos(a),z+.075*math.sin(a)),(x+.03,.32*math.cos(a),z+.32*math.sin(a)),.035,'strip',vertices=8)
 # Underwater appendages measured on the reference: four screws on long shafts with bossings and V brackets,
-# twin rudders behind the inner screws, the centreline skeg under the cut-up stern and the bilge keels.
+# twin rudders behind the inner screws and the bilge keels (the centreline skeg is part of the hull loft).
 COL=C['Underwater'];OWNER='propulsion'
 def breadth_at(x,h):
  st=x+L/2
@@ -383,12 +386,6 @@ for sy in (-1,1):
  f=[tuple(range(n)),tuple(range(2*n-1,n-1,-1))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
  mesh('Rudder',v,f,'underwater')
  rod('Rudder stock',(xa-1.0,yr,prof[0][1]-.4),(xa-1.0,yr,hull_under(xa-1.0,2.0)+.6),.14,'edge',vertices=12)
-# Centreline skeg under the cut-up stern; its top runs inside the keel line.
-top=[(x,keel(x)+.18) for x in (-43,-50,-58,-66,-72,-76,-79.6)]
-bottom=[(-80.0,-3.85),(-79.0,-4.8),(-78.2,-5.79),(-72,-5.79),(-64,-5.82),(-52,-5.87),(-43,-5.9)]
-prof=top+bottom;n=len(prof)
-v=[(x,s*(.2 if x>-76 else .16),z) for s in (-1,1) for x,z in prof]
-mesh('Centreline skeg',v,[tuple(range(n)),tuple(range(2*n-1,n-1,-1))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'underwater')
 # Bilge keels on the bulge's lower edge (z -24..34 on the reference).
 OWNER='hull'
 for sy in (-1,1):

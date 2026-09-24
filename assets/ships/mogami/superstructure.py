@@ -82,8 +82,13 @@ def create_superstructure(d, col, helpers, materials, deck):
                 if -11<(xa+xb)/2<11:continue
                 wa,za=level(xa);wb,zb=level(xb)
                 for h in (.4,.8):rod('Central deck railing wire',(xa,sign*(wa-.09),za+h),(xb,sign*(wb-.09),zb+h),.017,vertices=6)
-        fit.stairs('Forward raised-deck companionway',(40,sign*6.3,4.72),(36,sign*6.3,7.25),.72)
-        fit.stairs('After raised-deck companionway',(-50.6,sign*6.2,5.1),(-46.7,sign*6.2,7.55),.72)
+        for name,a,b in [('Forward raised-deck companionway',(40,sign*6.3,4.72),(36,sign*6.3,7.25)),('After raised-deck companionway',(-50.6,sign*4.6,5.1),(-46.4,sign*4.6,7.6))]:
+            fit.stairs(name,a,b,.72)
+            # Handrail stanchions carry the rails down to the stringers.
+            for u in (.05,.5,.95):
+                for s in (-1,1):
+                    p=[a[i]+(b[i]-a[i])*u for i in range(3)];p[1]+=s*.36
+                    rod(name+' handrail stanchion',tuple(p),(p[0],p[1],p[2]+.9),.025,'edge',vertices=6)
         # Continuous fascia; the torpedo bay stays open below the handling deck.
         for x in range(-38,-9,3):
             w,z=level(x);porthole('Raised deck scuttle',x,sign*(w+.012),z-.32,sign,.11)
@@ -218,7 +223,10 @@ def create_superstructure(d, col, helpers, materials, deck):
             for endpoint in (pts[0],pts[-1]):
                 seat=min(mouth,key=lambda q:math.dist(q,endpoint))
                 rod('Spark guard rim bracket',seat,endpoint,.04,'edge',vertices=8)
-        for xx in (a+.75,cx,b-.75):rod('Funnel transverse grille',(xx,-1.65,z+.24*(xx-cx)+.18),(xx,1.65,z+.24*(xx-cx)+.18),.031,'edge',vertices=8)
+        for xx in (a+.75,cx,b-.75):
+            cuts=[(q[1]+(r[1]-q[1])*(xx-q[0])/(r[0]-q[0]),q[2]+(r[2]-q[2])*(xx-q[0])/(r[0]-q[0])) for q,r in zip(mouth,mouth[1:]+mouth[:1]) if (q[0]-xx)*(r[0]-xx)<0]
+            hw=max(abs(c[0]) for c in cuts)-.02;zr=max(c[1] for c in cuts)+.05
+            rod('Funnel transverse grille',(xx,-hw,zr),(xx,hw,zr),.031,'edge',vertices=8)
         for ring in rings[1:-1:2]:
             for a,b in zip(ring,ring[1:]+ring[:1]):rod('Funnel jacket seam',a,b,.018,'edge',vertices=6)
         # Slender steam pipes and saddles follow the uptake curve on both sides.
@@ -249,6 +257,10 @@ def create_superstructure(d, col, helpers, materials, deck):
             rod('Gallery supporting column',(x,sign*3.9,7.32),(x,sign*3.9,9.78),.15,'naval',vertices=12)
         rail('AA gallery outer rail',[(x,sign*5.65) for x in (-7.6,-3.0,2.6)],9.89,.65,False)
         fit.stairs('Gallery access',(-11.0,sign*4.0,7.33),(-7.8,sign*4.0,9.89),.63)
+        for u in (.05,.5,.95):
+            for s in (-1,1):
+                q=(-11.0+3.2*u,sign*4.0+s*.315,7.33+2.56*u)
+                rod('Gallery access handrail stanchion',q,(q[0],q[1],q[2]+.9),.025,'edge',vertices=6)
     plate('Funnel gallery aft crosswalk',[(-8.0,-5.7),(-8.0,5.7),(-6.5,5.7),(-6.5,-5.7)],9.78,.11)
     plate('Searchlight crosswalk',[(-7.0,-1.2),(-7.0,1.2),(-4.6,1.2),(-4.6,-1.2)],9.78,.11)
     # Aft director: low cabin, paired window bands and a compact raised hood.
