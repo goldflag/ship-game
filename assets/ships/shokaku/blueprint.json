@@ -4033,9 +4033,9 @@
       "partId": "type89-127-a1-twin",
       "battery": "main",
       "position": [
-        -14.32,
-        10.75,
-        -76.64
+        -13.518,
+        11.01,
+        -76.694
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4052,9 +4052,9 @@
       "partId": "type89-127-a1-twin",
       "battery": "main",
       "position": [
-        -16.01,
-        10.75,
-        -56.36
+        -15.205,
+        11.01,
+        -56.409
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4071,9 +4071,9 @@
       "partId": "type89-127-a1-twin",
       "battery": "main",
       "position": [
-        -17.18,
-        10.5,
-        57.65
+        -16.38,
+        10.659,
+        57.599
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4090,9 +4090,9 @@
       "partId": "type89-127-a1-twin",
       "battery": "main",
       "position": [
-        -17.12,
-        10.5,
-        71.78
+        -16.317,
+        10.659,
+        71.723
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4109,9 +4109,9 @@
       "partId": "type89-127-a1-twin",
       "battery": "main",
       "position": [
-        14.47,
-        10.75,
-        -76.57
+        13.67,
+        11.029,
+        -76.519
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4128,9 +4128,9 @@
       "partId": "type89-127-a1-twin",
       "battery": "main",
       "position": [
-        15.66,
-        10.75,
-        -59.32
+        14.852,
+        11.022,
+        -59.272
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4147,9 +4147,9 @@
       "partId": "type89-127-a1-mod2-twin",
       "battery": "main",
       "position": [
-        17.14,
-        10.5,
-        39.63
+        16.902,
+        11.058,
+        39.629
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4166,9 +4166,9 @@
       "partId": "type89-127-a1-mod2-twin",
       "battery": "main",
       "position": [
-        17.14,
-        10.5,
-        54.17
+        16.902,
+        11.058,
+        54.173
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4185,9 +4185,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        -16.15,
-        14.25,
-        42
+        -16.806,
+        12.653,
+        41.642
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4204,9 +4204,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        -16.15,
-        14.25,
-        34.7
+        -16.806,
+        12.653,
+        34.945
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4223,9 +4223,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        -16.15,
-        14.25,
-        18.6
+        -16.806,
+        12.653,
+        19.301
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4242,9 +4242,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        -16.15,
-        14.25,
-        11.5
+        -16.806,
+        12.653,
+        11.996
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4261,9 +4261,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        -16.15,
-        14.25,
-        3.9
+        -16.806,
+        12.653,
+        4.219
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4280,9 +4280,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        -16.15,
-        14.25,
-        -3.2
+        -16.806,
+        12.653,
+        -2.622
       ],
       "bearingDeg": -90,
       "rangefinder": false,
@@ -4299,9 +4299,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        16.15,
-        14.25,
-        98.2
+        15.585,
+        12.348,
+        99.148
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4318,9 +4318,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        16.15,
-        14.25,
-        91.3
+        15.585,
+        12.343,
+        92.464
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4337,9 +4337,9 @@
       "partId": "type96-25-triple-shielded",
       "battery": "secondary",
       "position": [
-        16.15,
-        14.25,
-        75.3
+        16.68,
+        12.362,
+        77.096
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4356,9 +4356,9 @@
       "partId": "type96-25-triple-shielded",
       "battery": "secondary",
       "position": [
-        16.15,
-        14.25,
-        68.8
+        16.68,
+        12.362,
+        70.525
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4375,9 +4375,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        17.9,
-        14.25,
-        -15.2
+        17.724,
+        12.602,
+        -14.975
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -4394,9 +4394,9 @@
       "partId": "type96-25-triple",
       "battery": "secondary",
       "position": [
-        17.9,
-        14.25,
-        -22.4
+        17.724,
+        12.602,
+        -22.108
       ],
       "bearingDeg": 90,
       "rangefinder": false,

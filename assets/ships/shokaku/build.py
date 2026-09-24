@@ -13,8 +13,8 @@ from blender_rig import create_flagstaffs
 from blender_supports import SupportSurface
 sys.path.insert(0,str(ROOT/'assets/ships/shokaku/authoring'))
 from flight_deck import partition_polygon
-spec=importlib.util.spec_from_file_location('ijn_guns',ROOT/'assets/parts/ijn-carrier-guns/geometry.py')
-guns=importlib.util.module_from_spec(spec);spec.loader.exec_module(guns)
+sys.path.insert(0,str(ROOT/'assets/parts'))
+from library import create_mount as shared_mount
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text());H=D['hull'];OUT=Path(os.environ['SHIP_OUTPUT'])
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 bpy.context.preferences.filepaths.save_version=0
@@ -361,6 +361,7 @@ for mount in D['mounts']:
         # Forward 12.7 cm pairs: rectangular platforms with chamfered outboard
         # corners, a 1 m splinter bulwark and knee brackets (pjsa108).
         inner=hangar_side(x,sign)-.05;outer=abs(y)+2.45;L2=3.0
+        z-=.13  # the open twin's deck disc hangs 0.11 m below its datum (GJ); 2 cm clear
         pts=[(x-L2,inner),(x+L2,inner),(x+L2,outer-1.1),(x+L2-1.1,outer),(x-L2+1.1,outer),(x-L2,outer-1.1)]
         poly(mount['id']+' sponson platform',[(px,sign*py) for px,py in pts],z-.25,z,M['naval'],col)
         rim=pts[1:]+[pts[0]]
@@ -375,11 +376,15 @@ for mount in D['mounts']:
     elif heavy:
         # After 12.7 cm mounts: round tubs on a tapered pedestal web that fairs
         # into the hull side, with two diagonal struts (pjsa108).
-        R=3.15;wall=hangar_side(x,sign) or 13.0
-        # The gas-shielded gunhouse skirt reaches just below its datum: keep 5 cm clear.
-        drop=.05 if 'mod2' in mount['partId'] else 0
-        cyl(mount['id']+' sponson floor',(x,y,z-.13-drop),R,.26,M['naval'],col,32)
-        tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.75,col)
+        wall=hangar_side(x,sign) or 13.0
+        if 'mod2' in mount['partId']:
+            # The gas-shielded twin's turntable (r 3.31) is itself the platform: a
+            # plain round floor just under it, no splinter tub.
+            R=3.45;cyl(mount['id']+' sponson floor',(x,y,z-.14),R,.26,M['naval'],col,32)
+        else:
+            R=3.15;z-=.13
+            cyl(mount['id']+' sponson floor',(x,y,z-.13),R,.26,M['naval'],col,32)
+            tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.75,col)
         box(mount['id']+' tub neck',(x,sign*(wall+abs(y))/2,z-.16),(R*1.4,abs(y)-wall+.05,.24),M['naval'],col)
         foot=3.6;hb=loft_breadth(H,x,foot)
         top=[(x-2.0,sign*(wall-.04)),(x+2.0,sign*(wall-.04)),(x+1.5,sign*(abs(y)+.4*R)),(x-1.5,sign*(abs(y)+.4*R))]
@@ -390,16 +395,24 @@ for mount in D['mounts']:
             rod(mount['id']+' sponson strut',seat,(x+dx,sign*(abs(y)+.55*R),z-.26),.11,M['naval'],col)
         box(mount['id']+' ready-use locker',(x-R*.72,sign*(wall+.4),z+.38),(.75,.6,.76),M['naval'],col)
     else:
-        # 25 mm triples at the flight-deck edge: tub, gallery bridge to the hangar
-        # side and knee brackets on the flush wall.
-        R=1.95 if 'shielded' in mount['partId'] else 1.7;wall=hangar_side(x,sign) or 13.0
-        drop=.05 if 'shielded' in mount['partId'] else 0
-        cyl(mount['id']+' sponson floor',(x,y,z-.13-drop),R,.26,M['naval'],col,24)
-        tub_wall(mount['id']+' splinter tub',x,y,R,z-drop,z+.45,col,24)
-        box(mount['id']+' gallery bridge',(x,sign*(wall+abs(y))/2,z-.14-drop),(R*1.5,abs(y)-wall+.05,.28),M['naval'],col)
-        for dx in [-R*.6,R*.6]:fit.knee(mount['id']+' gallery web',x+dx,sign*wall,sign*(abs(y)+R*.6),z-.27,1.8)
-    guns.create_mount(mount,COL['Armament'],helpers,M)
+        # 25 mm triples in galleries below the flight-deck edge (pjsa108 hardpoints):
+        # a flat seat and splinter tub (the smoke-shielded pair brings its own drum),
+        # a gallery bridge to the hangar side and knee brackets on the flush wall.
+        shielded='shielded' in mount['partId'];wall=hangar_side(x,sign) or 13.0
+        R=2.0 if shielded else 1.7
+        cyl(mount['id']+' sponson floor',(x,y,z-.14),R,.26,M['naval'],col,24)
+        if not shielded:tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.45,col,24)
+        box(mount['id']+' gallery bridge',(x,sign*(wall+abs(y))/2,z-.15),(R*1.5,abs(y)-wall+.05,.28),M['naval'],col)
+        for dx in [-R*.6,R*.6]:fit.knee(mount['id']+' gallery web',x+dx,sign*wall,sign*(abs(y)+R*.6),z-.28,1.8)
+    shared_mount(mount,COL['Armament'],helpers,M)
 
+light=sorted([m for m in D['mounts'] if m['weapon']['caliberM']<.1 and m['position'][0]<0],key=lambda m:m['position'][2])
+for a,b in zip(light[::2],light[1::2]):
+    xa,xb=-a['position'][2],-b['position'][2];zz=a['position'][1];y0=13.0;y1=abs(a['position'][0])-.4
+    lo,hi=min(xa,xb),max(xa,xb)
+    box('Port 25 mm gallery deck',((lo+hi)/2,(y0+y1)/2,zz-.165),(hi-lo,y1-y0,.28),M['steel-deck'],COL['Armament'])
+    railing([(lo+1.6,y1+.02),(hi-1.6,y1+.02)],zz-.01,'Port 25 mm gallery',COL['Armament'],.95)
+    for xx in [lo+2.0,(lo+hi)/2,hi-2.0]:fit.col=COL['Armament'];fit.knee('Port gallery knee',xx,y0,y1-.2,zz-.29,1.6)
 fit.col=COL['Island']
 # Distinct solid wing bulwarks and the upper windbreak replace uniform rail decks.
 for id in ['bridge-walkway','navigation-wings','compass-platform','bridge-roof']:
