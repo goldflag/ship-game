@@ -138,7 +138,8 @@ for s in D['structures']:
         elif face.normal.z > .8:
             face.material_index = 1
     shells.append(ob)
-support = SupportSurface([hull, *shells])
+# The after 5-inch sponson decks ring their barbettes: barbettes and tubs seat on the deck below them.
+support = SupportSurface([hull, *[o for o in shells if not o['assemblyId'].startswith('platform-5in')]])
 
 # ---------------------------------------------------------------- guns
 tub_col = collections['Light AA']

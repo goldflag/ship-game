@@ -185,11 +185,17 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             moving.append(prism(id + '.rangefinder arm', id, arm, z + .06, z + .86))
             moving.append(part('box', id, col, 'rangefinder window', (*L(.335, side * 4.05), z + .52), (.03, .34, .22), 'glass'))
             # Trestle carrying the Mk 8 antenna.
-            for da in (-.45, .55):
-                moving.append(part('rod', id, col, 'trestle leg', (*L(da, side * 1.9), z + .9), (*L(.05, side * 1.9), z + 2.25), .06, 'naval', vertices=6))
-            moving.append(part('box', id, col, 'trestle head', (*L(.05, side * 1.9), z + 2.3), (.34, .3, .26), 'naval'))
+            for da in (-.28, .28):
+                moving.append(part('rod', id, col, 'trestle leg', (*L(da, side * 1.95), z + .84), (*L(0, side * 1.95), z + 2.25), .06, 'naval', vertices=6))
+            moving.append(part('box', id, col, 'trestle head', (*L(0, side * 1.95), z + 2.3), (.34, .3, .26), 'naval'))
         for b in (-.55, 0, .55):
-            moving.append(part('box', id, col, 'sight port', (*L(1.36, b), z + .55), (.04, .36, .22), 'glass'))
+            nose = 1.5 - .35 * .6
+            face = .6 + (nose - .6) * (1 - abs(b) / 1.73)
+            port = part('box', id, col, 'sight port', (*L(face, b), z + .55), (.08, .34, .22), 'glass')
+            if b:
+                dx, dy = (s * (nose - .6), s * 1.73) if b > 0 else (s * (.6 - nose), s * 1.73)
+                port.rotation_euler.z = math.atan2(dy, dx) - math.pi / 2
+            moving.append(port)
         # Mk 8 antenna: a broad, shallow lattice aft on the roof, carried on posts.
         ax_, ay_ = L(-.96, 0)
         moving += grid(id + '.mk8 antenna', (ax_, ay_, z + 1.66), 5.2, .6, col, 'x', 2, 16, assembly=id)
@@ -219,13 +225,13 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         moving.append(part('rod', id, col, 'rangefinder', (*L(-.45, -2.37), z + 1.5), (*L(-.45, 2.37), z + 1.5), .19, 'naval', vertices=14))
         for side in (-1, 1):
             moving.append(part('rod', id, col, 'rangefinder hood', (*L(-.45, side * 1.62), z + 1.5), (*L(-.45, side * 2.15), z + 1.5), .5, 'naval', r2=.42, vertices=14))
-            moving.append(part('box', id, col, 'rangefinder window', (*L(-.12, side * 2.37), z + 1.52), (.03, .22, .2), 'glass'))
+            moving.append(part('box', id, col, 'rangefinder window', (*L(-.45, side * 2.38), z + 1.5), (.2, .03, .2), 'glass'))
         moving.append(prism(id + '.access trunk', id, [L(-1.45, -.9), L(-1.45, .9), L(-1.95, .9), L(-1.95, -.9)], z + .7, z + 1.9))
         for b in (-.6, 0, .6):
             moving.append(part('box', id, col, 'sight port', (*L(1.465, b), z + 1.02), (.04, .34, .24), 'glass'))
             moving.append(part('box', id, col, 'antenna shield', (*L(-1.2, b), z + 2.44), (.3, .4, .4), 'naval'))
             moving.append(part('rod', id, col, 'antenna shield cap', (*L(-1.2, b - .2), z + 2.64), (*L(-1.2, b + .2), z + 2.64), .15, 'naval', vertices=8))
-        for a, b, h in ((1.0, -1.1, .9), (-.9, 1.1, .7)):
+        for a, b, h in ((-.6, -1.0, .9), (-.9, 1.0, .7)):
             moving.append(part('rod', id, col, 'whip', (*L(a, b), z + 2.24), (*L(a + .35, b - .2), z + 2.24 + h), .02, 'edge', vertices=5))
         radar_pivot(id + '.yaw', (x, y, z + .075), [o for o in objects_since(before) if o in moving])
 
@@ -309,7 +315,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     for sx in (-1, 1):
         part('rod', name, col, 'signal yard brace', R(sx * 1.84, 26.6, -5.77), R(sx * 4.6, 28.5, -5.77), .06, 'naval', vertices=6)
         for hx in (6.8, 8.9):
-            part('rod', name, col, 'halyard block', R(sx * hx, 28.42, -5.77), R(sx * hx, 28.2, -5.77), .04, 'edge', vertices=5)
+            part('rod', name, col, 'halyard block', R(sx * hx, 28.52, -5.77), R(sx * hx, 28.3, -5.77), .04, 'edge', vertices=5)
     before = names()
     sx, sy, sz = P(0, 36.05, -1.13)
     part('box', 'radar-sk', col, 'pedestal', (sx - .1, sy, 36.66), (.92, .9, 1.3), 'naval')
@@ -498,7 +504,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         for dz in (2.5, 5.0, 7.5):
             F.col = acol
             F.ring(id + '.post band', (base[0], base[1], base[2] + dz), .5 - .018 * dz, .03, 'z', segments=14)
-        heel = P(s * 4.6, 11.8, 15.0)
+        heel = P(s * 4.9, 11.8, 14.3)
         tip = P(s * 2.55, 17.6, 32.9)
         lattice(id + '.jib', heel, tip, .9, .75, acol, 14, assembly=id)
         part('rod', id, acol, 'topping lift', (top_[0], top_[1], top_[2] + .15), tip, .025, 'edge', vertices=5)
@@ -537,13 +543,14 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     dcol = collections['Deck fittings']
     for s in (-1, 1):
         x, y, z = P(s * 2.5, 7.1, -114.8)
-        top_deck = deckz(x)
+        top_deck = support.below(x - 6.5, y, 20)
         tag(cyl('ground tackle.windlass', (x - 6.5, y, top_deck + .45), .55, .9, 'edge', dcol, 24), 'ground-tackle')
         tag(cyl('ground tackle.windlass cap', (x - 6.5, y, top_deck + .95), .7, .12, 'naval', dcol, 24), 'ground-tackle')
         a, c = Vector((x - 6.0, y, deckz(x - 6.0) + .12)), Vector((x + 1.5, y * 1.05, deckz(x + 1.5) + .12))
         n = int((c - a).length / .3)
         for i in range(n):
             q = a.lerp(c, (i + .5) / n)
+            q = Vector((q.x, q.y, support.below(q.x, q.y, q.z + 1) + .1))
             link = tag(box('ground tackle.chain link', q, (.36, .09 if i % 2 else .22, .22 if i % 2 else .09), 'edge', dcol), 'ground-tackle')
             link.rotation_euler.z = math.atan2((c - a).y, (c - a).x)
         # Stockless anchor seated in its hawse at the bow flare.
@@ -582,7 +589,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         floor = support.below(x, y, z + 1)
         tag(rod('paravane.body', (x - 1.5, y, floor + .45), (x + 1.2, y, floor + .45), .28, 'naval', dcol, r2=.12, vertices=12), 'paravanes')
         tag(box('paravane.plane', (x - .2, y, floor + .45), (.9, 1.6, .05), 'naval', dcol), 'paravanes')
-        tag(box('paravane.chock', (x, y, floor + .1), (1.2, .5, .2), 'roof', dcol), 'paravanes')
+        tag(box('paravane.chock', (x, y, floor + .16), (1.2, .5, .32), 'roof', dcol), 'paravanes')
     for (rx, ry, rzz, ln) in [(3.9, 5.9, -70.0, 2.2), (-3.9, 5.9, -70.0, 2.2), (9.9, 4.9, 92.0, 2.2), (-9.9, 4.9, 92.0, 2.2), (8.6, 5.1, 101.0, 2.2), (-8.6, 5.1, 101.0, 2.2),
                               (11.3, 4.8, 72.6, 3.1), (-11.3, 4.8, 72.6, 3.1), (9.8, 4.8, 72.5, 3.1), (-9.8, 4.8, 72.5, 3.1)]:
         x, y, z = P(rx, ry, rzz)
@@ -680,6 +687,25 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             if st['baseY'] - floor > .05:
                 tag(rod(sid + '.leg', (q.x, q.y, floor), (q.x, q.y, st['baseY'] + .01), .07, 'naval', scol, vertices=6), sid)
 
+    # Knees under the after 5-inch sponson decks, from the barbette out to the rim (reference z = 28.9 cut).
+    for sid in ('platform-5in-aft-port', 'platform-5in-aft-starboard'):
+        st = next((t for t in structures if t['id'] == sid), None)
+        if not st:
+            continue
+        sgn = -1 if sid.endswith('port') else 1
+        cx_, cy_, _ = R(sgn * 10.9, 0, 28.94)
+        for ang in (-60, -20, 20, 60, 100, 140, 180, 220, 260):
+            a_ = math.radians(ang)
+            d_ = Vector((math.cos(a_), math.sin(a_), 0))
+            inner = Vector((cx_, cy_, 0)) + d_ * 1.95
+            outer = Vector((cx_, cy_, 0)) + d_ * 3.95
+            if abs(outer.y) > 13.6:
+                outer = Vector((cx_, cy_, 0)) + d_ * max(2.4, (13.6 - abs(cy_)) / max(.2, abs(d_.y)))
+            side_ = Vector((-d_.y, d_.x, 0)) * .04
+            pts = [inner + Vector((0, 0, 5.9)), inner + Vector((0, 0, 7.1)), outer + Vector((0, 0, 7.1))]
+            vv = [tuple(p_ + sv) for sv in (-side_, side_) for p_ in pts]
+            tag(mesh(sid + '.knee', vv, [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', scol), sid)
+
     # Knee webs under the tower's after extensions (the 22 m deck and the director deck reach aft to the
     # foremast), as the reference carries them.
     for sx in (-1, 1):
@@ -692,7 +718,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
 
     # ------------------------------------------------------------ deckhouse walls: doors, scuttles, vents
     for st in structures:
-        if st['height'] < 1.8 or st['id'] == 'funnel':
+        if st['height'] < 1.8 or st['id'] == 'funnel' or st.get('surface'):
             continue
         base, top = st['baseY'], st['baseY'] + st['height']
         poly = outline(st)
