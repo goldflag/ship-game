@@ -5,8 +5,9 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    # Room for a cold Rust cache (first run, or a Cargo.lock or toolchain change), which rebuilds the release workspace from scratch.
-    timeout-minutes: 60
+    # A full run takes about 53 minutes: rust-cache keeps dependencies, but the workspace crates rebuild in release for
+    # cargo test and again for the server smoke. Headroom so a slow runner doesn't turn CI red on its own.
+    timeout-minutes: 90
     services:
       postgres:
         image: postgres:17-bookworm
