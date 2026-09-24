@@ -103,20 +103,24 @@ def create_superstructure(d, col, helpers, materials, deck):
             if min(u,v,1-u-v)>=-.0001:ys.append(abs(u*a[1]+v*b[1]+(1-u-v)*c[1]))
         return max(ys,default=0)
     owner='bridge-fittings'
-    # Open observation wings wrap the narrower tapered tower, rather than another box tier.
+    # Lookout wings at 14.45 m on the tower sides, as on the reference: two hooded lookout positions and a
+    # searchlight stand on each, railed, braced back to the tower.
     for sign in (-1,1):
-        pts=[(20.3,sign*2.1),(20.4,sign*4.0),(24.8,sign*4.0),(25.7,sign*3.1),(25.5,sign*2.25)]
-        plate('Observation wing',pts,15.60,.10);rail('Observation wing',pts,15.7,.82)
-        for x in (21.1,24.0):rod('Wing underside bracket',(x,sign*2.2,13.7),(x,sign*3.8,15.6),.11,'naval')
-        for x in (21.4,23.6):
-            cyl('Lookout pedestal',(x,sign*3.25,14.35),.28,.5)
-            box('Lookout housing',(x,sign*3.25,14.8),(.7,.6,.65))
-            cyl('Binocular column',(x,sign*3.1,16.12),.07,.85,'naval',12)
-            for dy in (-.10,.10):rod('Binocular optic',(x-.22,sign*3.1+dy,16.53),(x+.3,sign*3.1+dy,16.53),.075,'edge',vertices=12)
-        # Side director wings and the large diagonal supporting tubes.
+        pts=[(18.4,sign*2.3),(18.4,sign*4.1),(24.3,sign*4.1),(25.0,sign*3.3),(25.0,sign*2.3)]
+        plate('Observation wing',pts,14.37,.10);rail('Observation wing',[pts[1],pts[2],pts[3]],14.47,.82,False)
+        for x in (19.2,21.5,24.0):rod('Wing underside bracket',(x,sign*2.3,12.9),(x,sign*3.9,14.37),.10,'naval')
+        for x in (21.0,23.8):
+            cyl('Lookout hood base',(x,sign*3.45,14.72),.42,.5,'naval')
+            cyl('Lookout hood',(x,sign*3.45,15.15),.42,.36,'roof',r2=.30)
+            box('Lookout hood slit',(x+.40,sign*3.45,14.98),(.05,.42,.12),'glass')
+        cyl('Wing searchlight pedestal',(19.1,sign*3.5,14.75),.14,.6,'edge',vertices=10)
+        rod('Wing searchlight',(18.85,sign*3.5,15.3),(19.35,sign*3.5,15.3),.32,'naval',vertices=16)
+        box('Wing searchlight lens',(18.83,sign*3.5,15.3),(.03,.5,.5),'glass')
+        # Side directors on pedestal columns from the raised deck, with their railed wing decks.
         pts=[(19,sign*3),(20,sign*7.5),(21.7,sign*8.5),(24,sign*6.2),(24.2,sign*3)]
-        plate('Director wing deck',pts,9.64,.20);rail('Director wing deck',pts,9.84,.62)
-        rod('Director wing diagonal',(21.25,sign*3.4,7.3),(21.25,sign*7.2,9.7),.25,'naval',vertices=16)
+        plate('Director wing deck',pts,9.64,.20);rail('Director wing deck',pts[1:4],9.84,.62,False)
+        cyl('Director pedestal column',(21.25,sign*7.2,(7.3+9.64)/2),.55,9.64-7.3,'naval')
+        for x in (19.7,23.4):rod('Director wing bracket',(x,sign*3.2,8.1),(x,sign*5.8,9.64),.10,'naval')
         cyl('Side director column',(21.25,sign*7.23,10.2),.59,.72)
         cyl('Side director enclosure',(21.25,sign*7.23,10.87),1.14,1.04)
         cyl('Side director sloped cap',(21.25,sign*7.23,11.49),1.13,.25,r2=.95)
@@ -124,13 +128,38 @@ def create_superstructure(d, col, helpers, materials, deck):
             for z in (8.25,10.6,13.1,14.7):
                 yy=tower_width(x,z)
                 if yy:porthole('Bridge scuttle',x,sign*(yy+.012),z,sign)
-        fit.ladder('Bridge access ladder',(21.0,sign*2.7,9.84),(21.0,sign*2.7,15.60),.55)
+        fit.ladder('Bridge access ladder',(20.0,sign*2.55,9.84),(20.0,sign*2.55,14.47),.55)
         for x in (23.0,26.2):
             rod('Bridge vertical seam',(x,sign*(tower_width(x,12.0)+.02),12.0),(x,sign*(tower_width(x,14.0)+.02),14.0),.012,'edge',vertices=6)
         # Smaller rear optics remain on fully supported platforms.
         ellipse('Optical platform',14.85,sign*5.16,12.08,2.1,1.0,.14)
         cyl('Optical platform stem',(14.85,sign*5.16,12.37),.4,.44)
         rod('Side rangefinder',(13.2,sign*5.16,12.72),(16.55,sign*5.16,12.72),.19,'naval',vertices=20)
+    plate('Searchlight bridge',[(21.5,5.4),(19.8,5.4),(19.8,-5.4),(21.5,-5.4)],12.2,.12)
+    for sign in (-1,1):
+        rail('Searchlight bridge',[(21.5,sign*2.3),(21.5,sign*5.4),(19.8,sign*5.4),(19.8,sign*2.3)],12.32,.8,False)
+        rod('Searchlight bridge bracket',(20.6,sign*2.3,10.9),(20.6,sign*5.1,12.2),.09,'naval')
+        cyl('Searchlight bridge binocular stand',(20.6,sign*5.1,12.75),.07,.85,'naval',10)
+        for dy in (-.1,.1):rod('Searchlight bridge binocular',(20.35,sign*5.1+dy,13.2),(20.85,sign*5.1+dy,13.2),.07,'edge',vertices=10)
+    owner='funnel-searchlights'
+    # Lattice searchlight towers as measured: two abreast the forward funnel from the raised deck, one abaft
+    # the after funnel on the gallery crosswalk.
+    for x,y,base,spread in [(9.3,4.95,7.3,1.4),(9.3,-4.95,7.3,1.4),(-5.95,0,9.89,1.0)]:
+        top=12.25;corners=[(-1,-1),(1,-1),(1,1),(-1,1)]
+        def at(c,zz):f=spread+(.45-spread)*(zz-base)/(top-base);return (x+c[0]*f,y+c[1]*f,zz)
+        for c in corners:rod('Searchlight tower leg',at(c,base),at(c,top),.05,'naval',vertices=8)
+        for zz in (base+(top-base)*.45,top-.05):
+            for c0,c1 in zip(corners,corners[1:]+corners[:1]):rod('Searchlight tower ring',at(c0,zz),at(c1,zz),.035,'edge',vertices=6)
+        mid=base+(top-base)*.45
+        for c0,c1 in zip(corners,corners[1:]+corners[:1]):
+            rod('Searchlight tower brace',at(c0,mid),at(c1,top-.05),.028,'edge',vertices=6);rod('Searchlight tower brace',at(c1,mid),at(c0,top-.05),.028,'edge',vertices=6)
+        plate('Searchlight platform',[(x+.85,y-.85),(x+.85,y+.85),(x-.85,y+.85),(x-.85,y-.85)],top,.1)
+        rail('Searchlight platform',[(x+.82,y-.82),(x+.82,y+.82),(x-.82,y+.82),(x-.82,y-.82)],top+.1,.85)
+        cyl('Searchlight pedestal',(x,y,top+.4),.18,.6,'edge',vertices=10)
+        rod('Searchlight drum',(x+.3,y,top+1.05),(x-.5,y,top+1.05),.5,'naval',vertices=20)
+        box('Searchlight lens',(x+.31,y,top+1.05),(.03,.8,.8),'glass')
+        for s in (-1,1):rod('Searchlight trunnion arm',(x-.1,y+s*.2,top+.6),(x-.1,y+s*.55,top+1.05),.05,'edge',vertices=8)
+    owner='bridge-fittings'
     nav=next(s for s in d['structures'] if s['id']=='bridge-navigation');pts=[(-z,-x) for x,z in nav['footprint']]
     for a,b in zip(pts,pts[1:]+pts[:1]):
         length=math.dist(a,b);n=max(1,round(length/.52))
@@ -145,7 +174,15 @@ def create_superstructure(d, col, helpers, materials, deck):
         for yy in (y-.11,y+.11):rod('Compass binocular',(28.0,yy,19.48),(28.5,yy,19.48),.08,'edge',vertices=12)
     # The rangefinder cabin is a broad drum with an upper director, not a tall plain cylinder.
     owner='main-director';x=23.88
-    cyl('Director trunk',(x,0,17.32),1.6,3.24)
+    # Octagonal tower core behind the navigating bridge (reference: 2.8 m fore-and-aft, 3.1 m wide).
+    oct=[(25.05,-.95),(25.05,.95),(24.4,1.55),(22.95,1.55),(22.3,.95),(22.3,-.95),(22.95,-1.55),(24.4,-1.55)]
+    plate('Director tower core',oct,15.7,3.24,'naval')
+    # Railed gallery at the compass-deck level wrapping the after side of the tower core.
+    gal=[(25.05,3.0),(22.5,3.0),(21.6,2.1),(21.6,-2.1),(22.5,-3.0),(25.05,-3.0)]
+    plate('Upper gallery',gal,18.25,.1)
+    rail('Upper gallery',gal,18.35,.85,False)
+    for sy in (-1,1):rod('Upper gallery bracket',(22.5,sy*1.5,17.1),(22.5,sy*2.7,18.25),.07,'naval')
+    rod('Upper gallery bracket',(22.3,0,17.1),(21.8,0,18.25),.07,'naval')
     cyl('Rangefinder rotating seat',(x,0,19.1),1.67,.30,'edge')
     cyl('Rangefinder lower drum',(x,0,19.68),1.65,.9)
     box('Rangefinder cabin',(x+.12,0,20.46),(3.72,3.2,1.20))
@@ -213,6 +250,7 @@ def create_superstructure(d, col, helpers, materials, deck):
         rail('AA gallery outer rail',[(x,sign*5.65) for x in (-7.6,-3.0,2.6)],9.89,.65,False)
         fit.stairs('Gallery access',(-11.0,sign*4.0,7.33),(-7.8,sign*4.0,9.89),.63)
     plate('Funnel gallery aft crosswalk',[(-8.0,-5.7),(-8.0,5.7),(-6.5,5.7),(-6.5,-5.7)],9.78,.11)
+    plate('Searchlight crosswalk',[(-7.0,-1.2),(-7.0,1.2),(-4.6,1.2),(-4.6,-1.2)],9.78,.11)
     # Aft director: low cabin, paired window bands and a compact raised hood.
     owner='aft-director';x=-18.66
     # The director stands on its raised seat (12.4 m) at the fore end of the octagonal platform.

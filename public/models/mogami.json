@@ -18437,6 +18437,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "initialElevationDeg": 16,
       "weapon": {
         "id": "type3-203-mogami-e3-twin",
         "name": "20.3 cm/50 Type 3 No.2 E3 twin",
@@ -25477,7 +25478,7 @@
       "position": [
         -1.39,
         11.81,
-        -29.39
+        -29.7
       ],
       "bearingDeg": 0,
       "rangefinder": false,
@@ -25543,7 +25544,7 @@
       "position": [
         1.39,
         11.81,
-        -29.39
+        -29.7
       ],
       "bearingDeg": 0,
       "rangefinder": false,
@@ -66136,6 +66137,465 @@
     }
   ],
   "obstructions": [],
+  "mountClearance": {
+    "version": 1,
+    "marginM": 0.02,
+    "basis": "Provisional CPU motion interlocks derived from the independently authored geometry and the pjsc009 reference layout, where No. 2 turret stands at No. 1 turret's deck height with its muzzles at No. 1's rear face and the bridge-front 25 mm mounts sit against the bridge. Gunhouse boxes include the rear access panels and roof sight; barrel capsules include the full recoil stroke. These are game clearance envelopes, not verified historical mechanical stops.",
+    "mounts": [
+      {
+        "mountId": "main-1",
+        "barrelRadiusM": 0.2,
+        "body": {
+          "center": [
+            0,
+            1.1,
+            1.4
+          ],
+          "size": [
+            5.72,
+            2.2,
+            8.16
+          ]
+        },
+        "fittings": [
+          {
+            "joint": "yaw",
+            "a": [
+              0,
+              2.3,
+              0.6
+            ],
+            "b": [
+              0,
+              2.3,
+              1.45
+            ],
+            "radiusM": 0.42
+          }
+        ]
+      },
+      {
+        "mountId": "main-2",
+        "barrelRadiusM": 0.2,
+        "body": {
+          "center": [
+            0,
+            1.1,
+            1.4
+          ],
+          "size": [
+            5.72,
+            2.2,
+            8.16
+          ]
+        },
+        "fittings": [
+          {
+            "joint": "yaw",
+            "a": [
+              0,
+              2.3,
+              0.6
+            ],
+            "b": [
+              0,
+              2.3,
+              1.45
+            ],
+            "radiusM": 0.42
+          }
+        ]
+      },
+      {
+        "mountId": "main-3",
+        "barrelRadiusM": 0.2,
+        "body": {
+          "center": [
+            0,
+            1.1,
+            1.4
+          ],
+          "size": [
+            5.72,
+            2.2,
+            8.16
+          ]
+        },
+        "fittings": [
+          {
+            "joint": "yaw",
+            "a": [
+              -3.7,
+              1.85,
+              3.9
+            ],
+            "b": [
+              3.7,
+              1.85,
+              3.9
+            ],
+            "radiusM": 0.32
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              -4.09,
+              1.94,
+              3.3
+            ],
+            "b": [
+              -4.09,
+              1.94,
+              4.95
+            ],
+            "radiusM": 0.52
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              4.09,
+              1.94,
+              3.3
+            ],
+            "b": [
+              4.09,
+              1.94,
+              4.95
+            ],
+            "radiusM": 0.52
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              0,
+              2.3,
+              0.6
+            ],
+            "b": [
+              0,
+              2.3,
+              1.45
+            ],
+            "radiusM": 0.42
+          }
+        ]
+      },
+      {
+        "mountId": "main-4",
+        "barrelRadiusM": 0.2,
+        "body": {
+          "center": [
+            0,
+            1.1,
+            1.4
+          ],
+          "size": [
+            5.72,
+            2.2,
+            8.16
+          ]
+        },
+        "fittings": [
+          {
+            "joint": "yaw",
+            "a": [
+              -3.7,
+              1.85,
+              3.9
+            ],
+            "b": [
+              3.7,
+              1.85,
+              3.9
+            ],
+            "radiusM": 0.32
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              -4.09,
+              1.94,
+              3.3
+            ],
+            "b": [
+              -4.09,
+              1.94,
+              4.95
+            ],
+            "radiusM": 0.52
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              4.09,
+              1.94,
+              3.3
+            ],
+            "b": [
+              4.09,
+              1.94,
+              4.95
+            ],
+            "radiusM": 0.52
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              0,
+              2.3,
+              0.6
+            ],
+            "b": [
+              0,
+              2.3,
+              1.45
+            ],
+            "radiusM": 0.42
+          }
+        ]
+      },
+      {
+        "mountId": "main-5",
+        "barrelRadiusM": 0.2,
+        "body": {
+          "center": [
+            0,
+            1.1,
+            1.4
+          ],
+          "size": [
+            5.72,
+            2.2,
+            8.16
+          ]
+        },
+        "fittings": [
+          {
+            "joint": "yaw",
+            "a": [
+              0,
+              2.3,
+              0.6
+            ],
+            "b": [
+              0,
+              2.3,
+              1.45
+            ],
+            "radiusM": 0.42
+          }
+        ]
+      },
+      {
+        "mountId": "aa-03",
+        "barrelRadiusM": 0.06,
+        "fittings": [
+          {
+            "joint": "yaw",
+            "a": [
+              -0.86,
+              0.72,
+              0.45
+            ],
+            "b": [
+              -0.86,
+              0.72,
+              0.72
+            ],
+            "radiusM": 0.2
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              -0.9199999999999999,
+              0.84,
+              0.77
+            ],
+            "b": [
+              -0.8,
+              0.84,
+              0.77
+            ],
+            "radiusM": 0.18
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              -0.86,
+              0.4,
+              0.25
+            ],
+            "b": [
+              -0.86,
+              0.4,
+              0.55
+            ],
+            "radiusM": 0.19
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              0.86,
+              0.72,
+              0.45
+            ],
+            "b": [
+              0.86,
+              0.72,
+              0.72
+            ],
+            "radiusM": 0.2
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              0.8,
+              0.84,
+              0.77
+            ],
+            "b": [
+              0.9199999999999999,
+              0.84,
+              0.77
+            ],
+            "radiusM": 0.18
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              0.86,
+              0.4,
+              0.25
+            ],
+            "b": [
+              0.86,
+              0.4,
+              0.55
+            ],
+            "radiusM": 0.19
+          }
+        ]
+      },
+      {
+        "mountId": "aa-04",
+        "barrelRadiusM": 0.06,
+        "fittings": [
+          {
+            "joint": "yaw",
+            "a": [
+              -0.86,
+              0.72,
+              0.45
+            ],
+            "b": [
+              -0.86,
+              0.72,
+              0.72
+            ],
+            "radiusM": 0.2
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              -0.9199999999999999,
+              0.84,
+              0.77
+            ],
+            "b": [
+              -0.8,
+              0.84,
+              0.77
+            ],
+            "radiusM": 0.18
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              -0.86,
+              0.4,
+              0.25
+            ],
+            "b": [
+              -0.86,
+              0.4,
+              0.55
+            ],
+            "radiusM": 0.19
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              0.86,
+              0.72,
+              0.45
+            ],
+            "b": [
+              0.86,
+              0.72,
+              0.72
+            ],
+            "radiusM": 0.2
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              0.8,
+              0.84,
+              0.77
+            ],
+            "b": [
+              0.9199999999999999,
+              0.84,
+              0.77
+            ],
+            "radiusM": 0.18
+          },
+          {
+            "joint": "yaw",
+            "a": [
+              0.86,
+              0.4,
+              0.25
+            ],
+            "b": [
+              0.86,
+              0.4,
+              0.55
+            ],
+            "radiusM": 0.19
+          }
+        ]
+      }
+    ],
+    "structures": [
+      {
+        "structureId": "bridge-upper",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-lower",
+        "topExtensionM": 0
+      }
+    ],
+    "neighbors": [
+      [
+        "main-1",
+        "main-2"
+      ],
+      [
+        "main-2",
+        "main-3"
+      ],
+      [
+        "main-4",
+        "main-5"
+      ],
+      [
+        "aa-03",
+        "aa-04"
+      ]
+    ]
+  },
   "accuracy": {
     "exterior": "Independently authored against approved GameModels3D-only pjsc009 A_Hull/AB2_Artillery; source-game fit, year and loading unverified.",
     "internals": "Original estimated gameplay protection, equipment, watertight spaces and stability; no historical subdivision claim.",
@@ -83297,5 +83757,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "d5e37a9ba803874e94a11bab56cc59206b9c6fd7d29238c422daec4e522c0704"
+  "contentHash": "5df9beb84197b3d57a8a199ff456fa24c8e86167de7efe6d85464c936b9d8bb3"
 }
