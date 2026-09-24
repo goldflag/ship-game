@@ -334,6 +334,7 @@ def refine(structures):
                      ('deckhouse-115', 7.05), ('platform-027', 15.5), ('deckhouse-088', 5.37), ('deckhouse-089', 5.37)):
         s = by_id[sid]
         s['height'] = round(top - s['baseY'], 3)
+    by_id['deckhouse-052']['height'] = round(25.55 - by_id['deckhouse-052']['baseY'], 3)   # open lookout tub
     for sid in ('deckhouse-112', 'deckhouse-113'):
         by_id[sid].update(baseY=5.72, height=.06)
     for sid in ('deckhouse-135', 'deckhouse-136'):

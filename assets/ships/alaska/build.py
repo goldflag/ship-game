@@ -184,7 +184,16 @@ for mount in D['mounts']:
     else:
         bofors = kind.startswith('us-40')
         tub_r = 2.55 if bofors else 1.55
-        if gap > .2:
+        # The splinter tub stands on a floor whenever its rim would not reach the supporting surface:
+        # the ring is probed as well as the centre, since small pedestal blocks and sponsons are
+        # narrower than the tub.
+        def under(px, py):
+            try:
+                return min(z, support.below(px, py, z + .5))
+            except ValueError:      # outboard of the deck edge
+                return z - 5
+        ring = min(under(x + math.cos(a) * tub_r * .9, y + math.sin(a) * tub_r * .9) for a in [i * math.tau / 8 for i in range(8)])
+        if gap > .02 or z - ring > .02:
             deck = cyl(mount['id'] + '.tub floor', (x, y, z - .08), tub_r, .16, 'roof', col, 36 if bofors else 24)
             deck['assemblyId'] = mount['id']
             below = floor

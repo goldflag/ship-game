@@ -93,8 +93,17 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         house = max((v[0] ** 2 + v[1] ** 2) ** .5 for v in w['gunhouseMesh']['vertices']) + .2 if w.get('gunhouseMesh') else max(w['gunhouseSize'][:2]) * .6
         arcs.append((mx, my, mz, house, w))
 
+    # Light AA tubs are their own bulwarks: rails stop at the tub rather than run through the gun's swing.
+    tubs = []
+    for m in D['mounts']:
+        if m['partId'].startswith(('us-40', 'us-20')):
+            tubs.append((-m['position'][2], -m['position'][0], m['position'][1], 2.85 if m['partId'].startswith('us-40') else 1.8))
+
     def in_arc(a, b):
         for p in (a, b, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2)):
+            for tx, ty, tz, tr in tubs:
+                if math.hypot(p[0] - tx, p[1] - ty) < tr and max(a[2], b[2]) > tz - 1.0 and min(a[2], b[2]) < tz + 1.3:
+                    return True
             for mx, my, mz, house, w in arcs:
                 d = math.hypot(p[0] - mx, p[1] - my)
                 if d < house and max(a[2], b[2]) > mz - .05:
@@ -332,25 +341,26 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
 
     # After pole on the funnel's forward web, carrying the second SG (reference centreline cut).
     name = 'after-pole'
-    web(name, name, [(13.75, 20.2), (13.45, 20.3), (10.55, 26.1), (10.3, 26.45), (10.3, 26.72), (11.45, 26.72), (13.75, 24.4)], .3,
-        holes=[(11.47, 25.48, .13), (12.02, 24.65, .22), (12.43, 23.65, .15), (13.3, 22.86, .2), (13.37, 21.65, .17)])
-    px_, _, _ = R(0, 0, 10.93)
-    part('cyl', name, col, 'platform', (px_, 0, 26.8), 1.05, .16, 'roof', vertices=20)
+    web(name, name, [(13.75, 20.2), (13.45, 20.3), (10.3, 26.1), (10.05, 26.45), (10.05, 26.72), (11.2, 26.72), (13.4, 24.6), (13.75, 24.45)], .3,
+        holes=[(11.25, 25.48, .13), (11.8, 24.65, .22), (12.25, 23.65, .15), (13.15, 22.86, .2), (13.3, 21.65, .17)])
+    px_, _, _ = R(0, 0, 10.75)
+    pole_x = R(0, 0, 10.9)[0]
+    part('cyl', name, col, 'platform', (px_, 0, 26.8), 1.2, .16, 'roof', vertices=20)
     for i in range(10):
         a0, a1 = math.tau * i / 10, math.tau * (i + 1) / 10
-        W.add('platform-rails', col, (px_ + .98 * math.cos(a0), .98 * math.sin(a0), 26.88), (px_ + .98 * math.cos(a0), .98 * math.sin(a0), 27.85), .024)
+        W.add('platform-rails', col, (px_ + 1.13 * math.cos(a0), 1.13 * math.sin(a0), 26.88), (px_ + 1.13 * math.cos(a0), 1.13 * math.sin(a0), 27.85), .024)
         for h in (27.35, 27.85):
-            W.add('platform-rails', col, (px_ + .98 * math.cos(a0), .98 * math.sin(a0), h), (px_ + .98 * math.cos(a1), .98 * math.sin(a1), h), .018)
-    part('rod', name, col, 'pole', (px_, 0, 26.88), (px_, 0, 32.62), .15, 'naval', r2=.1, vertices=10)
-    part('rod', name, col, 'crosstree', (px_, -2.2, 31.4), (px_, 2.2, 31.4), .05, 'naval', vertices=6)
+            W.add('platform-rails', col, (px_ + 1.13 * math.cos(a0), 1.13 * math.sin(a0), h), (px_ + 1.13 * math.cos(a1), 1.13 * math.sin(a1), h), .018)
+    part('rod', name, col, 'pole', (pole_x, 0, 26.88), (pole_x, 0, 32.62), .15, 'naval', r2=.1, vertices=10)
+    part('rod', name, col, 'crosstree', (pole_x, -2.2, 31.4), (pole_x, 2.2, 31.4), .05, 'naval', vertices=6)
     for s in (-1, 1):
-        part('rod', name, col, 'crosstree brace', (px_, 0, 30.6), (px_, s * 1.6, 31.36), .025, 'edge', vertices=5)
+        part('rod', name, col, 'crosstree brace', (pole_x, 0, 30.6), (pole_x, s * 1.6, 31.36), .025, 'edge', vertices=5)
     # The SG's guard cage ("flower basket") round the masthead.
     for i in range(6):
         a = math.tau * i / 6
-        part('rod', name, col, 'cage leg', (px_, 0, 31.9), (px_ + .55 * math.cos(a), .55 * math.sin(a), 32.55), .025, 'edge', vertices=5)
+        part('rod', name, col, 'cage leg', (pole_x, 0, 31.9), (pole_x + .55 * math.cos(a), .55 * math.sin(a), 32.55), .025, 'edge', vertices=5)
         b_ = math.tau * (i + 1) / 6
-        part('rod', name, col, 'cage ring', (px_ + .55 * math.cos(a), .55 * math.sin(a), 32.55), (px_ + .55 * math.cos(b_), .55 * math.sin(b_), 32.55), .025, 'edge', vertices=5)
+        part('rod', name, col, 'cage ring', (pole_x + .55 * math.cos(a), .55 * math.sin(a), 32.55), (pole_x + .55 * math.cos(b_), .55 * math.sin(b_), 32.55), .025, 'edge', vertices=5)
     before = names()
     gx, gy, gz = P(0, 32.6, 8.9)
     part('cyl', 'radar-sg-after', col, 'drive', (gx, gy, gz + .12), .16, .24, 'naval', vertices=12)
@@ -410,7 +420,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         pts.append((ex + cap_half * math.cos(a), cap_half * math.sin(a)))
 
     def cap_top(xa):
-        return 25.45 + (xa - cap_aft) / (cap_fwd - cap_aft) * 1.35
+        return 25.4 + (xa - cap_aft) / (cap_fwd - cap_aft) * 1.05
 
     m = len(pts)
     vv = [(x_, y_, top - .15) for x_, y_ in pts] + [(x_, y_, cap_top(x_)) for x_, y_ in pts]
@@ -621,7 +631,8 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     for st in structures:
         top = st['baseY'] + st['height']
         platform = st['height'] < .3
-        if st['id'] == 'funnel' or not (platform or top > 9):
+        # The lookout tub forward of the 24 m level is open-topped in the reference: no rails.
+        if st['id'] in ('funnel', 'deckhouse-052') or not (platform or top > 9):
             continue
         bridge = abs(top - 21.99) < .1 or abs(top - 28.845) < .1
         for a, b in edge_runs(st, top):
@@ -631,7 +642,8 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
                 # Reference: 1.45-1.5 m plated bulwarks, externally stiffened, the open bridge's forward
                 # run glazed along its upper half; no fascia below the deck edge.
                 open_bridge = abs(top - 21.99) < .1
-                wall(st['id'] + '.bulwark', a, b, top, 1.45 if open_bridge else 1.5, st['id'])
+                front = open_bridge and (a[0] + b[0]) / 2 > P(0, 0, -9.3)[0]
+                wall(st['id'] + '.bulwark', a, b, top, 1.95 if front else 1.45 if open_bridge else 1.5, st['id'])
                 d = Vector((b[0] - a[0], b[1] - a[1], 0))
                 if d.length > .4:
                     t = d.normalized()
@@ -643,8 +655,8 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
                     for k in range(ribs + 1):
                         q = Vector(a[:2] + (0,)) + d * (k / ribs) + n_out * .06
                         tag(box(st['id'] + '.bulwark stiffener', (q.x, q.y, top + .7), (.07, .07, 1.3), 'naval', scol), st['id'])
-                    if open_bridge and mid.x > P(0, 0, -8.6)[0]:
-                        g = tag(box(st['id'] + '.windscreen', (mid.x + n_out.x * .035, mid.y + n_out.y * .035, top + 1.12), (d.length * .92, .02, .42), 'glass', scol), st['id'])
+                    if front:
+                        g = tag(box(st['id'] + '.windscreen', (mid.x + n_out.x * .035, mid.y + n_out.y * .035, top + 1.5), (d.length * .92, .02, .5), 'glass', scol), st['id'])
                         g.rotation_euler.z = math.atan2(d.y, d.x)
                 continue
             n = max(1, math.ceil(math.dist(a, b) / 1.8))
@@ -653,6 +665,31 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
                 W.add('platform-rails', scol, (p[0], p[1], top), (p[0], p[1], top + 1.0), .024)
             for h in (.5, 1.0):
                 W.add('platform-rails', scol, (a[0], a[1], top + h), (b[0], b[1], top + h), .018)
+    # Legs under the raised Oerlikon sponsons abreast the after superstructure and the stern platforms,
+    # as the reference stands them on the deck.
+    for sid in ('deckhouse-112', 'deckhouse-113', 'deckhouse-134', 'deckhouse-137'):
+        st = next((t for t in structures if t['id'] == sid), None)
+        if not st:
+            continue
+        poly = outline(st)
+        cx_ = sum(p_[0] for p_ in poly) / len(poly)
+        cy_ = sum(p_[1] for p_ in poly) / len(poly)
+        for p_ in poly[::max(1, len(poly) // 4)]:
+            q = Vector(((p_[0] - cx_) * .75 + cx_, (p_[1] - cy_) * .75 + cy_, 0))
+            floor = support.below(q.x, q.y, st['baseY'] - .01)
+            if st['baseY'] - floor > .05:
+                tag(rod(sid + '.leg', (q.x, q.y, floor), (q.x, q.y, st['baseY'] + .01), .07, 'naval', scol, vertices=6), sid)
+
+    # Knee webs under the tower's after extensions (the 22 m deck and the director deck reach aft to the
+    # foremast), as the reference carries them.
+    for sx in (-1, 1):
+        web_pts = [R(sx * 1.4, 20.1, -2.62), R(sx * 1.4, 21.92, -2.62), R(sx * 1.4, 21.92, .55)]
+        tag(mesh('tower.knee', [(p_[0], p_[1] + d_, p_[2]) for d_ in (-.05, .05) for p_ in web_pts],
+                 [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', scol), 'tower-fittings')
+        web_pts = [R(sx * .45, 27.1, -2.62), R(sx * .45, 28.75, -2.62), R(sx * .45, 28.75, 1.35)]
+        tag(mesh('tower.knee', [(p_[0], p_[1] + d_, p_[2]) for d_ in (-.05, .05) for p_ in web_pts],
+                 [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', scol), 'tower-fittings')
+
     # ------------------------------------------------------------ deckhouse walls: doors, scuttles, vents
     for st in structures:
         if st['height'] < 1.8 or st['id'] == 'funnel':
