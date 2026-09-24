@@ -311,14 +311,22 @@ wing_edge=[(13.85,3.987),(13.893,4.193),(14.004,4.348),(14.188,4.431),(14.405,4.
 for side in [-1,1]:
     wing=[(13.85,side*.025)]+[(x,side*y) for x,y in wing_edge]+[(21.13,side*2.0),(15.95,side*2.0),(15.95,side*.025)]
     prism('bridge-wing.deck',wing,10.275,10.377)
-    bulwark('bridge-wing.shield',[(x,side*y) for x,y in wing_edge[7:]]+[(21.13,side*2.0)],10.377,1.096,closed=False)
+    # pzsd108: 1.52 m wing screens whose top edge flares outboard as a weather lip.
+    screen=[(x,side*y) for x,y in wing_edge[7:]]+[(21.13,side*2.0)]
+    bulwark('bridge-wing.shield',screen,10.377,1.52,closed=False)
+    lip=[]
+    for x,y in screen:
+        v=Vector((x-18.5,y,0));v=Vector((0,y,0)) if abs(y)>3.6 else v;v.normalize()
+        lip.append(((x,y,11.897),(x+v.x*.14,y+v.y*.14,12.0)))
+    n=len(lip);mesh('bridge-wing.shield-lip',[q for pair in lip for q in pair],[(2*i,2*i+1,2*i+3,2*i+2) for i in range(n-1)],materials['naval']).modifiers.new('Plate','SOLIDIFY').thickness=.03
     rail_path=[(13.85,side*.45,10.377)]+[(x,side*y,10.377) for x,y in wing_edge[:8]]
     for segment in access_gap(rail_path,14.1,-.72,.60):rails('bridge-wing.aft-rail',segment,.94)
     for x in [14.494,15.476,16.538,17.313,18.103,18.877,19.669]:
         outer=interp(wing_edge,x)-.07
         box('bridge-wing.floor-beam',(x,side*(2.20+outer)/2,10.19),(.10,outer-2.20,.183),materials['edge'],bev=.005)
         if x in [14.494,16.538,18.103,19.669]:
-            a,b=Vector((x,side*3.15,7.23)),Vector((x,side*3.65,10.10))
+            # After pair (pzsd108) leans out to the wing edge from the 01-level platform.
+            a,b=(Vector((x,side*3.2,7.36)),Vector((x,side*4.12,10.10))) if x<17 else (Vector((x,side*3.15,7.23)),Vector((x,side*3.65,10.10)))
             o=box('bridge-wing.strut',(a+b)/2,(.10,.10,(b-a).length),materials['edge'],bev=.006)
             o.rotation_euler=(b-a).to_track_quat('Z','Y').to_euler()
             box('bridge-wing.strut-foot',a,(.20,.25,.075),materials['edge'],bev=.008)
