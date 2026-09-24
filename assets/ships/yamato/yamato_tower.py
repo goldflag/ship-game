@@ -265,7 +265,7 @@ def build():
   # 4.5 m rangefinders on braced sponsons low on the tower flanks.
   x,y=-3.39,side*7.85
   # A tilted cone carries the sponson; its tip enters the battered tower flank.
-  loft('Rangefinder sponson cone',[[(x+r*math.cos(i*math.tau/16),side*c+r*math.sin(i*math.tau/16),z) for i in range(16)] for c,r,z in [(7.85,1.6,16.75),(7.2,1.05,15.6),(6.5,.55,14.3),(6.0,.12,13.2)]],naval,smooth=True)
+  loft('Rangefinder sponson cone',[[(x+r*math.cos(i*math.tau/16),side*c+r*math.sin(i*math.tau/16),z) for i in range(16)] for c,r,z in [(7.85,1.6,16.75),(7.0,.95,15.9),(6.5,.55,14.3),(6.0,.12,13.2)]],naval,smooth=True)
   box('Rangefinder sponson neck',(x,side*6.0,16.87),(1.8,2.3,.24),naval,SUPER)
   cyl('Rangefinder sponson deck',(x,y,16.87),1.6,.24,roof,SUPER,24)
   cyl('4.5 m rangefinder drum',(x,y,17.72),1.2,1.46,naval,SUPER,24)
@@ -274,17 +274,26 @@ def build():
   for xx in (-5.66,-1.12):box('4.5 m rangefinder end hood',(xx,side*7.55,17.9),(.42,.5,.56),naval,SUPER)
   box('4.5 m rangefinder window',(x,side*9.04,17.95),(.8,.04,.22),dark,SUPER)
  # Aft annex: a raised block behind the tower carries the after high-angle
- # directors, one pair on tilted cone tubs and one on a strutted cross platform.
+ # directors. The after pair stands on a cross platform cantilevered from the
+ # annex with nothing beneath its wings: the 12.7 cm No. 4 mounts train and
+ # elevate under them (clear x -14.4..-8.2, |y| 3.8..9.9, z 13.4..18.47).
  annex=[(-12.6,-3.5),(-6.0,-3.5),(-5.5,-2.9),(-5.5,2.9),(-6.0,3.5),(-12.6,3.5),(-12.9,3.0),(-12.9,-3.0)]
  loft('Aft director annex',[ring(grow(annex,.45),10.75),ring(annex,13.6),ring(annex,17.0)],naval)
  prism('Aft director annex deck',annex,17.0,17.05,roof,SUPER)
  perimeter_band('Aft director annex bulwark',annex,17.05,.85,naval,SUPER,.06)
  box('Aft annex deckhouse',(-7.8,0,18.4),(4.0,4.0,2.8),naval,SUPER)
  prism('After director cross platform',[(-12.2,-6.9),(-10.3,-6.9),(-10.3,6.9),(-12.2,6.9)],18.48,18.72,roof,SUPER)
- box('After director platform pedestal',(-11.25,0,17.76),(1.6,4.6,1.44),naval,SUPER)
+ box('After director platform pedestal',(-11.25,0,17.765),(1.6,7.0,1.43),naval,SUPER)
  for side in (-1,1):
-  for xx in (-11.9,-10.6):rod('After director platform strut',(xx,side*3.45,17.2),(xx,side*6.4,18.5),.1,naval,SUPER,vertices=8)
-  loft('HA director cone tub',[[(-8.14+r*math.cos(i*math.tau/16),side*c+r*math.sin(i*math.tau/16),z) for i in range(16)] for c,r,z in [(5.62,1.15,17.87),(5.5,1.0,17.3),(5.0,.6,16.1),(4.3,.15,14.6)]],naval,smooth=True)
+  perimeter_band('After director platform coaming',[(-12.2,side*3.8),(-10.3,side*3.8),(-10.3,side*6.9),(-12.2,side*6.9)][::side],18.72,.12,edge,SUPER,.05)
+  # Plate knees stay inboard of the mount's clear space.
+  v=[];fs=[]
+  for xx in (-12.0,-11.25,-10.5):
+   k=len(v);v.extend([(xx+d,side*y,z) for d in (-.03,.03) for y,z in [(3.5,17.3),(3.5,18.48),(3.78,18.48)]])
+   fs.extend([(k,k+1,k+2),(k+5,k+4,k+3),(k,k+3,k+4,k+1),(k+1,k+4,k+5,k+2),(k+2,k+5,k+3,k)])
+  mesh('After director platform knees',v,fs,naval,SUPER)
+  # Compact tubs lean forward and inboard into the tower, clear of the No. 4 mounts.
+  loft('HA director cone tub',[[(cx+r*math.cos(i*math.tau/16),side*c+r*math.sin(i*math.tau/16),z) for i in range(16)] for cx,c,r,z in [(-8.14,5.62,.72,17.87),(-7.75,5.25,.5,17.1),(-7.3,4.7,.3,16.0),(-6.9,4.1,.1,15.0)]],naval,smooth=True)
  director_support=SupportSurface([*HULL.objects,*SUPER.objects])
  for side in (-1,1):
   for xx,yy,zz in [(1.71,4.46,22.81),(4.54,1.63,26.13),(-8.14,5.62,17.87),(-11.25,6.03,18.72)]:
@@ -297,7 +306,7 @@ def build():
    box('Searchlight control tub knee',(x,(foot[1]+side*y)/2,z-.32),(.7,abs(side*y-foot[1])+.1,.5),naval,SUPER)
  fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),fm,SUPER)
  for side in [-1,1]:
-  fit.stairs('Lower bridge stair',(-10.5,side*2.9,17.05),(-5.5,side*2.9,22.25))
+  fit.stairs('Lower bridge stair',(-10.2,side*2.9,17.05),(-5.5,side*2.9,22.25))
   # Raised directors have sight slits and split hoods instead of blank drums.
   for dx in [-.65,.65]:
    yy=1.8*math.sqrt(1-(dx/1.8)**2)
