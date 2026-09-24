@@ -74,6 +74,17 @@ def oval_stack(id, name, c0, c1, rx0, rz0, rx1, rz1, base, top, n=28):
             'surface': {'vertices': vs, 'triangles': tri}}
 
 
+def loft_block(id, name, bottom, base, top_ring, top, material='naval'):
+    """A solid between two outlines of equal point count (bottom at base, top_ring at top)."""
+    n = len(bottom); vs = [[x, base, z] for x, z in bottom] + [[x, top, z] for x, z in top_ring]; tri = []
+    for i in range(1, n - 1):
+        tri += [[0, i, i + 1], [n, n + i + 1, n + i]]
+    for i in range(n):
+        j = (i + 1) % n; tri += [[i, j + n, j], [i, i + n, j + n]]
+    return {'id': id, 'name': name, 'footprint': bottom, 'baseY': base, 'height': round(top - base, 4), 'material': material,
+            'surface': {'vertices': vs, 'triangles': tri}}
+
+
 S = []
 # ---- Forward superstructure --------------------------------------------------------------------------------
 # 01 deckhouse: pointed front abaft turret 2, full-width sponsons under the wing 5-inch mounts, a narrow after
@@ -82,7 +93,8 @@ S.append(block('forward-deckhouse', 'Forward 01 deckhouse', mirror([
     (1.65, -36.48), (7.1, -27.73), (7.1, -20.33), (7.55, -19.88), (8.9, -19.88), (8.9, -14.88), (5.25, -14.88),
     (5.1, -16.63), (4.65, -17.08), (3.85, -17.08), (3.4, -16.63), (3.4, -11.03), (2.6, -10.53), (2.6, -6.0)]), DECK, 8.70))
 # Forward funnel uptake casing from the main deck to its 15.1 m shelf.
-S.append(block('forward-funnel-casing', 'Forward funnel uptake casing', rounded(0, -2.63, 3.7, 3.35, .35), DECK, 15.10))
+S.append(loft_block('forward-funnel-casing', 'Forward funnel uptake casing', rounded(0, -2.94, 3.7, 3.04, .35), DECK,
+                    rounded(0, -2.66, 3.7, 3.32, .35), 15.10))
 # 02 level; the armoured conning position forms its rounded front.
 S.append(block('conning-tower', 'Armored conning position', mirror([
     (0, -24.58), (1.6, -24.58), (2.35, -24.5), (2.7, -24.23), (2.65, -22.4), (2.6, -20.63)]), 8.70, 12.62))
@@ -113,7 +125,9 @@ S.append(block('bridge-director-tower', 'Forward 8-inch director tower', mirror(
 S.append(block('bridge-director-pedestal', 'Forward 5-inch director pedestal', rounded(0, -13.18, 1.5, 1.5, .6), 20.80, 23.72))
 # ---- After superstructure -----------------------------------------------------------------------------------
 S.append(block('after-funnel-base', 'After funnel 01 base', rounded(0, 13.91, 5.1, 1.39, .25), DECK, 8.70))
-S.append(block('after-funnel-casing', 'After funnel uptake casing', rounded(0, 16.27, 3.7, 3.25, .35), DECK, 15.80))
+# The after casing's fore face slopes aft as it rises.
+S.append(loft_block('after-funnel-casing', 'After funnel uptake casing', rounded(0, 16.27, 3.7, 3.25, .35), DECK,
+                    rounded(0, 16.72, 3.7, 2.8, .35), 15.80))
 S.append(block('aft-deckhouse-front', 'After 01 deckhouse, mainmast base', rect(4.1, 19.52, 23.62), DECK, 8.70))
 S.append(block('aft-deckhouse', 'After deckhouse', mirror([
     (1.7, 21.0), (1.7, 22.27), (2.15, 23.62), (2.9, 23.87), (2.9, 37.0), (2.1, 37.4)]), DECK, 12.85))
@@ -141,8 +155,8 @@ for side, sign in [('port', -1), ('starboard', 1)]:
 S.append(block('hangar-coaming', 'Hangar hatch coaming', rect(5.0, 64.0, 77.0), 6.30, 6.62, 'edge'))
 S.append(block('stern-aa-sponson', 'Stern 40 mm sponson', ellipse(0, 101.3, 2.65, 2.6), 6.75, 7.41))
 # ---- Funnels: narrow oval stacks above their casings, the fore face raked --------------------------------------
-S.append(oval_stack('forward-funnel', 'Forward Funnel', -2.21, -1.52, 1.5, 2.93, 1.6, 2.42, 15.10, 23.6))
-S.append(oval_stack('after-funnel', 'After Funnel', 16.57, 17.05, 1.5, 2.74, 1.4, 2.45, 15.80, 23.0))
+S.append(oval_stack('forward-funnel', 'Forward Funnel', -2.11, -1.625, 1.5, 2.66, 1.6, 2.425, 15.10, 22.8))
+S.append(oval_stack('after-funnel', 'After Funnel', 16.54, 16.9, 1.5, 2.76, 1.4, 2.45, 15.80, 21.8))
 
 # ---- Mounts on the reference hardpoints (reference z + 0.216) ------------------------------------------------
 SHIFT = .216

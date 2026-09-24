@@ -143,8 +143,8 @@ def wall(x,z,sign,reach=14):
 # Oval stacks above the uptake casings: the fore face rakes aft, the top carries a raked smoke hood.
 # (base centre z, top centre z, base half-breadth, base half-length, top half-breadth, top half-length, base,
 #  top, hood rise, walkway height, walkway overhang abeam and aft, walkway arc)
-FUNNELS={'forward-funnel':(-2.21,-1.52,1.5,2.93,1.6,2.42,15.10,23.6,1.1,18.5,1.45,.8,(40,320)),
- 'after-funnel':(16.57,17.05,1.5,2.74,1.4,2.45,15.80,23.0,.8,19.8,.55,.55,(0,360))}
+FUNNELS={'forward-funnel':(-2.11,-1.625,1.5,2.66,1.6,2.425,15.10,22.8,1.75,18.5,1.45,.8,(40,320)),
+ 'after-funnel':(16.54,16.9,1.5,2.76,1.4,2.45,15.80,21.8,1.35,19.8,.55,.55,(0,360))}
 def stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,z,grow=0,n=36,growx=None,arc=(0,360)):
  t=(z-base)/(top-base);c=c0+(c1-c0)*t;rx=rx0+(rx1-rx0)*t+(grow if growx is None else growx);rz=rz0+(rz1-rz0)*t+grow
  a0,a1=[math.radians(v) for v in arc];full=arc==(0,360);m=n if full else n+1
@@ -154,17 +154,21 @@ for name,(c0,c1,rx0,rz0,rx1,rz1,base,top,rise,walk,wx,wz,arc) in FUNNELS.items()
  # Author the identified shell first so the rigid export bucket retains its ID.
  funnel_shells[name]=authored_structure(S[name],mesh,materials,COL)
  X1=-c1
- ellipse(name+' cap',X1,0,top,rz1+.1,rx1+.1,.3,'edge')
- ellipse(name+' exhaust',X1,0,top+.305,rz1-.1,rx1-.1,.018,'dark')
- # Raked smoke hood: a grating rising 1.1 m toward the fore edge, carried on four posts.
- n=24;rim=[(X1+(rz1+.05)*math.cos(math.tau*i/n),(rx1+.05)*math.sin(math.tau*i/n)) for i in range(n)]
- lift=lambda x:top+.4+rise*(x-(X1-rz1))/(2*rz1)
- mesh(name+' smoke hood',[(x,y,lift(x)) for x,y in rim]+[(x,y,lift(x)+.06) for x,y in rim],[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'dark')
+ ellipse(name+' cap band',X1,0,top-.1,rz1+.08,rx1+.08,.3,'edge')
+ # Raked cowl: the casing continues above the stack top as a smoke hood whose top rises toward the fore edge,
+ # narrowing a little; a grating covers its sloped top.
+ n=32;back=X1-rz1;span=2*rz1
+ lift=lambda x:top+.45+rise*(x-back)/span
+ lower=[(X1+rz1*math.cos(math.tau*i/n),rx1*math.sin(math.tau*i/n)) for i in range(n)]
+ upper=[(X1+.25+rz1*.86*math.cos(math.tau*i/n),rx1*.94*math.sin(math.tau*i/n)) for i in range(n)]
+ v=[(x,y,top-.02) for x,y in lower]+[(x,y,lift(x)) for x,y in upper]
+ mesh(name+' smoke hood',v,[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'naval')
+ mesh(name+' smoke hood grating',[(x,y,lift(x)+.01) for x,y in upper],[tuple(range(n))],'dark')
  for i in range(1,8):
-  xx=X1-rz1+2*rz1*i/8;half=(rx1+.05)*math.sqrt(max(0,1-((xx-X1)/(rz1+.05))**2))
-  rod(name+' hood bar',(xx,-half,lift(xx)+.08),(xx,half,lift(xx)+.08),.035,'edge',vertices=6)
- for dx,dy in [(-.7,-.8),(-.7,.8),(.7,-.8),(.7,.8)]:
-  x=X1+dx*rz1;y=dy*rx1;rod(name+' hood post',(x,y,top+.28),(x,y,lift(x)+.02),.05,'edge',vertices=8)
+  xx=X1+.25-rz1*.86+2*rz1*.86*i/8;half=rx1*.94*math.sqrt(max(0,1-((xx-X1-.25)/(rz1*.86))**2))
+  rod(name+' hood bar',(xx,-half,lift(xx)+.05),(xx,half,lift(xx)+.05),.035,'edge',vertices=6)
+ rim=[(x,y,lift(x)+.02) for x,y in upper]
+ for a,b in zip(rim,rim[1:]+rim[:1]):rod(name+' hood rim',a,b,.04,'edge',vertices=6)
  # Bands, the funnel walkway and its handrail, ladders and the steam pipes on the after face.
  for z in [base+1.2,(base+top)/2+.9,top-.9]:
   pts=stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,z,.02,32)
@@ -182,11 +186,13 @@ for name,(c0,c1,rx0,rz0,rx1,rz1,base,top,rise,walk,wx,wz,arc) in FUNNELS.items()
   rod('Funnel steam pipe',(-(c0+rz0*.97)-.12,sign*.35,base),(-(c1+rz1*.97)-.12,sign*.35,top+.7),.11,'naval',vertices=10)
 # Uptake casings: grilles near the top of each side, and the handrail round the casing shelf.
 fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,COL)
-for casing,xs,z in [('forward-funnel-casing',[.6,1.9,3.2,4.5],13.9),('after-funnel-casing',[-14.2,-15.5,-16.8,-18.1],14.6)]:
+for casing,xs,z in [('forward-funnel-casing',[.6,1.9,3.2,4.5],13.9),('after-funnel-casing',[-14.8,-16.0,-17.2,-18.4],14.6)]:
  ASSEMBLY=casing
  for sign in [-1,1]:
   for x in xs:fit.vent('Uptake grille',x,sign*3.72,z,1.0,.8)
- s=S[casing];outline=[(-zz,-xx) for xx,zz in s['footprint']];top=s['baseY']+s['height']
+ s=S[casing];top=s['baseY']+s['height']
+ ring=[(v[0],v[2]) for v in s['surface']['vertices'][len(s['footprint']):]] if s.get('surface') else s['footprint']
+ outline=[(-zz,-xx) for xx,zz in ring]
  for a,b in zip(outline[::2],outline[2::2]+outline[:1]):
   for h in [.55,1.0]:rod('Casing handrail',(*a,top+h),(*b,top+h),.024,'edge',vertices=5)
   rod('Casing stanchion',(*a,top),(*a,top+1.0),.024,'edge',vertices=5)
