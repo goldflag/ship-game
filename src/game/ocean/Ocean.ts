@@ -3,6 +3,7 @@ import { uniform } from 'three/tsl';
 import type { HullFootprint, HullSeaWave, OceanApi, OceanQuality, OceanRealism, OceanSky, WakeSampler, WaveParameters } from './contracts';
 import { OCEAN_TIERS } from './quality';
 import { perRender } from '../renderUniforms';
+import { directPasses, type DirectPasses } from '../DirectPasses';
 import { oceanFog } from './screen/fog';
 import { createUnderwaterPass, nearPlaneMayBeSubmerged } from './screen/underwater';
 import { createWaveField, createWaveHeightSampler } from './waves';
@@ -54,6 +55,8 @@ export class Ocean implements OceanApi {
   /** Whether the fog follows real extinction this frame: the realism switch and the scene's permission. */
   private readonly aerialHaze = perRender(uniform(true));
   private readonly underwater: (scenePass: PassNode, color: Node<'vec4'>) => Node<'vec4'>;
+  /** The wave, wake and height passes, encoded onto the device together: one submit a frame (`enabled` switches them back to three's renders). */
+  readonly passes: DirectPasses;
 
   static async create(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, { quality, seed }: { quality: OceanQuality; seed: number }): Promise<Ocean> {
     return new Ocean(renderer, scene, camera, quality, seed);
@@ -69,6 +72,7 @@ export class Ocean implements OceanApi {
     this.waveField = createWaveField(renderer, tier.cascades, this.waves, this.foam.crest, this.realism);
     this.heights = createWaveHeightSampler(renderer, this.waveField);
     this.wake = createWakeField(renderer, tier.wakeResolution);
+    this.passes = directPasses(renderer);
     this.geometry = new OceanGeometry(tier.segments, camera.far);
     this.material = new OceanSurfaceMaterial({ waves: this.waveField, geometry: this.geometry, colors: this.colors, foam: this.foam, sun: this.sun, reflections: this.reflections,
       realism: this.realism }, this.bindings());
@@ -82,6 +86,11 @@ export class Ocean implements OceanApi {
   }
 
   update(dt: number): void {
+    this.passes.begin();
+    try { this.step(dt); } finally { this.passes.end(); }
+  }
+
+  private step(dt: number): void {
     if (dt > 0) this.time += dt;
     this.geometry.update(this.camera);
     this.sky?.followCamera(this.camera);

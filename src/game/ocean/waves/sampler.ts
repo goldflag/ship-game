@@ -4,10 +4,14 @@
 import { DataTexture, FloatType, NearestFilter, NoBlending, NodeMaterial, QuadMesh, RGBAFormat, RenderTarget, type WebGPURenderer } from 'three/webgpu';
 import { int, ivec2, normalize, screenCoordinate, texture, vec2, vec3, vec4 } from 'three/tsl';
 import type { WaveField, WaveHeightSampler } from '../contracts';
+import { directPasses } from '../../DirectPasses';
 
 export const MAX_SAMPLES = 128;
 /** Half the central-difference step (m): the normal of the surface smoothed over a metre. */
 const NORMAL_STEP = .5;
+/** A row of RGBA float32 samples; `GPUBufferUsage` COPY_DST | MAP_READ (the globals exist only where WebGPU does). */
+const ROW_BYTES = MAX_SAMPLES * 16, STAGING_USAGE = 0x8 | 0x1;
+type Staging = { mapAsync(mode: number): Promise<void>; getMappedRange(): ArrayBuffer; unmap(): void; destroy(): void };
 
 export class GpuWaveHeightSampler implements WaveHeightSampler {
   readonly heights = new Float32Array(MAX_SAMPLES).fill(NaN);
@@ -18,6 +22,8 @@ export class GpuWaveHeightSampler implements WaveHeightSampler {
   private count = 0;
   private pending: Promise<void> | null = null;
   private disposed = false;
+  /** The readback's buffer when the direct passes read it (one read is in flight at a time). */
+  private staging: Staging | null = null;
 
   constructor(private readonly renderer: WebGPURenderer, field: WaveField) {
     this.points.minFilter = this.points.magFilter = NearestFilter;
@@ -44,18 +50,24 @@ export class GpuWaveHeightSampler implements WaveHeightSampler {
   request(): void {
     if (this.pending || !this.count) return;
     const renderer = this.renderer, target = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), level = renderer.getActiveMipmapLevel(), mrt = renderer.getMRT();
+    const passes = directPasses(renderer);
     try {
-      renderer.setMRT(null); renderer.setRenderTarget(this.target);
-      this.quad.render(renderer);
+      renderer.setMRT(null);
+      passes.draw(this.quad, this.target);
     } finally { renderer.setRenderTarget(target, face, level); renderer.setMRT(mrt); }
-    const count = this.count;
-    this.pending = renderer.readRenderTargetPixelsAsync(this.target, 0, 0, MAX_SAMPLES, 1).then(pixels => {
-      const values = pixels as Float32Array;
+    const count = this.count, read = (values: Float32Array) => {
       for (let i = 0; i < count; i++) {
         this.heights[i] = values[i * 4];
         this.normals.set(values.subarray(i * 4 + 1, i * 4 + 4), i * 3);
       }
-    }).catch(error => {
+    };
+    // The direct passes copy the same row after the pass, in its encoder, into a buffer kept for it; three copies it through one of its own.
+    const device = (renderer.backend as { device?: { createBuffer(descriptor: object): Staging } }).device;
+    const staging = passes.enabled && device ? this.staging ??= device.createBuffer({ label: 'Wave heights', size: ROW_BYTES, usage: STAGING_USAGE }) : null;
+    const done = staging
+      ? passes.readback(this.target.texture, staging as never, ROW_BYTES, MAX_SAMPLES, 1).then(() => { try { read(new Float32Array(staging.getMappedRange())); } finally { staging.unmap(); } })
+      : renderer.readRenderTargetPixelsAsync(this.target, 0, 0, MAX_SAMPLES, 1).then(pixels => read(pixels as Float32Array));
+    this.pending = done.catch(error => {
       // Disposing the renderer destroys the device under a read still in flight; presentation heights just go stale.
       if (!this.disposed) console.warn('Wave height readback failed', error);
     }).finally(() => { this.pending = null; });
@@ -70,5 +82,6 @@ export class GpuWaveHeightSampler implements WaveHeightSampler {
   dispose(): void {
     this.disposed = true;
     this.points.dispose(); this.target.dispose(); (this.quad.material as NodeMaterial).dispose();
+    this.staging?.destroy(); this.staging = null;
   }
 }

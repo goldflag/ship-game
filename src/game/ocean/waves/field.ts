@@ -8,6 +8,7 @@ import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max
   texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
 import type { HullFootprint, HullSeaWave, OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
+import { directPasses } from '../../DirectPasses';
 import { perRender } from '../../renderUniforms';
 import { HullSea, cascadeModes, hullSeaWavelength, splitLevel } from './hullSea';
 import { drawnSea, seaStateCascades } from './seaState';
@@ -129,8 +130,9 @@ export class GpuWaveField implements WaveField {
   private readonly previousExtras: TextureMap;
   /** Horizontal passes, then all but the last vertical pass; pass t writes spectra[t % 2]. */
   private readonly passes: QuadMesh[] = [];
-  /** The last vertical pass, drawn once per cascade layer. */
-  private readonly finalPass: QuadMesh;
+  /** The last vertical pass, one quad per cascade layer sharing one material: each layer's uniforms keep a buffer of their own, so
+   * the layers draw between two submits (`DirectPasses`). */
+  private readonly finalPasses: QuadMesh[];
   /** Each cascade's tile edge (m) and texels per metre; tiles follow the sea state, so shaders read them as uniforms.
    * `this.texels[i]` stands wherever a fixed layout would have `this.size / cascade.size`. */
   private readonly tiles: ReturnType<typeof floatUniform>[];
@@ -224,7 +226,8 @@ export class GpuWaveField implements WaveField {
       const t = this.passes.length;
       this.passes.push(this.pass(this.spectra[(t - 1) % 2].textures, radix, span, false)); span *= radix;
     });
-    this.finalPass = new QuadMesh(passMaterial(this.resolve(this.spectra[(this.passes.length - 1) % 2].textures, radices[radices.length - 1], span)));
+    const resolve = passMaterial(this.resolve(this.spectra[(this.passes.length - 1) % 2].textures, radices[radices.length - 1], span));
+    this.finalPasses = tier.map(() => new QuadMesh(resolve));
   }
 
   /** The latest displacement, derivatives and extras textures (one layer per cascade), for diagnostics. */
@@ -524,9 +527,11 @@ export class GpuWaveField implements WaveField {
     setBreakingThresholds(this.breaking, whitecapDepth(this.params.windSpeed, this.foamParams.coverageScale));
     this.whitecapShare.value = whitecapArea(this.params.windSpeed, this.foamParams.coverageScale);
     const target = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), level = renderer.getActiveMipmapLevel(), mrtState = renderer.getMRT();
+    const passes = directPasses(renderer);
+    passes.begin();
     try {
       renderer.setMRT(null);
-      this.passes.forEach((pass, t) => { renderer.setRenderTarget(this.spectra[t % 2]); pass.render(renderer); });
+      this.passes.forEach((pass, t) => passes.draw(pass, this.spectra[t % 2]));
       const next = this.current ^ 1, output = this.fields[next];
       this.previousExtras.value = this.fields[this.current].textures[2];
       this.cascades.forEach((_, c) => {
@@ -534,12 +539,12 @@ export class GpuWaveField implements WaveField {
         for (const t of output.textures) t.generateMipmaps = c === this.cascades.length - 1;
         this.layer.value = c;
         this.setBreaking(c, dt);
-        renderer.setRenderTarget(output, c);
-        this.finalPass.render(renderer);
+        passes.draw(this.finalPasses[c], output, c);
       });
       this.current = next;
       FIELDS.forEach((field, i) => { this.maps[field].value = output.textures[i]; });
     } finally {
+      passes.end();
       renderer.setRenderTarget(target, face, level); renderer.setMRT(mrtState);
     }
   }
@@ -574,6 +579,6 @@ export class GpuWaveField implements WaveField {
   dispose(): void {
     this.spectrum.dispose();
     for (const target of [...this.spectra, ...this.fields]) target.dispose();
-    for (const pass of [...this.passes, this.finalPass]) (pass.material as NodeMaterial).dispose();
+    for (const pass of [...this.passes, this.finalPasses[0]]) (pass.material as NodeMaterial).dispose();
   }
 }
