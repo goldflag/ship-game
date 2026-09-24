@@ -16,6 +16,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Measure a reference ship for an agent build | [Reference workflow](reference-workflow.md) | Ignored `.build/references/` caches of GameModels3D or local meshes, measured in ship metres |
 | Compare ships, aircraft and reference models | [Model library and comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
 | Verify a UI or battle change in a browser | [Browser verification](browser-verification.md) | Account-free harness page, Playwright driver, saved-design cache and known-red ledgers |
+| Script a battle and film it | [Films](film.md) | Film modules in `scripts/film/films/`, the manual clock, directed orders and the scout's log |
 | Review model quality | [Ship model review](ship-model-review.md) | Four required visual checks on the exact published model |
 | Paint ships consistently | [Ship appearance](ship-appearance.md) | Shared finishes, named paints and approved ship-specific schemes |
 | Reuse equipment or browse standalone models | [Shared components](shared-components.md), [model viewer](../tools/ship-overlay/README.md) | Component catalog, original builders and published ship assemblies |

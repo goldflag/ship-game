@@ -39,6 +39,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | A field crossing Rust and TypeScript (definitions, frames, commands) | The checklists in [crates/AGENTS.md](crates/AGENTS.md) |
 | Multiplayer server, accounts, deployment | [Rust multiplayer](docs/rust-multiplayer-implementation.md), [accounts](docs/accounts.md), [deployment](docs/deployment.md) |
 | See a UI or battle change in the real game | [Browser verification](docs/browser-verification.md): account-free harness, `bun run ui:shot`, saved custom designs |
+| Script a battle, direct its camera, or make a video of it | [Films](docs/film.md): manual clock, directed orders for either side, camera rigs, `bun run film` |
 | Build or refit a construction ship as an agent | [Agent construction authoring](docs/construction-authoring.md): `ship:summary`, guarded `ship:apply` batches, `ship:place`, `ship:view`, `ship:blender-import`/`ship:blender-export` (Blender as a front end that proposes batches), or the `ship-construction` MCP server |
 | New ship, ship model, parts, aircraft, paint | [assets/AGENTS.md](assets/AGENTS.md), then the [ship pipeline](docs/ship-pipeline.md) |
 | A premade ship "using the Blender pipeline", or a realism pass on one | [Blender-recipe presets](docs/ship-pipeline.md#blender-recipe-presets) |
@@ -54,6 +55,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | `bun run test` | Every TypeScript test, quiet. `bun test <file>` runs one file with full output |
 | `bun run ship:browser:check -- --only <name>` | One editor browser check; `--list` shows them |
 | `bun run ui:shot -- --state port\|editor\|battle` | A screenshot of the real game, no account needed |
+| `bun run film -- <name>` | Film a staged battle shot by shot (`scripts/film/films/`); `--stills` to review camera work. See [films](docs/film.md) |
 | `bun run dev` | Dev server. The URL is printed and written to `.build/dev-server.json`; each worktree has its own port |
 | `bun run multiplayer:check` | Rust clippy and tests plus protocol checks (slow; CI runs it) |
 | `bun run build` | The release gate. Run once before a PR, not to confirm a small change |

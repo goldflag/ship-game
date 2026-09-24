@@ -14,6 +14,7 @@ import { projectShipLabel } from './ShipLabels';
 import { AirMapController } from './controllers/AirMapController';
 import { reportName } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
+import { aircraftAttitude } from './aircraftPose';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, customTerrainOffset, loadMapTerrain, mapTerrainId, placedMapTerrain, type OceanMapId } from '../maps/catalog';
 import { OPEN_SEA, terrainHeight, type PlacedTerrain } from '../maps/heightfield';
@@ -22,7 +23,7 @@ import { VisualEnvironment, type DeveloperWeather, type EnvironmentOverrides } f
 import { WaterViewFocus } from './WaterViewFocus';
 import { BerthMotion } from './BerthMotion';
 import { localToWorld } from './geometry';
-import { createSeaState, seaWaves, type SeaState } from './session/sea';
+import { createSeaState, seaHeight, seaWaves, type SeaState } from './session/sea';
 import { hullFootprints } from './hullSea';
 import { updateWaterShadows } from './WaterShadows';
 import { FocusShadowNode } from './FocusShadowNode';
@@ -116,6 +117,12 @@ export type BattleProgress = (label: string, fraction: number) => void;
 /** A development capture's camera in a hull's own frame about her waterline (metres: +X starboard, +Y up, −Z bow),
  * held whatever the rig does; `shipId` defaults to the hull the camera rides. See `Game.placeCamera`. */
 export interface CameraPin { eye: Vec3; target: Vec3; fov?: number; shipId?: string }
+/** A development capture's camera placed every frame in world space after the rig (`Game.directCamera`). `alpha` is the frame's
+ * interpolation between the last two simulation frames, the fraction the ships and aircraft are drawn at; `dt` its seconds. */
+export type CameraDirector = (camera: THREE.PerspectiveCamera, frame: { alpha: number; dt: number }) => void;
+/** Where a ship or aircraft is drawn this frame (`Game.subjectPose`): world metres, radians (heading clockwise from −Z), and a
+ * unit `forward` along the hull's heading or the aircraft's nose. */
+export interface SubjectPose { position: Vec3; heading: number; pitch: number; roll: number; forward: Vec3; speed: number }
 
 /** One task group as fleet command holds it: its ships, its name and how it sails. */
 export interface ControlGroup { name: string; shipIds: string[]; formation?: Formation }
@@ -306,6 +313,9 @@ export class Game {
   private readonly berthMotion = new BerthMotion();
   /** Development captures: a camera held on a hull, and the sea time every presentation clock is held at (`freezeScene`). */
   private cameraPin?: CameraPin;
+  private cameraDirector?: CameraDirector;
+  /** Frames run only through `stepFrame`, each a fixed interval of battle time, not on the display's refresh. */
+  private manualClock = false;
   private frozenTime?: number;
   private berthSea?: { wind: number; direction: number; state: SeaState };
   /** The sea the berth hull rode this frame (still water while it is inspected), which the water around it shows. */
@@ -818,8 +828,60 @@ export class Game {
     if (fov) { this.camera.fov = fov; this.camera.updateProjectionMatrix(); }
     this.camera.updateMatrixWorld();
   }
+  /** Development captures (the film driver): place the camera every frame in world space, after the rig, whatever the rig does;
+   * no director gives it back. The director sets the lens too; the projection is updated after it runs. */
+  directCamera(director?: CameraDirector): void { this.cameraDirector = director; }
+  /** Development captures: `true` stops the display-driven frame loop, so frames run only through `stepFrame`; `false` resumes it. */
+  async setManualClock(manual: boolean): Promise<void> {
+    if (manual === this.manualClock) return;
+    this.manualClock = manual;
+    cancelAnimationFrame(this.raf);
+    await this.frameTask;
+    cancelAnimationFrame(this.raf);
+    this.lastTime = performance.now();
+    if (!manual) this.scheduleFrame();
+  }
+  /** Development captures under the manual clock: draw the next frame `dt` seconds of battle (at most 0.1) after the last, once the
+   * simulation has answered every batch posted so far. Stepped this way a battle presents every tick in order however long a frame
+   * takes; a frame of 0 s only applies the pending batch. */
+  async stepFrame(dt = 1 / 60): Promise<void> {
+    if (!this.manualClock) throw new Error('Game.stepFrame runs only under the manual clock.');
+    if (!(dt >= 0 && dt <= .1)) throw new Error(`Game.stepFrame takes 0 to 0.1 s; got ${dt}.`);
+    await this.frameTask;
+    await this.simulation.batchSettled?.();
+    this.assertActive();
+    this.frameTask = this.frame(this.lastTime + dt * 1000, false, dt);
+    await this.frameTask;
+  }
+  /** Development captures: resolves once the GPU has finished every frame submitted so far, so a capture reads the last one. */
+  async gpuIdle(): Promise<void> {
+    await (this.renderer.backend as unknown as { device?: GPUDevice }).device?.queue.onSubmittedWorkDone();
+  }
+  /** Development captures: where the ship or aircraft `id` is drawn this frame, interpolated as the renderer draws it. */
+  subjectPose(id: string): SubjectPose | undefined {
+    const view = this.fleetViews.find(entry => entry.actor.motion.id === id);
+    if (view) {
+      const { heading, pitch, roll, speed } = view.motion, { x, y, z } = view.root.position;
+      return { position: [x, y, z], heading, pitch, roll, speed, forward: [Math.sin(heading), 0, -Math.cos(heading)] };
+    }
+    const plane = this.simulation.aircraft.find(entry => entry.id === id), alpha = this.simulation.interpolationAlpha;
+    const carrier = plane && this.fleetViews.find(entry => entry.actor.motion.id === plane.ownerId);
+    const owner = plane && this.simulation.actors.find(actor => actor.motion.id === plane.ownerId);
+    const seen = plane && carrier && owner && aircraftFollowView(plane, owner, carrier.motion, alpha);
+    if (!plane || !seen) return;
+    const forward = seen.velocity, speed = Math.hypot(...plane.velocity);
+    // On deck the nose follows taxi turns and the deck's slope; the flight attitude is for the air.
+    if (onFlightDeck(plane)) return { position: seen.position, heading: Math.atan2(forward[0], -forward[2]), pitch: 0, roll: 0, forward, speed };
+    const { heading, pitch, bank } = aircraftAttitude(plane, alpha);
+    return { position: seen.position, heading, pitch, roll: bank, forward, speed };
+  }
+  /** Development captures: the long-wave sea's height at `x, z` this frame, the swell a camera near the water must clear. */
+  seaSurface(x: number, z: number): number {
+    const sea = this.simulation.sea;
+    return sea ? seaHeight(sea, x, z, this.simulation.presentationTime ?? this.simulation.tick / 60) : 0;
+  }
   /** What the camera shows is where it was sent: no optics glide, zoom, orbit or chart transition is still easing. */
-  get cameraSettled(): boolean { return !!this.cameraPin || (!this.rig.transitioning && !this.battlefieldCamera.transitioning); }
+  get cameraSettled(): boolean { return !!this.cameraPin || !!this.cameraDirector || (!this.rig.transitioning && !this.battlefieldCamera.transitioning); }
 
   /** Development captures: hold every presentation clock at `time` seconds of sea (the berth's ride, the waves, clouds, funnel
    * smoke, wake and a battle itself) until called without a time. The sea's foam and wake and the smoke are first replayed for
@@ -1039,6 +1101,9 @@ export class Game {
     })();
   }
 
+  private readonly buoys: THREE.Object3D[] = [];
+  /** Development captures: the channel buoys off the berth, which a film at sea hides. */
+  setBuoysVisible(visible: boolean): void { this.buoys.forEach(buoy => { buoy.visible = visible; }); }
   private addBuoy(buoy: typeof BUOYS[number]): void {
     const group = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({ visible: false }));
     const paint = new THREE.MeshStandardMaterial({ color: buoy.color, roughness: 0.65 });
@@ -1050,12 +1115,13 @@ export class Game {
     cap.position.y = 8.8;
     group.add(base, stem, cap);
     group.position.set(buoy.x, 0, buoy.z);
+    this.buoys.push(group);
     this.scene.add(group);
     this.ocean!.addFloater(group, { smoothing: 0.6 });
   }
 
   private scheduleFrame(): void {
-    if (this.disposed) return;
+    if (this.disposed || this.manualClock) return;
     this.raf = requestAnimationFrame(time => {
       // A frame rate limit skips whole display refreshes; the next frame's dt covers the gap.
       if (this.frameIntervalMs && time - this.lastTime < this.frameIntervalMs - 2) { this.scheduleFrame(); return; }
@@ -1063,9 +1129,10 @@ export class Game {
     });
   }
 
-  private async frame(time: number, warmingUp = false): Promise<void> {
+  /** `stepDt` (the manual clock) is the frame's exact battle seconds, 0 included: a frame that only applies a pending batch. */
+  private async frame(time: number, warmingUp = false, stepDt?: number): Promise<void> {
     if (this.disposed) return;
-    const realDt = warmingUp ? 1 / 60 : Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
+    const realDt = warmingUp ? 1 / 60 : stepDt ?? Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
     this.lastTime = time;
     const ended = this.simulation.isBattle && this.simulation.result !== 'active';
     const dt = this.frozenTime !== undefined || (!ended && (this.paused || this.tacticalPause)) ? 0 : realDt;
@@ -1121,7 +1188,10 @@ export class Game {
         this.rig.setTorpedoView(this.battery === 'torpedo' && !this.definition.submarine && this.cameraShipView === this.playerView);
         // The port camera frames the berth, so it holds still while the hull heaves.
         this.rig.update(pose, pose.y - (this.cameraShipView.seaOffset?.heave ?? 0), realDt);
-        if (this.cameraPin) this.pinCamera(this.cameraPin);
+        if (this.cameraDirector) {
+          this.cameraDirector(this.camera, { alpha, dt: realDt });
+          this.camera.updateProjectionMatrix(); this.camera.updateMatrixWorld();
+        } else if (this.cameraPin) this.pinCamera(this.cameraPin);
       }
       this.battlefieldCamera.applyTransition(realDt);
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,
@@ -1214,7 +1284,7 @@ export class Game {
         this.playerDamageFeedback = new HullDamageFeedback(damageSubject.damage.integrity);
       }
       const playerDamage = this.playerDamageFeedback.update(damageSubject.damage.integrity, combatTime);
-      this.fps += (1 / realDt - this.fps) * 0.04;
+      if (realDt > 0) this.fps += (1 / realDt - this.fps) * 0.04;
       if (state.tick - this.lastTrailTick >= 120) {
         this.trail.push({ x: state.x, z: state.z });
         if (this.trail.length > 240) this.trail.shift();
