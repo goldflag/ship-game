@@ -84,6 +84,16 @@ export interface CelestialLight {
   night: boolean;
   /** Extra diffuse light from a lightning flash this frame, as a multiple of the scene's ambient (0 = none). */
   flash: number;
+  /** The same flash's direct light (`BoltLight`), which lit meshes take from its bearing. */
+  readonly bolt: BoltLight;
+}
+
+/** Lightning's direct light this frame: where it shines from (a ground stroke's channel, or the cloud base lit over an
+ * intra-cloud flash) and its radiant intensity in `LightningStrike.intensity`'s convention, the air between included:
+ * irradiance `intensity × (1 km / r)²` in the sea's units. 0 while dark. */
+export interface BoltLight {
+  readonly position: Vector3;
+  intensity: number;
 }
 
 /** Read-only view of a celestial body for readings, diagnostics and cameras aimed at it. */
@@ -291,8 +301,9 @@ export interface WeatherPart extends SkyPart {
   readonly meshes: Object3D[];
   /** The latest strike, while it lights anything. */
   readonly strike: LightningStrike | null;
-  /** Extra diffuse light from lightning this frame (see `CelestialLight.flash`). */
+  /** Extra diffuse light from lightning this frame (see `CelestialLight.flash`), and its direct light (`CelestialLight.bolt`). */
   readonly flash: number;
+  readonly boltLight: BoltLight;
   /** Full-screen rain haze in linear radiance, or `color` unchanged when dry. */
   postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'>;
   /** Thunder heard for a strike, set by the facade. */

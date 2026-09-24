@@ -5,7 +5,7 @@ type Height = (x: Node<'float'>, z: Node<'float'>) => Node<'float'>;
 
 /** A darker, glossier band on every hull just above the moving sea surface, read per fragment
  * from the same wave, wake and bow-wave heights the ocean surface draws. Visual only. One node graph
- * serves every shared ship paint. */
+ * serves every shared ship paint, through ShipWeather. */
 export class HullWetBand {
   /** 1 while the band draws; 0 leaves the paint exactly as authored. */
   readonly enabled = uniform(1);
@@ -19,12 +19,8 @@ export class HullWetBand {
   private readonly highest = uniform(8);
   /** Fragments below this height are always under or just out of the water. */
   private readonly lowest = uniform(-8);
-  /** 0 dry, 1 wet. */
+  /** 0 dry, 1 wet. ShipWeather turns it, with bow spray, into the paint's albedo and roughness. */
   readonly wetness: Node<'float'>;
-  /** Albedo multiplier. */
-  readonly dry: Node<'float'>;
-  /** Roughness multiplier. */
-  readonly gloss: Node<'float'>;
 
   private height?: Height;
   private crest: () => number = () => 0;
@@ -54,8 +50,6 @@ export class HullWetBand {
       });
       return wet.mul(this.enabled);
     })();
-    this.dry = float(1).sub(this.darkening.mul(this.wetness));
-    this.gloss = float(1).sub(this.glossing.mul(this.wetness));
   }
 
   /** `seaHeight` is the significant wave height of the sea on show. */

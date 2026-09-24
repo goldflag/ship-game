@@ -165,6 +165,39 @@ Two more runtime treatments give a superstructure its dark accents:
   crowded toward it, so it shades the underside of platforms and bridge wings, the gaps
   between deckhouses and the foot of a tower as well as small creases.
 
+## Weather on ships
+
+Weather reaches every ship's paint through the palette's weathering (`PaintWeathering`,
+built by `src/game/ShipWeather.ts`), which multiplies whatever albedo and roughness surface
+detail gives a paint. One node graph per response (paint, and timber for teak) serves every
+shared paint, so premade and player-built ships get it alike and equal paints keep one
+program. Dry weather leaves every pixel as it was (frozen port A/B: identical). All of it is
+visual; the simulation never reads it.
+
+- **Rain.** Exposed paint wets over about 10 s in a downpour and 45 s in a drizzle, and dries
+  over three minutes once it stops (`RAIN_TIMES`); a scene that opens in rain opens wet. Wet
+  paint loses albedo by how porous it is, 5 % for the smoothest paint to 24 % for the roughest
+  and 42 % for teak, and its roughness falls toward the water film's (0.38 on decks and roofs,
+  0.48 on walls, 0.5 on teak: satin, about as far as Lagarde's wet surfaces go). Undersides stay dry; walls take about half a deck's wetness, and in
+  heavy rain water streams down them along the wear's runoff paths from each wall's top edge.
+  Heavy rain stands in patches on flat decks (roughness 0.07). Where ship occlusion runs, what
+  it finds deep in shelter stays drier.
+- **Bow spray and green water.** A hull meeting a heavy sea at speed wets her bow and
+  forecastle as seawater on steel, with the wet band's own response: strongest at the stem,
+  thinning aft over up to 30 % of her length and upward to about 14 m above her deck edge,
+  in patches that stay on the ship. How much depends on significant wave height, how squarely
+  she meets the waves and her speed, over her freeboard; each plunge of the bow wets her within
+  a second or so, and it drains over tens of seconds (`SPRAY`). The eight nearest bows wet;
+  `game.shipWeather.sprayOverride` (0–1) wets every bow in view by that much, for review.
+- **Lightning.** A flash lifts the hemisphere fill and lights meshes directly from the stroke:
+  a point light at the middle of a ground stroke's channel (a fifth as much from the cloud base
+  under an intra-cloud flash) in the sky's own convention, at the meshes' share of direct light,
+  dimmed by the rain between and never more than about a third of the noon sun on the ships near the camera
+  (`VisualEnvironment.boltLight`). No shadows.
+
+No setting switches it: rain and spray cost nothing in dry weather or a slight sea, and the
+lightning light is one more point light beside the gun-flash and fire lights.
+
 The runtime roster's ships, premade and player-built, consume this one standard and
 retain their own original schemes and deck coverings. Plated paint bakes no mottling:
 an A/B on Hood showed the baked ±11 % adding only 0.2 points of broad variation over

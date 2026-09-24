@@ -134,3 +134,22 @@ test('premade paint wears nothing and shares its material and layout with constr
   aircraft.add(plane); new ShipMaterialPalette().apply(aircraft);
   expect(plane.geometry.hasAttribute('shipWear')).toBe(false);
 });
+
+test('timber decks take weathering\'s own timber response, and every paint the paint response', () => {
+  const paint = { dry: float(.9), gloss: float(.7) }, timber = { dry: float(.6), gloss: float(.5) };
+  const palette = new ShipMaterialPalette({ surfaceDetail: true, weathering: { ...paint, timber } });
+  const map = new THREE.Texture(); map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  const deck = new THREE.MeshStandardMaterial({ name: 'Teak decking', map }); deck.userData.deckSubstrate = 'timber';
+  const root = new THREE.Group(), planks = new THREE.Mesh(new THREE.BoxGeometry(10, 1, 40), deck), side = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 40), new THREE.MeshStandardMaterial());
+  root.add(planks, side); palette.apply(root);
+  // The multiplier the roughness wrapper applies (three keeps an assigned node inside a variable).
+  const factor = (material: THREE.Material) => {
+    const node = (material as THREE.MeshStandardNodeMaterial).roughnessNode as unknown as { node?: { bNode: unknown }; bNode?: unknown };
+    return (node.node ?? node).bNode;
+  };
+  expect(factor(planks.material)).toBe(timber.gloss); expect(factor(side.material)).toBe(paint.gloss);
+  // Without surface detail both fall back to the plain paint roughness, and still keep their own responses.
+  palette.setSurfaceDetail(root, false);
+  expect(factor(planks.material)).toBe(timber.gloss); expect(factor(side.material)).toBe(paint.gloss);
+  palette.setSurfaceDetail(root, true);
+});
