@@ -725,15 +725,11 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             g = tag(box('tower.window', R(wx * f_, wy, -7.73 + shift - .01), (.06, .45, .36), 'glass', scol), 'tower-fittings')
             g.rotation_euler.y = math.radians(-8)
 
-    # Knee webs under the tower's after extensions (the 22 m deck and the director deck reach aft to the
-    # foremast), as the reference carries them.
+    # Diagonal braces under the tower's after extensions (the 22 m deck and the director deck reach aft
+    # to the foremast), as the reference carries them.
     for sx in (-1, 1):
-        web_pts = [R(sx * 1.4, 20.1, -2.62), R(sx * 1.4, 21.92, -2.62), R(sx * 1.4, 21.92, .55)]
-        tag(mesh('tower.knee', [(p_[0], p_[1] + d_, p_[2]) for d_ in (-.05, .05) for p_ in web_pts],
-                 [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', scol), 'tower-fittings')
-        web_pts = [R(sx * .45, 27.1, -2.62), R(sx * .45, 28.75, -2.62), R(sx * .45, 28.75, 1.35)]
-        tag(mesh('tower.knee', [(p_[0], p_[1] + d_, p_[2]) for d_ in (-.05, .05) for p_ in web_pts],
-                 [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', scol), 'tower-fittings')
+        tag(rod('tower.brace', R(sx * 1.3, 19.5, -2.62), R(sx * 1.3, 21.9, .5), .1, 'naval', scol, vertices=6), 'tower-fittings')
+        tag(rod('tower.brace', R(sx * .4, 26.6, -2.42), R(sx * .4, 28.74, 1.5), .09, 'naval', scol, vertices=6), 'tower-fittings')
 
     # ------------------------------------------------------------ deckhouse walls: doors, scuttles, vents
     for st in structures:
@@ -896,7 +892,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             zr = -12 + 37 * k / 12
             ax_ = R(0, 0, zr)[0]
             d_ = Vector((0, -sgn * fin.y, fin.z))
-            root = support.along((ax_, -sgn * 9.0, -7.2), tuple(d_), 8)
+            root = support.along((ax_, -sgn * 9.0, -8.85), (0, -sgn, 0), 8)     # the bilge at 8.85 m depth
             root = Vector((root.x, root.y, root.z))
             fade = max(0, min(1, (zr + 12) / 4, (25 - zr) / 4))
             tang = Vector((0, d_.z, -d_.y)) * .14
