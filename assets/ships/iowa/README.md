@@ -65,7 +65,11 @@ rails, Mk.51/Mk.57 directors), and `forward.py`, `tower.py`, `midships.py`, `aft
 `house.py` (01/02 levels) and `hull.py` (hull and weather decks) build their areas.
 A region builds each AA mount's tub, gallery or shield and lists it in `AA_INSTALLED`;
 `aa.py` details the gun mechanisms. Mk.51/Mk.57 directors, the SK-2, SG and Mk.27
-radars and the periscopes are visual fittings; the SK-2 turns on `radar-search.yaw`.
+radars and the periscopes are visual fittings; the SK-2 turns on `radar-search.yaw`. Bridge glazing
+follows the windows the approved model paints in its textures (navigation bridge band,
+the level above, the cheeks below), since its walls carry no window geometry. The four
+screws are built-up bronze blades with pitch, skew and rounded tips: 4-bladed 5.5 m
+outboard, 5-bladed 5.2 m inboard, at the reference's diameters and positions.
 
 Accepted approximations: the reference walls carry no door or scuttle geometry, so a
 sparse set is interpreted. The forward 5-inch notch in the 03 house is widened to the

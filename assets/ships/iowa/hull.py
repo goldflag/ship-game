@@ -606,12 +606,33 @@ rod('Crane topping lift',(-130.3,0,14.8),(-125.0,0,14.62),.02,'edge',vertices=4)
 # Underwater: twin skegs, four shafts with bossings and V struts, 4- and 5-bladed screws, twin rudders.
 # ---------------------------------------------------------------------------------------------
 COL=collections['Underwater fittings'];ASSEMBLY='hull'
-def h_blades(name,x,y,z,radius,count):
-    for j in range(count):
-        a=j*math.tau/count+.3;yy,zz=math.cos(a),math.sin(a)
-        vv=[(x+.10,y+yy*.4,z+zz*.4),(x-.20,y+yy*radius-zz*.55,z+zz*radius+yy*.55),(x+.17,y+yy*radius*.98+zz*.42,z+zz*radius*.98-yy*.42),(x+.32,y+yy*.55,z+zz*.55)]
-        vv=vv+[(p[0]+.075,p[1],p[2]) for p in vv]
-        mesh(name+' blade',vv,[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,7,4,0)],'bronze')
+def h_screw(name,x,y,z,radius,count,hand,cmax,skew=.22,pitch=1.1):
+    """Built-up screw: broad elliptical blades with skew, rake, helical pitch and a thick root,
+    each one closed mesh (face, back and rim), turning about the shaft axis (authoring X, aft = -X)."""
+    import bmesh
+    nr,nc=9,7;hub=.2*radius;P=pitch*2*radius
+    for b in range(count):
+        a0=b*math.tau/count+.3;v=[]
+        for side in (-1,1):
+            for k in range(nr):
+                # Radial stations crowd toward the tip so its broad elliptical outline stays round.
+                t=math.sin(math.pi/2*k/(nr-1));r=hub+(radius-hub)*t
+                chord=cmax*(.62+.38*math.sin(math.pi/2*t/.6) if t<.6 else math.sqrt(max(0.,1-((t-.6)/.4)**2)))+.02
+                phi=math.atan2(P,math.tau*r);th=(.09*radius*(1-t)+.02)
+                for j in range(nc):
+                    u=-math.cos(math.pi*j/(nc-1));sc=u*chord/2;half=th*math.sqrt(max(0.,1-u*u))/2+.004
+                    tang=sc*math.cos(phi)+side*half*math.sin(phi);ax=-sc*math.sin(phi)*hand+side*half*math.cos(phi)-.06*radius*t
+                    ang=a0-hand*skew*t**1.5+hand*tang/r
+                    v.append((x+ax,y+r*math.cos(ang),z+r*math.sin(ang)))
+        stride=nr*nc;faces=[]
+        for k in range(nr-1):
+            for j in range(nc-1):
+                n=k*nc+j;faces.extend([(n,n+nc,n+nc+1,n+1),(stride+n,stride+n+1,stride+n+nc+1,stride+n+nc)])
+        edge=list(range(nc))+[k*nc+nc-1 for k in range(1,nr)]+[(nr-1)*nc+j for j in range(nc-2,-1,-1)]+[k*nc for k in range(nr-2,0,-1)]
+        faces.extend((n,edge[(i+1)%len(edge)],stride+edge[(i+1)%len(edge)],stride+n) for i,n in enumerate(edge))
+        o=mesh(name+' blade',v,faces,'bronze',smooth=True)
+        bm=bmesh.new();bm.from_mesh(o.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free()
+    rod(name+' cap',(x-.55,y,z),(x-1.15,y,z),.3,'bronze',r2=.13,vertices=12)
 for sgn in SIDES:
     Y=-sgn*3.5
     stations=[(78,-7.25,.22),(85,-8.2,.55),(92,-8.85,.7),(100,-8.9,.75),(106,-8.9,.65),(107.9,-8.1,.5),(109.1,-6.9,.4),(110.2,-5.2,.3),(110.8,-3.4,.22)]
@@ -623,14 +644,14 @@ for sgn in SIDES:
     x,y,z=-110.2,-sgn*3.58,-6.4
     rod('Inner shaft',(-108.6,y,z),(x,y,z),.24,'antifouling',vertices=10)
     rod('Propeller hub',(x-.55,y,z),(x+.55,y,z),.46,'bronze',r2=.26,vertices=12)
-    h_blades('Inner screw',x,y,z,2.55,5)
+    h_screw('Inner screw',x,y,z,2.59,5,sgn,1.75)
     # Outer shaft on a bossing and V strut, 4-bladed screw.
     x,y,z=-101.5,-sgn*10.0,-5.97
     rod('Outer shaft',(-80.0,y,z+.05),(-95.6,y,z),.26,'antifouling',vertices=10)
     rod('Shaft bossing',(-95.6,y,z),(-101.0,y,z),.5,'antifouling',r2=.5,vertices=12)
     rod('Bossing fairing',(-94.6,y,z),(-95.6,y,z),.26,'antifouling',r2=.5,vertices=12)
     rod('Propeller hub',(x-.55,y,z),(x+.55,y,z),.48,'bronze',r2=.26,vertices=12)
-    h_blades('Outer screw',x,y,z,2.72,4)
+    h_screw('Outer screw',x,y,z,2.755,4,sgn,2.05)
     rod('Shaft exit fairing',(-80.0,y,z+.05),(-83.2,y,z+.03),.62,'antifouling',r2=.26,vertices=10)
     for yt in (-2.9,-.9):
         wt=loft_breadth(H,-97.8,yt)-.15
