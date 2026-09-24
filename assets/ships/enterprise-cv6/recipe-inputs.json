@@ -2,6 +2,10 @@
   "version": 1,
   "files": [
     "assets/ships/appearance/surface.py",
+    "assets/ships/enterprise-cv6/details.py",
+    "assets/ships/enterprise-cv6/sponsons.py",
+    "assets/ships/enterprise-cv6/fittings.py",
+    "assets/ships/enterprise-cv6/island.py",
     "assets/ships/appearance/finishes.json",
     "assets/ships/enterprise-cv6/appearance.json",
     "assets/parts/library.py",

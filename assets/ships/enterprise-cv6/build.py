@@ -89,6 +89,8 @@ hull=authored_hull(H,mesh,COL['Hull'],[M['hullgray'],M['antifouling'],M['boot']]
 S={s['id']:s for s in D['structures']}
 FLIGHT=S['flight-deck']['baseY']+S['flight-deck']['height'];MAIN=S['hangar-deck']['baseY']+S['hangar-deck']['height']
 IY=-36.25*.3048
+# Island and funnel half-widths measured on GameModels3D pasa518 (the refit kept the island width).
+HW=2.075;FHW=2.06
 FT=.3048;FP=H['length']/2-18.75*FT
 def frame(n):return FP-n*4*FT
 def level(feet):return feet*FT-H['draft']
@@ -202,6 +204,8 @@ for obj in [*COL['Flight deck'].objects,*COL['Deck equipment'].objects]:
  for v in bm.verts:
   world=mat@v.co;world.z-=(4/12*FT)*(world.y/(46*FT))**2;v.co=inv@world
  bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
+# Original detail vocabulary and the plated 5-inch sponsons (see details.py, sponsons.py).
+for part in ['details','sponsons']:exec((Path(__file__).parent/(part+'.py')).read_text(),globals())
 # Edge girders, catwalks and steel galleries keep the hangar open and inspectable.
 def railing(points,z,name,col,closed=False):
  path=points+points[:1] if closed else points
@@ -248,18 +252,7 @@ for x in [-122,-116,-110]:
 for m in D['mounts']:
  x,y,z=-m['position'][2],-m['position'][0],m['position'][1];spec=m['weapon']
  if m['partId'].startswith('us-5'):
-  rad=2.25
-  cyl(m['id']+' gun platform',(x,y,z-.14),rad,.28,M['naval'],COL['Armament'],40)
-  # A webbed sponson, not an armored battleship barbette.
-  for dx,radius in [(0,.16),(-1,.11),(1,.11)]:
-   xx=x+dx;foot_z=interpolate(H['deckHeights'],xx+H['length']/2)-.4
-   foot_y=math.copysign(loft_width(xx,foot_z)-.04,y)
-   rod(m['id']+' hull gallery bracket',(xx,foot_y,foot_z),(xx,y,z-.22),radius,M['naval'],COL['Armament'])
-  for a in [math.pi*i/16 for i in range(33)]:
-   if math.sin(a)*y>0:continue
-   # Low splinter screen at the inner arc; leave the outward firing side clear.
-   p1=(x+rad*math.cos(a),y+rad*math.sin(a));p2=(x+rad*math.cos(a+.10),y+rad*math.sin(a+.10))
-   screen([p1,p2],z,.65,m['id']+' platform screen',COL['Armament'])
+  pass  # Plated sponsons, gun decks and bulwarks: sponsons.py
  elif m['partId']=='us-11in75-quad':
   cyl(m['id']+' platform',(x,y,z-.12),2,.24,M['naval'],COL['Armament'],40)
   if z>FLIGHT+.3:
@@ -292,7 +285,7 @@ for key in ['communications-walkway','flag-walkway','navigation-wings','bridge-r
  else:railing(points,z,key,COL['Island'],True)
  for x,y in points:
   if abs(y-IY)>2.7:
-   rod('Platform web support',(x,IY+math.copysign(2.1,y-IY),z-1.4),(x,y,z-.12),.065,M['naval'],COL['Island'])
+   rod('Platform web support',(x,IY+math.copysign(HW,y-IY),z-1.4),(x,y,z-.12),.065,M['naval'],COL['Island'])
 for x in [frame(79.8),frame(83.3)]:
  for y in [IY-1.4,IY+1.4]:rod('Fighting-top support',(x,y,FCTRL),(x,y,TOP_FLOOR),.10,M['naval'],COL['Island'])
 # Funnel: three distinct uptake openings and a tall rectangular casing with
@@ -305,7 +298,7 @@ for fr,diameter in [(100,11.5),(96,13.5),(92,13.5)]:
 stack_outline=[(-z,-x) for x,z in S['funnel-cap']['footprint']]
 railing(stack_outline,STACK,'Stack',COL['Island'],True)
 for x in [frame(102.5),frame(89.7)]:
- for y in [IY-2.45,IY+2.45]:rod('Steam pipe',(x,y,FLAG),(x,y,STACK+.45),.10,M['naval'],COL['Island'],vertices=12)
+ for y in [IY-FHW-.12,IY+FHW+.12]:rod('Steam pipe',(x,y,FLAG),(x,y,STACK+.45),.10,M['naval'],COL['Island'],vertices=12)
 # Tripod mast, fighting top, CXAM-1 and yards. Datum survives batching.
 fore=empty('foremast.assembly',(0,0,0),COL['Island'])
 MX=frame(80.5)
@@ -376,21 +369,21 @@ for side,sgn in [('port',1),('starboard',-1)]:
    rod('Davit block hanger',(xx,y,MAIN+4.4),(xx,y,MAIN+4.25),.035,M['naval'],COL['Deck equipment'])
    rod('Boat fall',(xx,y,MAIN+4.25),(xx,y,MAIN+1.65),.021,M['edge'],COL['Deck equipment'],vertices=6)
    for offset in [-.76,.76]:rod('Boat lifting bridle',(xx,y,MAIN+1.65),(xx,y+offset,MAIN+1.16),.025,M['edge'],COL['Deck equipment'],vertices=6)
-for x in range(-86,82,9):
+# Carley floats on edge in exterior racks under the flight-deck overhang: one oval tube and
+# grating per float, two cradle arms to the gallery wall. Kept clear of gallery webs and sponsons.
+rafts=Kit('Carley floats',COL['Deck equipment'],'carley-floats')
+spans=[(-69,-34),(31,67)]
+xs=[x for a,b in spans for x in range(a+3,b-1,8)]+[x for x in range(-86,72,9) if not any(a-2<x<b+2 for a,b in spans)]
+for x in xs:
  for sign in [-1,1]:
   y=sign*12.4;z=FLIGHT-2.2
-  # Oval raft rendered as two end arcs and longitudinal tubes.
-  for xx in [-.53,.53]:
-   for i in range(10):
-    a=math.pi*(i/10-.5)+ (math.pi if xx<0 else 0);b=a+math.pi/10
-    rod('Raft end',(x+xx+.36*math.cos(a),y,z+.36*math.sin(a)),(x+xx+.36*math.cos(b),y,z+.36*math.sin(b)),.095,M['raft'],COL['Deck equipment'])
-  for zz in [-.36,.36]:rod('Raft side',(x-.53,y,z+zz),(x+.53,y,z+zz),.095,M['raft'],COL['Deck equipment'])
-  # Floats were fixed to exterior racks. Two cradles and lashings connect each
-  # preserved oval to the gallery wall; they are not suspended beside the ship.
-  for dx in [-.45,.45]:
-   rod('Raft rack arm',(x+dx,sign*10.10,FLIGHT-.12 if x>70 else z-.4),(x+dx,y,z-.4),.045,M['naval'],COL['Deck equipment'])
-   rod('Raft rack upright',(x+dx,y,z-.43),(x+dx,y,z+.4),.035,M['naval'],COL['Deck equipment'])
+  carley(rafts,x,y,z,2.4,1.05,0)
+  for dx in [-.6,.6]:
+   rafts.rod((x+dx,sign*10.18,z-.62),(x+dx,y,z-.62),.045,'naval',6)
+   rafts.rod((x+dx,y,z-.64),(x+dx,y,z-.4),.035,'naval',5)
+rafts.emit()
 # Scuttles are dark recess discs, with gunmetal rims oriented in the hull side.
+scuttles=Kit('Hull scuttles',COL['Hull'],'hull-scuttles')
 for x in range(-105,114,4):
  station=x+H['length']/2;w=interpolate(H['halfBreadths'],station)
  for z in [2.1,4.15,6.35]:
@@ -398,7 +391,8 @@ for x in range(-105,114,4):
   s=min(H['sections'],key=lambda p:abs(p['station']-station));breadth=interpolate([(p[1],p[0]) for p in s['points']],z)
   for sign in [-1,1]:
    yy=sign*(loft_width(x,z)-.01)
-   rod('Hull scuttle',(x,yy,z),(x,yy+sign*.035,z),.125,M['dark'],COL['Hull'],vertices=12)
+   scuttles.rod((x,yy,z),(x,yy+sign*.035,z),.125,'dark',8)
+scuttles.emit()
 # Forecastle anchoring machinery and independent anchor shapes.
 for sign in [-1,1]:
  y=sign*3.5;z=interpolate(H['deckHeights'],112+H['length']/2)
@@ -455,14 +449,14 @@ stock=rod('Rudder stock',(0,0,3.0),(0,0,7.3),.24,M['edge'],COL['Underwater'],ver
 # uptake piping, rain hoods, gangways and crane winches. No later Bofors fit.
 fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M,COL['Island'])
 for sign in [-1,1]:
- y=IY+sign*2.55
+ y=IY+sign*(HW+.04)
  for x in [frame(73),frame(85),frame(104)]:fit.door('Island watertight access',x,y,FLAG+.12,.72,1.8)
  for x in [frame(90),frame(94),frame(99),frame(103)]:fit.vent('Island ventilation trunk',x,y,COMM+.62,1.15,1.1)
  for x in [frame(75),frame(84)]:fit.stairs('Bridge exterior stair',(x-2.4,y,FLAG),(x+.7,y,NAV),.68)
- fit.ladder('Funnel external ladder',(frame(96),IY+sign*2.48,ROOF),(frame(96),IY+sign*2.48,STACK),.64)
+ fit.ladder('Funnel external ladder',(frame(96),IY+sign*(FHW+.04),ROOF),(frame(96),IY+sign*(FHW+.04),STACK),.64)
  fit.ladder('Fighting top access',(MX-1,IY+sign*.9,ROOF),(MX-1,IY+sign*.9,TOP_FLOOR),.54)
- for x in [frame(96)-1.65,frame(96)+1.65]:fit.knee('Searchlight gallery pierced knee',x,IY+sign*2.2,IY+sign*4.2,ROOF-.2,1.4)
- for x in [frame(72),frame(75)]:fit.knee('Navigation wing pierced knee',x,IY+sign*2.1,IY+sign*5.0,NAV-.18,1.45)
+ for x in [frame(96)-1.65,frame(96)+1.65]:fit.knee('Searchlight gallery pierced knee',x,IY+sign*FHW,IY+sign*4.2,ROOF-.2,1.4)
+ for x in [frame(72),frame(75)]:fit.knee('Navigation wing pierced knee',x,IY+sign*HW,IY+sign*5.0,NAV-.18,1.45)
  # Rounded air intakes and narrow pipe lagging beneath the stack walkway.
  for x in [frame(91),frame(98)]:
   rod('Uptake service pipe',(x,y,FLAG+.2),(x,y,STACK-.7),.065,M['naval'],COL['Island'],vertices=10)
@@ -491,15 +485,17 @@ for sign in [-1,1]:
  for x in [-82,-74,-29,-18,0,17,26,71]:fit.vent('Gallery louver',x,sign*10.24,FLIGHT-1.35,1.65,.80)
  for x in [-77,-24,24,71]:fit.door('Hangar personnel door',x,sign*10.24,MAIN+.12,.8,1.9)
 fit.col=COL['Deck equipment']
+reels=Kit('Mooring reels',COL['Deck equipment'],'mooring-reels')
 for sign in [-1,1]:
  for x in [-117,-105,-85,-65]:
   y=sign*10.7
   fit.ring('Arresting cable return sheave',(x,y,FLIGHT-.28),.28,.065,'x',segments=18)
   box('Arrestor sheave cover',(x,y,FLIGHT-.18),(.7,.35,.30),M['naval'],COL['Deck equipment'])
- for x in [104,95,-109,-119]:fit.reel('Deck end mooring reel',x,sign*4.0,interpolate(H['deckHeights'],x+H['length']/2)+.01,.42,1.2)
+ for x in [104,95,-109,-119]:reel(reels,x,sign*4.0,interpolate(H['deckHeights'],x+H['length']/2)+.01,.42,1.2)
  for x in [48,58,-51,-61]:
   box('20 mm magazine locker',(x,sign*13.4,15.7869+.35),(.9,.42,.7),M['naval'],COL['Deck equipment'])
   box('Magazine locker lid',(x,sign*13.4,15.7869+.72),(.96,.49,.07),M['roof'],COL['Deck equipment'])
+reels.emit()
 # Elevator roller tracks and lip seams follow the retained platform perimeter.
 for id in ['elevator-forward','elevator-middle','elevator-aft']:
  s=S[id];pts=[(-z,-x) for x,z in s['footprint']]
