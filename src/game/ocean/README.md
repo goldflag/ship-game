@@ -57,7 +57,7 @@ render, no separate reflection G-buffer and no water-depth pass. `ocean.postProc
 color)` adds the underwater view to the game's output chain.
 
 The surface's fragment shader also reads every wake sampler's inputs: trail foam, bow waves, hull contact
-foam and the sea around hulls. WebGPU binds at most 12 uniform buffers per shader stage by default, and
+foam and shelter, and the sea around hulls. WebGPU binds at most 12 uniform buffers per shader stage by default, and
 three gives each uniform array its own buffer. Past that, pipeline creation fails and the sea stops
 drawing. A system the surface reads therefore packs its arrays into one buffer with `PackedVec4Arrays`
 (`src/game/packedUniforms.ts`).
@@ -232,11 +232,44 @@ so it follows the sky and the moon at night without a tint. Its wet top keeps ha
 reflection, and it is never darker than the water it covers without glints. Straight-through visibility of submerged
 geometry: the opaque scene at the same screen position, attenuated by `exp(-absorption × column)`
 and filled with the pigment. No refraction offset. An optional sun shadow node attenuates the lit
-terms; ambient pigment keeps 45% in full shadow; sky reflection is unshadowed. The underside, seen
+terms; ambient pigment keeps 45% in full shadow; sky reflection is unshadowed. The game's node
+(`src/game/WaterShadows.ts`) reads the camera-fitted near map where it covers the water and the wide
+map beyond, blended by the ships' own weight and filtered as their paint is, so a ship's shadow is as
+sharp on the water beside her as on her deck (see the configuration guide). The underside, seen
 from a submerged camera (and only computed for back faces), shows Snell's window and, outside it,
 total internal reflection of the lit sea: dark looking down into the deep, bright toward the
 horizontal where daylight (the sky's mean radiance, tinted by what the water absorbs least)
 scatters along the surface, dimmed by the water above the camera.
+
+**The sea beside hulls** (`surface/shelter.ts`, the game's `HullContactFoam.shelter`; optional
+`WakeSampler.shelter`). A hull's side stands over the water beside it. It hides part of the sky that lights
+the water, and where the mirrored ray meets it the water reflects the side instead of the sky. Photographs show
+the result as a darker band of water hugging a hull, darkest in her lee. The sampler takes each side as a
+vertical wall on the hull's sliced waterline. The wall runs from stem to stern and is as tall as the side's height
+above the water. That height is sliced per station from the drawn model, as the highest point within 80% of the
+station's half-breadth, with a median of three stations so a lone yard or bridge wing does not stand in for the
+side. The sampler returns:
+- the wall's view factor from the water, the share of the sky's diffuse light it hides. A horizontal element
+  beside a vertical rectangle gives (atan X − atan(X/√(1+Y²))/√(1+Y²))/2π per end, X the end's distance along
+  the side and Y the wall's height, both over the distance out. That is half the sky beside an endless tall
+  wall, 14% one height off and 2.6% three heights off;
+- the share of the mirrored lobe (its centre and in-plane spread with physical reflections, the mirror ray and
+  twice the RMS slope without) that reaches the wall's plane below its top and between its ends;
+- that side's outward normal.
+
+The surface replaces the hidden sky with the light the side scatters: grey paint (albedo 0.3) lit by half the
+sky and by the sun where the side faces it, at the 0.55 share lit meshes take. That light feeds the water
+body's upwelling (or the pigment's sky share without physical colour) and the foam's skylight. The mirrored sky
+moves toward the side's radiance by the mirrored share and is never brightened. The side in her own shade
+returns about a sixth of the sky, so the band is darkest in the lee. A sunlit side barely changes the water.
+Where screen-space reflections find the side on screen, their image replaces the estimate, because only the
+sky term changes. Both terms fade out between three and five side heights from the hull, and with the camera's
+range over the last quarter of the foam's 4 km reach, so neither draws a line in open water. The profile is
+sliced once per hull from the full model, not per level of detail, so a LOD switch changes nothing. The term
+shares the hull contact foam's slots, 8 nearest hulls in the same packed uniform buffer, so it adds no texture
+or buffer. Per sea pixel it adds a loop over those slots that tests a bounding circle. Only water within the
+tallest side's reach does the rest: about a dozen uniform reads, six arctangents and a square root. The Water
+shadows row's Off drops the term from the shader (`ShipWake.shelter`), so the Low preset pays nothing.
 
 **Reflections of ships.** Screen-space rays against the opaque depth, enabled on High and Ultra
 when Graphics → Reflections is Scene. Clip each ray to the viewport before spending the step

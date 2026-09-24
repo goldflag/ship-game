@@ -9,6 +9,7 @@ import { aeratedReflectance, aeration, billows, bubbleCloud, churnedWater, foamF
 import { foamTexture } from './foamTexture';
 import type { OceanGeometry } from './OceanGeometry';
 import { TRACE_BELOW, footprintVariance, meanFresnel, reflectionLobe, skyLobe, sunGlitter, windVariances } from './physicalReflection';
+import { hullShelter } from './shelter';
 import { backscatter, columnTransmittance, skyIrradiance, subsurfaceReflectance, upwelling, waterBody } from './waterBody';
 
 /** Reflectance of water at normal incidence. */
@@ -214,6 +215,13 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     // Ship shadows on the sea fade with the celestial light that casts them: faint under the moon.
     const lit = shadow ? mix(1, shadow, sunIntensity.div(2).clamp(0, 1)) : float(1);
     const pigment = rgb(colors.waterColor), absorption = rgb(colors.absorptionColor);
+    // Physical reflections mirror the facets the viewer sees through their spread (see physicalReflection.ts).
+    const heading = reference('windDirection', 'float', waves.params), downwind = vec2(cos(heading), sin(heading));
+    const variances = physical.reflections ? windVariances(sample.unresolvedVariance.add(footprintVariance(up)), reference('windSpeed', 'float', waves.params)) : undefined;
+    const lobe = variances ? reflectionLobe(view, up, variances, downwind) : undefined;
+    // Hull sides beside the water hide part of the sky it mirrors and is lit by (see shelter.ts).
+    const daylight = skyIrradiance(environment), contact = wake.shelter ? hullShelter(wake.shelter(xz.x, xz.y, lobe?.direction ?? reflect(view.negate(), up),
+      lobe?.inPlane ?? sample.slopeVariance.mul(2).sqrt()), daylight, sunRadiance, sunDirection) : undefined;
 
     // The opaque scene behind this pixel, and how much water lies between it and the surface.
     const sceneViewZ = perspectiveDepthToViewZ(this.sceneDepth.r, cameraNear, cameraFar);
@@ -223,20 +231,18 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     if (physical.waterColor) {
       // Light scattered back out of the water, lit by the sun and sky that cross the surface (see waterBody.ts).
       const scatter = backscatter();
-      const deep = upwelling(subsurfaceReflectance(absorption, scatter), sunDirection, sunRadiance, skyIrradiance(environment), lit);
+      const deep = upwelling(subsurfaceReflectance(absorption, scatter), sunDirection, sunRadiance, contact?.irradiance ?? daylight, lit);
       body = waterBody(this.sceneColor.rgb, deep, columnTransmittance(absorption, scatter, column, view));
     } else {
       const through = transmittance(absorption, column);
-      body = this.sceneColor.rgb.mul(through).add(pigment.mul(mix(SHADOWED_PIGMENT, 1, lit)).mul(float(1).sub(through)));
+      const light = contact ? contact.skyShare.mul(SHADOWED_PIGMENT).add(lit.mul(1 - SHADOWED_PIGMENT)) : mix(SHADOWED_PIGMENT, 1, lit);
+      body = this.sceneColor.rgb.mul(through).add(pigment.mul(light).mul(float(1).sub(through)));
     }
 
     // Above: Fresnel between the reflected sky (or ships, where the screen trace finds them) and the water body.
-    // Physical reflections mirror the facets the viewer sees through their spread (see physicalReflection.ts).
-    const heading = reference('windDirection', 'float', waves.params), downwind = vec2(cos(heading), sin(heading));
-    const variances = physical.reflections ? windVariances(sample.unresolvedVariance.add(footprintVariance(up)), reference('windSpeed', 'float', waves.params)) : undefined;
-    const lobe = variances ? reflectionLobe(view, up, variances, downwind) : undefined;
     const reflectance = lobe ? meanFresnel(dot(up, view), lobe.sigmaView) : fresnel(dot(up, view));
-    const sky = lobe ? skyLobe(environment, lobe) : skyReflection(environment, reflect(view.negate(), up), roughness(sample.slopeVariance));
+    const mirroredSky = lobe ? skyLobe(environment, lobe) : skyReflection(environment, reflect(view.negate(), up), roughness(sample.slopeVariance));
+    const sky = contact ? contact.reflect(mirroredSky) : mirroredSky;
     // Ships and islands the mirrored ray meets on screen replace the sky (High and Ultra only).
     const toView = (direction: Node<'vec3'>) => cameraViewMatrix.mul(vec4(direction, 0)).xyz;
     const traced = reflections.steps > 0 ? screenSpaceReflection({ position: positionView, direction: toView(lobe ? lobe.traced : traceDirection(view, up)),
@@ -261,7 +267,7 @@ export class OceanSurfaceMaterial extends NodeMaterial {
     // Foam is lit like any diffuse white surface, by the sky about its normal and the sun; the bubble clouds under
     // breaking crests and churned water scatter the same daylight back up through the water. A pixel gone to the
     // whitecaps' mean has their brightness in it already.
-    const foamLight = foamRadiance(skyReflection(environment, up, float(1)), sunRadiance, up, sunDirection, lit);
+    const foamLight = foamRadiance(skyReflection(environment, up, float(1)).mul(contact?.skyShare ?? 1), sunRadiance, up, sunDirection, lit);
     const aerated = aeration(sample.bubbles.mul(float(1).sub(whitecaps.averaged)), wake.bubbles?.(xz.x, xz.y));
     const water = mix(bubbleCloud(body, aerated, foamLight, absorption), reflected, aeratedReflectance(reflectance, aerated));
     let above: Node<'vec3'> = water.add(direct.mul(lit));
