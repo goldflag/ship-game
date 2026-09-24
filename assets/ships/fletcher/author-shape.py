@@ -192,6 +192,52 @@ for m in b['modules']:
         m['center'][1] = 1.0; m['size'][1] = 1.9
     if m['id'] == 'aft-magazine':
         m['center'][1] = 0; m['size'][1] = 2.5
+
+
+def hull_contains(x, y, z):
+    """Python port of src/ships/hull.ts hullContains for the section loft."""
+    station = h['length']/2 - z
+    if station < 0 or station > h['length']:
+        return False
+    secs = h['sections']
+    i = max(1, next((k for k, sec in enumerate(secs) if sec['station'] >= station), 1))
+    a, c = secs[i-1], secs[i]
+    t = (station - a['station'])/(c['station'] - a['station'])
+    pts = [(w + (v-w)*t, yy + (q-yy)*t) for (w, yy), (v, q) in zip(a['points'], c['points'])]
+    if y < pts[0][1] - 1e-7 or y > pts[-1][1] + 1e-7:
+        return False
+    width = 0.0
+    for (aw, ay), (bw, by) in zip(pts, pts[1:]):
+        if ay - 1e-7 <= y <= by + 1e-7:
+            width = max(width, max(aw, bw) if by - ay < 1e-7 else aw + (bw-aw)*(y-ay)/(by-ay))
+    return abs(x) <= width + 1e-7
+
+
+def inside(center, size):
+    return all(hull_contains(center[0]+sx*size[0]/2, center[1]+sy*size[1]/2, center[2]+sz*size[2]/2)
+               for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1))
+
+
+# Re-seat the below-deck rooms inside the re-measured hull with the smallest change: lift the floor
+# off the rounder bilge first (up to 0.4 m), then narrow (up to 15%), in 5 cm steps; flood capacity
+# is kept unless it would exceed 95% of the smaller box. Deckhouse magazines stay where they are, and
+# the fine forebody still clips a few lower corners of the forepeak and forward magazine envelopes.
+def outside_corners(center, size):
+    return sum(not hull_contains(center[0]+sx*size[0]/2, center[1]+sy*size[1]/2, center[2]+sz*size[2]/2)
+               for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1))
+
+
+for room in [r for r in b['compartments'] + b['modules'] if r['center'][1] < 2.5 and not r['id'].startswith(('reserve-cell-', 'flood-'))]:
+    c, sz = room['center'], room['size']
+    y0, w0, l0 = sz[1], sz[0], sz[2]
+    while outside_corners(c, sz) and sz[1] > y0 - .4:
+        sz[1] = round(sz[1] - .05, 4); c[1] = round(c[1] + .025, 4)
+    while outside_corners(c, sz) and sz[0] > .85*w0:
+        sz[0] = round(sz[0] - .05, 4)
+    if outside_corners(c, sz):
+        sz[0] = w0  # narrowing alone cannot seat it: keep the original width
+    if 'capacityM3' in room:
+        room['capacityM3'] = round(min(room['capacityM3'], .95*sz[0]*sz[1]*sz[2]), 1)
 b['obstructions'] = []
 for s in b['structures']:
     if 'surface' in s:

@@ -231,8 +231,9 @@ for side in [-1,1]:
         seam=[(s-half,side*(hull_breadth_at(s-half,z)+.006),z) for s in range(6,103,2)]
         # Flush plate seams are fine; no oversized decorative armor belts.
         tube_path('hull.plate-seam',seam,.009,materials['wear'],sides=5)
-    railpts=[(sec['station']-half,side*max(.05,sec['points'][-1][0]-.16),sec['points'][-1][1]+.05) for sec in h['sections'][::2] if 2<sec['station']<113.7]
-    rails('rails.perimeter',railpts)
+    # Deck-edge rail at even stanchion spacing (the fine end stations would crowd it).
+    railpts=[(x,side*max(.05,deck_edge(x)-.16),deckz(x)+.05) for x in [-55.35+i*1.8 for i in range(63)] if x<56.35]
+    rails('rails.perimeter',railpts,spacing=1.9)
 
 # Structural footprints remain the same source for visible deckhouses and CPU hits.
 structures={s['id']:s for s in definition['structures']}
@@ -785,6 +786,12 @@ fs=[(i*n+j,i*n+(j+1)%n,(i+1)*n+(j+1)%n,(i+1)*n+j) for i in range(len(prof)-1) fo
 fs += [tuple(reversed(range(n))),tuple((len(prof)-1)*n+j for j in range(n))]
 mesh('hull.sonar-dome',vs,fs,materials['underwater'],smooth=True)
 # Rudder: one broad blade, leading edge raked forward to the counter, trailing edge vertical.
+# Propeller guards: a bar just above the waterline over each screw, on struts to the deck edge.
+for side in [-1,1]:
+    guard=[(-48.6,hull_breadth_at(-48.6,1.45)-.05),(-49.5,4.78),(-50.4,5.08),(-51.0,5.16),(-51.6,5.06),(-52.3,hull_breadth_at(-52.3,1.45)-.05)]
+    tube_path('hull.propeller-guard',[(x,side*w,1.45) for x,w in guard],.07,materials['naval'],sides=10)
+    for x,w in guard[1:-1]:
+        rod('hull.propeller-guard-strut',(x,side*w,1.45),(x,side*(hull_breadth_at(x,2.45)-.03),2.45),.05,materials['naval'],vertices=8)
 rudder=empty('rudder.pivot',(-53.0,0,-1.35))
 top_f=hull_height_at(-52.0,0)+.18;top_a=hull_height_at(-55.6,0)+.18
 rv=[(-52.0,-.33,top_f),(-52.62,-.20,-4.36),(-55.5,-.20,-4.36),(-55.67,-.30,top_a),
