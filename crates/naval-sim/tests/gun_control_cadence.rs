@@ -3,14 +3,17 @@
 use naval_sim::{
     battle::{Battle, BattleSetup, Orders},
     catalog::Catalog,
-    geometry::radians,
+    geometry::{length, radians, sub},
     gunnery::{PlayerGunOrders, SURFACE_CONTROL_TICKS},
     rules::DT,
-    weapons::MountStatus,
+    weapons::{MountStatus, shot_direction},
 };
 use std::{collections::BTreeMap, sync::Arc};
 
 fn battle() -> Battle {
+    battle_in(0.)
+}
+fn battle_in(wind: f64) -> Battle {
     let catalog = Catalog::installed();
     let compiled = BTreeMap::from([(
         "fletcher".into(),
@@ -23,19 +26,22 @@ fn battle() -> Battle {
             {"id":"enemy","presetId":"fletcher","team":"b","controller":"bot","aiLevel":"static",
              "spawn":{"x":0,"z":-12000,"heading":0}}
         ],
-        "seed":17,"mapId":"north-atlantic","weather":"clear","windSpeed":0,"spawnDistance":12000
+        "seed":17,"mapId":"north-atlantic","weather":"clear","windSpeed":wind,"spawnDistance":12000
     }))
     .unwrap();
     Battle::new(catalog, &compiled, setup).unwrap()
 }
 fn orders(x: f64) -> BTreeMap<String, Orders> {
+    orders_at([x, 10., -2000.])
+}
+fn orders_at(aim: [f64; 3]) -> BTreeMap<String, Orders> {
     BTreeMap::from([(
         "own".into(),
         Orders {
             guns: Some(PlayerGunOrders {
                 battery: "main".into(),
                 weapon_group_id: None,
-                aim: Some([x, 10., -2000.]),
+                aim: Some(aim),
                 fire: false,
                 ammunition: Default::default(),
             }),
@@ -45,7 +51,7 @@ fn orders(x: f64) -> BTreeMap<String, Orders> {
 }
 
 #[test]
-fn controls_update_within_100_ms_while_reload_stays_at_60_hz() {
+fn a_new_aim_waits_for_the_next_decision_while_the_gun_moves_every_tick() {
     let mut battle = battle();
     let index = battle.actors[0]
         .definition()
@@ -62,21 +68,30 @@ fn controls_update_within_100_ms_while_reload_stays_at_60_hz() {
     battle.step(&orders(1500.));
     let initial = battle.actors[0].mounts[index].aim_cache.clone().unwrap();
     let mut previous = battle.actors[0].mounts[index].clone();
+    let mut moved = 0;
     for _ in 1..SURFACE_CONTROL_TICKS {
         battle.step(&orders(-1500.));
         let mount = &battle.actors[0].mounts[index];
         assert_eq!(mount.aim_cache.as_ref().unwrap().point, initial.point);
-        assert_eq!(
-            mount.train, previous.train,
-            "surface slew waits for the next control tick"
+        assert!(
+            mount.train >= previous.train,
+            "the new order must wait for the next decision"
         );
         assert!(mount.train - previous.train <= max_step + 1e-12);
+        if mount.train > previous.train {
+            moved += 1;
+        }
         assert!(
             mount.reload < previous.reload,
             "reload must advance every tick"
         );
         previous = mount.clone();
     }
+    assert_eq!(
+        moved,
+        SURFACE_CONTROL_TICKS - 1,
+        "a laid gun keeps training toward the last decision every tick"
+    );
     battle.step(&orders(-1500.));
     let mount = &battle.actors[0].mounts[index];
     assert!(mount.aim_cache.as_ref().unwrap().train < 0.);
@@ -84,8 +99,57 @@ fn controls_update_within_100_ms_while_reload_stays_at_60_hz() {
         mount.train < previous.train,
         "new aim must be acted on at 100 ms"
     );
-    assert!(previous.train - mount.train <= max_step * SURFACE_CONTROL_TICKS as f64 + 1e-12);
+    assert!(
+        previous.train - mount.train <= max_step + 1e-12,
+        "a decision spends only its own tick of slew time"
+    );
     assert_eq!(battle.tick, SURFACE_CONTROL_TICKS + 1);
+}
+
+#[test]
+fn a_laid_gun_holds_its_line_of_fire_while_the_hull_rolls() {
+    let mut battle = battle_in(16.);
+    let aim = orders_at([5000., 0.5, 0.]);
+    for _ in 0..30 * 60 {
+        battle.step(&aim);
+    }
+    let index = battle.actors[0]
+        .definition()
+        .mounts
+        .iter()
+        .position(|m| m.battery == "main")
+        .unwrap();
+    let bore = |b: &Battle| {
+        let a = &b.actors[0];
+        shot_direction(
+            &a.definition().mounts[index],
+            &a.mounts[index],
+            a.motion.pose(),
+        )
+    };
+    let (mut decided, mut roll) = (bore(&battle), battle.actors[0].motion.roll);
+    let (mut drift, mut rolled) = (0f64, 0f64);
+    for _ in 0..10 * 60 {
+        let tick = battle.tick;
+        battle.step(&aim);
+        let (now, hull) = (bore(&battle), battle.actors[0].motion.roll);
+        if tick.is_multiple_of(SURFACE_CONTROL_TICKS) {
+            (decided, roll) = (now, hull);
+            continue;
+        }
+        drift = drift.max(length(sub(now, decided)));
+        rolled = rolled.max((hull - roll).abs());
+    }
+    assert!(
+        rolled > 1e-3,
+        "the sea must roll the hull between decisions: {rolled}"
+    );
+    // Gunnery lays against the attitude at the start of the tick and the hull
+    // settles after it, so only the change in one tick's rotation remains.
+    assert!(
+        drift * 20. < rolled,
+        "the barrels ride the deck between decisions: {drift} rad against {rolled} rad of roll"
+    );
 }
 
 #[test]
