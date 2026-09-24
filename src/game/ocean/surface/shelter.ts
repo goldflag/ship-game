@@ -13,8 +13,8 @@ type Vec3 = Node<'vec3'>;
 const HULL_ALBEDO = .3;
 /** Share of the sky's irradiance on the horizontal that reaches a vertical side: half the dome. */
 const SIDE_SKY = .5;
-/** Share of the sun's irradiance the game's lit meshes take (the foam's share, under AgX). */
-const SIDE_SUN = .55;
+/** Share of the sun's irradiance the game's lit meshes take by day: all of it (VisualEnvironment's `meshLightShares`). */
+const SIDE_SUN = 1;
 
 /** The water's light beside hulls. */
 export interface HullShelter {

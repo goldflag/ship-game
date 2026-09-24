@@ -152,6 +152,14 @@ moving parts, and it leaves colors and schemes unchanged:
 Mipmaps average the relief away, so the effect fades with distance. Tune it in
 that module, not per ship.
 
+By day ships take the whole sun and the whole sky light (the graded dome and the sea, as image-based
+light) and no hemisphere fill, which returns only as the sun fades (`meshLightShares` in
+`src/game/VisualEnvironment.ts`). Measured on grey cards at a 70° sun: 6:1 direct to diffuse light on a deck
+(a clear sky gives 5–8:1), a shaded deck three stops under a sunlit one, and a sunlit 18 % card at 1.4 times
+the average sky radiance (1–1.5 in daylight). Moonlight is lifted for meshes. In port the berth
+sits in a gap in the clouds' shadow (`PORT_CLEARING`, 350 m clear, back by 900 m), so a passing cloud
+never leaves the ship being looked at in shade; battles keep every cloud shadow.
+
 Two more runtime treatments give a superstructure its dark accents:
 
 - **Glazing:** the ship paint palette (`ShipMaterialPalette.ts`, `GLAZING`) draws glass
@@ -192,8 +200,8 @@ visual; the simulation never reads it.
   `game.shipWeather.sprayOverride` (0–1) wets every bow in view by that much, for review.
 - **Lightning.** A flash lifts the hemisphere fill and lights meshes directly from the stroke:
   a point light at the middle of a ground stroke's channel (a fifth as much from the cloud base
-  under an intra-cloud flash) in the sky's own convention, at the meshes' share of direct light,
-  dimmed by the rain between and never more than about a third of the noon sun on the ships near the camera
+  under an intra-cloud flash) in the sky's own convention, taken whole as meshes take the sun,
+  dimmed by the rain between and never more than about a sixth of the noon sun on the ships near the camera
   (`VisualEnvironment.boltLight`). No shadows.
 
 No setting switches it: rain and spray cost nothing in dry weather or a slight sea, and the

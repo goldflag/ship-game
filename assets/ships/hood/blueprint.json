@@ -41121,7 +41121,7 @@
     },
     {
       "id": "flood-strip-port-1-2",
-      "name": "Port outer space 2.3 · estimated",
+      "name": "Port outer space 2.3 \u00b7 estimated",
       "center": [
         -5.08278718495369,
         1.5,
@@ -41147,7 +41147,7 @@
     },
     {
       "id": "flood-strip-starboard-1-2",
-      "name": "Starboard outer space 2.3 · estimated",
+      "name": "Starboard outer space 2.3 \u00b7 estimated",
       "center": [
         5.08278718495369,
         1.5,
@@ -41173,7 +41173,7 @@
     },
     {
       "id": "flood-strip-port-2-0",
-      "name": "Port outer space 3.1 · estimated",
+      "name": "Port outer space 3.1 \u00b7 estimated",
       "center": [
         -10.83126435959339,
         -4.5,
@@ -41199,7 +41199,7 @@
     },
     {
       "id": "flood-strip-starboard-2-0",
-      "name": "Starboard outer space 3.1 · estimated",
+      "name": "Starboard outer space 3.1 \u00b7 estimated",
       "center": [
         10.83126435959339,
         -4.5,
@@ -41225,7 +41225,7 @@
     },
     {
       "id": "flood-strip-port-2-1",
-      "name": "Port outer space 3.2 · estimated",
+      "name": "Port outer space 3.2 \u00b7 estimated",
       "center": [
         -10.484412740349772,
         -1.5,
@@ -41251,7 +41251,7 @@
     },
     {
       "id": "flood-strip-starboard-2-1",
-      "name": "Starboard outer space 3.2 · estimated",
+      "name": "Starboard outer space 3.2 \u00b7 estimated",
       "center": [
         10.484412740349772,
         -1.5,
@@ -41277,7 +41277,7 @@
     },
     {
       "id": "flood-strip-port-2-2",
-      "name": "Port outer space 3.3 · estimated",
+      "name": "Port outer space 3.3 \u00b7 estimated",
       "center": [
         -10.608825480699544,
         1.5,
@@ -41303,7 +41303,7 @@
     },
     {
       "id": "flood-strip-starboard-2-2",
-      "name": "Starboard outer space 3.3 · estimated",
+      "name": "Starboard outer space 3.3 \u00b7 estimated",
       "center": [
         10.608825480699544,
         1.5,
@@ -41329,7 +41329,7 @@
     },
     {
       "id": "flood-strip-port-3-0",
-      "name": "Port outer space 4.1 · estimated",
+      "name": "Port outer space 4.1 \u00b7 estimated",
       "center": [
         -12.202902928292753,
         -4.5,
@@ -41355,7 +41355,7 @@
     },
     {
       "id": "flood-strip-starboard-3-0",
-      "name": "Starboard outer space 4.1 · estimated",
+      "name": "Starboard outer space 4.1 \u00b7 estimated",
       "center": [
         12.202902928292753,
         -4.5,
@@ -41381,7 +41381,7 @@
     },
     {
       "id": "flood-strip-port-3-1",
-      "name": "Port outer space 4.2 · estimated",
+      "name": "Port outer space 4.2 \u00b7 estimated",
       "center": [
         -11.574549971342087,
         -1.5,
@@ -41407,7 +41407,7 @@
     },
     {
       "id": "flood-strip-starboard-3-1",
-      "name": "Starboard outer space 4.2 · estimated",
+      "name": "Starboard outer space 4.2 \u00b7 estimated",
       "center": [
         11.574549971342087,
         -1.5,
@@ -41433,7 +41433,7 @@
     },
     {
       "id": "flood-strip-port-3-2",
-      "name": "Port outer space 4.3 · estimated",
+      "name": "Port outer space 4.3 \u00b7 estimated",
       "center": [
         -12.789099942684174,
         1.5,
@@ -41459,7 +41459,7 @@
     },
     {
       "id": "flood-strip-starboard-3-2",
-      "name": "Starboard outer space 4.3 · estimated",
+      "name": "Starboard outer space 4.3 \u00b7 estimated",
       "center": [
         12.789099942684174,
         1.5,
@@ -41485,7 +41485,7 @@
     },
     {
       "id": "flood-strip-port-4-0",
-      "name": "Port outer space 5.1 · estimated",
+      "name": "Port outer space 5.1 \u00b7 estimated",
       "center": [
         -9.779012188851835,
         -4.5,
@@ -41511,7 +41511,7 @@
     },
     {
       "id": "flood-strip-starboard-4-0",
-      "name": "Starboard outer space 5.1 · estimated",
+      "name": "Starboard outer space 5.1 \u00b7 estimated",
       "center": [
         9.779012188851835,
         -4.5,
@@ -41537,7 +41537,7 @@
     },
     {
       "id": "flood-strip-port-4-1",
-      "name": "Port outer space 5.2 · estimated",
+      "name": "Port outer space 5.2 \u00b7 estimated",
       "center": [
         -10.242677371621134,
         -1.5,
@@ -41563,7 +41563,7 @@
     },
     {
       "id": "flood-strip-starboard-4-1",
-      "name": "Starboard outer space 5.2 · estimated",
+      "name": "Starboard outer space 5.2 \u00b7 estimated",
       "center": [
         10.242677371621134,
         -1.5,
@@ -41589,7 +41589,7 @@
     },
     {
       "id": "flood-strip-port-6-1",
-      "name": "Port outer space 7.2 · estimated",
+      "name": "Port outer space 7.2 \u00b7 estimated",
       "center": [
         -0.34900483846664426,
         -1.5,
@@ -41615,7 +41615,7 @@
     },
     {
       "id": "flood-strip-starboard-6-1",
-      "name": "Starboard outer space 7.2 · estimated",
+      "name": "Starboard outer space 7.2 \u00b7 estimated",
       "center": [
         0.34900483846664426,
         -1.5,
@@ -41641,7 +41641,7 @@
     },
     {
       "id": "flood-strip-port-6-2",
-      "name": "Port outer space 7.3 · estimated",
+      "name": "Port outer space 7.3 \u00b7 estimated",
       "center": [
         -0.7460060219168664,
         1.5,
@@ -41667,7 +41667,7 @@
     },
     {
       "id": "flood-strip-starboard-6-2",
-      "name": "Starboard outer space 7.3 · estimated",
+      "name": "Starboard outer space 7.3 \u00b7 estimated",
       "center": [
         0.7460060219168664,
         1.5,
@@ -41693,7 +41693,7 @@
     },
     {
       "id": "flood-end-bow-0",
-      "name": "Bow end space 1 · estimated",
+      "name": "Bow end space 1 \u00b7 estimated",
       "center": [
         0,
         -5.25,
@@ -41719,7 +41719,7 @@
     },
     {
       "id": "flood-end-bow-1",
-      "name": "Bow end space 2 · estimated",
+      "name": "Bow end space 2 \u00b7 estimated",
       "center": [
         0,
         -3.75,
@@ -41745,7 +41745,7 @@
     },
     {
       "id": "flood-end-bow-2",
-      "name": "Bow end space 3 · estimated",
+      "name": "Bow end space 3 \u00b7 estimated",
       "center": [
         0,
         -2.25,
@@ -41771,7 +41771,7 @@
     },
     {
       "id": "flood-end-bow-3",
-      "name": "Bow end space 4 · estimated",
+      "name": "Bow end space 4 \u00b7 estimated",
       "center": [
         0,
         -0.75,
@@ -41797,7 +41797,7 @@
     },
     {
       "id": "flood-end-bow-4",
-      "name": "Bow end space 5 · estimated",
+      "name": "Bow end space 5 \u00b7 estimated",
       "center": [
         0,
         0.75,
@@ -41823,7 +41823,7 @@
     },
     {
       "id": "flood-end-bow-5",
-      "name": "Bow end space 6 · estimated",
+      "name": "Bow end space 6 \u00b7 estimated",
       "center": [
         0,
         2.25,
@@ -41849,7 +41849,7 @@
     },
     {
       "id": "flood-end-stern-0",
-      "name": "Stern end space 1 · estimated",
+      "name": "Stern end space 1 \u00b7 estimated",
       "center": [
         0,
         -5.25,
@@ -41875,7 +41875,7 @@
     },
     {
       "id": "flood-end-stern-1",
-      "name": "Stern end space 2 · estimated",
+      "name": "Stern end space 2 \u00b7 estimated",
       "center": [
         0,
         -3.75,
@@ -41901,7 +41901,7 @@
     },
     {
       "id": "flood-end-stern-2",
-      "name": "Stern end space 3 · estimated",
+      "name": "Stern end space 3 \u00b7 estimated",
       "center": [
         0,
         -2.25,
@@ -41927,7 +41927,7 @@
     },
     {
       "id": "flood-end-stern-3",
-      "name": "Stern end space 4 · estimated",
+      "name": "Stern end space 4 \u00b7 estimated",
       "center": [
         0,
         -0.75,
@@ -41953,7 +41953,7 @@
     },
     {
       "id": "flood-end-stern-4",
-      "name": "Stern end space 5 · estimated",
+      "name": "Stern end space 5 \u00b7 estimated",
       "center": [
         0,
         0.75,
@@ -41979,7 +41979,7 @@
     },
     {
       "id": "flood-end-stern-5",
-      "name": "Stern end space 6 · estimated",
+      "name": "Stern end space 6 \u00b7 estimated",
       "center": [
         0,
         2.25,
@@ -42005,7 +42005,7 @@
     },
     {
       "id": "reserve-cell-0-0-0",
-      "name": "Port reserve space 1 · estimated",
+      "name": "Port reserve space 1 \u00b7 estimated",
       "center": [
         -4.935625,
         -1.0885000000000002,
@@ -43989,7 +43989,7 @@
     },
     {
       "id": "reserve-cell-0-1-0",
-      "name": "Starboard reserve space 1 · estimated",
+      "name": "Starboard reserve space 1 \u00b7 estimated",
       "center": [
         4.935625,
         -1.0885000000000002,
@@ -45973,7 +45973,7 @@
     },
     {
       "id": "reserve-cell-1-0-0",
-      "name": "Port reserve space 2 · estimated",
+      "name": "Port reserve space 2 \u00b7 estimated",
       "center": [
         -7.4034375,
         -1.8412083350000001,
@@ -48101,7 +48101,7 @@
     },
     {
       "id": "reserve-cell-1-1-0",
-      "name": "Starboard reserve space 2 · estimated",
+      "name": "Starboard reserve space 2 \u00b7 estimated",
       "center": [
         7.4034375,
         -1.8412083350000001,
@@ -50229,7 +50229,7 @@
     },
     {
       "id": "reserve-cell-2-0-0",
-      "name": "Port reserve space 3 · estimated",
+      "name": "Port reserve space 3 \u00b7 estimated",
       "center": [
         -7.4034375,
         -2.2175624999999997,
@@ -51673,7 +51673,7 @@
     },
     {
       "id": "reserve-cell-2-1-0",
-      "name": "Starboard reserve space 3 · estimated",
+      "name": "Starboard reserve space 3 \u00b7 estimated",
       "center": [
         7.4034375,
         -2.2175624999999997,
@@ -53117,7 +53117,7 @@
     },
     {
       "id": "reserve-cell-3-0-0",
-      "name": "Port reserve space 4 · estimated",
+      "name": "Port reserve space 4 \u00b7 estimated",
       "center": [
         -5.9227499975,
         -2.5939166650000005,
@@ -55833,7 +55833,7 @@
     },
     {
       "id": "reserve-cell-3-1-0",
-      "name": "Starboard reserve space 4 · estimated",
+      "name": "Starboard reserve space 4 \u00b7 estimated",
       "center": [
         5.9227499975,
         -2.5939166650000005,
@@ -61727,137 +61727,202 @@
     {
       "id": "shelter-deck-forward-1",
       "center": [
-        0,
+        0.0,
         7.267,
-        -46.69
+        -47.19
       ],
       "size": [
-        12.763,
+        11.932,
         3.866,
-        9.22
+        8.22
       ]
     },
     {
       "id": "shelter-deck-forward-2",
       "center": [
-        0,
+        0.0,
         7.267,
-        -37.27
+        -38.77
       ],
       "size": [
-        22.626,
+        21.4,
         3.866,
-        9.22
+        8.22
       ]
     },
     {
       "id": "shelter-deck-forward-3",
       "center": [
-        0,
+        0.0,
         7.267,
-        -27.85
+        -30.35
       ],
       "size": [
-        27.62,
+        23.2,
         3.866,
-        9.22
+        8.22
       ]
     },
     {
       "id": "shelter-deck-forward-4",
       "center": [
-        0,
+        0.0,
         7.267,
-        -18.43
+        -21.93
       ],
       "size": [
-        30.4,
+        28.674,
         3.866,
-        9.22
+        8.22
       ]
     },
     {
       "id": "shelter-deck-forward-5",
       "center": [
-        0,
+        0.0,
         7.267,
-        -9.01
+        -13.51
       ],
       "size": [
-        30.353,
+        29.09,
         3.866,
-        9.22
+        8.22
       ]
     },
     {
-      "id": "shelter-deck-forward-6",
+      "id": "shelter-deck-well-roof-1",
       "center": [
-        0,
+        0.0,
+        9.075,
+        -4.812
+      ],
+      "size": [
+        29.1,
+        0.25,
+        8.775
+      ]
+    },
+    {
+      "id": "shelter-deck-well-roof-2",
+      "center": [
+        0.0,
+        9.075,
+        4.163
+      ],
+      "size": [
+        29.4,
+        0.25,
+        8.775
+      ]
+    },
+    {
+      "id": "shelter-deck-well-roof-3",
+      "center": [
+        0.0,
+        9.075,
+        13.138
+      ],
+      "size": [
+        29.6,
+        0.25,
+        8.775
+      ]
+    },
+    {
+      "id": "shelter-deck-well-roof-4",
+      "center": [
+        0.0,
+        9.075,
+        22.113
+      ],
+      "size": [
+        29.6,
+        0.25,
+        8.775
+      ]
+    },
+    {
+      "id": "shelter-deck-midships-1",
+      "center": [
+        0.0,
         7.267,
-        0.41
+        30.65
       ],
       "size": [
         29.4,
         3.866,
-        9.22
+        7.9
       ]
     },
     {
-      "id": "shelter-deck-forward-7",
+      "id": "shelter-deck-midships-2",
       "center": [
-        0,
+        0.0,
         7.267,
-        9.83
+        38.75
       ],
       "size": [
-        29.6,
+        28.997,
         3.866,
-        9.22
+        7.9
       ]
     },
     {
-      "id": "shelter-deck-forward-8",
+      "id": "well-casing-forward-1",
       "center": [
-        0,
-        7.267,
-        19.25
+        0.0,
+        7.142,
+        -4.975
       ],
       "size": [
-        29.6,
-        3.866,
-        9.22
+        16.8,
+        3.616,
+        8.45
       ]
     },
     {
-      "id": "shelter-deck-forward-9",
+      "id": "well-casing-forward-2",
       "center": [
-        0,
-        7.267,
-        28.67
+        0.0,
+        7.142,
+        3.675
       ],
       "size": [
-        29.4,
-        3.866,
-        9.22
+        16.8,
+        3.616,
+        8.45
       ]
     },
     {
-      "id": "shelter-deck-forward-10",
+      "id": "well-casing-aft-1",
       "center": [
-        0,
-        7.267,
-        38.09
+        0.0,
+        7.142,
+        14.0
       ],
       "size": [
-        29.076,
-        3.866,
-        9.22
+        11.7,
+        3.616,
+        8.2
+      ]
+    },
+    {
+      "id": "well-casing-aft-2",
+      "center": [
+        0.0,
+        7.142,
+        22.4
+      ],
+      "size": [
+        11.7,
+        3.616,
+        8.2
       ]
     },
     {
       "id": "shelter-deck-aft-1",
       "center": [
-        0,
+        0.0,
         5.84,
         46.383
       ],
@@ -61870,7 +61935,7 @@
     {
       "id": "shelter-deck-aft-2",
       "center": [
-        0,
+        0.0,
         5.84,
         53.55
       ],
@@ -61883,7 +61948,7 @@
     {
       "id": "shelter-deck-aft-3",
       "center": [
-        0,
+        0.0,
         5.84,
         60.717
       ],
@@ -61896,77 +61961,90 @@
     {
       "id": "forward-superstructure-1",
       "center": [
-        0,
+        0.0,
         10.6,
-        -47.467
+        -47.475
       ],
       "size": [
-        11.438,
+        11.424,
         2.8,
-        7.467
+        7.45
       ]
     },
     {
       "id": "forward-superstructure-2",
       "center": [
-        0,
+        0.0,
         10.6,
-        -39.8
+        -39.825
       ],
       "size": [
-        15.089,
+        15.242,
         2.8,
-        7.467
+        7.45
       ]
     },
     {
       "id": "forward-superstructure-3",
       "center": [
-        0,
+        0.0,
         10.6,
-        -32.133
+        -32.175
       ],
       "size": [
-        15.9,
+        16.26,
         2.8,
-        7.467
+        7.45
       ]
     },
     {
-      "id": "bridge-base-1",
+      "id": "searchlight-sponson-port",
       "center": [
-        0,
-        13.065,
-        -48.7
+        -7.9,
+        11.925,
+        -28.575
       ],
       "size": [
-        9.97,
-        2.13,
-        5.6
+        2.4,
+        0.15,
+        4.95
       ]
     },
     {
-      "id": "bridge-base-2",
+      "id": "searchlight-sponson-starboard",
       "center": [
-        0,
-        13.065,
-        -42.9
+        7.9,
+        11.925,
+        -28.575
       ],
       "size": [
-        12.8,
+        2.4,
+        0.15,
+        4.95
+      ]
+    },
+    {
+      "id": "bridge-base",
+      "center": [
+        0.0,
+        13.065,
+        -43.875
+      ],
+      "size": [
+        13.7,
         2.13,
-        5.6
+        7.55
       ]
     },
     {
       "id": "conning-tower",
       "center": [
-        0,
+        0.0,
         14.25,
         -47.55
       ],
       "size": [
-        6,
+        6.0,
         4.5,
         7.7
       ]
@@ -61974,163 +62052,254 @@
     {
       "id": "conning-tower-hood",
       "center": [
-        0,
-        17.45,
-        -45.95
+        0.0,
+        16.9,
+        -46.37
       ],
       "size": [
-        4.6,
-        1.9,
-        4.1
+        4.64,
+        0.8,
+        4.9
+      ]
+    },
+    {
+      "id": "conning-tower-hood-upper",
+      "center": [
+        0.0,
+        17.83,
+        -45.9
+      ],
+      "size": [
+        3.1,
+        1.06,
+        3.24
+      ]
+    },
+    {
+      "id": "conning-tower-sight-hood",
+      "center": [
+        0.0,
+        17.55,
+        -47.885
+      ],
+      "size": [
+        3.76,
+        0.5,
+        1.87
       ]
     },
     {
       "id": "bridge-lower",
       "center": [
-        0,
-        13.5,
-        -35.3
+        0.0,
+        14.2,
+        -36.135
       ],
       "size": [
-        4,
-        3,
-        4.8
+        4.0,
+        4.4,
+        4.13
       ]
     },
     {
       "id": "signal-house-port",
       "center": [
-        -3.95,
-        13.5,
-        -32.7
+        -3.96,
+        13.0,
+        -30.65
       ],
       "size": [
-        1.9,
-        3,
-        8.4
+        1.82,
+        2.0,
+        4.2
+      ]
+    },
+    {
+      "id": "bridge-side-house-port",
+      "center": [
+        -3.95,
+        15.275,
+        -30.65
+      ],
+      "size": [
+        1.84,
+        2.25,
+        4.2
       ]
     },
     {
       "id": "signal-house-starboard",
       "center": [
-        3.95,
-        13.5,
-        -32.7
+        3.96,
+        13.0,
+        -30.65
       ],
       "size": [
-        1.9,
-        3,
-        8.4
+        1.82,
+        2.0,
+        4.2
+      ]
+    },
+    {
+      "id": "bridge-side-house-starboard",
+      "center": [
+        3.95,
+        15.275,
+        -30.65
+      ],
+      "size": [
+        1.84,
+        2.25,
+        4.2
+      ]
+    },
+    {
+      "id": "bridge-deck-lower-1",
+      "center": [
+        0.0,
+        14.075,
+        -36.725
+      ],
+      "size": [
+        9.534,
+        0.15,
+        6.35
+      ]
+    },
+    {
+      "id": "bridge-deck-lower-2",
+      "center": [
+        0.0,
+        14.075,
+        -30.175
+      ],
+      "size": [
+        9.74,
+        0.15,
+        6.35
       ]
     },
     {
       "id": "bridge-flag-1",
       "center": [
-        0,
-        16.15,
-        -34.75
+        0.0,
+        16.475,
+        -36.54
       ],
       "size": [
-        9.8,
-        2.3,
-        5.3
+        9.679,
+        0.15,
+        6.26
       ]
     },
     {
       "id": "bridge-flag-2",
       "center": [
-        0,
-        16.15,
-        -29.25
+        0.0,
+        16.475,
+        -30.08
       ],
       "size": [
-        9.8,
-        2.3,
-        5.3
-      ]
-    },
-    {
-      "id": "bridge-flag-deck-1",
-      "center": [
-        0,
-        17.65,
-        -36.475
-      ],
-      "size": [
-        7,
-        0.7,
-        6.45
-      ]
-    },
-    {
-      "id": "bridge-flag-deck-2",
-      "center": [
-        0,
-        17.65,
-        -29.825
-      ],
-      "size": [
-        9.8,
-        0.7,
-        6.45
+        9.7,
+        0.15,
+        6.26
       ]
     },
     {
       "id": "bridge-middle",
       "center": [
-        0,
-        19.15,
-        -35.05
+        0.0,
+        18.1,
+        -34.34
       ],
       "size": [
-        6.6,
-        2.3,
-        7.7
+        6.84,
+        3.1,
+        9.28
+      ]
+    },
+    {
+      "id": "bridge-upper-deck-1",
+      "center": [
+        0.0,
+        19.725,
+        -36.405
+      ],
+      "size": [
+        8.96,
+        0.15,
+        5.15
+      ]
+    },
+    {
+      "id": "bridge-upper-deck-2",
+      "center": [
+        0.0,
+        19.725,
+        -31.055
+      ],
+      "size": [
+        10.06,
+        0.15,
+        5.15
+      ]
+    },
+    {
+      "id": "bridge-aft-house",
+      "center": [
+        0.0,
+        21.025,
+        -29.05
+      ],
+      "size": [
+        5.2,
+        2.45,
+        0.94
       ]
     },
     {
       "id": "bridge-upper",
       "center": [
-        0,
-        21.3,
-        -34.75
+        0.0,
+        21.025,
+        -35.335
       ],
       "size": [
-        9.758,
-        2,
-        8.3
+        8.96,
+        2.45,
+        7.33
       ]
     },
     {
       "id": "bridge-navigation",
       "center": [
-        0,
-        22.85,
+        0.0,
+        22.8,
         -34.9
       ],
       "size": [
-        8.2,
+        8.36,
         1.1,
-        8.6
+        8.76
       ]
     },
     {
       "id": "bridge-compass",
       "center": [
-        0,
-        24,
-        -35.15
+        0.0,
+        23.95,
+        -32.86
       ],
       "size": [
-        5.2,
+        5.06,
         1.2,
-        8.5
+        4.28
       ]
     },
     {
       "id": "forward-funnel-casing-1",
       "center": [
-        0,
+        0.0,
         10.085,
         -24.55
       ],
@@ -62143,7 +62312,7 @@
     {
       "id": "forward-funnel-casing-2",
       "center": [
-        0,
+        0.0,
         10.085,
         -19.25
       ],
@@ -62156,7 +62325,7 @@
     {
       "id": "forward-funnel",
       "center": [
-        0,
+        0.0,
         17.145,
         -22.42
       ],
@@ -62169,7 +62338,7 @@
     {
       "id": "midships-deckhouse-1",
       "center": [
-        0,
+        0.0,
         10.085,
         -9.725
       ],
@@ -62182,7 +62351,7 @@
     {
       "id": "midships-deckhouse-2",
       "center": [
-        0,
+        0.0,
         10.085,
         -0.175
       ],
@@ -62195,7 +62364,7 @@
     {
       "id": "midships-deckhouse-upper",
       "center": [
-        0,
+        0.0,
         11.95,
         -11.15
       ],
@@ -62208,7 +62377,7 @@
     {
       "id": "searchlight-tower",
       "center": [
-        0,
+        0.0,
         14.46,
         -11.7
       ],
@@ -62221,7 +62390,7 @@
     {
       "id": "after-funnel",
       "center": [
-        0,
+        0.0,
         17.145,
         -2.82
       ],
@@ -62232,48 +62401,87 @@
       ]
     },
     {
-      "id": "after-control-tower-1",
+      "id": "after-control-tower",
       "center": [
-        0,
-        12.725,
-        36.875
+        0.0,
+        11.25,
+        39.165
       ],
       "size": [
-        7.6,
-        7.05,
-        4.95
+        7.84,
+        4.1,
+        9.63
       ]
     },
     {
-      "id": "after-control-tower-2",
+      "id": "after-control-tower-upper",
       "center": [
-        0,
-        12.725,
-        42.025
+        0.0,
+        14.7,
+        39.73
       ],
       "size": [
-        5.566,
-        7.05,
-        4.95
+        6.96,
+        2.8,
+        8.5
+      ]
+    },
+    {
+      "id": "after-control-tower-roof",
+      "center": [
+        0.0,
+        16.175,
+        39.31
+      ],
+      "size": [
+        7.84,
+        0.15,
+        8.38
+      ]
+    },
+    {
+      "id": "searchlight-lobe-port",
+      "center": [
+        -4.9,
+        13.225,
+        35.5
+      ],
+      "size": [
+        3.8,
+        0.15,
+        3.8
+      ]
+    },
+    {
+      "id": "searchlight-lobe-starboard",
+      "center": [
+        4.9,
+        13.225,
+        35.5
+      ],
+      "size": [
+        3.8,
+        0.15,
+        3.8
       ]
     },
     {
       "id": "after-deckhouse",
       "center": [
-        0,
+        0.0,
         10.495,
-        51.1
+        51.2
       ],
       "size": [
-        5.2,
+        6.96,
         2.59,
-        4
+        2.86
       ]
     },
     {
       "id": "after-deckhouse-roof",
       "center": [
-        0,
+        0.0,
         11.85,
         50.05
       ],
@@ -62290,115 +62498,11 @@
       "name": "Shelter deck and forecastle superstructure",
       "footprint": [
         [
-          -13.5,
-          -5.85
+          14.745,
+          -9.3
         ],
         [
-          -13.5,
-          -0.45
-        ],
-        [
-          -14.9,
-          1.55
-        ],
-        [
-          -14.9,
-          5.35
-        ],
-        [
-          -13,
-          8.85
-        ],
-        [
-          -13.1,
-          10.65
-        ],
-        [
-          -15,
-          13.45
-        ],
-        [
-          -15,
-          17.65
-        ],
-        [
-          -13.3,
-          20.25
-        ],
-        [
-          -13.2,
-          22.85
-        ],
-        [
-          -14.9,
-          27.95
-        ],
-        [
-          -14.5,
-          41.35
-        ],
-        [
-          -13.65,
-          42.8
-        ],
-        [
-          13.65,
-          42.8
-        ],
-        [
-          14.5,
-          41.35
-        ],
-        [
-          14.9,
-          27.95
-        ],
-        [
-          13.2,
-          22.85
-        ],
-        [
-          13.3,
-          20.25
-        ],
-        [
-          15,
-          17.65
-        ],
-        [
-          15,
-          13.45
-        ],
-        [
-          13.1,
-          10.65
-        ],
-        [
-          13,
-          8.85
-        ],
-        [
-          14.9,
-          5.35
-        ],
-        [
-          14.9,
-          1.55
-        ],
-        [
-          13.5,
-          -0.45
-        ],
-        [
-          13.5,
-          -5.85
-        ],
-        [
-          14.9,
-          -9.05
-        ],
-        [
-          15.4,
+          14.65,
           -13.95
         ],
         [
@@ -62502,16 +62606,292 @@
           -18.95
         ],
         [
-          -15.4,
+          -14.65,
           -13.95
         ],
         [
-          -14.9,
-          -9.05
+          -14.745,
+          -9.3
         ]
       ],
       "baseY": 5.334,
       "height": 3.866,
+      "material": "naval"
+    },
+    {
+      "id": "shelter-deck-well-roof",
+      "name": "Shelter deck over the well",
+      "footprint": [
+        [
+          -13.5,
+          -5.85
+        ],
+        [
+          -13.5,
+          -0.45
+        ],
+        [
+          -14.9,
+          1.55
+        ],
+        [
+          -14.9,
+          5.35
+        ],
+        [
+          -13.0,
+          8.85
+        ],
+        [
+          -13.1,
+          10.65
+        ],
+        [
+          -15.0,
+          13.45
+        ],
+        [
+          -15.0,
+          17.65
+        ],
+        [
+          -13.3,
+          20.25
+        ],
+        [
+          -13.2,
+          22.85
+        ],
+        [
+          -14.45,
+          26.6
+        ],
+        [
+          14.45,
+          26.6
+        ],
+        [
+          13.2,
+          22.85
+        ],
+        [
+          13.3,
+          20.25
+        ],
+        [
+          15.0,
+          17.65
+        ],
+        [
+          15.0,
+          13.45
+        ],
+        [
+          13.1,
+          10.65
+        ],
+        [
+          13.0,
+          8.85
+        ],
+        [
+          14.9,
+          5.35
+        ],
+        [
+          14.9,
+          1.55
+        ],
+        [
+          13.5,
+          -0.45
+        ],
+        [
+          13.5,
+          -5.85
+        ],
+        [
+          14.75,
+          -9.05
+        ],
+        [
+          14.745,
+          -9.3
+        ],
+        [
+          -14.745,
+          -9.3
+        ],
+        [
+          -14.75,
+          -9.05
+        ]
+      ],
+      "baseY": 8.95,
+      "height": 0.25,
+      "material": "naval"
+    },
+    {
+      "id": "shelter-deck-midships",
+      "name": "Shelter deck abaft the well",
+      "footprint": [
+        [
+          -14.45,
+          26.6
+        ],
+        [
+          -14.9,
+          27.95
+        ],
+        [
+          -14.5,
+          41.35
+        ],
+        [
+          -13.65,
+          42.8
+        ],
+        [
+          13.65,
+          42.8
+        ],
+        [
+          14.5,
+          41.35
+        ],
+        [
+          14.9,
+          27.95
+        ],
+        [
+          14.45,
+          26.6
+        ]
+      ],
+      "baseY": 5.334,
+      "height": 3.866,
+      "material": "naval"
+    },
+    {
+      "id": "well-casing-forward",
+      "name": "Boiler-room casing in the well",
+      "footprint": [
+        [
+          0,
+          -9.3
+        ],
+        [
+          8.6,
+          -9.3
+        ],
+        [
+          8.6,
+          -4.4
+        ],
+        [
+          5.2,
+          -4.4
+        ],
+        [
+          5.2,
+          -1.9
+        ],
+        [
+          8.6,
+          -1.9
+        ],
+        [
+          8.6,
+          7.4
+        ],
+        [
+          8.2,
+          8.0
+        ],
+        [
+          0,
+          8.0
+        ],
+        [
+          -8.2,
+          8.0
+        ],
+        [
+          -8.6,
+          7.4
+        ],
+        [
+          -8.6,
+          -1.9
+        ],
+        [
+          -5.2,
+          -1.9
+        ],
+        [
+          -5.2,
+          -4.4
+        ],
+        [
+          -8.6,
+          -4.4
+        ],
+        [
+          -8.6,
+          -9.3
+        ]
+      ],
+      "baseY": 5.334,
+      "height": 3.616,
+      "material": "naval"
+    },
+    {
+      "id": "well-casing-aft",
+      "name": "Engine-room casing in the well",
+      "footprint": [
+        [
+          0,
+          9.8
+        ],
+        [
+          5.2,
+          9.8
+        ],
+        [
+          5.2,
+          11.0
+        ],
+        [
+          6.05,
+          11.0
+        ],
+        [
+          6.05,
+          26.6
+        ],
+        [
+          0,
+          26.6
+        ],
+        [
+          -6.05,
+          26.6
+        ],
+        [
+          -6.05,
+          11.0
+        ],
+        [
+          -5.2,
+          11.0
+        ],
+        [
+          -5.2,
+          9.8
+        ]
+      ],
+      "baseY": 5.334,
+      "height": 3.616,
       "material": "naval"
     },
     {
@@ -62560,8 +62940,8 @@
       "name": "Forward superstructure",
       "footprint": [
         [
-          8.15,
-          -29.2
+          8.33,
+          -29.57
         ],
         [
           7.5,
@@ -62608,32 +62988,32 @@
           -40.05
         ],
         [
-          -8.15,
-          -29.2
+          -8.33,
+          -29.57
         ],
         [
-          -5.35,
-          -29.5
+          -5.0,
+          -29.57
         ],
         [
-          -4.55,
-          -28.3
+          -4.7,
+          -28.35
         ],
         [
-          -3.65,
-          -29.5
+          -4.35,
+          -29.57
         ],
         [
-          3.65,
-          -29.5
+          4.35,
+          -29.57
         ],
         [
-          4.55,
-          -28.3
+          4.7,
+          -28.35
         ],
         [
-          5.35,
-          -29.5
+          5.0,
+          -29.57
         ]
       ],
       "baseY": 9.2,
@@ -62641,87 +63021,205 @@
       "material": "naval"
     },
     {
+      "id": "searchlight-sponson-port",
+      "name": "Port searchlight sponson",
+      "footprint": [
+        [
+          -6.5,
+          -26.0
+        ],
+        [
+          -7.7,
+          -26.1
+        ],
+        [
+          -8.65,
+          -27.3
+        ],
+        [
+          -9.3,
+          -27.5
+        ],
+        [
+          -9.3,
+          -30.1
+        ],
+        [
+          -8.9,
+          -30.8
+        ],
+        [
+          -8.2,
+          -31.15
+        ],
+        [
+          -8.33,
+          -29.57
+        ],
+        [
+          -6.5,
+          -29.57
+        ]
+      ],
+      "baseY": 11.85,
+      "height": 0.15,
+      "material": "naval"
+    },
+    {
+      "id": "searchlight-sponson-starboard",
+      "name": "Starboard searchlight sponson",
+      "footprint": [
+        [
+          6.5,
+          -26.0
+        ],
+        [
+          7.7,
+          -26.1
+        ],
+        [
+          8.65,
+          -27.3
+        ],
+        [
+          9.3,
+          -27.5
+        ],
+        [
+          9.3,
+          -30.1
+        ],
+        [
+          8.9,
+          -30.8
+        ],
+        [
+          8.2,
+          -31.15
+        ],
+        [
+          8.33,
+          -29.57
+        ],
+        [
+          6.5,
+          -29.57
+        ]
+      ],
+      "baseY": 11.85,
+      "height": 0.15,
+      "material": "naval"
+    },
+    {
       "id": "bridge-base",
       "name": "Conning-tower platform",
       "footprint": [
         [
-          5,
-          -42.25
+          0,
+          -40.0
         ],
         [
-          6.6,
-          -42.05
+          2.27,
+          -40.0
         ],
         [
-          4.6,
-          -47.35
+          1.9,
+          -41.0
         ],
         [
-          3.3,
-          -47.95
+          1.9,
+          -43.65
         ],
         [
-          1.05,
-          -51.3
+          4.8,
+          -43.65
         ],
         [
-          0.05,
-          -51.6
-        ],
-        [
-          -1.05,
-          -51.3
-        ],
-        [
-          -3.3,
-          -47.95
-        ],
-        [
-          -4.6,
-          -47.35
-        ],
-        [
-          -6.6,
-          -42.05
-        ],
-        [
-          -5,
-          -42.25
-        ],
-        [
-          -5.7,
-          -43.15
-        ],
-        [
-          -5.35,
-          -43.5
-        ],
-        [
-          -2.25,
-          -43.5
-        ],
-        [
-          -1.65,
-          -40
-        ],
-        [
-          1.65,
-          -40
-        ],
-        [
-          2.25,
-          -43.5
+          4.8,
+          -41.9
         ],
         [
           5.35,
-          -43.5
+          -41.7
         ],
         [
-          5.7,
-          -43.15
+          6.45,
+          -41.8
+        ],
+        [
+          6.9,
+          -40.85
+        ],
+        [
+          7.05,
+          -40.9
+        ],
+        [
+          4.68,
+          -46.5
+        ],
+        [
+          4.5,
+          -47.65
+        ],
+        [
+          3.05,
+          -47.75
+        ],
+        [
+          0,
+          -47.75
+        ],
+        [
+          -3.05,
+          -47.75
+        ],
+        [
+          -4.5,
+          -47.65
+        ],
+        [
+          -4.68,
+          -46.5
+        ],
+        [
+          -7.05,
+          -40.9
+        ],
+        [
+          -6.9,
+          -40.85
+        ],
+        [
+          -6.45,
+          -41.8
+        ],
+        [
+          -5.35,
+          -41.7
+        ],
+        [
+          -4.8,
+          -41.9
+        ],
+        [
+          -4.8,
+          -43.65
+        ],
+        [
+          -1.9,
+          -43.65
+        ],
+        [
+          -1.9,
+          -41.0
+        ],
+        [
+          -2.27,
+          -40.0
         ]
       ],
-      "baseY": 12,
+      "baseY": 12.0,
       "height": 2.13,
       "material": "naval"
     },
@@ -62730,7 +63228,7 @@
       "name": "Armoured conning tower",
       "footprint": [
         [
-          0,
+          0.0,
           -43.6
         ],
         [
@@ -62778,7 +63276,7 @@
           -51.365
         ],
         [
-          0,
+          0.0,
           -51.5
         ],
         [
@@ -62826,7 +63324,7 @@
           -43.735
         ]
       ],
-      "baseY": 12,
+      "baseY": 12.0,
       "height": 4.5,
       "material": "naval"
     },
@@ -62835,88 +63333,250 @@
       "name": "Conning-tower hood",
       "footprint": [
         [
-          0,
-          -43.8
+          0.0,
+          -43.82
         ],
         [
-          0.773,
-          -43.905
+          0.652,
+          -43.907
         ],
         [
-          1.469,
-          -44.211
+          1.26,
+          -44.162
         ],
         [
-          2.023,
-          -44.686
+          1.782,
+          -44.567
         ],
         [
-          2.378,
-          -45.286
+          2.182,
+          -45.095
         ],
         [
-          2.5,
-          -45.95
+          2.434,
+          -45.71
         ],
         [
-          2.378,
-          -46.614
+          2.52,
+          -46.37
         ],
         [
-          2.023,
-          -47.214
+          2.434,
+          -47.03
         ],
         [
-          1.469,
-          -47.689
+          2.182,
+          -47.645
         ],
         [
-          0.773,
-          -47.995
+          1.782,
+          -48.173
         ],
         [
-          0,
-          -48.1
+          1.26,
+          -48.578
         ],
         [
-          -0.773,
-          -47.995
+          0.652,
+          -48.833
         ],
         [
-          -1.469,
-          -47.689
+          0.0,
+          -48.92
         ],
         [
-          -2.023,
-          -47.214
+          -0.652,
+          -48.833
         ],
         [
-          -2.378,
-          -46.614
+          -1.26,
+          -48.578
         ],
         [
-          -2.5,
-          -45.95
+          -1.782,
+          -48.173
         ],
         [
-          -2.378,
-          -45.286
+          -2.182,
+          -47.645
         ],
         [
-          -2.023,
-          -44.686
+          -2.434,
+          -47.03
         ],
         [
-          -1.469,
-          -44.211
+          -2.52,
+          -46.37
         ],
         [
-          -0.773,
-          -43.905
+          -2.434,
+          -45.71
+        ],
+        [
+          -2.182,
+          -45.095
+        ],
+        [
+          -1.782,
+          -44.567
+        ],
+        [
+          -1.26,
+          -44.162
+        ],
+        [
+          -0.652,
+          -43.907
         ]
       ],
       "baseY": 16.5,
-      "height": 1.9,
+      "height": 0.8,
+      "material": "naval"
+    },
+    {
+      "id": "conning-tower-hood-upper",
+      "name": "Conning-tower hood, upper tier",
+      "footprint": [
+        [
+          0.0,
+          -44.18
+        ],
+        [
+          0.541,
+          -44.264
+        ],
+        [
+          1.029,
+          -44.508
+        ],
+        [
+          1.416,
+          -44.889
+        ],
+        [
+          1.664,
+          -45.368
+        ],
+        [
+          1.75,
+          -45.9
+        ],
+        [
+          1.664,
+          -46.432
+        ],
+        [
+          1.416,
+          -46.911
+        ],
+        [
+          1.029,
+          -47.292
+        ],
+        [
+          0.541,
+          -47.536
+        ],
+        [
+          0.0,
+          -47.62
+        ],
+        [
+          -0.541,
+          -47.536
+        ],
+        [
+          -1.029,
+          -47.292
+        ],
+        [
+          -1.416,
+          -46.911
+        ],
+        [
+          -1.664,
+          -46.432
+        ],
+        [
+          -1.75,
+          -45.9
+        ],
+        [
+          -1.664,
+          -45.368
+        ],
+        [
+          -1.416,
+          -44.889
+        ],
+        [
+          -1.029,
+          -44.508
+        ],
+        [
+          -0.541,
+          -44.264
+        ]
+      ],
+      "baseY": 17.3,
+      "height": 1.06,
+      "material": "naval"
+    },
+    {
+      "id": "conning-tower-sight-hood",
+      "name": "Conning-tower sighting hood",
+      "footprint": [
+        [
+          0,
+          -46.85
+        ],
+        [
+          1.58,
+          -46.85
+        ],
+        [
+          2.0,
+          -47.25
+        ],
+        [
+          2.08,
+          -47.6
+        ],
+        [
+          1.88,
+          -48.05
+        ],
+        [
+          1.05,
+          -48.67
+        ],
+        [
+          0,
+          -48.92
+        ],
+        [
+          -1.05,
+          -48.67
+        ],
+        [
+          -1.88,
+          -48.05
+        ],
+        [
+          -2.08,
+          -47.6
+        ],
+        [
+          -2.0,
+          -47.25
+        ],
+        [
+          -1.58,
+          -46.85
+        ]
+      ],
+      "baseY": 17.3,
+      "height": 0.5,
       "material": "naval"
     },
     {
@@ -62924,24 +63584,48 @@
       "name": "Lower bridge trunk",
       "footprint": [
         [
-          -2.2,
-          -37.8
+          0,
+          -33.97
+        ],
+        [
+          1.9,
+          -33.97
+        ],
+        [
+          2.18,
+          -34.25
         ],
         [
           2.2,
           -37.8
         ],
         [
-          2.2,
-          -32.8
+          1.1,
+          -38.3
+        ],
+        [
+          0,
+          -38.3
+        ],
+        [
+          -1.1,
+          -38.3
         ],
         [
           -2.2,
-          -32.8
+          -37.8
+        ],
+        [
+          -2.18,
+          -34.25
+        ],
+        [
+          -1.9,
+          -33.97
         ]
       ],
-      "baseY": 12,
-      "height": 3,
+      "baseY": 12.0,
+      "height": 4.4,
       "material": "naval"
     },
     {
@@ -62949,24 +63633,61 @@
       "name": "Port signal house",
       "footprint": [
         [
-          -2.8,
-          -37
+          -2.85,
+          -28.45
         ],
         [
-          -5,
-          -37
+          -5.07,
+          -28.45
         ],
         [
-          -5.1,
-          -28.4
+          -5.07,
+          -32.2
         ],
         [
-          -2.8,
-          -28.4
+          -4.7,
+          -32.8
+        ],
+        [
+          -3.45,
+          -32.85
+        ],
+        [
+          -2.85,
+          -32.3
         ]
       ],
-      "baseY": 12,
-      "height": 3,
+      "baseY": 12.0,
+      "height": 2.0,
+      "material": "naval"
+    },
+    {
+      "id": "bridge-side-house-port",
+      "name": "Port flag deck house",
+      "footprint": [
+        [
+          -2.83,
+          -28.45
+        ],
+        [
+          -5.07,
+          -28.45
+        ],
+        [
+          -5.07,
+          -32.15
+        ],
+        [
+          -4.65,
+          -32.85
+        ],
+        [
+          -2.83,
+          -30.5
+        ]
+      ],
+      "baseY": 14.15,
+      "height": 2.25,
       "material": "naval"
     },
     {
@@ -62974,307 +63695,474 @@
       "name": "Starboard signal house",
       "footprint": [
         [
-          2.8,
-          -37
+          2.85,
+          -28.45
         ],
         [
-          5,
-          -37
+          5.07,
+          -28.45
         ],
         [
-          5.1,
-          -28.4
+          5.07,
+          -32.2
         ],
         [
-          2.8,
-          -28.4
+          4.7,
+          -32.8
+        ],
+        [
+          3.45,
+          -32.85
+        ],
+        [
+          2.85,
+          -32.3
         ]
       ],
-      "baseY": 12,
-      "height": 3,
+      "baseY": 12.0,
+      "height": 2.0,
+      "material": "naval"
+    },
+    {
+      "id": "bridge-side-house-starboard",
+      "name": "Starboard flag deck house",
+      "footprint": [
+        [
+          2.83,
+          -28.45
+        ],
+        [
+          5.07,
+          -28.45
+        ],
+        [
+          5.07,
+          -32.15
+        ],
+        [
+          4.65,
+          -32.85
+        ],
+        [
+          2.83,
+          -30.5
+        ]
+      ],
+      "baseY": 14.15,
+      "height": 2.25,
+      "material": "naval"
+    },
+    {
+      "id": "bridge-deck-lower",
+      "name": "Lower bridge deck",
+      "footprint": [
+        [
+          0,
+          -26.9
+        ],
+        [
+          2.05,
+          -26.9
+        ],
+        [
+          1.8,
+          -27.2
+        ],
+        [
+          1.8,
+          -27.7
+        ],
+        [
+          2.8,
+          -27.72
+        ],
+        [
+          3.1,
+          -28.42
+        ],
+        [
+          5.07,
+          -28.45
+        ],
+        [
+          5.07,
+          -33.2
+        ],
+        [
+          2.27,
+          -40.0
+        ],
+        [
+          0,
+          -40.0
+        ],
+        [
+          -2.27,
+          -40.0
+        ],
+        [
+          -5.07,
+          -33.2
+        ],
+        [
+          -5.07,
+          -28.45
+        ],
+        [
+          -3.1,
+          -28.42
+        ],
+        [
+          -2.8,
+          -27.72
+        ],
+        [
+          -1.8,
+          -27.7
+        ],
+        [
+          -1.8,
+          -27.2
+        ],
+        [
+          -2.05,
+          -26.9
+        ]
+      ],
+      "baseY": 14.0,
+      "height": 0.15,
       "material": "naval"
     },
     {
       "id": "bridge-flag",
-      "name": "Admiral bridge",
-      "footprint": [
-        [
-          5.1,
-          -28.65
-        ],
-        [
-          5.1,
-          -32.25
-        ],
-        [
-          4.65,
-          -32.7
-        ],
-        [
-          3.6,
-          -32.15
-        ],
-        [
-          3.7,
-          -33.95
-        ],
-        [
-          2.55,
-          -34.8
-        ],
-        [
-          2.45,
-          -35.95
-        ],
-        [
-          3.3,
-          -36.55
-        ],
-        [
-          2.944,
-          -37.5
-        ],
-        [
-          -2.944,
-          -37.5
-        ],
-        [
-          -3.3,
-          -36.55
-        ],
-        [
-          -2.45,
-          -35.95
-        ],
-        [
-          -2.55,
-          -34.8
-        ],
-        [
-          -3.7,
-          -33.95
-        ],
-        [
-          -3.6,
-          -32.15
-        ],
-        [
-          -4.65,
-          -32.7
-        ],
-        [
-          -5.1,
-          -32.25
-        ],
-        [
-          -5.1,
-          -28.65
-        ],
-        [
-          -4.25,
-          -27.9
-        ],
-        [
-          -3.45,
-          -28.15
-        ],
-        [
-          -2.15,
-          -26.5
-        ],
-        [
-          2.15,
-          -26.5
-        ],
-        [
-          3.45,
-          -28.15
-        ],
-        [
-          4.25,
-          -27.9
-        ]
-      ],
-      "baseY": 15,
-      "height": 2.3,
-      "material": "naval"
-    },
-    {
-      "id": "bridge-flag-deck",
       "name": "Admiral bridge deck",
       "footprint": [
         [
-          5.1,
-          -28.65
+          0,
+          -26.85
         ],
         [
-          5.1,
-          -32.25
+          2.38,
+          -26.85
         ],
         [
-          4.65,
-          -32.7
+          2.8,
+          -28.4
         ],
         [
-          3.6,
-          -32.15
+          5.05,
+          -28.45
         ],
         [
-          3.7,
-          -33.95
+          5.05,
+          -33.3
         ],
         [
-          2.55,
-          -34.8
+          4.43,
+          -33.9
         ],
         [
-          2.45,
-          -35.95
+          3.38,
+          -37.5
         ],
         [
-          3.3,
-          -36.55
+          1.1,
+          -39.77
         ],
         [
-          2.7,
-          -38.15
+          0,
+          -39.77
         ],
         [
-          1.05,
-          -39.8
+          -1.1,
+          -39.77
         ],
         [
-          -1.05,
-          -39.8
+          -3.38,
+          -37.5
         ],
         [
-          -2.7,
-          -38.15
+          -4.43,
+          -33.9
         ],
         [
-          -3.3,
-          -36.55
+          -5.05,
+          -33.3
         ],
         [
-          -2.45,
-          -35.95
+          -5.05,
+          -28.45
         ],
         [
-          -2.55,
-          -34.8
+          -2.8,
+          -28.4
         ],
         [
-          -3.7,
-          -33.95
-        ],
-        [
-          -3.6,
-          -32.15
-        ],
-        [
-          -4.65,
-          -32.7
-        ],
-        [
-          -5.1,
-          -32.25
-        ],
-        [
-          -5.1,
-          -28.65
-        ],
-        [
-          -4.25,
-          -27.9
-        ],
-        [
-          -3.45,
-          -28.15
-        ],
-        [
-          -2.15,
-          -26.5
-        ],
-        [
-          2.15,
-          -26.5
-        ],
-        [
-          3.45,
-          -28.15
-        ],
-        [
-          4.25,
-          -27.9
+          -2.38,
+          -26.85
         ]
       ],
-      "baseY": 17.3,
-      "height": 0.7,
+      "baseY": 16.4,
+      "height": 0.15,
       "material": "naval"
     },
     {
       "id": "bridge-middle",
-      "name": "Bridge trunk",
+      "name": "Admiral bridge house",
       "footprint": [
         [
-          3.5,
-          -34.05
+          0,
+          -29.6
+        ],
+        [
+          2.38,
+          -29.6
+        ],
+        [
+          3.4,
+          -29.8
+        ],
+        [
+          3.62,
+          -30.2
+        ],
+        [
+          3.6,
+          -30.6
+        ],
+        [
+          2.85,
+          -30.7
+        ],
+        [
+          2.93,
+          -32.05
+        ],
+        [
+          3.48,
+          -32.45
+        ],
+        [
+          3.48,
+          -34.2
         ],
         [
           2.2,
-          -34.95
+          -34.75
         ],
         [
-          2.3,
-          -37.65
+          2.28,
+          -37.7
         ],
         [
-          0.95,
-          -39
+          0.9,
+          -39.08
         ],
         [
-          -0.95,
-          -39
+          0,
+          -39.08
         ],
         [
-          -2.3,
-          -37.65
+          -0.9,
+          -39.08
+        ],
+        [
+          -2.28,
+          -37.7
         ],
         [
           -2.2,
-          -34.95
+          -34.75
         ],
         [
-          -3.5,
-          -34.05
+          -3.48,
+          -34.2
         ],
         [
-          -3.5,
+          -3.48,
           -32.45
         ],
         [
-          -2.65,
-          -31.1
+          -2.93,
+          -32.05
         ],
         [
-          -2.25,
-          -31.5
+          -2.85,
+          -30.7
         ],
         [
-          2.25,
-          -31.5
+          -3.6,
+          -30.6
         ],
         [
-          2.65,
-          -31.1
+          -3.62,
+          -30.2
         ],
         [
-          3.5,
-          -32.45
+          -3.4,
+          -29.8
+        ],
+        [
+          -2.38,
+          -29.6
         ]
       ],
-      "baseY": 18,
-      "height": 2.3,
+      "baseY": 16.55,
+      "height": 3.1,
+      "material": "naval"
+    },
+    {
+      "id": "bridge-upper-deck",
+      "name": "Upper bridge deck",
+      "footprint": [
+        [
+          0,
+          -28.38
+        ],
+        [
+          1.7,
+          -28.38
+        ],
+        [
+          3.0,
+          -28.57
+        ],
+        [
+          4.7,
+          -29.57
+        ],
+        [
+          5.23,
+          -30.3
+        ],
+        [
+          5.18,
+          -30.8
+        ],
+        [
+          4.85,
+          -31.23
+        ],
+        [
+          3.68,
+          -31.65
+        ],
+        [
+          3.78,
+          -32.5
+        ],
+        [
+          3.88,
+          -32.65
+        ],
+        [
+          3.88,
+          -33.05
+        ],
+        [
+          4.68,
+          -36.65
+        ],
+        [
+          4.5,
+          -36.83
+        ],
+        [
+          3.15,
+          -36.83
+        ],
+        [
+          0.9,
+          -39.08
+        ],
+        [
+          0,
+          -39.08
+        ],
+        [
+          -0.9,
+          -39.08
+        ],
+        [
+          -3.15,
+          -36.83
+        ],
+        [
+          -4.5,
+          -36.83
+        ],
+        [
+          -4.68,
+          -36.65
+        ],
+        [
+          -3.88,
+          -33.05
+        ],
+        [
+          -3.88,
+          -32.65
+        ],
+        [
+          -3.78,
+          -32.5
+        ],
+        [
+          -3.68,
+          -31.65
+        ],
+        [
+          -4.85,
+          -31.23
+        ],
+        [
+          -5.18,
+          -30.8
+        ],
+        [
+          -5.23,
+          -30.3
+        ],
+        [
+          -4.7,
+          -29.57
+        ],
+        [
+          -3.0,
+          -28.57
+        ],
+        [
+          -1.7,
+          -28.38
+        ]
+      ],
+      "baseY": 19.65,
+      "height": 0.15,
+      "material": "naval"
+    },
+    {
+      "id": "bridge-aft-house",
+      "name": "Upper bridge after house",
+      "footprint": [
+        [
+          -2.8,
+          -29.62
+        ],
+        [
+          2.8,
+          -29.62
+        ],
+        [
+          2.8,
+          -28.48
+        ],
+        [
+          -2.8,
+          -28.48
+        ]
+      ],
+      "baseY": 19.8,
+      "height": 2.45,
       "material": "naval"
     },
     {
@@ -63282,88 +64170,88 @@
       "name": "Upper bridge",
       "footprint": [
         [
-          5.079,
-          -30.5
+          0,
+          -31.57
         ],
         [
-          3.95,
-          -32.8
+          2.15,
+          -31.57
         ],
         [
-          3.05,
-          -31.1
-        ],
-        [
-          2.3,
-          -31.8
+          2.28,
+          -31.75
         ],
         [
           2.2,
-          -34.45
+          -34.7
         ],
         [
-          2.65,
-          -34.9
+          4.2,
+          -34.67
         ],
         [
-          3.95,
-          -33.7
+          4.68,
+          -36.5
         ],
         [
-          4.7,
-          -36.55
-        ],
-        [
-          3.15,
+          4.55,
           -36.8
         ],
         [
-          0.95,
-          -39
+          2.2,
+          -36.83
         ],
         [
-          -0.95,
-          -39
+          2.18,
+          -37.8
         ],
         [
-          -3.15,
-          -36.8
+          0.9,
+          -39.08
         ],
         [
-          -4.7,
-          -36.55
+          0,
+          -39.1
         ],
         [
-          -3.95,
-          -33.7
+          -0.9,
+          -39.08
         ],
         [
-          -2.65,
-          -34.9
+          -2.18,
+          -37.8
         ],
         [
           -2.2,
-          -34.45
+          -36.83
         ],
         [
-          -2.3,
-          -31.8
+          -4.55,
+          -36.8
         ],
         [
-          -3.05,
-          -31.1
+          -4.68,
+          -36.5
         ],
         [
-          -3.95,
-          -32.8
+          -4.2,
+          -34.67
         ],
         [
-          -5.079,
-          -30.5
+          -2.2,
+          -34.7
+        ],
+        [
+          -2.28,
+          -31.75
+        ],
+        [
+          -2.15,
+          -31.57
         ]
       ],
-      "baseY": 20.3,
-      "height": 2,
+      "baseY": 19.8,
+      "height": 2.45,
       "material": "naval"
     },
     {
@@ -63371,168 +64259,144 @@
       "name": "Navigating bridge",
       "footprint": [
         [
-          -3.6,
-          -31.25
+          0,
+          -30.45
         ],
         [
-          -2.619,
-          -30.5
+          2.45,
+          -30.42
         ],
         [
-          2.619,
-          -30.5
+          2.7,
+          -30.77
         ],
         [
-          3.6,
-          -31.25
+          3.2,
+          -30.77
         ],
         [
-          4.3,
-          -34.05
+          3.62,
+          -31.5
         ],
         [
-          3.95,
-          -34.7
+          4.23,
+          -34.6
         ],
         [
-          2.3,
-          -35.25
+          4.38,
+          -34.8
         ],
         [
-          2.3,
-          -37.85
+          2.2,
+          -34.8
         ],
         [
-          0.95,
-          -39.3
+          2.18,
+          -38.1
         ],
         [
-          -0.95,
-          -39.3
+          0.9,
+          -39.38
         ],
         [
-          -2.3,
-          -37.85
+          0,
+          -39.38
         ],
         [
-          -2.3,
-          -35.25
+          -0.9,
+          -39.38
         ],
         [
-          -3.95,
-          -34.7
+          -2.18,
+          -38.1
         ],
         [
-          -4.3,
-          -34.05
+          -2.2,
+          -34.8
+        ],
+        [
+          -4.38,
+          -34.8
+        ],
+        [
+          -4.23,
+          -34.6
+        ],
+        [
+          -3.62,
+          -31.5
+        ],
+        [
+          -3.2,
+          -30.77
+        ],
+        [
+          -2.7,
+          -30.77
+        ],
+        [
+          -2.45,
+          -30.42
         ]
       ],
-      "baseY": 22.3,
+      "baseY": 22.25,
       "height": 1.1,
       "material": "naval"
     },
     {
       "id": "bridge-compass",
-      "name": "Compass platform",
+      "name": "Compass platform house",
       "footprint": [
         [
-          2.5,
-          -34.35
-        ],
-        [
-          1.6,
-          -35.75
-        ],
-        [
-          2.1,
-          -36.45
-        ],
-        [
-          1.6,
-          -37.25
+          0,
+          -30.75
         ],
         [
           2.2,
-          -37.85
+          -30.62
         ],
         [
-          1.6,
-          -39.05
+          2.73,
+          -31.25
         ],
         [
-          0.75,
-          -39.5
+          2.6,
+          -31.52
         ],
         [
-          -0.75,
-          -39.5
+          2.18,
+          -31.65
         ],
         [
-          -1.6,
-          -39.05
+          2.18,
+          -35.1
+        ],
+        [
+          0,
+          -35.1
+        ],
+        [
+          -2.18,
+          -35.1
+        ],
+        [
+          -2.18,
+          -31.65
+        ],
+        [
+          -2.6,
+          -31.52
+        ],
+        [
+          -2.73,
+          -31.25
         ],
         [
           -2.2,
-          -37.85
-        ],
-        [
-          -1.6,
-          -37.25
-        ],
-        [
-          -2.1,
-          -36.45
-        ],
-        [
-          -1.6,
-          -35.75
-        ],
-        [
-          -2.5,
-          -34.35
-        ],
-        [
-          -2.2,
-          -31.95
-        ],
-        [
-          -2.8,
-          -31.15
-        ],
-        [
-          -2.504,
-          -30.8
-        ],
-        [
-          -2.09,
-          -30.8
-        ],
-        [
-          -1.45,
-          -32
-        ],
-        [
-          1.45,
-          -32
-        ],
-        [
-          2.09,
-          -30.8
-        ],
-        [
-          2.504,
-          -30.8
-        ],
-        [
-          2.8,
-          -31.15
-        ],
-        [
-          2.2,
-          -31.95
+          -30.62
         ]
       ],
-      "baseY": 23.4,
+      "baseY": 23.35,
       "height": 1.2,
       "material": "naval"
     },
@@ -63550,19 +64414,19 @@
         ],
         [
           5.5,
-          -17
+          -17.0
         ],
         [
-          4,
+          4.0,
           -16.6
         ],
         [
-          -4,
+          -4.0,
           -16.6
         ],
         [
           -5.5,
-          -17
+          -17.0
         ]
       ],
       "baseY": 9.2,
@@ -63574,7 +64438,7 @@
       "name": "Forward funnel",
       "footprint": [
         [
-          0,
+          0.0,
           -18.52
         ],
         [
@@ -63638,7 +64502,7 @@
           -26.245
         ],
         [
-          0,
+          0.0,
           -26.32
         ],
         [
@@ -63802,7 +64666,7 @@
       "name": "After funnel",
       "footprint": [
         [
-          0,
+          0.0,
           1.08
         ],
         [
@@ -63866,7 +64730,7 @@
           -6.645
         ],
         [
-          0,
+          0.0,
           -6.72
         ],
         [
@@ -63939,48 +64803,428 @@
       "name": "After control position",
       "footprint": [
         [
-          -2.8,
-          34.3
+          0,
+          34.25
+        ],
+        [
+          1.3,
+          34.25
+        ],
+        [
+          1.3,
+          34.9
         ],
         [
           2.8,
-          34.3
+          34.9
         ],
         [
-          4,
-          35.6
+          2.95,
+          35.48
         ],
         [
-          3.2,
-          38.5
+          3.8,
+          35.48
         ],
         [
-          2.4,
-          42
+          4.05,
+          35.7
         ],
         [
-          1.2,
-          44.6
+          4.12,
+          37.5
         ],
         [
-          -1.2,
-          44.6
+          4.12,
+          37.95
         ],
         [
-          -2.4,
-          42
+          3.78,
+          38.8
         ],
         [
-          -3.2,
-          38.5
+          3.78,
+          39.45
         ],
         [
-          -4,
-          35.6
+          3.45,
+          40.1
+        ],
+        [
+          3.35,
+          41.2
+        ],
+        [
+          2.43,
+          41.25
+        ],
+        [
+          1.7,
+          44.08
+        ],
+        [
+          0,
+          44.08
+        ],
+        [
+          -1.7,
+          44.08
+        ],
+        [
+          -2.43,
+          41.25
+        ],
+        [
+          -3.35,
+          41.2
+        ],
+        [
+          -3.45,
+          40.1
+        ],
+        [
+          -3.78,
+          39.45
+        ],
+        [
+          -3.78,
+          38.8
+        ],
+        [
+          -4.12,
+          37.95
+        ],
+        [
+          -4.12,
+          37.5
+        ],
+        [
+          -4.05,
+          35.7
+        ],
+        [
+          -3.8,
+          35.48
+        ],
+        [
+          -2.95,
+          35.48
+        ],
+        [
+          -2.8,
+          34.9
+        ],
+        [
+          -1.3,
+          34.9
+        ],
+        [
+          -1.3,
+          34.25
         ]
       ],
       "baseY": 9.2,
-      "height": 7.05,
+      "height": 4.1,
+      "material": "naval"
+    },
+    {
+      "id": "after-control-tower-upper",
+      "name": "After control position, upper house",
+      "footprint": [
+        [
+          0,
+          35.4
+        ],
+        [
+          2.85,
+          35.38
+        ],
+        [
+          3.23,
+          35.7
+        ],
+        [
+          3.68,
+          36.35
+        ],
+        [
+          3.68,
+          36.8
+        ],
+        [
+          3.4,
+          37.33
+        ],
+        [
+          1.7,
+          37.5
+        ],
+        [
+          1.7,
+          41.25
+        ],
+        [
+          1.88,
+          41.25
+        ],
+        [
+          0.93,
+          43.55
+        ],
+        [
+          0.15,
+          44.08
+        ],
+        [
+          0,
+          44.08
+        ],
+        [
+          -0.15,
+          44.08
+        ],
+        [
+          -0.93,
+          43.55
+        ],
+        [
+          -1.88,
+          41.25
+        ],
+        [
+          -1.7,
+          41.25
+        ],
+        [
+          -1.7,
+          37.5
+        ],
+        [
+          -3.4,
+          37.33
+        ],
+        [
+          -3.68,
+          36.8
+        ],
+        [
+          -3.68,
+          36.35
+        ],
+        [
+          -3.23,
+          35.7
+        ],
+        [
+          -2.85,
+          35.38
+        ]
+      ],
+      "baseY": 13.3,
+      "height": 2.8,
+      "material": "naval"
+    },
+    {
+      "id": "after-control-tower-roof",
+      "name": "After control position roof",
+      "footprint": [
+        [
+          0,
+          35.1
+        ],
+        [
+          1.55,
+          35.5
+        ],
+        [
+          2.5,
+          35.02
+        ],
+        [
+          3.2,
+          35.17
+        ],
+        [
+          3.98,
+          35.9
+        ],
+        [
+          4.12,
+          36.6
+        ],
+        [
+          4.03,
+          37.15
+        ],
+        [
+          3.73,
+          37.6
+        ],
+        [
+          3.18,
+          37.95
+        ],
+        [
+          2.5,
+          39.48
+        ],
+        [
+          0,
+          43.6
+        ],
+        [
+          -2.5,
+          39.48
+        ],
+        [
+          -3.18,
+          37.95
+        ],
+        [
+          -3.73,
+          37.6
+        ],
+        [
+          -4.03,
+          37.15
+        ],
+        [
+          -4.12,
+          36.6
+        ],
+        [
+          -3.98,
+          35.9
+        ],
+        [
+          -3.2,
+          35.17
+        ],
+        [
+          -2.5,
+          35.02
+        ],
+        [
+          -1.55,
+          35.5
+        ]
+      ],
+      "baseY": 16.1,
+      "height": 0.15,
+      "material": "naval"
+    },
+    {
+      "id": "searchlight-lobe-port",
+      "name": "Port after searchlight platform",
+      "footprint": [
+        [
+          -2.8,
+          34.9
+        ],
+        [
+          -3.2,
+          34.0
+        ],
+        [
+          -4.4,
+          33.6
+        ],
+        [
+          -5.3,
+          33.5
+        ],
+        [
+          -6.4,
+          33.9
+        ],
+        [
+          -7.0,
+          35.0
+        ],
+        [
+          -6.5,
+          36.1
+        ],
+        [
+          -5.3,
+          36.6
+        ],
+        [
+          -4.12,
+          37.5
+        ],
+        [
+          -4.05,
+          35.7
+        ],
+        [
+          -3.8,
+          35.48
+        ],
+        [
+          -2.95,
+          35.48
+        ]
+      ],
+      "baseY": 13.15,
+      "height": 0.15,
+      "material": "naval"
+    },
+    {
+      "id": "searchlight-lobe-starboard",
+      "name": "Starboard after searchlight platform",
+      "footprint": [
+        [
+          2.8,
+          34.9
+        ],
+        [
+          3.2,
+          34.0
+        ],
+        [
+          4.4,
+          33.6
+        ],
+        [
+          5.3,
+          33.5
+        ],
+        [
+          6.4,
+          33.9
+        ],
+        [
+          7.0,
+          35.0
+        ],
+        [
+          6.5,
+          36.1
+        ],
+        [
+          5.3,
+          36.6
+        ],
+        [
+          4.12,
+          37.5
+        ],
+        [
+          4.05,
+          35.7
+        ],
+        [
+          3.8,
+          35.48
+        ],
+        [
+          2.95,
+          35.48
+        ]
+      ],
+      "baseY": 13.15,
+      "height": 0.15,
       "material": "naval"
     },
     {
@@ -63988,20 +65232,36 @@
       "name": "After deckhouse",
       "footprint": [
         [
-          -2.8,
-          49
+          0,
+          49.67
         ],
         [
-          2.8,
-          49
+          3.35,
+          49.67
         ],
         [
-          2.8,
-          53.2
+          3.68,
+          50.6
         ],
         [
-          -2.8,
-          53.2
+          3.68,
+          52.73
+        ],
+        [
+          0,
+          52.73
+        ],
+        [
+          -3.68,
+          52.73
+        ],
+        [
+          -3.68,
+          50.6
+        ],
+        [
+          -3.35,
+          49.67
         ]
       ],
       "baseY": 9.2,
@@ -64303,7 +65563,7 @@
     "regions": [
       {
         "id": "underwater-port-1",
-        "name": "Underwater hull · port · bow",
+        "name": "Underwater hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64319,7 +65579,7 @@
       },
       {
         "id": "underwater-port-2",
-        "name": "Underwater hull · port · forward",
+        "name": "Underwater hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64335,7 +65595,7 @@
       },
       {
         "id": "underwater-port-3",
-        "name": "Underwater hull · port · forward amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64351,7 +65611,7 @@
       },
       {
         "id": "underwater-port-4",
-        "name": "Underwater hull · port · amidships forward",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64367,7 +65627,7 @@
       },
       {
         "id": "underwater-port-5",
-        "name": "Underwater hull · port · amidships aft",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64383,7 +65643,7 @@
       },
       {
         "id": "underwater-port-6",
-        "name": "Underwater hull · port · aft amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64399,7 +65659,7 @@
       },
       {
         "id": "underwater-port-7",
-        "name": "Underwater hull · port · aft",
+        "name": "Underwater hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64415,7 +65675,7 @@
       },
       {
         "id": "underwater-port-8",
-        "name": "Underwater hull · port · stern",
+        "name": "Underwater hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64431,7 +65691,7 @@
       },
       {
         "id": "underwater-starboard-1",
-        "name": "Underwater hull · starboard · bow",
+        "name": "Underwater hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64447,7 +65707,7 @@
       },
       {
         "id": "underwater-starboard-2",
-        "name": "Underwater hull · starboard · forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64463,7 +65723,7 @@
       },
       {
         "id": "underwater-starboard-3",
-        "name": "Underwater hull · starboard · forward amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64479,7 +65739,7 @@
       },
       {
         "id": "underwater-starboard-4",
-        "name": "Underwater hull · starboard · amidships forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64495,7 +65755,7 @@
       },
       {
         "id": "underwater-starboard-5",
-        "name": "Underwater hull · starboard · amidships aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64511,7 +65771,7 @@
       },
       {
         "id": "underwater-starboard-6",
-        "name": "Underwater hull · starboard · aft amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64527,7 +65787,7 @@
       },
       {
         "id": "underwater-starboard-7",
-        "name": "Underwater hull · starboard · aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64543,7 +65803,7 @@
       },
       {
         "id": "underwater-starboard-8",
-        "name": "Underwater hull · starboard · stern",
+        "name": "Underwater hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64559,7 +65819,7 @@
       },
       {
         "id": "upper-hull-port-1",
-        "name": "Upper hull · port · bow",
+        "name": "Upper hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64575,7 +65835,7 @@
       },
       {
         "id": "upper-hull-port-2",
-        "name": "Upper hull · port · forward",
+        "name": "Upper hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64591,7 +65851,7 @@
       },
       {
         "id": "upper-hull-port-3",
-        "name": "Upper hull · port · forward amidships",
+        "name": "Upper hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64607,7 +65867,7 @@
       },
       {
         "id": "upper-hull-port-4",
-        "name": "Upper hull · port · amidships forward",
+        "name": "Upper hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64623,7 +65883,7 @@
       },
       {
         "id": "upper-hull-port-5",
-        "name": "Upper hull · port · amidships aft",
+        "name": "Upper hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64639,7 +65899,7 @@
       },
       {
         "id": "upper-hull-port-6",
-        "name": "Upper hull · port · aft amidships",
+        "name": "Upper hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64655,7 +65915,7 @@
       },
       {
         "id": "upper-hull-port-7",
-        "name": "Upper hull · port · aft",
+        "name": "Upper hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64671,7 +65931,7 @@
       },
       {
         "id": "upper-hull-port-8",
-        "name": "Upper hull · port · stern",
+        "name": "Upper hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64687,7 +65947,7 @@
       },
       {
         "id": "upper-hull-starboard-1",
-        "name": "Upper hull · starboard · bow",
+        "name": "Upper hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64703,7 +65963,7 @@
       },
       {
         "id": "upper-hull-starboard-2",
-        "name": "Upper hull · starboard · forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64719,7 +65979,7 @@
       },
       {
         "id": "upper-hull-starboard-3",
-        "name": "Upper hull · starboard · forward amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64735,7 +65995,7 @@
       },
       {
         "id": "upper-hull-starboard-4",
-        "name": "Upper hull · starboard · amidships forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64751,7 +66011,7 @@
       },
       {
         "id": "upper-hull-starboard-5",
-        "name": "Upper hull · starboard · amidships aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64767,7 +66027,7 @@
       },
       {
         "id": "upper-hull-starboard-6",
-        "name": "Upper hull · starboard · aft amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64783,7 +66043,7 @@
       },
       {
         "id": "upper-hull-starboard-7",
-        "name": "Upper hull · starboard · aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64799,7 +66059,7 @@
       },
       {
         "id": "upper-hull-starboard-8",
-        "name": "Upper hull · starboard · stern",
+        "name": "Upper hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64815,7 +66075,7 @@
       },
       {
         "id": "upperworks-port-1",
-        "name": "Upperworks · port · bow",
+        "name": "Upperworks \u00b7 port \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64831,7 +66091,7 @@
       },
       {
         "id": "upperworks-port-2",
-        "name": "Upperworks · port · forward",
+        "name": "Upperworks \u00b7 port \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64847,7 +66107,7 @@
       },
       {
         "id": "upperworks-port-3",
-        "name": "Upperworks · port · forward amidships",
+        "name": "Upperworks \u00b7 port \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64863,7 +66123,7 @@
       },
       {
         "id": "upperworks-port-4",
-        "name": "Upperworks · port · amidships forward",
+        "name": "Upperworks \u00b7 port \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64879,7 +66139,7 @@
       },
       {
         "id": "upperworks-port-5",
-        "name": "Upperworks · port · amidships aft",
+        "name": "Upperworks \u00b7 port \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64895,7 +66155,7 @@
       },
       {
         "id": "upperworks-port-6",
-        "name": "Upperworks · port · aft amidships",
+        "name": "Upperworks \u00b7 port \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64911,7 +66171,7 @@
       },
       {
         "id": "upperworks-port-7",
-        "name": "Upperworks · port · aft",
+        "name": "Upperworks \u00b7 port \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64927,7 +66187,7 @@
       },
       {
         "id": "upperworks-port-8",
-        "name": "Upperworks · port · stern",
+        "name": "Upperworks \u00b7 port \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64943,7 +66203,7 @@
       },
       {
         "id": "upperworks-starboard-1",
-        "name": "Upperworks · starboard · bow",
+        "name": "Upperworks \u00b7 starboard \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64959,7 +66219,7 @@
       },
       {
         "id": "upperworks-starboard-2",
-        "name": "Upperworks · starboard · forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64975,7 +66235,7 @@
       },
       {
         "id": "upperworks-starboard-3",
-        "name": "Upperworks · starboard · forward amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -64991,7 +66251,7 @@
       },
       {
         "id": "upperworks-starboard-4",
-        "name": "Upperworks · starboard · amidships forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65007,7 +66267,7 @@
       },
       {
         "id": "upperworks-starboard-5",
-        "name": "Upperworks · starboard · amidships aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65023,7 +66283,7 @@
       },
       {
         "id": "upperworks-starboard-6",
-        "name": "Upperworks · starboard · aft amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65039,7 +66299,7 @@
       },
       {
         "id": "upperworks-starboard-7",
-        "name": "Upperworks · starboard · aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65055,7 +66315,7 @@
       },
       {
         "id": "upperworks-starboard-8",
-        "name": "Upperworks · starboard · stern",
+        "name": "Upperworks \u00b7 starboard \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [

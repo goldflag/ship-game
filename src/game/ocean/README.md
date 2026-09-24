@@ -250,8 +250,8 @@ bands' tile repeats every 160 m across the wind, so the world's noise shifts the
 never fall in the same place twice, where they drew corduroy over the far sea. Bands and patches give
 way to their means where the pixel averages them, as the lace does: past the sampler's anisotropy a
 grazing pixel read them unfiltered and drew their tile as a grid toward the horizon. All foam is a diffuse scatterer
-(albedo 0.8): the sky's radiance about its normal plus 0.55 of the sun's irradiance over π (the share
-the game's lit meshes take under AgX), wrapped 0.5 past the terminator and cut by the sun's shadow,
+(albedo 0.8): the sky's radiance about its normal plus 0.55 of the sun's irradiance over π (below the tone
+curve's shoulder; lit meshes take the whole sun), wrapped 0.5 past the terminator and cut by the sun's shadow,
 so it follows the sky and the moon at night without a tint. Its wet top keeps half the water's Fresnel
 reflection, and it is never darker than the water it covers without glints. Straight-through visibility of submerged
 geometry: the opaque scene at the same screen position, attenuated by `exp(-absorption × column)`
@@ -282,7 +282,7 @@ side. The sampler returns:
 - that side's outward normal.
 
 The surface replaces the hidden sky with the light the side scatters: grey paint (albedo 0.3) lit by half the
-sky and by the sun where the side faces it, at the 0.55 share lit meshes take. That light feeds the water
+sky and by the sun where the side faces it, at the whole sun lit meshes take. That light feeds the water
 body's upwelling (or the pigment's sky share without physical colour) and the foam's skylight. The mirrored sky
 moves toward the side's radiance by the mirrored share and is never brightened. The side in her own shade
 returns about a sixth of the sky, so the band is darkest in the lee. A sunlit side barely changes the water.
