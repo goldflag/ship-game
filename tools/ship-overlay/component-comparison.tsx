@@ -42,7 +42,7 @@ function App() {
     return () => abort.abort();
   }, []);
   useEffect(() => {
-    try { const instance = new Viewer(host.current!); viewer.current = instance; instance.style({ native: false }); return () => { viewer.current = null; instance.dispose(); }; }
+    try { const instance = new Viewer(host.current!, { lighting: 'studio' }); viewer.current = instance; instance.style({ native: false }); return () => { viewer.current = null; instance.dispose(); }; }
     catch (e) { setError(`The 3D viewer could not start. ${String(e)}`); }
   }, []);
   useEffect(() => {

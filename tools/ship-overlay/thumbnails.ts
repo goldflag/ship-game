@@ -19,7 +19,7 @@ export class ComponentThumbnails {
     return this.getPreview(key, viewer => viewer.loadShip(url, { assemblyId: part.modelUrl ? 'component' : installation!.mountId, weapon: part.weapon, installed: !part.modelUrl }));
   }
   getAircraft(aircraft: Aircraft): Promise<string> {
-    return this.getPreview(`aircraft:${aircraft.id}:${aircraft.modelUrl}`, viewer => viewer.loadShip(aircraft.modelUrl, undefined, 1));
+    return this.getPreview(`aircraft:${aircraft.id}:${aircraft.modelUrl}`, viewer => viewer.loadShip(aircraft.modelUrl, undefined, 1, false));
   }
   private getPreview(key: string, load: (viewer: Viewer) => Promise<boolean>): Promise<string> {
     const cached = this.images.get(key);
@@ -31,7 +31,8 @@ export class ComponentThumbnails {
         this.host.style.cssText = 'position:fixed;left:-10000px;top:0;width:320px;height:180px;pointer-events:none;';
         this.host.setAttribute('aria-hidden', 'true');
         document.body.append(this.host);
-        this.viewer = new Viewer(this.host);
+        // Studio light: a thumbnail is drawn at once, before the game's sky light could settle.
+        this.viewer = new Viewer(this.host, { lighting: 'studio' });
         this.viewer.comparison('inspect');
       }
       await load(this.viewer);
