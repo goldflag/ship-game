@@ -399,9 +399,16 @@ for mount in D['mounts']:
         # a flat seat and splinter tub (the smoke-shielded pair brings its own drum),
         # a gallery bridge to the hangar side and knee brackets on the flush wall.
         shielded='shielded' in mount['partId'];wall=hangar_side(x,sign) or 13.0
-        R=2.0 if shielded else 1.7
-        cyl(mount['id']+' sponson floor',(x,y,z-.14),R,.26,M['naval'],col,24)
-        if not shielded:tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.45,col,24)
+        # Open triples: an octagonal 1 m splinter tub beyond the muzzles' reach (pjsa108);
+        # each tub stands on a tapered diagonal strut to the hull side.
+        R=2.0 if shielded else 2.15;seg=24 if shielded else 8
+        cyl(mount['id']+' sponson floor',(x,y,z-.14),R,.26,M['naval'],col,seg)
+        if not shielded:
+            o=tub_wall(mount['id']+' splinter tub',x,y,R,z,z+1.0,col,8)
+        foot=7.6;hb=loft_breadth(H,x,foot)
+        top=[(x-.45,sign*(abs(y)-.6)),(x+.45,sign*(abs(y)-.6)),(x+.3,sign*(abs(y)+.6)),(x-.3,sign*(abs(y)+.6))]
+        bottom=[(x-.18,sign*(hb-.05)),(x+.18,sign*(hb-.05)),(x+.12,sign*(hb+.3)),(x-.12,sign*(hb+.3))]
+        prism(mount['id']+' sponson strut',top,z-.27,bottom,foot,M['naval'],col)
         box(mount['id']+' gallery bridge',(x,sign*(wall+abs(y))/2,z-.15),(R*1.5,abs(y)-wall+.05,.28),M['naval'],col)
         for dx in [-R*.6,R*.6]:fit.knee(mount['id']+' gallery web',x+dx,sign*wall,sign*(abs(y)+R*.6),z-.28,1.8)
     shared_mount(mount,COL['Armament'],helpers,M)
