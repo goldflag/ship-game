@@ -278,7 +278,16 @@ confidence and screen edge. Rays leave a normal keeping 30% of the wave slope: o
 off the full slope breaks a hull's image into speckle. `maxDistance` is live: `WaterViewFocus`
 stretches it to twice the range of a hull seen through binoculars. With physical reflections the
 ray follows the whole resolved slope instead, and the image is filtered rather than the surface
-flattened (see *Physical shading*).
+flattened (see *Physical shading*). A ray a steep facet sends below the horizon strikes the sea again
+within a wave or so, at incidence grazing enough that the water mirrors it back up: it is traced
+mirrored about the mean surface (the sky lookup keeps its horizon), so the water beside a hull shows
+the hull instead of the bright horizon. The copies hold only the opaque scene: the dome draws after the
+sea, so the colour copy is empty (black) wherever sky will be, and a hull's submerged part is there
+although no ray leaving the water upward can reach it. Each read of the image (the hit, or each tap of
+a smeared one) counts only where the depth copy holds a surface above the ray's water point (fading
+over 0.5 m below it); the rest of the image is sky, and that share of the confidence goes back to the
+sky reflection. Reading the empty copy drew a black, speckled smear under distant hulls, whose smear
+reaches well above their superstructure.
 
 **Physical shading.** Two of `ocean.realism`'s switches change the surface's shading; each is live
 (flipping it rebuilds the surface graph, so the look tuned to the replaced library is exactly the
@@ -315,7 +324,12 @@ Munk's measured proportions (3.16e-3·U : 0.003 + 1.92e-3·U).
   toward the horizon, and from the air the glint is a broad patch. Above a quarter of the sun's
   irradiance, about twice sunlit foam, the glitter is compressed with a soft knee (radiance /
   (1 + luminance / knee)). In full, a low sun over a rough sea spreads a glow several times brighter than the
-  sky, which blooms over any ship in front of it.
+  sky, which blooms over any ship in front of it. The glitter (and the light through crests) takes the
+  sun's beam, not all the light the shadow node lets through: a cloud's shadow keeps a floor of 15% for
+  light scattered through the deck (`CLOUD_SHADOW_FLOOR`), which comes from the whole cloud and is already
+  in the sky the sea mirrors, so the glint takes only the shadow's part above it, and a ship's shadow
+  stops it outright, under the moon too. Lit by that floor, an overcast's facets turned to the hidden sun
+  drew a brown-olive crackle near the camera.
 - Screen-space rays follow the whole resolved slope, one in-plane deviation below the lobe's centre
   (hulls stand above the water that mirrors them, so the lobe's lower part meets a hull its raised
   centre would miss); four taps read the image over the whole lobe along its projected smear
