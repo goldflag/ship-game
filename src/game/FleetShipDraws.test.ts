@@ -176,24 +176,25 @@ test('skipping emptied hull subtrees keeps three\'s render list through inspecti
   views.forEach(v => { v.impactMarks.dispose(); v.rig.dispose(); });
 }, 30000);
 
-test('deferred and bounded poses draw every batch, original surface, scar and flat proxy exactly as full pose updates do', async () => {
+test('deferred and bounded poses, and the flat walk, draw every batch, original surface, scar and flat proxy exactly as full pose updates and the object walk do', async () => {
   const sim = mixedSimulation(), actors = [sim.player, ...['yamato', 'baltimore', 'fletcher', 'enterprise-cv6', 'type-viic'].map(id => sim.actors.find(a => a.definition.id === id)!)];
   const templates = new Map<string, THREE.Group>();
   for (const { definition: { id } } of actors) if (!templates.has(id)) {
     const model = await loadShipGeometry(id); batchShipModel(model); await prepareShipDetail(model); templates.set(id, model);
   }
-  // The same fleet twice: the reference composes every pose each frame, the other defers and bounds them.
-  const fleets = [0, 1].map(() => actors.map(a => new ShipView(templates.get(a.definition.id)!.clone(true), a.definition, a)));
+  // The same fleet four times: the reference composes every pose each frame and walks the source objects; the others defer and
+  // bound the poses, walking the objects (1), the flat arrays (2), or each in turn, a step at a time (3).
+  const fleets = [0, 1, 2, 3].map(() => actors.map(a => new ShipView(templates.get(a.definition.id)!.clone(true), a.definition, a)));
   const draws = fleets.map(views => new FleetShipDraws(views)), camera = new THREE.PerspectiveCamera(55, 16 / 9, 1, 60000);
-  let seed = 7, culled = 0, left = 0, sequence = 0, inexact = 0, steady = 0;
+  let seed = 7, culled = 0, left = 0, sequence = 0, inexact = 0, steady = 0, formed = 0, known = 0, switches = 0;
   const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
   const snapshot = (d: FleetShipDraws, views: ShipView[]) => {
     const out: number[] = [];
-    for (const { mesh, sources } of d['batches']) {
+    for (const { mesh, sources, first } of d['batches']) {
       const state = mesh as unknown as { _instanceInfo: { visible: boolean; geometryIndex: number }[]; _matricesTexture: THREE.DataTexture }, data = state._matricesTexture.image.data as Float32Array;
-      for (const s of sources) {
+      for (const [k, s] of sources.entries()) {
         const info = state._instanceInfo[s.instance!];
-        out.push(info.visible ? 1 : 0, info.geometryIndex, s.level);
+        out.push(info.visible ? 1 : 0, info.geometryIndex, d['walking'] ? d['flatSources'].levels[first + k] : s.level);
         if (info.visible) out.push(...data.subarray(s.instance! * 16, s.instance! * 16 + 16));
         if (s.armorContext?.visible) out.push(...s.armorContext.matrix.elements, shipDetailLevels(s.mesh.geometry).findIndex(l => l.geometry === s.armorContext!.geometry));
       }
@@ -244,9 +245,10 @@ test('deferred and bounded poses draw every batch, original surface, scar and fl
       });
       if (step === 20 || step === 33) scar(step === 20 ? 1 : 3);
       const outputs = fleets.map((views, arm) => {
-        ShipPoseMatrices.deferring = arm === 1;
+        ShipPoseMatrices.deferring = arm > 0; FleetShipDraws.flat = arm === 2 || arm === 3 && step % 2 === 1;
+        if (arm === 3 && draws[3]['walking'] !== FleetShipDraws.flat) switches++;
         for (const view of views) { view.update(.5); view.updateRenderMatrices(); }
-        if (arm === 1) for (const view of views) {
+        if (arm > 0) for (const view of views) {
           // Poison what the frame left deferred: a stale read shows as a NaN in the draws.
           const poses = view.poseMatrices, worlds = (poses as unknown as { worlds: number[][] }).worlds;
           poses.poses.forEach((_, i) => { if (!poses.current(i)) worlds[i].fill(NaN); });
@@ -259,16 +261,26 @@ test('deferred and bounded poses draw every batch, original surface, scar and fl
           });
           for (const view of views) left += view.poseMatrices.poses.filter((_, i) => !view.poseMatrices.current(i)).length;
         }
+        if (arm === 2) {
+          // Drawn surfaces whose pose the flat walk formed itself, leaving the surface poisoned, and ships it walked on what it knew.
+          for (const { mesh, sources } of draws[2]['batches']) sources.forEach((source, k) => {
+            if (mesh.getVisibleAt(k) && source.pose >= 0 && !source.ship.poses.current(source.pose)) formed++;
+          });
+          known += draws[2]['ships'].filter(ship => ship.active && ship.known).length;
+        }
         return snapshot(draws[arm], views);
       });
-      expect(outputs[1].length).toBe(outputs[0].length);
-      expect({ step, first: outputs[1].findIndex((value, i) => !Object.is(value, outputs[0][i])) }).toEqual({ step, first: -1 });
+      for (const arm of [1, 2, 3]) {
+        expect(outputs[arm].length).toBe(outputs[0].length);
+        expect({ step, arm, first: outputs[arm].findIndex((value, i) => !Object.is(value, outputs[0][i])) }).toEqual({ step, arm, first: -1 });
+      }
       if (!exact && culled > before) inexact++;
     }
-  } finally { ShipPoseMatrices.deferring = true; }
+  } finally { ShipPoseMatrices.deferring = true; FleetShipDraws.flat = true; }
   expect(fleets[1].reduce((n, v) => n + v.impactMarks.count, 0)).toBeGreaterThan(0);
   // Not vacuous: surfaces were culled on their bounds alone, and poses stayed undone.
   expect(culled).toBeGreaterThan(100); expect(left).toBeGreaterThan(1000); expect(inexact).toBeGreaterThan(0); expect(steady).toBeGreaterThan(100);
+  expect(formed).toBeGreaterThan(100); expect(known).toBeGreaterThan(20); expect(switches).toBeGreaterThan(40);
   draws.forEach(d => d.dispose());
   fleets.flat().forEach(v => { v.impactMarks.dispose(); v.rig.dispose(); });
 }, 60000);

@@ -5,7 +5,7 @@ import { mixedSimulation } from '../../scripts/diagnostics/mixed-fleet';
 import { ShipView } from './ShipView';
 import { batchShipModel } from './ShipBatching';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
-import { ShipPoseMatrices } from './ShipPoseMatrices';
+import { multiplyAt, ShipPoseMatrices } from './ShipPoseMatrices';
 import { jointTurns } from './jointTurns';
 
 test('offscreen hulls retain interpolation and restore current joint poses on re-entry', async () => {
@@ -246,3 +246,39 @@ test('impact marks keep their receiver\'s pose and three\'s world matrix as rece
   expect(checked).toBeGreaterThan(10);
   marks.dispose(); view.rig.dispose();
 });
+
+test('a surface formed from its composition is the matrix ensure() stores, bit for bit, and is left undone', async () => {
+  const sim = mixedSimulation();
+  let seed = 41, formed = 0;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  for (const id of ['yamato', 'fletcher', 'type-viic']) {
+    const actor = sim.actors.find(a => a.definition.id === id)!, model = await loadShipGeometry(id);
+    batchShipModel(model);
+    const view = new ShipView(model, actor.definition, actor), poses = view.poseMatrices;
+    const fixed = poses.poses.flatMap((p, i) => p.moving ? [] : [i]);
+    expect(() => poses.composition(poses.poses.findIndex(p => p.moving))).toThrow();
+    // As the fleet's batches leave them: every surface deferred.
+    poses.defer(fixed.map(i => poses.poses[i].object));
+    const te = Array.from({ length: 16 }, () => .5);
+    for (const flat of [true, false]) for (let step = 0; step < 6; step++) {
+      Object.assign(actor.motion, { x: random() * 900, z: -random() * 900, heading: random() * 6, roll: (random() - .5) * .2, pitch: (random() - .5) * .05 });
+      actor.mounts.forEach(m => Object.assign(m, { train: (random() - .5) * 3, elevation: random() * .6, recoil: random() }));
+      ShipPoseMatrices.flat = flat;
+      try {
+        view.update(); view.updateRenderMatrices();
+        for (const i of fixed) {
+          const { parent, parentElements, offset } = poses.composition(i);
+          poses.ensure(parent);
+          multiplyAt(parentElements, offset, 0, te);
+          expect(poses.current(i)).toBe(false);
+          poses.ensure(i);
+          const stored = poses.poses[i].object.matrixWorld.elements;
+          expect(te.every((v, k) => Object.is(v, stored[k]))).toBe(true);
+          formed++;
+        }
+      } finally { ShipPoseMatrices.flat = true; }
+    }
+    view.impactMarks.dispose(); view.rig.dispose();
+  }
+  expect(formed).toBeGreaterThan(1000);
+}, 30000);

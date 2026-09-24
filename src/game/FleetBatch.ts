@@ -26,6 +26,8 @@ export class FleetBatch extends THREE.BatchedMesh {
   static keepIds = true;
   /** Off: `writePose` goes through three's `setMatrixAt`, one texture version per pose, for comparison. */
   static directPoses = true;
+  /** Off: each kept bound reads its geometry's sphere through three's geometry info objects, for comparison. */
+  static flatSpheres = true;
   private drawCamera?: THREE.Camera;
   private drawGeometry?: THREE.BufferGeometry;
   private readonly projection = new THREE.Matrix4();
@@ -49,6 +51,10 @@ export class FleetBatch extends THREE.BatchedMesh {
   private writing = false;
   private writingKnown = false;
   private readonly scratch = new THREE.Matrix4();
+  /** Per geometry: the local sphere three's culling uses (x, y, z, radius), copied from its geometry info when first asked
+   * for (`sphereKnown`), so a kept bound reads one array instead of three objects. `forget` drops them. */
+  private spheres = new Float64Array(0);
+  private sphereKnown = new Uint8Array(0);
 
   invalidateDrawList(): void { this.drawCamera = undefined; }
 
@@ -130,7 +136,22 @@ export class FleetBatch extends THREE.BatchedMesh {
   override setInstanceCount(maxInstanceCount: number): void { this.forget(); super.setInstanceCount(maxInstanceCount); }
   override copy(source: THREE.BatchedMesh): this { this.forget(); return super.copy(source); }
 
-  private forget(): void { this.boundsTexture = undefined; this.groupOf = []; this.layoutVersion++; }
+  private forget(): void { this.boundsTexture = undefined; this.groupOf = []; this.layoutVersion++; this.sphereKnown.fill(0); }
+
+  /** Where geometry `geometryId`'s sphere starts in `spheres`: the one its geometry info holds, computed there first if need be. */
+  private sphereAt(geometryId: number): number {
+    if (geometryId >= this.sphereKnown.length) {
+      const size = Math.max(geometryId + 1, this.sphereKnown.length * 2), spheres = new Float64Array(size * 4), known = new Uint8Array(size);
+      spheres.set(this.spheres); known.set(this.sphereKnown); this.spheres = spheres; this.sphereKnown = known;
+    }
+    const o = geometryId * 4;
+    if (this.sphereKnown[geometryId] === 0) {
+      const local = (this as unknown as CullState)._geometryInfo[geometryId].boundingSphere ?? this.getBoundingSphereAt(geometryId, sphere)!, spheres = this.spheres;
+      spheres[o] = local.center.x; spheres[o + 1] = local.center.y; spheres[o + 2] = local.center.z; spheres[o + 3] = local.radius;
+      this.sphereKnown[geometryId] = 1;
+    }
+    return o;
+  }
 
   private reserve(instanceId: number): void {
     if (instanceId < this.boundsGeometry.length) return;
@@ -144,15 +165,17 @@ export class FleetBatch extends THREE.BatchedMesh {
    * `getMatrixAt`, then `Sphere.applyMatrix4` (`Vector3.applyMatrix4` and `getMaxScaleOnAxis`), operation for operation. */
   private bound(instanceId: number): void {
     const state = this as unknown as CullState, geometryId = state._instanceInfo[instanceId].geometryIndex;
-    const local = state._geometryInfo[geometryId].boundingSphere ?? this.getBoundingSphereAt(geometryId, sphere)!;
-    const e = state._matricesTexture.image.data as Float32Array, m = instanceId * 16, x = local.center.x, y = local.center.y, z = local.center.z;
+    let x: number, y: number, z: number, radius: number;
+    if (FleetBatch.flatSpheres) { const k = this.sphereAt(geometryId), s = this.spheres; x = s[k]; y = s[k + 1]; z = s[k + 2]; radius = s[k + 3]; }
+    else { const local = state._geometryInfo[geometryId].boundingSphere ?? this.getBoundingSphereAt(geometryId, sphere)!; x = local.center.x; y = local.center.y; z = local.center.z; radius = local.radius; }
+    const e = state._matricesTexture.image.data as Float32Array, m = instanceId * 16;
     const e0 = e[m], e1 = e[m + 1], e2 = e[m + 2], e3 = e[m + 3], e4 = e[m + 4], e5 = e[m + 5], e6 = e[m + 6], e7 = e[m + 7];
     const e8 = e[m + 8], e9 = e[m + 9], e10 = e[m + 10], e11 = e[m + 11], e12 = e[m + 12], e13 = e[m + 13], e14 = e[m + 14], e15 = e[m + 15];
     const w = 1 / (e3 * x + e7 * y + e11 * z + e15);
     this.reserve(instanceId);
     const bounds = this.bounds, o = instanceId * 4;
     bounds[o] = (e0 * x + e4 * y + e8 * z + e12) * w; bounds[o + 1] = (e1 * x + e5 * y + e9 * z + e13) * w; bounds[o + 2] = (e2 * x + e6 * y + e10 * z + e14) * w;
-    bounds[o + 3] = local.radius * Math.sqrt(Math.max(e0 * e0 + e1 * e1 + e2 * e2, e4 * e4 + e5 * e5 + e6 * e6, e8 * e8 + e9 * e9 + e10 * e10));
+    bounds[o + 3] = radius * Math.sqrt(Math.max(e0 * e0 + e1 * e1 + e2 * e2, e4 * e4 + e5 * e5 + e6 * e6, e8 * e8 + e9 * e9 + e10 * e10));
     this.boundsGeometry[instanceId] = geometryId;
   }
 

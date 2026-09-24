@@ -138,6 +138,13 @@ export class ShipPoseMatrices {
   /** Whether pose `i` holds this frame's matrix. */
   current(i: number): boolean { return this.stamps[i] === this.frame; }
   indexOf(object: THREE.Object3D): number { return this.index.get(object) ?? -1; }
+  /** How `compose` forms fixed pose `i`, for a reader that forms the product itself and leaves the pose undone: its moving
+   * parent's pose (-1 below the root), the element array that holds the parent's matrix once `ensure(parent)` ran, and its
+   * offset. `multiplyAt(parentElements, offset, 0, te)` is then the matrix `ensure(i)` would store. */
+  composition(i: number): { parent: number; parentElements: number[]; offset: Float64Array } {
+    if (this.moving[i]) throw new Error('A moving pose also multiplies its own matrix');
+    return { parent: this.parentPose[i], parentElements: this.parents[i], offset: this.packed.subarray(i * 16, i * 16 + 16) };
+  }
 
   /** Leave these surfaces' poses to `ensure` (replacing any earlier set), with every joint above nothing but them. */
   defer(objects: Iterable<THREE.Object3D>): void {
@@ -183,7 +190,7 @@ export function operatorNorm(e: ArrayLike<number>): number {
 }
 
 /** `multiply` with `be` read from `b` at offset `o`. */
-function multiplyAt(ae: number[], b: Float64Array, o: number, te: number[]): void {
+export function multiplyAt(ae: number[], b: Float64Array, o: number, te: number[]): void {
   const a11 = ae[0], a12 = ae[4], a13 = ae[8], a14 = ae[12];
   const a21 = ae[1], a22 = ae[5], a23 = ae[9], a24 = ae[13];
   const a31 = ae[2], a32 = ae[6], a33 = ae[10], a34 = ae[14];
