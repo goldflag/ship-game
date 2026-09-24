@@ -1,114 +1,82 @@
 {
   "version": 1,
-  "id": "bismarck-maintained-v1",
-  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "id": "bismarck-launch-v1",
+  "basis": "Owner-requested launch-era plain paint in place of the March–May 1941 Baltic camouflage: one light grey over hull, upperworks and turrets, dark-grey steel decks and platform tops, black boot top, dark-red bottom and plain teak weather decks without the 1941 air-recognition markings. The swatches keep the previous recipe's light grey, deck grey and fittings greys; they are appearance estimates, not measured historical paint.",
   "wear": "in-commission",
+  "palette": {
+    "bismarck-launch-light-grey": [
+      0.4342,
+      0.4452,
+      0.491
+    ],
+    "bismarck-launch-deck-grey": [
+      0.1274,
+      0.1329,
+      0.1683
+    ],
+    "bismarck-launch-edge": [
+      0.227,
+      0.2384,
+      0.2789
+    ],
+    "bismarck-launch-light": [
+      0.5395,
+      0.552,
+      0.5841
+    ],
+    "bismarck-launch-boot-top": [
+      0.0203,
+      0.0222,
+      0.0252
+    ],
+    "bismarck-launch-red-bottom": [
+      0.147,
+      0.0296,
+      0.0176
+    ],
+    "bismarck-authored-teak": [
+      0.3325,
+      0.2423,
+      0.1413
+    ]
+  },
   "materials": {
     "naval": {
-      "paint": "bismarck-authored-naval",
-      "finish": "painted-steel"
-    },
-    "roof": {
-      "paint": "bismarck-authored-roof",
-      "finish": "painted-deck"
-    },
-    "edge": {
-      "paint": "bismarck-authored-edge",
+      "paint": "bismarck-launch-light-grey",
       "finish": "painted-steel"
     },
     "hullgray": {
-      "paint": "bismarck-authored-hullgray",
+      "paint": "bismarck-launch-light-grey",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "bismarck-launch-deck-grey",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "bismarck-launch-edge",
+      "finish": "painted-steel"
+    },
+    "light": {
+      "paint": "bismarck-launch-light",
       "finish": "painted-steel"
     },
     "oxide": {
-      "paint": "bismarck-authored-oxide",
+      "paint": "bismarck-launch-red-bottom",
       "finish": "underwater-coating"
     },
     "boot": {
-      "paint": "bismarck-authored-boot",
+      "paint": "bismarck-launch-boot-top",
       "finish": "underwater-coating"
-    },
-    "light": {
-      "paint": "bismarck-authored-light",
-      "finish": "painted-steel"
     },
     "wood": {
       "paint": "bismarck-authored-wood",
       "finish": "wood",
       "fittings": true
     },
-    "baltic-hullgray": {
-      "paint": "bismarck-authored-baltic-hullgray",
-      "finish": "painted-steel",
-      "existing": "image",
-      "imageLayout": {
-        "bounds": [
-          -126,
-          126,
-          -2,
-          50
-        ],
-        "tiles": 4,
-        "gutter": 4
-      }
-    },
-    "baltic-naval": {
-      "paint": "bismarck-authored-baltic-naval",
-      "finish": "painted-steel",
-      "existing": "image",
-      "imageLayout": {
-        "bounds": [
-          -126,
-          126,
-          -2,
-          50
-        ],
-        "tiles": 4,
-        "gutter": 4
-      }
-    },
-    "baltic-roof": {
-      "paint": "bismarck-authored-baltic-roof",
-      "finish": "painted-steel",
-      "existing": "image",
-      "imageLayout": {
-        "bounds": [
-          -126,
-          126,
-          -2,
-          50
-        ],
-        "tiles": 4,
-        "gutter": 4
-      }
-    },
-    "baltic-edge": {
-      "paint": "bismarck-authored-baltic-edge",
-      "finish": "painted-steel",
-      "existing": "image",
-      "imageLayout": {
-        "bounds": [
-          -126,
-          126,
-          -2,
-          50
-        ],
-        "tiles": 4,
-        "gutter": 4
-      }
-    },
     "deck": {
-      "paint": "bismarck-authored-deck",
-      "finish": "wood",
-      "existing": "image",
-      "imageLayout": {
-        "bounds": [
-          -126,
-          126,
-          -18.5,
-          18.5
-        ]
-      }
+      "paint": "bismarck-authored-teak",
+      "finish": "wood"
     }
   },
   "decking": {

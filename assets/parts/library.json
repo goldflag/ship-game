@@ -1325,6 +1325,14 @@
       "limitations": "Original Kong\u014d 1944 reconstruction against approved GameModels3D model. Proportions and articulation remain under review."
     },
     {
+      "partId": "type41-356-kongo-1942-twin",
+      "nation": "Japan",
+      "family": "356 mm Type 41 twin",
+      "review": "unreviewed",
+      "builder": "ijn-356",
+      "limitations": "Kong\u014d 1942 installation of the original Kong\u014d twin with the barrel reach of the approved GameModels3D pjsb007 jgm049/jgm050 visuals (muzzle 14.34 m ahead of the yaw axis); gunhouse, bearing and optional rangefinder unchanged. Proportions and articulation remain under review."
+    },
+    {
       "partId": "type41-152-kongo-casemate",
       "nation": "Japan",
       "family": "Type 41 152 mm",
