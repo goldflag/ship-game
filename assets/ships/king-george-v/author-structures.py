@@ -62,7 +62,7 @@ STRUCTURES = [
     ('compass-shelter', 'Navigating bridge glazed shelter', half([(3.4, -20.3), (3.4, -26.0), (2.4, -26.3), (2.4, -28.0)]), 20.75, 22.3, 'naval'),
     ('compass-platform', 'Compass platform', half([(2.0, -22.9), (2.0, -27.5), (1.4, -27.9)]), 22.3, 23.4, 'naval'),
     ('director-forward-base', 'Forward 14-inch director seating', octagon(0, -20.7, 3.0, 3.0, .6), 21.9, 23.27, 'naval'),
-    ('hacs-forward-tower', 'Forward HACS director tower', half([(3.6, -11.9), (3.6, -14.4)]), 21.9, 25.45, 'naval'),
+    ('hacs-forward-tower', 'Forward HACS director column', half([(1.6, -11.9), (1.6, -14.4)]), 21.9, 25.45, 'naval'),
     ('hacs-tower-step', 'HACS tower forward step', half([(2.1, -14.4), (2.1, -16.1), (1.3, -16.3), (1.3, -17.5)]), 21.9, 23.0, 'naval'),
     # After deckhouse: main deck to the boat deck, pointed aft end.
     # Notched to 8.35 m where the P4/S4 gunhouses swing inboard.

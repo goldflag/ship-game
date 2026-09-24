@@ -495,16 +495,16 @@ def director(id,x,y,z,main=False):
   ladder('DCT access',(x-1.81,y,z+.35),(x-1.81,y,z+3.28),w=.51)
  else:
   # HACS Mk IV rotating high-angle director, curved rear and sloping nose.
-  prism('HACS cabinet',octagon(x,y,2.7,2.2,.40),z+.45,1.85)
+  prism('HACS cabinet',octagon(x,y,2.8,2.9,.45),z+.45,1.75)
   for side in [-1,1]:
-   rod('HACS optical tube',(x-.25,y+side*.95,z+2.0),(x-.25,y+side*2.25,z+2.0),.19,'naval',vertices=16)
-   box('HACS rangefinder hood',(x-.25,y+side*2.3,z+2.0),(.8,.5,.75),'naval')
+   rod('HACS optical tube',(x-.25,y+side*1.3,z+1.9),(x-.25,y+side*2.05,z+1.9),.19,'naval',vertices=16)
+   box('HACS rangefinder hood',(x-.25,y+side*2.1,z+1.9),(.8,.45,.72),'naval')
   # Curved director hood, built with an original bent plate cross section.
-  arch=[(-1.27,1.70),(-1.17,2.55),(-.70,3.10),(.20,3.30),(.85,2.95),(1.31,2.10)]
-  vv=[(x+dx,y+side*1.04,z+zz) for side in [-1,1] for dx,zz in arch]
+  arch=[(-1.32,1.60),(-1.22,2.40),(-.72,2.85),(.20,3.02),(.88,2.72),(1.36,2.0)]
+  vv=[(x+dx,y+side*1.4,z+zz) for side in [-1,1] for dx,zz in arch]
   mesh('HACS curved roof',vv,[(i,i+1,i+7,i+6) for i in range(5)],'naval')
-  box('HACS sight aperture',(x+1.33,y,z+2.05),(.025,1.48,.48),'dark')
-  for side in [-1,1]:rod('HACS roof rib',(x-.98,y+side*.70,z+2.80),(x+.75,y+side*.70,z+3.02),.045,'edge',vertices=6)
+  box('HACS sight aperture',(x+1.38,y,z+1.95),(.025,1.9,.48),'dark')
+  for side in [-1,1]:rod('HACS roof rib',(x-.98,y+side*.90,z+2.62),(x+.75,y+side*.90,z+2.85),.045,'edge',vertices=6)
  node=pivot(id+'.yaw',(x,y,z));attach_world(set(scene.objects)-before-{node},node)
  return node
 # Director datums at the reference hardpoints (forward and after DCT, two HACS each side of each tower).
@@ -513,7 +513,10 @@ director('dct-forward',DCT_FWD[0],0,DCT_FWD[1],True)
 director('dct-after',DCT_AFT[0],0,DCT_AFT[1],True)
 for id,x,y,z in [('hacs-p-forward',13.21,4.004,25.605),('hacs-s-forward',13.21,-4.004,25.605),('hacs-p-after',-43.32,3.879,14.781),('hacs-s-after',-43.32,-3.879,14.781)]:director(id,x,y,z)
 ASSEMBLY='hacs-platforms'
-gallery('Forward HACS platform',octagon(13.2,0,3.4,10.6,.7),25.45,.48,False)
+# The reference's wide tray under the forward HACS pair, sloping in to the column.
+tray=[(y,z) for y,z in [(-5.3,25.45),(5.3,25.45),(5.3,25.15),(1.6,23.75),(-1.6,23.75),(-5.3,25.15)]]
+mesh('HACS platform tray',[(x,y,z) for x in [14.45,11.95] for y,z in tray],[tuple(range(6)),tuple(reversed(range(6,12)))]+[(i,(i+1)%6,(i+1)%6+6,i+6) for i in range(6)],'naval')
+gallery('Forward HACS platform',octagon(13.2,0,2.5,10.6,.5),25.45,.48,False)
 gallery('Aft HACS platform',octagon(-43.4,0,3.0,10.6,.6),14.62,.52,False)
 for y in [-1.0,1.0]:rod('After tower overhang strut',(-46.25,y,13.6),(-47.4,y,14.58),.09,'naval',vertices=8)
 # 1941 Type 284 mattress on the 14-inch DCT; no late Type 271 lantern.
