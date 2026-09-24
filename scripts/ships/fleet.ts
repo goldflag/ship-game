@@ -26,7 +26,10 @@ export async function runFleet(action: string): Promise<number> {
       const reason = action === 'check' ? (out + err).match(/^error: (.*)$/m)?.[1] ?? (out + err).match(/^\{"error":(".*")\}$/m)?.[1] : undefined;
       if (reason) console.error(`${id}: check failed: ${reason.startsWith('"') ? JSON.parse(reason) : reason} (bun run ship:check ${id} shows the rest)`);
       else console.error(`${id}: ${action} failed\n${out}${err}`);
-    } else console.log(`${id}: ${action} passed`);
+    } else {
+      console.log(`${id}: ${action} passed`);
+      for (const warning of (out + err).match(/^warning: .*$/gm) ?? []) console.log('  ' + warning);
+    }
   }
   }));
   const seconds = (performance.now() - started) / 1000;

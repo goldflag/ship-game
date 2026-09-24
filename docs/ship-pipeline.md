@@ -107,6 +107,7 @@ After the first successful build, add the ship's line to `src/ships/presets.ts` 
 **Traps.**
 
 - Turret clearance (`mountClearance`) tests barrels against every `obstructions` box, not only the listed structures. One box around a stepped or L-shaped deckhouse freezes nearby mounts at rest; use fore-and-aft strips of 3 m or less.
+- `ship:check` warns when two `structures` share a top plane that nothing above covers: the renderer z-fights there wherever the recipe draws the blocks, and hits pay two coincident plates. Trim one footprint, or end one block where the other begins. Admiral Hipper, Cleveland, Bismarck, Yamato, Alaska, King George V, Mogami and Enterprise predate the check.
 - `surface.py` refuses a hull texture wider than 4096 px. Lower the hull binding's `pixelsPerMeter` for a long hull (Hood uses 15).
 - A recipe can call the registered builders in `construction-library.json`: load `construction/geometry.py` as `sys.modules['geometry']` first and strip each object's `nodeId`. Library builders under `scripts/` cannot be declared in `recipe-inputs.json`; call `blender_components.create_gun_mount` instead.
 - `assets/parts/library.json` is fingerprinted per fitted part, but `construction-library.json` and `construction.json` are hashed whole. A recipe that declares them goes stale whenever any part is published; `ship:check all` lists it.
