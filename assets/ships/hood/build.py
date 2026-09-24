@@ -630,6 +630,14 @@ signal = [(-26.35, 1.5), (-26.7, 1.9), (-30.3, 1.9), (-31.2, 1.1), (-31.2, -1.1)
 prism('Signal platform', signal, 28.3, .15, 'black')
 rail('Signal platform rail', [(x, y, 28.45) for x, y in signal + signal[:1]], .9, 1.5)
 rod('Signal yard boom', (-31.2, 0, 28.25), (-33.55, 0, 28.25), .06, 'black', vertices=8)
+# Signal yard across the platform on triangular web plates off the column.
+rod('Signal platform yard', (-29.9, -5.95, 28.3), (-29.9, 5.95, 28.3), .07, 'black', vertices=8)
+for side in [-1, 1]:
+    mesh('Signal yard web', [(-29.9, side * 1.9, 28.25), (-29.9, side * 5.0, 28.25), (-29.9, side * .45, 27.4)], [(0, 1, 2), (2, 1, 0)], 'black')
+# Small platform round the topmast heel above the doubling.
+heel = octagon(-30.0, 0, 1.4, 2.0, .25)
+prism('Topmast heel platform', heel, 24.6, .1, 'black')
+rail('Topmast heel rail', [(x, y, 24.7) for x, y in heel + heel[:1]], .85, 1.0)
 mesh('Signal boom web', [(-31.2, 0, 28.2), (-33.5, 0, 28.2), (-30.5, 0, 27.4)], [(0, 1, 2), (2, 1, 0)], 'black')
 box('Signal locker', (-27.1, 1.2, 28.85), (.6, .5, .8), 'naval')
 for zz in [20.7, 22.3, 23.8]:
@@ -641,9 +649,9 @@ ladder('Mainmast ladder', (-28.18, 0, 9.4), (-28.18, 0, 24.5), .45)
 prism('Masthead platform', [(-30.4, .8), (-31.96, .8), (-31.96, -.8), (-30.4, -.8)], 40.62, .12, 'black')
 rail('Masthead platform rail', [(-30.45, .8, 40.74), (-31.96, .8, 40.74), (-31.96, -.8, 40.74), (-30.45, -.8, 40.74)], .95, 1.0)
 rod('Masthead platform brace', (-31.9, 0, 40.62), (-30.4, 0, 39.9), .06, 'black', vertices=6)
-rod('Main topmast yard', (-30.25, -3.3, 41.05), (-30.25, 3.3, 41.05), .09, 'black', r2=.09, vertices=8)
+rod('Main topmast yard', (-30.25, -6.0, 41.05), (-30.25, 6.0, 41.05), .1, 'black', r2=.1, vertices=8)
 for side in [-1, 1]:
-    rod('Main yard lift', (-30.25, side * 3.1, 41.05), (-30.25, side * .2, 42.35), .014, 'edge', vertices=4)
+    rod('Main yard lift', (-30.25, side * 5.7, 41.05), (-30.25, side * .2, 42.35), .014, 'edge', vertices=4)
     rod('Mainmast shroud', (-30.25, side * .3, 38.0), (-28.5, side * 1.9, 28.45), .014, 'edge', vertices=4)
 rod('Signal gaff', (-31.96, 0, 40.8), (-35.2, 0, 42.9), .07, 'black', r2=.05, vertices=8)
 rod('Signal gaff lift', (-35.2, 0, 42.9), (-30.25, 0, 42.4), .012, 'edge', vertices=4)
@@ -652,14 +660,17 @@ ASSEMBLY = 'radar-279'
 rod('Type 279 pole', (-30.85, 0, 40.74), (-30.85, 0, 47.4), .08, 'black', r2=.05, vertices=8)
 box('Type 279 office', (-30.85, .35, 41.4), (.35, .3, 1.3), 'black')
 rod('Type 279 crossarm', (-30.85, -.35, 45.4), (-30.85, .35, 45.4), .03, 'edge', vertices=6)
-rod('Type 279 head bar', (-31.65, 0, 47.35), (-29.8, 0, 47.35), .04, 'black', vertices=6)
-for x in [-31.6, -29.85]: rod('Type 279 wire', (x, 0, 47.35), (x, 0, 43.75), .01, 'edge', vertices=4)
+
 before = set(scene.objects)
-for dx in [-.85, .85]:
-    rod('Type 279 frame bar', (-30.85 + dx, -2.18, 43.7), (-30.85 + dx, 2.18, 43.7), .045, 'naval', vertices=6)
-for dy in [-.55, .55]:
-    rod('Type 279 frame rung', (-31.7, dy, 43.7), (-30.0, dy, 43.7), .035, 'naval', vertices=6)
-radar_pivot('radar-279.yaw', (-30.85, 0, 43.7), set(scene.objects) - before)
+# Transmitting and receiving arrays: two H frames of athwartships bars on the pole.
+for zz in [44.2, 47.3]:
+    for dx in [-.78, .78]:
+        rod('Type 279 frame bar', (-30.85 + dx, -2.18, zz), (-30.85 + dx, 2.18, zz), .045, 'naval', vertices=6)
+    for dy in [-.5, .5]:
+        rod('Type 279 frame rung', (-31.63, dy, zz), (-30.07, dy, zz), .035, 'naval', vertices=6)
+    for side in [-1, 1]:
+        rod('Type 279 stay', (-30.85, 0, zz + .9 if zz < 47 else zz - .9), (-30.85, side * 1.6, zz), .01, 'edge', vertices=4)
+radar_pivot('radar-279.yaw', (-30.85, 0, 44.2), set(scene.objects) - before)
 ASSEMBLY = 'ensign-gaff'
 rod('Ensign gaff', (-30.55, 0, 24.8), (-38.4, 0, 29.4), .09, 'black', r2=.05, vertices=10)
 rod('Gaff peak halyard', (-38.4, 0, 29.4), (-30.35, 0, 34.0), .012, 'edge', vertices=4)
@@ -727,16 +738,28 @@ def searchlight(id, x, y, z, big=True, facing=0):
     rod('Searchlight lens', (x + r * .9, y, z + .6 + r * 1.25), (x + r * .92, y, z + .6 + r * 1.25), r * .88, 'bright', vertices=28)
 
 
-# UP projectors on raised sponsons and on B turret roof; the Vickers quads on bridge and after wings.
+# UP projectors in splinter tubs on the shelter deck (a tall inboard screen, low sides), with their
+# ready-use lockers; one more on B turret roof. Runtime (z, |x|) outlines from the reference.
+UP_TUBS = [((-22.24, 11.31), [(-20.1, 14.45), (-22.7, 14.35), (-24.8, 12.3), (-24.5, 10.2)],
+            [(-24.5, 10.2), (-23.8, 9.45), (-23.1, 8.95), (-22.2, 8.8), (-21.4, 8.95), (-20.7, 9.45), (-20.2, 10.15), (-20.1, 11.0)], [(-20.1, 11.0), (-20.1, 14.45)],
+            [(-18.43, 12.87, .62, 1.17), (-19.1, 12.87, .62, 1.17), (-24.75, 9.7, .6, 1.2), (-25.33, 9.7, .55, 1.2), (-25.0, 8.7, 1.15, .6)]),
+           ((15.49, 13.48), [(13.4, 13.15), (13.4, 14.9), (17.55, 14.9), (17.55, 13.15)],
+            [(17.55, 13.15), (17.4, 12.35), (16.95, 11.7), (16.3, 11.25), (15.5, 11.08), (14.7, 11.25), (14.0, 11.7), (13.5, 12.35), (13.4, 13.15)], [],
+            [(18.8, 12.35, .6, 1.2), (18.15, 12.35, .6, 1.2), (11.3, 11.75, .6, 1.2), (12.05, 11.75, .6, 1.2), (12.8, 11.75, .6, 1.2)])]
 for side in [-1, 1]:
-    for (x, y), bearing in [((22.2, 10.97), 90), ((-15.5, 13.14), 90)]:
-        ASSEMBLY = 'up-sponson'
-        o = [(x + 2.3 * math.cos(a * math.tau / 24), side * y + 2.1 * math.sin(a * math.tau / 24)) for a in range(24)]
-        prism('UP sponson platform', o, 9.2, .12, 'roof')
-        arc = [p for p in o if side * (p[1] - side * y) > -.6]
-        for (ax, ay), (bx, by) in zip(arc, arc[1:]):
-            ob = box('UP sponson bulwark', ((ax + bx) / 2, (ay + by) / 2, 9.8), (math.hypot(bx - ax, by - ay) + .02, .05, 1.1), 'naval'); ob.rotation_euler.z = math.atan2(by - ay, bx - ax)
-        up_projector(f'up-{"p" if side > 0 else "s"}-{"fwd" if x > 0 else "aft"}', x, side * y, 9.32, -side * bearing)
+    for (z, x), low, high, low2, lockers in UP_TUBS:
+        ASSEMBLY = 'up-tub'
+        bl = lambda pts: [(-pz, side * px) for pz, px in pts]
+        bulwark('UP tub side', bl(low), 9.2, 10.5)
+        if low2: bulwark('UP tub side', bl(low2), 9.2, 10.5)
+        bulwark('UP tub screen', bl(high), 9.2, 11.2)
+        for pz, px in high[1:-1:2]:
+            rod('UP tub stiffener', (-pz, side * px, 9.2), (-pz, side * px, 11.1), .04, 'naval', vertices=5)
+        ASSEMBLY = 'up-ready-use-lockers'
+        for lz, lx, dz, dx in lockers:
+            box('UP ready-use locker', (-lz, side * lx, 9.75), (dz, dx, 1.1), 'naval')
+            box('Locker lid', (-lz, side * lx, 10.33), (dz + .04, dx + .04, .06), 'roof')
+        up_projector(f'up-{"p" if side > 0 else "s"}-{"fwd" if z < 0 else "aft"}', -z, side * x, 9.2, -side * 90)
 yawB = next(o for o in scene.objects if o.get('nodeId') == 'main-b.yaw')
 _bgh = next(m['weapon'] for m in D['mounts'] if m['id'] == 'main-b')['gunhouseMesh']['vertices']
 # Seat the roof projector on the B gunhouse roof: highest shell vertex near its station, plus the turret datum.
@@ -773,47 +796,82 @@ for id, (x, y, z), big, stand in [('searchlight-20-pf', (28.73, 4.47, 16.55), Fa
 COL = collections['Boats']
 
 
-def boat(name, x, y, z, length, width, motor=False, cabin=False, seat=None):
+def boat(name, x, y, z, length, width, motor=False, cabin=False, seat=None, depth=.82, cabin_top=None):
+    """Boat hull from its keel z; depth is the gunwale height amidships, cabin_top the cabin roof."""
     global ASSEMBLY
-    ASSEMBLY = name; n = 32; outline = []
+    ASSEMBLY = name; n = 32; outline = []; k = depth / .82
     for i in range(n):
         t = i * math.tau / n; xx = length / 2 * math.cos(t); yy = width / 2 * math.sin(t) * (1 - .22 * math.cos(t)); outline.append((xx, yy))
     vs = []
     for scale, zz in [(.62, 0), (.9, .45), (1, .82), (.93, .84), (.7, .3)]:
-        vs.extend([(x + xx * scale, y + yy * scale, z + zz + (.18 * abs(xx / (length / 2)) ** 3 if zz > .7 else 0)) for xx, yy in outline])
+        vs.extend([(x + xx * scale, y + yy * scale, z + zz * k + (.18 * abs(xx / (length / 2)) ** 3 if zz > .7 else 0)) for xx, yy in outline])
     ff = [tuple(reversed(range(n))), tuple(range(4 * n, 5 * n))] + [(j * n + i, j * n + (i + 1) % n, (j + 1) * n + (i + 1) % n, (j + 1) * n + i) for j in range(4) for i in range(n)]
     mesh('Boat hull', vs, ff, 'naval', smooth=True)
-    tube('Boat gunwale', [(x + xx, y + yy, z + .84 + .18 * abs(xx / (length / 2)) ** 3) for xx, yy in outline + outline[:1]], .045, 'wood', 6)
-    for dx in [-length * .28, -length * .08, length * .14, length * .32]: box('Boat thwart', (x + dx, y, z + .62), (.26, width * .78, .07), 'wood')
+    tube('Boat gunwale', [(x + xx, y + yy, z + .84 * k + .18 * abs(xx / (length / 2)) ** 3) for xx, yy in outline + outline[:1]], .045, 'wood', 6)
+    for dx in [-length * .28, -length * .08, length * .14, length * .32]: box('Boat thwart', (x + dx, y, z + .62 * k), (.26, width * .78, .07), 'wood')
     floor = z - .36 if seat is None else seat
     for dx in [-length * .26, length * .26]:
         box('Boat chock', (x + dx, y, (z + .1 + floor) / 2), (.3, width * .82, z + .1 - floor), 'edge')
     if cabin:
-        box('Boat cabin', (x + length * .08, y, z + 1.15), (length * .34, width * .7, .75), 'white')
-        box('Boat cabin glass', (x + length * .25, y, z + 1.25), (.02, width * .5, .35), 'glass')
-        rod('Boat exhaust', (x - length * .05, y, z + .9), (x - length * .05, y, z + 1.9), .09, 'edge', vertices=10)
+        top = cabin_top if cabin_top is not None else z + 1.525 * k
+        base = z + .7 * k
+        box('Boat cabin', (x + length * .08, y, (base + top) / 2), (length * .34, width * .7, top - base), 'white')
+        box('Boat cabin glass', (x + length * .25, y, top - .3), (.02, width * .5, .3), 'glass')
+        rod('Boat exhaust', (x - length * .05, y, base), (x - length * .05, y, top + .3), .09, 'edge', vertices=10)
 
 
-for name, (x, y, z), (l, w), motor, cabin in [
-        ('boat-pinnace-p', (-12.9, 3.1, 9.95), (13.9, 3.8), True, True), ('boat-pinnace-s', (-12.9, -2.9, 9.95), (12.9, 3.8), True, True),
-        ('boat-whaler-p', (-13.0, 3.1, 11.05), (8.5, 1.8), False, False), ('boat-whaler-s', (-13.0, -3.0, 11.05), (8.4, 1.9), False, False),
-        ('boat-motor-1', (-28.3, 5.4, 9.95), (10.7, 2.7), True, True), ('boat-motor-2', (-14.4, 7.9, 9.95), (10.7, 2.7), True, True),
-        ('boat-motor-3', (-13.7, -6.2, 9.95), (10.7, 2.7), True, True), ('boat-gig', (-28.9, -5.1, 9.6), (9.8, 1.8), False, False),
-        ('boat-motor-25-p', (5.4, 11.8, 9.6), (7.6, 2.3), True, True), ('boat-motor-25-s', (15.9, -7.5, 9.6), (7.6, 2.3), True, True),
-        ('boat-motor-16', (11.4, -3.4, 13.25), (4.9, 1.7), True, False), ('boat-dinghy', (11.4, 3.4, 13.25), (4.8, 1.7), False, False)]:
-    boat(name, x, y, z, l, w, motor, cabin, seat={'boat-motor-16': 12.93, 'boat-dinghy': 12.93}.get(name, 9.2 if z < 10.5 else None))
-ASSEMBLY = 'boat-skids'
-for x in [-6.0, -9.0, -16.5, -19.5, -25.0, -31.5]:
-    for side in [-1, 1]:
-        rod('Boat skid beam', (x, side * .6, 9.9), (x, side * 8.8, 9.9), .09, 'naval', vertices=8)
-        rod('Boat skid pillar', (x, side * 8.4, 9.2), (x, side * 8.4, 9.9), .08, 'naval', vertices=8)
-# 32 ft cutters swung out on davits abreast the after superstructure.
+# Boats at the reference stowage (runtime z, x and keel height): the 45 ft pinnaces are open boats
+# with the whalers nested in them; the others sit in chocks on the shelter deck or, for the 16 ft
+# boats, in cradles abreast the midships deckhouse.
+for name, (z, x, keel), (l, w), cabin, depth, top, seat in [
+        ('boat-pinnace-p', (12.89, -3.13, 9.32), (13.9, 3.84), False, 1.45, None, 9.2), ('boat-pinnace-s', (12.91, 2.93, 9.33), (12.9, 3.76), False, 1.45, None, 9.2),
+        ('boat-whaler-p', (13.03, -3.13, 10.73), (8.5, 1.77), False, 1.15, None, 9.85), ('boat-whaler-s', (13.04, 2.96, 10.64), (8.45, 1.92), False, 1.15, None, 9.85),
+        ('boat-motor-1', (28.29, -5.4, 9.37), (10.7, 2.65), True, 1.35, 11.75, 9.2), ('boat-motor-2', (14.39, -7.88, 9.36), (10.7, 2.65), True, 1.35, 11.75, 9.2),
+        ('boat-motor-3', (13.68, 6.23, 9.36), (10.7, 2.65), True, 1.35, 11.75, 9.2), ('boat-gig', (28.88, 5.1, 9.49), (9.75, 1.75), False, 1.2, None, 9.2),
+        ('boat-motor-25-p', (-5.45, -11.85, 9.32), (7.6, 2.29), True, 1.15, 11.3, 9.2), ('boat-motor-25-s', (-15.89, 7.52, 9.32), (7.6, 2.29), True, 1.15, 11.3, 9.2),
+        ('boat-motor-16', (-11.67, 5.89, 12.07), (4.9, 1.68), False, 1.0, None, 10.97), ('boat-dinghy', (-11.72, -5.95, 12.22), (4.85, 1.75), False, .8, None, 10.97)]:
+    boat(name, -z, -x, keel, l, w, cabin, cabin, seat, depth, top)
+ASSEMBLY = 'boat-crutches'
+for z in [10.6, 22.25]:
+    box('Boat crutch', (-z, 0, 10.93), (.3, 4.2, .22), 'naval')
+    for side in [-1, 1]: rod('Crutch post', (-z, side * 1.8, 9.2), (-z, side * 1.8, 10.82), .07, 'naval', vertices=8)
+# 32 ft cutters swung out on low davits abreast the after superstructure.
 for side in [-1, 1]:
-    boat('boat-cutter-' + ('p' if side > 0 else 's'), -36.9, side * 17.1, 9.8, 10.3, 2.7)
+    boat('boat-cutter-' + ('p' if side > 0 else 's'), -36.95, side * 17.13, 9.4, 10.3, 2.69, depth=1.25)
     ASSEMBLY = 'cutter-davits'
-    for dx in [-4.2, 4.2]:
-        tube('Cutter davit', [(-36.9 + dx, side * 14.2, 9.2), (-36.9 + dx, side * 15.0, 13.4), (-36.9 + dx, side * 17.1, 13.9)], .1, 'naval', 12)
-        rod('Davit fall', (-36.9 + dx, side * 17.1, 13.9), (-36.9 + dx * .8, side * 17.1, 10.6), .015, 'edge', vertices=4)
+    for x in [-33.0, -40.05]:
+        tube('Cutter davit', [(x, side * 14.3, 9.2), (x, side * 14.5, 11.6), (x, side * 16.7, 12.1)], .1, 'naval', 12)
+        rod('Davit fall', (x, side * 16.7, 12.05), (x + (.4 if x > -36 else -.4), side * 17.0, 10.7), .015, 'edge', vertices=4)
+# Boat derricks: the main derrick stowed along the centreline from the mainmast heel, and a derrick
+# each side from beside the after funnel, topped up over the boats.
+ASSEMBLY = 'boat-derricks'
+rod('Main derrick', (-28.3, 0, 11.65), (-8.7, 0, 12.25), .3, 'naval', r2=.2, vertices=14)
+box('Derrick gooseneck', (-28.55, 0, 11.65), (.5, .5, .5), 'black')
+rod('Gooseneck pin', (-28.55, 0, 11.4), (-28.55, 0, 9.2), .12, 'black', vertices=8)
+cyl('Derrick head block', (-8.55, 0, 11.7), .18, .45, 'black', vertices=10)
+rod('Derrick fall', (-8.55, 0, 12.2), (-8.55, 0, 11.5), .02, 'edge', vertices=4)
+rod('Derrick topping lift', (-8.8, 0, 12.4), (-29.2, 0, 27.3), .02, 'edge', vertices=4)
+for side in [-1, 1]:
+    rod('Boat derrick', (4.9, side * 5.0, 11.1), (-6.2, side * 4.45, 13.95), .17, 'naval', r2=.12, vertices=12)
+    box('Boat derrick heel', (5.0, side * 5.0, 11.03), (.5, .5, .12), 'black')
+# Pom-pom sponsons: a plated overhang with a curved screen, on brackets from the ship's side.
+ASSEMBLY = 'pom-pom-sponsons'
+for side in [-1, 1]:
+    arc = [(-10.75, 14.72), (-10.7, 15.2), (-11.1, 15.45), (-11.6, 15.65), (-12.2, 15.9), (-13.4, 16.07), (-14.6, 16.02), (-15.9, 15.8), (-17.0, 15.4), (-18.0, 15.0), (-18.9, 14.52)]
+    outline = [(-z, side * x) for z, x in arc]
+    prism('Pom-pom sponson', outline, 9.05, .15, 'roof')
+    bulwark('Pom-pom sponson screen', outline[1:-1], 9.2, 10.2)
+    bulwark('Pom-pom sponson aft screen', [(10.75, side * 12.15), (10.75, side * 14.72)], 9.2, 10.2)
+    for z in [-11.6, -13.4, -15.2, -17.0]:
+        x = max(px for pz, px in arc if abs(pz - z) < .9)
+        mesh('Sponson bracket', [(-z, side * 14.62, 9.05), (-z, side * (x - .08), 9.05), (-z, side * 14.62, 7.95)], [(0, 1, 2), (2, 1, 0)], 'naval')
+# Davits over the 16 ft boats abreast the midships deckhouse.
+ASSEMBLY = 'boat-davits'
+for z, x in [(-11.67, 5.89), (-11.72, -5.95)]:
+    for dz in [-1.7, 1.7]:
+        tube('Boat davit', [(-z + dz, -x * .87, 10.97), (-z + dz, -x * .87, 13.9), (-z + dz, -x, 14.3)], .07, 'naval', 10)
+        rod('Davit fall', (-z + dz, -x, 14.25), (-z + dz * .9, -x, 13.0), .012, 'edge', vertices=4)
+    rod('Boat derrick topping lift', (-6.1, side * 4.45, 14.0), (2.8, side * 2.4, 22.0), .016, 'edge', vertices=4)
 
 # ------------------------------------------------------------------ deck fittings
 COL = collections['Deck fittings']
@@ -872,21 +930,76 @@ for x in list(range(-104, -48, 3)) + list(range(50, 118, 3)):
 
 # ------------------------------------------------------------------ underwater fittings
 COL = collections['Underwater fittings']
+
+
+def screw(name, x, y, z, radius, count, hand, cmax, skew=.22, pitch=1.0):
+    """Built-up screw (as Iowa's): broad elliptical blades with skew, rake, helical pitch and a thick
+    root, each a closed mesh, turning about the shaft axis (Blender X, aft = -X)."""
+    nr, nc = 9, 7; hub = .2 * radius; P = pitch * 2 * radius
+    for b in range(count):
+        a0 = b * math.tau / count + .3; v = []
+        for side in (-1, 1):
+            for k in range(nr):
+                t = math.sin(math.pi / 2 * k / (nr - 1)); r = hub + (radius - hub) * t
+                chord = cmax * (.62 + .38 * math.sin(math.pi / 2 * t / .6) if t < .6 else math.sqrt(max(0., 1 - ((t - .6) / .4) ** 2))) + .02
+                phi = math.atan2(P, math.tau * r); th = (.09 * radius * (1 - t) + .02)
+                for j in range(nc):
+                    u = -math.cos(math.pi * j / (nc - 1)); sc = u * chord / 2; half = th * math.sqrt(max(0., 1 - u * u)) / 2 + .004
+                    tang = sc * math.cos(phi) + side * half * math.sin(phi); ax = -sc * math.sin(phi) * hand + side * half * math.cos(phi) - .06 * radius * t
+                    ang = a0 - hand * skew * t ** 1.5 + hand * tang / r
+                    v.append((x + ax, y + r * math.cos(ang), z + r * math.sin(ang)))
+        stride = nr * nc; faces = []
+        for k in range(nr - 1):
+            for j in range(nc - 1):
+                n = k * nc + j; faces.extend([(n, n + nc, n + nc + 1, n + 1), (stride + n, stride + n + 1, stride + n + nc + 1, stride + n + nc)])
+        edge = list(range(nc)) + [k * nc + nc - 1 for k in range(1, nr)] + [(nr - 1) * nc + j for j in range(nc - 2, -1, -1)] + [k * nc for k in range(nr - 2, 0, -1)]
+        faces.extend((n, edge[(i + 1) % len(edge)], stride + edge[(i + 1) % len(edge)], stride + n) for i, n in enumerate(edge))
+        o = mesh(name + ' blade', v, faces, 'bronze', smooth=True)
+        bm = bmesh.new(); bm.from_mesh(o.data); bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces)); bm.to_mesh(o.data); bm.free()
+
+
+def to_hull(x, y, z, dy, dz, step=.05):
+    """March from (y, z) along (dy, dz) at station x until inside the hull; that point, .08 m in."""
+    for k in range(400):
+        yy, zz = y + dy * step * k, z + dz * step * k
+        if abs(yy) <= sidewidth(x, zz) - .08: return (x, yy, zz)
+    return (x, y + dy * step * 400, z + dz * step * 400)
+
+
+def loft(name, rings, material):
+    """Closed loft through equal-length rings of points, capped at both ends."""
+    n = len(rings[0]); vs = [p for r in rings for p in r]
+    ff = [tuple(reversed(range(n))), tuple(range((len(rings) - 1) * n, len(rings) * n))]
+    ff += [(i * n + j, i * n + (j + 1) % n, (i + 1) * n + (j + 1) % n, (i + 1) * n + j) for i in range(len(rings) - 1) for j in range(n)]
+    ob = mesh(name, vs, ff, material, smooth=True)
+    bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces)); bm.to_mesh(ob.data); bm.free()
+    return ob
+
+
+# Four shafts in heavy sleeves on V brackets to the hull, three-bladed screws (reference pbsb507:
+# 4.15 m, sleeves about 1.1 m across).
 for i, (y, x, z) in enumerate([(-6.9, -103.0, -7.1), (-3.3, -115.1, -7.9), (3.3, -115.1, -7.9), (6.9, -103.0, -7.1)], 1):
-    ASSEMBLY = 'shaft-' + str(i)
+    ASSEMBLY = 'shaft-' + str(i); sgn = 1 if y > 0 else -1
     ystart = y * .75
-    rod('Propeller shaft', (x + 32, ystart, z + 2.2), (x, y, z), .26, 'edge', vertices=16)
-    for sign in [-1, 1]: rod('A-bracket strut', (x + 1.6, y, z), (x + 3.4, y * .8 + sign * 1.2, z + 2.6), .17, 'antifouling', vertices=10)
-    before = set(scene.objects); rod('Propeller hub', (x - 1.0, y, z), (x + .7, y, z), .48, 'bronze', r2=.26, vertices=24)
-    for j in range(3):
-        a = math.tau * j / 3 + (.3 if y > 0 else -.3); shape = [(.35, -.14), (1.0, -.58), (1.8, -.42), (2.1, .08), (1.65, .65), (.62, .48)]
-        vs = [(x + .2 * r, y + r * math.cos(a) - t * math.sin(a), z + r * math.sin(a) + t * math.cos(a)) for r, t in shape]
-        mesh('Three-bladed propeller', vs, [tuple(range(len(vs)))], 'bronze')
+    rod('Propeller shaft', (x + 32, ystart, z + 2.2), (x + 1.2, y, z), .5, 'antifouling', r2=.55, vertices=16)
+    rod('Shaft sleeve end', (x + 1.2, y, z), (x + .75, y, z), .55, 'antifouling', r2=.42, vertices=16)
+    bx = x + 2.4
+    for dy, dz in [(-sgn * .15, 1.0), (-sgn * 1.0, .45)]:
+        rod('A-bracket arm', (bx, y, z), to_hull(bx, y, z, dy, dz), .16, 'antifouling', vertices=10)
+    cyl('A-bracket boss', (bx, y, z), .62, .9, 'antifouling', vertices=16).rotation_euler.y = math.pi / 2
+    before = set(scene.objects)
+    rod('Propeller hub', (x - .75, y, z), (x + .75, y, z), .45, 'bronze', r2=.42, vertices=20)
+    rod('Propeller cap', (x - .75, y, z), (x - 1.6, y, z), .45, 'bronze', r2=.1, vertices=20)
+    screw('Three-bladed screw', x, y, z, 2.08, 3, sgn, 1.75)
     node = pivot('propeller-' + str(i) + '.spin', (x, 0, 0)); node.location = (x, y, z); attach_world(set(scene.objects) - before - {node}, node)
+# Semi-balanced rudder behind the sternpost: runtime (height, leading z, trailing z, half thickness).
 ASSEMBLY = 'rudder'; before = set(scene.objects)
-vs = [(x, s * .34, z) for s in [-1, 1] for x, z in [(-116.6, -3.6), (-123.3, -3.9), (-123.1, -9.0), (-116.8, -9.0)]]
-mesh('Balanced rudder', vs, [(3, 2, 1, 0), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)], 'antifouling')
-rod('Rudder stock', (-118.6, 0, -3.6), (-118.6, 0, -2.2), .3, 'edge', vertices=12)
+FOIL = [(0, 0), (.08, 1), (.3, 1.1), (.6, .7), (1, 0), (.6, -.7), (.3, -1.1), (.08, -1)]
+rings = []
+for h, z0, z1, t in [(-4.75, 118.6, 123.25, .26), (-7.15, 118.6, 123.1, .27), (-7.3, 115.85, 123.05, .27), (-9.8, 115.6, 122.55, .2), (-10.15, 116.0, 121.9, .12)]:
+    rings.append([(-(z0 + (z1 - z0) * u), t * v, h) for u, v in FOIL])
+loft('Semi-balanced rudder', rings, 'antifouling')
+rod('Rudder stock', (-118.75, 0, -4.8), (-118.75, 0, -2.2), .3, 'edge', vertices=12)
 node = pivot('rudder.yaw', (-118.6, 0, -6.0)); attach_world(set(scene.objects) - before - {node}, node)
 for side in [-1, 1]:
     ASSEMBLY = 'bilge-keel-' + str(side)

@@ -131295,7 +131295,7 @@
         -21.93
       ],
       "size": [
-        29.043,
+        28.674,
         3.866,
         8.22
       ]
@@ -131308,7 +131308,7 @@
         -13.51
       ],
       "size": [
-        30.4,
+        29.09,
         3.866,
         8.22
       ]
@@ -131321,7 +131321,7 @@
         -4.812
       ],
       "size": [
-        29.452,
+        29.1,
         0.25,
         8.775
       ]
@@ -132035,11 +132035,11 @@
       "name": "Shelter deck and forecastle superstructure",
       "footprint": [
         [
-          14.926,
+          14.745,
           -9.3
         ],
         [
-          15.4,
+          14.65,
           -13.95
         ],
         [
@@ -132143,11 +132143,11 @@
           -18.95
         ],
         [
-          -15.4,
+          -14.65,
           -13.95
         ],
         [
-          -14.926,
+          -14.745,
           -9.3
         ]
       ],
@@ -132248,19 +132248,19 @@
           -5.85
         ],
         [
-          14.9,
+          14.75,
           -9.05
         ],
         [
-          14.926,
+          14.745,
           -9.3
         ],
         [
-          -14.926,
+          -14.745,
           -9.3
         ],
         [
-          -14.9,
+          -14.75,
           -9.05
         ]
       ],
@@ -136888,5 +136888,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "c6c091b92bcf9a5b12697c8980cdaba8f792639e800fc6a2df325001788a8681"
+  "contentHash": "dee68cbf2013d97e1354111e7ba4c791d0e540472af56e0c431289abe047df0a"
 }
