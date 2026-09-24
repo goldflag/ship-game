@@ -28,7 +28,9 @@ def interp(table,s):
  for (a,u),(b,v) in zip(table,table[1:]):
   if a<=s<=b:return u+(v-u)*(s-a)/(b-a)
  return table[0][1] if s<table[0][0] else table[-1][1]
-width=lambda x:interp(h['halfBreadths'],x+half)
+# Deck-edge half-breadths (the section point below the crown); the shell flares wider below the forecastle edge.
+deck_edge=[(section['station'],section['points'][-2][0]) for section in h['sections']]
+width=lambda x:interp(deck_edge,x+half)
 deckz=lambda x:interp(h['deckHeights'],x+half)
 def shell_width(x,z):
  rows=[]
@@ -48,17 +50,17 @@ for i in range(len(h['sections'])-1):fs += [(i*n+j,i*n+(j+1)%n,(i+1)*n+(j+1)%n,(
 fs += [tuple(reversed(range(n))),tuple((len(h['sections'])-1)*n+j for j in range(n))]
 hull=mesh('hull.envelope',vs,fs,materials['hullgray'],smooth=True);hull['nodeId']='hull.surface'
 vs=[]
-for station,w in h['halfBreadths']:
+for station,w in deck_edge:
  x=station-half;z=deckz(x)+.01;vs += [(x,-w,z),(x,0,z+.005),(x,w,z)]
-mesh('deck.main',vs,[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(len(h['halfBreadths'])-1) for j in range(2)],materials['deck'])
+mesh('deck.main',vs,[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(len(deck_edge)-1) for j in range(2)],materials['deck'])
 for lo,hi in [(20.35,49.2),(-48.5,-28),(4.5,17.7),(-9.7,1.5)]:
- xs=[lo]+[s-half for s,w in h['halfBreadths'] if lo<s-half<hi]+[hi]
+ xs=[lo]+[s-half for s,w in deck_edge if lo<s-half<hi]+[hi]
  vs=[(x,sign*max(.01,width(x)-.26),deckz(x)+.018) for x in xs for sign in [-1,1]]
  mesh('deck.linoleum',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(xs)-1)],materials['linoleum'])
  for x in [lo+i*1.85 for i in range(int((hi-lo)/1.85)+1)]:rod('deck.retaining-strip',(x,-width(x)+.26,deckz(x)+.027),(x,width(x)-.26,deckz(x)+.027),.012,materials['bronze'],vertices=5)
 # Lifelines and hull-side apertures, with the foregun sweep lowered.
 for sign in [-1,1]:
- pts=[(s-half,sign*max(.02,w-.08),deckz(s-half)+.065) for s,w in h['halfBreadths'] if .6<s<h['length']-.6]
+ pts=[(s-half,sign*max(.02,w-.08),deckz(s-half)+.065) for s,w in deck_edge if .6<s<h['length']-.6]
  # Lifelines fold down across the foregun training sweep, as in the reference.
  for a,b in zip(pts,pts[1:]):
   low=any(36<p[0]<48 for p in [a,b])
