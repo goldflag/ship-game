@@ -7,7 +7,8 @@ type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;
 /** `along` counts the trail samples laid before this one, so a feature can follow distance along the track; `turn` is
  * the hull's rate of turn when it was laid (rad/s). */
 type WakeSample = Motion & { born: number; strength: number; along: number; turn: number };
-type ImpactSample = { x: number; z: number; born: number; scale: number };
+/** `rightX`, `rightZ` and `aspect` turn and stretch the impact's rings a little, so no two read as the same circle. */
+type ImpactSample = { x: number; z: number; born: number; scale: number; rightX: number; rightZ: number; aspect: number };
 type WakeHull = { length: number; beam: number; forwardSpeed: number; centerX?: number; centerZ?: number };
 export interface WakeStampTarget {
   /** Start a rasterisation: channel 0 is laid on the WAKE_EXTENT square around (centerX, centerZ), channel 1 on the
@@ -202,7 +203,10 @@ export class WakeFoam {
 
   splash(x: number, z: number, caliberM: number): void {
     if (this.impacts.length >= 32) this.impacts.shift();
-    this.impacts.push({ x, z, born: this.time.value, scale: Math.pow(Math.max(.05, caliberM) / .38, .65) });
+    // A hash of the impact point, not a random stream: every trail paints the same rings for one splash.
+    const hash = Math.abs(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453) % 1, turn = hash * Math.PI * 2;
+    this.impacts.push({ x, z, born: this.time.value, scale: Math.pow(Math.max(.05, caliberM) / .38, .65),
+      rightX: Math.cos(turn), rightZ: Math.sin(turn), aspect: 1 + (hash * 7.31 % 1) * .22 });
     this.dirty = true;
   }
 
@@ -232,15 +236,21 @@ export class WakeFoam {
     this.stampTarget?.begin(this.origin.value.x, this.origin.value.y, this.slickOrigin.x, this.slickOrigin.y);
     for (const box of this.painted) box.copy(EMPTY);
     for (const impact of this.impacts) {
-      const age = this.time.value - impact.born;
-      // A shell's column leaves a broad slick of aerated water that spreads as the
-      // spray rains back and lingers well after the air has cleared.
-      const radius = (4 + 15 * (1 - Math.exp(-age / 3.5))) * impact.scale;
-      const strength = smooth(age / .25) * (.8 + .15 * Math.exp(-age / 2)) * (1 - smooth((age - 10) / (IMPACT_LIFETIME - 10)));
-      // Aerated center and a broken outward crest share the actual displaced,
-      // lit ocean surface instead of hovering on a horizontal sprite plane.
-      this.stamp(impact.x, impact.z, 1, 0, radius, radius, strength * .9);
-      this.stamp(impact.x, impact.z, 1, 0, radius * 1.5, radius * 1.5, strength * .7, true);
+      const age = this.time.value - impact.born, scale = impact.scale;
+      // Where the column stands the sea boils white; the boil spreads and breaks up into lace as the spray rains
+      // back, and its aerated water lingers well after the air has cleared.
+      const boil = (5 + 9 * (1 - Math.exp(-age / 2))) * scale;
+      const boiling = smooth(age / .2) * (.62 + .33 * Math.exp(-age / 4)) * (1 - smooth((age - 8) / (IMPACT_LIFETIME - 8)));
+      // The crown's collapse and the base surge push a bright ring of foam outward, already wide while the column
+      // stands: its crest, three quarters of the way out, reaches about twice the column's radius.
+      const ring = (9 + 29 * (1 - Math.exp(-age / 2.5))) * scale;
+      const ringing = smooth(age / .3) * (1 - smooth((age - 6) / (IMPACT_LIFETIME - 6)));
+      // Both share the actual displaced, lit ocean surface instead of hovering on a horizontal sprite plane. A second,
+      // fainter band inside the first, a little off centre, frays the ring out of a perfect circle.
+      const { rightX, rightZ, aspect } = impact, offset = 2.5 * scale;
+      this.stamp(impact.x, impact.z, rightX, rightZ, boil * aspect, boil, boiling);
+      this.stamp(impact.x, impact.z, rightX, rightZ, ring * aspect, ring, ringing * .9, true);
+      this.stamp(impact.x + rightZ * offset, impact.z - rightX * offset, rightX, rightZ, ring * .84, ring * .84 * aspect, ringing * .55, true);
     }
     if (this.churned) { this.churn(); this.texture.needsUpdate = true; return; }
     for (const sample of this.samples) {

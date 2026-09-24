@@ -26,6 +26,8 @@ interface GameInternals {
     capturePreviousPose(): void; update(alpha?: number): void; impactMarks: { update(events: readonly CombatEvent[], id: string, budget: { remainingMs: number }, pose: () => void): void; clear(): void } }[];
   effects: { update(sim: unknown, dt: number, camera: THREE.Camera, opticsShipId?: string, poses?: unknown): void; reset(): void; diagnostics(): unknown; sequence: number };
   funnelSmoke: { update(ships: unknown, dt: number, camera: THREE.Camera, hidden?: string): void; reset(): void; diagnostics(): unknown };
+  shipWake?: { update(ships: unknown, dt: number, events: readonly CombatEvent[], camera?: THREE.Camera, torpedoes?: unknown[]): void; resetImpacts(): void };
+  wakeShips(): unknown[];
   rig: { update: (...args: unknown[]) => void };
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGPURenderer & { _nodes: { nodeFrame: { update(): void } } };
@@ -153,7 +155,7 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
     }
     speeds.clear(); events = []; elapsed = 0;
     g.effects.reset(); g.effects.sequence = sequence;
-    g.funnelSmoke.reset();
+    g.funnelSmoke.reset(); g.shipWake?.resetImpacts();
     settleViews();
   }
 
@@ -234,14 +236,21 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
     return target;
   }
 
-  /** A shell splash in the sea, `offset` metres from `targetIndex` in its local frame (default: 60 m off the side facing the player). */
-  function splash(targetIndex = 1, options: { caliberM?: number; offset?: Vec3 } = {}): Vec3 {
+  /** A shell splash in the sea, `offset` metres from `targetIndex` in its local frame (default: 60 m off the side facing the player).
+   * With `descentDeg` the shell arrives from ship `from` (default the player) at that angle below the horizon, as a real fall of shot does. */
+  function splash(targetIndex = 1, options: { caliberM?: number; offset?: Vec3; descentDeg?: number; from?: number } = {}): Vec3 {
     freeze();
     const target = actor(targetIndex), side = facing(targetIndex);
     const position = localToWorld(options.offset ?? [side * 60, 0, 20], target.motion);
     position[1] = 0;
+    let velocity: Vec3 = [side * -300, -450, 0];
+    if (options.descentDeg !== undefined) {
+      const source = actor(options.from ?? 0).motion, descent = THREE.MathUtils.degToRad(options.descentDeg);
+      const dx = position[0] - source.x, dz = position[2] - source.z, run = Math.hypot(dx, dz) || 1, speed = 480;
+      velocity = [dx / run * Math.cos(descent) * speed, -Math.sin(descent) * speed, dz / run * Math.cos(descent) * speed];
+    }
     push({ kind: 'splash', shipId: target.motion.id, position,
-      shell: { id: ++shellId, caliberM: options.caliberM ?? .38, type: 'AP', velocity: [side * -300, -450, 0] } });
+      shell: { id: ++shellId, caliberM: options.caliberM ?? .38, type: 'AP', velocity } });
     return position;
   }
 
@@ -284,7 +293,7 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
     c.updateMatrixWorld();
   }
 
-  /** Step the effect systems (and scripted motion) at 60 Hz; the ocean and simulation stay frozen. */
+  /** Step the effect systems, trail and impact foam (and scripted motion) at 60 Hz; the ocean's waves and the simulation stay frozen. */
   function advance(seconds: number): void {
     freeze();
     const steps = Math.round(seconds / DT);
@@ -298,6 +307,8 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
       const staged = stageSim();
       g.effects.update(staged, DT, g.camera, undefined, views());
       g.funnelSmoke.update(views(), DT, g.camera);
+      // Splashes and crashes stamp their foam on the sea, as a simulation frame's events would.
+      g.shipWake?.update(g.wakeShips(), DT, events, g.camera, []);
       for (const v of views()) v.impactMarks.update(events, v.actor.motion.id, { remainingMs: 50 }, () => v.update(1));
       elapsed += DT;
     }
