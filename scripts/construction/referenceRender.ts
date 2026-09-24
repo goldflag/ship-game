@@ -138,7 +138,9 @@ export async function renderReference(rootDir: string, meta: ReferenceMeta, opti
   const pack = await loadReference(rootDir, meta.vehicle);
   const shots = renderShots(meta, options);
   if (!shots.length) throw new Error('No shots: pass --shots side,top,front,stern and/or --camera, --eye/--target.');
-  const buckets = texturedParts(pack, assembleReference(pack.scheme, meta.hull, meta.components ?? []), { paint: options.paint, parts: options.parts, offset: options.offset, metresPerUnit: meta.frame.metresPerUnit }, { paintMaterials, geometryGroups });
+  const parts = assembleReference(pack.scheme, meta.hull, meta.components ?? []);
+  const selection = { paint: options.paint, parts: options.parts, offset: options.offset, metresPerUnit: meta.frame.metresPerUnit };
+  const buckets = texturedParts(pack, parts, selection, { paintMaterials, geometryGroups });
   if (!buckets.length) throw new Error('Nothing to render: no reference part matched ' + (options.parts?.join(', ') ?? 'the configuration') + '.');
   const directory = resolve(options.out ?? join(referenceDirectory(rootDir, meta.name), 'renders'));
   const scratch = join(directory, '.scene');

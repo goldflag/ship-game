@@ -57,9 +57,29 @@ function ladder(first: number, ratio: number, last: number): number[] {
 export const HEEL_ANGLES = [...ladder(3, 1.5, 90), 105, 120, 140, 160, 180].map(degrees);
 export const TRIM_ANGLES = (() => { const l = ladder(.8, 1.5, 90); return [...l.slice(1).reverse().map(n => -n), ...l].map(degrees); })();
 export const VOLUME_STEPS = 32;
-/** Displacement fraction of node k, thickened at both ends where a metre of
- * draft buys the least volume. */
-const fraction = (k: number, steps: number) => (1 - Math.cos(Math.PI * k / steps)) / 2;
+/** Displacement fraction of node k, shared by every orientation so that their
+ * interpolation errors run together and cancel between tabulated angles. Nodes
+ * thicken at both ends, where a metre of draft buys the least volume, and around
+ * the deck edge going under (DECK_EDGE), where a metre of draft suddenly buys
+ * much less than it did: a fifth of the nodes, spread about 87% of the hull's
+ * volume, where every catalog hull's worst draft error sat with cosine spacing. */
+const DECK_EDGE = { share: .2, at: .87, width: .08 };
+/** Abramowitz and Stegun 7.1.26, good to 1.5e-7: ample for placing nodes. */
+const erf = (x: number) => {
+  const t = 1 / (1 + .3275911 * Math.abs(x)), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x);
+  return x < 0 ? -y : y;
+};
+/** Share of the nodes below displacement fraction f: cosine spacing plus the deck-edge band. */
+function nodeShare(f: number): number {
+  const { share, at, width } = DECK_EDGE, edge = (x: number) => erf((x - at) / (width * Math.SQRT2));
+  return (1 - share) * Math.acos(1 - 2 * f) / Math.PI + share * (edge(f) - edge(0)) / (edge(1) - edge(0));
+}
+/** The fraction below which k of the steps fall, by bisection; nodeShare rises monotonically. */
+const fraction = (k: number, steps: number) => {
+  let low = 0, high = 1;
+  for (let i = 0; i < 60; i++) { const mid = (low + high) / 2; if (nodeShare(mid) < k / steps) low = mid; else high = mid; }
+  return (low + high) / 2;
+};
 
 interface Sections { vx: Float64Array; vy: Float64Array; start: Int32Array; dz: Float64Array; z: Float64Array; count: number }
 /** The same station loft as the mesh solver, flattened for repeated clipping. */
