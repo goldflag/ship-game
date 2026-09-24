@@ -45,17 +45,17 @@ function section(axis: 'y' | 'z', value: number) {
 }
 const waterline = section('y', 0), midship = section('z', 0);
 const measures = [
-  { id: 'length-overall', expectedM: 227.08, measuredM: bounds.max.z - bounds.min.z, source: 'rmg-b9, 745 ft 0.13 in rounded to cm' },
-  { id: 'hull-beam', expectedM: 31.3944, measuredM: bounds.max.x - bounds.min.x, source: 'rmg-slr1553, 103 ft; B9 lists a conflicting extreme envelope' },
-  { id: 'standard-mean-draft', expectedM: 8.8392, measuredM: -bounds.min.y, source: 'rmg-b9, 1940 standard mean 29 ft; not a May 1941 deep-load claim' },
-  { id: 'waterline-length', expectedM: 225.6, measuredM: waterline.max.z - waterline.min.z, source: 'rmg-b9, 740 ft 0.25 in rounded to dm; datum uncertainty recorded' },
-  { id: 'midship-depth', expectedM: 15.5773, measuredM: midship.max.y - midship.min.y, source: 'rmg-b9, depth at side 51 ft 1.31 in' },
+  { id: 'length-overall', expectedM: 227.08, measuredM: bounds.max.z - bounds.min.z, source: 'rmg-b9, 745 ft 0.13 in rounded to cm; GameModels3D pbsb107 hull 227.10 m' },
+  { id: 'hull-beam', expectedM: 31.434, measuredM: bounds.max.x - bounds.min.x, source: 'GameModels3D pbsb107 widest half-breadth 15.717 m (authoring/lines.json)' },
+  { id: 'reference-draft', expectedM: 10.557, measuredM: -bounds.min.y, source: 'GameModels3D pbsb107 waterline: flat keel 10.50 m, aft skeg 10.56 m; deeper than the 1940 standard 29 ft' },
+  { id: 'waterline-length', expectedM: 225.83, measuredM: waterline.max.z - waterline.min.z, source: 'GameModels3D pbsb107 at its waterline (authoring/lines.json)' },
+  { id: 'midship-depth', expectedM: 15.493, measuredM: midship.max.y - midship.min.y, source: 'GameModels3D pbsb107 keel to deck at side amidships; rmg-b9 gives 51 ft 1.31 in (15.577 m)' },
 ].map(m => ({ ...m, errorM: m.measuredM - m.expectedM, toleranceM: 0.025, passed: Math.abs(m.measuredM - m.expectedM) <= 0.025 }));
 const report = {
   contentHash: gltf.scenes[gltf.scene ?? 0].extras.definitionHash,
   method: 'Triangle intersections of exported hull.surface at runtime Y=0 and Z=0; actual transformed vertices.',
   measures,
-  historicalAccuracy: 'These five dimensions are checked. Hull lines, surface offsets and equipment details remain unverified; this is not historical certification.',
+  historicalAccuracy: 'These five dimensions are checked against the GameModels3D reference the hull was measured from; fidelity to that model, not historical certification.',
 };
 await Bun.write(resolve(import.meta.dir, '../../../.build/ships/king-george-v/dimensions.json'), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));

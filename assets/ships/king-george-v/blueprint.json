@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "king-george-v",
   "name": "HMS King George V",
-  "configuration": "Early 1941 Home Fleet exterior, before December AA refit; 1940 standard mean-draft datum",
+  "configuration": "Early 1941 Home Fleet exterior, before December AA refit; hull and waterline measured from the GameModels3D reference",
   "coordinates": "meters-y-up-bow-negative-z",
   "modelUrl": "/models/king-george-v.glb",
   "hull": {
@@ -55441,7 +55441,7 @@
     "note": "Nominal collision skin only; exact plating scantlings not recovered."
   },
   "accuracy": {
-    "exterior": "Original early-1941 reconstruction informed by Vickers as-fitted plans and IWM photographs. Principal dimensions sourced; station offsets, minor fittings and paint reflectance interpreted.",
+    "exterior": "Early-1941 fit. Hull lines, waterline, superstructure tiers and mount datums measured from the approved GameModels3D pbsb107 model; the early-1941 light AA, radar and aircraft kept from the original recipe informed by Vickers plans and IWM photographs. Fidelity to that model, not an independent historical survey.",
     "internals": "Estimated machinery, magazines, partitions, flooding and stability for inspectable combat; not an as-built internal survey.",
     "weapons": "Ten 14-inch and sixteen 5.25-inch guns. Source-based bore, layout, speed and train/elevation; ballistics and damage calibrated for gameplay. Pom-poms, UP and aircraft are visual only."
   },

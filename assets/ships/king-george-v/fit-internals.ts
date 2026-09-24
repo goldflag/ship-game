@@ -2,7 +2,7 @@
  * Run after author-blueprint.py, before author-flood-spaces / author-stability.
  * Stable room/module/armor IDs and machinery relationships are retained.
  */
-import { hullContains } from '../../../src/simulation/hull';
+import { hullContains } from '../../../src/ships/hull';
 import type { ShipBlueprint, Vec3 } from '../../../src/ships/blueprint';
 const path=new URL('./blueprint.json',import.meta.url);
 const b=await Bun.file(path).json() as ShipBlueprint;
