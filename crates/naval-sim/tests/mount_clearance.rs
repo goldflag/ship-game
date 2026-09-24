@@ -12,9 +12,18 @@ fn yamato() -> ShipDefinition {
 /// The published Yamato moves on box obstructions like every other ship; her
 /// authored closed-body profile was retired because the swept mesh solver
 /// dominated the simulation step. The retired profile stays as a fixture so
-/// this solver keeps its real-geometry regression coverage.
+/// this solver keeps its real-geometry regression coverage, together with the
+/// hull, structures and mounts it was authored around: later refits of the
+/// published model must not move bodies out from under it.
 fn swept_yamato() -> ShipDefinition {
     let mut def = yamato();
+    let era: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../src/simulation/fixtures/yamato-swept-clearance-ship.json"
+    ))
+    .unwrap();
+    def.hull = serde_json::from_value(era["hull"].clone()).unwrap();
+    def.structures = serde_json::from_value(era["structures"].clone()).unwrap();
+    def.mounts = serde_json::from_value(era["mounts"].clone()).unwrap();
     def.mount_clearance = Some(
         serde_json::from_str(include_str!(
             "../../../src/simulation/fixtures/yamato-swept-clearance.json"
