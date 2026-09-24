@@ -85,7 +85,7 @@ assert.equal(
 try {
   await until(() => cancelled.frame?.phase === 'cancelled', 'cancel after pairing');
   assert.equal(cancelled.frame.tick, 0);
-  assert.equal(cancelled.frame.outcome, null);
+  assert.equal(cancelled.frame.outcome, undefined);
 } finally {
   cancelled.socket.close();
   cancelledHostSocket.socket.close();
