@@ -15,11 +15,6 @@
     "since": "2026-09-19"
   },
   {
-    "file": "src/game/FleetShipDraws.test.ts",
-    "test": "fleet instances preserve separate poses, inspection, hidden hulls and damage-mark children",
-    "since": "2026-09-19"
-  },
-  {
     "file": "src/ships/constructionMesh.test.ts",
     "test": "hemisphere: rings insert without changing volume and remain editable",
     "since": "2026-09-19",

@@ -36,6 +36,7 @@ import { primeHullProfile } from './HullContactFoam';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
+import { subtreePruning } from './SubtreeLayers';
 import { installInstanceBufferNames } from './InstanceBufferNames';
 import { prepareInstanceUploads } from './InstanceUploads';
 import { batchShipModel } from './ShipBatching';
@@ -439,6 +440,7 @@ export class Game {
     this.fleetViews = [this.playerView, ...(this.targetView ? [this.targetView] : [])];
     this.fleetDraws = new FleetShipDraws(this.fleetViews);
     this.scene.add(this.fleetDraws.root);
+    subtreePruning(this.renderer).subtrees = this.fleetDraws.subtrees;
     this.fleetModels = [model];
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors, this.simulation.ship.id);
     this.ship.position.copy(this.playerView.root.position);
@@ -898,6 +900,7 @@ export class Game {
       this.shipWake?.reset();
       this.fleetDraws = draws;
       this.scene.add(this.fleetDraws.root);
+      subtreePruning(this.renderer).subtrees = draws.subtrees;
       this.targetView = views.find(view => view.actor === simulation.target);
       this.shipLabels.setFleet(views, simulation.actors, simulation.ship.id);
       this.articulation.discard();
