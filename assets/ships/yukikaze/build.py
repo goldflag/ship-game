@@ -443,7 +443,9 @@ for sign in [-1,1]:
  box('boat.floor',(cx,cy,z-.12),(4.7,.85,.065),materials['wood'])
  for xx in [-2.4,2.4]:
   x=cx+xx
-  for s in [-1,1]:rod('boat.cradle',(x,cy+s*.70,deckz(x)),(x,cy+s*.65,z+.05),.10,materials['naval'])
+  # Crossed chock braces as on the approved model, clear of the deck edge.
+  for s in [-1,1]:rod('boat.cradle',(x,cy-sign*.95+s*.02,deckz(x)),(x,cy+s*sign*.72,z-.05),.07,materials['naval'])
+  rod('boat.cradle',(x,cy-sign*.95,deckz(x)),(x,cy-sign*.95,z-.05),.08,materials['naval'])
   rod('boat.cradle-crosspiece',(x,cy-.8,z-.05),(x,cy+.8,z-.05),.10,materials['naval'])
   tube_path('boat.davit',[(x,sign*3.55,deckz(x)),(x,sign*3.55,6.4),(x,sign*3.8,6.9),(x,cy,6.9)],.07,materials['naval'],sides=12)
   rod('boat.fall',(x,cy,6.9),(x,cy,z+.9),.014,materials['rope'])
