@@ -826,13 +826,20 @@ for i,(y,x,z) in enumerate([(-8.71,-87.15,-6.0),(-4.94,-97.34,-7.05),(4.94,-97.3
  node=pivot('propeller-'+str(i)+'.spin',(x,y,z));attach_world(set(scene.objects)-before-{node},node)
 # The reference's single balanced centreline rudder behind the skeg. Both rudder assemblies keep their
 # pivots on its stock; each carries one half of the blade's thickness, so they turn as one blade.
-RUDDER=[(-97.6,-6.25),(-105.6,-4.5),(-104.5,-9.9),(-103.9,-10.3),(-98.1,-10.3),(-97.6,-9.8)]
+RUDDER=[(-98.05,-6.2),(-100.05,-5.5),(-102.7,-4.98),(-104.7,-4.55),(-106.05,-4.35),(-104.95,-9.9),(-104.35,-10.3),(-98.55,-10.3),(-98.05,-9.8)]
 for side in [-1,1]:
  ASSEMBLY='rudder-'+('port' if side==1 else 'starboard');before=set(scene.objects)
  vs=[(x,s*side*.46,z) for s in [0,1] for x,z in RUDDER];n=len(RUDDER)
  mesh('Balanced rudder',vs,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'antifouling')
- if side==1:rod('Rudder stock',(-99.6,0,-6.3),(-99.6,0,-5.4),.28,'antifouling',vertices=12)
- node=pivot(ASSEMBLY+'.yaw',(-99.6,0,-6.0));attach_world(set(scene.objects)-before-{node},node)
+ if side==1:rod('Rudder stock',(-100.05,0,-6.25),(-100.05,0,-5.4),.28,'antifouling',vertices=12)
+ node=pivot(ASSEMBLY+'.yaw',(-100.05,0,-6.0));attach_world(set(scene.objects)-before-{node},node)
+# The reference's forefoot projects forward of the lofted stem below 6.6 m; a thin centreline wedge
+# carries it (station sections cannot hold the separated forefoot).
+ASSEMBLY='hull';COL=collections['Hull and decks']
+FOREFOOT=[(110.6,-10.45),(111.3,-10.42),(111.79,-10.2),(111.84,-9.8),(111.75,-9.0),(111.5,-7.8),(111.25,-6.6),(111.1,-6.35),(110.79,-10.0)]
+n=len(FOREFOOT);half=lambda bx:.06+.24*max(0,min(1,(111.84-bx)/1.2))
+mesh('Forefoot',[(bx,s*half(bx),z) for s in [-1,1] for bx,z in FOREFOOT],[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'antifouling')
+COL=collections['Underwater fittings']
 # Bilge keels at the turn of the bilge over the midbody, as on the reference.
 for side in [-1,1]:
  ASSEMBLY='bilge-keel-'+str(side)
