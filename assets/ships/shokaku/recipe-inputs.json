@@ -1,7 +1,8 @@
 {
   "version": 1,
   "files": [
-    "assets/parts/ijn-carrier-guns/geometry.py",
+    "assets/parts/ijn-carrier-guns/type96_triple.py",
+    "assets/parts/ijn-carrier-guns/type89_twin.py",
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json",
     "assets/ships/shokaku/appearance.json",

@@ -660,6 +660,55 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "ijn-carrier-type89-open": {
+      "path": "assets/parts/ijn-carrier-guns/type89_twin.py",
+      "function": "create_open",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-carrier-type89-mod2": {
+      "path": "assets/parts/ijn-carrier-guns/type89_twin.py",
+      "function": "create_shielded",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-carrier-type96-open": {
+      "path": "assets/parts/ijn-carrier-guns/type96_triple.py",
+      "function": "create_open",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-carrier-type96-shielded": {
+      "path": "assets/parts/ijn-carrier-guns/type96_triple.py",
+      "function": "create_shielded",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-carrier-mk24": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_five_inch",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-carrier-oerlikon-mk4": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_oerlikon",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-carrier-11in-quad": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_quad",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -704,12 +753,20 @@
       "builder": "open-naval"
     },
     {
+      "partId": "us-5in38-mk24-single",
+      "nation": "United States",
+      "family": "US 5-inch/38",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D AGS022 5in38 Mk24 (Enterprise pasa518) only. Slide shortened aft of the trunnion so the breech end clears the stand at 85 degrees. Standalone and installation review pending.",
+      "builder": "us-carrier-mk24"
+    },
+    {
       "partId": "us-11in75-quad",
       "nation": "United States",
       "family": "1.1-inch/75 quadruple mount",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "open-naval"
+      "limitations": "Original recipe measured against GameModels3D AGA013 1in Mk2 Mod2 (Pensacola pasc106, approved supplement for Enterprise) only. Standalone and installation review pending.",
+      "builder": "us-carrier-11in-quad"
     },
     {
       "partId": "oerlikon-20mm-single",
@@ -718,6 +775,14 @@
       "review": "unreviewed",
       "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
       "builder": "open-naval"
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk4",
+      "nation": "United States",
+      "family": "20 mm Oerlikon",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D AGA003 20mm Oerlikon MK4 (Enterprise pasa518) only. Shield trains with the carriage; standalone and installation review pending.",
+      "builder": "us-carrier-oerlikon-mk4"
     },
     {
       "partId": "us-8in55-mk12-triple",
@@ -876,32 +941,32 @@
       "nation": "Japan",
       "family": "Type 89 127 mm/40",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "ijn-aa"
+      "limitations": "Original reconstruction of the open A1 mount measured against GameModels3D pjsa108 (jgs009); the reference bore axis sits 5 cm below its trunnion node, so pivotHeight is the bore height; each gun keeps its own cradle half and breech guard; the V web between the cheeks is held under the cradles' sweep; fine levers, linkages and cables are omitted; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-carrier-type89-open"
     },
     {
       "partId": "type89-127-a1-mod2-twin",
       "nation": "Japan",
       "family": "Type 89 127 mm/40",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "ijn-aa"
+      "limitations": "Original reconstruction of the hooded A1 Mod 2 measured against GameModels3D pjsa108 (jgs003), hood built as in the Yamato Type 89 recipe; the slot shield is concentric with the trunnions and the shutters slide over it; roof hatches, vents and the side door are recipe detail the low-detail reference does not model; the hood interior is not modelled; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-carrier-type89-mod2"
     },
     {
       "partId": "type96-25-triple",
       "nation": "Japan",
       "family": "Type 96 25 mm",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "ijn-aa"
+      "limitations": "Original reconstruction of the open Type 96 triple measured against GameModels3D pjsa108 (jga173); the trunnion datum is derived from the reference barrels baked at 30 degrees; each gun keeps its own cradle, case chute and grips; the long port elevating link is omitted and the chutes and rear grips are shortened to clear the deck at full elevation; seats, sight and hand wheel are simplified; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-carrier-type96-open"
     },
     {
       "partId": "type96-25-triple-shielded",
       "nation": "Japan",
       "family": "Type 96 25 mm",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "ijn-aa"
+      "limitations": "Original reconstruction of the carrier smoke-shield Type 96 triple measured against GameModels3D pjsa108 (jga004); the twelve-sided drum is fixed and the shield trains on it; the guns inside reuse the open triple's gun with a simplified hidden cradle; the notch floor under the slots is lowered 0.11 m so the flash hiders clear it at -10 degrees; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-carrier-type96-shielded"
     },
     {
       "partId": "type3-127-typec-twin",
@@ -1258,6 +1323,14 @@
       "review": "unreviewed",
       "builder": "ijn-356",
       "limitations": "Original Kong\u014d 1944 reconstruction against approved GameModels3D model. Proportions and articulation remain under review."
+    },
+    {
+      "partId": "type41-356-kongo-1942-twin",
+      "nation": "Japan",
+      "family": "356 mm Type 41 twin",
+      "review": "unreviewed",
+      "builder": "ijn-356",
+      "limitations": "Kong\u014d 1942 installation of the original Kong\u014d twin with the barrel reach of the approved GameModels3D pjsb007 jgm049/jgm050 visuals (muzzle 14.34 m ahead of the yaw axis); gunhouse, bearing and optional rangefinder unchanged. Proportions and articulation remain under review."
     },
     {
       "partId": "type41-152-kongo-casemate",
