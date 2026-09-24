@@ -38,7 +38,7 @@ measured stadiums with exhausts. `author-blueprint.py` records how the blueprint
 measurements (`--loft`, `--structures`); rerun the gameplay helpers (below), then `bun run ship:build kongo`, after
 any hull, structure or mount change.
 
-Mounts sit at the reference's hardpoint datums. The Kongō 35.6 cm twin (`type41-356-kongo-twin`) carries its yaw
+Mounts sit at the reference's hardpoint datums. The Kongō 35.6 cm twin, installed as its 1942 variant (`type41-356-kongo-1942-twin`, the same recipe with the reference's 14.34 m muzzle reach), carries its yaw
 datum 3.326 m below the reference gunhouse floor, so the recipe raises each barbette to the turret's 3.14 m bearing
 plane; the 15.2 cm casemate (`type41-152-kongo-casemate`), open Type 89 twin (`type89-127-yamato-open-twin`), twin
 25 mm (`type96-25-mogami-2`) and 13.2 mm Type 93 recipes are reused unchanged. Casemate arcs are game estimates set

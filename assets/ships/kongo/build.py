@@ -23,7 +23,14 @@ sys.path.insert(0, str(ROOT / 'assets/parts'))
 from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
 from kongo_kit import Kit
-from kongo_fittings import build_fittings
+import kongo_pagoda
+import kongo_midships
+import kongo_aft
+import kongo_hull
+
+# Region modules in build order; each may claim measured prisms it draws itself.
+REGIONS = [kongo_pagoda, kongo_midships, kongo_aft, kongo_hull]
+CLAIMED = set().union(*(region.CLAIMED_STRUCTURES for region in REGIONS))
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
 D = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -140,6 +147,10 @@ for s in D['structures']:
             face.material_index = 1
     shells.append(ob)
 support = SupportSurface([hull, *shells])
+# Claimed prisms still support fittings; their region draws the visible replacement.
+for ob in [o for o in shells if o['assemblyId'] in CLAIMED]:
+    shells.remove(ob)
+    bpy.data.objects.remove(ob, do_unlink=True)
 kit = Kit(D, helpers, materials, collections, support)
 
 # ---------------------------------------------------------------- guns
@@ -167,8 +178,10 @@ for mount in D['mounts']:
             kit.gun_tub(mount, floor)
     create_mount(mount, col, helpers, materials)
 
-# ---------------------------------------------------------------- fittings
-build_fittings(D, kit)
+# ---------------------------------------------------------------- regions
+for region in REGIONS:
+    region.build(D, kit)
+kit.build_wires()
 
 scene['definitionHash'] = D['contentHash']
 scene['historicalConfiguration'] = D['configuration']

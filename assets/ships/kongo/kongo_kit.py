@@ -196,3 +196,57 @@ class Kit:
         span = 300 if kind.startswith('type89') else 280
         start = outboard - span / 2
         self.ringwall(mount['id'], col, x, y, z, r, height, start, start + span)
+
+    # ------------------------------------------------------------ boats
+    def boat(self, id, ref_base, length, beam, col=None, cabin=False):
+        """Open or cabin boat on two cradles, bow toward the ship's bow.
+        ref_base: reference (centre x, keel-block bottom y, centre z)."""
+        col = col or self.cols['Boats and aviation']
+        rx, ry, rz_ = ref_base
+        x, y, z = P(rx, ry, rz_)
+        depth = beam * .42
+        keel = z + .35
+        n = 14
+        rings = []
+        for i in range(n + 1):
+            t = i / n
+            u = abs(t - .5) * 2
+            w = beam / 2 * (1 - u ** 3 * (.85 if t > .5 else .55))
+            d = depth * (1 - .35 * u ** 2)
+            rings.append([(x + (t - .5) * length, y + a * w, keel + depth - d * b) for a, b in [(-1, 0), (-.8, .7), (-.35, 1), (.35, 1), (.8, .7), (1, 0)]])
+        vv = [p for r in rings for p in r]
+        k = 6
+        ff = [(j * k + i, j * k + i + 1, (j + 1) * k + i + 1, (j + 1) * k + i) for j in range(n) for i in range(k - 1)]
+        ff += [tuple(range(k)), tuple(reversed(range(n * k, n * k + k)))]
+        self.tag(self.mesh(id + '.hull', vv, ff, 'white', col, True), id)
+        self.part('box', id, col, 'gunwale', (x, y, keel + depth), (length * .96, beam * .98, .08), 'wood')
+        if cabin:
+            self.part('box', id, col, 'cabin', (x - length * .06, y, keel + depth + .45), (length * .42, beam * .7, .9), 'white')
+            self.part('box', id, col, 'cabin roof', (x - length * .06, y, keel + depth + .92), (length * .44, beam * .74, .06), 'canvas')
+        for dx in (-length * .3, length * .3):
+            floor = self.support.below(x + dx, y, keel)
+            self.part('box', id, col, 'cradle', (x + dx, y, (floor + keel + .15) / 2), (.25, beam * .85, max(.1, keel + .15 - floor)), 'naval')
+
+    def searchlight(self, id, ref, col=None):
+        """Searchlight on a pedestal and yoke at a reference datum (pedestal foot)."""
+        col = col or self.cols['Sensors and masts']
+        x, y, z = P(*ref)
+        self.cylz(id, col, 'pedestal', (x, y, z), .22, .55, 'naval', 12)
+        self.part('box', id, col, 'yoke', (x, y, z + .75), (.25, 1.05, .5), 'naval')
+        self.part('rod', id, col, 'drum', (x - .45, y, z + 1.15), (x + .4, y, z + 1.15), .55, 'naval', vertices=20)
+        self.part('rod', id, col, 'glass', (x + .4, y, z + 1.15), (x + .45, y, z + 1.15), .5, 'glass', vertices=20)
+        self.part('rod', id, col, 'vent', (x - .45, y, z + 1.15), (x - .6, y, z + 1.15), .3, 'naval', vertices=12)
+
+    def rangefinder(self, id, ref, width, bearing, col=None):
+        """Open rangefinder on a pedestal with end hoods and an operator shield; bearing 0 faces the bow."""
+        col = col or self.cols['Sensors and masts']
+        x, y, z = P(*ref)
+        self.cylz(id, col, 'pedestal', (x, y, z), .22, .75, 'naval', 16)
+        a = math.radians(bearing)
+        fx, fy = math.cos(a), -math.sin(a)
+        px, py = -fy, fx
+        c = Vector((x, y, z + 1.0))
+        self.part('rod', id, col, 'tube', c - Vector((px, py, 0)) * width / 2, c + Vector((px, py, 0)) * width / 2, .16 if width < 2 else .22, 'naval', vertices=14)
+        for s in (-1, 1):
+            self.part('box', id, col, 'hood', tuple(c + Vector((px, py, 0)) * s * width / 2), (.45, .45, .5), 'naval')
+        self.part('box', id, col, 'operator shield', tuple(c - Vector((fx, fy, 0)) * .45 + Vector((0, 0, -.1))), (.8, .9, .9), 'naval')

@@ -162,7 +162,7 @@ MAIN_DY = -3.326
 MAIN = [('main-1', 'No. 1 turret', (7.742, -60.101), 0, False), ('main-2', 'No. 2 turret', (10.68, -47.421), 0, True),
         ('main-3', 'No. 3 turret', (8.934, 24.254), 180, True), ('main-4', 'No. 4 turret', (6.032, 65.7), 180, False)]
 for id, name, (y, z), bearing, rangefinder in MAIN:
-    b['mounts'].append(dict(id=id, name=name + ' 35.6 cm', partId='type41-356-kongo-twin', battery='main', position=[0, round(y + MAIN_DY, 3), rz(z)],
+    b['mounts'].append(dict(id=id, name=name + ' 35.6 cm', partId='type41-356-kongo-1942-twin', battery='main', position=[0, round(y + MAIN_DY, 3), rz(z)],
                             bearingDeg=bearing, rangefinder=rangefinder, magazineId='magazine-forward' if z < 0 else f'magazine-{id[-1]}', fire=FIRE_MAIN))
 # Fourteen 15.2 cm casemates on the upper-deck ledge (reference HP_JGS rows; source bearings are the fore/aft rest).
 # bearingDeg is the arc centre; traverseDeg narrows the catalog half-sector to the embrasure.
@@ -193,6 +193,19 @@ if opts.structures:
     structures = json.loads(Path(opts.structures).read_text())
 else:
     structures = previous['structures']
+# Recorded corrections to the measured prisms, one per line: None drops a prism, a dict overrides fields.
+# The pagoda-top yard is an open railed frame in the reference, not a solid slab; the others are
+# duplicates inside the forward funnel or wholly inside deckhouse-041 with the same roof plane.
+STRUCTURE_EDITS = {
+    'deckhouse-019': None,
+    'deckhouse-020': None,
+    'deckhouse-042': None,
+    'deckhouse-043': None,
+    'deckhouse-052': None,
+    'platform-098': None,
+    'platform-099': None,
+}
+structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks. Each outline is
