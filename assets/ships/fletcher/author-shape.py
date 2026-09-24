@@ -138,7 +138,10 @@ for s in b['structures']:
 # hardpoint height is the mount's base plane: the barbette ring or pad it stands on.
 HARDPOINT = {
     'gun-1': (0, 5.385, -38.497), 'gun-2': (0, 7.289, -31.328), 'gun-3': (0, 5.42, 19.12),
-    'gun-4': (0, 5.42, 31.786), 'gun-5': (0, 3.027, 39.52), 'bofors-aft': (0, 7.041, 26.587),
+    'gun-4': (0, 5.42, 31.786), 'gun-5': (0, 3.027, 39.52),
+    # The Bofors sits at the centre of its round tub, 0.76 m forward of the reference hardpoint: our
+    # shared twin's barrels (2.7 m) would otherwise foul Mount 54's gunhouse when depressed aft.
+    'bofors-aft': (0, 7.041, 25.83),
     # 20 mm: the bridge pair on the reference's 01-level tubs, the waist pairs on its main-deck positions.
     # (the bridge pair 6 cm above the hardpoint: our 01 roof follows the sheer to 6.70 m there)
     'oerlikon-1': (-3.072, 6.72, -25.524), 'oerlikon-2': (3.072, 6.72, -25.524),

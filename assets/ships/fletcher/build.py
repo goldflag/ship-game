@@ -442,7 +442,7 @@ for side in [-1,1]:
     cyl('mast.yard-lamp',(yard.x-.28,side*3.0,22.2),.16,.05,materials['edge'],vertices=16)
     for y in [1.1,2.2,3.2]:
         tube_path('rigging.signal-halyard',[(yard.x-.28,side*y,21.24),(18.2,side*(2.4+y*.18),pilot_base+1.1)],.009,materials['rope'],sides=5)
-    rod('rigging.fore-stay',mast_at(23.9),(30,side*2.65,roof('forward-deckhouse',30)),.014,materials['dark'],vertices=6)
+    rod('rigging.fore-stay',mast_at(23.9),(23.35,side*4.1,pilot_base+1.05),.014,materials['dark'],vertices=6)
     rod('rigging.aft-stay',mast_at(23.9),(-22.5,side*.35,15.4),.014,materials['dark'],vertices=6)
 ladder('mast.rungs',mast_at(9.3)-Vector((.32,0,0)),mast_at(24.0)-Vector((.22,0,0)),.38)
 # SC air-search bedspring at the masthead: a broad lower array under a narrower upper one.
@@ -479,7 +479,8 @@ for side in [-1,1]:
     rod('rigging.fore-aerial-outrigger',mast_at(23.4),mast_at(23.4)+Vector((0,side*.45,0)),.03,materials['edge'])
     rod('rigging.aft-aerial-outrigger',(-22.5,0,15.4),(-22.5,side*.4,15.4),.028,materials['edge'])
     rod('rigging.wireless',mast_at(23.4)+Vector((0,side*.45,0)),(-22.5,side*.4,15.4),.010,materials['dark'],vertices=6)
-    rod('rigging.aft-downlead',(-22.5,side*.4,15.4),(-34,side*1.6,roof('aft-deckhouse',-34)+.05),.011,materials['dark'],vertices=6)
+    # Shrouds to the deck edge beside the Bofors house, clear of the Mount 53/54 circles.
+    rod('rigging.aft-downlead',(-22.5,side*.4,15.4),(-26.0,side*(deck_edge(-26.0)-.12),deckz(-26.0)+.05),.011,materials['dark'],vertices=6)
 
 # Original articulated quintuple torpedo banks, above the machinery deckhouse.
 for launcher in definition['torpedoLaunchers']:
@@ -526,8 +527,14 @@ for launcher in definition['torpedoLaunchers']:
 # High 'sky top' aft twin 40 mm position, supported over the after deckhouse.
 aa=next(m for m in definition['mounts'] if m['id']=='bofors-aft');aa_x=-aa['position'][2];aa_z=aa['position'][1]
 platform=[(-22.90,-2.30),(-22.90,2.30)]+[(aa_x+2.30*math.cos(math.pi/2-i*math.pi/24),2.30*math.sin(math.pi/2-i*math.pi/24)) for i in range(25)]
-prism('aa-platform.deck',platform,aa_z-.12,aa_z+.02,materials['roof']);bulwark('aa-platform.shield',platform[1:]+platform[:1],aa_z+.02,.50,closed=False)
-ladder('aa-platform.ladder',(-22.82,-1.2,roof('aft-deckhouse',-22.82)),(-22.82,-1.2,aa_z),.55)
+prism('aa-platform.deck',platform,aa_z-.12,aa_z+.02,materials['roof']);bulwark('aa-platform.shield',platform[2:],aa_z+.02,.50,closed=False)
+# Side ladder up the Bofors house to the tub, aft of Mount 53's reach.
+ly=-2.46-.10;z0=roof('aft-deckhouse',-24.2)
+for lx in [-24.0,-24.45]:rod('aa-platform.ladder-rail',(lx,ly,z0),(lx,ly,aa_z+.6),.026,materials['edge'],vertices=8)
+for i in range(int((aa_z-z0)/.29)+1):
+    lz=z0+.2+i*.29
+    if lz<aa_z:rod('aa-platform.ladder-rung',(-24.0,ly,lz),(-24.45,ly,lz),.023,materials['naval'],vertices=8)
+for lx in [-24.0,-24.45]:rod('aa-platform.ladder-standoff',(lx,ly,z0+1.0),(lx,-2.44,z0+1.0),.02,materials['edge'],vertices=6)
 for side in [-1,1]:
     locker('aa-platform.ready-locker',(-24.6,side*3.05,deckz(-24.6)+.36),(1.6,.65,.70))
 # The four waist Oerlikons occupy real cut-outs alongside the machinery house.
@@ -774,7 +781,7 @@ for side in [-1,1]:
                 t=(xb+half-a_['station'])/(b_['station']-a_['station'])
                 pts=[(w+(v-w)*t,y+(q-y)*t) for (w,y),(v,q) in zip(a_['points'],b_['points'])]
         root=min(pts,key=lambda p:abs((p[0]/max(1e-6,max(w for w,_ in pts)))-.86)+abs(p[1]-(pts[0][1]+.9)))
-        depth=.45*min(1,(22.0-xb)/2.2,(xb+17.0)/2.2)
+        depth=.55*min(1,(22.0-xb)/2.2,(xb+17.0)/2.2)
         nrm=Vector((1,-1)).normalized()
         vv += [(xb,side*(root[0]-.03),root[1]+.03),(xb,side*(root[0]+nrm.x*depth),root[1]+nrm.y*depth)]
     mesh('hull.bilge-keel',vv,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(vv)//2-1)],materials['underwater'])
