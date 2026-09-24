@@ -8,8 +8,10 @@ parts=[]
 for shield in [False,True]:
     id='type89-127-a1-mod2-twin' if shield else 'type89-127-a1-twin'
     parts.append(dict(id=id,name='12.7 cm/40 Type 89 '+('A1 Mod 2 twin' if shield else 'A1 twin'),kind='gun',massKg=24500 if shield else 20300,
-      barbetteRadius=2.3,gunhouseSize=[4.7,4.1,3.35],pivotHeight=2.49,trunnionForward=.55,muzzleForward=5.13,
-      barrelSpacing=1.3,caliberM=.127,traverseDeg=70,traverseRateDeg=7,elevationMinDeg=-7,elevationMaxDeg=85,elevationRateDeg=12,
+      # Datums measured on GameModels3D pjsa108: jgs003 (Mod 2) and jgs009 (open A1); see type89_twin.py.
+      **(dict(barbetteRadius=3.31,gunhouseSize=[4.9,5.76,2.66],pivotHeight=.912,trunnionForward=-.317,muzzleForward=3.783,barrelSpacing=.677)
+         if shield else dict(barbetteRadius=1.47,gunhouseSize=[4.6,4.2,3.2],pivotHeight=2.11,trunnionForward=-.231,muzzleForward=4.107,barrelSpacing=.682)),
+      caliberM=.127,traverseDeg=70,traverseRateDeg=7,elevationMinDeg=-7,elevationMaxDeg=85,elevationRateDeg=12,
       reloadSeconds=5,muzzleSpeed=720,projectileMassKg=23.45,penetrationMm=55,damage=15,recoilM=.45,ammoPerBarrel=300,armorMm=5,barrelCount=2,
       mountingStyle='open-pedestal',barrelBaseRadius=.145,
       he=dict(explosiveKg=1.778,fragmentPenetrationMm=21,damage=24,stockFraction=1,basis='Type 0 HE nominal projectile and filling; blast damage is gameplay calibration.'),
