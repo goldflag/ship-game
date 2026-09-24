@@ -78,9 +78,18 @@ const viewport = { width, height };
 const started = performance.now(), elapsed = () => `${((performance.now() - started) / 1000).toFixed(0)} s`;
 const say = (line: string) => console.error(`film ${elapsed()}: ${line}`);
 
-/** One replay of the battle: a fresh harness page with the runner loaded. */
-async function replay<T>(scout: Scout | undefined, work: (page: Page) => Promise<T>): Promise<T> {
-  return withHarness({ params, viewport, url: serverUrl, hmr: false, deadline: 6 * 3600, exit: false, args: ['--force-device-scale-factor=2'] }, async ({ page }) => {
+/** One replay of the battle: a fresh harness page with the runner loaded. A launch that fails before filming (a loaded machine,
+ * a dev server that dropped a request) is tried once more; a film is too long a job to lose to one. */
+async function replay<T>(scout: Scout | undefined, work: (page: Page) => Promise<T>, attempt = 1): Promise<T> {
+  let filming = false;
+  try { return await launch(); } catch (error) {
+    if (filming || attempt > 1) throw error;
+    say(`the replay did not launch (${(error as Error).message.split('\n')[0]}); trying once more`);
+    return replay(scout, work, attempt + 1);
+  }
+  function launch() {
+  return withHarness({ params, viewport, url: serverUrl, hmr: false, deadline: 6 * 3600, exit: false, args: ['--force-device-scale-factor=2'], deadlines: { ready: 600 } }, async ({ page }) => {
+    filming = true;
     await page.evaluate(async ({ runner, film, name, scout, rows }) => {
       const game = window.review.game!;
       if (Object.keys(rows).length) game.applyGraphics({ ...game.graphics, ...rows });
@@ -89,6 +98,7 @@ async function replay<T>(scout: Scout | undefined, work: (page: Page) => Promise
     }, { runner: '/scripts/film/runner.ts', film: `/scripts/film/films/${name}.ts`, name, scout, rows: Object.fromEntries(Object.entries(film.graphics ?? {}).filter(([key]) => key !== 'preset')) });
     return work(page);
   });
+  }
 }
 
 // The scout: once, unless asked again.
