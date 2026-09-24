@@ -140,14 +140,37 @@ def shaped_gallery(id,name,solid=True):
 fm=dict(**materials,glass=glass)
 
 
+def capsule(name,x,y,z,sx,sy,h,material,col,fillet=.35,corner=.45,arc=4):
+ # Round-cornered plan with a rolled roof edge: walls stand to h-fillet, then curl inward.
+ def ring(inset,zz):
+  a,b=sx/2-inset,sy/2-inset;c=max(.02,min(a,b)*corner-inset*.5)
+  pts=[]
+  for cx,cy,start in [(a-c,b-c,0),(-a+c,b-c,90),(-a+c,-b+c,180),(a-c,-b+c,270)]:
+   for i in range(arc+1):
+    t=math.radians(start+90*i/arc);pts.append((x+cx+c*math.cos(t),y+cy+c*math.sin(t),zz))
+  return pts
+ levels=[(0,0)]+[(fillet*(1-math.cos(t)),h-fillet+fillet*math.sin(t)) for t in [math.pi/2*i/3 for i in range(4)]]
+ rings=[ring(d,z+zz) for d,zz in levels];n=len(rings[0])
+ v=[p for r in rings for p in r]
+ f=[tuple(reversed(range(n)))]+[(k*n+i,k*n+(i+1)%n,(k+1)*n+(i+1)%n,(k+1)*n+i) for k in range(len(rings)-1) for i in range(n)]+[tuple(range((len(rings)-1)*n,len(rings)*n))]
+ o=mesh(name,v,f,material,col)
+ for poly in o.data.polygons[1:-1]:poly.use_smooth=True
+ return o
+
+
 def ha_director(xx,yy,zz,support,compact=False):
- # Type 95 (compact) and machine-gun control stations share one hooded form.
+ # Type 95 (compact) and machine-gun control stations: a round-cornered hood with a rolled roof
+ # edge and a three-pane visor, on a collar ring and pedestal, as the reference stations stand.
  floor=support.below(xx,yy,zz)
  if zz-floor>.02:cyl('HA director foundation',(xx,yy,(floor+zz)/2),.65,zz-floor+.02,naval,SUPER,24)
  width=2.169 if compact else 2.217
  height=1.284 if compact else 1.918
  shoulder=.35 if compact else .60
+ length=2.262 if compact else 2.206
+ fillet=.3 if compact else .38
  cyl('HA director pedestal',(xx,yy,zz+(shoulder+.04)/2),.48,shoulder+.04,naval,SUPER,24)
- rounded('HA director hood',xx,yy,zz+shoulder,2.262 if compact else 2.206,width,height-shoulder,naval,SUPER,cut=.42)
- box('HA director optical window',(xx+1.11,yy,zz+height-.49),(.06,.85,.26),glass,SUPER)
- box('HA director window brow',(xx+1.15,yy,zz+height-.30),(.20,1.03,.08),edge,SUPER)
+ cyl('HA director collar',(xx,yy,zz+shoulder-.05),1.0,.12,edge,SUPER,24)
+ capsule('HA director hood',xx,yy,zz+shoulder,length,width,height-shoulder,naval,SUPER,fillet)
+ wz=zz+height-fillet-.22
+ for dy in (-.36,0,.36):box('HA director optical window',(xx+length/2+.005,yy+dy,wz),(.05,.28,.3),glass,SUPER)
+ box('HA director window brow',(xx+length/2+.06,yy,wz+.2),(.14,1.1,.06),edge,SUPER)
