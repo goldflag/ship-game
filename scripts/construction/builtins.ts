@@ -4,7 +4,7 @@ import type { FlagSpec } from './command';
 /** Every accepted flag per command. An unknown or misspelled flag is an error, never ignored. */
 export const FLAGS: Record<string, FlagSpec> = {
   templates: { ship: false },
-  new: { values: ['--template', '--name'] },
+  new: { values: ['--template', '--name', '--part'], switches: ['--legacy'] },
   edit: { values: ['--port'] },
   inspect: { switches: ['--source', '--source-only', '--panels', '--brief'] },
   catalog: { values: ['--query', '--kind', '--ids'], switches: ['--brief'] },
@@ -23,7 +23,9 @@ export const FLAGS: Record<string, FlagSpec> = {
 };
 export const BUILTIN_SUMMARIES = {
   templates: '— list adjustable hull presets and sandbox starters; no ship ID required',
-  new: `[--template ${[...HULL_PRESETS.map((p) => p.id), 'blank', 'patrol', 'catamaran'].join('|')}] [--name name]; default ${DEFAULT_HULL_PRESET}`,
+  new:
+    `[--template ${[...HULL_PRESETS.map((p) => p.id), 'blank', 'patrol', 'catamaran'].join('|')}] [--name name]; default ${DEFAULT_HULL_PRESET}. ` +
+    '--legacy [--name name] [--part gun-part-id] scaffolds a Blender-recipe preset instead (author-blueprint.py, build.py, appearance.json, recipe-inputs.json, README) with a starter blueprint that builds',
   edit: '[--port 5173] — serve the repository source in the game editor',
   inspect:
     '[--brief] [--source] [--source-only] [--panels] — revisions, native diagnostics/loading, optional source and stable panel IDs; source-only skips compilation; brief returns counts, diagnostics and loading totals only',
@@ -38,7 +40,7 @@ export const BUILTIN_SUMMARIES = {
   render:
     '[--view profile|plan|bow|stern|quarter] [--part id] [--isolate] [--out directory] [--published] [--pose poses.json] [--quick]; quick skips the articulation sweep',
   trial: '[--seconds 10] — real local native/WASM combat and reset',
-  register: '— add an already built ship to src/ships/presets.ts',
+  register: '— add an already built construction or Blender-recipe ship to src/ships/presets.ts (and a Blender-recipe ship\'s funnel count to the smoke test)',
   compile: 'native definition; also available through ship:compile',
   build: 'GLB, native definition, thumbnail and fixed review views',
   check: 'source, catalog and published artifact integrity',
