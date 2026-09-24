@@ -528,7 +528,7 @@ for id in ['elevator-forward','elevator-middle','elevator-aft']:
   for i in range(3):
    x=a[0]+(b[0]-a[0])*(i+.5)/3;y=a[1]+(b[1]-a[1])*(i+.5)/3
    box('Elevator guide shoe',(x,y,FLIGHT-.35),(.16,.18,.5),M['edge'],COL['Deck equipment'])
-exec((Path(__file__).parent/'fittings.py').read_text(),globals())
+for part in ['fittings','stern']:exec((Path(__file__).parent/(part+'.py')).read_text(),globals())
 # Non-rendering gameplay volumes remain in the retained source, never the GLB.
 for kind in ['armor','modules','compartments','obstructions']:
  for v in D[kind]:
