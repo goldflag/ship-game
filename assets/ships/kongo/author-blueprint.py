@@ -203,8 +203,13 @@ else:
 # Recorded corrections to the measured prisms, one per line: None drops a prism, a dict overrides fields.
 # The pagoda-top yard is an open railed frame in the reference, not a solid slab; 022/023 are fragments of the
 # open sky-control screen the recipe draws; 012-015 are one forward lookout platform measured as four 0.1 m
-# plates; 041 is the compass bridge's floor inside its bulwark; the rest are duplicates inside the forward funnel
-# or wholly inside deckhouse-041 with the same roof plane.
+# plates; 041 is the compass bridge's floor inside its bulwark; 027 is the pagoda base's lowest 0.6 m traced
+# together with the 12.7 cm tubs, so 018 runs down to the deck instead; 004-007 are the cable-path plates and
+# windlass beds the recipe draws with its ground tackle. The aircraft deck is asymmetric: its port wing stands out
+# to 8.65 m between 32.8 and 40.8 m while the starboard wall runs at 6.75 m, and the symmetric loft carries the
+# mean, so 142 becomes the whole port wing, 149 the starboard wall, and the mirrored strips (141/143/145/147/150)
+# and the boat-ramp slices (144/146/148, drawn by the recipe) go. The rest are duplicates inside the forward
+# funnel or wholly inside deckhouse-041 with the same roof plane.
 STRUCTURE_EDITS = {
     'deckhouse-019': None,
     'deckhouse-020': None,
@@ -220,8 +225,30 @@ STRUCTURE_EDITS = {
     'platform-013': {'name': 'Pagoda platform 20.3-20.7 m', 'baseY': 20.3, 'height': 0.4},
     'platform-014': None,
     'platform-015': None,
+    'deckhouse-018': {'name': 'Pagoda deckhouse 6.6-9.8 m', 'baseY': 6.63, 'height': 3.17},
+    'deckhouse-027': None,
+    'platform-004': None,
+    'platform-005': None,
+    'deckhouse-006': None,
+    'deckhouse-007': None,
+    'deckhouse-142': {'name': 'Aircraft deck port wing 4.4-6.6 m', 'baseY': 4.38, 'height': 2.25,
+                      'footprint': [[-8.66, 32.78], [-7.7, 32.78], [-7.7, 40.78], [-8.66, 40.78]]},
+    'deckhouse-149': {'name': 'Aircraft deck starboard wall 4.4-6.6 m', 'baseY': 4.38, 'height': 2.22},
+    'deckhouse-141': None,
+    'platform-143': None,
+    'platform-144': None,
+    'deckhouse-145': None,
+    'deckhouse-146': None,
+    'platform-147': None,
+    'platform-148': None,
+    'deckhouse-150': None,
 }
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
+# The pagoda base's side walls stand 0.3 m inboard of the traced 9.3 m where No. 2 casemates' shields (1.34 m
+# from their pivots, 6.9 m high) turn beneath them.
+for s in structures:
+    if s['id'] == 'deckhouse-018':
+        s['footprint'] = [[math.copysign(9.0, x), z] if abs(abs(x) - 9.3) < .01 and -37.2 < z < -32.1 else [x, z] for x, z in s['footprint']]
 
 
 def regularize(poly, tol=.12, snap=math.tan(math.radians(6))):
@@ -290,7 +317,8 @@ for s in structures:
 
 # Stowed boats: reference boat bounds (x, y, z ranges), so barrels stop at and cannot fire through them.
 BOATS = [('motor-boat', (3.66, 6.7), (8.8, 13.0), (-20.6, -5.04)), ('launch', (7.66, 11.02), (6.74, 10.15), (-17.66, -5.09)),
-         ('cutter-midships', (8.36, 10.87), (6.77, 8.38), (3.39, 12.69)), ('cutter-aft', (8.06, 10.97), (4.52, 6.13), (41.8, 51.1))]
+         ('cutter-midships', (8.36, 10.87), (6.77, 8.38), (3.39, 12.69)), ('cutter-aft', (8.06, 10.97), (4.52, 6.13), (41.8, 51.1)),
+         ('slung-boat', (7.26, 9.68), (10.42, 12.05), (-16.32, -6.79))]
 for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
     for side, sign in [('port', -1), ('starboard', 1)]:
         b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],

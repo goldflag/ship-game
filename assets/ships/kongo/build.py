@@ -54,7 +54,7 @@ for name in ['Hull and decks', 'Superstructure', 'Main and secondary batteries',
 colors = {'naval': (.100, .104, .120), 'hullgray': (.100, .104, .120), 'roof': (.088, .091, .104), 'deck': (.100, .076, .054),
           'linoleum': (.072, .040, .031), 'edge': (.038, .038, .040), 'painted-edge': (.082, .085, .097), 'dark': (.012, .013, .014),
           'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.105, .050, .039), 'bronze': (.36, .27, .12),
-          'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.62, .64, .62), 'gold': (.62, .45, .12)}
+          'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12)}
 materials = {}
 for key, color in colors.items():
     m = bpy.data.materials.new('Kongō ' + key)
@@ -132,10 +132,13 @@ for face in hull.data.polygons:
             face.material_index = 4
 
 # ---------------------------------------------------------------- superstructure
+# Roofs the reference shows planked (the 01 deck round the pagoda's base) or laid with linoleum
+# (the compass bridge and the aircraft deck's port wing); every other roof is grey steel.
+ROOFS = {'deckhouse-018': 'deck', 'deckhouse-038': 'linoleum', 'platform-053': 'linoleum', 'deckhouse-142': 'linoleum'}
 shells = []
 for s in D['structures']:
     ob = authored_structure(s, mesh, materials, collections['Superstructure'])
-    ob.data.materials.append(materials['roof'])
+    ob.data.materials.append(materials[ROOFS.get(s['id'], 'roof')])
     ob.data.materials.append(materials['black'])
     funnel = s['id'].endswith('funnel')
     for face in ob.data.polygons:

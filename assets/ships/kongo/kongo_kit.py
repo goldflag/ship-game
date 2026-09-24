@@ -24,7 +24,7 @@ class Kit:
         self.arcs = []
         for m in D['mounts']:
             w = m['weapon']
-            if m['battery'] != 'main' and not m['id'].startswith('ha-'):
+            if m['battery'] != 'main' and not m['id'].startswith(('ha-', 'aa25-', 'mg13-')):
                 continue
             mx, my, mz = -m['position'][2], -m['position'][0], m['position'][1]
             if w.get('gunhouseMesh'):
@@ -114,7 +114,7 @@ class Kit:
 
     # ------------------------------------------------------------ rails and wires
     def in_arc(self, a, b):
-        """Rails stay out of the main and 12.7 cm barrels' arcs and from under turning gunhouses."""
+        """Rails stay out of the main, 12.7 cm and light AA barrels' arcs and from under turning gunhouses."""
         for p in (a, b, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2)):
             for mx, my, mz, house, w in self.arcs:
                 d = math.hypot(p[0] - mx, p[1] - my)
@@ -125,10 +125,56 @@ class Kit:
                     return True
         return False
 
-    def wire(self, assembly, col, a, b, r=.018, check=True):
+    def wire(self, assembly, col, a, b, r=.018, check=True, material='edge', sides=3):
+        """A thin member merged per assembly and material: wires (edge, three sides) or painted members."""
         if check and self.in_arc(a, b):
             return
-        self.wires.setdefault((assembly, col.name), (col, []))[1].append((Vector(a), Vector(b), r))
+        self.wires.setdefault((assembly, col.name, material), (col, []))[1].append((Vector(a), Vector(b), r, sides))
+
+    def member(self, assembly, col, a, b, r=.04, material='naval', sides=6):
+        self.wire(assembly, col, a, b, r, False, material, sides)
+
+    def polyline(self, assembly, col, pts, r=.035, material='naval', sides=6):
+        for a, b in zip(pts, pts[1:]):
+            self.member(assembly, col, a, b, r, material, sides)
+
+    def ladder(self, assembly, col, a, b, across, width=.42, step=.35, chord=.045, rung=.025, material='naval'):
+        """Two chords from a to b, `width` apart along `across`, with rungs every `step`."""
+        a, b = Vector(a), Vector(b)
+        u = Vector(across).normalized() * (width / 2)
+        for s in (-1, 1):
+            self.member(assembly, col, a + u * s, b + u * s, chord, material, 6)
+        n = max(1, round((b - a).length / step))
+        for i in range(1, n):
+            p = a.lerp(b, i / n)
+            self.member(assembly, col, p - u, p + u, rung, material, 4)
+
+    def xbrace(self, assembly, col, p0, p1, p2, p3, r=.035, material='naval'):
+        """Crossed diagonals over the panel p0-p1-p2-p3 (corners in order)."""
+        self.member(assembly, col, p0, p2, r, material, 4)
+        self.member(assembly, col, p1, p3, r, material, 4)
+
+    def beam(self, assembly, col, label, a, b, width, depth, material='naval', up=(0, 0, 1)):
+        """A rectangular girder from a to b: `width` across (horizontal, square to the run) and `depth`
+        in the plane of the run and `up`."""
+        a, b = Vector(a), Vector(b)
+        d = (b - a).normalized()
+        w = d.cross(Vector(up)).normalized() * (width / 2)
+        h = w.cross(d).normalized() * (depth / 2)
+        vv = [tuple(p + w * sw + h * sh) for p in (a, b) for sw, sh in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+        ff = [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
+        ob = self.mesh(assembly + '.' + label, vv, ff, material, col)
+        # Outward winding whichever way the run points.
+        c = sum((Vector(v) for v in vv), Vector()) / 8
+        p0 = ob.data.polygons[2]
+        if p0.normal.dot(Vector(p0.center) - c) < 0:
+            ob.data.flip_normals()
+        return self.tag(ob, assembly)
+
+    def sheave(self, assembly, col, center, axis, r=.25, t=.12, material='black'):
+        """A block: a short cylinder across `axis` (the sheave's spindle)."""
+        c, a = Vector(center), Vector(axis).normalized() * (t / 2)
+        return self.part('rod', assembly, col, 'block', c - a, c + a, r, material, vertices=12)
 
     def rail(self, assembly, col, pts, z, height=1.0, spacing=1.6, closed=False, check=True):
         """Stanchions and three courses along a polyline of (x, y) points at deck height z."""
@@ -146,9 +192,9 @@ class Kit:
                 self.wire(assembly, col, (px, py, z), (px, py, z + height), .022, check)
 
     def build_wires(self):
-        for (assembly, _), (col, segs) in self.wires.items():
+        for (assembly, _, material), (col, segs) in self.wires.items():
             vv, ff = [], []
-            for a, b, r in segs:
+            for a, b, r, sides in segs:
                 d = b - a
                 if d.length < 1e-4:
                     continue
@@ -158,12 +204,13 @@ class Kit:
                 w = d.cross(u)
                 k = len(vv)
                 for p in (a, b):
-                    for i in range(3):
-                        ang = math.tau * i / 3
+                    for i in range(sides):
+                        ang = math.tau * i / sides + (math.pi / sides if sides == 4 else 0)
                         vv.append(tuple(p + (u * math.cos(ang) + w * math.sin(ang)) * r))
-                ff += [(k + i, k + (i + 1) % 3, k + 3 + (i + 1) % 3, k + 3 + i) for i in range(3)]
+                ff += [(k + i, k + (i + 1) % sides, k + sides + (i + 1) % sides, k + sides + i) for i in range(sides)]
             if ff:
-                self.tag(self.mesh(assembly + '.wires', vv, ff, 'edge', col), assembly)
+                label = '.wires' if material == 'edge' else '.members' if material == 'naval' else '.' + material + ' members'
+                self.tag(self.mesh(assembly + label, vv, ff, material, col), assembly)
         self.wires = {}
 
     # ------------------------------------------------------------ mounts
@@ -189,6 +236,9 @@ class Kit:
             drop = z - .16 - floor
             if drop > 2.6:
                 self.cylz(mount['id'], col, 'tub column', (x, y, floor), r * .45, drop + .02, 'naval', vertices=24)
+            elif .02 < drop < 1.0 and kind.startswith('type89'):
+                # A low 12.7 cm tub stands on a solid drum down to the deck.
+                self.cylz(mount['id'], col, 'tub drum', (x, y, floor), r * .97, drop + .02, 'naval', vertices=36)
             elif drop > .02:
                 for a in range(0, 360, 90):
                     ax, ay = math.cos(math.radians(a)), math.sin(math.radians(a))
@@ -201,40 +251,146 @@ class Kit:
         self.ringwall(mount['id'], col, x, y, z, r, height, start, start + span)
 
     # ------------------------------------------------------------ boats
-    def boat(self, id, ref_base, length, beam, col=None, cabin=False):
-        """Open or cabin boat on two cradles, bow toward the ship's bow.
-        ref_base: reference (centre x, keel-block bottom y, centre z)."""
+    def boat_hull(self, name, col, x, y, keel, length, beam, depth, outer='white', inner='wood', bow=1, transom=.55,
+                  rise=.4, sheer=(.3, .1), well=0.0, stations=18):
+        """Round-bilge hull along authoring X centred at (x, y) with its keel at `keel`; bow=+1 puts the stem
+        toward +X, -1 toward -X. well > 0 leaves an open boat: inner walls and a floor `well` below the gunwale.
+        Returns the object and station(t) -> (x, half-breadth, keel, gunwale), t 0 at the transom and 1 at the stem."""
+        def station(t):
+            if t < .45:
+                w = beam / 2 * (1 - (1 - transom) * ((.45 - t) / .45) ** 2)
+            else:
+                w = beam / 2 * max(.03, 1 - ((t - .45) / .55) ** 2.2)
+            k = keel + depth * rise * max(0, (t - .7) / .3) ** 2 + depth * .12 * max(0, (.1 - t) / .1)
+            g = keel + depth + sheer[0] * max(0, (t - .55) / .45) ** 2 + sheer[1] * max(0, (.35 - t) / .35) ** 2
+            return x + bow * (t - .5) * length, w, k, g
+        loops = []
+        for i in range(stations + 1):
+            px, w, k, g = station(i / stations)
+            side = []
+            for phi in (90, 68, 46, 26, 10):
+                c, sn = math.cos(math.radians(phi)), math.sin(math.radians(phi))
+                side.append((sn ** .6 * w, k + (g - k) * (1 - c ** .75)))
+            # Starboard gunwale, round the keel, port gunwale; then the open boat's inner walls and floor.
+            loop = [(px, y - a, b) for a, b in side] + [(px, y, k)] + [(px, y + a, b) for a, b in reversed(side)]
+            if well > 0:
+                wi = max(.01, w - .07)
+                floor = max(k + .05, g - well)
+                loop += [(px, y + wi, g), (px, y + wi, floor), (px, y - wi, floor), (px, y - wi, g)]
+            loops.append(loop)
+        n = len(loops[0])
+        vv = [p for loop in loops for p in loop]
+        ff, inside = [], []
+        for i in range(stations):
+            for j in range(n):
+                a, b = i * n + j, i * n + (j + 1) % n
+                if j >= 10:
+                    inside.append(len(ff))
+                ff.append((a, b, b + n, a + n))
+        ff += [tuple(reversed(range(n))), tuple(range(stations * n, stations * n + n))]
+        if bow < 0:
+            ff = [tuple(reversed(f)) for f in ff]
+        ob = self.mesh(name, vv, ff, outer, col, True)
+        ob.data.materials.append(self.m[inner])
+        for i in inside:
+            ob.data.polygons[i].material_index = 1
+        for i in inside + [len(ff) - 2, len(ff) - 1]:
+            ob.data.polygons[i].use_smooth = False
+        return ob, station
+
+    def cradles(self, id, col, station, y, ts, width):
+        """Keel chocks from the supporting deck up under the hull at stations ts."""
+        for t in ts:
+            px, w, k, g = station(t)
+            floor = self.support.below(px, y, k - .02)
+            self.part('box', id, col, 'cradle', (px, y, (floor + k + .12) / 2), (.14, width, max(.08, k + .12 - floor)), 'naval')
+
+    def gunwale_band(self, id, col, station, y, material='naval', r=.045, drop=0.0):
+        for s in (-1, 1):
+            pts = [(px, y + s * max(.01, w - .01), g - drop) for px, w, k, g in (station(i / 16) for i in range(17))]
+            self.polyline(id, col, pts, r, material, 5)
+
+    def motor_boat(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.28, .44, .63, .85)):
+        """Decked 15 m motor boat: grey hull, wood deck, forward trunk, wheelhouse and after cabin with windows.
+        ref_center: reference (centre x, centre z); the keel rests at keel_y."""
         col = col or self.cols['Boats and aviation']
-        rx, ry, rz_ = ref_base
-        x, y, z = P(rx, ry, rz_)
-        depth = beam * .42
-        keel = z + .35
-        n = 14
+        x, y, _ = P(ref_center[0], 0, ref_center[1])
+        hull, st = self.boat_hull(id + '.hull', col, x, y, keel_y, length, beam, 2.2, 'naval', 'wood', 1, .72, .45, (.25, .05))
+        self.tag(hull, id)
+        self.gunwale_band(id, col, st, y, 'naval', .05)
+        self.cradles(id, col, st, y, chocks, .95)
+        g = st(.5)[3]
+        for label, t0, t1, width, height in [('forward trunk', .62, .84, 1.9, .45), ('wheelhouse', .47, .54, 1.6, 1.2), ('after cabin', .2, .43, 2.2, .85)]:
+            a, b = st(t0)[0], st(t1)[0]
+            deck = min(st(t0)[3], st(t1)[3])
+            self.part('box', id, col, label, ((a + b) / 2, y, deck + height / 2 - .02), (abs(b - a), width, height + .04), 'naval')
+            self.part('box', id, col, label + ' roof', ((a + b) / 2, y, deck + height + .02), (abs(b - a) + .1, width + .1, .05), 'roof')
+        wx = st(.54)[0]
+        self.part('box', id, col, 'wheelhouse glass', (wx + .01, y, g + .95), (.03, 1.4, .32), 'glass')
+        for s in (-1, 1):
+            for i in range(4):
+                px = st(.23 + i * .055)[0]
+                self.part('box', id, col, 'cabin glass', (px, y + s * 1.11, g + .55), (.4, .03, .26), 'glass')
+            for i in range(3):
+                px = st(.65 + i * .07)[0]
+                self.part('rod', id, col, 'trunk port', (px, y + s * .94, g + .25), (px, y + s * .97, g + .25), .09, 'glass', vertices=10)
+        self.part('rod', id, col, 'mast', (st(.47)[0], y, g + 1.2), (st(.47)[0], y, g + 2.0), .04, 'naval', vertices=6)
+        self.part('rod', id, col, 'ensign staff', (st(.01)[0], y, g), (st(.01)[0], y, g + 1.7), .03, 'naval', vertices=6)
+
+    def covered_launch(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.19, .39, .63, .85)):
+        """12 m motor launch under a canvas hood with a row of windows each side."""
+        col = col or self.cols['Boats and aviation']
+        x, y, _ = P(ref_center[0], 0, ref_center[1])
+        hull, st = self.boat_hull(id + '.hull', col, x, y, keel_y, length, beam, 1.42, 'naval', 'wood', 1, .72, .35, (.4, .05))
+        self.tag(hull, id)
+        self.gunwale_band(id, col, st, y, 'naval', .05)
+        self.cradles(id, col, st, y, chocks, 1.0)
+        # Canvas hood: a round-topped tunnel between the stern sheets and the fore deck.
         rings = []
-        for i in range(n + 1):
-            t = i / n
-            u = abs(t - .5) * 2
-            w = beam / 2 * (1 - u ** 3 * (.85 if t > .5 else .55))
-            d = depth * (1 - .35 * u ** 2)
-            rings.append([(x + (t - .5) * length, y + a * w, keel + depth - d * b) for a, b in [(-1, 0), (-.8, .7), (-.35, 1), (.35, 1), (.8, .7), (1, 0)]])
+        m = 12
+        for i in range(m + 1):
+            t = .11 + (.89 - .11) * i / m
+            px, w, k, g = st(t)
+            end = 1 - .55 * max(0, abs(i - m / 2) / (m / 2) - .75) / .25
+            wc, hc = (w - .14) * (end ** .5), 1.05 * end
+            prof = [(-1, 0), (-1, .62), (-.82, .9), (-.42, 1), (.42, 1), (.82, .9), (1, .62), (1, 0)]
+            rings.append([(px, y + a * wc, g - .02 + b * hc) for a, b in prof])
+        k = len(rings[0])
         vv = [p for r in rings for p in r]
-        k = 6
-        ff = [(j * k + i, j * k + i + 1, (j + 1) * k + i + 1, (j + 1) * k + i) for j in range(n) for i in range(k - 1)]
-        ff += [tuple(range(k)), tuple(reversed(range(n * k, n * k + k)))]
-        self.tag(self.mesh(id + '.hull', vv, ff, 'white', col, True), id)
-        self.part('box', id, col, 'gunwale', (x, y, keel + depth), (length * .96, beam * .98, .08), 'wood')
-        if cabin:
-            self.part('box', id, col, 'cabin', (x - length * .06, y, keel + depth + .45), (length * .42, beam * .7, .9), 'white')
-            self.part('box', id, col, 'cabin roof', (x - length * .06, y, keel + depth + .92), (length * .44, beam * .74, .06), 'canvas')
-        for dx in (-length * .3, length * .3):
-            floor = self.support.below(x + dx, y, keel)
-            self.part('box', id, col, 'cradle', (x + dx, y, (floor + keel + .15) / 2), (.25, beam * .85, max(.1, keel + .15 - floor)), 'naval')
+        ff = [(i * k + j + 1, i * k + j, (i + 1) * k + j, (i + 1) * k + j + 1) for i in range(m) for j in range(k - 1)]
+        ff += [tuple(range(k)), tuple(reversed(range(m * k, m * k + k)))]
+        self.tag(self.mesh(id + '.hood', vv, ff, 'canvas', col, True), id)
+        for s in (-1, 1):
+            for i in range(6):
+                px, w, k_, g = st(.2 + i * .115)
+                self.part('box', id, col, 'hood window', (px, y + s * (w - .13), g + .6), (.42, .03, .2), 'glass')
+
+    def open_boat(self, id, ref_center, length, beam, keel_y, depth, col=None, bow=1, outer='white', inner='wood',
+                  chocks=(.22, .5, .78), band='naval'):
+        """Pulling boat or cutter: open hull with thwarts and stowed oars."""
+        col = col or self.cols['Boats and aviation']
+        x, y, _ = P(ref_center[0], 0, ref_center[1])
+        hull, st = self.boat_hull(id + '.hull', col, x, y, keel_y, length, beam, depth, outer, inner, bow, .5, .32, (.28, .12), .55)
+        self.tag(hull, id)
+        self.gunwale_band(id, col, st, y, band, .04)
+        for t in (.26, .4, .54, .68):
+            px, w, k, g = st(t)
+            self.part('box', id, col, 'thwart', (px, y, g - .26), (.22, 2 * (w - .07), .05), 'wood')
+        for s in (-1, 1):
+            a, b = st(.18), st(.8)
+            self.part('rod', id, col, 'oar', (a[0], y + s * .35, a[3] - .26), (b[0], y + s * .35, b[3] - .26), .035, 'wood', vertices=6)
+        if chocks:
+            self.cradles(id, col, st, y, chocks, .9)
+        return st
 
     def searchlight(self, id, ref, col=None):
         """Searchlight on a pedestal and yoke at a reference datum (pedestal foot)."""
         col = col or self.cols['Sensors and masts']
         x, y, z = P(*ref)
-        self.cylz(id, col, 'pedestal', (x, y, z), .22, .55, 'naval', 12)
+        # The pedestal stands on whatever platform lies under the measured datum.
+        floor = self.support.below(x, y, z + .05)
+        floor = floor if z - floor < 1.0 else z
+        self.cylz(id, col, 'pedestal', (x, y, floor), .22, z + .55 - floor, 'naval', 12)
         self.part('box', id, col, 'yoke', (x, y, z + .75), (.25, 1.05, .5), 'naval')
         self.part('rod', id, col, 'drum', (x - .45, y, z + 1.15), (x + .4, y, z + 1.15), .55, 'naval', vertices=20)
         self.part('rod', id, col, 'glass', (x + .4, y, z + 1.15), (x + .45, y, z + 1.15), .5, 'glass', vertices=20)

@@ -97,7 +97,7 @@ def build(D, kit):
     outline = [(3.15, -34.3), (3.15, -25.4), (2.65, -24.9), (1.0, -24.9)] + [(-1.0, -24.9), (-2.65, -24.9), (-3.15, -25.4), (-3.15, -34.3)] + \
               [(-2.3, -35.15), (-1.2, -35.4), (1.2, -35.4), (2.3, -35.15)]
     floor = [(-3.15, -34.3), (-3.15, -25.4), (-2.65, -24.9), (2.65, -24.9), (3.15, -25.4), (3.15, -34.3), (2.3, -35.15), (1.2, -35.4), (-1.2, -35.4), (-2.3, -35.15)]
-    kit.prism(T, sup, 'platform floor', plan(floor), deck - .1, deck + .01, 'roof')
+    kit.prism(T, sup, 'platform floor', plan(floor), deck - .1, deck + .01, 'naval', 'linoleum')
     wall = outline[:4] + [None] + outline[4:] + outline[:1]
     run = []
     for p in wall + [None]:

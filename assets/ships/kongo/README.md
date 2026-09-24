@@ -5,9 +5,11 @@ Kongō · 1942 exterior after the GameModels3D pjsb007 B hull · reference desig
 Open `/?ship=kongo` or select this ship in port or Custom battle.
 
 This is a legacy Blender-recipe preset (like Alaska, Hood and Yamato), by explicit request, rather than a
-construction ship. `blueprint.json` (written by `author-blueprint.py`), `build.py` and its region modules
-(`kongo_kit.py` shared vocabulary, `kongo_fittings.py`) are the durable inputs; reusable guns come from
-`assets/parts/`. Generated Blender scenes and runtime models are build outputs.
+construction ship. `blueprint.json` (written by `author-blueprint.py`), `build.py` and its region modules are the
+durable inputs: `kongo_kit.py` (shared vocabulary: prisms, members, rails, boats, windows), `kongo_pagoda.py`,
+`kongo_midships.py`, `kongo_aft.py` and `kongo_hull.py`, plus `kongo_windows.py`, a generated table of the windows
+and portholes measured off the textured reference. Reusable guns come from `assets/parts/`. Generated Blender
+scenes and runtime models are build outputs.
 
 ## Approved brief
 
@@ -17,8 +19,9 @@ construction ship. `blueprint.json` (written by `author-blueprint.py`), `build.p
   configuration the source offers, over the original battlecruiser: four twin 35.6 cm/45 turrets (Nos. 2 and 3 with
   roof rangefinders), fourteen 15.2 cm casemates, four open twin 12.7 cm/40 Type 89 mounts, six twin 25 mm Type 96,
   four twin and two single 13.2 mm Type 93, a main director and 10 m rangefinder on the pagoda, two Type 94
-  high-angle directors, an after director, one catapult, two boat cranes, a derrick on the tripod mainmast, ten
-  searchlights and eight boats. No radar.
+  high-angle directors, an after director with two rangefinder pods, one catapult, two A-frame boat davits, a
+  derrick on the tripod mainmast, ten searchlights and ten boats (two 15 m motor boats, two covered 12 m launches,
+  four 9 m cutters and a 9 m boat slung under each davit). No radar.
 - **Paint:** the reference's only paint, no camouflage: blue-grey hull and upperworks, grey steel roofs and casemate
   ledge, natural wood weather decks, a linoleum aircraft deck, black funnel caps and mast heads, red-oxide bottom to
   the waterline with no boot topping, the gold chrysanthemum on the stem. The fleet's IJN ensign flies at the stern.
@@ -38,6 +41,19 @@ measured stadiums with exhausts. `author-blueprint.py` records how the blueprint
 measurements (`--loft`, `--structures`); rerun the gameplay helpers (below), then `bun run ship:build kongo`, after
 any hull, structure or mount change.
 
+Where a measured prism stood in for open framing or small gear, the recipe draws the real thing and records the
+edit in `author-blueprint.py` (`STRUCTURE_EDITS`) or a region's `CLAIMED_STRUCTURES`: the mainmast head's platform,
+bracket and yards, the girts of the lattice tower abaft the forward funnel, the forecastle's cable plates and
+windlass beds, and the slivers that doubled the aircraft deck's walls.
+
+Fittings follow reference datums: hawse pipes, cables, stoppers, windlasses, capstans and housed anchors; bitts,
+fairleads, ventilators, hatches and winches on the weather decks; funnel caps with spark cages, sirens and steam
+pipes; the tripod mainmast's lookout platform, topmast, yards, gaff and derrick; the searchlight towers' lattice
+legs; the davits, boats and cradles; the after director (which trains) and rangefinder pods; the catapult on its
+turntable with the aircraft deck's brass strips, trolley rails and turntables; the port boat ramp; streamlined twin
+rudders and three-bladed screws. Windows and portholes were located by orthographic renders of the textured
+reference and seated on this blueprint's own walls and loft (`.build/kongo/seat_windows.py`, `seat_hull.py`).
+
 Mounts sit at the reference's hardpoint datums. The Kongō 35.6 cm twin, installed as its 1942 variant (`type41-356-kongo-1942-twin`, the same recipe with the reference's 14.34 m muzzle reach), carries its yaw
 datum 3.326 m below the reference gunhouse floor, so the recipe raises each barbette to the turret's 3.14 m bearing
 plane; the 15.2 cm casemate (`type41-152-kongo-casemate`), open Type 89 twin (`type89-127-yamato-open-twin`), twin
@@ -53,12 +69,23 @@ barbettes, 254 mm conning tower and the steering-gear box read from the referenc
 ## Accepted approximations
 
 - Superstructure tiers are measured prisms: sloped faces step, and small overhangs, open galleries and rails are
-  approximated.
+  approximated. The after tower's tapered octagon is stepped boxes.
+- The loft is symmetric and the reference's aircraft deck is not: its port wing stands out to 8.65 m between 32.8
+  and 40.8 m aft of amidships while the starboard wall runs at 6.75 m. The loft carries the mean, the port wing is
+  its own structure, and the starboard wall there stands about 1 m wide of the reference.
+- The casemate drums turn half inside their embrasures, as in the reference; the sweep reports those contacts with
+  the hull as reachable and they are accepted.
+- Windows and portholes come from the reference's painted textures, so painted vents and grilles read as dark
+  panels too. The boats' topsides use the reference's light grey; the slung boats' varnished hulls use the fittings
+  wood.
+- The derrick, davits and catapult are fixed; the catapult is empty, as in the reference.
 - Stability, mass distribution, flooding compartmentation, handling (30.5 kn) and weapon values are shared game
   calibration, not historical measurements. Model fidelity and export checks do not certify historical accuracy.
 
+Kongō heads the Japanese battleship line of the research tree in place of its placeholder.
+
 ```sh
-python3 assets/ships/kongo/author-blueprint.py --loft .build/kongo/loft.json --structures .build/kongo/superstructure.json
+python3 assets/ships/kongo/author-blueprint.py   # add --loft/--structures only to re-measure from .build/kongo
 bun -e "import { writeLocalDamage } from './assets/ships/author-local-damage.ts'; await writeLocalDamage(['kongo'])"
 bun assets/ships/author-flood-spaces.ts kongo && bun assets/ships/author-stability.ts kongo && bun assets/ships/author-damage-control.ts kongo
 bun run ship:build kongo
