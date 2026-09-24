@@ -80,6 +80,26 @@ def railing(points,z,name,col,height=1.0):
             x=a[0]+(b[0]-a[0])*i/count;y=a[1]+(b[1]-a[1])*i/count
             rod(name+' stanchion',(x,y,z),(x,y,z+height),.026,M['naval'],col,vertices=6)
 
+def tub_wall(name,x,y,radius,bottom,top,col,segments=32,thickness=.06,arc=None):
+    """One bulwark mesh: outer, inner and top faces of a circular (or partial) splinter tub."""
+    a0,a1=arc or (0,math.tau);closed=arc is None;n=segments+(0 if closed else 1)
+    angles=[a0+(a1-a0)*i/segments for i in range(n)]
+    verts=[];faces=[]
+    for a in angles:
+        c,s=math.cos(a),math.sin(a)
+        for r,h in [(radius,bottom),(radius,top),(radius-thickness,top),(radius-thickness,bottom)]:verts.append((x+r*c,y+r*s,h))
+    for i in range(segments):
+        j=(i+1)%n
+        for k in range(3):faces.append((i*4+k,j*4+k,j*4+k+1,i*4+k+1))
+    if not closed:
+        for i in [0,n-1]:faces.append(tuple(i*4+k for k in (range(4) if i else reversed(range(4)))))
+    o=mesh(name,verts,faces,M['naval'],col);return o
+def prism(name,top_pts,top_z,bottom_pts,bottom_z,mat,col):
+    """A lofted solid between two same-count outlines (a tapered web or pedestal)."""
+    n=len(top_pts);verts=[(*p,bottom_z) for p in bottom_pts]+[(*p,top_z) for p in top_pts]
+    faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    o=mesh(name,verts,faces,mat,col);bm=bmesh.new();bm.from_mesh(o.data)
+    bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free();return o
 def glazed_bridge(s,col):
     """Opaque wall panels stop at actual openings; glass is recessed in jambs.
 
@@ -256,20 +276,36 @@ for x in [103,109,114]:
         rod('Deck-end diagonal',(x-2.0,y,bottom-.1),(x,y,top),.10,M['naval'],COL['Hangars'])
         fit.knee('Pierced overhang web',x,y,sign*9.2,top,2.0)
     box('Deck-end transverse girder',(x,0,top-.13),(.22,19,.28),M['naval'],COL['Hangars'])
-# S02 and S10: an open upper boat deck, a lower quarterdeck and a single
-# deep aft flight-deck portal. All pillars seat on the loft or boat-deck beams.
-for x in [-118.0,-101.0]:
-    for sign in [-1,1]:
-        y=sign*(7.45 if x<-110 else 8.6)
-        bottom=deck(x);top=flight_level(x)-.34
-        box('After flight-deck portal upright',(x,y,(bottom+top)/2),(.54,.60,top-bottom),M['naval'],COL['Hangars'])
-        fit.knee('After portal perforated knee',x,y,sign*13.4,top,2.0)
-    box('After portal transverse girder',(x,0,top-.25),(.6,27,.5),M['naval'],COL['Hangars'])
+# S02 and S10: an open upper boat deck and a lower quarterdeck under the flight-deck
+# overhang. pjsa108: three tapered pylons with flared heads carry the aft end, and a
+# plated bulkhead closes the hangar at the forward end of the quarterdeck.
+def tapered(name,x,y,z0,z1,w0,d0,w1,d1,col,mat=None):
+    """Rectangular column tapering from (w0 along x, d0 along y) at z0 to (w1,d1) at z1."""
+    ring=lambda w,d:[(x-w/2,y-d/2),(x+w/2,y-d/2),(x+w/2,y+d/2),(x-w/2,y+d/2)]
+    return prism(name,ring(w1,d1),z1,ring(w0,d0),z0,mat or M['naval'],col)
+PX=-119.5;top=flight_level(PX)-.34
+for py in [-6.5,0,6.5]:
+    bottom=deck(PX)
+    tapered('After flight-deck pylon',PX,py,bottom,12.6,1.3,.95,1.85,1.0,COL['Hangars'])
+    tapered('After pylon flared head',PX,py,12.6,top,1.85,1.0,4.0,1.15,COL['Hangars'])
+    box('After pylon foot plate',(PX,py,bottom+.04),(1.8,1.4,.08),M['naval'],COL['Hangars'])
+box('After portal transverse girder',(PX,0,top-.25),(.6,27,.5),M['naval'],COL['Hangars'])
+for sign in [-1,1]:fit.knee('After portal perforated knee',PX,sign*7.0,sign*13.4,top,2.0)
+BX=-100.9;bottom=deck(BX);top=FD-.34
+box('Hangar after bulkhead',(BX,0,(bottom+top)/2),(.3,22.8,top-bottom),M['naval'],COL['Hangars'])
+box('After portal transverse girder',(BX,0,top-.25),(.6,27,.5),M['naval'],COL['Hangars'])
+for sign in [-1,1]:
+    fit.knee('After portal perforated knee',BX,sign*11.4,sign*13.4,top,2.0)
+    fit.door('Hangar after bulkhead door',BX-.16,sign*3.2,bottom,.8,1.8)
+    for yy in [6.0,8.6]:
+        rod('After bulkhead scuttle',(BX-.2,sign*yy,bottom+1.6),(BX-.14,sign*yy,bottom+1.6),.14,M['dark'],COL['Hangars'],vertices=12)
+    for xx in [BX-.2]:
+        for zz in [bottom+.4,bottom+2.4,11.6,13.4]:box('After bulkhead stiffener',(xx,sign*1.5,zz),(.1,.1,.1),M['naval'],COL['Hangars']) if False else None
 for x in [-123.2,-112,-104]:
     for sign in [-1,1]:
-        y=sign*(5.8 if x<-120 else 7.3)
+        y=sign*(5.8 if x<-120 else 8.7)
         rod('Boat-deck column',(x,y,deck(x)),(x,y,9.35),.095,M['naval'],COL['Hangars'],vertices=10)
-    box('Boat-deck underside beam',(x,0,9.24),(.18,16,.22),M['naval'],COL['Hangars'])
+    box('Boat-deck underside beam',(x,0,9.24),(.18,17.6 if x>-120 else 12,.22),M['naval'],COL['Hangars'])
 boat_pts=[(-z,-x) for x,z in S['stern-boat-deck']['footprint']]
 railing(boat_pts[:4],9.57,'Upper boat-deck guard',COL['Hangars'],.82)
 railing(boat_pts[4:]+boat_pts[:1],9.57,'Upper boat-deck guard',COL['Hangars'],.82)
@@ -278,7 +314,7 @@ for sign in [-1,1]:
     for a,b in zip(pts,pts[1:]):
         for dz in [.35,.65,.92]:rod('Quarterdeck guard rail',(*a,deck(a[0])+dz),(*b,deck(b[0])+dz),.021,M['edge'],COL['Fittings'],vertices=6)
         rod('Quarterdeck guard stanchion',(*a,deck(a[0])),(*a,deck(a[0])+.92),.027,M['naval'],COL['Fittings'],vertices=8)
-    fit.stairs('Stern boat-deck stair',(-122,sign*6.2,deck(-122)),(-117,sign*6.2,9.57),.72)
+    fit.stairs('Stern boat-deck stair',(-124,sign*3.3,deck(-124)),(-119.2,sign*3.3,9.57),.72)
 # Fixed stowed boat-handling derrick; placement follows the port-side S02 plan.
 CX,CY=-78.9,11.9
 cyl('Boat crane deck pedestal',(CX,CY,FD+.5),.43,1,M['naval'],COL['Fittings'],24)
@@ -326,32 +362,7 @@ for sign in [-1,1]:
         if any(lo<x<hi for lo,hi in blocked):continue
         fit.door('Hangar access door',x,sign*13.03,10.1,.65,1.75)
         fit.vent('Hangar ventilation louver',x+2.1,sign*13.04,11.9,1.4,.75)
-    for a,b in [(-123,-109),(84,115)]:
-        y=sign*(9.6 if a>0 else 10.4)
-        for x in range(a,b,3):rod('Safety-net deck boom',(x,y,FD-.2),(x,y+sign*2,FD-.45),.045,M['naval'],COL['Fittings'])
-        for offset in [.3,.8,1.3,1.8]:rod('Safety net longitudinal',(a,y+sign*offset,FD-.25-offset*.10),(b,y+sign*offset,FD-.25-offset*.10),.012,M['edge'],COL['Fittings'],vertices=4)
-        for x in range(a,b):rod('Safety net crossline',(x,y,FD-.23),(x,y+sign*2,FD-.45),.011,M['edge'],COL['Fittings'],vertices=4)
 
-def tub_wall(name,x,y,radius,bottom,top,col,segments=32,thickness=.06,arc=None):
-    """One bulwark mesh: outer, inner and top faces of a circular (or partial) splinter tub."""
-    a0,a1=arc or (0,math.tau);closed=arc is None;n=segments+(0 if closed else 1)
-    angles=[a0+(a1-a0)*i/segments for i in range(n)]
-    verts=[];faces=[]
-    for a in angles:
-        c,s=math.cos(a),math.sin(a)
-        for r,h in [(radius,bottom),(radius,top),(radius-thickness,top),(radius-thickness,bottom)]:verts.append((x+r*c,y+r*s,h))
-    for i in range(segments):
-        j=(i+1)%n
-        for k in range(3):faces.append((i*4+k,j*4+k,j*4+k+1,i*4+k+1))
-    if not closed:
-        for i in [0,n-1]:faces.append(tuple(i*4+k for k in (range(4) if i else reversed(range(4)))))
-    o=mesh(name,verts,faces,M['naval'],col);return o
-def prism(name,top_pts,top_z,bottom_pts,bottom_z,mat,col):
-    """A lofted solid between two same-count outlines (a tapered web or pedestal)."""
-    n=len(top_pts);verts=[(*p,bottom_z) for p in bottom_pts]+[(*p,top_z) for p in top_pts]
-    faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
-    o=mesh(name,verts,faces,mat,col);bm=bmesh.new();bm.from_mesh(o.data)
-    bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free();return o
 fit.col=COL['Armament']
 for mount in D['mounts']:
     x,y,z=-mount['position'][2],-mount['position'][0],mount['position'][1]
@@ -552,6 +563,35 @@ for zr in [-97.4,-81.82,-64.11,-40.92,-18.8,-2.46,13.69,26.48,41.09,53.45,68.18,
     for yy in [lo+.25,hi-.25]:
         if -60<x<-20 and yy<0:continue
         cyl('Deck-edge light',(x,yy,FD+.05),.09,.1,M['glass'],COL['Flight deck'],8)
+# Safety nets (pjsa108): hinged net panels on outrigger booms around the aft round-down
+# and along both ends' deck edges, drooping outboard.
+def net_panels(points):
+    verts=[];faces=[]
+    for (ax,ay),(bx,by) in zip(points,points[1:]):
+        L=math.dist((ax,ay),(bx,by));n=max(1,round(L/2.2))
+        dx,dy=(bx-ax)/L,(by-ay)/L;nx,ny=dy,-dx
+        cx,cy=(ax+bx)/2,(ay+by)/2
+        if nx*cx+ny*cy<0:nx,ny=-nx,-ny
+        for i in range(n):
+            u0,u1=i/n,(i+1)/n
+            p0=(ax+(bx-ax)*u0,ay+(by-ay)*u0);p1=(ax+(bx-ax)*u1,ay+(by-ay)*u1)
+            z0=flight_level(p0[0])-.22;z1=flight_level(p1[0])-.22
+            q0=(p0[0]+nx*1.9,p0[1]+ny*1.9,z0-.42);q1=(p1[0]+nx*1.9,p1[1]+ny*1.9,z1-.42)
+            m=len(verts);verts.extend([(*p0,z0),(*p1,z1),q1,q0,((p0[0]+p1[0])/2+nx*1.0,(p0[1]+p1[1])/2+ny*1.0,(z0+z1)/2-.36)])
+            faces.extend([(m,m+1,m+4),(m+1,m+2,m+4),(m+2,m+3,m+4),(m+3,m,m+4)])
+            rod('Safety-net boom',(*p0,z0+.02),q0,.035,M['naval'],COL['Fittings'],vertices=6)
+            rod('Safety-net outer rail',q0,q1,.025,M['edge'],COL['Fittings'],vertices=6)
+        rod('Safety-net boom',(bx,by,flight_level(bx)-.2),(bx+nx*1.9,by+ny*1.9,flight_level(bx)-.64),.035,M['naval'],COL['Fittings'],vertices=6)
+    o=mesh('Safety net panels',verts,faces+[tuple(reversed(f)) for f in faces],M['dark'],COL['Fittings'])
+edge=[p for p in outline]
+aft=[p for p in outline if p[0]<-108.9];fore=[p for p in outline if p[0]>99.9]
+def edge_run(x0,x1,sign):
+    pts=[];lo,hi=deck_edge(x0),deck_edge(x1)
+    return [(x,(deck_edge(x)[1] if sign>0 else deck_edge(x)[0])+sign*.02) for x in [x0,(x0+x1)/2,x1]]
+ring=[(x,y) for x,y in outline if x<-108.5]
+ring.sort(key=lambda p:math.atan2(p[1],-(p[0]+117)))
+net_panels([(-109,deck_edge(-109)[0]-.02)]+ring+[(-109,deck_edge(-109)[1]+.02)])
+for sign in [-1,1]:net_panels(edge_run(101,116.6,sign))
 MX,MY=27.3,-13.35
 for dx,dy in [(-1.3,-1.1),(-1.3,1.1),(1.3,0)]:rod('Tripod mast leg',(MX+dx,MY+dy,FD),(MX,MY,25.7),.15,M['naval'],COL['Island'],r2=.09)
 rod('Mast topmast',(MX,MY,25.3),(MX,MY,33.9),.09,M['naval'],COL['Island'],r2=.035)
@@ -625,19 +665,40 @@ for sign in [-1,1]:
     fit.col=COL['Fittings']
     # The forward pair stowed on the old open ledge beside an inset hangar; the flush
     # hangar side (pjsa108) leaves no such ledge, so only the stern boats remain.
-    for x,length,y,base in [(-110,11.2,sign*4.5,deck(-110)),(-109,11.2,sign*5.1,9.57)]:
-        # The original boat's own cradle has a 0.16 m under-keel foot.
+    # pjsa108 stowage: a covered motor boat each side on the quarterdeck in davits, and
+    # three on chocks on the upper boat deck.
+    for x,length,y,base,davits in [(-108.05,11.2,sign*7.4,deck(-108.05),True),(-112.6,11.2,sign*4.25,9.57,False)]+([(-112.6,11.2,0,9.57,False)] if sign>0 else []):
         z=base+.16;fit.boat('Ship boat',x,y,z,length,2.0,length>10)
+        for fx in [-.3,-.05,.22]:box('Boat chock',(x+length*fx,y,base+.08),(.3,1.5,.16),M['naval'],COL['Fittings'])
+        if not davits:continue
         for fx in [-.27,.26]:
-            dx=length*fx
-            rod('Boat davit',(x+dx,y-sign*1.25,base),(x+dx,y-sign*1.25,z+3),.09,M['naval'],COL['Fittings'])
-            rod('Davit head',(x+dx,y-sign*1.25,z+3),(x+dx,y,z+3),.09,M['naval'],COL['Fittings'])
-            rod('Boat fall',(x+dx,y,z+3),(x+dx,y,z+1.4),.021,M['edge'],COL['Fittings'],vertices=6)
+            dx=length*fx;hy=y+sign*1.3;top=base+2.55
+            rod('Boat davit',(x+dx,hy,base),(x+dx,hy,top),.09,M['naval'],COL['Fittings'])
+            rod('Davit head',(x+dx,hy,top),(x+dx,y,top-.15),.08,M['naval'],COL['Fittings'])
+            rod('Boat fall',(x+dx,y,top-.15),(x+dx,y,z+1.4),.021,M['edge'],COL['Fittings'],vertices=6)
             beam=lerp([(-.32,.89),(-.13,1),(.12,.96),(.33,.76)],fx)
             sheer=lerp([(-.32,.12),(-.13,0),(.12,.04),(.33,.18)],fx)
             for side in [-1,1]:
                 rod('Boat lifting bridle',(x+dx,y,z+1.4),(x+dx,y+side*beam,z+.75+sheer),.019,M['edge'],COL['Fittings'],vertices=6)
 
+# Stern gear (pjsa108): a stern anchor in a hawse on each quarter, electric warping
+# winches and rope reels on the quarterdeck.
+def rope_reel(name,x,y,z,col,radius=.42,length=.9):
+    box(name+' stand',(x,y,z+.28),(.5,length+.1,.56),M['naval'],col)
+    rod(name+' drum',(x,y-length/2,z+radius+.3),(x,y+length/2,z+radius+.3),radius*.75,M['canvas'],col,vertices=14)
+    for sy in [-1,1]:rod(name+' cheek',(x,y+sy*length/2-.03,z+radius+.3),(x,y+sy*length/2+.03,z+radius+.3),radius,M['naval'],col,vertices=16)
+for sign in [-1,1]:
+    x=-118.0;zz=4.45;y=sign*loft_breadth(H,x,zz)
+    rod('Stern anchor hawse',(x,y-sign*.18,zz),(x,y+sign*.12,zz),.24,M['edge'],COL['Fittings'],vertices=16)
+    rod('Stern anchor shank',(x,y+sign*.12,zz-.1),(x+.9,y+sign*.12,zz-1.3),.1,M['edge'],COL['Fittings'])
+    rod('Stern anchor crown',(x+.55,y+sign*.12,zz-1.5),(x+1.3,y+sign*.12,zz-1.5),.12,M['edge'],COL['Fittings'])
+    for dx in [.5,1.3]:box('Stern anchor fluke',(x+dx,y+sign*.14,zz-1.25),(.36,.18,.46),M['edge'],COL['Fittings'])
+    wx=-124.4;wz=deck(wx);wy=sign*2.2
+    box('Electric warping winch',(wx,wy,wz+.4),(1.2,.9,.8),M['naval'],COL['Fittings'])
+    rod('Warping winch drum',(wx,wy-.75,wz+.62),(wx,wy+.75,wz+.62),.26,M['edge'],COL['Fittings'],vertices=14)
+    for dy in [-.78,.78]:rod('Warping head',(wx,wy+dy-.1,wz+.62),(wx,wy+dy+.1,wz+.62),.32,M['edge'],COL['Fittings'],vertices=14)
+    rope_reel('Stern rope reel',-126.4,sign*1.25,deck(-126.4),COL['Fittings'])
+    rope_reel('Quarterdeck rope reel',-115.0,sign*2.0,deck(-115.0),COL['Fittings'])
 for sign in [-1,1]:
     for kind,x,y in [('inner',-106,3.6),('outer',-96,7.0)]:
         y*=sign;z=-6.2
