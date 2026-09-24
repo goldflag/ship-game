@@ -216,16 +216,43 @@ def draw_side_hangar(s):
   a=inner+(outer-inner)*f;top=roof_at(a)-.05
   box(s['id']+' gable stiffener',(x0-.05,sign*a,(8.35+top)/2),(.08,.12,top-8.35),materials['edge'],detailcol)
 for _sid in ['hangar-port','hangar-starboard']:structure_drawers[_sid]=draw_side_hangar
+# pgsb708's double hangar: the forward part is 12.6 m wide at the deck with 45-degree chamfered upper edges
+# (11.6 m to its 13.47 m flat roof, 8.6 m wide); the narrower after part is a plain house to 13.05 m.
+MH_HALF,MH_KNEE,MH_TOP,MH_ROOF=6.3,11.6,13.47,4.3
+def mh_chamfer(a):
+ # Height of the forward hangar's outer surface at |y| = a.
+ return MH_KNEE+(MH_HALF-a)/(MH_HALF-MH_ROOF)*(MH_TOP-MH_KNEE) if a>MH_ROOF else MH_TOP
+def mh_half(z):
+ # Half-breadth of the chamfered section at height z.
+ return MH_HALF if z<=MH_KNEE else MH_HALF-(z-MH_KNEE)/(MH_TOP-MH_KNEE)*(MH_HALF-MH_ROOF)
+def draw_main_hangar(s):
+ fx0,fx1=-22.22,-15.99;ax0=-25.81;top=s['baseY']+s['height']
+ sec=[(-MH_HALF,s['baseY']),(MH_HALF,s['baseY']),(MH_HALF,MH_KNEE),(mh_half(top),top),(-mh_half(top),top),(-MH_HALF,MH_KNEE)]
+ fwd=prism(s['name'],[(fx1,y,z) for y,z in sec],[(fx0,y,z) for y,z in sec],materials['naval'],supercol);fwd['assemblyId']='superstructure-'+s['id']
+ aft=extrude(s['name']+' after part',[(fx0+.01,-4.9),(ax0,-4.9),(ax0,4.9),(fx0+.01,4.9)],s['baseY'],s['height'],materials['naval'],supercol,.035);aft['assemblyId']='superstructure-'+s['id']
+ extrude(s['id']+' deck lip',[(fx0,-4.93),(ax0-.03,-4.93),(ax0-.03,4.93),(fx0,4.93)],top,.06,materials['roof'],supercol)
+ for sign in [-1,1]:
+  for x in [-17.3,-18.9,-20.5]:porthole(s['id']+' scuttle',(x,sign*(MH_HALF+.05),10.5),(0,sign,0),.16)
+  for x in [-23.2,-24.8]:porthole(s['id']+' scuttle',(x,sign*4.95,11.9),(0,sign,0),.16)
+  polyline(s['id']+' chamfer edge',[(fx1,sign*MH_HALF,MH_KNEE),(fx0,sign*MH_HALF,MH_KNEE)],.035,materials['edge'],supercol)
+def draw_main_hangar_roof(s):
+ # The chamfered roof crown above 13.05 m; its flanks continue the hangar's chamfer.
+ fx0,fx1=-22.22,-15.99;z0=s['baseY'];z1=MH_TOP
+ sec=[(-mh_half(z0),z0),(mh_half(z0),z0),(mh_half(z1),z1),(-mh_half(z1),z1)]
+ ob=prism(s['name'],[(fx1,y,z) for y,z in sec],[(fx0,y,z) for y,z in sec],materials['naval'],supercol);ob['assemblyId']='superstructure-'+s['id']
+structure_drawers['main-hangar']=draw_main_hangar
+structure_drawers['main-hangar-forward-roof']=draw_main_hangar_roof
 def hangars():
- # The double hangar keeps its forward folding doors; its sides carry ventilation.
- name,x,y,length,breadth,base='Double hangar',-20.9,0,9.82,11.4,13.15
- xx=x+length/2+.035;floor=8.4;doorheight=base-floor-.12;leaves=12;opening=breadth-.65
+ # The double hangar opens forward through folding doors that follow its chamfered outline.
+ name='Double hangar';xx=-15.99+.035;floor=8.4;leaves=12;opening=2*MH_HALF-.7
  for i in range(leaves):
-  yy=y-opening/2+opening*(i+.5)/leaves
-  box(name+' folding door',(xx,yy,floor+doorheight/2),(.10,opening/leaves-.035,doorheight),materials['naval'],detailcol)
-  for dz in [.65,2.1,3.55]:box(name+' door stiffener',(xx+.065,yy,floor+dz),(.07,opening/leaves-.13,.055),materials['edge'],detailcol)
- rod(name+' door track',(xx,y-opening/2-.1,floor+doorheight+.1),(xx,y+opening/2+.1,floor+doorheight+.1),.075,materials['edge'],detailcol,vertices=8)
- for sign in [-1,1]:vent(name+' ventilation',(x,y+sign*(breadth/2+.035),base-1.15),(1.8,.12,1.1),sign)
+  yy=-opening/2+opening*(i+.5)/leaves;w=opening/leaves
+  top=min(13.0,mh_chamfer(abs(yy)+w/2)-.12)
+  box(name+' folding door',(xx,yy,(floor+top)/2),(.10,w-.035,top-floor),materials['naval'],detailcol)
+  for dz in [.65,2.1,3.55]:
+   if floor+dz<top-.1:box(name+' door stiffener',(xx+.065,yy,floor+dz),(.07,w-.13,.055),materials['edge'],detailcol)
+ rod(name+' door track',(xx,-MH_ROOF,13.05),(xx,MH_ROOF,13.05),.075,materials['edge'],detailcol,vertices=8)
+ for sign in [-1,1]:vent(name+' ventilation',(-19.1,sign*(MH_HALF+.035),9.9),(1.8,.12,1.1),sign)
 # ---------------------------------------------------------------- gig platforms
 def draw_gig_platform(s):
  # Open skid platform cantilevered from the hangar wall; the 150 mm gunhouse sweeps beneath it.
@@ -338,7 +365,7 @@ def boats():
  boat('Starboard captain gig',6.31,-3.88,12.39,9.21,2.56,True,keel=12.42)
  for sign in [-1,1]:
   boat('Admiral gig',6.85,sign*9.30,10.83,11.14,2.67,True,keel=10.84,cradles=(-.2,.3))
-  boat('Outer aft motor launch',-21.95,sign*6.86,11.6,11.54,3.00,True,keel=11.60)
+  boat('Outer aft motor launch',-21.95,sign*6.86,11.6,11.54,3.00,True,keel=11.66)
   # The inner launches lie with their bows toward the ship's side (pgsb708: 13.9 deg).
   boat('Inner aft motor launch',-19.56,sign*2.91,13.59,11.54,3.00,True,yaw=sign*math.radians(13.9),keel=13.59)
 # ---------------------------------------------------------------- aircraft cranes
