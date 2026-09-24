@@ -233,7 +233,9 @@ for side in [-1,1]:
         tube_path('hull.plate-seam',seam,.009,materials['wear'],sides=5)
     # Deck-edge rail at even stanchion spacing (the fine end stations would crowd it).
     railpts=[(x,side*max(.05,deck_edge(x)-.16),deckz(x)+.05) for x in [-55.35+i*1.8 for i in range(63)] if x<56.35]
-    rails('rails.perimeter',railpts,spacing=1.9)
+    # A lower forecastle rail, clear of Mount 51 depressed on the beam.
+    rails('rails.perimeter',[p for p in railpts if p[0]<=35.1],spacing=1.9)
+    rails('rails.perimeter',[p for p in railpts if p[0]>=35.1],.84,spacing=1.9)
 
 # Structural footprints remain the same source for visible deckhouses and CPU hits.
 structures={s['id']:s for s in definition['structures']}

@@ -148,9 +148,16 @@ HARDPOINT = {
     'oerlikon-3': (-4.357, 2.829, 11.646), 'oerlikon-4': (4.358, 2.829, 11.646),
     'oerlikon-5': (-4.357, 2.774, 14.085), 'oerlikon-6': (4.358, 2.774, 14.085),
 }
+# The reference's Mk 30 gunhouse starts at its hardpoint; the shared part's floor, trunnion and roof
+# stand 0.48 m, 2.16 m and 3.2 m above its datum. A datum 0.38 m below the hardpoint would put our
+# roof and barrel axis exactly on the reference's (--box overlay of Mount 51); 0.25 m keeps the
+# depressed barrels clear of the Bofors house edge and the forecastle rails, 0.13 m high.
+MK30_DATUM = -.25
 for m in b['mounts']:
     if m['id'] in HARDPOINT:
         m['position'] = [round(v, 4) for v in HARDPOINT[m['id']]]
+        if m['id'].startswith('gun-') and m['id'] != 'gun-5':  # Mount 55 keeps its hardpoint: lower, it fouls the after deckhouse
+            m['position'][1] = round(m['position'][1] + MK30_DATUM, 4)
 # Quintuple banks: pivot on the reference hardpoints; tube muzzles 4.65 m ahead of the pivot.
 BANKS = {'torpedo-forward': (5.811, -2.015), 'torpedo-aft': (5.523, 11.161)}
 for launcher in b['torpedoLaunchers']:
