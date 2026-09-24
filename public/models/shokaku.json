@@ -12867,44 +12867,52 @@
       "name": "Chartroom and signal bridge",
       "footprint": [
         [
-          15.3,
-          -34.1
+          12.09,
+          -31.5
         ],
         [
-          15.6,
-          -34.4
+          13.78,
+          -31.5
         ],
         [
-          15.6,
-          -44.35
+          14.48,
+          -33.5
         ],
         [
-          14.97,
-          -45.065
+          14.66,
+          -34.5
         ],
         [
-          14.07,
-          -45.45
+          14.66,
+          -43.5
         ],
         [
-          12.63,
-          -45.45
+          14.25,
+          -44.25
         ],
         [
-          11.73,
-          -45.065
+          13.6,
+          -44.65
         ],
         [
-          11.1,
-          -44.35
+          12.2,
+          -44.65
         ],
         [
-          11.1,
-          -34.4
+          11.55,
+          -44.25
         ],
         [
-          11.4,
-          -34.1
+          11.15,
+          -43.5
+        ],
+        [
+          11.15,
+          -34.5
+        ],
+        [
+          11.35,
+          -33.5
         ]
       ],
       "baseY": 14.75,
@@ -12965,44 +12973,44 @@
       "name": "Navigation bridge lower house",
       "footprint": [
         [
-          15.1,
-          -34.1
+          11.57,
+          -35
         ],
         [
-          15.45,
-          -34.45
+          14.27,
+          -35
         ],
         [
-          15.45,
+          14.66,
+          -36
+        ],
+        [
+          14.66,
+          -43
+        ],
+        [
+          14.4,
           -44
         ],
         [
-          14.862,
-          -44.715
+          13.8,
+          -44.35
         ],
         [
-          14.022,
-          -45.1
+          11.95,
+          -44.35
         ],
         [
-          12.678,
-          -45.1
-        ],
-        [
-          11.838,
-          -44.715
-        ],
-        [
-          11.25,
+          11.42,
           -44
         ],
         [
-          11.25,
-          -34.45
+          11.15,
+          -43
         ],
         [
-          11.6,
-          -34.1
+          11.15,
+          -36
         ]
       ],
       "baseY": 17.06,
@@ -13063,44 +13071,44 @@
       "name": "Glazed conning and air-control bridge",
       "footprint": [
         [
-          14.75,
-          -35.7
+          11.6,
+          -33.5
         ],
         [
-          15.25,
-          -36.2
+          14.81,
+          -33.5
         ],
         [
-          15.25,
-          -43.15
+          15.44,
+          -34.5
         ],
         [
-          14.718,
-          -44.0275
+          15.44,
+          -43.5
         ],
         [
-          13.958,
-          -44.5
+          15.12,
+          -44.3
         ],
         [
-          12.742,
-          -44.5
+          14.4,
+          -44.6
         ],
         [
-          11.982,
-          -44.0275
-        ],
-        [
-          11.45,
-          -43.15
+          12.1,
+          -44.6
         ],
         [
           11.45,
-          -36.2
+          -44.3
         ],
         [
-          11.95,
-          -35.7
+          11.13,
+          -43.5
+        ],
+        [
+          11.13,
+          -34.5
         ]
       ],
       "baseY": 19.46,
@@ -38056,5 +38064,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "6b3556e5901ef84334b2d49620fb6a383c27eb892ab34da7f840028751edba9f"
+  "contentHash": "80ae1ef00108fdf3cba056ec4377e2a1e7102f380830698900478108b072a0a8"
 }

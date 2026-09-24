@@ -167,6 +167,15 @@ for s in D['structures']:
             head=funnel_support.along((x+dx,-17.2,7.0),(0,0,1),10)
             rod(s['id']+' hull strut',foot,head,.13,M['naval'],col)
 
+# pjsa108: a smoke duct along the hull side joins both trunks and runs on aft of the
+# after funnel; a gallery on knees runs beneath the funnel mouths.
+def octo_duct(name,x0,x1,y0,y1,z0,z1,c,col):
+    oct_=[(y0,z0+c),(y0,z1-c),(y0-c*.7,z1),(y1+c,z1),(y1,z1-c),(y1,z0+c),(y1+c,z0),(y0-c*.7,z0)]
+    verts=[(x,yy,zz) for x in [x0,x1] for yy,zz in oct_];n=8
+    faces=[tuple(range(n)),tuple(reversed(range(n,2*n)))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    o=mesh(name,verts,faces,M['naval'],col);bm=bmesh.new();bm.from_mesh(o.data)
+    bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free();return o
+octo_duct('Funnel uptake duct',-18.9,11.5,-12.95,-16.2,11.25,13.75,.7,COL['Island'])
 outline=[(-z,-x) for x,z in S['flight-deck']['footprint']]
 def span(y):
     hits=[]
@@ -268,6 +277,11 @@ for id,s in S.items():
         paint('Lift perimeter seam',[a,b,(b[0]+dx,b[1]+dy),(a[0]+dx,a[1]+dy)],M['edge'],bpy.data.objects[id+'.lift'])
 
 fit=Fittings(helpers,M,COL['Hangars'])
+GY0,GY1,GZ=-13.0,-14.9,9.3
+box('Funnel gallery deck',((-12.5+12.5)/2,(GY0+GY1)/2,GZ-.07),(25.0,abs(GY1-GY0),.14),M['steel-deck'],COL['Island'])
+railing([(-12.5,GY1+.02),(12.5,GY1+.02)],GZ,'Funnel gallery',COL['Island'],.95)
+for bx in range(-12,13,3):fit.col=COL['Island'];fit.knee('Funnel gallery knee',bx+.5,GY0,GY1+.2,GZ-.14,1.2)
+fit.col=COL['Island'];fit.ladder('Funnel gallery ladder',(12.0,-13.35,GZ),(12.0,-13.35,10.0),.5)
 for x in [103,109,114]:
     top=FD-.34;bottom=deck(x)
     for sign in [-1,1]:
@@ -440,7 +454,17 @@ for id in ['bridge-walkway','navigation-wings','compass-platform','bridge-roof']
     else:
         # pjsa108: solid splinter bulwarks on the wings, compass platform and roof.
         height=1.23 if id=='bridge-roof' else 1.1 if id=='navigation-wings' else 1.02
+        edges=[]
         for a,b in zip(pts,pts[1:]+pts[:1]):
+            cuts=[0,1]+[(x-a[0])/(b[0]-a[0]) for x in [36.0,44.0] if id=='navigation-wings' and abs(b[0]-a[0])>1e-6 and 0<(x-a[0])/(b[0]-a[0])<1]
+            cuts=sorted(cuts)
+            for t0,t1 in zip(cuts,cuts[1:]):
+                edges.append(((a[0]+(b[0]-a[0])*t0,a[1]+(b[1]-a[1])*t0),(a[0]+(b[0]-a[0])*t1,a[1]+(b[1]-a[1])*t1)))
+        for a,b in edges:
+            # pjsa108: the navigation-wing deck has solid lookout bulwarks only at its
+            # ends; the long sides between them carry rails.
+            if id=='navigation-wings' and 36.0<(a[0]+b[0])/2<44.0:
+                railing([a,b],z,id,COL['Island'],1.1);continue
             delta=Vector((b[0]-a[0],b[1]-a[1],0));normal=Vector((delta.y,-delta.x,0)).normalized()*.045
             points=[a,b,(b[0]-normal.x,b[1]-normal.y),(a[0]-normal.x,a[1]-normal.y)]
             poly(id+' solid windbreak',points,z,z+height,M['naval'],COL['Island'])
@@ -452,7 +476,7 @@ for id,deck_above in [('island-base','bridge-walkway'),('bridge-chartroom','navi
     floor_above=S[deck_above]['baseY']+S[deck_above]['height']
     z=s_['baseY']+(floor_above-s_['baseY'])*.57
     for side in [-1,1]:
-        for x in [34.8,37.1,40.1,43.0]:
+        for x in [35.6,37.6,40.1,43.0]:
             wall=support.along((x,-13.35,z),(0,side,0),10)
             rod('Island recessed scuttle',(x,wall.y-side*.055,z),(x,wall.y+side*.035,z),.135,M['dark'],COL['Island'],vertices=16)
             fit.ring('Island scuttle frame',(x,wall.y+side*.035,z),.15,.024,'y','naval',16)
@@ -464,21 +488,39 @@ for side in [-1,1]:
 for side in [-1,1]:
     for id,below in [('bridge-walkway','island-base'),('navigation-wings','bridge-chartroom'),('compass-platform','navigation-bridge')]:
         level=S[id];body=SupportSurface([structure_meshes[below]])
-        for x in [34.8,39.0,43.6]:
+        for x in [35.6,39.0,43.4]:
             z=level['baseY'];wall=body.along((x,-13.35,z-.45),(0,side,0),10)
             end=-13.35+side*(2.9 if id!='compass-platform' else 2.65)
             if id=='bridge-walkway' and side>0:end=-10.75
             fit.knee('Island wing support knee',x,wall.y,end,z,.75)
     fit.stairs('Island access stair',(30.1,-13.35+side*2.55,14.75),(34.1,-13.35+side*2.55,17.06),.65)
     fit.stairs('Bridge upper stair',(33.0,-13.35+side*2.55,17.06),(36.0,-13.35+side*2.55,19.46),.55)
-    fit.ladder('Compass bridge ladder',(36.0,-13.35+side*2.05,19.46),(36.0,-13.35+side*2.05,21.64),.52)
+    fit.ladder('Compass bridge ladder',(36.0,-13.35+side*2.5,19.46),(36.0,-13.35+side*2.5,21.64),.52)
     body=SupportSurface([structure_meshes['air-control']])
     for z in [19.8,21.2]:
         seat=body.along((36.2,-13.35,z),(0,side,0),10)
-        rod('Compass ladder standoff',(36.2,-13.35+side*2.05,z),seat,.035,M['naval'],COL['Island'])
-    rod('Aft compass-roof stanchion',(34.6,-13.35+side*1.35,19.46),(34.6,-13.35+side*1.35,21.48),.075,M['naval'],COL['Island'])
+        rod('Compass ladder standoff',(36.2,-13.35+side*2.5,z),seat,.035,M['naval'],COL['Island'])
 # The island continues below the flight-deck edge. The launch sits under it,
 # on a hull-braced gallery rather than being omitted or perched on the roof.
+# Island fittings on the pjsa108 tier outlines: watertight doors on the outboard
+# faces, voice pipes, ready lockers, flag lockers and life buoys on the bulwarks.
+for id,zdoor in [('bridge-chartroom',36.3),('navigation-bridge',37.4)]:
+    s_=S[id];body=SupportSurface([structure_meshes[id]])
+    wall=body.along((zdoor,-13.0,s_['baseY']+1.0),(0,-1,0),10)
+    fit.col=COL['Island'];fit.door('Island watertight door',zdoor,wall.y-.01,s_['baseY'],.7,1.75)
+body=SupportSurface([structure_meshes['bridge-chartroom']])
+for k,bx in enumerate([40.6,41.0,41.4]):
+    wall=body.along((bx,-13.0,16.0),(0,-1,0),10)
+    rod('Island voice pipe',(bx,wall.y-.07,14.75),(bx,wall.y-.07,19.3),.035,M['edge'],COL['Island'],vertices=8)
+    for zz in [15.4,16.9+.08,18.3]:box('Voice pipe clip',(bx,wall.y-.035,zz),(.08,.07,.05),M['naval'],COL['Island'])
+wings=S['navigation-wings']['baseY']+S['navigation-wings']['height']
+compass=S['compass-platform']['baseY']+S['compass-platform']['height']
+for bx,by,bz,size in [(31.6,-15.7,wings,(1.8,.55,.9)),(31.6,-11.0,wings,(1.8,.55,.9)),(45.9,-15.6,wings,(.7,.45,.8)),
+                      (33.4,-15.6,compass,(.7,.45,.8)),(33.4,-11.1,compass,(.7,.45,.8)),(47.5,-15.8,S['bridge-walkway']['baseY']+S['bridge-walkway']['height'],(.9,.5,.8))]:
+    box('Island ready locker',(bx,by,bz+size[2]/2),size,M['naval'],COL['Island'])
+    box('Island locker lid',(bx,by,bz+size[2]+.02),(size[0]+.06,size[1]+.06,.04),M['roof'],COL['Island'])
+for bx,by,bz in [(44.5,-16.33,wings+.55),(35.0,-16.18,compass+.5)]:
+    fit.ring('Island life buoy',(bx,by-.06,bz),.32,.07,'y','canvas',16)
 # The launch now sits outboard of the flush hangar side on the island gallery.
 LY=-14.55
 for x in [33.8,39.0,43.5]:
