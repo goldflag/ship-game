@@ -5,7 +5,7 @@ import type { BattleSetup as RuntimeSetup } from '../../multiplayer/generated/Ba
 import type { Command } from '../../multiplayer/generated/Command';
 import type { ShipDefinition } from '../../ships/blueprint';
 import type { LocalShipRevision } from '../../ships/localShips';
-import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
+import { BinaryFrameReader, decodeFrameUpdate, type FrameUpdate } from './frameDelta';
 import { CommandQueue } from './commandQueue';
 import { createSeaState } from './sea';
 import type { WeatherId } from '../../maps/conditions';
@@ -26,6 +26,11 @@ export class LocalBattleSession extends SnapshotSession {
   readonly constructionShips: ReadonlyMap<string, NonNullable<LocalBattleOptions['revisions']>[number]>;
   private worker: Worker;
   private received?: Snapshot;
+  /** The worker's stream in its binary form; the reader holds the stream's key table. */
+  private reader = new BinaryFrameReader();
+  /** False asks the worker for the text form, for comparison. The stream starts again, whole, in the other form. */
+  binaryStream = true;
+  private receivedBinary = true;
   private commands = new CommandQueue();
   get orderReceipts() { return this.commands.receipts; }
   get queuedOrderCount() { return this.commands.length; }
@@ -93,9 +98,11 @@ export class LocalBattleSession extends SnapshotSession {
       if (data.type === 'snapshot') {
         if (data.cost) { const c = session.cost; c.ticks += data.cost.ticks; c.stepMs += data.cost.stepMs; c.snapshotMs += data.cost.snapshotMs; c.batches++; }
         if (data.reset) { session.received = undefined; session.pending = undefined; if (!data.trialAction) session.resetIntents(); }
-        // The update arrives as the text Rust wrote: one parse here costs less than a
-        // structured clone of a tree the worker parsed. Its reference is the frame received last.
-        const frame = decodeFrameUpdate(session.received, JSON.parse(data.update) as FrameUpdate);
+        // The update arrives in the binary form Rust wrote, its buffer transferred; the
+        // reader applies it as it reads it. Its reference is the frame received last.
+        const binary = typeof data.update !== 'string';
+        if (binary !== session.receivedBinary) { session.received = undefined; session.receivedBinary = binary; }
+        const frame = binary ? session.reader.decode(session.received, data.update) : decodeFrameUpdate(session.received, JSON.parse(data.update) as FrameUpdate);
         session.received = frame;
         if (!session.actors.length || data.reset || data.trialAction) { session.pending = undefined; session.apply(frame); } else session.pending = frame;
         session.busy = false;
@@ -161,7 +168,7 @@ export class LocalBattleSession extends SnapshotSession {
     const ticks = Math.min(6 * speed, MAX_BATCH_TICKS, availableTicks);
     this.accumulator = Math.max(0, this.accumulator - ticks / 60); this.window.ticks += ticks;
     this.input(this.lastInput.helm, this.lastInput.intent, true); this.busy = true;
-    this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks, detailShipIds: this.detailShipIds, wind: this.pendingWind });
+    this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks, detailShipIds: this.detailShipIds, wind: this.pendingWind, text: !this.binaryStream });
     this.pendingWind = undefined;
   }
   /** Developer console: the sea physics answer a new wind from the next batch.

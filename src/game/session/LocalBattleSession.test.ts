@@ -14,7 +14,7 @@ const helm = { throttle: 0, rudder: 0 }, intent = { aim: [0, 0, 0] as [number, n
 class TestWorker {
   onmessage?: (event: { data: unknown }) => void;
   onerror?: (event: { message: string }) => void;
-  maxBatch = 0; batches = 0; posts = 0; detail: string[] = []; winds: { speed: number; direction: number }[] = [];
+  maxBatch = 0; batches = 0; posts = 0; detail: string[] = []; winds: { speed: number; direction: number }[] = []; text = false;
   /** Hold replies to model a round trip longer than one render frame. */
   manual = false; private held: (() => void)[] = [];
   get inFlight() { return this.held.length; }
@@ -22,7 +22,7 @@ class TestWorker {
   private planner?: PvePlanner;
   runtime!: LocalRuntime;
   constructor(runtime?: LocalRuntime) { if (runtime) this.runtime = runtime; }
-  postMessage(message: { type: string; commands?: CommandEnvelope[]; ticks?: number; detailShipIds?: string[]; request?: unknown; placements?: unknown; formations?: unknown; wind?: { speed: number; direction: number } }) {
+  postMessage(message: { type: string; commands?: CommandEnvelope[]; ticks?: number; detailShipIds?: string[]; request?: unknown; placements?: unknown; formations?: unknown; wind?: { speed: number; direction: number }; text?: boolean }) {
     if (message.type === 'advance') this.posts++;
     const reply = () => {
       if (this.terminated) return;
@@ -45,6 +45,7 @@ class TestWorker {
         this.batches++;
         this.maxBatch = Math.max(this.maxBatch, message.ticks!);
         this.detail = message.detailShipIds ?? [];
+        this.text = message.text === true;
         if (message.wind) { this.winds.push(message.wind); this.runtime.set_wind(message.wind.speed, message.wind.direction); }
         for (const command of message.commands!) {
           this.runtime.command(JSON.stringify(command));
@@ -52,9 +53,9 @@ class TestWorker {
         }
         for (let n = message.ticks!; n > 0; n -= 6) this.runtime.step(Math.min(6, n));
       }
-      // The Rust codec encodes against the frame this runtime published last;
-      // local.worker.ts relays its text unparsed.
-      const update = this.runtime.snapshot_delta(this.detail);
+      // The Rust codec encodes against the frame this runtime published last,
+      // in the binary form local.worker.ts transfers, or the text it relays for comparison.
+      const update = this.text ? this.runtime.snapshot_delta(this.detail) : this.runtime.snapshot_delta_binary(this.detail);
       // A fixed synthetic cost: 2 ms per tick and 1 ms per snapshot.
       const cost = message.type === 'advance' ? { ticks: message.ticks!, stepMs: message.ticks! * 2, snapshotMs: 1 } : undefined;
       this.onmessage?.({ data: { type: 'snapshot', reset: message.type === 'restart', update, cost } });
@@ -114,6 +115,20 @@ test('4× pause preserves queued orders; resume admits once and restart restores
   } finally { session.dispose(); }
 });
 
+
+test('the stream changes form mid-battle, starting again whole, and the session holds the complete frame throughout', async () => {
+  const { session, worker } = await fixture(true);
+  try {
+    for (const binary of [true, false, false, true, true]) {
+      session.binaryStream = binary;
+      for (let i = 0; i < 12; i++) await frame(session, 1 / 60);
+      await frame(session, 0);
+      expect((session as any).received).toEqual(JSON.parse(worker.runtime.detailed_snapshot(worker.detail)));
+      expect(session.tick).toBe((session as any).received.tick);
+    }
+    expect(worker.text).toBe(false);
+  } finally { session.dispose(); }
+});
 
 test('a developer wind change reshapes the local sea physics mid-battle until restart', async () => {
   const calm = await fixture(), windy = await fixture();

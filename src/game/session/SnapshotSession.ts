@@ -34,6 +34,8 @@ import { squadronFlights } from '../airWing';
  * objects with the presentation filter's drops and gated by
  * `crates/naval-sim/tests/frame_types.rs`. Nothing below is typed by hand. */
 export type Snapshot = SessionFrame<BattleFrame<Vessel[], CarrierWing[], Shell[], Torpedo[], DepthCharge[], AirRelease[], CombatEvent[], Records>>;
+/** Whether a definition carries mounts on other mounts, asked of every hull in every frame. */
+const carriesMounts = new WeakMap<ShipDefinition, boolean>();
 function replaceObject<T extends object>(target: T, value: T): void {
   for (const key of Object.keys(target) as (keyof T)[]) if (!(key in value)) delete target[key];
   Object.assign(target, value);
@@ -145,7 +147,9 @@ export abstract class SnapshotSession implements BattleSession {
         const { motion, damage, ...rest } = state;
         replaceObject(actor.motion, motion); replaceObject(actor.damage, damage); Object.assign(actor, rest);
       } else this.actors.push(actor);
-      if (actor.definition.mounts.some(m => m.parentMountId)) {
+      let carried = carriesMounts.get(actor.definition);
+      if (carried === undefined) carriesMounts.set(actor.definition, carried = actor.definition.mounts.some(m => m.parentMountId));
+      if (carried) {
         // Derived frames belong to presentation state, never the retained delta baseline.
         actor.mounts = state.mounts.map(m => ({ ...m }));
         updateMountCarriers(actor.definition, actor.mounts);
@@ -201,10 +205,11 @@ export abstract class SnapshotSession implements BattleSession {
     // A restarted mission replays from tick zero; loss counts start again with it.
     if (frame.tick < this.lastFrameTick) { this.aircraftLosses = { own: 0, enemy: 0 }; this.lastLossSequence = -1; }
     this.lastFrameTick = frame.tick;
-    const ownPlanes = new Set(this.actors.flatMap(a => a.airWing?.planes.map(p => p.id) ?? []));
+    let ownPlanes: Set<string> | undefined;
     for (const event of frame.events) {
       if (event.kind !== 'aircraft-lost' || !(event.sequence > this.lastLossSequence)) continue;
       this.lastLossSequence = event.sequence;
+      ownPlanes ??= new Set(this.actors.flatMap(a => a.airWing?.planes.map(p => p.id) ?? []));
       if (ownPlanes.has(event.aircraft?.id ?? '')) this.aircraftLosses.own++; else this.aircraftLosses.enemy++;
     }
     this.afloatKg = this.relativeTonnage(frame.afloatKg);

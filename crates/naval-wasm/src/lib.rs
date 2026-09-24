@@ -401,6 +401,26 @@ mod construction_trial_tests {
             serde_json::from_str(&runtime.snapshot_delta(vec![]).unwrap()).unwrap();
         assert!(frame["baseTick"].is_null());
         assert!(!runtime.session.control.ships["target"].weapons.guns);
+        // The binary stream starts again whole on a change of form and on a trial
+        // action, with a fresh key table (the header's known-key count is 0).
+        let base_and_known = |bytes: Vec<u8>| {
+            let base = f64::from_le_bytes(bytes[8..16].try_into().unwrap());
+            (base, u32::from_le_bytes(bytes[20..24].try_into().unwrap()))
+        };
+        assert_eq!(
+            base_and_known(runtime.snapshot_delta_binary(vec![]).unwrap()),
+            (-1., 0)
+        );
+        runtime.step(1).unwrap();
+        let (base, known) = base_and_known(runtime.snapshot_delta_binary(vec![]).unwrap());
+        assert!(base >= 0. && known > 0);
+        runtime
+            .trial_action(r#"{"kind":"damage","actorId":"player","amount":10}"#)
+            .unwrap();
+        assert_eq!(
+            base_and_known(runtime.snapshot_delta_binary(vec![]).unwrap()),
+            (-1., 0)
+        );
     }
 }
 
@@ -426,6 +446,17 @@ impl FrameSink for AsUpdate<'_> {
     type Out = String;
     fn take<T: serde::Serialize>(self, tick: u64, frame: &T) -> Result<String, JsValue> {
         self.0.update(tick, frame).map(str::to_owned).map_err(error)
+    }
+}
+/// The same update in the binary form the local worker transfers.
+struct AsBinaryUpdate<'a>(&'a mut naval_sim::frame_delta::FrameDelta);
+impl FrameSink for AsBinaryUpdate<'_> {
+    type Out = Vec<u8>;
+    fn take<T: serde::Serialize>(self, tick: u64, frame: &T) -> Result<Vec<u8>, JsValue> {
+        self.0
+            .update_binary(tick, frame)
+            .map(<[u8]>::to_vec)
+            .map_err(error)
     }
 }
 #[wasm_bindgen]
@@ -614,7 +645,7 @@ impl LocalRuntime {
             }
             _ => return Err(error("Unknown trial action")),
         }
-        self.delta = Default::default();
+        self.delta.reset();
         Ok(())
     }
     pub fn command(&mut self, json: &str) -> Result<(), JsValue> {
@@ -721,11 +752,28 @@ impl LocalRuntime {
     /// `naval_sim::frame_delta`): `baseTick` is null and the frame travels whole
     /// after init, deploy and restart, when the client holds nothing.
     pub fn snapshot_delta(&mut self, detail: Vec<String>) -> Result<String, JsValue> {
+        if self.delta.is_binary() {
+            self.delta = Default::default();
+        }
         present(
             &self.session,
             &self.pve_plan,
             &detail,
             AsUpdate(&mut self.delta),
+        )
+    }
+    /// [`Self::snapshot_delta`] in the binary form of the stream
+    /// (`FrameDelta::binary`), which the local worker transfers instead of text.
+    /// A stream is one form or the other: switching starts it again, whole.
+    pub fn snapshot_delta_binary(&mut self, detail: Vec<String>) -> Result<Vec<u8>, JsValue> {
+        if !self.delta.is_binary() {
+            self.delta = naval_sim::frame_delta::FrameDelta::binary();
+        }
+        present(
+            &self.session,
+            &self.pve_plan,
+            &detail,
+            AsBinaryUpdate(&mut self.delta),
         )
     }
 }

@@ -4,7 +4,7 @@
 use naval_sim::{
     battle::{Battle, BattleSetup},
     catalog::Catalog,
-    frame_delta::{FrameDelta, apply},
+    frame_delta::{BinaryClient, FrameDelta, apply},
     rules::TeamId,
     vessel::CompiledShip,
 };
@@ -35,12 +35,31 @@ fn catalog() -> Arc<Catalog> {
     Catalog::installed()
 }
 
+/// Every number as the `f64` a JavaScript client holds.
+fn as_client(value: &Value) -> Value {
+    match value {
+        Value::Number(number) => Value::from(number.as_f64().expect("finite")),
+        Value::Array(items) => items.iter().map(as_client).collect(),
+        Value::Object(fields) => Value::Object(
+            fields
+                .iter()
+                .map(|(key, value)| (key.clone(), as_client(value)))
+                .collect(),
+        ),
+        other => other.clone(),
+    }
+}
+
 /// Every frame travels as a patch; the client's copy must match the frame it
-/// would have decoded from the complete projection.
+/// would have decoded from the complete projection, in the text form and in
+/// the binary form the local worker transfers.
 struct Stream {
     delta: FrameDelta,
     client: Value,
+    binary: FrameDelta,
+    binary_client: BinaryClient,
     patch_bytes: usize,
+    binary_bytes: usize,
     full_bytes: usize,
 }
 impl Stream {
@@ -48,11 +67,22 @@ impl Stream {
         Self {
             delta: FrameDelta::default(),
             client: Value::Null,
+            binary: FrameDelta::binary(),
+            binary_client: BinaryClient::default(),
             patch_bytes: 0,
+            binary_bytes: 0,
             full_bytes: 0,
         }
     }
     fn frame<T: serde::Serialize>(&mut self, frame: &T, label: &str) {
+        let bytes = self.binary.update_binary(0, frame).expect("binary update");
+        self.binary_bytes += bytes.len();
+        let (_, base) = self.binary_client.apply(bytes);
+        assert_eq!(
+            base,
+            self.client.get("tick").and_then(Value::as_f64),
+            "{label} binary baseline"
+        );
         let complete = serde_json::to_string(frame).expect("projection");
         let expected = decoded(&complete);
         let baseline = self.delta.baseline_tick();
@@ -69,6 +99,11 @@ impl Stream {
         }
         self.full_bytes += complete.len();
         assert_eq!(self.client, expected, "{label}");
+        assert_eq!(
+            self.binary_client.frame,
+            as_client(&expected),
+            "{label} binary"
+        );
     }
 }
 
@@ -128,6 +163,7 @@ fn full_knowledge_patches_rebuild_the_decoded_frame_through_a_large_battle() {
         stream.patch_bytes,
         stream.full_bytes
     );
+    assert!(stream.binary_bytes * 2 < stream.patch_bytes);
 }
 
 #[test]
@@ -172,4 +208,5 @@ fn team_patches_rebuild_the_decoded_frame_including_contacts_and_events() {
         battle.step(&BTreeMap::new());
     }
     assert!(stream.patch_bytes * 4 < stream.full_bytes);
+    assert!(stream.binary_bytes * 2 < stream.patch_bytes);
 }
