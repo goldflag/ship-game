@@ -70,7 +70,7 @@ import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import { EffectLighting } from './EffectLighting';
 import { configureRenderOrder } from './renderOrder';
-import { DEFAULT_SAMPLED_TEXTURES, requireWebGPU, requireWebGPUBackend, sampledTextureLimit, type RaisedLimits } from './webgpu';
+import { requireWebGPU, requireWebGPUBackend, type RaisedLimits } from './webgpu';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
@@ -505,11 +505,9 @@ export class Game {
     this.environment.setScene(this.simulation.mapId, this.inPort);
     ocean.setSky(sky.oceanSky);
     // Clouds shade the sun on ships and islands through the sun's own shadow maps, and the sea
-    // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before. A ship's
-    // paint already binds WebGPU's default 16 textures and samplers a stage, so on a device that
-    // grants no more the cloud shadow falls on the sea alone.
+    // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before.
     if (sky.renderer === 'game') this.cloudShadow = position => sky.cloudShadow(position);
-    this.sunShadows.cloud = sampledTextureLimit(this.renderer) > DEFAULT_SAMPLED_TEXTURES ? this.cloudShadow : undefined;
+    this.sunShadows.cloud = this.cloudShadow;
     const sunlight = this.sunLight;
     this.fitSunShadow();
     this.graphicsControl.applyReflections();
