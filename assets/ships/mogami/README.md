@@ -32,6 +32,16 @@ ports and articulated canvas bags. `guns.py`, `main_guns.py` and `superstructure
 are declared recipe inputs. The runtime preset includes magazines, machinery,
 directors, launcher equipment, armor, local damage regions and connected flood spaces.
 
+September 2026 accuracy pass against `pjsc009` A_Hull + AB2_Artillery (compare with
+`bun run ship:overlay mogami --reference pjsc009-ab2`; the default `pjsc009` cache holds
+the 15.5 cm triples): the hull is 148 stations of 24 points measured from the reference
+(cut-up shallow stern, anti-torpedo bulge, flared bow and forefoot, centreline skeg);
+flood spaces and stability were re-derived for it. The foremast tripod, the A-frame
+mainmast with its king post and box-girder crane, the catapults on hull sponsons, the
+boats, the after control house and director platform, the bridge wings, searchlight
+towers, twin rudders, screws, shaft brackets, bilge keels, deck fittings and torpedo-bay
+openings follow the reference's measured positions.
+
 Appearance follows the [shared material rules](../../../docs/ship-appearance.md).
 `appearance.json` retains the approved palette and assigns shared matte finishes,
 original metric surface variation, subtle runoff and waterline staining. Wear is
@@ -39,11 +49,15 @@ an independent restrained interpretation, not a copy of the reference textures.
 
 Known limitations: internal layouts, armor distribution, loading, ballistics and
 mechanical stops are provisional game authoring. Rigging and minor fittings
-remain simplified. Independent main-2/main-3 and main-4/main-5 poses can intersect
-at the current main traverse limits. The bridge-mounted aa-03/aa-04 mounts can
-contact the bridge at extreme train; launcher extremes can contact the bay sides.
-**Visual acceptance remains incomplete.** The earlier trial turret restrictions
-were not accepted and are not part of the published definition.
+remain simplified. The reference places No. 2 turret at No. 1's deck height with
+its muzzles at No. 1's rear face, so No. 2 rests at 16° elevation and a
+`mountClearance` installation profile interlocks the main-1/2, main-2/3 and
+main-4/5 pairs; the bridge-front 25 mm mounts stand 0.31 m forward of the reference
+hardpoints so their seats clear the bridge. The E/E3 gun barrels (shared
+`ijn-main-guns` geometry) sit about 0.25 m higher than the reference's; launcher
+extremes can still contact the bay sides. The 12 m and 15 m boats, catapult
+fittings and bridge detail are original simplifications of the reference shapes.
+**Visual acceptance remains incomplete.**
 
 Follow [the ship pipeline](../../../docs/ship-pipeline.md).
 
