@@ -107,6 +107,7 @@ After the first successful build, add the ship's line to `src/ships/presets.ts` 
 - Turret clearance (`mountClearance`) tests barrels against every `obstructions` box, not only the listed structures. One box around a stepped or L-shaped deckhouse freezes nearby mounts at rest; use fore-and-aft strips of 3 m or less.
 - `surface.py` refuses a hull texture wider than 4096 px. Lower the hull binding's `pixelsPerMeter` for a long hull (Hood uses 15).
 - A recipe can call the registered builders in `construction-library.json`: load `construction/geometry.py` as `sys.modules['geometry']` first and strip each object's `nodeId`. Library builders under `scripts/` cannot be declared in `recipe-inputs.json`; call `blender_components.create_gun_mount` instead.
+- `assets/parts/library.json` is fingerprinted per fitted part, but `construction-library.json` and `construction.json` are hashed whole. A recipe that declares them goes stale whenever any part is published; `ship:check all` lists it.
 - A GameModels3D reference is not centred on our midships. Measure the fore-and-aft offset once (2.29 m on Iowa, 1.995 m on Alaska) and apply it to every comparison.
 - GameModels3D paints windows and doors into its textures. Compare against a textured render before removing detail that seems absent from the geometry; Iowa lost its bridge windows this way.
 
@@ -116,7 +117,8 @@ After the first successful build, add the ship's line to `src/ships/presets.ts` 
 
 - One agent builds the skeleton: hull lines, blueprint, first `build.py` and comparison tools. They share one frame and one set of measurements. A new ship is best done by that agent alone.
 - Region agents pay off only for detail passes on a large ship, and only after a foundation commit: one recipe module per region, a shared vocabulary module, and a written brief with an ownership table (files, structure IDs, mounts) and absolute tool paths. Use three or four; Iowa's six cost almost three times a single-agent build and finished no sooner.
-- Region modules run in the recipe's shared globals, so each wraps its work in a function. Merge blueprint edits by record ID, and expect overlapping, coplanar blocks at region seams.
+- Region modules run in the recipe's shared globals, so each wraps its work in a function. Merge blueprint edits by record ID (the `git:setup` merge driver covers `assets/parts/guns.json` only), and expect overlapping, coplanar blocks at region seams.
+- Each worktree agent spends 5–10 minutes bootstrapping. Tell agents to commit early and often, so work survives a rate limit or a stopped agent.
 - Finish with one agent auditing what no region owns: glazing, screws and rudders, rigging ends, underwater fittings and close views.
 - `ship:build` holds a per-ship lock, and parallel Blender builds contend for CPU and disk. Check free disk space before launching worktree agents.
 
