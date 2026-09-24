@@ -327,17 +327,21 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     part('box', 'radar-sk', col, 'pedestal', (sx - .1, sy, 36.66), (.92, .9, 1.3), 'naval')
     part('box', 'radar-sk', col, 'pedestal cap', (sx - .1, sy, 37.36), (1.05, 1.0, .12), 'edge')
     # The SK's mesh screen reads nearly solid: a thin backing plate inside the frame grid.
-    part('box', 'radar-sk', col, 'screen', (sx + .84, sy, 39.33), (.03, 5.0, 4.8), 'edge')
-    grid('radar-sk.antenna', (sx + .87, sy, 39.33), 5.0, 4.9, col, 'x', 6, 8, assembly='radar-sk')
+    outline_sk = [(-2.5, 36.93), (2.5, 36.93), (2.5, 41.0), (1.8, 41.73), (-1.8, 41.73), (-2.5, 41.0)]
+    k_ = len(outline_sk)
+    vv = [(sx + .84 + dx, sy + b_, h_) for dx in (-.015, .015) for b_, h_ in outline_sk]
+    ff = [tuple(range(k_)), tuple(reversed(range(k_, 2 * k_)))] + [(i, (i + 1) % k_, k_ + (i + 1) % k_, k_ + i) for i in range(k_)]
+    tag(mesh('radar-sk.screen', vv, ff, 'edge', col), 'radar-sk')
+    grid('radar-sk.antenna', (sx + .87, sy, 39.1), 5.0, 4.3, col, 'x', 5, 8, assembly='radar-sk')
     for dy in (-1.6, 1.6):
         part('rod', 'radar-sk', col, 'back brace', (sx - .1, sy, 37.4), (sx + .82, sy + dy, 38.4), .05, 'naval', vertices=8)
         part('rod', 'radar-sk', col, 'back brace', (sx - .1, sy, 37.4), (sx + .82, sy + dy, 40.2), .04, 'naval', vertices=6)
     radar_pivot('radar-sk.yaw', (sx, sy, 36.45), objects_since(before))
     before = names()
     gx, gy, gz = P(0, 41.82, 2.1)
-    part('cyl', 'radar-sg-forward', col, 'drive', (gx, gy, gz + .25), .16, .5, 'naval', vertices=12)
-    part('box', 'radar-sg-forward', col, 'reflector', (gx + .15, gy, gz + 1.0), (.14, 1.28, .95), 'edge')
-    part('rod', 'radar-sg-forward', col, 'feed arm', (gx + .15, gy, gz + .5), (gx + .55, gy, gz + 1.0), .03, 'naval', vertices=6)
+    part('cyl', 'radar-sg-forward', col, 'drive', (gx, gy, gz + .2), .16, .4, 'naval', vertices=12)
+    part('box', 'radar-sg-forward', col, 'reflector', (gx + .15, gy, gz + .88), (.14, 1.05, .9), 'edge')
+    part('rod', 'radar-sg-forward', col, 'feed arm', (gx + .15, gy, gz + .4), (gx + .55, gy, gz + .88), .03, 'naval', vertices=6)
     radar_pivot('radar-sg-forward.yaw', (gx, gy, gz + .12), objects_since(before))
 
     def web(name, assembly, zy, thick, holes=(), knobs=(), c=None):
@@ -648,15 +652,26 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         if st['id'] in ('funnel', 'deckhouse-052') or not (platform or top > 9):
             continue
         bridge = abs(top - 21.99) < .1 or abs(top - 28.845) < .1
+        runs = []
         for a, b in edge_runs(st, top):
-            # Solid bulwarks and a hanging fascia around the bridge and director decks;
-            # the director deck's walkway aft to the foremast keeps open rails.
+            # The open bridge's glazed front stands 2.0 m over the middle 5.6 m and 1.45 m outboard
+            # (reference cuts at x = 0.5-3.3); split edges that cross |x| = 2.8.
+            if bridge and abs(top - 21.99) < .1 and (abs(a[1]) - 2.8) * (abs(b[1]) - 2.8) < 0 and abs(a[1] - b[1]) > 1e-6:
+                edge = math.copysign(2.8, (a if abs(a[1]) > 2.8 else b)[1])
+                t = (edge - a[1]) / (b[1] - a[1])
+                m_ = (a[0] + (b[0] - a[0]) * t, edge)
+                runs += [(a, m_), (m_, b)]
+            else:
+                runs.append((a, b))
+        for a, b in runs:
+            # Solid bulwarks around the bridge and director decks; the director deck's walkway aft to
+            # the foremast keeps open rails.
             if bridge and min(a[0], b[0]) > P(0, 0, -3.9)[0]:
                 # Reference: 1.45-1.5 m plated bulwarks, externally stiffened, the open bridge's forward
                 # run glazed along its upper half; no fascia below the deck edge.
                 open_bridge = abs(top - 21.99) < .1
-                front = open_bridge and (a[0] + b[0]) / 2 > P(0, 0, -9.3)[0]
-                wall(st['id'] + '.bulwark', a, b, top, 1.95 if front else 1.45 if open_bridge else 1.5, st['id'])
+                front = open_bridge and (a[0] + b[0]) / 2 > P(0, 0, -8.2)[0] and abs(a[1] + b[1]) / 2 < 2.8
+                wall(st['id'] + '.bulwark', a, b, top, 1.95 if front else 1.4 if open_bridge else 1.5, st['id'])
                 d = Vector((b[0] - a[0], b[1] - a[1], 0))
                 if d.length > .4:
                     t = d.normalized()
