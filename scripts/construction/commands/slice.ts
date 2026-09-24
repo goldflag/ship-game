@@ -6,11 +6,11 @@ export default {
   summary:
     '<reference-name> (--plan y | --levels | --top x|z | --width | --station z | --stations z0,z1,… | --probe x,z | --section axis=value) ' +
     '[--parts hull,gun-artillery,…] [--box x0,y0,z0,x1,y1,z1] [--bin m] [--step m] [--y height] [--min-area m2] [--min-thickness m] ' +
-    '[--simplify m] [--samples n] [--limit n] [--down] — measurements over a reference mesh in ship metres (+X starboard, +Y up with y=0 the waterline, −Z bow)',
+    '[--simplify m] [--close m] [--res m] [--sym] [--samples n] [--limit n] [--down] — measurements over a reference mesh in ship metres (+X starboard, +Y up with y=0 the waterline, −Z bow)',
   ship: false,
   positionals: 1,
-  values: ['--plan', '--top', '--station', '--stations', '--probe', '--section', '--parts', '--box', '--bin', '--step', '--y', '--min-area', '--min-thickness', '--simplify', '--samples', '--limit'],
-  switches: ['--levels', '--width', '--down'],
+  values: ['--plan', '--top', '--station', '--stations', '--probe', '--section', '--parts', '--box', '--bin', '--step', '--y', '--min-area', '--min-thickness', '--simplify', '--close', '--res', '--samples', '--limit'],
+  switches: ['--levels', '--width', '--down', '--sym'],
   async run(ctx) {
     const { readReference } = await import('../reference');
     const slice = await import('../slice');
@@ -44,7 +44,10 @@ export default {
     const mode = modes[0];
     if (mode === '--plan') {
       const y = number('--plan')!;
-      const polygons = planPolygons(view, y, { box, minArea: number('--min-area'), minThickness: number('--min-thickness'), simplify: number('--simplify') });
+      const polygons = planPolygons(view, y, {
+        box: ctx.option('--box') === undefined ? undefined : box, minArea: number('--min-area'), minThickness: number('--min-thickness'),
+        simplify: number('--simplify'), close: number('--close'), resolution: number('--res'), symmetric: ctx.has('--sym'),
+      });
       return { ...header, measurement: 'plan', y, polygons: polygons.slice(0, limit), omitted: Math.max(0, polygons.length - limit) };
     }
     if (mode === '--levels') {

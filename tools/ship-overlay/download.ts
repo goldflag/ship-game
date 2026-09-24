@@ -113,15 +113,17 @@ export async function loadReference(root: string, vehicle: string): Promise<Refe
   await writeFile(file, JSON.stringify(pack));
   return pack;
 }
+/** The data root a pack's models came from: the Russian-server mirror when its page was the fallback. */
+export const packDataRoot = (pack: Pick<ReferencePack, 'url'>) => (pack.url.includes('/russia/') ? DATA_ROOT.replace('/data/current/', '/data/russia/') : DATA_ROOT);
 /** Textures are shared across vehicles, so they cache once by path. */
-export async function loadTexture(root: string, path: string): Promise<Buffer> {
+export async function loadTexture(root: string, path: string, dataRoot = DATA_ROOT): Promise<Buffer> {
   if (!texturePath(path)) throw new Error('Invalid texture path.');
   const dir = join(root, '.build/ship-overlay/textures');
   const local = join(dir, createHash('sha256').update(path).digest('hex') + extname(path));
   try {
     return await readFile(local);
   } catch {}
-  const data = await download(DATA_ROOT + path);
+  const data = await download(dataRoot + path);
   await mkdir(dir, { recursive: true });
   await writeFile(local, data);
   return data;

@@ -93,6 +93,8 @@ A premade ship built as a Blender recipe (Bismarck, Yamato, Iowa, King George V,
 
 After the first successful build, add the ship's line to `src/ships/presets.ts` by hand (`ship:register` rejects a Blender-recipe blueprint) and its funnel count to the table in `src/game/ShipFunnelSmoke.test.ts`.
 
+**Measuring.** Trace deck and deckhouse outlines with `ship:slice <ref> --plan <y> --sym --parts hull,misc,other`, and see the windows, doors and markings a GameModels3D reference paints into its textures with `ship:reference <ref> --render` ([reference workflow](reference-workflow.md)).
+
 **Gameplay data, in order.** Run the authoring helpers once the hull and structures have settled, and always pass the ship ID: with no arguments, stability and damage control rewrite a fixed list of other ships.
 
 1. Local damage: `bun -e "import { writeLocalDamage } from './assets/ships/author-local-damage.ts'; await writeLocalDamage(['my-ship'])"`. Its command line accepts registered ships only, and flood spaces need its regions. Do not rerun it on an existing ship: it rewrites committed calibration.
