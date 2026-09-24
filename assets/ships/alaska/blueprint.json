@@ -62051,64 +62051,6 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-090",
-      "name": "After superstructure deckhouse 4.4-24.1 m",
-      "footprint": [
-        [
-          -0.996,
-          21.828
-        ],
-        [
-          -0.847,
-          22.967
-        ],
-        [
-          0.847,
-          22.965
-        ],
-        [
-          0.996,
-          21.828
-        ],
-        [
-          0,
-          21.971
-        ]
-      ],
-      "baseY": 4.42,
-      "height": 19.678,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-091",
-      "name": "After superstructure deckhouse 4.4-24.1 m",
-      "footprint": [
-        [
-          -0.996,
-          21.828
-        ],
-        [
-          -0.823,
-          23.146
-        ],
-        [
-          0.823,
-          23.144
-        ],
-        [
-          0.996,
-          21.828
-        ],
-        [
-          0,
-          21.971
-        ]
-      ],
-      "baseY": 4.42,
-      "height": 19.707,
-      "material": "naval"
-    },
-    {
       "id": "deckhouse-092",
       "name": "After superstructure deckhouse 9.1-11.6 m",
       "footprint": [
@@ -62159,35 +62101,6 @@
       ],
       "baseY": 9.059,
       "height": 2.538,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-093",
-      "name": "After superstructure deckhouse 4.4-24.2 m",
-      "footprint": [
-        [
-          -0.996,
-          21.829
-        ],
-        [
-          -0.776,
-          23.506
-        ],
-        [
-          0.776,
-          23.502
-        ],
-        [
-          0.996,
-          21.829
-        ],
-        [
-          0,
-          21.971
-        ]
-      ],
-      "baseY": 4.42,
-      "height": 19.783,
       "material": "naval"
     },
     {
