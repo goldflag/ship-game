@@ -660,6 +660,13 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "us-carrier-mk24": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_five_inch",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -702,6 +709,14 @@
       "review": "unreviewed",
       "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
       "builder": "open-naval"
+    },
+    {
+      "partId": "us-5in38-mk24-single",
+      "nation": "United States",
+      "family": "US 5-inch/38",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D AGS022 5in38 Mk24 (Enterprise pasa518) only. Slide shortened aft of the trunnion so the breech end clears the stand at 85 degrees. Standalone and installation review pending.",
+      "builder": "us-carrier-mk24"
     },
     {
       "partId": "us-11in75-quad",
