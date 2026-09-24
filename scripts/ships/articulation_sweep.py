@@ -216,12 +216,18 @@ def near(o, origin, reach):
     return (q - origin).length <= reach
 
 
+# Other mounts stand at the simulation's rest pose: neutral train at `initialElevationDeg` (the modelled pose
+# otherwise), as the interlock replay in sweep.ts assumes.
+at_rest = {}
+for mt in mounts:
+    if mt.m.get('initialElevationDeg') is not None:
+        at_rest.update(dict(mt.pose(0, mt.m['initialElevationDeg'], 0)))
 report = {'model': str(model), 'contentHash': definition.get('contentHash'), 'step': step, 'elevationStep': elevation_step,
           'neighbourStep': neighbour_step, 'ignore': ignore, 'mounts': [], 'neighbours': []}
 for mt in mounts:
     if not selected(mt.id):
         continue
-    fixed, fixed_owner = tree([(o.name, cache[o.name][2]) for o in meshes
+    fixed, fixed_owner = tree([(o.name, at_rest.get(o.name, cache[o.name][2])) for o in meshes
                                if o.name not in mt.moving_names and o.get('assemblyId') != mt.id and near(o, mt.origin, mt.reach)])
     clashes, samples = {}, 0
     for t in mt.trains(step):

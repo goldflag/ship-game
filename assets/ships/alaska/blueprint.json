@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "alaska",
   "name": "USS Alaska",
-  "configuration": "CB-1 · 1944-45 exterior after the GameModels3D pasc510 A hull · reference design waterline",
+  "configuration": "CB-1 \u00b7 1944-45 exterior after the GameModels3D pasc510 A hull \u00b7 reference design waterline",
   "coordinates": "meters-y-up-bow-negative-z",
   "modelUrl": "/models/alaska.glb",
   "hull": {
@@ -17857,7 +17857,7 @@
       "battery": "secondary",
       "position": [
         -6.15,
-        4.64,
+        4.75,
         99.085
       ],
       "bearingDeg": -135,
@@ -17876,7 +17876,7 @@
       "battery": "secondary",
       "position": [
         6.15,
-        4.64,
+        4.75,
         99.085
       ],
       "bearingDeg": 135,
@@ -17895,7 +17895,7 @@
       "battery": "secondary",
       "position": [
         -3.71,
-        4.42,
+        4.47,
         119.655
       ],
       "bearingDeg": 180,
@@ -17914,7 +17914,7 @@
       "battery": "secondary",
       "position": [
         3.71,
-        4.42,
+        4.47,
         119.655
       ],
       "bearingDeg": 180,
@@ -17933,7 +17933,7 @@
       "battery": "secondary",
       "position": [
         -4.95,
-        6.59,
+        6.7,
         -89.895
       ],
       "bearingDeg": -45,
@@ -17952,7 +17952,7 @@
       "battery": "secondary",
       "position": [
         4.95,
-        6.61,
+        6.7,
         -89.895
       ],
       "bearingDeg": 45,
@@ -17971,7 +17971,7 @@
       "battery": "secondary",
       "position": [
         -5.2,
-        6.44,
+        6.53,
         -86.975
       ],
       "bearingDeg": -45,
@@ -17990,7 +17990,7 @@
       "battery": "secondary",
       "position": [
         5.2,
-        6.44,
+        6.53,
         -86.975
       ],
       "bearingDeg": 45,
@@ -18579,7 +18579,7 @@
       "name": "Port main belt",
       "center": [
         -8.78915,
-        1,
+        1.0,
         -60.3907
       ],
       "size": [
@@ -18620,7 +18620,7 @@
       "name": "Port main belt",
       "center": [
         -8.78915,
-        1,
+        1.0,
         -60.3907
       ],
       "size": [
@@ -18825,7 +18825,7 @@
       "name": "Port main belt",
       "center": [
         -10.31445,
-        1,
+        1.0,
         -50.76215
       ],
       "size": [
@@ -18866,7 +18866,7 @@
       "name": "Port main belt",
       "center": [
         -10.31445,
-        1,
+        1.0,
         -50.76215
       ],
       "size": [
@@ -19071,7 +19071,7 @@
       "name": "Port main belt",
       "center": [
         -11.4782,
-        1,
+        1.0,
         -41.1336
       ],
       "size": [
@@ -19112,7 +19112,7 @@
       "name": "Port main belt",
       "center": [
         -11.4782,
-        1,
+        1.0,
         -41.1336
       ],
       "size": [
@@ -19317,7 +19317,7 @@
       "name": "Port main belt",
       "center": [
         -12.33325,
-        1,
+        1.0,
         -31.505
       ],
       "size": [
@@ -19358,7 +19358,7 @@
       "name": "Port main belt",
       "center": [
         -12.33325,
-        1,
+        1.0,
         -31.505
       ],
       "size": [
@@ -19563,7 +19563,7 @@
       "name": "Port main belt",
       "center": [
         -12.9196,
-        1,
+        1.0,
         -21.8764
       ],
       "size": [
@@ -19604,7 +19604,7 @@
       "name": "Port main belt",
       "center": [
         -12.9196,
-        1,
+        1.0,
         -21.8764
       ],
       "size": [
@@ -19809,7 +19809,7 @@
       "name": "Port main belt",
       "center": [
         -13.26735,
-        1,
+        1.0,
         -12.24785
       ],
       "size": [
@@ -19850,7 +19850,7 @@
       "name": "Port main belt",
       "center": [
         -13.26735,
-        1,
+        1.0,
         -12.24785
       ],
       "size": [
@@ -20055,7 +20055,7 @@
       "name": "Port main belt",
       "center": [
         -13.4279,
-        1,
+        1.0,
         -2.6193
       ],
       "size": [
@@ -20096,7 +20096,7 @@
       "name": "Port main belt",
       "center": [
         -13.4279,
-        1,
+        1.0,
         -2.6193
       ],
       "size": [
@@ -20301,7 +20301,7 @@
       "name": "Port main belt",
       "center": [
         -13.4685,
-        1,
+        1.0,
         7.0093
       ],
       "size": [
@@ -20342,7 +20342,7 @@
       "name": "Port main belt",
       "center": [
         -13.4686,
-        1,
+        1.0,
         7.0093
       ],
       "size": [
@@ -20547,7 +20547,7 @@
       "name": "Port main belt",
       "center": [
         -13.4706,
-        1,
+        1.0,
         16.63785
       ],
       "size": [
@@ -20588,7 +20588,7 @@
       "name": "Port main belt",
       "center": [
         -13.4706,
-        1,
+        1.0,
         16.63785
       ],
       "size": [
@@ -20793,7 +20793,7 @@
       "name": "Port main belt",
       "center": [
         -13.47365,
-        1,
+        1.0,
         26.2664
       ],
       "size": [
@@ -20834,7 +20834,7 @@
       "name": "Port main belt",
       "center": [
         -13.47365,
-        1,
+        1.0,
         26.2664
       ],
       "size": [
@@ -21039,7 +21039,7 @@
       "name": "Port main belt",
       "center": [
         -13.4679,
-        1,
+        1.0,
         35.895
       ],
       "size": [
@@ -21080,7 +21080,7 @@
       "name": "Port main belt",
       "center": [
         -13.4762,
-        1,
+        1.0,
         35.895
       ],
       "size": [
@@ -21285,7 +21285,7 @@
       "name": "Port main belt",
       "center": [
         -13.3932,
-        1,
+        1.0,
         45.5236
       ],
       "size": [
@@ -21326,7 +21326,7 @@
       "name": "Port main belt",
       "center": [
         -13.4679,
-        1,
+        1.0,
         45.5236
       ],
       "size": [
@@ -21531,7 +21531,7 @@
       "name": "Port main belt",
       "center": [
         -13.14095,
-        1,
+        1.0,
         55.15215
       ],
       "size": [
@@ -21572,7 +21572,7 @@
       "name": "Port main belt",
       "center": [
         -13.3932,
-        1,
+        1.0,
         55.15215
       ],
       "size": [
@@ -21777,7 +21777,7 @@
       "name": "Port main belt",
       "center": [
         -12.66025,
-        1,
+        1.0,
         64.7807
       ],
       "size": [
@@ -21818,7 +21818,7 @@
       "name": "Port main belt",
       "center": [
         -13.0199,
-        1,
+        1.0,
         64.7807
       ],
       "size": [
@@ -22023,7 +22023,7 @@
       "name": "Starboard main belt",
       "center": [
         8.78915,
-        1,
+        1.0,
         -60.3907
       ],
       "size": [
@@ -22064,7 +22064,7 @@
       "name": "Starboard main belt",
       "center": [
         8.78915,
-        1,
+        1.0,
         -60.3907
       ],
       "size": [
@@ -22269,7 +22269,7 @@
       "name": "Starboard main belt",
       "center": [
         10.31445,
-        1,
+        1.0,
         -50.76215
       ],
       "size": [
@@ -22310,7 +22310,7 @@
       "name": "Starboard main belt",
       "center": [
         10.31445,
-        1,
+        1.0,
         -50.76215
       ],
       "size": [
@@ -22515,7 +22515,7 @@
       "name": "Starboard main belt",
       "center": [
         11.4782,
-        1,
+        1.0,
         -41.1336
       ],
       "size": [
@@ -22556,7 +22556,7 @@
       "name": "Starboard main belt",
       "center": [
         11.4782,
-        1,
+        1.0,
         -41.1336
       ],
       "size": [
@@ -22761,7 +22761,7 @@
       "name": "Starboard main belt",
       "center": [
         12.33325,
-        1,
+        1.0,
         -31.505
       ],
       "size": [
@@ -22802,7 +22802,7 @@
       "name": "Starboard main belt",
       "center": [
         12.33325,
-        1,
+        1.0,
         -31.505
       ],
       "size": [
@@ -23007,7 +23007,7 @@
       "name": "Starboard main belt",
       "center": [
         12.9196,
-        1,
+        1.0,
         -21.8764
       ],
       "size": [
@@ -23048,7 +23048,7 @@
       "name": "Starboard main belt",
       "center": [
         12.9196,
-        1,
+        1.0,
         -21.8764
       ],
       "size": [
@@ -23253,7 +23253,7 @@
       "name": "Starboard main belt",
       "center": [
         13.26735,
-        1,
+        1.0,
         -12.24785
       ],
       "size": [
@@ -23294,7 +23294,7 @@
       "name": "Starboard main belt",
       "center": [
         13.26735,
-        1,
+        1.0,
         -12.24785
       ],
       "size": [
@@ -23499,7 +23499,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4279,
-        1,
+        1.0,
         -2.6193
       ],
       "size": [
@@ -23540,7 +23540,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4279,
-        1,
+        1.0,
         -2.6193
       ],
       "size": [
@@ -23745,7 +23745,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4685,
-        1,
+        1.0,
         7.0093
       ],
       "size": [
@@ -23786,7 +23786,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4686,
-        1,
+        1.0,
         7.0093
       ],
       "size": [
@@ -23991,7 +23991,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4706,
-        1,
+        1.0,
         16.63785
       ],
       "size": [
@@ -24032,7 +24032,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4706,
-        1,
+        1.0,
         16.63785
       ],
       "size": [
@@ -24237,7 +24237,7 @@
       "name": "Starboard main belt",
       "center": [
         13.47365,
-        1,
+        1.0,
         26.2664
       ],
       "size": [
@@ -24278,7 +24278,7 @@
       "name": "Starboard main belt",
       "center": [
         13.47365,
-        1,
+        1.0,
         26.2664
       ],
       "size": [
@@ -24483,7 +24483,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4679,
-        1,
+        1.0,
         35.895
       ],
       "size": [
@@ -24524,7 +24524,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4762,
-        1,
+        1.0,
         35.895
       ],
       "size": [
@@ -24729,7 +24729,7 @@
       "name": "Starboard main belt",
       "center": [
         13.3932,
-        1,
+        1.0,
         45.5236
       ],
       "size": [
@@ -24770,7 +24770,7 @@
       "name": "Starboard main belt",
       "center": [
         13.4679,
-        1,
+        1.0,
         45.5236
       ],
       "size": [
@@ -24975,7 +24975,7 @@
       "name": "Starboard main belt",
       "center": [
         13.14095,
-        1,
+        1.0,
         55.15215
       ],
       "size": [
@@ -25016,7 +25016,7 @@
       "name": "Starboard main belt",
       "center": [
         13.3932,
-        1,
+        1.0,
         55.15215
       ],
       "size": [
@@ -25221,7 +25221,7 @@
       "name": "Starboard main belt",
       "center": [
         12.66025,
-        1,
+        1.0,
         64.7807
       ],
       "size": [
@@ -25262,7 +25262,7 @@
       "name": "Starboard main belt",
       "center": [
         13.0199,
-        1,
+        1.0,
         64.7807
       ],
       "size": [
@@ -25466,7 +25466,7 @@
       "id": "armoured-deck-0",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         -60.3907
       ],
@@ -25512,7 +25512,7 @@
       "id": "splinter-deck-0",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         -60.3907
       ],
@@ -25558,7 +25558,7 @@
       "id": "armoured-deck-1",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         -50.76215
       ],
@@ -25604,7 +25604,7 @@
       "id": "splinter-deck-1",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         -50.76215
       ],
@@ -25650,7 +25650,7 @@
       "id": "armoured-deck-2",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         -41.1336
       ],
@@ -25696,7 +25696,7 @@
       "id": "splinter-deck-2",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         -41.1336
       ],
@@ -25742,7 +25742,7 @@
       "id": "armoured-deck-3",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         -31.505
       ],
@@ -25788,7 +25788,7 @@
       "id": "splinter-deck-3",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         -31.505
       ],
@@ -25834,7 +25834,7 @@
       "id": "armoured-deck-4",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         -21.8764
       ],
@@ -25880,7 +25880,7 @@
       "id": "splinter-deck-4",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         -21.8764
       ],
@@ -25926,7 +25926,7 @@
       "id": "armoured-deck-5",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         -12.24785
       ],
@@ -25972,7 +25972,7 @@
       "id": "splinter-deck-5",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         -12.24785
       ],
@@ -26018,7 +26018,7 @@
       "id": "armoured-deck-6",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         -2.6193
       ],
@@ -26064,7 +26064,7 @@
       "id": "splinter-deck-6",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         -2.6193
       ],
@@ -26110,7 +26110,7 @@
       "id": "armoured-deck-7",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         7.0093
       ],
@@ -26156,7 +26156,7 @@
       "id": "splinter-deck-7",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         7.0093
       ],
@@ -26202,7 +26202,7 @@
       "id": "armoured-deck-8",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         16.63785
       ],
@@ -26248,7 +26248,7 @@
       "id": "splinter-deck-8",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         16.63785
       ],
@@ -26294,7 +26294,7 @@
       "id": "armoured-deck-9",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         26.2664
       ],
@@ -26340,7 +26340,7 @@
       "id": "splinter-deck-9",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         26.2664
       ],
@@ -26386,7 +26386,7 @@
       "id": "armoured-deck-10",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         35.895
       ],
@@ -26432,7 +26432,7 @@
       "id": "splinter-deck-10",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         35.895
       ],
@@ -26478,7 +26478,7 @@
       "id": "armoured-deck-11",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         45.5236
       ],
@@ -26524,7 +26524,7 @@
       "id": "splinter-deck-11",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         45.5236
       ],
@@ -26570,7 +26570,7 @@
       "id": "armoured-deck-12",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         55.15215
       ],
@@ -26616,7 +26616,7 @@
       "id": "splinter-deck-12",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         55.15215
       ],
@@ -26662,7 +26662,7 @@
       "id": "armoured-deck-13",
       "name": "Armoured deck",
       "center": [
-        0,
+        0.0,
         2.4,
         64.7807
       ],
@@ -26708,7 +26708,7 @@
       "id": "splinter-deck-13",
       "name": "Splinter deck",
       "center": [
-        0,
+        0.0,
         -0.4,
         64.7807
       ],
@@ -26754,7 +26754,7 @@
       "id": "citadel-forward",
       "name": "Forward armoured bulkhead",
       "center": [
-        0,
+        0.0,
         -1.8,
         -65.205
       ],
@@ -26800,7 +26800,7 @@
       "id": "citadel-forward-lower",
       "name": "Forward lower bulkhead",
       "center": [
-        0,
+        0.0,
         -7.75,
         -65.205
       ],
@@ -26846,7 +26846,7 @@
       "id": "citadel-after",
       "name": "After armoured bulkhead",
       "center": [
-        0,
+        0.0,
         -1.8,
         69.595
       ],
@@ -26892,7 +26892,7 @@
       "id": "citadel-after-lower",
       "name": "After lower bulkhead",
       "center": [
-        0,
+        0.0,
         -7.75,
         69.595
       ],
@@ -27186,12 +27186,12 @@
             -53.7258
           ],
           [
-            0,
+            0.0,
             2.4,
             -53.551
           ],
           [
-            0,
+            0.0,
             6.015,
             -53.551
           ],
@@ -27227,7 +27227,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             2.4,
             -53.551
           ],
@@ -27242,7 +27242,7 @@
             -53.7258
           ],
           [
-            0,
+            0.0,
             6.015,
             -53.551
           ]
@@ -27738,12 +27738,12 @@
             -63.6362
           ],
           [
-            0,
+            -0.0,
             2.4,
             -63.811
           ],
           [
-            0,
+            -0.0,
             6.015,
             -63.811
           ],
@@ -27779,7 +27779,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             2.4,
             -63.811
           ],
@@ -27794,7 +27794,7 @@
             -63.6362
           ],
           [
-            0,
+            -0.0,
             6.015,
             -63.811
           ]
@@ -28043,7 +28043,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         5.0426,
-        1,
+        1.0,
         -58.01715
       ],
       "size": [
@@ -28089,7 +28089,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         4.69895,
-        1,
+        1.0,
         -56.73465
       ],
       "size": [
@@ -28135,7 +28135,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         4.0351,
-        1,
+        1.0,
         -55.58475
       ],
       "size": [
@@ -28181,7 +28181,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         3.09625,
-        1,
+        1.0,
         -54.6459
       ],
       "size": [
@@ -28227,7 +28227,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         1.94635,
-        1,
+        1.0,
         -53.98205
       ],
       "size": [
@@ -28273,7 +28273,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         0.66385,
-        1,
+        1.0,
         -53.6384
       ],
       "size": [
@@ -28290,12 +28290,12 @@
             -53.7258
           ],
           [
-            0,
+            0.0,
             -0.4,
             -53.551
           ],
           [
-            0,
+            0.0,
             2.4,
             -53.551
           ],
@@ -28319,7 +28319,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -0.66385,
-        1,
+        1.0,
         -53.6384
       ],
       "size": [
@@ -28331,7 +28331,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             -0.4,
             -53.551
           ],
@@ -28346,7 +28346,7 @@
             -53.7258
           ],
           [
-            0,
+            0.0,
             2.4,
             -53.551
           ]
@@ -28365,7 +28365,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -1.94635,
-        1,
+        1.0,
         -53.98205
       ],
       "size": [
@@ -28411,7 +28411,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -3.09625,
-        1,
+        1.0,
         -54.6459
       ],
       "size": [
@@ -28457,7 +28457,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -4.0351,
-        1,
+        1.0,
         -55.58475
       ],
       "size": [
@@ -28503,7 +28503,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -4.69895,
-        1,
+        1.0,
         -56.73465
       ],
       "size": [
@@ -28549,7 +28549,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -5.0426,
-        1,
+        1.0,
         -58.01715
       ],
       "size": [
@@ -28595,7 +28595,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -5.0426,
-        1,
+        1.0,
         -59.34485
       ],
       "size": [
@@ -28641,7 +28641,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -4.69895,
-        1,
+        1.0,
         -60.62735
       ],
       "size": [
@@ -28687,7 +28687,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -4.0351,
-        1,
+        1.0,
         -61.77725
       ],
       "size": [
@@ -28733,7 +28733,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -3.09625,
-        1,
+        1.0,
         -62.7161
       ],
       "size": [
@@ -28779,7 +28779,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -1.94635,
-        1,
+        1.0,
         -63.37995
       ],
       "size": [
@@ -28825,7 +28825,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         -0.66385,
-        1,
+        1.0,
         -63.7236
       ],
       "size": [
@@ -28842,12 +28842,12 @@
             -63.6362
           ],
           [
-            0,
+            -0.0,
             -0.4,
             -63.811
           ],
           [
-            0,
+            -0.0,
             2.4,
             -63.811
           ],
@@ -28871,7 +28871,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         0.66385,
-        1,
+        1.0,
         -63.7236
       ],
       "size": [
@@ -28883,7 +28883,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             -0.4,
             -63.811
           ],
@@ -28898,7 +28898,7 @@
             -63.6362
           ],
           [
-            0,
+            -0.0,
             2.4,
             -63.811
           ]
@@ -28917,7 +28917,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         1.94635,
-        1,
+        1.0,
         -63.37995
       ],
       "size": [
@@ -28963,7 +28963,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         3.09625,
-        1,
+        1.0,
         -62.7161
       ],
       "size": [
@@ -29009,7 +29009,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         4.0351,
-        1,
+        1.0,
         -61.77725
       ],
       "size": [
@@ -29055,7 +29055,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         4.69895,
-        1,
+        1.0,
         -60.62735
       ],
       "size": [
@@ -29101,7 +29101,7 @@
       "name": "Turret 1 12-inch lower barbette",
       "center": [
         5.0426,
-        1,
+        1.0,
         -59.34485
       ],
       "size": [
@@ -29394,12 +29394,12 @@
             -38.0348
           ],
           [
-            0,
+            0.0,
             2.4,
             -37.86
           ],
           [
-            0,
+            0.0,
             8.81,
             -37.86
           ],
@@ -29435,7 +29435,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             2.4,
             -37.86
           ],
@@ -29450,7 +29450,7 @@
             -38.0348
           ],
           [
-            0,
+            0.0,
             8.81,
             -37.86
           ]
@@ -29946,12 +29946,12 @@
             -47.9452
           ],
           [
-            0,
+            -0.0,
             2.4,
             -48.12
           ],
           [
-            0,
+            -0.0,
             8.81,
             -48.12
           ],
@@ -29987,7 +29987,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             2.4,
             -48.12
           ],
@@ -30002,7 +30002,7 @@
             -47.9452
           ],
           [
-            0,
+            -0.0,
             8.81,
             -48.12
           ]
@@ -30251,7 +30251,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         5.0426,
-        1,
+        1.0,
         -42.32615
       ],
       "size": [
@@ -30297,7 +30297,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         4.69895,
-        1,
+        1.0,
         -41.04365
       ],
       "size": [
@@ -30343,7 +30343,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         4.0351,
-        1,
+        1.0,
         -39.89375
       ],
       "size": [
@@ -30389,7 +30389,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         3.09625,
-        1,
+        1.0,
         -38.9549
       ],
       "size": [
@@ -30435,7 +30435,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         1.94635,
-        1,
+        1.0,
         -38.29105
       ],
       "size": [
@@ -30481,7 +30481,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         0.66385,
-        1,
+        1.0,
         -37.9474
       ],
       "size": [
@@ -30498,12 +30498,12 @@
             -38.0348
           ],
           [
-            0,
+            0.0,
             -0.4,
             -37.86
           ],
           [
-            0,
+            0.0,
             2.4,
             -37.86
           ],
@@ -30527,7 +30527,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -0.66385,
-        1,
+        1.0,
         -37.9474
       ],
       "size": [
@@ -30539,7 +30539,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             -0.4,
             -37.86
           ],
@@ -30554,7 +30554,7 @@
             -38.0348
           ],
           [
-            0,
+            0.0,
             2.4,
             -37.86
           ]
@@ -30573,7 +30573,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -1.94635,
-        1,
+        1.0,
         -38.29105
       ],
       "size": [
@@ -30619,7 +30619,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -3.09625,
-        1,
+        1.0,
         -38.9549
       ],
       "size": [
@@ -30665,7 +30665,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -4.0351,
-        1,
+        1.0,
         -39.89375
       ],
       "size": [
@@ -30711,7 +30711,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -4.69895,
-        1,
+        1.0,
         -41.04365
       ],
       "size": [
@@ -30757,7 +30757,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -5.0426,
-        1,
+        1.0,
         -42.32615
       ],
       "size": [
@@ -30803,7 +30803,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -5.0426,
-        1,
+        1.0,
         -43.65385
       ],
       "size": [
@@ -30849,7 +30849,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -4.69895,
-        1,
+        1.0,
         -44.93635
       ],
       "size": [
@@ -30895,7 +30895,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -4.0351,
-        1,
+        1.0,
         -46.08625
       ],
       "size": [
@@ -30941,7 +30941,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -3.09625,
-        1,
+        1.0,
         -47.0251
       ],
       "size": [
@@ -30987,7 +30987,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -1.94635,
-        1,
+        1.0,
         -47.68895
       ],
       "size": [
@@ -31033,7 +31033,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         -0.66385,
-        1,
+        1.0,
         -48.0326
       ],
       "size": [
@@ -31050,12 +31050,12 @@
             -47.9452
           ],
           [
-            0,
+            -0.0,
             -0.4,
             -48.12
           ],
           [
-            0,
+            -0.0,
             2.4,
             -48.12
           ],
@@ -31079,7 +31079,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         0.66385,
-        1,
+        1.0,
         -48.0326
       ],
       "size": [
@@ -31091,7 +31091,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             -0.4,
             -48.12
           ],
@@ -31106,7 +31106,7 @@
             -47.9452
           ],
           [
-            0,
+            -0.0,
             2.4,
             -48.12
           ]
@@ -31125,7 +31125,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         1.94635,
-        1,
+        1.0,
         -47.68895
       ],
       "size": [
@@ -31171,7 +31171,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         3.09625,
-        1,
+        1.0,
         -47.0251
       ],
       "size": [
@@ -31217,7 +31217,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         4.0351,
-        1,
+        1.0,
         -46.08625
       ],
       "size": [
@@ -31263,7 +31263,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         4.69895,
-        1,
+        1.0,
         -44.93635
       ],
       "size": [
@@ -31309,7 +31309,7 @@
       "name": "Turret 2 12-inch lower barbette",
       "center": [
         5.0426,
-        1,
+        1.0,
         -43.65385
       ],
       "size": [
@@ -31602,12 +31602,12 @@
             68.2342
           ],
           [
-            0,
+            0.0,
             2.4,
             68.409
           ],
           [
-            0,
+            0.0,
             5.762,
             68.409
           ],
@@ -31643,7 +31643,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             2.4,
             68.409
           ],
@@ -31658,7 +31658,7 @@
             68.2342
           ],
           [
-            0,
+            0.0,
             5.762,
             68.409
           ]
@@ -32154,12 +32154,12 @@
             58.3238
           ],
           [
-            0,
+            -0.0,
             2.4,
             58.149
           ],
           [
-            0,
+            -0.0,
             5.762,
             58.149
           ],
@@ -32195,7 +32195,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             2.4,
             58.149
           ],
@@ -32210,7 +32210,7 @@
             58.3238
           ],
           [
-            0,
+            -0.0,
             5.762,
             58.149
           ]
@@ -32459,7 +32459,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         5.0426,
-        1,
+        1.0,
         63.94285
       ],
       "size": [
@@ -32505,7 +32505,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         4.69895,
-        1,
+        1.0,
         65.22535
       ],
       "size": [
@@ -32551,7 +32551,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         4.0351,
-        1,
+        1.0,
         66.37525
       ],
       "size": [
@@ -32597,7 +32597,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         3.09625,
-        1,
+        1.0,
         67.3141
       ],
       "size": [
@@ -32643,7 +32643,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         1.94635,
-        1,
+        1.0,
         67.97795
       ],
       "size": [
@@ -32689,7 +32689,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         0.66385,
-        1,
+        1.0,
         68.3216
       ],
       "size": [
@@ -32706,12 +32706,12 @@
             68.2342
           ],
           [
-            0,
+            0.0,
             -0.4,
             68.409
           ],
           [
-            0,
+            0.0,
             2.4,
             68.409
           ],
@@ -32735,7 +32735,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -0.66385,
-        1,
+        1.0,
         68.3216
       ],
       "size": [
@@ -32747,7 +32747,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             -0.4,
             68.409
           ],
@@ -32762,7 +32762,7 @@
             68.2342
           ],
           [
-            0,
+            0.0,
             2.4,
             68.409
           ]
@@ -32781,7 +32781,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -1.94635,
-        1,
+        1.0,
         67.97795
       ],
       "size": [
@@ -32827,7 +32827,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -3.09625,
-        1,
+        1.0,
         67.3141
       ],
       "size": [
@@ -32873,7 +32873,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -4.0351,
-        1,
+        1.0,
         66.37525
       ],
       "size": [
@@ -32919,7 +32919,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -4.69895,
-        1,
+        1.0,
         65.22535
       ],
       "size": [
@@ -32965,7 +32965,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -5.0426,
-        1,
+        1.0,
         63.94285
       ],
       "size": [
@@ -33011,7 +33011,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -5.0426,
-        1,
+        1.0,
         62.61515
       ],
       "size": [
@@ -33057,7 +33057,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -4.69895,
-        1,
+        1.0,
         61.33265
       ],
       "size": [
@@ -33103,7 +33103,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -4.0351,
-        1,
+        1.0,
         60.18275
       ],
       "size": [
@@ -33149,7 +33149,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -3.09625,
-        1,
+        1.0,
         59.2439
       ],
       "size": [
@@ -33195,7 +33195,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -1.94635,
-        1,
+        1.0,
         58.58005
       ],
       "size": [
@@ -33241,7 +33241,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         -0.66385,
-        1,
+        1.0,
         58.2364
       ],
       "size": [
@@ -33258,12 +33258,12 @@
             58.3238
           ],
           [
-            0,
+            -0.0,
             -0.4,
             58.149
           ],
           [
-            0,
+            -0.0,
             2.4,
             58.149
           ],
@@ -33287,7 +33287,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         0.66385,
-        1,
+        1.0,
         58.2364
       ],
       "size": [
@@ -33299,7 +33299,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             -0.4,
             58.149
           ],
@@ -33314,7 +33314,7 @@
             58.3238
           ],
           [
-            0,
+            -0.0,
             2.4,
             58.149
           ]
@@ -33333,7 +33333,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         1.94635,
-        1,
+        1.0,
         58.58005
       ],
       "size": [
@@ -33379,7 +33379,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         3.09625,
-        1,
+        1.0,
         59.2439
       ],
       "size": [
@@ -33425,7 +33425,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         4.0351,
-        1,
+        1.0,
         60.18275
       ],
       "size": [
@@ -33471,7 +33471,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         4.69895,
-        1,
+        1.0,
         61.33265
       ],
       "size": [
@@ -33517,7 +33517,7 @@
       "name": "Turret 3 12-inch lower barbette",
       "center": [
         5.0426,
-        1,
+        1.0,
         62.61515
       ],
       "size": [
@@ -33654,7 +33654,7 @@
       "id": "ct-front",
       "name": "Conning tower",
       "center": [
-        0,
+        0.0,
         13.85,
         -24.405
       ],
@@ -33700,7 +33700,7 @@
       "id": "ct-back",
       "name": "Conning tower",
       "center": [
-        0,
+        0.0,
         13.85,
         -20.805
       ],
@@ -33746,7 +33746,7 @@
       "id": "ct-roof",
       "name": "Conning tower",
       "center": [
-        0,
+        0.0,
         14.9,
         -22.605
       ],
@@ -33884,7 +33884,7 @@
       "id": "steering-forward",
       "name": "Steering-gear protection",
       "center": [
-        0,
+        0.0,
         -1.25,
         98.695
       ],
@@ -33930,7 +33930,7 @@
       "id": "steering-after",
       "name": "Steering-gear protection",
       "center": [
-        0,
+        0.0,
         -1.25,
         111.595
       ],
@@ -33976,7 +33976,7 @@
       "id": "steering-roof",
       "name": "Steering-gear protection",
       "center": [
-        0,
+        0.0,
         -0.1,
         105.145
       ],
@@ -34334,7 +34334,7 @@
     },
     {
       "id": "flood-strip-port-1-2",
-      "name": "Port outer space 2.3 · estimated",
+      "name": "Port outer space 2.3 \u00b7 estimated",
       "center": [
         -4.423209792494775,
         1.5,
@@ -34360,7 +34360,7 @@
     },
     {
       "id": "flood-strip-starboard-1-2",
-      "name": "Starboard outer space 2.3 · estimated",
+      "name": "Starboard outer space 2.3 \u00b7 estimated",
       "center": [
         4.423209792494775,
         1.5,
@@ -34386,7 +34386,7 @@
     },
     {
       "id": "flood-strip-port-2-1",
-      "name": "Port outer space 3.2 · estimated",
+      "name": "Port outer space 3.2 \u00b7 estimated",
       "center": [
         -10.459177785551548,
         -1.5,
@@ -34412,7 +34412,7 @@
     },
     {
       "id": "flood-strip-starboard-2-1",
-      "name": "Starboard outer space 3.2 · estimated",
+      "name": "Starboard outer space 3.2 \u00b7 estimated",
       "center": [
         10.459177785551548,
         -1.5,
@@ -34438,7 +34438,7 @@
     },
     {
       "id": "flood-strip-port-2-2",
-      "name": "Port outer space 3.3 · estimated",
+      "name": "Port outer space 3.3 \u00b7 estimated",
       "center": [
         -7.829007806706429,
         1.5,
@@ -34464,7 +34464,7 @@
     },
     {
       "id": "flood-strip-starboard-2-2",
-      "name": "Starboard outer space 3.3 · estimated",
+      "name": "Starboard outer space 3.3 \u00b7 estimated",
       "center": [
         7.829007806706429,
         1.5,
@@ -34490,7 +34490,7 @@
     },
     {
       "id": "flood-strip-port-3-0",
-      "name": "Port outer space 4.1 · estimated",
+      "name": "Port outer space 4.1 \u00b7 estimated",
       "center": [
         -10.804771111226081,
         -4.5,
@@ -34516,7 +34516,7 @@
     },
     {
       "id": "flood-strip-starboard-3-0",
-      "name": "Starboard outer space 4.1 · estimated",
+      "name": "Starboard outer space 4.1 \u00b7 estimated",
       "center": [
         10.804771111226081,
         -4.5,
@@ -34542,7 +34542,7 @@
     },
     {
       "id": "flood-strip-port-3-1",
-      "name": "Port outer space 4.2 · estimated",
+      "name": "Port outer space 4.2 \u00b7 estimated",
       "center": [
         -11.357654430007937,
         -1.5,
@@ -34568,7 +34568,7 @@
     },
     {
       "id": "flood-strip-starboard-3-1",
-      "name": "Starboard outer space 4.2 · estimated",
+      "name": "Starboard outer space 4.2 \u00b7 estimated",
       "center": [
         11.357654430007937,
         -1.5,
@@ -34594,7 +34594,7 @@
     },
     {
       "id": "flood-strip-port-3-2",
-      "name": "Port outer space 4.3 · estimated",
+      "name": "Port outer space 4.3 \u00b7 estimated",
       "center": [
         -8.725884506583213,
         1.5,
@@ -34620,7 +34620,7 @@
     },
     {
       "id": "flood-strip-starboard-3-2",
-      "name": "Starboard outer space 4.3 · estimated",
+      "name": "Starboard outer space 4.3 \u00b7 estimated",
       "center": [
         8.725884506583213,
         1.5,
@@ -34646,7 +34646,7 @@
     },
     {
       "id": "flood-strip-port-4-1",
-      "name": "Port outer space 5.2 · estimated",
+      "name": "Port outer space 5.2 \u00b7 estimated",
       "center": [
         -8.15516387013197,
         -1.5,
@@ -34672,7 +34672,7 @@
     },
     {
       "id": "flood-strip-starboard-4-1",
-      "name": "Starboard outer space 5.2 · estimated",
+      "name": "Starboard outer space 5.2 \u00b7 estimated",
       "center": [
         8.15516387013197,
         -1.5,
@@ -34698,7 +34698,7 @@
     },
     {
       "id": "flood-strip-port-4-2",
-      "name": "Port outer space 5.3 · estimated",
+      "name": "Port outer space 5.3 \u00b7 estimated",
       "center": [
         -10.39603228650093,
         1.5,
@@ -34724,7 +34724,7 @@
     },
     {
       "id": "flood-strip-starboard-4-2",
-      "name": "Starboard outer space 5.3 · estimated",
+      "name": "Starboard outer space 5.3 \u00b7 estimated",
       "center": [
         10.39603228650093,
         1.5,
@@ -34750,7 +34750,7 @@
     },
     {
       "id": "flood-strip-port-5-2",
-      "name": "Port outer space 6.3 · estimated",
+      "name": "Port outer space 6.3 \u00b7 estimated",
       "center": [
         -5.200678558254242,
         1.5,
@@ -34776,7 +34776,7 @@
     },
     {
       "id": "flood-strip-starboard-5-2",
-      "name": "Starboard outer space 6.3 · estimated",
+      "name": "Starboard outer space 6.3 \u00b7 estimated",
       "center": [
         5.200678558254242,
         1.5,
@@ -34802,7 +34802,7 @@
     },
     {
       "id": "flood-end-bow-0",
-      "name": "Bow end space 1 · estimated",
+      "name": "Bow end space 1 \u00b7 estimated",
       "center": [
         0,
         -5.25,
@@ -34828,7 +34828,7 @@
     },
     {
       "id": "flood-end-bow-1",
-      "name": "Bow end space 2 · estimated",
+      "name": "Bow end space 2 \u00b7 estimated",
       "center": [
         0,
         -3.75,
@@ -34854,7 +34854,7 @@
     },
     {
       "id": "flood-end-bow-2",
-      "name": "Bow end space 3 · estimated",
+      "name": "Bow end space 3 \u00b7 estimated",
       "center": [
         0,
         -2.25,
@@ -34880,7 +34880,7 @@
     },
     {
       "id": "flood-end-bow-3",
-      "name": "Bow end space 4 · estimated",
+      "name": "Bow end space 4 \u00b7 estimated",
       "center": [
         0,
         -0.75,
@@ -34906,7 +34906,7 @@
     },
     {
       "id": "flood-end-bow-4",
-      "name": "Bow end space 5 · estimated",
+      "name": "Bow end space 5 \u00b7 estimated",
       "center": [
         0,
         0.75,
@@ -34932,7 +34932,7 @@
     },
     {
       "id": "flood-end-bow-5",
-      "name": "Bow end space 6 · estimated",
+      "name": "Bow end space 6 \u00b7 estimated",
       "center": [
         0,
         2.25,
@@ -34958,7 +34958,7 @@
     },
     {
       "id": "flood-end-stern-0",
-      "name": "Stern end space 1 · estimated",
+      "name": "Stern end space 1 \u00b7 estimated",
       "center": [
         0,
         -5.25,
@@ -34984,7 +34984,7 @@
     },
     {
       "id": "flood-end-stern-1",
-      "name": "Stern end space 2 · estimated",
+      "name": "Stern end space 2 \u00b7 estimated",
       "center": [
         0,
         -3.75,
@@ -35010,7 +35010,7 @@
     },
     {
       "id": "flood-end-stern-2",
-      "name": "Stern end space 3 · estimated",
+      "name": "Stern end space 3 \u00b7 estimated",
       "center": [
         0,
         -2.25,
@@ -35036,7 +35036,7 @@
     },
     {
       "id": "flood-end-stern-3",
-      "name": "Stern end space 4 · estimated",
+      "name": "Stern end space 4 \u00b7 estimated",
       "center": [
         0,
         -0.75,
@@ -35062,7 +35062,7 @@
     },
     {
       "id": "flood-end-stern-4",
-      "name": "Stern end space 5 · estimated",
+      "name": "Stern end space 5 \u00b7 estimated",
       "center": [
         0,
         0.75,
@@ -35088,7 +35088,7 @@
     },
     {
       "id": "flood-end-stern-5",
-      "name": "Stern end space 6 · estimated",
+      "name": "Stern end space 6 \u00b7 estimated",
       "center": [
         0,
         2.25,
@@ -35114,7 +35114,7 @@
     },
     {
       "id": "reserve-cell-0-0-0",
-      "name": "Port reserve space 1 · estimated",
+      "name": "Port reserve space 1 \u00b7 estimated",
       "center": [
         -4.272125,
         -0.5994999999999999,
@@ -36774,7 +36774,7 @@
     },
     {
       "id": "reserve-cell-0-1-0",
-      "name": "Starboard reserve space 1 · estimated",
+      "name": "Starboard reserve space 1 \u00b7 estimated",
       "center": [
         4.272125,
         -0.5994999999999999,
@@ -38434,7 +38434,7 @@
     },
     {
       "id": "reserve-cell-1-0-0",
-      "name": "Port reserve space 2 · estimated",
+      "name": "Port reserve space 2 \u00b7 estimated",
       "center": [
         -6.4081874999999995,
         -2.1414166649999995,
@@ -40454,7 +40454,7 @@
     },
     {
       "id": "reserve-cell-1-1-0",
-      "name": "Starboard reserve space 2 · estimated",
+      "name": "Starboard reserve space 2 \u00b7 estimated",
       "center": [
         6.4081874999999995,
         -2.1414166649999995,
@@ -42474,7 +42474,7 @@
     },
     {
       "id": "reserve-cell-2-0-0",
-      "name": "Port reserve space 3 · estimated",
+      "name": "Port reserve space 3 \u00b7 estimated",
       "center": [
         -6.4081874999999995,
         -2.526895830000001,
@@ -44446,7 +44446,7 @@
     },
     {
       "id": "reserve-cell-2-1-0",
-      "name": "Starboard reserve space 3 · estimated",
+      "name": "Starboard reserve space 3 \u00b7 estimated",
       "center": [
         6.4081874999999995,
         -2.526895830000001,
@@ -46418,7 +46418,7 @@
     },
     {
       "id": "reserve-cell-3-0-0",
-      "name": "Port reserve space 4 · estimated",
+      "name": "Port reserve space 4 \u00b7 estimated",
       "center": [
         -6.408187497499999,
         -2.1414166649999995,
@@ -49038,7 +49038,7 @@
     },
     {
       "id": "reserve-cell-3-1-0",
-      "name": "Starboard reserve space 4 · estimated",
+      "name": "Starboard reserve space 4 \u00b7 estimated",
       "center": [
         6.408187497499999,
         -2.1414166649999995,
@@ -54435,7 +54435,7 @@
     {
       "id": "deckhouse-014-1",
       "center": [
-        0,
+        0.0,
         6.035,
         -43.942
       ],
@@ -54474,7 +54474,7 @@
     {
       "id": "deckhouse-014-4",
       "center": [
-        0,
+        0.0,
         6.035,
         -36.014
       ],
@@ -54487,7 +54487,7 @@
     {
       "id": "deckhouse-014-5",
       "center": [
-        0,
+        0.0,
         6.035,
         -33.372
       ],
@@ -54500,7 +54500,7 @@
     {
       "id": "deckhouse-014-6",
       "center": [
-        0,
+        0.0,
         6.035,
         -30.729
       ],
@@ -54513,7 +54513,7 @@
     {
       "id": "deckhouse-014-7",
       "center": [
-        0,
+        0.0,
         6.035,
         -28.086
       ],
@@ -54552,7 +54552,7 @@
     {
       "id": "deckhouse-015-2",
       "center": [
-        0,
+        0.0,
         5.912,
         -35.351
       ],
@@ -54565,7 +54565,7 @@
     {
       "id": "deckhouse-015-3",
       "center": [
-        0,
+        0.0,
         5.912,
         -32.386
       ],
@@ -54578,7 +54578,7 @@
     {
       "id": "deckhouse-015-4",
       "center": [
-        0,
+        0.0,
         5.912,
         -29.42
       ],
@@ -54591,7 +54591,7 @@
     {
       "id": "deckhouse-015-5",
       "center": [
-        0,
+        0.0,
         5.912,
         -26.455
       ],
@@ -54604,7 +54604,7 @@
     {
       "id": "deckhouse-015-6",
       "center": [
-        0,
+        0.0,
         5.912,
         -23.489
       ],
@@ -54617,7 +54617,7 @@
     {
       "id": "deckhouse-015-7",
       "center": [
-        0,
+        0.0,
         5.912,
         -20.524
       ],
@@ -54630,7 +54630,7 @@
     {
       "id": "deckhouse-015-8",
       "center": [
-        0,
+        0.0,
         5.912,
         -17.558
       ],
@@ -54643,7 +54643,7 @@
     {
       "id": "deckhouse-015-9",
       "center": [
-        0,
+        0.0,
         5.912,
         -14.593
       ],
@@ -54656,7 +54656,7 @@
     {
       "id": "deckhouse-015-10",
       "center": [
-        0,
+        0.0,
         5.912,
         -11.627
       ],
@@ -54669,7 +54669,7 @@
     {
       "id": "deckhouse-015-11",
       "center": [
-        0,
+        0.0,
         5.912,
         -8.662
       ],
@@ -54682,7 +54682,7 @@
     {
       "id": "deckhouse-015-12",
       "center": [
-        0,
+        0.0,
         5.912,
         -5.696
       ],
@@ -54695,7 +54695,7 @@
     {
       "id": "deckhouse-015-13",
       "center": [
-        0,
+        0.0,
         5.912,
         -2.731
       ],
@@ -54709,25 +54709,25 @@
       "id": "deckhouse-030-0",
       "center": [
         0.276,
-        13.846,
+        13.823,
         -23.48
       ],
       "size": [
         1.364,
-        2.14,
+        2.094,
         1.617
       ]
     },
     {
       "id": "deckhouse-030-1",
       "center": [
-        0,
-        13.846,
+        0.0,
+        13.823,
         -21.663
       ],
       "size": [
         3.808,
-        2.14,
+        2.094,
         1.617
       ]
     },
@@ -54773,7 +54773,7 @@
     {
       "id": "deckhouse-031-3",
       "center": [
-        0,
+        0.0,
         11.388,
         -15.908
       ],
@@ -54877,7 +54877,7 @@
     {
       "id": "deckhouse-033-7",
       "center": [
-        0,
+        0.0,
         11.593,
         -3.976
       ],
@@ -54942,7 +54942,7 @@
     {
       "id": "deckhouse-037-0",
       "center": [
-        0,
+        0.0,
         15.978,
         -18.175
       ],
@@ -54955,7 +54955,7 @@
     {
       "id": "deckhouse-037-1",
       "center": [
-        0,
+        0.0,
         15.978,
         -15.566
       ],
@@ -54968,7 +54968,7 @@
     {
       "id": "deckhouse-037-2",
       "center": [
-        0,
+        0.0,
         15.978,
         -12.958
       ],
@@ -54981,7 +54981,7 @@
     {
       "id": "deckhouse-040-0",
       "center": [
-        0,
+        0.0,
         8.622,
         -25.347
       ],
@@ -54994,7 +54994,7 @@
     {
       "id": "deckhouse-040-1",
       "center": [
-        0,
+        0.0,
         8.622,
         -22.512
       ],
@@ -55007,7 +55007,7 @@
     {
       "id": "deckhouse-040-2",
       "center": [
-        0,
+        0.0,
         8.622,
         -19.677
       ],
@@ -55020,7 +55020,7 @@
     {
       "id": "deckhouse-040-3",
       "center": [
-        0,
+        0.0,
         8.622,
         -16.842
       ],
@@ -55033,7 +55033,7 @@
     {
       "id": "deckhouse-040-4",
       "center": [
-        0,
+        0.0,
         8.622,
         -14.007
       ],
@@ -55046,7 +55046,7 @@
     {
       "id": "deckhouse-040-5",
       "center": [
-        0,
+        0.0,
         8.622,
         -11.171
       ],
@@ -55059,7 +55059,7 @@
     {
       "id": "deckhouse-040-6",
       "center": [
-        0,
+        0.0,
         8.622,
         -8.336
       ],
@@ -55072,7 +55072,7 @@
     {
       "id": "deckhouse-040-7",
       "center": [
-        0,
+        0.0,
         8.622,
         -5.501
       ],
@@ -55085,7 +55085,7 @@
     {
       "id": "deckhouse-040-8",
       "center": [
-        0,
+        0.0,
         8.622,
         -2.666
       ],
@@ -55098,7 +55098,7 @@
     {
       "id": "deckhouse-043-0",
       "center": [
-        0,
+        0.0,
         13.861,
         -18.616
       ],
@@ -55202,7 +55202,7 @@
     {
       "id": "deckhouse-053-0",
       "center": [
-        0,
+        0.0,
         7.411,
         -13.352
       ],
@@ -55215,7 +55215,7 @@
     {
       "id": "deckhouse-053-1",
       "center": [
-        0,
+        0.0,
         7.411,
         -10.663
       ],
@@ -55228,7 +55228,7 @@
     {
       "id": "deckhouse-053-2",
       "center": [
-        0,
+        0.0,
         7.411,
         -7.973
       ],
@@ -55241,7 +55241,7 @@
     {
       "id": "deckhouse-053-3",
       "center": [
-        0,
+        0.0,
         7.411,
         -5.283
       ],
@@ -55254,7 +55254,7 @@
     {
       "id": "deckhouse-053-4",
       "center": [
-        0,
+        0.0,
         7.411,
         -2.594
       ],
@@ -55267,7 +55267,7 @@
     {
       "id": "deckhouse-054-0",
       "center": [
-        0,
+        0.0,
         30.542,
         -6.477
       ],
@@ -55280,7 +55280,7 @@
     {
       "id": "deckhouse-054-1",
       "center": [
-        0,
+        0.0,
         30.542,
         -4.945
       ],
@@ -55319,7 +55319,7 @@
     {
       "id": "deckhouse-055-2",
       "center": [
-        0,
+        0.0,
         16.172,
         -3.641
       ],
@@ -55332,7 +55332,7 @@
     {
       "id": "deckhouse-056-0",
       "center": [
-        0,
+        0.0,
         26.451,
         -6.465
       ],
@@ -55345,7 +55345,7 @@
     {
       "id": "deckhouse-056-1",
       "center": [
-        0,
+        0.0,
         26.451,
         -3.899
       ],
@@ -55371,7 +55371,7 @@
     {
       "id": "deckhouse-057-1",
       "center": [
-        0,
+        0.0,
         23.055,
         -3.956
       ],
@@ -55382,41 +55382,15 @@
       ]
     },
     {
-      "id": "deckhouse-058-0",
-      "center": [
-        0,
-        26.451,
-        -6.254
-      ],
-      "size": [
-        3.13,
-        4.604,
-        2.225
-      ]
-    },
-    {
-      "id": "deckhouse-058-1",
-      "center": [
-        0,
-        26.451,
-        -3.829
-      ],
-      "size": [
-        3.126,
-        4.604,
-        2.225
-      ]
-    },
-    {
       "id": "deckhouse-065-0",
       "center": [
-        0,
-        23.071,
+        0.0,
+        23.011,
         -1.367
       ],
       "size": [
         2.604,
-        2.157,
+        2.038,
         2.32
       ]
     },
@@ -55473,87 +55447,9 @@
       ]
     },
     {
-      "id": "deckhouse-069-0",
-      "center": [
-        -11.782,
-        6.894,
-        1.418
-      ],
-      "size": [
-        3.103,
-        4.966,
-        1.612
-      ]
-    },
-    {
-      "id": "deckhouse-069-1",
-      "center": [
-        -11.766,
-        6.894,
-        3.231
-      ],
-      "size": [
-        3.102,
-        4.966,
-        1.613
-      ]
-    },
-    {
-      "id": "deckhouse-070-0",
-      "center": [
-        11.751,
-        6.894,
-        1.418
-      ],
-      "size": [
-        3.073,
-        4.966,
-        1.612
-      ]
-    },
-    {
-      "id": "deckhouse-070-1",
-      "center": [
-        11.759,
-        6.894,
-        3.231
-      ],
-      "size": [
-        3.058,
-        4.966,
-        1.613
-      ]
-    },
-    {
-      "id": "deckhouse-084-0",
-      "center": [
-        -3.484,
-        14.973,
-        19.084
-      ],
-      "size": [
-        2.035,
-        11.829,
-        2.651
-      ]
-    },
-    {
-      "id": "deckhouse-085-0",
-      "center": [
-        3.484,
-        14.973,
-        19.084
-      ],
-      "size": [
-        2.035,
-        11.829,
-        2.651
-      ]
-    },
-    {
       "id": "deckhouse-092-0",
       "center": [
-        0,
+        0.0,
         10.328,
         22.316
       ],
@@ -55566,7 +55462,7 @@
     {
       "id": "deckhouse-092-1",
       "center": [
-        0,
+        0.0,
         10.328,
         24.12
       ],
@@ -55579,7 +55475,7 @@
     {
       "id": "deckhouse-094-0",
       "center": [
-        0,
+        0.0,
         6.742,
         13.567
       ],
@@ -55592,7 +55488,7 @@
     {
       "id": "deckhouse-094-1",
       "center": [
-        0,
+        0.0,
         6.742,
         16.54
       ],
@@ -55618,7 +55514,7 @@
     {
       "id": "deckhouse-094-3",
       "center": [
-        0,
+        -0.0,
         6.742,
         22.486
       ],
@@ -55631,7 +55527,7 @@
     {
       "id": "deckhouse-094-4",
       "center": [
-        0,
+        0.0,
         6.742,
         25.459
       ],
@@ -55644,7 +55540,7 @@
     {
       "id": "deckhouse-094-5",
       "center": [
-        0,
+        0.0,
         6.742,
         28.431
       ],
@@ -55657,7 +55553,7 @@
     {
       "id": "deckhouse-094-6",
       "center": [
-        0,
+        0.0,
         6.742,
         31.404
       ],
@@ -55670,7 +55566,7 @@
     {
       "id": "deckhouse-094-7",
       "center": [
-        0,
+        0.0,
         6.742,
         34.377
       ],
@@ -55683,7 +55579,7 @@
     {
       "id": "deckhouse-094-8",
       "center": [
-        0,
+        0.0,
         6.742,
         37.35
       ],
@@ -55696,7 +55592,7 @@
     {
       "id": "deckhouse-094-9",
       "center": [
-        0,
+        0.0,
         6.742,
         40.322
       ],
@@ -55709,7 +55605,7 @@
     {
       "id": "deckhouse-094-10",
       "center": [
-        0,
+        0.0,
         6.742,
         43.295
       ],
@@ -55722,7 +55618,7 @@
     {
       "id": "deckhouse-094-11",
       "center": [
-        0,
+        0.0,
         6.742,
         46.268
       ],
@@ -55735,7 +55631,7 @@
     {
       "id": "deckhouse-094-12",
       "center": [
-        0,
+        0.0,
         6.742,
         49.241
       ],
@@ -55748,7 +55644,7 @@
     {
       "id": "deckhouse-094-13",
       "center": [
-        0,
+        0.0,
         6.742,
         52.214
       ],
@@ -55761,52 +55657,52 @@
     {
       "id": "deckhouse-095-0",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         12.851
       ],
       "size": [
         14.36,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-1",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         15.668
       ],
       "size": [
         14.44,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-2",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         18.485
       ],
       "size": [
         14.426,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-3",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         21.302
       ],
       "size": [
         14.426,
-        4.635,
+        2.736,
         2.617
       ]
     },
@@ -55814,12 +55710,12 @@
       "id": "deckhouse-095-4",
       "center": [
         -1.109,
-        6.742,
+        5.792,
         24.119
       ],
       "size": [
         8.229,
-        4.635,
+        2.736,
         2.617
       ]
     },
@@ -55827,12 +55723,12 @@
       "id": "deckhouse-095-5",
       "center": [
         -0.008,
-        6.742,
+        5.792,
         26.937
       ],
       "size": [
         6.027,
-        4.635,
+        2.736,
         2.617
       ]
     },
@@ -55840,123 +55736,123 @@
       "id": "deckhouse-095-6",
       "center": [
         0.307,
-        6.742,
+        5.792,
         29.754
       ],
       "size": [
         4.975,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-7",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         32.571
       ],
       "size": [
         4.362,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-8",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         35.388
       ],
       "size": [
         4.362,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-9",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         38.205
       ],
       "size": [
         4.362,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-10",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         41.023
       ],
       "size": [
         4.362,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-11",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         43.84
       ],
       "size": [
         4.362,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-12",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         46.657
       ],
       "size": [
         4.269,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-13",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         49.474
       ],
       "size": [
         3.917,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-095-14",
       "center": [
-        0,
-        6.742,
+        0.0,
+        5.792,
         52.291
       ],
       "size": [
         3.566,
-        4.635,
+        2.736,
         2.617
       ]
     },
     {
       "id": "deckhouse-096-0",
       "center": [
-        0,
+        0.0,
         10.326,
         27.501
       ],
@@ -55969,7 +55865,7 @@
     {
       "id": "deckhouse-096-1",
       "center": [
-        0,
+        0.0,
         10.326,
         29.35
       ],
@@ -55982,7 +55878,7 @@
     {
       "id": "deckhouse-104-0",
       "center": [
-        0,
+        0.0,
         11.652,
         32.298
       ],
@@ -55995,7 +55891,7 @@
     {
       "id": "deckhouse-104-1",
       "center": [
-        0,
+        0.0,
         11.652,
         33.807
       ],
@@ -56060,7 +55956,7 @@
     {
       "id": "deckhouse-110-0",
       "center": [
-        0,
+        0.0,
         16.029,
         34.406
       ],
@@ -56073,7 +55969,7 @@
     {
       "id": "deckhouse-110-1",
       "center": [
-        0,
+        0.0,
         16.029,
         36.045
       ],
@@ -56084,22 +55980,9 @@
       ]
     },
     {
-      "id": "deckhouse-111-0",
-      "center": [
-        0,
-        16.029,
-        35.713
-      ],
-      "size": [
-        2.88,
-        8.727,
-        2.103
-      ]
-    },
-    {
       "id": "deckhouse-114-0",
       "center": [
-        0,
+        0.0,
         8.043,
         32.84
       ],
@@ -56112,7 +55995,7 @@
     {
       "id": "deckhouse-114-1",
       "center": [
-        0,
+        0.0,
         8.043,
         35.432
       ],
@@ -56125,7 +56008,7 @@
     {
       "id": "deckhouse-114-2",
       "center": [
-        0,
+        0.0,
         8.043,
         38.023
       ],
@@ -56138,7 +56021,7 @@
     {
       "id": "deckhouse-114-3",
       "center": [
-        0,
+        0.0,
         8.043,
         40.615
       ],
@@ -56151,7 +56034,7 @@
     {
       "id": "deckhouse-114-4",
       "center": [
-        0,
+        0.0,
         8.043,
         43.207
       ],
@@ -56165,12 +56048,12 @@
       "id": "deckhouse-115-0",
       "center": [
         3.703,
-        5.754,
+        5.735,
         32.649
       ],
       "size": [
         2.244,
-        2.668,
+        2.63,
         2.251
       ]
     },
@@ -56178,12 +56061,12 @@
       "id": "deckhouse-115-1",
       "center": [
         4.663,
-        5.754,
+        5.735,
         35.1
       ],
       "size": [
         4.165,
-        2.668,
+        2.63,
         2.251
       ]
     },
@@ -56191,12 +56074,12 @@
       "id": "deckhouse-115-2",
       "center": [
         5.072,
-        5.754,
+        5.735,
         37.552
       ],
       "size": [
         4.983,
-        2.668,
+        2.63,
         2.251
       ]
     },
@@ -56204,12 +56087,12 @@
       "id": "deckhouse-115-3",
       "center": [
         6.52,
-        5.754,
+        5.735,
         40.003
       ],
       "size": [
         2.928,
-        2.668,
+        2.63,
         2.251
       ]
     },
@@ -56217,19 +56100,19 @@
       "id": "deckhouse-115-4",
       "center": [
         6.52,
-        5.754,
+        5.735,
         42.454
       ],
       "size": [
         2.928,
-        2.668,
+        2.63,
         2.251
       ]
     },
     {
       "id": "deckhouse-121-0",
       "center": [
-        0,
+        0.0,
         9.264,
         42.459
       ],
@@ -56242,7 +56125,7 @@
     {
       "id": "deckhouse-121-1",
       "center": [
-        0,
+        0.0,
         9.264,
         43.972
       ],
@@ -56255,7 +56138,7 @@
     {
       "id": "deckhouse-122-0",
       "center": [
-        0,
+        0.0,
         12.777,
         42.467
       ],
@@ -56268,7 +56151,7 @@
     {
       "id": "deckhouse-122-1",
       "center": [
-        0,
+        0.0,
         12.777,
         43.975
       ],
@@ -56281,7 +56164,7 @@
     {
       "id": "deckhouse-138-0",
       "center": [
-        0,
+        0.0,
         5.968,
         97.693
       ],
@@ -56294,7 +56177,7 @@
     {
       "id": "deckhouse-138-1",
       "center": [
-        0,
+        0.0,
         5.968,
         99.716
       ],
@@ -56307,7 +56190,7 @@
     {
       "id": "deckhouse-138-2",
       "center": [
-        0,
+        0.0,
         5.968,
         101.74
       ],
@@ -56320,40 +56203,118 @@
     {
       "id": "funnel-0",
       "center": [
-        0,
-        16.85,
+        0.0,
+        17.075,
         15.117
       ],
       "size": [
         4.168,
-        15.5,
+        15.95,
         2.543
       ]
     },
     {
       "id": "funnel-1",
       "center": [
-        0,
-        16.85,
+        0.0,
+        17.075,
         17.86
       ],
       "size": [
         4.195,
-        15.5,
+        15.95,
         2.543
       ]
     },
     {
       "id": "funnel-2",
       "center": [
-        0,
-        16.85,
+        0.0,
+        17.075,
         20.603
       ],
       "size": [
         4.2,
-        15.5,
+        15.95,
         2.543
+      ]
+    },
+    {
+      "id": "deckhouse-115-port-0",
+      "center": [
+        -3.703,
+        5.735,
+        32.649
+      ],
+      "size": [
+        2.244,
+        2.63,
+        2.251
+      ]
+    },
+    {
+      "id": "deckhouse-115-port-1",
+      "center": [
+        -4.663,
+        5.735,
+        35.1
+      ],
+      "size": [
+        4.165,
+        2.63,
+        2.251
+      ]
+    },
+    {
+      "id": "deckhouse-115-port-2",
+      "center": [
+        -5.072,
+        5.735,
+        37.552
+      ],
+      "size": [
+        4.983,
+        2.63,
+        2.251
+      ]
+    },
+    {
+      "id": "deckhouse-115-port-3",
+      "center": [
+        -6.52,
+        5.735,
+        40.003
+      ],
+      "size": [
+        2.928,
+        2.63,
+        2.251
+      ]
+    },
+    {
+      "id": "deckhouse-115-port-4",
+      "center": [
+        -6.52,
+        5.735,
+        42.454
+      ],
+      "size": [
+        2.928,
+        2.63,
+        2.251
+      ]
+    },
+    {
+      "id": "deckhouse-funnel-forward-0",
+      "center": [
+        0.0,
+        10.329,
+        13.535
+      ],
+      "size": [
+        4.3,
+        2.541,
+        2.73
       ]
     }
   ],
@@ -58014,7 +57975,7 @@
         ]
       ],
       "baseY": 15.361,
-      "height": 0.167,
+      "height": 0.139,
       "material": "naval"
     },
     {
@@ -58149,7 +58110,7 @@
         ]
       ],
       "baseY": 12.776,
-      "height": 2.14,
+      "height": 2.094,
       "material": "naval"
     },
     {
@@ -58207,7 +58168,7 @@
         ]
       ],
       "baseY": 4.474,
-      "height": 2.703,
+      "height": 2.576,
       "material": "naval"
     },
     {
@@ -58500,7 +58461,7 @@
           -15.712
         ]
       ],
-      "baseY": 14.866,
+      "baseY": 14.946,
       "height": 0.08,
       "material": "naval"
     },
@@ -58732,7 +58693,7 @@
         ]
       ],
       "baseY": 10.411,
-      "height": 0.752,
+      "height": 0.719,
       "material": "naval"
     },
     {
@@ -58837,7 +58798,7 @@
         ]
       ],
       "baseY": 10.411,
-      "height": 0.752,
+      "height": 0.719,
       "material": "naval"
     },
     {
@@ -58931,7 +58892,7 @@
         ]
       ],
       "baseY": 4.413,
-      "height": 10.503,
+      "height": 6.587,
       "material": "naval"
     },
     {
@@ -58968,7 +58929,7 @@
         ]
       ],
       "baseY": 4.413,
-      "height": 10.503,
+      "height": 6.587,
       "material": "naval"
     },
     {
@@ -59315,7 +59276,7 @@
         ]
       ],
       "baseY": 24.149,
-      "height": 1.851,
+      "height": 1.401,
       "material": "naval"
     },
     {
@@ -59503,7 +59464,353 @@
       ],
       "baseY": 10.411,
       "height": 11.523,
-      "material": "naval"
+      "material": "naval",
+      "surface": {
+        "vertices": [
+          [
+            2.273,
+            10.411,
+            -9.0319
+          ],
+          [
+            2.034,
+            10.411,
+            -9.3539
+          ],
+          [
+            1.64,
+            10.411,
+            -9.4819
+          ],
+          [
+            -1.64,
+            10.411,
+            -9.4819
+          ],
+          [
+            -2.182,
+            10.411,
+            -9.2079
+          ],
+          [
+            -2.314,
+            10.411,
+            -8.8149
+          ],
+          [
+            -2.315,
+            10.411,
+            -3.29
+          ],
+          [
+            -2.037,
+            10.411,
+            -2.745
+          ],
+          [
+            -1.641,
+            10.411,
+            -2.616
+          ],
+          [
+            1.641,
+            10.411,
+            -2.616
+          ],
+          [
+            2.185,
+            10.411,
+            -2.894
+          ],
+          [
+            2.315,
+            10.411,
+            -3.29
+          ],
+          [
+            2.273,
+            21.934,
+            -7.3784
+          ],
+          [
+            2.034,
+            21.934,
+            -7.7004
+          ],
+          [
+            1.64,
+            21.934,
+            -7.8284
+          ],
+          [
+            -1.64,
+            21.934,
+            -7.8284
+          ],
+          [
+            -2.182,
+            21.934,
+            -7.5544
+          ],
+          [
+            -2.314,
+            21.934,
+            -7.1614
+          ],
+          [
+            -2.315,
+            21.934,
+            -3.29
+          ],
+          [
+            -2.037,
+            21.934,
+            -2.745
+          ],
+          [
+            -1.641,
+            21.934,
+            -2.616
+          ],
+          [
+            1.641,
+            21.934,
+            -2.616
+          ],
+          [
+            2.185,
+            21.934,
+            -2.894
+          ],
+          [
+            2.315,
+            21.934,
+            -3.29
+          ]
+        ],
+        "triangles": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            2,
+            3
+          ],
+          [
+            0,
+            3,
+            4
+          ],
+          [
+            0,
+            4,
+            5
+          ],
+          [
+            0,
+            5,
+            6
+          ],
+          [
+            0,
+            6,
+            7
+          ],
+          [
+            0,
+            7,
+            8
+          ],
+          [
+            0,
+            8,
+            9
+          ],
+          [
+            0,
+            9,
+            10
+          ],
+          [
+            0,
+            10,
+            11
+          ],
+          [
+            12,
+            14,
+            13
+          ],
+          [
+            12,
+            15,
+            14
+          ],
+          [
+            12,
+            16,
+            15
+          ],
+          [
+            12,
+            17,
+            16
+          ],
+          [
+            12,
+            18,
+            17
+          ],
+          [
+            12,
+            19,
+            18
+          ],
+          [
+            12,
+            20,
+            19
+          ],
+          [
+            12,
+            21,
+            20
+          ],
+          [
+            12,
+            22,
+            21
+          ],
+          [
+            12,
+            23,
+            22
+          ],
+          [
+            0,
+            1,
+            13
+          ],
+          [
+            0,
+            13,
+            12
+          ],
+          [
+            1,
+            2,
+            14
+          ],
+          [
+            1,
+            14,
+            13
+          ],
+          [
+            2,
+            3,
+            15
+          ],
+          [
+            2,
+            15,
+            14
+          ],
+          [
+            3,
+            4,
+            16
+          ],
+          [
+            3,
+            16,
+            15
+          ],
+          [
+            4,
+            5,
+            17
+          ],
+          [
+            4,
+            17,
+            16
+          ],
+          [
+            5,
+            6,
+            18
+          ],
+          [
+            5,
+            18,
+            17
+          ],
+          [
+            6,
+            7,
+            19
+          ],
+          [
+            6,
+            19,
+            18
+          ],
+          [
+            7,
+            8,
+            20
+          ],
+          [
+            7,
+            20,
+            19
+          ],
+          [
+            8,
+            9,
+            21
+          ],
+          [
+            8,
+            21,
+            20
+          ],
+          [
+            9,
+            10,
+            22
+          ],
+          [
+            9,
+            22,
+            21
+          ],
+          [
+            10,
+            11,
+            23
+          ],
+          [
+            10,
+            23,
+            22
+          ],
+          [
+            11,
+            0,
+            12
+          ],
+          [
+            11,
+            12,
+            23
+          ]
+        ]
+      }
     },
     {
       "id": "deckhouse-056",
@@ -59568,7 +59875,413 @@
       ],
       "baseY": 24.149,
       "height": 4.604,
-      "material": "naval"
+      "material": "naval",
+      "surface": {
+        "vertices": [
+          [
+            -1.505,
+            24.149,
+            -7.477
+          ],
+          [
+            -1.9222,
+            24.149,
+            -7.131
+          ],
+          [
+            -2.086,
+            24.149,
+            -6.615
+          ],
+          [
+            -2.084,
+            24.149,
+            -3.29
+          ],
+          [
+            -1.9527,
+            24.149,
+            -2.894
+          ],
+          [
+            -1.3981,
+            24.149,
+            -2.616
+          ],
+          [
+            1.3981,
+            24.149,
+            -2.616
+          ],
+          [
+            1.8011,
+            24.149,
+            -2.745
+          ],
+          [
+            2.084,
+            24.149,
+            -3.29
+          ],
+          [
+            2.086,
+            24.149,
+            -6.615
+          ],
+          [
+            1.9222,
+            24.149,
+            -7.131
+          ],
+          [
+            1.6291,
+            24.149,
+            -7.415
+          ],
+          [
+            1.2414,
+            24.149,
+            -7.549
+          ],
+          [
+            -1.099,
+            24.149,
+            -7.563
+          ],
+          [
+            -1.2047,
+            28.753,
+            -6.8163
+          ],
+          [
+            -1.5387,
+            28.753,
+            -6.4703
+          ],
+          [
+            -1.6698,
+            28.753,
+            -5.9543
+          ],
+          [
+            -1.6682,
+            28.753,
+            -3.29
+          ],
+          [
+            -1.5631,
+            28.753,
+            -2.894
+          ],
+          [
+            -1.1192,
+            28.753,
+            -2.616
+          ],
+          [
+            1.1192,
+            28.753,
+            -2.616
+          ],
+          [
+            1.4417,
+            28.753,
+            -2.745
+          ],
+          [
+            1.6682,
+            28.753,
+            -3.29
+          ],
+          [
+            1.6698,
+            28.753,
+            -5.9543
+          ],
+          [
+            1.5387,
+            28.753,
+            -6.4703
+          ],
+          [
+            1.3041,
+            28.753,
+            -6.7543
+          ],
+          [
+            0.9937,
+            28.753,
+            -6.8883
+          ],
+          [
+            -0.8797,
+            28.753,
+            -6.9023
+          ]
+        ],
+        "triangles": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            2,
+            3
+          ],
+          [
+            0,
+            3,
+            4
+          ],
+          [
+            0,
+            4,
+            5
+          ],
+          [
+            0,
+            5,
+            6
+          ],
+          [
+            0,
+            6,
+            7
+          ],
+          [
+            0,
+            7,
+            8
+          ],
+          [
+            0,
+            8,
+            9
+          ],
+          [
+            0,
+            9,
+            10
+          ],
+          [
+            0,
+            10,
+            11
+          ],
+          [
+            0,
+            11,
+            12
+          ],
+          [
+            0,
+            12,
+            13
+          ],
+          [
+            14,
+            16,
+            15
+          ],
+          [
+            14,
+            17,
+            16
+          ],
+          [
+            14,
+            18,
+            17
+          ],
+          [
+            14,
+            19,
+            18
+          ],
+          [
+            14,
+            20,
+            19
+          ],
+          [
+            14,
+            21,
+            20
+          ],
+          [
+            14,
+            22,
+            21
+          ],
+          [
+            14,
+            23,
+            22
+          ],
+          [
+            14,
+            24,
+            23
+          ],
+          [
+            14,
+            25,
+            24
+          ],
+          [
+            14,
+            26,
+            25
+          ],
+          [
+            14,
+            27,
+            26
+          ],
+          [
+            0,
+            1,
+            15
+          ],
+          [
+            0,
+            15,
+            14
+          ],
+          [
+            1,
+            2,
+            16
+          ],
+          [
+            1,
+            16,
+            15
+          ],
+          [
+            2,
+            3,
+            17
+          ],
+          [
+            2,
+            17,
+            16
+          ],
+          [
+            3,
+            4,
+            18
+          ],
+          [
+            3,
+            18,
+            17
+          ],
+          [
+            4,
+            5,
+            19
+          ],
+          [
+            4,
+            19,
+            18
+          ],
+          [
+            5,
+            6,
+            20
+          ],
+          [
+            5,
+            20,
+            19
+          ],
+          [
+            6,
+            7,
+            21
+          ],
+          [
+            6,
+            21,
+            20
+          ],
+          [
+            7,
+            8,
+            22
+          ],
+          [
+            7,
+            22,
+            21
+          ],
+          [
+            8,
+            9,
+            23
+          ],
+          [
+            8,
+            23,
+            22
+          ],
+          [
+            9,
+            10,
+            24
+          ],
+          [
+            9,
+            24,
+            23
+          ],
+          [
+            10,
+            11,
+            25
+          ],
+          [
+            10,
+            25,
+            24
+          ],
+          [
+            11,
+            12,
+            26
+          ],
+          [
+            11,
+            26,
+            25
+          ],
+          [
+            12,
+            13,
+            27
+          ],
+          [
+            12,
+            27,
+            26
+          ],
+          [
+            13,
+            0,
+            14
+          ],
+          [
+            13,
+            14,
+            27
+          ]
+        ]
+      }
     },
     {
       "id": "deckhouse-057",
@@ -59625,72 +60338,353 @@
       ],
       "baseY": 21.992,
       "height": 2.126,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-058",
-      "name": "Forward superstructure deckhouse 24.1-28.8 m",
-      "footprint": [
-        [
-          1.58,
-          -6.855
+      "material": "naval",
+      "surface": {
+        "vertices": [
+          [
+            2.232,
+            21.992,
+            -7.411
+          ],
+          [
+            1.969,
+            21.992,
+            -7.747
+          ],
+          [
+            1.564,
+            21.992,
+            -7.875
+          ],
+          [
+            -1.564,
+            21.992,
+            -7.875
+          ],
+          [
+            -2.136,
+            21.992,
+            -7.585
+          ],
+          [
+            -2.278,
+            21.992,
+            -7.178
+          ],
+          [
+            -2.279,
+            21.992,
+            -3.29
+          ],
+          [
+            -2.001,
+            21.992,
+            -2.745
+          ],
+          [
+            -1.605,
+            21.992,
+            -2.616
+          ],
+          [
+            1.605,
+            21.992,
+            -2.616
+          ],
+          [
+            2.15,
+            21.992,
+            -2.894
+          ],
+          [
+            2.279,
+            21.992,
+            -3.29
+          ],
+          [
+            2.0439,
+            24.118,
+            -7.1059
+          ],
+          [
+            1.803,
+            24.118,
+            -7.4419
+          ],
+          [
+            1.4322,
+            24.118,
+            -7.5699
+          ],
+          [
+            -1.4322,
+            24.118,
+            -7.5699
+          ],
+          [
+            -1.9559,
+            24.118,
+            -7.2799
+          ],
+          [
+            -2.086,
+            24.118,
+            -6.8729
+          ],
+          [
+            -2.0869,
+            24.118,
+            -3.29
+          ],
+          [
+            -1.8323,
+            24.118,
+            -2.745
+          ],
+          [
+            -1.4697,
+            24.118,
+            -2.616
+          ],
+          [
+            1.4697,
+            24.118,
+            -2.616
+          ],
+          [
+            1.9688,
+            24.118,
+            -2.894
+          ],
+          [
+            2.0869,
+            24.118,
+            -3.29
+          ]
         ],
-        [
-          1.14,
-          -7.292
-        ],
-        [
-          0.475,
-          -7.466
-        ],
-        [
-          -0.767,
-          -7.436
-        ],
-        [
-          -1.365,
-          -7.121
-        ],
-        [
-          -1.58,
-          -6.855
-        ],
-        [
-          -1.765,
-          -6.202
-        ],
-        [
-          -1.76,
-          -3.29
-        ],
-        [
-          -1.482,
-          -2.745
-        ],
-        [
-          -1.086,
-          -2.616
-        ],
-        [
-          1.086,
-          -2.616
-        ],
-        [
-          1.631,
-          -2.894
-        ],
-        [
-          1.76,
-          -3.29
-        ],
-        [
-          1.765,
-          -6.202
+        "triangles": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            2,
+            3
+          ],
+          [
+            0,
+            3,
+            4
+          ],
+          [
+            0,
+            4,
+            5
+          ],
+          [
+            0,
+            5,
+            6
+          ],
+          [
+            0,
+            6,
+            7
+          ],
+          [
+            0,
+            7,
+            8
+          ],
+          [
+            0,
+            8,
+            9
+          ],
+          [
+            0,
+            9,
+            10
+          ],
+          [
+            0,
+            10,
+            11
+          ],
+          [
+            12,
+            14,
+            13
+          ],
+          [
+            12,
+            15,
+            14
+          ],
+          [
+            12,
+            16,
+            15
+          ],
+          [
+            12,
+            17,
+            16
+          ],
+          [
+            12,
+            18,
+            17
+          ],
+          [
+            12,
+            19,
+            18
+          ],
+          [
+            12,
+            20,
+            19
+          ],
+          [
+            12,
+            21,
+            20
+          ],
+          [
+            12,
+            22,
+            21
+          ],
+          [
+            12,
+            23,
+            22
+          ],
+          [
+            0,
+            1,
+            13
+          ],
+          [
+            0,
+            13,
+            12
+          ],
+          [
+            1,
+            2,
+            14
+          ],
+          [
+            1,
+            14,
+            13
+          ],
+          [
+            2,
+            3,
+            15
+          ],
+          [
+            2,
+            15,
+            14
+          ],
+          [
+            3,
+            4,
+            16
+          ],
+          [
+            3,
+            16,
+            15
+          ],
+          [
+            4,
+            5,
+            17
+          ],
+          [
+            4,
+            17,
+            16
+          ],
+          [
+            5,
+            6,
+            18
+          ],
+          [
+            5,
+            18,
+            17
+          ],
+          [
+            6,
+            7,
+            19
+          ],
+          [
+            6,
+            19,
+            18
+          ],
+          [
+            7,
+            8,
+            20
+          ],
+          [
+            7,
+            20,
+            19
+          ],
+          [
+            8,
+            9,
+            21
+          ],
+          [
+            8,
+            21,
+            20
+          ],
+          [
+            9,
+            10,
+            22
+          ],
+          [
+            9,
+            22,
+            21
+          ],
+          [
+            10,
+            11,
+            23
+          ],
+          [
+            10,
+            23,
+            22
+          ],
+          [
+            11,
+            0,
+            12
+          ],
+          [
+            11,
+            12,
+            23
+          ]
         ]
-      ],
-      "baseY": 24.149,
-      "height": 4.604,
-      "material": "naval"
+      }
     },
     {
       "id": "platform-059",
@@ -60108,7 +61102,7 @@
         ]
       ],
       "baseY": 21.992,
-      "height": 2.157,
+      "height": 2.038,
       "material": "naval"
     },
     {
@@ -60335,168 +61329,6 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-069",
-      "name": "Aircraft deck deckhouse 4.4-9.4 m",
-      "footprint": [
-        [
-          -13.238,
-          3.409
-        ],
-        [
-          -12.848,
-          3.799
-        ],
-        [
-          -12.356,
-          4.05
-        ],
-        [
-          -11.81,
-          4.137
-        ],
-        [
-          -11.195,
-          4.051
-        ],
-        [
-          -10.7,
-          3.799
-        ],
-        [
-          -10.31,
-          3.409
-        ],
-        [
-          -10.015,
-          2.642
-        ],
-        [
-          -10.059,
-          1.734
-        ],
-        [
-          -10.31,
-          1.24
-        ],
-        [
-          -10.7,
-          0.85
-        ],
-        [
-          -11.195,
-          0.598
-        ],
-        [
-          -11.81,
-          0.512
-        ],
-        [
-          -12.353,
-          0.598
-        ],
-        [
-          -12.848,
-          0.85
-        ],
-        [
-          -13.238,
-          1.24
-        ],
-        [
-          -13.533,
-          2.006
-        ],
-        [
-          -13.488,
-          2.914
-        ]
-      ],
-      "baseY": 4.411,
-      "height": 4.966,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-070",
-      "name": "Aircraft deck deckhouse 4.4-9.4 m",
-      "footprint": [
-        [
-          10.015,
-          2.006
-        ],
-        [
-          10.059,
-          2.914
-        ],
-        [
-          10.31,
-          3.409
-        ],
-        [
-          10.7,
-          3.799
-        ],
-        [
-          11.195,
-          4.051
-        ],
-        [
-          11.81,
-          4.137
-        ],
-        [
-          12.356,
-          4.05
-        ],
-        [
-          12.848,
-          3.799
-        ],
-        [
-          13.238,
-          3.409
-        ],
-        [
-          13.488,
-          2.914
-        ],
-        [
-          13.487,
-          1.732
-        ],
-        [
-          13.238,
-          1.24
-        ],
-        [
-          12.848,
-          0.85
-        ],
-        [
-          12.353,
-          0.598
-        ],
-        [
-          11.81,
-          0.512
-        ],
-        [
-          11.195,
-          0.598
-        ],
-        [
-          10.7,
-          0.85
-        ],
-        [
-          10.31,
-          1.24
-        ]
-      ],
-      "baseY": 4.411,
-      "height": 4.966,
-      "material": "naval"
-    },
-    {
       "id": "deckhouse-071",
       "name": "Aircraft deck deckhouse 4.4-5.8 m",
       "footprint": [
@@ -60647,67 +61479,6 @@
       "material": "naval"
     },
     {
-      "id": "platform-077",
-      "name": "After superstructure platform 7.1-7.2 m",
-      "footprint": [
-        [
-          -8.604,
-          12.992
-        ],
-        [
-          -8.487,
-          13.578
-        ],
-        [
-          -8.155,
-          14.073
-        ],
-        [
-          -7.659,
-          14.404
-        ],
-        [
-          -6.971,
-          14.509
-        ],
-        [
-          -6.699,
-          14.866
-        ],
-        [
-          -4.269,
-          13.96
-        ],
-        [
-          -4.304,
-          11.64
-        ],
-        [
-          -4.549,
-          11.462
-        ],
-        [
-          -7.253,
-          11.462
-        ],
-        [
-          -7.658,
-          11.578
-        ],
-        [
-          -8.156,
-          11.911
-        ],
-        [
-          -8.487,
-          12.407
-        ]
-      ],
-      "baseY": 7.114,
-      "height": 0.08,
-      "material": "naval"
-    },
-    {
       "id": "deckhouse-078",
       "name": "After superstructure deckhouse 4.4-8.2 m",
       "footprint": [
@@ -60779,7 +61550,7 @@
         ]
       ],
       "baseY": 4.42,
-      "height": 4.631,
+      "height": 4.58,
       "material": "naval"
     },
     {
@@ -60934,144 +61705,6 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-084",
-      "name": "After superstructure deckhouse 9.1-20.9 m",
-      "footprint": [
-        [
-          -3.922,
-          20.09
-        ],
-        [
-          -3.922,
-          18.057
-        ],
-        [
-          -2.301,
-          18
-        ],
-        [
-          -2.73,
-          17.766
-        ],
-        [
-          -3.277,
-          17.658
-        ],
-        [
-          -3.823,
-          17.766
-        ],
-        [
-          -4.286,
-          18.075
-        ],
-        [
-          -4.593,
-          18.537
-        ],
-        [
-          -4.702,
-          19.082
-        ],
-        [
-          -4.593,
-          19.626
-        ],
-        [
-          -4.286,
-          20.088
-        ],
-        [
-          -3.823,
-          20.397
-        ],
-        [
-          -3.273,
-          20.508
-        ],
-        [
-          -2.267,
-          20.509
-        ],
-        [
-          -2.301,
-          20.147
-        ]
-      ],
-      "baseY": 9.059,
-      "height": 11.829,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-085",
-      "name": "After superstructure deckhouse 9.1-20.9 m",
-      "footprint": [
-        [
-          2.267,
-          20.509
-        ],
-        [
-          3.273,
-          20.508
-        ],
-        [
-          3.823,
-          20.397
-        ],
-        [
-          4.286,
-          20.088
-        ],
-        [
-          4.593,
-          19.626
-        ],
-        [
-          4.702,
-          19.082
-        ],
-        [
-          4.593,
-          18.537
-        ],
-        [
-          4.286,
-          18.075
-        ],
-        [
-          3.823,
-          17.766
-        ],
-        [
-          3.277,
-          17.658
-        ],
-        [
-          2.73,
-          17.766
-        ],
-        [
-          2.301,
-          18
-        ],
-        [
-          3.922,
-          18.057
-        ],
-        [
-          3.922,
-          20.147
-        ],
-        [
-          2.301,
-          20.147
-        ]
-      ],
-      "baseY": 9.059,
-      "height": 11.829,
-      "material": "naval"
-    },
-    {
       "id": "deckhouse-086",
       "name": "After superstructure deckhouse 9.1-19.0 m",
       "footprint": [
@@ -61092,8 +61725,8 @@
           18.526
         ]
       ],
-      "baseY": 9.106,
-      "height": 9.857,
+      "baseY": 19.1,
+      "height": 1.74,
       "material": "naval"
     },
     {
@@ -61117,8 +61750,8 @@
           19.714
         ]
       ],
-      "baseY": 9.106,
-      "height": 9.857,
+      "baseY": 19.1,
+      "height": 1.74,
       "material": "naval"
     },
     {
@@ -61159,7 +61792,7 @@
         ]
       ],
       "baseY": 4.42,
-      "height": 0.976,
+      "height": 0.95,
       "material": "naval"
     },
     {
@@ -61200,65 +61833,7 @@
         ]
       ],
       "baseY": 4.42,
-      "height": 0.976,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-090",
-      "name": "After superstructure deckhouse 4.4-24.1 m",
-      "footprint": [
-        [
-          -0.996,
-          21.828
-        ],
-        [
-          -0.847,
-          22.967
-        ],
-        [
-          0.847,
-          22.965
-        ],
-        [
-          0.996,
-          21.828
-        ],
-        [
-          0,
-          21.971
-        ]
-      ],
-      "baseY": 4.42,
-      "height": 19.678,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-091",
-      "name": "After superstructure deckhouse 4.4-24.1 m",
-      "footprint": [
-        [
-          -0.996,
-          21.828
-        ],
-        [
-          -0.823,
-          23.146
-        ],
-        [
-          0.823,
-          23.144
-        ],
-        [
-          0.996,
-          21.828
-        ],
-        [
-          0,
-          21.971
-        ]
-      ],
-      "baseY": 4.42,
-      "height": 19.707,
+      "height": 0.95,
       "material": "naval"
     },
     {
@@ -61312,35 +61887,6 @@
       ],
       "baseY": 9.059,
       "height": 2.538,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-093",
-      "name": "After superstructure deckhouse 4.4-24.2 m",
-      "footprint": [
-        [
-          -0.996,
-          21.829
-        ],
-        [
-          -0.776,
-          23.506
-        ],
-        [
-          0.776,
-          23.502
-        ],
-        [
-          0.996,
-          21.829
-        ],
-        [
-          0,
-          21.971
-        ]
-      ],
-      "baseY": 4.42,
-      "height": 19.783,
       "material": "naval"
     },
     {
@@ -61690,7 +62236,7 @@
         ]
       ],
       "baseY": 4.424,
-      "height": 4.635,
+      "height": 2.736,
       "material": "naval"
     },
     {
@@ -62053,7 +62599,7 @@
         ]
       ],
       "baseY": 9.059,
-      "height": 0.307,
+      "height": 0.271,
       "material": "naval"
     },
     {
@@ -62154,7 +62700,7 @@
         ]
       ],
       "baseY": 9.059,
-      "height": 0.307,
+      "height": 0.271,
       "material": "naval"
     },
     {
@@ -62577,63 +63123,6 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-111",
-      "name": "After superstructure deckhouse 11.7-20.4 m",
-      "footprint": [
-        [
-          0,
-          35.13
-        ],
-        [
-          -1.485,
-          34.562
-        ],
-        [
-          -1.64,
-          35.226
-        ],
-        [
-          -1.421,
-          36.045
-        ],
-        [
-          -1.16,
-          36.384
-        ],
-        [
-          -0.819,
-          36.645
-        ],
-        [
-          0,
-          36.865
-        ],
-        [
-          0.819,
-          36.645
-        ],
-        [
-          1.16,
-          36.384
-        ],
-        [
-          1.421,
-          36.045
-        ],
-        [
-          1.64,
-          35.226
-        ],
-        [
-          1.485,
-          34.562
-        ]
-      ],
-      "baseY": 11.665,
-      "height": 8.727,
-      "material": "naval"
-    },
-    {
       "id": "deckhouse-112",
       "name": "After superstructure deckhouse 5.8-5.8 m",
       "footprint": [
@@ -62706,8 +63195,8 @@
           35.844
         ]
       ],
-      "baseY": 5.794,
-      "height": 0.021,
+      "baseY": 5.72,
+      "height": 0.06,
       "material": "naval"
     },
     {
@@ -62783,8 +63272,8 @@
           34.939
         ]
       ],
-      "baseY": 5.794,
-      "height": 0.021,
+      "baseY": 5.72,
+      "height": 0.06,
       "material": "naval"
     },
     {
@@ -62930,7 +63419,7 @@
         ]
       ],
       "baseY": 4.42,
-      "height": 2.668,
+      "height": 2.63,
       "material": "naval"
     },
     {
@@ -63046,31 +63535,6 @@
       ],
       "baseY": 4.42,
       "height": 3.955,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-119",
-      "name": "After superstructure deckhouse 4.4-8.1 m",
-      "footprint": [
-        [
-          -2.381,
-          41.444
-        ],
-        [
-          -3.54,
-          41.444
-        ],
-        [
-          -3.54,
-          42.753
-        ],
-        [
-          -2.381,
-          42.752
-        ]
-      ],
-      "baseY": 4.42,
-      "height": 3.704,
       "material": "naval"
     },
     {
@@ -63437,7 +63901,7 @@
           50.312
         ]
       ],
-      "baseY": 9.009,
+      "baseY": 9.059,
       "height": 0.08,
       "material": "naval"
     },
@@ -63838,7 +64302,7 @@
         ]
       ],
       "baseY": 4.635,
-      "height": 1.186,
+      "height": 1.637,
       "material": "naval"
     },
     {
@@ -63887,7 +64351,7 @@
         ]
       ],
       "baseY": 4.639,
-      "height": 1.182,
+      "height": 1.633,
       "material": "naval"
     },
     {
@@ -64198,17 +64662,406 @@
         ]
       ],
       "baseY": 9.1,
-      "height": 15.5,
+      "height": 15.95,
       "material": "naval",
       "exhaust": {
         "position": [
           0,
-          24.6,
+          26.0,
           17.86
         ],
         "width": 4,
         "length": 7.6
       }
+    },
+    {
+      "id": "platform-036-starboard",
+      "name": "Forward superstructure platform 7.1-7.2 m",
+      "footprint": [
+        [
+          13.329,
+          -19.666
+        ],
+        [
+          12.729,
+          -20.121
+        ],
+        [
+          11.794,
+          -20.508
+        ],
+        [
+          9.561,
+          -20.962
+        ],
+        [
+          9.893,
+          -12.827
+        ],
+        [
+          11.794,
+          -13.029
+        ],
+        [
+          12.729,
+          -13.416
+        ],
+        [
+          13.606,
+          -14.177
+        ]
+      ],
+      "baseY": 7.085,
+      "height": 0.08,
+      "material": "naval"
+    },
+    {
+      "id": "deckhouse-115-port",
+      "name": "After superstructure deckhouse 4.4-7.1 m",
+      "footprint": [
+        [
+          -4.227,
+          31.423
+        ],
+        [
+          -4.446,
+          31.54
+        ],
+        [
+          -5.025,
+          32.417
+        ],
+        [
+          -4.432,
+          32.913
+        ],
+        [
+          -4.177,
+          33.415
+        ],
+        [
+          -4.089,
+          33.972
+        ],
+        [
+          -4.177,
+          34.529
+        ],
+        [
+          -4.432,
+          35.03
+        ],
+        [
+          -4.832,
+          35.428
+        ],
+        [
+          -5.332,
+          35.683
+        ],
+        [
+          -5.889,
+          35.772
+        ],
+        [
+          -6.445,
+          35.683
+        ],
+        [
+          -6.946,
+          35.428
+        ],
+        [
+          -6.946,
+          37.189
+        ],
+        [
+          -7.764,
+          37.189
+        ],
+        [
+          -7.764,
+          39.324
+        ],
+        [
+          -8.034,
+          39.324
+        ],
+        [
+          -8.184,
+          39.474
+        ],
+        [
+          -8.184,
+          43.53
+        ],
+        [
+          -8.034,
+          43.68
+        ],
+        [
+          -5.005,
+          43.68
+        ],
+        [
+          -4.856,
+          43.53
+        ],
+        [
+          -4.856,
+          37.215
+        ],
+        [
+          -3.799,
+          36.363
+        ],
+        [
+          -2.381,
+          36.363
+        ],
+        [
+          -2.381,
+          31.423
+        ]
+      ],
+      "baseY": 4.42,
+      "height": 2.63,
+      "material": "naval"
+    },
+    {
+      "id": "platform-5in-aft-port",
+      "name": "After superstructure platform 7.1-7.2 m (port 5-inch sponson)",
+      "footprint": [
+        [
+          -6.7,
+          28.94
+        ],
+        [
+          -6.805,
+          29.875
+        ],
+        [
+          -7.116,
+          30.762
+        ],
+        [
+          -7.616,
+          31.559
+        ],
+        [
+          -8.281,
+          32.224
+        ],
+        [
+          -9.078,
+          32.724
+        ],
+        [
+          -9.965,
+          33.035
+        ],
+        [
+          -10.9,
+          33.14
+        ],
+        [
+          -11.835,
+          33.035
+        ],
+        [
+          -12.722,
+          32.724
+        ],
+        [
+          -13.519,
+          32.224
+        ],
+        [
+          -13.65,
+          32.092
+        ],
+        [
+          -13.65,
+          25.788
+        ],
+        [
+          -13.519,
+          25.656
+        ],
+        [
+          -12.722,
+          25.156
+        ],
+        [
+          -11.835,
+          24.845
+        ],
+        [
+          -10.9,
+          24.74
+        ],
+        [
+          -9.965,
+          24.845
+        ],
+        [
+          -9.078,
+          25.156
+        ],
+        [
+          -8.281,
+          25.656
+        ],
+        [
+          -7.616,
+          26.321
+        ],
+        [
+          -7.116,
+          27.118
+        ],
+        [
+          -6.805,
+          28.005
+        ]
+      ],
+      "baseY": 7.1,
+      "height": 0.08,
+      "material": "naval"
+    },
+    {
+      "id": "platform-5in-aft-starboard",
+      "name": "After superstructure platform 7.1-7.2 m (starboard 5-inch sponson)",
+      "footprint": [
+        [
+          13.65,
+          32.092
+        ],
+        [
+          13.519,
+          32.224
+        ],
+        [
+          12.722,
+          32.724
+        ],
+        [
+          11.835,
+          33.035
+        ],
+        [
+          10.9,
+          33.14
+        ],
+        [
+          9.965,
+          33.035
+        ],
+        [
+          9.078,
+          32.724
+        ],
+        [
+          8.281,
+          32.224
+        ],
+        [
+          7.616,
+          31.559
+        ],
+        [
+          7.116,
+          30.762
+        ],
+        [
+          6.805,
+          29.875
+        ],
+        [
+          6.7,
+          28.94
+        ],
+        [
+          6.805,
+          28.005
+        ],
+        [
+          7.116,
+          27.118
+        ],
+        [
+          7.616,
+          26.321
+        ],
+        [
+          8.281,
+          25.656
+        ],
+        [
+          9.078,
+          25.156
+        ],
+        [
+          9.965,
+          24.845
+        ],
+        [
+          10.9,
+          24.74
+        ],
+        [
+          11.835,
+          24.845
+        ],
+        [
+          12.722,
+          25.156
+        ],
+        [
+          13.519,
+          25.656
+        ],
+        [
+          13.65,
+          25.788
+        ]
+      ],
+      "baseY": 7.1,
+      "height": 0.08,
+      "material": "naval"
+    },
+    {
+      "id": "deckhouse-funnel-forward",
+      "name": "After superstructure deckhouse 9.1-11.6 m (uptake casing)",
+      "footprint": [
+        [
+          -2.35,
+          15.0
+        ],
+        [
+          -2.35,
+          13.1
+        ],
+        [
+          -1.75,
+          12.07
+        ],
+        [
+          1.75,
+          12.07
+        ],
+        [
+          2.35,
+          13.1
+        ],
+        [
+          2.35,
+          15.0
+        ]
+      ],
+      "baseY": 9.059,
+      "height": 2.541,
+      "material": "naval"
     }
   ],
   "viewpoints": {
@@ -64231,7 +65084,7 @@
   "mountClearance": {
     "version": 1,
     "marginM": 0.03,
-    "basis": "Provisional CPU motion interlocks for the main and 5-inch mounts against the measured deckhouse prisms they can reach, including the full recoil stroke, and between the superfiring forward turrets. Game clearance envelopes, not verified historical mechanical stops.",
+    "basis": "Provisional CPU motion interlocks for the main and 5-inch mounts and the two quad 40 mm beside the forward tower against the measured deckhouse prisms they can reach, including the full recoil stroke, and between the superfiring forward turrets. Game clearance envelopes, not verified historical mechanical stops.",
     "mounts": [
       {
         "mountId": "main-1",
@@ -64304,6 +65157,14 @@
       {
         "mountId": "secondary-6",
         "barrelRadiusM": 0.146
+      },
+      {
+        "mountId": "bofors-5",
+        "barrelRadiusM": 0.053
+      },
+      {
+        "mountId": "bofors-6",
+        "barrelRadiusM": 0.053
       }
     ],
     "structures": [
@@ -64312,31 +65173,7 @@
         "topExtensionM": 0
       },
       {
-        "structureId": "deckhouse-094",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "deckhouse-095",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "platform-036",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "platform-127",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "deckhouse-015",
-        "topExtensionM": 0
-      },
-      {
         "structureId": "deckhouse-040",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "deckhouse-053",
         "topExtensionM": 0
       },
       {
@@ -64345,6 +65182,58 @@
       },
       {
         "structureId": "deckhouse-042",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-053",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-094",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "platform-036",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "platform-036-starboard",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "platform-127",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "platform-5in-aft-port",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "platform-5in-aft-starboard",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-015",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "platform-046",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-044",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-045",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-050",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-051",
         "topExtensionM": 0
       },
       {
@@ -64360,7 +65249,23 @@
         "topExtensionM": 0
       },
       {
+        "structureId": "deckhouse-034",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-035",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-095",
+        "topExtensionM": 0
+      },
+      {
         "structureId": "deckhouse-115",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-115-port",
         "topExtensionM": 0
       },
       {
@@ -64655,7 +65560,7 @@
     "regions": [
       {
         "id": "underwater-port-1",
-        "name": "Underwater hull · port · bow",
+        "name": "Underwater hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64671,7 +65576,7 @@
       },
       {
         "id": "underwater-port-2",
-        "name": "Underwater hull · port · forward",
+        "name": "Underwater hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64687,7 +65592,7 @@
       },
       {
         "id": "underwater-port-3",
-        "name": "Underwater hull · port · forward amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64703,7 +65608,7 @@
       },
       {
         "id": "underwater-port-4",
-        "name": "Underwater hull · port · amidships forward",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64719,7 +65624,7 @@
       },
       {
         "id": "underwater-port-5",
-        "name": "Underwater hull · port · amidships aft",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64735,7 +65640,7 @@
       },
       {
         "id": "underwater-port-6",
-        "name": "Underwater hull · port · aft amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64751,7 +65656,7 @@
       },
       {
         "id": "underwater-port-7",
-        "name": "Underwater hull · port · aft",
+        "name": "Underwater hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64767,7 +65672,7 @@
       },
       {
         "id": "underwater-port-8",
-        "name": "Underwater hull · port · stern",
+        "name": "Underwater hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64783,7 +65688,7 @@
       },
       {
         "id": "underwater-starboard-1",
-        "name": "Underwater hull · starboard · bow",
+        "name": "Underwater hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64799,7 +65704,7 @@
       },
       {
         "id": "underwater-starboard-2",
-        "name": "Underwater hull · starboard · forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64815,7 +65720,7 @@
       },
       {
         "id": "underwater-starboard-3",
-        "name": "Underwater hull · starboard · forward amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64831,7 +65736,7 @@
       },
       {
         "id": "underwater-starboard-4",
-        "name": "Underwater hull · starboard · amidships forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64847,7 +65752,7 @@
       },
       {
         "id": "underwater-starboard-5",
-        "name": "Underwater hull · starboard · amidships aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64863,7 +65768,7 @@
       },
       {
         "id": "underwater-starboard-6",
-        "name": "Underwater hull · starboard · aft amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64879,7 +65784,7 @@
       },
       {
         "id": "underwater-starboard-7",
-        "name": "Underwater hull · starboard · aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64895,7 +65800,7 @@
       },
       {
         "id": "underwater-starboard-8",
-        "name": "Underwater hull · starboard · stern",
+        "name": "Underwater hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -64911,7 +65816,7 @@
       },
       {
         "id": "upper-hull-port-1",
-        "name": "Upper hull · port · bow",
+        "name": "Upper hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64927,7 +65832,7 @@
       },
       {
         "id": "upper-hull-port-2",
-        "name": "Upper hull · port · forward",
+        "name": "Upper hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64943,7 +65848,7 @@
       },
       {
         "id": "upper-hull-port-3",
-        "name": "Upper hull · port · forward amidships",
+        "name": "Upper hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64959,7 +65864,7 @@
       },
       {
         "id": "upper-hull-port-4",
-        "name": "Upper hull · port · amidships forward",
+        "name": "Upper hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64975,7 +65880,7 @@
       },
       {
         "id": "upper-hull-port-5",
-        "name": "Upper hull · port · amidships aft",
+        "name": "Upper hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -64991,7 +65896,7 @@
       },
       {
         "id": "upper-hull-port-6",
-        "name": "Upper hull · port · aft amidships",
+        "name": "Upper hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65007,7 +65912,7 @@
       },
       {
         "id": "upper-hull-port-7",
-        "name": "Upper hull · port · aft",
+        "name": "Upper hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65023,7 +65928,7 @@
       },
       {
         "id": "upper-hull-port-8",
-        "name": "Upper hull · port · stern",
+        "name": "Upper hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65039,7 +65944,7 @@
       },
       {
         "id": "upper-hull-starboard-1",
-        "name": "Upper hull · starboard · bow",
+        "name": "Upper hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65055,7 +65960,7 @@
       },
       {
         "id": "upper-hull-starboard-2",
-        "name": "Upper hull · starboard · forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65071,7 +65976,7 @@
       },
       {
         "id": "upper-hull-starboard-3",
-        "name": "Upper hull · starboard · forward amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65087,7 +65992,7 @@
       },
       {
         "id": "upper-hull-starboard-4",
-        "name": "Upper hull · starboard · amidships forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65103,7 +66008,7 @@
       },
       {
         "id": "upper-hull-starboard-5",
-        "name": "Upper hull · starboard · amidships aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65119,7 +66024,7 @@
       },
       {
         "id": "upper-hull-starboard-6",
-        "name": "Upper hull · starboard · aft amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65135,7 +66040,7 @@
       },
       {
         "id": "upper-hull-starboard-7",
-        "name": "Upper hull · starboard · aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65151,7 +66056,7 @@
       },
       {
         "id": "upper-hull-starboard-8",
-        "name": "Upper hull · starboard · stern",
+        "name": "Upper hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -65167,7 +66072,7 @@
       },
       {
         "id": "upperworks-port-1",
-        "name": "Upperworks · port · bow",
+        "name": "Upperworks \u00b7 port \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65183,7 +66088,7 @@
       },
       {
         "id": "upperworks-port-2",
-        "name": "Upperworks · port · forward",
+        "name": "Upperworks \u00b7 port \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65199,7 +66104,7 @@
       },
       {
         "id": "upperworks-port-3",
-        "name": "Upperworks · port · forward amidships",
+        "name": "Upperworks \u00b7 port \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65215,7 +66120,7 @@
       },
       {
         "id": "upperworks-port-4",
-        "name": "Upperworks · port · amidships forward",
+        "name": "Upperworks \u00b7 port \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65231,7 +66136,7 @@
       },
       {
         "id": "upperworks-port-5",
-        "name": "Upperworks · port · amidships aft",
+        "name": "Upperworks \u00b7 port \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65247,7 +66152,7 @@
       },
       {
         "id": "upperworks-port-6",
-        "name": "Upperworks · port · aft amidships",
+        "name": "Upperworks \u00b7 port \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65263,7 +66168,7 @@
       },
       {
         "id": "upperworks-port-7",
-        "name": "Upperworks · port · aft",
+        "name": "Upperworks \u00b7 port \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65279,7 +66184,7 @@
       },
       {
         "id": "upperworks-port-8",
-        "name": "Upperworks · port · stern",
+        "name": "Upperworks \u00b7 port \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65295,7 +66200,7 @@
       },
       {
         "id": "upperworks-starboard-1",
-        "name": "Upperworks · starboard · bow",
+        "name": "Upperworks \u00b7 starboard \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65311,7 +66216,7 @@
       },
       {
         "id": "upperworks-starboard-2",
-        "name": "Upperworks · starboard · forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65327,7 +66232,7 @@
       },
       {
         "id": "upperworks-starboard-3",
-        "name": "Upperworks · starboard · forward amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65343,7 +66248,7 @@
       },
       {
         "id": "upperworks-starboard-4",
-        "name": "Upperworks · starboard · amidships forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65359,7 +66264,7 @@
       },
       {
         "id": "upperworks-starboard-5",
-        "name": "Upperworks · starboard · amidships aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65375,7 +66280,7 @@
       },
       {
         "id": "upperworks-starboard-6",
-        "name": "Upperworks · starboard · aft amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65391,7 +66296,7 @@
       },
       {
         "id": "upperworks-starboard-7",
-        "name": "Upperworks · starboard · aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -65407,7 +66312,7 @@
       },
       {
         "id": "upperworks-starboard-8",
-        "name": "Upperworks · starboard · stern",
+        "name": "Upperworks \u00b7 starboard \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [

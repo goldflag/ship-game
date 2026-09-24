@@ -108,14 +108,17 @@ def bulwark(name,outline,z,height=.85,thick=.065,closed=True):
         x,y=inside[i];rod(name+'.stiffener',(x,y,z+.07),(x,y,z+height-.035),.028,materials['edge'],vertices=6)
 
 def rails(name,points,height=.94,closed=False,spacing=1.8):
-    dense=[]
-    count=len(points) if closed else len(points)-1
-    for i in range(count):
-        a,b=Vector(points[i]),Vector(points[(i+1)%len(points)]);steps=max(1,math.ceil((b-a).length/spacing))
-        dense += [tuple(a.lerp(b,j/steps)) for j in range(steps)]
-    if not closed:dense.append(points[-1])
+    # Stanchions at even spacing along the whole run, however densely the path is sampled.
+    path=[Vector(p) for p in points]+([Vector(points[0])] if closed else [])
+    lengths=[0]
+    for a,b in zip(path,path[1:]):lengths.append(lengths[-1]+(b-a).length)
+    total=lengths[-1];count=max(1,math.ceil(total/spacing));dense=[]
+    for j in range(count if closed else count+1):
+        d=total*j/count;i=max(0,min(len(path)-2,next((k for k in range(len(path)-1) if lengths[k+1]>=d),len(path)-2)))
+        t=(d-lengths[i])/max(1e-9,lengths[i+1]-lengths[i]);dense.append(tuple(path[i].lerp(path[i+1],t)))
     # Source's lowered foregun lifelines leave the barrel sweep unobstructed.
-    def height_at(x):return .52 if name=='rails.perimeter' and 35<x<49 else height
+    # The source's lowered lifelines leave the foregun and the deck-edge single 25 mm sweeps unobstructed.
+    def height_at(x):return .52 if name=='rails.perimeter' and (35<x<49 or 31.4<x<33.3 or -48.1<x<-46.2) else height
     for p in dense:rod(name+'.stanchion',p,(p[0],p[1],p[2]+height_at(p[0])),.024,materials['edge'],vertices=6)
     for ratio in [1/3,2/3,1]:tube_path(name+'.lifeline',[(x,y,z+height_at(x)*ratio) for x,y,z in dense],.010 if ratio<1 else .017,materials['edge'],sides=6,closed=closed)
 
@@ -167,8 +170,24 @@ def interp(table,s):
  for (a,u),(b,v) in zip(table,table[1:]):
   if a<=s<=b:return u+(v-u)*(s-a)/(b-a)
  return table[0][1] if s<table[0][0] else table[-1][1]
-width=lambda x:interp(h['halfBreadths'],x+half)
+# Deck-edge half-breadth (the top point of each section): the rounded gunwale sits inside the flare.
+edge_table=[[q['station'],q['points'][-1][0]] for q in h['sections']]
+width=lambda x:interp(edge_table,x+half)
 deckz=lambda x:interp(h['deckHeights'],x+half)
+BREAK=24.06  # forecastle deck ends here (Blender x, forward)
+def shell(x,z):
+ # Half-breadth of the authored hull at Blender station x and height z (0 outside the section).
+ s=x+half;S=h['sections']
+ for a,b in zip(S,S[1:]):
+  if a['station']<=s<=b['station']:
+   t=(s-a['station'])/max(1e-9,b['station']-a['station'])
+   pts=[(pa[0]+(pb[0]-pa[0])*t,pa[1]+(pb[1]-pa[1])*t) for pa,pb in zip(a['points'],b['points'])]
+   break
+ else:return 0
+ if z<pts[0][1] or z>pts[-1][1]:return 0
+ for (w0,z0),(w1,z1) in zip(pts,pts[1:]):
+  if z0<=z<=z1:return w0 if z1-z0<1e-9 else w0+(w1-w0)*(z-z0)/(z1-z0)
+ return pts[-1][0]
 # Independently interpreted sections and continuous cambered deck.
 verts=[]
 for section in h['sections']:
@@ -179,20 +198,21 @@ for i in range(len(h['sections'])-1):faces += [(i*n+j,i*n+(j+1)%n,(i+1)*n+(j+1)%
 faces += [tuple(reversed(range(n))),tuple((len(h['sections'])-1)*n+j for j in range(n))]
 hull=mesh('hull.envelope',verts,faces,materials['hullgray'],smooth=True);hull['nodeId']='hull.surface'
 verts=[]
-for s,w in h['halfBreadths']:
+for s,w in edge_table:
  x=s-half;z=deckz(x)+.012;verts += [(x,-w,z),(x,0,z+.045),(x,w,z)]
-mesh('deck.main',verts,[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(len(h['halfBreadths'])-1) for j in range(2)],materials['deck'])
-for lo,hi in [(35.8,53),(-53,-32.5),(23.1,35.7)]:
- xs=[lo]+[s-half for s,w in h['halfBreadths'] if lo<s-half<hi]+[hi]
+mesh('deck.main',verts,[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(len(edge_table)-1) for j in range(2)],materials['deck'])
+for lo,hi in [(35.8,53),(-53,-32.5),(BREAK+.12,35.7)]:
+ xs=[lo]+[s-half for s,w in edge_table if lo<s-half<hi]+[hi]
  vs=[(x,sign*(width(x)-.30),deckz(x)+.07) for x in xs for sign in [-1,1]]
  mesh('deck.linoleum',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(xs)-1)],materials['linoleum'])
  for x in [lo+i*1.9 for i in range(int((hi-lo)/1.9)+1)]:rod('deck.retaining-strip',(x,-width(x)+.3,deckz(x)+.085),(x,width(x)-.3,deckz(x)+.085),.012,materials['bronze'],vertices=5)
 for sign in [-1,1]:
- pts=[(s-half,sign*max(.03,w-.09),deckz(s-half)+.04) for s,w in h['halfBreadths'] if 1<s<h['length']-1]
- rails('rails.perimeter',pts,height=.86,spacing=2.2)
+ pts=[(s-half,sign*max(.03,w-.09),deckz(s-half)+.04) for s,w in edge_table if 1<s<h['length']-1]
+ # The forecastle and main-deck rails are separate runs either side of the break.
+ for run in [[p for p in pts if p[0]>BREAK],[p for p in pts if p[0]<BREAK-.05]]:rails('rails.perimeter',run,height=.86,spacing=2.2)
  tube_path('hull.sheer-strake',pts,.034,materials['edge'],sides=6)
  for x in range(-48,53,3):
-  z=deckz(x)-.7;y=sign*(width(x)*.989)
+  z=deckz(x)-.7;y=sign*(shell(x,z)-.012)
   portlight('hull.portlight',(x,y,z),(0,sign,0),.11)
 # Definition-owned superstructure silhouettes.
 for s in definition['structures']:
@@ -200,71 +220,143 @@ for s in definition['structures']:
  outline=[(-z,-x) for x,z in s['footprint']]
  prism(s['id']+'.walls',outline,s['baseY'],s['baseY']+s['height'])
  tube_path(s['id']+'.edge',[(x,y,s['baseY']+s['height']+.02) for x,y in outline],.045,materials['edge'],closed=True)
- if s['id'] not in ['director-house','wheelhouse','bridge-lower','bridge-middle','bridge-after']:
+ if s['id'] not in ['director-house','wheelhouse','bridge-lower','bridge-middle','bridge-after','forward-uptake'] and not s['id'].startswith('torpedo-lockers'):
   w=max(abs(y) for x,y in outline);xmin=min(x for x,y in outline);xmax=max(x for x,y in outline)
   for sign in [-1,1]:
    for x in [xmin+.9+i*2.5 for i in range(max(1,int((xmax-xmin-1)/2.5)))]:
-    if s['id']=='after-deckhouse' and x < -29.2:continue
+    if s['id']=='after-deckhouse' and x < -26.8:continue
     door(s['id']+'.door',x,sign*(w+.03),s['baseY']+.12,sign,h=min(1.65,s['height']-.2))
-refined_bridge()
-# Forward AA shelf and outboard single-gun walkways with structural knees.
-prism('bridge.forward-aa-platform',outline_rect(30.3,34.0,-1.75,1.75,.45),6.72,6.9)
+# Forecastle break: the side plating sweeps down from the forecastle deck edge to the main deck.
 for sign in [-1,1]:
- rod('bridge.forward-aa-column',(32.6,sign*1.15,deckz(32.6)),(32.6,sign*1.15,6.78),.20,materials['naval'],vertices=20)
+ vs=[]
+ for x,top in [(BREAK+.07,deckz(BREAK+.2)),(24.0,4.40),(23.7,3.93),(23.35,3.35),(23.0,2.90),(22.75,2.80)]:
+  w=shell(x,2.7)-.004;base=2.70
+  vs += [(x,sign*w,base),(x,sign*w,top),(x,sign*(w-.07),top),(x,sign*(w-.07),base)]
+ n=len(vs)//4;fs=[(i*4+j,i*4+(j+1)%4,(i+1)*4+(j+1)%4,(i+1)*4+j) for i in range(n-1) for j in range(4)]+[(0,1,2,3),((n-1)*4+3,(n-1)*4+2,(n-1)*4+1,(n-1)*4)]
+ mesh('hull.break-fairing',vs,fs,materials['hullgray'])
+ tube_path('hull.break-fairing-cap',[(x,sign*(shell(x,2.7)-.035),top+.02) for x,top in [(BREAK+.07,deckz(BREAK+.2)),(24.0,4.40),(23.7,3.93),(23.35,3.35),(23.0,2.90),(22.75,2.80)]],.035,materials['edge'],sides=6)
+refined_bridge()
+# Forward AA platform as measured: a 4.6 m shelf ahead of the bridge at 6.73-6.91 m with a low
+# bulwark, carried on transverse webs; outboard single-gun walkways with structural knees.
+aa_outline=[(33.22,-1.48),(33.22,1.48),(31.96,2.38),(29.2,2.38),(29.2,-2.38),(31.96,-2.38)]
+prism('bridge.forward-aa-platform',aa_outline,6.73,6.91)
+cyl('bridge.forward-aa-pillar',(31.96,0,(deckz(31.96)+6.75)/2),.41,6.75-deckz(31.96),materials['naval'],vertices=28)
+for sign in [-1,1]:
+ web=mesh('bridge.forward-aa-web',[(31.96,sign*.38,5.0),(31.96,sign*2.17,6.74),(31.96,sign*.38,6.74)],[(0,1,2)],materials['naval'])
+ web.modifiers.new('Web plate','SOLIDIFY').thickness=.12
  prism('bridge.side-walkway',outline_rect(24.2,33.7,sign*3.7-.55,sign*3.7+.55,.12),4.60,4.72)
  for x in [25,28,31.7]:rod('bridge.walkway-knee',(x,sign*2.1,4.7),(x,sign*3.8,4.67),.07,materials['edge'])
- bulwark('bridge.forward-aa-shield',[(34,sign*1.35),(33.6,sign*1.75),(30.3,sign*1.75)],6.9,.65,closed=False)
+ bulwark('bridge.forward-aa-shield',[(29.25,sign*2.38),(31.96,sign*2.38),(33.22,sign*1.48),(33.22,0)],6.91,.42,closed=False)
 
 refined_midships_platforms()
 refined_funnels()
-# Original masts, optical fittings and rigging.
-for label,x,zbase,ztop in [('foremast',21,4.7,22.91),('aftmast',-21.2,5.15,15.18)]:
- top=(x-1.0,0,ztop)
- rod(label+'.pole',(x,0,deckz(x) if label=='foremast' else zbase),top,.14,materials['edge'],r2=.035,vertices=16)
- if label=='foremast':
-  for sign in [-1,1]:rod(label+'.tripod',(x-2.1,sign*1.65,deckz(x-2.1)),(x-.55,0,15.3),.10,materials['naval'],r2=.055)
-  for z in [7,9,11,13]:
-   for sign in [-1,1]:rod(label+'.brace',(x-2.1+1.55*(z-deckz(x-2.1))/(15.3-deckz(x-2.1)),sign*1.65*(15.3-z)/(15.3-deckz(x-2.1)),z),(x-(z+2-deckz(x))/(ztop-deckz(x)),0,z+2),.032,materials['edge'])
- for z,span in [(ztop-1.5,1.6),(ztop-4.6,2.3)]:
-  xx=x-(z-zbase)/(ztop-zbase);rod(label+'.yard',(xx,-span,z),(xx,span,z),.035,materials['edge'])
-  for sign in [-1,1]:rod(label+'.yard-stay',(xx,sign*span,z),(x-.9,0,min(ztop,z+2)),.009,materials['dark'],vertices=5)
- ladder(label+'.ladder',(x,0,zbase),(x-1,0,ztop-1),.32)
-for xx,zz in [(20.025,22.5),(-22.182,15.0)]:rod('rigging.aerial-crossbar',(xx,-.48,zz),(xx,.48,zz),.035,materials['edge'])
+# Foremast as measured: a vertical pole on the after bridge platform (8.85 m), a raked forward strut
+# meeting it at 17.8 m, and a braced trestle carrying the radar platform at 13.1-13.5 m.
+FX=20.17
+rod('foremast.pole',(FX,0,8.45),(FX,0,21.95),.1,materials['edge'],r2=.05,vertices=16)
+# Flagstaff clamped to the masthead, offset to starboard as on the approved model.
+rod('foremast.flagstaff',(FX,-.55,21.1),(FX,-.55,22.91),.025,materials['edge'],r2=.015,vertices=8)
+for z in [21.25,21.8]:rod('foremast.flagstaff-clamp',(FX,-.55,z),(FX,0,z),.02,materials['edge'],vertices=6)
+# The forward strut rises from the main deck at the break, through the after bridge block.
+rod('foremast.strut',(24.05,0,2.75),(FX+.05,0,17.8),.11,materials['naval'],r2=.07,vertices=12)
+# The plated floor under the after bridge block, on its braced trestle.
+prism('bridge.after-walkway',outline_rect(19.35,24.07,-1.62,1.62,.2),6.4,6.73)
+# Cowl ventilators rising from the main deck abaft the bridge, mouths aft.
+for sign in [-1,1]:
+ path=[(19.3,sign*1.62,deckz(19.3)),(19.3,sign*1.62,5.85),(19.2,sign*1.62,6.18),(18.98,sign*1.62,6.28)]
+ tube_path('bridge.after-vent',path,.17,materials['naval'],sides=16)
+ rod('bridge.after-vent-cowl',path[-1],(18.72,sign*1.62,6.3),.19,materials['naval'],r2=.28,vertices=20)
+ rod('bridge.after-vent-mouth',(18.72,sign*1.62,6.3),(18.7,sign*1.62,6.3),.25,materials['dark'],vertices=20)
+for sign in [-1,1]:
+ rod('foremast.trestle-post',(FX,sign*1.33,8.85),(FX,sign*.95,13.12),.07,materials['naval'],vertices=10)
+ rod('foremast.trestle-leg',(21.95,sign*1.2,8.85),(21.7,sign*.95,13.12),.06,materials['naval'],vertices=10)
+ for z0,z1 in [(8.9,11.0),(11.0,13.08)]:
+  f=lambda z:(z-8.85)/4.27
+  rod('foremast.brace',(FX,sign*(1.33-.38*f(z0)),z0),(21.95-.25*f(z1),sign*(1.2-.25*f(z1)),z1),.03,materials['edge'])
+  rod('foremast.brace',(21.95-.25*f(z0),sign*(1.2-.25*f(z0)),z0),(FX,sign*(1.33-.38*f(z1)),z1),.03,materials['edge'])
+for z in [11.0,13.08]:rod('foremast.cross-brace',(FX,-1.33+.38*(z-8.85)/4.27,z),(FX,1.33-.38*(z-8.85)/4.27,z),.035,materials['edge'])
+for z,span in [(17.66,2.8),(20.9,1.42)]:
+ rod('foremast.yard',(FX-.13,-span,z),(FX-.13,span,z),.04,materials['edge'])
+ for sign in [-1,1]:rod('foremast.yard-stay',(FX-.13,sign*span,z),(FX,0,min(21.85,z+1.8)),.009,materials['dark'],vertices=5)
+rod('foremast.gaff',(FX-.12,0,17.95),(18.6,0,18.2),.04,materials['edge'])
+box('foremast.signal-lamp-box',(20.59,0,18.4),(.6,.73,1.2),materials['naval'],bev=.05)
+ladder('foremast.ladder',(FX-.22,0,8.9),(FX-.22,0,21.3),.32)
+# Mainmast as measured: a raked pole 0.875 m to starboard of the centreline with a transverse bipod
+# behind it, all standing on the after deckhouse.
+MY=-.875
+rod('aftmast.pole',(-19.2,MY,4.2),(-21.6,MY,15.2),.12,materials['edge'],r2=.04,vertices=16)
+for yy in [.62,-2.3]:rod('aftmast.leg',(-21.16,yy,4.2),(-21.3,MY,12.4),.07,materials['naval'],r2=.05,vertices=10)
+rod('aftmast.yard',(-21.44,MY-1.43,13.35),(-21.44,MY+1.43,13.35),.035,materials['edge'])
+for sign in [-1,1]:rod('aftmast.yard-stay',(-21.44,MY+sign*1.43,13.35),(-21.55,MY,15.0),.009,materials['dark'],vertices=5)
+ladder('aftmast.ladder',(-19.45,MY,4.25),(-21.25,MY,13.8),.32)
+# Aerial spreaders belong to their masts; the aerial wires hang between them.
+rod('foremast.aerial-spreader',(FX,-.48,21.7),(FX,.48,21.7),.035,materials['edge'])
+rod('aftmast.aerial-spreader',(-21.545,MY-.48,14.95),(-21.545,MY+.48,14.95),.035,materials['edge'])
 for sign in [-1,1]:
  for xx,zz in [(57,6),(-57,2.9)]:rod('rigging.deck-padeye',(xx,sign*.2,deckz(xx)),(xx,sign*.2,zz),.028,materials['edge'])
- rod('rigging.aerial',(20,sign*.45,22.5),(-22.2,sign*.45,15.0),.009,materials['dark'],vertices=5)
- rod('rigging.bow-stay',(20,0,22.5),(57,sign*.2,6),.009,materials['dark'],vertices=5)
- rod('rigging.stern-stay',(-22.2,0,15),(-57,sign*.2,2.9),.009,materials['dark'],vertices=5)
- for xx,yy in [(25,2.1),(19.1,1.25)]:rod('rigging.shroud',(20.16,0,20),(xx,sign*yy,8.84),.01,materials['dark'],vertices=5)
-# Paired Type 22 horns, mast platforms and the director's optical rangefinder.
-prism('radar.platform',outline_rect(20.2,23.3,-.75,.75,.1),13.3,13.45)
-rod('radar.platform-knee',(20.542,0,12),(22.7,0,13.35),.08,materials['naval'])
-for z in [13.9,14.65]:
- rod('radar.horn',(21.35,0,z),(23.15,0,z),.12,materials['naval'],r2=.25,vertices=24)
- rod('radar.horn-mouth',(23.16,0,z),(23.18,0,z),.205,materials['dark'],vertices=24)
- rod('radar.horn-support',(21.5,0,13.4),(21.5,0,z),.07,materials['edge'])
+ rod('rigging.aerial',(FX,sign*.45,21.7),(-21.545,MY+sign*.45,14.95),.009,materials['dark'],vertices=5)
+ rod('rigging.bow-stay',(FX,0,21.8),(57,sign*.2,6),.009,materials['dark'],vertices=5)
+ rod('rigging.stern-stay',(-21.6,MY,15.1),(-57,sign*.2,2.9),.009,materials['dark'],vertices=5)
+ for xx,yy in [(25,1.95),(19.5,1.2)]:rod('rigging.shroud',(FX,0,20),(xx,sign*yy,8.86),.01,materials['dark'],vertices=5)
+# Type 22 radar: a 1.6 m platform on the trestle with its equipment room and the paired horns.
+prism('radar.platform',outline_rect(20.18,21.78,-1.53,1.53,.1),13.12,13.3)
+box('radar.room',(21.97,0,13.59),(1.05,.62,.58),materials['naval'],bev=.04)
+for z,x0,x1 in [(14.25,21.8,23.1),(14.75,21.05,22.4)]:
+ rod('radar.horn',(x0,0,z),(x1,0,z),.12,materials['naval'],r2=.25,vertices=24)
+ rod('radar.horn-mouth',(x1+.01,0,z),(x1+.03,0,z),.205,materials['dark'],vertices=24)
+ rod('radar.horn-support',(x0+.15,0,13.3 if z<14.5 else 14.02),(x0+.15,0,z),.07,materials['edge'])
+box('radar.horn-housing',(21.3,0,14.75),(.5,.55,.62),materials['naval'],bev=.04)
+rod('radar.housing-post',(21.3,0,13.3),(21.3,0,14.45),.06,materials['edge'])
 # Bridge after block and the long supported steam trunk seen on the approved fit.
+# The single port steam pipe: up the bridge side, along the after platform and across to the funnel.
+tube_path('bridge.long-steam-trunk',[(26.4,2.22,4.74),(26.3,2.22,5.0),(25.65,2.2,6.2),(24.5,2.16,6.85),(23.5,2.13,7.0),(20.83,1.98,7.8),(20.18,1.9,8.07),(15.0,1.6,9.3),(14.3,1.56,9.45),(14.0,1.56,9.6)],.12,materials['naval'],sides=12)
+for x,y,z,w in [(25.0,2.18,6.6,2.0),(22.0,2.05,7.4,1.62),(20.5,1.94,7.95,1.62)]:rod('bridge.trunk-bracket',(x,y,z),(x,w,z),.045,materials['edge'])
+rod('bridge.trunk-bracket',(15.0,1.6,9.3),(15.0,1.06,9.3),.045,materials['edge'])
+# Boiler-room air intake under the after bridge platform: a plenum and a half-drum hood, as measured.
+box('bridge.intake-plenum',(21.9,0,(deckz(21.9)+4.36)/2),(1.2,3.34,4.36-deckz(21.9)),materials['naval'],bev=.03)
+hood=[(21.39+1.12*math.cos(math.pi*i/14),4.35+1.47*math.sin(math.pi*i/14)) for i in range(15)]
+vs=[(x,y,z) for y in [-1.73,1.73] for x,z in hood];n=len(hood)
+mesh('bridge.intake-hood',vs,[(i,i+1,n+i+1,n+i) for i in range(n-1)]+[tuple(range(n)),tuple(reversed(range(n,2*n))),(0,n,2*n-1,n-1)],materials['naval'],smooth=True)
 for sign in [-1,1]:
- tube_path('bridge.long-steam-trunk',[(22,sign*1.63,4.5),(21.8,sign*1.7,5.8),(21.3,sign*1.7,6.5),(13.9,sign*1.63,9.3),(13.4,sign*1.5,10.5),(13.3,sign*1.5,11.4)],.145,materials['naval'],sides=16)
- for x,z in [(21.4,6.4),(13.9,9.3)]:rod('bridge.trunk-bracket',(x,sign*1.3,z),(x,sign*1.7,z),.055,materials['edge'])
- tube_path('bridge.trunk-intake',[(20.2,sign*1.63,2.80),(20.2,sign*1.63,3.8),(20.5,sign*1.63,4.4),(21.2,sign*1.63,4.55),(22,sign*1.63,4.5)],.30,materials['naval'],sides=20)
- # Torpedo reload housings seated along the central working deck.
- prism('torpedo-reload.housing',outline_rect(8.0,16.8,sign*2.3-.45,sign*2.3+.45,.18),2.80,3.65)
- for x in [8.5,11,14,16]:box('torpedo-reload.stiffener',(x,sign*2.3,3.67),(.045,.9,.055),materials['edge'],bev=.004)
- # Thin bilge keels follow the original lower hull side.
- pts=[(-29,sign*5.15,-2.4),(-25,sign*5.48,-2.4),(8,sign*5.46,-2.4),(12,sign*5.1,-2.4)]
- # Inner edge embeds into the bilge at every station.
- vs=[(x,y,z) for x,y,z in pts]+[(x,sign*width(x)*.86,z+.25) for x,y,z in pts]
- ob=mesh('hull.bilge-keel',vs,[(0,1,5,4),(1,2,6,5),(2,3,7,6)],materials['hullgray']);mod=ob.modifiers.new('Bilge keel plate','SOLIDIFY');mod.thickness=.04
+ # Torpedo reload lockers built into the fore funnel casing: planked lids with stiffeners on top.
+ for x in [11.6,13.4,15.2,17.0,18.8]:
+  box('torpedo-reload.stiffener',(x,sign*(2.3+.55*(x-11.6)/7.2),4.97),(.06,1.3+1.1*(x-11.6)/7.2,.05),materials['edge'],bev=.004)
+ box('torpedo-reload.lid-seam',(15.2,sign*1.72,4.97),(7.8,.05,.05),materials['edge'],bev=.004)
+ # Bilge keels as measured on the approved model: a tapering fin about 0.85 m deep at the turn of
+ # the bilge, from 16.7 m forward to 21.9 m aft of midships; its root embeds in the shell.
+ xs=[16.7,15.9,15]+[12-3*i for i in range(11)]+[-20.2,-21.1,-21.87]
+ vs=[]
+ def bilge_root(x):
+  # Where the bilge diagonal (from 1 m above the waterline on the centreline, 40 deg down) meets the shell.
+  lo,hi=0.,8.
+  for i in range(30):
+   t=(lo+hi)/2;px,py=.767*t,1.0-.641*t
+   if px<shell(x,py):lo=t
+   else:hi=t
+  return .767*lo,1.0-.641*lo
+ for x in xs:
+  depth=max(.06,.84*min(1,(16.7-x)/1.7,(x+21.87)/1.7))
+  rx,ry=bilge_root(x);ux,uy=.49,-.87
+  up=(rx-.03+.641*.04,ry+.767*.04);dn=(rx-.03-.641*.04,ry-.767*.04)
+  tip=(rx+ux*depth,ry+uy*depth)
+  vs += [(x,sign*up[0],up[1]),(x,sign*tip[0],tip[1]),(x,sign*dn[0],dn[1])]
+ n=len(xs);fs=[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(n-1) for j in range(2)]+[(0,1,2),((n-1)*3+2,(n-1)*3+1,(n-1)*3)]
+ mesh('hull.bilge-keel',vs,fs,materials['hullgray'])
 # After searchlight shelf and access rail.
-prism('searchlight.platform',outline_rect(-6.8,-3.9,-1.35,1.35,.3),6.90,7.12)
-for sign in [-1,1]:rod('searchlight.platform-knee',(-5.4,sign*.85,5.5),(-5.4,sign*1.3,6.94),.085,materials['naval'])
+# Searchlight tower abaft the after funnel, as measured: a plated house from the deck to 6.9 m with
+# a 0.62 m bulwark round its searchlight platform.
+# Below 4.34 m the house stops 6.7 m aft of midships, clear of the after bank's muzzles in every train;
+# above it the house overhangs the tubes.
+prism('searchlight.tower-base',outline_rect(-6.7,-4.55,-1.0,1.0,.2),deckz(-6),4.36)
+prism('searchlight.tower',outline_rect(-7.64,-4.55,-1.3,1.3,.3),4.34,6.9)
+prism('searchlight.platform',outline_rect(-7.3,-4.5,-1.36,1.36,.3),6.9,7.14)
+bulwark('searchlight.bulwark',outline_rect(-7.25,-4.55,-1.3,1.3,.3),7.14,.62)
 # Main gun articulation, followed by original Type C details.
 helpers=dict(mesh=mesh,cyl=cyl,rod=rod,box=box)
 sys.path.insert(0,str(ROOT/'assets/parts'))
 from library import create_mount as create_shared_mount
 for mount in [m for m in definition['mounts'] if m['battery']=='main']:
- create_shared_mount(mount,col,dict(helpers,deck_height=(lambda xx:5.15) if mount['id']=='main-2' else deckz),materials)
+ create_shared_mount(mount,col,dict(helpers,deck_height=(lambda xx:5.05) if mount['id']=='main-2' else deckz),materials)
 # Type 96 triple recipe reused from the original catalog collection.
 module=importlib.util.spec_from_file_location('ijn_original',ROOT/'assets/parts/ijn-carrier-guns/geometry.py');ijn=importlib.util.module_from_spec(module);module.loader.exec_module(ijn)
 for m in [m for m in definition['mounts'] if 'triple' in m['id']]:
@@ -313,6 +405,9 @@ for m in [m for m in definition['mounts'] if 'single' in m['id']]:
  lc(rod(name+'.sight-bracket',(-.1,0,-.05),(-.1,.17,.31),.018,materials['naval']),elev)
  lc(tube_path(name+'.ring-sight',[(.13,.17+.10*math.cos(j*math.tau/24),.31+.10*math.sin(j*math.tau/24)) for j in range(24)],.009,materials['edge'],closed=True),elev)
  lc(rod(name+'.sight-rail',(-.35,.17,.31),(.13,.17,.31),.012,materials['edge']),elev)
+ # Cross wires carry the ring sight on its rail.
+ lc(rod(name+'.sight-wire',(.13,.17,.21),(.13,.17,.41),.006,materials['edge'],vertices=5),elev)
+ lc(rod(name+'.sight-wire',(.13,.07,.31),(.13,.27,.31),.006,materials['edge'],vertices=5),elev)
 # Reference-matched original Type 93 quadruple launchers.
 for l in definition['torpedoLaunchers']:refined_torpedo_launcher(l)
 # Depth charge dumpers, projector and original ready-charge rack.
@@ -322,9 +417,10 @@ for l in definition['depthChargeLaunchers']:
  if name!='depth-charge-7':
   for sign in [-1,1]:
    rod(name+'.track',(x-.45,y+sign*.26,deckz(x)+.16),(x+.5,y+sign*.26,deckz(x)+.16),.05,materials['edge'])
-   for xx in [x-.35,x+.35]:rod(name+'.foot',(xx,y+sign*.26,deckz(x)),(xx,y+sign*.26,z),.035,materials['naval'])
-  rod(name+'.charge',(x,y-.34,z+.19),(x,y+.34,z+.19),.22,materials['naval'],vertices=24)
-  for sign in [-1,1]:rod(name+'.drum-band',(x,y+sign*.25-.02,z+.19),(x,y+sign*.25+.02,z+.19),.24,materials['edge'],vertices=24)
+   for xx in [x-.35,x+.35]:rod(name+'.foot',(xx,y+sign*.26,deckz(x)),(xx,y+sign*.26,deckz(x)+.16),.035,materials['naval'])
+  zc=deckz(x)+.27
+  rod(name+'.charge',(x,y-.34,zc),(x,y+.34,zc),.22,materials['naval'],vertices=24)
+  for sign in [-1,1]:rod(name+'.drum-band',(x,y+sign*.25-.02,zc),(x,y+sign*.25+.02,zc),.24,materials['edge'],vertices=24)
  else:
   cyl(name+'.pedestal',(x,y,3.15),.28,.75,materials['naval'],vertices=24)
   rod(name+'.cross-projector',(x,-.7,3.65),(x,.7,3.65),.14,materials['edge'],vertices=24)
@@ -336,9 +432,11 @@ for xx in [-45.3,-44.8]:
 for yy in [-1.4,1.4]:
  for xx in [-45.6,-44.5]:rod('charge-rack.post',(xx,yy,deckz(xx)),(xx,yy,4.2),.04,materials['naval'])
  tube_path('charge-rack.rails',[(-45.6,yy,3.45),(-44.5,yy,3.45),(-44.5,yy,4.2),(-45.6,yy,4.2)],.035,materials['edge'])
+# The ready charges rest on a slatted shelf between the rack posts.
+box('charge-rack.shelf',(-45.05,0,3.45),(1.18,2.84,.04),materials['naval'],bev=.005)
 # Boats in original cradles, with gunwales, ribs and supported davits.
 for sign in [-1,1]:
- cx,cy,z=-3.8,sign*4.35,4.6;L=8;B=2.05
+ cx,cy,z=-3.83,sign*4.49,4.85;L=8;B=2.05
  stations=[(-4,.1,.30),(-3.3,.55,-.05),(-2,.89,-.25),(0,1,-.4),(2,.86,-.20),(3.3,.48,.10),(4,.02,.65)]
  vs=[(cx+x,cy+yy,z+zz) for x,w,k in stations for yy,zz in [(-w*B/2,.70),(-w*B*.43,.05),(0,k),(w*B*.43,.05),(w*B/2,.70)]]
  ob=mesh('boat.shell',vs,[(i*5+j,(i+1)*5+j,(i+1)*5+j+1,i*5+j+1) for i in range(6) for j in range(4)],materials['wood'],smooth=True)
@@ -348,30 +446,58 @@ for sign in [-1,1]:
  box('boat.floor',(cx,cy,z-.12),(4.7,.85,.065),materials['wood'])
  for xx in [-2.4,2.4]:
   x=cx+xx
-  for s in [-1,1]:rod('boat.cradle',(x,cy+s*.70,deckz(x)),(x,cy+s*.65,z+.05),.10,materials['naval'])
+  # Crossed chock braces as on the approved model, clear of the deck edge.
+  for s in [-1,1]:rod('boat.cradle',(x,cy-sign*.95+s*.02,deckz(x)),(x,cy+s*sign*.72,z-.05),.07,materials['naval'])
+  rod('boat.cradle',(x,cy-sign*.95,deckz(x)),(x,cy-sign*.95,z-.05),.08,materials['naval'])
   rod('boat.cradle-crosspiece',(x,cy-.8,z-.05),(x,cy+.8,z-.05),.10,materials['naval'])
-  tube_path('boat.davit',[(x,sign*3.55,deckz(x)),(x,sign*3.55,6.05),(x,sign*3.8,6.55),(x,cy,6.55)],.07,materials['naval'],sides=12)
-  rod('boat.fall',(x,cy,6.55),(x,cy,z+.9),.014,materials['rope'])
+  tube_path('boat.davit',[(x,sign*3.55,deckz(x)),(x,sign*3.55,6.4),(x,sign*3.8,6.9),(x,cy,6.9)],.07,materials['naval'],sides=12)
+  rod('boat.fall',(x,cy,6.9),(x,cy,z+.9),.014,materials['rope'])
   for s in [-1,1]:rod('boat.sling',(x,cy,z+.9),(x,cy+s*.8,z+.7),.018,materials['rope'])
-# Shaft lines and handed propellers. Port screw is the approved mirrored approximation.
+# Shaft lines, bossings, A-brackets and handed propellers, placed as measured on the approved
+# model (runtime x 2.75, shaft falling 0.068 m per metre aft). Port screw is the approved mirror.
+def shaft_y(x):return -1.97-.0675*(-x-36)
+def strut(name,a,b,chord,thick,mat):
+    a,b=Vector(a),Vector(b);d=(b-a).normalized();c=Vector((chord/2,0,0));t=d.cross(Vector((1,0,0))).normalized()*thick/2
+    vs=[tuple(p+sc*c+st*t*(.35 if sc else 1)) for p in [a,b] for sc,st in [(1,0),(0,1),(-1,0),(0,-1)]]
+    mesh(name,vs,[(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7),(3,2,1,0),(4,5,6,7)],mat,smooth=True)
 for sign in [-1,1]:
- a=(-33,sign*1.45,-1.6);b=(-50.8,sign*2.75,-2.75)
- rod('propulsion.shaft',a,b,.17,materials['edge'],vertices=24)
- for x in [-46.5,-49]:
-  rod('propulsion.strut',(x,sign*3.2,-.3),(x,sign*2.6,-2.65),.12,materials['naval'],vertices=16)
-  rod('propulsion.strut',(x,sign*1.1,-1.5),(x,sign*2.6,-2.65),.11,materials['naval'],vertices=16)
- rod('propulsion.hub',(-50.2,sign*2.75,-2.75),(-51.25,sign*2.75,-2.75),.28,materials['bronze'],r2=.08,vertices=24)
+ y=sign*2.75
+ rod('propulsion.shaft',(-34,y,shaft_y(-34)),(-50.1,y,shaft_y(-50.1)),.18,materials['edge'],vertices=16)
+ rod('propulsion.bossing',(-34.2,y,shaft_y(-34.2)),(-39.5,y,shaft_y(-39.5)),.46,materials['hullgray'],r2=.21,vertices=20)
+ rod('propulsion.strut-barrel',(-47.4,y,shaft_y(-47.4)),(-49.9,y,shaft_y(-49.9)),.31,materials['naval'],r2=.27,vertices=20)
+ bx=-48.55;by=shaft_y(bx)
+ strut('propulsion.strut',(bx,y,by),(bx,sign*3.28,-.45),.72,.14,materials['naval'])
+ strut('propulsion.strut',(bx,y,by),(bx,sign*.98,-1.05),.72,.14,materials['naval'])
+ hz=shaft_y(-50.3)
+ rod('propulsion.hub',(-49.9,y,hz),(-51.62,y,hz),.30,materials['bronze'],r2=.07,vertices=24)
  for j in range(3):
   theta=j*math.tau/3;vs=[]
-  for radius,halfchord,sweep in [(.20,.12,0),(.55,.33,.13),(.9,.35,.25),(1.14,.18,.36),(1.17,.02,.39)]:
+  for radius,halfchord,sweep in [(.22,.14,0),(.58,.36,.13),(.95,.38,.25),(1.20,.20,.36),(1.24,.02,.39)]:
    for u in [-1,1]:
-    t=theta+sign*(sweep+u*halfchord/max(radius,.2));vs.append((-50.6+sign*u*halfchord*.65,sign*2.75+radius*math.cos(t),-2.75+radius*math.sin(t)))
+    t=theta+sign*(sweep+u*halfchord/max(radius,.2));vs.append((-50.3+sign*u*halfchord*.65,y+radius*math.cos(t),hz+radius*math.sin(t)))
   ob=mesh('propulsion.screw-blade',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(4)],materials['bronze'],smooth=True)
   mod=ob.modifiers.new('Cast blade thickness','SOLIDIFY');mod.thickness=.055
-rudder_outline=[(-56.6,-.75),(-53.9,-.75),(-53.5,-1.20),(-53.7,-2.60),(-54.2,-3.35),(-55.8,-3.35),(-56.35,-2.90),(-56.7,-1.5)]
-vs=[(x,y,z) for y in [-.15,.15] for x,z in rudder_outline];n=len(rudder_outline)
-mesh('rudder.blade',vs,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],materials['naval'])
-rod('rudder.stock',(-54.7,0,-1),(-54.7,0,1.4),.14,materials['edge'])
+# Balanced rudder, outline and 0.59 m section as measured; its head meets the counter.
+rudder_outline=[(-53.563,-3.381),(-53.224,-3.214),(-53.144,-3.037),(-52.865,-1.656),(-52.852,-1.416),(-52.911,-1.182),(-53.033,-.976),(-53.212,-.814),(-53.761,-.55),(-56.065,-.55),(-56.268,-.62),(-56.427,-.798),(-56.511,-.987),(-56.5,-1.194),(-56.039,-2.805),(-55.93,-3.036),(-55.753,-3.22),(-55.526,-3.341),(-55.275,-3.381)]
+rudder_outline=[(x,z) for x,z in rudder_outline]
+levels=[-3.381,-3.2,-2.8,-2.2,-1.6,-1.0,-.55]
+def edge_at(z,front):
+    pts=[(x,zz) for x,zz in rudder_outline];best=None
+    for (x0,z0),(x1,z1) in zip(pts,pts[1:]+pts[:1]):
+        if min(z0,z1)-1e-9<=z<=max(z0,z1)+1e-9 and abs(z1-z0)>1e-9:
+            x=x0+(x1-x0)*(z-z0)/(z1-z0)
+            if best is None or (x>best if front else x<best):best=x
+    return best
+foil=[(0,0),(.05,.62),(.15,.9),(.3,1),(.5,.93),(.7,.72),(.88,.38),(1,.06)]
+vs=[]
+for z in levels:
+    xf=edge_at(z,True);xa=edge_at(z,False)
+    ring=[(xf+(xa-xf)*u,.297*f,z) for u,f in foil]+[(xf+(xa-xf)*u,-.297*f,z) for u,f in reversed(foil[1:-1])]
+    vs+=ring
+m=len(foil)*2-2;fs=[(i*m+j,i*m+(j+1)%m,(i+1)*m+(j+1)%m,(i+1)*m+j) for i in range(len(levels)-1) for j in range(m)]
+fs+=[tuple(reversed(range(m))),tuple(range((len(levels)-1)*m,len(levels)*m))]
+mesh('rudder.blade',vs,fs,materials['naval'],smooth=True)
+rod('rudder.stock',(-54.06,0,-.75),(-54.06,0,.3),.15,materials['edge'])
 # Bitts, fairleads, capstan, anchors, chain runs and restrained working fittings.
 for sign in [-1,1]:
  for x in [-52,37,50,54]:
@@ -380,31 +506,49 @@ for sign in [-1,1]:
   for xx in [-.3,.3]:
    cyl('mooring.bitt',(x+xx,y,z+.35),.12,.5,materials['naval'],vertices=16)
    cyl('mooring.cap',(x+xx,y,z+.60),.17,.05,materials['edge'],vertices=16)
- for x in [24,27.4,36.5,-22.5,-40]:locker('equipment.ready-locker',(x,sign*2.45,deckz(x)+.37),(.65,.45,.70))
- x=53;y=sign*(width(x)-.1);z=3.4
- rod('anchor.shank',(x,y,z),(x-1.0,y,z-.65),.085,materials['edge'],vertices=12)
- rod('anchor.stock',(x-1.0,y-.35,z-.65),(x-1.0,y+.35,z-.65),.10,materials['edge'])
- for yy in [-.35,.35]:rod('anchor.fluke',(x-1,y+yy,z-.65),(x-.55,y+yy,z-.25),.12,materials['edge'],r2=.025)
- for i in range(40):
-  x=48+i*.12;yy=sign*(.62+(x-48)*.06);zz=deckz(x)+.16
-  tube_path('anchor.chain',[(x+.065*math.cos(j*math.tau/10),yy+.038*math.sin(j*math.tau/10),zz) for j in range(10)],.019,materials['edge'],sides=5,closed=True)
-for x in [-50,48]:
+ for x in [23.3,27.4,36.5,-40]:locker('equipment.ready-locker',(x,sign*2.45,deckz(x)+.37),(.65,.45,.70))
+ # Paired lockers on the low deckhouse ahead of the mainmast, as measured.
+ locker('equipment.ready-locker',(-18.14,sign*1.34,4.2+.55),(1.8,1.28,1.1))
+ # Stockless bower anchor housed in its hull pocket below the forecastle edge (as measured:
+ # centre 54.3 m forward of midships, 4.9 m above the waterline).
+ x=54.31
+ def face(z,dx=0):return sign*(shell(x+dx,z)+.02)
+ pocket=[(x+dx,face(z,dx)-sign*.05,z) for dx,z in [(-.78,4.15),(.78,4.15),(.78,5.62),(-.78,5.62)]]
+ mesh('anchor.pocket',pocket,[(0,1,2,3)],materials['dark'])
+ rod('anchor.shank',(x+.05,face(5.55,.05),5.55),(x-.05,face(4.45,-.05)+sign*.02,4.45),.11,materials['edge'],vertices=12)
+ rod('anchor.crown',(x-.62,face(4.38,-.62)+sign*.03,4.38),(x+.62,face(4.38,.62)+sign*.03,4.38),.14,materials['edge'],vertices=12)
+ for dx in [-.62,.62]:rod('anchor.fluke',(x+dx,face(4.38,dx)+sign*.03,4.38),(x+dx*.55,face(5.0,dx*.55)+sign*.02,5.0),.16,materials['edge'],r2=.04,vertices=10)
+ rod('anchor.shackle',(x+.05,face(5.62,.05),5.5),(x+.05,face(5.62,.05),5.75),.07,materials['edge'],vertices=10)
+ # Forecastle cable gear as measured: the cable leads from the deck-edge hawse recess aft over its
+ # gypsy to the chain pipe.
+ hx,hy=53.85,sign*1.3
+ mesh('anchor.hawse-recess',[(hx+.55*math.cos(t),hy+.3*math.sin(t),deckz(hx)+.02) for t in [i*math.tau/16 for i in range(16)]],[tuple(range(16))],materials['dark'])
+ gx,gy=49.2,sign*1.0
+ z=deckz(gx);cyl('anchor.gypsy',(gx,gy,z+.25),.34,.5,materials['naval'],vertices=24);cyl('anchor.gypsy-cap',(gx,gy,z+.54),.38,.1,materials['edge'],vertices=24)
+ mesh('anchor.chain-pipe',[(47.3+.25*math.cos(t),sign*.72+.18*math.sin(t),deckz(47.3)+.02) for t in [i*math.tau/12 for i in range(12)]],[tuple(range(12))],materials['dark'])
+ run=[(hx-.3,hy),(gx+.36,gy),(gx-.36,gy),(47.3,sign*.72)]
+ for (ax,ay),(bx,by) in zip(run,run[1:]):
+  n=max(1,int(math.hypot(bx-ax,by-ay)/.12))
+  for i in range(n):
+   x=ax+(bx-ax)*i/n;yy=ay+(by-ay)*i/n;zz=deckz(x)+.08+(.4 if abs(x-gx)<.4 else 0)
+   tube_path('anchor.chain',[(x+.065*math.cos(j*math.tau/10),yy+.038*math.sin(j*math.tau/10),zz) for j in range(10)],.019,materials['edge'],sides=5,closed=True)
+for x in [-50]:
  z=deckz(x);cyl('mooring.capstan',(x,0,z+.28),.42,.55,materials['naval'],vertices=28);cyl('mooring.capstan-lid',(x,0,z+.60),.47,.12,materials['edge'],vertices=28)
 for x in [-48,-40,36,51]:
  z=deckz(x);box('deck.hatch',(x,0,z+.14),(1.1,.8,.22),materials['naval'])
  for y in [-.28,.28]:rod('deck.hatch-grab',(x-.18,y,z+.3),(x+.18,y,z+.3),.023,materials['edge'])
-for x in [-23,-6,11,36]:
+for x in [-21.5,-6,11,36]:
  for sign in [-1,1]:
-  y=sign*(1.7 if x in [-6,11] else 2.4);z=deckz(x)
+  y=sign*(1.7 if x in [-6,11] else 1.75 if x==-21.5 else 2.4);z=4.2 if x==-21.5 else deckz(x)
   cyl('ventilator.stalk',(x,y,z+.5),.19,1.0,materials['naval'],vertices=20)
   tube_path('ventilator.cowl',[(x,y,z+.8),(x-.1,y,z+1.13),(x-.4,y,z+1.13)],.23,materials['naval'],sides=16)
   rod('ventilator.mouth',(x-.4,y,z+1.13),(x-.42,y,z+1.13),.19,materials['dark'],vertices=20)
 # Searchlight on the aft uptake platform, with yoke and pedestal.
-cyl('searchlight.column',(-5.4,0,6.45),.34,1.75,materials['naval'],vertices=24)
-rod('searchlight.cross-bearing',(-5.4,-.52,7.25),(-5.4,.52,7.25),.085,materials['edge'])
-for sign in [-1,1]:rod('searchlight.yoke',(-5.4,sign*.52,6.8),(-5.4,sign*.52,7.8),.07,materials['edge'])
-rod('searchlight.drum',(-5.8,0,7.9),(-4.9,0,7.9),.52,materials['naval'],vertices=32)
-rod('searchlight.lens',(-4.89,0,7.9),(-4.87,0,7.9),.46,materials['glass'],vertices=32)
+cyl('searchlight.column',(-5.7,0,7.37),.3,.46,materials['naval'],vertices=24)
+rod('searchlight.cross-bearing',(-5.7,-.55,7.62),(-5.7,.55,7.62),.085,materials['edge'])
+for sign in [-1,1]:rod('searchlight.yoke',(-5.7,sign*.55,7.55),(-5.7,sign*.55,8.15),.07,materials['edge'])
+rod('searchlight.drum',(-6.15,0,8.05),(-5.25,0,8.05),.55,materials['naval'],vertices=32)
+rod('searchlight.lens',(-5.24,0,8.05),(-5.22,0,8.05),.48,materials['glass'],vertices=32)
 # Baked original hull paint, with light seams and waterline weathering.
 wtex,htex=1024,256;pixels=array('f')
 for j in range(htex):

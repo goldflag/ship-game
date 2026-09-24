@@ -18,7 +18,7 @@ and performance use provisional game conventions where the visual source is sile
 ## Model and simulation basis
 
 The playable preset uses the shared versioned blueprint and component catalog.
-The original 183.9 m hull, stepped bridge/deckhouses, gun positions and paint follow
+The 183.9 m hull, deckhouses, bridge, funnels, masts, gun positions and paint follow
 the selected reference at 15 m/source-unit and source Y=0 waterline. Main turrets
 use the original Cleveland Mk.16 builder; Mk.32 Mod.12 has a separate original
 AGS010 enclosure and shared joint/barrel builder. The unresolved legacy Iowa
@@ -26,7 +26,16 @@ AGS010 enclosure and shared joint/barrel builder. The unresolved legacy Iowa
 original Iowa recipes. All 43 weapon stations retain independent articulation.
 
 The original fittings include Mk.34/Mk.37/Mk.51 directors, SK/SG/SM antennas,
-TDY aerial, tripod masts, rails, anchors, liferafts, catapults and the stern crane.
+TDY aerial, pole masts, rails, anchors, liferafts, catapults and the stern crane.
+
+How it was made (2026-09 accuracy pass, GameModels3D pasc208 only): `authoring/lines.json`
+holds 83 control stations measured like a lines plan from the reference (bilge keels, skeg,
+rudder, shaft struts and propeller guards left out); `author-hull.py` writes the blueprint hull
+from it. `author-structures.py` writes the deckhouses, bridge, after superstructure and funnel
+records from outlines traced on the reference's walls and decks. `underwater.py` builds the
+appendages, `upperworks.py` the funnel pipes, galleries, pole masts and deck-edge bulwarks, and
+`fittings.py` the directors, radars, crane, catapults and deck gear. After a hull change run
+`author-hull.py`, then flood spaces, then stability (remove `stability` first), then build.
 Fine fittings, rigging and weathering are simplified original constructions;
 no external mesh or texture is an authoring input. No aircraft is carried aboard.
 Model fidelity and export validation do not establish a historical year, loading
@@ -48,6 +57,12 @@ shell collision and exhaust placement. Exposed Mk34/Mk37 directors provide
 redundant battery coverage; each Mk51 serves one adjacent Bofors mount. Director
 coverage, 3–6 mm protection and equipment HP are provisional; Oerlikons use local
 control. The 132 flood cells model game compartmentation, not historical rooms.
+
+Known approximations against the reference: deck gear, boats, rigging and small fittings are
+simplified or omitted; the SK reflector is a plain screen behind its lattice; the after 03 house
+narrows to 1.45 m abreast the 40 mm aa-19/20 (the reference's is 1.98 m) to clear the shared
+Bofors part's training body; the reference's low vent under turret 1's rear overhang is left
+out; Bofors tubs have one wall height where the reference's inboard wall is taller.
 
 Build: `bun run ship:build cleveland`
 

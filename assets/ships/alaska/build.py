@@ -138,7 +138,8 @@ for s in D['structures']:
         elif face.normal.z > .8:
             face.material_index = 1
     shells.append(ob)
-support = SupportSurface([hull, *shells])
+# The after 5-inch sponson decks ring their barbettes: barbettes and tubs seat on the deck below them.
+support = SupportSurface([hull, *[o for o in shells if not o['assemblyId'].startswith('platform-5in')]])
 
 # ---------------------------------------------------------------- guns
 tub_col = collections['Light AA']
@@ -184,7 +185,17 @@ for mount in D['mounts']:
     else:
         bofors = kind.startswith('us-40')
         tub_r = 2.55 if bofors else 1.55
-        if gap > .2:
+        # The splinter tub stands on a floor whenever its rim would not reach the supporting surface:
+        # the ring is probed as well as the centre, since small pedestal blocks and sponsons are
+        # narrower than the tub.
+        def under(px, py):
+            try:
+                return min(z, support.below(px, py, z + .5))
+            except ValueError:      # outboard of the deck edge
+                return z - 5
+        probes = [(x + math.cos(a) * tub_r * .9, y + math.sin(a) * tub_r * .9) for a in [i * math.tau / 8 for i in range(8)]]
+        ring = min([under(px, py) for px, py in probes if abs(py) < width(px) - .1] or [z])
+        if gap > .02 or z - ring > .02:
             deck = cyl(mount['id'] + '.tub floor', (x, y, z - .08), tub_r, .16, 'roof', col, 36 if bofors else 24)
             deck['assemblyId'] = mount['id']
             below = floor
@@ -198,11 +209,29 @@ for mount in D['mounts']:
                     foot = support.below(x + ax * tub_r * .45, y + ay * tub_r * .45, z - .17)
                     k = rod(mount['id'] + '.tub knee', (x + ax * tub_r * .9, y + ay * tub_r * .9, z - .16), (x + ax * tub_r * .45, y + ay * tub_r * .45, foot), .08, 'naval', col, vertices=8)
                     k['assemblyId'] = mount['id']
-        # Oerlikon tubs open inboard for access; Bofors tubs are closed rings with a step gap.
-        outboard = math.degrees(math.atan2(y, x)) if abs(y) > .5 else (0 if x > 0 else 180)
-        span = 360 if bofors else 250
-        start = outboard - span / 2 + (0 if bofors else 0)
-        ringwall(mount['id'] + '.splinter tub', x, y, z, tub_r, 1.15 if bofors else 1.05, start, start + span, mount['id'])
+        # Bofors tubs are closed rings. Oerlikon tubs face the mount's bearing and open inboard for
+        # access; at the deck edge the ring stops at the ship's side, where a straight bulwark closes it
+        # (the reference's deck-edge mounts stand inside the side plating, not on sponsons).
+        if bofors:
+            ringwall(mount['id'] + '.splinter tub', x, y, z, tub_r, 1.15, 0, 360, mount['id'])
+        else:
+            outboard = -mount.get('bearingDeg', 0)
+            arcs = [(outboard - 125, outboard + 125)]
+            edge = width(x) - .06
+            if abs(y) + tub_r > edge and abs(y) < edge:
+                sgn = 1 if y > 0 else -1
+                h = 90 - abs(math.degrees(math.asin(max(-1, min(1, (edge - abs(y)) / tub_r)))))
+                c = 90 * sgn
+                rel = ((outboard - c + 180) % 360) - 180
+                arcs = [(c + a, c + b) for a, b in ((rel - 125, -h), (h, rel + 125)) if b - a > 4]
+                p1 = (x + tub_r * math.cos(math.radians(c - h)), y + tub_r * math.sin(math.radians(c - h)))
+                p2 = (x + tub_r * math.cos(math.radians(c + h)), y + tub_r * math.sin(math.radians(c + h)))
+                length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+                side = box(mount['id'] + '.deck-edge bulwark', ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2, z + .525), (length, .07, 1.05), 'naval', col)
+                side.rotation_euler.z = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+                side['assemblyId'] = mount['id']
+            for k, (a, b) in enumerate(arcs):
+                ringwall(mount['id'] + '.splinter tub' + ('' if k == 0 else f' {k}'), x, y, z, tub_r, 1.05, a, b, mount['id'])
     create_mount(mount, col, helpers, materials)
 
 # ---------------------------------------------------------------- fittings

@@ -124,7 +124,7 @@ def refined_midships_platforms():
         tube_path(ident+'.edge',[(x,y,s['baseY']+s['height']+.01) for x,y in outline],.035,materials['edge'],closed=True)
     for sign in [-1,1]:
         rod('midships-aa-deck.column',(.5,sign*2.8,deckz(.5)),(.5,sign*2.8,6.17),.24,materials['naval'],vertices=24)
-        for x,y in [(1.7,sign*3.1),(-.7,sign*3.8),(.5,sign*1.5)]:rod('midships-aa-deck.knee',(.5,sign*2.8,5.18),(x,y,6.12),.09,materials['edge'])
+        for x,y in [(-.7,sign*3.8),(.5,sign*1.5)]:rod('midships-aa-deck.knee',(.5,sign*2.8,5.18),(x,y,6.12),.09,materials['edge'])
         # Low plated round gun tubs connect directly to the aft uptake platform.
         rim=[(.5+1.60*math.cos(t),sign*(2.8+1.45*math.sin(t))) for t in [i*math.pi/16 for i in range(17)]]
         bulwark('midships-aa-deck.tub',rim,6.25,.32,closed=False)

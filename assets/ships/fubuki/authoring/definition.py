@@ -7,15 +7,11 @@ from pathlib import Path
 import json,math
 SHIP=Path(__file__).resolve().parents[1]
 L=118.75;half=L/2
-# x (bow positive), deck half-breadth, deck and keel elevations.
-stations=[(-59.375,.025,3.43,-.60),(-58.6,1.4,3.43,-.9),(-57,2.8,3.42,-.72),(-54,3.85,3.41,-.78),(-50,4.50,3.40,-1.15),(-44,4.97,3.39,-2.55),(-42,5.05,3.39,-3.22),(-38,5.15,3.38,-3.22),(-28,5.29,3.38,-3.22),(-15,5.29,3.39,-3.22),(-5,5.25,3.4,-3.22),(8,5.08,3.42,-3.22),(16,4.79,3.5,-3.22),(19.8,4.50,3.6,-3.22),(20.3,4.48,5.35,-3.22),(26,4.28,5.38,-3.22),(33,4.17,5.46,-3.22),(40,3.73,5.63,-3.22),(47,2.86,5.86,-3.22),(52,1.98,6.02,-3.22),(53.5,1.70,6.09,-3.10),(55,1.38,6.15,-2.72),(56,1.15,6.20,-2.10),(57,.92,6.24,-1.12),(57.8,.70,6.28,.15),(58.4,.48,6.31,1.85),(59,.20,6.34,4.6),(59.375,.001,6.36,6.34)]
-h={'kind':'authored-stations-v1','length':L,'beam':10.58,'draft':3.22,'depth':9.58,'massKg':2300000,'waterplaneAreaM2':905,'reserveBuoyancyM3':1100,
- 'halfBreadths':[[round(x+half,5),w] for x,w,d,k in stations],'deckHeights':[[round(x+half,5),d] for x,w,d,k in stations],'keelHeights':[[round(x+half,5),k] for x,w,d,k in stations],'sections':[]}
-for x,w,d,k in stations:
- # Original rounded-bilge section, sharper forward V and tucked stern counter.
- bow=max(0,(x-35)/25);stern=max(0,(-x-38)/22)
- pts=[[0,k],[w*(.52-.4*bow-.28*stern),k+.08*(d-k)],[w*(.84-.32*bow-.28*stern),k+.23*(d-k)],[w*(.97-.15*bow-.10*stern),k+.44*(d-k)],[w*.995,k+.67*(d-k)],[w,k+.87*(d-k)],[w,d],[0,d+.005]]
- h['sections'].append({'station':round(x+half,5),'points':[[round(a,4),round(b,4)] for a,b in pts]})
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from hull import hull_from_lines
+# Hull stations: lines.json, offsets measured like a lines plan from the approved reference (see hull.py).
+h,_=hull_from_lines(2300000)
 b={'schemaVersion':1,'id':'fubuki','name':'Fubuki','configuration':'Approved GameModels3D Fubuki (A); default paint; source-model fit, historical year unverified','coordinates':'meters-y-up-bow-negative-z','modelUrl':'/models/fubuki.glb','hull':h,
  'handling':{'forwardSpeed':18,'reverseSpeed':4.5,'acceleration':.47,'braking':.40,'rudderRate':.60,'maxYawRate':.065},'mounts':[],'armor':[],'compartments':[],'modules':[],'connections':[],'obstructions':[],
  'structures':[],'structuralPlating':{'hullMm':12,'superstructureMm':6,'note':'Estimated game protection; the reference does not establish armor thickness.'},'viewpoints':{'bridge':[0,12.5,-28]},'accuracy':{'exterior':'Independent interpretation of approved GameModels3D pjsd106 A_Hull_1943. Scale and waterline provisional; historical year unverified.','internals':'Estimated rooms, machinery and magazines for gameplay; no internal reference plans.','weapons':'Approved source fit; mechanical stops and combat performance use provisional game conventions.'}}
@@ -80,4 +76,7 @@ for i,x,y,z in [(1,-50.9445,0,3.3675),(2,-55.3065,2.7705,3.381),(3,-55.3065,-2.7
  b['depthChargeLaunchers'].append({'id':id,'name':'Depth charge station '+str(i),'partId':'ijn-450-depth-charge-game','position':[-y,z,-x],'velocity':[0,3 if i==1 else 0,2],'ammo':4,'magazineId':'depth-charge-magazine','launcherModuleId':id+'-equipment'})
  b['modules'].append({'id':id+'-equipment','name':'Depth charge station '+str(i),'kind':'launcher','placement':'fixed','center':[-y,z+.3,-x],'size':[1.4 if i==1 else .8,1.4 if i==1 else .5,1.1],'hp':45,'protectionMm':3,'immersionToleranceM':.25})
 b['modules'].append({'id':'main-director','name':'Bridge optical director','kind':'fire-control','placement':'fixed','center':[0,14.0,-26.1],'size':[2.4,1.6,2.6],'hp':65,'protectionMm':6,'immersionToleranceM':.3,'servesMountIds':['main-forward','main-aft']})
+# The re-measured superstructure (structures.py) replaces the original blocks by ID.
+from structures import apply
+apply(b)
 (SHIP/'blueprint.json').write_text(json.dumps(b,indent=2)+'\n')
