@@ -17,6 +17,17 @@ test('scalar patches preserve zero, false, empty text and null; a wrapped value 
   expect(applyFramePatch(previous, undefined)).toBe(previous);
 });
 
+test('a keyed array copies its survivors to where they now sit and patches the rest', () => {
+  const a = { id: 1 }, b = { id: 2, v: 0 }, c = { id: 3 };
+  const previous = { list: [a, b, c], other: { id: 'kept' } };
+  const result = applyFramePatch(previous, { object: { list: { array: [[0, { object: { v: 1 } }], [2, { value: { id: 4 } }], [3, null]], from: [[0, 1, 2]], length: 4 } } }) as typeof previous;
+  expect(result.list).toEqual([{ id: 2, v: 1 }, { id: 3 }, { id: 4 }, null] as never);
+  expect(result.list[1]).toBe(c); expect(result.other).toBe(previous.other);
+  expect(previous.list).toEqual([a, b, c]); expect(b.v).toBe(0);
+  // Runs may leave gaps for arrivals between survivors.
+  expect(applyFramePatch([a, b, c], { array: [[1, { value: { id: 5 } }]], from: [[0, 0, 1], [2, 2, 1]], length: 3 })).toEqual([a, { id: 5 }, c]);
+});
+
 test('prototype-named fields remain ordinary own data properties', () => {
   const previous = JSON.parse('{"__proto__":{"unchanged":1,"value":2},"constructor":3,"other":{"id":"ship"}}');
   const result = applyFramePatch(previous, JSON.parse('{"object":{"__proto__":{"object":{"value":0}},"constructor":false}}')) as Record<string, unknown>;
