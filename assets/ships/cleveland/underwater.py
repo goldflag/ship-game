@@ -130,7 +130,7 @@ def build_underwater(D, helpers, materials, col):
             zc = bz + (boss_end - bz) * t; xc = bx + (end[0] - bx) * t; yc = by + (end[1] - by) * t
             rings.append([(-zc, xc + r * math.cos(a), yc + r * math.sin(a)) for a in [k * math.tau / 16 for k in range(16)]])
         loft_rings(name + '.bossing', rings, red, True)
-        rod(name + '.shaft', (-boss_end, end[0], end[1]), (X + .1, Y, y), shaft_r, naval, col, vertices=12)['assemblyId'] = name
+        rod(name + '.shaft', (-boss_end, end[0], end[1]), (X - .2, Y, y), shaft_r, naval, col, vertices=12)['assemblyId'] = name
         # A-bracket: a bearing barrel with one upright and one inboard-raking strut into the run.
         bxz = bracket_z; cx = end[0] + (x - end[0]) * (bxz - boss_end) / (z - boss_end); cy = end[1] + (y - end[1]) * (bxz - boss_end) / (z - boss_end)
         tag(cyl(name + '.bracket barrel', (-bxz, cx, cy), .37, 1.25, red, col, 20), name).rotation_euler.y = math.pi / 2
@@ -146,8 +146,8 @@ def build_underwater(D, helpers, materials, col):
         rod(name + '.hub', (X, Y, y), (X - hub_len * .8, Y, y), .30, bronze, col, r2=.30, vertices=16)['assemblyId'] = name
         rod(name + '.cap', (X - hub_len * .8, Y, y), (X - hub_len, Y, y), .30, bronze, col, r2=.08, vertices=16)['assemblyId'] = name
         cxb = -zb
-        lead = [(.20, .12), (.30, .22), (.45, .31), (.60, .35), (.75, .34), (.88, .27), (.97, .14), (1.0, .02)]
-        trail = [(1.0, .02), (.97, -.09), (.88, -.18), (.75, -.23), (.60, -.25), (.45, -.23), (.30, -.18), (.20, -.13)]
+        lead = [(.14, .10), (.30, .22), (.45, .31), (.60, .35), (.75, .34), (.88, .27), (.97, .14), (1.0, .02)]
+        trail = [(1.0, .02), (.97, -.09), (.88, -.18), (.75, -.23), (.60, -.25), (.45, -.23), (.30, -.18), (.14, -.10)]
         outline = lead + trail[1:]
         hand = side
         for k in range(4):

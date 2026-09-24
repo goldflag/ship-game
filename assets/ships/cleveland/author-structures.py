@@ -152,11 +152,16 @@ AFTER_BLOCK_01 = [(0, 4.40), (0.74, 4.90), (1.29, 5.45), (1.73, 6.29), (1.98, 7.
 AFTER_02 = [(0, 4.53), (0.65, 4.91), (1.27, 5.43), (1.70, 6.23), (1.98, 7.46), (2.14, 9.80), (3.16, 9.80), (3.16, 11.71), (2.14, 11.72),
             (2.14, 13.91), (3.74, 13.91), (4.62, 14.11), (5.40, 14.63), (5.92, 15.40), (6.12, 16.36), (5.92, 17.31), (5.40, 18.08),
             (4.62, 18.61), (3.66, 18.80), (3.66, 24.18), (0.77, 27.72), (0, 27.72)]
-AFTER_03 = [(0, 12.28), (1.78, 12.28), (2.81, 12.85), (2.80, 13.95), (1.99, 14.73), (1.98, 15.93), (1.42, 17.80), (1.42, 23.63),
+# The reference's 03 house is 1.98 m wide abreast the 40 mm aa-19/20 (z 14.7-15.9); here it narrows to 1.45 m there,
+# clear of the shared Bofors part's training body.
+AFTER_03 = [(0, 12.28), (1.78, 12.28), (2.81, 12.85), (2.80, 13.95), (1.99, 14.73), (1.45, 15.10), (1.42, 17.80), (1.42, 23.63),
             (1.14, 24.21), (0.63, 24.62), (0, 24.76)]
 MAST_HOUSE = [(0, 11.43), (1.42, 11.43), (1.42, 13.94), (2.25, 13.95), (2.25, 15.06), (1.42, 15.07), (1.41, 15.64), (0, 15.64)]
 MAST_HOUSE_ROOF = [(0, 9.39), (0.18, 9.39), (0.49, 9.71), (0.62, 10.15), (1.42, 11.43), (1.42, 13.94), (2.25, 13.95), (2.25, 15.06),
                    (1.42, 15.07), (1.41, 15.64), (0, 15.64)]
+
+SECONDARY_6_HOUSE = [(0, 28.35), (1.12, 28.47), (1.56, 28.35), (1.94, 28.53), (1.98, 30.37), (2.90, 30.60), (2.98, 31.25), (2.90, 32.45),
+                     (1.98, 32.65), (1.94, 33.29), (1.78, 33.61), (1.78, 34.20), (0, 34.20)]
 
 STRUCTURES = {
     # 01 level: forward deckhouse with the 5-inch sponsons, the uptake casing through the waist, midships and after houses.
@@ -165,6 +170,7 @@ STRUCTURES = {
     'center-deckhouse': lambda: prism('center-deckhouse', 'Center Deckhouse', 5.6, 8.11, MIDSHIPS_01),
     'center-deckhouse-roof': lambda: prism('center-deckhouse-roof', 'Midships 01 deck and Bofors sponsons', 8.11, 8.27, MIDSHIPS_01_ROOF),
     'after-deckhouse': lambda: prism('after-deckhouse', 'After Deckhouse', 5.6, 8.27, AFTER_01),
+    'after-secondary-house': lambda: prism('after-secondary-house', 'After 5-inch mount house', 8.27, 10.08, SECONDARY_6_HOUSE),
     # Forward bridge: the block, the 10.3 m walkway, the 02 deck, the 03 chart house, the 03 deck, the 04 pilot house and roof.
     'forward-bridge-lower': lambda: prism('forward-bridge-lower', 'Forward Bridge Lower', 8.27, 10.32, BRIDGE_01),
     'forward-bridge-lower-platform': lambda: prism('forward-bridge-lower-platform', 'Forward bridge walkway', 10.16, 10.32, WALKWAY_10),
@@ -186,7 +192,7 @@ STRUCTURES = {
     'after-funnel': after_funnel,
 }
 # New records go after these existing ones.
-AFTER = {'forward-uptake': 'forward-deckhouse', 'center-deckhouse-roof': 'center-deckhouse',
+AFTER = {'forward-uptake': 'forward-deckhouse', 'after-secondary-house': 'after-deckhouse', 'center-deckhouse-roof': 'center-deckhouse',
          'forward-bridge-lower-platform': 'forward-bridge-lower', 'pilot-house-platform': 'pilot-house',
          'after-mast-house': 'after-bridge-top', 'after-mast-house-platform': 'after-mast-house'}
 

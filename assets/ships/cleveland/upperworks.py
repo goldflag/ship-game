@@ -213,22 +213,25 @@ def build_upperworks(D, helpers, materials, col, F):
                 return va + (vb - va) * (st - a) / (b - a)
         return d[-1][1]
 
-    def edge_wall(name, pts, h, t=.1):
-        """Deck-standing bulwark along a runtime [x, z] polyline, following the sheer."""
+    def edge_wall(name, pts, h, t=.1, top=None):
+        """Deck-standing bulwark along a runtime [x, z] polyline: h above the deck (following the sheer),
+        or up to a level `top`."""
         for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
             y0, y1 = deck_y(z0) - .05, deck_y(z1) - .05
-            vv = [B((x0, y0, z0)), B((x1, y1, z1)), B((x1, y1 + h + .05, z1)), B((x0, y0 + h + .05, z0))]
+            t0, t1 = (top, top) if top else (y0 + h + .05, y1 + h + .05)
             nx, nz = z1 - z0, -(x1 - x0); L = math.hypot(nx, nz) or 1; nx, nz = nx / L * t / 2, nz / L * t / 2
-            a = [B((x0 + nx, y0, z0 + nz)), B((x1 + nx, y1, z1 + nz)), B((x1 + nx, y1 + h + .05, z1 + nz)), B((x0 + nx, y0 + h + .05, z0 + nz))]
-            b = [B((x0 - nx, y0, z0 - nz)), B((x1 - nx, y1, z1 - nz)), B((x1 - nx, y1 + h + .05, z1 - nz)), B((x0 - nx, y0 + h + .05, z0 - nz))]
+            a = [B((x0 + nx, y0, z0 + nz)), B((x1 + nx, y1, z1 + nz)), B((x1 + nx, t1, z1 + nz)), B((x0 + nx, t0, z0 + nz))]
+            b = [B((x0 - nx, y0, z0 - nz)), B((x1 - nx, y1, z1 - nz)), B((x1 - nx, t1, z1 - nz)), B((x0 - nx, t0, z0 - nz))]
             ff = [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
             outward(tag(mesh(name, a + b, ff, naval, col), name.split('.')[0]))
-            tube(name + ' cap', (x0, y0 + h + .05, z0), (x1, y1 + h + .05, z1), .05, n=6)
+            tube(name + ' cap', (x0, t0, z0), (x1, t1, z1), .05, n=6)
 
     # 20 mm deck-edge bulwarks: the bow gun tub and the U-shaped sponsons abreast the guns (1.2-1.4 m).
-    bow = [(3.16, -83.49), (3.18, -84.79), (2.94, -85.87), (2.54, -87.71), (2.10, -89.07), (1.46, -90.43), (1.10, -90.95), (0.66, -91.55), (0, -91.85)]
+    # D-shaped tub round both bow 20 mm guns, open aft on the centreline; its top level at 8.66 m.
+    bow = [(0.9, -83.63), (1.84, -83.57), (2.44, -83.69), (3.0, -84.1), (3.16, -84.79), (2.94, -85.87), (2.26, -86.71), (1.84, -87.09),
+           (0.8, -87.61), (0, -87.61)]
     for s_ in [-1, 1]:
-        edge_wall('bow-gun-bulwark', [(s_ * .9, -83.63), (s_ * 1.84, -83.57), (s_ * 2.44, -83.69)] + [(s_ * x, z) for x, z in bow], 1.2)
+        edge_wall('bow-gun-bulwark', [(s_ * x, z) for x, z in bow], 1.2, top=8.66)
     for ident, pts in [('aa-sponson-forward', [(5.2, -49.69), (6.36, -49.69), (6.82, -49.27), (6.92, -48.9), (6.92, -44.83), (6.82, -44.63),
                                               (6.40, -44.25), (5.2, -44.21)]),
                        ('aa-sponson-midships', [(7.16, 4.21), (8.40, 4.31), (8.70, 4.57), (8.82, 4.85), (8.82, 9.73), (8.52, 10.03), (8.36, 10.11),
@@ -248,7 +251,10 @@ def build_upperworks(D, helpers, materials, col, F):
             if (az > z) != (bz > z) and x < (bx - ax) * (z - az) / (bz - az) + ax:
                 c = not c
         return c
-    guns = [(m['position'][0], m['position'][2], (m['weapon'].get('barbetteRadius') or .5) + .9) for m in D['mounts'] if abs(m['position'][1] - 8.27) < 2.5]
+    # Keep rails out of every gun's training circle.
+    reach = {'main': 7.5, 'secondary': 3.6}
+    guns = [(m['position'][0], m['position'][2], reach.get(m['id'].split('-')[0], 3.2 if m['weapon']['caliberM'] > .03 else 2.6))
+            for m in D['mounts'] if abs(m['position'][1] - 8.27) < 3.0]
     for r in roofs:
         poly = r['footprint']
         for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):

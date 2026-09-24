@@ -159,24 +159,32 @@ def build_fittings(D,helpers,materials,col,deck_height):
         for y in [-2.185,2.185]:
             F.ring('bridge scuttle',(x,y,10.05),.17,.034,'y',segments=12)
             ob=cyl('bridge scuttle glass',(x,y,10.05),.135,.025,dark,col,16);ob.rotation_euler.x=math.pi/2;tag(ob,'forward-bridge-lower')
-    # Capstans, paired bitts, anchor cable runs and chain stoppers on the forecastle.
-    for x in [71,78]:
-        z=deck_height(x)
-        for y in [-1.4,1.4]:
-            tag(cyl('capstan.base',(x,y,z+.15),.64,.3,naval,col,24),'deck-capstans')
-            tag(cyl('capstan.drum',(x,y,z+.58),.35,.7,dark,col,24),'deck-capstans')
-            tag(cyl('capstan.head',(x,y,z+.97),.55,.12,naval,col,24),'deck-capstans')
-    for x in [-83,-65,83]:
-        for y in [-2.1,2.1]:
+    # Capstans, bollards, mushroom ventilators and anchor cables at the reference's positions.
+    for y in [-2.55,2.55]:
+        x=70.1;z=deck_height(x)
+        tag(cyl('capstan.base',(x,y,z+.15),.64,.3,naval,col,24),'deck-capstans')
+        tag(cyl('capstan.drum',(x,y,z+.58),.35,.7,dark,col,24),'deck-capstans')
+        tag(cyl('capstan.head',(x,y,z+.97),.55,.12,naval,col,24),'deck-capstans')
+    for x,ay in [(77.68,3.92),(66.57,5.39),(53.55,6.59),(-58.72,8.02),(-84.53,6.25)]:
+        for y in [-ay,ay]:
             z=deck_height(x)
             tag(box('bitts.foundation',(x,y,z+.08),(1.6,.65,.16),naval,col),'deck-bitts')
             for dx in [-.5,.5]:
                 tag(cyl('bitts.post',(x+dx,y,z+.42),.17,.68,naval,col,16),'deck-bitts')
                 tag(cyl('bitts.cap',(x+dx,y,z+.78),.23,.08,naval,col,16),'deck-bitts')
+    # (The reference also has a low vent at z -63.5 under turret 1's rear overhang; our Mk 16 gunhouse would foul it.)
+    for x,y,h,r in [(67.89,1.85,1.3,.85),(67.89,-1.85,1.3,.85),(64.83,-1.97,.85,.57),(-88.07,2.09,1.3,.85),(-88.07,-2.21,1.15,.85),
+                    (-39.36,-1.66,1.3,.85),(-47.84,-1.85,1.3,.85),(35.82,0,.83,.85),(-61.24,3.07,.83,.85),(-62.97,-5.9,.83,.85),(-62.97,5.9,.83,.85)]:
+        z=deck_height(x)
+        if -4.5<x<30:z=8.27
+        tag(cyl('deck-ventilator.stalk',(x,y,z+(h-.25)/2),.3,h-.25,naval,col,12),'deck-ventilators')
+        tag(cyl('deck-ventilator.cap',(x,y,z+h-.14),r,.2,naval,col,20,r*.55),'deck-ventilators')
+    # Anchor cables from the hawse pipes aft to the capstans; alternate links touch.
     for sign in [-1,1]:
-        for i in range(33):
-            x=72+i*.32;y=sign*1.45;z=deck_height(x)+.10
-            F.ring('anchor cable',(x,y,z),.105,.029,'z' if i%2 else 'y',segments=8)
+        for i in range(37):
+            x=82.6-i*.32;y=sign*(2.2+(2.55-2.2)*i/36);z=deck_height(x)
+            if i%2:F.ring('anchor cable',(x,y,z+.025),.2,.03,'z',segments=8)
+            else:F.ring('anchor cable',(x,y,z+.15),.16,.03,'y',segments=8)
     # Original stockless anchors: forged shank, crown pin and paired flukes.
     # Rounded installation frames preserve the reference's seated hawse position.
     for sign in [-1,1]:
@@ -199,26 +207,47 @@ def build_fittings(D,helpers,materials,col,deck_height):
             count=len(outline);ff=[tuple(reversed(range(count))),tuple(range(count,2*count))]
             ff.extend([(i,(i+1)%count,(i+1)%count+count,i+count) for i in range(count)])
             tag(mesh(name+'.fluke',vv,ff,dark,col),name)
-        F.ring(name+'.hawse lip',(82.1,sign*1.45,deck_height(82.1)+.035),.25,.065,'z',segments=20)
-    # Original lattice handling crane at the stern, supported by a rotating pedestal.
-    name='stern-crane';x=-88;z=deck_height(x)
-    tag(cyl(name+'.foundation',(x,0,z+.45),.75,.9,naval,col,24),name)
-    root=(x,0,z+.9);elbow=(-86.4,0,12.3);tip=(-78.8,0,14.1)
-    for a,b,width in [(root,elbow,.75),(elbow,tip,.55)]:
-        for y in [-width/2,width/2]:beam(name+'.chord',(a[0],y,a[2]),(b[0],y,b[2]),.09)
-        beam(name+'.upper chord',(a[0],0,a[2]+.65),(b[0],0,b[2]+.65),.075)
-        for i in range(8):
-            t=i/8;u=(i+1)/8
-            aa=(a[0]+(b[0]-a[0])*t,(-1 if i%2 else 1)*width/2,a[2]+(b[2]-a[2])*t)
-            bb=(a[0]+(b[0]-a[0])*u,(-1 if (i+1)%2 else 1)*width/2,a[2]+(b[2]-a[2])*u)
-            beam(name+'.web',aa,bb,.04)
-            top=(a[0]+(b[0]-a[0])*u,0,a[2]+(b[2]-a[2])*u+.65)
-            beam(name+'.upper web',aa,top,.04)
-            beam(name+'.upper post',bb,top,.04)
-        beam(name+'.root closure',(a[0],-width/2,a[2]),(a[0],0,a[2]+.65),.055)
-        beam(name+'.root closure',(a[0],width/2,a[2]),(a[0],0,a[2]+.65),.055)
-    beam(name+'.hoist wire',tip,(tip[0],0,9.6),.025,dark)
-    F.ring(name+'.hook',(tip[0],0,9.45),.18,.055,'y',segments=12)
+        F.ring(name+'.hawse lip',(82.9,sign*2.2,deck_height(82.9)+.035),.25,.065,'z',segments=20)
+    # Aircraft crane at the stern: a pedestal on the transom, a forward-leaning lattice post, a near-level
+    # boom over the hatch and a backstay post, as the reference.
+    name='stern-crane';x=-90.3;z=deck_height(x)
+    tag(cyl(name+'.foundation',(x,0,z+.5),.85,1.0,naval,col,24),name)
+    tag(cyl(name+'.slewing ring',(x,0,z+1.05),1.0,.12,naval,col,24),name)
+    root=(x,0,z+1.1);elbow=(-88.7,0,15.35);tip=(-80.35,0,15.75)
+    def truss(p0,p1,q0,q1,width,n,prefix):
+        # Two chord pairs p0->p1 and q0->q1 (each a centreline line, split +/- width/2), battens and webs.
+        for y in [-width/2,width/2]:
+            beam(name+'.'+prefix+' chord',(p0[0],y,p0[2]),(p1[0],y,p1[2]),.085)
+            beam(name+'.'+prefix+' back chord',(q0[0],y,q0[2]),(q1[0],y,q1[2]),.065)
+        for i in range(n+1):
+            t=i/n
+            p=[p0[k]+(p1[k]-p0[k])*t for k in range(3)];q=[q0[k]+(q1[k]-q0[k])*t for k in range(3)]
+            for y in [-width/2,width/2]:beam(name+'.batten',(p[0],y,p[2]),(q[0],y,q[2]),.035)
+            beam(name+'.tie',(p[0],-width/2,p[2]),(p[0],width/2,p[2]),.03)
+            if i<n:
+                u=(i+1)/n;pn=[p0[k]+(p1[k]-p0[k])*u for k in range(3)]
+                for y in [-width/2,width/2]:beam(name+'.web',(q[0],y,q[2]),(pn[0],y,pn[2]),.035)
+    # Post: forward chords from the pedestal to the knuckle, the after chords 0.7 m behind them.
+    truss((root[0]+.35,0,root[2]),(elbow[0]+.35,0,elbow[2]),(root[0]-.35,0,root[2]),(elbow[0]-.35,0,elbow[2]),.9,7,'post')
+    # Boom: a level top chord to the sheave head, the lower chord curving down to the post at 13.9 m.
+    lower=(-87.66,0,13.9)
+    truss((elbow[0],0,elbow[2]),tip,(lower[0],0,lower[2]),(tip[0]+.3,0,tip[2]-.35),.6,8,'boom')
+    tag(box(name+'.knuckle',elbow,(.6,.9,.5),naval,col),name)
+    tag(box(name+'.sheave head',(tip[0],0,tip[2]-.1),(.6,.5,.6),naval,col),name)
+    # Backstay post on the transom and its ties to the knuckle.
+    back=(-92.6,0,10.5)
+    beam(name+'.backstay post',(-91.6,0,deck_height(-91.6)),back,.12)
+    tag(box(name+'.backstay head',back,(.6,.6,.6),naval,col),name)
+    for y in [-.3,.3]:beam(name+'.backstay tie',(back[0],y,back[2]),(elbow[0]-.2,y,elbow[2]),.04,dark)
+    beam(name+'.topping wire',(back[0],0,back[2]+.2),(tip[0],0,tip[2]),.025,dark)
+    beam(name+'.hoist wire',(tip[0],0,tip[2]-.35),(tip[0],0,14.6),.025,dark)
+    F.ring(name+'.hook',(tip[0],0,14.45),.18,.055,'y',segments=12)
+    # Hangar hatch, the smoke generators on the transom.
+    tag(box('stern-deck.hangar hatch',(-80.55,0,deck_height(-80.55)+.25),(12.9,5.8,.7),materials['roof'],col),'stern-deck')
+    for y in [-2.55,2.55]:
+        for dy in [-.2,.2]:
+            ob=tag(cyl('stern-deck.smoke generator',(-91.1,y+dy,deck_height(-91.1)+.3),.2,1.4,naval,col,12),'stern-deck');ob.rotation_euler.y=math.pi/2
+        tag(box('stern-deck.smoke generator rack',(-91.1,y,deck_height(-91.1)+.05),(1.5,.9,.1),naval,col),'stern-deck')
     # Skeg, rudder, bilge keels, shafts, screws, propeller guards and the fantail bulwark.
     from underwater import build_underwater
     build_underwater(D,helpers,materials,col)
@@ -240,8 +269,9 @@ def build_fittings(D,helpers,materials,col,deck_height):
                 beam(name+'.cap',(a[0],a[1],z+height+.01),(b[0],b[1],z+height+.01),.045)
             # End each diagonal at the closest point on the actual supporting
             # cabin, so changes to cabin width cannot leave a hanging bracket.
-            if length>1:
-                midx,midy=(a[0]+b[0])/2,(a[1]+b[1])/2
+            midx,midy=(a[0]+b[0])/2,(a[1]+b[1])/2
+            # No knees where a gun trains under the platform.
+            if length>1 and not any(math.hypot(midx+m['position'][2],midy+m['position'][0])<3.8 and m['position'][1]<z for m in D['mounts'] if m['id'].startswith(('secondary','main'))):
                 cabin=next(s for s in D['structures'] if s['id']==name.removesuffix('-platform'))
                 wall=[(-zz,-xx) for xx,zz in cabin['footprint']]
                 candidates=[]
@@ -253,31 +283,35 @@ def build_fittings(D,helpers,materials,col,deck_height):
                 if math.hypot(anchor[0]-midx,anchor[1]-midy)>.15:
                     beam(name+'.knee',(midx,midy,z-.18),(*anchor,z-.55),.09)
 
-    # Twin longitudinal catapults in the reference's stowed alignment.
+    # Twin longitudinal catapults in the reference's stowed alignment: a 1.1 m deep truss on a
+    # cylindrical turntable pedestal, the launch carriage forward of the pedestal.
     for sign in [-1,1]:
-        name='catapult-'+('port' if sign>0 else 'starboard');x,y,z=-72.49,sign*6.3015,7.5795
+        name='catapult-'+('port' if sign>0 else 'starboard');x,y,z=-72.49,sign*6.3015,7.60
         deck=deck_height(x)
-        tag(cyl(name+'.foundation',(x,y,(deck+z)/2),1.2,z-deck,naval,col,32),name)
-        tag(cyl(name+'.turntable',(x,y,z+.12),1.4,.24,naval,col,32),name)
-        for yy in [-.52,.52]:
-            beam(name+'.lower chord',(x-10.9,y+yy,z+.35),(x+10.3,y+yy,z+.35),.075)
-            beam(name+'.upper rail',(x-10.9,y+yy,z+.95),(x+10.3,y+yy,z+.95),.08)
-        for i in range(22):
-            a=x-10.9+i*.96;b=min(x+10.3,a+.96)
-            for yy in [-.52,.52]:
-                beam(name+'.diagonal',(a,y+yy,z+.35),(b,y+yy,z+.95),.045)
-                beam(name+'.vertical',(a,y+yy,z+.35),(a,y+yy,z+.95),.035)
-            beam(name+'.cross tie',(a,y-.52,z+.4),(a,y+.52,z+.4),.045)
-        tag(box(name+'.launch carriage',(x+2,y,z+1.1),(1.1,1.5,.25),naval,col),name)
-        for dx in [-.40,.40]:
-            beam(name+'.float cradle',(x+2+dx,y-1.8,z+1.35),(x+2+dx,y+1.8,z+1.35),.065)
-            for yy in [-1.6,1.6]:beam(name+'.cradle stay',(x+2,y,z+1.1),(x+2+dx,y+yy,z+1.35),.05)
-        # End-bearing feet connect the long truss to its deck installation.
-        for dx in [-8.8,8.8]:
+        tag(cyl(name+'.foundation',(x,y,(deck+z)/2),1.85,z-deck,naval,col,32),name)
+        tag(cyl(name+'.turntable',(x,y,z+.06),2.0,.12,naval,col,32),name)
+        lo,hi=z+.15,z+1.25
+        for yy in [-.62,.62]:
+            beam(name+'.lower chord',(x-10.9,y+yy,lo),(x+10.9,y+yy,lo),.08)
+            beam(name+'.upper rail',(x-10.9,y+yy,hi),(x+10.9,y+yy,hi),.09)
+        n=18
+        for i in range(n):
+            a=x-10.9+i*21.8/n;b=a+21.8/n
+            for yy in [-.62,.62]:
+                beam(name+'.diagonal',(a,y+yy,lo if i%2 else hi),(b,y+yy,hi if i%2 else lo),.05)
+                beam(name+'.counter diagonal',(a,y+yy,hi if i%2 else lo),(b,y+yy,lo if i%2 else hi),.035)
+                beam(name+'.mid chord',(a,y+yy,(lo+hi)/2),(b,y+yy,(lo+hi)/2),.035)
+                beam(name+'.vertical',(a,y+yy,lo),(a,y+yy,hi),.04)
+            beam(name+'.cross tie',(a,y-.62,hi),(a,y+.62,hi),.04)
+        for yy in [-.62,.62]:beam(name+'.vertical',(x+10.9,y+yy,lo),(x+10.9,y+yy,hi),.04)
+        tag(box(name+'.launch carriage',(x+3.6,y,hi+.25),(2.2,1.4,.4),naval,col),name)
+        tag(box(name+'.carriage cradle',(x+3.6,y,hi+.55),(.6,1.1,.3),naval,col),name)
+        # End rests on the deck.
+        for dx in [-10.3,9.6]:
             dz=deck_height(x+dx)
-            beam(name+'.stowage rest',(x+dx,y,dz),(x+dx,y,z+.35),.10)
+            beam(name+'.stowage rest',(x+dx,y,dz),(x+dx,y,lo),.12)
     # Oval liferafts with lashed slat floors and support cradles.
-    beam('bow-staff.pole',(91.4,0,deck_height(91.4)),(91.4,0,14.15),.035)
+    beam('bow-staff.pole',(91.8,0,deck_height(91.8)),(91.8,0,13.9),.035)
     rafts=[(23.72,-7.59,8.22),(12.89,-7.83,8.22),(12.82,8.07,8.22),(23.69,7.39,8.22),(-27.34,-7.97,8.22),(-25.43,7.97,8.22),(-2.87,-.33,10.20),(-79.73,-6.09,6.80),(-76.16,6.09,6.74)]
     for i,(x,y,z) in enumerate(rafts):
         name=f'life-raft-{i+1}';n=32
@@ -308,10 +342,13 @@ def build_fittings(D,helpers,materials,col,deck_height):
         for dx in [-1,-.75,-.5,-.25,0,.25,.5,.75,1]:
             half=.5*math.sqrt(max(0,1-(dx/1.25)**2))
             tag(box(name+'.slat',(x+dx,y,z),(.12,.08,half*2),roof,col),name)
+        wall=6.26 if i==0 else 6.74
         for dx in [-.8,.8]:
             beam(name+'.lash',(x+dx,y,z-.65),(x+dx,y,z+.65),.024,dark)
             for h in [-.55,.55]:
                 beam(name+'.rack',(x+dx,math.copysign(6.20,y),z+h),(x+dx,y,z+h),.045)
+            # Bracket from the 01 deckhouse side up to the rack.
+            beam(name+'.bracket',(x+dx,math.copysign(wall-.1,y),7.8),(x+dx,y,z-.55),.05)
 
     # Only aerials rotate; mast platforms and foundation pedestals remain fixed.
     for name,position in [('radar-sk',(11.55,0,28.07)),('radar-sg',(7.17,0,34.62)),('radar-sm',(-11.9,0,27.21))]:
