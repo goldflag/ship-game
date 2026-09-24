@@ -169,7 +169,9 @@ def interp(table,s):
  for (a,u),(b,v) in zip(table,table[1:]):
   if a<=s<=b:return u+(v-u)*(s-a)/(b-a)
  return table[0][1] if s<table[0][0] else table[-1][1]
-width=lambda x:interp(h['halfBreadths'],x+half)
+# Deck-edge half-breadth (the top point of each section): the rounded gunwale sits inside the flare.
+edge_table=[[q['station'],q['points'][-1][0]] for q in h['sections']]
+width=lambda x:interp(edge_table,x+half)
 deckz=lambda x:interp(h['deckHeights'],x+half)
 BREAK=24.06  # forecastle deck ends here (Blender x, forward)
 def shell(x,z):
@@ -195,16 +197,16 @@ for i in range(len(h['sections'])-1):faces += [(i*n+j,i*n+(j+1)%n,(i+1)*n+(j+1)%
 faces += [tuple(reversed(range(n))),tuple((len(h['sections'])-1)*n+j for j in range(n))]
 hull=mesh('hull.envelope',verts,faces,materials['hullgray'],smooth=True);hull['nodeId']='hull.surface'
 verts=[]
-for s,w in h['halfBreadths']:
+for s,w in edge_table:
  x=s-half;z=deckz(x)+.012;verts += [(x,-w,z),(x,0,z+.045),(x,w,z)]
-mesh('deck.main',verts,[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(len(h['halfBreadths'])-1) for j in range(2)],materials['deck'])
+mesh('deck.main',verts,[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(len(edge_table)-1) for j in range(2)],materials['deck'])
 for lo,hi in [(35.8,53),(-53,-32.5),(BREAK+.12,35.7)]:
- xs=[lo]+[s-half for s,w in h['halfBreadths'] if lo<s-half<hi]+[hi]
+ xs=[lo]+[s-half for s,w in edge_table if lo<s-half<hi]+[hi]
  vs=[(x,sign*(width(x)-.30),deckz(x)+.07) for x in xs for sign in [-1,1]]
  mesh('deck.linoleum',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(xs)-1)],materials['linoleum'])
  for x in [lo+i*1.9 for i in range(int((hi-lo)/1.9)+1)]:rod('deck.retaining-strip',(x,-width(x)+.3,deckz(x)+.085),(x,width(x)-.3,deckz(x)+.085),.012,materials['bronze'],vertices=5)
 for sign in [-1,1]:
- pts=[(s-half,sign*max(.03,w-.09),deckz(s-half)+.04) for s,w in h['halfBreadths'] if 1<s<h['length']-1]
+ pts=[(s-half,sign*max(.03,w-.09),deckz(s-half)+.04) for s,w in edge_table if 1<s<h['length']-1]
  # The forecastle and main-deck rails are separate runs either side of the break.
  for run in [[p for p in pts if p[0]>BREAK],[p for p in pts if p[0]<BREAK-.05]]:rails('rails.perimeter',run,height=.86,spacing=2.2)
  tube_path('hull.sheer-strake',pts,.034,materials['edge'],sides=6)
@@ -281,10 +283,19 @@ for sign in [-1,1]:
  # the bilge, from 16.7 m forward to 21.9 m aft of midships; its root embeds in the shell.
  xs=[16.7,15.9,15]+[12-3*i for i in range(11)]+[-20.2,-21.1,-21.87]
  vs=[]
+ def bilge_root(x):
+  # Where the bilge diagonal (from 1 m above the waterline on the centreline, 40 deg down) meets the shell.
+  lo,hi=0.,8.
+  for i in range(30):
+   t=(lo+hi)/2;px,py=.767*t,1.0-.641*t
+   if px<shell(x,py):lo=t
+   else:hi=t
+  return .767*lo,1.0-.641*lo
  for x in xs:
-  depth=.84*min(1,(16.7-x)/1.7,(x+21.87)/1.7)
-  up=(shell(x,-2.41)-.03,-2.41);dn=(shell(x,-2.55)-.03,-2.55);rx=shell(x,-2.48)-.02
-  tip=(rx+.53*max(depth,.06),-2.48-.85*max(depth,.06))
+  depth=max(.06,.84*min(1,(16.7-x)/1.7,(x+21.87)/1.7))
+  rx,ry=bilge_root(x);ux,uy=.49,-.87
+  up=(rx-.03+.641*.04,ry+.767*.04);dn=(rx-.03-.641*.04,ry-.767*.04)
+  tip=(rx+ux*depth,ry+uy*depth)
   vs += [(x,sign*up[0],up[1]),(x,sign*tip[0],tip[1]),(x,sign*dn[0],dn[1])]
  n=len(xs);fs=[(i*3+j,i*3+j+1,(i+1)*3+j+1,(i+1)*3+j) for i in range(n-1) for j in range(2)]+[(0,1,2),((n-1)*3+2,(n-1)*3+1,(n-1)*3)]
  mesh('hull.bilge-keel',vs,fs,materials['hullgray'])
