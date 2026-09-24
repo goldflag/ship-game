@@ -463,15 +463,23 @@ def create_quad(mount, col, helpers, materials):
         a = [(.18, sy * 1.35, .30), (.10, sy * 1.43, .26), (.12, sy * 1.43, .10), (.30, sy * 1.42, -.02), (.42, sy * 1.40, -.03)]
         k.path('cradle.sight-hook', [(x, y - cradle_y, z) for x, y, z in a], .012, PE, cradle, n=4)
         k.ring('cradle.ring-sight', (.42, sy * 1.40 - cradle_y, .015), .045, .007, 'x', PE, cradle, n=8, spokes=2)
-    # Cradle floor 5 mm under the receivers (all four elevate together); one lug ties it to the
-    # joint-carrying gun so the cradle is one connected assembly.
-    k.box('cradle.floor', (-.19, -cradle_y, -.085), (.94, 1.12, .03), N, cradle)
-    k.box('cradle.floor-lug', (-.30, 0, -.0675), (.24, .10, .015), E, cradle)
     k.rod('cradle.sight-bar', (.18, -1.35 - cradle_y, .30), (.18, 1.35 - cradle_y, .30), .022, PE, cradle, n=6)
     # Starboard fuze/sight box on an arm over the leg, and the port layer's arm.
     k.box('cradle.starboard-box', (-.02, -.915 - cradle_y, .30), (.40, .11, .40), N, cradle)
     k.box('cradle.starboard-arm', (-.02, -.75 - cradle_y, .40), (.14, .30, .06), N, cradle)
     k.rod('cradle.port-arm', (-.07, .60 - cradle_y, .25), (-.07, 1.20 - cradle_y, .25), .03, PE, cradle, n=6)
+    # Common slide under all four receivers. The Mk 2 carries the guns in one slide, but each gun
+    # has its own elevation joint, so the slide is split into four sections that meet at 2 mm joints.
+    # Each section rides its own gun's joint and is seated 5 mm into that gun's receiver. The port end
+    # section runs into the port cradle plate; the starboard one stops 2 mm short of the starboard plate.
+    half = s['barrelSpacing'] / 2 - .001
+    for side, (lateral, elevation, _) in sides:
+        y0, y1 = lateral - half, lateral + half
+        if lateral == max(v[0] for _, v in sides):
+            y1 = .57
+        if lateral == min(v[0] for _, v in sides):
+            y0 = -.558
+        k.box('slide', (-.19, (y0 + y1) / 2 - lateral, -.08), (.94, y1 - y0, .04), N, elevation)
     # Four guns: receiver and clip hopper on the cradle joint, jacket and barrel on recoil.
     for side, (lateral, elevation, recoil) in sides:
         k.box('gun.receiver', (-.25, 0, .015), (1.40, .12, .16), N, elevation)
