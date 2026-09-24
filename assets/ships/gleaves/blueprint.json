@@ -7789,7 +7789,7 @@
     "acceleration": 0.28,
     "braking": 0.35,
     "rudderRate": 0.5,
-    "maxYawRate": 0.033
+    "maxYawRate": 0.028
   },
   "mounts": [
     {

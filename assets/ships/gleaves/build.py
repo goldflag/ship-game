@@ -305,6 +305,9 @@ for side in [-1,1]:
         tube_path('after.lookout-guard.lifeline',[(x,y,5.812+dz) for x,y in platform],.017 if dz==.94 else .010,materials['edge'],sides=6,closed=True)
     for x in [-18.65,-17.35]:
         rod('after.lookout-column',(x,side*1.18,aft_top),(x,side*1.18,5.76),.075,materials['naval'])
+    # pzsd108: the outboard half of each lookout platform stands on a plated
+    # locker house rising from the gun deck.
+    box('after.lookout-house',(-17.9,side*1.96,(aft_top+5.76)/2),(1.6,.82,5.76-aft_top),materials['naval'],bev=.03)
     rails('after.deck-rail',[(-34.86,side*1.08,aft_top),(-31.32,side*3.12,aft_top),(-27.5,side*3.12,aft_top)],.86)
 # Rounded bridge wings: deck plates with substantial knees, open inboard access.
 wing_edge=[(13.85,3.987),(13.893,4.193),(14.004,4.348),(14.188,4.431),(14.405,4.452),(14.44,4.437),(15.5,4.354),(17.744,4.242),(18.8,4.153),(19.3,4.09),(19.72,3.885),(20.5,3.39),(21.13,2.687)]
