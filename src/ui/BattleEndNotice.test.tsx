@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { BattleEndNotice, scheduleBattleExit } from './BattleEndNotice';
+import { BATTLE_END_HOLD_MS, BattleEndNotice, holdBattleEnd, scheduleBattleExit } from './BattleEndNotice';
 
 test('battle end notice explains the result and automatic departure', () => {
   for (const result of ['victory', 'defeat', 'draw'] as const) {
@@ -41,5 +41,21 @@ test('departure uses a real-time deadline and cleanup cancels both timers', () =
   } finally {
     Date.now = original.now; globalThis.setTimeout = original.timeout; globalThis.setInterval = original.interval;
     globalThis.clearTimeout = original.clearTimeout; globalThis.clearInterval = original.clearInterval;
+  }
+});
+
+test('the end screen waits a few seconds after the decision, and cleanup cancels the wait', () => {
+  const original = { timeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout };
+  let show!: () => void, delay = 0, shown = 0;
+  const cleared: number[] = [];
+  try {
+    globalThis.setTimeout = ((callback: () => void, ms: number) => { show = callback; delay = ms; return 3; }) as typeof setTimeout;
+    globalThis.clearTimeout = ((id: number) => { cleared.push(id); }) as typeof clearTimeout;
+    const cancel = holdBattleEnd(() => { shown++; });
+    expect(delay).toBe(BATTLE_END_HOLD_MS); expect(BATTLE_END_HOLD_MS).toBeGreaterThanOrEqual(3000); expect(shown).toBe(0);
+    show(); expect(shown).toBe(1);
+    cancel(); expect(cleared).toEqual([3]);
+  } finally {
+    globalThis.setTimeout = original.timeout; globalThis.clearTimeout = original.clearTimeout;
   }
 });

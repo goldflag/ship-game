@@ -42,6 +42,7 @@ export function makeTestRig<Extra extends object = object>(overrides?: Partial<T
     bearing: 0,
     rangeAim: undefined,
     freeCameraSpeed: 0,
+    circlingShip: false,
     setBridge() {},
     setSubmarine() {},
     setTorpedoView() {},
@@ -63,6 +64,7 @@ export function makeTestRig<Extra extends object = object>(overrides?: Partial<T
     setInPort() {},
     setHullLength() {},
     setBattleTerrain() {},
+    circle() {},
     update() {},
     dispose() {},
   };

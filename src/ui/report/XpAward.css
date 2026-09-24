@@ -8,3 +8,10 @@
 .xp-award[data-state='pending'] .xp-split { color:#9fb3b9; }
 .xp-award .xp-error { font:400 13px/1.35 'Barlow',sans-serif; color:#ffb5a6; }
 .xp-award .xp-retry { align-self:center; width:auto; min-height:26px; padding:2px 12px; font-size:12px; }
+/* With progress: the award left-aligned over a bar toward the next unlock, this battle's part bright. */
+.xp-progress { display:grid; gap:7px; }
+.xp-progress .xp-award { justify-content:flex-start; }
+.xp-progress .xp-bar { display:flex; height:5px; background:#c9dce026; }
+.xp-progress .xp-bar i { background:#86e4c566; } .xp-progress .xp-bar b { background:#86e4c5; box-shadow:0 0 10px #86e4c580; }
+.xp-progress .xp-next { display:flex; justify-content:space-between; gap:12px; margin:0; color:#bacbd0; font:400 12.5px/1.3 'Barlow',sans-serif; font-variant-numeric:tabular-nums; }
+.xp-progress .xp-next strong { color:#edf1ec; font-weight:600; }

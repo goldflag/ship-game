@@ -1,5 +1,6 @@
 import { Button } from '../components';
-import { awardSplit, type XpReadout } from './battleAward';
+import { useProgress } from '../useProgress';
+import { awardSplit, unlockProgress, type XpReadout } from './battleAward';
 import './XpAward.css';
 
 /** The battle's research XP on an end screen: tallying while the debrief settles, saving while the award is reported,
@@ -24,4 +25,21 @@ export function XpAward({ xp }: { xp: XpReadout }) {
     <span className="xp-label">Research</span>
     <span className="xp-split">{state.status === 'saving' ? 'Saving XP…' : 'Tallying XP…'}</span>
   </p>;
+}
+
+/** The award and, once it is saved, how far it went toward the next ship the player can research. */
+export function XpProgress({ xp, presetId }: { xp: XpReadout; presetId?: string }) {
+  const { snapshot } = useProgress();
+  const next = xp.state.status === 'awarded' && snapshot.status === 'ready' ? unlockProgress(snapshot.profile, xp.state.award, presetId) : undefined;
+  const count = (value: number) => value.toLocaleString('en-US');
+  return <div className="xp-progress">
+    <XpAward xp={xp} />
+    {next && <>
+      <div className="xp-bar" role="img" aria-label={`${count(next.after)} of ${count(next.cost)} XP toward ${next.name}`}>
+        <i style={{ width: `${next.before / next.cost * 100}%` }} /><b style={{ width: `${(next.after - next.before) / next.cost * 100}%` }} />
+      </div>
+      <p className="xp-next"><span>{next.after >= next.cost ? 'Ready to research' : 'Toward'} <strong>{next.name}</strong> · {next.line}</span>
+        <span>{count(next.after)} / {count(next.cost)}</span></p>
+    </>}
+  </div>;
 }

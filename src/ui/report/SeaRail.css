@@ -1,0 +1,34 @@
+/* The end screen over the live sea: no fill, an edge shade behind a rail on the right, as the port's particulars rest on one. */
+.after-action[data-view='sea'] { display:block; padding:0; background:linear-gradient(90deg, #0a1c2400 0%, #0a1c2400 52%, #0a1c24a8 68%, #0a1c24ec 84%); }
+.aar-rail { position:absolute; top:40px; right:56px; bottom:32px; width:min(440px, calc(100vw - 112px)); display:flex; flex-direction:column; gap:18px; overflow-y:auto; overflow-x:clip; scrollbar-width:thin; }
+.aar-rail h1 { font:600 76px/.95 'Barlow Condensed',sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+.aar-rail .aar-rail-reason { margin-top:-8px; color:var(--aar-muted); font-size:14px; }
+.aar-rail .xp-award .xp-total { font-size:30px; }
+.aar-rail-ship { display:grid; gap:8px; padding-top:14px; border-top:1px solid var(--aar-line); }
+.aar-rail-name { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.aar-rail-name strong { font:500 26px/1.05 'Barlow Condensed',sans-serif; letter-spacing:.02em; font-weight:500; }
+.aar-rail-name span { color:var(--aar-muted); font-size:13px; }
+.after-action em { padding:2px 4px; border-radius:2px; background:var(--aar-mint); color:#152b32; font:600 9.5px/1 'Barlow',sans-serif; font-style:normal; letter-spacing:.1em; text-transform:uppercase; text-shadow:none; align-self:center; }
+.after-action .aar-hull { display:block; height:4px; background:#c9dce02e; } .after-action .aar-hull i { display:block; height:100%; background:var(--aar-mint); }
+.aar-rail-read { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 24px; }
+.aar-rail-read dt { font:600 10.5px/1 'Barlow',sans-serif; letter-spacing:.12em; text-transform:uppercase; color:#a9bbc0; overflow:clip; text-overflow:ellipsis; white-space:nowrap; }
+.aar-rail-read dd { margin-top:4px; font:500 30px/1.05 'Barlow Condensed',sans-serif; }
+.aar-rail-read dd span { font-size:15px; color:var(--aar-muted); }
+.aar-rail-fleets { display:grid; gap:8px; padding-top:14px; border-top:1px solid var(--aar-line); }
+.aar-rail-fleets > div { display:grid; grid-template-columns:110px minmax(0,1fr) auto; gap:12px; align-items:center; color:var(--aar-muted); font-size:12.5px; }
+.aar-rail-fleets .aar-eyebrow { color:var(--aar-team); }
+.aar-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.aar-chips i { width:12px; height:12px; border-radius:50%; background:var(--aar-team); }
+.aar-chips i[data-lost='true'] { background:none; box-shadow:inset 0 0 0 1.5px var(--aar-team); opacity:.55; }
+.aar-rail-losses { display:flex; flex-wrap:wrap; gap:2px 14px; color:var(--aar-muted); font-size:12px; }
+.aar-rail-losses > span { color:var(--aar-team); }
+.aar-rail-actions { margin-top:auto; display:grid; gap:8px; text-shadow:none; }
+.aar-rail-actions > p { min-height:1lh; color:var(--aar-salmon); }
+.aar-rail-actions > div { display:grid; grid-template-columns:repeat(auto-fit,minmax(0,1fr)); gap:8px; }
+.aar-rail-actions .primary-button, .aar-rail-actions .secondary-button { min-height:40px; padding:0 16px; gap:10px; justify-content:center; }
+.aar-rail-actions small { font-weight:400; font-size:11px; opacity:.75; }
+.after-action .aar-link { display:inline-flex; align-items:baseline; gap:10px; justify-self:start; padding:4px 0; background:none; border:0; color:#e0c58d; font:500 14px/1.2 'Barlow',sans-serif; text-shadow:inherit; cursor:pointer; }
+.after-action .aar-link small { color:var(--aar-dim); font-size:11.5px; font-weight:400; }
+.after-action .aar-link:hover { color:#efd5a0; }
+@media (max-width:1100px) { .aar-rail { right:20px; top:20px; bottom:16px; } .aar-rail h1 { font-size:56px; } }
+@media (max-height:820px) { .aar-rail { top:20px; bottom:16px; gap:12px; } .aar-rail h1 { font-size:56px; } }

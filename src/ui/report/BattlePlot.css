@@ -1,0 +1,24 @@
+/* Battle plot: lanes share the damage race's time axis; names on the left, fate and damage dealt on the right. */
+.aar-plot { --lane-name:190px; --lane-fate:170px; display:grid; align-content:start; gap:4px; max-width:1640px; margin:0 auto; }
+.aar-plot-race { padding:0 var(--lane-fate) 0 var(--lane-name); }
+.aar-plot-legend { display:flex; flex-wrap:wrap; align-items:center; gap:6px 22px; padding-bottom:4px; color:var(--aar-muted); font-size:12px; }
+.aar-plot-legend i { display:inline-block; width:2px; height:12px; margin-right:6px; background:var(--tone-line); vertical-align:-1px; }
+.aar-plot-legend i[data-tone='blocked'] { width:5px; height:5px; border-radius:50%; background:var(--aar-mint); vertical-align:1px; }
+.aar-plot-fleet { display:grid; padding-top:10px; }
+.aar-plot-fleet > .aar-eyebrow { color:var(--aar-team); padding-bottom:2px; }
+.aar-lane { display:grid; grid-template-columns:var(--lane-name) minmax(0,1fr) var(--lane-fate); align-items:end; height:44px; }
+.aar-lane-name { display:flex; gap:8px; align-items:baseline; padding-bottom:4px; min-width:0; }
+.aar-lane-name strong { font:500 18px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; overflow:clip; text-overflow:ellipsis; white-space:nowrap; }
+.aar-lane[data-lost='true'] .aar-lane-name strong { color:#aebfc3; }
+.aar-lane-track { position:relative; height:100%; }
+.aar-lane-track::before { content:''; position:absolute; left:0; right:0; bottom:6px; border-top:1px solid #c9dce040; }
+.aar-plot[style*='--decided'] .aar-lane-track::after { content:''; position:absolute; left:var(--decided); right:0; top:0; bottom:0; background:#e0c58d1a; }
+.aar-tick { position:absolute; bottom:6px; width:2px; margin-left:-1px; background:var(--tone-line); }
+.aar-tick[data-tone='blocked'] { width:4px; height:4px; margin-left:-2px; bottom:4.5px; border-radius:50%; background:var(--aar-mint); opacity:.55; }
+.aar-lane-after { position:absolute; right:0; bottom:6px; border-top:1px dashed #0a1c24; }
+.aar-lane-lost { position:absolute; bottom:0; width:14px; height:14px; margin-left:-7px; }
+.aar-lane-lost::before, .aar-lane-lost::after { content:''; position:absolute; left:6px; top:-1px; width:2px; height:16px; background:var(--aar-team-lost); transform:rotate(45deg); }
+.aar-lane-lost::after { transform:rotate(-45deg); }
+.aar-plot-fleet[data-team='friendly'] { --aar-team-lost:var(--aar-salmon); } .aar-plot-fleet[data-team='enemy'] { --aar-team-lost:var(--aar-mint); }
+.aar-lane-fate { display:flex; justify-content:space-between; gap:10px; padding:0 0 4px 16px; color:var(--aar-muted); font-size:12.5px; }
+.aar-lane-fate b { font:500 16px/1 'Barlow Condensed',sans-serif; color:#edf1ec; }

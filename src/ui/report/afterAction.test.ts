@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import type { BattleDebrief, DebriefShip } from '../../game/session/BattleSession';
 import type { HitReport } from '../../multiplayer/generated/HitReport';
-import { damageRace, fleetRows, hitRows } from './afterAction';
+import { damageRace, fleetRows, hitRows, hurtBy, magazineFloods, pairDamage, roomName, shortState, stackLabels, targetShares } from './afterAction';
 
 const hit = (partial: Partial<HitReport>): HitReport => ({ tick: 600, sourceId: 'e1', weapon: '380 mm AP', kind: 'shell', ammunition: 'ap', position: [10, -2, -20], struck: 'Main belt',
   outcome: 'penetrated', damage: 100, breachAreaM2: 0, flooded: [], modules: [], ...partial });
@@ -48,4 +48,38 @@ test('the damage race starts at zero, ends on the final totals and marks the sin
   expect(race.samples.at(-1)).toEqual({ tick: 7200, own: 1000, enemy: 1000 });
   expect(race.samples).toHaveLength(4);
   expect(race.marks).toEqual([{ tick: 6900, label: 'BISMARCK 1 sunk', friendly: false }]);
+});
+
+test('shares say how much of each enemy was this ship, and who had the final blow', () => {
+  const [bismarck, second] = targetShares(debrief, 'p');
+  expect(bismarck).toMatchObject({ title: 'BISMARCK 1', state: 'Sunk 1:55', mine: 1000, total: 1000, finalBlow: 'Valiant', by: [{ id: 'p', title: 'Valiant', damage: 1000 }] });
+  expect(second).toMatchObject({ title: 'BISMARCK 2', state: 'Afloat · 100%', mine: 0, total: 0, by: [] });
+  expect(second.finalBlow).toBeUndefined();
+  expect(targetShares(debrief, 'missing')).toEqual([]);
+});
+
+test('what hurt most groups hits by enemy and gun, heaviest first', () => {
+  expect(hurtBy(debrief, 'p')).toEqual([
+    { from: 'BISMARCK 1', weapon: '380 mm AP', hits: 3, damage: 560, share: .56 },
+    { from: 'BISMARCK 2', weapon: '380 mm AP', hits: 1, damage: 440, share: .44 },
+  ]);
+  expect(hurtBy(debrief, 'p', 1)).toHaveLength(1);
+});
+
+test('who hit whom lays each fleet against the other', () => {
+  expect(pairDamage(debrief, 'friendly')).toEqual({ rows: [{ id: 'p', title: 'Valiant' }], columns: [{ id: 'e1', title: 'BISMARCK 1' }, { id: 'e2', title: 'BISMARCK 2' }], cells: [[1000, 0]], max: 1000 });
+  expect(pairDamage(debrief, 'enemy').cells).toEqual([[0], [0]]);
+});
+
+test('magazine floods keep the first flooding of each, and room names drop the compiler\'s estimate', () => {
+  const flooded = ship({ id: 'x', team: 'friendly', report: { damageTaken: 10, shotsFired: 0, hitsLanded: 0, dealtByWeapon: {}, dealtTo: {}, hitsOmitted: 0, hits: [
+    hit({ tick: 900, flooded: ['Aft magazines', 'Engine room'] }), hit({ tick: 600, flooded: ['Torpedo Magazine (estimated)'] }), hit({ tick: 1200, flooded: ['Aft magazines'] })] } });
+  expect(magazineFloods(flooded)).toEqual([{ room: 'Torpedo Magazine', tick: 600 }, { room: 'Aft magazines', tick: 900 }]);
+  expect(roomName('Starboard reserve space 1 · estimated')).toBe('Starboard reserve space 1');
+  expect(shortState(ship({ id: 'y', team: 'enemy', status: 'incapacitated' }))).toBe('Out of action');
+});
+
+test('labels over a time axis stack into rows instead of overlapping, and flip at the end', () => {
+  const stacked = stackLabels([{ at: .5, label: 'C' }, { at: .1, label: 'AAAA' }, { at: .11, label: 'BBBB' }, { at: .99, label: 'DDDD' }]);
+  expect(stacked.map(label => [label.label, label.row, label.flip])).toEqual([['AAAA', 0, false], ['BBBB', 1, false], ['C', 0, false], ['DDDD', 0, true]]);
 });

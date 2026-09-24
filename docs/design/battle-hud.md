@@ -127,28 +127,50 @@ movement state from live telemetry so the player can inspect the response to an 
 
 ### After-action report
 
-A decided battle replaces the instruments with the after-action report (`src/ui/report/`): the outcome
-and elapsed time at the top, two underlined tabs, and the exit commands (Battle again, New battle,
-Return to port) at the foot. It waits for the player; only an interrupted or abandoned battle keeps
-the short notice and its countdown. The sea stays visible under a dark scrim and nothing carries a
-panel fill except the selected hit's card, which is styled as a tooltip.
+A decided battle plays on for five seconds at 1× with the instruments up (`BATTLE_END_HOLD_MS` in
+`BattleEndNotice.tsx`), so the last salvo lands and the loser is seen going down; the end screen then
+settles in over 0.6 s. An interrupted or abandoned battle shows its short notice and countdown at once.
+The end screen (`src/ui/report/`) waits for the player.
 
-**Battle results** sets the fleets side by side, mint for yours and salmon for the enemy: damage dealt
-as the headline, then per ship its state (afloat with integrity, sunk with time and victor), damage
-dealt, taken and blocked by armor, hits against shots fired, ships sunk and a by-weapon bar. Fleets
-of more than four fold to one line per ship. A stepped chart of both fleets' damage over the battle
-runs beneath, with each sinking marked. A ship's name opens its hits.
+**On the sea** comes first. The camera circles the ship it rides (`Game.circleShip`, `CameraRig.circle`:
+about 3° a second at two hull lengths, eased out of the view the battle ended on; reduced motion keeps
+the view still) while a rail on the right, over an edge shade and no fill, gives the result, reason and
+time, the research XP with a bar toward the next ship the player can research, your ship's hull and
+four readings (dealt, taken, hit rate, and your share of the enemy you damaged most), both fleets as
+chips with the sinkings in order (an enemy sunk in mint, a loss of yours in salmon), the exit commands
+(Battle again, New battle, Return to port) and **Full report**.
 
-**Your ship** turns the ship's own model on a turntable (drag to turn, scroll to zoom) with one mark
-per projectile where it first struck: salmon fill for a penetration, gold for high explosive, a salmon
-diamond for a torpedo or depth charge, a hollow mint ring for a hit the armor stopped. Larger marks
-did more damage; marks on the far side of the hull fade. Selecting a mark, or a mark on the timeline
-below, shows the weapon and firer, what was struck, the plate with its thickness, obliquity and
-effective thickness, the outcome, the damage, and each module damaged or destroyed and room opened to
-the sea. The debrief reveals both fleets, so the picker lists every ship.
+The **full report** is a dark scrim with the result and XP at the top, four underlined tabs, and the
+exit commands at the foot beside **Back to the sea**. Nothing carries a panel fill except the selected
+hit's card, which is styled as a tooltip.
+
+- **Your battle**: your ship's readings, each with a comparison (share of the fleet's damage and rank,
+  the enemy that did most of the damage taken, hits the armor stopped, hit rate). The ship is drawn in
+  profile and plan from her own model (`ShipDrawing`, rendered once and let go) with every hit marked:
+  a hit worth 3% of the damage taken is ringed and opens in Hits, the rest are dots, far-side hits are
+  faint, and a strip beneath shows damage along the hull. What hurt most groups hits by enemy and gun.
+  Where your shells went splits each enemy's damage by who dealt it, yours in brass, and names the
+  final blow, so the credit for a sinking no longer hides who did the work. Both fleets follow, a line
+  a ship; a name opens the ship in Fleets.
+- **Fleets**: one table for both fleets (fate, damage dealt with a bar, taken, armor stopped, hits
+  against shots fired, final blows), the damage race beneath with sinkings hung in stacked rows so no
+  label runs into another and the time after the decision shaded, two who-hit-whom grids, and the
+  selected ship's card: her profile with its hits, who damaged her, what hurt most, magazines flooded
+  and **Turn the ship in 3D**.
+- **Battle plot**: the damage race over one lane per ship on the same time axis, each hit a tick as tall
+  as its damage (a hit the armor stopped is a dot), a cross where the ship was lost.
+- **Hits** turns a ship's own model on a turntable (drag to turn, scroll to zoom) with one mark per
+  projectile where it first struck: salmon fill for a penetration, gold for high explosive, a salmon
+  diamond for a torpedo or depth charge, a hollow mint ring for a hit the armor stopped. Larger marks
+  did more damage; marks on the far side of the hull fade; past 40 hits the lesser ones become dots and
+  only heavy hits are numbered. Selecting a mark, or a mark on the timeline below, shows the weapon and
+  firer, what was struck (named once when it is the plate), the plate with its thickness, obliquity and
+  effective thickness, the outcome, the damage, and each module damaged or destroyed and room opened
+  to the sea. The debrief reveals both fleets, so the picker lists every ship.
 
 The data is the simulation's after-action record (`naval-sim` `records.rs`, `AfterAction`), carried
 only by a decided battle's debrief: up to 400 hits a ship, least damaging dropped first and counted.
+Damage between ships comes from each ship's `dealtTo`, which counts every hit.
 
 ### Hull damage feedback and score
 

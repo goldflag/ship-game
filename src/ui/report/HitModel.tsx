@@ -94,7 +94,7 @@ export function HitModel({ load, rows, selected, onSelect, label }: Props) {
   }, []);
   useEffect(() => { live.current.place(); }, [rows, state]);
 
-  return <div ref={host} className="aar-model" data-state={state} role="group" aria-label={label}>
+  return <div ref={host} className="aar-model" data-state={state} data-crowded={!numbered} role="group" aria-label={label}>
     <div ref={pins} className="aar-pins" hidden={state !== 'ready'}>
       {rows.map((row, index) => <button key={row.n} type="button" className="aar-pin" data-index={index} data-tone={row.tone} data-size={row.size} aria-pressed={row.n === selected}
         aria-label={`Hit ${row.n}: ${row.hit.weapon} from ${row.from}, ${row.outcome.toLowerCase()}, ${Math.round(row.hit.damage)} damage`} onClick={() => onSelect(row.n)}>
