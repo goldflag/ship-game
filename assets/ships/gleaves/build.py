@@ -667,9 +667,12 @@ for z in [24.61,25.14]:tube_path('radar-sg.reflector-rim',[(sgx(y),y,z+.055*(abs
 for y in [-.55,0,.55]:rod('radar-sg.back-rib',(sgx(y)-.015,y,24.64),(sgx(y)-.015,y,25.11),.016,materials['edge'])
 for y in [-.48,.48]:rod('radar-sg.dish-brace',(13.03,0,24.68),(sgx(y),y,24.86),.022,materials['edge'])
 radar_pivot('radar-sg.yaw',(13.03,0,24.4245),list(set(col.objects)-moving))
-rod('mast.aft',(-22.8,0,aft_top),(-23.5,0,12.75),.08,materials['edge'],r2=.025)
-rod('mast.aft-yard',(-23.3,-1.5,10.2),(-23.3,1.5,10.2),.032,materials['edge'])
-rod('rigging.main-aerial',(12.2,0,25),(-23.5,0,12.6),.011,materials['dark'],vertices=6)
+# pzsd108: after pole between the lookout platforms, a stout lower mast with a
+# light topmast raked aft, and a fore-and-aft spar near the head.
+rod('mast.aft',(-19.0,0,aft_top-.02),(-19.55,0,8.4),.17,materials['naval'],r2=.12,vertices=14)
+rod('mast.aft-topmast',(-19.55,0,8.35),(-20.13,0,12.84),.05,materials['edge'],r2=.025)
+rod('mast.aft-yard',(-18.78,0,10.85),(-20.98,0,10.45),.032,materials['edge'])
+rod('rigging.main-aerial',(12.2,0,25),(-20.1,0,12.6),.011,materials['dark'],vertices=6)
 # Installed original catalog geometry, with fixed supports down to actual decks.
 for m in definition['mounts']:
     if m['battery']!='main':continue
