@@ -1343,7 +1343,8 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
-      "traverseDeg": 142.5
+      "traverseDeg": 142.5,
+      "elevationMinDeg": 0
     },
     {
       "id": "main-3",
