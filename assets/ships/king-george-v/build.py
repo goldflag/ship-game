@@ -615,7 +615,7 @@ for side in [-1,1]:
 
 def boat(name,x,y,z,length=9,width=2.7,motor=False):
  global ASSEMBLY
- ASSEMBLY=name;n=36;vs=[];k=min(1.45,max(1,length/9))
+ ASSEMBLY=name;n=36;vs=[];k=min(1.8,max(1,length/9*1.25))
  outline=[]
  for i in range(n):
   t=i*math.tau/n;xx=length/2*math.cos(t);yy=width/2*math.sin(t)*(1-.20*math.cos(t));outline.append((xx,yy))
@@ -640,7 +640,7 @@ def boat(name,x,y,z,length=9,width=2.7,motor=False):
  else:
   for side in [-1,1]:rod('Stowed boat oar',(x-length*.38,y+side*.36,z+.65*k),(x+length*.35,y+side*.36,z+.65*k),.032,'deck',vertices=6)
 # Boats on the boat deck in two columns each side, clear of the after pom-poms and the mainmast legs.
-for i,(x,y,l,w) in enumerate([(-36.6,7.3,11.2,2.8),(-36.6,-7.3,11.2,2.8),(-33.35,3.9,9.3,2.6),(-33.35,-3.9,9.3,2.6),(-32.6,0,6.8,2.0)]):boat('boat-'+str(i+1),x,y,BLOCK+.43,l,w,i<4)
+for i,(x,y,l,w) in enumerate([(-36.2,7.0,13.0,3.2),(-36.2,-7.0,13.0,3.2),(-33.35,3.9,9.3,2.6),(-33.35,-3.9,9.3,2.6),(-32.6,0,6.8,2.0)]):boat('boat-'+str(i+1),x,y,BLOCK+.43,l,w,i<4)
 # Boat-deck edge rails, Carley floats and access on the after deckhouse.
 ASSEMBLY='boat-deck-support'
 for side in [-1,1]:
