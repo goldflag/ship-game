@@ -1,11 +1,12 @@
 {
   "version": 1,
   "provider": "ElevenLabs",
-  "recipeSha256": "12fdc17847d9e8336e35c08ccdfbcb9dd9ae31274ae306691e284f0dc542c3bb",
-  "buildRecipeSha256": "d4f911814b3e72f5157c46832383abd848e19ab9ec067fa0d8e81b63c5cef67b",
+  "recipeSha256": "abfda424b2cb6553c38730865f79dca9eece0a24ea55aaea2895951719bf4bd6",
+  "buildRecipeSha256": "265d41fc817e93337b1c72937b69756e5cfc759e4b26541c821421632d3132cc",
   "clips": [
     {
       "id": "ui-click",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/ui-click/sfx_A_sin_20260905_134300.mp3",
       "sourceSha256": "271df254ea125425e151ec695b8f4486c783501892c08be28a1dbaed354215a5",
       "runtime": "public/audio/naval/ui-click.wav",
@@ -26,6 +27,7 @@
     },
     {
       "id": "ui-confirm",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/ui-confirm/sfx_One_s_20260905_134301.mp3",
       "sourceSha256": "d82a436e2075745eea95786200df702a7e03fbfb4ab866fdd37afd65e692c5c5",
       "runtime": "public/audio/naval/ui-confirm.wav",
@@ -46,6 +48,7 @@
     },
     {
       "id": "ui-back",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/ui-back/sfx_One_s_20260905_134303.mp3",
       "sourceSha256": "964bf7d7403345890b4f97ef36face13b1ecbccad1c4c567c104f24bc83ad029",
       "runtime": "public/audio/naval/ui-back.wav",
@@ -66,6 +69,7 @@
     },
     {
       "id": "telegraph",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/telegraph/sfx_A_shi_20260905_134304.mp3",
       "sourceSha256": "df1913d32d22e0b296b1f3284538556a736a0c075d6ba1ec8896f70aa7e0521b",
       "runtime": "public/audio/naval/telegraph.wav",
@@ -86,6 +90,7 @@
     },
     {
       "id": "ship-horn",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/ship-horn/sfx_One_d_20260905_134306.mp3",
       "sourceSha256": "9a174c873629067728780031fb5e54b5eeb2d647ff713c697d0d1f1c3654249e",
       "runtime": "public/audio/naval/ship-horn.wav",
@@ -106,66 +111,70 @@
     },
     {
       "id": "main-gun-a",
-      "source": "assets/audio/naval/originals/main-gun-a/sfx_One_e_20260905_134322.mp3",
-      "sourceSha256": "9a97629d32d7945d3e190992e161f7f1d58eb9b8735acf01c98478ed0151bfcd",
+      "provider": "procedural",
+      "source": "assets/audio/naval/originals/main-gun-a/main-gun-a.wav",
+      "sourceSha256": "7dafd2862e8d6b3d702726572752873816718bc5be15b0801f1c0f4c10421fe8",
       "runtime": "public/audio/naval/main-gun-a.wav",
-      "runtimeSha256": "0f0e81dfabf5c075b2f2e755afdcdacf70476ea52af1f978f3e3eefda58fc8ec",
-      "bytes": 352844,
-      "durationSeconds": 4.0,
-      "channels": 1,
-      "sampleRate": 44100,
-      "loop": false,
-      "original": {
-        "peakDbfs": -1.22,
-        "rmsDbfs": -21.94
-      },
-      "processed": {
-        "peakDbfs": -3.0,
-        "rmsDbfs": -22.7
-      }
-    },
-    {
-      "id": "main-gun-b",
-      "source": "assets/audio/naval/originals/main-gun-b/sfx_A_sin_20260905_134324.mp3",
-      "sourceSha256": "849c4a8bb72562f94c749d3eb3fed4966a8e096f7ee17bba2454d4653d015f36",
-      "runtime": "public/audio/naval/main-gun-b.wav",
-      "runtimeSha256": "ae1a868cb7bb71ae8315aca138ad3a80e2552c6fe1ccb5f3ca45aaddc03676ca",
-      "bytes": 352844,
-      "durationSeconds": 4.0,
-      "channels": 1,
-      "sampleRate": 44100,
-      "loop": false,
-      "original": {
-        "peakDbfs": -0.05,
-        "rmsDbfs": -11.72
-      },
-      "processed": {
-        "peakDbfs": -8.35,
-        "rmsDbfs": -20.0
-      }
-    },
-    {
-      "id": "secondary-gun",
-      "source": "assets/audio/naval/originals/secondary-gun/sfx_One_1_20260905_134326.mp3",
-      "sourceSha256": "c69835841de08b16c0867a9ee0e6507606b63cabe11d141290963450a516e7f1",
-      "runtime": "public/audio/naval/secondary-gun.wav",
-      "runtimeSha256": "4bc74734e620e27c3debe847bbd078a1c89bee801613676c5b64ef92bdb74be5",
-      "bytes": 218780,
-      "durationSeconds": 2.48,
+      "runtimeSha256": "582fa31759d92570bda87e43585a7abd48bd357d1f818542c492b994d8d6e72c",
+      "bytes": 617444,
+      "durationSeconds": 7.0,
       "channels": 1,
       "sampleRate": 44100,
       "loop": false,
       "original": {
         "peakDbfs": -0.0,
-        "rmsDbfs": -17.03
+        "rmsDbfs": -17.13
       },
       "processed": {
         "peakDbfs": -3.0,
-        "rmsDbfs": -20.44
+        "rmsDbfs": -20.13
+      }
+    },
+    {
+      "id": "main-gun-b",
+      "provider": "procedural",
+      "source": "assets/audio/naval/originals/main-gun-b/main-gun-b.wav",
+      "sourceSha256": "9c8d161d4fcf0020101f1cd2d6452c87119952156ae253d6d4381d01e5f22ea9",
+      "runtime": "public/audio/naval/main-gun-b.wav",
+      "runtimeSha256": "e345011681ee384e624c7c25784fe252bb6d298481f2533b1ec38dbd95c4d932",
+      "bytes": 617444,
+      "durationSeconds": 7.0,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -0.0,
+        "rmsDbfs": -16.77
+      },
+      "processed": {
+        "peakDbfs": -3.23,
+        "rmsDbfs": -20.0
+      }
+    },
+    {
+      "id": "secondary-gun",
+      "provider": "procedural",
+      "source": "assets/audio/naval/originals/secondary-gun/secondary-gun.wav",
+      "sourceSha256": "d19f86b5072b584177cbb31c633044b8688c355240a72466b001472ac7b5af0e",
+      "runtime": "public/audio/naval/secondary-gun.wav",
+      "runtimeSha256": "911ddb838eb140b10044af3f48a96a8ba75b81f87cb090f3ec756377eb6e815a",
+      "bytes": 441044,
+      "durationSeconds": 5.0,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -0.0,
+        "rmsDbfs": -16.0
+      },
+      "processed": {
+        "peakDbfs": -4.0,
+        "rmsDbfs": -20.0
       }
     },
     {
       "id": "armor-hit",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/armor-hit/sfx_A_sin_20260905_134328.mp3",
       "sourceSha256": "c0e6f1014ecac26d698815461a9a43cae3cbf7968062aabd1fb525bd6a135678",
       "runtime": "public/audio/naval/armor-hit.wav",
@@ -186,6 +195,7 @@
     },
     {
       "id": "ricochet",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/ricochet/sfx_One_l_20260905_134330.mp3",
       "sourceSha256": "48362025f72272f7a033c02f5789166b0f5be4c23428132557bf3e8f6814f4ba",
       "runtime": "public/audio/naval/ricochet.wav",
@@ -206,6 +216,7 @@
     },
     {
       "id": "splash",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/splash/sfx_One_h_20260905_134333.mp3",
       "sourceSha256": "8c501e73f0c866f78b2c4adf1c3a789c0f2a15b1f0be0481e4357e9e94a6a888",
       "runtime": "public/audio/naval/splash.wav",
@@ -226,6 +237,7 @@
     },
     {
       "id": "magazine-explosion",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/magazine-explosion/sfx_One_c_20260905_134334.mp3",
       "sourceSha256": "d854fb179742f925625fab0d2fc1da543116c26d5ecfd05fedd246634a2999f1",
       "runtime": "public/audio/naval/magazine-explosion.wav",
@@ -246,6 +258,7 @@
     },
     {
       "id": "reload",
+      "provider": "ElevenLabs",
       "source": "assets/audio/naval/originals/reload/sfx_One_h_20260905_134337.mp3",
       "sourceSha256": "894e317efd6ef45e7ba87ba5e5b00cf8b776e7dd57d56d4d9a0df8670a7247ba",
       "runtime": "public/audio/naval/reload.wav",

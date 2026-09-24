@@ -51,10 +51,10 @@ Wind speed sets the share of the sea whitecaps cover, from Monahan & O'Muirchear
 whitecap fraction 3.84·10⁻⁶·U^3.41: none below 3.5 m/s, 0.17% at 6 m/s (scattered white horses), 0.7%
 at 9, 1.8% at 12, 3.9% at 15, 7.3% at 18, 22% at 25 and 42% at 30, scaled by the map's foam value /
 0.45 (1 in the Atlantic, 0.56 Pacific, 0.67 Arctic, 1.1 Indian). The ocean places whitecaps where its
-own spectrum's crests break to give that share of area (see the ocean README), so the coverage holds on
-the table's sea and on the realistic one alike: measured on High it is within about a tenth of the
-curve from 15 to 30 m/s and a fifth from 9 to 12 m/s on either (a light air's few whitecaps are noisy:
-0.11–0.14% at 6 m/s). A whitecap is a small dense core
+own spectrum's crests break to give that share of area, in breaking groups that never repeat so the
+tiles' whitecaps draw no lattice (see the ocean README), so the coverage holds on the table's sea and on
+the realistic one alike: measured on High it is within about a tenth of the curve from 12 to 30 m/s on
+either and a fifth to a quarter at 9 m/s (a light air's few whitecaps are noisy: 0.10–0.13% at 6 m/s). A whitecap is a small dense core
 on its breaking crest and a larger patch of lacy old foam it leaves; averaged over their area they
 reflect about a quarter of the light, so the share of the sea they whiten is well below their area.
 Foam lives one period of the waves that broke (`lifetime`), spreading as it ages, with a 0.5 wind
@@ -286,15 +286,25 @@ breaking into speckle. With physical reflections on, rays follow the whole slope
 smeared along the plane of incidence by the unresolved facets instead. Screen-space reflections still
 omit offscreen geometry.
 
-The displaced surface also receives ship shadows from the same directional shadow map.
-`src/game/WaterShadows.ts` builds a receiver node from the light's depth texture and binds it with
-`ocean.setShadowNode`; it adds no shadow map or caster pass. Graphics → Water shadows applies live: Off
-removes the sampling, Low uses one comparison, Medium four and High a nine-tap soft filter. The
-Low/Medium/High/Ultra presets choose Off/Low/High/High. A shader branch skips the texture reads
-outside the shadow camera's bounds. Shadows attenuate the lit terms (sun specular and glints,
+The displaced surface also receives ship shadows from the ships' own sun shadow maps
+(`FocusShadowNode.ts`). `src/game/WaterShadows.ts` builds a receiver node and binds it with
+`ocean.setShadowNode`; it adds no shadow map or caster pass. Where the camera-fitted near map covers the
+water it reads that map, with its centimetre texels in close-ups, and fades to the wide map at the near
+sphere's edge by the same weight the ships' materials use (`FocusShadowNode.nearShare`), so a ship's
+shadow is as sharp on the water beside her as on her deck. Each pixel reads one map except in that fade
+band. Graphics → Water shadows applies live: Off removes the sampling (and the darker water beside hulls,
+see the ocean README), Low reads one bilinear comparison per map, Medium filters the near map as the
+ships' paint does (three's PCFSoft: four gathered comparisons over a bilinear-weighted 3×3 texels) and
+reads the wide one once, and High filters both, which costs four gathers where the old High took nine
+comparisons. The Low/Medium/High/Ultra presets choose Off/Low/High/High. The near map adds one depth
+texture and comparison sampler to the sea's fragment stage, which binds 15 of Apple's 16 samplers on
+High in port. A shader branch skips each map's reads outside its bounds. Shadows attenuate the lit terms (sun specular and glints,
 subsurface light and foam); the ambient pigment keeps 45% in full shadow (with physical water colour,
-shadowed water keeps the skylight's share of its upwelling) and the sky reflection is unshadowed. They follow the active sun or moon and the local or zoomed hull anchor; ships outside the
-map's 760 m footprint cast no water shadows. The Shadows setting controls map resolution for both hull
+shadowed water keeps the skylight's share of its upwelling) and the sky reflection is unshadowed. They
+follow the active sun or moon and the local or zoomed hull anchor; ships outside the wide map's 760 m
+footprint cast no water shadows (the view maps that shade distant ships stay off the sea, a sampler
+short of the limit). `waterShadowMaps.near = false` (exported from `WaterShadows.ts`) keeps the sea on
+the wide map alone, for comparisons. The Shadows setting controls map resolution for both hull
 and water shadows; its Off option overrides Water shadows without losing the selected water quality.
 Off stops shadow-map rendering and sets its intensity to zero; an already allocated map is kept so
 cached programs can reuse it when shadows are enabled again.
@@ -440,10 +450,10 @@ While the layer is on, trails stop painting their bow-shoulder stamps; the stern
 
 Two visual-only layers make hulls sit in the sea rather than on it. Neither reads or feeds the simulation.
 
-- **Wet band.** `src/game/HullWetBand.ts` darkens albedo by 45% and cuts roughness by 60% on every shared ship paint within a band just above the sea at that fragment, and everywhere below it. The sea height is read per fragment exactly as the surface draws it: `waveField.heightAt` (the FFT cascades, inverting the choppy sideways displacement, with [the sea around hulls](#the-sea-around-hulls) blended in) plus the wake field and the bow waves, so the band climbs the stem underway and follows each crest along the side. The band is 0.3–0.9 m at rest by hull length (the paint palette stores it as `shipSurface.w`, beside roughness, metalness and the surface-detail plating flag), plus 0.2 m per metre of significant wave height, capped at 1.6 m; noise breaks its upper edge into short tongues. Fragments above the tallest possible crest plus band, or below the deepest trough, skip the sea read. Premade and construction hulls share the palette, so both get it; ship views clone the paint, so the palette receives the band when it is created, and the sea attaches once the water exists, before the first compile. The band multiplies whatever colour and roughness surface detail gives a paint (the teak `colorNode`, plated or plain roughness), with one wrapper per base node, so equal paints still share a program.
+- **Wet band.** `src/game/HullWetBand.ts` darkens albedo by 45% and cuts roughness by 60% on every shared ship paint within a band just above the sea at that fragment, and everywhere below it. The sea height is read per fragment exactly as the surface draws it: `waveField.heightAt` (the FFT cascades, inverting the choppy sideways displacement, with [the sea around hulls](#the-sea-around-hulls) blended in) plus the wake field and the bow waves, so the band climbs the stem underway and follows each crest along the side. The band is 0.3–0.9 m at rest by hull length (the paint palette stores it as `shipSurface.w`, beside roughness, metalness and the surface-detail plating flag), plus 0.2 m per metre of significant wave height, capped at 1.6 m; noise breaks its upper edge into short tongues. Fragments above the tallest possible crest plus band, or below the deepest trough, skip the sea read. Premade and construction hulls share the palette, so both get it; ship views clone the paint, so the palette receives the band when it is created, and the sea attaches once the water exists, before the first compile. The band multiplies whatever colour and roughness surface detail gives a paint (the teak `colorNode`, plated or plain roughness), with one wrapper per base node, so equal paints still share a program. Bow spray in a heavy sea wets the forecastle with the same response, through `ShipWeather` ([Weather on ships](ship-appearance.md#weather-on-ships)).
 - **Contact foam.** `src/game/HullContactFoam.ts` joins the wake sampler's foam by maximum coverage: a narrow line of broken water outboard of each hull, faint at rest (0.12 foam energy plus 0.025 per metre of significant height), stronger underway (+0.3) and toward the stem (+0.4 over the forward 30%), capped at 0.55 (the surface draws wake energy solid from 0.6) and torn by world-anchored noise. Its hull shape is sliced from the drawn model itself (`hullWaterlineProfile.ts`): 32 stations by 7 levels from −6 m to +6 m about the design waterline, sliced once per hull while its model loads (tens to a couple of hundred milliseconds for a detailed model, which must not land in a battle frame). The water fragment transforms its displaced world position into the hull's drawn frame, heave, pitch and roll included, and reads the breadth at its own height, so the line stays on the hull in a heavy sea; empty stations past the ends read as inside the hull, so no foam trails off the stem or stern. Like the bow waves, a line narrower than three grazing-stretched pixels widens and fades rather than shimmering, and hulls where it would span under a twentieth of that are not slotted at all. The eight nearest surfaced hulls within 4 km are drawn. Everything per hull lives in one uniform buffer, so the surface gains no texture binding; every open-water pixel tests one bounding circle per slot. The surface's own depth-based shoreline foam also draws a faint line where a hull meets the water; the contact foam adds the speed, bow and sea-state shaping that depth alone cannot.
 
-`game.hullWetBand.enabled` (a uniform) and `game.shipWake.hullFoam.enabled` switch the layers for comparison; `game.shipWake.hullFoam.tuning` retunes the foam live. Neither adds a render pass.
+`game.shipWeather.band.enabled` (a uniform) and `game.shipWake.hullFoam.enabled` switch the layers for comparison; `game.shipWake.hullFoam.tuning` retunes the foam live. Neither adds a render pass.
 
 ## Wind
 

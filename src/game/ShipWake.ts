@@ -25,8 +25,12 @@ export class ShipWake {
   /** Significant wave height of the sea on show, in metres. */
   seaHeight = 0;
   private eventSequence = 0;
-  /** Whether the bound sampler is the realistic wake. */
+  /** Whether the sea darkens beside hulls where their sides hide its sky (`HullContactFoam.shelter`). Off binds a
+   * sampler without it, so the surface compiles without the term: for comparisons and cost measurement. */
+  shelter = true;
+  /** Whether the bound sampler is the realistic wake, and whether it shelters the water. */
   private realistic?: boolean;
+  private sheltered?: boolean;
 
   /** `painter` draws the trail and torpedo foam: `gpuWakeFoamPainter(renderer)` in the game. `meshSpacing` is the
    * finest water-mesh vertex spacing, which limits the displaced bow wave's sharpness; `viewportHeight` is the
@@ -55,9 +59,10 @@ export class ShipWake {
 
   /** Bind the surface's wake to the ocean's realism switch; a change recompiles the surface once. */
   private bindSampler(): void {
-    const realistic = this.ocean.realism?.wake ?? false;
-    if (realistic === this.realistic) return;
+    const realistic = this.ocean.realism?.wake ?? false, sheltered = this.shelter;
+    if (realistic === this.realistic && sheltered === this.sheltered) return;
     this.realistic = this.foam.realistic = realistic;
+    this.sheltered = sheltered;
     // The surface shades the wake's swell and the analytic bow waves with the ocean's own
     // lighting; the game adds its trail, torpedo and bow foam on top of the field's breaking foam.
     const field = this.field;
@@ -68,6 +73,7 @@ export class ShipWake {
       foam: (x, z) => max(max(max(field.foam(x, z), trail(x, z)), this.torpedoTracks.sample(x, z)), max(this.bowWaves.foam(x, z), this.hullFoam.foam(x, z))),
       // The realistic trail also lights the water under its churned band and stills the short waves along its slick.
       ...(realistic ? { bubbles: (x, z) => this.foam.read(x, z).y, slick: (x, z) => this.foam.read(x, z).z } satisfies Partial<WakeSampler> : {}),
+      ...(sheltered ? { shelter: (x, z, direction, spread) => this.hullFoam.shelter(x, z, direction, spread) } satisfies Partial<WakeSampler> : {}),
     });
   }
 

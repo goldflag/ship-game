@@ -20,7 +20,8 @@ const SUNRISE = new Color('#ffd1a0'), DAYLIGHT = new Color(1, 1, 1);
  * shafts or cloud shadows here, as before. */
 export class SkyProSky implements SkyApi {
   readonly renderer = 'skypro' as const;
-  readonly light: CelestialLight = { direction: new Vector3(0, 1, 0), color: new Color(1, 1, 1), intensity: 0, night: false, flash: 0 };
+  readonly light: CelestialLight = { direction: new Vector3(0, 1, 0), color: new Color(1, 1, 1), intensity: 0, night: false, flash: 0,
+    bolt: { position: new Vector3(), intensity: 0 } };
   readonly oceanSky: OceanSky;
   private qualityLevel: SkyQuality;
   private qualityTask: Promise<void> = Promise.resolve();

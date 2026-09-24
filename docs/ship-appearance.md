@@ -28,6 +28,12 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   edge, funnel and waterline distances once, while a design is assembled or when a
   premade model loads (13 to 38 ms a class); `ShipSurfaceDetail.ts` draws them. Blender
   bakes none of this. The editor viewport draws clean paint.
+- **Glazing is glass:** windows, portholes and the lenses of directors, rangefinders,
+  searchlights and lamps use a glass material: a premade material named `… glass` or
+  `… glazing` (`Iowa glass`, `Bridge glazing`), or the catalog's `glass` role, which
+  player-built windows and portholes install. Author it opaque; its tint is the dim room
+  behind the pane. The game draws every such material as glass, whatever finish the
+  recipe gave it (see below), so do not paint windows with a dark-grey paint instead.
 - **Deliberate colors:** reuse a named paint when the intended paint is the same.
   Nationality alone does not force identical gray. Identify reference-specific
   interpretations explicitly; do not label estimated RGB values as measured
@@ -48,8 +54,9 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   coating. Timber goes only on weather decks; roofs, gun platforms and painted-steel
   decks stay steel.
 - **Well-maintained default:** use low-contrast fading, fine surface variation,
-  restrained runoff and a narrow waterline stain. Strong rust, exposed chips,
-  missing paint and battle damage need a separate supported treatment. Avoid
+  restrained runoff and a narrow waterline stain. Strong rust, exposed chips and
+  missing paint need a separate supported treatment; battle damage has its own
+  (see [Battle damage](#battle-damage)). Avoid
   uniform dirt overlays, repetitive black grids and painted-in lighting/shadows.
 - **Scale in meters:** surface grain and wear have a physical scale independent
   of ship length. Resolution may vary with surface area, within asset budgets.
@@ -145,6 +152,53 @@ moving parts, and it leaves colors and schemes unchanged:
 Mipmaps average the relief away, so the effect fades with distance. Tune it in
 that module, not per ship.
 
+Two more runtime treatments give a superstructure its dark accents:
+
+- **Glazing:** the ship paint palette (`ShipMaterialPalette.ts`, `GLAZING`) draws glass
+  materials as a smooth dielectric (roughness 0.1, 4 % reflectance at normal incidence,
+  no metal) over a dark body: the authored tint at no more than 2 % luminance, black
+  staying black. The sky and sea reflect from it by Fresnel and the sun glints off it,
+  under the same mesh light shares as the paint; nothing lights it from within, so it
+  goes as dark as the sky it reflects at dusk and night. It is per-vertex colour,
+  roughness and metalness in the shared paint: no texture, program or draw of its own.
+- **Occlusion:** ship ambient occlusion (`ShipOcclusion.ts`, High and Ultra) darkens only
+  the fill and sky light, never the sun. It searches 8 m about each pixel, its steps
+  crowded toward it, so it shades the underside of platforms and bridge wings, the gaps
+  between deckhouses and the foot of a tower as well as small creases.
+
+## Weather on ships
+
+Weather reaches every ship's paint through the palette's weathering (`PaintWeathering`,
+built by `src/game/ShipWeather.ts`), which multiplies whatever albedo and roughness surface
+detail gives a paint. One node graph per response (paint, and timber for teak) serves every
+shared paint, so premade and player-built ships get it alike and equal paints keep one
+program. Dry weather leaves every pixel as it was (frozen port A/B: identical). All of it is
+visual; the simulation never reads it.
+
+- **Rain.** Exposed paint wets over about 10 s in a downpour and 45 s in a drizzle, and dries
+  over three minutes once it stops (`RAIN_TIMES`); a scene that opens in rain opens wet. Wet
+  paint loses albedo by how porous it is, 5 % for the smoothest paint to 24 % for the roughest
+  and 42 % for teak, and its roughness falls toward the water film's (0.38 on decks and roofs,
+  0.48 on walls, 0.5 on teak: satin, about as far as Lagarde's wet surfaces go). Undersides stay dry; walls take about half a deck's wetness, and in
+  heavy rain water streams down them along the wear's runoff paths from each wall's top edge.
+  Heavy rain stands in patches on flat decks (roughness 0.07). Where ship occlusion runs, what
+  it finds deep in shelter stays drier.
+- **Bow spray and green water.** A hull meeting a heavy sea at speed wets her bow and
+  forecastle as seawater on steel, with the wet band's own response: strongest at the stem,
+  thinning aft over up to 30 % of her length and upward to about 14 m above her deck edge,
+  in patches that stay on the ship. How much depends on significant wave height, how squarely
+  she meets the waves and her speed, over her freeboard; each plunge of the bow wets her within
+  a second or so, and it drains over tens of seconds (`SPRAY`). The eight nearest bows wet;
+  `game.shipWeather.sprayOverride` (0–1) wets every bow in view by that much, for review.
+- **Lightning.** A flash lifts the hemisphere fill and lights meshes directly from the stroke:
+  a point light at the middle of a ground stroke's channel (a fifth as much from the cloud base
+  under an intra-cloud flash) in the sky's own convention, at the meshes' share of direct light,
+  dimmed by the rain between and never more than about a third of the noon sun on the ships near the camera
+  (`VisualEnvironment.boltLight`). No shadows.
+
+No setting switches it: rain and spray cost nothing in dry weather or a slight sea, and the
+lightning light is one more point light beside the gun-flash and fire lights.
+
 The runtime roster's ships, premade and player-built, consume this one standard and
 retain their own original schemes and deck coverings. Plated paint bakes no mottling:
 an A/B on Hood showed the baked ±11 % adding only 0.2 points of broad variation over
@@ -152,3 +206,34 @@ the runtime In commission mottle, which already matches the Scharnhorst design (
 3 % fine and 4 % broad luminance variation on a hull side). This is a
 material-quality pass against existing briefs, not a new historical-accuracy claim
 or acceptance of documented geometry limitations.
+
+## Battle damage
+
+Damage that stays on a ship in battle is drawn at runtime over the shared paint, the
+same for premade and player-built ships, and never baked or authored. Nothing in the
+simulation reads it.
+
+- **Impact marks** (`ShipImpactMarks.ts`): mesh-conforming decals for each strike, the
+  latest 96 per ship, from a procedural atlas (`ImpactTexture.ts`).
+- **Scorch** (`ShipScorch.ts`): soot and charred paint where fires burned and around
+  strikes. A burning compartment chars the deck or roof its vent opens onto and soots
+  the plating above it, leaning downwind with the smoke; a burning gunhouse chars and
+  soots itself; soot and char grow over the fire's life and outlast it. HE bursts and
+  penetrations scorch about 1.3 and 0.75 times their mark's width in radius; strikes
+  close together merge. Each ship keeps 20 scorched places, fires first.
+- **Burn-out**: a lost ship (`damage.sunk`) burns out over about ten seconds while she
+  settles: charcoal and the rust-brown of steel whose paint has burned away, matte and
+  blistered close to, patchy, heaviest on her superstructure and where her fires were,
+  her decks burned in patches and the hull above the sea scorched thinly. Gunfire and
+  magazine losses burn out fully; flooding and capsize by 35 % plus her fires. Her fires
+  burn on until the sea reaches each, and a few embers glow in the charred seats, a dull
+  orange that reads at night and hardly by day.
+
+The ship paint is shared across hulls and drawn in fleet batches, so the per-ship damage
+lives in one float texture read with `textureLoad` (no sampler): a row for each of the 16
+nearest damaged hulls with its bounds, world-to-hull matrix and spots. A fragment finds
+its hull by position and works in the hull frame, so the damage follows every batch,
+detail level, turret and list. With no damaged hull in view the paint skips it on one
+uniform. It clears when the battle resets or the ship returns to port. Review it with
+`bun scripts/browser/effects-review.ts --scene s-fire,s-hits,s-burnout`, whose frames
+include the same view with the scorch switched off.

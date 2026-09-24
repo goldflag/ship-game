@@ -35,6 +35,21 @@ test('a sloped side widens with height, and levels the hull does not reach stay 
   expect(Number.isNaN(at(PROFILE_LEVELS - 1))).toBe(true);
 });
 
+test('side heights follow the deck edge, not the superstructure inboard or a lone yard over the side', () => {
+  const root = new THREE.Group(), hull = new THREE.Mesh(new THREE.BoxGeometry(10, 12, 100));
+  hull.position.y = -2; root.add(hull);
+  const house = new THREE.Mesh(new THREE.BoxGeometry(4, 20, 20)); house.position.y = 14; root.add(house);
+  // A yard reaching past the side at one station's centre.
+  const spacing = 100 / (PROFILE_STATIONS - 3), yard = new THREE.Mesh(new THREE.BoxGeometry(12, .2, .4));
+  yard.position.set(0, 20, -50 - spacing + 15 * spacing); root.add(yard);
+  const profile = hullWaterlineProfile(root)!;
+  expect(profile.starboardSide[0]).toBe(0); expect(profile.portSide[PROFILE_STATIONS - 1]).toBe(0);
+  for (let station = 2; station < PROFILE_STATIONS - 2; station++) {
+    expect(profile.starboardSide[station]).toBeCloseTo(4, 3);
+    expect(profile.portSide[station]).toBeCloseTo(4, 3);
+  }
+});
+
 test('a model with nothing at the waterline has no profile', () => {
   const root = new THREE.Group(), mast = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
   mast.position.y = 30; root.add(mast);

@@ -186,8 +186,11 @@ strike.
 Lightning is a seeded Poisson process at `weather.lightning` per minute, 2–25 km away at random
 bearings (half cloud-to-ground, an occasional close one), with 2–4 return strokes, a branching bolt
 from the cloud base to the sea, the cloud light (`lightningPosition/Intensity`: irradiance
-`intensity × (1 km / r)²` in the sea's units, 40 at a stroke's peak) and the scene flash; a thunder
-cue delayed by distance for the game's procedural thunder (`GameAudio.thunder`). Precipitation and
+`intensity × (1 km / r)²` in the sea's units, 40 at a stroke's peak), the scene flash (`flash`, which lifts the
+hemisphere fill) and its direct light (`CelestialLight.bolt`: from the middle of a ground stroke's channel, or a fifth of
+it from the cloud base under an intra-cloud flash, dimmed by the air to the camera), which the game casts on meshes as a
+shadowless point light capped at the noon sun ([Weather on ships](../../../docs/ship-appearance.md#weather-on-ships)); a
+thunder cue delayed by distance for the game's procedural thunder (`GameAudio.thunder`). Precipitation and
 lightning come from the weather preset (`src/maps/precipitation.ts`) and the developer console.
 
 **Environment** (`environment/`). Equirectangular linear HDR bake (RGBA16F, the tier's width) from sea

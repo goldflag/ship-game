@@ -1,5 +1,5 @@
 import { Color, Vector3, type Color as ColorType } from 'three/webgpu';
-import type { CelestialLight, SkyScene, SkyUniforms } from './contracts';
+import type { BoltLight, CelestialLight, SkyScene, SkyUniforms } from './contracts';
 import { anglesOf, CelestialModel, moonIllumination } from './celestialModel';
 import { createSkyUniforms } from './uniforms';
 
@@ -24,7 +24,8 @@ export const DEFAULT_SKY_SCENE: SkyScene = {
 export class SkyState {
   readonly model = new CelestialModel();
   readonly uniforms: SkyUniforms = createSkyUniforms();
-  readonly light: CelestialLight = { direction: new Vector3(0, 1, 0), color: new Color(1, 1, 1), intensity: 0, night: false, flash: 0 };
+  readonly light: CelestialLight = { direction: new Vector3(0, 1, 0), color: new Color(1, 1, 1), intensity: 0, night: false, flash: 0,
+    bolt: { position: new Vector3(), intensity: 0 } };
   /** Cloud drift velocity (m/s) in world XZ. */
   readonly wind = new Vector3();
   scene: SkyScene = structuredClone(DEFAULT_SKY_SCENE);
@@ -72,8 +73,9 @@ export class SkyState {
   }
 
   /** The active body's light at the sea, from the atmosphere's sea-level sun and moon (colour ×
-   * intensity): the moon once it outshines the sun. `intensity` is the brightest channel. */
-  chooseLight(seaLevel: { readonly sun: ColorType; readonly moon: ColorType }, flash: number): void {
+   * intensity): the moon once it outshines the sun. `intensity` is the brightest channel. Lightning adds its
+   * `flash` of diffuse light and, with a `bolt`, its direct light. */
+  chooseLight(seaLevel: { readonly sun: ColorType; readonly moon: ColorType }, flash: number, bolt?: BoltLight): void {
     const { sun, moon } = seaLevel, light = this.light;
     const solar = Math.max(sun.r, sun.g, sun.b), lunar = Math.max(moon.r, moon.g, moon.b);
     light.night = lunar > solar;
@@ -81,6 +83,8 @@ export class SkyState {
     if (light.intensity > 0) light.color.copy(light.night ? moon : sun).multiplyScalar(1 / light.intensity);
     light.direction.copy(light.night ? this.model.moon : this.model.sun);
     light.flash = flash;
+    light.bolt.intensity = bolt?.intensity ?? 0;
+    if (bolt) light.bolt.position.copy(bolt.position);
     this.uniforms.flash.value = flash;
     this.uniforms.lightDirection.value.copy(light.direction);
     this.uniforms.lightColor.value.set(light.color.r, light.color.g, light.color.b).multiplyScalar(light.intensity);
