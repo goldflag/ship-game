@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { float } from 'three/tsl';
-import { ShipMaterialPalette, wetBandHeight } from './ShipMaterialPalette';
+import { GLAZING, ShipMaterialPalette, wetBandHeight } from './ShipMaterialPalette';
 
 test('different linear paint colors share shading while preserving every vertex and texture', () => {
   const root = new THREE.Group(), geometry = new THREE.BoxGeometry();
@@ -34,6 +34,38 @@ test('surface parameters remain per vertex; distinct textures and custom materia
   expect(new Set(meshes.map(m=>m.material)).size).toBe(materials.length - 1);
   expect(meshes[4].material).toBe(materials[4]); expect(meshes[5].material).toBe(materials[5]);
   expect(meshes[4].geometry).toBe(geometry); expect(meshes[5].geometry).toBe(geometry);
+});
+
+test('glazing draws as smooth dark glass in the paint every other surface shares; other paint keeps its finish', () => {
+  const palette = new ShipMaterialPalette({ surfaceDetail: true }), root = new THREE.Group(), geometry = new THREE.BoxGeometry();
+  const role = (name: string, color: string, roleName?: string) => {
+    const material = new THREE.MeshStandardMaterial({ name, color, roughness: .77, metalness: .08 });
+    if (roleName) Object.assign(material.userData, { componentMaterialVersion: 1, componentMaterialRole: roleName, componentPaint: 'fixed' });
+    return material;
+  };
+  const materials = [role('Iowa glass', '#2a4a50'), role('Bridge glazing', '#305060'), role('glass', '#000000', 'glass'), role('deck-fittings.glass', '#3d5a62'),
+    role('Iowa dark', '#202428'), role('glass', '#3d5a62', 'dark'), role('Glassware locker', '#556677')];
+  const meshes = materials.map(material => new THREE.Mesh(geometry, material)); root.add(...meshes);
+  const tints = materials.map(material => material.color.clone());
+  palette.apply(root);
+  const read = (mesh: THREE.Mesh) => {
+    const color = mesh.geometry.getAttribute('color'), surface = mesh.geometry.getAttribute('shipSurface');
+    return { color: new THREE.Color(color.getX(0), color.getY(0), color.getZ(0)), roughness: surface.getX(0), metalness: surface.getY(0) };
+  };
+  expect(new Set(meshes.map(mesh => mesh.material)).size).toBe(1);
+  const luminance = (c: THREE.Color) => .2126 * c.r + .7152 * c.g + .0722 * c.b;
+  for (const [i, mesh] of meshes.entries()) {
+    const { color, roughness, metalness } = read(mesh);
+    if (i < 4) {
+      expect(roughness).toBeCloseTo(GLAZING.roughness, 6); expect(metalness).toBe(0);
+      expect(luminance(color)).toBeLessThanOrEqual(GLAZING.body + 1e-6);
+      // The authored tint keeps its hue; black stays black.
+      if (luminance(tints[i]) > 0) expect(color.r / color.g).toBeCloseTo(tints[i].r / tints[i].g, 5); else expect(luminance(color)).toBe(0);
+    } else {
+      expect(roughness).toBeCloseTo(.77); expect(metalness).toBeCloseTo(.08);
+      for (let c = 0; c < 3; c++) expect(color.toArray()[c]).toBeCloseTo(tints[i].toArray()[c], 6);
+    }
+  }
 });
 
 test('texture pixels are never read while keying materials', () => {
