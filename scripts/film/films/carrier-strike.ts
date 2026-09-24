@@ -1,9 +1,9 @@
-/** Carrier strike: Enterprise and Shōkaku trade strikes across 20 km of the Pacific islands map, a morning in the manner of
+/** Carrier strike: Enterprise and Shōkaku trade strikes across 20 km of open sea, a morning in the manner of
  * Santa Cruz (October 1942). Enterprise's Dauntlesses and Devastators go for Shōkaku under a Wildcat escort while a second
  * Wildcat flight holds over her; Shōkaku's Vals and Kates go for Enterprise while her Zeros stay home. */
 import type { Command } from '../../../src/multiplayer/generated/Command';
 import type { AirOrder } from '../../../src/multiplayer/generated/AirOrder';
-import type { Film, Stage } from '../types';
+import type { Film, Scout, Stage } from '../types';
 import { about, ease, lerp, mix, orbit, ride, watch } from '../camera';
 import { before, first } from '../scouting';
 
@@ -22,6 +22,13 @@ function pose(stage: Stage, id: string, offset: [number, number, number]): [numb
   if (!subject) throw new Error(`carrier-strike: ${id} is not in the battle at ${stage.seconds.toFixed(1)} s.`);
   return about(subject, offset);
 }
+/** The first Zero shot down by a fighter, when and by which Wildcat: the burst fired at the moment it fell. */
+function zeroDown(scout: Scout): { tick: number; killer: string } | undefined {
+  const loss = scout.events.find(event => event.kind === 'aircraft-lost' && event.aircraftId?.startsWith(`${SHOKAKU}/`) && event.message.startsWith('a6m2'));
+  const burst = loss && scout.events.find(event => event.kind === 'aircraft-fire' && event.message.startsWith('Fighter') && event.aircraftId?.startsWith(`${ENTERPRISE}/`)
+    && Math.abs(event.tick - loss.tick) <= 30);
+  return loss && burst?.aircraftId ? { tick: loss.tick / 60, killer: burst.aircraftId } : undefined;
+}
 const air = (flightId: string, order: AirOrder): Command => ({ type: 'air', flightId, order });
 const route = (waypoints: [number, number][], knots: number): Command => ({ type: 'route', waypoints, speedMps: knots * .5144, looped: false, append: false });
 
@@ -31,11 +38,11 @@ const committed = (stage: Stage, owner: string) => stage.aircraft().some(plane =
   && (plane.role === 'dive-bomber' ? plane.pitch < -.3 : plane.role === 'torpedo-bomber' && plane.position[1] < 55));
 
 const film: Film = {
-  battle: { battle: 'enterprise-cv6;fletcher;shokaku:normal,yukikaze:normal', range: 20000, map: 'pacific-islands', time: 'morning', weather: 'partly-cloudy', seed: 1026 },
+  battle: { battle: 'enterprise-cv6;fletcher;shokaku:normal,yukikaze:normal', range: 20000, map: 'north-atlantic', time: 'morning', weather: 'partly-cloudy', seed: 1026 },
   seconds: 470,
   orders(stage) {
     stage.once('sail', () => {
-      // Both forces steam across the line between them, clear of the islands on its flanks, holding their fire: this is a
+      // Both forces steam across the line between them, holding their fire: this is a
       // battle of aircraft. Anti-aircraft fire opens when the first attacker commits (below), since near misses turn
       // attackers away before they commit and the strikes would otherwise never arrive.
       stage.order(ENTERPRISE, route([[7000, -600]], 20));
@@ -75,7 +82,7 @@ const film: Film = {
     {
       name: 'launch', seconds: 6, fade: { in: 1.5 },
       start: scout => before(first(scout, 'aircraft-launch', event => event.aircraftId === 'player/vb-6/7'), .5),
-      title: { text: 'Carrier strike', detail: 'Enterprise and Shōkaku · a morning in the South Pacific', from: 1.2, to: 5.2 },
+      title: { text: 'Carrier strike', detail: 'Enterprise and Shōkaku · a morning at sea', from: 1.2, to: 5.2 },
       camera: stage => watch(stage, { eye: () => pose(stage, ENTERPRISE, [-17, 19.5, 92]), target: () => pose(stage, ENTERPRISE, [3, 17, -30]), fov: 44, sway: .15 }),
     },
     {
@@ -124,8 +131,8 @@ const film: Film = {
       camera: stage => ride(stage, 'enemy-1/shokaku-fighters/6', { offset: [0, 2.5, -15], look: [0, 0, 150], attitude: true, fov: 55, lag: .05 }),
     },
     {
-      name: 'wildcat', seconds: 4.5, start: scout => before(first(scout, 'aircraft-lost', event => event.aircraftId === 'enemy-1/shokaku-fighters/2'), 1.2),
-      camera: stage => ride(stage, 'player/vf-6/2', { offset: [-2, 2.5, -14], look: [0, 0, 150], attitude: true, fov: 55, lag: .05 }),
+      name: 'wildcat', seconds: 4.5, start: scout => before(zeroDown(scout)?.tick, 1.2),
+      camera: (stage, scout) => ride(stage, zeroDown(scout)!.killer, { offset: [-2, 2.5, -14], look: [0, 0, 150], attitude: true, fov: 55, lag: .05 }),
     },
     {
       name: 'torpedo-run', seconds: 9.5, start: scout => before(first(scout, 'aircraft-release', event => event.aircraftId === 'player/vt-6/1'), 8),
@@ -134,6 +141,10 @@ const film: Film = {
     {
       name: 'tracks', seconds: 8, start: scout => before(first(scout, 'torpedo-hit', event => event.shipId === SHOKAKU), 4.5),
       camera: stage => watch(stage, { from: SHOKAKU, eye: [-360, 4, -140], target: { id: SHOKAKU, offset: [0, 8, 20] }, fov: 30, clearSea: 2, sway: .4 }),
+    },
+    {
+      name: 'yukikaze', seconds: 8, start: scout => before(first(scout, 'sunk', event => event.shipId === YUKIKAZE), 1),
+      camera: stage => watch(stage, { from: YUKIKAZE, eye: [420, 8, 160], target: { id: YUKIKAZE, offset: [0, 5, 0] }, fov: 26, clearSea: 2, sway: .4 }),
     },
     {
       name: 'homeward', seconds: 7, start: 268,

@@ -855,7 +855,7 @@ export class Game {
   }
   /** Development captures: resolves once the GPU has finished every frame submitted so far, so a capture reads the last one. */
   async gpuIdle(): Promise<void> {
-    await (this.renderer.backend as unknown as { device?: GPUDevice }).device?.queue.onSubmittedWorkDone();
+    await (this.renderer.backend as unknown as { device?: { queue: { onSubmittedWorkDone(): Promise<void> } } }).device?.queue.onSubmittedWorkDone();
   }
   /** Development captures: where the ship or aircraft `id` is drawn this frame, interpolated as the renderer draws it. */
   subjectPose(id: string): SubjectPose | undefined {
