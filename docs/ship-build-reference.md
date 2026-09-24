@@ -98,6 +98,11 @@ library variants are not model inputs. Python 3 is required to fingerprint recip
 | Missing/corrupt retained source or model | Regenerate that stage; intact independent stages can be reused |
 | Deleted `.build/ships/` staging | Restore from verified retained outputs; no forced geometry rebuild |
 | `--force` | Execute geometry, export, validation and thumbnail for every selected ship |
+| `--no-refresh` | Publish without refreshing the hydrostatic table and runtime content |
+
+After publishing a ship listed in `src/ships/presets.ts`, `ship:build` refreshes what the game loads with it: that
+ship's hydrostatic table when its content hash moved (`ship:hydrostatics <id>`, under 10 s; the whole fleet takes
+about 11 s), then `multiplayer:content` (about 2 s). `ship:build all` refreshes once after every ship finishes.
 
 `fingerprints.ts` defines the explicit geometry input contract. Recipes receive
 that projection, including inspection volumes; runtime-only fields are not

@@ -7,11 +7,14 @@ import { gunTraverseAtFraction } from '../../src/ships/armament';
 import { fingerprints, geometryDefinition, fileHash, validFile } from './fingerprints';
 import { mountFrame } from '../../src/game/mountFrames';
 import { runBlender as runSharedBlender } from '../build/blender';
+import { refreshRuntime } from './refresh';
 
 const root = resolve(import.meta.dir, '../..');
 const started = performance.now();
 const timings: Record<string, number | string> = {};
 const force = process.argv.includes('--force');
+// After a build, refresh the ship's hydrostatic table and runtime content (refresh.ts); `all` refreshes once instead.
+const refresh = !process.argv.includes('--no-refresh');
 const [action = 'check', shipId = 'bismarck'] = process.argv.slice(2);
 if (!['build', 'check', 'compile', 'review', 'thumbnail'].includes(action) || !/^[a-z][a-z0-9-]{0,63}$/.test(shipId))
   throw new Error('Usage: bun scripts/ships/pipeline.ts build|check|compile|review|thumbnail <ship-id>');
@@ -27,6 +30,7 @@ if (blueprint.construction && !blueprint.hull) {
   const { constructionPipeline } = await import('../construction/pipeline');
   try {
     console.log(JSON.stringify(await constructionPipeline(root, action, shipId, force), null, 2));
+    if (action === 'build' && refresh) await refreshRuntime(root, [shipId]);
   } catch (error) {
     console.error(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
     process.exit(1);
@@ -509,4 +513,5 @@ if (action === 'check') {
   } finally {
     await rm(lock, { recursive: true, force: true });
   }
+  if (action === 'build' && refresh) await refreshRuntime(root, [shipId]);
 }

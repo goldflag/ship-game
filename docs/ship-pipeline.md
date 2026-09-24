@@ -102,7 +102,7 @@ After the first successful build, add the ship's line to `src/ships/presets.ts` 
 3. `bun assets/ships/author-stability.ts my-ship`. It fills `stability` only when absent; remove the field to recompute after a hull change.
 4. `bun assets/ships/author-damage-control.ts my-ship` writes the shared fleet defaults over any existing `damageControl`.
 
-**After every `ship:build`,** run `bun run ship:hydrostatics` and then `bun run multiplayer:content`. The hydrostatic table is keyed by the definition's content hash, so any blueprint or recipe change leaves it stale, and the game refuses a model whose definition version differs.
+**After the first build** of a new preset, register it, then run `bun run ship:hydrostatics my-ship` and `bun run multiplayer:content`. From then on, `ship:build` refreshes both itself. The hydrostatic table is keyed by the definition's content hash, and the game refuses a model whose definition version differs, so a stale table or stale content breaks loading.
 
 **Traps.**
 
