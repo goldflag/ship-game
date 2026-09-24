@@ -53,8 +53,11 @@ function ladder(first: number, ratio: number, last: number): number[] {
   return out;
 }
 /** Heel is measured from upright: hull sections are mirrored, so negative heel
- * is the reflected table entry. Trim has no such symmetry. */
-export const HEEL_ANGLES = [...ladder(3, 1.5, 90), 105, 120, 140, 160, 180].map(degrees);
+ * is the reflected table entry. Trim has no such symmetry. 43° and 64° split the
+ * ladder's two widest gaps below beam ends (34° to 51°, 51° to 77°), where a tall
+ * flush-sided carrier's deck edge goes under and the buoyancy locus turns too sharply
+ * to interpolate across. */
+export const HEEL_ANGLES = [...ladder(3, 1.5, 90), 43, 64, 105, 120, 140, 160, 180].sort((a, b) => a - b).map(degrees);
 export const TRIM_ANGLES = (() => { const l = ladder(.8, 1.5, 90); return [...l.slice(1).reverse().map(n => -n), ...l].map(degrees); })();
 export const VOLUME_STEPS = 32;
 /** Displacement fraction of each node, shared by every orientation so that their

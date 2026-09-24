@@ -18,6 +18,7 @@ fn target(armor_mm: f64) -> Vessel {
     let mut def = (*catalog.definitions["enterprise-cv6"]).clone();
     def.modules.clear();
     def.mounts.clear();
+    def.mount_clearance = None;
     def.compartments.clear();
     def.connections.clear();
     def.armor.clear();
