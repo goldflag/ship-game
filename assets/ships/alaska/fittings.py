@@ -255,7 +255,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     part('cyl', 'mk57-1', col, 'drum', (dx_, dy_, 11.285), 1.05, 1.51, 'naval', vertices=20)
     part('cyl', 'mk57-1', col, 'drum deck', (dx_, dy_, 12.02), 1.0, .04, 'roof', vertices=20)
     gy = support.below(*R(0, 0, -109.9)[:2], 10.4)
-    prism('mk57-1.trunk', 'mk57-1', [R(-.73, 0, -109.6)[:2], R(.73, 0, -109.6)[:2], R(.73, 0, -110.25)[:2], R(-.73, 0, -110.25)[:2]], gy - .05, 10.6)
+    prism('mk57-1.trunk', 'mk57-1', [R(-.73, 0, -109.6)[:2], R(.73, 0, -109.6)[:2], R(.73, 0, -110.25)[:2], R(-.73, 0, -110.25)[:2]], 9.45, 10.6)
     gus = [R(.73, 10.55, -108.35), R(.73, 10.55, -109.62), R(.73, 9.45, -109.62)]
     vv = [(p_[0], p_[1] + d_, p_[2]) for d_ in (0, 1.46) for p_ in gus]
     tag(mesh('mk57-1.gusset', vv, [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', col), 'mk57-1')
@@ -529,13 +529,28 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         for dz in (2.5, 5.0, 7.5):
             F.col = acol
             F.ring(id + '.post band', (base[0], base[1], base[2] + dz), .5 - .018 * dz, .03, 'z', segments=14)
-        heel = P(s * 4.9, 11.8, 14.3)
-        tip = P(s * 2.55, 17.6, 32.9)
-        lattice(id + '.jib', heel, tip, .9, .75, acol, 14, assembly=id)
-        part('rod', id, acol, 'topping lift', (top_[0], top_[1], top_[2] + .15), tip, .025, 'edge', vertices=5)
-        part('rod', id, acol, 'hoist fall', tip, (tip[0], tip[1], tip[2] - 4.2), .02, 'edge', vertices=5)
+        # Reference slab view: the lattice jib rises about 32 degrees from a heel low on the king post to
+        # a knee near z 29, where a cranked plate-girder head carries the sheaves out to z 35.
+        heel = R(s * 4.8, 10.4, 16.35)
+        knee = R(s * 3.2, 17.1, 29.0)
+        tip = R(s * 2.6, 18.45, 34.6)
+        lattice(id + '.jib', heel, knee, .9, .75, acol, 11, assembly=id)
+        d_ = Vector(tip) - Vector(knee)
+        side_ = d_.cross(Vector((0, 0, 1))).normalized() * .16
+        up_ = side_.cross(d_).normalized() * .38
+        head = [Vector(knee) - up_, Vector(tip) - up_ * .6, Vector(tip) + up_ * .6, Vector(knee) + up_]
+        vv = [tuple(h_ + sv) for sv in (-side_, side_) for h_ in head]
+        tag(mesh(id + '.jib head', vv, [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], 'naval', acol), id)
+        for t in (.3, .65):
+            c_ = Vector(knee).lerp(Vector(tip), t)
+            hole = tag(rod(id + '.lightening hole', c_ - side_ * 1.3, c_ + side_ * 1.3, .17, 'dark', acol, vertices=8), id)
+        part('rod', id, acol, 'head sheave', Vector(tip) - side_ * 1.6, Vector(tip) + side_ * 1.6, .3, 'edge', vertices=12)
+        part('rod', id, acol, 'topping lift', (top_[0], top_[1], top_[2] + .15), knee, .03, 'edge', vertices=5)
+        hook_top = Vector(knee).lerp(Vector(tip), .2)
+        part('rod', id, acol, 'hoist fall', hook_top, hook_top - Vector((0, 0, 3.2)), .02, 'edge', vertices=5)
+        part('box', id, acol, 'hook block', hook_top - Vector((0, 0, 3.35)), (.3, .22, .35), 'edge')
         F.col = acol
-        F.ring(id + '.hook', (tip[0], tip[1], tip[2] - 4.4), .2, .045, 'y', segments=12)
+        F.ring(id + '.hook', tuple(hook_top - Vector((0, 0, 3.7))), .2, .045, 'y', segments=10)
         part('box', id, acol, 'winch house', (base[0] + .3, base[1] + s * -.2, base[2] + .7), (1.6, 1.2, 1.4), 'naval')
     dcol_boats = collections['Deck fittings']
     # Twin 26 ft motor whaleboats under the cranes, and the life floats forward.
