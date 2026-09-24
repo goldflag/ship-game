@@ -28,6 +28,12 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   edge, funnel and waterline distances once, while a design is assembled or when a
   premade model loads (13 to 38 ms a class); `ShipSurfaceDetail.ts` draws them. Blender
   bakes none of this. The editor viewport draws clean paint.
+- **Glazing is glass:** windows, portholes and the lenses of directors, rangefinders,
+  searchlights and lamps use a glass material: a premade material named `… glass` or
+  `… glazing` (`Iowa glass`, `Bridge glazing`), or the catalog's `glass` role, which
+  player-built windows and portholes install. Author it opaque; its tint is the dim room
+  behind the pane. The game draws every such material as glass, whatever finish the
+  recipe gave it (see below), so do not paint windows with a dark-grey paint instead.
 - **Deliberate colors:** reuse a named paint when the intended paint is the same.
   Nationality alone does not force identical gray. Identify reference-specific
   interpretations explicitly; do not label estimated RGB values as measured
@@ -144,6 +150,20 @@ moving parts, and it leaves colors and schemes unchanged:
 
 Mipmaps average the relief away, so the effect fades with distance. Tune it in
 that module, not per ship.
+
+Two more runtime treatments give a superstructure its dark accents:
+
+- **Glazing:** the ship paint palette (`ShipMaterialPalette.ts`, `GLAZING`) draws glass
+  materials as a smooth dielectric (roughness 0.1, 4 % reflectance at normal incidence,
+  no metal) over a dark body: the authored tint at no more than 2 % luminance, black
+  staying black. The sky and sea reflect from it by Fresnel and the sun glints off it,
+  under the same mesh light shares as the paint; nothing lights it from within, so it
+  goes as dark as the sky it reflects at dusk and night. It is per-vertex colour,
+  roughness and metalness in the shared paint: no texture, program or draw of its own.
+- **Occlusion:** ship ambient occlusion (`ShipOcclusion.ts`, High and Ultra) darkens only
+  the fill and sky light, never the sun. It searches 8 m about each pixel, its steps
+  crowded toward it, so it shades the underside of platforms and bridge wings, the gaps
+  between deckhouses and the foot of a tower as well as small creases.
 
 The runtime roster's ships, premade and player-built, consume this one standard and
 retain their own original schemes and deck coverings. Plated paint bakes no mottling:
