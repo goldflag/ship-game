@@ -76,7 +76,7 @@ test('side-discharging carrier exhaust uses the authored mouths below the jacket
   const def = shipPreset('shokaku');
   const outlets = funnelOutlets(def);
   expect(outlets).toHaveLength(2);
-  expect(outlets.map(o => o.position)).toEqual([[19.6, 12.8, -10], [19.6, 12.8, 2]]);
+  expect(outlets.map(o => o.position)).toEqual([[19.45, 11.2, -5.6], [19.45, 11.2, 6.4]]);
   for (const outlet of outlets) {
     const jacket = def.structures!.find(s => s.id === outlet.id)!;
     expect(outlet.position[1]).toBeLessThan(jacket.baseY + jacket.height);

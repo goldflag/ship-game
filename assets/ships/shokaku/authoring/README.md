@@ -1,6 +1,6 @@
 # Shōkaku authoring and checks
 
-`generate_blueprint.py` replaces the canonical blueprint from the original arrangement recipe. Run it only for deliberate regeneration. Then run `bun assets/ships/author-stability.ts shokaku` and regenerate local damage profiles before `ship:build shokaku`.
+`generate_blueprint.py` replaces the canonical blueprint from the original arrangement recipe. Run it only for deliberate regeneration: it predates the pjsa108 pass, whose forebody sections, upper-hangar outline, funnel surfaces, mount positions and director position were edited in `blueprint.json` directly and would be lost. Then run `bun assets/ships/author-stability.ts shokaku` and regenerate local damage profiles before `ship:build shokaku`.
 
 `python3 assets/ships/shokaku/authoring/flight_deck.py` applies the forward lift aperture to an existing blueprint without replacing other authoring data. Full blueprint regeneration calls the same original clipping recipe. Repeating this correction is a no-op once the aperture exists.
 

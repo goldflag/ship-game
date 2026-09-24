@@ -24,7 +24,7 @@ describe('original component library', () => {
   test('every catalog part has explicit metadata and only real usage is listed', () => {
     expect(() => validateLibrary(library, catalog)).not.toThrow();
     const usages = installationsFor('oerlikon-20mm-single', Object.values(shipPresets) as unknown as ShipDefinition[]);
-    expect(usages.some(i => i.shipId === 'enterprise-cv6')).toBe(true);
+    expect(usages.some(i => i.shipId === 'fletcher')).toBe(true);
     expect(usages.some(i => i.shipId === 'iowa')).toBe(false); // distinct accepted source variant
   });
   test('rejects ambiguous identities and non-original builder paths', () => {
@@ -42,7 +42,7 @@ describe('original component library', () => {
     expect(await componentHash(root, library, entry, { ...part, muzzleForward: part.muzzleForward + .1 })).not.toBe(hash);
     const other = structuredClone(library); other.components[0].limitations += ' Different review.';
     expect(await componentHash(root, other, entry, part)).toBe(hash);
-    expect(recipeInputs(library, entry)).toContain('assets/parts/ijn-carrier-guns/geometry.py');
+    expect(recipeInputs(library, entry)).toContain('assets/parts/ijn-carrier-guns/type96_triple.py');
     expect(recipeInputs(library, entry).every(p => p.startsWith('assets/'))).toBe(true);
   });
 });
