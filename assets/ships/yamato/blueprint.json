@@ -54650,7 +54650,7 @@
       "battery": "secondary",
       "position": [
         11.434,
-        10.04,
+        11.459,
         5.848
       ],
       "bearingDeg": 90,
@@ -54669,7 +54669,7 @@
       "battery": "secondary",
       "position": [
         11.434,
-        10.04,
+        11.459,
         16.905
       ],
       "bearingDeg": 90,
@@ -54688,7 +54688,7 @@
       "battery": "secondary",
       "position": [
         12.526,
-        10.04,
+        11.459,
         26.935
       ],
       "bearingDeg": 90,
@@ -54703,11 +54703,11 @@
     {
       "id": "ha--1-4",
       "name": "Starboard 12.7 cm AA 4",
-      "partId": "type89-127-yamato-twin",
+      "partId": "type89-127-yamato-open-twin",
       "battery": "secondary",
       "position": [
         6.867,
-        11.96,
+        12.125,
         11.256
       ],
       "bearingDeg": 90,
@@ -54722,11 +54722,11 @@
     {
       "id": "ha--1-5",
       "name": "Starboard 12.7 cm AA 5",
-      "partId": "type89-127-yamato-twin",
+      "partId": "type89-127-yamato-open-twin",
       "battery": "secondary",
       "position": [
         6.909,
-        14.34,
+        14.502,
         22.657
       ],
       "bearingDeg": 90,
@@ -54741,11 +54741,11 @@
     {
       "id": "ha--1-6",
       "name": "Starboard 12.7 cm AA 6",
-      "partId": "type89-127-yamato-twin",
+      "partId": "type89-127-yamato-open-twin",
       "battery": "secondary",
       "position": [
         6.327,
-        11.94,
+        12.099,
         31.118
       ],
       "bearingDeg": 90,
@@ -54764,7 +54764,7 @@
       "battery": "secondary",
       "position": [
         -11.434,
-        10.04,
+        11.459,
         5.848
       ],
       "bearingDeg": 270,
@@ -54783,7 +54783,7 @@
       "battery": "secondary",
       "position": [
         -11.434,
-        10.04,
+        11.459,
         16.905
       ],
       "bearingDeg": 270,
@@ -54802,7 +54802,7 @@
       "battery": "secondary",
       "position": [
         -12.526,
-        10.04,
+        11.459,
         26.935
       ],
       "bearingDeg": 270,
@@ -54817,11 +54817,11 @@
     {
       "id": "ha-1-4",
       "name": "Port 12.7 cm AA 4",
-      "partId": "type89-127-yamato-twin",
+      "partId": "type89-127-yamato-open-twin",
       "battery": "secondary",
       "position": [
         -6.867,
-        11.96,
+        12.125,
         11.256
       ],
       "bearingDeg": 270,
@@ -54836,11 +54836,11 @@
     {
       "id": "ha-1-5",
       "name": "Port 12.7 cm AA 5",
-      "partId": "type89-127-yamato-twin",
+      "partId": "type89-127-yamato-open-twin",
       "battery": "secondary",
       "position": [
         -6.909,
-        14.34,
+        14.502,
         22.657
       ],
       "bearingDeg": 270,
@@ -54855,11 +54855,11 @@
     {
       "id": "ha-1-6",
       "name": "Port 12.7 cm AA 6",
-      "partId": "type89-127-yamato-twin",
+      "partId": "type89-127-yamato-open-twin",
       "battery": "secondary",
       "position": [
         -6.327,
-        11.94,
+        12.099,
         31.118
       ],
       "bearingDeg": 270,
