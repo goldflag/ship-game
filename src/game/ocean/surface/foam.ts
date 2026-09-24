@@ -12,6 +12,7 @@
  * of the light, as Koepke (1984) measured of real whitecaps, not the four fifths of a fresh sheet. */
 import type { Node, Texture } from 'three/webgpu';
 import { clamp, cos, dFdx, dFdy, dot, exp, float, max, min, mix, sin, smoothstep, step, texture, vec2 } from 'three/tsl';
+import { noise } from '../noise';
 import { FOAM_ANISOTROPY, FOAM_TEXELS } from './foamTexture';
 
 type Float = Node<'float'>;
@@ -28,6 +29,10 @@ const STREAK_SCALE = .5, STREAK_STRETCH = 2.5;
  * apart) and broad patches, read this many times larger than the lace (and a second patch read at an irrational ratio of
  * it, so their sum never repeats as a lattice seen from the air), drawn out this much further along the wind. */
 const BAND_SCALES = [4, 4 * Math.SQRT2 * 1.13] as const, BAND_STRETCH = 2;
+/** The bands' layout is shifted by the world's noise (`noise.ts`) in cells this many metres wide, by up to this many
+ * metres along the wind and across it: the texture's tile repeats every 160 m across the wind, and its bands drew
+ * corduroy over the far sea. Shifted, they meander a few degrees off the wind and never fall in the same place twice. */
+const BAND_WARP_CELL = 600, BAND_WARP_ALONG = 100, BAND_WARP_ACROSS = 80;
 /** How strongly the patches gather windrows into some bands and thin them in others: coverage runs from 1 − this to
  * 1 + this times its mean. */
 const WINDROW_GATHER = .35;
@@ -167,14 +172,20 @@ export function foamFootprint(xz: Vec2): { size: Float; along: Float; across: Fl
 export function foamPatterns(map: Texture, xz: Vec2, wind: Float, stretch: Float, sun: Vec3) {
   const uv = foamLayout(xz, wind, stretch, FOAM_TILE);
   const streakUv = foamLayout(xz, wind, stretch.mul(STREAK_STRETCH), FOAM_TILE * STREAK_SCALE);
-  const [nearUv, farUv] = BAND_SCALES.map(scale => foamLayout(xz, wind, stretch.mul(BAND_STRETCH), FOAM_TILE * scale));
-  const nearBands = texture(map, nearUv), farBands = texture(map, farUv);
+  const along = vec2(cos(wind), sin(wind)), cell = xz.div(BAND_WARP_CELL);
+  const bandsAt = xz.add(along.mul(noise(cell, 1).sub(.5).mul(2 * BAND_WARP_ALONG)))
+    .add(vec2(along.y.negate(), along.x).mul(noise(cell, 2).sub(.5).mul(2 * BAND_WARP_ACROSS)));
+  const [nearUv, farUv] = BAND_SCALES.map(scale => foamLayout(bandsAt, wind, stretch.mul(BAND_STRETCH), FOAM_TILE * scale));
+  const nearBands = texture(map, nearUv), farBands = texture(map, farUv), coarseBlur = foamBlur(nearUv);
   return {
     pattern: texture(map, uv), blur: foamBlur(uv),
     streaks: texture(map, streakUv).r, streaksBlur: foamBlur(streakUv),
-    lines: nearBands.b, gather: nearBands.g.add(farBands.g).mul(.5),
+    // The bands and patches give way to their means where the pixel averages them: past the sampler's anisotropy a
+    // grazing pixel reads them unfiltered along its length, and the windrows scaled by them drew the texture's tile as
+    // a grid toward the horizon.
+    lines: mix(nearBands.b, float(map.userData.streakMean), coarseBlur), gather: mix(nearBands.g.add(farBands.g).mul(.5), float(.5), coarseBlur),
     // The windrows' layout is also the coarse lace and churn a whitecap averaged over its pixel is drawn with.
-    coarse: nearBands, coarseBlur: foamBlur(nearUv),
+    coarse: nearBands, coarseBlur,
     churnSunward: texture(map, uv.add(sunward(sun, wind, stretch, EMBOSS_METRES, FOAM_TILE))).a,
   };
 }

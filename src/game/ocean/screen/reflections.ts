@@ -1,5 +1,5 @@
 import type { Node, TextureNode } from 'three/webgpu';
-import { Break, Fn, If, Loop, bool, cameraFar, cameraNear, cameraProjectionMatrix, cameraViewMatrix, float, int, min, mix, perspectiveDepthToViewZ,
+import { Break, Fn, If, Loop, bool, cameraFar, cameraNear, cameraProjectionMatrix, cameraProjectionMatrixInverse, cameraViewMatrix, float, int, min, mix, perspectiveDepthToViewZ,
   screenSize, smoothstep, vec2, vec3, vec4 } from 'three/tsl';
 
 /** What `screenSpaceReflection` reads. Everything is a node the surface material already has:
@@ -7,7 +7,8 @@ import { Break, Fn, If, Loop, bool, cameraFar, cameraNear, cameraProjectionMatri
 export interface ScreenReflectionInput {
   /** View-space position of the water fragment in metres (the displaced surface, e.g. `positionView`). */
   readonly position: Node<'vec3'>;
-  /** View-space direction of the reflected ray; normalised here. */
+  /** View-space direction of the reflected ray; normalised here. A ray below the horizon is traced mirrored about the
+   * mean surface: at such grazing incidence the sea it strikes sends it back up. */
   readonly direction: Node<'vec3'>;
   /** The surface's viewport copy of the opaque scene colour. Read at level 0. */
   readonly sceneColor: TextureNode;
@@ -27,10 +28,12 @@ export interface ScreenReflectionInput {
 }
 
 export interface ScreenReflection {
-  /** Opaque scene colour where the ray hit (linear HDR); black on a miss. */
+  /** Opaque scene colour where the ray hit (linear HDR), averaged over the reads that see a surface above the water;
+   * black on a miss. */
   readonly color: Node<'vec3'>;
-  /** 0–1 trust in `color`: 0 on a miss, fading at screen edges, near `maxDistance` and for
-   * rays heading back toward the camera. Blend with the sky reflection by it. */
+  /** 0–1 trust in `color`: 0 on a miss, fading at screen edges, near `maxDistance` and for rays heading back toward
+   * the camera, and scaled by the share of the smeared image that sees a surface (the rest sees sky). Blend with the
+   * sky reflection by it. */
   readonly confidence: Node<'float'>;
 }
 
@@ -42,6 +45,9 @@ const SEARCHES = 3;
  * the final bisection bracket). Proportional, because float depth resolves metres at 20 km but
  * centimetres alongside. */
 const THICKNESS = .02;
+/** Metres below the water point a ray left over which a read of the image fades out of the reflection: the hull under
+ * the surface is in the opaque copy, but no ray leaving the water upward can reach it. */
+const SUBMERGED = .5;
 /** Screen-edge fade, as a share of the viewport. */
 const EDGE = .06;
 /** A smeared image is read at ±0.5 and ±1.5 standard deviations of the smear, with the normal density's weights. */
@@ -66,6 +72,11 @@ export function screenRead(map: TextureNode, uv: Node<'vec2'>, level?: Node<'flo
  * marching. Sky and far-plane pixels never occlude. Rays that leave the screen, fall short or miss
  * return confidence 0 and the caller keeps its sky reflection.
  *
+ * The copies hold only the opaque scene: the sky dome draws after the sea, so the copy is empty (black) wherever the
+ * sky will be, and the hull below the waterline is there although no ray leaving the water upward can see it. Every
+ * read of the image (the hit, or each tap of a smeared one) therefore counts only where the copy holds a surface above
+ * the water point the ray left; the rest of the image is sky, and its share goes back to the caller's sky reflection.
+ *
  * Integration, inside the surface material's fragment `Fn` (steps 0 on Low and Medium: skip the call):
  * ```ts
  * const normal = cameraViewMatrix.mul(vec4(waveNormalWorld, 0)).xyz;       // wave normal in view space
@@ -76,15 +87,17 @@ export function screenRead(map: TextureNode, uv: Node<'vec2'>, level?: Node<'flo
  *   steps: OCEAN_TIERS[quality].reflectionSteps });
  * const reflected = mix(skyReflection, ssr.color, ssr.confidence);          // then weight by Fresnel
  * ```
- * Pass the mirror direction unclamped: rays reflected below the horizon re-enter the sea and miss
- * here (the sky lookup may still bend them up to the horizon). */
+ * Pass the mirror direction unclamped. A ray a steep facet reflects below the horizon strikes the sea again within a
+ * wave or so, at incidence grazing enough that the water mirrors it back up: it is traced mirrored about the mean
+ * surface, so the water beside a hull shows the hull rather than the horizon (the sky lookup keeps its horizon). */
 export function screenSpaceReflection(input: ScreenReflectionInput): ScreenReflection {
   const { position, direction, sceneColor, sceneDepth, enabled, maxDistance, steps, blur } = input;
   const result = Fn(() => {
     const color = vec3(0).toVar(), confidence = float(0).toVar();
-    const ray = direction.normalize().toVar();
-    // A ray reflected below the horizon re-enters the sea: nothing above water can be its hit.
-    If(enabled.and(ray.dot(cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz).greaterThan(0)), () => {
+    const up = cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz.toVar();
+    // Below the horizon: mirrored about the mean surface, as the sea it strikes sends it back up.
+    const reflected = direction.normalize(), ray = reflected.sub(up.mul(reflected.dot(up).min(0).mul(2))).toVar();
+    If(enabled.and(ray.dot(up).greaterThan(0)), () => {
       const origin = position.toVar();
       // A ray heading toward the camera ends just in front of the near plane (w stays positive).
       const toNear = cameraNear.mul(-1.001).sub(origin.z).div(ray.z);
@@ -104,6 +117,13 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
       const s1 = s0.add(delta.mul(exit)).toVar();
       const q0 = origin.mul(k0).toVar(), q1 = mix(q0, end.mul(kEnd), exit).toVar(), k1 = mix(k0, kEnd, exit).toVar();
       const farthest = cameraFar.mul(.999);
+      /** Whether the copies hold a surface above the ray's water point at screen `at`: not sky or the far plane, and not
+       * below the water point (by up to SUBMERGED). */
+      const seen = (at: Node<'vec2'>) => {
+        const unprojected = cameraProjectionMatrixInverse.mul(vec4(at.x.mul(2).sub(1), at.y.mul(-2).add(1), screenRead(sceneDepth, at).r, 1)).toVar();
+        const point = unprojected.xyz.div(unprojected.w).toVar();
+        return point.z.negate().lessThan(farthest).select(smoothstep(-SUBMERGED, 0, point.sub(origin).dot(up)), float(0));
+      };
       /** The ray's depth (metres in front of the camera) at screen fraction `t` of the clipped ray. */
       const alongAt = (t: Node<'float'>) => mix(q0.z, q1.z, t).div(mix(k0, k1, t)).negate();
       /** Ray and scene depth at `t`. */
@@ -147,15 +167,20 @@ export function screenSpaceReflection(input: ScreenReflectionInput): ScreenRefle
         const range = smoothstep(.7, 1, point.distance(origin).div(maxDistance)).oneMinus();
         // Depth holds only camera-facing surfaces; rays coming back toward the camera would see their backs.
         const facing = smoothstep(0, .5, ray.z).oneMinus();
+        // The image is read at the hit, or over the smear rough water gives it: where the ray turned by one deviation
+        // lands on screen is the smear's step.
+        let taps: (readonly [Node<'vec2'>, number])[] = [[uv, 1]];
         if (blur) {
-          // Where the ray turned by one deviation lands, on screen: the smear's step.
           const lifted = cameraProjectionMatrix.mul(vec4(point.add(blur.up.mul(point.distance(origin).mul(blur.spread))), 1));
           const smear = vec2(lifted.x.div(lifted.w).mul(.5).add(.5), lifted.y.div(lifted.w).mul(-.5).add(.5)).sub(uv).toVar();
           smear.assign(smear.mul(min(float(1), float(SMEAR_LIMIT).div(smear.length().max(1e-6)))));
           const centre = blur.centre ?? 0;
-          color.assign(SMEAR_TAPS.reduce<Node<'vec3'>>((sum, [at, weight]) => sum.add(screenRead(sceneColor, uv.add(smear.mul(at + centre)).clamp(0, 1), float(0)).rgb.mul(weight)), vec3(0)));
-        } else color.assign(screenRead(sceneColor, uv, float(0)).rgb);
-        confidence.assign(edges.mul(range).mul(facing));
+          taps = SMEAR_TAPS.map(([at, weight]) => [uv.add(smear.mul(at + centre)).clamp(0, 1), weight] as const);
+        }
+        const shares = taps.map(([at, weight]) => seen(at).mul(weight).toVar());
+        const cover = shares.reduce<Node<'float'>>((sum, share) => sum.add(share), float(0)).toVar();
+        color.assign(taps.reduce<Node<'vec3'>>((sum, [at], i) => sum.add(screenRead(sceneColor, at, float(0)).rgb.mul(shares[i])), vec3(0)).div(cover.max(1e-4)));
+        confidence.assign(edges.mul(range).mul(facing).mul(cover));
       });
     });
     return vec4(color, confidence);

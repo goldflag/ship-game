@@ -5,6 +5,11 @@
 import type { Camera, Color, Matrix3, Mesh, Node, Object3D, PassNode, PerspectiveCamera, Texture, TextureNode, UniformNode, Vector3, WebGPURenderer } from 'three/webgpu';
 import type { OceanSky } from '../ocean/contracts';
 
+/** Share of the sun `SkyApi.cloudShadow` still lets through under the thickest deck: light scattered through the
+ * cloud. It is diffuse, not the sun's beam, and the sky's own radiance over the clouds already holds it, so a specular
+ * reflection of the sun takes only the part of the shadow above it. */
+export const CLOUD_SHADOW_FLOOR = .15;
+
 /** Graphics → Clouds. The sky's tier: march budgets, bake sizes, particle counts. Changes live. */
 export type SkyQuality = 'low' | 'medium' | 'high' | 'ultra';
 
@@ -84,6 +89,16 @@ export interface CelestialLight {
   night: boolean;
   /** Extra diffuse light from a lightning flash this frame, as a multiple of the scene's ambient (0 = none). */
   flash: number;
+  /** The same flash's direct light (`BoltLight`), which lit meshes take from its bearing. */
+  readonly bolt: BoltLight;
+}
+
+/** Lightning's direct light this frame: where it shines from (a ground stroke's channel, or the cloud base lit over an
+ * intra-cloud flash) and its radiant intensity in `LightningStrike.intensity`'s convention, the air between included:
+ * irradiance `intensity × (1 km / r)²` in the sea's units. 0 while dark. */
+export interface BoltLight {
+  readonly position: Vector3;
+  intensity: number;
 }
 
 /** Read-only view of a celestial body for readings, diagnostics and cameras aimed at it. */
@@ -132,7 +147,7 @@ export interface SkyApi {
   /** The sky's full-screen additions over the scene in linear radiance, before the display grade:
    * sun shafts and rain haze. Returns `color` when there is nothing to add. */
   postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'>;
-  /** Sun transmittance through the clouds (1 in full sun, 0 under a thick deck) at a world position.
+  /** Sun transmittance through the clouds (1 in full sun, CLOUD_SHADOW_FLOOR under a thick deck) at a world position.
    * Multiply into the direct celestial light only. */
   cloudShadow(position: Node<'vec3'>): Node<'float'>;
   /** Called when a lightning strike's thunder should be heard; the game's audio owns the sound. */
@@ -291,8 +306,9 @@ export interface WeatherPart extends SkyPart {
   readonly meshes: Object3D[];
   /** The latest strike, while it lights anything. */
   readonly strike: LightningStrike | null;
-  /** Extra diffuse light from lightning this frame (see `CelestialLight.flash`). */
+  /** Extra diffuse light from lightning this frame (see `CelestialLight.flash`), and its direct light (`CelestialLight.bolt`). */
   readonly flash: number;
+  readonly boltLight: BoltLight;
   /** Full-screen rain haze in linear radiance, or `color` unchanged when dry. */
   postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'>;
   /** Thunder heard for a strike, set by the facade. */

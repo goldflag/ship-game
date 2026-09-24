@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-356/geometry.py",
+    "assets/parts/ijn-152/geometry.py",
+    "assets/parts/ijn-yamato-aa/type89_twin.py",
+    "assets/parts/ijn-destroyer-guns/aa.py",
+    "assets/parts/ijn-destroyer-guns/type_93.py",
+    "assets/ships/kongo/appearance.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json"
+  ]
+}

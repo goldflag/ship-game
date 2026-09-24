@@ -109,3 +109,22 @@ test('a forced strike is deterministic, silent, and lights the clouds from insid
   expect(first.flash).toBeGreaterThan(.1);
   expect(first.flash).toBeLessThan(1.5);
 });
+
+test('a flash lights the scene directly from a ground stroke\'s channel, far less through a cloud, and not once dark', () => {
+  const { system, frame } = weather();
+  system.apply(scene(.9, 0));
+  const ground = system.forceStrike(new Vector3(4000, 0, 450), .006, 'ground', 7);
+  frame(0);
+  const { position, intensity } = system.boltLight;
+  // Midway down the channel, dimmed a little by the downpour on its 4 km way.
+  expect(position.y).toBeCloseTo(ground.top.y / 2, 6);
+  expect(intensity).toBeGreaterThan(ground.intensity * .6); expect(intensity).toBeLessThan(ground.intensity);
+  const cloud = system.forceStrike(new Vector3(4000, 0, 450), .006, 'cloud', 7);
+  frame(0);
+  expect(system.boltLight.position.y).toBeCloseTo(cloud.top.y, 6);
+  expect(system.boltLight.intensity).toBeLessThan(cloud.intensity * .25);
+  system.clearStrike();
+  expect(system.boltLight.intensity).toBe(0);
+  frame(1 / 60);
+  expect(system.boltLight.intensity).toBe(0);
+});

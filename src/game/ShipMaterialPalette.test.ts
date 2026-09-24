@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { float } from 'three/tsl';
-import { ShipMaterialPalette, wetBandHeight } from './ShipMaterialPalette';
+import { GLAZING, ShipMaterialPalette, wetBandHeight } from './ShipMaterialPalette';
 
 test('different linear paint colors share shading while preserving every vertex and texture', () => {
   const root = new THREE.Group(), geometry = new THREE.BoxGeometry();
@@ -34,6 +34,38 @@ test('surface parameters remain per vertex; distinct textures and custom materia
   expect(new Set(meshes.map(m=>m.material)).size).toBe(materials.length - 1);
   expect(meshes[4].material).toBe(materials[4]); expect(meshes[5].material).toBe(materials[5]);
   expect(meshes[4].geometry).toBe(geometry); expect(meshes[5].geometry).toBe(geometry);
+});
+
+test('glazing draws as smooth dark glass in the paint every other surface shares; other paint keeps its finish', () => {
+  const palette = new ShipMaterialPalette({ surfaceDetail: true }), root = new THREE.Group(), geometry = new THREE.BoxGeometry();
+  const role = (name: string, color: string, roleName?: string) => {
+    const material = new THREE.MeshStandardMaterial({ name, color, roughness: .77, metalness: .08 });
+    if (roleName) Object.assign(material.userData, { componentMaterialVersion: 1, componentMaterialRole: roleName, componentPaint: 'fixed' });
+    return material;
+  };
+  const materials = [role('Iowa glass', '#2a4a50'), role('Bridge glazing', '#305060'), role('glass', '#000000', 'glass'), role('deck-fittings.glass', '#3d5a62'),
+    role('Iowa dark', '#202428'), role('glass', '#3d5a62', 'dark'), role('Glassware locker', '#556677')];
+  const meshes = materials.map(material => new THREE.Mesh(geometry, material)); root.add(...meshes);
+  const tints = materials.map(material => material.color.clone());
+  palette.apply(root);
+  const read = (mesh: THREE.Mesh) => {
+    const color = mesh.geometry.getAttribute('color'), surface = mesh.geometry.getAttribute('shipSurface');
+    return { color: new THREE.Color(color.getX(0), color.getY(0), color.getZ(0)), roughness: surface.getX(0), metalness: surface.getY(0) };
+  };
+  expect(new Set(meshes.map(mesh => mesh.material)).size).toBe(1);
+  const luminance = (c: THREE.Color) => .2126 * c.r + .7152 * c.g + .0722 * c.b;
+  for (const [i, mesh] of meshes.entries()) {
+    const { color, roughness, metalness } = read(mesh);
+    if (i < 4) {
+      expect(roughness).toBeCloseTo(GLAZING.roughness, 6); expect(metalness).toBe(0);
+      expect(luminance(color)).toBeLessThanOrEqual(GLAZING.body + 1e-6);
+      // The authored tint keeps its hue; black stays black.
+      if (luminance(tints[i]) > 0) expect(color.r / color.g).toBeCloseTo(tints[i].r / tints[i].g, 5); else expect(luminance(color)).toBe(0);
+    } else {
+      expect(roughness).toBeCloseTo(.77); expect(metalness).toBeCloseTo(.08);
+      for (let c = 0; c < 3; c++) expect(color.toArray()[c]).toBeCloseTo(tints[i].toArray()[c], 6);
+    }
+  }
 });
 
 test('texture pixels are never read while keying materials', () => {
@@ -101,4 +133,23 @@ test('premade paint wears nothing and shares its material and layout with constr
   const aircraft = new THREE.Group(), plane = new THREE.Mesh(new THREE.BoxGeometry(), paint());
   aircraft.add(plane); new ShipMaterialPalette().apply(aircraft);
   expect(plane.geometry.hasAttribute('shipWear')).toBe(false);
+});
+
+test('timber decks take weathering\'s own timber response, and every paint the paint response', () => {
+  const paint = { dry: float(.9), gloss: float(.7) }, timber = { dry: float(.6), gloss: float(.5) };
+  const palette = new ShipMaterialPalette({ surfaceDetail: true, weathering: { ...paint, timber } });
+  const map = new THREE.Texture(); map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  const deck = new THREE.MeshStandardMaterial({ name: 'Teak decking', map }); deck.userData.deckSubstrate = 'timber';
+  const root = new THREE.Group(), planks = new THREE.Mesh(new THREE.BoxGeometry(10, 1, 40), deck), side = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 40), new THREE.MeshStandardMaterial());
+  root.add(planks, side); palette.apply(root);
+  // The multiplier the roughness wrapper applies (three keeps an assigned node inside a variable).
+  const factor = (material: THREE.Material) => {
+    const node = (material as THREE.MeshStandardNodeMaterial).roughnessNode as unknown as { node?: { bNode: unknown }; bNode?: unknown };
+    return (node.node ?? node).bNode;
+  };
+  expect(factor(planks.material)).toBe(timber.gloss); expect(factor(side.material)).toBe(paint.gloss);
+  // Without surface detail both fall back to the plain paint roughness, and still keep their own responses.
+  palette.setSurfaceDetail(root, false);
+  expect(factor(planks.material)).toBe(timber.gloss); expect(factor(side.material)).toBe(paint.gloss);
+  palette.setSurfaceDetail(root, true);
 });

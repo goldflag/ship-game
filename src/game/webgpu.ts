@@ -4,12 +4,9 @@ import type { WebGPURenderer } from 'three/webgpu';
  * WebGL2 without saying so, and nothing in the game is built or tested for that backend. */
 export const WEBGPU_REQUIRED = 'This game needs WebGPU. Use a current Chrome, Edge or Safari with hardware acceleration on.';
 
-/** Textures, and samplers, a shader stage may bind by WebGPU's default, which three asks for unless told otherwise. */
-export const DEFAULT_SAMPLED_TEXTURES = 16;
-
-/** Device limits the game asks above WebGPU's defaults, as far as the adapter offers them. A ship's paint
- * samples its paint and wear maps, the shadow maps and the environment: the default 16 textures and samplers
- * a stage already, before the sky's cloud shadows. Desktop adapters commonly offer 48 of each. */
+/** Device limits the game asks above WebGPU's defaults (16 textures and 16 samplers a shader stage), as far as the adapter
+ * offers them. Desktop adapters commonly offer 48 of each, but Apple's offer only 16 samplers, so everything must draw within
+ * 16: a ship's paint binds 15 with the cloud shadow (its detail tiles share one array texture, `ShipSurfaceDetail`). */
 export const RAISED_LIMITS = ['maxSampledTexturesPerShaderStage', 'maxSamplersPerShaderStage'] as const;
 export type RaisedLimits = Partial<Record<typeof RAISED_LIMITS[number], number>>;
 
@@ -30,13 +27,6 @@ export async function requireWebGPU(gpu = (globalThis.navigator as { gpu?: GpuAd
     if (typeof offered === 'number') limits[name] = offered;
   }
   return limits;
-}
-
-/** Textures a shader stage may sample on the renderer's device, each with its own sampler: the fewer of the two
- * limits, once `renderer.init()` has made the device. */
-export function sampledTextureLimit(renderer: Pick<WebGPURenderer, 'backend'>): number {
-  const limits = (renderer.backend as { device?: { limits?: RaisedLimits } }).device?.limits;
-  return Math.min(limits?.maxSampledTexturesPerShaderStage ?? DEFAULT_SAMPLED_TEXTURES, limits?.maxSamplersPerShaderStage ?? DEFAULT_SAMPLED_TEXTURES);
 }
 
 /** After `renderer.init()`: three can still fall back to WebGL2 when the WebGPU device fails. */

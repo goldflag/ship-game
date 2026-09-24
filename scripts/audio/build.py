@@ -2,6 +2,7 @@
 
 Python standard library; decoding requires ffmpeg or macOS afconvert.
 Sources/prompts are retained in assets/audio/naval. Only published clips become game assets.
+Procedural clips read the WAV that `bun run audio:synth` renders from their recipe preset.
 """
 import array
 import hashlib
@@ -38,9 +39,11 @@ def build():
         if clip.get('publish', True) is False:
             (OUTPUT / f'{name}.wav').unlink(missing_ok=True)
             continue
-        sources = list((ASSETS / 'originals' / name).glob('*.mp3'))
+        procedural = clip.get('provider') == 'procedural'
+        sources = list((ASSETS / 'originals' / name).glob(f'{name}.wav' if procedural else '*.mp3'))
         if len(sources) != 1:
-            raise RuntimeError(f'{name}: expected one selected original MP3, found {len(sources)}')
+            kind = 'rendered WAV (run bun run audio:synth)' if procedural else 'selected original MP3'
+            raise RuntimeError(f'{name}: expected one {kind}, found {len(sources)}')
         source, decoded = sources[0], STAGING / f'{name}.wav'
         if shutil.which('ffmpeg'):
             command = ['ffmpeg', '-v', 'error', '-y', '-i', str(source), '-ar', '44100', '-c:a', 'pcm_s16le', str(decoded)]
@@ -86,7 +89,7 @@ def build():
             encoded.byteswap()
         with wave.open(str(output), 'wb') as audio:
             audio.setnchannels(channels); audio.setsampwidth(2); audio.setframerate(rate); audio.writeframes(encoded.tobytes())
-        report.append({'id': name, 'source': str(source.relative_to(ROOT)), 'sourceSha256': digest(source),
+        report.append({'id': name, 'provider': clip.get('provider', recipe['provider']), 'source': str(source.relative_to(ROOT)), 'sourceSha256': digest(source),
                        'runtime': str(output.relative_to(ROOT)), 'runtimeSha256': digest(output), 'bytes': output.stat().st_size,
                        'durationSeconds': round(len(samples) / channels / rate, 4), 'channels': channels, 'sampleRate': rate,
                        'loop': clip['loop'], 'original': original_stats, 'processed': stats(samples)})

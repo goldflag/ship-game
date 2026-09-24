@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import type { WebGPURenderer } from 'three/webgpu';
-import { DEFAULT_SAMPLED_TEXTURES, requireWebGPU, requireWebGPUBackend, sampledTextureLimit, WEBGPU_REQUIRED } from './webgpu';
+import { requireWebGPU, requireWebGPUBackend, WEBGPU_REQUIRED } from './webgpu';
 
 test('start-up refuses a browser without a WebGPU adapter', async () => {
   await expect(requireWebGPU(undefined)).rejects.toThrow(WEBGPU_REQUIRED);
@@ -23,9 +23,4 @@ test('start-up asks for as many textures and samplers a stage as the adapter off
   expect(await requireWebGPU(adapter({ maxSampledTexturesPerShaderStage: 48, maxSamplersPerShaderStage: 32, maxBindGroups: 8 })))
     .toEqual({ maxSampledTexturesPerShaderStage: 48, maxSamplersPerShaderStage: 32 });
   expect(await requireWebGPU(adapter())).toEqual({});
-  const renderer = (backend: object) => ({ backend }) as unknown as WebGPURenderer;
-  expect(sampledTextureLimit(renderer({ device: { limits: { maxSampledTexturesPerShaderStage: 48, maxSamplersPerShaderStage: 32 } } }))).toBe(32);
-  expect(sampledTextureLimit(renderer({ device: { limits: { maxSampledTexturesPerShaderStage: 48, maxSamplersPerShaderStage: 16 } } })))
-    .toBe(DEFAULT_SAMPLED_TEXTURES);
-  expect(sampledTextureLimit(renderer({}))).toBe(DEFAULT_SAMPLED_TEXTURES);
 });

@@ -1,8 +1,9 @@
 /** `bun scripts/browser/ocean-waves.ts --tag <name> [--quality high] [--views near,wide] [--seas moderate,storm,15]
- *   [--show shaded|height|slope|foam|variance|jacobian] [--validate] [--timing] [--coverage] [--sea-state off]`
+ *   [--show shaded|height|slope|foam|variance|jacobian] [--validate] [--timing] [--coverage] [--lattice] [--sea-state off]`
  * Drives `scripts/diagnostics/ocean-waves.html` in a headed Chromium (headless stalls WebGPU): saves one PNG per
  * view and sea to `.build/ocean-waves/<tag>/`; --validate / --timing check every tier, --coverage measures crest foam
- * against Monahan's whitecap fraction from 6 to 30 m/s on --quality; all write `results.json`. */
+ * against Monahan's whitecap fraction from 6 to 30 m/s on --quality, --lattice how strongly whitecaps repeat with each
+ * cascade's tile at the same winds; all write `results.json`. */
 import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -15,6 +16,7 @@ const { values } = parseArgs({ options: {
   tag: { type: 'string', default: 'current' }, quality: { type: 'string', default: 'high' },
   views: { type: 'string', default: '' }, seas: { type: 'string', default: 'moderate' }, show: { type: 'string', default: 'shaded' },
   validate: { type: 'boolean', default: false }, timing: { type: 'boolean', default: false }, coverage: { type: 'boolean', default: false },
+  lattice: { type: 'boolean', default: false }, winds: { type: 'string', default: '6,9,12,15,18,21,25,30' },
   'sea-state': { type: 'string', default: 'on' },
   url: { type: 'string' },
 } });
@@ -66,10 +68,19 @@ try {
   if (values.coverage) {
     await page.evaluate(q => (window as any).oceanWaves.setQuality(q), values.quality);
     results.coverage = [];
-    for (const wind of [6, 9, 12, 15, 18, 21, 25, 30]) {
+    for (const wind of values.winds!.split(',').map(Number)) {
       const entry = await page.evaluate(w => (window as any).oceanWaves.foamCoverage(w), wind);
       (results.coverage as unknown[]).push(entry);
       console.log('coverage', JSON.stringify(entry));
+    }
+  }
+  if (values.lattice) {
+    await page.evaluate(q => (window as any).oceanWaves.setQuality(q), values.quality);
+    results.lattice = [];
+    for (const wind of values.winds!.split(',').map(Number)) {
+      const entry = await page.evaluate(w => (window as any).oceanWaves.foamLattice(w), wind);
+      (results.lattice as unknown[]).push(entry);
+      console.log('lattice', JSON.stringify(entry));
     }
   }
   results.pageErrors = pageErrors;

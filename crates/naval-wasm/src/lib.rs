@@ -625,6 +625,21 @@ impl LocalRuntime {
             .apply(0, serde_json::from_str(json).map_err(error)?)
             .map_err(error)
     }
+    /// Development direction (the film driver through `LocalBattleSession.direct`): apply
+    /// `command` to any ship on either side as its owner, under the same validation as that
+    /// owner's own commands (`Session::direct`). Deliberately absent from the online protocol.
+    pub fn direct(&mut self, ship_id: &str, command: &str) -> Result<(), JsValue> {
+        if command.len() > naval_protocol::MAX_COMMAND_BYTES {
+            return Err(error("Command exceeds limit"));
+        }
+        self.session
+            .direct(ship_id, serde_json::from_str(command).map_err(error)?)
+            .map_err(error)
+    }
+    /// The battle tick the next `step` starts from, which directed orders are scheduled against.
+    pub fn tick(&self) -> f64 {
+        self.session.battle.tick as f64
+    }
     /// Developer console: the local sea physics answer a new wind mid-battle.
     /// Deliberately absent from the online protocol.
     pub fn set_wind(&mut self, wind_mps: f64, direction_deg: f64) -> Result<(), JsValue> {

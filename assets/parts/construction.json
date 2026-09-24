@@ -3547,18 +3547,18 @@
       "name": "1.1-inch/75 quadruple mount",
       "kind": "gun",
       "size": [
-        2.719,
-        1.677,
-        3.273
+        3.34,
+        1.9531,
+        2.8905
       ],
       "boundsCenter": [
         0,
-        0.8375,
-        -0.3355
+        0.9765,
+        -0.3057
       ],
       "centerOfGravity": [
         0,
-        0.826,
+        0.94,
         0
       ],
       "placement": "deck",
@@ -3661,18 +3661,18 @@
       "name": "12.7 cm/40 Type 89 A1 twin",
       "kind": "gun",
       "size": [
-        4.602,
-        3.213,
-        7.435
+        4.244,
+        3.18,
+        6.6078
       ],
       "boundsCenter": [
-        0,
-        1.605,
-        -1.4162
+        -0.032,
+        1.59,
+        -0.8039
       ],
       "centerOfGravity": [
         0,
-        1.619,
+        1.55,
         0
       ],
       "placement": "deck",
@@ -3699,18 +3699,18 @@
       "name": "12.7 cm/40 Type 89 A1 Mod 2 twin",
       "kind": "gun",
       "size": [
-        4.602,
-        3.387,
-        7.57
+        6.6465,
+        2.832,
+        7.1075
       ],
       "boundsCenter": [
         0,
-        1.6921,
-        -1.3489
+        1.416,
+        -0.2305
       ],
       "centerOfGravity": [
         0,
-        1.619,
+        1.33,
         0
       ],
       "placement": "deck",
@@ -3737,18 +3737,18 @@
       "name": "25 mm Type 96 triple",
       "kind": "gun",
       "size": [
-        2.462,
-        1.907,
-        2.686
+        2.046,
+        1.3858,
+        2.5857
       ],
       "boundsCenter": [
         0,
-        0.952,
-        -0.24
+        0.6929,
+        -0.3875
       ],
       "centerOfGravity": [
         0,
-        0.878,
+        0.66,
         0
       ],
       "placement": "deck",
@@ -3775,18 +3775,18 @@
       "name": "25 mm Type 96 triple smoke shield",
       "kind": "gun",
       "size": [
-        2.882,
-        1.922,
-        3.184
+        3.6266,
+        2.215,
+        3.6436
       ],
       "boundsCenter": [
         0,
-        0.9597,
-        0.009
+        1.1075,
+        -0.0085
       ],
       "centerOfGravity": [
         0,
-        0.878,
+        1.04,
         0
       ],
       "placement": "deck",
