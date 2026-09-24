@@ -27411,7 +27411,7 @@
     ]
   },
   "accuracy": {
-    "exterior": "Original construction against approved pgsc108 A fit; hull and superstructure review in progress.",
+    "exterior": "Original construction against the approved pgsc108 A fit: hull lines, deckhouse outlines, platform and mast heights measured from it; geometry authored independently. Fidelity to that model, not an independent historical survey.",
     "internals": "Provisional game compartments and loading, not historical plans.",
     "weapons": "Approved A fit: four 203 mm twins, six 105 mm twins, four 37 mm twins, six 40 mm singles, eight 20 mm twins, six 20 mm singles, and four triple 533 mm launchers. Ballistics, stocks, armor, and operating limits are provisional game conventions."
   },

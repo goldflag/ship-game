@@ -436,8 +436,8 @@ for side in [-1,1]:
    yy=side_width(x-1.3,z)-.04
    rod('Hull porthole glazing',(x,side*yy,z),(x,side*(yy+.08),z),.13,'glass',vertices=16)
    f.ring('Hull porthole lip',(x,side*(yy+.07),z),.15,.018,'y',segments=12)
- # Mooring bitts and chocks follow the deck's original beam curve.
- for x in [-97,-89,-76,-62,65,78,91,98]:
+ # Mooring bitts stand at the reference's bollard pairs, set in from the deck edge.
+ for x in [-83.1,-63.3,59.0,82.15,91.2]:
   yy=side*(edge(x-1.3)-.65);zz=deck(x-1.3)
   box('Bollard base',(x,yy,zz+.055),(1.4,.75,.11),'edge')
   for dx in [-.43,.43]:cyl('Mooring bollard',(x+dx,yy,zz+.36),.16,.58,'edge');cyl('Bollard cap',(x+dx,yy,zz+.67),.20,.075,'edge')

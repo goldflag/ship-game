@@ -38448,7 +38448,7 @@
     ]
   },
   "accuracy": {
-    "exterior": "Original construction against approved pgsc108 A fit; hull and superstructure review in progress.",
+    "exterior": "Original construction against the approved pgsc108 A fit: hull lines, deckhouse outlines, platform and mast heights measured from it; geometry authored independently. Fidelity to that model, not an independent historical survey.",
     "internals": "Provisional game compartments and loading, not historical plans.",
     "weapons": "Approved A fit: four 203 mm twins, six 105 mm twins, four 37 mm twins, six 40 mm singles, eight 20 mm twins, six 20 mm singles, and four triple 533 mm launchers. Ballistics, stocks, armor, and operating limits are provisional game conventions."
   },
@@ -42776,5 +42776,5 @@
     "basis": "Provisional game calibration shared across presets: three abstract teams, six-second setup, finite normalized fuel and spares. Repairs stop at 60% and cannot revive destroyed equipment. Small-hole shoring and portable pumps require accessible spaces. Flash-path attenuation is estimated; no individual crew, ventilation or electrical network."
   },
   "compilerVersion": 1,
-  "contentHash": "11e4ba82e427b005dae3e0a2aedd63b5816b1135ee7730b13d1104482f18fe08"
+  "contentHash": "7842ea2bf693acdb9c205af1543d6500523a026af1a3e75fec6298ec48056897"
 }

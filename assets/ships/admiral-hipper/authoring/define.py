@@ -130,7 +130,7 @@ D={'schemaVersion':1,'id':'admiral-hipper','name':'Admiral Hipper','configuratio
 'handling':{'forwardSpeed':16.46,'reverseSpeed':4,'acceleration':.14,'braking':.18,'rudderRate':.18,'maxYawRate':.020},'mounts':[], 'structures':structures,
 'armor':[],'structuralPlating':{'hullMm':18,'superstructureMm':10,'note':'Provisional game steel thicknesses; visual model does not establish armor specifications.'},
 'compartments':comp,'modules':modules,'connections':[{'fromId':comp[i]['id'],'toId':comp[i+1]['id'],'areaM2':.045,'state':'closed'} for i in range(len(comp)-1)],'obstructions':[],
-'viewpoints':{'bridge':[0,19.0,-25.4]},'accuracy':{'exterior':'Original construction against approved pgsc108 A fit; hull and superstructure review in progress.','internals':'Provisional game compartments and loading, not historical plans.','weapons':'Not fitted yet; authored game calibration will be documented.'}}
+'viewpoints':{'bridge':[0,19.0,-25.4]},'accuracy':{'exterior':'Original construction against the approved pgsc108 A fit: hull lines, deckhouse outlines, platform and mast heights measured from it; geometry authored independently. Fidelity to that model, not an independent historical survey.','internals':'Provisional game compartments and loading, not historical plans.','weapons':'Not fitted yet; authored game calibration will be documented.'}}
 # Preserve equipment authored in the blueprint while this hull/structure helper evolves,
 # and the gameplay profiles the fleet helpers wrote (local damage, damage control, room
 # fires and support machinery), so a hull or structure revision does not reset them.
