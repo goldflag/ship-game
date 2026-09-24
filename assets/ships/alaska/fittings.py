@@ -249,23 +249,23 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
              ('mk57', (3.54, 16.07, -11.49), 90), ('mk57', (-4.15, 11.95, 29.02), -90), ('mk57', (4.15, 11.95, 29.02), 90), ('mk51', (-3.28, 14.02, 31.31), -90),
              ('mk51', (3.28, 14.02, 31.31), 90), ('mk57', (-3.54, 11.1, 38.12), -90), ('mk57', (3.54, 11.1, 38.12), 90), ('mk51', (0, 11.66, 43.84), 180),
              ('mk57', (-1.38, 6.65, 93.78), -90), ('mk57', (1.38, 6.65, 93.78), 90), ('mk57', (-1.77, 6.5, 110.94), 180), ('mk57', (1.77, 6.5, 110.94), 180)]
-    # The forward Mk 57 stands on a trunk abaft its deckhouse, inside a splinter screen
-    # (reference x = 0 cut: trunk z -108.3 to -110.2, screen to about 12.3 m).
-    trunk = [R(-.75, 0, -108.3), R(.75, 0, -108.3), R(.75, 0, -110.19), R(-.75, 0, -110.19)]
-    base_y = support.below(*R(0, 0, -109.2)[:2], 10.5)
-    prism('mk57-1.trunk', 'mk57-1', [p_[:2] for p_ in trunk], base_y - .05, 11.19)
-    screen = [R(-.95, 0, -108.05), R(.95, 0, -108.05), R(.95, 0, -110.3), R(-.95, 0, -110.3)]
-    prism('mk57-1.screen deck', 'mk57-1', [p_[:2] for p_ in screen], 11.09, 11.19, 'roof')
-    for a_, b_ in zip(screen, screen[1:] + screen[:1]):
-        d_ = Vector((b_[0] - a_[0], b_[1] - a_[1], 0))
-        w_ = tag(box('mk57-1.screen', ((a_[0] + b_[0]) / 2, (a_[1] + b_[1]) / 2, 11.75), (d_.length, .07, 1.12), 'naval', col), 'mk57-1')
-        w_.rotation_euler.z = math.atan2(d_.y, d_.x)
+    # The forward Mk 57 stands in a drum (2.1 m, 10.5-12.0 m) on the after end of its deckhouse, the
+    # overhang carried by a sloping gusset (reference side view).
+    dx_, dy_, _ = R(0, 0, -109.25)
+    part('cyl', 'mk57-1', col, 'drum', (dx_, dy_, 11.285), 1.05, 1.51, 'naval', vertices=20)
+    part('cyl', 'mk57-1', col, 'drum deck', (dx_, dy_, 12.02), 1.0, .04, 'roof', vertices=20)
+    gy = support.below(*R(0, 0, -109.9)[:2], 10.4)
+    prism('mk57-1.trunk', 'mk57-1', [R(-.73, 0, -109.6)[:2], R(.73, 0, -109.6)[:2], R(.73, 0, -110.25)[:2], R(-.73, 0, -110.25)[:2]], gy - .05, 10.6)
+    gus = [R(.73, 10.55, -108.35), R(.73, 10.55, -109.62), R(.73, 9.45, -109.62)]
+    vv = [(p_[0], p_[1] + d_, p_[2]) for d_ in (0, 1.46) for p_ in gus]
+    tag(mesh('mk57-1.gusset', vv, [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', col), 'mk57-1')
     for i, (kind, ref, bearing) in enumerate(small, 1):
         id = f'{kind}-{i}'
         x, y, z = P(*ref)
         a = -math.radians(bearing)
         fx, fy = math.cos(a), math.sin(a)
-        pedestal(id, (x, y, z), None, .38, col)
+        if id != 'mk57-1':          # the forward Mk 57's drum is its foundation
+            pedestal(id, (x, y, z), None, .38, col)
         part('cyl', id, col, 'foot', (x, y, z + .06), .36, .12, 'naval', vertices=16)
         part('cyl', id, col, 'column', (x, y, z + .6 if kind == 'mk57' else z + .55), .13 if kind == 'mk51' else .24, 1.0 if kind == 'mk57' else .9, 'naval', vertices=14)
         if kind == 'mk57':
