@@ -146,9 +146,24 @@ fn presets_spawn_with_side_secondaries_at_rest() {
 
 #[test]
 fn a_rest_the_neighbouring_gunhouse_blocks_stops_short_of_it() {
-    // Baltimore's forward wing mounts sit just ahead of the after pair at the
-    // same height: dead astern, their barrels would run into those gunhouses.
-    let baltimore = compiled("baltimore");
+    // Two wing pairs abaft midships at the same height, the forward pair just
+    // ahead of the after one: dead astern, the forward barrels would run into
+    // the after gunhouses. This is Baltimore's former wing arrangement, without
+    // an installation profile as she then had; her measured layout now spreads
+    // the pairs beside the bridge and the after deckhouse.
+    let catalog = Catalog::installed();
+    let mut layout = (*catalog.definitions["baltimore"]).clone();
+    layout.mount_clearance = None;
+    for (id, x, z) in [
+        ("secondary-52", -7.05, 2.955),
+        ("secondary-53", 7.05, 2.955),
+        ("secondary-54", -7.05, 8.71),
+        ("secondary-55", 7.05, 8.71),
+    ] {
+        let i = by_id(&layout, id);
+        layout.mounts[i].position = [x, 6.3, z];
+    }
+    let baltimore = CompiledShip::new(Arc::new(layout), None).unwrap();
     let d = &baltimore.definition;
     let mid = midship_z(&baltimore.collision_profile);
     for id in ["secondary-52", "secondary-53"] {
