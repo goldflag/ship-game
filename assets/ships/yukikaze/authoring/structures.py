@@ -73,10 +73,10 @@ def ellipse(cz, a, b, y, n=64, top=None):
 bridge_lower = mirror([(0, -29.42), (.55, -29.4), (1.05, -29.34), (1.5, -29.12), (1.8, -28.82), (1.96, -28.5),
                        (2.0, -27.9), (2.02, -24.05)])
 bridge_middle = mirror([(0, -29.45), (1.01, -29.37), (1.49, -29.13), (1.87, -28.63), (2.0, -28.2), (2.0, -24.05)])
+# The wings abaft it (out to 3.1 m) are open platforms with a low bulwark, drawn by the recipe.
 compass = mirror([(0, -29.66), (.85, -29.6), (1.57, -29.23), (1.95, -28.73), (2.07, -27.33), (2.6, -26.97),
-                  (2.63, -25.77), (3.05, -25.5), (3.12, -25.25), (2.95, -24.2), (2.37, -24.03)])
-# The after bridge block ends 2.9 m abaft the break; the mast trestle stands on open platforms behind it.
-after_block = mirror([(0, -24.07), (1.62, -24.07), (1.62, -21.2), (0, -21.2)])
+                  (2.63, -24.2), (2.37, -24.03)])
+after_block = mirror([(0, -24.07), (1.62, -24.07), (1.62, -21.45), (1.72, -20.3), (1.4, -19.9), (1.25, -19.35), (0, -19.35)])
 director = [[1.09, -26.39], [-1.09, -26.39]] + [[round(-1.09 * math.cos(math.pi * i / 12), 4), round(-25.14 + 1.09 * math.sin(math.pi * i / 12), 4)] for i in range(13)]
 director = [p for i, p in enumerate(director) if p not in director[:i]]
 

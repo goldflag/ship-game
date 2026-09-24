@@ -253,13 +253,20 @@ refined_funnels()
 # Foremast as measured: a vertical pole on the after bridge platform (8.85 m), a raked forward strut
 # meeting it at 17.8 m, and a braced trestle carrying the radar platform at 13.1-13.5 m.
 FX=20.17
-rod('foremast.pole',(FX,0,8.45),(FX,0,22.91),.1,materials['edge'],r2=.045,vertices=16)
+rod('foremast.pole',(FX,0,8.45),(FX,0,21.95),.1,materials['edge'],r2=.05,vertices=16)
+# Flagstaff clamped to the masthead, offset to starboard as on the approved model.
+rod('foremast.flagstaff',(FX,-.55,21.1),(FX,-.55,22.91),.025,materials['edge'],r2=.015,vertices=8)
+for z in [21.25,21.8]:rod('foremast.flagstaff-clamp',(FX,-.55,z),(FX,0,z),.02,materials['edge'],vertices=6)
 # The forward strut rises from the main deck at the break, through the after bridge block.
 rod('foremast.strut',(24.05,0,2.75),(FX+.05,0,17.8),.11,materials['naval'],r2=.07,vertices=12)
-# Open platforms behind the after bridge block: the trestle's base plate and the lower walkway.
-prism('foremast.base-plate',outline_rect(19.35,21.25,-1.72,1.72,.2),8.45,8.85)
+# The plated floor under the after bridge block, on its braced trestle.
 prism('bridge.after-walkway',outline_rect(19.35,24.07,-1.62,1.62,.2),6.4,6.73)
-for sign in [-1,1]:rod('foremast.base-knee',(19.6,sign*1.3,6.73),(19.6,sign*1.5,8.45),.06,materials['naval'])
+# Cowl ventilators rising from the main deck abaft the bridge, mouths aft.
+for sign in [-1,1]:
+ path=[(19.3,sign*1.62,deckz(19.3)),(19.3,sign*1.62,5.85),(19.2,sign*1.62,6.18),(18.98,sign*1.62,6.28)]
+ tube_path('bridge.after-vent',path,.17,materials['naval'],sides=16)
+ rod('bridge.after-vent-cowl',path[-1],(18.72,sign*1.62,6.3),.19,materials['naval'],r2=.28,vertices=20)
+ rod('bridge.after-vent-mouth',(18.72,sign*1.62,6.3),(18.7,sign*1.62,6.3),.25,materials['dark'],vertices=20)
 for sign in [-1,1]:
  rod('foremast.trestle-post',(FX,sign*1.33,8.85),(FX,sign*.95,13.12),.07,materials['naval'],vertices=10)
  rod('foremast.trestle-leg',(21.95,sign*1.2,8.85),(21.7,sign*.95,13.12),.06,materials['naval'],vertices=10)
@@ -267,11 +274,10 @@ for sign in [-1,1]:
   f=lambda z:(z-8.85)/4.27
   rod('foremast.brace',(FX,sign*(1.33-.38*f(z0)),z0),(21.95-.25*f(z1),sign*(1.2-.25*f(z1)),z1),.03,materials['edge'])
   rod('foremast.brace',(21.95-.25*f(z0),sign*(1.2-.25*f(z0)),z0),(FX,sign*(1.33-.38*f(z1)),z1),.03,materials['edge'])
- rod('foremast.platform-knee',(21.8,sign*1.05,12.3),(21.78,sign*1.5,13.1),.04,materials['edge'])
 for z in [11.0,13.08]:rod('foremast.cross-brace',(FX,-1.33+.38*(z-8.85)/4.27,z),(FX,1.33-.38*(z-8.85)/4.27,z),.035,materials['edge'])
 for z,span in [(17.66,2.8),(20.9,1.42)]:
  rod('foremast.yard',(FX-.13,-span,z),(FX-.13,span,z),.04,materials['edge'])
- for sign in [-1,1]:rod('foremast.yard-stay',(FX-.13,sign*span,z),(FX,0,min(22.8,z+1.8)),.009,materials['dark'],vertices=5)
+ for sign in [-1,1]:rod('foremast.yard-stay',(FX-.13,sign*span,z),(FX,0,min(21.85,z+1.8)),.009,materials['dark'],vertices=5)
 rod('foremast.gaff',(FX-.12,0,17.95),(18.6,0,18.2),.04,materials['edge'])
 box('foremast.signal-lamp-box',(20.59,0,18.4),(.6,.73,1.2),materials['naval'],bev=.05)
 ladder('foremast.ladder',(FX-.22,0,8.9),(FX-.22,0,21.3),.32)
@@ -284,17 +290,17 @@ rod('aftmast.yard',(-21.44,MY-1.43,13.35),(-21.44,MY+1.43,13.35),.035,materials[
 for sign in [-1,1]:rod('aftmast.yard-stay',(-21.44,MY+sign*1.43,13.35),(-21.55,MY,15.0),.009,materials['dark'],vertices=5)
 ladder('aftmast.ladder',(-19.45,MY,4.25),(-21.25,MY,13.8),.32)
 # Aerial spreaders belong to their masts; the aerial wires hang between them.
-rod('foremast.aerial-spreader',(FX,-.48,22.5),(FX,.48,22.5),.035,materials['edge'])
+rod('foremast.aerial-spreader',(FX,-.48,21.7),(FX,.48,21.7),.035,materials['edge'])
 rod('aftmast.aerial-spreader',(-21.545,MY-.48,14.95),(-21.545,MY+.48,14.95),.035,materials['edge'])
 for sign in [-1,1]:
  for xx,zz in [(57,6),(-57,2.9)]:rod('rigging.deck-padeye',(xx,sign*.2,deckz(xx)),(xx,sign*.2,zz),.028,materials['edge'])
- rod('rigging.aerial',(FX,sign*.45,22.5),(-21.545,MY+sign*.45,14.95),.009,materials['dark'],vertices=5)
- rod('rigging.bow-stay',(FX,0,22.6),(57,sign*.2,6),.009,materials['dark'],vertices=5)
+ rod('rigging.aerial',(FX,sign*.45,21.7),(-21.545,MY+sign*.45,14.95),.009,materials['dark'],vertices=5)
+ rod('rigging.bow-stay',(FX,0,21.8),(57,sign*.2,6),.009,materials['dark'],vertices=5)
  rod('rigging.stern-stay',(-21.6,MY,15.1),(-57,sign*.2,2.9),.009,materials['dark'],vertices=5)
  for xx,yy in [(25,1.95),(19.5,1.2)]:rod('rigging.shroud',(FX,0,20),(xx,sign*yy,8.86),.01,materials['dark'],vertices=5)
 # Type 22 radar: a 1.6 m platform on the trestle with its equipment room and the paired horns.
 prism('radar.platform',outline_rect(20.18,21.78,-1.53,1.53,.1),13.12,13.3)
-box('radar.room',(21.97,0,13.59),(1.05,.9,.58),materials['naval'],bev=.04)
+box('radar.room',(21.97,0,13.59),(1.05,.62,.58),materials['naval'],bev=.04)
 for z,x0,x1 in [(14.25,21.8,23.1),(14.75,21.05,22.4)]:
  rod('radar.horn',(x0,0,z),(x1,0,z),.12,materials['naval'],r2=.25,vertices=24)
  rod('radar.horn-mouth',(x1+.01,0,z),(x1+.03,0,z),.205,materials['dark'],vertices=24)
@@ -508,10 +514,20 @@ for sign in [-1,1]:
  rod('anchor.crown',(x-.62,face(4.38,-.62)+sign*.03,4.38),(x+.62,face(4.38,.62)+sign*.03,4.38),.14,materials['edge'],vertices=12)
  for dx in [-.62,.62]:rod('anchor.fluke',(x+dx,face(4.38,dx)+sign*.03,4.38),(x+dx*.55,face(5.0,dx*.55)+sign*.02,5.0),.16,materials['edge'],r2=.04,vertices=10)
  rod('anchor.shackle',(x+.05,face(5.62,.05),5.5),(x+.05,face(5.62,.05),5.75),.07,materials['edge'],vertices=10)
- for i in range(40):
-  x=48+i*.12;yy=sign*(.62+(x-48)*.06);zz=deckz(x)+.16
-  tube_path('anchor.chain',[(x+.065*math.cos(j*math.tau/10),yy+.038*math.sin(j*math.tau/10),zz) for j in range(10)],.019,materials['edge'],sides=5,closed=True)
-for x in [-50,48]:
+ # Forecastle cable gear as measured: the cable leads from the deck-edge hawse recess aft over its
+ # gypsy to the chain pipe.
+ hx,hy=53.85,sign*1.3
+ mesh('anchor.hawse-recess',[(hx+.55*math.cos(t),hy+.3*math.sin(t),deckz(hx)+.02) for t in [i*math.tau/16 for i in range(16)]],[tuple(range(16))],materials['dark'])
+ gx,gy=49.2,sign*1.0
+ z=deckz(gx);cyl('anchor.gypsy',(gx,gy,z+.25),.34,.5,materials['naval'],vertices=24);cyl('anchor.gypsy-cap',(gx,gy,z+.54),.38,.1,materials['edge'],vertices=24)
+ mesh('anchor.chain-pipe',[(47.3+.25*math.cos(t),sign*.72+.18*math.sin(t),deckz(47.3)+.02) for t in [i*math.tau/12 for i in range(12)]],[tuple(range(12))],materials['dark'])
+ run=[(hx-.3,hy),(gx+.36,gy),(gx-.36,gy),(47.3,sign*.72)]
+ for (ax,ay),(bx,by) in zip(run,run[1:]):
+  n=max(1,int(math.hypot(bx-ax,by-ay)/.12))
+  for i in range(n):
+   x=ax+(bx-ax)*i/n;yy=ay+(by-ay)*i/n;zz=deckz(x)+.08+(.4 if abs(x-gx)<.4 else 0)
+   tube_path('anchor.chain',[(x+.065*math.cos(j*math.tau/10),yy+.038*math.sin(j*math.tau/10),zz) for j in range(10)],.019,materials['edge'],sides=5,closed=True)
+for x in [-50]:
  z=deckz(x);cyl('mooring.capstan',(x,0,z+.28),.42,.55,materials['naval'],vertices=28);cyl('mooring.capstan-lid',(x,0,z+.60),.47,.12,materials['edge'],vertices=28)
 for x in [-48,-40,36,51]:
  z=deckz(x);box('deck.hatch',(x,0,z+.14),(1.1,.8,.22),materials['naval'])

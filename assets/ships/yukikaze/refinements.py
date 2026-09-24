@@ -42,7 +42,9 @@ def refined_funnels():
         # Ventilator trunks with side-facing cowls: fore and aft of the fore funnel, forward of the after one.
         pipes=[('front',.4)]+([('aft',0)] if label=='forward' else [])
         for end,y in pipes:
-            if end=='front':
+            if end=='front' and label=='after':
+                y=.2;path=[(cx+rx+.12,y,base+.02),(cx+rake*.95+rx+.2,y,top-.25)]
+            elif end=='front':
                 x=cx+rx+.14
                 path=[(cx+rx+1.3,y,base+.02),(cx+rx+.9,y,base+.7),(x,y,base+2.2),(cx+rake+rx+.18,y,top-.4)]
             else:
@@ -99,13 +101,17 @@ def refined_bridge():
             for z in [0,.70]:rod('bridge.window-frame',q+Vector((0,0,z)),r+Vector((0,0,z)),.024,materials['naval'],vertices=8)
     tube_path('bridge.window-sill',[(x,y,9.88) for x,y in outline if x>26.7],.030,materials['edge'])
     for sign in [-1,1]:
+        # Open bridge wings abaft the compass bridge: a plated floor with a low bulwark on knees.
+        wing=[(25.77,sign*2.55),(25.5,sign*3.05),(25.25,sign*3.12),(24.2,sign*2.95),(24.1,sign*2.55)]
+        prism('bridge.wing',wing,8.72,8.85)
+        bulwark('bridge.wing-bulwark',[(25.77,sign*2.62),(25.5,sign*3.05),(25.25,sign*3.12),(24.2,sign*2.95),(24.1,sign*2.62)],8.85,.55,closed=False)
         for x in [24.45,25.3]:
-            rod('bridge.wing-knee',(x,sign*1.98,8.05),(x,sign*2.95,8.83),.045,materials['naval'])
+            rod('bridge.wing-knee',(x,sign*2.0,8.1),(x,sign*2.9,8.73),.045,materials['naval'])
         # Aft box sits above a genuinely open deck and its braced supports.
         # The after platform stands on a braced trestle over the main deck.
-        for x in [19.6,23.7]:rod('bridge.after-column',(x,sign*1.3,deckz(19.6)),(x,sign*1.3,6.75),.10,materials['naval'],vertices=16)
-        for a,b in [((19.6,2.9),(23.7,6.6)),((23.7,2.9),(19.6,6.6))]:rod('bridge.after-brace',(a[0],sign*1.3,a[1]),(b[0],sign*1.3,b[1]),.06,materials['naval'])
-        rod('bridge.after-crossbar',(19.6,-1.3,6.6),(19.6,1.3,6.6),.06,materials['naval'])
+        for x in [20.2,23.95]:rod('bridge.after-column',(x,sign*1.3,deckz(20.2)),(x,sign*1.3,6.42),.09,materials['naval'],vertices=16)
+        for a,b in [((20.2,2.9),(23.95,6.3)),((23.95,2.9),(20.2,6.3))]:rod('bridge.after-brace',(a[0],sign*1.3,a[1]),(b[0],sign*1.3,b[1]),.055,materials['naval'])
+        rod('bridge.after-crossbar',(20.2,-1.3,6.27),(20.2,1.3,6.27),.06,materials['naval'])
         # Canvas-covered shelters on the after platform, outboard of the mast trestle.
         x0,x1=20.45 if sign>0 else 21.12,23.51
         box('bridge.shelter',((x0+x1)/2,sign*1.84,9.4),(x1-x0,.62,1.1),materials['canvas'],bev=.12)
@@ -114,8 +120,9 @@ def refined_bridge():
         door('bridge.lower-door',24.9,sign*2.045,4.80,sign,w=.59,h=1.48)
         for x in [26.2,27.3]:portlight('bridge.portlight',(x,sign*2.01,7.85),(0,sign,0),.115)
         # Ring buoy, brackets and the small paired deck ventilator cowls.
-        center=Vector((24.45,sign*2.81,8.16))
-        rod('bridge.buoy-bracket',(24.45,sign*2.03,8.16),center,.035,materials['naval'])
+        # Ring buoy hung flat on the bridge side, as painted on the approved model.
+        center=Vector((24.8,sign*2.12,8.16))
+        rod('bridge.buoy-bracket',(24.8,sign*2.0,8.16),center,.035,materials['naval'])
         rod('bridge.buoy-clip',center-Vector((0,0,.36)),center+Vector((0,0,.36)),.025,materials['naval'])
         tube_path('bridge.lifebuoy',[center+Vector((.33*math.cos(j*math.tau/40),0,.33*math.sin(j*math.tau/40))) for j in range(40)],.074,materials['canvas'],closed=True)
         # Low cowl ventilators on the forecastle deck beside the bridge, as measured (0.7 m tall).
