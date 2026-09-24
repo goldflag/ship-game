@@ -15,7 +15,7 @@ process.exit(await runSteps('Multiplayer check', [
   { label: 'cargo fmt --check', command: [cargo, 'fmt', '--all', '--check'] },
   // Full carrier scenarios are numerical simulation workloads. Test the optimized
   // production profile so CI can run every case within its execution budget.
-  { label: 'cargo test --release', command: [cargo, 'test', '--release', '--workspace', '--locked'] },
+  { label: 'cargo test --release', command: [cargo, 'test', '--release', '--workspace', '--locked', '--no-fail-fast'] },
   { label: 'cargo clippy', command: [cargo, 'clippy', '--workspace', '--all-targets', '--locked', '--', '-D', 'warnings'] },
   { label: 'Release WASM', command: [bun, 'scripts/multiplayer/build-wasm.ts'] },
 ], resolve(root, '.build/multiplayer-check'), { root }));
