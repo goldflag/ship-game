@@ -24,10 +24,11 @@
 //! field that needs it.
 //!
 //! The custom-battle worker's stream can travel in a binary form of the same
-//! patch ([`FrameDelta::binary`]): numbers as their eight bytes, keys as numbers
-//! from a table the stream builds as it goes, and text in one small JSON array
-//! at the end. It never crosses a network, so it is free to change with the
-//! client that reads it (`src/game/session/frameDelta.ts`).
+//! patch ([`FrameDelta::binary`]): numbers as their eight bytes, keys and the
+//! shapes of new objects as numbers from tables the stream builds as it goes,
+//! and text in one small JSON array at the end. It never crosses a network, so
+//! it is free to change with the client that reads it
+//! (`src/game/session/frameDelta.ts`).
 use serde::{
     Deserialize, Serialize, Serializer,
     ser::{
@@ -226,9 +227,8 @@ impl Node {
             }
             Self::Object(entries) => {
                 out.push(tag::OBJECT);
-                push_leb(out, entries.len());
+                push_leb(out, table.shape(entries) as usize);
                 for entry in entries {
-                    push_leb(out, entry.key as usize);
                     entry.value.write_binary(out, table);
                 }
             }
@@ -253,14 +253,16 @@ impl Node {
 }
 
 /// The binary grammar's tags. A patch is the text grammar's, spelled in bytes:
-/// numbers are little-endian `f64`s, counts, indexes and keys unsigned LEB128.
-/// A value is `NULL`, `FALSE`, `TRUE`, `NUMBER` and its eight bytes, `TEXT` or
-/// `JSON` and a place in the update's table, `ARRAY` with a count of values, or
-/// `OBJECT` with a count of key and value pairs. A patch is a value, which
-/// replaces, or `PATCH_OBJECT`, `(key + 1, patch)`… `END`, then the count and
-/// keys of the fields removed; `PATCH_ARRAY`, `(index + 1, patch)`… `END`; or
-/// `PATCH_KEYED`, the count and `[index, previous index, count]` runs of
-/// survivors, the new length, then `(index + 1, patch)`… `END`.
+/// numbers are little-endian `f64`s, counts, indexes, keys and shapes unsigned
+/// LEB128. A value is `NULL`, `FALSE`, `TRUE`, `NUMBER` and its eight bytes,
+/// `TEXT` or `JSON` and a place in the update's table, `ARRAY` with a count of
+/// values, or `OBJECT` with a shape (its keys in order, numbered like keys, so
+/// the client lays each one out as `JSON.parse` would) and a value per key. A
+/// patch is a value, which replaces, or `PATCH_OBJECT`, `(key + 1, patch)`…
+/// `END`, then the count and keys of the fields removed; `PATCH_ARRAY`,
+/// `(index + 1, patch)`… `END`; or `PATCH_KEYED`, the count and
+/// `[index, previous index, count]` runs of survivors, the new length, then
+/// `(index + 1, patch)`… `END`.
 mod tag {
     pub const END: u8 = 0;
     pub const NULL: u8 = 1;
@@ -276,19 +278,41 @@ mod tag {
     pub const PATCH_KEYED: u8 = 11;
 }
 /// The bytes ahead of a binary update's patch (see [`FrameDelta::update_binary`]).
-const BINARY_HEADER: usize = 28;
+const BINARY_HEADER: usize = 36;
 
 /// What a binary update carries besides its bytes: the text and pre-rendered
-/// values it refers to, and the keys it numbered, which end it as one JSON
-/// array (values first, then the new keys in number order).
+/// values it refers to, and the keys and shapes it numbered, which end it as
+/// one JSON array (values, then the new keys, then the new shapes as arrays of
+/// key numbers, each in number order).
 #[derive(Default)]
 struct Table {
     values: Vec<u8>,
     count: usize,
-    /// The stream's key numbers, kept until its baseline is dropped.
+    /// The stream's key and shape numbers, kept until its baseline is dropped.
     keys: HashMap<Box<str>, u32>,
-    fresh: Vec<u8>,
-    fresh_count: usize,
+    shapes: HashMap<Box<[u32]>, u32>,
+    fresh_keys: Fresh,
+    fresh_shapes: Fresh,
+    scratch: Vec<u32>,
+}
+/// The JSON elements numbered during one update.
+#[derive(Default)]
+struct Fresh {
+    text: Vec<u8>,
+    count: usize,
+}
+impl Fresh {
+    fn push(&mut self, write: impl FnOnce(&mut Vec<u8>)) {
+        if self.count > 0 {
+            self.text.push(b',');
+        }
+        write(&mut self.text);
+        self.count += 1;
+    }
+    fn clear(&mut self) {
+        self.text.clear();
+        self.count = 0;
+    }
 }
 impl Table {
     /// Append one JSON element and return its place.
@@ -307,12 +331,41 @@ impl Table {
         }
         let key = self.keys.len() as u32;
         self.keys.insert(name.into(), key);
-        if self.fresh_count > 0 {
-            self.fresh.push(b',');
-        }
-        write_text(&mut self.fresh, name);
-        self.fresh_count += 1;
+        self.fresh_keys.push(|text| write_text(text, name));
         key
+    }
+    /// The number of an object's shape, numbering it for the client if it is new.
+    fn shape(&mut self, entries: &[Entry]) -> u32 {
+        self.scratch.clear();
+        self.scratch.extend(entries.iter().map(|entry| entry.key));
+        if let Some(&shape) = self.shapes.get(self.scratch.as_slice()) {
+            return shape;
+        }
+        let shape = self.shapes.len() as u32;
+        self.shapes.insert(self.scratch.as_slice().into(), shape);
+        let keys = &self.scratch;
+        self.fresh_shapes.push(|text| {
+            text.push(b'[');
+            for (index, key) in keys.iter().enumerate() {
+                if index > 0 {
+                    text.push(b',');
+                }
+                push_index(text, *key as usize);
+            }
+            text.push(b']');
+        });
+        shape
+    }
+    /// Start an update; a client holding no frame holds no key or shape table either.
+    fn start(&mut self, restart: bool) {
+        if restart {
+            self.keys.clear();
+            self.shapes.clear();
+        }
+        self.values.clear();
+        self.count = 0;
+        self.fresh_keys.clear();
+        self.fresh_shapes.clear();
     }
 }
 
@@ -563,14 +616,7 @@ impl FrameDelta {
         self.ctx.pending.clear();
         self.ctx.flushed = 0;
         if let Some(table) = &mut self.ctx.table {
-            // A client holding no frame holds no key table either.
-            if matches!(self.shadow, Node::Null) {
-                table.keys.clear();
-            }
-            table.values.clear();
-            table.count = 0;
-            table.fresh.clear();
-            table.fresh_count = 0;
+            table.start(matches!(self.shadow, Node::Null));
         }
         let outcome = frame.serialize(Diff {
             shadow: &mut self.shadow,
@@ -618,8 +664,9 @@ impl FrameDelta {
     /// The same update in the binary form ([`tag`]): a header of the tick and
     /// the tick of the reference (-1 for none) as `f64`s, then as `u32`s the
     /// table's offset, the keys the client must already hold (0 restarts its
-    /// key table) and the new keys at the table's end; then the patch, `END`
-    /// when nothing moved; then the table. The buffer is reused frame after frame.
+    /// key and shape tables), the new keys, the shapes it must already hold and
+    /// the new shapes; then the patch, `END` when nothing moved; then the table.
+    /// The buffer is reused frame after frame.
     pub fn update_binary<T: Serialize + ?Sized>(
         &mut self,
         tick: u64,
@@ -639,21 +686,33 @@ impl FrameDelta {
         let (out, Some(table)) = (&mut self.ctx.out, &self.ctx.table) else {
             return Err(Error::custom("A binary frame stream lost its table"));
         };
+        let (keys, shapes) = (&table.fresh_keys, &table.fresh_shapes);
         let words = [
             out.len(),
-            table.keys.len() - table.fresh_count,
-            table.fresh_count,
+            table.keys.len() - keys.count,
+            keys.count,
+            table.shapes.len() - shapes.count,
+            shapes.count,
         ];
         for (index, word) in words.into_iter().enumerate() {
             let word = u32::try_from(word).map_err(Error::custom)?;
             out[16 + index * 4..20 + index * 4].copy_from_slice(&word.to_le_bytes());
         }
         out.push(b'[');
-        out.extend_from_slice(&table.values);
-        if table.count > 0 && table.fresh_count > 0 {
-            out.push(b',');
+        let mut first = true;
+        for (text, count) in [
+            (&table.values, table.count),
+            (&keys.text, keys.count),
+            (&shapes.text, shapes.count),
+        ] {
+            if count > 0 {
+                if !first {
+                    out.push(b',');
+                }
+                out.extend_from_slice(text);
+                first = false;
+            }
         }
-        out.extend_from_slice(&table.fresh);
         out.push(b']');
         Ok(out)
     }
@@ -1599,6 +1658,7 @@ pub fn apply(previous: &mut Value, patch: &Value) {
 #[derive(Default)]
 pub struct BinaryClient {
     keys: Vec<String>,
+    shapes: Vec<Vec<usize>>,
     pub frame: Value,
 }
 impl BinaryClient {
@@ -1608,21 +1668,33 @@ impl BinaryClient {
         let word =
             |at: usize| u32::from_le_bytes(bytes[at..at + 4].try_into().expect("header")) as usize;
         let float = |at: usize| f64::from_le_bytes(bytes[at..at + 8].try_into().expect("header"));
-        let (offset, known, fresh) = (word(16), word(20), word(24));
+        let offset = word(16);
+        let (known_keys, fresh_keys, known_shapes, fresh_shapes) =
+            (word(20), word(24), word(28), word(32));
         let mut table: Vec<Value> = serde_json::from_slice(&bytes[offset..]).expect("table");
-        if known == 0 {
+        if known_keys == 0 {
             self.keys.clear();
+            self.shapes.clear();
         }
-        assert_eq!(self.keys.len(), known, "key table out of step");
-        let keys = table.split_off(table.len() - fresh);
+        assert_eq!(self.keys.len(), known_keys, "key table out of step");
+        assert_eq!(self.shapes.len(), known_shapes, "shape table out of step");
+        let shapes = table.split_off(table.len() - fresh_shapes);
+        let keys = table.split_off(table.len() - fresh_keys);
         self.keys.extend(
             keys.into_iter()
                 .map(|key| key.as_str().expect("key").to_owned()),
         );
+        self.shapes.extend(shapes.into_iter().map(|shape| {
+            let keys = shape.as_array().expect("shape");
+            keys.iter()
+                .map(|key| key.as_u64().expect("shape key") as usize)
+                .collect()
+        }));
         let mut reader = Reader {
             bytes: &bytes[..offset],
             at: BINARY_HEADER,
             keys: &self.keys,
+            shapes: &self.shapes,
             table: &table,
         };
         if bytes[BINARY_HEADER] != tag::END {
@@ -1639,6 +1711,7 @@ struct Reader<'a> {
     bytes: &'a [u8],
     at: usize,
     keys: &'a [String],
+    shapes: &'a [Vec<usize>],
     table: &'a [Value],
 }
 impl Reader<'_> {
@@ -1682,12 +1755,11 @@ impl Reader<'_> {
                     .collect()
             }
             tag::OBJECT => {
-                let count = self.leb();
+                let shapes = self.shapes;
                 let mut fields = serde_json::Map::new();
-                for _ in 0..count {
-                    let key = self.key();
+                for &key in &shapes[self.leb()] {
                     let tag = self.byte();
-                    fields.insert(key, self.value(tag));
+                    fields.insert(self.keys[key].clone(), self.value(tag));
                 }
                 Value::Object(fields)
             }
@@ -2011,22 +2083,22 @@ mod tests {
         assert!(!delta.has_baseline());
     }
 
-    /// A binary stream numbers each key once, tells the client how many it must
-    /// already hold, and starts its key table again with its baseline.
+    /// A binary stream numbers each key and object shape once, tells the client
+    /// how many it must already hold, and starts both tables again with its baseline.
     #[test]
-    fn a_binary_stream_numbers_keys_once_and_restarts_them_with_its_baseline() {
+    fn a_binary_stream_numbers_keys_and_shapes_once_and_restarts_them_with_its_baseline() {
         let mut delta = FrameDelta::binary();
         let mut client = BinaryClient::default();
-        let keys = |bytes: &[u8]| {
+        let tables = |bytes: &[u8]| {
             let word = |at: usize| u32::from_le_bytes(bytes[at..at + 4].try_into().unwrap());
-            (word(20), word(24))
+            (word(20), word(24), word(28), word(32))
         };
         let frame = |tick: u64, x: f64| json!({"tick": tick, "planes": [{"id": "p", "x": x}]});
         let first = delta.update_binary(1, &frame(1, 1.5)).unwrap().to_vec();
-        assert_eq!(keys(&first), (0, 4));
+        assert_eq!(tables(&first), (0, 4, 0, 2));
         assert_eq!(client.apply(&first), (1., None));
         let second = delta.update_binary(2, &frame(2, -0.0)).unwrap().to_vec();
-        assert_eq!(keys(&second), (4, 0));
+        assert_eq!(tables(&second), (4, 0, 2, 0));
         assert_eq!(client.apply(&second), (2., Some(1.)));
         let x = &client.frame["planes"][0]["x"];
         assert!(x.as_f64().unwrap() == 0. && x.as_f64().unwrap().is_sign_negative());
@@ -2034,12 +2106,18 @@ mod tests {
         let same = delta.update_binary(2, &frame(2, -0.0)).unwrap().to_vec();
         assert_eq!(same.len(), BINARY_HEADER + 3);
         assert_eq!(client.apply(&same), (2., Some(2.)));
+        // A new plane travels in a shape the client already holds.
+        let two = json!({"tick": 3, "planes": [{"id": "p", "x": 1.0}, {"id": "q", "x": 2.0}]});
+        let bytes = delta.update_binary(3, &two).unwrap().to_vec();
+        assert_eq!(tables(&bytes), (4, 0, 2, 0));
+        client.apply(&bytes);
+        assert_eq!(client.frame, as_client(&two));
         delta.reset();
         let whole = delta
             .update_binary(3, &json!({"tick": 3, "z": "text"}))
             .unwrap()
             .to_vec();
-        assert_eq!(keys(&whole), (0, 2));
+        assert_eq!(tables(&whole), (0, 2, 0, 1));
         assert_eq!(client.apply(&whole), (3., None));
         assert_eq!(client.frame, json!({"tick": 3.0, "z": "text"}));
         assert!(delta.update(4, &json!({})).is_err());

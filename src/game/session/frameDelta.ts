@@ -64,7 +64,7 @@ function checkedFrame(reference: Snapshot | undefined, update: { baseTick: numbe
 
 /** The binary grammar's tags (`frame_delta::tag`). */
 const END = 0, NULL = 1, FALSE = 2, TRUE = 3, NUMBER = 4, TEXT = 5, JSON_VALUE = 6, ARRAY = 7, OBJECT = 8, PATCH_OBJECT = 9, PATCH_ARRAY = 10, PATCH_KEYED = 11;
-const BINARY_HEADER = 28;
+const BINARY_HEADER = 36;
 const utf8 = new TextDecoder(), EMPTY = new Uint8Array(0), EMPTY_VIEW = new DataView(EMPTY.buffer);
 
 /** A binary update's ticks, read from its header without decoding it. */
@@ -79,10 +79,14 @@ export function binaryUpdateTicks(bytes: Uint8Array): { baseTick: number | null;
  * their eight bytes and keys numbered by a table the stream builds as it goes.
  * The patch is applied as it is read, onto the reference, exactly as
  * `applyFramePatch` applies the text: the same copied paths, kept identities
- * and key order, with no JSON text to parse and no patch tree to walk. One
- * reader per stream, since it holds the stream's key table. */
+ * and key order, with no JSON text to parse and no patch tree to walk. A new
+ * object is cloned from its shape's template, which `JSON.parse` laid out, so
+ * it is stored as a parsed one would be: objects filled key by key keep most
+ * fields out of line, and apply and the renderer read them a fifth slower.
+ * One reader per stream, since it holds the stream's key and shape tables. */
 export class BinaryFrameReader {
   private keys: string[] = [];
+  private shapes: { keys: string[]; template: Record<string, unknown> }[] = [];
   private bytes: Uint8Array = EMPTY;
   private view: DataView = EMPTY_VIEW;
   private at = 0;
@@ -90,13 +94,19 @@ export class BinaryFrameReader {
   decode(reference: Snapshot | undefined, bytes: Uint8Array): Snapshot {
     return checkedFrame(reference, binaryUpdateTicks(bytes), () => {
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-      const offset = view.getUint32(16, true), known = view.getUint32(20, true), fresh = view.getUint32(24, true);
+      const offset = view.getUint32(16, true), knownKeys = view.getUint32(20, true), freshKeys = view.getUint32(24, true);
+      const knownShapes = view.getUint32(28, true), freshShapes = view.getUint32(32, true);
       if (offset <= BINARY_HEADER || offset > bytes.byteLength) throw new Error('Invalid battle frame update.');
       const table = JSON.parse(utf8.decode(bytes.subarray(offset))) as unknown[];
-      if (!Array.isArray(table) || fresh > table.length) throw new Error('Invalid battle frame update.');
-      if (!known) this.keys = [];
-      if (this.keys.length !== known) throw new Error('Battle frame arrived against a key table this session is not holding.');
-      for (let i = table.length - fresh; i < table.length; i++) this.keys.push(table[i] as string);
+      if (!Array.isArray(table) || freshKeys + freshShapes > table.length) throw new Error('Invalid battle frame update.');
+      if (!knownKeys) { this.keys = []; this.shapes = []; }
+      if (this.keys.length !== knownKeys || this.shapes.length !== knownShapes) throw new Error('Battle frame arrived against a key table this session is not holding.');
+      const shapesAt = table.length - freshShapes;
+      for (let i = shapesAt - freshKeys; i < shapesAt; i++) this.keys.push(table[i] as string);
+      for (let i = shapesAt; i < table.length; i++) {
+        const keys = (table[i] as number[]).map(key => this.key(key));
+        this.shapes.push({ keys, template: JSON.parse(`{${keys.map(key => `${JSON.stringify(key)}:null`).join(',')}}`) });
+      }
       this.bytes = bytes; this.view = view; this.table = table; this.at = BINARY_HEADER;
       const frame = bytes[BINARY_HEADER] === END ? (this.at++, reference) : this.patch(reference);
       const end = this.at;
@@ -130,8 +140,10 @@ export class BinaryFrameReader {
         return values;
       }
       case OBJECT: {
-        const object: Record<string, unknown> = {};
-        for (let n = this.leb(); n > 0; n--) { const key = this.key(this.leb()); setField(object, key, this.value(this.bytes[this.at++])); }
+        const shape = this.shapes[this.leb()];
+        if (!shape) throw new Error('Invalid battle frame update.');
+        const object: Record<string, unknown> = { ...shape.template }, keys = shape.keys;
+        for (let i = 0; i < keys.length; i++) setField(object, keys[i], this.value(this.bytes[this.at++]));
         return object;
       }
     }

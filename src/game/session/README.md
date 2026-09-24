@@ -63,10 +63,14 @@ battle the worker message handler falls from 1.48 to 0.51 ms per update, with
 main-thread GC from 0.37 to 0.28 ms a frame; updates arrive at about one a
 frame. `LocalBattleSession.binaryStream = false` asks for the text form, for
 comparison; a change of form starts the stream again, whole. The text form
-stays the match server's wire format. A reader holds its stream's key table: an
-update names the keys the reader must already hold, zero whenever the stream
+stays the match server's wire format. A new object travels as a shape (its keys
+in order, numbered once per stream) and its values, and the reader clones it
+from a template `JSON.parse` laid out: objects filled key by key keep most
+fields out of line, which made apply and the renderer's reads of them about a
+fifth slower. A reader holds its stream's key and shape tables: an update names
+the keys and shapes the reader must already hold, zero whenever the stream
 starts again (init, deploy, restart, trial reset or action), and one against
-another table is a transport fault like one against another reference.
+other tables is a transport fault like one against another reference.
 
 Patching the received frame in place instead would save the copies too, but
 presentation holds the applied frame's objects: hull mounts are the frame's own
