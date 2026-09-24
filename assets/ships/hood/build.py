@@ -243,7 +243,9 @@ COL = collections['Superstructure']
 TEAK_TOPS = set()
 # Window bands read off the reference's painted glazing: height of the band centre above the tier
 # base, band height and which walls carry it.
-GLAZING = {'bridge-middle': (1.72, .36, 'fwd'), 'bridge-navigation': (.66, .42, 'fwd'), 'bridge-compass': (.72, .36, 'side')}
+# Optional Blender-x window (fore-and-aft range) limits the band to the walls the reference glazes.
+GLAZING = {'bridge-middle': (1.72, .36, 'fwdside', 34.5, 99), 'bridge-navigation': (.66, .42, 'fwd', -99, 99), 'bridge-compass': (.72, .36, 'side', -99, 99),
+           'bridge-upper': (1.95, .5, 'side', 31.5, 34.75), 'after-control-tower-upper': (2.6, .3, 'aftside', -44.2, -41.2)}
 S = {s['id']: s for s in D['structures']}
 for s in D['structures']:
     if s['id'].endswith('funnel'): continue
@@ -258,8 +260,8 @@ for s in D['structures']:
         nx, ny = (by - ay) / length, -(bx - ax) / length
         if nx * ((ax + bx) / 2 - sum(p[0] for p in outline) / len(outline)) + ny * ((ay + by) / 2 - sum(p[1] for p in outline) / len(outline)) < 0: nx, ny = -nx, -ny
         if glazing:
-            above, tall, facing = glazing
-            if (facing == 'fwd' and nx > .35) or (facing == 'fwdside' and nx > -.3) or (facing == 'side' and abs(ny) > .7):
+            above, tall, facing, x0, x1 = glazing
+            if x0 <= (ax + bx) / 2 <= x1 and ((facing == 'fwd' and nx > .35) or (facing == 'fwdside' and nx > -.3) or (facing == 'aftside' and nx < .3) or (facing == 'side' and abs(ny) > .7)):
                 count = max(1, int(length / .85))
                 for k in range(count):
                     t = (k + .5) / count; px = ax + (bx - ax) * t + nx * .015; py = ay + (by - ay) * t + ny * .015
@@ -406,7 +408,15 @@ for sid in ['shelter-deck-forward', 'shelter-deck-well-roof', 'shelter-deck-mids
     o = [(-z, -x) for x, z in S[sid]['footprint']]
     for a, b in zip(o, o[1:] + o[:1]):
         if any(abs(a[0] - k) < .01 and abs(b[0] - k) < .01 for k in SEAMS): continue
-        rail('Shelter deck rail', [(a[0], a[1], 9.2), (b[0], b[1], 9.2)], 1.0, 2.4)
+        # The pom-pom sponson screens stand in for the rail abreast the pom-poms.
+        pieces = [(a, b)]
+        if min(abs(a[1]), abs(b[1])) > 14 and max(a[0], b[0]) > 10.75 and min(a[0], b[0]) < 18.9:
+            lerp = lambda x: (x, a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]))
+            lo, hi = sorted([a, b])
+            pieces = [(lo, lerp(10.75))] if lo[0] < 10.75 else []
+            pieces += [(lerp(18.9), hi)] if hi[0] > 18.9 else []
+        for p, q in pieces:
+            rail('Shelter deck rail', [(p[0], p[1], 9.2), (q[0], q[1], 9.2)], 1.0, 2.4)
 
 
 def half_width(outline, x):
@@ -923,14 +933,17 @@ for x in [-100, -80, 62, 80]:
 ASSEMBLY = 'jackstaff'
 rod('Jackstaff', (131.0, 0, deckz(130.5)), (131.0, 0, deckz(130.5) + 4.2), .06, 'naval', r2=.03, vertices=10)
 ASSEMBLY = 'hull-scuttles'
-for x in list(range(-104, -48, 3)) + list(range(50, 118, 3)):
+# Scuttles where the reference paints them: one row along the forecastle forward of A turret and one
+# along the quarterdeck, each following the sheer (runtime z, height).
+SCUTTLES = [(z, 4.72 + (-z - 73.6) * .0257) for z in [-73.6, -76.02, -78.38, -79.63, -82.1, -83.32, -85.78, -89.48, -91.9, -94.31, -96.7, -101.65, -103.87, -105.7, -108.12, -110.23]]
+SCUTTLES += [(82.1, 3.27), (83.0, 3.28)] + [(z, 1.69 + (z - 87.98) * .0149) for z in [87.98, 91.65, 95.45, 97.75, 99.72, 102.51, 105.19, 107.89, 109.75, 112.51, 114.32, 117.39, 119.49, 122.25, 124.1, 125.9, 127.75]]
+for zr, z in SCUTTLES:
+    x = -zr
     for side in [-1, 1]:
-        for z in ([3.9, 5.2] if x > 0 else [1.0]):
-            if z > deckz(x) - .5: continue
-            y = side * (sidewidth(x, z) + .015)
-            if abs(y) < .3: continue
-            rod('Hull scuttle rim', (x, y, z), (x, y + side * .04, z), .15, 'edge', vertices=12)
-            rod('Hull scuttle glass', (x, y + side * .042, z), (x, y + side * .05, z), .105, 'dark', vertices=12)
+        y = side * (sidewidth(x, z) + .015)
+        if abs(y) < .3: continue
+        rod('Hull scuttle rim', (x, y, z), (x, y + side * .04, z), .15, 'edge', vertices=12)
+        rod('Hull scuttle glass', (x, y + side * .042, z), (x, y + side * .05, z), .105, 'dark', vertices=12)
 
 # ------------------------------------------------------------------ underwater fittings
 COL = collections['Underwater fittings']
