@@ -22,6 +22,8 @@ const viewProjection = new THREE.Matrix4(), frustum = new THREE.Frustum(), spher
 export class FleetBatch extends THREE.BatchedMesh {
   /** Off: three's own culling, which transforms every part's bounds in every pass, for comparison. */
   static keepBounds = true;
+  /** Off: the draw list's instance ids are uploaded after every cull, as three does, even when no id changed. */
+  static keepIds = true;
   private drawCamera?: THREE.Camera;
   private drawGeometry?: THREE.BufferGeometry;
   private readonly projection = new THREE.Matrix4();
@@ -147,7 +149,7 @@ export class FleetBatch extends THREE.BatchedMesh {
       if (this.groupBytes !== bytes) { this.groupOf = []; this.groupBytes = bytes; }
       for (const group of this.geometryGroups.values()) group.ids.length = 0;
     }
-    let drawn = 0;
+    let drawn = 0, changed = false;
     for (let i = 0, l = instances.length; i < l; i++) {
       const instance = instances[i];
       if (!instance.visible || !instance.active) continue;
@@ -162,16 +164,20 @@ export class FleetBatch extends THREE.BatchedMesh {
       if (grouped) {
         const group = this.groupOf[geometryId] ??= this.group(info.start * bytes | 0);
         group.count = info.count; group.ids.push(i);
-      } else { starts[drawn] = info.start * bytes; counts[drawn] = info.count; ids[drawn] = i; }
+      } else { starts[drawn] = info.start * bytes; counts[drawn] = info.count; if (ids[drawn] !== i) { ids[drawn] = i; changed = true; } }
       drawn++;
     }
     if (grouped) {
       let offset = 0;
       for (const [start, group] of this.geometryGroups) for (const id of group.ids) {
-        starts[offset] = start; counts[offset] = group.count; ids[offset++] = id;
+        starts[offset] = start; counts[offset] = group.count;
+        if (ids[offset] !== id) { ids[offset] = id; changed = true; }
+        offset++;
       }
     }
-    state._indirectTexture.needsUpdate = true;
+    // Only the ids reach the GPU (ranges and counts are the CPU's draw calls), and the texture's data holds what it last
+    // uploaded or is about to: the same ids need no upload. Most frames the fleet moves while the same parts stay in view.
+    if (changed || !FleetBatch.keepIds || state._indirectTexture.version === 0) state._indirectTexture.needsUpdate = true;
     state._multiDrawCount = drawn;
     state._visibilityChanged = false;
   }

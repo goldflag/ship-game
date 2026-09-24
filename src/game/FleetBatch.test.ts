@@ -122,3 +122,29 @@ test('the layout version moves with what draws and with which geometry, and kept
   }
   batch.dispose(); material.dispose(); geometries.forEach(g => g.dispose());
 });
+
+test('a cull that keeps the same parts in view leaves the uploaded instance ids alone', () => {
+  const geometry = new THREE.BoxGeometry(), material = new THREE.MeshStandardMaterial();
+  const batch = new FleetBatch(3, 48, 72, material), geometryId = batch.addGeometry(geometry);
+  batch.sortObjects = false;
+  for (const x of [0, 5, 100]) batch.setMatrixAt(batch.addInstance(geometryId), new THREE.Matrix4().makeTranslation(x, 0, -10));
+  const camera = new THREE.PerspectiveCamera(60, 1, .5, 1000); camera.updateMatrixWorld();
+  const ids = (batch as unknown as { _indirectTexture: THREE.DataTexture })._indirectTexture;
+  const draw = () => {
+    batch.invalidateDrawList();
+    batch.onBeforeRender(undefined as never, new THREE.Scene(), camera, batch.geometry, material, null as never);
+    return ids.version;
+  };
+  const first = draw();
+  expect(first).toBeGreaterThan(0);
+  // The parts move, the same two stay in view: nothing to upload.
+  batch.setMatrixAt(0, new THREE.Matrix4().makeTranslation(1, 0, -10));
+  expect(draw()).toBe(first);
+  // The far part comes into view: the ids change.
+  batch.setMatrixAt(2, new THREE.Matrix4().makeTranslation(-3, 0, -10));
+  expect(draw()).toBe(first + 1);
+  expect(Array.from(ids.image.data!).slice(0, 3)).toEqual([0, 1, 2]);
+  FleetBatch.keepIds = false;
+  try { expect(draw()).toBe(first + 2); } finally { FleetBatch.keepIds = true; }
+  batch.dispose(); geometry.dispose(); material.dispose();
+});
