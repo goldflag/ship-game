@@ -702,7 +702,9 @@ for sign in [-1,1]:
 for sign in [-1,1]:
     for kind,x,y in [('inner',-106,3.6),('outer',-96,7.0)]:
         y*=sign;z=-6.2
-        rod('Propeller shaft',(x,y,z),(x+17,y*.87,z+.9),.22,M['edge'],COL['Underwater'],vertices=20)
+        # The finer afterbody run (pjsa108) needs the shafts to reach further in to enter it.
+        run,inset=(20,.8) if kind=='inner' else (23,.7)
+        rod('Propeller shaft',(x,y,z),(x+run,y*inset,z+1.1),.22,M['edge'],COL['Underwater'],vertices=20)
         for dy in [-.7,.7]:
             seat=hull_support.along((x+2,y+dy,-3.6),(0,-sign,.2),20)
             rod('Shaft A bracket',seat,(x+1,y,z),.15,M['naval'],COL['Underwater'])
