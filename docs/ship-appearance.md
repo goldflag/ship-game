@@ -101,7 +101,7 @@ length between butts, seam width and the coating (`bare`, `blue-gray`…); the
 binding's paint is its named stain. The material carries `deckSubstrate=timber`,
 `deckCoating`, `deckPlankWidth`, `deckPlankLength` and `deckSeamWidth` in glTF, and
 the game planks it with the shared runtime teak at that size under that stain. A
-whole-deck image (Bismarck's recognition markings) stays the stain and keeps what
+whole-deck image (air-recognition markings, say) stays the stain and keeps what
 it paints; the planks are drawn over it. `"modeled": true` marks decks whose planks
 are modeled geometry, each board its own quad over a slab (the carriers' flight
 decks); the game adds no planks there. Recipes author no plank textures or
