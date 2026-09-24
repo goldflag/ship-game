@@ -50,6 +50,7 @@ export const suggestedVehicles: Record<string, string> = {
   baltimore: 'pasc108', mogami: 'pjsc009', 'enterprise-cv6': 'pasa518', shokaku: 'pjsa108',
   'type-viic': 'pgss206', fletcher: 'pasd021', yukikaze: 'pjsd718', fubuki: 'pjsd106',
   'liberty-cargo': 'pasx003', 'liberty-collier': 'pasx003',
+  cleveland: 'pasc208',
 };
 export const vehicleUrl = (id: string) => `https://gamemodels3d.com/en/games/worldofwarships/vehicles/${id}`;
 export function vehicleId(input: string): string {
