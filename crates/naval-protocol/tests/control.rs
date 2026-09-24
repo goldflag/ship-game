@@ -405,8 +405,7 @@ fn a_lost_guide_hands_the_formation_to_its_lowest_slot_escort() {
         vessel::Controller,
     };
     use std::{collections::BTreeMap, sync::Arc};
-    let catalog =
-        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
+    let catalog = Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap();
     let compiled: BTreeMap<_, _> = ["enterprise-cv6", "fletcher"]
         .into_iter()
         .map(|id| (id.to_string(), Arc::new(catalog.compile(id).unwrap())))

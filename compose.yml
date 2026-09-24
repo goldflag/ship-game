@@ -46,7 +46,6 @@ services:
       COMPILER_URL: http://compiler:8790
       SHIP_MAX_DESIGNS: ${SHIP_MAX_DESIGNS:-100}
       SHIP_MAX_BYTES: ${SHIP_MAX_BYTES:-104857600}
-      PROGRESS_DEV_ACCOUNTS: ${PROGRESS_DEV_ACCOUNTS:-}
     depends_on:
       migrate: {condition: service_completed_successfully}
       compiler: {condition: service_healthy}

@@ -16,7 +16,7 @@ export interface ProgressSnapshot {
   /** The most recent award this page received. */
   lastAward?: { battleId: string; award: XpAward };
 }
-export interface DeveloperGrant { xp?: number; unlockAll?: boolean; reset?: boolean }
+export interface HarnessGrant { xp?: number; unlockAll?: boolean; reset?: boolean }
 export interface ProgressStore {
   snapshot(): ProgressSnapshot;
   subscribe(listener: () => void): () => void;
@@ -25,9 +25,10 @@ export interface ProgressStore {
   unlock(nodeId: string): Promise<void>;
   /** Reports a decided battle once; the same id never pays twice. */
   award(battleId: string, summary: BattleSummary): Promise<XpAward>;
-  /** Developer console grants. The API refuses them unless enabled for the account. */
-  grant(grant: DeveloperGrant): Promise<void>;
 }
+/** The harness profile also takes grants, for scripts (`window.harnessProgress`); signed-in accounts are
+ * changed by administrators on the admin page (/admin). */
+export interface HarnessProgressStore extends ProgressStore { grant(grant: HarnessGrant): Promise<void> }
 export class ProgressStoreError extends Error { constructor(readonly code: string, message: string) { super(message); } }
 
 /** Whether a preset may join the player's own fleet. Player designs are always allowed and are not
@@ -91,13 +92,12 @@ export function createAccountProgressStore(account: string, fetcher: Fetcher = (
       }
       return pending;
     },
-    async grant(grant) { adopt((await request<{ profile: unknown }>('/dev', grant)).profile); },
   };
 }
 
 export const HARNESS_PROGRESS_KEY = 'naval-progress-harness-v1';
 /** The account-free harness. `fresh` persists a local profile that starts with only the starters. */
-export function createHarnessProgressStore(fresh = typeof location !== 'undefined' && new URLSearchParams(location.search).get('progress') === 'fresh'): ProgressStore {
+export function createHarnessProgressStore(fresh = typeof location !== 'undefined' && new URLSearchParams(location.search).get('progress') === 'fresh'): HarnessProgressStore {
   const load = (): ProgressProfile => {
     if (!fresh) return openProfile();
     try { const saved = localStorage.getItem(HARNESS_PROGRESS_KEY); return saved ? sanitizeProfile(JSON.parse(saved)) : emptyProfile(); }

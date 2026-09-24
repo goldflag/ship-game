@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { BerthMotion } from './BerthMotion';
-import { createSeaState, seaHeight, seaResponse } from './session/sea';
+import { createSeaState, seaHeight, seaHeightFelt, seaResponse } from './session/sea';
 
 const hull = { length: 241, beam: 36, draft: 9.3 }, berth = { x: 240, z: 0, heading: 0 };
 const port = { ...createSeaState('north-atlantic', 'clear', 0x6e617661, 9), direction: 35 * Math.PI / 180 };
@@ -25,11 +25,13 @@ test('the sea response mirrors the authority: mean height under the hull and cla
   let mean = 0;
   for (const z of [-.4, -.2, 0, .2, .4]) for (const x of [-.3, .3]) mean += seaHeight(port, berth.x + x * hull.beam, berth.z + z * hull.length, 12) / 10;
   expect(wave.heave).toBeCloseTo(mean, 12);
-  expect(wave.roll).toBeCloseTo((seaHeight(port, berth.x + 14.4, 0, 12) - seaHeight(port, berth.x - 14.4, 0, 12)) / 28.8, 12);
+  // Roll feels the waves at half the draft, where shorter components have faded more.
+  expect(wave.roll).toBeCloseTo((seaHeightFelt(port, berth.x + 14.4, 0, 12, 4.65) - seaHeightFelt(port, berth.x - 14.4, 0, 12, 4.65)) / 28.8, 12);
+  expect(Math.abs(wave.roll)).toBeLessThan(Math.abs((seaHeight(port, berth.x + 14.4, 0, 12) - seaHeight(port, berth.x - 14.4, 0, 12)) / 28.8));
   expect(wave.pitch).toBeCloseTo((seaHeight(port, berth.x, -96.4, 12) - seaHeight(port, berth.x, 96.4, 12)) / 192.8, 12);
   // Heading turns the footprint with the hull: beam-on samples become fore and aft.
   const turned = seaResponse(port, hull, { ...berth, heading: Math.PI / 2 }, 12);
-  expect(turned.roll).toBeCloseTo((seaHeight(port, berth.x, 14.4, 12) - seaHeight(port, berth.x, -14.4, 12)) / 28.8, 12);
+  expect(turned.roll).toBeCloseTo((seaHeightFelt(port, berth.x, 14.4, 12, 4.65) - seaHeightFelt(port, berth.x, -14.4, 12, 4.65)) / 28.8, 12);
   const steep = seaResponse({ ...port, amplitudeM: 40, wavelengthM: 60 }, hull, berth, 3);
   expect(Math.abs(steep.roll)).toBeLessThanOrEqual(.18);
   expect(Math.abs(steep.pitch)).toBeLessThanOrEqual(.08);

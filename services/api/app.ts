@@ -4,9 +4,9 @@ import { timingSafeEqual } from 'node:crypto';
 import type { Auth } from './auth';
 import { ApiError, ShipStorage } from './storage';
 import { allowsOrigin } from './origins';
-import { ProgressStorage, readAward, readGrant, readUnlock } from './progress';
+import { ProgressStorage, readAdminAction, readAward, readUnlock } from './progress';
 export function createApp(auth: Auth, storage: ShipStorage, secret: string, origin: string, compilerURL: string, progress: ProgressStorage) {
-  const app = new Hono<{ Variables: { account: string; email: string } }>();
+  const app = new Hono<{ Variables: { account: string; email: string; role: string } }>();
   app.use('*', async (c,next) => { c.header('Cache-Control','no-store'); await next(); });
   app.use('*', bodyLimit({maxSize:17*1024*1024,onError:c=>c.json({code:'quota',error:'Source exceeds 16 MiB'},413)}));
   app.onError((error,c) => {
@@ -16,6 +16,15 @@ export function createApp(auth: Auth, storage: ShipStorage, secret: string, orig
   });
   app.get('/health', async c => { await storage.db.query('SELECT 1'); return c.json({ready:true}); });
   app.use('/api/auth/*',bodyLimit({maxSize:16*1024,onError:c=>c.json({message:'Authentication request is too large'},413)}));
+  // An administrator cannot remove their own admin role, so the last one cannot lock everyone out.
+  app.post('/api/auth/admin/set-role',async c=>{
+    const input = await c.req.raw.clone().json().catch(() => ({})) as { userId?: unknown; role?: unknown };
+    const session = await auth.api.getSession({headers:c.req.raw.headers,query:{disableCookieCache:true,disableRefresh:true}});
+    const roles = (Array.isArray(input.role) ? input.role : String(input.role ?? '').split(',')).map(role => String(role).trim());
+    if (session && input.userId === session.user.id && !roles.includes('admin'))
+      return c.json({code:'CANNOT_REMOVE_OWN_ADMIN_ROLE',message:'You cannot remove your own admin role.'},403);
+    return auth.handler(c.req.raw);
+  });
   app.on(['GET','POST'],'/api/auth/*',c=>auth.handler(c.req.raw));
   app.use('/internal/*', async (c,next) => {
     const supplied = c.req.header('x-service-secret') ?? '';
@@ -28,7 +37,7 @@ export function createApp(auth: Auth, storage: ShipStorage, secret: string, orig
     // Bind long-lived browser adapters to the account that created their draft.
     const expected = c.req.header('x-account-id');
     if (expected && expected !== session.user.id) return c.json({code:'unauthorized',error:'The account changed. This draft belongs to the previous account.'},401);
-    c.set('account',session.user.id); c.set('email',session.user.email); await next();
+    c.set('account',session.user.id); c.set('email',session.user.email); c.set('role',session.user.role ?? ''); await next();
   };
   const signedIn = async (c: any,next: () => Promise<void>) => {
     if (c.req.method !== 'GET' && !allowsOrigin(origin,c.req.header('origin'))) return c.json({code:'forbidden',error:'Origin not allowed'},403);
@@ -36,6 +45,12 @@ export function createApp(auth: Auth, storage: ShipStorage, secret: string, orig
   };
   app.use('/api/ships/*',signedIn);
   app.use('/api/progress/*',bodyLimit({maxSize:64*1024,onError:c=>c.json({code:'invalid',error:'Progress request is too large'},413)}),signedIn);
+  // Administrators: Better Auth's admin role, set in auth."user".role (see docs/accounts.md).
+  const administrator = async (c: any,next: () => Promise<void>) => {
+    if (!String(c.get('role')).split(',').map(role => role.trim()).includes('admin')) return c.json({code:'forbidden',error:'This account is not an administrator.'},403);
+    await next();
+  };
+  app.use('/api/admin/*',bodyLimit({maxSize:64*1024,onError:c=>c.json({code:'invalid',error:'Admin request is too large'},413)}),signedIn,administrator);
   app.use('/internal/*',account);
   app.get('/internal/session',c=>c.json({accountId:c.get('account')}));
   app.get('/api/ships', async c=>c.json(await storage.list(c.get('account'))));
@@ -52,10 +67,8 @@ export function createApp(auth: Auth, storage: ShipStorage, secret: string, orig
   app.post('/api/progress/unlocks',async c=>c.json(await progress.unlock(c.get('account'),readUnlock(await body(c)))));
   // The award is always computed here from the validated summary; a client-supplied award is ignored.
   app.post('/api/progress/awards',async c=>c.json(await progress.award(c.get('account'),readAward(await body(c)))));
-  app.post('/api/progress/dev',async c=>{
-    if (!progress.allowsDev(c.get('account'),c.get('email'))) throw new ApiError(403,'forbidden','Developer grants are not enabled for this account. List its id or email in PROGRESS_DEV_ACCOUNTS on the accounts API.');
-    return c.json({profile:await progress.grant(c.get('account'),readGrant(await body(c)))});
-  });
+  app.get('/api/admin/progress/:userId',async c=>c.json({profile:await progress.inspect(c.req.param('userId'))}));
+  app.post('/api/admin/progress/:userId',async c=>c.json({profile:await progress.admin(c.req.param('userId'),c.get('account'),readAdminAction(await body(c)))}));
   const preparing = new Set<string>();
   app.post('/internal/prepare',async c=>{
     const owner = c.get('account'), {fleet} = await c.req.json();

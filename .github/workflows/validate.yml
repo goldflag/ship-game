@@ -5,8 +5,9 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    # Room for a cold Rust cache (first run, or a Cargo.lock or toolchain change), which rebuilds the release workspace from scratch.
-    timeout-minutes: 60
+    # A full run takes about 53 minutes: rust-cache keeps dependencies, but the workspace crates rebuild in release for
+    # cargo test and again for the server smoke. Headroom so a slow runner doesn't turn CI red on its own.
+    timeout-minutes: 90
     services:
       postgres:
         image: postgres:17-bookworm
@@ -69,7 +70,8 @@ jobs:
         run: |
           cargo build --release --locked -p naval-server --bin naval-server
           cargo build --release --locked -p naval-sim --example compile_construction
-          POSTGRES_TEST_URL="$BATTLE_DATABASE_URL" cargo test --release -p naval-server ordered_postgres_flush_terminal_immutability_and_restart_abort -- --ignored
+          # The test refuses a URL without "_test" in it; this container's database is disposable, and the application name says so.
+          POSTGRES_TEST_URL="$BATTLE_DATABASE_URL?application_name=naval_ci_test" cargo test --release -p naval-server ordered_postgres_flush_terminal_immutability_and_restart_abort -- --ignored
           bun services/api/main.ts > /tmp/naval-api.log 2>&1 &
           naval_api_pid=$!
           bun services/compiler/worker.ts > /tmp/naval-compiler.log 2>&1 &

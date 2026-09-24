@@ -3,7 +3,6 @@ import type { DeveloperWeather, EnvironmentOverrides } from '../game/VisualEnvir
 import type { OceanRealism } from '../game/ocean/contracts';
 import type { OceanRenderer, SkyRenderer } from '../game/graphicsSettings';
 import { clampSetting, currentValue, isDeveloperConsoleKey, matchCommands, overrideCount, readingLabel, WEATHER_SETTINGS, type ConsoleMatch, type WeatherKey, type WeatherSetting } from './devConsoleCommands';
-import { useProgressStore } from './useProgress';
 import './DevConsole.css';
 
 /** The slice of the game the console reads and drives. */
@@ -45,7 +44,6 @@ const SKY_RENDERER_NAMES: Record<SkyRenderer, string> = { game: 'Game sky', skyp
  * and diagnostics. Weather chips scrub by dragging; a new scene clears them. */
 export function DevConsole({ host, oceanRenderer, skyRenderer }: { host: DevConsoleHost; oceanRenderer?: OceanRendererSwitch; skyRenderer?: SkyRendererSwitch }) {
   const [open, setOpen] = useState(false);
-  const progress = useProgressStore();
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const [weather, setWeather] = useState(() => host.developerWeather());
@@ -89,15 +87,6 @@ export function DevConsole({ host, oceanRenderer, skyRenderer }: { host: DevCons
     refresh();
   };
   const run = ({ command, value }: ConsoleMatch) => {
-    if (command.kind === 'progress') {
-      if (command.id === 'grantXp' && value === undefined) { setQuery('xp '); input.current?.focus(); return; }
-      const grant = command.id === 'grantXp' ? { xp: value } : command.id === 'unlockAll' ? { unlockAll: true } : { reset: true };
-      const done = command.id === 'grantXp' ? `Granted ${value!.toLocaleString('en-US')} XP to every nation and the free pool.`
-        : command.id === 'unlockAll' ? 'Every ship is unlocked.' : 'Research progress reset.';
-      progress.grant(grant).then(() => setNotice(done), (error: unknown) => setNotice(error instanceof Error ? error.message : String(error)));
-      setQuery(''); setActive(0);
-      return;
-    }
     if (command.kind === 'setting') {
       if (value === undefined) { setQuery(`${command.words[0]} `); input.current?.focus(); return; }
       apply({ ...overrides, [command.key]: value });
@@ -175,7 +164,6 @@ export function DevConsole({ host, oceanRenderer, skyRenderer }: { host: DevCons
 }
 
 function resultValue({ command, value }: ConsoleMatch, weather?: DeveloperWeather, renderer?: OceanRenderer, sky?: SkyRenderer) {
-  if (command.kind === 'progress') return command.id === 'grantXp' ? (value === undefined ? 'type an amount' : <b>+{value.toLocaleString('en-US')} XP</b>) : '';
   if (command.kind === 'action' && command.id === 'oceanRenderer')
     return renderer ? `${OCEAN_RENDERER_NAMES[renderer]} → ${OCEAN_RENDERER_NAMES[renderer === 'waterpro' ? 'game' : 'waterpro']}` : '';
   if (command.kind === 'action' && command.id === 'skyRenderer')

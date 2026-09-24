@@ -152,6 +152,8 @@ pub(crate) fn operate_cadenced(
     if let Some(k) = knowledge.filter(|_| policy.aa) {
         anti_aircraft::observable_air(actor, k, &mut observable);
     }
+    // Held lays between decisions all rotate through this tick's hull attitude.
+    let basis = actor.motion.basis();
     for (i, m) in def.mounts.iter().enumerate() {
         update_mount_carrier(def, i, &mut actor.mounts);
         if actor.damage.stability.combat_lost
@@ -169,6 +171,7 @@ pub(crate) fn operate_cadenced(
             actor.mounts[i].status = MountStatus::Disabled;
             actor.mounts[i].surface_elapsed = 0.;
             actor.mounts[i].surface_fire = false;
+            actor.mounts[i].lay = None;
             continue;
         }
         let independent_secondary = knowledge.is_some() && m.battery == "secondary";
@@ -226,6 +229,8 @@ pub(crate) fn operate_cadenced(
         {
             state.surface_elapsed = 0.;
             state.surface_fire = false;
+            // AA owns the mount now; an old surface lay must not pull it back.
+            state.lay = None;
             if state.reload > previous_reload {
                 actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
             }
@@ -236,6 +241,18 @@ pub(crate) fn operate_cadenced(
         // window must not cap a weapon authored above ten rounds per second.
         if !surface_update && m.weapon.reload_seconds >= 0.1 {
             advance_mount_clock(&mut state, ctx.dt, power);
+            hold_mount_lay(
+                i,
+                m,
+                &mut state,
+                def,
+                &actor.motion,
+                &basis,
+                ctx.dt,
+                power,
+                &compiled.obstructions,
+                &actor.mounts,
+            );
             actor.mounts[i] = state;
             continue;
         }

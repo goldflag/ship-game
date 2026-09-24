@@ -59,13 +59,11 @@ image copies. Stored profiles are always read through `sanitizeProfile`.
 | `GET /api/progress` | | `{profile}`; no row reads as the empty profile and writes nothing |
 | `POST /api/progress/unlocks` | `{nodeId}` | `{profile, spent}` |
 | `POST /api/progress/awards` | `{id, summary}` (`id` a UUID) | `{profile, award}` |
-| `POST /api/progress/dev` | `{xp?, unlockAll?, reset?}` | `{profile}` |
 
 The routes share the ship routes' session, `x-account-id` binding and write-origin checks,
 with a 64 KiB body limit. Errors are `{code, error}`: 400 `invalid` for a malformed body or
 summary; 409 with the rule's code (`insufficient-xp`, `prerequisite`, `owned`, `placeholder`,
-`unknown-node`) for a refused unlock; 409 `conflict` for a reused battle id; 403 `forbidden`
-for developer grants. Each change runs in one transaction under a per-account advisory lock.
+`unknown-node`) for a refused unlock; 409 `conflict` for a reused battle id. Each change runs in one transaction under a per-account advisory lock.
 
 The API validates the summary with `validateSummary` and computes the award with `awardFor`;
 an award sent by the client is ignored. A battle id pays once per account. The digest covers
@@ -79,13 +77,38 @@ battle happened, and does not limit how many battles an account reports. A modif
 can claim XP. Treat XP as progression only, never as a competitive or purchasable currency,
 until results come from an authoritative simulation.
 
-Developer grants are refused unless `PROGRESS_DEV_ACCOUNTS` lists the account: comma-separated
-user ids or emails, case-insensitive. `*` allows every account and is for a local API only; the
-API logs a warning when it is set. `reset` replaces the profile with the empty one and keeps the
-award records, so a reported battle never pays twice. Otherwise `xp` (0–1,000,000) goes to every
-nation and the free pool, and `unlockAll` opens every modelled ship. Vite proxies
-`/api/progress` with the other accounts routes, to production by default; the client treats a
-404 as progress unavailable and keeps every ship open.
+Vite proxies `/api/progress` and `/api/admin` with the other accounts routes, to production by
+default; the client treats a 404 as progress unavailable and keeps every ship open.
+
+## Administrators
+
+Better Auth's `admin` plugin adds `role`, `banned`, `banReason` and `banExpires` to
+`auth."user"` and `impersonatedBy` to `auth.session` (migration 004). New accounts get the role
+`user`; accounts older than the migration have none, which also means not an administrator.
+Promote an account on the host (Hermes: `cd /opt/ships/current`):
+
+```sh
+docker compose exec -T postgres psql -U ships_admin -d ships \
+  -c "UPDATE auth.\"user\" SET role='admin' WHERE email='<email>'"
+```
+
+An administrator can then promote or demote others on the admin page. The page is `/admin` on
+the game's own origin (`src/admin/`), loaded without the game bundle. It uses Better Auth's
+admin endpoints under `/api/auth/admin/*` to list and search accounts and set roles, and these
+routes for research:
+
+| Route | Body | Response |
+| --- | --- | --- |
+| `GET /api/admin/progress/:userId` | | `{profile}` |
+| `POST /api/admin/progress/:userId` | `AdminProgressAction` | `{profile}` |
+
+`AdminProgressAction` (`src/progression/rules.ts`) is one of `grant-xp` (`amount`, an integer
+within ±1,000,000, may be negative to correct a balance that never drops below zero; `pool` a
+nation, `free` or `all`), `unlock` or `lock` (`nodeId`; a gift spends no XP, starters cannot be
+locked), `unlock-all` (`value`) and `reset` (keeps award records, so a reported battle never pays
+twice). The routes need a session whose role includes `admin` (403 `forbidden` otherwise) and an
+allowed Origin for writes; an unknown account is 404 `not-found`. Every change is appended to
+`progress.admin_actions` with the administrator's id; the API role can only read and insert it.
 
 ## Online construction
 
@@ -122,7 +145,7 @@ Install PostgreSQL 17, create the runtime/migration roles using
 `MIGRATION_DATABASE_URL`. `compose.yml` provisions these roles on a new database
 volume. Use separate randomly generated credentials (URL-safe hex is convenient).
 Set `API_DATABASE_URL`, `BATTLE_DATABASE_URL`, `BETTER_AUTH_SECRET`, `SERVICE_SECRET`,
-`ACCOUNTS_URL` and `AUTH_ORIGIN` (and `PROGRESS_DEV_ACCOUNTS=*` for developer XP grants). Set `AUTH_ORIGIN=http://localhost:5173` for local
+`ACCOUNTS_URL` and `AUTH_ORIGIN`. Set `AUTH_ORIGIN=http://localhost:5173` for local
 development. A loopback auth origin also trusts HTTP(S) origins on `localhost`,
 `127.0.0.1` and `[::1]` at other ports, so the same API supports Vite worktrees.
 Leave `NAVAL_ORIGIN` unset locally: Rust checks that Origin matches Host through

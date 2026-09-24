@@ -22,12 +22,7 @@ export interface ConsoleAction {
   kind: 'action'; id: 'reset' | 'diagnostics' | 'bowWaves' | 'oceanRenderer' | 'skyRenderer' | RealismToggle;
   group: 'Weather' | 'Diagnostics' | 'Water' | 'Sky'; label: string; words: string[];
 }
-/** Research progress for testing: grant XP, open every ship, or start over. The accounts API allows these
- * only for accounts in PROGRESS_DEV_ACCOUNTS; the account-free harness always does. */
-export interface ProgressCommand {
-  kind: 'progress'; id: 'grantXp' | 'unlockAll' | 'resetProgress'; group: 'Progress'; label: string; words: string[];
-}
-export type ConsoleCommand = WeatherSetting | WeatherPreset | ConsoleAction | ProgressCommand;
+export type ConsoleCommand = WeatherSetting | WeatherPreset | ConsoleAction;
 
 const trim = (value: number, digits = 1) => String(Number(value.toFixed(digits)));
 const MOON_PHASES = ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'];
@@ -67,12 +62,7 @@ export const CONSOLE_ACTIONS: ConsoleAction[] = [
   { kind: 'action', id: 'oceanRenderer', group: 'Water', label: 'Switch ocean renderer', words: ['switch', 'ocean', 'renderer', 'water', 'pro', 'waterpro', 'library', 'compare', 'comparison', 'toggle'] },
   { kind: 'action', id: 'skyRenderer', group: 'Sky', label: 'Switch sky renderer', words: ['switch', 'sky', 'renderer', 'skypro', 'library', 'compare', 'comparison', 'toggle'] },
 ];
-export const PROGRESS_COMMANDS: ProgressCommand[] = [
-  { kind: 'progress', id: 'grantXp', group: 'Progress', label: 'Grant XP to every nation and the free pool', words: ['xp', 'grant', 'research', 'experience'] },
-  { kind: 'progress', id: 'unlockAll', group: 'Progress', label: 'Unlock every ship', words: ['unlock', 'all', 'ships', 'research', 'tree'] },
-  { kind: 'progress', id: 'resetProgress', group: 'Progress', label: 'Reset research progress', words: ['progress', 'reset', 'research', 'tree', 'xp'] },
-];
-export const CONSOLE_COMMANDS: ConsoleCommand[] = [...WEATHER_SETTINGS, ...WEATHER_PRESETS, ...CONSOLE_ACTIONS, ...PROGRESS_COMMANDS];
+export const CONSOLE_COMMANDS: ConsoleCommand[] = [...WEATHER_SETTINGS, ...WEATHER_PRESETS, ...CONSOLE_ACTIONS];
 
 export function clampSetting(setting: WeatherSetting, value: number): number {
   if (setting.wrap) return ((value - setting.min) % (setting.max - setting.min) + (setting.max - setting.min)) % (setting.max - setting.min) + setting.min;
@@ -98,11 +88,6 @@ export function matchCommands(query: string, locked = false): ConsoleMatch[] {
     if (locked && command.kind === 'action' && command.id === 'reset') continue;
     if (!words.every(word => command.words.some(candidate => candidate.startsWith(word)) || command.label.toLowerCase().split(/\s+/).some(part => part.startsWith(word)))) continue;
     if (valueToken === undefined) { matches.push({ command }); continue; }
-    if (command.kind === 'progress' && command.id === 'grantXp') {
-      const amount = /^\d+$/.test(valueToken) ? Number(valueToken) : undefined;
-      if (amount !== undefined) matches.push({ command, value: Math.min(amount, 1_000_000) });
-      continue;
-    }
     if (command.kind !== 'setting') continue;
     const value = parseValue(command.key, valueToken);
     if (value !== undefined) matches.push({ command, value: clampSetting(command, value) });
