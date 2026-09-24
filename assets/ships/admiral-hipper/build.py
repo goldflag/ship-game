@@ -106,13 +106,10 @@ for side in [-1,1]:
 COL=C['Superstructure']
 for s in D['structures']:
  OWNER=s['id'];structure=authored_structure(s,mesh,M,COL)
- if s['id'].startswith('funnel-') and s['id'] not in platform_ids:
-  structure.data.materials.append(M['dark'])
-  for face in structure.data.polygons:
-   if face.normal.z>.9:face.material_index=1
  # Paint the authored top faces without adding height above the declared
- # supporting deck, which is also the equipment installation datum.
- if not s.get('surface') and s['id'] not in platform_ids and not s['id'].startswith(('funnel-','bulwark-')):
+ # supporting deck, which is also the equipment installation datum. The funnel
+ # casing's top is its jacket ledge; the soot floor inside the cap is drawn below.
+ if not s.get('surface') and s['id'] not in platform_ids and not s['id'].startswith('bulwark-'):
   pts=[(-z,-x) for x,z in s['footprint']];top=s['baseY']+s['height']
   structure.data.materials.append(M['roof'])
   for face in structure.data.polygons:
@@ -141,16 +138,19 @@ platform('navigation-gallery',[(27,-4.7),(35,-5.85),(41.8,-5.35),(43.9,-3.6),(45
 pts=[(9+5.5*math.cos(i*math.tau/36),4.2*math.sin(i*math.tau/36)) for i in range(36)]
 platform('funnel-searchlight-gallery',pts,16.2,14.6,.86,'roof')
 OWNER='funnel-cap';n=48;verts=[]
-for cx,rx,ry,z,slope in [(10.7,5.3,2.26,18.75,0),(9.7,4.0,1.67,21.77,.425),(9.7,3.85,1.52,21.77,.425),(10.7,5.12,2.08,18.75,0)]:
+# The cap stands inside the jacket's rim: 9.3 m by 3.9 m at its foot, raked so
+# its crown rises about 0.41 m per metre towards the bow.
+for cx,rx,ry,z,slope in [(10.85,4.65,1.95,18.8,0),(10.05,3.75,1.70,21.85,.41),(10.05,3.6,1.55,21.85,.41),(10.85,4.5,1.80,18.8,0)]:
  for i in range(n):
   a=i*math.tau/n;x=cx+rx*math.cos(a);verts.append((x,ry*math.sin(a),z+slope*(x-cx)))
 faces=[(j*n+i,j*n+(i+1)%n,((j+1)%4)*n+(i+1)%n,((j+1)%4)*n+i) for j in range(4) for i in range(n)]
 mesh('Swept open funnel cap',verts,faces,'roof',smooth=True)
-for xx in [7.3,8.5,9.7,10.9,12.1]:
- yy=1.52*math.sqrt(1-((xx-9.7)/3.85)**2)
- rod('Funnel rain grating',(xx,-yy,21.77+.425*(xx-9.7)),(xx,yy,21.77+.425*(xx-9.7)),.042,'edge')
+ellipse('Funnel soot floor',10.85,0,18.8,4.5,1.8,.015,'dark')
+for xx in [7.0,8.2,9.4,10.6,11.8,13.0]:
+ yy=1.55*math.sqrt(max(0,1-((xx-10.05)/3.6)**2))
+ if yy>.2:rod('Funnel rain grating',(xx,-yy,21.85+.41*(xx-10.05)),(xx,yy,21.85+.41*(xx-10.05)),.042,'edge')
 # The grating is tied to the cap's rim by longitudinal rails.
-for yy in [-.55,.55]:rod('Funnel grate rail',(6.05,yy,20.22),(13.35,yy,23.32),.035,'edge')
+for yy in [-.55,.55]:rod('Funnel grate rail',(6.55,yy,21.85+.41*(6.55-10.05)),(13.55,yy,21.85+.41*(13.55-10.05)),.035,'edge')
 # Original searchlights: fork bearings and drum backs meet their platform bases.
 OWNER='searchlights'
 for x,y,z in [(9.3,-3.9,16.3),(9.3,3.9,16.3),(-17.4,-1.7,15.6),(-17.4,1.7,15.6)]:
@@ -319,15 +319,13 @@ for side in [-1,1]:
 # Boat stowage decks and original open boats match the visible grouped fit.
 COL=C['Fittings'];OWNER='boats';f=detail()
 for side in [-1,1]:
- y=side*5.2
- for x in [9.24,15.44]:
-  box('Boat stowage cross beam',(x,y,8.18),(.35,3.0,.22),'edge')
-  for yy in [side*4.4,side*6.2]:rod('Boat rack leg',(x,yy,deck(x-1.3)),(x,yy,8.15),.09)
- f.boat('Traffic boat',12.4,y,8.30,11.7,2.65,True)
- xx,yy,zz=11.4 if side<0 else 12.7,side*(7.7 if side<0 else 8.0),7.8
+ # Traffic boats stand in their cradles on the shelter deck beside the funnel;
+ # the after cutters ride outriggers from the shelter-deck edge.
+ f.boat('Traffic boat',12.4,side*5.25,7.28,11.7,2.65,True)
+ xx,yy,zz=12.55,side*7.87,7.34
  f.boat('Torpedo cutter',xx,yy,zz,7.5,1.82,False)
  for dx in [-2.0,2.0]:
-  rod('Cutter cradle outrigger',(xx+dx,side*6.0,zz-.15),(xx+dx,yy,zz-.15),.10)
+  rod('Cutter cradle outrigger',(xx+dx,side*5.3,zz-.15),(xx+dx,yy,zz-.15),.10)
   rod('Cutter rack brace',(xx+dx,side*6.0,deck(xx+dx-1.3)),(xx+dx,yy,zz-.15),.08)
  # The forward cutter hangs above the torpedo bay in its own end-supported
  # frame. There are no deck-to-cradle diagonal legs across the launcher's path.
@@ -344,30 +342,30 @@ for side in [-1,1]:
   rod('Suspended cutter cradle',(xx,side*7.6,8.72),(xx,side*9.7,8.72),.09)
   rod('Cutter cradle stay',(xx,side*7.6,7.85),(xx,side*9.2,8.72),.055)
   for lat in [8.45,9.95]:rod('Cutter lifting sling',(xx,side*9.2,11.32),(xx,side*lat,9.7),.018,'rope',vertices=5)
-# Aft motor launch cradles connect to the hangar side framing.
-for x,y,z,l,w,cabin in [(-11.3,-5.3,10.2,9,2.35,True),(-11.5,5.5,10.2,10,2.4,False)]:
+# The after boats ride shelves on the low hangar section's sides: a motor boat
+# to starboard and the captain's gig to port, as in the reference.
+for x,y,z,l,w,cabin in [(-11.5,-5.47,9.73,11.4,2.6,True),(-11.5,5.35,9.32,9.2,2.4,True)]:
  for xx in [x-2.5,x+2.5]:
-  rod('Aft launch shelf',(xx,y*.62,9.94),(xx,y+(.9 if y>0 else -.9),9.94),.11)
-  rod('Shelf diagonal',(xx,y*.62,7.4),(xx,y,9.94),.10)
+  rod('Aft launch shelf',(xx,y*.70,z-.27),(xx,y+(.9 if y>0 else -.9),z-.27),.11)
+  rod('Shelf diagonal',(xx,math.copysign(4.0,y),7.6),(xx,y,z-.27),.10)
  f.boat('Aft launch',x,y,z,l,w,cabin)
-# Catapult: turntable and a narrow lattice track on the hangar roof.
-OWNER='catapult';x=-9.1;z=12.2
-cyl('Catapult bearing',(x,0,z+.20),1.18,.40,'edge')
+# Catapult: turntable on its pedestal and a lattice track at the reference's height.
+OWNER='catapult';x=-9.1;z=12.1
+cyl('Catapult bearing',(x,0,z+.35),1.18,.70,'edge')
 for yy in [-.43,.43]:
- rod('Catapult upper rail',(x-5.2,yy,z+1.08),(x+7.4,yy,z+1.08),.065,'edge')
- rod('Catapult lower chord',(x-5.2,yy,z+.40),(x+7.4,yy,z+.40),.06)
+ rod('Catapult upper rail',(x-5.2,yy,z+1.53),(x+7.4,yy,z+1.53),.065,'edge')
+ rod('Catapult lower chord',(x-5.2,yy,z+.85),(x+7.4,yy,z+.85),.06)
  for i in range(13):
-  xx=x-5.2+i*.97;rod('Catapult lattice',(xx,yy,z+.4),(xx+.97,yy,z+1.08),.035)
-for xx in [x-4,x-2,x,x+2,x+4,x+6]:rod('Catapult cross tie',(xx,-.45,z+.75),(xx,.45,z+.75),.035)
-box('Catapult shuttle',(x+2.0,0,z+1.19),(1.9,1.25,.18),'edge')
-for yy in [-.52,.52]:rod('Aircraft cradle',(x+1.3,yy,z+1.27),(x+2.6,yy,z+1.27),.052)
-# Hangar roof rails, aft door shutters and maintenance stairs.
-for yy in [-2.80,2.80]:
- rails('Hangar roof safety rail',[(-14.4,yy,12.2),(1.9,yy,12.2)],.74)
-for yy in [-2.5,-1.5,-.5,.5,1.5,2.5]:box('Hangar door shutter',(-15.82,yy,8.0),(.08,.98,5.5),'edge')
+  xx=x-5.2+i*.97;rod('Catapult lattice',(xx,yy,z+.85),(xx+.97,yy,z+1.53),.035)
+for xx in [x-4,x-2,x,x+2,x+4,x+6]:rod('Catapult cross tie',(xx,-.45,z+.85),(xx,.45,z+.85),.035)
+box('Catapult turntable saddle',(x,0,z+.82),(2.2,1.0,.2),'edge')
+box('Catapult shuttle',(x+2.0,0,z+1.64),(1.9,1.25,.18),'edge')
+for yy in [-.52,.52]:rod('Aircraft cradle',(x+1.3,yy,z+1.72),(x+2.6,yy,z+1.72),.052)
+# Hangar roof rails and the shoulder louvres.
+for yy in [-4.45,4.45]:
+ rails('Hangar roof safety rail',[(-6.8,yy,12.1),(5.4,yy,12.1)],.74)
 for side in [-1,1]:
- f.stairs('Hangar side access',(-2,side*6.4,deck(-3.3)),(-7.1,side*3.50,10.0),.75)
- for xx in [-11.7,-5.5]:f.vent('Hangar upper intake',xx,side*3.57,9.65,2.7,.85)
+ for xx in [3.0,-1.5]:f.vent('Hangar side louvre',xx,side*6.31,8.35,2.7,.85)
 # Correctly seated small optical finders, exposed binocular stations and sights.
 COL=C['Superstructure'];OWNER='bridge-fittings'
 for x,y,z,span in [(35.6,0,14.8,6),(28.6,0,16.9,3.5),(27.2,-6.5,12.4,3.5),(27.2,6.5,12.4,3.5)]:
@@ -386,8 +384,8 @@ for x,y,z in [(35.5,-4,12.5),(35.5,4,12.5),(25.6,-3.6,25.1),(25.6,3.6,25.1),(33.
 # Watertight accesses, ventilation louvers, portholes and pipe runs on actual walls.
 COL=C['Fittings'];OWNER='access-and-ventilation';f=detail()
 for side in [-1,1]:
- for x,y,z in [(38,6.93,5.0),(27,4.50,7.25),(-28,6.53,4.9),(-38,6.53,4.9),(-32,4.88,7.3),(-4,3.59,4.8)]:f.door('Watertight door',x,side*y,z)
- for x,y,z,w,h in [(-30,6.55,6.0,1.6,1.6),(-36,6.55,6,2.0,1.6),(-40,4.29,8.5,1.1,1.5),(22,5.08,6,1.6,1.2),(39,4.46,8.4,1.1,1.0),(10,2.06,13.0,1.0,1.5)]:f.vent('Intake grille',x,side*y,z,w,h)
+ for x,y,z in [(38,6.93,5.0),(27,4.50,7.25),(-28,6.53,4.9),(-38,6.53,4.9),(-32,4.88,7.3),(-4,6.62,4.8)]:f.door('Watertight door',x,side*y,z)
+ for x,y,z,w,h in [(-30,6.55,6.0,1.6,1.6),(-36,6.55,6,2.0,1.6),(-40,4.29,8.5,1.1,1.5),(22,5.08,6,1.6,1.2),(39,4.46,8.4,1.1,1.0),(10,2.30,13.0,1.0,1.5)]:f.vent('Intake grille',x,side*y,z,w,h)
  for x,y,z in [(22,5.09,6.45),(24,5.09,6.45),(34,6.94,6.45),(37,6.94,6.45),(-23,4.72,6.15),(-27,6.53,6.15),(-34,6.53,6.15),(-37,6.53,6.15)]:
   rod('Porthole glass',(x,side*y,z),(x,side*(y+.025),z),.18,'glass',vertices=20)
   f.ring('Porthole rim',(x,side*(y+.025),z),.20,.027,'y')

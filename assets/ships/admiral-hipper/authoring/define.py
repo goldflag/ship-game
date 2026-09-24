@@ -45,8 +45,28 @@ def shape(id,name,pts,base,top,material='naval',roof=None):
 def rr(x,y,l,w,r=.6,n=3):
  return [(round(x+sx*(l/2-r)+r*math.cos(math.radians(a)),4),round(y+sy*(w/2-r)+r*math.sin(math.radians(a)),4)) for sx,sy,start in [(1,1,0),(-1,1,90),(-1,-1,180),(1,-1,270)] for a in [start+i*90/n for i in range(n+1)]]
 def ellipse_points(x,y,a,b,n=40):return [(x+a*math.cos(i*math.tau/n),y+b*math.sin(i*math.tau/n)) for i in range(n)]
+def loft(id,name,rings,material='naval'):
+ """Closed solid through horizontal rings [(points, height)] of equal point count."""
+ n=len(rings[0][0]);m=len(rings);vs=[];tri=[]
+ for pts,z in rings:vs+=[[-y,z,round(-x+ORIGIN,4)] for x,y in pts]
+ for i in range(1,n-1):tri.extend([[0,i+1,i],[(m-1)*n,(m-1)*n+i,(m-1)*n+i+1]])
+ for r in range(m-1):
+  for i in range(n):j=(i+1)%n;a=r*n;b=a+n;tri.extend([[a+i,a+j,b+j],[a+i,b+j,b+i]])
+ widest=max(rings,key=lambda r:max(p[0] for p in r[0])-min(p[0] for p in r[0])+max(p[1] for p in r[0]))[0]
+ base=min(z for p,z in rings);top=max(z for p,z in rings)
+ return {'id':id,'name':name,'footprint':[[-y,round(-x+ORIGIN,4)] for x,y in widest],'baseY':base,'height':round(top-base,4),'material':material,'surface':{'vertices':vs,'triangles':tri}}
+def side_prism(id,name,profile,half,material='naval'):
+ """Solid of a side profile [(forward, height)], counterclockwise, extruded across +/-half."""
+ n=len(profile);vs=[[s*half,z,round(-x+ORIGIN,4)] for s in [-1,1] for x,z in profile];tri=[]
+ for i in range(1,n-1):tri.extend([[0,i,i+1],[n,n+i+1,n+i]])
+ for i in range(n):j=(i+1)%n;tri.extend([[i,n+j,j],[i,n+i,n+j]])
+ xs=[x for x,z in profile]
+ return {'id':id,'name':name,'footprint':[[-half,round(-max(xs)+ORIGIN,4)],[half,round(-max(xs)+ORIGIN,4)],[half,round(-min(xs)+ORIGIN,4)],[-half,round(-min(xs)+ORIGIN,4)]],'baseY':min(z for x,z in profile),'height':round(max(z for x,z in profile)-min(z for x,z in profile),4),'material':material,'surface':{'vertices':vs,'triangles':tri}}
+# Funnel casing measured on the reference: 9.32 m by 4.56 m above the collar that
+# flares it into the funnel house, a slightly longer jacket above the gallery.
+FUNNEL_X=10.96
 structures=[
- shape('forward-shelter','Forward shelter deck',[(17,-5.5),(19,-5.5),(20,-5.4),(21,-5.06),(25,-5.06),(26,-6.5),(27,-6.9),(42,-6.9),(48,-4.3),(54,-3.6),(55,-2.4),(55,2.4),(54,3.6),(48,4.3),(42,6.9),(27,6.9),(26,6.5),(25,5.06),(21,5.06),(20,5.4),(19,5.5),(17,5.5)],4.65,7.12),
+ shape('forward-shelter','Forward shelter deck',[(5.55,-5.5),(19,-5.5),(20,-5.4),(21,-5.06),(25,-5.06),(26,-6.5),(27,-6.9),(42,-6.9),(48,-4.3),(54,-3.6),(55,-2.4),(55,2.4),(54,3.6),(48,4.3),(42,6.9),(27,6.9),(26,6.5),(25,5.06),(21,5.06),(20,5.4),(19,5.5),(5.55,5.5)],4.65,7.12),
  shape('forward-battery-house','Forward battery deckhouse',[(21.3,-4.48),(32.5,-4.48),(34.5,-3.4),(36.5,-3.4),(37.8,-4.43),(40.5,-4.43),(42,-4.03),(43,-3.34),(44.45,-2.3),(44.45,2.3),(43,3.34),(42,4.03),(40.5,4.43),(37.8,4.43),(36.5,3.4),(34.5,3.4),(32.5,4.48),(21.3,4.48)],7.12,9.42),
  shape('bridge-lower','Lower bridge and navigation deck',[(27,-4.65),(32.5,-4.65),(34.5,-3.59),(36.5,-3.59),(37.8,-4.43),(40.5,-4.43),(42,-4.03),(43,-3.34),(44.45,-2.3),(44.45,2.3),(43,3.34),(42,4.03),(40.5,4.43),(37.8,4.43),(36.5,3.59),(34.5,3.59),(32.5,4.65),(27,4.65)],9.42,12.1),
  shape('conning-tower','Armored conning position',rr(36.4,0,6.4,5.6,2),7.12,12.85),
@@ -55,23 +75,34 @@ structures=[
  shape('tower-wheelhouse','Tower enclosed wheelhouse',[(21.8,-3),(25.5,-3),(27.4,-2.4),(27.8,-1.3),(27.8,1.3),(27.4,2.4),(25.5,3),(21.8,3)],17,19.25),
  shape('tower-upper-shaft','Forward tower upper shaft',rr(24.0,0,4.7,3.6,.4),19.25,25.2),
  shape('tower-director-base','Main director base',[(21.25, 0), (21.45, -0.2), (24.2, -2.6), (24.7, -2.73), (25.05, -2.68), (25.5, -2.38), (25.7, -1.75), (25.82, -0.9), (25.84, 0), (25.82, 0.9), (25.7, 1.75), (25.5, 2.38), (25.05, 2.68), (24.7, 2.73), (24.2, 2.6), (21.45, 0.2)],25.2,27.12),
- shape('funnel-base','Funnel lower uptake',rr(10.7,0,10.0,4.08,1.95,8),4.6,16.65),
- shape('funnel-jacket','Funnel jacket',rr(10.7,0,10.6,4.52,2.20,8),16.65,18.75),
- shape('hangar','Aircraft hangar',rr(-5.575,0,20.45,7.1,.35),4.6,12.2),
- shape('aft-shelter','Aft shelter and battery deck',[(-53,-2.6),(-50,-4),(-44,-6.5),(-26,-6.5),(-25,-5.64),(-24,-4.69),(-19,-4.69),(-18,-4),(-17,-2.8),(-17,2.8),(-18,4),(-19,4.69),(-24,4.69),(-25,5.64),(-26,6.5),(-44,6.5),(-50,4),(-53,2.6)],4.75,7.18),
+ shape('funnel-base','Funnel lower uptake',rr(FUNNEL_X,0,9.32,4.56,2.2,8),4.6,16.3),
+ loft('funnel-collar','Funnel base collar',[(rr(FUNNEL_X-.15,0,10.9,5.3,2.55,8),9.3),(rr(FUNNEL_X-.15,0,10.3,5.0,2.4,8),10.6),(rr(FUNNEL_X,0,9.32,4.56,2.2,8),12.3)]),
+ shape('funnel-jacket','Funnel jacket',rr(FUNNEL_X,0,9.72,4.72,2.3,8),16.3,18.8),
+ # The funnel house runs forward from the casing to the tower at shelter-deck
+ # height, and a sloping fillet carries the casing's front down onto it.
+ shape('funnel-house','Funnel house',[(15.3,-3.0),(21.1,-3.0),(21.1,3.0),(15.3,3.0)],7.12,9.3),
+ side_prism('funnel-fillet','Funnel front fillet',[(15.55,9.3),(18.7,9.3),(15.55,12.4)],1.95),
+ # Hangar: a full-height block ahead of the catapult with sloping shoulders over
+ # its boat ledges, then a low after section; all on a shelter deck.
+ shape('hangar-lower','Hangar shelter deck',[(5.55,-6.6),(-6.95,-6.6),(-7.25,-5.0),(-15.5,-5.0),(-15.5,5.0),(-7.25,5.0),(-6.95,6.6),(5.55,6.6)],4.6,7.12),
+ shape('hangar','Aircraft hangar',[(5.55,-6.3),(-6.95,-6.3),(-6.95,6.3),(5.55,6.3)],7.12,12.1),
+ shape('hangar-aft','Hangar after section',[(-6.95,-4.0),(-15.5,-4.0),(-15.5,4.0),(-6.95,4.0)],7.12,9.6),
+ shape('catapult-pedestal','Catapult turntable pedestal',rr(-9.0,0,4.3,4.2,2.0,4),9.6,12.1),
+ shape('aft-shelter','Aft shelter and battery deck',[(-53,-2.6),(-50,-4),(-44,-6.5),(-26,-6.5),(-15.5,-6.6),(-15.5,6.6),(-26,6.5),(-44,6.5),(-50,4),(-53,2.6)],4.75,7.18),
  shape('aft-deckhouse','Aft command deckhouse',[(-41.5, -2.5), (-41, -3.42), (-39, -4.87), (-38, -5.22), (-32, -5.28), (-31, -4.98), (-30, -4.28), (-29.5, -3.96), (-25, -3.96), (-24.5, -4.29), (-24, -4.7), (-21, -4.73), (-20, -5.7), (-19, -6.14), (-18, -5.73), (-17.4, -3.1), (-17.4, 3.1), (-18, 5.73), (-19, 6.14), (-20, 5.7), (-21, 4.73), (-24, 4.7), (-24.5, 4.29), (-25, 3.96), (-29.5, 3.96), (-30, 4.28), (-31, 4.98), (-32, 5.28), (-38, 5.22), (-39, 4.87), (-41, 3.42), (-41.5, 2.5)],7.18,9.72),
  shape('aft-director-house','Aft director house',[(-38.8,0),(-38,1.1),(-37,1.84),(-36,2.89),(-35,3.89),(-29,3.89),(-28,2.68),(-27.6,0),(-28,-2.68),(-29,-3.89),(-35,-3.89),(-36,-2.89),(-37,-1.84),(-38,-1.1)],9.72,11.8),
  shape('aft-director-base','Aft main director pedestal',[(-37, 0), (-36, -0.88), (-34, -1.53), (-32.5, -1.65), (-31.5, -1.56), (-31, -1.43), (-30.5, -0.85), (-30.2, 0), (-30.5, 0.85), (-31, 1.43), (-31.5, 1.56), (-32.5, 1.65), (-34, 1.53), (-36, 0.88)],11.85,14.2),
 ]
-# The hangar has a raised flat center and sloping roof shoulders. Perimeter
-# heights alone lose the ridge, which also carries the catapult bearing.
+# The hangar has a raised flat roof and sloping shoulders down to the boat ledges.
+# Perimeter heights alone lose the shoulders, so it carries its own section.
 hangar=next(s for s in structures if s['id']=='hangar')
-section=[(-3.55,4.6),(-3.55,10.65),(-2.9,12.2),(2.9,12.2),(3.55,10.65),(3.55,4.6)]
-vertices=[[-y,z,round(-x+ORIGIN,4)] for x in [-15.8,4.65] for y,z in section]
+section=[(-6.3,7.12),(-6.3,9.55),(-5.9,10.2),(-4.6,12.1),(4.6,12.1),(5.9,10.2),(6.3,9.55),(6.3,7.12)]
+k=len(section)
+vertices=[[-y,z,round(-x+ORIGIN,4)] for x in [-6.95,5.55] for y,z in section]
 triangles=[]
-for i in range(1,5):triangles.extend([[0,i+1,i],[6,6+i,7+i]])
-for i in range(6):
- j=(i+1)%6;triangles.extend([[i,j,j+6],[i,j+6,i+6]])
+for i in range(1,k-1):triangles.extend([[0,i+1,i],[k,k+i,k+i+1]])
+for i in range(k):
+ j=(i+1)%k;triangles.extend([[i,j,j+k],[i,j+k,i+k]])
 hangar['surface']={'vertices':vertices,'triangles':triangles}
 # Director housings are part of the same authored structure contract, so the
 # physical optical shoulders also constrain nearby elevating AA guards.
