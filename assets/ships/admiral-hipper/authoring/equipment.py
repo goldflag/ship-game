@@ -31,6 +31,10 @@ for m in mounts:
  elif '-40-1' in id:m['bearingDeg']=sign*45
 for m in mounts:
  if m['partId']=='flak38-m43u-20-twin':m['initialElevationDeg']=30
+# Mount fire profiles belong to the damage-control helper; keep what it wrote.
+fires={m['id']:m['fire'] for m in b.get('mounts',[]) if 'fire' in m}
+for m in mounts:
+ if m['id'] in fires:m['fire']=fires[m['id']]
 b['mounts']=mounts
 b['modules']=[m for m in b['modules'] if m['kind'] not in ['launcher','fire-control']]
 for id,x,z in [('forward',23.7,28.4),('aft',-31.6,15.2)]:
@@ -44,6 +48,7 @@ for side,y,arc in [('port',1,[-130,-50]),('starboard',-1,[50,130])]:
   b['torpedoLaunchers'].append(dict(id=id,name=f'{side.title()} triple 533 mm {i+1}',position=pos,traverseRateDeg=10,launchArcsDeg=[arc],traverseLimitsDeg=[-150,0] if y==1 else [0,150]))
   b['modules'].append(dict(id=id+'-equipment',name=f'{side.title()} torpedo mount {i+1}',kind='launcher',placement='fixed',center=[pos[0],5.6,pos[2]],size=[3.18,1.9,8.25],hp=95,protectionMm=5,torpedoLauncherId=id))
   for j in range(3):b['torpedoTubes'].append(dict(id=id+f'-tube-{j+1}',name=f'Tube {j+1}',partId='g7a-ti-fast',position=[pos[0]+(j-1)*.7215,5.307,pos[2]-4.67],bearingDeg=0,arcDeg=2,ammo=1,magazineId='forward-magazine' if x>0 else 'aft-magazine',launcherId=id,launcherModuleId=id+'-equipment'))
+b['modules']=[m for m in b['modules'] if not m['id'].startswith('support-')]+[m for m in b['modules'] if m['id'].startswith('support-')]
 b['accuracy']['weapons']='Approved A fit: four 203 mm twins, six 105 mm twins, four 37 mm twins, six 40 mm singles, eight 20 mm twins, six 20 mm singles, and four triple 533 mm launchers. Ballistics, stocks, armor, and operating limits are provisional game conventions.'
 platform_heights=install(b)
 b['mountClearance']={'version':1,'marginM':.02,'basis':'Provisional game interlock envelopes for the original fitted geometry. Gunhouse body boxes cover the upper armored houses; the low bearing/skirt interfaces are swept separately on original meshes. Independent neighbor and whole-assembly visual review remains required.','mounts':[{'mountId':m['id'],'barrelRadiusM':.29 if m['battery']=='main' else .15 if '-105-' in m['id'] else .075,'body':{'center':[0,1.755 if m['rangefinder'] else 1.42,1.45],'size':[8.05 if m['rangefinder'] else 6.64,3.11 if m['rangefinder'] else 2.44,8.05]}} if m['battery']=='main' else {'mountId':m['id'],'barrelRadiusM':.15 if '-105-' in m['id'] else .075} for m in mounts],'structures':[{'structureId':s['id'],'topExtensionM':platform_heights.get(s['id'],.1)} for s in b['structures']],'neighbors':[[a['id'],c['id']] for i,a in enumerate(mounts) for c in mounts[i+1:] if math.dist(a['position'],c['position'])<17]}
@@ -90,4 +95,5 @@ for side in [-1,1]:
   ya=side*(.8+i*.85);yc=side*(.8+(i+1)*.85);xa=73.5-abs(ya)*.8;xc=73.5-abs(yc)*.8
   fixed(f'breakwater-{side}-{i}',(xa,ya,deck(xa)),(xc,yc,deck(xa)+.85),.04)
   fixed(f'breakwater-stay-{side}-{i}',(xa-1,ya,deck(xa)),(xa,ya,deck(xa)+.75),.045)
-p.write_text(json.dumps(b,indent=2)+'\n')
+def js(o):return {k:js(v) for k,v in o.items()} if isinstance(o,dict) else [js(v) for v in o] if isinstance(o,list) else int(o) if isinstance(o,float) and o.is_integer() else o
+p.write_text(json.dumps(js(b),indent=2,ensure_ascii=False)+'\n')

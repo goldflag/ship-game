@@ -96,9 +96,17 @@ D={'schemaVersion':1,'id':'admiral-hipper','name':'Admiral Hipper','configuratio
 'armor':[],'structuralPlating':{'hullMm':18,'superstructureMm':10,'note':'Provisional game steel thicknesses; visual model does not establish armor specifications.'},
 'compartments':comp,'modules':modules,'connections':[{'fromId':comp[i]['id'],'toId':comp[i+1]['id'],'areaM2':.045,'state':'closed'} for i in range(len(comp)-1)],'obstructions':[],
 'viewpoints':{'bridge':[0,19.0,-25.4]},'accuracy':{'exterior':'Original construction against approved pgsc108 A fit; hull and superstructure review in progress.','internals':'Provisional game compartments and loading, not historical plans.','weapons':'Not fitted yet; authored game calibration will be documented.'}}
-# Preserve equipment authored in the blueprint while this hull/structure helper evolves.
+# Preserve equipment authored in the blueprint while this hull/structure helper evolves,
+# and the gameplay profiles the fleet helpers wrote (local damage, damage control, room
+# fires and support machinery), so a hull or structure revision does not reset them.
 old=json.loads((DIR/'blueprint.json').read_text())
 if old.get('configuration','').startswith('GameModels3D'):
- for key in ['mounts','torpedoLaunchers','torpedoTubes','rig','mountClearance']:
+ for key in ['mounts','torpedoLaunchers','torpedoTubes','rig','mountClearance','localDamage','damageControl']:
   if key in old:D[key]=old[key]
-(DIR/'blueprint.json').write_text(json.dumps(D,indent=2)+'\n')
+ fires={c['id']:c['fire'] for c in old.get('compartments',[]) if 'fire' in c}
+ for c in D['compartments']:
+  if c['id'] in fires:c['fire']=fires[c['id']]
+ D['modules']+=[m for m in old.get('modules',[]) if m['id'].startswith('support-')]
+# Written as the repository's JSON tooling writes it: whole numbers without a decimal point.
+def js(o):return {k:js(v) for k,v in o.items()} if isinstance(o,dict) else [js(v) for v in o] if isinstance(o,list) else int(o) if isinstance(o,float) and o.is_integer() else o
+(DIR/'blueprint.json').write_text(json.dumps(js(D),indent=2,ensure_ascii=False)+'\n')
