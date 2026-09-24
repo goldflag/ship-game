@@ -4,9 +4,13 @@ Rounded placement interpretations of the approved visual fit; game calibration
 and finite stocks use existing systems, without claiming source-invisible data.
 """
 import json,math
-from platforms import install
+from platforms import install,RAIL_X
 from pathlib import Path
 D=Path(__file__).resolve().parents[1];p=D/'blueprint.json';b=json.loads(p.read_text());mounts=[]
+# The quarterdeck singles stand on the weather deck: seat them on the loft's deck line.
+def quarterdeck(x):
+ t=[(s['station'],s['points'][-1][1]) for s in b['hull']['sections']];st=x+101.4
+ return round(next(v+(w-v)*(st-a)/(c-a) for (a,v),(c,w) in zip(t,t[1:]) if a<=st<=c)+.03,3)
 def mount(id,name,part,x,y,z,bearing=0,battery='secondary',rf=False,sector=180):
  mounts.append(dict(id=id,name=name,partId=part,battery=battery,position=[-y,z,round(-x+1.3,4)],bearingDeg=bearing,rangefinder=rf,traverseDeg=sector,magazineId='forward-magazine' if x>0 else 'aft-magazine',fire=dict(fuelSeconds=65,ignitionHeat=.6,heatPerDamage=.014)))
 for id,x,z,rf,bearing in [('anton',61.6,5.5,False,0),('bruno',50.9,8.1,True,0),('caesar',-49.1,8.2,True,180),('dora',-59.8,5.5,False,180)]:
@@ -15,7 +19,7 @@ for side,y,angle in [('port',1,270),('starboard',-1,90)]:
  for i,(x,w,z) in enumerate([(31.7,8.4,7.1),(-10.4,8.3,4.5),(-28.7,7.4,7.2)]):mount(f'{side}-105-{i+1}',f'{side.title()} 105 mm {i+1}','skc33-105-c31-twin',x,y*w,z,angle,sector=90)
  for i,(x,w,z) in enumerate([(-26.3,4.5,10.1),(-39,3,9.7)]):mount(f'{side}-37-{i+1}',f'{side.title()} 37 mm {i+1}','flak-37-bismarck-1941',x,y*w,z,angle,sector=95)
  for i,(x,w,z) in enumerate([(22,2.9,25),(5.5,3,16.2),(-30.6,2.8,11.8),(-42.5,5.3,7.2)]):mount(f'{side}-20-twin-{i+1}',f'{side.title()} twin 20 mm {i+1}','flak38-m43u-20-twin',x,y*w,z,angle,sector=100)
- for i,(x,w,z) in enumerate([(-40,6.4,7.2),(-88.4,3.6,4.9),(-93.2,2.5,4.9)]):mount(f'{side}-20-{i+1}',f'{side.title()} single 20 mm {i+1}','flak38-20-single',x,y*w,z,angle,sector=100)
+ for i,(x,w,z) in enumerate([(-40,6.4,7.2),(-88.4,3.6,quarterdeck(-88.4)),(-93.2,2.5,quarterdeck(-93.2))]):mount(f'{side}-20-{i+1}',f'{side.title()} single 20 mm {i+1}','flak38-20-single',x,y*w,z,angle,sector=100)
  for i,(x,w,z) in enumerate([(43.3,5.6,7.1),(36,6,9.4)]):mount(f'{side}-40-{i+1}',f'{side.title()} 40 mm {i+1}','flak28-40-single',x,y*w,z,angle,sector=100)
 mount('forecastle-40','Forecastle 40 mm','flak28-40-single',80.9,0,5.3,0,sector=130)
 mount('tower-40','Tower forward 40 mm','flak28-40-single',28.6,0,22.5,0,sector=100)
@@ -82,15 +86,17 @@ def ordinate(table,x):
   if a<=station<=c:return v+(w-v)*(station-a)/(c-a)
  return table[-1][1]
 def deck(x):return ordinate(b['hull']['deckHeights'],x)
+# Rails stand at the deck edge, which is narrower than the bilge and belt breadths.
+edges=[[s['station'],s['points'][-1][0]] for s in b['hull']['sections']]
 for side in [-1,1]:
  # Only the low forward/aft batteries can depress onto the weather-deck rails.
  for lo,hi in [(-101.4,-48),(50,104)]:
-  xs=[lo]+[station-101.4 for station,w in b['hull']['halfBreadths'] if lo<station-101.4<hi]+[hi]
+  xs=[lo]+[x for x in RAIL_X if lo<x<hi]+[hi]
   for i,(a,c) in enumerate(zip(xs,xs[1:])):
-   ya,yc=[side*max(0,ordinate(b['hull']['halfBreadths'],x)-.14) for x in [a,c]]
+   ya,yc=[side*max(0,ordinate(edges,x)-.14) for x in [a,c]]
    fixed(f'weather-rail-{side}-{lo}-{i}',(a,ya,min(deck(a),deck(c))+.04),(c,yc,max(deck(a),deck(c))+.94))
  for x in [83,88]:fixed(f'capstan-{side}-{x}',(x-.68,side*2.25-.68,deck(x)),(x+.68,side*2.25+.68,deck(x)+.90),0)
- fixed(f'aft-mooring-reel-{side}',(-69.65,side*5.5-.70,4.95),(-68.35,side*5.5+.70,6.05),0)
+ fixed(f'aft-mooring-reel-{side}',(-69.65,side*5.5-.70,deck(-69)),(-68.35,side*5.5+.70,deck(-69)+1.1),0)
  for i in range(6):
   ya=side*(.8+i*.85);yc=side*(.8+(i+1)*.85);xa=73.5-abs(ya)*.8;xc=73.5-abs(yc)*.8
   fixed(f'breakwater-{side}-{i}',(xa,ya,deck(xa)),(xc,yc,deck(xa)+.85),.04)

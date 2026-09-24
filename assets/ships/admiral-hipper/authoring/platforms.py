@@ -1,5 +1,9 @@
 """Original platform floors shared by visual construction and combat clearance."""
 import math
+# Weather-deck guardrail breakpoints (auxiliary +1.3 m datum): the stations of the
+# original coarse loft, kept so the rails and their clearance proxies keep their IDs
+# now that the measured loft has far denser stations.
+RAIL_X=[-101.4,-101.1,-100.6,-100.0,-99.0,-97.0,-95.0,-90.0,-84.0,-79.0,-74.0,-69.0,-64.0,-59.0,-54.0,-44.0,-34.0,-24.0,-14.0,-4.0,6.0,16.0,26.0,36.0,46.0,56.0,66.0,76.0,86.0,92.0,96.0,98.0,100.0,101.0,102.0,103.0,104.0]
 # Auxiliary +1.3 m longitudinal datum, converted on blueprint insertion.
 FWD_105=[(27.6,6.8),(27.6,9.8),(28.5,9.8),(29.3,10.55),(31,11.4),(32.8,11.4),(34,10.6),(35,9.55),(36.5,8.65),(36.5,6.8)]
 AFT_105=[(-33,6.5),(-32,9.3),(-31,10.13),(-27,10.2),(-26,10.1),(-24,7.7),(-24,5.5)]

@@ -1,42 +1,38 @@
 """Original editable hull stations and structure polygons for the approved Hipper fit.
 
-Measurements are rounded visual interpretations in metres. This authoring helper
-reads no external model, image or transform; the blueprint is the runtime contract.
+Structure polygons are rounded visual interpretations in metres. The hull stations come
+from lines.json, control-station offsets measured like a lines plan from the approved
+GameModels3D pgsc108 viewing reference; this helper reads no reference mesh or texture,
+and the blueprint is the runtime contract.
 """
 import json,math
 from pathlib import Path
 DIR=Path(__file__).resolve().parents[1]
-L=205.4
+lines=json.loads(Path(__file__).with_name('lines.json').read_text())
+L=lines['length'];LOW,HIGH,H0=lines['LOW'],lines['HIGH'],lines['H0']
 # Reference hull endpoint alignment: the source stern staff projects behind the
 # physical shell. Authoring measurements below use a +1.3 m auxiliary datum;
 # the compiled blueprint is centered on the original physical hull.
 ORIGIN=1.3
-world_outline=[(-101.4,0),(-101.1,.95),(-100.6,1.68),(-100,2.25),(-99,2.95),(-97,3.72),(-95,4.25),(-90,5.25),(-84,6.20),(-79,6.84),(-74,7.45),(-69,7.98),(-64,8.47),(-59,8.91),(-54,9.28),(-44,9.75),(-34,10.02),(-24,10.28),(-14,10.43),(-4,10.56),(6,10.56),(16,10.43),(26,10.30),(36,9.87),(46,9.43),(56,8.72),(66,7.72),(76,6.58),(86,5.02),(92,4.02),(96,3.28),(98,2.62),(100,2.0),(101,1.62),(102,1.23),(103,.72),(104,0)]
-outline=[(round(x+101.4,4),w) for x,w in world_outline]
-def stations(points):return [(round(x+101.4,4),h) for x,h in points]
-deck=stations([(-101.4,4.95),(-79,4.94),(-54,4.78),(-4,4.51),(24,4.64),(40,4.70),(50,4.78),(55,4.84),(61,4.885),(67,4.965),(70,5.01),(75,5.17),(80,5.36),(86,5.70),(90,5.93),(94,6.22),(98,6.58),(100,6.77),(102,6.98),(104,7.32)])
-keel=stations([(-101.4,4.95),(-100,3.10),(-99,.90),(-96,-1.20),(-92,-2.18),(-88,-2.6),(-84,-3.1),(-80,-3.7),(-76,-5.7),(-72,-6.7),(-64,-7.74),(96,-7.74),(99,-7.74),(100,-7.7),(101,-5.4),(102,-.80),(103,3.80),(104,7.32)])
-def interp(tab,s):
- for (a,v),(b,w) in zip(tab,tab[1:]):
-  if a<=s<=b:return v+(w-v)*(s-a)/(b-a)
- return tab[-1][1]
-sections=[]
-# Preserve sheer and keel breakpoints in the loft itself, as well as its
-# nominal height tables, so the deck mesh follows the same editable curve.
-for s in sorted(set(p[0] for tab in [outline,deck,keel] for p in tab)):
- w=interp(outline,s)
- k,t=interp(keel,s),interp(deck,s)
- # Full rounded bilges amidships, finer stern run and increasing bow flare.
- # The source's maximum underwater beam lies below the waterline; keeping
- # the lower control points near the keel avoids an erroneous V-shaped body.
- flare=max(0,min(1,(s-165)/43));stern=max(0,1-s/35)
- x=s-101.4
- fullness=max(0,min(1,(x+55)/40,(95-x)/80))
- fine=[0,.05,.23,.42,.73,.92,.96,.96,.98,1]
- full=[0,.38,.65,.77,.91,1,1,.966,.95,1]
- heights=[0,.015,.055,.09,.19,.385,.475,.63,.82,1]
- factors=[((a+(b-a)*fullness)*(1-flare*.30*(1-h)),h) for a,b,h in zip(fine,full,heights)]
- sections.append({'station':s,'points':[[round(w*wf*(1-.06*stern*(1-hf)),4),round(k+(t-k)*hf,4)] for wf,hf in factors]})
+def levels(keel,deck):
+ # Twenty levels from the keel to the belt knuckle, four from it to the deck edge,
+ # so the waist above the belt keeps its own points at every station.
+ h0=H0 if keel<H0-1 else keel+(deck-keel)*.75
+ return [keel+(h0-keel)*u for u in LOW]+[h0+(deck-h0)*u for u in HIGH]
+rows=sorted(lines['rows'],key=lambda r:-r[0])
+stern_row,bow_row=rows[0],rows[-1]
+# The shell closes on the centreline at both ends: the counter above the last
+# measured stern station and the stem head ahead of the first bow station.
+sections=[{'station':0,'points':[[0,round(y,4)] for y in levels(min(stern_row[1]+.2,stern_row[2]-.15),stern_row[2])]}]
+for z,k,d,ws in rows:
+ sections.append({'station':round(L/2-z,4),'points':[[round(w,4),round(y,4)] for w,y in zip(ws,levels(k,d))]})
+sections.append({'station':L,'points':[[0,round(y,4)] for y in levels(bow_row[2]-.8,bow_row[2]+.03)]})
+outline=[(s['station'],round(max(p[0] for p in s['points']),4)) for s in sections]
+deck=[(s['station'],s['points'][-1][1]) for s in sections]
+keel=[(s['station'],s['points'][0][1]) for s in sections]
+BEAM=round(2*max(w for s,w in outline)+.002,3)
+DRAFT=round(-min(k for s,k in keel),3)
+DEPTH=round(max(d for s,d in deck)+DRAFT,3)
 def shape(id,name,pts,base,top,material='naval',roof=None):
  d={'id':id,'name':name,'footprint':[[-y,round(-x+ORIGIN,4)] for x,y in pts],'baseY':base,'height':round(top-base,4),'material':material}
  if roof:
@@ -91,7 +87,7 @@ for i,(x,l,w) in enumerate([(-82,24,6),(-58,20,10),(-36,22,14),(-12,24,16),(14,2
   mid=('aft-magazine' if i==1 else 'forward-magazine') if kind=='magazine' else f'{kind}-{i+1}'
   modules.append({'id':mid,'name':mid.replace('-',' ').title(),'kind':kind,'center':[0,-1,-x+ORIGIN],'size':[max(2,w-2),5,l-4],'hp':300 if kind=='engine' else 180,'compartmentId':cid})
 D={'schemaVersion':1,'id':'admiral-hipper','name':'Admiral Hipper','configuration':'GameModels3D A fit · source asset hipper_1943 · plain finish','coordinates':'meters-y-up-bow-negative-z','modelUrl':'/models/admiral-hipper.glb',
-'hull':{'kind':'authored-stations-v1','length':L,'beam':21.12,'draft':7.74,'depth':15.06,'massKg':18500000,'waterplaneAreaM2':3350,'reserveBuoyancyM3':10000,'halfBreadths':outline,'deckHeights':deck,'keelHeights':keel,'sections':sections},
+'hull':{'kind':'authored-stations-v1','length':L,'beam':BEAM,'draft':DRAFT,'depth':DEPTH,'massKg':18500000,'waterplaneAreaM2':3350,'reserveBuoyancyM3':10000,'halfBreadths':outline,'deckHeights':deck,'keelHeights':keel,'sections':sections},
 'handling':{'forwardSpeed':16.46,'reverseSpeed':4,'acceleration':.14,'braking':.18,'rudderRate':.18,'maxYawRate':.020},'mounts':[], 'structures':structures,
 'armor':[],'structuralPlating':{'hullMm':18,'superstructureMm':10,'note':'Provisional game steel thicknesses; visual model does not establish armor specifications.'},
 'compartments':comp,'modules':modules,'connections':[{'fromId':comp[i]['id'],'toId':comp[i+1]['id'],'areaM2':.045,'state':'closed'} for i in range(len(comp)-1)],'obstructions':[],

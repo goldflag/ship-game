@@ -22,7 +22,7 @@ for name in ['Hull','Deck','Superstructure','Guns','Masts','Fittings','Underwate
  col=bpy.data.collections.new(name);scene.collection.children.link(col);C[name]=col
 COL=C['Hull'];OWNER='hull'
 sys.path.insert(0,str(Path(__file__).parent/'authoring'))
-from platforms import PLATFORMS
+from platforms import PLATFORMS,RAIL_X
 platform_ids={p[0] for p in PLATFORMS}
 appearance=json.loads(Path(__file__).with_name('appearance.json').read_text())
 colors={'canvas':(.35,.34,.29),'dark':(.015,.02,.024),'strip':(.40,.31,.15),'bronze':(.42,.33,.13),'glass':(.023,.04,.045),'white':(.65,.63,.58),'rope':(.18,.16,.12)}
@@ -65,6 +65,9 @@ def interp(points,s):
  return points[0][1] if s<points[0][0] else points[-1][1]
 def deck(x):return interp(H['deckHeights'],x+L/2)
 def width(x):return interp(H['halfBreadths'],x+L/2)
+# The deck edge, not the widest waterline or bilge breadth, carries rails and deck gear.
+EDGE=[(s['station'],s['points'][-1][0]) for s in H['sections']]
+def edge(x):return interp(EDGE,x+L/2)
 def attach(o,parent,keep=False):
  if keep:
   bpy.context.view_layer.update();world=o.matrix_world.copy();o.parent=parent;o.matrix_parent_inverse=Matrix.Identity(4);o.matrix_world=world
@@ -97,8 +100,8 @@ for a,b in zip(H['sections'],H['sections'][1:]):
 # The source has open launching bays in the weather-deck guardrails.
 for side in [-1,1]:
  for lo,hi in [(-L/2,-27.3),(-16.8,-13.85),(-9.6,15.2),(25.9,L/2)]:
-  xs=[lo]+[station-L/2 for station,w in H['halfBreadths'] if lo<station-L/2<hi]+[hi]
-  pts=[(x,side*max(0,width(x)-.14),deck(x)+.04) for x in xs]
+  xs=[lo]+[x-1.3 for x in RAIL_X if lo<x-1.3<hi]+[hi]
+  pts=[(x,side*max(0,edge(x)-.14),deck(x)+.04) for x in xs]
   rails('Weather deck rail',pts,h=.90,spacing=2.0)
 COL=C['Superstructure']
 for s in D['structures']:
@@ -236,30 +239,62 @@ def underwater_seat(x,y):
  if not hit:raise ValueError('Underwater fitting has no hull seat')
  return point.z+.10
 
-for x,y,z,hand in [(-79.7,0,-6.6,-1),(-76.6,-5.7,-5.45,-1),(-76.6,5.7,-5.45,1)]:
- rod('Propeller shaft',(x+18,y*.72,z+1),(x,y,z),.17,'edge',vertices=20)
- rod('Shaft bearing',(x+1.6,y,z),(x-.25,y,z),.41,'underwater',vertices=24)
- rod('Bearing forward taper',(x+1.6,y,z),(x+2.05,y,z),.41,'underwater',r2=.17,vertices=24)
- # The visible source uses broad, streamlined webs, not exposed rod braces.
- # Each web penetrates the original hull slightly at every top vertex.
- section=[(-.55,0),(-.3,-.17),(.55,-.13),(.90,0),(.55,.13),(-.3,.17)]
- verts=[(x+1.05+dx,y+dy,z+.12) for dx,dy in section]
- verts += [(x+1.55+dx,y+dy,underwater_seat(x+1.55+dx,y+dy)) for dx,dy in section]
- mesh('Shaft support web',verts,[tuple(reversed(range(6))),tuple(range(6,12))]+[(i,(i+1)%6,(i+1)%6+6,i+6) for i in range(6)],'underwater')
- # Hull-integrated fairing over the forward shaft entry.
- verts=[]
- for dx,r in [(8,.48),(12,.40),(18,.12)]:
-  yy=y*(1-.28*dx/18);zz=z+dx/18
-  verts += [(x+dx,yy-r,underwater_seat(x+dx,yy-r)),(x+dx,yy-r,zz-.05),(x+dx,yy,zz-r),(x+dx,yy+r,zz-.05),(x+dx,yy+r,underwater_seat(x+dx,yy+r))]
- mesh('Shaft entry fairing',verts,[tuple(reversed(range(5))),tuple(range(10,15))]+[(j*5+i,j*5+(i+1)%5,(j+1)*5+(i+1)%5,(j+1)*5+i) for j in range(2) for i in range(5)],'underwater',smooth=True)
+# Wing screws at the reference's starboard screw (4.1 m across); the centre screw
+# keeps its smaller disc above the keel line at the end of the centre skeg.
+for x,y,z,hand,size in [(-79.7,0,-6.6,-1,1.0),(-78.05,-5.73,-5.12,-1,1.18),(-78.05,5.73,-5.12,1,1.18)]:
+ if y==0:
+  # The centre shaft runs out of the skeg's boss: a broad web and a fairing.
+  rod('Propeller shaft',(x+18,y*.72,z+1),(x,y,z),.17,'edge',vertices=20)
+  rod('Shaft bearing',(x+1.6,y,z),(x-.25,y,z),.41,'underwater',vertices=24)
+  rod('Bearing forward taper',(x+1.6,y,z),(x+2.05,y,z),.41,'underwater',r2=.17,vertices=24)
+  # Each web penetrates the original hull slightly at every top vertex.
+  section=[(-.55,0),(-.3,-.17),(.55,-.13),(.90,0),(.55,.13),(-.3,.17)]
+  verts=[(x+1.05+dx,y+dy,z+.12) for dx,dy in section]
+  verts += [(x+1.55+dx,y+dy,underwater_seat(x+1.55+dx,y+dy)) for dx,dy in section]
+  mesh('Shaft support web',verts,[tuple(reversed(range(6))),tuple(range(6,12))]+[(i,(i+1)%6,(i+1)%6+6,i+6) for i in range(6)],'underwater')
+  verts=[]
+  for dx,r in [(8,.48),(12,.40),(18,.12)]:
+   yy=y*(1-.28*dx/18);zz=z+dx/18
+   verts += [(x+dx,yy-r,underwater_seat(x+dx,yy-r)),(x+dx,yy-r,zz-.05),(x+dx,yy,zz-r),(x+dx,yy+r,zz-.05),(x+dx,yy+r,underwater_seat(x+dx,yy+r))]
+  mesh('Shaft entry fairing',verts,[tuple(reversed(range(5))),tuple(range(10,15))]+[(j*5+i,j*5+(i+1)%5,(j+1)*5+(i+1)%5,(j+1)*5+i) for j in range(2) for i in range(5)],'underwater',smooth=True)
+ else:
+  # Wing shafts leave their hull bossings about 12 m ahead of the screw nearly
+  # parallel to the keel, carried by a V bracket 2.5-3.5 m ahead of the screw.
+  sy=math.copysign(1,y);start=(x+13,y*.955,z-.30)
+  rod('Propeller shaft',start,(x,y,z),.17,'edge',vertices=20)
+  rod('Shaft bearing',(x+.9,y,z),(x-.25,y,z),.36,'underwater',vertices=24)
+  rod('Bearing forward taper',(x+.9,y,z),(x+1.3,y,z),.36,'underwater',r2=.17,vertices=24)
+  bx=x+3.0;by=y*(1-.02*3.0/13);bz=z-.30*3.0/13
+  rod('V bracket boss',(bx+.65,by,bz),(bx-.65,by,bz),.30,'underwater',vertices=20)
+  for tag,lat in [('inboard',.50),('outboard',1.05)]:
+   ey=by*lat;ez=underwater_seat(bx,ey)
+   for dx in [-.35,.35]:
+    rod('V bracket '+tag+' arm',(bx+dx,by,bz),(bx+dx*.8,ey,ez),.085,'underwater',r2=.11,vertices=10)
  rod('Propeller boss',(x+.3,y,z),(x-.85,y,z),.36,'bronze',r2=.15,vertices=24)
  for i in range(3):
-  a=i*math.tau/3;vs=[(x+dx,y+r*math.cos(a+hand*angle),z+r*math.sin(a+hand*angle)) for r,angle,dx in [(.25,0,0),(.90,.1,.03),(1.65,.3,-.12),(1.70,.68,-.28),(1.0,.91,-.4),(.3,.7,-.2)]]
+  a=i*math.tau/3;vs=[(x+dx*size,y+r*size*math.cos(a+hand*angle),z+r*size*math.sin(a+hand*angle)) for r,angle,dx in [(.25,0,0),(.90,.1,.03),(1.65,.3,-.12),(1.70,.68,-.28),(1.0,.91,-.4),(.3,.7,-.2)]]
   o=mesh('Original screw blade',vs,[tuple(range(6))],'bronze');m=o.modifiers.new('Blade thickness','SOLIDIFY');m.thickness=.055
-rod('Rudder stock',(-85.1,0,-1.3),(-85.1,0,-4.5),.18,'edge')
-rudder_outline=[(-83.9,-2.8),(-89.35,-2.8),(-89.6,-3.05),(-89.6,-5.98),(-89.3,-6.3),(-84.2,-6.3),(-83.9,-6.02)]
-verts=[(x,y,z) for y in [-.22,.22] for x,z in rudder_outline]
+rod('Rudder stock',(-85.3,0,-1.3),(-85.3,0,-4.5),.18,'edge')
+# The blade's top edge follows the rising run of the counter above it; the
+# streamlined section is thick at its leading edge and thin at the trailing edge.
+rudder_outline=[(-84.1,-3.05),(-89.25,-2.4),(-89.5,-2.65),(-89.5,-6.42),(-89.2,-6.72),(-84.4,-6.72),(-84.1,-6.44)]
+verts=[(x,y*(.36-.24*(-84.1-x)/5.4),z) for y in [-1,1] for x,z in rudder_outline]
 mesh('Rudder blade',verts,[tuple(reversed(range(7))),tuple(range(7,14))]+[(i,(i+1)%7,(i+1)%7+7,i+7) for i in range(7)],'underwater')
+# Bilge keels: thin plates standing out square from the turn of the bilge between
+# the forward and after machinery spaces, their tips read from the reference.
+TIPS=[(-30,9.02,-6.18),(-28,9.13,-6.30),(-24,9.23,-6.42),(-20,9.33,-6.52),(-16,9.41,-6.61),(-12,9.45,-6.66),(-8,9.49,-6.70),(-4,9.52,-6.74),(0,9.55,-6.78),(4,9.52,-6.73),(8,9.48,-6.68),(12,9.44,-6.62),(16,9.34,-6.49),(20,9.24,-6.37),(22,9.17,-6.29)]
+for side in [-1,1]:
+ verts=[];n=len(TIPS)
+ for i,(zr,tx,ty) in enumerate(TIPS):
+  # Our loft is centred; the runtime z of a tip is -x of the centred frame.
+  cx=-zr;d=Vector((0,-side*.70710678,.70710678))
+  tip=Vector((cx,side*tx,ty));hit,point,normal,index=hull.ray_cast(tip,d)
+  if not hit:raise ValueError('Bilge keel has no hull seat')
+  root=point+d*.06
+  if i in (0,n-1):tip=root-d*.12
+  verts += [(root.x+1.3,root.y,root.z),(tip.x+1.3,tip.y,tip.z)]
+ faces=[(2*i,2*i+2,2*i+3,2*i+1) if side>0 else (2*i,2*i+1,2*i+3,2*i+2) for i in range(n-1)]
+ o=mesh('Bilge keel',verts,faces,'underwater');m=o.modifiers.new('Plate thickness','SOLIDIFY');m.thickness=.05;m.offset=0
 # Ship-owned mounting platforms, with real columns/knees beneath overhangs.
 COL=C['Superstructure'];OWNER='gun-platforms'
 for side in [-1,1]:
@@ -363,7 +398,7 @@ for side in [-1,1]:
  f.stairs('Forward shelter stairs',(48,side*6.3,4.8),(45.1,side*6.3,7.12))
  f.stairs('Aft shelter stairs',(-49,side*4.3,4.8),(-45.5,side*5.6,7.2))
  f.reel('Shelter hose reel',23.1,side*7.5,7.12,.40,.85)
- f.reel('Aft mooring reel',-69.0,side*5.5,4.95,.43,1.05)
+ f.reel('Aft mooring reel',-69.0,side*5.5,deck(-70.3),.43,1.05)
 # Hull portholes at source-like two rows, with their sides attached to the loft.
 OWNER='hull-fittings'
 def side_width(x,z):
@@ -383,7 +418,7 @@ for side in [-1,1]:
    f.ring('Hull porthole lip',(x,side*(yy+.07),z),.15,.018,'y',segments=12)
  # Mooring bitts and chocks follow the deck's original beam curve.
  for x in [-97,-89,-76,-62,65,78,91,98]:
-  yy=side*(width(x-1.3)-.65);zz=deck(x-1.3)
+  yy=side*(edge(x-1.3)-.65);zz=deck(x-1.3)
   box('Bollard base',(x,yy,zz+.055),(1.4,.75,.11),'edge')
   for dx in [-.43,.43]:cyl('Mooring bollard',(x+dx,yy,zz+.36),.16,.58,'edge');cyl('Bollard cap',(x+dx,yy,zz+.67),.20,.075,'edge')
  # Anchor handling from the forecastle capstans into the hawse openings.
